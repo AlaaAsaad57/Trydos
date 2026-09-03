@@ -147,11 +147,13 @@ class CartService {
       if (!response.success) {
         throw new Error(response.message);
       }
+      return true;
     } catch (err) {
       LogServerError({
         error: err,
         scenario: "Error In ConvertToOldCart in services/cart",
       });
+      return false;
     }
   }
 }

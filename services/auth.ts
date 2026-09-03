@@ -72,6 +72,7 @@ const refreshKeyFor = (server?: string) =>
 class AuthService {
   private async getServiceUsersFromCookies() {
     const data = await fetchAuthMe();
+    console.log("[UpdateProfile] 3a. raw /api/auth/me", data);
     return {
       chatUser: data?.chatUser ?? null,
       storiesUser: data?.storiesUser ?? null,
@@ -614,6 +615,16 @@ class AuthService {
       loginSuccessWallet,
       language,
     } = useAppStore.getState();
+    console.log("[UpdateProfile] 1. called with", {
+      userObj,
+      previousUserObj,
+    });
+    console.log("[UpdateProfile] 2. store", {
+      userProfile,
+      userChat,
+      userStories,
+      userWallet,
+    });
     let market_done = false,
       chat_done = false,
       stories_done = false,
@@ -679,8 +690,26 @@ class AuthService {
         chatUser: chatUserFromCookies,
         storiesUser: storiesUserFromCookies,
       } = await this.getServiceUsersFromCookies();
+      console.log("[UpdateProfile] 3. /api/auth/me cookies", {
+        chatUserFromCookies,
+        storiesUserFromCookies,
+      });
       const effectiveUserStories = userStories ?? storiesUserFromCookies;
       const effectiveUserChat = userChat ?? chatUserFromCookies;
+      console.log("[UpdateProfile] 4. gates", {
+        effectiveUserStories,
+        effectiveUserChat,
+        willCallStories: Boolean(effectiveUserStories),
+        willCallChat: Boolean(effectiveUserChat),
+        chatUserIdUsedInUrl: this.UserID(),
+      });
+
+      if (!effectiveUserStories) {
+        console.log("[UpdateProfile] 4a. SKIPPED stories - no stories user");
+      }
+      if (!effectiveUserChat) {
+        console.log("[UpdateProfile] 4b. SKIPPED chat - no chat user");
+      }
 
       if (effectiveUserStories) {
         let res = await fetchData({
@@ -697,6 +726,7 @@ class AuthService {
             ),
           }),
         });
+        console.log("[UpdateProfile] 5. stories response", res);
         if (!res.success) {
           throw new Error(res.message);
         }
@@ -730,6 +760,7 @@ class AuthService {
             ),
           }),
         });
+        console.log("[UpdateProfile] 6. chat response", chat_update);
         if (!chat_update.success) {
           throw new Error(chat_update.message);
         }
@@ -760,6 +791,7 @@ class AuthService {
         method: "POST",
         server: "market",
       });
+      console.log("[UpdateProfile] 7. core response", res);
       if (!res.success) {
         throw new Error(res.message);
       }
@@ -790,6 +822,7 @@ class AuthService {
           userObj?.image !== undefined ? userObj.image : userProfile?.image,
         ),
       };
+      console.log("[UpdateProfile] 8. writing local copy", marketUpdate);
       editUserInfo(marketUpdate);
       updateSecureUserData([
         { name: COOKIE_NAMES.USER_DATA, value: marketUpdate },
@@ -798,6 +831,14 @@ class AuthService {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       return res;
     } catch (error) {
+      console.log("[UpdateProfile] 9. FAILED", {
+        error,
+        message: (error as any)?.message,
+        market_done,
+        chat_done,
+        stories_done,
+        wallet_done,
+      });
       LogServerError({
         error: error,
         scenario: "Error In UpdateProfile in services/auth",

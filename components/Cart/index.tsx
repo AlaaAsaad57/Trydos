@@ -634,13 +634,17 @@ export const QuantutyInput = ({
   const ConvertToOldCart = async () => {
     try {
       setLoading(true);
+      const moved = await cartService.ConvertToOldCart({ cart_item: id });
+      setLoading(false);
+      // The row is only taken off the cart page once the core backend says it
+      // really moved it. Deleting it either way left the item in neither list
+      // until the shopper reloaded, and reported a move that never happened.
+      if (!moved) return;
       trackOrder(ORDER_EVENTS.CART_ITEM_MOVED_TO_OLD, {
         product_id: product?.product_id ?? id,
         item_name: product?.name,
         variant: product?.variant,
       });
-      await cartService.ConvertToOldCart({ cart_item: id });
-      setLoading(false);
       removeFromCart(id);
       await getOldCart();
     } catch (error) {

@@ -375,10 +375,17 @@ function AddToCartButton({
       } else if (isVariantInCart({ exact: true })?.quantity === 1) {
         setLoading(true);
         animateButton();
-        await cart.RemoveFromCart({
+        const removed = await cart.RemoveFromCart({
           cart_item: isVariantInCart({ exact: true }),
           isFromAddWidget: true,
         });
+        // RemoveFromCart reports a refusal now rather than throwing on one.
+        // Without this check everything below runs on a removal that never
+        // happened: analytics and the order funnel are told the item went, and
+        // the shopper is shown "Removed From Your Bag" over an item still in it.
+        if (removed === false) {
+          throw new Error("the core backend did not remove the item");
+        }
         GAevent({
           action: GA_EVENT_NAMES.REMOVE_FROM_CART,
           params: {

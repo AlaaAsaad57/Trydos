@@ -404,11 +404,26 @@ const useCartStore = (set, get) => ({
       cart: state.cart.filter((s) => s.id !== id),
       localCart: state.localCart.filter((s) => s.item_id !== id),
     })),
-  errRemoveFromCart: ({ local_cart_item, cart_item }) =>
-    set((state) => ({
-      cart: [...state.cart, cart_item],
-      local_cart: [...state.local_cart, local_cart_item],
-    })),
+  // Undo a removal the core backend refused. The only caller is
+  // services/cart.ts, and it passes the cart item itself — not a pair of
+  // fields, and not a `local_cart` list, which never existed in this store.
+  //
+  // Only one of the two screens needs undoing. The cart page deletes the row
+  // before it calls the service, so a refusal has to put the row back. The
+  // add-to-cart widget waits for the answer, so nothing was ever removed and
+  // putting the row back would list it twice.
+  //
+  // `localCart` says which case this is. `removeFromCart` clears the row from
+  // both lists together, so a row still in `localCart` was never removed.
+  errRemoveFromCart: (cart_item) =>
+    set((state) => {
+      if (state.localCart.some((s) => s.item_id === cart_item?.item_id))
+        return {};
+      return {
+        cart: [...state.cart, cart_item],
+        localCart: [...state.localCart, cart_item],
+      };
+    }),
   setCartLoading: (loading) => set({ cart_loading: loading }),
 
   enableCart: (enable) => {
