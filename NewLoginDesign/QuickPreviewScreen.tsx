@@ -404,11 +404,15 @@ export default function QuickPreviewScreen({
                   * this the pill stood still and only the words inside it faded
                   * up and down, which is a cross-fade, not a flip.
                   *
-                  * The pill is also only as wide as its own line now. The old
-                  * `min-w-[270px]` held every short slogan out to the width of
-                  * the longest one, and it was raw px on a screen that is
-                  * otherwise all design px, so it did not shrink with the
-                  * canvas. The mock shows a pill hugging its text.
+                  * The pill is only as wide as its own line. The design draws
+                  * the slogan as a positioned text with 12px of pill on each
+                  * side of it, so every slogan gets its own width and the
+                  * words sit in the middle. The old fixed 206 was the width of
+                  * one slogan, and the 12px left padding with no right padding
+                  * pushed every other slogan off centre.
+                  *
+                  * The words are #1D1D1D and only the full stops are purple —
+                  * that is what the design's ranged styles say.
                   *
                   * The wrapper carries the height, not the pill alone. With
                   * `mode="wait"` there is a moment between the two pills where
@@ -428,18 +432,20 @@ export default function QuickPreviewScreen({
                             animate={{ rotateX: 0, opacity: 1 }}
                             exit={{ rotateX: 90, opacity: 0 }}
                             transition={{ duration: 0.3, ease: 'easeOut' }}
-                            className="flex items-center whitespace-nowrap"
+                            className="flex items-center justify-center whitespace-nowrap"
                             style={{
                                 transformOrigin: 'center',
                                 backfaceVisibility: 'hidden',
-                                width: XD.quickPreview.pill.width,
+                                width: 'fit-content',
                                 height: XD.quickPreview.pill.height,
+                                lineHeight: `${XD.quickPreview.pill.height}px`,
                                 borderRadius: XD.quickPreview.pill.radius,
                                 backgroundColor: '#F8F7FF',
-                                paddingLeft: 12,
+                                paddingLeft: XD.quickPreview.pill.paddingX,
+                                paddingRight: XD.quickPreview.pill.paddingX,
                             }}
                         >
-                            <span className="text-xd-14 font-normal text-[#4A31E7]">
+                            <span className="text-xd-14 font-normal text-[#1D1D1D] text-center">
                                 {FLIP_LABELS[flipTextIndex](translate)}
                             </span>
                         </motion.div>

@@ -122,7 +122,13 @@ export const XD = {
 
     /** Quick preview only. */
     quickPreview: {
-        pill: { top: 56, width: 206, height: 30, radius: 12 },
+        /**
+         * The slogan pill. The design draws it as a positioned text with 12px
+         * of pill on each side, so the pill hugs its own line: 206 wide for
+         * '. Your new shopping buddy .', a different width for every other
+         * slogan. There is no fixed width to copy.
+         */
+        pill: { top: 56, paddingX: 12, height: 30, radius: 12 },
         logo: 98,
         title: 268,
         card: { top: 326, height: 473 },
