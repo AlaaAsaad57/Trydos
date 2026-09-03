@@ -86,7 +86,10 @@ const STEP_LOGO_SLOT: Record<AuthStep, LogoSlotId> = {
  * than one sitting. Losing every choice on a refresh is what made the old
  * single picker tiring to use.
  */
-const STORAGE_KEY = 'trydos.logoDemoConfig';
+// The suffix is bumped whenever the signed-off defaults change. A save from
+// before the change would otherwise win over the new defaults, and the demo
+// would keep playing the old picks with nothing on screen to say why.
+const STORAGE_KEY = 'trydos.logoDemoConfig.v2';
 
 /**
  * Read the saved picks, filling in anything the file does not carry.

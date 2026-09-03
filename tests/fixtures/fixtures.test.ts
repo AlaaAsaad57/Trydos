@@ -17,13 +17,20 @@ import {
   buildSearchEngineResponse,
 } from "./elastic";
 import { buildOrder, buildOrderLine } from "./order";
-import { buildListingProduct, buildSearchEngineProduct } from "./product";
+import {
+  buildGlobalProduct,
+  buildListingProduct,
+  buildQtyPriceProduct,
+  buildSearchEngineProduct,
+} from "./product";
 import { buildStory, buildStoryItem } from "./story";
 import { buildUser } from "./user";
 
 // Every builder, with the field each one is checked against.
 const BUILDERS = [
   { name: "listing product", build: buildListingProduct, key: "product_id" },
+  { name: "global product", build: buildGlobalProduct, key: "id" },
+  { name: "qty/price product", build: buildQtyPriceProduct, key: "id" },
   {
     name: "search-engine product",
     build: buildSearchEngineProduct,

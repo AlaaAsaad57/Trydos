@@ -4,9 +4,10 @@ import type { LogoAnimationType } from './LogoAnimationContext';
  * One logo, on one screen, and what it plays there.
  *
  * Before this file the whole flow shared a single pattern and a single loop
- * length, so a client could only ever look at one choice at a time. The design
- * calls for something else: the Quick Preview builds itself, Get Started builds
- * and then hands off once, Terms hands off, and everything after that winks.
+ * length, so a client could only ever look at one choice at a time. The picks
+ * below are what came out of that comparison: the Quick Preview wordmark builds
+ * itself once and stops, Get Started builds and then hands off for good, and
+ * every other screen hands off on a loop.
  *
  * A slot is a place a mark rests, not a screen. The Quick Preview has three of
  * them — the centre wordmark, the badge peeking at the bottom edge, and the
@@ -72,40 +73,58 @@ export const LOGO_SLOTS: { id: LogoSlotId; label: string; note?: string }[] = [
     { id: 'success', label: 'Success' },
 ];
 
-/** What the rest of the flow plays when nothing else is asked for. */
-const WINK_DEFAULT: LogoSlotConfig = { steps: [{ animation: 'wink', seconds: 5 }], loop: true };
+/**
+ * One length for the whole flow.
+ *
+ * The client watched the patterns side by side and picked 3 seconds for every
+ * step, so nothing in the flow runs at a different speed to anything else.
+ */
+const STEP_SECONDS = 3;
+
+/** What every screen after the Quick Preview plays: Hand-Off, on a loop. */
+const RELAY_DEFAULT: LogoSlotConfig = {
+    steps: [{ animation: 'relay', seconds: STEP_SECONDS }],
+    loop: true,
+};
 
 /**
- * The picks the design starts from, so the flow reads correctly before anybody
- * opens the modal. The client changes any of it from there.
+ * The picks the client signed off on, so the flow reads correctly before
+ * anybody opens the modal. The client changes any of it from there.
  */
 export const DEFAULT_LOGO_CONFIG: Record<LogoSlotId, LogoSlotConfig> = {
     // Cinematic Assembly, but the glyphs hold still while the ring and the dots
-    // build around them.
+    // build around them. Loop is off, so it builds the mark once and holds it
+    // for the rest of the eight seconds.
     'quick-preview-wordmark': {
-        steps: [{ animation: 'reveal', seconds: 5 }],
-        loop: true,
+        steps: [{ animation: 'reveal', seconds: STEP_SECONDS }],
+        loop: false,
         animateWord: false,
     },
-    // Slow, because the badge is only peeking over the bottom edge here.
-    'quick-preview-badge': { steps: [{ animation: 'wink', seconds: 10 }], loop: true },
-    'quick-preview-badge-expanded': { steps: [{ animation: 'relay', seconds: 5 }], loop: true },
-    // The one chain in the set: it builds, hands off once, and then stops.
+    'quick-preview-badge': RELAY_DEFAULT,
+    'quick-preview-badge-expanded': RELAY_DEFAULT,
+    /**
+     * The one chain in the set, and the only place the two patterns meet.
+     *
+     * It builds once with Cinematic Assembly, and then Hand-Off carries on for
+     * as long as the screen is shown. That is what `loop` means here: the list
+     * plays once and the last step is the one that keeps going, so the build
+     * never replays. See `useLogoSequence`.
+     */
     'get-started': {
         steps: [
-            { animation: 'reveal', seconds: 5 },
-            { animation: 'relay', seconds: 5 },
+            { animation: 'reveal', seconds: STEP_SECONDS },
+            { animation: 'relay', seconds: STEP_SECONDS },
         ],
-        loop: false,
+        loop: true,
     },
-    terms: { steps: [{ animation: 'relay', seconds: 5 }], loop: true },
-    'enter-phone': WINK_DEFAULT,
-    'select-method': WINK_DEFAULT,
-    'enter-pin': WINK_DEFAULT,
-    'not-registered': WINK_DEFAULT,
-    'already-registered': WINK_DEFAULT,
-    'input-name': WINK_DEFAULT,
-    success: WINK_DEFAULT,
+    terms: RELAY_DEFAULT,
+    'enter-phone': RELAY_DEFAULT,
+    'select-method': RELAY_DEFAULT,
+    'enter-pin': RELAY_DEFAULT,
+    'not-registered': RELAY_DEFAULT,
+    'already-registered': RELAY_DEFAULT,
+    'input-name': RELAY_DEFAULT,
+    success: RELAY_DEFAULT,
 };
 
 export type LogoConfig = Record<LogoSlotId, LogoSlotConfig>;

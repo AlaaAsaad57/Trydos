@@ -13,9 +13,11 @@ import { LogoAnimationProvider } from '../../NewLoginDesign/LogoAnimationContext
  * Two things carry the per-screen logo settings, and both are invisible in a
  * screenshot.
  *
- * The first is the chain player. Get Started builds itself and then hands off
- * once and stops; every other screen repeats one pattern. Watching that by eye
- * takes ten seconds an attempt and a wrong step looks the same as a slow one.
+ * The first is the chain player. Get Started builds itself once and then hands
+ * off for as long as the screen is shown; every other screen repeats one
+ * pattern. Watching that by eye takes seconds an attempt, and a build that
+ * wrongly replays looks the same as a slow one until you have sat through two
+ * cycles.
  *
  * The second is `animateWord: false`, which is how the Quick Preview gets a
  * cinematic build whose glyphs do not wipe in. If the clip comes back, the word
@@ -85,20 +87,28 @@ describe('useLogoSequence — a screen plays its steps in order', () => {
         ).toBe('none');
     });
 
-    it('starts the list again when the slot does loop', () => {
+    it('holds the last step for ever when the slot does loop, instead of replaying the build', () => {
         const { result } = renderHook(() => useLogoSequence({ ...chain, loop: true }));
 
         act(() => {
             vi.advanceTimersByTime(5_100);
         });
-        act(() => {
-            vi.advanceTimersByTime(5_100);
-        });
-
         expect(
             result.current.animation,
-            'a looping slot did not go back to its first step after the last one',
-        ).toBe('reveal');
+            'the looping chain did not reach Hand-Off after Cinematic Assembly had its 5 seconds',
+        ).toBe('relay');
+
+        act(() => {
+            vi.advanceTimersByTime(60_000);
+        });
+        expect(
+            result.current.animation,
+            'the looping chain went back to Cinematic Assembly, so Get Started replays its build like a loading state',
+        ).toBe('relay');
+        expect(
+            vi.getTimerCount(),
+            'the last step of a looping chain scheduled a timer, which it never needs',
+        ).toBe(0);
     });
 
     it('holds one looping step for ever without a timer', () => {
@@ -157,28 +167,67 @@ describe('NewLoginLogo — animateWord=false holds the glyphs still', () => {
 });
 
 describe('the design defaults are the ones the flow was signed off on', () => {
-    it('builds Get Started once and then stops', () => {
+    it('builds Get Started once and then hands off for good', () => {
         const slot = DEFAULT_LOGO_CONFIG['get-started'];
 
         expect(
             slot.steps.map((step) => `${step.animation}/${step.seconds}`).join(' then '),
-            'Get Started no longer plays Cinematic Assembly for 5s then Hand-Off for 5s',
-        ).toBe('reveal/5 then relay/5');
-        expect(slot.loop, 'Get Started started looping, and it must play once and stop').toBe(false);
+            'Get Started no longer plays Cinematic Assembly for 3s then Hand-Off for 3s',
+        ).toBe('reveal/3 then relay/3');
+        expect(
+            slot.loop,
+            'Get Started stopped looping, so its Hand-Off ends on the plain logo instead of carrying on',
+        ).toBe(true);
     });
 
-    it('holds the Quick Preview glyphs still and winks its badge slowly', () => {
+    it('builds the Quick Preview wordmark once, with its glyphs held still', () => {
+        const slot = DEFAULT_LOGO_CONFIG['quick-preview-wordmark'];
+
         expect(
-            DEFAULT_LOGO_CONFIG['quick-preview-wordmark'].animateWord,
+            slot.animateWord,
             'the Quick Preview wordmark went back to wiping its glyphs in',
         ).toBe(false);
         expect(
-            DEFAULT_LOGO_CONFIG['quick-preview-badge'].steps[0].seconds,
-            'the bottom round badge is no longer on a 10 second wink',
-        ).toBe(10);
+            slot.steps[0].animation,
+            'the Quick Preview wordmark no longer plays Cinematic Assembly',
+        ).toBe('reveal');
         expect(
-            DEFAULT_LOGO_CONFIG['quick-preview-badge-expanded'].steps[0].animation,
-            'the badge does not switch to Hand-Off once the 8 seconds are up',
-        ).toBe('relay');
+            slot.loop,
+            'the Quick Preview wordmark started looping, so its build replays inside the first 8 seconds',
+        ).toBe(false);
+    });
+
+    it('plays Hand-Off on a loop on every screen the client did not single out', () => {
+        // Named one by one, because a count would not say which screen drifted.
+        for (const id of [
+            'quick-preview-badge',
+            'quick-preview-badge-expanded',
+            'terms',
+            'enter-phone',
+            'select-method',
+            'enter-pin',
+            'not-registered',
+            'already-registered',
+            'input-name',
+            'success',
+        ] as const) {
+            const slot = DEFAULT_LOGO_CONFIG[id];
+            expect(
+                slot.steps.map((step) => step.animation).join(' then '),
+                `the "${id}" logo no longer plays Hand-Off on its own`,
+            ).toBe('relay');
+            expect(slot.loop, `the "${id}" logo stopped looping`).toBe(true);
+        }
+    });
+
+    it('runs every step of every screen for 3 seconds', () => {
+        for (const [id, slot] of Object.entries(DEFAULT_LOGO_CONFIG)) {
+            slot.steps.forEach((step, index) => {
+                expect(
+                    step.seconds,
+                    `step ${index + 1} of the "${id}" logo is not on the agreed 3 seconds`,
+                ).toBe(3);
+            });
+        }
     });
 });
