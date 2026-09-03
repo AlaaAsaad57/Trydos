@@ -595,13 +595,8 @@ const AddAddressButtons = ({
   isInSettings,
   userName = null,
 }) => {
-  const {
-    addAddress,
-    updateAddress,
-    addressDetails,
-    orderLoading,
-    setOrderLoading,
-  } = useAppStore();
+  const { updateAddress, addressDetails, orderLoading, setOrderLoading } =
+    useAppStore();
 
   const shake = (v) => {
     if (document.querySelector(`.${v}`)) {
@@ -659,13 +654,17 @@ const AddAddressButtons = ({
         });
         updateAddress(addressDetails);
       } else {
+        // No local copy is added here. AddAddressList refreshes `addressLists`
+        // from /customer/address/list before it returns, so the new address is
+        // already in the list under the id the core backend gave it. Adding one
+        // here listed it twice — and, because AddAddressList never rejects,
+        // listed a refused address that the backend had never stored.
         await order.AddAddressList({
           address: addressDetails,
           callback: (id) => {
             slidePrev(id);
           },
         });
-        addAddress();
       }
       if (addressDetails.user_name && userName === "") {
         auth.UpdateName(addressDetails.user_name);

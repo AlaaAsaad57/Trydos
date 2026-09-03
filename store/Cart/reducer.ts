@@ -240,16 +240,6 @@ const useCartStore = (set, get) => ({
       },
     }),
 
-  addAddress: () =>
-    set((state) => {
-      const arr = state.addressLists;
-      arr.push({
-        ...state.addressDetails,
-        id: parseInt((Math.random() * 1000).toString()),
-      });
-      return { addressLists: arr };
-    }),
-
   startUpdateAddress: (address) =>
     set((state) => {
       const temp = {
@@ -272,7 +262,7 @@ const useCartStore = (set, get) => ({
         if (s.id === address.id) arr.push(address);
         else arr.push(s);
       });
-      return { addressLists: arr.reverse() };
+      return { addressLists: arr };
     }),
 
   setDefaultAddress: (id) =>
