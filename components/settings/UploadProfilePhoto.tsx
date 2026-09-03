@@ -229,7 +229,7 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
         }
       />
       <div className="flex-row justify-center mt-[12px] px-[12px] w-full">
-        <div className="flex flex-col w-full">
+        <div className="flex flex-col w-full items-center">
           <input
             onChange={(e) => {
               const objectUrl = URL.createObjectURL(e.target.files[0]);
