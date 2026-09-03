@@ -29,7 +29,6 @@ import {
   DashCard,
   SectionHeader,
   DashButton,
-  LoadingState,
   EmptyState,
   ErrorState,
   AccessDenied,
@@ -39,6 +38,12 @@ import {
   dashInputClass,
   Monogram,
 } from "components/SellerDashboard/ui";
+import {
+  ProductGridSkeleton,
+  BoutiqueGridSkeleton,
+  ListRowsSkeleton,
+  InlineSkeleton,
+} from "components/skeleton/loaders/SellerDashboardLoader";
 
 type TabType =
   | "products"
@@ -204,8 +209,6 @@ function SellerDashBoard() {
   const [, language] = local.split("-");
   const isRtl = language === "ar" || language === "ku";
   const {
-    loading,
-    setLoading,
     sellerProducts,
     setSellerProducts,
     sellerBoutiques,
@@ -215,7 +218,31 @@ function SellerDashBoard() {
     shopes,
   } = useSellerProfile();
 
-  const [permissionsLoading, setPermissionsLoading] = useState<boolean>(false);
+  // One flag per section, each starting in the loading position. They replace
+  // the single shared `loading` this page used to read from SellerProfileContext:
+  // that one flag was written by six different fetchers, so whichever finished
+  // first cleared it for all of them — and the still-loading section then
+  // rendered its "nothing here" state. See spec AC-15 / AC-16.
+  const [productsLoading, setProductsLoading] = useState<boolean>(true);
+  const [boutiquesLoading, setBoutiquesLoading] = useState<boolean>(true);
+  const [rolesLoading, setRolesLoading] = useState<boolean>(true);
+  const [rolesForChangeLoading, setRolesForChangeLoading] =
+    useState<boolean>(true);
+
+  // "Are this shop's permissions known yet?" — not "is a request running".
+  // Every permission-gated section waits on this before it decides between
+  // content and a refusal, because deciding early shows a seller who DOES have
+  // the right a "you don't have permission" message.
+  //
+  // Seeded from the shop list rather than starting false: when the seller came
+  // via /sellerProfile the permissions are already in the store, and both
+  // writers below sit in effects, which run after the first paint — so a plain
+  // `false` would add a placeholder frame to a page that could have painted
+  // straight away.
+  const [permissionsReady, setPermissionsReady] = useState<boolean>(() => {
+    const shop = shopes.find((s) => s.seller_id?.toString() === sellerId);
+    return (shop?.permissions?.length ?? 0) > 0;
+  });
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -262,8 +289,14 @@ function SellerDashBoard() {
   };
 
   // A product/boutique card hands off to a detail route. Show the app's in-flow
-  // navigation loader (a spinner via NavigationLoaderGate — never a skeleton)
-  // and record the origin so the detail BackBar returns here to the same tab.
+  // navigation loader and record the origin so the detail BackBar returns here
+  // to the same tab.
+  //
+  // Left as a bare `true` on purpose. The BACK journey marks itself
+  // (useDashboardDetailBack) so it gets the dashboard shape and keeps its scroll
+  // position; going FORWARD to an editor wants neither — the dashboard shape
+  // would be the page being left, and landing at the top of a fresh editor is
+  // right.
   const handleCardNavigate = () => {
     setLastPathname(pathname);
     setIsNavigating(true);
@@ -280,6 +313,7 @@ function SellerDashBoard() {
   // Per-product social counts (reactions / FAQ / reviews / shares), keyed by
   // product id. Loaded lazily once the Products tab has products.
   const [productsSocial, setProductsSocial] = useState<Record<string, any>>({});
+  const requestedSocialIds = useRef<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [roles, setRoles] = useState<any[]>([]);
   const [rolesMeta, setRolesMeta] = useState<any | null>(null);
@@ -393,10 +427,45 @@ function SellerDashBoard() {
 
   const currentUserId = auth.UserID ? auth.UserID() : null;
 
-  const getSellerProducts = async (page: number = 1) => {
-    if (!canViewProducts) return;
+  // Sections already fetched during THIS mount, keyed `${sellerId}:<section>`.
+  //
+  // It holds the promise, not just a marker, for two reasons. A second caller
+  // that arrives while a fetch is open awaits the same promise instead of
+  // resolving past it — which is what keeps the side-menu badge waiting for the
+  // list rather than painting 0. And the entry is dropped when the promise
+  // answers false, so a failed fetch can be retried on the next arrival.
+  //
+  // Answering `false` rather than throwing is deliberate: the fetchers here
+  // follow this repo's fetchData convention and catch their own errors, so a
+  // `catch` around them would never run.
+  const fetchedThisMount = useRef<Map<string, Promise<boolean>>>(new Map());
+
+  const fetchOnce = (key: string, fn: () => Promise<boolean>) => {
+    const inFlight = fetchedThisMount.current.get(key);
+    if (inFlight) return inFlight;
+    const promise = fn()
+      .then((ok) => {
+        if (!ok) fetchedThisMount.current.delete(key);
+        return ok;
+      })
+      .catch((e) => {
+        fetchedThisMount.current.delete(key);
+        throw e;
+      });
+    fetchedThisMount.current.set(key, promise);
+    return promise;
+  };
+
+  /** Answers whether the list was loaded — `fetchOnce` keys on that, not on a throw. */
+  const getSellerProducts = async (page: number = 1): Promise<boolean> => {
+    // Not permitted: clear our own flag and answer "not loaded", so the section
+    // can never sit in a placeholder with nothing on the way to replace it.
+    if (!canViewProducts) {
+      setProductsLoading(false);
+      return false;
+    }
     try {
-      setLoading(true);
+      setProductsLoading(true);
       setError(null);
       const res = await SellerDashboardService.getSellerProducts(
         sellerId,
@@ -412,21 +481,26 @@ function SellerDashBoard() {
       setSellerProducts(products);
       setProductsMeta(res.data?.meta || null);
       setCurrentPage(page);
+      return true;
     } catch (error: any) {
       LogError({
         scenario: "SellerDashboard.getSellerProducts",
         error: error instanceof Error ? error.message : String(error),
       });
       setError(error?.message || translateFunction("Failed to load products"));
+      return false;
     } finally {
-      setLoading(false);
+      setProductsLoading(false);
     }
   };
 
-  const getSellerBoutiques = async () => {
-    if (!canViewBoutiques) return;
+  const getSellerBoutiques = async (): Promise<boolean> => {
+    if (!canViewBoutiques) {
+      setBoutiquesLoading(false);
+      return false;
+    }
     try {
-      setLoading(true);
+      setBoutiquesLoading(true);
       setError(null);
       const res = await SellerDashboardService.getSellerBoutiques(sellerId);
       if (!res?.success) {
@@ -435,14 +509,16 @@ function SellerDashBoard() {
       // API returns { data: { boutiques: [...], meta: {...} } }
       const boutiques = res.data?.boutiques || res.data || [];
       setSellerBoutiques(Array.isArray(boutiques) ? boutiques : []);
+      return true;
     } catch (error: any) {
       LogError({
         scenario: "SellerDashboard.getSellerBoutiques",
         error: error instanceof Error ? error.message : String(error),
       });
       setError(error?.message || translateFunction("Failed to load boutiques"));
+      return false;
     } finally {
-      setLoading(false);
+      setBoutiquesLoading(false);
     }
   };
 
@@ -451,7 +527,7 @@ function SellerDashBoard() {
       if (page === 1) {
         // If searching, use dedicated searching flag to avoid overriding global loading
         if (search) setRolesSearching(true);
-        else setLoading(true);
+        else setRolesLoading(true);
       } else {
         setRolesLoadingMore(true);
       }
@@ -480,7 +556,7 @@ function SellerDashBoard() {
     } finally {
       if (page === 1) {
         if (search) setRolesSearching(false);
-        else setLoading(false);
+        else setRolesLoading(false);
       } else setRolesLoadingMore(false);
     }
   };
@@ -489,7 +565,7 @@ function SellerDashBoard() {
     try {
       if (page === 1) {
         if (search) setRolesForChangeSearching(true);
-        else setLoading(true);
+        else setRolesForChangeLoading(true);
       } else {
         setRolesForChangeLoadingMore(true);
       }
@@ -518,7 +594,7 @@ function SellerDashBoard() {
     } finally {
       if (page === 1) {
         if (search) setRolesForChangeSearching(false);
-        else setLoading(false);
+        else setRolesForChangeLoading(false);
       } else setRolesForChangeLoadingMore(false);
     }
   };
@@ -691,14 +767,11 @@ function SellerDashBoard() {
 
   const getSellerPermissions = async () => {
     try {
-      setPermissionsLoading(true);
-      setLoading(true);
       setError(null);
       // First try to use permissions from currentShop (from context)
       if (currentShop?.permissions && currentShop.permissions.length > 0) {
         setSellerPermissions(currentShop.permissions);
-        setPermissionsLoading(false);
-        setLoading(false);
+        setPermissionsReady(true);
         return;
       }
       // Fallback: fetch from API
@@ -710,6 +783,15 @@ function SellerDashBoard() {
       const shopData = Array.isArray(res.data)
         ? res.data.find((shop: any) => shop.seller_id?.toString() === sellerId)
         : null;
+      // A 200 that carries no entry for this shop is not "this seller has no
+      // permissions" — it is a failure to answer for this shop. Left as an empty
+      // list it reads as a refusal in every gated section below, which is the
+      // one thing a permission error must never look like.
+      if (!shopData && !currentShop?.permissions) {
+        throw new Error(
+          translateFunction("Failed to load permissions"),
+        );
+      }
       const permissions =
         shopData?.permissions || currentShop?.permissions || [];
       setSellerPermissions(Array.isArray(permissions) ? permissions : []);
@@ -726,8 +808,9 @@ function SellerDashBoard() {
         setSellerPermissions(currentShop.permissions);
       }
     } finally {
-      setPermissionsLoading(false);
-      setLoading(false);
+      // Ready either way: the sections must stop waiting. When this failed,
+      // `error` is set and they show that instead of a refusal.
+      setPermissionsReady(true);
     }
   };
 
@@ -826,13 +909,16 @@ function SellerDashBoard() {
     };
   }, [menuOpen]);
 
+  // Fetch once per ARRIVAL, not once per empty list. The old guard here was
+  // `sellerProducts.length === 0`, and because the list lives in
+  // SellerProfileProvider — mounted in sellerProfile/layout.tsx, which does NOT
+  // unmount when a detail route opens — a seller who edited a product came back
+  // to the list they left. `fetchedThisMount` is empty on every arrival and
+  // survives a tab switch (changeTab uses router.replace), so this asks once per
+  // visit per list. See spec AC-1..AC-6.
   useEffect(() => {
-    if (
-      activeTab === "products" &&
-      canViewProducts &&
-      sellerProducts.length === 0
-    ) {
-      getSellerProducts();
+    if (activeTab === "products" && canViewProducts) {
+      fetchOnce(`${sellerId}:products`, () => getSellerProducts());
     }
   }, [activeTab, canViewProducts, sellerId]);
 
@@ -842,34 +928,44 @@ function SellerDashBoard() {
   useEffect(() => {
     if (activeTab !== "products" || !canViewProducts || sellerProducts.length === 0)
       return;
+    // Asked-for ids are remembered, not just answered ones. This effect runs
+    // twice per arrival — once against the list already held, then again when the
+    // refetch swaps the array — and without this the second run repeats the whole
+    // batch, which is an Elasticsearch aggregation per id.
     const missing = sellerProducts
       .map((p: any) => String(p.product_id ?? p.id ?? ""))
-      .filter((id) => id && !productsSocial[id]);
+      .filter(
+        (id) =>
+          id && !productsSocial[id] && !requestedSocialIds.current.has(id),
+      );
     if (missing.length === 0) return;
+    missing.forEach((id) => requestedSocialIds.current.add(id));
     sellerCommentsService
       .GetProductsSocial(sellerId, missing)
       .then((res: any) => {
         if (res?.success && res.data) {
           setProductsSocial((prev) => ({ ...prev, ...res.data }));
+        } else {
+          // This service answers { success: false } instead of rejecting, so the
+          // release has to happen here as well as in the catch — otherwise a
+          // refused batch leaves those products stuck at zero for the whole mount.
+          missing.forEach((id) => requestedSocialIds.current.delete(id));
         }
       })
-      .catch((e: any) =>
+      .catch((e: any) => {
+        missing.forEach((id) => requestedSocialIds.current.delete(id));
         LogError({
           scenario: "SellerDashboard.getProductsSocial",
           error: e instanceof Error ? e.message : String(e),
-        }),
-      );
+        });
+      });
     // productsSocial intentionally omitted from deps — it's updated here and
     // re-including it would re-trigger after every successful batch.
   }, [activeTab, canViewProducts, sellerProducts, sellerId]);
 
   useEffect(() => {
-    if (
-      activeTab === "boutiques" &&
-      canViewBoutiques &&
-      sellerBoutiques.length === 0
-    ) {
-      getSellerBoutiques();
+    if (activeTab === "boutiques" && canViewBoutiques) {
+      fetchOnce(`${sellerId}:boutiques`, () => getSellerBoutiques());
     }
   }, [activeTab, canViewBoutiques, sellerId]);
 
@@ -883,13 +979,37 @@ function SellerDashBoard() {
     }
   }, [activeTab, canViewPermissions, sellerId]);
   const [loadingSideBar, setLoadingSideBar] = useState(false);
+  // `fetchOnce` answers a boolean, so the shops response itself is kept here for
+  // the caller that needs the payload rather than the verdict.
+  const shopesRef = useRef<any>(null);
   const initializeData = async () => {
     setLoadingSideBar(true);
     try {
-      let [productsRes, BoutiqueRes, ShopesRes] = await Promise.all([
-        getSellerProducts(),
-        getSellerBoutiques(),
-        SellerDashboardService.getShopes(true),
+      // All three go through `fetchOnce`. This runs on EVERY menu open, so
+      // without it the fifth open costs a fifth round of calls — and it could
+      // start a second products fetch while the arrival one was still open, with
+      // the slower answer overwriting the fresher list.
+      //
+      // The two list calls keep their permission check here as well as inside
+      // the fetcher: entering `fetchOnce` unpermitted would store a key for a
+      // fetch that never happens, and the section would then wait for a list
+      // that is never coming.
+      //
+      // The results are unused, but the calls are not: they fill
+      // `sellerProducts` / `sellerBoutiques`, which the side-menu count badges
+      // below read.
+      const [, , ShopesRes] = await Promise.all([
+        canViewProducts
+          ? fetchOnce(`${sellerId}:products`, () => getSellerProducts())
+          : Promise.resolve(false),
+        canViewBoutiques
+          ? fetchOnce(`${sellerId}:boutiques`, () => getSellerBoutiques())
+          : Promise.resolve(false),
+        fetchOnce(`${sellerId}:shopes`, async () => {
+          const res = await SellerDashboardService.getShopes(true);
+          shopesRef.current = res;
+          return !!res?.success;
+        }).then(() => shopesRef.current),
       ]);
       // getShopes goes through fetchData (returns { success: false } on failure
       // instead of throwing) — surface that so it's logged rather than silently
@@ -932,10 +1052,13 @@ function SellerDashBoard() {
   }, [sellerPermissions]);
 
   const renderProducts = () => {
-    if (permissionsLoading)
-      return (
-        <LoadingState label={translateFunction("Checking permissions...")} />
-      );
+    if (!permissionsReady) return <InlineSkeleton />;
+
+    // Before the refusal, not after it: when the permission list itself failed to
+    // load, `sellerPermissions` is empty and every `hasPermission` answers false —
+    // so a permitted seller would be told they are not.
+    if (error && sellerPermissions.length === 0)
+      return <ErrorState message={error} onRetry={getSellerPermissions} />;
 
     if (!canViewProducts)
       return (
@@ -946,8 +1069,8 @@ function SellerDashBoard() {
         />
       );
 
-    if (loading && sellerProducts.length === 0)
-      return <LoadingState label={translateFunction("Loading products...")} />;
+    if (productsLoading && sellerProducts.length === 0)
+      return <ProductGridSkeleton />;
 
     if (error && sellerProducts.length === 0)
       return <ErrorState message={error} onRetry={() => getSellerProducts(1)} />;
@@ -1138,7 +1261,7 @@ function SellerDashBoard() {
           <Pagination
             current={productsMeta.current_page || currentPage}
             last={productsMeta.last_page}
-            disabled={loading}
+            disabled={productsLoading}
             onPrev={() => getSellerProducts(currentPage - 1)}
             onNext={() => getSellerProducts(currentPage + 1)}
           />
@@ -1148,6 +1271,11 @@ function SellerDashBoard() {
   };
 
   const renderBoutiques = () => {
+    if (!permissionsReady) return <InlineSkeleton />;
+
+    if (error && sellerPermissions.length === 0)
+      return <ErrorState message={error} onRetry={getSellerPermissions} />;
+
     if (!canViewBoutiques)
       return (
         <AccessDenied
@@ -1157,8 +1285,8 @@ function SellerDashBoard() {
         />
       );
 
-    if (loading && (!sellerBoutiques || sellerBoutiques.length === 0))
-      return <LoadingState label={translateFunction("Loading boutiques...")} />;
+    if (boutiquesLoading && (!sellerBoutiques || sellerBoutiques.length === 0))
+      return <BoutiqueGridSkeleton />;
 
     if (error && (!sellerBoutiques || sellerBoutiques.length === 0))
       return <ErrorState message={error} onRetry={getSellerBoutiques} />;
@@ -1322,10 +1450,7 @@ function SellerDashBoard() {
     );
   };
   const renderPermissions = () => {
-    if (loading && sellerPermissions.length === 0)
-      return (
-        <LoadingState label={translateFunction("Loading permissions...")} />
-      );
+    if (!permissionsReady) return <ListRowsSkeleton />;
 
     if (error && sellerPermissions.length === 0)
       return <ErrorState message={error} onRetry={getSellerPermissions} />;
@@ -1373,10 +1498,10 @@ function SellerDashBoard() {
   };
 
   const renderUsers = () => {
-    if (permissionsLoading)
-      return (
-        <LoadingState label={translateFunction("Checking permissions...")} />
-      );
+    if (!permissionsReady) return <InlineSkeleton />;
+
+    if (error && sellerPermissions.length === 0)
+      return <ErrorState message={error} onRetry={getSellerPermissions} />;
 
     if (!canManageUsers)
       return (
@@ -1454,7 +1579,7 @@ function SellerDashBoard() {
                           {translateFunction("Searching roles...")}
                         </span>
                       </div>
-                    ) : loading && roles.length === 0 ? (
+                    ) : rolesLoading && roles.length === 0 ? (
                       <div className="flex items-center gap-2 p-3">
                         <Spinner />
                         <span className="text-[14px] text-[#8D8D8D]">
@@ -1565,7 +1690,7 @@ function SellerDashBoard() {
           <h2 className="text-[20px] font-bold text-[#1d1d1d] mb-4">
             Available Roles
           </h2>
-          {loading && roles.length === 0 ? (
+          {rolesLoading && roles.length === 0 ? (
             <div className="flex items-center justify-center py-12">
               <Spinner />
               <span className="ml-3 text-[#3c3c3c]">{translateFunction("Loading roles...")}</span>
@@ -1604,7 +1729,7 @@ function SellerDashBoard() {
             />
 
             {usersLoading && users.length === 0 ? (
-              <LoadingState label={translateFunction("Loading users...")} />
+              <ListRowsSkeleton />
             ) : users.length === 0 ? (
               <EmptyState
                 icon="users"
@@ -1693,7 +1818,7 @@ function SellerDashBoard() {
                                           )}
                                         </span>
                                       </div>
-                                    ) : loading &&
+                                    ) : rolesForChangeLoading &&
                                       rolesForChange.length === 0 ? (
                                       <div className="flex items-center gap-2 p-3">
                                         <Spinner />
@@ -1914,10 +2039,10 @@ function SellerDashBoard() {
   ];
 
   const renderHome = () => {
-    if (permissionsLoading || (loading && sellerPermissions.length === 0))
-      return (
-        <LoadingState label={translateFunction("Preparing your dashboard...")} />
-      );
+    if (!permissionsReady) return <InlineSkeleton />;
+
+    if (error && sellerPermissions.length === 0)
+      return <ErrorState message={error} onRetry={getSellerPermissions} />;
 
     const tiles = sectionTiles.filter((t) => t.show);
     return (

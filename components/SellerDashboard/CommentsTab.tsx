@@ -5,12 +5,12 @@ import { translateFunction, LogError } from "utils/functions";
 import { DashIcon } from "components/SellerDashboard/ui/icons";
 import {
   DashButton,
-  LoadingState,
   EmptyState,
   Segmented,
 } from "components/SellerDashboard/ui";
 import RatingStars from "components/settings/cards/RatingStars";
 import "styles/comment.css";
+import { ListRowsSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
 
 const FALLBACK_AVATAR = "/images/profileNo.png";
 
@@ -244,7 +244,7 @@ export default function CommentsTab({
       />
 
       {loading ? (
-        <LoadingState label={translateFunction("Loading...", language)} />
+        <ListRowsSkeleton />
       ) : comments.length === 0 ? (
         <EmptyState
           icon="comments"

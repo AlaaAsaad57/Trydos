@@ -48,7 +48,13 @@ export const SellerProfileProvider: React.FC<{ children: React.ReactNode }> = ({
       },
     },
   });
-  const [loading, setLoading] = useState(false);
+  // Starts TRUE, not false. Every consumer's first paint happens before its
+  // fetch effect runs, so a `false` start makes the shop list paint an empty
+  // grid — and the dashboard paint "No products found" — for one frame before
+  // the request has even been made. Starting in the loading position means the
+  // placeholder is what shows first, and the empty state can only be reached
+  // once a request has actually come back. See spec AC-9.
+  const [loading, setLoading] = useState(true);
   const [shopes, setShopes] = useState<any[]>([]);
   const [sellerProducts, setSellerProducts] = useState<any[]>([]);
   const [sellerBoutiques, setSellerBoutiques] = useState<any[]>([]);

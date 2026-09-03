@@ -10,13 +10,13 @@ import {
   EmptyState,
   ErrorState,
   InlineAlert,
-  LoadingState,
   Pagination,
   SectionHeader,
   StatusPill,
 } from "components/SellerDashboard/ui";
 import LocationFormModal from "./LocationFormModal";
 import { LocationsMeta, ShopLocation } from "./types";
+import { ListRowsSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
 
 const t = (s: string) => translateFunction(s);
 
@@ -172,7 +172,7 @@ export default function LocationsTab({
       )}
 
       {loading ? (
-        <LoadingState label={t("Loading...")} />
+        <ListRowsSkeleton />
       ) : error ? (
         <ErrorState message={error} onRetry={() => load(page)} />
       ) : locations.length === 0 ? (
