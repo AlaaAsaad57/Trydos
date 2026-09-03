@@ -27,6 +27,7 @@
 .w-xd-320 { width: calc(320 * var(--xd-unit)); }
 .w-xd-300 { width: calc(300 * var(--xd-unit)); }
 .w-xd-280 { width: calc(280 * var(--xd-unit)); }
+.w-xd-260 { width: calc(260 * var(--xd-unit)); }
 .w-xd-194 { width: calc(194 * var(--xd-unit)); }
 .w-xd-193 { width: calc(193 * var(--xd-unit)); }
 .w-xd-120 { width: calc(120 * var(--xd-unit)); }
@@ -73,6 +74,8 @@
 .h-xd-15 { height: calc(15 * var(--xd-unit)); }
 .h-xd-14 { height: calc(14 * var(--xd-unit)); }
 .h-xd-13 { height: calc(13 * var(--xd-unit)); }
+.h-xd-138 { height: calc(138 * var(--xd-unit)); }
+.h-xd-260 { height: calc(260 * var(--xd-unit)); }
 .h-xd-12 { height: calc(12 * var(--xd-unit)); }
 .h-xd-10 { height: calc(10 * var(--xd-unit)); }
 .h-xd-8 { height: calc(8 * var(--xd-unit)); }
@@ -149,6 +152,7 @@
 .pl-xd-20 { padding-left: calc(20 * var(--xd-unit)); }
 .pb-xd-2 { padding-bottom: calc(2 * var(--xd-unit)); }
 .pb-xd-6 { padding-bottom: calc(6 * var(--xd-unit)); }
+.pb-xd-10 { padding-bottom: calc(10 * var(--xd-unit)); }
 .pb-xd-20 { padding-bottom: calc(20 * var(--xd-unit)); }
 .pb-xd-45 { padding-bottom: calc(45 * var(--xd-unit)); }
 .pb-xd-50 { padding-bottom: calc(50 * var(--xd-unit)); }
@@ -179,6 +183,7 @@
 /* Border Radius */
 .rounded-xd-10 { border-radius: calc(10 * var(--xd-unit)); }
 .rounded-xd-15 { border-radius: calc(15 * var(--xd-unit)); }
+.rounded-xd-16 { border-radius: calc(16 * var(--xd-unit)); }
 .rounded-xd-20 { border-radius: calc(20 * var(--xd-unit)); }
 .rounded-xd-30 { border-radius: calc(30 * var(--xd-unit)); }
 .rounded-t-xd-50 { border-top-left-radius: calc(50 * var(--xd-unit)); border-top-right-radius: calc(50 * var(--xd-unit)); }
@@ -189,6 +194,8 @@
 .top-xd-30 { top: calc(30 * var(--xd-unit)); }
 .top-xd-100 { top: calc(100 * var(--xd-unit)); }
 .bottom-xd-100 { bottom: calc(100 * var(--xd-unit)); }
+.-top-xd-100 { top: calc(-100 * var(--xd-unit)); }
+.-bottom-xd-100 { bottom: calc(-100 * var(--xd-unit)); }
 .right-xd-30 { right: calc(30 * var(--xd-unit)); }
 .left-xd-14 { left: calc(14 * var(--xd-unit)); }
 
@@ -196,3 +203,5 @@
 .start-xd-16 { inset-inline-start: calc(16 * var(--xd-unit)); }
 .start-xd-100 { inset-inline-start: calc(100 * var(--xd-unit)); }
 .end-xd-100 { inset-inline-end: calc(100 * var(--xd-unit)); }
+.-start-xd-100 { inset-inline-start: calc(-100 * var(--xd-unit)); }
+.-end-xd-100 { inset-inline-end: calc(-100 * var(--xd-unit)); }
