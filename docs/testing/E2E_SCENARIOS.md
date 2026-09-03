@@ -66,6 +66,7 @@ test — about five per run, and they are not cleaned up (see rule 6 in
 | GUEST-40 | The terms of service page renders without errors | `staticPages.live.spec.ts:50` | The shared static layout survives a path with more than one hyphen |
 | GUEST-41 | The back button on a static page keeps the visitor in the app | `staticPages.live.spec.ts:61` | The back bar goes to settings rather than dead-ending or leaving the site |
 | GUEST-42 | The home page comes back where it was after a product opens and closes | `guest.live.spec.ts:93` | An intercepted overlay shares one window scroll with the page under it, so the page's position is saved and put back by hand — the fixed bug in `components/ModalRoute/overlayScroll.ts`, where it was saved after the page body was already hidden and read back as 2px |
+| GUEST-43 | The home page comes back where it was after a product opens and closes | `guest.live.spec.ts:94` | The intercepted product overlay restores the home page's scroll position, guarding `components/ModalRoute/overlayScroll.ts` against the browser overwriting it |
 
 ## Signed-in journeys
 
@@ -187,6 +188,7 @@ No real session is created, so these are the specs allowed to upload traces.
 | SCRIPT-03 | Logging in with an unregistered number shows the not-registered screen | `auth.scripted.spec.ts:74` | Someone with no account is told so, instead of being left on the code screen |
 | SCRIPT-04 | Signing up with a registered number shows the registered screen | `auth.scripted.spec.ts:89` | Someone who already has an account is sent to sign in, instead of being walked through signup again |
 | SCRIPT-05 | Verify errors are surfaced on the PIN screen | `auth.scripted.spec.ts:103` | Three refusals in a row — a wrong code, a throttled verify and a backend error — each reach the shopper as a visible message rather than a silent no-op |
+| SCRIPT-13 | The code boxes stop taking a fourth code | `auth.scripted.spec.ts:153` | The three-attempt cap holds in a real browser, not only in the hook — the boxes lock rather than sending a fourth code to the OTP backend |
 
 
 ## Scripted profile branches
