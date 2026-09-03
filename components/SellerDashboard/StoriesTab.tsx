@@ -17,9 +17,9 @@ import {
   DashButton,
   EmptyState,
   ErrorState,
-  LoadingState,
   dashInputClass,
 } from "components/SellerDashboard/ui";
+import { ListRowsSkeleton, TileGridSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -305,7 +305,7 @@ function ProductPickerModal({
 
         <div className="flex-1 overflow-y-auto p-5 lg:p-6">
           {loading ? (
-            <LoadingState label={translateFunction("Loading products...")} />
+            <ListRowsSkeleton rows={4} />
           ) : products.length === 0 ? (
             <EmptyState
               icon="products"
@@ -987,7 +987,7 @@ export default function StoriesTab({
 
       {/* Loading state */}
       {loading && stories.length === 0 && (
-        <LoadingState label={translateFunction("Loading stories...")} />
+        <TileGridSkeleton tiles={6} />
       )}
 
       {/* Empty state */}

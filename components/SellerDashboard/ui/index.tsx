@@ -276,17 +276,6 @@ export function StatusPill({
 /* ----------------------------------------------------------------------- */
 /* Centred state blocks: loading / error / empty / access-denied          */
 /* ----------------------------------------------------------------------- */
-export function LoadingState({ label }: { label?: string }) {
-  return (
-    <div className="flex items-center justify-center py-14">
-      <Spinner />
-      <span className="ml-3 text-[14px] text-[#505050]">
-        {label || translateFunction("Loading...")}
-      </span>
-    </div>
-  );
-}
-
 export function EmptyState({
   icon = "inbox",
   title,

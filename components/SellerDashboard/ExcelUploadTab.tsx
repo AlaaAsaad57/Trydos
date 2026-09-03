@@ -6,9 +6,9 @@ import Spinner from "components/global/Spinner";
 import { DashIcon } from "components/SellerDashboard/ui/icons";
 import {
   DashButton,
-  LoadingState,
   EmptyState,
 } from "components/SellerDashboard/ui";
+import { ListRowsSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
 
 interface ExcelUploadTabProps {
   sellerId: string;
@@ -477,7 +477,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
         </div>
 
         {filesLoading ? (
-          <LoadingState label={translateFunction("Loading files...", language)} />
+          <ListRowsSkeleton rows={3} />
         ) : filesError ? (
           <div className="flex items-center justify-between gap-2 p-3 bg-[#fff1f1] border border-[#ffd9d9] rounded-[12px]">
             <span className="text-[13px] text-[#f85555]">{filesError}</span>

@@ -13,7 +13,6 @@ import {
 import {
   DashButton,
   DashIcon,
-  LoadingState,
   ErrorState,
   AccessDenied,
   StatusPill,
@@ -61,6 +60,7 @@ import {
   VideosSection,
   SectionProps,
 } from "./sections";
+import { FormSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
 
 const t = (s: string) => translateFunction(s);
 
@@ -788,7 +788,7 @@ export default function ProductEditor({
   // Both paths wait for shop info before rendering any price input, so a form
   // is never shown and then withdrawn once the shop resolves.
   if (loading || shopInfoPending)
-    return <LoadingState label={t("Loading product…")} />;
+    return <FormSkeleton fields={6} />;
   if (denied)
     return (
       <AccessDenied
