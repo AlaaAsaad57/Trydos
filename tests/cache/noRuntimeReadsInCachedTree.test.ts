@@ -198,10 +198,21 @@ const REVIEWED: Record<string, string> = {
     "when `document` is undefined. On the server it never reaches the clock.",
 
   "utils/cookies/server-cookie-fallback.ts -> cookies()":
-    "the bare-require hatch for modules that also live in the client graph. Its " +
-    "only caller is readServerCookies, which the page-history tracker uses. No " +
-    "cached reader calls it — and if one did, the build would fail, because " +
-    "cookies() throws during a prerender.",
+    "the bare-require hatch for modules that also live in the client graph. " +
+    "Guarded since the read below: readServerCookies asks currentScopeType() " +
+    "first and returns nulls in any scope that may not read a cookie " +
+    "(utils/cookies/server-scope.ts, proved by tests/cache/serverCookieScope" +
+    ".test.ts). The guard is why this entry is safe. " +
+    "TWO EARLIER CLAIMS HERE WERE WRONG, and a server log proved both. " +
+    "(1) 'No cached reader calls it' — one does, on the error path: " +
+    "getCachedBoutiques -> the Elasticsearch reader -> its own catch -> " +
+    "LogServerError -> readServerCookies. (2) 'the build would fail' — it does " +
+    "not. Next's guide says the restriction follows the call stack and 'can " +
+    "pass next build and fail under next start' (node_modules/next/dist/docs/" +
+    "01-app/03-api-reference/01-directives/use-cache.md). What actually " +
+    "happened was 'used cookies() inside \"use cache\"' plus " +
+    "NEXT_STATIC_GEN_BAILOUT at runtime, so the homepage quietly rendered " +
+    "dynamically whenever Elasticsearch was slow. Do not restore either claim.",
 
   "services/elastic/helpers.ts -> headers()":
     "services/elastic/helpers.ts:2894, inside logSearchTerm, which records a " +
