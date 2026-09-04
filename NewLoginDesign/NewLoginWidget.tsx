@@ -244,7 +244,7 @@ export default function NewLoginWidget({
                   * It sits over the widget and belongs to the demo route, not
                   * to the design. Nothing here changes a screen's own layout.
                   */}
-                <div className="fixed top-3 left-3 z-[999999999999] flex flex-col gap-1.5 items-start font-quicksand select-none">
+                <div className="fixed hidden top-3 left-3 z-[999999999999] flex flex-col gap-1.5 items-start font-quicksand select-none">
                     <div className="flex items-center gap-2 flex-wrap">
                         {/* 1. Flow Steps Toggle Button */}
                         <button
