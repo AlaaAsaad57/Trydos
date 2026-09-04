@@ -233,7 +233,7 @@ const GAP = {
  * 932 px page nothing changes. Without this the button sat a full 35 above
  * Safari's bar, and the bar's own white top zone made it look like 55.
  */
-const BELOW_BUTTON_MIN = 12;
+const BELOW_BUTTON_MIN = 17;
 
 export default function QuickPreviewScreen({
     onComplete,
