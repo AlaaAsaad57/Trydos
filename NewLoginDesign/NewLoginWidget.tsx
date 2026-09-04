@@ -161,12 +161,12 @@ export default function NewLoginWidget({
      * The floor for the gap under the Quick Preview button on a short page.
      * The client tries values here; the screen's own default is what ships.
      */
-    const [belowButtonMin, setBelowButtonMin] = useState<number>(35);
+    const [belowButtonMin, setBelowButtonMin] = useState<number>(0);
     /**
      * The gap over the Quick Preview pill. 56 in the design; the client can
      * try other values here, and the card gives up whatever this adds.
      */
-    const [abovePill, setAbovePill] = useState<number>(56);
+    const [abovePill, setAbovePill] = useState<number>(0);
     /** The device and window numbers, for a bug report from a phone we cannot see. */
     const [isDeviceInfoOpen, setIsDeviceInfoOpen] = useState<boolean>(false);
 
