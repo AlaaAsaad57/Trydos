@@ -497,9 +497,16 @@ export default function QuickPreviewScreen({
                 {/* 4. Main Interactive Preview Card Container (390px x 473px) */}
                 {/* The drop shadow on this card is switched off in the design
                     file (visible: false), so there is none here either.
-                    The height is 473 less the page deficit — see `cardHeight`. */}
+                    The height is 473 less the page deficit — see `cardHeight`.
+
+                    No `overflow-hidden` on this box. The border is a 0.5px
+                    stroke drawn flush inside the edge, and a clip on the same
+                    edge cut it on a real phone (the right side went missing at
+                    scale 0.958). The Next button draws the same SVG unclipped
+                    and is fine. The Embla viewport below clips the slides, and
+                    it sits 16px inside, so nothing else can spill. */}
                 <div
-                    className="w-xd-390 rounded-xd-20 bg-white flex flex-col items-center justify-center p-xd-16 relative overflow-hidden flex-shrink-0"
+                    className="w-xd-390 rounded-xd-20 bg-white flex flex-col items-center justify-center p-xd-16 relative flex-shrink-0"
                     style={{ height: fit.cardHeight }}
                 >
                     <XdDashedBorder
