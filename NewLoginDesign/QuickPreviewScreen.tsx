@@ -224,6 +224,17 @@ const GAP = {
     belowButton: 35,
 } as const;
 
+/**
+ * The least the gap under the button may shrink to on a short page.
+ *
+ * The 35 in the design is the artboard's home indicator zone. A browser bar
+ * already covers that zone, so on a page with a deficit this gap gives up
+ * first (down to this floor) and the card gives up only the rest. On a full
+ * 932 px page nothing changes. Without this the button sat a full 35 above
+ * Safari's bar, and the bar's own white top zone made it look like 55.
+ */
+const BELOW_BUTTON_MIN = 12;
+
 export default function QuickPreviewScreen({
     onComplete,
     lang = 'en',
@@ -264,10 +275,16 @@ export default function QuickPreviewScreen({
      * absorbing the deficit the column is never taller than the canvas, so it
      * is 1, and nothing is scaled.
      */
-    const [fit, setFit] = useState<{ collapsedY: number; fitScale: number; cardHeight: number }>({
+    const [fit, setFit] = useState<{
+        collapsedY: number;
+        fitScale: number;
+        cardHeight: number;
+        belowButton: number;
+    }>({
         collapsedY: 1000,
         fitScale: 1,
         cardHeight: XD.quickPreview.card.height,
+        belowButton: GAP.belowButton,
     });
 
     useEffect(() => {
@@ -284,12 +301,16 @@ export default function QuickPreviewScreen({
             // canvas here because the card border is an SVG that needs a
             // number, not a CSS calc.
             const deficit = Math.max(0, DESIGN_H - canvasH);
+            // The gap under the button gives up first, the card the rest.
+            const belowButton = Math.max(BELOW_BUTTON_MIN, GAP.belowButton - deficit);
+            const cardGives = deficit - (GAP.belowButton - belowButton);
             setFit({
                 // pill.offsetTop is the top spacer. Reading it beats
                 // recomputing it from the constants.
                 collapsedY: Math.max(0, canvasH - COLLAPSED_TAIL - pill.offsetTop),
                 fitScale: columnH > canvasH ? canvasH / columnH : 1,
-                cardHeight: XD.quickPreview.card.height - deficit,
+                cardHeight: XD.quickPreview.card.height - cardGives,
+                belowButton,
             });
         };
 
@@ -604,8 +625,9 @@ export default function QuickPreviewScreen({
                     )}
                 </div>
 
-                {/* The button ends at 897, the artboard at 932. */}
-                <FlexibleSpace size={GAP.belowButton} />
+                {/* The button ends at 897, the artboard at 932. On a short
+                    page this is the first gap to give — see BELOW_BUTTON_MIN. */}
+                <FlexibleSpace size={fit.belowButton} />
             </motion.div>
         </main>
     );
