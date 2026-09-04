@@ -1,0 +1,294 @@
+
+> trydos@0.1.0 dev C:\Users\DELL\Desktop\workspace\TrydosApp\trydos
+> next dev
+
+▲ Next.js 16.3.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://172.29.16.1:3000
+- Environments: .env.local, .env.development
+✓ Ready in 2.5s
+⚠ `images.domains` is deprecated in favor of `images.remotePatterns`. Please update next.config.ts to protect your application from malicious users.
+⚠ Warning: Next.js ignored yarn.lock in C:\Users\DELL\Desktop\workspace because it is outside the current Git repository (C:\Users\DELL\Desktop\workspace\TrydosApp\trydos).
+ To use this directory, set `turbopack.root` in your Next.js config.
+
+✓ Running next.config.ts took 4.0s
+- Cache Components enabled
+- Experiments (use with caution):
+  ✓ externalDir
+  · optimizePackageImports
+  ⨯ optimizeServerReact
+  · serverActions
+  · staleTimes
+  ✓ turbopackRustReactCompiler
+  · webVitalsAttribution
+
+○ Compiling /[lang]/loginDemo ...
+ GET /sy-en/loginDemo 200 in 10.0s (proxy.ts: 817ms)
+Route /[lang]/loginDemo is rendering with server caches disabled. For this navigation, Component Metadata in React DevTools will not accurately reflect what is statically prerenderable and runtime prefetchable. See more info here: https://nextjs.org/docs/messages/cache-bypass-in-dev
+ GET /sy-en/loginDemo 200 in 471ms (next.js: 174ms, proxy.ts: 26ms, generate-params: 23ms, application-code: 248ms)
+Route /_not-found is rendering with server caches disabled. For this navigation, Component Metadata in React DevTools will not accurately reflect what is statically prerenderable and runtime prefetchable. See more info here: https://nextjs.org/docs/messages/cache-bypass-in-dev
+ GET /sy-en/.well-known/appspecific/com.chrome.devtools.json 404 in 1290ms (next.js: 950ms, proxy.ts: 82ms, application-code: 257ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/web/home/startingSettings?language=en',
+  verified: true,
+  backend: 'core'
+}
+ POST /api/auth/me 200 in 2.1s (next.js: 1994ms, application-code: 141ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/mobile/home/currency',
+  verified: true,
+  backend: 'core'
+}
+ POST /api/auth/me 200 in 35ms (next.js: 13ms, application-code: 22ms)
+[browser] You have Reduced Motion enabled on your device. Animations may not appear as expected.. For more information and steps for solving, visit https://motion.dev/troubleshooting/reduced-motion-disabled (NewLoginDesign/animations/useAnimationEngine.tsx:95:8)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/firebase_device_tokens',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/web/home/startingSettings?language=en","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...gA9g","timestamp":"2026-09-04T00:00:46.387Z"}
+ POST /api/proxy 200 in 3.2s (next.js: 1164ms, application-code: 1986ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/mobile/home/currency","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...gA9g","timestamp":"2026-09-04T00:00:46.481Z"}
+ POST /api/proxy 200 in 1066ms (next.js: 18ms, application-code: 1048ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":401,"tokenPresent":true,"tokenHint":"eyJ0...gA9g","timestamp":"2026-09-04T00:00:47.204Z"}
+ POST /api/proxy 401 in 703ms (next.js: 19ms, application-code: 683ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/firebase_device_tokens","method":"POST","status":200,"tokenPresent":true,"tokenHint":"eyJ0...gA9g","timestamp":"2026-09-04T00:00:47.872Z"}
+ POST /api/proxy 200 in 1652ms (next.js: 11ms, application-code: 1641ms)
+ POST /api/auth/refresh 200 in 1032ms (next.js: 357ms, application-code: 676ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...8F6g","timestamp":"2026-09-04T00:00:49.214Z"}
+ POST /api/proxy 200 in 617ms (next.js: 13ms, application-code: 604ms)
+[Proxy] {"type":"proxy-request","server":"chat","url":"/api/v1/firebase_tokens","method":"POST","status":201,"tokenPresent":true,"tokenHint":"eyJh...oTnQ","timestamp":"2026-09-04T00:00:49.594Z"}
+ POST /api/proxy 201 in 1293ms (next.js: 255ms, application-code: 1039ms)
+ POST /api/auth/me 200 in 905ms (next.js: 661ms, application-code: 244ms)
+ POST /api/auth/update-user 200 in 2.6s (next.js: 2.4s, application-code: 161ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/cart/cart_shipping',
+  verified: true,
+  backend: 'core'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/firebase_device_tokens/validate_token',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/cart/cart_shipping","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...8F6g","timestamp":"2026-09-04T00:00:52.758Z"}
+ POST /api/proxy 200 in 3.1s (next.js: 2.2s, application-code: 939ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/firebase_device_tokens/validate_token","method":"POST","status":200,"tokenPresent":true,"tokenHint":"eyJ0...8F6g","timestamp":"2026-09-04T00:00:53.457Z"}
+ POST /api/proxy 200 in 3.7s (next.js: 2.3s, application-code: 1309ms)
+✓ Compiled in 7.5s
+[Proxy] {"type":"proxy-request","server":"chat","url":"/api/v1/channels/my_channels?limit=10&messages_limit=10","method":"POST","status":201,"tokenPresent":true,"tokenHint":"eyJh...oTnQ","timestamp":"2026-09-04T00:00:55.154Z"}
+ POST /api/proxy 201 in 736ms (next.js: 49ms, application-code: 688ms)
+ GET /sy-en/loginDemo 200 in 625ms (next.js: 72ms, generate-params: 43ms, application-code: 511ms)
+ GET /sy-en/loginDemo 200 in 627ms (next.js: 59ms, proxy.ts: 22ms, generate-params: 42ms, application-code: 504ms)
+ GET /sy-en/.well-known/appspecific/com.chrome.devtools.json 404 in 337ms (next.js: 68ms, proxy.ts: 22ms, application-code: 247ms)
+ POST /api/auth/me 200 in 103ms (next.js: 70ms, application-code: 33ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/web/home/startingSettings?language=en',
+  verified: true,
+  backend: 'core'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/mobile/home/currency',
+  verified: true,
+  backend: 'core'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/firebase_device_tokens',
+  verified: true,
+  backend: 'core'
+}
+[browser] You have Reduced Motion enabled on your device. Animations may not appear as expected.. For more information and steps for solving, visit https://motion.dev/troubleshooting/reduced-motion-disabled (NewLoginDesign/animations/useAnimationEngine.tsx:95:8)
+ POST /api/auth/me 200 in 22ms (next.js: 10ms, application-code: 12ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/web/home/startingSettings?language=en","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...8F6g","timestamp":"2026-09-04T00:01:12.823Z"}
+ POST /api/proxy 200 in 1083ms (next.js: 17ms, application-code: 1067ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/mobile/home/currency","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...8F6g","timestamp":"2026-09-04T00:01:13.223Z"}
+ POST /api/proxy 200 in 1438ms (next.js: 10ms, application-code: 1428ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...8F6g","timestamp":"2026-09-04T00:01:13.488Z"}
+ POST /api/proxy 200 in 647ms (next.js: 6ms, application-code: 640ms)
+ POST /api/auth/update-user 200 in 22ms (next.js: 4ms, application-code: 18ms)
+ POST /api/auth/me 200 in 49ms (next.js: 10ms, application-code: 39ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/cart/cart_shipping',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/firebase_device_tokens","method":"POST","status":200,"tokenPresent":true,"tokenHint":"eyJ0...8F6g","timestamp":"2026-09-04T00:01:13.631Z"}
+ POST /api/proxy 200 in 1503ms (next.js: 6ms, application-code: 1496ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/cart/cart_shipping","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...8F6g","timestamp":"2026-09-04T00:01:14.170Z"}
+ POST /api/proxy 200 in 622ms (next.js: 30ms, application-code: 592ms)
+[Proxy] {"type":"proxy-request","server":"chat","url":"/api/v1/firebase_tokens","method":"POST","status":201,"tokenPresent":true,"tokenHint":"eyJh...oTnQ","timestamp":"2026-09-04T00:01:14.313Z"}
+ POST /api/proxy 201 in 669ms (next.js: 3ms, application-code: 666ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/firebase_device_tokens/validate_token',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/firebase_device_tokens/validate_token","method":"POST","status":200,"tokenPresent":true,"tokenHint":"eyJ0...8F6g","timestamp":"2026-09-04T00:01:16.000Z"}
+ POST /api/proxy 200 in 508ms (next.js: 8ms, application-code: 500ms)
+[Proxy] {"type":"proxy-request","server":"chat","url":"/api/v1/channels/my_channels?limit=10&messages_limit=10","method":"POST","status":201,"tokenPresent":true,"tokenHint":"eyJh...oTnQ","timestamp":"2026-09-04T00:01:19.637Z"}
+ POST /api/proxy 201 in 1070ms (next.js: 8ms, application-code: 1062ms)
+ GET /sy-en/loginDemo 200 in 622ms (next.js: 83ms, proxy.ts: 108ms, generate-params: 76ms, application-code: 356ms)
+ GET /sy-en/.well-known/appspecific/com.chrome.devtools.json 404 in 412ms (next.js: 176ms, proxy.ts: 20ms, application-code: 217ms)
+[browser] You have Reduced Motion enabled on your device. Animations may not appear as expected.. For more information and steps for solving, visit https://motion.dev/troubleshooting/reduced-motion-disabled (NewLoginDesign/animations/useAnimationEngine.tsx:95:8)
+ POST /api/auth/me 200 in 365ms (next.js: 61ms, application-code: 304ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/web/home/startingSettings?language=en',
+  verified: true,
+  backend: 'core'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/mobile/home/currency',
+  verified: true,
+  backend: 'core'
+}
+ POST /api/auth/me 200 in 85ms (next.js: 36ms, application-code: 49ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/firebase_device_tokens',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/firebase_device_tokens","method":"POST","status":200,"tokenPresent":true,"tokenHint":"eyJ0...8F6g","timestamp":"2026-09-04T00:04:14.965Z"}
+ POST /api/proxy 200 in 1838ms (next.js: 14ms, application-code: 1824ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/web/home/startingSettings?language=en","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...8F6g","timestamp":"2026-09-04T00:04:15.032Z"}
+ POST /api/proxy 200 in 2.8s (next.js: 176ms, application-code: 2.7s)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/mobile/home/currency","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...8F6g","timestamp":"2026-09-04T00:04:15.696Z"}
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":401,"tokenPresent":true,"tokenHint":"eyJ0...8F6g","timestamp":"2026-09-04T00:04:15.703Z"}
+ POST /api/proxy 401 in 591ms (next.js: 7ms, application-code: 584ms)
+ POST /api/proxy 200 in 3.1s (next.js: 39ms, application-code: 3.0s)
+[Proxy] {"type":"proxy-request","server":"chat","url":"/api/v1/firebase_tokens","method":"POST","status":201,"tokenPresent":true,"tokenHint":"eyJh...oTnQ","timestamp":"2026-09-04T00:04:15.905Z"}
+ POST /api/proxy 201 in 834ms (next.js: 18ms, application-code: 816ms)
+ POST /api/auth/refresh 200 in 729ms (next.js: 23ms, application-code: 706ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: true,
+  backend: 'core'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/firebase_device_tokens/validate_token',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...NXJA","timestamp":"2026-09-04T00:04:17.012Z"}
+ POST /api/proxy 200 in 523ms (next.js: 7ms, application-code: 516ms)
+ POST /api/auth/update-user 200 in 31ms (next.js: 11ms, application-code: 20ms)
+ POST /api/auth/me 200 in 32ms (next.js: 10ms, application-code: 22ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/cart/cart_shipping',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/firebase_device_tokens/validate_token","method":"POST","status":200,"tokenPresent":true,"tokenHint":"eyJ0...NXJA","timestamp":"2026-09-04T00:04:17.435Z"}
+ POST /api/proxy 200 in 558ms (next.js: 13ms, application-code: 546ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/cart/cart_shipping","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...NXJA","timestamp":"2026-09-04T00:04:17.651Z"}
+ POST /api/proxy 200 in 595ms (next.js: 17ms, application-code: 578ms)
+[Proxy] {"type":"proxy-request","server":"chat","url":"/api/v1/channels/my_channels?limit=10&messages_limit=10","method":"POST","status":201,"tokenPresent":true,"tokenHint":"eyJh...oTnQ","timestamp":"2026-09-04T00:04:24.232Z"}
+ POST /api/proxy 201 in 735ms (next.js: 49ms, application-code: 687ms)
+ GET /sy-en/loginDemo 200 in 568ms (next.js: 100ms, proxy.ts: 13ms, generate-params: 54ms, application-code: 400ms)
+ GET /sy-en/.well-known/appspecific/com.chrome.devtools.json 404 in 270ms (next.js: 102ms, proxy.ts: 37ms, application-code: 131ms)
+ POST /api/auth/me 200 in 36ms (next.js: 19ms, application-code: 17ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/web/home/startingSettings?language=en',
+  verified: true,
+  backend: 'core'
+}
+[browser] You have Reduced Motion enabled on your device. Animations may not appear as expected.. For more information and steps for solving, visit https://motion.dev/troubleshooting/reduced-motion-disabled (NewLoginDesign/animations/useAnimationEngine.tsx:95:8)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/mobile/home/currency',
+  verified: true,
+  backend: 'core'
+}
+ POST /api/auth/me 200 in 18ms (next.js: 7ms, application-code: 11ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/web/home/startingSettings?language=en","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...NXJA","timestamp":"2026-09-04T00:04:31.176Z"}
+[Proxy] {"type":"proxy-request","server":"market","url":"/mobile/home/currency","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...NXJA","timestamp":"2026-09-04T00:04:31.179Z"}
+ POST /api/proxy 200 in 1437ms (next.js: 28ms, application-code: 1409ms)
+ POST /api/proxy 200 in 1448ms (next.js: 14ms, application-code: 1434ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...NXJA","timestamp":"2026-09-04T00:04:32.046Z"}
+ POST /api/proxy 200 in 646ms (next.js: 33ms, application-code: 613ms)
+ POST /api/auth/update-user 200 in 23ms (next.js: 6ms, application-code: 17ms)
+ POST /api/auth/me 200 in 27ms (next.js: 6ms, application-code: 21ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/cart/cart_shipping',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/cart/cart_shipping","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJ0...NXJA","timestamp":"2026-09-04T00:04:32.761Z"}
+ POST /api/proxy 200 in 676ms (next.js: 15ms, application-code: 661ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/firebase_device_tokens',
+  verified: true,
+  backend: 'core'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/firebase_device_tokens/change_country_language',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/firebase_device_tokens/change_country_language","method":"POST","status":200,"tokenPresent":true,"tokenHint":"eyJ0...NXJA","timestamp":"2026-09-04T00:04:34.250Z"}
+ POST /api/proxy 200 in 721ms (next.js: 16ms, application-code: 705ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/firebase_device_tokens","method":"POST","status":200,"tokenPresent":true,"tokenHint":"eyJ0...NXJA","timestamp":"2026-09-04T00:04:34.630Z"}
+ POST /api/proxy 200 in 1107ms (next.js: 8ms, application-code: 1099ms)
+[Proxy] {"type":"proxy-request","server":"chat","url":"/api/v1/firebase_tokens","method":"POST","status":201,"tokenPresent":true,"tokenHint":"eyJh...oTnQ","timestamp":"2026-09-04T00:04:35.242Z"}
+ POST /api/proxy 201 in 601ms (next.js: 6ms, application-code: 595ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/firebase_device_tokens/validate_token',
+  verified: true,
+  backend: 'core'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/firebase_device_tokens/validate_token","method":"POST","status":200,"tokenPresent":true,"tokenHint":"eyJ0...NXJA","timestamp":"2026-09-04T00:04:36.984Z"}
+ POST /api/proxy 200 in 552ms (next.js: 25ms, application-code: 528ms)
+[Proxy] {"type":"proxy-request","server":"chat","url":"/api/v1/channels/my_channels?limit=10&messages_limit=10","method":"POST","status":201,"tokenPresent":true,"tokenHint":"eyJh...oTnQ","timestamp":"2026-09-04T00:04:37.423Z"}
+ POST /api/proxy 201 in 294ms (next.js: 5ms, application-code: 290ms)
+✓ Compiled in 3.6s
+ GET /sy-en/loginDemo 200 in 5.8s (next.js: 4.6s, generate-params: 231ms, application-code: 968ms)

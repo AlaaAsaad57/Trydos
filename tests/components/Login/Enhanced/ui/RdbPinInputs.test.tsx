@@ -75,6 +75,20 @@ describe("on a phone", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("marks the code row for the scaled canvas to keep above the keypad", async () => {
+    // Same contract as the phone box: AppScaler lifts the canvas so the
+    // marked row clears the keypad — see tests/scaling/appScaler.test.tsx.
+    await renderBoxes();
+    await screen.findByRole("button", { name: "1" });
+
+    expect(
+      document
+        .querySelector("[data-keyboard-anchor]")
+        ?.querySelector('[data-pw="otp-digit-1"]'),
+      "the code row is not marked data-keyboard-anchor while the keypad is up, so the scaler leaves it under the keypad",
+    ).toBeInTheDocument();
+  });
+
   it("fills the boxes in order as keys are pressed", async () => {
     const { user } = await renderBoxes();
     await screen.findByRole("button", { name: "1" });

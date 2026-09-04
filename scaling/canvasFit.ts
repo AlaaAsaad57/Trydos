@@ -1,4 +1,4 @@
-import { DESIGN_H, DESIGN_W, MAX_DEFICIT, MAX_SCALE } from './scale.config';
+import { DESIGN_H, DESIGN_W, KEYBOARD_GAP, MAX_DEFICIT, MAX_SCALE } from './scale.config';
 
 /**
  * canvasFit — where the design canvas goes, and how big it is drawn.
@@ -97,3 +97,18 @@ export const CANVAS_FIT_SCRIPT =
   "--app-canvas-height:'+(ch*s)+'px;" +
   "--xd-flex-deficit:'+d+'px}';" +
   '})()';
+
+/**
+ * keyboardLift — how far the canvas moves up so a focused field clears the
+ * keyboard.
+ *
+ * Both numbers are real px of the layout viewport: `fieldBottom` is the
+ * field's bottom edge as if the canvas were NOT lifted, `visibleBottom` is the
+ * bottom of what the keyboard leaves visible (`visualViewport.offsetTop +
+ * visualViewport.height`, or `innerHeight` when there is no visualViewport).
+ * The answer is 0 whenever the field already clears the keyboard by
+ * KEYBOARD_GAP — so on a desktop, or with no keyboard, nothing moves.
+ */
+export function keyboardLift(fieldBottom: number, visibleBottom: number): number {
+  return Math.max(0, fieldBottom + KEYBOARD_GAP - visibleBottom);
+}

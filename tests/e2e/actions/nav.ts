@@ -354,9 +354,7 @@ export const gotoStaticPage = async (
   };
 };
 
-/** Open the cart drawer and confirm it is showing. */
-export const openCart = async (page: Page): Promise<void> => {
-  const button = nav.cartButton(page);
-  await expect(button).toBeVisible();
-  await button.click();
-};
+// `openCart` used to live here and does not any more. It is in `actions/cart.ts`
+// with the rest of the bag, and it now waits for the cart read to settle instead
+// of returning the moment the control is pressed — this copy asserted nothing
+// despite what its comment claimed.

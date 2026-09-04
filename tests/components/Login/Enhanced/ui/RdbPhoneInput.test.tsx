@@ -223,6 +223,26 @@ describe("on a phone", () => {
     ).toBeInTheDocument();
   });
 
+  it("marks its box for the scaled canvas to keep above the keypad", async () => {
+    // AppScaler slides the canvas up so the marked box clears the keypad. If
+    // the phone box is not marked, the keypad (35vh, fixed to the bottom)
+    // covers it on every phone — see tests/scaling/appScaler.test.tsx.
+    await renderInput();
+    await screen.findByRole("button", { name: "1" });
+
+    expect(
+      document.querySelector("[data-keyboard-overlay]"),
+      "the keypad does not mark itself data-keyboard-overlay, so the scaler cannot know how tall it is",
+    ).toBeInTheDocument();
+    expect(
+      document
+        .querySelector("[data-keyboard-anchor]")
+        ?.querySelector('[data-pw="phone-number-display"]') ??
+        document.querySelector('[data-keyboard-anchor][data-pw="phone-number-display"]'),
+      "the phone box is not marked data-keyboard-anchor while the keypad is up, so the scaler leaves it under the keypad",
+    ).toBeInTheDocument();
+  });
+
   it("adds a digit per key", async () => {
     const { user } = await renderInput();
     await screen.findByRole("button", { name: "9" });

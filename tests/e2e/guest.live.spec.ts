@@ -18,8 +18,8 @@ import {
   readScrollRestoration,
   scrollHomeToLastBoutique,
   searchFor,
-  openCart,
 } from "./actions/nav";
+import { openCart } from "./actions/cart";
 import { cart, listing, nav } from "./selectors";
 
 test.describe("a guest browsing the storefront", () => {

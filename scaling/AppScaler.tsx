@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 
-import { CANVAS_FIT_SCRIPT, canvasFit } from './canvasFit';
+import { CANVAS_FIT_SCRIPT, canvasFit, keyboardLift } from './canvasFit';
 import {
   DESIGN_H,
   DESIGN_W,
@@ -32,9 +32,39 @@ import {
  * in Safari (about 745 px of page) that drew everything at 80% with a 43 px
  * white margin on each side, and the client saw a smaller app than the design.
  *
+ * The virtual keyboard
+ * --------------------
+ * The page cannot make the phone's keyboard smaller, so two rules keep the
+ * focused field usable without changing the size of anything:
+ *
+ *   1. While a text field has focus the fit above is frozen. Android shrinks
+ *      `innerHeight` when the keyboard opens; re-fitting on that drew the whole
+ *      canvas at ~61% while the shopper typed, then grew it back on close.
+ *   2. The canvas slides up by `--app-keyboard-lift`: the overlap between the
+ *      field's bottom and the bottom of what `visualViewport` says is visible,
+ *      plus KEYBOARD_GAP. iOS keeps `innerHeight` as it was and moves only the
+ *      visual viewport, so this is the one signal that works on both. The
+ *      phone and OTP screens focus an `sr-only` input beside their visible
+ *      box, so a 1 px field is measured by its parent instead.
+ *   3. On a touch device those two screens open the app's own keypad
+ *      (`ui/NumericKeypad`) instead: a portal on <body>, fixed to the bottom,
+ *      that no viewport reports. The keypad marks itself
+ *      `data-keyboard-overlay` and the input marks the box to keep visible
+ *      `data-keyboard-anchor` while it is up; a MutationObserver on the
+ *      anchor attribute re-measures, and the keypad's `offsetHeight` (never
+ *      affected by its slide-in transform) says where its top will be.
+ *
  * Only one `<Page variant="scaled">` may be mounted at a time: the element ids
  * and the `:root` variables below are fixed names, and nothing counts copies.
  */
+const LIFT_VAR = '--app-keyboard-lift';
+
+const isTextField = (el: Element | null): el is HTMLElement =>
+  !!el &&
+  (el.tagName === 'INPUT' ||
+    el.tagName === 'TEXTAREA' ||
+    (el as HTMLElement).isContentEditable === true);
+
 export default function AppScaler({ children }: { children: React.ReactNode }) {
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -63,8 +93,13 @@ export default function AppScaler({ children }: { children: React.ReactNode }) {
     }
 
     let debounceTimer: ReturnType<typeof setTimeout>;
+    let blurTimer: ReturnType<typeof setTimeout>;
 
     const compute = () => {
+      // The keyboard changed the window, not the device. Keep the fit the
+      // shopper was looking at; the resize after the keyboard closes re-fits.
+      if (isTextField(document.activeElement)) return;
+
       const { scale, deficit, height, left, top } = canvasFit(
         window.innerWidth,
         window.innerHeight,
@@ -88,17 +123,71 @@ export default function AppScaler({ children }: { children: React.ReactNode }) {
       root.style.setProperty('--xd-flex-deficit', `${deficit}px`);
     };
 
+    const updateLift = () => {
+      const root = document.documentElement;
+      const active = document.activeElement;
+      const field =
+        document.querySelector<HTMLElement>('[data-keyboard-anchor]') ??
+        (isTextField(active) ? active : null);
+      if (!field) {
+        root.style.setProperty(LIFT_VAR, '0px');
+        return;
+      }
+      const vv = window.visualViewport;
+      let visibleBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+      const overlay = document.querySelector<HTMLElement>('[data-keyboard-overlay]');
+      if (overlay) visibleBottom = Math.min(visibleBottom, window.innerHeight - overlay.offsetHeight);
+      let rect = field.getBoundingClientRect();
+      // An sr-only field is a 1 px dot; its parent is the box the shopper sees.
+      if (rect.height <= 1 && field.parentElement) {
+        rect = field.parentElement.getBoundingClientRect();
+      }
+      // The rect moves with the current lift. Measure the field against the
+      // canvas element and add the canvas's unlifted top, so a second keyboard
+      // event neither stacks the lift nor drops it.
+      const canvasTop = Number.parseFloat(root.style.getPropertyValue('--app-canvas-top')) || 0;
+      const inCanvas = rect.bottom - el.getBoundingClientRect().top;
+      root.style.setProperty(LIFT_VAR, `${keyboardLift(inCanvas + canvasTop, visibleBottom)}px`);
+    };
+
     const onWindowResize = () => {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(compute);
+      debounceTimer = setTimeout(() => {
+        compute();
+        updateLift();
+      });
+    };
+    // On focusout `activeElement` is not settled yet; read it a tick later.
+    const onFocusOut = () => {
+      clearTimeout(blurTimer);
+      blurTimer = setTimeout(updateLift);
     };
 
     compute();
     window.addEventListener('resize', onWindowResize, { passive: true });
+    document.addEventListener('focusin', updateLift);
+    document.addEventListener('focusout', onFocusOut);
+    const vv = window.visualViewport;
+    vv?.addEventListener('resize', updateLift);
+    vv?.addEventListener('scroll', updateLift);
+    // The app's own keypad: re-measure when an input marks or unmarks its box.
+    const anchors = new MutationObserver(updateLift);
+    anchors.observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-keyboard-anchor'],
+    });
 
     return () => {
       clearTimeout(debounceTimer);
+      clearTimeout(blurTimer);
       window.removeEventListener('resize', onWindowResize);
+      document.removeEventListener('focusin', updateLift);
+      document.removeEventListener('focusout', onFocusOut);
+      vv?.removeEventListener('resize', updateLift);
+      vv?.removeEventListener('scroll', updateLift);
+      anchors.disconnect();
+      document.documentElement.style.removeProperty(LIFT_VAR);
       document.body.style.overflow = '';
       document.body.style.background = '';
     };
@@ -120,7 +209,11 @@ export default function AppScaler({ children }: { children: React.ReactNode }) {
           position: 'absolute',
           // The fallbacks are the unscaled artboard, centred, for the one case
           // where no script ran at all.
-          top: 'var(--app-canvas-top, 0px)',
+          // Minus the keyboard lift, 0 unless a focused field would sit
+          // under the virtual keyboard.
+          top: 'calc(var(--app-canvas-top, 0px) - var(--app-keyboard-lift, 0px))',
+          // So the lift follows the keypad's slide instead of jumping.
+          transition: 'top 0.25s ease-out',
           left: `var(--app-canvas-left, calc((100vw - ${DESIGN_W}px) / 2))`,
           width: DESIGN_W,
           height: `calc(${DESIGN_H}px - var(--xd-flex-deficit, 0px))`,

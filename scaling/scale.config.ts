@@ -79,3 +79,11 @@ export const OUTER_BG = {
 } as const;
 
 export type OuterBgKey = keyof typeof OUTER_BG | string;
+
+/**
+ * Real px a focused field keeps between its bottom edge and the top of the
+ * virtual keyboard. The page cannot make the keyboard smaller, so AppScaler
+ * slides the canvas up by exactly the overlap plus this gap — see
+ * `keyboardLift` in canvasFit.ts.
+ */
+export const KEYBOARD_GAP = 16;

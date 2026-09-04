@@ -78,6 +78,7 @@ function OrderCancelConfirmationWindow({
             {translateFunction("Terms Of Cancellation Terms")}
           </span>
           <p
+            data-pw="cancel-order-agree"
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"
             } text-[14px] text-white regular mt-[40px] gap-[4px]`}
@@ -98,6 +99,7 @@ function OrderCancelConfirmationWindow({
           </p>
 
           <div
+            data-pw="cancel-order-confirm"
             className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${
               !agree ? "bg-[#D3D3D3] text-white" : "bg-[#3066CC] text-white"
             } rounded-[15px] text-[16px] text-white medium`}

@@ -183,6 +183,8 @@ export default function RdbPinInputs({
         <>
             <div
                 ref={inputRef}
+                // While the app's keypad is up, the scaled canvas keeps this row above it.
+                data-keyboard-anchor={showCustomKeypad && keypadOpen ? '' : undefined}
                 className="flex flex-col items-center cursor-pointer"
                 style={{ width: XD.box.width }}
                 onClick={() => {

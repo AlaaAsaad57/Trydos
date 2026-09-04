@@ -16,11 +16,11 @@
 // two :root variables, so jsdom can read the answer without any real layout.
 import { render } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import AppScaler from 'scaling/AppScaler';
 import { CANVAS_FIT_STYLE_ID, canvasFit } from 'scaling/canvasFit';
-import { DESIGN_H, DESIGN_W, MAX_DEFICIT, MAX_SCALE } from 'scaling/scale.config';
+import { DESIGN_H, DESIGN_W, KEYBOARD_GAP, MAX_DEFICIT, MAX_SCALE } from 'scaling/scale.config';
 
 /** Put jsdom's window at a given size, plus the screen facts a phone reports. */
 function setViewport(
@@ -77,6 +77,9 @@ afterEach(() => {
   document.documentElement.style.removeProperty('--app-canvas-left');
   document.documentElement.style.removeProperty('--app-canvas-top');
   document.documentElement.style.removeProperty('--app-canvas-height');
+  document.documentElement.style.removeProperty('--app-keyboard-lift');
+  Object.defineProperty(window, 'visualViewport', { value: undefined, configurable: true, writable: true });
+  vi.useRealTimers();
   document.getElementById('xd-outer-bg')?.remove();
   document.getElementById(CANVAS_FIT_STYLE_ID)?.remove();
 });
@@ -317,5 +320,206 @@ describe('AppScaler applies the fit before React hydrates', () => {
       `${got.top}px`,
       `390 x 844: the effect changed --app-canvas-top from ${before.top} after the script had set it`,
     ).toBe(before.top);
+  });
+});
+
+describe('AppScaler holds its fit and slides the canvas up while the keyboard is open', () => {
+  /**
+   * Two faults, one cause: the phone's keyboard changes the viewport, and the
+   * page cannot make the keyboard smaller.
+   *
+   *   1. Android shrinks `innerHeight` when the keyboard opens. That fired a
+   *      resize, canvasFit re-ran, the deficit hit its cap and the whole canvas
+   *      re-scaled to ~61% while the shopper typed, then grew back on close.
+   *      The name screen focuses its field on arrival, so it showed this first.
+   *   2. iOS keeps `innerHeight` as it was, so nothing moved at all, and the
+   *      phone / OTP field at design y 503 sat under the keyboard (~445 px of
+   *      page left).
+   *
+   * The fix: the fit is frozen while a text field has focus, and the canvas is
+   * moved up by `--app-keyboard-lift`, just enough for the field to clear the
+   * keyboard by KEYBOARD_GAP, measured from `visualViewport`. Nothing changes
+   * size, ever, while typing.
+   */
+  type FakeViewport = EventTarget & { height: number; offsetTop: number; width: number };
+
+  /** What the browser reports as the visible part of the page once the keyboard is up. */
+  function fakeKeyboard(visibleHeight: number, offsetTop = 0): FakeViewport {
+    const vv = new EventTarget() as FakeViewport;
+    vv.height = visibleHeight;
+    vv.offsetTop = offsetTop;
+    vv.width = window.innerWidth;
+    Object.defineProperty(window, 'visualViewport', { value: vv, configurable: true, writable: true });
+    return vv;
+  }
+
+  /** Give a jsdom element a real place on the page. */
+  function placeAt(el: Element, top: number, bottom: number, height = bottom - top) {
+    el.getBoundingClientRect = () =>
+      ({ top, bottom, left: 20, right: 410, width: 390, height, x: 20, y: top, toJSON: () => ({}) }) as DOMRect;
+  }
+
+  /** Mount the scaler with a visible field box and a hidden (sr-only) field beside its box. */
+  function mountWithFields(vw: number, vh: number, visibleHeight = vh) {
+    setViewport(vw, vh);
+    // The browser has a visualViewport before React mounts, so the scaler
+    // must find it at mount and listen to it from then on.
+    const vv = fakeKeyboard(visibleHeight);
+    const { container } = render(
+      <AppScaler>
+        <div data-testid="visible-box">
+          <input data-testid="visible-field" />
+        </div>
+        <div data-testid="hidden-wrapper">
+          <div data-testid="hidden-box" />
+          <input data-testid="hidden-field" className="sr-only" />
+        </div>
+      </AppScaler>,
+    );
+    const canvas = container.querySelector<HTMLElement>('#master-canvas');
+    if (!canvas) throw new Error('AppScaler rendered no #master-canvas element');
+    const q = (id: string) => {
+      const el = container.querySelector<HTMLElement>(`[data-testid="${id}"]`);
+      if (!el) throw new Error(`no element ${id}`);
+      return el;
+    };
+    return {
+      canvas,
+      vv,
+      visibleField: q('visible-field'),
+      hiddenField: q('hidden-field'),
+      hiddenWrapper: q('hidden-wrapper'),
+    };
+  }
+
+  const lift = () => document.documentElement.style.getPropertyValue('--app-keyboard-lift').trim();
+  const scale = () => Number(document.documentElement.style.getPropertyValue('--app-scale'));
+
+  it('does not re-fit the canvas when the keyboard shrinks the window while a field has focus (Android)', () => {
+    vi.useFakeTimers();
+    const { visibleField } = mountWithFields(430, 745);
+    expect(scale(), '430 x 745 before the keyboard: the canvas must be drawn at scale 1').toBe(1);
+
+    visibleField.focus();
+    // Android Chrome: the keyboard takes ~300 px and the window itself shrinks.
+    setViewport(430, 445);
+    window.dispatchEvent(new Event('resize'));
+    vi.runAllTimers();
+
+    expect(
+      scale(),
+      `the keyboard shrank the page to 445 px while the field had focus, and the canvas re-fitted to scale ${scale().toFixed(3)} — the whole app shrinks in front of the shopper while they type; it must stay at 1`,
+    ).toBe(1);
+  });
+
+  it('slides the canvas up so a focused field clears the keyboard by the gap (iOS and Android)', () => {
+    // iPhone 15 Pro Max in Safari: the field box is at 503..563 and the
+    // keyboard leaves the top 445 px of the page visible. innerHeight stays 745.
+    const { canvas, vv, visibleField } = mountWithFields(430, 745, 445);
+    placeAt(visibleField, 503, 563);
+
+    visibleField.focus();
+    vv.dispatchEvent(new Event('resize'));
+
+    expect(
+      lift(),
+      `field bottom 563 with 445 px visible: --app-keyboard-lift must be ${563 + KEYBOARD_GAP - 445}px so the field ends ${KEYBOARD_GAP}px above the keyboard, it is "${lift()}"`,
+    ).toBe(`${563 + KEYBOARD_GAP - 445}px`);
+    expect(
+      canvas.style.top,
+      `the canvas top does not subtract --app-keyboard-lift, so the lift moves nothing: "${canvas.style.top}"`,
+    ).toContain('var(--app-keyboard-lift');
+  });
+
+  it('measures the visible box, not the 1 px sr-only input the phone and OTP screens focus', () => {
+    const { vv, hiddenField, hiddenWrapper } = mountWithFields(430, 745, 445);
+    // The phone / OTP inputs are `sr-only` siblings of their 390 x 60 box, so
+    // the input's own rect is a 1 px dot at the top of the wrapper. Lifting
+    // for that dot leaves the real box under the keyboard.
+    placeAt(hiddenField, 503, 504, 1);
+    placeAt(hiddenWrapper, 503, 563);
+
+    hiddenField.focus();
+    vv.dispatchEvent(new Event('resize'));
+
+    expect(
+      lift(),
+      `the sr-only OTP input ends at 504 but its box ends at 563; the lift must use the box (${563 + KEYBOARD_GAP - 445}px), it is "${lift()}"`,
+    ).toBe(`${563 + KEYBOARD_GAP - 445}px`);
+  });
+
+  it('keeps the lift at 0 when nothing is under the keyboard, and drops it when the field blurs', () => {
+    vi.useFakeTimers();
+    const { vv, visibleField } = mountWithFields(430, 932);
+    placeAt(visibleField, 503, 563);
+
+    visibleField.focus();
+    vv.dispatchEvent(new Event('resize'));
+    expect(lift(), 'the full 932 px page is visible, so a focused field must not lift the canvas').toBe('0px');
+
+    // The keyboard opens and the field is under it.
+    vv.height = 445;
+    vv.dispatchEvent(new Event('resize'));
+    expect(lift(), 'the keyboard now covers the field, so the canvas must lift').toBe(`${563 + KEYBOARD_GAP - 445}px`);
+
+    // The shopper taps Done. The keyboard closes, the field loses focus.
+    visibleField.blur();
+    vv.height = 932;
+    vv.dispatchEvent(new Event('resize'));
+    vi.runAllTimers();
+    expect(
+      lift(),
+      `the field blurred and the keyboard closed, but the canvas is still lifted by "${lift()}" — it must return to 0px`,
+    ).toBe('0px');
+  });
+
+  it("slides the canvas up for the app's own keypad, which is an in-page overlay no viewport can see", async () => {
+    // On a touch device the phone / OTP screens open `ui/NumericKeypad`: a
+    // portal on <body>, fixed to the bottom, 35vh tall. innerHeight and the
+    // visualViewport do not change at all, so the scaler is told two things:
+    // the keypad marks itself `data-keyboard-overlay`, and the input marks
+    // the box to keep visible `data-keyboard-anchor` while the keypad is up.
+    const { canvas } = mountWithFields(430, 745);
+    const box = document.createElement('div');
+    canvas.appendChild(box);
+    placeAt(box, 503, 563);
+    const keypad = document.createElement('div');
+    keypad.setAttribute('data-keyboard-overlay', '');
+    Object.defineProperty(keypad, 'offsetHeight', { value: 261, configurable: true }); // 35vh of 745
+    document.body.appendChild(keypad);
+
+    box.setAttribute('data-keyboard-anchor', '');
+    const want = 563 + KEYBOARD_GAP - (745 - 261);
+    await vi.waitFor(() =>
+      expect(
+        lift(),
+        `the app's keypad is 261 px tall on a 745 px page, so its top is at 484 and the box ending at 563 is under it; the lift must be ${want}px, it is "${lift()}"`,
+      ).toBe(`${want}px`),
+    );
+
+    box.removeAttribute('data-keyboard-anchor');
+    await vi.waitFor(() =>
+      expect(lift(), `the keypad closed (anchor removed) but the canvas is still lifted by "${lift()}"`).toBe('0px'),
+    );
+    keypad.remove();
+  });
+
+  it('re-measures from the unlifted place, so a lifted canvas does not lift again on the next keyboard event', () => {
+    const { canvas, vv, visibleField } = mountWithFields(430, 745, 445);
+    placeAt(visibleField, 503, 563);
+    visibleField.focus();
+    vv.dispatchEvent(new Event('resize'));
+    const first = 563 + KEYBOARD_GAP - 445;
+    expect(lift(), 'first keyboard event must set the lift').toBe(`${first}px`);
+
+    // After the lift the canvas and the field are drawn `first` px higher,
+    // and iOS fires another resize as the keyboard settles.
+    placeAt(canvas, -first, 745 - first);
+    placeAt(visibleField, 503 - first, 563 - first);
+    vv.dispatchEvent(new Event('resize'));
+    expect(
+      lift(),
+      `a second keyboard event with the canvas already lifted must keep the lift at ${first}px, not stack or drop it; it is "${lift()}"`,
+    ).toBe(`${first}px`);
   });
 });

@@ -333,6 +333,30 @@ export const profile = {
     page.getByTestId("Contact-Phone-input"),
 };
 
+/** The sheet the product page's "Buy" control opens
+ *  (`components/cart/AddToCart/`).
+ *
+ *  **"Buy" on the product page adds nothing.** It only calls
+ *  `setSelectedProductForCart`, which mounts this sheet. The call that reaches
+ *  the cart backend is the sheet's own "Add To Bag" button, so a journey that
+ *  clicks the product page control and stops has added nothing at all.
+ *
+ *  `addToBag` is found by its `id` rather than a `data-pw`, and that id is
+ *  already on the element carrying the click handler
+ *  (`components/cart/AddToCart/Button.tsx`). An id is as language-independent as
+ *  a marker, so a second hook beside it would buy nothing. The sheet has no
+ *  container marker of its own, so this control being visible is also how "the
+ *  sheet is open" is read. */
+export const addToCartSheet = {
+  addToBag: (page: Page): Locator =>
+    page.locator("#add-to-cart-button-container"),
+  /** One size choice. Absent for a product that has no sizes — which is not an
+   *  error, and is why the action asks rather than waits. */
+  size: (page: Page): Locator => page.getByTestId("add-to-cart-size"),
+  /** One colour choice. Same rule as `size`. */
+  colour: (page: Page): Locator => page.getByTestId("add-to-cart-color"),
+};
+
 export const cart = {
   /** The cart itself, opened by the nav cart icon. Not `bag-viewer` — that one
    *  lives in `ShippingAddressContainer` and only exists once you are far enough
@@ -340,12 +364,102 @@ export const cart = {
   drawer: (page: Page): Locator => page.getByTestId("cartPage-container"),
   header: (page: Page): Locator =>
     page.getByTestId("cartPage-header-container"),
+  /** One line in the cart drawer (`components/cart/index.tsx`).
+   *
+   *  Not `bag-product-viewer`: that is the summary strip on the **checkout**
+   *  screen, so counting it while the drawer is open finds nothing and reads as
+   *  an empty cart. */
+  lines: (page: Page): Locator => page.getByTestId("one-product"),
+  /** The drawer header's own count. Drawn only when the cart is not empty. */
+  lineCount: (page: Page): Locator => page.getByTestId("length-ofItems"),
+  /** The summary strip on the checkout screen. */
   items: (page: Page): Locator => page.getByTestId("bag-product-viewer"),
   total: (page: Page): Locator => page.getByTestId("cart-total-price"),
-  // Ticket 2 uses these. Listed now because they are already in the app and
-  // finding them again later is wasted work.
+  /** Leaves the drawer for the checkout screen — it does **not** place
+   *  anything. For a visitor with no verified phone it opens the verify panel
+   *  in place instead, which is why a journey that presses it has to check
+   *  where it landed. */
   confirmOrder: (page: Page): Locator =>
     page.getByTestId("Confirm-Order-Button"),
-  cashOnDelivery: (page: Page): Locator =>
+};
+
+/** The checkout screen: address, payment method, terms, and placing the order.
+ *
+ *  One screen in the code (`components/cart/OrdersPage.tsx`) but two steps on
+ *  screen, and the order of the two controls matters.
+ *  `confirmShippingAndPayment` re-reads the cart and moves to the review step;
+ *  `placeOrder` is the one that posts the checkout. Pressing the second without
+ *  the first finds nothing. */
+export const checkout = {
+  /** The cash-on-delivery choice (`components/cart/PaymentMethod.tsx`).
+   *
+   *  Drawn only when the shop offers it for this country — the list comes from
+   *  the cart answer's `available_payment_method`. Absent is a real answer, not
+   *  a slow render, so an action asks rather than waits. Not
+   *  `cachondelivry-cartpage`, which is the read-only line on the review step. */
+  cashOnDelivery: (page: Page): Locator => page.getByTestId("Cash-on-delivery"),
+  /** The same choice on the review step, which shows what was chosen and takes
+   *  no click. */
+  chosenCashOnDelivery: (page: Page): Locator =>
     page.getByTestId("cachondelivry-cartpage"),
+  confirmShippingAndPayment: (page: Page): Locator =>
+    page.getByTestId("Confirm-shipping-and-payment"),
+  /** The address already on the order. Absent when the account has none saved,
+   *  and the checkout refuses to go on until one is. */
+  chosenAddress: (page: Page): Locator => page.getByTestId("Address-Added-Last"),
+  /** Opens the add-address form from inside checkout. The form itself is the
+   *  same one the settings screen uses, so its fields are in `profile`. */
+  addAddress: (page: Page): Locator => page.getByTestId("AddAddres"),
+  /** The terms row on the review step. Placing the order is refused until it is
+   *  ticked. */
+  agreeToTerms: (page: Page): Locator => page.getByTestId("read-and-agree"),
+  placeOrder: (page: Page): Locator => page.getByTestId("Place-Order-Buttons"),
+  /** The success panel, and the order number on it.
+   *
+   *  `orderNumber` carries the **group** id — the one the orders list and the
+   *  order's own address use. It is not the `order_id` the cancel call takes;
+   *  that one is a pack id this screen never shows. */
+  successPanel: (page: Page): Locator => page.getByTestId("The-Purchas"),
+  orderNumber: (page: Page): Locator => page.getByTestId("order-group-id"),
+  /** Leaves the success panel for the home page. */
+  done: (page: Page): Locator => page.getByTestId("back-to-home-page"),
+};
+
+/** The shopper's own orders: the list, one order, and cancelling it.
+ *
+ *  **`status` is read from `data-status`, never from what it says.** The label
+ *  beside it comes from the backend already translated, so matching the words
+ *  would tie a case to one language and to the backend's current wording. The
+ *  attribute carries the machine value (`pending`, `cancelled`, …), which is
+ *  what the app itself branches on. */
+export const orders = {
+  /** The Orders card on the settings page. */
+  settingsCard: (page: Page): Locator => page.getByTestId("orders-page-button"),
+  /** One order's group id, on a list row. The same marker names the number on
+   *  the checkout success panel, so read it on the screen you are on. */
+  groupId: (page: Page): Locator => page.getByTestId("order-group-id"),
+  status: (page: Page): Locator => page.getByTestId("order-status"),
+  /** The empty state a group id nobody owns lands on. */
+  notFound: (page: Page): Locator => page.getByTestId("order-not-found"),
+  /** The three-dot control in the screen's own top bar (`setting/BackBar`).
+   *
+   *  Shared by every settings screen that offers a menu, so it means "this
+   *  screen's options" rather than "the order options" — which screen it belongs
+   *  to is decided by the page it is pressed on. */
+  optionsButton: (page: Page): Locator =>
+    page.getByTestId("screen-options-button"),
+  /** "Cancel This Pack" in that menu.
+   *
+   *  Rendered only when the order answers `can_cancele_order`, so its absence is
+   *  the backend saying this order may not be cancelled — a real answer, and one
+   *  an action has to report rather than wait out. */
+  cancelOption: (page: Page): Locator => page.getByTestId("cancel-order-option"),
+  /** One "why" chip. At least one has to be picked or the submit refuses. */
+  cancelReason: (page: Page): Locator => page.getByTestId("cancel-order-reason"),
+  cancelSubmit: (page: Page): Locator => page.getByTestId("cancel-order-submit"),
+  /** The terms row on the confirmation, and the button it unlocks. Cancelling is
+   *  two screens, and stopping after the first cancels nothing. */
+  cancelAgree: (page: Page): Locator => page.getByTestId("cancel-order-agree"),
+  cancelConfirm: (page: Page): Locator =>
+    page.getByTestId("cancel-order-confirm"),
 };

@@ -226,6 +226,8 @@ export default function RdbPhoneInput({
             <div
                 ref={inputRef}
                 data-pw="phone-number-display"
+                // While the app's keypad is up, the scaled canvas keeps this box above it.
+                data-keyboard-anchor={showCustomKeypad && keypadOpen ? '' : undefined}
                 onClick={() => {
                     setIsFocused(true);
                     if (showCustomKeypad) setKeypadOpen(true);

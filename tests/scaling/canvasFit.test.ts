@@ -13,8 +13,8 @@
 // than the artboard minus MAX_DEFICIT does the canvas shrink as well.
 import { describe, expect, it } from 'vitest';
 
-import { canvasFit } from 'scaling/canvasFit';
-import { DESIGN_H, DESIGN_W, MAX_DEFICIT, MAX_SCALE } from 'scaling/scale.config';
+import { canvasFit, keyboardLift } from 'scaling/canvasFit';
+import { DESIGN_H, DESIGN_W, KEYBOARD_GAP, MAX_DEFICIT, MAX_SCALE } from 'scaling/scale.config';
 
 /** What the page offers in design px once the artboard fills the width. */
 const pageDesignH = (vw: number, vh: number) => vh / Math.min(vw / DESIGN_W, MAX_SCALE);
@@ -176,5 +176,31 @@ describe('canvasFit fills the width and hands the missing height to the screens'
       fit.height * fit.scale,
       `430 x 300: past the cap the canvas must shrink to the 300 px page, it is drawn ${(fit.height * fit.scale).toFixed(1)} px tall`,
     ).toBeCloseTo(300, 3);
+  });
+});
+
+describe('keyboardLift: how far the canvas moves up so a focused field clears the keyboard', () => {
+  // A web page cannot shrink the phone's keyboard, so the canvas slides up
+  // instead. Every number is real px of the layout viewport: the field's
+  // bottom edge, and the bottom of what the keyboard leaves visible
+  // (visualViewport.offsetTop + visualViewport.height).
+  it('lifts by the overlap plus the gap when the field sits under the keyboard', () => {
+    // iPhone 15 Pro Max in Safari: field box ends at 563, keyboard leaves 445.
+    expect(
+      keyboardLift(563, 445),
+      `field bottom 563 with 445 px visible must lift by 563 + ${KEYBOARD_GAP} - 445 = ${563 + KEYBOARD_GAP - 445}`,
+    ).toBe(563 + KEYBOARD_GAP - 445);
+  });
+
+  it('does not lift when the field is already above the keyboard', () => {
+    expect(keyboardLift(300, 445), 'a field ending at 300 with 445 px visible needs no lift').toBe(0);
+  });
+
+  it('does not lift when there is no keyboard (desktop, or the field is already clear by the gap)', () => {
+    expect(keyboardLift(563, 932), 'the full 932 px page is visible, so the lift must be 0').toBe(0);
+    expect(
+      keyboardLift(563, 563 + KEYBOARD_GAP),
+      'the field clears the keyboard by exactly the gap, so the lift must be 0',
+    ).toBe(0);
   });
 });
