@@ -179,6 +179,43 @@ describe('canvasFit fills the width and hands the missing height to the screens'
   });
 });
 
+/**
+ * A screen with more spare room than the shared cap may say so.
+ *
+ * The Quick Preview card has 473 design px and its slides need about 233, so
+ * that screen can give up 240 where every other screen stops at 200. Without
+ * the higher cap an iPhone 15 in Safari (393 x 659, a 211 px deficit) tips
+ * past 200, the canvas shrinks below the window width, and the client sees
+ * a narrower slider with white on both sides.
+ */
+describe('canvasFit takes a per-screen deficit cap', () => {
+  it('iPhone 15 in Safari (393 x 659) keeps the full width when the cap is 240', () => {
+    const fit = canvasFit(393, 659, 240);
+    expect(
+      fit.scale,
+      `the canvas must fill the 393 px width (scale ${(393 / DESIGN_W).toFixed(4)}), it is ${fit.scale.toFixed(4)}`,
+    ).toBeCloseTo(393 / DESIGN_W, 4);
+    expect(
+      fit.deficit,
+      `the screen must give up the whole ${(DESIGN_H - pageDesignH(393, 659)).toFixed(1)} px the page lacks, the deficit is ${fit.deficit.toFixed(1)}`,
+    ).toBeCloseTo(DESIGN_H - pageDesignH(393, 659), 2);
+  });
+
+  it('iPhone SE (375 x 534) still stops at the cap it is given and shrinks the canvas for the rest', () => {
+    const fit = canvasFit(375, 534, 240);
+    expect(fit.deficit, `the deficit must stop at 240, it is ${fit.deficit.toFixed(1)}`).toBe(240);
+    expect(
+      fit.scale,
+      `the canvas must shrink to fit 534 px into ${DESIGN_H - 240} design px, the scale is ${fit.scale.toFixed(4)}`,
+    ).toBeCloseTo(534 / (DESIGN_H - 240), 4);
+  });
+
+  it('with no cap given it behaves as before (MAX_DEFICIT)', () => {
+    const fit = canvasFit(393, 659);
+    expect(fit.deficit, `the shared cap is ${MAX_DEFICIT}, the deficit is ${fit.deficit.toFixed(1)}`).toBe(MAX_DEFICIT);
+  });
+});
+
 describe('keyboardLift: how far the canvas moves up so a focused field clears the keyboard', () => {
   // A web page cannot shrink the phone's keyboard, so the canvas slides up
   // instead. Every number is real px of the layout viewport: the field's

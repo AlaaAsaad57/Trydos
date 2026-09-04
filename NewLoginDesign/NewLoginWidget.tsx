@@ -8,11 +8,12 @@ import 'public/styles/rdb-auth.css';
 import { LogoAnimationProvider } from './LogoAnimationContext';
 import AuthLogoLayer from './AuthLogoLayer';
 import LogoAnimationModal from './LogoAnimationModal';
+import DemoDeviceInfoModal from './DemoDeviceInfoModal';
 import { DEFAULT_LOGO_CONFIG, cloneLogoConfig } from './logoScreenConfig';
 import type { LogoConfig, LogoSlotId } from './logoScreenConfig';
 
 // New Screens in NewLoginDesign
-import QuickPreviewScreen from './QuickPreviewScreen';
+import QuickPreviewScreen, { QUICK_PREVIEW_MAX_DEFICIT } from './QuickPreviewScreen';
 import NewGetStartedScreen from './NewGetStartedScreen';
 import NewTermsScreen from './NewTermsScreen';
 import NewEnterPhoneScreen from './NewEnterPhoneScreen';
@@ -160,7 +161,14 @@ export default function NewLoginWidget({
      * The floor for the gap under the Quick Preview button on a short page.
      * The client tries values here; the screen's own default is what ships.
      */
-    const [belowButtonMin, setBelowButtonMin] = useState<number>(25);
+    const [belowButtonMin, setBelowButtonMin] = useState<number>(35);
+    /**
+     * The gap over the Quick Preview pill. 56 in the design; the client can
+     * try other values here, and the card gives up whatever this adds.
+     */
+    const [abovePill, setAbovePill] = useState<number>(56);
+    /** The device and window numbers, for a bug report from a phone we cannot see. */
+    const [isDeviceInfoOpen, setIsDeviceInfoOpen] = useState<boolean>(false);
 
     /**
      * Saved picks are read after mount, never during render. The server has no
@@ -318,6 +326,38 @@ export default function NewLoginWidget({
                                     />
                                     <span className="text-gray-500">px</span>
                                 </label>
+
+                                {/* 4. The gap over the Quick Preview pill (56 in the design). */}
+                                <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 text-gray-800 flex items-center gap-1.5 backdrop-blur-sm">
+                                    <span className="text-[#402CDD] font-bold">Top gap:</span>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        step={1}
+                                        data-pw="demo-above-pill"
+                                        value={abovePill}
+                                        onChange={(event) => {
+                                            const next = Number(event.target.value);
+                                            if (Number.isFinite(next)) setAbovePill(Math.max(0, next));
+                                        }}
+                                        className="w-12 px-1 rounded border border-gray-300 bg-white text-gray-800 text-xs"
+                                    />
+                                    <span className="text-gray-500">px</span>
+                                </label>
+
+                                {/* 5. The device and browser numbers behind the layout. */}
+                                <button
+                                    data-pw="demo-device-info"
+                                    aria-label="Device and browser info"
+                                    title="Device and browser info"
+                                    onClick={() => {
+                                        setIsDeviceInfoOpen(true);
+                                        setShowStepBar(false);
+                                    }}
+                                    className="w-7 h-7 text-xs font-bold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-[#402CDD] transition-all backdrop-blur-sm cursor-pointer"
+                                >
+                                    i
+                                </button>
                             </>
                         )}
                     </div>
@@ -369,6 +409,8 @@ export default function NewLoginWidget({
               * and it is drawn outside <Page> so the scaled canvas cannot
               * shrink it or clip it.
               */}
+            <DemoDeviceInfoModal open={isDeviceInfoOpen} onClose={() => setIsDeviceInfoOpen(false)} />
+
             <LogoAnimationModal
                 open={isAnimModalOpen}
                 config={logoConfig}
@@ -379,6 +421,7 @@ export default function NewLoginWidget({
 
             <Page
                 variant="scaled"
+                maxDeficit={step === 'quick-preview' ? QUICK_PREVIEW_MAX_DEFICIT : undefined}
                 outerBg={
                     step === 'input-name'
                         ? 'passcode'
@@ -446,6 +489,7 @@ export default function NewLoginWidget({
                                     wordmarkSlot={logoConfig['quick-preview-wordmark']}
                                     lang={langCode}
                                     belowButtonMin={belowButtonMin}
+                                    abovePill={abovePill}
                                 />
                             )}
 

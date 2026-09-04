@@ -17,9 +17,15 @@ import { DESIGN_H, DESIGN_W, KEYBOARD_GAP, MAX_DEFICIT, MAX_SCALE } from './scal
  * it, so the buttons stay at the bottom of the real page and the empty space
  * above the mark is what gets shorter.
  *
- * `deficit` stops at MAX_DEFICIT. Past that (iPhone SE, a laptop in landscape)
- * the bottom cluster would climb into the head block, so the canvas shrinks as
- * well, the way it used to for every short page.
+ * `deficit` stops at `maxDeficit`, MAX_DEFICIT unless the screen on the canvas
+ * says otherwise. Past that (iPhone SE, a laptop in landscape) the bottom
+ * cluster would climb into the head block, so the canvas shrinks as well, the
+ * way it used to for every short page.
+ *
+ * Why a screen may raise the cap: MAX_DEFICIT is the tightest screen's limit.
+ * Quick Preview has a 473 px card that can give up 240, and an iPhone 15 in
+ * Safari (393 x 659) needs 211. With the shared 200 the canvas shrank there,
+ * and the client saw a narrower slider with white on both sides.
  *
  * Why it is a plain function and not part of the component: this is the only
  * arithmetic in the scaling system, and `tests/scaling/canvasFit.test.ts` walks
@@ -38,11 +44,11 @@ export type CanvasFit = {
   top: number;
 };
 
-export function canvasFit(vw: number, vh: number): CanvasFit {
+export function canvasFit(vw: number, vh: number, maxDeficit: number = MAX_DEFICIT): CanvasFit {
   const widthScale = Math.min(vw / DESIGN_W, MAX_SCALE);
   // What the page offers in design px once the artboard fills the width.
   const pageH = vh / widthScale;
-  const deficit = Math.min(Math.max(0, DESIGN_H - pageH), MAX_DEFICIT);
+  const deficit = Math.min(Math.max(0, DESIGN_H - pageH), maxDeficit);
   const height = DESIGN_H - deficit;
   // Equal to widthScale unless the deficit hit its cap.
   const scale = Math.min(widthScale, vh / height);
@@ -82,11 +88,11 @@ export function canvasFit(vw: number, vh: number): CanvasFit {
  */
 export const CANVAS_FIT_STYLE_ID = 'app-canvas-fit';
 
-export const CANVAS_FIT_SCRIPT =
+export const canvasFitScript = (maxDeficit: number = MAX_DEFICIT) =>
   '(function(){' +
   'var w=window.innerWidth,h=window.innerHeight;' +
   `var ws=Math.min(w/${DESIGN_W},${MAX_SCALE});` +
-  `var d=Math.min(Math.max(0,${DESIGN_H}-h/ws),${MAX_DEFICIT});` +
+  `var d=Math.min(Math.max(0,${DESIGN_H}-h/ws),${maxDeficit});` +
   `var ch=${DESIGN_H}-d;` +
   'var s=Math.min(ws,h/ch);' +
   `var e=document.getElementById('${CANVAS_FIT_STYLE_ID}');` +
@@ -97,6 +103,9 @@ export const CANVAS_FIT_SCRIPT =
   "--app-canvas-height:'+(ch*s)+'px;" +
   "--xd-flex-deficit:'+d+'px}';" +
   '})()';
+
+/** The script with the shared cap, for a canvas that names no screen. */
+export const CANVAS_FIT_SCRIPT = canvasFitScript();
 
 /**
  * keyboardLift — how far the canvas moves up so a focused field clears the

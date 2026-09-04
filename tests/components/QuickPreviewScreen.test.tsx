@@ -25,12 +25,12 @@ const DESIGN_H = 932;
 const CARD_H = 473;
 /** The design's gap under the button, and the least it may shrink to. */
 const BELOW_BUTTON = 35;
-const BELOW_BUTTON_MIN = 25;
+const BELOW_BUTTON_MIN = 35;
 
 /**
- * The rule under test. The 35 px below the button is the artboard's home
- * indicator zone; a browser bar already covers that zone, so on a short page
- * this gap gives up first, down to the floor, and the card gives up the rest.
+ * The rule under test. The gap under the button gives up first, down to the
+ * floor, and the card gives up the rest. The floor is now the design's own
+ * 35, so the card gives up the whole deficit and the button keeps its place.
  */
 const expected = (canvasHeight: number) => {
     const deficit = Math.max(0, DESIGN_H - canvasHeight);
@@ -105,15 +105,15 @@ describe('QuickPreviewScreen — the slider gives up the height the page does no
         const { card } = renderOnCanvas(745);
         expect(
             card.style.height,
-            'the card is not 473 less the deficit that remains after the bottom gap gave up its 10 px',
+            'the card is not 473 less the whole deficit (the bottom gap keeps its 35)',
         ).toBe(`${expected(745).cardHeight}px`);
     });
 
-    it('closes the gap under the button to the 25 px floor on a 745 px canvas', () => {
+    it('keeps the 35 px under the button on a 745 px canvas', () => {
         const { belowButton } = renderOnCanvas(745);
         expect(
             belowButton.style.height,
-            'the space under the button did not shrink on a short page, so the button sits 35 px above the browser bar',
+            'the space under the button is not the design 35 on a short page',
         ).toMatch(new RegExp(`^calc\\(${expected(745).belowButton}px`));
     });
 
@@ -125,14 +125,10 @@ describe('QuickPreviewScreen — the slider gives up the height the page does no
         ).toMatch(new RegExp(`^calc\\(${BELOW_BUTTON}px`));
     });
 
-    it('gives up only part of the bottom gap on a canvas that is 10 px short', () => {
+    it('takes a 10 px deficit off the card, not off the 35 under the button', () => {
         const { card, belowButton } = renderOnCanvas(DESIGN_H - 10);
-        expect(belowButton.style.height, 'a 10 px deficit should come off the bottom gap alone').toMatch(
-            /^calc\(25px/,
-        );
-        expect(card.style.height, 'the card should not shrink while the bottom gap can still give').toBe(
-            `${CARD_H}px`,
-        );
+        expect(belowButton.style.height, 'the bottom gap must stay at the design 35').toMatch(/^calc\(35px/);
+        expect(card.style.height, 'the card must give up the 10 px').toBe(`${CARD_H - 10}px`);
     });
 
     // A guard, not a proof: it was green before the fix too (the old markup

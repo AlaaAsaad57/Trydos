@@ -30,6 +30,12 @@ interface QuickPreviewScreenProps {
      * the default.
      */
     belowButtonMin?: number;
+    /**
+     * The gap between the top of the screen and the pill, in design px. 56 in
+     * the design. The demo bar lets the client try values; whatever it adds,
+     * the card gives up, so the button keeps its own gap.
+     */
+    abovePill?: number;
 }
 
 /**
@@ -233,13 +239,24 @@ const GAP = {
 /**
  * The least the gap under the button may shrink to on a short page.
  *
- * The 35 in the design is the artboard's home indicator zone. A browser bar
- * already covers that zone, so on a page with a deficit this gap gives up
- * first (down to this floor) and the card gives up only the rest. On a full
- * 932 px page nothing changes. Without this the button sat a full 35 above
- * Safari's bar, and the bar's own white top zone made it look like 55.
+ * The client's rule: the 35 under the button is kept on every page, so the
+ * floor is the design's own gap and the card alone gives up the deficit. The
+ * demo bar can still try a lower floor. (Earlier the floor was 25, because a
+ * browser bar covers the artboard's home indicator zone; the client asked for
+ * 35 back.)
  */
-const BELOW_BUTTON_MIN = 25;
+const BELOW_BUTTON_MIN = 35;
+
+/**
+ * The most design px this screen can give up before the canvas shrinks.
+ *
+ * The shared cap (MAX_DEFICIT, 200) is what the tightest screen allows. This
+ * column has a 473 px card whose slides need about 233, so it can give 240.
+ * An iPhone 15 in Safari (393 x 659) lacks 211: past 200 the canvas shrank
+ * and the slider came out narrower than the screen, with white at both sides.
+ * The widget hands this to <Page> while this screen is up.
+ */
+export const QUICK_PREVIEW_MAX_DEFICIT = 240;
 
 export default function QuickPreviewScreen({
     onComplete,
@@ -248,6 +265,7 @@ export default function QuickPreviewScreen({
     onExpand,
     wordmarkSlot = DEFAULT_LOGO_CONFIG['quick-preview-wordmark'],
     belowButtonMin = BELOW_BUTTON_MIN,
+    abovePill = GAP.abovePill,
 }: QuickPreviewScreenProps) {
     const translate = (key: string) => translateFunction(key, lang);
     const [isHydrated, setIsHydrated] = useState<boolean>(false);
@@ -310,7 +328,8 @@ export default function QuickPreviewScreen({
             const deficit = Math.max(0, DESIGN_H - canvasH);
             // The gap under the button gives up first, the card the rest.
             const belowButton = Math.max(belowButtonMin, GAP.belowButton - deficit);
-            const cardGives = deficit - (GAP.belowButton - belowButton);
+            // A bigger top gap is height too, and it comes out of the card.
+            const cardGives = deficit - (GAP.belowButton - belowButton) + (abovePill - GAP.abovePill);
             setFit({
                 // pill.offsetTop is the top spacer. Reading it beats
                 // recomputing it from the constants.
@@ -328,7 +347,7 @@ export default function QuickPreviewScreen({
         observer.observe(canvas);
         observer.observe(column);
         return () => observer.disconnect();
-    }, [belowButtonMin]);
+    }, [belowButtonMin, abovePill]);
 
     // Trigger hydration on mount. Declared after the measure effect so the
     // slide-up starts from a measured offset, not the off-screen default.
@@ -441,7 +460,7 @@ export default function QuickPreviewScreen({
                 className="w-full flex flex-col items-center relative z-20"
             >
                 {/* The pill box starts at 56 in the design file. */}
-                <FlexibleSpace size={GAP.abovePill} />
+                <FlexibleSpace size={abovePill} />
 
                 {/*
                   * 1. Slogan Pill Badge (Top of column)

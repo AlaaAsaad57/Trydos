@@ -2,10 +2,11 @@
 
 import React, { useEffect, useRef } from 'react';
 
-import { CANVAS_FIT_SCRIPT, canvasFit, keyboardLift } from './canvasFit';
+import { canvasFit, canvasFitScript, keyboardLift } from './canvasFit';
 import {
   DESIGN_H,
   DESIGN_W,
+  MAX_DEFICIT,
   MAX_SCALE,
   MIN_SCALE,
   OUTER_BG,
@@ -65,7 +66,18 @@ const isTextField = (el: Element | null): el is HTMLElement =>
     el.tagName === 'TEXTAREA' ||
     (el as HTMLElement).isContentEditable === true);
 
-export default function AppScaler({ children }: { children: React.ReactNode }) {
+export default function AppScaler({
+  children,
+  maxDeficit = MAX_DEFICIT,
+}: {
+  children: React.ReactNode;
+  /**
+   * The most design px the screen on the canvas can give up before the canvas
+   * shrinks. MAX_DEFICIT unless the screen has more spare room than the
+   * tightest one — see canvasFit.ts.
+   */
+  maxDeficit?: number;
+}) {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -103,6 +115,7 @@ export default function AppScaler({ children }: { children: React.ReactNode }) {
       const { scale, deficit, height, left, top } = canvasFit(
         window.innerWidth,
         window.innerHeight,
+        maxDeficit,
       );
 
       // The canvas element reads its scale and its place from these variables
@@ -191,7 +204,8 @@ export default function AppScaler({ children }: { children: React.ReactNode }) {
       document.body.style.overflow = '';
       document.body.style.background = '';
     };
-  }, []);
+    // A new cap (the widget moved to another screen) is a new fit.
+  }, [maxDeficit]);
 
   return (
     <div id="app-outer" style={{ position: 'fixed', inset: 0 }}>
@@ -201,7 +215,7 @@ export default function AppScaler({ children }: { children: React.ReactNode }) {
         * a script React inserts on a client-side navigation; there the effect
         * above does the same work.
         */}
-      <script dangerouslySetInnerHTML={{ __html: CANVAS_FIT_SCRIPT }} />
+      <script dangerouslySetInnerHTML={{ __html: canvasFitScript(maxDeficit) }} />
       <div
         ref={canvasRef}
         id="master-canvas"
