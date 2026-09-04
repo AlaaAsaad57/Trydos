@@ -9,6 +9,7 @@ import SequencedLogo from './useLogoSequence';
 import XdDashedBorder from 'components/Login/Enhanced/ui/XdDashedBorder';
 import AuthLogoSlot from './AuthLogoSlot';
 import { XD } from './authLayout';
+import { DESIGN_H } from 'scaling/scale.config';
 import { DEFAULT_LOGO_CONFIG } from './logoScreenConfig';
 import type { LogoSlotConfig } from './logoScreenConfig';
 
@@ -209,9 +210,9 @@ const COLLAPSED_TAIL = 103;
  * starts below the bottom edge and rides up. Nothing else in the flow does
  * that, which is why every other screen anchors its blocks instead.
  *
- * The spacers no longer give anything away on a short screen. AppScaler draws
- * the whole artboard at one scale now, so `--xd-flex-deficit` is always 0 and a
- * FlexibleSpace is exactly its size.
+ * The spacers never give anything away: every FlexibleSpace here is exactly
+ * its size. On a short page it is the card that gives up the missing height
+ * (see `cardHeight` below), so the sum stays equal to the canvas.
  */
 const GAP = {
     abovePill: 56,
@@ -246,16 +247,27 @@ export default function QuickPreviewScreen({
      * `collapsedY` puts the pill's top edge COLLAPSED_TAIL above the bottom
      * edge, so the ring peeks by the same amount on every screen height.
      *
-     * `fitScale` is the guard for the expanded state, and on a phone it is
-     * always doing something. The spacers below give up at most half of
-     * themselves (see FLEX_GIVE), so the column is taller than the canvas on
-     * any screen shorter than the 932px artboard. This shrinks it to fit, from
-     * the top centre, which keeps every gap in the design's proportion instead
-     * of closing the small ones first.
+     * `cardHeight` is how this screen absorbs a short page. AppScaler draws
+     * the canvas `932 - deficit` design px tall (on an iPhone in Safari the
+     * browser bars take about 187). Every other screen moves its bottom
+     * cluster up by that deficit with `fromBottom()`. This column is a fixed
+     * stack of gaps, so instead the card gives the deficit up: it is the one
+     * block with room to spare (its slides need about 235 of its 473), and
+     * the pill, the mark, the title and the button keep their design size.
+     *
+     * Before this the column kept its full 932 and `fitScale` shrank the
+     * whole thing to fit, so on a phone everything drew at 80% with white
+     * margins on both sides, and the shared mark grew back to full size when
+     * Get Started arrived.
+     *
+     * `fitScale` stays as the guard for the expanded state. With the card
+     * absorbing the deficit the column is never taller than the canvas, so it
+     * is 1, and nothing is scaled.
      */
-    const [fit, setFit] = useState<{ collapsedY: number; fitScale: number }>({
+    const [fit, setFit] = useState<{ collapsedY: number; fitScale: number; cardHeight: number }>({
         collapsedY: 1000,
         fitScale: 1,
+        cardHeight: XD.quickPreview.card.height,
     });
 
     useEffect(() => {
@@ -267,11 +279,17 @@ export default function QuickPreviewScreen({
         const measure = () => {
             const canvasH = canvas.clientHeight;
             const columnH = column.offsetHeight;
+            // The height the page does not have, in design px. The same
+            // number AppScaler publishes as --xd-flex-deficit, read off the
+            // canvas here because the card border is an SVG that needs a
+            // number, not a CSS calc.
+            const deficit = Math.max(0, DESIGN_H - canvasH);
             setFit({
-                // pill.offsetTop is the top spacer, which the flex deficit
-                // shrinks. Reading it beats recomputing it from the constants.
+                // pill.offsetTop is the top spacer. Reading it beats
+                // recomputing it from the constants.
                 collapsedY: Math.max(0, canvasH - COLLAPSED_TAIL - pill.offsetTop),
                 fitScale: columnH > canvasH ? canvasH / columnH : 1,
+                cardHeight: XD.quickPreview.card.height - deficit,
             });
         };
 
@@ -478,11 +496,15 @@ export default function QuickPreviewScreen({
 
                 {/* 4. Main Interactive Preview Card Container (390px x 473px) */}
                 {/* The drop shadow on this card is switched off in the design
-                    file (visible: false), so there is none here either. */}
-                <div className="w-xd-390 h-xd-473 rounded-xd-20 bg-white flex flex-col items-center justify-center p-xd-16 relative overflow-hidden flex-shrink-0">
+                    file (visible: false), so there is none here either.
+                    The height is 473 less the page deficit — see `cardHeight`. */}
+                <div
+                    className="w-xd-390 rounded-xd-20 bg-white flex flex-col items-center justify-center p-xd-16 relative overflow-hidden flex-shrink-0"
+                    style={{ height: fit.cardHeight }}
+                >
                     <XdDashedBorder
                         width={XD.box.width}
-                        height={XD.quickPreview.card.height}
+                        height={fit.cardHeight}
                         radius={XD.box.radius}
                         color="#4A31E7"
                         solid
