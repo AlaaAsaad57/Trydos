@@ -300,19 +300,19 @@ export default function NewLoginWidget({
                                     </span>
                                 </button>
 
-                                {/* 3. The floor for the gap under the Quick Preview button on a short page */}
+                                {/* 3. The floor for the gap under the Quick Preview button. Above 35
+                                    (the design's own gap) it also lifts the button on a full page. */}
                                 <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 text-gray-800 flex items-center gap-1.5 backdrop-blur-sm">
                                     <span className="text-[#402CDD] font-bold">Gap min:</span>
                                     <input
                                         type="number"
                                         min={0}
-                                        max={35}
                                         step={1}
                                         data-pw="demo-below-button-min"
                                         value={belowButtonMin}
                                         onChange={(event) => {
                                             const next = Number(event.target.value);
-                                            if (Number.isFinite(next)) setBelowButtonMin(Math.min(35, Math.max(0, next)));
+                                            if (Number.isFinite(next)) setBelowButtonMin(Math.max(0, next));
                                         }}
                                         className="w-12 px-1 rounded border border-gray-300 bg-white text-gray-800 text-xs"
                                     />
