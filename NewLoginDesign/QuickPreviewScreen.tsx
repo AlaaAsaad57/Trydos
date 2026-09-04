@@ -24,6 +24,12 @@ interface QuickPreviewScreenProps {
     onExpand?: () => void;
     /** What the centre wordmark plays for the first eight seconds. */
     wordmarkSlot?: LogoSlotConfig;
+    /**
+     * The least the gap under the button may shrink to on a short page, in
+     * design px. The demo bar lets the client try values; the product uses
+     * the default.
+     */
+    belowButtonMin?: number;
 }
 
 /**
@@ -233,7 +239,7 @@ const GAP = {
  * 932 px page nothing changes. Without this the button sat a full 35 above
  * Safari's bar, and the bar's own white top zone made it look like 55.
  */
-const BELOW_BUTTON_MIN = 17;
+const BELOW_BUTTON_MIN = 25;
 
 export default function QuickPreviewScreen({
     onComplete,
@@ -241,6 +247,7 @@ export default function QuickPreviewScreen({
     autoExpandDelayMs = 8000,
     onExpand,
     wordmarkSlot = DEFAULT_LOGO_CONFIG['quick-preview-wordmark'],
+    belowButtonMin = BELOW_BUTTON_MIN,
 }: QuickPreviewScreenProps) {
     const translate = (key: string) => translateFunction(key, lang);
     const [isHydrated, setIsHydrated] = useState<boolean>(false);
@@ -302,7 +309,7 @@ export default function QuickPreviewScreen({
             // number, not a CSS calc.
             const deficit = Math.max(0, DESIGN_H - canvasH);
             // The gap under the button gives up first, the card the rest.
-            const belowButton = Math.max(BELOW_BUTTON_MIN, GAP.belowButton - deficit);
+            const belowButton = Math.max(belowButtonMin, GAP.belowButton - deficit);
             const cardGives = deficit - (GAP.belowButton - belowButton);
             setFit({
                 // pill.offsetTop is the top spacer. Reading it beats
@@ -321,7 +328,7 @@ export default function QuickPreviewScreen({
         observer.observe(canvas);
         observer.observe(column);
         return () => observer.disconnect();
-    }, []);
+    }, [belowButtonMin]);
 
     // Trigger hydration on mount. Declared after the measure effect so the
     // slide-up starts from a measured offset, not the off-screen default.

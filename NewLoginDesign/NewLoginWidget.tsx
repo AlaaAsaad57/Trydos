@@ -154,6 +154,13 @@ export default function NewLoginWidget({
      */
     const [previewExpanded, setPreviewExpanded] = useState<boolean>(false);
     const [isQrOpen, setIsQrOpen] = useState<boolean>(false);
+    /** Folds the demo bar down to its checkbox, so a screenshot shows the design alone. */
+    const [hideMenu, setHideMenu] = useState<boolean>(false);
+    /**
+     * The floor for the gap under the Quick Preview button on a short page.
+     * The client tries values here; the screen's own default is what ships.
+     */
+    const [belowButtonMin, setBelowButtonMin] = useState<number>(25);
 
     /**
      * Saved picks are read after mount, never during render. The server has no
@@ -244,41 +251,79 @@ export default function NewLoginWidget({
                   * It sits over the widget and belongs to the demo route, not
                   * to the design. Nothing here changes a screen's own layout.
                   */}
-                <div className="fixed hidden top-3 left-3 z-[999999999999] flex flex-col gap-1.5 items-start font-quicksand select-none">
+                <div className="fixed top-3 left-3 z-[999999999999] flex flex-col gap-1.5 items-start font-quicksand select-none">
                     <div className="flex items-center gap-2 flex-wrap">
-                        {/* 1. Flow Steps Toggle Button */}
-                        <button
-                            data-pw="demo-flow-steps"
-                            onClick={() => setShowStepBar((prev) => !prev)}
-                            className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer"
-                        >
-                            <span className="w-2 h-2 rounded-full bg-[#402CDD]" />
-                            <span>{showStepBar ? 'Hide Steps' : 'Flow Steps'}</span>
-                        </button>
+                        {/* 0. Hide the menu. Only this checkbox stays, so it can be turned back on. */}
+                        <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 flex items-center gap-1.5 backdrop-blur-sm cursor-pointer">
+                            <input
+                                type="checkbox"
+                                data-pw="demo-hide-menu"
+                                checked={hideMenu}
+                                onChange={(event) => {
+                                    setHideMenu(event.target.checked);
+                                    setShowStepBar(false);
+                                }}
+                                className="accent-[#402CDD] cursor-pointer"
+                            />
+                            <span>Hide menu</span>
+                        </label>
 
-                        {/* 2. Per-screen logo animation modal */}
-                        <button
-                            onClick={() => {
-                                setIsAnimModalOpen(true);
-                                setShowStepBar(false);
-                            }}
-                            className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer"
-                        >
-                            <span className="text-[#402CDD] font-bold">Anim:</span>
-                            <span>
-                                {activeSlot.steps
-                                    .map((item) => `${item.animation} ${item.seconds}s`)
-                                    .join(' → ')}
-                            </span>
-                            <span className="text-gray-500">
-                                {activeSlot.loop ? 'loop' : 'once'}
-                                {activeStepCount > 1 ? ` · ${activeStepCount} steps` : ''}
-                            </span>
-                        </button>
+                        {!hideMenu && (
+                            <>
+                                {/* 1. Flow Steps Toggle Button */}
+                                <button
+                                    data-pw="demo-flow-steps"
+                                    onClick={() => setShowStepBar((prev) => !prev)}
+                                    className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer"
+                                >
+                                    <span className="w-2 h-2 rounded-full bg-[#402CDD]" />
+                                    <span>{showStepBar ? 'Hide Steps' : 'Flow Steps'}</span>
+                                </button>
+
+                                {/* 2. Per-screen logo animation modal */}
+                                <button
+                                    onClick={() => {
+                                        setIsAnimModalOpen(true);
+                                        setShowStepBar(false);
+                                    }}
+                                    className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer"
+                                >
+                                    <span className="text-[#402CDD] font-bold">Anim:</span>
+                                    <span>
+                                        {activeSlot.steps
+                                            .map((item) => `${item.animation} ${item.seconds}s`)
+                                            .join(' → ')}
+                                    </span>
+                                    <span className="text-gray-500">
+                                        {activeSlot.loop ? 'loop' : 'once'}
+                                        {activeStepCount > 1 ? ` · ${activeStepCount} steps` : ''}
+                                    </span>
+                                </button>
+
+                                {/* 3. The floor for the gap under the Quick Preview button on a short page */}
+                                <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 text-gray-800 flex items-center gap-1.5 backdrop-blur-sm">
+                                    <span className="text-[#402CDD] font-bold">Gap min:</span>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={35}
+                                        step={1}
+                                        data-pw="demo-below-button-min"
+                                        value={belowButtonMin}
+                                        onChange={(event) => {
+                                            const next = Number(event.target.value);
+                                            if (Number.isFinite(next)) setBelowButtonMin(Math.min(35, Math.max(0, next)));
+                                        }}
+                                        className="w-12 px-1 rounded border border-gray-300 bg-white text-gray-800 text-xs"
+                                    />
+                                    <span className="text-gray-500">px</span>
+                                </label>
+                            </>
+                        )}
                     </div>
 
                     {/* Step Navigator Strip */}
-                    {showStepBar && (
+                    {!hideMenu && showStepBar && (
                         /* Wraps rather than scrolls. A scrolling strip hides
                            half the steps on a narrow window, and the parity
                            browser test cannot click a step it cannot see. */
@@ -400,6 +445,7 @@ export default function NewLoginWidget({
                                     onExpand={() => setPreviewExpanded(true)}
                                     wordmarkSlot={logoConfig['quick-preview-wordmark']}
                                     lang={langCode}
+                                    belowButtonMin={belowButtonMin}
                                 />
                             )}
 
