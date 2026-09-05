@@ -565,7 +565,7 @@ remote` is not needed.
 | T-1 | Elasticsearch queries for 20 sequential home requests in one minute | at most 4 | **20** inside one window, **54** across a window turnover | **FAIL as written** |
 | T-2 | `/[lang]` in the build's route table | not `dynamic` | `◐` partial prerender (was `ƒ` dynamic) | **PASS** |
 | T-3 | Time to first byte, warm cache, home page | no worse than today's | 0.011–0.020s, against 0.009–0.015s before. Full document 0.22–0.28s, against 2.49–3.87s before | **PASS** |
-| T-4 | A guest document containing a signed-in shopper's profile | never | never — `tests/cache/sharedEntryIsNotPersonal.test.ts` green, and red first against a deliberate leak | **PASS** |
+| T-4 | A guest document containing a signed-in shopper's profile | never | never — `tests/cache/sharedEntryIsNotPersonal.test.ts` green, and red first against a deliberate leak | **PASS** (that test was removed on 2026-09-05; it needed a server on 3111 and skipped on every run, so nothing guards T-4 now) |
 
 **T-1 fails, and the threshold is what blocks a merge, so this is the owner's
 decision to make.** Saying why it fails is not the same as arguing it should

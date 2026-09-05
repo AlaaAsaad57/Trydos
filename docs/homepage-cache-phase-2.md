@@ -351,13 +351,15 @@ one shopper's data into another's page are blocked by the framework.
 
 Module state is not. A cached scope that reads a module-level variable stores
 whatever the first request happened to write there and hands it to everyone
-afterwards. Demonstrated on a real build while proving
-`tests/cache/sharedEntryIsNotPersonal.test.ts` can fail: a five-line probe in
+afterwards. Demonstrated on a real build in September 2026: a five-line probe in
 `AuthNavContainer` put a signed-in shopper's profile into the next guest's
 document.
 
 Nothing in the code does this today. It is written down because it is the one
-leak the framework will not catch for you.
+leak the framework will not catch for you, and because no test watches for it
+any more — the check that did, `tests/cache/sharedEntryIsNotPersonal.test.ts`,
+needed a production server on port 3111 and so skipped on every run. It was
+removed on 2026-09-05.
 
 ### An unlisted category slug needs a firewall rule
 
@@ -522,19 +524,21 @@ renders nothing for a signed-out shopper. It is **not** fixed here, and cannot b
 fixed the same way: it reads the shopper's own cookie, so a shell shared by every
 visitor can never know its answer in advance. It sits below the fold on a 900px
 viewport, so it does not move anything a visitor is looking at on load. The check
-in `tests/cache/homeRowsRenderOnTheServer.test.ts` says out loud that it only
-covers the two rows above the boutiques.
+in `tests/cache/homeRowsRenderOnTheServer.test.ts` covered the two rows above
+the boutiques only. That part of the file is gone (see "What guards it").
 
 ### What guards it
 
-`tests/cache/homeRowsRenderOnTheServer.test.ts`:
+`tests/cache/homeRowsRenderOnTheServer.test.ts` holds one guard: a source check,
+run by CI on every pull request, that every home row which can render a product
+card asks for the request first.
 
-- a source check, run by CI on every pull request, that every home row which can
-  render a product card asks for the request first;
-- a check against a running server that the home document carries real product
-  cards, not only streaming payload;
-- a check that every product-row skeleton above the boutiques is filled.
-
-Both server checks skip loudly with no server on port 3111, the same as
-`tests/cache/sharedEntryIsNotPersonal.test.ts`, because the unit suite gates
-every pull request with nothing running.
+It used to hold two more — that the home document carries real product cards and
+not only streaming payload, and that every product-row skeleton above the
+boutiques is filled. Both asked a production server on port 3111, and the unit
+suite gates every pull request with nothing running, so both skipped on every
+run. They were removed on 2026-09-05 rather than kept as a green tick that saw
+nothing. **The rendered document is no longer guarded.** Anyone who brings that
+guard back has to give it a server first: build and start the app on 3111 in the
+test setup, or move the check to the browser suite, which already has a running
+app.
