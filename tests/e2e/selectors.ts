@@ -41,6 +41,16 @@ export const nav = {
  *  country is chosen. Any journey that does not deal with it fails on its first
  *  click, whatever that click was. */
 export const region = {
+  /** The backdrop, which is up for the whole time the popup is.
+   *
+   *  Not the same thing as `popup` below, and the difference matters. This
+   *  component draws the backdrop first and spends a moment on a "Preparing your
+   *  experience" screen while it fetches the country list; `Change-Url-Container`
+   *  only exists once that list has arrived. A helper that waits for the list
+   *  alone and gives up therefore leaves a full-screen backdrop over the page,
+   *  and every later click in the case is swallowed by it with a confusing
+   *  "intercepts pointer events". */
+  backdrop: (page: Page): Locator => page.getByTestId("country-popup"),
   popup: (page: Page): Locator => page.getByTestId("Change-Url-Container"),
   /** One country row. `iso` is lower case: `iq`, `lb`, `sy`, `tr`. */
   country: (page: Page, iso: string): Locator =>
@@ -348,8 +358,41 @@ export const profile = {
  *  container marker of its own, so this control being visible is also how "the
  *  sheet is open" is read. */
 export const addToCartSheet = {
-  addToBag: (page: Page): Locator =>
-    page.locator("#add-to-cart-button-container"),
+  /** The product card at the top of the sheet.
+   *
+   *  **This, not `addToBag`, is how "the sheet is open" is read.** The sheet
+   *  swaps its button for "Notify Me When Variant Is Available" whenever the
+   *  chosen variant is sold out (`shouldShowNotifyButton` in
+   *  `AddToCartComponent`), so on a sold-out product `addToBag` does not exist
+   *  and a wait on it times out on a sheet that is plainly open. The card is
+   *  drawn either way. */
+  card: (page: Page): Locator => page.getByTestId("product-name-label"),
+  /** The sheet itself, and the only place its loading state is readable.
+   *
+   *  `data-loading` is the sheet's own `loading` flag. It goes true while the
+   *  sheet re-reads the product (`getAllProductData`), and while it is true the
+   *  button's click handler returns without calling anything —
+   *  `if (!loading && !initialLoading)` in `AddToCart/Button.tsx`. A press in
+   *  that window is swallowed in silence: no request, no message, no change. The
+   *  same read also resets the chosen colour and size when it lands, so a choice
+   *  made too early is thrown away. Wait for `"false"` before touching the
+   *  sheet. */
+  sheet: (page: Page): Locator => page.getByTestId("add-to-cart-sheet"),
+  /** The real "Add To Bag" button, and only it.
+   *
+   *  **Never `#add-to-cart-button-container`.** Two different components put
+   *  that same id on their button — `AddToCart/Button.tsx` and
+   *  `AddToCart/NotifyButton.tsx` — and only one of them is on screen at a time.
+   *  So a wait on the id is answered by the sold-out "Notify Me When Variant Is
+   *  Available" button as happily as by the buy one. A live run pressed it, the
+   *  press was accepted, nothing went in the bag, and the failure blamed the cart
+   *  backend. `data-pw="add-to-bag"` is on the buy button alone. */
+  addToBag: (page: Page): Locator => page.getByTestId("add-to-bag"),
+  /** The sold-out button that takes the buy button's place.
+   *
+   *  Its presence is the app's own answer to "this variant cannot be bought"
+   *  (`shouldShowNotifyButton` in `AddToCartComponent`). */
+  notifyMe: (page: Page): Locator => page.getByTestId("notify_container_2"),
   /** One size choice. Absent for a product that has no sizes — which is not an
    *  error, and is why the action asks rather than waits. */
   size: (page: Page): Locator => page.getByTestId("add-to-cart-size"),
@@ -381,6 +424,17 @@ export const cart = {
    *  where it landed. */
   confirmOrder: (page: Page): Locator =>
     page.getByTestId("Confirm-Order-Button"),
+  /** The verify panel that opens **inside** that button for a visitor with no
+   *  verified phone (`components/Login/Enhanced/InlineVerifyPanel.tsx`).
+   *
+   *  Its close control, because that is the one part every screen of the panel
+   *  draws — the rest changes with which step the visitor is on. Finding it is
+   *  how "the phone gate held" is told apart from "the button did nothing",
+   *  which look identical from the outside.
+   *
+   *  Showing the panel costs no one-time code: it opens on the phone entry, and
+   *  a code is only sent once a number is submitted. */
+  verifyPanel: (page: Page): Locator => page.getByTestId("inline-close"),
 };
 
 /** The checkout screen: address, payment method, terms, and placing the order.

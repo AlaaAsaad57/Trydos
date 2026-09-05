@@ -90,7 +90,19 @@ export const findOrderInList = async (
     }
 
     const before = await rows.count();
-    await page.mouse.wheel(0, 2000);
+    if (before === 0) break;
+
+    // Scrolled by bringing the last row into view, not with the mouse wheel.
+    // The list scrolls **inside its own container** (`overflow-y-auto` in
+    // `OrdersListWrapper`), not the window, and a wheel event scrolls whatever
+    // happens to be under the pointer — which, with the pointer where a fresh
+    // page leaves it, is not this list. Bringing an element into view asks the
+    // browser to scroll the right container.
+    await rows
+      .nth(before - 1)
+      .scrollIntoViewIfNeeded()
+      .catch(() => undefined);
+
     const grew = await expect
       .poll(async () => await rows.count(), { timeout: 8_000 })
       .toBeGreaterThan(before)

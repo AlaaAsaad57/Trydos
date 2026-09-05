@@ -59,17 +59,34 @@ import {
 export const chooseRegionIfAsked = async (
   page: Page,
 ): Promise<{ chosen: boolean; iso?: string }> => {
+  const backdrop = region.backdrop(page);
   const popup = region.popup(page);
 
-  // Short wait, not the default: on a page that has no popup this is pure
-  // waiting, and the popup is rendered as soon as the country is known to be
-  // missing rather than after a fetch.
-  const showing = await popup
+  // Two waits, and splitting them fixed a real failure.
+  //
+  // The **backdrop** is up as soon as the app knows it has no country, so a
+  // short wait is right for it: on a page that is not going to ask, this is
+  // pure waiting.
+  //
+  // The **list** arrives later. The component spends a moment on a "Preparing
+  // your experience" screen while it fetches the countries, and
+  // `Change-Url-Container` does not exist until that answer lands. The single
+  // 10-second wait this used to be gave up during that fetch and returned "no
+  // popup" — leaving a full-screen backdrop over the page, so the next click in
+  // the case landed on it and failed with "intercepts pointer events" somewhere
+  // unrelated. Once the backdrop is known to be there, the list is worth waiting
+  // properly for.
+  const showing = await backdrop
     .waitFor({ state: "visible", timeout: 10_000 })
     .then(() => true)
     .catch(() => false);
 
   if (!showing) return { chosen: false };
+
+  await expect(
+    popup,
+    "the country popup is covering the page and never offered a country to pick",
+  ).toBeVisible({ timeout: 45_000 });
 
   const first = region.anyCountry(page).first();
   await expect(first).toBeVisible();
@@ -104,7 +121,14 @@ export const chooseRegionIfAsked = async (
     timeout: 45_000,
     waitUntil: "domcontentloaded",
   });
-  await expect(popup).toBeHidden({ timeout: 30_000 });
+  // The **backdrop**, not the list. The list can go while the backdrop stays —
+  // the component falls back to its loading screen inside the same overlay — and
+  // it is the backdrop that swallows clicks, so that is what has to be gone
+  // before this returns.
+  await expect(
+    backdrop,
+    "the country popup's backdrop is still covering the page after a country was chosen",
+  ).toBeHidden({ timeout: 30_000 });
 
   return { chosen: true, iso };
 };
@@ -191,6 +215,28 @@ export const searchFor = async (
  *  wants to assert or carry into the next step. */
 export const gotoFirstProduct = async (
   page: Page,
+): Promise<{ name: string; url: string }> => await gotoProductAt(page, { index: 0 });
+
+/** Open the nth product from whatever listing is currently on screen.
+ *
+ *  Counted from 0. A journey that has to find a product it can actually buy
+ *  needs more than the first one — not every product in a real shop is in stock
+ *  — and this is how it walks along the row.
+ *
+ *  Returns `null` when the listing has no card at that position, so a caller can
+ *  say "I looked at every product on this page" rather than time out. */
+export const gotoProductAtOrNull = async (
+  page: Page,
+  options: { index: number },
+): Promise<{ name: string; url: string } | null> => {
+  const link = listing.cardLink(page).nth(options.index);
+  if ((await link.count()) === 0) return null;
+  return await gotoProductAt(page, options);
+};
+
+const gotoProductAt = async (
+  page: Page,
+  options: { index: number },
 ): Promise<{ name: string; url: string }> => {
   // Only the real product-card hook.
   //
@@ -200,11 +246,11 @@ export const gotoFirstProduct = async (
   // the app bounced it to `?message=product_not_found`. A locator that matches
   // the wrong thing is worse than one that matches nothing, because it fails
   // somewhere else and blames the app.
-  const link = listing.cardLink(page).first();
+  const link = listing.cardLink(page).nth(options.index);
 
   await expect(
     link,
-    "no product card on this page — is this a listing surface?",
+    `no product card at position ${options.index} on this page — is this a listing surface?`,
   ).toBeVisible();
   await link.click();
 

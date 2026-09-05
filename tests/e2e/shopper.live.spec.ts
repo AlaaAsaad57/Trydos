@@ -61,9 +61,9 @@
 
 import { expect, test } from "./fixtures";
 import { attemptAuth, currentAuthScreen } from "./actions/auth";
-import { gotoAbout, gotoHome, gotoFirstProduct } from "./actions/nav";
+import { gotoAbout, gotoHome } from "./actions/nav";
 import {
-  addOpenProductToBag,
+  addFirstBuyableProduct,
   chooseCashOnDelivery,
   confirmShippingAndPayment,
   emptyTheBag,
@@ -82,7 +82,7 @@ import {
 import { addAddress, gotoSettings } from "./actions/profile";
 import { envValue, hasShopperA } from "./harness/env";
 import { newLiveContext } from "./harness/liveSession";
-import { checkout } from "./selectors";
+import { cart, checkout } from "./selectors";
 
 /** The address BUY-01 adds when the account has none.
  *
@@ -160,19 +160,20 @@ test("BUY-01 a shopper buys something with cash on delivery and then cancels it"
     let bought = "";
 
     await test.step("a product from the storefront goes into the bag", async () => {
-      const opened = await gotoFirstProduct(page);
-      expect(
-        opened.name,
-        "the product page has no title, so there is nothing identifiable to buy",
-      ).not.toBe("");
-
-      const added = await addOpenProductToBag(page);
-      bought = added.name;
+      // Not "the first product": this is a real shop, and a product whose every
+      // variant is sold out draws "Notify Me When Variant Is Available" where the
+      // Add To Bag button would be. So the journey walks the listing the way a
+      // shopper does, and only gives up after several.
+      const added = await addFirstBuyableProduct(page);
 
       expect(
-        added.lines,
-        `"${added.name}" reported as added, but the bag still shows ${added.lines} lines`,
-      ).toBe(1);
+        added.bought,
+        `none of the first ${added.looked} products on the storefront could be ` +
+          "put in a bag — every variant of each was sold out, or the listing ran " +
+          "out of products before one could be",
+      ).not.toBeNull();
+
+      bought = added.bought!;
     });
 
     await test.step("the bag holds what was added", async () => {
@@ -356,13 +357,13 @@ test("BUY-02 a visitor with no verified phone is stopped before any order exists
   try {
     await gotoHome(page);
 
-    const opened = await gotoFirstProduct(page);
+    const added = await addFirstBuyableProduct(page);
     expect(
-      opened.name,
-      "the product page has no title, so there is nothing to put in a bag",
-    ).not.toBe("");
+      added.bought,
+      `none of the first ${added.looked} products on the storefront could be put ` +
+        "in a bag, so there is no bag to test the phone gate with",
+    ).not.toBeNull();
 
-    await addOpenProductToBag(page);
     await openCart(page);
 
     // Pressing Confirm & Continue as a visitor with no verified phone opens the
@@ -374,6 +375,15 @@ test("BUY-02 a visitor with no verified phone is stopped before any order exists
       "a visitor with no verified phone reached the checkout screen — the " +
         "phone gate in the cart is not holding",
     ).toBe(false);
+
+    // Not "the checkout did not open" on its own. A dead button looks exactly
+    // like a working gate from the outside, and this is the difference: the app
+    // has to ask for a phone rather than simply do nothing.
+    await expect(
+      cart.verifyPanel(page),
+      "the checkout did not open, and neither did the verify panel — so the " +
+        "shopper was given no way forward and no reason why",
+    ).toBeVisible({ timeout: 45_000 });
   } finally {
     await context.close();
   }

@@ -1,6 +1,6 @@
 # E2E scenarios
 
-Every case the browser suite runs — **63** of them today. Add a row whenever a
+Every case the browser suite runs — **71** of them today. Add a row whenever a
 case is added, and keep the count above in step.
 
 | Section | Cases | Signs in? | Writes to staging? |
@@ -9,8 +9,10 @@ case is added, and keep the count above in step.
 | Signed-in journeys | AUTH-01 to AUTH-03 | yes, once, shared | no |
 | Signed-in profile journeys | PROF-01 to PROF-08 | yes, twice, shared | yes — the shared test account |
 | Signed-in session recovery | RECOV-01 | yes, its own — a third real code per run | no |
+| **The money path** | BUY-01 to BUY-02 | BUY-01 does, for itself | **yes — one real order, placed and then cancelled** |
 | Scripted auth branches | SCRIPT-01 to SCRIPT-05 | no | no — only the real one-time-code send |
 | Scripted profile branches | SCRIPT-07 to SCRIPT-12 | **yes — each case signs in for itself** | **no** — every leg is faked, but each sign-in and one change-number send are real |
+| Scripted checkout branches | SCRIPT-14 to SCRIPT-18, SCRIPT-20 | **no — the shopper is faked** | no — nothing but a guest registration |
 
 Design: `docs/testing/E2E_TEST_DESIGN.md`. How to run: `tests/e2e/README.md`.
 
@@ -169,6 +171,48 @@ Per run it costs: one one-time code, one sign-in, and no writes to the account.
 |----|------|------|----------------|
 | RECOV-01 | A signed-in shopper survives a credential refused mid-action | `session-recovery.live.spec.ts:118` | The action completes, the credentials really were exchanged, the app names the **same** shopper afterwards rather than a new guest, no sign-in prompt is ever shown, and the replacement credential is still kept from page scripts |
 
+## The money path
+
+Real staging, a real sign-in, and **the only cases in the suite that create an
+order**. Their own `BUY-` range because they prove something no other section
+touches: that a shopper can pay for something.
+
+BUY-01 is **one test with many steps**, not one test per step, and that is a
+safety rule rather than a style choice. The order exists from the middle of the
+journey to the end of it. Split into four tests, the order would be live at the
+end of the second one, and the net that clears an abandoned order — which runs
+when a test ends — would cancel it before the test meant to cancel it ever
+started. `test.step()` is what keeps the failure naming the part that broke.
+
+**The bag is emptied before anything is added.** The account is shared, so a run
+inherits whatever the last one left in it. A journey that adds one product to a
+bag already holding two cannot say which product it ordered, cannot read the bag
+count as proof its own add worked, and would order two strangers' products every
+night.
+
+**The order is registered the moment its number is on screen**, before anything
+about it is asserted. If the journey dies after that — a refused cancel, a
+timeout, a crash — the `orders` fixture cancels it directly through the app's own
+proxy when the test ends (`tests/e2e/harness/orderCleanup.ts`). Playwright
+retries are off, so there is never a second order. A healthy run cancels its own
+order through the screens and the net catches nothing, and the last assertion of
+BUY-01 is exactly that: a net that catches something every run is a journey that
+is quietly not finishing.
+
+**Two ids, and only one is ever on screen.** Every screen shows the *group* id;
+the cancel call takes a *pack* id, and one group can hold several packs — one per
+seller. So the cases are driven by the group id and only the net asks the backend
+for the pack ids.
+
+Per run they cost: one one-time code, one sign-in, one order placed and
+cancelled, and two guest registrations (BUY-02 boots as a guest and adds to its
+bag). BUY-01 adds a delivery address only when the account has none.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| BUY-01 | A shopper buys something with cash on delivery and then cancels it | `shopper.live.spec.ts:117` | The whole money path against real staging: sign in, empty the bag, add a product, reach checkout, have an address, choose cash on delivery, place the order, find it in the shopper's own list, open it, cancel it through the screens, and see the list agree it is cancelled. The design's AC-5 and AC-6 |
+| BUY-02 | A visitor with no verified phone is stopped before any order exists | `shopper.live.spec.ts:307` | The gate in the cart: a visitor who never verified a phone can fill a bag and is offered the verify panel instead of the checkout screen. Real, live, and it costs no code — the panel is where a code would be asked for |
+
 ## Scripted auth branches
 
 Real staging pages, with the **verify** answer faked. The one-time-code *send* is
@@ -227,3 +271,44 @@ whole artifact directory before uploading it.
 | SCRIPT-10 | A credential refused mid-save is renewed, and the save completes | `profile.scripted.spec.ts:324` | The core leg answers 401 then 200. The second write is shown to be the retry by the value it carried — counting cannot tell a retry from a rollback |
 | SCRIPT-11 | When renewal also fails, the shopper is asked to sign in again | `profile.scripted.spec.ts:377` | The renewal answers "eligible but not refreshed" and the sign-out route answers "expired" — an answer carrying `renewed` would short-circuit before the shopper is ever asked |
 | SCRIPT-12 | Changing the number asks for a confirmation before it saves | `profile.scripted.spec.ts:410` | No leg is written until the new number is confirmed. The number typed is the second configured identity, never an invented one, because the code that follows is a real send |
+
+## Scripted checkout branches
+
+**Faked, and nobody signs in.** `userProfile` — which both phone gates read — is
+filled from `/customer/info` and from nowhere else (`services/home.ts`), so a
+faked answer is how the app itself learns who it is talking to. A real sign-in
+would spend a one-time code per case against limits that are not ours and would
+prove nothing these cases are about.
+
+The whole checkout screen is faked, not one call: it is built from four answers —
+who the shopper is, the bag, the saved addresses, and the checkout itself — and
+letting any one of them reach staging would put a real read, or a real order,
+behind a case that is pretending. **No case here places a real order**, and
+SCRIPT-14 proves it: the number it reads back is a constant no shop ever issued.
+
+**They run closed**, like the scripted profile cases: a call this spec did not
+name is refused and recorded rather than passed through, and every case asserts
+at the end that nothing was refused. Two calls had to be named because of it, and
+both are worth knowing about — `/api/auth/register-device`, whose name says
+"device" but which mints a **guest on the gateway**, and `/old-cart/get_old_cart`,
+which staging answers `401` for these shoppers and which would otherwise drag the
+app through its whole session-expired path.
+
+The guest registration the page render causes is not visible to that guard and
+cannot be: it happens in the Node process, not in the browser. One throwaway
+guest per case.
+
+**Each refusal is judged on the screen and on what the shopper was told.** Every
+branch ends with the order not placed, so "no success panel" is true for all of
+them and separates none of them. No wording is ever asserted — every message goes
+through `translateFunction` — but a branch that says *nothing* is reported,
+because from the shopper's side a silent refusal and a dead button look the same.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| SCRIPT-14 | The whole faked journey still places an order | `checkout.scripted.spec.ts:145` | The control the six below vary from. It also proves the fakes are the ones being read: the order number that comes back is a constant no shop ever issued |
+| SCRIPT-15 | A refused order is not reported as placed, and the shopper is told | `checkout.scripted.spec.ts:189` | The shop answers `500`. The app shows no purchase-complete panel and says so — a `500`, not a `401`, because a `401` starts credential recovery, which is SCRIPT-20 |
+| SCRIPT-16 | A bag holding something unavailable never reaches the checkout | `checkout.scripted.spec.ts:239` | **The gate is in the cart, not in the checkout screen.** `GoToOrders` re-reads the bag before it moves anywhere and refuses when a line answers `check_availability: false`. Found by writing this case: an earlier version asserted one screen after the app had already stopped |
+| SCRIPT-17 | A bag holding something this country cannot receive never reaches the checkout | `checkout.scripted.spec.ts:290` | The same guard, a different field (`is_country_restricted`). Both are covered rather than one standing in for the other — a change dropping one of the three conditions would leave the other case green |
+| SCRIPT-18 | A bag that empties between the two checkout steps sends the shopper back | `checkout.scripted.spec.ts:325` | The bag is emptied **after** the payment method is chosen, so the re-read that Confirm Shipping & Payment does is the first to see it. Emptying it any earlier zeroes the total, which disables the cash-on-delivery choice and fails the case on a control it is not about |
+| SCRIPT-20 | A credential refused mid-checkout is renewed and the order completes | `checkout.scripted.spec.ts:437` | The checkout answers `401` once and then accepts. Both answers being consumed is what "it was retried" means — one consumed answer would mean the app took the refusal and stopped |

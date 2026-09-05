@@ -705,6 +705,8 @@ function AddToCartComponent({ product, slug, color }) {
       height={75}
     >
       <div
+        data-pw="add-to-cart-sheet"
+        data-loading={loading ? "true" : "false"}
         className={`${
           isRtl ? "items-end" : "items-start"
         } flex flex-col   w-full max-h-[75vh] h-full pt-[32px] overflow-y-auto pb-[213px]`}

@@ -179,6 +179,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
               isRtl ? "flex-row-reverse" : "flex-row"
             } gap-[34px] w-full cursor-pointer agree-valid-border px-[26px] h-[40px] rounded-[15px] regular flex-row items-center text-[12px] text-[#1D1D1D]`}
             data-pw="read-and-agree"
+            data-agreed={orderData.agree ? "true" : "false"}
             style={{
               border: "1px solid rgb(56 144 255 / 51%)",
             }}

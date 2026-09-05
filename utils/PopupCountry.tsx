@@ -137,6 +137,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
         backdropFilter: "blur(8px)",
       }}
       className="fixed inset-0 bg-black/40 flex items-center justify-center p-4"
+      data-pw="country-popup"
     >
       {initialLoading ? (
         // Initial loading screen with progress bar

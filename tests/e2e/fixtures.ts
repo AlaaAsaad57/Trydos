@@ -59,7 +59,11 @@ const localeFromUrl = (url: string): { country: string; language: string } => {
 };
 
 export const test = base.extend<{ orders: OrderTracker }>({
-  orders: async ({ playwright }, use, testInfo) => {
+  // The second argument is Playwright's `use`, renamed here only because the
+  // React lint rule reads a bare `use(...)` as the React hook and warns about a
+  // function that is not a component. It is passed positionally, so the name is
+  // ours to choose.
+  orders: async ({ playwright }, provide, testInfo) => {
     const live = new Map<string, Registered>();
     const swept: CleanupOutcome[] = [];
 
@@ -77,7 +81,7 @@ export const test = base.extend<{ orders: OrderTracker }>({
       swept: () => [...swept],
     };
 
-    await use(tracker);
+    await provide(tracker);
 
     // Whatever is still registered was never cancelled by the case itself.
     for (const order of live.values()) {

@@ -298,10 +298,29 @@ export const closeUnnamedCalls = async (
     // For a proxied call the app names its own verb in a header; for anything
     // else the request carries it. A verb that cannot be read is treated as a
     // write — failing closed is the whole point of this handler.
+    //
+    // **The proxy has a second form**, and missing it made this guard refuse
+    // ordinary reads. `utils/proxyGetUrl.ts` addresses the same proxy by query
+    // string — `?s=<service>&u=<target>` — because a `<link rel="preload">` can
+    // only issue a plain GET and cannot carry a custom header. Read that way it
+    // has no `x-proxy-url` and no `x-proxy-method`, so the header branch below
+    // saw an empty target and an unreadable verb, and blocked it as a write.
+    // The form is **GET by construction** (`fetchData` ignores `viaProxyGet`
+    // for anything else), so the request's own verb is the truth for it.
     const proxied = path.startsWith("/api/proxy");
-    const target = proxied ? (request.headers()["x-proxy-url"] ?? "") : path;
+    const url = new URL(request.url());
+    const byQuery = proxied && url.searchParams.has("u");
+
+    const target = proxied
+      ? byQuery
+        ? (url.searchParams.get("u") ?? "")
+        : (request.headers()["x-proxy-url"] ?? "")
+      : path;
+
     const verb = (
-      proxied ? (request.headers()["x-proxy-method"] ?? "") : request.method()
+      proxied && !byQuery
+        ? (request.headers()["x-proxy-method"] ?? "")
+        : request.method()
     ).toUpperCase();
 
     const named = [...MUTATING_GETS, ...WRITES_THAT_MAY_PASS].find((entry) =>

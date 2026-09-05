@@ -449,6 +449,7 @@ function AddToCartButton({
           (loading || initialLoading) && "opacity-40 scale-95"
         } gap-[4px] text-[15px]  shadow-[inset_0px_3px_6px_rgb(255,255,255,0.16)] duration-300 transition-all  rounded-[20px] relative flex-col regular  items-center justify-center`}
         id={"add-to-cart-button-container"}
+        data-pw="add-to-bag"
       >
         <PlusIconHolder isValid={canAddMore()} />
         {initialLoading ? (

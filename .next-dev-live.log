@@ -292,3 +292,50 @@ Route /_not-found is rendering with server caches disabled. For this navigation,
  POST /api/proxy 201 in 294ms (next.js: 5ms, application-code: 290ms)
 ✓ Compiled in 3.6s
  GET /sy-en/loginDemo 200 in 5.8s (next.js: 4.6s, generate-params: 231ms, application-code: 968ms)
+ GET /sy-en/loginDemo 200 in 1516ms (next.js: 556ms, proxy.ts: 168ms, generate-params: 78ms, application-code: 714ms)
+Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException: Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+⨯ uncaughtException:  Error: write EPIPE
+    at ignore-listed frames {
+  errno: -4047,
+  code: 'EPIPE',
+  syscall: 'write'
+}
+ GET /sy-en/loginDemo 200 in 2.3s (next.js: 637ms, proxy.ts: 251ms, generate-params: 61ms, application-code: 1374ms)
+⨯ Failed to generate static paths for /[lang]/loginDemo:
+Error: Jest worker encountered 2 child process exceptions, exceeding retry limit
+    at ignore-listed frames {
+  type: 'WorkerError'
+}
+⨯ Error: Jest worker encountered 2 child process exceptions, exceeding retry limit
+    at ignore-listed frames {
+  type: 'WorkerError',
+  page: '/sy-en/loginDemo'
+}
+ GET /sy-en/loginDemo 500 in 2.4s (next.js: 1582ms, proxy.ts: 7ms, application-code: 818ms)
+[browser] Uncaught Error: Jest worker encountered 2 child process exceptions, exceeding retry limit
+⨯ Error: Jest worker encountered 2 child process exceptions, exceeding retry limit
+    at ignore-listed frames {
+  type: 'WorkerError',
+  page: '/sy-en/loginDemo'
+}
+ GET /sy-en/loginDemo 500 in 222ms (next.js: 183ms, proxy.ts: 13ms, application-code: 25ms)
+[browser] Uncaught Error: Jest worker encountered 2 child process exceptions, exceeding retry limit
+⨯ Error: Jest worker encountered 2 child process exceptions, exceeding retry limit
+    at ignore-listed frames {
+  type: 'WorkerError',
+  page: '/sy-en/loginDemo'
+}
+ GET /sy-en/loginDemo 500 in 77ms (next.js: 55ms, proxy.ts: 6ms, application-code: 16ms)
+[?25h
+ ELIFECYCLE  Command failed with exit code 1.

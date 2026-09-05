@@ -26,6 +26,10 @@
 // staging up.
 // ---------------------------------------------------------------------------
 
+import type { CartItemInterface } from "utils/types/cart";
+
+import { buildCart, buildCartItem } from "../../fixtures/cart";
+
 import type { MockMap } from "../actions/mock";
 
 /** Backend paths worth naming once, so a typo is a compile error and not a
@@ -55,9 +59,62 @@ export const ENDPOINTS = {
   updateUser: "/api/auth/update-user",
   authMe: "/api/auth/me",
 
+  /** The browser's own guest registration.
+   *
+   *  **A real write, and one that is easy to miss.** The name says "device" but
+   *  the route POSTs `/auth/register-guest` to the gateway
+   *  (`app/api/auth/register-device/route.ts`), so every unfaked call mints a
+   *  guest on staging. The app makes it from the browser on boot, so closed mode
+   *  blocks it — correctly — and a case that does not name it never gets past
+   *  its own guard assertion. */
+  registerDevice: "/api/auth/register-device",
+
   /** The picture upload, and the ticket minted just before it. */
   uploadTicket: "/api/ticket",
   mediaUpload: "/gated/upload",
+
+  /** Who the app thinks the shopper is.
+   *
+   *  `userProfile` is filled from this answer and from nowhere else
+   *  (`services/home.ts`), and two gates on the money path read it:
+   *  `is_phone_verified` decides whether the cart lets anyone into checkout, and
+   *  it is read **again** at the review step from a second call to this same
+   *  endpoint. That second read is why some checkout scenarios are a sequence
+   *  rather than a map. */
+  customerInfo: "/customer/info",
+
+  /** The bag. Everything the checkout screen shows about money comes from this
+   *  one answer — the lines, the totals, the delivery charge, and which payment
+   *  methods the shop offers for this country. */
+  cart: "/cart/cart_shipping",
+  cartOverview: "/cart/cart_overview",
+
+  /** The bag the shopper left behind on an earlier visit.
+   *
+   *  Read on boot beside the real bag. Staging answers it **401** for the guest
+   *  these cases run as, and that one refusal is enough to derail a whole case:
+   *  the app renews the credential, retries, is refused again, and then runs its
+   *  session-expired path — which closed mode blocks, correctly, because it
+   *  clears cookies. Named here so the branch under test is the one that runs. */
+  oldCart: "/old-cart/get_old_cart",
+
+  /** The saved addresses. The checkout goes on only when one of them answers
+   *  `is_default: 1` — `OrderButtons.isValid()` looks at nothing else. */
+  addressList: "/customer/address/list",
+
+  /** Placing a cash-on-delivery order. The path carries the method, so this
+   *  never matches a card or a crypto checkout. */
+  checkoutCashOnDelivery: "/customer/order/checkout/cash_on_delivery",
+
+  /** The order screens. `ordersByGroup` is what the order's own page reads, and
+   *  it is the only place a **pack** id appears — the cancel call takes that,
+   *  not the group id every screen shows. */
+  orderList: "/customer/order/list",
+  ordersByGroup: "/customer/order/getOrdersByOrderGroupID",
+  orderCancel: "/customer/order/cancel",
+
+  /** Ticking the terms row posts this before it sets the flag. */
+  approvePolicies: "/customer/approve-policies",
 } as const;
 
 /** A believable user object for a faked verify response.
@@ -277,4 +334,259 @@ export const credentialRefusedMidSave = [
   ok,
 ];
 
-export const scenarios = { auth, save } as const;
+// ---------------------------------------------------------------------------
+// The money path, and the branches a working shop will not perform
+//
+// `shopper.live.spec.ts` walks the buy journey that works, on real staging, and
+// leaves nothing behind. It cannot walk any of the branches below:
+//
+//   * A refused checkout. Staging accepts what it is asked.
+//   * A bag holding something that has gone out of stock **since** it was added.
+//   * A phone that stops being verified between two screens.
+//   * A credential refused in the middle of placing an order.
+//   * A refused cancel — which would need a real order that is then stranded
+//     live, which is exactly what the live journey's safety net exists to
+//     prevent.
+//
+// **Every one of these fakes the whole checkout screen, not one call.** The
+// screen is built from four answers — who the shopper is, the bag, the saved
+// addresses, and the checkout itself — and letting any of them reach staging
+// would put a real read or a real order behind a case that is pretending. So
+// each scenario starts from `checkoutWorks` and changes one thing.
+//
+// **No sign-in, and that is the point.** `userProfile` is filled from
+// `/customer/info` and from nowhere else, so a faked answer is how the app
+// itself learns who it is talking to. A real sign-in would spend a one-time code
+// per case against limits that are not ours, and would prove nothing these cases
+// are about. Nothing here is ever written to a real account.
+
+/** A shopper the app will let into checkout. Obviously fake values only. */
+const verifiedShopper = (overrides: Record<string, unknown> = {}) => ({
+  isSuccessful: true,
+  success: true,
+  data: {
+    customer_info: {
+      id: 999_001,
+      name: "Trydos E2E Probe",
+      phone: "963900000001",
+      email: "trydos.e2e.probe@example.com",
+      is_phone_verified: 1,
+      is_approve_policies: 0,
+      ...overrides,
+    },
+  },
+});
+
+/** One saved address, marked default — the only thing the checkout looks at. */
+const defaultAddress = {
+  isSuccessful: true,
+  success: true,
+  data: [
+    {
+      id: 999_101,
+      country_iso: "sy",
+      country: "Syria",
+      province: "Probe Province",
+      city: "Probe City",
+      town: "Probe Town",
+      street: "Probe Street",
+      building: "1",
+      zip: "123123",
+      address: "Trydos E2E Probe",
+      address_detail: "Trydos E2E probe address, faked — never stored",
+      contact_person_name: "Trydos E2E Probe",
+      phone: "963900000001",
+      alternative_phone: "",
+      is_default: 1,
+      is_billing: 0,
+      cost: 0,
+    },
+  ],
+};
+
+/** A bag with one line the shop will take cash for.
+ *
+ *  Built from the unit suite's own cart builder (`tests/fixtures/cart.ts`), so
+ *  the shape follows `CartApiInterface` and one file stays the source of it.
+ *  Only what the checkout reads is overridden here. */
+const bagWith = (item: Partial<CartItemInterface> = {}) => ({
+  isSuccessful: true,
+  success: true,
+  data: buildCart({
+    available_payment_method: ["cash_on_delivery"],
+    has_cod: true,
+    cod_cost: 0,
+    cart: [buildCartItem(item)],
+  }),
+});
+
+/** An empty bag. */
+const emptyBag = {
+  isSuccessful: true,
+  success: true,
+  data: buildCart({
+    available_payment_method: ["cash_on_delivery"],
+    has_cod: true,
+    cart: [],
+    sub_total: 0,
+    total: 0,
+    total_cash: 0,
+    products_discount: 0,
+    total_discount: 0,
+  }),
+};
+
+/** The order number every faked checkout answers with.
+ *
+ *  A fixed, obviously-fake value: no order with this number exists anywhere, so
+ *  a case that reads it back has proved it read the faked answer and not a real
+ *  one that happened to be lying around. */
+export const FAKE_ORDER_GROUP_ID = "E2E-PROBE-000000";
+
+/** What a checkout that worked answers with.
+ *
+ *  **`data` is a list of packs, and each pack must carry its `details`.** The
+ *  success screen draws the bag from `data[].details` and sums the money from
+ *  `data[].order_amount` (`components/cart/PlaceOrderWidget.tsx`), so an answer
+ *  holding only the order number crashes the page with "Cannot read properties
+ *  of undefined (reading 'map')" — which is how this shape was found. The lines
+ *  mirror the faked bag, so the screen shows what was ordered.
+ *
+ *  No `url`, so the app treats the order as finished rather than sending the
+ *  shopper off to a payment page. */
+const checkoutAccepted = {
+  status: 200,
+  body: {
+    isSuccessful: true,
+    success: true,
+    data: [
+      {
+        id: 999_201,
+        order_group_id: FAKE_ORDER_GROUP_ID,
+        order_amount: 80,
+        details: [
+          {
+            id: 999_301,
+            quantity: 1,
+            image: "/product/test-product-1.jpg",
+            variations: { size_options: "M", color_options: "black" },
+          },
+        ],
+      },
+    ],
+  },
+};
+
+/** The four answers the checkout screen is built from, all working. Every
+ *  scenario below is this with one thing changed. */
+const checkoutWorks = {
+  // A guest registration that registers nobody.
+  //
+  // The app posts this from the browser while it boots, and the route mints a
+  // real guest on the gateway. Answered here with **no `user`**, which is what
+  // makes it harmless: `registerForExpire` only calls `loginSuccess` when the
+  // answer carries one (`services/home.ts`), so the faked shopper below stays
+  // the shopper and nothing is created anywhere.
+  [ENDPOINTS.registerDevice]: {
+    status: 200,
+    body: { isSuccessful: true, success: true, data: {} },
+  },
+  [ENDPOINTS.customerInfo]: { status: 200, body: verifiedShopper() },
+  [ENDPOINTS.cart]: { status: 200, body: bagWith() },
+  [ENDPOINTS.cartOverview]: {
+    status: 200,
+    body: { isSuccessful: true, success: true, data: {} },
+  },
+  [ENDPOINTS.oldCart]: {
+    status: 200,
+    body: { isSuccessful: true, success: true, data: { oldCart: [] } },
+  },
+  [ENDPOINTS.addressList]: { status: 200, body: defaultAddress },
+  [ENDPOINTS.approvePolicies]: {
+    status: 200,
+    body: { isSuccessful: true, success: true, data: {} },
+  },
+  [ENDPOINTS.refresh]: ok,
+  [ENDPOINTS.updateUser]: ok,
+  [ENDPOINTS.checkoutCashOnDelivery]: checkoutAccepted,
+};
+
+export const checkout = {
+  /** The control. Everything works, and the order is placed against a faked
+   *  backend — so a case can prove the journey itself still runs here before any
+   *  of the branches below claim to have broken it on purpose. */
+  works: { ...checkoutWorks } satisfies MockMap,
+
+  /** The shop refuses the order.
+   *
+   *  A `500`, not a `401`: a `401` starts credential recovery, which is the
+   *  branch `credentialRefusedMidCheckout` covers. */
+  refused: {
+    ...checkoutWorks,
+    [ENDPOINTS.checkoutCashOnDelivery]: {
+      status: 500,
+      body: {
+        isSuccessful: false,
+        success: false,
+        message: "the shop refused this order",
+      },
+    },
+  } satisfies MockMap,
+
+  /** A line in the bag is no longer available.
+   *
+   *  The check runs on the bag the app **re-reads** when Confirm Shipping &
+   *  Payment is pressed, not on what was on screen — which is the whole point:
+   *  it catches a product that sold out while the shopper was choosing an
+   *  address. */
+  bagWentUnavailable: {
+    ...checkoutWorks,
+    [ENDPOINTS.cart]: {
+      status: 200,
+      body: bagWith({ check_availability: false }),
+    },
+  } satisfies MockMap,
+
+  /** A line in the bag cannot be shipped to this country. A different field and
+   *  a different cause from the one above, judged by the same guard — so both
+   *  are covered rather than one standing in for the other. */
+  bagRestrictedByCountry: {
+    ...checkoutWorks,
+    [ENDPOINTS.cart]: {
+      status: 200,
+      body: bagWith({ is_country_restricted: true }),
+    },
+  } satisfies MockMap,
+} as const;
+
+/** The bag has emptied.
+ *
+ *  A **map to install later**, not a sequence, and that difference was measured
+ *  rather than chosen. A sequence has to guess how many times the bag is read on
+ *  the way in — boot, the drawer opening, the step into checkout — and a wrong
+ *  guess made the bag empty while the shopper was still choosing a payment
+ *  method, which disabled cash on delivery and failed the case for a reason that
+ *  had nothing to do with what it was testing.
+ *
+ *  Installed over `checkout.works` at the moment the case is ready, it changes
+ *  exactly one answer at exactly one point. A route registered later wins in
+ *  Playwright, and everything it does not name still falls through to the map
+ *  underneath. */
+export const bagEmptiedSince = {
+  [ENDPOINTS.cart]: { status: 200, body: emptyBag },
+} satisfies MockMap;
+
+/** The credential is refused once while the order is being placed, then
+ *  accepted.
+ *
+ *  The same shape as `credentialRefusedMidSave`, and for the same reason: the
+ *  one endpoint has to answer differently the second time, which is what "the
+ *  credential was exchanged mid-checkout" looks like from the browser. Install
+ *  the map first and this second, so this is tried first and everything else
+ *  falls back to the map. */
+export const credentialRefusedMidCheckout = [
+  { status: 401, body: { isSuccessful: false, success: false } },
+  checkoutAccepted,
+];
+
+export const scenarios = { auth, save, checkout } as const;
