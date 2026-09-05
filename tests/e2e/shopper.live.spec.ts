@@ -31,6 +31,22 @@
 // strangers' products every night.
 //
 // ---------------------------------------------------------------------------
+// Where it shops, and why it has to be Syria
+//
+// **The shop offers cash on delivery in Syria only.** Every other payment takes
+// real money or a real card, so cash on delivery is the only one this journey
+// may use, and that fixes the country. In `iq`, `tr` or `lb` the cart answer
+// carries no `cash_on_delivery` in `available_payment_method`, no cash row is
+// drawn, and the journey stops at the payment step with nothing wrong in this
+// repository. So BUY-01 seeds `sy` before its first navigation
+// (`CASH_ON_DELIVERY_COUNTRY` in `actions/nav.ts`) rather than taking the `iq`
+// the rest of the suite uses.
+//
+// It also fixes the money: prices, the bag total and the order are all in the
+// Syrian currency, and the delivery address the journey adds is a Syrian one,
+// because the region picker only offers the current country's regions.
+//
+// ---------------------------------------------------------------------------
 // The safety net, and why a green run must never use it
 //
 // The `orders` fixture holds the order id from the moment it is on screen. If
@@ -61,7 +77,7 @@
 
 import { expect, test } from "./fixtures";
 import { attemptAuth, currentAuthScreen } from "./actions/auth";
-import { gotoAbout, gotoHome } from "./actions/nav";
+import { CASH_ON_DELIVERY_COUNTRY, gotoAbout, gotoHome } from "./actions/nav";
 import {
   addFirstBuyableProduct,
   chooseCashOnDelivery,
@@ -132,7 +148,11 @@ test("BUY-01 a shopper buys something with cash on delivery and then cancels it"
     await test.step("the shopper signs in", async () => {
       // The static page, not the home page: the auth widget is in the layout, so
       // it is here too, and a search outage cannot blank the page and hide it.
-      await gotoAbout(page);
+      //
+      // Syria, not the country the rest of the suite uses: the shop offers cash
+      // on delivery there and nowhere else, and cash on delivery is the only
+      // payment this journey may use. See CASH_ON_DELIVERY_COUNTRY.
+      await gotoAbout(page, { country: CASH_ON_DELIVERY_COUNTRY });
 
       await attemptAuth(page, {
         intent: "login",
@@ -218,8 +238,10 @@ test("BUY-01 a shopper buys something with cash on delivery and then cancels it"
       const cod = await chooseCashOnDelivery(page);
       expect(
         cod.offered,
-        "the shop offered no cash-on-delivery method for this country and this " +
-          "bag, so the only payment this suite may use is unavailable",
+        `the shop offered no cash-on-delivery method in "${CASH_ON_DELIVERY_COUNTRY}" ` +
+          "for this bag, so the only payment this suite may use is unavailable — " +
+          "either the run is shopping in the wrong country, or the shop stopped " +
+          "offering cash on delivery there",
       ).toBe(true);
     });
 

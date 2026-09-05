@@ -190,6 +190,15 @@ bag already holding two cannot say which product it ordered, cannot read the bag
 count as proof its own add worked, and would order two strangers' products every
 night.
 
+**They shop in Syria, and that is a rule about the shop.** Cash on delivery is
+the only payment these tests may use — every other one takes real money or a
+real card — and the shop offers cash on delivery in **Syria only**. In any other
+country the cart answer carries no `cash_on_delivery`, no cash row is drawn, and
+BUY-01 stops at the payment step with nothing wrong in the app. So BUY-01 seeds
+`sy` before its first navigation (`CASH_ON_DELIVERY_COUNTRY` in
+`tests/e2e/actions/nav.ts`), while the rest of the live suite keeps `iq`. Any new
+case that pays has to do the same.
+
 **The order is registered the moment its number is on screen**, before anything
 about it is asserted. If the journey dies after that — a refused cancel, a
 timeout, a crash — the `orders` fixture cancels it directly through the app's own

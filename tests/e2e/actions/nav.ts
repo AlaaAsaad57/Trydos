@@ -148,16 +148,38 @@ export const gotoHome = async (page: Page): Promise<void> => {
   await expect(nav.logo(page)).toBeVisible();
 };
 
+/** The country the suite shops in unless a case asks for another one.
+ *
+ *  The fallback list the app uses is [tr, iq, lb, sy]; any of them works, and
+ *  `iq` is the one the rest of the suite assumes. */
+export const DEFAULT_TEST_COUNTRY = "iq";
+
+/** The only country the shop offers cash on delivery in.
+ *
+ *  **A rule about the shop, not about this suite.** Cash on delivery is the one
+ *  payment these tests are allowed to use — every other method takes real money
+ *  or a real card — so any case that pays has to shop in Syria. In `iq`, `tr` or
+ *  `lb` the cart answer comes back with no `cash_on_delivery` in
+ *  `available_payment_method`, `components/Cart/PaymentMethod.tsx` draws no
+ *  cash-on-delivery row, and the journey fails at the payment step with nothing
+ *  wrong in this repository.
+ *
+ *  Seen on 2026-09-05: BUY-01 ran in `iq` and failed with "the shop offered no
+ *  cash-on-delivery method for this country and this bag". */
+export const CASH_ON_DELIVERY_COUNTRY = "sy";
+
 /** Save a known-served country and language before the first navigation.
  *
  *  Without this the country picker opens over the page and swallows every
- *  click. The fallback list the app uses is [tr, iq, lb, sy]; any of them
- *  works, and `iq` is the one the rest of the suite assumes.
+ *  click.
  *
  *  Private on purpose: a spec that needs it needs an action, not the cookies. */
-const seedLocale = async (page: Page): Promise<void> => {
+const seedLocale = async (
+  page: Page,
+  country: string = DEFAULT_TEST_COUNTRY,
+): Promise<void> => {
   await page.context().addCookies([
-    { name: "country", value: "iq", url: LIVE_ORIGIN },
+    { name: "country", value: country, url: LIVE_ORIGIN },
     { name: "lang", value: "en", url: LIVE_ORIGIN },
     { name: "language", value: "en", url: LIVE_ORIGIN },
   ]);
@@ -167,8 +189,11 @@ const seedLocale = async (page: Page): Promise<void> => {
  *
  *  Auth specs use this so a staging search outage does not hide the auth
  *  widget, which lives in the nav bar on every page. */
-export const gotoAbout = async (page: Page): Promise<void> => {
-  await seedLocale(page);
+export const gotoAbout = async (
+  page: Page,
+  options: { country?: string } = {},
+): Promise<void> => {
+  await seedLocale(page, options.country);
 
   await page.goto("/about", { waitUntil: "domcontentloaded" });
   await chooseRegionIfAsked(page);
