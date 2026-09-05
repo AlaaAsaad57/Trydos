@@ -48,23 +48,24 @@ class StoryService {
     // @ts-ignore
   }
   async WatchStory(pid: number | string, id: number | string) {
-    const { watchStory ,userStories} = useAppStore.getState();
-    // TODO: check if userStories is null or undefined before accessing its properties
-    if(!userStories?.id){
-     return;
+    const { watchStory, userStories } = useAppStore.getState();
+    // Marking the item seen is local and visual, so it runs for every viewer.
+    // A guest has no stories account, and the ring still has to grey out.
+    watchStory({ pid: pid, id: id });
+    // Only a viewer with a stories account can report the view: a guest has no
+    // stories token, so the stories backend would refuse the request.
+    if (!userStories?.id) {
+      return;
     }
     try {
-      if (this.getUserStories()?.id) {
-        watchStory({ pid: pid, id: id });
-        const res = await fetchData({
-          url: "/api/v1/stories/increase_viewers/" + pid,
-          server: "stories",
-          reqTitle: REQUESTS_DATA.INCREASE_VIEWERS,
-          method: "GET",
-        });
-        if (!res.success) {
-          throw new Error(res?.message);
-        }
+      const res = await fetchData({
+        url: "/api/v1/stories/increase_viewers/" + pid,
+        server: "stories",
+        reqTitle: REQUESTS_DATA.INCREASE_VIEWERS,
+        method: "GET",
+      });
+      if (!res.success) {
+        throw new Error(res?.message);
       }
     } catch (error) {
       LogError({
