@@ -10,10 +10,11 @@
 # the entire run — every job in it — as soon as another push lands on the same
 # branch. A job-level concurrency group does not protect a job from that.
 #
-# A cancelled browser run is not merely a lost result. By the time it is killed
-# it may already have created a real order on staging, and it will now never
-# reach the teardown that cancels it. So the suite lives here, in a workflow that
-# is never cancelled.
+# The suite still needs its own group, and that is why it needs its own file. It
+# is cancelled by a newer push of its own (see `concurrency` below), but it must
+# never be cancelled by an unrelated job in tests.yml, and it must hold one lock
+# that is shared across branches and across the nightly — which a job inside
+# tests.yml cannot have separately from the rest of that workflow.
 # ---------------------------------------------------------------------------
 #
 # **Never on a pull request.** Two reasons, and both are load-bearing:
@@ -59,17 +60,31 @@ on:
     - cron: '30 2 * * *'
   workflow_dispatch:
 
-# **One global group, and never cancelled.** Both halves matter:
+# **One global group, and the newest push wins.**
 #
-#   * `live-suite` is shared with every other run of this workflow, so a merge
-#     and the nightly can never be in the same staging shop at the same time.
-#     Two runs adding to one cart break each other for reasons that look exactly
-#     like product bugs.
-#   * `cancel-in-progress: false` because a run killed mid-checkout leaves an
-#     order behind. A queued run is cheap; an orphaned order is not.
+# `live-suite` is shared with every other run of this workflow, so a merge and
+# the nightly can never be in the same staging shop at the same time. Two runs
+# adding to one cart break each other for reasons that look exactly like product
+# bugs. That half has not changed.
+#
+# `cancel-in-progress: true` is a deliberate trade, made because the suite takes
+# about half an hour and waiting it out told nobody anything about the code that
+# had just been pushed. The old value bought one thing, and this is what it cost
+# and what it now costs:
+#
+#   * **What was bought:** a run is never killed mid-checkout, so the `orders`
+#     fixture teardown (`tests/e2e/fixtures.ts`) always reaches the orphan net
+#     and cancels any order the journey left live on staging.
+#   * **What it cost:** every push waited for the previous run to finish before
+#     it learned anything.
+#   * **What this now costs:** a cancelled run may have an order on staging and
+#     only a few seconds to cancel it — GitHub sends SIGINT, then kills. So the
+#     net can miss. If an order is found live on staging with nobody claiming
+#     it, a cancelled run is the first place to look, and `workflow_dispatch`
+#     re-runs the suite when nothing else is in the group.
 concurrency:
   group: live-suite
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: read
