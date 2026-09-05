@@ -21,22 +21,20 @@
 // the point to stop at (see the Next guide on migrating to Cache Components,
 // "Fix synchronous IO. It can't be deferred.").
 //
-// HOW TO RUN THE SERVER CASE
+// WHAT THIS FILE READS
 //
-//   pnpm build && pnpm start -p 3111
-//   pnpm test:run -- tests/cache/homeRowsRenderOnTheServer.test.ts
+// The source only. It walks the home view's imports and asks whether every row
+// that can render a product card also asks for the request. It needs no server
+// and always runs.
 //
-// With no server on that port that case skips with a message naming those two
-// commands. It skips rather than fails because this file sits in the unit suite,
-// which CI runs on every pull request with no server up. The source check above
-// it needs no server and always runs.
+// This file used to hold a second half that asked a production server on port
+// 3111 for the home document and read React's streaming markup in it. Those
+// cases skipped on every run that had no such server, which was every run, so
+// they were removed rather than kept as a green tick that saw nothing.
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve, sep } from "node:path";
 
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { http, passthrough } from "msw";
-
-import { server } from "../msw/server";
+import { describe, expect, it } from "vitest";
 
 const ROOT = resolve(__dirname, "../..");
 const EXTENSIONS = [".ts", ".tsx", ".js", ".jsx"];
@@ -208,186 +206,5 @@ describe("the home view's product rows are rendered on the server", () => {
       "a real `await connection()` was not recognised, so the check above " +
         "would fail for a row that is already correct",
     ).toBe("await connection()");
-  });
-});
-
-// The same thing again, but asked of a running server. The check above reads the
-// source; this one reads what the browser is actually sent.
-const BASE = process.env.CACHE_CHECK_BASE ?? "http://localhost:3111";
-const PATH = "/sy-en";
-
-const NO_SERVER =
-  `no server answered at ${BASE}${PATH}. Run \`pnpm build && pnpm start -p 3111\` ` +
-  `first — this check cannot run against \`next dev\`, which does not prerender ` +
-  `a shell and so cannot show this fault at all`;
-
-let serverIsUp = false;
-let html = "";
-
-beforeEach(() => {
-  // The unit suite runs behind msw with `onUnhandledRequest: "error"`, so a real
-  // request would be refused before it left the process. Registered per test
-  // because tests/setup.ts resets the handlers after each one.
-  server.use(http.all(`${BASE}/*`, () => passthrough()));
-});
-
-beforeAll(async () => {
-  server.use(http.all(`${BASE}/*`, () => passthrough()));
-  try {
-    const response = await fetch(`${BASE}${PATH}`, {
-      signal: AbortSignal.timeout(90_000),
-    });
-    serverIsUp = response.ok;
-    html = await response.text();
-  } catch {
-    serverIsUp = false;
-  }
-}, 200_000);
-
-/** How many times a literal appears. Written out rather than using a regular
- *  expression so the attribute's quotes are matched exactly: the HTML form is
- *  `data-pw="product-name"`, while the same value inside the streaming payload
- *  is `\"data-pw\":\"product-name\"`. Only the first is markup the browser
- *  paints, and only the first is counted here. */
-const occurrences = (haystack: string, needle: string): number => {
-  let count = 0;
-  let at = -1;
-  while ((at = haystack.indexOf(needle, at + 1)) !== -1) count++;
-  return count;
-};
-
-const ROW_SKELETON = 'data-pw="featured-products-container"';
-const A_CARD = 'data-pw="product-name"';
-
-/**
- * Product rows that showed a skeleton and were then replaced by nothing.
- *
- * React writes a pending boundary as `<!--$?--><template id="B:n"></template>`
- * followed by its fallback, and later `<div hidden id="S:m">…</div>` plus a
- * `$RC("B:n","S:m")` call that swaps the one for the other. So a skeleton that
- * is replaced by nothing is a boundary whose fallback draws a product row and
- * whose content carries no card.
- *
- * ONLY THE ROWS ABOVE THE BOUTIQUES SECTION are looked at, and that is the
- * point rather than a shortcut. Those two — featured and flash deals — read
- * data that is cached, so the shell can ask in advance whether they will have
- * anything in them. The recommendations row below the boutiques reads the
- * shopper's own cookie, so no shell shared by every visitor can know its answer;
- * it is a different problem and is not claimed to be covered here.
- */
-function unfilledProductRows(document: string): string[] {
-  const boutiques = document.indexOf('data-pw="boutiques"');
-  const limit = boutiques === -1 ? document.length : boutiques;
-  const unfilled: string[] = [];
-
-  for (const match of document.matchAll(/<template id="(B:[0-9a-f]+)">/g)) {
-    const at = match.index ?? 0;
-    if (at > limit) continue;
-
-    const closed = document.indexOf("<!--/$-->", at);
-    const fallback = document.slice(at, closed === -1 ? at : closed);
-    if (!fallback.includes(ROW_SKELETON)) continue;
-
-    const swap = document.match(
-      new RegExp(`\\$RC\\("${match[1]}","(S:[0-9a-f]+)"\\)`),
-    );
-    if (!swap) {
-      unfilled.push(`${match[1]} (never resolved on the server)`);
-      continue;
-    }
-
-    const opens = document.indexOf(`<div hidden id="${swap[1]}">`);
-    const ends = document.indexOf("<script>$RC(", opens);
-    const content = opens === -1 ? "" : document.slice(opens, ends);
-
-    if (!content.includes(A_CARD)) {
-      unfilled.push(`${match[1]} (replaced by ${content.length} bytes, no card)`);
-    }
-  }
-  return unfilled;
-}
-
-describe("the home document the server sends", () => {
-  // The control for the last case in this file. It reads React's streaming
-  // markup, so it has to be shown a document where the answer is known: one row
-  // that is filled with a card and one that is replaced by nothing.
-  it("can tell a filled product row from an empty one", () => {
-    const filled =
-      `<!--$?--><template id="B:0"></template><div ${ROW_SKELETON}></div><!--/$-->`;
-    const emptied =
-      `<!--$?--><template id="B:4"></template><div ${ROW_SKELETON}></div><!--/$-->`;
-    const swaps =
-      `<div hidden id="S:0"><span ${A_CARD}>Solara</span></div>` +
-      `<script>$RC("B:0","S:0")</script>` +
-      `<div hidden id="S:4"></div><script>$RC("B:4","S:4")</script>` +
-      `<div data-pw="boutiques"></div>`;
-
-    const found = unfilledProductRows(filled + emptied + swaps);
-
-    expect(
-      found.join(", "),
-      "the reader did not report the row that was replaced by nothing, so the " +
-        "check below would pass on a page where a skeleton collapses",
-    ).toContain("B:4");
-    expect(
-      found.join(", "),
-      "the reader reported the row that WAS filled with a card, so the check " +
-        "below would fail on a page that is already correct",
-    ).not.toContain("B:0");
-  });
-
-  it("is the home page, with a featured row on it", (ctx) => {
-    if (!serverIsUp) return ctx.skip(NO_SERVER);
-
-    // The positive control. Without it, a 404 body or a redirect page would make
-    // every check below vacuous.
-    expect(
-      occurrences(html, 'data-pw="featured-products-container"'),
-      `the document from ${BASE}${PATH} has no featured row at all ` +
-        `(${html.length} bytes), so the checks below have nothing to look at`,
-    ).toBeGreaterThan(0);
-  });
-
-  it("resolved the featured row on the server", (ctx) => {
-    if (!serverIsUp) return ctx.skip(NO_SERVER);
-
-    // The row's real header carries the translated words; the skeleton draws a
-    // grey box there instead. Seeing the words means the boundary resolved on
-    // the server rather than timing out or erroring.
-    expect(
-      html.includes(">Featured Products<"),
-      "the featured row's own header is not in the document, so the boundary " +
-        "never resolved on the server and the next check would be measuring " +
-        "the wrong failure",
-    ).toBe(true);
-  });
-
-  it("carries the product cards as HTML, not only as streaming payload", (ctx) => {
-    if (!serverIsUp) return ctx.skip(NO_SERVER);
-
-    expect(
-      occurrences(html, 'data-pw="product-name"'),
-      `the home document (${html.length} bytes) contains no product card in its ` +
-        `HTML. The products are in it only as streaming payload, so the browser ` +
-        `has to render the rows itself: the skeleton is removed, the section ` +
-        `collapses to its header, and everything below it moves when the cards ` +
-        `finally paint`,
-    ).toBeGreaterThan(0);
-  });
-
-  it("fills every product-row skeleton it puts above the boutiques", (ctx) => {
-    if (!serverIsUp) return ctx.skip(NO_SERVER);
-
-    const empty = unfilledProductRows(html);
-
-    expect(
-      empty,
-      `these product rows reserved 457px in the shell and were then replaced by ` +
-        `nothing: ${empty.join(", ")}. A skeleton is a promise about the final ` +
-        `size, so a row that ends up empty pulls everything below it up the ` +
-        `moment the boundary resolves — measured at 467px on the flash-deal row ` +
-        `with no deal running. CategoryHomeView asks the cached reader whether ` +
-        `the row will have anything in it and renders the <Suspense> only then`,
-    ).toEqual([]);
   });
 });
