@@ -93,11 +93,38 @@ const statusOf = (url: URL, auth: string): Promise<number> =>
     req.end();
   });
 
+/** Turned off by hand on 2026-09-05, and this is the whole switch.
+ *
+ *  The probe was reporting the staging node down — `no answer in 8s` on
+ *  `/_cluster/health` — from GitHub and from a developer machine alike, while a
+ *  plain `curl -k` to the same host answered in under a second. Every run
+ *  therefore skipped: no build, no browser, no journey, and a green tick for
+ *  having tested nothing. The suite was asked to run anyway.
+ *
+ *  **What is now unguarded.** Read the note at the top of this file before
+ *  changing anything here: when Elasticsearch really is down, every journey
+ *  fails on a blank document, and with this flag set the workflow's
+ *  "Re-check staging" step also answers `up`, so "Decide the verdict" calls a
+ *  backend outage a code failure. That is precisely the mistake this file was
+ *  written to stop, and it is back for as long as this line stands.
+ *
+ *  **To restore it:** set this to `false`. Nothing else was removed — the real
+ *  probe below is untouched and runs again the moment the flag flips. */
+// Typed `boolean`, not left to infer the literal `true`: an inferred `true`
+// makes the real probe below unreachable code, which the compiler and the
+// linter both complain about and which would tempt someone to delete it.
+const PROBE_DISABLED: boolean = true;
+
 /** Ask staging whether it is in a state worth testing against.
  *
  *  Never throws. Every outcome is a report, because a probe that fails in its
  *  own way would be one more thing to tell apart from a real failure. */
 export const probeStaging = async (): Promise<HealthReport> => {
+  // `skipped` rather than a plain `up`, so the log says "nothing was checked"
+  // instead of "the check passed". A disabled probe must never be able to read
+  // like a healthy backend.
+  if (PROBE_DISABLED) return { up: true, reason: "", skipped: true };
+
   loadLiveEnv();
 
   const node = envValue("ELASTICSEARCH_NODE");
