@@ -9,6 +9,7 @@ import {
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { REMOVE_FCM_TOKEN_URL } from "utils/endpointConfig";
 import { LogServerError } from "utils/serverErrorReporter";
+import { logRequest, startTimer } from "reqLogger";
 
 // How long the logout guard stays armed if nothing clears it first. The normal
 // path clears it on the immediate post-logout reload (see `proxy.ts`); this TTL
@@ -54,8 +55,9 @@ const prepareFcmDetach = async (
     if (!headers.Authorization) return null;
 
     return async () => {
+      const elapsed = startTimer();
       try {
-        await fetch(baseUrl + REMOVE_FCM_TOKEN_URL, {
+        const detachRes = await fetch(baseUrl + REMOVE_FCM_TOKEN_URL, {
           method: "POST",
           headers: { ...headers, "Content-Type": "application/json" },
           body: JSON.stringify({ token: fcmToken }),
@@ -63,10 +65,25 @@ const prepareFcmDetach = async (
           cache: "no-store",
           signal: AbortSignal.timeout(FCM_DETACH_TIMEOUT_MS),
         });
+        await logRequest({
+          server: "chat",
+          url: REMOVE_FCM_TOKEN_URL,
+          method: "POST",
+          status: detachRes.status,
+          durationMs: elapsed(),
+        });
       } catch (error) {
         // Best-effort: the session is already gone either way, and the client
         // has long since reloaded. Report it, never throw.
         LogServerError({ error, type: "auth/logout fcm detach failed" });
+        await logRequest({
+          server: "chat",
+          url: REMOVE_FCM_TOKEN_URL,
+          method: "POST",
+          status: 0,
+          durationMs: elapsed(),
+          error,
+        });
       }
     };
   } catch (error) {

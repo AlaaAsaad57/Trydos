@@ -13,6 +13,7 @@ import {
   isVerifiedMarketUser,
 } from "utils/server/tokenManager";
 import { LogServerError } from "utils/serverErrorReporter";
+import { logRequest, startTimer } from "reqLogger";
 
 /**
  * Shared refresh-token exchange helpers (market: Go + Laravel auth contracts;
@@ -159,6 +160,7 @@ async function doRefresh(): Promise<RefreshOutcome> {
     const [country, language] = local.split("-");
 
     let response: Response;
+    const elapsed = startTimer();
     try {
       response = await fetch(backend.baseUrl() + backend.endpoint, {
         method: "POST",
@@ -175,8 +177,24 @@ async function doRefresh(): Promise<RefreshOutcome> {
       });
     } catch (error) {
       LogServerError({ error, type: "refresh-token network failure" });
+      await logRequest({
+        server: "market",
+        url: backend.endpoint,
+        method: "POST",
+        status: 0,
+        durationMs: elapsed(),
+        error,
+      });
       return { status: "unavailable" };
     }
+
+    await logRequest({
+      server: "market",
+      url: backend.endpoint,
+      method: "POST",
+      status: response.status,
+      durationMs: elapsed(),
+    });
 
     if (response.status === 401) {
       // Uniform 401 (dead OR raced). Do NOT delete the cookie here — see
@@ -302,6 +320,7 @@ async function doRefreshChat(): Promise<RefreshOutcome> {
     const [country, language] = local.split("-");
 
     let response: Response;
+    const elapsed = startTimer();
     try {
       response = await fetch(backend.baseUrl() + backend.endpoint, {
         method: "POST",
@@ -316,8 +335,24 @@ async function doRefreshChat(): Promise<RefreshOutcome> {
       });
     } catch (error) {
       LogServerError({ error, type: "chat refresh-token network failure" });
+      await logRequest({
+        server: "chat",
+        url: backend.endpoint,
+        method: "POST",
+        status: 0,
+        durationMs: elapsed(),
+        error,
+      });
       return { status: "unavailable" };
     }
+
+    await logRequest({
+      server: "chat",
+      url: backend.endpoint,
+      method: "POST",
+      status: response.status,
+      durationMs: elapsed(),
+    });
 
     if (response.status === 401) {
       // Uniform 401 (dead OR raced). Do NOT delete the refresh cookie here —
@@ -394,6 +429,7 @@ async function doRefreshStories(): Promise<RefreshOutcome> {
     const [country, language] = local.split("-");
 
     let response: Response;
+    const elapsed = startTimer();
     try {
       response = await fetch(backend.baseUrl() + backend.endpoint, {
         method: "POST",
@@ -408,8 +444,24 @@ async function doRefreshStories(): Promise<RefreshOutcome> {
       });
     } catch (error) {
       LogServerError({ error, type: "stories refresh-token network failure" });
+      await logRequest({
+        server: "stories",
+        url: backend.endpoint,
+        method: "POST",
+        status: 0,
+        durationMs: elapsed(),
+        error,
+      });
       return { status: "unavailable" };
     }
+
+    await logRequest({
+      server: "stories",
+      url: backend.endpoint,
+      method: "POST",
+      status: response.status,
+      durationMs: elapsed(),
+    });
 
     if (response.status === 401) {
       // Uniform 401 (dead OR raced). Do NOT delete the refresh cookie here —
@@ -507,6 +559,7 @@ async function doRefreshComments(): Promise<RefreshOutcome> {
     const [country, language] = local.split("-");
 
     let response: Response;
+    const elapsed = startTimer();
     try {
       response = await fetch(backend.baseUrl() + backend.endpoint, {
         method: "POST",
@@ -521,8 +574,24 @@ async function doRefreshComments(): Promise<RefreshOutcome> {
       });
     } catch (error) {
       LogServerError({ error, type: "comments refresh-token network failure" });
+      await logRequest({
+        server: "comments",
+        url: backend.endpoint,
+        method: "POST",
+        status: 0,
+        durationMs: elapsed(),
+        error,
+      });
       return { status: "unavailable" };
     }
+
+    await logRequest({
+      server: "comments",
+      url: backend.endpoint,
+      method: "POST",
+      status: response.status,
+      durationMs: elapsed(),
+    });
 
     if (response.status === 401) {
       // Uniform 401 (dead OR raced). Do NOT delete the refresh cookie here —

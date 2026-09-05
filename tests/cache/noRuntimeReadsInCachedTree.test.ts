@@ -236,6 +236,15 @@ const REVIEWED: Record<string, string> = {
 
   "utils/server/tokenManager.ts -> new Date()":
     "utils/server/tokenManager.ts:395, a timestamp inside an error payload.",
+
+  "reqLogger/index.ts -> Date.now()":
+    "reqLogger/index.ts:97, the stopwatch behind the request log line. In reach " +
+    "because serverRequests/ServerFetch.tsx times every backend call, and the " +
+    "cached readers fetch through it. Safe for two reasons. The value only ever " +
+    "becomes the `ms=` token in a console line, so it never enters the data a " +
+    "cached reader returns and nothing can freeze into a cached response. And " +
+    "startTimer returns a no-op reader unless REQ_LOG is '1' — which is off by " +
+    "default — so on a normal deployment the clock is not read at all.",
 };
 
 /** Every source file under the folders this app's own code lives in. */

@@ -3,6 +3,7 @@ import { isAllowedServer, getServerBaseUrl, buildProxyHeaders, logSecureRequest,
 import { SEND_OTP } from "utils/endpointConfig";
 import { fromServiceToken } from "utils/serviceTokens";
 import { LogServerError } from "utils/serverErrorReporter";
+import { logRequest, startTimer } from "reqLogger";
 
 /** The proxy's single failure answer.
  *
@@ -350,6 +351,7 @@ async function proxyRequest(request: NextRequest, call: ProxyCall) {
     }
 
     // 5. Forward the request to the actual backend
+    const elapsed = startTimer();
     const backendResponse = await fetch(fullUrl, {
       method,
       headers,
@@ -383,11 +385,27 @@ async function proxyRequest(request: NextRequest, call: ProxyCall) {
         marketBackendHeader["x-market-backend"] = "core";
     }
 
+    // 6c. The searchable request line (reqLogger). Off unless REQ_LOG=1. This
+    // one call site covers every client-side call in the app: fetchData routes
+    // market, chat, stories, comments, wallet and elastic through here.
+    const logIt = (responseBody?: unknown) =>
+      logRequest({
+        server,
+        url: targetUrl,
+        method,
+        status: backendResponse.status,
+        durationMs: elapsed(),
+        requestBody: body,
+        responseBody,
+        backend: marketBackendHeader["x-market-backend"],
+      });
+
     // 7. Forward the response back to the client
     const responseContentType =
       backendResponse.headers.get("content-type") || "";
 
     if (backendResponse.status === 204) {
+      await logIt();
       return new NextResponse(null, {
         status: 204,
         headers: {
@@ -399,6 +417,7 @@ async function proxyRequest(request: NextRequest, call: ProxyCall) {
 
     if (responseContentType.includes("application/json")) {
       const data = await backendResponse.json();
+      await logIt(data);
       return NextResponse.json(data, {
         status: backendResponse.status,
         headers: {
@@ -410,6 +429,8 @@ async function proxyRequest(request: NextRequest, call: ProxyCall) {
 
     // Non-JSON responses (binary, text, etc.)
     const responseBody = await backendResponse.arrayBuffer();
+    // Binary or plain text — name the kind, never the bytes.
+    await logIt(`[${responseContentType || "binary"}] ${responseBody.byteLength} bytes`);
     return new NextResponse(responseBody, {
       status: backendResponse.status,
       headers: {
@@ -438,6 +459,14 @@ async function proxyRequest(request: NextRequest, call: ProxyCall) {
       type: "proxy route error",
       server,
       url: targetUrl,
+    });
+
+    await logRequest({
+      server,
+      url: targetUrl,
+      method: call.method || "GET",
+      status: 503,
+      error,
     });
 
     return proxyFailure();

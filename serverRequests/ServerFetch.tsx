@@ -1,4 +1,5 @@
 import { LogServerError } from "utils/serverErrorReporter";
+import { logRequest, startTimer } from "reqLogger";
 
 interface FetchOptions {
   url: string;
@@ -49,6 +50,9 @@ const createServerFetch = async <T = any,>({
 
   const [country, lang] = local.split("-");
   const handleRetry = async (attempt: number): Promise<FetchResponse<T>> => {
+    // reqLogger stopwatch. Restarted per attempt, so a retried call reports the
+    // time of the attempt that answered, not the sum of all of them.
+    const elapsed = startTimer();
     try {
       const fetchOptions: RequestInit = {
         method: method,
@@ -79,6 +83,15 @@ const createServerFetch = async <T = any,>({
       // If response is ok and not a retryable status code, return success
       if (response.ok && !retryableStatusCodes.includes(response.status)) {
         const data = await response.json();
+        await logRequest({
+          server: "market",
+          url,
+          method,
+          status: response.status,
+          durationMs: elapsed(),
+          requestBody: body,
+          responseBody: data,
+        });
         return {
           data,
           error: null,
@@ -102,6 +115,15 @@ const createServerFetch = async <T = any,>({
       // If we've exhausted retries or it's not a retryable error, return error
       const errorText = await response.text();
       const message = `HTTP ${response.status} ${url}: ${(errorText || "").substring(0, 500)}`;
+      await logRequest({
+        server: "market",
+        url,
+        method,
+        status: response.status,
+        durationMs: elapsed(),
+        requestBody: body,
+        responseBody: errorText,
+      });
       // A non-OK backend response is a real failure — record it (network-only
       // logging in the catch below previously left these untracked).
       LogServerError({
@@ -139,6 +161,16 @@ const createServerFetch = async <T = any,>({
         error: error,
         url,
         scenario: "Error In fetchServerData in serverRequest/ServerFetch",
+      });
+      await logRequest({
+        server: "market",
+        url,
+        method,
+        // status 0 — the call never landed (network error, abort or timeout).
+        status: 0,
+        durationMs: elapsed(),
+        requestBody: body,
+        error,
       });
       return {
         data: null,

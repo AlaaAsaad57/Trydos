@@ -11,9 +11,23 @@ import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 import { isGuestName } from "utils/tinyUtils";
 import { SECURE_COOKIE_OPTIONS, REFRESH_COOKIE_OPTIONS, setSecureCookieJSON, sanitizeServiceUser, sanitizeWalletUser } from "utils/server/tokenManager";
+import { logRequest, startTimer } from "reqLogger";
+
+// Hard cap on every backend call this route makes. A backend that never
+// answers used to hold the serverless function open until the platform
+// killed it; now the call is aborted and reported as a failure instead.
+const LOGIN_TIMEOUT_MS = 10_000;
 
 // Helper to handle sub-service fetches safely
-async function safeServiceLogin(url: string, body: any) {
+async function safeServiceLogin(
+  url: string,
+  body: any,
+  /** Service role name for the log line: chat, stories, comments, wallet. */
+  server: string = "unknown",
+  /** The shopper is known here before the User-Data cookie is written. */
+  who: { userId?: string; userName?: string } = {},
+) {
+  const elapsed = startTimer();
   try {
     // Wallet login: add signature and API key if endpoint matches
     let headers: Record<string, string> = {
@@ -28,6 +42,7 @@ async function safeServiceLogin(url: string, body: any) {
       headers,
       body: JSON.stringify(body),
       credentials: "omit",
+      signal: AbortSignal.timeout(LOGIN_TIMEOUT_MS),
     });
     
     if (!response.ok) {
@@ -37,6 +52,16 @@ async function safeServiceLogin(url: string, body: any) {
           "/api/auth/login",
         );
         return {};
+      });
+      await logRequest({
+        server,
+        url,
+        method: "POST",
+        status: response.status,
+        durationMs: elapsed(),
+        requestBody: body,
+        responseBody: errorData,
+        ...who,
       });
       return { success: false, status: response.status, data: errorData };
     }
@@ -48,10 +73,38 @@ async function safeServiceLogin(url: string, body: any) {
     //   body:JSON.stringify(body),
     //   response:data
     // })
+    await logRequest({
+      server,
+      url,
+      method: "POST",
+      status: response.status,
+      durationMs: elapsed(),
+      requestBody: body,
+      responseBody: data,
+      ...who,
+    });
     return { success: true, status: 200, data };
   } catch (err) {
-    LogServerError({ error: err, type: "login api route", url, body });
-    return { success: false, status: 503, error: err.message };
+    // AbortSignal.timeout rejects with a TimeoutError once the cap is reached.
+    const timedOut = err?.name === "TimeoutError";
+    LogServerError({ error: err, type: "login api route", url, body, timedOut });
+    await logRequest({
+      server,
+      url,
+      method: "POST",
+      status: timedOut ? 504 : 0,
+      durationMs: elapsed(),
+      requestBody: body,
+      error: err,
+      ...who,
+    });
+    return {
+      success: false,
+      status: timedOut ? 504 : 503,
+      error: timedOut
+        ? `the service did not answer within ${LOGIN_TIMEOUT_MS / 1000}s`
+        : err.message,
+    };
   }
 }
 
@@ -87,6 +140,7 @@ export async function GET(request: NextRequest) {
     const otpUrl = `${process.env.BACKEND_URL}${VERIFY_OTP_ENDPOINT}`;
     let otpRes: Response;
     let otp_response: any;
+    const otpElapsed = startTimer();
     try {
       otpRes = await fetch(otpUrl, {
         headers: {
@@ -104,9 +158,22 @@ export async function GET(request: NextRequest) {
           otp,
           ...(name ? { name } : {}),
         }),
+        signal: AbortSignal.timeout(LOGIN_TIMEOUT_MS),
       });
 
       otp_response = await otpRes.json();
+      await logRequest({
+        server: "market",
+        url: VERIFY_OTP_ENDPOINT,
+        method: "POST",
+        status: otpRes.status,
+        durationMs: otpElapsed(),
+        backend: "core",
+        requestBody: { verificationId, ...(name ? { name } : {}) },
+        responseBody: otp_response,
+        userId: otp_response?.data?.user?.id,
+        userName: otp_response?.data?.user?.name,
+      });
     } catch (error) {
       // Transport/parse failure reaching the verify_otp_from_guest service.
       // This is server-side and otherwise very hard to trace, so capture it to
@@ -123,6 +190,16 @@ export async function GET(request: NextRequest) {
         },
         "/api/auth/login",
       );
+      await logRequest({
+        server: "market",
+        url: VERIFY_OTP_ENDPOINT,
+        method: "POST",
+        status: 0,
+        durationMs: otpElapsed(),
+        backend: "core",
+        requestBody: { verificationId, ...(name ? { name } : {}) },
+        error,
+      });
       throw error;
     }
 
@@ -160,6 +237,12 @@ export async function GET(request: NextRequest) {
     }
 
     // 3. Sub-service Logins (Resilient Path)
+    // The shopper for the log lines. The User-Data cookie is not written until
+    // step 6, so reqLogger cannot find them on its own yet.
+    const who = {
+      userId: String(InventoryUser.id),
+      userName: String(name || InventoryUser.name || ""),
+    };
     const [chatRes, storiesRes, commentRes, walletRes] = await Promise.all([
       safeServiceLogin(
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + LOG_IN_CHAT_ENDPOINT,
@@ -169,6 +252,8 @@ export async function GET(request: NextRequest) {
           name: String(name || InventoryUser.name),
           original_user_id: String(InventoryUser.id),
         },
+        "chat",
+        who,
       ),
       safeServiceLogin(
         process.env.STORIES_BACKEND_URL + LOG_IN_STORIES_ENDPOINT,
@@ -177,6 +262,8 @@ export async function GET(request: NextRequest) {
           mobile_phone: InventoryUser.phone,
           original_user_id: String(InventoryUser.id)
         },
+        "stories",
+        who,
       ),
       safeServiceLogin(
         process.env.COMMENT_BACKEND_URL + LOG_IN_COMMENTS_ENDPOINT,
@@ -185,6 +272,8 @@ export async function GET(request: NextRequest) {
           phone: String(InventoryUser.phone).replace('+',''),
           id_token: idToken,
         },
+        "comments",
+        who,
       ),
       safeServiceLogin(
         process.env.WALLET_BACKEND_URL + LOG_IN_WALLET_ENDPOINT,
@@ -196,6 +285,8 @@ export async function GET(request: NextRequest) {
           email: String(InventoryUser.email) ?? "",
           platform:"web"
         },
+        "wallet",
+        who,
       ),
     ]);
 
