@@ -72,9 +72,19 @@ export const search = {
 
 export const listing = {
   card: (page: Page): Locator => page.getByTestId("product-card"),
-  cardLink: (page: Page): Locator => page.getByTestId("product_link"),
+  /** A real product card's link — an `<a>` that actually points at a product.
+   *
+   *  The `href` is part of the hook on purpose. A loading placeholder can carry
+   *  the same `data-pw` while the real row is still streaming, and the first
+   *  match on the page is then a grey box, not a card. Requiring a
+   *  `/products/` address means only a link that can open a product is ever
+   *  clicked, whatever a future skeleton copies. */
+  cardLink: (page: Page): Locator =>
+    page.locator('a[data-pw="product_link"][href*="/products/"]'),
   cardName: (page: Page): Locator => page.getByTestId("product-name"),
-  // There is deliberately no "any link containing /products/" locator here.
+  // There is deliberately no "any link containing /products/" locator here —
+  // the address above is an extra condition on the card hook, never a hook of
+  // its own.
   // Category tiles use that same path shape (`/products/Bodysuits-253`), so such
   // a locator clicks a category, the app answers `?message=product_not_found`,
   // and the failure looks like a broken product page. Use the card hook.

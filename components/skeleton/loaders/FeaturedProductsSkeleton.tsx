@@ -3,11 +3,10 @@ import Skeleton from "react-loading-skeleton";
 function FeaturedProductsSkeleton() {
   return (
     <div className="flex-col px-[12px] flex items-start max-w-full w-full mt-[10px]">
-      <a
-        className="flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-xs rounded-[15px] bg-[#f3f3f3] regular text-[#5d5d5d]"
-        data-pw=""
-        href="/sy-en/featured"
-      >
+      {/* A placeholder, not a link. It used to be an <a> with a hardcoded
+          `/sy-en/featured` href, so a shopper who clicked the grey box while the
+          real row was still streaming was sent to another country's page. */}
+      <div className="flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-xs rounded-[15px] bg-[#f3f3f3] regular text-[#5d5d5d]">
         <span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -22,7 +21,7 @@ function FeaturedProductsSkeleton() {
         <span className="ml-[12px]  ">
           <Skeleton width={60} height={13} />
         </span>
-      </a>
+      </div>
       <div
         id="featured-products-container"
         className="featured-products-container py-[10px] gap-[8px] w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-auto pb-[8px] horizntal-scroll overflow-x-scroll overflow-y-hidden whitespace-nowrap [&amp;&gt; *]: select-none [&amp;::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
@@ -34,13 +33,16 @@ function FeaturedProductsSkeleton() {
               className="max-h-[377px] relative"
               data-pw="product-card-flash-deal"
             >
-              <a
-                className="product-container  align-center flex-col relative pb-[12px]"
-                data-pw="product_link"
-                href="/sy-en/products/women-pleated-1?color=Black"
-              >
+              {/* No href and no `product_link` marker on purpose.
+                  Each of these six boxes used to be an <a> pointing at one
+                  hardcoded Syrian product, and it carried the real card's own
+                  marker. So a click on a grey box — by a shopper or by the
+                  browser suite, which takes the first `product_link` on the
+                  page — opened a fixed product in another country instead of
+                  the card that was about to render there. */}
+              <div className="product-container  align-center flex-col relative pb-[12px]">
                 <Skeleton width={200} borderRadius={15} height={377} />
-              </a>
+              </div>
             </div>
           </div>
         ))}
