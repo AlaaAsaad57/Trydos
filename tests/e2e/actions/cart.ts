@@ -18,7 +18,15 @@
 
 import { expect, type Page } from "@playwright/test";
 
-import { addToCartSheet, cart, checkout, nav, product } from "../selectors";
+import {
+  addToCartSheet,
+  cart,
+  checkout,
+  nav,
+  product,
+  profile,
+} from "../selectors";
+import { throughProxyInPage } from "../harness/orderCleanup";
 import { gotoProductAtOrNull, leaveProductPage } from "./nav";
 
 /** How long a cart change has to come back from staging.
@@ -68,9 +76,23 @@ export const openCart = async (page: Page): Promise<{ lines: number }> => {
   // Opening the cart is idempotent (`enableCart(true)`), so pressing again costs
   // nothing. The loop still ends in a real assertion, so a cart that genuinely
   // never opens is still a failure.
+  //
+  // **Each press has its own short budget, and a press that cannot land is
+  // caught.** Adding to the bag pops a success toast, and the toast is drawn
+  // over the navigation — Playwright then refuses the click with "subtree
+  // intercepts pointer events" and waits out the full action timeout. Before
+  // this, that timeout escaped the loop and ended the whole action, so a case
+  // failed on a toast that had already gone by the time the message was
+  // written. A live run failed exactly that way. Now a blocked press is one
+  // wasted attempt, and the next one lands after the toast has cleared.
   const drawer = cart.drawer(page);
   for (let press = 0; press < 3; press += 1) {
-    await button.click();
+    const landed = await button
+      .click({ timeout: 10_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!landed) continue;
+
     const opened = await drawer
       .waitFor({ state: "visible", timeout: 15_000 })
       .then(() => true)
@@ -378,18 +400,97 @@ export const goToCheckout = async (
  *  not a slow render to wait out. */
 export const chooseCashOnDelivery = async (
   page: Page,
-): Promise<{ offered: boolean }> => {
-  const cod = checkout.cashOnDelivery(page);
+): Promise<{ offered: boolean; chosen: boolean; note: string }> => {
+  const cod = checkout.cashOnDelivery(page).first();
 
   const offered = await cod
     .waitFor({ state: "visible", timeout: CART_ANSWER_MS })
     .then(() => true)
     .catch(() => false);
 
-  if (!offered) return { offered: false };
+  if (!offered) {
+    return {
+      offered: false,
+      chosen: false,
+      note: "the shop drew no cash-on-delivery row for this country and bag",
+    };
+  }
 
-  await cod.click();
-  return { offered: true };
+  // **The row is a switch, exactly like the terms row is.**
+  // `handleCODPayment` clears the payment when cash is already the chosen one
+  // (`components/Cart/PaymentMethod.tsx:73-76`), so an unchecked press turns
+  // the choice **off** — and the checkout then refuses to go on, silently,
+  // saying nothing about why. A live run failed that way: the case pressed a
+  // row that was already selected, and the next step reported "no payment
+  // method is chosen".
+  //
+  // `active` is `orderData.payment` holding the cash entry (`:300-302`), and
+  // the row draws its border only while `active && !disabled` (`:416-418`), so
+  // the border is the app's own answer to "is cash chosen".
+  const isChosen = async (): Promise<boolean> =>
+    ((await cod.getAttribute("style").catch(() => null)) ?? "").includes(
+      "border",
+    );
+
+  if (await isChosen()) {
+    return {
+      offered: true,
+      chosen: true,
+      note: "cash on delivery was already the chosen method, so it was left alone",
+    };
+  }
+
+  // **A press is dropped in silence while the checkout is still loading.**
+  // The row's handler is `if (!orderLoading) handleCODPayment()`
+  // (`components/Cart/PaymentMethod.tsx:304-308`), and `orderLoading` is true
+  // while the screen reads the customer and the address list on mount. The
+  // click lands, Playwright reports success, and the app does nothing — a live
+  // run pressed once inside that window and the checkout then refused to go on.
+  //
+  // So it is pressed again until it takes. **The state is read before every
+  // press**, never after a fixed wait, because the row is a switch: pressing a
+  // row that is already chosen would clear it.
+  let presses = 0;
+  const deadline = Date.now() + 30_000;
+
+  while (Date.now() < deadline && presses < 5) {
+    if (await isChosen()) {
+      return {
+        offered: true,
+        chosen: true,
+        note: `cash on delivery was chosen after ${presses} press(es)`,
+      };
+    }
+
+    await cod.click({ timeout: 10_000 }).catch(() => undefined);
+    presses += 1;
+
+    // Long enough for the state to land — `handleCODPayment` sets the store
+    // directly and calls no backend, so this is a render, not a request.
+    const settleBy = Date.now() + 4_000;
+    while (Date.now() < settleBy && !(await isChosen())) {
+      await page.waitForTimeout(200).catch(() => undefined);
+    }
+  }
+
+  if (await isChosen()) {
+    return {
+      offered: true,
+      chosen: true,
+      note: `cash on delivery was chosen after ${presses} press(es)`,
+    };
+  }
+
+  return {
+    offered: true,
+    chosen: false,
+    note:
+      `the cash-on-delivery row was pressed ${presses} times and never became ` +
+      "the chosen method. It is not the disabled case — a disabled row carries " +
+      "`pointer-events-none` and the press would have failed instead of being " +
+      "accepted. The remaining reading is that the screen stayed busy: the row " +
+      "ignores every press while `orderLoading` is true",
+  };
 };
 
 /** Is there already a delivery address on the checkout screen?
@@ -404,16 +505,105 @@ export const hasDeliveryAddress = async (page: Page): Promise<boolean> =>
     .isVisible()
     .catch(() => false);
 
+/** Why the checkout refused to move on, read from the screen.
+ *
+ *  **The button refuses in silence.** `Validate()` shakes a row and may show a
+ *  notice, then `isValid()` decides, and a `false` simply leaves the screen
+ *  where it is (`components/Cart/OrdersPage.tsx:895-905`). Nothing on screen
+ *  says which condition failed, so a case that only reports "it did not move"
+ *  turns a five-second answer into an afternoon of guessing.
+ *
+ *  `isValid()` (`:793-806`) has exactly **three** conditions. Not four — an
+ *  unverified phone is not one of them; that gate is in the bag, on
+ *  `Confirm & Continue`, one screen earlier. The three are:
+ *
+ *  1. an address with `is_default === 1`;
+ *  2. `orderData.payment.length > 0` — a payment method chosen;
+ *  3. `totalBalance() >= getTotalPrice()`.
+ *
+ *  Each is read from what the app itself drew:
+ *
+ *  1. `regular-addresses` prints `defaultAddress?.address`, where
+ *     `defaultAddress` is that same `is_default === 1` filter
+ *     (`ShippingAddressContainer.tsx:688`). No default, no text.
+ *  2. The cash-on-delivery row carries an inline border **only** while it is the
+ *     chosen one (`PaymentMethod.tsx:416-418`).
+ *  3. The button's own label draws `getTotalPrice()`
+ *     (`OrdersPage.tsx:925-931`). `RoundPrice` turns a value that is not a
+ *     number into `0` (`utils/functions.tsx:184-186`), so a `0` here beside a
+ *     bag that has lines is the cart money never having arrived.
+ *
+ *  When all three look satisfied the answer names the fourth possibility, which
+ *  no single element can show: condition 3 compares a **stored** number with a
+ *  **current** one. The payment row saves `total_cash` at the moment it is
+ *  pressed (`PaymentMethod.tsx:93-99`), and the bag can be re-priced after
+ *  that. A price that has gone up since the press fails the check while every
+ *  part of the screen still looks right. */
+const whyCheckoutRefused = async (page: Page): Promise<string> => {
+  const refusals: string[] = [];
+
+  const title =
+    (await checkout
+      .addressTitle(page)
+      .first()
+      .textContent()
+      .catch(() => ""))?.trim() ?? "";
+  if (title === "") {
+    refusals.push(
+      "the account has no address marked as the default, so the checkout has " +
+        "nowhere to deliver to",
+    );
+  }
+
+  const codStyle =
+    (await checkout
+      .cashOnDelivery(page)
+      .first()
+      .getAttribute("style")
+      .catch(() => null)) ?? "";
+  if (!codStyle.includes("border")) {
+    refusals.push(
+      "no payment method is chosen — the cash-on-delivery row is not drawn as " +
+        "the selected one",
+    );
+  }
+
+  const label =
+    (await checkout
+      .confirmTotal(page)
+      .first()
+      .textContent()
+      .catch(() => ""))?.trim() ?? "";
+  const price = /(\d[\d,]*(\.\d+)?)\s*\D*$/.exec(label);
+  const amount = price === null ? null : Number(price[1].replace(/,/g, ""));
+  if (amount === 0) {
+    refusals.push(
+      `the checkout is about to charge 0 ("${label}"), so the balance check ` +
+        "cannot pass — the cart money never came back from the core backend",
+    );
+  }
+
+  if (refusals.length === 0) {
+    return (
+      "all three conditions the checkout applies look satisfied on screen, so " +
+      "the refusal is the balance comparison itself: the payment row saved the " +
+      "total at the moment it was pressed, and the bag has been re-priced " +
+      `since. The button is showing "${label}"`
+    );
+  }
+
+  return refusals.join("; ");
+};
+
 /** Move from the address and payment step to the review step.
  *
- *  The button re-reads the bag and the customer first, and refuses in four
- *  named ways: no default address, no payment method chosen, a phone that is not
- *  verified, or a bag holding something that is no longer available. All four
- *  leave the screen where it is, so this reports whether it moved rather than
- *  claiming it did. */
+ *  The button re-reads the bag and the customer first, and refuses in silence
+ *  when any of the three conditions in `whyCheckoutRefused` is unmet. So this
+ *  reports whether the screen moved **and**, when it did not, which condition
+ *  is the reason — the caller puts that in its failure message. */
 export const confirmShippingAndPayment = async (
   page: Page,
-): Promise<{ reached: boolean }> => {
+): Promise<{ reached: boolean; refusal: string }> => {
   const confirm = checkout.confirmShippingAndPayment(page);
   await expect(
     confirm,
@@ -427,7 +617,9 @@ export const confirmShippingAndPayment = async (
     .then(() => true)
     .catch(() => false);
 
-  return { reached };
+  if (reached) return { reached: true, refusal: "" };
+
+  return { reached: false, refusal: await whyCheckoutRefused(page) };
 };
 
 /** Agree to the terms and place the order.
@@ -448,21 +640,82 @@ export const confirmShippingAndPayment = async (
  *  `panelShown: false` is a checkout that was refused or never posted, while a
  *  panel with no number is a partial success — the order exists and there is
  *  nothing to find it by. */
+/** Tick the terms row — and **only** if it is not ticked already.
+ *
+ *  **The row is a switch, and the shop remembers the answer.** Its handler is
+ *  `setAgree(!orderData.agree)` (`components/Cart/PlaceOrderButtons.tsx:187`),
+ *  so one press turns it on and the next turns it off. And `orderData.agree`
+ *  does not start empty for a returning shopper: the customer read sets it from
+ *  the account's stored `is_approve_policies` (`services/home.ts:149`). A
+ *  shopper approves the policies once, and every later order arrives with the
+ *  box already ticked.
+ *
+ *  So a press that is not checked first **unticks** it. That is a real failure
+ *  this suite had: the case pressed an already-ticked row, waited for
+ *  `data-agreed="true"`, watched it read `"false"` 123 times, and then blamed
+ *  the shop for "not answering the policy call". The shop had answered. The test
+ *  had turned the box off.
+ *
+ *  Two more details this has to survive:
+ *
+ *  - **The state arrives late.** `agree` starts `false` in the store
+ *    (`store/Cart/reducer.ts:90`) and only becomes `true` when the customer read
+ *    lands. So a short wait comes first — pressing during that window is the
+ *    same mistake one moment earlier.
+ *  - **Turning it on is not instant.** `setAgree(true)` posts
+ *    `/customer/approve-policies` and sets the flag when that answers
+ *    (`PlaceOrderButtons.tsx:56-78`). Press Place Order in that gap and the app
+ *    shakes the row and posts nothing. */
+const agreeToTermsIfNeeded = async (
+  page: Page,
+): Promise<{ agreed: boolean; pressed: number }> => {
+  const row = checkout.agreeToTerms(page);
+  await expect(
+    row,
+    "the review step drew no terms row, so the order can never be placed",
+  ).toBeVisible({ timeout: CHECKOUT_MS });
+
+  const isTicked = async (): Promise<boolean> =>
+    (await row.getAttribute("data-agreed").catch(() => null)) === "true";
+
+  // Give the customer read its moment to land. An account that approved before
+  // arrives ticked, and this is where that becomes visible.
+  const settleBy = Date.now() + 5_000;
+  while (Date.now() < settleBy) {
+    if (await isTicked()) return { agreed: true, pressed: 0 };
+    await page.waitForTimeout(250).catch(() => undefined);
+  }
+
+  // Still not ticked, so this account really has not approved yet. Press it —
+  // and press it only while it reads `false`, never blindly.
+  let pressed = 0;
+  while (pressed < 3) {
+    if (await isTicked()) return { agreed: true, pressed };
+
+    await row.click();
+    pressed += 1;
+
+    const answerBy = Date.now() + 20_000;
+    while (Date.now() < answerBy) {
+      if (await isTicked()) return { agreed: true, pressed };
+      await page.waitForTimeout(250).catch(() => undefined);
+    }
+  }
+
+  return { agreed: await isTicked(), pressed };
+};
+
 export const placeOrder = async (
   page: Page,
 ): Promise<{ panelShown: boolean; orderGroupId: string | null }> => {
-  const agree = checkout.agreeToTerms(page);
-  await expect(
-    agree,
-    "the review step drew no terms row, so the order can never be placed",
-  ).toBeVisible();
-  await agree.click();
+  const terms = await agreeToTermsIfNeeded(page);
 
-  await expect(
-    agree,
-    "the terms row never came back ticked, so Place Order would be refused in " +
-      "silence — the shop did not answer the policy call",
-  ).toHaveAttribute("data-agreed", "true", { timeout: CHECKOUT_MS });
+  expect(
+    terms.agreed,
+    `the terms row is still not ticked after ${terms.pressed} presses, so ` +
+      "Place Order would be refused in silence. The row only ticks once " +
+      "/customer/approve-policies answers, so the shop did not answer it",
+  ).toBe(true);
 
   await checkout.placeOrder(page).click();
 
@@ -478,4 +731,868 @@ export const placeOrder = async (
     (await checkout.orderNumber(page).first().textContent())?.trim() ?? "";
 
   return { panelShown: true, orderGroupId: text === "" ? null : text };
+};
+
+// ─── The live steps `BUY-03` and `BUY-04` are built from ─────────────────────
+//
+// Everything below reads or changes the bag on real staging. Three habits run
+// through all of it, and each one is here because of a way an earlier draft
+// could have gone green while the shop was broken.
+//
+// **A figure is read only once the app has drawn it.** `cartPage-container` is
+// on screen before the cart answer lands, and the totals row draws nothing at
+// all until the bag has lines (`components/Cart/OrderButton.tsx:267`). So a read
+// taken on "the drawer is open" gets an empty string — and an empty string read
+// as a number is `0`, which is a figure staging really does send.
+//
+// **A number on screen is compared with the number the backend sent in the same
+// run**, never with a literal. `watchCartMoney` keeps the backend's own answer
+// for exactly that.
+//
+// **Every wait names its own budget.** A handed-on context defaults to a 20 s
+// action timeout (`tests/e2e/harness/liveSession.ts`) and `expect` to 15 s
+// (`playwright.config.ts`), so an unqualified wait dies before the cart route
+// has answered.
+
+/** Which of the two cart answers a set of money numbers came from.
+ *
+ *  They are different calls and they arrive at different moments, so a read has
+ *  to say which one it is checking against:
+ *
+ *  - `shipping` — `GET /cart/cart_shipping`. The bag's own read. It runs when
+ *    the drawer mounts (`components/Cart/index.tsx:79-84`) and again after every
+ *    quantity change, and its answer goes through `initCart`.
+ *  - `overview` — `GET /cart/cart_overview`. The re-price. It runs right after
+ *    the core backend accepts a new default address
+ *    (`services/order.ts:241`) and after a line is removed
+ *    (`components/Cart/index.tsx:137-142`), and its answer goes through
+ *    `setCartPreview`. */
+export type CartMoneyTarget = "shipping" | "overview";
+
+/** One answer from one of those two calls. A `null` field means the answer
+ *  arrived but did not carry that number — which is a finding, not a zero. */
+export interface CartMoneyAnswer {
+  /** How many answers of this kind had arrived when this one did. Starts at 1,
+   *  and is what `waitForAnswer` counts, so a caller can wait for a **new**
+   *  answer instead of accepting the one that was already there. */
+  seq: number;
+  status: number;
+  total: number | null;
+  shipping: number | null;
+  discount: number | null;
+  subTotal: number | null;
+  /** The answer in words, short enough for a failure message. */
+  said: string;
+}
+
+export interface CartMoneyWatch {
+  /** How many answers of this kind have arrived so far. */
+  seen: (which: CartMoneyTarget) => number;
+  /** The most recent one, or `null` when none has come. */
+  last: (which: CartMoneyTarget) => CartMoneyAnswer | null;
+  /** The most recent one in words. Safe in a message: it carries the status and
+   *  the four money numbers, never the answer body. */
+  said: (which: CartMoneyTarget) => string;
+  /** Wait for an answer **after** the one numbered `after`. Returns it, or
+   *  `null` when none came inside the budget — it never throws, because "the
+   *  shop did not re-price" is a finding the caller has to word itself. */
+  waitForAnswer: (
+    which: CartMoneyTarget,
+    options: { after: number; timeout?: number },
+  ) => Promise<CartMoneyAnswer | null>;
+  stop: () => void;
+}
+
+/** Take the money numbers off the shop's own cart answers as they arrive.
+ *
+ *  **Passive on purpose.** It only listens; it presses nothing and fails at
+ *  nothing. That matters because it is installed *before* the step it watches —
+ *  `SetDefault` fires the re-price as soon as the backend accepts, so a watcher
+ *  installed after the tap can miss the answer it exists to read
+ *  (`services/order.ts:241`).
+ *
+ *  Both calls leave through `POST /api/proxy` with the real address in the
+ *  `x-proxy-url` header (`utils/fetchData.ts`), which is how they are told
+ *  apart — the same match `watchCartAdd` above uses.
+ *
+ *  **Stop it in a `finally`.** A listener left attached outlives its step and
+ *  keeps reading bodies on a page the case has moved on from. */
+export const watchCartMoney = (page: Page): CartMoneyWatch => {
+  const answers: Record<CartMoneyTarget, CartMoneyAnswer | null> = {
+    shipping: null,
+    overview: null,
+  };
+  const counts: Record<CartMoneyTarget, number> = { shipping: 0, overview: 0 };
+
+  const numberOrNull = (value: unknown): number | null => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
+  const onResponse = (response: import("@playwright/test").Response): void => {
+    const request = response.request();
+    if (!request.url().includes("/api/proxy")) return;
+
+    const target = request.headers()["x-proxy-url"] ?? "";
+    const which: CartMoneyTarget | null = target.includes("/cart/cart_shipping")
+      ? "shipping"
+      : target.includes("/cart/cart_overview")
+        ? "overview"
+        : null;
+    if (which === null) return;
+
+    const status = response.status();
+
+    void response
+      .text()
+      .then((body) => {
+        // `data` is where both calls put their money: `initCart` and
+        // `setCartPreview` are each handed `response.data` and spread it whole
+        // into the store (`store/Cart/reducer.ts:367`, `:394`).
+        let money: Record<string, unknown> = {};
+        try {
+          const parsed = JSON.parse(body) as { data?: Record<string, unknown> };
+          money = parsed?.data ?? {};
+        } catch {
+          money = {};
+        }
+
+        counts[which] += 1;
+        const answer: CartMoneyAnswer = {
+          seq: counts[which],
+          status,
+          total: numberOrNull(money.total),
+          shipping: numberOrNull(money.total_shipping_cost),
+          discount: numberOrNull(money.total_discount),
+          subTotal: numberOrNull(money.sub_total),
+          said: "",
+        };
+        answer.said =
+          `${target} answered ${status} with total=${answer.total}, ` +
+          `shipping=${answer.shipping}, discount=${answer.discount}, ` +
+          `sub_total=${answer.subTotal}`;
+        answers[which] = answer;
+      })
+      .catch(() => {
+        counts[which] += 1;
+        answers[which] = {
+          seq: counts[which],
+          status,
+          total: null,
+          shipping: null,
+          discount: null,
+          subTotal: null,
+          said: `${target} answered ${status} and its body could not be read`,
+        };
+      });
+  };
+
+  page.on("response", onResponse);
+
+  return {
+    seen: (which) => counts[which],
+    last: (which) => answers[which],
+    said: (which) =>
+      answers[which]?.said ??
+      `the core backend never answered ${
+        which === "shipping" ? "/cart/cart_shipping" : "/cart/cart_overview"
+      }`,
+    waitForAnswer: async (which, options) => {
+      const budget = options.timeout ?? CART_ANSWER_MS;
+      const deadline = Date.now() + budget;
+      while (Date.now() < deadline) {
+        const answer = answers[which];
+        if (answer !== null && answer.seq > options.after) return answer;
+        await page.waitForTimeout(200).catch(() => undefined);
+      }
+      const answer = answers[which];
+      return answer !== null && answer.seq > options.after ? answer : null;
+    },
+    stop: () => page.off("response", onResponse),
+  };
+};
+
+/** Read one money figure off the screen as a number.
+ *
+ *  Two things it refuses to do. It never reads an element that is not there
+ *  yet, and it never reads one whose text is still empty — both give `0`, and
+ *  `0` is a figure staging really sends, so an early read would agree with a
+ *  backend that sent nothing.
+ *
+ *  The text carries more than the number: the shipping row draws `+ 12 IQD` and
+ *  the totals row draws the currency symbol beside the figure. So the first
+ *  number in the text is taken and the thousands separators are dropped. */
+const readMoneyFigure = async (
+  locator: import("@playwright/test").Locator,
+  what: string,
+): Promise<{ text: string; amount: number | null }> => {
+  const figure = locator.first();
+
+  await expect(
+    figure,
+    `${what} was never drawn — the totals row is drawn only once the bag has ` +
+      `lines, so either the cart read did not come back or the bag is empty`,
+  ).toBeVisible({ timeout: CART_ANSWER_MS });
+
+  await expect
+    .poll(async () => ((await figure.textContent()) ?? "").trim(), {
+      timeout: CART_ANSWER_MS,
+      message:
+        `${what} stayed empty. An empty figure reads as 0, and 0 is a number ` +
+        `staging really sends, so it is refused here rather than compared`,
+    })
+    .not.toBe("");
+
+  const text = ((await figure.textContent()) ?? "").trim();
+  const match = /-?\d[\d,]*(\.\d+)?/.exec(text);
+  const amount = match === null ? null : Number(match[0].replace(/,/g, ""));
+
+  return { text, amount: amount !== null && Number.isFinite(amount) ? amount : null };
+};
+
+/** What the shop charges in, and how it turns a backend number into a screen
+ *  one.
+ *
+ *  **The backend answers in dollars; the screen shows the shopper's own
+ *  currency.** So the two numbers are never equal, and comparing them directly
+ *  is wrong. A live run made that plain: the bag drew `450` where
+ *  `/cart/cart_shipping` had sent `4.5`. Nothing was broken — the rate was
+ *  `100`. */
+export interface ShopCurrency {
+  exchangeRate: number;
+  decimalDigits: number;
+  symbol: string;
+}
+
+/** Ask the shop which currency this country is priced in.
+ *
+ *  The same call the app makes — `GET /mobile/home/currency`
+ *  (`utils/tinyUtils.tsx:110-133`) — so the rate used to check the screen is
+ *  the rate the screen was drawn with, read in the same run. Never a literal:
+ *  a rate written into the test would go stale the day the shop changes it,
+ *  and would agree with a wrong screen in the meantime. */
+export const readShopCurrency = async (
+  page: Page,
+  options: { country: string; language: string },
+): Promise<ShopCurrency | null> => {
+  const answer = await throughProxyInPage(page, {
+    target: "/mobile/home/currency",
+    method: "GET",
+    country: options.country,
+    language: options.language,
+  });
+
+  const body = answer.json as
+    | { data?: { currency?: Record<string, unknown> } & Record<string, unknown> }
+    | null;
+
+  // The route nests the fields under `data.currency`; the older one returned
+  // them flat. `getCurrency` unwraps both the same way, so this does too.
+  const currency = (body?.data?.currency ?? body?.data) as
+    | Record<string, unknown>
+    | undefined;
+  if (!currency) return null;
+
+  const exchangeRate = Number(currency.exchange_rate);
+  const decimalDigits = Number(currency.decimal_digits);
+
+  return {
+    exchangeRate: Number.isFinite(exchangeRate) ? exchangeRate : 1,
+    decimalDigits: Number.isFinite(decimalDigits) ? decimalDigits : 0,
+    symbol: String(currency.symbol ?? ""),
+  };
+};
+
+/** `toFixedUp` from `utils/functions.tsx:152-169`, copied exactly.
+ *
+ *  Copied rather than imported on purpose. The check has to fail when the app's
+ *  arithmetic changes; importing the app's own helper would make both sides
+ *  move together and the check could never catch a wrong formula. */
+const roundUpTo = (decimalDigits: number, value: number): number => {
+  const factor = 10 ** decimalDigits;
+  const multiplied = Number((value * factor).toFixed(12));
+  return Math.ceil(multiplied) / factor;
+};
+
+/** `preciseMultiply` from `utils/functions.tsx:133-151`, copied exactly, and
+ *  for the same reason as above. */
+const preciseMultiply = (a: number, b: number): number => {
+  const aStr = a.toString();
+  const bStr = b.toString();
+  const aDecimals = (aStr.split(".")[1] || "").length;
+  const bDecimals = (bStr.split(".")[1] || "").length;
+  const intA = Number(aStr.replace(".", ""));
+  const intB = Number(bStr.replace(".", ""));
+  return (intA * intB) / 10 ** (aDecimals + bDecimals);
+};
+
+/** The figure the bag **should** draw for a number the backend sent.
+ *
+ *  `RoundPrice({ num, returnNumber: true, points })`
+ *  (`utils/functions.tsx:170-202`) does two things in order: round the number
+ *  **up** to the currency's decimal places, then multiply by the exchange rate.
+ *  This repeats both, so the check compares a figure against a figure. */
+export const expectedFigureFor = (
+  sent: number,
+  currency: ShopCurrency,
+): number =>
+  preciseMultiply(
+    roundUpTo(currency.decimalDigits, sent),
+    currency.exchangeRate,
+  );
+
+/** Does the figure on screen match the number the backend sent?
+ *
+ *  Both sides are converted the same way, so this is an equality check, not a
+ *  tolerance. The small allowance is for binary floating point only — `0.1 +
+ *  0.2` is not `0.3` in any language — and is far too tight to hide a wrong
+ *  field: the "Normal Price" and the payable total differ by the whole
+ *  discount, which is a real amount of money. */
+export const matchesSentAmount = (
+  drawn: number | null,
+  sent: number | null,
+  currency: ShopCurrency | null,
+): boolean => {
+  if (drawn === null || sent === null || currency === null) return false;
+  return Math.abs(drawn - expectedFigureFor(sent, currency)) < 0.005;
+};
+
+/** Read the money the bag is showing.
+ *
+ *  The payable total sits **outside** the collapsed block
+ *  (`components/Cart/OrderButton.tsx:572`) and needs no click. The "Normal
+ *  Price" and the shipping sit inside it (`:325`), and `expanded` starts
+ *  `false` (`:41`) — so they are read only when `expand` is asked for.
+ *
+ *  `total-expanded` is a **toggle**, so it is pressed only when the breakdown is
+ *  not already open. Pressing it twice hides what the caller asked for. */
+export const readCartMoney = async (
+  page: Page,
+  options: { expand?: boolean } = {},
+): Promise<{
+  payableTotal: number | null;
+  payableText: string;
+  normalPrice: number | null;
+  shipping: number | null;
+  shippingText: string;
+}> => {
+  const payable = await readMoneyFigure(
+    cart.payableTotal(page),
+    "the payable total in the bag",
+  );
+
+  if (options.expand !== true) {
+    return {
+      payableTotal: payable.amount,
+      payableText: payable.text,
+      normalPrice: null,
+      shipping: null,
+      shippingText: "",
+    };
+  }
+
+  const alreadyOpen = await cart
+    .normalPrice(page)
+    .first()
+    .isVisible()
+    .catch(() => false);
+
+  if (!alreadyOpen) {
+    const toggle = cart.totalsToggle(page);
+    await expect(
+      toggle,
+      "the bag drew no totals row, so the breakdown cannot be opened",
+    ).toBeVisible({ timeout: CART_ANSWER_MS });
+    await toggle.click();
+  }
+
+  const normal = await readMoneyFigure(
+    cart.normalPrice(page),
+    "the Normal Price figure in the bag",
+  );
+  const shipping = await readMoneyFigure(
+    cart.shipping(page),
+    "the shipping figure in the bag",
+  );
+
+  return {
+    payableTotal: payable.amount,
+    payableText: payable.text,
+    normalPrice: normal.amount,
+    shipping: shipping.amount,
+    shippingText: shipping.text,
+  };
+};
+
+/** Open the saved-address list on the checkout screen.
+ *
+ *  The opener opens only for an account that already has an address saved —
+ *  `addresses-viewer` calls `openAddressList(true)` inside
+ *  `if (addressLists?.length > 0)`
+ *  (`components/Cart/ShippingAddressContainer.tsx:469-476`). So "the sheet did
+ *  not open" is the account holding nothing as often as it is a fault, and this
+ *  reports which rather than failing on a wait. */
+export const openAddressList = async (
+  page: Page,
+): Promise<{ opened: boolean; rows: number }> => {
+  const opener = checkout.addressesViewer(page);
+  await expect(opener, "the checkout drew no address block at all").toBeVisible({
+    timeout: CART_ANSWER_MS,
+  });
+
+  // Pressed more than once, for the same reason `openCart` is: the checkout is
+  // server-rendered, so this block is on screen and clickable before React has
+  // attached `onClick` (`ShippingAddressContainer.tsx:468-475`). A single press
+  // is a race against hydration, and losing it is silent — the click lands,
+  // nothing opens, and the failure 45 seconds later says the list never opened.
+  // A live run lost it exactly that way.
+  //
+  // Opening is idempotent — the handler only ever calls `openAddressList(true)`
+  // — so a second press costs nothing, and the answer below is still real.
+  const sheet = checkout.addressSheet(page);
+  let opened = false;
+  for (let press = 0; press < 3 && !opened; press += 1) {
+    const landed = await opener
+      .click({ timeout: 10_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!landed) continue;
+
+    opened = await sheet
+      .waitFor({ state: "visible", timeout: 15_000 })
+      .then(() => true)
+      .catch(() => false);
+  }
+
+  if (!opened) return { opened: false, rows: 0 };
+
+  return {
+    opened: true,
+    rows: await checkout.addressSheet(page).getByTestId("Address").count(),
+  };
+};
+
+/** Which address the checkout is showing right now, by its title.
+ *
+ *  The **title**, not the region string. `Address-Added-Last` carries the
+ *  region, which two addresses in one city share, so it cannot tell them apart
+ *  (`components/Cart/ShippingAddressContainer.tsx:688`, `:699`). */
+export const chosenAddressTitle = async (page: Page): Promise<string> => {
+  const title = checkout.addressTitle(page).first();
+  if ((await title.count()) === 0) return "";
+  return ((await title.textContent()) ?? "").trim();
+};
+
+/** Tap one saved address in the sheet, found by the title it shows.
+ *
+ *  **This is the screen's answer, and only the screen's.** The row's handler
+ *  calls `order.SetDefault`, `updateAddress` and `setDefaultAddress` together
+ *  (`components/Cart/AddressListContainer.tsx:80-82`), and `SetDefault`
+ *  swallows a refusal — it logs it and carries on
+ *  (`services/order.ts:243-248`). So the title on the checkout changes whether
+ *  or not the core backend stored anything. Reading the list back from the
+ *  backend is a separate step, and that step is `AC-2`.
+ *
+ *  Install a `watchCartMoney` **before** calling this when the re-price matters:
+ *  `GetCartOreview()` runs the moment the backend accepts. */
+export const chooseAddressNamed = async (
+  page: Page,
+  title: string,
+): Promise<{ tapped: boolean; showing: string }> => {
+  const row = checkout.addressSheetRow(page, title).first();
+
+  const found = await row
+    .waitFor({ state: "visible", timeout: CART_ANSWER_MS })
+    .then(() => true)
+    .catch(() => false);
+  if (!found) return { tapped: false, showing: await chosenAddressTitle(page) };
+
+  await row.click();
+
+  await expect(
+    checkout.addressSheet(page),
+    "tapping a saved address left the address sheet open, so it covers the " +
+      "checkout below it",
+  ).toBeHidden({ timeout: CART_ANSWER_MS });
+
+  await expect
+    .poll(async () => await chosenAddressTitle(page), {
+      timeout: CART_ANSWER_MS,
+      message:
+        "the checkout does not show the tapped address as the delivery " +
+        "address after it was tapped",
+    })
+    .toContain(title);
+
+  return { tapped: true, showing: await chosenAddressTitle(page) };
+};
+
+/** Which field the address form is complaining about.
+ *
+ *  **The form refuses in silence, but it does point at the problem.**
+ *  `validate()` (`components/Cart/AddAddressForm.tsx:619-639`) adds the class
+ *  `shake-anim` to the first field that is not filled, and takes it off again
+ *  after 1300 ms. So this looks straight after the press, and names the field
+ *  by the marker class the app itself chose.
+ *
+ *  Without this a refused Save is indistinguishable from a backend that never
+ *  answered, and the failure would blame the shop for the form's own rule. */
+const whyTheFormRefused = async (page: Page): Promise<string> => {
+  const fields: Record<string, string> = {
+    "username-border": "the account holder's name",
+    "details-border": "the detail line",
+    "title-border": "the address title",
+    "region-border": "the region — it comes from the picker, not a text field",
+    "name-border": "the contact person's name",
+    "phone-border": "the contact phone",
+  };
+
+  const deadline = Date.now() + 3_000;
+  while (Date.now() < deadline) {
+    for (const [marker, what] of Object.entries(fields)) {
+      const shaking = page.locator(`.${marker}.shake-anim`);
+      if ((await shaking.count()) > 0) {
+        return `the form refused the save and pointed at ${what}`;
+      }
+    }
+    await page.waitForTimeout(100).catch(() => undefined);
+  }
+
+  // **Silence here does not mean the shop is at fault**, and saying so would
+  // repeat the mistake this whole helper exists to stop.
+  //
+  // `validate()` tests each field with `?.length === 0`. A value that is
+  // **missing** rather than empty gives `undefined`, and `undefined === 0` is
+  // false — so nothing is shaken. Meanwhile `isValid()` still refuses, because
+  // its own checks return early on the same field. A form that neither closes
+  // nor shakes is therefore most likely one whose address is missing a field
+  // outright, not a backend that went quiet.
+  return (
+    "the form neither closed nor pointed at a field. That is what happens when " +
+    "a value is missing rather than empty: `validate()` only shakes on " +
+    "`length === 0`, and `undefined` is not `0`, while `isValid()` still " +
+    "refuses. Check the contact name, the contact phone and the region on this " +
+    "address. A backend that never answered is the less likely reading"
+  );
+};
+
+/** Change one saved address's title, starting from the sheet.
+ *
+ *  Not `profile.addAddress`: that one starts on a blank form and would create a
+ *  second address (`tests/e2e/actions/profile.ts:649`). The edit path is its own
+ *  thing — the row's pencil calls `startUpdateAddress(address)` and then
+ *  `slideNext()` (`components/Cart/AddressListContainer.tsx:265-275`), which
+ *  opens the same form already filled with that address.
+ *
+ *  Saving posts an **update**, because the form holds an id
+ *  (`components/Cart/AddAddressForm.tsx:648-654`), and the form slides back on
+ *  its own only when that update came back. So a form that stays open is the
+ *  core backend refusing, and it is reported rather than waited out. */
+export const editAddressTitleFromSheet = async (
+  page: Page,
+  options: { current: string; next: string },
+): Promise<{ saved: boolean; refusal: string }> => {
+  const row = checkout.addressSheetRow(page, options.current).first();
+
+  const found = await row
+    .waitFor({ state: "visible", timeout: CART_ANSWER_MS })
+    .then(() => true)
+    .catch(() => false);
+  if (!found) {
+    return {
+      saved: false,
+      refusal: "the address sheet holds no row with that title",
+    };
+  }
+
+  await checkout.editAddressOnRow(row).click();
+
+  const form = page.getByTestId("add-address-form");
+  const opened = await form
+    .waitFor({ state: "visible", timeout: CART_ANSWER_MS })
+    .then(() => true)
+    .catch(() => false);
+  if (!opened) {
+    return {
+      saved: false,
+      refusal: "pressing the edit control never opened the address form",
+    };
+  }
+
+  const titleField = page.getByTestId("add-address-input");
+  await expect(
+    titleField,
+    "the edit form opened with no address-title field to change",
+  ).toBeVisible({ timeout: CART_ANSWER_MS });
+  await titleField.fill(options.next);
+
+  // **Save does nothing at all unless every field the form wants is filled.**
+  // `isValid()` (`components/Cart/AddAddressForm.tsx:45-83`) needs a contact
+  // name, a phone longer than five characters, a detail line, a title and a
+  // region — and when one is missing the button simply does not act.
+  //
+  // An address created through the API does not always come back with all of
+  // them, so the two contact fields are filled here when the form left them
+  // empty. Never overwritten: an address that already carries them keeps what
+  // the account holds. This is the same rule `profile.addAddress` follows
+  // (`tests/e2e/actions/profile.ts:713-723`).
+  for (const [field, value] of [
+    [profile.addressRecipientField(page), "Trydos E2E Probe"],
+    [profile.addressPhoneField(page), "963900000002"],
+  ] as const) {
+    if ((await field.count()) === 0) continue;
+    if (((await field.inputValue().catch(() => "")) ?? "") === "") {
+      await field.fill(value);
+    }
+  }
+
+  await page.getByTestId("AddSaveButton").click();
+
+  // The form closes itself from the update's own callback, so this waits for
+  // the app's answer rather than for a moment that looked long enough.
+  const saved = await form
+    .waitFor({ state: "hidden", timeout: CART_ANSWER_MS })
+    .then(() => true)
+    .catch(() => false);
+
+  return { saved, refusal: saved ? "" : await whyTheFormRefused(page) };
+};
+
+/** Go back from the checkout to the bag.
+ *
+ *  `AC-8`, `AC-9` and `AC-10` all read their figures in the **bag**, because
+ *  `OrderButton` is mounted only in the drawer
+ *  (`components/Cart/index.tsx:447`). The checkout draws no payable total, so
+ *  without this control those three cannot be carried out at all.
+ *
+ *  Going back **remounts the drawer**, and the drawer reads the bag again on
+ *  mount (`components/Cart/index.tsx:79-84`) — only one slide is mounted at a
+ *  time (`components/global/SlideNavigation.tsx`). So the figures read after
+ *  this come from a fresh `/cart/cart_shipping`, not from what was on screen
+ *  before the checkout. */
+export const returnToBag = async (page: Page): Promise<{ reached: boolean }> => {
+  const back = checkout.backToBag(page);
+  await expect(
+    back,
+    "the checkout drew no back control, so there is no way back to the bag",
+  ).toBeVisible({ timeout: CART_ANSWER_MS });
+  await back.click();
+
+  const reached = await cart
+    .drawer(page)
+    .waitFor({ state: "visible", timeout: CART_ANSWER_MS })
+    .then(() => true)
+    .catch(() => false);
+  if (!reached) return { reached: false };
+
+  // The drawer is drawn before its read comes back. Wait for a line, so the
+  // figures read next come off a bag the app has really loaded.
+  await cart
+    .lines(page)
+    .first()
+    .waitFor({ state: "visible", timeout: CART_ANSWER_MS })
+    .catch(() => undefined);
+
+  return { reached: true };
+};
+
+/** The name the **bag** shows for one of its lines.
+ *
+ *  Read this before naming a line, and never reuse the title the product page
+ *  showed. The two are different strings, and a live run proved it: the product
+ *  page drew `"Solara | Electronics & Technology | Black"` while the bag drew
+ *  the cart row's own `name` field, so `lineNamed` matched nothing and the case
+ *  failed saying the bag held no such line.
+ *
+ *  The bag also **cuts the name at 50 characters** and adds an ellipsis
+ *  (`components/Cart/CartItem.tsx:79-80`), which is a second reason the product
+ *  page's title cannot be used: `hasText` looks for the whole string.
+ *
+ *  `index` is which line to read, in the order the bag draws them. */
+export const bagLineName = async (
+  page: Page,
+  index = 0,
+): Promise<string> => {
+  const line = cart.lines(page).nth(index);
+  await expect(
+    line,
+    `the bag draws no line at position ${index + 1}, so there is nothing to name`,
+  ).toBeVisible({ timeout: CART_ANSWER_MS });
+
+  const name = cart.lineName(line).first();
+  await expect
+    .poll(async () => ((await name.textContent()) ?? "").trim(), {
+      timeout: CART_ANSWER_MS,
+      message:
+        `the line at position ${index + 1} shows no product name, so nothing ` +
+        `below could name the product it is acting on`,
+    })
+    .not.toBe("");
+
+  return ((await name.textContent()) ?? "").trim();
+};
+
+/** Ask for one more, or one fewer, of a named line.
+ *
+ *  **The quantity on screen is optimistic.** Both handlers call `setInputValue`
+ *  before they call anything (`components/Cart/index.tsx:566`, `:588`), so the
+ *  new number is drawn while the request is still in the air and stays drawn if
+ *  the core backend refuses. Reading it straight after the press therefore
+ *  agrees with a backend that said no.
+ *
+ *  So this waits for the bag re-read that follows the change (`:570-574` for
+ *  minus, `:615-619` for plus) and reads the quantity after it. The watcher is
+ *  built here and stopped in a `finally`, so it never outlives the press.
+ *
+ *  The quantity is read with `inputValue()`, not `textContent()`:
+ *  `QuantityInCart` is a disabled `<input>` (`:804`), and an input's text
+ *  content is always empty.
+ *
+ *  `minus` at quantity 1 is neither a failure nor a missing element: the delete
+ *  control takes its place (`:780`). It is reported as `pressed: false`. */
+export const changeLineQuantity = async (
+  page: Page,
+  options: { name: string; direction: "plus" | "minus" },
+): Promise<{ pressed: boolean; quantity: number | null; said: string }> => {
+  const line = cart.lineNamed(page, options.name).first();
+  await expect(line, `the bag holds no line called "${options.name}"`).toBeVisible(
+    { timeout: CART_ANSWER_MS },
+  );
+
+  const quantityField = cart.quantity(line);
+  const before = Number.parseInt(await quantityField.inputValue(), 10);
+  const wanted = options.direction === "plus" ? before + 1 : before - 1;
+
+  const control =
+    options.direction === "plus" ? cart.plus(line) : cart.minus(line);
+  if ((await control.count()) === 0) {
+    return {
+      pressed: false,
+      quantity: Number.isNaN(before) ? null : before,
+      said:
+        `the line "${options.name}" draws no ${options.direction} control at ` +
+        `quantity ${before}`,
+    };
+  }
+
+  // What the cart backend said about the change itself, kept for the message.
+  //
+  // `/cart/cart_shipping` only says what the bag holds afterwards; it cannot say
+  // **why** a change was refused. `/cart/update` can — a live run raised the
+  // quantity of a product with one piece in stock, the bag came back unchanged,
+  // and the only thing on screen was the old number.
+  let updateSaid = "the cart backend was never asked to change the quantity";
+  const onUpdate = (response: import("@playwright/test").Response): void => {
+    const target = response.request().headers()["x-proxy-url"] ?? "";
+    if (!response.request().url().includes("/api/proxy")) return;
+    if (!target.includes("/cart/update")) return;
+    const status = response.status();
+    void response
+      .text()
+      .then((body) => {
+        updateSaid = `${target} answered ${status}: ${body.slice(0, 300)}`;
+      })
+      .catch(() => {
+        updateSaid = `${target} answered ${status} and its body could not be read`;
+      });
+  };
+  page.on("response", onUpdate);
+
+  const money = watchCartMoney(page);
+  try {
+    const seenBefore = money.seen("shipping");
+    await control.click();
+
+    const answer = await money.waitForAnswer("shipping", {
+      after: seenBefore,
+      timeout: CART_ANSWER_MS,
+    });
+
+    if (answer === null) {
+      return {
+        pressed: true,
+        quantity: null,
+        said:
+          `pressing ${options.direction} on "${options.name}" never brought the ` +
+          `bag back — the core backend did not answer /cart/cart_shipping`,
+      };
+    }
+
+    // Read only now. Anything read before this point is the optimistic value.
+    await expect
+      .poll(async () => Number.parseInt(await quantityField.inputValue(), 10), {
+        timeout: CART_ANSWER_MS,
+        message:
+          `"${options.name}" does not show quantity ${wanted} after the bag ` +
+          `was read again. The app draws the new number before it asks, so a ` +
+          `value that went back to ${before} means the cart backend refused ` +
+          `the change — most often because the product has only ${before} in ` +
+          `stock. The plus control is drawn whatever the stock is: ` +
+          `shouldDisablePlus always returns false, and the check against ` +
+          `available_quantity beside it is commented out ` +
+          `(components/Cart/index.tsx:623-633). The change call said: ` +
+          `${updateSaid}. The bag then said: ${answer.said}`,
+      })
+      .toBe(wanted);
+
+    const after = Number.parseInt(await quantityField.inputValue(), 10);
+    return {
+      pressed: true,
+      quantity: Number.isNaN(after) ? null : after,
+      said: answer.said,
+    };
+  } finally {
+    money.stop();
+    page.off("response", onUpdate);
+  }
+};
+
+/** Take one named line out of the bag.
+ *
+ *  Removing is optimistic too, and it can be **undone**: the row is dropped from
+ *  the store first, and `services/cart.ts > RemoveFromCart` puts it back when
+ *  the core backend refuses. A check that looks straight after the click sees
+ *  the row gone either way.
+ *
+ *  So this waits for the re-price that follows every removal (`GetCartOreview()`,
+ *  `components/Cart/index.tsx:137-142`) and only then asks whether the line is
+ *  really gone — which is after the undo would have put it back. */
+export const removeLineNamed = async (
+  page: Page,
+  name: string,
+): Promise<{ removed: boolean; linesLeft: number; said: string }> => {
+  const line = cart.lineNamed(page, name).first();
+  await expect(line, `the bag holds no line called "${name}"`).toBeVisible({
+    timeout: CART_ANSWER_MS,
+  });
+
+  const money = watchCartMoney(page);
+  try {
+    const seenBefore = money.seen("overview");
+    await cart.deleteLine(line).click();
+
+    const answer = await money.waitForAnswer("overview", {
+      after: seenBefore,
+      timeout: CART_ANSWER_MS,
+    });
+
+    await expect
+      .poll(async () => await cart.lineNamed(page, name).count(), {
+        timeout: CART_ANSWER_MS,
+        message:
+          `"${name}" is still in the bag after it was removed — the removal was ` +
+          `refused and put back. The core backend said: ${
+            answer?.said ?? money.said("overview")
+          }`,
+      })
+      .toBe(0);
+
+    return {
+      removed: true,
+      linesLeft: await cart.lines(page).count(),
+      said: answer?.said ?? money.said("overview"),
+    };
+  } finally {
+    money.stop();
+  }
 };

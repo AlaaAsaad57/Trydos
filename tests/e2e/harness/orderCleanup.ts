@@ -28,9 +28,11 @@
 // A case that failed left the browser somewhere unknown: mid-checkout, on an
 // error, with a modal over the page. Driving the cancel screens from there is
 // the least reliable thing available at exactly the moment reliability matters.
-// The request below goes through the app's own `/api/proxy`, with the context's
-// own cookies, so the credential stays where it already was and no token is read
-// or printed by this file.
+// The request below goes through the app's own `/api/proxy`, made by a page in
+// a fresh browser context built from the cookies the case had. It must be a
+// page: an authenticated call cannot be made from Node here — see
+// `throughProxyInPage` for why. The credential stays where it already was and
+// no token is read or printed by this file.
 //
 // ---------------------------------------------------------------------------
 // Two ids, and this file needs the one no screen shows
@@ -42,7 +44,7 @@
 // either already cancelled or past the point where cancelling is allowed, and
 // both are answers rather than failures.
 
-import type { APIRequestContext } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import { toServiceToken } from "utils/serviceTokens";
 
@@ -69,45 +71,96 @@ export type CleanupOutcome = {
   problem?: string;
 };
 
-/** One call to a backend, the same way the app's own client makes it.
+/** Ceiling on one proxy call. Playwright's own default is 30 s, which is what
+ *  made a four-call teardown able to overrun a 60 s allowance (P-2). */
+const PROXY_CALL_MS = 15_000;
+
+/** One call to a backend, made **by the page itself**.
  *
- *  Mirrors `utils/fetchData.ts`: POST to `/api/proxy`, the real target named in
- *  `x-proxy-url`, the service named by its opaque wire token, and the verb in
- *  `x-proxy-method`. The proxy reads `MARKET-TOKEN` from the cookies the request
- *  carries, so this needs the **context's** request object, not a bare one. */
-const throughProxy = async (
-  request: APIRequestContext,
+ *  Use this one for anything that needs the shopper's credential. It is the
+ *  same request `throughProxy` below makes, but it runs inside the browser
+ *  instead of in Node — and for an authenticated call that difference decides
+ *  whether it works at all.
+ *
+ *  **Why.** `MARKET-TOKEN` is written `Secure`
+ *  (`utils/server/tokenManager.ts:22-25`) because the suite runs a production
+ *  server (`tests/e2e/harness/server.ts:56-62`), and it is served over plain
+ *  `http://127.0.0.1:3100`. A browser sends a `Secure` cookie to a loopback
+ *  address anyway — loopback counts as a trustworthy origin. Playwright's
+ *  request object does not: it is Node's own networking, not Chromium's, even
+ *  when it comes from `context.request` and shares the same cookie storage. So
+ *  the cookie is held but never sent, the proxy attaches no `Authorization`
+ *  header, and the core backend answers `401 Unauthorized` — correctly.
+ *
+ *  A live run showed exactly that: `/customer/address/list` answered `401`
+ *  while the page beside it was drawing the shopper's own name.
+ *
+ *  `actions/auth.ts` already calls authenticated routes this way
+ *  (`signedInSession`, `:592`), and those work. This is the same shape. */
+export const throughProxyInPage = async (
+  page: Page,
   options: {
     target: string;
     method: "GET" | "POST";
     body?: unknown;
     country: string;
     language: string;
+    /** Per-call ceiling in ms, default 15 s. Without one a teardown of four
+     *  calls can outlive the slot it is given (panel finding P-2). A call that
+     *  runs out of time comes back as status `0` rather than throwing, so a
+     *  tidy-up never replaces the failure a case is reporting. */
+    timeout?: number;
   },
-): Promise<{ status: number; json: unknown }> => {
-  const headers: Record<string, string> = {
-    "x-proxy-server": toServiceToken("market"),
-    "x-proxy-url": encodeURI(options.target),
-    "x-proxy-method": options.method,
-    "x-country": options.country,
-    "x-language": options.language,
-    "x-need-decode": "true",
-  };
+): Promise<{ status: number; json: unknown }> =>
+  await page.evaluate(
+    async (call) => {
+      const headers: Record<string, string> = {
+        "x-proxy-server": call.server,
+        "x-proxy-url": encodeURI(call.target),
+        "x-proxy-method": call.method,
+        "x-country": call.country,
+        "x-language": call.language,
+        "x-need-decode": "true",
+      };
+      if (call.body !== undefined) headers["Content-Type"] = "application/json";
 
-  const response = await request.post("/api/proxy", {
-    headers:
-      options.body === undefined
-        ? headers
-        : { ...headers, "Content-Type": "application/json" },
-    data: options.body === undefined ? undefined : JSON.stringify(options.body),
-    failOnStatusCode: false,
-  });
+      try {
+        const response = await fetch("/api/proxy", {
+          method: "POST",
+          headers,
+          credentials: "include",
+          body: call.body === undefined ? undefined : JSON.stringify(call.body),
+          signal: AbortSignal.timeout(call.timeout),
+        });
 
-  return {
-    status: response.status(),
-    json: await response.json().catch(() => null),
-  };
-};
+        // Parsed in the browser, so a parser message quoting the body can
+        // never reach the Node failure line.
+        const json = await response.json().catch(() => null);
+        return { status: response.status, json };
+      } catch (error) {
+        // Status `0` is "no answer", which is not the same as a refusal and
+        // must not read like one.
+        return {
+          status: 0,
+          json: {
+            message:
+              error instanceof Error && error.name === "TimeoutError"
+                ? `the call did not answer within ${call.timeout}ms`
+                : "the call could not be made",
+          },
+        };
+      }
+    },
+    {
+      server: toServiceToken("market"),
+      target: options.target,
+      method: options.method,
+      body: options.body,
+      country: options.country,
+      language: options.language,
+      timeout: options.timeout ?? PROXY_CALL_MS,
+    },
+  );
 
 /** Cancel every pack of one order group that the backend says can be cancelled.
  *
@@ -115,7 +168,7 @@ const throughProxy = async (
  *  failure the case is trying to report with a failure about tidying up. What it
  *  could not do comes back in `problem` instead. */
 export const cancelOrderGroup = async (
-  request: APIRequestContext,
+  page: Page,
   options: { groupId: string; country: string; language: string },
 ): Promise<CleanupOutcome> => {
   const outcome: CleanupOutcome = {
@@ -126,7 +179,7 @@ export const cancelOrderGroup = async (
   };
 
   try {
-    const found = await throughProxy(request, {
+    const found = await throughProxyInPage(page, {
       target: `/customer/order/getOrdersByOrderGroupID?order_group_id=${options.groupId}`,
       method: "GET",
       country: options.country,
@@ -147,7 +200,7 @@ export const cancelOrderGroup = async (
         continue;
       }
 
-      const cancelled = await throughProxy(request, {
+      const cancelled = await throughProxyInPage(page, {
         target: "/customer/order/cancel",
         method: "POST",
         body: { order_id: pack.id },

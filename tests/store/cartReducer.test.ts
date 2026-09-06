@@ -624,3 +624,153 @@ describe("the money the payment screen writes", () => {
     ).toBe(0);
   });
 });
+
+// ---------------------------------------------------------------------------
+// The money the core backend sends, and the row the shopper takes out.
+//
+// AC-5 and AC-11 of _specs/checkout-address-totals-and-cart-lines.
+//
+// Neither action had a test. `initCart` and `setCartPreview` are the only two
+// writers of the cart's money fields (utils/functions.tsx:326, :351), and
+// `removeFromCart` is the only action that clears a row from both lists at once
+// (store/Cart/reducer.ts:402-406). The app computes none of these numbers: they
+// start as `null` (store/Cart/reducer.ts:50-56) and are only ever overwritten by
+// an answer from the core backend.
+describe("the money the core backend sends", () => {
+  // The four figures a shopper is shown, written out as plain constants rather
+  // than derived from the payload. Deriving them the way the code does would
+  // make a wrong reducer and a wrong expectation agree with each other.
+  const SUB_TOTAL = 80;
+  const SHIPPING = 15;
+  const DISCOUNT = 20;
+  const TOTAL = 85;
+
+  /** What `/cart/cart_shipping` answers, trimmed to the money and one row. */
+  const cartShippingAnswer = {
+    sub_total: SUB_TOTAL,
+    total_shipping_cost: SHIPPING,
+    total_discount: DISCOUNT,
+    total: TOTAL,
+    total_cash: TOTAL,
+    cart: [
+      {
+        id: "cart-row-1",
+        product_id: 101,
+        image: "shirt.jpg",
+        quantity: 1,
+        offer_price: 80,
+        product_variation_id: null,
+      },
+    ],
+  };
+
+  it("initCart keeps every money figure the core backend sent", () => {
+    useAppStore.getState().initCart(cartShippingAnswer as never);
+
+    const s = useAppStore.getState();
+    expect(
+      s.sub_total,
+      "the core backend sent a sub-total of 80 and the cart store does not hold it",
+    ).toBe(SUB_TOTAL);
+    expect(
+      s.total_shipping_cost,
+      "the core backend sent a shipping cost of 15 and the cart store does not hold it",
+    ).toBe(SHIPPING);
+    expect(
+      s.total_discount,
+      "the core backend sent a discount of 20 and the cart store does not hold it",
+    ).toBe(DISCOUNT);
+    expect(
+      s.total,
+      "the core backend sent a total of 85 and the cart store does not hold it",
+    ).toBe(TOTAL);
+  });
+
+  it("setCartPreview keeps every money figure the core backend sent", () => {
+    useAppStore.getState().setCartPreview({
+      sub_total: SUB_TOTAL,
+      total_shipping_cost: SHIPPING,
+      total_discount: DISCOUNT,
+      total: TOTAL,
+    } as never);
+
+    const s = useAppStore.getState();
+    expect(
+      s.sub_total,
+      "the cart overview from the core backend sent a sub-total of 80 and the cart store does not hold it",
+    ).toBe(SUB_TOTAL);
+    expect(
+      s.total_shipping_cost,
+      "the cart overview from the core backend sent a shipping cost of 15 and the cart store does not hold it",
+    ).toBe(SHIPPING);
+    expect(
+      s.total_discount,
+      "the cart overview from the core backend sent a discount of 20 and the cart store does not hold it",
+    ).toBe(DISCOUNT);
+    expect(
+      s.total,
+      "the cart overview from the core backend sent a total of 85 and the cart store does not hold it",
+    ).toBe(TOTAL);
+  });
+
+  it("setCartPreview leaves the bag itself alone", () => {
+    // The re-price after an address change must not empty the screen. This is
+    // why setCartPreview carries `cart` and `localCart` over by hand
+    // (store/Cart/reducer.ts:394-400) instead of spreading the answer whole.
+    useAppStore.getState().initCart(cartShippingAnswer as never);
+    const before = useAppStore.getState().localCart;
+
+    useAppStore.getState().setCartPreview({ total: 999 } as never);
+
+    expect(
+      useAppStore.getState().localCart,
+      "re-pricing the bag threw the shopper's rows away",
+    ).toEqual(before);
+  });
+});
+
+describe("taking a row out of the bag", () => {
+  it("removeFromCart clears the row from both lists the store keeps", () => {
+    // Two lists, two different keys: `cart` is filtered by `id` and `localCart`
+    // by `item_id` (store/Cart/reducer.ts:402-406). A test that reads one of
+    // them cannot see a row left behind in the other.
+    useAppStore.setState({
+      cart: [
+        { id: "cart-row-1", product_id: 101 },
+        { id: "cart-row-2", product_id: 102 },
+      ] as never,
+      localCart: [
+        { id: 101, item_id: "cart-row-1", quantity: 1 },
+        { id: 102, item_id: "cart-row-2", quantity: 1 },
+      ] as never,
+    });
+
+    useAppStore.getState().removeFromCart("cart-row-1");
+
+    expect(
+      useAppStore.getState().cart.map((s: any) => s.id),
+      "the removed row is still in the bag the cart page draws",
+    ).toEqual(["cart-row-2"]);
+    expect(
+      useAppStore.getState().localCart.map((s: any) => s.item_id),
+      "the removed row is still in the list the add-to-cart widget reads",
+    ).toEqual(["cart-row-2"]);
+  });
+
+  it("removeFromCart leaves the other rows alone", () => {
+    useAppStore.setState({
+      cart: [{ id: "cart-row-1" }, { id: "cart-row-2" }] as never,
+      localCart: [
+        { id: 101, item_id: "cart-row-1", quantity: 3 },
+        { id: 102, item_id: "cart-row-2", quantity: 4 },
+      ] as never,
+    });
+
+    useAppStore.getState().removeFromCart("cart-row-1");
+
+    expect(
+      useAppStore.getState().localCart[0]?.quantity,
+      "removing one row changed the quantity of the row that stayed",
+    ).toBe(4);
+  });
+});
