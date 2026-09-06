@@ -190,16 +190,39 @@ const formatPermissionName = (permission: string): string => {
   );
 };
 
+// Every key of PERMISSION_GROUPS needs an entry here, plus OTHER. A group left
+// out used to fall back to its own key with the underscores removed, which put
+// "PRODUCTS" on screen in shouting capitals. Most of those raw keys do have
+// translations (written unquoted, `ORDERS: "الطلبات"`), so it read correctly in
+// ar/tr/ku and only English showed the key — except COMMENTS, which had no
+// entry in any of the three files and so leaked the English word everywhere.
+const PERMISSION_GROUP_LABELS: Record<string, string> = {
+  PRODUCTS: "Products",
+  BOUTIQUES: "Boutiques",
+  LOCATIONS: "Locations",
+  CATEGORIES: "Categories",
+  BRANDS: "Brands",
+  ORDERS: "Orders",
+  EMPLOYEES: "Employees",
+  ROLES: "Roles",
+  JOBTITLES: "Job Titles",
+  OFFICES: "Offices",
+  DEPARTMENTS: "Departments",
+  WORKFORMS: "Work Forms",
+  LANGUAGES: "Languages",
+  CURRENCIES: "Currencies",
+  SHIPPING: "Shipping",
+  COUNTRIES: "Countries",
+  SHOP_INFO: "Shop Info",
+  PRODUCT_IMAGES: "Product Images",
+  STORIES: "Stories",
+  COMMENTS: "Comments",
+  ADMIN: "Admin",
+  OTHER: "Other",
+};
+
 const getPermissionGroupLabel = (group: string): string => {
-  const labelMap: Record<string, string> = {
-    SHOP_INFO: "Shop Info",
-    PRODUCT_IMAGES: "Product Images",
-    STORIES: "Stories",
-    COMMENTS: "Comments",
-    LOCATIONS: "Locations",
-    OTHER: "Other",
-  };
-  return labelMap[group] || group.replace(/_/g, " ");
+  return PERMISSION_GROUP_LABELS[group] || group.replace(/_/g, " ");
 };
 
 function SellerDashBoard() {
@@ -795,6 +818,12 @@ function SellerDashBoard() {
       const permissions =
         shopData?.permissions || currentShop?.permissions || [];
       setSellerPermissions(Array.isArray(permissions) ? permissions : []);
+      // The same answer carries the role, so take it here. Otherwise the only
+      // writer is `initializeData`, which runs when the side menu opens — and a
+      // seller who arrives on this URL directly (a pasted link, or a reload on
+      // the Permissions tab) has an empty shop list and never opens the menu.
+      // Their role banner then waits for a name that nothing is fetching.
+      if (shopData?.shop_role) setCurrentRole(shopData.shop_role);
     } catch (error: any) {
       LogError({
         scenario: "SellerDashboard.getSellerPermissions",
@@ -1441,7 +1470,9 @@ function SellerDashBoard() {
           <DashIcon name="role" size={22} />
         </span>
         <div>
-          <h3 className="text-[16px] semibold text-[#3c3c3c]">{currentRole}</h3>
+          <h3 className="text-[16px] semibold text-[#3c3c3c]">
+            {currentRole || translateFunction("Member")}
+          </h3>
           <p className="text-[12px] text-[#8e8e8e]">
             {translateFunction("Your role in this shop")}
           </p>
@@ -1465,13 +1496,12 @@ function SellerDashBoard() {
 
     return (
       <div className="space-y-5">
-        {!currentRole ? (
-          <div className="flex flex-1 items-center justify-center py-6">
-            <Spinner />
-          </div>
-        ) : (
-          showRoleInfo()
-        )}
+        {/* No spinner here. The role arrives in the same answer as the
+            permissions, and this whole section already waits on
+            `permissionsReady` above — so by now the role is either known or
+            nobody is going to send it, and a spinner would simply never
+            stop. `showRoleInfo` names the fallback. */}
+        {showRoleInfo()}
 
         {Object.entries(groupedPermissions).map(([group, permissions]) => (
           <DashCard key={group}>
@@ -2436,9 +2466,14 @@ function SellerDashBoard() {
                 }`}
               >
                 <DashIcon name={isAdmin ? "star" : "role"} size={13} />
+                {/* `currentRole` as well as the shop list: on an arrival by URL
+                    the shop list is empty and only the permissions answer knows
+                    the role, so reading the list alone said "Member" to a seller
+                    whose role the page had just been told. */}
                 {isAdmin
                   ? translateFunction("Super Admin")
                   : currentShop?.shop_role ||
+                    currentRole ||
                     translateFunction("Member")}
               </span>
               <span className="text-[12px] text-[#8e8e8e]">

@@ -567,6 +567,37 @@ describe("response status and message handling", () => {
     expect(store.useAppStore.getState().setShouldAuthinticated).not.toHaveBeenCalled();
   });
 
+  it("keeps the seller on the dashboard when the backend itself fails", async () => {
+    // 403 above means "you are not linked to this shop", and sending that
+    // seller home is right. A 5xx means the backend broke: the section has an
+    // error card with a Retry button for exactly that, and it can only be
+    // reached if the page is still on screen to show it.
+    await setup();
+    setLocationPathname("/seller/orders");
+    const net = makeMockFetch([jsonReply({ message: "Server down" }, 500)]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result = await fetchData({
+      ...baseParams,
+      server: "market",
+      sellerId: "9",
+    });
+
+    expect(
+      window.location.href,
+      "a 500 from the core backend threw the seller off the dashboard to the storefront home; the failure had nothing to do with the seller's access to this shop",
+    ).not.toBe("/");
+    expect(
+      result.success,
+      "the caller was told the failed request succeeded, so no section can show its error card",
+    ).toBe(false);
+    expect(
+      result.httpStatus,
+      `the caller was handed status ${result.httpStatus} instead of the 500 the backend answered`,
+    ).toBe(500);
+  });
+
   it("throws and reports a non-OK response", async () => {
     const { notifications, functions } = await setup();
     const net = makeMockFetch([jsonReply({ message: "Server down" }, 500)]);
