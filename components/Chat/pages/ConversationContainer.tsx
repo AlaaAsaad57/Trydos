@@ -53,7 +53,17 @@ interface ConversationContainerProps {
 
 /* ------------------------------ Constants -------------------------------- */
 const FILE_INPUT_ACCEPT = "*/*";
-const MEDIA_INPUT_ACCEPT = "image/*,video/*";
+const MEDIA_INPUT_ACCEPT =
+  "image/*,video/*,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg,.heic,.heif,.mp4,.mov,.avi,.mkv,.webm,.3gp,.m4v";
+
+const isImageOrVideoFile = (file: File) => {
+  if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
+    return true;
+  }
+  return /\.(jpe?g|png|gif|webp|bmp|svg|ico|heic|heif|mp4|mov|avi|mkv|webm|3gp|m4v|flv|wmv)$/i.test(
+    file.name,
+  );
+};
 
 /* --------------------------------------------------------------------------
  * Helper utils – extracted from the spaghetti logic for re-usability & clarity
@@ -189,6 +199,7 @@ function ConversationContainer({
   const prevLastMsgIdRef = useRef<any>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const onlyMediaRef = useRef<boolean>(false);
   const imageFile = useRef<HTMLInputElement | null>(null);
   const blobs = useRef<Blob | null>(null);
   const AudioRef = useRef<HTMLAudioElement | null>(null);
@@ -292,6 +303,9 @@ function ConversationContainer({
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const midLocal = "m" + Math.random().toString().replace(".", "");
     try {
+      const isMediaOnly = onlyMediaRef.current;
+      onlyMediaRef.current = false;
+
       const file = e.target.files?.[0];
       e.target.value = "";
       e.target.files = null;
@@ -301,12 +315,26 @@ function ConversationContainer({
 
       if (!file || !activeChat) return;
 
-      if (file.type.includes("image")) {
+      if (isMediaOnly && !isImageOrVideoFile(file)) {
+        showErrorNotification(
+          translateFunction("Only image and video files are allowed"),
+        );
+        sendStatus(null);
+        return;
+      }
+
+      if (
+        file.type.includes("image") ||
+        /\.(jpe?g|png|gif|webp|bmp|svg|ico|heic|heif)$/i.test(file.name)
+      ) {
         // Show preview widget for images
         setPendingImageFile(file);
       } else if (file.type.includes("audio")) {
         await handleMediaMessage(file, "VoiceMessage", midLocal);
-      } else if (file.type.includes("video")) {
+      } else if (
+        file.type.includes("video") ||
+        /\.(mp4|mov|avi|mkv|webm|3gp|m4v|flv|wmv)$/i.test(file.name)
+      ) {
         await handleMediaMessage(file, "VideoMessage", midLocal);
       } else {
         await handleMediaMessage(file, "FileMessage", midLocal);
@@ -853,6 +881,13 @@ function ConversationContainer({
         onBlur={() => {
           sendStatus(null);
         }}
+        onCancel={() => {
+          onlyMediaRef.current = false;
+          if (fileInputRef.current) {
+            fileInputRef.current.accept = FILE_INPUT_ACCEPT;
+          }
+          sendStatus(null);
+        }}
         onChange={handleFileChange}
       />
 
@@ -1128,6 +1163,7 @@ function ConversationContainer({
                       style={{ minWidth: 43, cursor: "pointer" }}
                       className="chatplus"
                       onClick={() => {
+                        onlyMediaRef.current = false;
                         const fileInput =
                           fileInputRef.current ||
                           document.querySelector<HTMLInputElement>(
@@ -1229,6 +1265,7 @@ function ConversationContainer({
             {
               render: () => <>{translateFunction("files")}</>,
               onClick: () => {
+                onlyMediaRef.current = true;
                 const fileInput =
                   fileInputRef.current ||
                   document.querySelector<HTMLInputElement>(

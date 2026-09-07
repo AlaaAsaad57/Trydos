@@ -2299,6 +2299,7 @@ const translations = {
   "Report photo": "الإبلاغ عن الصورة",
   "Scan QR to sign in": "امسح رمز QR للدخول",
   "Only image or PDF files are allowed": "يُسمح فقط بملفات الصور أو PDF",
+  "Only image and video files are allowed": "يُسمح فقط بملفات الصور أو الفيديو",
   "Notification is Denied": "تم رفض الإشعارات",
   "User in Another Call": "المستخدم في مكالمة أخرى",
   "New message": "رسالة جديدة",

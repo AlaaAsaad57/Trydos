@@ -2,9 +2,12 @@ import { useState, useRef, useEffect, useCallback } from "react";
 
 const SWIPED_EVENT = "chat-message-swiped";
 const CLOSE_ALL_EVENT = "chat-message-close-all";
-const SNAP_OFFSET = -65;
+const SNAP_OFFSET = -60;
 const DRAG_LIMIT = -85;
-const TRIGGER_THRESHOLD = -28;
+const OPEN_DISTANCE_THRESHOLD = -22;
+const OPEN_VELOCITY_THRESHOLD = -0.22;
+const CLOSE_DISTANCE_THRESHOLD = 18;
+const CLOSE_VELOCITY_THRESHOLD = 0.22;
 
 interface UseMessageSwipeOptions {
   id: string | number;
@@ -12,24 +15,50 @@ interface UseMessageSwipeOptions {
 }
 
 export function useMessageSwipe({ id, enabled = true }: UseMessageSwipeOptions) {
-  const [offset, setOffset] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const datesRef = useRef<HTMLDivElement>(null);
 
   const startXRef = useRef(0);
   const startYRef = useRef(0);
+  const startTimeRef = useRef(0);
+  const lastXRef = useRef(0);
+  const lastTimeRef = useRef(0);
+  const currentOffsetRef = useRef(0);
+  const isDraggingRef = useRef(false);
   const isHorizontalRef = useRef<boolean | null>(null);
-  const isTrackingRef = useRef(false);
   const isOpenRef = useRef(isOpen);
   isOpenRef.current = isOpen;
+  const rafIdRef = useRef<number | null>(null);
+  const didMoveRef = useRef(false);
+  const isMouseDownRef = useRef(false);
 
-  const close = useCallback(() => {
-    setOffset(0);
-    setIsOpen(false);
-    setIsDragging(false);
+  const applyTransform = useCallback((offset: number, animate: boolean) => {
+    if (contentRef.current) {
+      contentRef.current.style.transition = animate
+        ? "transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1)"
+        : "none";
+      contentRef.current.style.transform = `translateX(${offset}px)`;
+    }
+    if (datesRef.current) {
+      const progress = Math.min(1, Math.max(0, Math.abs(offset) / Math.abs(SNAP_OFFSET)));
+      datesRef.current.style.transition = animate
+        ? "opacity 0.22s ease-in-out, transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1)"
+        : "none";
+      datesRef.current.style.opacity = `${progress}`;
+      datesRef.current.style.pointerEvents = progress > 0.8 ? "auto" : "none";
+    }
+    currentOffsetRef.current = offset;
   }, []);
 
-  // Close when another message is swiped or when the chat scrolls
+  const close = useCallback(() => {
+    applyTransform(0, true);
+    setIsOpen(false);
+    isDraggingRef.current = false;
+    isHorizontalRef.current = null;
+    isMouseDownRef.current = false;
+  }, [applyTransform]);
+
   useEffect(() => {
     const handleOtherSwiped = (e: Event) => {
       const customEvent = e as CustomEvent<{ id: string | number }>;
@@ -54,78 +83,109 @@ export function useMessageSwipe({ id, enabled = true }: UseMessageSwipeOptions) 
   const onTouchStart = useCallback(
     (e: React.TouchEvent) => {
       if (!enabled || e.touches.length !== 1) return;
-      startXRef.current = e.touches[0].clientX;
-      startYRef.current = e.touches[0].clientY;
+      const touch = e.touches[0];
+      startXRef.current = touch.clientX;
+      startYRef.current = touch.clientY;
+      lastXRef.current = touch.clientX;
+      startTimeRef.current = Date.now();
+      lastTimeRef.current = Date.now();
       isHorizontalRef.current = null;
-      isTrackingRef.current = true;
+      isDraggingRef.current = false;
+      didMoveRef.current = false;
     },
     [enabled]
   );
 
   const onTouchMove = useCallback(
     (e: React.TouchEvent) => {
-      if (!isTrackingRef.current || !enabled) return;
+      if (!enabled || e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - startXRef.current;
+      const deltaY = touch.clientY - startYRef.current;
 
-      const currentX = e.touches[0].clientX;
-      const currentY = e.touches[0].clientY;
-      const deltaX = currentX - startXRef.current;
-      const deltaY = currentY - startYRef.current;
-
-      // Determine gesture direction if not locked yet
       if (isHorizontalRef.current === null) {
-        if (Math.abs(deltaY) > 8 && Math.abs(deltaY) > Math.abs(deltaX)) {
-          // Vertical scroll detected - release tracking
-          isHorizontalRef.current = false;
-          isTrackingRef.current = false;
+        const dist = Math.hypot(deltaX, deltaY);
+        if (dist > 6) {
+          if (Math.abs(deltaX) >= Math.abs(deltaY) * 0.8) {
+            isHorizontalRef.current = true;
+            isDraggingRef.current = true;
+            didMoveRef.current = true;
+          } else {
+            isHorizontalRef.current = false;
+            return;
+          }
+        } else {
           return;
         }
-        if (Math.abs(deltaX) > 8) {
-          isHorizontalRef.current = true;
-          setIsDragging(true);
-        }
       }
 
-      if (isHorizontalRef.current) {
-        // Horizontal swipe
-        const baseOffset = isOpenRef.current ? SNAP_OFFSET : 0;
-        const rawOffset = baseOffset + deltaX;
-        const clampedOffset = Math.max(DRAG_LIMIT, Math.min(0, rawOffset));
-        setOffset(clampedOffset);
+      if (!isHorizontalRef.current) return;
+
+      lastXRef.current = touch.clientX;
+      lastTimeRef.current = Date.now();
+
+      const baseOffset = isOpenRef.current ? SNAP_OFFSET : 0;
+      let targetOffset = baseOffset + deltaX;
+
+      if (targetOffset > 0) {
+        targetOffset = targetOffset * 0.15;
+      } else if (targetOffset < DRAG_LIMIT) {
+        targetOffset = DRAG_LIMIT + (targetOffset - DRAG_LIMIT) * 0.15;
       }
+
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = requestAnimationFrame(() => {
+        applyTransform(targetOffset, false);
+      });
     },
-    [enabled]
+    [enabled, applyTransform]
   );
 
   const onTouchEnd = useCallback(() => {
-    if (!isTrackingRef.current && !isDragging) return;
-    isTrackingRef.current = false;
-    setIsDragging(false);
-
-    if (isHorizontalRef.current) {
-      if (offset < TRIGGER_THRESHOLD) {
-        setOffset(SNAP_OFFSET);
-        setIsOpen(true);
-        window.dispatchEvent(
-          new CustomEvent(SWIPED_EVENT, { detail: { id } })
-        );
-      } else {
-        setOffset(0);
-        setIsOpen(false);
+    if (!isDraggingRef.current) {
+      if (isOpenRef.current && !didMoveRef.current) {
+        close();
       }
+      return;
     }
+    isDraggingRef.current = false;
     isHorizontalRef.current = null;
-  }, [id, offset, isDragging]);
 
-  // Mouse drag support for desktop
-  const isMouseDownRef = useRef(false);
+    const now = Date.now();
+    const duration = Math.max(1, now - startTimeRef.current);
+    const velocityX = (lastXRef.current - startXRef.current) / duration;
+    const currentOffset = currentOffsetRef.current;
+    let shouldOpen = false;
+
+    if (isOpenRef.current) {
+      const moveFromOpen = currentOffset - SNAP_OFFSET;
+      shouldOpen = !(moveFromOpen > CLOSE_DISTANCE_THRESHOLD || velocityX > CLOSE_VELOCITY_THRESHOLD);
+    } else {
+      shouldOpen = currentOffset < OPEN_DISTANCE_THRESHOLD || velocityX < OPEN_VELOCITY_THRESHOLD;
+    }
+
+    if (shouldOpen) {
+      applyTransform(SNAP_OFFSET, true);
+      setIsOpen(true);
+      window.dispatchEvent(new CustomEvent(SWIPED_EVENT, { detail: { id } }));
+    } else {
+      applyTransform(0, true);
+      setIsOpen(false);
+    }
+  }, [id, applyTransform, close]);
 
   const onMouseDown = useCallback(
     (e: React.MouseEvent) => {
       if (!enabled || e.button !== 0) return;
       startXRef.current = e.clientX;
       startYRef.current = e.clientY;
-      isMouseDownRef.current = true;
+      lastXRef.current = e.clientX;
+      startTimeRef.current = Date.now();
+      lastTimeRef.current = Date.now();
       isHorizontalRef.current = null;
+      isDraggingRef.current = false;
+      didMoveRef.current = false;
+      isMouseDownRef.current = true;
     },
     [enabled]
   );
@@ -133,50 +193,82 @@ export function useMessageSwipe({ id, enabled = true }: UseMessageSwipeOptions) 
   const onMouseMove = useCallback(
     (e: React.MouseEvent) => {
       if (!isMouseDownRef.current || !enabled) return;
-
       const deltaX = e.clientX - startXRef.current;
       const deltaY = e.clientY - startYRef.current;
 
       if (isHorizontalRef.current === null) {
-        if (Math.abs(deltaY) > 10 && Math.abs(deltaY) > Math.abs(deltaX)) {
-          isMouseDownRef.current = false;
+        const dist = Math.hypot(deltaX, deltaY);
+        if (dist > 6) {
+          if (Math.abs(deltaX) >= Math.abs(deltaY) * 0.8) {
+            isHorizontalRef.current = true;
+            isDraggingRef.current = true;
+            didMoveRef.current = true;
+          } else {
+            isHorizontalRef.current = false;
+            return;
+          }
+        } else {
           return;
-        }
-        if (Math.abs(deltaX) > 8) {
-          isHorizontalRef.current = true;
-          setIsDragging(true);
         }
       }
 
-      if (isHorizontalRef.current) {
-        const baseOffset = isOpenRef.current ? SNAP_OFFSET : 0;
-        const rawOffset = baseOffset + deltaX;
-        const clampedOffset = Math.max(DRAG_LIMIT, Math.min(0, rawOffset));
-        setOffset(clampedOffset);
+      if (!isHorizontalRef.current) return;
+
+      lastXRef.current = e.clientX;
+      lastTimeRef.current = Date.now();
+
+      const baseOffset = isOpenRef.current ? SNAP_OFFSET : 0;
+      let targetOffset = baseOffset + deltaX;
+
+      if (targetOffset > 0) {
+        targetOffset = targetOffset * 0.15;
+      } else if (targetOffset < DRAG_LIMIT) {
+        targetOffset = DRAG_LIMIT + (targetOffset - DRAG_LIMIT) * 0.15;
       }
+
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = requestAnimationFrame(() => {
+        applyTransform(targetOffset, false);
+      });
     },
-    [enabled]
+    [enabled, applyTransform]
   );
 
   const onMouseUp = useCallback(() => {
     if (!isMouseDownRef.current) return;
     isMouseDownRef.current = false;
-    setIsDragging(false);
 
-    if (isHorizontalRef.current) {
-      if (offset < TRIGGER_THRESHOLD) {
-        setOffset(SNAP_OFFSET);
-        setIsOpen(true);
-        window.dispatchEvent(
-          new CustomEvent(SWIPED_EVENT, { detail: { id } })
-        );
-      } else {
-        setOffset(0);
-        setIsOpen(false);
+    if (!isDraggingRef.current) {
+      if (isOpenRef.current && !didMoveRef.current) {
+        close();
       }
+      return;
     }
+    isDraggingRef.current = false;
     isHorizontalRef.current = null;
-  }, [id, offset]);
+
+    const now = Date.now();
+    const duration = Math.max(1, now - startTimeRef.current);
+    const velocityX = (lastXRef.current - startXRef.current) / duration;
+    const currentOffset = currentOffsetRef.current;
+    let shouldOpen = false;
+
+    if (isOpenRef.current) {
+      const moveFromOpen = currentOffset - SNAP_OFFSET;
+      shouldOpen = !(moveFromOpen > CLOSE_DISTANCE_THRESHOLD || velocityX > CLOSE_VELOCITY_THRESHOLD);
+    } else {
+      shouldOpen = currentOffset < OPEN_DISTANCE_THRESHOLD || velocityX < OPEN_VELOCITY_THRESHOLD;
+    }
+
+    if (shouldOpen) {
+      applyTransform(SNAP_OFFSET, true);
+      setIsOpen(true);
+      window.dispatchEvent(new CustomEvent(SWIPED_EVENT, { detail: { id } }));
+    } else {
+      applyTransform(0, true);
+      setIsOpen(false);
+    }
+  }, [id, applyTransform, close]);
 
   const onMouseLeave = useCallback(() => {
     if (isMouseDownRef.current) {
@@ -184,11 +276,20 @@ export function useMessageSwipe({ id, enabled = true }: UseMessageSwipeOptions) 
     }
   }, [onMouseUp]);
 
+  const onClickCapture = useCallback((e: React.MouseEvent) => {
+    if (didMoveRef.current) {
+      e.stopPropagation();
+      e.preventDefault();
+      didMoveRef.current = false;
+    }
+  }, []);
+
   return {
-    offset,
+    contentRef,
+    datesRef,
     isOpen,
-    isDragging,
     close,
+    onClickCapture,
     swipeHandlers: {
       onTouchStart,
       onTouchMove,

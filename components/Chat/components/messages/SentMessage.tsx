@@ -41,7 +41,14 @@ function SentMessage({
 
   const isSwipeable = !isDeleted && !isCall;
 
-  const { offset, isOpen, isDragging, close, swipeHandlers } = useMessageSwipe({
+  const {
+    contentRef,
+    datesRef,
+    isOpen,
+    close,
+    swipeHandlers,
+    onClickCapture,
+  } = useMessageSwipe({
     id,
     enabled: isSwipeable,
   });
@@ -72,30 +79,42 @@ function SentMessage({
         />
       )}
       {isSwipeable ? (
-        <div className="relative flex items-center justify-end overflow-visible max-w-full">
+        <div className="relative flex items-center justify-end max-w-full">
           <div
+            ref={contentRef}
             {...swipeHandlers}
+            onClickCapture={onClickCapture}
             onClick={() => {
               if (isOpen) {
                 close();
               }
             }}
+            className="relative flex items-center justify-end max-w-full select-none cursor-grab active:cursor-grabbing"
             style={{
-              transform: `translateX(${offset}px)`,
-              transition: isDragging
-                ? "none"
-                : "transform 0.25s cubic-bezier(0.25, 1, 0.5, 1)",
               willChange: "transform",
             }}
-            className="flex items-center justify-end max-w-full select-none"
           >
+            {/* The dates container positioned strictly to the LEFT of the message bubble */}
+            <div
+              ref={datesRef}
+              style={{
+                position: "absolute",
+                right: "100%",
+                marginRight: "8px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                opacity: 0,
+                pointerEvents: "none",
+                willChange: "opacity, transform",
+              }}
+            >
+              <MessageHoverDates
+                created_at={created_at || ""}
+                message_status={message_status}
+              />
+            </div>
             {children}
           </div>
-          <MessageHoverDates
-            created_at={created_at || ""}
-            message_status={message_status}
-            isVisible={isOpen || offset < -15}
-          />
         </div>
       ) : (
         children

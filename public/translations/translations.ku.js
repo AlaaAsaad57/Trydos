@@ -2337,6 +2337,7 @@ const translations = {
   "Report photo": "ڕاپۆرتی وێنە",
   "Scan QR to sign in": "کۆدی QR سکان بکە بۆ چوونەژوورەوە",
   "Only image or PDF files are allowed": "تەنها فایلی وێنە یان PDF ڕێگەپێدراوە",
+  "Only image and video files are allowed": "تەنها فایلی وێنە یان ڤیدیۆ ڕێگەپێدراوە",
   "Notification is Denied": "ئاگادارکردنەوە ڕەتکرایەوە",
   "User in Another Call": "بەکارهێنەر لە پەیوەندییەکی تردایە",
   "New message": "پەیامی نوێ",

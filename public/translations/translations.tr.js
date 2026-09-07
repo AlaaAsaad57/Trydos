@@ -2307,6 +2307,7 @@ const translations = {
   "Report photo": "Fotoğrafı bildir",
   "Scan QR to sign in": "Giriş yapmak için QR kodunu tarayın",
   "Only image or PDF files are allowed": "Yalnızca görsel veya PDF dosyalarına izin verilir",
+  "Only image and video files are allowed": "Yalnızca resim ve video dosyalarına izin verilir",
   "Notification is Denied": "Bildirim reddedildi",
   "User in Another Call": "Kullanıcı başka bir görüşmede",
   "New message": "Yeni mesaj",

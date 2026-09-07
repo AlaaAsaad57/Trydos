@@ -825,39 +825,40 @@ img {
 .self-align .message-body:hover {
 }
 
-.message-date.hovers {
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-  pointer-events: none;
-  width: 52px;
+.sent-message-hover-dates {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: flex-end;
+  justify-content: center;
   gap: 3px;
-  z-index: 10;
+  user-select: none;
+  white-space: nowrap;
 }
 
-.message-date.hovers.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.hovers .sent-date,
-.hovers .recieve-date,
-.hovers .read-date {
-  width: 52px;
-  color: #737373;
+.sent-message-hover-dates .hover-date-row {
   display: flex;
-  flex-direction: row-reverse;
+  flex-direction: row;
   align-items: center;
-  justify-content: space-between;
-  font-family: var(--SF-Pro-Rounded-Regular);
+  justify-content: flex-end;
+  gap: 5px;
+  height: 15px;
+  line-height: 15px;
+}
+
+.sent-message-hover-dates .hover-date-time {
+  font-family: var(--SF-Pro-Rounded-Regular), -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 10px;
+  color: #6b7280;
+  letter-spacing: 0.2px;
+}
+
+.sent-message-hover-dates .hover-date-icon {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .last-date {
