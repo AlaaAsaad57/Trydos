@@ -237,6 +237,69 @@ rules exist to prevent.
 remembered answer to arrive, and presses **only** while the row reads `false`.
 Confirmed by a live run: `BUY-01` now passes end to end.
 
+### `BUG-3` — three checkout controls refuse a press in silence
+
+Found by running the suite live nine times. **None of these is an application
+defect.** All three are the app behaving as written; all three made the suite
+report a failure that blamed the backend for something the test itself did. They
+are grouped here because they are one lesson, not three.
+
+| Control | What it really does | What the suite did |
+|---------|--------------------|--------------------|
+| the terms row | a switch — `setAgree(!orderData.agree)` (`components/Cart/PlaceOrderButtons.tsx:187`), and the answer is remembered per shopper (`services/home.ts:149`) | pressed it every time, which **unticked** it for a returning shopper, then reported "the shop did not answer the policy call" |
+| cash on delivery | a switch **and** deaf while busy — `handleCODPayment` clears the payment when cash is already chosen (`PaymentMethod.tsx:73-76`), and the row ignores every press while `orderLoading` is true (`:304-308`) | pressed once, unconditionally; the press was dropped or reversed, and the checkout then refused with no reason |
+| the address list opener | drops presses until React has attached its handler (`ShippingAddressContainer.tsx:468-475`) | pressed once and reported "the checkout did not open its saved-address list" |
+
+**The rule these three teach.** Before pressing a control in this checkout, read
+the state it is in. Never press a switch blind, and never treat one accepted
+click as one applied click. The pattern is already written down for the
+add-to-bag sheet — *"the button ignores a press in that window without a word"*
+— and it holds here too.
+
+**How each is fixed.** `agreeToTermsIfNeeded`, `chooseCashOnDelivery` and
+`openAddressList` all read the app's own state first, press only when the state
+says a press is needed, and press again rather than giving up on the first
+attempt. Each one reports what it observed, so a real refusal is still a
+failure.
+
+**Proved live.** `BUY-01` passed end to end on runs 4, 5 and 8, having failed on
+each of these in turn beforehand.
+
+### `OBS-2` — what ten live runs settled, and what they did not
+
+**Proved against real staging.** Eight of the ten criteria this half owns:
+
+| Criteria | Case | Evidence |
+|----------|------|----------|
+| `AC-8`, `AC-9` | `BUY-03` | the bag's shipping and payable total match the numbers the core backend sent, converted the way the app converts them |
+| `AC-1`, `AC-2` | `BUY-03` | tapping another address changes the checkout, and the backend really stores it as the default |
+| `AC-10` | `BUY-03` | the shop re-prices after the tap, and the figures then drawn come from that re-price |
+| `AC-14`, `AC-15`, `AC-16` | `BUY-04` | passed on runs 3, 5, 6, 7, 8, 9 and 10 |
+
+`BUY-01` and `BUY-02` also pass — `BUY-01` on runs 4, 5, 8 and 10, including the
+real order placed and cancelled through the screens.
+
+**Not proved: `AC-3`, the address edit.** `BUY-03` has never run to the end. It
+has stopped at a different place almost every run, and the stops divide cleanly:
+
+- **Nine were defects in the test**, each found and fixed. They are listed in
+  `D-4` to `D-9`, `BUG-2` and `BUG-3`.
+- **The rest were staging.** In the last three runs `BUY-03` stopped at three
+  unrelated places — the address list read (`401`), the storefront product page
+  drawing no Buy control, and the checkout — while `BUY-01`, `BUY-02` and
+  `BUY-04` passed beside it.
+
+**The environment, stated plainly.** Across the runs the server log carried
+`getaddrinfo ENOTFOUND trydosv2.ramaaz.dev`, `connect ENETUNREACH` to Redis,
+`Search failed: Request timed out`, `Currency not found for country: sy`, and
+`ConnectTimeoutError` to the gateway. `BUY-02` failed once on a country list
+that never loaded and passed on every other run with identical code.
+
+**What is left to do, in one line:** run `BUY-03` once against a staging that
+answers, and read what the edit step says. The diagnostic is already in place —
+it names the field the form is holding empty, or says the identity changed, so
+the next run explains itself without another investigation.
+
 ### `OBS-1` — the shopper's session does not survive a run against this staging
 
 Not raised as a repository bug, because the evidence points outside the code.

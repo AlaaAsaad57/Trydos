@@ -28,6 +28,7 @@ import {
 } from "../selectors";
 import { throughProxyInPage } from "../harness/orderCleanup";
 import { gotoProductAtOrNull, leaveProductPage } from "./nav";
+import { signedInSession } from "./auth";
 
 /** How long a cart change has to come back from staging.
  *
@@ -375,7 +376,7 @@ export const addFirstBuyableProduct = async (
  *  two happened rather than waiting out a screen that is never coming. */
 export const goToCheckout = async (
   page: Page,
-): Promise<{ reached: boolean }> => {
+): Promise<{ reached: boolean; who: string }> => {
   const confirm = cart.confirmOrder(page);
   await expect(
     confirm,
@@ -389,7 +390,36 @@ export const goToCheckout = async (
     .then(() => true)
     .catch(() => false);
 
-  return { reached };
+  if (reached) return { reached: true, who: "" };
+
+  // **Ask the app who it thinks the shopper is.**
+  //
+  // The verify panel opens for a visitor the app does not consider
+  // phone-verified — and a signed-in shopper can become one **mid-run**
+  // without anything on screen saying so. On a refused credential the app
+  // registers a fresh guest and rewrites `USER-DATA` with it
+  // (`serverRequests/HandleAuthedFetch.ts:139-175`). The gate then behaves
+  // perfectly correctly, and the failure looks like a broken button.
+  //
+  // Only the id and the flag are read. Never a phone number, and never a token.
+  const session = await signedInSession(page).catch(() => null);
+
+  const who =
+    session === null
+      ? "the app could not say who the shopper is at all"
+      : session.accountId === null
+        ? "the app holds no account at this point — the session is a guest's, " +
+          "so the phone gate is right to stop it and the fault is upstream: " +
+          "whatever replaced the signed-in session"
+        : session.phoneVerified
+          ? `the app still holds account ${session.accountId} and reports the ` +
+            "phone as verified, so the gate refused a shopper it should have " +
+            "let through — this one is the app's own fault"
+          : `the app holds account ${session.accountId} but does not report ` +
+            "the phone as verified, so the gate is behaving correctly for the " +
+            "session it currently has";
+
+  return { reached: false, who };
 };
 
 /** Choose cash on delivery.
@@ -1237,6 +1267,15 @@ export const chooseAddressNamed = async (
  *
  *  Without this a refused Save is indistinguishable from a backend that never
  *  answered, and the failure would blame the shop for the form's own rule. */
+const readInput = async (page: Page, marker: string): Promise<string> =>
+  (
+    (await page
+      .getByTestId(marker)
+      .first()
+      .inputValue()
+      .catch(() => "")) ?? ""
+  ).trim();
+
 const whyTheFormRefused = async (page: Page): Promise<string> => {
   const fields: Record<string, string> = {
     "username-border": "the account holder's name",
@@ -1256,6 +1295,57 @@ const whyTheFormRefused = async (page: Page): Promise<string> => {
       }
     }
     await page.waitForTimeout(100).catch(() => undefined);
+  }
+
+  // Nothing shook. Read the fields the form insists on and say which of them
+  // it is holding as empty.
+  //
+  // **Emptiness only, never the value.** These fields carry a person's name and
+  // phone number, and neither may reach a message or a kept artifact.
+  const required: Array<[string, () => Promise<string>]> = [
+    ["the address title", async () => await readInput(page, "add-address-input")],
+    [
+      "the detail line",
+      async () =>
+        (
+          await page
+            .getByTestId("Detailed-Address-field")
+            .locator("textarea, input")
+            .first()
+            .inputValue()
+            .catch(() => "")
+        ).trim(),
+    ],
+    ["the contact name", async () => await readInput(page, "recipient-name-input")],
+    ["the contact phone", async () => await readInput(page, "Contact-Phone-input")],
+    [
+      // The region is not a text field. The form prints it, and prints nothing
+      // at all when it is missing (`AddAddressForm.tsx:309-311`) — so an empty
+      // reading here is language-independent, unlike matching its placeholder.
+      "the region, which comes from the picker and cannot be typed",
+      async () =>
+        (
+          (await profile
+            .selectRegionButton(page)
+            .locator("div")
+            .last()
+            .textContent()
+            .catch(() => "")) ?? ""
+        ).trim(),
+    ],
+  ];
+
+  const empty: string[] = [];
+  for (const [what, read] of required) {
+    if ((await read()) === "") empty.push(what);
+  }
+
+  if (empty.length > 0) {
+    return (
+      `the form refused the save and is holding these empty: ${empty.join(", ")}. ` +
+      "It shook nothing because `validate()` only shakes on `length === 0`, and " +
+      "a value that is missing rather than empty is `undefined`"
+    );
   }
 
   // **Silence here does not mean the shop is at fault**, and saying so would
@@ -1336,14 +1426,20 @@ export const editAddressTitleFromSheet = async (
   // empty. Never overwritten: an address that already carries them keeps what
   // the account holds. This is the same rule `profile.addAddress` follows
   // (`tests/e2e/actions/profile.ts:713-723`).
+  // Filled unconditionally, not only when empty. This address belongs to the
+  // case — it created it moments ago — so there is nothing of the account's to
+  // overwrite, and "only when empty" left a real gap: `startUpdateAddress`
+  // rebuilds `contact_person_name` from `contact_info.name`
+  // (`store/Cart/reducer.ts:243-256`), so a backend that returns the contact
+  // under a different key leaves the form holding `undefined` while the input
+  // still shows something. Typing here sets **both** keys at once
+  // (`AddAddressForm.tsx:479-487`), which is what the form's own rule wants.
   for (const [field, value] of [
     [profile.addressRecipientField(page), "Trydos E2E Probe"],
     [profile.addressPhoneField(page), "963900000002"],
   ] as const) {
     if ((await field.count()) === 0) continue;
-    if (((await field.inputValue().catch(() => "")) ?? "") === "") {
-      await field.fill(value);
-    }
+    await field.fill(value).catch(() => undefined);
   }
 
   await page.getByTestId("AddSaveButton").click();

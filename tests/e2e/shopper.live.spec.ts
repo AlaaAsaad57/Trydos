@@ -349,8 +349,8 @@ test("BUY-01 a shopper buys something with cash on delivery and then cancels it"
       const reached = await goToCheckout(page);
       expect(
         reached.reached,
-        "Confirm & Continue did not reach the checkout screen — for a shopper " +
-          "the app does not treat as phone-verified it opens the verify panel instead",
+        "Confirm & Continue did not reach the checkout screen. It opens the " +
+          `verify panel instead of moving on, and: ${reached.who}`,
       ).toBe(true);
     });
 
@@ -598,6 +598,15 @@ test.describe("BUY-03 the bag's money, and choosing another address", () => {
   let probeId: number | null = null;
   let probeTitle = "";
   let originalDefaultId: number | null = null;
+
+  /** Who the app said the shopper was when the case started.
+   *
+   *  Kept so a later step can ask again. The app replaces a refused credential
+   *  with a **fresh guest** and rewrites `USER-DATA` with it
+   *  (`serverRequests/HandleAuthedFetch.ts:139-175`), and a guest reads as a
+   *  perfectly healthy session: the address list answers `200`, it is simply
+   *  somebody else's list. Comparing the id is what tells the two apart. */
+  let startedAsAccountId: number | null = null;
 
   /** The browser context and its page, still open, handed to the teardown.
    *
@@ -982,10 +991,31 @@ test.describe("BUY-03 the bag's money, and choosing another address", () => {
         const saved = await readSavedAddresses(page);
         const stored = saved.addresses.find((entry) => entry.id === probeId);
 
+        // **Ask who the app thinks it is before blaming the backend.**
+        //
+        // A list that answers `200` without the address this case created has
+        // two readings, and they need opposite actions: the shop lost the
+        // address, or the app is no longer this shopper. The second is real —
+        // on a refused credential the app registers a fresh guest and rewrites
+        // `USER-DATA` with it, and a guest's address list is a healthy `200`
+        // that simply holds somebody else's addresses.
+        const now = await signedInSession(page);
+        const sameShopper = now.accountId === startedAsAccountId;
+
         expect(
           stored,
           `the probe address (id ${probeId}) is not in the account's saved ` +
-            "addresses after it was tapped",
+            `addresses after it was tapped. ${
+              sameShopper
+                ? "The app is still the same shopper it started as, so the " +
+                  "core backend really did not return the address this case " +
+                  "created."
+                : "**The app is not the same shopper any more** — it started " +
+                  "as one account and is now another, so this list is not the " +
+                  "account's. The app swaps a refused credential for a fresh " +
+                  "guest, which answers 200 with an empty list. Nothing here " +
+                  "is wrong with the addresses; the session did not survive."
+            } ${saved.said}`,
         ).toBeDefined();
         expect(
           stored?.is_default,
