@@ -74,7 +74,7 @@ export default defineConfig({
   // because the suite ran out of time, and BUY-03 and BUY-04 add two more. A
   // case that never runs reports nothing at all, which is the one outcome worse
   // than a red one.
-  globalTimeout: 38 * 60 * 1000,
+  globalTimeout: 100 * 60 * 1000,
 
   // `list` for a human reading the CI log, plus `json` for the Telegram message
   // — which needs the counts and the failing test names, and cannot get them by

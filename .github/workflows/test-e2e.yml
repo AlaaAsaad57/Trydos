@@ -94,7 +94,7 @@ jobs:
     name: Browser journeys
     runs-on: ubuntu-latest
     # Install, build, browser, journeys. The build is the slow part.
-    timeout-minutes: 45
+    timeout-minutes: 100
 
     outputs:
       steps: ${{ steps.collect.outputs.steps }}
