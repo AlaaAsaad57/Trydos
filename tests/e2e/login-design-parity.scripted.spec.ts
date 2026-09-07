@@ -69,7 +69,7 @@ const LOGO: Anchor = {
 const CLOSE: Anchor = {
   selector: '[data-pw="close"]',
   label: "the close control",
-  top: XD.control.top,
+  top: XD.control.closeTop,
   left: XD.canvas.width - XD.control.right - XD.control.closeSize,
   width: XD.control.closeSize,
   height: XD.control.closeSize,

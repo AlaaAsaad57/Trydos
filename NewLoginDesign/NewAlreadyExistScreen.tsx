@@ -5,7 +5,7 @@ import XdDashedBorder from 'components/Login/Enhanced/ui/XdDashedBorder';
 import { translateFunction } from 'utils/functions';
 import AuthLogoSlot from './AuthLogoSlot';
 import { formatPhoneDigits } from 'components/Login/Enhanced/ui/RdbPhoneInput';
-import { XD, XD_PHONE_ICON_GAP, XD_WIDE_LABEL_TRACKING, fromBottom } from './authLayout';
+import { XD, XD_PHONE_ICON_GAP, XD_WIDE_LABEL_TRACKING, controlTop, fromBottom } from './authLayout';
 
 interface NewAlreadyExistScreenProps {
     phone: string;
@@ -38,10 +38,11 @@ export default function NewAlreadyExistScreen({
                     data-pw="close"
                     className="absolute flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
                     style={{
-                        top: XD.control.top,
+                        top: controlTop(XD.control.closeTop),
                         right: XD.control.right,
                         width: XD.control.closeSize,
                         height: XD.control.closeSize,
+                        transition: 'top 0.25s ease-out',
                     }}
                     aria-label={translate('Close')}
                 >

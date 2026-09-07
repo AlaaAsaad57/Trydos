@@ -37,6 +37,22 @@
  */
 export const fromBottom = (top: number) => `calc(${top}px - var(--xd-flex-deficit, 0px))`;
 
+/**
+ * Spacing from the top of the canvas for corner controls (e.g. the close "X").
+ *
+ * In the XD artboard, the control sat at y=60, which accounted for an estimated ~50px
+ * device status bar plus 10px spacing.
+ *
+ * On real devices:
+ * 1. Respects device top bar: 10px base spacing + dynamic safe-area-inset-top
+ *    (or 10px inside viewports where safe area is 0).
+ * 2. Stays visible when keyboard opens: counter-acts `--app-keyboard-lift`, so when
+ *    #master-canvas slides up to keep the input field above the keyboard, the control
+ *    does not slide off-screen on iOS.
+ */
+export const controlTop = (base: number = XD.control.closeTop) =>
+    `calc(${base}px + env(safe-area-inset-top, 0px) + var(--app-keyboard-lift, 0px))`;
+
 export const XD = {
     /** The artboard. Also the size of the canvas AppScaler draws. */
     canvas: { width: 430, height: 932 },
@@ -44,6 +60,8 @@ export const XD = {
     /** The single control in the top-right corner. Both sit 30 in from the right. */
     control: {
         top: 60,
+        /** 10px below the device top bar / status bar */
+        closeTop: 10,
         right: 30,
         /** The close "X" on the six screens that can be dismissed. */
         closeSize: 15,

@@ -7,7 +7,7 @@ import { getNumberLockRemaining } from 'utils/otpLocks';
 import { translateFunction } from 'utils/functions';
 import { authHeadingKey } from 'components/Login/Enhanced/authHeadings';
 import AuthLogoSlot from './AuthLogoSlot';
-import { XD, XD_LINE3_ICON_GAP } from './authLayout';
+import { XD, XD_LINE3_ICON_GAP, controlTop } from './authLayout';
 
 interface NewEnterPhoneScreenProps {
     onSubmit: (phone: string) => void;
@@ -61,10 +61,11 @@ export default function NewEnterPhoneScreen({
                     data-pw="close"
                     className="absolute flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
                     style={{
-                        top: XD.control.top,
+                        top: controlTop(XD.control.closeTop),
                         right: XD.control.right,
                         width: XD.control.closeSize,
                         height: XD.control.closeSize,
+                        transition: 'top 0.25s ease-out',
                     }}
                     aria-label={translate('Close')}
                 >
