@@ -115,6 +115,7 @@ function ChatMessage({
       parent_message={parent_message}
       created_at={created_at}
       message_status={message_status}
+      isMenuOpen={opens === id}
     >
       {isDeleted ? (
         <DeletedMessage type={type} activeChat={activeChat} />

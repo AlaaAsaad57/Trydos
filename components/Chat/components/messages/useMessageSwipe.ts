@@ -2,14 +2,20 @@ import { useState, useRef, useEffect, useCallback } from "react";
 
 const SWIPED_EVENT = "chat-message-swiped";
 const CLOSE_ALL_EVENT = "chat-message-close-all";
-const SNAP_OFFSET = -55; // Pixels to slide left when open
+const SNAP_OFFSET = 18; // Slight nudge to right when locked open
+const LOCK_THRESHOLD = 20; // Distance swiped to right to trigger lock
 
 interface UseMessageSwipeOptions {
   id: string | number;
   enabled?: boolean;
+  isMenuOpen?: boolean;
 }
 
-export function useMessageSwipe({ id, enabled = true }: UseMessageSwipeOptions) {
+export function useMessageSwipe({
+  id,
+  enabled = true,
+  isMenuOpen = false,
+}: UseMessageSwipeOptions) {
   const [isOpen, setIsOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const datesRef = useRef<HTMLDivElement | null>(null);
@@ -31,7 +37,7 @@ export function useMessageSwipe({ id, enabled = true }: UseMessageSwipeOptions) 
       contentRef.current.style.transform = `translateX(${offset}px)`;
     }
     if (datesRef.current) {
-      const progress = Math.min(1, Math.max(0, Math.abs(offset) / 30));
+      const progress = isOpenRef.current ? 1 : Math.min(1, Math.max(0, offset / 15));
       datesRef.current.style.transition = animate
         ? "opacity 0.22s ease-in-out"
         : "none";
@@ -43,16 +49,51 @@ export function useMessageSwipe({ id, enabled = true }: UseMessageSwipeOptions) 
 
   const open = useCallback(() => {
     applyVisuals(SNAP_OFFSET, true);
+    if (datesRef.current) {
+      datesRef.current.style.opacity = "1";
+      datesRef.current.style.pointerEvents = "auto";
+    }
     setIsOpen(true);
     window.dispatchEvent(new CustomEvent(SWIPED_EVENT, { detail: { id } }));
   }, [id, applyVisuals]);
 
   const close = useCallback(() => {
     applyVisuals(0, true);
+    if (datesRef.current) {
+      datesRef.current.style.opacity = "0";
+      datesRef.current.style.pointerEvents = "none";
+    }
     setIsOpen(false);
   }, [applyVisuals]);
 
-  // Close when another message is swiped or when the user scrolls the chat page
+  // When options menu opens, return message to normal resting state immediately
+  useEffect(() => {
+    if (isMenuOpen) {
+      close();
+    }
+  }, [isMenuOpen, close]);
+
+  // Lock open until it loses focus (click/tap outside)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDownOutside = (e: PointerEvent) => {
+      if (contentRef.current && !contentRef.current.contains(e.target as Node)) {
+        close();
+      }
+    };
+
+    const timer = setTimeout(() => {
+      window.addEventListener("pointerdown", handlePointerDownOutside);
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("pointerdown", handlePointerDownOutside);
+    };
+  }, [isOpen, close]);
+
+  // Inter-message closing & chat scroll closing
   useEffect(() => {
     const handleOtherSwiped = (e: Event) => {
       const customEvent = e as CustomEvent<{ id: string | number }>;
@@ -76,19 +117,19 @@ export function useMessageSwipe({ id, enabled = true }: UseMessageSwipeOptions) 
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (!enabled) return;
+      if (!enabled || isMenuOpen) return;
       if (e.pointerType === "mouse" && e.button !== 0) return;
       startXRef.current = e.clientX;
       startYRef.current = e.clientY;
       isSwipingRef.current = false;
       isVerticalRef.current = false;
     },
-    [enabled]
+    [enabled, isMenuOpen]
   );
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (!enabled) return;
+      if (!enabled || isMenuOpen) return;
       if (isVerticalRef.current) return;
       if (e.pointerType === "mouse" && e.buttons === 0) return;
 
@@ -99,36 +140,49 @@ export function useMessageSwipe({ id, enabled = true }: UseMessageSwipeOptions) 
         const absX = Math.abs(deltaX);
         const absY = Math.abs(deltaY);
 
-        // Allow vertical page scroll without interference
+        // Vertical scroll detection
         if (absY > 7 && absY > absX) {
           isVerticalRef.current = true;
           return;
         }
 
-        // Horizontal swipe detected
-        if (absX > 7 && absX > absY) {
-          isSwipingRef.current = true;
-          try {
-            e.currentTarget.setPointerCapture(e.pointerId);
-          } catch (_) {}
+        // Swipe ONLY to the RIGHT when closed (deltaX must be positive)
+        if (!isOpenRef.current) {
+          if (deltaX > 7 && absX > absY) {
+            isSwipingRef.current = true;
+            try {
+              e.currentTarget.setPointerCapture(e.pointerId);
+            } catch (_) {}
+          }
+        } else {
+          // When open, allow swiping left to close
+          if (absX > 7 && absX > absY) {
+            isSwipingRef.current = true;
+            try {
+              e.currentTarget.setPointerCapture(e.pointerId);
+            } catch (_) {}
+          }
         }
       }
 
       if (isSwipingRef.current) {
-        const base = isOpenRef.current ? SNAP_OFFSET : 0;
-        let target = base + deltaX;
-
-        // Clamping with slight rubber-band resistance
-        if (target > 10) {
-          target = 10 + (target - 10) * 0.15;
-        } else if (target < -80) {
-          target = -80 + (target + 80) * 0.15;
+        if (!isOpenRef.current) {
+          // Swipe ONLY to the right: deltaX > 0
+          let target = Math.max(0, deltaX);
+          if (target > 35) {
+            target = 35 + (target - 35) * 0.15;
+          }
+          applyVisuals(target, false);
+        } else {
+          // When open: allow dragging left (deltaX < 0) to close
+          let target = SNAP_OFFSET + deltaX;
+          if (target < 0) target = 0;
+          if (target > 35) target = 35;
+          applyVisuals(target, false);
         }
-
-        applyVisuals(target, false);
       }
     },
-    [enabled, applyVisuals]
+    [enabled, isMenuOpen, applyVisuals]
   );
 
   const onPointerUp = useCallback(
@@ -146,20 +200,19 @@ export function useMessageSwipe({ id, enabled = true }: UseMessageSwipeOptions) 
 
       const deltaX = e.clientX - startXRef.current;
 
-      if (isOpenRef.current) {
-        // When open, user swipes RIGHT to close:
-        if (deltaX > 20) {
-          close();
+      if (!isOpenRef.current) {
+        // When closed: lock open if swiped RIGHT past LOCK_THRESHOLD (20px)
+        if (deltaX > LOCK_THRESHOLD) {
+          open(); // Locks into position until it loses focus!
         } else {
-          // Keep it open, save position!
-          open();
+          close();
         }
       } else {
-        // When closed, user swipes LEFT to open:
+        // When open: close if dragged left past -15px
         if (deltaX < -15) {
-          open();
-        } else {
           close();
+        } else {
+          open(); // Stays locked!
         }
       }
     },

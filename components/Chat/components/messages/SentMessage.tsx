@@ -17,6 +17,7 @@ interface SentMessageProps {
   sender_message_id?: string | number;
   created_at?: string;
   message_status?: MessageStatus[];
+  isMenuOpen?: boolean;
 }
 
 function SentMessage({
@@ -32,6 +33,7 @@ function SentMessage({
   sender_message_id,
   created_at,
   message_status,
+  isMenuOpen,
 }: SentMessageProps) {
   const isCall =
     message_type === "VideoCall" ||
@@ -48,6 +50,7 @@ function SentMessage({
   } = useMessageSwipe({
     id,
     enabled: isSwipeable,
+    isMenuOpen,
   });
 
   return (
