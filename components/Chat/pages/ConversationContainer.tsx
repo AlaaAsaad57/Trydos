@@ -499,6 +499,22 @@ function ConversationContainer({
     }
   }, [activeChat?.messages, pendingScrollToMessageId]);
 
+  useEffect(() => {
+    const input = fileInputRef.current;
+    if (!input) return;
+
+    const handleCancel = () => {
+      onlyMediaRef.current = false;
+      input.accept = FILE_INPUT_ACCEPT;
+      sendStatus(null);
+    };
+
+    input.addEventListener("cancel", handleCancel);
+    return () => {
+      input.removeEventListener("cancel", handleCancel);
+    };
+  }, [sendStatus]);
+
   /* ------------------------- Camera permission -------------------------- */
   const enableCamera = async (bool: boolean) => {
     if (!bool) return setCameraEnabled(false);
@@ -879,13 +895,6 @@ function ConversationContainer({
         style={{ position: "absolute", opacity: 0 }}
         type="file"
         onBlur={() => {
-          sendStatus(null);
-        }}
-        onCancel={() => {
-          onlyMediaRef.current = false;
-          if (fileInputRef.current) {
-            fileInputRef.current.accept = FILE_INPUT_ACCEPT;
-          }
           sendStatus(null);
         }}
         onChange={handleFileChange}
