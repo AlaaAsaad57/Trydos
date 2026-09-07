@@ -62,7 +62,19 @@ export default defineConfig({
 
   // The build is not bounded by this — it happens before Playwright starts. This
   // covers starting the server and logging in once.
-  globalTimeout: 30 * 60 * 1000,
+  //
+  // Raised from 30 to 38 minutes, and the number is the CI job's, not a guess.
+  // Run 33991656686 spent 30.0 minutes inside Playwright and 32m01s of job wall
+  // time, so everything outside the suite — install, build, browser download,
+  // the report step — costs about two minutes. The job is capped at 45 minutes
+  // (`.github/workflows/test-e2e.yml:97`), which leaves 43 for the suite; 38
+  // takes most of it and keeps five minutes of margin for a slow install.
+  //
+  // It had to move. That same run ended with **six cases that never started**
+  // because the suite ran out of time, and BUY-03 and BUY-04 add two more. A
+  // case that never runs reports nothing at all, which is the one outcome worse
+  // than a red one.
+  globalTimeout: 38 * 60 * 1000,
 
   // `list` for a human reading the CI log, plus `json` for the Telegram message
   // — which needs the counts and the failing test names, and cannot get them by

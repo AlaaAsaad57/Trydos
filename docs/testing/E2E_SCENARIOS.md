@@ -1,6 +1,6 @@
 # E2E scenarios
 
-Every case the browser suite runs — **71** of them today. Add a row whenever a
+Every case the browser suite runs — **73** of them today. Add a row whenever a
 case is added, and keep the count above in step.
 
 | Section | Cases | Signs in? | Writes to staging? |
@@ -9,7 +9,7 @@ case is added, and keep the count above in step.
 | Signed-in journeys | AUTH-01 to AUTH-03 | yes, once, shared | no |
 | Signed-in profile journeys | PROF-01 to PROF-08 | yes, twice, shared | yes — the shared test account |
 | Signed-in session recovery | RECOV-01 | yes, its own — a third real code per run | no |
-| **The money path** | BUY-01 to BUY-02 | BUY-01 does, for itself | **yes — one real order, placed and then cancelled** |
+| **The money path** | BUY-01 to BUY-04 | BUY-01 does, for itself; BUY-03 and BUY-04 reuse its session | **yes — one real order, placed and then cancelled, and one address BUY-03 creates and removes again** |
 | Scripted auth branches | SCRIPT-01 to SCRIPT-05 | no | no — only the real one-time-code send |
 | Scripted profile branches | SCRIPT-07 to SCRIPT-12 | **yes — each case signs in for itself** | **no** — every leg is faked, but each sign-in and one change-number send are real |
 | Scripted checkout branches | SCRIPT-14 to SCRIPT-18, SCRIPT-20 | **no — the shopper is faked** | no — nothing but a guest registration |
@@ -217,10 +217,18 @@ Per run they cost: one one-time code, one sign-in, one order placed and
 cancelled, and two guest registrations (BUY-02 boots as a guest and adds to its
 bag). BUY-01 adds a delivery address only when the account has none.
 
+BUY-03 and BUY-04 spend no extra code: BUY-01 hands its session on, BUY-03 opens
+it and hands it on again. BUY-03 creates one address through the API, makes it
+the account's default, edits its title, and then puts the old default back and
+deletes its own address in a teardown. Both cases fill a bag and empty it again,
+and neither of them ever posts a checkout.
+
 | ID | Case | Spec | What it proves |
 |----|------|------|----------------|
-| BUY-01 | A shopper buys something with cash on delivery and then cancels it | `shopper.live.spec.ts:117` | The whole money path against real staging: sign in, empty the bag, add a product, reach checkout, have an address, choose cash on delivery, place the order, find it in the shopper's own list, open it, cancel it through the screens, and see the list agree it is cancelled. The design's AC-5 and AC-6 |
-| BUY-02 | A visitor with no verified phone is stopped before any order exists | `shopper.live.spec.ts:307` | The gate in the cart: a visitor who never verified a phone can fill a bag and is offered the verify panel instead of the checkout screen. Real, live, and it costs no code — the panel is where a code would be asked for |
+| BUY-01 | A shopper buys something with cash on delivery and then cancels it | `shopper.live.spec.ts:250` | The whole money path against real staging: sign in, empty the bag, add a product, reach checkout, have an address, choose cash on delivery, place the order, find it in the shopper's own list, open it, cancel it through the screens, and see the list agree it is cancelled. The design's AC-5 and AC-6 |
+| BUY-02 | A visitor with no verified phone is stopped before any order exists | `shopper.live.spec.ts:515` | The gate in the cart: a visitor who never verified a phone can fill a bag and is offered the verify panel instead of the checkout screen. Real, live, and it costs no code — the panel is where a code would be asked for |
+| BUY-03 | The bag shows the money the shop sent, and another address re-prices it | `shopper.live.spec.ts:681` | The two money figures in the bag — shipping and payable total — are the numbers the core backend sent for this bag in this run, never a literal. Then it creates an address through the API, taps it on the checkout, and checks the backend really stored it as the default, that the shop re-priced the bag, and that an edit to the address shows on the checkout and is stored |
+| BUY-04 | Plus raises a line to two, and removing it takes it out of the bag | `shopper.live.spec.ts:1030` | Pressing plus on a line makes it hold two — read only after the bag has been read again, so an optimistic number cannot pass for the shop's answer — and removing the line by name takes that product out of the bag |
 
 ## Scripted auth branches
 

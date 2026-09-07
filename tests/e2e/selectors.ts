@@ -427,7 +427,56 @@ export const cart = {
   lineCount: (page: Page): Locator => page.getByTestId("length-ofItems"),
   /** The summary strip on the checkout screen. */
   items: (page: Page): Locator => page.getByTestId("bag-product-viewer"),
-  total: (page: Page): Locator => page.getByTestId("cart-total-price"),
+  /** The payable total — what the shop will charge
+   *  (`components/Cart/OrderButton.tsx:572`). It sits **outside** the collapsed
+   *  block, so reading it needs no click.
+   *
+   *  Replaces the old `total`, which pointed at `cart-total-price`. That name
+   *  was a trap: the element it matched is the figure *before* discount and
+   *  shipping, so anything reading "the total" from it read the wrong number.
+   *  It had no caller, so deleting it broke nothing. */
+  payableTotal: (page: Page): Locator => page.getByTestId("offer-total-price"),
+  /** The "Normal Price" — the figure before discount and shipping
+   *  (`components/Cart/OrderButton.tsx:377`). Inside the collapsed block, so
+   *  `totalsToggle` must be pressed once before it can be read. */
+  normalPrice: (page: Page): Locator => page.getByTestId("cart-total-price"),
+  /** Opens the totals breakdown (`components/Cart/OrderButton.tsx:520`).
+   *
+   *  A **toggle**: `expanded` starts `false` (`:41`), so press it once. Press it
+   *  twice and the breakdown is hidden again. */
+  totalsToggle: (page: Page): Locator => page.getByTestId("total-expanded"),
+  /** The shipping figure (`components/Cart/OrderButton.tsx:501`). Inside the
+   *  collapsed block, same rule as `normalPrice`. */
+  shipping: (page: Page): Locator => page.getByTestId("Shipping-RoundPrice"),
+  /** One cart line, found by the product name it shows.
+   *
+   *  Every line carries the same `one-product` marker, so the three controls
+   *  below must be read **inside** one of these, never on the page. */
+  lineNamed: (page: Page, name: string): Locator =>
+    page.getByTestId("one-product").filter({ hasText: name }),
+  /** The product name as the **bag** draws it
+   *  (`components/Cart/CartItem.tsx:77`).
+   *
+   *  Not the same string as `product.name`, which is the product page's own
+   *  heading. The bag draws the cart row's `name` field and cuts it at 50
+   *  characters (`:79-80`), so a line can never be found by the title the
+   *  product page showed. Read this, then match on it. */
+  lineName: (line: Locator): Locator => line.getByTestId("productNameInCart"),
+  /** Asks for one more of this line (`components/Cart/index.tsx:710`). */
+  plus: (line: Locator): Locator => line.getByTestId("PlusIcon_CartPage"),
+  /** Asks for one fewer (`components/Cart/index.tsx:736`).
+   *
+   *  **Absent at quantity 1** — the delete control takes its place there, which
+   *  is the behaviour `AC-13` covers. */
+  minus: (line: Locator): Locator => line.getByTestId("MinusIcon_CartPage"),
+  /** Removes the line (`components/Cart/index.tsx:758`). */
+  deleteLine: (line: Locator): Locator =>
+    line.getByTestId("DeleteIcon_CartPage"),
+  /** The line's confirmed quantity (`components/Cart/index.tsx:804`).
+   *
+   *  Read it only **after** the bag has been re-read, or the optimistic value
+   *  the app draws before the backend answers will satisfy the check. */
+  quantity: (line: Locator): Locator => line.getByTestId("QuantityInCart"),
   /** Leaves the drawer for the checkout screen — it does **not** place
    *  anything. For a visitor with no verified phone it opens the verify panel
    *  in place instead, which is why a journey that presses it has to check
@@ -468,12 +517,62 @@ export const checkout = {
     page.getByTestId("cachondelivry-cartpage"),
   confirmShippingAndPayment: (page: Page): Locator =>
     page.getByTestId("Confirm-shipping-and-payment"),
+  /** The line inside that button: how many items, and **the price the checkout
+   *  is about to charge** (`components/Cart/OrdersPage.tsx:925-931`).
+   *
+   *  Worth reading, because that price is one side of the gate the button
+   *  applies. `isValid()` refuses unless the chosen payment's stored balance is
+   *  at least `getTotalPrice()` (`:790-806`, `:832-838`), and this label draws
+   *  `getTotalPrice()` itself. A `0` here with a bag that has lines means the
+   *  cart money never arrived. */
+  confirmTotal: (page: Page): Locator =>
+    page.getByTestId("Number-Of-Products-Required"),
   /** The address already on the order. Absent when the account has none saved,
    *  and the checkout refuses to go on until one is. */
   chosenAddress: (page: Page): Locator => page.getByTestId("Address-Added-Last"),
   /** Opens the add-address form from inside checkout. The form itself is the
    *  same one the settings screen uses, so its fields are in `profile`. */
   addAddress: (page: Page): Locator => page.getByTestId("AddAddres"),
+  /** Opens the saved-address list on the checkout
+   *  (`components/Cart/ShippingAddressContainer.tsx:469`). */
+  addressesViewer: (page: Page): Locator =>
+    page.getByTestId("addresses-viewer"),
+  /** The chosen address's **title** as the checkout draws it
+   *  (`components/Cart/ShippingAddressContainer.tsx:688`).
+   *
+   *  The title, not `chosenAddress` — that one is the region string, which two
+   *  addresses in the same city share, so it cannot tell them apart. */
+  addressTitle: (page: Page): Locator => page.getByTestId("regular-addresses"),
+  /** The address sheet itself (`components/Cart/AddressListContainer.tsx:63`).
+   *
+   *  Every locator below is scoped **inside** it on purpose. The rows carry the
+   *  marker `Address`, and the settings address screen uses that same marker
+   *  (`profile.addressCards`). Without the scope the two collide. */
+  addressSheet: (page: Page): Locator =>
+    page.getByTestId("AddressListContainer"),
+  /** One row in that sheet, found by the address title it shows.
+   *
+   *  The title sits in an unmarked span (`AddressListContainer.tsx:125`), so it
+   *  is matched with `hasText` rather than by a marker of its own. */
+  addressSheetRow: (page: Page, title: string): Locator =>
+    page
+      .getByTestId("AddressListContainer")
+      .getByTestId("Address")
+      .filter({ hasText: title }),
+  /** The edit control on one sheet row (`AddressListContainer.tsx:275`).
+   *
+   *  The marker is misspelled in the markup (`Addres`, one `s`). It is matched
+   *  as it is — renaming it is an application change with no test value. */
+  editAddressOnRow: (row: Locator): Locator =>
+    row.getByTestId("Edit-Addres-Icon"),
+  /** Returns from the checkout to the bag
+   *  (`components/Cart/OrdersPage.tsx:242`).
+   *
+   *  `AC-8`, `AC-9` and `AC-10` all read their figures in the **bag**, because
+   *  `OrderButton` is mounted only in the drawer
+   *  (`components/Cart/index.tsx:447`). Without this control there is no way
+   *  back, so those three cannot be carried out at all. */
+  backToBag: (page: Page): Locator => page.getByTestId("swiperSlide-backIcon"),
   /** The terms row on the review step. Placing the order is refused until it is
    *  ticked. */
   agreeToTerms: (page: Page): Locator => page.getByTestId("read-and-agree"),

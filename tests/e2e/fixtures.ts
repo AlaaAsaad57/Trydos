@@ -63,7 +63,7 @@ export const test = base.extend<{ orders: OrderTracker }>({
   // React lint rule reads a bare `use(...)` as the React hook and warns about a
   // function that is not a component. It is passed positionally, so the name is
   // ours to choose.
-  orders: async ({ playwright }, provide, testInfo) => {
+  orders: async ({ browser }, provide, testInfo) => {
     const live = new Map<string, Registered>();
     const swept: CleanupOutcome[] = [];
 
@@ -84,13 +84,37 @@ export const test = base.extend<{ orders: OrderTracker }>({
     await provide(tracker);
 
     // Whatever is still registered was never cancelled by the case itself.
+    //
+    // **A real browser, not a request context, and that is the whole fix.**
+    // The cancel goes through `/api/proxy`, which reads `MARKET-TOKEN` from the
+    // cookies the request carries. That cookie is written `Secure`
+    // (`utils/server/tokenManager.ts:22-25`) because the suite runs a
+    // production server (`tests/e2e/harness/server.ts:56-62`), and it is served
+    // over plain `http://127.0.0.1:3100`. Chromium sends a `Secure` cookie to
+    // loopback anyway — loopback is a trustworthy origin. Playwright's request
+    // object does not, because it is Node's networking rather than the
+    // browser's, and that holds even for `context.request`, which shares the
+    // same cookie storage.
+    //
+    // So the old version of this loop sent no credential at all and every call
+    // came back `401`. The net reported a `problem` and cancelled nothing,
+    // which is worse than failing: the run says the order was caught while a
+    // real order is still live on staging. Proved on a live run — the same
+    // call answered `401` from Node twice and worked from inside a page.
     for (const order of live.values()) {
-      const request = await playwright.request.newContext({
+      const context = await browser.newContext({
         baseURL: LIVE_ORIGIN,
         storageState: order.storageState,
       });
+      const page = await context.newPage();
       try {
-        const outcome = await cancelOrderGroup(request, {
+        // The page has to be **on** the origin before a same-origin `fetch`
+        // means anything — `about:blank` has no origin to be same as. Robots is
+        // the cheapest page that is served from it: `proxy.ts`'s matcher skips
+        // it, so there is no locale redirect and no storefront render.
+        await page.goto("/robots.txt", { waitUntil: "domcontentloaded" });
+
+        const outcome = await cancelOrderGroup(page, {
           groupId: order.groupId,
           country: order.country,
           language: order.language,
@@ -108,7 +132,7 @@ export const test = base.extend<{ orders: OrderTracker }>({
             (outcome.problem ? ` — ${outcome.problem}` : ""),
         });
       } finally {
-        await request.dispose();
+        await context.close();
       }
     }
   },

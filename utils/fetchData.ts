@@ -666,7 +666,15 @@ export const fetchData = async <T = any>(
       // back while a re-auth is in progress: mid-recovery a sibling request can
       // briefly 403 against the transitional token — bouncing home then would
       // kill the session-expired prompt before the user can answer it.
-      if (status !== 200 && status !== 401 && method === "GET") {
+      //
+      // Scoped to 4xx. The rule reads the answer as "this seller may not have
+      // this shop", which only a refusal says. A 5xx or a 429 says the backend
+      // broke or is busy — the seller's access is not in question, the dashboard
+      // section has an error card with a Retry button for exactly that case, and
+      // the retry loop below still has 502/503/504/429 to work through. Bouncing
+      // to the storefront threw the seller off the page before either could run.
+      const isAccessRefusal = status >= 400 && status < 500 && status !== 429;
+      if (status !== 200 && status !== 401 && isAccessRefusal && method === "GET") {
         const { shouldAuthinticated, reAuthResult } = useAppStore.getState();
         const reAuthInProgress =
           Boolean(shouldAuthinticated) || reAuthResult === "pending";

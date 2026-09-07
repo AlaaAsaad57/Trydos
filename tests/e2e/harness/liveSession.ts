@@ -48,6 +48,10 @@ export const SESSION_STATE = {
   auth: "tests/e2e/.auth/signed-in.json",
   profile: "tests/e2e/.auth/profile.json",
   profileScripted: "tests/e2e/.auth/profile-scripted.json",
+  // The money path. `BUY-01` signs in and hands its session on; `BUY-03` opens
+  // it and hands it on again, so `BUY-04` never inherits a credential that
+  // `BUY-03` has already caused the backend to rotate.
+  shopper: "tests/e2e/.auth/shopper.json",
 } as const;
 
 /** The directory all of them live in. Removed wholesale at teardown. */
