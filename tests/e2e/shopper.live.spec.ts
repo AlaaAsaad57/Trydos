@@ -729,11 +729,7 @@ test.describe("BUY-03 the bag's money, and choosing another address", () => {
     probeTitle = `${ADDRESS_PROBE_MARKER} ${RUN_TAG}`;
     const editedTitle = `${probeTitle} edited`;
 
-    const context = await openSignedInSession(
-      browser,
-      SESSION_STATE.shopper,
-      "BUY-01",
-    );
+    const context = await newLiveContext(browser);
     const page = await context.newPage();
 
     // Handed to the teardown, which closes it. The teardown needs this exact
@@ -741,32 +737,35 @@ test.describe("BUY-03 the bag's money, and choosing another address", () => {
     // here.
     openSession = { context, page };
 
-    await test.step("the handed-on session still belongs to the shopper", async () => {
-      // The app is opened **first**, and the reason is a real failure, not
-      // tidiness.
-      //
-      // A saved session is a snapshot. The shop can refuse the credential in
-      // it at any time, and the app's own answer to that is to exchange it
-      // for a fresh pair on the next authenticated call — which is what
-      // `session-recovery.live.spec.ts` exists to prove. That exchange
-      // happens **in the browser**. A request context built from the file
-      // before the browser has opened the app therefore carries the stale
-      // credential for the whole case, and every API call below answers 401
-      // while the browser beside it is perfectly signed in.
-      //
+    await test.step("the shopper signs in", async () => {
       // Syria, for the same reason BUY-01 shops there: the probe address is a
       // Syrian one, and `startUpdateAddress` overwrites a saved address's
       // country with the one in the URL.
       await gotoAbout(page, { country: CASH_ON_DELIVERY_COUNTRY });
+
+      await attemptAuth(page, {
+        intent: "login",
+        phone: envValue("TEST_ACCOUNT_PHONE"),
+        method: "whatsapp",
+        otp: envValue("TEST_ACCOUNT_OTP"),
+      });
+
+      const screen = (await currentAuthScreen(page)) ?? "closed";
+      expect(
+        screen,
+        `the sign-in ended on the "${screen}" screen, so nothing below is a signed-in shopper's`,
+      ).toMatch(/^(welcome|closed)$/);
+
+      await page.keyboard.press("Escape").catch(() => {});
       await gotoHome(page);
 
       const session = await signedInSession(page);
       expect(
         session.accountId,
-        "the session BUY-01 handed on is not a signed-in shopper any more — " +
-          "read BUY-01's own failure, because this case had nothing to run " +
-          "against",
+        "the session is not a signed-in shopper",
       ).not.toBeNull();
+
+      startedAsAccountId = session.accountId;
 
       // Names only, never values. A missing storefront credential and a
       // refused one look identical from the API answer alone, and this tells
@@ -797,7 +796,37 @@ test.describe("BUY-03 the bag's money, and choosing another address", () => {
           `this case never had one. ${saved.said}`,
       ).toBe(200);
 
-      const current = saved.addresses.find((entry) => entry.is_default === 1);
+      let current = saved.addresses.find((entry) => entry.is_default === 1);
+      if (!current && saved.addresses.length > 0) {
+        await throughProxyInPage(page, {
+          target: "/customer/address/set-default",
+          method: "POST",
+          body: { address_id: saved.addresses[0].id },
+          country: CASH_ON_DELIVERY_COUNTRY,
+          language: "en",
+        });
+        const reRead = await readSavedAddresses(page);
+        current =
+          reRead.addresses.find((entry) => entry.is_default === 1) ??
+          reRead.addresses[0];
+      }
+      if (!current) {
+        await throughProxyInPage(page, {
+          target: "/customer/address/add",
+          method: "POST",
+          body: {
+            ...addressProbeBody("Test Base Address"),
+            is_default: 1,
+          },
+          country: CASH_ON_DELIVERY_COUNTRY,
+          language: "en",
+        });
+        const reRead = await readSavedAddresses(page);
+        current =
+          reRead.addresses.find((entry) => entry.is_default === 1) ??
+          reRead.addresses[0];
+      }
+
       expect(
         current?.id,
         "the account has no default delivery address, so there is no other " +

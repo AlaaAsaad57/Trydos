@@ -774,3 +774,451 @@ describe("taking a row out of the bag", () => {
     ).toBe(4);
   });
 });
+
+describe("AddToCartOption controls — enableAddToCartOption & disableAddToCartOption", () => {
+  it("enableAddToCartOption with product initialises options and sets default color/size when selectedColor is null", () => {
+    const slice = makeCartSlice({
+      AddToCartOption: { selectedColor: null, selectedSize: null },
+    });
+    const product = {
+      id: 99,
+      temp_id: 99,
+      sync_color_images: [{ color_name: "Black", image: "black.jpg" }],
+      choice_options: [
+        { options: [{ name: "M" }, { name: "L" }] },
+      ],
+    };
+
+    slice.s.enableAddToCartOption(product);
+
+    expect(slice.s.AddToCartOption.enable).toBe(true);
+    expect(slice.s.loaded).toBe(false);
+    expect(slice.s.AddToCartOption.selectedColor).toEqual({
+      color_name: "Black",
+      image: "black.jpg",
+    });
+    expect(slice.s.AddToCartOption.selectedSize).toEqual({ name: "M" });
+    expect(slice.s.SelectedProduct.choice_options).toBeNull();
+  });
+
+  it("enableAddToCartOption without product falls back to SelectedProduct colors and sizes when selectedColor is null", () => {
+    const slice = makeCartSlice({
+      AddToCartOption: { selectedColor: null, selectedSize: null },
+      SelectedProduct: {
+        id: 77,
+        sync_color_images: [{ color_name: "Red", image: "red.jpg" }],
+        choice_options: [{ options: [{ name: "S" }] }],
+      },
+    });
+
+    slice.s.enableAddToCartOption(null);
+
+    expect(slice.s.AddToCartOption.enable).toBe(true);
+    expect(slice.s.AddToCartOption.selectedColor).toEqual({
+      color_name: "Red",
+      image: "red.jpg",
+    });
+    expect(slice.s.AddToCartOption.selectedSize).toEqual({ name: "S" });
+  });
+
+  it("enableAddToCartOption preserves initial empty object selectedColor due to truthy short-circuit", () => {
+    const slice = makeCartSlice();
+    slice.s.enableAddToCartOption({
+      sync_color_images: [{ color_name: "Blue" }],
+    });
+
+    expect(slice.s.AddToCartOption.selectedColor).toEqual({});
+  });
+
+  it("enableAddToCartOption preserves already chosen color and size", () => {
+    const slice = makeCartSlice({
+      AddToCartOption: {
+        enable: false,
+        selectedColor: { color_name: "CustomColor" },
+        selectedSize: { name: "CustomSize" },
+      },
+    });
+
+    slice.s.enableAddToCartOption({
+      sync_color_images: [{ color_name: "Other" }],
+      choice_options: [{ options: [{ name: "OtherSize" }] }],
+    });
+
+    expect(slice.s.AddToCartOption.selectedColor).toEqual({
+      color_name: "CustomColor",
+    });
+    expect(slice.s.AddToCartOption.selectedSize).toEqual({
+      name: "CustomSize",
+    });
+  });
+
+  it("disableAddToCartOption resets AddToCartOption state and scroll", () => {
+    const slice = makeCartSlice({
+      AddToCartOption: {
+        enable: true,
+        quantity: 5,
+        price: { price: 100 },
+        UID: "uid-123",
+        selectedOptions: [{ UID: "uid-123", quantity: 2 }],
+      },
+    });
+
+    slice.s.disableAddToCartOption();
+
+    expect(slice.s.AddToCartOption.enable).toBe(false);
+    expect(slice.s.AddToCartOption.quantity).toBe(0);
+    expect(slice.s.AddToCartOption.price).toBeNull();
+    expect(slice.s.AddToCartOption.UID).toBe("");
+    expect(slice.s.AddToCartOption.selectedOptions).toEqual([]);
+  });
+});
+
+describe("AddToCartOption selections — addToCartQuantity, addToCartSize & addToCartColor", () => {
+  it("addToCartQuantity adds a new option with quantity 1 when UID does not exist", () => {
+    const slice = makeCartSlice({
+      AddToCartOption: { selectedOptions: [] },
+    });
+
+    slice.s.addToCartQuantity({ UID: "opt-1", name: "Red M" });
+
+    expect(slice.s.AddToCartOption.selectedOptions).toEqual([
+      { UID: "opt-1", name: "Red M", quantity: 1 },
+    ]);
+  });
+
+  it("addToCartQuantity increments quantity by 1 when UID already exists", () => {
+    const slice = makeCartSlice({
+      AddToCartOption: {
+        selectedOptions: [
+          { UID: "opt-1", name: "Red M", quantity: 2 },
+          { UID: "opt-2", name: "Blue L", quantity: 1 },
+        ],
+      },
+    });
+
+    slice.s.addToCartQuantity({ UID: "opt-1" });
+
+    const updated = slice.s.AddToCartOption.selectedOptions.find(
+      (o: any) => o.UID === "opt-1",
+    );
+    expect(updated?.quantity).toBe(3);
+    const untouched = slice.s.AddToCartOption.selectedOptions.find(
+      (o: any) => o.UID === "opt-2",
+    );
+    expect(untouched?.quantity).toBe(1);
+  });
+
+  it("addToCartSize updates size and recalculates price matching the selected color", () => {
+    const slice = makeCartSlice({
+      AddToCartOption: {
+        selectedColor: { color_name: "Blue" },
+        selectedSize: { name: "S" },
+      },
+      variants: {
+        variation: [
+          {
+            color: { name: "Blue" },
+            size: "M",
+            price: 150,
+            offer_price: 120,
+            price_formated: "$150",
+            offer_price_formated: "$120",
+          },
+        ],
+      },
+    });
+
+    slice.s.addToCartSize({ name: "M" });
+
+    expect(slice.s.AddToCartOption.selectedSize).toEqual({ name: "M" });
+    expect(slice.s.AddToCartOption.price).toEqual({
+      price: 150,
+      offer_price: 120,
+      price_formated: "$150",
+      offer_price_formated: "$120",
+    });
+  });
+
+  it("addToCartSize without variants only updates selectedSize", () => {
+    const slice = makeCartSlice({
+      AddToCartOption: { selectedSize: { name: "S" } },
+      variants: null,
+    });
+
+    slice.s.addToCartSize({ name: "XL" });
+
+    expect(slice.s.AddToCartOption.selectedSize).toEqual({ name: "XL" });
+    expect(slice.s.AddToCartOption.price).toBeUndefined();
+  });
+
+  it("addToCartColor updates selectedColor and recalculates price matching selectedSize", () => {
+    const slice = makeCartSlice({
+      AddToCartOption: {
+        selectedColor: { color_name: "Red" },
+        selectedSize: { name: "L" },
+      },
+      variants: {
+        variation: [
+          {
+            color: { name: "Green" },
+            size: "L",
+            price: 200,
+            offer_price: 180,
+            price_formated: "$200",
+            offer_price_formated: "$180",
+          },
+        ],
+      },
+    });
+
+    slice.s.addToCartColor({ color_name: "Green" });
+
+    expect(slice.s.AddToCartOption.selectedColor).toEqual({ color_name: "Green" });
+    expect(slice.s.AddToCartOption.price).toEqual({
+      price: 200,
+      offer_price: 180,
+      price_formated: "$200",
+      offer_price_formated: "$180",
+    });
+  });
+});
+
+describe("notifyProduct in cart store", () => {
+  it("marks variant_notify_for_user true on matching variant in SelectedProduct.variation", () => {
+    const slice = makeCartSlice({
+      SelectedProduct: {
+        id: 1,
+        variation: [
+          { product_variation_id: 10, variant_notify_for_user: false },
+          { product_variation_id: 20, variant_notify_for_user: false },
+        ],
+      },
+    });
+
+    slice.s.notifyProduct(20);
+
+    expect(
+      slice.s.SelectedProduct.variation.find((v: any) => v.product_variation_id === 20)
+        ?.variant_notify_for_user,
+    ).toBe(true);
+    expect(
+      slice.s.SelectedProduct.variation.find((v: any) => v.product_variation_id === 10)
+        ?.variant_notify_for_user,
+    ).toBe(false);
+  });
+
+  it("sets is_product_notify_for_user true when SelectedProduct has no variations array", () => {
+    const slice = makeCartSlice({
+      SelectedProduct: {
+        id: 2,
+        is_product_notify_for_user: false,
+      },
+    });
+
+    slice.s.notifyProduct(2);
+
+    expect(slice.s.SelectedProduct.is_product_notify_for_user).toBe(true);
+  });
+});
+
+describe("oldCart store operations — storeOldCart & hideOldCart", () => {
+  it("storeOldCart sets oldCart null when falsy cart passed", () => {
+    const slice = makeCartSlice({ oldCart: { data: 123 } });
+
+    slice.s.storeOldCart(null);
+
+    expect(slice.s.oldCart).toBeNull();
+  });
+
+  it("storeOldCart transforms oldCart products setting price to unit_price", () => {
+    const slice = makeCartSlice();
+
+    slice.s.storeOldCart({
+      id: "oc-1",
+      oldCart: [
+        { id: 10, unit_price: 50, offer_price: 40, name: "Shirt" },
+      ],
+    });
+
+    expect(slice.s.oldCart.oldCart[0]).toEqual({
+      id: 10,
+      unit_price: 50,
+      offer_price: 40,
+      price: 50,
+      name: "Shirt",
+    });
+  });
+
+  it("hideOldCart removes item and computes discounted offer_price", () => {
+    const slice = makeCartSlice({
+      oldCart: {
+        oldCart: [
+          { id: 1, price_of_variant: 100, discount: 20 },
+          { id: 2, price_of_variant: 80, discount: null },
+        ],
+      },
+    });
+
+    slice.s.hideOldCart(1);
+
+    expect(slice.s.oldCart.oldCart).toHaveLength(1);
+    expect(slice.s.oldCart.oldCart[0].id).toBe(2);
+    expect(slice.s.oldCart.oldCart[0].price).toBe(80);
+    expect(slice.s.oldCart.oldCart[0].offer_price).toBe(0);
+  });
+});
+
+describe("editQuantity in cart store", () => {
+  it("decrements available_quantity on SelectedProduct when variantId is empty string", () => {
+    const slice = makeCartSlice({
+      SelectedProduct: { available_quantity: 3 },
+    });
+
+    slice.s.editQuantity("");
+
+    expect(slice.s.SelectedProduct.available_quantity).toBe(2);
+  });
+
+  it("clamps available_quantity to 0 when decremented from 0", () => {
+    const slice = makeCartSlice({
+      SelectedProduct: { available_quantity: 0 },
+    });
+
+    slice.s.editQuantity("");
+
+    expect(slice.s.SelectedProduct.available_quantity).toBe(0);
+  });
+
+  it("decrements specific variant qty when variantId is provided", () => {
+    const slice = makeCartSlice({
+      SelectedProduct: {
+        variation: [
+          { product_variation_id: 100, qty: 5 },
+          { product_variation_id: 200, qty: 1 },
+        ],
+      },
+    });
+
+    slice.s.editQuantity(100);
+
+    expect(
+      slice.s.SelectedProduct.variation.find((v: any) => v.product_variation_id === 100)?.qty,
+    ).toBe(4);
+    expect(
+      slice.s.SelectedProduct.variation.find((v: any) => v.product_variation_id === 200)?.qty,
+    ).toBe(1);
+  });
+});
+
+describe("getProductDetailsForCart & getProductVariation", () => {
+  it("getProductDetailsForCart updates state when AddToCartOption is enabled and temp_id matches", () => {
+    const slice = makeCartSlice({
+      AddToCartOption: { enable: true, selectedSize: null },
+      SelectedProduct: { id: 50 },
+      loaded: false,
+    });
+
+    slice.s.getProductDetailsForCart({
+      temp_id: 50,
+      name: "Updated Product",
+      choice_options: [{ options: [{ name: "Large" }] }],
+      variation: [{ id: 1 }],
+    });
+
+    expect(slice.s.SelectedProduct.name).toBe("Updated Product");
+    expect(slice.s.AddToCartOption.selectedSize).toEqual({ name: "Large" });
+    expect(slice.s.variants).toEqual([{ id: 1 }]);
+    expect(slice.s.loaded).toBe(true);
+  });
+
+  it("getProductDetailsForCart leaves state unchanged when temp_id does not match", () => {
+    const slice = makeCartSlice({
+      AddToCartOption: { enable: true },
+      SelectedProduct: { id: 50, name: "Original" },
+      loaded: false,
+    });
+
+    slice.s.getProductDetailsForCart({ temp_id: 999, name: "New" });
+
+    expect(slice.s.SelectedProduct.name).toBe("Original");
+    expect(slice.s.loaded).toBe(false);
+  });
+
+  it("getProductVariation with color updates SelectedProduct and loaded flag", () => {
+    const slice = makeCartSlice({
+      SelectedProduct: { id: 1 },
+      loaded: false,
+    });
+
+    slice.s.getProductVariation({
+      color: "Blue",
+      variation: [{ id: 9 }],
+    });
+
+    expect(slice.s.SelectedProduct.color).toBe("Blue");
+    expect(slice.s.variants).toEqual([{ id: 9 }]);
+    expect(slice.s.loaded).toBe(true);
+  });
+
+  it("getProductVariation without color/Size selects first in-stock variant", () => {
+    const slice = makeCartSlice({
+      SelectedProduct: {
+        id: 1,
+        choice_options: [{ options: [{ name: "Medium" }] }],
+        sync_color_images: [{ color_name: "Red", image: "red.png" }],
+      },
+      AddToCartOption: {},
+    });
+
+    slice.s.getProductVariation({
+      variation: [
+        { qty: 0, size: "Small", color: { name: "Blue" } },
+        { qty: 2, size: "Medium", color: { name: "Red" } },
+      ],
+    });
+
+    expect(slice.s.AddToCartOption.selectedSize).toEqual({ name: "Medium" });
+    expect(slice.s.AddToCartOption.selectedColor).toEqual({
+      color_name: "Red",
+      image: "red.png",
+    });
+    expect(slice.s.loaded).toBe(true);
+  });
+});
+
+describe("expireLuck & errRemoveFromCart in cart store", () => {
+  it("expireLuck resets is_luck to false on SelectedProduct", () => {
+    const slice = makeCartSlice({
+      SelectedProduct: { id: 10, is_luck: true },
+    });
+
+    slice.s.expireLuck();
+
+    expect(slice.s.SelectedProduct.is_luck).toBe(false);
+  });
+
+  it("errRemoveFromCart returns empty object when cart_item is still in localCart", () => {
+    const slice = makeCartSlice({
+      localCart: [{ item_id: "item-1" }],
+      cart: [{ id: "item-1" }],
+    });
+
+    slice.s.errRemoveFromCart({ item_id: "item-1" });
+
+    expect(slice.s.localCart).toHaveLength(1);
+    expect(slice.s.cart).toHaveLength(1);
+  });
+
+  it("errRemoveFromCart restores cart_item to both cart and localCart when absent from localCart", () => {
+    const slice = makeCartSlice({
+      localCart: [],
+      cart: [],
+    });
+
+    slice.s.errRemoveFromCart({ item_id: "item-missing", id: "item-missing" });
+
+    expect(slice.s.localCart).toEqual([{ item_id: "item-missing", id: "item-missing" }]);
+    expect(slice.s.cart).toEqual([{ item_id: "item-missing", id: "item-missing" }]);
+  });
+});
+

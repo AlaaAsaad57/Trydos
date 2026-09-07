@@ -103,37 +103,6 @@ function TextMessage({
           <div className="other-date">{getMessageTime(created_at, true)}</div>
         )}
       </div>
-      {/* <div className="message-date hovers">
-        <div className="sent-date">
-          {
-            <>
-              <img src="/icons/chat/sent.svg" />
-              {getMessageTime(created_at, true)}
-            </>
-          }
-        </div>
-
-        {getStatues({ message_status }).is_received === 1 && (
-          <div className="recieve-date">
-            <img src="/icons/chat/recieved.svg" />
-            {getMessageTime(
-              message_status.filter((a) => a.user_id !== user?.id)[0]
-                ?.received_at,
-              false
-            )}
-          </div>
-        )}
-        {getStatues({ message_status }).is_watched === true && (
-          <div className="recieve-date">
-            <img src="/icons/chat/read.svg" className="w-[10px] h-[10px]" />
-            {getMessageTime(
-              message_status.filter((a) => a.user_id !== user?.id)[0]
-                ?.watched_at,
-              false
-            )}
-          </div>
-        )}
-      </div> */}
       <OptionsMenu
         isPrivate={isPrivate}
         isSender={true}

@@ -53,6 +53,7 @@ interface ConversationContainerProps {
 
 /* ------------------------------ Constants -------------------------------- */
 const FILE_INPUT_ACCEPT = "*/*";
+const MEDIA_INPUT_ACCEPT = "image/*,video/*";
 
 /* --------------------------------------------------------------------------
  * Helper utils – extracted from the spaghetti logic for re-usability & clarity
@@ -187,6 +188,7 @@ function ConversationContainer({
   const isFetchingOlderRef = useRef<boolean>(false);
   const prevLastMsgIdRef = useRef<any>(null);
 
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const imageFile = useRef<HTMLInputElement | null>(null);
   const blobs = useRef<Blob | null>(null);
   const AudioRef = useRef<HTMLAudioElement | null>(null);
@@ -293,6 +295,9 @@ function ConversationContainer({
       const file = e.target.files?.[0];
       e.target.value = "";
       e.target.files = null;
+      if (fileInputRef.current) {
+        fileInputRef.current.accept = FILE_INPUT_ACCEPT;
+      }
 
       if (!file || !activeChat) return;
 
@@ -837,6 +842,7 @@ function ConversationContainer({
     <>
       {/* hidden file input */}
       <input
+        ref={fileInputRef}
         hidden
         accept={FILE_INPUT_ACCEPT}
         onFocus={() => {
@@ -997,6 +1003,9 @@ function ConversationContainer({
         {/* Messages */}
         <div
           ref={scrollContainerRef}
+          onScroll={() => {
+            window.dispatchEvent(new CustomEvent("chat-message-close-all"));
+          }}
           className="chat-message-container mt-[51.5px] py-[40px] px-[20px] bg-[#f7f7f7] w-full flex flex-col overflow-x-hidden overflow-y-auto"
           style={{
             height: "calc(100% - 101px)",
@@ -1119,9 +1128,15 @@ function ConversationContainer({
                       style={{ minWidth: 43, cursor: "pointer" }}
                       className="chatplus"
                       onClick={() => {
-                        document
-                          .querySelector<HTMLInputElement>('input[type="file"]')
-                          .click();
+                        const fileInput =
+                          fileInputRef.current ||
+                          document.querySelector<HTMLInputElement>(
+                            'input[type="file"]',
+                          );
+                        if (fileInput) {
+                          fileInput.accept = FILE_INPUT_ACCEPT;
+                          fileInput.click();
+                        }
                         sendStatus("Sending file...");
                       }}
                       height={40}
@@ -1215,17 +1230,18 @@ function ConversationContainer({
               render: () => <>{translateFunction("files")}</>,
               onClick: () => {
                 const fileInput =
+                  fileInputRef.current ||
                   document.querySelector<HTMLInputElement>(
                     'input[type="file"]',
                   );
                 if (fileInput) {
-                  // 1. Change "images/*" to "image/*"
-                  fileInput.accept = "image/*";
+                  // Accept images and videos only
+                  fileInput.accept = MEDIA_INPUT_ACCEPT;
 
-                  // 2. Trigger the click
+                  // Trigger the click
                   fileInput.click();
 
-                  // 3. Reset the accept attribute after a delay
+                  // Reset the accept attribute after a delay
                   setTimeout(() => {
                     fileInput.accept = FILE_INPUT_ACCEPT;
                   }, 1000);

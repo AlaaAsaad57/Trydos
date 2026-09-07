@@ -827,19 +827,37 @@ img {
 
 .message-date.hovers {
   position: absolute;
-  right: 100px;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
   opacity: 0;
-  top: 15px;
-  transition: 0.2s all ease-in;
-  bottom: initial !important;
-  left: 150px;
-  width: 45px;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+  width: 52px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 3px;
+  z-index: 10;
 }
 
-.hovers .sent-date {
-  color: #c4c2c2;
+.message-date.hovers.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hovers .sent-date,
+.hovers .recieve-date,
+.hovers .read-date {
+  width: 52px;
+  color: #737373;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--SF-Pro-Rounded-Regular);
+  font-size: 10px;
 }
 
 .last-date {

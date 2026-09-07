@@ -17,6 +17,7 @@ interface ExcelUploadTabProps {
 
 interface ExcelCategory {
   id: number | string;
+  display_name?: string;
   name?: string;
   title?: string;
 }
@@ -83,7 +84,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
   const [notesModal, setNotesModal] = useState<ExcelFile | null>(null);
 
   const getCategoryName = (cat: ExcelCategory) =>
-    cat.name || cat.title || `#${cat.id}`;
+   cat.display_name|| cat.name || cat.title || `#${cat.id}`;
 
   const formatDate = (value?: string) => {
     if (!value) return "—";

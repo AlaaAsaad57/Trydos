@@ -48,6 +48,24 @@ describe("Orders Service", () => {
       const result = await fetchOrders(1, 8);
       expect(result, "should return undefined on error").toBeUndefined();
     });
+
+    it("uses default pageSize 8 and omits status filter query param when selectedStatus is empty", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: { orders: [] },
+      });
+
+      await fetchOrders(3);
+
+      expect(fetchData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: "/customer/order/list?offset=3&limit=8",
+          method: "GET",
+          server: "market",
+        }),
+      );
+      expect(useAppStore.getState().totalOrders).toBe(0);
+    });
   });
 
   describe("fetchOrdersCount", () => {
@@ -67,6 +85,23 @@ describe("Orders Service", () => {
       );
       expect(count, "should return order group count").toBe(7);
     });
+
+    it("returns 0 when data has no total_order_group", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: {},
+      });
+
+      const count = await fetchOrdersCount();
+      expect(count).toBe(0);
+    });
+
+    it("returns null and logs error when API fails or throws", async () => {
+      vi.mocked(fetchData).mockRejectedValueOnce(new Error("Network disconnect"));
+
+      const count = await fetchOrdersCount();
+      expect(count).toBeNull();
+    });
   });
 
   describe("fetchHiddenOrders", () => {
@@ -84,5 +119,13 @@ describe("Orders Service", () => {
       );
       expect(result, "should return hidden orders response").toEqual(mockResponse);
     });
+
+    it("handles error when fetch fails and returns undefined", async () => {
+      vi.mocked(fetchData).mockRejectedValueOnce(new Error("Failed to load hidden"));
+
+      const result = await fetchHiddenOrders();
+      expect(result).toBeUndefined();
+    });
   });
 });
+

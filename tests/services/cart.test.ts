@@ -3,6 +3,7 @@ import cartService from "services/cart";
 import { fetchData } from "utils/fetchData";
 import { useAppStore } from "store";
 import { REQUESTS_DATA } from "utils/Requests";
+import { LogServerError } from "utils/serverErrorReporter";
 
 vi.mock("utils/fetchData", () => ({
   fetchData: vi.fn(),
@@ -505,5 +506,176 @@ describe("CartService", () => {
         "the core backend refused the move and ConvertToOldCart reported nothing, so the cart page deletes the row anyway and the item is in neither list",
       ).toBe(false);
     });
+
+    it("catches network exception and returns false while logging error", async () => {
+      vi.mocked(fetchData).mockRejectedValueOnce(new Error("Network connection lost"));
+
+      const moved = await cartService.ConvertToOldCart({
+        cart_item: "cart-99",
+      });
+
+      expect(moved).toBe(false);
+      expect(LogServerError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          scenario: "Error In ConvertToOldCart in services/cart",
+        }),
+      );
+    });
+  });
+
+  describe("AddToCart — uncovered branches and edge cases", () => {
+    it("preserves numeric product_variation_id and is_luck in backend payload and store", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: { status: 1, id_cart: "cart-item-lucky" },
+      });
+
+      const success = await cartService.AddToCart({
+        product_id: 202,
+        color: "Blue",
+        choice_1: "XL",
+        product_variation_id: 888,
+        qty: 3,
+        image: "https://example.com/lucky.png",
+        is_luck: true,
+        type: "lottery-v1",
+        offer_price: 25,
+      });
+
+      expect(success).toBe(true);
+      const sentBody = bodySentTo("/cart/add");
+      expect(sentBody?.product_variation_id).toBe(888);
+      expect(sentBody?.is_luck).toBe(true);
+      expect(sentBody?.quantity).toBe(3);
+
+      const added = useAppStore.getState().localCart[0];
+      expect(added?.product_variation_id).toBe(888);
+      expect(added?.color).toBe("Blue");
+      expect(added?.size).toBe("XL");
+      expect(added?.type).toBe("lottery-v1");
+      expect(added?.offer_price).toBe(25);
+    });
+
+    it("handles image without slashes correctly extracting filename", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: { status: 1, id_cart: "cart-item-single" },
+      });
+
+      await cartService.AddToCart({
+        product_id: 303,
+        color: "Green",
+        choice_1: "S",
+        qty: 1,
+        image: "single-filename.png",
+        type: "single",
+        offer_price: 15,
+      });
+
+      expect(bodySentTo("/cart/add")?.image).toBe("single-filename.png");
+    });
+
+    it("catches thrown network error and logs scenario", async () => {
+      vi.mocked(fetchData).mockRejectedValueOnce(new Error("Socket hangup"));
+
+      const success = await cartService.AddToCart({
+        product_id: 404,
+        color: "Yellow",
+        choice_1: "L",
+        qty: 1,
+        image: "yellow.png",
+        type: "regular",
+        offer_price: 30,
+      });
+
+      expect(success).toBe(false);
+      expect(LogServerError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          scenario: "Error In AddToCart in services/cart",
+        }),
+      );
+    });
+  });
+
+  describe("UpdateCart — uncovered branches and edge cases", () => {
+    it("labels request as ADD_TO_CART_WIDGET when isFromAddWidget is true", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: { status: 1, qty: "4" },
+      });
+
+      const success = await cartService.UpdateCart({
+        cart_id: "cart-99",
+        qty: 4,
+        isFromAddWidget: true,
+      });
+
+      expect(success).toBe(true);
+      expect(callTo("/cart/update")?.reqTitle).toBe(REQUESTS_DATA.ADD_TO_CART_WIDGET);
+    });
+
+    it("updates quantity to 0 when core backend confirms qty 0", async () => {
+      useAppStore.setState({
+        localCart: [{ id: 101, item_id: "cart-99", quantity: 1 }],
+      } as any);
+
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: { status: 1, qty: "0" },
+      });
+
+      const success = await cartService.UpdateCart({
+        cart_id: "cart-99",
+        qty: 0,
+      });
+
+      expect(success).toBe(true);
+      expect(
+        useAppStore.getState().localCart.find((i: any) => i.item_id === "cart-99")?.quantity,
+      ).toBe(0);
+    });
+
+    it("catches thrown network exception and logs scenario", async () => {
+      vi.mocked(fetchData).mockRejectedValueOnce(new Error("Network timeout"));
+
+      const success = await cartService.UpdateCart({
+        cart_id: "cart-99",
+        qty: 2,
+      });
+
+      expect(success).toBe(false);
+      expect(LogServerError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          scenario: "Error In UpdateCart in services/cart",
+        }),
+      );
+    });
+  });
+
+  describe("RemoveFromCart — network exception branch", () => {
+    it("calls errRemoveFromCart and returns false when fetchData rejects", async () => {
+      const itemToRestore = {
+        id: 505,
+        item_id: "cart-fail",
+        quantity: 2,
+      };
+
+      vi.mocked(fetchData).mockRejectedValueOnce(new Error("Server crashed"));
+
+      const success = await cartService.RemoveFromCart({
+        cart_item: itemToRestore,
+      });
+
+      expect(success).toBe(false);
+      expect(LogServerError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          scenario: "Error In RemoveFromCart in services/cart",
+        }),
+      );
+      expect(
+        useAppStore.getState().localCart.some((s: any) => s.item_id === "cart-fail"),
+      ).toBe(true);
+    });
   });
 });
+

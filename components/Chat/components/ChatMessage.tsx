@@ -113,6 +113,8 @@ function ChatMessage({
       id={id ?? mid}
       message_type={message_type}
       parent_message={parent_message}
+      created_at={created_at}
+      message_status={message_status}
     >
       {isDeleted ? (
         <DeletedMessage type={type} activeChat={activeChat} />
