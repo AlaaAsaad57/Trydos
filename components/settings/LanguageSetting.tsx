@@ -292,5 +292,5 @@ const LanguageFlag = ({ lang }: any) => {
   if (lang === "ar") return <FlagIcon iso={"sa"} />;
   if (lang === "en") return <FlagIcon iso={"gb"} />;
   if (lang === "tr") return <FlagIcon iso="tr" />;
-  if (lang === "ku") return <FlagIcon iso="KR" />;
+  if (lang === "ku") return <FlagIcon iso="krd" />;
 };
