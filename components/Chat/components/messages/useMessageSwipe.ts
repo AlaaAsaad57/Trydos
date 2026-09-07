@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useSwipeable } from "react-swipeable";
 
 const SWIPED_EVENT = "chat-message-swiped";
 const CLOSE_ALL_EVENT = "chat-message-close-all";
-const SNAP_OFFSET = -50; // pixels to slide left to reveal dates
+const SNAP_OFFSET = -55; // Pixels to slide left when open
 
 interface UseMessageSwipeOptions {
   id: string | number;
@@ -14,9 +13,15 @@ export function useMessageSwipe({ id, enabled = true }: UseMessageSwipeOptions) 
   const [isOpen, setIsOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const datesRef = useRef<HTMLDivElement | null>(null);
+
   const isOpenRef = useRef(isOpen);
   isOpenRef.current = isOpen;
+
+  const startXRef = useRef(0);
+  const startYRef = useRef(0);
+  const currentOffsetRef = useRef(0);
   const isSwipingRef = useRef(false);
+  const isVerticalRef = useRef(false);
 
   const applyVisuals = useCallback((offset: number, animate: boolean) => {
     if (contentRef.current) {
@@ -26,13 +31,14 @@ export function useMessageSwipe({ id, enabled = true }: UseMessageSwipeOptions) 
       contentRef.current.style.transform = `translateX(${offset}px)`;
     }
     if (datesRef.current) {
-      const progress = Math.min(1, Math.max(0, Math.abs(offset) / 25));
+      const progress = Math.min(1, Math.max(0, Math.abs(offset) / 30));
       datesRef.current.style.transition = animate
         ? "opacity 0.22s ease-in-out"
         : "none";
       datesRef.current.style.opacity = `${progress}`;
-      datesRef.current.style.pointerEvents = progress > 0.5 ? "auto" : "none";
+      datesRef.current.style.pointerEvents = progress > 0.8 ? "auto" : "none";
     }
+    currentOffsetRef.current = offset;
   }, []);
 
   const open = useCallback(() => {
@@ -44,10 +50,9 @@ export function useMessageSwipe({ id, enabled = true }: UseMessageSwipeOptions) 
   const close = useCallback(() => {
     applyVisuals(0, true);
     setIsOpen(false);
-    isSwipingRef.current = false;
   }, [applyVisuals]);
 
-  // Inter-message closing & chat scroll closing
+  // Close when another message is swiped or when the user scrolls the chat page
   useEffect(() => {
     const handleOtherSwiped = (e: Event) => {
       const customEvent = e as CustomEvent<{ id: string | number }>;
@@ -69,77 +74,124 @@ export function useMessageSwipe({ id, enabled = true }: UseMessageSwipeOptions) 
     };
   }, [id, close]);
 
-  const swipeHandlers = useSwipeable({
-    onSwiping: (e) => {
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
       if (!enabled) return;
-      if (e.dir === "Left" || e.dir === "Right") {
-        isSwipingRef.current = true;
-        let offset = 0;
-        if (isOpenRef.current) {
-          if (e.dir === "Right") {
-            // closing
-            offset = Math.min(0, SNAP_OFFSET + e.absX);
-          } else {
-            // pulling further left
-            offset = Math.max(-75, SNAP_OFFSET - e.absX * 0.3);
-          }
-        } else {
-          if (e.dir === "Left") {
-            // opening by swiping left
-            offset = Math.max(-75, -e.absX);
-          } else {
-            // swiping right from closed
-            offset = Math.max(-75, -e.absX);
-          }
-        }
-        applyVisuals(offset, false);
-      }
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      startXRef.current = e.clientX;
+      startYRef.current = e.clientY;
+      isSwipingRef.current = false;
+      isVerticalRef.current = false;
     },
-    onSwipedLeft: () => {
-      if (!enabled) return;
-      open();
-    },
-    onSwipedRight: () => {
-      if (!enabled) return;
-      if (isOpenRef.current) {
-        close();
-      } else {
-        open();
-      }
-    },
-    onTouchEndOrOnMouseUp: () => {
-      if (isSwipingRef.current) {
-        isSwipingRef.current = false;
-        if (isOpenRef.current) {
-          applyVisuals(SNAP_OFFSET, true);
-        } else {
-          applyVisuals(0, true);
-        }
-      }
-    },
-    onTap: () => {
-      if (isOpenRef.current) {
-        close();
-      }
-    },
-    delta: 10,
-    preventScrollOnSwipe: true,
-    trackTouch: true,
-    trackMouse: true,
-  });
-
-  const setContentRef = useCallback(
-    (el: HTMLDivElement | null) => {
-      contentRef.current = el;
-      swipeHandlers.ref(el);
-    },
-    [swipeHandlers]
+    [enabled]
   );
+
+  const onPointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!enabled) return;
+      if (isVerticalRef.current) return;
+      if (e.pointerType === "mouse" && e.buttons === 0) return;
+
+      const deltaX = e.clientX - startXRef.current;
+      const deltaY = e.clientY - startYRef.current;
+
+      if (!isSwipingRef.current && !isVerticalRef.current) {
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+
+        // Allow vertical page scroll without interference
+        if (absY > 7 && absY > absX) {
+          isVerticalRef.current = true;
+          return;
+        }
+
+        // Horizontal swipe detected
+        if (absX > 7 && absX > absY) {
+          isSwipingRef.current = true;
+          try {
+            e.currentTarget.setPointerCapture(e.pointerId);
+          } catch (_) {}
+        }
+      }
+
+      if (isSwipingRef.current) {
+        const base = isOpenRef.current ? SNAP_OFFSET : 0;
+        let target = base + deltaX;
+
+        // Clamping with slight rubber-band resistance
+        if (target > 10) {
+          target = 10 + (target - 10) * 0.15;
+        } else if (target < -80) {
+          target = -80 + (target + 80) * 0.15;
+        }
+
+        applyVisuals(target, false);
+      }
+    },
+    [enabled, applyVisuals]
+  );
+
+  const onPointerUp = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch (_) {}
+
+      if (!isSwipingRef.current) {
+        return;
+      }
+
+      isSwipingRef.current = false;
+      isVerticalRef.current = false;
+
+      const deltaX = e.clientX - startXRef.current;
+
+      if (isOpenRef.current) {
+        // When open, user swipes RIGHT to close:
+        if (deltaX > 20) {
+          close();
+        } else {
+          // Keep it open, save position!
+          open();
+        }
+      } else {
+        // When closed, user swipes LEFT to open:
+        if (deltaX < -15) {
+          open();
+        } else {
+          close();
+        }
+      }
+    },
+    [open, close]
+  );
+
+  const onPointerCancel = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch (_) {}
+      isSwipingRef.current = false;
+      isVerticalRef.current = false;
+      if (isOpenRef.current) {
+        open();
+      } else {
+        close();
+      }
+    },
+    [open, close]
+  );
+
+  const swipeHandlers = {
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+    onPointerCancel,
+  };
 
   return {
     contentRef,
     datesRef,
-    setContentRef,
     isOpen,
     open,
     close,
