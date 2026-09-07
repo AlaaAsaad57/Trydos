@@ -42,12 +42,11 @@ function SentMessage({
   const isSwipeable = !isDeleted && !isCall;
 
   const {
-    contentRef,
     datesRef,
+    setContentRef,
     isOpen,
     close,
     swipeHandlers,
-    onClickCapture,
   } = useMessageSwipe({
     id,
     enabled: isSwipeable,
@@ -81,15 +80,14 @@ function SentMessage({
       {isSwipeable ? (
         <div className="relative flex items-center justify-end max-w-full">
           <div
-            ref={contentRef}
+            ref={setContentRef}
             {...swipeHandlers}
-            onClickCapture={onClickCapture}
             onClick={() => {
               if (isOpen) {
                 close();
               }
             }}
-            className="relative flex items-center justify-end max-w-full select-none cursor-grab active:cursor-grabbing"
+            className="relative flex items-center justify-end max-w-full touch-pan-y select-none"
             style={{
               willChange: "transform",
             }}
