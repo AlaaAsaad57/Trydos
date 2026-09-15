@@ -60,14 +60,57 @@ const gotoUnderLocale = async (page: Page, path: string): Promise<void> => {
   // case never makes it.
   //
   // So the fix is to wait for the real signal instead of a number that happened
-  // to be long enough. Capped, and the cap matters: the chat and notification
-  // layers poll, so on some screens the network never goes fully quiet and a
-  // bare `networkidle` would sit here for the whole navigation allowance. Five
-  // seconds is far more than the mount calls need — usually a few hundred
-  // milliseconds — and still half of what the dead wait cost.
-  await page
-    .waitForLoadState("networkidle", { timeout: 5_000 })
-    .catch(() => undefined);
+  // to be long enough.
+  //
+  // **Not `networkidle`, and the first attempt at this proved why.** Playwright
+  // calls the page idle after 500 ms with no connections, which is the *first*
+  // quiet moment — and the chat layer has not started by then. It wakes a beat
+  // later and does two things: it asks for the channel list, then marks each
+  // channel read. So `PROF-07` was fixed by that wait and the four closed-door
+  // cases were not, because the burst they were catching had not begun.
+  //
+  // What they all need is a quiet *window*, not a quiet instant.
+  await waitForPageQuiet(page);
+};
+
+/** Wait until the page has made no request for a while.
+ *
+ *  Playwright has no primitive for this. `networkidle` resolves on the first
+ *  500 ms gap, which a late burst sits right after — see the caller above.
+ *
+ *  1 second of silence, and the timer restarts on every new request, so a burst
+ *  that begins during the wait extends it rather than slipping past. Capped at
+ *  6 seconds: a screen that never falls quiet must not hold the suite, and
+ *  hitting the cap is not a failure — the caller has already asserted its own
+ *  marker, and this only decides how settled the page is underneath.
+ *
+ *  Still well under the 10-second wait this replaced, and the normal case is a
+ *  little over a second. */
+const waitForPageQuiet = async (
+  page: Page,
+  options: { quietMs?: number; timeoutMs?: number } = {},
+): Promise<void> => {
+  const quietMs = options.quietMs ?? 1_000;
+  const timeoutMs = options.timeoutMs ?? 6_000;
+
+  const deadline = Date.now() + timeoutMs;
+  let lastRequestAt = Date.now();
+
+  const seen = (): void => {
+    lastRequestAt = Date.now();
+  };
+
+  page.on("request", seen);
+  try {
+    while (Date.now() < deadline) {
+      if (Date.now() - lastRequestAt >= quietMs) return;
+      await page.waitForTimeout(100);
+    }
+  } finally {
+    // Always removed. A listener left on the page fires for every later request
+    // in the case, and this helper is called on nearly every settings screen.
+    page.off("request", seen);
+  }
 };
 
 /** Open the settings page, where the shopper's card sits.
