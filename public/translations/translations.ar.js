@@ -1386,6 +1386,8 @@ const translations = {
   "Incoming Video Call": "مكالمة فيديو واردة",
   "Missed Voice Call At": "مكالمة صوتية فائتة عند",
   "Missed Video Call At": "مكالمة فيديو فائتة عند",
+  "Missed Voice Call": "مكالمة صوتية فائتة",
+  "Missed Video Call": "مكالمة فيديو فائتة",
   "Loading products...": "جاري تحميل المنتجات...",
   "Loading boutiques...": "جاري تحميل البوتيكات...",
   "Loading orders...": "جاري تحميل الطلبات...",

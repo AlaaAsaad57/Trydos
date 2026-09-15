@@ -4,6 +4,7 @@ import { getUserChat, translateFunction } from "utils/functions";
 import ChatPhoto from "../../ChatPhoto";
 import { DeleteMessage, getMessageTime } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
+import { getCallDirection } from "../../../chatsFunctions";
 const calculate = (duration) => {
   if (duration <= 0) return "";
   // Ensure duration is a positive number
@@ -46,24 +47,28 @@ function CallMessage({
     );
   }, [activeChat, user]);
 
+  // A call with no duration never connected — but that happens on both sides.
+  // Only a call the other person started, that nobody answered, is missed.
+  const direction = getCallDirection(
+    sender_user_id,
+    user?.id,
+    duration_in_seconds,
+  );
+  const isVoiceCall = message_type.name === "VoiceCall";
   const getCallText = () => {
-    let isSender = parseInt(sender_user_id.toString()) === parseInt(user?.id);
-    const isVoiceCall = message_type.name === "VoiceCall";
-    if (duration_in_seconds <= 0) {
+    if (direction === "missed") {
       return isVoiceCall
         ? translateFunction("Missed Voice Call At")
         : translateFunction("Missed Video Call At");
-    } else {
-      if (isVoiceCall) {
-        return isSender
-          ? translateFunction("Outgoing Voice Call")
-          : translateFunction("Incoming Voice Call");
-      } else {
-        return isSender
-          ? translateFunction("Outgoing Video Call")
-          : translateFunction("Incoming Video Call");
-      }
     }
+    if (direction === "outgoing") {
+      return isVoiceCall
+        ? translateFunction("Outgoing Voice Call")
+        : translateFunction("Outgoing Video Call");
+    }
+    return isVoiceCall
+      ? translateFunction("Incoming Voice Call")
+      : translateFunction("Incoming Video Call");
   };
   return (
     <div
@@ -74,16 +79,17 @@ function CallMessage({
         onClick={() => setOpen(id)}
       >
         <>
-          {duration_in_seconds <= 0 ? (
-            message_type.name === "VoiceCall" ? (
+          {/* The icon follows the label: only a missed call gets the red one. */}
+          {direction === "missed" ? (
+            isVoiceCall ? (
               <img src="/icons/chat/misscall.svg" />
             ) : (
               <img src="/icons/chat/VideoMissed.svg" />
             )
-          ) : message_type.name !== "VoiceCall" ? (
-            <img src="/icons/chat/videocall.svg" className="scale-90" />
-          ) : (
+          ) : isVoiceCall ? (
             <img src="/icons/chat/call.svg" className="scale-90" />
+          ) : (
+            <img src="/icons/chat/videocall.svg" className="scale-90" />
           )}
         </>
         <div

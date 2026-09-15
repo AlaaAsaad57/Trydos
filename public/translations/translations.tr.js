@@ -1379,6 +1379,8 @@ const translations = {
   "Incoming Video Call": "Gelen görüntülü arama",
   "Missed Voice Call At": "Cevapsız sesli arama saat",
   "Missed Video Call At": "Cevapsız görüntülü arama saat",
+  "Missed Voice Call": "Cevapsız sesli arama",
+  "Missed Video Call": "Cevapsız görüntülü arama",
   "Loading products...": "Berhem tên barkirin...",
   "Loading boutiques...": "Dikan tên barkirin...",
   "Loading orders...": "Siparîş tên barkirin...",
