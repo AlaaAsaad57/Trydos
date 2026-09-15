@@ -39,6 +39,35 @@ const gotoUnderLocale = async (page: Page, path: string): Promise<void> => {
 
   await page.goto(`/${prefix}${path}`, { waitUntil: "domcontentloaded" });
   await chooseRegionIfAsked(page);
+
+  // Wait for the page to stop fetching, and this is not tidiness — it replaces
+  // something that used to happen by accident.
+  //
+  // `chooseRegionIfAsked` above waited a flat 10 seconds for a country picker
+  // that cannot appear on a path already carrying its locale prefix. That wait
+  // was dead as a *picker* wait and every settings screen paid it, so it was
+  // removed. It turned out to be alive as a **settle**: the callers below return
+  // as soon as their first marker is visible, while the screen's own calls — the
+  // address list, the chat channels the layout asks for on mount — are still in
+  // the air.
+  //
+  // Two cases proved it, both on the run that removed the wait. `PROF-07` read
+  // the address list before it arrived and reported "the address list did not
+  // grow" for an account whose list had simply not loaded. `SCRIPT-07` and three
+  // more closed their door on unnamed calls one line after this returns
+  // (`profile.scripted.spec.ts`), and caught the layout's own
+  // `/api/v1/channels/my_channels` — a call the case never named because the
+  // case never makes it.
+  //
+  // So the fix is to wait for the real signal instead of a number that happened
+  // to be long enough. Capped, and the cap matters: the chat and notification
+  // layers poll, so on some screens the network never goes fully quiet and a
+  // bare `networkidle` would sit here for the whole navigation allowance. Five
+  // seconds is far more than the mount calls need — usually a few hundred
+  // milliseconds — and still half of what the dead wait cost.
+  await page
+    .waitForLoadState("networkidle", { timeout: 5_000 })
+    .catch(() => undefined);
 };
 
 /** Open the settings page, where the shopper's card sits.
