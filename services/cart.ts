@@ -111,6 +111,17 @@ class CartService {
         server: "market",
       });
       if (!response.success) {
+        // `fetchData` handles a `/cart/update` refusal itself: it shows the
+        // toast and throws (utils/fetchData.ts:734-737), then catches its own
+        // throw and returns the whole body with `success: false`
+        // (:807-810). So a refusal reaches here looking like a failed call
+        // while still carrying the core backend's answer. Read that answer
+        // before treating it as an error — otherwise the two are the same
+        // `false` and the caller can never tell them apart.
+        if (response?.data?.status === 0) {
+          onRefused?.({ status: 0, qty: response?.data?.qty });
+          return false;
+        }
         throw new Error(response.message);
       }
       if (response?.data?.status === 1 && parseInt(response?.data?.qty) >= 0) {

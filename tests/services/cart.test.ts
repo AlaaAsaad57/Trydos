@@ -337,13 +337,26 @@ describe("CartService", () => {
     // The cart row offers "tell me when it is available" on a status-0 refusal,
     // so it has to be able to tell that refusal apart from a request that never
     // landed. `false` alone cannot say which happened.
+    // What `fetchData` really hands back for this URL. It intercepts a
+    // `/cart/update` refusal itself — shows the toast and throws
+    // (utils/fetchData.ts:734-737) — then catches its own throw and returns the
+    // whole body with `success: false` and the HTTP status (:807-810, :828).
+    // So the refusal arrives as a *failed* call that still carries the answer.
+    const realRefusalBody = {
+      isSuccessful: true,
+      hasContent: true,
+      code: 200,
+      message: "Sorry stock is limited",
+      detailed_error: null,
+      data: { qty: 2, status: 0 },
+      success: false,
+      httpStatus: 200,
+    };
+
     it("reports a status 0 refusal to the caller", async () => {
       const onRefused = vi.fn();
 
-      vi.mocked(fetchData).mockResolvedValueOnce({
-        success: true,
-        data: { status: 0, qty: "5" },
-      });
+      vi.mocked(fetchData).mockResolvedValueOnce(realRefusalBody as any);
 
       await cartService.UpdateCart({
         cart_id: "cart-99",
@@ -353,7 +366,7 @@ describe("CartService", () => {
 
       expect(
         onRefused.mock.calls[0]?.[0],
-        "the core backend refused the change on stock and UpdateCart did not pass that on, so the cart page cannot tell a refusal from a failed request and cannot offer to notify the shopper",
+        "the core backend answered 200 with status 0 — it has no more to give — and UpdateCart treated it as a failed request, so the cart page is never told and can never offer to notify the shopper",
       ).toMatchObject({ status: 0 });
     });
 
