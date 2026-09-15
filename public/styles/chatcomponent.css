@@ -541,9 +541,6 @@ html[lang="ar"] .chat-window-search-holder img {
   width: 15px;
   height: 15px;
 }
-.missed .call-info .call-type {
-  color: #ff5f61 !important;
-}
 /* There used to be `.missed img`, `.incoming img` and `.outgoing img` rules
    here, each putting a 1px coloured border on every image in the row. They
    never showed, because the row's class was the record object printed as
