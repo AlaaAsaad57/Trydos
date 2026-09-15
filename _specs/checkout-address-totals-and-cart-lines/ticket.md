@@ -6,10 +6,10 @@ workflow:
   version: 2
   current_stage: verify
   capabilities: []
-status: active
+status: completed
 owner: developer
 created_at: 2026-09-05
-updated_at: 2026-09-05
+updated_at: 2026-09-15
 links:
   clickup: ""
   github: ""
@@ -125,4 +125,16 @@ The base branch in this repository is **`develop`**, not `main`.
   result: passed
   by: developer
   timestamp: 2026-09-05
+- stage: verify
+  event: closed-by-owner-without-gate
+  result: passed
+  from_status: active
+  to_status: completed
+  by: developer
+  timestamp: 2026-09-15
+  evidence_ref: "Closed by hand on the owner's explicit instruction, outside a
+    transition. The verify gate was never run and no verify.md exists, so no
+    comprehension check backs this. The delivered work did land: PR #119, commit
+    5017b18c 'Ticket/checkout address totals and cart lines'. Recorded here so the
+    state and the history do not disagree."
 ```
