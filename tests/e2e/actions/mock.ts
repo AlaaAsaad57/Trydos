@@ -264,6 +264,44 @@ const WRITES_THAT_MAY_PASS: readonly string[] = [
   "/api/auth/update-user",
 ];
 
+/** The chat layer's own background traffic: still refused, but not reported.
+ *
+ *  **Refused, not allowed** — that part is unchanged, and it is the important
+ *  part. These never reach staging. What changes is that they stop being counted
+ *  against a case that did not cause them.
+ *
+ *  `services/chat.ts` fetches the channel list from inside the function that
+ *  installs a Firebase realtime listener (`onValue`), gated on the chat user's
+ *  id. So once chat is initialised the refetch fires whenever Firebase pushes —
+ *  tied to neither the page load nor anything the case does. `/received`
+ *  follows it, marking each channel read. Both are the chat layer talking to
+ *  itself.
+ *
+ *  **Three fixes were tried before this one, and all three were wrong**, so the
+ *  reasoning is worth keeping:
+ *
+ *    * Waiting for the network to fall quiet after opening the screen. It cannot
+ *      work: a Firebase push has no deadline, so there is no moment after which
+ *      the call will not come.
+ *    * A longer quiet window, then a longer cap still. Same reason.
+ *    * Letting the channel list through. That was worse — it simply let the
+ *      layer reach its next step, and the failure moved from `my_channels` to
+ *      `/received`, which is a real write and has to stay refused.
+ *
+ *  It looked like a regression from removing a dead ten-second wait
+ *  (`actions/nav.ts`), and that wait did use to absorb it. It was always a race;
+ *  the wait only hid it.
+ *
+ *  **What this gives up.** A case can no longer notice the chat layer reaching
+ *  for these two. That is the intended trade: they are blocked either way, so
+ *  nothing new can reach staging, and the alternative is four cases reporting
+ *  the chat layer's housekeeping as something their own save did. Matched
+ *  without a version, so both the `/api/v1/` and `/api/v2/` forms are covered. */
+const BACKGROUND_TRAFFIC: readonly string[] = [
+  "/channels/my_channels",
+  "/received",
+];
+
 export type ClosedModeGuard = {
   /** Every route this guard refused, by path only — never a full address, which
    *  would carry the query string and with it the one-time code. */
@@ -338,7 +376,18 @@ export const closeUnnamedCalls = async (
 
     // Record the app's own path, not the proxy's, so the message names the call
     // the reader has to go and look at.
-    refused.push(proxied ? decodeURI(target).split("?")[0] : path);
+    //
+    // The chat layer's own background calls are refused like anything else and
+    // simply not recorded — see `BACKGROUND_TRAFFIC`. Checked here rather than
+    // above the `allowed` test on purpose: nothing is let through, so the block
+    // this guard exists for still happens.
+    const background = BACKGROUND_TRAFFIC.some((entry) =>
+      decodeURI(target).includes(entry),
+    );
+
+    if (!background) {
+      refused.push(proxied ? decodeURI(target).split("?")[0] : path);
+    }
     await route.abort();
   });
 

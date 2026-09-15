@@ -47,29 +47,24 @@ const gotoUnderLocale = async (page: Page, path: string): Promise<void> => {
   // that cannot appear on a path already carrying its locale prefix. That wait
   // was dead as a *picker* wait and every settings screen paid it, so it was
   // removed. It turned out to be alive as a **settle**: the callers below return
-  // as soon as their first marker is visible, while the screen's own calls — the
-  // address list, the chat channels the layout asks for on mount — are still in
-  // the air.
+  // as soon as their first marker is visible, while the screen's own data — the
+  // address list, for one — is still in the air. `PROF-07` read that list before
+  // it arrived and reported "the address list did not grow" for an account whose
+  // list had simply not loaded.
   //
-  // Two cases proved it, both on the run that removed the wait. `PROF-07` read
-  // the address list before it arrived and reported "the address list did not
-  // grow" for an account whose list had simply not loaded. `SCRIPT-07` and three
-  // more closed their door on unnamed calls one line after this returns
-  // (`profile.scripted.spec.ts`), and caught the layout's own
-  // `/api/v1/channels/my_channels` — a call the case never named because the
-  // case never makes it.
+  // So this waits for the real signal instead of a number that happened to be
+  // long enough. `networkidle` is not it: Playwright calls the page idle after
+  // 500 ms with no connections, and what is wanted is a quiet *window*.
   //
-  // So the fix is to wait for the real signal instead of a number that happened
-  // to be long enough.
-  //
-  // **Not `networkidle`, and the first attempt at this proved why.** Playwright
-  // calls the page idle after 500 ms with no connections, which is the *first*
-  // quiet moment — and the chat layer has not started by then. It wakes a beat
-  // later and does two things: it asks for the channel list, then marks each
-  // channel read. So `PROF-07` was fixed by that wait and the four closed-door
-  // cases were not, because the burst they were catching had not begun.
-  //
-  // What they all need is a quiet *window*, not a quiet instant.
+  // **This does not fix the chat layer, and no wait here can.** Four cases in
+  // `profile.scripted.spec.ts` also went red when the ten seconds went, and it
+  // looked like the same fault. It is not: `services/chat.ts` refetches the
+  // channel list from inside a Firebase realtime listener, so that call answers
+  // to a push with no deadline rather than to anything this navigation did.
+  // Three attempts here failed before that was understood — a quiet window, a
+  // longer one, then a longer cap. It is handled in `actions/mock.ts` now, where
+  // the guard simply stops counting the chat layer's own traffic against a case
+  // that did not cause it.
   await waitForPageQuiet(page);
 };
 
@@ -83,27 +78,23 @@ const gotoUnderLocale = async (page: Page, path: string): Promise<void> => {
  *  cap is not a failure — the caller has already asserted its own marker, and
  *  this only decides how settled the page is underneath.
  *
- *  **The cap is 12 seconds, and it is a measured number, not a guess.** The
- *  chat layer wakes late on these screens: it asks for the channel list and then
- *  marks each channel read. A cap of 6 seconds was tried and the four
- *  closed-door cases in `profile.scripted.spec.ts` still caught that burst, while
- *  the 10-second wait this whole change removed had always covered it. So chat
- *  wakes somewhere between the two, and the cap has to clear it.
+ *  **The cap is 4 seconds, and it is deliberately modest.** It was briefly 6,
+ *  then 12, on a theory that the chat layer woke late and a long enough window
+ *  would clear it. That theory was wrong: `services/chat.ts` refetches the
+ *  channel list from inside a Firebase realtime listener, so a push has no
+ *  deadline and there is no window that clears it. That race is handled where it
+ *  belongs now, in `actions/mock.ts`.
  *
- *  **It costs almost nothing, because the cap only bites where there is late
- *  activity.** A screen that goes quiet returns after its one second, whatever
- *  the cap is. `profile.live` signs in once and shares that session across
- *  PROF-02 to PROF-07, so chat has long since woken by the time those screens
- *  open and they keep their gains — PROF-02 went from 48.3s to 8.4s and stayed
- *  there. `profile.scripted` signs in fresh in every case, so chat wakes inside
- *  each one, and those six are the ones that pay. That is where the failures
- *  were, and it is the whole reason this number moved. */
+ *  What is left for this helper is the job it actually does: `PROF-07` read the
+ *  address list before it arrived, and one quiet second fixes that. The cap only
+ *  bites on a screen that never falls quiet, and there is no longer any reason
+ *  to sit on one. */
 const waitForPageQuiet = async (
   page: Page,
   options: { quietMs?: number; timeoutMs?: number } = {},
 ): Promise<void> => {
   const quietMs = options.quietMs ?? 1_000;
-  const timeoutMs = options.timeoutMs ?? 12_000;
+  const timeoutMs = options.timeoutMs ?? 4_000;
 
   const deadline = Date.now() + timeoutMs;
   let lastRequestAt = Date.now();
