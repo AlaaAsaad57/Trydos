@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15">
+  <g transform="translate(0.4 5.6) scale(0.66667)">
+    <path d="M3.2,0 H9.8 A3.2,3.2 0 0 1 13,3.2 V8.8 A3.2,3.2 0 0 1 9.8,12 H3.2 A3.2,3.2 0 0 1 0,8.8 V3.2 A3.2,3.2 0 0 1 3.2,0 Z" fill="#505050" fill-rule="evenodd"/>
+    <path d="M13.6,4 L18,0.9 V11.1 L13.6,8 Z" fill="#505050" fill-rule="evenodd"/>
+  </g>
+  <g transform="translate(15 0) scale(0.72) translate(-15 0)">
+   <g transform="translate(8.183 0)">
+    <path d="M8.381,0a.2.2,0,0,1,.2.2,6.235,6.235,0,0,0,6.228,6.228.2.2,0,0,1,0,.4A6.631,6.631,0,0,1,8.18.2.2.2,0,0,1,8.381,0Z" transform="translate(-8.18 -0.003)" fill="#388cff" fill-rule="evenodd"/>
+    <path d="M8.378,1.9a.2.2,0,0,1,.2.2A4.327,4.327,0,0,0,12.9,6.425a.2.2,0,0,1,0,.4A4.728,4.728,0,0,1,8.18,2.1.2.2,0,0,1,8.378,1.9Z" transform="translate(-6.276 -1.904)" fill="#388cff" fill-rule="evenodd"/>
+    <path d="M8.381,3.808a.2.2,0,0,1,.2.2A2.426,2.426,0,0,0,11,6.429a.2.2,0,0,1,0,.4A2.824,2.824,0,0,1,8.18,4.005.2.2,0,0,1,8.381,3.808Z" transform="translate(-4.376 -3.808)" fill="#388cff" fill-rule="evenodd"/>
+   </g>
+  </g>
+</svg>

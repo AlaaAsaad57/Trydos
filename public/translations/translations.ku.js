@@ -1427,6 +1427,8 @@ const translations = {
   "Incoming Video Call": "پەیوەندی ڤیدیۆیی دەرچوو",
   "Missed Voice Call At": "پەیوەندی دەنگی لەدەستچوو لە کاتژمێر",
   "Missed Video Call At": "پەیوەندی ڤیدیۆیی لەدەستچوو لە کاتژمێر",
+  "Missed Voice Call": "پەیوەندی دەنگی لەدەستچوو",
+  "Missed Video Call": "پەیوەندی ڤیدیۆیی لەدەستچوو",
   "Loading products...": "Ürünler yükleniyor...",
   "Loading boutiques...": "Mağazalar yükleniyor...",
   "Loading orders...": "Siparişler yükleniyor...",

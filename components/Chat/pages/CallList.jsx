@@ -31,7 +31,7 @@ function CallList() {
         {[1, 1, 1].map((s, idx) => (
           <div
             key={idx}
-            className={`call-conversation-item ${type} call-item-row `}
+            className="call-conversation-item call-item-row"
           >
             <div className="flex grow-0">
               <Skeleton width={55} height={55} borderRadius={12} />
