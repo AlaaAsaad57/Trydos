@@ -41,14 +41,58 @@ import {
   staticPage,
 } from "../selectors";
 
+/** Can the country picker appear at all on the address the page is on?
+ *
+ *  `shouldShowBluredInfo` (`components/Home/Init.tsx:66-71`) is the app's own
+ *  rule, and it reads nothing but the address: the picker is drawn when the
+ *  locale prefix is `gb-` — the global bucket, "we do not know where you are" —
+ *  or when the address carries `no-country` or `changed-country`. `proxy.ts`
+ *  adds `no-country` in one place only, its last fallback (`:653`), which is
+ *  reached when neither a saved cookie nor a geo header gave a country.
+ *
+ *  So on any other address there is nothing to wait for, and this is worth
+ *  asking because most navigations in this suite are exactly that. `seedLocale`
+ *  saves a valid country and language before `gotoAbout` and `gotoStaticPage`,
+ *  and `gotoUnderLocale` (`actions/profile.ts`) opens a path that already
+ *  carries its prefix. In both cases the proxy answers with a served page and
+ *  no marker, so the picker cannot be drawn.
+ *
+ *  Measured before this check existed, on CI run 34956076865: all five
+ *  `staticPages.live` cases took 10.3s each — a `domcontentloaded` goto to a
+ *  static page plus two visibility reads, so about ten of those seconds were
+ *  the wait below timing out against a picker that was never coming. Around
+ *  fifty navigations in the suite paid the same toll.
+ *
+ *  `gotoHome` is the case this must not break. It opens `/` with no cookie
+ *  seeded, so the proxy really does land it on the `no-country` fallback and
+ *  the picker really is drawn — this returns true there and the full wait
+ *  runs. */
+const canAskForCountry = (page: Page): boolean => {
+  const url = new URL(page.url());
+  const prefix = url.pathname.split("/")[1] ?? "";
+
+  return (
+    prefix.startsWith("gb-") ||
+    url.searchParams.has("no-country") ||
+    url.searchParams.has("changed-country")
+  );
+};
+
 /** Deal with the "Select Your Region" popup, if it is showing.
  *
- *  It is showing more or less always in this suite. The app works the country
- *  out from a geo header, the server is reached over loopback, so there is no
- *  header, so it redirects to `?no-country=true` and asks. The popup is a real
- *  modal — `fixed inset-0` with a backdrop — and it swallows every click until a
- *  country is chosen, which is why an unrelated test would otherwise fail on its
- *  first click with a confusing "element intercepts pointer events".
+ *  **It is showing far less often than this comment used to claim.** The old
+ *  wording said "more or less always", and that was true only of a navigation
+ *  that seeds no country: the app reads the country from a geo header, the
+ *  server is reached over loopback, so there is no header, so the proxy sends
+ *  the visitor to `?no-country=true` and asks. `gotoHome` is that navigation.
+ *  Every other entry point here saves a country first, and on those the popup
+ *  cannot be drawn at all — see `canAskForCountry` above, which is why this no
+ *  longer waits ten seconds to find that out.
+ *
+ *  When it does show it is a real modal — `fixed inset-0` with a backdrop — and
+ *  it swallows every click until a country is chosen, which is why an unrelated
+ *  test would otherwise fail on its first click with a confusing "element
+ *  intercepts pointer events".
  *
  *  Which country: the first one offered. The list is whatever the backend
  *  says is available (Iraq, Lebanon, Syria, Türkiye at the time of writing) and
@@ -61,6 +105,13 @@ export const chooseRegionIfAsked = async (
 ): Promise<{ chosen: boolean; iso?: string }> => {
   const backdrop = region.backdrop(page);
   const popup = region.popup(page);
+
+  // Asked before anything is waited for. The picker is a function of the
+  // address (see `canAskForCountry`), so an address that cannot ask is settled
+  // now rather than after the timeout below has run out. The wait itself is
+  // left at its full length for the address that *can* ask — a picker that is
+  // genuinely coming still gets every second it had.
+  if (!canAskForCountry(page)) return { chosen: false };
 
   // Two waits, and splitting them fixed a real failure.
   //

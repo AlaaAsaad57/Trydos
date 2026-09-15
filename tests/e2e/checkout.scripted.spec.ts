@@ -147,6 +147,28 @@ const reachTheReviewStep = async (page: Parameters<typeof openCart>[0]) => {
   return await confirmShippingAndPayment(page);
 };
 
+// ---------------------------------------------------------------------------
+// The six cases here run at the same time as each other
+//
+// Safe, and for a reason this file already states at length above: nobody signs
+// in, every backend answer is faked, and each case runs closed — so there is no
+// shared account, no one-time code and no real order between them. Each case
+// gets its own context and its own `page`, and the `orders` tracker in
+// `fixtures.ts` is built per case, not per file. There is no module-level state
+// below for two cases to reach at once.
+//
+// **It does nothing on its own.** `workers` is 1 in `playwright.config.ts`,
+// because the live specs share one staging account. Parallel mode needs more
+// than one worker to mean anything, and the worker count comes from the lane
+// the suite is run in — see the lane note in `tests/e2e/cli.ts`. In the solo
+// lane this file goes from about 6.3 minutes to roughly 2; run on its own with
+// the default single worker it behaves exactly as it did before.
+//
+// The live specs must never copy this line. Two of them adding to one staging
+// cart, or signing in as one identity at once, fail each other in ways that
+// look exactly like product bugs.
+test.describe.configure({ mode: "parallel" });
+
 test("SCRIPT-14 the whole faked journey still places an order", async ({
   browser,
 }) => {

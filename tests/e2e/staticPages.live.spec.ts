@@ -65,10 +65,40 @@ test.describe("static trust pages", () => {
 
     const back = staticPage.backButton(page);
     await expect(back).toBeVisible();
-    await back.click();
 
     // The back bar is given /[lang]/settings as its previous page, and a page
     // opened directly has no history to go back to, so that push is what runs.
-    await expect(page).toHaveURL(/\/[a-z]{2}-[a-z]{2}\/settings$/);
+    const onSettings = /\/[a-z]{2}-[a-z]{2}\/settings$/;
+
+    // Pressed until it takes, up to three times, and the reason is hydration.
+    // This is a server-rendered page, so the bar is painted before React
+    // attaches to it; a press that lands in that window does nothing at all and
+    // the address never changes. On an idle machine hydration always won that
+    // race, which is why this only began failing when the solo lane started
+    // running two workers against one server. Same fault and same fix as the
+    // demo step bar in `login-design-parity.scripted.spec.ts`.
+    //
+    // The assertion below still decides the case on its own: three presses that
+    // all do nothing fail it exactly as one used to.
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      if (onSettings.test(page.url())) break;
+
+      // Only ever pressed while still on the page that was opened. A press that
+      // moved the visitor somewhere unexpected has to reach the assertion and be
+      // reported — not be pressed again on a page that has no back bar, which
+      // would fail as a locator error naming nothing.
+      if (!/\/about$/.test(new URL(page.url()).pathname)) break;
+
+      await back.click();
+      await page
+        .waitForURL(onSettings, { timeout: 5_000, waitUntil: "domcontentloaded" })
+        .catch(() => undefined);
+    }
+
+    await expect(
+      page,
+      "pressing the back bar on a static page did not land on the settings " +
+        "page — it either did nothing at all, or sent the visitor out of the app",
+    ).toHaveURL(onSettings);
   });
 });

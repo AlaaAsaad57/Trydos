@@ -3,9 +3,12 @@
 //   tsx tests/e2e/cli.ts preflight   is this configured, is it staging, is it up?
 //   tsx tests/e2e/cli.ts health      is staging up? — on its own, for after a run
 //   tsx tests/e2e/cli.ts build       build the app with the staging environment
-//   tsx tests/e2e/cli.ts run [--skip-build]
+//   tsx tests/e2e/cli.ts run [--skip-build] [--lane=account|solo]
 //                                    all three, in order, for local use.
 //                                    --skip-build reuses an existing .next output.
+//                                    --lane runs one lane only — see the lane
+//                                    note further down. No --lane runs every
+//                                    spec on one worker, as it always did.
 //
 // **Why preflight is a separate command and runs before the build.** The build
 // takes minutes. Finding out afterwards that the machine has no staging
@@ -18,7 +21,7 @@
 // fast, honest "skipped". Only a target that is set *and wrong* fails.
 
 import { spawn } from "node:child_process";
-import { appendFileSync, readFileSync } from "node:fs";
+import { appendFileSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { hasBackends, hasShopperA, loadLiveEnv } from "./harness/env";
@@ -433,12 +436,155 @@ const report = (): void => {
   log(totals);
 };
 
+
+// ---------------------------------------------------------------------------
+// The two lanes
+//
+// The suite is slow because it is serial, and it is serial because of **one
+// staging account**. Six spec files sign in as that account, or spend a
+// one-time code, or write a real order. Run two of those at once and they
+// rotate each other's credential — the backend issues a new pair and the other
+// case is holding the old one. That is not a theory: `BUY-03` already reports
+// `/customer/address/list answered 401: Unauthorized` today.
+//
+// The other six touch none of it. They browse as a guest, or they fake every
+// answer and sign nobody in. Those can run at the same time as the account
+// lane, and as each other.
+//
+// So the split is by **what a spec shares**, not by how slow it is:
+//
+//   account  one account, one code budget, real writes     → one worker, always
+//   solo     no account, no code, nothing real written     → several workers
+//
+// Measured on CI run 34956076865: the account lane is about 30 minutes of the
+// 39.6 and the solo lane about 10. Run as two jobs, the wall time is the longer
+// lane rather than the sum.
+//
+// **A file listed in neither lane is a file that never runs**, and a test that
+// never runs reports nothing at all — the worst outcome this suite has. So the
+// lists are checked against the folder on every use (`laneSpecs`) and a spec in
+// neither, or in both, stops the command instead of being skipped quietly.
+//
+// Adding a spec: leave it out and the guard tells you, naming the file. When in
+// doubt put it in `account` — that lane is always correct, only slower.
+// ---------------------------------------------------------------------------
+
+/** Signs in as the shared account, spends a one-time code, or writes for real.
+ *  Never parallelised. */
+const ACCOUNT_LANE = [
+  "auth.live.spec.ts",
+  "auth.scripted.spec.ts",
+  "profile.live.spec.ts",
+  "profile.scripted.spec.ts",
+  "session-recovery.live.spec.ts",
+  "shopper.live.spec.ts",
+];
+
+/** No account, no code, nothing real written. Safe to run several at once. */
+const SOLO_LANE = [
+  "checkout.scripted.spec.ts",
+  "guest.live.spec.ts",
+  "locale.live.spec.ts",
+  "login-design-parity.scripted.spec.ts",
+  "session.live.spec.ts",
+  "staticPages.live.spec.ts",
+];
+
+/** How many workers a lane may use.
+ *
+ *  The solo lane gets 2, not 4, and the number is deliberate. Two of these
+ *  files still reach real staging — `guest.live` searches the real catalogue
+ *  and `session.live` registers real guests — so every extra worker multiplies
+ *  the load on a backend that is already the flakiest part of this suite. Two
+ *  is enough: the solo lane is about 10 minutes of work and the account lane it
+ *  runs beside is about 30, so the lane has nothing to gain from finishing
+ *  sooner than that. */
+const LANE_WORKERS: Record<string, number> = { account: 1, solo: 2 };
+
+/** The spec files in a lane, checked against what is actually on disk.
+ *
+ *  Throws rather than returns, because every way this can be wrong ends in
+ *  tests that silently do not run. */
+const laneSpecs = (lane: string): string[] => {
+  const lists: Record<string, string[]> = {
+    account: ACCOUNT_LANE,
+    solo: SOLO_LANE,
+  };
+
+  const wanted = lists[lane];
+  if (!wanted) {
+    throw new Error(
+      `Unknown lane "${lane}". Use ${Object.keys(lists).join(" or ")}.`,
+    );
+  }
+
+  const onDisk = readdirSync(resolve(process.cwd(), "tests/e2e"))
+    .filter((name) => name.endsWith(".spec.ts"))
+    .sort();
+
+  const assigned = [...ACCOUNT_LANE, ...SOLO_LANE];
+
+  const unassigned = onDisk.filter((name) => !assigned.includes(name));
+  if (unassigned.length > 0) {
+    throw new Error(
+      `These spec files are in no lane, so a lane run would skip them ` +
+        `silently: ${unassigned.join(", ")}. Add each one to ACCOUNT_LANE or ` +
+        `SOLO_LANE in tests/e2e/cli.ts. If you are unsure, ACCOUNT_LANE is ` +
+        `the safe choice.`,
+    );
+  }
+
+  const twice = ACCOUNT_LANE.filter((name) => SOLO_LANE.includes(name));
+  if (twice.length > 0) {
+    throw new Error(
+      `These spec files are in both lanes, so they would run twice and the ` +
+        `two runs would fight over the account: ${twice.join(", ")}.`,
+    );
+  }
+
+  const missing = assigned.filter((name) => !onDisk.includes(name));
+  if (missing.length > 0) {
+    throw new Error(
+      `These spec files are in a lane but not on disk, so the lane no longer ` +
+        `runs what it claims to: ${missing.join(", ")}. Remove them from ` +
+        `tests/e2e/cli.ts.`,
+    );
+  }
+
+  return wanted;
+};
+
+/** Turn `--lane=solo` into the arguments Playwright needs for it.
+ *
+ *  The file names go to Playwright as positional filters, which it reads as
+ *  **patterns** against the whole path, not as literal names. So every dot
+ *  becomes `[.]` — a character class matching one real dot. Left alone, `.`
+ *  matches any character, and a lane's pattern could then catch a file from the
+ *  other lane. Written as a class rather than a backslash escape because the
+ *  backslash has to survive this file, the shell and Playwright's own parsing,
+ *  and it did not: the first version of this line shipped `"\."`, which
+ *  TypeScript reads as plain `"."`, so it escaped nothing. */
+const laneArgs = (lane: string): string[] => [
+  `--workers=${LANE_WORKERS[lane]}`,
+  ...laneSpecs(lane).map((name) => name.replace(/[.]/g, "[.]")),
+];
+
 /** Pull out flags the CLI owns before Playwright sees them. */
 const parseRunFlags = (args: string[]): { skipBuild: boolean; playwrightArgs: string[] } => {
   const skipBuild = args.includes("--skip-build");
+  const lane = args.find((arg) => arg.startsWith("--lane="))?.slice("--lane=".length);
+  const ours = (arg: string): boolean =>
+    arg === "--skip-build" || arg.startsWith("--lane=");
+
   return {
     skipBuild,
-    playwrightArgs: args.filter((arg) => arg !== "--skip-build"),
+    // The lane's own arguments go first, so anything typed on the command line
+    // after them still wins — `--workers` especially, which is how you try a
+    // lane at a different width without editing the table.
+    playwrightArgs: [
+      ...(lane ? laneArgs(lane) : []),
+      ...args.filter((arg) => !ours(arg)),
+    ],
   };
 };
 
