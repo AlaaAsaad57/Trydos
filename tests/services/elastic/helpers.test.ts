@@ -80,6 +80,11 @@ describe("putting a listing in order (buildSortClause)", () => {
     expect(buildSortClause(undefined, "en")[0]).toEqual({
       _score: { order: "desc" },
     });
+    // The caller hands this straight from a query string, which gives null as
+    // often as it gives nothing at all.
+    expect(buildSortClause(null, "en")[0]).toEqual({
+      _score: { order: "desc" },
+    });
   });
 
   it("falls back to best match for an order it does not know", () => {
