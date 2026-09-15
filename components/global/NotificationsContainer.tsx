@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useNotificationStore } from "@/store/notifications/reducer";
 import { GetImageUrl } from "utils/tinyUtils";
@@ -19,6 +20,48 @@ const NotificationsContainer = () => {
   const language = useAppStore((s) => s.language);
 
   const isRtl = language === "ar" || language === "ku";
+
+  // WHY THESE MESSAGES ARE PORTALLED INTO THE END OF <body>
+  //
+  // `z-index` is a 32-bit signed integer, so the browser clamps every value
+  // above 2147483647 down to it. This app asks for numbers in the billions all
+  // over the place, which means most of those overlays do not really sit on
+  // different layers at all — they all land on 2147483647, and the element that
+  // comes LAST in the document is the one that is drawn on top.
+  //
+  // The add-to-cart bottom sheet (components/global/BottomSheet.tsx) asks for
+  // 9999999999, and so does a message below. The sheet portals itself into
+  // <body> when the shopper opens it, which happens long after the layout
+  // rendered this component — so the sheet came later and covered the
+  // "could not add to cart" message the shopper needed to read.
+  //
+  // The fix is document order, not a bigger number: a bigger number would clamp
+  // to the same 2147483647 and change nothing. Appending a node that is already
+  // in the page MOVES it, so re-appending this host each time a message appears
+  // puts the messages back at the end of <body>, above whatever overlay is open.
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  if (hostRef.current === null && typeof document !== "undefined") {
+    hostRef.current = document.createElement("div");
+    hostRef.current.setAttribute("data-pw", "notifications-root");
+  }
+
+  const hasNotifications = notifications.length > 0;
+
+  // A layout effect, so the move happens before the browser paints. In a plain
+  // effect there is one frame where the message is still in the old place, and
+  // moving a node after it has started animating restarts its slide-in.
+  useLayoutEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    document.body.appendChild(host);
+  }, [hasNotifications]);
+
+  useEffect(() => {
+    const host = hostRef.current;
+    return () => {
+      host?.remove();
+    };
+  }, []);
 
   const handleDismiss = (id: string) => {
     setDismissingIds((prev) => new Set(prev).add(id));
@@ -106,7 +149,10 @@ const NotificationsContainer = () => {
     };
   }, [notifications, dismissingIds]);
 
-  return (
+  const host = hostRef.current;
+  if (!host) return null;
+
+  return createPortal(
     <>
       <style
         dangerouslySetInnerHTML={{
@@ -573,7 +619,8 @@ const NotificationsContainer = () => {
       {isCallIncoming && (
         <CallComponent reply={() => {}} isCallIncoming={isCallIncoming} />
       )}
-    </>
+    </>,
+    host,
   );
 };
 
