@@ -787,8 +787,32 @@ export const openCartAndProveBackendAnswered = async (
 export const openAccountMenu = async (page: Page): Promise<void> => {
   const trigger = auth.accountMenuTrigger(page);
   await expect(trigger).toHaveCount(1);
-  await trigger.click();
-  await expect(auth.signOutItem(page)).toBeVisible();
+
+  const signOut = auth.signOutItem(page);
+
+  // Pressed until the menu opens, up to three times, and the reason is
+  // hydration. The trigger is server-rendered, so it is on the page and
+  // clickable before React attaches to it; a press that lands in that window
+  // does nothing and no menu appears. `AUTH-03` failed exactly that way — the
+  // trigger's count was 1, the click reported success, and `logout` was never
+  // found — once the suite got fast enough to arrive before hydration. Same
+  // fault and same fix as the static back bar (`staticPages.live.spec.ts`) and
+  // the demo step bar (`login-design-parity.scripted.spec.ts`).
+  //
+  // The assertion after the loop still decides it on its own: three presses that
+  // all open nothing fail exactly as one used to.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if (await signOut.isVisible().catch(() => false)) break;
+
+    await trigger.click();
+    await signOut.waitFor({ state: "visible", timeout: 5_000 }).catch(() => undefined);
+  }
+
+  await expect(
+    signOut,
+    "the account menu never offered sign-out — it either did not open, or it " +
+      "opened on the branch shown to a visitor who is not signed in",
+  ).toBeVisible();
 };
 
 /** Sign out, and wait until the visitor is a guest again.

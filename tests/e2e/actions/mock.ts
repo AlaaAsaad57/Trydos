@@ -264,6 +264,28 @@ const WRITES_THAT_MAY_PASS: readonly string[] = [
   "/api/auth/update-user",
 ];
 
+/** Reads the app sends as POST, which may pass although they DO reach a backend.
+ *
+ *  Kept apart from `WRITES_THAT_MAY_PASS` above so that list's rule stays true:
+ *  those two never leave the browser's own app, and these do. They are allowed
+ *  for a different reason — they change nothing. A channel list is fetched, not
+ *  written. The guard has to be told, because it fails closed on any verb it
+ *  cannot prove is a read, and this one reads with the verb of a write.
+ *
+ *  `my_channels` is the chat layer's own channel list, sent with
+ *  `MOD_CHAT_METHOD: "POST"` (`migration.staging.ts`). Nothing a case does
+ *  causes it — the layout asks for it whenever the chat layer wakes. Matched
+ *  without a version so both `/api/v1/` and `/api/v2/` forms are covered; the
+ *  file above switches between them.
+ *
+ *  **Why it appeared only recently.** It always happened. It used to land inside
+ *  a dead ten-second wait in `chooseRegionIfAsked` (`actions/nav.ts`), which sat
+ *  between opening a settings screen and the case closing its door. That wait is
+ *  gone, so the door now closes first and four cases in
+ *  `profile.scripted.spec.ts` reported the chat layer's housekeeping as a call
+ *  their own save had made. */
+const READS_SENT_AS_POST: readonly string[] = ["/channels/my_channels"];
+
 export type ClosedModeGuard = {
   /** Every route this guard refused, by path only — never a full address, which
    *  would carry the query string and with it the one-time code. */
@@ -327,7 +349,15 @@ export const closeUnnamedCalls = async (
       decodeURI(target).includes(entry),
     );
 
+    // Checked before the verb, because the whole point of this list is that the
+    // verb lies about it. Never widened to `named`: a mutating GET that happened
+    // to share a path fragment must still be refused.
+    const readSentAsPost = READS_SENT_AS_POST.some((entry) =>
+      decodeURI(target).includes(entry),
+    );
+
     const allowed =
+      readSentAsPost ||
       WRITES_THAT_MAY_PASS.includes(named ?? "") ||
       (verb === "GET" && named === undefined);
 
