@@ -4,9 +4,9 @@ title: Unit tests — search execution, pagination, and filter application
 workflow:
   type: development
   version: 2
-  current_stage: spec
+  current_stage: verify
   capabilities: []
-status: active
+status: completed
 owner: developer
 created_at: 2026-09-15
 updated_at: 2026-09-15
@@ -16,6 +16,7 @@ links:
 ---
 
 # Ticket Record — unit-tests-search-execution-and-filters
+
 
 > **Keep the front matter free of commentary.** The runtime parses it with a
 > standard-library YAML subset reader — it does drop a trailing ` # ...` comment
@@ -90,4 +91,69 @@ and one per transition after that (`rules/lifecycle-protocol.md` §H).
   result: passed
   by: developer
   timestamp: 2026-09-15
+- from_stage: spec
+  to_stage: plan
+  event: spec-completed
+  result: passed
+  by: developer
+  timestamp: 2026-09-15
+- from_stage: plan
+  to_stage: review
+  event: plan-completed
+  result: passed
+  by: developer
+  timestamp: 2026-09-15
+- from_stage: review
+  to_stage: plan
+  event: review-changes-requested
+  result: passed
+  by: developer
+  timestamp: 2026-09-15
+  evidence_ref: "Comprehension gate passed 3/3 (administered short, 3 of 5, under
+    CG-8). Owner recorded CHANGES_REQUESTED on two major panel findings: AC-19 and
+    AC-20 false-green guards. Brief is review.md > Required Follow-up Actions,
+    FA-1..FA-10."
+- from_stage: plan
+  to_stage: review
+  event: plan-revised
+  result: passed
+  by: developer
+  timestamp: 2026-09-15
+  evidence_ref: "Revision addressing FA-1..FA-10. Plan check revision round run
+    with all four agents: both majors confirmed CLOSED by the security and senior
+    lenses against the source, claim checker confirmed every follow-up does what
+    the brief asked, no new major. Nine minors raised on the revision, all fixed
+    in it."
+- from_stage: review
+  to_stage: implement
+  event: review-approved
+  result: passed
+  by: developer
+  timestamp: 2026-09-15
+  evidence_ref: "Comprehension gate attempt 2 passed 3/3. Both attempt-1 majors
+    confirmed closed against source. One new major (AC-17) accepted as a
+    mitigation inside the approved scope; FB-1..FB-13 in review.md are binding on
+    implement. degraded: the AC-17 major had no gate question of its own."
+- from_stage: implement
+  to_stage: verify
+  event: implementation-completed
+  result: passed
+  by: developer
+  timestamp: 2026-09-15
+  evidence_ref: "One new file, tests/services/elastic/elasticSearch.test.ts, 28
+    cases, all 28 Tests rows carried out. Full suite 158 files / 2,590 tests,
+    exit 0. Two guard proofs run red on purpose then restored. Two deviations
+    (D-1, D-2), both corrections to the test's own reach. No BUG-n. No commit."
+- stage: verify
+  event: verification-passed
+  result: passed
+  from_status: active
+  to_status: completed
+  by: developer
+  timestamp: 2026-09-15
+  evidence_ref: "All 28 AC proved by tests that ran; logic-change profile exit 0
+    on lint, typecheck and unit-tests (158 files / 2,590 tests). Comprehension
+    gate verify attempt 1 passed 3/3, degraded 3 of 4. Integration surface did
+    NOT hold: eight client importers, not seven — sellerComments.ts is invisible
+    to grep (NUL bytes), recorded as finding F-A. No BUG-n."
 ```

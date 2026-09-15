@@ -12,6 +12,7 @@ links:
 
 # Intake — unit-tests-search-execution-and-filters
 
+
 > First stage. Qualify the request only. **No technical planning allowed.**
 
 ## Ticket Reference
