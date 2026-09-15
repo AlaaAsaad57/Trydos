@@ -12,6 +12,7 @@
 // on one screen counts as asked on the other, and the check below reads the
 // list the backend confirmed rather than a flag this screen keeps for itself.
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import Spinner from "components/global/Spinner";
 import auth from "services/auth";
@@ -25,18 +26,48 @@ const NOTIFY_COLOR = "#513AAF";
 function NotifyWhenAvailableModal({ product, translate, isRtl, onClose }) {
   const { firebaseSettings } = useAppStore();
   const [loading, setLoading] = useState(false);
+  // True while the shopper's notification settings are being read. Notify stays
+  // out of reach until then, so nobody can subscribe to something they have.
+  const [readingSettings, setReadingSettings] = useState(true);
   // Set once the backend confirms the subscription, so the shopper sees the
   // answer without waiting for the next read of the settings.
   const [justSubscribed, setJustSubscribed] = useState(false);
 
   const productId = product?.product_id ?? product?.id;
+  const variantId = product?.product_variation_id ?? null;
+
+  // The backend subscribes per variant (services/home.ts:538-556), so a stored
+  // entry that names a different variant does not cover this row. An entry that
+  // names no variant covers the whole product, which is what
+  // `NotifyForProducts` sends when the row has no variant at all.
   const alreadySubscribed =
     justSubscribed ||
     Boolean(
-      firebaseSettings?.subscribed_topics?.some(
-        (s) => s?.topic === `product_availability_${productId}`,
-      ),
+      firebaseSettings?.subscribed_topics?.some((s) => {
+        if (s?.topic !== `product_availability_${productId}`) return false;
+        if (s?.variant === undefined || s?.variant === null) return true;
+        return String(s.variant) === String(variantId);
+      }),
     );
+
+  // Read the shopper's notification settings when the prompt opens. The cart
+  // page never loads them for itself, so the store can hold an empty list for a
+  // shopper who is already subscribed — and they would be offered Notify again,
+  // every time. The product page reads them on mount for the same reason
+  // (components/products/MoreOptionsSection.tsx:131-136).
+  useEffect(() => {
+    let stillOpen = true;
+    (async () => {
+      try {
+        await home.GetFireBaseSettings();
+      } finally {
+        if (stillOpen) setReadingSettings(false);
+      }
+    })();
+    return () => {
+      stillOpen = false;
+    };
+  }, []);
 
   // Escape closes it. The document's own scroll lock is left alone on purpose:
   // `DisableScroll()` also sends the page to the top, which would lose the
@@ -86,7 +117,14 @@ function NotifyWhenAvailableModal({ product, translate, isRtl, onClose }) {
     setLoading(false);
   };
 
-  return (
+  // Drawn on <body>, not inside the cart row. The row sits under stacked,
+  // positioned controls (the plus, minus and delete icons, the price block),
+  // and inside it the prompt joins that contest and loses however high its
+  // z-index is — the winner is decided inside the row's own stacking context. A
+  // portal takes it out of that contest entirely.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
       className="fixed inset-0 z-999999999999 flex items-center justify-center bg-black/40 px-[24px]"
       onClick={onClose}
@@ -151,7 +189,7 @@ function NotifyWhenAvailableModal({ product, translate, isRtl, onClose }) {
         </p>
 
         <div className="flex-row w-full gap-[10px] justify-center min-h-[44px] items-center">
-          {loading ? (
+          {loading || readingSettings ? (
             <Spinner />
           ) : alreadySubscribed ? (
             <button
@@ -186,7 +224,8 @@ function NotifyWhenAvailableModal({ product, translate, isRtl, onClose }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
