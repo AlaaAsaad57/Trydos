@@ -14,6 +14,7 @@ links:
 
 ## In plain words
 
+
 - **What this ticket touches:** one file, `services/elastic/elasticSearch.ts`.
   It is the code that runs a search against Elasticsearch and turns the answer
   into a listing page. It has 1,188 lines, three exported functions, and no test
