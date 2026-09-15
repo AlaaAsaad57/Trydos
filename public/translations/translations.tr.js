@@ -2622,7 +2622,9 @@ const translations = {
   "read this code from opposite side Camera": "Bu kodu karşı taraftaki kamerayla okutun",
   "To Create new account Tap “agree & Continue” to accept": "Yeni Hesap Oluşturmak İçin \"Kabul Et ve Devam Et\" Butonuna Dokunun",
   "Terms of services": "hizmet şartları",
-  "The code sent has expired": "Gönderilen Kodun Süresi Doldu"
+  "The code sent has expired": "Gönderilen Kodun Süresi Doldu",
+  "We Could Not Add More Of This Product": "Bu üründen daha fazla ekleyemedik",
+  "Do You Want Us To Notify You When It Is Available?": "Ürün tekrar stoklara girdiğinde sizi bilgilendirelim mi?"
 };
 
 export default translations;

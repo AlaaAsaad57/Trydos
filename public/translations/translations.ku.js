@@ -2639,7 +2639,9 @@ const translations = {
   "choose Switch web": "گۆڕین بۆ وێب هەلبژێرە",
   "read this code from opposite side Camera": "ئەم کۆدە لە لای بەرامبەرەوە بە کامێڕا بخوێنەرەوە",
   "To Create new account Tap “agree & Continue” to accept": "بۆ دروستکردنی هەژماری نوێ داگری \"پەسەندکردن و بەردەوامبوون\"",
-  "The code sent has expired": "ماوەی کۆدی نێردراو بەسەرچوو"
+  "The code sent has expired": "ماوەی کۆدی نێردراو بەسەرچوو",
+  "We Could Not Add More Of This Product": "نەمانتوانی زیاتر لەم بەرهەمە زیاد بکەین",
+  "Do You Want Us To Notify You When It Is Available?": "دەتەوێت ئاگادارت بکەینەوە کاتێک بەردەست بوو؟"
 };
 
 export default translations;

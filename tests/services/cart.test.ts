@@ -334,6 +334,71 @@ describe("CartService", () => {
       ).toBe(false);
     });
 
+    // The cart row offers "tell me when it is available" on a status-0 refusal,
+    // so it has to be able to tell that refusal apart from a request that never
+    // landed. `false` alone cannot say which happened.
+    it("reports a status 0 refusal to the caller", async () => {
+      const onRefused = vi.fn();
+
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: { status: 0, qty: "5" },
+      });
+
+      await cartService.UpdateCart({
+        cart_id: "cart-99",
+        qty: 5,
+        onRefused,
+      } as any);
+
+      expect(
+        onRefused.mock.calls[0]?.[0],
+        "the core backend refused the change on stock and UpdateCart did not pass that on, so the cart page cannot tell a refusal from a failed request and cannot offer to notify the shopper",
+      ).toMatchObject({ status: 0 });
+    });
+
+    it("does not report a refusal when the core backend took the change", async () => {
+      const onRefused = vi.fn();
+
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: { status: 1, qty: "5" },
+      });
+
+      await cartService.UpdateCart({
+        cart_id: "cart-99",
+        qty: 5,
+        onRefused,
+      } as any);
+
+      expect(
+        onRefused,
+        "the core backend took the change and UpdateCart reported a refusal, so the shopper would be asked about notifications after every successful press",
+      ).not.toHaveBeenCalled();
+    });
+
+    it("does not report a refusal when the request itself failed", async () => {
+      // A failed request is not the backend saying "no stock". Offering to
+      // notify the shopper here would blame the product for a network fault.
+      const onRefused = vi.fn();
+
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: false,
+        message: "gateway timeout",
+      });
+
+      await cartService.UpdateCart({
+        cart_id: "cart-99",
+        qty: 5,
+        onRefused,
+      } as any);
+
+      expect(
+        onRefused,
+        "the request failed and UpdateCart reported it as the core backend refusing on stock",
+      ).not.toHaveBeenCalled();
+    });
+
     it("leaves the quantity alone when the core backend refuses the change", async () => {
       useAppStore.setState({
         localCart: [{ id: 101, item_id: "cart-99", quantity: 1 }],

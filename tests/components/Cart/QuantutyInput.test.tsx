@@ -44,6 +44,28 @@ vi.mock("utils/orderFunnel", () => ({
   trackOrder: (...args: any[]) => trackOrder(...args),
 }));
 
+const AllowNotifications = vi.fn().mockResolvedValue("fcm-token");
+const GetFireBaseSettings = vi.fn().mockResolvedValue(undefined);
+const NotifyForProducts = vi.fn().mockResolvedValue({ success: true });
+
+// The notify prompt uses the same two services the product page uses for
+// "Notify Me When Variant Is Available" (components/Cart/AddToCart/
+// AddToCartComponent.tsx:955-983). Both are replaced so no case reaches the
+// network, which the fake network turns into a failed test.
+vi.mock("services/home", () => ({
+  default: {
+    AllowNotifications: (...args: any[]) => AllowNotifications(...args),
+    GetFireBaseSettings: (...args: any[]) => GetFireBaseSettings(...args),
+  },
+}));
+
+vi.mock("services/auth", () => ({
+  default: {
+    NotifyForProducts: (...args: any[]) => NotifyForProducts(...args),
+    UserID: () => "user-1",
+  },
+}));
+
 vi.mock("utils/functions", async (importOriginal) => ({
   ...((await importOriginal()) as object),
   getOldCart: vi.fn().mockResolvedValue(undefined),
@@ -212,7 +234,7 @@ describe("changing the quantity of a cart row", () => {
     expect(
       UpdateCart.mock.calls[0]?.[0],
       "pressing plus on a row of 2 asked the core backend for the wrong quantity",
-    ).toEqual({ cart_id: cartRow.id, qty: 3 });
+    ).toMatchObject({ cart_id: cartRow.id, qty: 3 });
   });
 
   it("minus asks the core backend for one fewer than the row holds", async () => {
@@ -227,7 +249,7 @@ describe("changing the quantity of a cart row", () => {
     expect(
       UpdateCart.mock.calls[0]?.[0],
       "pressing minus on a row of 2 asked the core backend for the wrong quantity",
-    ).toEqual({ cart_id: cartRow.id, qty: 1 });
+    ).toMatchObject({ cart_id: cartRow.id, qty: 1 });
   });
 });
 
@@ -351,7 +373,7 @@ describe("the cap on a cart row's quantity", () => {
     expect(
       UpdateCart.mock.calls[0]?.[0],
       "a row of 2 under a per-order limit of 3 refused to go to 3",
-    ).toEqual({ cart_id: cartRow.id, qty: 3 });
+    ).toMatchObject({ cart_id: cartRow.id, qty: 3 });
     expect(
       messagesShown(),
       "a row below its limit told the shopper it had reached the limit",
@@ -370,7 +392,7 @@ describe("the cap on a cart row's quantity", () => {
     expect(
       UpdateCart.mock.calls[0]?.[0],
       "a per-order limit of 0 means the seller set no limit, but the row was capped at 0 anyway",
-    ).toEqual({ cart_id: cartRow.id, qty: 5 });
+    ).toMatchObject({ cart_id: cartRow.id, qty: 5 });
   });
 
   it("does not ask the core backend for more than the stock left", async () => {
@@ -417,6 +439,241 @@ describe("the cap on a cart row's quantity", () => {
     expect(
       UpdateCart.mock.calls[0]?.[0],
       "a row that carries no limit and no stock figure was treated as already full",
-    ).toEqual({ cart_id: cartRow.id, qty: 3 });
+    ).toMatchObject({ cart_id: cartRow.id, qty: 3 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// When the core backend refuses the increase, offer to notify the shopper.
+//
+// `/cart/update` can answer `success: true` with `data.status: 0`. That is the
+// core backend saying no — almost always because the stock ran out between the
+// page load and the press. Nothing was wrong with the request, so there is no
+// error to show; the number simply rolled back and the shopper was told
+// nothing.
+//
+// The cart row now offers what the product page already offers in that case:
+// tell me when it is available again. The subscription is the product page's
+// own, `auth.NotifyForProducts` (services/auth.ts:404-414), so a shopper who
+// asked on one screen counts as asked on the other.
+//
+// `UpdateCart` reports the refusal through the `onRefused` callback the row
+// hands it. tests/services/cart.test.ts covers the service half — that the
+// callback fires on status 0 and not on a failed request.
+
+const QUESTION = "Do You Want Us To Notify You When It Is Available?";
+const ALREADY_ON = "You will be notified for this product already";
+
+/** `UpdateCart` behaving as the core backend refusing on stock: status 0. */
+const refuseOnStock = () =>
+  UpdateCart.mockImplementation(async (args: any) => {
+    args?.onRefused?.({ status: 0, message: "out of stock" });
+    return false;
+  });
+
+/** One cart row with no cap of its own, so only the backend can refuse. */
+async function openARowThatCanBeRefused(store: Record<string, any> = {}) {
+  return renderWithProviders(
+    <QuantutyInput
+      value={2}
+      setValue={() => {}}
+      max={undefined}
+      deleteFunction={() => {}}
+      id={cartRow.id}
+      disabled={false}
+      updateData={() => {}}
+      product={{ ...cartRow, quantity: 2, product_variation_id: "pv-7" }}
+    />,
+    {
+      country: "sy",
+      path: "/cart",
+      store: {
+        cart: [{ ...cartRow, quantity: 2 }],
+        localCart: [{ id: 101, item_id: cartRow.id, quantity: 2 }],
+        currency: { symbol: "$", exchange_rate: 1, decimal_digits: 2 },
+        ...store,
+      },
+    },
+  );
+}
+
+describe("offering to notify the shopper when the core backend refuses", () => {
+  beforeEach(() => {
+    UpdateCart.mockReset();
+    UpdateCart.mockResolvedValue(true);
+    trackOrder.mockClear();
+    AllowNotifications.mockClear();
+    AllowNotifications.mockResolvedValue("fcm-token");
+    GetFireBaseSettings.mockClear();
+    NotifyForProducts.mockClear();
+    NotifyForProducts.mockResolvedValue({ success: true });
+    useNotificationStore.getState().clearNotifications();
+  });
+
+  it("asks the shopper when the core backend answers status 0", async () => {
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      screen.queryByText(QUESTION),
+      "the core backend refused the increase on stock and the row said nothing, so the shopper watches the number roll back with no reason given and no way to be told when it is back",
+    ).not.toBeNull();
+  });
+
+  it("does not ask when the core backend took the increase", async () => {
+    // Without this case the one above would also pass on a prompt that opens
+    // every time, which would interrupt every ordinary press of plus.
+    UpdateCart.mockResolvedValue(true);
+    await openARowThatCanBeRefused();
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      screen.queryByText(QUESTION),
+      "the core backend took the increase and the row asked about notifications anyway",
+    ).toBeNull();
+  });
+
+  it("does not ask when the refused press was minus", async () => {
+    // Only a raise can run out of stock. A lowered quantity the core backend
+    // refuses says nothing about availability, so offering to notify the
+    // shopper there would be an answer to a question they did not ask.
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+
+    await userEvent.click(mustFind("MinusIcon_CartPage"));
+
+    expect(
+      screen.queryByText(QUESTION),
+      "the shopper pressed minus, the core backend refused it, and the row offered to tell them when the product is available again",
+    ).toBeNull();
+  });
+
+  it("subscribes to this exact row when the shopper presses Notify", async () => {
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    await userEvent.click(screen.getByText("Notify Me"));
+
+    // The variant matters: a shopper waiting for the blue medium must not be
+    // told the red small came back.
+    expect(
+      NotifyForProducts.mock.calls[0]?.[0],
+      "pressing Notify did not ask for this product and this variant, so the shopper would be told about the wrong thing, or about nothing at all",
+    ).toEqual({ id: cartRow.product_id, variant: "pv-7" });
+  });
+
+  it("asks the browser for permission before it promises anything", async () => {
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    await userEvent.click(screen.getByText("Notify Me"));
+
+    expect(
+      AllowNotifications,
+      "Notify subscribed the shopper without asking the browser for push permission, so nothing would ever arrive",
+    ).toHaveBeenCalled();
+  });
+
+  it("refuses to promise anything when this device cannot take push", async () => {
+    // No token means the backend has no device to send to. Saying "we will tell
+    // you" then is a promise nothing can keep. This is the reading
+    // components/products/MoreOptionsSection.tsx:90-99 already uses.
+    AllowNotifications.mockResolvedValue(undefined);
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    await userEvent.click(screen.getByText("Notify Me"));
+
+    expect(
+      NotifyForProducts,
+      "this device cannot take push and the row subscribed the shopper anyway, promising a message that can never arrive",
+    ).not.toHaveBeenCalled();
+    expect(
+      messagesShown().join(" | "),
+      "this device cannot take push and the shopper was told nothing about it",
+    ).toContain("Notification Is Not Enabled");
+  });
+
+  it("closes without subscribing when the shopper presses Cancel", async () => {
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    await userEvent.click(screen.getByText("Cancel"));
+
+    expect(
+      NotifyForProducts,
+      "pressing Cancel subscribed the shopper anyway",
+    ).not.toHaveBeenCalled();
+    expect(
+      screen.queryByText(QUESTION),
+      "pressing Cancel left the question on screen",
+    ).toBeNull();
+  });
+
+  it("says the shopper is already waiting instead of offering Notify again", async () => {
+    // `NotifyForProducts` subscribes to the topic `product_availability_<id>`
+    // (services/auth.ts:406-412), and the store holds the list the backend
+    // confirmed. So a shopper who already asked — here or on the product page —
+    // is told so, rather than being handed the same button for ever.
+    refuseOnStock();
+    await openARowThatCanBeRefused({
+      firebaseSettings: {
+        subscribed_topics: [
+          { topic: `product_availability_${cartRow.product_id}` },
+        ],
+        unsubscribed_topics: [],
+      },
+    });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      screen.queryByText(ALREADY_ON),
+      "the shopper already asked to be told about this product and was not reminded of it",
+    ).not.toBeNull();
+    expect(
+      screen.queryByText("Notify Me"),
+      "the shopper already asked to be told about this product and was offered the Notify button again, so they can keep pressing it for ever",
+    ).toBeNull();
+  });
+
+  it("says the shopper is now waiting once Notify has gone through", async () => {
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    await userEvent.click(screen.getByText("Notify Me"));
+
+    expect(
+      screen.queryByText(ALREADY_ON),
+      "Notify went through and the prompt never confirmed it, so the shopper cannot tell whether the press worked",
+    ).not.toBeNull();
+  });
+
+  it("does not claim success when the backend refused the subscription", async () => {
+    // `subscribeToTopicInventory` resolves `{ success: false }` rather than
+    // throwing, so a caller that ignores the answer paints a promise the next
+    // page load undoes.
+    NotifyForProducts.mockResolvedValue({
+      success: false,
+      message: "no device",
+    });
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    await userEvent.click(screen.getByText("Notify Me"));
+
+    expect(
+      screen.queryByText(ALREADY_ON),
+      "the backend refused the subscription and the row told the shopper they would be notified",
+    ).toBeNull();
   });
 });

@@ -71,7 +71,29 @@ class CartService {
       return false;
     }
   }
-  async UpdateCart({ cart_id, qty, isFromAddWidget = false, is_luck = false }) {
+  /** Change the quantity of one cart row.
+   *
+   *  Returns `true` only when the core backend took the new quantity.
+   *
+   *  `onRefused` tells the caller about one case the `false` cannot: the core
+   *  backend answered, and said no (`data.status` is not 1). That is a refusal
+   *  on stock, not a failed request, and the cart row offers to notify the
+   *  shopper for it. Every other failure — a refused request, a thrown error —
+   *  leaves `onRefused` alone, so a network fault is never blamed on the
+   *  product. */
+  async UpdateCart({
+    cart_id,
+    qty,
+    isFromAddWidget = false,
+    is_luck = false,
+    onRefused = null,
+  }: {
+    cart_id: any;
+    qty: any;
+    isFromAddWidget?: boolean;
+    is_luck?: boolean;
+    onRefused?: ((refusal: { status: any; qty: any }) => void) | null;
+  }) {
     const { updateProductQuantityInCart } = useAppStore.getState();
 
 
@@ -98,6 +120,7 @@ class CartService {
         });
         return true;
       }
+      onRefused?.({ status: response?.data?.status, qty: response?.data?.qty });
       return false;
     } catch (error) {
       LogServerError({

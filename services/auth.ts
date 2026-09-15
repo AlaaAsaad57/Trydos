@@ -401,16 +401,21 @@ class AuthService {
     const { cancelAuth } = useAppStore.getState();
     cancelAuth(isForExpired);
   }
+  /** Ask to be told when this product — or this one variant — is back.
+   *
+   *  The answer is returned rather than swallowed. `fetchData` resolves to
+   *  `{ success: false }` instead of throwing, so a caller that ignores it
+   *  would tell the shopper "we will let you know" for a subscription the
+   *  backend never took. */
   async NotifyForProducts({ id, variant }) {
     if (!variant || variant?.includes("N/A"))
-      await home.subscribeToTopicInventory({
+      return await home.subscribeToTopicInventory({
         topic: `product_availability_${id}`,
       });
-    else
-      await home.subscribeToTopicInventory({
-        topic: `product_availability_${id}`,
-        variant: variant,
-      });
+    return await home.subscribeToTopicInventory({
+      topic: `product_availability_${id}`,
+      variant: variant,
+    });
   }
 
   getUser() {

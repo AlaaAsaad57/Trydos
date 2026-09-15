@@ -2590,7 +2590,9 @@ const translations = {
   "choose Switch web": "اختر التبديل إلى الويب",
   "read this code from opposite side Camera": "امسح هذا الرمز بالكاميرا من الجهة المقابلة",
   "To Create new account Tap “agree & Continue” to accept": "لإنشاء حساب جديد انقر على \"الموافقة والمتابعة\" للقبول",
-  "The code sent has expired": "انتهت صلاحية الرمز المرسل"
+  "The code sent has expired": "انتهت صلاحية الرمز المرسل",
+  "We Could Not Add More Of This Product": "لم نتمكن من إضافة المزيد من هذا المنتج",
+  "Do You Want Us To Notify You When It Is Available?": "هل تريد أن نعلمك عندما يتوفر؟"
 };
 
 export default translations;

@@ -33,6 +33,7 @@ import Image from "next/image";
 import EmptyCart from "./EmptyCart";
 import { isSamePage } from "utils/navigationsUtils";
 import { showErrorNotification } from "@/store/notifications/reducer";
+import NotifyWhenAvailableModal from "./NotifyWhenAvailableModal";
 
 function CartContainer({ close, toOrders }) {
   const {
@@ -489,6 +490,8 @@ export const QuantutyInput = ({
   const [inputValue, setInputValue] = useState(parseInt(value));
   const [isNarrowScreen, setIsNarrowScreen] = useState(false);
   const [loading, setLoading] = useState(false);
+  // Open only when the core backend refuses a raise — see `updateQuantity`.
+  const [askAboutNotify, setAskAboutNotify] = useState(false);
   useEffect(() => {
     if (parseInt(value) === inputValue) return;
     setInputValue(parseInt(value));
@@ -505,7 +508,18 @@ export const QuantutyInput = ({
     // Single update path — go through the cart service (which syncs the store)
     // instead of POSTing to /cart/update directly, so the operation isn't
     // duplicated across two store-sync paths.
-    const succeeded = await cartService.UpdateCart({ cart_id: id, qty: quantity });
+    const succeeded = await cartService.UpdateCart({
+      cart_id: id,
+      qty: quantity,
+      // The core backend answered and said no — it has no more to give. That is
+      // not a failed request, so there is no error to show; offer the shopper
+      // the thing they actually want instead, which is to be told when it is
+      // back. Only a raise can run out of stock, so a lowered quantity that is
+      // refused says nothing.
+      onRefused: () => {
+        if (quantity > previousValue) setAskAboutNotify(true);
+      },
+    });
     if (!succeeded) {
       // Roll the optimistic +/- back to the value it held before this change.
       setInputValue(previousValue);
@@ -682,6 +696,14 @@ export const QuantutyInput = ({
         isRtl ? "right-[137px] flex-row-reverse" : "left-[137px] flex-row"
       } absolute flex-nowrap ${"top-[125px]"}  items-center justify-between gap-x-2 max-w-[calc(100%-152px)] w-full`}
     >
+      {askAboutNotify && (
+        <NotifyWhenAvailableModal
+          product={product}
+          translate={translate}
+          isRtl={isRtl}
+          onClose={() => setAskAboutNotify(false)}
+        />
+      )}
       <div className="flex-col px-[4px] shrink-0">
         <div
           className={`${
