@@ -165,8 +165,12 @@ vi.mock("services/home", () => ({
 const defaultStoreState = {
   addressDetails: {
     id: 1,
+    location: { latitude: 33.5, longitude: 36.3 },
+    user_name: "Sami",
+    Country: { name: "Syria", code: "sy" },
     address: "Main Street",
     address_detail: "Apt 4B",
+    region: "Damascus",
     region_details: {
       province: "Damascus",
       city: "Old City",
@@ -175,8 +179,9 @@ const defaultStoreState = {
       building: "Bldg 5",
     },
     contact_info: {
+      contact_person_name: "Sami",
       phone: "+963911111111",
-      name: "Sami",
+      alternative_phone: "",
     },
   },
   addressLists: [
@@ -187,12 +192,16 @@ const defaultStoreState = {
     },
   ],
   orderData: {
+    data: null,
     payment: [
       {
         id: 0,
         balance: 100,
       },
     ],
+    coupon: false,
+    agree: false,
+    coupon_number: "",
     loading: false,
     success: false,
   },
