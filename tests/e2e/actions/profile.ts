@@ -79,19 +79,31 @@ const gotoUnderLocale = async (page: Page, path: string): Promise<void> => {
  *  500 ms gap, which a late burst sits right after — see the caller above.
  *
  *  1 second of silence, and the timer restarts on every new request, so a burst
- *  that begins during the wait extends it rather than slipping past. Capped at
- *  6 seconds: a screen that never falls quiet must not hold the suite, and
- *  hitting the cap is not a failure — the caller has already asserted its own
- *  marker, and this only decides how settled the page is underneath.
+ *  that begins during the wait extends it rather than slipping past. Hitting the
+ *  cap is not a failure — the caller has already asserted its own marker, and
+ *  this only decides how settled the page is underneath.
  *
- *  Still well under the 10-second wait this replaced, and the normal case is a
- *  little over a second. */
+ *  **The cap is 12 seconds, and it is a measured number, not a guess.** The
+ *  chat layer wakes late on these screens: it asks for the channel list and then
+ *  marks each channel read. A cap of 6 seconds was tried and the four
+ *  closed-door cases in `profile.scripted.spec.ts` still caught that burst, while
+ *  the 10-second wait this whole change removed had always covered it. So chat
+ *  wakes somewhere between the two, and the cap has to clear it.
+ *
+ *  **It costs almost nothing, because the cap only bites where there is late
+ *  activity.** A screen that goes quiet returns after its one second, whatever
+ *  the cap is. `profile.live` signs in once and shares that session across
+ *  PROF-02 to PROF-07, so chat has long since woken by the time those screens
+ *  open and they keep their gains — PROF-02 went from 48.3s to 8.4s and stayed
+ *  there. `profile.scripted` signs in fresh in every case, so chat wakes inside
+ *  each one, and those six are the ones that pay. That is where the failures
+ *  were, and it is the whole reason this number moved. */
 const waitForPageQuiet = async (
   page: Page,
   options: { quietMs?: number; timeoutMs?: number } = {},
 ): Promise<void> => {
   const quietMs = options.quietMs ?? 1_000;
-  const timeoutMs = options.timeoutMs ?? 6_000;
+  const timeoutMs = options.timeoutMs ?? 12_000;
 
   const deadline = Date.now() + timeoutMs;
   let lastRequestAt = Date.now();
