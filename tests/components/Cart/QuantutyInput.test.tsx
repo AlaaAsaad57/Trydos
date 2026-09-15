@@ -14,6 +14,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { QuantutyInput } from "components/Cart";
 
+import { useAppStore } from "store";
 import { useNotificationStore } from "store/notifications/reducer";
 
 import { renderWithProviders, screen, userEvent } from "../../render";
@@ -504,7 +505,8 @@ describe("offering to notify the shopper when the core backend refuses", () => {
     trackOrder.mockClear();
     AllowNotifications.mockClear();
     AllowNotifications.mockResolvedValue("fcm-token");
-    GetFireBaseSettings.mockClear();
+    GetFireBaseSettings.mockReset();
+    GetFireBaseSettings.mockResolvedValue(undefined);
     NotifyForProducts.mockClear();
     NotifyForProducts.mockResolvedValue({ success: true });
     useNotificationStore.getState().clearNotifications();
@@ -641,6 +643,91 @@ describe("offering to notify the shopper when the core backend refuses", () => {
     expect(
       screen.queryByText("Notify Me"),
       "the shopper already asked to be told about this product and was offered the Notify button again, so they can keep pressing it for ever",
+    ).toBeNull();
+  });
+
+  it("reads the shopper's notification settings before offering anything", async () => {
+    // The cart page never loads these settings for itself, so the store can
+    // hold an empty list for a shopper who is already subscribed. Asking the
+    // backend on open is what stops them subscribing to the same product again
+    // and again — the product page does the same on mount
+    // (components/products/MoreOptionsSection.tsx:131-136).
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      GetFireBaseSettings,
+      "the prompt opened without asking for the shopper's notification settings, so a shopper who is already subscribed is offered Notify again",
+    ).toHaveBeenCalled();
+  });
+
+  it("uses the settings the backend returns, not the empty list it started with", async () => {
+    // The store starts empty here, exactly as a fresh cart page does. Only the
+    // answer from the backend can say the shopper is already waiting.
+    GetFireBaseSettings.mockImplementation(async () => {
+      useAppStore.getState().getFirebaseSettings({
+        subscribed_topics: [
+          { topic: `product_availability_${cartRow.product_id}` },
+        ],
+        unsubscribed_topics: [],
+      });
+    });
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      screen.queryByText(ALREADY_ON),
+      "the backend said this shopper is already subscribed and the prompt offered Notify anyway, so they would subscribe to the same product twice",
+    ).not.toBeNull();
+    expect(
+      screen.queryByText("Notify Me"),
+      "the backend said this shopper is already subscribed and the Notify button was still offered",
+    ).toBeNull();
+  });
+
+  it("still offers Notify when the subscription is for another variant", async () => {
+    // The backend subscribes per variant (services/home.ts:538-556). A shopper
+    // waiting for the red small has not asked about the blue medium.
+    refuseOnStock();
+    await openARowThatCanBeRefused({
+      firebaseSettings: {
+        subscribed_topics: [
+          {
+            topic: `product_availability_${cartRow.product_id}`,
+            variant: "pv-OTHER",
+          },
+        ],
+        unsubscribed_topics: [],
+      },
+    });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      screen.queryByText("Notify Me"),
+      "the shopper is waiting for a different variant of this product and was told they are already covered for this one",
+    ).not.toBeNull();
+  });
+
+  it("draws the prompt outside the cart row so nothing can cover it", async () => {
+    // The row sits under stacked, positioned cart controls. Drawn inside it the
+    // prompt loses to them whatever its z-index, because the winner is decided
+    // inside the row's own stacking context. A portal to <body> takes it out of
+    // that contest.
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    const prompt = marked("notify-when-available-modal");
+    expect(prompt, "the prompt was never drawn").not.toBeNull();
+    expect(
+      prompt?.closest('[data-pw="card-footer"]'),
+      "the prompt is drawn inside the cart row's own controls, so those controls stack above it and the shopper sees it behind the plus and minus buttons",
     ).toBeNull();
   });
 
