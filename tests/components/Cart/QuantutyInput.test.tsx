@@ -14,6 +14,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { QuantutyInput } from "components/Cart";
 
+import { useNotificationStore } from "store/notifications/reducer";
+
 import { renderWithProviders, screen, userEvent } from "../../render";
 
 const ConvertToOldCart = vi.fn();
@@ -157,18 +159,26 @@ const mustFind = (marker: string): HTMLElement => {
   return found;
 };
 
-/** One cart row at the quantity given, with nothing pressed yet. */
-async function openTheCartRowAt(quantity: number, deleteFunction = () => {}) {
+/** One cart row at the quantity given, with nothing pressed yet.
+ *
+ *  `options.max` is the stock left, which the cart page passes as the row's
+ *  `available_quantity` (components/Cart/index.tsx:346). `options.product` adds
+ *  fields to the row, such as the seller's per-order limit `max_allowed_qty`. */
+async function openTheCartRowAt(
+  quantity: number,
+  deleteFunction = () => {},
+  options: { max?: number; product?: Record<string, any> } = {},
+) {
   return renderWithProviders(
     <QuantutyInput
       value={quantity}
       setValue={() => {}}
-      max={5}
+      max={"max" in options ? options.max : 5}
       deleteFunction={deleteFunction}
       id={cartRow.id}
       disabled={false}
       updateData={() => {}}
-      product={{ ...cartRow, quantity }}
+      product={{ ...cartRow, quantity, ...(options.product ?? {}) }}
     />,
     {
       country: "sy",
@@ -266,5 +276,147 @@ describe("which controls a cart row draws", () => {
       deleteFunction,
       "pressing delete on a row holding one item did not remove it",
     ).toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The cap on how many of one item a shopper may hold.
+//
+// A cart row carries two separate caps, and the lower one wins:
+//
+//   * `max_allowed_qty` — the per-order limit the seller set. `"0"` means the
+//     seller set no limit, which is the same reading the product page uses
+//     (components/Cart/AddToCart/AddToCartComponent.tsx:458-459).
+//   * `available_quantity` — the stock left. The cart page passes it to this
+//     component as the `max` prop (components/Cart/index.tsx:346).
+//
+// Before the fix neither cap was honoured: `shouldDisablePlus` returned a
+// hardcoded `false` and the check beside it was commented out. Plus was drawn
+// at any quantity, the core backend refused the change, and the number on
+// screen quietly went back to what it was — with nothing said to the shopper.
+
+/** The message the shopper is shown, in English, which is the key itself. */
+const MAX_REACHED_MESSAGE = "Max Allowed Quantity Reached";
+
+const messagesShown = () =>
+  useNotificationStore.getState().notifications.map((n) => n.message);
+
+describe("the cap on a cart row's quantity", () => {
+  beforeEach(() => {
+    UpdateCart.mockClear();
+    trackOrder.mockClear();
+    useNotificationStore.getState().clearNotifications();
+  });
+
+  it("does not ask the core backend for more than the seller's per-order limit", async () => {
+    await openTheCartRowAt(3, () => {}, { product: { max_allowed_qty: "3" } });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "the row is already at the seller's per-order limit of 3, and pressing plus still asked the core backend for more",
+    ).toBeUndefined();
+  });
+
+  it("tells the shopper why plus did nothing at the per-order limit", async () => {
+    await openTheCartRowAt(3, () => {}, { product: { max_allowed_qty: "3" } });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      messagesShown(),
+      "pressing plus at the per-order limit changed nothing and said nothing, so the shopper cannot tell the limit from a broken button",
+    ).toContain(MAX_REACHED_MESSAGE);
+  });
+
+  it("marks plus as disabled once the row is at the limit", async () => {
+    await openTheCartRowAt(3, () => {}, { product: { max_allowed_qty: "3" } });
+
+    // It stays on screen on purpose: a control that is removed can never be
+    // pressed, so it can never explain itself.
+    expect(
+      mustFind("PlusIcon_CartPage").getAttribute("aria-disabled"),
+      "the plus control at the per-order limit is not marked as disabled, so it looks like an ordinary working button",
+    ).toBe("true");
+  });
+
+  it("still asks the core backend for one more below the limit", async () => {
+    // Without this case the two above would also pass on a cap that is always
+    // on, which would stop every shopper raising any quantity.
+    await openTheCartRowAt(2, () => {}, { product: { max_allowed_qty: "3" } });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "a row of 2 under a per-order limit of 3 refused to go to 3",
+    ).toEqual({ cart_id: cartRow.id, qty: 3 });
+    expect(
+      messagesShown(),
+      "a row below its limit told the shopper it had reached the limit",
+    ).not.toContain(MAX_REACHED_MESSAGE);
+  });
+
+  it("treats a per-order limit of 0 as no limit", async () => {
+    // The seller left the field empty, so only the stock caps the row.
+    await openTheCartRowAt(4, () => {}, {
+      max: 9,
+      product: { max_allowed_qty: "0" },
+    });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "a per-order limit of 0 means the seller set no limit, but the row was capped at 0 anyway",
+    ).toEqual({ cart_id: cartRow.id, qty: 5 });
+  });
+
+  it("does not ask the core backend for more than the stock left", async () => {
+    // No per-order limit at all, so the stock is the only cap.
+    await openTheCartRowAt(3, () => {}, { max: 3 });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "the row already holds the last 3 in stock, and pressing plus still asked the core backend for a 4th",
+    ).toBeUndefined();
+    expect(
+      messagesShown(),
+      "the row hit the end of the stock and the shopper was told nothing",
+    ).toContain(MAX_REACHED_MESSAGE);
+  });
+
+  it("uses the lower of the two caps", async () => {
+    // Stock of 8, per-order limit of 2. The limit is what the shopper meets.
+    await openTheCartRowAt(2, () => {}, {
+      max: 8,
+      product: { max_allowed_qty: "2" },
+    });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "the row has 8 in stock but a per-order limit of 2, and the cart page followed the stock instead of the lower cap",
+    ).toBeUndefined();
+  });
+
+  it("keeps plus working when the row carries neither cap", async () => {
+    // Guards the shape of the fix: a missing field is not a cap of 0. If it
+    // were, every row the backend answers without these fields would freeze.
+    await openTheCartRowAt(2, () => {}, {
+      max: undefined as any,
+      product: { max_allowed_qty: undefined },
+    });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "a row that carries no limit and no stock figure was treated as already full",
+    ).toEqual({ cart_id: cartRow.id, qty: 3 });
   });
 });

@@ -1622,12 +1622,12 @@ export const changeLineQuantity = async (
           `"${options.name}" does not show quantity ${wanted} after the bag ` +
           `was read again. The app draws the new number before it asks, so a ` +
           `value that went back to ${before} means the cart backend refused ` +
-          `the change — most often because the product has only ${before} in ` +
-          `stock. The plus control is drawn whatever the stock is: ` +
-          `shouldDisablePlus always returns false, and the check against ` +
-          `available_quantity beside it is commented out ` +
-          `(components/Cart/index.tsx:623-633). The change call said: ` +
-          `${updateSaid}. The bag then said: ${answer.said}`,
+          `the change. The cart page now caps the row itself, at the lower of ` +
+          `max_allowed_qty and available_quantity (quantityCap, ` +
+          `components/Cart/index.tsx). So a refusal here means the two ` +
+          `disagree: the backend refused a quantity the row said was allowed. ` +
+          `The change call said: ${updateSaid}. The bag then said: ` +
+          `${answer.said}`,
       })
       .toBe(wanted);
 

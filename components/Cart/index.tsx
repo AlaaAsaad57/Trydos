@@ -32,6 +32,7 @@ import CartItem from "./CartItem";
 import Image from "next/image";
 import EmptyCart from "./EmptyCart";
 import { isSamePage } from "utils/navigationsUtils";
+import { showErrorNotification } from "@/store/notifications/reducer";
 
 function CartContainer({ close, toOrders }) {
   const {
@@ -620,17 +621,34 @@ export const QuantutyInput = ({
       setLoading(false);
     }
   };
-  const shouldDisablePlus = () => {
-    // if (isCollectedAfterOrdering) {
-    //   return false;
-    // }
-
-    // if (inputValue >= product.available_quantity) {
-    //   return true;
-    // }
-    // return false;
-    return false;
-  };
+  // How many of this item the shopper may hold. Two separate caps apply and the
+  // lower one wins:
+  //
+  //   * `max_allowed_qty` — the per-order limit the seller set. A 0 means the
+  //     seller set no limit, the same reading the product page uses
+  //     (components/Cart/AddToCart/AddToCartComponent.tsx:458-459).
+  //   * `max` — the stock left, which the cart page passes as the row's
+  //     `available_quantity`. Here a 0 does cap the row: there is none left.
+  //
+  // A field the backend did not send is not a cap, so only finite numbers count.
+  // Without that guard a row answered without these fields would read as full
+  // and the shopper could never raise it.
+  const quantityCap = (() => {
+    const caps: number[] = [];
+    const perOrderLimit = Number(product?.max_allowed_qty);
+    if (Number.isFinite(perOrderLimit) && perOrderLimit > 0)
+      caps.push(perOrderLimit);
+    const stockLeft = Number(max);
+    if (
+      max !== null &&
+      max !== undefined &&
+      Number.isFinite(stockLeft) &&
+      stockLeft >= 0
+    )
+      caps.push(stockLeft);
+    return caps.length > 0 ? Math.min(...caps) : null;
+  })();
+  const reachedMaxQty = quantityCap !== null && inputValue >= quantityCap;
   const ConvertToOldCart = async () => {
     try {
       setLoading(true);
@@ -704,30 +722,33 @@ export const QuantutyInput = ({
               </g>
             </g>
           </svg>
-          {!shouldDisablePlus() && (
-            <div
-              className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
-              data-pw="PlusIcon_CartPage"
-              onClick={() => {
-                if (disabled) return false;
-                // if (inputValue === max) {
-                //   toast.error(translate("stock is limited"));
-                //   return false;
-                // }
-                // // @ts-ignore
-                // else {
-                increaseQuantity(inputValue);
-              }}
-            >
-              <Image
-                width={12}
-                height={12}
-                alt="cart-plus-icon"
-                className={"hide-btn"}
-                src={"/icons/CartPlusIcon.svg"}
-              />
-            </div>
-          )}
+          {/* The plus control stays on screen when the row is full. A control
+              that is removed can never be pressed, so it can never say why. */}
+          <div
+            className={`absolute hide-btn h-[24px] flex items-center right-[6px] ${
+              reachedMaxQty ? "opacity-40 cursor-not-allowed" : "cursor-pointer"
+            }`}
+            data-pw="PlusIcon_CartPage"
+            aria-disabled={reachedMaxQty}
+            onClick={() => {
+              if (disabled) return false;
+              if (reachedMaxQty) {
+                showErrorNotification(
+                  translate("Max Allowed Quantity Reached"),
+                );
+                return false;
+              }
+              increaseQuantity(inputValue);
+            }}
+          >
+            <Image
+              width={12}
+              height={12}
+              alt="cart-plus-icon"
+              className={"hide-btn"}
+              src={"/icons/CartPlusIcon.svg"}
+            />
+          </div>
 
           {inputValue > 1 ? (
             <>
