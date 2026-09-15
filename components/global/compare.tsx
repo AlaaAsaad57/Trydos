@@ -358,7 +358,6 @@ const ComparePage = ({ showInstantLoading = true }) => {
             is_product: true,
             ...product,
           }}
-          ariaLabel={`Compare Product ${product.slug} ${lang}`}
           href={`/${lang}/products/${product.slug}`}
           className="text-blue-600 hover:text-blue-800 hover:underline"
         >

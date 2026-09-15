@@ -16,6 +16,7 @@ import {
   getFilterStateForItem,
   getFilterStateForItemLegacy,
 } from "utils/listing/filterItemState";
+import { translateFunction } from "utils/functions";
 
 const FilterItem = ({
   term,
@@ -99,7 +100,6 @@ const FilterItem = ({
           data={{
             is_filter: true,
           }}
-          ariaLabel={`filter category ${item.slug} ${params.lang}`}
           href={href}
           className={`category-circle flex-col align-center ${
             item?.childes?.length > 0 && "extended-circle"
@@ -369,7 +369,6 @@ const FilterItem = ({
           is_filter: true,
         }}
         href={href}
-        ariaLabel={`filter brand ${item.slug} ${params.lang}`}
         className={`category-circle flex-col align-center ${
           true && "extended-circle"
         }`}
@@ -434,7 +433,11 @@ const FilterItem = ({
           is_filter: true,
         }}
         href={href}
-        ariaLabel={`filter color ${item} ${params.lang}`}
+        // The only circle with neither a name nor a number in it: the swatch
+        // IS the label. Without this the link reaches a screen reader unnamed.
+        // The hex is interpolated rather than translated, and it is what keeps
+        // one colour circle apart from the next.
+        ariaLabel={`${translateFunction("Color", params.lang.split("-")[1])}: ${displayColor}`}
         className={`category-circle flex-col align-center extended-circle`}
         data-pw="color_filter_item"
       >
@@ -490,7 +493,6 @@ const FilterItem = ({
           is_filter: true,
         }}
         href={href}
-        ariaLabel={`filter size ${item} ${params.lang}`}
         className={`category-circle flex-col align-center extended-circle`}
         data-pw="size_filter_item"
       >
@@ -557,7 +559,6 @@ const FilterItem = ({
           is_filter: true,
         }}
         href={href}
-        ariaLabel={`filter price ${item.min_price}-${item.max_price} ${params.lang}`}
         className={`category-circle flex-col align-center min-w-[140px] w-auto static extended-circle`}
         data-pw="price_filter_item"
       >

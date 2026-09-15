@@ -50,6 +50,11 @@ export default function NextLink({
         style={style}
         prefetch={"auto"}
         href={href}
+        // Only when the caller asked for one. An aria-label REPLACES the link's
+        // own content in its accessible name, so an empty or default label
+        // would leave a link that reads "Blue Shirt, £80, Nike" announced as
+        // nothing. Pass one only for a link that has no text of its own.
+        aria-label={ariaLabel}
         onNavigate={(e) => {
           if (isFromSetting) {
             let element = document.querySelector(".setting-screen");
@@ -126,6 +131,8 @@ export default function NextLink({
       style={style}
       data-pw={props["data-pw"] ?? ""}
       prefetch={"auto"}
+      // See the note on the same attribute above.
+      aria-label={ariaLabel}
       onNavigate={(e) => {
         if (isFromSetting) {
           let element = document.querySelector(".setting-screen");

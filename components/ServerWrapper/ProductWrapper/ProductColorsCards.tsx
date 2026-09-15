@@ -41,7 +41,6 @@ function ProductColorsCards({
 
               images: [color?.images?.[0]],
             }}
-            ariaLabel={`go to product ${InitialProductData?.name} ${language}`}
             href={getUrlofProduct(color?.color_name, language, country, slug)}
             className="product-container  align-center flex-col relative pb-[12px]"
             data-pw="product_link"

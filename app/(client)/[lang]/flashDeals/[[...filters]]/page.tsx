@@ -7,7 +7,7 @@ import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { LogServerError } from "utils/serverErrorReporter";
-import { parseFiltersFromParams } from "utils/server";
+import { parseFiltersFromParams, translateFunction } from "utils/server";
 import { generateMetadataForListing } from "serverRequests/meta/listing";
 import { permanentRedirect } from "next/navigation";
 import { buildSearchRedirectTarget } from "utils/listing/searchPathRedirect";
@@ -159,7 +159,7 @@ export default async function Page({ params, searchParams }) {
               is_full_home: true,
             }}
             href={`/${lang}`}
-            ariaLabel={`TryDos Home ${lang}`}
+            ariaLabel={translateFunction("Back to Home", language)}
             className="back-icon"
           >
             <img

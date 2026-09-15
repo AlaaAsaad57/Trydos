@@ -226,3 +226,80 @@ describe("the product card with no deal at all (AC-9)", () => {
     ).not.toContain(DEAL_BORDER);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Phase 25 — the card as the last step of the listing journey.
+//
+// Everything above is about the flash-deal rule. The cases below are about the
+// one thing the listing needs from a card that nothing else in the listing can
+// check: that tapping it reaches the right product page.
+//
+// A listing is only useful if its cards lead somewhere, and both parts of that
+// address are built here from the listing's own context — the locale the shopper
+// is browsing in, and the colour the card happens to be showing.
+describe("the product card as a way into the product (phase 25)", () => {
+  /** The link the whole card is wrapped in. */
+  const cardLink = () => document.querySelector('[data-pw="product_link"]');
+
+  it("leads to the product page", async () => {
+    await renderCard(buildListingProduct({ slug: "blue-shirt" }));
+
+    expect(
+      cardLink(),
+      "a listing whose cards do not link anywhere is a catalogue the shopper cannot buy from",
+    ).toHaveAttribute("href", "/gb-en/products/blue-shirt");
+  });
+
+  it("stays in the locale the shopper is browsing", async () => {
+    await renderWithProviders(
+      <ProductCard
+        product={buildListingProduct({ slug: "blue-shirt" })}
+        currency={CURRENCY}
+        country="sy"
+        language="ar"
+        sliders={false}
+        sizesFilters={null}
+        fromRecomended={null}
+      />,
+      { country: "sy", language: "ar" },
+    );
+
+    expect(
+      cardLink(),
+      "the country and the language are the first segment of every address in this app; a card that drops them sends an Arabic shopper in Syria to the English product page",
+    ).toHaveAttribute("href", "/sy-ar/products/blue-shirt");
+  });
+
+  it("opens the product on the colour the card was showing", async () => {
+    await renderCard(
+      buildListingProduct({
+        slug: "blue-shirt",
+        sync_color_images: [
+          {
+            color_name: "navy blue",
+            images: [{ file_path: "/product/navy.jpg" }],
+          },
+        ] as any,
+      }),
+    );
+
+    expect(
+      cardLink(),
+      "the card shows one colour out of several; opening the product on a different one shows the shopper a garment they did not tap",
+    ).toHaveAttribute(
+      "href",
+      "/gb-en/products/blue-shirt?color=navy%20blue",
+    );
+  });
+
+  it("asks for no colour when the card was not showing one", async () => {
+    await renderCard(
+      buildListingProduct({ slug: "blue-shirt", sync_color_images: [] }),
+    );
+
+    expect(
+      cardLink()?.getAttribute("href"),
+      "an empty `?color=` asks the product page for a colour that does not exist, and makes a second address for one product",
+    ).not.toContain("color=");
+  });
+});

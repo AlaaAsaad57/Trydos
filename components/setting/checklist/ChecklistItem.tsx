@@ -42,7 +42,6 @@ function ChecklistItem({
       <NextLink
         isFromSetting={true}
         data={{ is_product: true, ...item }}
-        ariaLabel={item.name}
         data-pw="checklist-item-link"
         href={`/${local}/products/${item.slug}`}
         className={`${

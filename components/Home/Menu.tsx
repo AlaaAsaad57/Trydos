@@ -61,7 +61,6 @@ const MenuItem = ({
           onClick();
         }}
         data={data}
-        ariaLabel={`Menu Item ${href}`}
         data-pw={dataCy}
         style={style}
         href={href}

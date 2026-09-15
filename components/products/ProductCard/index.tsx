@@ -191,7 +191,6 @@ function ProductCard({
               }
             : null
         }
-        ariaLabel={`go to product ${name} ${language}`}
         href={getUrlofProduct(color, language, country, slug)}
         className="product-container  align-center flex-col relative pb-[12px]"
         data-pw="product_link"

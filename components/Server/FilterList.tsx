@@ -2,6 +2,7 @@
 import React from "react";
 import { useAppStore } from "store";
 import NextLink from "components/global/NextLink";
+import { translateFunction } from "utils/functions";
 import {
   GetImageUrl,
   buildParamsFromFilters,
@@ -439,7 +440,7 @@ const ActiveFiltersBar = ({
         ignoreConditionCase={true}
         href={getResetUrl()}
         data-pw="reset_filter_button"
-        ariaLabel={`close filter ${params.lang}`}
+        ariaLabel={translateFunction("Clear filters", language)}
       >
         <img
           src="/icons/CloseIcon.svg"

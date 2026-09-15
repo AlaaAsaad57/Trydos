@@ -103,7 +103,6 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
           <div className="felx" onClick={baseOnClick}>
             <NextLink
               href={href}
-              ariaLabel={`notification Boutique ${parsedDescription.boutique_slug} ${lang}`}
               data={{ is_boutique: true, ...parsedDescription, href }}
             >
               {content}
@@ -135,7 +134,6 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
           <div className="felx" onClick={baseOnClick}>
             <NextLink
               href={href}
-              ariaLabel={`notification Product ${slug} ${lang}`}
               data={{ is_product: true, ...parsedDescription, href }}
             >
               {content}
@@ -153,7 +151,6 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
           <div className="felx" onClick={baseOnClick}>
             <NextLink
               href={href}
-              ariaLabel={`notification Category ${slug} ${lang}`}
               data={{ is_category: true, ...parsedDescription, href }}
             >
               {content}
@@ -169,7 +166,6 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
           <div className="felx" onClick={baseOnClick}>
             <NextLink
               href={href}
-              ariaLabel="notification Order"
               data={{ is_settings: true, ...parsedDescription, href }}
             >
               {content}

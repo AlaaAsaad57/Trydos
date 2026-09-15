@@ -22,7 +22,6 @@ function CategoryNavMobile({
       data={{
         is_home: true,
       }}
-      ariaLabel={`Category ${slug} ${params?.lang}`}
       data-pw="category-Link"
       className={`categories-bar-item  cursor-pointer flex flex-col relative w-auto max-w-full justify-start mx-[5px] items-center ${
         decodeURI(mainCategory) === slug && "active-nav-category"
