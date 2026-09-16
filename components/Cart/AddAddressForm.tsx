@@ -616,22 +616,37 @@ const AddAddressButtons = ({
     }
     return;
   };
+  // Runs only when `isValid()` has already refused the save, so its whole job is
+  // to point at the field that is holding it up.
+  //
+  // **A missing value is checked the same as a blank one**, and it used to not
+  // be. Every test here asked `?.length === 0`, and `undefined?.length === 0` is
+  // false — so a field the form never received was skipped and the shopper got
+  // no shake at all. The phone was worse: `undefined < 5` is also false, so a
+  // missing phone did not even reach the branch a four-digit one reaches.
+  //
+  // The two are different objects, not the same one twice. `startUpdateAddress`
+  // (`store/Cart/reducer.ts`) rebuilds `addressDetails` from the backend's
+  // answer, and a key that answer omits arrives as `undefined` rather than `""`.
+  // `isValid()` refuses both, so Save is grey either way and pressing it landed
+  // here and did nothing — no movement, no message, no reason. Guarded by the
+  // two cases in `tests/components/Cart/AddAddressForm.test.tsx`.
   const validate = () => {
-    if (userName === "" && addressDetails.user_name?.length === 0)
+    if (userName === "" && !addressDetails.user_name?.length)
       return shake("username-border");
-    if (addressDetails.address_detail?.length === 0) {
+    if (!addressDetails.address_detail?.length) {
       return shake("details-border");
     }
-    if (addressDetails.address?.length === 0) {
+    if (!addressDetails.address?.length) {
       return shake("title-border");
     }
-    if (addressDetails.region?.length === 0) {
+    if (!addressDetails.region?.length) {
       return shake("region-border");
     }
-    if (addressDetails.contact_info?.contact_person_name?.length === 0) {
+    if (!addressDetails.contact_info?.contact_person_name?.length) {
       return shake("name-border");
     }
-    if (addressDetails.contact_info?.phone?.length < 5) {
+    if ((addressDetails.contact_info?.phone?.length ?? 0) < 5) {
       return shake("phone-border");
     }
   };

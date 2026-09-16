@@ -13,12 +13,21 @@
 //
 // `activeIndex` is false so the map never mounts. It needs Google Maps and has
 // nothing to do with saving.
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import AddAddressForm from "components/Cart/AddAddressForm";
 import { useAppStore } from "store";
 
 import { renderWithProviders, userEvent } from "../../render";
+
+// jsdom has no `scrollIntoView`, and `shake()` calls it before it adds the
+// class this file asserts on (`components/Cart/AddAddressForm.tsx`). Without
+// this the shake throws and the assertion reads "no field was shaken" for a
+// form that identified the field correctly — a gap in the environment reported
+// as a bug in the app. A real browser needs no stub.
+beforeAll(() => {
+  Element.prototype.scrollIntoView = vi.fn();
+});
 
 const AddAddressList = vi.fn();
 
@@ -57,7 +66,7 @@ const filledForm = {
 /** The one address the shopper had before they added another. */
 const existingAddress = { id: 11, address: "Home", is_default: 1 };
 
-async function openTheFormAndSave() {
+async function openTheFormAndSave(form: Record<string, unknown> = filledForm) {
   await renderWithProviders(
     <AddAddressForm
       activeIndex={false}
@@ -71,7 +80,7 @@ async function openTheFormAndSave() {
       store: {
         countries: [],
         addressLists: [{ ...existingAddress }],
-        addressDetails: { ...filledForm },
+        addressDetails: { ...form },
       },
     },
   );
@@ -114,5 +123,52 @@ describe("saving a new shipping address", () => {
       useAppStore.getState().addressLists.map((a: any) => a.address),
       "an address the core backend refused to save was put in the list anyway; the shopper can pick it, and checkout then sends an address_id the backend has never seen",
     ).toEqual(["Home"]);
+  });
+  // BUG-3 — a field the form never received, rather than one the shopper
+  // cleared.
+  //
+  // The two are not the same object. `startUpdateAddress`
+  // (`store/Cart/reducer.ts`) rebuilds `addressDetails` from the backend's
+  // answer, and a key the answer omits is `undefined` — not `""`. `isValid()`
+  // refuses either way, so Save stays grey and pressing it runs `validate()`.
+  // `validate()` asks `?.length === 0`, and `undefined?.length === 0` is false,
+  // so it shakes nothing and returns. The shopper presses Save and **nothing
+  // happens at all**: no movement, no message, no reason.
+  //
+  // Found by BUY-03 on staging, where the edit form opened holding every field
+  // undefined and the case could only report "the edit form did not close after
+  // Save".
+  it("tells the shopper which field is missing, not only which one is empty", async () => {
+    AddAddressList.mockResolvedValue(undefined);
+
+    // Absent, not blank. Deleting the key is the point of this case.
+    const { address_detail: _omitted, ...missingDetailLine } = filledForm;
+
+    await openTheFormAndSave(missingDetailLine);
+
+    expect(
+      document.querySelector(".details-border.shake-anim"),
+      "pressing Save with the detail line missing did nothing the shopper can " +
+        "see: the save was refused and no field was shaken, so there is no way " +
+        "to tell a broken form from a form that is waiting for something",
+    ).not.toBeNull();
+  });
+
+  // The same fault on the phone, and a worse comparison. `validate()` asks
+  // `?.length < 5`, and `undefined < 5` is false — so a missing phone did not
+  // even reach the "too short" branch that a typed-but-short one does.
+  it("shakes the phone when it is missing, not only when it is too short", async () => {
+    AddAddressList.mockResolvedValue(undefined);
+
+    await openTheFormAndSave({
+      ...filledForm,
+      contact_info: { contact_person_name: "Ada", alternative_phone: "" },
+    });
+
+    expect(
+      document.querySelector(".phone-border.shake-anim"),
+      "pressing Save with no phone at all did nothing the shopper can see, " +
+        "although a phone of four digits is shaken",
+    ).not.toBeNull();
   });
 });
