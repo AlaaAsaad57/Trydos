@@ -21,6 +21,7 @@ vi.mock("utils/orderFunnel", () => ({
   ORDER_EVENTS: {
     PAYMENT_REDIRECT_OPENED: "payment_redirect_opened",
     ORDER_PLACE_FAILED: "order_place_failed",
+    RDB_CART_LOCK_HIT: "rdb_cart_lock_hit",
   },
   trackOrder: vi.fn(),
 }));
@@ -96,7 +97,7 @@ describe("OrderService (services/order.ts)", () => {
       ).toBe(true);
     });
 
-    it("posts to custom payment method checkout path and sets pay_by_wallet=1", async () => {
+    it("posts to custom payment method checkout path without pay_by_wallet", async () => {
       useAppStore.setState({
         addressLists: [{ id: "addr-1", is_default: 1 }],
       });
@@ -113,7 +114,7 @@ describe("OrderService (services/order.ts)", () => {
 
       expect(fetchData).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: "/customer/order/checkout/crypto?order_note=order note&address_id=addr-1&pay_by_wallet=1",
+          url: "/customer/order/checkout/crypto?order_note=order note&address_id=addr-1",
           method: "POST",
           server: "market",
         }),
@@ -178,6 +179,52 @@ describe("OrderService (services/order.ts)", () => {
         }),
       );
       expect(useAppStore.getState().orderLoading).toBe(false);
+    });
+
+    describe("when an RDB payment request holds the cart", () => {
+      it("records the lock, stops, and does not place an order", async () => {
+        useAppStore.setState({
+          rdbLock: null,
+          addressLists: [{ id: 77, is_default: 1 }] as any,
+          orderData: {
+            data: null,
+            payment: [],
+            coupon: false,
+            agree: false,
+            coupon_number: "",
+            loading: false,
+            success: false,
+          },
+        });
+        vi.mocked(fetchData).mockResolvedValueOnce({
+          success: false,
+          httpStatus: 409,
+          message:
+            "Your cart is locked until the pending RDB payment is completed or cancelled.",
+          data: {
+            rdb_request_reference: "ref-1",
+            expires_at: "2026-09-15T14:30:00+00:00",
+          },
+        } as any);
+
+        await orderService.PlaceOrder({
+          payment_method: "cash_on_delivery",
+          pay_by_wallet: false,
+        });
+
+        expect(
+          useAppStore.getState().rdbLock?.reference,
+          "the core backend's locked-cart answer did not reach the store",
+        ).toBe("ref-1");
+        expect(
+          LogServerError,
+          "a locked cart is normal behaviour and must not be logged as an error",
+        ).not.toHaveBeenCalled();
+        expect(
+          useAppStore.getState().orderData.success,
+          "a locked cart must not look like a placed order",
+        ).not.toBe(true);
+      });
     });
   });
 

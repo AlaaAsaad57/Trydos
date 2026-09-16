@@ -2643,7 +2643,24 @@ const translations = {
   "To Create new account Tap “agree & Continue” to accept": "بۆ دروستکردنی هەژماری نوێ داگری \"پەسەندکردن و بەردەوامبوون\"",
   "The code sent has expired": "ماوەی کۆدی نێردراو بەسەرچوو",
   "We Could Not Add More Of This Product": "نەمانتوانی زیاتر لەم بەرهەمە زیاد بکەین",
-  "Do You Want Us To Notify You When It Is Available?": "دەتەوێت ئاگادارت بکەینەوە کاتێک بەردەست بوو؟"
+  "Do You Want Us To Notify You When It Is Available?": "دەتەوێت ئاگادارت بکەینەوە کاتێک بەردەست بوو؟",
+  "Scan this code in the RDB app": "ئەم کۆدە لە ئەپی RDB سکان بکە",
+  "Payment code": "کۆدی پارەدان",
+  "Open the RDB app": "ئەپی RDB بکەرەوە",
+  "Cancel payment": "هەڵوەشاندنەوەی پارەدان",
+  "Waiting for your payment": "چاوەڕێی پارەدانەکەت دەکەین",
+  "Payment expired": "کاتی پارەدان تەواو بوو",
+  "Payment cancelled": "پارەدان هەڵوەشێنرایەوە",
+  "Payment failed": "پارەدان سەرکەوتوو نەبوو",
+  "Payment received": "پارەدان وەرگیرا",
+  "Time left": "کاتی ماوە",
+  "Amount to pay": "بڕی پارەی پێویست",
+  "You have a payment in progress": "پارەدانێکی چالاکت هەیە",
+  "Continue payment": "بەردەوامبوون لە پارەدان",
+  "Your cart is locked until you finish or cancel the payment": "سەبەتەکەت داخراوە تا پارەدانەکە تەواو یان هەڵدەوەشێنیتەوە",
+  "Could not start the payment. Please try again": "نەتوانرا پارەدان دەست پێ بکات. تکایە دووبارە هەوڵ بدەرەوە",
+  "Could not cancel the payment. Please try again": "نەتوانرا پارەدان هەڵبوەشێنرێتەوە. تکایە دووبارە هەوڵ بدەرەوە",
+  "This payment is already paid": "ئەم پارەدانە پێشتر دراوە"
 };
 
 export default translations;

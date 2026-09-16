@@ -2626,7 +2626,24 @@ const translations = {
   "Terms of services": "hizmet şartları",
   "The code sent has expired": "Gönderilen Kodun Süresi Doldu",
   "We Could Not Add More Of This Product": "Bu üründen daha fazla ekleyemedik",
-  "Do You Want Us To Notify You When It Is Available?": "Ürün tekrar stoklara girdiğinde sizi bilgilendirelim mi?"
+  "Do You Want Us To Notify You When It Is Available?": "Ürün tekrar stoklara girdiğinde sizi bilgilendirelim mi?",
+  "Scan this code in the RDB app": "Bu kodu RDB uygulamasında taratın",
+  "Payment code": "Ödeme kodu",
+  "Open the RDB app": "RDB uygulamasını aç",
+  "Cancel payment": "Ödemeyi iptal et",
+  "Waiting for your payment": "Ödemeniz bekleniyor",
+  "Payment expired": "Ödeme süresi doldu",
+  "Payment cancelled": "Ödeme iptal edildi",
+  "Payment failed": "Ödeme başarısız",
+  "Payment received": "Ödeme alındı",
+  "Time left": "Kalan süre",
+  "Amount to pay": "Ödenecek tutar",
+  "You have a payment in progress": "Devam eden bir ödemeniz var",
+  "Continue payment": "Ödemeye devam et",
+  "Your cart is locked until you finish or cancel the payment": "Ödemeyi tamamlayana veya iptal edene kadar sepetiniz kilitli",
+  "Could not start the payment. Please try again": "Ödeme başlatılamadı. Lütfen tekrar deneyin",
+  "Could not cancel the payment. Please try again": "Ödeme iptal edilemedi. Lütfen tekrar deneyin",
+  "This payment is already paid": "Bu ödeme zaten yapıldı"
 };
 
 export default translations;

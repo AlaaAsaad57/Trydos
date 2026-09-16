@@ -755,5 +755,115 @@ describe("CartService", () => {
       ).toBe(true);
     });
   });
+
+  describe("when an RDB payment request holds the cart", () => {
+    const lockAnswer = {
+      success: false,
+      httpStatus: 409,
+      message: "Your cart is locked until the pending RDB payment is completed or cancelled.",
+      data: {
+        rdb_request_reference: "ref-1",
+        expires_at: "2026-09-15T14:30:00+00:00",
+      },
+    };
+
+    beforeEach(() => {
+      useAppStore.setState({ rdbLock: null });
+    });
+
+    it("AddToCart records the lock and changes nothing in the cart", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce(lockAnswer as any);
+
+      const success = await cartService.AddToCart({
+        product_id: 101,
+        color: "Red",
+        choice_1: "M",
+        qty: 1,
+        image: "https://example.com/image.jpg",
+        type: "variant-1",
+        offer_price: 50,
+      });
+
+      expect(success, "a locked cart must refuse the add").toBe(false);
+      expect(
+        useAppStore.getState().rdbLock?.reference,
+        "the core backend's locked-cart answer did not reach the store",
+      ).toBe("ref-1");
+      expect(
+        useAppStore.getState().localCart,
+        "a locked cart must not gain a row",
+      ).toHaveLength(0);
+      expect(
+        LogServerError,
+        "a locked cart is normal behaviour and must not be logged as an error",
+      ).not.toHaveBeenCalled();
+    });
+
+    it("UpdateCart records the lock", async () => {
+      useAppStore.setState({
+        localCart: [{ id: 101, item_id: "row-1", quantity: 1 }],
+      } as any);
+      vi.mocked(fetchData).mockResolvedValueOnce(lockAnswer as any);
+
+      const success = await cartService.UpdateCart({ cart_id: "row-1", qty: 3 });
+
+      expect(success, "a locked cart must refuse the quantity change").toBe(false);
+      expect(
+        useAppStore.getState().rdbLock?.reference,
+        "the core backend's locked-cart answer did not reach the store",
+      ).toBe("ref-1");
+      expect(
+        useAppStore
+          .getState()
+          .localCart.find((i: any) => i.item_id === "row-1")?.quantity,
+        "a locked cart must not change the row's quantity",
+      ).toBe(1);
+      expect(
+        LogServerError,
+        "a locked cart is normal behaviour and must not be logged as an error",
+      ).not.toHaveBeenCalled();
+    });
+
+    it("RemoveFromCart records the lock and keeps the row", async () => {
+      useAppStore.setState({
+        localCart: [{ id: 101, item_id: "row-1", quantity: 1 }],
+      } as any);
+      vi.mocked(fetchData).mockResolvedValueOnce(lockAnswer as any);
+
+      const success = await cartService.RemoveFromCart({
+        cart_item: { item_id: "row-1" },
+      });
+
+      expect(success, "a locked cart must refuse the remove").toBe(false);
+      expect(
+        useAppStore.getState().rdbLock?.reference,
+        "the core backend's locked-cart answer did not reach the store",
+      ).toBe("ref-1");
+      expect(
+        useAppStore.getState().localCart.map((i: any) => i.item_id),
+        "a locked cart must not remove the row",
+      ).toEqual(["row-1"]);
+      expect(
+        LogServerError,
+        "a locked cart is normal behaviour and must not be logged as an error",
+      ).not.toHaveBeenCalled();
+    });
+
+    it("ConvertToOldCart records the lock", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce(lockAnswer as any);
+
+      const success = await cartService.ConvertToOldCart({ cart_item: "row-1" });
+
+      expect(success, "a locked cart must refuse the move to the old cart").toBe(false);
+      expect(
+        useAppStore.getState().rdbLock?.reference,
+        "the core backend's locked-cart answer did not reach the store",
+      ).toBe("ref-1");
+      expect(
+        LogServerError,
+        "a locked cart is normal behaviour and must not be logged as an error",
+      ).not.toHaveBeenCalled();
+    });
+  });
 });
 

@@ -704,6 +704,16 @@ export const fetchData = async <T = any>(
         throw new Error("Authentication required");
       }
 
+      // The core backend locks the cart while an RDB payment request is
+      // pending: every cart write and every checkout answers 409 carrying the
+      // pending reference. That is normal product behaviour, not a fault — the
+      // cart screen shows its own "you have a payment in progress" sheet with
+      // two buttons. So hand the body straight back: no toast, no Sentry event.
+      // Any other 409 keeps the ordinary error path below.
+      if (status === 409 && responseData?.data?.rdb_request_reference) {
+        return { ...responseData, success: false, httpStatus: 409 };
+      }
+
       if (!res.ok) {
         throw new Error(
           responseData?.message ??

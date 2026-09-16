@@ -2594,7 +2594,24 @@ const translations = {
   "To Create new account Tap “agree & Continue” to accept": "لإنشاء حساب جديد انقر على \"الموافقة والمتابعة\" للقبول",
   "The code sent has expired": "انتهت صلاحية الرمز المرسل",
   "We Could Not Add More Of This Product": "لم نتمكن من إضافة المزيد من هذا المنتج",
-  "Do You Want Us To Notify You When It Is Available?": "هل تريد أن نعلمك عندما يتوفر؟"
+  "Do You Want Us To Notify You When It Is Available?": "هل تريد أن نعلمك عندما يتوفر؟",
+  "Scan this code in the RDB app": "امسح هذا الرمز في تطبيق RDB",
+  "Payment code": "رمز الدفع",
+  "Open the RDB app": "افتح تطبيق RDB",
+  "Cancel payment": "إلغاء الدفع",
+  "Waiting for your payment": "بانتظار الدفع",
+  "Payment expired": "انتهت مهلة الدفع",
+  "Payment cancelled": "تم إلغاء الدفع",
+  "Payment failed": "فشل الدفع",
+  "Payment received": "تم استلام الدفع",
+  "Time left": "الوقت المتبقي",
+  "Amount to pay": "المبلغ المطلوب",
+  "You have a payment in progress": "لديك عملية دفع جارية",
+  "Continue payment": "متابعة الدفع",
+  "Your cart is locked until you finish or cancel the payment": "سلتك مقفلة حتى تكمل الدفع أو تلغيه",
+  "Could not start the payment. Please try again": "تعذر بدء الدفع. حاول مرة أخرى",
+  "Could not cancel the payment. Please try again": "تعذر إلغاء الدفع. حاول مرة أخرى",
+  "This payment is already paid": "تم دفع هذه العملية بالفعل"
 };
 
 export default translations;

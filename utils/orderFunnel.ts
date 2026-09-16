@@ -93,6 +93,10 @@ export const ORDER_EVENTS = {
   WALLET_DATA_LOAD_FAILED: "wallet_data_load_failed",
   WALLET_BALANCE_REFRESHED: "wallet_balance_refreshed",
 
+  // --- RDB payment request cart lock ---
+  RDB_CART_LOCK_HIT: "rdb_cart_lock_hit",
+  RDB_CART_LOCK_CLEARED: "rdb_cart_lock_cleared",
+
   // --- Completion ---
   ORDER_COMPLETED: "order_completed",
   COUPON_USED: "order_coupon_used",

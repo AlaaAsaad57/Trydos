@@ -8,6 +8,7 @@ import { REQUESTS_DATA } from "utils/Requests";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { returnDetails } from "utils/types/OrderInterface";
 import { LogServerError } from "utils/serverErrorReporter";
+import { readRdbLock } from "./rdbPayment";
 import { GetWalletBalanceForCountryCurrency } from "./wallet";
 import { WALLET_REAUTH_ON_401 } from "./wallet/reauthFlag";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
@@ -77,15 +78,22 @@ class OrderService {
       const checkoutPath = payment_method
         ? `/customer/order/checkout/${payment_method}`
         : `/customer/order/checkout`;
+      // `pay_by_wallet` is gone. No payment method takes a share from the
+      // Trydos wallet any more, and the core backend ignores the field.
       let response: any = await fetchData({
-        url: `${checkoutPath}?order_note=order note&address_id=${addressId}&pay_by_wallet=${
-          pay_by_wallet ? 1 : 0
-        }`,
+        url: `${checkoutPath}?order_note=order note&address_id=${addressId}`,
         reqTitle: REQUESTS_DATA.PAY_ORDER,
         body: "",
         method: "POST",
         server: "market",
       });
+      const lock = readRdbLock(response);
+      if (lock) {
+        useAppStore.getState().setRdbLock(lock);
+        trackOrder(ORDER_EVENTS.RDB_CART_LOCK_HIT, { at: "checkout" });
+        setOrderLoading(false);
+        return;
+      }
       // @ts-ignore
       if (!response.success) {
         // @ts-ignore

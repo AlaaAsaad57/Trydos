@@ -111,6 +111,10 @@ const useCartStore = (set, get) => ({
   loaded: false,
   oldCart: null,
   wallet: null,
+  // Set while an RDB payment request holds the cart. Every cart write answers
+  // 409 with the pending reference until the payment finishes or is cancelled.
+  // `RdbPaymentLockedSheet` reads it and offers the two ways out.
+  rdbLock: null,
   balance: 0,
   crypto: 0,
   credit: 0,
@@ -192,6 +196,8 @@ const useCartStore = (set, get) => ({
       },
     });
   },
+
+  setRdbLock: (lock) => set({ rdbLock: lock }),
 
   setMapCenter: (center) => set({ center }),
 

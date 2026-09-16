@@ -149,3 +149,6 @@ test-results/
 .env*
 docs/workflow/running-a-ticket.md
 BOTTOMNAVIGATION.mp4
+
+# superpowers SDD scratch (ledger, briefs, review packages)
+.superpowers/
