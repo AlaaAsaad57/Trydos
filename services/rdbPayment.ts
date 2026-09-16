@@ -106,11 +106,14 @@ export async function GetRdbRequest(
  *
  * `alreadyPaid` separates the one refusal the screen must act on — the core
  * backend answers 409 when the money already landed — from every other
- * failure, where retrying is the right answer (design doc §5).
+ * failure, where retrying is the right answer (design doc §5). `gone` marks
+ * the other refusal that is not really a failure: a 404 means the reference
+ * does not exist any more, so there is nothing left to cancel and the caller
+ * should clear the lock rather than leave the shopper stuck on it.
  */
 export async function CancelRdbRequest(
   reference: string,
-): Promise<{ ok: boolean; alreadyPaid: boolean }> {
+): Promise<{ ok: boolean; alreadyPaid: boolean; gone: boolean }> {
   const response: any = await fetchData({
     url: `/customer/order/rdb-request/${encodeURIComponent(reference)}/cancel`,
     method: "POST",
@@ -120,8 +123,12 @@ export async function CancelRdbRequest(
     noMessage: true,
   });
 
-  if (response?.success) return { ok: true, alreadyPaid: false };
-  return { ok: false, alreadyPaid: response?.httpStatus === 409 };
+  if (response?.success) return { ok: true, alreadyPaid: false, gone: false };
+  return {
+    ok: false,
+    alreadyPaid: response?.httpStatus === 409,
+    gone: response?.httpStatus === 404,
+  };
 }
 
 /**

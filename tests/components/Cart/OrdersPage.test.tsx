@@ -594,10 +594,7 @@ describe("OrdersPage (components/Cart/OrdersPage.tsx)", () => {
       expect(
         mockPlaceOrder,
         "should call order.PlaceOrder with cash_on_delivery",
-      ).toHaveBeenCalledWith({
-        payment_method: "cash_on_delivery",
-        pay_by_wallet: false,
-      });
+      ).toHaveBeenCalledWith({ payment_method: "cash_on_delivery" });
     });
 
     it("submits order with card when payment method id is 2", async () => {
@@ -641,13 +638,10 @@ describe("OrdersPage (components/Cart/OrdersPage.tsx)", () => {
       expect(
         mockPlaceOrder,
         "should call order.PlaceOrder with card",
-      ).toHaveBeenCalledWith({
-        payment_method: "card",
-        pay_by_wallet: false,
-      });
+      ).toHaveBeenCalledWith({ payment_method: "card" });
     });
 
-    it("skips PlaceOrder when payment method is wallet (id: 1)", async () => {
+    it("skips PlaceOrder when the shopper chose RDB (id: 1)", async () => {
       mockGetCart.mockResolvedValueOnce({
         cart: [{ id: 101, check_availability: true, is_active: true }],
       });

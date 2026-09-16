@@ -10,7 +10,7 @@ import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import { showErrorNotification } from "@/store/notifications/reducer";
-import WalletPaymentModal from "./WalletPaymentModal";
+import RdbPaymentModal from "./RdbPaymentModal";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -81,15 +81,13 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   const [agreeLoading, setAgreeLoading] = useState(false);
   const [showWalletModal, setShowWalletModal] = useState(false);
 
-  const hasWalletPayment = orderData.payment?.some((s) => s.id === 1);
-  const walletPaymentBalance =
-    orderData.payment?.find((s) => s.id === 1)?.balance || 0;
+  const hasRdbPayment = orderData.payment?.some((s) => s.id === 1);
 
   const VerifyCart = async () => {
     try {
       setLoading(true);
       trackOrder(ORDER_EVENTS.PLACE_ORDER_CLICKED, {
-        has_wallet_payment: hasWalletPayment,
+        has_rdb_payment: hasRdbPayment,
       });
       let a = (
         await getCart({
@@ -122,10 +120,8 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
         ).length === 0
       ) {
         setLoading(false);
-        if (hasWalletPayment) {
-          trackOrder(ORDER_EVENTS.WALLET_MODAL_OPENED, {
-            wallet_balance: walletPaymentBalance,
-          });
+        if (hasRdbPayment) {
+          trackOrder(ORDER_EVENTS.WALLET_MODAL_OPENED);
           setShowWalletModal(true);
         } else {
           successOrder();
@@ -161,8 +157,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   return (
     <div className="absolute flex-col items-center payment-order-bottom left-0 w-full">
       {showWalletModal && !orderData.success && (
-        <WalletPaymentModal
-          walletAmount={walletPaymentBalance}
+        <RdbPaymentModal
           onSuccess={() => {
             setShowWalletModal(false);
             successOrder();

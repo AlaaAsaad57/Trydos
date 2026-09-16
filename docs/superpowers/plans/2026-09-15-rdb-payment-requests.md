@@ -1623,6 +1623,11 @@ export default function RdbPaymentModal({
   /** Handle an end state: stop polling, release the lock, and either move on to
    *  the orders or leave the reason on the screen. */
   const settle = async (req: RdbPaymentRequest) => {
+    // Only the first end state counts. The countdown's tick and the cancel
+    // answer can both reach here after a poll has already settled, and a
+    // second run would overwrite the status, fire the event twice, and set
+    // state on a component that is already unmounting.
+    if (stoppedRef.current) return;
     stoppedRef.current = true;
     if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
     setRequest(req);

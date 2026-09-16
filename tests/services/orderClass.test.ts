@@ -79,7 +79,7 @@ describe("OrderService (services/order.ts)", () => {
         data: [{ id: "order-123" }],
       });
 
-      await orderService.PlaceOrder({ pay_by_wallet: false });
+      await orderService.PlaceOrder({});
 
       expect(
         fetchData,
@@ -109,7 +109,6 @@ describe("OrderService (services/order.ts)", () => {
 
       await orderService.PlaceOrder({
         payment_method: "crypto",
-        pay_by_wallet: true,
       });
 
       expect(fetchData).toHaveBeenCalledWith(
@@ -138,7 +137,6 @@ describe("OrderService (services/order.ts)", () => {
 
       await orderService.PlaceOrder({
         payment_method: "crypto",
-        pay_by_wallet: false,
       });
 
       expect(trackOrder).toHaveBeenCalledWith(
@@ -162,7 +160,6 @@ describe("OrderService (services/order.ts)", () => {
 
       await orderService.PlaceOrder({
         payment_method: "card",
-        pay_by_wallet: false,
       });
 
       expect(LogServerError).toHaveBeenCalledWith(
@@ -209,7 +206,6 @@ describe("OrderService (services/order.ts)", () => {
 
         await orderService.PlaceOrder({
           payment_method: "cash_on_delivery",
-          pay_by_wallet: false,
         });
 
         expect(

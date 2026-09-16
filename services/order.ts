@@ -58,13 +58,7 @@ class OrderService {
     return cleanUrl.split("/").filter(Boolean).pop() ?? "";
   }
 
-  async PlaceOrder({
-    payment_method,
-    pay_by_wallet,
-  }: {
-    payment_method?: string;
-    pay_by_wallet: boolean;
-  }) {
+  async PlaceOrder({ payment_method }: { payment_method?: string }) {
     const {
       addressLists,
       setOrderLoading,

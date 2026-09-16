@@ -4,6 +4,9 @@
 //
 // Guards the `setShouldAuthinticated(true)` calls in:
 //   - services/order.ts        (GetWalletBalanceToShow → WalletLinkCard)
-//   - components/Cart/WalletPaymentModal.tsx
 //   - components/Cart/CheckoutButton.tsx
+//
+// `RdbPaymentModal.tsx` does NOT use this flag: it only talks to the Trydos
+// core backend (never RDB directly), and the core backend's RDB endpoints
+// have no 401 branch that calls `setShouldAuthinticated`.
 export const WALLET_REAUTH_ON_401 = false;

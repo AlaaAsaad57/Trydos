@@ -115,6 +115,11 @@ const useCartStore = (set, get) => ({
   // 409 with the pending reference until the payment finishes or is cancelled.
   // `RdbPaymentLockedSheet` reads it and offers the two ways out.
   rdbLock: null,
+  // True while a payment screen (`RdbPaymentModal`) is mounted anywhere in the
+  // app — the checkout flow's own screen, or the one `RdbPaymentLockedSheet`
+  // opens for "Continue payment". `RdbPaymentLockedSheet` reads this and stays
+  // out of the way so the two screens are never on screen at once.
+  rdbPaymentScreenOpen: false,
   balance: 0,
   crypto: 0,
   credit: 0,
@@ -198,6 +203,7 @@ const useCartStore = (set, get) => ({
   },
 
   setRdbLock: (lock) => set({ rdbLock: lock }),
+  setRdbPaymentScreenOpen: (open) => set({ rdbPaymentScreenOpen: open }),
 
   setMapCenter: (center) => set({ center }),
 
@@ -253,7 +259,19 @@ const useCartStore = (set, get) => ({
         region: showLocationText(address.region_details),
         contact_info: {
           ...address.contact_info,
-          contact_person_name: address?.contact_info?.name,
+          // The saved row may carry the contact under either key, so this falls
+          // back instead of overwriting.
+          //
+          // It used to be `address?.contact_info?.name` alone, which **undid the
+          // spread above**: a row holding `contact_person_name` and no `name`
+          // came out with `contact_person_name: undefined`, so the good value
+          // was destroyed rather than kept. The edit form then opened with no
+          // contact name, `isValid()` refused the save, and Save stayed grey
+          // (`components/Cart/AddAddressForm.tsx`) for an address that was
+          // complete all along.
+          contact_person_name:
+            address?.contact_info?.name ??
+            address?.contact_info?.contact_person_name,
         },
       };
       return {

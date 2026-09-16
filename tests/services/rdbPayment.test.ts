@@ -176,6 +176,26 @@ describe("CancelRdbRequest", () => {
       "the screen must be told the money already landed, not that cancel failed",
     ).toBe(true);
   });
+
+  it("says the request is gone when the core backend answers 404", async () => {
+    vi.mocked(fetchData).mockResolvedValueOnce({
+      success: false,
+      httpStatus: 404,
+      message: "Not found",
+    } as any);
+
+    const result = await CancelRdbRequest("ref-1");
+
+    expect(result.ok, "an unknown reference was not cancelled").toBe(false);
+    expect(
+      result.gone,
+      "a 404 means the reference no longer exists, so the caller must clear the lock instead of retrying",
+    ).toBe(true);
+    expect(
+      result.alreadyPaid,
+      "a 404 is not the same refusal as an already-paid request",
+    ).toBe(false);
+  });
 });
 
 describe("readRdbLock", () => {
