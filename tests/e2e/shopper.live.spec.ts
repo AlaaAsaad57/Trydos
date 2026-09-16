@@ -712,6 +712,33 @@ test.describe("BUY-03 the bag's money, and choosing another address", () => {
         });
       }
     } finally {
+      // The bag, before the session is handed on.
+      //
+      // This case fills one from the storefront and never emptied it. BUY-04
+      // opens the same session and begins by asserting the bag holds exactly
+      // one line, so a BUY-03 that ended early handed its line over and BUY-04
+      // failed with "the bag was opened after adding ... and holds 2 lines" —
+      // blaming the shop for a line this case left. Seen on CI run 34938617683.
+      //
+      // `emptyTheBag` through the screens, the same way BUY-04's own teardown
+      // does it: it opens the bag itself, so it works from wherever the case
+      // happened to die.
+      //
+      // **Never allowed to fail the case.** It asserts internally, and an
+      // unreachable bag would otherwise replace whatever the case itself was
+      // reporting. A bag left behind is said out loud instead, so the next
+      // reader knows why BUY-04 might open dirty.
+      try {
+        await emptyTheBag(page);
+      } catch (error) {
+        testInfo.annotations.push({
+          type: "bag left behind",
+          description:
+            `the bag could not be emptied, so BUY-04 may open with a line this ` +
+            `case left: ${String(error)}`,
+        });
+      }
+
       // The session is handed on here rather than in the case, because the case
       // no longer closes its own context — this hook does.
       await handOnSession(context, page, SESSION_STATE.shopper);

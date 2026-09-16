@@ -1343,26 +1343,30 @@ const whyTheFormRefused = async (page: Page): Promise<string> => {
   if (empty.length > 0) {
     return (
       `the form refused the save and is holding these empty: ${empty.join(", ")}. ` +
-      "It shook nothing because `validate()` only shakes on `length === 0`, and " +
-      "a value that is missing rather than empty is `undefined`"
+      "The edit form opens on the address the app already holds, so fields this " +
+      "empty mean that address never arrived — look at whether the address list " +
+      "read answered, not at the form"
     );
   }
 
   // **Silence here does not mean the shop is at fault**, and saying so would
   // repeat the mistake this whole helper exists to stop.
   //
-  // `validate()` tests each field with `?.length === 0`. A value that is
-  // **missing** rather than empty gives `undefined`, and `undefined === 0` is
-  // false — so nothing is shaken. Meanwhile `isValid()` still refuses, because
-  // its own checks return early on the same field. A form that neither closes
-  // nor shakes is therefore most likely one whose address is missing a field
-  // outright, not a backend that went quiet.
+  // This branch used to explain itself with a bug in `validate()`: it tested
+  // each field with `?.length === 0`, and a value that was **missing** rather
+  // than empty gave `undefined`, so nothing was shaken while `isValid()` still
+  // refused. That is fixed — `validate()` now treats a missing value like a
+  // blank one and shakes it (`components/Cart/AddAddressForm.tsx`, guarded by
+  // `tests/components/Cart/AddAddressForm.test.tsx`) — so reaching here no
+  // longer has that explanation, and the old wording would send the next reader
+  // to a line that has already been corrected.
+  //
+  // What is left is genuinely open, so this says so rather than guessing.
   return (
-    "the form neither closed nor pointed at a field. That is what happens when " +
-    "a value is missing rather than empty: `validate()` only shakes on " +
-    "`length === 0`, and `undefined` is not `0`, while `isValid()` still " +
-    "refuses. Check the contact name, the contact phone and the region on this " +
-    "address. A backend that never answered is the less likely reading"
+    "the form neither closed nor pointed at a field, and every field it " +
+    "insists on is holding a value. So `isValid()` refused on something this " +
+    "helper does not read, or the save went out and its answer never came " +
+    "back. Look at the address update call"
   );
 };
 

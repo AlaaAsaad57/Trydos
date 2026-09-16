@@ -335,16 +335,53 @@ const gotoProductAt = async (
   // the failure this is most likely to hit.
   await expect(page).toHaveURL(/\/products\//, { timeout: 45_000 });
 
+  // **Two faults, two messages.** The old single `toBeVisible` covered both with
+  // words that only described the first, and the second is the one staging
+  // actually serves.
+  //
+  // An element with no text has no size, so it is "hidden" — and a product the
+  // shop sent with **no name** renders this element present and blank.
+  // `getProductText` (`components/Server/product/ProductNameAndBrand.tsx`)
+  // joins the product name with its category names, and
+  // `[undefined].join(" | ")` is the empty string. So "no title was ever drawn
+  // on it" was reported for a page that rendered perfectly — sizes, reviews,
+  // guarantees and all — carrying a catalogue record with nothing to name it.
+  //
+  // Polled rather than asserted straight away, because the page streams: the
+  // element can be attached and still empty for a moment before the name lands.
   const name = product.name(page);
-  await expect(
-    name,
-    "the address changed to a product page but no title was ever drawn on it",
-  ).toBeVisible({ timeout: PRODUCT_RENDER_MS });
+  const deadline = Date.now() + PRODUCT_RENDER_MS;
+  let attached = false;
+  let text = "";
 
-  return {
-    name: (await name.textContent())?.trim() ?? "",
-    url: page.url(),
-  };
+  while (Date.now() < deadline) {
+    attached = (await name.count()) > 0;
+    if (attached) {
+      text = (await name.textContent().catch(() => null))?.trim() ?? "";
+      if (text !== "") break;
+    }
+    await page.waitForTimeout(250);
+  }
+
+  expect(
+    attached,
+    `the address changed to a product page and it never drew a title element ` +
+      `at all, so the page itself did not render: ${page.url()}`,
+  ).toBe(true);
+
+  // Named as the backend's, because it is. Nothing in this repository can make
+  // a product have a name, so this failure must not read like a page that broke
+  // — it has to send the reader to the catalogue.
+  expect(
+    text,
+    `the shop sent a product with no name, so the product page drew an empty ` +
+      `title: ${page.url()}. The title element is on the page and blank — the ` +
+      `product answer carries no \`name\` and no categories, which ` +
+      `\`getProductText\` joins to the empty string. The page is fine; the ` +
+      `catalogue record is not, so this is the core backend's to fix.`,
+  ).not.toBe("");
+
+  return { name: text, url: page.url() };
 };
 
 /** Where the window is, in pixels from the top of the document. */

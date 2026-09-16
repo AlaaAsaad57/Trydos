@@ -124,14 +124,50 @@ export const throughProxyInPage = async (
       };
       if (call.body !== undefined) headers["Content-Type"] = "application/json";
 
-      try {
-        const response = await fetch("/api/proxy", {
+      const send = async (): Promise<Response> =>
+        await fetch("/api/proxy", {
           method: "POST",
           headers,
           credentials: "include",
           body: call.body === undefined ? undefined : JSON.stringify(call.body),
+          // A fresh signal per attempt: a spent one aborts the retry instantly.
           signal: AbortSignal.timeout(call.timeout),
         });
+
+      try {
+        let response = await send();
+
+        // **A refused credential is not a refusal of the call**, and this helper
+        // used to report it as one.
+        //
+        // The app recovers from a 401 by itself: `utils/fetchData.ts` refreshes
+        // on the first one and retries, bounded at two attempts. That is why
+        // `RECOV-01` and `SCRIPT-10` pass. This helper is a raw `fetch`, so it
+        // had none of it — and a token that rotated mid-run made a tidy-up
+        // report "the core backend answered 401: Unauthorized", which reads as
+        // the shop refusing the account. BUY-03's teardown said exactly that
+        // about a session that only needed rotating.
+        //
+        // One refresh, one retry. Deliberately not the app's full ladder: this
+        // runs in a teardown, and re-registering a guest or prompting for a
+        // sign-in — which the app does on the *next* 401 — would be a tidy-up
+        // changing the session it is supposed to be cleaning up after.
+        if (response.status === 401) {
+          const rotated = await fetch("/api/auth/refresh", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            // The plain service name, not the proxy's token: the refresh route
+            // matches on `market` itself (`app/api/auth/refresh/route.ts`).
+            body: JSON.stringify({ url: call.target, server: "market" }),
+            signal: AbortSignal.timeout(call.timeout),
+          })
+            .then(async (answer) => await answer.json().catch(() => null))
+            .then((json: any) => json?.refreshed === true)
+            .catch(() => false);
+
+          if (rotated) response = await send();
+        }
 
         // Parsed in the browser, so a parser message quoting the body can
         // never reach the Node failure line.

@@ -207,6 +207,19 @@ export const auth = {
    *  for a plain guest — which is why a case that clicks it has proved it was
    *  signed in first. */
   signOutItem: (page: Page): Locator => page.getByTestId("logout"),
+  /** Any item that is in the account menu whoever is looking.
+   *
+   *  "Is the menu open?" and "is this visitor signed in?" are two questions, and
+   *  `signOutItem` above can only answer the second. Settings is rendered
+   *  unconditionally (`components/Home/Menu.tsx`), so it answers the first
+   *  without claiming anything about the account.
+   *
+   *  Needed because an open menu lays a full-screen click-catcher over the page
+   *  — the `setMenuOpen(false)` div in the same file — so a helper that cannot
+   *  tell "open" from "shut" will press the trigger again into that catcher and
+   *  fail as a click timeout naming nothing. */
+  accountMenuAnyItem: (page: Page): Locator =>
+    page.getByTestId("Settings-Icon"),
 };
 
 /** The shopper's own details: the card on the settings page, and the form

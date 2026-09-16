@@ -49,6 +49,21 @@ type Anchor = {
   height?: number;
   /** The element keeps its distance from the bottom of the page, not the artboard. */
   fromBottom?: true;
+  /** The element is placed with `controlTop()`, so it carries the keyboard lift.
+   *
+   *  `controlTop` (`NewLoginDesign/authLayout.ts`) is
+   *  `calc(base + safe-area-inset-top + var(--app-keyboard-lift))`. The lift is
+   *  what keeps a corner control on screen when AppScaler slides the whole
+   *  canvas up to hold a focused field above the keyboard — without it the
+   *  control would slide off the top.
+   *
+   *  **So its distance from the canvas grows by exactly the lift**, and this
+   *  test measures against the canvas. Not allowing for that is what made the
+   *  close control read 105 design px instead of 10 at 430 x 745: the phone and
+   *  PIN screens mark a `data-keyboard-anchor`, so `updateLift` finds a field
+   *  and lifts the canvas on a short viewport even with no keyboard open. The
+   *  app is right and the anchor is right; the sum was missing a term. */
+  liftAware?: true;
 };
 
 type Screen = {
@@ -70,6 +85,7 @@ const CLOSE: Anchor = {
   selector: '[data-pw="close"]',
   label: "the close control",
   top: XD.control.closeTop,
+  liftAware: true,
   left: XD.canvas.width - XD.control.right - XD.control.closeSize,
   width: XD.control.closeSize,
   height: XD.control.closeSize,
@@ -314,6 +330,21 @@ for (const view of VIEWPORTS) {
           // The screens slide in, and the shared mark springs to its new stop.
           await page.waitForTimeout(2000);
 
+          // Read per screen, not once for the run: the lift is recomputed from
+          // whichever field the screen marks, so it is 0 on Get Started and
+          // non-zero on the two that hold a `data-keyboard-anchor`. Already in
+          // the canvas's own units — `controlTop` writes it into a `top:` inside
+          // `#master-canvas`, where one design px is one CSS px — so it needs no
+          // dividing by the scale.
+          const lift = await page.evaluate(
+            () =>
+              Number.parseFloat(
+                getComputedStyle(document.documentElement).getPropertyValue(
+                  "--app-keyboard-lift",
+                ),
+              ) || 0,
+          );
+
           for (const anchor of screen.anchors) {
             const got = await measure(page, anchor.selector);
 
@@ -324,7 +355,11 @@ for (const view of VIEWPORTS) {
             if (!got) continue;
 
             const wantTop =
-              anchor.top === undefined ? undefined : anchor.top - (anchor.fromBottom ? deficit : 0);
+              anchor.top === undefined
+                ? undefined
+                : anchor.top -
+                  (anchor.fromBottom ? deficit : 0) +
+                  (anchor.liftAware ? lift : 0);
             const checks: [string, number | undefined, number][] = [
               ["top", wantTop, got.top],
               ["left", anchor.left, got.left],
@@ -335,9 +370,13 @@ for (const view of VIEWPORTS) {
             for (const [side, want, have] of checks) {
               if (want === undefined) continue;
               const anchored =
-                side === "top" && anchor.fromBottom && deficit
-                  ? ` (${anchor.top} in the design, ${deficit.toFixed(1)} px up because the page is that much shorter than the artboard)`
-                  : "";
+                side !== "top"
+                  ? ""
+                  : anchor.fromBottom && deficit
+                    ? ` (${anchor.top} in the design, ${deficit.toFixed(1)} px up because the page is that much shorter than the artboard)`
+                    : anchor.liftAware && lift
+                      ? ` (${anchor.top} in the design, ${lift.toFixed(1)} px down because the canvas is lifted that far to keep the focused field above the keyboard)`
+                      : "";
               expect(
                 Math.abs(have - want),
                 `${view.name}, the ${screen.name} screen: ${anchor.label} must have a ${side} of ${want.toFixed(1)} design px${anchored}, it is ${have.toFixed(1)}`,

@@ -789,30 +789,48 @@ export const openAccountMenu = async (page: Page): Promise<void> => {
   await expect(trigger).toHaveCount(1);
 
   const signOut = auth.signOutItem(page);
+  const anyItem = auth.accountMenuAnyItem(page);
 
-  // Pressed until the menu opens, up to three times, and the reason is
-  // hydration. The trigger is server-rendered, so it is on the page and
-  // clickable before React attaches to it; a press that lands in that window
-  // does nothing and no menu appears. `AUTH-03` failed exactly that way — the
-  // trigger's count was 1, the click reported success, and `logout` was never
-  // found — once the suite got fast enough to arrive before hydration. Same
-  // fault and same fix as the static back bar (`staticPages.live.spec.ts`) and
-  // the demo step bar (`login-design-parity.scripted.spec.ts`).
+  // Opening the menu and finding sign-out in it are **two questions**, and the
+  // first version of this asked them as one. That is what made `AUTH-03` fail
+  // with a bare "Timeout 20000ms exceeded" naming nothing.
   //
-  // The assertion after the loop still decides it on its own: three presses that
-  // all open nothing fail exactly as one used to.
+  // First question: is the menu open? Pressed up to three times, because the
+  // trigger is server-rendered and a press landing before React attaches does
+  // nothing at all. **Never pressed while it is already open** — an open menu
+  // lays a full-screen click-catcher over the page (the `setMenuOpen(false)`
+  // div in `components/Home/Menu.tsx`), so the second press is swallowed by
+  // that catcher and Playwright reports a click timeout instead of anything a
+  // reader can act on. Settings answers this question because the menu renders
+  // it whoever is looking.
   for (let attempt = 0; attempt < 3; attempt += 1) {
-    if (await signOut.isVisible().catch(() => false)) break;
+    if (await anyItem.isVisible().catch(() => false)) break;
 
     await trigger.click();
-    await signOut.waitFor({ state: "visible", timeout: 5_000 }).catch(() => undefined);
+    await anyItem
+      .waitFor({ state: "visible", timeout: 5_000 })
+      .catch(() => undefined);
   }
 
   await expect(
-    signOut,
-    "the account menu never offered sign-out — it either did not open, or it " +
-      "opened on the branch shown to a visitor who is not signed in",
+    anyItem,
+    "the account menu never opened — three presses on the trigger drew nothing",
   ).toBeVisible();
+
+  // Second question: does it offer sign-out? A different thing entirely. The
+  // menu decides that from the store's own user (`shouldShowLogout`, same
+  // file), and the store is filled by a client fetch after the page is already
+  // interactive. So a menu that is open with no sign-out in it may just be
+  // ahead of that fetch — which is exactly what `AUTH-03` hit, on a page whose
+  // cookies said signed-in and whose header still read "Hello ,".
+  //
+  // Given its own allowance, and its own message: this is the one that means
+  // "the app is treating this visitor as a guest".
+  await expect(
+    signOut,
+    "the account menu opened but never offered sign-out — the app holds no " +
+      "user with a usable phone, so it is treating this visitor as a guest",
+  ).toBeVisible({ timeout: 20_000 });
 };
 
 /** Sign out, and wait until the visitor is a guest again.
