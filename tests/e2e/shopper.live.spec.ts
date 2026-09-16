@@ -1018,6 +1018,11 @@ test.describe("BUY-03 the bag's money, and choosing another address", () => {
       // for it has to know which answers were already there.
       let overviewBeforeTap = 0;
 
+      // What the core backend said about the tap. Held out here because the
+      // step that judges it is the next one, and `SetDefault` shows a refusal
+      // nowhere on screen.
+      let tapSaid = "the tap was never attempted";
+
       await test.step("tapping the probe makes the checkout show it", async () => {
         overviewBeforeTap = addressChange.seen("overview");
         const opened = await openAddressList(page);
@@ -1033,6 +1038,7 @@ test.describe("BUY-03 the bag's money, and choosing another address", () => {
         ).toBeGreaterThan(1);
 
         const tapped = await chooseAddressNamed(page, probeTitle);
+        tapSaid = tapped.said;
         expect(
           tapped.tapped,
           "the probe address this case created is not in the checkout's " +
@@ -1073,10 +1079,14 @@ test.describe("BUY-03 the bag's money, and choosing another address", () => {
                   "is wrong with the addresses; the session did not survive."
             } ${saved.said}`,
         ).toBeDefined();
+        // The tap's own answer, so this says **which** of the two happened:
+        // the call was refused, or it was never sent. `SetDefault` swallows a
+        // refusal, so without this the same failure covered both.
         expect(
           stored?.is_default,
           `the probe address (id ${probeId}) was tapped on the checkout but ` +
-            "the core backend still does not hold it as the account's default",
+            `the core backend still does not hold it as the account's ` +
+            `default. The tap itself: ${tapSaid}`,
         ).toBe(1);
       });
 

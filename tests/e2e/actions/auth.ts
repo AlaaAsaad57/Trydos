@@ -16,7 +16,7 @@ import {
   type Response,
 } from "@playwright/test";
 
-import { auth, nav } from "../selectors";
+import { auth, nav, prompt } from "../selectors";
 
 import { arriveAsGuest } from "./locale";
 import { LIVE_ORIGIN } from "../harness/env";
@@ -276,12 +276,51 @@ const SIGN_OUT_SETTLE_MS = 30_000;
  *  credential and trying again before it gives up. */
 const CART_ANSWER_MS = 30_000;
 
-/** Open the login widget from the nav bar and wait for the first screen. */
+/** Open the login widget from the nav bar and wait for the first screen.
+ *
+ *  Two questions, asked separately, for the same reason `openAccountMenu` asks
+ *  two: "did the widget open" and "is it on the first screen" are different
+ *  faults with different causes, and one check could only ever report the
+ *  second. `BUY-01` failed as `join-statement ... element(s) not found`, which
+ *  names a marker rather than a fault.
+ *
+ *  The press is repeated up to three times because the nav control is
+ *  server-rendered, so a press landing before React attaches does nothing at
+ *  all. It is **never** repeated while the widget is already open: the widget
+ *  covers the nav control it was opened from, so a second press is swallowed
+ *  and Playwright reports a click timeout instead. */
 export const openLoginWidget = async (page: Page): Promise<void> => {
   const button = auth.loginButton(page);
   await expect(button).toBeVisible();
-  await button.click();
-  await expect(auth.getStartedTitle(page)).toBeVisible();
+
+  let screen = await currentAuthScreen(page);
+  for (let attempt = 0; attempt < 3 && screen === "closed"; attempt += 1) {
+    await button.click();
+    await auth
+      .getStartedTitle(page)
+      .waitFor({ state: "visible", timeout: AUTH_SCREEN_MS })
+      .catch(() => undefined);
+    screen = await currentAuthScreen(page);
+  }
+
+  // First question. `"closed"` is `currentAuthScreen`'s own answer for "none of
+  // the widget's screens are in the page", so this is the app's reading, not a
+  // guess about one marker.
+  expect(
+    screen,
+    "the login control was pressed three times and the widget never opened, " +
+      "so no screen of it is in the page",
+  ).not.toBe("closed");
+
+  // Second question, and its own message. `null` means the widget is open on a
+  // screen this suite does not recognise — worth saying, because it is what a
+  // page that kept an earlier flow armed looks like.
+  expect(
+    screen,
+    `the login widget opened on the "${screen ?? "unrecognised"}" screen ` +
+      "instead of the first one, so the visitor was not asked to sign up or " +
+      "log in",
+  ).toBe("get-started");
 };
 
 /** Choose sign-up or login on the first screen. */
@@ -777,6 +816,102 @@ export const openCartAndProveBackendAnswered = async (
 // Signing out.
 // ---------------------------------------------------------------------------
 
+/** How long the sign-out item has to appear once the menu is open.
+ *
+ *  The menu reads the store, and the store is filled by a client fetch that
+ *  runs after the page is interactive — so this has to allow for that fetch
+ *  noticing a refused credential, exchanging it and trying again. */
+const SIGN_OUT_ITEM_MS = 20_000;
+
+/** Why the open account menu offered no sign-out.
+ *
+ *  `shouldShowLogout` (`components/Home/Menu.tsx`) hides the item unless the
+ *  **store** holds a user whose phone is neither empty nor `"0"`. Three quite
+ *  different faults end there, and each needs the opposite action from the
+ *  other two:
+ *
+ *    1. **The session was replaced.** On a credential the gateway will not
+ *       renew, `/api/auth/expire` mints a fresh guest and rewrites `User-Data`
+ *       (`app/api/auth/expire/route.ts`). `getCustomerInfo` then syncs that
+ *       guest, and `updateUserInfo` **assigns** rather than merges
+ *       (`store/auth/reducer.tsx`), so the shopper's phone is gone. The app is
+ *       behaving as designed and the finding is the renewal, not the menu.
+ *    2. **The store never got the profile.** Cookies still name a
+ *       phone-verified shopper, so the session is alive and only the client
+ *       copy is missing. That is a front-end fault, in this repository.
+ *    3. **The account has no usable phone.** Then the menu is right to hide
+ *       the item, and the case is asking for something the account cannot do.
+ *
+ *  Told apart by the app's own answer, read at the moment of the failure —
+ *  never by guessing. `/api/auth/me` returns the `User-Data` cookie with the
+ *  tokens stripped, which is the same copy the sync writes.
+ *
+ *  **The phone is never printed**, here or anywhere: only whether the app would
+ *  call it usable, by the same rule the menu applies. Job logs and artifacts in
+ *  this repository are public. */
+const whySignOutIsMissing = async (page: Page): Promise<string> => {
+  const said = await page.evaluate(() =>
+    fetch("/api/auth/me", { method: "POST", credentials: "include" })
+      .then((response) => response.json())
+      .then((body) => ({
+        accountId: typeof body?.user?.id === "number" ? body.user.id : null,
+        phoneVerified: body?.user?.is_phone_verified === 1,
+        phoneUsable:
+          Boolean(body?.user?.phone) && String(body.user.phone) !== "0",
+      }))
+      // Caught in the browser so no parser message — which quotes the input it
+      // choked on — can reach the Node failure line.
+      .catch(() => null),
+  );
+
+  // The app's own marker for "this session died and I am asking them back in".
+  // `ExpiredUser` arms it for a shopper who *was* verified, so it separates a
+  // replaced session from one that was never signed in.
+  const askedToSignInAgain = await prompt
+    .sessionExpired(page)
+    .isVisible()
+    .catch(() => false);
+
+  const opened = "the account menu opened but never offered sign-out";
+
+  if (said === null) {
+    return (
+      `${opened}, and the app's own answer about who is signed in could not ` +
+      `be read, so nothing here can say which fault this is`
+    );
+  }
+
+  const who = said.accountId === null ? "no account" : `account ${said.accountId}`;
+
+  if (!said.phoneVerified) {
+    return (
+      `${opened} — and the app is right: it no longer holds a phone-verified ` +
+      `shopper, it holds ${who}. The session was replaced while this case was ` +
+      `running. /api/auth/expire mints a guest when the credential cannot be ` +
+      `renewed, so the finding is the renewal, not the menu. The app ` +
+      `${askedToSignInAgain ? "is" : "is not"} showing the "please sign in ` +
+      `again" prompt, which it arms only for a session that was verified.`
+    );
+  }
+
+  if (!said.phoneUsable) {
+    return (
+      `${opened}, and the menu is right to hide it: the cookies name ${who} ` +
+      `as phone-verified, but the account carries no usable phone, so ` +
+      `shouldShowLogout can never be true for it. That is the account this ` +
+      `case signs in as, not the session and not the menu.`
+    );
+  }
+
+  return (
+    `${opened}, yet the cookies still name ${who} as a phone-verified shopper ` +
+    `with a usable phone — so the session is alive and only the client copy is ` +
+    `missing. The store is filled by getCustomerInfo -> updateUserInfo ` +
+    `(services/home.ts), and it did not arrive in ${SIGN_OUT_ITEM_MS}ms. This ` +
+    `one is a fault in this repository.`
+  );
+};
+
 /** Open the account menu from the navigation bar.
  *
  *  The trigger carries the same marker whether or not the account has a picture,
@@ -823,14 +958,19 @@ export const openAccountMenu = async (page: Page): Promise<void> => {
   // interactive. So a menu that is open with no sign-out in it may just be
   // ahead of that fetch — which is exactly what `AUTH-03` hit, on a page whose
   // cookies said signed-in and whose header still read "Hello ,".
-  //
-  // Given its own allowance, and its own message: this is the one that means
-  // "the app is treating this visitor as a guest".
-  await expect(
-    signOut,
-    "the account menu opened but never offered sign-out — the app holds no " +
-      "user with a usable phone, so it is treating this visitor as a guest",
-  ).toBeVisible({ timeout: 20_000 });
+  const offered = await signOut
+    .waitFor({ state: "visible", timeout: SIGN_OUT_ITEM_MS })
+    .then(() => true)
+    .catch(() => false);
+  if (offered) return;
+
+  // Only now, and only because it is missing, ask the app who it thinks it is.
+  // The previous version of this asserted the answer instead of reading it: it
+  // said "so it is treating this visitor as a guest" for a state it had never
+  // looked at. Three different faults produce a menu with no sign-out in it,
+  // and they need three different actions — so the reading below is what goes
+  // in the message.
+  expect(offered, await whySignOutIsMissing(page)).toBe(true);
 };
 
 /** Sign out, and wait until the visitor is a guest again.

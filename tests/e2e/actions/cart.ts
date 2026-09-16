@@ -16,7 +16,7 @@
 // **Nothing here waits on a fixed time.** The cart is refetched after every
 // change, so each action waits for the number the app itself is showing.
 
-import { expect, type Page } from "@playwright/test";
+import { expect, type Page, type Response } from "@playwright/test";
 
 import {
   addToCartSheet,
@@ -1228,33 +1228,67 @@ export const chosenAddressTitle = async (page: Page): Promise<string> => {
 export const chooseAddressNamed = async (
   page: Page,
   title: string,
-): Promise<{ tapped: boolean; showing: string }> => {
+): Promise<{ tapped: boolean; showing: string; said: string }> => {
   const row = checkout.addressSheetRow(page, title).first();
 
-  const found = await row
-    .waitFor({ state: "visible", timeout: CART_ANSWER_MS })
-    .then(() => true)
-    .catch(() => false);
-  if (!found) return { tapped: false, showing: await chosenAddressTitle(page) };
+  // What the core backend said about the tap itself, kept for the message.
+  //
+  // Needed because `SetDefault` throws its own refusal away: it logs it and
+  // carries on (`services/order.ts:243-248`), and the screen shows the tapped
+  // address either way. So "the backend does not hold it as the default" had
+  // two readings and no way to choose between them — the call was refused, or
+  // the call was never made at all. Those need opposite actions, so the answer
+  // is recorded here rather than inferred later. Same idiom as `/cart/update`
+  // above.
+  let said = "the core backend was never asked to set the default address";
+  const onSetDefault = (response: Response): void => {
+    const target = response.request().headers()["x-proxy-url"] ?? "";
+    if (!response.request().url().includes("/api/proxy")) return;
+    if (!target.includes("/customer/address/set-default")) return;
+    const status = response.status();
+    void response
+      .text()
+      .then((body) => {
+        said = `${target} answered ${status}: ${body.slice(0, 300)}`;
+      })
+      .catch(() => {
+        said = `${target} answered ${status} and its body could not be read`;
+      });
+  };
+  page.on("response", onSetDefault);
 
-  await row.click();
+  try {
+    const found = await row
+      .waitFor({ state: "visible", timeout: CART_ANSWER_MS })
+      .then(() => true)
+      .catch(() => false);
+    if (!found) {
+      return { tapped: false, showing: await chosenAddressTitle(page), said };
+    }
 
-  await expect(
-    checkout.addressSheet(page),
-    "tapping a saved address left the address sheet open, so it covers the " +
-      "checkout below it",
-  ).toBeHidden({ timeout: CART_ANSWER_MS });
+    await row.click();
 
-  await expect
-    .poll(async () => await chosenAddressTitle(page), {
-      timeout: CART_ANSWER_MS,
-      message:
-        "the checkout does not show the tapped address as the delivery " +
-        "address after it was tapped",
-    })
-    .toContain(title);
+    await expect(
+      checkout.addressSheet(page),
+      "tapping a saved address left the address sheet open, so it covers the " +
+        "checkout below it",
+    ).toBeHidden({ timeout: CART_ANSWER_MS });
 
-  return { tapped: true, showing: await chosenAddressTitle(page) };
+    await expect
+      .poll(async () => await chosenAddressTitle(page), {
+        timeout: CART_ANSWER_MS,
+        message:
+          "the checkout does not show the tapped address as the delivery " +
+          "address after it was tapped",
+      })
+      .toContain(title);
+
+    return { tapped: true, showing: await chosenAddressTitle(page), said };
+  } finally {
+    // Taken off again, so a case that taps several addresses does not stack
+    // listeners on one page — Node warns at ten and the suite was reaching it.
+    page.off("response", onSetDefault);
+  }
 };
 
 /** Which field the address form is complaining about.
