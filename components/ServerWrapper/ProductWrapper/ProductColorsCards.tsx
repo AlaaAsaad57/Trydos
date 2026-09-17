@@ -87,10 +87,14 @@ function ProductColorsCards({
               style={{
                 direction: isRtl ? "rtl" : "ltr",
               }}
-              className="product-body pl-[13px] pr-[15px] z-10 flex-1 mt-[8px] w-full flex-col align-start justify-start max-h-[60px] min-h-[30px]"
+              className={`product-body ${
+                isRtl ? "pl-[15px] pr-[13px]" : "pl-[13px] pr-[15px]"
+              } z-10 flex-1 mt-[8px] w-full flex-col align-start justify-start max-h-[60px] min-h-[30px]`}
             >
               <div
-                className="prouct-details max-w-full whitespace-normal inline-block  text-left align-top overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[28px]"
+                className={`prouct-details max-w-full whitespace-normal inline-block ${
+                  isRtl ? "text-right" : "text-left"
+                } align-top overflow-hidden regular-text text-[#3c3c3c] text-[10px] max-h-[28px]`}
                 data-pw="productName"
               >
                 <span className="flex-row align-center justify-start gap-[4px]">
@@ -98,7 +102,9 @@ function ProductColorsCards({
                     <img
                       src={GetImageUrl(InitialProductData.brand.icon)}
                       alt={InitialProductData.brand.name || "Brand"}
-                      className="h-[15px]  object-cover w-[30px] inline-block ml-[7px]"
+                      className={`h-[15px] object-cover w-[30px] inline-block ${
+                        isRtl ? "mr-[7px]" : "ml-[7px]"
+                      }`}
                       loading="eager"
                       draggable="false"
                     />
