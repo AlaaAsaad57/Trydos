@@ -687,6 +687,8 @@ const translations = {
   Done: "تەواو",
   Availabilty: "بەردەستبوون",
   "Out Of Stock": "لە کۆگا نەماوە",
+  "Not Available In Your Country": "لە وڵاتەکەتدا بەردەست نییە",
+  "Not Available Now": "ئێستا بەردەست نییە",
   "These Shots Are Made By Users Who Have Already Purchased And Received The Product":
     "ئەم وێنانە لەلایەن بەکارهێنەرانی کڕیوی و وەرگرتووی بەرهەمەکەوە گیراون",
   "Please Choose Your Payment Method About Your Bag":

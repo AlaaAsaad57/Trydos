@@ -557,7 +557,7 @@ export const QuantutyInput = ({
       language: languageVariable,
     }),
   );
-  const currencyLabel = currency?.symbol ?? "";
+  const currencyLabel = currency?.symbol ?? (currency as any)?.sumbol ?? "";
   // Shrink the price only when it's both on a very small screen AND the
   // displayed price (old + new + currency) is long enough to crowd the row.
   const priceStringLength = (
@@ -930,7 +930,7 @@ export const QuantutyInput = ({
                       className="product-currency text-[8px] light text-[#1D1D1D] m-0"
                       data-pw="currency-symbol"
                     >
-                      {currency?.symbol}
+                      {currency?.symbol ?? (currency as any)?.sumbol}
                     </div>
                   </div>
                   <div className="flex-row" data-pw="below-subdivisions">
@@ -954,13 +954,26 @@ export const QuantutyInput = ({
                 </div>
               </>
             ) : (
-              <>
+              <div
+                className="flex-row gap-[4px]"
+                style={{
+                  direction: isRtl ? "rtl" : "ltr",
+                }}
+                data-pw="newOld-price"
+              >
                 <div
-                  className={`product-new-price ${singlePriceFontClass} light text-[#1D1D1D]`}
+                  className={`product-new-price ${singlePriceFontClass} light text-[#1D1D1D] m-0`}
+                  data-pw="new-price"
                 >
                   {newPriceLabel}
                 </div>
-              </>
+                <div
+                  className="product-currency text-[8px] light text-[#1D1D1D] m-0"
+                  data-pw="currency-symbol"
+                >
+                  {currency?.symbol ?? (currency as any)?.sumbol}
+                </div>
+              </div>
             )}
           </div>
         </div>

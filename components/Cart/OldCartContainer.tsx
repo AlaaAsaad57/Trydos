@@ -321,7 +321,7 @@ function OldCartContainer() {
               //   close();
               // }}
             >
-              <div className="flex-row w-[116px] h-auto rounded-[15px] max-h-[160px]  relative">
+              <div className="flex-row w-[116px] h-auto rounded-[15px] max-h-[160px] relative my-auto self-center shrink-0">
                 <img
                   src={getConfiguredImage({
                     height: 150,

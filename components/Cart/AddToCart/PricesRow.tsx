@@ -62,7 +62,7 @@ function PricesRow({
                 language: language,
               })}
             </span>
-            <span>{currency?.sumbol}</span>
+            <span>{currency?.symbol ?? currency?.sumbol}</span>
           </div>
         );
       } else {
@@ -125,7 +125,7 @@ function PricesRow({
                 language: language,
               })}
             </span>
-            <span>{currency?.sumbol}</span>
+            <span>{currency?.symbol ?? currency?.sumbol}</span>
           </div>
         );
       }
@@ -144,7 +144,7 @@ function PricesRow({
                 language: language,
               })}
             </span>
-            <span>{currency?.sumbol}</span>
+            <span>{currency?.symbol ?? currency?.sumbol}</span>
           </div>
         );
       } else {
@@ -185,7 +185,7 @@ function PricesRow({
                 language: language,
               })}
             </span>
-            <span>{currency?.sumbol}</span>
+            <span>{currency?.symbol ?? currency?.sumbol}</span>
           </div>
         );
       }

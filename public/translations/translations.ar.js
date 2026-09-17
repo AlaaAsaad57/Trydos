@@ -697,7 +697,9 @@ const translations = {
   "Shipping & Payment": "الدفع والتوصيل",
   Done: "تم",
   Availabilty: "التوفر",
-  "Out Of Stock": "إنتهى من المخزن",
+  "Out Of Stock": "انتهى من المخزون",
+  "Not Available In Your Country": "غير متوفر في بلدك",
+  "Not Available Now": "غير متوفر حالياً",
   "These Shots Are Made By Users Who Have Already Purchased And Received The Product":
     "هذه الصور تم التقاطها من قبل مستخدمين قاموا بشراء المنتج واستلامه",
   "Please Choose Your Payment Method About Your Bag":

@@ -2348,6 +2348,8 @@ const translations = {
   "You Have New Messages From Delivery Worker": "Teslimat Elemanından Yeni Mesajlarınız Var",
   "Sorry This Product Not Available In Your Country": "Üzgünüz, bu ürün ülkenizde mevcut değil",
   "Sorry This Product Not Available Now": "Üzgünüz, bu ürün şu anda mevcut değil",
+  "Not Available In Your Country": "Ülkenizde mevcut değil",
+  "Not Available Now": "Şu anda mevcut değil",
   "These Shots Are Made By Users Who Have Already Purchased And Received The Product": "Bu görüntüler, ürünü satın alıp teslim almış kullanıcılar tarafından çekilmiştir",
   "Trydos Wallet": "Trydos Cüzdanı",
   "I Have Discount Coupon": "İndirim kuponum var",

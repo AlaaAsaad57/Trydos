@@ -764,3 +764,74 @@ describe("offering to notify the shopper when the core backend refuses", () => {
     ).toBeNull();
   });
 });
+
+describe("currency display in cart item", () => {
+  it("renders currency symbol when offer_price is equal to price", async () => {
+    const rowWithoutDiscount = {
+      ...cartRow,
+      id: "cart-equal-price",
+      price: 100,
+      offer_price: 100,
+    };
+
+    await renderWithProviders(
+      <QuantutyInput
+        value={1}
+        setValue={() => {}}
+        max={5}
+        deleteFunction={() => {}}
+        id={rowWithoutDiscount.id}
+        disabled={false}
+        updateData={() => {}}
+        product={rowWithoutDiscount}
+      />,
+      {
+        country: "sy",
+        path: "/cart",
+        store: {
+          cart: [{ ...rowWithoutDiscount }],
+          currency: { symbol: "$", exchange_rate: 1, decimal_digits: 2 },
+        },
+      },
+    );
+
+    const currencySymbol = marked("currency-symbol");
+    expect(currencySymbol).not.toBeNull();
+    expect(currencySymbol?.textContent?.trim()).toBe("$");
+  });
+
+  it("renders currency symbol when offer_price is different from price", async () => {
+    const rowWithDiscount = {
+      ...cartRow,
+      id: "cart-discounted",
+      price: 100,
+      offer_price: 80,
+    };
+
+    await renderWithProviders(
+      <QuantutyInput
+        value={1}
+        setValue={() => {}}
+        max={5}
+        deleteFunction={() => {}}
+        id={rowWithDiscount.id}
+        disabled={false}
+        updateData={() => {}}
+        product={rowWithDiscount}
+      />,
+      {
+        country: "sy",
+        path: "/cart",
+        store: {
+          cart: [{ ...rowWithDiscount }],
+          currency: { symbol: "$", exchange_rate: 1, decimal_digits: 2 },
+        },
+      },
+    );
+
+    const currencySymbol = marked("currency-symbol");
+    expect(currencySymbol).not.toBeNull();
+    expect(currencySymbol?.textContent?.trim()).toBe("$");
+  });
+});
+
