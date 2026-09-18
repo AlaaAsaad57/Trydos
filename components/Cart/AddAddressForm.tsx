@@ -166,8 +166,20 @@ function AddAddressForm({
             setExpanded={(e) => {
               setExpanded(e);
             }}
+            // `location` is the form's own shape, and only the *add* path is
+            // guaranteed to have it: `initAddressForm` writes it out in full
+            // (`store/Cart/reducer.ts`). The *edit* path comes from
+            // `startUpdateAddress`, which spreads whatever the core backend sent
+            // for that address — and an address it sends without a nested
+            // `location` left this read throwing on `undefined.latitude`.
+            //
+            // It threw **late**, which is why it never looked like a crash. The
+            // map is drawn only once `countries` has arrived, so the form opened
+            // fine, took what the shopper typed, and then lost the whole subtree
+            // a moment later. On staging that showed up as an edit form that sat
+            // there with every field blank and a Save button that did nothing.
             center={
-              (addressDetails.location.latitude && {
+              (addressDetails.location?.latitude && {
                 lat: addressDetails.location.latitude,
                 lng: addressDetails.location.longitude,
               }) ||

@@ -19,6 +19,7 @@ import {
 import { auth, nav, prompt } from "../selectors";
 
 import { arriveAsGuest } from "./locale";
+import { howTheClientStarted } from "../harness/clientStart";
 import { LIVE_ORIGIN } from "../harness/env";
 import {
   credentialsChangedSince,
@@ -1020,6 +1021,7 @@ const whySignOutIsMissing = async (page: Page): Promise<string> => {
     `with a usable phone — so the session is alive and only the client copy is ` +
     `missing. The store is filled by getCustomerInfo -> updateUserInfo ` +
     `(services/home.ts), and it did not arrive in ${SIGN_OUT_ITEM_MS}ms. ` +
+    `${howTheClientStarted(page)}. ` +
     `Starting the page again, the two calls that fill it said: ${boot}. ` +
     `getClientData runs them in one chain and throws on the first, so a ` +
     `settings read that did not answer is the reason the profile read never ` +

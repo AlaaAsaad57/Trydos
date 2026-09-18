@@ -345,14 +345,22 @@ export const addOpenProductToBag = async (
  *
  *  Bounded on purpose. A shop where none of the first several products can be
  *  bought is a finding worth failing on — the caller gets `bought: null` and can
- *  say so, naming how many it looked at. */
+ *  say so, naming how many it looked at.
+ *
+ *  `startAt` skips the products already tried. "Addable" is not the only thing a
+ *  case can need of a product — `BUY-04` also needs a line that can be raised to
+ *  two, and a product the seller caps at one is addable and still no use to it.
+ *  So the caller can look at the next one along rather than fail on a fact about
+ *  the catalogue. `looked` counts from the beginning of the listing, so feeding
+ *  it straight back in continues where the last call stopped. */
 export const addFirstBuyableProduct = async (
   page: Page,
-  options: { maxProducts?: number } = {},
+  options: { maxProducts?: number; startAt?: number } = {},
 ): Promise<{ bought: string | null; looked: number }> => {
   const limit = options.maxProducts ?? 6;
+  const from = options.startAt ?? 0;
 
-  for (let index = 0; index < limit; index += 1) {
+  for (let index = from; index < limit; index += 1) {
     const opened = await gotoProductAtOrNull(page, { index });
     if (!opened) return { bought: null, looked: index };
 
@@ -1539,6 +1547,26 @@ export const editAddressTitleFromSheet = async (
   page: Page,
   options: { current: string; next: string },
 ): Promise<{ saved: boolean; refusal: string }> => {
+  // Anything the page itself threw while the form was open.
+  //
+  // **A form that loses every field it was holding is not a backend story**,
+  // and this is the reading that says so. `AddAddressForm` reaches into
+  // `addressDetails.location.latitude` without a guard when it draws the map,
+  // and the map is drawn only once `countries` has arrived — which is after the
+  // form is already on screen. An address the app opened for editing that
+  // carries no `location` therefore throws *after* the form has been filled in,
+  // not when it opened. From outside, that looks exactly like a save the shop
+  // refused.
+  //
+  // Names the error and nothing else: a stack from a minified bundle is noise,
+  // and the page's own text can carry the shopper's details.
+  const pageErrors: string[] = [];
+  const onPageError = (error: Error): void => {
+    const first = String(error.message ?? error).split("\n")[0];
+    if (!pageErrors.includes(first)) pageErrors.push(first);
+  };
+  page.on("pageerror", onPageError);
+
   const row = checkout.addressSheetRow(page, options.current).first();
 
   const found = await row
@@ -1546,6 +1574,7 @@ export const editAddressTitleFromSheet = async (
     .then(() => true)
     .catch(() => false);
   if (!found) {
+    page.off("pageerror", onPageError);
     return {
       saved: false,
       refusal: "the address sheet holds no row with that title",
@@ -1560,6 +1589,7 @@ export const editAddressTitleFromSheet = async (
     .then(() => true)
     .catch(() => false);
   if (!opened) {
+    page.off("pageerror", onPageError);
     return {
       saved: false,
       refusal: "pressing the edit control never opened the address form",
@@ -1612,6 +1642,7 @@ export const editAddressTitleFromSheet = async (
   //     is this helper's own "did it close" check being wrong, not a refusal,
   //     and reading the fields at that point describes a form the app has
   //     already moved on from.
+
   let updateSaid = "the core backend was never asked to store the change";
   const onUpdate = (response: import("@playwright/test").Response): void => {
     const target = response.request().headers()["x-proxy-url"] ?? "";
@@ -1642,14 +1673,21 @@ export const editAddressTitleFromSheet = async (
       .then(() => true)
       .catch(() => false);
 
+    const threw =
+      pageErrors.length === 0
+        ? "the page threw nothing while the form was open"
+        : `the page threw while the form was open: ${pageErrors.join(" | ")}`;
+
     return {
       saved,
       refusal: saved
         ? ""
-        : `${await whyTheFormRefused(page)}. The save call: ${updateSaid}`,
+        : `${await whyTheFormRefused(page)}. The save call: ${updateSaid}. ` +
+          `And ${threw}`,
     };
   } finally {
     page.off("response", onUpdate);
+    page.off("pageerror", onPageError);
   }
 };
 
@@ -1727,6 +1765,26 @@ export const bagLineName = async (
   return ((await name.textContent()) ?? "").trim();
 };
 
+/** Can this line be raised at all, or is it already at the most the shop
+ *  allows?
+ *
+ *  Asked **before** pressing, by a case that needs a line it can raise. The row
+ *  keeps drawing the plus control either way — deliberately, so a shopper who
+ *  presses it is told why — and states the answer in `aria-disabled`
+ *  (`components/Cart/index.tsx`). So there is nothing to infer: the app says it.
+ *
+ *  The cap is the lower of the seller's per-order limit and the stock left, both
+ *  sent by the core backend for this row, so the answer belongs to the product
+ *  the case happened to pick and not to the app. */
+export const lineCanHoldMore = async (
+  page: Page,
+  name: string,
+): Promise<boolean> => {
+  const plus = cart.plus(cart.lineNamed(page, name).first());
+  if ((await plus.count()) === 0) return false;
+  return (await plus.getAttribute("aria-disabled").catch(() => null)) !== "true";
+};
+
 /** Ask for one more, or one fewer, of a named line.
  *
  *  **The quantity on screen is optimistic.** Both handlers call `setInputValue`
@@ -1767,6 +1825,38 @@ export const changeLineQuantity = async (
       said:
         `the line "${options.name}" draws no ${options.direction} control at ` +
         `quantity ${before}`,
+    };
+  }
+
+  // **A plus that is on screen is not a plus that can be pressed.** The row
+  // keeps drawing it when the line is already at its cap, on purpose — "a
+  // control that is removed can never be pressed, so it can never say why"
+  // (`components/Cart/index.tsx`). Pressing it then shows "Max Allowed Quantity
+  // Reached" and sends nothing at all.
+  //
+  // Read rather than assumed, because the cap is the lower of two numbers the
+  // backend sent for this row — `max_allowed_qty` and `available_quantity`
+  // (`quantityCap`, same file) — so it is a property of whichever product the
+  // case happened to put in the bag, not of the app. The row states it in
+  // `aria-disabled`, and taking the app's own word for it is what keeps this
+  // from guessing.
+  //
+  // Reported as **not pressed**, never as a failure: "this product cannot hold
+  // two" is a fact about the catalogue, and the caller is the one that knows
+  // whether its case can carry on with another product.
+  if (
+    options.direction === "plus" &&
+    (await control.getAttribute("aria-disabled").catch(() => null)) === "true"
+  ) {
+    return {
+      pressed: false,
+      quantity: Number.isNaN(before) ? null : before,
+      said:
+        `the line "${options.name}" is already at the most the shop allows ` +
+        `for it at quantity ${before}, so its plus control is drawn but does ` +
+        `nothing. The cap is the lower of the seller's per-order limit and the ` +
+        `stock left, both sent by the core backend for this row — so this is ` +
+        `the product, not the bag and not the app`,
     };
   }
 
