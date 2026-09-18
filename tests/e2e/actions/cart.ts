@@ -1551,16 +1551,55 @@ export const editAddressTitleFromSheet = async (
     await field.fill(value).catch(() => undefined);
   }
 
-  await page.getByTestId("AddSaveButton").click();
+  // What the save itself did, watched from before the press.
+  //
+  // **This is the reading that says whose fault a stuck form is**, and without
+  // it the two cases are indistinguishable from outside:
+  //
+  //   * `/customer/address/update` never sent — the form refused the save on
+  //     its own, before any backend was involved. `isValid()` is grey and the
+  //     press does nothing at all (`AddAddressForm.tsx`). Then the empty-field
+  //     reading below is the finding.
+  //   * sent and answered — the save happened. A form still standing after that
+  //     is this helper's own "did it close" check being wrong, not a refusal,
+  //     and reading the fields at that point describes a form the app has
+  //     already moved on from.
+  let updateSaid = "the core backend was never asked to store the change";
+  const onUpdate = (response: import("@playwright/test").Response): void => {
+    const target = response.request().headers()["x-proxy-url"] ?? "";
+    if (!response.request().url().includes("/api/proxy")) return;
+    if (!target.includes("/customer/address/update")) return;
+    const status = response.status();
+    void response
+      .text()
+      .then((body) => {
+        updateSaid = `${target} answered ${status}: ${body.slice(0, 200)}`;
+      })
+      .catch(() => {
+        updateSaid = `${target} answered ${status} and its body could not be read`;
+      });
+  };
+  page.on("response", onUpdate);
 
-  // The form closes itself from the update's own callback, so this waits for
-  // the app's answer rather than for a moment that looked long enough.
-  const saved = await form
-    .waitFor({ state: "hidden", timeout: CART_ANSWER_MS })
-    .then(() => true)
-    .catch(() => false);
+  try {
+    await page.getByTestId("AddSaveButton").click();
 
-  return { saved, refusal: saved ? "" : await whyTheFormRefused(page) };
+    // The form closes itself from the update's own callback, so this waits for
+    // the app's answer rather than for a moment that looked long enough.
+    const saved = await form
+      .waitFor({ state: "hidden", timeout: CART_ANSWER_MS })
+      .then(() => true)
+      .catch(() => false);
+
+    return {
+      saved,
+      refusal: saved
+        ? ""
+        : `${await whyTheFormRefused(page)}. The save call: ${updateSaid}`,
+    };
+  } finally {
+    page.off("response", onUpdate);
+  }
 };
 
 /** Go back from the checkout to the bag.
