@@ -823,6 +823,13 @@ export const openCartAndProveBackendAnswered = async (
  *  noticing a refused credential, exchanging it and trying again. */
 const SIGN_OUT_ITEM_MS = 20_000;
 
+/** How much longer it is waited for **after** the budget above has run out.
+ *
+ *  Spent only on a run that is already failing, so it costs a healthy suite
+ *  nothing. It exists to turn "it never came" into "it came at 23 seconds",
+ *  which are two different findings with two different fixes. */
+const SIGN_OUT_ITEM_LATE_MS = 25_000;
+
 /** Why the open account menu offered no sign-out.
  *
  *  `shouldShowLogout` (`components/Home/Menu.tsx`) hides the item unless the
@@ -849,6 +856,105 @@ const SIGN_OUT_ITEM_MS = 20_000;
  *  **The phone is never printed**, here or anywhere: only whether the app would
  *  call it usable, by the same rule the menu applies. Job logs and artifacts in
  *  this repository are public. */
+/** What the app's two start-up calls answer, read by doing them again.
+ *
+ *  **Only ever called once a case has already failed**, because it reloads the
+ *  page and a reload throws away whatever was on screen. That is the trade:
+ *  the fault it explains is a store that never filled, and the only moment the
+ *  filling can be watched is a page start — which by then is long gone.
+ *
+ *  Why these two calls and no others. `getClientData` (`services/home.ts`) is
+ *  the only thing that fills the store's user on a normal page load, and it
+ *  does them in one chain:
+ *
+ *    1. `GET /web/home/startingSettings`, and it **throws on a failure**.
+ *    2. `getCustomerInfo` -> `GET /customer/info` -> `updateUserInfo`.
+ *
+ *  Step 2 is inside the same `try` as step 1, after it and awaiting it. So a
+ *  settings read that fails takes the profile read down with it and the store
+ *  keeps no user at all — with nothing on screen to say so. Naming which of the
+ *  two answered is therefore the whole finding, and "the client copy is
+ *  missing" without it is not.
+ *
+ *  Both leave through `POST /api/proxy` with the real address in `x-proxy-url`
+ *  (`utils/fetchData.ts`), which is how they are recognised.
+ *
+ *  **Statuses only, never a body.** These answers carry the shopper's name and
+ *  phone, and this repository's job logs are public. */
+const whatTheBootCallsSaid = async (page: Page): Promise<string> => {
+  const calls: Record<string, string> = {
+    "/web/home/startingSettings": "was never sent",
+    "/customer/info": "was never sent",
+  };
+
+  // **When**, not only whether. A store that fills at 23 seconds and a store
+  // that never fills produce the same empty menu at 20, and they are a test
+  // budget and an application fault respectively. The elapsed figure is the
+  // only thing that separates them.
+  let startedAt = Date.now();
+  const since = (): string => `${Date.now() - startedAt}ms after the reload`;
+
+  const onRequest = (request: import("@playwright/test").Request): void => {
+    if (!request.url().includes("/api/proxy")) return;
+    const target = request.headers()["x-proxy-url"] ?? "";
+    for (const path of Object.keys(calls)) {
+      if (target.includes(path) && calls[path] === "was never sent") {
+        calls[path] = `was sent ${since()} and never answered`;
+      }
+    }
+  };
+
+  const onResponse = (response: import("@playwright/test").Response): void => {
+    const request = response.request();
+    if (!request.url().includes("/api/proxy")) return;
+    const target = request.headers()["x-proxy-url"] ?? "";
+    const path = Object.keys(calls).find((known) => target.includes(known));
+    if (path === undefined) return;
+
+    const status = response.status();
+    const answeredAt = since();
+    void response
+      .text()
+      .then((body) => {
+        // `success` is the flag `getClientData` and `getCustomerInfo` both
+        // branch on, and a `200` carrying `success: false` is exactly the case
+        // that makes them throw. The status alone would call that one healthy.
+        let success: unknown;
+        try {
+          success = (JSON.parse(body) as { success?: unknown }).success;
+        } catch {
+          success = "a body that is not JSON";
+        }
+        calls[path] = `answered ${status} with success=${String(success)}, ${answeredAt}`;
+      })
+      .catch(() => {
+        calls[path] = `answered ${status} ${answeredAt}, and its body could not be read`;
+      });
+  };
+
+  page.on("request", onRequest);
+  page.on("response", onResponse);
+
+  try {
+    startedAt = Date.now();
+    await page.reload({ waitUntil: "domcontentloaded" });
+    // The chain is started on a timer after mount and the first call carries a
+    // ten-second in-app wait of its own (`WaitForCondition`), so a short wait
+    // here would report "never sent" for a call that was merely slow.
+    await page.waitForTimeout(20_000);
+  } catch {
+    // A reload that fails is itself worth saying, and the readings below are
+    // still the truth about what did and did not go out.
+  } finally {
+    page.off("request", onRequest);
+    page.off("response", onResponse);
+  }
+
+  return Object.entries(calls)
+    .map(([path, said]) => `${path} ${said}`)
+    .join("; ");
+};
+
 const whySignOutIsMissing = async (page: Page): Promise<string> => {
   const said = await page.evaluate(() =>
     fetch("/api/auth/me", { method: "POST", credentials: "include" })
@@ -903,12 +1009,21 @@ const whySignOutIsMissing = async (page: Page): Promise<string> => {
     );
   }
 
+  // The session is alive and the client copy is missing. Which of the two
+  // start-up calls failed is the finding, and it cannot be guessed — so the
+  // page is started again and both are watched. This costs about half a minute
+  // and it is spent only on a case that has already failed.
+  const boot = await whatTheBootCallsSaid(page);
+
   return (
     `${opened}, yet the cookies still name ${who} as a phone-verified shopper ` +
     `with a usable phone — so the session is alive and only the client copy is ` +
     `missing. The store is filled by getCustomerInfo -> updateUserInfo ` +
-    `(services/home.ts), and it did not arrive in ${SIGN_OUT_ITEM_MS}ms. This ` +
-    `one is a fault in this repository.`
+    `(services/home.ts), and it did not arrive in ${SIGN_OUT_ITEM_MS}ms. ` +
+    `Starting the page again, the two calls that fill it said: ${boot}. ` +
+    `getClientData runs them in one chain and throws on the first, so a ` +
+    `settings read that did not answer is the reason the profile read never ` +
+    `went out. This one is a fault in this repository.`
   );
 };
 
@@ -958,11 +1073,35 @@ export const openAccountMenu = async (page: Page): Promise<void> => {
   // interactive. So a menu that is open with no sign-out in it may just be
   // ahead of that fetch — which is exactly what `AUTH-03` hit, on a page whose
   // cookies said signed-in and whose header still read "Hello ,".
+  const waitingSince = Date.now();
   const offered = await signOut
     .waitFor({ state: "visible", timeout: SIGN_OUT_ITEM_MS })
     .then(() => true)
     .catch(() => false);
   if (offered) return;
+
+  // **Missing at the budget is not the same as missing.** A store that fills at
+  // twenty-three seconds and a store that never fills leave the same empty menu
+  // at twenty, and they are two different findings: one is this budget, the
+  // other is the app. So the wait is carried on once, and the answer goes in the
+  // message. Only on the failing path — a healthy run has already returned.
+  const lateBy = await signOut
+    .waitFor({ state: "visible", timeout: SIGN_OUT_ITEM_LATE_MS })
+    .then(() => Date.now() - waitingSince)
+    .catch(() => null);
+
+  if (lateBy !== null) {
+    expect(
+      false,
+      `the account menu offered sign-out after ${lateBy}ms, which is inside ` +
+        `the ${SIGN_OUT_ITEM_MS + SIGN_OUT_ITEM_LATE_MS}ms this waits in total ` +
+        `but outside the ${SIGN_OUT_ITEM_MS}ms first budget. Nothing is broken ` +
+        `in the app: the item arrives with the store's user, and the store is ` +
+        `filled by getCustomerInfo (services/home.ts) over two round trips to ` +
+        `staging. This budget is the thing to change, and this message is the ` +
+        `measurement to change it by.`,
+    ).toBe(true);
+  }
 
   // Only now, and only because it is missing, ask the app who it thinks it is.
   // The previous version of this asserted the answer instead of reading it: it

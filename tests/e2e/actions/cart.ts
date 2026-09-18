@@ -818,6 +818,20 @@ export interface CartMoneyAnswer {
 export interface CartMoneyWatch {
   /** How many answers of this kind have arrived so far. */
   seen: (which: CartMoneyTarget) => number;
+  /** How many **requests** of this kind the browser has sent.
+   *
+   *  Counted separately from the answers, and that separation is the whole
+   *  point. "No money came back" has two completely different causes and one
+   *  message cannot serve both:
+   *
+   *    * `sent > seen` — the browser asked and the shop did not answer. That is
+   *      the core backend.
+   *    * `sent` did not move — the browser never asked. That is this app, and
+   *      `getCart` (`utils/functions.tsx`) has a real way of doing it: it waits
+   *      for a user id in the store and returns `{ cart: [] }` without calling
+   *      anything when none arrives. A run whose client never loaded the
+   *      account therefore looks exactly like a dead cart backend. */
+  sent: (which: CartMoneyTarget) => number;
   /** The most recent one, or `null` when none has come. */
   last: (which: CartMoneyTarget) => CartMoneyAnswer | null;
   /** The most recent one in words. Safe in a message: it carries the status and
@@ -853,6 +867,23 @@ export const watchCartMoney = (page: Page): CartMoneyWatch => {
     overview: null,
   };
   const counts: Record<CartMoneyTarget, number> = { shipping: 0, overview: 0 };
+  const requests: Record<CartMoneyTarget, number> = { shipping: 0, overview: 0 };
+
+  /** Which of the two calls a `/api/proxy` hop is carrying, or `null`. */
+  const targetOf = (
+    request: import("@playwright/test").Request,
+  ): CartMoneyTarget | null => {
+    if (!request.url().includes("/api/proxy")) return null;
+    const target = request.headers()["x-proxy-url"] ?? "";
+    if (target.includes("/cart/cart_shipping")) return "shipping";
+    if (target.includes("/cart/cart_overview")) return "overview";
+    return null;
+  };
+
+  const onRequest = (request: import("@playwright/test").Request): void => {
+    const which = targetOf(request);
+    if (which !== null) requests[which] += 1;
+  };
 
   const numberOrNull = (value: unknown): number | null => {
     const parsed = Number(value);
@@ -861,16 +892,10 @@ export const watchCartMoney = (page: Page): CartMoneyWatch => {
 
   const onResponse = (response: import("@playwright/test").Response): void => {
     const request = response.request();
-    if (!request.url().includes("/api/proxy")) return;
-
-    const target = request.headers()["x-proxy-url"] ?? "";
-    const which: CartMoneyTarget | null = target.includes("/cart/cart_shipping")
-      ? "shipping"
-      : target.includes("/cart/cart_overview")
-        ? "overview"
-        : null;
+    const which = targetOf(request);
     if (which === null) return;
 
+    const target = request.headers()["x-proxy-url"] ?? "";
     const status = response.status();
 
     void response
@@ -917,10 +942,12 @@ export const watchCartMoney = (page: Page): CartMoneyWatch => {
       });
   };
 
+  page.on("request", onRequest);
   page.on("response", onResponse);
 
   return {
     seen: (which) => counts[which],
+    sent: (which) => requests[which],
     last: (which) => answers[which],
     said: (which) =>
       answers[which]?.said ??
@@ -938,7 +965,10 @@ export const watchCartMoney = (page: Page): CartMoneyWatch => {
       const answer = answers[which];
       return answer !== null && answer.seq > options.after ? answer : null;
     },
-    stop: () => page.off("response", onResponse),
+    stop: () => {
+      page.off("request", onRequest);
+      page.off("response", onResponse);
+    },
   };
 };
 
@@ -1310,6 +1340,49 @@ const readInput = async (page: Page, marker: string): Promise<string> =>
       .catch(() => "")) ?? ""
   ).trim();
 
+/** Is this the **edit** form or a blank **add** form?
+ *
+ *  The one control that answers it is the save button's own label. The form
+ *  draws `Edit & Save` when the app is holding an address and `Add & Save` when
+ *  it is not (`components/Cart/AddAddressForm.tsx`, the `addressDetails?.id`
+ *  branch) — so the label *is* the reading of `addressDetails.id`, which is not
+ *  reachable from a test any other way.
+ *
+ *  That distinction is the whole difference between two findings that look the
+ *  same on screen. An edit form standing empty means the address the app holds
+ *  arrived without its fields. An **add** form standing empty means the edit
+ *  control set nothing, the form was never opened on that address at all, and
+ *  reading the address list would have told you nothing.
+ *
+ *  The label is read as text, which is the one place in this suite that is
+ *  allowed: it goes into a failure message as evidence, and nothing is located
+ *  by it. */
+const whichFormThisIs = async (page: Page): Promise<string> => {
+  const label = (
+    (await page
+      .getByTestId("AddSaveButton")
+      .first()
+      .textContent()
+      .catch(() => "")) ?? ""
+  ).trim();
+
+  if (label === "") {
+    return (
+      "and its save button drew no label at all, so the form is not the one " +
+      "AddAddressForm draws — look at what the edit control opened"
+    );
+  }
+
+  return (
+    `Its save button reads "${label}". The form draws "Edit & Save" only while ` +
+    `the app is holding an address to edit and "Add & Save" when it is not, so ` +
+    `that word says whether the edit control handed the address over ` +
+    `(startUpdateAddress, store/Cart/reducer.ts) or opened a blank form. A ` +
+    `blank form is this app; a filled-in form that lost its fields is the ` +
+    `address list read`
+  );
+};
+
 const whyTheFormRefused = async (page: Page): Promise<string> => {
   const fields: Record<string, string> = {
     "username-border": "the account holder's name",
@@ -1377,9 +1450,7 @@ const whyTheFormRefused = async (page: Page): Promise<string> => {
   if (empty.length > 0) {
     return (
       `the form refused the save and is holding these empty: ${empty.join(", ")}. ` +
-      "The edit form opens on the address the app already holds, so fields this " +
-      "empty mean that address never arrived — look at whether the address list " +
-      "read answered, not at the form"
+      `${await whichFormThisIs(page)}`
     );
   }
 
@@ -1635,6 +1706,7 @@ export const changeLineQuantity = async (
   const money = watchCartMoney(page);
   try {
     const seenBefore = money.seen("shipping");
+    const sentBefore = money.sent("shipping");
     await control.click();
 
     const answer = await money.waitForAnswer("shipping", {
@@ -1643,12 +1715,24 @@ export const changeLineQuantity = async (
     });
 
     if (answer === null) {
+      // Two different faults end here and they belong to two different teams,
+      // so the message has to say which one it is rather than naming the cart
+      // backend for both. The request counter is what tells them apart — see
+      // `CartMoneyWatch.sent`.
+      const asked = money.sent("shipping") > sentBefore;
       return {
         pressed: true,
         quantity: null,
-        said:
-          `pressing ${options.direction} on "${options.name}" never brought the ` +
-          `bag back — the core backend did not answer /cart/cart_shipping`,
+        said: asked
+          ? `pressing ${options.direction} on "${options.name}" sent ` +
+            `/cart/cart_shipping and the core backend never answered it. ` +
+            `The change call said: ${updateSaid}`
+          : `pressing ${options.direction} on "${options.name}" never sent ` +
+            `/cart/cart_shipping at all, so no backend was asked. The app ` +
+            `re-reads the bag through getCart (utils/functions.tsx), which ` +
+            `returns an empty bag without calling anything while the store ` +
+            `holds no user id — so this is the client not having loaded the ` +
+            `account, not the cart backend. The change call said: ${updateSaid}`,
       };
     }
 
