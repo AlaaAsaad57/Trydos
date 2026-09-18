@@ -1,4 +1,4 @@
-# The check that runs on every pull request into develop and main.
+# The check that runs on every pull request into development and main.
 #
 # It runs the four things that already pass locally, in one job, so a red run
 # points at exactly one broken thing. Every step carries `if: ${{ !cancelled() }}`
@@ -30,9 +30,9 @@ name: Tests
 
 on:
   pull_request:
-    branches: [develop, main]
+    branches: [development, main]
   push:
-    branches: [develop, main]
+    branches: [development, main]
   workflow_dispatch:
 
 # A new push to the same branch cancels the run still going for the old one.
