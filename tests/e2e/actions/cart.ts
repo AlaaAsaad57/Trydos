@@ -140,31 +140,64 @@ export const closeCart = async (page: Page): Promise<void> => {
 export const emptyTheBag = async (page: Page): Promise<void> => {
   const opened = await openCart(page);
 
-  let remaining = opened.lines;
-  for (let line = remaining; line > 0; line -= 1) {
-    await page.getByTestId("DeleteIcon_CartPage").first().click();
+  // **Removing is optimistic, and it can be undone.** The row leaves the store
+  // before anything is asked, and `services/cart.ts > RemoveFromCart` puts it
+  // back when the core backend refuses — after the re-price that follows every
+  // removal. So a count read straight after the click is the count the app
+  // *hoped* for, and it agrees with a backend that said no.
+  //
+  // This is the same discipline `removeLineNamed` already follows, and it was
+  // missing here. Without it `emptyTheBag` could report an empty bag that the
+  // shop still held: on 2026-09-19 `BUY-04` emptied the bag, added one product
+  // and opened a bag holding **two** lines, the second being the row a refused
+  // removal had restored. The failure then blamed the product it had just
+  // added.
+  const money = watchCartMoney(page);
+  try {
+    let remaining = opened.lines;
+    for (let line = remaining; line > 0; line -= 1) {
+      const seenBefore = money.seen("overview");
+      await page.getByTestId("DeleteIcon_CartPage").first().click();
+
+      // The re-price is what says the removal was really taken. Waited for
+      // before the count is read, so the reading is taken after the moment an
+      // undo would have happened.
+      await money.waitForAnswer("overview", {
+        after: seenBefore,
+        timeout: CART_ANSWER_MS,
+      });
+
+      await expect
+        .poll(async () => await cart.lines(page).count(), {
+          timeout: CART_ANSWER_MS,
+          message:
+            `a line was removed from the bag and the bag still holds ` +
+            `${remaining} of them once the shop had re-priced it, so the ` +
+            `removal was refused and put back. The core backend said: ` +
+            `${money.said("overview")}`,
+        })
+        .toBeLessThan(remaining);
+      remaining = await cart.lines(page).count();
+    }
+
+    expect(
+      remaining,
+      `the bag still holds ${remaining} lines after every one was removed. ` +
+        `The core backend said: ${money.said("overview")}`,
+    ).toBe(0);
+
+    await closeCart(page);
+
     await expect
-      .poll(async () => await cart.lines(page).count(), {
+      .poll(async () => await bagLineCount(page), {
         timeout: CART_ANSWER_MS,
         message:
-          "removing a line from the bag never came back — is the cart backend answering?",
+          "the navigation still shows a bag count after the bag was emptied",
       })
-      .toBeLessThan(remaining);
-    remaining = await cart.lines(page).count();
+      .toBe(0);
+  } finally {
+    money.stop();
   }
-
-  expect(remaining, "the bag still holds lines after every one was removed").toBe(
-    0,
-  );
-
-  await closeCart(page);
-
-  await expect
-    .poll(async () => await bagLineCount(page), {
-      timeout: CART_ANSWER_MS,
-      message: "the navigation still shows a bag count after the bag was emptied",
-    })
-    .toBe(0);
 };
 
 /** Close the add-to-bag sheet.

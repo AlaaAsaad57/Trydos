@@ -36,6 +36,28 @@ import type { BrowserContext, Page } from "@playwright/test";
 /** The two calls that fill the store's user, by the path each one carries. */
 const CLIENT_START_CALLS = ["/web/home/startingSettings", "/customer/info"];
 
+/** The same-origin routes that say the session was *recovered* rather than
+ *  merely read.
+ *
+ *  These are the other half of the story and they do not go through
+ *  `/api/proxy`, so the match above cannot see them. They matter because the
+ *  recovery path does not only swap a credential — `ExpiredUser` ends in
+ *  `cancelAuth()`, and `cancelAuth` with no argument sets `userProfile: null`
+ *  (`store/auth/reducer.tsx`). A recovery that lands *after* the profile has
+ *  arrived therefore empties the store again, and `getClientData` runs once per
+ *  document load, so nothing refills it.
+ *
+ *  That produces the exact state AUTH-03 and PROF-08 report: the cookie still
+ *  names a phone-verified shopper, `/customer/info` answered 200 naming that
+ *  same shopper, and the menu still offers no sign-out. Without these lines the
+ *  order of the two is invisible. */
+const SESSION_RECOVERY_CALLS = [
+  "/api/auth/refresh",
+  "/api/auth/expire",
+  "/api/auth/register-device",
+  "/auth/register-guest",
+];
+
 const clientStart = new WeakMap<BrowserContext, string[]>();
 
 /** Start recording. Called once, by whoever creates a live context. */
@@ -47,10 +69,49 @@ export const watchTheClientStarting = (context: BrowserContext): void => {
     url(): string;
     headers(): Record<string, string>;
   }): string | undefined => {
-    if (!request.url().includes("/api/proxy")) return undefined;
+    const url = request.url();
+
+    // The recovery routes are same-origin and carry no `x-proxy-url`, so they
+    // are matched on the address itself.
+    if (!url.includes("/api/proxy")) {
+      return SESSION_RECOVERY_CALLS.find((known) => url.includes(known));
+    }
+
     const target = request.headers()["x-proxy-url"] ?? "";
-    return CLIENT_START_CALLS.find((known) => target.includes(known));
+    return (
+      CLIENT_START_CALLS.find((known) => target.includes(known)) ??
+      SESSION_RECOVERY_CALLS.find((known) => target.includes(known))
+    );
   };
+
+  // **Anything the page threw.** A React render that throws takes its subtree
+  // with it, and what is left on screen is a page that looks merely out of
+  // date — the menu without its sign-out item, a form with empty fields, a
+  // header reading "Hello ,". `AddAddressForm` was exactly that and cost weeks
+  // of blaming the address list, so the question is now asked of every live
+  // page rather than of one helper.
+  //
+  // Names the error and nothing else: a stack from a minified bundle is noise,
+  // and the page's own text can carry the shopper's details.
+  context.on("weberror", (webError) => {
+    const first = String(webError.error()?.message ?? webError.error()).split(
+      "\n",
+    )[0];
+    const line = `the page threw: ${first}`;
+    if (!log.includes(line)) log.push(line);
+  });
+
+  // **Every document load, in the same order as the calls.** The chain that
+  // fills the store runs once per load and never again, so "which load was
+  // this?" is half of every reading here. A page that loads a second time while
+  // a case is waiting has thrown away the store the case was waiting for, and
+  // without this line the two loads' calls read as one confusing list.
+  context.on("page", (page) => {
+    page.on("framenavigated", (frame) => {
+      if (frame !== page.mainFrame()) return;
+      log.push(`--- the page loaded ${frame.url()} ---`);
+    });
+  });
 
   context.on("request", (request) => {
     const path = pathIn(request);

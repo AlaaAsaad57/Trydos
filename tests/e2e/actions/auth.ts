@@ -1171,6 +1171,41 @@ export const openAccountMenu = async (page: Page): Promise<void> => {
     ).toBe(true);
   }
 
+  // **Close it and open it again.** One question, and it separates the two
+  // findings that are left.
+  //
+  // The item is drawn from `shouldShowLogout` (`components/Home/Menu.tsx`),
+  // which reads the store through `auth.getUser()` — a `getState()` call, not a
+  // subscription. The menu is mounted when it is opened and unmounted when it
+  // is closed (`{menuOpen && <Menu …/>}`, `UserNavTopSection.tsx`). So:
+  //
+  //   * it appears on a second opening — the store had the shopper all along
+  //     and the **mounted** menu never re-read it. Nothing will fix that for a
+  //     shopper except closing the menu, which no shopper knows to do.
+  //   * it is still missing — the store really is empty, and the reading below
+  //     says which call failed to fill it.
+  const reopened = await (async () => {
+    await page.keyboard.press("Escape").catch(() => undefined);
+    await anyItem.waitFor({ state: "hidden", timeout: 5_000 }).catch(() => undefined);
+    await trigger.click().catch(() => undefined);
+    return await signOut
+      .waitFor({ state: "visible", timeout: SIGN_OUT_ITEM_MS })
+      .then(() => true)
+      .catch(() => false);
+  })();
+
+  if (reopened) {
+    expect(
+      false,
+      `the account menu offered no sign-out while it was open, and offered it ` +
+        `as soon as it was closed and opened again. So the store held the ` +
+        `shopper the whole time and the mounted menu never re-read it: ` +
+        `shouldShowLogout calls auth.getUser(), which is a getState() read and ` +
+        `not a subscription (components/Home/Menu.tsx). A shopper who opens ` +
+        `the menu before the profile lands is left with no way to sign out.`,
+    ).toBe(true);
+  }
+
   // Only now, and only because it is missing, ask the app who it thinks it is.
   // The previous version of this asserted the answer instead of reading it: it
   // said "so it is treating this visitor as a guest" for a state it had never
