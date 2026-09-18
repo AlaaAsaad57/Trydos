@@ -1330,6 +1330,17 @@ test.describe("BUY-04 changing and removing a line in the bag", () => {
 
         // Capped at one. Put it back and look at the next product.
         await emptyTheBag(page);
+
+        // **Let the app finish its own navigation before starting another.**
+        // `emptyTheBag` ends by closing the drawer, and closing it drops `cart`
+        // from the address — a client-side navigation. A `page.goto` fired into
+        // the middle of that is cancelled, and Playwright reports
+        // `net::ERR_ABORTED`, which reads like the server refused the page. It
+        // did not; two navigations simply overlapped.
+        await page
+          .waitForURL((url) => !url.searchParams.has("cart"), { timeout: 15_000 })
+          .catch(() => undefined);
+
         await gotoHome(page);
       }
 

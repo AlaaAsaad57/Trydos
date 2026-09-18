@@ -59,7 +59,58 @@ export const watchTheClientStarting = (context: BrowserContext): void => {
 
   context.on("response", (response) => {
     const path = pathIn(response.request());
-    if (path) log.push(`${path} answered ${response.status()}`);
+    if (path === undefined) return;
+
+    const status = response.status();
+    if (path !== "/customer/info" || status !== 200) {
+      log.push(`${path} answered ${status}`);
+      return;
+    }
+
+    // **Who the profile read named.** A `200` is not the end of the question:
+    // the app recovers a refused credential by registering a fresh guest, and
+    // the retried read then answers `200` with the *guest*. `updateUserInfo`
+    // (`store/auth/reducer.tsx`) assigns rather than merges, so the shopper's
+    // phone is gone from the store — and `shouldShowLogout`
+    // (`components/Home/Menu.tsx`) hides sign-out for exactly that.
+    //
+    // From outside, "the shop answered 200 and the menu is still wrong" and
+    // "the shop handed back a guest, and the menu is right" are the same line.
+    // They are opposite findings: one is this app, the other is the session.
+    //
+    // Judged by the same rule the menu applies — a phone that is neither empty
+    // nor `"0"` — and recorded as that rule's answer, never as the number.
+    const at = log.length;
+    log.push(`${path} answered ${status} (still reading who it named)`);
+
+    void response
+      .text()
+      .then((body) => {
+        let who = "an answer that is not JSON";
+        try {
+          const info = (
+            JSON.parse(body) as {
+              data?: { customer_info?: { phone?: unknown; id?: unknown } };
+            }
+          )?.data?.customer_info;
+
+          if (!info) {
+            who = "no customer_info at all";
+          } else {
+            const phone = String(info.phone ?? "");
+            who =
+              phone !== "" && phone !== "0"
+                ? `account ${String(info.id ?? "with no id")}, which has a usable phone`
+                : `account ${String(info.id ?? "with no id")}, which has NO usable phone — a guest, so the menu is right to hide sign-out`;
+          }
+        } catch {
+          /* keep the fallback */
+        }
+        log[at] = `${path} answered ${status} naming ${who}`;
+      })
+      .catch(() => {
+        log[at] = `${path} answered ${status}, and its body could not be read`;
+      });
   });
 };
 

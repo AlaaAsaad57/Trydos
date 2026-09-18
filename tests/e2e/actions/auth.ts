@@ -42,6 +42,19 @@ import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
  *  longer than that getting to the starting line and die before the window it
  *  was there to measure. See `_specs/e2e-guest-token-lifecycle/implement.md`
  *  for the full sum. */
+/** How many digits a whole international number runs to, across every country
+ *  the login widget offers (`components/Login/Enhanced/ui/RdbPhoneInput.tsx`).
+ *
+ *  The widget wants the dial code **and** the national part in one field, and it
+ *  checks the total exactly. The shortest pair it lists is the United States,
+ *  1 + 10; the longest are the three-digit dial codes with a ten-digit national
+ *  part, such as Iraq's 964 + 10.
+ *
+ *  Used only to tell a mis-set `TEST_ACCOUNT_PHONE` from a broken login screen —
+ *  see `enterPhone`. */
+const SHORTEST_INTERNATIONAL_NUMBER = 11;
+const LONGEST_INTERNATIONAL_NUMBER = 13;
+
 const COUNTRY_LOOKUP_MS = 10_000;
 const BOOT_NAVIGATION_MS = 25_000;
 const REGISTRATION_MS = 15_000;
@@ -354,7 +367,60 @@ export const enterPhone = async (
   await expect(input).toBeVisible();
   const digits = options.phone.replace(/\D/g, "").replace(/^0+/, "");
   await input.fill(digits);
+
+  // **The submit control is drawn only for a number the widget calls complete**,
+  // and complete means an exact digit count, not a minimum:
+  // `isValidPhone = digits.length === dialCode.length + maxLocal`
+  // (`components/Login/Enhanced/ui/RdbPhoneInput.tsx`). Syria is 3 + 9, so
+  // twelve digits — the **whole** international number, country code included
+  // and no `+`. One digit short or one over and there is no control to press.
+  //
+  // So `TEST_ACCOUNT_PHONE` has to be one full international number. Two of
+  // them separated by a comma, or the national part on its own, both land here.
+  //
+  // Without the reading below, that failure is "element(s) not found" against
+  // `send-phone-number` — which names nothing anyone can act on and reads like
+  // the login screen changed. It cost a local run to work out, and the whole
+  // answer was the length of the value.
+  //
+  // **The number never reaches the message**, only how many digits it has.
   const submit = auth.submitPhoneButton(page);
+  const ready = await submit
+    .waitFor({ state: "visible", timeout: 5_000 })
+    .then(() => true)
+    .catch(() => false);
+
+  if (!ready) {
+    const shown = ((await input.inputValue().catch(() => "")) ?? "").replace(
+      /\D/g,
+      "",
+    );
+
+    // Which way it is wrong, said plainly. Every country the widget offers
+    // needs between eleven and thirteen digits in total, so a value outside
+    // that is the setting and nothing else.
+    const why =
+      digits.length > LONGEST_INTERNATIONAL_NUMBER
+        ? `TEST_ACCOUNT_PHONE carries ${digits.length} digits, which is more ` +
+          `than any one number the widget accepts — it is holding more than ` +
+          `one number. Set it to a single international number.`
+        : digits.length < SHORTEST_INTERNATIONAL_NUMBER
+          ? `TEST_ACCOUNT_PHONE carries ${digits.length} digits, which is too ` +
+            `few for a full international number — the country code is most ` +
+            `likely missing. Set it to the whole number, country code first ` +
+            `and no "+".`
+          : `The length is plausible for a full international number, so this ` +
+            `is the login screen or the account, not the setting.`;
+
+    expect(
+      false,
+      `the number was typed but the widget never drew its submit control, so ` +
+        `it does not consider the number complete. It asks for an exact digit ` +
+        `count — the country's dial code plus its national length, twelve for ` +
+        `Syria — and the field is holding ${shown.length}. ${why}`,
+    ).toBe(true);
+  }
+
   await expect(submit).toBeEnabled();
   await submit.click();
   await expect(

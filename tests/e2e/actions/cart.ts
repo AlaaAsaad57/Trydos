@@ -1644,11 +1644,13 @@ export const editAddressTitleFromSheet = async (
   //     already moved on from.
 
   let updateSaid = "the core backend was never asked to store the change";
+  let updateStatus: number | null = null;
   const onUpdate = (response: import("@playwright/test").Response): void => {
     const target = response.request().headers()["x-proxy-url"] ?? "";
     if (!response.request().url().includes("/api/proxy")) return;
     if (!target.includes("/customer/address/update")) return;
     const status = response.status();
+    updateStatus = status;
     void response
       .text()
       .then((body) => {
@@ -1666,12 +1668,34 @@ export const editAddressTitleFromSheet = async (
     await recordFieldShakes(page);
     await page.getByTestId("AddSaveButton").click();
 
-    // The form closes itself from the update's own callback, so this waits for
-    // the app's answer rather than for a moment that looked long enough.
-    const saved = await form
-      .waitFor({ state: "hidden", timeout: CART_ANSWER_MS })
-      .then(() => true)
-      .catch(() => false);
+    // **The save is judged by what the core backend answered, not by the form
+    // sliding away.**
+    //
+    // It used to be judged by the form going hidden, and that reported a
+    // perfectly good save as a failure: on 2026-09-19 the run recorded
+    // `/customer/address/update answered 200: "Successfully updated!"` while
+    // this helper was still reporting "the edit form did not close after Save".
+    // The change was stored; only the screen had not caught up. Every check
+    // after this one reads the stored title, so the answer is the thing that
+    // matters and the form closing never was.
+    //
+    // The form is still waited on, because it closing is the quickest way to
+    // know the app has moved on — but whichever of the two arrives first ends
+    // the wait.
+    const deadline = Date.now() + CART_ANSWER_MS;
+    let saved = false;
+
+    while (Date.now() < deadline) {
+      if (updateStatus !== null && updateStatus < 400) {
+        saved = true;
+        break;
+      }
+      if (await form.isHidden().catch(() => false)) {
+        saved = true;
+        break;
+      }
+      await page.waitForTimeout(250).catch(() => undefined);
+    }
 
     const threw =
       pageErrors.length === 0
