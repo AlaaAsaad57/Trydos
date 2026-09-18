@@ -1321,16 +1321,58 @@ export const chooseAddressNamed = async (
   }
 };
 
-/** Which field the address form is complaining about.
+/** Start recording which field the address form shakes.
  *
  *  **The form refuses in silence, but it does point at the problem.**
- *  `validate()` (`components/Cart/AddAddressForm.tsx:619-639`) adds the class
- *  `shake-anim` to the first field that is not filled, and takes it off again
- *  after 1300 ms. So this looks straight after the press, and names the field
- *  by the marker class the app itself chose.
+ *  `validate()` (`components/Cart/AddAddressForm.tsx`) adds the class
+ *  `shake-anim` to the first field that is not filled — and **takes it off
+ *  again after 1300 ms**.
  *
- *  Without this a refused Save is indistinguishable from a backend that never
- *  answered, and the failure would blame the shop for the form's own rule. */
+ *  That 1300 ms is why this exists. The version before it went looking for the
+ *  class *after* waiting up to 45 seconds for the form to close, by which time
+ *  the class had been gone for more than forty of them. So it never once found
+ *  a shake, always fell through to reading the fields, and always ended on the
+ *  same sentence about the address list — for a form that had said plainly
+ *  which field it wanted. The reading was not wrong; it was taken far too late.
+ *
+ *  A watcher in the page instead of polling from the test: one call to install,
+ *  one to read, and nothing can slip between two polls. It is installed
+ *  **before** the press. */
+const recordFieldShakes = async (page: Page): Promise<void> => {
+  await page
+    .evaluate(() => {
+      const holder = window as unknown as { __trydosShakes?: string[] };
+      if (holder.__trydosShakes) return;
+      holder.__trydosShakes = [];
+
+      new MutationObserver((records) => {
+        for (const record of records) {
+          const element = record.target as HTMLElement;
+          if (!element.classList?.contains("shake-anim")) continue;
+          for (const name of Array.from(element.classList)) {
+            // The app's own marker classes all end this way — `title-border`,
+            // `phone-border`, and so on. Taking the name the app chose means
+            // this never needs a list of its own to fall out of step.
+            if (name.endsWith("-border")) holder.__trydosShakes!.push(name);
+          }
+        }
+      }).observe(document.body, {
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["class"],
+      });
+    })
+    .catch(() => undefined);
+};
+
+/** Every field the form shook since the watcher was installed. */
+const fieldShakes = async (page: Page): Promise<string[]> =>
+  await page
+    .evaluate(
+      () => (window as unknown as { __trydosShakes?: string[] }).__trydosShakes ?? [],
+    )
+    .catch(() => []);
+
 const readInput = async (page: Page, marker: string): Promise<string> =>
   (
     (await page
@@ -1393,15 +1435,21 @@ const whyTheFormRefused = async (page: Page): Promise<string> => {
     "phone-border": "the contact phone",
   };
 
-  const deadline = Date.now() + 3_000;
-  while (Date.now() < deadline) {
-    for (const [marker, what] of Object.entries(fields)) {
-      const shaking = page.locator(`.${marker}.shake-anim`);
-      if ((await shaking.count()) > 0) {
-        return `the form refused the save and pointed at ${what}`;
-      }
-    }
-    await page.waitForTimeout(100).catch(() => undefined);
+  // What the form shook while the save was being waited for. Recorded as it
+  // happened by `recordFieldShakes`, because the class is gone 1300 ms later
+  // and this runs long after that.
+  const shaken = await fieldShakes(page);
+  const named = shaken
+    .map((marker) => fields[marker])
+    .filter((what): what is string => Boolean(what));
+
+  if (named.length > 0) {
+    return (
+      `the form refused the save itself and pointed at ${named.join(", then ")}. ` +
+      `No backend was asked. That is the form's own rule (isValid, ` +
+      `components/Cart/AddAddressForm.tsx), so the finding is whatever left ` +
+      `that field empty`
+    );
   }
 
   // Nothing shook. Read the fields the form insists on and say which of them
@@ -1582,6 +1630,9 @@ export const editAddressTitleFromSheet = async (
   page.on("response", onUpdate);
 
   try {
+    // Installed before the press: the form's own shake lasts 1300 ms and the
+    // wait below can take 45 seconds.
+    await recordFieldShakes(page);
     await page.getByTestId("AddSaveButton").click();
 
     // The form closes itself from the update's own callback, so this waits for
