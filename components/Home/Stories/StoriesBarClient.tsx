@@ -8,6 +8,7 @@ import StoriesWrapper from "components/clientWrapper/StoriesWrapper";
 import { fetchData } from "utils/fetchData";
 import { buildProxyGetUrl } from "utils/proxyGetUrl";
 import { REQUESTS_DATA } from "utils/Requests";
+import { dropQaStories } from "utils/qaStoryFilter";
 import { useAppStore } from "store";
 
 /** The one backend call this bar makes. */
@@ -63,13 +64,11 @@ export default function StoriesBarClient({
     })
       .then((response: any) => {
         if (cancelled) return;
-        // Same filter the server helper applied: a person with no stories left
-        // has no tile. Without it the bar shows empty circles.
-        setStories(
-          (response?.data?.data ?? []).filter(
-            (person: any) => person?.stories?.length > 0,
-          ),
-        );
+        // Two rules in one pass, both of which end in "drop a person with no
+        // stories left, or the bar shows empty circles":
+        //   - a QA story is never shown to anybody;
+        //   - a person with no stories has no tile.
+        setStories(dropQaStories(response?.data?.data ?? []));
         setNextPageUrl(response?.data?.next_page_url);
       })
       .catch(() => {

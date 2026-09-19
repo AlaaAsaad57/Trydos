@@ -22,6 +22,9 @@ import {
 } from "services/elastic/helpers";
 import { catalog_index } from "services/elastic/INDEXES";
 import { LogServerError } from "utils/serverErrorReporter";
+// Full path, never a `utils/server` barrel — the barrel reaches the client
+// graph, and this module calls `next/headers`.
+import { qaMode } from "utils/server/qaMode";
 let client = elasticSearchClient;
 
 // ------------------------------------------------------------------
@@ -207,7 +210,17 @@ export async function GetSearchData({
     let categoriesFilter = [],
       brandsFilter = [],
       boutiquesFilter = [];
-    const baseConditions = buildBaseConditions(filters, country);
+    // The one place in the app that may unfilter QA data, and only ever from
+    // what the request proved — never from a literal. A literal `true` here
+    // would show the QA shop to every customer who searched.
+    //
+    // Only the **results** query takes it. The related-categories query below
+    // keeps the default, because its answer is a list of category names: a QA
+    // product must not put a category tab on a shopper's screen, and QA mode
+    // does not need one.
+    const qaView = await qaMode();
+
+    const baseConditions = buildBaseConditions(filters, country, qaView);
     const { must: mustConditions, must_not: mustNotConditions } =
       baseConditions;
 

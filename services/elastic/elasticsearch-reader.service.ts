@@ -3,6 +3,7 @@ import { elasticSearchClient } from "./elasticsearch.config";
 
 import { estypes } from "@elastic/elasticsearch";
 import { catalog_index, views_index } from "./INDEXES";
+import { qaShopMustNot } from "./qaFilter";
 
 export class ElasticsearchReader {
   private client = elasticSearchClient;
@@ -704,7 +705,15 @@ export class ElasticsearchReader {
       },
     });
 
-    const must_not: any[] = [{ exists: { field: "deleted_at" } }];
+    // QA shops are hidden here **unconditionally** — there is no `qaView`
+    // switch on this path. It serves the boutique list, which no test needs to
+    // see the QA shop in: the seed reads its boutique back through the seller
+    // dashboard, and the sync poll asks the product search instead, which does
+    // have the switch (`serverRequests/Search.tsx`).
+    const must_not: any[] = [
+      { exists: { field: "deleted_at" } },
+      qaShopMustNot(),
+    ];
 
     if (country) {
       const iso = country.toUpperCase();

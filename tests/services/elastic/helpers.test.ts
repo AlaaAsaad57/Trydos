@@ -1096,3 +1096,59 @@ describe("the flash-deal range bound in buildBaseConditions", () => {
     ).toBe(JSON.stringify(flashClause()));
   });
 });
+
+// ---------------------------------------------------------------------------
+// The QA lock (AC-1).
+//
+// The end-to-end suite creates a real shop on a real environment, and the mark
+// that keeps it away from shoppers travels inside the row: the shop's slug
+// starts `trydos-qa-`. This is the clause that acts on that mark in the main
+// catalogue builder — the one behind search, listing and recommended.
+// ---------------------------------------------------------------------------
+
+describe("the QA shop clause in buildBaseConditions", () => {
+  const qaClauses = (qaView?: boolean) => {
+    const built: any = buildBaseConditions({} as any, "sy", qaView);
+    return built.must_not.filter(
+      (condition: any) => condition?.nested?.path === "custom_boutiques",
+    );
+  };
+
+  it("hides the QA shop from a normal search", () => {
+    const clauses = qaClauses();
+
+    expect(
+      clauses.length,
+      "a catalogue query carried no clause excluding QA shops, so a test shop created by the e2e suite would appear in search, listing and recommended results for real customers",
+    ).toBe(1);
+
+    expect(
+      clauses[0].nested.query.prefix,
+      "the QA clause is present but does not match a shop slug by prefix on custom_boutiques.slug.keyword, so it would exclude nothing",
+    ).toEqual({ "custom_boutiques.slug.keyword": "trydos-qa-" });
+  });
+
+  it("drops the clause when the request proved it is in QA mode", () => {
+    expect(
+      qaClauses(true).length,
+      "QA mode was on and the catalogue query still excluded QA shops, so the e2e suite can never see the product it created",
+    ).toBe(0);
+  });
+
+  it("keeps the clause when the caller says nothing", () => {
+    // The default is the shopper-facing answer on purpose: eight call sites
+    // pass no third argument, and every one of them must stay filtered.
+    expect(
+      qaClauses(false).length,
+      "buildBaseConditions unfiltered QA shops for a caller that passed qaView=false, which is the shopper-facing default",
+    ).toBe(1);
+  });
+
+  it("excludes the QA shop without also excluding a real one", () => {
+    const clause = qaClauses()[0];
+    expect(
+      clause.nested.query.prefix["custom_boutiques.slug.keyword"],
+      "the QA clause matches a prefix that a real seller's slug could start with, which would hide that seller's whole shop from the catalogue",
+    ).toBe("trydos-qa-");
+  });
+});

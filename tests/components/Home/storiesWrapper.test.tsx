@@ -131,6 +131,68 @@ describe("StoriesWrapper — the home stories bar across a route change", () => 
     );
   });
 
+  it("never adds a QA story from a later page of the bar", async () => {
+    // The pager writes each new page to TWO places -- its own list and the
+    // shared store -- so a filter applied to only one of them still puts the QA
+    // story on screen. A real person comes back on the same page, so an empty
+    // page cannot make this pass for the wrong reason.
+    fetchData.mockResolvedValue({
+      success: true,
+      data: {
+        data: [
+          {
+            id: 3,
+            name: "Layla",
+            photo_path: null,
+            stories: [
+              {
+                id: 300,
+                is_seen: false,
+                created_at: "2026-08-31T00:00:00Z",
+                link: "https://trydos.com/product/real",
+              },
+            ],
+          },
+          {
+            id: 4,
+            name: "QA Tester",
+            photo_path: null,
+            stories: [
+              {
+                id: 400,
+                is_seen: false,
+                created_at: "2026-08-31T00:00:00Z",
+                link: "https://qa-test.trydos.tech/qa-product",
+              },
+            ],
+          },
+        ],
+        next_page_url: null,
+      },
+    });
+
+    await renderBar();
+    await scrollToEndOfBar();
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText("Layla"),
+        "the next page of the bar never arrived, so the check below would pass against a bar that simply did not load",
+      ).not.toBeNull(),
+    );
+
+    expect(
+      screen.queryByText("QA Tester"),
+      "a QA author arrived on a later page of the stories bar and was shown",
+    ).toBeNull();
+
+    const stored = (useAppStore.getState().storiesData ?? []) as any[];
+    expect(
+      stored.some((group) => group?.id === 4),
+      "the QA author was kept out of the bar but still written into the shared store, so any other reader of storiesData would show it",
+    ).toBe(false);
+  });
+
   it("keeps the pages it already loaded when the route changes and comes back", async () => {
     fetchData.mockResolvedValue({
       success: true,

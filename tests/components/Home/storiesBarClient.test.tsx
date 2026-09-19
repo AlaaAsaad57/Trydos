@@ -82,6 +82,59 @@ describe("StoriesBarClient", () => {
     ).toContain("users_stories");
   });
 
+  it("never shows a QA story on the bar", async () => {
+    // The bar is on the home page, so this is the most visible of the four
+    // story readers -- a QA story here is a test story on every shopper's
+    // screen. A real author is returned beside the QA one, so an empty bar
+    // cannot make this pass for the wrong reason.
+    fetchData.mockResolvedValue({
+      data: {
+        data: [
+          {
+            id: 1,
+            name: "Rana",
+            photo_path: null,
+            stories: [
+              {
+                id: 11,
+                is_seen: false,
+                created_at: "2026-08-31T00:00:00Z",
+                link: "https://trydos.com/product/real",
+              },
+            ],
+          },
+          {
+            id: 2,
+            name: "QA Tester",
+            photo_path: null,
+            stories: [
+              {
+                id: 12,
+                is_seen: false,
+                created_at: "2026-08-31T00:00:00Z",
+                link: "https://qa-test.trydos.tech/qa-product",
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    render(<StoriesBarClient language="en" country="sy" />);
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText("Rana"),
+        "the real author never appeared, so the check below would pass against an empty bar",
+      ).not.toBeNull(),
+    );
+
+    expect(
+      screen.queryByText("QA Tester"),
+      "an author whose only story links to the QA host still has a tile on the home page stories bar",
+    ).toBeNull();
+  });
+
   it("says nothing to the shopper when the stories service is down", async () => {
     fetchData.mockResolvedValue({ data: { data: [] } });
 

@@ -3,6 +3,7 @@
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 import { elasticSearchClient } from "./elasticsearch.config";
 import { catalog_index, search_log_index } from "./INDEXES";
+import { qaShopMustNot } from "./qaFilter";
 
 interface SitemapUrl {
   loc: string;
@@ -721,6 +722,10 @@ function buildProductBaseQuery() {
           },
         },
       ],
+      // A QA product must never reach a search engine. Unconditional: a sitemap
+      // is generated for crawlers, so there is no request here that could ever
+      // be in QA mode.
+      must_not: [qaShopMustNot()],
     },
   };
 }
@@ -794,6 +799,8 @@ function buildSitemapBaseConditions() {
 
   const mustNotConditions: any[] = [
     { exists: { field: "deleted_at" } },
+    // Same rule as the product sitemap query above, and for the same reason.
+    qaShopMustNot(),
     {
       nested: {
         path: "categories",
