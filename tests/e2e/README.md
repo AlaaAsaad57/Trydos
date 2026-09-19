@@ -37,12 +37,16 @@ started itself. An occupied port 3100 is a hard error, not something it adopts.
 preflight exits straight away and every spec skips. `pnpm test:e2e` on a fresh
 checkout is fast and green.
 
-## The two kinds of spec
+## The three projects
 
-| File name | Backend | Records artifacts |
-|---|---|---|
-| `*.live.spec.ts` | real staging | **nothing** |
-| `*.scripted.spec.ts` | real staging, named answers faked | traces and video on failure |
+| Project | File name | Backend | Records artifacts |
+|---|---|---|---|
+| `setup` | `harness/qaSeed.ts` | real staging, **writes** | video on failure |
+| `live` | `*.live.spec.ts` | real staging | **nothing** |
+| `scripted` | `*.scripted.spec.ts` | real staging, named answers faked | traces and video on failure |
+
+`live` declares `dependencies: ["setup"]`, so the QA seed always runs first. See
+**The QA safety lock** below for what it builds and when.
 
 The artifact split is a security rule, not a preference. **This repository is
 public, so anything CI uploads is world-readable.** A Playwright trace archives
@@ -179,6 +183,54 @@ The suite runs on every push to `develop` and nightly.
   picture unlinks it from the profile; it does not delete the stored object. The
   probe file is tiny and named `trydos-e2e-probe-picture.png` so an orphan can be
   found later. There is no sweeper.
+
+## The QA safety lock
+
+**The problem it solves.** This suite has to create real data on a real
+environment: a seller, a shop, a product, an order, a story. None of it may
+reach a shopper. Before this existed, the four BUY cases each bought a **random
+real seller's product** every night.
+
+**How it works, in one sentence.** The mark travels inside the data — a QA
+shop's slug starts `trydos-qa-`, a QA story links to the QA host — and every
+query that *finds* things filters that mark out.
+
+Three consequences worth knowing before you write a case:
+
+1. **Discovery is filtered; a direct lookup is not.** Search, listing,
+   recommended, the boutique list and both sitemaps hide QA data. Opening the QA
+   product **by address** works for anybody, including a guest, and that is the
+   design: it is what lets a guest case add the QA product to a bag instead of a
+   stranger's.
+2. **QA mode is the only way to see QA data in a search**, and it is one header,
+   `x-qa-view`, compared to `QA_VIEW_SECRET`. The app treats QA mode as **off**
+   unless that secret is set and at least 32 characters. **Never set
+   `QA_VIEW_SECRET` in the deployed staging app** — it belongs only in the
+   environment this harness builds and starts.
+3. **The seed is a setup project, and it runs only in the account lane.** Both
+   lane jobs load the same config and a setup project cannot be excluded by a
+   file filter or by `--project`, so `E2E_LANE` (set by `cli.ts`) is the gate.
+   Unset means "do not seed", so `playwright test` by hand never writes.
+
+What it needs, on top of the usual live variables:
+
+| Variable | What for |
+|---|---|
+| `TEST_ACCOUNT_PHONE_2` | Shopper B, who becomes the QA seller |
+| `ADMIN_DASHBOARD_BASE_URL` / `_EMAIL` / `_PASSWORD` | the two approvals the seed cannot do any other way |
+| `NEXT_PUBLIC_MEDIA_SERVER_BASE_URL` and friends | the product image, which activation needs |
+| `QA_VIEW_SECRET` | QA mode. At least 32 characters or it is ignored |
+
+Missing any of them is a clean **skip**, never a failure.
+
+**The admin screens are the one unverified part.** Nothing in this repository
+describes the admin dashboard — it is a separate product — so the locators in
+`harness/adminApprove.ts` are written against the shape those screens share and
+each one can be overridden from the environment (`ADMIN_SELECTOR_*`,
+`ADMIN_VENDOR_REQUESTS_PATH`, `ADMIN_SELLER_BOUTIQUES_PATH`). Every step fails
+by name if its locator does not match, and **a row whose identity cannot be read
+is refused rather than approved** — the rows beside the QA one belong to real
+sellers waiting for a real decision.
 
 ## What is here now, and what is not
 

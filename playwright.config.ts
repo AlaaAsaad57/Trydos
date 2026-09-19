@@ -74,7 +74,12 @@ export default defineConfig({
   // because the suite ran out of time, and BUY-03 and BUY-04 add two more. A
   // case that never runs reports nothing at all, which is the one outcome worse
   // than a red one.
-  globalTimeout: 100 * 60 * 1000,
+  // **85, not 100.** At 100 this equalled the lane job's own cap
+  // (`.github/workflows/e2e-lane.yml`), so Playwright could never stop first: a
+  // slow lane was killed by GitHub with no report at all, which is the one
+  // outcome worse than a red one. 85 leaves Playwright room to stop, write the
+  // report and let `cli.ts report` redact it before the job ends.
+  globalTimeout: 85 * 60 * 1000,
 
   // `list` for a human reading the CI log, plus `json` for the Telegram message
   // — which needs the counts and the failing test names, and cannot get them by
@@ -110,8 +115,41 @@ export default defineConfig({
 
   projects: [
     {
+      // The QA seed. A **setup project**, not `globalSetup`, and the difference
+      // matters twice over.
+      //
+      // `globalSetup` has no browser, no page and no fixtures, and every
+      // sign-in helper in this suite takes a `Page`. So a seed placed there
+      // could not sign in at all -- there is no mechanism, not merely an
+      // awkward one.
+      //
+      // And a setup project that fails names itself. The same failure inside
+      // `globalSetup` reports every case in the lane as never-run, which hides
+      // what actually broke behind twenty-eight blanks.
+      //
+      // It does nothing at all unless the lane is `account` -- see `qaSeed.ts`.
+      // Both lane jobs load this config, and a setup project cannot be excluded
+      // by a positional file filter or by `--project`, because `dependencies`
+      // pulls it back in. The lane name in the environment is the only gate.
+      name: "setup",
+      testMatch: /qaSeed\.ts$/,
+      use: {
+        // The seed signs in and writes to a real environment, so it carries the
+        // same rule as the `live` project: no trace, ever. A trace archives
+        // every request header, which makes a downloadable trace a downloadable
+        // session.
+        trace: "off",
+        video: "retain-on-failure",
+        screenshot: "only-on-failure",
+      },
+    },
+    {
       name: "live",
       testMatch: /.*\.live\.spec\.ts$/,
+      // The seed runs before any live case. Without this the QA product might
+      // or might not exist when a case looks for it, depending on which file
+      // Playwright happened to start first.
+      dependencies: ["setup"],
       use: {
         // **No trace, ever.** This is the one artifact that carries the auth
         // token: it archives every request header, so a downloadable trace is a

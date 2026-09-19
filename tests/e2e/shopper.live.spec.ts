@@ -114,7 +114,7 @@ import { expect, test } from "./fixtures";
 import { attemptAuth, currentAuthScreen, signedInSession } from "./actions/auth";
 import { CASH_ON_DELIVERY_COUNTRY, gotoAbout, gotoHome } from "./actions/nav";
 import {
-  addFirstBuyableProduct,
+  addQaProductToBag,
   bagLineName,
   changeLineQuantity,
   chooseAddressNamed,
@@ -318,21 +318,17 @@ test("BUY-01 a shopper buys something with cash on delivery and then cancels it"
 
     let bought = "";
 
-    await test.step("a product from the storefront goes into the bag", async () => {
-      // Not "the first product": this is a real shop, and a product whose every
-      // variant is sold out draws "Notify Me When Variant Is Available" where the
-      // Add To Bag button would be. So the journey walks the listing the way a
-      // shopper does, and only gives up after several.
-      const added = await addFirstBuyableProduct(page);
+    await test.step("the QA product goes into the bag", async () => {
+      // **The QA product, not a stranger's.** This case places a REAL order.
+      // It used to walk the storefront and buy whatever it found first, which
+      // meant a real seller got a real order from this suite every night. Now
+      // it buys the product this suite created and owns, and nobody else is
+      // touched.
+      const added = await addQaProductToBag(page, {
+        country: CASH_ON_DELIVERY_COUNTRY,
+      });
 
-      expect(
-        added.bought,
-        `none of the first ${added.looked} products on the storefront could be ` +
-          "put in a bag — every variant of each was sold out, or the listing ran " +
-          "out of products before one could be",
-      ).not.toBeNull();
-
-      bought = added.bought!;
+      bought = added.bought;
     });
 
     await test.step("the bag holds what was added", async () => {
@@ -545,12 +541,10 @@ test("BUY-02 a visitor with no verified phone is stopped before any order exists
   try {
     await gotoHome(page);
 
-    const added = await addFirstBuyableProduct(page);
-    expect(
-      added.bought,
-      `none of the first ${added.looked} products on the storefront could be put ` +
-        "in a bag, so there is no bag to test the phone gate with",
-    ).not.toBeNull();
+    // The QA product. Nothing is ordered in this case -- it stops at the phone
+    // gate -- but the bag is real, and filling it from the QA shop keeps this
+    // case off a real seller's product like the other three.
+    await addQaProductToBag(page, { country: CASH_ON_DELIVERY_COUNTRY });
 
     await openCart(page);
 
@@ -929,12 +923,7 @@ test.describe("BUY-03 the bag's money, and choosing another address", () => {
       // Already on the storefront in Syria — the session step above opened it.
       await emptyTheBag(page);
 
-      const added = await addFirstBuyableProduct(page);
-      expect(
-        added.bought,
-        `none of the first ${added.looked} products on the storefront could ` +
-          "be put in a bag, so there is no bag to read money from",
-      ).not.toBeNull();
+      await addQaProductToBag(page, { country: CASH_ON_DELIVERY_COUNTRY });
     });
 
     // The rate the screen was drawn with, read in the same run.
@@ -1225,13 +1214,6 @@ test.describe("BUY-03 the bag's money, and choosing another address", () => {
 //
 // It never leaves the bag, so nothing here can place an order.
 
-/** How many products this case will try before giving up on the catalogue.
- *
- *  It needs a line it can raise to two, and a product the seller caps at one
- *  cannot give it one. Six is what `addFirstBuyableProduct` already walks for
- *  "can this be bought at all", and the two limits share the same listing. */
-const BUY_04_PRODUCTS_TO_TRY = 6;
-
 test.describe("BUY-04 changing and removing a line in the bag", () => {
   /** The page the case worked on, kept so the teardown can empty the bag.
    *
@@ -1286,71 +1268,37 @@ test.describe("BUY-04 changing and removing a line in the bag", () => {
       await gotoHome(page);
       await emptyTheBag(page);
 
-      // **Addable is not enough for this case.** The seller sets a per-order
-      // limit and the shop reports the stock left, and the row is capped at the
-      // lower of the two (`quantityCap`, `components/Cart/index.tsx`). A product
-      // capped at one goes into the bag perfectly well and can then never hold
-      // two — its plus control is still drawn, and pressing it shows "Max
-      // Allowed Quantity Reached" and sends nothing.
+      // **The QA product, which this suite owns.**
       //
-      // Which product the storefront shows first changes from run to run, so
-      // taking the first addable one made this case pass or fail on the
-      // catalogue. It failed on 2026-09-15, 09-17 and 09-18 and passed twice in
-      // between, and the message blamed the cart backend for never answering —
-      // a backend that had never been asked.
+      // This step used to walk up to six storefront products looking for one
+      // whose line could be raised to two, because a real seller can cap a
+      // product at a single piece per order and a capped line looks addable
+      // right up until the plus control refuses. The case failed on 2026-09-15,
+      // 09-17 and 09-18 and passed twice in between -- purely on which products
+      // the storefront happened to show -- and the message blamed the cart
+      // backend for never answering, a backend that had never been asked.
       //
-      // So the products are tried in turn until one of them gives a line that
-      // can be raised, and the bag is emptied between tries.
-      let tried = 0;
-      let bought: string | null = null;
+      // The QA product's stock and per-order limit belong to the seed, so there
+      // is nothing to search for. If its line cannot be raised now, that is a
+      // real fault and the message below says which of the two it is.
+      await addQaProductToBag(page, { country: CASH_ON_DELIVERY_COUNTRY });
 
-      for (let attempt = 0; attempt < BUY_04_PRODUCTS_TO_TRY; attempt += 1) {
-        const added = await addFirstBuyableProduct(page, { startAt: tried });
-        tried = added.looked;
+      const opened = await openCart(page);
+      expect(
+        opened.lines,
+        `the bag was opened after adding the QA product and holds ` +
+          `${opened.lines} lines, so the line this case changes cannot be named`,
+      ).toBe(1);
 
-        expect(
-          added.bought,
-          `none of the first ${tried} products on the storefront could be put ` +
-            "in a bag, so there is no line to change",
-        ).not.toBeNull();
-
-        const opened = await openCart(page);
-        expect(
-          opened.lines,
-          `the bag was opened after adding "${added.bought}" and holds ` +
-            `${opened.lines} lines, so the line this case changes cannot be named`,
-        ).toBe(1);
-
-        const name = await bagLineName(page);
-        if (await lineCanHoldMore(page, name)) {
-          lineName = name;
-          bought = added.bought;
-          break;
-        }
-
-        // Capped at one. Put it back and look at the next product.
-        await emptyTheBag(page);
-
-        // **Let the app finish its own navigation before starting another.**
-        // `emptyTheBag` ends by closing the drawer, and closing it drops `cart`
-        // from the address — a client-side navigation. A `page.goto` fired into
-        // the middle of that is cancelled, and Playwright reports
-        // `net::ERR_ABORTED`, which reads like the server refused the page. It
-        // did not; two navigations simply overlapped.
-        await page
-          .waitForURL((url) => !url.searchParams.has("cart"), { timeout: 15_000 })
-          .catch(() => undefined);
-
-        await gotoHome(page);
-      }
+      lineName = await bagLineName(page);
 
       expect(
-        bought,
-        `none of the first ${tried} products the storefront offers gives a bag ` +
-          "line that can be raised to two — every one of them is capped at a " +
-          "single piece, by the seller's per-order limit or by the stock left. " +
-          "That is the catalogue this run was given, not the bag",
-      ).not.toBeNull();
+        await lineCanHoldMore(page, lineName),
+        `the QA product's bag line is capped at one piece, so it cannot be ` +
+          "raised to two. Either its stock has fallen to 1, or a per-order " +
+          "limit was set on it in the seller dashboard. Both are about this " +
+          "suite's own product, not about the catalogue",
+      ).toBe(true);
     });
 
     await test.step("plus raises the line to two, and the shop agrees", async () => {

@@ -1,6 +1,6 @@
 # E2E scenarios
 
-Every case the browser suite runs — **90** of them today. Add a row whenever a
+Every case the browser suite runs — **105** of them today. Add a row whenever a
 case is added, and keep the count above in step.
 
 | Section | Cases | Signs in? | Writes to staging? |
@@ -16,6 +16,7 @@ case is added, and keep the count above in step.
 | Saved products, as a guest | WISH-01 to WISH-05 | no | yes — one product on one throwaway guest, removed again |
 | Saved products, signed in | WISH-06 | **yes — its own, a real code per run** | **yes — the shared test account, put back in the same case** |
 | Comparing two products | CMP-01 to CMP-07 | no | no — the whole feature is two cookies in the browser |
+| **The QA safety lock** | QA-01 to QA-11 (15 cases) | yes — Shopper B, through the seed | **yes — the seed builds this environment's QA seller, shop, location and product, once. Nothing is ever deleted** |
 
 Design: `docs/testing/E2E_TEST_DESIGN.md`. How to run: `tests/e2e/README.md`.
 
@@ -419,3 +420,69 @@ correct fix for a reason that had nothing to do with the app.
 
 The e2e cases above do not depend on pagination — WISH-01 to WISH-05 use one
 product — so they neither proved this nor were affected by it.
+
+
+## The QA safety lock
+
+**This section is not about the app working. It is about the test data being
+invisible.**
+
+Every other case in this suite reads or writes real data on a shared
+environment. This section proves the one thing that makes that safe: a shop
+whose slug starts `trydos-qa-` is hidden from every way a customer could find
+it, and visible only to a request that proved it is in QA mode.
+
+### Before any of it runs: the seed
+
+`tests/e2e/harness/qaSeed.ts` is a Playwright **setup project**, which the
+`live` project declares as a dependency. So it runs first, always, and a failure
+in it names itself rather than reporting every case in the lane as never-run.
+
+It takes one of two paths:
+
+* **every CI run** — the QA shop already exists, so it signs in, finds it,
+  checks the product is usable, and stops. About 100 seconds.
+* **a brand-new environment, once** — sign in as Shopper B, become a seller,
+  have the admin approve the seller, create the boutique, the location and the
+  product, have the admin approve the boutique, activate the product, activate
+  the boutique, then wait for the search index to catch up. About 18 minutes, of
+  which 5 to 10 is the index. That run is a person running
+  `pnpm test:e2e:live` by hand, not a lane job.
+
+It runs **only in the account lane** (`E2E_LANE=account`, set by `cli.ts`).
+Both lane jobs load the same Playwright config and a setup project cannot be
+excluded by a file filter or by `--project`, so the lane name is the gate. An
+unset value means "do not seed", so running `playwright test` by hand never
+writes to a real environment by accident.
+
+**It never deletes anything.** A run that dies half-way leaves a half-built QA
+shop, which is recoverable. A location can never be deleted at all, and Shopper
+B stays a permanent seller once approved.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| QA-01 | QA mode finds the QA product in search | `qaLock.live.spec.ts:78` | The header really went out **and** the search returned a row from the QA shop — two separate faults, two messages |
+| QA-02 | Without QA mode the same search finds nothing | `qaLock.live.spec.ts:113` | The way every customer searches returns no QA row, and no request in the case carried the header |
+| QA-03 | The seed's seller is approved | `qaLock.live.spec.ts:150` | Read from what the app told the seed, not from the admin page the seed clicked |
+| QA-04 | The boutique carries the mark and is active | `qaLock.live.spec.ts:163` | The slug starts `trydos-qa-`; every filter in the feature keys off that prefix |
+| QA-05 | The product belongs to the QA boutique | `qaLock.live.spec.ts:178` | The product slug carries the mark too, so a filter on the shop covers it |
+| QA-06 | The QA product is active and can be bought | `qaLock.live.spec.ts:193` | Asked of the browser by opening the page a shopper would open, not of the seed's own record |
+| QA-07 | The seed builds nothing twice | `qaLock.live.spec.ts:213` | The outcome is `found`, not `built`, on every environment that already has the shop |
+| QA-08 | The seed touched only data it owns | `qaLock.live.spec.ts:238` | No DELETE, no write outside the seller dashboard, and — when this run used the admin screens — a recorded row-identity check |
+| QA-09a | The home page never shows the QA shop | `qaLock.live.spec.ts:338` | The page answered with content **before** the absence is judged |
+| QA-09b | The featured listing never shows it | `qaLock.live.spec.ts:338` | As above |
+| QA-09c | The product sitemap never shows it | `qaLock.live.spec.ts:338` | A sitemap is read by search engines, the one place "hidden in the app" is not enough |
+| QA-09d | The sitemap index never shows it | `qaLock.live.spec.ts:338` | As above |
+| QA-09e | The catalogue search route never shows it | `qaLock.live.spec.ts:338` | The route the mobile app reads, so the lock covers mobile without a mobile release |
+| QA-10 | The search index really holds the QA product | `qaLock.live.spec.ts:370` | **This is what stops QA-09 passing for the wrong reason.** All five paths would report "no QA shop" if the index simply did not have it |
+| QA-11 | A QA story never reaches the feed | `qaLock.live.spec.ts:418` | The feed had content first, then no link to the QA story host is on the page |
+
+### What the lock does not cover
+
+* **Mobile stories.** The story filter here is web-only. The mobile app applies
+  the same host rule separately.
+* **Two of the six catalogue base queries** are deliberately left unfiltered.
+  Both read category names only; the visible effect is a category tab.
+* **A real seller who names a shop so its slug starts `trydos-qa-`** vanishes
+  from the catalogue, silently. Blocking the prefix at create time is a separate
+  piece of work.

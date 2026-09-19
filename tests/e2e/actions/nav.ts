@@ -224,8 +224,12 @@ export const CASH_ON_DELIVERY_COUNTRY = "sy";
  *  Without this the country picker opens over the page and swallows every
  *  click.
  *
- *  Private on purpose: a spec that needs it needs an action, not the cookies. */
-const seedLocale = async (
+ *  Exported for `actions/qaProduct.ts`, which opens the QA product by address
+ *  rather than through any of the entry points here and would otherwise need
+ *  its own copy of these three cookies. This repository already has helpers
+ *  that exist twice and have drifted apart; one more would be one too many.
+ *  Still not for a spec: a spec that needs a country needs an action. */
+export const seedLocale = async (
   page: Page,
   country: string = DEFAULT_TEST_COUNTRY,
 ): Promise<void> => {

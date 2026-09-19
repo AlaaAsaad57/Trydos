@@ -29,6 +29,10 @@ const SECRET_KEYS: readonly string[] = [
   // them just as easily.
   "REDIS_PASS",
   "OTP_KEY_SALT",
+  // The QA-mode secret. It is the one value that can unfilter the catalogue for
+  // whoever holds it, and the suite sends it on every request it makes in QA
+  // mode -- so it is exactly the sort of value a failing request dump carries.
+  "QA_VIEW_SECRET",
   "ELASTICSEARCH_PASSWORD",
   "WALLET_SECRET_KEY",
 ];
