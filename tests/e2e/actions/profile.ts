@@ -17,20 +17,16 @@
 import { expect, type Page } from "@playwright/test";
 
 import { profile } from "../selectors";
-import { chooseRegionIfAsked } from "./nav";
+import { chooseRegionIfAsked, localePrefix } from "./nav";
 
-/** The country-and-language prefix the app chose for this run.
+/** Open a settings screen under the locale prefix, and wait for it to settle.
  *
- *  Never hard-coded: reached over loopback there is no geo header, so which
- *  country a run lands on is the backend's answer and not ours. Read it off the
- *  address after any navigation. */
-const localePrefix = (page: Page): string => {
-  const first = new URL(page.url()).pathname.split("/")[1] ?? "";
-  // "iq-en" — country first, then language.
-  return /^[a-z]{2}-[a-z]{2}$/.test(first) ? first : "";
-};
-
-const gotoUnderLocale = async (page: Page, path: string): Promise<void> => {
+ *  Exported because the checklist is a settings screen too (`actions/wishlist.ts`)
+ *  and needs this exact settle, not a second one written to look like it. */
+export const gotoUnderLocale = async (
+  page: Page,
+  path: string,
+): Promise<void> => {
   const prefix = localePrefix(page);
   expect(
     prefix,

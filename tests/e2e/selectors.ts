@@ -639,3 +639,149 @@ export const orders = {
   cancelConfirm: (page: Page): Locator =>
     page.getByTestId("cancel-order-confirm"),
 };
+
+/** The shopper's saved products — the "checklist" screen under settings.
+ *
+ *  **The app calls it a checklist, the code calls it a wishlist.** The screen,
+ *  its hooks and its copy all say checklist (`components/setting/checklist/`);
+ *  the service behind it is `services/wishlist.ts`. Both names are kept here
+ *  rather than picking one, because a reader arriving from either side has to
+ *  find this group.
+ *
+ *  `empty` and `list` are two different screens, not one screen with nothing in
+ *  it — `ChecklistView` renders one or the other. So "the list is not there"
+ *  and "the empty state is there" are separate facts, and a case that means the
+ *  second must ask for the second. */
+export const checklist = {
+  /** The back arrow in the screen's own top bar, which is how a case knows it
+   *  arrived.
+   *
+   *  **The hook is `checklist-screen-back-button`, not `checklist-screen`.**
+   *  `BackBar` takes a `DataCy` name and spends it twice: `${DataCy}-back-button`
+   *  on the arrow, and the bare name on the options control beside it. That
+   *  second element is rendered even on a screen with no options, where it is
+   *  empty — and an element with no text has no size, so it is "hidden". A case
+   *  pointed at the bare name therefore waits out its whole timeout on a screen
+   *  that loaded perfectly, and reports that the page did not load. */
+  screen: (page: Page): Locator =>
+    page.getByTestId("checklist-screen-back-button"),
+  /** The skeleton rows, shown while the first page is being fetched. */
+  loading: (page: Page): Locator => page.getByTestId("checklist-loading"),
+  /** The list, rendered only when the shopper has at least one saved product. */
+  list: (page: Page): Locator => page.getByTestId("checklist-list"),
+  /** The "your checklist is empty" panel, rendered instead of the list. */
+  empty: (page: Page): Locator => page.getByTestId("checklist-empty"),
+  /** One saved product. */
+  items: (page: Page): Locator => page.getByTestId("checklist-item"),
+  /** The name on a row. Scoped to a row, so it is passed the row. */
+  itemName: (row: Locator): Locator => row.getByTestId("checklist-item-name"),
+  /** A row carrying one particular product, matched on the **slug** in the
+   *  link it wraps.
+   *
+   *  Not on the name, and the difference is not cosmetic. The name a product
+   *  page shows is `getProductText`, which joins the product's name with its
+   *  category names — so "Polished Checked Dress | Dresses" on the product page
+   *  is "Polished Checked Dress" here, and a case comparing the two fails on a
+   *  screen that is completely right. The slug is one value, it is unique, and
+   *  it is the same string on both screens. */
+  itemForSlug: (page: Page, slug: string): Locator =>
+    page
+      .getByTestId("checklist-item")
+      .filter({ has: page.locator(`a[href$="/products/${slug}"]`) }),
+  /** The X on a row. Stops propagation, so pressing it never navigates. */
+  itemDelete: (row: Locator): Locator =>
+    row.getByTestId("checklist-item-delete"),
+  /** "Load more", rendered only when the app believes a next page exists.
+   *
+   *  It is never rendered today — `ChecklistView.tsx:41` reads `has_next`, and
+   *  neither backend sends that key. See
+   *  `tests/components/setting/checklist/ChecklistView.loadMore.test.tsx`. */
+  loadMore: (page: Page): Locator => page.getByTestId("checklist-load-more"),
+};
+
+/** The three-dot "More Options" panel on a product page.
+ *
+ *  One panel, two features: it is where a product is saved to the checklist and
+ *  where it is added to compare. So it is one group rather than two — a case
+ *  about either has to open the same panel first.
+ *
+ *  **The two toggles report their state differently, and that is the app's
+ *  doing, not an inconsistency here.** The checklist toggle asks the backend
+ *  (`isInWishlist`) and paints itself green from the answer. The compare toggle
+ *  reads the `f_p` / `s_p` cookies and never asks anybody. A case must judge
+ *  each by what actually decides it. */
+export const moreOptions = {
+  /** The three dots in the product page's footer, which opens the panel. */
+  trigger: (page: Page): Locator => page.getByTestId("ThreePointsIcon"),
+  /** The panel itself. Mounted only while it is open. */
+  panel: (page: Page): Locator =>
+    page.getByTestId("ExtendThreePointsSection"),
+  /** "Add To My Checklist" — a toggle, not an add. Pressing it on a saved
+   *  product removes it. */
+  checklistToggle: (page: Page): Locator => page.getByTestId("add-checkList"),
+  /** The spinner that replaces the icon while the toggle is waiting. Its
+   *  absence is how a case knows the backend has answered. */
+  checklistBusy: (page: Page): Locator =>
+    page.getByTestId("add-checkList-spinner"),
+  /** "Add To Compare" / "Added To Compare" — also a toggle. */
+  compareToggle: (page: Page): Locator => page.getByTestId("add-compare"),
+};
+
+/** The compare page (`components/global/compare.tsx`).
+ *
+ *  **Two slots, never a list.** The page compares exactly two products, held in
+ *  the `f_p` and `s_p` cookies and mirrored into the query string. A third
+ *  product replaces the first. So the locators are numbered rather than
+ *  indexed: slot 1 and slot 2 are different places, not positions in a row.
+ *
+ *  **An empty slot renders `"-"`, not nothing.** Every row is always drawn for
+ *  both slots. A case asking "is the slot empty" has to read the cell's text,
+ *  which is what `actions/compare.ts` does — never `toBeHidden`, which would
+ *  pass on a cell that is on screen and says `-`. */
+export const compare = {
+  page: (page: Page): Locator => page.getByTestId("compare-page"),
+  table: (page: Page): Locator => page.getByTestId("compare-table"),
+  /** One row of the table, by the field it shows (`name`, `price`, `image`, …).
+   *
+   *  Named by field rather than by position, so adding a row to the table
+   *  cannot silently move what a case is reading. */
+  row: (page: Page, field: string): Locator =>
+    page.getByTestId(`compare-row-${field}`),
+  /** A slot's cell inside a row. `slot` is 1 or 2. */
+  cell: (row: Locator, slot: 1 | 2): Locator =>
+    row.getByTestId(`compare-cell-${slot}`),
+  /** The product link in a slot's cell on the name row.
+   *
+   *  Which product a slot is showing is read from this link's address, not from
+   *  the words in the cell. The product page's own title is `getProductText`,
+   *  which joins the name with the category names, so the two are different
+   *  strings for the same product and comparing them fails on a correct page.
+   *  The slug in the address is the same on both. */
+  nameLink: (page: Page, slot: 1 | 2): Locator =>
+    page
+      .getByTestId("compare-row-name")
+      .getByTestId(`compare-cell-${slot}`)
+      .locator('a[href*="/products/"]')
+      .first(),
+  /** The skeleton a cell shows while its product is being fetched. */
+  cellLoading: (page: Page): Locator =>
+    page.getByTestId("compare-cell-loading"),
+  /** A slot's search box. `slot` is 1 or 2. */
+  searchInput: (page: Page, slot: 1 | 2): Locator =>
+    page.getByTestId(`compare-search-${slot}-input`),
+  /** The dropdown under a slot's search box. */
+  searchOptions: (page: Page, slot: 1 | 2): Locator =>
+    page.getByTestId(`compare-search-${slot}-options`),
+  /** One result in that dropdown. */
+  searchOption: (page: Page, slot: 1 | 2): Locator =>
+    page.getByTestId(`compare-search-${slot}-option`),
+  /** The "no options found" line, which is also what a still-loading dropdown
+   *  shows. The component draws one element for both, so a case must not read
+   *  it as "the catalogue has nothing". */
+  searchNoOptions: (page: Page, slot: 1 | 2): Locator =>
+    page.getByTestId(`compare-search-${slot}-no-options`),
+  /** The X that empties a slot's search box. Rendered only when the box has
+   *  text in it. */
+  searchClear: (page: Page, slot: 1 | 2): Locator =>
+    page.getByTestId(`compare-search-${slot}-clear`),
+};

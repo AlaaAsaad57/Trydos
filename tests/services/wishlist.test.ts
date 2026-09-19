@@ -57,15 +57,27 @@ describe("Wishlist Service", () => {
   });
 
   describe("getWishlist", () => {
+    // One page of a two-page checklist, in the shape the shop really sends.
+    //
+    // Both backends answer with a standard Laravel paginator. There is no
+    // `has_next`, no `page_size` and no `total_items` — the fixture this file
+    // used to carry had `total_items`, which no backend has ever sent, and that
+    // invented key is what let the "Load more" defect (BUG-1) sit unnoticed.
+    // Keep these keys matching the real answer.
+    const pageOneOfTwo = {
+      data: [{ id: 1, name: "Watch", slug: "watch-1", image: "" }],
+      current_page: 1,
+      last_page: 2,
+      per_page: 10,
+      total: 12,
+      next_page_url: "https://example.invalid/checklist?page=2",
+      prev_page_url: null,
+    };
+
     it("requests paginated wishlist items", async () => {
-      const mockData = {
-        data: [{ id: 1, name: "Watch" }],
-        current_page: 1,
-        total_items: 1,
-      };
       vi.mocked(fetchData).mockResolvedValueOnce({
         success: true,
-        data: mockData,
+        data: pageOneOfTwo,
       });
 
       const response = await wishlistService.getWishlist(2);
@@ -76,7 +88,42 @@ describe("Wishlist Service", () => {
           method: "GET",
         }),
       );
-      expect(response, "should return wishlist data object").toEqual(mockData);
+      expect(
+        response.data,
+        "should hand the shop's rows back untouched",
+      ).toEqual(pageOneOfTwo.data);
+    });
+
+    // BUG-1. The shop never sends `has_next`, so the app has to work it out.
+    // Both directions are checked: a wrong answer either way is a real fault —
+    // `false` on a page that has a next one hides the rest of the checklist,
+    // and `true` on the last page leaves a button that fetches nothing.
+    it("says there is a next page when the shop says this is not the last one", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: pageOneOfTwo,
+      });
+
+      const response = await wishlistService.getWishlist(1);
+
+      expect(
+        response.has_next,
+        "the shop said page 1 of 2, so there is a next page — reported as if there were none, which is what hides everything past the first ten saved products",
+      ).toBe(true);
+    });
+
+    it("says there is no next page on the last one", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: { ...pageOneOfTwo, current_page: 2, next_page_url: null },
+      });
+
+      const response = await wishlistService.getWishlist(2);
+
+      expect(
+        response.has_next,
+        "the shop said page 2 of 2, so there is nothing after it — reported as if there were, which leaves a Load more button that fetches the same page again",
+      ).toBe(false);
     });
   });
 

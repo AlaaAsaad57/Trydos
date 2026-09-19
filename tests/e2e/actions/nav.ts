@@ -384,6 +384,37 @@ const gotoProductAt = async (
   return { name: text, url: page.url() };
 };
 
+/** The country-and-language prefix the app chose for this run — `"iq-en"`.
+ *
+ *  Never hard-coded: reached over loopback there is no geo header, so which
+ *  country a run lands on is the backend's answer and not ours. Read it off the
+ *  address after any navigation.
+ *
+ *  Returns `""` when the address carries no prefix, which means no storefront
+ *  page has been opened yet. Callers say so themselves, because "you have not
+ *  navigated" and "the app dropped the prefix" are different faults and only
+ *  the caller knows which one it was expecting.
+ *
+ *  Lives here rather than in one of the feature action files because three of
+ *  them need it — settings, the checklist and compare — and three copies of a
+ *  regular expression is how they drift apart. */
+export const localePrefix = (page: Page): string => {
+  const first = new URL(page.url()).pathname.split("/")[1] ?? "";
+  // "iq-en" — country first, then language.
+  return /^[a-z]{2}-[a-z]{2}$/.test(first) ? first : "";
+};
+
+/** The country and language the app is currently serving, split apart.
+ *
+ *  Both are needed whenever a case asks a backend a question through
+ *  `/api/proxy`, which takes them as separate values. */
+export const localeParts = (
+  page: Page,
+): { country: string; language: string } => {
+  const [country = "", language = ""] = localePrefix(page).split("-");
+  return { country, language };
+};
+
 /** Where the window is, in pixels from the top of the document. */
 export const readScrollPosition = (page: Page): Promise<number> =>
   page.evaluate(() => window.scrollY);

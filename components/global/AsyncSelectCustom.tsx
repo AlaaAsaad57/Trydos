@@ -3,6 +3,10 @@ import { GetImageUrl } from "utils/tinyUtils";
 import { pollinateInput } from "@/utils/tinyUtils";
 import { translateFunction } from "utils/functions";
 
+// `testId` prefixes the `data-pw` hooks on the input, the dropdown and each
+// option. Two of these sit side by side on the compare page, so one shared hook
+// name would make "the first slot" and "the second slot" the same element to a
+// test. The caller names them; the default keeps any other caller working.
 const AsyncSelectCustom = ({
   placeholder,
   onSearch,
@@ -12,6 +16,7 @@ const AsyncSelectCustom = ({
   isLoading,
   className,
   selectedOption,
+  testId = "async-select",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -94,10 +99,11 @@ const AsyncSelectCustom = ({
   };
 
   return (
-    <div className={`relative ${className}`} ref={dropdownRef}>
+    <div className={`relative ${className}`} ref={dropdownRef} data-pw={testId}>
       <div className="relative">
         <input
           type="text"
+          data-pw={`${testId}-input`}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-400 bg-gray-50 text-gray-900 placeholder-gray-400 transition-colors"
           placeholder={placeholder}
           value={searchTerm}
@@ -112,6 +118,7 @@ const AsyncSelectCustom = ({
           {searchTerm && (
             <button
               onClick={handleClear}
+              data-pw={`${testId}-clear`}
               className="text-gray-400 hover:text-blue-500 focus:text-blue-600 transition-colors"
               type="button"
             >
@@ -140,11 +147,15 @@ const AsyncSelectCustom = ({
       </div>
 
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+        <div
+          data-pw={`${testId}-options`}
+          className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto"
+        >
           {options.length > 0 ? (
             options?.map((option) => (
               <div
                 key={option?.value}
+                data-pw={`${testId}-option`}
                 className="px-4 py-2 cursor-pointer hover:bg-blue-50 flex items-center gap-3 transition-colors"
                 onClick={() => handleOptionClick(option)}
               >
@@ -168,7 +179,10 @@ const AsyncSelectCustom = ({
               </div>
             ))
           ) : (
-            <div className="px-4 py-2 text-gray-500 regular">
+            <div
+              data-pw={`${testId}-no-options`}
+              className="px-4 py-2 text-gray-500 regular"
+            >
               {isLoading ? translateFunction("Loading...") : translateFunction("No options found")}
             </div>
           )}

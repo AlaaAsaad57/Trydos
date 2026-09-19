@@ -1,6 +1,6 @@
 # E2E scenarios
 
-Every case the browser suite runs — **73** of them today. Add a row whenever a
+Every case the browser suite runs — **90** of them today. Add a row whenever a
 case is added, and keep the count above in step.
 
 | Section | Cases | Signs in? | Writes to staging? |
@@ -13,6 +13,9 @@ case is added, and keep the count above in step.
 | Scripted auth branches | SCRIPT-01 to SCRIPT-05 | no | no — only the real one-time-code send |
 | Scripted profile branches | SCRIPT-07 to SCRIPT-12 | **yes — each case signs in for itself** | **no** — every leg is faked, but each sign-in and one change-number send are real |
 | Scripted checkout branches | SCRIPT-14 to SCRIPT-18, SCRIPT-20 | **no — the shopper is faked** | no — nothing but a guest registration |
+| Saved products, as a guest | WISH-01 to WISH-05 | no | yes — one product on one throwaway guest, removed again |
+| Saved products, signed in | WISH-06 | **yes — its own, a real code per run** | **yes — the shared test account, put back in the same case** |
+| Comparing two products | CMP-01 to CMP-07 | no | no — the whole feature is two cookies in the browser |
 
 Design: `docs/testing/E2E_TEST_DESIGN.md`. How to run: `tests/e2e/README.md`.
 
@@ -329,3 +332,90 @@ because from the shopper's side a silent refusal and a dead button look the same
 | SCRIPT-17 | A bag holding something this country cannot receive never reaches the checkout | `checkout.scripted.spec.ts:290` | The same guard, a different field (`is_country_restricted`). Both are covered rather than one standing in for the other — a change dropping one of the three conditions would leave the other case green |
 | SCRIPT-18 | A bag that empties between the two checkout steps sends the shopper back | `checkout.scripted.spec.ts:325` | The bag is emptied **after** the payment method is chosen, so the re-read that Confirm Shipping & Payment does is the first to see it. Emptying it any earlier zeroes the total, which disables the cash-on-delivery choice and fails the case on a control it is not about |
 | SCRIPT-20 | A credential refused mid-checkout is renewed and the order completes | `checkout.scripted.spec.ts:437` | The checkout answers `401` once and then accepts. Both answers being consumed is what "it was retried" means — one consumed answer would mean the app took the refusal and stopped |
+
+## Saved products — the checklist
+
+The shopper's saved products. The screen calls it the **checklist**; the code
+behind it is `services/wishlist.ts`. Both names mean the same feature.
+
+**It is covered twice because two different servers answer it.**
+`utils/server/tokenManager.ts:178-190` sends `/checklist` to the **gateway** for
+a guest and to the **core** backend for a signed-in verified shopper — a
+verified account skips the gateway allow-list entirely. So the same steps prove
+different things depending on who is signed in, and a failure in one file says
+nothing about the other.
+
+No message in either file writes the backend's name by hand. Each one quotes the
+`x-market-backend` label the app's own proxy puts on the answer
+(`app/api/proxy/route.ts:380-386`), so a routing change appears in the failure
+text instead of quietly making every message wrong.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| WISH-01 | A new guest has nothing saved | `wishlist.live.spec.ts:100` | The gateway answers a guest's checklist at all, and the screen shows its empty panel rather than neither panel — which is what a broken screen looks like |
+| WISH-02 | Saving a product from its page reaches the shop | `wishlist.live.spec.ts:135` | The toggle turning green and the product being written are asked separately, so a green button over a failed write is reported as what it is |
+| WISH-03 | The saved product is on the checklist screen | `wishlist.live.spec.ts:192` | A different screen, loaded fresh, lists what the shop holds — so the save survived the page that made it |
+| WISH-04 | The product's own page shows it as saved when it is opened again | `wishlist.live.spec.ts:208` | The single-product question the product page itself asks (`/checklist/product/{id}/exist`), and the toggle that renders its answer, checked as two facts |
+| WISH-05 | Removing it from the checklist screen removes it at the shop | `wishlist.live.spec.ts:241` | `ChecklistView` splices its own array, so the row going is not evidence. The shop is asked, and then the screen is loaded again from nothing |
+| WISH-06 | A signed-in shopper saves and removes a product | `wishlist-signed-in.live.spec.ts:81` | The same journey against **core**, including a check that core is what actually answered — if the sign-in did not move the routing, every other message in the file would name the wrong server |
+
+**WISH-06 never assumes an empty account.** The shared account is real and other
+runs touch it, so the case walks along the home page until it finds a product
+that account has not already saved, and puts back exactly what it added. An
+account with the first five products already saved stops the case with a message
+saying so, rather than deleting somebody's saved product to make room.
+
+## Comparing two products
+
+Compare has no account and no server state. The two products live in two
+cookies, `f_p` and `s_p` (`utils/functions.tsx`), which
+`components/global/compare.tsx` reads on mount and mirrors into the query
+string. A guest and a signed-in shopper behave identically, so these are guest
+cases and that is not a gap.
+
+**Every case reads three things, not one.** The cookie is what the feature
+stores, the address is what a shopper sends by copying the URL, and the cell is
+what the table drew. A slot can look empty because it is empty or because the
+product lookup failed, so one assertion covering all three could only ever say
+"compare did not work".
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| CMP-01 | The compare page opens with both slots empty | `compare.live.spec.ts:116` | An empty slot renders `-`, not nothing, so emptiness is read from the text — never from "the cell is hidden", which would pass on a cell that is on screen |
+| CMP-02 | A product added from its page fills the first slot | `compare.live.spec.ts:141` | The cookie, the address and the table are checked apart, so a slot filled in the browser but missing from the address is reported as the sharing bug it is |
+| CMP-03 | A second product fills the second slot, and both are shown | `compare.live.spec.ts:181` | Each slot is asked on its own, and the second is checked for a price as well as a name — a name alone could come from the search option without the product ever being fetched |
+| CMP-04 | A third product replaces the first, and the shopper is told | `compare.live.spec.ts:220` | Slot one is replaced and slot two is left alone, and a notification is counted (never read — it is translated), because a product disappearing with no explanation is the failure |
+| CMP-05 | Removing one frees its slot and moves the other into first place | `compare.live.spec.ts:249` | `removeFromCompare` does not just empty slot one, it moves slot two into it. A page that left a hole would show the surviving product in the second column with an empty first one |
+| CMP-06 | The compare page's own search box fills a slot | `compare.live.spec.ts:295` | The search term is taken from a product this run already opened, never written down — so an ordinary catalogue change cannot turn it red. A nothing-found answer names the search backend |
+| CMP-07 | The clear button empties a slot, in the cookie and in the address | `compare.live.spec.ts:335` | Clearing one slot leaves the other alone, and the address is checked separately — a product gone from the cookie but still in the query comes back on the next reload |
+
+## A defect these files found, and fixed
+
+**BUG-1 — "Load more" never appeared on the checklist screen.**
+`ChecklistView.tsx:41` reads `result?.has_next ?? false`, and
+`services/wishlist.ts` declared `has_next`, `page_size` and `total_pages`.
+**No backend sends any of the three.** Both answer with a standard Laravel
+paginator (`current_page`, `last_page`, `next_page_url`, `per_page`, `total`, …),
+checked on 2026-09-19 against staging with twelve products saved so a second
+page genuinely existed — gateway and core gave the identical key set, neither
+with `has_next`. A shopper with more than ten saved products could reach ten of
+them, and nothing threw.
+
+**The fix is ours, not the backend's.** `getWishlist` now works `has_next` out
+from `current_page` and `last_page`, and the declared type lists the keys that
+really arrive. `ChecklistView` is unchanged, so one calculation fixes both
+places that ask — the first load and "Load more" itself.
+
+**Proved in the unit suite**, not here:
+`tests/components/setting/checklist/ChecklistView.loadMore.test.tsx`. That suite
+gates every pull request and this one never does, so a fix proved only here
+would be unguarded from the day it landed. The test was seen red before the fix
+and green after it, with its control case — "the screen drew all ten rows" —
+green throughout, which is what rules out the test and leaves the app.
+
+It fakes the answer at `fetchData`, not at `wishlistService`. Faking the service
+would have stepped over the code the fix is in, leaving the test red after a
+correct fix for a reason that had nothing to do with the app.
+
+The e2e cases above do not depend on pagination — WISH-01 to WISH-05 use one
+product — so they neither proved this nor were affected by it.

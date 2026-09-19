@@ -478,6 +478,10 @@ const ACCOUNT_LANE = [
   "profile.scripted.spec.ts",
   "session-recovery.live.spec.ts",
   "shopper.live.spec.ts",
+  // Signs in as the shared account and spends a real code, for one reason: a
+  // verified shopper's checklist is served by core, and the guest file beside
+  // it can only ever reach the gateway.
+  "wishlist-signed-in.live.spec.ts",
 ];
 
 /** No account, no code, nothing real written. Safe to run several at once. */
@@ -488,6 +492,12 @@ const SOLO_LANE = [
   "login-design-parity.scripted.spec.ts",
   "session.live.spec.ts",
   "staticPages.live.spec.ts",
+  // Compare writes nothing anywhere — its whole state is two cookies.
+  "compare.live.spec.ts",
+  // A throwaway guest saves one product and removes it again. It does write to
+  // staging, but not to the shared account and not to anything a second worker
+  // could collide with: each run registers its own guest.
+  "wishlist.live.spec.ts",
 ];
 
 /** How many workers a lane may use.
