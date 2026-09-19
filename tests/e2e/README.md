@@ -217,11 +217,27 @@ What it needs, on top of the usual live variables:
 | Variable | What for |
 |---|---|
 | `TEST_ACCOUNT_PHONE_2` | Shopper B, who becomes the QA seller |
+| **`TEST_ACCOUNT_OTP_2`** | **Shopper B's own one-time code — see below** |
 | `ADMIN_DASHBOARD_BASE_URL` / `_EMAIL` / `_PASSWORD` | the two approvals the seed cannot do any other way |
 | `NEXT_PUBLIC_MEDIA_SERVER_BASE_URL` and friends | the product image, which activation needs |
 | `QA_VIEW_SECRET` | QA mode. At least 32 characters or it is ignored |
 
-Missing any of them is a clean **skip**, never a failure.
+Missing any of them is a clean **skip**, and the skip names which one. That
+matters more than usual here: the `live` project **depends** on the seed, so a
+*failing* setup stops every live case in the lane, while a *skipped* one lets
+the rest of the suite run.
+
+**`TEST_ACCOUNT_OTP_2` is not optional, and it caught a real gap.** Measured
+against staging on 2026-09-19: signing in as Shopper B with `TEST_ACCOUNT_OTP`
+— which is Shopper A's allow-listed code — is refused by the **core** backend
+with `422 invalid_code` on `/auth/phone/verify_otp_from_guest`. The two accounts
+do not share a code.
+
+Nothing had ever noticed, because the only specs that used Shopper B are
+*scripted* ones that fake every backend answer and never get past the PIN
+screen. So until this variable holds a working code, **nothing in this suite has
+ever really signed in as Shopper B**. Either set it to the code that account
+accepts, or have that number allow-listed with the shared one.
 
 **The admin screens** belong to a separate product, so nothing in this
 repository describes them. They were read directly on 2026-09-19, and

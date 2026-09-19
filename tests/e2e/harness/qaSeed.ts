@@ -58,9 +58,14 @@ import { gotoAbout } from "../actions/nav";
 import { approveQaBoutique, approveQaSeller } from "./adminApprove";
 import {
   envValue,
+  hasAdmin,
+  hasMedia,
   hasQaMode,
   hasQaSeed,
+  hasShopperB,
+  hasShopperBCode,
   loadLiveEnv,
+  shopperBOtp,
   LIVE_ORIGIN,
 } from "./env";
 import { LANE_ENV_VAR, PROD_SAFE_TAG } from "../laneConfig";
@@ -243,9 +248,41 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
       `the QA seed runs in the account lane only; this job's lane is "${lane || "unset"}".`,
     );
 
+    // **Each missing setting says which one it is.** A single "the QA seed is
+    // not configured" sends whoever reads it to check five variables.
+    //
+    // These are skips, not failures, and that matters twice over: a fresh
+    // checkout with no secrets must run green, and the `live` project depends
+    // on this one -- a *failing* setup stops every live case in the lane, while
+    // a *skipped* one lets the rest of the suite run.
+    test.skip(
+      !hasShopperB(),
+      "TEST_ACCOUNT_PHONE_2 or TEST_ACCOUNT_OTP is not set, so there is no Shopper B to make a seller.",
+    );
+    test.skip(
+      !hasShopperBCode(),
+      "TEST_ACCOUNT_OTP_2 is not set. Shopper B needs a one-time code of its " +
+        "own: measured against staging on 2026-09-19, the core backend refuses " +
+        "TEST_ACCOUNT_OTP for Shopper B with 422 invalid_code on " +
+        "/auth/phone/verify_otp_from_guest. Either set TEST_ACCOUNT_OTP_2 to " +
+        "the code that account accepts, or have that number allow-listed with " +
+        "the shared one. Until then nothing can sign in as Shopper B.",
+    );
+    test.skip(
+      !hasAdmin(),
+      "ADMIN_DASHBOARD_BASE_URL, _EMAIL or _PASSWORD is not set, so the seller and the boutique cannot be approved.",
+    );
+    test.skip(
+      !hasMedia(),
+      "the media store is not configured, so the product image the activation checks need cannot be uploaded.",
+    );
+    test.skip(
+      !hasQaMode(),
+      "QA_VIEW_SECRET is not set or is under 32 characters, so the app treats QA mode as OFF and the seed could never see its own product in the index.",
+    );
     test.skip(
       !hasQaSeed(),
-      "the QA seed needs Shopper B, the admin login, the media store and QA_VIEW_SECRET — see tests/e2e/README.md.",
+      "the QA seed is not fully configured — see tests/e2e/README.md.",
     );
 
     const deadline = Date.now() + SEED_DEADLINE_MS;
@@ -270,15 +307,29 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           intent: "login",
           phone: envValue("TEST_ACCOUNT_PHONE_2"),
           method: "whatsapp",
-          otp: envValue("TEST_ACCOUNT_OTP"),
+          // Shopper B's OWN code. `TEST_ACCOUNT_OTP` is Shopper A's, and the
+          // core backend refuses it here -- see `shopperBOtp`.
+          otp: shopperBOtp(),
         });
 
         // A refused one-time code is a NAMED failure, never a wait inside the
         // deadline. The suite has a code budget; hanging here would spend the
         // whole seed window finding out the backend said no.
+        //
+        // **Ending on the PIN screen means the code itself was refused**, and
+        // that is worth saying as itself: the run above reported it only as
+        // "the widget ended on the enter-pin screen", which sent a reader to
+        // look at the login widget rather than at the account.
+        const stuckOnPin = outcome.screen === "enter-pin";
+
         expect(
           outcome.screen,
-          `the QA seed could not sign in as Shopper B. The widget ended on the "${outcome.screen}" screen${outcome.error ? `, saying: ${outcome.error}` : ""}. The number and the code are never printed here`,
+          stuckOnPin
+            ? `the CORE backend refused Shopper B's one-time code${outcome.error ? `, saying: ${outcome.error}` : " (it answers 422 invalid_code on /auth/phone/verify_otp_from_guest)"}. ` +
+                "TEST_ACCOUNT_OTP_2 holds the wrong code for this account, or " +
+                "that number is not allow-listed on this environment. Neither " +
+                "the number nor the code is printed here"
+            : `the QA seed could not sign in as Shopper B. The widget ended on the "${outcome.screen}" screen${outcome.error ? `, saying: ${outcome.error}` : ""}. The number and the code are never printed here`,
         ).toMatch(/^(welcome|closed)$/);
 
         await page.keyboard.press("Escape").catch(() => undefined);

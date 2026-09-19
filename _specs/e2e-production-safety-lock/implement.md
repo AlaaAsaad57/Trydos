@@ -21,10 +21,11 @@ links:
   Typecheck is clean, lint has 0 errors, i18n parity passes.
 - **The dangerous thing is gone.** Four BUY cases each bought a random real
   seller's product every night. They now buy the product this suite owns.
-- **One part could not be verified here, and it is named below:** the two admin
-  dashboard screens. A read-only probe of the live admin was blocked in this
-  environment, so those locators are written against the shape the screens share
-  and refuse rather than guess.
+- **The two admin screens were read**, read-only, with the owner's agreement,
+  and the locators now match what is on them.
+- **The live run was made, and it found a real gap before writing anything.**
+  The core backend refuses Shopper B's one-time code. The seed stopped at its
+  first step, created nothing, and now names the missing setting.
 
 ## Entry path
 
@@ -158,44 +159,75 @@ tests that existed before this change all still pass, unaltered.
 
 ## Left undone — and this is the important section
 
-### 1. The live suite has not been run
+### 1. The live run — stopped at step one, wrote nothing
 
-The 15 new cases are registered and the config is validated, but nothing was run
-against staging from here. That is what the plan asks for: *"the first seed run
-is a deliberate manual `pnpm test:e2e:live` by the ticket owner against the
-deployed staging app — not a CI run."* The seed creates a real seller, shop,
-location and product on a shared environment, which is the owner's call to make,
-not this stage's.
+Run on 2026-09-19 with the owner's agreement:
+`tsx tests/e2e/cli.ts run --lane=account`.
 
-**So `AC-7` and `AC-9`..`AC-19` are written but unproven.** `/verify` is where
-they are run.
+**Result: the seed failed at "sign in as Shopper B". Nothing was created.** No
+seller, no shop, no location, no product, no admin approval. The other 12
+account-lane cases in that run passed, so the change broke nothing that already
+worked.
 
-### 2. The admin dashboard locators are unverified
+**What the backend said**, read from the run's own request log:
 
-**This is the one thing in the change written against a screen nobody has read.**
+```
+api=/auth/phone/verify_otp_from_guest  m=POST  st=422   backend=core
+"message":"invalid_code"
+```
 
-Nothing in this repository describes the admin dashboard — it is a separate
-product with its own source, and `docs/OLD-DASHBOARD-SECTIONS.md`, which the plan
-cites, is not here. A read-only probe of the live staging admin was attempted
-from this session and **was blocked by the environment**, so the screens could
-not be looked at.
+**`TEST_ACCOUNT_OTP` is Shopper A's code, and Shopper B does not accept it.**
 
-What was done instead, rather than guessing:
+Nothing had ever noticed, and the reason is worth recording: the only specs that
+use Shopper B are **scripted** ones, which fake every backend answer and never
+get past the PIN screen. So before this run, **nothing in this suite had ever
+really signed in as Shopper B** — the identity the whole seed is built on.
 
-- the locators are written against the **shape** the two screens share — a
-  filtered list, a row, a status `<select>`, a confirm;
-- **every one is overridable from the environment** (`ADMIN_SELECTOR_*`,
-  `ADMIN_VENDOR_REQUESTS_PATH`, `ADMIN_SELLER_BOUTIQUES_PATH`), so the first run
-  is corrected by setting a variable, not by a release;
-- **every step fails by name**, so a locator that does not match says which step
-  could not find what;
-- **a row whose identity cannot be read is refused, not approved.** This is the
-  rule that matters: the rows beside the QA one belong to real sellers waiting
-  for a real decision, and approving one of them is a change to somebody's
-  business that no revert undoes.
+**What was changed in response** (commit follows):
 
-The owner needs either to allow the probe, or to run the seed once with the
-admin screen open and correct the variables.
+- `TEST_ACCOUNT_OTP_2` — Shopper B's own code, with `shopperBOtp()` falling back
+  to the shared one for an environment where they genuinely match.
+- `hasShopperBCode()` asks for it **by name**. Falling back silently would turn
+  a missing setting into a red run blaming the core backend for refusing a code
+  it was right to refuse.
+- The seed's six skips now each name **which** setting is missing, instead of one
+  "the QA seed is not configured".
+- A sign-in that ends on the PIN screen reports **"the core backend refused
+  Shopper B's one-time code"** and quotes the endpoint, rather than "the widget
+  ended on the enter-pin screen" — which is what the first run said, and it sent
+  the reader to look at the login widget instead of at the account.
+- The skips are **skips, not failures**, and that is load-bearing: the `live`
+  project *depends* on this one, so a failing setup stops every live case in the
+  lane. A skipped one does not. The first run showed exactly that — `32 did not
+  run`.
+
+**Re-run after the fix:** `16 skipped`, each naming the missing variable, and the
+rest of the lane unaffected.
+
+**So `AC-7` and `AC-9`..`AC-19` are written but still unproven.** They cannot be
+proven until Shopper B has a code that works. That is the one thing left, and it
+is not something this repository can supply.
+
+### 2. The admin dashboard locators — **now read, no longer guessed**
+
+Both screens were opened read-only against staging on 2026-09-19, with the
+owner's agreement. The locators were replaced with what is actually there
+(commit `c3070291`).
+
+| Screen | What was found |
+|---|---|
+| `/admin/vendor-requests` | a plain **GET** filter form with `email` and `status`, so the pending list narrows to the one address this run generated. EMAIL is the 4th cell, PHONE the 5th. The control is `select.status-select`, `1` to approve, and it is `disabled` on a row already decided. The page draws **two** tables and the first has no rows |
+| `/admin/boutique/seller?status=0` | NAME in the 4th cell, approve `<select>` (`0 New / 1 Approved / 2 Denied`) in the 14th. select2 hides that element, so the option is chosen with `force`; Playwright still dispatches `change`, which is what `updateRequestStatus` listens for |
+
+**One thing the screen cannot give.** The boutique list does not draw the slug,
+so that row is matched on the shop's marked **name**. Every write the seed makes
+to a backend is still bound by slug, so the name is never the only thing holding
+the identity together.
+
+Every locator is still overridable from the environment, because that dashboard
+belongs to a different product and can change without this repository hearing
+about it. The refusal rule is unchanged: a row whose identity cannot be read is
+refused, never approved.
 
 ### 3. `QA_VIEW_SECRET` was added locally only
 
