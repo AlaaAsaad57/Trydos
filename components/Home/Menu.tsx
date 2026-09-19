@@ -15,7 +15,6 @@ const NotificationsPanel = dynamic(
 );
 import Spinner from "components/global/Spinner";
 
-import auth from "services/auth";
 import { clearAllUserData } from "utils/tinyUtils";
 import dynamic from "next/dynamic";
 
@@ -117,16 +116,30 @@ const Menu = ({ user, setMenuOpen ,isRtl}) => {
       window.location.reload();
     }
   };
+  // Read from the `user` prop, not from `auth.getUser()`.
+  //
+  // `auth.getUser()` is `useAppStore.getState().userProfile` — a one-off read,
+  // not a subscription. This menu is mounted only while it is open
+  // (`{menuOpen && <Menu …/>}`, `UserNavTopSection.tsx`), and the profile is
+  // filled by a client fetch after the page is already interactive. So a
+  // shopper who opened the menu before that fetch landed got a menu with no way
+  // to sign out, and it never appeared: the value was read once, at a moment
+  // when there was nothing to read, and nothing made this read it again.
+  // Closing and reopening the menu was the only cure, and no shopper knows to
+  // do that.
+  //
+  // The `user` prop is the same value taken the reactive way: `useUserData`
+  // subscribes to `state.userProfile` and falls back to `/api/auth/me`
+  // (`hooks/useUserData.tsx`), and the parent already passes it in. So this is
+  // the value that was always meant to be used here.
+  //
+  // Found by AUTH-03 and PROF-08, which reported it in these words: "offered no
+  // sign-out while it was open, and offered it as soon as it was closed and
+  // opened again".
   const shouldShowLogout = () => {
     if (loading) return true;
-    if (auth.getUser()) {
-      if (auth.getUser().phone === "0" || !auth.getUser().phone) {
-        return false;
-      } else {
-        return true;
-      }
-    }
-    return false;
+    if (!user) return false;
+    return Boolean(user.phone) && user.phone !== "0";
   };
   const pathname = usePathname();
   return (
