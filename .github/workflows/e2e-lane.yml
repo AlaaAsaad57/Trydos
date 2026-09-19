@@ -52,7 +52,7 @@
 # the checkout below has to ask the same question it always did — see the note
 # on that step.
 #
-# Any edit to this file needs a pull request to `main` as well as to `develop`.
+# Any edit to this file needs a pull request to `main` as well as to `development`.
 # `main` carries the workflow files but not the suite, and the copy on `main` is
 # the one the nightly runs.
 # ---------------------------------------------------------------------------
@@ -94,13 +94,13 @@ jobs:
     steps:
       # A scheduled run is dispatched from the default branch, `main`, so left
       # alone it would check out `main` — the staging gate, which has no tests in
-      # it. The code under test at night is `develop`. Every other event checks
+      # it. The code under test at night is `development`. Every other event checks
       # out whatever it was fired on, which is what a push and a manual run
       # already mean.
       - name: Check out the code under test
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'schedule' && 'develop' || github.ref }}
+          ref: ${{ github.event_name == 'schedule' && 'development' || github.ref }}
 
       # Pinned here rather than in package.json's `packageManager` field: the
       # deploy platform runs its own install command, and a `packageManager`

@@ -19,6 +19,7 @@ import {
 import { auth, nav, prompt } from "../selectors";
 
 import { arriveAsGuest } from "./locale";
+import { howTheClientStarted } from "../harness/clientStart";
 import { LIVE_ORIGIN } from "../harness/env";
 import {
   credentialsChangedSince,
@@ -41,6 +42,19 @@ import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
  *  longer than that getting to the starting line and die before the window it
  *  was there to measure. See `_specs/e2e-guest-token-lifecycle/implement.md`
  *  for the full sum. */
+/** How many digits a whole international number runs to, across every country
+ *  the login widget offers (`components/Login/Enhanced/ui/RdbPhoneInput.tsx`).
+ *
+ *  The widget wants the dial code **and** the national part in one field, and it
+ *  checks the total exactly. The shortest pair it lists is the United States,
+ *  1 + 10; the longest are the three-digit dial codes with a ten-digit national
+ *  part, such as Iraq's 964 + 10.
+ *
+ *  Used only to tell a mis-set `TEST_ACCOUNT_PHONE` from a broken login screen —
+ *  see `enterPhone`. */
+const SHORTEST_INTERNATIONAL_NUMBER = 11;
+const LONGEST_INTERNATIONAL_NUMBER = 13;
+
 const COUNTRY_LOOKUP_MS = 10_000;
 const BOOT_NAVIGATION_MS = 25_000;
 const REGISTRATION_MS = 15_000;
@@ -353,7 +367,60 @@ export const enterPhone = async (
   await expect(input).toBeVisible();
   const digits = options.phone.replace(/\D/g, "").replace(/^0+/, "");
   await input.fill(digits);
+
+  // **The submit control is drawn only for a number the widget calls complete**,
+  // and complete means an exact digit count, not a minimum:
+  // `isValidPhone = digits.length === dialCode.length + maxLocal`
+  // (`components/Login/Enhanced/ui/RdbPhoneInput.tsx`). Syria is 3 + 9, so
+  // twelve digits — the **whole** international number, country code included
+  // and no `+`. One digit short or one over and there is no control to press.
+  //
+  // So `TEST_ACCOUNT_PHONE` has to be one full international number. Two of
+  // them separated by a comma, or the national part on its own, both land here.
+  //
+  // Without the reading below, that failure is "element(s) not found" against
+  // `send-phone-number` — which names nothing anyone can act on and reads like
+  // the login screen changed. It cost a local run to work out, and the whole
+  // answer was the length of the value.
+  //
+  // **The number never reaches the message**, only how many digits it has.
   const submit = auth.submitPhoneButton(page);
+  const ready = await submit
+    .waitFor({ state: "visible", timeout: 5_000 })
+    .then(() => true)
+    .catch(() => false);
+
+  if (!ready) {
+    const shown = ((await input.inputValue().catch(() => "")) ?? "").replace(
+      /\D/g,
+      "",
+    );
+
+    // Which way it is wrong, said plainly. Every country the widget offers
+    // needs between eleven and thirteen digits in total, so a value outside
+    // that is the setting and nothing else.
+    const why =
+      digits.length > LONGEST_INTERNATIONAL_NUMBER
+        ? `TEST_ACCOUNT_PHONE carries ${digits.length} digits, which is more ` +
+          `than any one number the widget accepts — it is holding more than ` +
+          `one number. Set it to a single international number.`
+        : digits.length < SHORTEST_INTERNATIONAL_NUMBER
+          ? `TEST_ACCOUNT_PHONE carries ${digits.length} digits, which is too ` +
+            `few for a full international number — the country code is most ` +
+            `likely missing. Set it to the whole number, country code first ` +
+            `and no "+".`
+          : `The length is plausible for a full international number, so this ` +
+            `is the login screen or the account, not the setting.`;
+
+    expect(
+      false,
+      `the number was typed but the widget never drew its submit control, so ` +
+        `it does not consider the number complete. It asks for an exact digit ` +
+        `count — the country's dial code plus its national length, twelve for ` +
+        `Syria — and the field is holding ${shown.length}. ${why}`,
+    ).toBe(true);
+  }
+
   await expect(submit).toBeEnabled();
   await submit.click();
   await expect(
@@ -823,6 +890,13 @@ export const openCartAndProveBackendAnswered = async (
  *  noticing a refused credential, exchanging it and trying again. */
 const SIGN_OUT_ITEM_MS = 20_000;
 
+/** How much longer it is waited for **after** the budget above has run out.
+ *
+ *  Spent only on a run that is already failing, so it costs a healthy suite
+ *  nothing. It exists to turn "it never came" into "it came at 23 seconds",
+ *  which are two different findings with two different fixes. */
+const SIGN_OUT_ITEM_LATE_MS = 25_000;
+
 /** Why the open account menu offered no sign-out.
  *
  *  `shouldShowLogout` (`components/Home/Menu.tsx`) hides the item unless the
@@ -849,6 +923,105 @@ const SIGN_OUT_ITEM_MS = 20_000;
  *  **The phone is never printed**, here or anywhere: only whether the app would
  *  call it usable, by the same rule the menu applies. Job logs and artifacts in
  *  this repository are public. */
+/** What the app's two start-up calls answer, read by doing them again.
+ *
+ *  **Only ever called once a case has already failed**, because it reloads the
+ *  page and a reload throws away whatever was on screen. That is the trade:
+ *  the fault it explains is a store that never filled, and the only moment the
+ *  filling can be watched is a page start — which by then is long gone.
+ *
+ *  Why these two calls and no others. `getClientData` (`services/home.ts`) is
+ *  the only thing that fills the store's user on a normal page load, and it
+ *  does them in one chain:
+ *
+ *    1. `GET /web/home/startingSettings`, and it **throws on a failure**.
+ *    2. `getCustomerInfo` -> `GET /customer/info` -> `updateUserInfo`.
+ *
+ *  Step 2 is inside the same `try` as step 1, after it and awaiting it. So a
+ *  settings read that fails takes the profile read down with it and the store
+ *  keeps no user at all — with nothing on screen to say so. Naming which of the
+ *  two answered is therefore the whole finding, and "the client copy is
+ *  missing" without it is not.
+ *
+ *  Both leave through `POST /api/proxy` with the real address in `x-proxy-url`
+ *  (`utils/fetchData.ts`), which is how they are recognised.
+ *
+ *  **Statuses only, never a body.** These answers carry the shopper's name and
+ *  phone, and this repository's job logs are public. */
+const whatTheBootCallsSaid = async (page: Page): Promise<string> => {
+  const calls: Record<string, string> = {
+    "/web/home/startingSettings": "was never sent",
+    "/customer/info": "was never sent",
+  };
+
+  // **When**, not only whether. A store that fills at 23 seconds and a store
+  // that never fills produce the same empty menu at 20, and they are a test
+  // budget and an application fault respectively. The elapsed figure is the
+  // only thing that separates them.
+  let startedAt = Date.now();
+  const since = (): string => `${Date.now() - startedAt}ms after the reload`;
+
+  const onRequest = (request: import("@playwright/test").Request): void => {
+    if (!request.url().includes("/api/proxy")) return;
+    const target = request.headers()["x-proxy-url"] ?? "";
+    for (const path of Object.keys(calls)) {
+      if (target.includes(path) && calls[path] === "was never sent") {
+        calls[path] = `was sent ${since()} and never answered`;
+      }
+    }
+  };
+
+  const onResponse = (response: import("@playwright/test").Response): void => {
+    const request = response.request();
+    if (!request.url().includes("/api/proxy")) return;
+    const target = request.headers()["x-proxy-url"] ?? "";
+    const path = Object.keys(calls).find((known) => target.includes(known));
+    if (path === undefined) return;
+
+    const status = response.status();
+    const answeredAt = since();
+    void response
+      .text()
+      .then((body) => {
+        // `success` is the flag `getClientData` and `getCustomerInfo` both
+        // branch on, and a `200` carrying `success: false` is exactly the case
+        // that makes them throw. The status alone would call that one healthy.
+        let success: unknown;
+        try {
+          success = (JSON.parse(body) as { success?: unknown }).success;
+        } catch {
+          success = "a body that is not JSON";
+        }
+        calls[path] = `answered ${status} with success=${String(success)}, ${answeredAt}`;
+      })
+      .catch(() => {
+        calls[path] = `answered ${status} ${answeredAt}, and its body could not be read`;
+      });
+  };
+
+  page.on("request", onRequest);
+  page.on("response", onResponse);
+
+  try {
+    startedAt = Date.now();
+    await page.reload({ waitUntil: "domcontentloaded" });
+    // The chain is started on a timer after mount and the first call carries a
+    // ten-second in-app wait of its own (`WaitForCondition`), so a short wait
+    // here would report "never sent" for a call that was merely slow.
+    await page.waitForTimeout(20_000);
+  } catch {
+    // A reload that fails is itself worth saying, and the readings below are
+    // still the truth about what did and did not go out.
+  } finally {
+    page.off("request", onRequest);
+    page.off("response", onResponse);
+  }
+
+  return Object.entries(calls)
+    .map(([path, said]) => `${path} ${said}`)
+    .join("; ");
+};
+
 const whySignOutIsMissing = async (page: Page): Promise<string> => {
   const said = await page.evaluate(() =>
     fetch("/api/auth/me", { method: "POST", credentials: "include" })
@@ -903,12 +1076,22 @@ const whySignOutIsMissing = async (page: Page): Promise<string> => {
     );
   }
 
+  // The session is alive and the client copy is missing. Which of the two
+  // start-up calls failed is the finding, and it cannot be guessed — so the
+  // page is started again and both are watched. This costs about half a minute
+  // and it is spent only on a case that has already failed.
+  const boot = await whatTheBootCallsSaid(page);
+
   return (
     `${opened}, yet the cookies still name ${who} as a phone-verified shopper ` +
     `with a usable phone — so the session is alive and only the client copy is ` +
     `missing. The store is filled by getCustomerInfo -> updateUserInfo ` +
-    `(services/home.ts), and it did not arrive in ${SIGN_OUT_ITEM_MS}ms. This ` +
-    `one is a fault in this repository.`
+    `(services/home.ts), and it did not arrive in ${SIGN_OUT_ITEM_MS}ms. ` +
+    `${howTheClientStarted(page)}. ` +
+    `Starting the page again, the two calls that fill it said: ${boot}. ` +
+    `getClientData runs them in one chain and throws on the first, so a ` +
+    `settings read that did not answer is the reason the profile read never ` +
+    `went out. This one is a fault in this repository.`
   );
 };
 
@@ -958,11 +1141,85 @@ export const openAccountMenu = async (page: Page): Promise<void> => {
   // interactive. So a menu that is open with no sign-out in it may just be
   // ahead of that fetch — which is exactly what `AUTH-03` hit, on a page whose
   // cookies said signed-in and whose header still read "Hello ,".
+  const waitingSince = Date.now();
   const offered = await signOut
     .waitFor({ state: "visible", timeout: SIGN_OUT_ITEM_MS })
     .then(() => true)
     .catch(() => false);
   if (offered) return;
+
+  // **Missing at the budget is not the same as missing.** A store that fills at
+  // twenty-three seconds and a store that never fills leave the same empty menu
+  // at twenty, and they are two different findings: one is this budget, the
+  // other is the app. So the wait is carried on once, and the answer goes in the
+  // message. Only on the failing path — a healthy run has already returned.
+  const lateBy = await signOut
+    .waitFor({ state: "visible", timeout: SIGN_OUT_ITEM_LATE_MS })
+    .then(() => Date.now() - waitingSince)
+    .catch(() => null);
+
+  if (lateBy !== null) {
+    expect(
+      false,
+      `the account menu offered sign-out after ${lateBy}ms, which is inside ` +
+        `the ${SIGN_OUT_ITEM_MS + SIGN_OUT_ITEM_LATE_MS}ms this waits in total ` +
+        `but outside the ${SIGN_OUT_ITEM_MS}ms first budget. Nothing is broken ` +
+        `in the app: the item arrives with the store's user, and the store is ` +
+        `filled by getCustomerInfo (services/home.ts) over two round trips to ` +
+        `staging. This budget is the thing to change, and this message is the ` +
+        `measurement to change it by.`,
+    ).toBe(true);
+  }
+
+  // **Close it and open it again.** One question, and it separates the two
+  // findings that are left.
+  //
+  // The item is drawn from `shouldShowLogout` (`components/Home/Menu.tsx`),
+  // which reads the store through `auth.getUser()` — a `getState()` call, not a
+  // subscription. The menu is mounted when it is opened and unmounted when it
+  // is closed (`{menuOpen && <Menu …/>}`, `UserNavTopSection.tsx`). So:
+  //
+  //   * it appears on a second opening — the store had the shopper all along
+  //     and the **mounted** menu never re-read it. Nothing will fix that for a
+  //     shopper except closing the menu, which no shopper knows to do.
+  //   * it is still missing — the store really is empty, and the reading below
+  //     says which call failed to fill it.
+  // Closed the way a shopper closes it. **Not with Escape** — the menu has no
+  // key handler; it closes through the full-screen catcher it lays over the
+  // page (the `setMenuOpen(false)` div, same file), so the close is a click
+  // somewhere away from the panel. The panel is pinned to the top right, so the
+  // far left is safely off it.
+  const reopened = await (async () => {
+    const box = page.viewportSize();
+    await page.mouse
+      .click(5, Math.round((box?.height ?? 800) / 2))
+      .catch(() => undefined);
+
+    const closed = await anyItem
+      .waitFor({ state: "hidden", timeout: 5_000 })
+      .then(() => true)
+      .catch(() => false);
+    // It never closed, so opening it again proves nothing either way.
+    if (!closed) return false;
+
+    await trigger.click().catch(() => undefined);
+    return await signOut
+      .waitFor({ state: "visible", timeout: SIGN_OUT_ITEM_MS })
+      .then(() => true)
+      .catch(() => false);
+  })();
+
+  if (reopened) {
+    expect(
+      false,
+      `the account menu offered no sign-out while it was open, and offered it ` +
+        `as soon as it was closed and opened again. So the store held the ` +
+        `shopper the whole time and the mounted menu never re-read it: ` +
+        `shouldShowLogout calls auth.getUser(), which is a getState() read and ` +
+        `not a subscription (components/Home/Menu.tsx). A shopper who opens ` +
+        `the menu before the profile lands is left with no way to sign out.`,
+    ).toBe(true);
+  }
 
   // Only now, and only because it is missing, ask the app who it thinks it is.
   // The previous version of this asserted the answer instead of reading it: it

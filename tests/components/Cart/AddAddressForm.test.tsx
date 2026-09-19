@@ -38,8 +38,13 @@ vi.mock("services/order", () => ({
   },
 }));
 
+// `UserID` is here for the editing case only. That one renders the map, the map
+// asks for the country's boundaries, and `fetchData` reads `auth.UserID()` on
+// the way out. A mock without it throws from a promise nobody awaits, which
+// vitest reports as an unhandled rejection on the whole file and not on the case
+// that caused it.
 vi.mock("services/auth", () => ({
-  default: { UpdateName: vi.fn() },
+  default: { UpdateName: vi.fn(), UserID: vi.fn(() => 1) },
 }));
 
 /** A filled-in form. isValid() needs every one of these to let the button work. */
@@ -169,6 +174,81 @@ describe("saving a new shipping address", () => {
       document.querySelector(".phone-border.shake-anim"),
       "pressing Save with no phone at all did nothing the shopper can see, " +
         "although a phone of four digits is shaken",
+    ).not.toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Editing an address the account already has.
+//
+// A different entry point from every case above, and the difference is where
+// `addressDetails` comes from. Adding starts from `initAddressForm`
+// (`store/Cart/reducer.ts`), which writes **every** key the form reads,
+// `location: { latitude: null, longitude: null }` included. Editing starts from
+// `startUpdateAddress`, which spreads whatever the core backend sent for that
+// address and adds two keys of its own — so a key the backend does not send is
+// simply not there.
+//
+// `location` is one of those keys, and the form reaches into it without a guard.
+// ---------------------------------------------------------------------------
+describe("editing an address the account already has", () => {
+  /** What `startUpdateAddress` leaves in the store for an address the core
+   *  backend returned **without** a `location` object.
+   *
+   *  Built the same way the reducer builds it, rather than written out by hand,
+   *  so this cannot drift away from what the app really holds. */
+  const openedForEditing = (backendAddress: Record<string, unknown>) => {
+    useAppStore.getState().startUpdateAddress(backendAddress as any);
+    return useAppStore.getState().addressDetails;
+  };
+
+  it("draws the form for an address the backend sent with no location", async () => {
+    // A saved address as the list can return it: flat coordinates, no nested
+    // `location` object. Every other field the form wants is present, so
+    // nothing here is about validation.
+    const details = openedForEditing({
+      id: 42,
+      address: "Probe address",
+      address_detail: "Second floor, blue door",
+      latitude: null,
+      longitude: null,
+      region_details: {
+        city: "Old City",
+        province: "Damascus",
+        town: "",
+        street: "",
+        building: "",
+      },
+      contact_info: { name: "Ada", phone: "+10000000000" },
+    });
+
+    await renderWithProviders(
+      // `activeIndex` true and a country in the store are what the checkout
+      // gives it: both are needed before the map is drawn, and the map is where
+      // the location is read. A form rendered with the map off never touches it,
+      // which is why every case above passes.
+      <AddAddressForm
+        activeIndex={true}
+        setOpenSelect={() => {}}
+        slidePrev={() => {}}
+        setAddressDetails={() => {}}
+      />,
+      {
+        country: "sy",
+        path: "/cart",
+        store: {
+          countries: [{ id: 1, name: "Syria", iso: "sy" }],
+          addressLists: [{ ...existingAddress }],
+          addressDetails: { ...details },
+        },
+      },
+    );
+
+    expect(
+      document.querySelector('[data-pw="AddSaveButton"]'),
+      "the edit form drew no save button for an address the core backend sent " +
+        "without a `location` object, so the shopper cannot save the change " +
+        "they just typed",
     ).not.toBeNull();
   });
 });

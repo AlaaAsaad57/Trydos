@@ -39,6 +39,7 @@ import type { Browser, BrowserContext, Page } from "@playwright/test";
 
 import { test } from "../fixtures";
 import { signedInSession } from "../actions/auth";
+import { watchTheClientStarting } from "./clientStart";
 
 /** Where each spec's signed-in session waits between its cases.
  *
@@ -89,6 +90,12 @@ export const newLiveContext = async (
   });
   context.setDefaultTimeout(20_000);
   context.setDefaultNavigationTimeout(45_000);
+
+  // From the moment the context exists, so nothing it does is missed. What it
+  // records, and why three standing failures all needed it, is in
+  // `harness/clientStart.ts`.
+  watchTheClientStarting(context);
+
   return context;
 };
 

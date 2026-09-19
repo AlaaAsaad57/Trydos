@@ -140,31 +140,64 @@ export const closeCart = async (page: Page): Promise<void> => {
 export const emptyTheBag = async (page: Page): Promise<void> => {
   const opened = await openCart(page);
 
-  let remaining = opened.lines;
-  for (let line = remaining; line > 0; line -= 1) {
-    await page.getByTestId("DeleteIcon_CartPage").first().click();
+  // **Removing is optimistic, and it can be undone.** The row leaves the store
+  // before anything is asked, and `services/cart.ts > RemoveFromCart` puts it
+  // back when the core backend refuses — after the re-price that follows every
+  // removal. So a count read straight after the click is the count the app
+  // *hoped* for, and it agrees with a backend that said no.
+  //
+  // This is the same discipline `removeLineNamed` already follows, and it was
+  // missing here. Without it `emptyTheBag` could report an empty bag that the
+  // shop still held: on 2026-09-19 `BUY-04` emptied the bag, added one product
+  // and opened a bag holding **two** lines, the second being the row a refused
+  // removal had restored. The failure then blamed the product it had just
+  // added.
+  const money = watchCartMoney(page);
+  try {
+    let remaining = opened.lines;
+    for (let line = remaining; line > 0; line -= 1) {
+      const seenBefore = money.seen("overview");
+      await page.getByTestId("DeleteIcon_CartPage").first().click();
+
+      // The re-price is what says the removal was really taken. Waited for
+      // before the count is read, so the reading is taken after the moment an
+      // undo would have happened.
+      await money.waitForAnswer("overview", {
+        after: seenBefore,
+        timeout: CART_ANSWER_MS,
+      });
+
+      await expect
+        .poll(async () => await cart.lines(page).count(), {
+          timeout: CART_ANSWER_MS,
+          message:
+            `a line was removed from the bag and the bag still holds ` +
+            `${remaining} of them once the shop had re-priced it, so the ` +
+            `removal was refused and put back. The core backend said: ` +
+            `${money.said("overview")}`,
+        })
+        .toBeLessThan(remaining);
+      remaining = await cart.lines(page).count();
+    }
+
+    expect(
+      remaining,
+      `the bag still holds ${remaining} lines after every one was removed. ` +
+        `The core backend said: ${money.said("overview")}`,
+    ).toBe(0);
+
+    await closeCart(page);
+
     await expect
-      .poll(async () => await cart.lines(page).count(), {
+      .poll(async () => await bagLineCount(page), {
         timeout: CART_ANSWER_MS,
         message:
-          "removing a line from the bag never came back — is the cart backend answering?",
+          "the navigation still shows a bag count after the bag was emptied",
       })
-      .toBeLessThan(remaining);
-    remaining = await cart.lines(page).count();
+      .toBe(0);
+  } finally {
+    money.stop();
   }
-
-  expect(remaining, "the bag still holds lines after every one was removed").toBe(
-    0,
-  );
-
-  await closeCart(page);
-
-  await expect
-    .poll(async () => await bagLineCount(page), {
-      timeout: CART_ANSWER_MS,
-      message: "the navigation still shows a bag count after the bag was emptied",
-    })
-    .toBe(0);
 };
 
 /** Close the add-to-bag sheet.
@@ -345,14 +378,22 @@ export const addOpenProductToBag = async (
  *
  *  Bounded on purpose. A shop where none of the first several products can be
  *  bought is a finding worth failing on — the caller gets `bought: null` and can
- *  say so, naming how many it looked at. */
+ *  say so, naming how many it looked at.
+ *
+ *  `startAt` skips the products already tried. "Addable" is not the only thing a
+ *  case can need of a product — `BUY-04` also needs a line that can be raised to
+ *  two, and a product the seller caps at one is addable and still no use to it.
+ *  So the caller can look at the next one along rather than fail on a fact about
+ *  the catalogue. `looked` counts from the beginning of the listing, so feeding
+ *  it straight back in continues where the last call stopped. */
 export const addFirstBuyableProduct = async (
   page: Page,
-  options: { maxProducts?: number } = {},
+  options: { maxProducts?: number; startAt?: number } = {},
 ): Promise<{ bought: string | null; looked: number }> => {
   const limit = options.maxProducts ?? 6;
+  const from = options.startAt ?? 0;
 
-  for (let index = 0; index < limit; index += 1) {
+  for (let index = from; index < limit; index += 1) {
     const opened = await gotoProductAtOrNull(page, { index });
     if (!opened) return { bought: null, looked: index };
 
@@ -818,6 +859,20 @@ export interface CartMoneyAnswer {
 export interface CartMoneyWatch {
   /** How many answers of this kind have arrived so far. */
   seen: (which: CartMoneyTarget) => number;
+  /** How many **requests** of this kind the browser has sent.
+   *
+   *  Counted separately from the answers, and that separation is the whole
+   *  point. "No money came back" has two completely different causes and one
+   *  message cannot serve both:
+   *
+   *    * `sent > seen` — the browser asked and the shop did not answer. That is
+   *      the core backend.
+   *    * `sent` did not move — the browser never asked. That is this app, and
+   *      `getCart` (`utils/functions.tsx`) has a real way of doing it: it waits
+   *      for a user id in the store and returns `{ cart: [] }` without calling
+   *      anything when none arrives. A run whose client never loaded the
+   *      account therefore looks exactly like a dead cart backend. */
+  sent: (which: CartMoneyTarget) => number;
   /** The most recent one, or `null` when none has come. */
   last: (which: CartMoneyTarget) => CartMoneyAnswer | null;
   /** The most recent one in words. Safe in a message: it carries the status and
@@ -853,6 +908,23 @@ export const watchCartMoney = (page: Page): CartMoneyWatch => {
     overview: null,
   };
   const counts: Record<CartMoneyTarget, number> = { shipping: 0, overview: 0 };
+  const requests: Record<CartMoneyTarget, number> = { shipping: 0, overview: 0 };
+
+  /** Which of the two calls a `/api/proxy` hop is carrying, or `null`. */
+  const targetOf = (
+    request: import("@playwright/test").Request,
+  ): CartMoneyTarget | null => {
+    if (!request.url().includes("/api/proxy")) return null;
+    const target = request.headers()["x-proxy-url"] ?? "";
+    if (target.includes("/cart/cart_shipping")) return "shipping";
+    if (target.includes("/cart/cart_overview")) return "overview";
+    return null;
+  };
+
+  const onRequest = (request: import("@playwright/test").Request): void => {
+    const which = targetOf(request);
+    if (which !== null) requests[which] += 1;
+  };
 
   const numberOrNull = (value: unknown): number | null => {
     const parsed = Number(value);
@@ -861,16 +933,10 @@ export const watchCartMoney = (page: Page): CartMoneyWatch => {
 
   const onResponse = (response: import("@playwright/test").Response): void => {
     const request = response.request();
-    if (!request.url().includes("/api/proxy")) return;
-
-    const target = request.headers()["x-proxy-url"] ?? "";
-    const which: CartMoneyTarget | null = target.includes("/cart/cart_shipping")
-      ? "shipping"
-      : target.includes("/cart/cart_overview")
-        ? "overview"
-        : null;
+    const which = targetOf(request);
     if (which === null) return;
 
+    const target = request.headers()["x-proxy-url"] ?? "";
     const status = response.status();
 
     void response
@@ -917,10 +983,12 @@ export const watchCartMoney = (page: Page): CartMoneyWatch => {
       });
   };
 
+  page.on("request", onRequest);
   page.on("response", onResponse);
 
   return {
     seen: (which) => counts[which],
+    sent: (which) => requests[which],
     last: (which) => answers[which],
     said: (which) =>
       answers[which]?.said ??
@@ -938,7 +1006,10 @@ export const watchCartMoney = (page: Page): CartMoneyWatch => {
       const answer = answers[which];
       return answer !== null && answer.seq > options.after ? answer : null;
     },
-    stop: () => page.off("response", onResponse),
+    stop: () => {
+      page.off("request", onRequest);
+      page.off("response", onResponse);
+    },
   };
 };
 
@@ -1291,16 +1362,58 @@ export const chooseAddressNamed = async (
   }
 };
 
-/** Which field the address form is complaining about.
+/** Start recording which field the address form shakes.
  *
  *  **The form refuses in silence, but it does point at the problem.**
- *  `validate()` (`components/Cart/AddAddressForm.tsx:619-639`) adds the class
- *  `shake-anim` to the first field that is not filled, and takes it off again
- *  after 1300 ms. So this looks straight after the press, and names the field
- *  by the marker class the app itself chose.
+ *  `validate()` (`components/Cart/AddAddressForm.tsx`) adds the class
+ *  `shake-anim` to the first field that is not filled — and **takes it off
+ *  again after 1300 ms**.
  *
- *  Without this a refused Save is indistinguishable from a backend that never
- *  answered, and the failure would blame the shop for the form's own rule. */
+ *  That 1300 ms is why this exists. The version before it went looking for the
+ *  class *after* waiting up to 45 seconds for the form to close, by which time
+ *  the class had been gone for more than forty of them. So it never once found
+ *  a shake, always fell through to reading the fields, and always ended on the
+ *  same sentence about the address list — for a form that had said plainly
+ *  which field it wanted. The reading was not wrong; it was taken far too late.
+ *
+ *  A watcher in the page instead of polling from the test: one call to install,
+ *  one to read, and nothing can slip between two polls. It is installed
+ *  **before** the press. */
+const recordFieldShakes = async (page: Page): Promise<void> => {
+  await page
+    .evaluate(() => {
+      const holder = window as unknown as { __trydosShakes?: string[] };
+      if (holder.__trydosShakes) return;
+      holder.__trydosShakes = [];
+
+      new MutationObserver((records) => {
+        for (const record of records) {
+          const element = record.target as HTMLElement;
+          if (!element.classList?.contains("shake-anim")) continue;
+          for (const name of Array.from(element.classList)) {
+            // The app's own marker classes all end this way — `title-border`,
+            // `phone-border`, and so on. Taking the name the app chose means
+            // this never needs a list of its own to fall out of step.
+            if (name.endsWith("-border")) holder.__trydosShakes!.push(name);
+          }
+        }
+      }).observe(document.body, {
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["class"],
+      });
+    })
+    .catch(() => undefined);
+};
+
+/** Every field the form shook since the watcher was installed. */
+const fieldShakes = async (page: Page): Promise<string[]> =>
+  await page
+    .evaluate(
+      () => (window as unknown as { __trydosShakes?: string[] }).__trydosShakes ?? [],
+    )
+    .catch(() => []);
+
 const readInput = async (page: Page, marker: string): Promise<string> =>
   (
     (await page
@@ -1309,6 +1422,49 @@ const readInput = async (page: Page, marker: string): Promise<string> =>
       .inputValue()
       .catch(() => "")) ?? ""
   ).trim();
+
+/** Is this the **edit** form or a blank **add** form?
+ *
+ *  The one control that answers it is the save button's own label. The form
+ *  draws `Edit & Save` when the app is holding an address and `Add & Save` when
+ *  it is not (`components/Cart/AddAddressForm.tsx`, the `addressDetails?.id`
+ *  branch) — so the label *is* the reading of `addressDetails.id`, which is not
+ *  reachable from a test any other way.
+ *
+ *  That distinction is the whole difference between two findings that look the
+ *  same on screen. An edit form standing empty means the address the app holds
+ *  arrived without its fields. An **add** form standing empty means the edit
+ *  control set nothing, the form was never opened on that address at all, and
+ *  reading the address list would have told you nothing.
+ *
+ *  The label is read as text, which is the one place in this suite that is
+ *  allowed: it goes into a failure message as evidence, and nothing is located
+ *  by it. */
+const whichFormThisIs = async (page: Page): Promise<string> => {
+  const label = (
+    (await page
+      .getByTestId("AddSaveButton")
+      .first()
+      .textContent()
+      .catch(() => "")) ?? ""
+  ).trim();
+
+  if (label === "") {
+    return (
+      "and its save button drew no label at all, so the form is not the one " +
+      "AddAddressForm draws — look at what the edit control opened"
+    );
+  }
+
+  return (
+    `Its save button reads "${label}". The form draws "Edit & Save" only while ` +
+    `the app is holding an address to edit and "Add & Save" when it is not, so ` +
+    `that word says whether the edit control handed the address over ` +
+    `(startUpdateAddress, store/Cart/reducer.ts) or opened a blank form. A ` +
+    `blank form is this app; a filled-in form that lost its fields is the ` +
+    `address list read`
+  );
+};
 
 const whyTheFormRefused = async (page: Page): Promise<string> => {
   const fields: Record<string, string> = {
@@ -1320,15 +1476,21 @@ const whyTheFormRefused = async (page: Page): Promise<string> => {
     "phone-border": "the contact phone",
   };
 
-  const deadline = Date.now() + 3_000;
-  while (Date.now() < deadline) {
-    for (const [marker, what] of Object.entries(fields)) {
-      const shaking = page.locator(`.${marker}.shake-anim`);
-      if ((await shaking.count()) > 0) {
-        return `the form refused the save and pointed at ${what}`;
-      }
-    }
-    await page.waitForTimeout(100).catch(() => undefined);
+  // What the form shook while the save was being waited for. Recorded as it
+  // happened by `recordFieldShakes`, because the class is gone 1300 ms later
+  // and this runs long after that.
+  const shaken = await fieldShakes(page);
+  const named = shaken
+    .map((marker) => fields[marker])
+    .filter((what): what is string => Boolean(what));
+
+  if (named.length > 0) {
+    return (
+      `the form refused the save itself and pointed at ${named.join(", then ")}. ` +
+      `No backend was asked. That is the form's own rule (isValid, ` +
+      `components/Cart/AddAddressForm.tsx), so the finding is whatever left ` +
+      `that field empty`
+    );
   }
 
   // Nothing shook. Read the fields the form insists on and say which of them
@@ -1377,9 +1539,7 @@ const whyTheFormRefused = async (page: Page): Promise<string> => {
   if (empty.length > 0) {
     return (
       `the form refused the save and is holding these empty: ${empty.join(", ")}. ` +
-      "The edit form opens on the address the app already holds, so fields this " +
-      "empty mean that address never arrived — look at whether the address list " +
-      "read answered, not at the form"
+      `${await whichFormThisIs(page)}`
     );
   }
 
@@ -1420,6 +1580,26 @@ export const editAddressTitleFromSheet = async (
   page: Page,
   options: { current: string; next: string },
 ): Promise<{ saved: boolean; refusal: string }> => {
+  // Anything the page itself threw while the form was open.
+  //
+  // **A form that loses every field it was holding is not a backend story**,
+  // and this is the reading that says so. `AddAddressForm` reaches into
+  // `addressDetails.location.latitude` without a guard when it draws the map,
+  // and the map is drawn only once `countries` has arrived — which is after the
+  // form is already on screen. An address the app opened for editing that
+  // carries no `location` therefore throws *after* the form has been filled in,
+  // not when it opened. From outside, that looks exactly like a save the shop
+  // refused.
+  //
+  // Names the error and nothing else: a stack from a minified bundle is noise,
+  // and the page's own text can carry the shopper's details.
+  const pageErrors: string[] = [];
+  const onPageError = (error: Error): void => {
+    const first = String(error.message ?? error).split("\n")[0];
+    if (!pageErrors.includes(first)) pageErrors.push(first);
+  };
+  page.on("pageerror", onPageError);
+
   const row = checkout.addressSheetRow(page, options.current).first();
 
   const found = await row
@@ -1427,6 +1607,7 @@ export const editAddressTitleFromSheet = async (
     .then(() => true)
     .catch(() => false);
   if (!found) {
+    page.off("pageerror", onPageError);
     return {
       saved: false,
       refusal: "the address sheet holds no row with that title",
@@ -1441,6 +1622,7 @@ export const editAddressTitleFromSheet = async (
     .then(() => true)
     .catch(() => false);
   if (!opened) {
+    page.off("pageerror", onPageError);
     return {
       saved: false,
       refusal: "pressing the edit control never opened the address form",
@@ -1480,16 +1662,90 @@ export const editAddressTitleFromSheet = async (
     await field.fill(value).catch(() => undefined);
   }
 
-  await page.getByTestId("AddSaveButton").click();
+  // What the save itself did, watched from before the press.
+  //
+  // **This is the reading that says whose fault a stuck form is**, and without
+  // it the two cases are indistinguishable from outside:
+  //
+  //   * `/customer/address/update` never sent — the form refused the save on
+  //     its own, before any backend was involved. `isValid()` is grey and the
+  //     press does nothing at all (`AddAddressForm.tsx`). Then the empty-field
+  //     reading below is the finding.
+  //   * sent and answered — the save happened. A form still standing after that
+  //     is this helper's own "did it close" check being wrong, not a refusal,
+  //     and reading the fields at that point describes a form the app has
+  //     already moved on from.
 
-  // The form closes itself from the update's own callback, so this waits for
-  // the app's answer rather than for a moment that looked long enough.
-  const saved = await form
-    .waitFor({ state: "hidden", timeout: CART_ANSWER_MS })
-    .then(() => true)
-    .catch(() => false);
+  let updateSaid = "the core backend was never asked to store the change";
+  let updateStatus: number | null = null;
+  const onUpdate = (response: import("@playwright/test").Response): void => {
+    const target = response.request().headers()["x-proxy-url"] ?? "";
+    if (!response.request().url().includes("/api/proxy")) return;
+    if (!target.includes("/customer/address/update")) return;
+    const status = response.status();
+    updateStatus = status;
+    void response
+      .text()
+      .then((body) => {
+        updateSaid = `${target} answered ${status}: ${body.slice(0, 200)}`;
+      })
+      .catch(() => {
+        updateSaid = `${target} answered ${status} and its body could not be read`;
+      });
+  };
+  page.on("response", onUpdate);
 
-  return { saved, refusal: saved ? "" : await whyTheFormRefused(page) };
+  try {
+    // Installed before the press: the form's own shake lasts 1300 ms and the
+    // wait below can take 45 seconds.
+    await recordFieldShakes(page);
+    await page.getByTestId("AddSaveButton").click();
+
+    // **The save is judged by what the core backend answered, not by the form
+    // sliding away.**
+    //
+    // It used to be judged by the form going hidden, and that reported a
+    // perfectly good save as a failure: on 2026-09-19 the run recorded
+    // `/customer/address/update answered 200: "Successfully updated!"` while
+    // this helper was still reporting "the edit form did not close after Save".
+    // The change was stored; only the screen had not caught up. Every check
+    // after this one reads the stored title, so the answer is the thing that
+    // matters and the form closing never was.
+    //
+    // The form is still waited on, because it closing is the quickest way to
+    // know the app has moved on — but whichever of the two arrives first ends
+    // the wait.
+    const deadline = Date.now() + CART_ANSWER_MS;
+    let saved = false;
+
+    while (Date.now() < deadline) {
+      if (updateStatus !== null && updateStatus < 400) {
+        saved = true;
+        break;
+      }
+      if (await form.isHidden().catch(() => false)) {
+        saved = true;
+        break;
+      }
+      await page.waitForTimeout(250).catch(() => undefined);
+    }
+
+    const threw =
+      pageErrors.length === 0
+        ? "the page threw nothing while the form was open"
+        : `the page threw while the form was open: ${pageErrors.join(" | ")}`;
+
+    return {
+      saved,
+      refusal: saved
+        ? ""
+        : `${await whyTheFormRefused(page)}. The save call: ${updateSaid}. ` +
+          `And ${threw}`,
+    };
+  } finally {
+    page.off("response", onUpdate);
+    page.off("pageerror", onPageError);
+  }
 };
 
 /** Go back from the checkout to the bag.
@@ -1566,6 +1822,26 @@ export const bagLineName = async (
   return ((await name.textContent()) ?? "").trim();
 };
 
+/** Can this line be raised at all, or is it already at the most the shop
+ *  allows?
+ *
+ *  Asked **before** pressing, by a case that needs a line it can raise. The row
+ *  keeps drawing the plus control either way — deliberately, so a shopper who
+ *  presses it is told why — and states the answer in `aria-disabled`
+ *  (`components/Cart/index.tsx`). So there is nothing to infer: the app says it.
+ *
+ *  The cap is the lower of the seller's per-order limit and the stock left, both
+ *  sent by the core backend for this row, so the answer belongs to the product
+ *  the case happened to pick and not to the app. */
+export const lineCanHoldMore = async (
+  page: Page,
+  name: string,
+): Promise<boolean> => {
+  const plus = cart.plus(cart.lineNamed(page, name).first());
+  if ((await plus.count()) === 0) return false;
+  return (await plus.getAttribute("aria-disabled").catch(() => null)) !== "true";
+};
+
 /** Ask for one more, or one fewer, of a named line.
  *
  *  **The quantity on screen is optimistic.** Both handlers call `setInputValue`
@@ -1609,6 +1885,38 @@ export const changeLineQuantity = async (
     };
   }
 
+  // **A plus that is on screen is not a plus that can be pressed.** The row
+  // keeps drawing it when the line is already at its cap, on purpose — "a
+  // control that is removed can never be pressed, so it can never say why"
+  // (`components/Cart/index.tsx`). Pressing it then shows "Max Allowed Quantity
+  // Reached" and sends nothing at all.
+  //
+  // Read rather than assumed, because the cap is the lower of two numbers the
+  // backend sent for this row — `max_allowed_qty` and `available_quantity`
+  // (`quantityCap`, same file) — so it is a property of whichever product the
+  // case happened to put in the bag, not of the app. The row states it in
+  // `aria-disabled`, and taking the app's own word for it is what keeps this
+  // from guessing.
+  //
+  // Reported as **not pressed**, never as a failure: "this product cannot hold
+  // two" is a fact about the catalogue, and the caller is the one that knows
+  // whether its case can carry on with another product.
+  if (
+    options.direction === "plus" &&
+    (await control.getAttribute("aria-disabled").catch(() => null)) === "true"
+  ) {
+    return {
+      pressed: false,
+      quantity: Number.isNaN(before) ? null : before,
+      said:
+        `the line "${options.name}" is already at the most the shop allows ` +
+        `for it at quantity ${before}, so its plus control is drawn but does ` +
+        `nothing. The cap is the lower of the seller's per-order limit and the ` +
+        `stock left, both sent by the core backend for this row — so this is ` +
+        `the product, not the bag and not the app`,
+    };
+  }
+
   // What the cart backend said about the change itself, kept for the message.
   //
   // `/cart/cart_shipping` only says what the bag holds afterwards; it cannot say
@@ -1635,6 +1943,7 @@ export const changeLineQuantity = async (
   const money = watchCartMoney(page);
   try {
     const seenBefore = money.seen("shipping");
+    const sentBefore = money.sent("shipping");
     await control.click();
 
     const answer = await money.waitForAnswer("shipping", {
@@ -1643,12 +1952,24 @@ export const changeLineQuantity = async (
     });
 
     if (answer === null) {
+      // Two different faults end here and they belong to two different teams,
+      // so the message has to say which one it is rather than naming the cart
+      // backend for both. The request counter is what tells them apart — see
+      // `CartMoneyWatch.sent`.
+      const asked = money.sent("shipping") > sentBefore;
       return {
         pressed: true,
         quantity: null,
-        said:
-          `pressing ${options.direction} on "${options.name}" never brought the ` +
-          `bag back — the core backend did not answer /cart/cart_shipping`,
+        said: asked
+          ? `pressing ${options.direction} on "${options.name}" sent ` +
+            `/cart/cart_shipping and the core backend never answered it. ` +
+            `The change call said: ${updateSaid}`
+          : `pressing ${options.direction} on "${options.name}" never sent ` +
+            `/cart/cart_shipping at all, so no backend was asked. The app ` +
+            `re-reads the bag through getCart (utils/functions.tsx), which ` +
+            `returns an empty bag without calling anything while the store ` +
+            `holds no user id — so this is the client not having loaded the ` +
+            `account, not the cart backend. The change call said: ${updateSaid}`,
       };
     }
 

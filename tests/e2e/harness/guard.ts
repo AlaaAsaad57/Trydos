@@ -53,6 +53,21 @@ export const ALLOWED_HOSTS: readonly string[] = [
   // when a production environment appears — the guard compares hostnames only,
   // so it could not tell a twin apart from this one.
   "media_server.ramaaz.dev",
+  // The same media store read from the other side. Uploads go to the host above
+  // and pictures are **read back** from this one, so a machine can quite
+  // correctly have `NEXT_PUBLIC_MEDIA_SERVER_BASE_URL` on one and
+  // `NEXT_PUBLIC_BASE_MEDIA_URL` on the other — and until this line existed,
+  // that machine could not run the suite at all. The guard stopped on
+  // "media.ramaaz.dev is not a known staging host" before it built anything.
+  //
+  // Listed after checking, not on the strength of the name: `next.config.ts`
+  // carries it in `images.domains` beside the upload host, the CSP allows it
+  // under `img-src` (`docs/security/csp-decision.md`), and
+  // `docs/architecture-and-deployment.md` names it as the media host. It has no
+  // `_develop` twin for the same reason the upload host has none — there is no
+  // production environment yet — so it goes on the same re-check list as the
+  // line above on the day one appears.
+  "media.ramaaz.dev",
 ];
 
 export type TargetReport = {
