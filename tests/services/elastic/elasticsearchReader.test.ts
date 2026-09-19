@@ -12,12 +12,12 @@
 // page's shop row and the shops listing, and it is the one place a QA **shop**
 // would appear as itself rather than through one of its products.
 //
-// **The filter here is unconditional — there is no QA-mode switch.** That is
-// deliberate and it is worth knowing before reading the cases: no test needs to
-// see the QA shop in a boutique list. The seed reads its shop back through the
-// seller dashboard, and the sync poll asks the product search, which does have
-// a switch. So there is no case here for "QA mode shows it", because there is
-// no such behaviour to test.
+// **The filter here has a QA-mode switch**, like the product search. The QA
+// boutique has to be visible to a request that proved it is in QA mode, and
+// invisible to everybody else. It was unconditional at first, which hid the
+// shop from the tests that own it as well as from shoppers — so both
+// directions are checked below, and a one-sided check would pass for a filter
+// that simply never ran.
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -151,6 +151,31 @@ describe("boutique rows hide the QA shop", () => {
       qaClausesIn(bool?.must).length,
       "the QA clause landed in the query's must half, which shows ONLY QA shops to every customer",
     ).toBe(0);
+  });
+
+  it("shows QA shops to a request that proved it is in QA mode", async () => {
+    const reader = new ElasticsearchReader();
+
+    await reader.getBoutiques({ language: "en", limit: 10, qaView: true });
+
+    const sent = search.mock.calls[0]?.[0];
+    expect(
+      qaClausesIn(sent).length,
+      "QA mode was on and the boutique query still excluded QA shops, so the suite can never see the shop it created",
+    ).toBe(0);
+  });
+
+  it("keeps the clause when the caller says nothing", async () => {
+    // The default is the shopper-facing answer. Every caller that forgets the
+    // switch must stay filtered, which is what makes forgetting it safe.
+    const reader = new ElasticsearchReader();
+
+    await reader.getBoutiques({ language: "en", limit: 10 });
+
+    expect(
+      qaClausesIn(search.mock.calls[0]?.[0]).length,
+      "a boutique query with no qaView argument was unfiltered, so the default is the wrong way round",
+    ).toBeGreaterThan(0);
   });
 
   it("excludes QA shops from a single boutique's own page data", async () => {

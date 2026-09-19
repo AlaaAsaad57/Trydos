@@ -6,9 +6,21 @@
 
 ## Proved, and what it costs
 
-**16 of 16 green against real staging** — the seed plus all fifteen QA cases.
-The pair that matters is `QA-01` and `QA-02`: the same search, with the QA
-header and without. One finds the product, the other does not.
+**17 of 17 green against real staging** — the seed plus all sixteen QA cases.
+Two pairs carry the whole claim, each the same request asked twice:
+
+* `QA-01` / `QA-02` — the same **search**, with the QA header and without.
+* `QA-02b` — the same **boutiques** route, with and without, and a third check
+  that the two answers are not byte-identical. Both halves would pass against a
+  route that returned nothing useful.
+
+**The boutique is visible in QA mode and absent for a customer.** It was hidden
+unconditionally at first, which hid it from the tests that own it as well.
+One place cannot follow that rule: `serverRequests/home.tsx` is imported by
+`serverRequests/cached/home.ts`, so a header read there lands in a `use cache`
+graph — a build error. A cached row is one answer shared by every visitor and
+could not vary per request anyway, so the home boutique row stays filtered for
+everybody, which is the safe direction.
 
 ### The query cost, measured
 
@@ -37,7 +49,7 @@ The catalogue base query is written out **six** times. Four carry the clause:
 | Query | Filtered |
 |---|---|
 | `helpers.ts buildBaseConditions` — search, listing, recommended | yes, with a QA-mode switch |
-| `ElasticsearchReader.buildBaseConditions` — boutiques | yes, unconditional |
+| `ElasticsearchReader.buildBaseConditions` — boutiques | yes, with a QA-mode switch |
 | `sitemap.service.ts buildProductBaseQuery` | yes, unconditional |
 | `sitemap.service.ts buildSitemapBaseConditions` | yes, unconditional |
 | `ElasticsearchReader.getRules` | **no** |

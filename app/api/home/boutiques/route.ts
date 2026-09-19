@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ElasticsearchReader } from "@/services/elastic/elasticsearch-reader.service";
+import { qaMode } from "utils/server/qaMode";
 import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GET(request: NextRequest) {
@@ -52,6 +53,9 @@ export async function GET(request: NextRequest) {
       country,
       language,
       limit,
+      // What the request proved, never a literal. A literal `true` here would
+      // put the QA shop in front of every customer who opened the home page.
+      qaView: await qaMode(),
       category: category_slug as any,
       searchAfter: offset ? JSON.parse(offset.toString()) : null,
     });

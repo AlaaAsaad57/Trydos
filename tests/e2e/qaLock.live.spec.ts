@@ -146,6 +146,80 @@ test(`QA-02 without QA mode the same search finds nothing ${PROD_SAFE_TAG}`, asy
 });
 
 // ---------------------------------------------------------------------------
+// QA-02b — the boutique itself, both ways round
+// ---------------------------------------------------------------------------
+
+test(`QA-02b the QA boutique is visible in QA mode and absent without it ${PROD_SAFE_TAG}`, async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  readQaSeedState();
+
+  // The boutiques the app serves its own home row from. Uncached and
+  // per-request, which is why QA mode can apply to it at all -- the cached
+  // home reader cannot vary by header and stays filtered for everybody.
+  const BOUTIQUES = "/api/home/boutiques?country=sy&language=en&limit=50";
+
+  const read = async (headers: Record<string, string>) =>
+    await page.evaluate(
+      async ({ url, sent }) => {
+        const response = await fetch(url, { headers: sent });
+        return { status: response.status, body: await response.text() };
+      },
+      { url: BOUTIQUES, sent: headers },
+    );
+
+  await gotoHome(page);
+
+  // ---- as a customer -----------------------------------------------------
+  const asCustomer = await read({});
+
+  expect(
+    asCustomer.status,
+    `the boutiques route did not answer (${asCustomer.status}), so neither half of this case means anything`,
+  ).toBe(200);
+
+  // Content first. "The QA shop is absent" from an empty answer is not a
+  // finding about the filter.
+  expect(
+    asCustomer.body.length,
+    "the boutiques route answered with an empty body, so the absence checked below proves nothing",
+  ).toBeGreaterThan(100);
+
+  // **The mark, not the dashboard's slug.**
+  //
+  // The seller dashboard calls this shop `Trydos-QA-1-57` (its own id) and the
+  // storefront calls it `Trydos-QA-1-227` and friends (the translation rows'
+  // ids). Looking for the dashboard's string in a storefront answer finds
+  // nothing -- which made the customer half of this case pass for the wrong
+  // reason, and the QA half fail for it.
+  expect(
+    asCustomer.body.toLowerCase().includes(QA_PREFIX),
+    "a customer's own request to the boutiques route returned a shop carrying the QA mark. The shop is on the home page for real people",
+  ).toBe(false);
+
+  // ---- in QA mode --------------------------------------------------------
+  const asQa = await read({ "x-qa-view": envValue("QA_VIEW_SECRET") });
+
+  expect(
+    asQa.status,
+    `the boutiques route refused the QA-mode request (${asQa.status})`,
+  ).toBe(200);
+
+  expect(
+    asQa.body.toLowerCase().includes(QA_PREFIX),
+    "QA mode did not return the QA shop from the boutiques route, so the suite cannot see the shop it created. Either QA_VIEW_SECRET does not match the one the app holds, or the boutique reader is filtering unconditionally again",
+  ).toBe(true);
+
+  // The two answers must actually differ. Both halves above would pass against
+  // a route that returned nothing useful at all.
+  expect(
+    asQa.body === asCustomer.body,
+    "QA mode and an ordinary request got byte-identical answers from the boutiques route, so the switch is not doing anything -- one of the two checks above is passing by accident",
+  ).toBe(false);
+});
+
+// ---------------------------------------------------------------------------
 // QA-03 to QA-06 — what the seed built
 // ---------------------------------------------------------------------------
 
