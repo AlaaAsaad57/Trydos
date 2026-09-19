@@ -4,6 +4,50 @@
 `_specs/e2e-production-safety-lock/`, and the branch is
 `ticket/e2e-production-safety-lock`.
 
+## Proved, and what it costs
+
+**16 of 16 green against real staging** — the seed plus all fifteen QA cases.
+The pair that matters is `QA-01` and `QA-02`: the same search, with the QA
+header and without. One finds the product, the other does not.
+
+### The query cost, measured
+
+Measured on 2026-09-20 against the staging index, 40 paired queries per shape,
+alternating with and without the clause, after warming both:
+
+| Query | Without | With | Difference |
+|---|---|---|---|
+| listing | 3.40 ms | 4.13 ms | **+0.73 ms** (+21 %) |
+| suggestion | 3.67 ms | 3.20 ms | **none measurable** (−13 %, noise) |
+
+Read the absolute numbers, not the percentages. The plan set a 20 % threshold
+before anyone knew the base was about 3 ms, so "+21 %" there is under a
+millisecond. The suggestion query came out *faster* with the clause, which is
+simply what noise looks like at this scale.
+
+**The honest limit of that measurement:** the staging index holds about 121
+products matching the base query. A nested `must_not` is evaluated per document,
+so this is a staging-scale figure, not a production-scale one. Re-measure on an
+index of production size before assuming it stays under a millisecond.
+
+### What is filtered, and what is not
+
+The catalogue base query is written out **six** times. Four carry the clause:
+
+| Query | Filtered |
+|---|---|
+| `helpers.ts buildBaseConditions` — search, listing, recommended | yes, with a QA-mode switch |
+| `ElasticsearchReader.buildBaseConditions` — boutiques | yes, unconditional |
+| `sitemap.service.ts buildProductBaseQuery` | yes, unconditional |
+| `sitemap.service.ts buildSitemapBaseConditions` | yes, unconditional |
+| `ElasticsearchReader.getRules` | **no** |
+| `serverRequests/meta/home.ts getRules` | **no** |
+
+The two that are not filtered were checked field by field: both select **only**
+`custom_categories.*` — a category's id, name, slug, position and photos. No
+product, no boutique, no shop slug. So a QA product can make a category *exist*
+in a list; it cannot put the shop, the product or its name in front of anybody.
+
 ## What changed between this design and what was built
 
 Read this list before the rest of the document. The design below is kept as the

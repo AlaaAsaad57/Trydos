@@ -260,6 +260,54 @@ by name, and **a row whose identity cannot be read is refused rather than
 approved** — the rows beside the QA one belong to real sellers waiting for a
 real decision.
 
+## Writing a seller-dashboard test
+
+**Use `harness/sellerDashboard.ts`. Do not write your own proxy calls.**
+
+The QA seed was the first thing to talk to the dashboard, and everything it
+learned lives in that module. The tests that add, edit and activate through the
+dashboard tabs should build on it.
+
+| Helper | What it is for |
+|---|---|
+| `sellerCall` | one JSON call, with the `401 → refresh → retry` the app itself performs |
+| `sellerCallMultipart` | the same for a `FormData` body — the product create and update endpoints take nothing else |
+| `uploadShopImage` | ticket + media-store upload, returning the **bare filename** the backend wants |
+| `rowsOf` | the list inside an answer, whatever key it arrived under |
+| `SELLER_SERVICE` | the proxy's wire tokens |
+
+Each one exists because getting it wrong cost a run:
+
+* **A `/shop/*` 401 is not an expired session.** The app exchanges the refresh
+  token and retries, and `sellerCall` does the same. Sending the proxy's *wire
+  token* where `/api/auth/refresh` wants the *service name* makes every exchange
+  answer `{ eligible: false }`, and the 401 then looks unrecoverable.
+* **The product endpoints are multipart.** With a JSON body no field is read and
+  the answer is `Product name is required` whatever you sent.
+* **On update, key presence is load-bearing.** The DTO reads `barcode`,
+  `luck_price` and their neighbours without a fallback, so an omitted key is not
+  "unchanged" — it is `422 Undefined array key "barcode"`.
+* **The backend wants a bare filename**, never the stored URL and never the
+  folder. Handing back the URL answers `must not be greater than 191
+  characters`; sending the folder doubles the path.
+* **Answers do not agree on a key.** `/shop/boutiques` returns
+  `{ boutiques: [...] }`, others `{ data: [...] }`, some a bare array, and
+  `/shop/uploads/presigned-url` is flat with no wrapper at all.
+
+Three more rules that are about the data, not the transport:
+
+* **`countries_iso` is the RESTRICTED list**, not "available in". Putting the
+  shopping country there hides the row from every search in that country.
+* **A boutique needs all four languages** before it can be activated, each with
+  a name, description, bio, icon and at least one banner.
+* **`request_status` is the admin's decision; `status` is the seller's own
+  switch.** They are different fields and confusing them sends a test to the
+  admin screen for a shop that was already approved.
+
+**Everything a seller-dashboard test writes must belong to the QA shop.** Bind
+every write to a slug you re-read from the backend — a numeric id carries no
+mark, so an id alone can never prove the row is yours.
+
 ## What is here now, and what is not
 
 Built: the harness, preflight, the server, both projects, the action and

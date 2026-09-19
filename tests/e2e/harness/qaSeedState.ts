@@ -17,8 +17,11 @@ export const QA_SEED_STATE_PATH = "tests/e2e/.auth/qa-seed.json";
  *  header and never a body. */
 export const CALL_RECORD_PATH = "tests/e2e/.auth/qa-seed-calls.json";
 
-/** One write the seed made. */
-export type CallRecord = { method: string; url: string; note?: string };
+/** One write the seed made.
+ *
+ *  Declared once, in `sellerDashboard.ts`, and re-exported here so a spec can
+ *  read the record without importing the module that makes the calls. */
+export type { CallRecord } from "./sellerDashboard";
 
 export type QaSeedState = {
   ranAt: string;

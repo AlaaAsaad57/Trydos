@@ -56,6 +56,14 @@ import { expect, test } from "@playwright/test";
 import { attemptAuth, signedInSession } from "../actions/auth";
 import { gotoAbout, gotoHome } from "../actions/nav";
 import { recordSignInOutcome } from "./session";
+import {
+  rowsOf,
+  SELLER_SERVICE,
+  sellerCall,
+  sellerCallMultipart,
+  uploadShopImage,
+  type CallRecord,
+} from "./sellerDashboard";
 import { approveQaBoutique, approveQaSeller } from "./adminApprove";
 import {
   envValue,
@@ -78,7 +86,6 @@ import {
 import {
   CALL_RECORD_PATH,
   QA_SEED_STATE_PATH,
-  type CallRecord,
   type QaSeedState,
 } from "./qaSeedState";
 import {
@@ -183,25 +190,7 @@ const SEED_DEADLINE_MS = 1500 * 1000;
 const SYNC_POLL_MS = 10_000;
 const SYNC_CEILING_MS = 600_000;
 
-/** The opaque wire token for the seller-dashboard service.
- *
- *  From `utils/serviceTokens.ts`. Written out rather than imported because this
- *  file runs in Node and that module is part of the app's own graph. The unit
- *  suite is what keeps the two in step — a token that drifted would make every
- *  seed call come back "unknown service", which is a loud failure, not a quiet
- *  one. */
-const SERVICE = {
-  market: "vv7qsd",
-  dashboard: "k2muhz",
-} as const;
 
-/** The other direction. `/api/auth/refresh` allow-lists the service NAME and
- *  refuses anything else, so the wire token has to be mapped back before the
- *  exchange is asked for. */
-const SERVICE_NAMES: Record<string, string> = {
-  [SERVICE.market]: "market",
-  [SERVICE.dashboard]: "market-dashboard",
-};
 
 /** Everything this run did, for the case that asserts the seed touched only its
  *  own data. The paths and the shape live in `qaSeedState.ts`, because
@@ -209,159 +198,7 @@ const SERVICE_NAMES: Record<string, string> = {
  *  IS one. */
 const calls: CallRecord[] = [];
 
-/** Call the app's own proxy from inside the page.
- *
- *  **The only write path in this file.** A Node-side seed cannot import
- *  `services/sellerDashboard` — that module reaches `utils/fetchData`, which
- *  pulls in the store and issues a **relative** `/api/proxy` request that only
- *  means something inside a browser. So the browser makes the call, exactly the
- *  way `actions/wishlist.ts` already does.
- *
- *  **It refreshes once on a 401 and retries, because the app does.** Measured
- *  on 2026-09-19: straight after a real sign-in, `/customer/info` and
- *  `/cart/cart_shipping` answered 200 on core while every `/shop/*` call
- *  answered `401 auth-001`. Nothing was wrong with the session — the app's own
- *  `fetchData` treats a market 401 as "exchange the credential and try again"
- *  (`utils/fetchData.ts`, the 401 handler → `/api/auth/refresh`), and this
- *  helper was the only caller in the repository that did not. Without the
- *  retry the seed reports "the core backend refused the vendor request", which
- *  blames a backend that was about to say yes.
- *
- *  Records the method and the URL. Never the headers — one of them carries the
- *  session — and never the body. */
-const call = async (
-  page: import("@playwright/test").Page,
-  options: {
-    service: string;
-    url: string;
-    method: string;
-    body?: unknown;
-    sellerId?: string;
-    note?: string;
-  },
-): Promise<{ ok: boolean; status: number; data: any; message: string }> => {
-  calls.push({ method: options.method, url: options.url, note: options.note });
 
-  const first = await sendThroughProxy(page, options);
-  if (first.status !== 401) return first;
-
-
-  // **One exchange, one retry — never a second sign-in.**
-  //
-  // A 401 here means the access token is stale, and the refresh token exists
-  // to replace it. The app does exactly this (`utils/fetchData.ts`), and so
-  // does every other caller in the repository.
-  //
-  // The earlier version of this call sent `server: "vv7qsd"` -- the proxy's
-  // opaque WIRE TOKEN -- where `/api/auth/refresh` expects the SERVICE NAME.
-  // The route allow-lists `market | market-dashboard | chat | stories |
-  // comments` and answers `{ eligible: false }` to anything else, so every
-  // exchange was refused before it began. That is why the 401s looked
-  // unrecoverable and why a second sign-in appeared to be the only way out.
-  // It never was.
-  const refreshed = await page.evaluate(
-    async ({ url, server }) => {
-      try {
-        const response = await fetch("/api/auth/refresh", {
-          method: "POST",
-          credentials: "include",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ url, server }),
-        });
-        const body = await response.json().catch(() => null);
-        return Boolean(body?.refreshed);
-      } catch {
-        return false;
-      }
-    },
-    // The service NAME, mapped back from the wire token.
-    { url: options.url, server: SERVICE_NAMES[options.service] ?? "market" },
-  );
-
-  if (!refreshed) return first;
-
-  calls.push({
-    method: options.method,
-    url: options.url,
-    note: `${options.note ?? ""} (retried after a credential exchange)`.trim(),
-  });
-
-  return await sendThroughProxy(page, options);
-};
-
-/** The proxy call itself, with no retry. */
-const sendThroughProxy = async (
-  page: import("@playwright/test").Page,
-  options: {
-    service: string;
-    url: string;
-    method: string;
-    body?: unknown;
-    sellerId?: string;
-    note?: string;
-  },
-): Promise<{ ok: boolean; status: number; data: any; message: string }> => {
-  return await page.evaluate(
-    async ({ service, url, method, body, sellerId, country }) => {
-      const headers: Record<string, string> = {
-        "x-proxy-server": service,
-        "x-proxy-url": url,
-        "x-proxy-method": method,
-        "x-country": country,
-        "x-language": "en",
-        // The app sends this on every proxy call. It only decodes the target
-        // URL, but matching the app exactly removes one difference from the
-        // list of things a failure could be.
-        "x-need-decode": "true",
-      };
-      if (sellerId) headers["x-seller-id"] = sellerId;
-      if (body !== undefined) headers["content-type"] = "application/json";
-
-      try {
-        const response = await fetch("/api/proxy", {
-          method: "POST",
-          credentials: "include",
-          headers,
-          body: body === undefined ? undefined : JSON.stringify(body),
-        });
-        const text = await response.text();
-        let parsed: any = null;
-        try {
-          parsed = JSON.parse(text);
-        } catch {
-          parsed = null;
-        }
-        return {
-          ok: response.ok && parsed?.success !== false,
-          status: response.status,
-          // **Falls back to the whole body**, because not every endpoint here
-          // wraps its answer. `/shop/uploads/presigned-url` returns
-          // `{ upload_url, key, expires_in_seconds }` at the top level, and
-          // reading `data` alone gave `null` -- which the seed reported as
-          // "the backend answered without an address to upload to" when the
-          // backend had in fact answered perfectly.
-          data: parsed?.data ?? parsed ?? null,
-          message: String(parsed?.message ?? "").slice(0, 300),
-        };
-      } catch (error) {
-        return {
-          ok: false,
-          status: 0,
-          data: null,
-          message: String((error as Error)?.message ?? "").slice(0, 300),
-        };
-      }
-    },
-    {
-      service: options.service,
-      url: options.url,
-      method: options.method,
-      body: options.body,
-      sellerId: options.sellerId,
-      country: QA_COUNTRY,
-    },
-  );
-};
 
 /** Upload the one document a vendor request must carry.
  *
@@ -384,13 +221,15 @@ const sendThroughProxy = async (
 const uploadQaDocument = async (
   page: import("@playwright/test").Page,
 ): Promise<{ type: string; path: string }> => {
-  const presigned = await call(page, {
-    service: SERVICE.market,
+  const presigned = await sellerCall(page, {
+    service: SELLER_SERVICE.market,
     url: "/shop/uploads/presigned-url",
     method: "POST",
     body: { mime_type: "image/png" },
     note: "ask for a place to put the QA document",
-  });
+                        country: QA_COUNTRY,
+                      record: calls,
+                    });
 
   if (!presigned.ok) {
     refuse(
@@ -450,198 +289,8 @@ const uploadQaDocument = async (
   return { type: "passport", path: String(path) };
 };
 
-/** Put one image on the media store and return the name the backend wants.
- *
- *  The chain, copied from `SellerDashboardService.uploadShopImage`:
- *
- *    POST /api/ticket            { folder, story, count }  -> a ticket
- *    POST <media>/gated/upload   multipart, x-api-key + X-Upload-Ticket
- *                                                          -> { url }
- *
- *  **The backend is then sent the bare filename, not the URL and not the
- *  folder.** It resolves the folder itself, and sending it produced a doubled
- *  `folder/folder/file` path -- the comment beside `ICON_FOLDER` records that
- *  as something already paid for once.
- *
- *  The API key never reaches the call record: `call()` is not used here, and
- *  the entry pushed below names the folder only. `redact()` deliberately does
- *  NOT mask `NEXT_PUBLIC_MEDIA_API_KEY` -- anything `NEXT_PUBLIC_` is in the
- *  browser bundle already -- so it must not be put anywhere by hand. */
-const uploadQaImage = async (
-  page: import("@playwright/test").Page,
-  folder: string,
-): Promise<string> => {
-  // **Read in Node and passed in.** `process.env` does not exist inside a page:
-  // Next inlines `NEXT_PUBLIC_*` into the modules it bundles, and this callback
-  // is none of them. Reading it there throws "process is not defined", which
-  // the catch below would have reported as "the media store refused the
-  // upload" -- a message about a request that was never made.
-  const uploaded = await page.evaluate(async ({ folderName, base, key }) => {
-    const fail = (why: string) => ({ ok: false as const, why, name: "" });
 
-    try {
-      const ticketResponse = await fetch("/api/ticket", {
-        method: "POST",
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ folder: folderName, story: false, count: 1 }),
-      });
-      const ticketBody = await ticketResponse.json().catch(() => null);
-      if (!ticketBody?.success || !ticketBody?.ticket) {
-        return fail(
-          `the app would not issue an upload ticket (${ticketResponse.status})`,
-        );
-      }
 
-      const bytes = Uint8Array.from(
-        atob(
-          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
-        ),
-        (c) => c.charCodeAt(0),
-      );
-      const form = new FormData();
-      form.append(
-        "file",
-        new File([bytes], "trydos-qa.png", { type: "image/png" }),
-      );
-      form.append("folder", folderName);
-
-      const response = await fetch(`${base}/gated/upload`, {
-        method: "POST",
-        headers: { "x-api-key": key, "X-Upload-Ticket": ticketBody.ticket },
-        body: form,
-      });
-      const body = await response.json().catch(() => null);
-      if (!response.ok || !body?.url) {
-        return fail(`the media store refused the upload (${response.status})`);
-      }
-
-      // The bare stored filename -- what the backend expects for `icon` and
-      // for a banner's `file_path`.
-      const name = String(body.url).split("?")[0].split("/").filter(Boolean).pop() ?? "";
-      return { ok: true as const, why: "", name };
-    } catch (error) {
-      return fail(String((error as Error)?.message ?? "").slice(0, 200));
-    }
-  }, {
-    folderName: folder,
-    base: envValue("NEXT_PUBLIC_MEDIA_SERVER_BASE_URL").replace(/\/$/, ""),
-    key: envValue("NEXT_PUBLIC_MEDIA_API_KEY"),
-  });
-
-  if (!uploaded.ok || !uploaded.name) {
-    refuse(
-      "find or create the QA boutique",
-      `${uploaded.why}. The boutique cannot be created without one -- the backend requires an icon, and activation later requires images that have finished syncing`,
-    );
-  }
-
-  calls.push({
-    method: "POST",
-    url: `<media store>/gated/upload (${folder})`,
-    note: "uploaded a QA image",
-  });
-
-  return uploaded.name;
-};
-
-/** The list inside a seller-dashboard answer, whatever it is called.
- *
- *  These endpoints do not agree on a key. `/shop/boutiques` answers
- *  `{ boutiques: [...], meta }`, others answer `{ data: [...] }`, and some
- *  answer a bare array. Reading only `data` found nothing in a response that
- *  was perfectly good, and the seed reported "no shop whose slug carries the QA
- *  mark" about a shop it had just created.
- *
- *  So: a bare array wins, then `data`, then the first array-valued key there
- *  is. `meta` can never be mistaken for it -- it is an object. */
-const rowsOf = (payload: any): any[] => {
-  if (Array.isArray(payload)) return payload;
-  if (!payload || typeof payload !== "object") return [];
-  if (Array.isArray(payload.data)) return payload.data;
-
-  for (const value of Object.values(payload)) {
-    if (Array.isArray(value)) return value as any[];
-  }
-  return [];
-};
-
-/** Send a multipart form through the proxy.
- *
- *  **The product create endpoint takes `FormData`, not JSON**
- *  (`SellerDashboardService.addProduct` -- "same multipart body as update").
- *  Sending JSON gets `422 Product name is required` no matter what the body
- *  says, because none of the fields are read.
- *
- *  `fetchData` lets the browser set the multipart boundary itself and never
- *  sets `content-type` for a `FormData` body; this does the same. The fields
- *  are built in the page because a `FormData` cannot cross the Node/browser
- *  boundary. */
-const callMultipart = async (
-  page: import("@playwright/test").Page,
-  options: {
-    service: string;
-    url: string;
-    sellerId?: string;
-    fields: [string, string][];
-    note?: string;
-  },
-): Promise<{ ok: boolean; status: number; data: any; message: string }> => {
-  calls.push({ method: "POST", url: options.url, note: options.note });
-
-  return await page.evaluate(
-    async ({ service, url, sellerId, fields, country }) => {
-      const form = new FormData();
-      for (const [key, value] of fields) form.append(key, value);
-
-      const headers: Record<string, string> = {
-        "x-proxy-server": service,
-        "x-proxy-url": url,
-        "x-proxy-method": "POST",
-        "x-country": country,
-        "x-language": "en",
-        "x-need-decode": "true",
-      };
-      if (sellerId) headers["x-seller-id"] = sellerId;
-
-      try {
-        const response = await fetch("/api/proxy", {
-          method: "POST",
-          credentials: "include",
-          headers,
-          body: form,
-        });
-        const text = await response.text();
-        let parsed: any = null;
-        try {
-          parsed = JSON.parse(text);
-        } catch {
-          parsed = null;
-        }
-        return {
-          ok: response.ok && parsed?.success !== false,
-          status: response.status,
-          data: parsed?.data ?? parsed ?? null,
-          message: String(parsed?.message ?? "").slice(0, 300),
-        };
-      } catch (error) {
-        return {
-          ok: false,
-          status: 0,
-          data: null,
-          message: String((error as Error)?.message ?? "").slice(0, 300),
-        };
-      }
-    },
-    {
-      service: options.service,
-      url: options.url,
-      sellerId: options.sellerId,
-      fields: options.fields,
-      country: QA_COUNTRY,
-    },
-  );
-};
 
 /** Every language the storefront serves.
  *
@@ -830,12 +479,14 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
       let sellerId = "";
 
       const readSellerId = async (): Promise<string> => {
-        const answer = await call(page, {
-          service: SERVICE.market,
+        const answer = await sellerCall(page, {
+          service: SELLER_SERVICE.market,
           url: "/shop/auth/permissions",
           method: "GET",
           note: "is this account a seller yet",
-        });
+                                 country: QA_COUNTRY,
+                         record: calls,
+                       });
         if (!answer.ok) return "";
         const shops = Array.isArray(answer.data)
           ? answer.data
@@ -865,12 +516,14 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           // answers `422 This phone number is already in use.` -- which reads
           // like a fault and is simply "you already applied". A seed that
           // cannot be run twice is not a seed.
-          const existing = await call(page, {
-            service: SERVICE.market,
+          const existing = await sellerCall(page, {
+            service: SELLER_SERVICE.market,
             url: "/shop/vendor-requests",
             method: "GET",
             note: "has this account already applied to be a seller",
-          });
+                                       country: QA_COUNTRY,
+                             record: calls,
+                           });
 
           const alreadyApplied =
             existing.ok &&
@@ -891,8 +544,8 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           if (!alreadyApplied) {
             const document = await uploadQaDocument(page);
 
-            const requested = await call(page, {
-              service: SERVICE.market,
+            const requested = await sellerCall(page, {
+              service: SELLER_SERVICE.market,
               url: "/shop/vendor-requests",
               method: "POST",
               body: {
@@ -927,7 +580,9 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
                 documents: [document],
               },
               note: "become a seller",
-            });
+                                            country: QA_COUNTRY,
+                                record: calls,
+                              });
 
             // "User already exists" is not a failure here: a run that died after
             // the request but before the approval leaves exactly that.
@@ -971,12 +626,14 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           let lastStatus: unknown = null;
 
           while (Date.now() < deadlineAt) {
-            const seen = await call(page, {
-              service: SERVICE.market,
+            const seen = await sellerCall(page, {
+              service: SELLER_SERVICE.market,
               url: "/shop/vendor-requests",
               method: "GET",
               note: "read the vendor request back after approval",
-            });
+                                       country: QA_COUNTRY,
+                           record: calls,
+                         });
             lastStatus = seen.data?.status ?? null;
 
             sellerId = await readSellerId();
@@ -1016,13 +673,15 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
          *  a real seller's row waiting and, correctly, refused it. */
         requestStatus: number;
       } | null> => {
-        const answer = await call(page, {
-          service: SERVICE.dashboard,
+        const answer = await sellerCall(page, {
+          service: SELLER_SERVICE.dashboard,
           url: "/shop/boutiques",
           method: "GET",
           sellerId,
           note: "find the QA boutique by slug",
-        });
+                                 country: QA_COUNTRY,
+                         record: calls,
+                       });
         if (!answer.ok) return null;
 
         const rows = rowsOf(answer.data);
@@ -1055,11 +714,11 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
         // The backend requires an icon, and the app's own validation requires at
         // least one banner per language -- a partly filled translation would
         // show a shopper blanks.
-        const boutiqueIcon = await uploadQaImage(page, "boutiques/boutiques/icon");
-        const boutiqueBanner = await uploadQaImage(page, "boutiques/boutiques");
+        const boutiqueIcon = await uploadShopImage(page, "boutiques/boutiques/icon", calls);
+        const boutiqueBanner = await uploadShopImage(page, "boutiques/boutiques", calls);
 
-        const created = await call(page, {
-          service: SERVICE.dashboard,
+        const created = await sellerCall(page, {
+          service: SELLER_SERVICE.dashboard,
           url: "/shop/boutiques",
           method: "POST",
           sellerId,
@@ -1086,7 +745,9 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
             ),
           },
           note: "create the QA boutique",
-        });
+                                  country: QA_COUNTRY,
+                          record: calls,
+                        });
 
         if (!created.ok) {
           refuse(
@@ -1111,13 +772,15 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
       let locationId: string | number = "";
 
       await test.step("find or create the QA location", async () => {
-        const list = await call(page, {
-          service: SERVICE.dashboard,
+        const list = await sellerCall(page, {
+          service: SELLER_SERVICE.dashboard,
           url: "/shop/locations",
           method: "GET",
           sellerId,
           note: "find the QA location",
-        });
+                               country: QA_COUNTRY,
+                       record: calls,
+                     });
 
         const rows = rowsOf(list.data);
         const found = rows.find(
@@ -1129,8 +792,8 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           return;
         }
 
-        const created = await call(page, {
-          service: SERVICE.dashboard,
+        const created = await sellerCall(page, {
+          service: SELLER_SERVICE.dashboard,
           url: "/shop/locations",
           method: "POST",
           sellerId,
@@ -1142,7 +805,9 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
             longitude: 36.2765,
           },
           note: "create the QA location",
-        });
+                                  country: QA_COUNTRY,
+                          record: calls,
+                        });
 
         if (!created.ok) {
           refuse(
@@ -1170,13 +835,15 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
         status: number;
         stock: number;
       } | null> => {
-        const answer = await call(page, {
-          service: SERVICE.dashboard,
+        const answer = await sellerCall(page, {
+          service: SELLER_SERVICE.dashboard,
           url: "/shop/products",
           method: "GET",
           sellerId,
           note: "find the QA product",
-        });
+                                 country: QA_COUNTRY,
+                         record: calls,
+                       });
         if (!answer.ok) return null;
 
         const rows = rowsOf(answer.data);
@@ -1212,13 +879,15 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
        *  change. It reads the lookups and uploads the image itself, so either
        *  caller can use it without arranging anything first. */
       const buildQaProductFields = async (): Promise<[string, string][]> => {
-      const lookups = await call(page, {
-        service: SERVICE.dashboard,
+      const lookups = await sellerCall(page, {
+        service: SELLER_SERVICE.dashboard,
         url: "/shop/products/lookups",
         method: "GET",
         sellerId,
         note: "read the product form's own lookups",
-      });
+                              country: QA_COUNTRY,
+                        record: calls,
+                      });
 
       if (!lookups.ok) {
         refuse(
@@ -1254,7 +923,7 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
       // The image the product carries. Activation later requires colour
       // images that have finished syncing, so it is uploaded before create
       // rather than bolted on after.
-      const productImage = await uploadQaImage(page, "product");
+      const productImage = await uploadShopImage(page, "product", calls);
 
       return [
             ["name", QA_PRODUCT_NAME],
@@ -1351,13 +1020,15 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
         // down — approval, an `en` translation, stock, a boutique and synced
         // colour images.
 
-        const created = await callMultipart(page, {
-          service: SERVICE.dashboard,
+        const created = await sellerCallMultipart(page, {
+          service: SELLER_SERVICE.dashboard,
           url: "/shop/products",
           sellerId,
           fields: await buildQaProductFields(),
           note: "create the QA product",
-        });
+                                  country: QA_COUNTRY,
+                          record: calls,
+                        });
 
         if (!created.ok) {
           refuse(
@@ -1402,13 +1073,15 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
       // needing somebody to go and edit a product by hand.
       if (repairExistingProduct) {
         await test.step("put the existing QA product back in shape", async () => {
-          const repaired = await callMultipart(page, {
-            service: SERVICE.dashboard,
+          const repaired = await sellerCallMultipart(page, {
+            service: SELLER_SERVICE.dashboard,
             url: `/shop/products/${productId}/update`,
             sellerId,
             fields: await buildQaProductFields(),
             note: "repair the QA product's own settings",
-          });
+                                       country: QA_COUNTRY,
+                             record: calls,
+                           });
 
           if (!repaired.ok) {
             refuse(
@@ -1465,13 +1138,15 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           // are read first so each language keeps its own id: a row sent
           // without one targets `id = null` and writes a new row rather than
           // the one it meant.
-          const edit = await call(page, {
-            service: SERVICE.dashboard,
+          const edit = await sellerCall(page, {
+            service: SELLER_SERVICE.dashboard,
             url: `/shop/boutiques/${boutiqueId}/edit`,
             method: "GET",
             sellerId,
             note: "read the boutique's existing translations",
-          });
+                                   country: QA_COUNTRY,
+                         record: calls,
+                       });
 
           const existingIds: Record<string, string | number> = {};
           for (const row of rowsOf(edit.data?.boutique ?? edit.data)) {
@@ -1491,11 +1166,11 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           const storedIcon = String(edit.data?.boutique?.icon ?? "");
           const topUpIcon =
             (storedIcon.split("?")[0].split("/").filter(Boolean).pop() ?? "") ||
-            (await uploadQaImage(page, "boutiques/boutiques/icon"));
-          const topUpBanner = await uploadQaImage(page, "boutiques/boutiques");
+            (await uploadShopImage(page, "boutiques/boutiques/icon", calls));
+          const topUpBanner = await uploadShopImage(page, "boutiques/boutiques", calls);
 
-          const filled = await call(page, {
-            service: SERVICE.dashboard,
+          const filled = await sellerCall(page, {
+            service: SELLER_SERVICE.dashboard,
             url: `/shop/boutiques/${boutiqueId}/update`,
             method: "POST",
             sellerId,
@@ -1523,7 +1198,9 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
               ),
             },
             note: "fill in every language on the QA boutique",
-          });
+                                     country: QA_COUNTRY,
+                           record: calls,
+                         });
 
           if (!filled.ok) {
             refuse(
@@ -1539,14 +1216,16 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           // **Product first, then the boutique.** The owner's order, and it is
           // the right way round: activating a boutique whose only product is
           // still inactive publishes an empty shop.
-          const productOn = await call(page, {
-            service: SERVICE.dashboard,
+          const productOn = await sellerCall(page, {
+            service: SELLER_SERVICE.dashboard,
             url: `/shop/products/${productId}/change-status`,
             method: "POST",
             sellerId,
             body: { status: 1 },
             note: "activate the QA product",
-          });
+                                        country: QA_COUNTRY,
+                              record: calls,
+                            });
 
           if (!productOn.ok) {
             // A 422 here lists the activation checks the product fails, and
@@ -1557,14 +1236,16 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
             );
           }
 
-          const boutiqueOn = await call(page, {
-            service: SERVICE.dashboard,
+          const boutiqueOn = await sellerCall(page, {
+            service: SELLER_SERVICE.dashboard,
             url: `/shop/boutiques/${boutiqueId}/change-status`,
             method: "POST",
             sellerId,
             body: { status: 1 },
             note: "activate the QA boutique",
-          });
+                                         country: QA_COUNTRY,
+                               record: calls,
+                             });
 
           if (!boutiqueOn.ok) {
             refuse(
