@@ -37,6 +37,12 @@ const CREDENTIAL_FIELDS = [
   "otp_id_token",
   "otp",
   "password",
+  // The confirmation carries the SAME value as the password, so masking one
+  // and not the other protects nothing. Found in a live run's log on
+  // 2026-09-19, where a refused "become a seller" submit printed
+  // `"password":"[redacted]"` beside the confirmation in clear -- and this
+  // function's whole job is to clean a body before Sentry keeps it.
+  "repeat_password",
   "token",
   "access_token",
   "refresh_token",

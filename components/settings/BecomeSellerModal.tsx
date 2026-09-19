@@ -80,6 +80,12 @@ const MAX_LENGTH_FIELDS: Record<string, number> = {
   f_name: 10,
   l_name: 10,
   shop_name: 10,
+  // The backend caps this one too, and this map said it did not. A seller
+  // typing a longer location name got no inline warning, filled the whole
+  // form, pressed submit, and was handed a raw 422:
+  //   "The location name field must not be greater than 10 characters."
+  // Measured against staging on 2026-09-19.
+  location_name: 10,
 };
 
 const FieldLabel = ({ htmlFor, children }) => (
