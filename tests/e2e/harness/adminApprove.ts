@@ -180,10 +180,53 @@ const approveOneRow = async (
     `the ${options.what} row has no approve control where this suite expects one. Set ADMIN_SELECTOR_STATUS to the right locator`,
   ).toBeAttached({ timeout: 30_000 });
 
+  // These templates confirm before they send. A native `confirm()` blocks the
+  // page until something answers it, and a modal swallows the click that would
+  // otherwise land. Both are handled before the change is made, not after.
+  page.on("dialog", (dialog) => {
+    void dialog.accept().catch(() => undefined);
+  });
+
   await control.selectOption(options.approveValue, { force: options.force });
 
+  // A confirm control, if this screen draws one. Tried in order and the first
+  // visible one wins; none of them existing is fine, because some screens send
+  // straight from the `change` handler.
+  for (const candidate of [
+    ".swal2-confirm",
+    ".modal.show .btn-primary",
+    ".modal.in .btn-primary",
+    '[role="dialog"] button.btn-primary',
+  ]) {
+    const button = page.locator(candidate).first();
+    if (await button.isVisible().catch(() => false)) {
+      await button.click().catch(() => undefined);
+      break;
+    }
+  }
+
   // The page acts on `change`; give it a moment to send and redraw.
-  await page.waitForTimeout(3_000);
+  await page.waitForTimeout(5_000);
+
+  // **Check that it actually took.**
+  //
+  // Selecting an option is not the same as the row changing, and this is the
+  // failure that cost the most: the seed reported the approval as done, then
+  // waited 90 seconds for a seller id that was never coming, and the vendor
+  // request still read PENDING. A step that cannot see its own effect is not
+  // finished.
+  await page.reload({ waitUntil: "domcontentloaded" }).catch(() => undefined);
+
+  const stillPending = await page
+    .locator(options.rowSelector)
+    .first()
+    .isVisible()
+    .catch(() => false);
+
+  expect(
+    stillPending,
+    `the ${options.what} row was set to approved, but the pending list at ${options.listUrl} still shows it after a reload. The change did not reach the server — the screen may confirm in a way this suite does not press, or the control may not be the one that sends`,
+  ).toBe(false);
 
   options.record.push({
     method: "UI",

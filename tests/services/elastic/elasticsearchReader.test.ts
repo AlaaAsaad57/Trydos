@@ -129,7 +129,7 @@ describe("boutique rows hide the QA shop", () => {
     ).toBeGreaterThan(0);
 
     expect(
-      clauses[0].nested.query.prefix["custom_boutiques.slug.keyword"],
+      clauses[0].nested.query.prefix["custom_boutiques.slug.keyword"].value,
       "the boutique query excludes shops by a prefix that is not the QA mark, so it would hide the wrong shops or none",
     ).toBe("trydos-qa-");
   });

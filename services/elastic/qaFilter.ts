@@ -43,7 +43,24 @@ export const qaShopMustNot = () => ({
   nested: {
     path: "custom_boutiques",
     query: {
-      prefix: { "custom_boutiques.slug.keyword": QA_SHOP_SLUG_PREFIX },
+      prefix: {
+        "custom_boutiques.slug.keyword": {
+          value: QA_SHOP_SLUG_PREFIX,
+          // **Case matters here, and it nearly cost the whole feature.**
+          //
+          // `.keyword` is not analysed, so a prefix query on it is
+          // case-SENSITIVE by default. The backend builds a shop's slug from
+          // its name and keeps the capitals: a boutique named "Trydos QA 1"
+          // gets the slug `Trydos-QA-1-57`. A lowercase `trydos-qa-` prefix
+          // does not match that, so the clause would have excluded nothing
+          // and every QA shop would have been visible to shoppers -- with no
+          // error anywhere to say so.
+          //
+          // Case-insensitive also covers the shop somebody names in capitals
+          // by hand, which no naming convention can prevent.
+          case_insensitive: true,
+        },
+      },
     },
   },
 });

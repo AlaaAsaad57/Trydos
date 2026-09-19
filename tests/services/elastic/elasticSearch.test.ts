@@ -912,7 +912,7 @@ describe("the QA lock in the queries that leave the app", () => {
       "the listing query the app sent carried no clause excluding QA shops, so a shop created by the e2e suite would fill a real listing page",
     ).toBeGreaterThan(0);
     expect(
-      clauses[0].nested.query.prefix["custom_boutiques.slug.keyword"],
+      clauses[0].nested.query.prefix["custom_boutiques.slug.keyword"].value,
       "the listing query excludes shops by a prefix that is not the QA mark",
     ).toBe("trydos-qa-");
   });

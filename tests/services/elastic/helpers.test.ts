@@ -1123,9 +1123,9 @@ describe("the QA shop clause in buildBaseConditions", () => {
     ).toBe(1);
 
     expect(
-      clauses[0].nested.query.prefix,
+      clauses[0].nested.query.prefix["custom_boutiques.slug.keyword"],
       "the QA clause is present but does not match a shop slug by prefix on custom_boutiques.slug.keyword, so it would exclude nothing",
-    ).toEqual({ "custom_boutiques.slug.keyword": "trydos-qa-" });
+    ).toEqual({ value: "trydos-qa-", case_insensitive: true });
   });
 
   it("drops the clause when the request proved it is in QA mode", () => {
@@ -1144,10 +1144,22 @@ describe("the QA shop clause in buildBaseConditions", () => {
     ).toBe(1);
   });
 
+  it("ignores letter case, because the backend keeps the capitals", () => {
+    // The backend builds a shop's slug from its name and keeps the case: a
+    // boutique named "Trydos QA 1" gets the slug `Trydos-QA-1-57`. `.keyword`
+    // is not analysed, so without this the lowercase prefix matches nothing
+    // and every QA shop stays visible -- silently.
+    expect(
+      qaClauses()[0].nested.query.prefix["custom_boutiques.slug.keyword"]
+        .case_insensitive,
+      "the QA clause matches the shop slug case-sensitively, so a slug the backend capitalised (Trydos-QA-1-57) is not excluded and the shop is visible to every customer",
+    ).toBe(true);
+  });
+
   it("excludes the QA shop without also excluding a real one", () => {
     const clause = qaClauses()[0];
     expect(
-      clause.nested.query.prefix["custom_boutiques.slug.keyword"],
+      clause.nested.query.prefix["custom_boutiques.slug.keyword"].value,
       "the QA clause matches a prefix that a real seller's slug could start with, which would hide that seller's whole shop from the catalogue",
     ).toBe("trydos-qa-");
   });

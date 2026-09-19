@@ -54,7 +54,7 @@
 import { expect, test } from "@playwright/test";
 
 import { attemptAuth, signedInSession } from "../actions/auth";
-import { gotoAbout } from "../actions/nav";
+import { gotoAbout, gotoHome } from "../actions/nav";
 import { recordSignInOutcome } from "./session";
 import { approveQaBoutique, approveQaSeller } from "./adminApprove";
 import {
@@ -98,8 +98,42 @@ const QA_SHOP_SLUG = `${QA_PREFIX}e2e`;
 // "Trydos QA (automated tests)". Still marked, and still the value the admin
 // boutique screen is matched on -- that screen draws the NAME, never the slug.
 const QA_SHOP_NAME = "Trydos QA";
+
+/** The boutique's name — and, indirectly, **the mark itself**.
+ *
+ *  The create payload carries **no slug**: the backend derives it from the
+ *  name (`components/SellerDashboard/boutiqueEdit/helpers.ts` sends
+ *  `boutique_custom_data` with a name and no slug at all). So the mark cannot
+ *  be set directly, and the name has to be one that slugifies into it.
+ *
+ *  "Trydos QA 1" -> "trydos-qa-1", which starts with `trydos-qa-`.
+ *  "Trydos QA" would give "trydos-qa" — no trailing hyphen, and the prefix
+ *  match would miss it.
+ *
+ *  Nothing is trusted about that: the seed reads the slug back and refuses to
+ *  go on unless it really carries the mark. */
+const QA_BOUTIQUE_NAME = "Trydos QA 1";
 const QA_LOCATION_NAME = "Trydos QA";
 const QA_PRODUCT_NAME = "Trydos QA product";
+
+/** The phone the vendor request carries.
+ *
+ *  **A dummy number, not Shopper B's own.** The become-a-seller form's phone
+ *  field starts empty and is never prefilled from the profile
+ *  (`BecomeSellerModal.tsx`), and the backend refuses a number that already
+ *  belongs to an account:
+ *
+ *    POST /shop/vendor-requests -> 422  code:"phone"
+ *    "This phone number is already in use."
+ *
+ *  So this field is the seller record's own contact number, not the identity of
+ *  the shopper applying. It is obviously fake on purpose, so anybody reading
+ *  the admin list can see the row is test data.
+ *
+ *  Overridable with `QA_SELLER_PHONE`, because "which number is free" is a fact
+ *  about an environment, not about this suite. */
+const qaSellerPhone = (): string =>
+  envValue("QA_SELLER_PHONE") || "9639111111111";
 
 /** The country every BUY case shops in.
  *
@@ -416,6 +450,224 @@ const uploadQaDocument = async (
   return { type: "passport", path: String(path) };
 };
 
+/** Put one image on the media store and return the name the backend wants.
+ *
+ *  The chain, copied from `SellerDashboardService.uploadShopImage`:
+ *
+ *    POST /api/ticket            { folder, story, count }  -> a ticket
+ *    POST <media>/gated/upload   multipart, x-api-key + X-Upload-Ticket
+ *                                                          -> { url }
+ *
+ *  **The backend is then sent the bare filename, not the URL and not the
+ *  folder.** It resolves the folder itself, and sending it produced a doubled
+ *  `folder/folder/file` path -- the comment beside `ICON_FOLDER` records that
+ *  as something already paid for once.
+ *
+ *  The API key never reaches the call record: `call()` is not used here, and
+ *  the entry pushed below names the folder only. `redact()` deliberately does
+ *  NOT mask `NEXT_PUBLIC_MEDIA_API_KEY` -- anything `NEXT_PUBLIC_` is in the
+ *  browser bundle already -- so it must not be put anywhere by hand. */
+const uploadQaImage = async (
+  page: import("@playwright/test").Page,
+  folder: string,
+): Promise<string> => {
+  // **Read in Node and passed in.** `process.env` does not exist inside a page:
+  // Next inlines `NEXT_PUBLIC_*` into the modules it bundles, and this callback
+  // is none of them. Reading it there throws "process is not defined", which
+  // the catch below would have reported as "the media store refused the
+  // upload" -- a message about a request that was never made.
+  const uploaded = await page.evaluate(async ({ folderName, base, key }) => {
+    const fail = (why: string) => ({ ok: false as const, why, name: "" });
+
+    try {
+      const ticketResponse = await fetch("/api/ticket", {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ folder: folderName, story: false, count: 1 }),
+      });
+      const ticketBody = await ticketResponse.json().catch(() => null);
+      if (!ticketBody?.success || !ticketBody?.ticket) {
+        return fail(
+          `the app would not issue an upload ticket (${ticketResponse.status})`,
+        );
+      }
+
+      const bytes = Uint8Array.from(
+        atob(
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+        ),
+        (c) => c.charCodeAt(0),
+      );
+      const form = new FormData();
+      form.append(
+        "file",
+        new File([bytes], "trydos-qa.png", { type: "image/png" }),
+      );
+      form.append("folder", folderName);
+
+      const response = await fetch(`${base}/gated/upload`, {
+        method: "POST",
+        headers: { "x-api-key": key, "X-Upload-Ticket": ticketBody.ticket },
+        body: form,
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok || !body?.url) {
+        return fail(`the media store refused the upload (${response.status})`);
+      }
+
+      // The bare stored filename -- what the backend expects for `icon` and
+      // for a banner's `file_path`.
+      const name = String(body.url).split("?")[0].split("/").filter(Boolean).pop() ?? "";
+      return { ok: true as const, why: "", name };
+    } catch (error) {
+      return fail(String((error as Error)?.message ?? "").slice(0, 200));
+    }
+  }, {
+    folderName: folder,
+    base: envValue("NEXT_PUBLIC_MEDIA_SERVER_BASE_URL").replace(/\/$/, ""),
+    key: envValue("NEXT_PUBLIC_MEDIA_API_KEY"),
+  });
+
+  if (!uploaded.ok || !uploaded.name) {
+    refuse(
+      "find or create the QA boutique",
+      `${uploaded.why}. The boutique cannot be created without one -- the backend requires an icon, and activation later requires images that have finished syncing`,
+    );
+  }
+
+  calls.push({
+    method: "POST",
+    url: `<media store>/gated/upload (${folder})`,
+    note: "uploaded a QA image",
+  });
+
+  return uploaded.name;
+};
+
+/** The list inside a seller-dashboard answer, whatever it is called.
+ *
+ *  These endpoints do not agree on a key. `/shop/boutiques` answers
+ *  `{ boutiques: [...], meta }`, others answer `{ data: [...] }`, and some
+ *  answer a bare array. Reading only `data` found nothing in a response that
+ *  was perfectly good, and the seed reported "no shop whose slug carries the QA
+ *  mark" about a shop it had just created.
+ *
+ *  So: a bare array wins, then `data`, then the first array-valued key there
+ *  is. `meta` can never be mistaken for it -- it is an object. */
+const rowsOf = (payload: any): any[] => {
+  if (Array.isArray(payload)) return payload;
+  if (!payload || typeof payload !== "object") return [];
+  if (Array.isArray(payload.data)) return payload.data;
+
+  for (const value of Object.values(payload)) {
+    if (Array.isArray(value)) return value as any[];
+  }
+  return [];
+};
+
+/** Send a multipart form through the proxy.
+ *
+ *  **The product create endpoint takes `FormData`, not JSON**
+ *  (`SellerDashboardService.addProduct` -- "same multipart body as update").
+ *  Sending JSON gets `422 Product name is required` no matter what the body
+ *  says, because none of the fields are read.
+ *
+ *  `fetchData` lets the browser set the multipart boundary itself and never
+ *  sets `content-type` for a `FormData` body; this does the same. The fields
+ *  are built in the page because a `FormData` cannot cross the Node/browser
+ *  boundary. */
+const callMultipart = async (
+  page: import("@playwright/test").Page,
+  options: {
+    service: string;
+    url: string;
+    sellerId?: string;
+    fields: [string, string][];
+    note?: string;
+  },
+): Promise<{ ok: boolean; status: number; data: any; message: string }> => {
+  calls.push({ method: "POST", url: options.url, note: options.note });
+
+  return await page.evaluate(
+    async ({ service, url, sellerId, fields, country }) => {
+      const form = new FormData();
+      for (const [key, value] of fields) form.append(key, value);
+
+      const headers: Record<string, string> = {
+        "x-proxy-server": service,
+        "x-proxy-url": url,
+        "x-proxy-method": "POST",
+        "x-country": country,
+        "x-language": "en",
+        "x-need-decode": "true",
+      };
+      if (sellerId) headers["x-seller-id"] = sellerId;
+
+      try {
+        const response = await fetch("/api/proxy", {
+          method: "POST",
+          credentials: "include",
+          headers,
+          body: form,
+        });
+        const text = await response.text();
+        let parsed: any = null;
+        try {
+          parsed = JSON.parse(text);
+        } catch {
+          parsed = null;
+        }
+        return {
+          ok: response.ok && parsed?.success !== false,
+          status: response.status,
+          data: parsed?.data ?? parsed ?? null,
+          message: String(parsed?.message ?? "").slice(0, 300),
+        };
+      } catch (error) {
+        return {
+          ok: false,
+          status: 0,
+          data: null,
+          message: String((error as Error)?.message ?? "").slice(0, 300),
+        };
+      }
+    },
+    {
+      service: options.service,
+      url: options.url,
+      sellerId: options.sellerId,
+      fields: options.fields,
+      country: QA_COUNTRY,
+    },
+  );
+};
+
+/** Every language the storefront serves.
+ *
+ *  A boutique cannot be activated until each one carries a name, a description,
+ *  a bio, an icon and at least one banner -- the backend answers
+ *  `422 Missing Translations` otherwise, and `boutiqueEdit/helpers.ts >
+ *  validate()` says why: the storefront renders each translation on its own, so
+ *  a half-filled language shows a shopper blanks. */
+const QA_LANGUAGES = ["en", "ar", "tr", "ku"] as const;
+
+/** The per-language rows a boutique needs, in every language. */
+const qaBoutiqueTranslations = (
+  icon: string,
+  banner: string,
+  existingIds: Record<string, string | number> = {},
+): Record<string, unknown>[] =>
+  QA_LANGUAGES.map((code) => ({
+    ...(existingIds[code] ? { id: existingIds[code] } : {}),
+    language_code: code,
+    name: QA_BOUTIQUE_NAME,
+    description: "Automated test data. Never shown to customers.",
+    bio: "Automated test data.",
+    icon,
+    banners: [{ file_path: banner, sequence: 1 }],
+  }));
+
 /** Fail with the step name attached, so the message names where it stopped. */
 const refuse = (step: string, said: string): never => {
   throw new Error(`The QA seed failed at "${step}": ${said}`);
@@ -647,7 +899,9 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
                 f_name: "Trydos",
                 l_name: "QA",
                 email: qaEmail,
-                phone: envValue("TEST_ACCOUNT_PHONE_2"),
+                // The seller record's own contact number -- deliberately NOT
+                // Shopper B's, which the backend refuses as already in use.
+                phone: qaSellerPhone(),
                 currency_code: "USD",
                 country_iso: QA_COUNTRY,
                 language_code: "en",
@@ -694,18 +948,53 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           if (!alreadyApproved) {
             await approveQaSeller(browser, {
               email: identityEmail,
-              phone: envValue("TEST_ACCOUNT_PHONE_2"),
+              phone: qaSellerPhone(),
               shopName: QA_SHOP_NAME,
               record: calls,
             });
             approvedByThisRun = true;
           }
 
-          sellerId = await readSellerId();
+          // **Approval happens on another system, so read it back and wait.**
+          //
+          // The admin dashboard is a separate product with its own database
+          // write. Reading the seller permissions once, immediately, asks the
+          // core backend a question the admin side may not have finished
+          // answering -- and a single 204 then reads as "the approval did
+          // nothing", which is a much worse message than "it has not landed
+          // yet".
+          //
+          // Two reads, in order, because they fail differently:
+          //   1. the vendor request's own status -- did the approval take?
+          //   2. the seller permissions -- did it reach this account?
+          const deadlineAt = Date.now() + 90_000;
+          let lastStatus: unknown = null;
+
+          while (Date.now() < deadlineAt) {
+            const seen = await call(page, {
+              service: SERVICE.market,
+              url: "/shop/vendor-requests",
+              method: "GET",
+              note: "read the vendor request back after approval",
+            });
+            lastStatus = seen.data?.status ?? null;
+
+            sellerId = await readSellerId();
+            if (sellerId) break;
+
+            await page.waitForTimeout(5_000);
+          }
+
           if (!sellerId) {
             refuse(
               "become a seller",
-              "the account still has no seller id after the admin approved the vendor request, so nothing below can be created",
+              [
+                "the admin approved the vendor request, but this account still has no seller id after 90 seconds.",
+                `The request's own status now reads "${String(lastStatus ?? "unreadable")}" (0 pending, 1 approved, 2 rejected).`,
+                "If that says approved, the shop was created against a DIFFERENT account than the one that applied --",
+                "the vendor request carries its own e-mail, password and phone, so the seller it makes may not be this shopper.",
+                "If it still says pending, the approval did not take on the admin screen.",
+              ].join(" "),
             );
           }
         });
@@ -719,7 +1008,13 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
       const findQaBoutique = async (): Promise<{
         id: string | number;
         slug: string;
+        /** The seller's own switch: is the shop live? */
         status: number;
+        /** The admin's decision: 0 new, 1 approved, 2 denied. A different
+         *  thing from `status`, and confusing the two made the seed drive the
+         *  admin screen for a shop that was already approved -- where it found
+         *  a real seller's row waiting and, correctly, refused it. */
+        requestStatus: number;
       } | null> => {
         const answer = await call(page, {
           service: SERVICE.dashboard,
@@ -730,9 +1025,7 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
         });
         if (!answer.ok) return null;
 
-        const rows = Array.isArray(answer.data)
-          ? answer.data
-          : (answer.data?.data ?? []);
+        const rows = rowsOf(answer.data);
 
         // **Bound by slug, not by id.** A numeric id carries no mark, so an id
         // alone could never prove the row belongs to this suite.
@@ -743,6 +1036,7 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
               id: row?.id ?? row?.boutique_id,
               slug,
               status: Number(row?.status ?? 0),
+              requestStatus: Number(row?.request_status ?? 0),
             };
           }
         }
@@ -758,26 +1052,37 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           return;
         }
 
+        // The backend requires an icon, and the app's own validation requires at
+        // least one banner per language -- a partly filled translation would
+        // show a shopper blanks.
+        const boutiqueIcon = await uploadQaImage(page, "boutiques/boutiques/icon");
+        const boutiqueBanner = await uploadQaImage(page, "boutiques/boutiques");
+
         const created = await call(page, {
           service: SERVICE.dashboard,
           url: "/shop/boutiques",
           method: "POST",
           sellerId,
+          // The shape the seller dashboard sends, from
+          // `boutiqueEdit/helpers.ts > buildPayload`. Two traps are in there:
+          // the per-language key is `boutique_custom_data` on CREATE (sending
+          // `custom_data`, the update key, silently drops every translation),
+          // and `boutique_global_data.name` is required although the form
+          // derives it from the default language rather than asking for it.
           body: {
             boutique_global_data: {
-              country_iso: QA_COUNTRY,
-              status: 0,
+              name: QA_BOUTIQUE_NAME,
+              icon: boutiqueIcon,
+              availability: 3, // web and mobile
+              description: "Automated test data. Never shown to customers.",
+              bio: "Automated test data.",
+              countries_iso: [QA_COUNTRY.toUpperCase()],
+              product_resources: [],
             },
-            // `boutique_custom_data` on CREATE, not `custom_data` -- sending
-            // the update key here silently drops every translation.
-            boutique_custom_data: [
-              {
-                language_code: "en",
-                name: QA_SHOP_NAME,
-                slug: QA_SHOP_SLUG,
-                description: "Automated test data. Never shown to customers.",
-              },
-            ],
+            boutique_custom_data: qaBoutiqueTranslations(
+              boutiqueIcon,
+              boutiqueBanner,
+            ),
           },
           note: "create the QA boutique",
         });
@@ -813,10 +1118,8 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           note: "find the QA location",
         });
 
-        const rows = Array.isArray(list.data)
-          ? list.data
-          : (list.data?.data ?? []);
-        const found = (rows ?? []).find(
+        const rows = rowsOf(list.data);
+        const found = rows.find(
           (row: any) => String(row?.name ?? "") === QA_LOCATION_NAME,
         );
 
@@ -871,18 +1174,25 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
         });
         if (!answer.ok) return null;
 
-        const rows = Array.isArray(answer.data)
-          ? answer.data
-          : (answer.data?.data ?? []);
+        const rows = rowsOf(answer.data);
 
-        for (const row of rows ?? []) {
+        for (const row of rows) {
           const slug = String(row?.slug ?? row?.custom_data?.[0]?.slug ?? "");
           if (slug.toLowerCase().startsWith(QA_PREFIX)) {
             return {
               id: row?.id ?? row?.product_id,
               slug,
               status: Number(row?.status ?? 0),
-              stock: Number(row?.quantity ?? row?.stock ?? 0),
+              // `current_stock` is the name the product carries everywhere in
+              // this app (`productEdit/helpers.ts` reads
+              // `product.current_stock`). The other two are kept as fallbacks
+              // because the list endpoint and the edit endpoint do not always
+              // agree, and reading the wrong one reported a stocked product as
+              // "active but has no stock" -- a message about a fault that did
+              // not exist.
+              stock: Number(
+                row?.current_stock ?? row?.quantity ?? row?.stock ?? 0,
+              ),
             };
           }
         }
@@ -925,41 +1235,96 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           return Array.isArray(list) && list.length > 0 ? list[0] : null;
         };
 
+        // The lookup keys are the ones the answer really carries:
+        // `brands` and `parent_categories`. There is no `countries` list --
+        // `origin_country_iso` is a plain ISO code, not a chosen option.
         const brand = firstOption("brands");
-        const origin = firstOption("countries");
+        const category = firstOption("parent_categories");
 
-        if (!brand || !origin) {
+        if (!brand) {
           refuse(
             "find or create the QA product",
-            `the product form offers no ${!brand ? "brand" : "origin country"}, and the backend requires it on create. This is a fact about the environment, not about the suite`,
+            "the product form offers no brand, and the backend requires one on create. That is a fact about this environment, not about the suite",
+          );
+        }
+        if (!category) {
+          refuse(
+            "find or create the QA product",
+            "the product form offers no category, and the backend refuses a product without at least one. That is a fact about this environment, not about the suite",
           );
         }
 
-        const created = await call(page, {
+        // The image the product carries. Activation later requires colour
+        // images that have finished syncing, so it is uploaded before create
+        // rather than bolted on after.
+        const productImage = await uploadQaImage(page, "product");
+
+        const created = await callMultipart(page, {
           service: SERVICE.dashboard,
           url: "/shop/products",
-          method: "POST",
           sellerId,
-          body: {
-            boutique_id: boutiqueId,
-            brand_id: brand?.id,
-            origin_country_iso: origin?.iso ?? origin?.id,
-            count_of_pieces: 1,
-            seller_product_id: `qa-${Date.now()}`,
-            quantity: QA_STOCK,
-            custom_data: [
-              {
-                language_code: "en",
-                name: QA_PRODUCT_NAME,
-                slug: `${QA_SHOP_SLUG}-product`,
-                details: "Automated test data. Never shown to customers.",
-              },
+          // Every key the create DTO reads without a fallback is present, even
+          // when its value is a zero. `buildUpdateFormData` in
+          // `productEdit/helpers.ts` records what each omission costs -- an
+          // absent `luck_price` 422s with a raw "Undefined array key" and no
+          // field code at all.
+          fields: [
+            ["name", QA_PRODUCT_NAME],
+            ["default_language_code", "en"],
+            ["unit", "pc"],
+            ["description", "Automated test data. Never shown to customers."],
+            ["brand_id", String(brand?.id ?? "")],
+            ["boutique_id", String(boutiqueId)],
+            ["seller_product_id", `qa-${Date.now()}`],
+            ["label", ""],
+            ["model_number", ""],
+            ["report_ref_number", ""],
+            ["location_id", String(locationId)],
+            ["unit_price", String(QA_PRICE)],
+            ["discount_price", "0"],
+            ["purchase_price", "0"],
+            ["luck_price", "0"],
+            ["current_stock", String(QA_STOCK)],
+            ["max_allowed_qty", "0"],
+            ["count_of_pieces", "1"],
+            ["shipping_cost", "0"],
+            ["shipping_days", "0"],
+            ["tax", "0"],
+            ["tax_type", "percent"],
+            // An explicit boolean: the create DTO rejects a missing key with
+            // "must be true or false".
+            ["multiplyQTY", "0"],
+            ["packed_after_ordering", "off"],
+            ["meta_title", QA_PRODUCT_NAME],
+            ["meta_description", "Automated test data."],
+            ["origin_country_iso", QA_COUNTRY.toUpperCase()],
+            ["category_id[]", String(category?.id ?? "")],
+            // Required when the unit is `pc`, which it is. The backend names
+            // the rule itself: "The weight field is required when unit is pc."
+            ["weight", "1"],
+            ["countries_iso[]", QA_COUNTRY.toUpperCase()],
+            ["extra_price_for_country", JSON.stringify([])],
+            ["images[]", productImage],
+            // **Not an empty array.** The backend answers "All product images
+            // must be ordered by priority." to one. With no colours, the app
+            // sends a single group holding every image with its position --
+            // `buildSyncColorImages` in `productEdit/helpers.ts` is the whole
+            // of that rule.
+            [
+              "sync_color_images",
+              JSON.stringify([
+                { images: [{ image: productImage, position: 0 }], position: 0 },
+              ]),
             ],
-            country_offer_prices: [
-              { country_iso: QA_COUNTRY, offered_price: QA_PRICE },
+            // On create the translation rows carry no id -- there is no row
+            // yet, and inventing one writes over id = null.
+            ["custom_data[0][language_code]", "en"],
+            ["custom_data[0][name]", QA_PRODUCT_NAME],
+            [
+              "custom_data[0][description]",
+              "Automated test data. Never shown to customers.",
             ],
-            offered_price: QA_PRICE,
-          },
+          ],
           note: "create the QA product",
         });
 
@@ -1000,13 +1365,78 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
 
       if (!(await boutiqueIsActive()) || productStatus !== 1) {
         await test.step("approve the boutique, then activate product and boutique", async () => {
-          if (!(await boutiqueIsActive())) {
+          // Only when the admin has NOT decided yet. `request_status` is the
+          // admin's answer; `status` is the seller's own on/off switch.
+          const pendingApproval =
+            Number((await findQaBoutique())?.requestStatus ?? 0) === 0;
+
+          if (pendingApproval) {
             await approveQaBoutique(browser, {
               shopSlug,
-              shopName: QA_SHOP_NAME,
+              shopName: QA_BOUTIQUE_NAME,
               record: calls,
             });
             approvedByThisRun = true;
+          }
+
+          // **Fill in every language before activating.**
+          //
+          // A boutique created by an earlier run -- or by an earlier version of
+          // this seed -- may carry `en` only, and the backend answers
+          // `422 Missing Translations` to an activation then. The existing rows
+          // are read first so each language keeps its own id: a row sent
+          // without one targets `id = null` and writes a new row rather than
+          // the one it meant.
+          const edit = await call(page, {
+            service: SERVICE.dashboard,
+            url: `/shop/boutiques/${boutiqueId}/edit`,
+            method: "GET",
+            sellerId,
+            note: "read the boutique's existing translations",
+          });
+
+          const existingIds: Record<string, string | number> = {};
+          for (const row of rowsOf(edit.data?.boutique ?? edit.data)) {
+            const code = String(row?.language_code ?? "");
+            if (code && row?.id) existingIds[code] = row.id;
+          }
+
+          const topUpIcon =
+            String(edit.data?.boutique?.icon ?? "") ||
+            (await uploadQaImage(page, "boutiques/boutiques/icon"));
+          const topUpBanner = await uploadQaImage(page, "boutiques/boutiques");
+
+          const filled = await call(page, {
+            service: SERVICE.dashboard,
+            url: `/shop/boutiques/${boutiqueId}/update`,
+            method: "POST",
+            sellerId,
+            body: {
+              boutique_global_data: {
+                name: QA_BOUTIQUE_NAME,
+                icon: topUpIcon,
+                availability: 3,
+                description: "Automated test data. Never shown to customers.",
+                bio: "Automated test data.",
+                countries_iso: [QA_COUNTRY.toUpperCase()],
+                product_resources: [],
+              },
+              // `custom_data` on UPDATE -- `boutique_custom_data` is the create
+              // key, and the two are not interchangeable.
+              custom_data: qaBoutiqueTranslations(
+                topUpIcon,
+                topUpBanner,
+                existingIds,
+              ),
+            },
+            note: "fill in every language on the QA boutique",
+          });
+
+          if (!filled.ok) {
+            refuse(
+              "activate the QA boutique",
+              `the boutique could not be given its missing translations (${filled.status}: ${filled.message}). Activation needs a name, description, bio, icon and at least one banner in every one of ${QA_LANGUAGES.join(", ")}`,
+            );
           }
 
           // **Product first, then the boutique.** The owner's order, and it is
@@ -1078,13 +1508,27 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           secret: envValue("QA_VIEW_SECRET"),
         });
 
+        // **The search lives on the home page.** The seed has been on `/about`
+        // since it signed in -- that page is used precisely because a search
+        // outage cannot blank it -- and `searchIcon_mainPage` is not drawn
+        // there. Polling from `/about` found the control missing every time.
+        await gotoHome(page);
+
         const started = Date.now();
         let seen = false;
+        let lastTrouble = "";
 
         while (Date.now() - started < SYNC_CEILING_MS) {
+          // **The reason is kept, not swallowed.** An earlier version caught
+          // this and returned zeros, so a search that could never run looked
+          // exactly like an index that had not caught up -- for ten minutes,
+          // then a message about Elasticsearch.
           const found = await findQaProductInSearch(page, {
             term: QA_PRODUCT_NAME,
-          }).catch(() => ({ rows: 0, qaRows: 0, addresses: [] as string[] }));
+          }).catch((error: unknown) => {
+            lastTrouble = String((error as Error)?.message ?? "").slice(0, 200);
+            return { rows: 0, qaRows: 0, addresses: [] as string[] };
+          });
 
           if (found.qaRows > 0) {
             seen = true;
@@ -1093,6 +1537,13 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
 
           await page.waitForTimeout(SYNC_POLL_MS);
           checkDeadline("wait for the search index to catch up");
+        }
+
+        if (!seen && lastTrouble) {
+          refuse(
+            "wait for the search index to catch up",
+            `the search never ran, so nothing can be said about the index. The last thing that went wrong was: ${lastTrouble}`,
+          );
         }
 
         // The header really went out. Without this, a run where the route
