@@ -1,4 +1,5 @@
 const translations = {
+  "Typing...": "دەنووسێت...",
   "Employees": "کارمەندان",
   "Roles": "ڕۆڵەکان",
   "Job Titles": "ناونیشانی کار",

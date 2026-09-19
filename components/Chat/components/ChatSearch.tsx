@@ -7,7 +7,7 @@ import { getMessagesBetweenTwoMessages } from "store/chat/actions";
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-import { LogError } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 
 function ChatSearch({ close }) {
   const {
@@ -290,7 +290,7 @@ function ChatSearch({ close }) {
         <DebounceInput
           className="w-full text-[#1d1d1d] h-full border-none outline-hidden absolute top-0 left-0 pl-11 z-10 light rounded-[15px] bg-[#fafafa]"
           minLength={1}
-          placeholder="Search"
+          placeholder={translateFunction("Search")}
           value={searchChat.searchValue}
           onChange={(e) => {
             onChange(e);

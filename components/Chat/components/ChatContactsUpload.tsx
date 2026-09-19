@@ -221,7 +221,7 @@ function ChatContactsUpload() {
                 value={manualName}
                 onChange={(e) => setManualName(pollinateInput(e.target.value))}
                 className="w-full p-2 text-[#1d1d1d] border border-gray-300 rounded-md outline-hidden"
-                placeholder="John Doe"
+                placeholder={translateFunction("Enter Full Name")}
               />
             </div>
 
