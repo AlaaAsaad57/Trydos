@@ -46,11 +46,15 @@ export const qaProductSlug = (): string =>
  *  this product by name as well as by address. */
 export const gotoQaProduct = async (
   page: Page,
-  options: { country?: string; language?: string } = {},
+  options: { country?: string; language?: string; slug?: string } = {},
 ): Promise<{ name: string; url: string }> => {
   const country = options.country ?? "sy";
   const language = options.language ?? "en";
-  const slug = qaProductSlug();
+  // **The slug the seed saw the storefront use**, when the caller has it.
+  // The fallback is a guess and exists only so this helper has one; the
+  // dashboard's slug and the storefront's slug are different strings for the
+  // same product, and only the storefront's opens a page.
+  const slug = options.slug || qaProductSlug();
 
   // Save the country before navigating. The address carries the locale, so the
   // region picker is not drawn -- but the **cart** reads the country cookie,
@@ -101,16 +105,34 @@ export const findQaProductInSearch = async (
   // the same sequence `searchFor` in `actions/nav.ts` uses, and it is here
   // rather than reused because this function reads the result **addresses**,
   // which that one does not return.
-  const icon = search.icon(page);
-  await expect(
-    icon,
-    "the storefront drew no search control, so nothing here can search",
-  ).toBeVisible();
-  await icon.click();
-
+  // **Open it only if it is shut.** The overlay covers the icon it was opened
+  // from, so pressing that icon a second time lands on the overlay instead and
+  // the input never reports enabled. A caller that searches in a loop -- the
+  // index poll does, sixty times -- hits that on its second pass, and the
+  // failure reads "the search never ran" about a search that ran perfectly the
+  // first time.
   const input = search.input(page);
-  await expect(input).toBeVisible();
-  await expect(input).toBeEnabled({ timeout: 30_000 });
+
+  const alreadyOpen = await input
+    .isEnabled()
+    .catch(() => false);
+
+  if (!alreadyOpen) {
+    const icon = search.icon(page);
+    await expect(
+      icon,
+      "the storefront drew no search control, so nothing here can search",
+    ).toBeVisible();
+    await icon.click();
+
+    await expect(input).toBeVisible();
+    await expect(input).toBeEnabled({ timeout: 30_000 });
+  }
+
+  // Cleared first: `fill` replaces, but a term left from the previous pass
+  // would otherwise be what the debounce is still working on when the rows are
+  // counted.
+  await input.fill("");
   await input.fill(options.term);
 
   // The list is debounced and fetched. A term with nothing behind it never

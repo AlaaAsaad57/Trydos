@@ -1076,7 +1076,8 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
               availability: 3, // web and mobile
               description: "Automated test data. Never shown to customers.",
               bio: "Automated test data.",
-              countries_iso: [QA_COUNTRY.toUpperCase()],
+              // The RESTRICTED list -- see the product note below. Empty.
+              countries_iso: [],
               product_resources: [],
             },
             boutique_custom_data: qaBoutiqueTranslations(
@@ -1155,6 +1156,10 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
 
       // ---------------------------------------------------------------- 6
       let productId: string | number = "";
+      /** Set when the product was already there. A product an earlier run left
+       *  in the wrong state is repaired rather than left broken -- see the
+       *  repair step below. */
+      let repairExistingProduct = false;
       let productSlug = "";
       let productStatus = 0;
       let productStock = 0;
@@ -1199,79 +1204,68 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
         return null;
       };
 
-      await test.step("find or create the QA product", async () => {
-        const existing = await findQaProduct();
+      /** The product body, built once and used twice.
+       *
+       *  Create and repair send the SAME fields: an environment where an
+       *  earlier run left the product wrong is put right by re-sending this,
+       *  and two copies of a hundred keys would drift apart on the first
+       *  change. It reads the lookups and uploads the image itself, so either
+       *  caller can use it without arranging anything first. */
+      const buildQaProductFields = async (): Promise<[string, string][]> => {
+      const lookups = await call(page, {
+        service: SERVICE.dashboard,
+        url: "/shop/products/lookups",
+        method: "GET",
+        sellerId,
+        note: "read the product form's own lookups",
+      });
 
-        if (existing) {
-          productId = existing.id;
-          productSlug = existing.slug;
-          productStatus = existing.status;
-          productStock = existing.stock;
-          return;
-        }
+      if (!lookups.ok) {
+        refuse(
+          "find or create the QA product",
+          `the product form's lookups could not be read (${lookups.status}: ${lookups.message}), so the required fields cannot be filled with values this backend accepts`,
+        );
+      }
 
-        // The save-time requirements, read from the create form's own lookups
-        // rather than guessed. These four are required on BOTH create and
-        // update, and they are separate from the ACTIVATION checks further
-        // down — approval, an `en` translation, stock, a boutique and synced
-        // colour images.
-        const lookups = await call(page, {
-          service: SERVICE.dashboard,
-          url: "/shop/products/lookups",
-          method: "GET",
-          sellerId,
-          note: "read the product form's own lookups",
-        });
+      const firstOption = (key: string): any => {
+        const list = lookups.data?.[key];
+        return Array.isArray(list) && list.length > 0 ? list[0] : null;
+      };
 
-        if (!lookups.ok) {
-          refuse(
-            "find or create the QA product",
-            `the product form's lookups could not be read (${lookups.status}: ${lookups.message}), so the required fields cannot be filled with values this backend accepts`,
-          );
-        }
+      // The lookup keys are the ones the answer really carries:
+      // `brands` and `parent_categories`. There is no `countries` list --
+      // `origin_country_iso` is a plain ISO code, not a chosen option.
+      const brand = firstOption("brands");
+      const category = firstOption("parent_categories");
 
-        const firstOption = (key: string): any => {
-          const list = lookups.data?.[key];
-          return Array.isArray(list) && list.length > 0 ? list[0] : null;
-        };
+      if (!brand) {
+        refuse(
+          "find or create the QA product",
+          "the product form offers no brand, and the backend requires one on create. That is a fact about this environment, not about the suite",
+        );
+      }
+      if (!category) {
+        refuse(
+          "find or create the QA product",
+          "the product form offers no category, and the backend refuses a product without at least one. That is a fact about this environment, not about the suite",
+        );
+      }
 
-        // The lookup keys are the ones the answer really carries:
-        // `brands` and `parent_categories`. There is no `countries` list --
-        // `origin_country_iso` is a plain ISO code, not a chosen option.
-        const brand = firstOption("brands");
-        const category = firstOption("parent_categories");
+      // The image the product carries. Activation later requires colour
+      // images that have finished syncing, so it is uploaded before create
+      // rather than bolted on after.
+      const productImage = await uploadQaImage(page, "product");
 
-        if (!brand) {
-          refuse(
-            "find or create the QA product",
-            "the product form offers no brand, and the backend requires one on create. That is a fact about this environment, not about the suite",
-          );
-        }
-        if (!category) {
-          refuse(
-            "find or create the QA product",
-            "the product form offers no category, and the backend refuses a product without at least one. That is a fact about this environment, not about the suite",
-          );
-        }
-
-        // The image the product carries. Activation later requires colour
-        // images that have finished syncing, so it is uploaded before create
-        // rather than bolted on after.
-        const productImage = await uploadQaImage(page, "product");
-
-        const created = await callMultipart(page, {
-          service: SERVICE.dashboard,
-          url: "/shop/products",
-          sellerId,
-          // Every key the create DTO reads without a fallback is present, even
-          // when its value is a zero. `buildUpdateFormData` in
-          // `productEdit/helpers.ts` records what each omission costs -- an
-          // absent `luck_price` 422s with a raw "Undefined array key" and no
-          // field code at all.
-          fields: [
+      return [
             ["name", QA_PRODUCT_NAME],
             ["default_language_code", "en"],
             ["unit", "pc"],
+        // **Key presence is load-bearing on UPDATE.** The update DTO reads
+        // this one without a fallback, so leaving it out answers
+        // `422 Undefined array key "barcode"` -- a raw PHP message with no
+        // field code, which is exactly what `buildUpdateFormData` warns about
+        // for its neighbours. Empty string is the multipart stand-in for null.
+        ["barcode", ""],
             ["description", "Automated test data. Never shown to customers."],
             ["brand_id", String(brand?.id ?? "")],
             ["boutique_id", String(boutiqueId)],
@@ -1302,7 +1296,19 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
             // Required when the unit is `pc`, which it is. The backend names
             // the rule itself: "The weight field is required when unit is pc."
             ["weight", "1"],
-            ["countries_iso[]", QA_COUNTRY.toUpperCase()],
+            // **`countries_iso` is the RESTRICTED list, not "available in".**
+            //
+            // This one cost the most to find. Sending `SY` here means "never
+            // show this product in Syria" -- and Syria is the only country
+            // that offers cash on delivery, so it is the only country the
+            // money path can shop in. The catalogue query puts these in
+            // `must_not` (`helpers.ts`, "Add country restrictions"), so the
+            // product was indexed, active, approved, in stock, and correctly
+            // excluded from every search.
+            //
+            // Proved by asking the index directly on 2026-09-19: the doc
+            // passed every base condition and matched the restriction clause.
+            // Nothing is sent, so the product is restricted nowhere.
             ["extra_price_for_country", JSON.stringify([])],
             ["images[]", productImage],
             // **Not an empty array.** The backend answers "All product images
@@ -1324,7 +1330,32 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
               "custom_data[0][description]",
               "Automated test data. Never shown to customers.",
             ],
-          ],
+        ];
+      };
+
+      await test.step("find or create the QA product", async () => {
+        const existing = await findQaProduct();
+
+        if (existing) {
+          productId = existing.id;
+          productSlug = existing.slug;
+          productStatus = existing.status;
+          productStock = existing.stock;
+          repairExistingProduct = true;
+          return;
+        }
+
+        // The save-time requirements, read from the create form's own lookups
+        // rather than guessed. These four are required on BOTH create and
+        // update, and they are separate from the ACTIVATION checks further
+        // down — approval, an `en` translation, stock, a boutique and synced
+        // colour images.
+
+        const created = await callMultipart(page, {
+          service: SERVICE.dashboard,
+          url: "/shop/products",
+          sellerId,
+          fields: await buildQaProductFields(),
           note: "create the QA product",
         });
 
@@ -1357,16 +1388,63 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
         failQaProduct("out-of-stock", shopSlug);
       }
 
+      // ---------------------------------------------------------------- 7b
+      // **Put an existing product back into the state this seed intends.**
+      //
+      // A seed that only ever creates is not idempotent -- it is idempotent
+      // only on an environment nothing has gone wrong on. This one really did
+      // go wrong: an earlier version sent `countries_iso: ["SY"]`, which is the
+      // RESTRICTED list, so the product was indexed and active and correctly
+      // hidden from every search in the one country the money path can use.
+      //
+      // Re-sending the same body is the whole repair. It costs one call and it
+      // means a half-fixed environment heals itself on the next run instead of
+      // needing somebody to go and edit a product by hand.
+      if (repairExistingProduct) {
+        await test.step("put the existing QA product back in shape", async () => {
+          const repaired = await callMultipart(page, {
+            service: SERVICE.dashboard,
+            url: `/shop/products/${productId}/update`,
+            sellerId,
+            fields: await buildQaProductFields(),
+            note: "repair the QA product's own settings",
+          });
+
+          if (!repaired.ok) {
+            refuse(
+              "put the existing QA product back in shape",
+              `the backend refused the repair (${repaired.status}: ${repaired.message}). The product exists but may still carry settings that hide it -- a country restriction is the one that bit before`,
+            );
+          }
+        });
+        checkDeadline("put the existing QA product back in shape");
+      }
+
       // ---------------------------------------------------------------- 8
       const boutiqueIsActive = async (): Promise<boolean> => {
         const found = await findQaBoutique();
         return found?.status === 1;
       };
 
-      if (!(await boutiqueIsActive()) || productStatus !== 1) {
-        await test.step("approve the boutique, then activate product and boutique", async () => {
+      // **Always, not only when something is off.**
+      //
+      // This ran behind `if (the boutique is inactive || the product is
+      // inactive)`, which reads sensibly and is wrong: a shop that is already
+      // approved and already live skips the whole block -- including the part
+      // that puts its settings right. An earlier run left this boutique
+      // restricted in Syria, and because the shop was live the repair never
+      // ran and the restriction survived every later run.
+      //
+      // A seed is meant to leave an environment in a known state. Checking
+      // whether it looks finished before deciding to make it correct is how it
+      // stops doing that.
+      {
+        await test.step("put the QA boutique's own settings right", async () => {
           // Only when the admin has NOT decided yet. `request_status` is the
           // admin's answer; `status` is the seller's own on/off switch.
+          // Confusing the two sent this seed to the admin screen for a shop
+          // that was already approved, where it found a real seller's row
+          // waiting and -- correctly -- refused to touch it.
           const pendingApproval =
             Number((await findQaBoutique())?.requestStatus ?? 0) === 0;
 
@@ -1401,8 +1479,18 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
             if (code && row?.id) existingIds[code] = row.id;
           }
 
+          // **The bare filename, never the stored URL.**
+          //
+          // The edit answer carries the icon as a full address
+          // (`https://media_server.../boutiques/boutiques/icon/<uuid>.png`),
+          // and handing that straight back answers
+          // `422 The boutique global data.icon field must not be greater than
+          // 191 characters.` The backend resolves the folder itself -- the same
+          // rule the seller dashboard records beside `ICON_FOLDER`, where
+          // sending the folder produced a doubled `folder/folder/file` path.
+          const storedIcon = String(edit.data?.boutique?.icon ?? "");
           const topUpIcon =
-            String(edit.data?.boutique?.icon ?? "") ||
+            (storedIcon.split("?")[0].split("/").filter(Boolean).pop() ?? "") ||
             (await uploadQaImage(page, "boutiques/boutiques/icon"));
           const topUpBanner = await uploadQaImage(page, "boutiques/boutiques");
 
@@ -1418,7 +1506,12 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
                 availability: 3,
                 description: "Automated test data. Never shown to customers.",
                 bio: "Automated test data.",
-                countries_iso: [QA_COUNTRY.toUpperCase()],
+                // **The RESTRICTED list, not "available in".** See the note
+                // on the product below -- this is the same trap, and an
+                // earlier run left the QA boutique restricted in exactly the
+                // country the money path shops in. Empty means "sell
+                // everywhere", which is what a test shop wants.
+                countries_iso: [],
                 product_resources: [],
               },
               // `custom_data` on UPDATE -- `boutique_custom_data` is the create
@@ -1439,6 +1532,10 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
             );
           }
 
+        });
+        checkDeadline("put the QA boutique's own settings right");
+
+        await test.step("approve and activate", async () => {
           // **Product first, then the boutique.** The owner's order, and it is
           // the right way round: activating a boutique whose only product is
           // still inactive publishes an empty shop.
@@ -1520,6 +1617,8 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
         // never takes that path at all -- and "Trydos" is enough to find the
         // QA product, which is the only thing here named after it.
         const searchTerm = "Trydos";
+        // Filled from the first row the storefront returns -- see below.
+        let storefrontSlug = "";
 
         const started = Date.now();
         let seen = false;
@@ -1543,6 +1642,18 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           lastAddresses = found.addresses;
 
           if (found.qaRows > 0) {
+            // **Take the slug from the row the storefront returned.**
+            //
+            // The seller dashboard and the storefront do NOT agree: the
+            // dashboard calls this product `Trydos-QA-product-289` (its own
+            // id) and the storefront calls it `Trydos-QA-product-4895` (the
+            // translation row's id). Opening the dashboard's slug by address
+            // lands on nothing, which is exactly how `QA-06` failed.
+            const hit = found.addresses.find((href) =>
+              href.toLowerCase().includes(QA_PREFIX),
+            );
+            const fromSearch = (hit ?? "").split("?")[0].split("/").pop() ?? "";
+            if (fromSearch) storefrontSlug = fromSearch;
             seen = true;
             break;
           }
@@ -1586,6 +1697,14 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           seen,
           qaIndexSyncMessage(shopSlug, SYNC_CEILING_MS / 1000),
         ).toBe(true);
+
+        expect(
+          storefrontSlug,
+          "the search found the QA product but its address carried no slug, so nothing downstream can open the product by address",
+        ).not.toBe("");
+
+        // What the live cases must use. The dashboard's own slug opens nothing.
+        productSlug = storefrontSlug;
       });
 
       // ---------------------------------------------------------------- 10

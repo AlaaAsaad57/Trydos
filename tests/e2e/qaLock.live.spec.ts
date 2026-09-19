@@ -200,7 +200,10 @@ test(`QA-06 the QA product is active and can be bought ${PROD_SAFE_TAG}`, async 
 
   // Asked of the app, by opening the page a shopper would open. "Active" in the
   // seed's record is what the seed was told; this is what a browser sees.
-  const opened = await gotoQaProduct(page, { country: QA_COUNTRY });
+  const opened = await gotoQaProduct(page, {
+    country: QA_COUNTRY,
+    slug: readQaSeedState().productSlug,
+  });
 
   expect(
     opened.name,
@@ -267,7 +270,15 @@ test(`QA-08 the seed touched only data it owns ${PROD_SAFE_TAG}`, async () => {
   );
   const unexpected = writes.filter(
     (entry) =>
-      !entry.url.startsWith("/shop/") && !entry.url.startsWith("/api/v1/"),
+      !entry.url.startsWith("/shop/") &&
+      !entry.url.startsWith("/api/v1/") &&
+      // The media store. The seed uploads a boutique icon, a banner and a
+      // product image, and the backend refuses to create any of those rows
+      // without them -- so these writes ARE the design, not a stray. They are
+      // recorded by folder, never by address: a presigned URL is itself a
+      // credential.
+      !entry.url.startsWith("<media store>") &&
+      !entry.url.startsWith("<presigned storage address>"),
   );
 
   expect(
