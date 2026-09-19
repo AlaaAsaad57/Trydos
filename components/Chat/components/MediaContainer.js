@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getMedia } from "../../../store/chat/actions";
+import { translateFunction } from "utils/functions";
 import filePng from "../../../public/images/filePng.png";
 import Image from "next/image";
 function MediaContainer({ id, mediaFiles }) {
@@ -16,7 +17,7 @@ function MediaContainer({ id, mediaFiles }) {
             "media-tab " + (media === "ImageMessage" && "active-tab-media")
           }
         >
-          Image
+          {translateFunction("Image")}
         </div>
         <div
           onClick={() => setMedia("VideoMessage")}
@@ -24,7 +25,7 @@ function MediaContainer({ id, mediaFiles }) {
             "media-tab " + (media === "VideoMessage" && "active-tab-media")
           }
         >
-          Video
+          {translateFunction("Video")}
         </div>
         <div
           onClick={() => setMedia("FileMessage")}
@@ -32,7 +33,7 @@ function MediaContainer({ id, mediaFiles }) {
             "media-tab " + (media === "FileMessage" && "active-tab-media")
           }
         >
-          File
+          {translateFunction("File")}
         </div>
       </div>
       <div className="media-tab-container gap-y-[5px]">

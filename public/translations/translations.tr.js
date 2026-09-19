@@ -1,4 +1,5 @@
 const translations = {
+  "Typing...": "Yazıyor...",
   "Employees": "Çalışanlar",
   "Roles": "Roller",
   "Job Titles": "İş Unvanları",

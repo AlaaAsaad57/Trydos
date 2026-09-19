@@ -9,6 +9,32 @@ import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 import GetMoreChats from "../components/GetMoreChats";
 import { useState } from "react";
+/**
+ * The newest message of a chat, by time.
+ *
+ * The row used to read `messages[messages.length - 1]` — the last element —
+ * which trusts the array order. Nothing guarantees that order: `setChats`
+ * reverses whatever the server sent, `setPageData` prepends older pages, and
+ * live messages are appended. Every other place that means "newest" reads the
+ * time instead — `getSortedChats` below, and `sortedMessages` in the
+ * conversation. So whenever the array order and the times disagreed, the chat
+ * jumped to the top of the list (placed by time) while its row still showed an
+ * older message (read by position).
+ *
+ * Reading by time makes the preview, its date, and the row's position agree,
+ * whatever order the array happens to be in. A tie keeps the later element, so
+ * two messages in the same second behave as before.
+ */
+const getLatestMessage = (messages) => {
+  if (!messages || messages.length === 0) return null;
+  return messages.reduce((latest, current) =>
+    new Date(current.created_at).getTime() >=
+    new Date(latest.created_at).getTime()
+      ? current
+      : latest,
+  );
+};
+
 function ChatLists(props) {
   const {
     data: chats,
@@ -119,7 +145,7 @@ function ChatLists(props) {
                           (member) => member?.user_id !== getUserChat()?.id,
                         )[0]?.user?.photo_path
                       }
-                      lastMessage={chat.messages[chat.messages.length - 1]}
+                      lastMessage={getLatestMessage(chat.messages)}
                       id={chat.id}
                       chat={chat}
                       chat_members={chat?.channel_members}
@@ -168,7 +194,7 @@ function ChatLists(props) {
                           (member) => member?.user_id !== getUserChat()?.id,
                         )[0]?.user?.photo_path
                       }
-                      lastMessage={chat.messages[chat.messages.length - 1]}
+                      lastMessage={getLatestMessage(chat.messages)}
                       id={chat.id}
                       chat={chat}
                       chat_members={chat?.channel_members}
@@ -229,7 +255,7 @@ function ChatLists(props) {
                           (member) => member?.user_id !== getUserChat()?.id,
                         )[0]?.user?.photo_path
                       }
-                      lastMessage={chat.messages[chat.messages.length - 1]}
+                      lastMessage={getLatestMessage(chat.messages)}
                       id={chat.id}
                       chat={chat}
                       chat_members={chat?.channel_members}
