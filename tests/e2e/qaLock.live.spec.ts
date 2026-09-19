@@ -105,7 +105,9 @@ test(`QA-01 QA mode finds the QA product in search ${PROD_SAFE_TAG}`, async ({
   // The row's own address, not a name. A suggestion string spelling the product
   // name would satisfy a name check and prove nothing about which shop answered.
   expect(
-    found.addresses.some((href) => href.includes(state.productSlug)),
+    found.addresses.some((href) =>
+      href.toLowerCase().includes(state.productSlug.toLowerCase()),
+    ),
     `the search returned a row from the QA shop, but none of the rows points at the product the seed created ("${state.productSlug}")`,
   ).toBe(true);
 });
@@ -301,7 +303,10 @@ test.describe(`QA-09 the QA product is hidden everywhere a shopper looks ${PROD_
     const body = await page.content();
     return {
       served: (response?.status() ?? 0) < 400,
-      mentions: body.includes(QA_PREFIX),
+      // Lowercased: the backend keeps the capitals in a slug
+      // (`Trydos-QA-product-289`), so a raw match would miss the very thing
+      // these five paths exist to look for -- and every one of them would pass.
+      mentions: body.toLowerCase().includes(QA_PREFIX),
       length: body.length,
     };
   };

@@ -1514,9 +1514,18 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
         // there. Polling from `/about` found the control missing every time.
         await gotoHome(page);
 
+        // **One word, on purpose.** `GetSearchData` sends any multi-word term
+        // to the text analyser first, and that service answers 403 on this
+        // environment. The app swallows it and carries on, but a single word
+        // never takes that path at all -- and "Trydos" is enough to find the
+        // QA product, which is the only thing here named after it.
+        const searchTerm = "Trydos";
+
         const started = Date.now();
         let seen = false;
         let lastTrouble = "";
+        let lastRows = -1;
+        let lastAddresses: string[] = [];
 
         while (Date.now() - started < SYNC_CEILING_MS) {
           // **The reason is kept, not swallowed.** An earlier version caught
@@ -1524,11 +1533,14 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           // exactly like an index that had not caught up -- for ten minutes,
           // then a message about Elasticsearch.
           const found = await findQaProductInSearch(page, {
-            term: QA_PRODUCT_NAME,
+            term: searchTerm,
           }).catch((error: unknown) => {
             lastTrouble = String((error as Error)?.message ?? "").slice(0, 200);
             return { rows: 0, qaRows: 0, addresses: [] as string[] };
           });
+
+          lastRows = found.rows;
+          lastAddresses = found.addresses;
 
           if (found.qaRows > 0) {
             seen = true;
@@ -1537,6 +1549,22 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
 
           await page.waitForTimeout(SYNC_POLL_MS);
           checkDeadline("wait for the search index to catch up");
+        }
+
+        // **Say whether the search worked at all.** "No QA row" and "no rows"
+        // are different faults with the same appearance, and reporting the
+        // first when it was the second sent this run to look at Elasticsearch
+        // three times.
+        if (!seen) {
+          const sample = lastAddresses
+            .slice(0, 3)
+            .map((href) => href.split("/").pop() ?? "")
+            .join(", ");
+          lastTrouble = lastTrouble
+            ? lastTrouble
+            : lastRows === 0
+              ? `the search ran and returned NO rows at all for "${searchTerm}", so this says nothing about the QA product -- the search itself is not answering`
+              : `the search returned ${lastRows} rows and none belongs to the QA shop. The first few were: ${sample || "(none readable)"}`;
         }
 
         if (!seen && lastTrouble) {

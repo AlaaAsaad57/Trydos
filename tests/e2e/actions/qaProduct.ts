@@ -130,11 +130,17 @@ export const findQaProductInSearch = async (
     addresses.push((await links.nth(index).getAttribute("href")) ?? "");
   }
 
-  // Counted from the product slug, which carries the shop's mark. A suggestion
-  // string spelling the product's name would not appear here at all, which is
-  // the point: this reads the rows the search actually returned.
+  // Counted from the product slug, which carries the mark. A suggestion string
+  // spelling the product's name would not appear here at all, which is the
+  // point: this reads the rows the search actually returned.
+  //
+  // **Lowercased first.** The backend builds a slug from the name and keeps the
+  // capitals -- the real product is `Trydos-QA-product-289` -- and
+  // `String.includes` is case-sensitive. Matching the raw address found no QA
+  // row in a result list that was carrying one, and the seed then waited out
+  // the whole index poll and blamed Elasticsearch.
   const qaRows = addresses.filter((href) =>
-    href.includes(QA_SHOP_SLUG_PREFIX),
+    href.toLowerCase().includes(QA_SHOP_SLUG_PREFIX),
   ).length;
 
   return { rows, qaRows, addresses };
