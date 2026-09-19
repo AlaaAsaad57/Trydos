@@ -1184,9 +1184,24 @@ export const openAccountMenu = async (page: Page): Promise<void> => {
   //     shopper except closing the menu, which no shopper knows to do.
   //   * it is still missing — the store really is empty, and the reading below
   //     says which call failed to fill it.
+  // Closed the way a shopper closes it. **Not with Escape** — the menu has no
+  // key handler; it closes through the full-screen catcher it lays over the
+  // page (the `setMenuOpen(false)` div, same file), so the close is a click
+  // somewhere away from the panel. The panel is pinned to the top right, so the
+  // far left is safely off it.
   const reopened = await (async () => {
-    await page.keyboard.press("Escape").catch(() => undefined);
-    await anyItem.waitFor({ state: "hidden", timeout: 5_000 }).catch(() => undefined);
+    const box = page.viewportSize();
+    await page.mouse
+      .click(5, Math.round((box?.height ?? 800) / 2))
+      .catch(() => undefined);
+
+    const closed = await anyItem
+      .waitFor({ state: "hidden", timeout: 5_000 })
+      .then(() => true)
+      .catch(() => false);
+    // It never closed, so opening it again proves nothing either way.
+    if (!closed) return false;
+
     await trigger.click().catch(() => undefined);
     return await signOut
       .waitFor({ state: "visible", timeout: SIGN_OUT_ITEM_MS })
