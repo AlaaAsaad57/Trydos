@@ -53,8 +53,9 @@
 
 import { expect, test } from "@playwright/test";
 
-import { attemptAuth } from "../actions/auth";
+import { attemptAuth, signedInSession } from "../actions/auth";
 import { gotoAbout } from "../actions/nav";
+import { recordSignInOutcome } from "./session";
 import { approveQaBoutique, approveQaSeller } from "./adminApprove";
 import {
   envValue,
@@ -92,8 +93,12 @@ const QA_PREFIX = "trydos-qa-";
 /** The names this seed gives the rows it creates. All marked, so anybody
  *  looking at the shop in the admin dashboard can see what they are. */
 const QA_SHOP_SLUG = `${QA_PREFIX}e2e`;
-const QA_SHOP_NAME = "Trydos QA (automated tests)";
-const QA_LOCATION_NAME = "Trydos QA location";
+// **Ten characters, not more.** The core backend answered
+// `422 The shop name field must not be greater than 10 characters.` on
+// "Trydos QA (automated tests)". Still marked, and still the value the admin
+// boutique screen is matched on -- that screen draws the NAME, never the slug.
+const QA_SHOP_NAME = "Trydos QA";
+const QA_LOCATION_NAME = "Trydos QA";
 const QA_PRODUCT_NAME = "Trydos QA product";
 
 /** The country every BUY case shops in.
@@ -110,6 +115,28 @@ const QA_COUNTRY = "sy";
  *  that has nothing to do with the app. */
 const QA_PRICE = 1000;
 const QA_STOCK = 500;
+
+/** The QA seller account's password.
+ *
+ *  Only ever used once, at create time: the backend requires it, and the
+ *  account signs in by one-time code afterwards. Taken from the environment
+ *  when somebody wants a known value, and otherwise generated per run so no
+ *  password is written into a public repository.
+ *
+ *  `redact()` masks `QA_SELLER_PASSWORD`, and `call()` never records a body,
+ *  so neither form of it can reach a log. */
+let generatedPassword = "";
+
+const qaSellerPassword = (): string => {
+  const configured = envValue("QA_SELLER_PASSWORD");
+  if (configured) return configured;
+
+  if (!generatedPassword) {
+    // Long, mixed, and thrown away with the process.
+    generatedPassword = `Qa!${Math.random().toString(36).slice(2)}${Date.now().toString(36)}Aa1`;
+  }
+  return generatedPassword;
+};
 
 /** How long the whole seed may take. Throws with the step name when it passes.
  *
@@ -134,6 +161,14 @@ const SERVICE = {
   dashboard: "k2muhz",
 } as const;
 
+/** The other direction. `/api/auth/refresh` allow-lists the service NAME and
+ *  refuses anything else, so the wire token has to be mapped back before the
+ *  exchange is asked for. */
+const SERVICE_NAMES: Record<string, string> = {
+  [SERVICE.market]: "market",
+  [SERVICE.dashboard]: "market-dashboard",
+};
+
 /** Everything this run did, for the case that asserts the seed touched only its
  *  own data. The paths and the shape live in `qaSeedState.ts`, because
  *  Playwright refuses to let the live spec import a test file -- and this file
@@ -147,6 +182,16 @@ const calls: CallRecord[] = [];
  *  pulls in the store and issues a **relative** `/api/proxy` request that only
  *  means something inside a browser. So the browser makes the call, exactly the
  *  way `actions/wishlist.ts` already does.
+ *
+ *  **It refreshes once on a 401 and retries, because the app does.** Measured
+ *  on 2026-09-19: straight after a real sign-in, `/customer/info` and
+ *  `/cart/cart_shipping` answered 200 on core while every `/shop/*` call
+ *  answered `401 auth-001`. Nothing was wrong with the session — the app's own
+ *  `fetchData` treats a market 401 as "exchange the credential and try again"
+ *  (`utils/fetchData.ts`, the 401 handler → `/api/auth/refresh`), and this
+ *  helper was the only caller in the repository that did not. Without the
+ *  retry the seed reports "the core backend refused the vendor request", which
+ *  blames a backend that was about to say yes.
  *
  *  Records the method and the URL. Never the headers — one of them carries the
  *  session — and never the body. */
@@ -163,6 +208,65 @@ const call = async (
 ): Promise<{ ok: boolean; status: number; data: any; message: string }> => {
   calls.push({ method: options.method, url: options.url, note: options.note });
 
+  const first = await sendThroughProxy(page, options);
+  if (first.status !== 401) return first;
+
+
+  // **One exchange, one retry — never a second sign-in.**
+  //
+  // A 401 here means the access token is stale, and the refresh token exists
+  // to replace it. The app does exactly this (`utils/fetchData.ts`), and so
+  // does every other caller in the repository.
+  //
+  // The earlier version of this call sent `server: "vv7qsd"` -- the proxy's
+  // opaque WIRE TOKEN -- where `/api/auth/refresh` expects the SERVICE NAME.
+  // The route allow-lists `market | market-dashboard | chat | stories |
+  // comments` and answers `{ eligible: false }` to anything else, so every
+  // exchange was refused before it began. That is why the 401s looked
+  // unrecoverable and why a second sign-in appeared to be the only way out.
+  // It never was.
+  const refreshed = await page.evaluate(
+    async ({ url, server }) => {
+      try {
+        const response = await fetch("/api/auth/refresh", {
+          method: "POST",
+          credentials: "include",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ url, server }),
+        });
+        const body = await response.json().catch(() => null);
+        return Boolean(body?.refreshed);
+      } catch {
+        return false;
+      }
+    },
+    // The service NAME, mapped back from the wire token.
+    { url: options.url, server: SERVICE_NAMES[options.service] ?? "market" },
+  );
+
+  if (!refreshed) return first;
+
+  calls.push({
+    method: options.method,
+    url: options.url,
+    note: `${options.note ?? ""} (retried after a credential exchange)`.trim(),
+  });
+
+  return await sendThroughProxy(page, options);
+};
+
+/** The proxy call itself, with no retry. */
+const sendThroughProxy = async (
+  page: import("@playwright/test").Page,
+  options: {
+    service: string;
+    url: string;
+    method: string;
+    body?: unknown;
+    sellerId?: string;
+    note?: string;
+  },
+): Promise<{ ok: boolean; status: number; data: any; message: string }> => {
   return await page.evaluate(
     async ({ service, url, method, body, sellerId, country }) => {
       const headers: Record<string, string> = {
@@ -171,6 +275,10 @@ const call = async (
         "x-proxy-method": method,
         "x-country": country,
         "x-language": "en",
+        // The app sends this on every proxy call. It only decodes the target
+        // URL, but matching the app exactly removes one difference from the
+        // list of things a failure could be.
+        "x-need-decode": "true",
       };
       if (sellerId) headers["x-seller-id"] = sellerId;
       if (body !== undefined) headers["content-type"] = "application/json";
@@ -192,7 +300,13 @@ const call = async (
         return {
           ok: response.ok && parsed?.success !== false,
           status: response.status,
-          data: parsed?.data ?? null,
+          // **Falls back to the whole body**, because not every endpoint here
+          // wraps its answer. `/shop/uploads/presigned-url` returns
+          // `{ upload_url, key, expires_in_seconds }` at the top level, and
+          // reading `data` alone gave `null` -- which the seed reported as
+          // "the backend answered without an address to upload to" when the
+          // backend had in fact answered perfectly.
+          data: parsed?.data ?? parsed ?? null,
           message: String(parsed?.message ?? "").slice(0, 300),
         };
       } catch (error) {
@@ -213,6 +327,93 @@ const call = async (
       country: QA_COUNTRY,
     },
   );
+};
+
+/** Upload the one document a vendor request must carry.
+ *
+ *  `documents: []` is refused -- the backend answered
+ *  `422 The documents field is required.` The real form uploads through a
+ *  presigned URL and then attaches `{ type, path }`, so that is what this does,
+ *  through the browser, exactly as `BecomeSellerModal` does:
+ *
+ *    POST /shop/uploads/presigned-url  { mime_type }   -> { upload_url, path }
+ *    PUT  <upload_url>                 <the bytes>
+ *
+ *  The file is a 1x1 PNG built here rather than kept as a fixture, and its name
+ *  is marked, so a document left on the store by a dead run can be recognised.
+ *
+ *  The PUT goes **straight to the storage host**, not through `/api/proxy` --
+ *  a presigned URL is already the credential and the proxy would strip the
+ *  signature. That is one external host this suite talks to that the target
+ *  guard does not cover, because the guard checks configured addresses and this
+ *  one arrives in a response. */
+const uploadQaDocument = async (
+  page: import("@playwright/test").Page,
+): Promise<{ type: string; path: string }> => {
+  const presigned = await call(page, {
+    service: SERVICE.market,
+    url: "/shop/uploads/presigned-url",
+    method: "POST",
+    body: { mime_type: "image/png" },
+    note: "ask for a place to put the QA document",
+  });
+
+  if (!presigned.ok) {
+    refuse(
+      "become a seller",
+      `the backend would not hand out a place to upload the vendor document (${presigned.status}: ${presigned.message}), and the request is refused without one`,
+    );
+  }
+
+  const uploadUrl =
+    presigned.data?.upload_url ?? presigned.data?.url ?? "";
+  const path =
+    presigned.data?.path ??
+    presigned.data?.file_path ??
+    presigned.data?.key ??
+    String(uploadUrl).split("?")[0];
+
+  if (!uploadUrl) {
+    refuse(
+      "become a seller",
+      "the backend answered the upload request without an address to upload to",
+    );
+  }
+
+  const uploaded = await page.evaluate(async ({ url }) => {
+    // A 1x1 PNG, built in the page so no file has to travel.
+    const bytes = Uint8Array.from(
+      atob(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+      ),
+      (c) => c.charCodeAt(0),
+    );
+    try {
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "image/png" },
+        body: new Blob([bytes], { type: "image/png" }),
+      });
+      return { ok: response.ok, status: response.status };
+    } catch (error) {
+      return { ok: false, status: 0 };
+    }
+  }, { url: String(uploadUrl) });
+
+  if (!uploaded.ok) {
+    refuse(
+      "become a seller",
+      `the vendor document could not be uploaded to the storage host (${uploaded.status}). The address is never printed here -- a presigned URL is itself a credential`,
+    );
+  }
+
+  calls.push({
+    method: "PUT",
+    url: "<presigned storage address>",
+    note: "uploaded the QA vendor document",
+  });
+
+  return { type: "passport", path: String(path) };
 };
 
 /** Fail with the step name attached, so the message names where it stopped. */
@@ -303,6 +504,12 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
       await test.step("sign in as Shopper B", async () => {
         await gotoAbout(page, { country: QA_COUNTRY });
 
+        // Attach BEFORE the sign-in starts. This reads the app's own answer --
+        // the sign-in route collects each backend's failure under an
+        // `endpoint` label and returns them as `is_failed` -- so a failure here
+        // can quote what the app said instead of guessing from the screen.
+        const signIn = recordSignInOutcome(page);
+
         const outcome = await attemptAuth(page, {
           intent: "login",
           phone: envValue("TEST_ACCOUNT_PHONE_2"),
@@ -312,29 +519,60 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           otp: shopperBOtp(),
         });
 
-        // A refused one-time code is a NAMED failure, never a wait inside the
-        // deadline. The suite has a code budget; hanging here would spend the
-        // whole seed window finding out the backend said no.
-        //
-        // **Ending on the PIN screen means the code itself was refused**, and
-        // that is worth saying as itself: the run above reported it only as
-        // "the widget ended on the enter-pin screen", which sent a reader to
-        // look at the login widget rather than at the account.
-        const stuckOnPin = outcome.screen === "enter-pin";
+        await signIn.waitForOutcome(30_000);
 
-        expect(
-          outcome.screen,
-          stuckOnPin
-            ? `the CORE backend refused Shopper B's one-time code${outcome.error ? `, saying: ${outcome.error}` : " (it answers 422 invalid_code on /auth/phone/verify_otp_from_guest)"}. ` +
-                "TEST_ACCOUNT_OTP_2 holds the wrong code for this account, or " +
-                "that number is not allow-listed on this environment. Neither " +
-                "the number nor the code is printed here"
-            : `the QA seed could not sign in as Shopper B. The widget ended on the "${outcome.screen}" screen${outcome.error ? `, saying: ${outcome.error}` : ""}. The number and the code are never printed here`,
-        ).toMatch(/^(welcome|closed)$/);
+        // **Ask the app whether it is signed in, rather than reading the
+        // widget.**
+        //
+        // Measured on 2026-09-19: the one-time code was ACCEPTED -- the core
+        // backend answered 200 on /auth/phone/verify_otp_from_guest -- and the
+        // widget still sat on the PIN screen, because the WALLET backend
+        // answered a Cloudflare 502 on /auth/phone/login-with-id-token. An
+        // earlier version of this step read the screen alone and reported "the
+        // core backend refused the code", which was simply untrue and sent the
+        // reader to look at the wrong account.
+        //
+        // A dead wallet must not stop a shopper browsing, and it must not stop
+        // this seed either: the seed needs a CORE session to write seller data,
+        // and nothing it does touches the wallet. `auth.live.spec.ts` is the
+        // case that must stay red for a wallet outage; this one names it and
+        // carries on.
+        const session = await signedInSession(page);
+
+        if (!session.phoneVerified) {
+          const said = signIn.outcome();
+          const named =
+            said.observed && said.failed.length > 0
+              ? `The app named these backends as failed: ${said.failed.join(", ")}.`
+              : said.observed
+                ? "The app named no failed backend, so the sign-in itself did not complete."
+                : "The sign-in answer was never seen, so nothing can be said about which backend refused.";
+
+          throw new Error(
+            [
+              "the QA seed could not sign in as Shopper B.",
+              `The widget ended on the "${outcome.screen}" screen${outcome.error ? `, saying: ${outcome.error}` : ""}.`,
+              named,
+              "Neither the number nor the code is printed here.",
+            ].join(" "),
+          );
+        }
+
+        // Signed in. Say plainly if a leg did not land -- it is not this seed's
+        // problem, but it belongs in the report of the run that saw it.
+        const said = signIn.outcome();
+        if (said.observed && said.failed.length > 0) {
+          test.info().annotations.push({
+            type: "warning",
+            description: `Shopper B signed in, but these backends did not take the session: ${said.failed.join(", ")}. The seed only needs the core session and carries on. auth.live.spec.ts is the case that judges this.`,
+          });
+        }
 
         await page.keyboard.press("Escape").catch(() => undefined);
       });
+
       checkDeadline("sign in as Shopper B");
+
 
       // ---------------------------------------------------------------- 2
       let sellerId = "";
@@ -368,46 +606,100 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           // `example.com` is reserved for exactly this and reaches nobody.
           const qaEmail = `trydos-qa-${Date.now()}@example.com`;
 
-          const requested = await call(page, {
+          // **Ask before creating.** The real form reads the existing request
+          // on mount; only a shopper who has never applied sees the form.
+          //
+          // Without this the seed posts a second request and the backend
+          // answers `422 This phone number is already in use.` -- which reads
+          // like a fault and is simply "you already applied". A seed that
+          // cannot be run twice is not a seed.
+          const existing = await call(page, {
             service: SERVICE.market,
             url: "/shop/vendor-requests",
-            method: "POST",
-            body: {
-              f_name: "Trydos",
-              l_name: "QA",
-              email: qaEmail,
-              phone: envValue("TEST_ACCOUNT_PHONE_2"),
-              currency_code: "USD",
-              country_iso: QA_COUNTRY,
-              language_code: "en",
-              shop_name: QA_SHOP_NAME,
-              shop_address: "Trydos QA, automated tests only",
-              location_country_iso: QA_COUNTRY,
-              location_name: QA_LOCATION_NAME,
-              location_address: "Trydos QA, automated tests only",
-              latitude: 33.5138,
-              longitude: 36.2765,
-              documents: [],
-            },
-            note: "become a seller",
+            method: "GET",
+            note: "has this account already applied to be a seller",
           });
 
-          // "User already exists" is not a failure here: a run that died after
-          // the request but before the approval leaves exactly that.
-          if (!requested.ok && !/already exists/i.test(requested.message)) {
-            refuse(
-              "become a seller",
-              `the core backend refused the vendor request with ${requested.status}: ${requested.message}`,
-            );
+          const alreadyApplied =
+            existing.ok &&
+            Boolean(existing.data?.id ?? existing.data?.status ?? existing.data?.phone);
+
+          // **The identity the admin screen is filtered by has to be the one on
+          // the row that is actually there.** A request made by an earlier run
+          // -- or by a person -- carries its own e-mail, and filtering the
+          // pending list by a freshly generated one would find nothing.
+          const identityEmail = String(existing.data?.email ?? "") || qaEmail;
+
+          // 1 is approved on this screen (`0 Pending / 1 Approved / 2
+          // Rejected`). An already-approved request has nothing to approve, and
+          // driving the admin screen for it would look for a row that is no
+          // longer pending.
+          const alreadyApproved = Number(existing.data?.status ?? 0) === 1;
+
+          if (!alreadyApplied) {
+            const document = await uploadQaDocument(page);
+
+            const requested = await call(page, {
+              service: SERVICE.market,
+              url: "/shop/vendor-requests",
+              method: "POST",
+              body: {
+                f_name: "Trydos",
+                l_name: "QA",
+                email: qaEmail,
+                phone: envValue("TEST_ACCOUNT_PHONE_2"),
+                currency_code: "USD",
+                country_iso: QA_COUNTRY,
+                language_code: "en",
+                // Required on create -- the backend answered
+                // `422 The password field is required.` without them. The seller
+                // account signs in by one-time code from then on, so this value
+                // is never used again by the suite; it is set from
+                // QA_SELLER_PASSWORD when an environment wants a known one.
+                password: qaSellerPassword(),
+                repeat_password: qaSellerPassword(),
+                shop_name: QA_SHOP_NAME,
+                // **Everything here is 10 characters or fewer.** The backend caps
+                // `f_name`, `l_name`, `shop_name` AND `location_name` at 10, and
+                // refuses the whole request one field at a time. The addresses
+                // are kept short for the same reason rather than because a limit
+                // on them is known.
+                shop_address: "Trydos QA",
+                location_country_iso: QA_COUNTRY,
+                location_name: QA_LOCATION_NAME,
+                location_address: "Trydos QA",
+                latitude: 33.5138,
+                longitude: 36.2765,
+                documents: [document],
+              },
+              note: "become a seller",
+            });
+
+            // "User already exists" is not a failure here: a run that died after
+            // the request but before the approval leaves exactly that.
+            // "already in use" is the same thing said differently, and it is
+            // what this backend answers for a phone that has applied before.
+            if (
+              !requested.ok &&
+              !/already exists|already in use/i.test(requested.message)
+            ) {
+              refuse(
+                "become a seller",
+                `the core backend refused the vendor request with ${requested.status}: ${requested.message}`,
+              );
+            }
+
           }
 
-          await approveQaSeller(browser, {
-            email: qaEmail,
-            phone: envValue("TEST_ACCOUNT_PHONE_2"),
-            shopName: QA_SHOP_NAME,
-            record: calls,
-          });
-          approvedByThisRun = true;
+          if (!alreadyApproved) {
+            await approveQaSeller(browser, {
+              email: identityEmail,
+              phone: envValue("TEST_ACCOUNT_PHONE_2"),
+              shopName: QA_SHOP_NAME,
+              record: calls,
+            });
+            approvedByThisRun = true;
+          }
 
           sellerId = await readSellerId();
           if (!sellerId) {
