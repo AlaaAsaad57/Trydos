@@ -1,64 +1,72 @@
 // The two admin approvals the QA seed needs, and the rule they both obey.
 //
-// A new environment cannot produce a buyable product without a person in the
+// A new environment cannot produce a buyable product without somebody in the
 // admin dashboard saying yes twice:
 //
 //   1. **the seller** — the vendor request Shopper B submitted;
 //   2. **the boutique** — the shop that seller then created.
-//
-// Both screens have the same shape: a filtered list, a row, a status control,
-// and a confirm. So both are driven by one function with different arguments.
 //
 // ---------------------------------------------------------------------------
 // The rule, and it is the most important thing in this file
 //
 // **Never approve a row this run cannot prove is its own.**
 //
-// This is a real admin dashboard on a real environment. The rows beside the QA
-// one belong to real sellers waiting for a real decision. Approving one of them
-// by accident is not a test failure — it is a change to somebody's business
-// that no revert undoes.
+// This is a real admin dashboard on a shared environment. The rows beside the
+// QA one belong to real sellers waiting for a real decision. Approving one of
+// them by accident is not a test failure — it is a change to somebody's
+// business that no revert undoes.
 //
-// So every approval passes three gates, in order:
+// So every approval passes four gates, in order:
 //
-//   * the list is **filtered by address** to the pending rows, and then `.first()`
-//     is taken — never a blind index into an unfiltered table;
-//   * the row's own identity is **read and compared** to a value this run knows
-//     (the QA phone, or the QA shop slug);
-//   * a row whose identity **cannot be read at all** is refused, loudly. Not
-//     approved "because it is probably the right one".
-//
-// The comparison is asserted as a **boolean with a fixed message**. The observed
-// value is never put into the message: on a wrong row that message would print a
-// real seller's phone number into a CI log that anybody can read.
+//   * the list is **filtered by address** — `?status=0`, and for the vendor
+//     request also `?email=`, which is the screen's own filter form;
+//   * the row's identity is **read** from a named cell, and a row whose
+//     identity cannot be read at all is **refused**, not approved;
+//   * the identity is **compared** to a value this run created;
+//   * the comparison is asserted as a **boolean with a fixed message**. The
+//     observed value never reaches the message: on a wrong row that would print
+//     a real seller's e-mail into a CI log anybody can read.
 //
 // ---------------------------------------------------------------------------
-// The selectors
+// The screens, read on 2026-09-19 against staging
 //
-// Nothing in this repository describes either admin screen — the admin
-// dashboard is a separate product with its own source. The locators below are
-// therefore written against the **shape** these screens share (a table, a row, a
-// status `<select>`, a confirm button) rather than against markup that has been
-// read, and each one is overridable from the environment so the first run on a
-// new dashboard can be corrected without a code change.
+// **`/admin/vendor-requests`** — its filter form is a plain GET with two fields,
+// `email` and `status`, so the list can be narrowed by address alone.
 //
-// **Every step fails by name.** If a selector does not match, the failure says
-// which step could not find what, and the seed stops without approving
-// anything. That is the intended behaviour for an unverified selector: refuse,
-// never guess.
+//   columns   # | FIRST NAME | LAST NAME | EMAIL | PHONE | … | SHOP NAME | … | STATUS | ACTION
+//   identity  EMAIL is the 4th cell, PHONE the 5th
+//   control   `select.status-select[data-id][data-current-status]` in the last
+//             cell, options `0 Pending / 1 Approve / 2 Reject`
+//   note      the control is `disabled` on a row that has already been decided,
+//             so an enabled one is exactly a pending one
+//   note      the page draws **two** tables and the first has no rows, so the
+//             row locator asks for a row that contains the control
+//
+// **`/admin/boutique/seller?status=0`** — the Seller Boutiques list.
+//
+//   columns   SL# | BANNERS | ICON | NAME | … | STATUS | APPROVE STATUS | CREATED AT | ACTION
+//   identity  NAME is the 4th cell. **The slug is not on this screen**, so the
+//             shop's marked NAME is what is matched here. Every write the seed
+//             makes to a backend is still bound by slug.
+//   control   a `<select onchange="updateRequestStatus(id, this.value)">` in the
+//             APPROVE STATUS cell, options `0 New / 1 Approved / 2 Denied`
+//   note      select2 hides that element (`aria-hidden`, `tabindex="-1"`), so
+//             the option is chosen with `force` — Playwright still dispatches
+//             `change`, which is what the page listens for
+//
+// Every locator can be overridden from the environment, because these two
+// screens belong to a different product and can change without this repository
+// hearing about it.
 
 import { expect, type Browser, type Page } from "@playwright/test";
 
 import { envValue } from "./env";
 
-/** One write this helper made, recorded for `QA-08`. Method and URL only. */
+/** One write this helper made, recorded for the case that checks the seed
+ *  stayed inside its own data. Method and URL only. */
 type CallRecord = { method: string; url: string; note?: string };
 
-/** A selector, with an environment override.
- *
- *  The override exists because these are the only locators in the suite written
- *  against a screen nobody here can read. A dashboard that names things
- *  differently is corrected by setting a variable, not by a release. */
+/** A selector with an environment override. */
 const selector = (key: string, fallback: string): string =>
   envValue(key) || fallback;
 
@@ -71,66 +79,68 @@ const signInToAdmin = async (page: Page): Promise<void> => {
 
   await page.goto(loginUrl, { waitUntil: "domcontentloaded" });
 
-  const email = page.locator(
-    selector("ADMIN_SELECTOR_EMAIL", 'input[type="email"], input[name="email"]'),
-  );
-  const password = page.locator(
-    selector("ADMIN_SELECTOR_PASSWORD", 'input[type="password"]'),
-  );
+  const email = page
+    .locator(selector("ADMIN_SELECTOR_EMAIL", 'input[name="email"]'))
+    .first();
+  const password = page
+    .locator(selector("ADMIN_SELECTOR_PASSWORD", 'input[type="password"]'))
+    .first();
 
   await expect(
-    email.first(),
+    email,
     "the admin dashboard's sign-in screen has no e-mail field where this suite expects one. Set ADMIN_SELECTOR_EMAIL to the right locator",
   ).toBeVisible({ timeout: 45_000 });
 
-  await email.first().fill(envValue("ADMIN_DASHBOARD_EMAIL"));
-  await password.first().fill(envValue("ADMIN_DASHBOARD_PASSWORD"));
-
+  await email.fill(envValue("ADMIN_DASHBOARD_EMAIL"));
+  await password.fill(envValue("ADMIN_DASHBOARD_PASSWORD"));
   await page
-    .locator(
-      selector(
-        "ADMIN_SELECTOR_SUBMIT",
-        'button[type="submit"], input[type="submit"]',
-      ),
-    )
+    .locator(selector("ADMIN_SELECTOR_SUBMIT", 'button[type="submit"]'))
     .first()
     .click();
 
   // Landed, not "the click happened". A refused sign-in leaves the form on
-  // screen, and every step below would then fail as a missing table.
+  // screen and every step below would then fail as a missing table.
   await expect(
-    email.first(),
+    email,
     "the admin dashboard kept its sign-in screen on display after the credentials were sent, so the sign-in was refused. The password is not printed here",
   ).toBeHidden({ timeout: 45_000 });
 };
 
-/** Approve one row, having proved it is the row this run created. */
+/** Approve one row, having first proved it is the row this run created. */
 const approveOneRow = async (
   page: Page,
   options: {
     /** What is being approved, for every message in this function. */
     what: string;
-    /** The filtered list address — pending rows only. */
+    /** The filtered list address. */
     listUrl: string;
+    /** A row of the list — one that carries an approve control. */
+    rowSelector: string;
+    /** The cell holding the row's identity. */
+    identityCell: string;
+    /** The approve control inside the row. */
+    controlSelector: string;
+    /** The option value that means "approved". */
+    approveValue: string;
+    /** select2 hides the boutique control, so the option needs forcing. */
+    force: boolean;
     /** A value only this run's row carries. Compared, never printed. */
     identity: string;
-    /** Where on the row that value is shown. */
-    identityCell: string;
     record: CallRecord[];
   },
 ): Promise<void> => {
   await page.goto(options.listUrl, { waitUntil: "domcontentloaded" });
 
-  const row = page
-    .locator(selector("ADMIN_SELECTOR_ROW", "table tbody tr"))
-    .first();
+  const rows = page.locator(options.rowSelector);
 
   await expect(
-    row,
-    `the admin dashboard's ${options.what} list shows no rows at all at ${options.listUrl}. Either nothing is waiting for approval, or the list is not where this suite expects it — set ADMIN_SELECTOR_ROW`,
+    rows.first(),
+    `the admin dashboard's ${options.what} list shows no row waiting for approval at ${options.listUrl}. Either nothing is pending, or the list is not where this suite expects it — set ADMIN_SELECTOR_ROW`,
   ).toBeVisible({ timeout: 45_000 });
 
-  // ---- gate: read this row's identity, or refuse -------------------------
+  const row = rows.first();
+
+  // ---- gate 1: the identity can be read at all --------------------------
   const shown = await row
     .locator(options.identityCell)
     .first()
@@ -142,43 +152,38 @@ const approveOneRow = async (
     `this run could not read any identifying value from the first ${options.what} row, so it cannot prove the row is its own. Refusing to approve it — the rows beside it belong to real sellers. The observed value is deliberately not printed`,
   ).toBe(true);
 
-  const digitsOnly = (value: string): string => value.replace(/\D/g, "");
-  const matches =
-    (shown ?? "").includes(options.identity) ||
-    digitsOnly(shown ?? "").includes(digitsOnly(options.identity));
+  // ---- gate 2: the identity is this run's -------------------------------
+  const normalise = (value: string): string =>
+    value.replace(/\s+/g, " ").trim().toLowerCase();
+  const digits = (value: string): string => value.replace(/\D/g, "");
 
-  // A boolean, with a fixed message. Putting the observed value in this message
+  const seen = normalise(shown ?? "");
+  const mine = normalise(options.identity);
+  const matches =
+    seen.includes(mine) ||
+    mine.includes(seen) ||
+    (digits(mine).length >= 6 && digits(seen).includes(digits(mine)));
+
+  // A boolean with a fixed message. Putting the observed value in this message
   // would print a real seller's details into a world-readable CI log on exactly
-  // the run where the row was the wrong one.
+  // the run where the row turned out to be the wrong one.
   expect(
     matches,
     `the first ${options.what} row waiting for approval is not the one this run created. Refusing to approve it. Neither value is printed here, on purpose: this repository is public`,
   ).toBe(true);
 
   // ---- the approval itself ----------------------------------------------
-  const status = row.locator(
-    selector("ADMIN_SELECTOR_STATUS", "select"),
-  );
+  const control = row.locator(options.controlSelector).first();
 
   await expect(
-    status.first(),
-    `the ${options.what} row has no status control where this suite expects one. Set ADMIN_SELECTOR_STATUS to the right locator`,
-  ).toBeVisible({ timeout: 30_000 });
+    control,
+    `the ${options.what} row has no approve control where this suite expects one. Set ADMIN_SELECTOR_STATUS to the right locator`,
+  ).toBeAttached({ timeout: 30_000 });
 
-  await status
-    .first()
-    .selectOption(selector("ADMIN_SELECTOR_APPROVE_VALUE", "1"));
+  await control.selectOption(options.approveValue, { force: options.force });
 
-  const confirm = page.locator(
-    selector(
-      "ADMIN_SELECTOR_CONFIRM",
-      'button[type="submit"], [role="dialog"] button',
-    ),
-  );
-
-  if ((await confirm.count()) > 0) {
-    await confirm.first().click();
-  }
+  // The page acts on `change`; give it a moment to send and redraw.
+  await page.waitForTimeout(3_000);
 
   options.record.push({
     method: "UI",
@@ -187,10 +192,9 @@ const approveOneRow = async (
   });
 };
 
-/** A browser context for the admin dashboard, and never one shared with the app.
+/** A browser context for the admin dashboard, never shared with the app's.
  *
- *  Its own context on purpose: the admin session and the shopper session are two
- *  different identities, and one cookie jar holding both is a way for a shopper
+ *  Two different identities; one cookie jar holding both is a way for a shopper
  *  request to go out carrying admin rights. */
 const withAdminPage = async (
   browser: Browser,
@@ -209,22 +213,40 @@ const withAdminPage = async (
 
 /** Approve the vendor request Shopper B just submitted.
  *
- *  The identity is the **phone number** on the request — the one value the QA
- *  account and its row certainly share. It is compared and never printed. */
+ *  Narrowed by the screen's **own** filter — `?email=…&status=0` — so the first
+ *  row is already the right one before any comparison happens. The e-mail is
+ *  the identity: this run generated it, so no other row can carry it. */
 export const approveQaSeller = async (
   browser: Browser,
-  options: { phone: string; shopName: string; record: CallRecord[] },
+  options: {
+    email: string;
+    phone: string;
+    shopName: string;
+    record: CallRecord[];
+  },
 ): Promise<void> => {
   const base = new URL(envValue("ADMIN_DASHBOARD_BASE_URL")).origin;
+  const path =
+    envValue("ADMIN_VENDOR_REQUESTS_PATH") || `${base}/admin/vendor-requests`;
 
   await withAdminPage(browser, async (page) => {
     await approveOneRow(page, {
       what: "vendor request",
-      listUrl:
-        envValue("ADMIN_VENDOR_REQUESTS_PATH") ||
-        `${base}/admin/vendor-requests?status=0`,
-      identity: options.phone,
-      identityCell: selector("ADMIN_SELECTOR_VENDOR_IDENTITY", "td"),
+      listUrl: `${path}?email=${encodeURIComponent(options.email)}&status=0`,
+      // A row that carries the control. The page draws two tables and the first
+      // is empty, so "the first row on the page" is not good enough.
+      rowSelector: selector(
+        "ADMIN_SELECTOR_ROW",
+        "table tbody tr:has(select.status-select:not([disabled]))",
+      ),
+      identityCell: selector("ADMIN_SELECTOR_VENDOR_IDENTITY", "td:nth-child(4)"),
+      controlSelector: selector(
+        "ADMIN_SELECTOR_STATUS",
+        "select.status-select",
+      ),
+      approveValue: selector("ADMIN_SELECTOR_APPROVE_VALUE", "1"),
+      force: false,
+      identity: options.email,
       record: options.record,
     });
   });
@@ -232,24 +254,37 @@ export const approveQaSeller = async (
 
 /** Approve the boutique that seller then created.
  *
- *  The identity here is the **shop slug**, which carries the `trydos-qa-` mark.
- *  That makes this the stronger of the two checks: a row whose slug starts with
- *  the mark cannot belong to a real seller unless one has deliberately taken the
- *  prefix, which is a known and recorded risk. */
+ *  **Matched on the shop NAME, not the slug** — the slug is not drawn on this
+ *  screen. The name this seed gives the shop is marked and unique, and every
+ *  write the seed makes to a backend is still bound by slug, so the mark is
+ *  never the only thing holding the identity together. */
 export const approveQaBoutique = async (
   browser: Browser,
   options: { shopSlug: string; shopName: string; record: CallRecord[] },
 ): Promise<void> => {
   const base = new URL(envValue("ADMIN_DASHBOARD_BASE_URL")).origin;
+  const path =
+    envValue("ADMIN_SELLER_BOUTIQUES_PATH") || `${base}/admin/boutique/seller`;
 
   await withAdminPage(browser, async (page) => {
     await approveOneRow(page, {
       what: "seller boutique",
-      listUrl:
-        envValue("ADMIN_SELLER_BOUTIQUES_PATH") ||
-        `${base}/admin/boutique/seller?status=0`,
-      identity: options.shopSlug,
-      identityCell: selector("ADMIN_SELECTOR_BOUTIQUE_IDENTITY", "td"),
+      listUrl: `${path}?status=0`,
+      rowSelector: selector("ADMIN_SELECTOR_BOUTIQUE_ROW", "table tbody tr"),
+      identityCell: selector(
+        "ADMIN_SELECTOR_BOUTIQUE_IDENTITY",
+        "td:nth-child(4)",
+      ),
+      controlSelector: selector(
+        "ADMIN_SELECTOR_BOUTIQUE_STATUS",
+        "td:nth-child(14) select",
+      ),
+      approveValue: selector("ADMIN_SELECTOR_BOUTIQUE_APPROVE_VALUE", "1"),
+      // select2 hides this one behind its own widget, so the underlying
+      // element is not "visible" to Playwright. Forcing still dispatches
+      // `change`, which is the event `updateRequestStatus` listens for.
+      force: true,
+      identity: options.shopName,
       record: options.record,
     });
   });

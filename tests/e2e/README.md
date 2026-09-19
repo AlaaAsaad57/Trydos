@@ -223,14 +223,26 @@ What it needs, on top of the usual live variables:
 
 Missing any of them is a clean **skip**, never a failure.
 
-**The admin screens are the one unverified part.** Nothing in this repository
-describes the admin dashboard — it is a separate product — so the locators in
-`harness/adminApprove.ts` are written against the shape those screens share and
-each one can be overridden from the environment (`ADMIN_SELECTOR_*`,
-`ADMIN_VENDOR_REQUESTS_PATH`, `ADMIN_SELLER_BOUTIQUES_PATH`). Every step fails
-by name if its locator does not match, and **a row whose identity cannot be read
-is refused rather than approved** — the rows beside the QA one belong to real
-sellers waiting for a real decision.
+**The admin screens** belong to a separate product, so nothing in this
+repository describes them. They were read directly on 2026-09-19, and
+`harness/adminApprove.ts` carries what was found:
+
+* `/admin/vendor-requests` has a plain GET filter form with `email` and
+  `status`, so the seed narrows the pending list to the one address it
+  generated. The row's EMAIL is the 4th cell; the control is
+  `select.status-select`, value `1` to approve, and it is `disabled` on a row
+  already decided.
+* `/admin/boutique/seller?status=0` shows NAME in the 4th cell and an approve
+  `<select>` (`0 New / 1 Approved / 2 Denied`) in the 14th. **The slug is not on
+  that screen**, so the shop's marked NAME is what is matched there; every write
+  the seed makes to a backend is still bound by slug.
+
+Every locator can still be overridden from the environment (`ADMIN_SELECTOR_*`,
+`ADMIN_VENDOR_REQUESTS_PATH`, `ADMIN_SELLER_BOUTIQUES_PATH`), because that
+dashboard can change without this repository hearing about it. Every step fails
+by name, and **a row whose identity cannot be read is refused rather than
+approved** — the rows beside the QA one belong to real sellers waiting for a
+real decision.
 
 ## What is here now, and what is not
 

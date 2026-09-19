@@ -311,6 +311,12 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
       // ---------------------------------------------------------------- 3
       if (!sellerId) {
         await test.step("become a seller, and have the admin approve it", async () => {
+          // Kept, because the admin screen's own filter form takes an e-mail.
+          // Filtering the pending list down to this one address is what makes
+          // "the first row" already the right row, before any comparison runs.
+          // `example.com` is reserved for exactly this and reaches nobody.
+          const qaEmail = `trydos-qa-${Date.now()}@example.com`;
+
           const requested = await call(page, {
             service: SERVICE.market,
             url: "/shop/vendor-requests",
@@ -318,7 +324,7 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
             body: {
               f_name: "Trydos",
               l_name: "QA",
-              email: `qa-${Date.now()}@example.com`,
+              email: qaEmail,
               phone: envValue("TEST_ACCOUNT_PHONE_2"),
               currency_code: "USD",
               country_iso: QA_COUNTRY,
@@ -345,6 +351,7 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
           }
 
           await approveQaSeller(browser, {
+            email: qaEmail,
             phone: envValue("TEST_ACCOUNT_PHONE_2"),
             shopName: QA_SHOP_NAME,
             record: calls,
