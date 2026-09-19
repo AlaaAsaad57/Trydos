@@ -74,8 +74,12 @@ function CallMessage({
     <div
       className={`${openMenu && "ac"} flex flex-col gap-[10px] message-hold`}
     >
+      {/* The red `.call-body` background belongs to a missed call only, so it
+          follows `direction` — never the duration. A call this user started
+          that nobody picked up also has duration 0, and colouring by duration
+          painted it red and made an unanswered outgoing call read as missed. */}
       <div
-        className={` call-body ${duration_in_seconds > 0 && "bg-teal-100!"} `}
+        className={` call-body ${direction !== "missed" && "bg-teal-100!"} `}
         onClick={() => setOpen(id)}
       >
         <>
