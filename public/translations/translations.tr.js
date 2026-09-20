@@ -1350,6 +1350,7 @@ const translations = {
   Block: "Engelle",
   UnBlock: "Engeli kaldır",
   "Delete Chat": "Sohbeti sil",
+  "Are you sure you want to delete this chat?": "Bu sohbeti silmek istediğinizden emin misiniz?",
   "Save To Gallery": "Galeride kaydet",
   Never: "Asla",
   "Media & Files": "Medya ve dosyalar",

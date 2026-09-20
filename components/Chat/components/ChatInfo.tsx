@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { ConfirmModal } from "components/global/ConfirmModal";
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import Image from "next/image";
 import Spinner from "components/global/Spinner";
@@ -56,6 +58,7 @@ function ChatInfo({
 
   const [isBlocked, setIsBlocked] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   useEffect(() => {
     if (
       activeChat?.channel_members?.find((s) => s.user_id !== getUser()?.id)
@@ -321,11 +324,7 @@ function ChatInfo({
           <div className="chat-user-options">
             <div
               className="chat-user-option delete-option"
-              onClick={() => {
-                DeleteChatAction(activeChat?.id);
-                deleteChat({ id: activeChat?.id });
-                cancel();
-              }}
+              onClick={() => setConfirmDelete(true)}
             >
               <img src="/icons/chat/deleteInfo.svg" />{" "}
               <span>{translateFunction("Delete Chat")}</span>
@@ -359,6 +358,25 @@ function ChatInfo({
           id={activeChat?.id}
         />
       )}
+      {confirmDelete &&
+        createPortal(
+          <ConfirmModal
+            showModal={confirmDelete}
+            loading={false}
+            type="Delete"
+            confirmTilte="Delete Chat"
+            confirmMessage="Are you sure you want to delete this chat?"
+            onCancel={() => setConfirmDelete(false)}
+            onConfirm={() => {
+              DeleteChatAction(activeChat?.id);
+              deleteChat({ id: activeChat?.id });
+              setConfirmDelete(false);
+              cancel();
+            }}
+            dataCy="confirm-delete-chat"
+          />,
+          document.body,
+        )}
     </div>
   );
 }

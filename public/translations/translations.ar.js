@@ -1363,6 +1363,7 @@ const translations = {
   Block: "حظر",
   UnBlock: "إلغاء الحظر",
   "Delete Chat": "حذف المحادثة",
+  "Are you sure you want to delete this chat?": "هل أنت متأكد أنك تريد حذف هذه المحادثة؟",
   "Save To Gallery": "حفظ في المعرض",
   Never: "أبداً",
   "Media & Files": "الوسائط والملفات",

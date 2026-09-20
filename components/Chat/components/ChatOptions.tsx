@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { createPortal } from "react-dom";
+import { ConfirmModal } from "components/global/ConfirmModal";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
@@ -10,6 +13,7 @@ import {
 function ChatOptions({ id, unread, pinned, muted, member_id, closeRow }) {
   const { language, setUnreadChat, pinChat, muteChat, deleteChat } =
     useAppStore();
+  const [confirmDelete, setConfirmDelete] = useState(false);
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -61,14 +65,7 @@ function ChatOptions({ id, unread, pinned, muted, member_id, closeRow }) {
           {muted ? translate("Unmute", language) : translate("Mute", language)}
         </div>
       </div>
-      <div
-        className="chat-option chat-4"
-        onClick={() => {
-          DeleteChatAction(id);
-          deleteChat({ id: id });
-          closeRow?.();
-        }}
-      >
+      <div className="chat-option chat-4" onClick={() => setConfirmDelete(true)}>
         <img src="/icons/chat/DeleteIcon.svg" />
 
         <div>{translate("Delete", language)}</div>
@@ -77,6 +74,25 @@ function ChatOptions({ id, unread, pinned, muted, member_id, closeRow }) {
         <img src="/icons/chat/ArchiveIcon.svg" />
         <div>{translate("Archive", language)}</div>
       </div>
+      {confirmDelete &&
+        createPortal(
+          <ConfirmModal
+            showModal={confirmDelete}
+            loading={false}
+            type="Delete"
+            confirmTilte="Delete Chat"
+            confirmMessage="Are you sure you want to delete this chat?"
+            onCancel={() => setConfirmDelete(false)}
+            onConfirm={() => {
+              DeleteChatAction(id);
+              deleteChat({ id: id });
+              setConfirmDelete(false);
+              closeRow?.();
+            }}
+            dataCy="confirm-delete-chat"
+          />,
+          document.body,
+        )}
     </div>
   );
 }

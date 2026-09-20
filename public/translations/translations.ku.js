@@ -1402,6 +1402,7 @@ const translations = {
   Block: "بلۆک کردن",
   UnBlock: "لابردنی بلۆک",
   "Delete Chat": "سڕینەوەی چات",
+  "Are you sure you want to delete this chat?": "دڵنیایت دەتەوێت ئەم چاتە بسڕیتەوە؟",
   "Save To Gallery": "پاشەکەوتکردن بۆ گالەری",
   "You cannot send messages or calls to this user":
     "ناتوانیت بۆ ئەم بەکارهێنەرە پەیام یان پەیوەندی بفرێیت",
