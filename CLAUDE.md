@@ -318,12 +318,21 @@ set of stages with explicit review gates — never improvising scope or skipping
 review.
 
 **Base branch — this repository overrides the plugin default.** The shared rules
-(GU-4 / IM-3) say `main`; in this repository the base branch is **`develop`**.
-`main` is the staging branch (storefront gate) and is never branched from or
-merged into directly. So: `implement` creates `ticket/<slug>` from a clean
-**`develop`**, and `/wf:publish-pr` opens the PR against **`develop`**
-(`--base develop`). This applies to `development` work items only — `study` and
-`research` cut no branch and open no PR.
+(GU-4 / IM-3) say `main`; in this repository the base branch is
+**`development`**. `main` is the staging branch (storefront gate) and is never
+branched from or merged into directly. So: `implement` creates `ticket/<slug>`
+from a clean **`development`**, and `/wf:publish-pr` opens the PR against
+**`development`** (`--base development`). This applies to `development` work
+items only — `study` and `research` cut no branch and open no PR.
+
+> **`develop` is dead — do not branch from it.** The integration branch was
+> renamed. `origin/develop` no longer exists, the local `develop` is marked
+> `[gone]`, and it sits **13 commits behind** `development`. This paragraph said
+> `develop` until an `implement` stage tried to follow it and stopped
+> (`_specs/e2e-production-safety-lock/implement.md`, `BLK-PLAN-01` / B-5).
+> Anything else in this repository still naming `develop` — a workflow trigger,
+> a script, a document — is silently doing nothing and should be corrected when
+> touched.
 
 **Protected runtime paths.** The paths below are this repository's runtime. They
 may be changed **only** inside an approved `implement` stage, and only when the

@@ -37,12 +37,16 @@ started itself. An occupied port 3100 is a hard error, not something it adopts.
 preflight exits straight away and every spec skips. `pnpm test:e2e` on a fresh
 checkout is fast and green.
 
-## The two kinds of spec
+## The three projects
 
-| File name | Backend | Records artifacts |
-|---|---|---|
-| `*.live.spec.ts` | real staging | **nothing** |
-| `*.scripted.spec.ts` | real staging, named answers faked | traces and video on failure |
+| Project | File name | Backend | Records artifacts |
+|---|---|---|---|
+| `setup` | `harness/qaSeed.ts` | real staging, **writes** | video on failure |
+| `live` | `*.live.spec.ts` | real staging | **nothing** |
+| `scripted` | `*.scripted.spec.ts` | real staging, named answers faked | traces and video on failure |
+
+`live` declares `dependencies: ["setup"]`, so the QA seed always runs first. See
+**The QA safety lock** below for what it builds and when.
 
 The artifact split is a security rule, not a preference. **This repository is
 public, so anything CI uploads is world-readable.** A Playwright trace archives
@@ -179,6 +183,130 @@ The suite runs on every push to `develop` and nightly.
   picture unlinks it from the profile; it does not delete the stored object. The
   probe file is tiny and named `trydos-e2e-probe-picture.png` so an orphan can be
   found later. There is no sweeper.
+
+## The QA safety lock
+
+**The problem it solves.** This suite has to create real data on a real
+environment: a seller, a shop, a product, an order, a story. None of it may
+reach a shopper. Before this existed, the four BUY cases each bought a **random
+real seller's product** every night.
+
+**How it works, in one sentence.** The mark travels inside the data — a QA
+shop's slug starts `trydos-qa-`, a QA story links to the QA host — and every
+query that *finds* things filters that mark out.
+
+Three consequences worth knowing before you write a case:
+
+1. **Discovery is filtered; a direct lookup is not.** Search, listing,
+   recommended, the boutique list and both sitemaps hide QA data. Opening the QA
+   product **by address** works for anybody, including a guest, and that is the
+   design: it is what lets a guest case add the QA product to a bag instead of a
+   stranger's.
+2. **QA mode is the only way to see QA data in a search**, and it is one header,
+   `x-qa-view`, compared to `QA_VIEW_SECRET`. The app treats QA mode as **off**
+   unless that secret is set and at least 32 characters. **Never set
+   `QA_VIEW_SECRET` in the deployed staging app** — it belongs only in the
+   environment this harness builds and starts.
+3. **The seed is a setup project, and it runs only in the account lane.** Both
+   lane jobs load the same config and a setup project cannot be excluded by a
+   file filter or by `--project`, so `E2E_LANE` (set by `cli.ts`) is the gate.
+   Unset means "do not seed", so `playwright test` by hand never writes.
+
+What it needs, on top of the usual live variables:
+
+| Variable | What for |
+|---|---|
+| `TEST_ACCOUNT_PHONE_2` | Shopper B, who becomes the QA seller |
+| **`TEST_ACCOUNT_OTP_2`** | **Shopper B's own one-time code — see below** |
+| `ADMIN_DASHBOARD_BASE_URL` / `_EMAIL` / `_PASSWORD` | the two approvals the seed cannot do any other way |
+| `NEXT_PUBLIC_MEDIA_SERVER_BASE_URL` and friends | the product image, which activation needs |
+| `QA_VIEW_SECRET` | QA mode. At least 32 characters or it is ignored |
+
+Missing any of them is a clean **skip**, and the skip names which one. That
+matters more than usual here: the `live` project **depends** on the seed, so a
+*failing* setup stops every live case in the lane, while a *skipped* one lets
+the rest of the suite run.
+
+**`TEST_ACCOUNT_OTP_2` is not optional, and it caught a real gap.** Measured
+against staging on 2026-09-19: signing in as Shopper B with `TEST_ACCOUNT_OTP`
+— which is Shopper A's allow-listed code — is refused by the **core** backend
+with `422 invalid_code` on `/auth/phone/verify_otp_from_guest`. The two accounts
+do not share a code.
+
+Nothing had ever noticed, because the only specs that used Shopper B are
+*scripted* ones that fake every backend answer and never get past the PIN
+screen. So until this variable holds a working code, **nothing in this suite has
+ever really signed in as Shopper B**. Either set it to the code that account
+accepts, or have that number allow-listed with the shared one.
+
+**The admin screens** belong to a separate product, so nothing in this
+repository describes them. They were read directly on 2026-09-19, and
+`harness/adminApprove.ts` carries what was found:
+
+* `/admin/vendor-requests` has a plain GET filter form with `email` and
+  `status`, so the seed narrows the pending list to the one address it
+  generated. The row's EMAIL is the 4th cell; the control is
+  `select.status-select`, value `1` to approve, and it is `disabled` on a row
+  already decided.
+* `/admin/boutique/seller?status=0` shows NAME in the 4th cell and an approve
+  `<select>` (`0 New / 1 Approved / 2 Denied`) in the 14th. **The slug is not on
+  that screen**, so the shop's marked NAME is what is matched there; every write
+  the seed makes to a backend is still bound by slug.
+
+Every locator can still be overridden from the environment (`ADMIN_SELECTOR_*`,
+`ADMIN_VENDOR_REQUESTS_PATH`, `ADMIN_SELLER_BOUTIQUES_PATH`), because that
+dashboard can change without this repository hearing about it. Every step fails
+by name, and **a row whose identity cannot be read is refused rather than
+approved** — the rows beside the QA one belong to real sellers waiting for a
+real decision.
+
+## Writing a seller-dashboard test
+
+**Use `harness/sellerDashboard.ts`. Do not write your own proxy calls.**
+
+The QA seed was the first thing to talk to the dashboard, and everything it
+learned lives in that module. The tests that add, edit and activate through the
+dashboard tabs should build on it.
+
+| Helper | What it is for |
+|---|---|
+| `sellerCall` | one JSON call, with the `401 → refresh → retry` the app itself performs |
+| `sellerCallMultipart` | the same for a `FormData` body — the product create and update endpoints take nothing else |
+| `uploadShopImage` | ticket + media-store upload, returning the **bare filename** the backend wants |
+| `rowsOf` | the list inside an answer, whatever key it arrived under |
+| `SELLER_SERVICE` | the proxy's wire tokens |
+
+Each one exists because getting it wrong cost a run:
+
+* **A `/shop/*` 401 is not an expired session.** The app exchanges the refresh
+  token and retries, and `sellerCall` does the same. Sending the proxy's *wire
+  token* where `/api/auth/refresh` wants the *service name* makes every exchange
+  answer `{ eligible: false }`, and the 401 then looks unrecoverable.
+* **The product endpoints are multipart.** With a JSON body no field is read and
+  the answer is `Product name is required` whatever you sent.
+* **On update, key presence is load-bearing.** The DTO reads `barcode`,
+  `luck_price` and their neighbours without a fallback, so an omitted key is not
+  "unchanged" — it is `422 Undefined array key "barcode"`.
+* **The backend wants a bare filename**, never the stored URL and never the
+  folder. Handing back the URL answers `must not be greater than 191
+  characters`; sending the folder doubles the path.
+* **Answers do not agree on a key.** `/shop/boutiques` returns
+  `{ boutiques: [...] }`, others `{ data: [...] }`, some a bare array, and
+  `/shop/uploads/presigned-url` is flat with no wrapper at all.
+
+Three more rules that are about the data, not the transport:
+
+* **`countries_iso` is the RESTRICTED list**, not "available in". Putting the
+  shopping country there hides the row from every search in that country.
+* **A boutique needs all four languages** before it can be activated, each with
+  a name, description, bio, icon and at least one banner.
+* **`request_status` is the admin's decision; `status` is the seller's own
+  switch.** They are different fields and confusing them sends a test to the
+  admin screen for a shop that was already approved.
+
+**Everything a seller-dashboard test writes must belong to the QA shop.** Bind
+every write to a slug you re-read from the backend — a numeric id carries no
+mark, so an id alone can never prove the row is yours.
 
 ## What is here now, and what is not
 

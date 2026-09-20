@@ -82,6 +82,16 @@ export async function GetHomeBoutiques({
     country,
     language,
     limit,
+    // **No QA mode here, on purpose.** `serverRequests/cached/home.ts` imports
+    // this module, so anything it imports lands in a `use cache` graph -- and a
+    // header read there is a build error. The cached-tree guard caught exactly
+    // that when this line called `qaMode()`.
+    //
+    // It costs nothing: a cached row is one answer shared by every visitor, so
+    // it could not vary per request even if the header were readable. The home
+    // boutique row therefore stays filtered for everybody, which is the safe
+    // direction. QA mode reaches boutiques through the uncached API route and
+    // through the boutique page instead.
     category: category ?? null,
     searchAfter: offset ? JSON.parse(offset.toString()) : null,
   });

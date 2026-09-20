@@ -150,8 +150,12 @@ class ChatService {
     if(!userChat?.id){
      return;
     }
-    const { onValue, ref } = await import("firebase/database");
     try {
+      // Inside the try on purpose. This import used to sit outside it, so a
+      // chunk that failed to load — a stale hash after a deploy, a network
+      // that blocks firebase — rejected `getChats` before anything ran, and
+      // `chat_loading` stayed at its initial `true` with no chats on screen.
+      const { onValue, ref } = await import("firebase/database");
       if (!payload) {
         setChatLoading();
       }
@@ -217,13 +221,18 @@ class ChatService {
       });
 
       setLastNotificationDate(new Date().toLocaleString());
-      setChatDone();
       return [...response.data.channels, ...response.data.pinned_channels];
     } catch (e) {
       LogServerError({
         error: e,
         scenario: "Error In getChats in services/chat",
       });
+    } finally {
+      // Always lower the loading flag. It used to be lowered only on the happy
+      // path, and two awaits sit between `setChats` and this line — the
+      // firebase import and `getDb()`. If either threw, the chats were already
+      // in the store but ChatLists kept showing skeletons for ever.
+      setChatDone();
     }
   }
   async getContacts() {

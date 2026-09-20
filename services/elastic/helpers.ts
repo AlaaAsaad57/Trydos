@@ -1,6 +1,7 @@
 import { search_log_index } from "./INDEXES";
 import { headers } from "next/headers";
 import { elasticSearchClient } from "./elasticsearch.config";
+import { qaShopMustNot } from "./qaFilter";
 
 interface PopularSearchBucket {
   key: string;
@@ -1313,7 +1314,19 @@ export function computeFlashActive(
   return now >= start && now <= end;
 }
 
-export function buildBaseConditions(filters: SearchFilters, country: string) {
+/** The conditions every catalogue query starts from.
+ *
+ *  `qaView` is the QA-mode switch, and it defaults to `false` — which is the
+ *  filtered, shopper-facing behaviour. Every one of the eight call sites keeps
+ *  that default except one: `GetSearchData` in `serverRequests/Search.tsx`,
+ *  which passes what `qaMode()` read off the request. A caller that passed a
+ *  literal `true` would unfilter search for every customer, so nothing ever
+ *  should. */
+export function buildBaseConditions(
+  filters: SearchFilters,
+  country: string,
+  qaView: boolean = false,
+) {
   const categoriesFilterSlugs = [
     ...(filters.categories || []),
     ...(filters.related_categories || []),
@@ -1334,6 +1347,13 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
     { nested: { path: "brand", query: { term: { "brand.status": 1 } } } },
   ];
   const mustNotConditions: any[] = [{ exists: { field: "deleted_at" } }];
+
+  // Hide QA shops from everybody except a request that proved it is QA mode.
+  // Pushed first, beside `deleted_at`, because it belongs with the other
+  // "this row is not for shoppers" rules rather than with the user's filters.
+  if (!qaView) {
+    mustNotConditions.push(qaShopMustNot());
+  }
 
   // Add category filter
   if (uniqueCategorySlugs.length) {

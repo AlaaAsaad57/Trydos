@@ -20,6 +20,12 @@ vi.mock("services/elastic/elasticsearch.config", () => ({
     search: (...args: unknown[]) => search(...args),
     indices: { exists: vi.fn(), stats: vi.fn() },
     count: vi.fn(),
+    // The product sitemap scrolls. Without these two the scroll loop throws on
+    // a missing method and the cleanup prints a stack trace that looks like a
+    // failure but is not one. `scroll` always answers empty, so the loop ends
+    // after the first batch instead of spinning to the case timeout.
+    scroll: vi.fn(async () => ({ hits: { hits: [] } })),
+    clearScroll: vi.fn(async () => undefined),
   },
   elasticSearchComment: {},
 }));
@@ -126,5 +132,88 @@ describe("generateSearchTermsSitemapUrls", () => {
       `an unsupported country was written into the sitemap instead of falling ` +
         `back to tr: ${urls[0]?.loc}`,
     ).toContain("/tr-en/filters?search=faraway");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The QA lock in the sitemap (AC-5).
+//
+// A sitemap is read by search engines, so a QA product reaching one would be
+// indexed by Google — the one place where "hidden from the app" is not enough.
+//
+// Both chains are driven, because the sitemap builds its base query in two
+// separate places and fixing one would leave the other open:
+//
+//   getProductsForSitemap    -> buildProductSearchParams -> buildProductBaseQuery
+//   getHomeSitemapLocales    -> buildSitemapBaseConditions
+// ---------------------------------------------------------------------------
+
+describe("the sitemap excludes the QA shop", () => {
+  /** Every QA clause anywhere in a query. */
+  const qaClausesIn = (node: any): any[] => {
+    const found: any[] = [];
+    const walk = (value: any): void => {
+      if (!value || typeof value !== "object") return;
+      if (Array.isArray(value)) {
+        value.forEach(walk);
+        return;
+      }
+      if (
+        value?.nested?.path === "custom_boutiques" &&
+        value?.nested?.query?.prefix
+      ) {
+        found.push(value);
+      }
+      Object.values(value).forEach(walk);
+    };
+    walk(node);
+    return found;
+  };
+
+  it("keeps QA products out of the product sitemap", async () => {
+    const { getProductsForSitemap } = await import(
+      "services/elastic/sitemap.service"
+    );
+
+    // One batch, then an empty one. Without the empty answer the scroll loop
+    // spins until the 15-second case timeout instead of failing as itself.
+    search.mockResolvedValueOnce({
+      _scroll_id: "scroll-1",
+      hits: { hits: [] },
+    });
+
+    await getProductsForSitemap(10);
+
+    const sent = search.mock.calls[0]?.[0];
+    expect(
+      sent,
+      "the product sitemap never asked the search server anything, so there is no query to check",
+    ).toBeDefined();
+    expect(
+      qaClausesIn(sent).length,
+      "the product sitemap query carried no clause excluding QA shops, so a test product would be published to search engines",
+    ).toBeGreaterThan(0);
+  });
+
+  it("keeps QA products out of the home sitemap's locale list", async () => {
+    const { getHomeSitemapLocales } = await import(
+      "services/elastic/sitemap.service"
+    );
+
+    search.mockResolvedValueOnce({
+      aggregations: {
+        countries: { buckets: [{ key: "sy" }] },
+        languages: { buckets: [{ key: "en" }] },
+      },
+      hits: { hits: [] },
+    });
+
+    await getHomeSitemapLocales();
+
+    const sent = search.mock.calls[0]?.[0];
+    expect(
+      qaClausesIn(sent).length,
+      "the home sitemap's locale query carried no clause excluding QA shops, so a QA product's country and language could add a whole locale to the sitemap",
+    ).toBeGreaterThan(0);
   });
 });

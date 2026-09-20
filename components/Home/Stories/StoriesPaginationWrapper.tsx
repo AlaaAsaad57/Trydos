@@ -7,6 +7,7 @@ import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
 import { UserData } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
+import { dropQaStories } from "utils/qaStoryFilter";
 import { LogError } from "utils/functions";
 
 interface StoriesPaginationWrapperProps {
@@ -53,10 +54,12 @@ function StoriesPaginationWrapper({
       if (!response.success) {
         throw new Error(response.message);
       }
-      const newStories = response.data?.data || [];
+      // Filter before **both** sinks. This page of the feed is written to two
+      // places, and a QA story reaching either one puts it on screen.
+      const newStories = dropQaStories(response.data?.data);
       // Add new stories to the existing ones
-      setAdditionalStories((prev) => [...(prev || []), ...(newStories ?? [])]);
-      setStoryData([...(storiesData ?? []), ...(newStories ?? [])]);
+      setAdditionalStories((prev) => [...(prev || []), ...newStories]);
+      setStoryData([...(storiesData ?? []), ...newStories]);
 
       if (response.data?.next_page_url) {
         setNextPage(next_page + 1);

@@ -417,3 +417,37 @@ describe("the reviewed list and the entry list describe the real tree", () => {
     ).toEqual([]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// AC-8 — QA mode never reaches the cached tree.
+//
+// `utils/server/qaMode.ts` calls `headers()`. Reading a request header inside a
+// `use cache` scope is a build error in Next 16, and the failure would arrive as
+// a broken production build rather than as a test.
+//
+// **This is a regression guard, and it is green both before and after the
+// change.** It has to be. The walk follows imports out of `CACHED_MODULES`, so
+// a module nothing in that graph imports is simply never reached — there is no
+// "old code" version of this that goes red. Its value is the day somebody adds
+// a QA-mode read to a cached reader, which is an easy mistake: the search
+// results query and the cached home tree sit close together.
+//
+// The self-checks above are what stop this being a test that cannot fail:
+// they prove the walk resolves repo imports, reaches past the entry file, and
+// really does spot a forbidden read when there is one.
+// ---------------------------------------------------------------------------
+
+describe("QA mode stays out of the cached tree", () => {
+  it.each(CACHED_MODULES)("%s never reaches utils/server/qaMode.ts", (entry) => {
+    const { seen } = walk(join(ROOT, entry));
+
+    const reached = [...seen]
+      .map((file) => asPosix(file.slice(ROOT.length + 1)))
+      .filter((file) => file === "utils/server/qaMode.ts");
+
+    expect(
+      reached,
+      `${entry} reaches utils/server/qaMode.ts, which calls headers(). A request-header read inside a "use cache" scope fails the production build, and nothing else in this suite would catch it`,
+    ).toEqual([]);
+  });
+});

@@ -870,3 +870,107 @@ describe("recommendations", () => {
     ).toEqual([2]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// The QA lock, at the level that matters most: the query that actually leaves
+// the app.
+//
+// `helpers.test.ts` proves the clause is built. These two prove it survives all
+// the way into the request the listing and the recommendation batch send —
+// which is a different claim, because both flows assemble their own query
+// around what the builder returned.
+// ---------------------------------------------------------------------------
+
+describe("the QA lock in the queries that leave the app", () => {
+  /** Every QA clause inside a query's `must_not`, wherever it sits. */
+  const qaClausesIn = (query: any): any[] => {
+    const found: any[] = [];
+    const walk = (node: any): void => {
+      if (!node || typeof node !== "object") return;
+      if (Array.isArray(node)) {
+        node.forEach(walk);
+        return;
+      }
+      if (node?.nested?.path === "custom_boutiques" && node?.nested?.query?.prefix) {
+        found.push(node);
+      }
+      Object.values(node).forEach(walk);
+    };
+    walk(query?.query?.bool?.must_not);
+    return found;
+  };
+
+  it("listing hides the QA shop", async () => {
+    answers.listing = gridReply();
+    const { getProductsAndFiltersFromElastic } = await load();
+
+    await getProductsAndFiltersFromElastic({ noFilters: true });
+
+    const clauses = qaClausesIn(sent.listing);
+    expect(
+      clauses.length,
+      "the listing query the app sent carried no clause excluding QA shops, so a shop created by the e2e suite would fill a real listing page",
+    ).toBeGreaterThan(0);
+    expect(
+      clauses[0].nested.query.prefix["custom_boutiques.slug.keyword"].value,
+      "the listing query excludes shops by a prefix that is not the QA mark",
+    ).toBe("trydos-qa-");
+  });
+
+  it("recommended excludes the QA shop", async () => {
+    answers["rec-cold"] = {
+      hits: {
+        hits: [
+          {
+            _source: {
+              recommended_products: [
+                { product_id: "1", score: 9 },
+                { product_id: "2", score: 8 },
+              ],
+            },
+          },
+        ],
+      },
+    };
+    answers["rec-batch"] = {
+      hits: {
+        hits: ["1", "2"].map((pid) =>
+          hit(
+            product({
+              id: Number(pid),
+              custom_products: [
+                {
+                  id: 9000 + Number(pid),
+                  product_id: pid,
+                  language_code: "en",
+                  name: `Product ${pid}`,
+                  slug: `p-${pid}`,
+                },
+              ],
+            }),
+          ),
+        ),
+      },
+    };
+    const { GetRecomendationsForUser } = await load();
+
+    const result = await GetRecomendationsForUser({
+      userId: null,
+      language: "en",
+      country: "",
+    });
+
+    // Two real products come back, so an empty answer cannot make this pass by
+    // accident.
+    expect(
+      result.products?.length,
+      "the recommendation flow answered with nothing, so the query check below would be reading a flow that broke",
+    ).toBeGreaterThan(0);
+
+    const clauses = qaClausesIn(sent["rec-batch"]);
+    expect(
+      clauses.length,
+      "the recommendation batch query carried no clause excluding QA shops, so a test product could be recommended to a real customer on the home page",
+    ).toBeGreaterThan(0);
+  });
+});

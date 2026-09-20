@@ -1646,3 +1646,67 @@ describe("register-guest flag", () => {
     expect(store.useAppStore.getState().isRegisteringReady).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// BUG-1 — the password confirmation reached Sentry in clear.
+//
+// `scrubRequestBody` exists to strip credentials from a request body **before
+// it is attached to an error report**, and Sentry keeps whatever it is sent.
+// `CREDENTIAL_FIELDS` listed `password` but not `repeat_password`, and the
+// match is by exact key — so every failed "become a seller" submit sent the
+// shopper's password confirmation, which is their password, in clear.
+//
+// Found while reading a live run's log on 2026-09-19:
+//   "password":"[redacted]",  "repeat_password":"Qa!ljxwda10ksmu8j45jgAa1"
+// ---------------------------------------------------------------------------
+
+describe("scrubbing a request body before it reaches an error report", () => {
+  it("masks the password confirmation, not only the password", async () => {
+    const { scrubRequestBody } = await import("utils/fetchData");
+
+    const scrubbed = String(
+      scrubRequestBody(
+        JSON.stringify({
+          email: "seller@example.com",
+          password: "hunter2-the-real-one",
+          repeat_password: "hunter2-the-real-one",
+        }),
+      ),
+    );
+
+    expect(
+      scrubbed.includes("hunter2-the-real-one"),
+      "the password confirmation reached the error report in clear. It is the same value as the password, so masking one and not the other protects nothing — and Sentry keeps what it is sent",
+    ).toBe(false);
+  });
+
+  it("still masks the password itself", async () => {
+    // The control. Without it, a scrubber that masked everything — or nothing
+    // and happened to pass — would look the same as a correct one.
+    const { scrubRequestBody } = await import("utils/fetchData");
+
+    const scrubbed = String(
+      scrubRequestBody(JSON.stringify({ password: "hunter2-the-real-one" })),
+    );
+
+    expect(
+      scrubbed.includes("hunter2-the-real-one"),
+      "the password itself reached the error report in clear",
+    ).toBe(false);
+  });
+
+  it("leaves an ordinary field alone", async () => {
+    // A scrubber that redacted every key would pass both checks above while
+    // making every error report useless.
+    const { scrubRequestBody } = await import("utils/fetchData");
+
+    const scrubbed = String(
+      scrubRequestBody(JSON.stringify({ shop_name: "Trydos QA" })),
+    );
+
+    expect(
+      scrubbed.includes("Trydos QA"),
+      "an ordinary, non-credential field was masked, which leaves an error report nobody can act on",
+    ).toBe(true);
+  });
+});

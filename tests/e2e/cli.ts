@@ -21,11 +21,20 @@
 // fast, honest "skipped". Only a target that is set *and wrong* fails.
 
 import { spawn } from "node:child_process";
-import { appendFileSync, readdirSync, readFileSync } from "node:fs";
+import { appendFileSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { hasBackends, hasShopperA, loadLiveEnv } from "./harness/env";
-import { assertStagingTarget } from "./harness/guard";
+import { envValue, hasBackends, hasShopperA, loadLiveEnv } from "./harness/env";
+import { assertStagingTarget, isAllowedHost } from "./harness/guard";
+// The lane tables and the pure helpers live in their own file, with no
+// import-time work, so a unit test can read them without importing this one --
+// which would run the whole suite, because `main()` is called at module scope
+// at the bottom of this file.
+import {
+  LANE_ENV_VAR,
+  parseRunFlags,
+  qaGrepFor,
+} from "./laneConfig";
 import { probeStaging } from "./harness/health";
 import { redact } from "./harness/redact";
 import { buildApp } from "./harness/server";
@@ -460,143 +469,17 @@ const report = (): void => {
 // 39.6 and the solo lane about 10. Run as two jobs, the wall time is the longer
 // lane rather than the sum.
 //
-// **A file listed in neither lane is a file that never runs**, and a test that
-// never runs reports nothing at all — the worst outcome this suite has. So the
-// lists are checked against the folder on every use (`laneSpecs`) and a spec in
-// neither, or in both, stops the command instead of being skipped quietly.
+// **The lane tables themselves now live in `tests/e2e/laneConfig.ts`**, with
+// `laneSpecs`, `laneArgs`, `qaGrepFor` and `parseRunFlags`. They moved out of
+// this file so a unit test can read them: importing *this* file runs `main()`
+// at module scope, which defaults to `run` and would start the whole suite
+// against staging inside `pnpm test:run`.
 //
-// Adding a spec: leave it out and the guard tells you, naming the file. When in
-// doubt put it in `account` — that lane is always correct, only slower.
+// A file listed in neither lane is a file that never runs, and `laneSpecs`
+// still checks the lists against the folder on every use. Adding a spec: put
+// it in `ACCOUNT_LANE` or `SOLO_LANE` in `laneConfig.ts`. When in doubt choose
+// `account` -- that lane is always correct, only slower.
 // ---------------------------------------------------------------------------
-
-/** Signs in as the shared account, spends a one-time code, or writes for real.
- *  Never parallelised. */
-const ACCOUNT_LANE = [
-  "auth.live.spec.ts",
-  "auth.scripted.spec.ts",
-  "profile.live.spec.ts",
-  "profile.scripted.spec.ts",
-  "session-recovery.live.spec.ts",
-  "shopper.live.spec.ts",
-  // Signs in as the shared account and spends a real code, for one reason: a
-  // verified shopper's checklist is served by core, and the guest file beside
-  // it can only ever reach the gateway.
-  "wishlist-signed-in.live.spec.ts",
-];
-
-/** No account, no code, nothing real written. Safe to run several at once. */
-const SOLO_LANE = [
-  "checkout.scripted.spec.ts",
-  "guest.live.spec.ts",
-  "locale.live.spec.ts",
-  "login-design-parity.scripted.spec.ts",
-  "session.live.spec.ts",
-  "staticPages.live.spec.ts",
-  // Compare writes nothing anywhere — its whole state is two cookies.
-  "compare.live.spec.ts",
-  // A throwaway guest saves one product and removes it again. It does write to
-  // staging, but not to the shared account and not to anything a second worker
-  // could collide with: each run registers its own guest.
-  "wishlist.live.spec.ts",
-];
-
-/** How many workers a lane may use.
- *
- *  The solo lane gets 2, not 4, and the number is deliberate. Two of these
- *  files still reach real staging — `guest.live` searches the real catalogue
- *  and `session.live` registers real guests — so every extra worker multiplies
- *  the load on a backend that is already the flakiest part of this suite. Two
- *  is enough: the solo lane is about 10 minutes of work and the account lane it
- *  runs beside is about 30, so the lane has nothing to gain from finishing
- *  sooner than that. */
-const LANE_WORKERS: Record<string, number> = { account: 1, solo: 2 };
-
-/** The spec files in a lane, checked against what is actually on disk.
- *
- *  Throws rather than returns, because every way this can be wrong ends in
- *  tests that silently do not run. */
-const laneSpecs = (lane: string): string[] => {
-  const lists: Record<string, string[]> = {
-    account: ACCOUNT_LANE,
-    solo: SOLO_LANE,
-  };
-
-  const wanted = lists[lane];
-  if (!wanted) {
-    throw new Error(
-      `Unknown lane "${lane}". Use ${Object.keys(lists).join(" or ")}.`,
-    );
-  }
-
-  const onDisk = readdirSync(resolve(process.cwd(), "tests/e2e"))
-    .filter((name) => name.endsWith(".spec.ts"))
-    .sort();
-
-  const assigned = [...ACCOUNT_LANE, ...SOLO_LANE];
-
-  const unassigned = onDisk.filter((name) => !assigned.includes(name));
-  if (unassigned.length > 0) {
-    throw new Error(
-      `These spec files are in no lane, so a lane run would skip them ` +
-        `silently: ${unassigned.join(", ")}. Add each one to ACCOUNT_LANE or ` +
-        `SOLO_LANE in tests/e2e/cli.ts. If you are unsure, ACCOUNT_LANE is ` +
-        `the safe choice.`,
-    );
-  }
-
-  const twice = ACCOUNT_LANE.filter((name) => SOLO_LANE.includes(name));
-  if (twice.length > 0) {
-    throw new Error(
-      `These spec files are in both lanes, so they would run twice and the ` +
-        `two runs would fight over the account: ${twice.join(", ")}.`,
-    );
-  }
-
-  const missing = assigned.filter((name) => !onDisk.includes(name));
-  if (missing.length > 0) {
-    throw new Error(
-      `These spec files are in a lane but not on disk, so the lane no longer ` +
-        `runs what it claims to: ${missing.join(", ")}. Remove them from ` +
-        `tests/e2e/cli.ts.`,
-    );
-  }
-
-  return wanted;
-};
-
-/** Turn `--lane=solo` into the arguments Playwright needs for it.
- *
- *  The file names go to Playwright as positional filters, which it reads as
- *  **patterns** against the whole path, not as literal names. So every dot
- *  becomes `[.]` — a character class matching one real dot. Left alone, `.`
- *  matches any character, and a lane's pattern could then catch a file from the
- *  other lane. Written as a class rather than a backslash escape because the
- *  backslash has to survive this file, the shell and Playwright's own parsing,
- *  and it did not: the first version of this line shipped `"\."`, which
- *  TypeScript reads as plain `"."`, so it escaped nothing. */
-const laneArgs = (lane: string): string[] => [
-  `--workers=${LANE_WORKERS[lane]}`,
-  ...laneSpecs(lane).map((name) => name.replace(/[.]/g, "[.]")),
-];
-
-/** Pull out flags the CLI owns before Playwright sees them. */
-const parseRunFlags = (args: string[]): { skipBuild: boolean; playwrightArgs: string[] } => {
-  const skipBuild = args.includes("--skip-build");
-  const lane = args.find((arg) => arg.startsWith("--lane="))?.slice("--lane=".length);
-  const ours = (arg: string): boolean =>
-    arg === "--skip-build" || arg.startsWith("--lane=");
-
-  return {
-    skipBuild,
-    // The lane's own arguments go first, so anything typed on the command line
-    // after them still wins — `--workers` especially, which is how you try a
-    // lane at a different width without editing the table.
-    playwrightArgs: [
-      ...(lane ? laneArgs(lane) : []),
-      ...args.filter((arg) => !ours(arg)),
-    ],
-  };
-};
 
 /** Hand the rest of the arguments to Playwright and adopt its exit code. */
 const runPlaywright = (args: string[]): Promise<number> =>
@@ -638,10 +521,38 @@ const main = async (): Promise<number> => {
       return 0;
 
     case "run": {
-      const { skipBuild, playwrightArgs } = parseRunFlags(rest);
+      const { skipBuild, lane, playwrightArgs } = parseRunFlags(rest);
       if (!(await preflight())) return 0;
       if (!skipBuild) await buildApp();
-      return await runPlaywright(playwrightArgs);
+
+      // Tell the child which lane job it is. `runPlaywright` hands
+      // `process.env` straight to the spawned process, and a parent variable is
+      // visible inside a Playwright **setup project** -- measured. The QA seed
+      // reads it and does nothing unless the lane is `account`, so the seed
+      // cannot run twice when both lane jobs start at once.
+      //
+      // No `--lane=` leaves it unset, which the seed treats as "do not seed".
+      // Somebody running `playwright test` by hand never writes to staging.
+      if (lane) process.env[LANE_ENV_VAR] = lane;
+
+      // Which cases may run against this environment.
+      //
+      // The target is the **core backend address**, not `LIVE_ORIGIN`.
+      // `LIVE_ORIGIN` is always `127.0.0.1:3100` -- the server this harness
+      // starts -- so it says nothing about which environment the app is
+      // pointed at, and asking it would tag every run as unsafe.
+      //
+      // `undefined` for an address the guard recognises as staging; the
+      // `@prod-safe` tag for anything else, including unset. Placed first, so a
+      // `--grep` typed on the command line still wins.
+      //
+      // This is a **second** check, not the first one: `preflight()` above
+      // already refused an unknown address. It earns its place on the day the
+      // guard's list is widened, which is the one way past that refusal.
+      const grep = qaGrepFor(envValue("BACKEND_URL"), isAllowedHost);
+      const args = grep ? [`--grep=${grep}`, ...playwrightArgs] : playwrightArgs;
+
+      return await runPlaywright(args);
     }
 
     default:

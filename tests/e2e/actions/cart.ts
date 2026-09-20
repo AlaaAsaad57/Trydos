@@ -27,7 +27,7 @@ import {
   profile,
 } from "../selectors";
 import { throughProxyInPage } from "../harness/orderCleanup";
-import { gotoProductAtOrNull, leaveProductPage } from "./nav";
+import { gotoQaProduct } from "./qaProduct";
 import { signedInSession } from "./auth";
 
 /** How long a cart change has to come back from staging.
@@ -370,43 +370,43 @@ export const addOpenProductToBag = async (
   return { addable: false, name, lines: before };
 };
 
-/** Put the first product that can actually be bought into the bag.
+/** Put the QA product in the bag.
  *
- *  Walks along the listing on screen, opening products in turn until one of them
- *  can be added. A real shopper does the same thing when the first thing they
- *  like is sold out.
+ *  **This replaced `addFirstBuyableProduct`, which walked the storefront and
+ *  bought whatever it found.** That was the most dangerous thing in this suite:
+ *  four BUY cases each placed a real order against a random real seller's
+ *  product, on a shop with real customers, every night.
  *
- *  Bounded on purpose. A shop where none of the first several products can be
- *  bought is a finding worth failing on — the caller gets `bought: null` and can
- *  say so, naming how many it looked at.
+ *  Buying the QA product instead removes that completely -- and it also removes
+ *  the reason those cases were flaky. The old walk could fail for reasons that
+ *  had nothing to do with the app: every variant of the first six products sold
+ *  out, or a product the seller capped at one quantity. The QA product's stock
+ *  and limits belong to this suite, so "the bag could not be filled" now means
+ *  something is really wrong.
  *
- *  `startAt` skips the products already tried. "Addable" is not the only thing a
- *  case can need of a product — `BUY-04` also needs a line that can be raised to
- *  two, and a product the seller caps at one is addable and still no use to it.
- *  So the caller can look at the next one along rather than fail on a fact about
- *  the catalogue. `looked` counts from the beginning of the listing, so feeding
- *  it straight back in continues where the last call stopped. */
-export const addFirstBuyableProduct = async (
+ *  Reuses `addOpenProductToBag`, so the sheet handling, the colour and size walk
+ *  and the sold-out reading are the same code the old path used.
+ *
+ *  Fails rather than reporting a flag when the product cannot be bought. An
+ *  unusable QA product is a fault in the environment, not a fact about the
+ *  catalogue. */
+export const addQaProductToBag = async (
   page: Page,
-  options: { maxProducts?: number; startAt?: number } = {},
-): Promise<{ bought: string | null; looked: number }> => {
-  const limit = options.maxProducts ?? 6;
-  const from = options.startAt ?? 0;
+  options: { country?: string } = {},
+): Promise<{ bought: string }> => {
+  const opened = await gotoQaProduct(page, { country: options.country });
 
-  for (let index = from; index < limit; index += 1) {
-    const opened = await gotoProductAtOrNull(page, { index });
-    if (!opened) return { bought: null, looked: index };
+  const added = await addOpenProductToBag(page);
 
-    const added = await addOpenProductToBag(page);
-    if (added.addable) return { bought: added.name, looked: index + 1 };
+  expect(
+    added.addable,
+    `the QA product "${opened.name}" could not be put in a bag. It is this ` +
+      "suite's own product, so this is not a fact about the catalogue: either " +
+      "its stock has run down, or it is no longer active. Run the seed to be " +
+      "told which.",
+  ).toBe(true);
 
-    // Sold out. Back to the listing the shopper came from — through the page's
-    // own back arrow, because opened as an overlay the browser's Back and this
-    // control are the same thing and opened as a page they are not.
-    await leaveProductPage(page);
-  }
-
-  return { bought: null, looked: limit };
+  return { bought: added.name || opened.name };
 };
 
 /** Leave the bag for the checkout screen.

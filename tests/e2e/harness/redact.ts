@@ -21,14 +21,23 @@ const SECRET_KEYS: readonly string[] = [
   "TEST_ACCOUNT_PHONE",
   "TEST_ACCOUNT_PHONE_2",
   "TEST_ACCOUNT_OTP",
+  // Shopper B's own code. Added the moment the value existed -- an unmasked
+  // credential in a public CI log is published, not merely untidy.
+  "TEST_ACCOUNT_OTP_2",
   "FLEET_EMAIL",
   "FLEET_PASSWORD",
   "ADMIN_DASHBOARD_EMAIL",
   "ADMIN_DASHBOARD_PASSWORD",
+  // The QA seller account's own password, when an environment pins one.
+  "QA_SELLER_PASSWORD",
   // Not identities, but they are in the same file and a stack trace can carry
   // them just as easily.
   "REDIS_PASS",
   "OTP_KEY_SALT",
+  // The QA-mode secret. It is the one value that can unfilter the catalogue for
+  // whoever holds it, and the suite sends it on every request it makes in QA
+  // mode -- so it is exactly the sort of value a failing request dump carries.
+  "QA_VIEW_SECRET",
   "ELASTICSEARCH_PASSWORD",
   "WALLET_SECRET_KEY",
 ];

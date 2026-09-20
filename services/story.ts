@@ -8,6 +8,7 @@ import { fetchData } from "utils/fetchData";
 
 import { REQUESTS_DATA } from "utils/Requests";
 import { GetTicket } from "utils/UploadUtils";
+import { dropQaStories } from "utils/qaStoryFilter";
 
 const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
@@ -31,7 +32,10 @@ class StoryService {
         throw new Error(response.message);
       }
       let repo: any = response;
-      let data = repo.data.data;
+      // Filter once, here, before either branch writes to the store and before
+      // the value is returned. A QA story must not reach a shopper's feed
+      // through any of the three.
+      let data = dropQaStories(repo.data.data);
       if (page == 1) {
         setStoryData(data);
       } else {

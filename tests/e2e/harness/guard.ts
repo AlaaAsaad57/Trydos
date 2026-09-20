@@ -79,6 +79,20 @@ export type TargetReport = {
 
 const allowedHostSet = new Set(ALLOWED_HOSTS.map((host) => host.toLowerCase()));
 
+/** Is this host one the live suite is allowed to talk to?
+ *
+ *  Pure: it takes the host and reads nothing else — no environment, no file, no
+ *  process state. That matters for two callers. `qaGrepFor` in `laneConfig.ts`
+ *  asks it to decide which cases may run, and a unit test asks it directly
+ *  (`AC-22`), which it can only do because importing this module loads nothing:
+ *  `loadLiveEnv` is lazy, so `.env.development` never reaches the shared Vitest
+ *  worker.
+ *
+ *  `assertStagingTarget` below asks the same question through this function, so
+ *  the list and the comparison rule have one owner rather than two. */
+export const isAllowedHost = (host: string): boolean =>
+  allowedHostSet.has((host ?? "").trim().toLowerCase());
+
 /** Check every configured backend address, or throw.
  *
  *  Throws on the first address that is set and not recognised. The message names
@@ -122,7 +136,7 @@ export const assertStagingTarget = (): TargetReport => {
       );
     }
 
-    if (!allowedHostSet.has(host)) {
+    if (!isAllowedHost(host)) {
       throw new Error(
         [
           `Live target guard: ${key} points at "${host}", which is not a known staging host.`,

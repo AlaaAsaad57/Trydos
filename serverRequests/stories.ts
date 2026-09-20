@@ -4,6 +4,7 @@ import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import { fetchServerData } from "./ServerFetch";
 import { LogServerError } from "utils/serverErrorReporter";
+import { dropQaStories } from "utils/qaStoryFilter";
 
 interface StoryItem {
   id: string | number;
@@ -69,8 +70,9 @@ export async function fetchStoriesForUser(
       };
     }
     return {
-      data:
-        response.data?.data?.data?.filter((s) => s?.stories?.length > 0) || [],
+      // `dropQaStories` does what the old filter did -- drop a person with no
+      // stories left -- and also drops QA stories, which is the point here.
+      data: dropQaStories(response.data?.data?.data),
       next_page_url: response.data?.data?.next_page_url,
     };
   } catch (error) {

@@ -15,6 +15,7 @@ import chat from "services/chat";
 import { watchChannel as watchChannelAction } from "store/chat/actions";
 
 import { REQUESTS_DATA } from "./Requests";
+import { isChannelMutedForMe } from "./chatMute";
 
 import auth from "services/auth";
 import {
@@ -617,6 +618,15 @@ class ForegroundNotificationHandler {
       (m: any) => parseInt(m.id) === parseInt(data.prev_message_id),
     );
 
+    // A muted chat raises no toast. The message itself still goes into the
+    // store below, so the chat list, its order and its unread mark are
+    // unchanged — mute silences the popup, it does not hide the message.
+    //
+    // The push says nothing about mute, so the flag comes from the chat we just
+    // looked up. When the chat is not in the store yet there is nothing to read,
+    // and an unknown chat is treated as not muted.
+    const isMuted = isChannelMutedForMe(chatExists, currentUser?.id);
+
     if (isLinkedMessage || chatExists) {
       state.setLastNotificationDate(new Date().toLocaleString());
       state.receiveChannelEvent(parseInt(messageData.channel.id));
@@ -635,7 +645,11 @@ class ForegroundNotificationHandler {
         }
       } else {
         // Chat is not active
-        if (String(currentUser?.id) !== String(senderUser?.id) && !chatVar) {
+        if (
+          String(currentUser?.id) !== String(senderUser?.id) &&
+          !chatVar &&
+          !isMuted
+        ) {
           showChatNotification(
             senderName,
             displayPreview,
@@ -665,7 +679,8 @@ class ForegroundNotificationHandler {
         if (
           !activeChat?.id &&
           String(currentUser?.id) !== String(senderUser?.id) &&
-          !chatVar
+          !chatVar &&
+          !isMuted
         ) {
           showChatNotification(
             senderName,
