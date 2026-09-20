@@ -170,24 +170,79 @@ describe("the allow-list is not set anywhere in the repository", () => {
   // every build a customer can reach, and the cheapest way that breaks is
   // somebody committing a value into a tracked environment file.
   //
+  // **A mention is not a setting.** `.env.example` documents this variable with
+  // nothing after the `=`, which is exactly what a template should do — so what
+  // is looked for is an assignment carrying a **value**, never the name alone.
+  //
   // **Residual, stated:** this cannot see a value set in a hosting platform's
   // own settings. It narrows the risk; it does not close it.
-  it("is set by no tracked env file", () => {
-    const root = process.cwd();
-    const tracked = readdirSync(root).filter(
+  const VARIABLE = "NEXT_PUBLIC_QA_STORY_VIEWER_PHONES";
+
+  const ASSIGNMENT = new RegExp(`^(?:export\\s+)?${VARIABLE}\\s*=(.*)$`);
+
+  /** The value an env file gives the variable, or `""` when it only names it.
+   *  Ignores a trailing `# comment` and surrounding quotes. */
+  const valueAssignedIn = (contents: string): string => {
+    for (const line of contents.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("#")) continue;
+
+      const match = trimmed.match(ASSIGNMENT);
+      if (!match) continue;
+
+      const value = match[1]
+        .replace(/\s+#.*$/, "")
+        .trim()
+        .replace(/^["']|["']$/g, "")
+        .trim();
+      if (value) return value;
+    }
+    return "";
+  };
+
+  const trackedEnvFiles = (): string[] =>
+    readdirSync(process.cwd()).filter(
       (name) => name === ".env" || name.startsWith(".env."),
     );
 
-    const offenders = tracked.filter((name) =>
-      readFileSync(resolve(root, name), "utf8").includes(
-        "NEXT_PUBLIC_QA_STORY_VIEWER_PHONES",
-      ),
+  it("is given a value by no tracked env file", () => {
+    const root = process.cwd();
+
+    const offenders = trackedEnvFiles().filter((name) =>
+      Boolean(valueAssignedIn(readFileSync(resolve(root, name), "utf8"))),
     );
 
     expect(
       offenders,
-      "a tracked environment file sets NEXT_PUBLIC_QA_STORY_VIEWER_PHONES. Any build made from it shows QA stories to the accounts named there, and the numbers ship inside the browser bundle of a public repository",
+      `a tracked environment file gives ${VARIABLE} a value. Any build made from it shows QA stories to the accounts named there, and the numbers ship inside the browser bundle of a public repository`,
     ).toEqual([]);
+  });
+
+  it("can tell a documented name from a real value", () => {
+    // Without this the check above would also pass for a reader that matches
+    // nothing at all — a renamed variable, a broken regular expression — and
+    // the guard would be quietly dead.
+    expect(
+      valueAssignedIn(`# a template\n${VARIABLE}=   # left empty on purpose\n`),
+      "a documented name with nothing after the = was read as a configured value, so a correct template would fail this guard",
+    ).toBe("");
+
+    expect(
+      valueAssignedIn(`${VARIABLE}=963111111111,963222222222\n`),
+      "a real value in an env file was not detected, so the guard cannot do its job",
+    ).toBe("963111111111,963222222222");
+
+    expect(
+      valueAssignedIn(`${VARIABLE}="963111111111"  # quoted\n`),
+      "a quoted value was not detected",
+    ).toBe("963111111111");
+  });
+
+  it("has an env file to read, so it cannot pass vacuously", () => {
+    expect(
+      trackedEnvFiles(),
+      "no env file was found to check at all, so this guard is passing without looking at anything",
+    ).toContain(".env.example");
   });
 });
 
