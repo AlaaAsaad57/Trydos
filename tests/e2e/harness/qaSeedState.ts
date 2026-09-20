@@ -17,6 +17,26 @@ export const QA_SEED_STATE_PATH = "tests/e2e/.auth/qa-seed.json";
  *  header and never a body. */
 export const CALL_RECORD_PATH = "tests/e2e/.auth/qa-seed-calls.json";
 
+/** The seed's own signed-in session, handed on to the specs downstream of it.
+ *
+ *  **This is here to stop a second sign-in.** The seed already signs in as
+ *  Shopper B — the QA seller — before it writes anything. A dashboard spec that
+ *  signed in again would send a second one-time code for the same account, and
+ *  those sends are counted against limits that are not ours (`OTP_SESSION_MAX`,
+ *  `OTP_COOLDOWN_SECONDS`). So the seed saves its cookie jar and the specs open
+ *  it instead.
+ *
+ *  Declared **here** rather than in `SESSION_STATE` (`harness/liveSession.ts`)
+ *  on purpose: that module imports `fixtures.ts`, and `qaSeed.ts` is a setup
+ *  project that must not pull the spec fixtures — including their `beforeEach`
+ *  — into its own file scope. This file imports nothing from Playwright, so
+ *  both sides can share the literal safely.
+ *
+ *  It lives under `tests/e2e/.auth/`, so `globalTeardown` removes it with every
+ *  other cookie jar at the end of the run. It is plain text and carries
+ *  `MARKET-TOKEN`; it must never be read, printed or attached to a report. */
+export const QA_SELLER_SESSION_PATH = "tests/e2e/.auth/qa-seller.json";
+
 /** One write the seed made.
  *
  *  Declared once, in `sellerDashboard.ts`, and re-exported here so a spec can
@@ -39,6 +59,14 @@ export type QaSeedState = {
    *  first run on an environment, when there is nothing left to approve. */
   approvedByThisRun: boolean;
 };
+
+/** Is the QA seller's saved session on disk?
+ *
+ *  A dashboard case asks this before it starts. `false` means the seed skipped
+ *  or died before it signed in — read the setup project's own line, which names
+ *  the setting that is missing. */
+export const qaSellerSessionSaved = (): boolean =>
+  existsSync(QA_SELLER_SESSION_PATH);
 
 /** Did the seed leave a record on this environment?
  *

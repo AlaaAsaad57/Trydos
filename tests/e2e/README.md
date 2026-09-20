@@ -422,6 +422,83 @@ Three more rules that are about the data, not the transport:
 every write to a slug you re-read from the backend — a numeric id carries no
 mark, so an id alone can never prove the row is yours.
 
+### The browser suite for the dashboard — `sellerDashboard.live.spec.ts`
+
+`harness/sellerDashboard.ts` is the **transport**. The layer above it is what a
+dashboard browser test actually drives:
+
+| File | What it holds |
+|---|---|
+| `actions/sellerDashboard.ts` | the **shell** — settings → the shop list → this shop's dashboard, opening a section by tile or by the slide-out menu, reading which section is open, pressing back |
+| `actions/shopLocations.ts` | the Locations section: the list, the status filter, the create/edit modal, the status control |
+| `actions/shopInfo.ts` | the Shop Info section: the three text fields, Save, and putting the record back |
+
+The shell knows about no single section, on purpose. A products, boutiques,
+stories or comments spec written later calls `openTab(page, "products")` and
+adds **one** file beside the two above.
+
+**Four things that are easy to get wrong here.**
+
+* **Nobody signs in.** The QA seed signs in as the QA seller and now hands its
+  cookie jar on (`QA_SELLER_SESSION_PATH` in `harness/qaSeedState.ts`). Every
+  case opens that jar. A second sign-in would send another one-time code for
+  the same account, against limits that are not ours. So "there is no saved
+  signed-in session" is **the seed's** failure, not the spec's.
+
+* **The open section lives in the address**, not in component state
+  (`?tab=locations`), and the content area repeats it in `data-tab`. That is
+  what lets a navigation case prove *this tile opened this section* without
+  claiming that section's backend answered. SD-02 keeps those two claims apart
+  deliberately: a dead comments backend belongs to the comments spec.
+
+* **A refused shop-info save is invisible on screen.** `ShopInfo.handleSubmit`
+  reports a failure with the browser's own `alert(...)`, and Playwright
+  dismisses a dialog by itself. A case that only looked at the screen would
+  call that refusal a pass. `attemptShopInfoSave` listens for the dialog *and*
+  judges the status the backend answered `PUT /shop/info` with.
+
+* **A location cannot be deleted** — the API exposes none. So the create case
+  names its row with the run's own timestamp (the name is unique per shop per
+  country, and a repeat answers `422 detailed_error[].code = "name"`), the edit
+  and status cases change that same row, and the group deactivates it at the
+  end. One inactive marked row per run stays on the environment. That is the
+  price of covering the create form at all.
+
+**What it does not touch, and why.** Never the shop's **name** — the seed finds
+its shop by name, so a case that renamed it and then died would make the next
+seed build a second QA shop. Never the **logo or banner** — a media upload
+cannot be undone by putting a string back. Contact and address are written and
+restored, media included: `PUT /shop/info` rewrites every field it is given, so
+the restore hands back the bare filenames it found (`bareMediaName`).
+
+**SD-12 is red, and it is red for the core backend.** Leave it alone.
+
+```
+PUT /shop/info -> 422   "The image field must be a string."
+                        detailed_error: image, banner
+```
+
+The QA shop has no logo, so `GET /shop/info` answers with the folder and no
+filename — `https://…/image/upload/seller/`. `ShopInfo.handleSubmit` sends the
+last path segment of whatever it was given, which for that value is the empty
+string. Sending `null` instead is refused by the same rule (measured with a
+direct call). So `PUT /shop/info` offers **no value that means "leave the media
+alone"**, and a seller whose shop has no logo cannot save their contact or their
+address at all.
+
+Do not skip it, do not loosen it, and do not give the QA shop a logo to make it
+green — the logo hides the finding, which is the whole value of the case.
+
+**What this suite found on its first run, and what it cost to work out.** Both
+are written up where they belong; they are listed here because both looked like
+six other things first.
+
+| Symptom | What it really was |
+|---|---|
+| Nine cases showing "Member", "Access Denied" and "your session has expired", after the first case passed | The saved cookie jar is a **snapshot**. Case one did authenticated work, the app exchanged the credential, and every later case opened a superseded pair. Cured by `handOnSession` after every case — `closeSellerPage` in the spec. `sellerDashboard.sessionExpired` now names it on sight. |
+| The Locations section spinning for ever on a direct `?tab=locations` load | A real defect in `LocationsTab`: the effect's deps were `[sellerId, status]`, so the run that happened before the permissions arrived returned from `load()` before `setLoading(false)` and nothing ever re-ran it. Fixed by adding `canRead` to the deps; confirmed by two cases in `tests/components/SellerDashboard/locations/LocationsTab.test.tsx` that were seen red first. |
+| The latitude box refusing 999 with no inline error | Not a defect. The box is `<input type="number" max={90}>`, so the **browser** blocks the submit and `handleSubmit` is never reached — the component's own latitude rule is unreachable from a real browser. The test reads `validity.rangeOverflow` instead. See `fieldValidity`. |
+
 ## What is here now, and what is not
 
 Built: the harness, preflight, the server, both projects, the action and

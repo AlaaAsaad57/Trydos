@@ -55,6 +55,11 @@ export const ACCOUNT_LANE = [
   // media, files a real report and deletes real rows. Two copies at once would
   // fight over the same two identities.
   "stories.live.spec.ts",
+  // The seller dashboard. It signs in as nobody -- it opens the session the QA
+  // seed saved -- but it writes for real to the QA shop: a new location, an
+  // edit, two status changes and the shop's own contact and address. A second
+  // copy would fight over the same rows, and a location cannot be deleted.
+  "sellerDashboard.live.spec.ts",
 ];
 
 /** No account, no code, nothing real written. Safe to run several at once. */

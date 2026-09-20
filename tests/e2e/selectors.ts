@@ -838,3 +838,194 @@ export const stories = {
   reportSubmit: (page: Page): Locator =>
     page.getByTestId("report-submit-button"),
 };
+
+// ---------------------------------------------------------------------------
+// The seller dashboard
+//
+// Three blocks, and the split is deliberate. `sellerDashboard` is the **shell**
+// — the door in, the section tiles, the side menu, the panel. It knows nothing
+// about any one section, so a products or comments spec written later reuses it
+// unchanged. `shopLocations` and `shopInfo` are the two sections covered today;
+// the next section adds a block beside them and touches neither of these.
+// ---------------------------------------------------------------------------
+
+/** Every section of the dashboard, exactly as the app writes it into `?tab=`.
+ *
+ *  Taken from `VALID_TABS` in the dashboard page. The home screen is not in
+ *  this list: the app deletes the query parameter for it rather than writing a
+ *  word, and `data-tab` then reads `"none"`. */
+export type DashboardTab =
+  | "products"
+  | "boutiques"
+  | "locations"
+  | "permissions"
+  | "users"
+  | "orders"
+  | "gallery"
+  | "stories"
+  | "comments"
+  | "excel"
+  | "shopInfo";
+
+/** The dashboard shell: how a seller gets in, and how they move between
+ *  sections.
+ *
+ *  **The active section lives in the URL, not in component state.** The page
+ *  writes `?tab=locations` and reads it back on every render, so a test can ask
+ *  the address which section is open and never has to guess from the content.
+ *  `panel` carries the same value in `data-tab`, which is what lets a
+ *  navigation case prove the right section mounted **without** judging whether
+ *  that section's own backend answered. Those are two separate claims and this
+ *  suite keeps them separate. */
+export const sellerDashboard = {
+  /** In the settings screen: the black "Sales" card.
+   *
+   *  Only drawn for an account that already owns at least one shop
+   *  (`GoToSellerDashBoard.tsx`). An account with none is shown
+   *  `become-seller-btn` instead, so the absence of this card is a real finding
+   *  about the account, not a slow render. */
+  salesCard: (page: Page): Locator => page.getByTestId("seller-sales"),
+  /** The same component's failure box, drawn when the permissions call did not
+   *  answer. Present means the shop list never loaded — a different fault from
+   *  "this account owns no shop". */
+  permissionsError: (page: Page): Locator =>
+    page.getByTestId("seller-permissions-error"),
+
+  /** One shop's card on `/sellerProfile`. */
+  shopCard: (page: Page, sellerId: string | number): Locator =>
+    page.locator('[data-pw="seller-shop-card"][data-seller-id="' + sellerId + '"]'),
+  anyShopCard: (page: Page): Locator =>
+    page.locator('[data-pw="seller-shop-card"]'),
+  shopCardName: (card: Locator): Locator =>
+    card.locator('[data-pw="seller-shop-card-name"]'),
+  /** "Enter Dashboard", inside one shop's card. Scoped to the card on purpose:
+   *  an account with several shops draws one control per shop. */
+  enterDashboard: (card: Locator): Locator =>
+    card.locator('[data-pw="enter-dashboard-btn"]'),
+
+  /** The seller id the dashboard says it is showing. */
+  sellerId: (page: Page): Locator =>
+    page.getByTestId("seller-dashboard-seller-id"),
+  /** One section tile on the dashboard home. */
+  tile: (page: Page, tab: DashboardTab): Locator =>
+    page.getByTestId("seller-dashboard-tab-" + tab),
+  /** Every tile the app decided this seller may see. The list is permission
+   *  filtered, so what is in it is a fact about the account. */
+  anyTile: (page: Page): Locator =>
+    page.locator('[data-pw^="seller-dashboard-tab-"]'),
+  /** The hamburger, and one entry inside the slide-out menu. The menu is the
+   *  **second** door to every section; the tiles are the first. */
+  menuButton: (page: Page): Locator =>
+    page.getByTestId("seller-dashboard-menu-btn"),
+  menuItem: (page: Page, tab: DashboardTab): Locator =>
+    page.getByTestId("seller-dashboard-menu-" + tab),
+
+  /** The content area. `data-tab` is the section it is drawing right now, and
+   *  it reads `"none"` on the home screen. */
+  panel: (page: Page): Locator => page.getByTestId("seller-dashboard-panel"),
+  /** The back arrow in the dashboard's own bar. It does two different things:
+   *  with a section open it returns to the home screen, and on the home screen
+   *  it leaves for `/sellerProfile`. */
+  back: (page: Page): Locator =>
+    page.getByTestId("seller-dashboard-screen-back-button"),
+
+  /** A section refusing to draw because this account lacks the permission.
+   *
+   *  Every section uses the same `AccessDenied` block, so one hook covers all
+   *  of them. Watched for beside a section's own content: without it, a missing
+   *  permission looks exactly like a screen that never loaded, and the failure
+   *  sends the reader to the wrong place. */
+  accessDenied: (page: Page): Locator =>
+    page.getByTestId("dashboard-access-denied"),
+
+  /** The app's own "your session has expired" screen.
+   *
+   *  **The single most useful hook in this block.** A saved cookie jar is a
+   *  snapshot: the moment one case does authenticated work the app can exchange
+   *  the credential, and a later case opening the old pair is recovered as a
+   *  guest. The app then draws this. Watched for everywhere a dashboard screen
+   *  is awaited, so that situation is reported as what it is rather than as
+   *  "the section never loaded". */
+  sessionExpired: (page: Page): Locator =>
+    page.getByTestId("session-expired-login"),
+};
+
+/** The Locations section — the list, the status filter, and the create/edit
+ *  modal.
+ *
+ *  **There is no delete.** The API exposes none, so a location can only ever be
+ *  deactivated. Anything this suite creates stays on the environment. */
+export const shopLocations = {
+  addButton: (page: Page): Locator => page.getByTestId("locations-add-btn"),
+  statusFilter: (page: Page): Locator =>
+    page.getByTestId("locations-status-filter"),
+  list: (page: Page): Locator => page.getByTestId("locations-list"),
+  empty: (page: Page): Locator => page.getByTestId("locations-empty"),
+  /** The list itself failed to load. Different from `actionError`, which is one
+   *  row's status change being refused while the list is fine. */
+  loadError: (page: Page): Locator => page.getByTestId("locations-error"),
+  actionError: (page: Page): Locator =>
+    page.getByTestId("locations-action-error"),
+
+  /** One row, by the id the backend gave it. */
+  card: (page: Page, locationId: string | number): Locator =>
+    page.locator('[data-pw="location-card"][data-location-id="' + locationId + '"]'),
+  anyCard: (page: Page): Locator => page.locator('[data-pw="location-card"]'),
+  cardName: (card: Locator): Locator =>
+    card.locator('[data-pw="location-name"]'),
+  cardAddress: (card: Locator): Locator =>
+    card.locator('[data-pw="location-address"]'),
+  /** The status pill. Read `data-active` (`"1"` or `"0"`), never the word
+   *  inside it — the word is translated and this suite must not depend on the
+   *  display language. */
+  cardStatus: (card: Locator): Locator =>
+    card.locator('[data-pw="location-status"]'),
+  editButton: (card: Locator): Locator =>
+    card.locator('[data-pw="location-edit-btn"]'),
+  /** Deactivate or Activate, whichever the row's current status makes it. One
+   *  control with two meanings — read `cardStatus` first when the test cares
+   *  which one it is about to press. */
+  toggleButton: (card: Locator): Locator =>
+    card.locator('[data-pw="location-toggle-btn"]'),
+
+  /** The create/edit modal. `data-mode` says which of the two it is. */
+  form: (page: Page): Locator => page.getByTestId("location-form"),
+  nameInput: (page: Page): Locator => page.getByTestId("location-name-input"),
+  countrySelect: (page: Page): Locator =>
+    page.getByTestId("location-country-select"),
+  addressInput: (page: Page): Locator =>
+    page.getByTestId("location-address-input"),
+  latitudeInput: (page: Page): Locator =>
+    page.getByTestId("location-latitude-input"),
+  longitudeInput: (page: Page): Locator =>
+    page.getByTestId("location-longitude-input"),
+  saveButton: (page: Page): Locator => page.getByTestId("location-save-btn"),
+  cancelButton: (page: Page): Locator =>
+    page.getByTestId("location-cancel-btn"),
+  closeButton: (page: Page): Locator => page.getByTestId("location-close-btn"),
+  /** The validation line under one field. `field` is `name`, `country`,
+   *  `address`, `latitude` or `longitude`. */
+  fieldError: (page: Page, field: string): Locator =>
+    page.getByTestId("location-" + field + "-field-error"),
+  /** The banner at the top of the form — the backend's own refusal, quoted. */
+  formError: (page: Page): Locator => page.getByTestId("location-form-error"),
+};
+
+/** The Shop Info section — the shop's own name, contact and address.
+ *
+ *  The logo and banner controls are deliberately absent. Changing either one
+ *  uploads to the media store, and that cannot be undone by putting a string
+ *  back, so this suite does not touch them. */
+export const shopInfo = {
+  form: (page: Page): Locator => page.getByTestId("shop-info-form"),
+  nameInput: (page: Page): Locator => page.getByTestId("shop-info-name-input"),
+  contactInput: (page: Page): Locator =>
+    page.getByTestId("shop-info-contact-input"),
+  addressInput: (page: Page): Locator =>
+    page.getByTestId("shop-info-address-input"),
+  saveButton: (page: Page): Locator => page.getByTestId("shop-info-save-btn"),
+  /** The validation line under one field. `field` is `name`, `contact` or
+   *  `address`. */
+  fieldError: (page: Page, field: string): Locator =>
+    page.getByTestId("shop-info-" + field + "-field-error"),
+};

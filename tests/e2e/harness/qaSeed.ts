@@ -86,6 +86,7 @@ import {
 import {
   CALL_RECORD_PATH,
   QA_SEED_STATE_PATH,
+  QA_SELLER_SESSION_PATH,
   type QaSeedState,
 } from "./qaSeedState";
 import {
@@ -1406,6 +1407,15 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
       await mkdir(dirname(QA_SEED_STATE_PATH), { recursive: true });
       await writeFile(QA_SEED_STATE_PATH, JSON.stringify(state, null, 2));
       await writeFile(CALL_RECORD_PATH, JSON.stringify(calls, null, 2));
+
+      // Hand the QA seller's session on, so no spec downstream signs in again.
+      //
+      // Written **last**, and only on the path that reached here: a run that
+      // failed part-way must not leave a jar that looks usable. Saved rather
+      // than re-created because a second sign-in sends a second one-time code
+      // for the same account, against limits that are not ours. See
+      // `QA_SELLER_SESSION_PATH`.
+      await context.storageState({ path: QA_SELLER_SESSION_PATH });
     } finally {
       await context.close();
     }
