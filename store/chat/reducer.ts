@@ -584,15 +584,26 @@ export const useChatStore = (set: any, get: any) => ({
       searchChat: { ...state.searchChat, searchValue: payload },
     })),
 
+  // The chat backend answers `channelSearch` NEWEST FIRST — measured against
+  // staging, channel 538, query "gggg":
+  //   { messages_ids: [339277, 339276, 339275, 339274, 339262], offset: "339262" }
+  // Message ids grow over time, so index 0 is the match nearest the bottom of
+  // the conversation, where the reader already is, and that is where the first
+  // jump belongs. This used to take the LAST entry, which dragged the reader to
+  // the oldest match in the whole history on every search.
   setChatSearchRequest: (payload: any) =>
-    set((state: ChatState) => ({
-      searchChat: {
-        ...state.searchChat,
-        loading: false,
-        messages: payload.messages,
-        activeMessage: payload.messages[payload.messages.length - 1] ?? null,
-      },
-    })),
+    set((state: ChatState) => {
+      const messages = payload?.messages ?? [];
+      return {
+        searchChat: {
+          ...state.searchChat,
+          loading: false,
+          messages,
+          activeMessage: messages[0] ?? null,
+          offset: payload?.offset == null ? "0" : String(payload.offset),
+        },
+      };
+    }),
 
   setChatSearchId: (payload: any) =>
     set((state: ChatState) => ({

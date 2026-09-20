@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 
@@ -9,6 +9,59 @@ import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogError, translateFunction } from "utils/functions";
 
+/**
+ * Searching inside one conversation.
+ *
+ * WHAT THE CHAT BACKEND ANSWERS
+ * `POST /api/v1/channels/channelSearch` answers `{ messages_ids, offset }`, and
+ * `messages_ids` is **newest first**. Measured against staging on 2026-09-20,
+ * channel 538, query "gggg":
+ *
+ *   { "messages_ids": [339277, 339276, 339275, 339274, 339262],
+ *     "offset": "339262" }
+ *
+ * Message ids grow over time, so index 0 is the match closest to the bottom of
+ * the conversation and the last index is the oldest one. Everything below reads
+ * the list that way: the first jump lands on index 0, the up arrow walks
+ * towards the end of the array (older), the down arrow back towards index 0.
+ *
+ * WHY THE JUMP IS SPLIT IN TWO
+ * A match can sit outside the window of messages that is loaded. Asking for the
+ * range and then scrolling in the same breath never worked: the store has the
+ * new messages, but React has not painted the rows yet, so there is no element
+ * to scroll to and the jump is silently dropped. So one effect makes sure the
+ * match is loaded, and a second one jumps as soon as its row exists.
+ */
+
+/** How long the box waits after the last keystroke before it asks the backend. */
+const TYPING_PAUSE_MS = 300;
+
+/** The class a row wears while it is the match the reader is standing on. */
+const HIT_CLASS = "chat-search-hit";
+
+/**
+ * The oldest message already loaded, by id.
+ *
+ * Message ids grow over time, so the smallest one is the oldest. The array
+ * itself cannot be used for this: pagination puts older messages at the FRONT
+ * of `activeChat.messages`, so neither end of it is reliably the oldest
+ * message. Anchoring the range fetch anywhere newer than the true oldest leaves
+ * a hole in the conversation between the anchor and the match.
+ */
+const oldestLoadedId = (messages: any[] | undefined): number | null => {
+  let oldest: number | null = null;
+  for (const message of messages ?? []) {
+    const id = Number(message?.id);
+    // A message that is still being sent has no backend id yet.
+    if (!Number.isFinite(id)) continue;
+    if (oldest === null || id < oldest) oldest = id;
+  }
+  return oldest;
+};
+
+const isLoaded = (messages: any[] | undefined, id: any) =>
+  (messages ?? []).some((message) => String(message?.id) === String(id));
+
 function ChatSearch({ close }) {
   const {
     searchChat,
@@ -16,213 +69,200 @@ function ChatSearch({ close }) {
     setChatSearchLoading,
     setChatSearchValue,
     setChatSearchRequest,
-    setQouted,
     setChatSearchId,
   } = useAppStore();
 
-  const onChange = (e) => {
-    setChatSearchLoading(true);
-    setChatSearchValue(e.target.value);
+  /**
+   * Which query the reader is actually waiting for.
+   *
+   * Every request carries the number it was started with. When the answer comes
+   * back and the number has moved on, the reader has typed more and this answer
+   * belongs to text that is already gone — so it is dropped instead of being
+   * written into the store. Without this, a slow answer to "gg" lands after the
+   * fast answer to "gggg" and puts the reader on a match for deleted text.
+   */
+  const latestQueryRef = useRef(0);
+  /** The request still in the air, so the next keystroke can cancel it. */
+  const inFlightRef = useRef<AbortController | null>(null);
+  /** The match already scrolled to, so an incoming message does not re-scroll. */
+  const scrolledForRef = useRef<string | null>(null);
 
-    getMessagesForSearch(e.target.value);
-  };
-  const getMessagesForSearch = async (value) => {
-    if (value?.length > 0) {
+  const clearResults = useCallback(() => {
+    setChatSearchRequest({ messages: [], offset: null });
+  }, [setChatSearchRequest]);
+
+  const runSearch = useCallback(
+    async (value: string) => {
+      // Whatever is still running was asked for text the reader has changed.
+      inFlightRef.current?.abort();
+      inFlightRef.current = null;
+
+      const query = value.trim();
+      const queryId = ++latestQueryRef.current;
+
+      if (!query || !activeChat?.id) {
+        // An empty box has no results and nothing to wait for. This is the path
+        // that used to leave the spinner turning for good.
+        clearResults();
+        return;
+      }
+
+      const controller = new AbortController();
+      inFlightRef.current = controller;
+      setChatSearchLoading(true);
+
       try {
-        let response = await fetchData({
+        const response: any = await fetchData({
           url: "/api/v1/channels/channelSearch",
           server: "chat",
           method: "POST",
           body: JSON.stringify({
-            query: value,
+            query,
             channel_id: parseInt(activeChat.id),
             limit: 100,
-            offset: parseInt(searchChat.offset),
+            // Every new query starts from the top of its own result list.
+            offset: 0,
           }),
           reqTitle: REQUESTS_DATA.CHANNEL_SERACH,
+          signal: controller.signal,
+          // A cancelled search is not a failure the reader has to be told about.
+          noMessage: true,
         });
-        // @ts-ignore
-        if (!response.success) {
-          // @ts-ignore
-          throw new Error(response.message);
-        }
-        let messages = response.data.messages_ids;
-        let newOffset = response.data.offset;
-        if (response.data.messages_ids?.length > 0) {
-          setChatSearchRequest({
-            messages,
-            newOffset,
-          });
-          setQouted(
-            response.data.messages_ids[response.data.messages_ids.length - 1],
-          );
-          if (
-            activeChat.messages.filter(
-              (s) =>
-                parseInt(s.id) ===
-                response.data.messages_ids[
-                  response.data.messages_ids.length - 1
-                ],
-            ).length > 0
-          ) {
-          } else
-            await getMessagesBetweenTwoMessages({
-              first: parseInt(
-                activeChat.messages[activeChat.messages.length - 1]?.id,
-              ),
-              second: parseInt(
-                response.data?.messages_ids?.[
-                  response?.data?.messages_ids?.length - 1
-                ],
-              ),
-              channel_id: activeChat.id,
-            });
-          var numb = response.data.messages_ids[
-            response.data.messages_ids.length - 1
-          ]
-            ?.toString()
-            ?.match(/\d/g);
-          // @ts-ignore
-          numb = numb?.join("");
-          let el = document.querySelector(
-            `#main-container-${
-              response.data.messages_ids[response.data.messages_ids.length - 1]
-            }`,
-          );
 
-          if (el) {
-            el.scrollIntoView({ block: "center" });
-
-            setTimeout(() => {
-              el.classList.add("backdrop_msg");
-            }, 300);
-            setTimeout(() => {
-              el.classList.remove("backdrop_msg");
-            }, 3000);
-          }
-        } else {
-          setChatSearchLoading(false);
+        // Cancelled, or a newer keystroke won while this was in the air.
+        if (controller.signal.aborted || queryId !== latestQueryRef.current) {
+          return;
         }
+        if (!response?.success) {
+          throw new Error(response?.message);
+        }
+
+        setChatSearchRequest({
+          messages: response.data?.messages_ids ?? [],
+          offset: response.data?.offset,
+        });
       } catch (err) {
+        if (controller.signal.aborted || queryId !== latestQueryRef.current) {
+          return;
+        }
         LogError({
           error: err,
           scenario: "getMessagesForSearch in chat search - chat widget",
         });
-        setChatSearchLoading(false);
+        clearResults();
+      } finally {
+        if (inFlightRef.current === controller) inFlightRef.current = null;
       }
-    }
-  };
-  const NextSearch = async () => {
-    let nextMessageId;
-    searchChat.messages.map((s, index) => {
-      if (s === searchChat.activeMessage) {
-        if (searchChat.messages[index + 1]) {
-          nextMessageId = searchChat.messages[index + 1];
-        }
-      }
-      return;
-    });
+    },
+    [
+      activeChat?.id,
+      clearResults,
+      setChatSearchLoading,
+      setChatSearchRequest,
+    ],
+  );
 
-    if (nextMessageId) {
-      setQouted(nextMessageId);
-      if (
-        activeChat.messages.filter((s) => parseInt(s.id) === nextMessageId)
-          .length > 0
-      ) {
-      } else {
-        setChatSearchLoading(true);
-        await getMessagesBetweenTwoMessages({
-          first: parseInt(
-            activeChat.messages[activeChat.messages.length - 1]?.id,
-          ),
-          second: parseInt(nextMessageId),
-          channel_id: activeChat.id,
-        });
-      }
-      setChatSearchId(nextMessageId);
-      var numb = nextMessageId?.toString()?.match(/\d/g);
-      numb = numb?.join("");
-      let el = document.querySelector(`#main-container-${nextMessageId}`);
-      if (el) {
-        el.scrollIntoView({ block: "center" });
-
-        setTimeout(() => {
-          el.classList.add("backdrop_msg");
-        }, 300);
-        setTimeout(() => {
-          el.classList.remove("backdrop_msg");
-        }, 3000);
-      }
-    }
-  };
-  const PreviousSearch = async () => {
-    let prevMessageId;
-    searchChat.messages.map((s, index) => {
-      if (s === searchChat.activeMessage) {
-        if (searchChat.messages[index - 1]) {
-          prevMessageId = searchChat.messages[index - 1];
-        }
-      }
-    });
-
-    if (prevMessageId) {
-      setQouted(prevMessageId);
-      if (
-        activeChat.messages.filter((s) => parseInt(s.id) === prevMessageId)
-          .length > 0
-      ) {
-      } else {
-        setChatSearchLoading(true);
-        await getMessagesBetweenTwoMessages({
-          first: parseInt(
-            activeChat.messages[activeChat.messages.length - 1]?.id,
-          ),
-          second: parseInt(prevMessageId),
-          channel_id: activeChat.id,
-        });
-      }
-      setChatSearchId(prevMessageId);
-      var numb = prevMessageId?.toString()?.match(/\d/g);
-      numb = numb?.join("");
-      let el = document.querySelector(`#main-container-${prevMessageId}`);
-      if (el) {
-        el.scrollIntoView({ block: "center" });
-
-        setTimeout(() => {
-          el.classList.add("backdrop_msg");
-        }, 300);
-        setTimeout(() => {
-          el.classList.remove("backdrop_msg");
-        }, 3000);
-      }
-    }
-  };
+  /* ------------------------------------------------------------------ */
+  /* Step 1: make sure the match is loaded                               */
+  /* ------------------------------------------------------------------ */
   useEffect(() => {
-    if (searchChat.activeMessage) {
-      document
-        .querySelector(`#main-container-${searchChat.activeMessage}`)
-        ?.scrollIntoView({ block: "center", inline: "center" });
-      let el = document.querySelector(
-        `#main-container-${searchChat.activeMessage}`,
-      );
-      if (el) {
-        el.scrollIntoView({ block: "center" });
+    const target = searchChat.activeMessage;
+    if (!target || !activeChat?.id) return;
+    if (isLoaded(activeChat?.messages, target)) return;
 
-        setTimeout(() => {
-          el.classList.add("backdrop_msg");
-        }, 100);
-        setTimeout(() => {
-          el.classList.remove("backdrop_msg");
-        }, 1000);
-      }
-      setQouted(null);
+    const anchor = oldestLoadedId(activeChat?.messages);
+    if (anchor === null) return;
+
+    let alive = true;
+    setChatSearchLoading(true);
+    getMessagesBetweenTwoMessages({
+      first: anchor,
+      second: Number(target),
+      channel_id: activeChat.id,
+    })
+      .catch((err) =>
+        LogError({
+          error: err,
+          scenario:
+            "get messages between two messages in chat search - chat widget",
+        }),
+      )
+      .finally(() => {
+        if (alive) setChatSearchLoading(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+    // Deliberately keyed on the match only: `activeChat.messages` changes on
+    // every incoming message, and re-running this then would re-fetch a range
+    // that is already here.
+  }, [searchChat.activeMessage, activeChat?.id]);
+
+  /* ------------------------------------------------------------------ */
+  /* Step 2: jump to it, once its row is on the page                     */
+  /* ------------------------------------------------------------------ */
+  useEffect(() => {
+    const target = searchChat.activeMessage;
+    if (!target) {
+      scrolledForRef.current = null;
+      return;
     }
-  }, [searchChat.activeMessage]);
+
+    const row = document.getElementById(`main-container-${target}`);
+    // Not painted yet. Step 1 is fetching it, and this effect runs again the
+    // moment the store holds it, because `activeChat.messages` is a dependency.
+    if (!row) return;
+
+    row.classList.add(HIT_CLASS);
+    if (scrolledForRef.current !== String(target)) {
+      scrolledForRef.current = String(target);
+      row.scrollIntoView({ block: "center" });
+    }
+
+    return () => row.classList.remove(HIT_CLASS);
+  }, [searchChat.activeMessage, activeChat?.messages]);
+
+  /* ------------------------------------------------------------------ */
+  /* Results belong to one conversation, and die with the bar            */
+  /* ------------------------------------------------------------------ */
+  useEffect(() => {
+    setChatSearchValue("");
+    clearResults();
+  }, [activeChat?.id]);
+
   useEffect(() => {
     return () => {
+      inFlightRef.current?.abort();
+      latestQueryRef.current += 1;
       setChatSearchValue("");
+      setChatSearchRequest({ messages: [], offset: null });
     };
   }, []);
+
+  /* ------------------------------------------------------------------ */
+  /* Where the reader is standing in the result list                     */
+  /* ------------------------------------------------------------------ */
+  const matches = searchChat.messages ?? [];
+  const position = matches.findIndex(
+    (id) => String(id) === String(searchChat.activeMessage),
+  );
+  // Newest first, so a lower index is a newer message.
+  const hasNewer = position > 0;
+  const hasOlder = position >= 0 && position < matches.length - 1;
+  const busy = searchChat.loading;
+
+  const goTo = (index: number) => {
+    const id = matches[index];
+    if (id === undefined) return;
+    setChatSearchId(id);
+  };
+
+  const arrowClass = (enabled: boolean) =>
+    `flex ml-1 ${
+      enabled ? "cursor-pointer" : "opacity-40 cursor-not-allowed"
+    }`;
+
   return (
     <div className=" z-999999 absolute h-[50px] top-[48px] items-center left-0 w-full bg-[#fafafa] py-2 px-3 flex-row justify-between">
       <div className="flex relative w-full">
@@ -284,70 +324,58 @@ function ChatSearch({ close }) {
             </g>
           </g>
         </svg>
-        {searchChat.loading && (
-          <Spinner className=" absolute right-2 top-3 z-99 " />
-        )}
+        {busy && <Spinner className=" absolute right-2 top-3 z-99 " />}
         <DebounceInput
           className="w-full text-[#1d1d1d] h-full border-none outline-hidden absolute top-0 left-0 pl-11 z-10 light rounded-[15px] bg-[#fafafa]"
           minLength={1}
           placeholder={translateFunction("Search")}
           value={searchChat.searchValue}
           onChange={(e) => {
-            onChange(e);
+            setChatSearchValue(e.target.value);
+            runSearch(e.target.value);
           }}
-          debounceTimeout={300}
+          debounceTimeout={TYPING_PAUSE_MS}
         />
       </div>
       <div className="flex ml-2">
-        <div
-          className={`flex cursor-pointer ${
-            searchChat.loading && "opacity-0"
-          } ${
-            searchChat.activeMessage ===
-              searchChat.messages[searchChat.messages.length - 1] &&
-            "opacity-50"
-          }`}
-          onClick={() => {
-            if (
-              !searchChat.loading &&
-              searchChat.activeMessage !==
-                searchChat.messages[searchChat.messages.length - 1]
-            )
-              NextSearch();
-          }}
+        <button
+          type="button"
+          data-pw="chat-search-newer"
+          disabled={busy || !hasNewer}
+          className={arrowClass(!busy && hasNewer)}
+          onClick={() => goTo(position - 1)}
         >
           <img
             src="/icons/arrow-down.svg"
+            alt=""
             style={{ transform: "scale(0.8)" }}
           />
-        </div>
-        <div
-          className={`flex ml-1 cursor-pointer  ${
-            searchChat.loading && "opacity-0"
-          } ${
-            searchChat.activeMessage === searchChat.messages[0] && "opacity-50"
-          }`}
-          onClick={() => {
-            if (
-              !searchChat.loading &&
-              searchChat.activeMessage !== searchChat.messages[0]
-            )
-              PreviousSearch();
-          }}
+        </button>
+        <button
+          type="button"
+          data-pw="chat-search-older"
+          disabled={busy || !hasOlder}
+          className={arrowClass(!busy && hasOlder)}
+          onClick={() => goTo(position + 1)}
         >
-          <img src="/icons/arrow-up.svg" style={{ transform: "scale(0.8)" }} />
-        </div>
-        <div
+          <img
+            src="/icons/arrow-up.svg"
+            alt=""
+            style={{ transform: "scale(0.8)" }}
+          />
+        </button>
+        <button
+          type="button"
+          data-pw="chat-search-close"
           className="flex ml-1 cursor-pointer"
-          onClick={() => {
-            close();
-          }}
+          onClick={() => close()}
         >
           <img
             src="/icons/settings/Xicon.svg"
+            alt=""
             style={{ transform: "scale(0.8)" }}
           />
-        </div>
+        </button>
       </div>
     </div>
   );
