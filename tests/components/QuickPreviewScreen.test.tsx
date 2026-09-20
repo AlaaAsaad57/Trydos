@@ -23,6 +23,9 @@ import { LogoAnimationProvider } from '../../NewLoginDesign/LogoAnimationContext
 
 const DESIGN_H = 932;
 const CARD_H = 473;
+const CARD_W = 390;
+/** Design px of empty space between one slide's card and the next. */
+const SLIDE_GAP = 20;
 /** The design's gap under the button, and the least it may shrink to. */
 const BELOW_BUTTON = 35;
 const BELOW_BUTTON_MIN = 35;
@@ -140,32 +143,81 @@ describe('QuickPreviewScreen — the slider gives up the height the page does no
         expect(height, 'the card lost height on a canvas that has the whole artboard').toBe(`${CARD_H}px`);
     });
 
-    // The border is a 0.5 px SVG stroke drawn 0 to 0.5 px inside the card's
-    // edge. A clip on the card box sits exactly on that edge, and on a real
-    // phone (transform scale 0.958, GPU raster) it eats part of the stroke: the
-    // right border came out cut. The Next button draws the same SVG with no
-    // clip and is never cut. jsdom cannot rasterize, so the check is the
-    // class itself: the box that holds the border must not clip. The Embla
-    // viewport inside the padding keeps its own clip for the slides.
-    it('does not clip its own border with an overflow rule on the card box', () => {
+    // The border belongs to the slide, not to the box around the slider. Each
+    // preview is its own bordered card, so a swipe carries one card out and
+    // brings the next one in with its own edge. A single border on the box
+    // stayed put while only the contents moved, which is not what the design
+    // draws.
+    it('gives every slide its own border, and none to the box around them', () => {
         const { card } = renderOnCanvas(745);
+        const viewport = card.querySelector<HTMLElement>('.cursor-grab')!;
+        const slides = Array.from(viewport.firstElementChild!.children);
+
+        expect(slides.length, 'the slider rendered no slides').toBeGreaterThan(0);
+        for (const [index, slide] of slides.entries()) {
+            expect(
+                slide.querySelector('svg[aria-hidden="true"] rect'),
+                `slide ${index + 1} has no border of its own`,
+            ).not.toBeNull();
+        }
         expect(
-            card.querySelector('svg')?.parentElement,
-            'the card border svg is not a direct child of the card box',
-        ).toBe(card);
-        expect(
-            card.classList.contains('overflow-hidden'),
-            'the card box clips its content, so its own 0.5 px border is cut at the edge on a phone',
+            Array.from(card.children).some((child) => child.tagName === 'svg'),
+            'the box around the slider still draws a border of its own, so the border does not travel with the slide',
         ).toBe(false);
     });
 
-    it('draws the card border at the same height as the card', () => {
+    // Nothing may move at rest. The screen must look exactly as it did when a
+    // single border sat on the box, so every card keeps the design's full 390
+    // and the gap is made by widening the window instead of shrinking cards.
+    it('keeps every slide at the design 390, so nothing moves at rest', () => {
         const { card } = renderOnCanvas(745);
-        const border = card.querySelector('svg');
-        expect(border, 'the card has no border svg').not.toBeNull();
+        const viewport = card.querySelector<HTMLElement>('.cursor-grab')!;
+        const slides = Array.from(viewport.firstElementChild!.children);
+
+        expect(slides.length, 'the slider rendered no slides').toBeGreaterThan(0);
+        for (const [index, slide] of slides.entries()) {
+            const border = slide.querySelector('svg[aria-hidden="true"]')!;
+            expect(
+                Number(border.getAttribute('width')),
+                `slide ${index + 1} is not the design 390 wide, so the card changed size at rest`,
+            ).toBe(CARD_W);
+        }
+    });
+
+    // The border is a 0.5 px SVG stroke drawn 0 to 0.5 px inside the slide's
+    // edge. The Embla viewport clips at its own edge, and on a real phone
+    // (transform scale 0.958, GPU raster) a clip sitting on that same edge ate
+    // part of the stroke: the right border came out cut. jsdom cannot
+    // rasterize, so the check is the geometry: the window runs SLIDE_GAP wider
+    // than the card, so the clip is half a gap outside the stroke at any scale.
+    // The same width is what puts the gap between two cards during a drag.
+    it('runs the clipping window wider than the card, so no border is cut and the cards are spaced', () => {
+        const { card } = renderOnCanvas(745);
+        const viewport = card.querySelector<HTMLElement>('.cursor-grab')!;
+
         expect(
-            border!.getAttribute('height'),
-            'the card border is drawn at a different height than the card box',
-        ).toBe(String(expected(745).cardHeight));
+            viewport.style.width,
+            'the window is the same width as the card, so the clip lands on the 0.5 px stroke and cuts it on a phone, and two cards touch during a drag',
+        ).toBe(`${CARD_W + SLIDE_GAP}px`);
+        expect(
+            viewport.style.marginInline,
+            'the wider window is not pulled back over the card box, so the card no longer sits where the design puts it',
+        ).toBe(`${-SLIDE_GAP / 2}px`);
+    });
+
+    it('draws every slide border at the same height as the card', () => {
+        const { card } = renderOnCanvas(745);
+        const viewport = card.querySelector<HTMLElement>('.cursor-grab')!;
+        const slides = Array.from(viewport.firstElementChild!.children);
+
+        expect(slides.length, 'the slider rendered no slides').toBeGreaterThan(0);
+        for (const [index, slide] of slides.entries()) {
+            const border = slide.querySelector('svg[aria-hidden="true"]');
+            expect(border, `slide ${index + 1} has no border svg`).not.toBeNull();
+            expect(
+                border!.getAttribute('height'),
+                `slide ${index + 1} draws its border at a different height than the card box`,
+            ).toBe(String(expected(745).cardHeight));
+        }
     });
 });

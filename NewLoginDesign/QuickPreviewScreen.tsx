@@ -248,6 +248,17 @@ const GAP = {
 const BELOW_BUTTON_MIN = 35;
 
 /**
+ * Design px of empty space between one slide's card and the next.
+ *
+ * Each card keeps the design's full 390 width. The gap is made by running the
+ * window SLIDE_GAP/2 wider than the card box on each side and centring every
+ * card in its own slot, so the card does not shrink and nothing moves at rest.
+ * The shopper only sees the gap while dragging, which is the point: it is what
+ * shows that each slide carries its own border.
+ */
+const SLIDE_GAP = 20;
+
+/**
  * The most design px this screen can give up before the canvas shrinks.
  *
  * The shared cap (MAX_DEFICIT, 200) is what the tightest screen allows. This
@@ -546,43 +557,72 @@ export default function QuickPreviewScreen({
                     file (visible: false), so there is none here either.
                     The height is 473 less the page deficit — see `cardHeight`.
 
-                    No `overflow-hidden` on this box. The border is a 0.5px
-                    stroke drawn flush inside the edge, and a clip on the same
-                    edge cut it on a real phone (the right side went missing at
-                    scale 0.958). The Next button draws the same SVG unclipped
-                    and is fine. The Embla viewport below clips the slides, and
-                    it sits 16px inside, so nothing else can spill. */}
+                    The border belongs to the SLIDE, not to this box. Each
+                    preview is its own bordered card, so a swipe carries one
+                    card out and brings the next one in with its own edge. When
+                    a single border sat on this container the box stayed put and
+                    only the contents moved inside it, which is not what the
+                    design draws.
+
+                    This box therefore holds no border and no padding. Each card
+                    is the full 390, so at rest the screen looks exactly as it
+                    did when the single border sat here: same edge, same place,
+                    same size. The change only shows once the shopper drags.
+
+                    SLIDE_GAP is the space between two cards. It is made by
+                    letting the window run SLIDE_GAP/2 wider than this box on
+                    each side, with every card centred in its own slot, rather
+                    than by shrinking the cards. Two things fall out of that,
+                    both wanted:
+
+                      - the card keeps the design's 390, so nothing moves at
+                        rest;
+                      - the clip edge sits SLIDE_GAP/2 outside the card edge.
+                        The border is a 0.5px stroke drawn flush inside that
+                        edge, and a clip landing on it cut the stroke on a real
+                        phone (the right side went missing at scale 0.958).
+                        Held half a gap away, the whole stroke is always inside
+                        the clip, at any scale. */}
                 <div
-                    className="w-xd-390 rounded-xd-20 bg-white flex flex-col items-center justify-center p-xd-16 relative flex-shrink-0"
+                    className="w-xd-390 rounded-xd-20 bg-white flex flex-col items-center justify-center relative flex-shrink-0"
                     style={{ height: fit.cardHeight }}
                 >
-                    <XdDashedBorder
-                        width={XD.box.width}
-                        height={fit.cardHeight}
-                        radius={XD.box.radius}
-                        color="#4A31E7"
-                        solid
-                    />
                     {/* Embla Carousel Swiper Area (Mouse & Touch Swipe) */}
                     <div
-                        className="w-full h-full overflow-hidden relative cursor-grab active:cursor-grabbing"
+                        className="h-full overflow-hidden relative cursor-grab active:cursor-grabbing"
                         ref={emblaRef}
+                        style={{
+                            width: XD.box.width + SLIDE_GAP,
+                            marginInline: -SLIDE_GAP / 2,
+                        }}
                     >
                         <div className="flex h-full touch-pan-y">
                             {PREVIEW_SLIDES.map((slide) => (
                                 <div
                                     key={slide.id}
-                                    className="flex-[0_0_100%] min-w-0 h-full flex flex-col items-center justify-center px-xd-20 text-center select-none"
+                                    className="flex-[0_0_100%] min-w-0 h-full flex items-stretch justify-center select-none"
                                 >
-                                    <div className="w-xd-100 h-xd-100 rounded-full bg-[#F4F0FE] flex items-center justify-center mb-xd-20 shadow-inner border border-[#ECE9FE]">
-                                        {slide.icon}
+                                    <div
+                                        className="relative flex flex-col items-center justify-center text-center px-xd-20"
+                                        style={{ width: XD.box.width }}
+                                    >
+                                        <XdDashedBorder
+                                            width={XD.box.width}
+                                            height={fit.cardHeight}
+                                            radius={XD.box.radius}
+                                            color="#4A31E7"
+                                            solid
+                                        />
+                                        <div className="w-xd-100 h-xd-100 rounded-full bg-[#F4F0FE] flex items-center justify-center mb-xd-20 shadow-inner border border-[#ECE9FE]">
+                                            {slide.icon}
+                                        </div>
+                                        <h3 className="text-xd-20 font-bold text-[#1D1D1D] mb-xd-8">
+                                            {translate(slide.titleKey)}
+                                        </h3>
+                                        <p className="text-xd-14 text-[#5D5C5D] font-normal leading-[1.6] max-w-xd-320">
+                                            {translate(slide.descKey)}
+                                        </p>
                                     </div>
-                                    <h3 className="text-xd-20 font-bold text-[#1D1D1D] mb-xd-8">
-                                        {translate(slide.titleKey)}
-                                    </h3>
-                                    <p className="text-xd-14 text-[#5D5C5D] font-normal leading-[1.6] max-w-xd-320">
-                                        {translate(slide.descKey)}
-                                    </p>
                                 </div>
                             ))}
                         </div>
