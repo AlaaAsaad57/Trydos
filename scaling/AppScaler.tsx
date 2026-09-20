@@ -57,14 +57,21 @@ import {
  *
  * Pull to refresh
  * ---------------
- * While a finger is down the fit is frozen too, for the same reason as rule 1
+ * The fit is frozen for the whole gesture too, for the same reason as rule 1
  * above. iOS Safari shrinks `innerHeight` by the pull distance during a
  * pull-to-refresh and fires `resize` the whole way, so the canvas was being
  * fitted to the strip left over above the finger: the deficit hit its cap and
  * the canvas shrank on top of it, which collapsed the Quick Preview card
- * mid-gesture. The page sliding down is the browser's own rubber band and is
- * left alone; only the re-fit is held back, and it runs once, TOUCH_SETTLE_MS
- * after the last finger lifts and the rubber band has snapped back.
+ * mid-gesture.
+ *
+ * The gesture does not end when the finger lifts. The rubber band snaps back
+ * over the next few hundred ms and fires a resize per pixel of that as well,
+ * so a freeze that ended at `touchend` squeezed the canvas a second time on
+ * the way up. The freeze therefore ends on quiet, not on the finger: once no
+ * resize has arrived for TOUCH_SETTLE_MS, the canvas is fitted exactly once.
+ *
+ * The page sliding down and back up is the browser's own rubber band and is
+ * left alone. Only the re-fit is held back.
  *
  * Only one `<Page variant="scaled">` may be mounted at a time: the element ids
  * and the `:root` variables below are fixed names, and nothing counts copies.
@@ -72,11 +79,13 @@ import {
 const LIFT_VAR = '--app-keyboard-lift';
 
 /**
- * How long to wait after the last finger lifts before fitting again.
+ * Quiet time that ends a gesture: no `resize` for this long means the rubber
+ * band has stopped and `innerHeight` can be trusted again.
  *
- * iOS Safari's rubber band is still running at `touchend`, so `innerHeight` is
- * still the pulled-down number for a few more frames. Fitting straight away
- * would use that number and re-create the squeeze this delay exists to avoid.
+ * It is not a delay after `touchend`. The snap-back is as long as the pull
+ * was, and it fires a resize per pixel the whole way up, so a fixed delay
+ * would fit in the middle of it. Each of those resizes pushes this timer out
+ * instead, and the one fit happens after the last one.
  */
 const TOUCH_SETTLE_MS = 300;
 
@@ -129,23 +138,34 @@ export default function AppScaler({
     let settleTimer: ReturnType<typeof setTimeout>;
     /** True from the first finger down to the last finger up. */
     let touching = false;
+    /** True from the last finger up until the rubber band stops resizing. */
+    let settling = false;
 
     const compute = () => {
       // The keyboard changed the window, not the device. Keep the fit the
       // shopper was looking at; the resize after the keyboard closes re-fits.
       if (isTextField(document.activeElement)) return;
 
-      // A finger is down, so this is a gesture, not a new device size.
+      // A gesture is running, so this is not a new device size.
       //
       // While a pull-to-refresh is held, iOS Safari shrinks `innerHeight` by
       // the pull distance and fires `resize` for every pixel of it. Fitting to
       // that number treats the leftover strip as the whole page: the deficit
       // runs into its cap and `canvasFit` starts shrinking the canvas as well,
-      // so the Quick Preview card collapses under the shopper's finger. The
-      // page sliding down is the browser's own rubber band and is wanted; the
-      // canvas must not resize with it. `onTouchEnd` fits once the real height
-      // is back, and a pull that does refresh unmounts this anyway.
-      if (touching) return;
+      // so the Quick Preview card collapses under the shopper's finger.
+      //
+      // The freeze has to outlive the finger. Letting go does not end the
+      // gesture: the rubber band keeps snapping back for a few hundred ms and
+      // fires a resize for every pixel of THAT too. Re-fitting on the way up
+      // squeezed the canvas again, a second time, right after the shopper let
+      // go — and `#master-canvas` animates its `top`, so the two ran together
+      // and looked like a bounce. So `settling` holds the freeze until the
+      // resizes stop, and `scheduleSettle` fits once at the end.
+      //
+      // The page sliding down is the browser's own rubber band and is wanted.
+      // Only the re-fit is held back. A pull that does refresh unmounts this
+      // component anyway.
+      if (touching || settling) return;
 
       const { scale, deficit, height, left, top } = canvasFit(
         window.innerWidth,
@@ -198,7 +218,31 @@ export default function AppScaler({
       root.style.setProperty(LIFT_VAR, `${keyboardLift(inCanvas + canvasTop, visibleBottom)}px`);
     };
 
+    /**
+     * Fit once the rubber band has stopped moving.
+     *
+     * Trailing, not fixed: every resize that arrives while `settling` pushes
+     * this out again, so the fit lands after the LAST one instead of in the
+     * middle of the snap-back. A fixed delay cannot work — the snap-back is
+     * as long as the pull was.
+     */
+    const scheduleSettle = () => {
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => {
+        settling = false;
+        compute();
+        updateLift();
+      }, TOUCH_SETTLE_MS);
+    };
+
     const onWindowResize = () => {
+      // The finger is still down. `touchend` starts the settle.
+      if (touching) return;
+      // The rubber band is still running. Wait for it to stop.
+      if (settling) {
+        scheduleSettle();
+        return;
+      }
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         compute();
@@ -213,17 +257,16 @@ export default function AppScaler({
 
     const onTouchStart = () => {
       touching = true;
+      settling = false;
+      clearTimeout(settleTimer);
     };
     // Only the LAST finger ends the gesture, so a second finger lifting off a
     // pinch does not let the fit back in while the first one is still pulling.
     const onTouchEnd = (event: TouchEvent) => {
       if (event.touches.length > 0) return;
       touching = false;
-      clearTimeout(settleTimer);
-      settleTimer = setTimeout(() => {
-        compute();
-        updateLift();
-      }, TOUCH_SETTLE_MS);
+      settling = true;
+      scheduleSettle();
     };
 
     compute();
