@@ -13,7 +13,7 @@ created_at: 2026-09-20
 updated_at: 2026-09-20
 links:
   clickup: ""
-  github: ""
+  github: "https://github.com/AlaaAsaad57/Trydos/pull/126"
 ---
 
 # Ticket Record — e2e-stories-upload-report-delete
