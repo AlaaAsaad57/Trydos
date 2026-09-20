@@ -147,5 +147,8 @@ test-results/
 
 .vercel
 .env*
+# ...except the template, which is the one env file that is meant to be shared.
+# It holds names and guidance only, never a value — see its header.
+!.env.example
 docs/workflow/running-a-ticket.md
 BOTTOMNAVIGATION.mp4
