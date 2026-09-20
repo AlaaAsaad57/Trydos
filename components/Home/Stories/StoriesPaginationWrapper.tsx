@@ -56,7 +56,14 @@ function StoriesPaginationWrapper({
       }
       // Filter before **both** sinks. This page of the feed is written to two
       // places, and a QA story reaching either one puts it on screen.
-      const newStories = dropQaStories(response.data?.data);
+      //
+      // Reading the viewer from the store is safe here: this runs when the
+      // shopper scrolls the bar, long after sign-in has filled it.
+      const viewer = useAppStore.getState();
+      const newStories = dropQaStories(
+        response.data?.data,
+        viewer.userProfile?.phone ?? viewer.user?.phone,
+      );
       // Add new stories to the existing ones
       setAdditionalStories((prev) => [...(prev || []), ...newStories]);
       setStoryData([...(storiesData ?? []), ...newStories]);

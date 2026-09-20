@@ -177,6 +177,10 @@ export default function ReportStoryModal({
                 <button
                   key={reason.value}
                   type="button"
+                  // The stable value, never the label: every label goes through
+                  // translateFunction, so a text locator would tie a test to one
+                  // language.
+                  data-pw={`report-reason-${reason.value}`}
                   onClick={() => toggleReason(reason.value)}
                   aria-pressed={selected}
                   className={`w-full rounded-[15px] border px-4 py-3 text-[14px] font-medium transition-colors ${
@@ -200,6 +204,7 @@ export default function ReportStoryModal({
             </label>
             <textarea
               ref={detailsRef}
+              data-pw="report-details-input"
               value={details}
               onChange={(e) => handleDetailsChange(e.target.value)}
               placeholder={translateFunction("Write details here...")}
@@ -222,6 +227,7 @@ export default function ReportStoryModal({
         <div className="flex gap-3 border-t border-[#e6e6e6] px-6 py-4">
           <button
             type="button"
+            data-pw="report-cancel-button"
             onClick={onClose}
             disabled={submitting}
             className="flex-1 rounded-full border border-[#e6e6e6] bg-white py-2.5 text-[14px] font-semibold text-[#3c3c3c] hover:bg-gray-50 disabled:opacity-50"
@@ -230,6 +236,7 @@ export default function ReportStoryModal({
           </button>
           <button
             type="button"
+            data-pw="report-submit-button"
             onClick={handleSubmit}
             disabled={submitting || !canSubmit}
             className="flex flex-1 items-center w-[200px] justify-center gap-2 rounded-full bg-[#5b3fe0] py-2.5 text-[14px] font-semibold text-white hover:bg-[#4b33d9] disabled:cursor-not-allowed disabled:bg-[#d9d9de]"

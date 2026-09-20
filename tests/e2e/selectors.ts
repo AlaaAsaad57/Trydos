@@ -785,3 +785,56 @@ export const compare = {
   searchClear: (page: Page, slot: 1 | 2): Locator =>
     page.getByTestId(`compare-search-${slot}-clear`),
 };
+
+/** The stories journey — the bar, the upload sheet, the viewer, the report sheet.
+ *
+ *  Every hook here is `data-pw`, so none of it depends on the display language.
+ *  The report sheet's reasons are keyed by the backend's own stable value
+ *  (`inappropriate_content`, `spam`, …), never by the translated label. */
+export const stories = {
+  /** The tile that opens the upload sheet. **Drawn only when the account's
+   *  profile allows uploading** — its absence is a fault, not a slow render. */
+  addButton: (page: Page): Locator => page.getByTestId("Add-Story-Button"),
+  /** "Upload Photo/Video" inside the sheet. Opens the hidden file input. */
+  galleryOption: (page: Page): Locator =>
+    page.getByTestId("Gallery-Photo-Option"),
+  /** The hidden file input the sheet drives. Addressed by id because it has no
+   *  `data-pw` and is `className="hidden"` — `setInputFiles` does not need it
+   *  visible. */
+  fileInput: (page: Page): Locator => page.locator("#stories-input-holder"),
+  /** The link box. This is where the QA mark goes: the host decides whether the
+   *  story is test data. */
+  linkInput: (page: Page): Locator => page.getByTestId("link-story-input"),
+  /** Save, inside the image crop editor that opens after a photo is chosen. A
+   *  photo upload does not reach the share button without it. */
+  cropSave: (page: Page): Locator =>
+    page.getByTestId("image-crop-save-button"),
+  /** "Share Story". **Only exists once media is chosen** — there is no
+   *  link-only story. */
+  shareButton: (page: Page): Locator => page.getByTestId("share-story-button"),
+
+  /** One author's tile in the bar. `data-id` is the author's stories id. */
+  tile: (page: Page, groupId: string | number): Locator =>
+    page.locator(`[data-pw="story-element"][data-id="${groupId}"]`),
+  /** Every tile currently rendered, for counting as the bar loads more. */
+  anyTile: (page: Page): Locator => page.locator('[data-pw="story-element"]'),
+
+  /** The **active** holder, and the id of the item the app would act on.
+   *
+   *  Only the active pane carries the attribute: the cube carousel mounts
+   *  several holders at once, and the others are the neighbouring authors. */
+  activeHolder: (page: Page): Locator => page.locator("[data-story-id]"),
+  deleteIcon: (page: Page): Locator => page.getByTestId("delete-story-icon"),
+  deleteConfirm: (page: Page): Locator =>
+    page.getByTestId("delete-story-confirm-modal-button"),
+  reportIcon: (page: Page): Locator => page.getByTestId("report-story-icon"),
+  closeViewer: (page: Page): Locator => page.getByTestId("close_stories_icon"),
+
+  /** The report sheet. */
+  reportReason: (page: Page, value: string): Locator =>
+    page.getByTestId(`report-reason-${value}`),
+  reportDetails: (page: Page): Locator =>
+    page.getByTestId("report-details-input"),
+  reportSubmit: (page: Page): Locator =>
+    page.getByTestId("report-submit-button"),
+};

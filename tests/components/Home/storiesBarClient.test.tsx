@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import StoriesBarClient from "components/Home/Stories/StoriesBarClient";
+import { useAppStore } from "store";
 
 const fetchData = vi.fn();
 vi.mock("utils/fetchData", () => ({ fetchData: (...args: any[]) => fetchData(...args) }));
@@ -146,5 +147,58 @@ describe("StoriesBarClient", () => {
       fetchData.mock.calls[0][0]?.noMessage,
       "the stories bar left the shopper-facing error message on; a failed stories fetch would pop an error notification over a page that is otherwise fine",
     ).toBe(true);
+  });
+  it("shows the QA story when the viewer id arrives after the feed", async () => {
+    // The timing this ticket exists to survive. `CheckLogin` fills the store
+    // **after** boot, while this component fetches on mount with deps
+    // [language, country]. A filter applied inside the `.then` would run with no
+    // viewer id and drop the test account's own story, and no later render
+    // would bring it back — there is no second request.
+    vi.stubEnv("NEXT_PUBLIC_QA_STORY_VIEWER_PHONES", "999000000001");
+
+    const qaGroup = {
+      id: 41,
+      name: "QA Tester",
+      photo_path: null,
+      stories: [
+        {
+          id: 99,
+          link: "https://qa-test.trydos.tech/e2e/tok/photo",
+          is_seen: false,
+          created_at: "2026-09-20T00:00:00Z",
+        },
+      ],
+    };
+    fetchData.mockResolvedValue({ data: { data: [qaGroup] } });
+
+    // Signed out at first render, exactly as the real boot order is.
+    useAppStore.setState({ userStories: null, userProfile: null, user: null } as any);
+    render(<StoriesBarClient language="en" country="sy" />);
+    await waitFor(() => expect(fetchData).toHaveBeenCalled());
+
+    expect(
+      screen.queryByText("QA Tester"),
+      "the QA story was on screen before the viewer was known to be a test account",
+    ).toBeNull();
+
+    // The store fills, and nothing else happens: no second fetch.
+    await act(async () => {
+      useAppStore.setState({
+        userStories: { id: 41 },
+        userProfile: { phone: "999000000001" },
+      } as any);
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText("QA Tester"),
+        "the viewer id arrived after the feed and the bar never re-filtered, so a test account is never shown the story its own run uploaded",
+      ).not.toBeNull(),
+    );
+
+    expect(
+      fetchData.mock.calls.length,
+      "the bar fetched the feed a second time when the viewer id landed; the raw page it already holds is what the filter is meant to re-read",
+    ).toBe(1);
   });
 });

@@ -287,3 +287,65 @@ describe("every live reader applies the QA story filter", () => {
     ).toBe(true);
   });
 });
+
+describe("the viewer allow-list does not weaken the feed's default", () => {
+  // AC-1. The list is the one way a QA story is ever shown, and it is empty on
+  // every build a customer can reach. This pins the default: a signed-in viewer,
+  // with no list configured, still sees nothing.
+  const QA_HOST = "qa-test.trydos.tech";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.unstubAllEnvs();
+    useAppStore.setState({
+      storiesData: [],
+      userProfile: { phone: "999000000001" },
+    } as any);
+  });
+
+  it("with no viewer list, a QA story is still dropped for a signed-in viewer", async () => {
+    (fetchData as any).mockResolvedValue({
+      success: true,
+      data: {
+        data: [
+          {
+            id: 500,
+            stories: [
+              { id: 1, link: "https://trydos.com/real", is_seen: false },
+              { id: 2, link: `https://${QA_HOST}/e2e/tok/photo`, is_seen: false },
+            ],
+          },
+        ],
+        next_page_url: null,
+      },
+    });
+
+    const result = await StoryServiceClass.getStories(1);
+
+    expect(
+      (result.data?.[0]?.stories ?? []).map((s: any) => s.id),
+      "a QA story reached a signed-in viewer with NEXT_PUBLIC_QA_STORY_VIEWER_PHONES unset. Unset is the state of every deployed build, so this is test content on a real customer's screen",
+    ).toEqual([1]);
+  });
+});
+
+describe("no story reader can skip the QA filter", () => {
+  // AC-16. `fetchStoriesForGuest` read the feed and never filtered it. It had no
+  // caller, so it was a hole waiting for one. It is deleted rather than fixed:
+  // a reader that does not exist cannot skip the rule, and the repository
+  // forbids writing a test for code nothing calls.
+  it("serverRequests/stories.ts no longer exports an unfiltered guest reader", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+
+    const source = readFileSync(
+      resolve(process.cwd(), "serverRequests/stories.ts"),
+      "utf8",
+    );
+
+    expect(
+      source.includes("fetchStoriesForGuest"),
+      "fetchStoriesForGuest is back in serverRequests/stories.ts. It read the story feed and never called dropQaStories, so whatever starts calling it shows QA stories to everybody",
+    ).toBe(false);
+  });
+});

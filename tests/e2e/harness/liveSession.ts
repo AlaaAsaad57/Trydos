@@ -53,6 +53,11 @@ export const SESSION_STATE = {
   // it and hands it on again, so `BUY-04` never inherits a credential that
   // `BUY-03` has already caused the backend to rotate.
   shopper: "tests/e2e/.auth/shopper.json",
+  // The stories journey needs **two** identities at once, which no other spec
+  // does: the owner uploads and deletes, and only a signed-in non-owner is shown
+  // the report control at all. So they keep two files, not one.
+  stories: "tests/e2e/.auth/stories.json",
+  storiesReporter: "tests/e2e/.auth/stories-reporter.json",
 } as const;
 
 /** The directory all of them live in. Removed wholesale at teardown. */
