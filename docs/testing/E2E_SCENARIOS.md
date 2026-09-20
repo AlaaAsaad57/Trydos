@@ -1,6 +1,6 @@
 # E2E scenarios
 
-Every case the browser suite runs — **105** of them today. Add a row whenever a
+Every case the browser suite runs — **106** of them today. Add a row whenever a
 case is added, and keep the count above in step.
 
 | Section | Cases | Signs in? | Writes to staging? |
@@ -16,7 +16,7 @@ case is added, and keep the count above in step.
 | Saved products, as a guest | WISH-01 to WISH-05 | no | yes — one product on one throwaway guest, removed again |
 | Saved products, signed in | WISH-06 | **yes — its own, a real code per run** | **yes — the shared test account, put back in the same case** |
 | Comparing two products | CMP-01 to CMP-07 | no | no — the whole feature is two cookies in the browser |
-| **The QA safety lock** | QA-01 to QA-11 (15 cases) | yes — Shopper B, through the seed | **yes — the seed builds this environment's QA seller, shop, location and product, once. Nothing is ever deleted** |
+| **The QA safety lock** | QA-01 to QA-11 (16 cases) | yes — Shopper B, through the seed | **yes — the seed builds this environment's QA seller, shop, location and product, once. Nothing is ever deleted** |
 
 Design: `docs/testing/E2E_TEST_DESIGN.md`. How to run: `tests/e2e/README.md`.
 
@@ -463,6 +463,7 @@ B stays a permanent seller once approved.
 |----|------|------|----------------|
 | QA-01 | QA mode finds the QA product in search | `qaLock.live.spec.ts:78` | The header really went out **and** the search returned a row from the QA shop — two separate faults, two messages |
 | QA-02 | Without QA mode the same search finds nothing | `qaLock.live.spec.ts:113` | The way every customer searches returns no QA row, and no request in the case carried the header |
+| QA-02b | The QA boutique is visible in QA mode and absent without it | `qaLock.live.spec.ts:152` | The boutique reader's own QA-mode switch, both ways round, plus a third check that the two answers are not byte-identical — both halves would pass against a route returning nothing useful |
 | QA-03 | The seed's seller is approved | `qaLock.live.spec.ts:150` | Read from what the app told the seed, not from the admin page the seed clicked |
 | QA-04 | The boutique carries the mark and is active | `qaLock.live.spec.ts:163` | The slug starts `trydos-qa-`; every filter in the feature keys off that prefix |
 | QA-05 | The product belongs to the QA boutique | `qaLock.live.spec.ts:178` | The product slug carries the mark too, so a filter on the shop covers it |
