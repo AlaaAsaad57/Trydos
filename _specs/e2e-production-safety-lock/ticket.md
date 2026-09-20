@@ -6,10 +6,10 @@ workflow:
   version: 2
   current_stage: verify
   capabilities: []
-status: active
+status: completed
 owner: developer
 created_at: 2026-09-19
-updated_at: 2026-09-19
+updated_at: 2026-09-20
 links:
   clickup: ""
   github: ""
@@ -132,3 +132,11 @@ Stage ids and their legal transitions are defined canonically per workflow in
   result: passed
   by: developer
   timestamp: 2026-09-19
+
+- stage: verify
+  event: verify-passed
+  result: passed
+  from_status: active
+  to_status: completed
+  by: developer
+  timestamp: 2026-09-20
