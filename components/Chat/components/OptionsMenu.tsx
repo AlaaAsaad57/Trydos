@@ -51,7 +51,7 @@ function OptionsMenu(props) {
     DeleteModal && typeof document !== "undefined"
       ? createPortal(
           <div
-            className="fixed inset-0 z-999999999 flex items-center justify-center bg-[#0000006a]"
+            className="fixed inset-0 z-9999999999999 flex items-center justify-center bg-[#0000006a]"
             onClick={handleBackdropClick}
           >
             <div

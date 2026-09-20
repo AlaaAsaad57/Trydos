@@ -285,8 +285,8 @@ function ChatItem({
               right: isRtl ? "initial" : "30px",
             }}
           >
-            {muted && <img src="/icons/chat/MutedChat.svg" alt="muted" />}
-            {pinned && <img src="/icons/chat/PinnedChat.svg" alt="pinned" />}
+            {muted && <img className="w-[20px] h-[20px] bg-transparent" src="/icons/chat/MutedChat.svg" alt="muted" />}
+            {pinned && <img className="w-[20px] h-[20px] bg-transparent" src="/icons/chat/PinnedChat.svg" alt="pinned" />}
           </div>
         )}
       </div>
