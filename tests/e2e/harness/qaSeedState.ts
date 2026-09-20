@@ -40,6 +40,23 @@ export type QaSeedState = {
   approvedByThisRun: boolean;
 };
 
+/** Did the seed leave a record on this environment?
+ *
+ *  A case that needs the QA product asks this **before** it starts, and skips
+ *  when the answer is no. That is the whole contract between the setup project
+ *  and the cases downstream of it: the seed skips when a setting is missing, so
+ *  a case that buys must skip too. It must never fall back to a real seller's
+ *  product — that is the one thing this feature exists to stop. */
+export const qaSeedRan = (): boolean => existsSync(QA_SEED_STATE_PATH);
+
+/** Why such a case cannot run. One sentence, shared, so every caller sends the
+ *  reader to the same place: the setup project's own skip line, which names the
+ *  setting that is missing. */
+export const NO_QA_SEED_REASON =
+  "the QA seed did not run, so this environment has no QA product to buy. " +
+  "Read the setup project's skip line — it names the setting that is missing. " +
+  "These cases never fall back to a real seller's product.";
+
 /** Read what the seed left, or say plainly that it never finished.
  *
  *  Naming the seed is the difference between "this run had nothing to work

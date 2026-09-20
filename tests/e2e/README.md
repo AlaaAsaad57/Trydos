@@ -227,6 +227,37 @@ matters more than usual here: the `live` project **depends** on the seed, so a
 *failing* setup stops every live case in the lane, while a *skipped* one lets
 the rest of the suite run.
 
+**The other half of that contract: a case that needs the QA product skips too.**
+When the seed skips it writes no record, and `qaSeedRan()` in
+`harness/qaSeedState.ts` is how a case asks. `shopper.live.spec.ts` skips all
+four BUY cases on it, with the shared reason `NO_QA_SEED_REASON`.
+
+Write that line into any new spec that fills a bag. Leaving it out does not fail
+safe — it fails *confusingly*. On CI run 35496319099 the seed skipped, the four
+BUY cases ran anyway, `gotoQaProduct` fell back to a guessed slug, and all four
+reported `ERR_ABORTED` on a product address. That reads as "the QA product is
+broken" about a product nobody had asked for. `gotoQaProduct` no longer guesses:
+with no slug from the caller it reads the seed's record, and says so when there
+is none.
+
+**In CI the two settings this ticket added are their own named secrets**, not
+part of the `E2E_ENV_FILE` blob — see the `Add the QA settings` step in
+`.github/workflows/e2e-lane.yml`:
+
+| Repository secret | Without it |
+|---|---|
+| `QA_VIEW_SECRET` | QA mode is off, the seed skips, every QA case and every BUY case skips with it |
+| `TEST_ACCOUNT_OTP_2` | nothing can sign in as Shopper B, so the seed skips |
+
+Adding the secret is not enough on its own — a step has to read it. The
+`QA_VIEW_SECRET` secret sat in this repository's settings for a day with nothing
+reading it, and the whole QA lock skipped in CI while passing locally.
+
+**The run now prints why it skipped.** `cli.ts` reads the skip reason back out
+of the Playwright JSON and logs one line per distinct reason, with a count. The
+list reporter prints a bare `-`, so before this a lane could skip seventeen
+tests and give no clue which setting was missing.
+
 **`TEST_ACCOUNT_OTP_2` is not optional, and it caught a real gap.** Measured
 against staging on 2026-09-19: signing in as Shopper B with `TEST_ACCOUNT_OTP`
 — which is Shopper A's allow-listed code — is refused by the **core** backend

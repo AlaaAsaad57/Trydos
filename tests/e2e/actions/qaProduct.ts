@@ -17,24 +17,13 @@
 
 import { expect, type Page } from "@playwright/test";
 
-import { envValue } from "../harness/env";
+import { readQaSeedState } from "../harness/qaSeedState";
 import { product, search } from "../selectors";
 import { chooseRegionIfAsked, seedLocale } from "./nav";
 
 /** The mark a QA shop's slug starts with. Kept in step with
  *  `services/elastic/qaFilter.ts`; the unit suite owns the app-side copy. */
 export const QA_SHOP_SLUG_PREFIX = "trydos-qa-";
-
-/** The QA shop this environment uses.
- *
- *  A whole slug, not just the prefix, because one environment holds one QA
- *  shop and the seed has to be able to find the same one twice. */
-export const qaShopSlug = (): string =>
-  envValue("QA_SHOP_SLUG") || `${QA_SHOP_SLUG_PREFIX}e2e`;
-
-/** The QA product's slug on this environment. */
-export const qaProductSlug = (): string =>
-  envValue("QA_PRODUCT_SLUG") || `${QA_SHOP_SLUG_PREFIX}e2e-product`;
 
 /** Open the QA product **by address**.
  *
@@ -50,11 +39,17 @@ export const gotoQaProduct = async (
 ): Promise<{ name: string; url: string }> => {
   const country = options.country ?? "sy";
   const language = options.language ?? "en";
-  // **The slug the seed saw the storefront use**, when the caller has it.
-  // The fallback is a guess and exists only so this helper has one; the
-  // dashboard's slug and the storefront's slug are different strings for the
-  // same product, and only the storefront's opens a page.
-  const slug = options.slug || qaProductSlug();
+  // **The slug the seed saw the storefront use** — read from the seed's own
+  // record, never guessed.
+  //
+  // It used to fall back to `trydos-qa-e2e-product`, a slug built from the
+  // prefix. That slug exists on no environment: the backend appends the
+  // product's id, so the real one is `Trydos-QA-product-289`. On CI run
+  // 35496319099 the seed skipped for a missing setting, all four BUY cases
+  // opened the guess, and every one of them failed with `ERR_ABORTED` on a
+  // product address — which reads as "the QA product is broken" about a product
+  // that was never asked for. `readQaSeedState` names the seed instead.
+  const slug = options.slug || readQaSeedState().productSlug;
 
   // Save the country before navigating. The address carries the locale, so the
   // region picker is not drawn -- but the **cart** reads the country cookie,

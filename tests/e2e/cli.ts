@@ -169,6 +169,9 @@ type PlaywrightSpec = {
   ok?: boolean;
   tests?: {
     status?: string;
+    /** `test.skip(condition, reason)` records the reason here. It is the only
+     *  place the reason survives: the list reporter prints a bare `-`. */
+    annotations?: { type?: string; description?: string }[];
     results?: { status?: string; error?: { message?: string } }[];
   }[];
 };
@@ -195,6 +198,47 @@ const collectFailureNames = (
 
     return [...failedHere, ...collectFailureNames(suite.suites, here)];
   });
+
+/** Why a spec was skipped, or an empty string when it was not.
+ *
+ *  **A skip with no reason on screen is the same as no answer at all.** CI run
+ *  35496319099 skipped 17 tests and printed seventeen `-` lines; the reason —
+ *  one missing setting — was in the JSON the whole time and nobody could see
+ *  it. Reading it back out is what turns "17 skipped" into something a person
+ *  can act on. */
+const specSkipReason = (spec: PlaywrightSpec): string => {
+  const statuses = (spec.tests ?? []).map((test) => test.status);
+  if (statuses.length === 0 || !statuses.every((s) => s === "skipped")) return "";
+
+  return (
+    (spec.tests ?? [])
+      .flatMap((test) => test.annotations ?? [])
+      .find((note) => note.type === "skip" && note.description)?.description ??
+    ""
+  );
+};
+
+/** Every distinct skip reason in the run, with how many tests each one held
+ *  back. Distinct, because one missing setting skips a whole lane and printing
+ *  it seventeen times buries it. */
+const collectSkipReasons = (
+  suites: PlaywrightSuite[] = [],
+): Map<string, number> => {
+  const counts = new Map<string, number>();
+
+  const walk = (level: PlaywrightSuite[]): void => {
+    for (const suite of level) {
+      for (const spec of suite.specs ?? []) {
+        const reason = specSkipReason(spec);
+        if (reason) counts.set(reason, (counts.get(reason) ?? 0) + 1);
+      }
+      walk(suite.suites ?? []);
+    }
+  };
+
+  walk(suites);
+  return counts;
+};
 
 /** The first error a spec recorded, across its retries. */
 const specError = (spec: PlaywrightSpec): string =>
@@ -295,7 +339,11 @@ const buildRollup = (files: PlaywrightSuite[]): string =>
  *  its own test needs no explaining. */
 const specLines = (spec: PlaywrightSpec, pad: string): string[] => {
   const head = `${pad}${specIcon(spec)} ${spec.title}`;
-  if (spec.ok !== false) return [head];
+
+  if (spec.ok !== false) {
+    const skipped = specSkipReason(spec);
+    return skipped ? [head, `${pad}   ↳ ${skipped}`] : [head];
+  }
 
   return [
     head,
@@ -443,6 +491,12 @@ const report = (): void => {
   setStepOutput("tree", redact(buildTree(files, totals)));
 
   log(totals);
+
+  // On screen, not only in the attached file. Somebody reading a CI log wants
+  // to know why a third of the lane did not run without downloading anything.
+  for (const [reason, count] of collectSkipReasons(files)) {
+    log(redact(`${count} skipped: ${reason}`));
+  }
 };
 
 

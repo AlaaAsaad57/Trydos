@@ -776,9 +776,98 @@ const agreeToTermsIfNeeded = async (
   return { agreed: await isTicked(), pressed };
 };
 
+/** The path the app posts an order to. `services/order.ts:77-79` builds either
+ *  this or this plus the payment method, so a prefix match covers both. */
+const CHECKOUT_PATH = "/customer/order/checkout";
+
+/** What the Place Order button actually did.
+ *
+ *  **Three different faults end with no order number**, and until this existed
+ *  the case could only report the last of them:
+ *
+ *    1. the request never left the browser;
+ *    2. it left and the shop never answered — the button spins for ever;
+ *    3. it answered, and refused.
+ *
+ *  Measured on 2026-09-20: BUY-01 failed with "the checkout did not come back
+ *  with an order number" while the screenshot showed the button still spinning
+ *  and the shop's own log held no checkout call at all. That is fault 2, and
+ *  the message named none of it. */
+export type CheckoutAttempt = {
+  /** The checkout request left the browser. */
+  sent: boolean;
+  /** It came back. `sent` true with this false is a request still in flight —
+   *  the shop never answered inside the allowance. */
+  answered: boolean;
+  status: number | null;
+  /** The shop's own words. Only `message` is taken, never the body: the
+   *  checkout answer carries order data, and this repository is public. */
+  said: string;
+};
+
+/** One sentence naming which of the three it was, for an assertion message. */
+export const describeCheckout = (attempt: CheckoutAttempt): string => {
+  if (!attempt.sent) {
+    return `the browser never sent ${CHECKOUT_PATH}, so the order was refused before it left the page`;
+  }
+  if (!attempt.answered) {
+    return `the core backend never answered ${CHECKOUT_PATH} — the request was still in flight when the wait ran out`;
+  }
+  return `the core backend answered ${CHECKOUT_PATH} with ${attempt.status}${
+    attempt.said ? `: ${attempt.said}` : ""
+  }`;
+};
+
+/** Watch the checkout call across the click.
+ *
+ *  Every client call goes to `/api/proxy` and carries the real path in
+ *  `x-proxy-url` (`utils/fetchData.ts:628-634`), so the browser address alone
+ *  cannot tell one call from another — the header is what identifies it. */
+const watchCheckout = (page: Page): { report: () => CheckoutAttempt } => {
+  const attempt: CheckoutAttempt = {
+    sent: false,
+    answered: false,
+    status: null,
+    said: "",
+  };
+
+  const isCheckout = (headers: Record<string, string>): boolean =>
+    (headers["x-proxy-url"] ?? "").startsWith(CHECKOUT_PATH);
+
+  page.on("request", (request) => {
+    if (isCheckout(request.headers())) attempt.sent = true;
+  });
+
+  page.on("response", (response) => {
+    if (!isCheckout(response.request().headers())) return;
+
+    attempt.answered = true;
+    attempt.status = response.status();
+
+    // Kept deliberately narrow, and never allowed to throw: a body that cannot
+    // be read must not turn "the shop refused with 422" into a crash in the
+    // watcher. The reason is kept either way.
+    void response
+      .json()
+      .then((body: unknown) => {
+        const said = (body as { message?: unknown } | null)?.message;
+        if (typeof said === "string") attempt.said = said;
+      })
+      .catch(() => {
+        attempt.said = "the answer was not readable as JSON";
+      });
+  });
+
+  return { report: () => ({ ...attempt }) };
+};
+
 export const placeOrder = async (
   page: Page,
-): Promise<{ panelShown: boolean; orderGroupId: string | null }> => {
+): Promise<{
+  panelShown: boolean;
+  orderGroupId: string | null;
+  attempt: CheckoutAttempt;
+}> => {
   const terms = await agreeToTermsIfNeeded(page);
 
   expect(
@@ -788,6 +877,9 @@ export const placeOrder = async (
       "/customer/approve-policies answers, so the shop did not answer it",
   ).toBe(true);
 
+  // Attached BEFORE the click, or a fast answer is missed entirely.
+  const watcher = watchCheckout(page);
+
   await checkout.placeOrder(page).click();
 
   const panelShown = await checkout
@@ -796,12 +888,18 @@ export const placeOrder = async (
     .then(() => true)
     .catch(() => false);
 
-  if (!panelShown) return { panelShown: false, orderGroupId: null };
+  if (!panelShown) {
+    return { panelShown: false, orderGroupId: null, attempt: watcher.report() };
+  }
 
   const text =
     (await checkout.orderNumber(page).first().textContent())?.trim() ?? "";
 
-  return { panelShown: true, orderGroupId: text === "" ? null : text };
+  return {
+    panelShown: true,
+    orderGroupId: text === "" ? null : text,
+    attempt: watcher.report(),
+  };
 };
 
 // ─── The live steps `BUY-03` and `BUY-04` are built from ─────────────────────

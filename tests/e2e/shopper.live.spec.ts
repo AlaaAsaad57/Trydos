@@ -120,6 +120,7 @@ import {
   chooseAddressNamed,
   chooseCashOnDelivery,
   chosenAddressTitle,
+  describeCheckout,
   confirmShippingAndPayment,
   editAddressTitleFromSheet,
   emptyTheBag,
@@ -146,6 +147,7 @@ import {
 } from "./actions/orders";
 import { addAddress, gotoSettings } from "./actions/profile";
 import { envValue, hasShopperA } from "./harness/env";
+import { NO_QA_SEED_REASON, qaSeedRan } from "./harness/qaSeedState";
 import {
   forgetSavedSession,
   handOnSession,
@@ -261,6 +263,17 @@ test.beforeEach(() => {
     !hasShopperA(),
     "TEST_ACCOUNT_PHONE or TEST_ACCOUNT_OTP is not configured — see tests/e2e/README.md.",
   );
+
+  // **Every case in this file fills a bag, and the only product any of them may
+  // fill it with is the seed's.** No seed record means no QA product, and the
+  // honest answer is to skip and say so — not to buy something a real seller
+  // owns, and not to fail as though the QA product were broken.
+  //
+  // This is the downstream half of the setup project's contract. The seed skips
+  // rather than fails when a setting is missing, precisely so the rest of the
+  // lane keeps running; without this line that kindness turned into four red
+  // cases blaming a product address.
+  test.skip(!qaSeedRan(), NO_QA_SEED_REASON);
 });
 
 test("BUY-01 a shopper buys something with cash on delivery and then cancels it", async ({
@@ -424,10 +437,21 @@ test("BUY-01 a shopper buys something with cash on delivery and then cancels it"
         await orders.register({ groupId: placed.orderGroupId, context, page });
       }
 
+      // **Two checks, because these are two different faults.** "No order
+      // number" used to cover both, and on 2026-09-20 it reported a checkout
+      // the shop never answered as though the answer had been empty.
+      expect(
+        placed.panelShown,
+        `the checkout never reached the success panel, and ${describeCheckout(
+          placed.attempt,
+        )}`,
+      ).toBe(true);
+
       expect(
         placed.orderGroupId,
-        "the checkout did not come back with an order number, so either it was " +
-          "refused or it succeeded with nothing to identify the order by",
+        "the success panel appeared but carried no order number, so the order " +
+          "exists and nothing here can name it — and nothing can cancel it " +
+          `either. ${describeCheckout(placed.attempt)}`,
       ).not.toBeNull();
     });
 

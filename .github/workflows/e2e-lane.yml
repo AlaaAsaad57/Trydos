@@ -151,6 +151,73 @@ jobs:
             echo "No E2E_ENV_FILE secret. Preflight will report not configured."
           fi
 
+      # ---------------------------------------------------------------------
+      # The two settings the QA seed added, each as its own named secret.
+      #
+      # They are **not** in E2E_ENV_FILE, and adding them there would mean
+      # re-uploading the whole blob every time one of them rotates. They are
+      # also the two that must never leave this repository's settings:
+      #
+      #   QA_VIEW_SECRET     lets a request see QA data. It belongs to the app
+      #                      this job builds and starts, and to nothing else.
+      #                      **It must never be set on the deployed staging
+      #                      app** — there it would be a way for anybody who
+      #                      guessed it to see test data in the real storefront.
+      #   TEST_ACCOUNT_OTP_2 Shopper B's own one-time code. The core backend
+      #                      refuses TEST_ACCOUNT_OTP for that number.
+      #
+      # Appended, not merged: a line written later wins, so a value already in
+      # the blob is overridden rather than duplicated.
+      #
+      # **This step is why the seed skipped on run 35496319099.** The
+      # QA_VIEW_SECRET secret was added on 2026-09-19 and nothing read it, so
+      # the app treated QA mode as off, the seed skipped, and every case that
+      # needs the QA product went with it. A secret nobody reads is a secret
+      # that does not exist.
+      #
+      # Each is optional on purpose. A fork, or a repository nobody has set up,
+      # writes neither and the seed skips with a line naming the one it wanted —
+      # which is a clean skip, never a failure.
+      # ---------------------------------------------------------------------
+      - name: Add the QA settings
+        env:
+          QA_VIEW_SECRET: ${{ secrets.QA_VIEW_SECRET }}
+          TEST_ACCOUNT_OTP_2: ${{ secrets.TEST_ACCOUNT_OTP_2 }}
+        run: |
+          # Only when the env file exists. Writing these into nothing would
+          # leave a file holding two settings and no backend address, which
+          # preflight would then report as a broken configuration rather than
+          # as an absent one.
+          if [ ! -f .env.development ]; then
+            echo "No .env.development, so there is nothing to add these to."
+            exit 0
+          fi
+
+          # **The blob is written with `printf '%s'`, which adds no trailing
+          # newline.** Appending straight onto it would join the new setting to
+          # the last line of the file and lose both. `tail -c1` reads the final
+          # byte; an empty answer means the file already ends in a newline.
+          if [ -n "$(tail -c1 .env.development)" ]; then
+            echo "" >> .env.development
+          fi
+
+          # `echo` with the value read from the environment -- never written
+          # into the command text, which would put it in the run log. GitHub
+          # masks a registered secret anyway; this does not rely on that.
+          if [ -n "${QA_VIEW_SECRET:-}" ]; then
+            echo "QA_VIEW_SECRET=$QA_VIEW_SECRET" >> .env.development
+            echo "Added QA_VIEW_SECRET."
+          else
+            echo "No QA_VIEW_SECRET secret - QA mode will be off and the seed will skip."
+          fi
+
+          if [ -n "${TEST_ACCOUNT_OTP_2:-}" ]; then
+            echo "TEST_ACCOUNT_OTP_2=$TEST_ACCOUNT_OTP_2" >> .env.development
+            echo "Added TEST_ACCOUNT_OTP_2."
+          else
+            echo "No TEST_ACCOUNT_OTP_2 secret - nothing can sign in as Shopper B and the seed will skip."
+          fi
+
       # Configured? Is every backend address a known staging host? And is
       # staging actually serving? This runs **before** the build, so a wrong
       # target costs nothing, an unconfigured repository builds nothing at all,
