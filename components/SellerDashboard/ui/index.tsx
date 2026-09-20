@@ -256,12 +256,18 @@ export function DashButton({
 export function StatusPill({
   active,
   children,
+  "data-pw": dataPw,
 }: {
   active?: boolean;
   children: React.ReactNode;
+  /** Test hook. Passed through so a browser test can read a row's status
+   *  without matching the translated word inside it. */
+  "data-pw"?: string;
 }) {
   return (
     <span
+      data-pw={dataPw}
+      data-active={active ? "1" : "0"}
       className={`px-2.5 py-1 rounded-full text-[10px] semibold ${
         active
           ? "bg-[#eaf7ef] text-[#2ea84f]"
@@ -325,9 +331,22 @@ export function ErrorState({
   );
 }
 
-export function AccessDenied({ message }: { message?: string }) {
+export function AccessDenied({
+  message,
+  "data-pw": dataPw = "dashboard-access-denied",
+}: {
+  message?: string;
+  /** Test hook. Defaults to a shared name so every section that refuses for
+   *  lack of a permission is findable the same way — a browser test can then
+   *  say "this account may not see it" instead of waiting out a timeout on
+   *  content that was never going to be drawn. */
+  "data-pw"?: string;
+}) {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-14 px-6">
+    <div
+      data-pw={dataPw}
+      className="flex flex-col items-center justify-center text-center py-14 px-6"
+    >
       <span className="w-[72px] h-[72px] mb-4 rounded-full bg-[#f4f4f4] text-[#c4c2c2] flex items-center justify-center">
         <DashIcon name="lock" size={32} strokeWidth={1.4} />
       </span>
@@ -422,14 +441,20 @@ export function DashField({
   hint,
   error,
   children,
+  "data-pw": dataPw,
 }: {
   label?: string;
   hint?: string;
   error?: string;
   children: React.ReactNode;
+  /** Test hook. The wrapper gets it as given; the validation line gets
+   *  `<data-pw>-error`. A browser test needs the second one, and the error
+   *  line is drawn here rather than at the call site, so it cannot be hooked
+   *  from outside. */
+  "data-pw"?: string;
 }) {
   return (
-    <div>
+    <div data-pw={dataPw}>
       {label && (
         <label className="block text-[13px] medium text-[#505050] mb-1.5">
           {label}
@@ -437,7 +462,10 @@ export function DashField({
       )}
       {children}
       {error ? (
-        <p className="text-[12px] text-[#f85555] mt-1 flex items-center gap-1">
+        <p
+          data-pw={dataPw ? `${dataPw}-error` : undefined}
+          className="text-[12px] text-[#f85555] mt-1 flex items-center gap-1"
+        >
           <DashIcon name="alert" size={13} />
           {error}
         </p>

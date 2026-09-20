@@ -2175,6 +2175,7 @@ function SellerDashBoard() {
             <div className="py-4">
               {canViewProducts && (
                 <button
+                  data-pw="seller-dashboard-menu-products"
                   onClick={() => {
                     changeTab("products");
                     setMenuOpen(false);
@@ -2199,6 +2200,7 @@ function SellerDashBoard() {
               )}
               {canViewBoutiques && (
                 <button
+                  data-pw="seller-dashboard-menu-boutiques"
                   onClick={() => {
                     changeTab("boutiques");
                     setMenuOpen(false);
@@ -2224,6 +2226,7 @@ function SellerDashBoard() {
 
               {canViewLocations && (
                 <button
+                  data-pw="seller-dashboard-menu-locations"
                   onClick={() => {
                     changeTab("locations");
                     setMenuOpen(false);
@@ -2246,6 +2249,7 @@ function SellerDashBoard() {
 
               {canViewOrders && (
                 <button
+                  data-pw="seller-dashboard-menu-orders"
                   onClick={() => {
                     changeTab("orders");
                     setMenuOpen(false);
@@ -2267,6 +2271,7 @@ function SellerDashBoard() {
               )}
               {
                 <button
+                  data-pw="seller-dashboard-menu-permissions"
                   onClick={() => {
                     changeTab("permissions");
                     setMenuOpen(false);
@@ -2288,6 +2293,7 @@ function SellerDashBoard() {
               }
               {canViewUsers && (
                 <button
+                  data-pw="seller-dashboard-menu-users"
                   onClick={() => {
                     changeTab("users");
                     setMenuOpen(false);
@@ -2309,6 +2315,7 @@ function SellerDashBoard() {
               )}
               {canViewGallery && (
                 <button
+                  data-pw="seller-dashboard-menu-gallery"
                   onClick={() => {
                     changeTab("gallery");
                     setMenuOpen(false);
@@ -2330,6 +2337,7 @@ function SellerDashBoard() {
               )}
               {canViewStories && (
                 <button
+                  data-pw="seller-dashboard-menu-stories"
                   onClick={() => {
                     changeTab("stories");
                     setMenuOpen(false);
@@ -2351,6 +2359,7 @@ function SellerDashBoard() {
               )}
               {canViewComments && (
                 <button
+                  data-pw="seller-dashboard-menu-comments"
                   onClick={() => {
                     changeTab("comments");
                     setMenuOpen(false);
@@ -2372,6 +2381,7 @@ function SellerDashBoard() {
               )}
               {canUploadExcel && (
                 <button
+                  data-pw="seller-dashboard-menu-excel"
                   onClick={() => {
                     changeTab("excel");
                     setMenuOpen(false);
@@ -2393,6 +2403,7 @@ function SellerDashBoard() {
               )}
               {canViewShopInfo && (
                 <button
+                  data-pw="seller-dashboard-menu-shopInfo"
                   onClick={() => {
                     changeTab("shopInfo");
                     setMenuOpen(false);
@@ -2425,6 +2436,7 @@ function SellerDashBoard() {
         </div>
         <div className="flex items-center gap-3 lg:gap-4">
           <button
+            data-pw="seller-dashboard-menu-btn"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label={translateFunction("Dashboard Menu")}
             className={`shrink-0 flex flex-col gap-1.5 p-3 rounded-[12px] transition-all duration-300 active:scale-[0.96] ${
@@ -2489,6 +2501,8 @@ function SellerDashBoard() {
 
       {/* Content */}
       <div
+        data-pw="seller-dashboard-panel"
+        data-tab={activeTab}
         className="bg-white rounded-[15px] pt-4 px-4 min-h-[400px] pb-[150px]!"
         style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
       >

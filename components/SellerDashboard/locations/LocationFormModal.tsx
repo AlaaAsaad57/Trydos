@@ -236,6 +236,8 @@ export default function LocationFormModal({
     <div className="fixed inset-0 z-[999999999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/45" onClick={onClose} />
       <div
+        data-pw="location-form"
+        data-mode={isEdit ? "edit" : "create"}
         className="relative bg-white rounded-[20px] z-10 w-full max-w-2xl max-h-[88vh] flex flex-col overflow-hidden"
         style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
       >
@@ -250,6 +252,7 @@ export default function LocationFormModal({
           </div>
           <button
             type="button"
+            data-pw="location-close-btn"
             onClick={onClose}
             aria-label={t("Close")}
             className="shrink-0 w-8 h-8 rounded-full hover:bg-[#f4f4f4] flex items-center justify-center text-[#8e8e8e]"
@@ -265,7 +268,11 @@ export default function LocationFormModal({
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1 w-full">
             <div className="p-5 overflow-auto space-y-5 w-full">
-              {formError && <InlineAlert tone="error">{formError}</InlineAlert>}
+              {formError && (
+                <div data-pw="location-form-error">
+                  <InlineAlert tone="error">{formError}</InlineAlert>
+                </div>
+              )}
               {readOnly && (
                 <div className="flex items-center gap-1.5 text-[12px] text-[#8e8e8e]">
                   <DashIcon name="lock" size={13} />
@@ -274,9 +281,14 @@ export default function LocationFormModal({
               )}
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <DashField label={t("Name")} error={errors.name}>
+                <DashField
+                  label={t("Name")}
+                  error={errors.name}
+                  data-pw="location-name-field"
+                >
                   <input
                     type="text"
+                    data-pw="location-name-input"
                     value={form.name}
                     maxLength={255}
                     disabled={readOnly}
@@ -288,8 +300,13 @@ export default function LocationFormModal({
                   />
                 </DashField>
 
-                <DashField label={t("Country")} error={errors.country_id}>
+                <DashField
+                  label={t("Country")}
+                  error={errors.country_id}
+                  data-pw="location-country-field"
+                >
                   <select
+                    data-pw="location-country-select"
                     value={form.country_id}
                     disabled={readOnly}
                     onChange={(e) => patch({ country_id: e.target.value })}
@@ -307,9 +324,14 @@ export default function LocationFormModal({
                 </DashField>
               </div>
 
-              <DashField label={t("Address")} error={errors.address}>
+              <DashField
+                label={t("Address")}
+                error={errors.address}
+                data-pw="location-address-field"
+              >
                 <textarea
                   rows={3}
+                  data-pw="location-address-input"
                   value={form.address}
                   disabled={readOnly}
                   onChange={(e) => patch({ address: e.target.value })}
@@ -331,9 +353,14 @@ export default function LocationFormModal({
               />
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <DashField label={t("Latitude")} error={errors.latitude}>
+                <DashField
+                  label={t("Latitude")}
+                  error={errors.latitude}
+                  data-pw="location-latitude-field"
+                >
                   <input
                     type="number"
+                    data-pw="location-latitude-input"
                     step="any"
                     min={-90}
                     max={90}
@@ -346,9 +373,14 @@ export default function LocationFormModal({
                     }`}
                   />
                 </DashField>
-                <DashField label={t("Longitude")} error={errors.longitude}>
+                <DashField
+                  label={t("Longitude")}
+                  error={errors.longitude}
+                  data-pw="location-longitude-field"
+                >
                   <input
                     type="number"
+                    data-pw="location-longitude-input"
                     step="any"
                     min={-180}
                     max={180}
@@ -365,11 +397,21 @@ export default function LocationFormModal({
             </div>
 
             <div className="p-5 border-t border-[#ededed] flex items-center w-full justify-end gap-3">
-              <DashButton type="button" variant="ghost" onClick={onClose}>
+              <DashButton
+                type="button"
+                variant="ghost"
+                data-pw="location-cancel-btn"
+                onClick={onClose}
+              >
                 {t("Cancel")}
               </DashButton>
               {canSubmit && (
-                <DashButton type="submit" icon="check" loading={saving}>
+                <DashButton
+                  type="submit"
+                  icon="check"
+                  data-pw="location-save-btn"
+                  loading={saving}
+                >
                   {t("Save Changes")}
                 </DashButton>
               )}

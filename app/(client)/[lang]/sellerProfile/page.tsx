@@ -156,6 +156,8 @@ function Page() {
             return (
               <div
                 key={shop.seller_id}
+                data-pw="seller-shop-card"
+                data-seller-id={shop.seller_id}
                 className="group relative bg-white rounded-[15px] p-5 transition-all hover:-translate-y-0.5"
                 style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
               >
@@ -163,12 +165,18 @@ function Page() {
                 <div className="flex items-center gap-3.5">
                   <Monogram name={shop.shop_name} size={52} />
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-[16px] bold text-[#1d1d1d] truncate">
+                    <h3
+                      data-pw="seller-shop-card-name"
+                      className="text-[16px] bold text-[#1d1d1d] truncate"
+                    >
                       {shop.shop_name}
                     </h3>
                     <p className="text-[12px] text-[#8e8e8e] mt-0.5">
                       {translateFunction("Seller ID", language)} ·{" "}
-                      <span className="medium text-[#505050]">
+                      <span
+                        data-pw="seller-shop-card-id"
+                        className="medium text-[#505050]"
+                      >
                         {shop.seller_id}
                       </span>
                     </p>
@@ -209,6 +217,7 @@ function Page() {
                   >
                     <DashButton
                       fullWidth
+                      data-pw="enter-dashboard-btn"
                       iconRight={isRtl ? "chevronLeft" : "chevronRight"}
                     >
                       {translateFunction("Enter Dashboard", language)}
