@@ -240,6 +240,71 @@ export const seedLocale = async (
   ]);
 };
 
+/** Wait until a closed popup has given its history entry back.
+ *
+ *  **Why this exists: a popup that has gone from the screen can still cancel
+ *  the next `page.goto`.**
+ *
+ *  Every popup in this app -- the cart, the login widget, the search overlay,
+ *  stories -- mounts `components/global/ParamsUpdater.tsx`, which pushes a
+ *  synthetic `{ isPopup: true }` history entry and puts its own key in the
+ *  query (`?cart=true`). Closing the popup unmounts that component, and its
+ *  cleanup does **not** run straight away: it defers on `setTimeout(..., 0)`
+ *  and then calls `window.history.back()` to take the entry off again.
+ *
+ *  So there is a gap. The drawer is already hidden and the line count already
+ *  reads zero, while the entry is still on the stack. A `page.goto` started
+ *  inside that gap is a navigation in flight when the deferred `history.back()`
+ *  fires, and the history step cancels it. Chromium reports that as
+ *  `net::ERR_ABORTED`, on an address that is perfectly fine.
+ *
+ *  Measured locally against the dev server, closing the cart and navigating at
+ *  once: **3 aborts in 18 runs** without this wait, **0 in 18** with it. Every
+ *  one of those three was a run where `history.state.isPopup` still read true
+ *  after the drawer had gone, and no run that saw the entry already given back
+ *  ever aborted -- which is the mechanism above, and not a guess about it.
+ *
+ *  On CI it is far more frequent -- `BUY-01`, `BUY-03` and `BUY-04` all failed
+ *  this way on run 35500435758, every one of them right after `emptyTheBag`,
+ *  while `BUY-02` (the one BUY case that never opens the bag first) passed on
+ *  the same product address in the same run.
+ *
+ *  **This is not the shopper's path.** When a shopper clicks a link the app
+ *  sets `isNavigating`, and `ParamsUpdater` then leaves history alone on
+ *  purpose. Nothing sets that flag for a `page.goto`, so the guard the app
+ *  already has cannot help this suite. Hence a wait here rather than a change
+ *  to the app.
+ *
+ *  Fails loudly rather than quietly timing out: an entry that is never given
+ *  back means the next navigation in the journey is unsafe, and the caller
+ *  should hear which popup did it. */
+export const waitForPopupHistorySettled = async (
+  page: Page,
+  options: { popup: string },
+): Promise<void> => {
+  await page
+    .waitForFunction(
+      () => (window.history.state as { isPopup?: boolean })?.isPopup !== true,
+      undefined,
+      { timeout: POPUP_HISTORY_MS },
+    )
+    .catch(() => {
+      throw new Error(
+        `the ${options.popup} closed on screen but never gave its history ` +
+          `entry back, so the next navigation would be cancelled. The address ` +
+          `still reads ${page.url()}`,
+      );
+    });
+};
+
+/** How long a closed popup gets to take its own history entry off the stack.
+ *
+ *  The cleanup runs on a `setTimeout(..., 0)`, so this is only ever waiting out
+ *  one task plus the history step. Generous on purpose: a slow CI runner under
+ *  load is the case this has to cover, and a popup that genuinely never lets go
+ *  still ends in the error above rather than in silence. */
+const POPUP_HISTORY_MS = 10_000;
+
 /** Open a plain page that does not depend on Elasticsearch or the home listing.
  *
  *  Auth specs use this so a staging search outage does not hide the auth
