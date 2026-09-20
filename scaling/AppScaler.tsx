@@ -55,10 +55,30 @@ import {
  *      anchor attribute re-measures, and the keypad's `offsetHeight` (never
  *      affected by its slide-in transform) says where its top will be.
  *
+ * Pull to refresh
+ * ---------------
+ * While a finger is down the fit is frozen too, for the same reason as rule 1
+ * above. iOS Safari shrinks `innerHeight` by the pull distance during a
+ * pull-to-refresh and fires `resize` the whole way, so the canvas was being
+ * fitted to the strip left over above the finger: the deficit hit its cap and
+ * the canvas shrank on top of it, which collapsed the Quick Preview card
+ * mid-gesture. The page sliding down is the browser's own rubber band and is
+ * left alone; only the re-fit is held back, and it runs once, TOUCH_SETTLE_MS
+ * after the last finger lifts and the rubber band has snapped back.
+ *
  * Only one `<Page variant="scaled">` may be mounted at a time: the element ids
  * and the `:root` variables below are fixed names, and nothing counts copies.
  */
 const LIFT_VAR = '--app-keyboard-lift';
+
+/**
+ * How long to wait after the last finger lifts before fitting again.
+ *
+ * iOS Safari's rubber band is still running at `touchend`, so `innerHeight` is
+ * still the pulled-down number for a few more frames. Fitting straight away
+ * would use that number and re-create the squeeze this delay exists to avoid.
+ */
+const TOUCH_SETTLE_MS = 300;
 
 const isTextField = (el: Element | null): el is HTMLElement =>
   !!el &&
@@ -106,11 +126,26 @@ export default function AppScaler({
 
     let debounceTimer: ReturnType<typeof setTimeout>;
     let blurTimer: ReturnType<typeof setTimeout>;
+    let settleTimer: ReturnType<typeof setTimeout>;
+    /** True from the first finger down to the last finger up. */
+    let touching = false;
 
     const compute = () => {
       // The keyboard changed the window, not the device. Keep the fit the
       // shopper was looking at; the resize after the keyboard closes re-fits.
       if (isTextField(document.activeElement)) return;
+
+      // A finger is down, so this is a gesture, not a new device size.
+      //
+      // While a pull-to-refresh is held, iOS Safari shrinks `innerHeight` by
+      // the pull distance and fires `resize` for every pixel of it. Fitting to
+      // that number treats the leftover strip as the whole page: the deficit
+      // runs into its cap and `canvasFit` starts shrinking the canvas as well,
+      // so the Quick Preview card collapses under the shopper's finger. The
+      // page sliding down is the browser's own rubber band and is wanted; the
+      // canvas must not resize with it. `onTouchEnd` fits once the real height
+      // is back, and a pull that does refresh unmounts this anyway.
+      if (touching) return;
 
       const { scale, deficit, height, left, top } = canvasFit(
         window.innerWidth,
@@ -176,8 +211,26 @@ export default function AppScaler({
       blurTimer = setTimeout(updateLift);
     };
 
+    const onTouchStart = () => {
+      touching = true;
+    };
+    // Only the LAST finger ends the gesture, so a second finger lifting off a
+    // pinch does not let the fit back in while the first one is still pulling.
+    const onTouchEnd = (event: TouchEvent) => {
+      if (event.touches.length > 0) return;
+      touching = false;
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => {
+        compute();
+        updateLift();
+      }, TOUCH_SETTLE_MS);
+    };
+
     compute();
     window.addEventListener('resize', onWindowResize, { passive: true });
+    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchend', onTouchEnd, { passive: true });
+    document.addEventListener('touchcancel', onTouchEnd, { passive: true });
     document.addEventListener('focusin', updateLift);
     document.addEventListener('focusout', onFocusOut);
     const vv = window.visualViewport;
@@ -194,7 +247,11 @@ export default function AppScaler({
     return () => {
       clearTimeout(debounceTimer);
       clearTimeout(blurTimer);
+      clearTimeout(settleTimer);
       window.removeEventListener('resize', onWindowResize);
+      document.removeEventListener('touchstart', onTouchStart);
+      document.removeEventListener('touchend', onTouchEnd);
+      document.removeEventListener('touchcancel', onTouchEnd);
       document.removeEventListener('focusin', updateLift);
       document.removeEventListener('focusout', onFocusOut);
       vv?.removeEventListener('resize', updateLift);

@@ -106,7 +106,10 @@ function TextMessage({
       </div>
       <OptionsMenu
         isPrivate={isPrivate}
-        isSender={true}
+        // Only the person who wrote the message may edit it. This component
+        // draws both sides of the conversation, so the answer comes from the
+        // message, not from a constant.
+        isSender={is_from_sender}
         message={{
           sender_user_id,
           type,
@@ -117,6 +120,11 @@ function TextMessage({
           created_at,
           mid,
           id,
+          // OptionsMenu shows Copy and Edit only for a text message, and it
+          // reads the type from here. Every other message type passes it too.
+          message_type: {
+            name: "TextMessage",
+          },
         }}
         DeleteModal={DeleteModal}
         setDelete={(e) => setDelete(e)}
