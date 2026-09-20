@@ -69,10 +69,18 @@ export async function fetchStoriesForUser(
         next_page_url: undefined,
       };
     }
+    // The one reader that learns who is looking out of the browser's reach.
+    // `User-Data` is HttpOnly, so nothing in the page can read or forge the
+    // phone on it; the other three readers take it from the store, which a
+    // visitor can change, and are advisory for that reason.
+    const profile = await getCookieServer<{ phone?: unknown }>(
+      COOKIE_NAMES.USER_DATA,
+    );
+
     return {
       // `dropQaStories` does what the old filter did -- drop a person with no
       // stories left -- and also drops QA stories, which is the point here.
-      data: dropQaStories(response.data?.data?.data),
+      data: dropQaStories(response.data?.data?.data, profile?.phone),
       next_page_url: response.data?.data?.next_page_url,
     };
   } catch (error) {
@@ -81,57 +89,6 @@ export async function fetchStoriesForUser(
       country,
       error: error,
       scenario: "Error In fetchStoriesForUser in serverRequest/stories",
-    });
-    return {
-      data: [],
-      next_page_url: undefined,
-    };
-  }
-}
-
-export async function fetchStoriesForGuest(
-  language: string,
-  country: string,
-  page: number = 1,
-): Promise<StoriesResponse> {
-  let headers = {
-    Accept: "application/json",
-  };
-  try {
-    const response = await fetchServerData({
-      url: `${process.env.STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
-      method: "GET",
-      tags: ["stories", "home"],
-     
-      revalidate: 0,
-      local: `${country}-${language}`,
-      headers: headers,
-    });
-    if (response.isError) {
-      LogServerError({
-        source: "stories",
-        page: "stories",
-        status: response.status,
-        language,
-        country,
-        response: JSON.stringify(response)?.substring(0, 300),
-      });
-      return {
-        data: [],
-        next_page_url: undefined,
-      };
-    }
-    return {
-      data:
-        response.data?.data?.data?.filter((s) => s?.stories?.length > 0) || [],
-      next_page_url: response.data?.data?.next_page_url,
-    };
-  } catch (error) {
-    LogServerError({
-      language,
-      country,
-      error: error,
-      scenario: "Error In fetchStoriesForGuest in serverRequest/stories",
     });
     return {
       data: [],

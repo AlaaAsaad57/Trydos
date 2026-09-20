@@ -18,7 +18,7 @@ class StoryService {
   /* get stories */
 
   async getStories(page: number = 1) {
-    const { setStoryData, storiesData } = useAppStore.getState();
+    const { setStoryData, storiesData, userProfile, user } = useAppStore.getState();
 
     try {
       const response = await fetchData({
@@ -35,7 +35,12 @@ class StoryService {
       // Filter once, here, before either branch writes to the store and before
       // the value is returned. A QA story must not reach a shopper's feed
       // through any of the three.
-      let data = dropQaStories(repo.data.data);
+      //
+      // The viewer's phone comes from the store, which is safe **here**: the
+      // only caller of this method is the sign-in flow (`services/auth.ts`),
+      // which runs after the store has been filled. The stories bar cannot rely
+      // on that and does not — see `StoriesBarClient`.
+      let data = dropQaStories(repo.data.data, userProfile?.phone ?? user?.phone);
       if (page == 1) {
         setStoryData(data);
       } else {

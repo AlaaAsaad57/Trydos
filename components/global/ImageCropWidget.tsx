@@ -208,6 +208,10 @@ export function ImageCropWidget({
               Change Image
             </button> */}
             <button
+              // The only way past this editor, and its label goes through
+              // translateFunction — so without a hook a test has to match
+              // translated text and breaks in ar, tr and ku.
+              data-pw="image-crop-save-button"
               onClick={getCroppedImg}
               className="px-4 py-2 bg-blue-500 text-white rounded-sm hover:bg-blue-600"
             >

@@ -51,6 +51,10 @@ export const ACCOUNT_LANE = [
   // Shopper B and writes real rows to the environment — a seller, a shop, a
   // location and a product. It must never run beside a second copy of itself.
   "qaLock.live.spec.ts",
+  // The stories journey. Signs in as **both** shared accounts, uploads real
+  // media, files a real report and deletes real rows. Two copies at once would
+  // fight over the same two identities.
+  "stories.live.spec.ts",
 ];
 
 /** No account, no code, nothing real written. Safe to run several at once. */

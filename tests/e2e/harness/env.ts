@@ -233,6 +233,25 @@ export const hasAdmin = (): boolean =>
 export const hasQaMode = (): boolean =>
   envValue("QA_VIEW_SECRET").length >= 32;
 
+/** Can the suite see its own test stories?
+ *
+ *  A test story is hidden from every reader of the feed. The app reads
+ *  `NEXT_PUBLIC_QA_STORY_VIEWER_PHONES` to decide who still sees one, and
+ *  `harness/server.ts` fills that in from the test phones when it builds the
+ *  app — so there is nothing to configure, and this is true whenever a test
+ *  account is configured at all.
+ *
+ *  Kept as its own gate anyway, because the two are not the same question and
+ *  a reader of a skip line should not have to know they are usually equal. */
+export const hasQaStoryViewers = (): boolean =>
+  envValue("NEXT_PUBLIC_QA_STORY_VIEWER_PHONES") !== "" || hasShopperA();
+
+/** Why the stories cases cannot run. */
+export const NO_QA_STORY_VIEWERS_REASON =
+  "no test account phone is configured, so the app cannot be told who may see " +
+  "a test story — and a test story is hidden from this suite exactly as it is " +
+  "hidden from a customer. Set TEST_ACCOUNT_PHONE; the harness does the rest.";
+
 /** Everything the QA seed needs before it may write anything.
  *
  *  Shopper B signs in and becomes the seller; the admin approves the seller and

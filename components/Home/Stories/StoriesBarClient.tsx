@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AddStory from "components/Home/AddStory";
 import AddStoryWidget from "components/Home/Stories/AddStoryWidgetLazy";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
@@ -41,10 +41,36 @@ export default function StoriesBarClient({
   language: string;
   country: string;
 }) {
-  const [stories, setStories] = useState<any[] | null>(null);
+  // **The page as the backend sent it**, not the filtered list.
+  //
+  // The filter needs to know who is looking, and this component learns that from
+  // the store — which the sign-in fills *after* boot, while this effect runs on
+  // mount with deps `[language, country]`. Filtering inside the `.then` would
+  // therefore run with no viewer in almost every case, so a test account would
+  // never be shown its own QA story and the case would report "the feed never
+  // showed the story this run uploaded".
+  //
+  // Holding the raw page and filtering below fixes that with no second request:
+  // this component already subscribes to `userStories`, so the render re-runs by
+  // itself the moment the id lands.
+  const [rawStories, setRawStories] = useState<any[] | null>(null);
   const [nextPageUrl, setNextPageUrl] = useState<string | undefined>();
   const userData = useAppStore((state) => state.userStories);
+  // Subscribed to, not read once: this is what makes the render below re-run
+  // when the sign-in fills the store after boot.
+  const viewerPhone = useAppStore(
+    (state) => state.userProfile?.phone ?? state.user?.phone,
+  );
   const isRtl = language === "ar" || language === "ku";
+
+  // Recomputed only when the page or the viewer changes — **never** on every
+  // render. `StoriesWrapper` re-seeds the shared story list whenever this prop's
+  // identity changes, and re-seeding throws away the pages loaded after the
+  // first, the watched rings and the optimistic deletes.
+  const stories = useMemo(
+    () => (rawStories ? dropQaStories(rawStories, viewerPhone) : null),
+    [rawStories, viewerPhone],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -64,11 +90,11 @@ export default function StoriesBarClient({
     })
       .then((response: any) => {
         if (cancelled) return;
-        // Two rules in one pass, both of which end in "drop a person with no
-        // stories left, or the bar shows empty circles":
-        //   - a QA story is never shown to anybody;
-        //   - a person with no stories has no tile.
-        setStories(dropQaStories(response?.data?.data ?? []));
+        // Stored unfiltered on purpose. Both rules the filter applies — a QA
+        // story is never shown to anybody who is not a listed test account, and
+        // a person with no stories left has no tile — are applied above, where
+        // the viewer id is known.
+        setRawStories(response?.data?.data ?? []);
         setNextPageUrl(response?.data?.next_page_url);
       })
       .catch(() => {

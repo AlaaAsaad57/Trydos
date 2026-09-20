@@ -249,6 +249,9 @@ part of the `E2E_ENV_FILE` blob — see the `Add the QA settings` step in
 | `QA_VIEW_SECRET` | QA mode is off, the seed skips, every QA case and every BUY case skips with it |
 | `TEST_ACCOUNT_OTP_2` | nothing can sign in as Shopper B, so the seed skips |
 
+The stories journey adds **no** third setting — see "who is allowed to see a test
+story" below. It is worked out from the test phones when the app is built.
+
 Adding the secret is not enough on its own — a step has to read it. The
 `QA_VIEW_SECRET` secret sat in this repository's settings for a day with nothing
 reading it, and the whole QA lock skipped in CI while passing locally.
@@ -290,6 +293,86 @@ dashboard can change without this repository hearing about it. Every step fails
 by name, and **a row whose identity cannot be read is refused rather than
 approved** — the rows beside the QA one belong to real sellers waiting for a
 real decision.
+
+
+## The stories journey, and who is allowed to see a test story
+
+A story is test data when its **link points at the QA host**
+(`utils/qaStoryFilter.ts`). That mark hides it from every reader of the feed —
+which, until this ticket, included the suite itself. A safe story was an
+invisible story, so nothing could open, report or delete one.
+
+`NEXT_PUBLIC_QA_STORY_VIEWER_PHONES` is the way out: the accounts that still see
+test stories, named by **phone number**. Everyone else, signed in or not, sees
+exactly what they saw before.
+
+**You do not set it.** `harness/server.ts` fills it in when it builds the app,
+from `TEST_ACCOUNT_PHONE` and `TEST_ACCOUNT_PHONE_2` — the numbers the suite
+already signs in with. There is no second setting to add, nothing to look up, and
+nothing that can drift out of step with the accounts actually being used. An
+explicit value still wins, for the rare environment where the viewer is not the
+signer.
+
+That also means **CI needs no new secret and no new variable**: the two phones
+already arrive in the environment blob, and the harness does the rest.
+
+**Three things to know.**
+
+1. **It must never be set on a deployed app.** `NEXT_PUBLIC_*` values are inlined
+   into the browser bundle, so on a build that has it set the numbers are
+   readable by every visitor of that build. The only place it is ever set is the
+   app the harness builds, starts on a loopback port, and throws away. A unit
+   test checks no tracked file sets it; it cannot see a value set in a hosting
+   dashboard.
+2. **Inlined means rebuilt.** Changing the accounts changes nothing until the app
+   is built again, so **`--skip-build` serves a build with the old list** — or
+   with none.
+3. **The number is matched however it is written.** Everything that is not a
+   digit is ignored on both sides, so `+999 000 000 001` and `999000000001` are
+   one entry. Same rule as `utils/server/otpAllowlist.ts`, and for the same
+   reason.
+
+**The browser half of this rule is advisory, not a control.** Three of the four
+story readers run in the page and learn who is looking from store state a visitor
+can change. The guarantee is point 1: on a build a customer can reach, the list
+is empty, so there is nothing to match and nothing to spoof. Only
+`serverRequests/stories.ts` reads the viewer out of the browser's reach, from the
+HttpOnly `User-Data` cookie.
+
+### Aiming at your own story, and nothing else
+
+The QA host hides a story; it does not say *which* story. This run's photo, this
+run's video, a leftover from last night and another run's story all share that
+host. So every upload carries
+
+```
+https://<qa story host>/e2e/<run token>/<photo|video>
+```
+
+and `actions/story.ts` matches on the **whole link**. Reporting cannot be undone —
+the app has no way to withdraw one — so a loose match here files a report against
+somebody else's story.
+
+Two more guards, both learned from the review panel:
+
+- **The holder carries `data-story-id`, and only when it is active.** The cube
+  carousel mounts several holders at once; an unconditional attribute would also
+  match the neighbouring authors' rings.
+- **Identity is checked twice before a report.** The viewer advances on its own
+  timer and, at the end of a ring, moves to the **next author** — where the report
+  control is still drawn. The second check happens with the report sheet open,
+  because that is the only moment the viewer is paused.
+
+### What the run leaves behind
+
+`STORY-05` deletes every story the run uploaded, through the screens a shopper
+uses, and an `afterAll` net removes anything a failure left — this run's token
+only, because another run may be in flight against the same environment.
+
+What is **not** cleaned up, and cannot be: `deleteStory` sends only the story id,
+so the uploaded media stays on the media server for ever, and a filed report
+cannot be withdrawn. One of each per run, and the suite runs nightly and on every
+push to `development`. That is why the fixtures are capped.
 
 ## Writing a seller-dashboard test
 

@@ -59,7 +59,43 @@ const childEnv = (): NodeJS.ProcessEnv => {
     // production build, and `next start` refuses to serve one.
     NODE_ENV: "production",
     PORT: String(LIVE_PORT),
+    ...qaStoryViewers(),
   };
+};
+
+/** Let the two test accounts see their own test stories — worked out here, so
+ *  nobody has to configure it.
+ *
+ *  A test story is hidden from every reader of the feed, which is the point: no
+ *  customer may ever see one. That hid it from the suite as well, so the app
+ *  reads `NEXT_PUBLIC_QA_STORY_VIEWER_PHONES` — the accounts that still see
+ *  them.
+ *
+ *  **It is derived, not configured.** The value is exactly the two phones the
+ *  suite already signs in with, so asking for it a second time would be a
+ *  setting that can only ever disagree with the one beside it. An explicit value
+ *  still wins, for the rare environment where the viewer is not the signer.
+ *
+ *  **This is the only place it is ever set**, and that is what keeps it safe: it
+ *  is a `NEXT_PUBLIC_` value, so it is inlined into the bundle of whatever app is
+ *  built with it. The app built here is started on a loopback port, torn down at
+ *  the end of the run, and never deployed or published. Nothing writes this into
+ *  a tracked file, and no deployment pipeline sets it.
+ *
+ *  Returns nothing at all when there are no test phones — an absent variable is
+ *  how the app knows the feature is off. */
+const qaStoryViewers = (): Record<string, string> => {
+  const already = (process.env.NEXT_PUBLIC_QA_STORY_VIEWER_PHONES ?? "").trim();
+  if (already) return {};
+
+  const phones = [
+    (process.env.TEST_ACCOUNT_PHONE ?? "").trim(),
+    (process.env.TEST_ACCOUNT_PHONE_2 ?? "").trim(),
+  ].filter(Boolean);
+
+  if (phones.length === 0) return {};
+
+  return { NEXT_PUBLIC_QA_STORY_VIEWER_PHONES: phones.join(",") };
 };
 
 /** Is anything answering on the port already? */

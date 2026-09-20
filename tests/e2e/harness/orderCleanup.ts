@@ -46,7 +46,7 @@
 
 import type { Page } from "@playwright/test";
 
-import { toServiceToken } from "utils/serviceTokens";
+import { toServiceToken, type InternalServiceName } from "utils/serviceTokens";
 
 /** A pack, reduced to the two fields this file acts on. */
 type CancellablePack = {
@@ -110,6 +110,15 @@ export const throughProxyInPage = async (
      *  runs out of time comes back as status `0` rather than throwing, so a
      *  tidy-up never replaces the failure a case is reporting. */
     timeout?: number;
+    /** Which backend to reach. Defaults to `market`, which is what every caller
+     *  wanted until the stories journey needed to delete a story.
+     *
+     *  **It feeds two places, not one.** The proxy reads the obfuscated token in
+     *  `x-proxy-server`, and the 401 recovery below sends the **plain** name to
+     *  `/api/auth/refresh`, which is per-service. Setting only the first would
+     *  make a rotated stories token look like the stories backend refusing the
+     *  call — the exact misreading this helper's 401 branch was added to stop. */
+    server?: InternalServiceName;
   },
 ): Promise<{ status: number; json: unknown }> =>
   await page.evaluate(
@@ -158,8 +167,9 @@ export const throughProxyInPage = async (
             headers: { "Content-Type": "application/json" },
             credentials: "include",
             // The plain service name, not the proxy's token: the refresh route
-            // matches on `market` itself (`app/api/auth/refresh/route.ts`).
-            body: JSON.stringify({ url: call.target, server: "market" }),
+            // matches on the name itself (`app/api/auth/refresh/route.ts`), and
+            // it is per-service — `stories` has its own refresh token.
+            body: JSON.stringify({ url: call.target, server: call.serverName }),
             signal: AbortSignal.timeout(call.timeout),
           })
             .then(async (answer) => await answer.json().catch(() => null))
@@ -188,7 +198,8 @@ export const throughProxyInPage = async (
       }
     },
     {
-      server: toServiceToken("market"),
+      server: toServiceToken(options.server ?? "market"),
+      serverName: options.server ?? "market",
       target: options.target,
       method: options.method,
       body: options.body,
