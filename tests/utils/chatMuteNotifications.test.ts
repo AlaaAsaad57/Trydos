@@ -16,6 +16,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useAppStore } from "store";
+import { isChannelMutedForMe } from "utils/chatMute";
 
 // The toast we are asserting about. Spied here rather than read off the screen,
 // because the handler is not a component and never renders anything itself.
@@ -161,5 +162,107 @@ describe("a muted chat raises no notification", () => {
       showChatNotification.mock.calls.length,
       "an unmuted chat raised no notification toast, so the mute check is silencing everything",
     ).toBe(1);
+  });
+});
+
+// The incoming-call bar reads mute off the chat it was handed, `callerChannel`.
+// So the handler has to hand it the real chat from the list. When it cannot
+// find the chat it builds a stand-in instead, and that stand-in has `mute: 0`
+// written into it — which reads as "not muted" and rings.
+//
+// Finding the chat is the whole point of these tests. The id to look it up by
+// is the one the handler already trusts on the next lines,
+// `data.message.channel.id`, not the one nested inside the call payload.
+describe("a muted chat does not ring", () => {
+  /** The call push the backend sends for a voice call. */
+  const buildCallPush = () => ({
+    data: {
+      type: "VoiceCallEvent",
+      body: JSON.stringify({ type: "call" }),
+      data: JSON.stringify({
+        user_id: THEM,
+        user: { id: THEM, name: "Alaa Test123", photo_path: null },
+        // Two levels deep, because the app posts its own `payload` object and
+        // the backend wraps it in another one. store/chat/callActions.ts sends
+        // the inner object; public/firebase-messaging-sw.js reads it back as
+        // `parsed.payload.payload`.
+        payload: {
+          payload: {
+            user_id: THEM,
+            type: "audio",
+            channelId: CHANNEL_ID,
+            callerName: "Alaa Test123",
+            callerPhoto: null,
+          },
+        },
+        message: {
+          id: "101",
+          channel_id: CHANNEL_ID,
+          created_at: "2026-09-19T10:05:00.000Z",
+          sender_user_id: THEM,
+          channel: {
+            id: CHANNEL_ID,
+            channel_name: "Alaa Test123",
+            photo_path: null,
+          },
+          sender_user: { id: THEM, name: "Alaa Test123" },
+          message_type: { name: "VoiceCall" },
+          message_content: { content: "" },
+          message_files: [],
+          message_status: [],
+        },
+      }),
+    },
+  });
+
+  /** What the call bar will read: the chat the handler put in the store. */
+  const callerChannelInStore = () =>
+    (useAppStore.getState() as any).callerChannel;
+
+  it("hands the call bar the muted chat, not a stand-in that rings", async () => {
+    seedStore(1);
+    const { foregroundNotificationHandler } = await import(
+      "utils/NotificationHandler"
+    );
+
+    await foregroundNotificationHandler.handleNotification(
+      () => {},
+      buildCallPush(),
+    );
+
+    expect(
+      (useAppStore.getState() as any).isCallIncoming,
+      "no incoming call was raised at all, so this test cannot tell a silent call from a missing one",
+    ).toBe(true);
+    expect(
+      isChannelMutedForMe(callerChannelInStore(), ME),
+      `the call bar was handed a chat that reads as not muted for user ${ME}, so /default.mp3 rings; its members are ${JSON.stringify(
+        callerChannelInStore()?.channel_members?.map((member: any) => ({
+          user_id: member.user_id,
+          mute: member.mute,
+        })),
+      )}`,
+    ).toBe(true);
+  });
+
+  it("still rings when the chat is not muted", async () => {
+    seedStore(0);
+    const { foregroundNotificationHandler } = await import(
+      "utils/NotificationHandler"
+    );
+
+    await foregroundNotificationHandler.handleNotification(
+      () => {},
+      buildCallPush(),
+    );
+
+    expect(
+      (useAppStore.getState() as any).isCallIncoming,
+      "no incoming call was raised at all, so the check below says nothing about mute",
+    ).toBe(true);
+    expect(
+      isChannelMutedForMe(callerChannelInStore(), ME),
+      "an unmuted chat was handed to the call bar as muted, so no call would ever ring",
+    ).toBe(false);
   });
 });
