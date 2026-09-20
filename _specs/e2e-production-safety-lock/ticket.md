@@ -12,7 +12,7 @@ created_at: 2026-09-19
 updated_at: 2026-09-20
 links:
   clickup: ""
-  github: ""
+  github: "https://github.com/AlaaAsaad57/Trydos/pull/124"
 ---
 
 # Ticket Record — e2e-production-safety-lock
