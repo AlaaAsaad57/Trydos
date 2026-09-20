@@ -8,16 +8,32 @@ import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
 import { requestPermissions } from "utils/tinyUtils";
+import { isChannelMutedForMe } from "utils/chatMute";
+import { getUserChat } from "utils/functions";
+import { showErrorNotification } from "store/notifications/reducer";
 
 function CallComponent(props) {
   const {
     caller,
+    callerChannel,
     incomeCallData,
     MessageActiveCall,
     language,
     incomeCallType,
     refuseCall,
   } = useAppStore();
+
+  // A muted chat does not ring. The bar itself still appears, with the caller's
+  // name and both buttons, so the user can still answer — mute takes away the
+  // sound, not the call.
+  //
+  // `callerChannel` is the chat the call came through, put here by
+  // setIncomingCall / setIncomingVoiceCall in store/chat/reducer.ts. It is the
+  // chat from the list when the caller is a known contact, so it carries the
+  // `mute` row for this user. For a caller with no chat yet the handler builds
+  // a stand-in with `mute: 0`, which rings — correct, since an unknown chat was
+  // never muted.
+  const isMuted = isChannelMutedForMe(callerChannel, getUserChat()?.id);
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -33,6 +49,14 @@ function CallComponent(props) {
       RefAudio?.current?.pause();
     };
   }, [ref]);
+  // Silence the ring. On a muted call there is no audio element at all, so
+  // every line here has to cope with `ref.current` being empty.
+  const stopRinging = () => {
+    if (!ref.current) return;
+    ref.current.pause();
+    ref.current.currentTime = 0;
+  };
+
   const ReplyAction = async (e) => {
     // ask for permissions
     let permissions = await requestPermissions({
@@ -49,8 +73,7 @@ function CallComponent(props) {
     }
     document.querySelector("#call-rec-id").classList.add("disabled-label");
     e.target.classList.add("disabled-label");
-    ref.current.pause();
-    ref.current.currentTime = 0;
+    stopRinging();
     setTimeout(() => {
       AnswerCall(incomeCallData.channelId, MessageActiveCall);
       props.reply();
@@ -58,9 +81,11 @@ function CallComponent(props) {
   };
   return (
     <div className="call-element fixed top-7 right-0 left-0 mr-auto ml-auto mt-0 mb-0 flex flex-row items-start p-3 justify-start bg-slate-100">
-      <audio ref={ref} loop autoPlay src={"/default.mp3"}>
-        <source src={"/default.mp3"}></source>
-      </audio>
+      {!isMuted && (
+        <audio ref={ref} loop autoPlay src={"/default.mp3"}>
+          <source src={"/default.mp3"}></source>
+        </audio>
+      )}
       <ChatPhoto width={40} height={40} user={caller} />
       <div className="call-s">
         <span className="incomin">
@@ -101,8 +126,7 @@ function CallComponent(props) {
               .querySelector("#call-dec-id")
               .classList.add("disabled-label");
             RefuseCall(incomeCallData.channelId, MessageActiveCall);
-            ref.current.pause();
-            ref.current.currentTime = 0;
+            stopRinging();
             refuseCall(MessageActiveCall);
           }}
         >
