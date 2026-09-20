@@ -7,7 +7,7 @@ import {
   PinnChat,
   deleteChat as DeleteChatAction,
 } from "store/chat/actions";
-function ChatOptions({ id, unread, pinned, muted, member_id }) {
+function ChatOptions({ id, unread, pinned, muted, member_id, closeRow }) {
   const { language, setUnreadChat, pinChat, muteChat, deleteChat } =
     useAppStore();
   let { lang } = useParams();
@@ -20,7 +20,10 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
     <div className="chat-options-container">
       <div
         className="chat-option chat-1"
-        onClick={() => setUnreadChat({ id: id, value: !unread })}
+        onClick={() => {
+          setUnreadChat({ id: id, value: !unread });
+          closeRow?.();
+        }}
       >
         <img src="/icons/chat/UnreadIcon.svg" />
         <div>
@@ -32,6 +35,7 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
         onClick={() => {
           PinnChat({ id: id, value: !pinned, member_id: member_id });
           pinChat({ id: id, value: !pinned, member_id: member_id });
+          closeRow?.();
         }}
       >
         <img src="/icons/chat/PinIcon.svg" alt="pin-icon" />
@@ -45,6 +49,7 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
         onClick={() => {
           MuteChat({ id: id, value: !muted, member_id: member_id });
           muteChat({ id: id, value: !muted, member_id: member_id });
+          closeRow?.();
         }}
       >
         {!muted ? (
@@ -61,13 +66,14 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
         onClick={() => {
           DeleteChatAction(id);
           deleteChat({ id: id });
+          closeRow?.();
         }}
       >
         <img src="/icons/chat/DeleteIcon.svg" />
 
         <div>{translate("Delete", language)}</div>
       </div>
-      <div className="chat-option chat-5">
+      <div className="chat-option chat-5" onClick={() => closeRow?.()}>
         <img src="/icons/chat/ArchiveIcon.svg" />
         <div>{translate("Archive", language)}</div>
       </div>

@@ -954,9 +954,21 @@ export const useChatStore = (set: any, get: any) => ({
     });
 
     // Merge Data (Map for O(1) deduplication)
+    //
+    // The pinned channels are prepended, so they must not also appear in the
+    // merged list. They do appear there on every load after the first: the
+    // previous call already put them into `state.data`, and `state.data` seeds
+    // the map. That is why pinning a chat showed it twice once the chat page
+    // was closed and opened again. The pinned ids are dropped from the map, so
+    // the prepended copy is the only one left.
+    const pinnedIds = new Set(processedParam.map((item: any) => item.id));
     const mergedMap = new Map();
-    state.data.forEach((item: any) => mergedMap.set(item.id, item));
-    processedPayload.forEach((item: any) => mergedMap.set(item.id, item));
+    state.data.forEach((item: any) => {
+      if (!pinnedIds.has(item.id)) mergedMap.set(item.id, item);
+    });
+    processedPayload.forEach((item: any) => {
+      if (!pinnedIds.has(item.id)) mergedMap.set(item.id, item);
+    });
 
     // Params go first
     const finalData = [...processedParam, ...Array.from(mergedMap.values())];
@@ -970,7 +982,14 @@ export const useChatStore = (set: any, get: any) => ({
           : state.activeChat,
       newChats: newChatsToAdd,
       chatUsers: users,
-      chat_loading: true, // Note: kept true as per original, though function name implies data set
+      // `chat_loading` is deliberately not touched here. `getChats` owns it:
+      // it raises the flag before the request and clears it in a `finally`,
+      // and `getChats` is the only caller of `setChats`.
+      //
+      // This used to set it back to `true` *after* the data had arrived. That
+      // made ChatLists swap the whole list for skeletons again for the rest of
+      // `getChats`, which unmounts the pagination loader and its observer in
+      // the middle of fetching a page.
     });
   },
 
