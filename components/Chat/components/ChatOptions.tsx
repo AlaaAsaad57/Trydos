@@ -76,21 +76,28 @@ function ChatOptions({ id, unread, pinned, muted, member_id, closeRow }) {
       </div>
       {confirmDelete &&
         createPortal(
-          <ConfirmModal
-            showModal={confirmDelete}
-            loading={false}
-            type="Delete"
-            confirmTilte="Delete Chat"
-            confirmMessage="Are you sure you want to delete this chat?"
-            onCancel={() => setConfirmDelete(false)}
-            onConfirm={() => {
-              DeleteChatAction(id);
-              deleteChat({ id: id });
-              setConfirmDelete(false);
-              closeRow?.();
-            }}
-            dataCy="confirm-delete-chat"
-          />,
+          // The chat window sits at z-index 9999999999999 (public/styles/chat.css)
+          // and ConfirmModal at 999999999999999. Both are past the 32-bit limit a
+          // browser allows for z-index, so both clamp to 2147483647 and tie. This
+          // wrapper takes that top value in its own stacking context at the end of
+          // <body>, so the confirm window is above the chat on purpose.
+          <div style={{ position: "relative", zIndex: 2147483647 }}>
+            <ConfirmModal
+              showModal={confirmDelete}
+              loading={false}
+              type="Delete"
+              confirmTilte="Delete Chat"
+              confirmMessage="Are you sure you want to delete this chat?"
+              onCancel={() => setConfirmDelete(false)}
+              onConfirm={() => {
+                DeleteChatAction(id);
+                deleteChat({ id: id });
+                setConfirmDelete(false);
+                closeRow?.();
+              }}
+              dataCy="confirm-delete-chat"
+            />
+          </div>,
           document.body,
         )}
     </div>

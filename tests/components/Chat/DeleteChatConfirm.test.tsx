@@ -21,6 +21,22 @@ import React from "react";
 
 import { renderWithProviders, screen, userEvent } from "../../render";
 
+/**
+ * The top layer a browser will honour.
+ *
+ * CSS clamps z-index to a 32-bit signed integer. The chat window asks for
+ * 9999999999999 and ConfirmModal for 999999999999999 — both past the limit, so
+ * both come out as this number and tie. The confirm window has to claim it in its
+ * own layer at the end of <body>, or it is only on top by accident of DOM order.
+ */
+const TOP_LAYER = "2147483647";
+
+/** The portal layer the confirm window was put in — a direct child of <body>. */
+const confirmLayer = () =>
+  Array.from(document.body.children).find((child) =>
+    child.querySelector('[role="dialog"]'),
+  ) as HTMLElement | undefined;
+
 // Registered before the component imports below resolve, so neither component
 // ever reaches the real request. `vi.hoisted` is what makes the spy exist that
 // early — a plain `const` above `vi.mock` is still undefined when the factory
@@ -128,6 +144,18 @@ describe("ChatOptions — the swipe menu in the chat list", () => {
       container.contains(dialog),
       "the confirm window rendered inside the chat row; the row is moved with a CSS transform while it is swiped, so a fixed child of it is placed against the row and not the viewport",
     ).toBe(false);
+  });
+
+  it("claims the top layer so the chat window cannot cover it", async () => {
+    const { container } = await renderSwipeMenu();
+
+    await userEvent.click(deleteTile(container));
+    const layer = confirmLayer();
+
+    expect(
+      layer?.style.zIndex,
+      `the confirm window's layer asked for z-index "${layer?.style.zIndex}"; the chat window clamps to ${TOP_LAYER}, so anything less leaves the chat painting over the confirm window`,
+    ).toBe(TOP_LAYER);
   });
 
   it("closes the confirm window on Cancel", async () => {
@@ -274,6 +302,18 @@ describe("ChatInfo — Delete Chat in the conversation info panel", () => {
     ).toBe(false);
   });
 
+  it("claims the top layer so the chat window cannot cover it", async () => {
+    const { container } = await renderInfoPanel();
+
+    await userEvent.click(deleteRow(container));
+    const layer = confirmLayer();
+
+    expect(
+      layer?.style.zIndex,
+      `the confirm window's layer asked for z-index "${layer?.style.zIndex}"; the chat window clamps to ${TOP_LAYER}, so anything less leaves the chat painting over the confirm window`,
+    ).toBe(TOP_LAYER);
+  });
+
   it("deletes nothing when the shopper cancels", async () => {
     const { container, store } = await renderInfoPanel();
 
@@ -312,5 +352,46 @@ describe("ChatInfo — Delete Chat in the conversation info panel", () => {
       cancel,
       "the info panel stayed open over an empty conversation after the delete was confirmed",
     ).toHaveBeenCalled();
+  });
+
+  // Found while writing the tests above, in the same file they change.
+  //
+  // The panel slides in from the right with a 300 ms timer that writes
+  // `ref.current.style.right`. The timer was never cleared and `ref.current` was
+  // not checked, so closing the panel inside those 300 ms left a timer holding a
+  // node React had already detached: it fired, read `.style` off null and threw
+  // out of a timer, where no React error boundary can catch it.
+  //
+  // Confirming a delete closes the panel, so the flow these tests cover is one of
+  // the ways to hit it.
+  it("does not throw when the panel is closed before it finished sliding in", async () => {
+    vi.useFakeTimers();
+    try {
+      const { unmount } = await renderWithProviders(
+        <ChatInfo
+          activeChat={{
+            id: DOOMED_CHAT,
+            name: "Alaa Test123",
+            channel_members: [],
+            message_counts: [],
+          }}
+          cancel={() => {}}
+          callLoading={false}
+          makeAudioCall={() => {}}
+          makeVideoCall={() => {}}
+          enableSearch={() => {}}
+        />,
+        { store: { data: chatList() } },
+      );
+
+      unmount();
+
+      expect(
+        () => vi.advanceTimersByTime(300),
+        "the slide-in timer kept running after the panel closed and read .style off a detached node; it throws out of a timer, so no error boundary catches it and the page is left broken",
+      ).not.toThrow();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
