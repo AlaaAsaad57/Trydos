@@ -29,6 +29,7 @@ import {
 import { throughProxyInPage } from "../harness/orderCleanup";
 import { gotoQaProduct } from "./qaProduct";
 import { signedInSession } from "./auth";
+import { waitForPopupHistorySettled } from "./nav";
 
 /** How long a cart change has to come back from staging.
  *
@@ -125,6 +126,13 @@ export const closeCart = async (page: Page): Promise<void> => {
     cart.drawer(page),
     "the cart's own back arrow did not close it",
   ).toBeHidden({ timeout: CART_ANSWER_MS });
+
+  // The drawer leaves the screen before the cart gives its history entry back,
+  // and a navigation started in that gap is cancelled. See
+  // `waitForPopupHistorySettled` for the whole story — in short, this is what
+  // stops the next `page.goto` failing with `net::ERR_ABORTED` on an address
+  // that is fine.
+  await waitForPopupHistorySettled(page, { popup: "cart" });
 };
 
 /** Take every line out of the bag, and prove it is empty.
