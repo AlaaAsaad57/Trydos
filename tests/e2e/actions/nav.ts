@@ -188,56 +188,46 @@ export const chooseRegionIfAsked = async (
   return { chosen: true, iso };
 };
 
-/** Save a country and a language for a context that has neither.
- *
- *  **Only when nothing is saved.** `gotoAbout` and `gotoStaticPage` seed
- *  unconditionally, and that is right for them because each takes the country it
- *  wants as an argument. `gotoHome` takes none, so seeding unconditionally would
- *  overwrite a country a case had deliberately chosen —
- *  `shopper.live.spec.ts:307` picks Syria for cash on delivery and calls
- *  `gotoHome` twenty lines later. */
-const seedLocaleIfUnset = async (page: Page): Promise<void> => {
-  const saved = await page.context().cookies();
-  const hasCountry = saved.some(
-    (cookie) => cookie.name === "country" && cookie.value !== "",
-  );
-  if (hasCountry) return;
-
-  await seedLocale(page);
-};
-
 /** Open the storefront home page and wait for it to be usable.
  *
  *  "Usable" is the logo being visible and nothing modal covering it — not `load`
  *  firing. This is a streamed React app, so the document finishes long before
  *  the page is worth clicking.
  *
- *  **It saves a country first, and that is a change worth explaining.** It used
- *  to open `/` with nothing saved, so the app could not work out where the
- *  visitor was, sent them to `/gb-en?no-country=true` and drew the country
- *  picker. Every one of the twenty-odd `gotoHome` calls in this suite then paid
- *  for the same five moves: wait for the backdrop, wait for the country list,
- *  click a country, wait for the starter-settings round trip the click makes,
- *  and wait out a full page reload.
+ *  Goes to `/` rather than a fixed locale path on purpose: the app decides the
+ *  country and language, and a journey that hard-codes `/gb-en` is asserting the
+ *  redirect rather than using it.
  *
- *  Three of those five are gateway calls, and that is the problem. On CI run
- *  35592830847 the gateway was answering `Attempt 1 failed due to network
- *  error` to the server's own fetches and `Error: Currency not found for
- *  country: iq` to the render; the picker's list never arrived, and **ten** solo
- *  cases failed inside `chooseRegionIfAsked` — CMP-01, five `guest.live` cases
- *  and four scripted checkout cases — none of which is about the picker.
+ *  ---------------------------------------------------------------------------
+ *  **Do not "save a country first" to skip the picker. It was tried, and it
+ *  broke nine cases.**
  *
- *  Nothing is given up by seeding. The redirect from `/` has its own case
- *  (`guest.live.spec.ts:26`), and the whole of `locale.live.spec.ts` owns the
- *  picker's rules; both drive their own navigation and are untouched by this.
- *  What this removes is twenty-odd re-provings of somebody else's case, each one
- *  a fresh chance for the gateway to be slow. */
+ *  The idea was sound on paper: opening `/` with nothing saved sends the visitor
+ *  to `/gb-en?no-country=true`, the picker is drawn, and every call here pays
+ *  for a backdrop wait, a country list, a click, a starter-settings round trip
+ *  and a full page reload — three of them gateway calls. Seeding `iq` removes
+ *  all five.
+ *
+ *  It also moves the home page this suite renders from `/gb-en` to `/iq-en`, and
+ *  that is what broke. On CI runs 35626155490 and 35632583274 the account lane
+ *  then produced **fifteen** of these, where the two runs before my change had
+ *  none at all:
+ *
+ *      ⨯ unhandledRejection: Error: Filling a cache during prerender timed out…
+ *          at getCachedCurrency (…/app-page-turbo.runtime.prod.js)
+ *
+ *  `serverRequests/cached/currency.ts` wraps the gateway currency call in
+ *  `"use cache"`. When that fill does not finish in time the whole route bails
+ *  out with `NEXT_STATIC_GEN_BAILOUT` and **no document is produced**, so
+ *  `page.goto` times out with nothing to say. Nine cases failed that way, the
+ *  same nine in both runs: AUTH-02, CMT-01, PROF-07, QA-01, QA-02, QA-02b,
+ *  QA-06, QA-09a, QA-09b.
+ *
+ *  Only the account lane was hit; the solo lane renders `/iq-en` all day. So
+ *  there is a real fragility in the app here and it deserves its own ticket —
+ *  but it is not this suite's to expose by changing where it browses. */
 export const gotoHome = async (page: Page): Promise<void> => {
-  await seedLocaleIfUnset(page);
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  // Still asked, and it costs nothing: `canAskForCountry` reads the address and
-  // returns at once on a served one. It is what covers a context that already
-  // held a country the app does not serve.
   await chooseRegionIfAsked(page);
   await expect(nav.logo(page)).toBeVisible();
 };
