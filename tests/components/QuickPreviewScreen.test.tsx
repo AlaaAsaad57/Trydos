@@ -205,6 +205,37 @@ describe('QuickPreviewScreen — the slider gives up the height the page does no
         ).toBe(`${-SLIDE_GAP / 2}px`);
     });
 
+    // The same clip, on the other axis. The window was exactly as tall as the
+    // card, so the top and bottom strokes sat on the clip edge and the top
+    // line came out cut on the real page. The window therefore runs SLIDE_GAP
+    // taller than the card and is pulled back by half a gap, and each card
+    // keeps its own height inside it, so the clip is half a gap away from the
+    // stroke on every edge.
+    it('runs the clipping window taller than the card, so the top and bottom borders are not cut', () => {
+        const { card } = renderOnCanvas(745);
+        const viewport = card.querySelector<HTMLElement>('.cursor-grab')!;
+        const cardHeight = expected(745).cardHeight;
+
+        expect(
+            viewport.style.height,
+            'the window is the same height as the card, so the clip lands on the 0.5 px top and bottom strokes and cuts them',
+        ).toBe(`${cardHeight + SLIDE_GAP}px`);
+        expect(
+            viewport.style.marginBlock,
+            'the taller window is not pulled back over the card box, so the card no longer sits where the design puts it',
+        ).toBe(`${-SLIDE_GAP / 2}px`);
+
+        const slides = Array.from(viewport.firstElementChild!.children);
+        expect(slides.length, 'the slider rendered no slides').toBeGreaterThan(0);
+        for (const [index, slide] of slides.entries()) {
+            const box = slide.firstElementChild as HTMLElement;
+            expect(
+                box.style.height,
+                `slide ${index + 1} stretches to the taller window instead of keeping the card height`,
+            ).toBe(`${cardHeight}px`);
+        }
+    });
+
     it('draws every slide border at the same height as the card', () => {
         const { card } = renderOnCanvas(745);
         const viewport = card.querySelector<HTMLElement>('.cursor-grab')!;

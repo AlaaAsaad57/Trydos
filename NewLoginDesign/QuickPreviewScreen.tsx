@@ -582,29 +582,42 @@ export default function QuickPreviewScreen({
                         edge, and a clip landing on it cut the stroke on a real
                         phone (the right side went missing at scale 0.958).
                         Held half a gap away, the whole stroke is always inside
-                        the clip, at any scale. */}
+                        the clip, at any scale.
+
+                    The window runs SLIDE_GAP taller as well, for the second
+                    reason only. The window used to be exactly as tall as the
+                    card, so the top and bottom strokes sat on the clip edge
+                    and the top line came out cut on the page. The extra
+                    height is pulled back with a negative block margin, so the
+                    card box still measures its design height in the column,
+                    and each card carries its own height (cardHeight) instead
+                    of stretching to the taller window. Nothing moves at rest
+                    on this axis either: there is no vertical drag, so the
+                    slack is never seen. */}
                 <div
                     className="w-xd-390 rounded-xd-20 bg-white flex flex-col items-center justify-center relative flex-shrink-0"
                     style={{ height: fit.cardHeight }}
                 >
                     {/* Embla Carousel Swiper Area (Mouse & Touch Swipe) */}
                     <div
-                        className="h-full overflow-hidden relative cursor-grab active:cursor-grabbing"
+                        className="overflow-hidden relative cursor-grab active:cursor-grabbing"
                         ref={emblaRef}
                         style={{
                             width: XD.box.width + SLIDE_GAP,
                             marginInline: -SLIDE_GAP / 2,
+                            height: fit.cardHeight + SLIDE_GAP,
+                            marginBlock: -SLIDE_GAP / 2,
                         }}
                     >
                         <div className="flex h-full touch-pan-y">
                             {PREVIEW_SLIDES.map((slide) => (
                                 <div
                                     key={slide.id}
-                                    className="flex-[0_0_100%] min-w-0 h-full flex items-stretch justify-center select-none"
+                                    className="flex-[0_0_100%] min-w-0 h-full flex items-center justify-center select-none"
                                 >
                                     <div
                                         className="relative flex flex-col items-center justify-center text-center px-xd-20"
-                                        style={{ width: XD.box.width }}
+                                        style={{ width: XD.box.width, height: fit.cardHeight }}
                                     >
                                         <XdDashedBorder
                                             width={XD.box.width}
