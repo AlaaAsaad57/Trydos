@@ -8,6 +8,7 @@ import {
   getMessageTime,
 } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
+import Spinner from "components/global/Spinner";
 
 function FileMessage({
   setOpen,
@@ -110,7 +111,7 @@ function FileMessage({
               <div className="file-type"></div>
             </div>
             {mid ? (
-              <img src="/icons/chat/spinn.svg" />
+             <Spinner/>
             ) : (
               <img src="/icons/chat/down.svg" style={{ minWidth: "34px" }} />
             )}
