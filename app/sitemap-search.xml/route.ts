@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error generating search terms sitemap:", error);
     LogServerError({
       error,
       type: "get sitemap for search api route",

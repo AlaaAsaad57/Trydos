@@ -13,6 +13,7 @@ import { setLocaizationCookies } from "utils/cookies/cookie-manager";
 import BackBar from "components/setting/BackBar";
 import { GetCountries } from "serverRequests/product";
 import { countryNameFromIso } from "utils/server/country";
+import { LogError } from "utils/functions";
 function PersonalInfoCountries({
   local = "",
   isRtl = false,
@@ -97,7 +98,7 @@ function PersonalInfoCountries({
       } else
         window.location.pathname = `/${country.iso.toLowerCase()}-${language}/settings`;
     } catch (error) {
-      console.error("Failed to update starter settings:", error);
+      LogError({ scenario: "PersonalInfoCountries: the starter settings did not update after a country change", error });
     }
 
     setIsSettingCountry(false);

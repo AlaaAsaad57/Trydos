@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import ProductListServer from "./ProductList";
 import { getTitleAndTargetofListing } from "serverRequests/meta/StructuredData/utils";
 import ListingBreadcrumbList from "serverRequests/meta/StructuredData/ListingBreadcrumbList";
-import ClientLogger from "components/global/ClientLogger";
 import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
 
 async function ProductListConainer({
@@ -48,13 +47,6 @@ async function ProductListConainer({
       key={`Suspense-product-list-${JSON.stringify(parsedFilters)}-${sort ?? "relevance"}`}
       fallback={<ListingSkeleton forProducts={true} />}
     >
-      <ClientLogger
-        value={{
-          elasticMainQueryTime: filtersData.time,
-          currencyTime: { time: currency.time, redis: currency.redis },
-          source: "ProductListContainer",
-        }}
-      />
       <ListingBreadcrumbList
         currency={currency}
         local={Params.lang}

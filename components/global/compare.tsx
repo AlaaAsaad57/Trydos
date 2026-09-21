@@ -310,7 +310,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
           scenario: "debouncedChangeHandler in Compare Page",
           search_text: value,
         });
-        console.error("Search error:", error);
+        LogError({ scenario: "compare: the search failed", error });
         setProducts([]);
       } finally {
         setSearchLoading(false);

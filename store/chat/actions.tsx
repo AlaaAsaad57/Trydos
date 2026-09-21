@@ -273,7 +273,7 @@ export async function PinnChat(payload) {
       throw new Error(response.message);
     }
   } catch (e) {
-    console.error(e);
+    LogError({ scenario: "chat store action failed", error: e });
   }
 
   chat.getChats(true);

@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error generating static pages sitemap:", error);
     LogServerError({
       error,
       type: "get sitemap for static pages api route",

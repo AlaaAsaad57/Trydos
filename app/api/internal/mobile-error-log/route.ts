@@ -55,6 +55,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    // Kept as a console line **on purpose**: this route IS the error sink, so
+    // reporting a failure here through the reporter would call back into the
+    // thing that just failed.
     console.error("mobile-error-log route error:", err);
     return NextResponse.json({ success: false }, { status: 500 });
   }

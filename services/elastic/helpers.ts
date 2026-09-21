@@ -2,6 +2,7 @@ import { search_log_index } from "./INDEXES";
 import { headers } from "next/headers";
 import { elasticSearchClient } from "./elasticsearch.config";
 import { qaShopMustNot } from "./qaFilter";
+import { LogServerError } from "utils/serverErrorReporter";
 
 interface PopularSearchBucket {
   key: string;
@@ -2893,13 +2894,6 @@ export async function logSearchTerm({
 }) {
   // 1. Basic Cleaning & Validation
   const cleanText = searchText.trim().toLowerCase();
-  console.log(
-    "Logging search term:",
-    cleanText,
-    "Products count:",
-    productsCount,
-    userData
-  );
   // Mimicking the PHP logic: > 2 chars and not empty
   if (!cleanText || cleanText.length <= 2 || productsCount === 0) return;
 
@@ -2920,13 +2914,14 @@ export async function logSearchTerm({
         "";
       requestUserAgent = requestHeaders.get("user-agent") || "";
     } catch {
-      console.error("Error in Logging Search Term")
+      LogServerError({
+        scenario: "logSearchTerm could not read the request headers",
+      });
     }
 
     const userId = userData?.id ?? userData?.userId;
     const ip = requestIp || userData?.ip || "";
     const userAgent = requestUserAgent || userData?.userAgent || "";
-    console.log(userId,ip,userAgent)
     // 3. Build the "Should" query for Deduplication
     const should = [];
     if (userId) {
@@ -2955,7 +2950,6 @@ export async function logSearchTerm({
       index: search_log_index,
       body: { query },
     });
-    console.log(JSON.stringify(response.hits.hits,null,2));
     // 5. If no hits found, index the new log
     if (response.hits.hits.length === 0) {
       const formattedDate = new Date()
@@ -2973,10 +2967,9 @@ export async function logSearchTerm({
           timestamp: formattedDate,
         },
       });
-      console.log("Search log saved.");
     }
   } catch (error) {
-    console.error("Failed to log search:", error.message);
+    LogServerError({ scenario: "logSearchTerm failed", error });
     throw error;
   }
 }
@@ -3027,7 +3020,7 @@ export async function getPopularSearchTerms(
       })
       .filter((term): term is PopularSearchTerm => Boolean(term));
   } catch (error) {
-    console.error("Failed to fetch popular search terms:", error);
+    LogServerError({ scenario: "getPopularSearchTerms failed", error });
     return [];
   }
 }

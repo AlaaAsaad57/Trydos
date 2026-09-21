@@ -147,7 +147,7 @@ function MoreOptionsSection({ product }) {
           );
           setIsInWishlist(inWishlist);
         } catch (error) {
-          console.error("Error checking wishlist status:", error);
+          LogError({ scenario: "MoreOptionsSection: reading the wishlist state failed", error });
         }
       }
     };

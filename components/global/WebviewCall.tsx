@@ -181,7 +181,7 @@ function WebviewCall() {
         }
       }
     } catch (error) {
-      console.error(error);
+      LogError({ scenario: "WebviewCall failed", error });
       let errorObj = {
         type: "front-end-calls-webview",
         message: error.message,

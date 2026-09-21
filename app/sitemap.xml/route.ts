@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error generating locale sitemap index:", error);
     LogServerError({
       error,
       type: "get sitemap  index api route",

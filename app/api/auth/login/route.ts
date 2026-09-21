@@ -473,7 +473,7 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     LogServerError({ error, type: "api route Login Handler Error" });
-    console.error("Login Handler Error:", error);
+    await LogServerError({ scenario: "login route handler", error }, "/api/auth/login");
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 },

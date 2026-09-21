@@ -289,7 +289,8 @@ export const parseFiltersFromParams = (
         values = decodeURIComponent(values);
       } catch (e) {
         // If decoding fails, use the original value
-        console.warn("Failed to decode URL component:", values, e);
+        // A value that will not decode falls through to the raw one below. Not a
+        // fault, and it printed on ordinary addresses.
       }
 
       if (filterType === "search") {

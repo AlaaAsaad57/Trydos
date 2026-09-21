@@ -4,6 +4,7 @@ import ProfilePicture from "public/images/profileNo.png";
 import { GetImageUrl } from "utils/tinyUtils";
 import { translateFunction } from "utils/functions";
 import { useState } from "react";
+import { LogError } from "utils/functions";
 
 function SearchResult({
   key,
@@ -81,7 +82,7 @@ function SearchResult({
       // Optional: Show a success message
       alert(translateFunction("Link copied to clipboard!"));
     } catch (err) {
-      console.error("Failed to copy:", err);
+      LogError({ scenario: "chat SearchResult: copy to clipboard failed", error: err });
     }
     setShowInviteModal(false);
   };

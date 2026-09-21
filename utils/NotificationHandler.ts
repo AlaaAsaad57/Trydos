@@ -125,7 +125,6 @@ class ForegroundNotificationHandler {
       const body = safeParse(rawData.body);
       const data = safeParse(rawData?.data || "{}");
       if (body.type === "greeting" || body.showed_type==="greeting") {
-        console.log("Hello from the foreground notification handler!");
         await new Promise((resolve) => setTimeout(resolve, 2000));
         auth.validateFCMToken();
       }

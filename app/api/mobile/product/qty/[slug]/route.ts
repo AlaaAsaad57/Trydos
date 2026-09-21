@@ -55,7 +55,6 @@ export async function GET(request: NextRequest, { params }) {
       ),
     );
   } catch (error) {
-    console.error("Get Product QTY api route", error);
     LogServerError(
       {
         error: error,

@@ -14,6 +14,7 @@ import {
   showSuccessNotification,
   showErrorNotification,
 } from "@/store/notifications/reducer";
+import { LogError } from "utils/functions";
 type MapProps = {
   center: {
     lat: number | string;
@@ -134,7 +135,7 @@ export const MapElement: React.FC<MapProps> = memo(
           },
           (error) => {
             setLocationLoading(false);
-            console.error("Error getting location:", error);
+            LogError({ scenario: "MapElement: reading the device location failed", error });
             showErrorNotification(
               translateFunction("Error getting your location")
             );

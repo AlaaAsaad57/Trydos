@@ -155,11 +155,10 @@ export async function GetSearchData({
     if (filters.search_text && filters.search_text?.split(" ")?.length > 1) {
       let CleanSearchText = await AnalyzeSearchText(filters.search_text);
       if (CleanSearchText?.error) {
-        console.error(
-          `##################${
-            CleanSearchText?.error || CleanSearchText?.message
-          }#######################`,
-        );
+        LogServerError({
+          scenario: "GetSearchData: the search analyser refused the text",
+          error: CleanSearchText?.error || CleanSearchText?.message,
+        });
         isAnalyzed = CleanSearchText?.error || CleanSearchText?.message;
         throw new Error(CleanSearchText?.error || CleanSearchText?.message);
       }
@@ -202,7 +201,6 @@ export async function GetSearchData({
       scenario: "Error In GetSearchData in serverRequest/Search",
     });
     isAnalyzed?.length > 4 ? isAnalyzed : "failed to Analyze";
-    console.error(error);
   }
 
   try {
@@ -412,12 +410,6 @@ export async function GetSearchData({
       (aggregations as any).top_boutiques?.filtered_boutiques?.boutiques_by_id
         ?.buckets || [],
       filters_offset,
-    );
-    console.log(
-      filters.search_text,
-      "search term",
-      total_size,
-      "products count",
     );
     if (
       filters?.search_text &&

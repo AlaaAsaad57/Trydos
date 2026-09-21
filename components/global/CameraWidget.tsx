@@ -103,7 +103,7 @@ export const CameraWidget = ({ onCapture, onClose }) => {
   };
 
   const handleUserMediaError = (error: any) => {
-    console.error("Camera error:", error);
+    LogError({ scenario: "CameraWidget: the camera failed", error });
 
     if (error.name === "OverconstrainedError") {
       setConstraintError(true);

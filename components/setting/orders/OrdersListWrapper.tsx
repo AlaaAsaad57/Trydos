@@ -85,7 +85,6 @@ function OrdersListWrapper({ isRtl, language, order_group_statuses, local }) {
         setHasMore(false);
       }
     } catch (error) {
-      console.log("Error fetching orders:", error);
       LogError({
         error: error,
         scenario: "Error In handleFetchOrders in OrderListWrapper",

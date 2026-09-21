@@ -117,7 +117,7 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
         };
       })
       .catch((err) => {
-        console.error("Error accessing camera:", err);
+        LogError({ scenario: "UploadProfilePhoto: the camera could not be opened", error: err });
         container.remove();
       });
   };
