@@ -823,8 +823,22 @@ test("SD-12 a contact and address change reaches the backend, and is put back", 
   // Two values this case invents, so no message here ever prints something the
   // environment already held.
   const stamp = String(Date.now()).slice(-8);
-  const newContact = `9715${stamp}`;
   const newAddress = `QA automated test — shop address ${stamp}`;
+
+  // The contact is **derived from the shop's own**, not invented, and is
+  // therefore read below rather than here.
+  //
+  // It used to be `9715` + eight digits of the clock — a United Arab Emirates
+  // number, written to a shop the seed builds in Syria. The core backend
+  // validates it and answers `422 The contact must be a valid phone number`,
+  // which refuses the whole save. Nobody saw it for as long as the media
+  // fields were refused first: that 422 named `image` and `banner`, and the
+  // contact was never reached.
+  //
+  // Keeping every digit but the last six holds the dialling code and the
+  // operator prefix the environment actually uses, so this case works against
+  // a QA shop in any country instead of only a UAE one.
+  let newContact = "";
 
   try {
     await openShopInfo(page, { sellerId: seed.sellerId, direct: true });
@@ -835,6 +849,19 @@ test("SD-12 a contact and address change reaches the backend, and is put back", 
         what: "before changing the shop's record",
       }));
     snapshot = before;
+
+    // Built from what the shop holds — see the note where `newContact` is
+    // declared. Every digit but the last six is kept, so the dialling code and
+    // the operator prefix stay the environment's own.
+    const held = String(before.contact ?? "").replace(/\D/g, "");
+    expect(
+      held.length,
+      `the shop's own contact is "${held}", which is too short to build a test ` +
+        `number from. This case changes the last six digits of the number the ` +
+        `shop already has, so that it stays a number the backend will accept ` +
+        `in whatever country this environment's QA shop is in`,
+    ).toBeGreaterThan(6);
+    newContact = held.slice(0, held.length - 6) + stamp.slice(-6);
 
     await test.step("the seller changes the contact and the address and saves", async () => {
       await fillShopInfo(page, { contact: newContact, address: newAddress });
@@ -848,10 +875,20 @@ test("SD-12 a contact and address change reaches the backend, and is put back", 
       }));
 
     await test.step("the core backend holds the new contact", async () => {
+      // **Digits, not the string.** The backend normalises a number it accepts:
+      // it was sent `9639111770836` and it hands back `+9639111770836`. That is
+      // the same number written its way, and a case about whether the change
+      // reached the shop must not fail on a plus sign. Comparing the digits
+      // still catches the thing this step is for — a save that answered
+      // `Successfully Updated` while storing something else.
+      const digits = (value: string): string => value.replace(/\D/g, "");
+
       expect(
-        stored.contact ?? "",
-        `changing the shop's contact: the core backend still holds a different number after the save answered successfully`,
-      ).toBe(newContact);
+        digits(stored.contact ?? ""),
+        `changing the shop's contact: the core backend still holds a different ` +
+          `number after the save answered successfully. It was sent ` +
+          `"${newContact}" and it now holds "${stored.contact ?? ""}"`,
+      ).toBe(digits(newContact));
     });
 
     await test.step("the core backend holds the new address", async () => {

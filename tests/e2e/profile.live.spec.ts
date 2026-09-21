@@ -94,7 +94,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import {
   attemptAuth,
-  currentAuthScreen,
+  requireSignedInShopper,
   signOutAndSettle,
   signedInSession,
 } from "./actions/auth";
@@ -244,17 +244,21 @@ test("PROF-01 the settings screens show the signed-in shopper, not a guest", asy
   // is here too, and a search outage cannot blank the page and hide it.
   await gotoAbout(page);
 
-  await attemptAuth(page, {
+  const outcome = await attemptAuth(page, {
     intent: "login",
     phone: envValue("TEST_ACCOUNT_PHONE"),
     method: "whatsapp",
     otp: envValue("TEST_ACCOUNT_OTP"),
   });
 
-  const screen = (await currentAuthScreen(page)) ?? "closed";
-  expect(screen, `the sign-in ended on the "${screen}" screen`).toMatch(
-    /^(welcome|closed)$/,
-  );
+  // **Asked of the app, not read off the widget.** This case is about the
+  // settings screens, not about the sign-in fan-out, and one refused leg leaves
+  // the widget sitting on the PIN screen for a shopper who is signed in — see
+  // `requireSignedInShopper`. Reading the screen here made a dead wallet fail
+  // this case, and PROF-02 to PROF-08 with it, for a session that was fine:
+  // CI run 35592830847, `the sign-in ended on the "enter-pin" screen`.
+  // AUTH-01 is the case that judges every leg, and it stays the only one.
+  await requireSignedInShopper(page, { outcome, who: "the shopper" });
 
   // Leave the widget shut: its phone field and the "sign in again" prompt share
   // one marker, so a widget left open would make later readings ambiguous.
@@ -264,12 +268,6 @@ test("PROF-01 the settings screens show the signed-in shopper, not a guest", asy
   // Hand the session on **before** anything is judged, so everything below is
   // free to fail without taking PROF-02 with it.
   await saveSession(context, SIGNED_IN_STATE);
-
-  const session = await signedInSession(page);
-  expect(
-    session.phoneVerified,
-    "the app does not treat this visitor as a signed-in shopper, so the screens below are a guest's",
-  ).toBe(true);
 
   await test.step("the settings card is the shopper's own", async () => {
     await gotoSettings(page);
@@ -756,7 +754,24 @@ test("PROF-05 a chosen picture is the account's, and removing it removes it", as
     // context is at about:blank — same reason PROF-02 opens this way.
     await gotoAbout(page);
     await gotoPicture(page);
-    const hadOneBefore = await hasPicture(page);
+    // **Asked before anything is written, and this order is the whole point.**
+    //
+    // The case ends by removing the picture it chose, so running it on an
+    // account that already had one destroys that one. This check used to sit at
+    // the **end**, after the removal — so it noticed the damage instead of
+    // preventing it, and its own advice ("restore it by hand") was already
+    // impossible by the time anyone read it. Seen for real on a local run on
+    // 2026-09-21.
+    //
+    // Failing here leaves the account exactly as it was found: `chose` is still
+    // false, so the tidy-up below writes nothing either.
+    expect(
+      await hasPicture(page),
+      "this account already has a profile picture, and this case would " +
+        "destroy it: it chooses one of its own and then removes it. Clear the " +
+        "account's picture by hand, or find out which run left one behind, " +
+        "before running this again",
+    ).toBe(false);
 
     // A tiny image the case makes itself, with a marked name so an orphan left
     // on the media store by a dead run can be recognised and found later.
@@ -790,11 +805,8 @@ test("PROF-05 a chosen picture is the account's, and removing it removes it", as
       "the picture is still there after a reload, so removing it did not take",
     ).toBe(false);
 
-    // Left as found. The account had no picture before this case unless it did.
-    expect(
-      hadOneBefore,
-      "this account already had a picture before the case ran, so it has been left without one — restore it by hand",
-    ).toBe(false);
+    // The "left as found" check used to be here, after the removal. It is now
+    // the first thing this case does — see the note above `choosePicture`.
   } finally {
     if (chose) {
       // Best effort: whatever state the assertions left, do not leave a probe

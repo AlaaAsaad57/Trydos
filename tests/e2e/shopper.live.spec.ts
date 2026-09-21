@@ -111,7 +111,11 @@
 // with one this run made. BUY-01 refuses to place an order onto a stranded one.
 
 import { expect, test } from "./fixtures";
-import { attemptAuth, currentAuthScreen, signedInSession } from "./actions/auth";
+import {
+  attemptAuth,
+  requireSignedInShopper,
+  signedInSession,
+} from "./actions/auth";
 import { CASH_ON_DELIVERY_COUNTRY, gotoAbout, gotoHome } from "./actions/nav";
 import {
   addQaProductToBag,
@@ -306,18 +310,21 @@ test("BUY-01 a shopper buys something with cash on delivery and then cancels it"
       // payment this journey may use. See CASH_ON_DELIVERY_COUNTRY.
       await gotoAbout(page, { country: CASH_ON_DELIVERY_COUNTRY });
 
-      await attemptAuth(page, {
+      const outcome = await attemptAuth(page, {
         intent: "login",
         phone: envValue("TEST_ACCOUNT_PHONE"),
         method: "whatsapp",
         otp: envValue("TEST_ACCOUNT_OTP"),
       });
 
-      const screen = (await currentAuthScreen(page)) ?? "closed";
-      expect(
-        screen,
-        `the sign-in ended on the "${screen}" screen, so nothing below is a signed-in shopper's`,
-      ).toMatch(/^(welcome|closed)$/);
+      // **Asked of the app, not read off the widget.** One refused leg of the
+      // sign-in fan-out leaves the widget on the PIN screen for a shopper who
+      // is signed in -- see `requireSignedInShopper`. This journey buys
+      // something; AUTH-01 is the case that judges every leg.
+      await requireSignedInShopper(page, {
+        outcome,
+        who: "the shopper who places this order",
+      });
 
       // Leave the widget shut: its phone field and the "sign in again" prompt
       // share one marker, so a widget left open makes later readings ambiguous.
@@ -789,18 +796,19 @@ test.describe("BUY-03 the bag's money, and choosing another address", () => {
       // country with the one in the URL.
       await gotoAbout(page, { country: CASH_ON_DELIVERY_COUNTRY });
 
-      await attemptAuth(page, {
+      const outcome = await attemptAuth(page, {
         intent: "login",
         phone: envValue("TEST_ACCOUNT_PHONE"),
         method: "whatsapp",
         otp: envValue("TEST_ACCOUNT_OTP"),
       });
 
-      const screen = (await currentAuthScreen(page)) ?? "closed";
-      expect(
-        screen,
-        `the sign-in ended on the "${screen}" screen, so nothing below is a signed-in shopper's`,
-      ).toMatch(/^(welcome|closed)$/);
+      // **Asked of the app, not read off the widget.** See the same note in
+      // BUY-01 above, and `requireSignedInShopper`.
+      await requireSignedInShopper(page, {
+        outcome,
+        who: "the shopper whose bag this case prices",
+      });
 
       await page.keyboard.press("Escape").catch(() => {});
       await gotoHome(page);

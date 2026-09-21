@@ -7,10 +7,16 @@
 
 import { describe, expect, it, vi } from "vitest";
 
+import { LogError } from "utils/functions";
 import {
   getFilterStateForItem,
   getFilterStateForItemLegacy,
 } from "utils/listing/filterItemState";
+
+// The reporter, faked. The unit under test now reports a bad filter value
+// through it instead of printing to the console, so this is what the case that
+// asserts on reporting reads.
+vi.mock("utils/functions", () => ({ LogError: vi.fn() }));
 
 const BASE = "/filters";
 
@@ -151,15 +157,19 @@ describe("the older filter links, which use a query instead of a path", () => {
   });
 
   it("reports the fault and starts fresh when the query cannot be read", () => {
-    const reported = vi.spyOn(console, "error").mockImplementation(() => {});
+    // Reported through `LogError`, not `console.error`. The console call was
+    // replaced so a runner log carries only what somebody acts on, while the
+    // fault itself still reaches Sentry like every other one.
     const result = getFilterStateForItemLegacy(
       new URLSearchParams("brands=not-a-list"),
       "nike",
       "brands",
     );
-    expect(reported).toHaveBeenCalled();
+    expect(
+      LogError,
+      "a filter value that will not parse was swallowed without being reported",
+    ).toHaveBeenCalled();
     expect(read(result.href, "brands")).toEqual(["nike"]);
-    reported.mockRestore();
   });
 
   it("reads the current filters when they arrive as a plain object", () => {

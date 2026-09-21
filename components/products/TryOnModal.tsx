@@ -5,6 +5,7 @@ import { getConfiguredImage, translateFunction } from "utils/functions";
 import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import { useAppStore } from "store";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
+import { LogError } from "utils/functions";
 
 const TryOnModal = ({ isOpen, onClose, language }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -86,7 +87,9 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
       setTimeout(() => {
         if (videoRef.current && stream) {
           videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(console.error);
+          videoRef.current.play().catch((error) =>
+            LogError({ scenario: "TryOnModal: the camera preview would not play", error }),
+          );
         }
       }, 100);
     } catch (error) {
@@ -280,7 +283,9 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
                   controls={false}
                   onLoadedMetadata={() => {
                     if (videoRef.current) {
-                      videoRef.current.play().catch(console.error);
+                      videoRef.current.play().catch((error) =>
+                        LogError({ scenario: "TryOnModal: the result video would not play", error }),
+                      );
                     }
                   }}
                 />

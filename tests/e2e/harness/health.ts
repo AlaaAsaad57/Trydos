@@ -5,7 +5,7 @@
 // perfectly correct and the box behind it still be down.
 //
 // ---------------------------------------------------------------------------
-// Why this exists, and why it checks Elasticsearch specifically
+// Why this exists
 //
 // A run on 2026-08-18 failed all four journeys on `getByTestId('NavLogo')` — the
 // storefront logo, which is in the layout and therefore on every page. It looked
@@ -22,18 +22,47 @@
 // bar included. Hence "element(s) not found" rather than a slow page.
 //
 // So the failure said "the backend is down" and the check said "the code broke".
-// That is the specific dishonesty this file fixes, and it is why the probe is
-// Elasticsearch and not every backend: it is the one whose absence blanks the
-// page rather than emptying a section.
+// That is the specific dishonesty this file fixes.
 //
-// **It checks authenticated service, not reachability.** During the boot window
-// above the node answered every TCP connection and every HTTP request — with a
-// 401. A "does it accept a connection" probe would have called that healthy and
-// let the run go red anyway. Only a request that actually succeeds proves the
-// suite has a backend to test against.
+// ---------------------------------------------------------------------------
+// Why it is two checks now, not one
 //
-// **Unset means skip, never fail** — the same rule the rest of the harness
-// follows. A machine with no Elasticsearch configured gets `up`, not `down`.
+// The Elasticsearch-only probe was not enough, and CI run 35592830847 is the
+// proof. Elasticsearch answered that run perfectly — its aggregation replies are
+// in the job log — while the **gateway** did not: the server log repeats
+// `Attempt 1 failed due to network error, retrying…` from
+// `serverRequests/ServerFetch.tsx`, and the render ends in
+// `Error: Currency not found for country: iq`. Thirty of the fifty-four solo
+// cases failed, most of them inside the country picker, whose list is a gateway
+// call that never answered. The re-check said "up", so the workflow called a
+// backend outage a code failure.
+//
+// So both are asked now:
+//
+//   * **Elasticsearch** — the backend whose absence blanks the whole document.
+//   * **The gateway** — asked with the app's own boot call,
+//     `/web/home/startingSettings`. That one answer is what gives the storefront
+//     its currency, its shipping settings and its country list. When it does not
+//     come, the page renders without a currency and the picker never draws a
+//     country to choose.
+//
+// The core backend is deliberately not probed: every endpoint on it wants a
+// verified shopper's token, so a probe would be asserting on the test identity
+// rather than on the box.
+//
+// ---------------------------------------------------------------------------
+// The two rules this file will not break
+//
+// **Unset means skip, never fail.** A machine with nothing configured gets `up`,
+// not `down`. That is what lets a fork run `pnpm test:e2e` and get an honest,
+// fast "skipped".
+//
+// **One blip must never skip a whole run.** `preflight` uses this answer to
+// decide whether to build and run at all, so a probe that says "down" when the
+// backend is fine costs an entire run and reports a green tick for having tested
+// nothing. Every check is therefore tried **twice**, two seconds apart, and only
+// a second failure counts. That is also why a 4xx from the gateway is not
+// "down": a box that refuses a request is a box that is serving.
 
 import { request as httpRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
@@ -45,9 +74,22 @@ import { envValue, loadLiveEnv } from "./env";
 // for a node the app has already given up on.
 const PROBE_TIMEOUT_MS = 8_000;
 
+/** How long to leave between the first failure and the retry.
+ *
+ *  Short on purpose. This is here to ride out one dropped packet or one
+ *  connection refused during a restart, not to wait out an outage. */
+const RETRY_PAUSE_MS = 2_000;
+
 // The cheapest endpoint that needs both a live node and working credentials. Not
 // `/`, which some proxies answer without ever reaching Elasticsearch.
 const PROBE_PATH = "/_cluster/health";
+
+/** The gateway call the storefront itself makes before it can draw anything.
+ *
+ *  `services/home.ts` and `components/settings/PersonalInfoCountries.tsx` both
+ *  depend on this answer — the first for the currency, the second for the list
+ *  of countries the picker offers. */
+const GATEWAY_PROBE_PATH = "/web/home/startingSettings?language=en";
 
 export type HealthReport = {
   /** Ready to test against. True when nothing is configured to check. */
@@ -57,6 +99,10 @@ export type HealthReport = {
   /** Nothing was configured, so nothing was checked. */
   skipped: boolean;
 };
+
+/** What one check decided. `detail` is always printable — a host and a status,
+ *  never a token and never a response body. */
+type CheckResult = { ok: boolean; detail: string };
 
 /** One GET, resolving to the status code, rejecting on a transport failure. */
 const statusOf = (url: URL, auth: string): Promise<number> =>
@@ -93,42 +139,33 @@ const statusOf = (url: URL, auth: string): Promise<number> =>
     req.end();
   });
 
-/** Turned off by hand on 2026-09-05, and this is the whole switch.
+/** The code (`ECONNREFUSED`, `ETIMEDOUT`, `EAI_AGAIN`) is what tells a
+ *  restarting box apart from a firewall, so prefer it over the message.
  *
- *  The probe was reporting the staging node down — `no answer in 8s` on
- *  `/_cluster/health` — from GitHub and from a developer machine alike, while a
- *  plain `curl -k` to the same host answered in under a second. Every run
- *  therefore skipped: no build, no browser, no journey, and a green tick for
- *  having tested nothing. The suite was asked to run anyway.
- *
- *  **What is now unguarded.** Read the note at the top of this file before
- *  changing anything here: when Elasticsearch really is down, every journey
- *  fails on a blank document, and with this flag set the workflow's
- *  "Re-check staging" step also answers `up`, so "Decide the verdict" calls a
- *  backend outage a code failure. That is precisely the mistake this file was
- *  written to stop, and it is back for as long as this line stands.
- *
- *  **To restore it:** set this to `false`. Nothing else was removed — the real
- *  probe below is untouched and runs again the moment the flag flips. */
-// Typed `boolean`, not left to infer the literal `true`: an inferred `true`
-// makes the real probe below unreachable code, which the compiler and the
-// linter both complain about and which would tempt someone to delete it.
-const PROBE_DISABLED: boolean = true;
+ *  `fetch` hides it one level down: its own message is the useless
+ *  `fetch failed` and the code sits on `error.cause`. Read that first, or every
+ *  gateway outage reports the same three words whatever caused it. */
+const failureDetail = (error: unknown): string => {
+  const cause = (error as { cause?: NodeJS.ErrnoException })?.cause;
+  return (
+    cause?.code ??
+    (error as NodeJS.ErrnoException)?.code ??
+    (error as Error)?.message ??
+    "unknown error"
+  );
+};
 
-/** Ask staging whether it is in a state worth testing against.
+/** Is the search backend serving, with credentials that work?
  *
- *  Never throws. Every outcome is a report, because a probe that fails in its
- *  own way would be one more thing to tell apart from a real failure. */
-export const probeStaging = async (): Promise<HealthReport> => {
-  // `skipped` rather than a plain `up`, so the log says "nothing was checked"
-  // instead of "the check passed". A disabled probe must never be able to read
-  // like a healthy backend.
-  if (PROBE_DISABLED) return { up: true, reason: "", skipped: true };
-
-  loadLiveEnv();
-
+ *  Not configured → `null`, which means "nothing to check here", never "healthy".
+ *
+ *  **It checks authenticated service, not reachability.** During the 2026-08-18
+ *  boot window the node answered every TCP connection and every HTTP request —
+ *  with a 401. A "does it accept a connection" probe would have called that
+ *  healthy and let the run go red anyway. */
+const checkSearchBackend = async (): Promise<CheckResult | null> => {
   const node = envValue("ELASTICSEARCH_NODE");
-  if (!node) return { up: true, reason: "", skipped: true };
+  if (!node) return null;
 
   let url: URL;
   try {
@@ -136,7 +173,7 @@ export const probeStaging = async (): Promise<HealthReport> => {
   } catch {
     // The guard reports a malformed address properly, and it runs first. Saying
     // it a second time here in different words would only be confusing.
-    return { up: true, reason: "", skipped: true };
+    return null;
   }
 
   const username = envValue("ELASTICSEARCH_USERNAME");
@@ -151,21 +188,100 @@ export const probeStaging = async (): Promise<HealthReport> => {
     // Anything but a success is "not serving", and the status is the useful
     // part: 401 is the boot window, 503 is a node that is up with no cluster
     // behind it, 200 is a backend the suite can test against.
-    if (status < 200 || status >= 300) {
-      return {
-        up: false,
-        reason: `${url.host} answered HTTP ${status}`,
-        skipped: false,
-      };
-    }
-
-    return { up: true, reason: "", skipped: false };
+    return status >= 200 && status < 300
+      ? { ok: true, detail: "" }
+      : { ok: false, detail: `the search backend ${url.host} answered HTTP ${status}` };
   } catch (error: unknown) {
-    // The code (`ECONNREFUSED`, `ETIMEDOUT`, `EAI_AGAIN`) is what tells a
-    // restarting box apart from a firewall, so prefer it over the message.
-    const code = (error as NodeJS.ErrnoException)?.code;
-    const detail = code ?? (error as Error)?.message ?? "unknown error";
-    
-    return { up: false, reason: `${url.host} — ${detail}`, skipped: false };
+    return {
+      ok: false,
+      detail: `the search backend ${url.host} — ${failureDetail(error)}`,
+    };
   }
+};
+
+/** Is the gateway serving the storefront's own boot call?
+ *
+ *  Not configured → `null`.
+ *
+ *  **A 4xx is not "down".** A box that refuses a request is a box that is
+ *  answering, and calling that an outage would skip whole runs for a changed
+ *  route. Only a transport failure, a timeout or a 5xx count. */
+const checkGateway = async (): Promise<CheckResult | null> => {
+  const base = envValue("GO_BACKEND_URL");
+  if (!base) return null;
+
+  let url: URL;
+  try {
+    url = new URL(`${base.replace(/\/$/, "")}${GATEWAY_PROBE_PATH}`);
+  } catch {
+    return null;
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { accept: "application/json", country: "iq", language: "en" },
+      signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
+    });
+
+    return response.status < 500
+      ? { ok: true, detail: "" }
+      : {
+          ok: false,
+          detail: `the gateway ${url.host} answered HTTP ${response.status} to the storefront's own boot call`,
+        };
+  } catch (error: unknown) {
+    return {
+      ok: false,
+      detail: `the gateway ${url.host} — ${failureDetail(error)}`,
+    };
+  }
+};
+
+/** Run a check, and give it a second chance before believing the bad news.
+ *
+ *  See the note at the top of this file: a false "down" costs a whole run and
+ *  reports a green tick for having tested nothing, so one dropped packet must
+ *  not be able to produce one. */
+const twice = async (
+  check: () => Promise<CheckResult | null>,
+): Promise<CheckResult | null> => {
+  const first = await check();
+  if (first === null || first.ok) return first;
+
+  await new Promise((resolve) => setTimeout(resolve, RETRY_PAUSE_MS));
+  const second = await check();
+  if (second === null) return null;
+
+  return second.ok
+    ? second
+    : { ok: false, detail: `${second.detail} (asked twice, ${RETRY_PAUSE_MS / 1000}s apart)` };
+};
+
+/** Ask staging whether it is in a state worth testing against.
+ *
+ *  Never throws. Every outcome is a report, because a probe that fails in its
+ *  own way would be one more thing to tell apart from a real failure.
+ *
+ *  `skipped` rather than a plain `up` when nothing is configured, so the log says
+ *  "nothing was checked" instead of "the check passed". A probe that checked
+ *  nothing must never read like a healthy backend. */
+export const probeStaging = async (): Promise<HealthReport> => {
+  loadLiveEnv();
+
+  const results = await Promise.all([twice(checkSearchBackend), twice(checkGateway)]);
+  const asked = results.filter((result): result is CheckResult => result !== null);
+
+  if (asked.length === 0) return { up: true, reason: "", skipped: true };
+
+  const failed = asked.filter((result) => !result.ok);
+  if (failed.length > 0) {
+    return {
+      up: false,
+      reason: failed.map((result) => result.detail).join("; "),
+      skipped: false,
+    };
+  }
+
+  return { up: true, reason: "", skipped: false };
 };

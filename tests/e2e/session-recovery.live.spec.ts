@@ -60,7 +60,7 @@
 import { expect, test } from "./fixtures";
 import {
   attemptAuth,
-  currentAuthScreen,
+  requireSignedInShopper,
   openCartAndProveBackendAnswered,
   signedInSession,
   whoAmI,
@@ -131,8 +131,9 @@ test("RECOV-01 a signed-in shopper survives a credential refused mid-action", as
     // number the widget reformats (spaces, no "+", a local 0-prefix) can still
     // slip through. That is why the fixed sentence comes first and carries the
     // meaning: the mask is a second line of defence, not the proof.
+    let outcome;
     try {
-      await attemptAuth(page, {
+      outcome = await attemptAuth(page, {
         intent: "login",
         phone: envValue("TEST_ACCOUNT_PHONE"),
         method: "whatsapp",
@@ -144,11 +145,14 @@ test("RECOV-01 a signed-in shopper survives a credential refused mid-action", as
       );
     }
 
-    const screen = (await currentAuthScreen(page)) ?? "closed";
-    expect(
-      screen,
-      `the sign-in ended on the "${screen}" screen, so there is no signed-in session to spoil`,
-    ).toMatch(/^(welcome|closed)$/);
+    // **Asked of the app, not read off the widget.** One refused leg of the
+    // sign-in fan-out leaves the widget on the PIN screen for a shopper who is
+    // signed in -- see `requireSignedInShopper`. What this case needs is a
+    // session to spoil, and the app's own answer is what says there is one.
+    await requireSignedInShopper(page, {
+      outcome,
+      who: "the shopper whose session this case spoils",
+    });
 
     // Leave the widget shut: its phone field and the "sign in again" prompt
     // share one marker, so a widget left open makes AC-3 ambiguous.

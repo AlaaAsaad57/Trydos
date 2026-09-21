@@ -31,6 +31,14 @@ import { LIVE_ORIGIN } from "../harness/env";
  *  a tight second half. Still far below the 120s per-test limit, so a product
  *  page that genuinely never renders is still reported as a failure. */
 const PRODUCT_RENDER_MS = 45_000;
+
+/** How long the country picker gets to draw its list, per attempt.
+ *
+ *  Half of what the single attempt used to get, because there are two now: the
+ *  first mount and one reload. The total is unchanged, and a lost `getCountries`
+ *  is answered by asking again rather than by waiting longer — see
+ *  `chooseRegionIfAsked`. */
+const COUNTRY_LIST_MS = 22_000;
 import {
   home,
   listing,
@@ -134,10 +142,38 @@ export const chooseRegionIfAsked = async (
 
   if (!showing) return { chosen: false };
 
-  await expect(
-    popup,
-    "the country popup is covering the page and never offered a country to pick",
-  ).toBeVisible({ timeout: 45_000 });
+  // The list, with **one reload if it does not come**.
+  //
+  // `Change-Url-Container` does not exist until `getCountries`
+  // (`components/settings/PersonalInfoCountries.tsx`) answers, and that is a
+  // gateway call made once, on mount, with no retry of its own. When it is lost
+  // the component sits on its "Preparing your experience" screen for ever: the
+  // page is up, the backdrop covers it, and nothing will ever arrive. Waiting
+  // longer cannot help, because there is no second request to wait for.
+  //
+  // A reload is the whole fix: it mounts the component again and asks again.
+  // Safe here by construction — this runs immediately after a navigation, so
+  // there is no work in the page to lose.
+  //
+  // Seen locally on 2026-09-21: `QA-01` spent its whole 45 seconds on a popup
+  // whose list was never coming, on the first home-page visit of the run.
+  const listed = await popup
+    .waitFor({ state: "visible", timeout: COUNTRY_LIST_MS })
+    .then(() => true)
+    .catch(() => false);
+
+  if (!listed) {
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await backdrop.waitFor({ state: "visible", timeout: 10_000 }).catch(() => {});
+    await expect(
+      popup,
+      "the country popup is covering the page and never offered a country to " +
+        "pick, and it was asked twice. The list is a gateway call — " +
+        "`getCountries` in `components/settings/PersonalInfoCountries.tsx` — " +
+        "made once on mount with no retry, so a popup stuck on its loading " +
+        "screen means that call did not answer. The popup itself is fine",
+    ).toBeVisible({ timeout: COUNTRY_LIST_MS });
+  }
 
   const first = region.anyCountry(page).first();
   await expect(first).toBeVisible();
@@ -192,7 +228,36 @@ export const chooseRegionIfAsked = async (
  *
  *  Goes to `/` rather than a fixed locale path on purpose: the app decides the
  *  country and language, and a journey that hard-codes `/gb-en` is asserting the
- *  redirect rather than using it. */
+ *  redirect rather than using it.
+ *
+ *  ---------------------------------------------------------------------------
+ *  **Do not "save a country first" to skip the picker. It was tried, and it
+ *  broke nine cases.**
+ *
+ *  The idea was sound on paper: opening `/` with nothing saved sends the visitor
+ *  to `/gb-en?no-country=true`, the picker is drawn, and every call here pays
+ *  for a backdrop wait, a country list, a click, a starter-settings round trip
+ *  and a full page reload — three of them gateway calls. Seeding `iq` removes
+ *  all five.
+ *
+ *  It also moves the home page this suite renders from `/gb-en` to `/iq-en`, and
+ *  that is what broke. On CI runs 35626155490 and 35632583274 the account lane
+ *  then produced **fifteen** of these, where the two runs before my change had
+ *  none at all:
+ *
+ *      ⨯ unhandledRejection: Error: Filling a cache during prerender timed out…
+ *          at getCachedCurrency (…/app-page-turbo.runtime.prod.js)
+ *
+ *  `serverRequests/cached/currency.ts` wraps the gateway currency call in
+ *  `"use cache"`. When that fill does not finish in time the whole route bails
+ *  out with `NEXT_STATIC_GEN_BAILOUT` and **no document is produced**, so
+ *  `page.goto` times out with nothing to say. Nine cases failed that way, the
+ *  same nine in both runs: AUTH-02, CMT-01, PROF-07, QA-01, QA-02, QA-02b,
+ *  QA-06, QA-09a, QA-09b.
+ *
+ *  Only the account lane was hit; the solo lane renders `/iq-en` all day. So
+ *  there is a real fragility in the app here and it deserves its own ticket —
+ *  but it is not this suite's to expose by changing where it browses. */
 export const gotoHome = async (page: Page): Promise<void> => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await chooseRegionIfAsked(page);
@@ -335,11 +400,43 @@ export const searchFor = async (
   // the input waits forever on "element is not enabled".
   const icon = search.icon(page);
   await expect(icon).toBeVisible();
-  await icon.click();
 
   const input = search.input(page);
   await expect(input).toBeVisible();
-  await expect(input).toBeEnabled({ timeout: 30_000 });
+
+  // **Clicked until it opens, not clicked once.**
+  //
+  // The icon's `onClick` is the only thing that sets `searchEnabled`, and it is
+  // React's handler — so a click that lands before the page has hydrated does
+  // nothing at all, and the input stays `disabled` for ever. A single click then
+  // fails thirty seconds later with `Received: disabled`, which reads like a
+  // broken search box and is really a click that arrived too early.
+  //
+  // It went unnoticed while `gotoHome` walked through the country picker,
+  // because choosing a country reloads the whole page and the reload left plenty
+  // of time to hydrate. Seeding the country removed the reload and the race came
+  // out at once — measured on a local solo run on 2026-09-21.
+  //
+  // Two seconds between tries, and the same thirty-second budget as before: a
+  // search box that genuinely never opens is still reported.
+  await expect
+    .poll(
+      async () => {
+        if (await input.isEnabled().catch(() => false)) return true;
+        await icon.click().catch(() => undefined);
+        return await input.isEnabled().catch(() => false);
+      },
+      {
+        timeout: 30_000,
+        intervals: [500, 1_000, 2_000, 2_000, 2_000],
+        message:
+          "the search box never became usable. Clicking the icon is what " +
+          "enables it (`searchEnabled` in " +
+          "`components/Home/Search/SearchIcon.tsx`), so an input that stays " +
+          "disabled means the click never reached React",
+      },
+    )
+    .toBe(true);
 
   await input.fill(options.term);
 

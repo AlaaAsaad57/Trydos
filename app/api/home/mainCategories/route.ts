@@ -62,7 +62,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.error("Error fetching main categories:", error);
     LogServerError(
       {
         error: error,

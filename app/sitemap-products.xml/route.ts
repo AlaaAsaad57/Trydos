@@ -41,7 +41,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error(`Error generating products sitemap (page ${page}):`, error);
     LogServerError({
       error,
       type: "get sitemap for products api route",

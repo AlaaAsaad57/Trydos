@@ -132,6 +132,35 @@ export const handOnSession = async (
   try {
     const session = await signedInSession(page);
     if (!session.phoneVerified) return;
+
+    // **Stop the page before the snapshot is taken.**
+    //
+    // The refresh tokens rotate. `refreshCommentsSession`
+    // (`utils/server/authRefresh.ts`) reads a new `refreshToken` out of every
+    // exchange and writes it over the old one, and the chat and stories
+    // services do the same. So a token the backend has replaced is dead, and
+    // asking to exchange it again answers a uniform 401 that nothing recovers.
+    //
+    // That is a race against this very line. The app keeps talking after a case
+    // has finished: `services/chat.ts` refetches the channel list from inside a
+    // Firebase `onValue` listener, so it fires whenever Firebase pushes — tied
+    // to neither the page load nor anything the case did. One of those landing
+    // between `signedInSession` above and `storageState` below rotates the pair
+    // on the backend while the file keeps the pair it had, and the next case
+    // opens a session whose credential was already spent.
+    //
+    // Navigating away first is what closes the window: `about:blank` unmounts
+    // the whole app, so no listener of its survives to rotate anything. Cookies
+    // live in the context, not the page, so the jar written below is complete.
+    //
+    // It is also the one **shopper**-side explanation left for `CMT-07 every
+    // like is removed`, which fails with "the comments backend answered
+    // /public_comment/likes/unlike with 401 and the app's token exchange did
+    // not recover it" on a session six cases old. Access tokens here live one
+    // to five minutes, so by that point the pair has certainly been exchanged
+    // at least once, and whether the file kept up is the whole question.
+    await page.goto("about:blank", { waitUntil: "domcontentloaded" });
+
     await saveSession(context, statePath);
   } catch {
     // Never let bookkeeping replace the failure a case is reporting.

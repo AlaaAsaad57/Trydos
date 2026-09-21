@@ -35,6 +35,7 @@
 
 import { expect, type Locator, type Page } from "@playwright/test";
 
+import { signedInSession } from "./auth";
 import { redact } from "../harness/redact";
 import { productComments } from "../selectors";
 
@@ -151,10 +152,50 @@ export const watchCommentCall = async (
   };
 };
 
-/** A call the journey requires to have worked. */
-const requireAccepted = (outcome: CallOutcome, what: string): void => {
-  expect(outcome.refusedByProxy, `${what}: ${outcome.said}`).toBe(false);
-  expect(outcome.status < 400, `${what}: ${outcome.said}`).toBe(true);
+/** A call the journey requires to have worked.
+ *
+ *  **Asks who the app is before it blames the comments backend.** A 401 here
+ *  has two readings and they send the reader to opposite places:
+ *
+ *    * the comments service refused this shopper, or
+ *    * there is no shopper any more.
+ *
+ *  The second one is real and it is not the comments backend's doing. The
+ *  market access token lives a few minutes; when it runs out the app exchanges
+ *  it, and if that exchange is **refused** the app does the right thing and
+ *  registers a fresh guest. A guest holds no comments token, so every comments
+ *  call after that answers `401 Token is missing` — and the old message called
+ *  that "the app's token exchange did not recover it", which names the wrong
+ *  service.
+ *
+ *  Measured, from one run's own request log:
+ *
+ *      unlike …                200  uid=18081   the signed-in shopper
+ *      /customer/info          401              access token aged out
+ *      /auth/refresh-token     401              the MARKET refresh was refused
+ *      /auth/register-guest    200  uid=32592   the app became a guest
+ *      unlike …                401  uid=32592   "Token is missing"
+ *
+ *  `shopper.live.spec.ts` already tells these two apart for the same reason;
+ *  this does it for the comments journey. */
+const requireAccepted = async (
+  page: Page,
+  outcome: CallOutcome,
+  what: string,
+): Promise<void> => {
+  const stillTheShopper =
+    outcome.status < 400 || (await signedInSession(page)).phoneVerified;
+
+  const whose = stillTheShopper
+    ? ""
+    : " **The app is not this shopper any more** — it is a guest, so this call " +
+      "carried no comments token at all. The comments backend refused nothing: " +
+      "the market credential was exchanged, that exchange was refused, and the " +
+      "app registered a fresh guest as it is meant to. Look at " +
+      "/auth/refresh-token, not at comments.";
+
+  expect(outcome.refusedByProxy, `${what}: ${outcome.said}${whose}`).toBe(false);
+  expect(outcome.status < 400, `${what}: ${outcome.said}${whose}`).toBe(true);
 };
 
 // ---------------------------------------------------------------------------
@@ -188,8 +229,7 @@ export const askInPageFaq = async (
     endpoint: COMMENT_ENDPOINT.create,
   });
   await productComments.askSend(page).click();
-  requireAccepted(
-    await answered,
+  await requireAccepted(page, await answered,
     "asking a question from the FAQ section inside the page",
   );
 
@@ -224,8 +264,7 @@ export const askInExtendedArea = async (
     endpoint: COMMENT_ENDPOINT.create,
   });
   await productComments.barSend(area).click();
-  requireAccepted(
-    await answered,
+  await requireAccepted(page, await answered,
     "asking a question from the extended comment area",
   );
 
@@ -363,7 +402,7 @@ export const editQuestion = async (
     endpoint: COMMENT_ENDPOINT.update,
   });
   await productComments.editSubmit(page).click();
-  requireAccepted(await answered, `editing the question in ${options.where}`);
+  await requireAccepted(page, await answered, `editing the question in ${options.where}`);
 
   await expect(
     productComments.itemText(productComments.item(options.container, options.commentId)),
@@ -428,8 +467,7 @@ export const setHeart = async (
     endpoint: options.on ? COMMENT_ENDPOINT.like : COMMENT_ENDPOINT.unlike,
   });
   await heart.click();
-  requireAccepted(
-    await answered,
+  await requireAccepted(page, await answered,
     `${options.on ? "liking" : "unliking"} ${what} ${options.commentId} in ${
       options.where
     }`,
@@ -517,8 +555,7 @@ export const deleteQuestion = async (
     endpoint: COMMENT_ENDPOINT.remove,
   });
   await confirm.click();
-  requireAccepted(
-    await answered,
+  await requireAccepted(page, await answered,
     `deleting question ${options.commentId} from ${options.where}`,
   );
 
@@ -578,8 +615,7 @@ export const setProductHeart = async (
       : COMMENT_ENDPOINT.productUnlike,
   });
   await heart.click();
-  requireAccepted(
-    await answered,
+  await requireAccepted(page, await answered,
     options.on ? "liking the product" : "removing the like from the product",
   );
 

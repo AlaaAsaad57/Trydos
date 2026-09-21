@@ -79,7 +79,6 @@ export async function removeRedis(key) {
   try {
     await redis.del(key);
   } catch (error) {
-    console.error(error);
     LogServerError({ error, type: "redis removeRedis failed", key }, "/");
     return;
   }
@@ -293,7 +292,7 @@ export async function flushOtpLimitsAction() {
     };
 
   } catch (error) {
-    console.error("Failed to clear OTP keys:", error);
+    LogServerError({ scenario: "clearing the OTP keys failed", error });
     return { success: false,};
   }
 }

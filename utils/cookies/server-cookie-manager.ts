@@ -49,7 +49,10 @@ export async function getCookieServer<T = string>(
     // render should have been deferred. unstable_rethrow re-throws exactly this
     // class (and notFound/redirect) and returns for everything else.
     if (isFrameworkControlFlow(error)) throw error;
-    console.warn("Failed to get cookie from server:", error);
+    // Not logged, and not reported either. By this line the framework's own
+    // control flow has already been re-thrown above, so what is left is a read
+    // that simply had no cookie store — during a pure render, which is the
+    // normal case, not a fault. `null` is the answer every caller here expects.
     return null;
   }
 }

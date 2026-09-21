@@ -13,6 +13,7 @@ import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import { GetCountries } from "serverRequests/product";
+import { LogError } from "utils/functions";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const { setCountries, cart, user } = useAppStore();
   const { lang } = useParams();
@@ -34,7 +35,7 @@ function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
         );
         setCountries(data);
       } catch (error) {
-        console.error("Failed to fetch countries:", error);
+        LogError({ scenario: "ShippingAddressContainer: the country list could not be read", error });
       }
     }
   };

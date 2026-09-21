@@ -186,7 +186,6 @@ export const HandleAuthedFetch = async <T = any>(
         error: error,
         scenario: "Error In HandleAuthedFetch in HandleAuthedFetch",
       });
-      console.error("Auth Refresh Failed:", error);
     }
   }
 

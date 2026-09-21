@@ -135,11 +135,6 @@ const StoryViewer = ({
           storyType: storyData?.type || "image",
         });
 
-        // Also log to console for debugging
-        console.log(`Story ${storyIndex} viewed for ${activeViewingTime}ms`, {
-          totalTime: totalElapsed,
-          // pausedTime: totalPausedTimeRef.current,
-        });
       }
     }
   };

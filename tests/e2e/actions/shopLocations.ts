@@ -100,6 +100,11 @@ const call = async (
     note: options.note,
   });
 
+/** How many pages of `/shop/locations` a read will walk.
+ *
+ *  Matches the QA seed's own cap for the same reason -- see `qaSeed.ts`. */
+const MAX_LOCATION_PAGES = 10;
+
 /** Every location the backend holds for this shop, optionally one status only.
  *
  *  Fails naming the backend and quoting the status it answered with, so a read
@@ -108,26 +113,49 @@ export const readLocations = async (
   page: Page,
   options: { sellerId: string | number; status?: 0 | 1 },
 ): Promise<BackendLocation[]> => {
-  const query = options.status === undefined ? "" : `?status=${options.status}`;
-  const result = await call(page, {
-    sellerId: options.sellerId,
-    url: `/shop/locations${query}`,
-    method: "GET",
-    note: "read the shop's locations",
-  });
+  const all: BackendLocation[] = [];
+  let pageNumber = 1;
+  let lastPage = 1;
 
-  expect(
-    result.ok,
-    `the core backend refused to list this shop's locations (${result.status}${result.message ? `: ${result.message}` : ""})`,
-  ).toBe(true);
+  // **Every page.** `/shop/locations` returns eleven rows at a time, and this
+  // shop has more than that: `SD-06` adds one on every run and a location can
+  // never be deleted. Reading page one alone reported the seed's own location
+  // as missing -- `SD-04` failed with "holds no row with id 56, out of 11 it
+  // returned" once the leaked rows had pushed it onto page two.
+  //
+  // The cap is a stop rather than a budget: the list only grows, so "read to
+  // the end" has no end on an old environment.
+  while (pageNumber <= lastPage && pageNumber <= MAX_LOCATION_PAGES) {
+    const query =
+      options.status === undefined
+        ? `?page=${pageNumber}`
+        : `?status=${options.status}&page=${pageNumber}`;
 
-  const rows = result.data?.locations;
-  expect(
-    Array.isArray(rows),
-    `the core backend answered the locations list without a "locations" array, so there is nothing to judge (status ${result.status})`,
-  ).toBe(true);
+    const result = await call(page, {
+      sellerId: options.sellerId,
+      url: `/shop/locations${query}`,
+      method: "GET",
+      note: `read the shop's locations (page ${pageNumber})`,
+    });
 
-  return rows as BackendLocation[];
+    expect(
+      result.ok,
+      `the core backend refused to list this shop's locations (page ${pageNumber}, ${result.status}${result.message ? `: ${result.message}` : ""})`,
+    ).toBe(true);
+
+    const rows = result.data?.locations;
+    expect(
+      Array.isArray(rows),
+      `the core backend answered the locations list without a "locations" array, so there is nothing to judge (page ${pageNumber}, status ${result.status})`,
+    ).toBe(true);
+
+    all.push(...(rows as BackendLocation[]));
+
+    lastPage = Number(result.data?.meta?.last_page ?? 1) || 1;
+    pageNumber += 1;
+  }
+
+  return all;
 };
 
 /** One location the backend holds, or a failure that says it is not there.
@@ -217,13 +245,53 @@ export const filterLocationsByStatus = async (
   await settleLocations(page);
 };
 
-/** The ids the list is showing right now, in the order it drew them. */
-export const listedLocationIds = async (page: Page): Promise<string[]> =>
+/** The ids drawn on the page that is open, in the order the list drew them. */
+const idsOnThisPage = async (page: Page): Promise<string[]> =>
   shopLocations
     .anyCard(page)
     .evaluateAll((nodes) =>
       nodes.map((node) => node.getAttribute("data-location-id") ?? ""),
     );
+
+/** Every id the list draws, across all of its pages.
+ *
+ *  **All pages, because the backend read is all pages.** `readLocations` above
+ *  walks the paginator, so comparing it against one screenful reports every row
+ *  past the first page as "the list left it out" — `SD-05` failed with "the
+ *  inactive filter left out rows the backend did return for status=0: 62" when
+ *  row 62 was simply on page two.
+ *
+ *  This shop has more rows than fit on a page and always will: `SD-06` adds one
+ *  per run and a location can never be deleted.
+ *
+ *  **It leaves the list on its last page.** Every caller compares and then
+ *  stops, so nothing depends on which page is open afterwards; a caller that
+ *  does must open the section again. */
+export const listedLocationIds = async (page: Page): Promise<string[]> => {
+  const all = await idsOnThisPage(page);
+  const next = shopLocations.paginationNext(page);
+
+  for (let turn = 0; turn < MAX_LOCATION_PAGES; turn += 1) {
+    if (!(await next.isEnabled().catch(() => false))) break;
+
+    const before = (await idsOnThisPage(page)).join(",");
+    await next.click();
+
+    // The click swaps the rows in place, so "the page changed" is the signal —
+    // there is no navigation to wait for.
+    await expect
+      .poll(async () => (await idsOnThisPage(page)).join(","), {
+        timeout: 15_000,
+        message:
+          "the locations list did not draw a different page after Next was pressed",
+      })
+      .not.toBe(before);
+
+    all.push(...(await idsOnThisPage(page)));
+  }
+
+  return all;
+};
 
 /** One row on screen, asserted to be there. Returns it so the caller can read
  *  inside it. */
@@ -232,10 +300,44 @@ export const locationCard = async (
   options: { locationId: string | number; what: string },
 ): Promise<Locator> => {
   const card = shopLocations.card(page, options.locationId);
+
+  // **Pages forward until the row is on screen, the way a seller would.**
+  //
+  // The section draws one page at a time (`LocationsTab.tsx` keeps `page` and
+  // `meta` and renders a `Pagination` control), and this shop has more rows
+  // than fit: `SD-06` adds one on every run and a location can never be
+  // deleted, so the seed's own row drifts further back with every run. Looking
+  // only at whatever page happened to be open reported it as absent — "the
+  // locations list on screen has no row with id 56" — when it was simply on
+  // page two.
+  //
+  // The first look is given the full budget, because the section may still be
+  // loading. Later pages only need the row to appear after a click.
+  const here = await card
+    .waitFor({ state: "visible", timeout: 30_000 })
+    .then(() => true)
+    .catch(() => false);
+
+  if (!here) {
+    const next = shopLocations.paginationNext(page);
+
+    for (let turn = 0; turn < MAX_LOCATION_PAGES; turn += 1) {
+      const canGoOn = await next.isEnabled().catch(() => false);
+      if (!canGoOn) break;
+
+      await next.click();
+      const found = await card
+        .waitFor({ state: "visible", timeout: 10_000 })
+        .then(() => true)
+        .catch(() => false);
+      if (found) return card;
+    }
+  }
+
   await expect(
     card,
-    `${options.what}: the locations list on screen has no row with id ${options.locationId}`,
-  ).toBeVisible({ timeout: 30_000 });
+    `${options.what}: the locations list on screen has no row with id ${options.locationId}, on any page it would turn to`,
+  ).toBeVisible({ timeout: 10_000 });
   return card;
 };
 

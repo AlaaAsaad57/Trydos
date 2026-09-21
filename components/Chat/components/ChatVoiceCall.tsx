@@ -72,7 +72,7 @@ function ChatVoiceCall({ token }) {
           scenario: "end call api in web voice call - chat widget",
           userId: getUserChat()?.id,
         });
-        console.error("End call API error:", apiError);
+        LogError({ scenario: "ChatVoiceCall: ending the call failed", error: apiError });
       }
 
       // Handle RefuseCall if we have the necessary data

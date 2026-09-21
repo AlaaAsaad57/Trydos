@@ -58,7 +58,7 @@ function Init() {
         );
         setCountriesData(data);
       } catch (error) {
-        console.error("Failed to fetch countries:", error);
+        LogError({ scenario: "Init: the country list could not be read", error });
       }
     }
   };

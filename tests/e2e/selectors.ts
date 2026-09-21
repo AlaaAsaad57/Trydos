@@ -1009,6 +1009,17 @@ export const shopLocations = {
     page.getByTestId("location-" + field + "-field-error"),
   /** The banner at the top of the form — the backend's own refusal, quoted. */
   formError: (page: Page): Locator => page.getByTestId("location-form-error"),
+
+  /** The paging control, which this section shares with every other dashboard
+   *  grid (`components/SellerDashboard/ui/index.tsx`).
+   *
+   *  It matters here more than anywhere else: `SD-06` adds a location on every
+   *  run and a location can never be deleted, so the rows this suite cares
+   *  about drift onto later pages as an environment ages.
+   *
+   *  **Absent when the grid has one page** — the app draws it only past the
+   *  first. Read that as one page, never as a missing element. */
+  paginationNext: (page: Page): Locator => page.getByTestId("pagination-next"),
 };
 
 /** The Shop Info section — the shop's own name, contact and address.

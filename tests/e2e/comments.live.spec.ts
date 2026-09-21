@@ -57,7 +57,7 @@
 import type { Browser, BrowserContext, Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
-import { attemptAuth, currentAuthScreen } from "./actions/auth";
+import { attemptAuth, requireSignedInShopper } from "./actions/auth";
 import { gotoAbout } from "./actions/nav";
 import { newRunToken } from "./actions/story";
 import { gotoQaProduct } from "./actions/qaProduct";
@@ -222,18 +222,22 @@ test("CMT-01 the shopper likes the product and asks a question from both places"
     await test.step("the shopper signs in", async () => {
       await gotoAbout(page, { country: QA_COUNTRY });
 
-      await attemptAuth(page, {
+      const outcome = await attemptAuth(page, {
         intent: "login",
         phone: envValue("TEST_ACCOUNT_PHONE"),
         method: "whatsapp",
         otp: envValue("TEST_ACCOUNT_OTP"),
       });
 
-      const screen = (await currentAuthScreen(page)) ?? "closed";
-      expect(
-        screen,
-        `the sign-in ended on the "${screen}" screen, so nothing below is a signed-in shopper's`,
-      ).toMatch(/^(welcome|closed)$/);
+      // **Asked of the app, not read off the widget.** One refused leg of the
+      // sign-in fan-out leaves the widget on the PIN screen for a shopper who
+      // is signed in -- see `requireSignedInShopper`. This journey is about
+      // comments; AUTH-01 is the case that judges every leg, and it stays the
+      // only one a dead wallet turns red.
+      await requireSignedInShopper(page, {
+        outcome,
+        who: "the shopper this journey writes comments as",
+      });
 
       await page.keyboard.press("Escape").catch(() => {});
     });

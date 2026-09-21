@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error generating home sitemap:", error);
     LogServerError({
       error,
       type: "get sitemap for home api route",

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFirebaseMessaging } from "utils/firebaseAdmin";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("Unsubscribe topic error", error);
+    LogServerError({ scenario: "unsubscribe from notification topic failed", error });
     return NextResponse.json(
       {
         success: false,

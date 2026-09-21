@@ -649,7 +649,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 
@@ -671,7 +671,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 
@@ -700,7 +700,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 
@@ -724,7 +724,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 
@@ -748,7 +748,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 
@@ -772,7 +772,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 
@@ -798,7 +798,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 
@@ -823,7 +823,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 

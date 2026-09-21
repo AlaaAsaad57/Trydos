@@ -83,7 +83,7 @@ export async function fetchServerData<T>({
       status: response.status, // Crucial for your 401 check
     };
   } catch (error: any) {
-    console.error("Fetch Error:", error);
+    LogServerError({ scenario: "wallet fetch failed", error });
     return {
       success: false,
       data: null as any,
@@ -476,7 +476,7 @@ export async function CheckoutOrder({
       idempotencyKey: idempotencyKey,
     });
   } catch (e) {
-    console.log(e);
+    LogServerError({ scenario: "wallet request failed", error: e });
   }
 }
 

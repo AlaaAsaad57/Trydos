@@ -365,6 +365,14 @@ export const restoreShopInfoQuietly = async (
       return "the shop's record was already as this case found it — nothing was written, so nothing needed putting back";
     }
 
+    // The media fields are left out when the shop has none, exactly as
+    // `SellerDashboardService.updateShopInfo` does. The backend validates them
+    // as strings and refuses the **whole** call with
+    // `422 The image field must be a string` for a null, so a restore that sent
+    // one would put nothing back and report the wrong reason for it.
+    const image = bareMediaName(options.snapshot.image);
+    const banner = bareMediaName(options.snapshot.banner);
+
     const result = await call(page, {
       sellerId: options.sellerId,
       url: "/shop/info",
@@ -373,8 +381,8 @@ export const restoreShopInfoQuietly = async (
         name: options.snapshot.name,
         contact: options.snapshot.contact ?? "",
         address: options.snapshot.address ?? "",
-        image: bareMediaName(options.snapshot.image),
-        banner: bareMediaName(options.snapshot.banner),
+        ...(image ? { image } : {}),
+        ...(banner ? { banner } : {}),
       },
       note: "tidy up: put the shop's own record back",
     });

@@ -43,7 +43,7 @@
 import { expect, test } from "./fixtures";
 import {
   attemptAuth,
-  currentAuthScreen,
+  requireSignedInShopper,
   signedInSession,
 } from "./actions/auth";
 import { gotoAbout, gotoHome, gotoProductAtOrNull } from "./actions/nav";
@@ -96,17 +96,21 @@ test("WISH-06 a signed-in shopper saves and removes a product", async ({
     // it is here too, and a search outage cannot blank the page and hide it.
     await gotoAbout(page);
 
-    await attemptAuth(page, {
+    const outcome = await attemptAuth(page, {
       intent: "login",
       phone: envValue("TEST_ACCOUNT_PHONE"),
       method: "whatsapp",
       otp: envValue("TEST_ACCOUNT_OTP"),
     });
 
-    const screen = (await currentAuthScreen(page)) ?? "closed";
-    expect(screen, `the sign-in ended on the "${screen}" screen`).toMatch(
-      /^(welcome|closed)$/,
-    );
+    // **Asked of the app, not read off the widget.** One refused leg of the
+    // sign-in fan-out leaves the widget on the PIN screen for a shopper who is
+    // signed in -- see `requireSignedInShopper`. The reading this file needs is
+    // the one below: a verified session, so the checklist comes from core.
+    await requireSignedInShopper(page, {
+      outcome,
+      who: "the shopper whose checklist this file reads",
+    });
 
     // Leave the widget shut: its phone field and the "sign in again" prompt
     // share one marker, so a widget left open makes later readings ambiguous.

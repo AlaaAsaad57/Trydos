@@ -41,7 +41,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error(`Error generating boutiques sitemap (page ${page}):`, error);
     LogServerError({
       error,
       type: "get sitemap for boutiques api route",

@@ -105,9 +105,11 @@ const createServerFetch = async <T = any,>({
         retryableStatusCodes.includes(response.status) &&
         attempt < retryAttempts
       ) {
-        console.warn(
-          `Attempt ${attempt} failed with status ${response.status}, retrying...`,
-        );
+        // Not logged. A retry that succeeds is not a failure, and printing a
+        // line per attempt buried the CI log in `Attempt 1 failed…` while
+        // saying nothing a reader could act on. What matters — that the call
+        // needed retries before it finally gave up — is carried on the report
+        // below as `attempts`.
         await new Promise((resolve) => setTimeout(resolve, backoffFor(attempt)));
         return handleRetry(attempt + 1);
       }
@@ -133,6 +135,10 @@ const createServerFetch = async <T = any,>({
         status: response.status,
         request_server: "market",
         local,
+        // How many tries it took before giving up. 1 means it failed outright;
+        // anything higher means the backend was flapping, which is the one
+        // thing the old per-attempt console line was good for.
+        attempts: attempt,
       });
       return {
         data: null,
@@ -150,9 +156,8 @@ const createServerFetch = async <T = any,>({
         (error as any)?.message?.includes("fetch");
 
       if (isNetworkError && attempt < retryAttempts) {
-        console.warn(
-          `Attempt ${attempt} failed due to network error, retrying...`,
-        );
+        // See the note on the status retry above: reported through `attempts`
+        // on the failure below, never printed per attempt.
         await new Promise((resolve) => setTimeout(resolve, backoffFor(attempt)));
         return handleRetry(attempt + 1);
       }
@@ -161,6 +166,7 @@ const createServerFetch = async <T = any,>({
         error: error,
         url,
         scenario: "Error In fetchServerData in serverRequest/ServerFetch",
+        attempts: attempt,
       });
       await logRequest({
         server: "market",

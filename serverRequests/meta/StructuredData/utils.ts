@@ -31,10 +31,10 @@ const localeMap: Record<string, string> = {
 
 export function mapLocaleToBCP47(locale: string): string {
   const mapped = localeMap[locale.toLowerCase()];
-  if (!mapped) {
-    console.warn(`Locale "${locale}" not mapped. Defaulting to en-US.`);
-    return "en-US";
-  }
+  // No log. An unmapped locale is an ordinary fallback, not a fault, and this
+  // runs on every page render — it printed a line per render in the unit suite
+  // and in CI for something nobody acts on.
+  if (!mapped) return "en-US";
   return mapped;
 }
 

@@ -111,7 +111,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       )
     );
   } catch (error: any) {
-    console.error("Get Related Products api route error", error);
     LogServerError(
       {
         error: error,

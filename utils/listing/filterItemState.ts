@@ -1,3 +1,4 @@
+import { LogError } from "utils/functions";
 import { buildParamsFromFilters, FilterParams, FilterState } from "utils/server/helpers";
 
 export function getFilterStateForItem(
@@ -140,8 +141,15 @@ export function getFilterStateForItemLegacy(
         typeof filterRawValue === "string"
           ? JSON.parse(decodeURIComponent(filterRawValue))
           : filterRawValue;
-    } catch (e) {
-      console.error("Error parsing filter values:", e);
+    } catch (error) {
+      // Still reported, through the reporter rather than the console: a filter
+      // value that will not parse means a link somewhere wrote a bad one, and
+      // that is worth knowing. The empty list below is what the shopper gets
+      // either way, so the page still works.
+      LogError({
+        scenario: "getFilterStateForItemLegacy: a filter value would not parse",
+        error,
+      });
       currentValues = [];
     }
   }

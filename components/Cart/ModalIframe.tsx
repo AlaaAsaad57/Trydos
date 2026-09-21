@@ -83,7 +83,7 @@ const ModalIframe = ({
               scenario: "handleMessage for crypto modal widget",
               cart_group_id: cart?.[0]?.cart_group_id,
             });
-            console.error(err);
+            LogError({ scenario: "ModalIframe: the payment frame failed", error: err });
           }
         }
       }
@@ -123,7 +123,7 @@ const ModalIframe = ({
                     scenario: "close function for crypto modal widget",
                     cart_group_id: cart?.[0]?.cart_group_id,
                   });
-                  console.error(err);
+                  LogError({ scenario: "ModalIframe: the payment frame failed", error: err });
                 }
               }
             }}

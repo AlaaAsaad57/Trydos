@@ -4,6 +4,7 @@ import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants"
 import { elasticSearchClient } from "./elasticsearch.config";
 import { catalog_index, search_log_index } from "./INDEXES";
 import { qaShopMustNot } from "./qaFilter";
+import { LogServerError } from "utils/serverErrorReporter";
 
 interface SitemapUrl {
   loc: string;
@@ -95,17 +96,11 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
 
     const response = await elasticSearchClient.search(searchQuery);
 
-    console.log(
-      "[getHomeSitemapLocales] Raw response:",
-      JSON.stringify(response, null, 2),
-    );
-
     const aggregations = response.aggregations as any;
 
     // Extract countries
     const countryBuckets =
       aggregations?.countries?.country_codes?.buckets || [];
-    console.log("[getHomeSitemapLocales] Country buckets:", countryBuckets);
     const countries = countryBuckets.map((bucket: any) =>
       bucket.key.toLowerCase(),
     );
@@ -113,13 +108,10 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
     // Extract languages
     const languageBuckets =
       aggregations?.languages?.language_codes?.buckets || [];
-    console.log("[getHomeSitemapLocales] Language buckets:", languageBuckets);
     const languages = languageBuckets.map((bucket: any) =>
       bucket.key.toLowerCase(),
     );
 
-    console.log("[getHomeSitemapLocales] Raw countries:", countries);
-    console.log("[getHomeSitemapLocales] Raw languages:", languages);
 
     // Filter to only include supported languages
     const supportedLanguages = ["en", "ar", "tr", "ku"];
@@ -134,10 +126,6 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
     // If no countries found, try a different approach or use fallback
     let finalCountries = countries;
     if (countries.length === 0) {
-      console.log(
-        "[getHomeSitemapLocales] No countries found, trying alternative approach...",
-      );
-
       // Try to get countries from a simple query
       try {
         const simpleQuery = {
@@ -150,27 +138,23 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
 
         // If still no countries, use fallback
         if (countries.length === 0) {
-          console.log("[getHomeSitemapLocales] Using fallback countries");
           finalCountries = ["tr", "iq", "lb", "sy"];
         }
       } catch (simpleError) {
-        console.error(
-          "[getHomeSitemapLocales] Simple query failed:",
-          simpleError,
-        );
+        LogServerError({
+          scenario: "getHomeSitemapLocales simple query failed",
+          error: simpleError,
+        });
         finalCountries = ["tr", "iq", "lb", "sy"];
       }
     }
-
-    console.log("[getHomeSitemapLocales] Final countries:", finalCountries);
-    console.log("[getHomeSitemapLocales] Final languages:", finalLanguages);
 
     return {
       countries: finalCountries,
       languages: finalLanguages,
     };
   } catch (error) {
-    console.error("Error fetching sitemap locales:", error);
+    LogServerError({ scenario: "getHomeSitemapLocales failed", error });
 
     // Fallback to default values if ES fails
     return {
@@ -221,7 +205,6 @@ export async function getProductsForSitemap(
     // Initial search
     const initialParams = buildProductSearchParams(batchSize, scrollTimeout);
     let response = await elasticSearchClient.search(initialParams);
-    console.log("the product count is :", response);
 
     scrollId = response._scroll_id || null;
     if (!scrollId) {
@@ -247,7 +230,7 @@ export async function getProductsForSitemap(
 
     return allProducts;
   } catch (error) {
-    console.error("Error fetching products for sitemap:", error);
+    LogServerError({ scenario: "getProductsForSitemap failed", error });
     throw error;
   } finally {
     // Clean up scroll context
@@ -255,7 +238,10 @@ export async function getProductsForSitemap(
       try {
         await elasticSearchClient.clearScroll({ scroll_id: scrollId });
       } catch (cleanupError) {
-        console.warn("Failed to clear scroll context:", cleanupError);
+        LogServerError({
+          scenario: "getProductsForSitemap could not clear the scroll context",
+          error: cleanupError,
+        });
       }
     }
   }
@@ -269,13 +255,6 @@ export async function generateProductSitemapUrls(): Promise<SitemapUrl[]> {
   const products = await getProductsForSitemap();
   const locales = await getHomeSitemapLocales();
   const sitemapUrls: SitemapUrl[] = [];
-  console.log("Unique products count:", products);
-  console.log("Available countries:", locales.countries.length);
-  console.log("Available languages:", locales.languages.length);
-  console.log(
-    "Expected total URLs:",
-    products.length * locales.countries.length * locales.languages.length,
-  );
 
   // Generate URLs for all country-language combinations for each product
   for (const product of products) {
@@ -305,7 +284,6 @@ export async function generateProductSitemapUrls(): Promise<SitemapUrl[]> {
     }
   }
 
-  console.log("Generated URLs count:", sitemapUrls.length);
   return sitemapUrls;
 }
 
@@ -495,7 +473,10 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
 
         }
       } catch (error) {
-        console.error("[getTopSearchTerms] Error checking index:", error);
+        LogServerError({
+          scenario: "getTopSearchTerms could not check the search-log index",
+          error,
+        });
       }
     }
 
@@ -527,7 +508,7 @@ async function getTopSearchTerms(limit: number = 100): Promise<SearchTerm[]> {
 
     return topTerms;
   } catch (error) {
-    console.error("Error fetching top search terms:", error);
+    LogServerError({ scenario: "getTopSearchTerms failed", error });
     return [];
   }
 }
@@ -864,9 +845,6 @@ export async function generateLocaleSpecificSitemapUrls(
   country: string,
   language: string,
 ): Promise<SitemapUrl[]> {
-  console.log(
-    `language : ${language} and the country : ${country} from the url`,
-  );
   const baseUrl = General_Site_Data.url;
   const sitemapUrls: SitemapUrl[] = [];
 
@@ -904,7 +882,12 @@ export async function generateLocaleSpecificSitemapUrls(
       }
     }
   } catch (error) {
-    console.error(`Error fetching products for ${country}-${language}:`, error);
+    LogServerError({
+      scenario: "locale sitemap: products",
+      country,
+      language,
+      error,
+    });
   }
 
   // 4. Boutiques for this locale
@@ -921,10 +904,12 @@ export async function generateLocaleSpecificSitemapUrls(
       });
     }
   } catch (error) {
-    console.error(
-      `Error fetching boutiques for ${country}-${language}:`,
+    LogServerError({
+      scenario: "locale sitemap: boutiques",
+      country,
+      language,
       error,
-    );
+    });
   }
 
   // 5. Search terms for this locale
@@ -933,7 +918,6 @@ export async function generateLocaleSpecificSitemapUrls(
 
     // Since all search terms have fallback country/language, include all terms for this locale
     // This ensures each locale gets relevant search terms
-    console.log("4. Search terms for this global :", searchTerms.length);
 
     for (const term of searchTerms) {
       const encodedTerm = encodeURIComponent(term.term);
@@ -947,10 +931,12 @@ export async function generateLocaleSpecificSitemapUrls(
       });
     }
   } catch (error) {
-    console.error(
-      `Error fetching search terms for ${country}-${language}:`,
+    LogServerError({
+      scenario: "locale sitemap: search terms",
+      country,
+      language,
       error,
-    );
+    });
   }
 
   return sitemapUrls;
@@ -1030,7 +1016,7 @@ async function getBoutiquesForSitemap(): Promise<{ slug: string }[]> {
 
     return boutiques;
   } catch (error) {
-    console.error("Error fetching boutiques for sitemap:", error);
+    LogServerError({ scenario: "getBoutiquesForSitemap failed", error });
     throw error;
   }
 }

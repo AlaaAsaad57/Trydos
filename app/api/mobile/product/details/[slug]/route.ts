@@ -278,7 +278,6 @@ export async function GET(request: NextRequest, { params }) {
       ),
     );
   } catch (error) {
-    console.error("Get Product Details with Cache api route", error);
     LogServerError(
       {
         error: error,
