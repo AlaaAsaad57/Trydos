@@ -28,7 +28,8 @@ import { server } from "../../msw/server";
 // is a different backend and a different failure, and the cap must be hit
 // before it is even asked for — so it is replaced here, and the spy doubles as
 // the proof that an over-size file never starts the upload at all.
-const getTicket = vi.fn(async () => "ticket-for-the-test");
+// The rest parameter is what lets the wrapper below forward its arguments.
+const getTicket = vi.fn(async (..._args: unknown[]) => "ticket-for-the-test");
 vi.mock("utils/UploadUtils", () => ({
   GetTicket: (...args: any[]) => getTicket(...args),
 }));

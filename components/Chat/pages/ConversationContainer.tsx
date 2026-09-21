@@ -35,6 +35,12 @@ import CustomPopup from "components/global/Popup";
 import ChatImagePreviewBeforeSend from "../components/ChatImagePreviewBeforeSend";
 import MediaMessagePreview from "../components/MediaMessagePreview";
 import { Message } from "utils/types/chat";
+import {
+  MEDIA_INPUT_ACCEPT,
+  isImageOrVideoFile,
+  isUnsupportedVideoFile,
+  pickMessageType,
+} from "../videoSupport";
 import { trackPosthog, CHAT_EVENTS } from "utils/posthogEvents";
 
 /* -------------------------- Dynamic Components --------------------------- */
@@ -53,17 +59,6 @@ interface ConversationContainerProps {
 
 /* ------------------------------ Constants -------------------------------- */
 const FILE_INPUT_ACCEPT = "*/*";
-const MEDIA_INPUT_ACCEPT =
-  "image/*,video/*,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg,.heic,.heif,.mp4,.mov,.avi,.mkv,.webm,.3gp,.m4v";
-
-const isImageOrVideoFile = (file: File) => {
-  if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
-    return true;
-  }
-  return /\.(jpe?g|png|gif|webp|bmp|svg|ico|heic|heif|mp4|mov|avi|mkv|webm|3gp|m4v|flv|wmv)$/i.test(
-    file.name,
-  );
-};
 
 /* --------------------------------------------------------------------------
  * Helper utils – extracted from the spaghetti logic for re-usability & clarity
@@ -316,28 +311,31 @@ function ConversationContainer({
       if (!file || !activeChat) return;
 
       if (isMediaOnly && !isImageOrVideoFile(file)) {
+        // A picked video that no browser can play gets its own wording. The
+        // general "only image and video" line reads as a mistake to somebody
+        // who just picked a video.
         showErrorNotification(
-          translateFunction("Only image and video files are allowed"),
+          isUnsupportedVideoFile(file)
+            ? translateFunction(
+                "This video format is not supported. Send an MP4 video instead.",
+              )
+            : translateFunction("Only image and video files are allowed"),
         );
         sendStatus(null);
         return;
       }
 
-      if (
-        file.type.includes("image") ||
-        /\.(jpe?g|png|gif|webp|bmp|svg|ico|heic|heif)$/i.test(file.name)
-      ) {
+      // One decision, made in one place (components/Chat/videoSupport.ts), so
+      // the picker gate above and the branch below can never disagree about the
+      // same file. An unplayable container falls through to FileMessage rather
+      // than being refused here: as a file it still downloads, which is better
+      // than a video bubble that shows nothing.
+      const messageType = pickMessageType(file);
+      if (messageType === "ImageMessage") {
         // Show preview widget for images
         setPendingImageFile(file);
-      } else if (file.type.includes("audio")) {
-        await handleMediaMessage(file, "VoiceMessage", midLocal);
-      } else if (
-        file.type.includes("video") ||
-        /\.(mp4|mov|avi|mkv|webm|3gp|m4v|flv|wmv)$/i.test(file.name)
-      ) {
-        await handleMediaMessage(file, "VideoMessage", midLocal);
       } else {
-        await handleMediaMessage(file, "FileMessage", midLocal);
+        await handleMediaMessage(file, messageType, midLocal);
       }
     } catch (error) {
       LogError({
