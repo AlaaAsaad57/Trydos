@@ -136,7 +136,11 @@ export const chooseRegionIfAsked = async (
 
   await expect(
     popup,
-    "the country popup is covering the page and never offered a country to pick",
+    "the country popup is covering the page and never offered a country to " +
+      "pick. The list is a gateway call — `getCountries` in " +
+      "`components/settings/PersonalInfoCountries.tsx` — so a popup stuck on " +
+      "its loading screen means that call did not answer, not that the popup " +
+      "is broken",
   ).toBeVisible({ timeout: 45_000 });
 
   const first = region.anyCountry(page).first();
@@ -184,17 +188,56 @@ export const chooseRegionIfAsked = async (
   return { chosen: true, iso };
 };
 
+/** Save a country and a language for a context that has neither.
+ *
+ *  **Only when nothing is saved.** `gotoAbout` and `gotoStaticPage` seed
+ *  unconditionally, and that is right for them because each takes the country it
+ *  wants as an argument. `gotoHome` takes none, so seeding unconditionally would
+ *  overwrite a country a case had deliberately chosen —
+ *  `shopper.live.spec.ts:307` picks Syria for cash on delivery and calls
+ *  `gotoHome` twenty lines later. */
+const seedLocaleIfUnset = async (page: Page): Promise<void> => {
+  const saved = await page.context().cookies();
+  const hasCountry = saved.some(
+    (cookie) => cookie.name === "country" && cookie.value !== "",
+  );
+  if (hasCountry) return;
+
+  await seedLocale(page);
+};
+
 /** Open the storefront home page and wait for it to be usable.
  *
  *  "Usable" is the logo being visible and nothing modal covering it — not `load`
  *  firing. This is a streamed React app, so the document finishes long before
  *  the page is worth clicking.
  *
- *  Goes to `/` rather than a fixed locale path on purpose: the app decides the
- *  country and language, and a journey that hard-codes `/gb-en` is asserting the
- *  redirect rather than using it. */
+ *  **It saves a country first, and that is a change worth explaining.** It used
+ *  to open `/` with nothing saved, so the app could not work out where the
+ *  visitor was, sent them to `/gb-en?no-country=true` and drew the country
+ *  picker. Every one of the twenty-odd `gotoHome` calls in this suite then paid
+ *  for the same five moves: wait for the backdrop, wait for the country list,
+ *  click a country, wait for the starter-settings round trip the click makes,
+ *  and wait out a full page reload.
+ *
+ *  Three of those five are gateway calls, and that is the problem. On CI run
+ *  35592830847 the gateway was answering `Attempt 1 failed due to network
+ *  error` to the server's own fetches and `Error: Currency not found for
+ *  country: iq` to the render; the picker's list never arrived, and **ten** solo
+ *  cases failed inside `chooseRegionIfAsked` — CMP-01, five `guest.live` cases
+ *  and four scripted checkout cases — none of which is about the picker.
+ *
+ *  Nothing is given up by seeding. The redirect from `/` has its own case
+ *  (`guest.live.spec.ts:26`), and the whole of `locale.live.spec.ts` owns the
+ *  picker's rules; both drive their own navigation and are untouched by this.
+ *  What this removes is twenty-odd re-provings of somebody else's case, each one
+ *  a fresh chance for the gateway to be slow. */
 export const gotoHome = async (page: Page): Promise<void> => {
+  await seedLocaleIfUnset(page);
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  // Still asked, and it costs nothing: `canAskForCountry` reads the address and
+  // returns at once on a served one. It is what covers a context that already
+  // held a country the app does not serve.
   await chooseRegionIfAsked(page);
   await expect(nav.logo(page)).toBeVisible();
 };
@@ -335,11 +378,43 @@ export const searchFor = async (
   // the input waits forever on "element is not enabled".
   const icon = search.icon(page);
   await expect(icon).toBeVisible();
-  await icon.click();
 
   const input = search.input(page);
   await expect(input).toBeVisible();
-  await expect(input).toBeEnabled({ timeout: 30_000 });
+
+  // **Clicked until it opens, not clicked once.**
+  //
+  // The icon's `onClick` is the only thing that sets `searchEnabled`, and it is
+  // React's handler — so a click that lands before the page has hydrated does
+  // nothing at all, and the input stays `disabled` for ever. A single click then
+  // fails thirty seconds later with `Received: disabled`, which reads like a
+  // broken search box and is really a click that arrived too early.
+  //
+  // It went unnoticed while `gotoHome` walked through the country picker,
+  // because choosing a country reloads the whole page and the reload left plenty
+  // of time to hydrate. Seeding the country removed the reload and the race came
+  // out at once — measured on a local solo run on 2026-09-21.
+  //
+  // Two seconds between tries, and the same thirty-second budget as before: a
+  // search box that genuinely never opens is still reported.
+  await expect
+    .poll(
+      async () => {
+        if (await input.isEnabled().catch(() => false)) return true;
+        await icon.click().catch(() => undefined);
+        return await input.isEnabled().catch(() => false);
+      },
+      {
+        timeout: 30_000,
+        intervals: [500, 1_000, 2_000, 2_000, 2_000],
+        message:
+          "the search box never became usable. Clicking the icon is what " +
+          "enables it (`searchEnabled` in " +
+          "`components/Home/Search/SearchIcon.tsx`), so an input that stays " +
+          "disabled means the click never reached React",
+      },
+    )
+    .toBe(true);
 
   await input.fill(options.term);
 

@@ -21,6 +21,7 @@ import { auth, nav, prompt } from "../selectors";
 import { arriveAsGuest } from "./locale";
 import { howTheClientStarted } from "../harness/clientStart";
 import { LIVE_ORIGIN } from "../harness/env";
+import { redact } from "../harness/redact";
 import {
   credentialsChangedSince,
   credentialsHeld,
@@ -58,6 +59,26 @@ const LONGEST_INTERNATIONAL_NUMBER = 13;
 const COUNTRY_LOOKUP_MS = 10_000;
 const BOOT_NAVIGATION_MS = 25_000;
 const REGISTRATION_MS = 15_000;
+
+/** How long the credentials themselves may take to land, once the registration
+ *  has been *sent*.
+ *
+ *  Its own budget, larger than `REGISTRATION_MS`, because it covers a different
+ *  thing: not "did the browser ask" but "did the gateway answer and did the
+ *  answer write two cookies". That is a round trip to
+ *  `/auth/register-guest` plus the route's own cookie writes.
+ *
+ *  **15 seconds was too tight for CI, twice.** Runs 35575484753 and
+ *  35592830847 both failed `session.live` cases with `the registration was
+ *  requested but no credentials arrived` and **zero** cookies — not one of two,
+ *  zero — while 47 other solo cases in the same run passed. Locally the same
+ *  step finishes in under four seconds. So the budget was measuring the link to
+ *  staging, not the app.
+ *
+ *  Still before the measured window opens (`session.live.spec.ts` starts its
+ *  30-second window at `registeredAt`, which is set *after* this wait), so a
+ *  slow boot cannot make a case pass that should not. */
+const CREDENTIALS_MS = 45_000;
 
 /** Where a case starts.
  *
@@ -193,8 +214,11 @@ export const bootAsNewGuest = async (
   // went wrong when these cases were written.
   await expect
     .poll(async () => (await credentialsHeld(page)).length, {
-      timeout: REGISTRATION_MS,
-      message: "the registration was requested but no credentials arrived",
+      timeout: CREDENTIALS_MS,
+      message:
+        "the registration was requested but no credentials arrived — the " +
+        "gateway either never answered /auth/register-guest or answered " +
+        "without a token pair",
     })
     .toBe(2);
 
@@ -270,6 +294,37 @@ export type OtpMethod = "sms" | "whatsapp";
 
 const AUTH_SCREEN_MS = 10_000;
 const SEND_OTP_MS = 20_000;
+
+/** How long the verify answer may take before the attempt counts as unfinished.
+ *
+ *  Generous, and the number is the work's, not a guess. `/api/auth/login` signs
+ *  the shopper in to five backends in turn — market, chat, stories, comments and
+ *  wallet — and only then does the widget wait its own extra second before
+ *  moving off the PIN screen. Locally that whole sequence runs in about eight
+ *  seconds; the CI runner reaches the same staging over a slower link.
+ *
+ *  Still well inside the 120-second per-case limit, so a verify that genuinely
+ *  never answers is still reported rather than waited out forever. */
+const VERIFY_ANSWER_MS = 60_000;
+
+/** How long the app may take to admit it has signed the shopper in.
+ *
+ *  Read from `/api/auth/me`, which answers from cookies the sign-in route
+ *  already wrote, so this is not another round trip to staging — it is the
+ *  browser catching up with a fan-out it has already been told about. */
+const SIGNED_IN_ANSWER_MS = 45_000;
+
+/** The screens a finished attempt can be on.
+ *
+ *  Everything else — `enter-pin` above all — means the widget is still working.
+ *  See the note in `attemptAuth`. */
+const FINISHED_SCREENS: readonly AuthScreen[] = [
+  "welcome",
+  "input-name",
+  "not-registered",
+  "registered",
+  "closed",
+];
 
 /** How long to wait for the sign-in answer itself.
  *
@@ -635,18 +690,39 @@ export const attemptAuth = async (
   await sendOtpWithRetry(page, { method: options.method, phone: options.phone });
   await submitOtp(page, { otp: options.otp, phone: options.phone });
 
-  // After submit the widget may transition quickly (success) or stay on the
-  // PIN screen (wrong code / rate limit / server error). Poll for a stable
-  // screen instead of asserting immediately.
-  const deadline = Date.now() + AUTH_SCREEN_MS;
-  let lastScreen: AuthScreen | null = null;
+  // Wait for the widget to FINISH, not for it to hold still.
+  //
+  // **This used to return the first screen that read the same twice, a quarter
+  // of a second apart, and that is not the same question.** On the PIN screen
+  // nothing changes for the whole verify round trip — and for a full second
+  // after it, because `handleVerifyPin`
+  // (`components/Login/Enhanced/FullEnhancedLoginWidget.tsx:342`) moves the
+  // shopper on inside a `setTimeout(…, 1000)`. So two matching reads meant
+  // "the sign-in is still travelling", and the helper returned `enter-pin`
+  // exactly when the sign-in was slow, which is the one case it exists to wait
+  // for.
+  //
+  // It cost a whole file. On CI run 35592830847 `PROF-01` failed with `the
+  // sign-in ended on the "enter-pin" screen` while its sign-in was working
+  // perfectly, and PROF-02 to PROF-08 then had no saved session to open —
+  // eight of that lane's fourteen failures, from one race.
+  // `profile.live.spec.ts:1170` had already written the behaviour down ("a
+  // healthy sign-in comes back from `attemptAuth` as 'enter-pin'") and worked
+  // around it in that one case; this fixes it for every caller instead.
+  const deadline = Date.now() + VERIFY_ANSWER_MS;
 
   while (Date.now() < deadline) {
     const screen = await currentAuthScreen(page);
-    if (screen === lastScreen && screen !== null) {
-      return { screen, error: await visibleVerifyError(page) };
+    // A visible verify error ends the attempt too. A wrong code, a rate limit
+    // or a server error leaves the widget on the PIN screen **on purpose**, so
+    // a case about one of those branches must not sit out the whole budget.
+    const error = await visibleVerifyError(page);
+
+    if (error !== null) return { screen: screen ?? "closed", error };
+    if (screen !== null && FINISHED_SCREENS.includes(screen)) {
+      return { screen, error: null };
     }
-    lastScreen = screen;
+
     await page.waitForTimeout(250);
   }
 
@@ -711,6 +787,74 @@ export const signedInSession = async (
   );
 
   return reduced ?? NOTHING_READ;
+};
+
+/** Wait until the **app** says this is a signed-in shopper, and fail naming
+ *  what it said if it never does.
+ *
+ *  **The widget's screen is not the judgement, and that is not a shortcut.**
+ *  `services/auth.ts` builds the signed-in state out of all five backends'
+ *  answers at once — `checkWallet(...)` and `response.data.user` are read before
+ *  anything is stored — so one refused leg throws inside `VerifyOtp`, the widget
+ *  takes its own error path, and the shopper is left looking at the PIN screen.
+ *  The core session is already written by then: the shopper **is** signed in.
+ *
+ *  That was measured, not guessed. `harness/qaSeed.ts:428` records a run on
+ *  2026-09-19 where the core backend answered 200 to the code and the wallet
+ *  answered a Cloudflare 502, and the seed's earlier version reported "the core
+ *  backend refused the code" — which was untrue and sent the reader to the
+ *  wrong account.
+ *
+ *  So a case that is **not about the fan-out** asks this instead of reading the
+ *  screen. `auth.live.spec.ts` (AUTH-01) is the one case that judges every leg,
+ *  and it must stay the only one that turns red when a leg is down — otherwise a
+ *  single dead wallet paints eight unrelated cases red and says nothing about
+ *  any of them.
+ *
+ *  Returns what the app believes, so the caller can go on using it. */
+export const requireSignedInShopper = async (
+  page: Page,
+  options: { outcome?: AuthOutcome; who?: string; timeout?: number } = {},
+): Promise<SignedInSession> => {
+  const deadline = Date.now() + (options.timeout ?? SIGNED_IN_ANSWER_MS);
+  let session = NOTHING_READ;
+
+  while (Date.now() < deadline) {
+    session = await signedInSession(page);
+    if (session.phoneVerified) return session;
+    await page.waitForTimeout(500);
+  }
+
+  const who = options.who ?? "the shopper";
+  // The widget's own sentence, through `redact()`. It is written by the app and
+  // can carry whatever the backend said back, and this repository's job logs are
+  // public.
+  const screen = options.outcome
+    ? ` The widget ended on the "${options.outcome.screen}" screen${
+        options.outcome.error
+          ? `, saying: ${redact(options.outcome.error)}`
+          : ""
+      }.`
+    : "";
+  // Which legs the app itself says are missing. Named, because "the sign-in
+  // failed" sends the reader nowhere: a dead wallet and a refused code look
+  // identical from the screen and need opposite actions.
+  const legs = [
+    ["chat", session.chat],
+    ["stories", session.stories],
+    ["wallet", session.wallet],
+  ] as const;
+  const missing = legs.filter(([, landed]) => !landed).map(([name]) => name);
+
+  expect(
+    session.phoneVerified,
+    `${who} is not signed in: the app still answers /api/auth/me with an ` +
+      `unverified phone.${screen} The backends whose part of the sign-in did ` +
+      `not land: ${missing.length > 0 ? missing.join(", ") : "none — so the core sign-in itself never completed"}. ` +
+      `Neither the number nor the code is printed here.`,
+  ).toBe(true);
+
+  return session;
 };
 
 /** Which of the sign-in's own cookies the browser currently holds.

@@ -79,11 +79,10 @@ const checkStaging = async (): Promise<boolean> => {
   const health = await probeStaging();
 
   if (health.skipped) {
-    // Two different reasons land here, and neither one is "it is healthy": no
-    // search backend is configured, or the probe is switched off
-    // (`PROBE_DISABLED` in harness/health.ts). Say so, so a reader never takes
-    // this line for a passing check.
-    log("no health check was made — no search backend, or the probe is off.");
+    // One reason lands here, and it is not "it is healthy": neither backend the
+    // probe knows how to ask is configured on this machine. Say so, so a reader
+    // never takes this line for a passing check.
+    log("no health check was made — neither the search backend nor the gateway is configured.");
     setStepOutput("staging", "up");
     return true;
   }
