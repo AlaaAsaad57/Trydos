@@ -1150,6 +1150,8 @@ function SellerDashBoard() {
           {sellerProducts.map((product: any) => (
             <Link
               key={product.product_id || product.id}
+              data-pw="seller-product-card"
+              data-product-id={product.product_id || product.id}
               href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/products/${product.product_id || product.id}`}
               onClick={handleCardNavigate}
               className="group block bg-white rounded-[16px] overflow-hidden border border-[#ededed] hover:border-transparent hover:shadow-[0_10px_28px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300"
@@ -1269,6 +1271,12 @@ function SellerDashBoard() {
                         <span
                           key={st.icon}
                           title={st.label}
+                          data-pw="seller-product-stat"
+                          data-stat={st.icon}
+                          // Empty until the permission-gated counts arrive. That
+                          // is a different thing from a count of zero, and the
+                          // card draws both as a dash.
+                          data-value={s ? String(st.value ?? 0) : ""}
                           className="inline-flex items-center gap-1 text-[11px] text-[#8e8e8e]"
                         >
                           <DashIcon

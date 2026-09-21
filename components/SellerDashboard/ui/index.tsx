@@ -417,10 +417,16 @@ export function Pagination({
       >
         {translateFunction("Previous")}
       </DashButton>
-      <span className="text-[13px] text-[#8e8e8e]">
+      <span
+        data-pw="pagination-status"
+        data-current={current}
+        data-last={last}
+        className="text-[13px] text-[#8e8e8e]"
+      >
         {translateFunction("Page")} {current} / {last}
       </span>
       <DashButton
+        data-pw="pagination-next"
         variant="secondary"
         size="sm"
         iconRight="chevronRight"

@@ -28,7 +28,12 @@
 import { describe, expect, it } from "vitest";
 
 import { isAllowedHost, ALLOWED_HOSTS } from "../e2e/harness/guard";
-import { PROD_SAFE_TAG, qaGrepFor } from "../e2e/laneConfig";
+import {
+  ACCOUNT_LANE,
+  laneSpecs,
+  PROD_SAFE_TAG,
+  qaGrepFor,
+} from "../e2e/laneConfig";
 import { failQaProduct } from "../e2e/harness/qaMessages";
 import { redact } from "../e2e/harness/redact";
 
@@ -206,5 +211,30 @@ describe("the QA secret is masked", () => {
       if (previous === undefined) delete process.env.QA_VIEW_SECRET;
       else process.env.QA_VIEW_SECRET = previous;
     }
+  });
+});
+
+// ---------------------------------------------------------------- AC-24
+
+describe("every browser journey is in a lane", () => {
+  // A spec in no lane never runs, and a test that never runs reports nothing at
+  // all — the worst outcome this suite has. `laneSpecs()` already throws for
+  // one, but **only when the lane CLI calls it**, and the unit project never
+  // does. So without this case nothing that gates a pull request would notice a
+  // journey dropping out of a lane.
+  it("puts the comments journey in the account lane", () => {
+    expect(
+      ACCOUNT_LANE,
+      "the comments journey is not in the account lane, so it would either never run or run beside a second copy of itself — it signs in as the shared shopper and writes real questions, replies and reactions to the QA product",
+    ).toContain("comments.live.spec.ts");
+  });
+
+  it("leaves no spec file out of both lanes", () => {
+    // Reads the folder, so a journey added later is covered by this case too
+    // without anyone remembering to add a row here.
+    expect(
+      () => laneSpecs("account"),
+      "at least one spec file on disk is in neither lane, or is in both — run the lane command to see which file it names",
+    ).not.toThrow();
   });
 });

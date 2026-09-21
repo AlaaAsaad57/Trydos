@@ -1,6 +1,6 @@
 # E2E scenarios
 
-Every case the browser suite runs — **106** of them today. Add a row whenever a
+Every case the browser suite runs — **114** of them today. Add a row whenever a
 case is added, and keep the count above in step.
 
 | Section | Cases | Signs in? | Writes to staging? |
@@ -16,6 +16,7 @@ case is added, and keep the count above in step.
 | Saved products, as a guest | WISH-01 to WISH-05 | no | yes — one product on one throwaway guest, removed again |
 | Saved products, signed in | WISH-06 | **yes — its own, a real code per run** | **yes — the shared test account, put back in the same case** |
 | Comparing two products | CMP-01 to CMP-07 | no | no — the whole feature is two cookies in the browser |
+| **Questions, answers and reactions** | CMT-01 to CMT-08 | CMT-01 does, for itself; the seller half opens the seed's jar and signs in to nothing | **yes — two questions, two shop answers and several reactions on the QA product, all removed again** |
 | **The QA safety lock** | QA-01 to QA-11 (16 cases) | yes — Shopper B, through the seed | **yes — the seed builds this environment's QA seller, shop, location and product, once. Nothing is ever deleted** |
 
 Design: `docs/testing/E2E_TEST_DESIGN.md`. How to run: `tests/e2e/README.md`.
@@ -389,6 +390,43 @@ product lookup failed, so one assertion covering all three could only ever say
 | CMP-05 | Removing one frees its slot and moves the other into first place | `compare.live.spec.ts:249` | `removeFromCompare` does not just empty slot one, it moves slot two into it. A page that left a hole would show the surviving product in the second column with an empty first one |
 | CMP-06 | The compare page's own search box fills a slot | `compare.live.spec.ts:295` | The search term is taken from a product this run already opened, never written down — so an ordinary catalogue change cannot turn it red. A nothing-found answer names the search backend |
 | CMP-07 | The clear button empties a slot, in the cookie and in the address | `compare.live.spec.ts:335` | Clearing one slot leaves the other alone, and the address is checked separately — a product gone from the cookie but still in the query comes back on the next reload |
+
+## Questions, shop answers and reactions
+
+One journey, two real accounts, on the **QA product**. The shopper asks from
+both places the product page offers, edits and reacts; the seller answers from
+the dashboard; the shopper comes back, undoes everything, and every undo is
+checked after a reload.
+
+**Every read in this flow is served by Elasticsearch, and every write goes to
+the comments backend first.** So each "it survived the reload" check is a
+bounded wait — six reloads, ten seconds apart, no new reload past 60 seconds —
+and its failure says the value was *not readable within the bound*. A slow index
+and a lost write have to read differently, and that is the whole reason the
+checkpoint exists.
+
+**The seller's write is bound by a mark in the data.** Every question this run
+writes carries a run token in its text, and the dashboard refuses to answer a
+card unless the id is one this run created, the text carries that token, and the
+card shows no answer yet. The reply write is create-or-edit, so answering a card
+that already holds a real answer would overwrite it with no copy kept.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| CMT-01 | The shopper likes the product and asks a question from both places | `comments.live.spec.ts:208` | The two ask boxes are different components — `FaqAskInput` in the page, `CommentBar` in the extended area — and each is checked on what the comments backend answered, not on what appeared |
+| CMT-02 | Both questions are edited and liked, and the edits survive a reload | `comments.live.spec.ts:285` | The edit judges the update call itself: the app clears its "a dialog is open" flag only on success, so a refused edit hides every menu on the page and later steps would report "no menu" instead of the refusal |
+| CMT-03 | The seller finds the product card and sees the shopper's like | `comments.live.spec.ts:408` | The card is found by walking the grid page by page, never assumed to be first, and "the counts have not answered" is reported apart from "the like is missing" — the card draws both as a dash |
+| CMT-04 | The seller answers both questions | `comments.live.spec.ts:450` | Each answer is bound to a card proved to be this run's own, and a card already holding an answer is refused rather than overwritten |
+| CMT-05 | Both answers reach the shopper, who likes them | `comments.live.spec.ts:492` | Also that an answered question no longer offers Edit — the app removes it once `has_reply` is true, which is what fixes the order of this whole journey |
+| CMT-06 | A reload keeps every question, edit, answer and like | `comments.live.spec.ts:572` | One reload, then one named assertion per value. Ten values checked apart, so a failure names which one was lost rather than that "the reload failed" |
+| CMT-07 | Every like is removed, and a reload keeps them off | `comments.live.spec.ts:660` | The undo is proved the same way the do was. The comment like ignores its own backend answer (see the finding below), so only the reload can see a refused unlike |
+| CMT-08 | Both questions are deleted and the product unliked, and it sticks | `comments.live.spec.ts:741` | The deletes and the product unlike are separate checks, because they are separate calls to separate endpoints |
+
+**What it leaves behind.** Nothing, on a green run: `CMT-08` removes the
+questions and the like, and `afterAll` removes the shop's answers. A run that
+dies between the answer and the teardown can leave an answer on the QA product —
+no shopper sees that product, and this is the same trade the suite already
+accepts for a location it cannot delete.
 
 ## A defect these files found, and fixed
 

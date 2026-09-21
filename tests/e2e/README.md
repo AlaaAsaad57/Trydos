@@ -133,6 +133,18 @@ Each spec that needs a session creates one and saves it to `tests/e2e/.auth/`,
 where its own later cases open it. (It is not created in global setup — that
 sentence used to say so and was never true.)
 
+> The jars that exist: `signed-in.json`, `profile.json`,
+> `profile-scripted.json`, `shopper.json`, `stories.json`,
+> `stories-reporter.json`, `comments.json` — and `qa-seller.json`, which the
+> **seed** writes and three specs read. All of them live under
+> `tests/e2e/.auth/` and `globalTeardown` clears the whole directory.
+>
+> **A jar is a snapshot, so every case that uses one hands it back.** The moment
+> a case does authenticated work the app can exchange the credential, and the
+> file on disk is then superseded. `comments.live.spec.ts` sorts **before**
+> `sellerDashboard.live.spec.ts` in the account lane and both read
+> `qa-seller.json`, so the first one to leave it stale breaks the second.
+
 > **One accepted exception: Shopper A signs in twice.** `profile.scripted.spec.ts`
 > keeps its own session rather than borrowing the live spec's, because a snapshot
 > shared across two projects is exactly the stale-credential trap that handing a
@@ -142,10 +154,16 @@ sentence used to say so and was never true.)
 
 ### What a full run spends in real one-time codes
 
-Fifteen sends: `AUTH-01`, `PROF-01`, `RECOV-01`, five in `auth.scripted.spec.ts`,
-and **seven** added by the profile branches — one sign-in for each of
-`SCRIPT-07` to `SCRIPT-12`, plus `SCRIPT-12`'s change-number send, which is a
-server action and cannot be intercepted.
+Sixteen sends: `AUTH-01`, `PROF-01`, `RECOV-01`, `CMT-01`, five in
+`auth.scripted.spec.ts`, and **seven** added by the profile branches — one
+sign-in for each of `SCRIPT-07` to `SCRIPT-12`, plus `SCRIPT-12`'s
+change-number send, which is a server action and cannot be intercepted.
+
+`CMT-01` is the sixteenth, and it is one send for the whole comments journey:
+the other seven cases open the jar it saves, and the seller half of that journey
+signs in to nothing at all — it opens the jar the QA seed saved. A throttled
+send sleeps the backend's own cooldown, so an extra one here is paid for out of
+a **different** case's budget.
 
 **Why six sign-ins and not one.** Those cases may not share a session: several
 damage their own on purpose, and none may hand that on. A shared session was

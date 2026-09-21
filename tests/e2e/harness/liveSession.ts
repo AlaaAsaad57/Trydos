@@ -58,6 +58,11 @@ export const SESSION_STATE = {
   // the report control at all. So they keep two files, not one.
   stories: "tests/e2e/.auth/stories.json",
   storiesReporter: "tests/e2e/.auth/stories-reporter.json",
+  // Questions, shop answers and reactions. **Shopper A only.** The seller half
+  // of that journey signs in to nothing: it opens the jar the QA seed saved
+  // (`QA_SELLER_SESSION_PATH`), because a second sign-in on that account would
+  // spend a real one-time code against limits that are not ours.
+  comments: "tests/e2e/.auth/comments.json",
 } as const;
 
 /** The directory all of them live in. Removed wholesale at teardown. */

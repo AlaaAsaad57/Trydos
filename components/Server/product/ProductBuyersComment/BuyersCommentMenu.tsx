@@ -104,6 +104,7 @@ function BuyersCommentMenu({
           }  absolute z-80   bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]`}
         >
           <button
+            data-pw="comment-translate"
             className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
             onClick={handleTranslateComment}
             disabled={translateLoading}
@@ -119,6 +120,7 @@ function BuyersCommentMenu({
           </button>
           {isOwner && !comment.has_reply && (
             <button
+              data-pw="comment-edit"
               className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
               onClick={() => {
                 setBuyerCommentModalOption({
@@ -137,6 +139,7 @@ function BuyersCommentMenu({
           )}
           {isOwner && (
             <button
+              data-pw="comment-delete"
               className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
               onClick={() => {
                 setBuyerCommentModalOption({

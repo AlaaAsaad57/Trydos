@@ -60,6 +60,13 @@ export const ACCOUNT_LANE = [
   // edit, two status changes and the shop's own contact and address. A second
   // copy would fight over the same rows, and a location cannot be deleted.
   "sellerDashboard.live.spec.ts",
+  // Comments, replies and reactions. Signs in as the shared shopper AND opens
+  // the QA seller's saved jar, then writes for real: two questions, two shop
+  // replies and several reactions on the QA product. It also hands the seller
+  // jar back after every seller case -- it sorts BEFORE
+  // `sellerDashboard.live.spec.ts`, so a jar it failed to hand on would be the
+  // one that file opens.
+  "comments.live.spec.ts",
 ];
 
 /** No account, no code, nothing real written. Safe to run several at once. */
