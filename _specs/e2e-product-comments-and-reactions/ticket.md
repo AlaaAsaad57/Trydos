@@ -12,7 +12,7 @@ created_at: 2026-09-21
 updated_at: 2026-09-21
 links:
   clickup: ""
-  github: ""
+  github: "https://github.com/AlaaAsaad57/Trydos/pull/127"
 ---
 
 # Ticket Record — e2e-product-comments-and-reactions
