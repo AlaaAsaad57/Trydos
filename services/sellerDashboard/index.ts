@@ -626,6 +626,25 @@ class SellerDashboardService {
   }
 
   // PUT /shop/info — protected by UPDATE_SHOP_INFO
+  /** Save the shop's own record.
+   *
+   *  **A picture the shop does not have is left out, never sent as `null`.**
+   *  The core backend validates both media fields as strings and answers
+   *  `422 The image field must be a string` for a null — and it refuses the
+   *  whole call with it, so the name, address and contact in the same body
+   *  never land either. A seller who had never uploaded a logo simply could not
+   *  save their address, and the form told them "Failed to update" without
+   *  saying why.
+   *
+   *  Leaving the key out is the right shape rather than a way round the
+   *  validator: `PUT /shop/info` rewrites every field it is **given**, so an
+   *  absent picture means "do not touch it". Sending `""` would be the
+   *  opposite — an instruction to blank it.
+   *
+   *  A picture the shop **does** have is still sent, for that same reason: drop
+   *  it and the save would delete the seller's logo while putting their address
+   *  right.
+   */
   async updateShopInfo(
     sellerId: string,
     data: {
@@ -637,12 +656,19 @@ class SellerDashboardService {
     },
   ) {
     try {
+      const { image, banner, ...rest } = data;
+      const body = {
+        ...rest,
+        ...(image ? { image } : {}),
+        ...(banner ? { banner } : {}),
+      };
+
       const res = await fetchData({
         url: `/shop/info`,
         method: "PUT",
         server: "market-dashboard",
         reqTitle: REQUESTS_DATA.UPDATE_SHOP_INFO,
-        body: JSON.stringify(data),
+        body: JSON.stringify(body),
         sellerId,
       });
       return res;
