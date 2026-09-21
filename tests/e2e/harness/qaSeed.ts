@@ -121,13 +121,6 @@ const QA_SHOP_NAME = "Trydos QA";
  *  Nothing is trusted about that: the seed reads the slug back and refuses to
  *  go on unless it really carries the mark. */
 const QA_BOUTIQUE_NAME = "Trydos QA 1";
-/** How many pages of `/shop/locations` the seed will read looking for its own.
- *
- *  A stop, not a budget. The list grows by one row per `SD-06` run and nothing
- *  can delete a row, so "read until the end" has no end on an old environment.
- *  Ten pages is far more than the seed's location has ever needed. */
-const MAX_LOCATION_PAGES = 10;
-
 const QA_LOCATION_NAME = "Trydos QA";
 const QA_PRODUCT_NAME = "Trydos QA product";
 
@@ -814,52 +807,46 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
       let locationId: string | number = "";
 
       await test.step("find or create the QA location", async () => {
-        // **Every page, not just the first.** `/shop/locations` is paginated,
-        // and the seed's own location falls off page one over time: `SD-06`
-        // creates a `trydos-qa-loc-<timestamp>` row on every run and a location
-        // can never be deleted, so page one fills with them.
+        // **Takes a location the shop already has. Never hunts for one by name.**
         //
-        // Reading only page one made the seed decide its location was gone and
-        // try to make a second one -- which is the worst outcome available here,
-        // because that is another row nobody can ever remove. Measured on
-        // 2026-09-22: `meta` said `{current_page: 1, last_page: 2, total: 12}`
-        // and "Trydos QA" was the twelfth.
-        let found: any = null;
-        let pageNumber = 1;
-        let lastPage = 1;
+        // This used to look for a row called "Trydos QA". That worked only while
+        // the shop had few locations: `SD-06` creates one on every run, a
+        // location can never be deleted, and the list is paginated eleven at a
+        // time — so the seed's own row drifts onto page two, then page three,
+        // and in a year page ten. A seed that has to find one row in that is a
+        // seed that breaks again later.
+        //
+        // Any location does: the whole shop is this suite's own, marked
+        // `trydos-qa-`. So the question is just "is there one to use".
+        //
+        // **Active ones only**, and that is not a detail. Every leaked row from
+        // `SD-06` is left inactive (`status 0`), so the newest rows are all
+        // dead ones; asking the backend to filter is what keeps this to a
+        // single call on a single page instead of paging in search of a live
+        // one. The product hangs off this location, and `QA-06` buys it.
+        const active = await sellerCall(page, {
+          service: SELLER_SERVICE.dashboard,
+          url: "/shop/locations?status=1",
+          method: "GET",
+          sellerId,
+          note: "find an active location to hang the QA product on",
+          country: QA_COUNTRY,
+          record: calls,
+        });
 
-        while (pageNumber <= lastPage && pageNumber <= MAX_LOCATION_PAGES) {
-          const list = await sellerCall(page, {
-            service: SELLER_SERVICE.dashboard,
-            url: `/shop/locations?page=${pageNumber}`,
-            method: "GET",
-            sellerId,
-            note: `find the QA location (page ${pageNumber})`,
-            country: QA_COUNTRY,
-            record: calls,
-          });
-
-          // A refused page is not "no location". Guessing would make the seed
-          // create a duplicate it can never take back -- the same mistake
-          // `readSellerId` used to make, with worse consequences.
-          if (!list.ok) {
-            refuse(
-              "find or create the QA location",
-              `the seller-dashboard backend would not list the shop's locations (page ${pageNumber} answered ${list.status}: ${list.message}). The seed will not guess that the location is missing: guessing means creating a second one, and a location can never be deleted`,
-            );
-          }
-
-          found = rowsOf(list.data).find(
-            (row: any) => String(row?.name ?? "") === QA_LOCATION_NAME,
+        // A refused read is not "there is no location". Guessing would make the
+        // seed create another undeletable row -- the same mistake
+        // `readSellerId` used to make, with a permanent consequence.
+        if (!active.ok) {
+          refuse(
+            "find or create the QA location",
+            `the seller-dashboard backend would not list the shop's active locations (${active.status}: ${active.message}). The seed will not guess that there is none: guessing means creating another, and a location can never be deleted`,
           );
-          if (found) break;
-
-          lastPage = Number(list.data?.meta?.last_page ?? 1) || 1;
-          pageNumber += 1;
         }
 
-        if (found) {
-          locationId = found.id;
+        const first = rowsOf(active.data)[0];
+        if (first) {
+          locationId = first.id;
           return;
         }
 
@@ -917,6 +904,7 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
         }
         locationId = created.data?.id ?? created.data?.location_id ?? "";
       });
+
       checkDeadline("find or create the QA location");
 
       // ---------------------------------------------------------------- 6
