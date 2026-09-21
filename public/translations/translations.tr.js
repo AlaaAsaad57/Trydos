@@ -1237,6 +1237,7 @@ const translations = {
   "Only This Piece": "Sadece Bu Parça",
   "SVG Images Not Allowed": "SVG resimlerine izin verilmiyor",
   "File size should not exceed 10 MB": "Dosya boyutu 10 MB'ı aşmamalıdır",
+  "File size should not exceed 25 MB": "Dosya boyutu 25 MB'ı aşmamalıdır",
   "Best Price": "En İyi Fiyat",
   "Last 3 Days!": "Son 3 Gün!",
   Trend: "Trend",

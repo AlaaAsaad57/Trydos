@@ -610,7 +610,24 @@ const uploadFile = async (file_name, file) => {
   }
 };
 
+/** The largest chat attachment we send, in MB. */
+const MAX_CHAT_FILE_SIZE_MB = 25;
+/** The same cap in bytes, which is the only unit `File.size` speaks. */
+const MAX_CHAT_FILE_SIZE_BYTES = MAX_CHAT_FILE_SIZE_MB * 1024 * 1024;
+
 export const upload = async (file) => {
+  // Checked here, not at each screen, because every chat attachment comes
+  // through this one function — the file picker, the camera, the cropped image
+  // and the voice recorder all call it. Without this the only cap was the media
+  // server's own, which sits higher than 25 MB, so a 25.9 MB file was accepted.
+  if (file?.size > MAX_CHAT_FILE_SIZE_BYTES) {
+    throw new Error(
+      translateFunction(
+        `File size should not exceed ${MAX_CHAT_FILE_SIZE_MB} MB`,
+      ),
+    );
+  }
+
   let currentFile = file;
   let a = "",
     b = "";
