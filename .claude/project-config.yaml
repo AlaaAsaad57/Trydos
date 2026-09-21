@@ -13,7 +13,7 @@ project:
 
 features:
   clickup: true          # /wf:start-ticket may seed a ticket from a ClickUp task (read-only)
-  github: true           # /wf:publish-pr may open a PR — base branch is `develop`, not `main`
+  github: true           # /wf:publish-pr may open a PR — base branch is `development`, not `main`
   observability: false   # this repository owns no observability runtime files
 
 # ---------------------------------------------------------------------------
