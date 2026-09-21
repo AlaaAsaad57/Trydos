@@ -1532,7 +1532,12 @@ svg.redwave g g path {
 
 .play-vid-icon {
   position: absolute;
-  z-index: 99;
+  /* Above `.message-img-body::after`, the shade drawn over the whole bubble at
+     9999. The shade takes pointer events like any other box, so below it the
+     play icon never gets its own click and the options menu opens instead of
+     the video. The shade itself is left alone: a photo message shares it and
+     is supposed to keep opening the options menu. */
+  z-index: 10000;
   top: 41%;
   left: 43%;
   -webkit-transform: scale(3.5);
