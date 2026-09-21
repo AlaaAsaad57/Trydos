@@ -1029,3 +1029,177 @@ export const shopInfo = {
   fieldError: (page: Page, field: string): Locator =>
     page.getByTestId("shop-info-" + field + "-field-error"),
 };
+
+// ---------------------------------------------------------------------------
+// Product questions, shop answers, and the hearts on both
+//
+// **Every lookup here is scoped to a container, and that is not tidiness.** The
+// same question is drawn by up to three widgets — the in-page FAQ strip, the
+// bottom sheet, and the extended area the footer opens — and the strip and the
+// extended area are **both in the DOM** while the extended area is open. A
+// page-wide comment-id lookup therefore matches twice and Playwright stops with
+// a strict-mode violation. So every function below takes the container it is
+// reading, and the caller's message names which widget it looked in.
+// ---------------------------------------------------------------------------
+
+/** The storefront side: asking, editing, reacting, deleting. */
+export const productComments = {
+  /** The in-page FAQ strip. Its `id` is shared with the buyers-review strip on
+   *  the same page, which is why it carries a hook of its own. */
+  faqSection: (page: Page): Locator => page.getByTestId("faq-section"),
+  /** The footer control that opens the extended comment area. */
+  openExtendedArea: (page: Page): Locator => page.getByTestId("CommentIcon"),
+  /** The extended area, and the scrolling list inside it. */
+  extendedArea: (page: Page): Locator =>
+    page.getByTestId("ExtendCoomentSection"),
+  extendedList: (page: Page): Locator => page.getByTestId("CommentArea"),
+  /** The backdrop that shuts the extended area — what a shopper taps.
+   *
+   *  **Leaving the area open breaks the page underneath.** The footer it belongs
+   *  to is `z-999999999` and fixed to the bottom, so a heart in the in-page
+   *  strip scrolls underneath it and every click is intercepted. */
+  closeExtendedArea: (page: Page): Locator =>
+    page.getByTestId("close_extended_area"),
+
+  /** The product's own heart, in the footer. Read `productHeartFilled` to learn
+   *  whether it is on: the filled icon is only drawn when it is. */
+  productHeart: (page: Page): Locator => page.getByTestId("LoveSymbol"),
+  productHeartFilled: (page: Page): Locator =>
+    page.getByTestId("LoveClickOnLast"),
+  productHeartCount: (page: Page): Locator => page.getByTestId("CountOfLoves"),
+
+  /** Asking, from the in-page FAQ section.
+   *
+   *  **Page-level, and that is not laziness.** `FaqQuestionsList` renders the
+   *  scrolling strip and this box as **siblings** in one fragment, so the box is
+   *  not inside `faq-section` and a lookup scoped to that container can never
+   *  match it. The page carries exactly one of these — the FAQ bottom sheet
+   *  lists and edits but cannot ask, and the extended area uses `CommentBar`
+   *  instead — so a page-level lookup is unambiguous. */
+  askInput: (page: Page): Locator => page.getByTestId("faq-ask-input"),
+  askSend: (page: Page): Locator => page.getByTestId("faq-ask-send"),
+  /** Asking, from the extended area. A different component with a different
+   *  control, which is the whole reason both places are covered. */
+  barInput: (container: Locator): Locator =>
+    container.locator('[data-pw="CommentField"]'),
+  barSend: (container: Locator): Locator =>
+    container.locator('[data-pw="SubmitComment"]'),
+
+  /** One question, inside one widget. `data-has-reply` says whether the shop
+   *  has answered it — which is also what decides if Edit is offered at all. */
+  item: (container: Locator, commentId: string | number): Locator =>
+    container.locator(
+      '[data-pw="faq-item"][data-comment-id="' + commentId + '"]',
+    ),
+  anyItem: (container: Locator): Locator =>
+    container.locator('[data-pw="faq-item"]'),
+  itemText: (item: Locator): Locator =>
+    item.locator('[data-pw="faq-item-text"]'),
+
+  /** The shop's answer under one question, and its text. */
+  reply: (container: Locator, commentId: string | number): Locator =>
+    container.locator(
+      '[data-pw="faq-reply"][data-comment-id="' + commentId + '"]',
+    ),
+  replyText: (reply: Locator): Locator =>
+    reply.locator('[data-pw="faq-reply-text"]'),
+
+  /** The three-dot control on a question. Its hook differs by widget: the
+   *  extended area says `comment-options`, the strip and the bottom sheet both
+   *  say `success-comment-options`. Both are matched, because the caller has
+   *  already scoped the container and the distinction carries no meaning. */
+  menuButton: (item: Locator): Locator =>
+    item.locator(
+      '[data-pw="comment-options"], [data-pw="success-comment-options"]',
+    ),
+  /** The menu items, scoped to the card that owns them so a failure names the
+   *  right question. */
+  translateItem: (item: Locator): Locator =>
+    item.locator('[data-pw="comment-translate"]'),
+  editItem: (item: Locator): Locator =>
+    item.locator('[data-pw="comment-edit"]'),
+  deleteItem: (item: Locator): Locator =>
+    item.locator('[data-pw="comment-delete"]'),
+
+  /** The edit dialog and the delete confirmation. Both are page-level: the app
+   *  renders one at a time, from the in-page list, whichever widget opened it. */
+  editInput: (page: Page): Locator => page.getByTestId("faq-edit-input"),
+  editSubmit: (page: Page): Locator => page.getByTestId("faq-edit-submit"),
+  deleteConfirm: (page: Page): Locator =>
+    page.getByTestId("faq-delete-confirm"),
+
+  /** The heart on a question (`comment`) or on the shop's answer
+   *  (`seller_reply`).
+   *
+   *  **`data-comment-id` carries the question's own id for both.** The app
+   *  hands the answer's heart `<id>-seller_reply` and the component strips that
+   *  suffix back off, so the two are told apart by `data-target-type`, never by
+   *  the id. Read `data-liked` for the state and `data-likes` for the number —
+   *  the visible count is locale-formatted and would have to be parsed back. */
+  heart: (
+    container: Locator,
+    commentId: string | number,
+    targetType: "comment" | "seller_reply",
+  ): Locator =>
+    container.locator(
+      '[data-pw="comment-like"][data-comment-id="' +
+        commentId +
+        '"][data-target-type="' +
+        targetType +
+        '"]',
+    ),
+};
+
+/** The dashboard's product grid — the card, its four counts, and the paging.
+ *
+ *  The counts are permission gated (`READ_COMMENTS`). Until they arrive the
+ *  card draws a dash and `data-value` is empty, which is a different thing from
+ *  a count of zero. */
+export const sellerProducts = {
+  card: (page: Page, productId: string | number): Locator =>
+    page.locator(
+      '[data-pw="seller-product-card"][data-product-id="' + productId + '"]',
+    ),
+  anyCard: (page: Page): Locator =>
+    page.locator('[data-pw="seller-product-card"]'),
+  /** One count on a card. `stat` is `heart`, `comments`, `star` or `share`. */
+  stat: (card: Locator, stat: string): Locator =>
+    card.locator('[data-pw="seller-product-stat"][data-stat="' + stat + '"]'),
+
+  /** The paging control. **Absent when the grid has one page** — the app draws
+   *  it only past the first. Read that as one page, never as a missing
+   *  element. */
+  paginationStatus: (page: Page): Locator =>
+    page.getByTestId("pagination-status"),
+  paginationNext: (page: Page): Locator => page.getByTestId("pagination-next"),
+};
+
+/** The dashboard's comments section — the shop's own questions and answers. */
+export const sellerComments = {
+  card: (page: Page, commentId: string | number): Locator =>
+    page.locator(
+      '[data-pw="dashboard-comment-card"][data-comment-id="' + commentId + '"]',
+    ),
+  anyCard: (page: Page): Locator =>
+    page.locator('[data-pw="dashboard-comment-card"]'),
+  /** The shopper's question, as the dashboard shows it. Read to prove a card is
+   *  this run's own; **never quoted into a failure message** — it belongs to a
+   *  real customer on every card but ours. */
+  cardText: (card: Locator): Locator =>
+    card.locator('[data-pw="dashboard-comment-text"]'),
+  replyButton: (card: Locator): Locator =>
+    card.locator('[data-pw="dashboard-comment-reply-btn"]'),
+  replyText: (card: Locator): Locator =>
+    card.locator('[data-pw="dashboard-comment-reply-text"]'),
+  /** Removing the shop's answer. **Behind a browser confirm dialog** — a test
+   *  that does not accept the dialog silently does nothing. */
+  deleteReplyButton: (card: Locator): Locator =>
+    card.locator('[data-pw="dashboard-comment-delete-reply-btn"]'),
+
+  replyModal: (page: Page): Locator => page.getByTestId("dashboard-reply-modal"),
+  replyInput: (page: Page): Locator => page.getByTestId("dashboard-reply-input"),
+  replySubmit: (page: Page): Locator =>
+    page.getByTestId("dashboard-reply-submit"),
+  loadMore: (page: Page): Locator =>
+    page.getByTestId("dashboard-comments-load-more"),
+};

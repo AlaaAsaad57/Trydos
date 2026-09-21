@@ -149,6 +149,7 @@ export const AskInput = ({
       )}
       {!loading && comment.length > 0 && (
         <span
+          data-pw="faq-ask-send"
           className={`absolute top-0 cursor-pointer z-50 flex items-center justify-center h-full w-[50px] ${
             isRtl ? "left-[5px] rotate-180" : "right-[5px]"
           }`}
@@ -164,6 +165,7 @@ export const AskInput = ({
       )}
       {renderBorderSvg()}
       <input
+        data-pw="faq-ask-input"
         placeholder={translateFunction(
           "Ask Seller Your Question About This Product …",
           language,

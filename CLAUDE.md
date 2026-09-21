@@ -67,6 +67,43 @@ Next.js 16 renames `middleware.ts` → **`proxy.ts`**. This single file runs on 
 
 Endpoint path constants live in `utils/endpointConfig.tsx`.
 
+#### A 401 is not a failure — every service refreshes its token and retries
+
+**Read this before you judge any request by its first answer.** Every backend
+service reached through `fetchData` recovers from a 401 on its own, and it does
+so *in the middle of the call you are looking at*:
+
+1. the service answers **401**;
+2. `fetchData` exchanges **that service's own refresh token** —
+   `auth.RefreshSession(url, server)` — and waits about 2 seconds for the store
+   to settle;
+3. it **sends the same request again**, and that second answer is the real one;
+4. only if the exchange is refused does the app fall through to the `need_auth`
+   prompt.
+
+It tries the exchange **once** (`authAttempt === 0`), and each service holds a
+separate token pair, so a 401 on one never means the others are broken:
+`chat` (`CHAT-TOKEN`), `stories` (`STORIES-TOKEN`), `comments`
+(`USER_ID_HASH` + `COMMENTS-REFRESH-TOKEN`), `wallet` (`WALLET-TOKEN`), and the
+market services. `STALE_TOKENS_FOR` in `utils/fetchData.ts` keys the cleanup per
+service for exactly that reason.
+
+The server side does the same thing in its own way: `HandleAuthedFetch` answers
+a 401 by registering a guest token and retrying.
+
+**What this means in practice:**
+
+- **Never treat the first 401 as a refused write.** The call very often
+  succeeds on the retry, and the user never sees anything.
+- **A test or a probe that watches the network must judge the first answer that
+  is *not* a 401**, and say so when it only ever saw 401s. Watching a single
+  response reports a write that landed as a write that was refused. This has
+  cost real debugging time more than once — `watchCommentCall` in
+  `tests/e2e/actions/productComments.ts` is the worked example.
+- **A 401 in a log is not evidence of a bug.** Look for what followed it.
+- The retry is why a call can take a few seconds longer than expected. That is
+  the 2-second settle plus a second round trip, not a slow backend.
+
 ### State — single combined Zustand store (`store/index.ts`)
 All slices (`auth`, `Cart`, `chat`, `Details`, `homepage`, `listing`, `search`, `notifications`) live in `store/<domain>/reducer.ts` and are spread into one `useAppStore`. Devtools middleware is applied **only** in development — do not add it elsewhere. In non-React / service code use `useAppStore.getState()`; never call the hook in a Server Component.
 

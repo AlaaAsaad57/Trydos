@@ -42,6 +42,9 @@ function FaqItemComponent({
     >
       <div
         id={`comment-${c.id}`}
+        data-pw="faq-item"
+        data-comment-id={c.id}
+        data-has-reply={c.has_reply ? "true" : "false"}
         className={`${isFromComments && "comment-item-text"} comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-full w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
         style={{
           position: "relative",
@@ -95,6 +98,7 @@ function FaqItemComponent({
           </div>
           <div
             id={`comment-${c.id}-text`}
+            data-pw="faq-item-text"
             className={`${
               !isRtl ? "pr-[27px]" : "pl-[27px]"
             } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0`}
@@ -118,6 +122,8 @@ function FaqItemComponent({
             <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
           </div>
           <div
+            data-pw="faq-reply"
+            data-comment-id={c.id}
             className="comment-item flex-col rounded-t-none mt-0 rounded-b-[15px] justify-between max-w-full w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]"
             style={{
               position: "relative",
@@ -160,6 +166,7 @@ function FaqItemComponent({
               </div>
               <div
                 id={`comment-${c.id}-reply-text`}
+                data-pw="faq-reply-text"
                 className="comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0"
               >
                 {displayReply}
