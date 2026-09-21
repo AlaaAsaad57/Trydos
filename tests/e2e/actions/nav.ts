@@ -31,6 +31,14 @@ import { LIVE_ORIGIN } from "../harness/env";
  *  a tight second half. Still far below the 120s per-test limit, so a product
  *  page that genuinely never renders is still reported as a failure. */
 const PRODUCT_RENDER_MS = 45_000;
+
+/** How long the country picker gets to draw its list, per attempt.
+ *
+ *  Half of what the single attempt used to get, because there are two now: the
+ *  first mount and one reload. The total is unchanged, and a lost `getCountries`
+ *  is answered by asking again rather than by waiting longer — see
+ *  `chooseRegionIfAsked`. */
+const COUNTRY_LIST_MS = 22_000;
 import {
   home,
   listing,
@@ -134,14 +142,38 @@ export const chooseRegionIfAsked = async (
 
   if (!showing) return { chosen: false };
 
-  await expect(
-    popup,
-    "the country popup is covering the page and never offered a country to " +
-      "pick. The list is a gateway call — `getCountries` in " +
-      "`components/settings/PersonalInfoCountries.tsx` — so a popup stuck on " +
-      "its loading screen means that call did not answer, not that the popup " +
-      "is broken",
-  ).toBeVisible({ timeout: 45_000 });
+  // The list, with **one reload if it does not come**.
+  //
+  // `Change-Url-Container` does not exist until `getCountries`
+  // (`components/settings/PersonalInfoCountries.tsx`) answers, and that is a
+  // gateway call made once, on mount, with no retry of its own. When it is lost
+  // the component sits on its "Preparing your experience" screen for ever: the
+  // page is up, the backdrop covers it, and nothing will ever arrive. Waiting
+  // longer cannot help, because there is no second request to wait for.
+  //
+  // A reload is the whole fix: it mounts the component again and asks again.
+  // Safe here by construction — this runs immediately after a navigation, so
+  // there is no work in the page to lose.
+  //
+  // Seen locally on 2026-09-21: `QA-01` spent its whole 45 seconds on a popup
+  // whose list was never coming, on the first home-page visit of the run.
+  const listed = await popup
+    .waitFor({ state: "visible", timeout: COUNTRY_LIST_MS })
+    .then(() => true)
+    .catch(() => false);
+
+  if (!listed) {
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await backdrop.waitFor({ state: "visible", timeout: 10_000 }).catch(() => {});
+    await expect(
+      popup,
+      "the country popup is covering the page and never offered a country to " +
+        "pick, and it was asked twice. The list is a gateway call — " +
+        "`getCountries` in `components/settings/PersonalInfoCountries.tsx` — " +
+        "made once on mount with no retry, so a popup stuck on its loading " +
+        "screen means that call did not answer. The popup itself is fine",
+    ).toBeVisible({ timeout: COUNTRY_LIST_MS });
+  }
 
   const first = region.anyCountry(page).first();
   await expect(first).toBeVisible();

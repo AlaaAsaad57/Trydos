@@ -314,17 +314,46 @@ const VERIFY_ANSWER_MS = 60_000;
  *  browser catching up with a fan-out it has already been told about. */
 const SIGNED_IN_ANSWER_MS = 45_000;
 
-/** The screens a finished attempt can be on.
+/** How often a waiting loop may ask the **app** what it believes.
  *
- *  Everything else — `enter-pin` above all — means the widget is still working.
- *  See the note in `attemptAuth`. */
-const FINISHED_SCREENS: readonly AuthScreen[] = [
-  "welcome",
-  "input-name",
-  "not-registered",
-  "registered",
-  "closed",
-];
+ *  Reading the widget's screen is free: the browser already holds the DOM.
+ *  `signedInSession` is not — it POSTs to `/api/auth/me` — and the app under
+ *  test is a Next server on the same two-core runner as the browser. A loop
+ *  that asked it four times a second would spend the whole sign-in competing
+ *  with the renders these waits exist to let finish. Once a second is plenty:
+ *  nothing downstream cares about a second either way. */
+const APP_READ_EVERY_MS = 1_000;
+
+/** Has the widget reached a screen that ends the attempt?
+ *
+ *  **Asked of each screen directly, never through `currentAuthScreen`.** That
+ *  helper answers "which screen is this" by walking a priority list, and
+ *  `enter-pin` sits above every finished screen in it. The PIN screen's own
+ *  input is `sr-only` — a 1px box, which Playwright counts as visible — so for
+ *  as long as it lingers in the DOM the priority list keeps answering
+ *  `enter-pin` and a finished screen underneath it is never noticed.
+ *
+ *  That cost real time rather than correctness: the scripted sign-ins went from
+ *  ~26s to 46-58s each, because the wait below ran to its deadline on cases
+ *  that had finished in a second. Reading the four end screens for themselves
+ *  takes the ordering out of the question.
+ *
+ *  "Closed" counts too, and is checked last: a widget that has gone from the
+ *  screen has finished by definition. */
+const reachedFinishedScreen = async (page: Page): Promise<boolean> => {
+  const ends = [
+    auth.welcomeTitle(page),
+    auth.nameInput(page),
+    auth.notRegisteredMessage(page),
+    auth.AlreadyRegistered(page),
+  ];
+
+  for (const locator of ends) {
+    if (await locator.isVisible().catch(() => false)) return true;
+  }
+
+  return (await currentAuthScreen(page)) === "closed";
+};
 
 /** How long to wait for the sign-in answer itself.
  *
@@ -709,18 +738,45 @@ export const attemptAuth = async (
   // `profile.live.spec.ts:1170` had already written the behaviour down ("a
   // healthy sign-in comes back from `attemptAuth` as 'enter-pin'") and worked
   // around it in that one case; this fixes it for every caller instead.
+  //
+  // **Three ways out, and the third one is not optional.** Waiting only for the
+  // widget was the first version of this fix, and it was a mistake that cost a
+  // CI run: when a backend of the fan-out refuses, `services/auth.ts` throws
+  // inside `VerifyOtp` **after** the core session is written, so the widget
+  // never leaves the PIN screen and never draws an error either. That version
+  // then sat out its whole budget on every single sign-in. Measured on runs
+  // 35626155490, 35632583274 and 35638479517 with the wallet refusing: AUTH-01
+  // went from 26.5s to 45.7s and the account lane from ~28 to 45 minutes, and
+  // the extra load pushed nine unrelated renders past their navigation timeout.
+  //
+  // So the app's own answer ends the wait too. It is also the truest of the
+  // three: a signed-in shopper is one the app names as signed in, whatever the
+  // widget happens to be showing.
   const deadline = Date.now() + VERIFY_ANSWER_MS;
+  let nextAppRead = Date.now() + APP_READ_EVERY_MS;
 
   while (Date.now() < deadline) {
-    const screen = await currentAuthScreen(page);
-    // A visible verify error ends the attempt too. A wrong code, a rate limit
-    // or a server error leaves the widget on the PIN screen **on purpose**, so
-    // a case about one of those branches must not sit out the whole budget.
+    // A visible verify error ends the attempt. A wrong code, a rate limit or a
+    // server error leaves the widget on the PIN screen **on purpose**, so a
+    // case about one of those branches must not sit out the whole budget.
     const error = await visibleVerifyError(page);
+    if (error !== null) {
+      return { screen: (await currentAuthScreen(page)) ?? "closed", error };
+    }
 
-    if (error !== null) return { screen: screen ?? "closed", error };
-    if (screen !== null && FINISHED_SCREENS.includes(screen)) {
-      return { screen, error: null };
+    if (await reachedFinishedScreen(page)) {
+      return { screen: (await currentAuthScreen(page)) ?? "closed", error: null };
+    }
+
+    // The app, not the widget -- but asked on its own slower clock. Reading the
+    // screen is free (the browser already holds the DOM); `signedInSession`
+    // POSTs to `/api/auth/me`, so asking it every 250ms would put four requests
+    // a second on the very server whose renders this change exists to protect.
+    if (Date.now() >= nextAppRead) {
+      nextAppRead = Date.now() + APP_READ_EVERY_MS;
+      if ((await signedInSession(page)).phoneVerified) {
+        return { screen: (await currentAuthScreen(page)) ?? "closed", error: null };
+      }
     }
 
     await page.waitForTimeout(250);
@@ -822,7 +878,9 @@ export const requireSignedInShopper = async (
   while (Date.now() < deadline) {
     session = await signedInSession(page);
     if (session.phoneVerified) return session;
-    await page.waitForTimeout(500);
+    // Once a second, not twice — see `APP_READ_EVERY_MS`. Each turn of this
+    // loop is a POST to the app's own server.
+    await page.waitForTimeout(APP_READ_EVERY_MS);
   }
 
   const who = options.who ?? "the shopper";

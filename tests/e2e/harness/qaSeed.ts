@@ -479,21 +479,55 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
       // ---------------------------------------------------------------- 2
       let sellerId = "";
 
+      /** The account's seller id, or "" when this account is genuinely not a
+       *  seller yet.
+       *
+       *  **A call that did not answer is not the same as "not a seller", and
+       *  the difference is destructive.** This used to `return ""` on any
+       *  refusal, so one lost request sent the seed down the become-a-seller
+       *  path for an account that already **is** one. It then applied again,
+       *  and the admin screen showed nothing pending to approve — because the
+       *  real request had been approved long ago. The seed failed naming the
+       *  admin dashboard, which was working perfectly.
+       *
+       *  Seen twice on 2026-09-21 while the gateway was flapping
+       *  (`UND_ERR_CONNECT_TIMEOUT`, then `ENOTFOUND`, then 200 for the same
+       *  host). So the question is asked up to three times, and if it is never
+       *  answered the seed stops and says so rather than guessing.
+       */
       const readSellerId = async (): Promise<string> => {
-        const answer = await sellerCall(page, {
-          service: SELLER_SERVICE.market,
-          url: "/shop/auth/permissions",
-          method: "GET",
-          note: "is this account a seller yet",
-                                 country: QA_COUNTRY,
-                         record: calls,
-                       });
-        if (!answer.ok) return "";
-        const shops = Array.isArray(answer.data)
-          ? answer.data
-          : (answer.data?.shops ?? answer.data?.data ?? []);
-        const first = Array.isArray(shops) ? shops[0] : null;
-        return String(first?.seller_id ?? first?.id ?? "");
+        let said = "";
+
+        for (let attempt = 1; attempt <= 3; attempt += 1) {
+          const answer = await sellerCall(page, {
+            service: SELLER_SERVICE.market,
+            url: "/shop/auth/permissions",
+            method: "GET",
+            note: "is this account a seller yet",
+            country: QA_COUNTRY,
+            record: calls,
+          });
+
+          if (answer.ok) {
+            const shops = Array.isArray(answer.data)
+              ? answer.data
+              : (answer.data?.shops ?? answer.data?.data ?? []);
+            const first = Array.isArray(shops) ? shops[0] : null;
+            return String(first?.seller_id ?? first?.id ?? "");
+          }
+
+          said = `the last answer was ${answer.status}`;
+          if (attempt < 3) await page.waitForTimeout(2_000);
+        }
+
+        throw new Error(
+          "the seed could not find out whether this account is already a " +
+            "seller: GET /shop/auth/permissions was asked three times and " +
+            `never answered (${said}). It refuses to guess, because guessing ` +
+            "that the account is not a seller makes it apply a second time " +
+            "for an account that already applied, and then blame the admin " +
+            "dashboard for having nothing pending to approve.",
+        );
       };
 
       await test.step("is this account already a seller?", async () => {
