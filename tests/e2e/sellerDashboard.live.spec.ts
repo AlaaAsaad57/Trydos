@@ -330,16 +330,31 @@ test("SD-04 the locations list shows the rows the backend holds", async ({
   try {
     await openLocations(page, { sellerId: seed.sellerId, direct: true });
 
-    const seeded = await test.step("the backend holds the seed's own location", async () =>
-      readLocation(page, {
-        sellerId: seed.sellerId,
-        locationId: seed.locationId,
-        what: "reading the shop's locations",
-      }));
+    // **The rows the backend returns, not the seed's own row.**
+    //
+    // This case is about the list agreeing with the backend, which is what the
+    // step below proves. It used to open by looking up `seed.locationId`, and
+    // that pinned it to one particular row: the seed takes an **active**
+    // location, while every row `SD-06` leaks is left inactive and newer. So
+    // the seed's row sinks down an unfiltered list as an environment ages, and
+    // this case failed with "holds no row with id 56, out of 11 it returned"
+    // — the row was real, and on page two.
+    //
+    // Reading whatever the backend returns first keeps the case saying what its
+    // name says, on any environment, however old.
+    const onBackend = await readLocations(page, { sellerId: seed.sellerId });
 
-    await test.step("the seed's location is drawn in the list", async () => {
+    const first = await test.step("the backend returns locations at all", async () => {
+      expect(
+        onBackend.length,
+        "the core backend returned no locations for this shop, so there is nothing for the list to agree with. The QA seed makes one, so an empty answer here means the seed's own row is gone",
+      ).toBeGreaterThan(0);
+      return onBackend[0];
+    });
+
+    await test.step("the first row the backend returned is drawn, with its name", async () => {
       const card = await locationCard(page, {
-        locationId: seed.locationId,
+        locationId: first.id,
         what: "the locations list",
       });
 
@@ -347,20 +362,18 @@ test("SD-04 the locations list shows the rows the backend holds", async ({
       // a row the reader cannot act on, and it would pass a presence check.
       await expect(
         shopLocations.cardName(card),
-        `the row for location ${seed.locationId} is on screen but carries no name, so the list drew an empty card`,
-      ).toHaveText(seeded.name, { timeout: 20_000 });
+        `the row for location ${first.id} is on screen but carries no name, so the list drew an empty card`,
+      ).toHaveText(first.name, { timeout: 20_000 });
     });
 
     await test.step("every row the backend returned was drawn", async () => {
-      const onBackend = (
-        await readLocations(page, { sellerId: seed.sellerId })
-      ).map((row) => String(row.id));
+      const expected = onBackend.map((row) => String(row.id));
       const onScreen = await listedLocationIds(page);
 
-      const missing = onBackend.filter((id) => !onScreen.includes(id));
+      const missing = expected.filter((id) => !onScreen.includes(id));
       expect(
         missing.join(", "),
-        `the backend returned ${onBackend.length} locations on the first page and the list drew ${onScreen.length}; these ids were not drawn: ${missing.join(", ")}`,
+        `the backend returned ${expected.length} locations on the first page and the list drew ${onScreen.length}; these ids were not drawn: ${missing.join(", ")}`,
       ).toBe("");
     });
   } finally {
