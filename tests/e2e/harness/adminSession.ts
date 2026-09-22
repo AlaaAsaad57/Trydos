@@ -26,6 +26,7 @@
 import { expect, type Browser, type Page } from "@playwright/test";
 
 import { envValue } from "./env";
+import { redact } from "./redact";
 
 /** One write an admin helper made, recorded so a case can say the run stayed
  *  inside its own data. Method and URL only — never a body. */
@@ -100,6 +101,28 @@ export const signInToAdmin = async (page: Page): Promise<void> => {
 
   await email.fill(envValue("ADMIN_DASHBOARD_EMAIL"));
   await password.fill(envValue("ADMIN_DASHBOARD_PASSWORD"));
+
+  // **What the panel answered, recorded before the click.**
+  //
+  // "The sign-in was refused" is not a finding. It reads the same for a wrong
+  // password, a panel that is down, and a changed form — and those are three
+  // different mornings. This dashboard sits on the **same host as the core
+  // backend** (`BACKEND_URL`), which has answered Cloudflare 520 and 522
+  // mid-run more than once, so "the box is ill" is the likeliest of the three
+  // and the one the old message hid completely.
+  //
+  // Statuses and paths only. No body, no header, and the password is never
+  // read back out of the field.
+  const answers: string[] = [];
+  page.on("response", (response) => {
+    if (response.request().method() !== "POST") return;
+    try {
+      answers.push(`${response.status()} ${new URL(response.url()).pathname}`);
+    } catch {
+      // An unparseable address is not worth failing the sign-in over.
+    }
+  });
+
   await page
     .locator(adminSelector("ADMIN_SELECTOR_SUBMIT", 'button[type="submit"]'))
     .first()
@@ -107,10 +130,39 @@ export const signInToAdmin = async (page: Page): Promise<void> => {
 
   // Landed, not "the click happened". A refused sign-in leaves the form on
   // screen and every step after would then fail as a missing table.
-  await expect(
-    email,
-    "the admin dashboard kept its sign-in screen on display after the credentials were sent, so the sign-in was refused. The password is not printed here",
-  ).toBeHidden({ timeout: 45_000 });
+  const landed = await email
+    .waitFor({ state: "hidden", timeout: 45_000 })
+    .then(() => true)
+    .catch(() => false);
+
+  if (landed) return;
+
+  // Whatever the panel put on the screen. Several shapes, because this is
+  // somebody else's product and its markup is not ours to rely on.
+  const shown = await page
+    .locator('.alert, .invalid-feedback, [role="alert"], .text-danger')
+    .filter({ hasText: /\S/ })
+    .first()
+    .innerText()
+    .catch(() => "");
+
+  const said = answers.length
+    ? `The panel answered: ${answers.join(", ")}.`
+    : "The panel answered nothing at all to the sign-in — no POST left the page, so the form never submitted.";
+
+  const quoted = shown.trim()
+    ? ` It showed: "${redact(shown.trim().replace(/\s+/g, " ").slice(0, 200))}".`
+    : "";
+
+  const sameHost =
+    answers.some((answer) => answer.startsWith("5"))
+      ? " A 5xx here is this host being unwell, not a wrong credential — it is the same host as the core backend, so check the health probe for that run."
+      : "";
+
+  expect(
+    landed,
+    `the admin dashboard kept its sign-in screen on display after the credentials were sent, so the sign-in did not complete. ${said}${quoted}${sameHost} The password is not printed here`,
+  ).toBe(true);
 };
 
 /** A browser context for the admin dashboard, never shared with the app's.
