@@ -7,7 +7,7 @@
 # left that deploys. Both halves are needed: without the `vercel.json` change
 # every push deploys twice, and without this file nothing deploys at all.
 #
-#   develop → a preview deployment
+#   development → a preview deployment
 #   main    → production (main is the project's production branch on Vercel)
 #
 # ---------------------------------------------------------------------------
@@ -15,14 +15,14 @@
 #
 # A `workflow_run` (and a `workflow_dispatch`) trigger is not attached to the
 # commit you pushed. GitHub reads it from the **default branch** only, and the
-# default branch here is `main`. While this file lived on `develop` alone it did
+# default branch here is `main`. While this file lived on `development` alone it did
 # not merely fail to fire — Actions had never registered it, and `gh workflow
 # list --all` did not show it at all.
 #
 # Two things follow, and both cost an afternoon if you learn them the hard way:
 #
-#   * **Editing this file on `develop` changes nothing.** The copy on `main` is
-#     what executes, for `develop` pushes as much as for `main`. Every edit has
+#   * **Editing this file on `development` changes nothing.** The copy on `main` is
+#     what executes, for `development` pushes as much as for `main`. Every edit has
 #     to reach `main` before it means anything.
 #   * **`notify-telegram.yml` must be on `main` too.** A reusable workflow called
 #     by a local path is read from the same commit as its caller, and its caller
@@ -30,13 +30,13 @@
 #
 # The gate below reads `workflow_run.head_sha`, not `github.sha`, precisely
 # because of this: `github.sha` on such a run points at `main`, and deploying
-# `main` when someone pushed `develop` would be a memorable bug.
+# `main` when someone pushed `development` would be a memorable bug.
 # ---------------------------------------------------------------------------
 #
 # **`main` has no tests, so `main` cannot pass the gate.** It has no `tests/`,
-# no `vitest.config.mts` and no `test:ci` script — the suites live on `develop`
+# no `vitest.config.mts` and no `test:ci` script — the suites live on `development`
 # only. Nothing runs on a push to `main`, so no `workflow_run` fires and this
-# workflow never starts for it. Until `develop` is merged up, production is
+# workflow never starts for it. Until `development` is merged up, production is
 # deployed by hand:
 #
 #   gh workflow run Deploy --ref main -f force=true
@@ -133,7 +133,7 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.event == 'push' &&
-       (github.event.workflow_run.head_branch == 'develop' ||
+       (github.event.workflow_run.head_branch == 'development' ||
         github.event.workflow_run.head_branch == 'main'))
 
     outputs:
@@ -187,7 +187,7 @@ jobs:
 
           case "$BRANCH" in
             main)    TARGET="production" ;;
-            develop) TARGET="preview" ;;
+            development) TARGET="preview" ;;
             *)       decided false "$BRANCH is not a deploy branch — nothing to do" ;;
           esac
 
