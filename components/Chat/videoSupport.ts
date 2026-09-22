@@ -14,22 +14,32 @@
 // The <video> tag in VideoMessage.tsx then points at an attachment, so it shows
 // no frame, plays nothing, and does not even download.
 //
-// So this file only calls a video a video when a browser can really open the
-// container. The sniffer recognises exactly three video containers — mp4, mov
-// (quicktime) and webm/matroska — and everything else falls through to
-// octet-stream.
+// So this file only calls a video a video when a browser can really PLAY it.
+// That is a stricter question than the one the media server answers. The
+// sniffer only reads the container, and a container can pass while the codecs
+// inside it fail — see the .3gp note below. Passing the sniffer is necessary
+// here, not sufficient.
 
 /** Image names the chat opens in the crop/preview widget. */
 const IMAGE_EXTENSIONS = /\.(jpe?g|png|gif|webp|bmp|svg|ico|heic|heif)$/i;
 
-// Video containers the chat accepts, and nothing else. This list is the same
-// three containers MediaServing's byte sniffer recognises, written as the
-// extensions a user actually sees: mp4 (with its m4v and 3gp relatives, which
-// are the same ISO container), mov, and webm.
+// Video containers the chat accepts, and nothing else: mp4 (with its m4v
+// relative, the same ISO container), mov, and webm.
 //
-// .avi, .mkv, .flv and .wmv are deliberately absent. The sniffer stores them as
-// application/octet-stream, and the chat cannot play an attachment.
-const VIDEO_EXTENSIONS = /\.(mp4|mov|m4v|3gp|webm)$/i;
+// .avi, .flv and .wmv are absent because the sniffer does not know them at all.
+// It stores them as application/octet-stream, and the chat cannot play an
+// attachment.
+//
+// .mkv and .3gp are absent for the other reason: the sniffer DOES store them as
+// a video, and they still never play.
+//   - .mkv shares its magic bytes with WebM, so it is stored as video/webm, but
+//     an .mkv normally carries H.265 or AC-3.
+//   - .3gp opens with the ISO brand 3gp4, which is not in the sniffer's
+//     ISO_VIDEO_BRANDS, so it takes the unknown-ISO-brand fallback and is
+//     stored as video/mp4. Inside it is H.263 video and AMR audio.
+// No browser decodes any of those, so the bubble could only ever offer a
+// download. Refusing at the picker tells the sender before the upload instead.
+const VIDEO_EXTENSIONS = /\.(mp4|mov|m4v|webm)$/i;
 
 // The declared types that go with them. Needed because a recorded clip has no
 // file name to read: the camera hands over a MediaRecorder blob whose type is
@@ -38,7 +48,7 @@ const VIDEO_EXTENSIONS = /\.(mp4|mov|m4v|3gp|webm)$/i;
 // The file name is NOT enough on its own, and the declared type is NOT enough
 // either — an .avi arrives as "video/x-msvideo", which is why a plain
 // `type.includes("video")` check used to let every broken container through.
-const SUPPORTED_VIDEO_TYPES = /^video\/(mp4|quicktime|webm|3gpp|x-m4v)$/i;
+const SUPPORTED_VIDEO_TYPES = /^video\/(mp4|quicktime|webm|x-m4v)$/i;
 
 /**
  * The `accept` string for the media-only picker button.
@@ -47,7 +57,7 @@ const SUPPORTED_VIDEO_TYPES = /^video\/(mp4|quicktime|webm|3gpp|x-m4v)$/i;
  * user picking "All files". The checks below are what actually decide.
  */
 export const MEDIA_INPUT_ACCEPT =
-  "image/*,video/mp4,video/quicktime,video/webm,video/3gpp,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg,.heic,.heif,.mp4,.mov,.m4v,.3gp,.webm";
+  "image/*,video/mp4,video/quicktime,video/webm,.jpg,.jpeg,.png,.gif,.webp,.bmp,.svg,.heic,.heif,.mp4,.mov,.m4v,.webm";
 
 export function isImageFile(file: File): boolean {
   return file.type.includes("image") || IMAGE_EXTENSIONS.test(file.name);
@@ -75,7 +85,7 @@ export function isImageOrVideoFile(file: File): boolean {
 // format is the problem rather than "only image and video files are allowed",
 // which is confusing when they just picked a video.
 const UNPLAYABLE_VIDEO_EXTENSIONS =
-  /\.(avi|mkv|flv|wmv|mpe?g|m2ts|mts|ts|ogv|vob|rm|rmvb|divx|asf)$/i;
+  /\.(avi|mkv|flv|wmv|3gp|3g2|mpe?g|m2ts|mts|ts|ogv|vob|rm|rmvb|divx|asf)$/i;
 
 /**
  * Did the sender pick a video the chat cannot show?
