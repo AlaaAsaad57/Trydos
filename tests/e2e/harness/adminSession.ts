@@ -117,7 +117,15 @@ export const signInToAdmin = async (page: Page): Promise<void> => {
   page.on("response", (response) => {
     if (response.request().method() !== "POST") return;
     try {
-      answers.push(`${response.status()} ${new URL(response.url()).pathname}`);
+      const path = new URL(response.url()).pathname;
+      // **The redirect target is the whole answer, not the status.** These
+      // panels answer 302 to a sign-in whether it worked or not: back to the
+      // sign-in screen when the credentials are refused, on to the dashboard
+      // when they are taken. Without the target, "302 /admin/auth/login" reads
+      // as both and settles nothing.
+      const to = response.headers()["location"];
+      const target = to ? ` -> ${new URL(to, response.url()).pathname}` : "";
+      answers.push(`${response.status()} ${path}${target}`);
     } catch {
       // An unparseable address is not worth failing the sign-in over.
     }
@@ -154,14 +162,20 @@ export const signInToAdmin = async (page: Page): Promise<void> => {
     ? ` It showed: "${redact(shown.trim().replace(/\s+/g, " ").slice(0, 200))}".`
     : "";
 
-  const sameHost =
-    answers.some((answer) => answer.startsWith("5"))
-      ? " A 5xx here is this host being unwell, not a wrong credential — it is the same host as the core backend, so check the health probe for that run."
-      : "";
+  const sameHost = answers.some((answer) => answer.startsWith("5"))
+    ? " A 5xx here is this host being unwell, not a wrong credential — it is the same host as the core backend, so check the health probe for that run."
+    : "";
+
+  // A redirect that lands back on the screen we came from is the panel saying
+  // no. Naming it saves the reader from reading a 302 as success.
+  const loginPath = new URL(loginUrl).pathname;
+  const bouncedBack = answers.some((answer) => answer.endsWith(`-> ${loginPath}`))
+    ? ` The panel sent the browser straight back to ${loginPath}, which is how it refuses a credential — so ADMIN_DASHBOARD_EMAIL / ADMIN_DASHBOARD_PASSWORD are not accepted by this panel, rather than the panel being down.`
+    : "";
 
   expect(
     landed,
-    `the admin dashboard kept its sign-in screen on display after the credentials were sent, so the sign-in did not complete. ${said}${quoted}${sameHost} The password is not printed here`,
+    `the admin dashboard kept its sign-in screen on display after the credentials were sent, so the sign-in did not complete. ${said}${quoted}${bouncedBack}${sameHost} The password is not printed here`,
   ).toBe(true);
 };
 
