@@ -110,11 +110,29 @@ export type HealthReport = {
   reason: string;
   /** Nothing was configured, so nothing was checked. */
   skipped: boolean;
+  /** How long each check took, ready to print: `gateway 341ms, core backend
+   *  402ms`. Empty when nothing was asked.
+   *
+   *  **This is the number a green health line was missing.** On 2026-09-22 at
+   *  19:23 (run 35772140821) staging started answering, but slowly: 23 live
+   *  cases failed on `page.goto: Timeout 45000ms` because the storefront could
+   *  not render, and this probe said "passed" both before and after, because
+   *  every box did answer. "Up" and "fast enough to serve a page" are not the
+   *  same question, and a run that prints only the first cannot tell anyone
+   *  which one it lost. */
+  timings: string;
 };
 
 /** What one check decided. `detail` is always printable — a host and a status,
  *  never a token and never a response body. */
-type CheckResult = { ok: boolean; detail: string };
+type CheckResult = {
+  ok: boolean;
+  detail: string;
+  /** What to call this box in the timing line. */
+  label: string;
+  /** Milliseconds the check took, round trip. */
+  ms: number;
+};
 
 /** One GET, resolving to the status code, rejecting on a transport failure. */
 const statusOf = (url: URL, auth: string): Promise<number> =>
@@ -194,19 +212,29 @@ const checkSearchBackend = async (): Promise<CheckResult | null> => {
     ? `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`
     : "";
 
+  const startedAt = Date.now();
+
   try {
     const status = await statusOf(url, auth);
+    const ms = Date.now() - startedAt;
 
     // Anything but a success is "not serving", and the status is the useful
     // part: 401 is the boot window, 503 is a node that is up with no cluster
     // behind it, 200 is a backend the suite can test against.
     return status >= 200 && status < 300
-      ? { ok: true, detail: "" }
-      : { ok: false, detail: `the search backend ${url.host} answered HTTP ${status}` };
+      ? { ok: true, detail: "", label: "search", ms }
+      : {
+          ok: false,
+          detail: `the search backend ${url.host} answered HTTP ${status}`,
+          label: "search",
+          ms,
+        };
   } catch (error: unknown) {
     return {
       ok: false,
       detail: `the search backend ${url.host} — ${failureDetail(error)}`,
+      label: "search",
+      ms: Date.now() - startedAt,
     };
   }
 };
@@ -237,23 +265,30 @@ const checkBackend = async (
     return null;
   }
 
+  const startedAt = Date.now();
+
   try {
     const response = await fetch(url, {
       method: "GET",
       headers: { accept: "application/json", country: "iq", language: "en" },
       signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
     });
+    const ms = Date.now() - startedAt;
 
     return response.status < 500
-      ? { ok: true, detail: "" }
+      ? { ok: true, detail: "", label: role, ms }
       : {
           ok: false,
           detail: `the ${role} ${url.host} answered HTTP ${response.status} to the storefront's own boot call`,
+          label: role,
+          ms,
         };
   } catch (error: unknown) {
     return {
       ok: false,
       detail: `the ${role} ${url.host} — ${failureDetail(error)}`,
+      label: role,
+      ms: Date.now() - startedAt,
     };
   }
 };
@@ -296,7 +331,11 @@ const twice = async (
 
   return second.ok
     ? second
-    : { ok: false, detail: `${second.detail} (asked twice, ${RETRY_PAUSE_MS / 1000}s apart)` };
+    : {
+        ...second,
+        ok: false,
+        detail: `${second.detail} (asked twice, ${RETRY_PAUSE_MS / 1000}s apart)`,
+      };
 };
 
 /** Ask staging whether it is in a state worth testing against.
@@ -318,7 +357,15 @@ export const probeStaging = async (): Promise<HealthReport> => {
   ]);
   const asked = results.filter((result): result is CheckResult => result !== null);
 
-  if (asked.length === 0) return { up: true, reason: "", skipped: true };
+  if (asked.length === 0) {
+    return { up: true, reason: "", skipped: true, timings: "" };
+  }
+
+  // Printed whatever the answer is. A slow box that answered is the case this
+  // line exists for -- see `HealthReport.timings`.
+  const timings = asked
+    .map((result) => `${result.label} ${result.ms}ms`)
+    .join(", ");
 
   const failed = asked.filter((result) => !result.ok);
   if (failed.length > 0) {
@@ -326,8 +373,9 @@ export const probeStaging = async (): Promise<HealthReport> => {
       up: false,
       reason: failed.map((result) => result.detail).join("; "),
       skipped: false,
+      timings,
     };
   }
 
-  return { up: true, reason: "", skipped: false };
+  return { up: true, reason: "", skipped: false, timings };
 };

@@ -90,12 +90,16 @@ const checkStaging = async (): Promise<boolean> => {
 
   if (!health.up) {
     log(`staging is not serving: ${health.reason}`);
+    if (health.timings) log(`what each box took: ${health.timings}`);
     log("This is a backend outage, not a code failure. The suite will skip.");
     setStepOutput("staging", "down");
     return false;
   }
 
-  log("staging health check passed.");
+  // The timings, always. "Passed" alone cannot tell a healthy backend from one
+  // that answers in nine seconds -- and the second kind is what fails a lane on
+  // `page.goto: Timeout 45000ms` while this line stays green.
+  log(`staging health check passed (${health.timings}).`);
   setStepOutput("staging", "up");
   return true;
 };
