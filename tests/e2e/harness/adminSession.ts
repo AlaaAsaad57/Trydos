@@ -136,23 +136,46 @@ export const signInToAdmin = async (page: Page): Promise<void> => {
     .first()
     .click();
 
-  // Landed, not "the click happened". A refused sign-in leaves the form on
-  // screen and every step after would then fail as a missing table.
-  const landed = await email
-    .waitFor({ state: "hidden", timeout: 45_000 })
+  // **Judged on the address, not on the form.**
+  //
+  // This used to wait for the e-mail field to become hidden, and that is not
+  // the same question. A dashboard may carry an `input[name="email"]` of its
+  // own -- a profile widget, a search, a modal -- and `.first()` would resolve
+  // to it and stay visible, reporting a sign-in that worked as refused. The
+  // panel leaving its sign-in address is the thing that actually happened.
+  //
+  // It also reads correctly for the case this panel really does do: an expired
+  // session is bounced back to `/admin/auth/login`, so an address that never
+  // leaves that path is a sign-in that never took.
+  const loginPath = new URL(loginUrl).pathname;
+
+  // Watch for the panel's own message *while* waiting, not after. Several
+  // admin themes dismiss an alert a few seconds after drawing it, so reading
+  // it once the 45 seconds are up finds an empty screen and the failure says
+  // "refused" with no reason -- which is how CMT-09 stayed a mystery.
+  let shown = "";
+  let stopWatching = false;
+  const watching = (async () => {
+    const alert = page
+      .locator('.alert, .invalid-feedback, [role="alert"], .text-danger, .toast-body')
+      .filter({ hasText: /\S/ })
+      .first();
+    while (!stopWatching && !shown) {
+      shown = (await alert.innerText().catch(() => "")).trim();
+      if (shown) return;
+      await page.waitForTimeout(400).catch(() => undefined);
+    }
+  })();
+
+  const landed = await page
+    .waitForURL((url) => !url.pathname.startsWith(loginPath), { timeout: 45_000 })
     .then(() => true)
     .catch(() => false);
 
-  if (landed) return;
+  stopWatching = true;
+  await watching.catch(() => undefined);
 
-  // Whatever the panel put on the screen. Several shapes, because this is
-  // somebody else's product and its markup is not ours to rely on.
-  const shown = await page
-    .locator('.alert, .invalid-feedback, [role="alert"], .text-danger')
-    .filter({ hasText: /\S/ })
-    .first()
-    .innerText()
-    .catch(() => "");
+  if (landed) return;
 
   const said = answers.length
     ? `The panel answered: ${answers.join(", ")}.`
@@ -168,14 +191,13 @@ export const signInToAdmin = async (page: Page): Promise<void> => {
 
   // A redirect that lands back on the screen we came from is the panel saying
   // no. Naming it saves the reader from reading a 302 as success.
-  const loginPath = new URL(loginUrl).pathname;
   const bouncedBack = answers.some((answer) => answer.endsWith(`-> ${loginPath}`))
     ? ` The panel sent the browser straight back to ${loginPath}, which is how it refuses a credential — so ADMIN_DASHBOARD_EMAIL / ADMIN_DASHBOARD_PASSWORD are not accepted by this panel, rather than the panel being down.`
     : "";
 
   expect(
     landed,
-    `the admin dashboard kept its sign-in screen on display after the credentials were sent, so the sign-in did not complete. ${said}${quoted}${bouncedBack}${sameHost} The password is not printed here`,
+    `the admin dashboard never left its sign-in address after the credentials were sent, so the sign-in did not complete. It is still on "${new URL(page.url()).pathname}". ${said}${quoted}${bouncedBack}${sameHost} The password is not printed here`,
   ).toBe(true);
 };
 
