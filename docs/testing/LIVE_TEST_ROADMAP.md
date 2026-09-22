@@ -724,7 +724,7 @@ proven under journeys 2 and 3.
 | 20 | `live-chat-basics` | `/api/v1/users/my_contacts`, the channel list, `/api/v1/messages/messages_of_channel/${id}` with paging, sending a text message, `${channel}/received` and `${channel}/watched`, `/api/v1/channels/get_date_time` |
 | 21 | `live-chat-message-actions` | `/api/v1/messages/share_product`, reply, forward, pin, mute, `/api/v1/messages/destroy`, delete a chat, the contact card, and every message type |
 | 22 | `live-chat-realtime-and-calls` | receiving a message, the delivery-worker chat, `/api/v1/channels/my_calls` |
-| 23 | `live-notifications` | `/user-notifications/get` with infinite scroll, `/web/notification_types`, `customer-notification-to-choose`, the `firebase_device_tokens` family, the `/api/fcm/*` routes |
+| 23 | `live-notifications` | `/user-notifications/get` with infinite scroll, `/web/notification_types`, `customer-notification-to-choose`, the `firebase_device_tokens` family |
 
 **Phase 20** is the first phase that holds two jars at once: shopper A and
 shopper B. Everything after it in this journey depends on that pair.
@@ -825,7 +825,7 @@ was that `store/index.ts` opens a Redis connection when it loads. It does not:
 `store/index.ts` imports its slice reducers and `zustand`, nothing else. The only
 module that imports `ioredis` is `serverRequests/radis/index.ts`, and it is reached
 from server modules — `serverActions/sendOtp.ts`, a few `serverRequests/*`, three
-page components and the `/api/fcm/*` and `/api/clearRedis` routes.
+page components and the `/api/clearRedis` route.
 
 So the risk is real but much narrower than written, and the harness's design
 removes it: a live test drives the app **over HTTP**, so Redis is opened by the
