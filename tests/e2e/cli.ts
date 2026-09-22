@@ -36,6 +36,7 @@ import {
   qaGrepFor,
 } from "./laneConfig";
 import { probeStaging } from "./harness/health";
+import { outageShape } from "./harness/outage";
 import { redact } from "./harness/redact";
 import { buildApp } from "./harness/server";
 
@@ -171,9 +172,17 @@ type PlaywrightSpec = {
     /** `test.skip(condition, reason)` records the reason here. It is the only
      *  place the reason survives: the list reporter prints a bare `-`. */
     annotations?: { type?: string; description?: string }[];
-    results?: { status?: string; error?: { message?: string } }[];
+    results?: {
+      status?: string;
+      error?: { message?: string };
+      /** ISO timestamp. Written by the JSON reporter for every attempt, and the
+       *  only ordering this file has -- the suites are nested by file, not by
+       *  the order the cases ran in. `outageShape` below is built on it. */
+      startTime?: string;
+    }[];
   }[];
 };
+
 
 type PlaywrightSuite = {
   title?: string;
@@ -440,6 +449,10 @@ const report = (): void => {
     setStepOutput("failures", "");
     setStepOutput("rollup", "");
     setStepOutput("tree", "");
+    // No results means no evidence of a tail. `false` keeps the verdict strict:
+    // an empty report may never forgive a run.
+    setStepOutput("failures_are_tail", "false");
+    setStepOutput("passed_after_first_failure", "0");
     return;
   }
 
@@ -480,6 +493,15 @@ const report = (): void => {
   }
 
   const files = results.suites ?? [];
+
+  // The outage question, answered from the run's own timestamps. The verdict
+  // step reads these two and nothing else -- see `outageShape` above.
+  const shape = outageShape(files);
+  setStepOutput(
+    "failures_are_tail",
+    shape.measured && shape.isTail ? "true" : "false",
+  );
+  setStepOutput("passed_after_first_failure", String(shape.passedAfter));
 
   setStepOutput("totals", redact(totals));
   setStepOutput("failures", redact(shown.join("\n")));

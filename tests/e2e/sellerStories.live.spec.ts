@@ -57,10 +57,10 @@ import {
   waitForStoriesList,
 } from "./actions/sellerStories";
 import { gotoSellerDashboard } from "./actions/sellerDashboard";
-import { gotoAbout, gotoHome } from "./actions/nav";
+import { chooseRegionIfAsked, gotoAbout, gotoHome, seedLocale } from "./actions/nav";
 import { signedInSession } from "./actions/auth";
 import { gotoQaProduct } from "./actions/qaProduct";
-import { storyActions } from "./selectors";
+import { product, storyActions } from "./selectors";
 import {
   advanceToStory,
   newRunToken,
@@ -107,15 +107,17 @@ let seed: ReturnType<typeof readQaSeedState>;
 let accountId = 0;
 /** Set by `SST-02`, read by everything after it and by the sweep. */
 let uploadedStoryId: string | number | null = null;
-/** The product address the stories backend kept. Read in `SST-02`, judged in
- *  `SST-08` — see that case for why the two are apart. */
+/** The product address the stories backend kept. Read in `SST-02` and reported
+ *  in failure messages. It is **not** compared against the storefront's slug:
+ *  the two ids differ by design and both addresses serve the same product — see
+ *  `SST-08`. */
 let savedProductSlug = "";
 /** The author's ring id this run's story sits under, taken from the feed in
  *  `SST-03`. The bar is addressed by it, so the case opens **its own** ring and
  *  never a stranger's. */
 let storyGroupId = "";
-/** Where the viewer's product button actually pointed. Read in `SST-05`,
- *  reported by `SST-08`. */
+/** Where the viewer's product button actually pointed. Read in `SST-05`, and
+ *  opened by `SST-08` to prove the button reaches the product. */
 let productButtonHref = "";
 
 test.beforeAll(async ({ browser }) => {
@@ -224,11 +226,11 @@ test("SST-02 a story uploads with its test-data link and the seed's product, and
     "the story was saved but carries no product id, so the attachment made in the form never reached the stories backend at all",
   ).toBe(String(seed.productId));
 
-  // The slug that came back is kept for `SST-08`, which is the case that holds
-  // the known backend fault. It is **not** asserted here: this case is about
-  // the story being saved with its product, and that is true. Failing it on the
-  // slug as well would stop every case below it (serial mode) and hide six
-  // working checks behind one backend fault that is already reported.
+  // The slug that came back is kept so a later failure can name it. It is not
+  // asserted against the storefront's slug anywhere: the dashboard and the
+  // storefront number a product differently, and both addresses open the same
+  // product. `SST-08` checks the button opens the product, which is the thing
+  // a shopper can feel. The **identity** is asserted just above, by product id.
   savedProductSlug = mine?.productSlug ?? "";
 
   uploadedStoryId = mine?.id ?? null;
@@ -378,10 +380,10 @@ test("SST-05 the opened story offers a button to its product", async () => {
 test("SST-06 the product page lists the story in its product story section", async () => {
   test.setTimeout(180_000);
 
-  // Reached by the product's **own** address, not by pressing the button. The
-  // button's address is wrong today (`SST-08`), and that is a separate fault:
-  // this case is about whether a product page shows a story attached to it, and
-  // it must not fail for a reason that belongs to another case.
+  // Reached by the product's **own** address, not by pressing the button.
+  // Whether the button's address opens the product is `SST-08`'s question, and
+  // this case is about whether a product page shows a story attached to it — it
+  // must not fail for a reason that belongs to another case.
   await gotoQaProduct(page, { country: QA_COUNTRY, slug: seed.productSlug });
 
   const card = page.locator(
@@ -464,32 +466,67 @@ test("SST-07 the story is deleted from the dashboard, and the seller list no lon
 });
 
 // ---------------------------------------------------------------------------
-// SST-08 — the backend fault, kept red on purpose
+// SST-08 — the product button opens the product
 // ---------------------------------------------------------------------------
 
-test("SST-08 the story's product address is the one the storefront serves", async () => {
-  test.setTimeout(60_000);
+test("SST-08 the story's product button opens the story's product", async () => {
+  test.setTimeout(120_000);
 
-  // **This case is expected to fail, and it must stay that way until the
-  // backend is fixed.** It is red because the seller dashboard and the
-  // storefront number the same product differently, which is a backend fault —
-  // not something this suite may work around, skip, or soften.
+  // **What this case asks, and what it deliberately does not ask.**
   //
-  // It asserts on a value already read in `SST-02`, so it needs no story and no
-  // session. That is why it is last: a red case here blocks nothing, and the
-  // six checks above still prove what they prove.
+  // It asks the only question a shopper can feel: press the button on the
+  // story, and does the product open? So it opens the address the viewer's
+  // button actually carried (`SST-05`) and reads the page that comes back.
   //
-  // Measured against the gateway on 2026-09-22:
-  //     /web/product/product-meta/Trydos-QA-product-4899 -> 200
-  //     /web/product/product-meta/Trydos-QA-product-289  -> 404 product_not_found
+  // It does **not** compare the two slugs. The seller dashboard numbers a
+  // product by its own id and the storefront numbers it by its translation
+  // row's id, so the two strings differ — this run saw
+  // `Trydos-QA-product-4895` against `Trydos-QA-product-4899`. Measured
+  // against both backends on 2026-09-22, **both addresses answer 200 and both
+  // serve the same product**, so the difference costs a shopper nothing:
+  //
+  //     gateway  /web/product/product-meta/Trydos-QA-product-4899 -> 200
+  //     gateway  /web/product/product-meta/Trydos-QA-product-4895 -> 200
+  //     core     both -> 200, same name and same boutique
+  //
+  // This case used to assert the two strings were equal and reported the
+  // difference as a backend fault. That was wrong, and it stayed red for
+  // months over a product page that opens perfectly. **Do not put the string
+  // comparison back.** If the button ever stops opening the product, this case
+  // goes red for that — which is the thing that matters.
+  //
+  // The product's *identity* is already proven, and not here: `SST-02` asserts
+  // the stories backend saved this story against `seed.productId`.
+
   expect(
-    savedProductSlug,
-    `the stories backend holds "${savedProductSlug}" as this story's product address, ` +
-      `but the storefront serves that product at "${seed.productSlug}" — the dashboard ` +
-      `numbers a product by its own id and the storefront numbers it by its translation ` +
-      `row's id. The story viewer builds its product button from this value, so every ` +
-      `seller story with a product has a button that opens nothing. The product button ` +
-      `this run drew pointed at "${productButtonHref}". BACKEND FAULT: the seller ` +
-      `dashboard's product list must carry the address the storefront serves`,
-  ).toBe(seed.productSlug);
+    productButtonHref,
+    "SST-05 never read an address off the product button, so this case has nothing to open — read that case's failure first",
+  ).not.toBe("");
+
+  // The seed's own address first, so the name this case compares against is
+  // read from this environment rather than written into the test.
+  const byOwnAddress = await gotoQaProduct(page, {
+    country: QA_COUNTRY,
+    slug: seed.productSlug,
+  });
+
+  await seedLocale(page, QA_COUNTRY);
+  await page.goto(productButtonHref, { waitUntil: "domcontentloaded" });
+  await chooseRegionIfAsked(page);
+
+  await expect(
+    page,
+    `the story's product button pointed at "${productButtonHref}" and that address did not open a product page, so pressing the button on a story leads nowhere`,
+  ).toHaveURL(/\/products\//, { timeout: 45_000 });
+
+  const nameOnButtonPage = product.name(page);
+  await expect(
+    nameOnButtonPage,
+    `the story's product button opened "${productButtonHref}" but the page showed no product name, so the address resolves to a page the shop cannot fill`,
+  ).toBeVisible({ timeout: 45_000 });
+
+  expect(
+    (await nameOnButtonPage.textContent())?.trim() ?? "",
+    `the story's product button opened a product page, but a different product: the button's address "${productButtonHref}" shows one name and the product the seed attached (${seed.productSlug}) shows "${byOwnAddress.name}"`,
+  ).toBe(byOwnAddress.name);
 });

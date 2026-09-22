@@ -397,6 +397,8 @@ jobs:
           R_BROWSER: ${{ steps.browser.outcome }}
           R_BUILD: ${{ steps.build.outcome }}
           R_JOURNEYS: ${{ steps.journeys.outcome }}
+          R_TAIL: ${{ steps.report.outputs.failures_are_tail }}
+          R_PASSED_AFTER: ${{ steps.report.outputs.passed_after_first_failure }}
         run: |
           set -u
 
@@ -434,19 +436,34 @@ jobs:
       # A red check here has to mean "the code broke" — that is the rule the top
       # of this file is built on, and a suite that cannot reach its backend has
       # not learned anything about the code. So a failure is a failure **unless**
-      # staging was provably not serving when we asked.
+      # staging was provably not serving when we asked, **and** the failures have
+      # the shape an outage makes.
       #
-      # It is deliberately narrow, because the failure mode of getting this wrong
-      # is a real bug reported as an outage. It downgrades only when the probe
-      # says "down" *after* the run, at which point the suite had no backend.
-      # Anything else — a probe that could not decide, a suite that failed with
-      # staging healthy — is a red job.
+      # **Two questions, not one, and the second one is newer.** Asking only the
+      # probe was too generous. On 2026-09-22 the account lane failed 16 cases
+      # beginning at 13:26:51, kept passing cases for another twenty minutes,
+      # and staging was found down at 13:52:55. The probe said "down", the lane
+      # reported **success**, and sixteen real failures went unread.
+      #
+      # So the second question is: did anything pass after the first failure?
+      # Staging does not come back inside one run, so an outage makes a
+      # contiguous tail — once the first case fails, nothing passes again. A
+      # pass in between proves staging was serving, and the first failure was
+      # never about staging. `cli.ts report` answers this from the run's own
+      # timestamps; the reasoning is written out at `outageShape` in that file.
+      #
+      # It is deliberately narrow, because the failure mode of getting this
+      # wrong is a real bug reported as an outage. Anything else — a probe that
+      # could not decide, a report that could not be read, a suite that failed
+      # with staging healthy — is a red job.
       # ---------------------------------------------------------------------
       - name: Decide the verdict
         if: ${{ always() }}
         env:
           R_JOURNEYS: ${{ steps.journeys.outcome }}
           R_RECHECK: ${{ steps.recheck.outputs.staging }}
+          R_TAIL: ${{ steps.report.outputs.failures_are_tail }}
+          R_PASSED_AFTER: ${{ steps.report.outputs.passed_after_first_failure }}
         run: |
           set -u
 
@@ -454,11 +471,20 @@ jobs:
             exit 0
           fi
 
-          if [ "$R_RECHECK" = "down" ]; then
+          if [ "$R_RECHECK" = "down" ] && [ "$R_TAIL" = "true" ]; then
             echo "The journeys failed, and staging is not serving."
-            echo "Reporting this as a backend outage, not a code failure."
-            echo "Re-run this workflow once staging is back."
+            echo "Nothing passed after the first failure, which is the shape an"
+            echo "outage makes. Reporting this as a backend outage, not a code"
+            echo "failure. Re-run this workflow once staging is back."
             exit 0
+          fi
+
+          if [ "$R_RECHECK" = "down" ]; then
+            echo "Staging is not serving now, but that does not explain this run."
+            echo "$R_PASSED_AFTER case(s) passed AFTER the first failure, so staging"
+            echo "was serving in between and the first failure was not an outage."
+            echo "Read the failing cases. This is a code failure."
+            exit 1
           fi
 
           echo "The journeys failed and staging is up. This is a code failure."
