@@ -1,5 +1,5 @@
 // Force update - increment this version when you want to force update
-const CACHE_VERSION = "v1.0.7";
+const CACHE_VERSION = "v1.0.8";
 const BASE_MEDIA_URL =
   "https://media_server.ramaaz.dev/image/upload";
 // Get image url function
@@ -146,6 +146,72 @@ async function sendToForeground(payload) {
   return false; // No open tabs, show background notification
 }
 
+// --- Notification grouping -------------------------------------------------
+// Every notification we show carries a `tag`. Two notifications with the same
+// tag replace each other instead of stacking, so a burst of pushes never fills
+// the user's notification centre with a dozen cards. The chat branch below
+// already grouped per conversation; the table here does the same for the
+// `market` types.
+//
+// `scope` names the payload field that keeps two cards apart. A type with no
+// scope collapses to one card on purpose: a second "New Boutique" replaces the
+// first. A type scoped by `product_slug` keeps one card per product, so an
+// alert the user asked for on product A is never wiped out by one about
+// product B.
+const MARKET_TAG_RULES = [
+  { key: "boutique-created", match: (t) => t === "boutique created" },
+  { key: "category-created", match: (t) => t === "category created" },
+  { key: "cart-expiration", match: (t) => t === "product cart expiration" },
+  { key: "cart-hurry-up", match: (t) => t.includes("product hurry up") },
+  {
+    key: "availability",
+    scope: "product_slug",
+    match: (t) => t === "product availability",
+  },
+  {
+    key: "discount",
+    scope: "product_slug",
+    match: (t) => t === "product discount",
+  },
+  {
+    key: "comment",
+    scope: "product_slug",
+    match: (t) => t === "product comment",
+  },
+  {
+    key: "before-stock-out",
+    scope: "product_slug",
+    match: (t) => t === "product before stock out",
+  },
+  {
+    key: "price-change",
+    scope: "product_slug",
+    match: (t) => t === "product when change in price",
+  },
+  {
+    key: "order-placed",
+    scope: "order_group_id",
+    match: (t) => t === "order placed",
+  },
+  {
+    key: "order-status",
+    scope: "order_group_id",
+    match: (t) => t.startsWith("order status changed"),
+  },
+];
+
+// Returns the grouping tag for a parsed `market` payload, or null for a type we
+// do not know. An unknown type must stay untagged: sharing one tag would make
+// two unrelated notifications delete each other.
+function buildMarketTag(body) {
+  const type = body?.type;
+  if (typeof type !== "string") return null;
+  const rule = MARKET_TAG_RULES.find((r) => r.match(type));
+  if (!rule) return null;
+  const scopeValue = rule.scope ? body[rule.scope] : null;
+  return scopeValue ? `market-${rule.key}-${scopeValue}` : `market-${rule.key}`;
+}
+
 messaging.onBackgroundMessage(async function (payload) {
   try {
     // Resolve the active locale once so every notification URL points at the
@@ -158,6 +224,15 @@ messaging.onBackgroundMessage(async function (payload) {
     // If no tabs are open, proceed with background notifications
 
     if (payload.data.title === "market") {
+      // Only one of the type branches below runs, so one tag covers them all.
+      const marketTag = buildMarketTag(JSON.parse(payload.data.body));
+      // Same tag => the new card replaces the old one instead of stacking.
+      // `renotify` keeps the replacement visible, which order updates need.
+      const showMarketNotification = (title, options) =>
+        self.registration.showNotification(
+          title,
+          marketTag ? { ...options, tag: marketTag, renotify: true } : options,
+        );
       if (JSON.parse(payload.data.body).type === "boutique created") {
         notificationOptions = {
           body: JSON.parse(payload?.data.body)?.description,
@@ -172,7 +247,7 @@ messaging.onBackgroundMessage(async function (payload) {
             ),
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification(
+        showMarketNotification(
           JSON.parse(payload?.data.body)?.showed_type ?? "New Boutique",
           notificationOptions,
         );
@@ -191,7 +266,7 @@ messaging.onBackgroundMessage(async function (payload) {
             ),
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification(
+        showMarketNotification(
           JSON.parse(payload?.data.body)?.showed_type ?? "New Category",
           notificationOptions,
         );
@@ -203,7 +278,7 @@ messaging.onBackgroundMessage(async function (payload) {
             url: buildUrl(`?cart=true`, localePrefix),
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification(
+        showMarketNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             "product cart expiration",
           notificationOptions,
@@ -220,7 +295,7 @@ messaging.onBackgroundMessage(async function (payload) {
             ),
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification(
+        showMarketNotification(
           JSON.parse(payload?.data.body)?.showed_type,
           notificationOptions,
         );
@@ -233,7 +308,7 @@ messaging.onBackgroundMessage(async function (payload) {
             url: buildUrl(`?cart=true`, localePrefix),
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification(
+        showMarketNotification(
           JSON.parse(payload?.data.body)?.showed_type,
           notificationOptions,
         );
@@ -249,7 +324,7 @@ messaging.onBackgroundMessage(async function (payload) {
             ),
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification(
+        showMarketNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
           notificationOptions,
@@ -266,7 +341,7 @@ messaging.onBackgroundMessage(async function (payload) {
             ),
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification(
+        showMarketNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
           notificationOptions,
@@ -283,7 +358,7 @@ messaging.onBackgroundMessage(async function (payload) {
             ),
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification(
+        showMarketNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
           notificationOptions,
@@ -302,7 +377,7 @@ messaging.onBackgroundMessage(async function (payload) {
             ),
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification(
+        showMarketNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
           notificationOptions,
@@ -316,7 +391,7 @@ messaging.onBackgroundMessage(async function (payload) {
             url: buildUrl(`settings/orders`, localePrefix),
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification(
+        showMarketNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
           notificationOptions,
@@ -337,7 +412,7 @@ messaging.onBackgroundMessage(async function (payload) {
             ),
           }, // The URL which we are going to use later
         };
-        self.registration.showNotification(
+        showMarketNotification(
           JSON.parse(payload?.data.body)?.showed_type ??
             JSON.parse(payload.data.body).description,
           notificationOptions,
@@ -366,6 +441,9 @@ messaging.onBackgroundMessage(async function (payload) {
           { action: "reply", title: "Reply" },
           { action: "reject", title: "Reject" },
         ],
+        ...(callInfo.channelId
+          ? { tag: `call-${callInfo.channelId}` }
+          : {}),
         data: {
           call_id: callInfo.channelId,
           receiverId: callInfo.user_id,
