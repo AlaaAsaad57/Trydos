@@ -46,9 +46,18 @@
 //     come, the page renders without a currency and the picker never draws a
 //     country to choose.
 //
-// The core backend is deliberately not probed: every endpoint on it wants a
-// verified shopper's token, so a probe would be asserting on the test identity
-// rather than on the box.
+//   * **The core backend** -- asked with the *same* boot call. This used to be
+//     left out, on the belief that "every endpoint on it wants a verified
+//     shopper's token". That is not true of this one: measured on 2026-09-22,
+//     `GET <core>/web/home/startingSettings` answers **200 with no token at
+//     all**, exactly as the gateway does.
+//
+//     Leaving it out cost a run. On 2026-09-22 at 08:02 (run 35702622335) this
+//     probe passed, the lane ran, and the core backend answered **520** --
+//     Cloudflare for "the origin sent something I could not parse" -- to
+//     `/cart/add`. Nine cases went red, and the verdict called it a code
+//     failure, because nothing had asked the box that was actually ill. The
+//     same shape came back at 13:15 as a **522** on the checklist read.
 //
 // ---------------------------------------------------------------------------
 // The two rules this file will not break
@@ -89,7 +98,10 @@ const PROBE_PATH = "/_cluster/health";
  *  `services/home.ts` and `components/settings/PersonalInfoCountries.tsx` both
  *  depend on this answer — the first for the currency, the second for the list
  *  of countries the picker offers. */
-const GATEWAY_PROBE_PATH = "/web/home/startingSettings?language=en";
+// The storefront's own boot call, and the one path both backends answer
+// without a credential. Asking each of them the same question is deliberate:
+// two different probes would mean two different meanings of "up".
+const BOOT_PROBE_PATH = "/web/home/startingSettings?language=en";
 
 export type HealthReport = {
   /** Ready to test against. True when nothing is configured to check. */
@@ -98,11 +110,29 @@ export type HealthReport = {
   reason: string;
   /** Nothing was configured, so nothing was checked. */
   skipped: boolean;
+  /** How long each check took, ready to print: `gateway 341ms, core backend
+   *  402ms`. Empty when nothing was asked.
+   *
+   *  **This is the number a green health line was missing.** On 2026-09-22 at
+   *  19:23 (run 35772140821) staging started answering, but slowly: 23 live
+   *  cases failed on `page.goto: Timeout 45000ms` because the storefront could
+   *  not render, and this probe said "passed" both before and after, because
+   *  every box did answer. "Up" and "fast enough to serve a page" are not the
+   *  same question, and a run that prints only the first cannot tell anyone
+   *  which one it lost. */
+  timings: string;
 };
 
 /** What one check decided. `detail` is always printable — a host and a status,
  *  never a token and never a response body. */
-type CheckResult = { ok: boolean; detail: string };
+type CheckResult = {
+  ok: boolean;
+  detail: string;
+  /** What to call this box in the timing line. */
+  label: string;
+  /** Milliseconds the check took, round trip. */
+  ms: number;
+};
 
 /** One GET, resolving to the status code, rejecting on a transport failure. */
 const statusOf = (url: URL, auth: string): Promise<number> =>
@@ -182,40 +212,60 @@ const checkSearchBackend = async (): Promise<CheckResult | null> => {
     ? `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`
     : "";
 
+  const startedAt = Date.now();
+
   try {
     const status = await statusOf(url, auth);
+    const ms = Date.now() - startedAt;
 
     // Anything but a success is "not serving", and the status is the useful
     // part: 401 is the boot window, 503 is a node that is up with no cluster
     // behind it, 200 is a backend the suite can test against.
     return status >= 200 && status < 300
-      ? { ok: true, detail: "" }
-      : { ok: false, detail: `the search backend ${url.host} answered HTTP ${status}` };
+      ? { ok: true, detail: "", label: "search", ms }
+      : {
+          ok: false,
+          detail: `the search backend ${url.host} answered HTTP ${status}`,
+          label: "search",
+          ms,
+        };
   } catch (error: unknown) {
     return {
       ok: false,
       detail: `the search backend ${url.host} — ${failureDetail(error)}`,
+      label: "search",
+      ms: Date.now() - startedAt,
     };
   }
 };
 
-/** Is the gateway serving the storefront's own boot call?
+/** Is this backend serving the storefront's own boot call?
  *
- *  Not configured → `null`.
+ *  Not configured -> `null`.
  *
  *  **A 4xx is not "down".** A box that refuses a request is a box that is
  *  answering, and calling that an outage would skip whole runs for a changed
- *  route. Only a transport failure, a timeout or a 5xx count. */
-const checkGateway = async (): Promise<CheckResult | null> => {
-  const base = envValue("GO_BACKEND_URL");
+ *  route. Only a transport failure, a timeout or a 5xx count -- and a 5xx is
+ *  exactly the shape that has cost this suite runs: Cloudflare's 520 and 522
+ *  both land here.
+ *
+ *  `role` is the word the reader sees, so it must be the backend's role in the
+ *  product and never the technology behind it. */
+const checkBackend = async (
+  role: "gateway" | "core backend",
+  addressKey: "GO_BACKEND_URL" | "BACKEND_URL",
+): Promise<CheckResult | null> => {
+  const base = envValue(addressKey);
   if (!base) return null;
 
   let url: URL;
   try {
-    url = new URL(`${base.replace(/\/$/, "")}${GATEWAY_PROBE_PATH}`);
+    url = new URL(`${base.replace(/\/$/, "")}${BOOT_PROBE_PATH}`);
   } catch {
     return null;
   }
+
+  const startedAt = Date.now();
 
   try {
     const response = await fetch(url, {
@@ -223,20 +273,46 @@ const checkGateway = async (): Promise<CheckResult | null> => {
       headers: { accept: "application/json", country: "iq", language: "en" },
       signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
     });
+    const ms = Date.now() - startedAt;
 
     return response.status < 500
-      ? { ok: true, detail: "" }
+      ? { ok: true, detail: "", label: role, ms }
       : {
           ok: false,
-          detail: `the gateway ${url.host} answered HTTP ${response.status} to the storefront's own boot call`,
+          detail: `the ${role} ${url.host} answered HTTP ${response.status} to the storefront's own boot call`,
+          label: role,
+          ms,
         };
   } catch (error: unknown) {
     return {
       ok: false,
-      detail: `the gateway ${url.host} — ${failureDetail(error)}`,
+      detail: `the ${role} ${url.host} — ${failureDetail(error)}`,
+      label: role,
+      ms: Date.now() - startedAt,
     };
   }
 };
+
+/** Which backends get asked, as data rather than as a list of calls.
+ *
+ *  A list is what lets `tests/harness/stagingProbeCoverage.test.ts` prove the
+ *  core backend is on it. That check is worth having on its own: the core
+ *  backend was silently missing here for months, and nothing in a passing run
+ *  could say so -- a probe that checks less than it should reports exactly the
+ *  same green line as one that checks everything.
+ *
+ *  `role` is the backend's role in the product, never the technology behind
+ *  it. Both words appear in a failure a human reads. */
+export const BACKEND_PROBES: readonly {
+  role: "gateway" | "core backend";
+  addressKey: "GO_BACKEND_URL" | "BACKEND_URL";
+}[] = [
+  // Guests and allow-listed traffic. Its absence empties the country picker.
+  { role: "gateway", addressKey: "GO_BACKEND_URL" },
+  // Every signed-in shopper's read and write -- the bag, the order, the
+  // checklist. See the note at the top for the run this one would have saved.
+  { role: "core backend", addressKey: "BACKEND_URL" },
+];
 
 /** Run a check, and give it a second chance before believing the bad news.
  *
@@ -255,7 +331,11 @@ const twice = async (
 
   return second.ok
     ? second
-    : { ok: false, detail: `${second.detail} (asked twice, ${RETRY_PAUSE_MS / 1000}s apart)` };
+    : {
+        ...second,
+        ok: false,
+        detail: `${second.detail} (asked twice, ${RETRY_PAUSE_MS / 1000}s apart)`,
+      };
 };
 
 /** Ask staging whether it is in a state worth testing against.
@@ -269,10 +349,23 @@ const twice = async (
 export const probeStaging = async (): Promise<HealthReport> => {
   loadLiveEnv();
 
-  const results = await Promise.all([twice(checkSearchBackend), twice(checkGateway)]);
+  const results = await Promise.all([
+    twice(checkSearchBackend),
+    ...BACKEND_PROBES.map((probe) =>
+      twice(async () => await checkBackend(probe.role, probe.addressKey)),
+    ),
+  ]);
   const asked = results.filter((result): result is CheckResult => result !== null);
 
-  if (asked.length === 0) return { up: true, reason: "", skipped: true };
+  if (asked.length === 0) {
+    return { up: true, reason: "", skipped: true, timings: "" };
+  }
+
+  // Printed whatever the answer is. A slow box that answered is the case this
+  // line exists for -- see `HealthReport.timings`.
+  const timings = asked
+    .map((result) => `${result.label} ${result.ms}ms`)
+    .join(", ");
 
   const failed = asked.filter((result) => !result.ok);
   if (failed.length > 0) {
@@ -280,8 +373,9 @@ export const probeStaging = async (): Promise<HealthReport> => {
       up: false,
       reason: failed.map((result) => result.detail).join("; "),
       skipped: false,
+      timings,
     };
   }
 
-  return { up: true, reason: "", skipped: false };
+  return { up: true, reason: "", skipped: false, timings };
 };

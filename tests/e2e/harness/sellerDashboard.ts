@@ -29,6 +29,13 @@
 // `NEXT_PUBLIC_MEDIA_API_KEY` is deliberately left unmasked by `redact()`.
 
 import { envValue } from "./env";
+import { redact } from "./redact";
+
+/** Same shape as every other line this suite prints, and redacted for the same
+ *  reason: this repository is public and CI logs are world-readable. */
+const log = (message: string): void => {
+  console.log(redact(`[e2e] ${message}`));
+};
 
 /** One write a test made, for the case that checks it stayed inside its own
  *  data. Method and URL only -- never a header, never a body. */
@@ -245,6 +252,27 @@ const sendThroughProxy = async (
  *  the entry pushed below names the folder only. `redact()` deliberately does
  *  NOT mask `NEXT_PUBLIC_MEDIA_API_KEY` -- anything `NEXT_PUBLIC_` is in the
  *  browser bundle already -- so it must not be put anywhere by hand. */
+/** Is this refusal worth asking again about?
+ *
+ *  **Only a refusal the media store cannot help.** A 5xx is the store being
+ *  unwell, a 429 is it asking us to wait, and `0` is an answer that never
+ *  arrived. Those pass, and a second attempt is likely to work.
+ *
+ *  A 4xx does not. A 401 or a 403 means the key or the ticket is wrong, and
+ *  asking three times turns an instant, clear failure into a slow one with the
+ *  same message. */
+export const worthRetrying = (status: number): boolean =>
+  status === 0 || status === 429 || status >= 500;
+
+/** How many attempts, and how long to wait before each retry.
+ *
+ *  Two retries, because the seed is a **setup project**: when it throws, every
+ *  case in the account lane reports "did not run". That happened twice on
+ *  2026-09-22 (runs 35706254979 and 35694726437) for a single 503 from the
+ *  media store, and 60 cases said nothing at all both times. The cost of a
+ *  retry is eight seconds; the cost of not retrying is a whole lane. */
+export const UPLOAD_RETRY_WAITS_MS = [3_000, 8_000];
+
 export const uploadShopImage = async (
   page: import("@playwright/test").Page,
   folder: string,
@@ -255,8 +283,13 @@ export const uploadShopImage = async (
   // is none of them. Reading it there throws "process is not defined", which
   // the catch below would have reported as "the media store refused the
   // upload" -- a message about a request that was never made.
-  const uploaded = await page.evaluate(async ({ folderName, base, key }) => {
-    const fail = (why: string) => ({ ok: false as const, why, name: "" });
+  const attempt = async () => await page.evaluate(async ({ folderName, base, key }) => {
+    const fail = (why: string, status: number) => ({
+      ok: false as const,
+      why,
+      name: "",
+      status,
+    });
 
     try {
       const ticketResponse = await fetch("/api/ticket", {
@@ -269,6 +302,7 @@ export const uploadShopImage = async (
       if (!ticketBody?.success || !ticketBody?.ticket) {
         return fail(
           `the app would not issue an upload ticket (${ticketResponse.status})`,
+          ticketResponse.status,
         );
       }
 
@@ -292,15 +326,20 @@ export const uploadShopImage = async (
       });
       const body = await response.json().catch(() => null);
       if (!response.ok || !body?.url) {
-        return fail(`the media store refused the upload (${response.status})`);
+        return fail(
+          `the media store refused the upload (${response.status})`,
+          response.status,
+        );
       }
 
       // The bare stored filename -- what the backend expects for `icon` and
       // for a banner's `file_path`.
       const name = String(body.url).split("?")[0].split("/").filter(Boolean).pop() ?? "";
-      return { ok: true as const, why: "", name };
+      return { ok: true as const, why: "", name, status: response.status };
     } catch (error) {
-      return fail(String((error as Error)?.message ?? "").slice(0, 200));
+      // 0 means the request never got an answer at all -- a dropped
+      // connection. Retryable, like a 5xx.
+      return fail(String((error as Error)?.message ?? "").slice(0, 200), 0);
     }
   }, {
     folderName: folder,
@@ -308,12 +347,36 @@ export const uploadShopImage = async (
     key: envValue("NEXT_PUBLIC_MEDIA_API_KEY"),
   });
 
+  let uploaded = await attempt();
+  const refusals: string[] = [];
+
+  for (const wait of UPLOAD_RETRY_WAITS_MS) {
+    if (uploaded.ok && uploaded.name) break;
+    if (!worthRetrying(uploaded.status)) break;
+
+    refusals.push(uploaded.why);
+    // Said out loud. A retry that nobody can see turns a slow seed into a
+    // mystery, and the log is the only place this is visible.
+    log(
+      `the media store refused the ${folder} image (${uploaded.status}). Asking again in ${wait}ms.`,
+    );
+    await page.waitForTimeout(wait);
+    uploaded = await attempt();
+  }
+
   if (!uploaded.ok || !uploaded.name) {
     // Thrown, not returned. Every row this module creates needs an image, and
     // a caller that carried on without one would fail three steps later with a
     // message about the row instead of about the upload.
+    //
+    // Every refusal is named, not just the last one. "503, 503, 401" and
+    // "401" are different problems, and the reader cannot tell them apart from
+    // the final answer alone.
+    const tried = refusals.length
+      ? ` It was asked ${refusals.length + 1} times; the earlier answers were: ${refusals.join("; ")}.`
+      : "";
     throw new Error(
-      `${uploaded.why}. The backend requires an icon on a boutique and images on a product, and activation later requires images that have finished syncing`,
+      `${uploaded.why}.${tried} The backend requires an icon on a boutique and images on a product, and activation later requires images that have finished syncing`,
     );
   }
 

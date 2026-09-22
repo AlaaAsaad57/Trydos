@@ -98,7 +98,6 @@ import {
   handOnSession,
   newLiveContext,
   openSignedInSession,
-  saveSession,
   SESSION_STATE,
 } from "./harness/liveSession";
 import { productComments } from "./selectors";
@@ -156,26 +155,96 @@ const idsFromCmt01 = (): { inPage: string; inExtended: string } => {
   };
 };
 
-/** Open the shopper's saved session on the QA product. */
+/** The shopper's context **and page**, opened once and held for the whole file.
+ *
+ *  This is the cure `sellerStories.live.spec.ts` proved, and it is the whole
+ *  cure -- context *and* page. Holding only the context was not enough, and
+ *  the reason is worth writing down, because it is not obvious.
+ *
+ *  A saved jar is a snapshot of a credential pair, and the market refresh
+ *  token is **single use**: an exchange rotates it, and the old value is dead
+ *  the moment the backend answers. `handOnSession` used to run between cases
+ *  and navigate the page to `about:blank` before snapshotting -- and that
+ *  navigation **aborts whatever is in flight**. An exchange killed half way
+ *  through has already rotated the token on the backend and never delivered
+ *  the new one to the browser. The jar then holds a spent token, the next
+ *  exchange is refused, and the app does the right thing with a refused
+ *  exchange: it registers a fresh guest.
+ *
+ *  That is exactly the sequence `actions/productComments.ts` measured:
+ *
+ *      /customer/info        401   access token aged out
+ *      /auth/refresh-token   401   the MARKET refresh was refused
+ *      /auth/register-guest  200   the app became a guest
+ *      <the call>            401   "Token is missing"
+ *
+ *  and exactly how `CMT-08` failed on runs 35765487919 and 35783133894, six
+ *  cases into a file that had taken a hundred seconds.
+ *
+ *  So nothing is snapshotted between cases any more. One context, one page,
+ *  alive from `CMT-01` to the sweep: no `about:blank`, no page closed under an
+ *  in-flight exchange, no jar re-opened. The jar is written **once**, at the
+ *  end, and this file is its only reader (`SESSION_STATE.comments` appears
+ *  nowhere else). */
+let heldContext: BrowserContext | null = null;
+let heldPage: Page | null = null;
+
+/** Register the context and page `CMT-01` built, so every case after it works
+ *  on the same live session rather than on a snapshot of it. */
+const holdShopper = (context: BrowserContext, page: Page): void => {
+  heldContext = context;
+  heldPage = page;
+};
+
+/** The shopper on the QA product, on the held page.
+ *
+ *  Falls back to opening the saved jar only when nothing is held -- which
+ *  means `CMT-01` failed before it could hand anything on. That path is the
+ *  old, fragile one on purpose: it exists so a later case reports its own
+ *  failure instead of a null. */
 const openShopperOnProduct = async (
   browser: Browser,
 ): Promise<{ context: BrowserContext; page: Page }> => {
-  const context = await openSignedInSession(
-    browser,
-    SESSION_STATE.comments,
-    ID_OWNER,
-  );
-  const page = await context.newPage();
+  if (!heldContext || !heldPage) {
+    const context = await openSignedInSession(
+      browser,
+      SESSION_STATE.comments,
+      ID_OWNER,
+    );
+    holdShopper(context, await context.newPage());
+  }
+
+  const context = heldContext as BrowserContext;
+  const page = heldPage as Page;
   await gotoQaProduct(page, { country: QA_COUNTRY });
   return { context, page };
 };
 
-const closeShopperPage = async (
-  context: BrowserContext,
-  page: Page,
-): Promise<void> => {
-  await handOnSession(context, page, SESSION_STATE.comments);
-  await context.close();
+/** Finish with the shopper for this case.
+ *
+ *  **It closes nothing and snapshots nothing**, and that is the point -- see
+ *  `heldContext` above. It exists so every case still ends by saying it is
+ *  done, and so the held pair is registered when `CMT-01` built it itself. */
+const finishShopperCase = (context: BrowserContext, page: Page): void => {
+  holdShopper(context, page);
+};
+
+/** Write the jar and close the held pair. Called once, from `afterAll`.
+ *
+ *  The jar is saved here and nowhere else. `about:blank` first, for the reason
+ *  `handOnSession` gives: the app keeps talking after the last case, and a
+ *  listener firing mid-snapshot would write a pair the file does not have.
+ *  Safe **here** because nothing runs after it. */
+const releaseShopper = async (): Promise<void> => {
+  const context = heldContext;
+  const page = heldPage;
+  heldContext = null;
+  heldPage = null;
+
+  if (context && page) {
+    await handOnSession(context, page, SESSION_STATE.comments);
+  }
+  await context?.close().catch(() => undefined);
 };
 
 /** Open the QA seller's saved session and land on a storefront page first —
@@ -278,8 +347,9 @@ test("CMT-01 the shopper likes the product and asks a question from both places"
       ).toBe(false);
     });
   } finally {
-    await saveSession(context, SESSION_STATE.comments).catch(() => undefined);
-    await closeShopperPage(context, page);
+    // Hands the pair on, alive. Nothing is written and nothing is closed
+    // until `afterAll` -- see `heldContext`.
+    finishShopperCase(context, page);
   }
 });
 
@@ -406,7 +476,7 @@ test("CMT-02 both questions are edited and liked, and the edits survive a reload
       ).toBe(true);
     });
   } finally {
-    await closeShopperPage(context, page);
+    finishShopperCase(context, page);
   }
 });
 
@@ -574,7 +644,7 @@ test("CMT-05 both answers reach the shopper, who likes them", async ({
       await page.keyboard.press("Escape").catch(() => {});
     });
   } finally {
-    await closeShopperPage(context, page);
+    finishShopperCase(context, page);
   }
 });
 
@@ -662,7 +732,7 @@ test("CMT-06 a reload keeps every question, edit, answer and like", async ({
       });
     }
   } finally {
-    await closeShopperPage(context, page);
+    finishShopperCase(context, page);
   }
 });
 
@@ -743,7 +813,7 @@ test("CMT-07 every like is removed, and a reload keeps them off", async ({
       }
     });
   } finally {
-    await closeShopperPage(context, page);
+    finishShopperCase(context, page);
   }
 });
 
@@ -814,7 +884,7 @@ test("CMT-08 both questions are deleted and the product unliked, and it sticks",
       }
     });
   } finally {
-    await closeShopperPage(context, page);
+    finishShopperCase(context, page);
   }
 });
 
@@ -830,64 +900,71 @@ test.afterAll(async ({ browser }) => {
   // skipped run never created.
   if (!hasShopperA() || !qaSeedRan()) return;
 
-  const ids = [asked.inPage, asked.inExtended].filter(Boolean) as string[];
-
-  // **Not `return` when there are no ids.** `CMT-01` likes the product BEFORE
-  // it asks anything, so a run that dies between those two points has created
-  // something and recorded no id for it. An earlier version returned here and
-  // left the QA product liked by the shopper account.
-  if (ids.length === 0 && removed.productLike) return;
-
-  // The shop's answers first: only the seller can remove one, and only while
-  // the question still exists. Nothing to do when no question was ever asked.
-  if (ids.length > 0 && qaSellerSessionSaved() && !removed.questions) {
-    const seller = await openSellerPage(browser).catch(() => null);
-    if (seller) {
-      try {
-        const seed = readQaSeedState();
-        await openCommentsSection(seller.page, { sellerId: seed.sellerId });
-        for (const id of ids) {
-          await removeAnswer(seller.page, {
-            sellerId: seed.sellerId,
-            commentId: id,
-            runToken: RUN_TOKEN,
-          });
-        }
-      } catch {
-        // Quiet on purpose: a clean-up that throws replaces the failure the run
-        // was reporting. An answer left behind sits on the QA product, which no
-        // shopper sees.
-      } finally {
-        await closeSellerPage(seller.context, seller.page);
-      }
-    }
-  }
-
-  // Then the shopper's own: the questions, and the product like.
-  if (removed.questions && removed.productLike) return;
-
-  const shopper = await openShopperOnProduct(browser).catch(() => null);
-  if (!shopper) return;
-
+  // **The held context is closed whatever this hook does.** The sweep below
+  // has five early returns in it, all of them correct, and every one of them
+  // would otherwise leave a browser context open for the rest of the lane.
   try {
-    const section = productComments.faqSection(shopper.page);
-    if (!removed.questions && ids.length > 0) {
-      const state = await readPageState(shopper.page, { commentIds: ids });
-      for (const id of ids) {
-        if (!state.questions[id]) continue;
-        await deleteQuestion(shopper.page, {
-          container: section,
-          commentId: id,
-          where: "the in-page FAQ section (clean-up)",
-        }).catch(() => undefined);
+    const ids = [asked.inPage, asked.inExtended].filter(Boolean) as string[];
+
+    // **Not `return` when there are no ids.** `CMT-01` likes the product BEFORE
+    // it asks anything, so a run that dies between those two points has created
+    // something and recorded no id for it. An earlier version returned here and
+    // left the QA product liked by the shopper account.
+    if (ids.length === 0 && removed.productLike) return;
+
+    // The shop's answers first: only the seller can remove one, and only while
+    // the question still exists. Nothing to do when no question was ever asked.
+    if (ids.length > 0 && qaSellerSessionSaved() && !removed.questions) {
+      const seller = await openSellerPage(browser).catch(() => null);
+      if (seller) {
+        try {
+          const seed = readQaSeedState();
+          await openCommentsSection(seller.page, { sellerId: seed.sellerId });
+          for (const id of ids) {
+            await removeAnswer(seller.page, {
+              sellerId: seed.sellerId,
+              commentId: id,
+              runToken: RUN_TOKEN,
+            });
+          }
+        } catch {
+          // Quiet on purpose: a clean-up that throws replaces the failure the run
+          // was reporting. An answer left behind sits on the QA product, which no
+          // shopper sees.
+        } finally {
+          await closeSellerPage(seller.context, seller.page);
+        }
       }
     }
-    if (!removed.productLike && (await productLiked(shopper.page))) {
-      await setProductHeart(shopper.page, { on: false }).catch(() => undefined);
+
+    // Then the shopper's own: the questions, and the product like.
+    if (removed.questions && removed.productLike) return;
+
+    const shopper = await openShopperOnProduct(browser).catch(() => null);
+    if (!shopper) return;
+
+    try {
+      const section = productComments.faqSection(shopper.page);
+      if (!removed.questions && ids.length > 0) {
+        const state = await readPageState(shopper.page, { commentIds: ids });
+        for (const id of ids) {
+          if (!state.questions[id]) continue;
+          await deleteQuestion(shopper.page, {
+            container: section,
+            commentId: id,
+            where: "the in-page FAQ section (clean-up)",
+          }).catch(() => undefined);
+        }
+      }
+      if (!removed.productLike && (await productLiked(shopper.page))) {
+        await setProductHeart(shopper.page, { on: false }).catch(() => undefined);
+      }
+    } catch {
+      // Same reason as above.
+    } finally {
+      finishShopperCase(shopper.context, shopper.page);
     }
-  } catch {
-    // Same reason as above.
   } finally {
-    await closeShopperPage(shopper.context, shopper.page);
+    await releaseShopper();
   }
 });

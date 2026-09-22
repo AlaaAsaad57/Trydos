@@ -65,6 +65,13 @@ let _expirePromise: Promise<ExpireOutcome> | null = null;
 // share the MARKET pair, so they legitimately share one key.
 type RefreshResult = { refreshed: boolean; eligible: boolean };
 const _refreshPromises = new Map<string, Promise<RefreshResult>>();
+// When each pair was last rotated. The map above only joins an exchange that is
+// still running. A request sent with the old token before an exchange, whose
+// 401 arrives after that exchange ended, must retry with the stored pair — not
+// start a second exchange that spends the refresh token just received. Each
+// such exchange rotated the pair again and, measured on staging, the chain
+// ended in a refused exchange that turned a signed-in shopper into a guest.
+const _refreshedAt = new Map<string, number>();
 const refreshKeyFor = (server?: string) =>
   server === "chat" || server === "stories" || server === "comments"
     ? server
@@ -475,13 +482,20 @@ class AuthService {
    * Returns {refreshed, eligible}; on failure/ineligibility the caller falls
    * through to the existing expiry flow.
    */
-  async RefreshSession(url?: string, server?: string) {
+  async RefreshSession(url?: string, server?: string, sentAt?: number) {
     const { LoggingOut } = useAppStore.getState();
     if (LoggingOut) return { refreshed: false, eligible: false };
 
     const key = refreshKeyFor(server);
     const pending = _refreshPromises.get(key);
     if (pending) return pending;
+
+    // The failed request left before the last rotation of this pair, so it
+    // carried the old token. The browser already holds the new pair: retry.
+    const refreshedAt = _refreshedAt.get(key);
+    if (sentAt !== undefined && refreshedAt !== undefined && sentAt < refreshedAt) {
+      return { refreshed: true, eligible: true };
+    }
 
     const request = (async () => {
       try {
@@ -496,7 +510,9 @@ class AuthService {
         const repo = await response.json().catch(() => ({}));
         if (repo?.eligible === false)
           return { refreshed: false, eligible: false };
-        return { refreshed: response.ok && repo?.refreshed === true, eligible: true };
+        const refreshed = response.ok && repo?.refreshed === true;
+        if (refreshed) _refreshedAt.set(key, Date.now());
+        return { refreshed, eligible: true };
       } catch {
         return { refreshed: false, eligible: true };
       }

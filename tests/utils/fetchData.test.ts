@@ -1143,6 +1143,35 @@ describe("401 recovery", () => {
     expect(auth.default.RefreshSession).toHaveBeenCalledOnce();
   });
 
+  // The renewal must know when the refused request left. A 401 that arrives
+  // after another call already rotated the pair was sent with the old token;
+  // without the time, RefreshSession spends the new refresh token again (see
+  // tests/services/authRefreshSession.test.ts, "a late 401 ...").
+  it("market 401 tells the renewal when the refused request left", async () => {
+    const { auth } = await setup();
+    (auth.default.RefreshSession as any).mockResolvedValue({ eligible: true });
+    const net = makeMockFetch([
+      jsonReply({ data: null }, 401),
+      jsonReply({ data: [] }, 200),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const before = Date.now();
+    await fetchData({ ...baseParams, server: "market" });
+    const after = Date.now();
+
+    const sentAt = (auth.default.RefreshSession as any).mock.calls[0]?.[2];
+    expect(
+      typeof sentAt,
+      "the market renewal was not told when the refused request left, so a late 401 spends the pair another call just rotated",
+    ).toBe("number");
+    expect(
+      sentAt >= before && sentAt <= after,
+      `the time handed to the renewal (${sentAt}) is not when this request left (between ${before} and ${after})`,
+    ).toBe(true);
+  });
+
   it("market-dashboard 401 refresh succeeds", async () => {
     const { auth } = await setup();
     (auth.default.RefreshSession as any).mockResolvedValue({ eligible: true });
