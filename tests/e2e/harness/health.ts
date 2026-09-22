@@ -46,9 +46,18 @@
 //     come, the page renders without a currency and the picker never draws a
 //     country to choose.
 //
-// The core backend is deliberately not probed: every endpoint on it wants a
-// verified shopper's token, so a probe would be asserting on the test identity
-// rather than on the box.
+//   * **The core backend** -- asked with the *same* boot call. This used to be
+//     left out, on the belief that "every endpoint on it wants a verified
+//     shopper's token". That is not true of this one: measured on 2026-09-22,
+//     `GET <core>/web/home/startingSettings` answers **200 with no token at
+//     all**, exactly as the gateway does.
+//
+//     Leaving it out cost a run. On 2026-09-22 at 08:02 (run 35702622335) this
+//     probe passed, the lane ran, and the core backend answered **520** --
+//     Cloudflare for "the origin sent something I could not parse" -- to
+//     `/cart/add`. Nine cases went red, and the verdict called it a code
+//     failure, because nothing had asked the box that was actually ill. The
+//     same shape came back at 13:15 as a **522** on the checklist read.
 //
 // ---------------------------------------------------------------------------
 // The two rules this file will not break
@@ -89,7 +98,10 @@ const PROBE_PATH = "/_cluster/health";
  *  `services/home.ts` and `components/settings/PersonalInfoCountries.tsx` both
  *  depend on this answer — the first for the currency, the second for the list
  *  of countries the picker offers. */
-const GATEWAY_PROBE_PATH = "/web/home/startingSettings?language=en";
+// The storefront's own boot call, and the one path both backends answer
+// without a credential. Asking each of them the same question is deliberate:
+// two different probes would mean two different meanings of "up".
+const BOOT_PROBE_PATH = "/web/home/startingSettings?language=en";
 
 export type HealthReport = {
   /** Ready to test against. True when nothing is configured to check. */
@@ -199,20 +211,28 @@ const checkSearchBackend = async (): Promise<CheckResult | null> => {
   }
 };
 
-/** Is the gateway serving the storefront's own boot call?
+/** Is this backend serving the storefront's own boot call?
  *
- *  Not configured → `null`.
+ *  Not configured -> `null`.
  *
  *  **A 4xx is not "down".** A box that refuses a request is a box that is
  *  answering, and calling that an outage would skip whole runs for a changed
- *  route. Only a transport failure, a timeout or a 5xx count. */
-const checkGateway = async (): Promise<CheckResult | null> => {
-  const base = envValue("GO_BACKEND_URL");
+ *  route. Only a transport failure, a timeout or a 5xx count -- and a 5xx is
+ *  exactly the shape that has cost this suite runs: Cloudflare's 520 and 522
+ *  both land here.
+ *
+ *  `role` is the word the reader sees, so it must be the backend's role in the
+ *  product and never the technology behind it. */
+const checkBackend = async (
+  role: "gateway" | "core backend",
+  addressKey: "GO_BACKEND_URL" | "BACKEND_URL",
+): Promise<CheckResult | null> => {
+  const base = envValue(addressKey);
   if (!base) return null;
 
   let url: URL;
   try {
-    url = new URL(`${base.replace(/\/$/, "")}${GATEWAY_PROBE_PATH}`);
+    url = new URL(`${base.replace(/\/$/, "")}${BOOT_PROBE_PATH}`);
   } catch {
     return null;
   }
@@ -228,15 +248,36 @@ const checkGateway = async (): Promise<CheckResult | null> => {
       ? { ok: true, detail: "" }
       : {
           ok: false,
-          detail: `the gateway ${url.host} answered HTTP ${response.status} to the storefront's own boot call`,
+          detail: `the ${role} ${url.host} answered HTTP ${response.status} to the storefront's own boot call`,
         };
   } catch (error: unknown) {
     return {
       ok: false,
-      detail: `the gateway ${url.host} — ${failureDetail(error)}`,
+      detail: `the ${role} ${url.host} — ${failureDetail(error)}`,
     };
   }
 };
+
+/** Which backends get asked, as data rather than as a list of calls.
+ *
+ *  A list is what lets `tests/harness/stagingProbeCoverage.test.ts` prove the
+ *  core backend is on it. That check is worth having on its own: the core
+ *  backend was silently missing here for months, and nothing in a passing run
+ *  could say so -- a probe that checks less than it should reports exactly the
+ *  same green line as one that checks everything.
+ *
+ *  `role` is the backend's role in the product, never the technology behind
+ *  it. Both words appear in a failure a human reads. */
+export const BACKEND_PROBES: readonly {
+  role: "gateway" | "core backend";
+  addressKey: "GO_BACKEND_URL" | "BACKEND_URL";
+}[] = [
+  // Guests and allow-listed traffic. Its absence empties the country picker.
+  { role: "gateway", addressKey: "GO_BACKEND_URL" },
+  // Every signed-in shopper's read and write -- the bag, the order, the
+  // checklist. See the note at the top for the run this one would have saved.
+  { role: "core backend", addressKey: "BACKEND_URL" },
+];
 
 /** Run a check, and give it a second chance before believing the bad news.
  *
@@ -269,7 +310,12 @@ const twice = async (
 export const probeStaging = async (): Promise<HealthReport> => {
   loadLiveEnv();
 
-  const results = await Promise.all([twice(checkSearchBackend), twice(checkGateway)]);
+  const results = await Promise.all([
+    twice(checkSearchBackend),
+    ...BACKEND_PROBES.map((probe) =>
+      twice(async () => await checkBackend(probe.role, probe.addressKey)),
+    ),
+  ]);
   const asked = results.filter((result): result is CheckResult => result !== null);
 
   if (asked.length === 0) return { up: true, reason: "", skipped: true };
