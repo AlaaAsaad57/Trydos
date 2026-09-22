@@ -315,6 +315,7 @@ const handleUnauthorized = async (
             const refresh = await authService.default.RefreshSession(
               options?.url,
               server,
+              options?.sentAt,
             );
             if (refresh.eligible) return true;
           }
@@ -550,6 +551,9 @@ export const fetchData = async <T = any>(
     String(method || "").toUpperCase(),
   );
   let retryCount = 0;
+  // When this request last left. A 401 is judged against it: a renewal that
+  // finished after it means the request carried the old token (RefreshSession).
+  let sentAt: number | undefined;
   let status: number;
   let responseData: any;
   let logObj: Partial<any> = {};
@@ -577,6 +581,7 @@ export const fetchData = async <T = any>(
 
       // Abort on the caller's signal OR when a logout begins.
       const effectiveSignal = withLogoutSignal(signal);
+      sentAt = Date.now();
 
       if (isUploadStory(server)) {
 
@@ -699,6 +704,7 @@ export const fetchData = async <T = any>(
             status,
             responseData,
             sellerId,
+            sentAt,
           },
           authAttempt,
         );
