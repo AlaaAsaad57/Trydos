@@ -155,65 +155,95 @@ const idsFromCmt01 = (): { inPage: string; inExtended: string } => {
   };
 };
 
-/** The shopper's context, opened once and **held** for the whole file.
+/** The shopper's context **and page**, opened once and held for the whole file.
  *
- *  This is the cure `sellerStories.live.spec.ts` already proved, applied here
- *  for the same reason. A saved jar is a snapshot of a credential pair, and the
- *  pair rotates the moment a case does authenticated work. A case that closes
- *  its context and re-opens the jar is therefore opening a pair the backend may
- *  already have replaced; the exchange is refused, the app recovers the only
- *  way it can -- as a guest -- and the next authenticated call carries no
- *  comments token at all.
+ *  This is the cure `sellerStories.live.spec.ts` proved, and it is the whole
+ *  cure -- context *and* page. Holding only the context was not enough, and
+ *  the reason is worth writing down, because it is not obvious.
  *
- *  That is exactly how `CMT-08` failed on run 35765487919, six cases into a
- *  file that had taken ninety seconds:
+ *  A saved jar is a snapshot of a credential pair, and the market refresh
+ *  token is **single use**: an exchange rotates it, and the old value is dead
+ *  the moment the backend answers. `handOnSession` used to run between cases
+ *  and navigate the page to `about:blank` before snapshotting -- and that
+ *  navigation **aborts whatever is in flight**. An exchange killed half way
+ *  through has already rotated the token on the backend and never delivered
+ *  the new one to the browser. The jar then holds a spent token, the next
+ *  exchange is refused, and the app does the right thing with a refused
+ *  exchange: it registers a fresh guest.
  *
- *      the comments backend answered /delete with 401 ... **The app is not
- *      this shopper any more** -- it is a guest ... Look at
- *      /auth/refresh-token, not at comments.
+ *  That is exactly the sequence `actions/productComments.ts` measured:
  *
- *  Handing the jar back in a `finally` was the earlier mitigation and it is not
- *  enough: it narrows the race, it does not close it, because the app can
- *  rotate between the snapshot and the next open. **A context that stays alive
- *  never opens a spent jar at all.**
+ *      /customer/info        401   access token aged out
+ *      /auth/refresh-token   401   the MARKET refresh was refused
+ *      /auth/register-guest  200   the app became a guest
+ *      <the call>            401   "Token is missing"
  *
- *  The jar on disk is still written after every case. Two readers need it: the
- *  `afterAll` sweep, and a case that runs after a failure left nothing held. */
-let heldShopper: BrowserContext | null = null;
+ *  and exactly how `CMT-08` failed on runs 35765487919 and 35783133894, six
+ *  cases into a file that had taken a hundred seconds.
+ *
+ *  So nothing is snapshotted between cases any more. One context, one page,
+ *  alive from `CMT-01` to the sweep: no `about:blank`, no page closed under an
+ *  in-flight exchange, no jar re-opened. The jar is written **once**, at the
+ *  end, and this file is its only reader (`SESSION_STATE.comments` appears
+ *  nowhere else). */
+let heldContext: BrowserContext | null = null;
+let heldPage: Page | null = null;
 
-/** Open the shopper's session on the QA product, reusing the held context. */
+/** Register the context and page `CMT-01` built, so every case after it works
+ *  on the same live session rather than on a snapshot of it. */
+const holdShopper = (context: BrowserContext, page: Page): void => {
+  heldContext = context;
+  heldPage = page;
+};
+
+/** The shopper on the QA product, on the held page.
+ *
+ *  Falls back to opening the saved jar only when nothing is held -- which
+ *  means `CMT-01` failed before it could hand anything on. That path is the
+ *  old, fragile one on purpose: it exists so a later case reports its own
+ *  failure instead of a null. */
 const openShopperOnProduct = async (
   browser: Browser,
 ): Promise<{ context: BrowserContext; page: Page }> => {
-  const context =
-    heldShopper ??
-    (await openSignedInSession(browser, SESSION_STATE.comments, ID_OWNER));
-  heldShopper = context;
+  if (!heldContext || !heldPage) {
+    const context = await openSignedInSession(
+      browser,
+      SESSION_STATE.comments,
+      ID_OWNER,
+    );
+    holdShopper(context, await context.newPage());
+  }
 
-  const page = await context.newPage();
+  const context = heldContext as BrowserContext;
+  const page = heldPage as Page;
   await gotoQaProduct(page, { country: QA_COUNTRY });
   return { context, page };
 };
 
-/** Finish with the page, and keep the context alive for the next case.
+/** Finish with the shopper for this case.
  *
- *  The jar is still written -- see `heldShopper` for who reads it -- but the
- *  context is **not** closed here. Closing it is what forced the next case to
- *  re-open a snapshot, which is the bug above. `closeHeldShopper` does it once,
- *  at the end. */
-const closeShopperPage = async (
-  context: BrowserContext,
-  page: Page,
-): Promise<void> => {
-  await handOnSession(context, page, SESSION_STATE.comments);
-  heldShopper = context;
-  await page.close().catch(() => undefined);
+ *  **It closes nothing and snapshots nothing**, and that is the point -- see
+ *  `heldContext` above. It exists so every case still ends by saying it is
+ *  done, and so the held pair is registered when `CMT-01` built it itself. */
+const finishShopperCase = (context: BrowserContext, page: Page): void => {
+  holdShopper(context, page);
 };
 
-/** Close the held context. Called once, from `afterAll`, after the sweep. */
-const closeHeldShopper = async (): Promise<void> => {
-  const context = heldShopper;
-  heldShopper = null;
+/** Write the jar and close the held pair. Called once, from `afterAll`.
+ *
+ *  The jar is saved here and nowhere else. `about:blank` first, for the reason
+ *  `handOnSession` gives: the app keeps talking after the last case, and a
+ *  listener firing mid-snapshot would write a pair the file does not have.
+ *  Safe **here** because nothing runs after it. */
+const releaseShopper = async (): Promise<void> => {
+  const context = heldContext;
+  const page = heldPage;
+  heldContext = null;
+  heldPage = null;
+
+  if (context && page) {
+    await handOnSession(context, page, SESSION_STATE.comments);
+  }
   await context?.close().catch(() => undefined);
 };
 
@@ -317,9 +347,9 @@ test("CMT-01 the shopper likes the product and asks a question from both places"
       ).toBe(false);
     });
   } finally {
-    // `closeShopperPage` writes the jar itself (`handOnSession`), so the save
-    // that used to sit here would only take a second, earlier snapshot.
-    await closeShopperPage(context, page);
+    // Hands the pair on, alive. Nothing is written and nothing is closed
+    // until `afterAll` -- see `heldContext`.
+    finishShopperCase(context, page);
   }
 });
 
@@ -446,7 +476,7 @@ test("CMT-02 both questions are edited and liked, and the edits survive a reload
       ).toBe(true);
     });
   } finally {
-    await closeShopperPage(context, page);
+    finishShopperCase(context, page);
   }
 });
 
@@ -614,7 +644,7 @@ test("CMT-05 both answers reach the shopper, who likes them", async ({
       await page.keyboard.press("Escape").catch(() => {});
     });
   } finally {
-    await closeShopperPage(context, page);
+    finishShopperCase(context, page);
   }
 });
 
@@ -702,7 +732,7 @@ test("CMT-06 a reload keeps every question, edit, answer and like", async ({
       });
     }
   } finally {
-    await closeShopperPage(context, page);
+    finishShopperCase(context, page);
   }
 });
 
@@ -783,7 +813,7 @@ test("CMT-07 every like is removed, and a reload keeps them off", async ({
       }
     });
   } finally {
-    await closeShopperPage(context, page);
+    finishShopperCase(context, page);
   }
 });
 
@@ -854,7 +884,7 @@ test("CMT-08 both questions are deleted and the product unliked, and it sticks",
       }
     });
   } finally {
-    await closeShopperPage(context, page);
+    finishShopperCase(context, page);
   }
 });
 
@@ -932,9 +962,9 @@ test.afterAll(async ({ browser }) => {
     } catch {
       // Same reason as above.
     } finally {
-      await closeShopperPage(shopper.context, shopper.page);
+      finishShopperCase(shopper.context, shopper.page);
     }
   } finally {
-    await closeHeldShopper();
+    await releaseShopper();
   }
 });
