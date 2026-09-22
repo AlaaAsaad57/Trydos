@@ -12,6 +12,7 @@ import { Metadata } from "next";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import { cookies } from "next/headers";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { dropQaStories } from "utils/qaStoryFilter";
 import { LogServerError } from "utils/serverErrorReporter";
 // Safe here: this is a "use server" module — client imports get action
 // proxies, so tokenManager's next/headers never enters the client bundle
@@ -568,7 +569,30 @@ export async function GetProductStoriesData({ page, productId }) {
     return { data: [], stories: [] };
   }
 
-  const rawStories = response.data.data.data;
+  // **Hide test stories from anyone who is not a tester.**
+  //
+  // A story is marked as test data by its link host, and this is the fifth
+  // reader of a story feed in the app. The other four already dropped them;
+  // this one did not, so a test story attached to a product was served to
+  // every visitor of that product's page, a guest included.
+  //
+  // The viewer is read from the HttpOnly `User-Data` cookie, the same way
+  // `serverRequests/stories.ts` reads it — nothing in the page can forge it.
+  // With no allow-list configured nobody matches, which is the safe default:
+  // every test story is dropped.
+  const profile = await cookiesStore.get(COOKIE_NAMES.USER_DATA)?.value;
+  let viewerPhone: unknown;
+  try {
+    viewerPhone = profile
+      ? JSON.parse(decodeURIComponent(profile))?.phone
+      : undefined;
+  } catch {
+    // An unreadable profile is simply not a tester. Never throws: a story
+    // reader that throws leaves the section stuck on its skeleton.
+    viewerPhone = undefined;
+  }
+
+  const rawStories = dropQaStories(response.data.data.data, viewerPhone);
   return {
     data: rawStories,
     stories: rawStories?.map((story) => ({

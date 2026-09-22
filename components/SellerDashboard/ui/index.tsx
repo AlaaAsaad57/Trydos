@@ -287,14 +287,25 @@ export function EmptyState({
   title,
   subtitle,
   action,
+  "data-pw": dataPw,
 }: {
   icon?: IconName;
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
+  /** Test hook, optional and undefined for every caller that does not ask.
+   *
+   *  Same pattern as `AccessDenied` below. A section's empty state and its
+   *  error state are two different answers — "the list loaded and holds
+   *  nothing" against "the list did not load" — and a browser test that cannot
+   *  tell them apart reports a backend refusal as an empty shop. */
+  "data-pw"?: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-14 px-6">
+    <div
+      data-pw={dataPw}
+      className="flex flex-col items-center justify-center text-center py-14 px-6"
+    >
       <span className="w-[72px] h-[72px] mb-4 rounded-full bg-[#f4f4f4] text-[#c4c2c2] flex items-center justify-center">
         <DashIcon name={icon} size={34} strokeWidth={1.4} />
       </span>
@@ -312,12 +323,21 @@ export function EmptyState({
 export function ErrorState({
   message,
   onRetry,
+  "data-pw": dataPw,
 }: {
   message: string;
   onRetry?: () => void;
+  /** Test hook, optional. See `EmptyState` above for why the two states need
+   *  separate names: without one, a backend that refused the list is
+   *  indistinguishable from a list that is genuinely empty, and the failure
+   *  names neither. */
+  "data-pw"?: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-14 px-6">
+    <div
+      data-pw={dataPw}
+      className="flex flex-col items-center justify-center text-center py-14 px-6"
+    >
       <span className="w-[72px] h-[72px] mb-4 rounded-full bg-[#fff1f1] text-[#f85555] flex items-center justify-center">
         <DashIcon name="alert" size={32} strokeWidth={1.4} />
       </span>

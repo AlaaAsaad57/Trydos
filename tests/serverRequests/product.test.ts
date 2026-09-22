@@ -867,6 +867,95 @@ describe("GetProductStoriesData", () => {
     ).toBeUndefined();
   });
 
+  // ── BUG-1 — the product page's story reader and the test-data filter ──────
+  //
+  // A story is marked as test data by its LINK HOST (`utils/qaStoryFilter.ts`),
+  // and five readers in this app show story feeds. Four of them drop those
+  // stories before anybody sees them:
+  //
+  //   components/Home/Stories/StoriesBarClient.tsx
+  //   components/Home/Stories/StoriesPaginationWrapper.tsx
+  //   serverRequests/stories.ts
+  //   services/story.ts
+  //
+  // `GetProductStoriesData` was the fifth and did not, so a test story attached
+  // to a product was served to every visitor of that product's page, a guest
+  // included. Found by the seller-story browser journey.
+  //
+  // The viewer is read the same way `serverRequests/stories.ts` reads it: from
+  // the HttpOnly `User-Data` cookie, which nothing in the page can forge.
+
+  it("BUG-1 hides a test story from a viewer who is not on the allow-list", async () => {
+    process.env.NEXT_PUBLIC_QA_STORY_VIEWER_PHONES = "999000000001";
+    seedVerifiedShopper(); // phone "verified-shopper" — not on the list above
+
+    fetchServerData.mockResolvedValueOnce(
+      storiesReply([
+        {
+          id: 1,
+          stories: [{ link: "https://qa-test.trydos.tech/e2e/x/photo" }],
+        },
+      ]) as any,
+    );
+
+    const { GetProductStoriesData } = await load();
+    const result = await GetProductStoriesData({ page: 1, productId: "1001" });
+
+    expect(
+      result.data,
+      "the product page served a test story to a viewer who is not on the QA allow-list, so test content reaches a real customer. Four other readers of a story feed drop it; this one did not",
+    ).toEqual([]);
+  });
+
+  it("BUG-1 still shows a test story to a viewer who IS on the allow-list", async () => {
+    process.env.NEXT_PUBLIC_QA_STORY_VIEWER_PHONES = "999000000001";
+    headers.__reset({
+      cookies: {
+        [COOKIE_NAMES.USER_DATA]: encodeURIComponent(
+          JSON.stringify({ phone: "999000000001" }),
+        ),
+      },
+    });
+
+    fetchServerData.mockResolvedValueOnce(
+      storiesReply([
+        {
+          id: 1,
+          stories: [{ link: "https://qa-test.trydos.tech/e2e/x/photo" }],
+        },
+      ]) as any,
+    );
+
+    const { GetProductStoriesData } = await load();
+    const result = await GetProductStoriesData({ page: 1, productId: "1001" });
+
+    // Without this the case above could be satisfied by dropping every story,
+    // which would break the feature for the people who need to see it.
+    expect(
+      result.data,
+      "an allow-listed tester can no longer see the test story on the product page, so the filter is dropping stories for everybody rather than hiding them from customers",
+    ).toHaveLength(1);
+  });
+
+  it("BUG-1 leaves an ordinary story alone", async () => {
+    process.env.NEXT_PUBLIC_QA_STORY_VIEWER_PHONES = "999000000001";
+    seedVerifiedShopper();
+
+    fetchServerData.mockResolvedValueOnce(
+      storiesReply([
+        { id: 7, stories: [{ link: "https://trydos.com/sale", photo_path: "a.jpg" }] },
+      ]) as any,
+    );
+
+    const { GetProductStoriesData } = await load();
+    const result = await GetProductStoriesData({ page: 1, productId: "1001" });
+
+    expect(
+      result.data,
+      "a real seller's story was dropped from the product page, so the filter is catching more than test data",
+    ).toHaveLength(1);
+  });
+
   it("AC-30 gives empty lists when the stories request is refused", async () => {
     fetchServerData.mockResolvedValueOnce(refusedEnvelope() as any);
 

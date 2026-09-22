@@ -397,7 +397,17 @@ const StoryViewer = ({
 
       {/* Story Link absolutely positioned at the bottom */}
       {(link || product_slug) && (
-        <div className="absolute bottom-0 left-0 w-full flex justify-center z-50 pb-4 pointer-events-none">
+        // `data-has-product` says whether this story HAS a product, which the
+        // product button below cannot: that button is also gated on the viewer
+        // not being paused, and the viewer pauses on the same press used to
+        // move between stories. Without the flag, "this story has no product"
+        // and "the viewer is paused" look identical from the page, and a test
+        // reports the first when it means the second.
+        <div
+          data-pw="story-actions"
+          data-has-product={String(Boolean(product_slug))}
+          className="absolute bottom-0 left-0 w-full flex justify-center z-50 pb-4 pointer-events-none"
+        >
           {link &&!isPaused&& (
             <a
               href={
@@ -442,6 +452,7 @@ const StoryViewer = ({
               }}
             >
               <NextLink
+                data-pw="story-product-link"
                 className="pointer-events-auto gap-[5px] items-end flex-row  regular p-3 rounded-[8px] text-[#1d1d1d] bg-[#F8F8F8]  break-all text-center text-base   no-underline backdrop-blur-xs"
                 data={{
                   is_product: true,

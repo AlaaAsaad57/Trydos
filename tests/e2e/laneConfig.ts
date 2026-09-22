@@ -72,6 +72,11 @@ export const ACCOUNT_LANE = [
   // deletes a real review. One account, one order, and two other products it
   // must never run two copies of at once.
   "orderRating.live.spec.ts",
+  // A seller's story, followed to the home feed, to the product page, and back
+  // to be deleted. In this lane because it opens the QA seed's saved seller
+  // session and writes for real — a story on the stories backend and a file on
+  // the media server. Two copies at once would fight over the same jar.
+  "sellerStories.live.spec.ts",
 ];
 
 /** No account, no code, nothing real written. Safe to run several at once. */
