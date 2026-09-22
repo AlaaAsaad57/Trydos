@@ -7,6 +7,7 @@ import React, {
   ChangeEvent,
   KeyboardEvent,
 } from "react";
+import { createPortal } from "react-dom";
 import { useStopwatch } from "react-timer-hook";
 /* ----------------------------- Local Imports ----------------------------- */
 import Recorder from "components/Chat/components/Recorder";
@@ -916,14 +917,24 @@ function ConversationContainer({
         />
       )}
 
-      {/* Camera overlay */}
-      {cameraEnabled && (
-        <div className="fixed top-0 left-0 w-full h-full bg-transparent flex flex-col items-center justify-start p-5 z-9999999999">
-          <div
-            className="absolute top-0 left-0 w-full h-full bg-[#585751] opacity-60 z-9999"
-            onClick={() => enableCamera(false)}
-          />
-          {(() => {
+      {/* Camera overlay.
+
+          CameraComponent's own root is `fixed inset-0 bg-neutral-950` — an
+          opaque full-screen layer that already carries its own dimmer. The
+          wrapper that used to sit here added a SECOND transparent `fixed`
+          layer and a grey `bg-[#585751] opacity-60` backdrop underneath it.
+          The camera covered both, so the grey was never seen and the
+          `onClick` that was meant to close the camera could never be reached.
+          Both are gone; nothing about what the user sees changes.
+
+          It portals into <body> for the reason MediaMessagePreview does: the
+          chat stylesheets ask for z-index values that all clamp to the 32-bit
+          maximum, so they land on one layer and document order decides the
+          winner. The end of <body> comes last. */}
+      {cameraEnabled &&
+        typeof document !== "undefined" &&
+        createPortal(
+          (() => {
             const webcamProps = {
               imageFile,
               setImgs,
@@ -946,9 +957,9 @@ function ConversationContainer({
             } as any;
             // @ts-ignore runtime prop bag
             return <WebcamCaptureAny {...webcamProps} />;
-          })()}
-        </div>
-      )}
+          })(),
+          document.body,
+        )}
 
       {/* Image / video preview modal */}
       {(imgs || vid) && (
