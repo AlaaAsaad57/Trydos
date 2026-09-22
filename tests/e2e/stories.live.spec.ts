@@ -308,19 +308,47 @@ test("STORY-03b a guest never sees this run's story, while it is live", async ({
   // above just found it, so the absence below means hidden and not missing.
   const guestContext = await newLiveContext(browser);
   const guestPage = await guestContext.newPage();
-  await gotoHome(guestPage);
-
-  const shown = await guestPage.evaluate(() =>
-    [...document.querySelectorAll("a")].map((a) => a.getAttribute("href") ?? ""),
-  );
-
   const own = uploaded[0];
-  expect(
-    shown.filter((href) => href.includes(own.link)),
-    "a signed-out visitor's home page carries a link to the story this run uploaded, so test content is on a real customer's screen",
-  ).toEqual([]);
 
-  await guestContext.close();
+  try {
+    await gotoHome(guestPage);
+
+    // **This case used to read the wrong thing, and so could never fail.**
+    //
+    // It collected every `<a href>` on the home page and looked for the story's
+    // link among them. No home page anchor ever carries a story link: the bar
+    // tile is a `div` (`components/Home/Stories/Story.tsx`) and the
+    // `<a href={link}>` exists only inside the **opened** viewer
+    // (`components/Home/Stories/StoryViewer.tsx`). So the list it searched could
+    // not contain the answer whether or not the guest could see the ring, the
+    // filter always came back empty, and the case passed every time — including
+    // on a day the hiding rule was broken. It is the case this project relies on
+    // to prove test stories stay away from customers.
+    //
+    // It now reads the **ring tile**, which is what a guest would actually see,
+    // by the author's own id.
+    const tiles = guestPage.locator('[data-pw="story-element"]');
+
+    // **Content before absence.** A bar that drew nothing at all would satisfy
+    // any absence check while proving nothing — the story would be "hidden"
+    // only because there was no feed. This is the same trap in a second form.
+    await expect
+      .poll(async () => await tiles.count(), {
+        timeout: 60_000,
+        message:
+          "a signed-out visitor's home page drew no stories bar at all, so this case cannot tell a hidden story from an empty feed. That is a stories backend fault, not a filter fault",
+      })
+      .toBeGreaterThan(0);
+
+    expect(
+      await guestPage
+        .locator(`[data-pw="story-element"][data-id="${own.groupId}"]`)
+        .count(),
+      "a signed-out visitor's home page shows the ring holding the story this run uploaded, so test content is on a real customer's screen",
+    ).toBe(0);
+  } finally {
+    await guestContext.close().catch(() => undefined);
+  }
 });
 
 test("STORY-04 the second account reports the story this run uploaded", async ({

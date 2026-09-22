@@ -1204,3 +1204,98 @@ export const sellerComments = {
   loadMore: (page: Page): Locator =>
     page.getByTestId("dashboard-comments-load-more"),
 };
+
+// ---------------------------------------------------------------------------
+// The seller dashboard's Stories section.
+//
+// One group per dashboard section, the same shape `shopLocations` and
+// `sellerProducts` use above, so a spec never sees a raw selector.
+//
+// **The crop dialog is not here.** A photo chosen in this section goes through
+// the same `ImageCropWidget` the shopper's upload sheet uses, so the locator is
+// `stories.cropSave` and this group does not repeat it. One hook, one name.
+// ---------------------------------------------------------------------------
+
+export const sellerStories = {
+  /** The section's own root. **Carries the two permissions as attributes**
+   *  (`data-can-create`, `data-can-delete`), read straight from the props the
+   *  dashboard passes it.
+   *
+   *  Why they are on the root and not inferred from buttons: the delete control
+   *  lives inside a story card, so on an empty grid — the normal state before
+   *  this journey uploads anything — its absence means both "this account may
+   *  not delete" and "there is nothing to delete". A case must know it can
+   *  remove a story **before** it writes one, or a run leaves a row on a shared
+   *  environment that nothing in the suite can take back. */
+  section: (page: Page): Locator => page.getByTestId("seller-stories"),
+
+  /** The three answers the section can give once its own call returns. A case
+   *  waits for whichever arrives: the grid, "no stories yet", or the error.
+   *  Treating a refused list as an empty shop is the failure these three names
+   *  exist to prevent. */
+  grid: (page: Page): Locator => page.getByTestId("seller-stories-grid"),
+  empty: (page: Page): Locator => page.getByTestId("seller-stories-empty"),
+  loadError: (page: Page): Locator =>
+    page.getByTestId("seller-stories-error"),
+
+  /** Opens the upload dialog. Drawn only with `CREATE_STORY`. */
+  addButton: (page: Page): Locator => page.getByTestId("seller-stories-add"),
+
+  /** One row, by the id the stories backend gave it — never by position. */
+  card: (page: Page, storyId: string | number): Locator =>
+    page.locator('[data-pw="seller-story-card"][data-id="' + storyId + '"]'),
+  anyCard: (page: Page): Locator =>
+    page.locator('[data-pw="seller-story-card"]'),
+  /** Drawn only with `DELETE_STORY`, and only inside a card. */
+  cardDelete: (card: Locator): Locator =>
+    card.locator('[data-pw="seller-story-delete"]'),
+  deleteConfirm: (page: Page): Locator =>
+    page.getByTestId("seller-story-delete-confirm"),
+
+  /** The upload dialog. */
+  uploadDialog: (page: Page): Locator =>
+    page.getByTestId("seller-story-upload"),
+  /** The hidden file input. `setInputFiles` does not need it visible. */
+  fileInput: (page: Page): Locator => page.getByTestId("seller-story-file"),
+  /** Where the QA mark goes: the link's **host** is what marks a story as test
+   *  data (`utils/qaStoryFilter.ts`), so this field decides whether a real
+   *  customer can ever see the story. */
+  linkInput: (page: Page): Locator => page.getByTestId("seller-story-link"),
+  /** Opens the product picker. The same hook is on "Change", so a product that
+   *  is already chosen can be swapped with one locator. */
+  productPick: (page: Page): Locator =>
+    page.getByTestId("seller-story-product-pick"),
+  /** One product in the picker, by its own id. */
+  productRow: (page: Page, productId: string | number): Locator =>
+    page.locator(
+      '[data-pw="seller-story-product-row"][data-id="' + productId + '"]',
+    ),
+  /** The chosen-product block. Its presence is what proves the picker's choice
+   *  reached the form, before anything is sent. */
+  productChosen: (page: Page): Locator =>
+    page.getByTestId("seller-story-product-chosen"),
+  shareButton: (page: Page): Locator => page.getByTestId("seller-story-share"),
+};
+
+// ---------------------------------------------------------------------------
+// The shopper's story viewer — the two hooks the seller journey needs.
+//
+// Kept beside `stories` above rather than inside it because they are read by
+// the seller journey, which is a different file and a different lane concern.
+// ---------------------------------------------------------------------------
+
+export const storyActions = {
+  /** The bar at the foot of the open viewer. Drawn whenever the story has a
+   *  link **or** a product, and **`data-has-product` says which** — that flag
+   *  is the whole point of this locator.
+   *
+   *  The product button itself is gated on the viewer not being paused, and the
+   *  viewer pauses on the very press used to move between stories. So the
+   *  button's absence cannot tell "this story has no product" from "the viewer
+   *  is paused", and a case that judged by the button alone would report the
+   *  first when it meant the second. */
+  bar: (page: Page): Locator => page.getByTestId("story-actions"),
+  /** "View Product". Its label is translated, so it is never matched by text. */
+  productLink: (page: Page): Locator =>
+    page.getByTestId("story-product-link"),
+};
