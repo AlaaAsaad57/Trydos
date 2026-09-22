@@ -60,51 +60,13 @@
 
 import { expect, type Browser, type Page } from "@playwright/test";
 
+import {
+  adminOrigin,
+  adminSelector,
+  withAdminPage,
+  type CallRecord,
+} from "./adminSession";
 import { envValue } from "./env";
-
-/** One write this helper made, recorded for the case that checks the seed
- *  stayed inside its own data. Method and URL only. */
-type CallRecord = { method: string; url: string; note?: string };
-
-/** A selector with an environment override. */
-const selector = (key: string, fallback: string): string =>
-  envValue(key) || fallback;
-
-/** Sign in to the admin dashboard.
- *
- *  The password never reaches a message, an assertion or a log line. What is
- *  reported is whether the sign-in landed, not what was typed. */
-const signInToAdmin = async (page: Page): Promise<void> => {
-  const loginUrl = envValue("ADMIN_DASHBOARD_BASE_URL");
-
-  await page.goto(loginUrl, { waitUntil: "domcontentloaded" });
-
-  const email = page
-    .locator(selector("ADMIN_SELECTOR_EMAIL", 'input[name="email"]'))
-    .first();
-  const password = page
-    .locator(selector("ADMIN_SELECTOR_PASSWORD", 'input[type="password"]'))
-    .first();
-
-  await expect(
-    email,
-    "the admin dashboard's sign-in screen has no e-mail field where this suite expects one. Set ADMIN_SELECTOR_EMAIL to the right locator",
-  ).toBeVisible({ timeout: 45_000 });
-
-  await email.fill(envValue("ADMIN_DASHBOARD_EMAIL"));
-  await password.fill(envValue("ADMIN_DASHBOARD_PASSWORD"));
-  await page
-    .locator(selector("ADMIN_SELECTOR_SUBMIT", 'button[type="submit"]'))
-    .first()
-    .click();
-
-  // Landed, not "the click happened". A refused sign-in leaves the form on
-  // screen and every step below would then fail as a missing table.
-  await expect(
-    email,
-    "the admin dashboard kept its sign-in screen on display after the credentials were sent, so the sign-in was refused. The password is not printed here",
-  ).toBeHidden({ timeout: 45_000 });
-};
 
 /** Approve one row, having first proved it is the row this run created. */
 const approveOneRow = async (
@@ -235,25 +197,6 @@ const approveOneRow = async (
   });
 };
 
-/** A browser context for the admin dashboard, never shared with the app's.
- *
- *  Two different identities; one cookie jar holding both is a way for a shopper
- *  request to go out carrying admin rights. */
-const withAdminPage = async (
-  browser: Browser,
-  work: (page: Page) => Promise<void>,
-): Promise<void> => {
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  page.setDefaultTimeout(45_000);
-  try {
-    await signInToAdmin(page);
-    await work(page);
-  } finally {
-    await context.close();
-  }
-};
-
 /** Approve the vendor request Shopper B just submitted.
  *
  *  Narrowed by the screen's **own** filter — `?email=…&status=0` — so the first
@@ -268,7 +211,7 @@ export const approveQaSeller = async (
     record: CallRecord[];
   },
 ): Promise<void> => {
-  const base = new URL(envValue("ADMIN_DASHBOARD_BASE_URL")).origin;
+  const base = adminOrigin();
   const path =
     envValue("ADMIN_VENDOR_REQUESTS_PATH") || `${base}/admin/vendor-requests`;
 
@@ -278,16 +221,16 @@ export const approveQaSeller = async (
       listUrl: `${path}?email=${encodeURIComponent(options.email)}&status=0`,
       // A row that carries the control. The page draws two tables and the first
       // is empty, so "the first row on the page" is not good enough.
-      rowSelector: selector(
+      rowSelector: adminSelector(
         "ADMIN_SELECTOR_ROW",
         "table tbody tr:has(select.status-select:not([disabled]))",
       ),
-      identityCell: selector("ADMIN_SELECTOR_VENDOR_IDENTITY", "td:nth-child(4)"),
-      controlSelector: selector(
+      identityCell: adminSelector("ADMIN_SELECTOR_VENDOR_IDENTITY", "td:nth-child(4)"),
+      controlSelector: adminSelector(
         "ADMIN_SELECTOR_STATUS",
         "select.status-select",
       ),
-      approveValue: selector("ADMIN_SELECTOR_APPROVE_VALUE", "1"),
+      approveValue: adminSelector("ADMIN_SELECTOR_APPROVE_VALUE", "1"),
       force: false,
       identity: options.email,
       record: options.record,
@@ -305,7 +248,7 @@ export const approveQaBoutique = async (
   browser: Browser,
   options: { shopSlug: string; shopName: string; record: CallRecord[] },
 ): Promise<void> => {
-  const base = new URL(envValue("ADMIN_DASHBOARD_BASE_URL")).origin;
+  const base = adminOrigin();
   const path =
     envValue("ADMIN_SELLER_BOUTIQUES_PATH") || `${base}/admin/boutique/seller`;
 
@@ -313,16 +256,16 @@ export const approveQaBoutique = async (
     await approveOneRow(page, {
       what: "seller boutique",
       listUrl: `${path}?status=0`,
-      rowSelector: selector("ADMIN_SELECTOR_BOUTIQUE_ROW", "table tbody tr"),
-      identityCell: selector(
+      rowSelector: adminSelector("ADMIN_SELECTOR_BOUTIQUE_ROW", "table tbody tr"),
+      identityCell: adminSelector(
         "ADMIN_SELECTOR_BOUTIQUE_IDENTITY",
         "td:nth-child(4)",
       ),
-      controlSelector: selector(
+      controlSelector: adminSelector(
         "ADMIN_SELECTOR_BOUTIQUE_STATUS",
         "td:nth-child(14) select",
       ),
-      approveValue: selector("ADMIN_SELECTOR_BOUTIQUE_APPROVE_VALUE", "1"),
+      approveValue: adminSelector("ADMIN_SELECTOR_BOUTIQUE_APPROVE_VALUE", "1"),
       // select2 hides this one behind its own widget, so the underlying
       // element is not "visible" to Playwright. Forcing still dispatches
       // `change`, which is the event `updateRequestStatus` listens for.

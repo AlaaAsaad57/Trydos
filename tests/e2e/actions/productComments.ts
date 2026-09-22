@@ -178,7 +178,7 @@ export const watchCommentCall = async (
  *
  *  `shopper.live.spec.ts` already tells these two apart for the same reason;
  *  this does it for the comments journey. */
-const requireAccepted = async (
+export const requireAccepted = async (
   page: Page,
   outcome: CallOutcome,
   what: string,

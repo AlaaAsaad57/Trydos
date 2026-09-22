@@ -67,6 +67,11 @@ export const ACCOUNT_LANE = [
   // `sellerDashboard.live.spec.ts`, so a jar it failed to hand on would be the
   // one that file opens.
   "comments.live.spec.ts",
+  // The review journey. Buys the QA product for real, then drives the admin
+  // and the fleet dashboards to get that order delivered, and writes, edits and
+  // deletes a real review. One account, one order, and two other products it
+  // must never run two copies of at once.
+  "orderRating.live.spec.ts",
 ];
 
 /** No account, no code, nothing real written. Safe to run several at once. */

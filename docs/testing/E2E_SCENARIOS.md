@@ -428,6 +428,48 @@ dies between the answer and the teardown can leave an answer on the QA product �
 no shopper sees that product, and this is the same trade the suite already
 accepts for a location it cannot delete.
 
+## Reviews on a delivered order
+
+The other half of the comments domain. A **review** is not a question: it
+carries stars, it is written from an order, and the app refuses to write one
+until the shop says the parcel arrived. `OrderItemsList.tsx` draws the rating
+stars behind `isDelevired`, which is `order_status.value === "delivered"` and
+the line not returned.
+
+**That one line is why this case drives four products.** The storefront buys;
+the **admin dashboard** moves the order to `ready_to_shipping`, which is what
+hands it to the fleet; the **fleet dashboard** is the only thing that can set
+`delivered`; and the **comments backend** takes the review. Nothing in this
+repository can deliver an order, so without the two dashboards there is no way
+to reach the rating screen at all.
+
+**It is one case, not eight, because the `orders` safety net is test-scoped.**
+An order registered in one case is cancelled the moment that case ends — split
+up, the order would be cancelled before the admin ever saw it. So the flow is
+one case with named steps, and a failure names the step and the product that
+refused it.
+
+**Neither dashboard is ever asked to change a row this run cannot prove is its
+own.** The admin order is found through the list's own `searchByOrderGroupID`
+filter, then its details page is opened and the `Order Group ID` printed there
+is compared with the group the checkout returned. The fleet row is taken by what
+its `Original order id` cell says, never by being first. A row that cannot be
+identified is refused, not changed — the orders beside it are real shoppers'
+deliveries.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| CMT-09 | A delivered order earns a review, which is written, changed and removed | `orderRating.live.spec.ts:148` | The only path to a review the app will accept, end to end across four products. Every write is judged on what the comments backend answered, because `ProductBuyersCommentList` changes the screen only after the server confirms and swallows a refusal into `LogError` — a review that failed to save looks exactly like one that saved and did not re-render |
+
+**What it leaves behind.** A delivered order on the QA shop, on purpose. The
+safety net cancels an order this run abandoned, which is what covers a case that
+dies before delivery — but an order that reached `delivered` can no longer be
+cancelled by anyone, so once the fleet confirms it the order is released from
+the net rather than left for it to fail on. Everything else is removed: the
+review is deleted in the last step, by the shopper, through the screens a
+shopper uses. The order is always placed against the **QA shop's own product**,
+so no real seller is ever asked to ship anything.
+
 ## A defect these files found, and fixed
 
 **BUG-1 — "Load more" never appeared on the checklist screen.**
