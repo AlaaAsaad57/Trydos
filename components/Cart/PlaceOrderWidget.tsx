@@ -421,26 +421,11 @@ const AddressOrder = ({ success }) => {
   );
 };
 const PaymentOrder = ({ success }) => {
-  const {
-    orderData,
-    coupon_discount,
-    language,
-    currency,
-    wallet,
-    total,
-    total_cash,
-  } = useAppStore();
-  const getWalletInUSD = () => {
-    if (wallet?.wallet_balance > 0)
-      return wallet?.wallet_balance / currency?.exchange_rate;
-    else return 0;
-  };
-  const showCodValue = () => {
-    if (getWalletInUSD() <= 0 || getWalletInUSD() >= total) return total_cash;
-    if (getWalletInUSD() > 0 && getWalletInUSD() < total) {
-      return total_cash - getWalletInUSD();
-    }
-  };
+  const { orderData, coupon_discount, language, currency, total_cash } =
+    useAppStore();
+  // No payment method takes a share from the Trydos wallet any more
+  // (design doc §3.2) — cash on delivery is always the full amount.
+  const showCodValue = () => total_cash;
   const isRtl = language === "ar" || language === "ku";
 
   return (

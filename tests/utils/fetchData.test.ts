@@ -1739,3 +1739,75 @@ describe("scrubbing a request body before it reaches an error report", () => {
     ).toBe(true);
   });
 });
+
+describe("the RDB cart lock", () => {
+  const lockBody = {
+    isSuccessful: false,
+    code: 409,
+    message:
+      "Your cart is locked until the pending RDB payment is completed or cancelled.",
+    detailed_error: [{ message: "pending payment" }],
+    data: {
+      rdb_request_reference: "ref-1",
+      expires_at: "2026-09-15T14:30:00+00:00",
+    },
+  };
+
+  it("hands a locked cart back without a toast and without a Sentry report", async () => {
+    const { notifications, toasts, functions } = await setup();
+    const net = makeMockFetch([jsonReply(lockBody, 409)]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result: any = await fetchData({
+      ...baseParams,
+      server: "market",
+      method: "POST",
+      url: "/cart/add",
+      body: JSON.stringify({ product_id: 1 }),
+      reqTitle: { code: 2, reqTitle: "Add to cart widget" },
+    });
+
+    expect(result.httpStatus, "a locked cart must reach the caller as a 409").toBe(409);
+    expect(
+      result.data.rdb_request_reference,
+      "the pending request reference must survive the answer",
+    ).toBe("ref-1");
+    expect(
+      toasts.showErrorMessage,
+      "a locked cart must not raise the add-to-cart toast",
+    ).not.toHaveBeenCalled();
+    expect(
+      notifications.showErrorNotification,
+      "a locked cart must not raise an error notification",
+    ).not.toHaveBeenCalled();
+    expect(
+      functions.LogError,
+      "a locked cart is normal behaviour and must not be reported to Sentry",
+    ).not.toHaveBeenCalled();
+  });
+
+  it("still reports a 409 that is not a cart lock", async () => {
+    const { notifications } = await setup();
+    const net = makeMockFetch([
+      jsonReply({ isSuccessful: false, code: 409, message: "Already paid" }, 409),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result: any = await fetchData({
+      ...baseParams,
+      server: "market",
+      method: "POST",
+      url: "/customer/order/rdb-request/ref-1/cancel",
+      body: "",
+      reqTitle: { code: 3, reqTitle: "cancel RDB payment" },
+    });
+
+    expect(result.httpStatus, "an ordinary 409 must still answer 409").toBe(409);
+    expect(
+      notifications.showErrorNotification,
+      "an ordinary 409 must still tell the shopper something went wrong",
+    ).toHaveBeenCalled();
+  });
+});

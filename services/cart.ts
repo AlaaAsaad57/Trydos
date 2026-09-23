@@ -3,6 +3,8 @@ import { _isStoreLastJson } from "utils/functions";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
+import { readRdbLock } from "./rdbPayment";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 
 class CartService {
   async AddToCart({
@@ -41,6 +43,15 @@ class CartService {
         method: "POST",
         server: "market",
       });
+      // The core backend refuses every cart write while an RDB payment request
+      // is pending. That is not a fault: the shopper has to finish or cancel
+      // the payment first, and the lock sheet says so.
+      const lock = readRdbLock(response);
+      if (lock) {
+        useAppStore.getState().setRdbLock(lock);
+        trackOrder(ORDER_EVENTS.RDB_CART_LOCK_HIT, { at: "cart" });
+        return false;
+      }
       if (!response.success) {
         throw new Error(response.message);
       }
@@ -110,6 +121,15 @@ class CartService {
         method: "POST",
         server: "market",
       });
+      // The core backend refuses every cart write while an RDB payment request
+      // is pending. That is not a fault: the shopper has to finish or cancel
+      // the payment first, and the lock sheet says so.
+      const lock = readRdbLock(response);
+      if (lock) {
+        useAppStore.getState().setRdbLock(lock);
+        trackOrder(ORDER_EVENTS.RDB_CART_LOCK_HIT, { at: "cart" });
+        return false;
+      }
       if (!response.success) {
         // `fetchData` handles a `/cart/update` refusal itself: it shows the
         // toast and throws (utils/fetchData.ts:734-737), then catches its own
@@ -153,6 +173,15 @@ class CartService {
         method: "POST",
         server: "market",
       });
+      // The core backend refuses every cart write while an RDB payment request
+      // is pending. That is not a fault: the shopper has to finish or cancel
+      // the payment first, and the lock sheet says so.
+      const lock = readRdbLock(response);
+      if (lock) {
+        useAppStore.getState().setRdbLock(lock);
+        trackOrder(ORDER_EVENTS.RDB_CART_LOCK_HIT, { at: "cart" });
+        return false;
+      }
       if (!response.success) {
         throw new Error(response.message);
       }
@@ -177,6 +206,15 @@ class CartService {
         method: "POST",
         server: "market",
       });
+      // The core backend refuses every cart write while an RDB payment request
+      // is pending. That is not a fault: the shopper has to finish or cancel
+      // the payment first, and the lock sheet says so.
+      const lock = readRdbLock(response);
+      if (lock) {
+        useAppStore.getState().setRdbLock(lock);
+        trackOrder(ORDER_EVENTS.RDB_CART_LOCK_HIT, { at: "cart" });
+        return false;
+      }
       // @ts-ignore
       if (!response.success) {
         throw new Error(response.message);

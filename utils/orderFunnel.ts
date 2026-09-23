@@ -83,15 +83,16 @@ export const ORDER_EVENTS = {
 
   // --- Payment execution (wallet) ---
   WALLET_MODAL_OPENED: "wallet_modal_opened",
-  WALLET_PAYMENT_ATTEMPT: "wallet_payment_attempt",
-  WALLET_PAYMENT_BLOCKED_INSUFFICIENT: "wallet_payment_blocked_insufficient",
-  WALLET_PAYMENT_PROCESSING: "wallet_payment_processing",
-  WALLET_PAYMENT_SUCCEEDED: "wallet_payment_succeeded",
-  WALLET_PAYMENT_TIMEOUT: "wallet_payment_timeout",
-  WALLET_PAYMENT_FAILED: "wallet_payment_failed",
-  WALLET_CURRENCY_CHANGED: "wallet_currency_changed",
-  WALLET_DATA_LOAD_FAILED: "wallet_data_load_failed",
   WALLET_BALANCE_REFRESHED: "wallet_balance_refreshed",
+
+  // --- RDB payment request cart lock ---
+  RDB_CART_LOCK_HIT: "rdb_cart_lock_hit",
+  RDB_CART_LOCK_CLEARED: "rdb_cart_lock_cleared",
+  RDB_REQUEST_CREATED: "rdb_request_created",
+  RDB_REQUEST_START_FAILED: "rdb_request_start_failed",
+  RDB_PAYMENT_PAID: "rdb_payment_paid",
+  RDB_PAYMENT_EXPIRED: "rdb_payment_expired",
+  RDB_PAYMENT_ENDED: "rdb_payment_ended",
 
   // --- Completion ---
   ORDER_COMPLETED: "order_completed",

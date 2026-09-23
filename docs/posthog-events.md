@@ -175,7 +175,8 @@ Summary of what exists today:
 | Verify sub-flow | `verify_flow_opened` (`flow_source`; verify widget mount, `ConfirmMobilePhoneWidget.tsx`), `verify_otp_failed` (`flow_source`, `reason`; OTP failure, `services/auth.ts:VerifyOtp`), `verify_completed_returned_to_checkout` (`flow_source`; verify success when opened from checkout, `ConfirmMobilePhoneWidget.tsx`) |
 | Place order | `terms_agreed_toggled`, `place_order_clicked`, `place_order_blocked_terms_not_agreed`, `place_order_blocked_phone_unverified`, `place_order_blocked_cart_unavailable`, `place_order_empty_cart` |
 | Payment exec (COD/crypto/card) | `order_submit_attempt`, `payment_redirect_opened`, `order_place_failed` (`reason`, `stage`, `payment_method`) |
-| Payment exec (wallet) | `wallet_modal_opened`, `wallet_payment_attempt`, `wallet_payment_blocked_insufficient`, `wallet_payment_processing`, `wallet_payment_succeeded`, `wallet_payment_timeout`, `wallet_payment_failed`, `wallet_currency_changed`, `wallet_data_load_failed`, `wallet_balance_refreshed` (refresh icon, `PaymentMethod.tsx`) |
+| Payment exec (wallet) | `wallet_modal_opened` (the shopper picked the RDB payment method; this opens the RDB payment screen, `PlaceOrderButtons.tsx`), `wallet_balance_refreshed` (refresh icon on the payment method row, `PaymentMethod.tsx`) |
+| Payment exec (RDB) | see [RDB payment requests](#rdb-payment-requests-posthog-only) below |
 | Completion | `order_completed` (clears `order_attempt_id`), `order_success_done_clicked` |
 
 > **Add-to-cart drop-off funnel:** `add_to_cart_widget_opened` → `add_to_cart_buy_clicked` →
@@ -188,6 +189,42 @@ Summary of what exists today:
 > auth store's `shouldAuthinticated` marker: `"open Story"→story`, `"open chat"→chat`,
 > `"seller"→seller`, and the bare boolean gate (cart/checkout purchase buttons) → `checkout`.
 > `verify_completed_returned_to_checkout` fires **only** when `flow_source === "checkout"`.
+
+> **`wallet_modal_opened`** keeps its old name for continuity, but today it means the shopper
+> picked the RDB payment method and the RDB payment screen (`RdbPaymentModal.tsx`) opened.
+> The old wallet checkout (a signed call straight to RDB) is gone — see
+> [RDB payment requests](#rdb-payment-requests-posthog-only) for what happens next.
+
+### RDB payment requests (PostHog-only)
+
+The browser no longer talks to RDB directly. It asks the Trydos **core** backend to create a
+payment request, shows the shopper a QR code and a short code, and polls the core backend until
+the request ends. These events are emitted by `trackOrder()` from `components/Cart/RdbPaymentModal.tsx`
+and `components/Cart/RdbPaymentLockedSheet.tsx`, and from the cart-lock check in `services/cart.ts`,
+`services/order.ts` and `services/home.ts`. All carry the
+[order base props](#auto-attached-to-every-order-event-utilsorderfunnelts).
+
+| Event | Fires when | Properties | File |
+|---|---|---|---|
+| `rdb_request_created` | The core backend created a payment request | `reference` | `RdbPaymentModal.tsx` |
+| `rdb_request_start_failed` | The core backend refused to create one — a validation error, a business-rule refusal, or an unexpected error | `http_status` | `RdbPaymentModal.tsx` |
+| `rdb_payment_paid` | A poll answered `paid` | `reference` | `RdbPaymentModal.tsx` |
+| `rdb_payment_expired` | A poll answered `expired`, or the on-screen countdown reached zero | `reference`, `status`, `failure_reason` | `RdbPaymentModal.tsx` |
+| `rdb_payment_ended` | A poll answered `cancelled` or `failed`, or the shopper tapped "Cancel payment" | `reference`, `status`, `failure_reason`, `by` (`"shopper"` on a manual cancel; absent otherwise) | `RdbPaymentModal.tsx` |
+| `rdb_cart_lock_hit` | A cart write or checkout came back `409` because a payment request is still pending | `at` (`"cart"`, `"checkout"` or `"old_cart"` — which call site hit the lock) | `services/cart.ts`, `services/order.ts`, `services/home.ts` |
+| `rdb_cart_lock_cleared` | The lock lifted through the cart-lock sheet, without the shopper reaching the payment screen | `by` (`"cancel"` — the shopper tapped "Cancel payment" and it succeeded; `"gone"` — the cancel came back `404`, so the reference no longer existed; `"poll"` — the sheet's own background poll found the request had left `awaiting_payment`) | `RdbPaymentLockedSheet.tsx` |
+
+> `rdb_payment_ended` and `rdb_payment_expired` both fire from the same `settle()` function in
+> `RdbPaymentModal.tsx`: `expired` gets its own event, `cancelled` and `failed` share
+> `rdb_payment_ended`. A manual cancel (the shopper tapping "Cancel payment" on the open payment
+> screen) also reports through `rdb_payment_ended`, with `status: "cancelled"` and `by: "shopper"`.
+>
+> `rdb_cart_lock_cleared` fires only from the **cart-lock sheet** (`RdbPaymentLockedSheet.tsx`),
+> covering every way its own view can end without the shopper ever opening the payment screen: a
+> successful cancel (`"cancel"`), a cancel that 404s because the request is already gone
+> (`"gone"`), and the sheet's own background poll noticing the request ended on its own
+> (`"poll"`). Finishing the payment through the payment screen (`paid`) also clears the lock, but
+> that path fires `rdb_payment_paid` instead, not this event.
 
 ---
 

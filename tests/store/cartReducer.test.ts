@@ -314,7 +314,7 @@ describe("startUpdateAddress — opening a saved address in the form", () => {
     ).toBe("+10000000000");
   });
 
-  it("loses the contact name when the saved address carries contact_person_name and no name", () => {
+  it("keeps the contact name when the saved address carries contact_person_name and no name", () => {
     const slice = makeCartSlice();
 
     slice.s.startUpdateAddress({
@@ -322,16 +322,28 @@ describe("startUpdateAddress — opening a saved address in the form", () => {
       contact_info: { contact_person_name: "Ada", phone: "+10000000000" },
     });
 
-    // This pins what the code does today, and it is a finding, not a wanted
-    // behaviour. Every screen that shows an address reads
-    // "contact_person_name || name", so both key shapes reach the app — but
-    // this function only handles name, and overwrites the other shape with
-    // undefined. Which shape /customer/address/list really returns is not
-    // answered anywhere in this repository, so nothing is changed here.
+    // **This was a recorded finding and is now fixed.** It used to pin the
+    // opposite — `toBeUndefined()` — because `startUpdateAddress` handled only
+    // `name` and its explicit assignment undid the `...contact_info` spread,
+    // overwriting a perfectly good `contact_person_name` with `undefined`.
+    //
+    // The finding was left alone because which shape `/customer/address/list`
+    // really returns is not answered anywhere in this repository. That question
+    // no longer has to be answered: the reducer falls back instead of
+    // overwriting, so both shapes work and neither has to be identified first.
+    // Every screen that shows an address already reads
+    // `contact_person_name || name`, so this brings the reducer in line with
+    // the rest of the app rather than picking a winner.
+    //
+    // What it cost a shopper: the edit form opened with no contact name,
+    // `isValid()` refused the save, and Save stayed grey for an address that
+    // was complete (`components/Cart/AddAddressForm.tsx`).
     expect(
       slice.s.addressDetails.contact_info.contact_person_name,
-      "the edit form now keeps a contact_person_name the saved address already carried — the finding this test records has been fixed, so update the test",
-    ).toBeUndefined();
+      "opening a saved address whose contact is stored as `contact_person_name` " +
+        "cleared it, so the edit form shows no contact name and refuses to save " +
+        "an address that was complete",
+    ).toBe("Ada");
   });
 
   it("overwrites the saved country with the country of the URL", () => {

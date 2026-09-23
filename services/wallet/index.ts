@@ -6,7 +6,6 @@ import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import {
   BanksApi,
   CalculateFeesApi,
-  CheckoutOrderApi,
   CreateBankDepositeApi,
   CurrenciesApi,
   FetchResponse,
@@ -408,77 +407,6 @@ export async function GetWalletBalanceInCurrency({
 }
 
 
-
-export async function CheckoutOrder({
-  cartId,
-  amount,
-  idempotencyKey,
-  local = "gb-en",
-  currencyId,
-}: {
-  cartId: string;
-  amount: number;
-  idempotencyKey: string;
-  local?: string;
-  currencyId: string;
-  storeKey?: "trydos";
-}) {
-  try {
-    let user = await getCookieServer<any>(COOKIE_NAMES.USER_DATA);
-    let userId = user?.id as string;
-    let token = await getCookieServer<string>(COOKIE_NAMES.WALLET_TOKEN);
-
-    // Prepare checkout payload
-    const checkoutPayload = {
-      currencyId: currencyId,
-      store_user_id: Number(userId),
-      amount: amount,
-      cart_group_ids: [cartId],
-      idempotencyKey: idempotencyKey,
-    };
-
-    // Sign payload and add headers
-    const crypto = require("crypto");
-    const timestamp = Date.now().toString();
-    const bodyObject = JSON.stringify(checkoutPayload);
-
-    const message = `${timestamp}.${bodyObject}`;
-    const digest = crypto
-      .createHmac("sha256", process.env.WALLET_SECRET_KEY)
-      .update(message, "utf8")
-      .digest("hex");
-    const signature = `sha256=${digest}`;
-    let response: FetchResponse<CheckoutOrderApi> = await fetchServerData({
-      method: "POST",
-      local: local,
-      body: JSON.stringify(checkoutPayload),
-      url: process.env.WALLET_BACKEND_URL + `/merchant/checkout`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "X-Merchant-Api-Key": process.env.WALLET_PUBLIC_API_KEY,
-        "X-Signature": signature,
-        "X-Timestamp": timestamp,
-      },
-    });
-    if (!response.success) {
-      // Do NOT return request headers/token/signature to the client (or log them).
-      // A minimal, non-sensitive failure sentinel is all the UI needs.
-      return { paymentFailed: true };
-    }
-    return processResponse<CheckoutOrderApi>(response, {
-      scenario: "CheckoutOrder in wallet system",
-      userId: String(userId),
-      url: process.env.WALLET_BACKEND_URL + `/merchant/checkout`,
-      currencyId: currencyId,
-      amount: amount,
-      cart_groub_ids: [cartId],
-      store_user_id: userId,
-      idempotencyKey: idempotencyKey,
-    });
-  } catch (e) {
-    LogServerError({ scenario: "wallet request failed", error: e });
-  }
-}
 
 export async function GetWalletBalanceForCountryCurrency({ country }) {
   let [currency, currencies] = await Promise.all([

@@ -12,6 +12,7 @@ import { IMAGE_FALLBACK_SCRIPT } from "utils/imageFallback";
 import RedeemedLuckScript from "components/Home/RedeemedLuckScript";
 import { isSupportedLocaleSegment } from "utils/locale";
 import CartProvider from "components/Cart/CartProvider";
+import RdbPaymentLockedSheet from "components/Cart/RdbPaymentLockedSheet";
 import Init from "components/Home/Init";
 import AuthNavContainer from "components/Home/AuthNavContainer";
 import AuthNavSkeleton from "components/Home/AuthNavSkeleton";
@@ -255,6 +256,11 @@ export default async function RootLayout({ children, modal }) {
         <Suspense fallback={null}>
           <CartProvider language={language} country={country} />
         </Suspense>
+        {/* Mounted globally, not inside the cart widget, so a pending RDB
+            payment locks every page the shopper is on — including product
+            pages, where AddToCart is called with the cart widget closed —
+            not only the cart itself. Draws nothing when there is no lock. */}
+        <RdbPaymentLockedSheet />
         <Suspense fallback={null}>
           <PathTracker />
         </Suspense>

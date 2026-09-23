@@ -28,6 +28,8 @@ import { isGuestName } from "utils/tinyUtils";
 import { COOKIE_NAMES, setCookie } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
+import { readRdbLock } from "./rdbPayment";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import {
   trackSubscribedTopic,
   untrackSubscribedTopic,
@@ -617,6 +619,12 @@ class HomeService {
         method: "POST",
         server: "market",
       });
+      const lock = readRdbLock(response);
+      if (lock) {
+        useAppStore.getState().setRdbLock(lock);
+        trackOrder(ORDER_EVENTS.RDB_CART_LOCK_HIT, { at: "old_cart" });
+        return;
+      }
       // @ts-ignore
       if (!response.success) {
         throw new Error(response.message);
