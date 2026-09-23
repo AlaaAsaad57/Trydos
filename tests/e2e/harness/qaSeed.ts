@@ -980,7 +980,7 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
       if (!lookups.ok) {
         refuse(
           "find or create the QA product",
-          `the product form's lookups could not be read (${lookups.status}: ${lookups.message}), so the required fields cannot be filled with values this backend accepts`,
+          `the core backend did not give the product form's lookups (GET /shop/products/lookups answered ${lookups.status}: ${lookups.message}), so the required fields cannot be filled with values this backend accepts`,
         );
       }
 

@@ -157,6 +157,14 @@ export const sellerCall = async (
   return await sendThroughProxy(page, options);
 };
 
+/** How long one call may wait for an answer.
+ *
+ *  Run 35845377516: `/shop/products/lookups` got no answer for 7 min 42 s, and
+ *  the seed then reported only "503: Proxy request failed" — which named no wait
+ *  and read like a refusal. The proxy itself has no time limit, so this call
+ *  sets one, and every failure says how long it waited. */
+const CALL_LIMIT_MS = 90_000;
+
 /** The proxy call itself, with no retry. */
 const sendThroughProxy = async (
   page: import("@playwright/test").Page,
@@ -174,7 +182,9 @@ const sendThroughProxy = async (
   },
 ): Promise<{ ok: boolean; status: number; data: any; message: string }> => {
   return await page.evaluate(
-    async ({ service, url, method, body, sellerId, country }) => {
+    async ({ service, url, method, body, sellerId, country, limitMs }) => {
+      const started = Date.now();
+      const waited = () => `after ${Math.round((Date.now() - started) / 1000)} s`;
       const headers: Record<string, string> = {
         "x-proxy-server": service,
         "x-proxy-url": url,
@@ -195,6 +205,7 @@ const sendThroughProxy = async (
           credentials: "include",
           headers,
           body: body === undefined ? undefined : JSON.stringify(body),
+          signal: AbortSignal.timeout(limitMs),
         });
         const text = await response.text();
         let parsed: any = null;
@@ -203,8 +214,10 @@ const sendThroughProxy = async (
         } catch {
           parsed = null;
         }
+        const ok = response.ok && parsed?.success !== false;
+        const said = String(parsed?.message ?? "").slice(0, 300);
         return {
-          ok: response.ok && parsed?.success !== false,
+          ok,
           status: response.status,
           // **Falls back to the whole body**, because not every endpoint here
           // wraps its answer. `/shop/uploads/presigned-url` returns
@@ -213,14 +226,17 @@ const sendThroughProxy = async (
           // "the backend answered without an address to upload to" when the
           // backend had in fact answered perfectly.
           data: parsed?.data ?? parsed ?? null,
-          message: String(parsed?.message ?? "").slice(0, 300),
+          message: ok ? said : `${said} (${waited()})`,
         };
       } catch (error) {
+        const timedOut = (error as Error)?.name === "TimeoutError";
         return {
           ok: false,
           status: 0,
           data: null,
-          message: String((error as Error)?.message ?? "").slice(0, 300),
+          message: timedOut
+            ? `the backend gave no answer within ${limitMs / 1000} s`
+            : `${String((error as Error)?.message ?? "").slice(0, 300)} (${waited()})`,
         };
       }
     },
@@ -231,6 +247,7 @@ const sendThroughProxy = async (
       body: options.body,
       sellerId: options.sellerId,
       country: options.country ?? "sy",
+      limitMs: CALL_LIMIT_MS,
     },
   );
 };
