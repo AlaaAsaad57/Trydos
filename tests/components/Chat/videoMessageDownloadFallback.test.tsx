@@ -23,14 +23,21 @@ import React from "react";
 
 import { renderWithProviders } from "../../render";
 
+// The menu props and the delete call are recorded for the menu cases at the
+// end of this file.
+const bubble = vi.hoisted(() => ({ menu: null as any, deleteMessage: vi.fn() }));
+
 vi.mock("store/chat/chatUtils", () => ({
-  DeleteMessage: vi.fn(),
+  DeleteMessage: (...a: any[]) => bubble.deleteMessage(...a),
   getMessageStatus: () => null,
   getMessageTime: () => "10:00",
 }));
 
 vi.mock("components/Chat/components/OptionsMenu", () => ({
-  default: () => null,
+  default: (p: any) => {
+    bubble.menu = p;
+    return null;
+  },
 }));
 
 vi.mock("components/Chat/components/ChatPhoto", () => ({
@@ -169,5 +176,73 @@ describe("a chat video the browser cannot play", () => {
       setVid,
       "tapping the download icon still opened the full-screen player, which shows the same black frame the bubble already showed",
     ).not.toHaveBeenCalled();
+  });
+});
+
+describe("the rest of a chat video bubble", () => {
+  async function mountBubble(extra: Record<string, any> = {}, activeChat: any = { id: 7, channel_members: [{ user_id: 2, user: { name: "Them" } }] }) {
+    const VideoMessage = (await import("components/Chat/components/messages/Types/VideoMessage")).default;
+    const p = {
+      setOpen: vi.fn(),
+      setDelete: vi.fn(),
+      setVid: vi.fn(),
+      openMenu: true,
+      type: "first-chat",
+      is_forward: 1,
+      message_content: [],
+      isPrivate: null,
+      message_status: [],
+      created_at: new Date().toISOString(),
+      mid: null,
+      id: 5,
+      DeleteModal: false,
+      parent_message: null,
+      GetMessage: () => {},
+      parent_message_id: null,
+      message_files: [{ file_path: FILE_PATH }],
+      channel_id: 7,
+      channel_member: null,
+      is_from_sender: true,
+      sender_user_id: 2,
+      ...extra,
+    };
+    const spies = { setForwardMessage: vi.fn(), setReplyMessage: vi.fn() };
+    await renderWithProviders(<VideoMessage {...(p as any)} />, {
+      store: { userChat: { id: 2 }, activeChat, ...spies },
+    });
+    return { p, spies };
+  }
+
+  it("plays on the play button, opens the menu on a tap, and shows the forward mark", async () => {
+    const { p } = await mountBubble();
+    fireEvent.click(playButton()!);
+    expect(p.setVid, "the play button did not open the player").toHaveBeenCalledWith(FILE_PATH);
+    expect(p.setOpen, "the play button also opened the menu").not.toHaveBeenCalled();
+    fireEvent.click(document.querySelector(".message-img-body")!);
+    expect(p.setOpen, "a tap did not open the menu for this video").toHaveBeenCalledWith(5);
+    fireEvent.mouseLeave(document.querySelector(".message-hold")!);
+    expect(p.setOpen, "leaving did not close the menu").toHaveBeenLastCalledWith(false);
+    expect(document.querySelector(".forwarded-message-icon"), "the forward mark was not shown").not.toBeNull();
+    expect(document.querySelector(".absolute-avatar")!.className, "a member with a name and no photo got no text avatar").toContain("text-avatar");
+  });
+
+  it("shows no avatar mid-run and works with no open chat", async () => {
+    await mountBubble({ type: "middle-chat", is_from_sender: false }, null);
+    expect(document.querySelector(".absolute-avatar"), "a middle bubble showed an avatar").toBeNull();
+  });
+
+  it("the menu plays, replies, forwards and deletes", async () => {
+    const { p, spies } = await mountBubble();
+    bubble.menu.setImg();
+    expect(p.setVid, "the menu's eye did not open the player").toHaveBeenCalledWith(FILE_PATH);
+    bubble.menu.click();
+    expect(spies.setReplyMessage.mock.calls[0][0].message_type, "the reply was not a video").toEqual({ name: "VideoMessage" });
+    bubble.menu.forward();
+    expect(spies.setForwardMessage.mock.calls[0][0].id, "the forward was not this video").toBe(5);
+    bubble.menu.deleteMessage(true);
+    expect(bubble.deleteMessage, "the video was not deleted").toHaveBeenCalledWith(7, 5, true);
+    bubble.menu.setDelete(true);
+    expect(p.setDelete, "the delete box was not opened").toHaveBeenCalledWith(true);
+    bubble.menu.copy();
   });
 });

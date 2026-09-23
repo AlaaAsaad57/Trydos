@@ -72,7 +72,11 @@ vi.mock("components/ServerWrapper/ProductWrapper/ProductColorsBottomSheet", () =
   default: ({ children }: any) => <div>{children}</div>,
 }));
 vi.mock("components/ServerWrapper/ProductWrapper/ProductColorsCards", () => ({
-  default: () => null,
+  // Reports whether the card asked for the deal border, so the slider case can
+  // read it.
+  default: ({ shouldShowOrangeBorder }: any) => (
+    <span data-testid="colors-cards" data-orange={String(shouldShowOrangeBorder?.())} />
+  ),
 }));
 
 const { default: ProductCard } = await import(
@@ -301,5 +305,64 @@ describe("the product card as a way into the product (phase 25)", () => {
       cardLink()?.getAttribute("href"),
       "an empty `?color=` asks the product page for a colour that does not exist, and makes a second address for one product",
     ).not.toContain("color=");
+  });
+});
+
+describe("the product card with its sliders (listing pages)", () => {
+  function renderSliderCard(product: any) {
+    return renderWithProviders(
+      <ProductCard
+        product={product}
+        currency={CURRENCY}
+        country="gb"
+        language="en"
+        sliders={true}
+        sizesFilters={null}
+        fromRecomended={null}
+      />,
+    );
+  }
+
+  it("plays the product videos instead of the photos", async () => {
+    const { container } = await renderSliderCard(
+      buildListingProduct({ videos: ["/v/one.mp4", "/v/two.mp4"] as any }),
+    );
+    expect(container.querySelectorAll("video").length === 2, "the two videos are not both shown").toBe(true);
+    expect(
+      container.querySelector('[data-testid="colors-cards"]')?.getAttribute("data-orange"),
+      "a card with no deal asked for the deal border",
+    ).toBe("false");
+  });
+
+  it("shows the photos when there are no videos", async () => {
+    const { container } = await renderSliderCard(
+      buildListingProduct({ images: [{ file_path: "/p/a.jpg" }, { file_path: "/p/b.jpg" }] as any }),
+    );
+    expect(container.querySelector("video"), "a card without videos showed a video").toBeNull();
+    expect(container.querySelectorAll(".embla__slide").length === 2, "the two photos are not both shown").toBe(true);
+  });
+});
+
+describe("a luck product card", () => {
+  it("watches whether it is on screen, and stops watching when it goes", async () => {
+    const observe = vi.fn();
+    const disconnect = vi.fn();
+    let report: (entries: any[]) => void = () => {};
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(cb: any) {
+          report = cb;
+        }
+        observe = observe;
+        disconnect = disconnect;
+      },
+    );
+    const { unmount } = await renderCard(buildListingProduct({ is_luck: true, luck_price: 5 } as any));
+    expect(observe, "a luck card did not watch its visibility").toHaveBeenCalled();
+    report([{ isIntersecting: false }]);
+    unmount();
+    expect(disconnect, "the luck card kept watching after it went").toHaveBeenCalled();
+    vi.unstubAllGlobals();
   });
 });

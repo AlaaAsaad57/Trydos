@@ -18,7 +18,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import AddAddressForm from "components/Cart/AddAddressForm";
 import { useAppStore } from "store";
 
-import { renderWithProviders, userEvent } from "../../render";
+import { renderWithProviders, userEvent, waitFor } from "../../render";
 
 // jsdom has no `scrollIntoView`, and `shake()` calls it before it adds the
 // class this file asserts on (`components/Cart/AddAddressForm.tsx`). Without
@@ -250,5 +250,188 @@ describe("editing an address the account already has", () => {
         "without a `location` object, so the shopper cannot save the change " +
         "they just typed",
     ).not.toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The rest of the form: typing into each field, the shake for every refused
+// field, the guest-name field, editing, and a save that throws.
+// ---------------------------------------------------------------------------
+describe("the address form fields and buttons", () => {
+  async function openForm(
+    form: Record<string, unknown>,
+    props: Record<string, unknown> = {},
+    extraStore: Record<string, unknown> = {},
+  ) {
+    const handlers = {
+      setOpenSelect: vi.fn(),
+      slidePrev: vi.fn(),
+      setAddressDetails: vi.fn(),
+    };
+    await renderWithProviders(
+      <AddAddressForm activeIndex={false} {...handlers} {...(props as any)} />,
+      {
+        country: "sy",
+        path: "/cart",
+        store: {
+          countries: [],
+          addressLists: [],
+          addressDetails: { ...form },
+          ...extraStore,
+        },
+      },
+    );
+    return handlers;
+  }
+  const pw = (id: string) =>
+    document.querySelector(`[data-pw="${id}"]`) as HTMLInputElement;
+  const save = () => userEvent.click(pw("AddSaveButton"));
+
+  it("writes what the shopper types into every field of the stored address", async () => {
+    await openForm({ contact_info: {} });
+
+    await userEvent.type(pw("text-area-placeholder"), "Blue door");
+    await userEvent.type(pw("add-address-input"), "Home");
+    await userEvent.type(pw("recipient-name-input"), "Ada");
+    await userEvent.type(pw("Contact-Phone-input"), "0999");
+    await userEvent.type(pw("optional-input"), "0888");
+
+    const details = useAppStore.getState().addressDetails as any;
+    expect(details.address_detail, "the detail line was not stored").toBe("Blue door");
+    expect(details.address, "the address title was not stored").toBe("Home");
+    expect(
+      details.contact_info.contact_person_name,
+      "the recipient name was not stored",
+    ).toBe("Ada");
+    expect(details.contact_info.phone, "the contact phone was not stored").toBe("0999");
+    expect(
+      details.contact_info.alternative_phone,
+      "the alternative phone was not stored",
+    ).toBe("0888");
+  });
+
+  it("opens the region list when the shopper taps 'Change From List'", async () => {
+    const { setOpenSelect } = await openForm({ contact_info: {} });
+    await userEvent.click(pw("Change-From-List"));
+    expect(setOpenSelect, "tapping the region field did not open the region list").toHaveBeenCalled();
+  });
+
+  it("asks a guest for their name, shakes the name field until it is filled, then saves it to the account", async () => {
+    AddAddressList.mockResolvedValue(undefined);
+    const auth = (await import("services/auth")).default as any;
+    auth.UpdateName.mockClear();
+    await openForm(filledForm, { userName: "" });
+
+    await save();
+    expect(
+      document.querySelector(".username-border.shake-anim"),
+      "a guest pressed Save with no name and the name field was not shaken",
+    ).not.toBeNull();
+    await waitFor(
+      () =>
+        expect(
+          document.querySelector(".username-border.shake-anim"),
+          "the shake did not stop after 1.3 seconds",
+        ).toBeNull(),
+      { timeout: 2500 },
+    );
+
+    await userEvent.type(pw("user-name-input"), "Ada Guest");
+    await save();
+    expect(AddAddressList, "the filled guest form was not saved").toHaveBeenCalled();
+    expect(
+      auth.UpdateName,
+      "the name the guest typed was not saved to the account",
+    ).toHaveBeenCalledWith("Ada Guest");
+  });
+
+  it.each([
+    ["title-border", { address: "" }],
+    ["region-border", { region: "" }],
+    ["name-border", { contact_info: { phone: "+10000000000" } }],
+  ])("shakes %s when that field holds up the save", async (field, change) => {
+    await openForm({ ...filledForm, ...change });
+    await save();
+    expect(
+      document.querySelector(`.${field}.shake-anim`),
+      `the field (${field}) that refused the save was not shaken`,
+    ).not.toBeNull();
+  });
+
+  it("does nothing on Save when no field can be found to shake", async () => {
+    await openForm({ ...filledForm, region: "" });
+    document.querySelector(".region-border")!.classList.remove("region-border");
+    await save();
+    expect(
+      document.querySelector(".shake-anim"),
+      "a field was shaken although the refused field is not on the page",
+    ).toBeNull();
+  });
+
+  it("saves an edited address to the core backend, updates the list and goes back", async () => {
+    const order = (await import("services/order")).default as any;
+    order.UpdateAddressList.mockImplementation(async ({ callback }: any) => callback());
+    const edited = { ...filledForm, id: 11, address: "Home (new)" };
+    const { slidePrev } = await openForm(edited, {}, {
+      addressLists: [{ ...existingAddress }],
+    });
+
+    expect(pw("AddSaveButton").textContent, "an existing address must offer 'Edit & Save'").toBe(
+      "Edit & Save",
+    );
+    await save();
+    const sent = order.UpdateAddressList.mock.calls[0]?.[0]?.address;
+    expect(sent?.id, "the edit was not sent for address 11").toBe(11);
+    expect(sent?.Country?.code, "the edit did not carry the country from the URL").toBe("sy");
+    expect(slidePrev, "the form did not go back after the edit was saved").toHaveBeenCalled();
+    expect(
+      (useAppStore.getState().addressLists as any[]).find((a) => a.id === 11)?.address,
+      "the list still shows the old title after the edit was saved",
+    ).toBe("Home (new)");
+  });
+
+  it("stops the loading state when saving throws", async () => {
+    // The service turns the loading state on before it calls the backend.
+    AddAddressList.mockImplementation(async () => {
+      useAppStore.setState({ orderLoading: true } as any);
+      throw new Error("boom");
+    });
+    await openForm(filledForm, {}, { orderLoading: false });
+    await save();
+    await waitFor(() =>
+      expect(
+        (useAppStore.getState() as any).orderLoading,
+        "a save that threw left the form in its loading state",
+      ).toBe(false),
+    );
+    expect(AddAddressList, "the save was not tried").toHaveBeenCalled();
+  });
+
+  it("opens and closes the map inside the form, and hides Save while the map is open", async () => {
+    await renderWithProviders(
+      <AddAddressForm
+        activeIndex={true}
+        setOpenSelect={() => {}}
+        slidePrev={() => {}}
+        setAddressDetails={(e: any) => useAppStore.getState().setAddressDetails(e)}
+      />,
+      {
+        country: "sy",
+        path: "/cart",
+        store: {
+          countries: [{ id: 1, name: "Syria", iso: "sy", latitude: "33", longitude: "36" }],
+          addressDetails: { ...filledForm },
+        },
+      },
+    );
+
+    await userEvent.click(pw("map-toggle"));
+    expect(pw("AddSaveButton"), "Save must be hidden while the map is open").toBeNull();
+    await userEvent.click(pw("cancel-button"));
+    expect(pw("AddSaveButton"), "Save did not come back after the map closed").not.toBeNull();
+    expect(
+      (useAppStore.getState().addressDetails as any).location,
+      "Cancel on the map did not clear the picked point",
+    ).toEqual({ latitude: null, longitude: null });
   });
 });

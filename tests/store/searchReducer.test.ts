@@ -76,3 +76,27 @@ describe("Search store reducer actions", () => {
     expect(searchResults.prices, "prices range should be updated").toEqual({ min_price: 50, max_price: 150 });
   });
 });
+
+describe("Search store — the flags the search screen uses", () => {
+  it("setSearchPartialLoading and setSearchLoading write their flags", () => {
+    useAppStore.getState().setSearchPartialLoading(true);
+    useAppStore.getState().setSearchLoading(true);
+    expect(useAppStore.getState().partialLoading, "the partial-loading flag was not set").toBe(true);
+    expect(useAppStore.getState().loading_search, "the search-loading flag was not set").toBe(true);
+  });
+
+  it("setEnableSearch opens the search, and closing it clears the word, filters and total", () => {
+    useAppStore.setState({
+      value: "shirt",
+      totalProducts: 12,
+      searchFilters: { ...useAppStore.getState().searchFilters, brands: [{ slug: "b" }] },
+    } as any);
+    useAppStore.getState().setEnableSearch(true);
+    expect(useAppStore.getState().enable_search, "the search did not open").toBe(true);
+    expect(useAppStore.getState().value, "opening the search cleared the word").toBe("shirt");
+    useAppStore.getState().setEnableSearch(false);
+    const s = useAppStore.getState();
+    expect([s.enable_search, s.value, s.totalProducts], "closing the search left state behind").toEqual([false, "", null]);
+    expect(s.searchFilters.brands, "closing the search kept the filters").toEqual([]);
+  });
+});

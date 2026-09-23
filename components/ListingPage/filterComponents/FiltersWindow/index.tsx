@@ -179,10 +179,21 @@ const FiltersWindowUI = ({
     setFiltersNodes(children);
   }, [filterEnabled, initialFilters, initialSelectedChips, initialPriceRange, children]);
 
+  // The guard reads refs, not the `loading` state: a chip tapped mid-request
+  // builds a new UpdateFilters while `loading` is true, and that stale value
+  // used to drop its re-ask for good. Now it is remembered and run once the
+  // running request finishes, with the latest selection.
+  const loadingRef = useRef(false);
+  const reaskRef = useRef(false);
+  const latestUpdateRef = useRef<() => void>(() => {});
   const UpdateFilters = useCallback(async () => {
-    if (loading) return;
+    if (loadingRef.current) {
+      reaskRef.current = true;
+      return;
+    }
 
     try {
+      loadingRef.current = true;
       setLoading(true);
       let response = await GetFilters({
         country,
@@ -205,9 +216,17 @@ const FiltersWindowUI = ({
         scenario: "Update Filters in FiltersWindow",
       });
     } finally {
+      loadingRef.current = false;
       setLoading(false);
+      if (reaskRef.current) {
+        reaskRef.current = false;
+        latestUpdateRef.current();
+      }
     }
   }, [selectedChips, priceRange, country, language]);
+  useEffect(() => {
+    latestUpdateRef.current = UpdateFilters;
+  }, [UpdateFilters]);
 
   // 2. The Debounced Effect with a mount check
 

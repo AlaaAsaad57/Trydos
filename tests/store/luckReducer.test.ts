@@ -45,3 +45,17 @@ describe("Luck store reducer actions", () => {
     expect(timer.pausedRemaining, "pausedRemaining should be 0").toBe(0);
   });
 });
+
+describe("Luck store — a product already redeemed", () => {
+  it("startLuck marks a redeemed product expired at once, without a countdown", async () => {
+    const { addRedeemedId } = await import("utils/luck");
+    useAppStore.setState({ luckByProduct: {} } as any);
+    addRedeemedId(909);
+    useAppStore.getState().startLuck(909, 60);
+    expect(useAppStore.getState().luckByProduct["909"], "a redeemed product got a new countdown").toEqual({
+      deadlineTs: null,
+      pausedRemaining: 0,
+      expired: true,
+    });
+  });
+});

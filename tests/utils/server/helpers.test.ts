@@ -614,3 +614,23 @@ describe("tidying text for display (stripHtml, getThumb, convertTextToXFormat)",
     expect(convertTextToXFormat("")).toBe("");
   });
 });
+
+describe("addresses that will not decode", () => {
+  it("parseFiltersFromParams keeps a value that is not valid percent-encoding as it is", () => {
+    expect(
+      parseFiltersFromParams(["brands", "nike,a%E0%A4%A"]),
+      "an undecodable brand broke the filter reading",
+    ).toEqual({ brands: ["nike", "a%E0%A4%A"] });
+  });
+
+  it("parseNumberArray reads the raw text when it will not decode", () => {
+    expect(parseNumberArray("1,%E0%A4%A,3"), "an undecodable number list was not read raw").toEqual([1, 3]);
+  });
+
+  it("getThumb gives a video the same small size", () => {
+    expect(
+      getThumb("https://media.example.com/video/upload/v1/a.mp4", true),
+      "the video thumb is wrong",
+    ).toBe("https://media.example.com/video/upload/h_194/f_webp/q_100/v1/a.mp4");
+  });
+});

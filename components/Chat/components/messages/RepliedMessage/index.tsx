@@ -84,7 +84,7 @@ function RepliedMessageWrapper({
       )}
       {parent_message?.message_type?.name === "FileMessage" && (
         <RepliedFileMessage
-          channel_member={channel_member}
+          channel_member={channel_member?.user}
           deleted_by_user_id={isDeleted}
           onClick={onClick}
         />

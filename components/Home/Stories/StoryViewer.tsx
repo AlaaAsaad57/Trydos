@@ -153,11 +153,12 @@ const StoryViewer = ({
       }
     };
     rafRef.current = requestAnimationFrame(step);
+    // Wait only for the part not watched yet (after a pause, initialProgress > 0).
     timeoutRef.current = setTimeout(() => {
       if (!isPaused) {
         handleNext();
       }
-    }, duration);
+    }, duration * (1 - initialProgress));
   };
 
   const handleNext = () => {
@@ -193,12 +194,6 @@ const StoryViewer = ({
         previousStoryIndexRef.current >= 0 &&
         previousStoryIndexRef.current !== index
       ) {
-        // Account for any active pause before logging
-        if (pauseStartTimeRef.current !== null) {
-          const pauseDuration = Date.now() - pauseStartTimeRef.current;
-          totalPausedTimeRef.current += pauseDuration;
-          pauseStartTimeRef.current = null;
-        }
         logStoryViewTime(previousStoryIndexRef.current);
       }
 

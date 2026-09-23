@@ -43,10 +43,16 @@ vi.mock("serverRequests", () => ({
   fetchStoriesForUser: vi.fn(async () => []),
 }));
 
-// A static import that pulls in the whole `qrcode` package. The cap does not
-// touch the QR path.
+// A static import that pulls in the whole `qrcode` package. The QR screen has
+// its own test; here it is two buttons, so the widget's QR hand-offs (approved,
+// back) can be pressed.
 vi.mock("components/Login/Enhanced/screens/QrLoginScreen", () => ({
-  default: () => null,
+  default: ({ onApproved, onBack }: { onApproved: () => void; onBack: () => void }) => (
+    <div>
+      <button onClick={onApproved}>qr approved</button>
+      <button onClick={onBack}>qr back</button>
+    </div>
+  ),
 }));
 
 // The screens slide in and out under `AnimatePresence mode="wait"`, which holds
@@ -89,6 +95,9 @@ vi.mock("framer-motion", () => {
 });
 
 import AuthService from "services/auth";
+import { fetchStoriesForUser } from "serverRequests";
+import { useAppStore } from "store";
+import { LogError } from "utils/functions";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { lockNumber, recordSessionNumber } from "utils/otpLocks";
@@ -268,5 +277,326 @@ describe("the three-try cap on the login and signup screen", () => {
         "codes the cap counts — repointing it at the cap changes what this " +
         "event has always meant with no error anywhere",
     ).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The rest of the widget: every screen it moves between, and what each hand-off
+// sends to analytics and to the auth service. `SendOtp` here arms NO cooldown
+// unless a case says so, so the resend and change links are on screen at once.
+// ---------------------------------------------------------------------------
+
+const updateName = AuthService.UpdateName as unknown as ReturnType<typeof vi.fn>;
+const fetchStories = fetchStoriesForUser as unknown as ReturnType<typeof vi.fn>;
+const logError = LogError as unknown as ReturnType<typeof vi.fn>;
+const pw = (id: string) => document.querySelector<HTMLElement>(`[data-pw="${id}"]`)!;
+const actions = () =>
+  gaEvent.mock.calls.map(([payload]: [{ action: string }]) => payload.action);
+const isOpen = () => useAppStore.getState().loginOpen;
+
+async function openWidget() {
+  const user = userEvent.setup();
+  await renderWithProviders(<FullEnhancedLoginWidget />, {
+    country: "sy",
+    store: { loginOpen: true, verficationID: VERIFICATION_ID },
+  });
+  await screen.findByText("I Have Already Account");
+  return { user };
+}
+
+type User = ReturnType<typeof userEvent.setup>;
+
+async function sendNumber(user: User) {
+  await user.click(await screen.findByRole("button", { name: "Send phone number" }));
+  await screen.findByText("Choose Verification Method");
+}
+
+async function typePhoneAndSend(user: User) {
+  await user.type(phoneField(), PHONE);
+  await sendNumber(user);
+}
+
+async function pickMethod(user: User, how: "whatsapp" | "sms" = "sms") {
+  await user.click(pw(`${how}-receive-otp`));
+  await waitFor(() => expect(codeField(), "the code step did not open").toBeInTheDocument());
+}
+
+async function toCodeStep(user: User, how: "whatsapp" | "sms" = "sms") {
+  await typePhoneAndSend(user);
+  await pickMethod(user, how);
+}
+
+describe("FullEnhancedLoginWidget — the screens and their hand-offs", () => {
+  beforeEach(() => {
+    // Closing the widget (setLoginOpen(false)) scrolls the page back; jsdom
+    // has no scrolling.
+    document.documentElement.scrollTo = vi.fn() as never;
+    sendOtp.mockReset();
+    sendOtp.mockResolvedValue(undefined);
+    updateName.mockReset();
+    updateName.mockResolvedValue(undefined);
+    fetchStories.mockReset();
+    fetchStories.mockResolvedValue({ data: [{ id: 1 }] });
+  });
+
+  it("renders nothing while the login modal is closed", async () => {
+    const { container } = await renderWithProviders(<FullEnhancedLoginWidget />, {
+      store: { loginOpen: false },
+    });
+    expect(container.innerHTML, "a closed widget rendered markup").toBe("");
+  });
+
+  it("'later' on the first screen closes the widget and is reported as a skip", async () => {
+    const { user } = await openWidget();
+    await user.click(pw("take-look"));
+    expect(isOpen(), "later did not close the widget").toBe(false);
+    expect(actions(), "the later click was not reported").toContain(
+      GA_EVENT_NAMES.LATER_TAKE_LOOK_CLICKED,
+    );
+  });
+
+  it("a new customer signs up with WhatsApp, lands on the name step and names the account", async () => {
+    verifyOtp.mockResolvedValue([false, ""]);
+    const { user } = await openWidget();
+    await user.click(pw("create-account"));
+    expect(actions(), "signup start was not reported").toContain(GA_EVENT_NAMES.SIGNUP_START);
+    await user.click(pw("agree-continue"));
+    // Back from the number screen goes to the terms for a signup.
+    await user.click(await screen.findByRole("button", { name: "Close" }));
+    await user.click(pw("agree-continue"));
+    await toCodeStep(user, "whatsapp");
+    expect(sendOtp, "WhatsApp was not asked for").toHaveBeenCalledWith(PHONE, 1, expect.any(Function));
+
+    await user.type(codeField(), "123456");
+    await screen.findByText("Enter Your Name !", undefined, { timeout: 5000 });
+    expect(fetchStories, "the story rail was not re-read after sign-up").toHaveBeenCalledWith(
+      "en",
+      "sy",
+      1,
+    );
+    expect(useAppStore.getState().storiesData, "the fresh stories were not stored").toEqual([
+      { id: 1 },
+    ]);
+    expect(actions(), "the sign-up was not reported").toContain(GA_EVENT_NAMES.SIGN_UP);
+
+    await user.type(pw("input-user-name-field") as HTMLInputElement, "Rana");
+    await user.click(pw("submit-user-name"));
+    await waitFor(() => expect(isOpen(), "naming the account did not close").toBe(false));
+    expect(updateName, "the name was not sent").toHaveBeenCalledWith("Rana");
+  }, 15000);
+
+  it("signing up with a number that already has a named account offers to log in", async () => {
+    verifyOtp.mockResolvedValue([true, "Rana"]);
+    fetchStories.mockRejectedValue(new Error("stories down"));
+    const { user } = await openWidget();
+    await user.click(pw("create-account"));
+    await user.click(pw("agree-continue"));
+    await toCodeStep(user);
+    await user.type(codeField(), "123456");
+    await screen.findByText("Already Registered !", undefined, { timeout: 4000 });
+    expect(logError, "a failed story refresh was not logged").toHaveBeenCalledWith(
+      expect.objectContaining({ scenario: expect.stringContaining("refreshing stories") }),
+    );
+
+    // Back goes to the number; come forward again and log in.
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    expect(phoneField(), "back from already-registered did not show the number").toBeInTheDocument();
+    await sendNumber(user);
+    await pickMethod(user);
+    await user.type(codeField(), "123456");
+    await screen.findByText("Already Registered !", undefined, { timeout: 4000 });
+    await user.click(pw("login-continue"));
+    // A named account finishes from the welcome screen without the name step.
+    await waitFor(() => expect(isOpen(), "the welcome screen did not close").toBe(false), {
+      timeout: 4000,
+    });
+  }, 20000);
+
+  it("'cancel' on the already-registered screen closes as a skip", async () => {
+    verifyOtp.mockResolvedValue([true, "Rana"]);
+    const { user } = await openWidget();
+    await user.click(pw("create-account"));
+    await user.click(pw("agree-continue"));
+    await toCodeStep(user);
+    await user.type(codeField(), "123456");
+    await screen.findByText("Already Registered !", undefined, { timeout: 4000 });
+    await user.click(pw("cancel-take-look"));
+    expect(isOpen(), "cancel did not close").toBe(false);
+  }, 15000);
+
+  it("logging in with a number that has no account offers to create one, and a failed name save still closes", async () => {
+    verifyOtp.mockResolvedValue([false, ""]);
+    updateName.mockRejectedValue(new Error("name refused"));
+    const { user } = await openWidget();
+    await user.click(pw("have-account-button"));
+    await toCodeStep(user);
+    await user.type(codeField(), "123456");
+    await screen.findByText("Not Registered !", undefined, { timeout: 4000 });
+
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    expect(phoneField(), "back from not-registered did not show the number").toBeInTheDocument();
+    await sendNumber(user);
+    await pickMethod(user);
+    await user.type(codeField(), "123456");
+    await screen.findByText("Not Registered !", undefined, { timeout: 4000 });
+    await user.click(pw("create-account-continue"));
+    await user.type(pw("input-user-name-field") as HTMLInputElement, "Omar");
+    await user.click(pw("submit-user-name"));
+    await waitFor(() => expect(isOpen(), "a failed name save kept the widget open").toBe(false));
+    expect(logError, "the failed name save was not logged").toHaveBeenCalledWith(
+      expect.objectContaining({ scenario: expect.stringContaining("handleNameSubmit") }),
+    );
+  }, 20000);
+
+  it("'cancel' on the not-registered screen closes as a skip", async () => {
+    verifyOtp.mockResolvedValue([false, ""]);
+    const { user } = await openWidget();
+    await user.click(pw("have-account-button"));
+    await toCodeStep(user);
+    await user.type(codeField(), "123456");
+    await screen.findByText("Not Registered !", undefined, { timeout: 4000 });
+    await user.click(pw("cancel-take-look"));
+    expect(isOpen(), "cancel did not close").toBe(false);
+  }, 15000);
+
+  it("a login for an account with a real name closes after the welcome", async () => {
+    verifyOtp.mockResolvedValue([true, "Rana"]);
+    const { user } = await openWidget();
+    await user.click(pw("have-account-button"));
+    await toCodeStep(user);
+    await user.type(codeField(), "123456");
+    await waitFor(() => expect(pw("welcome"), "no welcome screen").toBeTruthy(), { timeout: 4000 });
+    await waitFor(
+      () => expect(isOpen(), "the login did not close after the welcome").toBe(false),
+      { timeout: 4000 },
+    );
+    expect(actions(), "the login was not reported").toContain(GA_EVENT_NAMES.LOGIN);
+  }, 15000);
+
+  it("a login for an account with a placeholder name asks for the name", async () => {
+    verifyOtp.mockResolvedValue([true, "x"]);
+    const { user } = await openWidget();
+    await user.click(pw("have-account-button"));
+    await toCodeStep(user);
+    await user.type(codeField(), "123456");
+    await screen.findByText("Enter Your Name !", undefined, { timeout: 6000 });
+    expect(isOpen(), "a placeholder-name login closed before the name step").toBe(true);
+  }, 15000);
+
+  it("moves back and forth between the number, method and code screens", async () => {
+    const { user } = await openWidget();
+    await user.click(pw("have-account-button"));
+    // Back from the number screen goes to the first screen for a login.
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    await user.click(await screen.findByText("I Have Already Account"));
+    await typePhoneAndSend(user);
+    await user.click(pw("edit-phone-number"));
+    expect(phoneField(), "Edit did not go back to the number").toBeInTheDocument();
+    await sendNumber(user);
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    expect(phoneField(), "back from the method screen did not show the number").toBeInTheDocument();
+    await sendNumber(user);
+    await pickMethod(user);
+
+    await user.click(pw("change-otp-method"));
+    await screen.findByText("Choose Verification Method");
+    await pickMethod(user);
+    await user.click(pw("change-phone-number"));
+    expect(phoneField(), "change number did not go back").toBeInTheDocument();
+    await sendNumber(user);
+    await pickMethod(user);
+    await user.click(screen.getByRole("button", { name: "Close" }));
+    expect(
+      await screen.findByText("Choose Verification Method"),
+      "back from the code screen did not show the methods",
+    ).toBeInTheDocument();
+  }, 20000);
+
+  it("resends the code by the chosen method, and shows why a resend failed", async () => {
+    const { user } = await openWidget();
+    await user.click(pw("have-account-button"));
+    await toCodeStep(user, "whatsapp");
+    sendOtp.mockClear();
+    await user.click(pw("resend-code"));
+    await waitFor(() =>
+      expect(sendOtp, "the resend did not use WhatsApp").toHaveBeenCalledWith(
+        PHONE,
+        1,
+        expect.any(Function),
+      ),
+    );
+    expect(actions(), "the resend was not reported").toContain(GA_EVENT_NAMES.RESEND_OTP);
+
+    sendOtp.mockRejectedValue(new Error("The code service is busy"));
+    await waitFor(() => expect(pw("resend-code"), "the resend link did not come back").toBeTruthy());
+    await user.click(pw("resend-code"));
+    expect(
+      await screen.findByText("The code service is busy"),
+      "the resend error was not shown",
+    ).toBeInTheDocument();
+    expect(logError, "the failed resend was not logged").toHaveBeenCalledWith(
+      expect.objectContaining({ scenario: expect.stringContaining("handleResendOtp") }),
+    );
+  }, 15000);
+
+  it("drops the server's wait message when the failed resend armed a cooldown", async () => {
+    const { user } = await openWidget();
+    await user.click(pw("have-account-button"));
+    await toCodeStep(user);
+    sendOtp.mockImplementation(async () => {
+      lockNumber(PHONE, 120);
+      throw new Error("Please wait 120 seconds before trying again");
+    });
+    await user.click(pw("resend-code"));
+    await waitFor(() => expect(sendOtp, "the resend was not tried").toHaveBeenCalledTimes(2));
+    expect(
+      screen.queryByText("Please wait 120 seconds before trying again"),
+      "the frozen server wait message was shown next to the countdown",
+    ).toBeNull();
+  }, 15000);
+
+  it("shows a translated fallback when sending the first code fails with no useful text", async () => {
+    sendOtp.mockRejectedValue(new Error(""));
+    const { user } = await openWidget();
+    await user.click(pw("have-account-button"));
+    await typePhoneAndSend(user);
+    await user.click(pw("sms-receive-otp"));
+    expect(
+      await screen.findByText("Something went wrong"),
+      "no fallback error text",
+    ).toBeInTheDocument();
+    expect(actions(), "the failed send was not reported").toContain(GA_EVENT_NAMES.EXCEPTION);
+  });
+
+  it("reports the code timer running out once the cooldown ends", async () => {
+    sendOtp.mockImplementation(async () => {
+      lockNumber(PHONE, 1);
+    });
+    const { user } = await openWidget();
+    await user.click(pw("have-account-button"));
+    await toCodeStep(user);
+    await waitFor(
+      () =>
+        expect(actions(), "the timer expiry was not reported").toContain(
+          GA_EVENT_NAMES.TIMER_EXPIRED,
+        ),
+      { timeout: 4000 },
+    );
+  }, 15000);
+
+  it("QR login: back returns to the first screen, approval closes the widget", async () => {
+    const { user } = await openWidget();
+    await user.click(pw("scan-qr-code"));
+    await user.click(await screen.findByText("qr back"));
+    await user.click(pw("scan-qr-code"));
+    await user.click(await screen.findByText("qr approved"));
+    expect(isOpen(), "QR approval did not close").toBe(false);
+    expect(
+      gaEvent.mock.calls.some(
+        ([p]: [{ action: string; params: { method_otp?: string } }]) =>
+          p.action === GA_EVENT_NAMES.LOGIN && p.params.method_otp === "qr",
+      ),
+      "the QR login was not reported",
+    ).toBe(true);
   });
 });

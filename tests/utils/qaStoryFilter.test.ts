@@ -277,3 +277,23 @@ describe("a number is matched however it is written", () => {
     ).toBe(true);
   });
 });
+
+describe("the QA host itself", () => {
+  it("uses a valid override host, and falls back for one that will not parse", async () => {
+    const { isQaStory } = await import("utils/qaStoryFilter");
+    vi.stubEnv("NEXT_PUBLIC_QA_STORY_LINK_HOST", "https://QA.example.com/");
+    expect(isQaStory({ link: "https://qa.example.com/p" }), "the override host was not used").toBe(true);
+    vi.stubEnv("NEXT_PUBLIC_QA_STORY_LINK_HOST", "http://exa mple");
+    expect(isQaStory({ link: "https://qa-test.trydos.tech/p" }), "an unparseable override did not fall back").toBe(true);
+    vi.unstubAllEnvs();
+  });
+
+  it("does not treat a missing story or a link that is not text as QA", async () => {
+    const { isQaStory } = await import("utils/qaStoryFilter");
+    expect([isQaStory(null), isQaStory("x"), isQaStory({ link: 5 })], "a non-story was treated as QA").toEqual([
+      false,
+      false,
+      false,
+    ]);
+  });
+});

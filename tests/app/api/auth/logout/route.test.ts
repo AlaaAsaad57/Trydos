@@ -305,3 +305,80 @@ describe("when something goes wrong", () => {
     );
   });
 });
+
+describe("the detach itself, run after the response (AC-20)", () => {
+  // Here the framework's "run after the response" helper is replaced by one
+  // that only keeps the job, so the test can run the job itself and see what
+  // it sends. The real helper needs a live request scope (see above).
+  const deferred: Array<() => Promise<void>> = [];
+
+  beforeEach(() => {
+    deferred.length = 0;
+    vi.doMock("next/server", async (importOriginal) => ({
+      ...(await importOriginal<typeof import("next/server")>()),
+      after: (job: () => Promise<void>) => {
+        deferred.push(job);
+      },
+    }));
+    headers.__reset({
+      cookies: { [COOKIE_NAMES.CHAT_TOKEN]: "chat-token-1234567890" },
+    });
+  });
+
+  afterEach(() => {
+    vi.doUnmock("next/server");
+  });
+
+  it("logs out at once and then tells the chat backend to forget this device", async () => {
+    net.queueReply(jsonReply({ success: true }));
+    const { POST } = await loadRoute();
+
+    const response = await POST(makeRequest({ fcmToken: "device-token-1" }));
+
+    expect(response.status, "the logout did not answer 200 before the detach ran").toBe(200);
+    expect(deferred.length, "the detach was not handed to the after-response helper").toBe(1);
+
+    await deferred[0]();
+
+    expect(
+      net.calls[0]?.url,
+      "the detach did not go to the chat backend's remove-token address",
+    ).toContain(ADDRESSES.NEXT_PUBLIC_CHAT_BACKEND_URL);
+    expect(
+      net.calls[0]?.body,
+      "the detach did not send this device's push token",
+    ).toEqual({ token: "device-token-1" });
+  });
+
+  it("swallows a detach that fails, because the session is already gone", async () => {
+    net.queueReply({ kind: "failure", error: new Error("chat down") });
+    const { LogServerError } = await import("utils/serverErrorReporter");
+    const { POST } = await loadRoute();
+
+    await POST(makeRequest({ fcmToken: "device-token-1" }));
+
+    await expect(
+      deferred[0](),
+      "a failed detach threw instead of being reported quietly",
+    ).resolves.toBeUndefined();
+    expect(
+      (LogServerError as any).mock.calls.map((c: any[]) => c[0]?.type),
+      "the failed detach was not reported for support",
+    ).toContain("auth/logout fcm detach failed");
+  });
+
+  it("still logs out when reading the chat session to prepare the detach throws", async () => {
+    headers.cookies.mockRejectedValueOnce(new Error("cookie store broke"));
+    const { LogServerError } = await import("utils/serverErrorReporter");
+    const { POST } = await loadRoute();
+
+    const response = await POST(makeRequest({ fcmToken: "device-token-1" }));
+
+    expect(response.status, "a broken detach preparation broke the logout").toBe(200);
+    expect(deferred.length, "a detach was scheduled although its preparation failed").toBe(0);
+    expect(
+      (LogServerError as any).mock.calls.map((c: any[]) => c[0]?.type),
+      "the failed preparation was not reported for support",
+    ).toContain("auth/logout fcm detach prepare failed");
+  });
+});

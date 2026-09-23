@@ -87,7 +87,7 @@ export const getProductDataFromElastic = async ({
       // total_views field, but it is never populated (always 0) and its document
       // is missing entirely for most products.
       total_views: viewCount,
-      total_rating: Number(likeDetails?.final_rating) ?? 0,
+      total_rating: Number(likeDetails?.final_rating) || 0,
       size_analysis: likeDetails?.size_analysis,
       good_quality_product: likeDetails?.good_quality_product,
     };

@@ -94,7 +94,7 @@ const OrderCartItem = () => {
                 />
               </div>
               <div className="flex text-[12px] text-[#1d1d1d] flex-col items-center mt-1">
-                {s.variations?.Size || s?.variation?.size_options ? (
+                {s.variations?.Size || s?.variations?.size_options ? (
                   <span>
                     {s.variations?.Size ?? s?.variations?.size_options}
                   </span>

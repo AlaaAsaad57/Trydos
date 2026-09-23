@@ -27,21 +27,14 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
     onClose();
   };
 
-  // Handle escape key
   useEffect(() => {
     DisableScroll();
     let videoElem = document.querySelector<HTMLDivElement>(".product-video");
     if (videoElem) {
       videoElem.style.display = "none";
     }
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        handleClose();
-      }
-    };
 
     if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
       document.body.style.overflow = "hidden";
     }
 
@@ -50,10 +43,25 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
         videoElem.style.display = "flex";
       }
       EnableScroll();
-      document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
+
+  // Handle escape key. isProcessing is a dependency, so the listener always
+  // calls a handleClose that sees the current value and cannot close the
+  // modal while the try-on is processing.
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleClose();
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen, isProcessing]);
 
   // Handle video stream when camera is enabled
   useEffect(() => {
@@ -95,7 +103,7 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
     } catch (error) {
       alert(
         translateFunction(
-          "Please enable notification permissions to use camera features",
+          "Please enable camera permissions to use camera features",
         ),
       );
     }

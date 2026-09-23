@@ -28,11 +28,22 @@ vi.mock("./VerifyUser", () => ({
 vi.mock("components/setting/profile/VerifyUser", () => ({
   default: () => <div data-testid="verify-control" />,
 }));
+// The QR stand-ins expose their callbacks as buttons, so a case can finish or
+// close them the way the real ones would.
 vi.mock("components/Login/QrScannerModal", () => ({
-  default: () => <div data-testid="qr-scanner" />,
+  default: ({ onDetected, onClose }: any) => (
+    <div data-testid="qr-scanner">
+      <button onClick={() => onDetected("request-1")}>qr detected</button>
+      <button onClick={onClose}>qr close</button>
+    </div>
+  ),
 }));
 vi.mock("components/Login/QrApprovalSheet", () => ({
-  default: () => <div data-testid="qr-approval" />,
+  default: ({ requestId, onDone }: any) => (
+    <div data-testid="qr-approval" data-request={requestId}>
+      <button onClick={onDone}>approval done</button>
+    </div>
+  ),
 }));
 vi.mock("services/auth", () => ({ default: {} }));
 
@@ -153,5 +164,42 @@ describe("the placeholder names the app stores instead of a picture", () => {
       screen.getByAltText("user profile"),
       "a shopper with a real picture on record is being shown the placeholder instead",
     ).toBeInTheDocument();
+  });
+});
+
+describe("signing in another device with the QR code", () => {
+  const qrButton = () => screen.getByLabelText("Scan QR to sign in");
+
+  it("opens the scanner, and closing it closes it", async () => {
+    const user = userEvent.setup();
+    await show();
+    await user.click(qrButton());
+    expect(screen.getByTestId("qr-scanner"), "the QR button did not open the scanner").toBeInTheDocument();
+    await user.click(screen.getByText("qr close"));
+    expect(screen.queryByTestId("qr-scanner"), "closing the scanner left it open").not.toBeInTheDocument();
+  });
+
+  it("a scanned code opens the approval for that request, and done closes it", async () => {
+    const user = userEvent.setup();
+    await show();
+    await user.click(qrButton());
+    await user.click(screen.getByText("qr detected"));
+    expect(screen.queryByTestId("qr-scanner"), "the scanner stayed open after a scan").not.toBeInTheDocument();
+    expect(
+      screen.getByTestId("qr-approval").dataset.request,
+      "the approval did not open for the scanned request",
+    ).toBe("request-1");
+    await user.click(screen.getByText("approval done"));
+    expect(screen.queryByTestId("qr-approval"), "done left the approval open").not.toBeInTheDocument();
+  });
+});
+
+describe("a picture value that is not text", () => {
+  it("is treated as a real picture, not a placeholder", async () => {
+    await show({ image: { path: "/user/x.png" } } as never);
+    expect(
+      screen.queryByAltText("user profile placeholder"),
+      "a non-text picture value was replaced by the placeholder",
+    ).not.toBeInTheDocument();
   });
 });

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { translateFunction } from "utils/functions";
-import { DisableScroll, getVideoUrl } from "utils/tinyUtils";
+import { DisableScroll, EnableScroll, getVideoUrl } from "utils/tinyUtils";
 
 function ProductVideo({ videos = [], language }) {
   const [showVideo, setShowVideo] = useState(true);
@@ -48,10 +48,11 @@ function ProductVideo({ videos = [], language }) {
   }, [selectedIndex, expanded]); // Also re-run when expanding to ensure the right video plays
 
   useEffect(() => {
-    if (expanded) {
-      DisableScroll();
-      emblaApi?.reInit();
-    }
+    if (!expanded) return;
+    DisableScroll();
+    emblaApi?.reInit();
+    // Let the page scroll again when the full-size video closes.
+    return () => EnableScroll();
   }, [expanded, emblaApi]);
   if (!showVideo || !videos?.length) return null;
   return (

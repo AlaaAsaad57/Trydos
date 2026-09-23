@@ -20,6 +20,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import FiltersPageContent from "components/Listing/FiltersPageContent";
 import { navigationSpies } from "tests/mocks/nextNavigation";
+import { cacheSpies } from "tests/mocks/serverRequests";
+import { fetchCurrency } from "serverRequests";
 
 const getProductsAndFiltersFromElastic = vi.fn();
 const getBoutiqueInfo = vi.fn();
@@ -305,5 +307,71 @@ describe("the filtered listing page", () => {
         "products move in and out of the index while the shopper scrolls; without a snapshot, page two is drawn from a different set than page one and items are repeated or skipped",
       ).toBe(true);
     });
+  });
+});
+
+/** The first value of a prop with this name anywhere in the returned tree. */
+function findProp(node: any, name: string): any {
+  if (!node || typeof node !== "object") return undefined;
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = findProp(child, name);
+      if (found !== undefined) return found;
+    }
+    return undefined;
+  }
+  if (!node.props) return undefined;
+  if (name in node.props) return node.props[name];
+  // Walk every prop, not only children: some parts are handed in as named
+  // slots (filterBar, banner, …).
+  return findProp(Object.values(node.props), name);
+}
+
+describe("the currency and boutique handed to the streamed parts", () => {
+  beforeEach(() => {
+    getProductsAndFiltersFromElastic.mockReset();
+    getProductsAndFiltersFromElastic.mockResolvedValue({ products: [] });
+    getBoutiqueInfo.mockReset();
+    getCookieServer.mockReset();
+    cacheSpies.getCurrencyFromCache.mockReset();
+    (fetchCurrency as any).mockClear();
+  });
+
+  it("reads a cached currency stored as text, without asking the backend", async () => {
+    cacheSpies.getCurrencyFromCache.mockResolvedValueOnce('{"exchange_rate":2}' as any);
+    const tree = await renderPage();
+    const currency = await findProp(tree, "currencyPromise");
+    expect(currency?.exchange_rate, "the cached rate should be used").toBe(2);
+    expect(currency?.redis, "a cached currency should be marked as coming from the cache").toBe(true);
+    expect(fetchCurrency, "a cached currency must not be fetched again").not.toHaveBeenCalled();
+  });
+
+  it("reads a cached currency stored as an object", async () => {
+    cacheSpies.getCurrencyFromCache.mockResolvedValueOnce({ exchange_rate: 3 } as any);
+    const currency = await findProp(await renderPage(), "currencyPromise");
+    expect(currency?.exchange_rate, "the cached rate should be used").toBe(3);
+    expect(currency?.redis, "a cached currency should be marked as coming from the cache").toBe(true);
+  });
+
+  it("fetches and stores the currency when the cache has none", async () => {
+    cacheSpies.getCurrencyFromCache.mockResolvedValueOnce(null);
+    const currency = await findProp(await renderPage(), "currencyPromise");
+    expect(currency?.redis, "a fetched currency should be marked as not cached").toBe(false);
+    expect(cacheSpies.StoreCurrency, "a fetched currency should be stored for the next page").toHaveBeenCalledWith("gb", {
+      exchange_rate: 1,
+    });
+  });
+
+  it("hands on no currency when reading it fails", async () => {
+    cacheSpies.getCurrencyFromCache.mockRejectedValueOnce(new Error("redis down"));
+    const currency = await findProp(await renderPage(), "currencyPromise");
+    expect(currency, "a failed currency read should hand on nothing, not throw").toBeUndefined();
+  });
+
+  it("hands on the boutique it found, with its banners", async () => {
+    getBoutiqueInfo.mockResolvedValue({ banners: [{ file_path: "b.png" }], name: "Blue Boutique" });
+    const boutique = await findProp(await renderPage({ filters: ["boutiques", "blue-boutique"] }), "boutiquePromise");
+    expect(boutique?.name, "the boutique that was found should be handed on").toBe("Blue Boutique");
+    expect(boutique?.banners, "its banners should be handed on").toEqual([{ file_path: "b.png" }]);
   });
 });

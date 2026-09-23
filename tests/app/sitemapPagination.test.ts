@@ -110,3 +110,17 @@ describe.each([
     ).toBe(404);
   });
 });
+
+describe.each([
+  ["products", () => getProducts, () => generateProductSitemapXML, "sitemap-products.xml"],
+  ["boutiques", () => getBoutiques, () => generateBoutiqueSitemapXML, "sitemap-boutiques.xml"],
+])("the %s sitemap when the build fails", (_name, handler, generator, path) => {
+  it("answers 500 as plain text", async () => {
+    generator().mockRejectedValueOnce(new Error("es down"));
+
+    const response = await handler()(request(`http://localhost/${path}`));
+
+    expect(response.status, "a failed sitemap build did not answer 500").toBe(500);
+    expect(response.headers.get("content-type"), "the 500 answer is not plain text").toBe("text/plain");
+  });
+});

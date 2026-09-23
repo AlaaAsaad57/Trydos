@@ -518,3 +518,220 @@ describe("passing a real answer back", () => {
     expect(net.calls[0].headers.cookie).toBeUndefined();
   });
 });
+
+describe("the query-string (GET) contract", () => {
+  const getCall = (query: Record<string, string>, requestHeaders: Record<string, string> = {}) =>
+    new NextRequest(`https://trydos.test/api/proxy?${new URLSearchParams(query)}`, {
+      method: "GET",
+      headers: requestHeaders,
+    });
+
+  it("forwards a same-origin GET with the locale and seller from the query", async () => {
+    headers.__reset(VERIFIED);
+    net.queueReply(jsonReply({ success: true }));
+    const { GET } = await loadRoute();
+
+    const response = await GET(
+      getCall(
+        { s: toServiceToken("market"), u: "/customer/info", c: "iq", l: "ar", d: "true", sid: "12" },
+        { "sec-fetch-site": "same-origin", origin: "https://trydos.test" },
+      ),
+    );
+
+    expect(response.status, "a same-origin GET was not forwarded").toBe(200);
+    expect(net.calls[0].method, "the GET contract did not force the GET method").toBe("GET");
+    expect(net.calls[0].headers, "the locale from the query was not sent to the backend").toMatchObject({
+      country: "iq",
+    });
+  });
+
+  it("uses the default locale when the query carries none", async () => {
+    net.queueReply(jsonReply({ success: true }));
+    const { GET } = await loadRoute();
+
+    const response = await GET(getCall({ s: toServiceToken("market"), u: "/customer/info" }));
+
+    expect(response.status, "a GET with no locale was not forwarded").toBe(200);
+  });
+
+  it("refuses a GET without a service or a target the same way as any failure", async () => {
+    const { GET } = await loadRoute();
+
+    const response = await GET(getCall({}));
+
+    expect(response.status, "a GET with no service was not refused like a failure").toBe(503);
+    expect(net.callCount, "a GET with no service reached a backend").toBe(0);
+  });
+
+  it.each([
+    ["another site", { "sec-fetch-site": "cross-site" }],
+    ["a foreign origin", { origin: "https://evil.test" }],
+  ])("refuses a GET from %s without calling any backend", async (label, requestHeaders) => {
+    const { GET } = await loadRoute();
+
+    const response = await GET(getCall({ s: toServiceToken("market"), u: "/customer/info" }, requestHeaders));
+
+    expect(response.status, `a GET from ${label} was not refused`).toBe(503);
+    expect(net.callCount, `a GET from ${label} reached a backend`).toBe(0);
+  });
+});
+
+describe("targets that are hard to decode", () => {
+  // fullyDecode() returns the raw string on the first malformed escape, so the
+  // decoded guard sees no "//" and a target it refuses without the bad escape
+  // ("/%2F%2Fevil.tld/x", refused in AC-32) is forwarded with the credential
+  // once "%E0%A4%A" is added. See C:/tmp/cov-bugs/app.md.
+  it("BUG-app-1: a malformed escape is refused, not waved past the decoded host guard", async () => {
+    net.queueReply(jsonReply({ success: true }));
+    const { POST } = await loadRoute();
+
+    const response = await POST(call("/%2F%2Fevil.tld/%E0%A4%A"));
+
+    expect(response.status, "a malformed escaped target was not refused").toBe(400);
+    expect(net.callCount, "a malformed escaped target reached a backend").toBe(0);
+  });
+
+  it("stops decoding after five passes and still keeps a deeply nested escape away from the backend", async () => {
+    net.queueReply(jsonReply({ success: true }));
+    const { POST } = await loadRoute();
+
+    // Seven levels of escaping around "//": five passes are not enough to reach it.
+    const response = await POST(call("/%252525252525252F%252525252525252Fevil.tld/x"));
+
+    expect(
+      net.calls.every((c) => new URL(c.url).host === "core.invalid" || new URL(c.url).host === "gateway.invalid"),
+      "a deeply nested escape made the proxy call another host",
+    ).toBe(true);
+    expect(response.status, "the proxy broke on a deeply nested escape").toBeLessThan(500);
+  });
+});
+
+describe("a service whose address is missing or broken", () => {
+  it("fails like any failure when the service has no address", async () => {
+    vi.stubEnv("NEXT_PUBLIC_CHAT_BACKEND_URL", "");
+    const { POST } = await loadRoute();
+
+    const response = await POST(call("/x", {}, "chat"));
+
+    expect(response.status, "a service with no address did not fail as a proxy error").toBe(503);
+  });
+
+  it("refuses the target when the service address cannot be parsed", async () => {
+    vi.stubEnv("NEXT_PUBLIC_CHAT_BACKEND_URL", "not a url");
+    const { POST } = await loadRoute();
+
+    const response = await POST(call("/x", {}, "chat"));
+
+    expect(response.status, "a broken service address was not refused").toBe(400);
+    expect(net.callCount, "a broken service address reached a backend").toBe(0);
+  });
+});
+
+describe("forwarding a request body", () => {
+  const withBody = (target: string, body: BodyInit, contentType?: string) =>
+    new NextRequest("https://trydos.test/api/proxy", {
+      method: "POST",
+      headers: {
+        "x-proxy-server": toServiceToken("market"),
+        "x-proxy-url": target,
+        "x-proxy-method": "POST",
+        ...(contentType ? { "content-type": contentType } : {}),
+      },
+      body,
+    });
+
+  it("forwards a JSON body as JSON", async () => {
+    net.queueReply(jsonReply({ success: true }));
+    const { POST } = await loadRoute();
+
+    await POST(withBody("/customer/info", JSON.stringify({ a: 1 }), "application/json"));
+
+    expect(net.calls[0].body, "the JSON body was not forwarded").toEqual({ a: 1 });
+    expect(net.calls[0].headers["content-type"], "the JSON body lost its type").toBe("application/json");
+  });
+
+  it("adds the shopper credential to a device-token registration", async () => {
+    headers.__reset(VERIFIED);
+    net.queueReply(jsonReply({ success: true }));
+    const { POST } = await loadRoute();
+
+    await POST(withBody("/firebase_device_tokens", JSON.stringify({ token: "d1" }), "application/json"));
+
+    expect(net.calls[0].body, "the device registration did not carry the shopper credential").toEqual({
+      token: "d1",
+      auth_token: MARKET_TOKEN,
+    });
+  });
+
+  it("forwards a device-token registration without a credential when there is none", async () => {
+    net.queueReply(jsonReply({ success: true }));
+    const { POST } = await loadRoute();
+
+    await POST(withBody("/firebase_device_tokens", JSON.stringify({ token: "d1" }), "application/json"));
+
+    expect(net.calls[0].body, "a credential was invented for a shopper who has none").toEqual({ token: "d1" });
+  });
+
+  it("forwards a device-token registration that is not valid JSON as it came", async () => {
+    net.queueReply(jsonReply({ success: true }));
+    const { POST } = await loadRoute();
+
+    await POST(withBody("/firebase_device_tokens", "{broken", "application/json"));
+
+    expect(net.calls[0].body, "the unreadable body was not forwarded as it came").toBe("{broken");
+  });
+
+  it("forwards form data as form data", async () => {
+    net.queueReply(jsonReply({ success: true }));
+    const form = new FormData();
+    form.append("name", "Sara");
+    const { POST } = await loadRoute();
+
+    await POST(withBody("/customer/info", form));
+
+    expect(net.calls[0].body, "the form data was not forwarded as form data").toBeInstanceOf(FormData);
+    expect((net.calls[0].body as FormData).get("name"), "a form field was lost").toBe("Sara");
+  });
+
+  it("forwards a plain text body, and nothing for an empty one", async () => {
+    net.queueReply(jsonReply({ success: true }));
+    net.queueReply(jsonReply({ success: true }));
+    net.queueReply(jsonReply({ success: true }));
+    const { POST } = await loadRoute();
+
+    await POST(withBody("/customer/info", "hello", "text/plain"));
+    await POST(withBody("/customer/info", "", "text/plain"));
+    await POST(withBody("/customer/info", "", "application/json"));
+
+    expect(net.calls[0].body, "the text body was not forwarded").toBe("hello");
+    expect(net.calls[1].body, "an empty text body was forwarded").toBeNull();
+    expect(net.calls[2].body, "an empty JSON body was forwarded").toBeNull();
+  });
+});
+
+describe("passing a non-JSON answer back", () => {
+  it("forwards the bytes with their type", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("plain answer", { status: 200, headers: { "content-type": "text/plain" } })),
+    );
+    const { POST } = await loadRoute();
+
+    const response = await POST(call("/customer/info"));
+
+    expect(response.headers.get("content-type"), "the answer lost its type").toBe("text/plain");
+    await expect(response.text(), "the answer bytes were not forwarded").resolves.toBe("plain answer");
+  });
+
+  it("forwards an answer with no type as binary", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(new Uint8Array([1, 2]), { status: 200 })));
+    const { POST } = await loadRoute();
+
+    const response = await POST(call("/customer/info"));
+
+    expect(
+      new Uint8Array(await response.arrayBuffer()),
+      "the binary answer bytes were not forwarded",
+    ).toEqual(new Uint8Array([1, 2]));
+  });
+});

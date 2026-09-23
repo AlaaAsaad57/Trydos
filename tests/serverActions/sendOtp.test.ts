@@ -366,6 +366,18 @@ describe("when the backend answers", () => {
     expect(result.message).toBe("Please wait 60 seconds before trying again");
   });
 
+  it("falls back to its own words when the transport's error text holds broken JSON or none", async () => {
+    HandleAuthedFetch.mockResolvedValue(reply(undefined, "HTTP 502 upstream: {not json"));
+    const broken = await sendOtp({ phone: PHONE, isWhatsapp: 0 });
+    HandleAuthedFetch.mockResolvedValue(reply(undefined, "HTTP 502 upstream"));
+    const plain = await sendOtp({ phone: PHONE, isWhatsapp: 0 });
+
+    expect(
+      [broken.message, plain.message],
+      "an unreadable backend error did not fall back to the action's own words",
+    ).toEqual(["Failed to send verification code", "Failed to send verification code"]);
+  });
+
   it("falls back to its own words when the backend gives none", async () => {
     HandleAuthedFetch.mockResolvedValue(reply({}));
 

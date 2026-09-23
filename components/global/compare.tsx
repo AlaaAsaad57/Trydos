@@ -209,7 +209,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
         label: product.name,
         value: product.slug,
         images:
-          product?.sync_color_images?.[0].images[0] ?? product?.images?.[0],
+          product?.sync_color_images?.[0]?.images?.[0] ?? product?.images?.[0],
         price: product.price,
       };
       setProducts([option]);

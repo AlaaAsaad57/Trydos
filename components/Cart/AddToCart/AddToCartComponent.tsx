@@ -332,18 +332,17 @@ function AddToCartComponent({ product, slug, color }) {
         shared_count: 0,
         sync_color_images: !product.singleColor
           ? data.sync_color_images || product?.sync_color_images || []
-          : [
-              (data?.sync_color_images ?? product?.sync_color_images)?.find(
-                (s) =>
-                  s?.color_name === data?.sync_color_images?.[0]?.color_name,
-              ),
-              ...(
-                data?.sync_color_images ?? product?.sync_color_images
-              )?.filter(
-                (s) =>
-                  s?.color_name !== data?.sync_color_images?.[0]?.color_name,
-              ),
-            ],
+          : (() => {
+              // Put the first colour of the list in use at the front. When the
+              // loaded answer has no colours, that is the product's own list.
+              const list =
+                data?.sync_color_images ?? product?.sync_color_images ?? [];
+              const first = list[0]?.color_name;
+              return [
+                list.find((s) => s?.color_name === first),
+                ...list.filter((s) => s?.color_name !== first),
+              ].filter(Boolean);
+            })(),
       };
       const selectedProduct =
         useAppStore.getState().selected_product_for_add_to_cart;

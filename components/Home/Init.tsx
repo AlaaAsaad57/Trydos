@@ -121,8 +121,7 @@ function Init() {
       showErrorNotification(translateFunction("Cookies Is Not Enabled"));
     }
 
-    try {
-      // Start the session recorder for EVERY visitor (guests included) —
+    // Start the session recorder for EVERY visitor (guests included) —
       // session-replay is meant to capture all traffic, not just logged-in
       // users. init() guards against re-entry, so re-running it on auth
       // changes is safe.
@@ -130,7 +129,10 @@ function Init() {
       // (it guards on _inited). For an already-logged-in user this effect
       // runs init + identify back-to-back, so without awaiting, identify
       // fires before init completes and the user stays an anonymous uuid.
-      void (async () => {
+    // The try/catch sits inside the async function, so it sees a rejected
+    // await as well as a thrown error.
+    void (async () => {
+      try {
         await posthogInit(process.env.NEXT_PUBLIC_POSTHOG_KEY);
 
         if (auth.UserID()) {
@@ -145,13 +147,13 @@ function Init() {
             });
           }
         }
-      })();
-    } catch (error) {
-      LogError({
-        error: error,
-        scenario: "Init PostHog in Init",
-      });
-    }
+      } catch (error) {
+        LogError({
+          error: error,
+          scenario: "Init PostHog in Init",
+        });
+      }
+    })();
   }, [userId]);
   const initPageLoad = async () => {
     const permission = Notification.permission;

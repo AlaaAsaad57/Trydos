@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import OrdersListWrapper from "components/setting/orders/OrdersListWrapper";
 import { useAppStore } from "store";
 import { renderWithProviders, userEvent } from "../../../render";
@@ -394,6 +394,70 @@ describe("OrdersListWrapper (components/setting/orders/OrdersListWrapper.tsx)", 
           }),
         );
       });
+    });
+  });
+
+  describe("Infinite scroll and refused pages", () => {
+    it("loads the next page when the list end comes into view, and skips groups already shown", async () => {
+      const observers: any[] = [];
+      vi.stubGlobal(
+        "IntersectionObserver",
+        class {
+          observe = vi.fn();
+          disconnect = vi.fn();
+          constructor(public callback: any) {
+            observers.push(this);
+          }
+        },
+      );
+      const order = (id: number, group: number) => ({
+        id,
+        order_group_id: group,
+        order_amount: 10,
+        order_status: { value: "pending" },
+        details: [],
+      });
+      mockFetchOrders
+        .mockResolvedValueOnce({ isSuccessful: true, data: { total: 20, orders: [order(1, 100)] } })
+        .mockResolvedValueOnce({
+          isSuccessful: true,
+          data: { total: 20, orders: [order(2, 100), order(3, 200)] },
+        });
+
+      await renderWithProviders(
+        <OrdersListWrapper isRtl language="en" order_group_statuses={null} local="gb-en" />,
+      );
+      await waitFor(() => expect(screen.getByTestId("order-group-100")).toBeInTheDocument());
+      const observer = observers.at(-1);
+
+      act(() => observer.callback([{ isIntersecting: false }]));
+      expect(mockFetchOrders, "a list end out of view loaded another page").toHaveBeenCalledTimes(1);
+      act(() => observer.callback([{ isIntersecting: true }]));
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId("order-group-200"),
+          "the next page was not added when the list end came into view",
+        ).toBeInTheDocument(),
+      );
+      expect(mockFetchOrders, "the second page was not asked for").toHaveBeenLastCalledWith(2, 10, null);
+      expect(
+        screen.getAllByTestId("order-group-100").length,
+        "a group already shown was added again from the next page",
+      ).toBe(1);
+    });
+
+    it("stops paging when the backend refuses the page", async () => {
+      mockFetchOrders.mockResolvedValueOnce({ isSuccessful: false });
+      await renderWithProviders(
+        <OrdersListWrapper isRtl={false} language="en" order_group_statuses={mockStatuses} local="gb-en" />,
+      );
+      await waitFor(() =>
+        expect(
+          screen.getByText("No orders found for this status."),
+          "a refused page did not end in the empty state",
+        ).toBeInTheDocument(),
+      );
     });
   });
 });

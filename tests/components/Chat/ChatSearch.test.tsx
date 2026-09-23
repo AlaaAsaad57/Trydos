@@ -46,6 +46,13 @@ vi.mock("store/chat/actions", () => ({
   getMessagesBetweenTwoMessages: rangeFetchSpy,
 }));
 
+// Sentry, for the failure cases at the end of this file.
+const searchLog = vi.hoisted(() => ({ logError: vi.fn() }));
+vi.mock("utils/functions", async (importOriginal) => ({
+  ...(await importOriginal<any>()),
+  LogError: (...a: any[]) => searchLog.logError(...a),
+}));
+
 import ChatSearch from "components/Chat/components/ChatSearch";
 import { useAppStore } from "store";
 
@@ -438,5 +445,58 @@ describe("searching messages inside a conversation", () => {
       String(call.channel_id),
       "the range fetch named the wrong conversation",
     ).toBe(CHANNEL_ID);
+  });
+});
+
+describe("searching messages — when something fails", () => {
+  beforeEach(() => {
+    searchLog.logError.mockClear();
+  });
+
+  it("logs a refused search and clears the results", async () => {
+    fetchDataSpy.mockResolvedValue({ success: false, message: "search refused" });
+    await renderSearch([NEWEST_MATCH]);
+    type("gggg");
+    await waitFor(() =>
+      expect(searchLog.logError.mock.calls[0]?.[0]?.scenario, "a refused search was not logged").toBe(
+        "getMessagesForSearch in chat search - chat widget",
+      ),
+    );
+    expect((useAppStore.getState() as any).searchChat.messages, "a refused search left results behind").toEqual([]);
+  });
+
+  it("does not log a failure that belongs to text the reader already changed", async () => {
+    let failFirst: any;
+    fetchDataSpy
+      .mockImplementationOnce(() => new Promise((_r, reject) => (failFirst = reject)))
+      .mockResolvedValue(searchAnswer([NEWEST_MATCH]));
+    await renderSearch([NEWEST_MATCH]);
+    type("gg");
+    await waitFor(() => expect(fetchDataSpy, "the first search did not run").toHaveBeenCalledTimes(1));
+    type("gggg");
+    await waitFor(() => expect(fetchDataSpy, "the second search did not run").toHaveBeenCalledTimes(2));
+    failFirst(new Error("old query failed"));
+    await waitFor(() => expect(fetchDataSpy, "the second search did not run").toHaveBeenCalledTimes(2));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(searchLog.logError, "a failure for replaced text was logged").not.toHaveBeenCalled();
+  });
+
+  it("logs a failed range fetch for a match outside the loaded window", async () => {
+    fetchDataSpy.mockResolvedValue(searchAnswer([OLDEST_MATCH]));
+    rangeFetchSpy.mockRejectedValue(new Error("range refused"));
+    await renderSearch([NEWEST_MATCH]);
+    type("gggg");
+    await waitFor(() =>
+      expect(searchLog.logError.mock.calls.at(-1)?.[0]?.scenario, "a failed range fetch was not logged").toBe(
+        "get messages between two messages in chat search - chat widget",
+      ),
+    );
+  });
+
+  it("the close button closes the search", async () => {
+    const close = vi.fn();
+    await renderWithProviders(<ChatSearch close={close} />, { store: { activeChat: chatWith([NEWEST_MATCH]) } });
+    fireEvent.click(document.querySelector('[data-pw="chat-search-close"]')!);
+    expect(close, "the close button did not close the search").toHaveBeenCalled();
   });
 });

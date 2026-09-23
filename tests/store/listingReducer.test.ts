@@ -44,3 +44,32 @@ describe("Listing store reducer actions", () => {
     expect(useAppStore.getState().listing_loading, "listing_loading should be false").toBe(false);
   });
 });
+
+describe("Listing store — filter bar and search result flags", () => {
+  it("setFilterEnabled scrolls the filter bar back to the start", () => {
+    const bar = document.createElement("div");
+    bar.className = "filter-container";
+    bar.scrollLeft = 120;
+    document.body.appendChild(bar);
+    useAppStore.getState().setFilterEnabled(true);
+    expect(bar.scrollLeft, "the filter bar was not scrolled back").toBe(0);
+    expect(useAppStore.getState().filterEnabled, "the filter flag was not set").toBe(true);
+    bar.remove();
+    useAppStore.getState().setFilterEnabled(false);
+    expect(useAppStore.getState().filterEnabled, "the flag failed with no filter bar on the page").toBe(false);
+  });
+
+  it("resetBoutique and the search result flags write their state", () => {
+    useAppStore.setState({ isReachEnd: true, offset: 5 } as any);
+    useAppStore.getState().resetBoutique();
+    useAppStore.getState().setSearchHasResults(false);
+    useAppStore.getState().setSearchHasMultipleResults(false);
+    const s = useAppStore.getState();
+    expect([s.isReachEnd, s.offset, s.searchHasResults, s.searchHasMultipleResults], "the listing flags are wrong").toEqual([
+      false,
+      null,
+      false,
+      false,
+    ]);
+  });
+});

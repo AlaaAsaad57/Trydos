@@ -12,15 +12,21 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import NotifyButton from "components/Cart/AddToCart/NotifyButton";
 
-import { renderWithProviders, userEvent } from "../../../render";
+import {
+  renderWithProviders,
+  screen,
+  userEvent,
+  waitFor,
+} from "../../../render";
 
 const RemoveFromCart = vi.fn();
+const UpdateCart = vi.fn();
 const GAevent = vi.fn();
 
 vi.mock("services/cart", () => ({
   default: {
     RemoveFromCart: (...args: any[]) => RemoveFromCart(...args),
-    UpdateCart: vi.fn(),
+    UpdateCart: (...args: any[]) => UpdateCart(...args),
   },
 }));
 
@@ -102,5 +108,167 @@ describe("taking the last one out of the bag from the out-of-stock widget", () =
       GAevent.mock.calls.map(([call]: any) => call?.action),
       "the core backend removed the item and analytics was never told",
     ).toEqual(["remove_from_cart"]);
+  });
+});
+
+/** Render the widget with custom props and bag rows. */
+async function renderWidget(
+  props: Record<string, any> = {},
+  localCart: any[] = [],
+) {
+  const updateQuantity = vi.fn();
+  const notifyAction = vi.fn();
+  const setLoading = vi.fn();
+
+  await renderWithProviders(
+    <NotifyButton
+      isNotified={false}
+      notifyAction={notifyAction}
+      loading={false}
+      id={product.id}
+      product={product}
+      selectedVariant={selectedVariant}
+      setLoading={setLoading}
+      colors={[]}
+      sizes={[]}
+      selectedColor={null}
+      selectedSize={null}
+      updateQuantity={updateQuantity}
+      {...props}
+    />,
+    { country: "sy", path: "/product/blue-shirt", store: { localCart } },
+  );
+  return { updateQuantity, notifyAction, setLoading };
+}
+
+function minus() {
+  return document.querySelector(".minuse-qty-icon") as HTMLElement;
+}
+
+const productWithVariations = { ...product, variation: [{ id: 7 }] };
+
+describe("lowering a quantity above one from the out-of-stock widget", () => {
+  beforeEach(() => {
+    UpdateCart.mockReset();
+    RemoveFromCart.mockReset();
+  });
+
+  it("asks the core backend for one fewer of the picked variant", async () => {
+    UpdateCart.mockResolvedValue(true);
+    const { updateQuantity } = await renderWidget(
+      { product: productWithVariations },
+      [
+        { id: 101, item_id: "cart-1", quantity: 5, product_variation_id: 3 },
+        { id: 101, item_id: "cart-2", quantity: 2, product_variation_id: 7 },
+      ],
+    );
+
+    await userEvent.click(minus());
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "minus must lower the picked variant's row (cart-2) from 2 to 1",
+    ).toEqual({ cart_id: "cart-2", qty: 1, isFromAddWidget: true });
+    await waitFor(() =>
+      expect(
+        updateQuantity,
+        "the widget did not roll the quantity down after the core backend agreed",
+      ).toHaveBeenCalledWith(true, 7, "decrease"),
+    );
+  });
+
+  it("rolls the quantity back when the core backend refuses the change", async () => {
+    UpdateCart.mockResolvedValue(false);
+    const { updateQuantity, setLoading } = await renderWidget(
+      { product: productWithVariations },
+      [{ id: 101, item_id: "cart-2", quantity: 2, product_variation_id: 7 }],
+    );
+
+    await userEvent.click(minus());
+
+    await waitFor(() =>
+      expect(
+        updateQuantity,
+        "the core backend refused and the widget did not roll back",
+      ).toHaveBeenCalledWith(false),
+    );
+    expect(
+      setLoading,
+      "the spinner must stop after a refusal",
+    ).toHaveBeenLastCalledWith(false);
+  });
+
+  it("falls back to the product's own row when the picked variant has no id", async () => {
+    RemoveFromCart.mockResolvedValue(true);
+    const { updateQuantity } = await renderWidget(
+      { product: productWithVariations, selectedVariant: {} },
+      [{ id: 101, item_id: "cart-9", quantity: 1, product_variation_id: 4 }],
+    );
+
+    await userEvent.click(minus());
+
+    expect(
+      RemoveFromCart.mock.calls[0]?.[0]?.cart_item?.item_id,
+      "with no variant id the widget must remove the product's own row",
+    ).toBe("cart-9");
+    await waitFor(() =>
+      expect(
+        updateQuantity,
+        "the quantity was not rolled down after the removal",
+      ).toHaveBeenCalledWith(true, 4, "decrease"),
+    );
+  });
+
+  it("minus falls back to the product's row when the picked variant is not in the bag", async () => {
+    // A variant id that matches no bag row: the widget still shows the total
+    // for the product, and minus finds the product's row by id.
+    RemoveFromCart.mockResolvedValue(true);
+    await renderWidget(
+      {
+        product: productWithVariations,
+        selectedVariant: { id: 99 },
+      },
+      [{ id: 101, item_id: "cart-5", quantity: 1, product_variation_id: 4 }],
+    );
+
+    await userEvent.click(minus());
+
+    expect(
+      RemoveFromCart.mock.calls[0]?.[0]?.cart_item?.item_id,
+      "minus must fall back to the product's row when the variant is not in the bag",
+    ).toBe("cart-5");
+  });
+});
+
+describe("the notify part of the out-of-stock widget", () => {
+  it("asks to notify the shopper when the button is tapped", async () => {
+    const { notifyAction } = await renderWidget();
+
+    await userEvent.click(screen.getByText("Notify Me When Variant Is Available"));
+
+    expect(notifyAction, "tapping the button did not ask to notify").toHaveBeenCalled();
+  });
+
+  it("does not ask to notify when the shopper taps minus", async () => {
+    RemoveFromCart.mockResolvedValue(true);
+    const { notifyAction } = await renderWidget({}, [
+      { id: 101, item_id: "cart-1", quantity: 1, product_variation_id: 7 },
+    ]);
+
+    await userEvent.click(minus());
+
+    expect(
+      notifyAction,
+      "tapping minus also asked to notify the shopper",
+    ).not.toHaveBeenCalled();
+  });
+
+  it("says the shopper will be told once they asked", async () => {
+    await renderWidget({ isNotified: true, loading: true });
+
+    expect(
+      screen.getByText("We Will Inform You When Variant Is Available"),
+      "a shopper who asked was not told they will be informed",
+    ).toBeInTheDocument();
   });
 });

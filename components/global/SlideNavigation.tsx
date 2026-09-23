@@ -27,6 +27,9 @@ function useSlideTransition<T>({
 
     onTransitionStart?.(current, step);
     setPrevious(current);
+    // The entering layer draws `current`, so it must hold the new step now,
+    // not only after the slide.
+    setCurrent(step);
     setIsTransitioning(true);
 
     const calcDirection = (): typeof direction => {
@@ -43,12 +46,13 @@ function useSlideTransition<T>({
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
-      setCurrent(step);
       setPrevious(null);
       setIsTransitioning(false);
       onTransitionEnd?.(step);
     }, duration);
-  }, [step]);
+    // isTransitioning is a dependency so that a step change that arrived
+    // during a slide is played when that slide ends.
+  }, [step, isTransitioning]);
 
   useEffect(() => {
     return () => {

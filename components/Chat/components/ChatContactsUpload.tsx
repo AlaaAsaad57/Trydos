@@ -85,7 +85,7 @@ function ChatContactsUpload() {
       setIsUploading(true);
 
       // Use the individual contact endpoint as requested
-      await fetchData({
+      const res = await fetchData({
         url: "/api/v1/users/save_contact_v2",
         server: "chat",
         method: "POST",
@@ -95,6 +95,7 @@ function ChatContactsUpload() {
         }),
         reqTitle: { reqTitle: "ADD_CONTACTS", code: 999 },
       });
+      if (!res?.success) throw new Error(res?.message);
 
       // Refresh data and reset form
       await getContacts();
@@ -109,6 +110,7 @@ function ChatContactsUpload() {
         mobile_phone: fullPhoneString.replace(/\s+/g, ""),
       });
       setError("Failed to add contact");
+      showErrorNotification(translateFunction("Failed to add contact"));
     } finally {
       setIsUploading(false);
     }

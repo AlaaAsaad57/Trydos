@@ -118,7 +118,7 @@ function OptionsMenu(props) {
         )
       : null;
 
-  if (isSender && edit) {
+  if (isSender && (edit || edit === "")) {
     return (
       <>
         {deleteConfirm}

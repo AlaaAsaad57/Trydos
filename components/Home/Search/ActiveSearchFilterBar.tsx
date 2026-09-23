@@ -17,12 +17,10 @@ function ActiveSearchFilterBar({ value, appliedFilters, reset }) {
       name: "",
       most_viewed_product_thumbnail: "",
     };
-    appliedFilters.categories.map((s) =>
-      s.childes?.map((sub) => {
-        variable = sub;
-        if (sub.slug === slug) return sub;
-      })
-    );
+    for (const s of appliedFilters.categories) {
+      const sub = s.childes?.find((child) => child.slug === slug);
+      if (sub) return sub;
+    }
     return variable;
   };
   if (!showFilterBar()) return <></>;

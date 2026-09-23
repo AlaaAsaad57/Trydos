@@ -118,7 +118,11 @@ function ChatMessage({
       isMenuOpen={opens === id}
     >
       {isDeleted ? (
-        <DeletedMessage type={type} activeChat={activeChat} />
+        <DeletedMessage
+          type={type}
+          activeChat={activeChat}
+          sender_user_id={sender_user_id}
+        />
       ) : (
         <React.Fragment>
           {message_type?.name === "TextMessage" && (

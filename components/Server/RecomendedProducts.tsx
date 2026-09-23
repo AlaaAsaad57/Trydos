@@ -34,6 +34,7 @@ function RecomendedProducts({ lang, InitialOffset, userId, currency }) {
       setProducts([...products, ...res.items]);
       setLoadingMore(false);
     } catch (error) {
+      setLoadingMore(false);
       showErrorMessage(
         translateFunction("Failed To Load Products Retring in 3 seconds"),
       );

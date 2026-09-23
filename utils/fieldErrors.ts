@@ -50,9 +50,6 @@ export function parseFieldErrors(message: unknown): FieldError[] | null {
   } catch {
     return null;
   }
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    return null;
-  }
 
   const out: FieldError[] = [];
   // The keys come from the backend, so they are only ever READ here. Nothing is

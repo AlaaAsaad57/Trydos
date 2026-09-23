@@ -273,3 +273,20 @@ describe("the cached metadata reader's key", () => {
     ).toContain("meta-sy-en-boots");
   });
 });
+
+describe("GetHomeMetaData when the category search fails", () => {
+  it("reports the failure and passes it on, so no metadata is cached from it", async () => {
+    elasticSearch.mockRejectedValueOnce(new Error("search down"));
+    const { LogServerError } = await import("utils/serverErrorReporter");
+
+    await expect(
+      GetHomeMetaData({ local: "sy-en", category: "shoes" }),
+      "a failed category search was hidden",
+    ).rejects.toThrow("search down");
+    expect(
+      vi.mocked(LogServerError).mock.calls.map((call: any[]) => call[0]?.scenario),
+      "the failed category search was not reported",
+    ).toContain("Error In GetCatgoriesMetaData in serverRequest/home");
+    expect(redisSet, "metadata was cached from a failed search").not.toHaveBeenCalled();
+  });
+});

@@ -127,5 +127,20 @@ describe("Orders Service", () => {
       expect(result).toBeUndefined();
     });
   });
+  describe("when the core backend answers with success: false", () => {
+    it("fetchOrdersCount returns null instead of a count", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce({ success: false, message: "refused" });
+
+      const count = await fetchOrdersCount();
+      expect(count, "a refused count request must give null, not 0").toBeNull();
+    });
+
+    it("fetchHiddenOrders returns nothing instead of the refusal", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce({ success: false, message: "refused" });
+
+      const result = await fetchHiddenOrders();
+      expect(result, "a refused hidden-orders request must not be handed back as data").toBeUndefined();
+    });
+  });
 });
 

@@ -51,7 +51,7 @@ export async function generateMetadata({ params, searchParams }): Promise<Metada
         language,
         product_slug: Params.productId,
       },
-      `/${country}-${language}/featured`,
+      `/${country}-${language}/products/${Params.productId}`,
     );
     return {};
   }

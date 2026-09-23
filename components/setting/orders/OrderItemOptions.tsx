@@ -524,10 +524,6 @@ function OrderItemOptions({
           />
         );
     }
-
-    if (selectedScreen === "cancel" && canceled && ShouldConfirmCancel) {
-      return <></>;
-    }
   };
 
   // The report screen is its own draggable BottomSheet (grabber drag-to-dismiss,

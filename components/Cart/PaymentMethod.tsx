@@ -265,8 +265,7 @@ function PaymentMethod() {
               language,
             )}
           </div>
-          {available_payment_method &&
-            available_payment_method.length &&
+          {available_payment_method?.length > 0 &&
             available_payment_method.map((item, key) => {
               if (item?.toLowerCase() === "cash_on_delivery".toLowerCase()) {
                 return (

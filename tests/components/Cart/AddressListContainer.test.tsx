@@ -129,3 +129,82 @@ describe("the checkout address sheet", () => {
     ).toBe(1);
   });
 });
+
+describe("GetAddressString", () => {
+  it("joins every filled part of the address and skips the empty or 'null' ones", async () => {
+    const { GetAddressString } = await import("components/Cart/AddressListContainer");
+    expect(GetAddressString(null), "no location must give an empty string").toBe("");
+    expect(
+      GetAddressString({
+        country: "Syria",
+        province: "Rif",
+        city: "Damascus",
+        town: "Mezzeh",
+        street: "Main",
+        building: "12",
+      }),
+      "a full location did not list every part in order",
+    ).toBe("Syria |Rif | Damascus | Mezzeh | Main | 12");
+    expect(
+      GetAddressString({
+        province: "null",
+        city: "",
+        town: "null",
+        street: "null",
+        building: "null",
+      }),
+      "'null' and empty parts must be left out",
+    ).toBe("");
+  });
+});
+
+describe("the checkout address sheet — the other controls", () => {
+  it("closes when the shopper taps the dark backdrop", async () => {
+    const closeSelect = vi.fn();
+    await renderWithProviders(
+      <AddressListContainer closeSelect={closeSelect} slideNext={() => {}} Delete={() => {}} />,
+      { store: { addressLists: [] } },
+    );
+    await userEvent.click(document.querySelector(".opacity-40")!);
+    expect(closeSelect, "tapping the backdrop did not close the sheet").toHaveBeenCalled();
+  });
+
+  it("opens the edit form for the address whose pencil was tapped, without choosing it", async () => {
+    const closeSelect = vi.fn();
+    const slideNext = vi.fn();
+    const { store } = await renderWithProviders(
+      <AddressListContainer closeSelect={closeSelect} slideNext={slideNext} Delete={() => {}} />,
+      { store: { addressLists: savedAddresses.map((a) => ({ ...a })) } },
+    );
+    const pencils = document.querySelectorAll('[data-pw="Edit-Addres-Icon"]');
+    await userEvent.click(pencils[1]);
+    expect(slideNext, "the edit pencil did not move on to the address form").toHaveBeenCalled();
+    expect(closeSelect, "the edit pencil did not close the sheet").toHaveBeenCalledWith();
+    expect(
+      store.getState().addressLists.find((a: any) => a.is_default === 1)?.address,
+      "tapping the edit pencil also changed the delivery address",
+    ).toBe("Home");
+  });
+
+  it("hands the tapped address to the delete handler", async () => {
+    const Delete = vi.fn();
+    await renderWithProviders(
+      <AddressListContainer closeSelect={() => {}} slideNext={() => {}} Delete={Delete} />,
+      { store: { addressLists: savedAddresses.map((a) => ({ ...a })) } },
+    );
+    await userEvent.click(document.querySelectorAll('[data-pw="Delete-Address-Icon"]')[2]);
+    expect(Delete.mock.calls[0]?.[0]?.address, "the bin icon did not pass the Gym address").toBe("Gym");
+  });
+
+  it("opens an empty address form from 'Add New Shipping Address'", async () => {
+    const closeSelect = vi.fn();
+    const slideNext = vi.fn();
+    await renderWithProviders(
+      <AddressListContainer closeSelect={closeSelect} slideNext={slideNext} Delete={() => {}} />,
+      { store: { addressLists: [] } },
+    );
+    await userEvent.click(document.querySelector('[data-pw="Add-Shipping-Address"]')!);
+    expect(closeSelect, "the add button did not close the sheet").toHaveBeenCalled();
+    expect(slideNext, "the add button did not move on to the address form").toHaveBeenCalled();
+  });
+});

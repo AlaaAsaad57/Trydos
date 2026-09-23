@@ -61,6 +61,14 @@ vi.mock("utils/fetchData", async () => {
   return makeFetchDataMock();
 });
 
+// Logout wipes the PostHog identity. The real reset loads posthog-js; the
+// logout tests below only need to see that it was asked for.
+const posthogResetSpy = vi.hoisted(() => vi.fn());
+vi.mock("utils/posthog", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, any>>();
+  return { ...actual, posthogReset: posthogResetSpy };
+});
+
 import { fetchData } from "utils/fetchData";
 import { GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -83,7 +91,16 @@ import {
   pollinateInput,
   sanitizePhone,
   ShowDayStr,
+  ChatConroller,
+  clearAllUserData,
+  FlagIcon,
+  ShowNotificationSign,
+  requestPermissions,
 } from "utils/tinyUtils";
+import { abortInFlightForLogout } from "utils/fetchData";
+import { render } from "@testing-library/react";
+import { createElement } from "react";
+import { useAppStore } from "store";
 
 // Set in vitest.config.ts for the whole unit project.
 const MEDIA = "https://example.com";
@@ -688,5 +705,349 @@ describe("naming a day of the week (ShowDayStr)", () => {
 
   it("gives nothing back for a day number that does not exist", () => {
     expect(ShowDayStr(7, "en")).toBeUndefined();
+  });
+});
+
+describe("opening and closing the chat (ChatConroller)", () => {
+  afterEach(() => {
+    document.documentElement.style.overflow = "";
+  });
+
+  it("locks the page and opens the chat, then unlocks it on close", () => {
+    const openChat = vi.fn();
+    const setChatOpen = vi.fn();
+    useAppStore.setState({ openChat, setChatOpen } as any);
+    ChatConroller(true);
+    expect(document.documentElement.style.overflow, "the page was not locked behind the chat").toBe("hidden");
+    ChatConroller(false);
+    expect(document.documentElement.style.overflow, "the page was not unlocked after the chat closed").toBe(
+      "initial",
+    );
+    expect(openChat.mock.calls, "the chat open flag was not passed on").toEqual([[true], [false]]);
+    expect(setChatOpen.mock.calls, "the chat-open state was not passed on").toEqual([[true], [false]]);
+  });
+
+  it("swallows a failure inside the store action", () => {
+    useAppStore.setState({
+      openChat: () => {
+        throw new Error("boom");
+      },
+    } as any);
+    expect(() => ChatConroller(true), "a store failure escaped ChatConroller").not.toThrow();
+  });
+});
+
+describe("wiping the session on logout (clearAllUserData)", () => {
+  const originalFetch = globalThis.fetch;
+
+  beforeEach(() => {
+    logErrorSpy.mockClear();
+    posthogResetSpy.mockClear();
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    delete (navigator as any).serviceWorker;
+    vi.useRealTimers();
+  });
+
+  it("sends the device token to the logout route, drops the push subscription and clears storage", async () => {
+    localStorage.setItem("FB-DEVICE-TOKEN", "device-1");
+    sessionStorage.setItem("x", "1");
+    const fetchSpy = vi.fn(async () => new Response("{}"));
+    globalThis.fetch = fetchSpy as any;
+    const unsubscribe = vi.fn(async () => true);
+    const getRegistration = vi.fn(async () => ({
+      pushManager: { getSubscription: async () => ({ unsubscribe }) },
+    }));
+    Object.defineProperty(navigator, "serviceWorker", {
+      value: { getRegistration },
+      configurable: true,
+    });
+
+    await clearAllUserData();
+
+    expect(abortInFlightForLogout, "in-flight requests were not stopped first").toHaveBeenCalled();
+    const [url, init] = fetchSpy.mock.calls[0] as any;
+    expect(url, "the logout route was not called").toBe("/api/auth/logout");
+    expect(JSON.parse(init.body), "the device token was not handed to the logout route").toEqual({
+      fcmToken: "device-1",
+    });
+    expect(getRegistration, "the wrong service worker was asked").toHaveBeenCalledWith(
+      "/firebase-messaging-sw.js",
+    );
+    expect(unsubscribe, "the push subscription was not dropped").toHaveBeenCalled();
+    expect(posthogResetSpy, "the PostHog identity was not reset").toHaveBeenCalled();
+    expect(localStorage.length, "localStorage still holds data after logout").toBe(0);
+    expect(sessionStorage.length, "sessionStorage still holds data after logout").toBe(0);
+  });
+
+  it("reports a failed logout request and still clears everything, with no service worker", async () => {
+    globalThis.fetch = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockRejectedValueOnce("aborted") as any;
+    localStorage.setItem("a", "1");
+    await clearAllUserData();
+    await clearAllUserData();
+    expect(
+      logErrorSpy.mock.calls.map((c) => c[0]),
+      "the failed logout requests were not reported",
+    ).toEqual([
+      { scenario: "clearAllUserData logout request", error: "offline" },
+      { scenario: "clearAllUserData logout request", error: "aborted" },
+    ]);
+    expect(localStorage.length, "storage was not cleared after a failed request").toBe(0);
+  });
+
+  it("does not wait longer than the push budget for a stuck unsubscribe, and ignores its failure", async () => {
+    vi.useFakeTimers();
+    globalThis.fetch = vi.fn(async () => new Response("{}")) as any;
+    Object.defineProperty(navigator, "serviceWorker", {
+      value: { getRegistration: () => new Promise(() => {}) },
+      configurable: true,
+    });
+    const done = clearAllUserData();
+    await vi.advanceTimersByTimeAsync(800);
+    await done;
+    expect(posthogResetSpy, "logout stayed stuck behind the push teardown").toHaveBeenCalled();
+
+    Object.defineProperty(navigator, "serviceWorker", {
+      value: { getRegistration: async () => Promise.reject(new Error("sw gone")) },
+      configurable: true,
+    });
+    const again = clearAllUserData();
+    await vi.advanceTimersByTimeAsync(800);
+    await again;
+    expect(posthogResetSpy.mock.calls.length, "a failed teardown stopped the logout").toBe(2);
+  });
+
+  it("handles a device with no registration or no subscription", async () => {
+    globalThis.fetch = vi.fn(async () => new Response("{}")) as any;
+    Object.defineProperty(navigator, "serviceWorker", {
+      value: { getRegistration: async () => undefined },
+      configurable: true,
+    });
+    await clearAllUserData();
+    expect(posthogResetSpy, "logout did not finish without a registration").toHaveBeenCalled();
+  });
+});
+
+describe("showing a country flag (FlagIcon)", () => {
+  it("shows nothing for a code that is not a country", () => {
+    const { container } = render(createElement(FlagIcon, { iso: "zz" }));
+    expect(container.querySelector("img"), "an unknown code got a flag").toBeNull();
+    const none = render(createElement(FlagIcon, { iso: undefined as any }));
+    expect(none.container.querySelector("img"), "a missing code got a flag").toBeNull();
+  });
+
+  it("shows the Syrian flag, capped in height on the product page", () => {
+    const { container } = render(createElement(FlagIcon, { iso: "SY", isFromProductPage: true }));
+    const img = container.querySelector("img")!;
+    expect(img.getAttribute("src"), "the Syrian flag file is wrong").toContain("sy.svg");
+    expect(img.style.maxHeight, "the product-page flag is not capped").toBe("14px");
+    expect(img.getAttribute("alt"), "the flag name was not translated").toBe("[sy]");
+  });
+
+  it("shows any other listed flag by its lower-case code", () => {
+    const { container } = render(createElement(FlagIcon, { iso: "TR" }));
+    const img = container.querySelector("img")!;
+    expect(img.getAttribute("src"), "the Turkish flag file is wrong").toContain("/icons/flag/tr.svg");
+    expect(img.style.maxHeight, "a flag outside the product page was capped").toBe("");
+    expect(img.getAttribute("alt"), "the flag name was not translated").toBe("[TR]");
+    const plain = render(createElement(FlagIcon, { iso: "sy" }));
+    expect(plain.container.querySelector("img")!.style.maxHeight, "the Syrian flag was capped off the product page").toBe("");
+  });
+});
+
+describe("the rarer date branches (formatTime, formatTimeForAddress)", () => {
+  const NOW = new Date("2026-08-16T12:00:00Z");
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+    useAppStore.setState({ language: "en" } as any);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("writes day and month only for a later day this year", () => {
+    const later = new Date("2026-10-05T12:00:00Z");
+    expect(formatTime("2026-10-05T12:00:00Z"), "the later-date format is wrong").toBe(
+      `${later.getDate()} [${["January","February","March","April","May","June","July","August","September","October","November","December"][later.getMonth()]}]`,
+    );
+  });
+
+  it(
+    "BUG-utils-2: formatTime reads a timestamp that carries a +hh:mm offset",
+    () => {
+      expect(
+        formatTime("2020-03-04T09:30:00+03:00"),
+        "a valid offset timestamp came out as NaN, because the retry adds the same 'Z' again",
+      ).toMatch(/^\d{2}\/\d{2}\/\d{4} \| \d{2}:\d{2}:\d{2}$/);
+    },
+  );
+
+  it("formatTimeForAddress says yesterday, a later day, or the full date", () => {
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    const yesterday = new Date(NOW.getTime() - 24 * 60 * 60 * 1000);
+    expect(formatTimeForAddress(yesterday.toISOString()), "yesterday is wrong").toMatch(
+      /^\[Yesterday\] \| \d{2}:\d{2}:\d{2}$/,
+    );
+    const later = new Date(2026, 9, 5, 10, 0, 0);
+    expect(formatTimeForAddress(later.toISOString(), "ar"), "the later-date format is wrong").toBe(
+      "5 [October]",
+    );
+    const old = new Date(2020, 2, 4, 9, 30, 0);
+    expect(formatTimeForAddress(old.toISOString()), "the full date is wrong").toBe(
+      `04/03/2020 | ${pad(9)}:30:00`,
+    );
+  });
+});
+
+describe("the red dot on an order (ShowNotificationSign)", () => {
+  it("is on when the order or its group has a pending chat message", () => {
+    useAppStore.setState({
+      showNotificaionCircle: [{ order_id: 5, order_group_id: 9 }],
+    } as any);
+    expect(ShowNotificationSign({ order_id: 5 }), "the order's own dot is off").toBe(true);
+    expect(ShowNotificationSign({ order_group_id: 9 }), "the group's dot is off").toBe(true);
+    expect(ShowNotificationSign({ order_id: 6, order_group_id: 7 }), "an unrelated order has a dot").toBe(false);
+  });
+
+  it("is off when the store has no list", () => {
+    useAppStore.setState({ showNotificaionCircle: undefined } as any);
+    expect(ShowNotificationSign({ order_id: 5 }), "a dot showed with no list").toBe(false);
+  });
+});
+
+describe("naming the tag screen (DetectScreen)", () => {
+  it("names a tags address as the tags screen", () => {
+    window.history.pushState({}, "", "/sy-en/tags_names/summer");
+    expect(DetectScreen(), "a tags page was not named as such").toBe(GA_GLOBAL_SCREEN.TAGS_SCREEN);
+  });
+});
+
+describe("asking for camera and microphone (requestPermissions)", () => {
+  const track = () => ({ stop: vi.fn() });
+  const stream = (tracks = [track()]) => ({ getTracks: () => tracks }) as any;
+
+  /** Replace the parts of navigator this function reads. */
+  function setNavigator({
+    getUserMedia,
+    query,
+    legacy,
+  }: {
+    getUserMedia?: any;
+    query?: any;
+    legacy?: any;
+  }) {
+    Object.defineProperty(navigator, "mediaDevices", {
+      value: getUserMedia ? { getUserMedia } : undefined,
+      configurable: true,
+    });
+    Object.defineProperty(navigator, "permissions", {
+      value: query ? { query } : undefined,
+      configurable: true,
+    });
+    Object.defineProperty(navigator, "webkitGetUserMedia", {
+      value: legacy,
+      configurable: true,
+    });
+  }
+
+  afterEach(() => {
+    delete (navigator as any).mediaDevices;
+    delete (navigator as any).permissions;
+    delete (navigator as any).webkitGetUserMedia;
+  });
+
+  it("says yes when nothing is asked for", async () => {
+    expect(await requestPermissions(), "asking for nothing did not say yes").toBe(true);
+  });
+
+  it("says no at once when the browser already denied one of them", async () => {
+    const getUserMedia = vi.fn();
+    setNavigator({
+      getUserMedia,
+      query: async ({ name }: any) => ({ state: name === "camera" ? "denied" : "granted" }),
+    });
+    expect(await requestPermissions({ camera: true, mic: true }), "a denied camera said yes").toBe(false);
+    expect(getUserMedia, "the browser was asked after a denial").not.toHaveBeenCalled();
+  });
+
+  it("says yes at once when both are already granted", async () => {
+    const getUserMedia = vi.fn();
+    setNavigator({ getUserMedia, query: async () => ({ state: "granted" }) });
+    expect(await requestPermissions({ camera: true, mic: true }), "granted permissions said no").toBe(true);
+    expect(getUserMedia, "the browser was asked again after a grant").not.toHaveBeenCalled();
+  });
+
+  it("asks the browser when the answer is not known yet, and stops the test stream", async () => {
+    const t = { stop: vi.fn(() => { throw new Error("already stopped"); }) };
+    const getUserMedia = vi.fn(async () => stream([t as any]));
+    const query = vi.fn(async () => ({ state: "prompt" }));
+    setNavigator({ getUserMedia, query });
+    expect(await requestPermissions({ mic: true }), "a granted microphone said no").toBe(true);
+    expect(getUserMedia, "the wrong devices were asked for").toHaveBeenCalledWith({ video: false, audio: true });
+    expect(t.stop, "the test stream was not stopped").toHaveBeenCalled();
+  });
+
+  it("carries on when the permission query itself throws", async () => {
+    const getUserMedia = vi.fn(async () => stream());
+    setNavigator({
+      getUserMedia,
+      query: () => {
+        throw new Error("unsupported name");
+      },
+    });
+    expect(await requestPermissions({ camera: true, mic: true }), "a throwing query blocked the request").toBe(true);
+  });
+
+  it("carries on when the permission check fails as a whole", async () => {
+    const getUserMedia = vi.fn(async () => stream());
+    setNavigator({ getUserMedia, query: async () => null });
+    expect(await requestPermissions({ camera: true }), "a broken query answer blocked the request").toBe(true);
+  });
+
+  it("asks one device at a time when asking for both fails", async () => {
+    const getUserMedia = vi.fn(async (c: any) => {
+      if (c.video && c.audio) throw new Error("both refused");
+      if (c.video) throw new Error("no camera");
+      return stream();
+    });
+    setNavigator({ getUserMedia });
+    expect(await requestPermissions({ camera: true, mic: true }), "a missing camera still said yes").toBe(false);
+    expect(getUserMedia.mock.calls.map((c) => c[0]), "the devices were not asked one by one").toEqual([
+      { video: true, audio: true },
+      { audio: true },
+      { video: true },
+    ]);
+  });
+
+  it("says yes when each device works on its own, or no when the microphone fails", async () => {
+    let fail = "none";
+    const getUserMedia = vi.fn(async (c: any) => {
+      if (c.video && c.audio) throw new Error("together refused");
+      if (fail === "mic" && c.audio) throw new Error("no mic");
+      return stream();
+    });
+    setNavigator({ getUserMedia });
+    expect(await requestPermissions({ camera: true, mic: true }), "two working devices said no").toBe(true);
+    fail = "mic";
+    expect(await requestPermissions({ mic: true, camera: false }), "a failed microphone said yes").toBe(false);
+  });
+
+  it("uses the old browser API when there is no mediaDevices, and fails when there is none", async () => {
+    const legacy = vi.fn((_c: any, ok: any) => ok(stream()));
+    setNavigator({ legacy });
+    expect(await requestPermissions({ camera: true }), "the old API was not used").toBe(true);
+    expect(legacy, "the old API was not called").toHaveBeenCalled();
+    setNavigator({});
+    expect(await requestPermissions({ camera: true }), "a browser with no camera API said yes").toBe(false);
   });
 });

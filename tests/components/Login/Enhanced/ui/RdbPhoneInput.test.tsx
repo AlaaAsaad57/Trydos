@@ -15,6 +15,8 @@ import RdbPhoneInput, {
 
 import { resetDevice, setDevice } from "../../../../mocks/device";
 import {
+  act,
+  fireEvent,
   renderWithProviders,
   screen,
   userEvent,
@@ -199,6 +201,12 @@ describe("what the shopper sees", () => {
     });
   });
 
+  it("puts the cursor in the real field when the drawn box is clicked", async () => {
+    await renderInput();
+    fireEvent.click(document.querySelector('[data-pw="phone-number-display"]') as HTMLElement);
+    expect(document.activeElement, "clicking the box did not focus the field").toBe(field());
+  });
+
   it("says what to type while the field is empty", async () => {
     await renderInput({ placeholder: "Enter Your Phone Number" });
 
@@ -273,6 +281,44 @@ describe("on a phone", () => {
       "a phone shopper reaches the same finished number and must get the same " +
         "way forward",
     ).toBeInTheDocument();
+  });
+
+  it("deletes a digit per backspace press, and keeps deleting while it is held", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const onChange = vi.fn();
+    await renderInput({ value: "96399", onChange });
+    await screen.findByRole("button", { name: "9" });
+    const backspace = document.querySelector('[data-pw="keypad-backspace"]') as HTMLElement;
+
+    fireEvent.pointerDown(backspace);
+    expect(onChange, "one press did not delete one digit").toHaveBeenLastCalledWith("9639");
+    act(() => {
+      vi.advanceTimersByTime(400 + 80 * 2);
+    });
+    fireEvent.pointerUp(backspace);
+    expect(
+      onChange.mock.calls.length >= 3,
+      "holding backspace did not keep deleting after 400 ms",
+    ).toBe(true);
+    vi.useRealTimers();
+  });
+
+  it("closes the keypad on a tap outside, and opens it again from the number box", async () => {
+    await renderInput();
+    await screen.findByRole("button", { name: "1" });
+    const box = document.querySelector('[data-pw="phone-number-display"]') as HTMLElement;
+
+    fireEvent.mouseDown(box);
+    fireEvent.mouseDown(document.querySelector("[data-keyboard-overlay]") as HTMLElement);
+    expect(box.hasAttribute("data-keyboard-anchor"), "a tap on the box or keypad closed the keypad").toBe(true);
+
+    fireEvent.mouseDown(document.body);
+    await waitFor(() =>
+      expect(box.hasAttribute("data-keyboard-anchor"), "a tap outside did not close the keypad").toBe(false),
+    );
+
+    fireEvent.click(box);
+    expect(box.hasAttribute("data-keyboard-anchor"), "tapping the box did not open the keypad").toBe(true);
   });
 
   it("takes the device keyboard instead where the keypad would not fit", async () => {

@@ -217,6 +217,18 @@ describe("the price slider in the filter window", () => {
         "most shoppers here are on a phone, where a drag never produces a mouse-up — listening only for the mouse would mean the slider never reports on a phone at all",
       ).toHaveBeenCalledWith(30, 100);
     });
+    it("reports a touch drag of the upper handle too", async () => {
+      const { onChange } = await renderSlider({ min: 0, max: 100 });
+
+      fireEvent.touchStart(maxHandle());
+      fireEvent.change(maxHandle(), { target: { value: "70" } });
+      fireEvent.touchEnd(maxHandle());
+
+      expect(
+        onChange,
+        "a phone drag of the upper handle must report the new band, the same as a mouse drag",
+      ).toHaveBeenCalledWith(0, 70);
+    });
   });
 
   describe("a listing whose products are all one price", () => {

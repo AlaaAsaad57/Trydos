@@ -109,9 +109,9 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalProps)
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
     }
-    stop();
+    pause();
     setCapturing(false);
-  }, [stop]);
+  }, [pause]);
 
   // Max video length of 1 minute (60 seconds)
   useEffect(() => {

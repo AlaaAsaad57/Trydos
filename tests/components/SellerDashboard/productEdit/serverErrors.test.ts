@@ -252,6 +252,16 @@ describe("mapping a refused save onto the form's fields (AC-1 â€¦ AC-8, AC-11 â€
     ).toEqual([]);
   });
 
+  it("skips a codeless entry with an empty message instead of counting it as withheld", () => {
+    const result = mapServerErrors(refusal([{ message: "  " }, { code: 5, message: "" }, null]));
+    expect(result, "an empty codeless entry was shown or counted").toEqual({ fields: {}, messages: [], withheld: 0 });
+  });
+
+  it("treats a detailed_error that is not a list as no detail", () => {
+    const result = mapServerErrors({ httpStatus: 422, detailed_error: "oops" });
+    expect(result.withheld + result.messages.length, "a malformed detail list produced output").toBe(0);
+  });
+
   it("AC-23: a validation refusal carrying no detail at all yields empty outputs to fall back on", () => {
     const result = mapServerErrors(refusal([]));
 
@@ -422,6 +432,11 @@ describe("clearing a backend failure as the seller fixes it (AC-13, AC-29)", () 
     ).toBe("Weight is required");
   });
 
+  it("returns the same object when no field changed at all", () => {
+    const current = { barcode: BARCODE_TAKEN };
+    expect(clearServerFieldErrors(current, []), "an empty change list built a new record").toBe(current);
+  });
+
   it("AC-29: returns the very same object when nothing was cleared", () => {
     const current = { barcode: BARCODE_TAKEN };
 
@@ -502,6 +517,35 @@ describe("moving the seller to the problem (AC-9, AC-26)", () => {
       scrollIntoView.mock.instances[0],
       "the page moved, but not to the field the backend refused",
     ).toBe(document.querySelector('[data-field="barcode"]'));
+  });
+
+  it("returns no field when no anchor is failing, or when there are no errors", () => {
+    expect(pickTopmostErrorField({ weight: "x" }), "a field with no anchor was picked").toBeNull();
+    expect(pickTopmostErrorField(null as any), "a missing error record picked a field").toBeNull();
+  });
+
+  it("falls back to the first red-bordered element when the failing field has no anchor", () => {
+    vi.useFakeTimers();
+    const scrollIntoView = stubScrollIntoView();
+    document.body.innerHTML += `<div class="text-[#f85555]"></div><div class="border-[#f85555]" id="red-box"></div>`;
+
+    scrollToFirstError({ weight: "Weight is required" });
+    vi.runAllTimers();
+
+    expect(scrollIntoView.mock.instances[0], "the page did not move to the red-bordered field").toBe(
+      document.getElementById("red-box"),
+    );
+  });
+
+  it("does nothing when there is no error record, or nothing on the page to move to", () => {
+    vi.useFakeTimers();
+    const scrollIntoView = stubScrollIntoView();
+
+    scrollToFirstError(null as any);
+    scrollToFirstError({ weight: "Weight is required" });
+    vi.runAllTimers();
+
+    expect(scrollIntoView, "the page moved with nothing to move to").not.toHaveBeenCalled();
   });
 
   it("AC-9: does not scroll when nothing is failing", () => {

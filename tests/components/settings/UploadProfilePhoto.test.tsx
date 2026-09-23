@@ -46,7 +46,15 @@ vi.mock("react-avatar-editor", () => ({
         getImageScaledToCanvas: () => ({ toDataURL: () => REAL_DATA_URL }),
       };
     }
-    return <div data-testid="avatar-editor" />;
+    return (
+      <div data-testid="avatar-editor">
+        <button
+          onClick={() => (props.onPositionChange as (p: unknown) => void)({ x: 0.4, y: 0.5 })}
+        >
+          drag picture
+        </button>
+      </div>
+    );
   },
 }));
 
@@ -274,5 +282,163 @@ describe("an upload the media backend refuses", () => {
       showErrorNotification.mock.calls[0]?.[0],
       "the shopper was shown an empty message instead of one saying the upload failed",
     ).toBeTruthy();
+  });
+});
+
+describe("the saved picture", () => {
+  it("sends the shopper back to the profile after a successful save", async () => {
+    const user = userEvent.setup();
+    updateProfileImage.mockResolvedValue({ sub_path: "/user/new-picture.png" });
+    await show();
+    await choosePicture(user);
+    await user.click(screen.getByText("Save"));
+    await waitFor(() =>
+      expect(location.href, "a saved picture did not return the shopper to the profile").toBe(
+        "/gb-en/settings/profile",
+      ),
+    );
+  });
+
+  it("dragging the current picture offers Save", async () => {
+    const user = userEvent.setup();
+    await show();
+    expect(screen.queryByText("Save"), "Save was offered before anything changed").not.toBeInTheDocument();
+    await user.click(screen.getByText("drag picture"));
+    expect(screen.getByText("Save"), "moving the picture did not offer Save").toBeInTheDocument();
+  });
+
+  it("logs a profile update that throws and stays on the screen", async () => {
+    const user = userEvent.setup();
+    updateProfile.mockRejectedValueOnce(new Error("profile down"));
+    await show();
+    await user.click(screen.getByText("Remove Photo"));
+    await user.click(screen.getByText("Save"));
+    await waitFor(() =>
+      expect(logError, "a failed profile update was not logged").toHaveBeenCalledWith(
+        expect.objectContaining({ scenario: "Error In UploadFile in UploadProfilePhoto" }),
+      ),
+    );
+    expect(location.href, "a failed save still navigated").toBeNull();
+  });
+});
+
+describe("a guest on the picture screen", () => {
+  it.each(["0", 0, null, "", "12"])("any tap with phone %j opens sign-in instead", async (phone) => {
+    const setLoginOpen = vi.fn();
+    const guest = { ...ACCOUNT, phone };
+    await renderWithProviders(
+      <UploadProfilePhoto local="gb-en" isRtl={false} userProfile={guest} />,
+      { store: { userProfile: null, setLoginOpen } },
+    );
+    await userEvent.setup().click(screen.getByText("Remove Photo"));
+    expect(setLoginOpen, "a guest tap did not open sign-in").toHaveBeenCalledWith(true);
+    expect(screen.getByText("Remove Photo"), "a guest tap still removed the picture").toBeInTheDocument();
+  });
+
+  it("with no profile at all, the screen is faded and taps open sign-in", async () => {
+    const setLoginOpen = vi.fn();
+    const { container } = await renderWithProviders(
+      <UploadProfilePhoto local="gb-en" isRtl={false} userProfile={null} />,
+      { store: { userProfile: null, setLoginOpen } },
+    );
+    expect((container.firstChild as HTMLElement).className, "a guest screen is not faded").toContain("opacity-65");
+    await userEvent.setup().click(document.querySelector('[data-pw="change-photo-menu"]')!);
+    expect(setLoginOpen, "a guest tap on the picture did not open sign-in").toHaveBeenCalledWith(true);
+  });
+});
+
+describe("the add-picture menu", () => {
+  const openMenu = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.click(screen.getByText("Remove Photo"));
+    await user.click(document.querySelector('[data-pw="change-photo-menu"]')!);
+  };
+
+  it("opens when there is no picture, and the backdrop closes it", async () => {
+    const user = userEvent.setup();
+    await show();
+    await openMenu(user);
+    const backdrop = document.querySelector(".fixed.z-40") as HTMLElement;
+    expect(backdrop, "tapping the empty picture did not open the menu").not.toBeNull();
+    await user.click(backdrop);
+    expect(document.querySelector(".fixed.z-40"), "the backdrop did not close the menu").toBeNull();
+  });
+
+  it("Choose From Library opens the file picker", async () => {
+    const user = userEvent.setup();
+    await show();
+    await openMenu(user);
+    const click = vi.spyOn(
+      document.querySelector<HTMLInputElement>("#profile-file-picker")!,
+      "click",
+    );
+    await user.click(screen.getByText("Choose From Library"));
+    expect(click, "Choose From Library did not open the file picker").toHaveBeenCalled();
+  });
+
+  describe("take photo", () => {
+    const track = { stop: vi.fn() };
+    const stream = { getTracks: () => [track] };
+
+    beforeEach(() => {
+      track.stop.mockClear();
+      vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(async () => {});
+      vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({ drawImage: vi.fn() } as any);
+      vi.spyOn(HTMLCanvasElement.prototype, "toBlob").mockImplementation(function (cb: BlobCallback) {
+        cb(new Blob(["x"], { type: "image/jpeg" }));
+      });
+    });
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    const cameraButtons = () =>
+      document.querySelectorAll<HTMLButtonElement>("#camera-photo-holder > div > button");
+
+    it("opens the camera, and the capture button puts the photo on screen", async () => {
+      vi.stubGlobal("navigator", { ...navigator, mediaDevices: { getUserMedia: vi.fn(async () => stream) } });
+      const user = userEvent.setup();
+      await show();
+      await openMenu(user);
+      await user.click(screen.getByText("take photo"));
+
+      await waitFor(() =>
+        expect(cameraButtons()[1]?.onclick, "the camera capture button was never armed").toBeTruthy(),
+      );
+      cameraButtons()[1].click();
+      expect(track.stop, "the camera was not switched off after the capture").toHaveBeenCalled();
+      await waitFor(() =>
+        expect(screen.getByText("Save"), "the captured photo did not become the new picture").toBeInTheDocument(),
+      );
+      expect(document.querySelector("#camera-photo-holder video"), "the camera overlay was not removed after the capture").toBeNull();
+    });
+
+    it("the cancel button switches the camera off and closes it", async () => {
+      vi.stubGlobal("navigator", { ...navigator, mediaDevices: { getUserMedia: vi.fn(async () => stream) } });
+      const user = userEvent.setup();
+      await show();
+      await openMenu(user);
+      await user.click(screen.getByText("take photo"));
+      await waitFor(() => expect(cameraButtons()[1]?.onclick).toBeTruthy());
+      cameraButtons()[0].click();
+      expect(track.stop, "cancel did not switch the camera off").toHaveBeenCalled();
+      expect(document.querySelector("#camera-photo-holder video"), "cancel did not close the camera").toBeNull();
+    });
+
+    it("logs a camera that cannot be opened and closes the overlay", async () => {
+      vi.stubGlobal("navigator", {
+        ...navigator,
+        mediaDevices: { getUserMedia: vi.fn(async () => { throw new Error("denied"); }) },
+      });
+      const user = userEvent.setup();
+      await show();
+      await openMenu(user);
+      await user.click(screen.getByText("take photo"));
+      await waitFor(() =>
+        expect(logError, "a camera that could not open was not logged").toHaveBeenCalledWith(
+          expect.objectContaining({ scenario: "UploadProfilePhoto: the camera could not be opened" }),
+        ),
+      );
+      expect(document.querySelector("#camera-photo-holder video"), "the failed camera overlay was left on screen").toBeNull();
+    });
   });
 });

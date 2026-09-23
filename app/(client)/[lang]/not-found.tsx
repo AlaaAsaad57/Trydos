@@ -58,7 +58,8 @@ export default function NotFound() {
     },
   };
 
-  const currentContent = content[lang] || content["gb-en"];
+  const currentContent =
+    content[lang] || (isArabic ? content["sa-ar"] : content["gb-en"]);
 
   return (
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 py-12">

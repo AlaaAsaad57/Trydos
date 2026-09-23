@@ -40,7 +40,7 @@
 //     un-awaited call (`helpers.ts:2958-2960`) — an unhandled rejection charged
 //     to whichever case happens to be running. That is the shape of the failure;
 //     it is not a flake.
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   catalog_index,
@@ -972,5 +972,311 @@ describe("the QA lock in the queries that leave the app", () => {
       clauses.length,
       "the recommendation batch query carried no clause excluding QA shops, so a test product could be recommended to a real customer on the home page",
     ).toBeGreaterThan(0);
+  });
+});
+
+// ===========================================================================
+// The rest of the listing flow: sizes from the analyser, the old price-band
+// name, the category and related-category lists, and the related-products
+// cursor.
+// ===========================================================================
+
+describe("the listing flow's remaining inputs and filter lists", () => {
+  it("merges the analyser's sizes, as a list or a single size", async () => {
+    answers.listing = gridReply();
+    const { getProductsAndFiltersFromElastic } = await load();
+
+    analyze.mockResolvedValue({ size: ["M", "L"] });
+    const list = await getProductsAndFiltersFromElastic({
+      noFilters: true,
+      filters: { search_text: "a medium shirt", sizes: ["M"] },
+    });
+    expect(list.applied.sizes, "the analyser's list of sizes was not merged once each").toEqual(["M", "L"]);
+
+    answers.listing = gridReply();
+    analyze.mockResolvedValue({ size: "S" });
+    const single = await getProductsAndFiltersFromElastic({
+      noFilters: true,
+      filters: { search_text: "a small shirt" },
+    });
+    expect(single.applied.sizes, "the analyser's single size was not applied").toEqual(["S"]);
+  });
+
+  it("reads the old `prices` filter as the price band", async () => {
+    answers.listing = gridReply();
+    const { getProductsAndFiltersFromElastic } = await load();
+
+    const result = await getProductsAndFiltersFromElastic({
+      noFilters: true,
+      filters: { prices: [10, 50] } as any,
+    });
+
+    expect((result.applied as any).priceRange, "the old prices filter was not used as the price band").toEqual([
+      10, 50,
+    ]);
+  });
+
+  it("builds the category tree and the related categories, leaving out what is already shown or chosen", async () => {
+    const categoryHit = (source: any) => ({ category_details: { hits: { hits: [{ _source: source }] } } });
+    const origHit = (source: any) => ({ orig_category_details: { hits: { hits: [{ _source: source }] } } });
+    answers.listing = {
+      hits: { hits: [hit(product())], total: { value: 1 } },
+      aggregations: {
+        filtered_results: {
+          top_categories: {
+            filtered_categories: {
+              categories_by_id: {
+                buckets: [{ key: 10, ...categoryHit({ id: 110, category_id: 10, name: "Women", slug: "women" }) }],
+              },
+            },
+          },
+          top_orig_categories: {
+            orig_categories_by_id: { buckets: [origHit({ id: 10, gender: 2, group_age: 6 })] },
+          },
+          top_colors: { colors_by_color: { buckets: [{ key: "#fff" }] } },
+          top_sizes: { available_size_as_json_by_size: { buckets: [{ key: "M" }] } },
+        },
+        global_related_scope: {
+          related_filtered_results: {
+            related_categories: {
+              categories_with_gender_age: {
+                buckets: [
+                  categoryHit({ id: 10, gender: 2, group_age: 6 }),
+                  categoryHit({ id: 30, gender: 2, group_age: 6 }),
+                  categoryHit({ id: 31, gender: 2, group_age: 6, parent_id: 30 }),
+                  categoryHit({ id: 40, gender: 2, group_age: 6 }),
+                ],
+              },
+            },
+            related_custom_categories: {
+              filtered_categories: {
+                categories_by_id: {
+                  buckets: [
+                    { key: 10, ...categoryHit({ slug: "women-again" }) },
+                    { key: 30, ...categoryHit({ slug: "shoes" }) },
+                    { key: 31, ...categoryHit({ slug: "heels" }) },
+                    { key: 40, ...categoryHit({ slug: "picked" }) },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    answers.children = {
+      aggregations: {
+        filtered_results: {
+          top_categories: {
+            filtered_categories: {
+              categories_by_id: {
+                buckets: [{ key: 20, ...categoryHit({ id: 120, category_id: 20, name: "Dresses", slug: "dresses" }) }],
+              },
+            },
+          },
+          top_orig_categories: {
+            orig_categories_by_id: { buckets: [origHit({ id: 20, parent_id: 10, gender: 2, group_age: 6 })] },
+          },
+        },
+      },
+    };
+    const { getProductsAndFiltersFromElastic } = await load();
+
+    const result: any = await getProductsAndFiltersFromElastic({
+      noFilters: false,
+      filters: { categories: ["picked"] },
+    });
+
+    expect(result.categories.map((c: any) => c.slug), "the top-level categories are wrong").toEqual(["women"]);
+    expect(
+      result.categories[0].childes.map((c: any) => c.slug),
+      "the child category from the children query was not nested under its parent",
+    ).toEqual(["dresses"]);
+    expect(
+      result.related_categories.map((c: any) => c.slug),
+      "the related list repeats a shown category or the chosen one",
+    ).toEqual(["shoes", "heels"]);
+    expect(result.related_categories[0], "the related category's labels are wrong").toMatchObject({
+      gender: "Female",
+      group_age: "Adult (26-40 years)",
+      realted: ["women"],
+    });
+    expect(
+      result.related_categories[0].childes.map((c: any) => c.slug),
+      "the related category lost its own child",
+    ).toEqual(["heels"]);
+    expect(result.colors, "the colour filter is wrong").toEqual(["#fff"]);
+    expect(result.attributes, "the size filter is wrong").toEqual([{ id: 1, name: "Size", options: ["M"] }]);
+  });
+
+  it("sends the related-products cursor and reads a plain-number total", async () => {
+    answers["related-lookup"] = {
+      hits: { hits: [hit(product({ categories: [{ gender: 1, group_age: 2 }] }))] },
+    };
+    answers["related-search"] = { hits: { hits: [hit(product(), [7])], total: 5 } };
+    const { getRelatedProducts } = await load();
+
+    const result = await getRelatedProducts({ productId: 11, search_after: [3] } as any);
+
+    expect(sent["related-search"].search_after, "the related-products cursor was not sent").toEqual([3]);
+    expect(result.total_size, "a plain-number total was not read").toBe(5);
+  });
+});
+
+// ===========================================================================
+// Snapshot paging (ADR-009) and the whole-catalog price facet (ADR-010).
+//
+// Both are switched by settings the module reads ONCE, when it loads. The top of
+// this file pins them off, and every case above runs against that load. This
+// block is the one place that loads the module again with both switched on:
+// it is last in the file, it takes its own copy through `vi.resetModules()`, and
+// it puts the settings and the module registry back when it is done, so the
+// earlier cases never see the switched-on copy.
+// ===========================================================================
+
+describe("with snapshot paging and the price facet switched on", () => {
+  type Unit = typeof import("services/elastic/elasticSearch");
+  let unit: Unit;
+
+  beforeAll(async () => {
+    vi.stubEnv("ELASTIC_LISTING_PIT", "true");
+    vi.stubEnv("LISTING_PRICE_AGG_ENABLED", "true");
+    vi.resetModules();
+    unit = await import("services/elastic/elasticSearch");
+  });
+
+  afterAll(() => {
+    vi.stubEnv("ELASTIC_LISTING_PIT", "false");
+    vi.stubEnv("LISTING_PRICE_AGG_ENABLED", "false");
+    vi.resetModules();
+  });
+
+  /** A snapshot search carries no index, so the router files it here. */
+  const PIT_SEARCH = "unrouted-index:undefined";
+
+  it("opens a snapshot for the first page and hands back the id the server rotated to", async () => {
+    esOpenPit.mockResolvedValueOnce({ id: "pit-1" });
+    answers[PIT_SEARCH] = { ...gridReply(), pit_id: "pit-2" };
+
+    const result = await unit.getProductsAndFiltersFromElastic({ noFilters: true, usePit: true });
+
+    expect(sent[PIT_SEARCH]?.pit, "the first page did not search inside the new snapshot").toEqual({
+      id: "pit-1",
+      keep_alive: "2m",
+    });
+    expect("index" in sent[PIT_SEARCH], "a snapshot search still named an index").toBe(false);
+    expect(result.pit_id, "the rotated snapshot id was not handed back").toBe("pit-2");
+  });
+
+  it("reopens an expired snapshot and retries once from the same cursor", async () => {
+    esSearch.mockImplementationOnce(async () => {
+      throw new Error("search_context_missing_exception");
+    });
+    esOpenPit.mockResolvedValueOnce({ id: "pit-3" });
+    answers[PIT_SEARCH] = gridReply();
+
+    const result = await unit.getProductsAndFiltersFromElastic({
+      noFilters: true,
+      usePit: true,
+      pit_id: "pit-old",
+      search_after: [9],
+    });
+
+    expect(sent[PIT_SEARCH]?.pit?.id, "the retry did not use the reopened snapshot").toBe("pit-3");
+    expect(sent[PIT_SEARCH]?.search_after, "the retry lost the cursor").toEqual([9]);
+    expect(result.pit_id, "the reopened snapshot id was not handed back").toBe("pit-3");
+  });
+
+  it("fails, and reports it, when an expired snapshot cannot be reopened", async () => {
+    esSearch.mockImplementationOnce(async () => {
+      throw new Error("search_context_missing_exception");
+    });
+    esOpenPit.mockRejectedValueOnce(new Error("pit refused"));
+
+    await expect(
+      unit.getProductsAndFiltersFromElastic({ noFilters: true, usePit: true, pit_id: "pit-old" }),
+      "a snapshot that could not be reopened was hidden",
+    ).rejects.toThrow("Search failed: search_context_missing_exception");
+    expect(
+      LogServerError.mock.calls.map((c) => (c[0] as any)?.type),
+      "the failed snapshot reopen was not reported",
+    ).toContain("openListingPit failed");
+  });
+
+  it("searches the index when the server gives no snapshot id", async () => {
+    esOpenPit.mockResolvedValueOnce({} as any);
+    answers.listing = gridReply();
+
+    const result = await unit.getProductsAndFiltersFromElastic({ noFilters: true, usePit: true });
+
+    expect(sent.listing?.index, "a missing snapshot id did not fall back to the index").toBe(catalog_index);
+    expect(result.pit_id, "a snapshot id was invented").toBeNull();
+  });
+
+  it("builds the price slider and cards from the whole catalogue", async () => {
+    answers.listing = {
+      ...facetReply(),
+      aggregations: {
+        ...facetReply().aggregations,
+        price_facet: { base_stats: { stats: { count: 4, min: 10, max: 50 } } },
+      },
+    };
+    answers.children = {
+      aggregations: {
+        filtered_results: {},
+        price_facet_hist: {
+          base_hist: {
+            hist: {
+              buckets: [
+                { key: 10, doc_count: 2 },
+                { key: 40, doc_count: 2 },
+              ],
+            },
+          },
+        },
+      },
+    };
+
+    const result: any = await unit.getProductsAndFiltersFromElastic({ noFilters: false, country: "sy" });
+
+    expect(sent.listing.aggs.price_facet, "the price stats were not asked for").toBeDefined();
+    expect([result.prices.min_price, result.prices.max_price, result.prices.total], "the slider bounds are wrong").toEqual([
+      10, 50, 4,
+    ]);
+    expect(result.prices.histogram.length, "the price curve is empty").toBeGreaterThan(0);
+    expect(result.prices.priceRanges.length, "no price cards were built").toBeGreaterThan(0);
+  });
+
+  it("offers one card when every product has the same price, and none when nothing matched", async () => {
+    answers.listing = {
+      ...facetReply(),
+      aggregations: {
+        ...facetReply().aggregations,
+        price_facet: { base_stats: { stats: { count: 3, min: 20, max: 20 } } },
+      },
+    };
+    answers.children = childrenReply();
+
+    const same: any = await unit.getProductsAndFiltersFromElastic({ noFilters: false });
+    expect(same.prices.priceRanges, "one price did not give one card").toEqual([
+      { min_price: 20, max_price: 20, products_count: 3 },
+    ]);
+
+    answers.listing = facetReply([], 0);
+    const none: any = await unit.getProductsAndFiltersFromElastic({ noFilters: false });
+    expect([none.prices.priceRanges, none.prices.histogram], "nothing matched but cards were built").toEqual([[], []]);
+  });
+
+  it("pages related products inside a snapshot too", async () => {
+    esOpenPit.mockResolvedValueOnce({ id: "pit-r" });
+    answers["related-lookup"] = {
+      hits: { hits: [hit(product({ categories: [{ gender: 1, group_age: 2 }] }))] },
+    };
+    answers[PIT_SEARCH] = { hits: { hits: [], total: { value: 0 } } };
+
+    const result: any = await unit.getRelatedProducts({ productId: 11, usePit: true } as any);
+
+    expect(sent[PIT_SEARCH]?.pit?.id, "the related search did not use the snapshot").toBe("pit-r");
+    expect(result.pit_id, "the related search did not hand back the snapshot id").toBe("pit-r");
   });
 });

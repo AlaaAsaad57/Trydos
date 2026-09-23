@@ -318,3 +318,18 @@ describe("when registering the new guest fails (AC-17)", () => {
     );
   });
 });
+
+describe("when the guest registration call cannot be sent at all", () => {
+  it("answers 500 with a plain message", async () => {
+    net.queueReply({ kind: "failure", error: new Error("gateway unreachable") });
+    const { POST } = await loadRoute();
+
+    const response = await POST(makeRequest());
+
+    expect(response.status, "a dropped register-guest call did not produce a 500").toBe(500);
+    await expect(
+      response.json(),
+      "the 500 answer did not carry the plain failure message",
+    ).resolves.toEqual({ message: "Expire handling failed" });
+  });
+});

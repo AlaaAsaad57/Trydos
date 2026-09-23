@@ -12,6 +12,7 @@ import RdbPinInputs from "components/Login/Enhanced/ui/RdbPinInputs";
 
 import { resetDevice, setDevice } from "../../../../mocks/device";
 import {
+  fireEvent,
   renderWithProviders,
   screen,
   userEvent,
@@ -165,6 +166,38 @@ describe("on a phone", () => {
     });
   });
 
+  it("brings the keypad back when a check ends", async () => {
+    const { rerender } = await renderBoxes({ disabled: true, autoFocus: false });
+    rerender(<Host disabled={false} autoFocus={false} />);
+    expect(await screen.findByRole("button", { name: "1" }), "the keypad did not come back after the check").toBeInTheDocument();
+  });
+
+  it("closes the keypad on a tap outside, keeps it for taps on the row or keypad, and reopens from the row", async () => {
+    await renderBoxes();
+    await screen.findByRole("button", { name: "1" });
+    const row = document.querySelector("[data-keyboard-anchor]") as HTMLElement;
+    fireEvent.mouseDown(row);
+    fireEvent.mouseDown(document.querySelector("[data-keyboard-overlay]") as HTMLElement);
+    expect(row.hasAttribute("data-keyboard-anchor"), "a tap on the row or keypad closed the keypad").toBe(true);
+
+    fireEvent.mouseDown(document.body);
+    await waitFor(() =>
+      expect(row.hasAttribute("data-keyboard-anchor"), "a tap outside did not close the keypad").toBe(false),
+    );
+    fireEvent.click(row);
+    expect(row.hasAttribute("data-keyboard-anchor"), "tapping the row did not reopen the keypad").toBe(true);
+  });
+
+  it("ignores taps outside and on the row while the code is checked", async () => {
+    const { rerender } = await renderBoxes();
+    await screen.findByRole("button", { name: "1" });
+    const row = document.querySelector("[data-keyboard-anchor]") as HTMLElement;
+    rerender(<Host disabled />);
+    fireEvent.mouseDown(document.body);
+    fireEvent.click(row);
+    expect(row.hasAttribute("data-keyboard-anchor"), "a tap during the check changed the keypad").toBe(true);
+  });
+
   it("takes no more keys while the code is being checked", async () => {
     await renderBoxes({ disabled: true, autoFocus: false });
 
@@ -239,6 +272,29 @@ describe("at a desk", () => {
       "the last digit is the submit here too — a desk shopper must not be " +
         "left looking for a button that does not exist",
     ).toHaveBeenCalledWith("123456");
+  });
+
+  it("puts the cursor in the hidden field when the boxes are clicked, and again after a check", async () => {
+    const { rerender } = await renderBoxes({ autoFocus: false });
+    const row = document.querySelector('[data-pw^="otp-digit-"]')!.parentElement!.parentElement as HTMLElement;
+    fireEvent.click(document.querySelector('[data-pw="otp-digit-1"]') as HTMLElement);
+    expect(document.activeElement, "clicking the boxes did not focus the field").toBe(field());
+    (document.activeElement as HTMLElement).blur();
+    rerender(<Host disabled autoFocus={false} />);
+    rerender(<Host disabled={false} autoFocus={false} />);
+    expect(document.activeElement, "the field was not focused again after the check").toBe(field());
+    expect(row, "the box row is missing").toBeTruthy();
+  });
+
+  it("shakes the boxes for 0.7 s after a wrong code", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const { container } = await renderBoxes({ isValidPin: "notvalid" });
+    expect(container.querySelector(".animate-shake-horizontal"), "a wrong code did not shake the boxes").not.toBeNull();
+    await vi.advanceTimersByTimeAsync(700);
+    await waitFor(() =>
+      expect(container.querySelector(".animate-shake-horizontal"), "the shake did not stop").toBeNull(),
+    );
+    vi.useRealTimers();
   });
 
   it("takes nothing while the code is being checked", async () => {

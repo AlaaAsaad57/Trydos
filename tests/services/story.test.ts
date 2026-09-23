@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import StoryServiceClass from "services/story";
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
@@ -6,6 +6,22 @@ import { fetchData } from "utils/fetchData";
 vi.mock("utils/fetchData", () => ({
   fetchData: vi.fn(),
 }));
+
+// The upload ticket comes from our own /api/ticket route; the upload tests only
+// need to see it handed to the media server.
+const GetTicket = vi.hoisted(() => vi.fn(async (..._a: any[]) => "ticket-1"));
+vi.mock("utils/UploadUtils", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, any>>();
+  return { ...actual, GetTicket };
+});
+
+// The error reporter reads the store and cookies; the tests below only need to
+// see that a failure was reported.
+const LogErrorSpy = vi.hoisted(() => vi.fn());
+vi.mock("utils/functions", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, any>>();
+  return { ...actual, LogError: LogErrorSpy };
+});
 
 // The story bar greys out a ring once every story item inside it carries
 // is_seen: true (components/Home/Stories/StoryElement.tsx). Marking the item
@@ -347,5 +363,264 @@ describe("no story reader can skip the QA filter", () => {
       source.includes("fetchStoriesForGuest"),
       "fetchStoriesForGuest is back in serverRequests/stories.ts. It read the story feed and never called dropQaStories, so whatever starts calling it shows QA stories to everybody",
     ).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The rest of the stories service: paging, upload, delete, report, and the
+// shape the story viewer reads.
+// ---------------------------------------------------------------------------
+
+describe("StoryService.getStories — paging and failure", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("appends a later page to the feed already in the store", async () => {
+    useAppStore.setState({ storiesData: [{ id: 1, stories: [] }] } as any);
+    (fetchData as any).mockResolvedValue({
+      success: true,
+      data: { data: [{ id: 2, stories: [{ id: 5, link: "" }] }], next_page_url: "p3" },
+    });
+    const out = await StoryServiceClass.getStories(2);
+    expect(
+      (useAppStore.getState().storiesData as any[]).map((g) => g.id),
+      "page 2 did not go after page 1 in the store",
+    ).toEqual([1, 2]);
+    expect(out.next_page_url, "the next page address was lost").toBe("p3");
+  });
+
+  it("reports and throws when the stories backend refuses", async () => {
+    (fetchData as any).mockResolvedValue({ success: false, message: "Unauthorized" });
+    await expect(StoryServiceClass.getStories(1), "a refused feed did not throw").rejects.toThrow(
+      "get stories error",
+    );
+    expect(LogErrorSpy.mock.calls[0]?.[0]?.scenario, "the stories backend refusal was not reported").toBe(
+      "Error in getStories in services/story",
+    );
+  });
+});
+
+describe("StoryService upload to the media server", () => {
+  const MEDIA = "https://example.com";
+
+  /** Load a fresh copy with a media API key, which the test env leaves empty. */
+  async function loadWithKey(key = "media-key") {
+    vi.stubEnv("NEXT_PUBLIC_MEDIA_API_KEY", key);
+    vi.resetModules();
+    const mod = await import("services/story");
+    return mod.default;
+  }
+
+  const fetchSpy = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubGlobal("fetch", fetchSpy);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it("refuses to upload when the media server is not configured", async () => {
+    await expect(
+      StoryServiceClass.uploadToMediaServer(new File(["x"], "a.png", { type: "image/png" })),
+      "an upload ran with no media API key",
+    ).rejects.toThrow("Media server upload is not configured");
+  });
+
+  it("uploads a video with a story ticket and returns its address and length", async () => {
+    const service = await loadWithKey();
+    fetchSpy.mockResolvedValue({ ok: true, json: async () => ({ url: "/v/1.mp4", durationSeconds: 12 }) });
+    const out = await service.uploadToMediaServer(new File(["x"], "a.mp4", { type: "video/mp4" }));
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url, "a video did not go to the story upload address").toBe(`${MEDIA}/gated/upload?story=true`);
+    expect(init.headers, "the media server did not get the key and the ticket").toEqual({
+      "x-api-key": "media-key",
+      "X-Upload-Ticket": "ticket-1",
+    });
+    expect(GetTicket, "the ticket was not asked for a story video").toHaveBeenCalledWith("stories", true, 1);
+    expect(out, "the upload result is wrong").toEqual({ url: "/v/1.mp4", durationSeconds: 12 });
+  });
+
+  it("uploads a picture to the plain address", async () => {
+    const service = await loadWithKey();
+    fetchSpy.mockResolvedValue({ ok: true, json: async () => ({ url: "/i/1.png" }) });
+    await service.uploadToMediaServer(new File(["x"], "a.png", { type: "image/png" }));
+    expect(fetchSpy.mock.calls[0][0], "a picture went to the video address").toBe(`${MEDIA}/gated/upload`);
+  });
+
+  it("fails when the media server refuses, answers no JSON, or gives no address", async () => {
+    const service = await loadWithKey();
+    const file = new File(["x"], "a.png", { type: "image/png" });
+    fetchSpy
+      .mockResolvedValueOnce({ ok: false, json: async () => ({ url: "/x" }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => { throw new Error("not json"); } })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    for (const why of ["a refusal", "a body that is not JSON", "a body with no address"]) {
+      await expect(service.uploadToMediaServer(file), `${why} did not fail the upload`).rejects.toThrow(
+        "Media server upload failed",
+      );
+    }
+  });
+
+  it("adds the uploaded story to the stories backend and closes the upload", async () => {
+    const service = await loadWithKey();
+    const { fetchData: freshFetchData } = await import("utils/fetchData");
+    fetchSpy.mockResolvedValue({ ok: true, json: async () => ({ url: "/v/1.mp4", durationSeconds: "9.7" }) });
+    (freshFetchData as any).mockResolvedValue({ success: true, data: { id: 44 } });
+    const endUpload = vi.fn();
+    const out = await service.upload(
+      new File(["x"], "a.mp4", { type: "video/mp4" }),
+      () => {},
+      1,
+      endUpload,
+      "https://trydos.com/p/1",
+    );
+    const body = JSON.parse((freshFetchData as any).mock.calls[0][0].body);
+    expect(body, "the story sent to the stories backend is wrong").toEqual({
+      file_path: `${MEDIA}/v/1.mp4`,
+      video_duration_in_second: 9,
+      is_video: 1,
+      link: "https://trydos.com/p/1",
+    });
+    expect(endUpload, "the upload was not closed").toHaveBeenCalled();
+    expect(out, "the new story was not returned").toEqual({ id: 44 });
+  });
+
+  it("reports and throws when the stories backend refuses the story, or returns nothing", async () => {
+    const service = await loadWithKey();
+    const { fetchData: freshFetchData } = await import("utils/fetchData");
+    const { LogError } = await import("utils/functions");
+    fetchSpy.mockResolvedValue({ ok: true, json: async () => ({ url: "/i/1.png" }) });
+    (freshFetchData as any)
+      .mockResolvedValueOnce({ success: false, message: "too big" })
+      .mockResolvedValueOnce({ success: true, data: null });
+    const file = new File(["x"], "a.png", { type: "image/png" });
+    await expect(service.upload(file, () => {}, 0, () => {}, ""), "a refused story did not throw").rejects.toThrow(
+      "too big",
+    );
+    await expect(service.upload(file, () => {}, 0, () => {}, ""), "an empty answer did not throw").rejects.toThrow(
+      "Failed",
+    );
+    expect((LogError as any).mock.calls[0]?.[0]?.scenario, "the failed upload was not reported").toBe(
+      "Error in upload in services/story",
+    );
+  });
+});
+
+describe("StoryService.deleteStory and reportStory", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("deletes a story and returns the stories backend answer", async () => {
+    (fetchData as any).mockResolvedValue({ success: true, data: { deleted: true } });
+    expect(await StoryServiceClass.deleteStory(7), "the delete answer was not returned").toEqual({ deleted: true });
+    expect(JSON.parse((fetchData as any).mock.calls[0][0].body), "the wrong story was deleted").toEqual({
+      story_id: 7,
+    });
+  });
+
+  it("throws when the stories backend refuses the delete", async () => {
+    (fetchData as any).mockResolvedValue({ success: false, message: "not yours" });
+    await expect(StoryServiceClass.deleteStory(7), "a refused delete did not throw").rejects.toThrow("not yours");
+    expect(LogErrorSpy.mock.calls[0]?.[0]?.scenario, "the refused delete was not reported").toBe(
+      "Error in deleteStory in services/story",
+    );
+  });
+
+  it("reports a story with its reasons and notes", async () => {
+    (fetchData as any).mockResolvedValue({ success: true, data: { id: 1 } });
+    expect(await StoryServiceClass.reportStory(7, "u5", ["spam"], "looks fake"), "the report answer was not returned").toEqual({
+      id: 1,
+    });
+    expect(JSON.parse((fetchData as any).mock.calls[0][0].body), "the report body is wrong").toEqual({
+      story_id: 7,
+      reasons: ["spam"],
+      notes: "looks fake",
+      reporter_user_id: "u5",
+    });
+  });
+
+  it("throws when the stories backend refuses the report", async () => {
+    (fetchData as any).mockResolvedValue({ success: false, message: "already reported" });
+    await expect(
+      StoryServiceClass.reportStory(7, "u5", [], ""),
+      "a refused report did not throw",
+    ).rejects.toThrow("already reported");
+  });
+});
+
+describe("StoryService helpers for the story viewer", () => {
+  it("getUserStories reads the stories account from the store", () => {
+    useAppStore.setState({ userStories: { id: 5 } } as any);
+    expect(StoryServiceClass.getUserStories(), "the stories account was not read").toEqual({ id: 5 });
+  });
+
+  it("configureStory builds video and picture slides and drops the rest", () => {
+    const out = StoryServiceClass.configureStory({
+      name: "Shop",
+      photo_path: "https://cdn.example.com/p.png",
+      stories: [
+        { id: 1, full_video_path: "v/1.mp4", video_duration_in_second: 9, created_at: "2020-01-01T00:00:00Z" },
+        { id: 2, photo_path: "https://cdn.example.com/upload/i.png", created_at: "2020-01-01T00:00:00Z" },
+        { id: 3, photo_path: "/upload/j.png" },
+        { id: 4, full_video_path: "https://cdn.example.com/v.mp4" },
+        { id: 5 },
+      ],
+    });
+    expect(out.stories.map((s: any) => [s.id, s.type]), "the slides are wrong").toEqual([
+      [1, "video"],
+      [2, "image"],
+      [3, "image"],
+      [4, "video"],
+    ]);
+    expect(out.stories[0].url, "a relative video path was not put on the media server").toBe(
+      "https://example.com/v/1.mp4",
+    );
+    expect(out.stories[1].url, "the picture was not resized").toBe(
+      "https://cdn.example.com/upload/w_720,c_pad/f_auto/q_auto:good/i.png",
+    );
+    expect(out.stories[2].url, "a leading-slash picture path is wrong").toBe(
+      "https://example.com/upload/w_720,c_pad/f_auto/q_auto:good/j.png",
+    );
+    expect(out.stories[3].url, "a full video address was changed").toBe("https://cdn.example.com/v.mp4");
+    expect(out.stories[0].header.heading, "the author name is missing").toBe("Shop");
+    expect(out.stories[0].header.profileImage, "the author picture is missing").toBe(
+      "https://cdn.example.com/p.png",
+    );
+  });
+
+  it("configureStory falls back to the phone, then to 'Unknown', and to the default picture", async () => {
+    const byPhone = StoryServiceClass.configureStory({
+      mobile_phone: "x",
+      stories: [{ id: 1, full_video_path: "v.mp4" }, { id: 2, photo_path: "i.png" }],
+    });
+    const nobody = StoryServiceClass.configureStory({
+      stories: [{ id: 1, full_video_path: "v.mp4" }, { id: 2, photo_path: "i.png" }],
+    });
+    expect(byPhone.stories.map((s: any) => s.header.heading), "the phone fallback is wrong").toEqual(["x", "x"]);
+    expect(nobody.stories.map((s: any) => s.header.heading), "the Unknown fallback is wrong").toEqual([
+      "Unknown",
+      "Unknown",
+    ]);
+    // The runner loads the picture import as a plain value, so compare with the
+    // same `.src` read the service does rather than with a fixed address.
+    const fallback = ((await import("public/images/profileNo.png")) as any).default?.src;
+    expect(nobody.stories[1].header.profileImage, "the default picture was not used").toBe(fallback);
+    expect(StoryServiceClass.configureStory(null).stories, "a missing story did not give no slides").toEqual([]);
+  });
+
+  it("getThumb picks a video snapshot or a small picture, and nothing without an address", () => {
+    expect(StoryServiceClass.getThumb("https://x/v.mp4", true), "the video thumb is wrong").toBe(
+      "https://x/v.mp4?target=snapshot",
+    );
+    expect(StoryServiceClass.getThumb("https://x/upload/i.png", false), "the picture thumb is wrong").toBe(
+      "https://x/upload/h_194/f_webp/q_100/i.png",
+    );
+    expect(StoryServiceClass.getThumb("", false), "an empty address got a thumb").toBeUndefined();
   });
 });

@@ -12,12 +12,14 @@
 // what the screen does with the answer, not about the request.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { QuantutyInput } from "components/Cart";
+import CartContainer, { CartItemLink, QuantutyInput } from "components/Cart";
+import * as functions from "utils/functions";
 
 import { useAppStore } from "store";
 import { useNotificationStore } from "store/notifications/reducer";
 
-import { renderWithProviders, screen, userEvent } from "../../render";
+import { act, renderWithProviders, screen, userEvent, waitFor } from "../../render";
+import { routerSpies } from "../../mocks/nextNavigation";
 
 const ConvertToOldCart = vi.fn();
 // The plus and minus controls go through `UpdateCart`
@@ -30,7 +32,48 @@ vi.mock("services/cart", () => ({
   default: {
     ConvertToOldCart: (...args: any[]) => ConvertToOldCart(...args),
     UpdateCart: (...args: any[]) => UpdateCart(...args),
+    RemoveFromCart: (...args: any[]) => RemoveFromCart(...args),
   },
+}));
+
+// Used by the cart page (the default export) when a row is deleted.
+const RemoveFromCart = vi.fn().mockResolvedValue(true);
+
+// The cart page's own product-details refresh (`updateDataForProduct`) is the
+// one direct request in components/Cart/index.tsx. Replaced so no case reaches
+// the network.
+const fetchData = vi.fn();
+vi.mock("utils/fetchData", () => ({
+  fetchData: (...args: any[]) => fetchData(...args),
+  abortInFlightForLogout: vi.fn(),
+}));
+
+// The cart page draws these five children. Each has its own test file and some
+// reach the core backend on mount, so the page's cases use stand-ins that only
+// show what they were given.
+vi.mock("components/Cart/OldCartContainer", () => ({
+  default: () => <div data-testid="old-cart" />,
+}));
+vi.mock("components/Cart/CartItem", () => ({
+  default: ({ product }: any) => <div data-testid="cart-item">{product.name}</div>,
+}));
+vi.mock("components/Cart/EmptyCart", () => ({
+  default: () => <div data-testid="empty-cart" />,
+}));
+vi.mock("components/Cart/CartErrorComponent", () => ({
+  default: ({ errorMessage, onRetry }: any) => (
+    <button data-testid="cart-error" onClick={onRetry}>
+      {String(errorMessage)}
+    </button>
+  ),
+}));
+vi.mock("components/Cart/OrderButton", () => ({
+  default: ({ toOrders, close }: any) => (
+    <div data-testid="order-button">
+      <button onClick={toOrders}>to-orders</button>
+      <button onClick={close}>close-from-order</button>
+    </div>
+  ),
 }));
 
 const trackOrder = vi.fn();
@@ -74,6 +117,7 @@ vi.mock("utils/functions", async (importOriginal) => ({
   // (components/Cart/index.tsx:570-575, :615-619). Left unanswered it would
   // reach the network, which the fake network turns into a failed test.
   getCart: vi.fn().mockResolvedValue({ cart: [] }),
+  GetCartOreview: vi.fn().mockResolvedValue(undefined),
 }));
 
 /** The one row in the cart, as the cart page holds it. */
@@ -619,6 +663,30 @@ describe("offering to notify the shopper when the core backend refuses", () => {
     ).toBeNull();
   });
 
+  it("closes without subscribing when the shopper presses Escape", async () => {
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    // Another key must not close it: only Escape is the way out.
+    await userEvent.keyboard("a");
+    expect(
+      screen.queryByText(QUESTION),
+      "a key other than Escape closed the question",
+    ).not.toBeNull();
+
+    await userEvent.keyboard("{Escape}");
+
+    expect(
+      screen.queryByText(QUESTION),
+      "pressing Escape left the question on screen",
+    ).toBeNull();
+    expect(
+      NotifyForProducts,
+      "pressing Escape subscribed the shopper anyway",
+    ).not.toHaveBeenCalled();
+  });
+
   it("says the shopper is already waiting instead of offering Notify again", async () => {
     // `NotifyForProducts` subscribes to the topic `product_availability_<id>`
     // (services/auth.ts:406-412), and the store holds the list the backend
@@ -835,3 +903,326 @@ describe("currency display in cart item", () => {
   });
 });
 
+
+// ---------------------------------------------------------------------------
+// The rest of the cart row: the quantity the page hands in changing, the bag
+// re-read after a change, a move that throws, and delete on a row above 1.
+// ---------------------------------------------------------------------------
+describe("the cart row, other paths", () => {
+  beforeEach(() => {
+    UpdateCart.mockReset().mockResolvedValue(true);
+    ConvertToOldCart.mockReset();
+    vi.mocked(functions.getCart).mockReset().mockResolvedValue({ cart: [] } as any);
+  });
+
+  it("follows a new quantity handed in by the cart page", async () => {
+    const view = await openTheCartRowAt(2);
+    view.rerender(
+      <QuantutyInput
+        value={4}
+        setValue={() => {}}
+        max={5}
+        deleteFunction={() => {}}
+        id={cartRow.id}
+        disabled={false}
+        updateData={() => {}}
+        product={{ ...cartRow, quantity: 4 }}
+      />,
+    );
+    expect(
+      (mustFind("QuantityInCart") as HTMLInputElement).value,
+      "the row did not show the new quantity the page handed in",
+    ).toBe("4");
+  });
+
+  it.each(["PlusIcon_CartPage", "MinusIcon_CartPage"])(
+    "puts the bag the core backend returns into the store after %s",
+    async (control) => {
+      vi.mocked(functions.getCart).mockImplementation(async ({ callback }: any) => {
+        callback([undefined]);
+        return {} as any;
+      });
+      const { store } = await openTheCartRowAt(2);
+      await userEvent.click(mustFind(control));
+      await waitFor(() =>
+        expect(
+          store.getState().cart,
+          "an empty bag answer did not leave an empty cart in the store",
+        ).toEqual([]),
+      );
+    },
+  );
+
+  it("stops the spinner when moving the row to Out-Of-Bag throws", async () => {
+    ConvertToOldCart.mockRejectedValue(new Error("down"));
+    const { store } = await openTheCartRowAndReschedule();
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-pw="plus-delete-increase-container"]')!.className,
+        "the row stayed greyed out after the move threw",
+      ).not.toContain("opacity-40"),
+    );
+    expect(
+      store.getState().cart.map((r: any) => r.id),
+      "a move that threw took the row out of the cart",
+    ).toEqual([cartRow.id]);
+  });
+
+  it("deletes a row above 1 from its own delete control", async () => {
+    const deleteFunction = vi.fn();
+    await openTheCartRowAt(3, deleteFunction);
+    await userEvent.click(mustFind("DeleteIcon_CartPage"));
+    expect(deleteFunction, "the delete control on a row of 3 did nothing").toHaveBeenCalled();
+  });
+
+  it("does nothing on plus or minus when the row is disabled", async () => {
+    await renderWithProviders(
+      <QuantutyInput
+        value={3}
+        setValue={() => {}}
+        max={5}
+        deleteFunction={() => {}}
+        id={cartRow.id}
+        disabled={true}
+        updateData={() => {}}
+        product={{ ...cartRow, quantity: 3 }}
+      />,
+      { store: { currency: { symbol: "$" } } },
+    );
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+    await userEvent.click(mustFind("MinusIcon_CartPage"));
+    expect(UpdateCart, "a disabled row asked the core backend for a change").not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The cart page itself (the default export of components/Cart/index.tsx).
+// ---------------------------------------------------------------------------
+describe("the cart page", () => {
+  const rows = [
+    { ...cartRow, id: "cart-1", slug: "blue-shirt", quantity: 1, available_quantity: 5 },
+    { ...cartRow, id: "cart-2", product_id: 102, name: "Red hat", slug: "red-hat", quantity: 2 },
+  ];
+
+  async function openCart(
+    options: {
+      bag?: any[];
+      error?: string | null;
+      params?: Record<string, string>;
+      language?: "en" | "ar";
+    } = {},
+  ) {
+    const bag = options.bag ?? rows;
+    vi.mocked(functions.getCart).mockImplementation(async ({ callback }: any) => {
+      callback([{ cart: bag }]);
+      // The real getCart records a shipping failure after it stores the bag.
+      if (options.error) useAppStore.getState().setCartShippingSuccess(options.error);
+      return { cart: bag } as any;
+    });
+    const close = vi.fn();
+    const toOrders = vi.fn();
+    const view = await renderWithProviders(
+      <CartContainer close={close} toOrders={toOrders} />,
+      {
+        country: "sy",
+        language: options.language ?? "en",
+        params: options.params ?? {},
+        store: {
+          currency: { symbol: "$", exchange_rate: 1, decimal_digits: 2 },
+        },
+      },
+    );
+    await waitFor(() =>
+      expect(
+        view.store.getState().cart_loading,
+        "the cart page never finished loading the bag",
+      ).toBe(false),
+    );
+    return { ...view, close, toOrders };
+  }
+
+  beforeEach(() => {
+    RemoveFromCart.mockClear();
+    fetchData.mockReset();
+    routerSpies.push.mockClear();
+  });
+
+  it("loads the bag from the core backend and draws one row per item", async () => {
+    await openCart();
+    expect(
+      screen.getAllByTestId("cart-item").map((e) => e.textContent),
+      "the rows on screen are not the items in the bag",
+    ).toEqual(["Blue shirt", "Red hat"]);
+    expect(
+      document.querySelector('[data-pw="length-ofItems"]')!.textContent,
+      "the header did not count the items in the bag",
+    ).toContain("2");
+    expect(screen.getByTestId("order-button"), "the order button is missing").toBeInTheDocument();
+  });
+
+  it("shows the empty bag when there is nothing in it, in Arabic too", async () => {
+    await openCart({ bag: [], language: "ar" });
+    expect(screen.getByTestId("empty-cart"), "an empty bag did not show the empty state").toBeInTheDocument();
+  });
+
+  it("shows the shipping error with a retry that loads the bag again", async () => {
+    await openCart({ error: "shipping failed" });
+    const error = screen.getByTestId("cart-error");
+    expect(error.textContent, "the cart error did not carry the backend's message").toBe("shipping failed");
+    expect(screen.queryByTestId("order-button"), "the order button showed next to an error").toBeNull();
+    vi.mocked(functions.getCart).mockClear();
+    await userEvent.click(error);
+    expect(functions.getCart, "retry did not load the bag again").toHaveBeenCalled();
+  });
+
+  it("shows skeletons while the bag is loading", async () => {
+    let finish: (v: any) => void = () => {};
+    vi.mocked(functions.getCart).mockImplementation(
+      () => new Promise((r) => (finish = r)),
+    );
+    await renderWithProviders(<CartContainer close={() => {}} toOrders={() => {}} />, {
+      store: { cartShippingSuccess: null },
+    });
+    expect(screen.queryByTestId("cart-item"), "rows were drawn before the bag loaded").toBeNull();
+    expect(document.querySelector(".react-loading-skeleton"), "no skeleton while the bag loads").not.toBeNull();
+    await act(async () => finish({ cart: [] }));
+  });
+
+  it("closes from the back arrow and goes on to checkout from the order button", async () => {
+    const { close, toOrders } = await openCart();
+    await userEvent.click(document.querySelector('[data-pw="CartBackIcon"]')!);
+    expect(close, "the back arrow did not close the cart").toHaveBeenCalledTimes(1);
+    await userEvent.click(screen.getByText("to-orders"));
+    expect(toOrders, "the order button did not go on to checkout").toHaveBeenCalled();
+    await userEvent.click(screen.getByText("close-from-order"));
+    expect(close, "the order button could not close the cart").toHaveBeenCalledTimes(2);
+  });
+
+  it("deletes a row: takes it off the page, tells the core backend and refreshes the product page it is on", async () => {
+    fetchData.mockResolvedValue({ success: true, data: { id: 1 } });
+    const { store } = await openCart({ params: { productId: "red-hat" } });
+    const redHatRow = document.querySelectorAll('[data-pw="one-product"]')[1];
+    await userEvent.click(redHatRow.querySelector('[data-pw="DeleteIcon_CartPage"]')!);
+
+    expect(
+      store.getState().cart.map((r: any) => r.id),
+      "the deleted row is still in the cart",
+    ).toEqual(["cart-1"]);
+    await waitFor(() =>
+      expect(
+        RemoveFromCart.mock.calls[0]?.[0]?.cart_item?.item_id,
+        "the delete was not sent for cart-2",
+      ).toBe("cart-2"),
+    );
+    await waitFor(() =>
+      expect(
+        fetchData.mock.calls[0]?.[0]?.url,
+        "the open product page was not refreshed",
+      ).toBe("/web/product/qtyPriceDetails/red-hat"),
+    );
+  });
+
+  it("keeps going when the product refresh is refused, and skips it for another product", async () => {
+    fetchData.mockResolvedValue({ success: false, message: "nope" });
+    await openCart({ params: { productId: "red-hat" } });
+    const redHatRow = document.querySelectorAll('[data-pw="one-product"]')[1];
+    await userEvent.click(redHatRow.querySelector('[data-pw="DeleteIcon_CartPage"]')!);
+    await waitFor(() => expect(fetchData, "the refresh was not tried").toHaveBeenCalledTimes(1));
+
+    const blueRow = document.querySelectorAll('[data-pw="one-product"]')[0];
+    await userEvent.click(blueRow.querySelector('[data-pw="DeleteIcon_CartPage"]')!);
+    await waitFor(() =>
+      expect(RemoveFromCart, "the second delete was not sent").toHaveBeenCalledTimes(2),
+    );
+    expect(fetchData, "a product that is not open was refreshed").toHaveBeenCalledTimes(1);
+  });
+
+  it("refreshes the open product page after a quantity change", async () => {
+    fetchData.mockResolvedValue({ success: true, data: {} });
+    UpdateCart.mockReset().mockResolvedValue(true);
+    await openCart({ params: { productId: "blue-shirt" } });
+    const blueRow = document.querySelectorAll('[data-pw="one-product"]')[0];
+    await userEvent.click(blueRow.querySelector('[data-pw="PlusIcon_CartPage"]')!);
+    await waitFor(() =>
+      expect(
+        fetchData.mock.calls[0]?.[0]?.url,
+        "the open product was not refreshed after plus",
+      ).toBe("/web/product/qtyPriceDetails/blue-shirt"),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The link around each cart row (CartItemLink).
+// ---------------------------------------------------------------------------
+describe("the link around a cart row", () => {
+  async function drawLink(
+    product: any,
+    params: Record<string, string> = {},
+    language: "en" | "ar" = "en",
+  ) {
+    return renderWithProviders(
+      <CartItemLink product={product}>
+        <span>row</span>
+      </CartItemLink>,
+      { country: "sy", language, params, store: { cart_enable: true } },
+    );
+  }
+  const href = () => document.querySelector("a")!.getAttribute("href");
+
+  it.each([
+    [{ color: "red" }, "/sy-en/products/shoe?color=red"],
+    [{ Size: "42" }, "/sy-en/products/shoe?size=42"],
+    [{}, "/sy-en/products/shoe"],
+    [{ color_options: "blue", size_options: "40" }, "/sy-en/products/shoe?size=40&color=blue"],
+    [[{ color: "undefined", Size: "undefined" }], "/sy-en/products/shoe"],
+    [[], "/sy-en/products/shoe"],
+  ])("links a row with variations %j to %s", async (variations, expected) => {
+    await drawLink({ slug: "shoe", name: "Shoe", variations });
+    expect(href(), "the row does not link to the product with its variation").toBe(expected);
+  });
+
+  it("closes the cart when the link is followed, and leaves room for the hurry-up note", async () => {
+    const { store } = await drawLink(
+      { slug: "shoe", name: "Shoe", have_hurry_up_notify: true },
+      {},
+      "ar",
+    );
+    const link = document.querySelector("a")!;
+    expect(link.style.minHeight, "the hurry-up note did not get its extra height").toBe("230px");
+    await act(async () => (link.parentElement as HTMLElement).click());
+    expect(store.getState().cart_enable, "following the link did not close the cart").toBe(false);
+  });
+
+  it("on the product's own page, switches to the row's colour and size instead of navigating", async () => {
+    const { store } = await drawLink(
+      {
+        slug: "shoe",
+        name: "Shoe",
+        variations: { color: "red", Size: "42" },
+        have_hurry_up_notify_time_left: 5,
+      },
+      { productId: "shoe" },
+      "ar",
+    );
+    expect(document.querySelector("a"), "the row on its own product page must not be a link").toBeNull();
+    await userEvent.click(screen.getByText("row"));
+    expect(
+      routerSpies.push.mock.calls[0]?.[0],
+      "the page did not switch to the row's colour and size",
+    ).toBe("/sy-ar?color=red&size=42");
+    expect(store.getState().cart_enable, "switching variation did not close the cart").toBe(false);
+  });
+
+  it("on the product's own page, leaves out a colour that is 'undefined' and a missing size", async () => {
+    await drawLink(
+      { slug: "shoe", name: "Shoe", variations: { color: "undefined" } },
+      { productId: "shoe" },
+    );
+    await userEvent.click(screen.getByText("row"));
+    expect(
+      routerSpies.push.mock.calls[0]?.[0],
+      "an 'undefined' colour was put in the address",
+    ).toBe("/sy-en?");
+  });
+});

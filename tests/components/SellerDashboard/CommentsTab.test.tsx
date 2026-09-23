@@ -29,7 +29,7 @@ vi.mock("services/sellerDashboard/comments", () => ({
 
 import CommentsTab from "components/SellerDashboard/CommentsTab";
 
-import { renderWithProviders, screen, userEvent, waitFor } from "../../render";
+import { fireEvent, renderWithProviders, screen, userEvent, waitFor } from "../../render";
 
 const SELLER_ID = "77";
 
@@ -465,5 +465,83 @@ describe("Comments section — more pages", () => {
       GetFQAComments.mock.calls.at(-1),
       "Load More should ask the comments backend for page 2",
     ).toEqual([SELLER_ID, 2]);
+  });
+});
+
+describe("Comments section — edges of the list and the reply box", () => {
+  it("guesses there are more pages when a full page comes back with no page info", async () => {
+    const tenComments = Array.from({ length: 10 }, (_, i) =>
+      comment({ comment_id: `c${i}`, text: `Question ${i}` }),
+    );
+    GetFQAComments.mockResolvedValue({ success: true, data: tenComments });
+    await mount();
+    await screen.findByText("Question 0");
+    expect(
+      screen.getByRole("button", { name: "Load More" }),
+      "a full page of 10 with no meta should still offer Load More",
+    ).toBeInTheDocument();
+  });
+
+  it("closes the reply box from the close button and from Cancel", async () => {
+    await mount();
+    await screen.findByText("Does this come in blue?");
+
+    await userEvent.click(screen.getByRole("button", { name: /Reply/ }));
+    await screen.findByText("Reply to FQA Comment");
+    const dialogClose = screen
+      .getAllByRole("button", { name: "Cancel" })
+      .find((b) => b.getAttribute("aria-label") === "Cancel");
+    await userEvent.click(dialogClose as HTMLElement);
+    expect(
+      screen.queryByText("Reply to FQA Comment"),
+      "the close button should close the reply box",
+    ).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /Reply/ }));
+    await screen.findByText("Reply to FQA Comment");
+    const cancel = screen
+      .getAllByRole("button", { name: "Cancel" })
+      .find((b) => !b.getAttribute("aria-label"));
+    await userEvent.click(cancel as HTMLElement);
+    expect(
+      screen.queryByText("Reply to FQA Comment"),
+      "Cancel should close the reply box",
+    ).not.toBeInTheDocument();
+  });
+
+  it("will not send an answer made only of spaces", async () => {
+    await mount();
+    await screen.findByText("Does this come in blue?");
+    await userEvent.click(screen.getByRole("button", { name: /Reply/ }));
+    const box = (await screen.findByRole("textbox")) as HTMLTextAreaElement;
+    fireEvent.change(box, { target: { value: "   " } });
+    fireEvent.submit(box.closest("form") as HTMLFormElement);
+    expect(
+      ReplyToFQAComment,
+      "an answer of only spaces must not reach the comments backend",
+    ).not.toHaveBeenCalled();
+  });
+
+  it("sends no second delete while another answer is being deleted", async () => {
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    let finish: (v: unknown) => void = () => {};
+    DeleteReplyForFqaComment.mockReturnValue(new Promise((r) => (finish = r)));
+    GetFQAComments.mockResolvedValue(
+      listAnswer([
+        comment({ has_reply: true, seller_reply: "First answer" }),
+        comment({ comment_id: "c2", text: "Second?", has_reply: true, seller_reply: "Second answer" }),
+      ]),
+    );
+    await mount();
+    await screen.findByText("Second answer");
+    const [first, second] = screen.getAllByRole("button", { name: /Delete Reply/ });
+    await userEvent.click(first);
+    await userEvent.click(second);
+    expect(
+      DeleteReplyForFqaComment.mock.calls.map((c) => c[1]),
+      "only the first answer's delete should be sent while it is still running",
+    ).toEqual(["c1"]);
+    finish({ success: true });
+    await waitFor(() => expect(screen.queryByText("First answer")).not.toBeInTheDocument());
   });
 });

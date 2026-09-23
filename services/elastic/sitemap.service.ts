@@ -258,11 +258,6 @@ export async function generateProductSitemapUrls(): Promise<SitemapUrl[]> {
 
   // Generate URLs for all country-language combinations for each product
   for (const product of products) {
-    // Skip products without valid slug
-    if (!product.slug || product.slug.trim() === "") {
-      continue;
-    }
-
     // Parse lastmod date
     const lastmod = product.updated_at
       ? new Date(product.updated_at).toISOString().split("T")[0]
@@ -567,19 +562,13 @@ export async function generateSearchTermsSitemapUrls(): Promise<SitemapUrl[]> {
   // Default values (following PHP pattern)
   const defaultCountry = "tr";
   const defaultLanguage = "en";
-  const supportedCountries = ["tr", "iq", "lb", "sy"];
 
   for (const termData of searchTerms) {
     const encodedTerm = encodeURIComponent(termData.term);
 
     // Get country and language from search data or use defaults
-    let countryIso = termData.country_iso || defaultCountry;
+    const countryIso = termData.country_iso || defaultCountry;
     const languageCode = termData.language_code || defaultLanguage;
-
-    // If country is not in supported countries, use default country
-    if (!supportedCountries.includes(countryIso)) {
-      countryIso = defaultCountry;
-    }
 
     // Create URL: {baseUrl}/{country}-{language}/filters?search={encodedTerm}
     const url = `${baseUrl}/${countryIso}-${languageCode}/filters?search=${encodedTerm}`;

@@ -51,3 +51,16 @@ describe("Comments store reducer actions", () => {
     expect(state.appendedFaqIds["prod-100"], "faq-1 ID should be appended under prod-100").toEqual(["faq-1"]);
   });
 });
+
+describe("appendFaqComment — the same question twice", () => {
+  it("keeps one entry, at the top", () => {
+    useAppStore.setState({ commentEntities: {}, appendedFaqIds: {} } as any);
+    useAppStore.getState().appendFaqComment("p1", { id: "q1" });
+    useAppStore.getState().appendFaqComment("p1", { id: "q2" });
+    useAppStore.getState().appendFaqComment("p1", { id: "q1" });
+    expect((useAppStore.getState() as any).appendedFaqIds.p1, "the question was listed twice or not moved up").toEqual([
+      "q1",
+      "q2",
+    ]);
+  });
+});

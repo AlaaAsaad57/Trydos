@@ -99,8 +99,14 @@ vi.mock("components/Cart/PlaceOrderButtons", () => ({
 }));
 
 vi.mock("components/Cart/AddAddressForm", () => ({
-  default: ({ setOpenSelect, slidePrev }: any) => (
-    <div data-testid="add-address-form">
+  default: ({ setOpenSelect, slidePrev, activeIndex, setAddressDetails }: any) => (
+    <div data-testid="add-address-form" data-active={String(activeIndex)}>
+      <button
+        data-testid="mock-form-set-details"
+        onClick={() => setAddressDetails({ address: "Typed street" })}
+      >
+        Set Details
+      </button>
       <button data-testid="mock-form-open-select" onClick={setOpenSelect}>
         Open Select
       </button>
@@ -827,4 +833,218 @@ describe("OrdersPage (components/Cart/OrdersPage.tsx)", () => {
       expect(mockCloseModal, "should close modal on Cancel").toHaveBeenCalledTimes(1);
     });
   });
+  describe("screen moves the other cases do not reach", () => {
+    const formStep = () =>
+      screen.getByTestId("add-address-form").getAttribute("data-active");
+    const byPw = (marker: string) =>
+      document.querySelector(`[data-pw="${marker}"]`) as HTMLElement | null;
+
+    const renderPage = async (
+      storeOverrides: Record<string, unknown> = {},
+      props: { setStep?: any; close?: any } = {},
+    ) => {
+      const initCart = vi.fn();
+      await renderWithProviders(
+        <OrdersPage setStep={props.setStep ?? vi.fn()} close={props.close ?? vi.fn()} />,
+        { store: { ...defaultStoreState, initCart, ...storeOverrides } },
+      );
+      return { initCart };
+    };
+
+    const goToPlaceOrder = async () => {
+      mockGetCart.mockResolvedValueOnce({
+        cart: [{ id: 101, check_availability: true, is_active: true }],
+      });
+      mockGetCustomerInfo.mockResolvedValueOnce({});
+      await userEvent.click(byPw("Confirm-shipping-and-payment")!);
+      await screen.findByTestId("place-order-buttons");
+    };
+
+    it("moves between the address list and the address form through the shipping box", async () => {
+      await renderPage();
+      expect(formStep(), "the page starts on the address list step").toBe("false");
+
+      await userEvent.click(screen.getByTestId("mock-slide-next"));
+      expect(formStep(), "slideNext from the shipping box opens the form step").toBe("true");
+      await userEvent.click(screen.getByTestId("mock-slide-prev"));
+      expect(formStep(), "slidePrev from the shipping box goes back").toBe("false");
+
+      await userEvent.click(screen.getByTestId("mock-slide-next"));
+      await userEvent.click(screen.getByTestId("mock-form-slide-prev"));
+      expect(formStep(), "the form's own back goes back to the list").toBe("false");
+
+      await userEvent.click(screen.getByTestId("mock-slide-next"));
+      await userEvent.click(byPw("back-icon-addadresspage")!);
+      expect(formStep(), "the header back icon goes back to the list").toBe("false");
+    });
+
+    it("stores what the shopper typed in the address form", async () => {
+      await renderPage();
+      await userEvent.click(screen.getByTestId("mock-form-set-details"));
+      expect(
+        useAppStore.getState().addressDetails.address,
+        "the form's details must reach the store",
+      ).toBe("Typed street");
+    });
+
+    it("opens and closes the region picker from the address form", async () => {
+      await renderPage();
+      await userEvent.click(screen.getByTestId("mock-form-open-select"));
+      expect(screen.getByTestId("select-region"), "the region picker should open").toBeInTheDocument();
+      await userEvent.click(screen.getByTestId("mock-region-close"));
+      expect(screen.queryByTestId("select-region"), "the region picker should close").toBeNull();
+    });
+
+    it("opens the saved address list, moves on from it, closes it, and deletes from it", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      await renderPage();
+      await userEvent.click(screen.getByTestId("mock-open-address-list"));
+      expect(screen.getByTestId("address-list-container"), "the address list should open").toBeInTheDocument();
+
+      await userEvent.click(screen.getByTestId("mock-addr-next"));
+      expect(formStep(), "picking from the list moves to the form step").toBe("true");
+
+      await userEvent.click(screen.getByTestId("mock-addr-close"));
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(350);
+      });
+      expect(screen.queryByTestId("address-list-container"), "the list closes after its slide-out").toBeNull();
+
+      await userEvent.click(screen.getByTestId("mock-open-address-list"));
+      await userEvent.click(screen.getByTestId("mock-trigger-delete"));
+      expect(screen.queryByTestId("address-list-container"), "delete closes the list").toBeNull();
+      expect(screen.getByText("Delete Below Address?"), "delete opens the confirm modal").toBeInTheDocument();
+
+      await userEvent.click(byPw("Yes-Delete-Address")!);
+      expect(formStep(), "a confirmed delete goes back to the list step").toBe("false");
+      expect(screen.queryByText("Delete Below Address?"), "the modal closes after delete").toBeNull();
+      vi.useRealTimers();
+    });
+
+    it("opens the delete modal from the header trash icon and closes it with Cancel", async () => {
+      await renderPage();
+      await userEvent.click(byPw("delete-icon-container")!);
+      expect(screen.getByText("Delete Below Address?"), "the trash icon opens the confirm modal").toBeInTheDocument();
+      await userEvent.click(screen.getByText("Cancel"));
+      expect(screen.queryByText("Delete Below Address?"), "Cancel closes the modal").toBeNull();
+    });
+
+    it("shows no delete action when there is no saved address", async () => {
+      await renderPage({ addressDetails: { ...defaultStoreState.addressDetails, id: null } });
+      await userEvent.click(byPw("delete-icon-container")!);
+      expect(screen.queryByText("Delete Below Address?"), "no saved address means nothing to delete").toBeNull();
+    });
+
+    it("on the place-order step, goes back, deletes, returns to the cart and closes", async () => {
+      const setStep = vi.fn();
+      const close = vi.fn();
+      mockGetCart.mockImplementation(async ({ callback }: any) => {
+        callback([undefined]);
+        return { cart: [{ id: 101, check_availability: true, is_active: true }] };
+      });
+      const { initCart } = await renderPage({}, { setStep, close });
+      await goToPlaceOrder();
+
+      // The trash icon in the place-order header.
+      const header = screen.getByText("Shipping & Payment").closest("div.flex-row")!;
+      const spans = header.querySelectorAll(":scope > span");
+      await userEvent.click(spans[spans.length - 1] as HTMLElement);
+      expect(screen.getByText("Delete Below Address?"), "the trash icon opens the confirm modal").toBeInTheDocument();
+      await userEvent.click(screen.getByText("Cancel"));
+
+      await userEvent.click(screen.getByTestId("mock-place-order-close"));
+      expect(close, "Close on the place-order step closes the cart").toHaveBeenCalled();
+
+      initCart.mockClear();
+      await userEvent.click(screen.getByTestId("mock-place-order-back"));
+      expect(setStep, "back to cart returns to the bag").toHaveBeenCalledWith(0);
+      expect(initCart, "back to cart reloads the bag").toHaveBeenCalledWith({ cart: {} });
+
+      await userEvent.click(header.querySelector("img.cursor-pointer") as HTMLElement);
+      expect(screen.queryByTestId("place-order-buttons"), "the back icon leaves the place-order step").toBeNull();
+      mockGetCart.mockReset();
+    });
+
+    it("keeps the place-order step clean when the delete icon is tapped with no saved address", async () => {
+      await renderPage({ addressDetails: { ...defaultStoreState.addressDetails, id: null } });
+      await goToPlaceOrder();
+      const header = screen.getByText("Shipping & Payment").closest("div.flex-row")!;
+      const spans = header.querySelectorAll(":scope > span");
+      await userEvent.click(spans[spans.length - 1] as HTMLElement);
+      expect(screen.queryByText("Delete Below Address?"), "no saved address means nothing to delete").toBeNull();
+    });
+
+    it("reloads the cart and returns to the bag when the phone is not verified", async () => {
+      const setStep = vi.fn();
+      mockGetCart.mockImplementationOnce(async ({ callback }: any) => {
+        callback([undefined]);
+        return { cart: [{ id: 101, check_availability: true, is_active: true }] };
+      });
+      mockGetCart.mockImplementationOnce(async ({ callback }: any) => {
+        callback([undefined]);
+        return { cart: [] };
+      });
+      mockGetCustomerInfo.mockResolvedValueOnce({});
+      const { initCart } = await renderPage(
+        { userProfile: { is_phone_verified: 0 } },
+        { setStep },
+      );
+      await userEvent.click(byPw("Confirm-shipping-and-payment")!);
+      await waitFor(() => {
+        expect(setStep, "an unverified phone sends the shopper back to the bag").toHaveBeenCalledWith(0);
+      });
+      expect(initCart, "the bag is reloaded, empty when the reload has none").toHaveBeenCalledWith({ cart: [] });
+    });
+
+    it("reloads the cart after a failed order and starts an empty cart when the reload has none", async () => {
+      mockGetCart.mockImplementationOnce(async () => ({
+        cart: [{ id: 101, check_availability: true, is_active: true }],
+      }));
+      mockGetCart.mockImplementationOnce(async ({ callback }: any) => {
+        callback([undefined]);
+        return { cart: [] };
+      });
+      mockGetCustomerInfo.mockResolvedValueOnce({});
+      mockPlaceOrder.mockRejectedValueOnce(new Error("refused"));
+      const { initCart } = await renderPage();
+      await userEvent.click(byPw("Confirm-shipping-and-payment")!);
+      await screen.findByTestId("place-order-buttons");
+      await userEvent.click(screen.getByTestId("mock-place-order-submit"));
+      await waitFor(() => {
+        expect(initCart, "a failed order reloads the bag").toHaveBeenCalledWith({ cart: [] });
+      });
+    });
+
+    it("shakes the address box when no default address is chosen", async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      const box = document.createElement("div");
+      box.className = "address-valid-border";
+      box.scrollIntoView = vi.fn();
+      document.body.appendChild(box);
+
+      await renderPage({ addressLists: [] });
+      await userEvent.click(byPw("Confirm-shipping-and-payment")!);
+      expect(box.classList.contains("shake-anim"), "the address box should shake").toBe(true);
+      expect(box.scrollIntoView, "the address box should scroll into view").toHaveBeenCalled();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1400);
+      });
+      expect(box.classList.contains("shake-anim"), "the shake should stop after 1.3 s").toBe(false);
+      box.remove();
+      vi.useRealTimers();
+    });
+      it("closes the delete modal when the dark backdrop is tapped", async () => {
+      const closeModal = vi.fn();
+      await renderWithProviders(
+        <DeleteModalComponent
+          closeModal={closeModal}
+          deletedAddress={{ id: 5, address: "Home", region_details: {}, contact_info: {} }}
+          slidePrev={vi.fn()}
+        />,
+        { store: defaultStoreState },
+      );
+      await userEvent.click(document.querySelector(".opacity-60") as HTMLElement);
+      expect(closeModal, "a tap on the backdrop must close the delete modal").toHaveBeenCalled();
+    });
+});
 });

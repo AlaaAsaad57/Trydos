@@ -16,4 +16,16 @@ describe("trydosTranslations metadata constants", () => {
     const arDesc = trydosTranslations.ar.listingDesc("أحذية");
     expect(arDesc, "ar listingDesc should include target title").toContain("أحذية");
   });
+
+  it("formats the listing description and the home titles in every language", () => {
+    for (const lang of ["en", "ar", "tr", "ku"] as const) {
+      const t = trydosTranslations[lang];
+      expect(t.listingDesc("Hats"), `the ${lang} listing description lost the title`).toContain("Hats");
+      expect(t.home.categoryTitle("Hats"), `the ${lang} category title lost the category`).toContain("Hats");
+      expect(
+        t.home.getBoutiqueCategories("Shop A"),
+        `the ${lang} boutique categories title lost the boutique`,
+      ).toContain("Shop A");
+    }
+  });
 });

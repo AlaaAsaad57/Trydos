@@ -605,7 +605,11 @@ function ConversationContainer({
           mes.sender_user_id === next.sender_user_id &&
           next.sender_user_id !== "call")
       ) {
-        if (showDate(mes.created_at) === showDate(prev?.created_at))
+        // At the top of the chat there is no `prev`, so compare with `next`.
+        if (
+          showDate(mes.created_at) ===
+          showDate((prev ?? next)?.created_at)
+        )
           type = "first-chat";
       } else if (
         prev &&
@@ -665,27 +669,11 @@ function ConversationContainer({
     if (!croppedImageFile || !activeChat) return;
 
     const midLocal = "m" + Math.random().toString().replace(".", "");
-    try {
-      handleMediaMessage(croppedImageFile, "ImageMessage", midLocal);
-      setCroppedImageFile(null);
-      setCroppedImagePreview(null);
-      setPendingImageFile(null);
-    } catch (error) {
-      LogError({
-        error: error,
-        scenario:
-          "handleImagePreviewSend in conversation container - chat widget",
-      });
-
-      deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-      showErrorNotification(
-        error?.message ?? translateFunction("Failed to Upload file"),
-      );
-      sendStatus(null);
-      setCroppedImageFile(null);
-      setCroppedImagePreview(null);
-    }
-  }, [croppedImageFile, activeChat, handleMediaMessage, sendStatus]);
+    handleMediaMessage(croppedImageFile, "ImageMessage", midLocal);
+    setCroppedImageFile(null);
+    setCroppedImagePreview(null);
+    setPendingImageFile(null);
+  }, [croppedImageFile, activeChat, handleMediaMessage]);
 
   /* ------------------------- Audio Sender ------------------------------- */
   const sendAudio = useCallback(

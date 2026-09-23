@@ -15,17 +15,6 @@ export async function GET(request: NextRequest) {
     let category_slug = searchParams.get("category_slugs") || undefined;
     // Get country and language from headers
 
-    // Validate required headers
-    if (!country || !language) {
-      return NextResponse.json(
-        {
-          error: "Missing required headers",
-          message: "Both 'country' and 'language' headers are required",
-        },
-        { status: 400 },
-      );
-    }
-
     // Get query parameters
 
     if (typeof category_slug === "string") {

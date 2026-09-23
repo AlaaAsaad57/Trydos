@@ -23,10 +23,11 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
     const originalStyle = window.getComputedStyle(document.body).overflow;
     const originalPosition = window.getComputedStyle(document.body).position;
     const originalTop = window.getComputedStyle(document.body).top;
+    const scrollY = window.scrollY;
 
     document.body.style.overflow = "hidden";
     document.body.style.position = "fixed";
-    document.body.style.top = `-${window.scrollY}px`;
+    document.body.style.top = `-${scrollY}px`;
     document.body.style.width = "100%";
     GAevent({
       action: GA_EVENT_NAMES.SCREEN_VIEW,
@@ -40,7 +41,7 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
       document.body.style.position = originalPosition;
       document.body.style.top = originalTop;
 
-      window.scrollTo(0, parseInt(originalTop || "0") * -1);
+      window.scrollTo(0, scrollY);
     };
   }, []);
 

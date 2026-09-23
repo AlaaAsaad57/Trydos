@@ -109,7 +109,7 @@ async function fetchCurrencyFrom(
     return { ...body, data: body?.data?.currency ?? body?.data };
   } catch (error) {
     LogServerError({
-      error: `Currency Error: ${response.status}`,
+      error: `Currency Error: ${response?.status}`,
       source: "currency",
       page: "currency",
       language,

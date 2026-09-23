@@ -16,6 +16,8 @@ vi.mock("serverRequests/ServerFetch", () => ({ fetchServerData }));
 vi.mock("serverRequests/radis", () => ({ getCurrencyFromCache, StoreCurrency }));
 vi.mock("utils/serverErrorReporter", () => ({ LogServerError: vi.fn() }));
 
+import { LogServerError } from "utils/serverErrorReporter";
+
 const CURRENCY_ANSWER = {
   isError: false,
   status: 200,
@@ -93,4 +95,77 @@ describe("the currency readers and the backend they ask", () => {
       "the two currency readers answer with different fields, so swapping one for the other in a cached render would change what the page shows",
     ).toEqual(Object.keys(viaCookie).sort());
   });
+});
+
+describe("the cache, the refusals and the direct reader", () => {
+  beforeEach(() => {
+    fetchServerData.mockReset();
+    fetchServerData.mockResolvedValue(CURRENCY_ANSWER);
+    getCurrencyFromCache.mockReset();
+    getCurrencyFromCache.mockResolvedValue(null);
+    StoreCurrency.mockClear();
+    vi.mocked(LogServerError).mockClear();
+  });
+
+  it("answers a cached currency stored as text or as an object, without asking a backend", async () => {
+    const { getCurrency } = await import("serverRequests/currency");
+    getCurrencyFromCache
+      .mockResolvedValueOnce(JSON.stringify({ exchange_rate: 3, symbol: "$" }) as any)
+      .mockResolvedValueOnce({ exchange_rate: 4, symbol: "€" } as any);
+
+    const fromText: any = await getCurrency("sy", "ar");
+    const fromObject: any = await getCurrency("sy", "ar");
+
+    expect([fromText.exchange_rate, fromText.redis], "the cached text currency was not used").toEqual([3, true]);
+    expect([fromObject.exchange_rate, fromObject.redis], "the cached object currency was not used").toEqual([4, true]);
+    expect(fetchServerData, "a backend was asked despite the cache").not.toHaveBeenCalled();
+  });
+
+  it("stores a fresh currency, and reads the old flat answer shape too", async () => {
+    const { getCurrency } = await import("serverRequests/currency");
+    fetchServerData.mockResolvedValueOnce({ isError: false, status: 200, data: { data: { exchange_rate: 7 } } });
+
+    const fresh: any = await getCurrency("iq", "en");
+
+    expect([fresh.exchange_rate, fresh.redis], "the flat currency answer was not read").toEqual([7, false]);
+    expect(StoreCurrency, "the fresh currency was not stored").toHaveBeenCalledWith("iq", { exchange_rate: 7 });
+  });
+
+  it("answers no currency, and reports it, when the backend refuses", async () => {
+    const { getCurrency } = await import("serverRequests/currency");
+    fetchServerData
+      .mockResolvedValueOnce({ isError: true, status: 503 })
+      .mockResolvedValueOnce({ isError: true, status: 400, error: "bad country" });
+
+    expect(await getCurrency("sy", "ar"), "a refused currency read gave a currency").toEqual({});
+    expect(await getCurrency("sy", "ar"), "a refused currency read gave a currency").toEqual({});
+    expect(
+      vi.mocked(LogServerError).mock.calls.map((call: any[]) => call[0]?.error),
+      "the refusals were not reported with their status",
+    ).toContain("Currency Error: 503");
+  });
+
+  it("reads the currency directly from the shopper's backend (fetchCurrency)", async () => {
+    const { fetchCurrency } = await import("serverRequests/currency");
+
+    const result = await fetchCurrency("ar", "sy");
+
+    expect(result.data, "the direct reader did not flatten the currency").toEqual({ exchange_rate: 12, symbol: "£" });
+  });
+
+  it(
+    "BUG-data-4: a currency read that throws is reported as the currency failure it is",
+    async () => {
+      const { getCurrency } = await import("serverRequests/currency");
+      fetchServerData.mockRejectedValueOnce(new Error("socket hang up"));
+
+      await getCurrency("sy", "ar");
+
+      expect(
+        vi.mocked(LogServerError).mock.calls.map((call: any[]) => call[0]?.source),
+        "the currency failure report was lost: the catch in fetchCurrencyFrom reads `response.status` while " +
+          "`response` is still undefined, so it throws a TypeError before it can report",
+      ).toContain("currency");
+    },
+  );
 });

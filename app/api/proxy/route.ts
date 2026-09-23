@@ -26,16 +26,17 @@ const proxyFailure = () =>
  *  One pass is not enough for either guard below: "%252F" survives a single pass
  *  as "%2F", and "send%255Fotp" survives as "send%5Fotp" — both still reach a
  *  backend router that decodes again. The loop is bounded so a deeply nested
- *  input cannot spin, and a malformed escape returns what we have rather than
- *  throwing, which keeps the guards failing closed. */
-const fullyDecode = (value: string) => {
+ *  input cannot spin. A malformed escape returns null: the half-decoded text
+ *  can still hide a "//" (e.g. "/%2F%2Fevil.tld/%E0%A4%A"), so the caller must
+ *  refuse the request rather than check what it has. */
+const fullyDecode = (value: string): string | null => {
   let current = value;
   for (let pass = 0; pass < 5; pass += 1) {
     let next: string;
     try {
       next = decodeURIComponent(current);
     } catch {
-      return current;
+      return null;
     }
     if (next === current) return current;
     current = next;
@@ -233,7 +234,11 @@ async function proxyRequest(request: NextRequest, call: ProxyCall) {
     // path while decoding to a protocol-relative address further down the line.
     // Decoding is used only to decide, never to forward.
     const decodedTarget = fullyDecode(targetUrl);
-    if (escapesHost(targetUrl) || escapesHost(decodedTarget)) {
+    if (
+      decodedTarget === null ||
+      escapesHost(targetUrl) ||
+      escapesHost(decodedTarget)
+    ) {
       return NextResponse.json(
         { error: "Invalid target URL" },
         { status: 400, headers: { "Cache-Control": "no-store" } },
@@ -289,6 +294,12 @@ async function proxyRequest(request: NextRequest, call: ProxyCall) {
     // closed: an over-broad match only blocks a request that must not be proxied
     // anyway.
     const decodedPath = fullyDecode(resolvedUrl.pathname);
+    if (decodedPath === null) {
+      return NextResponse.json(
+        { error: "Invalid target URL" },
+        { status: 400, headers: { "Cache-Control": "no-store" } },
+      );
+    }
 
     if (
       targetUrl.includes(SEND_OTP) ||

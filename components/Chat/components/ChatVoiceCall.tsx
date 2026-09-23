@@ -237,13 +237,23 @@ function ChatVoiceCall({ token }) {
   };
 
   useEffect(() => {
-    if (seconds === 60 && users.length === 0) {
-      userEndCall(true);
-    }
     if (minutes === CALL_END_DURATION_MINUTES) {
       userEndCall();
     }
   }, [minutes, seconds]);
+
+  // A call nobody answers ends after 60 seconds. The call clock starts only
+  // when someone joins, so it cannot measure the ringing time: use a timer.
+  // The ref keeps the latest userEndCall, which closes the latest tracks.
+  const userEndCallRef = useRef(userEndCall);
+  useEffect(() => {
+    userEndCallRef.current = userEndCall;
+  });
+  useEffect(() => {
+    if (users.length > 0) return;
+    const timer = setTimeout(() => userEndCallRef.current(true), 60000);
+    return () => clearTimeout(timer);
+  }, [users.length]);
 
   const otherUser = useMemo(() => {
     return (

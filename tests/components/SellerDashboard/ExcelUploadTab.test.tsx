@@ -452,3 +452,128 @@ describe("Excel section — the uploaded files table", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("Excel section — dragging a file over the drop zone", () => {
+  it("highlights the zone while a file is over it, and not after it leaves", async () => {
+    await mount();
+    await screen.findByRole("option", { name: "Shoes" });
+    const dropZone = screen
+      .getByText(/Drag & drop Excel file here/)
+      .closest("[class*='border-dashed']") as HTMLElement;
+
+    fireEvent.dragEnter(dropZone);
+    expect(
+      dropZone.className,
+      "a file dragged over the zone should turn it blue",
+    ).toContain("border-[#388CFF]");
+
+    fireEvent.dragOver(dropZone);
+    fireEvent.dragLeave(dropZone);
+    expect(
+      dropZone.className,
+      "the zone should go back to grey once the file leaves",
+    ).not.toContain("border-[#388CFF]");
+
+    fireEvent.drop(dropZone, { dataTransfer: { files: [] } });
+    expect(
+      screen.queryByText("Please upload a valid Excel file (.xlsx, .xls, .xlsm, .xlsb)"),
+      "a drop that carries no file must not be refused as a wrong file",
+    ).not.toBeInTheDocument();
+  });
+
+  it("does nothing when the picker is closed without a file", async () => {
+    await mount();
+    await screen.findByRole("option", { name: "Shoes" });
+    fireEvent.change(fileInput(), { target: { files: [] } });
+    expect(
+      screen.getByRole("button", { name: /Upload Excel/ }),
+      "no file was chosen, so Upload must stay blocked",
+    ).toBeDisabled();
+  });
+});
+
+describe("Excel section — rows with odd data", () => {
+  it("colours each processing status and shows a dash for a missing value", async () => {
+    getExcelFiles.mockResolvedValue({
+      success: true,
+      data: {
+        data: [
+          excelRow({ id: 1, upload_status: "failed" }),
+          excelRow({ id: 2, upload_status: "processing" }),
+          excelRow({ id: 3, upload_status: "uploaded" }),
+          excelRow({ id: 4, upload_status: "weird" }),
+          excelRow({ id: 5, upload_status: "", original_filename: "", created_at: "" }),
+          excelRow({ id: 6, created_at: "not a date" }),
+        ],
+      },
+    });
+    await mount();
+    const failed = await screen.findByText("failed");
+    expect(failed.className, "a failed sheet should be red").toContain("text-[#f85555]");
+    expect(screen.getByText("processing").className, "a sheet in progress should be amber").toContain("text-[#b8860b]");
+    expect(screen.getByText("uploaded").className, "an uploaded sheet should be blue").toContain("text-[#388CFF]");
+    expect(screen.getByText("weird").className, "an unknown status should be grey").toContain("text-[#8e8e8e]");
+    expect(
+      screen.getByText("not a date"),
+      "a date the browser cannot read should be shown as the backend sent it",
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText("—").length,
+      "a row with no name, no status and no date should show dashes, not blanks",
+    ).toBeGreaterThanOrEqual(3);
+  });
+
+  it("offers no download link for a sheet with no file name", async () => {
+    getExcelFiles.mockResolvedValue({
+      success: true,
+      data: { data: [excelRow({ original_filename: "" })] },
+    });
+    await mount();
+    await screen.findByText("completed");
+    expect(
+      screen.queryByRole("link", { name: "Download" }),
+      "without a file name there is no address to download from",
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Download"),
+      "the Download label should still be shown, greyed out",
+    ).toBeInTheDocument();
+  });
+});
+
+describe("Excel section — the notes window", () => {
+  const withNotes = (over: Record<string, unknown> = {}) =>
+    getExcelFiles.mockResolvedValue({
+      success: true,
+      data: { data: [excelRow({ processing_notes: "Row 4 has no price.", ...over })] },
+    });
+
+  it("stays open on a click inside and closes on the Close button", async () => {
+    withNotes();
+    await mount();
+    await userEvent.click(await screen.findByRole("button", { name: "Notes" }));
+    await userEvent.click(screen.getByText("Row 4 has no price."));
+    expect(
+      screen.getByText("Row 4 has no price."),
+      "a click inside the notes window must not close it",
+    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(
+      screen.queryByText("Row 4 has no price."),
+      "Close should take the notes window away",
+    ).not.toBeInTheDocument();
+  });
+
+  it("closes on a click on the dark backdrop, and leaves the name out when there is none", async () => {
+    withNotes({ original_filename: "" });
+    await mount();
+    await userEvent.click(await screen.findByRole("button", { name: "Notes" }));
+    const heading = screen.getByRole("heading", { name: "Notes" });
+    expect(heading.textContent, "a sheet with no name should show a plain Notes title").toBe("Notes");
+    await userEvent.click(heading.closest("[class*='bg-black']") as HTMLElement);
+    expect(
+      screen.queryByText("Row 4 has no price."),
+      "a click on the backdrop should close the notes window",
+    ).not.toBeInTheDocument();
+  });
+});

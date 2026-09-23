@@ -24,7 +24,7 @@ vi.mock("services/sellerDashboard", () => ({
 
 import GalleryTab from "components/SellerDashboard/GalleryTab";
 
-import { renderWithProviders, screen, userEvent, waitFor } from "../../render";
+import { fireEvent, renderWithProviders, screen, userEvent, waitFor } from "../../render";
 
 const SELLER_ID = "77";
 
@@ -480,5 +480,257 @@ describe("Gallery section — the permission gates", () => {
       await screen.findByAltText("photo-1.webp"),
       "reading the gallery needs neither upload nor delete",
     ).toBeInTheDocument();
+  });
+});
+
+describe("Gallery section — choosing files other ways", () => {
+  const dropZone = () =>
+    screen.getByText("Drop images here").closest("[class*='border-dashed']") as HTMLElement;
+
+  it("highlights the drop zone while files are over it and takes dropped images", async () => {
+    await mount();
+    await screen.findByAltText("photo-1.webp");
+
+    fireEvent.dragOver(dropZone());
+    expect(dropZone().className, "files over the zone should turn it blue").toContain("border-[#388CFF]");
+    fireEvent.dragLeave(dropZone());
+    expect(dropZone().className, "the zone should go grey again once the files leave").not.toContain("border-[#388CFF]");
+
+    fireEvent.drop(dropZone(), { dataTransfer: { files: [picture("dropped.webp")] } });
+    expect(
+      await screen.findByText("dropped.webp"),
+      "a dropped image should wait in the confirm panel",
+    ).toBeInTheDocument();
+  });
+
+  it("ignores a drop with no files and a drop with no images", async () => {
+    await mount();
+    await screen.findByAltText("photo-1.webp");
+    fireEvent.drop(dropZone(), { dataTransfer: { files: [] } });
+    fireEvent.drop(dropZone(), {
+      dataTransfer: { files: [new File(["x"], "notes.txt", { type: "text/plain" })] },
+    });
+    expect(
+      screen.queryByText("Confirm Upload"),
+      "a drop with nothing usable must not open the confirm panel",
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens the matching file picker from each button, and the folder picker takes whole folders", async () => {
+    await mount();
+    await screen.findByAltText("photo-1.webp");
+    const [files, folder] = Array.from(
+      document.querySelectorAll('input[type="file"]'),
+    ) as HTMLInputElement[];
+    const filesClick = vi.spyOn(files, "click");
+    const folderClick = vi.spyOn(folder, "click");
+
+    await userEvent.click(screen.getByRole("button", { name: /Select Files/ }));
+    expect(filesClick, "Select Files should open the file picker").toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: /Select Folder/ }));
+    expect(folderClick, "Select Folder should open the folder picker").toHaveBeenCalled();
+    expect(
+      folder.hasAttribute("webkitdirectory"),
+      "the folder picker must be marked to pick folders",
+    ).toBe(true);
+
+    await userEvent.upload(folder, picture("from-folder.webp"));
+    expect(
+      await screen.findByText("from-folder.webp"),
+      "an image picked from a folder should wait in the confirm panel",
+    ).toBeInTheDocument();
+  });
+
+  it("removes one chosen file, and closes the panel when the last one is removed", async () => {
+    await mount();
+    await screen.findByAltText("photo-1.webp");
+    await userEvent.upload(filesInput(), [picture("one.webp"), picture("two.webp")]);
+    await screen.findByText("Confirm Upload");
+
+    await userEvent.click(screen.getAllByRole("button", { name: "Cancel" })[0]);
+    expect(screen.queryByText("one.webp"), "the removed file should leave the panel").not.toBeInTheDocument();
+    expect(screen.getByText("two.webp"), "the other file should stay").toBeInTheDocument();
+
+    await userEvent.click(screen.getAllByRole("button", { name: "Cancel" })[0]);
+    expect(
+      screen.queryByText("Confirm Upload"),
+      "removing the last file should close the panel",
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("Gallery section — looking at and copying an image", () => {
+  it("opens the large view, keeps it on a click on the picture, and closes it", async () => {
+    await mount();
+    await screen.findByAltText("photo-1.webp");
+    await userEvent.click(screen.getByTitle("View"));
+    const preview = screen.getByAltText("Preview");
+    expect(preview.getAttribute("src"), "the large view should show the clicked image").toBe(
+      "https://example.com/gallery/photo-1.webp",
+    );
+    await userEvent.click(preview);
+    expect(screen.getByAltText("Preview"), "a click on the picture must not close the view").toBeInTheDocument();
+
+    await userEvent.click(screen.getAllByRole("button", { name: "Close" }).at(-1)!);
+    expect(screen.queryByAltText("Preview"), "Close should end the large view").not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByTitle("View"));
+    await userEvent.click(screen.getByAltText("Preview").parentElement as HTMLElement);
+    expect(screen.queryByAltText("Preview"), "a click on the dark background should end the large view").not.toBeInTheDocument();
+  });
+
+  it("copies the image address and says so for a moment", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    await mount();
+    await screen.findByAltText("photo-1.webp");
+
+    fireEvent.click(screen.getByTitle("Copy URL"));
+    expect(writeText, "the image's address should go to the clipboard").toHaveBeenCalledWith(
+      "https://example.com/gallery/photo-1.webp",
+    );
+    expect(await screen.findByTitle("Copied!"), "the button should confirm the copy").toBeInTheDocument();
+    await waitFor(
+      () => expect(screen.getByTitle("Copy URL"), "the confirmation should go away by itself").toBeInTheDocument(),
+      { timeout: 2500 },
+    );
+  });
+
+  it("stays quiet when the clipboard refuses", async () => {
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText: vi.fn().mockRejectedValue(new Error("denied")) },
+      configurable: true,
+    });
+    await mount();
+    await screen.findByAltText("photo-1.webp");
+    fireEvent.click(screen.getByTitle("Copy URL"));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.queryByTitle("Copied!"), "a refused copy must not claim success").not.toBeInTheDocument();
+  });
+
+  it("falls back to the path and the id when an image has no url or name", async () => {
+    getProductImages.mockResolvedValue({
+      success: true,
+      data: { data: [{ id: 5, path: "https://example.com/p.webp" }] },
+      meta: { current_page: 1, last_page: 1, total: 1 },
+    });
+    await mount();
+    const img = await screen.findByAltText("5");
+    expect(img.getAttribute("src"), "the path should be used when there is no url").toBe("https://example.com/p.webp");
+  });
+});
+
+describe("Gallery section — picking tiles", () => {
+  beforeEach(() => {
+    getProductImages.mockResolvedValue(
+      listAnswer([image(1, "a.webp"), image(2, "b.webp")], { current_page: 1, last_page: 1, total: 2 }),
+    );
+  });
+
+  it("starts select mode from a tile's checkbox and toggles tiles on click", async () => {
+    await mount();
+    await screen.findByAltText("a.webp");
+    // The tile checkboxes come after the toolbar's Select button.
+    await userEvent.click(screen.getAllByRole("button", { name: "Select" })[1]);
+    expect(await screen.findByText(/1\s*selected/), "the checkbox should select its tile").toBeInTheDocument();
+
+    const tileB = screen.getByAltText("b.webp").closest("[class*='group']") as HTMLElement;
+    await userEvent.click(tileB);
+    expect(await screen.findByText(/2\s*selected/), "a click on a tile in select mode should select it").toBeInTheDocument();
+    await userEvent.click(tileB);
+    expect(await screen.findByText(/1\s*selected/), "a second click should unselect it").toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Select all" }));
+    await userEvent.click(screen.getByRole("button", { name: "Deselect all" }));
+    expect(
+      screen.getByText("Select images to delete"),
+      "Deselect all should clear the selection",
+    ).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByText("Select images to delete"), "Cancel should leave select mode").not.toBeInTheDocument();
+  });
+
+  it("closes the bulk confirm on Cancel and on the backdrop, keeping the selection", async () => {
+    await mount();
+    await screen.findByAltText("a.webp");
+    await userEvent.click(toolbarSelectButton());
+    await userEvent.click(screen.getByRole("button", { name: "Select all" }));
+    await userEvent.click(screen.getByRole("button", { name: /Delete \(2\)/ }));
+    const heading = screen.getByRole("heading", { name: /Delete 2 images/ });
+    await userEvent.click(heading);
+    expect(screen.getByRole("heading", { name: /Delete 2 images/ }), "a click inside must not close it").toBeInTheDocument();
+
+    await userEvent.click(screen.getAllByRole("button", { name: "Cancel" }).at(-1)!);
+    expect(screen.queryByRole("heading", { name: /Delete 2 images/ }), "Cancel should close the confirm").not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /Delete \(2\)/ }));
+    await userEvent.click(screen.getByRole("heading", { name: /Delete 2 images/ }).closest("[class*='bg-black']") as HTMLElement);
+    expect(screen.queryByRole("heading", { name: /Delete 2 images/ }), "the backdrop should close the confirm").not.toBeInTheDocument();
+    expect(screen.getByText(/2\s*selected/), "closing the confirm must keep the selection").toBeInTheDocument();
+  });
+
+  it("shows why the image backend refused a bulk delete", async () => {
+    deleteProductImages.mockResolvedValue({ success: false, message: "Images are in use." });
+    await mount();
+    await screen.findByAltText("a.webp");
+    await userEvent.click(toolbarSelectButton());
+    await userEvent.click(screen.getByRole("button", { name: "Select all" }));
+    await userEvent.click(screen.getByRole("button", { name: /Delete \(2\)/ }));
+    await userEvent.click(screen.getAllByRole("button", { name: /Delete \(2\)/ }).at(-1)!);
+    expect(await screen.findByText("Images are in use."), "the backend's refusal should be shown").toBeInTheDocument();
+  });
+
+  it("uses a generic message when the bulk delete is refused without one", async () => {
+    deleteProductImages.mockResolvedValue({ success: false });
+    await mount();
+    await screen.findByAltText("a.webp");
+    await userEvent.click(toolbarSelectButton());
+    await userEvent.click(screen.getByRole("button", { name: "Select all" }));
+    await userEvent.click(screen.getByRole("button", { name: /Delete \(2\)/ }));
+    await userEvent.click(screen.getAllByRole("button", { name: /Delete \(2\)/ }).at(-1)!);
+    expect(await screen.findByText("Failed to delete images"), "a bare refusal should still be explained").toBeInTheDocument();
+  });
+});
+
+describe("Gallery section — the single delete window and paging back", () => {
+  it("closes on Cancel and on the backdrop without deleting", async () => {
+    await mount();
+    await screen.findByAltText("photo-1.webp");
+    await userEvent.click(screen.getAllByTitle("Delete")[0]);
+    await userEvent.click(screen.getByText("Delete Image"));
+    expect(screen.getByText("Delete Image"), "a click inside must not close the window").toBeInTheDocument();
+    await userEvent.click(screen.getAllByRole("button", { name: "Cancel" }).at(-1)!);
+    expect(screen.queryByText("Delete Image"), "Cancel should close the window").not.toBeInTheDocument();
+
+    await userEvent.click(screen.getAllByTitle("Delete")[0]);
+    await userEvent.click(screen.getByText("Delete Image").closest("[class*='bg-black']") as HTMLElement);
+    expect(screen.queryByText("Delete Image"), "the backdrop should close the window").not.toBeInTheDocument();
+    expect(deleteProductImages, "closing the window must not delete").not.toHaveBeenCalled();
+  });
+
+  it("asks for the page before when the seller clicks Previous", async () => {
+    getProductImages.mockResolvedValue(listAnswer([image(1)], { current_page: 2, last_page: 3, total: 130 }));
+    await mount();
+    await screen.findByAltText("photo-1.webp");
+    await userEvent.click(screen.getByRole("button", { name: /Next/ }));
+    await waitFor(() => expect(getProductImages.mock.calls.at(-1)?.[1]).toBe(2));
+    await userEvent.click(screen.getByRole("button", { name: /Prev/ }));
+    await waitFor(() =>
+      expect(getProductImages.mock.calls.at(-1), "Previous should ask for page 1").toEqual([SELLER_ID, 1, PER_PAGE]),
+    );
+  });
+
+  it("steps back one page when the emptied page's answer carries no page count", async () => {
+    deleteProductImages.mockResolvedValue({ success: true });
+    getProductImages.mockResolvedValue(listAnswer([image(1)], { current_page: 2, last_page: 2, total: 61 }));
+    await mount();
+    await screen.findByAltText("photo-1.webp");
+    getProductImages.mockResolvedValueOnce({ success: true, data: { images: [], meta: { current_page: 2, last_page: 0, total: 60 } } });
+    await userEvent.click(screen.getAllByTitle("Delete")[0]);
+    await userEvent.click(screen.getAllByRole("button", { name: /Delete/ }).at(-1)!);
+    await waitFor(() =>
+      expect(getProductImages.mock.calls.at(-1), "an empty page 2 should fall back to page 1").toEqual([SELLER_ID, 1, PER_PAGE]),
+    );
   });
 });

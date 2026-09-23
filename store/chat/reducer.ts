@@ -214,12 +214,6 @@ const processMessageStatuses = (
                 is_watched: true,
                 watched_at: getAdjustedDateString(sta.watched_at),
               };
-            if (type === "receive")
-              return {
-                ...sta,
-                is_received: 1,
-                received_at: getAdjustedDateString(sta.received_at),
-              };
           }
         } else {
           if (!isSelfStatus) {

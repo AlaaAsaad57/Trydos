@@ -109,3 +109,21 @@ describe("readServerCookies — does it ask before it reads?", () => {
     ).toEqual([null, null]);
   });
 });
+
+// The real reads, with nothing stood in. Outside a Next request there is no
+// work-unit store and no request cookies, so each read must come back empty
+// rather than throw.
+describe("the real scope and cookie reads outside a request", () => {
+  it("currentScopeType answers null when no Next scope is running", async () => {
+    const actual = await vi.importActual<typeof import("../../utils/cookies/server-scope")>(
+      "../../utils/cookies/server-scope",
+    );
+    expect(actual.currentScopeType(), "a scope was invented outside a request").toBeNull();
+  });
+
+  it("readServerCookies answers a null per name when there is no request to read", async () => {
+    currentScopeType.mockReturnValue(null);
+    const { readServerCookies } = await import("utils/cookies/server-cookie-fallback");
+    expect(await readServerCookies(["a", "b"]), "cookies were invented outside a request").toEqual([null, null]);
+  });
+});

@@ -425,4 +425,148 @@ describe("the filter window", () => {
       ).toBe(true);
     });
   });
+
+  describe("every row stages its own kind of choice", () => {
+    it.each([
+      ["shoes", "categories", "shoes"],
+      ["ff0000", "colors", "ff0000"],
+      ["XL", "sizes", "XL"],
+    ])("tapping %s stages it under %s", async (chip, kind, sent) => {
+      await renderWindow({ initialFilters: { colors: ["#00ff00"] } });
+
+      await tapChip(chip);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(REFETCH_DEBOUNCE_MS);
+      });
+
+      await waitFor(() => expect(GetFilters, `tapping ${chip} should re-ask the backend`).toHaveBeenCalled());
+      expect(
+        GetFilters.mock.calls[0][0].filters[kind],
+        `the ${kind} choice should be sent, colours without the hash`,
+      ).toContain(sent);
+    });
+  });
+
+  describe("the price section", () => {
+    it("clears only the price band when its cross is tapped", async () => {
+      await renderWindow({ initialFilters: { prices: [10, 50], brands: ["nike"] } });
+
+      await act(async () => {
+        (document.querySelector('img[src="/icons/PriceCancel.svg"]') as HTMLElement).click();
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(REFETCH_DEBOUNCE_MS);
+      });
+
+      await waitFor(() => expect(GetFilters, "clearing the band should re-ask the backend").toHaveBeenCalled());
+      expect(GetFilters.mock.calls[0][0].filters.prices, "the price band should be cleared").toEqual([]);
+      expect(GetFilters.mock.calls[0][0].filters.brands, "other staged filters must stay").toEqual(["nike"]);
+    });
+
+    it("stages a band dragged on the slider", async () => {
+      await renderWindow();
+      const [low] = Array.from(document.querySelectorAll('input[type="range"]')) as HTMLInputElement[];
+
+      await act(async () => {
+        low.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+      });
+      const { fireEvent } = await import("../../../../render");
+      fireEvent.change(low, { target: { value: "20" } });
+      fireEvent.mouseUp(low);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(REFETCH_DEBOUNCE_MS);
+      });
+
+      await waitFor(() => expect(GetFilters, "a dragged band should re-ask the backend").toHaveBeenCalled());
+      expect(GetFilters.mock.calls[0][0].filters.prices?.[0], "the dragged lower bound should be sent").toBe(20);
+    });
+
+    it("ignores the price cross and the slider while a re-ask is running", async () => {
+      GetFilters.mockReturnValue(new Promise(() => {}));
+      await renderWindow({ initialFilters: { prices: [10, 50] } });
+
+      await tapChip("nike");
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(REFETCH_DEBOUNCE_MS);
+      });
+      await waitFor(() => expect(GetFilters, "the first re-ask should start").toHaveBeenCalledTimes(1));
+
+      await act(async () => {
+        (document.querySelector('img[src="/icons/PriceCancel.svg"]') as HTMLElement).click();
+      });
+      const { fireEvent } = await import("../../../../render");
+      const [low] = Array.from(document.querySelectorAll('input[type="range"]')) as HTMLInputElement[];
+      fireEvent.mouseDown(low);
+      fireEvent.change(low, { target: { value: "30" } });
+      fireEvent.mouseUp(low);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(REFETCH_DEBOUNCE_MS * 2);
+      });
+
+      expect(GetFilters, "price changes during a running re-ask must be ignored").toHaveBeenCalledTimes(1);
+      expect(screen.getByText(/Min/).textContent, "the staged lower bound must stay as it was").toContain("10");
+    });
+
+    it("draws the price curve from the histogram once the window has settled", async () => {
+      // jsdom lays nothing out, so every element is 0px wide and the curve
+      // would draw an empty box. Give elements a width for this one test.
+      const original = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "clientWidth");
+      Object.defineProperty(HTMLElement.prototype, "clientWidth", { configurable: true, get: () => 300 });
+      try {
+      await renderWindow({
+        rows: seedRows({
+          prices: {
+            min_price: 0,
+            max_price: 100,
+            total: 12,
+            histogram: [
+              { count: 3, min_price: 0, max_price: 50 },
+              { products_count: 2, min_price: 50, max_price: 100 },
+            ],
+          },
+        }),
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(REFETCH_DEBOUNCE_MS);
+      });
+
+      expect(
+        document.querySelector('[data-pw="slider"]')?.parentElement?.querySelector("svg path"),
+        "the price curve should be drawn once the window has settled",
+      ).not.toBeNull();
+      } finally {
+        if (original) Object.defineProperty(HTMLElement.prototype, "clientWidth", original);
+      }
+    });
+  });
+
+  describe("a chip tapped while a re-ask is still running", () => {
+    it("BUG-server-3: still gets its own re-ask once the running one finishes", async () => {
+      let finishFirst: (v: any) => void = () => {};
+      GetFilters.mockReturnValueOnce(new Promise((r) => (finishFirst = r)));
+      GetFilters.mockResolvedValue(seedRows());
+      await renderWindow();
+
+      await tapChip("nike");
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(REFETCH_DEBOUNCE_MS);
+      });
+      await waitFor(() => expect(GetFilters).toHaveBeenCalledTimes(1));
+
+      // The chips stay tappable while the first re-ask runs.
+      await tapChip("puma");
+      await act(async () => {
+        finishFirst(seedRows());
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(REFETCH_DEBOUNCE_MS * 3);
+      });
+
+      expect(
+        GetFilters,
+        "the second tap changed the staged set, so the window must ask again for it",
+      ).toHaveBeenCalledTimes(2);
+    });
+  });
 });

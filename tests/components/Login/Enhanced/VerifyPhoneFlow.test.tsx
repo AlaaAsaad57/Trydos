@@ -150,6 +150,21 @@ describe("a shopper confirming a number they typed", () => {
     ).toBeInTheDocument();
   });
 
+  it("lets the shopper change the number from the code step", async () => {
+    const { user } = await renderFlow();
+
+    await user.type(phoneField(), PHONE);
+    await user.click(screen.getByRole("button", { name: "Send phone number" }));
+    await user.click(await screen.findByRole("button", { name: /Send SMS/ }));
+    await screen.findByText(/Enter Verification Code Sent To Your/);
+    await user.click(await screen.findByRole("button", { name: "Change Number" }));
+
+    expect(
+      await screen.findByText("Enter Your Phone Number Registered With Us"),
+      "Change Number on the code step did not return to the number step",
+    ).toBeInTheDocument();
+  });
+
   it("lets the shopper go back and correct the number", async () => {
     const { user } = await renderFlow();
 

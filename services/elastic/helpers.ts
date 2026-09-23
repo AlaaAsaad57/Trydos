@@ -1947,10 +1947,6 @@ function buildAtLeastTwoClause(
   fuzziness: string | number | null,
   boost: number = 1,
 ): any | null {
-  if (searchWords.length < 2) {
-    return null;
-  }
-
   const shouldClausesForEachWord: any[] = [];
 
   searchWords.forEach((word) => {
@@ -2077,10 +2073,6 @@ function buildAtLeastTwoClause(
     });
   });
 
-  if (shouldClausesForEachWord.length === 0) {
-    return null;
-  }
-
   const minimumMatch = searchWords.length < 4 ? 2 : 3;
   const finalBoost = searchWords.length >= 4 ? boost * 2 : boost;
 
@@ -2095,9 +2087,7 @@ function buildAtLeastTwoClause(
 
 function calculateFuzziness(searchText?: string): string | number | null {
   if (!searchText) return null;
-  const length = searchText.length;
   return 1;
-  return length >= 7 && length <= 12 ? 1 : null;
 }
 
 export function buildAggregations(
@@ -2942,7 +2932,8 @@ export async function logSearchTerm({
 
     if (should.length) {
       query.bool.should = should;
-      query.bool.minimum_should_match = 2;
+      // Two matching identities when we know two or more; with one, that one.
+      query.bool.minimum_should_match = Math.min(2, should.length);
     }
 
     // 4. Check if this search was already logged

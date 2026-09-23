@@ -23,7 +23,7 @@
 //
 // None of the three looks like an error. All three need a test that reads the
 // grid, not the response.
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ProductsInfiniteScroll from "components/ListingPage/ProductInfiniteScroll";
 import { useAppStore } from "store";
@@ -586,5 +586,100 @@ describe("the listing's product grid", () => {
         "anything that is not featured, flash deals or one boutique is a filter result",
       ).toBe("Filters-Page");
     });
+  });
+});
+
+describe("the listing's product grid — less common answers", () => {
+  // An earlier test left a grid whose 3-second retry keeps firing after it was
+  // unmounted (see BUG-server-2 at the end of this file). Answer those stray
+  // retries with an empty page so they stop, before these tests count calls.
+  beforeAll(async () => {
+    GetProducts.mockReset();
+    GetProducts.mockResolvedValue(aPage({ ids: [], offset: [] }));
+    await new Promise((r) => setTimeout(r, 3500));
+  }, 10000);
+
+  beforeEach(() => {
+    GetProducts.mockReset();
+    GAevent.mockReset();
+    showErrorNotification.mockReset();
+  });
+
+  it.each([
+    ["/filters/boutiques/blue", "a boutique page"],
+    ["/filters/tags_names/summer", "a tag page"],
+    ["/", "the home page"],
+  ])("reports the screen for %s (%s) to analytics", async (path, label) => {
+    GetProducts.mockResolvedValue(aPage({ ids: [1], offset: [2] }));
+    await renderWithProviders(
+      <ProductsInfiniteScroll
+        offset={[1]}
+        currency={{ symbol: "$", exchange_rate: 1, decimal_digits: 2 }}
+        boutiqueName={null}
+        analyticsData={[]}
+        parsedFilters={{}}
+      />,
+      { path },
+    );
+    await waitFor(() => expect(GAevent, `no analytics event was sent on ${label}`).toHaveBeenCalled());
+    const screens = GAevent.mock.calls.map(([e]) => e.params.screen_name);
+    expect(new Set(screens).size, `every event on ${label} should name the same screen`).toBe(1);
+    expect(screens[0], `the screen name for ${label} should be set`).toBeTruthy();
+  });
+
+  it("falls back to the analytics list for ids, and skips items without an id", async () => {
+    GetProducts.mockResolvedValue({
+      ...aPage({ ids: [1, 2], offset: [2] }),
+      productIds: [],
+      GA_PRODUCTS_LIST: [{ item_id: "1" }, {}],
+    });
+    await renderGrid();
+    await waitFor(() => expect(cardNames(), "the product with an id should be shown").toEqual(["Product 1"]));
+  });
+
+  it("treats a cursor of a different length as a new cursor", async () => {
+    GetProducts.mockResolvedValueOnce(aFullPage(1, [2, 5]));
+    GetProducts.mockResolvedValueOnce(aPage({ ids: [50], offset: [3, 6] }));
+    await renderGrid();
+    await waitFor(() => expect(cardNames().length, "the first page should land").toBe(PAGE_LIMIT));
+    await scrollToTheBottom();
+    await waitFor(() => expect(cardNames(), "the next page after a longer cursor should load").toContain("Product 50"));
+  });
+
+  it("skips the timed retry when a scroll already started a load", async () => {
+    GetProducts.mockResolvedValueOnce(undefined);
+    GetProducts.mockReturnValueOnce(new Promise(() => {}));
+    await renderGrid();
+    await waitFor(() => expect(showErrorNotification, "the empty answer should be reported").toHaveBeenCalled());
+    // The shopper scrolls before the 3-second retry fires; that load hangs.
+    await scrollToTheBottom();
+    await new Promise((r) => setTimeout(r, 3300));
+    expect(GetProducts, "the timed retry must not start a second load while one is running").toHaveBeenCalledTimes(2);
+  });
+
+  it("tries again three seconds after the backend answered with nothing", async () => {
+    GetProducts.mockResolvedValueOnce(undefined);
+    GetProducts.mockResolvedValueOnce(aPage({ ids: [7], offset: [2] }));
+    await renderGrid();
+    await waitFor(() => expect(showErrorNotification, "the shopper should be told the load failed").toHaveBeenCalled());
+    await waitFor(
+      () => expect(cardNames(), "the retry three seconds later should load the products").toEqual(["Product 7"]),
+      { timeout: 8000 },
+    );
+  });
+});
+
+describe("a grid that has left the page", () => {
+  it("BUG-server-2: stops retrying a failed load once the grid is unmounted", async () => {
+    GetProducts.mockReset();
+    GetProducts.mockResolvedValue(undefined);
+    const { unmount } = await renderGrid();
+    await waitFor(() => expect(GetProducts, "the first load should run").toHaveBeenCalledTimes(1));
+    unmount();
+    await new Promise((r) => setTimeout(r, 3300));
+    expect(
+      GetProducts,
+      "a grid that is no longer on the page must not keep asking the backend every 3 seconds",
+    ).toHaveBeenCalledTimes(1);
   });
 });

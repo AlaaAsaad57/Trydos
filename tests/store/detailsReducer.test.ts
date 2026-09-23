@@ -56,3 +56,60 @@ describe("Details store reducer actions", () => {
     expect(useAppStore.getState().sharesCount, "sharesCount should be 42").toBe(42);
   });
 });
+
+describe("Details store — the setters the product page and cart use", () => {
+  it.each([
+    ["setIsModalOpen", "isModalOpen", true],
+    ["setSelectedContactsForShare", "selectedContactsForShare", [{ id: 1 }]],
+    ["setBuyerCommentModalOption", "BuyerCommentModalOption", { open: true }],
+    ["setShouldUpdateComment", "shouldUpdateComment", 3],
+    ["setShouldUpdateCommentsCount", "shouldUpdateCommentsCount", true],
+    ["setColorBottomSheet", "ColorBottomSheet", { id: 9 }],
+  ])("%s writes %s", (action, field, value) => {
+    (useAppStore.getState() as any)[action](value);
+    expect((useAppStore.getState() as any)[field], `${action} did not write ${field}`).toEqual(value);
+  });
+
+  it("setSelectedProductForCart keeps a product with no colour pictures as it is", () => {
+    const product = { id: 1, sync_color_images: [] };
+    useAppStore.getState().setSelectedProductForCart(product);
+    expect(
+      useAppStore.getState().selected_product_for_add_to_cart,
+      "a product with no colour pictures was changed",
+    ).toBe(product);
+  });
+
+  it("setSelectedProductForCart fills the colour option from the name when it is missing", () => {
+    useAppStore.getState().setSelectedProductForCart({
+      id: 1,
+      sync_color_images: [
+        { color_name: "Red" },
+        { color_name: "Blue", color_option: "#00f" },
+      ],
+      colors: [{ name: "Red" }, { name: "Blue", option: "#00f" }],
+    });
+    const stored = useAppStore.getState().selected_product_for_add_to_cart as any;
+    expect(
+      stored.sync_color_images.map((s: any) => s.color_option),
+      "the colour-picture options were not filled from the name",
+    ).toEqual(["Red", "#00f"]);
+    expect(
+      stored.colors.map((c: any) => [c.color_option, c.option]),
+      "the colour options were not filled from the name",
+    ).toEqual([
+      ["Red", "Red"],
+      ["#00f", "#00f"],
+    ]);
+  });
+
+  it("setSelectedProductForCart copes with colour pictures but no colour list", () => {
+    useAppStore.getState().setSelectedProductForCart({
+      id: 1,
+      sync_color_images: [{ color_name: "Red" }],
+    });
+    expect(
+      (useAppStore.getState().selected_product_for_add_to_cart as any).colors,
+      "a missing colour list was invented",
+    ).toBeUndefined();
+  });
+});
