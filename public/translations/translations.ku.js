@@ -2707,7 +2707,6 @@ const translations = {
   "Add & save": "زیادکردن و پاشەکەوتکردن",
   "Choose": "هەڵبژاردن",
   "Uploading profile photo …": "وێنەی پرۆفایل باردەکرێت …",
-  "Copied": "کۆپی کرا",
   "copy": "کۆپی",
   "download": "داگرتن",
   "share": "هاوبەشکردن",

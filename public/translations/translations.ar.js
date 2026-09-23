@@ -2657,7 +2657,6 @@ const translations = {
   "Add & save": "إضافة وحفظ",
   "Choose": "اختيار",
   "Uploading profile photo …": "جارٍ رفع الصورة الشخصية …",
-  "Copied": "تم النسخ",
   "copy": "نسخ",
   "download": "تنزيل",
   "share": "مشاركة",

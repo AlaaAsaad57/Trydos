@@ -2689,7 +2689,6 @@ const translations = {
   "Add & save": "Ekle ve kaydet",
   "Choose": "Seç",
   "Uploading profile photo …": "Profil fotoğrafı yükleniyor …",
-  "Copied": "Kopyalandı",
   "copy": "kopyala",
   "download": "indir",
   "share": "paylaş",
