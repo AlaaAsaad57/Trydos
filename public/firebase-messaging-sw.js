@@ -455,6 +455,22 @@ messaging.onBackgroundMessage(async function (payload) {
         notificationTitle,
         notificationOptions,
       );
+    } else if (
+      payload.data.type === "message" &&
+      JSON.parse(payload.data.data)?.compact
+    ) {
+      // A long message arrives "compact": ids only, no text, no sender object
+      // and no message type (the push has a size limit). Show who sent it and
+      // group it with its chat; the text is loaded when the chat opens.
+      const compact = JSON.parse(payload.data.data);
+      const chatId = compact.channel_id || compact.message?.channel_id;
+      self.registration.showNotification(compact.contact_name || "New message", {
+        body: "New message",
+        ...(chatId ? { tag: `chat-${chatId}`, renotify: true } : {}),
+        data: {
+          url: BASE_ORIGIN,
+        },
+      });
     } else if (payload.data.type === "message") {
       let notificationTitle = JSON.parse(payload.data.data).message.sender_user
         .name;

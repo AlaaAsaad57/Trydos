@@ -22,7 +22,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 type MarketBody = Record<string, unknown>;
 type BuildMarketTag = (body: MarketBody) => string | null;
@@ -114,5 +114,86 @@ describe("market notification tags", () => {
       buildMarketTag({}),
       "a payload with no type was given a tag, which would group it with every other typeless payload",
     ).toBeNull();
+  });
+});
+
+// A long chat message arrives as a "compact" push: ids only, no text, no
+// sender object and no message type. The worker read
+// `message.sender_user.name` first, threw, and showed nothing at all — so a
+// user with no tab open never heard about a long message.
+//
+// This runs the whole worker with the browser globals stubbed, then hands the
+// background handler the compact push exactly as the chat backend sends it.
+describe("a compact chat push in the background", () => {
+  function loadBackgroundHandler() {
+    const source = readFileSync(
+      join(process.cwd(), "public/firebase-messaging-sw.js"),
+      "utf8",
+    );
+    let handler: ((payload: unknown) => Promise<void>) | undefined;
+    const showNotification = vi.fn();
+    const self = {
+      addEventListener: () => {},
+      location: { origin: "https://trydos.test" },
+      clients: { matchAll: async () => [] },
+      registration: { showNotification, getNotifications: async () => [] },
+    };
+    const firebase = {
+      initializeApp: () => {},
+      messaging: () => ({
+        onBackgroundMessage: (fn: typeof handler) => {
+          handler = fn;
+        },
+      }),
+    };
+    new Function("self", "importScripts", "firebase", "caches", "clients", source)(
+      self,
+      () => {},
+      firebase,
+      {},
+      self.clients,
+    );
+    expect(
+      handler,
+      "public/firebase-messaging-sw.js no longer registers messaging.onBackgroundMessage",
+    ).toBeDefined();
+    return { handler: handler!, showNotification };
+  }
+
+  const compactPush = {
+    data: {
+      type: "message",
+      body: JSON.stringify({ type: "message" }),
+      data: JSON.stringify({
+        type: "message",
+        contact_name: "Alaa",
+        prev_message_id: "339781",
+        is_private: false,
+        channel_id: "539",
+        message_id: "339782",
+        message: { id: "339782", channel_id: "539", sender_user_id: 672 },
+        compact: true,
+      }),
+    },
+  };
+
+  it("shows a notification named after the sender, grouped with its chat", async () => {
+    const { handler, showNotification } = loadBackgroundHandler();
+
+    await handler(compactPush);
+
+    const [title, options] = showNotification.mock.calls[0] ?? [];
+    expect(
+      title,
+      "a compact push showed no notification at all, so a long message arrives in silence",
+    ).toBe("Alaa");
+    expect(
+      options?.tag,
+      `the compact push was not grouped with its chat (tag ${options?.tag})`,
+    ).toBe("chat-539");
+    expect(
+      options?.body,
+      "the compact push notification has no body text",
+    ).toBeTruthy();
   });
 });

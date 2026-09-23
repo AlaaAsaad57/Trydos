@@ -167,9 +167,15 @@ class ForegroundNotificationHandler {
           break;
 
         case "message":
-        case "ShareProductEvent":
-          this.handleChatMessage(eventType, data, state, resolve, payload);
+        case "ShareProductEvent": {
+          const fullData = data?.compact
+            ? await this.loadCompactMessage(data)
+            : data;
+          if (fullData) {
+            this.handleChatMessage(eventType, fullData, state, resolve, payload);
+          }
           break;
+        }
 
         case "ChannelWatchedEvent":
           state.watchChannelEvent(data.channel_id);
@@ -209,6 +215,47 @@ class ForegroundNotificationHandler {
   }
 
   // --- Domain Specific Handlers ---
+
+  /**
+   * A long message arrives as a "compact" push: the push has a size limit, so
+   * the chat backend sends only ids (`message_id`, `channel_id`) — no text, no
+   * sender and no channel object. Load the full message by its id; asking for
+   * the range from the message to itself returns just that message.
+   *
+   * Returns the push data with the full message in place, or null when the
+   * lookup failed. On a failure the chat list is reloaded instead, so the
+   * message still shows up.
+   */
+  private async loadCompactMessage(data: any) {
+    const messageId = data.message_id ?? data.message?.id;
+    const channelId = data.channel_id ?? data.message?.channel_id;
+    try {
+      const response = await fetchData({
+        url: "/api/v1/messages/get_all_messages_between_two_messages",
+        reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
+        method: "POST",
+        server: "chat",
+        body: JSON.stringify({
+          channel_id: channelId,
+          first_message_id: messageId,
+          second_message_id: messageId,
+        }),
+      });
+      if (!response.success) throw new Error(response.message);
+      const message = (response.data || []).find(
+        (m: any) => String(m.id) === String(messageId),
+      );
+      if (!message) throw new Error(`message ${messageId} not returned`);
+      return { ...data, message };
+    } catch (error) {
+      LogError({
+        scenario: "Error in loadCompactMessage NotificationHandler",
+        error: error instanceof Error ? error.message : String(error),
+      });
+      chat.getChats(true);
+      return null;
+    }
+  }
 
   /**
    * Handles e-commerce related notifications (Orders, Products, Boutiques)

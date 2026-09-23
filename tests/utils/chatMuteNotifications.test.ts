@@ -33,8 +33,13 @@ vi.mock("store/notifications/reducer", async (importOriginal) => {
 // The store actions below reach the chat backend on every received message
 // (`Recive`, `watchChannel`). None of that is what this test is about, and a
 // real request would make the run depend on a server being up.
+const fetchData = vi.fn(async (_request: any): Promise<any> => ({
+  success: true,
+  data: {},
+}));
+
 vi.mock("utils/fetchData", () => ({
-  fetchData: vi.fn(async () => ({ success: true, data: {} })),
+  fetchData: (request: any) => fetchData(request),
 }));
 
 /** The signed-in chat user. */
@@ -162,6 +167,134 @@ describe("a muted chat raises no notification", () => {
       showChatNotification.mock.calls.length,
       "an unmuted chat raised no notification toast, so the mute check is silencing everything",
     ).toBe(1);
+  });
+});
+
+// A long message arrives as a "compact" push.
+//
+// The push has a size limit, so for a long message the chat backend sends only
+// ids: no text, no sender and no channel object. The handler read
+// `message.channel.id` straight away, threw, and the message never reached the
+// chat list. The fix loads the full message from the chat backend by its id
+// (`get_all_messages_between_two_messages`, with the same id twice) and then
+// runs the normal path.
+describe("a compact push for a long message", () => {
+  const LONG_TEXT = "x".repeat(10000);
+
+  /** The push exactly as the chat backend sends it for a long message. */
+  const buildCompactPush = () => ({
+    data: {
+      type: "message",
+      body: JSON.stringify({ type: "message" }),
+      data: JSON.stringify({
+        type: "message",
+        contact_name: "Alaa",
+        prev_message_id: PREVIOUS_MESSAGE_ID,
+        is_private: false,
+        channel_id: CHANNEL_ID,
+        message_id: NEW_MESSAGE_ID,
+        message: {
+          id: NEW_MESSAGE_ID,
+          channel_id: CHANNEL_ID,
+          sender_user_id: THEM,
+        },
+        compact: true,
+      }),
+    },
+  });
+
+  /** The full message, as the chat backend returns it when asked by id. */
+  const fullMessage = {
+    id: NEW_MESSAGE_ID,
+    channel_id: CHANNEL_ID,
+    created_at: "2026-09-19T10:05:00.000Z",
+    sender_user_id: THEM,
+    channel: { id: CHANNEL_ID, channel_name: "Alaa Test123" },
+    sender_user: { id: THEM, name: "Alaa Test123" },
+    message_type: { name: "TextMessage" },
+    message_content: { content: LONG_TEXT },
+    message_files: [],
+    message_status: [],
+  };
+
+  const MESSAGE_BY_ID_URL =
+    "/api/v1/messages/get_all_messages_between_two_messages";
+
+  /** The stored copy of the new message, or undefined when it never landed. */
+  const storedNewMessage = () =>
+    (useAppStore.getState() as any).data
+      ?.find((chat: any) => String(chat.id) === CHANNEL_ID)
+      ?.messages?.find((message: any) => String(message.id) === NEW_MESSAGE_ID);
+
+  beforeEach(() => {
+    showChatNotification.mockClear();
+    fetchData.mockReset();
+  });
+
+  it("loads the full message by its id and stores it with its text", async () => {
+    fetchData.mockImplementation(async (request: any) =>
+      request.url === MESSAGE_BY_ID_URL
+        ? { success: true, data: [fullMessage] }
+        : { success: true, data: {} },
+    );
+    seedStore(0);
+    const { foregroundNotificationHandler } = await import(
+      "utils/NotificationHandler"
+    );
+
+    await foregroundNotificationHandler.handleNotification(
+      () => {},
+      buildCompactPush(),
+    );
+
+    const lookup = fetchData.mock.calls.find(
+      ([request]) => request.url === MESSAGE_BY_ID_URL,
+    )?.[0];
+    expect(
+      lookup,
+      "the handler never asked the chat backend for the full message, so a compact push has no text to show",
+    ).toBeDefined();
+    expect(
+      JSON.parse(lookup.body),
+      `the chat backend was asked for the wrong message: ${lookup.body}`,
+    ).toEqual({
+      channel_id: CHANNEL_ID,
+      first_message_id: NEW_MESSAGE_ID,
+      second_message_id: NEW_MESSAGE_ID,
+    });
+    expect(
+      storedNewMessage()?.message_content?.content,
+      "the long message did not reach the chat list with its full text",
+    ).toBe(LONG_TEXT);
+    expect(
+      showChatNotification.mock.calls[0]?.[0],
+      "no notification toast named the sender of the long message",
+    ).toBe("Alaa Test123");
+  });
+
+  it("refreshes the chat list when the chat backend cannot return the message", async () => {
+    fetchData.mockImplementation(async (request: any) =>
+      request.url === MESSAGE_BY_ID_URL
+        ? { success: false, message: "Server Error" }
+        : { success: true, data: {} },
+    );
+    seedStore(0);
+    const chat = (await import("services/chat")).default;
+    const getChats = vi.spyOn(chat, "getChats").mockResolvedValue(undefined);
+    const { foregroundNotificationHandler } = await import(
+      "utils/NotificationHandler"
+    );
+
+    await foregroundNotificationHandler.handleNotification(
+      () => {},
+      buildCompactPush(),
+    );
+
+    expect(
+      getChats,
+      "the chat backend refused the message lookup and the chat list was not reloaded, so the long message is lost until a page reload",
+    ).toHaveBeenCalledWith(true);
+    getChats.mockRestore();
   });
 });
 
