@@ -27,6 +27,7 @@ import {
   profile,
 } from "../selectors";
 import { throughProxyInPage } from "../harness/orderCleanup";
+import { redact } from "../harness/redact";
 import { gotoQaProduct } from "./qaProduct";
 import { signedInSession } from "./auth";
 import { waitForPopupHistorySettled } from "./nav";
@@ -234,12 +235,26 @@ const closeAddToBagSheet = async (page: Page): Promise<void> => {
  *  carries the real address in the `x-proxy-url` header (`utils/fetchData.ts`),
  *  so the request is recognised by that and the answer is kept for the message.
  *
+ *  **It also keeps which backend answered.** The proxy stamps
+ *  `x-market-backend: gateway | core` on the answer (`app/api/proxy/route.ts`),
+ *  and a guest's add goes to the gateway while a signed-in shopper's goes to
+ *  core — so a fixed "the core backend said" would name the wrong server half
+ *  the time. The label is read before the body, so it is already there when the
+ *  bag badge grows and the caller asks for it. A proxy failure carries no label,
+ *  and that is said out loud rather than guessed.
+ *
+ *  **Only `isSuccessful` and `message` are quoted.** A cart answer carries the whole
+ *  bag back, and `redact()` masks known values only — a name or an address in
+ *  another form would pass it. A body that is not JSON falls back to its first
+ *  400 characters, redacted in full before they are cut.
+ *
  *  Returns a reader, not a value: the call has not happened yet when this is
  *  installed. */
 const watchCartAdd = (
   page: Page,
-): { said: () => string; stop: () => void } => {
+): { said: () => string; backend: () => string; stop: () => void } => {
   let last = "";
+  let backend = "";
 
   const onResponse = (response: import("@playwright/test").Response): void => {
     const request = response.request();
@@ -248,24 +263,55 @@ const watchCartAdd = (
     if (!target.includes("/cart/add") && !target.includes("/cart/update")) return;
 
     const status = response.status();
+    backend = response.headers()["x-market-backend"] ?? "";
+    const who = backendInWords(backend);
     void response
       .text()
       .then((body) => {
-        // Trimmed, because a cart answer carries the whole bag back and the
-        // useful part — success and message — is at the front of it.
-        last = `${target} answered ${status}: ${body.slice(0, 400)}`;
+        last = `${target} answered ${status} from ${who}: ${quoteCartAnswer(body)}`;
       })
       .catch(() => {
-        last = `${target} answered ${status} and its body could not be read`;
+        last = `${target} answered ${status} from ${who} and its body could not be read`;
       });
   };
 
   page.on("response", onResponse);
 
   return {
-    said: () => (last === "" ? "the core backend was never asked" : last),
+    said: () =>
+      redact(last === "" ? "the cart backend was never asked" : last),
+    backend: () => backend,
     stop: () => page.off("response", onResponse),
   };
+};
+
+/** The backend label in words, for a failure message.
+ *
+ *  `""` is a real answer — the proxy's own failure path sets no label — so it
+ *  gets its own sentence instead of an empty gap. */
+const backendInWords = (label: string): string =>
+  label === ""
+    ? "an answer with no backend label (a proxy failure, or no market answer)"
+    : `the ${label} backend`;
+
+/** What a cart answer said, reduced to the two fields a message needs.
+ *
+ *  Redacted in full **before** it is cut: `redact()` matches whole values, and a
+ *  value cut in half is no longer one. */
+const quoteCartAnswer = (body: string): string => {
+  try {
+    const parsed = JSON.parse(body) as {
+      isSuccessful?: unknown;
+      message?: unknown;
+    };
+    return redact(
+      `isSuccessful=${String(parsed?.isSuccessful)}, message=${JSON.stringify(
+        parsed?.message ?? null,
+      )}`,
+    );
+  } catch {
+    return redact(body).slice(0, 400);
+  }
 };
 
 /** Try to put the product this page is showing into the bag.
@@ -291,7 +337,14 @@ const watchCartAdd = (
  *  came back. */
 export const addOpenProductToBag = async (
   page: Page,
-): Promise<{ addable: boolean; name: string; lines: number }> => {
+): Promise<{
+  addable: boolean;
+  name: string;
+  lines: number;
+  /** The `x-market-backend` label on the add's answer; `""` when there was
+   *  none. */
+  backend: string;
+}> => {
   const before = await bagLineCount(page);
   const name = (await product.name(page).textContent())?.trim() ?? "";
 
@@ -355,27 +408,29 @@ export const addOpenProductToBag = async (
         .catch(() => false);
 
       if (grew) {
+        const backend = cartCall.backend();
         cartCall.stop();
         await closeAddToBagSheet(page);
-        return { addable: true, name, lines: await bagLineCount(page) };
+        return { addable: true, name, lines: await bagLineCount(page), backend };
       }
 
       // The button was there and the bag did not grow. That is not "sold out" —
       // it is the cart backend refusing or never answering — so it is reported
       // as a failure here rather than quietly tried again on the next colour.
+      // `said()` names the backend that answered, so this does not.
       const said = cartCall.said();
       cartCall.stop();
       await closeAddToBagSheet(page);
       throw new Error(
         `"${name}" offered an Add To Bag button, the press was accepted, and the ` +
-          `bag did not grow — the core backend said: ${said}`,
+          `bag did not grow — ${said}`,
       );
     }
   }
 
   cartCall.stop();
   await closeAddToBagSheet(page);
-  return { addable: false, name, lines: before };
+  return { addable: false, name, lines: before, backend: "" };
 };
 
 /** Put the QA product in the bag.
@@ -401,7 +456,7 @@ export const addOpenProductToBag = async (
 export const addQaProductToBag = async (
   page: Page,
   options: { country?: string } = {},
-): Promise<{ bought: string }> => {
+): Promise<{ bought: string; backend: string }> => {
   const opened = await gotoQaProduct(page, { country: options.country });
 
   const added = await addOpenProductToBag(page);
@@ -414,7 +469,7 @@ export const addQaProductToBag = async (
       "told which.",
   ).toBe(true);
 
-  return { bought: added.name || opened.name };
+  return { bought: added.name || opened.name, backend: added.backend };
 };
 
 /** Leave the bag for the checkout screen.
@@ -958,6 +1013,18 @@ export interface CartMoneyAnswer {
   shipping: number | null;
   discount: number | null;
   subTotal: number | null;
+  /** The backend's own `isSuccessful` flag; `null` when the body had none or
+   *  could not be read.
+   *
+   *  Both backends put this in the body (`{"isSuccessful":true,"code":200,…}`).
+   *  There is **no** `success` field on the wire: the `success` the app's code
+   *  reads is added in the browser by `fetchData` from the HTTP status
+   *  (`utils/fetchData.ts:784`), so a check on a body `success` can never pass.
+   *  A caller that needs a good read checks this as well as the status. */
+  isSuccessful: boolean | null;
+  /** The `x-market-backend` label the proxy put on the answer — `gateway` or
+   *  `core` — or `""` when it carried none (the proxy's own failure path). */
+  backend: string;
   /** The answer in words, short enough for a failure message. */
   said: string;
 }
@@ -1044,6 +1111,9 @@ export const watchCartMoney = (page: Page): CartMoneyWatch => {
 
     const target = request.headers()["x-proxy-url"] ?? "";
     const status = response.status();
+    // Read before the body, the same way `watchCartAdd` does.
+    const backend = response.headers()["x-market-backend"] ?? "";
+    const label = backend === "" ? "no backend label" : `backend=${backend}`;
 
     void response
       .text()
@@ -1052,9 +1122,15 @@ export const watchCartMoney = (page: Page): CartMoneyWatch => {
         // `setCartPreview` are each handed `response.data` and spread it whole
         // into the store (`store/Cart/reducer.ts:367`, `:394`).
         let money: Record<string, unknown> = {};
+        let isSuccessful: boolean | null = null;
         try {
-          const parsed = JSON.parse(body) as { data?: Record<string, unknown> };
+          const parsed = JSON.parse(body) as {
+            data?: Record<string, unknown>;
+            isSuccessful?: unknown;
+          };
           money = parsed?.data ?? {};
+          isSuccessful =
+            typeof parsed?.isSuccessful === "boolean" ? parsed.isSuccessful : null;
         } catch {
           money = {};
         }
@@ -1067,12 +1143,14 @@ export const watchCartMoney = (page: Page): CartMoneyWatch => {
           shipping: numberOrNull(money.total_shipping_cost),
           discount: numberOrNull(money.total_discount),
           subTotal: numberOrNull(money.sub_total),
+          isSuccessful,
+          backend,
           said: "",
         };
         answer.said =
-          `${target} answered ${status} with total=${answer.total}, ` +
-          `shipping=${answer.shipping}, discount=${answer.discount}, ` +
-          `sub_total=${answer.subTotal}`;
+          `${target} answered ${status} (${label}, isSuccessful=${isSuccessful}) with ` +
+          `total=${answer.total}, shipping=${answer.shipping}, ` +
+          `discount=${answer.discount}, sub_total=${answer.subTotal}`;
         answers[which] = answer;
       })
       .catch(() => {
@@ -1084,7 +1162,9 @@ export const watchCartMoney = (page: Page): CartMoneyWatch => {
           shipping: null,
           discount: null,
           subTotal: null,
-          said: `${target} answered ${status} and its body could not be read`,
+          isSuccessful: null,
+          backend,
+          said: `${target} answered ${status} (${label}) and its body could not be read`,
         };
       });
   };
@@ -1947,6 +2027,98 @@ export const bagLineName = async (
     .not.toBe("");
 
   return ((await name.textContent()) ?? "").trim();
+};
+
+/** Every line name the open drawer shows, in the order it draws them.
+ *
+ *  One read, no waits. It answers only for the drawer as it is **now**, so call
+ *  it after the drawer's own read is proven finished — on a drawer still
+ *  loading it answers `[]`, which would read as an empty bag. */
+export const bagLineNames = async (page: Page): Promise<string[]> =>
+  (await cart.lineName(cart.lines(page)).allTextContents()).map((name) =>
+    name.trim(),
+  );
+
+/** The quantity one named line shows, or `null` when it draws no quantity.
+ *
+ *  Read with `inputValue()`: the field is a disabled `<input>`
+ *  (`components/Cart/index.tsx:804`), and an input's text is always empty. The
+ *  count is checked first, because `inputValue()` on a missing field waits the
+ *  whole action timeout before it fails.
+ *
+ *  Read it only after the bag has been read again — the app draws a new
+ *  quantity before the backend has agreed to it (see `changeLineQuantity`). */
+export const bagLineQuantity = async (
+  page: Page,
+  name: string,
+): Promise<number | null> => {
+  const field = cart.quantity(cart.lineNamed(page, name).first());
+  if ((await field.count()) === 0) return null;
+  const quantity = Number.parseInt(await field.inputValue(), 10);
+  return Number.isNaN(quantity) ? null : quantity;
+};
+
+/** The outcome of `waitForGoodRead`. */
+export interface GoodRead {
+  /** The first answer after `after` that was not a `401`, or `null` when none
+   *  came before the deadline. */
+  answer: CartMoneyAnswer | null;
+  /** How many requests of this kind the browser sent since the mark. `0`
+   *  means it never asked — that is this app, not the backend. */
+  sentSinceMark: number;
+  /** How many `401` answers came since the mark, counted by answer. */
+  refused: number;
+}
+
+/** Wait for the first bag answer that is not a `401`, inside one deadline.
+ *
+ *  A `401` on a signed-in page is normal: the access token lives for a minute,
+ *  and the app renews it and sends the call again. So one `401` is never the
+ *  answer to judge; the one after it is.
+ *
+ *  **`after` moves on past every `401`.** `waitForAnswer` returns at once when
+ *  the latest answer is newer than `after`, so asking again with the same
+ *  `after` would hand back the same `401` forever and spin to the deadline.
+ *
+ *  **Each wait gets only the time left**, so one slow wait cannot run past the
+ *  deadline.
+ *
+ *  It judges the **latest** answer each time it wakes. Two answers inside one
+ *  200 ms turn — a `500` and then a `200` — are judged as the `200`. That gap is
+ *  small and accepted.
+ *
+ *  Never throws. The caller words the failure, with `sentSinceMark` and
+ *  `refused` to tell "never asked" from "only `401`s came". */
+export const waitForGoodRead = async (
+  watch: CartMoneyWatch,
+  which: CartMoneyTarget,
+  options: { after: number; sentAtMark: number; deadline: number },
+): Promise<GoodRead> => {
+  let after = options.after;
+  let refused = 0;
+
+  while (Date.now() < options.deadline) {
+    const answer = await watch.waitForAnswer(which, {
+      after,
+      timeout: Math.max(0, options.deadline - Date.now()),
+    });
+    if (answer === null) break;
+    if (answer.status !== 401) {
+      return {
+        answer,
+        sentSinceMark: watch.sent(which) - options.sentAtMark,
+        refused,
+      };
+    }
+    refused += 1;
+    after = answer.seq;
+  }
+
+  return {
+    answer: null,
+    sentSinceMark: watch.sent(which) - options.sentAtMark,
+    refused,
+  };
 };
 
 /** Can this line be raised at all, or is it already at the most the shop
