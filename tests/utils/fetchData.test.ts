@@ -180,6 +180,35 @@ describe("fetchData module basics", () => {
     expect(net.callCount).toBe(1);
   });
 
+  // E2E run 35845377516, SCRIPT-12: customer/info left as guest 33618, the
+  // sign-in as 18081 finished, and the signed-in shopper's own customer/info
+  // was handed the guest's answer instead of being sent.
+  it("does not share a request sent for one visitor with a caller who is now someone else", async () => {
+    const { store } = await setup({ userProfile: { id: 33618 } });
+    const net = makeMockFetch([
+      jsonReply({ data: { who: "guest" } }, 200, 50),
+      jsonReply({ data: { who: "signed-in" } }, 200),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+    await import("store");
+
+    const guestCall = fetchData(baseParams);
+    await new Promise((r) => setTimeout(r, 0));
+    store.useAppStore.setState({ userProfile: { id: 18081 } });
+    const signedInCall = fetchData(baseParams);
+    const [, signedIn] = await Promise.all([guestCall, signedInCall]);
+
+    expect(
+      net.callCount,
+      "the signed-in shopper's call was folded into the guest's in-flight call and never sent",
+    ).toBe(2);
+    expect(
+      signedIn.data,
+      "the signed-in shopper was handed the answer to the guest's call",
+    ).toEqual({ who: "signed-in" });
+  });
+
   it("shares an in-flight request with a second caller signal", async () => {
     await setup();
     const net = makeMockFetch([jsonReply({ data: [] }, 200, 50)]);

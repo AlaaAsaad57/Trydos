@@ -562,9 +562,13 @@ export const fetchData = async <T = any>(
     return { ...requestCache.get(cacheKey), success: true };
   }
 
-  // Inflight dedup: if an identical request is already pending, share its promise
-  if (!isRetryAfterUnauthorized && inflightRequests.has(cacheKey)) {
-    const shared = inflightRequests.get(cacheKey)!.then((r) => ({ ...r }));
+  // Inflight dedup: if an identical request is already pending, share its promise.
+  // Keyed by who it was sent for as well: a request that left before a sign-in
+  // carries the guest's cookies, so its answer describes the guest and must not
+  // be handed to a caller asking for the signed-in shopper.
+  const inflightKey = `${cacheKey}|${useAppStore.getState().userProfile?.id ?? ""}`;
+  if (!isRetryAfterUnauthorized && inflightRequests.has(inflightKey)) {
+    const shared = inflightRequests.get(inflightKey)!.then((r) => ({ ...r }));
     return raceWithSignal(shared, signal) as Promise<T>;
   }
 
@@ -853,7 +857,7 @@ export const fetchData = async <T = any>(
   };
 
   const promise = doFetchWithRetry();
-  inflightRequests.set(cacheKey, promise);
-  promise.finally(() => inflightRequests.delete(cacheKey));
+  inflightRequests.set(inflightKey, promise);
+  promise.finally(() => inflightRequests.delete(inflightKey));
   return promise;
 };

@@ -109,6 +109,10 @@ class HomeService {
   async getCustomerInfo() {
     const { updateUserInfo } = useAppStore.getState();
     await WaitForCondition();
+    // Who this request was sent for. A sign-in (or a sign-out) can finish while
+    // it is in flight; the answer then describes the previous visitor and must
+    // not replace the new one — in the store or in the User-Data cookie.
+    const sentFor = useAppStore.getState().userProfile?.id;
     try {
       let response_customer_Info: any = await fetchData({
         url: CUSTOMER_INFO_URL,
@@ -121,6 +125,13 @@ class HomeService {
       if (!response_customer_Info.success) {
         // @ts-ignore
         throw new Error(response_customer_Info.message);
+      }
+      const current = useAppStore.getState().userProfile?.id;
+      if (
+        current !== sentFor &&
+        response_customer_Info.data?.customer_info?.id !== current
+      ) {
+        return;
       }
       // Treat backend guest placeholder names ("guest"/"verified_guest") as
       // "no name" so the UI prompts for a real name. Don't surface them as-is.
