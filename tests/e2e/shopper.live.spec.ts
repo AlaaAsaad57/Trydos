@@ -1,13 +1,14 @@
-// BUY-01 to BUY-04 — the money path, against real staging.
+// BUY-01 to BUY-05 — the money path, against real staging.
 //
 //   BUY-01  a shopper buys something and then cancels it
 //   BUY-02  a visitor with no verified phone is stopped before any order exists
 //   BUY-03  the bag's money figures, and choosing another delivery address
 //   BUY-04  changing and removing a line in the bag
+//   BUY-05  a guest's bag survives sign-in
 //
-// BUY-01 is the only one that places a real order. BUY-03 and BUY-04 stop well
-// before the checkout posts anything: BUY-03 never chooses a payment method, and
-// BUY-04 never leaves the bag.
+// BUY-01 is the only one that places a real order. BUY-03, BUY-04 and BUY-05
+// stop well before the checkout posts anything: BUY-03 never chooses a payment
+// method, and BUY-04 and BUY-05 never leave the bag.
 //
 // This is `docs/testing/E2E_TEST_DESIGN.md` AC-5 and AC-6, and it is the last
 // acceptance criterion of that design that had no spec.
@@ -26,9 +27,17 @@
 // ---------------------------------------------------------------------------
 // What this run costs staging, and what it leaves behind
 //
-// One one-time code, one sign-in, one order placed, and that order cancelled.
-// It also empties the account's bag first, on purpose — see below. Nothing else
-// is written and nothing is left live.
+// BUY-01: one one-time code, one sign-in, one order placed, and that order
+// cancelled. It also empties the account's bag first, on purpose — see below.
+// Nothing else is written and nothing is left live.
+//
+// BUY-05: two one-time codes, two sign-ins and one sign-out, one line added as a
+// guest and removed again after sign-in. It empties the account's bag before
+// the guest part and, when it fails half-way, in its teardown.
+//
+// **The teardowns empty the whole bag of the shared shopper, not only their own
+// line.** That account belongs to this suite. Do not use it for testing by hand
+// while the suite may run — a run will empty the bag under you.
 //
 // **The bag is emptied before anything is added.** The account is shared, so a
 // run inherits whatever the last one left in it. A journey that adds one product
@@ -87,15 +96,22 @@
 // names an id or the probe it created itself.
 //
 // ---------------------------------------------------------------------------
-// One sign-in, three cases
+// Four one-time codes per run
 //
-// BUY-01 signs in once and hands its session on. BUY-03 opens that session and
-// hands it on again, so BUY-04 never inherits a credential the backend has since
+// BUY-01 signs in and hands its session on. BUY-03 signs in for itself and hands
+// its session on, so BUY-04 never inherits a credential the backend has since
 // rotated — the fault `handOnSession` was written for. BUY-02 sits between them
 // and is harmless: it builds its own context with no session and writes nothing.
 //
-// One one-time code is spent per run, by BUY-01, because the shop rate-limits
-// them.
+// BUY-05 signs in **twice**, in a context of its own, and uses no saved
+// session. The first sign-in is only there to empty the shared account's bag;
+// without it, a line an earlier run left behind would make "the guest's line is
+// still there" pass when the merge had lost it. The second sign-in is the one
+// under test.
+//
+// So a run spends four codes: BUY-01, BUY-03 and two by BUY-05. The shop
+// rate-limits them per phone number, so do not add a sign-in here without
+// counting it.
 //
 // ---------------------------------------------------------------------------
 // What BUY-03 writes, and what puts it back
@@ -115,12 +131,17 @@ import {
   attemptAuth,
   requireSignedInShopper,
   signedInSession,
+  signOutAndSettle,
 } from "./actions/auth";
 import { CASH_ON_DELIVERY_COUNTRY, gotoAbout, gotoHome } from "./actions/nav";
 import {
   addQaProductToBag,
   bagLineName,
+  bagLineNames,
+  bagLineQuantity,
+  type CartMoneyAnswer,
   changeLineQuantity,
+  closeCart,
   chooseAddressNamed,
   chooseCashOnDelivery,
   chosenAddressTitle,
@@ -140,6 +161,7 @@ import {
   readShopCurrency,
   removeLineNamed,
   returnToBag,
+  waitForGoodRead,
   watchCartMoney,
 } from "./actions/cart";
 import {
@@ -160,6 +182,9 @@ import {
   SESSION_STATE,
 } from "./harness/liveSession";
 import { throughProxyInPage } from "./harness/orderCleanup";
+import { redact } from "./harness/redact";
+import { waitForRenewalSettled } from "./harness/renewalGate";
+import { snapshotCredentials } from "./harness/session";
 import { cart, checkout } from "./selectors";
 
 /** The address BUY-01 adds when the account has none.
@@ -1366,6 +1391,388 @@ test.describe("BUY-04 changing and removing a line in the bag", () => {
         `the bag still holds ${removed.linesLeft} lines after its only line was ` +
           `removed. ${removed.said}`,
       ).toBe(0);
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BUY-05 — a guest's bag survives sign-in
+//
+// A shopper often fills the bag as a guest and signs in only at checkout. At
+// sign-in the app sends the guest's token to the core backend with the code
+// (`app/api/auth/login/route.ts`), and core moves the guest's bag into the
+// account. Nothing in this repository moves a line; this case watches core do
+// it, and names the backend at every step that crosses one.
+//
+// Its own `test.describe`, for the same reason BUY-03 and BUY-04 have one: the
+// teardown belongs to this case alone.
+//
+// Three things it refuses to trust:
+//
+//   * **The drawer's order bar alone.** It shows once the drawer's read has
+//     finished, and a failed read finishes too — as an empty bag with no error
+//     panel. So every "the bag holds / does not hold" reading below is taken
+//     only after the drawer's own read is proven a good one from core.
+//   * **The first answer.** On a signed-in page the access token lives for a
+//     minute, so a `401` followed by a good retry is the normal path. The
+//     answer judged is the first one that is not a `401`.
+//   * **The product page's title.** The bag draws the cart row's own name, cut
+//     at 50 characters, so the line is named by what the bag shows.
+
+/** How long one proven bag read may take, `401` retries included. */
+const GOOD_READ_MS = 90_000;
+
+/** How long the drawer has to draw its order bar once the read is back. */
+const ORDER_BAR_MS = 45_000;
+
+/** The backend label in words, for a message. `""` is the proxy's own failure
+ *  path, which sets no label — said so, never guessed. */
+const backendNamed = (label: string): string =>
+  label === ""
+    ? "an answer with no backend label (a proxy failure, or no market answer)"
+    : `the ${label} backend`;
+
+/** Open the drawer and prove its **own** bag read came back good from core.
+ *
+ *  The mark is taken just before the drawer opens, so the home page's own
+ *  read cannot stand in for the drawer's. Then, once the order bar is drawn,
+ *  it waits until every bag read the browser sent has been answered, so the
+ *  answer judged is the last one — the drawer's — and not whichever landed
+ *  first. That answer must be `200`, carry `isSuccessful: true` in its body,
+ *  and come from core. The backends send `isSuccessful`; the `success` the
+ *  app reads is made in the browser from the status alone (`utils/fetchData.ts`),
+ *  so it cannot tell a refused read from a good one.
+ *
+ *  `when` goes into every message, so a failure says which reading it was. */
+const openBagAndProveCoreRead = async (
+  page: import("@playwright/test").Page,
+  when: string,
+): Promise<CartMoneyAnswer> => {
+  const watch = watchCartMoney(page);
+  try {
+    const mark = watch.seen("shipping");
+    const sentAtMark = watch.sent("shipping");
+
+    await openCart(page);
+
+    const read = await waitForGoodRead(watch, "shipping", {
+      after: mark,
+      sentAtMark,
+      deadline: Date.now() + GOOD_READ_MS,
+    });
+    expect(
+      read.answer,
+      read.sentSinceMark === 0
+        ? `${when}: the drawer opened and the browser never asked for the bag — ` +
+            "that is this app (getCart waits for a user id first), not the backend"
+        : read.refused > 0
+          ? `${when}: the bag read was answered 401 ${read.refused} time(s) and ` +
+            `no other answer came within ${GOOD_READ_MS / 1000} s — the renewal ` +
+            "never produced a good retry"
+          : `${when}: the bag read was sent and no answer came back within ` +
+            `${GOOD_READ_MS / 1000} s`,
+    ).not.toBeNull();
+
+    await expect(
+      cart.orderBar(page),
+      `${when}: the drawer never finished its own bag read — its order bar ` +
+        "never appeared",
+    ).toBeVisible({ timeout: ORDER_BAR_MS });
+
+    await expect
+      .poll(async () => watch.seen("shipping") >= watch.sent("shipping"), {
+        timeout: GOOD_READ_MS,
+        message:
+          `${when}: a bag read was still unanswered after the drawer drew its ` +
+          `order bar. ${watch.said("shipping")}`,
+      })
+      .toBe(true);
+
+    const last = watch.last("shipping");
+    expect(last, `${when}: no bag answer was kept to judge`).not.toBeNull();
+    const answer = last as CartMoneyAnswer;
+
+    expect(
+      answer.status,
+      `${when}: the drawer's bag read did not answer 200. ${answer.said}`,
+    ).toBe(200);
+    expect(
+      answer.isSuccessful,
+      `${when}: the drawer's bag read answered 200 but its body did not say ` +
+        `isSuccessful=true, so the bag it drew is not a good read. ${answer.said}`,
+    ).toBe(true);
+    expect(
+      answer.backend,
+      `${when}: the drawer's bag read was answered by ` +
+        `${backendNamed(answer.backend)}, not core — a signed-in shopper's bag ` +
+        `is core's. ${answer.said}`,
+    ).toBe("core");
+
+    return answer;
+  } finally {
+    watch.stop();
+  }
+};
+
+test.describe("BUY-05 a guest's bag survives sign-in", () => {
+  /** The context the case works in. Kept apart from the flag below, so the
+   *  teardown closes it on a pass and on every failure. */
+  let opened: {
+    context: import("@playwright/test").BrowserContext;
+    page: import("@playwright/test").Page;
+  } | null = null;
+
+  /** The name of the line the case put in a bag, from the moment it is there
+   *  until its removal is proven. Set means "the teardown has a line to deal
+   *  with". */
+  let lineInBag: string | null = null;
+
+  /** The shopper's account id, from the first sign-in. The teardown compares
+   *  against it and never prints it. */
+  let shopperId: number | null = null;
+
+  test.afterEach(async ({}, testInfo) => {
+    if (opened === null) return;
+
+    const { context, page } = opened;
+    opened = null;
+    const line = lineInBag;
+    lineInBag = null;
+
+    try {
+      if (line === null) return;
+
+      // **Signed in means the same shopper with a verified phone.** A guest
+      // has an id too, so an id alone proves nothing.
+      const session = await signedInSession(page).catch(() => null);
+      const signedIn =
+        session !== null &&
+        session.phoneVerified &&
+        shopperId !== null &&
+        session.accountId === shopperId;
+
+      if (!signedIn) {
+        // The case failed while the line was in a throwaway guest's bag, or
+        // the second code was refused and nothing was merged. No other case
+        // reads a guest's bag, and a third code is not spent to find out.
+        testInfo.annotations.push({
+          type: "bag left behind",
+          description:
+            `"${line}" was left in a guest's bag that no other case uses, or ` +
+            "the sign-in was refused and nothing reached the shopper's bag. " +
+            "If it did reach it, the next BUY-01 or BUY-04 empties it first.",
+        });
+        return;
+      }
+
+      // The case may have died late, with little of its own time left.
+      testInfo.setTimeout(testInfo.timeout + 2 * 60 * 1000);
+
+      // **Never allowed to fail the case.** It asserts internally, and a failure
+      // here would replace whatever the case itself was reporting.
+      try {
+        await emptyTheBag(page);
+      } catch (error) {
+        testInfo.annotations.push({
+          type: "bag left behind",
+          description: redact(
+            `the shopper's bag may still hold "${line}"; the next BUY-01 or ` +
+              `BUY-04 empties it first. Emptying it failed: ${String(error)}`,
+          ),
+        });
+      }
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("BUY-05 a guest's bag survives sign-in, and the line can then be removed", async ({
+    browser,
+  }) => {
+    // Two sign-ins, a sign-out, a guest add, two proven bag reads and a reload.
+    // Fifteen minutes is a limit, not a sum of every worst-case wait.
+    test.setTimeout(15 * 60 * 1000);
+
+    const context = await newLiveContext(browser);
+    const page = await context.newPage();
+    opened = { context, page };
+
+    await test.step("the shopper signs in to clear the bag", async () => {
+      // The static page, as BUY-01 does: the auth widget is in the layout, and
+      // a search outage cannot blank this page and hide it. Syria, so the whole
+      // case shops in the one country the QA product is opened in.
+      await gotoAbout(page, { country: CASH_ON_DELIVERY_COUNTRY });
+
+      const outcome = await attemptAuth(page, {
+        intent: "login",
+        phone: envValue("TEST_ACCOUNT_PHONE"),
+        method: "whatsapp",
+        otp: envValue("TEST_ACCOUNT_OTP"),
+      });
+
+      const session = await requireSignedInShopper(page, {
+        outcome,
+        who: "the shopper whose bag BUY-05 empties first",
+      });
+      expect(
+        session.accountId,
+        "the app says the shopper is signed in but names no account, so the " +
+          "second sign-in cannot be checked against this one",
+      ).not.toBeNull();
+      shopperId = session.accountId;
+
+      // A widget left open covers the navigation. A failed sign-in leg leaves
+      // it on the PIN screen, so it is closed and the page is left for a fresh
+      // one — after any renewal in flight has landed.
+      await page.keyboard.press("Escape").catch(() => {});
+      await waitForRenewalSettled(page);
+      await gotoHome(page);
+    });
+
+    await test.step("the account's bag starts empty", async () => {
+      // `emptyTheBag` judges each removal after core re-priced the bag, and
+      // quotes core when a removal is put back.
+      await emptyTheBag(page);
+    });
+
+    await test.step("signing out leaves a guest", async () => {
+      await waitForRenewalSettled(page);
+      const signedIn = await snapshotCredentials(page);
+      await signOutAndSettle(page, { signedIn });
+
+      const visitor = await signedInSession(page);
+      // Asked first: a failed read answers "no id, not verified", which the two
+      // checks below would take for a guest.
+      expect(
+        visitor.accountId,
+        "the app named no visitor after sign-out — /api/auth/me gave no user, " +
+          "so a guest cannot be told apart from a failed read",
+      ).not.toBeNull();
+      expect(
+        visitor.phoneVerified,
+        "after sign-out the app still reports a verified phone, so the visitor " +
+          "is still the shopper and not a guest",
+      ).toBe(false);
+      expect(
+        visitor.accountId === shopperId,
+        "after sign-out the app still names the shopper's own account, so no " +
+          "new guest was made",
+      ).toBe(false);
+    });
+
+    let lineName = "";
+    let guestQuantity: number | null = null;
+
+    await test.step("the guest puts the QA product in the bag, and the gateway takes it", async () => {
+      const added = await addQaProductToBag(page, {
+        country: CASH_ON_DELIVERY_COUNTRY,
+      });
+      // From here on a line exists, so the teardown has something to deal with.
+      lineInBag = added.bought;
+
+      expect(
+        added.backend,
+        `the guest's add was answered by ${backendNamed(added.backend)}, not ` +
+          "the gateway — a guest's bag is the gateway's",
+      ).toBe("gateway");
+
+      await openCart(page);
+      // The bag's own name for the line, never the product page's title.
+      lineName = await bagLineName(page);
+      lineInBag = lineName;
+
+      guestQuantity = await bagLineQuantity(page, lineName);
+      expect(
+        guestQuantity,
+        `the guest's line "${lineName}" draws no quantity, so there is nothing ` +
+          "to compare after sign-in",
+      ).not.toBeNull();
+      expect(
+        guestQuantity ?? 0,
+        `the guest's line "${lineName}" holds ${guestQuantity}, not at least one`,
+      ).toBeGreaterThanOrEqual(1);
+
+      await closeCart(page);
+    });
+
+    await test.step("the guest signs in from the navigation", async () => {
+      const outcome = await attemptAuth(page, {
+        intent: "login",
+        phone: envValue("TEST_ACCOUNT_PHONE"),
+        method: "whatsapp",
+        otp: envValue("TEST_ACCOUNT_OTP"),
+      });
+
+      // **Asked of the app, not read off the widget.** One refused leg of the
+      // sign-in fan-out leaves the widget on the PIN screen for a shopper who
+      // is signed in; AUTH-01 is the case that judges every leg.
+      const session = await requireSignedInShopper(page, {
+        outcome,
+        who: "the guest who signs in with a line in the bag",
+      });
+      expect(
+        session.accountId === shopperId,
+        "the guest signed in as a different account from the shopper whose bag " +
+          "was emptied, so the bag read below is not that account's",
+      ).toBe(true);
+
+      await page.keyboard.press("Escape").catch(() => {});
+      await waitForRenewalSettled(page);
+      await gotoHome(page);
+    });
+
+    await test.step("core answers the bag after sign-in", async () => {
+      await openBagAndProveCoreRead(page, "after sign-in");
+    });
+
+    await test.step("the guest's line is still in the bag, with the same quantity", async () => {
+      const names = await bagLineNames(page);
+      expect(
+        names.includes(lineName),
+        `the guest's line "${lineName}" is not in the bag after sign-in, so the ` +
+          `merge lost it. The bag holds: ${
+            names.length > 0 ? names.map((name) => `"${name}"`).join(", ") : "nothing"
+          }`,
+      ).toBe(true);
+
+      const quantity = await bagLineQuantity(page, lineName);
+      expect(
+        quantity,
+        `the line "${lineName}" held ${guestQuantity} as a guest and ` +
+          `${quantity ?? "no quantity"} after sign-in`,
+      ).toBe(guestQuantity);
+    });
+
+    await test.step("the bag holds nothing else", async () => {
+      const others = (await bagLineNames(page)).filter((name) => name !== lineName);
+      expect(
+        others,
+        `after sign-in the bag holds lines besides "${lineName}": ${others
+          .map((name) => `"${name}"`)
+          .join(", ")}`,
+      ).toEqual([]);
+    });
+
+    await test.step("removing the line takes it out, and it stays out after a reload", async () => {
+      const removed = await removeLineNamed(page, lineName);
+      expect(
+        removed.removed,
+        `"${lineName}" is still in the bag after it was removed. ${removed.said}`,
+      ).toBe(true);
+      await closeCart(page);
+
+      await waitForRenewalSettled(page);
+      await page.reload({ waitUntil: "load" });
+
+      // Only a drawer whose own good read is proven can say a line is absent.
+      const read = await openBagAndProveCoreRead(page, "after the reload");
+      await expect(
+        cart.lineNamed(page, lineName),
+        `"${lineName}" is back in the bag after a reload, so core did not keep ` +
+          `the removal. ${read.said}`,
+      ).toHaveCount(0);
+
+      lineInBag = null;
     });
   });
 });

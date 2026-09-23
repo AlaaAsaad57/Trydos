@@ -490,6 +490,19 @@ export const cart = {
    *  Read it only **after** the bag has been re-read, or the optimistic value
    *  the app draws before the backend answers will satisfy the check. */
   quantity: (line: Locator): Locator => line.getByTestId("QuantityInCart"),
+  /** The order bar at the foot of the drawer
+   *  (`components/Cart/OrderButton.tsx:258`).
+   *
+   *  The drawer draws it only once `cart_loading` is false
+   *  (`components/Cart/index.tsx:448`), and `cart_loading` starts true on every
+   *  page load (`store/Cart/reducer.ts:109`) — so on screen means **the drawer's
+   *  own read has finished**, on an empty bag too.
+   *
+   *  It does **not** mean the read succeeded. A failed read ends in
+   *  `initCart({ cart: [] })`, which clears the error again
+   *  (`store/Cart/reducer.ts:391-394`), so the drawer shows an empty bag with
+   *  this bar and no error panel. Pair it with the read's own answer. */
+  orderBar: (page: Page): Locator => page.getByTestId("order-bottom-button"),
   /** Leaves the drawer for the checkout screen — it does **not** place
    *  anything. For a visitor with no verified phone it opens the verify panel
    *  in place instead, which is why a journey that presses it has to check

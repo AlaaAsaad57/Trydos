@@ -1,6 +1,6 @@
 # E2E scenarios
 
-Every case the browser suite runs — **114** of them today. Add a row whenever a
+Every case the browser suite runs — **115** of them today. Add a row whenever a
 case is added, and keep the count above in step.
 
 | Section | Cases | Signs in? | Writes to staging? |
@@ -9,7 +9,7 @@ case is added, and keep the count above in step.
 | Signed-in journeys | AUTH-01 to AUTH-03 | yes, once, shared | no |
 | Signed-in profile journeys | PROF-01 to PROF-08 | yes, twice, shared | yes — the shared test account |
 | Signed-in session recovery | RECOV-01 | yes, its own — a third real code per run | no |
-| **The money path** | BUY-01 to BUY-04 | BUY-01 does, for itself; BUY-03 and BUY-04 reuse its session | **yes — one real order, placed and then cancelled, and one address BUY-03 creates and removes again** |
+| **The money path** | BUY-01 to BUY-05 | BUY-01 and BUY-03 each sign in once, BUY-04 reuses BUY-03's session, BUY-05 signs in twice for itself — four real codes per run | **yes — one real order, placed and then cancelled, one address BUY-03 creates and removes again, and one bag line BUY-05 adds as a guest and removes again** |
 | Scripted auth branches | SCRIPT-01 to SCRIPT-05 | no | no — only the real one-time-code send |
 | Scripted profile branches | SCRIPT-07 to SCRIPT-12 | **yes — each case signs in for itself** | **no** — every leg is faked, but each sign-in and one change-number send are real |
 | Scripted checkout branches | SCRIPT-14 to SCRIPT-18, SCRIPT-20 | **no — the shopper is faked** | no — nothing but a guest registration |
@@ -218,15 +218,24 @@ the cancel call takes a *pack* id, and one group can hold several packs — one 
 seller. So the cases are driven by the group id and only the net asks the backend
 for the pack ids.
 
-Per run they cost: one one-time code, one sign-in, one order placed and
-cancelled, and two guest registrations (BUY-02 boots as a guest and adds to its
-bag). BUY-01 adds a delivery address only when the account has none.
+Per run they cost: four one-time codes and four sign-ins (see below), one
+sign-out, one order placed and cancelled, and at least two guest registrations
+(BUY-02 boots as a guest and adds to its bag; BUY-05's sign-out makes another).
+BUY-01 adds a delivery address only when the account has none.
 
-BUY-03 and BUY-04 spend no extra code: BUY-01 hands its session on, BUY-03 opens
-it and hands it on again. BUY-03 creates one address through the API, makes it
-the account's default, edits its title, and then puts the old default back and
-deletes its own address in a teardown. Both cases fill a bag and empty it again,
-and neither of them ever posts a checkout.
+A run spends **four** one-time codes: BUY-01, BUY-03 and two by BUY-05. BUY-03
+signs in for itself and hands its session on to BUY-04, which spends no code.
+BUY-03 creates one address through the API, makes it the account's default,
+edits its title, and then puts the old default back and deletes its own address
+in a teardown. Both cases fill a bag and empty it again, and neither of them ever
+posts a checkout.
+
+BUY-05 signs in **twice**, in a context of its own. The first sign-in only
+empties the shared account's bag, so a line an earlier run left behind cannot
+make "the guest's line is still there" pass when the merge lost it. It then
+signs out, adds the QA product as a guest, signs in again, and removes the line
+at the end. Its teardown empties the account's bag if the case dies after the
+second sign-in.
 
 | ID | Case | Spec | What it proves |
 |----|------|------|----------------|
@@ -234,6 +243,7 @@ and neither of them ever posts a checkout.
 | BUY-02 | A visitor with no verified phone is stopped before any order exists | `shopper.live.spec.ts:515` | The gate in the cart: a visitor who never verified a phone can fill a bag and is offered the verify panel instead of the checkout screen. Real, live, and it costs no code — the panel is where a code would be asked for |
 | BUY-03 | The bag shows the money the shop sent, and another address re-prices it | `shopper.live.spec.ts:681` | The two money figures in the bag — shipping and payable total — are the numbers the core backend sent for this bag in this run, never a literal. Then it creates an address through the API, taps it on the checkout, and checks the backend really stored it as the default, that the shop re-priced the bag, and that an edit to the address shows on the checkout and is stored |
 | BUY-04 | Plus raises a line to two, and removing it takes it out of the bag | `shopper.live.spec.ts:1030` | Pressing plus on a line makes it hold two — read only after the bag has been read again, so an optimistic number cannot pass for the shop's answer — and removing the line by name takes that product out of the bag |
+| BUY-05 | A guest's bag survives sign-in, and the line can then be removed | `shopper.live.spec.ts:1587` | The shopper's bag is emptied and the shopper signs out; the app then reports a guest. The guest adds the QA product and the **gateway** answers the add. The guest signs in from the navigation as the same shopper, and the **core** backend answers the bag read — proven a good read (`200`, `isSuccessful: true`) before anything in the bag is judged. The guest's line is still there by the bag's own name with the same quantity, and nothing else is in the bag. Removing it takes it out, and it is still gone after a reload. The docs' AC-12 (guest → verified upgrade) |
 
 ## Scripted auth branches
 
