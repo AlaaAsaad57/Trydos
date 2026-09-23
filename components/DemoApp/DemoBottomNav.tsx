@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useTransform } from "framer-motion";
 import {
   DEFAULT_NAV_THEME,
   PRESS,
@@ -21,74 +21,60 @@ import type { DemoKey } from "./demoKeys";
  *
  *   - scroll down and the bar scales down into its own centre, scroll up and it
  *     scales back — the same `useScrollScale`, listening to whatever screen
- *     box scrolls, because the scaled canvas never scrolls the page itself;
+ *     box scrolls, because the scaled canvas never scrolls the page itself.
+ *     The same scroll also moves the bar DOWN, by up to TAB_BAR.drop (35): the
+ *     file's scrolled page (`Home Page – 9`) draws the bar 20 px below the
+ *     screen edge, and the rest page (`Home Page`) 15 px above it. The scale
+ *     is the demo's own motion (the file draws the scrolled bar at full size);
+ *     the drop is the file's;
  *   - a press pulses the whole bar once and shrinks the icon under the finger;
  *   - press and slide without lifting, and the press follows the finger; lift
  *     to pick;
  *   - the icon that becomes active pops in.
  *
  * What it does NOT copy: the grey pill behind the active item. The design has
- * no pill — the active tab is shown by its own icon (the search tab grows and
- * turns #4A31E7; the profile tab becomes the photo).
+ * no pill, and no blue "active" icon either: the `Home Page` artboard (home
+ * tab active) draws the try mark with the same dark dotted ring as `– 1`
+ * (search active). Only two tabs change when active — search grows into its
+ * 43 px #4A31E7 ring, and the profile tab becomes the 42 px photo.
  *
- * The shape: 386 x 58 at (22, 859), corners 10 on top and 40 below, filled
- * white, with the file's background blur (30, +15% brightness) behind it.
+ * The shape: 386 x 58 at (22, 859), corners 10 on top and 40 below. The
+ * material is the file's "background blur": blur 30, brightness +15%, and a
+ * fill opacity of 0 — so the bar has NO fill of its own; what you see is the
+ * page behind it, blurred and lightened. On the empty pages that is white. The
+ * file's drop shadow and inner shadow on the bar are both switched off.
+ *
+ * The glass is its own layer under the icons, not the element that scales.
+ * Safari on iPhone clips a backdrop filter wrongly when the same element also
+ * carries a transform: the blurred, brightened patch shows past the rounded
+ * corners while the bar scales with the scroll. A child with the radius and
+ * the filter, and no transform of its own, is drawn right.
  */
 
 type Slot = {
   id: DemoTab;
   label: DemoKey;
   icon: XdIconName;
-  activeIcon: XdIconName;
-  /** Design x of the icon box, idle and active. */
+  /** Design x, y of the icon box. */
   x: number;
   y: number;
-  activeX: number;
-  activeY: number;
+  /** The icon and box the file draws when the tab is active. Only search has one. */
+  active?: { icon: XdIconName; x: number; y: number };
 };
 
 /** Icon boxes straight from the artboard. Slots are 76 apart, centred on 63 .. 367. */
 const SLOTS: Slot[] = [
-  {
-    id: "home",
-    label: "Home",
-    icon: "navTry",
-    activeIcon: "navTryActive",
-    x: 45.5,
-    y: 870.5,
-    activeX: 45.5,
-    activeY: 870.5,
-  },
+  { id: "home", label: "Home", icon: "navTry", x: 45.5, y: 870.5 },
   {
     id: "search",
     label: "Search",
     icon: "navSearch",
-    activeIcon: "navSearchActive",
     x: 121.5,
     y: 870.5,
-    activeX: 113.5,
-    activeY: 866.5,
+    active: { icon: "navSearchActive", x: 113.5, y: 866.5 },
   },
-  {
-    id: "cart",
-    label: "Cart",
-    icon: "navCart",
-    activeIcon: "navCartActive",
-    x: 197.5,
-    y: 870.5,
-    activeX: 197.5,
-    activeY: 870.5,
-  },
-  {
-    id: "chat",
-    label: "Chat",
-    icon: "navChat",
-    activeIcon: "navChatActive",
-    x: 274,
-    y: 871,
-    activeX: 274,
-    activeY: 871,
-  },
+  { id: "cart", label: "Cart", icon: "navCart", x: 197.5, y: 870.5 },
+  { id: "chat", label: "Chat", icon: "navChat", x: 274, y: 871 },
 ];
 
 const SLOT_W = 76;
@@ -123,6 +109,12 @@ export default function DemoBottomNav({
     DEFAULT_NAV_THEME.distance,
     DEFAULT_NAV_THEME.speedEffect,
     { scope: "any", resetKey },
+  );
+  // Full size = rest, the floor = the scroll cap. The drop follows the same
+  // reading, so the bar is 35 down exactly when it is smallest.
+  const drop = useTransform(
+    scrollScale,
+    (s) => ((1 - s) / (1 - DEFAULT_NAV_THEME.minScale)) * TAB_BAR.drop,
   );
   const { scale, firePulse } = useBarPulse(scrollScale);
 
@@ -218,11 +210,8 @@ export default function DemoBottomNav({
       <motion.div
         className="relative w-full h-full"
         style={{
-          borderRadius: TAB_BAR.radius,
-          background: "#FFFFFF",
-          backdropFilter: "blur(30px) brightness(1.15)",
-          WebkitBackdropFilter: "blur(30px) brightness(1.15)",
           transformOrigin: "center center",
+          y: drop,
           scale,
           touchAction: "none",
         }}
@@ -234,6 +223,17 @@ export default function DemoBottomNav({
           setDragging(true);
         }}
       >
+        <span
+          aria-hidden="true"
+          data-pw="demo-tab-glass"
+          className="absolute inset-0 block pointer-events-none"
+          style={{
+            borderRadius: TAB_BAR.radius,
+            backgroundColor: "transparent",
+            backdropFilter: TAB_BAR.glass,
+            WebkitBackdropFilter: TAB_BAR.glass,
+          }}
+        />
         {all.map((id, index) => {
           const on = id === active;
           const slot = SLOTS[index];
@@ -269,10 +269,10 @@ export default function DemoBottomNav({
               >
                 {slot ? (
                   <XdIcon
-                    name={on ? slot.activeIcon : slot.icon}
+                    name={on && slot.active ? slot.active.icon : slot.icon}
                     style={iconAt(
-                      on ? slot.activeX : slot.x,
-                      on ? slot.activeY : slot.y,
+                      on && slot.active ? slot.active.x : slot.x,
+                      on && slot.active ? slot.active.y : slot.y,
                       index,
                     )}
                   />

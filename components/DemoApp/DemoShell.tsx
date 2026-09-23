@@ -134,6 +134,28 @@ function DemoShellInner({
   const [hideMenu, setHideMenu] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState(false);
 
+  // No rubber band on the page itself. On iPhone, Safari bounces the whole
+  // document on a swipe even when it has nothing to scroll, and the canvas
+  // (position: fixed) bounces with it, so the tab bar slid part-way off the
+  // bottom of the screen on a swipe over the home screen, the header or the bar.
+  // The screens' own scroll boxes keep their `overscroll-contain`; this only
+  // takes the bounce off the page behind them. Set on both roots: the value
+  // only counts on the element that scrolls the viewport, and which one that
+  // is depends on `html`'s own overflow.
+  useEffect(() => {
+    const roots = [document.documentElement, document.body];
+    const before = roots.map((el) =>
+      el.style.getPropertyValue("overscroll-behavior"),
+    );
+    roots.forEach((el) => el.style.setProperty("overscroll-behavior", "none"));
+    return () =>
+      roots.forEach((el, i) =>
+        before[i]
+          ? el.style.setProperty("overscroll-behavior", before[i])
+          : el.style.removeProperty("overscroll-behavior"),
+      );
+  }, []);
+
   // The URL moved without us: the browser's back or forward, or a plain link.
   useEffect(() => {
     if (pending.current) {

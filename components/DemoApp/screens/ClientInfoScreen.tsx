@@ -16,7 +16,8 @@ import { Box, ScreenHeader, ScreenPage, Txt } from "../ui";
  * (406 wide, with the QR on its right, which opens the client ID screen),
  * status and "client since", type and verified (201 wide, in pairs), and the
  * phone (406, with a 0.5 `#D3D3D3` line). Label 12 Regular `#C3C3C3` on
- * baseline +20, value 14 Medium on +43.
+ * baseline +20, value 14 Medium on +43 — except "23 days", where the file
+ * draws only the number Medium and the word Regular.
  *
  * At the bottom, two 406 x 56 request buttons (0.5 `#C3C3C3` line, text 14
  * Medium, centred), pinned to the bottom of the page like the login's buttons.
@@ -31,7 +32,9 @@ export default function ClientInfoScreen() {
     y: number;
     w: number;
     label: DemoKey;
-    value: string;
+    value: React.ReactNode;
+    /** The file draws every value Medium except "23 days": the number Medium, the word Regular. */
+    weight?: "regular" | "medium";
     line?: boolean;
   }[] = [
     { x: 12, y: 171, w: 201, label: "client Status", value: t("Active") },
@@ -40,7 +43,13 @@ export default function ClientInfoScreen() {
       y: 171,
       w: 201,
       label: "client since",
-      value: `${profile.clientSince} ${t("days")}`,
+      value: (
+        <>
+          <span className="font-medium">{profile.clientSince}</span>{" "}
+          {t("days")}
+        </>
+      ),
+      weight: "regular",
     },
     { x: 12, y: 230, w: 201, label: "client type", value: t("Personal") },
     { x: 217, y: 230, w: 201, label: "client Verified", value: t("Verified") },
@@ -122,7 +131,7 @@ export default function ClientInfoScreen() {
           <Txt x={12} baseline={20} size={12} color={C.hint}>
             {t(card.label)}
           </Txt>
-          <Txt x={12} baseline={43} size={14} weight="medium">
+          <Txt x={12} baseline={43} size={14} weight={card.weight ?? "medium"}>
             {card.value}
           </Txt>
         </Box>

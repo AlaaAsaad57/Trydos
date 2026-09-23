@@ -111,6 +111,15 @@ export const TAB_BAR = {
   height: 58,
   /** Top corners 10, bottom corners 40 — the bar is a "D" turned on its side. */
   radius: "10px 10px 40px 40px",
+  /** The file's background blur: 30, brightness +15%, fill opacity 0 (no fill). */
+  glass: "blur(30px) brightness(1.15)",
+  /**
+   * How far the bar moves down when the page is scrolled to the end.
+   * `Home Page – 9`, the scrolled profile page, draws the bar at y 1091 on its
+   * 1129 px board: the top is 38 above the bottom edge instead of 73, so 20 px
+   * of the bar hang below the screen. 73 - 38 = 35.
+   */
+  drop: 35,
 } as const;
 
 /** The same slide the login uses between its screens (NewLoginWidget). */

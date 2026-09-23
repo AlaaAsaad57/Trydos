@@ -120,6 +120,28 @@ describe("DemoShell — navigation", () => {
     ).toContain("home");
   });
 
+  it("stops the page's own rubber band while it is mounted, and gives it back after", () => {
+    const html = document.documentElement;
+    const body = document.body;
+    const read = (el: HTMLElement) =>
+      el.style.getPropertyValue("overscroll-behavior");
+    expect(read(html), "html already had overscroll-behavior before the demo").toBe("");
+
+    const { unmount } = render(<DemoShell dictionary={{}}>{null}</DemoShell>);
+    expect(
+      read(html),
+      "html can still rubber-band: on iPhone a swipe on a screen with nothing to scroll drags the whole canvas, and the tab bar leaves the screen",
+    ).toBe("none");
+    expect(
+      read(body),
+      "body can still rubber-band on iPhone (see the html check)",
+    ).toBe("none");
+
+    unmount();
+    expect(read(html), "html kept overscroll-behavior after the demo left").toBe("");
+    expect(read(body), "body kept overscroll-behavior after the demo left").toBe("");
+  });
+
   it("shows the tab bar on tab screens and hides it on inner screens", () => {
     const { container, rerender } = render(
       <DemoShell dictionary={{}}>{null}</DemoShell>,

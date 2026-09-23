@@ -189,11 +189,12 @@ export default function ProfileScreen() {
         whileTap={{ scale: 0.97 }}
         onClick={() => navigate("settings/photo")}
         className="absolute cursor-pointer overflow-hidden"
+        // 116 x 115 in the file, not a square; the dark strip at 230 ends 1 below it.
         style={{
           left: 290,
           top: 136,
           width: 116,
-          height: 116,
+          height: 115,
           borderRadius: 15,
           background: C.card,
           boxShadow: "inset 0 0 0 0.5px #C3C3C3",
