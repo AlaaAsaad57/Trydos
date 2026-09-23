@@ -8,7 +8,8 @@ import { useAppStore } from "store";
 import chat from "services/chat";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-import { LogError } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
+import { showErrorNotification } from "store/notifications/reducer";
 
 import UPDATED_API_DATA from "migration.staging";
 
@@ -140,6 +141,7 @@ export const SendMessage = async (payload, isNew, isPrivate?) => {
     }
   } catch (error) {
     deleteErrorMessage({ msg_id: payload.mid, ch_id: payload.cid });
+    showErrorNotification(translateFunction("Failed to send message"));
     LogError({
       scenario: "Error in SendMessage in  chat/actions",
       error: error instanceof Error ? error.message : String(error),
