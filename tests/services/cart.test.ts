@@ -849,6 +849,27 @@ describe("CartService", () => {
       ).not.toHaveBeenCalled();
     });
 
+    it("RemoveFromCart puts back the row the cart page already took away", async () => {
+      // The cart page deletes the row before it calls the service
+      // (components/Cart/index.tsx:139). A locked cart keeps the item on the
+      // core backend, so the row has to come back on screen too.
+      useAppStore.setState({ cart: [], localCart: [] } as any);
+      vi.mocked(fetchData).mockResolvedValueOnce(lockAnswer as any);
+
+      await cartService.RemoveFromCart({
+        cart_item: { id: 101, item_id: "row-1", quantity: 1 },
+      });
+
+      expect(
+        useAppStore.getState().cart.map((i: any) => i.id),
+        "the locked cart kept the item on the core backend, but the cart page still shows it as removed",
+      ).toEqual([101]);
+      expect(
+        useAppStore.getState().localCart.map((i: any) => i.item_id),
+        "the locked cart kept the item on the core backend, but the cart badge and widgets no longer list it",
+      ).toEqual(["row-1"]);
+    });
+
     it("ConvertToOldCart records the lock", async () => {
       vi.mocked(fetchData).mockResolvedValueOnce(lockAnswer as any);
 

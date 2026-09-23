@@ -180,6 +180,9 @@ class CartService {
       if (lock) {
         useAppStore.getState().setRdbLock(lock);
         trackOrder(ORDER_EVENTS.RDB_CART_LOCK_HIT, { at: "cart" });
+        // The cart page removes the row before it calls this. The core
+        // backend kept the item, so put the row back.
+        errRemoveFromCart(cart_item);
         return false;
       }
       if (!response.success) {
