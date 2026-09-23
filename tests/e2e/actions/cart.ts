@@ -1390,6 +1390,27 @@ export const chosenAddressTitle = async (page: Page): Promise<string> => {
   return ((await title.textContent()) ?? "").trim();
 };
 
+/** The titles the open address sheet lists, top to bottom, as a shopper reads
+ *  them.
+ *
+ *  The title is the first `regular` span in a row
+ *  (`components/Cart/AddressListContainer.tsx:125`). The edit and delete icons
+ *  in the same row are spans too, but they carry no `regular` class, so they
+ *  are never read as a title. Call `openAddressList` first. */
+export const savedAddressTitles = async (page: Page): Promise<string[]> => {
+  const titles = await checkout
+    .addressSheet(page)
+    .getByTestId("Address")
+    .locator("span.regular")
+    .evaluateAll((spans) =>
+      spans.map((span) => (span.textContent ?? "").trim()),
+    )
+    .catch(() => [] as string[]);
+  // Each row has one `regular` span; an empty one would be a row with no
+  // title, which cannot be tapped by name.
+  return titles.filter((title) => title !== "");
+};
+
 /** Tap one saved address in the sheet, found by the title it shows.
  *
  *  **This is the screen's answer, and only the screen's.** The row's handler
