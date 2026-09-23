@@ -67,7 +67,7 @@ function ChatContactsUpload() {
     const map = new Map<string, string>();
     ContactsData.forEach((c) => {
       const norm = normalizePhoneStrict(c.mobile_phone);
-      if (norm) map.set(norm, c.name);
+      if (norm) map.set(norm, c.contact_user?.name || c.name);
     });
     return map;
   }, [ContactsData]);
