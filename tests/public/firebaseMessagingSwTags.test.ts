@@ -197,3 +197,101 @@ describe("a compact chat push in the background", () => {
     ).toBeTruthy();
   });
 });
+
+// A muted chat must not raise a background notification.
+//
+// Mute is stored per member: each row in `channel.channel_members` has its own
+// `mute`, and only the row of the person the push is for counts. The worker
+// cannot read the signed-in user (the profile cookie is HttpOnly), but it does
+// not need to: the push names the receiver in `message.receiver_user_id`.
+//
+// The payload below is a real push from staging (phone numbers removed). The
+// receiver, user 657, has `mute: 1`; the sender, user 672, has `mute: 0`.
+describe("a chat push in the background for a muted chat", () => {
+  function loadBackgroundHandler() {
+    const source = readFileSync(
+      join(process.cwd(), "public/firebase-messaging-sw.js"),
+      "utf8",
+    );
+    let handler: ((payload: unknown) => Promise<void>) | undefined;
+    const showNotification = vi.fn();
+    const self = {
+      addEventListener: () => {},
+      location: { origin: "https://trydos.test" },
+      clients: { matchAll: async () => [] },
+      registration: { showNotification, getNotifications: async () => [] },
+    };
+    const firebase = {
+      initializeApp: () => {},
+      messaging: () => ({
+        onBackgroundMessage: (fn: typeof handler) => {
+          handler = fn;
+        },
+      }),
+    };
+    new Function("self", "importScripts", "firebase", "caches", "clients", source)(
+      self,
+      () => {},
+      firebase,
+      {},
+      self.clients,
+    );
+    return { handler: handler!, showNotification };
+  }
+
+  const buildPush = (receiverMute: 0 | 1) => ({
+    from: "817506223106",
+    data: {
+      type: "message",
+      channel_id: "trydos_notifications",
+      data: JSON.stringify({
+        type: "message",
+        contact_name: "Alaa",
+        message: {
+          id: "339827",
+          sender_user_id: 672,
+          receiver_user_id: 657,
+          channel_id: "539",
+          message_content: { message_id: 339827, content: "Hi" },
+          message_type: { name: "TextMessage", event_name: "TextMessageEvent" },
+          channel: {
+            id: "539",
+            channel_name: "Trydos Relogin 120844",
+            is_mute: 0,
+            channel_members: [
+              { id: 1077, user_id: 672, mute: 0, archived: 0, pin: 1 },
+              { id: 1078, user_id: 657, mute: receiverMute, archived: 0, pin: 0 },
+            ],
+          },
+          message_files: [],
+          sender_user: { id: 672, name: "Alaa Test123" },
+          body: "Hi",
+        },
+        prev_message_id: "339789",
+        is_private: false,
+      }),
+    },
+  });
+
+  it("shows nothing when the receiver muted the chat", async () => {
+    const { handler, showNotification } = loadBackgroundHandler();
+
+    await handler(buildPush(1));
+
+    expect(
+      showNotification.mock.calls.length,
+      `chat 539 is muted for the receiver (user 657) yet the worker showed ${showNotification.mock.calls.length} notification(s)`,
+    ).toBe(0);
+  });
+
+  it("still shows the notification when the receiver did not mute the chat", async () => {
+    const { handler, showNotification } = loadBackgroundHandler();
+
+    await handler(buildPush(0));
+
+    expect(
+      showNotification.mock.calls[0]?.[0],
+      "an unmuted chat showed no notification, so the mute check silences everything",
+    ).toBe("Alaa Test123");
+  });
+});

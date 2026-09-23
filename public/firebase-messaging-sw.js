@@ -212,6 +212,19 @@ function buildMarketTag(body) {
   return scopeValue ? `market-${rule.key}-${scopeValue}` : `market-${rule.key}`;
 }
 
+// Mute is stored per member: each row in `channel.channel_members` has its own
+// `mute`, and only the row of the person this push is for counts. The worker
+// cannot read the signed-in user (the profile cookie is HttpOnly), so it uses
+// the receiver the push names, `message.receiver_user_id`. A push with no
+// member list (a compact push) or no receiver counts as not muted.
+function isChatMutedForReceiver(message) {
+  const receiverId = message?.receiver_user_id;
+  const members = message?.channel?.channel_members;
+  if (receiverId == null || !Array.isArray(members)) return false;
+  const receiver = members.find((m) => String(m.user_id) === String(receiverId));
+  return Number(receiver?.mute) === 1;
+}
+
 messaging.onBackgroundMessage(async function (payload) {
   try {
     // Resolve the active locale once so every notification URL points at the
@@ -472,6 +485,9 @@ messaging.onBackgroundMessage(async function (payload) {
         },
       });
     } else if (payload.data.type === "message") {
+      if (isChatMutedForReceiver(JSON.parse(payload.data.data)?.message)) {
+        return;
+      }
       let notificationTitle = JSON.parse(payload.data.data).message.sender_user
         .name;
       let notificationOptions = {};
