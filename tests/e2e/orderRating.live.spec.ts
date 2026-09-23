@@ -64,15 +64,17 @@ import {
 } from "./actions/nav";
 import {
   addQaProductToBag,
+  chooseAddressNamed,
   chooseCashOnDelivery,
-  chosenAddressTitle,
   confirmShippingAndPayment,
   describeCheckout,
   emptyTheBag,
   goToCheckout,
   hasDeliveryAddress,
+  openAddressList,
   openCart,
   placeOrder,
+  savedAddressTitles,
 } from "./actions/cart";
 import {
   findOrderInList,
@@ -235,15 +237,50 @@ test("CMT-09 a delivered order earns a review, which is written, changed and rem
         .then(() => true)
         .catch(() => false);
 
-      // Deliberately not adding one. `BUY-01` owns the probe-address
+      if (present) return;
+
+      // **Saved addresses, but none chosen: the shopper picks one.** The
+      // checkout draws an address only for the one marked `is_default`
+      // (`ShippingAddressContainer.tsx:688`), and the account can hold
+      // addresses with none of them marked — deleting the default one leaves
+      // it that way. CI run 35795729846 met exactly that: twenty saved
+      // addresses, every one `is_default: 0`, and this step reported "no
+      // delivery address". A shopper on that screen opens the list and taps
+      // one, so that is what this does.
+      //
+      // Deliberately not **adding** one. `BUY-01` owns the probe-address
       // bookkeeping — making one, refusing to order onto a stranded one and
       // putting the real one back. A second case inventing addresses on the
       // same shared account is how a run ends up ordering to nowhere.
+      const list = await openAddressList(page);
       expect(
-        present,
-        `the account has no delivery address, so this order cannot be shipped and the journey cannot reach a delivery. The address this checkout shows is "${await chosenAddressTitle(
-          page,
-        )}" — give the account a real default address and run again`,
+        list.opened,
+        "the checkout shows no delivery address and its address list would " +
+          "not open. The list opens only for an account that has a saved " +
+          "address, so this account has none — give it a real address and " +
+          "run again",
+      ).toBe(true);
+
+      const titles = await savedAddressTitles(page);
+      expect(
+        titles.length > 0,
+        `the address list opened with ${list.rows} rows, and not one of them ` +
+          "shows a title, so there is nothing a shopper could tap by name",
+      ).toBe(true);
+
+      const tapped = await chooseAddressNamed(page, titles[0]);
+      expect(
+        tapped.tapped,
+        `tapping the saved address "${titles[0]}" did not make it the ` +
+          `delivery address; the checkout shows "${tapped.showing}". ` +
+          `${tapped.said}`,
+      ).toBe(true);
+
+      expect(
+        await hasDeliveryAddress(page),
+        `the address "${titles[0]}" was tapped and the checkout shows its ` +
+          "title, but draws no delivery address below it, so the order has " +
+          `nowhere to go. The core backend said: ${tapped.said}`,
       ).toBe(true);
     });
 
@@ -472,17 +509,42 @@ test("CMT-09 a delivered order earns a review, which is written, changed and rem
       // The app hides a removed review straight away by remembering it was
       // removed. Only a reload asks the shop, and a write that never landed
       // comes back here.
-      await page.reload({ waitUntil: "domcontentloaded" });
+      //
+      // **Reloaded more than once, and bounded.** The product page reads
+      // reviews from Elasticsearch, not from the comments backend
+      // (`GetRatingCommentsForProduct`, which skips `status: "deleted"`). The
+      // backend writes that status first and the index picks it up afterwards.
+      // A single reload a moment after the delete read the index before it
+      // caught up and reported a removal that had landed as one that did not.
+      // So this uses the bound `checkpoint` uses for the same index
+      // (`actions/productComments.ts`): six reloads, ten seconds apart, none
+      // started past sixty seconds.
+      //
+      // **Waited to `load`, not `domcontentloaded`.** The reviews section is
+      // streamed into the document after the first bytes, and the document
+      // ends only once it has been drawn. Reading at `domcontentloaded` could
+      // look before the section exists and "see" the review gone — a pass for
+      // a case it never looked at.
+      const reloads = 6;
+      const gapMs = 10_000;
+      const boundMs = 60_000;
+      const startedAt = Date.now();
+      let stillThere = true;
 
-      const stillThere = await page
-        .locator(`#comment-${reviewId}`)
-        .first()
-        .isVisible()
-        .catch(() => false);
+      for (let attempt = 1; attempt <= reloads; attempt += 1) {
+        await page.reload({ waitUntil: "load" });
+        stillThere = (await page.locator(`#comment-${reviewId}`).count()) > 0;
+        if (!stillThere) break;
+
+        if (Date.now() - startedAt + gapMs >= boundMs) break;
+        await page.waitForTimeout(gapMs);
+      }
 
       expect(
         stillThere,
-        `the review was removed and the comments backend accepted it, but after a reload the product page is showing it again. The removal did not last`,
+        `the review was removed and the comments backend accepted it, but the product page still shows it after reloading for ${
+          boundMs / 1000
+        } seconds. The page reads reviews from Elasticsearch, so either the removal never reached the index or the index is slower than that bound`,
       ).toBe(false);
     });
 

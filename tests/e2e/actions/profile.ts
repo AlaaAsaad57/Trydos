@@ -18,6 +18,7 @@ import { expect, type Page } from "@playwright/test";
 
 import { profile } from "../selectors";
 import { chooseRegionIfAsked, localePrefix } from "./nav";
+import { watchCommentCall } from "./productComments";
 
 /** Open a settings screen under the locale prefix, and wait for it to settle.
  *
@@ -792,7 +793,30 @@ export const addAddress = async (
     await phone.fill(options.phone);
   }
 
+  // **Wait for the save to land before handing the page back.** A shopper
+  // waits for the form to finish; the caller's next step is often a
+  // navigation, and a navigation cancels whatever is still in flight. On CI run
+  // 35831625227 the save answered 401 (the 60-second access token had just
+  // run out), and PROF-07 went to the address list before the app could renew
+  // the token and send the save again. The address was never added, and the
+  // case reported "the address list did not grow".
+  //
+  // Judged on the first answer that is **not** a 401: a 401 here is the first
+  // half of the app's own renewal, not a refusal.
+  const saved = watchCommentCall(page, {
+    endpoint: "/customer/address/add",
+    backend: "the core backend",
+  });
   await profile.saveAddressButton(page).click();
+  const outcome = await saved;
+  expect(
+    outcome.refusedByProxy,
+    `saving the address did not land: ${outcome.said}`,
+  ).toBe(false);
+  expect(
+    outcome.status < 400,
+    `saving the address did not land: ${outcome.said}`,
+  ).toBe(true);
   return true;
 };
 

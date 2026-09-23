@@ -40,6 +40,7 @@ import type { Browser, BrowserContext, Page } from "@playwright/test";
 import { test } from "../fixtures";
 import { signedInSession } from "../actions/auth";
 import { watchTheClientStarting } from "./clientStart";
+import { waitForRenewalSettled, watchRenewals } from "./renewalGate";
 
 /** Where each spec's signed-in session waits between its cases.
  *
@@ -105,6 +106,9 @@ export const newLiveContext = async (
   // records, and why three standing failures all needed it, is in
   // `harness/clientStart.ts`.
   watchTheClientStarting(context);
+  // Same moment, same reason: a renewal that started before anyone asked is
+  // exactly the one a navigation would cancel (`harness/renewalGate.ts`).
+  watchRenewals(context);
 
   return context;
 };
@@ -159,6 +163,12 @@ export const handOnSession = async (
     // not recover it" on a session six cases old. Access tokens here live one
     // to five minutes, so by that point the pair has certainly been exchanged
     // at least once, and whether the file kept up is the whole question.
+    //
+    // **But not while the page is renewing.** Leaving mid-exchange cancels the
+    // answer that carries the new pair after the backend has spent the old one,
+    // and the jar written below would then hold a dead refresh token
+    // (`harness/renewalGate.ts`).
+    await waitForRenewalSettled(page);
     await page.goto("about:blank", { waitUntil: "domcontentloaded" });
 
     await saveSession(context, statePath);

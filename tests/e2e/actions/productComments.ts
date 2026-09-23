@@ -78,8 +78,16 @@ export type CallOutcome = {
  *  printed. */
 export const watchCommentCall = async (
   page: Page,
-  options: { endpoint: string; timeout?: number },
+  options: {
+    endpoint: string;
+    timeout?: number;
+    /** Who answers `endpoint`, as the failure should name it. The comments
+     *  backend unless said otherwise — `addAddress` uses this for the core
+     *  backend, whose writes recover from a 401 the same way. */
+    backend?: string;
+  },
 ): Promise<CallOutcome> => {
+  const backend = options.backend ?? "the comments backend";
   // **A 401 is not a failure here, it is the first half of a refresh.**
   // `fetchData` is refresh-first for the comments service: a 401 makes the app
   // exchange that service's own token pair and send the call again. So the
@@ -127,8 +135,8 @@ export const watchCommentCall = async (
       refusedByProxy: false,
       said: redact(
         sawUnauthorised
-          ? `the comments backend answered ${options.endpoint} with 401 and the app's token exchange did not recover it, so the call never went through`
-          : `no call to ${options.endpoint} reached the comments backend within ${
+          ? `${backend} answered ${options.endpoint} with 401 and the app's token exchange did not recover it, so the call never went through`
+          : `no call to ${options.endpoint} reached ${backend} within ${
               (options.timeout ?? 30_000) / 1000
             } seconds`,
       ),
@@ -146,8 +154,8 @@ export const watchCommentCall = async (
     refusedByProxy: proxyOwnHeader,
     said: redact(
       proxyOwnHeader
-        ? `the app's own proxy refused the call to ${options.endpoint} with ${status}, so the comments backend was never reached`
-        : `the comments backend answered ${options.endpoint} with ${status}`,
+        ? `the app's own proxy refused the call to ${options.endpoint} with ${status}, so ${backend} was never reached`
+        : `${backend} answered ${options.endpoint} with ${status}`,
     ),
   };
 };

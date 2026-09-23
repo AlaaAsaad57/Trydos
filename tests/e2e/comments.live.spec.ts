@@ -100,6 +100,7 @@ import {
   openSignedInSession,
   SESSION_STATE,
 } from "./harness/liveSession";
+import { waitForRenewalSettled } from "./harness/renewalGate";
 import { productComments } from "./selectors";
 
 test.describe.configure({ mode: "serial" });
@@ -183,7 +184,9 @@ const idsFromCmt01 = (): { inPage: string; inExtended: string } => {
  *
  *  So nothing is snapshotted between cases any more. One context, one page,
  *  alive from `CMT-01` to the sweep: no `about:blank`, no page closed under an
- *  in-flight exchange, no jar re-opened. The jar is written **once**, at the
+ *  in-flight exchange, no jar re-opened. The one navigation left -- each case
+ *  opening the product -- waits for the page's own renewal to finish first
+ *  (`harness/renewalGate.ts`). The jar is written **once**, at the
  *  end, and this file is its only reader (`SESSION_STATE.comments` appears
  *  nowhere else). */
 let heldContext: BrowserContext | null = null;
@@ -216,6 +219,13 @@ const openShopperOnProduct = async (
 
   const context = heldContext as BrowserContext;
   const page = heldPage as Page;
+  // **Opening the product is a navigation too**, and it cancels an exchange in
+  // flight exactly as `about:blank` did. Removing the snapshot closed one door
+  // and left this one open: on run 35795729846 `CMT-07` passed while its page
+  // was still inside a market exchange, `CMT-08` sent the page here at once,
+  // and the shopper was a guest from then on. So the page finishes its own
+  // renewal first, as it would before any shopper clicked anything.
+  await waitForRenewalSettled(page);
   await gotoQaProduct(page, { country: QA_COUNTRY });
   return { context, page };
 };

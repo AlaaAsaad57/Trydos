@@ -10,7 +10,7 @@ Trydos — a multilingual e-commerce / live-shopping storefront. Next.js 16 (App
 
 ## Commands
 
-Package manager is **pnpm** (note: `pnpm-lock.yaml`, but `.gitlab-ci.yml` historically used yarn).
+Package manager is **pnpm** locally and in GitHub Actions. **Vercel runs yarn** — never add `packageManager` to `package.json`.
 
 ```bash
 pnpm dev            # dev server (next dev)
@@ -29,22 +29,13 @@ pnpm e2e:health     # is staging answering? run this before blaming a test
 pnpm lint:i18n-parity   # ar/tr/ku translation keys are in step
 ```
 
-Two suites exist: the **unit** suite (`tests/`, Vitest) and the **browser** suite (`tests/e2e/`, Playwright, run against staging). Both gate pull requests through `.github/workflows/`. Do not add tests outside these two, and do not add a test for code that has no caller. Anything you do add must follow the rule below.
+Two suites exist: the **unit** suite (`tests/`, Vitest) and the **browser** suite (`tests/e2e/`, Playwright, run against staging). The unit suite gates pull requests (`tests.yml`: parity, lint, typecheck, unit). The browser suite does **not** — it runs on push, dispatch and nightly (`test-e2e.yml`). Do not add tests outside these two, and do not add a test for code that has no caller. Anything you do add must follow the rule below.
 
 ## Opening the app by hand — always use the `sy-en` locale
 
-Any URL you open yourself — in a browser, a curl check, a Playwright script, a
-screenshot — must use **`sy-en`**, never `gb-en`:
-
-```
-http://localhost:3000/sy-en/loginDemo     ✓
-http://localhost:3000/gb-en/loginDemo     ✗ opens the region picker over the page
-```
-
-`gb` is not one of the countries the region list offers, so the app opens the
-"Select Your Region" modal on top of whatever you wanted to look at. Every
-screenshot then shows the modal, and every click lands on it. `sy` is in the
-list, so the page loads clean.
+Any URL you open yourself (browser, curl, Playwright, screenshot) uses
+`/sy-en/...`, never `/gb-en/...`. `gb` is not in the region list, so the app
+opens the "Select Your Region" modal over the page and every click lands on it.
 
 ## Architecture
 
@@ -61,48 +52,68 @@ Next.js 16 renames `middleware.ts` → **`proxy.ts`**. This single file runs on 
 - Sitemaps are generated dynamically (`app/sitemap-*.xml`, `robots.ts`).
 
 ### Data fetching — three distinct paths (do not mix)
-1. **Server components / server actions → `serverRequests/HandleAuthedFetch.ts`**. Reads the auth token from the `MARKET-TOKEN` cookie (single auth cookie for guest AND logged-in), and on a 401 auto-registers a guest token (`/auth/register-guest`) and retries. Cookie writes silently no-op during pure render (only allowed in Server Actions / Route Handlers). Wraps `fetchServerData` (`serverRequests/ServerFetch.tsx`).
+1. **Server components / server actions → `serverRequests/HandleAuthedFetch.ts`**. Reads `MARKET-TOKEN` (one cookie for guest AND signed-in). Its 401 handling is in "Sessions and tokens" below. Cookie writes no-op during pure render (allowed only in Server Actions / Route Handlers). Wraps `fetchServerData` (`serverRequests/ServerFetch.tsx`).
 2. **Client-side (services, handlers) → `utils/fetchData.ts`** with the `{ url, method, body, server, reqTitle }` shape.
 3. **Bare `fetch`** only for internal API routes you control (e.g. `/api/auth/update-user`), where token injection isn't needed.
 
 Endpoint path constants live in `utils/endpointConfig.tsx`.
 
-#### A 401 is not a failure — every service refreshes its token and retries
+### Sessions and tokens — read before you judge any 401
 
-**Read this before you judge any request by its first answer.** Every backend
-service reached through `fetchData` recovers from a 401 on its own, and it does
-so *in the middle of the call you are looking at*:
+**Lifetimes (staging, all services).** Access token: **60 seconds**. Refresh
+token: **2 days**, **single-use** — every exchange rotates the pair, and the old
+refresh token is dead the moment the backend answers. So any signed-in page
+older than a minute meets a 401 on its next call. That is normal.
 
-1. the service answers **401**;
-2. `fetchData` exchanges **that service's own refresh token** —
-   `auth.RefreshSession(url, server)` — and waits about 2 seconds for the store
-   to settle;
-3. it **sends the same request again**, and that second answer is the real one;
-4. only if the exchange is refused does the app fall through to the `need_auth`
-   prompt.
+**One pair per service.** A 401 on one never means another is broken.
 
-It tries the exchange **once** (`authAttempt === 0`), and each service holds a
-separate token pair, so a 401 on one never means the others are broken:
-`chat` (`CHAT-TOKEN`), `stories` (`STORIES-TOKEN`), `comments`
-(`USER_ID_HASH` + `COMMENTS-REFRESH-TOKEN`), `wallet` (`WALLET-TOKEN`), and the
-market services. `STALE_TOKENS_FOR` in `utils/fetchData.ts` keys the cleanup per
-service for exactly that reason.
+| Service | Cookies | On a 401 |
+|---|---|---|
+| market (core / gateway) | `MARKET-TOKEN` + `COOKIE_NAMES.MARKET_REFRESH_TOKEN` | exchange, then retry at once |
+| chat | `CHAT-TOKEN` + its refresh cookie | exchange, wait 2 s, retry |
+| stories | `STORIES-TOKEN` + its refresh cookie | exchange, wait 2 s, retry |
+| comments | `USER_ID_HASH` + `COMMENTS-REFRESH-TOKEN` | exchange, wait 2 s, retry |
+| wallet | `WALLET-TOKEN` (no refresh) | `need_auth` prompt |
 
-The server side does the same thing in its own way: `HandleAuthedFetch` answers
-a 401 by registering a guest token and retrying.
+`STALE_TOKENS_FOR` in `utils/fetchData.ts` keys the cleanup per service.
 
-**What this means in practice:**
+**The client path (`utils/fetchData.ts` → `services/auth.ts` `RefreshSession`).**
+1. The call answers **401** (first attempt only, `authAttempt === 0`).
+2. The client posts `/api/auth/refresh` `{url, server}`. The route exchanges on
+   the server (`utils/server/authRefresh.ts`) — verified user → core, guest →
+   gateway — and sets the new pair **on its own response** (`Set-Cookie`).
+3. The same call is sent again. **That answer is the real one.**
+4. Parallel 401s share one exchange. A 401 from a call sent **before** the
+   last rotation retries with the stored pair and exchanges nothing
+   (`sentAt`, commit `aa6cc51b`).
 
-- **Never treat the first 401 as a refused write.** The call very often
-  succeeds on the retry, and the user never sees anything.
-- **A test or a probe that watches the network must judge the first answer that
-  is *not* a 401**, and say so when it only ever saw 401s. Watching a single
-  response reports a write that landed as a write that was refused. This has
-  cost real debugging time more than once — `watchCommentCall` in
-  `tests/e2e/actions/productComments.ts` is the worked example.
-- **A 401 in a log is not evidence of a bug.** Look for what followed it.
-- The retry is why a call can take a few seconds longer than expected. That is
-  the 2-second settle plus a second round trip, not a slow backend.
+**When the market exchange is refused**, the retry gets 401 again →
+`ExpiredUser` → `/api/auth/expire` (one last exchange) → `register-guest`.
+**The shopper becomes a new guest, and every sub-service cookie is deleted.** A
+verified shopper also gets the "please sign in again" prompt. Chat, stories and
+comments fall through to the `need_auth` prompt instead.
+
+**The server path (`HandleAuthedFetch`).** On a market 401 it exchanges
+(`refreshMarketSession`, single-flight per refresh token) and retries. On a
+refused exchange it returns the 401 — it does **not** make a guest. It
+registers a guest only when there is **no** refresh cookie and the user is not
+verified.
+
+**The new pair is lost if the page leaves mid-exchange.** A `page.goto`, a
+reload or a closed tab cancels the `/api/auth/refresh` answer. The backend has
+already spent the old refresh token, the jar still holds it, and the next
+exchange is refused → guest. `tests/e2e/harness/renewalGate.ts` exists for this.
+
+**In practice:**
+- Never treat the first 401 as a refused write. Judge the **first answer that is
+  not a 401**, and say so when only 401s came (`watchCommentCall` in
+  `tests/e2e/actions/productComments.ts`).
+- A 401 in a log is not a bug. Read what followed it: `refresh-token 200` + a
+  good retry is the normal path; `refresh-token 401` + `register-guest` is a
+  lost session.
+- `/api/proxy` sets `x-market-backend: gateway|core` — read it, never guess.
+- A retry adds one round trip (plus 2 s for chat/stories/comments). That is not a
+  slow backend.
 
 ### State — single combined Zustand store (`store/index.ts`)
 All slices (`auth`, `Cart`, `chat`, `Details`, `homepage`, `listing`, `search`, `notifications`) live in `store/<domain>/reducer.ts` and are spread into one `useAppStore`. Devtools middleware is applied **only** in development — do not add it elsewhere. In non-React / service code use `useAppStore.getState()`; never call the hook in a Server Component.
@@ -114,7 +125,7 @@ Domain modules (`auth.ts`, `cart.ts`, `chat.ts`, `search.ts`, `order(s).ts`, `el
 Rate limiting and abuse/DDoS protection run at the platform edge via **Vercel Firewall** (rules configured in the Vercel dashboard), before functions are invoked. There is no in-code rate-limiter wrapper. If a specific endpoint needs business-logic limits (auth, OTP, checkout), use an edge-compatible limiter such as Upstash `@upstash/ratelimit` — never `ioredis` in middleware (it can't run on the Edge runtime).
 
 ### Auth & tokens
-JWTs live **only** in HttpOnly cookies — `MARKET-TOKEN` (the single auth cookie, guest or logged-in) and `User-Data` (profile JSON). `DEVICE-TOKEN` is legacy: never read or set it (it survives only in logout-cleanup lists). Read server-side via `utils/cookies/cookie-manager` / `next/headers`. Never put tokens in localStorage or expose them to client components.
+JWTs live **only** in HttpOnly cookies — the pairs in "Sessions and tokens" above, plus `User-Data` (profile JSON). `DEVICE-TOKEN` is legacy: never read or set it (it survives only in logout-cleanup lists). Read server-side via `utils/cookies/cookie-manager` / `next/headers`. Never put tokens in localStorage or expose them to client components.
 
 ### Error reporting & analytics
 `LogError` / `LogServerError` route to **Sentry** (config in `sentry.*.config.ts`, `instrumentation*.ts`). Analytics via `utils/gtag.ts` (Google Analytics) and PostHog (`utils/posthog.ts`) for session replay + product analytics.
@@ -123,6 +134,12 @@ JWTs live **only** in HttpOnly cookies — `MARKET-TOKEN` (the single auth cooki
 
 ### Integrations
 Firebase / FCM push (`utils/firebaseAdmin.ts`, `utils/NotificationHandler.ts`, `app/api/subscribe`, `app/api/unsubscribe`),  media, Agora RTC (live video), Elasticsearch search, Redis (`ioredis`), and the private `rdb` digital-banking package (Git dependency).
+
+**Elasticsearch is a copy, and it lags.** Listings, search, product pages and
+the product's reviews / Q&A read from Elasticsearch, not from the backend that
+took the write. Market (products) and comments writes reach the index **seconds
+later**. So a read straight after a write can show the old state; that is not a
+lost write. Reviews: `GetRatingCommentsForProduct` skips `status: "deleted"`.
 
 ## Conventions
 
@@ -194,8 +211,7 @@ a five-second answer into an afternoon of bisecting by hand.
    failed rather than a line number. `tests/e2e/profile.live.spec.ts` is the
    model — including the nested per-backend form, `` await test.step(`the
    ${leg} backend took the change`, …) ``, which is what makes a fan-out failure
-   name the backend that refused. No other browser spec does this yet; copy that
-   file, not the others.
+   name the backend that refused. Copy that file.
 
 9. **Adding a step or a backend to a flow means adding its own check** in the
    same change.
@@ -280,15 +296,35 @@ sign-in and sign-out, cart changes, media upload, seller dashboard actions.
 
 It binds **every test you write or change from now on**. Existing tests are
 brought up to it as they are touched — there is no sweep, and a bare assertion
-you happen to read is not a ticket. Today about 130 of ~1900 assertions carry a
-message, nearly all of them in the browser suite; that is the gap this rule
-closes over time.
+you happen to read is not a ticket. Most unit-suite assertions still carry no
+message; that is the gap this rule closes over time.
 
 One allowance, not a loophole: in a small unit test whose **name already says
 precisely what failed**, the name is the message and a second one adds nothing.
 The requirement is that *the failure identifies the step* — not that the words
 sit in any particular place. The moment a test covers more than one step or more
 than one backend, that allowance is gone.
+
+### Browser suite — causes we have already met
+
+Check these **before** you suspect the app. Each one has turned a green app red.
+
+| Symptom in the run | Real cause | What the test must do |
+|---|---|---|
+| Shopper becomes a guest mid-journey; later calls say `Token is missing` | The test navigated while `/api/auth/refresh` was in flight; the new pair never landed | `waitForRenewalSettled(page)` before any `goto` / reload on a signed-in page (`harness/renewalGate.ts`) |
+| A write "did not land", but a later read shows it did not happen either | The test moved on after clicking Save; the write got a 401 and its retry was cancelled | Wait for the write's first non-401 answer before the next step (`watchCommentCall`, `addAddress`) |
+| A deleted / edited item is still shown after one reload | Elasticsearch had not caught up yet | Bounded reloads: 6 × 10 s, none after 60 s (`checkpoint`); read at `load`, not `domcontentloaded` |
+| "Not shown" passes too easily | The section had not streamed in yet | Wait for `load` or for the section itself before asserting absence |
+| Checkout shows no address | Addresses exist, but none has `is_default: 1` | Pick one from the list, as a shopper does |
+| No cash-on-delivery offered | COD exists only in `sy`; the live suite defaults to `iq` | Seed `sy` for any paying case |
+| Every journey fails on the nav logo | Staging Elasticsearch is down; one ES throw blanks the page | `pnpm e2e:health` first |
+| `ERR_ABORTED` on a `page.goto` | A popup (cart / login / stories) that just closed cancelled it | `waitForPopupHistorySettled` |
+| A dispatched E2E run shows `cancelled` | `test-e2e.yml` uses one global `live-suite` group with `cancel-in-progress` — any push to `development` cancels it | Do not push while a run you need is going |
+| **AUTH-01** red | The wallet backend answers `502` on sign-in | Stays red on purpose — a backend fault |
+
+The shopper account is shared by every case. A killed run can leave its data
+behind (probe addresses, a moved default address). Name the leftover in the
+message; never assume the account is clean.
 
 ## Internationalization — MANDATORY for every user-visible string
 
@@ -362,14 +398,9 @@ from a clean **`development`**, and `/wf:publish-pr` opens the PR against
 **`development`** (`--base development`). This applies to `development` work
 items only — `study` and `research` cut no branch and open no PR.
 
-> **`develop` is dead — do not branch from it.** The integration branch was
-> renamed. `origin/develop` no longer exists, the local `develop` is marked
-> `[gone]`, and it sits **13 commits behind** `development`. This paragraph said
-> `develop` until an `implement` stage tried to follow it and stopped
-> (`_specs/e2e-production-safety-lock/implement.md`, `BLK-PLAN-01` / B-5).
-> Anything else in this repository still naming `develop` — a workflow trigger,
-> a script, a document — is silently doing nothing and should be corrected when
-> touched.
+> **`develop` is dead — never branch from it.** `origin/develop` is gone. A
+> workflow trigger, script or document still naming `develop` does nothing; fix
+> it when you touch it.
 
 **Protected runtime paths.** The paths below are this repository's runtime. They
 may be changed **only** inside an approved `implement` stage, and only when the
