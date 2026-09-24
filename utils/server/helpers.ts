@@ -112,39 +112,56 @@ function preciseMultiply(a, b) {
 }
 function toFixedUp(decimalDigits, number) {
   const factor = 10 ** decimalDigits;
-  return (Math.ceil(Number(number) * factor) / factor).toFixed(decimalDigits);
+  // Clear the arithmetic noise before rounding up: 8.3 × 100 is
+  // 830.0000000000001 in JavaScript, and rounded up blindly that is 831, so
+  // 8.3 was shown as 8.31.
+  const multiplied = Number((Number(number) * factor).toFixed(12));
+  return (Math.ceil(multiplied) / factor).toFixed(decimalDigits);
 }
 
+/** The one price rule, for the server and the browser alike.
+ *  `utils/functions.tsx > RoundPrice` fills a left-out rate, decimals and
+ *  language from the shopper's saved currency (in the browser only) and then
+ *  calls this, so the two can never drift apart again.
+ *
+ *  Two rules, both rounding up to the currency's decimal points:
+ *  - `charged: true` — multiply by the rate first, then round. This is what
+ *    the backend charges, so the bag, checkout and orders use it
+ *    (69.9998 at rate 100, 2 decimals → 6999.98).
+ *  - otherwise — round first, then multiply. Every other screen keeps this
+ *    (→ 7000). _specs/round-price-convert-then-round. */
 export const RoundPrice = ({
   num,
   rate,
   returnNumber,
-  language = "en",
+  language,
   points,
+  charged,
 }: {
   num?: number | string;
   rate?: number;
   returnNumber?: boolean;
   language?: string;
   points?: any;
+  charged?: boolean;
 }): number | string => {
   let price_num = Number(num);
   // A missing or unreadable price becomes NaN, which fails every band test
   // below and lands in the millions branch — the shopper was shown "NaNM".
-  // Treat it as nothing instead, the same as the client-side sibling in
-  // utils/functions.tsx.
+  // Treat it as nothing instead.
   if (!Number.isFinite(price_num)) price_num = 0;
 
-  // Currency conversion at the start
-  let rateVariable = rate ?? 1;
+  // A missing rate — or a rate of 0 — counts as 1, as it always did in the
+  // browser copy.
+  let rateVariable = Number(rate) || 1;
   // Callers pass `points: currency?.decimal_digits`, which is undefined until
   // the currency request lands. `10 ** undefined` is NaN, so the whole price
   // collapsed and the shopper was shown "NaNM" while the page was still
-  // loading. Zero is the same fallback the client-side sibling in
-  // utils/functions.tsx uses.
+  // loading. Zero decimals is the fallback.
   let deciaml_points = Number(points) || 0;
-  price_num = Number(toFixedUp(deciaml_points, price_num));
-  let number = preciseMultiply(price_num, rateVariable);
+  let number = charged
+    ? Number(toFixedUp(deciaml_points, preciseMultiply(price_num, rateVariable)))
+    : preciseMultiply(Number(toFixedUp(deciaml_points, price_num)), rateVariable);
 
   if (returnNumber) {
     return number;

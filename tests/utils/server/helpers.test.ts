@@ -303,6 +303,72 @@ describe("showing a price (RoundPrice)", () => {
   });
 });
 
+// _specs/round-price-convert-then-round. The server copy draws the listing
+// card, the product page and the price filters. `charged: true` selects the
+// rule the bag, checkout and orders use: multiply by the rate, then round up to
+// the currency's decimals — what the backend charges. Without it, the display
+// rule stays as today: round up, then multiply.
+describe("showing a price (RoundPrice) — the charged rule and the display rule", () => {
+  it("charged: 69.9998 at rate 100 with 2 decimals is 6999.98, as text and as a number (AC-1)", () => {
+    const args = { num: 69.9998, rate: 100, points: 2, charged: true } as any;
+    expect(RoundPrice({ ...args, returnNumber: true }), "the server copy's charged number is not what the backend charges").toBe(6999.98);
+    expect(RoundPrice(args), "the server copy shows a charged price other than what the backend charges").toBe(6999.98);
+  });
+
+  it("charged: 0.1 at rate 0.2 with 1 decimal is 0.1, never more decimals than the currency (AC-2)", () => {
+    expect(
+      RoundPrice({ num: 0.1, rate: 0.2, points: 1, charged: true, returnNumber: true } as any),
+      "the server copy's charged price carries more decimals than a 1-decimal currency allows",
+    ).toBe(0.1);
+  });
+
+  it("charged: rounds up after the rate — 1.2345 at rate 3 is 3.71; 10.001 at rate 1 is 10.01 (AC-3)", () => {
+    expect(
+      RoundPrice({ num: 1.2345, rate: 3, points: 2, charged: true, returnNumber: true } as any),
+      "the server copy rounded before the rate (3.72) instead of after it (3.7035 → 3.71)",
+    ).toBe(3.71);
+    expect(
+      RoundPrice({ num: 10.001, rate: 1, points: 2, charged: true, returnNumber: true } as any),
+      "the server copy's charged rule stopped rounding up",
+    ).toBe(10.01);
+  });
+
+  it("display rule is unchanged: 69.9998 at rate 100 is 7000, 1.2345 at rate 3 is 3.72 (AC-4)", () => {
+    // The 0.1 @ 0.2 → 0.02 case is the "multiplies without the usual decimal
+    // drift" test above, which stays as it is.
+    expect(RoundPrice({ num: 69.9998, rate: 100, points: 2, returnNumber: true }), "the server copy's display rule changed for 69.9998 at rate 100").toBe(7000);
+    expect(RoundPrice({ num: 1.2345, rate: 3, points: 2, returnNumber: true }), "the server copy's display rule changed for 1.2345 at rate 3").toBe(3.72);
+  });
+
+  it("8.3 at rate 1 with 2 decimals stays 8.3 in both rules (AC-5)", () => {
+    // 8.3 × 100 is 830.0000000000001 in JavaScript; rounded up blindly that is
+    // 831, and the listing card showed 8.31.
+    expect(RoundPrice({ num: 8.3, rate: 1, points: 2, returnNumber: true }), "the server copy lifted 8.3 to 8.31 in the display rule").toBe(8.3);
+    expect(
+      RoundPrice({ num: 8.3, rate: 1, points: 2, charged: true, returnNumber: true } as any),
+      "the server copy lifted 8.3 in the charged rule",
+    ).toBe(8.3);
+  });
+
+  it("with rate 1 the charged rule gives the same figures as the display rule (AC-7)", () => {
+    const inputs: Record<string, any>[] = [
+      { num: 0, points: 2 },
+      { num: 150000, points: 2 },
+      { num: 1000000, points: 2 },
+      { num: 150000, points: 2, language: "ar" },
+      { num: 1000000, points: 2, language: "ar" },
+      { num: 25.4 },
+      { num: "not a price" },
+    ];
+    for (const args of inputs) {
+      expect(
+        RoundPrice({ ...args, rate: 1, charged: true } as any),
+        `with rate 1 the server copy's charged rule moved ${JSON.stringify(args)}`,
+      ).toBe(RoundPrice({ ...args, rate: 1 }));
+    }
+  });
+});
+
 describe("building a video address (getVideoUrl)", () => {
   it("adds the media address, the folder and the file type", () => {
     expect(getVideoUrl("clip", {})).toBe(

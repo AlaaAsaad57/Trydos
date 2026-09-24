@@ -377,6 +377,7 @@ function OrderButton({ close, toOrders }) {
                     data-pw="cart-total-price"
                   >
                     {RoundPrice({
+                      charged: true,
                       num:
                         getTotaPriceToShow() +
                         total_discount -
@@ -435,6 +436,7 @@ function OrderButton({ close, toOrders }) {
                   >
                     -{" "}
                     {RoundPrice({
+                      charged: true,
                       num: total_discount,
 
                       returnNumber: true,
@@ -460,7 +462,7 @@ function OrderButton({ close, toOrders }) {
                   </div>
 
                   <span className="ml-[5px] bold  text-[13px] px-[13px] text-[#5BA260]">
-                    - {RoundPrice({ num: 0 })} {currency.symbol}
+                    - {RoundPrice({ charged: true, num: 0 })} {currency.symbol}
                   </span>
                 </div>
                 <div
@@ -504,6 +506,7 @@ function OrderButton({ close, toOrders }) {
                     <span className="">
                       +{" "}
                       {RoundPrice({
+                        charged: true,
                         num: total_shipping_cost,
                         returnNumber: true,
                         points: currency?.decimal_digits,
@@ -563,6 +566,7 @@ function OrderButton({ close, toOrders }) {
                   className="line-through regular"
                 >
                   {RoundPrice({
+                    charged: true,
                     num: getTotaPriceToShow() + total_discount,
                     returnNumber: true,
                     points: currency?.decimal_digits,
@@ -571,6 +575,7 @@ function OrderButton({ close, toOrders }) {
                 </span>{" "}
                 <span data-pw="offer-total-price">
                   {RoundPrice({
+                    charged: true,
                     num: getTotaPriceToShow(),
                     returnNumber: true,
                     points: currency?.decimal_digits,
@@ -688,6 +693,7 @@ function OrderButton({ close, toOrders }) {
                         >
                           {cart.length} {translate("items")}{" "}
                           {RoundPrice({
+                            charged: true,
                             num: getTotaPriceToShow(),
                             returnNumber: true,
                             points: currency?.decimal_digits,

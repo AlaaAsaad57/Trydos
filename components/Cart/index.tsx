@@ -543,6 +543,7 @@ export const QuantutyInput = ({
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
   const oldPriceLabel = String(
     RoundPrice({
+      charged: true,
       num: product.price * product.quantity,
       rate: currency?.exchange_rate,
       points: currency?.decimal_digits,
@@ -551,6 +552,7 @@ export const QuantutyInput = ({
   );
   const newPriceLabel = String(
     RoundPrice({
+      charged: true,
       num: currentUnitPrice * product.quantity,
       rate: currency?.exchange_rate,
       points: currency?.decimal_digits,

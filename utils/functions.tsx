@@ -18,6 +18,7 @@ import {
   serializeUnknownForErrorLog,
 } from "./errorSerialization";
 import { CartApiInterface } from "./types/cart";
+import { RoundPrice as roundPriceRule } from "./server/helpers";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -130,96 +131,41 @@ export const getConfiguredImage = ({ src, width, height, q, c_pad }: any) => {
   return src?.file_path || "";
 };
 
-function preciseMultiply(a, b) {
-  const aStr = a.toString();
-  const bStr = b.toString();
-
-  // عدد الأرقام بعد الفاصلة في كل رقم
-  const aDecimals = (aStr.split(".")[1] || "").length;
-  const bDecimals = (bStr.split(".")[1] || "").length;
-
-  // نحذف الفواصل ونحول الأرقام لأعداد صحيحة
-  const intA = Number(aStr.replace(".", ""));
-  const intB = Number(bStr.replace(".", ""));
-
-  // نضرب الأعداد الصحيحة
-  const resultInt = intA * intB;
-
-  // نعيد الفاصلة لمكانها الصحيح
-  const decimals = aDecimals + bDecimals;
-  return resultInt / Math.pow(10, decimals);
-}
-function toFixedUp(decimalDigits, number) {
-  const factor = 10 ** decimalDigits;
-
-  // 1. الضرب بالمعامل (مثلاً 100)
-  let multiplied = Number(number) * factor;
-
-  // 2. إصلاح خطأ الفواصل العشرية في لغة البرمجة
-  // نقوم بتقريب الرقم لأقرب 12 خانة عشرية للتخلص من أي كسور وهمية
-  // مثل 830.0000000000001 ستعود لتصبح 830
-  multiplied = Number(multiplied.toFixed(12));
-
-  // 3. الآن نطبق التقريب للأعلى (Ceil)
-  const ceiled = Math.ceil(multiplied);
-
-  // 4. القسمة وإرجاع النص
-  return (ceiled / factor).toFixed(decimalDigits);
-}
-
+/** The price rule, shared with the server (`utils/server/helpers.ts`, where
+ *  the arithmetic lives and both rules are described). This copy only fills a
+ *  left-out rate, decimal points and language from the shopper's saved currency
+ *  and language, then hands everything on.
+ *
+ *  **Only in the browser.** On the server the app store is one object for every
+ *  request of the process, not kept per shopper, so reading it there could use
+ *  another shopper's currency. A server-side call falls back to rate 1, 0
+ *  decimals and English, exactly as the server copy does. */
 export const RoundPrice = ({
   num,
   rate,
   returnNumber,
   language,
   points,
+  charged,
 }: {
   num?: number | string;
   rate?: number;
   returnNumber?: boolean;
   language?: string;
   points?: any;
+  charged?: boolean;
 }): number | string => {
-  let price_num = Number(num);
-  // A missing or unreadable price used to become NaN, which fails every band
-  // test below and lands in the millions branch — the shopper was shown
-  // "NaNM". Treat it as nothing instead.
-  if (!Number.isFinite(price_num)) price_num = 0;
-  const {
-    currency,
-    settings,
-    language: languageVariable,
-  } = useAppStore.getState();
+  const saved: { currency?: any; language?: string } =
+    typeof window !== "undefined" ? useAppStore.getState() : {};
 
-  // Currency conversion at the start
-  let rateVariable = rate || currency?.exchange_rate || 1;
-  let deciaml_points = points || currency?.decimal_digits || 0;
-  price_num = Number(toFixedUp(deciaml_points, price_num));
-  let number = preciseMultiply(price_num, rateVariable);
-
-  if (returnNumber) {
-    return number;
-  }
-
-  // Return raw converted number if requested
-  let languageCode = language ?? languageVariable ?? "en";
-
-  // Dart's formatNumber logic
-  const thousand = languageCode !== "ar" ? "K" : "أ";
-  const million = languageCode !== "ar" ? "M" : "م";
-
-  if (number >= 1e5 && number < 1e6) {
-    const result = Math.floor((number + 999) / 1000);
-    return `${result}${thousand}`;
-  } else if (number === 0) {
-    return "0";
-  } else if (number < 1e5) {
-    return number;
-  } else {
-    let result = Math.floor((number + 999) / 1000) / 1000;
-
-    return `${result}${million}`;
-  }
+  return roundPriceRule({
+    num,
+    rate: rate || saved.currency?.exchange_rate,
+    points: points || saved.currency?.decimal_digits,
+    language: language ?? saved.language,
+    returnNumber,
+    charged,
+  });
 };
 
 export const onClickSearchHistory = (searchValue) => {

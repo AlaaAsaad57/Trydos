@@ -135,6 +135,7 @@ const OrderInvoice = ({
         <span className="bold mx-[2px]">.</span>
         <span>
           {RoundPrice({
+            charged: true,
             num: invoice.total,
             language: language,
             returnNumber: true,

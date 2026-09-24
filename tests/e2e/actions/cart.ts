@@ -1290,7 +1290,7 @@ export const readShopCurrency = async (
   };
 };
 
-/** `toFixedUp` from `utils/functions.tsx:152-169`, copied exactly.
+/** `toFixedUp` from `utils/server/helpers.ts`, copied exactly.
  *
  *  Copied rather than imported on purpose. The check has to fail when the app's
  *  arithmetic changes; importing the app's own helper would make both sides
@@ -1301,8 +1301,8 @@ const roundUpTo = (decimalDigits: number, value: number): number => {
   return Math.ceil(multiplied) / factor;
 };
 
-/** `preciseMultiply` from `utils/functions.tsx:133-151`, copied exactly, and
- *  for the same reason as above. */
+/** `preciseMultiply` from `utils/server/helpers.ts`, copied exactly, and for
+ *  the same reason as above. */
 const preciseMultiply = (a: number, b: number): number => {
   const aStr = a.toString();
   const bStr = b.toString();
@@ -1315,17 +1315,18 @@ const preciseMultiply = (a: number, b: number): number => {
 
 /** The figure the bag **should** draw for a number the backend sent.
  *
- *  `RoundPrice({ num, returnNumber: true, points })`
- *  (`utils/functions.tsx:170-202`) does two things in order: round the number
- *  **up** to the currency's decimal places, then multiply by the exchange rate.
- *  This repeats both, so the check compares a figure against a figure. */
+ *  The bag is a charged screen: `RoundPrice({ num, returnNumber: true, points,
+ *  charged: true })` (`utils/server/helpers.ts`) multiplies by the exchange
+ *  rate first, then rounds **up** to the currency's decimal places — what the
+ *  backend charges (_specs/round-price-convert-then-round). This repeats both
+ *  steps in that order, so the check compares a figure against a figure. */
 export const expectedFigureFor = (
   sent: number,
   currency: ShopCurrency,
 ): number =>
-  preciseMultiply(
-    roundUpTo(currency.decimalDigits, sent),
-    currency.exchangeRate,
+  roundUpTo(
+    currency.decimalDigits,
+    preciseMultiply(sent, currency.exchangeRate),
   );
 
 /** Does the figure on screen match the number the backend sent?

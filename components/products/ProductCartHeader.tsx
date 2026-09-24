@@ -10,7 +10,7 @@ function ProductCartHeader({ language }) {
     localCart.map((s) => {
       total_price += s.offer_price * s.quantity;
     });
-    return RoundPrice({ num: total_price, rate: currency?.exchange_rate });
+    return RoundPrice({ charged: true, num: total_price, rate: currency?.exchange_rate });
   };
   return (
     <div

@@ -361,6 +361,7 @@ const RenderReturnedItem = ({
                 <span className="text-xs text-gray-500">{translateFunction("Price")}</span>
                 <span className="text-sm font-medium text-gray-900">
                   {RoundPrice({
+                    charged: true,
                     num: return_item.product_price,
                     language: language,
                   })}
@@ -371,6 +372,7 @@ const RenderReturnedItem = ({
                 <span className="text-xs text-gray-500">{translateFunction("Subtotal")}</span>
                 <span className="text-sm font-semibold text-blue-600">
                   {RoundPrice({
+                    charged: true,
                     num:
                       return_item.product_price *
                       parseInt(

@@ -130,6 +130,7 @@ function ReturnOrderItemWrapper({
           )}
           <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
             {RoundPrice({
+              charged: true,
               num:
                 ((item?.offer_price || item.price) / item.qty) * returnedQty -
                 (selectedOptions?.is_cost_by_system === 0
@@ -228,6 +229,7 @@ function ReturnOrderItemWrapper({
                   <span data-pw="reason-cost">
                     (
                     {RoundPrice({
+                      charged: true,
                       num: option.cost,
                       rate: currency?.exchange_rate,
                       language: language,

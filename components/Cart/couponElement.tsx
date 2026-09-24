@@ -160,7 +160,7 @@ const CouponElement = ({
                 {loading
                   ? translateFunction("Applying...")
                   : coupon
-                    ? `- ${RoundPrice({ num: coupon })} ${currency.symbol}`
+                    ? `- ${RoundPrice({ charged: true, num: coupon })} ${currency.symbol}`
                     : translateFunction("Apply")}
               </div>
             </div>
