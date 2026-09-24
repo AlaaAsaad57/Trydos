@@ -59,8 +59,18 @@ function ProductStories({ id, initialStories, InitialStoriesData }) {
   const [hasEnd, setHasEnd] = useState(InitialStoriesData.length < 10);
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
+  // The story viewer reads the shared list (SelectStory, next, previous,
+  // watchStory all work on store.storiesData), so this row has to put its own
+  // stories there. It is a BORROW, not a handover: a product opens as an
+  // intercepted modal, so the home stories bar is still mounted underneath with
+  // every page it had loaded. Give the list back on the way out, or the bar is
+  // left showing this product's stories.
   useEffect(() => {
+    const previousStories = useAppStore.getState().storiesData;
     setStoryData(InitialStoriesData);
+    return () => {
+      setStoryData(previousStories);
+    };
   }, []);
   const setSelectStory = (e) => {
     SelectStory(e);

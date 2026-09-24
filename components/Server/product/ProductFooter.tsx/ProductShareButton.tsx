@@ -1,4 +1,3 @@
-import React from "react";
 
 function ProductShareButton({ Active, total_shares, setActive }) {
   const getSharesCount = () => {

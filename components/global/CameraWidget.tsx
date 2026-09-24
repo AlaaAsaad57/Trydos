@@ -1,14 +1,9 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import Webcam from "react-webcam";
 import { LogError, translateFunction } from "utils/functions";
 import { showErrorNotification } from "@/store/notifications/reducer";
-
-interface CameraWidgetProps {
-  onCapture: (file: File) => void;
-  onClose: () => void;
-}
 
 export const CameraWidget = ({ onCapture, onClose }) => {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -108,7 +103,7 @@ export const CameraWidget = ({ onCapture, onClose }) => {
   };
 
   const handleUserMediaError = (error: any) => {
-    console.error("Camera error:", error);
+    LogError({ scenario: "CameraWidget: the camera failed", error });
 
     if (error.name === "OverconstrainedError") {
       setConstraintError(true);

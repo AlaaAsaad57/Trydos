@@ -1,3 +1,12 @@
+import { translateFunction } from "utils/functions";
+
+// The sender writes the English "Typing..." straight into Firebase, and every
+// other client reads that same value, so the stored text has to stay English.
+// Translate it here, where it is shown. Any other status — a last-seen date —
+// is passed through as it is.
+export const typingLabel = (status) =>
+  status === "Typing..." ? translateFunction("Typing...") : status;
+
 function TypingIndicator({ status }) {
   return (
     <svg
@@ -21,7 +30,7 @@ function TypingIndicator({ status }) {
           letterSpacing="0.01em"
         >
           <tspan x="0" y="0">
-            {status}
+            {typingLabel(status)}
           </tspan>
         </text>
         <g

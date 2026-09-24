@@ -7,6 +7,7 @@ import React, {
   ChangeEvent,
   KeyboardEvent,
 } from "react";
+import { createPortal } from "react-dom";
 import { useStopwatch } from "react-timer-hook";
 /* ----------------------------- Local Imports ----------------------------- */
 import Recorder from "components/Chat/components/Recorder";
@@ -35,6 +36,12 @@ import CustomPopup from "components/global/Popup";
 import ChatImagePreviewBeforeSend from "../components/ChatImagePreviewBeforeSend";
 import MediaMessagePreview from "../components/MediaMessagePreview";
 import { Message } from "utils/types/chat";
+import {
+  MEDIA_INPUT_ACCEPT,
+  isImageOrVideoFile,
+  isUnsupportedVideoFile,
+  pickMessageType,
+} from "../videoSupport";
 import { trackPosthog, CHAT_EVENTS } from "utils/posthogEvents";
 
 /* -------------------------- Dynamic Components --------------------------- */
@@ -187,6 +194,8 @@ function ConversationContainer({
   const isFetchingOlderRef = useRef<boolean>(false);
   const prevLastMsgIdRef = useRef<any>(null);
 
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const onlyMediaRef = useRef<boolean>(false);
   const imageFile = useRef<HTMLInputElement | null>(null);
   const blobs = useRef<Blob | null>(null);
   const AudioRef = useRef<HTMLAudioElement | null>(null);
@@ -290,21 +299,44 @@ function ConversationContainer({
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const midLocal = "m" + Math.random().toString().replace(".", "");
     try {
+      const isMediaOnly = onlyMediaRef.current;
+      onlyMediaRef.current = false;
+
       const file = e.target.files?.[0];
       e.target.value = "";
       e.target.files = null;
+      if (fileInputRef.current) {
+        fileInputRef.current.accept = FILE_INPUT_ACCEPT;
+      }
 
       if (!file || !activeChat) return;
 
-      if (file.type.includes("image")) {
+      if (isMediaOnly && !isImageOrVideoFile(file)) {
+        // A picked video that no browser can play gets its own wording. The
+        // general "only image and video" line reads as a mistake to somebody
+        // who just picked a video.
+        showErrorNotification(
+          isUnsupportedVideoFile(file)
+            ? translateFunction(
+                "This video format is not supported. Send an MP4 video instead.",
+              )
+            : translateFunction("Only image and video files are allowed"),
+        );
+        sendStatus(null);
+        return;
+      }
+
+      // One decision, made in one place (components/Chat/videoSupport.ts), so
+      // the picker gate above and the branch below can never disagree about the
+      // same file. An unplayable container falls through to FileMessage rather
+      // than being refused here: as a file it still downloads, which is better
+      // than a video bubble that shows nothing.
+      const messageType = pickMessageType(file);
+      if (messageType === "ImageMessage") {
         // Show preview widget for images
         setPendingImageFile(file);
-      } else if (file.type.includes("audio")) {
-        await handleMediaMessage(file, "VoiceMessage", midLocal);
-      } else if (file.type.includes("video")) {
-        await handleMediaMessage(file, "VideoMessage", midLocal);
       } else {
-        await handleMediaMessage(file, "FileMessage", midLocal);
+        await handleMediaMessage(file, messageType, midLocal);
       }
     } catch (error) {
       LogError({
@@ -466,6 +498,22 @@ function ConversationContainer({
     }
   }, [activeChat?.messages, pendingScrollToMessageId]);
 
+  useEffect(() => {
+    const input = fileInputRef.current;
+    if (!input) return;
+
+    const handleCancel = () => {
+      onlyMediaRef.current = false;
+      input.accept = FILE_INPUT_ACCEPT;
+      sendStatus(null);
+    };
+
+    input.addEventListener("cancel", handleCancel);
+    return () => {
+      input.removeEventListener("cancel", handleCancel);
+    };
+  }, [sendStatus]);
+
   /* ------------------------- Camera permission -------------------------- */
   const enableCamera = async (bool: boolean) => {
     if (!bool) return setCameraEnabled(false);
@@ -557,7 +605,11 @@ function ConversationContainer({
           mes.sender_user_id === next.sender_user_id &&
           next.sender_user_id !== "call")
       ) {
-        if (showDate(mes.created_at) === showDate(prev?.created_at))
+        // At the top of the chat there is no `prev`, so compare with `next`.
+        if (
+          showDate(mes.created_at) ===
+          showDate((prev ?? next)?.created_at)
+        )
           type = "first-chat";
       } else if (
         prev &&
@@ -617,27 +669,11 @@ function ConversationContainer({
     if (!croppedImageFile || !activeChat) return;
 
     const midLocal = "m" + Math.random().toString().replace(".", "");
-    try {
-      handleMediaMessage(croppedImageFile, "ImageMessage", midLocal);
-      setCroppedImageFile(null);
-      setCroppedImagePreview(null);
-      setPendingImageFile(null);
-    } catch (error) {
-      LogError({
-        error: error,
-        scenario:
-          "handleImagePreviewSend in conversation container - chat widget",
-      });
-
-      deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-      showErrorNotification(
-        error?.message ?? translateFunction("Failed to Upload file"),
-      );
-      sendStatus(null);
-      setCroppedImageFile(null);
-      setCroppedImagePreview(null);
-    }
-  }, [croppedImageFile, activeChat, handleMediaMessage, sendStatus]);
+    handleMediaMessage(croppedImageFile, "ImageMessage", midLocal);
+    setCroppedImageFile(null);
+    setCroppedImagePreview(null);
+    setPendingImageFile(null);
+  }, [croppedImageFile, activeChat, handleMediaMessage]);
 
   /* ------------------------- Audio Sender ------------------------------- */
   const sendAudio = useCallback(
@@ -837,6 +873,7 @@ function ConversationContainer({
     <>
       {/* hidden file input */}
       <input
+        ref={fileInputRef}
         hidden
         accept={FILE_INPUT_ACCEPT}
         onFocus={() => {
@@ -868,14 +905,24 @@ function ConversationContainer({
         />
       )}
 
-      {/* Camera overlay */}
-      {cameraEnabled && (
-        <div className="fixed top-0 left-0 w-full h-full bg-transparent flex flex-col items-center justify-start p-5 z-9999999999">
-          <div
-            className="absolute top-0 left-0 w-full h-full bg-[#585751] opacity-60 z-9999"
-            onClick={() => enableCamera(false)}
-          />
-          {(() => {
+      {/* Camera overlay.
+
+          CameraComponent's own root is `fixed inset-0 bg-neutral-950` — an
+          opaque full-screen layer that already carries its own dimmer. The
+          wrapper that used to sit here added a SECOND transparent `fixed`
+          layer and a grey `bg-[#585751] opacity-60` backdrop underneath it.
+          The camera covered both, so the grey was never seen and the
+          `onClick` that was meant to close the camera could never be reached.
+          Both are gone; nothing about what the user sees changes.
+
+          It portals into <body> for the reason MediaMessagePreview does: the
+          chat stylesheets ask for z-index values that all clamp to the 32-bit
+          maximum, so they land on one layer and document order decides the
+          winner. The end of <body> comes last. */}
+      {cameraEnabled &&
+        typeof document !== "undefined" &&
+        createPortal(
+          (() => {
             const webcamProps = {
               imageFile,
               setImgs,
@@ -898,9 +945,9 @@ function ConversationContainer({
             } as any;
             // @ts-ignore runtime prop bag
             return <WebcamCaptureAny {...webcamProps} />;
-          })()}
-        </div>
-      )}
+          })(),
+          document.body,
+        )}
 
       {/* Image / video preview modal */}
       {(imgs || vid) && (
@@ -997,6 +1044,9 @@ function ConversationContainer({
         {/* Messages */}
         <div
           ref={scrollContainerRef}
+          onScroll={() => {
+            window.dispatchEvent(new CustomEvent("chat-message-close-all"));
+          }}
           className="chat-message-container mt-[51.5px] py-[40px] px-[20px] bg-[#f7f7f7] w-full flex flex-col overflow-x-hidden overflow-y-auto"
           style={{
             height: "calc(100% - 101px)",
@@ -1119,9 +1169,16 @@ function ConversationContainer({
                       style={{ minWidth: 43, cursor: "pointer" }}
                       className="chatplus"
                       onClick={() => {
-                        document
-                          .querySelector<HTMLInputElement>('input[type="file"]')
-                          .click();
+                        onlyMediaRef.current = false;
+                        const fileInput =
+                          fileInputRef.current ||
+                          document.querySelector<HTMLInputElement>(
+                            'input[type="file"]',
+                          );
+                        if (fileInput) {
+                          fileInput.accept = FILE_INPUT_ACCEPT;
+                          fileInput.click();
+                        }
                         sendStatus("Sending file...");
                       }}
                       height={40}
@@ -1214,18 +1271,20 @@ function ConversationContainer({
             {
               render: () => <>{translateFunction("files")}</>,
               onClick: () => {
+                onlyMediaRef.current = true;
                 const fileInput =
+                  fileInputRef.current ||
                   document.querySelector<HTMLInputElement>(
                     'input[type="file"]',
                   );
                 if (fileInput) {
-                  // 1. Change "images/*" to "image/*"
-                  fileInput.accept = "image/*";
+                  // Accept images and videos only
+                  fileInput.accept = MEDIA_INPUT_ACCEPT;
 
-                  // 2. Trigger the click
+                  // Trigger the click
                   fileInput.click();
 
-                  // 3. Reset the accept attribute after a delay
+                  // Reset the accept attribute after a delay
                   setTimeout(() => {
                     fileInput.accept = FILE_INPUT_ACCEPT;
                   }, 1000);

@@ -21,8 +21,12 @@
 //     the test identity's phone number on the login screen, so the live project
 //     records both and `test-e2e.yml` encrypts them before upload.
 //
-// The scripted project has no real session and no real secrets, so it may record
-// freely.
+// The scripted project used to have no real session and no real secrets, so it
+// could record freely. That is **no longer true of every spec in it**:
+// `profile.scripted.spec.ts` signs in for real, and turns its own trace off with
+// `test.use({ trace: "off" })` for exactly that reason. The project default below
+// stays as it is, because `auth.scripted.spec.ts` still mints no real token — but
+// a new scripted spec that signs in must do the same as the profile one.
 
 import { defineConfig } from "@playwright/test";
 
@@ -58,7 +62,24 @@ export default defineConfig({
 
   // The build is not bounded by this — it happens before Playwright starts. This
   // covers starting the server and logging in once.
-  globalTimeout: 30 * 60 * 1000,
+  //
+  // Raised from 30 to 38 minutes, and the number is the CI job's, not a guess.
+  // Run 33991656686 spent 30.0 minutes inside Playwright and 32m01s of job wall
+  // time, so everything outside the suite — install, build, browser download,
+  // the report step — costs about two minutes. The job is capped at 45 minutes
+  // (`.github/workflows/test-e2e.yml:97`), which leaves 43 for the suite; 38
+  // takes most of it and keeps five minutes of margin for a slow install.
+  //
+  // It had to move. That same run ended with **six cases that never started**
+  // because the suite ran out of time, and BUY-03 and BUY-04 add two more. A
+  // case that never runs reports nothing at all, which is the one outcome worse
+  // than a red one.
+  // **85, not 100.** At 100 this equalled the lane job's own cap
+  // (`.github/workflows/e2e-lane.yml`), so Playwright could never stop first: a
+  // slow lane was killed by GitHub with no report at all, which is the one
+  // outcome worse than a red one. 85 leaves Playwright room to stop, write the
+  // report and let `cli.ts report` redact it before the job ends.
+  globalTimeout: 85 * 60 * 1000,
 
   // `list` for a human reading the CI log, plus `json` for the Telegram message
   // — which needs the counts and the failing test names, and cannot get them by
@@ -94,8 +115,41 @@ export default defineConfig({
 
   projects: [
     {
+      // The QA seed. A **setup project**, not `globalSetup`, and the difference
+      // matters twice over.
+      //
+      // `globalSetup` has no browser, no page and no fixtures, and every
+      // sign-in helper in this suite takes a `Page`. So a seed placed there
+      // could not sign in at all -- there is no mechanism, not merely an
+      // awkward one.
+      //
+      // And a setup project that fails names itself. The same failure inside
+      // `globalSetup` reports every case in the lane as never-run, which hides
+      // what actually broke behind twenty-eight blanks.
+      //
+      // It does nothing at all unless the lane is `account` -- see `qaSeed.ts`.
+      // Both lane jobs load this config, and a setup project cannot be excluded
+      // by a positional file filter or by `--project`, because `dependencies`
+      // pulls it back in. The lane name in the environment is the only gate.
+      name: "setup",
+      testMatch: /qaSeed\.ts$/,
+      use: {
+        // The seed signs in and writes to a real environment, so it carries the
+        // same rule as the `live` project: no trace, ever. A trace archives
+        // every request header, which makes a downloadable trace a downloadable
+        // session.
+        trace: "off",
+        video: "retain-on-failure",
+        screenshot: "only-on-failure",
+      },
+    },
+    {
       name: "live",
       testMatch: /.*\.live\.spec\.ts$/,
+      // The seed runs before any live case. Without this the QA product might
+      // or might not exist when a case looks for it, depending on which file
+      // Playwright happened to start first.
+      dependencies: ["setup"],
       use: {
         // **No trace, ever.** This is the one artifact that carries the auth
         // token: it archives every request header, so a downloadable trace is a
@@ -114,6 +168,10 @@ export default defineConfig({
       name: "scripted",
       testMatch: /.*\.scripted\.spec\.ts$/,
       use: {
+        // No service worker. `page.route` and `context.route` do not see a
+        // request a service worker makes, so one registering mid-run would be a
+        // hole in the closed mode `profile.scripted.spec.ts` depends on.
+        serviceWorkers: "block",
         trace: "retain-on-failure",
         video: "retain-on-failure",
         screenshot: "only-on-failure",

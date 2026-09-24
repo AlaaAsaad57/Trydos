@@ -73,11 +73,7 @@ function NewChatsSide({ activeChat, chats }) {
                         a.channel_members.filter(
                           (ada) =>
                             parseInt(ada.user_id) !== parseInt(getUser()?.id)
-                        )[0]?.user?.name ||
-                          a.channel_members.filter(
-                            (ada) =>
-                              parseInt(ada.user_id) !== parseInt(getUser()?.id)
-                          )[0]?.user?.username
+                        )[0]?.user?.name
                       )}
                     </div>
                   ) : (

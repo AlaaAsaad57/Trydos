@@ -51,9 +51,13 @@ const CORE = "https://core.invalid";
 const GATEWAY = "https://gateway.invalid";
 const CHAT = "https://chat.invalid";
 const STORIES = "https://stories.invalid";
+const COMMENTS = "https://comments.invalid";
 
 const MARKET_PATH = "/auth/refresh-token";
 const SERVICE_PATH = "/api/v1/auth/refresh-token";
+// The comments service sits on its own host with no /api/v1 prefix, so its
+// renewal path is not the one chat and stories share.
+const COMMENTS_PATH = "/public_comment/auth/refresh-token";
 
 // Obviously invented credentials. Nothing here came from a real session.
 const OLD_REFRESH = "refresh-credential-before-rotation";
@@ -126,6 +130,7 @@ const seed = (cookies: Record<string, string> = {}, failWrites = false) =>
       [COOKIE_NAMES.MARKET_REFRESH_TOKEN]: OLD_REFRESH,
       [COOKIE_NAMES.CHAT_REFRESH_TOKEN]: OLD_REFRESH,
       [COOKIE_NAMES.STORIES_REFRESH_TOKEN]: OLD_REFRESH,
+      [COOKIE_NAMES.COMMENTS_REFRESH_TOKEN]: OLD_REFRESH,
       ...cookies,
     },
     failWrites,
@@ -190,6 +195,7 @@ beforeEach(() => {
   vi.stubEnv("GO_BACKEND_URL", GATEWAY);
   vi.stubEnv("NEXT_PUBLIC_CHAT_BACKEND_URL", CHAT);
   vi.stubEnv("STORIES_BACKEND_URL", STORIES);
+  vi.stubEnv("COMMENT_BACKEND_URL", COMMENTS);
 });
 
 afterEach(() => {
@@ -431,7 +437,7 @@ describe("asking the backend that serves this visitor (AC-24, AC-25)", () => {
   });
 });
 
-describe("the chat and stories sessions (AC-18 to AC-22)", () => {
+describe("the chat, stories and comments sessions (AC-18 to AC-22)", () => {
   it("exchanges a chat credential and rotates the chat pair only", async () => {
     const net = makeNetwork([{ status: 200, body: wrappedPair() }]);
     vi.stubGlobal("fetch", net.fetch);
@@ -462,9 +468,41 @@ describe("the chat and stories sessions (AC-18 to AC-22)", () => {
     expect(headers.__lastWrite(COOKIE_NAMES.MARKET_TOKEN)).toBeUndefined();
   });
 
+  it("exchanges a comments credential and rotates the comments pair only", async () => {
+    const net = makeNetwork([{ status: 200, body: wrappedPair() }]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { refreshCommentsSession } = await import("utils/server/authRefresh");
+
+    const outcome = await refreshCommentsSession();
+
+    expect(
+      outcome,
+      "the comments renewal did not report a fresh session credential",
+    ).toEqual({ status: "refreshed", token: NEW_TOKEN });
+    expect(
+      net.calls[0].url,
+      "the comments renewal was not sent to the comments service",
+    ).toBe(`${COMMENTS}${COMMENTS_PATH}`);
+    expect(
+      net.calls[0].body,
+      "the comments service reads the credential from refresh_token; any other field name is refused",
+    ).toEqual({ refresh_token: OLD_REFRESH });
+    expect(
+      headers.__lastWrite(COOKIE_NAMES.USER_ID_HASH)?.value,
+      "the rotated comments session credential was not stored",
+    ).toBe(NEW_TOKEN);
+    expect(
+      headers.__lastWrite(COOKIE_NAMES.COMMENTS_REFRESH_TOKEN)?.value,
+      "the rotated comments renewal credential was not stored, so the next renewal spends one the service already revoked",
+    ).toBe(NEW_REFRESH);
+    // A comments rotation must not touch the shopper own market session.
+    expect(headers.__lastWrite(COOKIE_NAMES.MARKET_TOKEN)).toBeUndefined();
+  });
+
   it.each([
     ["chat", "refreshChatSession"],
     ["stories", "refreshStoriesSession"],
+    ["comments", "refreshCommentsSession"],
   ])("does not exchange a %s credential while signing out", async (_n, fn) => {
     seed({ [COOKIE_NAMES.LOGOUT_GUARD]: "1" });
     const net = makeNetwork([]);
@@ -478,6 +516,7 @@ describe("the chat and stories sessions (AC-18 to AC-22)", () => {
   it.each([
     ["chat", "refreshChatSession", COOKIE_NAMES.CHAT_REFRESH_TOKEN],
     ["stories", "refreshStoriesSession", COOKIE_NAMES.STORIES_REFRESH_TOKEN],
+    ["comments", "refreshCommentsSession", COOKIE_NAMES.COMMENTS_REFRESH_TOKEN],
   ])("keeps a rejected %s credential in the jar", async (_n, fn, cookie) => {
     const net = makeNetwork([{ status: 401, body: {} }]);
     vi.stubGlobal("fetch", net.fetch);
@@ -497,6 +536,7 @@ const SERVICES = [
     name: "chat",
     call: "refreshChatSession",
     base: CHAT,
+    path: SERVICE_PATH,
     refreshCookie: COOKIE_NAMES.CHAT_REFRESH_TOKEN,
     sessionCookie: COOKIE_NAMES.CHAT_TOKEN,
   },
@@ -504,14 +544,23 @@ const SERVICES = [
     name: "stories",
     call: "refreshStoriesSession",
     base: STORIES,
+    path: SERVICE_PATH,
     refreshCookie: COOKIE_NAMES.STORIES_REFRESH_TOKEN,
     sessionCookie: COOKIE_NAMES.STORIES_TOKEN,
+  },
+  {
+    name: "comments",
+    call: "refreshCommentsSession",
+    base: COMMENTS,
+    path: COMMENTS_PATH,
+    refreshCookie: COOKIE_NAMES.COMMENTS_REFRESH_TOKEN,
+    sessionCookie: COOKIE_NAMES.USER_ID_HASH,
   },
 ] as const;
 
 describe.each(SERVICES)(
   "the $name session, the rest of the ladder (AC-18 to AC-23)",
-  ({ call, base, refreshCookie, sessionCookie }) => {
+  ({ call, base, path, refreshCookie, sessionCookie }) => {
     const load = async () => (await import("utils/server/authRefresh")) as any;
 
     it("does nothing when there is no stored credential for it", async () => {
@@ -536,7 +585,7 @@ describe.each(SERVICES)(
       await expect((await load())[call]()).resolves.toEqual({
         status: "unavailable",
       });
-      expect(net.calls[0].url).toBe(`${base}${SERVICE_PATH}`);
+      expect(net.calls[0].url).toBe(`${base}${path}`);
       expect(LogServerError).toHaveBeenCalledTimes(1);
     });
 
@@ -562,7 +611,10 @@ describe.each(SERVICES)(
 
     it("refuses to store a reply carrying half a pair", async () => {
       const net = makeNetwork([
-        { status: 200, body: { data: { access_token: NEW_TOKEN } } },
+        {
+          status: 200,
+          body: { data: { access_token: NEW_TOKEN, token: NEW_TOKEN } },
+        },
       ]);
       vi.stubGlobal("fetch", net.fetch);
 
@@ -611,6 +663,7 @@ describe("when there is no request to read at all", () => {
     ["the shopper session", "refreshMarketSession"],
     ["the chat session", "refreshChatSession"],
     ["the stories session", "refreshStoriesSession"],
+    ["the comments session", "refreshCommentsSession"],
   ])("reports %s as unavailable rather than throwing", async (_name, call) => {
     const net = makeNetwork([]);
     vi.stubGlobal("fetch", net.fetch);
@@ -812,27 +865,33 @@ describe("two callers at once (AC-26, AC-27)", () => {
         { status: 200, body: wrappedPair() },
         { status: 200, body: wrappedPair() },
         { status: 200, body: wrappedPair() },
+        { status: 200, body: wrappedPair() },
       ],
       { gated: true },
     );
     vi.stubGlobal("fetch", net.fetch);
-    const { refreshMarketSession, refreshChatSession, refreshStoriesSession } =
-      await loadFresh();
+    const {
+      refreshMarketSession,
+      refreshChatSession,
+      refreshStoriesSession,
+      refreshCommentsSession,
+    } = await loadFresh();
 
     const all = Promise.all([
       refreshMarketSession(),
       refreshChatSession(),
       refreshStoriesSession(),
+      refreshCommentsSession(),
     ]);
-    await releaseWhen(3);
+    await releaseWhen(4);
     await all;
 
-    expect(net.callCount).toBe(3);
     expect(net.calls.map((call) => call.url).sort()).toEqual(
       [
         `${CHAT}${SERVICE_PATH}`,
         `${GATEWAY}${MARKET_PATH}`,
         `${STORIES}${SERVICE_PATH}`,
+        `${COMMENTS}${COMMENTS_PATH}`,
       ].sort(),
     );
   });

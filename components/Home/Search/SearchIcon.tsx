@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 
 import "styles/search.css";
 import {
@@ -323,7 +323,7 @@ function SearchIcon({ language, country }) {
       const res = await GetSearchData({
         language,
         country,
-        filters: { ...appliedFilters, search_text: value },
+        filters: { ...normalizeFilters(appliedFilters), search_text: value },
         noProducts: true,
         filters_offset: nextOffset,
         userId: auth.UserID(),
@@ -661,7 +661,8 @@ const SearchContainer = ({
               options={searchHistoryItems}
               setOptions={setValue}
               deleteOption={(e) => {
-                setSearchHistory(searchHistoryItems.filter((s) => s !== e));
+                // Functional update: Clear All calls this once per word.
+                setSearchHistory((list) => list.filter((s) => s !== e));
                 localStorage.setItem(
                   "search-history",
                   JSON.stringify(searchHistoryItems.filter((s) => s !== e)),
@@ -820,7 +821,12 @@ const SearchContainer = ({
                 }`}
               >
                 {relevantRelated
-                  .filter((s) => !applied_filter.categories.includes(s.slug))
+                  .filter(
+                    (s) =>
+                      !applied_filter.categories.some(
+                        (c) => (c?.slug ?? c) === s.slug,
+                      ),
+                  )
                   .map((related, index) => (
                     <div
                       key={related.slug || index}

@@ -579,7 +579,9 @@ describe("verifying the code", () => {
     expect(
       result.current.error,
       "a refused code must say so in words, not only in the colour of the boxes",
-    ).toBe("Please Enter The Correct Code Sent To Your Phone");
+    ).toBe(
+      "Please Enter The Correct Code Sent To Your Phone — Tries left: 2",
+    );
     expect(
       logError,
       "a refused code must be reported, naming the host it happened in",
@@ -647,5 +649,197 @@ describe("verifying the code", () => {
       result.current.isValidPin,
       "the second, correct code must be accepted",
     ).toBe("valid");
+  });
+});
+
+// Three wrong codes per code sent, then the boxes go dead until a new code
+// arrives. The count is held in memory only, and every failed check counts —
+// a refused code, a network fault and a server fault alike.
+describe("the three-try cap", () => {
+  const REFUSED = () => new Error("Wrong Code");
+
+  async function atCodeStep(options: Partial<UsePhoneVerifyFlowOptions> = {}) {
+    const flow = renderFlow({
+      initialPhone: PHONE,
+      phoneLocked: true,
+      ...options,
+    });
+    await act(async () => {
+      await flow.result.current.sendMethod("sms");
+    });
+    return flow;
+  }
+
+  /** Type a wrong code `times` times against a flow already on the code step. */
+  async function typeWrongCodes(
+    result: { current: { verifyPin: (pin: string) => Promise<void> } },
+    times: number,
+  ) {
+    for (let i = 0; i < times; i += 1) {
+      await act(async () => {
+        await result.current.verifyPin("000000");
+      });
+    }
+  }
+
+  it("says two tries are left after the first wrong code", async () => {
+    const verify = vi.fn().mockRejectedValue(REFUSED());
+    const { result } = await atCodeStep({ verify });
+
+    await typeWrongCodes(result, 1);
+
+    expect(
+      result.current.error,
+      "after one wrong code the shopper must be told how many tries remain, " +
+        "instead of guessing in the dark",
+    ).toBe("Please Enter The Correct Code Sent To Your Phone — Tries left: 2");
+    expect(
+      result.current.attemptsLocked,
+      "one wrong code must not kill the boxes — two tries are still owed",
+    ).toBe(false);
+  });
+
+  it("counts the second wrong code down to one try left", async () => {
+    const verify = vi.fn().mockRejectedValue(REFUSED());
+    const { result } = await atCodeStep({ verify });
+
+    await typeWrongCodes(result, 2);
+
+    expect(
+      result.current.error,
+      "the remaining count must go down with each wrong code; a count that " +
+        "stays at two means the message is built from a stale value",
+    ).toBe("Please Enter The Correct Code Sent To Your Phone — Tries left: 1");
+    expect(
+      result.current.attemptsLocked,
+      "two wrong codes must not kill the boxes — one try is still owed",
+    ).toBe(false);
+  });
+
+  it("drops the count and says to ask for a new code on the third", async () => {
+    const verify = vi.fn().mockRejectedValue(REFUSED());
+    const { result } = await atCodeStep({ verify });
+
+    await typeWrongCodes(result, 3);
+
+    expect(
+      result.current.error,
+      "the third wrong code must replace the wording, not append a count of zero",
+    ).toBe("Too many wrong codes. Ask for a new code.");
+    expect(
+      result.current.attemptsLocked,
+      "the third wrong code must kill the boxes",
+    ).toBe(true);
+  });
+
+  it("spends one try when the boxes report a finished code twice at once", async () => {
+    const verify = vi.fn().mockRejectedValue(REFUSED());
+    const { result } = await atCodeStep({ verify });
+
+    // Both calls in one act, the way the pin inputs can fire twice inside a
+    // single tick before `loading` has re-rendered.
+    await act(async () => {
+      await Promise.all([
+        result.current.verifyPin("000000"),
+        result.current.verifyPin("000000"),
+      ]);
+    });
+
+    expect(
+      verify,
+      "a double fire must reach the backend once, not twice",
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      result.current.error,
+      "typing once must cost one try — a double fire that spends two would " +
+        "lock a shopper out after typing two codes",
+    ).toBe("Please Enter The Correct Code Sent To Your Phone — Tries left: 2");
+  });
+
+  it("gives three fresh tries once a new code arrives", async () => {
+    const verify = vi.fn().mockRejectedValue(REFUSED());
+    const { result } = await atCodeStep({ verify });
+    await typeWrongCodes(result, 3);
+
+    // The send guard is armed by the send above, so clear it: this case is
+    // about the cap, not about the cooldown.
+    window.sessionStorage.clear();
+    await act(async () => {
+      await result.current.resend();
+    });
+
+    expect(
+      result.current.attemptsLocked,
+      "a code that arrives must bring the boxes back to life",
+    ).toBe(false);
+
+    await typeWrongCodes(result, 1);
+
+    expect(
+      result.current.error,
+      "a new code must restore all three tries, not resume from the spent count",
+    ).toBe("Please Enter The Correct Code Sent To Your Phone — Tries left: 2");
+  });
+
+  it("stays locked when the request for a new code fails", async () => {
+    const verify = vi.fn().mockRejectedValue(REFUSED());
+    const { result } = await atCodeStep({ verify });
+    await typeWrongCodes(result, 3);
+
+    window.sessionStorage.clear();
+    sendOtp.mockRejectedValueOnce(new Error("the send backend refused the code"));
+    await act(async () => {
+      await result.current.resend();
+    });
+
+    expect(
+      result.current.attemptsLocked,
+      "no new code arrived, so nothing has been earned back — the boxes must " +
+        "stay dead rather than open on the same spent code",
+    ).toBe(true);
+  });
+
+  it("spends a try on a check that never reached a verdict", async () => {
+    // Not a refused code: the request itself failed, so nobody judged the
+    // digits. Counting it is a deliberate decision, recorded as EC-9.
+    const verify = vi.fn().mockRejectedValue(new Error("Network request failed"));
+    const { result } = await atCodeStep({ verify });
+
+    await typeWrongCodes(result, 3);
+
+    expect(
+      result.current.attemptsLocked,
+      "every failed check counts the same, whatever the reason — a shopper " +
+        "offline spends tries exactly as a guesser does",
+    ).toBe(true);
+  });
+
+  it("keeps the analytics attempt count separate from the cap", async () => {
+    const verify = vi
+      .fn()
+      .mockRejectedValueOnce(REFUSED())
+      .mockResolvedValueOnce({ ok: true });
+    const { result } = await atCodeStep({ verify });
+
+    await typeWrongCodes(result, 1);
+    await act(async () => {
+      await result.current.verifyPin("123456");
+    });
+
+    window.sessionStorage.clear();
+    gaEvent.mockClear();
+    await act(async () => {
+      await result.current.resend();
+    });
+
+    const resendEvent = gaEvent.mock.calls
+      .map(([payload]: [{ action: string; params: { attempts?: number } }]) => payload)
+      .find((payload) => payload.action === GA_EVENT_NAMES.RESEND_OTP);
+
+    expect(
+      resendEvent?.params.attempts,
+      "the reported attempts must keep counting every check — the wrong one " +
+        "and the accepted one — not only the wrong codes the cap counts",
+    ).toBe(2);
   });
 });

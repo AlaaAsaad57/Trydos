@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import auth from "services/auth";
 import { LogError, translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
@@ -21,6 +21,9 @@ function CommentBar({ product_data, setCommentsData }) {
   const [loading, setLoading] = useState(false);
 
   const addComment = async () => {
+    // The box shows only the first 200 characters, so only those are posted.
+    const text = (val ?? "").slice(0, 200);
+    if (!text.trim()) return;
     try {
       setTimeout(() => {
         document.querySelector(".comments-extended").scrollTop = 0;
@@ -41,7 +44,7 @@ function CommentBar({ product_data, setCommentsData }) {
         url: CREATE_COMMENT_URL,
         method: "POST",
         body: JSON.stringify({
-          text: val,
+          text: text,
           //   @ts-ignore
           product_id: String(product_data?.id),
           user_id: String(auth.UserID()),

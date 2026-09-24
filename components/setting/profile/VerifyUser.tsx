@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { isValidPhone } from "utils/phone";
@@ -50,35 +50,40 @@ function VerifyUser({ phone: serverPhone }) {
   };
 
   return (
-    <div
-      className="flex flex-col items-center cursor-pointer justify-center h-full self-navigate"
-      onClick={handleOpenModal}
-    >
-      {/* SVG Icon */}
-      {isVerified ? (
-        <img
-          src="/icons/settings/VerifiedUserIcon.svg"
-          className="w-[16px] h-[16px]"
-        />
-      ) : (
-        <img
-          src="/icons/settings/verifyUserIcon.svg"
-          className="w-[16px] h-[16px]"
-        />
-      )}
-
-      {/* Label */}
-      <span
-        className={`text-[10px] regular mt-[4px] ${
-          isVerified ? "text-[#1d1d1d]" : "text-[#FF5F61]"
-        }`}
+    <>
+      <div
+        className="flex flex-col items-center cursor-pointer justify-center h-full self-navigate"
+        onClick={handleOpenModal}
       >
-        {isVerified
-          ? translateFunction("Verified")
-          : translateFunction("Verify Now")}
-      </span>
+        {/* SVG Icon */}
+        {isVerified ? (
+          <img
+            src="/icons/settings/VerifiedUserIcon.svg"
+            className="w-[16px] h-[16px]"
+          />
+        ) : (
+          <img
+            src="/icons/settings/verifyUserIcon.svg"
+            className="w-[16px] h-[16px]"
+          />
+        )}
 
-      {/* AppScaler (the overlay's scaled canvas) is single-instance-only —
+        {/* Label */}
+        <span
+          className={`text-[10px] regular mt-[4px] ${
+            isVerified ? "text-[#1d1d1d]" : "text-[#FF5F61]"
+          }`}
+        >
+          {isVerified
+            ? translateFunction("Verified")
+            : translateFunction("Verify Now")}
+        </span>
+      </div>
+
+      {/* The overlay sits outside the clickable div: React sends a portal's
+          clicks up the component tree, so a click on the flow's close button
+          would reach handleOpenModal and open the overlay again.
+          AppScaler (the overlay's scaled canvas) is single-instance-only —
           it hardcodes #app-outer/#master-canvas and :root vars, so a second
           mounted instance corrupts both. The global auth surface wins:
           if the token just died (session expired / re-verify needed), this
@@ -97,7 +102,7 @@ function VerifyUser({ phone: serverPhone }) {
           />
         </AuthOverlay>
       )}
-    </div>
+    </>
   );
 }
 

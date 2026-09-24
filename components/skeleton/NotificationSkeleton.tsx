@@ -1,5 +1,4 @@
 import Skeleton from "react-loading-skeleton";
-import React from "react";
 import { translateFunction } from "utils/functions";
 
 function NotificationSkeleton() {

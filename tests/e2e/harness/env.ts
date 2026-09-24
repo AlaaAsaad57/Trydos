@@ -49,7 +49,23 @@ export const BACKEND_ADDRESS_KEYS = [
   "COMMENT_BACKEND_URL",
   "FLEET_BASE_URL", // a separate product, phase 19
   "ADMIN_DASHBOARD_BASE_URL", // a separate product, phase 19
+  // The media store. Two keys, and today both resolve to the same host — the
+  // first is where the browser uploads, the second is where it reads a picture
+  // back. Both are checked because a run that uploads to staging and reads from
+  // somewhere else would still be pointing at somewhere else.
+  "NEXT_PUBLIC_MEDIA_SERVER_BASE_URL",
+  "NEXT_PUBLIC_BASE_MEDIA_URL",
 ] as const;
+
+/** The media keys, which the guard additionally requires to be `https:`.
+ *
+ *  Every other address here is reached by the server; these two are reached by
+ *  the browser, and one of them carries an API key in a header. A plain-text
+ *  hop is not acceptable for either. */
+export const HTTPS_ONLY_KEYS: readonly string[] = [
+  "NEXT_PUBLIC_MEDIA_SERVER_BASE_URL",
+  "NEXT_PUBLIC_BASE_MEDIA_URL",
+];
 
 /** Parse one `.env` file.
  *
@@ -132,19 +148,65 @@ const allSet = (...keys: string[]): boolean =>
 export const hasBackends = (): boolean =>
   allSet("BACKEND_URL", "GO_BACKEND_URL");
 
-/** Shopper A — who is also the seller. Unlocks phase 6 onward. */
+/** Shopper A — the main shopper identity. Unlocks phase 6 onward.
+ *
+ *  It used to say "who is also the seller". That was true of the staging
+ *  account and is not a rule: on a new environment nobody is a seller until the
+ *  QA seed makes one, and the identity it makes a seller is **Shopper B**. */
 export const hasShopperA = (): boolean =>
   allSet("TEST_ACCOUNT_PHONE", "TEST_ACCOUNT_OTP");
 
-/** Shopper B — the second identity. Chat, and buying from A's shop. */
+/** Shopper B — the second identity, and the one the QA seed turns into a
+ *  seller. Chat, and buying from the QA shop.
+ *
+ *  **This is enough to reach the PIN screen, not to get past it.** The scripted
+ *  specs that use Shopper B fake every backend answer, so they never needed a
+ *  code that works. Anything that really signs in as Shopper B needs
+ *  `hasShopperBCode()` below as well. */
 export const hasShopperB = (): boolean =>
   allSet("TEST_ACCOUNT_PHONE_2", "TEST_ACCOUNT_OTP");
+
+/** Shopper B's **own** one-time code.
+ *
+ *  Measured against staging on 2026-09-19: signing in as Shopper B with
+ *  `TEST_ACCOUNT_OTP` — which is Shopper A's allow-listed code — is refused by
+ *  the **core** backend with `422 invalid_code` on
+ *  `/auth/phone/verify_otp_from_guest`. The two accounts do not share a code,
+ *  and until this variable held one, nothing in this suite had ever really
+ *  signed in as Shopper B.
+ *
+ *  Falls back to the shared code when set, so an environment where the two
+ *  accounts genuinely do share one needs no second variable. */
+export const shopperBOtp = (): string =>
+  envValue("TEST_ACCOUNT_OTP_2") || envValue("TEST_ACCOUNT_OTP");
+
+/** Is a code configured that can actually sign Shopper B in?
+ *
+ *  Deliberately asks for `TEST_ACCOUNT_OTP_2` by name. Falling back silently to
+ *  the shared code would turn a missing setting into a red run that blames the
+ *  core backend for refusing a code it was right to refuse. */
+export const hasShopperBCode = (): boolean =>
+  envValue("TEST_ACCOUNT_OTP_2") !== "";
 
 /** Either configured test phone, plus the shared OTP. Used by scripted auth
  *  specs that only need to reach the PIN screen and do not require both
  *  identities. */
 export const hasTestAccountPhones = (): boolean =>
   hasShopperA() || hasShopperB();
+
+/** The media store. Needed by the cases that upload a profile picture and read
+ *  it back.
+ *
+ *  All three, because the app throws "Media server upload is not configured"
+ *  unless the first two are set (`services/auth.ts`), and the picture is read
+ *  back through the third. Gating on fewer would make a half-configured
+ *  environment **fail** where it should skip. */
+export const hasMedia = (): boolean =>
+  allSet(
+    "NEXT_PUBLIC_MEDIA_SERVER_BASE_URL",
+    "NEXT_PUBLIC_MEDIA_API_KEY",
+    "NEXT_PUBLIC_BASE_MEDIA_URL",
+  );
 
 /** The delivery worker. A separate product with its own login. */
 export const hasFleet = (): boolean =>
@@ -157,3 +219,48 @@ export const hasAdmin = (): boolean =>
     "ADMIN_DASHBOARD_EMAIL",
     "ADMIN_DASHBOARD_PASSWORD",
   );
+
+/** QA mode — the secret that lets a request see QA data.
+ *
+ *  Gated on length as well as presence, and the number matches
+ *  `utils/server/qaMode.ts`: below 32 characters the app treats the secret as
+ *  unset, so a suite that ran anyway would fail later with a message about the
+ *  search index that names the wrong cause.
+ *
+ *  **This must never be set in the deployed staging app.** It belongs in the
+ *  environment the harness builds and starts, which is the only place a test
+ *  can reach it. */
+export const hasQaMode = (): boolean =>
+  envValue("QA_VIEW_SECRET").length >= 32;
+
+/** Can the suite see its own test stories?
+ *
+ *  A test story is hidden from every reader of the feed. The app reads
+ *  `NEXT_PUBLIC_QA_STORY_VIEWER_PHONES` to decide who still sees one, and
+ *  `harness/server.ts` fills that in from the test phones when it builds the
+ *  app — so there is nothing to configure, and this is true whenever a test
+ *  account is configured at all.
+ *
+ *  Kept as its own gate anyway, because the two are not the same question and
+ *  a reader of a skip line should not have to know they are usually equal. */
+export const hasQaStoryViewers = (): boolean =>
+  envValue("NEXT_PUBLIC_QA_STORY_VIEWER_PHONES") !== "" || hasShopperA();
+
+/** Why the stories cases cannot run. */
+export const NO_QA_STORY_VIEWERS_REASON =
+  "no test account phone is configured, so the app cannot be told who may see " +
+  "a test story — and a test story is hidden from this suite exactly as it is " +
+  "hidden from a customer. Set TEST_ACCOUNT_PHONE; the harness does the rest.";
+
+/** Everything the QA seed needs before it may write anything.
+ *
+ *  Shopper B signs in and becomes the seller; the admin approves the seller and
+ *  the boutique; the media store takes the product image, which the product
+ *  needs before it can be activated. Missing any one of them is a clean skip,
+ *  never a failure — a fresh checkout with no secrets must still run green. */
+export const hasQaSeed = (): boolean =>
+  hasShopperB() &&
+  hasShopperBCode() &&
+  hasAdmin() &&
+  hasMedia() &&
+  hasQaMode();

@@ -22,6 +22,10 @@ import { GAevent } from 'utils/gtag';
 
 import { getNumberLockRemaining, isSessionCapReached } from 'utils/otpLocks';
 
+// The cap's size lives with the shared verify flow, so the two copies of the
+// counter can never disagree about the number.
+import { MAX_VERIFY_ATTEMPTS } from './usePhoneVerifyFlow';
+
 // Screens
 import GetStartedScreen from './screens/GetStartedScreen';
 import TermsScreen from './screens/TermsScreen';
@@ -104,9 +108,18 @@ export default function FullEnhancedLoginWidget() {
     const [loading, setLoading] = useState<
         'send-phone' | 'send-pin' | 'resend-pin' | 'verify-pin' | ''
     >('');
+    // Wrong codes since the last code arrived. This widget keeps its own copy of
+    // the counter rather than borrowing `usePhoneVerifyFlow` — it is not built on
+    // that hook, and reworking it onto the hook is out of this ticket's scope.
+    // State, not a ref: the boxes and the "tries left" line are drawn from it.
+    const [wrongCodes, setWrongCodes] = useState(0);
 
     // Read inside async callbacks, so a ref rather than state — the GA payload
     // must carry the attempt number as of the request, not of the last render.
+    //
+    // Not the cap's counter: this counts EVERY verify, the successful one
+    // included. `wrongCodes` above counts only failures. Keep them apart, or the
+    // `attempts` field on VERIFY_OTP / RESEND_OTP quietly changes meaning.
     const attemptsRef = useRef(0);
     // The pin inputs can fire onComplete twice within one tick (before `loading`
     // has re-rendered), and each extra submit burns a server-side attempt.
@@ -271,6 +284,7 @@ export default function FullEnhancedLoginWidget() {
             // success path below runs only when a code really went out.
             await AuthService.SendOtp(phone, isViaWhatsapp, () => {});
             attemptsRef.current = 0;
+            setWrongCodes(0);
             setPin('');
             setIsValidPin('');
             setLoading('');
@@ -383,8 +397,21 @@ export default function FullEnhancedLoginWidget() {
                 return;
             }
 
+            // Counted here, after the `user not found` return above: that reply
+            // means the digits were right and the account simply does not exist,
+            // and it takes the shopper off this screen entirely.
+            //
+            // `next` is a local, not `wrongCodes` — the state value is still the
+            // pre-failure one inside this catch, so reading it would show
+            // "Tries left: 3" on the first failure and make the cap four checks.
+            const next = wrongCodes + 1;
+            setWrongCodes(next);
             setIsValidPin('notvalid');
-            setError(translate('Please Enter The Correct Code Sent To Your Phone'));
+            setError(
+                next >= MAX_VERIFY_ATTEMPTS
+                    ? translate('Too many wrong codes. Ask for a new code.')
+                    : `${translate('Please Enter The Correct Code Sent To Your Phone')} — ${translate('Tries left')}: ${MAX_VERIFY_ATTEMPTS - next}`,
+            );
             setTimeout(() => {
                 setIsValidPin('');
                 setPin('');
@@ -415,6 +442,7 @@ export default function FullEnhancedLoginWidget() {
         try {
             await AuthService.SendOtp(phone, method === 'whatsapp' ? 1 : 0, () => {});
             attemptsRef.current = 0;
+            setWrongCodes(0);
             setPin('');
             setIsValidPin('');
             setLoading('');
@@ -635,6 +663,7 @@ export default function FullEnhancedLoginWidget() {
                                         changeMethod={() => goTo('select-method', -1)}
                                         changeNumber={() => goTo('enter-phone', -1)}
                                         isValidPin={isValidPin}
+                                        attemptsLocked={wrongCodes >= MAX_VERIFY_ATTEMPTS}
                                         loading={loading}
                                         error={error}
                                         variant="fullscreen"

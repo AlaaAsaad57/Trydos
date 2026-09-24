@@ -6,7 +6,11 @@ import CompareSkeleton from "components/skeleton/loaders/CompareSkeleton";
 import { buildAlternates } from "serverRequests/meta/buildAlternates";
 import { translateFunction } from "utils/server";
 
-export const dynamic = "auto";
+
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 
 export async function generateMetadata() {
   const lang = await langParam();

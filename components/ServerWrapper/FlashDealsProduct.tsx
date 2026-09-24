@@ -1,8 +1,15 @@
-import FlashDealsProducts from "components/Server/FlashDealsProducts";
-import { GetFlashDealProducts } from "serverRequests/home";
-import { getRedeemedIds } from "utils/cookies/getRedeemedIds";
-import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
+import { connection } from "next/server";
 
+import FlashDealsProducts from "components/Server/FlashDealsProducts";
+import { getCachedFlashDeals } from "serverRequests/cached/home";
+
+/**
+ * The flash-deal row.
+ *
+ * The products come from a cached reader, so this wrapper holds no request-bound
+ * read of its own — no cookie, no header, no clock. The deal window is decided
+ * by Elasticsearch date math, not by a timestamp baked into the cache entry.
+ */
 export async function FlashProductWrapper({
   lang,
   currency: currencyData,
@@ -10,31 +17,23 @@ export async function FlashProductWrapper({
 }) {
   const [country, language] = lang?.split("-");
 
-  let category;
-  if (mainCategory) {
-    category = JSON.stringify([mainCategory]);
-  }
-  let [response, currency, redeemedIds] = await Promise.all([
-    GetFlashDealProducts({
-      language,
-      country,
-      category: category,
-      limit: 10,
-    }),
+  // Wait for the request before rendering a single card, for the same reason as
+  // the featured row beside it — see components/ServerWrapper/FeaturedProduct.tsx.
+  // A product card cannot be prerendered, so without this point to stop at React
+  // leaves the whole boundary to the browser and the row's skeleton collapses
+  // before the cards paint.
+  await connection();
+
+  const [products, currency] = await Promise.all([
+    getCachedFlashDeals(country, language, mainCategory),
     currencyData,
-    getRedeemedIds(),
   ]);
-  const redeemed_ids = redeemedIds ?? [];
-  let productsData = response.data.products.map((product) =>
-    normalizeListingProduct(product, redeemed_ids),
-  );
+
   return (
-    <>
-      <FlashDealsProducts
-        currencyData={currency}
-        flashDealsProducts={{ data: { products: productsData } }}
-        lang={lang}
-      />
-    </>
+    <FlashDealsProducts
+      currencyData={currency}
+      flashDealsProducts={{ data: { products } }}
+      lang={lang}
+    />
   );
 }

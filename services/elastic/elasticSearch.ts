@@ -137,15 +137,6 @@ interface SearchFilters {
 
 // Initialize Elasticsearch client
 
-interface ProductImage {
-  id?: string | number;
-  path?: string;
-  url?: string;
-  alt?: string;
-  title?: string;
-  [key: string]: any;
-}
-
 interface ExtractFiltersResult {
   custom_products: CustomProduct[];
   prices: any;
@@ -249,11 +240,10 @@ export async function getProductsAndFiltersFromElastic(
     if (filters.search_text && filters.search_text?.split(" ")?.length > 1) {
       let CleanSearchText = await AnalyzeSearchText(filters.search_text);
       if (CleanSearchText?.error) {
-        console.error(
-          `##################${
-            CleanSearchText?.error || CleanSearchText?.message
-          }#######################`,
-        );
+        LogServerError({
+          scenario: "elasticSearch: the search analyser refused the text",
+          error: CleanSearchText?.error || CleanSearchText?.message,
+        });
         isAnalyzed = CleanSearchText?.error || CleanSearchText?.message;
         throw new Error(CleanSearchText?.error || CleanSearchText?.message);
       }
@@ -289,7 +279,7 @@ export async function getProductsAndFiltersFromElastic(
   } catch (error) {
     LogServerError(`Gemini Search Analyze ${error}`, JSON.stringify(filters));
     isAnalyzed?.length > 4 ? isAnalyzed : "failed to Analyze";
-    console.error(error);
+    LogServerError({ scenario: "elasticSearch failed", error });
   }
 
   try {

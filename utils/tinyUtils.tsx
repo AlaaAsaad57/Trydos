@@ -166,7 +166,7 @@ export const VALID_ISO=[
   "SD", "SR", "SJ", "SE", "CH", "SY", "TW", "TJ", "TZ", "TH", 
   "TL", "TG", "TK", "TO", "TT", "TN", "TR", "TM", "TC", "TV", 
   "UG", "UA", "AE", "GB", "UM", "US", "UY", "UZ", "VU", "VE", 
-  "VN", "VG", "VI", "WF", "EH", "YE", "ZM", "ZW", "AX"
+  "VN", "VG", "VI", "WF", "EH", "YE", "ZM", "ZW", "AX","KRD"
 ]
 export const FlagIcon = ({ iso ,isFromProductPage=false}) => {
   if(!VALID_ISO.includes(iso?.toUpperCase())) return <></>
@@ -214,7 +214,7 @@ export const formatTime = (timeString: string) => {
     ? new Date(timeString + "Z")
     : new Date(timeString);
   if (isNaN(date?.getTime())) {
-    date = new Date(timeString + "Z");
+    date = new Date(timeString);
   }
   const today = new Date();
   const yesterday = new Date(today);

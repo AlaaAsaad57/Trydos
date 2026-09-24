@@ -150,6 +150,7 @@ function OrderOptionsMenu({
                 }
                 {order.can_cancele_order && (
                   <div
+                    data-pw="cancel-order-option"
                     onClick={() => {
                       setSelectedScreen("cancelOrder");
                       setCanceled(true);

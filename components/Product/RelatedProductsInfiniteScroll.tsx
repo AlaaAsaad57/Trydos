@@ -33,6 +33,8 @@ function RelatedProductsInfiniteScroll({
   const [loading, setLoading] = useState(false);
   const [isReachEnd, setIsReachEnd] = useState(false);
   const isFetchingRef = useRef(false);
+  // The 3 s retry after a failed load. Cancelled when the row unmounts.
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const offsetRef = useRef(offset);
   const isReachEndRef = useRef(false);
   // PIT snapshot id for this carousel session (ADR-009), rotated per response.
@@ -51,6 +53,12 @@ function RelatedProductsInfiniteScroll({
   useEffect(() => {
     isReachEndRef.current = isReachEnd;
   }, [isReachEnd]);
+
+  useEffect(() => {
+    return () => {
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    };
+  }, []);
 
   function areArraysEqual(oldArray: any[], newArray: any[]): boolean {
     if (!oldArray || !newArray) return false;
@@ -81,7 +89,7 @@ function RelatedProductsInfiniteScroll({
       });
 
       if (!response) {
-        setTimeout(() => {
+        retryTimerRef.current = setTimeout(() => {
           getProductsReq();
         }, 3000);
         return;

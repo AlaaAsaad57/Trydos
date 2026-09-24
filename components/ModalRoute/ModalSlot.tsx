@@ -4,21 +4,21 @@ import { useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import ModalOverlay from "./ModalOverlay";
 import { useOverlayVisibility } from "./OverlayVisibility";
-import { enterOverlay, markOverlayShown, leaveOverlay } from "./overlayScroll";
+import {
+  enterOverlay,
+  isInterceptedPath,
+  leaveOverlay,
+  markOverlayShown,
+} from "./overlayScroll";
+
+// Which addresses open as overlays is defined once, in `overlayScroll`. The
+// answer is also what decides whether the browser's history scroll restoration
+// is taken over at the click, and those two must never disagree.
+const isInterceptable = isInterceptedPath;
 
 interface ModalSlotProps {
   children: React.ReactNode | null;
 }
-
-// Only the top-level intercepted routes open as overlays: `/{lang}/products/…`
-// and `/{lang}/filters/…` (the `@modal/(.)products` / `(.)filters` interceptors
-// sit directly under `[lang]`). Deeper routes that merely contain a `products`
-// segment — e.g. the seller dashboard's own
-// `/{lang}/sellerProfile/sellerDashboard/{id}/products/{id}` edit page — are real
-// `children`-slot pages and must NOT be treated as intercepts, otherwise the page
-// body is hidden behind an empty overlay (blank page + navbar).
-const isInterceptable = (path: string | null): boolean =>
-  !!path && /^\/[^/]+\/(products|filters)(\/|$)/.test(path);
 
 /**
  * Decides whether an intercepted route (`/filters`, `/products`) renders as an

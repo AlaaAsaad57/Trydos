@@ -11,55 +11,29 @@
 #   main    → production (main is the project's production branch on Vercel)
 #
 # ---------------------------------------------------------------------------
-# This file only works from `main`, and `main`'s copy is the one that runs
+# By hand only
 #
-# A `workflow_run` (and a `workflow_dispatch`) trigger is not attached to the
-# commit you pushed. GitHub reads it from the **default branch** only, and the
-# default branch here is `main`. While this file lived on `development` alone it did
-# not merely fail to fire — Actions had never registered it, and `gh workflow
-# list --all` did not show it at all.
+# Nothing deploys on its own. This workflow used to start when a push run of
+# E2E finished. The test workflows now run only on Friday and by hand, never on
+# a push, so that trigger is gone. Start a deploy yourself:
 #
-# Two things follow, and both cost an afternoon if you learn them the hard way:
+#   gh workflow run Deploy --ref main                 # production
+#   gh workflow run Deploy --ref development          # preview
+#   gh workflow run Deploy --ref main -f force=true   # skip the test check
 #
-#   * **Editing this file on `development` changes nothing.** The copy on `main` is
-#     what executes, for `development` pushes as much as for `main`. Every edit has
-#     to reach `main` before it means anything.
-#   * **`notify-telegram.yml` must be on `main` too.** A reusable workflow called
-#     by a local path is read from the same commit as its caller, and its caller
-#     here is `main`'s copy of this file.
+# The ref you pick is the commit that deploys: its tip at the moment you start.
 #
-# The gate below reads `workflow_run.head_sha`, not `github.sha`, precisely
-# because of this: `github.sha` on such a run points at `main`, and deploying
-# `main` when someone pushed `development` would be a memorable bug.
-# ---------------------------------------------------------------------------
-#
-# **`main` has no tests, so `main` cannot pass the gate.** It has no `tests/`,
-# no `vitest.config.mts` and no `test:ci` script — the suites live on `development`
-# only. Nothing runs on a push to `main`, so no `workflow_run` fires and this
-# workflow never starts for it. Until `development` is merged up, production is
-# deployed by hand:
-#
-#   gh workflow run Deploy --ref main -f force=true
+# **What the gate checks.** Without `force`, the gate asks GitHub whether
+# `tests.yml` **and** `test-e2e.yml` both have a green run for that exact
+# commit. The Friday run tests `main`, so right after a green Friday run, `main`
+# passes. A newer commit on `main`, or any commit on `development`, has no run
+# yet: start both test workflows on that ref by hand first, or use `force`.
 #
 # `force` skips the test check for that one run and leaves DEPLOY_WHEN_SUCCESS
 # alone, so an urgent production deploy never has to unlock every future one.
 #
-# ---------------------------------------------------------------------------
-# Why it triggers on E2E and not on both test workflows
-#
-# The two suites are in separate workflows on purpose (see the note at the top
-# of tests.yml). Waiting for both means listening to both — and a workflow that
-# fires on two `workflow_run` events runs twice for one commit, which is two
-# deployments of the same code if they both happen to find everything green.
-#
-# So it listens to the one that always finishes last: E2E takes 15 to 45 minutes
-# against a real staging backend, the unit run takes about five. When E2E
-# completes, the gate below asks GitHub how the unit run for that same commit
-# went. One trigger, one deployment, both suites accounted for.
-#
-# The cost of that choice, stated plainly: a deploy waits for the browser suite
-# even when the flag says the tests do not have to pass. `workflow_dispatch` is
-# there for when that wait is not acceptable.
+# **`notify-telegram.yml` must be on the deployed ref too.** A reusable
+# workflow called by a local path is read from the same commit as its caller.
 # ---------------------------------------------------------------------------
 #
 # **The flag: `DEPLOY_WHEN_SUCCESS`.** A repository *variable*, not a secret —
@@ -90,13 +64,8 @@
 name: Deploy
 
 on:
-  workflow_run:
-    workflows: [E2E]
-    types: [completed]
-  # For a deploy that is not waiting for a commit: after the Vercel account is
-  # unblocked, to put the current branch tip back on production, or to deploy
-  # `main`, which has no tests to wait for. It still goes through the gate, so
-  # it still respects DEPLOY_WHEN_SUCCESS unless `force` says otherwise.
+  # The only trigger — see "By hand only" above. It still goes through the
+  # gate, so it still respects DEPLOY_WHEN_SUCCESS unless `force` says otherwise.
   workflow_dispatch:
     inputs:
       force:
@@ -107,7 +76,7 @@ on:
 # Never cancelled, and one at a time per branch. A deploy killed halfway leaves
 # a half-uploaded build on Vercel, and a queued deploy costs nothing.
 concurrency:
-  group: deploy-${{ github.event.workflow_run.head_branch || github.ref_name }}
+  group: deploy-${{ github.ref_name }}
   cancel-in-progress: false
 
 permissions:
@@ -128,14 +97,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
-    # A nightly E2E run must not deploy: it fires on `schedule`, against
-    # whatever the branch tip happens to be, and nobody pushed anything.
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.event == 'push' &&
-       (github.event.workflow_run.head_branch == 'development' ||
-        github.event.workflow_run.head_branch == 'main'))
-
     outputs:
       deploy: ${{ steps.decide.outputs.deploy }}
       branch: ${{ steps.decide.outputs.branch }}
@@ -148,11 +109,7 @@ jobs:
         id: decide
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          EVENT: ${{ github.event_name }}
-          RUN_BRANCH: ${{ github.event.workflow_run.head_branch }}
-          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
           FLAG: ${{ vars.DEPLOY_WHEN_SUCCESS }}
-          # Empty on a workflow_run — there are no inputs on that event.
           FORCE: ${{ inputs.force }}
           # Only to find out whether it exists. The deploy job is the one that
           # uses it.
@@ -160,16 +117,9 @@ jobs:
         run: |
           set -u
 
-          # A dispatch deploys the ref it was started on; a workflow_run deploys
-          # the exact commit the suites ran against, never the branch tip, which
-          # may have moved on while the browser suite was running.
-          if [ "$EVENT" = "workflow_dispatch" ]; then
-            BRANCH="$GITHUB_REF_NAME"
-            SHA="$GITHUB_SHA"
-          else
-            BRANCH="$RUN_BRANCH"
-            SHA="$RUN_SHA"
-          fi
+          # The ref the run was started on, at the commit it pointed to then.
+          BRANCH="$GITHUB_REF_NAME"
+          SHA="$GITHUB_SHA"
 
           TARGET=""
 

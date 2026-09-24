@@ -51,7 +51,6 @@ function ProductItem({
       }}
     >
       <NextLink
-        ariaLabel={`Product ${product.slug} ${lang}`}
         href={`/${lang}/products/${product.slug}`}
         data={{ ...product, is_product: true }}
         className="w-full"

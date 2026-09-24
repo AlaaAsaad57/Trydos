@@ -107,7 +107,6 @@ export async function POST(request: NextRequest) {
       response: text,
     });
   } catch (error) {
-    console.error("Image Search - Google AI API Error:", error);
     LogServerError(
       {
         error: error,

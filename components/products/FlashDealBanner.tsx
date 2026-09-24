@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { translateFunction } from "utils/functions";
 
 interface FlashDealBannerProps {
@@ -23,7 +23,14 @@ function FlashDealBanner({
     seconds: number;
   } | null>(initial);
   const [isExpired, setIsExpired] = useState(false);
+  // False for the server render and for the first browser render, so both
+  // produce the same markup. See the comment beside the countdown below.
+  const [mounted, setMounted] = useState(false);
   const bannerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -138,6 +145,8 @@ function FlashDealBanner({
     </svg>
   );
 
+  const isRtl = language === "ar" || language === "ku";
+
   if (isExpired) {
     return <></>;
   }
@@ -146,29 +155,58 @@ function FlashDealBanner({
     <div
       ref={bannerRef}
       data-pw="flash-deal-banner"
-      className={`absolute pr-[5px] pl-[8px] text-nowrap flex-row h-[19px] gap-[2px] items-center  ${top} left-0 z-99 rounded-tr-[4px] rounded-tl-[15px] rounded-bl-[4px] rounded-br-[15px] bg-[#FFF3E8] text-[#FF6200] text-[9px] medium min-w-[140px]`}
+      className={`absolute ${
+        isRtl
+          ? "right-0 pl-[5px] pr-[8px] rounded-tl-[4px] rounded-tr-[15px] rounded-br-[4px] rounded-bl-[15px]"
+          : "left-0 pr-[5px] pl-[8px] rounded-tr-[4px] rounded-tl-[15px] rounded-bl-[4px] rounded-br-[15px]"
+      } text-nowrap flex-row h-[19px] gap-[2px] items-center ${top} z-99 bg-[#FFF3E8] text-[#FF6200] text-[9px] medium min-w-[140px]`}
       style={{
         border: "1px solid #FF6200",
+        direction: isRtl ? "rtl" : "ltr",
       }}
     >
       <FlashIcon />
       <span className="whitespace-nowrap bold">
         {translateFunction("Flash Deal", language)}
       </span>
-      {timeLeft?.days >= 0 && (
-        <span className="whitespace-nowrap ">
+      {/* The countdown is shown only after this banner has mounted in the
+          browser, and never in the markup the server sends.
+
+          `initial` is worked out from a clock — `resolveCardPrice` in
+          ProductCard reads `new Date()` during render. That render happens
+          twice, once on the server and once again when React hydrates in the
+          browser, and the two are never the same second. React reads two
+          different countdowns as a hydration mismatch and answers by throwing
+          the whole product row away and rebuilding it.
+
+          The mismatch is real and is proved by
+          tests/components/products/ProductCard/hydrationStability.test.tsx,
+          which was red before this gate and green after. It was NOT, however,
+          the cause of the featured section vanishing on every home page load.
+          That had a different cause — the row was never server-rendered at all
+          — and is written up in docs/homepage-cache-phase-2.md.
+
+          `initial` still decides whether the banner is here at all, and it
+          still decides the price — both of those are stable, because a deal
+          runs to the end of a day (`setHours(23, 59, 59, 999)`), not to a
+          second. Only the display waits. The effect above fills it on mount, so
+          the wait is one frame, and `min-w-[140px]` on the banner keeps the box
+          the same size meanwhile. */}
+      {mounted && timeLeft?.days >= 0 && (
+        <span dir="ltr" className="whitespace-nowrap">
           {`| ${timeLeft?.days?.toString()?.padStart(2, "0")} d |`}
         </span>
       )}
-      {(timeLeft?.hours >= 0 ||
-        timeLeft?.minutes >= 0 ||
-        timeLeft?.seconds >= 0) && (
-        <span className="whitespace-nowrap" data-pw="flash-deal-banner-time">
-          {timeLeft?.hours?.toString().padStart(2, "0")}:
-          {timeLeft?.minutes?.toString().padStart(2, "0")}:
-          {timeLeft?.seconds?.toString().padStart(2, "0")}
-        </span>
-      )}
+      {mounted &&
+        (timeLeft?.hours >= 0 ||
+          timeLeft?.minutes >= 0 ||
+          timeLeft?.seconds >= 0) && (
+          <span dir="ltr" className="whitespace-nowrap" data-pw="flash-deal-banner-time">
+            {timeLeft?.hours?.toString().padStart(2, "0")}:
+            {timeLeft?.minutes?.toString().padStart(2, "0")}:
+            {timeLeft?.seconds?.toString().padStart(2, "0")}
+          </span>
+        )}
     </div>
   );
 }

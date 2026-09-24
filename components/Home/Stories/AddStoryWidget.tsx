@@ -5,12 +5,7 @@ import Image from "next/image";
 import { useAppStore } from "store";
 import NewStoryModal from "./CameraStory";
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   showErrorNotification,
   showSuccessNotification,
@@ -186,6 +181,11 @@ export default function AddStoryWidget() {
   const [country, language] = lang.split("-");
   const [loading, setLoading] = useState(false);
   const MAX_FILE_SIZE_MB = 10;
+  /** How often the sheet asks the browser whether it has decoded the video, and
+   *  how long it keeps asking. Ten seconds is generous for a file that is
+   *  already on the device; past that the browser is not going to manage it. */
+  const VIDEO_READY_POLL_MS = 500;
+  const VIDEO_READY_TIMEOUT_MS = 10_000;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
   const handleChange = async (e, link) => {
@@ -203,7 +203,12 @@ export default function AddStoryWidget() {
     setLoading(true);
     try {
       if (file?.type.includes("video")) {
-        await new Promise((resolve, reject) => {
+        // `uploaded` is false when the sheet refused the file or a backend did.
+        // **Every exit below settles this promise**, including the ones that
+        // only tell the shopper: an exit that settles nothing leaves the `await`
+        // waiting for ever, so nothing after it runs and the sheet never
+        // recovers.
+        const uploaded = await new Promise((resolve) => {
           const reader = new FileReader();
           reader.readAsDataURL(e.target.files[0]);
           reader.onload = async () => {
@@ -212,8 +217,27 @@ export default function AddStoryWidget() {
             var videoElement: HTMLVideoElement =
               document.createElement("video");
             videoElement.src = reader.result.toString();
+            // The wait for the browser to decode the file is bounded. Without a
+            // ceiling a file it can never decode leaves this poll running and
+            // the promise open, which is a spinner with no way out but a reload.
+            let waited = 0;
             var timer = setInterval(async function () {
-              if (videoElement.readyState === 4) {
+              waited += VIDEO_READY_POLL_MS;
+
+              if (videoElement.readyState !== 4) {
+                if (waited < VIDEO_READY_TIMEOUT_MS) return;
+
+                clearInterval(timer);
+                setFile(null);
+                setIsSelected(null);
+                showErrorNotification(
+                  translateFunction("Upload Failed Try Again"),
+                );
+                resolve(false);
+                return;
+              }
+
+              {
                 let getTime = videoElement.duration;
                 if (getTime > 59) {
                   showErrorNotification(
@@ -223,6 +247,7 @@ export default function AddStoryWidget() {
                   setFile(null);
                   setIsSelected(null);
                   clearInterval(timer);
+                  resolve(false);
                   return;
                 } else {
                   clearInterval(timer);
@@ -250,10 +275,10 @@ export default function AddStoryWidget() {
                         scenario: "Upload Video Story",
                       });
                       setUpload(0);
-                      setLoading(false);
                       showErrorNotification(
                         translateFunction("Upload Failed Try Again"),
                       );
+                      resolve(false);
                     });
                   setIsSelected(null);
                   setFile(null);
@@ -262,9 +287,13 @@ export default function AddStoryWidget() {
 
                 clearInterval(timer);
               }
-            }, 500);
+            }, VIDEO_READY_POLL_MS);
           };
         });
+        // The shopper has already been told what went wrong. Carrying on would
+        // re-read the feed and announce a story that was never created.
+        if (!uploaded) return;
+
         let storiesData = await fetchStoriesForUser(language, country, 1);
         setStoriesRefreshing(true);
         router.refresh();
@@ -282,7 +311,7 @@ export default function AddStoryWidget() {
         setLink("");
         onClose();
       } else if (file?.type.includes("image")) {
-        await new Promise((resolve, reject) => {
+        const uploaded = await new Promise((resolve) => {
           const reader = new FileReader();
           reader.readAsDataURL(e.target.files[0]);
           reader.onload = async () => {
@@ -303,16 +332,18 @@ export default function AddStoryWidget() {
                   scenario: "Upload Image Story",
                 });
                 setUpload(0);
-                setLoading(false);
                 showErrorNotification(
                   translateFunction("Upload Failed Try Again"),
                 );
+                resolve(false);
               });
             setIsSelected(null);
             setFile(null);
             setUpload(0);
           };
         });
+        if (!uploaded) return;
+
         let storiesData = await fetchStoriesForUser(language, country, 1);
         setStoriesRefreshing(true);
         router.refresh();
@@ -339,6 +370,12 @@ export default function AddStoryWidget() {
         scenario: "Upload Image Story",
       });
       showErrorNotification(translateFunction("Error Uploading Story"));
+    } finally {
+      // However this ended — uploaded, refused, or refused by the sheet itself
+      // — the control comes back. It used to be cleared on some paths and not
+      // others, and the paths that missed it left the sheet disabled with no way
+      // on but reloading the page.
+      setLoading(false);
     }
   };
   const selectMedia = async ({ imageFile, link }) => {

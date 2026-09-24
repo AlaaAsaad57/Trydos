@@ -24,7 +24,7 @@ _Context: Trydos (Next.js 16 App Router · React 19 · Vercel · Go backend), a 
 > - **Funnels / paths / retention** — `GAevent()` (`utils/gtag.ts`) fans every event out to `posthogCapture`, so the existing GA taxonomy (`utils/GAEvents.ts`: `add_to_cart` → `begin_checkout` → `add_payment_info` → `purchase`, etc.) populates PostHog with zero new call sites. Build the commerce funnel in the PostHog UI from these events.
 > - **Error tracking** — `LogError` (`utils/functions.tsx`) routes exceptions to `posthogCaptureException`, linking each error to its session replay.
 > - **Identity** — `posthogIdentify` on login (`services/auth.ts`, `Init.tsx`); `posthogReset` on logout (`clearAllUserData` in `utils/tinyUtils.tsx`) so guest sessions aren't stitched onto the previous user.
-> - **Feature flags / experiments** — helpers `posthogIsFeatureEnabled` / `posthogGetFeatureFlag` ready for use (define flags in the PostHog dashboard).
+> - **Feature flags / experiments** — not wired. The unused helpers were removed; add them back with the first real flag (define flags in the PostHog dashboard).
 >
 > Verify on a **production/preview deploy** (all wrappers early-return when `NODE_ENV !== "production"`). Confirm `NEXT_PUBLIC_POSTHOG_KEY` is set in Vercel env, then check the Network tab for `/ingest/*` 200s and watch the live session land in the PostHog dashboard.
 

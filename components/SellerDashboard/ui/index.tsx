@@ -256,12 +256,18 @@ export function DashButton({
 export function StatusPill({
   active,
   children,
+  "data-pw": dataPw,
 }: {
   active?: boolean;
   children: React.ReactNode;
+  /** Test hook. Passed through so a browser test can read a row's status
+   *  without matching the translated word inside it. */
+  "data-pw"?: string;
 }) {
   return (
     <span
+      data-pw={dataPw}
+      data-active={active ? "1" : "0"}
       className={`px-2.5 py-1 rounded-full text-[10px] semibold ${
         active
           ? "bg-[#eaf7ef] text-[#2ea84f]"
@@ -276,30 +282,30 @@ export function StatusPill({
 /* ----------------------------------------------------------------------- */
 /* Centred state blocks: loading / error / empty / access-denied          */
 /* ----------------------------------------------------------------------- */
-export function LoadingState({ label }: { label?: string }) {
-  return (
-    <div className="flex items-center justify-center py-14">
-      <Spinner />
-      <span className="ml-3 text-[14px] text-[#505050]">
-        {label || translateFunction("Loading...")}
-      </span>
-    </div>
-  );
-}
-
 export function EmptyState({
   icon = "inbox",
   title,
   subtitle,
   action,
+  "data-pw": dataPw,
 }: {
   icon?: IconName;
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
+  /** Test hook, optional and undefined for every caller that does not ask.
+   *
+   *  Same pattern as `AccessDenied` below. A section's empty state and its
+   *  error state are two different answers — "the list loaded and holds
+   *  nothing" against "the list did not load" — and a browser test that cannot
+   *  tell them apart reports a backend refusal as an empty shop. */
+  "data-pw"?: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-14 px-6">
+    <div
+      data-pw={dataPw}
+      className="flex flex-col items-center justify-center text-center py-14 px-6"
+    >
       <span className="w-[72px] h-[72px] mb-4 rounded-full bg-[#f4f4f4] text-[#c4c2c2] flex items-center justify-center">
         <DashIcon name={icon} size={34} strokeWidth={1.4} />
       </span>
@@ -317,12 +323,21 @@ export function EmptyState({
 export function ErrorState({
   message,
   onRetry,
+  "data-pw": dataPw,
 }: {
   message: string;
   onRetry?: () => void;
+  /** Test hook, optional. See `EmptyState` above for why the two states need
+   *  separate names: without one, a backend that refused the list is
+   *  indistinguishable from a list that is genuinely empty, and the failure
+   *  names neither. */
+  "data-pw"?: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-14 px-6">
+    <div
+      data-pw={dataPw}
+      className="flex flex-col items-center justify-center text-center py-14 px-6"
+    >
       <span className="w-[72px] h-[72px] mb-4 rounded-full bg-[#fff1f1] text-[#f85555] flex items-center justify-center">
         <DashIcon name="alert" size={32} strokeWidth={1.4} />
       </span>
@@ -336,9 +351,22 @@ export function ErrorState({
   );
 }
 
-export function AccessDenied({ message }: { message?: string }) {
+export function AccessDenied({
+  message,
+  "data-pw": dataPw = "dashboard-access-denied",
+}: {
+  message?: string;
+  /** Test hook. Defaults to a shared name so every section that refuses for
+   *  lack of a permission is findable the same way — a browser test can then
+   *  say "this account may not see it" instead of waiting out a timeout on
+   *  content that was never going to be drawn. */
+  "data-pw"?: string;
+}) {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-14 px-6">
+    <div
+      data-pw={dataPw}
+      className="flex flex-col items-center justify-center text-center py-14 px-6"
+    >
       <span className="w-[72px] h-[72px] mb-4 rounded-full bg-[#f4f4f4] text-[#c4c2c2] flex items-center justify-center">
         <DashIcon name="lock" size={32} strokeWidth={1.4} />
       </span>
@@ -409,10 +437,16 @@ export function Pagination({
       >
         {translateFunction("Previous")}
       </DashButton>
-      <span className="text-[13px] text-[#8e8e8e]">
+      <span
+        data-pw="pagination-status"
+        data-current={current}
+        data-last={last}
+        className="text-[13px] text-[#8e8e8e]"
+      >
         {translateFunction("Page")} {current} / {last}
       </span>
       <DashButton
+        data-pw="pagination-next"
         variant="secondary"
         size="sm"
         iconRight="chevronRight"
@@ -433,14 +467,20 @@ export function DashField({
   hint,
   error,
   children,
+  "data-pw": dataPw,
 }: {
   label?: string;
   hint?: string;
   error?: string;
   children: React.ReactNode;
+  /** Test hook. The wrapper gets it as given; the validation line gets
+   *  `<data-pw>-error`. A browser test needs the second one, and the error
+   *  line is drawn here rather than at the call site, so it cannot be hooked
+   *  from outside. */
+  "data-pw"?: string;
 }) {
   return (
-    <div>
+    <div data-pw={dataPw}>
       {label && (
         <label className="block text-[13px] medium text-[#505050] mb-1.5">
           {label}
@@ -448,7 +488,10 @@ export function DashField({
       )}
       {children}
       {error ? (
-        <p className="text-[12px] text-[#f85555] mt-1 flex items-center gap-1">
+        <p
+          data-pw={dataPw ? `${dataPw}-error` : undefined}
+          className="text-[12px] text-[#f85555] mt-1 flex items-center gap-1"
+        >
           <DashIcon name="alert" size={13} />
           {error}
         </p>

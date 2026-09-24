@@ -3,6 +3,7 @@ import { elasticSearchClient } from "./elasticsearch.config";
 
 import { estypes } from "@elastic/elasticsearch";
 import { catalog_index, views_index } from "./INDEXES";
+import { qaShopMustNot } from "./qaFilter";
 
 export class ElasticsearchReader {
   private client = elasticSearchClient;
@@ -178,6 +179,7 @@ export class ElasticsearchReader {
     category,
     searchAfter,
     sellerId,
+    qaView = false,
   }: {
     country?: string;
     language: string;
@@ -186,6 +188,8 @@ export class ElasticsearchReader {
     category?: string[];
     searchAfter?: any[];
     sellerId?: string;
+    /** Show QA shops. Only ever what `qaMode()` returned, never a literal. */
+    qaView?: boolean;
   }) {
     try {
       const input: InputInitialized = {
@@ -193,7 +197,11 @@ export class ElasticsearchReader {
         limit,
       };
 
-      let { must, must_not } = this.buildBaseConditions(input, country);
+      let { must, must_not } = this.buildBaseConditions(
+        input,
+        country,
+        qaView,
+      );
       const customProducts: any[] = [];
 
       const customQuery = {
@@ -549,7 +557,7 @@ export class ElasticsearchReader {
             boutique.mainCategoriesForProductIds?.length ?? 0;
           return (
             categoriesLength <
-            (parseInt(process.env.MIN_CATEGORIES_UNDER_BOUTIQUE) ?? 5)
+            (parseInt(process.env.MIN_CATEGORIES_UNDER_BOUTIQUE) || 5)
           );
         })
         .map((boutique) => boutique.boutique_id)
@@ -573,7 +581,7 @@ export class ElasticsearchReader {
           const categoriesLength =
             boutique.mainCategoriesForProductIds?.length ?? 0;
           if (
-            categoriesLength <= (parseInt(process.env.MIN_CATEGORIES_UNDER_BOUTIQUE) ?? 5)&&
+            categoriesLength <= (parseInt(process.env.MIN_CATEGORIES_UNDER_BOUTIQUE) || 5)&&
             fallbackProductsByBoutique[key]?.length
           ) {
             boutique.mainCategoriesForProductIds =
@@ -627,7 +635,17 @@ export class ElasticsearchReader {
   // buildBaseConditions (matches PHP version)
   // -----------------------------------------------------------------------------
 
-  buildBaseConditions(input: InputInitialized, country?: string) {
+  /** `qaView` is the QA-mode switch, and it defaults to `false` — the
+   *  shopper-facing answer.
+   *
+   *  **The QA boutique has to be visible to a request that proved it is QA
+   *  mode**, and invisible to everybody else. It was hidden unconditionally
+   *  here at first, which hid it from the tests that own it as well. */
+  buildBaseConditions(
+    input: InputInitialized,
+    country?: string,
+    qaView: boolean = false,
+  ) {
     const categorySlugs = input.categorySlugs || [];
 
     const must: any[] = [
@@ -704,7 +722,12 @@ export class ElasticsearchReader {
       },
     });
 
+    // QA shops are hidden from every shopper, and shown to a request that
+    // proved it is in QA mode — the same rule the product search follows.
     const must_not: any[] = [{ exists: { field: "deleted_at" } }];
+    if (!qaView) {
+      must_not.push(qaShopMustNot());
+    }
 
     if (country) {
       const iso = country.toUpperCase();
@@ -1012,10 +1035,13 @@ export class ElasticsearchReader {
     slug,
     country,
     language,
+    qaView = false,
   }: {
     slug: string;
     country?: string;
     language: string;
+    /** Show QA shops. Only ever what `qaMode()` returned, never a literal. */
+    qaView?: boolean;
   }) {
     try {
       const input: InputInitialized = {
@@ -1023,7 +1049,11 @@ export class ElasticsearchReader {
         limit: 1,
       };
 
-      const { must, must_not } = this.buildBaseConditions(input, country);
+      const { must, must_not } = this.buildBaseConditions(
+        input,
+        country,
+        qaView,
+      );
 
       // Add filter for specific boutique slug and language
       must.push({

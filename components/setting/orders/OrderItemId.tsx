@@ -1,4 +1,3 @@
-import React from "react";
 
 const OrderItemId = ({ id, isRtl }) => {
   return (

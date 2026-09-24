@@ -267,7 +267,7 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
         }
       />
 
-      <form onSubmit={handleSubmit}>
+      <form data-pw="shop-info-form" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
 
           {/* Left Column - Text Inputs */}
@@ -276,6 +276,7 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
             <DashField
               label={translateFunction('Shop Name', language)}
               error={errors.shopName}
+              data-pw="shop-info-name-field"
             >
               {isLoading ? (
                 <Skeleton height={48} borderRadius={12} />
@@ -283,6 +284,7 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
                 <input
                   type="text"
                   name="shopName"
+                  data-pw="shop-info-name-input"
                   value={formData.shopName}
                   onChange={handleTextChange}
                   disabled={!canUpdate}
@@ -301,6 +303,7 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
               label={translateFunction('Contact', language)}
               hint={translateFunction('Country code must lead, e.g. AE = 971', language)}
               error={errors.contact}
+              data-pw="shop-info-contact-field"
             >
               {isLoading ? (
                 <Skeleton height={48} borderRadius={12} />
@@ -308,6 +311,7 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
                 <input
                   type="text"
                   name="contact"
+                  data-pw="shop-info-contact-input"
                   value={formData.contact}
                   onChange={handleTextChange}
                   disabled={!canUpdate}
@@ -325,12 +329,14 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
             <DashField
               label={translateFunction('Address', language)}
               error={errors.address}
+              data-pw="shop-info-address-field"
             >
               {isLoading ? (
                 <Skeleton height={120} borderRadius={12} />
               ) : (
                 <textarea
                   name="address"
+                  data-pw="shop-info-address-input"
                   rows={4}
                   value={formData.address}
                   onChange={handleTextChange}
@@ -461,7 +467,12 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
         {/* Action Buttons */}
         {canUpdate && (
           <div className="mt-8 flex justify-end items-center border-t border-[#ededed] pt-6">
-            <DashButton type="submit" icon="check" loading={isSaving}>
+            <DashButton
+              type="submit"
+              icon="check"
+              data-pw="shop-info-save-btn"
+              loading={isSaving}
+            >
               {isSaving
                 ? translateFunction('Saving...', language)
                 : translateFunction('Save Changes', language)}

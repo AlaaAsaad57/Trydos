@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import CommentBar from "./CommentBar";
 import { useParams } from "next/navigation";

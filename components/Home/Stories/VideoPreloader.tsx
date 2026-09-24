@@ -1,11 +1,5 @@
 import { useEffect, useRef } from "react";
 
-interface VideoPreloaderProps {
-  stories: Array<{ url?: string; type?: string }>;
-  currentIndex: number;
-  isPaused: boolean;
-}
-
 /**
  * Preloads videos in the background to ensure smooth playback
  * Implements a smart preloading strategy:

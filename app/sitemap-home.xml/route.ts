@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateHomeSitemapXML } from "services/elastic/sitemap.service";
 import { LogServerError } from "utils/serverErrorReporter";
 
-export const revalidate = 3600; // regenerate at most once per hour
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +20,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error generating home sitemap:", error);
     LogServerError({
       error,
       type: "get sitemap for home api route",

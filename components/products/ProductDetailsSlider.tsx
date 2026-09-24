@@ -1,8 +1,8 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
-import { getConfiguredImage, RoundPrice } from "utils/functions";
+import { getConfiguredImage } from "utils/functions";
 import CloseIcon from "components/Home/Stories/CloseIcon";
 import { useAppStore } from "store";
 import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";

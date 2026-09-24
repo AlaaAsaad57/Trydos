@@ -2,7 +2,7 @@ import { Skeleton } from "components/Server/Skeleton";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { GetCountries } from "serverRequests/product";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";

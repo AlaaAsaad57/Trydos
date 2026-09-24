@@ -278,6 +278,29 @@ describe("showing a price (RoundPrice)", () => {
     expect(RoundPrice({ num: 25, rate: 1 })).toBe(25);
     expect(RoundPrice({ num: 25.4, rate: 1 })).toBe(26);
   });
+
+  it("shows nothing rather than \"NaNM\" when the price cannot be read", () => {
+    // A missing or unreadable price makes `Number(num)` NaN. NaN fails every
+    // band test below it, so it fell through to the millions branch and the
+    // shopper was shown "NaNM". The client-side sibling in utils/functions.tsx
+    // already guards this; this copy did not.
+    expect(
+      RoundPrice({ num: undefined, rate: 1 }),
+      "a missing price was drawn as something other than zero",
+    ).toBe("0");
+    expect(
+      RoundPrice({ num: "", rate: 1 }),
+      "an empty price was drawn as something other than zero",
+    ).toBe("0");
+    expect(
+      RoundPrice({ num: "not a price", rate: 1 }),
+      "an unreadable price was drawn as something other than zero",
+    ).toBe("0");
+    expect(
+      RoundPrice({ num: undefined, rate: 1, returnNumber: true }),
+      "a missing price handed back as a number was not zero",
+    ).toBe(0);
+  });
 });
 
 describe("building a video address (getVideoUrl)", () => {
@@ -589,5 +612,25 @@ describe("tidying text for display (stripHtml, getThumb, convertTextToXFormat)",
 
   it("gives an empty result when there is no name to hide", () => {
     expect(convertTextToXFormat("")).toBe("");
+  });
+});
+
+describe("addresses that will not decode", () => {
+  it("parseFiltersFromParams keeps a value that is not valid percent-encoding as it is", () => {
+    expect(
+      parseFiltersFromParams(["brands", "nike,a%E0%A4%A"]),
+      "an undecodable brand broke the filter reading",
+    ).toEqual({ brands: ["nike", "a%E0%A4%A"] });
+  });
+
+  it("parseNumberArray reads the raw text when it will not decode", () => {
+    expect(parseNumberArray("1,%E0%A4%A,3"), "an undecodable number list was not read raw").toEqual([1, 3]);
+  });
+
+  it("getThumb gives a video the same small size", () => {
+    expect(
+      getThumb("https://media.example.com/video/upload/v1/a.mp4", true),
+      "the video thumb is wrong",
+    ).toBe("https://media.example.com/video/upload/h_194/f_webp/q_100/v1/a.mp4");
   });
 });

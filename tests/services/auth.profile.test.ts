@@ -284,6 +284,47 @@ describe("updating the profile", () => {
     ).toBe("f");
   });
 
+  it("does not cover the refused field with a general failure line", async () => {
+    (store as any).__resetAuthStore({
+      userProfile: { id: 7, name: "old", email: "old@trydos.com" },
+    });
+    // No chat or stories record in the store, so the core backend is the first
+    // and only leg. It refuses, naming the field, the way it really does.
+    market.reply({
+      success: false,
+      message: '{"email":["email already exists"]}',
+    });
+
+    await expect(
+      auth.UpdateProfile({ email: "taken@trydos.com" }, {}),
+      "a save the core backend refused must still reject",
+    ).rejects.toThrow();
+
+    // The request layer has already told the shopper which field was refused
+    // and why. A general line added on top of it buries the only useful text.
+    expect(
+      (notifications.showErrorNotification as any).mock.calls.map(
+        (call: any[]) => call[0],
+      ),
+      "the profile save added a general failure line over the named field the core backend refused",
+    ).toEqual([]);
+  });
+
+  it("still says something general when the refusal names no field", async () => {
+    (store as any).__resetAuthStore({ userProfile: { id: 7, name: "old" } });
+    market.reply({ success: false, message: "market refused" });
+
+    await expect(
+      auth.UpdateProfile({ name: "Ada" }, {}),
+      "a save the core backend refused must still reject",
+    ).rejects.toThrow("market refused");
+
+    expect(
+      notifications.showErrorNotification,
+      "a refusal that names no field left the shopper with nothing at all",
+    ).toHaveBeenCalledWith("Failed to update profile Info");
+  });
+
   it("puts every completed leg back when a later one fails, and tells the shopper once (AC-25)", async () => {
     (store as any).__resetAuthStore({
       userProfile: { id: 7, name: "old", phone: "+90555" },
@@ -563,5 +604,132 @@ describe("mirroring every saved field into the stored copy (AC-15)", () => {
       stored.name,
       "the save carrying a one-time token mirrored nothing, so the check above proves nothing",
     ).toBe(SENT.name);
+  });
+});
+
+describe("renaming — each backend can refuse", () => {
+  it.each([
+    ["chat", [OK, { success: false, message: "chat refused" }]],
+    ["stories", [OK, OK, { success: false, message: "stories refused" }]],
+  ])("puts the old name back when the %s backend refuses", async (_leg, replies) => {
+    (store as any).__resetAuthStore({
+      user: { id: 7, name: "old" },
+      userProfile: { id: 7, name: "old" },
+    });
+    for (const r of replies as any[]) market.reply(r);
+    await auth.UpdateName("Ada");
+    expect(store.useAppStore.getState().userProfile.name, "the refused rename was left in place").toBe("old");
+    expect(notifications.showErrorNotification, "the shopper was not told").toHaveBeenCalledWith(
+      "Failed to update name",
+    );
+  });
+});
+
+describe("updating the profile — refusals and rollbacks", () => {
+  const withAll = () =>
+    (store as any).__resetAuthStore({
+      userProfile: { id: 7, name: "old", phone: "+90555" },
+      userChat: { id: "c1", name: "old" },
+      userStories: { id: "s1", name: "old" },
+    });
+
+  it("stops at once when the stories backend refuses, and rolls back nothing", async () => {
+    withAll();
+    market.reply({ success: false, message: "stories refused" });
+    await expect(auth.UpdateProfile({ name: "Ada" }, {}), "the stories refusal was swallowed").rejects.toThrow(
+      "stories refused",
+    );
+    expect((fetchDataModule.fetchData as any).mock.calls.map((c: any[]) => c[0].server), "a later leg ran").toEqual([
+      "stories",
+    ]);
+  });
+
+  it("puts the stories leg back when the chat backend refuses", async () => {
+    withAll();
+    market.reply(OK); // stories
+    market.reply({ success: false, message: "chat refused" }); // chat
+    market.reply(OK); // stories rollback
+    await expect(auth.UpdateProfile({ name: "Ada" }, {}), "the chat refusal was swallowed").rejects.toThrow(
+      "chat refused",
+    );
+    expect((fetchDataModule.fetchData as any).mock.calls.map((c: any[]) => c[0].server), "the legs are wrong").toEqual([
+      "stories",
+      "chat",
+      "stories",
+    ]);
+  });
+
+  it("raises the rollback failure when putting the stories leg back is refused", async () => {
+    withAll();
+    market.reply(OK);
+    market.reply({ success: false, message: "chat refused" });
+    market.reply({ success: false, message: "stories rollback refused" });
+    await expect(auth.UpdateProfile({ name: "Ada" }, {}), "the stories rollback failure was lost").rejects.toThrow(
+      "stories rollback refused",
+    );
+  });
+
+  it("raises the rollback failure when putting the chat leg back is refused", async () => {
+    withAll();
+    market.reply(OK); // stories
+    market.reply(OK); // chat
+    market.reply({ success: false, message: "market refused" });
+    market.reply(OK); // stories rollback
+    market.reply({ success: false, message: "chat rollback refused" });
+    await expect(auth.UpdateProfile({ name: "Ada" }, {}), "the chat rollback failure was lost").rejects.toThrow(
+      "chat rollback refused",
+    );
+  });
+
+  it("puts the core-backend profile back when a step after the market leg fails", async () => {
+    (store as any).__resetAuthStore({ userProfile: { id: 7, name: "old", phone: "+90555", image: "a.png" } });
+    const editUserInfo = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error("state write failed");
+      })
+      .mockImplementation(() => {});
+    store.useAppStore.setState({ editUserInfo } as any);
+    market.reply(OK); // market leg
+    market.reply(OK); // market rollback
+    await expect(auth.UpdateProfile({ name: "Ada" }, {}), "the failure after the market leg was swallowed").rejects.toThrow(
+      "state write failed",
+    );
+    const calls = (fetchDataModule.fetchData as any).mock.calls.map((c: any[]) => c[0]);
+    expect(calls[1]?.url, "the core backend was not given the old profile").toBe("/customer/update-profile");
+    expect(JSON.parse(calls[1].body).name, "the rollback sent the new name").toBe("old");
+    expect(editUserInfo.mock.calls[1]?.[0]?.image, "the old picture was not put back in the state").toBe("/customers/profile/a.png");
+  });
+
+  it("BUG-utils-3: the core-backend rollback writes the OLD name into the state, not the new one", async () => {
+    (store as any).__resetAuthStore({ userProfile: { id: 7, name: "old", phone: "+90555" } });
+    const editUserInfo = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error("state write failed");
+      })
+      .mockImplementation(() => {});
+    store.useAppStore.setState({ editUserInfo } as any);
+    market.reply(OK);
+    market.reply(OK);
+    await auth.UpdateProfile({ name: "Ada" }, {}).catch(() => {});
+    expect(
+      editUserInfo.mock.calls[1]?.[0]?.name,
+      "the core backend got the old name back, but the app state was given the new name, so the shopper is told the save failed and still sees it",
+    ).toBe("old");
+  });
+
+  it("raises when putting the core-backend profile back is refused", async () => {
+    (store as any).__resetAuthStore({ userProfile: { id: 7, name: "old" } });
+    store.useAppStore.setState({
+      editUserInfo: vi.fn().mockImplementationOnce(() => {
+        throw new Error("state write failed");
+      }),
+    } as any);
+    market.reply(OK);
+    market.reply({ success: false, message: "market rollback refused" });
+    await expect(auth.UpdateProfile({ name: "Ada" }, {}), "the market rollback failure was lost").rejects.toThrow(
+      "market rollback refused",
+    );
   });
 });

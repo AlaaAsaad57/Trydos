@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import { getContacts } from "store/chat/actions";
 import { useAppStore } from "store";
@@ -67,7 +67,7 @@ function ChatContactsUpload() {
     const map = new Map<string, string>();
     ContactsData.forEach((c) => {
       const norm = normalizePhoneStrict(c.mobile_phone);
-      if (norm) map.set(norm, c.name);
+      if (norm) map.set(norm, c.contact_user?.name || c.name);
     });
     return map;
   }, [ContactsData]);
@@ -85,7 +85,7 @@ function ChatContactsUpload() {
       setIsUploading(true);
 
       // Use the individual contact endpoint as requested
-      await fetchData({
+      const res = await fetchData({
         url: "/api/v1/users/save_contact_v2",
         server: "chat",
         method: "POST",
@@ -95,6 +95,7 @@ function ChatContactsUpload() {
         }),
         reqTitle: { reqTitle: "ADD_CONTACTS", code: 999 },
       });
+      if (!res?.success) throw new Error(res?.message);
 
       // Refresh data and reset form
       await getContacts();
@@ -109,6 +110,7 @@ function ChatContactsUpload() {
         mobile_phone: fullPhoneString.replace(/\s+/g, ""),
       });
       setError("Failed to add contact");
+      showErrorNotification(translateFunction("Failed to add contact"));
     } finally {
       setIsUploading(false);
     }
@@ -221,7 +223,7 @@ function ChatContactsUpload() {
                 value={manualName}
                 onChange={(e) => setManualName(pollinateInput(e.target.value))}
                 className="w-full p-2 text-[#1d1d1d] border border-gray-300 rounded-md outline-hidden"
-                placeholder="John Doe"
+                placeholder={translateFunction("Enter Full Name")}
               />
             </div>
 

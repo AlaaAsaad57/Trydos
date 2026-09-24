@@ -15,7 +15,6 @@ import OrderExpectedDeliveryCard, {
 import OrderAddressCard from "components/settings/cards/OrderAddressCard";
 // Used by the (currently commented-out) order-message block below; kept imported
 // so re-enabling that block renders sanitized HTML by default. Tree-shaken while unused.
-import { sanitizeHtml } from "utils/sanitizeHtml";
 import RateOrderButton from "components/settings/cards/RateOrderButton";
 import OrderItemsList from "components/settings/cards/OrderItemsList";
 import {
@@ -39,6 +38,7 @@ import {
   returnDetails,
 } from "utils/types/OrderInterface";
 import Order from "services/order";
+import { shouldShowReturnedQty } from "./returnedQty";
 import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import OrderChatIcon from "components/settings/OrderChatIcon";
 import { fetchData } from "utils/fetchData";
@@ -403,8 +403,7 @@ function OrderDetailsWrapper({
     const isOutForReturn =
       returns?.return_requests_data?.find(
         (return_item) =>
-          String(return_item.order_id) === String(order_id) ||
-          String(order_item?.return_request_id) === String(chatId),
+          String(return_item.order_id) === String(order_item?.id),
       )?.status?.value === "out_for_return";
     if (isOutForDelivery || isOutForReturn) {
       safeGetChatWithShipping({
@@ -692,29 +691,6 @@ const isNotDraft=()=>{
                   isExpanded={isExpanded}
                   items={ActivePack?.details || []}
                 />
-               {/* {isNotDraft()&& isExpanded&&IsThereADescriptionMessage()?.length>0? 
-               <div className="p-2 flex flex-col items-center gap-3">
-              {IsThereADescriptionMessage().map((message, index) => (
-                <div
-                  key={index}
-                  className="w-full max-w-md rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5 text-amber-500">
-                      ⚠️
-                    </div>
-                    <div>
-
-                      <p className="text-sm text-amber-700">
-                       <div dangerouslySetInnerHTML={{__html:sanitizeHtml(message)}}>
-
-                       </div>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>:<></>} */}
                 {isExpanded && (
                   <OrderExpandedDetails
                     orderData={orderData}
@@ -1167,10 +1143,8 @@ const ProductCard = ({
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
 
-  // A returned item (whose return request is past the "draft" stage) should
-  // surface the returned quantity beside its "Item: qty" line. Draft returns
-  // are still being composed by the user and aren't shown — same draft check
-  // used in OrderItemReturnConfirmationWindow.
+  // A returned item should surface the returned quantity beside its
+  // "Item: qty" line — see shouldShowReturnedQty for when it is hidden.
   const productReturnInfo = getProductWithReturn(product);
   const returnRequestStatus = returnDetails?.return_requests_data?.find(
     (s) => s.order_id === order.id,
@@ -1178,11 +1152,11 @@ const ProductCard = ({
   const returnedQty = Number(
     productReturnInfo?.return_request_product_quantity,
   );
-  const showReturnedQty =
-    productReturnInfo?.already_return &&
-    !!returnRequestStatus?.value &&
-    !returnRequestStatus?.name?.toLowerCase()?.includes("draft") &&
-    returnedQty > 0;
+  const showReturnedQty = shouldShowReturnedQty({
+    alreadyReturn: productReturnInfo?.already_return,
+    requestStatus: returnRequestStatus,
+    returnedQty,
+  });
 
   return (
     <>
@@ -1405,16 +1379,7 @@ const ProductCard = ({
                 getProductWithReturn(product)?.return_request_product_id
               }
             />
-          ) : (
-            <div
-              className="underline text-[14px] text-[#5d5d5d] medium w-full text-center flex items-center justify-center p-2 cursor-pointer"
-              onClick={() => {
-                getOrderDetails();
-              }}
-            >
-              {translateFunction("Failed To Load Return Details Try again")}
-            </div>
-          ))}
+          ) : null)}
       </div>
     </>
   );

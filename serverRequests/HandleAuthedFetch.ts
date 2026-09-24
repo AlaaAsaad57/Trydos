@@ -31,6 +31,7 @@ const SUB_SERVICE_COOKIES = [
   CANONICAL_COOKIE_NAMES.STORIES_REFRESH_TOKEN,
   CANONICAL_COOKIE_NAMES.WALLET_TOKEN,
   CANONICAL_COOKIE_NAMES.USER_ID_HASH,
+  CANONICAL_COOKIE_NAMES.COMMENTS_REFRESH_TOKEN,
   CANONICAL_COOKIE_NAMES.USER_CHAT,
   CANONICAL_COOKIE_NAMES.USER_STORIES,
   CANONICAL_COOKIE_NAMES.WALLET_USER,
@@ -185,7 +186,6 @@ export const HandleAuthedFetch = async <T = any>(
         error: error,
         scenario: "Error In HandleAuthedFetch in HandleAuthedFetch",
       });
-      console.error("Auth Refresh Failed:", error);
     }
   }
 

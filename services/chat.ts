@@ -11,7 +11,6 @@ import {
 } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-import home from "services/home";
 import UPDATED_API_DATA from "migration.staging";
 import { LogServerError } from "utils/serverErrorReporter";
 import { trackPosthog, CHAT_EVENTS } from "utils/posthogEvents";
@@ -151,8 +150,12 @@ class ChatService {
     if(!userChat?.id){
      return;
     }
-    const { onValue, ref } = await import("firebase/database");
     try {
+      // Inside the try on purpose. This import used to sit outside it, so a
+      // chunk that failed to load — a stale hash after a deploy, a network
+      // that blocks firebase — rejected `getChats` before anything ran, and
+      // `chat_loading` stayed at its initial `true` with no chats on screen.
+      const { onValue, ref } = await import("firebase/database");
       if (!payload) {
         setChatLoading();
       }
@@ -218,13 +221,18 @@ class ChatService {
       });
 
       setLastNotificationDate(new Date().toLocaleString());
-      setChatDone();
       return [...response.data.channels, ...response.data.pinned_channels];
     } catch (e) {
       LogServerError({
         error: e,
         scenario: "Error In getChats in services/chat",
       });
+    } finally {
+      // Always lower the loading flag. It used to be lowered only on the happy
+      // path, and two awaits sit between `setChats` and this line — the
+      // firebase import and `getDb()`. If either threw, the chats were already
+      // in the store but ChatLists kept showing skeletons for ever.
+      setChatDone();
     }
   }
   async getContacts() {
@@ -253,9 +261,9 @@ class ChatService {
     }
   }
   async getCalls(id?: number) {
-    const { setCallLoading, setCalls } = useAppStore.getState();
+    const { setCallLoadingState, setCalls } = useAppStore.getState();
     try {
-      setCallLoading(true);
+      setCallLoadingState(true);
       let response = await fetchData({
         url: "/api/v1/channels/my_calls",
         body: JSON.stringify({ limit: "20", last_message_id: id }),
@@ -267,13 +275,13 @@ class ChatService {
         throw new Error(response.message);
       }
       setCalls(response.data);
-      setCallLoading(false);
+      setCallLoadingState(false);
     } catch (err) {
       LogServerError({
         error: err,
         scenario: "Error In getCalls in services/chat",
       });
-      setCallLoading(false);
+      setCallLoadingState(false);
     }
   }
 }

@@ -4,8 +4,8 @@ import {
   deleteCookie,
   clearHashedUserId,
 } from "./cookies/cookie-manager";
-import React from "react";
 import { clearAllUserData } from "./tinyUtils";
+import { LogError } from "utils/functions";
 
 // Version cookie name
 const VERSION_COOKIE_NAME = "APP_VERSION";
@@ -20,7 +20,7 @@ const getStoredVersion = (): string | null => {
   try {
     return getCookie<string>(VERSION_COOKIE_NAME);
   } catch (error) {
-    console.warn("Failed to get stored version:", error);
+    LogError({ scenario: "version-manager: the stored version could not be read", error });
     return null;
   }
 };
@@ -35,7 +35,7 @@ const setVersionCookie = (version: string): void => {
       sameSite: "strict",
     });
   } catch (error) {
-    console.error("Failed to set version cookie:", error);
+    LogError({ scenario: "version-manager: the version cookie could not be written", error });
   }
 };
 
@@ -113,6 +113,6 @@ export const checkAndUpdateVersion = async (): Promise<void> => {
     } else {
     }
   } catch (error) {
-    console.error("Version check failed:", error);
+    LogError({ scenario: "version-manager: the version check failed", error });
   }
 };

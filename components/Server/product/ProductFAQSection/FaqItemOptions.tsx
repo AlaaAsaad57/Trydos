@@ -42,6 +42,7 @@ export const FaqItemOptions = ({
         }}
         loading={loading}
         type="Delete"
+        dataCy="faq-delete-confirm"
         showModal={is_delete}
         confirmMessage="Are you sure you want to delete this comment?"
         confirmTilte={"Delete Comment"}
@@ -108,6 +109,7 @@ export const FaqItemOptions = ({
               </label>
               <textarea
                 id="comment-input"
+                data-pw="faq-edit-input"
                 ref={inputRef}
                 value={comment_str}
                 onChange={(e) => setComment(e.target.value)}
@@ -133,6 +135,7 @@ export const FaqItemOptions = ({
               </button>
               <button
                 type="button"
+                data-pw="faq-edit-submit"
                 onClick={handleSubmit}
                 className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-hidden focus:ring-2 ${
                   isSubmitDisabled

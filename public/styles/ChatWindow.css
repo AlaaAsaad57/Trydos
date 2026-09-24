@@ -825,21 +825,40 @@ img {
 .self-align .message-body:hover {
 }
 
-.message-date.hovers {
-  position: absolute;
-  right: 100px;
-  opacity: 0;
-  top: 15px;
-  transition: 0.2s all ease-in;
-  bottom: initial !important;
-  left: 150px;
-  width: 45px;
+.sent-message-hover-dates {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  user-select: none;
+  white-space: nowrap;
 }
 
-.hovers .sent-date {
-  color: #c4c2c2;
+.sent-message-hover-dates .hover-date-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  height: 15px;
+  line-height: 15px;
+}
+
+.sent-message-hover-dates .hover-date-time {
+  font-family: var(--SF-Pro-Rounded-Regular), -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 10px;
+  color: #6b7280;
+  letter-spacing: 0.2px;
+}
+
+.sent-message-hover-dates .hover-date-icon {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .last-date {
@@ -1513,7 +1532,12 @@ svg.redwave g g path {
 
 .play-vid-icon {
   position: absolute;
-  z-index: 99;
+  /* Above `.message-img-body::after`, the shade drawn over the whole bubble at
+     9999. The shade takes pointer events like any other box, so below it the
+     play icon never gets its own click and the options menu opens instead of
+     the video. The shade itself is left alone: a photo message shares it and
+     is supposed to keep opening the options menu. */
+  z-index: 10000;
   top: 41%;
   left: 43%;
   -webkit-transform: scale(3.5);

@@ -3,9 +3,12 @@
 //   tsx tests/e2e/cli.ts preflight   is this configured, is it staging, is it up?
 //   tsx tests/e2e/cli.ts health      is staging up? — on its own, for after a run
 //   tsx tests/e2e/cli.ts build       build the app with the staging environment
-//   tsx tests/e2e/cli.ts run [--skip-build]
+//   tsx tests/e2e/cli.ts run [--skip-build] [--lane=account|solo]
 //                                    all three, in order, for local use.
 //                                    --skip-build reuses an existing .next output.
+//                                    --lane runs one lane only — see the lane
+//                                    note further down. No --lane runs every
+//                                    spec on one worker, as it always did.
 //
 // **Why preflight is a separate command and runs before the build.** The build
 // takes minutes. Finding out afterwards that the machine has no staging
@@ -21,9 +24,19 @@ import { spawn } from "node:child_process";
 import { appendFileSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { hasBackends, hasShopperA, loadLiveEnv } from "./harness/env";
-import { assertStagingTarget } from "./harness/guard";
+import { envValue, hasBackends, hasShopperA, loadLiveEnv } from "./harness/env";
+import { assertStagingTarget, isAllowedHost } from "./harness/guard";
+// The lane tables and the pure helpers live in their own file, with no
+// import-time work, so a unit test can read them without importing this one --
+// which would run the whole suite, because `main()` is called at module scope
+// at the bottom of this file.
+import {
+  LANE_ENV_VAR,
+  parseRunFlags,
+  qaGrepFor,
+} from "./laneConfig";
 import { probeStaging } from "./harness/health";
+import { outageShape } from "./harness/outage";
 import { redact } from "./harness/redact";
 import { buildApp } from "./harness/server";
 
@@ -67,19 +80,26 @@ const checkStaging = async (): Promise<boolean> => {
   const health = await probeStaging();
 
   if (health.skipped) {
-    log("no search backend configured, so nothing to health-check.");
+    // One reason lands here, and it is not "it is healthy": neither backend the
+    // probe knows how to ask is configured on this machine. Say so, so a reader
+    // never takes this line for a passing check.
+    log("no health check was made — neither the search backend nor the gateway is configured.");
     setStepOutput("staging", "up");
     return true;
   }
 
   if (!health.up) {
     log(`staging is not serving: ${health.reason}`);
+    if (health.timings) log(`what each box took: ${health.timings}`);
     log("This is a backend outage, not a code failure. The suite will skip.");
     setStepOutput("staging", "down");
     return false;
   }
 
-  log("staging health check passed.");
+  // The timings, always. "Passed" alone cannot tell a healthy backend from one
+  // that answers in nine seconds -- and the second kind is what fails a lane on
+  // `page.goto: Timeout 45000ms` while this line stays green.
+  log(`staging health check passed (${health.timings}).`);
   setStepOutput("staging", "up");
   return true;
 };
@@ -153,9 +173,20 @@ type PlaywrightSpec = {
   ok?: boolean;
   tests?: {
     status?: string;
-    results?: { status?: string; error?: { message?: string } }[];
+    /** `test.skip(condition, reason)` records the reason here. It is the only
+     *  place the reason survives: the list reporter prints a bare `-`. */
+    annotations?: { type?: string; description?: string }[];
+    results?: {
+      status?: string;
+      error?: { message?: string };
+      /** ISO timestamp. Written by the JSON reporter for every attempt, and the
+       *  only ordering this file has -- the suites are nested by file, not by
+       *  the order the cases ran in. `outageShape` below is built on it. */
+      startTime?: string;
+    }[];
   }[];
 };
+
 
 type PlaywrightSuite = {
   title?: string;
@@ -179,6 +210,47 @@ const collectFailureNames = (
 
     return [...failedHere, ...collectFailureNames(suite.suites, here)];
   });
+
+/** Why a spec was skipped, or an empty string when it was not.
+ *
+ *  **A skip with no reason on screen is the same as no answer at all.** CI run
+ *  35496319099 skipped 17 tests and printed seventeen `-` lines; the reason —
+ *  one missing setting — was in the JSON the whole time and nobody could see
+ *  it. Reading it back out is what turns "17 skipped" into something a person
+ *  can act on. */
+const specSkipReason = (spec: PlaywrightSpec): string => {
+  const statuses = (spec.tests ?? []).map((test) => test.status);
+  if (statuses.length === 0 || !statuses.every((s) => s === "skipped")) return "";
+
+  return (
+    (spec.tests ?? [])
+      .flatMap((test) => test.annotations ?? [])
+      .find((note) => note.type === "skip" && note.description)?.description ??
+    ""
+  );
+};
+
+/** Every distinct skip reason in the run, with how many tests each one held
+ *  back. Distinct, because one missing setting skips a whole lane and printing
+ *  it seventeen times buries it. */
+const collectSkipReasons = (
+  suites: PlaywrightSuite[] = [],
+): Map<string, number> => {
+  const counts = new Map<string, number>();
+
+  const walk = (level: PlaywrightSuite[]): void => {
+    for (const suite of level) {
+      for (const spec of suite.specs ?? []) {
+        const reason = specSkipReason(spec);
+        if (reason) counts.set(reason, (counts.get(reason) ?? 0) + 1);
+      }
+      walk(suite.suites ?? []);
+    }
+  };
+
+  walk(suites);
+  return counts;
+};
 
 /** The first error a spec recorded, across its retries. */
 const specError = (spec: PlaywrightSpec): string =>
@@ -279,7 +351,11 @@ const buildRollup = (files: PlaywrightSuite[]): string =>
  *  its own test needs no explaining. */
 const specLines = (spec: PlaywrightSpec, pad: string): string[] => {
   const head = `${pad}${specIcon(spec)} ${spec.title}`;
-  if (spec.ok !== false) return [head];
+
+  if (spec.ok !== false) {
+    const skipped = specSkipReason(spec);
+    return skipped ? [head, `${pad}   ↳ ${skipped}`] : [head];
+  }
 
   return [
     head,
@@ -303,6 +379,28 @@ const treeLines = (suites: PlaywrightSuite[], depth: number): string[] =>
       ...treeLines(suite.suites ?? [], inner),
     ];
   });
+
+/** A hard ceiling on the attached tree, in BYTES. The same limit, for the same
+ *  reason, as TREE_BUDGET_BYTES in scripts/unit-report.mjs — keep the two in
+ *  step.
+ *
+ *  The tree travels to the notifier job as an environment variable, and Linux
+ *  caps a single environment variable at MAX_ARG_STRLEN (32 pages, 131072
+ *  bytes). Past that the notifier step does not fail, it never starts:
+ *  "Argument list too long". The unit reporter hit exactly that once its suite
+ *  grew; this one has fewer tests today and would hit it the same way. */
+const TREE_BUDGET_BYTES = 120_000;
+
+/** Cut `text` to at most `maxBytes`, or null when it already fits.
+ *
+ *  Slicing a JavaScript string by index cuts by UTF-16 code unit, which can
+ *  split an emoji in half and leave a lone surrogate. Encoding, cutting and
+ *  decoding drops the incomplete character at the end instead. */
+const clipToBytes = (text: string, maxBytes: number): string | null => {
+  const encoded = new TextEncoder().encode(text);
+  if (encoded.length <= maxBytes) return null;
+  return new TextDecoder("utf-8").decode(encoded.subarray(0, maxBytes));
+};
 
 /** Every describe and every test, for the attached file. */
 const buildTree = (files: PlaywrightSuite[], totals: string): string => {
@@ -334,7 +432,11 @@ const buildTree = (files: PlaywrightSuite[], totals: string): string => {
     ];
   });
 
-  return [...head, ...body, ""].join("\n");
+  const text = [...head, ...body, ""].join("\n");
+  const clipped = clipToBytes(text, TREE_BUDGET_BYTES);
+  return clipped === null
+    ? text
+    : `${clipped}\n\n[cut here — the list was too long to send]\n`;
 };
 
 /** Read the run's results and write the values the notifier wants. */
@@ -351,6 +453,10 @@ const report = (): void => {
     setStepOutput("failures", "");
     setStepOutput("rollup", "");
     setStepOutput("tree", "");
+    // No results means no evidence of a tail. `false` keeps the verdict strict:
+    // an empty report may never forgive a run.
+    setStepOutput("failures_are_tail", "false");
+    setStepOutput("passed_after_first_failure", "0");
     return;
   }
 
@@ -392,6 +498,15 @@ const report = (): void => {
 
   const files = results.suites ?? [];
 
+  // The outage question, answered from the run's own timestamps. The verdict
+  // step reads these two and nothing else -- see `outageShape` above.
+  const shape = outageShape(files);
+  setStepOutput(
+    "failures_are_tail",
+    shape.measured && shape.isTail ? "true" : "false",
+  );
+  setStepOutput("passed_after_first_failure", String(shape.passedAfter));
+
   setStepOutput("totals", redact(totals));
   setStepOutput("failures", redact(shown.join("\n")));
   // Redacted like everything else here. A test title is written by us and holds
@@ -401,16 +516,49 @@ const report = (): void => {
   setStepOutput("tree", redact(buildTree(files, totals)));
 
   log(totals);
+
+  // On screen, not only in the attached file. Somebody reading a CI log wants
+  // to know why a third of the lane did not run without downloading anything.
+  for (const [reason, count] of collectSkipReasons(files)) {
+    log(redact(`${count} skipped: ${reason}`));
+  }
 };
 
-/** Pull out flags the CLI owns before Playwright sees them. */
-const parseRunFlags = (args: string[]): { skipBuild: boolean; playwrightArgs: string[] } => {
-  const skipBuild = args.includes("--skip-build");
-  return {
-    skipBuild,
-    playwrightArgs: args.filter((arg) => arg !== "--skip-build"),
-  };
-};
+
+// ---------------------------------------------------------------------------
+// The two lanes
+//
+// The suite is slow because it is serial, and it is serial because of **one
+// staging account**. Six spec files sign in as that account, or spend a
+// one-time code, or write a real order. Run two of those at once and they
+// rotate each other's credential — the backend issues a new pair and the other
+// case is holding the old one. That is not a theory: `BUY-03` already reports
+// `/customer/address/list answered 401: Unauthorized` today.
+//
+// The other six touch none of it. They browse as a guest, or they fake every
+// answer and sign nobody in. Those can run at the same time as the account
+// lane, and as each other.
+//
+// So the split is by **what a spec shares**, not by how slow it is:
+//
+//   account  one account, one code budget, real writes     → one worker, always
+//   solo     no account, no code, nothing real written     → several workers
+//
+// Measured on CI run 34956076865: the account lane is about 30 minutes of the
+// 39.6 and the solo lane about 10. Run as two jobs, the wall time is the longer
+// lane rather than the sum.
+//
+// **The lane tables themselves now live in `tests/e2e/laneConfig.ts`**, with
+// `laneSpecs`, `laneArgs`, `qaGrepFor` and `parseRunFlags`. They moved out of
+// this file so a unit test can read them: importing *this* file runs `main()`
+// at module scope, which defaults to `run` and would start the whole suite
+// against staging inside `pnpm test:run`.
+//
+// A file listed in neither lane is a file that never runs, and `laneSpecs`
+// still checks the lists against the folder on every use. Adding a spec: put
+// it in `ACCOUNT_LANE` or `SOLO_LANE` in `laneConfig.ts`. When in doubt choose
+// `account` -- that lane is always correct, only slower.
+// ---------------------------------------------------------------------------
 
 /** Hand the rest of the arguments to Playwright and adopt its exit code. */
 const runPlaywright = (args: string[]): Promise<number> =>
@@ -452,10 +600,38 @@ const main = async (): Promise<number> => {
       return 0;
 
     case "run": {
-      const { skipBuild, playwrightArgs } = parseRunFlags(rest);
+      const { skipBuild, lane, playwrightArgs } = parseRunFlags(rest);
       if (!(await preflight())) return 0;
       if (!skipBuild) await buildApp();
-      return await runPlaywright(playwrightArgs);
+
+      // Tell the child which lane job it is. `runPlaywright` hands
+      // `process.env` straight to the spawned process, and a parent variable is
+      // visible inside a Playwright **setup project** -- measured. The QA seed
+      // reads it and does nothing unless the lane is `account`, so the seed
+      // cannot run twice when both lane jobs start at once.
+      //
+      // No `--lane=` leaves it unset, which the seed treats as "do not seed".
+      // Somebody running `playwright test` by hand never writes to staging.
+      if (lane) process.env[LANE_ENV_VAR] = lane;
+
+      // Which cases may run against this environment.
+      //
+      // The target is the **core backend address**, not `LIVE_ORIGIN`.
+      // `LIVE_ORIGIN` is always `127.0.0.1:3100` -- the server this harness
+      // starts -- so it says nothing about which environment the app is
+      // pointed at, and asking it would tag every run as unsafe.
+      //
+      // `undefined` for an address the guard recognises as staging; the
+      // `@prod-safe` tag for anything else, including unset. Placed first, so a
+      // `--grep` typed on the command line still wins.
+      //
+      // This is a **second** check, not the first one: `preflight()` above
+      // already refused an unknown address. It earns its place on the day the
+      // guard's list is widened, which is the one way past that refusal.
+      const grep = qaGrepFor(envValue("BACKEND_URL"), isAllowedHost);
+      const args = grep ? [`--grep=${grep}`, ...playwrightArgs] : playwrightArgs;
+
+      return await runPlaywright(args);
     }
 
     default:

@@ -17,7 +17,7 @@ function isFinderZone(row: number, col: number, moduleCount: number): boolean {
     return false;
 }
 
-export function CustomQRCode({
+function CustomQRCode({
     value,
     size = 232,
     errorCorrectionLevel = 'L',

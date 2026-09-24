@@ -11,6 +11,8 @@ import auth from "services/auth";
 import { COOKIE_NAMES, getCookie } from "./cookies/cookie-manager";
 import { useAppStore } from "store";
 import { toServiceToken } from "./serviceTokens";
+import { buildProxyGetUrl } from "./proxyGetUrl";
+import { formatFieldErrors } from "./fieldErrors";
 
 // ---------- Types ----------
 export type ServerType =
@@ -35,6 +37,12 @@ const CREDENTIAL_FIELDS = [
   "otp_id_token",
   "otp",
   "password",
+  // The confirmation carries the SAME value as the password, so masking one
+  // and not the other protects nothing. Found in a live run's log on
+  // 2026-09-19, where a refused "become a seller" submit printed
+  // `"password":"[redacted]"` beside the confirmation in clear -- and this
+  // function's whole job is to clean a body before Sentry keeps it.
+  "repeat_password",
   "token",
   "access_token",
   "refresh_token",
@@ -89,7 +97,7 @@ const LOCAL_AUTEHD_ROUTES = ["/api/auth/login", "/api/ticket"];
 const STALE_TOKENS_FOR: Partial<Record<ServerType, string[]>> = {
   chat: [COOKIE_NAMES.CHAT_TOKEN, COOKIE_NAMES.CHAT_REFRESH_TOKEN],
   stories: [COOKIE_NAMES.STORIES_TOKEN, COOKIE_NAMES.STORIES_REFRESH_TOKEN],
-  comments: [COOKIE_NAMES.USER_ID_HASH],
+  comments: [COOKIE_NAMES.USER_ID_HASH, COOKIE_NAMES.COMMENTS_REFRESH_TOKEN],
   wallet: [COOKIE_NAMES.WALLET_TOKEN],
 };
 
@@ -104,6 +112,15 @@ interface FetchDataParams {
   signal?: AbortSignal;
   noMessage?: boolean;
   sellerId?: string;
+  /**
+   * Address /api/proxy by query string instead of headers (GET only).
+   *
+   * Use it where the request is worth starting before hydration: a
+   * `<link rel="preload">` can only issue a plain GET, so the header contract
+   * is unreachable from one. The caller must build the preload address with
+   * buildProxyGetUrl() so the two match exactly. Ignored for anything but GET.
+   */
+  viaProxyGet?: boolean;
 }
 
 // ---------- Internal State ----------
@@ -298,6 +315,7 @@ const handleUnauthorized = async (
             const refresh = await authService.default.RefreshSession(
               options?.url,
               server,
+              options?.sentAt,
             );
             if (refresh.eligible) return true;
           }
@@ -377,6 +395,21 @@ const handleUnauthorized = async (
         }
       // falls through to the shared sub-service need_auth flow
       case "comments":
+        // Refresh-first for comments, using the comments service own
+        // refresh contract: a single 401 tries the HttpOnly
+        // COMMENTS-REFRESH-TOKEN exchange. On success the proxy next request
+        // picks up the rotated comments token automatically; on failure we
+        // fall through to the existing need_auth prompt flow, like wallet.
+        if (authAttempt === 0 && server === "comments") {
+          const authService = await import("services/auth");
+          const refresh = await authService.default.RefreshSession(
+            options?.url,
+            server,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 2000)); // let the store update propagate before the retry
+          if (refresh.eligible) return true;
+        }
+      // falls through to the shared sub-service need_auth flow
       case "wallet":
         localStorage.setItem(
           "last_unauthorized_request",
@@ -495,6 +528,7 @@ export const fetchData = async <T = any>(
     noMessage,
     signal,
     sellerId,
+    viaProxyGet = false,
   } = params;
   const { useAppStore } = await import("store");
   // Once a logout has started no authed request may go out — a late 401 would
@@ -517,6 +551,9 @@ export const fetchData = async <T = any>(
     String(method || "").toUpperCase(),
   );
   let retryCount = 0;
+  // When this request last left. A 401 is judged against it: a renewal that
+  // finished after it means the request carried the old token (RefreshSession).
+  let sentAt: number | undefined;
   let status: number;
   let responseData: any;
   let logObj: Partial<any> = {};
@@ -525,9 +562,13 @@ export const fetchData = async <T = any>(
     return { ...requestCache.get(cacheKey), success: true };
   }
 
-  // Inflight dedup: if an identical request is already pending, share its promise
-  if (!isRetryAfterUnauthorized && inflightRequests.has(cacheKey)) {
-    const shared = inflightRequests.get(cacheKey)!.then((r) => ({ ...r }));
+  // Inflight dedup: if an identical request is already pending, share its promise.
+  // Keyed by who it was sent for as well: a request that left before a sign-in
+  // carries the guest's cookies, so its answer describes the guest and must not
+  // be handed to a caller asking for the signed-in shopper.
+  const inflightKey = `${cacheKey}|${useAppStore.getState().userProfile?.id ?? ""}`;
+  if (!isRetryAfterUnauthorized && inflightRequests.has(inflightKey)) {
+    const shared = inflightRequests.get(inflightKey)!.then((r) => ({ ...r }));
     return raceWithSignal(shared, signal) as Promise<T>;
   }
 
@@ -544,6 +585,7 @@ export const fetchData = async <T = any>(
 
       // Abort on the caller's signal OR when a logout begins.
       const effectiveSignal = withLogoutSignal(signal);
+      sentAt = Date.now();
 
       if (isUploadStory(server)) {
 
@@ -570,6 +612,27 @@ export const fetchData = async <T = any>(
           credentials: "include",
           signal: effectiveSignal,
         });
+      } else if (viaProxyGet && method === "GET") {
+        // ── EXTERNAL, GET form: /api/proxy?s=…&u=… ──
+        //
+        // Same proxy, same token injection, addressed by query string instead
+        // of headers. Opt-in per call, because this only matters where a
+        // `<link rel="preload">` starts the request during HTML parse — and the
+        // hint and this fetch must build the address the same way, or the
+        // browser makes two requests instead of one.
+        //
+        // `credentials: "same-origin"` rather than "include": the URL is
+        // same-origin, so cookies are sent either way, and it is the mode a
+        // `crossOrigin="anonymous"` preload uses. A mismatch there is enough to
+        // stop the preload being reused.
+        res = await fetch(
+          buildProxyGetUrl({ server, url, country, language, sellerId }),
+          {
+            method: "GET",
+            credentials: "same-origin",
+            signal: effectiveSignal,
+          },
+        );
       } else {
         const safeProxyUrl = encodeURI(url);
         // ── EXTERNAL: route through /api/proxy (token injected server-side) ──
@@ -618,7 +681,15 @@ export const fetchData = async <T = any>(
       // back while a re-auth is in progress: mid-recovery a sibling request can
       // briefly 403 against the transitional token — bouncing home then would
       // kill the session-expired prompt before the user can answer it.
-      if (status !== 200 && status !== 401 && method === "GET") {
+      //
+      // Scoped to 4xx. The rule reads the answer as "this seller may not have
+      // this shop", which only a refusal says. A 5xx or a 429 says the backend
+      // broke or is busy — the seller's access is not in question, the dashboard
+      // section has an error card with a Retry button for exactly that case, and
+      // the retry loop below still has 502/503/504/429 to work through. Bouncing
+      // to the storefront threw the seller off the page before either could run.
+      const isAccessRefusal = status >= 400 && status < 500 && status !== 429;
+      if (status !== 200 && status !== 401 && isAccessRefusal && method === "GET") {
         const { shouldAuthinticated, reAuthResult } = useAppStore.getState();
         const reAuthInProgress =
           Boolean(shouldAuthinticated) || reAuthResult === "pending";
@@ -637,6 +708,7 @@ export const fetchData = async <T = any>(
             status,
             responseData,
             sellerId,
+            sentAt,
           },
           authAttempt,
         );
@@ -646,6 +718,16 @@ export const fetchData = async <T = any>(
         }
 
         throw new Error("Authentication required");
+      }
+
+      // The core backend locks the cart while an RDB payment request is
+      // pending: every cart write and every checkout answers 409 carrying the
+      // pending reference. That is normal product behaviour, not a fault — the
+      // cart screen shows its own "you have a payment in progress" sheet with
+      // two buttons. So hand the body straight back: no toast, no Sentry event.
+      // Any other 409 keeps the ordinary error path below.
+      if (status === 409 && responseData?.data?.rdb_request_reference) {
+        return { ...responseData, success: false, httpStatus: 409 };
       }
 
       if (!res.ok) {
@@ -714,10 +796,16 @@ export const fetchData = async <T = any>(
       }
 
       const message = err?.message || "";
+      // A backend that refuses a field packs the reason into `message` as JSON
+      // ({"email":["email already exists"]}). Shown as it arrives, the shopper
+      // reads braces and quotes. `formatFieldErrors` turns it into one labelled
+      // line per field, and answers null for every ordinary message — so only
+      // the JSON case is rewritten. The reports below keep the raw text.
+      const shownMessage = formatFieldErrors(message) ?? message;
       if (reqTitle?.reqTitle?.includes("Add to cart widget")) {
-        showErrorMessage(message);
+        showErrorMessage(shownMessage);
       } else if (!ignoredMessages.includes(message) && !noMessage) {
-        showErrorNotification(message, 5000, null, null, reqTitle.code);
+        showErrorNotification(shownMessage, 5000, null, null, reqTitle.code);
       }
 
       const errorObj = {
@@ -769,7 +857,7 @@ export const fetchData = async <T = any>(
   };
 
   const promise = doFetchWithRetry();
-  inflightRequests.set(cacheKey, promise);
-  promise.finally(() => inflightRequests.delete(cacheKey));
+  inflightRequests.set(inflightKey, promise);
+  promise.finally(() => inflightRequests.delete(inflightKey));
   return promise;
 };

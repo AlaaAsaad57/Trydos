@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { GetUnviewedStory, SelectStory } from "store/homepage/actions";
 import StoryChatRow from "../components/StoryChatRow";
 import { InView } from "react-intersection-observer";

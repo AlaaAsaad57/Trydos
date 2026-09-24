@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
@@ -111,18 +111,6 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
       setLoading(false);
     }
   };
-
-  async function fileToGenerativePart(file) {
-    const base64EncodedDataPromise = new Promise((resolve) => {
-      const reader = new FileReader();
-      // @ts-ignore
-      reader.onloadend = () => resolve(reader.result.split(",")[1]);
-      reader.readAsDataURL(file);
-    });
-    return {
-      inlineData: { data: await base64EncodedDataPromise, mimeType: file.type },
-    };
-  }
 
   const handleFileUpload = (event) => {
     setLoading(true);

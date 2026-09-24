@@ -21,6 +21,7 @@ import {
 } from "./actions/auth";
 import { mockBackend, mockBackendSequence } from "./actions/mock";
 import { ENDPOINTS, scenarios } from "./scenarios";
+import { auth } from "./selectors";
 import { hasTestAccountPhones } from "./harness/env";
 
 const TEST_PHONE_A = () => process.env.TEST_ACCOUNT_PHONE ?? "";
@@ -132,13 +133,83 @@ test.describe("scripted authentication", () => {
       })
       .not.toBeNull();
 
-    // Server error during verify.
+    // Server error during verify. This is the third failed check in a row, so
+    // it is also the one that spends the last of the three tries — every failed
+    // check counts, whatever caused it. The line the shopper reads here is the
+    // cap's, not the backend's; what this step still proves is that the slot is
+    // filled rather than left blank.
     await submitOtp(page, { otp: "000000", phone });
     await expect
       .poll(async () => await visibleVerifyError(page), {
         timeout: 10_000,
-        message: "server-error message did not appear",
+        message:
+          "the third failed check left the message slot empty — after a " +
+          "server error the shopper must read either the reason or the " +
+          "tries-ran-out line, not nothing",
       })
       .not.toBeNull();
+  });
+
+  test("the code boxes stop taking a fourth code", async ({ page }) => {
+    await gotoAbout(page);
+    await mockBackendSequence(page, ENDPOINTS.login, [
+      scenarios.auth.wrongOtp[ENDPOINTS.login],
+      scenarios.auth.wrongOtp[ENDPOINTS.login],
+      scenarios.auth.wrongOtp[ENDPOINTS.login],
+    ]);
+
+    const phone = pickPhone(3);
+    await openLoginWidget(page);
+    await chooseAuthIntent(page, { intent: "login" });
+    await enterPhone(page, { phone });
+    await sendOtpWithRetry(page, { method: "whatsapp", phone });
+
+    for (const attempt of [1, 2, 3]) {
+      await test.step(`wrong code ${attempt} of 3`, async () => {
+        // The boxes must be empty before this code is typed. `submitOtp` uses
+        // `fill`, and filling a field with the value it already holds fires no
+        // change event — so no `onComplete`, and no verify call at all. The app
+        // clears the boxes itself ~1.5s after a failure; waiting for that is
+        // what makes each pass through this loop a real attempt.
+        //
+        // Without this wait the loop silently degraded to ONE attempt: the two
+        // later fills were no-ops, and the poll below passed on the message
+        // attempt 1 had left on screen. The cap was never reached, and the test
+        // blamed the app for a cap that had only ever been asked to count once.
+        await expect(
+          auth.otpInput(page),
+          `the boxes still held the previous code when attempt ${attempt} was ` +
+            `typed, so this attempt would not have been sent`,
+        ).toHaveValue("", { timeout: 10_000 });
+
+        await submitOtp(page, { otp: "000000", phone });
+
+        // Asserts the tries-left line for THIS attempt, not merely that some
+        // message is visible. A stale message from the previous attempt is
+        // exactly what hid the no-op fills, so "a message is showing" is not
+        // evidence that this attempt happened.
+        const expected =
+          attempt < 3 ? `Tries left: ${3 - attempt}` : "Too many wrong codes";
+        await expect
+          .poll(async () => await visibleVerifyError(page), {
+            timeout: 10_000,
+            message:
+              `after wrong code ${attempt} the PIN screen should read ` +
+              `"${expected}" — a different line means this attempt was not ` +
+              `counted, or the cap moved`,
+          })
+          .toContain(expected);
+      });
+    }
+
+    // Asserted directly, not through `submitOtp`: that helper waits for the
+    // field to be ENABLED before it types, so using it here would fail as a bare
+    // Playwright timeout naming nothing. It is shared by four spec files and is
+    // not changed for this one case.
+    await expect(
+      auth.otpInput(page),
+      "after three wrong codes the boxes must stop taking input — a shopper " +
+        "who can still type a fourth code has no cap at all",
+    ).toBeDisabled({ timeout: 10_000 });
   });
 });

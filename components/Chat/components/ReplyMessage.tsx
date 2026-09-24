@@ -1,4 +1,3 @@
-import React from "react";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";

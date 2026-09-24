@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
+import { logRequest, startTimer } from "reqLogger";
 import {
   SECURE_COOKIE_OPTIONS,
   REFRESH_COOKIE_OPTIONS,
@@ -23,6 +24,7 @@ const SUB_SERVICE_COOKIES = [
   COOKIE_NAMES.STORIES_REFRESH_TOKEN,
   COOKIE_NAMES.WALLET_TOKEN,
   COOKIE_NAMES.USER_ID_HASH,
+  COOKIE_NAMES.COMMENTS_REFRESH_TOKEN,
   COOKIE_NAMES.USER_CHAT,
   COOKIE_NAMES.USER_STORIES,
   COOKIE_NAMES.WALLET_USER,
@@ -50,6 +52,7 @@ export async function POST(request: NextRequest) {
     // Bodyless per the Go contract: register-guest only creates brand-new
     // guests — no old_guest_user_id (the re-issue-by-id path no longer
     // exists), so there is also no "user does not exist" retry.
+    const elapsed = startTimer();
     const response = await fetch(
       process.env.GO_BACKEND_URL + REGISTER_DEVICE_URL,
       {
@@ -67,6 +70,17 @@ export async function POST(request: NextRequest) {
     );
 
     const data = await response.json();
+    await logRequest({
+      server: "market",
+      url: REGISTER_DEVICE_URL,
+      method: "POST",
+      status: response.status,
+      durationMs: elapsed(),
+      backend: "gateway",
+      responseBody: data,
+      userId: data?.data?.user?.id,
+      userName: data?.data?.user?.name,
+    });
 
     if (!response.ok) {
       LogServerError({

@@ -129,6 +129,11 @@ export const RoundPrice = ({
   points?: any;
 }): number | string => {
   let price_num = Number(num);
+  // A missing or unreadable price becomes NaN, which fails every band test
+  // below and lands in the millions branch — the shopper was shown "NaNM".
+  // Treat it as nothing instead, the same as the client-side sibling in
+  // utils/functions.tsx.
+  if (!Number.isFinite(price_num)) price_num = 0;
 
   // Currency conversion at the start
   let rateVariable = rate ?? 1;
@@ -284,7 +289,8 @@ export const parseFiltersFromParams = (
         values = decodeURIComponent(values);
       } catch (e) {
         // If decoding fails, use the original value
-        console.warn("Failed to decode URL component:", values, e);
+        // A value that will not decode falls through to the raw one below. Not a
+        // fault, and it printed on ordinary addresses.
       }
 
       if (filterType === "search") {

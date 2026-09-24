@@ -95,11 +95,21 @@ export function LikeButton({
   };
   useEffect(() => {
     setIsLiked(is_liked);
-    setLikes(total_likes);
+    setLikes(total_likes || 0);
   }, [is_liked, total_likes]);
   return (
     <div
       id={`${getCommentId()}`}
+      data-pw="comment-like"
+      // `realId` on purpose: a seller reply's heart is handed
+      // `<id>-seller_reply`, and a locator built from the comment id alone would
+      // match nothing. `data-target-type` is what separates the two hearts.
+      data-comment-id={realId}
+      data-target-type={target_type}
+      data-liked={isLiked ? "true" : "false"}
+      // The visible count is `toLocaleString()`-formatted; this carries the raw
+      // number so nothing has to parse it back.
+      data-likes={likes ?? 0}
       className={`${loading && "opacity-65 scale-90"} ${
         isLiked && "comment-liked"
       }  flex items-center gap-[4px] text-[#1d1d1d] text-[9px] regular cursor-pointer select-none `}
@@ -148,7 +158,7 @@ export function LikeButton({
           fill={"transparent"}
         />
       </svg>
-      <span>{likes.toLocaleString()}</span>
+      <span data-pw="comment-like-count">{likes.toLocaleString()}</span>
     </div>
   );
 }

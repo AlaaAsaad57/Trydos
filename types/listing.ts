@@ -62,18 +62,3 @@ export interface GetRelatedProductsResult {
   productIds: string[];
 }
 
-/** A single facet chip's serializable data (category/brand/color/size/price). */
-export type FilterTerm = "categories" | "brands" | "colors" | "sizes" | "prices";
-export interface FilterOption {
-  term: FilterTerm;
-  item: any; // category/brand object, color/size string, or price-range object
-}
-
-export interface GetFiltersResult {
-  categories: any[];
-  brands: any[];
-  colors: any[];
-  sizes: any[];
-  prices: any;
-  total_size: number;
-}

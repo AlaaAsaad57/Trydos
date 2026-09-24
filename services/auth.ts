@@ -15,6 +15,7 @@ import {
 
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import { parseFieldErrors } from "utils/fieldErrors";
 import { fetchAuthMe } from "utils/authMe";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
@@ -64,8 +65,17 @@ let _expirePromise: Promise<ExpireOutcome> | null = null;
 // share the MARKET pair, so they legitimately share one key.
 type RefreshResult = { refreshed: boolean; eligible: boolean };
 const _refreshPromises = new Map<string, Promise<RefreshResult>>();
+// When each pair was last rotated. The map above only joins an exchange that is
+// still running. A request sent with the old token before an exchange, whose
+// 401 arrives after that exchange ended, must retry with the stored pair — not
+// start a second exchange that spends the refresh token just received. Each
+// such exchange rotated the pair again and, measured on staging, the chain
+// ended in a refused exchange that turned a signed-in shopper into a guest.
+const _refreshedAt = new Map<string, number>();
 const refreshKeyFor = (server?: string) =>
-  server === "chat" || server === "stories" ? server : "market";
+  server === "chat" || server === "stories" || server === "comments"
+    ? server
+    : "market";
 class AuthService {
   private async getServiceUsersFromCookies() {
     const data = await fetchAuthMe();
@@ -397,16 +407,21 @@ class AuthService {
     const { cancelAuth } = useAppStore.getState();
     cancelAuth(isForExpired);
   }
+  /** Ask to be told when this product — or this one variant — is back.
+   *
+   *  The answer is returned rather than swallowed. `fetchData` resolves to
+   *  `{ success: false }` instead of throwing, so a caller that ignores it
+   *  would tell the shopper "we will let you know" for a subscription the
+   *  backend never took. */
   async NotifyForProducts({ id, variant }) {
     if (!variant || variant?.includes("N/A"))
-      await home.subscribeToTopicInventory({
+      return await home.subscribeToTopicInventory({
         topic: `product_availability_${id}`,
       });
-    else
-      await home.subscribeToTopicInventory({
-        topic: `product_availability_${id}`,
-        variant: variant,
-      });
+    return await home.subscribeToTopicInventory({
+      topic: `product_availability_${id}`,
+      variant: variant,
+    });
   }
 
   getUser() {
@@ -428,7 +443,10 @@ class AuthService {
       });
       return res;
     } catch (error) {
-      console.log(error);
+      LogError({
+        error,
+        scenario: "Error in ValidateFcmToken in services/auth",
+      });
     }
   }
   UserID() {
@@ -464,13 +482,20 @@ class AuthService {
    * Returns {refreshed, eligible}; on failure/ineligibility the caller falls
    * through to the existing expiry flow.
    */
-  async RefreshSession(url?: string, server?: string) {
+  async RefreshSession(url?: string, server?: string, sentAt?: number) {
     const { LoggingOut } = useAppStore.getState();
     if (LoggingOut) return { refreshed: false, eligible: false };
 
     const key = refreshKeyFor(server);
     const pending = _refreshPromises.get(key);
     if (pending) return pending;
+
+    // The failed request left before the last rotation of this pair, so it
+    // carried the old token. The browser already holds the new pair: retry.
+    const refreshedAt = _refreshedAt.get(key);
+    if (sentAt !== undefined && refreshedAt !== undefined && sentAt < refreshedAt) {
+      return { refreshed: true, eligible: true };
+    }
 
     const request = (async () => {
       try {
@@ -485,7 +510,9 @@ class AuthService {
         const repo = await response.json().catch(() => ({}));
         if (repo?.eligible === false)
           return { refreshed: false, eligible: false };
-        return { refreshed: response.ok && repo?.refreshed === true, eligible: true };
+        const refreshed = response.ok && repo?.refreshed === true;
+        if (refreshed) _refreshedAt.set(key, Date.now());
+        return { refreshed, eligible: true };
       } catch {
         return { refreshed: false, eligible: true };
       }
@@ -679,6 +706,11 @@ class AuthService {
       const effectiveUserStories = userStories ?? storiesUserFromCookies;
       const effectiveUserChat = userChat ?? chatUserFromCookies;
 
+      if (!effectiveUserStories) {
+      }
+      if (!effectiveUserChat) {
+      }
+
       if (effectiveUserStories) {
         let res = await fetchData({
           url: "/api/v1/users/update",
@@ -810,9 +842,10 @@ class AuthService {
         if (!res.success) {
           throw new Error(res.message);
         }
+        // Put back what the core backend was just given: the old profile.
         const revertMarket = {
-          name: userObj?.name ?? userProfile?.name,
-          phone: userObj?.phone ?? userProfile?.phone,
+          name: userProfile?.name,
+          phone: userProfile?.phone,
           image: this.getImageForCookie(userProfile?.image),
         };
         editUserInfo(revertMarket);
@@ -928,7 +961,17 @@ class AuthService {
           { name: COOKIE_NAMES.USER_CHAT, value: revertChat },
         ]);
       }
-      showErrorNotification(translateFunction("Failed to update profile Info"));
+      // When the backend refused a named field, the request layer has already
+      // told the shopper which field and why, in their own language ("Email:
+      // email already exists"). The general line below would sit on top of that
+      // and say nothing, so it is only shown when there is no named field —
+      // which is the only case where the shopper would otherwise be told
+      // nothing at all.
+      if (!parseFieldErrors((error as any)?.message)) {
+        showErrorNotification(
+          translateFunction("Failed to update profile Info"),
+        );
+      }
       throw error;
     }
   }

@@ -28,6 +28,8 @@ import { isGuestName } from "utils/tinyUtils";
 import { COOKIE_NAMES, setCookie } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
+import { readRdbLock } from "./rdbPayment";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 import {
   trackSubscribedTopic,
   untrackSubscribedTopic,
@@ -107,6 +109,10 @@ class HomeService {
   async getCustomerInfo() {
     const { updateUserInfo } = useAppStore.getState();
     await WaitForCondition();
+    // Who this request was sent for. A sign-in (or a sign-out) can finish while
+    // it is in flight; the answer then describes the previous visitor and must
+    // not replace the new one — in the store or in the User-Data cookie.
+    const sentFor = useAppStore.getState().userProfile?.id;
     try {
       let response_customer_Info: any = await fetchData({
         url: CUSTOMER_INFO_URL,
@@ -119,6 +125,13 @@ class HomeService {
       if (!response_customer_Info.success) {
         // @ts-ignore
         throw new Error(response_customer_Info.message);
+      }
+      const current = useAppStore.getState().userProfile?.id;
+      if (
+        current !== sentFor &&
+        response_customer_Info.data?.customer_info?.id !== current
+      ) {
+        return;
       }
       // Treat backend guest placeholder names ("guest"/"verified_guest") as
       // "no name" so the UI prompts for a real name. Don't surface them as-is.
@@ -366,7 +379,19 @@ class HomeService {
 
     // MARKET_TOKEN is the single auth cookie (guest or logged-in) — register a
     // guest only when no token exists at all.
-    if (!hasMarketToken) await this.RegisterDevice();
+    //
+    // Remembered, because `userData` and `hasMarketToken` are read once above
+    // and a registration does not update them. Without this flag the `else`
+    // branch below still sees "no user" and registers a SECOND guest, throwing
+    // away the one just created along with its cart and identity. It also holds
+    // `isRegisteringReady` false for longer, which makes the 401 recovery in
+    // `utils/fetchData.ts` take its "a registration is already running" branch
+    // and skip the refresh entirely.
+    let registeredGuest = false;
+    if (!hasMarketToken) {
+      await this.RegisterDevice();
+      registeredGuest = true;
+    }
 
     if (userData && userData?.is_phone_verified === 1 && hasMarketToken) {
       if (process.env.NODE_ENV === "production")
@@ -395,7 +420,7 @@ class HomeService {
           name: userData.name,
           image: userData.image,
         });
-      } else {
+      } else if (!registeredGuest) {
         this.RegisterDevice();
       }
     }
@@ -605,6 +630,12 @@ class HomeService {
         method: "POST",
         server: "market",
       });
+      const lock = readRdbLock(response);
+      if (lock) {
+        useAppStore.getState().setRdbLock(lock);
+        trackOrder(ORDER_EVENTS.RDB_CART_LOCK_HIT, { at: "old_cart" });
+        return;
+      }
       // @ts-ignore
       if (!response.success) {
         throw new Error(response.message);
@@ -637,7 +668,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 
@@ -659,7 +690,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 
@@ -688,7 +719,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 
@@ -712,7 +743,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 
@@ -736,7 +767,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 
@@ -760,7 +791,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 
@@ -786,7 +817,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 
@@ -811,7 +842,7 @@ class HomeService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err);
+      LogError({ scenario: "services/home request failed", error: err });
     }
   }
 

@@ -8,6 +8,7 @@ import { fetchData } from "utils/fetchData";
 
 import { REQUESTS_DATA } from "utils/Requests";
 import { GetTicket } from "utils/UploadUtils";
+import { dropQaStories } from "utils/qaStoryFilter";
 
 const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
@@ -17,7 +18,7 @@ class StoryService {
   /* get stories */
 
   async getStories(page: number = 1) {
-    const { setStoryData, storiesData } = useAppStore.getState();
+    const { setStoryData, storiesData, userProfile, user } = useAppStore.getState();
 
     try {
       const response = await fetchData({
@@ -31,7 +32,15 @@ class StoryService {
         throw new Error(response.message);
       }
       let repo: any = response;
-      let data = repo.data.data;
+      // Filter once, here, before either branch writes to the store and before
+      // the value is returned. A QA story must not reach a shopper's feed
+      // through any of the three.
+      //
+      // The viewer's phone comes from the store, which is safe **here**: the
+      // only caller of this method is the sign-in flow (`services/auth.ts`),
+      // which runs after the store has been filled. The stories bar cannot rely
+      // on that and does not — see `StoriesBarClient`.
+      let data = dropQaStories(repo.data.data, userProfile?.phone ?? user?.phone);
       if (page == 1) {
         setStoryData(data);
       } else {
@@ -48,23 +57,24 @@ class StoryService {
     // @ts-ignore
   }
   async WatchStory(pid: number | string, id: number | string) {
-    const { watchStory ,userStories} = useAppStore.getState();
-    // TODO: check if userStories is null or undefined before accessing its properties
-    if(!userStories?.id){
-     return;
+    const { watchStory, userStories } = useAppStore.getState();
+    // Marking the item seen is local and visual, so it runs for every viewer.
+    // A guest has no stories account, and the ring still has to grey out.
+    watchStory({ pid: pid, id: id });
+    // Only a viewer with a stories account can report the view: a guest has no
+    // stories token, so the stories backend would refuse the request.
+    if (!userStories?.id) {
+      return;
     }
     try {
-      if (this.getUserStories()?.id) {
-        watchStory({ pid: pid, id: id });
-        const res = await fetchData({
-          url: "/api/v1/stories/increase_viewers/" + pid,
-          server: "stories",
-          reqTitle: REQUESTS_DATA.INCREASE_VIEWERS,
-          method: "GET",
-        });
-        if (!res.success) {
-          throw new Error(res?.message);
-        }
+      const res = await fetchData({
+        url: "/api/v1/stories/increase_viewers/" + pid,
+        server: "stories",
+        reqTitle: REQUESTS_DATA.INCREASE_VIEWERS,
+        method: "GET",
+      });
+      if (!res.success) {
+        throw new Error(res?.message);
       }
     } catch (error) {
       LogError({

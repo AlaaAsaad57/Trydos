@@ -42,7 +42,7 @@ const UploadImageComponent = ({
         const cameras = devices?.filter((dev) => dev?.kind === "videoinput");
         setHasTwoCameras(cameras && cameras.length >= 2);
       } catch (error) {
-        console.error("Error checking cameras:", error);
+        LogError({ scenario: "UploadImageComponent: listing the cameras failed", error });
       }
     };
     checkCameras();

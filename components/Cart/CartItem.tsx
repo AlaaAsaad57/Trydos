@@ -1,6 +1,5 @@
 import Timer from "components/Login/Timer";
 import FlashDealBanner from "components/products/FlashDealBanner";
-import React from "react";
 import { useAppStore } from "store";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
@@ -24,7 +23,7 @@ function CartItem({ product, index }) {
       <div
         className={`${
           isRtl ? "flex-row-reverse" : "flex-row"
-        }  w-[110px] h-[160px] relative`}
+        } w-[110px] h-[160px] relative my-auto self-center shrink-0`}
         data-pw="container-image-onCard"
       >
         {product.flash_deal_details?.end_date && (
@@ -196,21 +195,32 @@ function CartItem({ product, index }) {
           <></>
         )}
 
-        {(!product.check_availability ||
-          product.is_country_restricted === true ||
-          product.is_active === false) && (
-          <div className="flex-row items-center mt-1 text-[12px] light text-[#fd445d]">
-            <img src="/icons/Error.svg" />
-            <div className={`${language === "ar" && "dir-rtl"}`}>
-              <span className="ml-1.5">
-                {translateFunction("Availabilty")}:
-              </span>
-              <span className="regular ml-1">
-                {translateFunction("Out Of Stock")}
-              </span>
+        {(() => {
+          let statusText: string | null = null;
+          if (product.is_country_restricted === true) {
+            statusText = translateFunction("Not Available In Your Country", language);
+          } else if (product.is_active === false) {
+            statusText = translateFunction("Not Available Now", language);
+          } else if (!product.check_availability) {
+            statusText = translateFunction("Out Of Stock", language);
+          }
+
+          if (!statusText) return null;
+
+          return (
+            <div className="flex-row items-center mt-1 text-[12px] light text-[#fd445d]">
+              <img src="/icons/Error.svg" />
+              <div className={`${language === "ar" && "dir-rtl"}`}>
+                <span className="ml-1.5">
+                  {translateFunction("Availabilty", language)}:
+                </span>
+                <span className="regular ml-1">
+                  {statusText}
+                </span>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       <div

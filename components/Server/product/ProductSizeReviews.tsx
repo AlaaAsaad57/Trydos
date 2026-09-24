@@ -1,4 +1,3 @@
-import React from "react";
 import { GetProductGeneralData } from "serverRequests/product";
 import { translateFunction } from "utils/server";
 

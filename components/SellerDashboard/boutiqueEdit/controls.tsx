@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { translateFunction } from "utils/functions";
-import { DashField, dashInputClass, DashIcon } from "components/SellerDashboard/ui";
+import { dashInputClass, DashIcon } from "components/SellerDashboard/ui";
 import type { IconName } from "components/SellerDashboard/ui";
 
 const t = (s: string) => translateFunction(s);
@@ -33,105 +33,6 @@ export function Section({
       </div>
       {children}
     </div>
-  );
-}
-
-export const Grid = ({ children }: { children: React.ReactNode }) => (
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">{children}</div>
-);
-
-export function Txt({
-  label,
-  value,
-  onChange,
-  error,
-  hint,
-  disabled,
-  placeholder,
-  required,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  error?: string;
-  hint?: string;
-  disabled?: boolean;
-  placeholder?: string;
-  required?: boolean;
-}) {
-  return (
-    <DashField label={required ? `${t(label)} *` : t(label)} error={error && t(error)} hint={hint}>
-      <input
-        type="text"
-        value={value}
-        disabled={disabled}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        className={`${dashInputClass} ${error ? "border-[#f85555]" : ""} ${disabled ? "opacity-70" : ""}`}
-      />
-    </DashField>
-  );
-}
-
-export function Area({
-  label,
-  value,
-  onChange,
-  disabled,
-  rows = 4,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  disabled?: boolean;
-  rows?: number;
-}) {
-  return (
-    <DashField label={t(label)}>
-      <textarea
-        rows={rows}
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        className={`${dashInputClass} h-auto py-3 leading-relaxed ${disabled ? "opacity-70" : ""}`}
-      />
-    </DashField>
-  );
-}
-
-export function Select({
-  label,
-  value,
-  onChange,
-  options,
-  disabled,
-  error,
-  required,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-  disabled?: boolean;
-  error?: string;
-  required?: boolean;
-}) {
-  return (
-    <DashField label={required ? `${t(label)} *` : t(label)} error={error && t(error)}>
-      <select
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        className={`${dashInputClass} ${error ? "border-[#f85555]" : ""} ${disabled ? "opacity-70" : ""}`}
-      >
-        <option value="">{t("Select")}</option>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {t(o.label)}
-          </option>
-        ))}
-      </select>
-    </DashField>
   );
 }
 
@@ -233,43 +134,5 @@ export function Chip({
     >
       {children}
     </button>
-  );
-}
-
-export function Toggle({
-  label,
-  desc,
-  value,
-  onChange,
-  disabled,
-}: {
-  label: string;
-  desc?: string;
-  value: boolean;
-  onChange: (v: boolean) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 p-3.5 rounded-[12px] bg-[#f8f8f8] border border-[#ededed]">
-      <div className="min-w-0">
-        <p className="text-[13px] medium text-[#3c3c3c]">{t(label)}</p>
-        {desc && <p className="text-[12px] text-[#8e8e8e] mt-0.5">{t(desc)}</p>}
-      </div>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => onChange(!value)}
-        aria-pressed={value}
-        className={`relative shrink-0 w-[44px] h-[26px] rounded-full transition-colors disabled:opacity-50 ${
-          value ? "bg-[#5d5d5d]" : "bg-[#d9d9de]"
-        }`}
-      >
-        <span
-          className={`absolute top-[3px] w-[20px] h-[20px] rounded-full bg-white shadow transition-all ${
-            value ? "left-[21px]" : "left-[3px]"
-          }`}
-        />
-      </button>
-    </div>
   );
 }

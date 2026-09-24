@@ -5,12 +5,12 @@ import { translateFunction, LogError } from "utils/functions";
 import { DashIcon } from "components/SellerDashboard/ui/icons";
 import {
   DashButton,
-  LoadingState,
   EmptyState,
   Segmented,
 } from "components/SellerDashboard/ui";
 import RatingStars from "components/settings/cards/RatingStars";
 import "styles/comment.css";
+import { ListRowsSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
 
 const FALLBACK_AVATAR = "/images/profileNo.png";
 
@@ -244,7 +244,7 @@ export default function CommentsTab({
       />
 
       {loading ? (
-        <LoadingState label={translateFunction("Loading...", language)} />
+        <ListRowsSkeleton />
       ) : comments.length === 0 ? (
         <EmptyState
           icon="comments"
@@ -258,11 +258,25 @@ export default function CommentsTab({
         <div className="space-y-4 max-w-[640px]">
           {/* Cards mirror the storefront product page: BuyersCommentItem for
               reviews, FaqItemComponent (question + shop reply) for FAQ. No
-              status badge / comment id / product id is surfaced here. */}
+              status badge and no product id is surfaced here.
+              The comment id IS surfaced, in `data-comment-id`: the browser
+              suite binds a reply to a card it can prove is its own, and an id
+              it cannot read is an id it cannot check. `user_id` and
+              `user_avatar` stay unrendered as attributes. */}
           {comments.map((comment) => {
             const isReview = subTab === "reviews";
             return (
-              <div key={comment.comment_id} className="flex-col w-full">
+              // The hooks sit on this wrapper, not on the question block
+              // below it: the shop's reply — and the Reply control when there
+              // is none yet — are drawn as its *siblings*, so a hook on the
+              // question block alone would not contain them.
+              <div
+                key={comment.comment_id}
+                data-pw="dashboard-comment-card"
+                data-comment-id={comment.comment_id}
+                data-has-reply={comment.has_reply ? "true" : "false"}
+                className="flex-col w-full"
+              >
                 {/* Customer comment / review */}
                 <div
                   className="comment-item rounded-[15px] flex-col justify-between max-w-full w-full bg-[#F8F8F8] min-h-[111px]"
@@ -298,6 +312,7 @@ export default function CommentsTab({
                       {formatDate(comment.created_at, language)}
                     </div>
                     <div
+                      data-pw="dashboard-comment-text"
                       className={`${
                         !isRtl ? "pr-[27px]" : "pl-[27px]"
                       } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0`}
@@ -360,7 +375,10 @@ export default function CommentsTab({
                           >
                             {formatDate(comment.reply_created_at, language)}
                           </div>
-                          <div className="comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0">
+                          <div
+                            data-pw="dashboard-comment-reply-text"
+                            className="comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-0"
+                          >
                             {comment.seller_reply}
                           </div>
                         </div>
@@ -378,6 +396,7 @@ export default function CommentsTab({
                             )}
                             {canDelete && (
                               <button
+                                data-pw="dashboard-comment-delete-reply-btn"
                                 onClick={() => handleDeleteReply(comment)}
                                 disabled={deletingId === comment.comment_id}
                                 className="inline-flex items-center gap-1 text-[12px] semibold text-[#f85555] hover:opacity-80 transition-colors disabled:opacity-50"
@@ -406,6 +425,7 @@ export default function CommentsTab({
                         </span>
                         {canReply && (
                           <button
+                            data-pw="dashboard-comment-reply-btn"
                             onClick={() => openReplyModal(comment)}
                             className="inline-flex items-center gap-1 text-[12px] semibold text-[#388CFF] hover:opacity-80 transition-colors"
                           >
@@ -424,6 +444,7 @@ export default function CommentsTab({
           {hasMore && (
             <div className="flex justify-center pt-2">
               <DashButton
+                data-pw="dashboard-comments-load-more"
                 variant="secondary"
                 onClick={() => fetchComments(false)}
                 loading={loadingMore}
@@ -439,6 +460,8 @@ export default function CommentsTab({
       {replyModalOpen && selectedComment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs transition-opacity">
           <div
+            data-pw="dashboard-reply-modal"
+            data-comment-id={selectedComment.comment_id}
             className="w-full max-w-lg bg-white rounded-[20px] overflow-hidden animate-scale-up"
             style={{
               direction: isRtl ? "rtl" : "ltr",
@@ -474,6 +497,7 @@ export default function CommentsTab({
                     {translateFunction("Reply Text", language)}
                   </label>
                   <textarea
+                    data-pw="dashboard-reply-input"
                     rows={4}
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
@@ -494,6 +518,7 @@ export default function CommentsTab({
                 </DashButton>
                 <DashButton
                   type="submit"
+                  data-pw="dashboard-reply-submit"
                   icon="reply"
                   loading={submittingReply}
                   disabled={!replyText.trim()}

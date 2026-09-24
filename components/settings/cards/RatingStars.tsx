@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import { useState } from "react";
 
 const StarIcon = ({ fill = () => "#402CDD", isHalf = false, color, size }) => {
   let random = parseInt((Math.random() * 10000000)?.toString());

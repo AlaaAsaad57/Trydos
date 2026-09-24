@@ -1,5 +1,5 @@
 import BottomSheet from "components/global/BottomSheet";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
@@ -106,6 +106,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
           className="clear-options-button"
           data-pw="clearAll"
           onClick={(e) => {
+            [...options].forEach((s) => deleteOption(s));
             localStorage.setItem("search-history", JSON.stringify([]));
           }}
         >
@@ -144,6 +145,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
                         JSON.parse(arr).filter((item) => item !== s)
                       )
                     );
+                    deleteOption(s);
                     setOpen(false);
                     setOpen(true);
                   }}

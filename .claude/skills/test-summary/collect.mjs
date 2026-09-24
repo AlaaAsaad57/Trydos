@@ -128,9 +128,12 @@ for (const abs of Object.keys(cov)) {
 
 /**
  * The app file each test file checks, or null when it checks the test kit itself
- * (the fixtures, the stand-ins, the render helper). Both layouts are handled:
- *   utils/functions.test.ts                    -> utils/functions.tsx
+ * (the fixtures, the stand-ins, the render helper). Every test lives under
+ * tests/ and mirrors the path of the file it checks:
  *   tests/utils/cookies/cookie-manager.test.ts -> utils/cookies/cookie-manager.ts
+ *   tests/utils/functions.test.ts              -> utils/functions.tsx
+ * The leading tests/ is stripped before the match, so a test sitting next to
+ * its source would still be paired up.
  */
 const sourceOfTestFile = new Map();
 for (const t of tests) {

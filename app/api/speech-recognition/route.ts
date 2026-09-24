@@ -7,7 +7,7 @@ const ASSEMBLYAI_BASE_URL = process.env.ASSEMBLYAI_BASE_URL;
 export async function POST(request: NextRequest) {
   try {
     if (!ASSEMBLYAI_API_KEY) {
-      console.error("AssemblyAI API key not configured");
+      LogServerError({ scenario: "speech recognition: no transcription key configured" });
       return NextResponse.json(
         { error: "AssemblyAI API key not configured" },
         { status: 500 },
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (audioFile.size === 0) {
-      console.error("Audio file is empty");
+      LogServerError({ scenario: "speech recognition: the audio file was empty" });
       return NextResponse.json(
         { error: "Audio file is empty" },
         { status: 400 },
@@ -52,7 +52,8 @@ export async function POST(request: NextRequest) {
 
     if (!uploadResponse.ok) {
       const errorText = await uploadResponse.text();
-      console.error("Upload failed:", {
+      LogServerError({
+        scenario: "speech recognition: the audio upload was refused",
         status: uploadResponse.status,
         statusText: uploadResponse.statusText,
         error: errorText,
@@ -99,7 +100,8 @@ export async function POST(request: NextRequest) {
 
     if (!transcriptResponse.ok) {
       const errorText = await transcriptResponse.text();
-      console.error("Transcription request failed:", {
+      LogServerError({
+        scenario: "speech recognition: the transcription was refused",
         status: transcriptResponse.status,
         statusText: transcriptResponse.statusText,
         error: errorText,
@@ -167,7 +169,7 @@ export async function POST(request: NextRequest) {
       url: request.url,
       method: request.method,
     });
-    console.error("Speech recognition error:", error);
+    LogServerError({ scenario: "speech recognition failed", error });
     return NextResponse.json(
       { error: "Failed to process audio", details: error.message },
       { status: 500 },

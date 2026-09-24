@@ -82,10 +82,6 @@ export const GA_GLOBAL_SCREEN = {
   CHAT_SCREEN: "chat_screen",
   TAGS_SCREEN: "tags_filters_screen",
 };
-export const GA_GLOBAL_PLATFORM = {
-  WEB: "web",
-  MOBILE: "mobile",
-};
 export const GA_BUTTONS_NAMES = {
   I_HAVE_ALREADY_ACCOUNT_BUTTON: "i_have_already_account_button",
   CART_ICON: "cart_nav_bar_button",

@@ -53,13 +53,14 @@ function ProductMessage({
   return (
     <div
       onMouseLeave={() => {
+        // Only the menu closes on hover-out. The delete confirm box must not:
+        // it closes on its own Cancel, backdrop, Escape, or a chosen answer.
         setOpen(false);
-        setDelete(false);
       }}
       className={"message-hold" + " " + `${openMenu && "ac"}`}
     >
       <div
-        onClick={() => setOpen(true)}
+        onClick={() => setOpen(id)}
         className={
           "message-element-body flex-col message-body message-img-body product-share-message " +
           type

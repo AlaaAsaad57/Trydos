@@ -140,7 +140,14 @@ const PaymentsIcon = ({
     switch (payment?.value) {
       case "cash_on_delivery":
         return <img src="/icons/WalletIcon.svg" />;
+      // The core backend's `available_payment_method` list now sends "rdb"
+      // where it used to send "trydos_wallet" (design doc §9.1). The order
+      // record's own `payment_method.value` (what this switch actually reads,
+      // via `ActivePack?.payment_method`) was never confirmed to have moved
+      // to the same string, so both are handled here rather than guessing —
+      // see the fix report.
       case "trydos_wallet":
+      case "rdb":
         return <img src="/icons/WalletIcon.svg" />;
       case "crypto":
         return <img src="/icons/CryptoIcon.svg" />;

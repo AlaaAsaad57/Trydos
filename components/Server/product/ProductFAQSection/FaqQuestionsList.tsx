@@ -1,7 +1,7 @@
 "use client";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Spinner from "components/global/Spinner";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import auth from "services/auth";
 import { useAppStore } from "store";
 import FaqItemComponent from "./FaqItemComponent";
@@ -215,6 +215,9 @@ function FaqQuestionsList({
 
       <HortiznalScrollBar
         id="comments-buyers-bar"
+        // The id above is shared with the buyers-review strip on the same page,
+        // so it cannot scope anything. This hook is what tells the two apart.
+        dataCy="faq-section"
         className="flex-row w-full gap-[4px]"
       >
         {appendedComments.map((aid) => (

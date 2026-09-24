@@ -147,7 +147,7 @@ function OrdersPage({ setStep, close }) {
       if (orderData?.payment?.length === 1) {
         const selectedPayment = orderData?.payment[0];
 
-        // Wallet checkout is handled entirely by WalletPaymentModal — skip PlaceOrder
+        // RDB checkout is handled entirely by RdbPaymentModal — skip PlaceOrder
         if (selectedPayment?.id === 1) return;
 
         let payment_method =
@@ -158,10 +158,7 @@ function OrdersPage({ setStep, close }) {
               : "crypto";
         setLoading(true);
         trackOrder(ORDER_EVENTS.ORDER_SUBMIT_ATTEMPT, { payment_method });
-        await order.PlaceOrder({
-          payment_method,
-          pay_by_wallet: false,
-        });
+        await order.PlaceOrder({ payment_method });
         setLoading(false);
       }
     } catch (error) {

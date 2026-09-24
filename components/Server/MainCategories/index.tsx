@@ -1,4 +1,4 @@
-import { GetMainCategories } from "serverRequests/home";
+import { getCachedCategories } from "serverRequests/cached/home";
 import NavbarServer from "../Navbar";
 import CategoryNavMobile from "components/Home/CategoryNavMobile";
 
@@ -7,14 +7,17 @@ export default async function MainCategoriesNavbar({
   mainCategory,
 }) {
   const [country, language] = lang?.split("-");
-  let responseData = await GetMainCategories({ language, country });
+  let mainCategories = await getCachedCategories(country, language);
   let activeCategory = mainCategory;
 
-  // @ts-ignore
-  let mainCategories = responseData.data.mainCategories || [];
   if (mainCategory) {
+    // The active tab moves to the front. `find` returns undefined when the slug
+    // is not in the list, and spreading that put `undefined` at the head, so
+    // `category.name` below threw. An unknown slug used to be impossible here;
+    // Amendment 2 lets any slug-shaped value render, so this is now reachable.
+    const active = mainCategories.find((cat) => cat.slug === mainCategory);
     mainCategories = [
-      mainCategories.find((cat) => cat.slug === mainCategory),
+      ...(active ? [active] : []),
       ...mainCategories.filter((cat) => cat.slug !== mainCategory),
     ];
   }

@@ -1,10 +1,6 @@
 "use client";
 import React from "react";
 import { checkAndUpdateVersion } from "utils/version-manager";
-interface VersionCheckerProps {
-  children?: React.ReactNode;
-}
-
 const VersionChecker = () => {
   React.useEffect(() => {
     // Run version check on component mount

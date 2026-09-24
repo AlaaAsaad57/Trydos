@@ -1,6 +1,6 @@
 "use client";
 import { getLocalizedCountryName } from "utils/countryData";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import Map from "./Map";
 import { useParams } from "next/navigation";
@@ -166,8 +166,20 @@ function AddAddressForm({
             setExpanded={(e) => {
               setExpanded(e);
             }}
+            // `location` is the form's own shape, and only the *add* path is
+            // guaranteed to have it: `initAddressForm` writes it out in full
+            // (`store/Cart/reducer.ts`). The *edit* path comes from
+            // `startUpdateAddress`, which spreads whatever the core backend sent
+            // for that address — and an address it sends without a nested
+            // `location` left this read throwing on `undefined.latitude`.
+            //
+            // It threw **late**, which is why it never looked like a crash. The
+            // map is drawn only once `countries` has arrived, so the form opened
+            // fine, took what the shopper typed, and then lost the whole subtree
+            // a moment later. On staging that showed up as an edit form that sat
+            // there with every field blank and a Save button that did nothing.
             center={
-              (addressDetails.location.latitude && {
+              (addressDetails.location?.latitude && {
                 lat: addressDetails.location.latitude,
                 lng: addressDetails.location.longitude,
               }) ||
@@ -182,7 +194,7 @@ function AddAddressForm({
             setOpenSelect();
           }}
         />
-        <ContactInfo userName={userName} data-pw="contact-info" />
+        <ContactInfo userName={userName} />
       </div>
       {!expanded && (
         <AddAddressButtons
@@ -192,7 +204,6 @@ function AddAddressForm({
           slidePrev={(id) => {
             slidePrev(id);
           }}
-          data-pw="add-address-buttons" // Added data-pw
         />
       )}
     </>
@@ -223,7 +234,6 @@ const AddressSection = ({ setOpenSelect }) => {
       </div>
       <CountryLabel />
       <SelectRegion
-        data-pw="select-region"
         setOpenSelect={() => {
           setOpenSelect();
         }}
@@ -597,13 +607,8 @@ const AddAddressButtons = ({
   isInSettings,
   userName = null,
 }) => {
-  const {
-    addAddress,
-    updateAddress,
-    addressDetails,
-    orderLoading,
-    setOrderLoading,
-  } = useAppStore();
+  const { updateAddress, addressDetails, orderLoading, setOrderLoading } =
+    useAppStore();
 
   const shake = (v) => {
     if (document.querySelector(`.${v}`)) {
@@ -623,22 +628,37 @@ const AddAddressButtons = ({
     }
     return;
   };
+  // Runs only when `isValid()` has already refused the save, so its whole job is
+  // to point at the field that is holding it up.
+  //
+  // **A missing value is checked the same as a blank one**, and it used to not
+  // be. Every test here asked `?.length === 0`, and `undefined?.length === 0` is
+  // false — so a field the form never received was skipped and the shopper got
+  // no shake at all. The phone was worse: `undefined < 5` is also false, so a
+  // missing phone did not even reach the branch a four-digit one reaches.
+  //
+  // The two are different objects, not the same one twice. `startUpdateAddress`
+  // (`store/Cart/reducer.ts`) rebuilds `addressDetails` from the backend's
+  // answer, and a key that answer omits arrives as `undefined` rather than `""`.
+  // `isValid()` refuses both, so Save is grey either way and pressing it landed
+  // here and did nothing — no movement, no message, no reason. Guarded by the
+  // two cases in `tests/components/Cart/AddAddressForm.test.tsx`.
   const validate = () => {
-    if (userName === "" && addressDetails.user_name?.length === 0)
+    if (userName === "" && !addressDetails.user_name?.length)
       return shake("username-border");
-    if (addressDetails.address_detail?.length === 0) {
+    if (!addressDetails.address_detail?.length) {
       return shake("details-border");
     }
-    if (addressDetails.address?.length === 0) {
+    if (!addressDetails.address?.length) {
       return shake("title-border");
     }
-    if (addressDetails.region?.length === 0) {
+    if (!addressDetails.region?.length) {
       return shake("region-border");
     }
-    if (addressDetails.contact_info?.contact_person_name?.length === 0) {
+    if (!addressDetails.contact_info?.contact_person_name?.length) {
       return shake("name-border");
     }
-    if (addressDetails.contact_info?.phone?.length < 5) {
+    if ((addressDetails.contact_info?.phone?.length ?? 0) < 5) {
       return shake("phone-border");
     }
   };
@@ -661,13 +681,17 @@ const AddAddressButtons = ({
         });
         updateAddress(addressDetails);
       } else {
+        // No local copy is added here. AddAddressList refreshes `addressLists`
+        // from /customer/address/list before it returns, so the new address is
+        // already in the list under the id the core backend gave it. Adding one
+        // here listed it twice — and, because AddAddressList never rejects,
+        // listed a refused address that the backend had never stored.
         await order.AddAddressList({
           address: addressDetails,
           callback: (id) => {
             slidePrev(id);
           },
         });
-        addAddress();
       }
       if (addressDetails.user_name && userName === "") {
         auth.UpdateName(addressDetails.user_name);

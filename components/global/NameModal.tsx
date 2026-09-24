@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 import AuthService from "services/auth";
 import { translateFunction } from "utils/functions";

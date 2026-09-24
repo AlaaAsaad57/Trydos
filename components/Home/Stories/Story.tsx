@@ -15,6 +15,11 @@ function Story({ media, Name, index, story }) {
       className="shadow-[0_3px_6px_rgba(0,0,0,0.2)] rounded-[20px]"
       onClick={() => setSelectStory(StoryServiceClass.configureStory(story))}
       data-pw="story-element"
+      // Which author's ring this tile opens. Without it every tile looks the
+      // same from the outside, so a test cannot tell its own story from a
+      // stranger's. Same attribute the product story row already carries
+      // (`components/products/ProductStories.tsx`).
+      data-id={story?.id}
     >
       <StoryCard
         key={media?.full_video_path || media?.photo_path}

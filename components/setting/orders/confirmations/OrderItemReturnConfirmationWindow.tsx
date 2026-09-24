@@ -2,7 +2,7 @@ import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAppStore } from "store";
 import {
   getConfiguredImage,
@@ -331,9 +331,6 @@ const RenderReturnedItem = ({
               })}
               alt={return_item.name}
               className="w-full h-full object-cover object-center"
-              onError={(e) => {
-                e.currentTarget.src = "/images/placeholder-product.png";
-              }}
             />
 
             {/* Quantity Badge */}

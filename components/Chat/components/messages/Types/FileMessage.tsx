@@ -8,6 +8,7 @@ import {
   getMessageTime,
 } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
+import Spinner from "components/global/Spinner";
 
 function FileMessage({
   setOpen,
@@ -45,8 +46,9 @@ function FileMessage({
   return (
     <div
       onMouseLeave={() => {
+        // Only the menu closes on hover-out. The delete confirm box must not:
+        // it closes on its own Cancel, backdrop, Escape, or a chosen answer.
         setOpen(false);
-        setDelete(false);
       }}
       className={"message-hold" + " " + `${openMenu && "ac"}`}
     >
@@ -109,47 +111,12 @@ function FileMessage({
               <div className="file-type"></div>
             </div>
             {mid ? (
-              <img src="/icons/chat/spinn.svg" />
+             <Spinner/>
             ) : (
               <img src="/icons/chat/down.svg" style={{ minWidth: "34px" }} />
             )}
           </a>
         )}
-        {/* <div className="message-date hovers">
-              {
-                <div className="sent-date">
-                  {
-                    <>
-                      <img src="/icons/chat/sent.svg" />
-                      {getMessageTime(created_at, true)}
-                    </>
-                  }
-                </div>
-              }
-              {getStatues().is_received === 1 && (
-                <div className="recieve-date">
-                  <img src="/icons/chat/recieved.svg" />
-                  {getMessageTime(
-                    message_status.filter((a) => a.user_id !== user?.id)[0]
-                      ?.received_at,
-                    false
-                  )}
-                </div>
-              )}
-              {getStatues().is_watched === true && (
-                <div className="recieve-date">
-                  <img
-                    src="/icons/chat/read.svg"
-                    className="w-[10px] h-[10px]"
-                  />
-                  {getMessageTime(
-                    message_status.filter((a) => a.user_id !== user?.id)[0]
-                      ?.watched_at,
-                    false
-                  )}
-                </div>
-              )}
-            </div> */}
         {is_from_sender ? (
           <div className="message-date">
             {getMessageStatus({

@@ -1,5 +1,32 @@
 import React from "react";
 import RepliedMessageWrapper from "./RepliedMessage";
+import MessageHoverDates from "./MessageHoverDates";
+import { useMessageSwipe } from "./useMessageSwipe";
+import { MessageStatus } from "utils/types/chat";
+
+interface SentMessageProps {
+  id: string | number;
+  parent_message?: any;
+  message_type?: any;
+  children: React.ReactNode;
+  isLonely?: boolean;
+  closeMenu: () => void;
+  channel_member?: any;
+  isDeleted?: boolean;
+  onClick?: () => void;
+  sender_message_id?: string | number;
+  created_at?: string;
+  message_status?: MessageStatus[];
+  isMenuOpen?: boolean;
+}
+
+/**
+ * The stacking level a row takes while its options menu is open.
+ *
+ * Just enough to beat its own siblings, which ask for nothing. See the comment
+ * on the style below for why it is not a big number.
+ */
+const MENU_OPEN_LEVEL = 2;
 
 function SentMessage({
   id,
@@ -12,7 +39,28 @@ function SentMessage({
   isDeleted,
   onClick,
   sender_message_id,
-}) {
+  created_at,
+  message_status,
+  isMenuOpen,
+}: SentMessageProps) {
+  const isCall =
+    message_type === "VideoCall" ||
+    message_type === "VoiceCall" ||
+    message_type?.name === "VideoCall" ||
+    message_type?.name === "VoiceCall";
+
+  const isSwipeable = !isDeleted && !isCall;
+
+  const {
+    contentRef,
+    datesRef,
+    swipeHandlers,
+  } = useMessageSwipe({
+    id,
+    enabled: isSwipeable,
+    isMenuOpen,
+  });
+
   return (
     <div
       onMouseLeave={() => {
@@ -20,15 +68,17 @@ function SentMessage({
       }}
       id={`main-container-${id}`}
       style={{
-        marginTop: !parent_message && `12px`,
+        marginTop: !parent_message ? "12px" : undefined,
+        // The option labels of the hover menu hang below this row. Rows are
+        // painted in document order, so without this the next message covers
+        // them. One row at a time has its menu open, and the scroll list
+        // clips the row, so a small level is enough and cannot reach the
+        // chat header or the input bar.
+        zIndex: isMenuOpen ? MENU_OPEN_LEVEL : undefined,
       }}
       className={`message-container ${
-        parent_message && "flex-wrap"
-      } message-element self-align    ${
-        (message_type === "VideoCall" || message_type === "VoiceCall") &&
-        " center-align"
-      }
-      `}
+        parent_message ? "flex-wrap" : ""
+      } message-element self-align ${isCall ? " center-align" : ""}`}
     >
       {parent_message && (
         <RepliedMessageWrapper
@@ -39,7 +89,42 @@ function SentMessage({
           sender_user_id={sender_message_id}
         />
       )}
-      {children}
+      {isSwipeable ? (
+        <div className="relative flex items-center justify-end max-w-full">
+          <div
+            ref={contentRef}
+            {...swipeHandlers}
+            className="relative flex items-center justify-end max-w-full select-none cursor-grab active:cursor-grabbing"
+            style={{
+              touchAction: "pan-y",
+              willChange: "transform",
+            }}
+          >
+            {/* The dates container positioned strictly to the LEFT of the message bubble */}
+            <div
+              ref={datesRef}
+              style={{
+                position: "absolute",
+                right: "100%",
+                marginRight: "8px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                opacity: 0,
+                pointerEvents: "none",
+                willChange: "opacity, transform",
+              }}
+            >
+              <MessageHoverDates
+                created_at={created_at || ""}
+                message_status={message_status}
+              />
+            </div>
+            {children}
+          </div>
+        </div>
+      ) : (
+        children
+      )}
     </div>
   );
 }

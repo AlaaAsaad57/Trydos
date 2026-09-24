@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";

@@ -541,21 +541,13 @@ html[lang="ar"] .chat-window-search-holder img {
   width: 15px;
   height: 15px;
 }
-.missed .call-info .call-type {
-  color: #ff5f61 !important;
-}
-.missed img {
-  border: #ff5f61 1px solid;
-}
-.incoming img {
-  border: #388cff 1px solid;
-}
-.incoming img {
-  border: #388cff 1px solid;
-}
-.outgoing img {
-  border: #ffc05c 1px solid;
-}
+/* There used to be `.missed img`, `.incoming img` and `.outgoing img` rules
+   here, each putting a 1px coloured border on every image in the row. They
+   never showed, because the row's class was the record object printed as
+   "[object Object]", so none of the three ever matched. The moment the row
+   started carrying a real direction class they applied, and drew a coloured
+   ring round the avatar and the delete icon. The direction is already clear
+   from the call icon and, for a missed call, from the red label above. */
 .call-date {
   right: 25px !important;
   top: 29px !important;

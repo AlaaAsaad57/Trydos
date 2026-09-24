@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { XD } from 'NewLoginDesign/authLayout';
+import XdDashedBorder from './XdDashedBorder';
 import { NumericKeypad } from './NumericKeypad';
 import { useIsTouchDevice } from 'hooks/useIsTouchDevice';
 
@@ -13,6 +15,13 @@ interface RdbPinInputsProps {
     label?: string;
     labelTone?: 'default' | 'error';
     autoFocus?: boolean;
+    /**
+     * The boxes are spent — the code ran out of life, or the tries ran out.
+     * Not only a style flag: this is what closes the on-screen keypad. `disabled`
+     * does not, and the outside-click closer gives up while disabled, so a caller
+     * that sets `disabled` alone leaves a keypad standing over dead boxes with no
+     * way to shut it.
+     */
     isExpired?: boolean;
     /**
      * Fall back to the device's own keyboard instead of the in-app keypad.
@@ -56,7 +65,18 @@ export default function RdbPinInputs({
             return () => clearTimeout(t);
         }
         if (!disabled && !showCustomKeypad && autoFocus) {
-            const t = setTimeout(() => hiddenInputRef.current?.focus(), 300);
+            // `preventScroll` matters here and is not a detail. This fires 300ms
+            // after mount, and the auth flow slides a screen in over 350ms — so
+            // it lands while this screen is still translated a full width to the
+            // right. A plain focus() makes the browser scroll the nearest scroll
+            // container to reveal the input, and `overflow: hidden` still is a
+            // scroll container: it stops the *user* scrolling, not the browser.
+            // Everything in that container then shifts sideways, including things
+            // that are not part of this screen at all.
+            const t = setTimeout(
+                () => hiddenInputRef.current?.focus({ preventScroll: true }),
+                300,
+            );
             return () => clearTimeout(t);
         }
     }, [disabled, showCustomKeypad, autoFocus]);
@@ -142,22 +162,31 @@ export default function RdbPinInputs({
         });
     }, [onChange]);
 
-    const getBoxClass = (digit: string, i: number) => {
+    /**
+     * The six states, straight out of the XD file.
+     *
+     * Every border in the flow is 0.5 wide, dash 3 gap 3, at full colour. The
+     * old code drew a 1px CSS border and faded the blue to 50%, which is two
+     * differences on one control.
+     */
+    const boxStyle = (digit: string, i: number) => {
         const isActive = activeIndex === i;
-        if (isValidPin === 'valid') return 'border border-[#78D97F] bg-[#FCFFFC]';
-        if (isValidPin === 'notvalid') return 'border border-dashed border-[#FF5F61] bg-white';
-        if (isExpired && !digit) return 'border border-dashed border-[#FDCA57] bg-[#FCFCFC]';
-        if (isExpired && digit) return 'border border-dashed border-[#FDCA57] bg-white';
-        if (isActive) return 'border border-[#4D84FF]/50 border-dashed bg-white';
-        if (digit) return 'border border-[#4D84FF]/50 bg-white';
-        return 'border border-dashed border-[#C3C3C3] bg-[#FCFCFC]';
+        if (isValidPin === 'valid') return { fill: '#FCFFFC', stroke: '#78D97F', solid: true };
+        if (isValidPin === 'notvalid') return { fill: '#FFFFFF', stroke: '#FF5F61', solid: false };
+        if (isExpired) return { fill: '#FCFCFC', stroke: '#FDCA57', solid: false };
+        if (digit) return { fill: '#FFFFFF', stroke: '#4D84FF', solid: true };
+        if (isActive) return { fill: '#FFFFFF', stroke: '#4D84FF', solid: false };
+        return { fill: '#FCFCFC', stroke: '#C3C3C3', solid: false };
     };
 
     return (
         <>
             <div
                 ref={inputRef}
-                className="flex flex-col items-center gap-xd-5 w-full cursor-pointer"
+                // While the app's keypad is up, the scaled canvas keeps this row above it.
+                data-keyboard-anchor={showCustomKeypad && keypadOpen ? '' : undefined}
+                className="flex flex-col items-center cursor-pointer"
+                style={{ width: XD.box.width }}
                 onClick={() => {
                     if (disabled) return;
                     if (showCustomKeypad) setKeypadOpen(true);
@@ -167,30 +196,43 @@ export default function RdbPinInputs({
                     }
                 }}
             >
+                {/* Six 60 x 60 boxes, 6 apart. 6 x 60 + 5 x 6 is 390, so the row
+                    runs from x 20 to x 410 like every other wide control. */}
                 <div
                     key={shakeNonce}
-                    className={`flex items-center justify-center gap-xd-5 w-full ${shake ? 'animate-shake-horizontal' : ''}`}
+                    className={`flex items-center ${shake ? 'animate-shake-horizontal' : ''}`}
+                    style={{ gap: XD.otp.gap }}
                 >
-                    {pin.map((digit, i) => (
-                        <div
-                            key={i}
-                            data-pw={`otp-digit-${i + 1}`}
-                            className={`relative size-xd-60 flex items-center my-xd-2 justify-center rounded-xd-15 transition-all duration-150 ${getBoxClass(digit, i)}`}
-                        >
-                            {digit && (
-                                <span className="text-xd-16 font-semibold text-[#1D1D1D] pointer-events-none select-none">
-                                    {digit}
-                                </span>
-                            )}
-
-                            {activeIndex === i &&
-                                !digit &&
-                                isValidPin !== 'valid' &&
-                                isValidPin !== 'notvalid' && (
-                                    <div className="w-[7%] aspect-square bg-[#8E8E8E] rounded-full animate-blink pointer-events-none" />
+                    {pin.map((digit, i) => {
+                        const state = boxStyle(digit, i);
+                        return (
+                            <div
+                                key={i}
+                                data-pw={`otp-digit-${i + 1}`}
+                                className="relative flex items-center justify-center rounded-xd-15 transition-all duration-150"
+                                style={{
+                                    width: XD.otp.size,
+                                    height: XD.otp.size,
+                                    backgroundColor: state.fill,
+                                }}
+                            >
+                                <XdDashedBorder
+                                    width={XD.otp.size}
+                                    height={XD.otp.size}
+                                    radius={XD.otp.radius}
+                                    color={state.stroke}
+                                    solid={state.solid}
+                                />
+                                {/* An empty box is empty. The design has no
+                                    blinking dot in it. */}
+                                {digit && (
+                                    <span className="text-xd-16 font-medium text-[#1D1D1D] pointer-events-none select-none">
+                                        {digit}
+                                    </span>
                                 )}
-                        </div>
-                    ))}
+                            </div>
+                        );
+                    })}
                 </div>
                 {label && (
                     <p

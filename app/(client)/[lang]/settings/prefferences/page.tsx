@@ -1,7 +1,10 @@
 import { lang as langParam } from "next/root-params";
 import Setting from "components/global/Setting";
 import BackBar from "components/setting/BackBar";
-import React from "react";
+
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
 
 async function Prefferences() {
   // Server component to render JSON-LD structured data

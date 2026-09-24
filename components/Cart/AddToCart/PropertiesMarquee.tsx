@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import React, { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import { formatTimeForAddress } from "utils/tinyUtils";

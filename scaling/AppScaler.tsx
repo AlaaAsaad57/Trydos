@@ -1,57 +1,113 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useEffect, useRef } from 'react';
+
+import { canvasFit, canvasFitScript, keyboardLift } from './canvasFit';
 import {
-  DESIGN_W,
   DESIGN_H,
-  FLEX_FREEZE_H,
-  FLEX_RANGE,
-  MAX_H,
+  DESIGN_W,
+  MAX_DEFICIT,
   MAX_SCALE,
   MIN_SCALE,
   OUTER_BG,
 } from './scale.config';
 
 /**
- * Render children outside #master-canvas so they are unaffected by AppScaler's transform.
- * Portals into #app-outer which sits at fixed inset:0 with no transform.
+ * AppScaler — draws the design canvas.
+ *
+ * The canvas is the 430-wide artboard, always filling the width of the window
+ * (capped at MAX_SCALE), and it is centred in whatever room is left. Its height
+ * is `932 - deficit` design px, where `deficit` is the height the page does not
+ * have — see canvasFit.ts for the rule and the reason.
+ *
+ * `--xd-flex-deficit` carries that number to the screens. An element placed
+ * with `fromBottom(y)` (authLayout.ts) keeps its distance from the bottom of the
+ * real page instead of the bottom of the artboard, so on an iPhone in Safari
+ * the buttons sit above the browser bar and the empty space above the mark is
+ * what gets shorter. A plain `top: y` is unaffected. `FlexibleSpace` reads the
+ * same variable through its `share=`, and every call site today passes 0.
+ *
+ * What this replaced, and why
+ * ---------------------------
+ * The previous rule fitted the whole 932 px artboard into the page. On a phone
+ * in Safari (about 745 px of page) that drew everything at 80% with a 43 px
+ * white margin on each side, and the client saw a smaller app than the design.
+ *
+ * The virtual keyboard
+ * --------------------
+ * The page cannot make the phone's keyboard smaller, so two rules keep the
+ * focused field usable without changing the size of anything:
+ *
+ *   1. While a text field has focus the fit above is frozen. Android shrinks
+ *      `innerHeight` when the keyboard opens; re-fitting on that drew the whole
+ *      canvas at ~61% while the shopper typed, then grew it back on close.
+ *   2. The canvas slides up by `--app-keyboard-lift`: the overlap between the
+ *      field's bottom and the bottom of what `visualViewport` says is visible,
+ *      plus KEYBOARD_GAP. iOS keeps `innerHeight` as it was and moves only the
+ *      visual viewport, so this is the one signal that works on both. The
+ *      phone and OTP screens focus an `sr-only` input beside their visible
+ *      box, so a 1 px field is measured by its parent instead.
+ *   3. On a touch device those two screens open the app's own keypad
+ *      (`ui/NumericKeypad`) instead: a portal on <body>, fixed to the bottom,
+ *      that no viewport reports. The keypad marks itself
+ *      `data-keyboard-overlay` and the input marks the box to keep visible
+ *      `data-keyboard-anchor` while it is up; a MutationObserver on the
+ *      anchor attribute re-measures, and the keypad's `offsetHeight` (never
+ *      affected by its slide-in transform) says where its top will be.
+ *
+ * Pull to refresh
+ * ---------------
+ * The fit is frozen for the whole gesture too, for the same reason as rule 1
+ * above. iOS Safari shrinks `innerHeight` by the pull distance during a
+ * pull-to-refresh and fires `resize` the whole way, so the canvas was being
+ * fitted to the strip left over above the finger: the deficit hit its cap and
+ * the canvas shrank on top of it, which collapsed the Quick Preview card
+ * mid-gesture.
+ *
+ * The gesture does not end when the finger lifts. The rubber band snaps back
+ * over the next few hundred ms and fires a resize per pixel of that as well,
+ * so a freeze that ended at `touchend` squeezed the canvas a second time on
+ * the way up. The freeze therefore ends on quiet, not on the finger: once no
+ * resize has arrived for TOUCH_SETTLE_MS, the canvas is fitted exactly once.
+ *
+ * The page sliding down and back up is the browser's own rubber band and is
+ * left alone. Only the re-fit is held back.
+ *
+ * Only one `<Page variant="scaled">` may be mounted at a time: the element ids
+ * and the `:root` variables below are fixed names, and nothing counts copies.
  */
-export function UnscaledPortal({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
-  const target = document.getElementById('app-outer');
-  if (!target) return null;
-  return createPortal(children, target);
-}
-
-/** Shorthand alias — use inside AppScaler JSX to exclude a subtree from scaling. */
-export const Unscaled = UnscaledPortal;
+const LIFT_VAR = '--app-keyboard-lift';
 
 /**
- * AppScaler — Two-phase adaptive scale engine.
+ * Quiet time that ends a gesture: no `resize` for this long means the rubber
+ * band has stopped and `innerHeight` can be trusted again.
  *
- * Reads all constants from scale.config.ts.
- *
- * Portrait (vw ≤ vh):
- *   Phase 1 (FLEX_FREEZE_H ≤ availH):
- *     Canvas height = availH. FlexibleSpace compresses via --xd-flex-deficit.
- *   Phase 2 (availH < FLEX_FREEZE_H):
- *     Canvas frozen at FLEX_FREEZE_H. extraScale shrinks everything uniformly.
- *
- * Landscape (vw > vh):
- *   Scale to fit height. Canvas centered horizontally. No flex deficit.
+ * It is not a delay after `touchend`. The snap-back is as long as the pull
+ * was, and it fires a resize per pixel the whole way up, so a fixed delay
+ * would fit in the middle of it. Each of those resizes pushes this timer out
+ * instead, and the one fit happens after the last one.
  */
+const TOUCH_SETTLE_MS = 300;
+
+const isTextField = (el: Element | null): el is HTMLElement =>
+  !!el &&
+  (el.tagName === 'INPUT' ||
+    el.tagName === 'TEXTAREA' ||
+    (el as HTMLElement).isContentEditable === true);
+
 export default function AppScaler({
   children,
-  landscapeThreshold = 1.7,
+  maxDeficit = MAX_DEFICIT,
 }: {
   children: React.ReactNode;
-  landscapeThreshold?: number;
+  /**
+   * The most design px the screen on the canvas can give up before the canvas
+   * shrinks. MAX_DEFICIT unless the screen has more spare room than the
+   * tightest one — see canvasFit.ts.
+   */
+  maxDeficit?: number;
 }) {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [debug, setDebug] = useState({ vw: 0, vh: 0, rt: 0, sw: 0, sh: 0 });
 
   useEffect(() => {
     const el = canvasRef.current;
@@ -78,80 +134,205 @@ export default function AppScaler({
     }
 
     let debounceTimer: ReturnType<typeof setTimeout>;
+    let blurTimer: ReturnType<typeof setTimeout>;
+    let settleTimer: ReturnType<typeof setTimeout>;
+    /** True from the first finger down to the last finger up. */
+    let touching = false;
+    /** True from the last finger up until the rubber band stops resizing. */
+    let settling = false;
 
     const compute = () => {
-      const vw = window.innerWidth;
-      const rawVh = window.innerHeight;
-      const screenVh =
-        (window.screen.availHeight || window.screen.height) /
-        (window.devicePixelRatio || 1);
-      const effectiveVh = rawVh < screenVh * 0.7 ? screenVh : rawVh;
-      const vh = Math.min(effectiveVh, MAX_H);
-      const root = document.documentElement;
-      const rt = vh / vw;
-      setDebug({ vw, vh, rt, sw: window.screen.width, sh: window.screen.height });
+      // The keyboard changed the window, not the device. Keep the fit the
+      // shopper was looking at; the resize after the keyboard closes re-fits.
+      if (isTextField(document.activeElement)) return;
 
-      if (rt < landscapeThreshold) {
-        const scale = vh / DESIGN_H;
-        const leftOffset = (vw - DESIGN_W * scale) / 2;
-        el.style.height = `${DESIGN_H}px`;
-        el.style.left = `${leftOffset}px`;
-        el.style.transform = `scale(${scale})`;
-        root.style.setProperty('--app-scale', String(scale));
-        root.style.setProperty('--xd-flex-deficit', '0px');
+      // A gesture is running, so this is not a new device size.
+      //
+      // While a pull-to-refresh is held, iOS Safari shrinks `innerHeight` by
+      // the pull distance and fires `resize` for every pixel of it. Fitting to
+      // that number treats the leftover strip as the whole page: the deficit
+      // runs into its cap and `canvasFit` starts shrinking the canvas as well,
+      // so the Quick Preview card collapses under the shopper's finger.
+      //
+      // The freeze has to outlive the finger. Letting go does not end the
+      // gesture: the rubber band keeps snapping back for a few hundred ms and
+      // fires a resize for every pixel of THAT too. Re-fitting on the way up
+      // squeezed the canvas again, a second time, right after the shopper let
+      // go — and `#master-canvas` animates its `top`, so the two ran together
+      // and looked like a bounce. So `settling` holds the freeze until the
+      // resizes stop, and `scheduleSettle` fits once at the end.
+      //
+      // The page sliding down is the browser's own rubber band and is wanted.
+      // Only the re-fit is held back. A pull that does refresh unmounts this
+      // component anyway.
+      if (touching || settling) return;
+
+      const { scale, deficit, height, left, top } = canvasFit(
+        window.innerWidth,
+        window.innerHeight,
+        maxDeficit,
+      );
+
+      // The canvas element reads its scale and its place from these variables
+      // (see the style below). Nothing is written onto the element itself: the
+      // script served ahead of it has already set the same four values before
+      // the first paint, so this write is the same numbers again, and
+      // hydration moves nothing. CANVAS_FIT_SCRIPT explains why.
+      const root = document.documentElement;
+      root.style.setProperty('--app-scale', String(scale));
+      root.style.setProperty('--app-canvas-left', `${left}px`);
+      // Where the drawn canvas actually is, in real px. Anything portaled out of
+      // #master-canvas (the QR sheet) needs this: the canvas no longer fills the
+      // window, so `100dvh` is not the canvas height any more.
+      root.style.setProperty('--app-canvas-top', `${top}px`);
+      root.style.setProperty('--app-canvas-height', `${height * scale}px`);
+      // The height the page does not have, in design px. The canvas box and
+      // every `fromBottom()` position read it.
+      root.style.setProperty('--xd-flex-deficit', `${deficit}px`);
+    };
+
+    const updateLift = () => {
+      const root = document.documentElement;
+      const active = document.activeElement;
+      const field =
+        document.querySelector<HTMLElement>('[data-keyboard-anchor]') ??
+        (isTextField(active) ? active : null);
+      if (!field) {
+        root.style.setProperty(LIFT_VAR, '0px');
         return;
       }
+      const vv = window.visualViewport;
+      let visibleBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+      const overlay = document.querySelector<HTMLElement>('[data-keyboard-overlay]');
+      if (overlay) visibleBottom = Math.min(visibleBottom, window.innerHeight - overlay.offsetHeight);
+      let rect = field.getBoundingClientRect();
+      // An sr-only field is a 1 px dot; its parent is the box the shopper sees.
+      if (rect.height <= 1 && field.parentElement) {
+        rect = field.parentElement.getBoundingClientRect();
+      }
+      // The rect moves with the current lift. Measure the field against the
+      // canvas element and add the canvas's unlifted top, so a second keyboard
+      // event neither stacks the lift nor drops it.
+      const canvasTop = Number.parseFloat(root.style.getPropertyValue('--app-canvas-top')) || 0;
+      const inCanvas = rect.bottom - el.getBoundingClientRect().top;
+      root.style.setProperty(LIFT_VAR, `${keyboardLift(inCanvas + canvasTop, visibleBottom)}px`);
+    };
 
-      // Portrait — cap widthScale at MAX_SCALE so canvas never over-scales on wide screens
-      const widthScale = Math.min(vw / DESIGN_W, MAX_SCALE);
-      const availH = vh / widthScale;
-
-      const flexDeficit = Math.min(Math.max(0, DESIGN_H - availH), FLEX_RANGE);
-
-      const extraScale = availH < FLEX_FREEZE_H ? availH / FLEX_FREEZE_H : 1;
-      const totalScale = widthScale * extraScale;
-
-      const domH = availH >= FLEX_FREEZE_H ? Math.ceil(availH) : FLEX_FREEZE_H;
-
-      const leftOffset = (vw - DESIGN_W * totalScale) / 2;
-
-      el.style.height = `${domH}px`;
-      el.style.left = `${leftOffset}px`;
-      el.style.transform = `scale(${totalScale})`;
-
-      root.style.setProperty('--app-scale', String(totalScale));
-      root.style.setProperty('--xd-flex-deficit', `${flexDeficit}px`);
+    /**
+     * Fit once the rubber band has stopped moving.
+     *
+     * Trailing, not fixed: every resize that arrives while `settling` pushes
+     * this out again, so the fit lands after the LAST one instead of in the
+     * middle of the snap-back. A fixed delay cannot work — the snap-back is
+     * as long as the pull was.
+     */
+    const scheduleSettle = () => {
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => {
+        settling = false;
+        compute();
+        updateLift();
+      }, TOUCH_SETTLE_MS);
     };
 
     const onWindowResize = () => {
+      // The finger is still down. `touchend` starts the settle.
+      if (touching) return;
+      // The rubber band is still running. Wait for it to stop.
+      if (settling) {
+        scheduleSettle();
+        return;
+      }
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(compute);
+      debounceTimer = setTimeout(() => {
+        compute();
+        updateLift();
+      });
+    };
+    // On focusout `activeElement` is not settled yet; read it a tick later.
+    const onFocusOut = () => {
+      clearTimeout(blurTimer);
+      blurTimer = setTimeout(updateLift);
+    };
+
+    const onTouchStart = () => {
+      touching = true;
+      settling = false;
+      clearTimeout(settleTimer);
+    };
+    // Only the LAST finger ends the gesture, so a second finger lifting off a
+    // pinch does not let the fit back in while the first one is still pulling.
+    const onTouchEnd = (event: TouchEvent) => {
+      if (event.touches.length > 0) return;
+      touching = false;
+      settling = true;
+      scheduleSettle();
     };
 
     compute();
     window.addEventListener('resize', onWindowResize, { passive: true });
+    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchend', onTouchEnd, { passive: true });
+    document.addEventListener('touchcancel', onTouchEnd, { passive: true });
+    document.addEventListener('focusin', updateLift);
+    document.addEventListener('focusout', onFocusOut);
+    const vv = window.visualViewport;
+    vv?.addEventListener('resize', updateLift);
+    vv?.addEventListener('scroll', updateLift);
+    // The app's own keypad: re-measure when an input marks or unmarks its box.
+    const anchors = new MutationObserver(updateLift);
+    anchors.observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-keyboard-anchor'],
+    });
 
     return () => {
       clearTimeout(debounceTimer);
+      clearTimeout(blurTimer);
+      clearTimeout(settleTimer);
       window.removeEventListener('resize', onWindowResize);
+      document.removeEventListener('touchstart', onTouchStart);
+      document.removeEventListener('touchend', onTouchEnd);
+      document.removeEventListener('touchcancel', onTouchEnd);
+      document.removeEventListener('focusin', updateLift);
+      document.removeEventListener('focusout', onFocusOut);
+      vv?.removeEventListener('resize', updateLift);
+      vv?.removeEventListener('scroll', updateLift);
+      anchors.disconnect();
+      document.documentElement.style.removeProperty(LIFT_VAR);
       document.body.style.overflow = '';
       document.body.style.background = '';
     };
-  }, [landscapeThreshold]);
+    // A new cap (the widget moved to another screen) is a new fit.
+  }, [maxDeficit]);
 
   return (
     <div id="app-outer" style={{ position: 'fixed', inset: 0 }}>
+      {/*
+        * Runs as the browser parses the html, ahead of the canvas, so the
+        * canvas is scaled before it is ever painted. The browser does not run
+        * a script React inserts on a client-side navigation; there the effect
+        * above does the same work.
+        */}
+      <script dangerouslySetInnerHTML={{ __html: canvasFitScript(maxDeficit) }} />
       <div
         ref={canvasRef}
         id="master-canvas"
         style={{
           position: 'absolute',
-          top: 0,
-          left: `calc((100vw - ${DESIGN_W}px) / 2)`,
+          // The fallbacks are the unscaled artboard, centred, for the one case
+          // where no script ran at all.
+          // Minus the keyboard lift, 0 unless a focused field would sit
+          // under the virtual keyboard.
+          top: 'calc(var(--app-canvas-top, 0px) - var(--app-keyboard-lift, 0px))',
+          // So the lift follows the keypad's slide instead of jumping.
+          transition: 'top 0.25s ease-out',
+          left: `var(--app-canvas-left, calc((100vw - ${DESIGN_W}px) / 2))`,
           width: DESIGN_W,
-          height: DESIGN_H - 100,
+          height: `calc(${DESIGN_H}px - var(--xd-flex-deficit, 0px))`,
           transformOrigin: 'top left',
-          transform: 'scale(1)',
+          transform: 'scale(var(--app-scale, 1))',
           overflow: 'hidden',
         }}
       >

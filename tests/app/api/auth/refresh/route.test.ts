@@ -28,10 +28,12 @@ vi.mock("utils/serverErrorReporter", () => makeErrorReporterMock());
 const refreshMarketSession = vi.fn();
 const refreshChatSession = vi.fn();
 const refreshStoriesSession = vi.fn();
+const refreshCommentsSession = vi.fn();
 vi.mock("utils/server/authRefresh", () => ({
   refreshMarketSession,
   refreshChatSession,
   refreshStoriesSession,
+  refreshCommentsSession,
 }));
 
 const ADDRESSES = {
@@ -74,6 +76,7 @@ beforeEach(() => {
   refreshMarketSession.mockResolvedValue({ status: "refreshed" });
   refreshChatSession.mockResolvedValue({ status: "refreshed" });
   refreshStoriesSession.mockResolvedValue({ status: "refreshed" });
+  refreshCommentsSession.mockResolvedValue({ status: "refreshed" });
 });
 
 afterEach(() => {
@@ -112,6 +115,7 @@ describe("which services may be renewed here (AC-10)", () => {
     ["market-dashboard", refreshMarketSession],
     ["chat", refreshChatSession],
     ["stories", refreshStoriesSession],
+    ["comments", refreshCommentsSession],
   ])("renews a failed %s call with its own exchange", async (server, exchange) => {
     const { POST } = await loadRoute();
 
@@ -122,7 +126,7 @@ describe("which services may be renewed here (AC-10)", () => {
     expect(exchange).toHaveBeenCalledTimes(1);
   });
 
-  it.each(["comments", "wallet", "elastic", "made-up"])(
+  it.each(["wallet", "elastic", "made-up"])(
     "answers %s as not eligible, without an exchange",
     async (server) => {
       const { POST } = await loadRoute();
@@ -134,8 +138,23 @@ describe("which services may be renewed here (AC-10)", () => {
       expect(refreshMarketSession).not.toHaveBeenCalled();
       expect(refreshChatSession).not.toHaveBeenCalled();
       expect(refreshStoriesSession).not.toHaveBeenCalled();
+      expect(refreshCommentsSession).not.toHaveBeenCalled();
     },
   );
+
+  it("renews the comments session with the comments exchange, not another service's", async () => {
+    const { POST } = await loadRoute();
+
+    await POST(makeRequest({ url: "/public_comment/comments/create", server: "comments" }));
+
+    expect(
+      refreshCommentsSession,
+      "a failed comments call did not reach the comments renewal exchange",
+    ).toHaveBeenCalledTimes(1);
+    expect(refreshMarketSession).not.toHaveBeenCalled();
+    expect(refreshChatSession).not.toHaveBeenCalled();
+    expect(refreshStoriesSession).not.toHaveBeenCalled();
+  });
 });
 
 describe("a call with no body (AC-11)", () => {

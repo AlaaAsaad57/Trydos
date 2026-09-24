@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import ShareOptions from "./ShareOptions";
 import { useParams } from "next/navigation";

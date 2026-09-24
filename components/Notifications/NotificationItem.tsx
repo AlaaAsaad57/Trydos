@@ -96,6 +96,10 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
       onClose();
     };
 
+    // A notice with no type goes nowhere. Without this, `undefined` matches the
+    // "product hurry up" case below, and the notice opens the cart.
+    if (!parsedDescription?.type) return content;
+
     switch (parsedDescription.type) {
       case "boutique created": {
         const href = `/${lang}/filters/boutiques/${parsedDescription.boutique_slug}`;
@@ -103,7 +107,6 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
           <div className="felx" onClick={baseOnClick}>
             <NextLink
               href={href}
-              ariaLabel={`notification Boutique ${parsedDescription.boutique_slug} ${lang}`}
               data={{ is_boutique: true, ...parsedDescription, href }}
             >
               {content}
@@ -135,7 +138,6 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
           <div className="felx" onClick={baseOnClick}>
             <NextLink
               href={href}
-              ariaLabel={`notification Product ${slug} ${lang}`}
               data={{ is_product: true, ...parsedDescription, href }}
             >
               {content}
@@ -146,12 +148,13 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
 
       case "category created": {
         const slug = parsedDescription.category_slug || parsedDescription.slug;
-        const href = `/${lang}?mainCategory=${slug}`;
+        // D-13: /{lang}/categories/{slug}. The old `?mainCategory=` address is
+        // not redirected, so it would open the plain home page instead.
+        const href = `/${lang}/categories/${slug}`;
         return (
           <div className="felx" onClick={baseOnClick}>
             <NextLink
               href={href}
-              ariaLabel={`notification Category ${slug} ${lang}`}
               data={{ is_category: true, ...parsedDescription, href }}
             >
               {content}
@@ -167,7 +170,6 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
           <div className="felx" onClick={baseOnClick}>
             <NextLink
               href={href}
-              ariaLabel="notification Order"
               data={{ is_settings: true, ...parsedDescription, href }}
             >
               {content}

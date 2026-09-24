@@ -5,6 +5,7 @@ import { translateFunction } from "../../../utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
+import { typingLabel } from "./TypingIndicator";
 
 import { showErrorNotification } from "store/notifications/reducer";
 
@@ -39,7 +40,7 @@ function ChatHeader({
   };
   const getStatues = () => {
     if (activeChat?.status && activeChat?.status !== "null") {
-      return activeChat.status;
+      return typingLabel(activeChat.status);
     } else {
       if (activeChat?.activeDate) {
         if (time_differenc(activeChat.activeDate) > 5) {

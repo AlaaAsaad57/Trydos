@@ -41,7 +41,9 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
     set((state) => ({
       notifications: [
         ...state.notifications.filter(
-          (n) => n?.chatData?.channelId !== notification?.chatData?.channelId,
+          (n) =>
+            !notification?.chatData?.channelId ||
+            n?.chatData?.channelId !== notification.chatData.channelId,
         ),
         {
           ...notification,

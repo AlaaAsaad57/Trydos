@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { getUserChat } from "utils/functions";
 import { useAppStore } from "store";
 import { Message, MessageContent, MessageFile } from "utils/types/chat";
@@ -113,9 +113,16 @@ function ChatMessage({
       id={id ?? mid}
       message_type={message_type}
       parent_message={parent_message}
+      created_at={created_at}
+      message_status={message_status}
+      isMenuOpen={opens === id}
     >
       {isDeleted ? (
-        <DeletedMessage type={type} activeChat={activeChat} />
+        <DeletedMessage
+          type={type}
+          activeChat={activeChat}
+          sender_user_id={sender_user_id}
+        />
       ) : (
         <React.Fragment>
           {message_type?.name === "TextMessage" && (

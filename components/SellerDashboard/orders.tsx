@@ -12,7 +12,6 @@ import SellerDashboardService from "services/sellerDashboard";
 import home from "services/home";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import Spinner from "components/global/Spinner";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
@@ -1874,7 +1873,7 @@ const OrderDetailScreen = ({
     </div>
   );
 };
-export const RenderOrders = ({
+const RenderOrders = ({
   canViewOrders,
   sellerId,
   activeTab,

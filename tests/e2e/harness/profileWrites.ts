@@ -47,17 +47,31 @@
 // only worked for one field.
 //
 // ---------------------------------------------------------------------------
-// Nothing is read out of a response body, and nothing is kept out of a request
+// Nothing is read out of a response body, and nothing is **kept** out of a
+// request
 //
 // **The status code is the whole judgement.** An earlier version read
 // `success` out of the response, which was meaningless: `success` does not come
 // from any backend — `utils/fetchData.ts` stamps it on client-side from the
 // HTTP status (line ~650). Reading it proved nothing and put a body that
 // carries the account's name, phone and e-mail one careless line away from a
-// public job log.
+// public job log. That still holds: no response body is read.
 //
-// No request body is looked at either. The only thing kept per write is its
-// status code.
+// A request body **is** looked at now, and this is the rule that keeps it safe:
+// the comparison happens inside the listener and only a **boolean** comes out.
+// The body is never stored, never returned and never printed. `carriedExpected`
+// is the whole of what survives it.
+//
+// It exists because one criterion needs it: when the credential is refused
+// mid-save the app retries the same leg, and a retry looks exactly like the
+// rollback in every other respect. What separates them is which value the second
+// write carried. Counting cannot do it — a `401` retry produces two writes just
+// as a rollback does.
+//
+// **It only works for a name.** For a size or a gender the rollback body and the
+// forward body are identical, so the comparison would report `true` either way.
+// The caller passes the value it is saving, and the case that uses this makes
+// that value unique to the run.
 
 import type { Page } from "@playwright/test";
 
@@ -69,15 +83,26 @@ export type ProfileLeg = "core" | "stories" | "chat";
 /** In the order `UpdateProfile` writes them. */
 export const PROFILE_LEGS: readonly ProfileLeg[] = ["stories", "chat", "core"];
 
-/** One write to one leg. Safe to print — it is a number. */
+/** One write to one leg. Safe to print — both fields are facts about the write,
+ *  not values out of it. */
 export type LegWrite = {
   /** The status the backend answered with. */
   status: number;
+  /** Did this write carry the value the caller said it was saving?
+   *
+   *  `false` when no expected value was given, so it is only meaningful to a
+   *  caller that asked for it. */
+  carriedExpected: boolean;
 };
 
 /** What became of one leg of the save. */
 export type LegOutcome = {
-  /** Was this backend asked to store the new value at all? */
+  /** Was this backend asked to store the new value at all?
+   *
+   *  Read from the **request**, not the answer. A write that is sent and then
+   *  aborted never produces a response, and judging on responses alone would
+   *  report such a leg as "never asked" — which is the opposite of the truth,
+   *  and exactly the reading a case proving absence must not get. */
   asked: boolean;
   /** The status of its **last** answer to a forward write. `null` if never
    *  asked. Last, not first: a `401` that the app then recovers from is the
@@ -89,6 +114,13 @@ export type LegOutcome = {
    *  credential was refused and exchanged mid-save. Not a failure — worth
    *  saying in a message. */
   attempts: number;
+  /** Did the **settled** write carry the value being saved?
+   *
+   *  This is what tells a retry from a rollback: the retry carries the new
+   *  value, the rollback carries the old one. Only meaningful when the caller
+   *  passed an expected value, and only for a field whose two bodies differ —
+   *  see the header. */
+  carriedExpected: boolean;
 };
 
 export type ProfileWriteRecorder = {
@@ -132,16 +164,39 @@ const NOT_ASKED: LegOutcome = {
   status: null,
   accepted: false,
   attempts: 0,
+  carriedExpected: false,
 };
 
-/** Start recording. Attach this **before** the save is triggered. */
-export const recordProfileWrites = (page: Page): ProfileWriteRecorder => {
+/** Start recording. Attach this **before** the save is triggered.
+ *
+ *  `expected` is the value the caller is about to save. Give it only when the
+ *  case needs `carriedExpected`, and only for a name — see the header. */
+export const recordProfileWrites = (
+  page: Page,
+  options: { expected?: string } = {},
+): ProfileWriteRecorder => {
   const seen: Record<ProfileLeg, LegWrite[]> = {
     core: [],
     stories: [],
     chat: [],
   };
+  // Kept apart from `seen` on purpose. Feeding request events into the same
+  // list would count every healthy write twice — which is the signal that
+  // means "the credential was exchanged mid-save" — and would leave the last
+  // entry with no status, making a successful leg read as refused.
+  const asked = new Set<ProfileLeg>();
   const waiting = new Set<() => void>();
+
+  page.on("request", (request) => {
+    if (!request.url().includes("/api/proxy")) return;
+    const headers = request.headers();
+    const leg = legOf(
+      fromServiceToken(headers["x-proxy-server"] ?? ""),
+      headers["x-proxy-url"] ?? "",
+      (headers["x-proxy-method"] ?? "").toUpperCase(),
+    );
+    if (leg) asked.add(leg);
+  });
 
   page.on("response", (response) => {
     const request = response.request();
@@ -158,7 +213,18 @@ export const recordProfileWrites = (page: Page): ProfileWriteRecorder => {
     );
     if (!leg) return;
 
-    seen[leg].push({ status: response.status() });
+    // Only now, and only to a boolean. `postData()` carries the account's name,
+    // phone and e-mail; nothing below keeps any of it.
+    let carriedExpected = false;
+    if (options.expected !== undefined) {
+      try {
+        carriedExpected = (request.postData() ?? "").includes(options.expected);
+      } catch {
+        // A body that cannot be read is not a body that carried the value.
+      }
+    }
+
+    seen[leg].push({ status: response.status(), carriedExpected });
     for (const wake of waiting) wake();
   });
 
@@ -188,7 +254,10 @@ export const recordProfileWrites = (page: Page): ProfileWriteRecorder => {
 
   const outcome = (leg: ProfileLeg): LegOutcome => {
     const writes = seen[leg];
-    if (writes.length === 0) return NOT_ASKED;
+    if (writes.length === 0) {
+      // Sent but never answered still counts as asked — see `LegOutcome.asked`.
+      return asked.has(leg) ? { ...NOT_ASKED, asked: true } : NOT_ASKED;
+    }
 
     // The last one: everything before it was retried, so it is not the answer.
     const settled = writes[writes.length - 1];
@@ -198,6 +267,7 @@ export const recordProfileWrites = (page: Page): ProfileWriteRecorder => {
       status: settled.status,
       accepted: settled.status < 400,
       attempts: writes.length,
+      carriedExpected: settled.carriedExpected,
     };
   };
 
@@ -208,6 +278,9 @@ export const recordProfileWrites = (page: Page): ProfileWriteRecorder => {
       seen.core = [];
       seen.stories = [];
       seen.chat = [];
+      // Both stores, or a second measured save inherits the first one's answer
+      // to "was this leg asked" — which is the one question absence turns on.
+      asked.clear();
     },
   };
 };

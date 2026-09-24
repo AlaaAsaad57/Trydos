@@ -85,36 +85,99 @@ export const isNew = (ch) => {
   ).length;
   return a;
 };
+/**
+ * Which way a call went, from the point of view of the signed-in chat user.
+ *
+ * `duration_in_seconds` is 0 for every call that never connected — one this
+ * user started and nobody picked up, and one that came in and nobody picked
+ * up. So duration alone cannot tell the two apart; `sender_user_id` does.
+ * Only a call somebody else started, that nobody answered, is missed.
+ *
+ * Returns the modifier the stylesheet colours: chatcomponent.css styles the
+ * row through `.missed`, `.incoming` and `.outgoing`.
+ */
+export const getCallDirection = (
+  senderId,
+  currentUserId,
+  durationInSeconds,
+): "missed" | "incoming" | "outgoing" => {
+  const isOutgoing =
+    parseInt(String(senderId)) === parseInt(String(currentUserId));
+  if (isOutgoing) return "outgoing";
+  return Number(durationInSeconds) > 0 ? "incoming" : "missed";
+};
+
+/**
+ * The English copy for one call log row — the key, not the translation.
+ *
+ * The row says two things: the direction, and whether it was voice or video.
+ * `message_type.name` from /api/v1/channels/my_calls is "VoiceCall" or
+ * "VideoCall".
+ */
+export const getCallLabelKey = (direction, messageTypeName) => {
+  const media = messageTypeName === "VideoCall" ? "video" : "voice";
+  return CALL_LABEL_KEY[media][direction];
+};
+
+/**
+ * Every label is written out in full, one literal per cell. The keys have to
+ * stay whole strings: the i18n lint step greps for the literal key in the
+ * three translation files, and a key glued together at runtime is invisible
+ * to it.
+ */
+const CALL_LABEL_KEY = {
+  voice: {
+    missed: "Missed Voice Call",
+    incoming: "Incoming Voice Call",
+    outgoing: "Outgoing Voice Call",
+  },
+  video: {
+    missed: "Missed Video Call",
+    incoming: "Incoming Video Call",
+    outgoing: "Outgoing Video Call",
+  },
+};
+
+/**
+ * The 15x15 mark in front of the label. One per direction per media, so the
+ * row says voice or video at a glance and not only in words.
+ *
+ * All six share one design: the body (a handset or a camera) plus the wave
+ * mark that carries the direction — blue waves in, orange waves out, and a
+ * red body on its own for missed.
+ */
+const CALL_ICON = {
+  voice: {
+    missed: "/icons/chat/missedCall.svg",
+    incoming: "/icons/chat/IncomingCall.svg",
+    outgoing: "/icons/chat/outgoingCall.svg",
+  },
+  video: {
+    missed: "/icons/chat/missedVideoCall.svg",
+    incoming: "/icons/chat/IncomingVideoCall.svg",
+    outgoing: "/icons/chat/outgoingVideoCall.svg",
+  },
+};
+
 export const getCallType = (type) => {
   const { language } = useAppStore.getState();
-  const translate = (key, lang) => {
-    return translateFunction(key, lang);
-  };
-  if (type.duration <= 0) {
-    return (
-      <>
-        <img src="/icons/chat/missedCall.svg" className="w-[15px] h-[15px]" />{" "}
-        {translate("Missed Call", language)}
-      </>
-    );
-  } else if (
-    parseInt(type.sender) !== parseInt(getUserChat().id) &&
-    type.duration >= 0
-  ) {
-    return (
-      <>
-        <img src="/icons/chat/IncomingCall.svg" className="w-[15px] h-[15px]" />{" "}
-        {translate("Incoming Call", language)}
-      </>
-    );
-  } else if (parseInt(type.sender) === parseInt(getUserChat().id)) {
-    return (
-      <>
-        <img src="/icons/chat/outgoingCall.svg" className="w-[15px] h-[15px]" />{" "}
-        {translate("Outgoing Call", language)}
-      </>
-    );
-  }
+  const direction = getCallDirection(
+    type.sender,
+    getUserChat()?.id,
+    type.duration,
+  );
+  const media = type.type === "VideoCall" ? "video" : "voice";
+  const labelKey = getCallLabelKey(direction, type.type);
+  return (
+    <>
+      <img
+        src={CALL_ICON[media][direction]}
+        className="w-[15px] h-[15px]"
+        alt=""
+      />{" "}
+      {translateFunction(labelKey, language)}
+    </>
+  );
 };
 export const getTwoLetters = (name) => {
   if (name && name !== "UnKnown User") {
@@ -122,7 +185,7 @@ export const getTwoLetters = (name) => {
       let words = name.split(" ");
       if (words.length > 1) return `${words[0][0]}${words[1][0]}`;
     } else {
-      return `${name[0] + name[1]}`;
+      return name.slice(0, 2);
     }
   } else {
     return "";
@@ -547,7 +610,24 @@ const uploadFile = async (file_name, file) => {
   }
 };
 
+/** The largest chat attachment we send, in MB. */
+const MAX_CHAT_FILE_SIZE_MB = 25;
+/** The same cap in bytes, which is the only unit `File.size` speaks. */
+const MAX_CHAT_FILE_SIZE_BYTES = MAX_CHAT_FILE_SIZE_MB * 1024 * 1024;
+
 export const upload = async (file) => {
+  // Checked here, not at each screen, because every chat attachment comes
+  // through this one function — the file picker, the camera, the cropped image
+  // and the voice recorder all call it. Without this the only cap was the media
+  // server's own, which sits higher than 25 MB, so a 25.9 MB file was accepted.
+  if (file?.size > MAX_CHAT_FILE_SIZE_BYTES) {
+    throw new Error(
+      translateFunction(
+        `File size should not exceed ${MAX_CHAT_FILE_SIZE_MB} MB`,
+      ),
+    );
+  }
+
   let currentFile = file;
   let a = "",
     b = "";
@@ -573,13 +653,6 @@ export function dataURLtoFile(dataurl, filename) {
     u8arr[n] = bstr.charCodeAt(n);
   }
   return new File([u8arr], filename, { type: mime });
-}
-export function blobToDataURL(blob, callback) {
-  var a = new FileReader();
-  a.onload = function (e) {
-    callback(e.target.result);
-  };
-  a.readAsDataURL(blob);
 }
 export const showDate = (d) => {
   const { language } = useAppStore.getState();
@@ -627,5 +700,10 @@ export const showDate = (d) => {
     86400000 * 6
   )
     return day;
-  else return language === "ar" ? d.toLocaleString("ar-EG") : d;
+  // `d` is a "YYYY-MM-DD" string here, so toLocaleString() would return it
+  // unchanged. Swap each digit for its Arabic-Indic form instead.
+  else
+    return language === "ar"
+      ? d.replace(/\d/g, (digit) => "٠١٢٣٤٥٦٧٨٩"[Number(digit)])
+      : d;
 };

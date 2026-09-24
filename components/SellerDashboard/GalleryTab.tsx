@@ -6,10 +6,10 @@ import { translateFunction, LogError } from "utils/functions";
 import { DashIcon } from "components/SellerDashboard/ui/icons";
 import {
   DashButton,
-  LoadingState,
   EmptyState,
   Pagination,
 } from "components/SellerDashboard/ui";
+import { TileGridSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
 
 interface GalleryImage {
   id: number | string;
@@ -343,7 +343,7 @@ export default function GalleryTab({
 
       {/* Gallery Grid */}
       {loading ? (
-        <LoadingState label={translateFunction("Loading images...")} />
+        <TileGridSkeleton />
       ) : images.length === 0 ? (
         <EmptyState
           icon="gallery"

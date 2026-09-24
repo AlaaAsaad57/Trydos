@@ -10,6 +10,11 @@ export const CHAT_REFRESH_TOKEN_ENDPOINT = "/api/v1/auth/refresh-token";
 // Stories refresh-token exchange (same backend contract as chat: single-use
 // rotation, same path, same response envelope).
 export const STORIES_REFRESH_TOKEN_ENDPOINT = "/api/v1/auth/refresh-token";
+// Comments refresh-token exchange. Same single-use rotation contract as chat and
+// stories, but its own path on the comments host (COMMENT_BACKEND_URL, which is
+// a bare host with no /api/v1 prefix).
+export const COMMENTS_REFRESH_TOKEN_ENDPOINT =
+  "/public_comment/auth/refresh-token";
 export const LOG_IN_COMMENTS_ENDPOINT = "/public_comment/auth/exchange_token";
 export const LOG_IN_CHAT_ENDPOINT = "/api/v1/users/login";
 export const LOG_IN_STORIES_ENDPOINT = "/api/v1/users/login";

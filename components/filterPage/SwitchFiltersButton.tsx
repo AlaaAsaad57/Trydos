@@ -4,31 +4,23 @@ import { useState } from "react";
 function SwitchFiltersButton({ length, language }) {
   let [active, setActive] = useState(0);
   const onClick = () => {
-    if (active === length - 1) {
-      document.querySelector(`.scrollable-area-${0}`).scrollIntoView({
-        behavior: "smooth",
-        block: "end",
-        inline: "start",
-      });
-      setActive(0);
-      setTimeout(() => {
-        document
-          .querySelector(".filter-button")
-          .scrollIntoView({ block: "end", inline: "start" });
-      }, 200);
-    } else {
-      document.querySelector(`.scrollable-area-${active + 1}`).scrollIntoView({
-        behavior: "smooth",
-        block: "end",
-        inline: "start",
-      });
-      setActive(active + 1);
-      setTimeout(() => {
-        document
-          .querySelector(".filter-button")
-          .scrollIntoView({ block: "end", inline: "start" });
-      }, 200);
-    }
+    // Walk to the next row, wrapping back to the first after the last one.
+    const next = active === length - 1 ? 0 : active + 1;
+
+    // The rows are found by class name, and a row that is not on the page
+    // answers null: one still streaming in, or a `length` that does not match
+    // the rows actually drawn. Scrolling to it is skipped, but the dots still
+    // advance — a missing row must not trap the shopper on it for every
+    // further tap.
+    document
+      .querySelector(`.scrollable-area-${next}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "end", inline: "start" });
+    setActive(next);
+    setTimeout(() => {
+      document
+        .querySelector(".filter-button")
+        ?.scrollIntoView({ block: "end", inline: "start" });
+    }, 200);
   };
   const isRtl = language === "ar" || language === "ku";
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { removeRedis, getKeys, flushOtpLimitsAction } from "serverRequests/radis";
+import { LogServerError } from "utils/serverErrorReporter";
 // your helper
 
 export async function GET(req: NextRequest) {
@@ -34,7 +35,7 @@ export async function GET(req: NextRequest) {
       { headers },
     );
   } catch (error: any) {
-    console.error(error);
+    LogServerError({ scenario: "clearRedis route failed", error });
     return NextResponse.json(
       { error: error.message || "Failed to remove keys" },
       { status: 500, headers },

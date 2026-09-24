@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import "styles/listing-components.css";
 import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
+import { qaMode } from "utils/server/qaMode";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -38,6 +39,7 @@ async function getBoutique(
         country,
         language,
         slug: boutique,
+        qaView: await qaMode(),
       });
       if (!boutiqueData?.banners) {
         // Reported, never thrown. A redirect() here was caught by this very

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { FIREBASE_SETTINGS_URL } from "utils/endpointConfig";
 import { LogError, translateFunction } from "utils/functions";
 import home from "services/home";
@@ -156,7 +156,7 @@ const SettingsModal = ({ onClose, lang }) => {
           setTopics(updatedTopics);
           setUnsubscribedTopics(updatedUnsubscribedTopics);
         } else {
-          console.error("Failed to unsubscribe from topic");
+          LogError({ scenario: "SettingsModal: unsubscribing from the topic was refused" });
         }
       } catch (error) {
         LogError({
@@ -164,7 +164,7 @@ const SettingsModal = ({ onClose, lang }) => {
           scenario: "handleUnsubscribe in SettingModal",
           topic: topic,
         });
-        console.error("Error unsubscribing from topic:", error);
+        LogError({ scenario: "SettingsModal: unsubscribing from the topic threw", error });
       } finally {
         setLoading(false);
       }
@@ -200,7 +200,7 @@ const SettingsModal = ({ onClose, lang }) => {
           setTopics(updatedTopics);
           setUnsubscribedTopics(updatedUnsubscribedTopics);
         } else {
-          console.error("Failed to subscribe to topic");
+          LogError({ scenario: "SettingsModal: subscribing to the topic was refused" });
         }
       } catch (error) {
         LogError({
@@ -208,7 +208,7 @@ const SettingsModal = ({ onClose, lang }) => {
           scenario: "handleSubscribe in SettingModal",
           topic: topic,
         });
-        console.error("Error subscribing to topic:", error);
+        LogError({ scenario: "SettingsModal: subscribing to the topic threw", error });
       } finally {
         setLoading(false);
       }

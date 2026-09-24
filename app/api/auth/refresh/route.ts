@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
-import { refreshMarketSession, refreshChatSession, refreshStoriesSession } from "utils/server/authRefresh";
+import {
+  refreshMarketSession,
+  refreshChatSession,
+  refreshStoriesSession,
+  refreshCommentsSession,
+} from "utils/server/authRefresh";
 
 /**
  * Internal refresh endpoint (market: Go + Laravel auth contracts; chat: chat
@@ -42,14 +47,15 @@ export async function POST(request: NextRequest) {
     if (failedUrl !== undefined || server !== undefined) {
       // Reactive call — the untrusted `{url, server}` is never fetched,
       // redirected to, or logged. Market traffic carries the MARKET-TOKEN pair,
-      // so it is refreshable whichever backend served the failed request. Chat
-      // and stories carry their own token pairs and are refreshable here;
-      // comments and wallet keep their existing need_auth flow.
+      // so it is refreshable whichever backend served the failed request. Chat,
+      // stories and comments each carry their own token pair and are refreshable
+      // here; wallet keeps its existing need_auth flow.
       const serverAllowed =
         server === "market" ||
         server === "market-dashboard" ||
         server === "chat" ||
-        server === "stories";
+        server === "stories" ||
+        server === "comments";
       if (!serverAllowed) {
         return NextResponse.json({ eligible: false }, { status: 200 });
       }
@@ -65,7 +71,9 @@ export async function POST(request: NextRequest) {
         ? await refreshChatSession()
         : server === "stories"
           ? await refreshStoriesSession()
-          : await refreshMarketSession();
+          : server === "comments"
+            ? await refreshCommentsSession()
+            : await refreshMarketSession();
     switch (outcome.status) {
       case "refreshed":
         // Cookies were set on this response by the helper; body stays

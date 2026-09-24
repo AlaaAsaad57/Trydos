@@ -2,11 +2,6 @@
 
 import { useAppStore } from "store";
 
-interface VirtualTryOnProps {
-  language: string;
-  product: any;
-}
-
 const VirtualTryOn = ({ language, product }) => {
   const isRtl = language === "ar" || language === "ku";
   const { setIsModalOpen } = useAppStore();

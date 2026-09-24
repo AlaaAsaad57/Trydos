@@ -1,6 +1,4 @@
 import { lang as langParam } from "next/root-params";
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import ListingSkeleton from "components/skeleton/listing";
@@ -9,7 +7,7 @@ import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { LogServerError } from "utils/serverErrorReporter";
-import { parseFiltersFromParams } from "utils/server";
+import { parseFiltersFromParams, translateFunction } from "utils/server";
 import { generateMetadataForListing } from "serverRequests/meta/listing";
 import { permanentRedirect } from "next/navigation";
 import { buildSearchRedirectTarget } from "utils/listing/searchPathRedirect";
@@ -20,7 +18,11 @@ import FilterListContainer from "components/Server/FilterListContainer";
 import ProductListConainer from "components/Server/ProductListConainer";
 import ListingBarActions from "components/Server/ListingBarActions";
 import ListingBarOptions from "components/Listing/ListingBarOptions";
-export const dynamicParams = true;
+
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 export async function generateMetadata({ params, searchParams }) {
   let Params = await params;
   const lang = await langParam();
@@ -157,7 +159,7 @@ export default async function Page({ params, searchParams }) {
               is_full_home: true,
             }}
             href={`/${lang}`}
-            ariaLabel={`TryDos Home ${lang}`}
+            ariaLabel={translateFunction("Back to Home", language)}
             className="back-icon"
           >
             <img

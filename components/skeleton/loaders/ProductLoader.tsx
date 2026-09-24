@@ -1,15 +1,14 @@
 "use client";
 import { useParams } from "next/navigation";
 
-import { getConfiguredImage, RoundPrice } from "utils/functions";
+import { getConfiguredImage } from "utils/functions";
 import "styles/productDetails.css";
 import "styles/product-body.css";
 import Image from "next/image";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 
-import { DisableScroll, GetImageUrl } from "utils/tinyUtils";
-import { useEffect } from "react";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function ProductLoader({ product }) {
   const { lang } = useParams();

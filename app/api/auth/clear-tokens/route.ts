@@ -15,6 +15,7 @@ const CLEARABLE_TOKENS = new Set([
   COOKIE_NAMES.STORIES_REFRESH_TOKEN,
   COOKIE_NAMES.WALLET_TOKEN,
   COOKIE_NAMES.USER_ID_HASH,
+  COOKIE_NAMES.COMMENTS_REFRESH_TOKEN,
 ]);
 
 /**
@@ -48,7 +49,9 @@ export async function POST(request: NextRequest) {
     const clearedStories =
       cleared.has(COOKIE_NAMES.STORIES_TOKEN) ||
       cleared.has(COOKIE_NAMES.STORIES_REFRESH_TOKEN);
-    const clearedComments = cleared.has(COOKIE_NAMES.USER_ID_HASH);
+    const clearedComments =
+      cleared.has(COOKIE_NAMES.USER_ID_HASH) ||
+      cleared.has(COOKIE_NAMES.COMMENTS_REFRESH_TOKEN);
 
     const [userChat, userStories, userData] = await Promise.all([
       clearedChat ? getSecureCookie<any>(COOKIE_NAMES.USER_CHAT) : null,

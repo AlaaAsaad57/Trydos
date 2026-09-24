@@ -17,7 +17,7 @@
 // What is NOT covered here, and why: the three browser-only helpers
 // (get/set/delete) refuse to run outside a browser. This ticket is the
 // server-side plumbing; they belong with the client-side phase.
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   COOKIE_NAMES,
@@ -214,5 +214,112 @@ describe("reading a cookie on the server", () => {
     );
 
     expect(await getCookieServer(COOKIE_NAMES.MARKET_TOKEN)).toBeNull();
+  });
+
+  it("re-throws the framework's prerender bail-out instead of swallowing it", async () => {
+    // Under Cache Components, `cookies()` rejects during a prerender to say
+    // "this part is dynamic, defer it". Catching that and answering null turns
+    // a deferral into a lie: the component renders as though the visitor were a
+    // guest, and that guest markup can end up in the static shell.
+    //
+    // Observed for real in the first build with the flag on, which logged
+    // "During prerendering, `cookies()` rejects when the prerender is complete"
+    // at route /[lang]/settings — swallowed here, so the caller never saw it.
+    const getCookieServer = await loadReader();
+    const bailout = Object.assign(
+      new Error("During prerendering, `cookies()` rejects when the prerender is complete."),
+      { digest: "HANGING_PROMISE_REJECTION" },
+    );
+    headers.cookies.mockRejectedValueOnce(bailout);
+
+    await expect(
+      getCookieServer(COOKIE_NAMES.MARKET_TOKEN),
+      "the prerender bail-out was swallowed and answered as a missing cookie, so a guest shell can be prerendered for a signed-in page",
+    ).rejects.toThrow(/prerender/i);
+  });
+});
+
+// The browser helpers, run here with a small stand-in for `window` and
+// `document` (this file runs in node). The stand-in `document.cookie` is a plain
+// field, so each write replaces the last one: that is enough to read back the
+// exact cookie string each helper wrote.
+describe("the browser cookie helpers", () => {
+  const load = async () => import("utils/cookies/cookie-manager");
+  let doc: { cookie: string };
+
+  beforeEach(() => {
+    doc = { cookie: "" };
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("document", doc);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it("getCookie reads JSON, plain text and a value it cannot decode", async () => {
+    const { getCookie } = await load();
+    doc.cookie = `a=${encodeURIComponent(JSON.stringify({ id: 1 }))}; b=hello; c=%E0%A4%A`;
+    expect(getCookie("a"), "a JSON cookie was not parsed").toEqual({ id: 1 });
+    expect(getCookie("b"), "a text cookie was not returned").toBe("hello");
+    expect(getCookie("c"), "an undecodable cookie was not returned raw").toBe("%E0%A4%A");
+    expect(getCookie("missing"), "a missing cookie was invented").toBeNull();
+  });
+
+  it("setCookie writes the value with every option it is given", async () => {
+    const { setCookie } = await load();
+    const expires = new Date("2030-01-01T00:00:00Z");
+    setCookie("k", { v: 1 }, { domain: "trydos.com", expires, secure: true, sameSite: "lax", maxAge: 60 });
+    expect(doc.cookie, "the cookie string is wrong").toBe(
+      `k=${encodeURIComponent('{"v":1}')}; max-age=60; expires=${expires.toUTCString()}; path=/; domain=trydos.com; secure; samesite=lax`,
+    );
+  });
+
+  it("setCookie leaves out the options that are turned off, and stores text as it is", async () => {
+    const { setCookie } = await load();
+    setCookie("k", "plain", { maxAge: 0, path: "", sameSite: undefined as any, secure: false });
+    expect(doc.cookie, "switched-off options were written").toBe("k=plain");
+  });
+
+  it("setCookie stores a value JSON cannot write as text", async () => {
+    const { setCookie } = await load();
+    const circular: any = {};
+    circular.self = circular;
+    setCookie("k", circular);
+    expect(doc.cookie.startsWith(`k=${encodeURIComponent("[object Object]")}`), "the fallback text was not stored").toBe(true);
+  });
+
+  it("deleteCookie and clearHashedUserId expire the cookie", async () => {
+    const { deleteCookie, clearHashedUserId, COOKIE_NAMES: NAMES } = await load();
+    deleteCookie("gone");
+    expect(doc.cookie, "the delete did not expire the cookie").toContain("gone=; max-age=-1");
+    clearHashedUserId();
+    expect(doc.cookie, "the hashed user id was not expired").toContain(`${NAMES.USER_ID_HASH}=; max-age=-1`);
+  });
+
+  it("setLocaizationCookies writes country and both language cookies, lower-cased", async () => {
+    const { setLocaizationCookies } = await load();
+    const written: string[] = [];
+    Object.defineProperty(doc, "cookie", {
+      get: () => written.join("; "),
+      set: (v: string) => written.push(v.split(";")[0]),
+      configurable: true,
+    });
+    setLocaizationCookies("sy", "AR");
+    setLocaizationCookies("", "");
+    expect(written, "the locale cookies are wrong").toEqual([
+      `${COOKIE_NAMES.COUNTRY}=sy`,
+      `${COOKIE_NAMES.LANG}=ar`,
+      `${COOKIE_NAMES.lANGUAGE}=ar`,
+    ]);
+  });
+
+  it("refuses to run on the server", async () => {
+    const { getCookie, setCookie, deleteCookie } = await load();
+    vi.stubGlobal("window", undefined);
+    expect(getCookie("a"), "the server read a browser cookie").toBeNull();
+    expect(() => setCookie("a", 1), "setCookie ran on the server").toThrow("setCookie can only be used on the client");
+    expect(() => deleteCookie("a"), "deleteCookie ran on the server").toThrow("deleteCookie can only be used on the client");
   });
 });

@@ -1,9 +1,10 @@
 import { useAppStore } from "store";
 import { _isStoreLastJson } from "utils/functions";
-import home from "./home";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
+import { readRdbLock } from "./rdbPayment";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 
 class CartService {
   async AddToCart({
@@ -42,6 +43,15 @@ class CartService {
         method: "POST",
         server: "market",
       });
+      // The core backend refuses every cart write while an RDB payment request
+      // is pending. That is not a fault: the shopper has to finish or cancel
+      // the payment first, and the lock sheet says so.
+      const lock = readRdbLock(response);
+      if (lock) {
+        useAppStore.getState().setRdbLock(lock);
+        trackOrder(ORDER_EVENTS.RDB_CART_LOCK_HIT, { at: "cart" });
+        return false;
+      }
       if (!response.success) {
         throw new Error(response.message);
       }
@@ -72,7 +82,29 @@ class CartService {
       return false;
     }
   }
-  async UpdateCart({ cart_id, qty, isFromAddWidget = false, is_luck = false }) {
+  /** Change the quantity of one cart row.
+   *
+   *  Returns `true` only when the core backend took the new quantity.
+   *
+   *  `onRefused` tells the caller about one case the `false` cannot: the core
+   *  backend answered, and said no (`data.status` is not 1). That is a refusal
+   *  on stock, not a failed request, and the cart row offers to notify the
+   *  shopper for it. Every other failure — a refused request, a thrown error —
+   *  leaves `onRefused` alone, so a network fault is never blamed on the
+   *  product. */
+  async UpdateCart({
+    cart_id,
+    qty,
+    isFromAddWidget = false,
+    is_luck = false,
+    onRefused = null,
+  }: {
+    cart_id: any;
+    qty: any;
+    isFromAddWidget?: boolean;
+    is_luck?: boolean;
+    onRefused?: ((refusal: { status: any; qty: any }) => void) | null;
+  }) {
     const { updateProductQuantityInCart } = useAppStore.getState();
 
 
@@ -89,7 +121,27 @@ class CartService {
         method: "POST",
         server: "market",
       });
+      // The core backend refuses every cart write while an RDB payment request
+      // is pending. That is not a fault: the shopper has to finish or cancel
+      // the payment first, and the lock sheet says so.
+      const lock = readRdbLock(response);
+      if (lock) {
+        useAppStore.getState().setRdbLock(lock);
+        trackOrder(ORDER_EVENTS.RDB_CART_LOCK_HIT, { at: "cart" });
+        return false;
+      }
       if (!response.success) {
+        // `fetchData` handles a `/cart/update` refusal itself: it shows the
+        // toast and throws (utils/fetchData.ts:734-737), then catches its own
+        // throw and returns the whole body with `success: false`
+        // (:807-810). So a refusal reaches here looking like a failed call
+        // while still carrying the core backend's answer. Read that answer
+        // before treating it as an error — otherwise the two are the same
+        // `false` and the caller can never tell them apart.
+        if (response?.data?.status === 0) {
+          onRefused?.({ status: 0, qty: response?.data?.qty });
+          return false;
+        }
         throw new Error(response.message);
       }
       if (response?.data?.status === 1 && parseInt(response?.data?.qty) >= 0) {
@@ -99,6 +151,7 @@ class CartService {
         });
         return true;
       }
+      onRefused?.({ status: response?.data?.status, qty: response?.data?.qty });
       return false;
     } catch (error) {
       LogServerError({
@@ -120,6 +173,18 @@ class CartService {
         method: "POST",
         server: "market",
       });
+      // The core backend refuses every cart write while an RDB payment request
+      // is pending. That is not a fault: the shopper has to finish or cancel
+      // the payment first, and the lock sheet says so.
+      const lock = readRdbLock(response);
+      if (lock) {
+        useAppStore.getState().setRdbLock(lock);
+        trackOrder(ORDER_EVENTS.RDB_CART_LOCK_HIT, { at: "cart" });
+        // The cart page removes the row before it calls this. The core
+        // backend kept the item, so put the row back.
+        errRemoveFromCart(cart_item);
+        return false;
+      }
       if (!response.success) {
         throw new Error(response.message);
       }
@@ -144,15 +209,26 @@ class CartService {
         method: "POST",
         server: "market",
       });
+      // The core backend refuses every cart write while an RDB payment request
+      // is pending. That is not a fault: the shopper has to finish or cancel
+      // the payment first, and the lock sheet says so.
+      const lock = readRdbLock(response);
+      if (lock) {
+        useAppStore.getState().setRdbLock(lock);
+        trackOrder(ORDER_EVENTS.RDB_CART_LOCK_HIT, { at: "cart" });
+        return false;
+      }
       // @ts-ignore
       if (!response.success) {
         throw new Error(response.message);
       }
+      return true;
     } catch (err) {
       LogServerError({
         error: err,
         scenario: "Error In ConvertToOldCart in services/cart",
       });
+      return false;
     }
   }
 }

@@ -1,0 +1,1228 @@
+// Moving a cart row to Out-Of-Bag, from the shopper's side of the button.
+//
+// `QuantutyInput` is the row of controls under each cart item. The button
+// labelled "Reschedule" moves the item out of the cart and into Out-Of-Bag.
+//
+// This file guards one finding: the row was deleted from the cart on screen
+// whether or not the core backend actually moved it. The service swallowed the
+// refusal and reported nothing, so the caller had nothing to check. The item
+// then sat in neither list until the shopper reloaded the page.
+//
+// The cart service is replaced rather than answered, because this file is about
+// what the screen does with the answer, not about the request.
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import CartContainer, { CartItemLink, QuantutyInput } from "components/Cart";
+import * as functions from "utils/functions";
+
+import { useAppStore } from "store";
+import { useNotificationStore } from "store/notifications/reducer";
+
+import { act, renderWithProviders, screen, userEvent, waitFor } from "../../render";
+import { routerSpies } from "../../mocks/nextNavigation";
+
+const ConvertToOldCart = vi.fn();
+// The plus and minus controls go through `UpdateCart`
+// (components/Cart/index.tsx:503-507). It is spied rather than answered,
+// because these cases are about the number the screen asks for, not the
+// request. It resolves true so the handler follows its success path.
+const UpdateCart = vi.fn().mockResolvedValue(true);
+
+vi.mock("services/cart", () => ({
+  default: {
+    ConvertToOldCart: (...args: any[]) => ConvertToOldCart(...args),
+    UpdateCart: (...args: any[]) => UpdateCart(...args),
+    RemoveFromCart: (...args: any[]) => RemoveFromCart(...args),
+  },
+}));
+
+// Used by the cart page (the default export) when a row is deleted.
+const RemoveFromCart = vi.fn().mockResolvedValue(true);
+
+// The cart page's own product-details refresh (`updateDataForProduct`) is the
+// one direct request in components/Cart/index.tsx. Replaced so no case reaches
+// the network.
+const fetchData = vi.fn();
+vi.mock("utils/fetchData", () => ({
+  fetchData: (...args: any[]) => fetchData(...args),
+  abortInFlightForLogout: vi.fn(),
+}));
+
+// The cart page draws these five children. Each has its own test file and some
+// reach the core backend on mount, so the page's cases use stand-ins that only
+// show what they were given.
+vi.mock("components/Cart/OldCartContainer", () => ({
+  default: () => <div data-testid="old-cart" />,
+}));
+vi.mock("components/Cart/CartItem", () => ({
+  default: ({ product }: any) => <div data-testid="cart-item">{product.name}</div>,
+}));
+vi.mock("components/Cart/EmptyCart", () => ({
+  default: () => <div data-testid="empty-cart" />,
+}));
+vi.mock("components/Cart/CartErrorComponent", () => ({
+  default: ({ errorMessage, onRetry }: any) => (
+    <button data-testid="cart-error" onClick={onRetry}>
+      {String(errorMessage)}
+    </button>
+  ),
+}));
+vi.mock("components/Cart/OrderButton", () => ({
+  default: ({ toOrders, close }: any) => (
+    <div data-testid="order-button">
+      <button onClick={toOrders}>to-orders</button>
+      <button onClick={close}>close-from-order</button>
+    </div>
+  ),
+}));
+
+const trackOrder = vi.fn();
+
+vi.mock("utils/orderFunnel", () => ({
+  ORDER_EVENTS: {
+    CART_ITEM_MOVED_TO_OLD: "cart_item_moved_to_old",
+    CART_ITEM_QTY_INCREASED: "cart_item_qty_increased",
+    CART_ITEM_QTY_DECREASED: "cart_item_qty_decreased",
+    CART_ITEM_REMOVED: "cart_item_removed",
+  },
+  trackOrder: (...args: any[]) => trackOrder(...args),
+}));
+
+const AllowNotifications = vi.fn().mockResolvedValue("fcm-token");
+const GetFireBaseSettings = vi.fn().mockResolvedValue(undefined);
+const NotifyForProducts = vi.fn().mockResolvedValue({ success: true });
+
+// The notify prompt uses the same two services the product page uses for
+// "Notify Me When Variant Is Available" (components/Cart/AddToCart/
+// AddToCartComponent.tsx:955-983). Both are replaced so no case reaches the
+// network, which the fake network turns into a failed test.
+vi.mock("services/home", () => ({
+  default: {
+    AllowNotifications: (...args: any[]) => AllowNotifications(...args),
+    GetFireBaseSettings: (...args: any[]) => GetFireBaseSettings(...args),
+  },
+}));
+
+vi.mock("services/auth", () => ({
+  default: {
+    NotifyForProducts: (...args: any[]) => NotifyForProducts(...args),
+    UserID: () => "user-1",
+  },
+}));
+
+vi.mock("utils/functions", async (importOriginal) => ({
+  ...((await importOriginal()) as object),
+  getOldCart: vi.fn().mockResolvedValue(undefined),
+  // Both quantity handlers re-read the whole bag once the service answers
+  // (components/Cart/index.tsx:570-575, :615-619). Left unanswered it would
+  // reach the network, which the fake network turns into a failed test.
+  getCart: vi.fn().mockResolvedValue({ cart: [] }),
+  GetCartOreview: vi.fn().mockResolvedValue(undefined),
+}));
+
+/** The one row in the cart, as the cart page holds it. */
+const cartRow = {
+  id: "cart-99",
+  product_id: 101,
+  name: "Blue shirt",
+  price: 100,
+  offer_price: 80,
+  quantity: 1,
+};
+
+async function openTheCartRowAndReschedule() {
+  const rendered = await renderWithProviders(
+    <QuantutyInput
+      value={1}
+      setValue={() => {}}
+      max={5}
+      deleteFunction={() => {}}
+      id={cartRow.id}
+      disabled={false}
+      updateData={() => {}}
+      product={cartRow}
+    />,
+    {
+      country: "sy",
+      path: "/cart",
+      store: {
+        cart: [{ ...cartRow }],
+        localCart: [{ id: 101, item_id: cartRow.id, quantity: 1 }],
+        currency: { symbol: "$", exchange_rate: 1, decimal_digits: 2 },
+      },
+    },
+  );
+
+  await userEvent.click(screen.getByText("Reschedule"));
+  return rendered;
+}
+
+describe("moving a cart row to Out-Of-Bag", () => {
+  beforeEach(() => {
+    trackOrder.mockClear();
+  });
+
+  it("keeps the row in the cart when the core backend refuses the move", async () => {
+    // What the fixed service reports on a refusal: it did not move.
+    ConvertToOldCart.mockResolvedValue(false);
+
+    const { store } = await openTheCartRowAndReschedule();
+
+    expect(
+      store.getState().cart.map((s: any) => s.id),
+      "the core backend refused the move and the cart page deleted the row anyway, so the item is in neither the cart nor Out-Of-Bag until the shopper reloads",
+    ).toEqual(["cart-99"]);
+  });
+
+  it("takes the row out of the cart when the core backend moved it", async () => {
+    ConvertToOldCart.mockResolvedValue(true);
+
+    const { store } = await openTheCartRowAndReschedule();
+
+    expect(
+      store.getState().cart.map((s: any) => s.id),
+      "the core backend moved the item to Out-Of-Bag and the cart page still lists it",
+    ).toEqual([]);
+  });
+
+  it("reports the move to the order funnel only once the item has moved", async () => {
+    ConvertToOldCart.mockResolvedValue(true);
+
+    await openTheCartRowAndReschedule();
+
+    expect(
+      trackOrder.mock.calls.map(([event]: any) => event),
+      "the order funnel was not told that the item moved to Out-Of-Bag",
+    ).toEqual(["cart_item_moved_to_old"]);
+  });
+
+  it("does not report a move the core backend refused", async () => {
+    ConvertToOldCart.mockResolvedValue(false);
+
+    await openTheCartRowAndReschedule();
+
+    expect(
+      trackOrder.mock.calls.map(([event]: any) => event),
+      "the order funnel was told the item moved to Out-Of-Bag, but the core backend refused the move",
+    ).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The plus and minus controls, and what a row draws at quantity 1.
+//
+// AC-12 and AC-13 of _specs/checkout-address-totals-and-cart-lines.
+//
+// The markers here are `data-pw`, and Testing Library in this suite is not
+// configured to read them — that mapping is `playwright.config.ts`, for the
+// browser suite. So these cases query the DOM directly, the way
+// tests/components/Cart/AddressListContainer.test.tsx does.
+const marked = (marker: string): HTMLElement | null =>
+  document.querySelector(`[data-pw="${marker}"]`);
+
+const mustFind = (marker: string): HTMLElement => {
+  const found = marked(marker);
+  if (!found) throw new Error(`the cart row never drew the "${marker}" control`);
+  return found;
+};
+
+/** One cart row at the quantity given, with nothing pressed yet.
+ *
+ *  `options.max` is the stock left, which the cart page passes as the row's
+ *  `available_quantity` (components/Cart/index.tsx:346). `options.product` adds
+ *  fields to the row, such as the seller's per-order limit `max_allowed_qty`. */
+async function openTheCartRowAt(
+  quantity: number,
+  deleteFunction = () => {},
+  options: { max?: number; product?: Record<string, any> } = {},
+) {
+  return renderWithProviders(
+    <QuantutyInput
+      value={quantity}
+      setValue={() => {}}
+      max={"max" in options ? options.max : 5}
+      deleteFunction={deleteFunction}
+      id={cartRow.id}
+      disabled={false}
+      updateData={() => {}}
+      product={{ ...cartRow, quantity, ...(options.product ?? {}) }}
+    />,
+    {
+      country: "sy",
+      path: "/cart",
+      store: {
+        cart: [{ ...cartRow, quantity }],
+        localCart: [{ id: 101, item_id: cartRow.id, quantity }],
+        currency: { symbol: "$", exchange_rate: 1, decimal_digits: 2 },
+      },
+    },
+  );
+}
+
+describe("changing the quantity of a cart row", () => {
+  beforeEach(() => {
+    UpdateCart.mockClear();
+    trackOrder.mockClear();
+  });
+
+  it("plus asks the core backend for one more than the row holds", async () => {
+    await openTheCartRowAt(2);
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    // The number inside the request is the point. Asserting only that the
+    // service was called would pass on any off-by-one.
+    expect(
+      UpdateCart,
+      "pressing plus never reached the cart service, so the core backend was never asked",
+    ).toHaveBeenCalled();
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "pressing plus on a row of 2 asked the core backend for the wrong quantity",
+    ).toMatchObject({ cart_id: cartRow.id, qty: 3 });
+  });
+
+  it("minus asks the core backend for one fewer than the row holds", async () => {
+    await openTheCartRowAt(2);
+
+    await userEvent.click(mustFind("MinusIcon_CartPage"));
+
+    expect(
+      UpdateCart,
+      "pressing minus never reached the cart service, so the core backend was never asked",
+    ).toHaveBeenCalled();
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "pressing minus on a row of 2 asked the core backend for the wrong quantity",
+    ).toMatchObject({ cart_id: cartRow.id, qty: 1 });
+  });
+});
+
+describe("which controls a cart row draws", () => {
+  beforeEach(() => {
+    UpdateCart.mockClear();
+    trackOrder.mockClear();
+  });
+
+  it("a row of 1 offers delete and no minus", async () => {
+    // At quantity 1 the delete control takes the minus control's place
+    // (components/Cart/index.tsx:732). The two are branches of one ternary, so
+    // only ever one of them is on screen.
+    await openTheCartRowAt(1);
+
+    expect(
+      marked("MinusIcon_CartPage"),
+      "a row holding one item still offers minus, which would ask the core backend for a quantity of 0",
+    ).toBeNull();
+    expect(
+      marked("DeleteIcon_CartPage"),
+      "a row holding one item offers no way to take it out of the bag",
+    ).not.toBeNull();
+  });
+
+  it("a row above 1 offers both minus and delete", async () => {
+    await openTheCartRowAt(2);
+
+    expect(
+      marked("MinusIcon_CartPage"),
+      "a row holding more than one item offers no way to lower the quantity",
+    ).not.toBeNull();
+    expect(
+      marked("DeleteIcon_CartPage"),
+      "a row holding more than one item offers no way to take it out of the bag",
+    ).not.toBeNull();
+  });
+
+  it("the delete control on a row of 1 removes the row", async () => {
+    const deleteFunction = vi.fn();
+    await openTheCartRowAt(1, deleteFunction);
+
+    await userEvent.click(mustFind("DeleteIcon_CartPage"));
+
+    expect(
+      deleteFunction,
+      "pressing delete on a row holding one item did not remove it",
+    ).toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The cap on how many of one item a shopper may hold.
+//
+// A cart row carries two separate caps, and the lower one wins:
+//
+//   * `max_allowed_qty` — the per-order limit the seller set. `"0"` means the
+//     seller set no limit, which is the same reading the product page uses
+//     (components/Cart/AddToCart/AddToCartComponent.tsx:458-459).
+//   * `available_quantity` — the stock left. The cart page passes it to this
+//     component as the `max` prop (components/Cart/index.tsx:346).
+//
+// Before the fix neither cap was honoured: `shouldDisablePlus` returned a
+// hardcoded `false` and the check beside it was commented out. Plus was drawn
+// at any quantity, the core backend refused the change, and the number on
+// screen quietly went back to what it was — with nothing said to the shopper.
+
+/** The message the shopper is shown, in English, which is the key itself. */
+const MAX_REACHED_MESSAGE = "Max Allowed Quantity Reached";
+
+const messagesShown = () =>
+  useNotificationStore.getState().notifications.map((n) => n.message);
+
+describe("the cap on a cart row's quantity", () => {
+  beforeEach(() => {
+    UpdateCart.mockClear();
+    trackOrder.mockClear();
+    useNotificationStore.getState().clearNotifications();
+  });
+
+  it("does not ask the core backend for more than the seller's per-order limit", async () => {
+    await openTheCartRowAt(3, () => {}, { product: { max_allowed_qty: "3" } });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "the row is already at the seller's per-order limit of 3, and pressing plus still asked the core backend for more",
+    ).toBeUndefined();
+  });
+
+  it("tells the shopper why plus did nothing at the per-order limit", async () => {
+    await openTheCartRowAt(3, () => {}, { product: { max_allowed_qty: "3" } });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      messagesShown(),
+      "pressing plus at the per-order limit changed nothing and said nothing, so the shopper cannot tell the limit from a broken button",
+    ).toContain(MAX_REACHED_MESSAGE);
+  });
+
+  it("marks plus as disabled once the row is at the limit", async () => {
+    await openTheCartRowAt(3, () => {}, { product: { max_allowed_qty: "3" } });
+
+    // It stays on screen on purpose: a control that is removed can never be
+    // pressed, so it can never explain itself.
+    expect(
+      mustFind("PlusIcon_CartPage").getAttribute("aria-disabled"),
+      "the plus control at the per-order limit is not marked as disabled, so it looks like an ordinary working button",
+    ).toBe("true");
+  });
+
+  it("still asks the core backend for one more below the limit", async () => {
+    // Without this case the two above would also pass on a cap that is always
+    // on, which would stop every shopper raising any quantity.
+    await openTheCartRowAt(2, () => {}, { product: { max_allowed_qty: "3" } });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "a row of 2 under a per-order limit of 3 refused to go to 3",
+    ).toMatchObject({ cart_id: cartRow.id, qty: 3 });
+    expect(
+      messagesShown(),
+      "a row below its limit told the shopper it had reached the limit",
+    ).not.toContain(MAX_REACHED_MESSAGE);
+  });
+
+  it("treats a per-order limit of 0 as no limit", async () => {
+    // The seller left the field empty, so only the stock caps the row.
+    await openTheCartRowAt(4, () => {}, {
+      max: 9,
+      product: { max_allowed_qty: "0" },
+    });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "a per-order limit of 0 means the seller set no limit, but the row was capped at 0 anyway",
+    ).toMatchObject({ cart_id: cartRow.id, qty: 5 });
+  });
+
+  it("does not ask the core backend for more than the stock left", async () => {
+    // No per-order limit at all, so the stock is the only cap.
+    await openTheCartRowAt(3, () => {}, { max: 3 });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "the row already holds the last 3 in stock, and pressing plus still asked the core backend for a 4th",
+    ).toBeUndefined();
+    expect(
+      messagesShown(),
+      "the row hit the end of the stock and the shopper was told nothing",
+    ).toContain(MAX_REACHED_MESSAGE);
+  });
+
+  it("uses the lower of the two caps", async () => {
+    // Stock of 8, per-order limit of 2. The limit is what the shopper meets.
+    await openTheCartRowAt(2, () => {}, {
+      max: 8,
+      product: { max_allowed_qty: "2" },
+    });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "the row has 8 in stock but a per-order limit of 2, and the cart page followed the stock instead of the lower cap",
+    ).toBeUndefined();
+  });
+
+  it("keeps plus working when the row carries neither cap", async () => {
+    // Guards the shape of the fix: a missing field is not a cap of 0. If it
+    // were, every row the backend answers without these fields would freeze.
+    await openTheCartRowAt(2, () => {}, {
+      max: undefined as any,
+      product: { max_allowed_qty: undefined },
+    });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "a row that carries no limit and no stock figure was treated as already full",
+    ).toMatchObject({ cart_id: cartRow.id, qty: 3 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// When the core backend refuses the increase, offer to notify the shopper.
+//
+// `/cart/update` can answer `success: true` with `data.status: 0`. That is the
+// core backend saying no — almost always because the stock ran out between the
+// page load and the press. Nothing was wrong with the request, so there is no
+// error to show; the number simply rolled back and the shopper was told
+// nothing.
+//
+// The cart row now offers what the product page already offers in that case:
+// tell me when it is available again. The subscription is the product page's
+// own, `auth.NotifyForProducts` (services/auth.ts:404-414), so a shopper who
+// asked on one screen counts as asked on the other.
+//
+// `UpdateCart` reports the refusal through the `onRefused` callback the row
+// hands it. tests/services/cart.test.ts covers the service half — that the
+// callback fires on status 0 and not on a failed request.
+
+const QUESTION = "Do You Want Us To Notify You When It Is Available?";
+const ALREADY_ON = "You will be notified for this product already";
+
+/** `UpdateCart` behaving as the core backend refusing on stock: status 0. */
+const refuseOnStock = () =>
+  UpdateCart.mockImplementation(async (args: any) => {
+    args?.onRefused?.({ status: 0, message: "out of stock" });
+    return false;
+  });
+
+/** One cart row with no cap of its own, so only the backend can refuse. */
+async function openARowThatCanBeRefused(store: Record<string, any> = {}) {
+  return renderWithProviders(
+    <QuantutyInput
+      value={2}
+      setValue={() => {}}
+      max={undefined}
+      deleteFunction={() => {}}
+      id={cartRow.id}
+      disabled={false}
+      updateData={() => {}}
+      product={{ ...cartRow, quantity: 2, product_variation_id: "pv-7" }}
+    />,
+    {
+      country: "sy",
+      path: "/cart",
+      store: {
+        cart: [{ ...cartRow, quantity: 2 }],
+        localCart: [{ id: 101, item_id: cartRow.id, quantity: 2 }],
+        currency: { symbol: "$", exchange_rate: 1, decimal_digits: 2 },
+        ...store,
+      },
+    },
+  );
+}
+
+describe("offering to notify the shopper when the core backend refuses", () => {
+  beforeEach(() => {
+    UpdateCart.mockReset();
+    UpdateCart.mockResolvedValue(true);
+    trackOrder.mockClear();
+    AllowNotifications.mockClear();
+    AllowNotifications.mockResolvedValue("fcm-token");
+    GetFireBaseSettings.mockReset();
+    GetFireBaseSettings.mockResolvedValue(undefined);
+    NotifyForProducts.mockClear();
+    NotifyForProducts.mockResolvedValue({ success: true });
+    useNotificationStore.getState().clearNotifications();
+  });
+
+  it("asks the shopper when the core backend answers status 0", async () => {
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      screen.queryByText(QUESTION),
+      "the core backend refused the increase on stock and the row said nothing, so the shopper watches the number roll back with no reason given and no way to be told when it is back",
+    ).not.toBeNull();
+  });
+
+  it("does not ask when the core backend took the increase", async () => {
+    // Without this case the one above would also pass on a prompt that opens
+    // every time, which would interrupt every ordinary press of plus.
+    UpdateCart.mockResolvedValue(true);
+    await openARowThatCanBeRefused();
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      screen.queryByText(QUESTION),
+      "the core backend took the increase and the row asked about notifications anyway",
+    ).toBeNull();
+  });
+
+  it("does not ask when the refused press was minus", async () => {
+    // Only a raise can run out of stock. A lowered quantity the core backend
+    // refuses says nothing about availability, so offering to notify the
+    // shopper there would be an answer to a question they did not ask.
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+
+    await userEvent.click(mustFind("MinusIcon_CartPage"));
+
+    expect(
+      screen.queryByText(QUESTION),
+      "the shopper pressed minus, the core backend refused it, and the row offered to tell them when the product is available again",
+    ).toBeNull();
+  });
+
+  it("subscribes to this exact row when the shopper presses Notify", async () => {
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    await userEvent.click(screen.getByText("Notify Me"));
+
+    // The variant matters: a shopper waiting for the blue medium must not be
+    // told the red small came back.
+    expect(
+      NotifyForProducts.mock.calls[0]?.[0],
+      "pressing Notify did not ask for this product and this variant, so the shopper would be told about the wrong thing, or about nothing at all",
+    ).toEqual({ id: cartRow.product_id, variant: "pv-7" });
+  });
+
+  it("asks the browser for permission before it promises anything", async () => {
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    await userEvent.click(screen.getByText("Notify Me"));
+
+    expect(
+      AllowNotifications,
+      "Notify subscribed the shopper without asking the browser for push permission, so nothing would ever arrive",
+    ).toHaveBeenCalled();
+  });
+
+  it("refuses to promise anything when this device cannot take push", async () => {
+    // No token means the backend has no device to send to. Saying "we will tell
+    // you" then is a promise nothing can keep. This is the reading
+    // components/products/MoreOptionsSection.tsx:90-99 already uses.
+    AllowNotifications.mockResolvedValue(undefined);
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    await userEvent.click(screen.getByText("Notify Me"));
+
+    expect(
+      NotifyForProducts,
+      "this device cannot take push and the row subscribed the shopper anyway, promising a message that can never arrive",
+    ).not.toHaveBeenCalled();
+    expect(
+      messagesShown().join(" | "),
+      "this device cannot take push and the shopper was told nothing about it",
+    ).toContain("Notification Is Not Enabled");
+  });
+
+  it("closes without subscribing when the shopper presses Cancel", async () => {
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    await userEvent.click(screen.getByText("Cancel"));
+
+    expect(
+      NotifyForProducts,
+      "pressing Cancel subscribed the shopper anyway",
+    ).not.toHaveBeenCalled();
+    expect(
+      screen.queryByText(QUESTION),
+      "pressing Cancel left the question on screen",
+    ).toBeNull();
+  });
+
+  it("closes without subscribing when the shopper presses Escape", async () => {
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    // Another key must not close it: only Escape is the way out.
+    await userEvent.keyboard("a");
+    expect(
+      screen.queryByText(QUESTION),
+      "a key other than Escape closed the question",
+    ).not.toBeNull();
+
+    await userEvent.keyboard("{Escape}");
+
+    expect(
+      screen.queryByText(QUESTION),
+      "pressing Escape left the question on screen",
+    ).toBeNull();
+    expect(
+      NotifyForProducts,
+      "pressing Escape subscribed the shopper anyway",
+    ).not.toHaveBeenCalled();
+  });
+
+  it("says the shopper is already waiting instead of offering Notify again", async () => {
+    // `NotifyForProducts` subscribes to the topic `product_availability_<id>`
+    // (services/auth.ts:406-412), and the store holds the list the backend
+    // confirmed. So a shopper who already asked — here or on the product page —
+    // is told so, rather than being handed the same button for ever.
+    refuseOnStock();
+    await openARowThatCanBeRefused({
+      firebaseSettings: {
+        subscribed_topics: [
+          { topic: `product_availability_${cartRow.product_id}` },
+        ],
+        unsubscribed_topics: [],
+      },
+    });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      screen.queryByText(ALREADY_ON),
+      "the shopper already asked to be told about this product and was not reminded of it",
+    ).not.toBeNull();
+    expect(
+      screen.queryByText("Notify Me"),
+      "the shopper already asked to be told about this product and was offered the Notify button again, so they can keep pressing it for ever",
+    ).toBeNull();
+  });
+
+  it("reads the shopper's notification settings before offering anything", async () => {
+    // The cart page never loads these settings for itself, so the store can
+    // hold an empty list for a shopper who is already subscribed. Asking the
+    // backend on open is what stops them subscribing to the same product again
+    // and again — the product page does the same on mount
+    // (components/products/MoreOptionsSection.tsx:131-136).
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      GetFireBaseSettings,
+      "the prompt opened without asking for the shopper's notification settings, so a shopper who is already subscribed is offered Notify again",
+    ).toHaveBeenCalled();
+  });
+
+  it("uses the settings the backend returns, not the empty list it started with", async () => {
+    // The store starts empty here, exactly as a fresh cart page does. Only the
+    // answer from the backend can say the shopper is already waiting.
+    GetFireBaseSettings.mockImplementation(async () => {
+      useAppStore.getState().getFirebaseSettings({
+        subscribed_topics: [
+          { topic: `product_availability_${cartRow.product_id}` },
+        ],
+        unsubscribed_topics: [],
+      });
+    });
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      screen.queryByText(ALREADY_ON),
+      "the backend said this shopper is already subscribed and the prompt offered Notify anyway, so they would subscribe to the same product twice",
+    ).not.toBeNull();
+    expect(
+      screen.queryByText("Notify Me"),
+      "the backend said this shopper is already subscribed and the Notify button was still offered",
+    ).toBeNull();
+  });
+
+  it("still offers Notify when the subscription is for another variant", async () => {
+    // The backend subscribes per variant (services/home.ts:538-556). A shopper
+    // waiting for the red small has not asked about the blue medium.
+    refuseOnStock();
+    await openARowThatCanBeRefused({
+      firebaseSettings: {
+        subscribed_topics: [
+          {
+            topic: `product_availability_${cartRow.product_id}`,
+            variant: "pv-OTHER",
+          },
+        ],
+        unsubscribed_topics: [],
+      },
+    });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      screen.queryByText("Notify Me"),
+      "the shopper is waiting for a different variant of this product and was told they are already covered for this one",
+    ).not.toBeNull();
+  });
+
+  it("draws the prompt outside the cart row so nothing can cover it", async () => {
+    // The row sits under stacked, positioned cart controls. Drawn inside it the
+    // prompt loses to them whatever its z-index, because the winner is decided
+    // inside the row's own stacking context. A portal to <body> takes it out of
+    // that contest.
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    const prompt = marked("notify-when-available-modal");
+    expect(prompt, "the prompt was never drawn").not.toBeNull();
+    expect(
+      prompt?.closest('[data-pw="card-footer"]'),
+      "the prompt is drawn inside the cart row's own controls, so those controls stack above it and the shopper sees it behind the plus and minus buttons",
+    ).toBeNull();
+  });
+
+  it("says the shopper is now waiting once Notify has gone through", async () => {
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    await userEvent.click(screen.getByText("Notify Me"));
+
+    expect(
+      screen.queryByText(ALREADY_ON),
+      "Notify went through and the prompt never confirmed it, so the shopper cannot tell whether the press worked",
+    ).not.toBeNull();
+  });
+
+  it("does not claim success when the backend refused the subscription", async () => {
+    // `subscribeToTopicInventory` resolves `{ success: false }` rather than
+    // throwing, so a caller that ignores the answer paints a promise the next
+    // page load undoes.
+    NotifyForProducts.mockResolvedValue({
+      success: false,
+      message: "no device",
+    });
+    refuseOnStock();
+    await openARowThatCanBeRefused();
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    await userEvent.click(screen.getByText("Notify Me"));
+
+    expect(
+      screen.queryByText(ALREADY_ON),
+      "the backend refused the subscription and the row told the shopper they would be notified",
+    ).toBeNull();
+  });
+});
+
+describe("currency display in cart item", () => {
+  it("renders currency symbol when offer_price is equal to price", async () => {
+    const rowWithoutDiscount = {
+      ...cartRow,
+      id: "cart-equal-price",
+      price: 100,
+      offer_price: 100,
+    };
+
+    await renderWithProviders(
+      <QuantutyInput
+        value={1}
+        setValue={() => {}}
+        max={5}
+        deleteFunction={() => {}}
+        id={rowWithoutDiscount.id}
+        disabled={false}
+        updateData={() => {}}
+        product={rowWithoutDiscount}
+      />,
+      {
+        country: "sy",
+        path: "/cart",
+        store: {
+          cart: [{ ...rowWithoutDiscount }],
+          currency: { symbol: "$", exchange_rate: 1, decimal_digits: 2 },
+        },
+      },
+    );
+
+    const currencySymbol = marked("currency-symbol");
+    expect(currencySymbol).not.toBeNull();
+    expect(currencySymbol?.textContent?.trim()).toBe("$");
+  });
+
+  it("renders currency symbol when offer_price is different from price", async () => {
+    const rowWithDiscount = {
+      ...cartRow,
+      id: "cart-discounted",
+      price: 100,
+      offer_price: 80,
+    };
+
+    await renderWithProviders(
+      <QuantutyInput
+        value={1}
+        setValue={() => {}}
+        max={5}
+        deleteFunction={() => {}}
+        id={rowWithDiscount.id}
+        disabled={false}
+        updateData={() => {}}
+        product={rowWithDiscount}
+      />,
+      {
+        country: "sy",
+        path: "/cart",
+        store: {
+          cart: [{ ...rowWithDiscount }],
+          currency: { symbol: "$", exchange_rate: 1, decimal_digits: 2 },
+        },
+      },
+    );
+
+    const currencySymbol = marked("currency-symbol");
+    expect(currencySymbol).not.toBeNull();
+    expect(currencySymbol?.textContent?.trim()).toBe("$");
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// The rest of the cart row: the quantity the page hands in changing, the bag
+// re-read after a change, a move that throws, and delete on a row above 1.
+// ---------------------------------------------------------------------------
+describe("the cart row, other paths", () => {
+  beforeEach(() => {
+    UpdateCart.mockReset().mockResolvedValue(true);
+    ConvertToOldCart.mockReset();
+    vi.mocked(functions.getCart).mockReset().mockResolvedValue({ cart: [] } as any);
+  });
+
+  it("follows a new quantity handed in by the cart page", async () => {
+    const view = await openTheCartRowAt(2);
+    view.rerender(
+      <QuantutyInput
+        value={4}
+        setValue={() => {}}
+        max={5}
+        deleteFunction={() => {}}
+        id={cartRow.id}
+        disabled={false}
+        updateData={() => {}}
+        product={{ ...cartRow, quantity: 4 }}
+      />,
+    );
+    expect(
+      (mustFind("QuantityInCart") as HTMLInputElement).value,
+      "the row did not show the new quantity the page handed in",
+    ).toBe("4");
+  });
+
+  it.each(["PlusIcon_CartPage", "MinusIcon_CartPage"])(
+    "puts the bag the core backend returns into the store after %s",
+    async (control) => {
+      vi.mocked(functions.getCart).mockImplementation(async ({ callback }: any) => {
+        callback([undefined]);
+        return {} as any;
+      });
+      const { store } = await openTheCartRowAt(2);
+      await userEvent.click(mustFind(control));
+      await waitFor(() =>
+        expect(
+          store.getState().cart,
+          "an empty bag answer did not leave an empty cart in the store",
+        ).toEqual([]),
+      );
+    },
+  );
+
+  it("stops the spinner when moving the row to Out-Of-Bag throws", async () => {
+    ConvertToOldCart.mockRejectedValue(new Error("down"));
+    const { store } = await openTheCartRowAndReschedule();
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-pw="plus-delete-increase-container"]')!.className,
+        "the row stayed greyed out after the move threw",
+      ).not.toContain("opacity-40"),
+    );
+    expect(
+      store.getState().cart.map((r: any) => r.id),
+      "a move that threw took the row out of the cart",
+    ).toEqual([cartRow.id]);
+  });
+
+  it("deletes a row above 1 from its own delete control", async () => {
+    const deleteFunction = vi.fn();
+    await openTheCartRowAt(3, deleteFunction);
+    await userEvent.click(mustFind("DeleteIcon_CartPage"));
+    expect(deleteFunction, "the delete control on a row of 3 did nothing").toHaveBeenCalled();
+  });
+
+  it("does nothing on plus or minus when the row is disabled", async () => {
+    await renderWithProviders(
+      <QuantutyInput
+        value={3}
+        setValue={() => {}}
+        max={5}
+        deleteFunction={() => {}}
+        id={cartRow.id}
+        disabled={true}
+        updateData={() => {}}
+        product={{ ...cartRow, quantity: 3 }}
+      />,
+      { store: { currency: { symbol: "$" } } },
+    );
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+    await userEvent.click(mustFind("MinusIcon_CartPage"));
+    expect(UpdateCart, "a disabled row asked the core backend for a change").not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The cart page itself (the default export of components/Cart/index.tsx).
+// ---------------------------------------------------------------------------
+describe("the cart page", () => {
+  const rows = [
+    { ...cartRow, id: "cart-1", slug: "blue-shirt", quantity: 1, available_quantity: 5 },
+    { ...cartRow, id: "cart-2", product_id: 102, name: "Red hat", slug: "red-hat", quantity: 2 },
+  ];
+
+  async function openCart(
+    options: {
+      bag?: any[];
+      error?: string | null;
+      params?: Record<string, string>;
+      language?: "en" | "ar";
+    } = {},
+  ) {
+    const bag = options.bag ?? rows;
+    vi.mocked(functions.getCart).mockImplementation(async ({ callback }: any) => {
+      callback([{ cart: bag }]);
+      // The real getCart records a shipping failure after it stores the bag.
+      if (options.error) useAppStore.getState().setCartShippingSuccess(options.error);
+      return { cart: bag } as any;
+    });
+    const close = vi.fn();
+    const toOrders = vi.fn();
+    const view = await renderWithProviders(
+      <CartContainer close={close} toOrders={toOrders} />,
+      {
+        country: "sy",
+        language: options.language ?? "en",
+        params: options.params ?? {},
+        store: {
+          currency: { symbol: "$", exchange_rate: 1, decimal_digits: 2 },
+        },
+      },
+    );
+    await waitFor(() =>
+      expect(
+        view.store.getState().cart_loading,
+        "the cart page never finished loading the bag",
+      ).toBe(false),
+    );
+    return { ...view, close, toOrders };
+  }
+
+  beforeEach(() => {
+    RemoveFromCart.mockClear();
+    fetchData.mockReset();
+    routerSpies.push.mockClear();
+  });
+
+  it("loads the bag from the core backend and draws one row per item", async () => {
+    await openCart();
+    expect(
+      screen.getAllByTestId("cart-item").map((e) => e.textContent),
+      "the rows on screen are not the items in the bag",
+    ).toEqual(["Blue shirt", "Red hat"]);
+    expect(
+      document.querySelector('[data-pw="length-ofItems"]')!.textContent,
+      "the header did not count the items in the bag",
+    ).toContain("2");
+    expect(screen.getByTestId("order-button"), "the order button is missing").toBeInTheDocument();
+  });
+
+  it("shows the empty bag when there is nothing in it, in Arabic too", async () => {
+    await openCart({ bag: [], language: "ar" });
+    expect(screen.getByTestId("empty-cart"), "an empty bag did not show the empty state").toBeInTheDocument();
+  });
+
+  it("shows the shipping error with a retry that loads the bag again", async () => {
+    await openCart({ error: "shipping failed" });
+    const error = screen.getByTestId("cart-error");
+    expect(error.textContent, "the cart error did not carry the backend's message").toBe("shipping failed");
+    expect(screen.queryByTestId("order-button"), "the order button showed next to an error").toBeNull();
+    vi.mocked(functions.getCart).mockClear();
+    await userEvent.click(error);
+    expect(functions.getCart, "retry did not load the bag again").toHaveBeenCalled();
+  });
+
+  it("shows skeletons while the bag is loading", async () => {
+    let finish: (v: any) => void = () => {};
+    vi.mocked(functions.getCart).mockImplementation(
+      () => new Promise((r) => (finish = r)),
+    );
+    await renderWithProviders(<CartContainer close={() => {}} toOrders={() => {}} />, {
+      store: { cartShippingSuccess: null },
+    });
+    expect(screen.queryByTestId("cart-item"), "rows were drawn before the bag loaded").toBeNull();
+    expect(document.querySelector(".react-loading-skeleton"), "no skeleton while the bag loads").not.toBeNull();
+    await act(async () => finish({ cart: [] }));
+  });
+
+  it("closes from the back arrow and goes on to checkout from the order button", async () => {
+    const { close, toOrders } = await openCart();
+    await userEvent.click(document.querySelector('[data-pw="CartBackIcon"]')!);
+    expect(close, "the back arrow did not close the cart").toHaveBeenCalledTimes(1);
+    await userEvent.click(screen.getByText("to-orders"));
+    expect(toOrders, "the order button did not go on to checkout").toHaveBeenCalled();
+    await userEvent.click(screen.getByText("close-from-order"));
+    expect(close, "the order button could not close the cart").toHaveBeenCalledTimes(2);
+  });
+
+  it("deletes a row: takes it off the page, tells the core backend and refreshes the product page it is on", async () => {
+    fetchData.mockResolvedValue({ success: true, data: { id: 1 } });
+    const { store } = await openCart({ params: { productId: "red-hat" } });
+    const redHatRow = document.querySelectorAll('[data-pw="one-product"]')[1];
+    await userEvent.click(redHatRow.querySelector('[data-pw="DeleteIcon_CartPage"]')!);
+
+    expect(
+      store.getState().cart.map((r: any) => r.id),
+      "the deleted row is still in the cart",
+    ).toEqual(["cart-1"]);
+    await waitFor(() =>
+      expect(
+        RemoveFromCart.mock.calls[0]?.[0]?.cart_item?.item_id,
+        "the delete was not sent for cart-2",
+      ).toBe("cart-2"),
+    );
+    await waitFor(() =>
+      expect(
+        fetchData.mock.calls[0]?.[0]?.url,
+        "the open product page was not refreshed",
+      ).toBe("/web/product/qtyPriceDetails/red-hat"),
+    );
+  });
+
+  it("keeps going when the product refresh is refused, and skips it for another product", async () => {
+    fetchData.mockResolvedValue({ success: false, message: "nope" });
+    await openCart({ params: { productId: "red-hat" } });
+    const redHatRow = document.querySelectorAll('[data-pw="one-product"]')[1];
+    await userEvent.click(redHatRow.querySelector('[data-pw="DeleteIcon_CartPage"]')!);
+    await waitFor(() => expect(fetchData, "the refresh was not tried").toHaveBeenCalledTimes(1));
+
+    const blueRow = document.querySelectorAll('[data-pw="one-product"]')[0];
+    await userEvent.click(blueRow.querySelector('[data-pw="DeleteIcon_CartPage"]')!);
+    await waitFor(() =>
+      expect(RemoveFromCart, "the second delete was not sent").toHaveBeenCalledTimes(2),
+    );
+    expect(fetchData, "a product that is not open was refreshed").toHaveBeenCalledTimes(1);
+  });
+
+  it("refreshes the open product page after a quantity change", async () => {
+    fetchData.mockResolvedValue({ success: true, data: {} });
+    UpdateCart.mockReset().mockResolvedValue(true);
+    await openCart({ params: { productId: "blue-shirt" } });
+    const blueRow = document.querySelectorAll('[data-pw="one-product"]')[0];
+    await userEvent.click(blueRow.querySelector('[data-pw="PlusIcon_CartPage"]')!);
+    await waitFor(() =>
+      expect(
+        fetchData.mock.calls[0]?.[0]?.url,
+        "the open product was not refreshed after plus",
+      ).toBe("/web/product/qtyPriceDetails/blue-shirt"),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The link around each cart row (CartItemLink).
+// ---------------------------------------------------------------------------
+describe("the link around a cart row", () => {
+  async function drawLink(
+    product: any,
+    params: Record<string, string> = {},
+    language: "en" | "ar" = "en",
+  ) {
+    return renderWithProviders(
+      <CartItemLink product={product}>
+        <span>row</span>
+      </CartItemLink>,
+      { country: "sy", language, params, store: { cart_enable: true } },
+    );
+  }
+  const href = () => document.querySelector("a")!.getAttribute("href");
+
+  it.each([
+    [{ color: "red" }, "/sy-en/products/shoe?color=red"],
+    [{ Size: "42" }, "/sy-en/products/shoe?size=42"],
+    [{}, "/sy-en/products/shoe"],
+    [{ color_options: "blue", size_options: "40" }, "/sy-en/products/shoe?size=40&color=blue"],
+    [[{ color: "undefined", Size: "undefined" }], "/sy-en/products/shoe"],
+    [[], "/sy-en/products/shoe"],
+  ])("links a row with variations %j to %s", async (variations, expected) => {
+    await drawLink({ slug: "shoe", name: "Shoe", variations });
+    expect(href(), "the row does not link to the product with its variation").toBe(expected);
+  });
+
+  it("closes the cart when the link is followed, and leaves room for the hurry-up note", async () => {
+    const { store } = await drawLink(
+      { slug: "shoe", name: "Shoe", have_hurry_up_notify: true },
+      {},
+      "ar",
+    );
+    const link = document.querySelector("a")!;
+    expect(link.style.minHeight, "the hurry-up note did not get its extra height").toBe("230px");
+    await act(async () => (link.parentElement as HTMLElement).click());
+    expect(store.getState().cart_enable, "following the link did not close the cart").toBe(false);
+  });
+
+  it("on the product's own page, switches to the row's colour and size instead of navigating", async () => {
+    const { store } = await drawLink(
+      {
+        slug: "shoe",
+        name: "Shoe",
+        variations: { color: "red", Size: "42" },
+        have_hurry_up_notify_time_left: 5,
+      },
+      { productId: "shoe" },
+      "ar",
+    );
+    expect(document.querySelector("a"), "the row on its own product page must not be a link").toBeNull();
+    await userEvent.click(screen.getByText("row"));
+    expect(
+      routerSpies.push.mock.calls[0]?.[0],
+      "the page did not switch to the row's colour and size",
+    ).toBe("/sy-ar?color=red&size=42");
+    expect(store.getState().cart_enable, "switching variation did not close the cart").toBe(false);
+  });
+
+  it("on the product's own page, leaves out a colour that is 'undefined' and a missing size", async () => {
+    await drawLink(
+      { slug: "shoe", name: "Shoe", variations: { color: "undefined" } },
+      { productId: "shoe" },
+    );
+    await userEvent.click(screen.getByText("row"));
+    expect(
+      routerSpies.push.mock.calls[0]?.[0],
+      "an 'undefined' colour was put in the address",
+    ).toBe("/sy-en?");
+  });
+});

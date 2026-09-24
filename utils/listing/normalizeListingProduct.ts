@@ -1,9 +1,6 @@
 import type { ListingProduct } from "types/listing";
 
-export function normalizeListingProduct(
-  product: any,
-  redeemedIds: any[] = [],
-): ListingProduct {
+export function normalizeListingProduct(product: any): ListingProduct {
   const hasSyncImages =
     Array.isArray(product?.sync_color_images) &&
     product.sync_color_images.length > 0;
@@ -34,8 +31,16 @@ export function normalizeListingProduct(
     product_id: product?.product_id,
   };
 
+  // `is_luck` is a fact about the PRODUCT, not about the visitor. It used to be
+  // turned off here when the shopper's `redemed_ids` cookie said they had
+  // already redeemed this product — but this function now runs inside a cached
+  // scope shared by every shopper, which may not read a cookie and must not
+  // bake one shopper's record into markup served to the rest.
+  //
+  // The visitor's own record is applied in their browser instead: before first
+  // paint by utils/luck/redeemedScript.ts, and on hydration by useLuckTimer.
   if (product?.is_luck && product?.luck_price) {
-    base.is_luck = !redeemedIds.find((s) => s.id === product.product_id);
+    base.is_luck = true;
   }
 
   return base;

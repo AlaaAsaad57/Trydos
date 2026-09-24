@@ -26,7 +26,6 @@ import ProductFaqSectionWrapper from "components/Server/product/ProductFAQSectio
 import { Suspense } from "react";
 import ProductNameAndBrandSkeleton from "components/skeleton/product/ProductNameAndBrandSkeleton";
 import Skeleton from "react-loading-skeleton";
-import { createPortal } from "react-dom";
 import ProductFooter from "./ProductFooter";
 import RelatedProductsSection from "components/Server/product/RelatedProductsSection";
 

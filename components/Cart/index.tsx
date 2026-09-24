@@ -32,6 +32,8 @@ import CartItem from "./CartItem";
 import Image from "next/image";
 import EmptyCart from "./EmptyCart";
 import { isSamePage } from "utils/navigationsUtils";
+import { showErrorNotification } from "@/store/notifications/reducer";
+import NotifyWhenAvailableModal from "./NotifyWhenAvailableModal";
 
 function CartContainer({ close, toOrders }) {
   const {
@@ -488,6 +490,8 @@ export const QuantutyInput = ({
   const [inputValue, setInputValue] = useState(parseInt(value));
   const [isNarrowScreen, setIsNarrowScreen] = useState(false);
   const [loading, setLoading] = useState(false);
+  // Open only when the core backend refuses a raise — see `updateQuantity`.
+  const [askAboutNotify, setAskAboutNotify] = useState(false);
   useEffect(() => {
     if (parseInt(value) === inputValue) return;
     setInputValue(parseInt(value));
@@ -504,7 +508,18 @@ export const QuantutyInput = ({
     // Single update path — go through the cart service (which syncs the store)
     // instead of POSTing to /cart/update directly, so the operation isn't
     // duplicated across two store-sync paths.
-    const succeeded = await cartService.UpdateCart({ cart_id: id, qty: quantity });
+    const succeeded = await cartService.UpdateCart({
+      cart_id: id,
+      qty: quantity,
+      // The core backend answered and said no — it has no more to give. That is
+      // not a failed request, so there is no error to show; offer the shopper
+      // the thing they actually want instead, which is to be told when it is
+      // back. Only a raise can run out of stock, so a lowered quantity that is
+      // refused says nothing.
+      onRefused: () => {
+        if (quantity > previousValue) setAskAboutNotify(true);
+      },
+    });
     if (!succeeded) {
       // Roll the optimistic +/- back to the value it held before this change.
       setInputValue(previousValue);
@@ -542,7 +557,7 @@ export const QuantutyInput = ({
       language: languageVariable,
     }),
   );
-  const currencyLabel = currency?.symbol ?? "";
+  const currencyLabel = currency?.symbol ?? (currency as any)?.sumbol ?? "";
   // Shrink the price only when it's both on a very small screen AND the
   // displayed price (old + new + currency) is long enough to crowd the row.
   const priceStringLength = (
@@ -620,27 +635,48 @@ export const QuantutyInput = ({
       setLoading(false);
     }
   };
-  const shouldDisablePlus = () => {
-    // if (isCollectedAfterOrdering) {
-    //   return false;
-    // }
-
-    // if (inputValue >= product.available_quantity) {
-    //   return true;
-    // }
-    // return false;
-    return false;
-  };
+  // How many of this item the shopper may hold. Two separate caps apply and the
+  // lower one wins:
+  //
+  //   * `max_allowed_qty` — the per-order limit the seller set. A 0 means the
+  //     seller set no limit, the same reading the product page uses
+  //     (components/Cart/AddToCart/AddToCartComponent.tsx:458-459).
+  //   * `max` — the stock left, which the cart page passes as the row's
+  //     `available_quantity`. Here a 0 does cap the row: there is none left.
+  //
+  // A field the backend did not send is not a cap, so only finite numbers count.
+  // Without that guard a row answered without these fields would read as full
+  // and the shopper could never raise it.
+  const quantityCap = (() => {
+    const caps: number[] = [];
+    const perOrderLimit = Number(product?.max_allowed_qty);
+    if (Number.isFinite(perOrderLimit) && perOrderLimit > 0)
+      caps.push(perOrderLimit);
+    const stockLeft = Number(max);
+    if (
+      max !== null &&
+      max !== undefined &&
+      Number.isFinite(stockLeft) &&
+      stockLeft >= 0
+    )
+      caps.push(stockLeft);
+    return caps.length > 0 ? Math.min(...caps) : null;
+  })();
+  const reachedMaxQty = quantityCap !== null && inputValue >= quantityCap;
   const ConvertToOldCart = async () => {
     try {
       setLoading(true);
+      const moved = await cartService.ConvertToOldCart({ cart_item: id });
+      setLoading(false);
+      // The row is only taken off the cart page once the core backend says it
+      // really moved it. Deleting it either way left the item in neither list
+      // until the shopper reloaded, and reported a move that never happened.
+      if (!moved) return;
       trackOrder(ORDER_EVENTS.CART_ITEM_MOVED_TO_OLD, {
         product_id: product?.product_id ?? id,
         item_name: product?.name,
         variant: product?.variant,
       });
-      await cartService.ConvertToOldCart({ cart_item: id });
-      setLoading(false);
       removeFromCart(id);
       await getOldCart();
     } catch (error) {
@@ -660,6 +696,14 @@ export const QuantutyInput = ({
         isRtl ? "right-[137px] flex-row-reverse" : "left-[137px] flex-row"
       } absolute flex-nowrap ${"top-[125px]"}  items-center justify-between gap-x-2 max-w-[calc(100%-152px)] w-full`}
     >
+      {askAboutNotify && (
+        <NotifyWhenAvailableModal
+          product={product}
+          translate={translate}
+          isRtl={isRtl}
+          onClose={() => setAskAboutNotify(false)}
+        />
+      )}
       <div className="flex-col px-[4px] shrink-0">
         <div
           className={`${
@@ -700,30 +744,33 @@ export const QuantutyInput = ({
               </g>
             </g>
           </svg>
-          {!shouldDisablePlus() && (
-            <div
-              className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
-              data-pw="PlusIcon_CartPage"
-              onClick={() => {
-                if (disabled) return false;
-                // if (inputValue === max) {
-                //   toast.error(translate("stock is limited"));
-                //   return false;
-                // }
-                // // @ts-ignore
-                // else {
-                increaseQuantity(inputValue);
-              }}
-            >
-              <Image
-                width={12}
-                height={12}
-                alt="cart-plus-icon"
-                className={"hide-btn"}
-                src={"/icons/CartPlusIcon.svg"}
-              />
-            </div>
-          )}
+          {/* The plus control stays on screen when the row is full. A control
+              that is removed can never be pressed, so it can never say why. */}
+          <div
+            className={`absolute hide-btn h-[24px] flex items-center right-[6px] ${
+              reachedMaxQty ? "opacity-40 cursor-not-allowed" : "cursor-pointer"
+            }`}
+            data-pw="PlusIcon_CartPage"
+            aria-disabled={reachedMaxQty}
+            onClick={() => {
+              if (disabled) return false;
+              if (reachedMaxQty) {
+                showErrorNotification(
+                  translate("Max Allowed Quantity Reached"),
+                );
+                return false;
+              }
+              increaseQuantity(inputValue);
+            }}
+          >
+            <Image
+              width={12}
+              height={12}
+              alt="cart-plus-icon"
+              className={"hide-btn"}
+              src={"/icons/CartPlusIcon.svg"}
+            />
+          </div>
 
           {inputValue > 1 ? (
             <>
@@ -883,7 +930,7 @@ export const QuantutyInput = ({
                       className="product-currency text-[8px] light text-[#1D1D1D] m-0"
                       data-pw="currency-symbol"
                     >
-                      {currency?.symbol}
+                      {currency?.symbol ?? (currency as any)?.sumbol}
                     </div>
                   </div>
                   <div className="flex-row" data-pw="below-subdivisions">
@@ -907,13 +954,26 @@ export const QuantutyInput = ({
                 </div>
               </>
             ) : (
-              <>
+              <div
+                className="flex-row gap-[4px]"
+                style={{
+                  direction: isRtl ? "rtl" : "ltr",
+                }}
+                data-pw="newOld-price"
+              >
                 <div
-                  className={`product-new-price ${singlePriceFontClass} light text-[#1D1D1D]`}
+                  className={`product-new-price ${singlePriceFontClass} light text-[#1D1D1D] m-0`}
+                  data-pw="new-price"
                 >
                   {newPriceLabel}
                 </div>
-              </>
+                <div
+                  className="product-currency text-[8px] light text-[#1D1D1D] m-0"
+                  data-pw="currency-symbol"
+                >
+                  {currency?.symbol ?? (currency as any)?.sumbol}
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -1018,7 +1078,6 @@ export const CartItemLink = ({ normalHeight = "191px", product, children }) => {
           sameHref={isSamePage(getProductCartUrl(product).href)}
           href={getProductCartUrl(product).href}
           data={getProductCartUrl(product).data}
-          ariaLabel={`Cart Product ${product.slug} ${params.lang}`}
           className={` mt-2  w-full relative ${
             isRtl ? "flex-row-reverse" : "flex-row"
           } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}

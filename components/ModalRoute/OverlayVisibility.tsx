@@ -1,6 +1,27 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  type ReactNode,
+} from "react";
+
+import { restoreBaseScroll } from "./overlayScroll";
+
+// A layout effect in the browser, an ordinary one on the server.
+//
+// The restore below has to happen before the browser paints, or the page shows
+// for a frame at the top and then jumps — which is the thing being fixed. Only
+// `useLayoutEffect` runs that early. It also warns on every server render,
+// because there is no layout to read there, and this component is rendered on
+// the server. Picking the hook once, per environment, is what keeps both facts
+// true; the value never changes within a run, so the rule about calling hooks
+// unconditionally still holds.
+const useBrowserLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /**
  * Single source of truth for whether an intercepted-route overlay is showing.
@@ -52,6 +73,20 @@ export const useOverlayVisibility = () => useContext(OverlayVisibilityContext);
  */
 export function MainContent({ children }: { children: ReactNode }) {
   const { overlayActive } = useOverlayVisibility();
+
+  // Put the base page back where it was, once it is back in the layout.
+  //
+  // This is the only place that can. An intercepted overlay hides this element,
+  // which takes the page out of the layout and collapses the document to about
+  // one screen — and the browser will not hold a scroll position past the bottom
+  // of the document. So the scroll cannot be done where the back-out is noticed
+  // (ModalSlot), because `overlayActive` is still true in that commit and the
+  // page is still hidden: the scroll would land on 0. By the time this runs the
+  // `display` above is already `flex` in the DOM, so the document is its full
+  // height again. `restoreBaseScroll` does nothing unless a back-out is due.
+  useBrowserLayoutEffect(() => {
+    if (!overlayActive) restoreBaseScroll();
+  }, [overlayActive]);
 
   return (
     <div

@@ -1,6 +1,5 @@
 import Spinner from "components/global/Spinner";
 import Image from "next/image";
-import React from "react";
 import auth from "services/auth";
 import cart from "services/cart";
 import { useAppStore } from "store";
@@ -8,6 +7,7 @@ import { showErrorNotification } from "store/notifications/reducer";
 import { getCart, LogError, translateFunction } from "utils/functions";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { isLuckActive } from "utils/luck";
 import { DetectScreen } from "utils/tinyUtils";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 
@@ -33,7 +33,11 @@ function AddToCartButton({
   // whether they changed color/size, the deal type, and the source surface
   // (home / product / search-filter / boutique — via DetectScreen).
   const addToCartProps = (quantity: number, productVariationId: any) => {
-    const offer = product?.is_luck
+    // Read the redeemed cookie, not only the product flag. `is_luck` comes from
+    // the product record and stays true after this shopper redeemed it, so the
+    // reported price was a luck price they could no longer take.
+    const luckActive = isLuckActive(product, id);
+    const offer = luckActive
       ? selectedVariant?.luck_price
       : selectedVariant?.offer_price;
     const original = product?.price ?? selectedVariant?.price;
@@ -55,7 +59,7 @@ function AddToCartButton({
       is_flash_deal: Boolean(
         product?.flash_deal_end_date || product?.flash_deal_details,
       ),
-      is_luck: Boolean(product?.is_luck),
+      is_luck: luckActive,
       color_changed: Boolean(colorChanged),
       size_changed: Boolean(sizeChanged),
       selected_color:
@@ -106,7 +110,7 @@ function AddToCartButton({
       is_valid: IsValid(),
       reached_max: reachedMaxQty(),
       already_in_cart: Boolean(isVariantInCart({ exact: false })),
-      is_luck: Boolean(product?.is_luck),
+      is_luck: isLuckActive(product, id),
       source: DetectScreen(),
     });
   };
@@ -332,7 +336,6 @@ function AddToCartButton({
       }
       setLoading(false);
     } catch (error) {
-      console.log(error);
       LogError({
         error: error,
         scenario: "click handler for add to cart buttons - add to cart widget",
@@ -371,10 +374,17 @@ function AddToCartButton({
       } else if (isVariantInCart({ exact: true })?.quantity === 1) {
         setLoading(true);
         animateButton();
-        await cart.RemoveFromCart({
+        const removed = await cart.RemoveFromCart({
           cart_item: isVariantInCart({ exact: true }),
           isFromAddWidget: true,
         });
+        // RemoveFromCart reports a refusal now rather than throwing on one.
+        // Without this check everything below runs on a removal that never
+        // happened: analytics and the order funnel are told the item went, and
+        // the shopper is shown "Removed From Your Bag" over an item still in it.
+        if (removed === false) {
+          throw new Error("the core backend did not remove the item");
+        }
         GAevent({
           action: GA_EVENT_NAMES.REMOVE_FROM_CART,
           params: {
@@ -438,6 +448,7 @@ function AddToCartButton({
           (loading || initialLoading) && "opacity-40 scale-95"
         } gap-[4px] text-[15px]  shadow-[inset_0px_3px_6px_rgb(255,255,255,0.16)] duration-300 transition-all  rounded-[20px] relative flex-col regular  items-center justify-center`}
         id={"add-to-cart-button-container"}
+        data-pw="add-to-bag"
       >
         <PlusIconHolder isValid={canAddMore()} />
         {initialLoading ? (

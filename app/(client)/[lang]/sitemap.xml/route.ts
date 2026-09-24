@@ -51,7 +51,6 @@ export async function GET(request: NextRequest, { params }) {
       },
     });
   } catch (error) {
-    console.error(`Error generating sitemap for ${Params.lang}:`, error);
     LogServerError(
       { error, type: "get currency error", local: Params.lang },
       `/api/${Params.lang}/sitemap.xml`,

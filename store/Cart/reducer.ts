@@ -42,7 +42,7 @@ const openCart = (val) => {
   }
 };
 
-export const useCartStore = (set, get) => ({
+const useCartStore = (set, get) => ({
   // Initial state
   orderLoading: false,
   cart: [],
@@ -111,6 +111,15 @@ export const useCartStore = (set, get) => ({
   loaded: false,
   oldCart: null,
   wallet: null,
+  // Set while an RDB payment request holds the cart. Every cart write answers
+  // 409 with the pending reference until the payment finishes or is cancelled.
+  // `RdbPaymentLockedSheet` reads it and offers the two ways out.
+  rdbLock: null,
+  // True while a payment screen (`RdbPaymentModal`) is mounted anywhere in the
+  // app — the checkout flow's own screen, or the one `RdbPaymentLockedSheet`
+  // opens for "Continue payment". `RdbPaymentLockedSheet` reads this and stays
+  // out of the way so the two screens are never on screen at once.
+  rdbPaymentScreenOpen: false,
   balance: 0,
   crypto: 0,
   credit: 0,
@@ -193,6 +202,9 @@ export const useCartStore = (set, get) => ({
     });
   },
 
+  setRdbLock: (lock) => set({ rdbLock: lock }),
+  setRdbPaymentScreenOpen: (open) => set({ rdbPaymentScreenOpen: open }),
+
   setMapCenter: (center) => set({ center }),
 
   setOrderSuccess: (data) =>
@@ -240,16 +252,6 @@ export const useCartStore = (set, get) => ({
       },
     }),
 
-  addAddress: () =>
-    set((state) => {
-      const arr = state.addressLists;
-      arr.push({
-        ...state.addressDetails,
-        id: parseInt((Math.random() * 1000).toString()),
-      });
-      return { addressLists: arr };
-    }),
-
   startUpdateAddress: (address) =>
     set((state) => {
       const temp = {
@@ -257,7 +259,19 @@ export const useCartStore = (set, get) => ({
         region: showLocationText(address.region_details),
         contact_info: {
           ...address.contact_info,
-          contact_person_name: address?.contact_info?.name,
+          // The saved row may carry the contact under either key, so this falls
+          // back instead of overwriting.
+          //
+          // It used to be `address?.contact_info?.name` alone, which **undid the
+          // spread above**: a row holding `contact_person_name` and no `name`
+          // came out with `contact_person_name: undefined`, so the good value
+          // was destroyed rather than kept. The edit form then opened with no
+          // contact name, `isValid()` refused the save, and Save stayed grey
+          // (`components/Cart/AddAddressForm.tsx`) for an address that was
+          // complete all along.
+          contact_person_name:
+            address?.contact_info?.name ??
+            address?.contact_info?.contact_person_name,
         },
       };
       return {
@@ -272,7 +286,7 @@ export const useCartStore = (set, get) => ({
         if (s.id === address.id) arr.push(address);
         else arr.push(s);
       });
-      return { addressLists: arr.reverse() };
+      return { addressLists: arr };
     }),
 
   setDefaultAddress: (id) =>
@@ -414,11 +428,26 @@ export const useCartStore = (set, get) => ({
       cart: state.cart.filter((s) => s.id !== id),
       localCart: state.localCart.filter((s) => s.item_id !== id),
     })),
-  errRemoveFromCart: ({ local_cart_item, cart_item }) =>
-    set((state) => ({
-      cart: [...state.cart, cart_item],
-      local_cart: [...state.local_cart, local_cart_item],
-    })),
+  // Undo a removal the core backend refused. The only caller is
+  // services/cart.ts, and it passes the cart item itself — not a pair of
+  // fields, and not a `local_cart` list, which never existed in this store.
+  //
+  // Only one of the two screens needs undoing. The cart page deletes the row
+  // before it calls the service, so a refusal has to put the row back. The
+  // add-to-cart widget waits for the answer, so nothing was ever removed and
+  // putting the row back would list it twice.
+  //
+  // `localCart` says which case this is. `removeFromCart` clears the row from
+  // both lists together, so a row still in `localCart` was never removed.
+  errRemoveFromCart: (cart_item) =>
+    set((state) => {
+      if (state.localCart.some((s) => s.item_id === cart_item?.item_id))
+        return {};
+      return {
+        cart: [...state.cart, cart_item],
+        localCart: [...state.localCart, cart_item],
+      };
+    }),
   setCartLoading: (loading) => set({ cart_loading: loading }),
 
   enableCart: (enable) => {

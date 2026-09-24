@@ -1,7 +1,6 @@
 "use server";
 import { getProductsAndFiltersFromElastic, getRelatedProducts } from "services/elastic/elasticSearch";
 import type { GetProductsResult, GetRelatedProductsResult } from "types/listing";
-import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
 import { combineCategoriesWithRelated } from "utils/server";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -94,10 +93,7 @@ export async function GetProducts({
     usePit: true,
     pit_id: pit_id,
   });
-  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-  const products = response.products.map((product) =>
-    normalizeListingProduct(product, redeemed_ids),
-  );
+  const products = response.products.map(normalizeListingProduct);
   const newOffset = response?.offset;
   return {
     products,
@@ -215,10 +211,7 @@ export async function GetRelatedProducts({
       pit_id: pit_id,
     });
 
-    const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-    const products = response.products.map((p) =>
-      normalizeListingProduct(p, redeemed_ids),
-    );
+    const products = response.products.map(normalizeListingProduct);
 
     return {
       products,

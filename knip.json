@@ -1,0 +1,39 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "app/**/{page,layout,loading,error,not-found,template,default,route,global-error}.{ts,tsx,js,jsx}",
+    "app/**/{sitemap,robots,manifest,icon,apple-icon,opengraph-image,twitter-image}.{ts,tsx}",
+    "app/api/**/route.{ts,tsx}",
+    "proxy.ts",
+    "instrumentation.ts",
+    "instrumentation-client.ts",
+    "sentry.*.config.ts",
+    "next.config.ts",
+    "tailwind.config.js",
+    "postcss.config.js",
+    "eslint.config.mjs",
+    "eslint-rules/**/*.{js,mjs,cjs}",
+    "vitest.config.mts",
+    "playwright.config.ts",
+    "tests/**/*.{ts,tsx}",
+    "scripts/**/*.{mjs,js,ts}",
+    "public/**/*.js"
+  ],
+  "project": [
+    "app/**/*.{ts,tsx,js,jsx}",
+    "components/**/*.{ts,tsx,js,jsx}",
+    "hooks/**/*.{ts,tsx,js,jsx}",
+    "services/**/*.{ts,tsx,js,jsx}",
+    "store/**/*.{ts,tsx,js,jsx}",
+    "utils/**/*.{ts,tsx,js,jsx}",
+    "serverActions/**/*.{ts,tsx,js,jsx}",
+    "serverRequests/**/*.{ts,tsx,js,jsx}",
+    "scaling/**/*.{ts,tsx,js,jsx}",
+    "types/**/*.{ts,tsx}",
+    "tests/**/*.{ts,tsx}",
+    "*.{ts,tsx,js,mjs,mts}"
+  ],
+  "ignore": ["**/*.d.ts", ".next/**", "graphify-out/**", "xd-designs-for-inspreation/**"],
+  "ignoreDependencies": [],
+  "ignoreExportsUsedInFile": true
+}

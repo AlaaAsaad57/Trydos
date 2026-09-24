@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppStore } from "store";
+import { rememberBaseScroll } from "components/ModalRoute/overlayScroll";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 
@@ -49,6 +50,11 @@ export default function NextLink({
         style={style}
         prefetch={"auto"}
         href={href}
+        // Only when the caller asked for one. An aria-label REPLACES the link's
+        // own content in its accessible name, so an empty or default label
+        // would leave a link that reads "Blue Shirt, £80, Nike" announced as
+        // nothing. Pass one only for a link that has no text of its own.
+        aria-label={ariaLabel}
         onNavigate={(e) => {
           if (isFromSetting) {
             let element = document.querySelector(".setting-screen");
@@ -80,6 +86,13 @@ export default function NextLink({
           if (onClick) {
             onClick();
           }
+
+          // Before `setIsNavigating`, and that order matters. Setting it is what
+          // hides the page body, and a hidden body makes the browser drop the
+          // scroll position — so this is the last moment the page's real
+          // position, and its own history entry, are still available. See
+          // components/ModalRoute/overlayScroll.ts.
+          rememberBaseScroll(href);
 
           setColorBottomSheet(null);
           setLastPathname(pathname);
@@ -118,6 +131,8 @@ export default function NextLink({
       style={style}
       data-pw={props["data-pw"] ?? ""}
       prefetch={"auto"}
+      // See the note on the same attribute above.
+      aria-label={ariaLabel}
       onNavigate={(e) => {
         if (isFromSetting) {
           let element = document.querySelector(".setting-screen");
@@ -150,6 +165,9 @@ export default function NextLink({
         if (onClick) {
           onClick();
         }
+
+        // See the note on the same call above.
+        rememberBaseScroll(href);
 
         setColorBottomSheet(null);
 

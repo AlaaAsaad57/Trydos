@@ -55,7 +55,7 @@ A quick, jargon-free summary of how the app actually works, because it drives ev
   `ChatVoiceCall.tsx`; tokens minted by the chat backend.)*
 - **Search uses Google's Gemini AI in two places:** understanding typed search phrases,
   and "search by photo." Both are pay-per-use Google API calls. *(Code:
-  `services/elastic/analyzeSearchText.ts` and `app/api/image-search/route.ts`.)*
+  `services/elastic/analyzeSearchTextCerebras.ts` and `app/api/image-search/route.ts`.)*
 - **Typing indicators / "online" status use Firebase**, and push notifications use
   Firebase Cloud Messaging. **Product images and story videos are served from a separate
   media server.**

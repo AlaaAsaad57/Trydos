@@ -23,7 +23,7 @@
 //
 // Nothing here asserts on the flow's internals. "The overlay was asked to open"
 // is the whole criterion.
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("components/Login/Enhanced/AuthOverlay", () => ({
   default: ({ children }: { children: React.ReactNode }) => (
@@ -31,8 +31,18 @@ vi.mock("components/Login/Enhanced/AuthOverlay", () => ({
   ),
 }));
 
+// The flow's own callbacks are exposed as buttons so a case can finish or
+// close the flow the way the real one would.
 vi.mock("components/Login/Enhanced/VerifyPhoneFlow", () => ({
-  default: () => <div data-testid="verify-phone-flow" />,
+  default: ({ verify, onSuccess, onClose }: any) => (
+    <div data-testid="verify-phone-flow">
+      <button onClick={() => verify("123456", "verification-id")}>flow verify</button>
+      {/* The real flow calls onSuccess after the code check resolves, not
+          inside the click, so the stub defers it the same way. */}
+      <button onClick={() => setTimeout(onSuccess, 0)}>flow success</button>
+      <button onClick={onClose}>flow close</button>
+    </div>
+  ),
 }));
 
 // The profile service is stubbed in every component file here: the unit setup
@@ -41,6 +51,7 @@ vi.mock("services/auth", () => ({
   default: { VerifyOtp: vi.fn(async () => ({ success: true })) },
 }));
 
+import AuthService from "services/auth";
 import VerifyUser from "components/setting/profile/VerifyUser";
 import { buildUser } from "../../../fixtures/user";
 import { renderWithProviders, screen, userEvent } from "../../../render";
@@ -181,6 +192,40 @@ describe("standing down for a global auth surface", () => {
     expect(
       screen.queryByTestId("auth-overlay"),
       "the settings overlay stayed up while the app was demanding a re-authentication",
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("inside the re-verify flow", () => {
+  it("verifies the code as a plain login, and closes once the code is accepted", async () => {
+    const user = userEvent.setup();
+    await renderWithProviders(<VerifyUser phone="+1000000" />, {
+      store: { userProfile: buildUser({ phone: "+1000000" }) },
+    });
+    await user.click(screen.getByText("Verify Now"));
+
+    await user.click(screen.getByText("flow verify"));
+    expect(
+      (AuthService as any).VerifyOtp,
+      "the flow did not verify the code with a plain login verify",
+    ).toHaveBeenCalledWith("123456", "verification-id");
+
+    await user.click(screen.getByText("flow success"));
+    await vi.waitFor(() =>
+      expect(screen.queryByTestId("auth-overlay"), "an accepted code left the overlay open").not.toBeInTheDocument(),
+    );
+  });
+
+  it("BUG-settings-4: the close button of the re-verify flow closes the overlay", async () => {
+    const user = userEvent.setup();
+    await renderWithProviders(<VerifyUser phone="+1000000" />, {
+      store: { userProfile: buildUser({ phone: "+1000000" }) },
+    });
+    await user.click(screen.getByText("Verify Now"));
+    await user.click(screen.getByText("flow close"));
+    expect(
+      screen.queryByTestId("auth-overlay"),
+      "the close click bubbled up to the Verify Now control and opened the overlay again",
     ).not.toBeInTheDocument();
   });
 });

@@ -61,7 +61,7 @@ Any shopper, including guests — no login step is required to add an item to th
 |------|-------|
 | Variant sheet | `components/Cart/AddToCart/AddToCartComponent.tsx` (mounted from `components/Cart/CartProvider.tsx`) |
 | Colour / size / CTA | `ColorSelect.tsx`, `SizeSelect.tsx`, `AddToCart/Button.tsx` |
-| Openers | `AddToCartButton.tsx`, `ProductButtonWrapper.tsx`, `ProductCartHeader.tsx`, `ListingPage/Product.tsx`, `NotificationItem.tsx` |
+| Openers | `AddToCartButton.tsx`, `ProductButtonWrapper.tsx`, `ProductCartHeader.tsx`, `NotificationItem.tsx` |
 | Service | `services/cart.ts` — `AddToCart` (add), `UpdateCart` (increment existing) |
 | Store | `store/Cart/reducer.ts` — `setSelectedProductForCart`, `addProductToCart`, `enableAddToCartOption` |
 | Request codes | `utils/Requests.ts` — `ADD_TO_CART` (103), `ADD_TO_CART_WIDGET` (102) |

@@ -62,6 +62,7 @@ export default function VerifyPhoneFlow({
         error,
         setError,
         loading,
+        attemptsLocked,
         sendMethod,
         resend,
         verifyPin,
@@ -144,6 +145,7 @@ export default function VerifyPhoneFlow({
                             // must verify this one, not swap it.
                             changeNumber={phoneLocked ? undefined : () => goTo('enter-phone', -1)}
                             isValidPin={isValidPin}
+                            attemptsLocked={attemptsLocked}
                             loading={loading}
                             error={error}
                             variant="fullscreen"

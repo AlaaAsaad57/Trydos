@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSellerProfile } from "../../../app/(client)/[lang]/sellerProfile/SellerProfileContext";
 import SellerDashboardService from "services/sellerDashboard";
@@ -8,7 +8,6 @@ import { showErrorMessage, showSuccessMessage } from "components/global/AddToCar
 import {
   DashButton,
   DashIcon,
-  LoadingState,
   ErrorState,
   AccessDenied,
   StatusPill,
@@ -41,6 +40,7 @@ import {
   type LangCode,
   type TranslationForm,
 } from "./helpers";
+import { FormSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
 
 const t = (s: string) => translateFunction(s);
 
@@ -525,7 +525,7 @@ export default function BoutiqueEditor({
 
   /* ------------------------------- render ------------------------------- */
 
-  if (loading) return <LoadingState label={t("Loading boutique…")} />;
+  if (loading) return <FormSkeleton fields={5} />;
   if (denied)
     return <AccessDenied message={t("You don't have permission to view or edit this boutique.")} />;
   if (loadError) return <ErrorState message={loadError} onRetry={load} />;

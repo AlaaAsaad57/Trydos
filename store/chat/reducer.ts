@@ -214,12 +214,6 @@ const processMessageStatuses = (
                 is_watched: true,
                 watched_at: getAdjustedDateString(sta.watched_at),
               };
-            if (type === "receive")
-              return {
-                ...sta,
-                is_received: 1,
-                received_at: getAdjustedDateString(sta.received_at),
-              };
           }
         } else {
           if (!isSelfStatus) {
@@ -584,15 +578,26 @@ export const useChatStore = (set: any, get: any) => ({
       searchChat: { ...state.searchChat, searchValue: payload },
     })),
 
+  // The chat backend answers `channelSearch` NEWEST FIRST — measured against
+  // staging, channel 538, query "gggg":
+  //   { messages_ids: [339277, 339276, 339275, 339274, 339262], offset: "339262" }
+  // Message ids grow over time, so index 0 is the match nearest the bottom of
+  // the conversation, where the reader already is, and that is where the first
+  // jump belongs. This used to take the LAST entry, which dragged the reader to
+  // the oldest match in the whole history on every search.
   setChatSearchRequest: (payload: any) =>
-    set((state: ChatState) => ({
-      searchChat: {
-        ...state.searchChat,
-        loading: false,
-        messages: payload.messages,
-        activeMessage: payload.messages[payload.messages.length - 1] ?? null,
-      },
-    })),
+    set((state: ChatState) => {
+      const messages = payload?.messages ?? [];
+      return {
+        searchChat: {
+          ...state.searchChat,
+          loading: false,
+          messages,
+          activeMessage: messages[0] ?? null,
+          offset: payload?.offset == null ? "0" : String(payload.offset),
+        },
+      };
+    }),
 
   setChatSearchId: (payload: any) =>
     set((state: ChatState) => ({
@@ -608,16 +613,36 @@ export const useChatStore = (set: any, get: any) => ({
     set((state: ChatState) => {
       // Optimized: Only filter once
       const channelId = payload.channel.mid;
-      const otherChannels = state.data.filter((c: any) => c.id !== channelId);
+      // A `ch-<user id>` placeholder whose first message the backend put into
+      // a chat that is already loaded: join the two, keeping that chat's
+      // history, instead of adding a second chat with the same id.
+      const loadedChannel = state.data.find(
+        (c: any) =>
+          c.id !== channelId && String(c.id) === String(payload.channel.id),
+      );
+      const otherChannels = state.data.filter(
+        (c: any) => c.id !== channelId && c !== loadedChannel,
+      );
       const existingChannel =
         state.data.find((c: any) => c.id === channelId) || {};
 
-      const updatedChannel = { ...existingChannel, ...payload.channel };
+      const updatedChannel = loadedChannel
+        ? {
+            ...loadedChannel,
+            ...payload.channel,
+            messages: [
+              ...(loadedChannel.messages ?? []),
+              ...(payload.channel.messages ?? []),
+            ],
+          }
+        : { ...existingChannel, ...payload.channel };
       const isActive = state.activeChat && state.activeChat.id === channelId;
 
       return {
         activeChat: isActive
-          ? { ...state.activeChat, ...payload.channel }
+          ? loadedChannel
+            ? updatedChannel
+            : { ...state.activeChat, ...payload.channel }
           : state.activeChat,
         data: [updatedChannel, ...otherChannels],
         main: "chat",
@@ -954,9 +979,21 @@ export const useChatStore = (set: any, get: any) => ({
     });
 
     // Merge Data (Map for O(1) deduplication)
+    //
+    // The pinned channels are prepended, so they must not also appear in the
+    // merged list. They do appear there on every load after the first: the
+    // previous call already put them into `state.data`, and `state.data` seeds
+    // the map. That is why pinning a chat showed it twice once the chat page
+    // was closed and opened again. The pinned ids are dropped from the map, so
+    // the prepended copy is the only one left.
+    const pinnedIds = new Set(processedParam.map((item: any) => item.id));
     const mergedMap = new Map();
-    state.data.forEach((item: any) => mergedMap.set(item.id, item));
-    processedPayload.forEach((item: any) => mergedMap.set(item.id, item));
+    state.data.forEach((item: any) => {
+      if (!pinnedIds.has(item.id)) mergedMap.set(item.id, item);
+    });
+    processedPayload.forEach((item: any) => {
+      if (!pinnedIds.has(item.id)) mergedMap.set(item.id, item);
+    });
 
     // Params go first
     const finalData = [...processedParam, ...Array.from(mergedMap.values())];
@@ -970,7 +1007,14 @@ export const useChatStore = (set: any, get: any) => ({
           : state.activeChat,
       newChats: newChatsToAdd,
       chatUsers: users,
-      chat_loading: true, // Note: kept true as per original, though function name implies data set
+      // `chat_loading` is deliberately not touched here. `getChats` owns it:
+      // it raises the flag before the request and clears it in a `finally`,
+      // and `getChats` is the only caller of `setChats`.
+      //
+      // This used to set it back to `true` *after* the data had arrived. That
+      // made ChatLists swap the whole list for skeletons again for the rest of
+      // `getChats`, which unmounts the pagination loader and its observer in
+      // the middle of fetching a page.
     });
   },
 

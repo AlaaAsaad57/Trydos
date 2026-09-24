@@ -1,7 +1,7 @@
 "use client";
 import AddToCartButton from "components/products/AddToCartButton";
 import { createPortal } from "react-dom";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 export default function BottomSheet({
   isOpen,

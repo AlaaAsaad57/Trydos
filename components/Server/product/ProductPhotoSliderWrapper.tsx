@@ -9,7 +9,6 @@ import { getCookieServer } from "utils/cookies/server-cookie-manager";
 import { getConfiguredImage, GetImageUrl } from "utils/server";
 import ProductRedeemCounter from "components/products/ProductRedeemCounter";
 import FlashDealBanner from "components/products/FlashDealBanner";
-import ClientLogger from "components/global/ClientLogger";
 
 async function ProductPhotoSliderWrapper({
   language,
@@ -333,18 +332,6 @@ async function ProductPhotoSliderWrapper({
 
   return (
     <>
-      <ClientLogger
-        value={{
-          globalDataTime: {
-            time: globalDetails.globalDataTime,
-            redis: globalDetails.globalFromRedis,
-          },
-          qtyPricesDataTime: {
-            time: qtyPromiseData.qtyPricesDataTime,
-            redis: qtyPromiseData.qtyPricesDataFromRedis,
-          },
-        }}
-      />
       <ActiveColorSlider
         language={language}
         serverColor={color}

@@ -1,4 +1,3 @@
-import React from "react";
 
 function CommentIcon({ active }) {
   return <img src="/icons/ActiveComment.svg" />;

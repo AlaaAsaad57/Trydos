@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeMockAuthModule } from "tests/mocks/auth";
 import {
   makeCookieManagerMock,
@@ -15,6 +15,7 @@ vi.mock("components/global/AddToCartMessage", () => makeToastsMock());
 vi.mock("utils/functions", () => ({
   _isStoreLastJson: vi.fn(),
   LogError: vi.fn(),
+  translateFunction: vi.fn((key: string) => key),
 }));
 vi.mock("store/notifications/reducer", () => ({
   showErrorNotification: vi.fn(),
@@ -177,6 +178,35 @@ describe("fetchData module basics", () => {
 
     expect(result1).toEqual(result2);
     expect(net.callCount).toBe(1);
+  });
+
+  // E2E run 35845377516, SCRIPT-12: customer/info left as guest 33618, the
+  // sign-in as 18081 finished, and the signed-in shopper's own customer/info
+  // was handed the guest's answer instead of being sent.
+  it("does not share a request sent for one visitor with a caller who is now someone else", async () => {
+    const { store } = await setup({ userProfile: { id: 33618 } });
+    const net = makeMockFetch([
+      jsonReply({ data: { who: "guest" } }, 200, 50),
+      jsonReply({ data: { who: "signed-in" } }, 200),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+    await import("store");
+
+    const guestCall = fetchData(baseParams);
+    await new Promise((r) => setTimeout(r, 0));
+    store.useAppStore.setState({ userProfile: { id: 18081 } });
+    const signedInCall = fetchData(baseParams);
+    const [, signedIn] = await Promise.all([guestCall, signedInCall]);
+
+    expect(
+      net.callCount,
+      "the signed-in shopper's call was folded into the guest's in-flight call and never sent",
+    ).toBe(2);
+    expect(
+      signedIn.data,
+      "the signed-in shopper was handed the answer to the guest's call",
+    ).toEqual({ who: "signed-in" });
   });
 
   it("shares an in-flight request with a second caller signal", async () => {
@@ -566,6 +596,37 @@ describe("response status and message handling", () => {
     expect(store.useAppStore.getState().setShouldAuthinticated).not.toHaveBeenCalled();
   });
 
+  it("keeps the seller on the dashboard when the backend itself fails", async () => {
+    // 403 above means "you are not linked to this shop", and sending that
+    // seller home is right. A 5xx means the backend broke: the section has an
+    // error card with a Retry button for exactly that, and it can only be
+    // reached if the page is still on screen to show it.
+    await setup();
+    setLocationPathname("/seller/orders");
+    const net = makeMockFetch([jsonReply({ message: "Server down" }, 500)]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result = await fetchData({
+      ...baseParams,
+      server: "market",
+      sellerId: "9",
+    });
+
+    expect(
+      window.location.href,
+      "a 500 from the core backend threw the seller off the dashboard to the storefront home; the failure had nothing to do with the seller's access to this shop",
+    ).not.toBe("/");
+    expect(
+      result.success,
+      "the caller was told the failed request succeeded, so no section can show its error card",
+    ).toBe(false);
+    expect(
+      result.httpStatus,
+      `the caller was handed status ${result.httpStatus} instead of the 500 the backend answered`,
+    ).toBe(500);
+  });
+
   it("throws and reports a non-OK response", async () => {
     const { notifications, functions } = await setup();
     const net = makeMockFetch([jsonReply({ message: "Server down" }, 500)]);
@@ -584,6 +645,24 @@ describe("response status and message handling", () => {
       1,
     );
     expect(functions.LogError).toHaveBeenCalled();
+  });
+
+  it("shows the refused field in words, not the raw JSON the backend sent", async () => {
+    const { notifications } = await setup();
+    // The core backend packs a field-by-field refusal into `message` as a JSON
+    // object. Shown as it arrives, the shopper reads braces and quotes.
+    const net = makeMockFetch([
+      jsonReply({ message: '{"email":["email already exists"]}' }, 422),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    await fetchData({ ...baseParams, server: "market" });
+
+    expect(
+      notifications.showErrorNotification,
+      "the core backend's field refusal was shown to the shopper as raw JSON",
+    ).toHaveBeenCalledWith("Email: email already exists", 5000, null, null, 1);
   });
 
   it("apply coupon success shows a success toast", async () => {
@@ -1093,6 +1172,35 @@ describe("401 recovery", () => {
     expect(auth.default.RefreshSession).toHaveBeenCalledOnce();
   });
 
+  // The renewal must know when the refused request left. A 401 that arrives
+  // after another call already rotated the pair was sent with the old token;
+  // without the time, RefreshSession spends the new refresh token again (see
+  // tests/services/authRefreshSession.test.ts, "a late 401 ...").
+  it("market 401 tells the renewal when the refused request left", async () => {
+    const { auth } = await setup();
+    (auth.default.RefreshSession as any).mockResolvedValue({ eligible: true });
+    const net = makeMockFetch([
+      jsonReply({ data: null }, 401),
+      jsonReply({ data: [] }, 200),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const before = Date.now();
+    await fetchData({ ...baseParams, server: "market" });
+    const after = Date.now();
+
+    const sentAt = (auth.default.RefreshSession as any).mock.calls[0]?.[2];
+    expect(
+      typeof sentAt,
+      "the market renewal was not told when the refused request left, so a late 401 spends the pair another call just rotated",
+    ).toBe("number");
+    expect(
+      sentAt >= before && sentAt <= after,
+      `the time handed to the renewal (${sentAt}) is not when this request left (between ${before} and ${after})`,
+    ).toBe(true);
+  });
+
   it("market-dashboard 401 refresh succeeds", async () => {
     const { auth } = await setup();
     (auth.default.RefreshSession as any).mockResolvedValue({ eligible: true });
@@ -1309,6 +1417,32 @@ describe("401 recovery", () => {
     expect(result.httpStatus).toBe(401);
   });
 
+  it("comments 401 refresh succeeds", async () => {
+    const { auth } = await setup();
+    (auth.default.RefreshSession as any).mockResolvedValue({ eligible: true });
+    const net = makeMockFetch([
+      jsonReply({ data: null }, 401),
+      jsonReply({ data: [] }, 200),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result = await fetchData({ ...baseParams, server: "comments" });
+
+    expect(
+      result.success,
+      "a renewed comments session did not retry the call that was refused",
+    ).toBe(true);
+    expect(
+      auth.default.RefreshSession,
+      "a comments 401 never asked for a renewal, so the shopper is sent to the code prompt instead",
+    ).toHaveBeenCalledOnce();
+    expect(
+      (auth.default.RefreshSession as any).mock.calls[0][1],
+      "the renewal was asked for under the wrong service name, so the wrong credential pair would be spent",
+    ).toBe("comments");
+  });
+
   it("stories 401 refresh succeeds", async () => {
     const { auth } = await setup();
     (auth.default.RefreshSession as any).mockResolvedValue({ eligible: true });
@@ -1412,7 +1546,9 @@ describe("401 recovery", () => {
   });
 
   it("comments 401 need_auth succeeds", async () => {
-    const { store } = await setup();
+    const { auth, store } = await setup();
+    // Renewal is tried first now, so this case is the one where it is refused.
+    (auth.default.RefreshSession as any).mockResolvedValue({ eligible: false });
     const net = makeMockFetch([
       jsonReply({ data: null }, 401),
       jsonReply({ data: null }, 200),
@@ -1422,11 +1558,14 @@ describe("401 recovery", () => {
     const { fetchData } = await loadFetchData();
 
     const promise = fetchData({ ...baseParams, server: "comments" });
-    await new Promise((r) => setTimeout(r, 50));
+    await new Promise((r) => setTimeout(r, 2100)); // pass the comments refresh delay
     store.useAppStore.setState({ reAuthResult: "success" });
     const result = await promise;
 
-    expect(result.success).toBe(true);
+    expect(
+      result.success,
+      "a refused comments renewal did not fall through to the sign-in prompt",
+    ).toBe(true);
   });
 
   it("wallet 401 need_auth succeeds", async () => {
@@ -1464,7 +1603,13 @@ describe("401 recovery", () => {
         MOCK_COOKIE_NAMES.STORIES_REFRESH_TOKEN,
       ],
     },
-    { server: "comments" as const, expected: [MOCK_COOKIE_NAMES.USER_ID_HASH] },
+    {
+      server: "comments" as const,
+      expected: [
+        MOCK_COOKIE_NAMES.USER_ID_HASH,
+        MOCK_COOKIE_NAMES.COMMENTS_REFRESH_TOKEN,
+      ],
+    },
     { server: "wallet" as const, expected: [MOCK_COOKIE_NAMES.WALLET_TOKEN] },
   ])("$server 401 clear-tokens scope", ({ server, expected }) => {
     it(`clears only the ${server} credentials`, async () => {
@@ -1557,5 +1702,189 @@ describe("register-guest flag", () => {
     });
 
     expect(store.useAppStore.getState().isRegisteringReady).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BUG-1 — the password confirmation reached Sentry in clear.
+//
+// `scrubRequestBody` exists to strip credentials from a request body **before
+// it is attached to an error report**, and Sentry keeps whatever it is sent.
+// `CREDENTIAL_FIELDS` listed `password` but not `repeat_password`, and the
+// match is by exact key — so every failed "become a seller" submit sent the
+// shopper's password confirmation, which is their password, in clear.
+//
+// Found while reading a live run's log on 2026-09-19:
+//   "password":"[redacted]",  "repeat_password":"Qa!ljxwda10ksmu8j45jgAa1"
+// ---------------------------------------------------------------------------
+
+describe("scrubbing a request body before it reaches an error report", () => {
+  it("masks the password confirmation, not only the password", async () => {
+    const { scrubRequestBody } = await import("utils/fetchData");
+
+    const scrubbed = String(
+      scrubRequestBody(
+        JSON.stringify({
+          email: "seller@example.com",
+          password: "hunter2-the-real-one",
+          repeat_password: "hunter2-the-real-one",
+        }),
+      ),
+    );
+
+    expect(
+      scrubbed.includes("hunter2-the-real-one"),
+      "the password confirmation reached the error report in clear. It is the same value as the password, so masking one and not the other protects nothing — and Sentry keeps what it is sent",
+    ).toBe(false);
+  });
+
+  it("still masks the password itself", async () => {
+    // The control. Without it, a scrubber that masked everything — or nothing
+    // and happened to pass — would look the same as a correct one.
+    const { scrubRequestBody } = await import("utils/fetchData");
+
+    const scrubbed = String(
+      scrubRequestBody(JSON.stringify({ password: "hunter2-the-real-one" })),
+    );
+
+    expect(
+      scrubbed.includes("hunter2-the-real-one"),
+      "the password itself reached the error report in clear",
+    ).toBe(false);
+  });
+
+  it("leaves an ordinary field alone", async () => {
+    // A scrubber that redacted every key would pass both checks above while
+    // making every error report useless.
+    const { scrubRequestBody } = await import("utils/fetchData");
+
+    const scrubbed = String(
+      scrubRequestBody(JSON.stringify({ shop_name: "Trydos QA" })),
+    );
+
+    expect(
+      scrubbed.includes("Trydos QA"),
+      "an ordinary, non-credential field was masked, which leaves an error report nobody can act on",
+    ).toBe(true);
+  });
+});
+
+describe("the RDB cart lock", () => {
+  const lockBody = {
+    isSuccessful: false,
+    code: 409,
+    message:
+      "Your cart is locked until the pending RDB payment is completed or cancelled.",
+    detailed_error: [{ message: "pending payment" }],
+    data: {
+      rdb_request_reference: "ref-1",
+      expires_at: "2026-09-15T14:30:00+00:00",
+    },
+  };
+
+  it("hands a locked cart back without a toast and without a Sentry report", async () => {
+    const { notifications, toasts, functions } = await setup();
+    const net = makeMockFetch([jsonReply(lockBody, 409)]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result: any = await fetchData({
+      ...baseParams,
+      server: "market",
+      method: "POST",
+      url: "/cart/add",
+      body: JSON.stringify({ product_id: 1 }),
+      reqTitle: { code: 2, reqTitle: "Add to cart widget" },
+    });
+
+    expect(result.httpStatus, "a locked cart must reach the caller as a 409").toBe(409);
+    expect(
+      result.data.rdb_request_reference,
+      "the pending request reference must survive the answer",
+    ).toBe("ref-1");
+    expect(
+      toasts.showErrorMessage,
+      "a locked cart must not raise the add-to-cart toast",
+    ).not.toHaveBeenCalled();
+    expect(
+      notifications.showErrorNotification,
+      "a locked cart must not raise an error notification",
+    ).not.toHaveBeenCalled();
+    expect(
+      functions.LogError,
+      "a locked cart is normal behaviour and must not be reported to Sentry",
+    ).not.toHaveBeenCalled();
+  });
+
+  it("still reports a 409 that is not a cart lock", async () => {
+    const { notifications } = await setup();
+    const net = makeMockFetch([
+      jsonReply({ isSuccessful: false, code: 409, message: "Already paid" }, 409),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result: any = await fetchData({
+      ...baseParams,
+      server: "market",
+      method: "POST",
+      url: "/customer/order/rdb-request/ref-1/cancel",
+      body: "",
+      reqTitle: { code: 3, reqTitle: "cancel RDB payment" },
+    });
+
+    expect(result.httpStatus, "an ordinary 409 must still answer 409").toBe(409);
+    expect(
+      notifications.showErrorNotification,
+      "an ordinary 409 must still tell the shopper something went wrong",
+    ).toHaveBeenCalled();
+  });
+});
+
+describe("the rarer branches", () => {
+  it("a market 401 behind a re-auth prompt the shopper cancels gives up", async () => {
+    const { store } = await setup({ shouldAuthinticated: true });
+    const net = makeMockFetch([jsonReply({ data: null }, 401)]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+    vi.useFakeTimers();
+
+    const promise = fetchData({ ...baseParams, server: "market" });
+    await vi.advanceTimersByTimeAsync(0);
+    store.useAppStore.setState({ reAuthResult: "cancelled" });
+    await vi.advanceTimersByTimeAsync(500);
+    const result = await promise;
+
+    expect(result.success, "a cancelled re-auth still reported success").toBe(false);
+    expect(net.calls.length, "the call was retried after the shopper cancelled").toBe(1);
+  });
+
+  it("a wallet 401 whose stale-token cleanup fails gives up instead of throwing", async () => {
+    await setup();
+    const net = makeMockFetch([jsonReply({ data: null }, 401), failureReply("clear-tokens down")]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result = await fetchData({ ...baseParams, server: "wallet" });
+
+    expect(net.calls[1]?.url, "the stale wallet tokens were not asked to be cleared").toBe("/api/auth/clear-tokens");
+    expect(result.success, "a failed cleanup still reported success").toBe(false);
+  });
+
+  it("viaProxyGet sends a GET through the proxy address by query string", async () => {
+    await setup();
+    const net = makeMockFetch([jsonReply({ data: [] }, 200)]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result = await fetchData({ ...baseParams, server: "market", url: "/home", viaProxyGet: true });
+
+    expect(net.calls[0]?.url.startsWith("/api/proxy?"), `the GET did not go through the proxy query form: ${net.calls[0]?.url}`).toBe(true);
+    expect(result.success, "the proxy GET did not succeed").toBe(true);
+  });
+
+  it("scrubRequestBody reports nothing for a body that is not JSON", async () => {
+    const { scrubRequestBody } = await import("utils/fetchData");
+    expect(scrubRequestBody("token=abc"), "a raw body was reported").toBe("[redacted]");
   });
 });

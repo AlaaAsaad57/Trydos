@@ -8,7 +8,8 @@ import { useAppStore } from "store";
 import chat from "services/chat";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-import { LogError } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
+import { showErrorNotification } from "store/notifications/reducer";
 
 import UPDATED_API_DATA from "migration.staging";
 
@@ -98,30 +99,7 @@ export const setLastSeen = async (MyId) => {
     });
   }
 };
-export const getCalls = async (id) => {
-  const { setCallLoading, setCalls } = useAppStore.getState();
-  try {
-    setCallLoading(true);
-    let response = await fetchData({
-      url: "/api/v1/channels/my_calls",
-      reqTitle: REQUESTS_DATA.GET_CALLS,
-      method: "POST",
-      server: "chat",
-      body: JSON.stringify({ limit: "20", last_message_id: id }),
-    });
-    if (!response.success) {
-      throw new Error(response.message);
-    }
-    setCalls(response.data);
-    setCallLoading(false);
-  } catch (error) {
-    setCallLoading(false);
-    LogError({
-      scenario: "Error in getCalls in  chat/actions",
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
-};
+
 export const SendMessage = async (payload, isNew, isPrivate?) => {
   const { sendNewMessage, sendRealMessage, deleteErrorMessage } =
     useAppStore.getState();
@@ -145,6 +123,14 @@ export const SendMessage = async (payload, isNew, isPrivate?) => {
     }
     if (response?.data?.id) {
       if (isNew) {
+        // The chat list comes in pages, so the chat the backend put this
+        // message into may not be loaded yet. Then only the new message would
+        // show, so ask for the ones before it.
+        const loaded = useAppStore
+          .getState()
+          .data?.some(
+            (c: any) => String(c.id) === String(response.data.channel_id),
+          );
         sendNewMessage({
           channel: {
             id: response.data.channel_id,
@@ -152,6 +138,7 @@ export const SendMessage = async (payload, isNew, isPrivate?) => {
             mid: isNew,
           },
         });
+        if (!loaded) await getPage(response.data.channel_id, response.data.id);
       } else {
         sendRealMessage({
           ...response.data,
@@ -163,6 +150,7 @@ export const SendMessage = async (payload, isNew, isPrivate?) => {
     }
   } catch (error) {
     deleteErrorMessage({ msg_id: payload.mid, ch_id: payload.cid });
+    showErrorNotification(translateFunction("Failed to send message"));
     LogError({
       scenario: "Error in SendMessage in  chat/actions",
       error: error instanceof Error ? error.message : String(error),
@@ -296,7 +284,7 @@ export async function PinnChat(payload) {
       throw new Error(response.message);
     }
   } catch (e) {
-    console.error(e);
+    LogError({ scenario: "chat store action failed", error: e });
   }
 
   chat.getChats(true);
@@ -324,30 +312,6 @@ export async function MuteChat(payload) {
     });
   }
 }
-export async function getMessagesBetweenMessage(payload) {
-  const { setPageData } = useAppStore.getState();
-  try {
-    let response = await fetchData({
-      url: `/api/v1/messages/messages_of_channel/${payload.first}`,
-      reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
-      method: "POST",
-      server: "chat",
-      body: JSON.stringify({ limit: payload.second + 10 }),
-      // ###EDIT###
-      // body: JSON.stringify({ limit: payload.second + 1 }),
-    });
-    // @ts-ignore
-    if (!response.success) {
-      throw new Error(response.message);
-    }
-    setPageData({ mes: response.data, ch: payload.first });
-  } catch (error) {
-    LogError({
-      scenario: "Error in getMessagesBetweenMessage in  chat/actions",
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
-}
 export const getMessagesBetweenTwoMessages = async ({
   first,
   second,
@@ -371,30 +335,6 @@ export const getMessagesBetweenTwoMessages = async ({
   }
   setPageData({ mes: response.data, ch: channel_id });
 };
-export async function GetMessageforRepliedMessages(payload) {
-  const { setPageData } = useAppStore.getState();
-  try {
-    let response = await fetchData({
-      url: `/api/v1/messages/messages_of_channel/${payload.first}`,
-      reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
-      method: "POST",
-      server: "chat",
-      body: JSON.stringify({ limit: payload.second + 1 }),
-      // ###EDIT###
-      // body: JSON.stringify({ limit: payload.second + 1 }),
-    });
-    // @ts-ignore
-    if (!response.success) {
-      throw new Error(response.message);
-    }
-    setPageData({ mes: response.data, ch: payload.first });
-  } catch (error) {
-    LogError({
-      scenario: "Error in GetMessageforRepliedMessages in  chat/actions",
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
-}
 
 export async function getContacts() {
   const { setContacts } = useAppStore.getState();
@@ -420,6 +360,8 @@ export async function getContacts() {
   }
 }
 export const getMedia = async (id, media) => {
+  // A `ch-<user id>` chat is a placeholder with no channel on the backend yet.
+  if (typeof id === "string" && id.includes("ch")) return;
   const { editChatInfoMedia } = useAppStore.getState();
   try {
     let response = await fetchData({
@@ -458,6 +400,8 @@ export const getMediaReducer = (media, data) => {
 };
 
 export const GetChatDetails = async (id) => {
+  // A `ch-<user id>` chat is a placeholder with no channel on the backend yet.
+  if (typeof id === "string" && id.includes("ch")) return;
   const { editChatInfo } = useAppStore.getState();
   try {
     let response = await fetchData({

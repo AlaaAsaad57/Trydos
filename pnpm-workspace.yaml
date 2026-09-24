@@ -1,7 +1,0 @@
-onlyBuiltDependencies:
-  - '@firebase/util'
-  - '@parcel/watcher'
-  - '@sentry/cli'
-  - less
-  - protobufjs
-  - sharp

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import { useState } from "react";
 import { translateFunction } from "utils/functions";
 import { FlagIcon } from "utils/tinyUtils";
 import { setLocaizationCookies } from "utils/cookies/cookie-manager";

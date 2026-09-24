@@ -1,5 +1,3 @@
-import Image from "next/image";
-import React from "react";
 import StoryServiceClass from "services/story";
 
 export default function StoryCard({ Name, media, isVideo }) {

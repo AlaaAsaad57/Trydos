@@ -1,15 +1,10 @@
 import { useAppStore } from "store";
-import { getUserChat } from "utils/functions";
+import { getUserChat, translateFunction } from "utils/functions";
 import ChatPhoto from "../../ChatPhoto";
-import {
-  DeleteMessage,
-  getMessageStatus,
-  getMessageTime,
-  getStatues,
-  IsTextAvatar,
-} from "store/chat/chatUtils";
+import { DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
 import React from "react";
+import { toDownloadUrl } from "components/Chat/videoSupport";
 function VideoMessage({
   setOpen,
   setDelete,
@@ -35,6 +30,12 @@ function VideoMessage({
 }) {
   const user = getUserChat();
   const { setForwardMessage, setReplyMessage, activeChat } = useAppStore();
+  // The <video> element is the only honest answer to "can this play here?".
+  // No check on the file name can tell an H.264 .mov from an HEVC .mov, and
+  // Chrome and Firefox cannot decode HEVC on Windows or Android. So we wait for
+  // the decoder to refuse the file and then offer the file itself instead.
+  const [cannotPlay, setCannotPlay] = React.useState(false);
+  const filePath = message_files?.[0]?.file_path;
   const showTextAvatar = React.useMemo(() => {
     if (!activeChat) return false;
     const member = activeChat.channel_members.find(
@@ -48,8 +49,9 @@ function VideoMessage({
   return (
     <div
       onMouseLeave={() => {
+        // Only the menu closes on hover-out. The delete confirm box must not:
+        // it closes on its own Cancel, backdrop, Escape, or a chosen answer.
         setOpen(false);
-        setDelete(false);
       }}
       className={"message-hold" + " " + `${openMenu && "ac"}`}
     >
@@ -99,17 +101,52 @@ function VideoMessage({
             />
           </div>
         )}
-        <img
-          src="/icons/chat/play.svg"
-          onClick={(e) => {
-            e.stopPropagation();
-            setVid(message_files[0]?.file_path);
-          }}
-          className="play-vid-icon"
+        {cannotPlay ? (
+          // `?download=1` is what makes the tap a download. The media server
+          // serves a recognised video with `Content-Disposition: inline`, so
+          // without the flag this would open a tab that plays nothing — the
+          // same dead end in a new window. The `download` attribute below
+          // cannot carry it either: the media server is a different origin, and
+          // browsers ignore `download` cross-origin.
+          <a
+            href={toDownloadUrl(filePath)}
+            download
+            target="_blank"
+            rel="noreferrer"
+            className="play-vid-icon"
+            onClick={(e) => e.stopPropagation()}
+            title={translateFunction(
+              "This video cannot play here. Tap to download it.",
+            )}
+          >
+            <img
+              src="/icons/chat/down.svg"
+              data-pw="VIDEO-DOWNLOAD"
+              alt={translateFunction("Download")}
+            />
+          </a>
+        ) : (
+          <img
+            src="/icons/chat/play.svg"
+            data-pw="VIDEO-PLAY"
+            alt={translateFunction("Play")}
+            onClick={(e) => {
+              e.stopPropagation();
+              setVid(filePath);
+            }}
+            className="play-vid-icon"
+          />
+        )}
+        {/* `preload="metadata"` makes the browser read the header, which is
+            what lets it report an unsupported codec without downloading the
+            whole clip. A single `src` and no <source> child: with both, the
+            child is ignored and the error lands in a different place. */}
+        <video
+          className="message-img"
+          src={filePath}
+          preload="metadata"
+          onError={() => setCannotPlay(true)}
         />
-        <video className="message-img" src={message_files[0]?.file_path}>
-          <source src={message_files[0]?.file_path}></source>
-        </video>
 
         {is_from_sender ? (
           <div className="message-date">
@@ -123,38 +160,6 @@ function VideoMessage({
           <div className="other-date">{getMessageTime(created_at, true)}</div>
         )}
       </div>
-      {/* <div className="message-date hovers">
-        {
-          <div className="sent-date">
-            {
-              <>
-                <img src="/icons/chat/sent.svg" />
-                {getMessageTime(created_at, true)}
-              </>
-            }
-          </div>
-        }
-        {getStatues({ message_status }).is_received === 1 && (
-          <div className="recieve-date">
-            <img src="/icons/chat/recieved.svg" />
-            {getMessageTime(
-              message_status.filter((a) => a.user_id !== user?.id)[0]
-                ?.received_at,
-              false
-            )}
-          </div>
-        )}
-        {getStatues({ message_status }).is_watched === true && (
-          <div className="recieve-date">
-            <img src="/icons/chat/read.svg" className="w-[10px] h-[10px]" />
-            {getMessageTime(
-              message_status.filter((a) => a.user_id !== user?.id)[0]
-                ?.watched_at,
-              false
-            )}
-          </div>
-        )}
-      </div> */}
 
       <OptionsMenu
         isSender={true}

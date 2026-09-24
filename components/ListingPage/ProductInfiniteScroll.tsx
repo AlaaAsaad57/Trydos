@@ -82,6 +82,8 @@ function ProductsInfiniteScroll({
   const [loading, setLoading] = useState(false);
   const [isReachEnd, setIsReachEnd] = useState(false);
   const isFetchingRef = useRef(false);
+  // The 3 s retry after a failed load. Cancelled when the grid unmounts.
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const offsetRef = useRef(offset);
   const recommendedOffsetRef = useRef(recomended_offset);
   const isReachEndRef = useRef(false);
@@ -166,7 +168,7 @@ function ProductsInfiniteScroll({
         showErrorNotification(
           translateFunction("Failed To Load Products Retring in 3 seconds"),
         );
-        setTimeout(() => {
+        retryTimerRef.current = setTimeout(() => {
           getProductsReq();
         }, 3000);
         return;
@@ -315,6 +317,9 @@ function ProductsInfiniteScroll({
     EnableScroll();
     resetBoutique();
     getProductsReq();
+    return () => {
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    };
   }, []);
   const getItemsListName = () => {
     if (isFeatured) {

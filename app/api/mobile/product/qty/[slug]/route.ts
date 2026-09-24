@@ -1,4 +1,3 @@
-export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { GetProductPriceQtyDetails } from "serverRequests/product";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -56,7 +55,6 @@ export async function GET(request: NextRequest, { params }) {
       ),
     );
   } catch (error) {
-    console.error("Get Product QTY api route", error);
     LogServerError(
       {
         error: error,

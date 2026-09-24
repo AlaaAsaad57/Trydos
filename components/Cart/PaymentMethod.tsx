@@ -4,11 +4,10 @@ import { LogError, RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import CouponElement from "./couponElement";
 import { useAppStore } from "store";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_PAYMENTS } from "utils/GAEvents";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
-import { showErrorNotification } from "@/store/notifications/reducer";
 import order from "services/order";
 function PaymentMethod() {
   const {
@@ -30,49 +29,7 @@ function PaymentMethod() {
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
-  const getWalletInUSD = () => {
-    if (wallet?.wallet_balance > 0)
-      return wallet?.wallet_balance / currency?.exchange_rate;
-    else return 0;
-  };
-
-  const walletCoversTotal = getWalletInUSD() >= total;
-  const walletInsufficient = !walletCoversTotal;
-
-  useEffect(() => {
-    if (walletCoversTotal) {
-      setWalletBalance();
-      GAevent({
-        action: GA_EVENT_NAMES.ADD_PAYMENT,
-        params: {
-          payment_type: GA_PAYMENTS.WALLET,
-          items: cart.map((item) => ({
-            item_id: item.product_id,
-            item_name: item.name,
-            quantity: item.quantity,
-          })),
-        },
-      });
-      trackOrder(ORDER_EVENTS.PAYMENT_METHOD_SELECTED, {
-        payment_type: GA_PAYMENTS.WALLET,
-        auto_selected: true,
-      });
-      setOrderData({
-        payment: [
-          {
-            id: 1,
-            balance: total,
-          },
-        ],
-      });
-    } else {
-      setOrderData({
-        payment: orderData.payment?.filter((s) => s.id !== 1),
-      });
-    }
-  }, [available_payment_method, wallet]);
   const handleCODPayment = () => {
-    if (walletCoversTotal) return;
     if (orderData?.payment?.find((s) => s.id === 0)) {
       setOrderData({ payment: [] });
     } else {
@@ -102,10 +59,28 @@ function PaymentMethod() {
     }
   };
   const handleWalletPayment = () => {
-    // Wallet is auto-managed: auto-selected when sufficient, disabled when not
+    if (orderData?.payment?.find((s) => s.id === 1)) {
+      setOrderData({ payment: [] });
+    } else {
+      setWalletBalance();
+      GAevent({
+        action: GA_EVENT_NAMES.ADD_PAYMENT,
+        params: {
+          payment_type: GA_PAYMENTS.WALLET,
+          items: cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+            quantity: item.quantity,
+          })),
+        },
+      });
+      trackOrder(ORDER_EVENTS.PAYMENT_METHOD_SELECTED, {
+        payment_type: GA_PAYMENTS.WALLET,
+      });
+      setOrderData({ payment: [{ id: 1, balance: total }] });
+    }
   };
   const handleCryptoPayment = () => {
-    if (walletCoversTotal) return;
     if (orderData?.payment?.find((s) => s.id === 3)) {
       setOrderData({ payment: [] });
     } else {
@@ -135,7 +110,6 @@ function PaymentMethod() {
     }
   };
   const handleCardPayment = () => {
-    if (walletCoversTotal) return;
     if (orderData?.payment?.find((s) => s.id === 2)) {
       setOrderData({ payment: [] });
     } else {
@@ -291,8 +265,7 @@ function PaymentMethod() {
               language,
             )}
           </div>
-          {available_payment_method &&
-            available_payment_method.length &&
+          {available_payment_method?.length > 0 &&
             available_payment_method.map((item, key) => {
               if (item?.toLowerCase() === "cash_on_delivery".toLowerCase()) {
                 return (
@@ -301,7 +274,6 @@ function PaymentMethod() {
                     active={
                       orderData?.payment?.filter((s) => s.id === 0).length > 0
                     }
-                    disabled={walletCoversTotal}
                     setActive={() => {
                       if (!orderLoading) {
                         handleCODPayment();
@@ -311,7 +283,7 @@ function PaymentMethod() {
                   />
                 );
               }
-              if (item?.toLowerCase() === "trydos_wallet".toLowerCase()) {
+              if (item?.toLowerCase() === "rdb".toLowerCase()) {
                 return (
                   <div
                     key={key}
@@ -326,7 +298,6 @@ function PaymentMethod() {
                       active={
                         orderData?.payment?.filter((s) => s.id === 1).length > 0
                       }
-                      disabled={walletInsufficient}
                       setActive={() => {
                         if (!orderLoading) {
                           handleWalletPayment();
@@ -355,7 +326,6 @@ function PaymentMethod() {
                     active={
                       orderData?.payment?.filter((s) => s.id === 3).length > 0
                     }
-                    disabled={walletCoversTotal}
                     setActive={() => {
                       if (!orderLoading) {
                         handleCryptoPayment();
@@ -371,7 +341,6 @@ function PaymentMethod() {
                     active={
                       orderData?.payment?.filter((s) => s.id === 2).length > 0
                     }
-                    disabled={walletCoversTotal}
                     setActive={() => {
                       handleCardPayment();
                     }}
@@ -455,29 +424,22 @@ const CODInput = ({ active, setActive, total, disabled = false }) => {
     </div>
   );
 };
-const TryDosWalletInput = ({
-  active,
-  setActive,
-  balance,
-  disabled = false,
-}) => {
-  const { orderLoading, wallet, currency, settings, language } = useAppStore();
+const TryDosWalletInput = ({ active, setActive, balance }) => {
+  const { orderLoading, currency, settings, language } = useAppStore();
   const points = settings["starting_setting"]?.decimal_point_settings || 0;
   const isRtl = language === "ar" || language === "ku";
 
   return (
     <div
       data-pw="second-bay-way"
-      onClick={() => {
-        if (!disabled) setActive();
-      }}
-      className={`${(disabled || wallet?.wallet_balance <= 0) && "opacity-45"} ${disabled ? "pointer-events-none" : ""} ${
+      onClick={() => setActive()}
+      className={`${
         isRtl
           ? "flex-row-reverse pr-[23px] pl-[26px]"
           : "flex-row pr-[26px] pl-[23px]"
-      } w-full cursor-pointer mt-[10px] items-center  justify-between  flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
+      } w-full cursor-pointer mt-[10px] items-center justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
       style={{
-        border: active && !disabled && "1px solid rgb(56 144 255 / 51%)",
+        border: active && "1px solid rgb(56 144 255 / 51%)",
       }}
     >
       <div

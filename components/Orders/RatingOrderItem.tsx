@@ -6,8 +6,6 @@ import order from "services/order";
 import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
-import storyService from "services/story";
-import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import UploadImageComponent from "./UploadImageComponent";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";

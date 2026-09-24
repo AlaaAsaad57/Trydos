@@ -1,5 +1,4 @@
 import FiltersWindow from "components/ListingPage/filterComponents/FiltersWindow";
-import React from "react";
 
 async function FilterWidgetServer({
   currencyPromise,

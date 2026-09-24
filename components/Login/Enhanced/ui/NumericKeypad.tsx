@@ -92,6 +92,9 @@ export function NumericKeypad({
             {open && (
                 <motion.div
                     ref={keypadRef as unknown as React.Ref<HTMLDivElement>}
+                    // Tells the scaled canvas (scaling/AppScaler) how much of the
+                    // page this keypad covers, so it can slide the field above it.
+                    data-keyboard-overlay=""
                     className="fixed bg-[#1C1C1E] bottom-0 left-0 right-0 select-none z-[2147483647]"
                     style={{ zIndex: 2147483647 }}
                     initial={{ y: '100%' }}

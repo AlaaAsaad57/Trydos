@@ -60,10 +60,36 @@ const MAX_NAMED_FAILURES = 4;
  *  dropped, and the attached tree has all of them either way. */
 const ROLLUP_BUDGET = 2600;
 
-/** A backstop on the attached tree. It travels as a job output, and a job
- *  output is not a file transfer — 1MB is the documented ceiling. At roughly
- *  50 characters a test this is about 40,000 tests, far past anything real. */
-const TREE_BUDGET = 2_000_000;
+/** A hard ceiling on the attached tree, in BYTES.
+ *
+ *  The limit that binds is NOT the 1MB job-output ceiling this used to be
+ *  reasoned about. The tree travels to the notifier job as an environment
+ *  variable, and Linux caps a single environment variable at MAX_ARG_STRLEN —
+ *  32 pages, 131072 bytes. Past that the notifier step does not fail, it never
+ *  starts:
+ *
+ *    An error occurred trying to start process '/usr/bin/bash' … Argument
+ *    list too long
+ *
+ *  which is exactly what happened once the suite grew and the tree reached
+ *  134683 bytes. 120000 leaves room for the other variables the step carries
+ *  and for the growth between one run and the next.
+ *
+ *  Bytes, not characters: the tree is full of ✅ and ❌, three bytes each in
+ *  UTF-8, so a character count reads about a third under the true size — more
+ *  than the margin this ceiling has. */
+const TREE_BUDGET_BYTES = 120_000;
+
+/** Cut `text` to at most `maxBytes`, or null when it already fits.
+ *
+ *  Slicing a JavaScript string by index cuts by UTF-16 code unit, which can
+ *  split an emoji in half and leave a lone surrogate. Encoding, cutting and
+ *  decoding drops the incomplete character at the end instead. */
+const clipToBytes = (text, maxBytes) => {
+  const encoded = new TextEncoder().encode(text);
+  if (encoded.length <= maxBytes) return null;
+  return new TextDecoder("utf-8").decode(encoded.subarray(0, maxBytes));
+};
 
 const icon = (status) => {
   if (status === "passed") return PASS;
@@ -330,9 +356,10 @@ const buildTree = (results, files, totals) => {
   });
 
   const text = [...head, ...body, ""].join("\n");
-  return text.length > TREE_BUDGET
-    ? `${text.slice(0, TREE_BUDGET)}\n\n[cut here — the list was too long to send]\n`
-    : text;
+  const clipped = clipToBytes(text, TREE_BUDGET_BYTES);
+  return clipped === null
+    ? text
+    : `${clipped}\n\n[cut here — the list was too long to send]\n`;
 };
 
 const buildCoverage = () => {

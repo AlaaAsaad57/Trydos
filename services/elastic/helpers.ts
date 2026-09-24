@@ -1,6 +1,8 @@
 import { search_log_index } from "./INDEXES";
 import { headers } from "next/headers";
 import { elasticSearchClient } from "./elasticsearch.config";
+import { qaShopMustNot } from "./qaFilter";
+import { LogServerError } from "utils/serverErrorReporter";
 
 interface PopularSearchBucket {
   key: string;
@@ -421,19 +423,12 @@ export function processCustomProduct(
     result.flash_deal_end_date = flashDealEndDate;
     result.flash_deal_status = flashDealStatus;
     result.flash_deal_price = flash_deal_price;
-    result.is_flash_deal_active = false;
 
-    try {
-      const startDate = new Date(flashDealStartDate);
-      const endDate = new Date(flashDealEndDate);
-      const currentDate = new Date();
-
-      if (currentDate >= startDate && currentDate <= endDate) {
-        result.is_flash_deal_active = true;
-      }
-    } catch (error) {
-      // Date parsing failed, keep is_flash_deal_active as false
-    }
+    // is_flash_deal_active is NOT set here any more. Working it out needs the
+    // clock, and this function now runs inside a cached scope on the homepage,
+    // which would freeze the answer into the stored output. The one caller that
+    // needs the field - the mobile related-products route - calls
+    // computeFlashActive() itself, where the clock is real (finding 5).
   }
 
   result.images = parseJsonField(product.images);
@@ -1293,7 +1288,46 @@ export function deriveEqualCountCards(
   return cards;
 }
 
-export function buildBaseConditions(filters: SearchFilters, country: string) {
+/**
+ * Is this product's flash deal running at `now`?
+ *
+ * `now` is an argument on purpose. Reading the clock here would be a runtime read
+ * inside whatever scope calls it, and the homepage now calls the surrounding code
+ * from a cached scope - the answer would be frozen at the moment the entry was
+ * written and stay wrong until it expired.
+ *
+ * The web storefront does not use this. normalizeListingProduct never copies the
+ * field, and components/products/ProductCard/flashPrice.ts works the window out
+ * in the browser, where the clock is the shopper's own. The mobile app reads it
+ * from app/api/related-products/[id]/route.ts, which is a route handler and is
+ * never cached - so it calls this with a real `new Date()` (finding 5).
+ */
+export function computeFlashActive(
+  product: {
+    flash_deal_start_date?: string | null;
+    flash_deal_end_date?: string | null;
+  },
+  now: Date,
+): boolean {
+  const start = new Date(product?.flash_deal_start_date ?? "");
+  const end = new Date(product?.flash_deal_end_date ?? "");
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
+  return now >= start && now <= end;
+}
+
+/** The conditions every catalogue query starts from.
+ *
+ *  `qaView` is the QA-mode switch, and it defaults to `false` — which is the
+ *  filtered, shopper-facing behaviour. Every one of the eight call sites keeps
+ *  that default except one: `GetSearchData` in `serverRequests/Search.tsx`,
+ *  which passes what `qaMode()` read off the request. A caller that passed a
+ *  literal `true` would unfilter search for every customer, so nothing ever
+ *  should. */
+export function buildBaseConditions(
+  filters: SearchFilters,
+  country: string,
+  qaView: boolean = false,
+) {
   const categoriesFilterSlugs = [
     ...(filters.categories || []),
     ...(filters.related_categories || []),
@@ -1314,6 +1348,13 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
     { nested: { path: "brand", query: { term: { "brand.status": 1 } } } },
   ];
   const mustNotConditions: any[] = [{ exists: { field: "deleted_at" } }];
+
+  // Hide QA shops from everybody except a request that proved it is QA mode.
+  // Pushed first, beside `deleted_at`, because it belongs with the other
+  // "this row is not for shoppers" rules rather than with the user's filters.
+  if (!qaView) {
+    mustNotConditions.push(qaShopMustNot());
+  }
 
   // Add category filter
   if (uniqueCategorySlugs.length) {
@@ -1454,20 +1495,26 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
       exists: { field: "flash_deal" },
     });
   } else if (filters.flashdeal === true) {
-    const currentDate = new Date().toLocaleDateString("en-US", {
-      month: "2-digit",
-      day: "2-digit",
-      year: "numeric",
-    });
-
+    // The range bound is the search engine's own date math, not a JavaScript
+    // clock. "now/d" is the start of the current day, worked out by
+    // Elasticsearch when the query actually runs.
+    //
+    // A `new Date()` here would be a clock read inside a cached scope. It does
+    // not fail - it is worse than that. The build runs it once and writes the
+    // day into the stored output, so the bound keeps matching the day the entry
+    // was written: deals that start later never appear, and deals that ended
+    // keep showing, until the entry expires. Nothing reports it (finding 6).
+    //
+    // start_date and end_date are mapped "type": "date" on the catalog index, so
+    // date math is valid on them. See docs/homepage-cache-phase-2-measurements.md.
     mustConditions.push({
       bool: {
         must: [
           { term: { flash_deal_status: 1 } },
           { exists: { field: "start_date" } },
           { exists: { field: "end_date" } },
-          { range: { start_date: { lte: currentDate } } },
-          { range: { end_date: { gte: currentDate } } },
+          { range: { start_date: { lte: "now/d" } } },
+          { range: { end_date: { gte: "now/d" } } },
         ],
       },
     });
@@ -1900,10 +1947,6 @@ function buildAtLeastTwoClause(
   fuzziness: string | number | null,
   boost: number = 1,
 ): any | null {
-  if (searchWords.length < 2) {
-    return null;
-  }
-
   const shouldClausesForEachWord: any[] = [];
 
   searchWords.forEach((word) => {
@@ -2030,10 +2073,6 @@ function buildAtLeastTwoClause(
     });
   });
 
-  if (shouldClausesForEachWord.length === 0) {
-    return null;
-  }
-
   const minimumMatch = searchWords.length < 4 ? 2 : 3;
   const finalBoost = searchWords.length >= 4 ? boost * 2 : boost;
 
@@ -2048,9 +2087,7 @@ function buildAtLeastTwoClause(
 
 function calculateFuzziness(searchText?: string): string | number | null {
   if (!searchText) return null;
-  const length = searchText.length;
   return 1;
-  return length >= 7 && length <= 12 ? 1 : null;
 }
 
 export function buildAggregations(
@@ -2847,13 +2884,6 @@ export async function logSearchTerm({
 }) {
   // 1. Basic Cleaning & Validation
   const cleanText = searchText.trim().toLowerCase();
-  console.log(
-    "Logging search term:",
-    cleanText,
-    "Products count:",
-    productsCount,
-    userData
-  );
   // Mimicking the PHP logic: > 2 chars and not empty
   if (!cleanText || cleanText.length <= 2 || productsCount === 0) return;
 
@@ -2874,13 +2904,14 @@ export async function logSearchTerm({
         "";
       requestUserAgent = requestHeaders.get("user-agent") || "";
     } catch {
-      console.error("Error in Logging Search Term")
+      LogServerError({
+        scenario: "logSearchTerm could not read the request headers",
+      });
     }
 
     const userId = userData?.id ?? userData?.userId;
     const ip = requestIp || userData?.ip || "";
     const userAgent = requestUserAgent || userData?.userAgent || "";
-    console.log(userId,ip,userAgent)
     // 3. Build the "Should" query for Deduplication
     const should = [];
     if (userId) {
@@ -2901,7 +2932,8 @@ export async function logSearchTerm({
 
     if (should.length) {
       query.bool.should = should;
-      query.bool.minimum_should_match = 2;
+      // Two matching identities when we know two or more; with one, that one.
+      query.bool.minimum_should_match = Math.min(2, should.length);
     }
 
     // 4. Check if this search was already logged
@@ -2909,7 +2941,6 @@ export async function logSearchTerm({
       index: search_log_index,
       body: { query },
     });
-    console.log(JSON.stringify(response.hits.hits,null,2));
     // 5. If no hits found, index the new log
     if (response.hits.hits.length === 0) {
       const formattedDate = new Date()
@@ -2927,10 +2958,9 @@ export async function logSearchTerm({
           timestamp: formattedDate,
         },
       });
-      console.log("Search log saved.");
     }
   } catch (error) {
-    console.error("Failed to log search:", error.message);
+    LogServerError({ scenario: "logSearchTerm failed", error });
     throw error;
   }
 }
@@ -2981,7 +3011,7 @@ export async function getPopularSearchTerms(
       })
       .filter((term): term is PopularSearchTerm => Boolean(term));
   } catch (error) {
-    console.error("Failed to fetch popular search terms:", error);
+    LogServerError({ scenario: "getPopularSearchTerms failed", error });
     return [];
   }
 }

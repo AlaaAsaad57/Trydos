@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ElasticsearchReader } from "@/services/elastic/elasticsearch-reader.service";
+import { qaMode } from "utils/server/qaMode";
 import { LogServerError } from "utils/serverErrorReporter";
 
 export async function GET(request: NextRequest) {
@@ -13,17 +14,6 @@ export async function GET(request: NextRequest) {
     const offset = searchParams.get("offset") || null;
     let category_slug = searchParams.get("category_slugs") || undefined;
     // Get country and language from headers
-
-    // Validate required headers
-    if (!country || !language) {
-      return NextResponse.json(
-        {
-          error: "Missing required headers",
-          message: "Both 'country' and 'language' headers are required",
-        },
-        { status: 400 },
-      );
-    }
 
     // Get query parameters
 
@@ -52,6 +42,9 @@ export async function GET(request: NextRequest) {
       country,
       language,
       limit,
+      // What the request proved, never a literal. A literal `true` here would
+      // put the QA shop in front of every customer who opened the home page.
+      qaView: await qaMode(),
       category: category_slug as any,
       searchAfter: offset ? JSON.parse(offset.toString()) : null,
     });
@@ -87,7 +80,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching boutiques:", error);
     LogServerError(
       {
         error: error,

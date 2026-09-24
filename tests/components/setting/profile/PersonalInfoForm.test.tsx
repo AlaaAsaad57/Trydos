@@ -39,14 +39,25 @@ vi.mock("components/Login/Enhanced/AuthOverlay", () => ({
     <div data-testid="auth-overlay">{children}</div>
   ),
 }));
+// The flow's own callbacks are exposed as buttons so a case can finish or
+// close it the way the real one would.
 vi.mock("components/Login/Enhanced/VerifyPhoneFlow", () => ({
-  default: () => <div data-testid="verify-phone-flow" />,
+  default: ({ verify, onSuccess, onClose }: any) => (
+    <div data-testid="verify-phone-flow">
+      <button onClick={() => verify("123456", "verification-id")}>flow verify</button>
+      <button onClick={() => onSuccess("phone-id-token")}>flow success</button>
+      <button onClick={onClose}>flow close</button>
+    </div>
+  ),
 }));
 
-const updateProfile = vi.fn(async () => ({ success: true }));
+const updateProfile = vi.fn(async (..._args: unknown[]) => ({ success: true }));
+const verifyOtpForUpdatePhone = vi.fn(async (..._args: unknown[]) => "phone-id-token");
 vi.mock("services/auth", () => ({
   default: {
     UpdateProfile: (...args: unknown[]) => updateProfile(...(args as [])),
+    VerifyOtpForUpdatePhone: (...args: unknown[]) =>
+      verifyOtpForUpdatePhone(...(args as [])),
   },
 }));
 
@@ -212,6 +223,110 @@ describe("correcting a field (AC-7)", () => {
   });
 });
 
+describe("a save the backend refused", () => {
+  /** How the core backend answers a refused save: the field names and their
+   *  reasons, written as JSON INSIDE the message string. */
+  const refuse = (payload: Record<string, string[]>) =>
+    updateProfile.mockRejectedValueOnce(new Error(JSON.stringify(payload)));
+
+  it("keeps what the shopper typed instead of putting the old value back", async () => {
+    const user = userEvent.setup();
+    await show({ email: "old@trydos.test" });
+    refuse({ email: ["email already exists"] });
+
+    const email = screen.getByPlaceholderText("Enter Email");
+    await user.clear(email);
+    await user.type(email, "taken@trydos.test");
+    await save(user);
+
+    expect(
+      (email as HTMLInputElement).value,
+      "the refused save wiped the e-mail the shopper typed, so they have to type it again to fix it",
+    ).toBe("taken@trydos.test");
+  });
+
+  it("shows the backend's reason under the field the backend named", async () => {
+    const user = userEvent.setup();
+    await show({ email: "old@trydos.test" });
+    refuse({ email: ["email already exists"] });
+
+    const email = screen.getByPlaceholderText("Enter Email");
+    await user.clear(email);
+    await user.type(email, "taken@trydos.test");
+    await save(user);
+
+    expect(
+      await screen.findByText("email already exists"),
+      "the shopper was not told, at the e-mail field, why the core backend refused it",
+    ).toBeInTheDocument();
+  });
+
+  it("marks every field the backend named, not only the first", async () => {
+    const user = userEvent.setup();
+    await show({ email: "old@trydos.test" });
+    refuse({
+      email: ["email already exists"],
+      alternative_phone: ["alternative phone is not valid"],
+    });
+
+    await user.type(
+      screen.getByPlaceholderText("Enter Alternative Phone"),
+      "+10000000009",
+    );
+    await save(user);
+
+    expect(
+      await screen.findByText("email already exists"),
+      "a save refused on two fields marked neither the e-mail nor both",
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("alternative phone is not valid"),
+      "the alternative phone has no message slot, so a refusal on it is invisible",
+    ).toBeInTheDocument();
+  });
+
+  it("takes the backend's message away once the shopper edits that field", async () => {
+    const user = userEvent.setup();
+    await show({ email: "old@trydos.test" });
+    refuse({ email: ["email already exists"] });
+
+    const email = screen.getByPlaceholderText("Enter Email");
+    await user.clear(email);
+    await user.type(email, "taken@trydos.test");
+    await save(user);
+    await screen.findByText("email already exists");
+
+    await user.type(email, "x");
+
+    expect(
+      screen.queryByText("email already exists"),
+      "the backend's message stayed on screen after the shopper changed the e-mail it referred to",
+    ).not.toBeInTheDocument();
+  });
+
+  it("leaves the form alone when the refusal names no field", async () => {
+    const user = userEvent.setup();
+    await show({ email: "old@trydos.test" });
+    updateProfile.mockRejectedValueOnce(new Error("market refused"));
+
+    const email = screen.getByPlaceholderText("Enter Email");
+    await user.clear(email);
+    await user.type(email, "typed@trydos.test");
+    await save(user);
+
+    // Nothing to place under a field — the notification the request layer
+    // already showed is what tells the shopper. What they typed still stands.
+    expect(
+      (email as HTMLInputElement).value,
+      "a refusal that named no field still wiped what the shopper typed",
+    ).toBe("typed@trydos.test");
+    expect(
+      screen.queryByText("market refused"),
+      "a message that names no field was placed under a field anyway",
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe("a visitor who is not signed in (AC-8)", () => {
   const GUEST = { phone: "0", name: "", gender: undefined };
 
@@ -282,5 +397,95 @@ describe("a changed phone number (AC-9)", () => {
       updateProfile,
       "a valid profile with an unchanged number was not saved",
     ).toHaveBeenCalled();
+  });
+});
+
+describe("finishing a phone change", () => {
+  const changePhone = async (user: ReturnType<typeof userEvent.setup>) => {
+    const phone = screen.getByPlaceholderText("Enter Phone");
+    await user.clear(phone);
+    await user.type(phone, "+10000000001");
+    await save(user);
+  };
+
+  it("verifies the new number, then saves it with the phone token and only the changed fields", async () => {
+    const user = userEvent.setup();
+    await show();
+    await changePhone(user);
+
+    await user.click(screen.getByText("flow verify"));
+    expect(
+      verifyOtpForUpdatePhone,
+      "the new number was not verified against the phone-update check",
+    ).toHaveBeenCalledWith("123456", "verification-id");
+
+    await user.click(screen.getByText("flow success"));
+    expect(
+      updateProfile.mock.calls[0]?.[0],
+      "the save did not carry the new number and its phone token, and only those",
+    ).toEqual({ phone: "+10000000001", id_token: "phone-id-token" });
+    expect(screen.queryByTestId("auth-overlay"), "the re-verify step stayed open after the save").not.toBeInTheDocument();
+  });
+
+  it("closing the re-verify step saves nothing", async () => {
+    const user = userEvent.setup();
+    await show();
+    await changePhone(user);
+    await user.click(screen.getByText("flow close"));
+    expect(screen.queryByTestId("auth-overlay"), "closing the re-verify step left it open").not.toBeInTheDocument();
+    expect(updateProfile, "closing the re-verify step still saved").not.toHaveBeenCalled();
+  });
+});
+
+describe("the other field checks", () => {
+  it("refuses a phone number that is not valid, and clears the message on edit", async () => {
+    const user = userEvent.setup();
+    await show();
+    const phone = screen.getByPlaceholderText("Enter Phone");
+    await user.clear(phone);
+    await user.type(phone, "+12");
+    await save(user);
+    expect(
+      screen.getByText("Please enter a valid phone number"),
+      "a phone number that is too short was not refused",
+    ).toBeInTheDocument();
+    await user.type(phone, "3");
+    expect(
+      screen.queryByText("Please enter a valid phone number"),
+      "editing the phone did not clear its message",
+    ).not.toBeInTheDocument();
+  });
+
+  it("clears a refusal on the alternative phone once it is edited", async () => {
+    const user = userEvent.setup();
+    await show();
+    updateProfile.mockRejectedValueOnce(
+      new Error(JSON.stringify({ alternative_phone: ["alternative phone is not valid"] })),
+    );
+    const alt = screen.getByPlaceholderText("Enter Alternative Phone");
+    await user.type(alt, "+10000000009");
+    await save(user);
+    await screen.findByText("alternative phone is not valid");
+    await user.type(alt, "1");
+    expect(
+      screen.queryByText("alternative phone is not valid"),
+      "editing the alternative phone did not clear its message",
+    ).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["Woman", 2],
+    ["Other", 3],
+    ["Man", 1],
+  ])("choosing %s saves gender %s when it changed", async (label, value) => {
+    const user = userEvent.setup();
+    await show({ gender: value === 1 ? 2 : 1 });
+    await user.click(screen.getByText(label));
+    expect(
+      screen.getByText(label).getAttribute("data-pw"),
+      `${label} is not marked as the chosen gender`,
+    ).toBe("active-gender-input");
+    await save(user);
+    expect(updateProfile.mock.calls[0]?.[0], `the gender change to ${label} was not saved`).toEqual({ gender: value });
   });
 });

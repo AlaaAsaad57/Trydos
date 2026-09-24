@@ -1,4 +1,3 @@
-import React from "react";
 import OrderItemTime from "./OrderItemTime";
 import OrderItemId from "./OrderItemId";
 import OrderStatus from "./OrderStatus";

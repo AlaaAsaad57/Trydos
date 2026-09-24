@@ -7,10 +7,16 @@
 
 import { describe, expect, it, vi } from "vitest";
 
+import { LogError } from "utils/functions";
 import {
   getFilterStateForItem,
   getFilterStateForItemLegacy,
 } from "utils/listing/filterItemState";
+
+// The reporter, faked. The unit under test now reports a bad filter value
+// through it instead of printing to the console, so this is what the case that
+// asserts on reporting reads.
+vi.mock("utils/functions", () => ({ LogError: vi.fn() }));
 
 const BASE = "/filters";
 
@@ -151,15 +157,19 @@ describe("the older filter links, which use a query instead of a path", () => {
   });
 
   it("reports the fault and starts fresh when the query cannot be read", () => {
-    const reported = vi.spyOn(console, "error").mockImplementation(() => {});
+    // Reported through `LogError`, not `console.error`. The console call was
+    // replaced so a runner log carries only what somebody acts on, while the
+    // fault itself still reaches Sentry like every other one.
     const result = getFilterStateForItemLegacy(
       new URLSearchParams("brands=not-a-list"),
       "nike",
       "brands",
     );
-    expect(reported).toHaveBeenCalled();
+    expect(
+      LogError,
+      "a filter value that will not parse was swallowed without being reported",
+    ).toHaveBeenCalled();
     expect(read(result.href, "brands")).toEqual(["nike"]);
-    reported.mockRestore();
   });
 
   it("reads the current filters when they arrive as a plain object", () => {
@@ -175,5 +185,27 @@ describe("the older filter links, which use a query instead of a path", () => {
     expect(result.isFiltered).toBe(true);
     // Chosen already, so the link takes it off rather than adding it twice.
     expect(result.href).toBe("?");
+  });
+});
+
+describe("the legacy price filter", () => {
+  it("sets one price range, and clears it when it was already chosen", () => {
+    const range = "[10-20]";
+    const off = getFilterStateForItemLegacy(new URLSearchParams(), range, "prices");
+    const chosen = new URLSearchParams({ prices: encodeURIComponent(JSON.stringify([range])) });
+    const on = getFilterStateForItemLegacy(chosen, range, "prices");
+    expect(off.isFiltered, "an unchosen range read as chosen").toBe(false);
+    expect(decodeURIComponent(decodeURIComponent(off.href)), "choosing the range did not write it").toContain(JSON.stringify([range]));
+    expect(on.isFiltered, "a chosen range read as not chosen").toBe(true);
+    expect(on.href.includes("prices="), "clearing the range left it in the address").toBe(false);
+  });
+});
+
+describe("the legacy filter with a parent value", () => {
+  it("replaces the chosen parent with the child when the child is added", () => {
+    const chosen = new URLSearchParams({ categories: encodeURIComponent(JSON.stringify(["men", "shoes"])) });
+    const state = getFilterStateForItemLegacy(chosen, "men-shirts", "categories", ["men"]);
+    const written = JSON.parse(decodeURIComponent(decodeURIComponent(state.href.split("=")[1])));
+    expect(written, "the parent stayed chosen next to its child").toEqual(["shoes", "men-shirts"]);
   });
 });

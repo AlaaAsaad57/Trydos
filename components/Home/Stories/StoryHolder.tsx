@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 import TransParentLoader from "components/global/TransParentLoader";
 import {
@@ -31,7 +32,15 @@ function StoryHolder({ story, active, isPaused }) {
   const user = getUserStories();
   // check if the user is the owner of the story
   const isOwner = user?.id === story?.id;
-  console.log(getUserStories(), "story holder user");
+
+  // **The item the report and the delete would act on**, exposed so a test can
+  // prove which story it is about to touch before it touches it.
+  //
+  // It mirrors the report's own expression, fallback included
+  // (`ReportStoryModal` is given `story.stories[currentStoryId]?.id ||
+  // story.stories[0]?.id`), because the report is the irreversible one. Delete
+  // reads the first half of the same expression, so this covers both.
+  const actsOnStoryId = story.stories?.[currentStoryId]?.id || story.stories?.[0]?.id;
   const handleDeleteStory = async () => {
     setLoading(true);
     try {
@@ -82,6 +91,11 @@ function StoryHolder({ story, active, isPaused }) {
     <div
       className="story-holder relative w-full h-full flex items-center justify-center"
       style={{ width: "100%", height: "100%", position: "relative" }}
+      // **Only on the active holder.** The cube carousel mounts several holders
+      // at once — one per pane — so an unconditional attribute would also match
+      // the neighbouring authors' groups, and a test locator would have no way
+      // to tell which one the app is showing.
+      data-story-id={active ? actsOnStoryId : undefined}
     >
       {active && (
         <div className="z-99 top-[30px] right-[20px] absolute flex flex-row items-center gap-x-2">
@@ -161,18 +175,35 @@ function StoryHolder({ story, active, isPaused }) {
           </span>
         </div>
       )}
-      {showDeleteModal && (
-        <ConfirmModal
-          onCancel={() => setShowDeleteModal(false)}
-          onConfirm={handleDeleteStory}
-          loading={loading}
-          type="Delete"
-          showModal={showDeleteModal}
-          confirmMessage={"Are you sure you want to delete this story?"}
-          confirmTilte={"Delete Story"}
-          dataCy={"delete-story-confirm-modal-button"}
-        />
-      )}
+      {/* Through a portal, out of the carousel.
+        *
+        * The story viewer is a cube: `react-cube-navigation` mounts four panes
+        * at once, and every one of them carries a `transform`. A transform
+        * creates a stacking context, so a modal rendered *inside* a pane cannot
+        * escape it however large its `z-index` is — and `ConfirmModal` asks for
+        * `999999999999999`. Meanwhile the inactive panes are only marked
+        * `aria-hidden`; they still take pointer events, and their full-height
+        * tap zones landed on top of this dialog.
+        *
+        * The result was a Delete button that could not be pressed: the tap went
+        * to a hidden pane's "previous story" zone instead. `ReportStoryModal`
+        * never had the problem because it already portals to the body, which is
+        * what this now does too. */}
+      {showDeleteModal &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <ConfirmModal
+            onCancel={() => setShowDeleteModal(false)}
+            onConfirm={handleDeleteStory}
+            loading={loading}
+            type="Delete"
+            showModal={showDeleteModal}
+            confirmMessage={"Are you sure you want to delete this story?"}
+            confirmTilte={"Delete Story"}
+            dataCy={"delete-story-confirm-modal-button"}
+          />,
+          document.body,
+        )}
       {showReportModal && (
         <ReportStoryModal
           storyId={

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import Image from "next/image";
 import UploadVideo from "../UploadVideo";
-import { blobToDataURL } from "components/Chat/chatsFunctions";
 import { useStopwatch } from "react-timer-hook";
 import { translateFunction } from "utils/functions";
 
@@ -110,9 +109,9 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalProps)
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
     }
-    stop();
+    pause();
     setCapturing(false);
-  }, [stop]);
+  }, [pause]);
 
   // Max video length of 1 minute (60 seconds)
   useEffect(() => {

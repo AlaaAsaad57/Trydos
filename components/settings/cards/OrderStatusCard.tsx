@@ -32,7 +32,11 @@ function OrderStatusCard({ status, fullWidth, contact_person_name }) {
           isRtl ? " text-right " : " "
         }`}
       >
-        <span className={`capitalize ${isRtl ? " text-right " : " "}`}>
+        <span
+          className={`capitalize ${isRtl ? " text-right " : " "}`}
+          data-pw="order-status"
+          data-status={status?.value}
+        >
           {status?.label}
         </span>
         {status?.value === "delivered" && (

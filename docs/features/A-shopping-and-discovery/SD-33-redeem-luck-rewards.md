@@ -92,7 +92,7 @@ client-trust pieces below, plus an in-progress migration between two timer imple
 
 
 - ⚠️ **Two timer implementations coexist.** A modern shared `useLuckTimer` hook and an older
-  `BuyButtonProduct` / `RedeemButton` / `LuckyDrawTimer` path both exist; a migration onto the hook
+  `BuyButtonProduct` / `LuckyDrawTimer` path both exist; a migration onto the hook
   (see `docs/superpowers/plans/2026-07-01-luck-price-engine.md`) appears partial.
 
 

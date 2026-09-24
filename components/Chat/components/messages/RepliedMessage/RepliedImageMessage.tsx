@@ -23,7 +23,7 @@ function RepliedImageMessage({ deleted_by_user_id, onClick, channel_member }) {
         if (!deleted_by_user_id) onClick();
       }}
     >
-      <div className={"message-body text-body" + "first-chat"}>
+      <div className={"message-body text-body " + "first-chat"}>
         <div
           className={"absolute-avatar " + `${showTextAvatar && "text-avatar"}`}
         >

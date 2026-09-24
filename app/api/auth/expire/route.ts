@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
+import { logRequest, startTimer } from "reqLogger";
 import {
   deleteSecureCookie,
   getSecureCookie,
@@ -92,6 +93,7 @@ export async function POST(request: NextRequest) {
       // The comments backend's token — stored under this deliberately opaque
       // cookie name (see COOKIE_NAMES.USER_ID_HASH).
       deleteSecureCookie(COOKIE_NAMES.USER_ID_HASH),
+      deleteSecureCookie(COOKIE_NAMES.COMMENTS_REFRESH_TOKEN),
       deleteSecureCookie(COOKIE_NAMES.USER_CHAT),
       deleteSecureCookie(COOKIE_NAMES.USER_STORIES),
       deleteSecureCookie(COOKIE_NAMES.WALLET_USER),
@@ -118,6 +120,7 @@ export async function POST(request: NextRequest) {
     const country = request.headers.get("x-country")?.trim() || "sy";
     const language = request.headers.get("x-language")?.trim() || "en";
 
+    const elapsed = startTimer();
     const response = await fetch(
       process.env.GO_BACKEND_URL + REGISTER_GUEST_URL,
       {
@@ -134,6 +137,17 @@ export async function POST(request: NextRequest) {
     );
 
     const data = await response.json();
+    await logRequest({
+      server: "market",
+      url: REGISTER_GUEST_URL,
+      method: "POST",
+      status: response.status,
+      durationMs: elapsed(),
+      backend: "gateway",
+      responseBody: data,
+      userId: data?.data?.user?.id,
+      userName: data?.data?.user?.name,
+    });
 
     if (!response.ok) {
       LogServerError({ error: data, type: "auth/expire route error" });

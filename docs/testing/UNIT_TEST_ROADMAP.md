@@ -319,13 +319,13 @@ number is worse than a crash because nobody notices.
 |---|---|---|---|
 | 12 | `unit-tests-money-and-time-formatting` | `utils/tinyUtils.tsx` (805) — price, number, date and time formatting; `utils/startingSettings.ts` (56) | |
 | 13 | `unit-tests-product-detail-data` | `serverRequests/product.tsx` (723), `utils/pagesDataRequests/ProductPageData.ts` (625) | 🔒 |
-| 14 | `unit-tests-price-resolution` | `components/products/ProductCard/derivedProps.ts`, `store/Details/reducer.ts` (502) — variant selection driving the displayed price | |
+| 14 | `unit-tests-price-resolution` | `components/products/ProductCard/flashPrice.ts` — the flash-deal rule: which price a card shows while a deal runs, and the time left. **Row corrected 2026-08-26**: the two files this row used to name hold no price rule — `derivedProps.ts` copies fields, and `store/Details/reducer.ts` is the listing filter store. The per-country override is already covered by `tests/services/elastic/helpers.test.ts`; the variant price belongs to phase 19 | |
 | 15 | `unit-tests-cart-store` | `store/Cart/reducer.ts` (676) — `initAddressForm`, `addAddress`, `startUpdateAddress`, `updateAddress`, `setDefaultAddress`, coupon and discount, `setCodUser`, `setCryptoUser`, `setCreditUser`, `setWalletUser`, wallet balance | |
 | 16 | `unit-tests-cart-service` | `services/cart.ts` (159) | 🔒 |
 | 17 | `unit-tests-order-placement` | `services/order.ts` (966) — checkout and the place-order payload | 🔒 |
 | 18 | `unit-tests-order-lifecycle` | `services/order.ts` — status changes, cancel, return; `services/orders.ts` (84); `utils/orderFunnel.ts` (244) | 🔒 |
 | 19 | `component-tests-add-to-cart` | `components/Cart/AddToCart/` (12 files) — `ColorSelect`, `SizeSelect`, `PricesRow`, `Button`, `NotifyButton`, `CartContentOfProduct`, `FlashDealBannerCart` | |
-| 20 | `component-tests-checkout` | `Cart/` — `PlaceOrderWidget`, `PlaceOrderButtons`, `PaymentMethod`, `ShippingAddressContainer`, `AddAddressForm`, `SelectRegion`, `couponElement`, `CheckoutButton`, `WalletPaymentModal`, `OrderSuccess`, `CartItem`, `CartErrorComponent` | |
+| 20 | `component-tests-checkout` | `Cart/` — `PlaceOrderWidget`, `PlaceOrderButtons`, `PaymentMethod`, `ShippingAddressContainer`, `AddAddressForm`, `SelectRegion`, `couponElement`, `WalletPaymentModal`, `OrderSuccess`, `CartItem`, `CartErrorComponent` | |
 
 **Phase 12** is first in this journey because every price the user sees passes
 through it. Pin a fixed timezone and locale, or date assertions pass locally and
@@ -335,9 +335,14 @@ form only, so verified users silently get `0` for `decimal points` and
 `shipping_duration_days`. Cover **both** key shapes and assert what the app does
 when the value is missing.
 
-**Phase 14** pins the precedence a shopper actually sees: root `offered_price`,
-the per-country override nested under `country_offer_prices`, and the flash-deal
-price. Getting this wrong shows one price on the card and charges another.
+**Phase 14** pins the flash-deal rule the shopper sees on a card: the deal price
+while the deal runs, the ordinary price once it has ended, and the time left. The
+rule reads the end of the deal's last day in **local** time, so a test that writes
+the date as `"2026-08-27"` is timezone-dependent and one that writes
+`"2026-08-27T00:00:00"` is not. **Three other copies of the same end-of-day logic
+are still uncovered** — `Server/product/ProductPhotoSliderWrapper.tsx:48`,
+`Cart/AddToCart/FlashDealBannerCart.tsx:18` and `FlashDealBanner.tsx:31` — so this
+phase pins one copy, not the behaviour everywhere.
 
 **Phase 15** deliberately excludes the ~40 `setX: (v) => set({ x: v })`
 one-liners in the Cart slice. Testing a setter asserts that Zustand works, not
@@ -369,7 +374,7 @@ cheapest first. Phase 22 exists to lock the invariants that make that visible.
 | 22 | `unit-tests-elastic-price-and-sort` | `helpers.ts` — price aggregation and filter buckets; `services/elastic/sortKeys.ts` (16) |
 | 23 | `unit-tests-elastic-hit-mapping` | `helpers.ts` — hit → product mapping and price resolution |
 | 24 | `unit-tests-search-execution-and-filters` | `services/elastic/elasticSearch.ts` (1197) — execution, pagination, filter and sort application; `store/search/reducer.ts` (261), `store/listing/reducer.ts` (68); `utils/listing/filterItemState.ts` (179), `normalizeListingProduct.ts` (42), `searchPathRedirect.ts` (42) |
-| 25 | `component-tests-listing-and-filters` | `components/ListingPage/` (9), `components/Listing/` (11), `components/filterPage/` (3), `components/products/ProductCard/` |
+| 25 | `component-tests-listing-and-filters` | `components/ListingPage/` (9), `components/Listing/` (11), `components/filterPage/` (3), `components/products/ProductCard/` — **`tests/components/products/ProductCard/index.test.tsx` already exists** (phase 14). Extend it; a second parallel file for the same component is a defect (PL-14) |
 
 **Phase 22** carries the invariants: `offered_price` is always present, and a
 per-country override is **always** nested under `country_offer_prices`, never

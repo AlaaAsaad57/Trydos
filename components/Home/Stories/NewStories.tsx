@@ -1,6 +1,6 @@
 "use client";
 import "styles/stories.css";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Cube from "./CubeCarousel";
 import { SelectStory } from "store/homepage/actions";
 import { useSwipeable } from "react-swipeable";

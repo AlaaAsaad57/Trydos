@@ -17,10 +17,9 @@ import {
   DashButton,
   EmptyState,
   ErrorState,
-  LoadingState,
   dashInputClass,
 } from "components/SellerDashboard/ui";
-import { GetTicket } from "utils/UploadUtils";
+import { ListRowsSkeleton, TileGridSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -211,6 +210,7 @@ function DeleteConfirmModal({
             {translateFunction("Cancel")}
           </DashButton>
           <button
+            data-pw="seller-story-delete-confirm"
             onClick={onConfirm}
             disabled={loading}
             className="flex-1 h-[44px]  min-w-[125px] rounded-[12px] bg-[#f85555] text-white medium text-[14px] hover:bg-[#e84444] disabled:opacity-50 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
@@ -306,7 +306,7 @@ function ProductPickerModal({
 
         <div className="flex-1 overflow-y-auto p-5 lg:p-6">
           {loading ? (
-            <LoadingState label={translateFunction("Loading products...")} />
+            <ListRowsSkeleton rows={4} />
           ) : products.length === 0 ? (
             <EmptyState
               icon="products"
@@ -322,6 +322,8 @@ function ProductPickerModal({
                       : product.images?.[0]?.file_path;
                   return (
                     <button
+                      data-pw="seller-story-product-row"
+                      data-id={product.product_id || product.id}
                       key={product.product_id || product.id}
                       onClick={() =>
                         onSelect({
@@ -532,6 +534,7 @@ function UploadStoryModal({
 
       <div className="fixed inset-0 z-999999999 flex items-center justify-center p-4 bg-black/45">
         <div
+          data-pw="seller-story-upload"
           className={`relative w-full max-w-[400px] max-h-[92vh] flex flex-col bg-white rounded-[20px] overflow-hidden text-[#3c3c3c] ${
             uploading ? "pointer-events-none" : ""
           }`}
@@ -628,6 +631,7 @@ function UploadStoryModal({
                       <DashIcon name="link" size={16} />
                     </span>
                     <input
+                      data-pw="seller-story-link"
                       type="url"
                       value={link}
                       onChange={handleLinkChange}
@@ -657,7 +661,10 @@ function UploadStoryModal({
                     {translateFunction("Linked product")}
                   </label>
                   {linkedProduct ? (
-                    <div className="flex items-center gap-3 bg-[#388CFF]/[0.06] border border-[#388CFF]/20 rounded-[12px] p-2.5">
+                    <div
+                      data-pw="seller-story-product-chosen"
+                      className="flex items-center gap-3 bg-[#388CFF]/[0.06] border border-[#388CFF]/20 rounded-[12px] p-2.5"
+                    >
                       {linkedProduct.image ? (
                         <img
                           src={linkedProduct.image}
@@ -675,6 +682,7 @@ function UploadStoryModal({
                         </p>
                         <div className="flex items-center gap-2 mt-0.5">
                           <button
+                            data-pw="seller-story-product-pick"
                             onClick={() => setShowProductPicker(true)}
                             className="text-[12px] medium text-[#388CFF] hover:opacity-80"
                           >
@@ -692,6 +700,7 @@ function UploadStoryModal({
                     </div>
                   ) : (
                     <button
+                      data-pw="seller-story-product-pick"
                       onClick={() => setShowProductPicker(true)}
                       className="w-full flex items-center gap-2.5 px-4 h-[48px] rounded-[12px] bg-[#f8f8f8] border border-[#ededed] text-[#505050] hover:bg-white hover:border-[#5d5d5d]/40 transition-colors active:scale-[0.99]"
                     >
@@ -717,6 +726,7 @@ function UploadStoryModal({
               {translateFunction("Cancel")}
             </DashButton>
             <DashButton
+              data-pw="seller-story-share"
               icon="check"
               onClick={handleShareStory}
               loading={uploading}
@@ -727,6 +737,7 @@ function UploadStoryModal({
           </div>
 
           <input
+            data-pw="seller-story-file"
             ref={fileInputRef}
             type="file"
             accept=".jpg,.jpeg,.png,.gif,.mp4,.mov,.3gp,.avi"
@@ -759,7 +770,14 @@ function StoryCard({
   const hasFooter = !!story.link || !!story.product_slug || canDelete;
 
   return (
-    <div className="group bg-white rounded-[16px] border border-[#ededed] overflow-hidden hover:border-transparent hover:shadow-[0_10px_28px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
+    // `data-id` is the story's own id, so a test can name the one row it made
+    // rather than counting rows. Same attribute the product story card already
+    // carries (`components/products/ProductStories.tsx`).
+    <div
+      data-pw="seller-story-card"
+      data-id={story.id}
+      className="group bg-white rounded-[16px] border border-[#ededed] overflow-hidden hover:border-transparent hover:shadow-[0_10px_28px_rgba(0,0,0,0.10)] hover:-translate-y-1 transition-all duration-300 flex flex-col"
+    >
       {/* Thumbnail (clickable → viewer) */}
       <button
         onClick={onView}
@@ -837,6 +855,7 @@ function StoryCard({
 
           {canDelete && (
             <button
+              data-pw="seller-story-delete"
               onClick={onDelete}
               className="mt-auto w-[100px] py-1.5 text-[12px] min-w-[100px] medium text-[#f85555] hover:bg-[#fff1f1] rounded-[10px] border border-[#ffd9d9] transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
             >
@@ -958,7 +977,18 @@ export default function StoriesTab({
   };
 
   return (
-    <div className="space-y-6">
+    // The two permission flags are read from the props, not inferred from which
+    // buttons happen to be drawn. A browser test has to know whether this
+    // account may delete BEFORE it uploads anything — a story it cannot remove
+    // is a row left on a shared environment for good. Inferring it from the
+    // delete button cannot work: that button lives inside a story card, so on
+    // an empty grid "absent" means both "no permission" and "no stories".
+    <div
+      data-pw="seller-stories"
+      data-can-create={String(canCreate)}
+      data-can-delete={String(canDelete)}
+      className="space-y-6"
+    >
       {/* Top bar */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -975,7 +1005,11 @@ export default function StoriesTab({
           )}
         </div>
         {canCreate && (
-          <DashButton icon="plus" onClick={() => setShowUploadModal(true)}>
+          <DashButton
+            data-pw="seller-stories-add"
+            icon="plus"
+            onClick={() => setShowUploadModal(true)}
+          >
             {translateFunction("Add Story")}
           </DashButton>
         )}
@@ -983,17 +1017,22 @@ export default function StoriesTab({
 
       {/* Error state */}
       {error && !loading && (
-        <ErrorState message={error} onRetry={() => fetchStories(page)} />
+        <ErrorState
+          data-pw="seller-stories-error"
+          message={error}
+          onRetry={() => fetchStories(page)}
+        />
       )}
 
       {/* Loading state */}
       {loading && stories.length === 0 && (
-        <LoadingState label={translateFunction("Loading stories...")} />
+        <TileGridSkeleton tiles={6} />
       )}
 
       {/* Empty state */}
       {!loading && !error && stories.length === 0 && (
         <EmptyState
+          data-pw="seller-stories-empty"
           icon="stories"
           title={translateFunction("No stories yet")}
           subtitle={translateFunction(
@@ -1004,7 +1043,10 @@ export default function StoriesTab({
 
       {/* Stories grid */}
       {stories.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div
+          data-pw="seller-stories-grid"
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+        >
           {stories.map((story) => (
             <StoryCard
               key={story.id}

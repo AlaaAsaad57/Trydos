@@ -399,8 +399,22 @@ or a token in a failure message is published, not merely untidy.
 
 | File | Runs on | Runs |
 |---|---|---|
-| `tests.yml` *(unchanged)* | `pull_request` + `push` → `develop`, `main` | parity, lint, types, unit |
-| `test-e2e.yml` *(new)* | `push` → `develop`, `main`; nightly; dispatch | preflight, build, browser journeys |
+| `tests.yml` | Friday 02:10 UTC (`main`); dispatch | parity, lint, types, unit |
+| `test-e2e.yml` | Friday 02:30 UTC (`main`); dispatch | calls `e2e-lane.yml` twice — once per lane |
+| `e2e-lane.yml` | `workflow_call` only | preflight, build, browser journeys for one lane |
+
+**The suite runs as two lanes, at the same time.** It was one serial job of about
+40 minutes, and it was serial because of **one staging account**: six spec files
+sign in as it, spend a one-time code, or write a real order, and two of those at
+once rotate each other's credential. The other six browse as a guest or fake
+every answer, so they share nothing. Splitting by what a spec shares — not by how
+slow it is — lets the two run together, and the wall time becomes the longer lane
+instead of the sum (about 30 minutes rather than 40).
+
+The two lane lists live in `tests/e2e/cli.ts`, deliberately not in YAML: a spec
+in neither lane would never run, and `cli.ts` checks both lists against the
+folder on every run and stops with the file name if one is unassigned, in both,
+or gone. Adding a spec needs a line there and no change to either workflow.
 
 **The e2e job is its own workflow file, not a job in `tests.yml`.** The design
 first put it in `tests.yml`. That is wrong, and the reason is worth stating
@@ -417,8 +431,8 @@ secret.
 
 1. **Never cancelled.** `cancel-in-progress: false`. A queued run is cheap; an
    orphaned order is not.
-2. **Only one run may touch staging at a time.** The push run and the nightly
-   share one global `live-suite` group. Two runs in the same staging shop break
+2. **Only one run may touch staging at a time.** The Friday run and a run
+   started by hand share one global `live-suite` group. Two runs in the same staging shop break
    each other for reasons that look exactly like product bugs.
 
 **The environment is one secret, `E2E_ENV_FILE`, holding the whole

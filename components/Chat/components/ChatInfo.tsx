@@ -1,4 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { ConfirmModal } from "components/global/ConfirmModal";
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import Image from "next/image";
 import Spinner from "components/global/Spinner";
@@ -47,15 +49,16 @@ function ChatInfo({
 
   useEffect(() => {
     if (ref.current) ref.current.style.display = "flex";
-    setTimeout(() => {
-      ref.current.style.right = "0px";
+    const slideIn = setTimeout(() => {
+      if (ref.current) ref.current.style.right = "0px";
     }, 300);
 
-    return () => {};
+    return () => clearTimeout(slideIn);
   }, []);
 
   const [isBlocked, setIsBlocked] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   useEffect(() => {
     if (
       activeChat?.channel_members?.find((s) => s.user_id !== getUser()?.id)
@@ -321,11 +324,7 @@ function ChatInfo({
           <div className="chat-user-options">
             <div
               className="chat-user-option delete-option"
-              onClick={() => {
-                DeleteChatAction(activeChat?.id);
-                deleteChat({ id: activeChat?.id });
-                cancel();
-              }}
+              onClick={() => setConfirmDelete(true)}
             >
               <img src="/icons/chat/deleteInfo.svg" />{" "}
               <span>{translateFunction("Delete Chat")}</span>
@@ -359,6 +358,32 @@ function ChatInfo({
           id={activeChat?.id}
         />
       )}
+      {confirmDelete &&
+        createPortal(
+          // The chat window sits at z-index 9999999999999 (public/styles/chat.css)
+          // and ConfirmModal at 999999999999999. Both are past the 32-bit limit a
+          // browser allows for z-index, so both clamp to 2147483647 and tie. This
+          // wrapper takes that top value in its own stacking context at the end of
+          // <body>, so the confirm window is above the chat on purpose.
+          <div style={{ position: "relative", zIndex: 2147483647 }}>
+            <ConfirmModal
+              showModal={confirmDelete}
+              loading={false}
+              type="Delete"
+              confirmTilte="Delete Chat"
+              confirmMessage="Are you sure you want to delete this chat?"
+              onCancel={() => setConfirmDelete(false)}
+              onConfirm={() => {
+                DeleteChatAction(activeChat?.id);
+                deleteChat({ id: activeChat?.id });
+                setConfirmDelete(false);
+                cancel();
+              }}
+              dataCy="confirm-delete-chat"
+            />
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

@@ -1,14 +1,9 @@
-import React, { useRef, useState, useCallback, useMemo } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import { useAppStore } from "store";
 import { getUserChat } from "utils/functions";
 import ChatPhoto from "../../ChatPhoto";
 import Spinner from "components/global/Spinner";
-import {
-  DeleteMessage,
-  getMessageStatus,
-  getMessageTime,
-  getStatues,
-} from "store/chat/chatUtils";
+import { DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
 
 // 1. Move helper outside to prevent re-declaration on every render
@@ -102,8 +97,9 @@ function AudioMessage({
   return (
     <div
       onMouseLeave={() => {
+        // Only the menu closes on hover-out. The delete confirm box must not:
+        // it closes on its own Cancel, backdrop, Escape, or a chosen answer.
         setOpen(false);
-        setDelete(false);
       }}
       className={"message-hold" + " " + `${openMenu && "ac"}`}
     >
@@ -208,38 +204,6 @@ function AudioMessage({
             )}
           </div>
         )}
-      {/* <div className="message-date hovers">
-        {
-          <div className="sent-date">
-            {
-              <>
-                <img src="/icons/chat/sent.svg" />
-                {getMessageTime(created_at, true)}
-              </>
-            }
-          </div>
-        }
-        {getStatues({ message_status }).is_received === 1 && (
-          <div className="recieve-date">
-            <img src="/icons/chat/recieved.svg" />
-            {getMessageTime(
-              message_status.filter((a) => a.user_id !== user?.id)[0]
-                ?.received_at,
-              false
-            )}
-          </div>
-        )}
-        {getStatues({ message_status }).is_watched === true && (
-          <div className="recieve-date">
-            <img src="/icons/chat/read.svg" className="w-[10px] h-[10px]" />
-            {getMessageTime(
-              message_status.filter((a) => a.user_id !== user?.id)[0]
-                ?.watched_at,
-              false
-            )}
-          </div>
-        )}
-      </div> */}
       <OptionsMenu
         isPrivate={isPrivate}
         message={{

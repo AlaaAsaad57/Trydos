@@ -141,7 +141,7 @@ export const SetGAUser = (user, isNewUser = false) => {
     user_type: user.phone === "0" ? "guest" : isNewUser ? "new" : "registered",
     user_location: country?.name,
     days_age_account: getAccountAge(user),
-    gender: user?.gender?.name === "Man" ? "male" : "female",
+    gender: gaGender(user),
   });
   // @ts-ignore
   window.gtag?.("set", {
@@ -153,9 +153,16 @@ export const SetGAUser = (user, isNewUser = false) => {
     user_type: user.phone === "0" ? "guest" : isNewUser ? "new" : "registered",
     user_location: country?.name,
     days_age_account: getAccountAge(user),
-    gender: user?.gender?.name === "Man" ? "male" : "female",
+    gender: gaGender(user),
   });
 };
+// A user who never gave a gender is sent with no gender, not as female.
+const gaGender = (user) =>
+  user?.gender?.name === "Man"
+    ? "male"
+    : user?.gender?.name === "Woman"
+      ? "female"
+      : undefined;
 const getAccountAge = (user) => {
   const now = new Date();
   const accountCreatedAt = new Date(user.created_at);

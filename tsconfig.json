@@ -35,6 +35,12 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx",
+    // The seven .jsx files in the app (store/homepage/actions.jsx and the six
+    // call screens under app/(special)) were outside this list. Path aliases
+    // are applied per tsconfig `include`, so nothing here resolved
+    // "services/story" or "utils/GAEvents" inside them — which the app's own
+    // bundler papers over and the test runner does not.
+    "**/*.jsx",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules"]

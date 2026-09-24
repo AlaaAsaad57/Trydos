@@ -1,4 +1,3 @@
-import React from "react";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
 import FlashDealBannerCart from "./FlashDealBannerCart";
@@ -198,8 +197,6 @@ function ExtraInfoArea({
   } else {
     return <CartContentOfProduct product={product} />;
   }
-
-  return <></>;
 }
 
 export default ExtraInfoArea;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import auth from "services/auth";
 import { showErrorNotification } from "store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
@@ -129,7 +129,7 @@ function ProductLikeButton({
         translateFunction("Failed to update like status. Please try again."),
       );
 
-      console.error("Like/Unlike error:", error);
+      LogError({ scenario: "ProductLikeButton: like or unlike failed", error });
     } finally {
       setLikeLoading(false);
     }

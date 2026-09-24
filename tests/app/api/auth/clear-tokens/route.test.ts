@@ -221,3 +221,37 @@ describe("marking only the service that failed (AC-22)", () => {
     expect(headers.__writes).toEqual([]);
   });
 });
+
+describe("when the cookie store breaks", () => {
+  it("answers 500 with a message that names no backend technology", async () => {
+    headers.cookies.mockRejectedValue(new Error("cookie store broke"));
+    const { POST } = await loadRoute();
+
+    const response = await POST(makeRequest({ tokens: [COOKIE_NAMES.CHAT_TOKEN] }));
+
+    expect(response.status, "a broken cookie store did not produce a 500").toBe(500);
+    await expect(
+      response.json(),
+      "the 500 answer did not carry the plain failure message",
+    ).resolves.toEqual({ message: "Failed to clear tokens" });
+  });
+});
+
+describe("a body that is not JSON", () => {
+  it("clears nothing and still answers success", async () => {
+    const { POST } = await loadRoute();
+
+    const response = await POST(
+      new NextRequest("https://trydos.test/api/auth/clear-tokens", {
+        method: "POST",
+        body: "not json",
+      }),
+    );
+
+    await expect(response.json(), "a body that is not JSON did not clear nothing").resolves.toEqual({
+      success: true,
+      cleared: [],
+    });
+    expect(headers.__deletes, "a cookie was deleted for a body that is not JSON").toEqual([]);
+  });
+});

@@ -25,6 +25,7 @@ import ProductColorsBottomSheet from "components/ServerWrapper/ProductWrapper/Pr
 import ProductColorsCards from "components/ServerWrapper/ProductWrapper/ProductColorsCards";
 import type { ListingProduct } from "types/listing";
 import { deriveCardProps, type CardContext } from "./derivedProps";
+import { resolveCardPrice } from "./flashPrice";
 import { useLuckTimer } from "hooks/useLuckTimer";
 
 interface ProductCardProps extends CardContext {
@@ -62,7 +63,6 @@ function ProductCard({
     brand,
     is_luck,
     endDate,
-    is_flashDeal,
     luck_price,
     price,
     offer_price,
@@ -88,37 +88,16 @@ function ProductCard({
     visible: inView,
   });
   let isRtl = language === "ar" || language === "ku";
-  let isFlash: any = null;
-  let flash_price = offer_price ?? price;
-  if (is_flashDeal && endDate) {
-    const now = new Date();
-    const dealEnd = new Date(endDate);
-    dealEnd.setHours(23, 59, 59, 999);
-    isFlash = now < dealEnd;
-    const endDateObj = new Date(endDate);
-    endDateObj.setHours(23, 59, 59, 999);
-    const difference = endDateObj.getTime() - now.getTime();
-    if (difference > 0) {
-      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-      const hours = Math.floor(
-        (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
-      );
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-
-      isFlash = {
-        days: days,
-        hours: hours,
-        minutes: minutes,
-        seconds: seconds,
-      };
-    } else {
-      isFlash = null;
-    }
-  }
-  if (isFlash) {
-    flash_price = flash_deal_price ?? offer_price ?? price;
-  }
+  // One clock read per card per render, the same as before the rule moved out.
+  const { flashPrice: flash_price, timeLeft: isFlash } = resolveCardPrice(
+    {
+      endDate,
+      flashDealPrice: flash_deal_price,
+      offerPrice: offer_price,
+      price,
+    },
+    new Date(),
+  );
 
   const shouldShowOrangeBorder = () => {
     if (isFlash || is_luck) {
@@ -212,7 +191,6 @@ function ProductCard({
               }
             : null
         }
-        ariaLabel={`go to product ${name} ${language}`}
         href={getUrlofProduct(color, language, country, slug)}
         className="product-container  align-center flex-col relative pb-[12px]"
         data-pw="product_link"
@@ -363,10 +341,14 @@ function ProductCard({
           style={{
             direction: isRtl ? "rtl" : "ltr",
           }}
-          className="product-body pl-[13px] pr-[15px] z-10 flex-1 mt-[8px] w-full flex-col align-start justify-start max-h-[60px] min-h-[30px]"
+          className={`product-body ${
+            isRtl ? "pl-[15px] pr-[13px]" : "pl-[13px] pr-[15px]"
+          } z-10 flex-1 mt-[8px] w-full flex-col align-start justify-start max-h-[60px] min-h-[30px]`}
         >
           <div
-            className="prouct-details max-w-full whitespace-normal inline-block  text-left align-top overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[28px]"
+            className={`prouct-details max-w-full whitespace-normal inline-block ${
+              isRtl ? "text-right" : "text-left"
+            } align-top overflow-hidden regular-text text-[#3c3c3c] text-[10px] max-h-[28px]`}
             data-pw="productName"
           >
             <span className="flex-row align-center justify-start gap-[4px]">
@@ -377,7 +359,9 @@ function ProductCard({
                     height: 30,
                   })}
                   alt={brand.name || "Brand"}
-                  className="h-[15px] w-[30px] object-contain inline-block ml-[7px]"
+                  className={`h-[15px] w-[30px] object-contain inline-block ${
+                    isRtl ? "mr-[7px]" : "ml-[7px]"
+                  }`}
                   loading="lazy"
                   draggable="false"
                 />
@@ -410,7 +394,9 @@ function ProductCard({
           style={{
             direction: isRtl ? "rtl" : "ltr",
           }}
-          className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-full flex-row align-center max-h-[30px]"
+          className={`product-footer justify-between ${
+            isRtl ? "pl-[15px] pr-[17.5px]" : "pl-[17.5px] pr-[15px]"
+          } left-0 bottom-[10px] absolute w-full flex-row align-center max-h-[30px]`}
         >
           <div className={`${isRtl && "dir-rtl"} price-label flex`}>
             {price !== offer_price && offer_price !== 0 && (

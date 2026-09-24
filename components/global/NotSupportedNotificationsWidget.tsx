@@ -17,6 +17,10 @@ export default function NotSupportedNotificationsWidget(
   const { onDismiss, className } = props;
   const { language, setNotificationModal } = useAppStore();
 
+  // The other half of the notification prompt, and it needs the same direction
+  // for the same reason — see components/global/NotificationWidget.tsx.
+  const isRtl = language === "ar" || language === "ku";
+
   const handleClose = useCallback(() => {
     setNotificationModal(false);
     if (onDismiss) {
@@ -44,6 +48,7 @@ export default function NotSupportedNotificationsWidget(
       ].join(" ")}
     >
       <div
+        dir={isRtl ? "rtl" : "ltr"}
         className={[
           "group w-[min(92vw,28rem)] sm:w-md regular",
           "rounded-2xl bg-white",

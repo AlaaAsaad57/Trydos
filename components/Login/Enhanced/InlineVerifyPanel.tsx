@@ -60,6 +60,7 @@ export default function InlineVerifyPanel({
         isValidPin,
         error,
         loading,
+        attemptsLocked,
         sendMethod,
         verifyPin,
     } = usePhoneVerifyFlow({
@@ -261,12 +262,17 @@ export default function InlineVerifyPanel({
 
             {step === 'enter-pin' && (
                 <>
+                    {/* `isExpired` here is for the dashed dead-box styling, so a
+                        locked shopper reads the same picture on every surface.
+                        Not for the keypad — `disableCustomKeypad` below means
+                        this panel never renders one to strand. */}
                     <RdbPinInputs
                         value={pin}
                         onChange={setPin}
                         onComplete={verifyPin}
-                        disabled={busy || isValidPin === 'valid'}
+                        disabled={busy || isValidPin === 'valid' || attemptsLocked}
                         isValidPin={isValidPin}
+                        isExpired={attemptsLocked}
                         autoFocus={false}
                         disableCustomKeypad
                     />
@@ -322,7 +328,16 @@ export default function InlineVerifyPanel({
                 </p>
             )}
 
-            {!blocked && error && (
+            {/* Not gated on `blocked`. A successful send arms the same
+                120-second cooldown a refused one does, so a second after the code
+                arrives `blocked` is true for every shopper — hiding the verify
+                error behind it meant a wrong code showed red boxes and no words
+                for the whole two minutes. The two facts are separate: the
+                countdown says the resend is not open yet, this line says why the
+                code just typed was refused. The red "Wait Ns" line above cannot
+                appear alongside it, because that one is only for a send that was
+                refused, and a refused send never reaches the code step. */}
+            {error && (
                 <p role="alert" className="text-xd-11 font-medium text-[#FF5F61] text-center">
                     {error}
                 </p>

@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useState } from "react";
 import TryOnModal from "./TryOnModal";
 
 const TryOnWidget = ({ language, product, isModalOpen, setIsModalOpen }) => {

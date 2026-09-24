@@ -21,7 +21,7 @@
 | ~**110 documented custom events** across 5 streams | `docs/posthog-events.md` | On top of autocapture |
 | **GA → PostHog fan-out**: every GA event is also sent to PostHog | `utils/gtag.ts:GAevent` | 48 GA-taxonomy events **double-billed** into PostHog |
 | GA4 **standard** (free tier), ID `G-2R7L674HT6` | `utils/gtag.ts` | Sampling/cardinality limits at our scale |
-| Feature flags wired but **unused** | `utils/posthog.ts` | No flag cost today |
+| Feature flags **not wired** (unused helpers removed) | `utils/posthog.ts` | No flag cost today |
 
 ---
 

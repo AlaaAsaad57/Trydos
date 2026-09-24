@@ -58,7 +58,8 @@ export default function NotFound() {
     },
   };
 
-  const currentContent = content[lang] || content["gb-en"];
+  const currentContent =
+    content[lang] || (isArabic ? content["sa-ar"] : content["gb-en"]);
 
   return (
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 py-12">
@@ -127,12 +128,6 @@ export default function NotFound() {
             {currentContent.buttonText}
           </Link>
 
-          <Link
-            href={`/${lang}/categories`}
-            className="inline-flex items-center justify-center px-8 py-4 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full transition-all duration-300 font-quicksand-medium text-lg min-w-[200px]"
-          >
-            {isArabic ? "تصفح الفئات" : translateFunction("Browse Categories")}
-          </Link>
         </div>
 
         {/* Popular Links */}

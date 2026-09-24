@@ -356,3 +356,36 @@ describe("verifying a changed number", () => {
     expect(seen.server).toBe("market");
   });
 });
+
+describe("verifying a code — partial sign-in and refused changed numbers", () => {
+  it("reports the services the login route says failed, and still signs in", async () => {
+    const functions = await import("utils/functions");
+    market.reply(loginReply({ is_failed: [{ endpoint: "WALLET" }] }));
+
+    await auth.VerifyOtp("123456", "vid-1");
+
+    expect(
+      (functions.LogError as any).mock.calls[0]?.[0],
+      "the per-service failures the login route returned were not reported",
+    ).toMatchObject({ source: "login server api", userId: 7, error: [{ endpoint: "WALLET" }] });
+    expect(store.useAppStore.getState().user, "a partial sign-in did not sign the user in").toMatchObject({ id: 7 });
+  });
+
+  it("refuses a changed number when the core backend does not know the user", async () => {
+    market.reply({ success: true, data: { message: "user not found" } });
+    await expect(
+      auth.VerifyOtpForUpdatePhone("123456", "vid-9"),
+      "an unknown user was not refused",
+    ).rejects.toThrow();
+    expect(store.useAppStore.getState().userProfile, "the phone was marked verified").toBeNull();
+  });
+
+  it("refuses a changed number when the core backend rejects the code", async () => {
+    market.reply({ success: false, isSuccessful: false, message: "bad code" });
+    await expect(
+      auth.VerifyOtpForUpdatePhone("123456", "vid-9"),
+      "a rejected code was not refused",
+    ).rejects.toThrow();
+    expect(store.useAppStore.getState().userProfile, "the phone was marked verified").toBeNull();
+  });
+});

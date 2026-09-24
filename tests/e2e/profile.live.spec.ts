@@ -72,8 +72,11 @@
 // does after a failing test. PROF-01 signs in and saves the session to disk;
 // PROF-02 opens it.
 //
-// `tests/e2e/.auth/` is gitignored, is not the directory the pipeline uploads,
-// and the file is removed once the last case that needs it has run.
+// `tests/e2e/.auth/` is gitignored and is not the directory the pipeline
+// uploads. The whole directory is removed in `globalTeardown`, which runs after
+// every spec including a failing one — rather than by whichever case happens to
+// be last, which is what it used to be and which broke the moment cases were
+// added after PROF-04.
 //
 // ---------------------------------------------------------------------------
 // The account is shared, and this file writes to it
@@ -86,14 +89,15 @@
 // Nothing here prints the account's name, phone or e-mail. Comparisons happen
 // inside `actions/profile.ts` or inside the browser and come back as booleans.
 
-import { existsSync, rmSync } from "node:fs";
-import { mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
-
-import type { Browser, BrowserContext, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
-import { attemptAuth, currentAuthScreen, signedInSession } from "./actions/auth";
+import {
+  attemptAuth,
+  requireSignedInShopper,
+  signOutAndSettle,
+  signedInSession,
+} from "./actions/auth";
 import { gotoAbout } from "./actions/nav";
 import {
   alternativePhoneIs,
@@ -102,8 +106,18 @@ import {
   cardShowsAccountName,
   chooseGender,
   gotoPersonalInfo,
+  addAddress,
+  gotoAddresses,
+  gotoPicture,
   gotoSettings,
   gotoSize,
+  addressCount,
+  addressIsListed,
+  attemptPictureSave,
+  choosePicture,
+  clearChosenPicture,
+  hasPicture,
+  removeAddress,
   hasGenderSet,
   nameFieldIs,
   otherGenderThan,
@@ -115,22 +129,43 @@ import {
   readProfileCard,
   readSize,
   sizeIs,
+  storedPictureFile,
   typeAlternativePhone,
   typeEmail,
   typeName,
   typeSize,
 } from "./actions/profile";
-import { envValue, hasShopperA } from "./harness/env";
+import { envValue, hasMedia, hasShopperA } from "./harness/env";
+import {
+  SESSION_STATE,
+  forgetSavedSession,
+  handOnSession,
+  newLiveContext,
+  openSignedInSession,
+  saveSession,
+} from "./harness/liveSession";
 import {
   PROFILE_LEGS,
   recordProfileWrites,
   type ProfileLeg,
   type ProfileWriteRecorder,
 } from "./harness/profileWrites";
-import { prompt } from "./selectors";
+import {
+  SIGN_IN_PROFILE_LEGS,
+  recordSignInProfile,
+  type LegReading,
+  type SignInProfileLeg,
+} from "./harness/signInProfile";
+import {
+  UPDATE_LEGS,
+  recordUpdateAnswers,
+  type UpdateReading,
+} from "./harness/updateAnswer";
+import { snapshotCredentials } from "./harness/session";
+import { profile, prompt } from "./selectors";
 
-/** Where the signed-in session waits between the two cases. */
-const SIGNED_IN_STATE = "tests/e2e/.auth/profile.json";
+/** Where the signed-in session waits between the cases in this spec. */
+const SIGNED_IN_STATE = SESSION_STATE.profile;
 
 /** The name PROF-02 saves.
  *
@@ -153,75 +188,41 @@ const PROBE_ALT_PHONE = "963900000001";
 const PROBE_SIZE = { height: "177", weight: "77" };
 const PROBE_SIZE_ALT = { height: "178", weight: "78" };
 
+/** The name PROF-08 saves, and it is different on every run.
+ *
+ *  Unique on purpose, which the other probe values do not need to be. PROF-08
+ *  proves a value survived a sign-out by reading it back after signing in, so a
+ *  fixed name left on the account by a run that died would come back correct
+ *  without this run having written anything at all. A name only this run could
+ *  have written is what closes that.
+ *
+ *  Still marked, and still at least eight characters, because the form refuses
+ *  anything shorter. */
+const reloginProbeName = (): string =>
+  `Trydos Relogin ${Date.now().toString().slice(-6)}`;
+
+/** The picture PROF-05 and PROF-08 upload: a 1x1 PNG, made here rather than
+ *  kept as a fixture file. The name is marked, so an orphan left on the media
+ *  store by a dead run can be recognised and found later. */
+const PROBE_PICTURE = {
+  name: "trydos-e2e-probe-picture.png",
+  mimeType: "image/png",
+  buffer: Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    "base64",
+  ),
+};
+
+/** The address PROF-07 adds. Marked, so a run that dies mid-way leaves
+ *  something that reads as "a test stopped here". */
+const PROBE_ADDRESS_TITLE = "Trydos E2E Probe";
+const PROBE_ADDRESS_DETAIL = "Trydos E2E probe address, please delete";
+
 /** How long a leg of the save may take before it counts as never sent.
  *
  *  Generous: three backends answer in sequence and a cold staging route can
  *  spend most of a minute before the first one does. */
 const LEG_ANSWER_MS = 60_000;
-
-const forgetSavedSession = () => rmSync(SIGNED_IN_STATE, { force: true });
-
-/** A context carrying the options the project would have given a fixture page.
- *
- *  A context built by hand inherits none of them, so each one this suite relies
- *  on is passed explicitly. */
-const newLiveContext = async (
-  browser: Browser,
-  extra: { storageState?: string } = {},
-): Promise<BrowserContext> => {
-  const { use, outputDir } = test.info().project;
-
-  const context = await browser.newContext({
-    baseURL: use.baseURL,
-    locale: use.locale,
-    recordVideo: use.video ? { dir: outputDir } : undefined,
-    ...extra,
-  });
-  context.setDefaultTimeout(20_000);
-  context.setDefaultNavigationTimeout(45_000);
-  return context;
-};
-
-/** Write the session back as it is **now**, so the next case inherits it.
- *
- *  This is not tidiness, it is the fix for a real failure. Every case opens the
- *  same file, and a saved session is a **snapshot**: the moment a case does
- *  authenticated work, the app can exchange a refused credential for a fresh
- *  one and the pair on the backend moves on. The file still holds the old pair,
- *  so the next case opens a session whose credential has been superseded, the
- *  app recovers it the only way it can — as a guest — and the account's own
- *  details are simply not there any more.
- *
- *  That is exactly what happened: PROF-03 reported "this account has no gender
- *  set" when run after PROF-02, and passed that same check when run without it.
- *  Nothing was wrong with the app or the account.
- *
- *  Only written when the session is still **this account**. A case that failed
- *  its way down to a guest must not hand that on as if it were a session.  */
-const handOnSession = async (
-  context: BrowserContext,
-  page: Page,
-): Promise<void> => {
-  try {
-    const session = await signedInSession(page);
-    if (!session.phoneVerified) return;
-    await context.storageState({ path: SIGNED_IN_STATE });
-  } catch {
-    // Never let bookkeeping replace the failure a case is reporting.
-  }
-};
-
-const openSignedInSession = async (
-  browser: Browser,
-): Promise<BrowserContext> => {
-  if (!existsSync(SIGNED_IN_STATE)) {
-    throw new Error(
-      "there is no saved signed-in session, so PROF-01 never got far enough to sign in. " +
-        "Read that case's failure — this one had nothing to run against.",
-    );
-  }
-  return newLiveContext(browser, { storageState: SIGNED_IN_STATE });
-};
 
 test.beforeEach(() => {
   test.skip(
@@ -234,7 +235,7 @@ test("PROF-01 the settings screens show the signed-in shopper, not a guest", asy
   browser,
 }) => {
   // Anything left by an earlier run is not this run's session.
-  forgetSavedSession();
+  forgetSavedSession(SIGNED_IN_STATE);
 
   const context = await newLiveContext(browser);
   const page = await context.newPage();
@@ -243,17 +244,21 @@ test("PROF-01 the settings screens show the signed-in shopper, not a guest", asy
   // is here too, and a search outage cannot blank the page and hide it.
   await gotoAbout(page);
 
-  await attemptAuth(page, {
+  const outcome = await attemptAuth(page, {
     intent: "login",
     phone: envValue("TEST_ACCOUNT_PHONE"),
     method: "whatsapp",
     otp: envValue("TEST_ACCOUNT_OTP"),
   });
 
-  const screen = (await currentAuthScreen(page)) ?? "closed";
-  expect(screen, `the sign-in ended on the "${screen}" screen`).toMatch(
-    /^(welcome|closed)$/,
-  );
+  // **Asked of the app, not read off the widget.** This case is about the
+  // settings screens, not about the sign-in fan-out, and one refused leg leaves
+  // the widget sitting on the PIN screen for a shopper who is signed in — see
+  // `requireSignedInShopper`. Reading the screen here made a dead wallet fail
+  // this case, and PROF-02 to PROF-08 with it, for a session that was fine:
+  // CI run 35592830847, `the sign-in ended on the "enter-pin" screen`.
+  // AUTH-01 is the case that judges every leg, and it stays the only one.
+  await requireSignedInShopper(page, { outcome, who: "the shopper" });
 
   // Leave the widget shut: its phone field and the "sign in again" prompt share
   // one marker, so a widget left open would make later readings ambiguous.
@@ -262,14 +267,7 @@ test("PROF-01 the settings screens show the signed-in shopper, not a guest", asy
 
   // Hand the session on **before** anything is judged, so everything below is
   // free to fail without taking PROF-02 with it.
-  await mkdir(dirname(SIGNED_IN_STATE), { recursive: true });
-  await context.storageState({ path: SIGNED_IN_STATE });
-
-  const session = await signedInSession(page);
-  expect(
-    session.phoneVerified,
-    "the app does not treat this visitor as a signed-in shopper, so the screens below are a guest's",
-  ).toBe(true);
+  await saveSession(context, SIGNED_IN_STATE);
 
   await test.step("the settings card is the shopper's own", async () => {
     await gotoSettings(page);
@@ -328,7 +326,7 @@ test("PROF-01 the settings screens show the signed-in shopper, not a guest", asy
 
   // Written again, because both steps above happened after the first snapshot
   // and may have moved the credential on. See `handOnSession`.
-  await handOnSession(context, page);
+  await handOnSession(context, page, SIGNED_IN_STATE);
   await context.close();
 });
 
@@ -339,7 +337,7 @@ test("PROF-02 a name change reaches every backend that keeps a copy", async ({
   // reload between them. The project default is not enough for that.
   test.setTimeout(180_000);
 
-  const context = await openSignedInSession(browser);
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "PROF-01");
   const page = await context.newPage();
 
   // Needed before any locale-scoped path can be built: which country this run
@@ -417,7 +415,7 @@ test("PROF-02 a name change reaches every backend that keeps a copy", async ({
         )
         .toBe(true);
     }
-    await handOnSession(context, page);
+    await handOnSession(context, page, SIGNED_IN_STATE);
     await context.close();
   }
 });
@@ -428,7 +426,7 @@ test("PROF-03 gender, e-mail and alternative phone save together", async ({
   // Two saves fanning out to three staging backends each, plus a reload.
   test.setTimeout(180_000);
 
-  const context = await openSignedInSession(browser);
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "PROF-01");
   const page = await context.newPage();
 
   await gotoAbout(page);
@@ -526,7 +524,7 @@ test("PROF-03 gender, e-mail and alternative phone save together", async ({
         )
         .toBe(true);
     }
-    await handOnSession(context, page);
+    await handOnSession(context, page, SIGNED_IN_STATE);
     await context.close();
   }
 });
@@ -536,7 +534,7 @@ test("PROF-04 the size screen saves a height and a weight", async ({
 }) => {
   test.setTimeout(180_000);
 
-  const context = await openSignedInSession(browser);
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "PROF-01");
   const page = await context.newPage();
 
   await gotoAbout(page);
@@ -621,10 +619,10 @@ test("PROF-04 the size screen saves a height and a weight", async ({
         )
         .toBe(true);
     }
+    // This case saves twice, so the credential can have been exchanged since
+    // PROF-03 handed the session on. The cases below open this same file.
+    await handOnSession(context, page, SIGNED_IN_STATE);
     await context.close();
-    // The last case that needs it has finished. A real credential does not sit
-    // on disk afterwards.
-    forgetSavedSession();
   }
 });
 
@@ -729,5 +727,617 @@ const restoreSize = async (
     return outcome.saved;
   } catch {
     return false;
+  }
+};
+
+// ---------------------------------------------------------------------------
+// PROF-05 to PROF-07 — the two screens the earlier profile work left out.
+//
+// These run after PROF-04, which is why that case now hands its session on
+// instead of deleting it. The file itself is removed by `globalTeardown`.
+
+test("PROF-05 a chosen picture is the account's, and removing it removes it", async ({
+  browser,
+}) => {
+  test.setTimeout(180_000);
+  test.skip(
+    !hasMedia(),
+    "the media store is not configured — see tests/e2e/README.md.",
+  );
+
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "PROF-01");
+  const page = await context.newPage();
+  let chose = false;
+
+  try {
+    // The country-and-language prefix is read off the address, and a fresh
+    // context is at about:blank — same reason PROF-02 opens this way.
+    await gotoAbout(page);
+    await gotoPicture(page);
+    // **Asked before anything is written, and this order is the whole point.**
+    //
+    // The case ends by removing the picture it chose, so running it on an
+    // account that already had one destroys that one. This check used to sit at
+    // the **end**, after the removal — so it noticed the damage instead of
+    // preventing it, and its own advice ("restore it by hand") was already
+    // impossible by the time anyone read it. Seen for real on a local run on
+    // 2026-09-21.
+    //
+    // Failing here leaves the account exactly as it was found: `chose` is still
+    // false, so the tidy-up below writes nothing either.
+    expect(
+      await hasPicture(page),
+      "this account already has a profile picture, and this case would " +
+        "destroy it: it chooses one of its own and then removes it. Clear the " +
+        "account's picture by hand, or find out which run left one behind, " +
+        "before running this again",
+    ).toBe(false);
+
+    // A tiny image the case makes itself, with a marked name so an orphan left
+    // on the media store by a dead run can be recognised and found later.
+    await choosePicture(page, PROBE_PICTURE);
+    chose = true;
+
+    const saved = await attemptPictureSave(page);
+    expect(
+      saved.saved,
+      `the media backend did not take the picture${saved.refusedWith ? ` (${saved.refusedWith})` : ""}`,
+    ).toBe(true);
+
+    // A reload proves the app's stored copy was updated, which is a different
+    // thing from the backend having accepted it.
+    await gotoPicture(page);
+    expect(
+      await hasPicture(page),
+      "the account has no picture after a reload, so the upload was accepted but not kept",
+    ).toBe(true);
+
+    await clearChosenPicture(page);
+    const removed = await attemptPictureSave(page);
+    expect(
+      removed.saved,
+      `removing the picture was refused${removed.refusedWith ? ` (${removed.refusedWith})` : ""}`,
+    ).toBe(true);
+
+    await gotoPicture(page);
+    expect(
+      await hasPicture(page),
+      "the picture is still there after a reload, so removing it did not take",
+    ).toBe(false);
+
+    // The "left as found" check used to be here, after the removal. It is now
+    // the first thing this case does — see the note above `choosePicture`.
+  } finally {
+    if (chose) {
+      // Best effort: whatever state the assertions left, do not leave a probe
+      // picture on the shared account.
+      await gotoPicture(page)
+        .then(async () => {
+          if (await hasPicture(page)) {
+            await clearChosenPicture(page);
+            await attemptPictureSave(page);
+          }
+        })
+        .catch(() => {});
+    }
+    await handOnSession(context, page, SIGNED_IN_STATE);
+    await context.close();
+  }
+});
+
+test("PROF-06 the profile card leads to the picture screen", async ({
+  browser,
+}) => {
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "PROF-01");
+  const page = await context.newPage();
+
+  try {
+    await gotoAbout(page);
+    await gotoSettings(page);
+    const card = await readProfileCard(page);
+    expect(
+      card.shown,
+      "the settings card is not rendered, so there is no route to the picture screen from it",
+    ).toBe(true);
+
+    // Found by address rather than by accessible name: the card's links carry
+    // no accessible name, because the label is declared and never rendered.
+    // That is a real defect in 22 places and is this ticket's out of scope —
+    // matching the address costs nothing and does not paper over it.
+    const link = page.locator('a[href*="/settings/profile/picture"]').first();
+    await expect(
+      link,
+      "the profile card offers no link to the picture screen",
+    ).toBeVisible();
+
+    await link.click();
+    // The photo menu, not Save: Save is a back-bar span the screen fills only
+    // once there is a change to save, so it is hidden on arrival.
+    await expect(
+      profile.changePhotoMenu(page),
+      "following the card's picture link did not reach the picture screen",
+    ).toBeVisible({ timeout: 30_000 });
+  } finally {
+    await handOnSession(context, page, SIGNED_IN_STATE);
+    await context.close();
+  }
+});
+
+test("PROF-07 an address the shopper adds is listed, and can be removed", async ({
+  browser,
+}) => {
+  test.setTimeout(180_000);
+
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "PROF-01");
+  const page = await context.newPage();
+  let created = false;
+
+  try {
+    await gotoAbout(page);
+    await gotoAddresses(page);
+    const before = await addressCount(page);
+
+    const offered = await addAddress(page, {
+      address: PROBE_ADDRESS_TITLE,
+      detail: PROBE_ADDRESS_DETAIL,
+      recipient: PROBE_NAME,
+      phone: PROBE_ALT_PHONE,
+    });
+    created = true;
+    expect(
+      offered,
+      "the address form never offered a region, so it could not have saved anything",
+    ).toBe(true);
+
+    await gotoAddresses(page);
+    expect(
+      await addressCount(page),
+      "the address list did not grow, so the address was not added",
+    ).toBeGreaterThan(before);
+
+    // Content, not presence: an address listed without the details that were
+    // entered is a partial success, and a partial success is a failure.
+    expect(
+      await addressIsListed(page, PROBE_ADDRESS_DETAIL),
+      "the address is listed without the details that were entered",
+    ).toBe(true);
+  } finally {
+    if (created) {
+      const gone = await removeAddress(page, PROBE_ADDRESS_DETAIL).catch(
+        () => false,
+      );
+      expect
+        .soft(
+          gone,
+          "the shared test account still carries this case's address — removing it failed",
+        )
+        .toBe(true);
+    }
+    await handOnSession(context, page, SIGNED_IN_STATE);
+    await context.close();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// PROF-08 — the check the cases above cannot make, and the defect it found.
+//
+// Every case above proves two things about a save: each backend answered the
+// write with a status that means "taken", and the value is still on screen
+// after a reload. Neither of those is the backend's own copy.
+//
+//   * The status says the write was **accepted**. It does not say it was
+//     **kept**, and it does not say *where* it was kept.
+//   * The reload reads `/api/auth/me`, which reads cookies, and the settings
+//     screens render from the same cookie the save wrote. So the reload shows
+//     the app's own copy of its own request body. That is a real check — it
+//     caught the missing `gender` / `email` / `alternative_phone` mirror — but
+//     it is a check of the app, not of a backend.
+//
+// Signing out throws every cookie away. Signing back in fills them again from
+// what three backends answer with, so the sign-in answer is the first reading
+// in this file that no part of the app supplied.
+//
+// ---------------------------------------------------------------------------
+// What it found: the save and the sign-in are not the same record
+//
+// **This case is red on stories and chat, and that is the point of it.**
+//
+// The core backend is fine. It answers a fresh sign-in with this run's name and
+// this run's picture, every time.
+//
+// Stories and chat both accept the save at `200` and echo the new name and the
+// new `photo_path` straight back — so nothing is lost on the way in. Then the
+// sign-in answers from a **different row**:
+//
+//     leg      the save reached      the sign-in answered from
+//     stories  id 454, new name      id 455, name null
+//     chat     id 652, new name      id 657, the account's OLD name
+//
+// Chat's line is the one that rules out a wrong test. Row 657 carries a real
+// name, and it is the account's older one — not null, and not the new name the
+// login request itself handed chat. It is a stored record. It is simply not the
+// record the save wrote.
+//
+// **The two legs fail differently, and the row numbers are what say so.**
+//
+//   * **chat** is stable across runs: every save reaches 652 and every sign-in
+//     answers from 657. Two rows exist for this one account, and the write and
+//     the read resolve to different ones, the same way every time.
+//   * **stories** moves. Two consecutive runs gave 452/453 and then 454/455 —
+//     consecutive numbers, two new rows per run, and exactly two sign-ins per
+//     run (PROF-01's and this case's). That is what a **new row per sign-in**
+//     looks like. Under that reading a stories profile cannot survive a
+//     sign-in at all: the save updates the row the last sign-in made, and the
+//     next sign-in makes another.
+//
+// So a shopper renames themselves, signs out, signs back in, and chat is
+// holding their old name and no picture. Whether the cause is the storefront
+// addressing those backends by the **core** user id (`this.UserID()` in
+// `services/auth.ts`, used as the chat row id in `PUT /api/v1/users/:id`) or
+// the backends keeping more than one row per account is a question for whoever
+// owns them — this case cannot see their data model, and it does not guess. It
+// reports both row numbers, which is what turns the question into a short one.
+//
+// **It stays red until that is fixed.** Loosening it, skipping it or retrying
+// it would hide a live defect; a red check that names two row numbers is worth
+// more than a green one that asks nothing.
+//
+// ---------------------------------------------------------------------------
+// Reading the failure
+//
+// Two recorders, and each answers half of it:
+//
+//   * `harness/updateAnswer.ts` — the row the save reached, and what it holds.
+//     Its steps **pass**, and that is the point of them: they say the write is
+//     not where the fault is.
+//   * `harness/signInProfile.ts` — the row a fresh sign-in answers from. Its
+//     steps are the red ones.
+//
+// Neither prints a value out of a body. The failure carries two row numbers and
+// the names of the fields the answer held, which is what a reader needs and is
+// safe in a public job log.
+//
+// ---------------------------------------------------------------------------
+// One extra sign-in, and where it leaves the account
+//
+// This case is last, and it costs the file one more real sign-in. It changes
+// the account's name and adds a picture, then puts the name back and removes
+// the picture in a `finally` — the same arrangement as PROF-02 and PROF-05, for
+// the same reason. It hands its new session on, so nothing after it inherits
+// the credential the sign-out invalidated.
+//
+// The name it saves is different on every run. A fixed one left behind by a run
+// that died would read back correct without this run having written it.
+
+test("PROF-08 the backends' own copy carries the change after signing out and in", async ({
+  browser,
+}) => {
+  // Two saves, a sign-out that reloads and registers a guest, a full sign-in
+  // across five backends, then two restores. Nothing else in this file is this
+  // long — the first run took 3.2 minutes and failed before the restores.
+  test.setTimeout(420_000);
+
+  const context = await openSignedInSession(browser, SIGNED_IN_STATE, "PROF-01");
+  const page = await context.newPage();
+
+  const probeName = reloginProbeName();
+
+  /** Is the picture judged this run?
+   *
+   *  Decided twice: the media store has to be configured at all, and the
+   *  account has to start **without** a picture — this case removes the one it
+   *  adds, so an account that came with one would be left without it.
+   *
+   *  Skipped rather than failed, deliberately. An account that already carries
+   *  a picture is PROF-05's finding and PROF-05 reports it; failing here as
+   *  well would say the same thing twice and would throw away the name proof,
+   *  which has nothing to do with pictures. */
+  let judgePicture = hasMedia();
+  if (!judgePicture) {
+    test.info().annotations.push({
+      type: "note",
+      description:
+        "the media store is not configured, so this run judged the NAME only. " +
+        "The picture is the field all three backends can be judged on " +
+        "independently — see tests/e2e/README.md.",
+    });
+  }
+
+  let changedName = false;
+  let addedPicture = false;
+  let originalName = "";
+  /** The file the media store gave this run's picture, read back from the app
+   *  after the upload. Held and never asserted on — see `actions/profile.ts`. */
+  let pictureFile: string | null = null;
+
+  try {
+    await gotoAbout(page);
+    await gotoPersonalInfo(page);
+
+    originalName = await readName(page);
+    expect(
+      originalName.length > 0,
+      "the form opened with an empty name, so there is nothing to change and nothing to put back",
+    ).toBe(true);
+
+    // Attached before the save: these two backends answer the **update** with
+    // the row they now hold, and that answer is the only reading of their copy
+    // this suite can get. Their sign-in answer carries those fields blank —
+    // see the note in `harness/updateAnswer.ts`.
+    const updates = recordUpdateAnswers(page, { name: probeName });
+
+    await test.step("the shopper changes their name and saves", async () => {
+      await typeName(page, { name: probeName });
+      const outcome = await attemptSave(page);
+      changedName = true;
+
+      expect(
+        outcome.saved,
+        outcome.refusedWith
+          ? `the form refused the save: "${outcome.refusedWith}" — no backend was called`
+          : "the save never completed: the form neither reported a problem nor moved on",
+      ).toBe(true);
+    });
+
+    if (judgePicture) {
+      await gotoPicture(page);
+      if (await hasPicture(page)) {
+        judgePicture = false;
+        test.info().annotations.push({
+          type: "note",
+          description:
+            "this account already carried a picture, so this run judged the NAME only. " +
+            "Adding and then removing one would have left the account without the picture it " +
+            "came with. PROF-05 reports that account state — read its failure.",
+        });
+      }
+    }
+
+    if (judgePicture) {
+      await test.step("the shopper adds a picture and saves", async () => {
+        await choosePicture(page, PROBE_PICTURE);
+        addedPicture = true;
+
+        const saved = await attemptPictureSave(page);
+        expect(
+          saved.saved,
+          `the media backend did not take the picture${saved.refusedWith ? ` (${saved.refusedWith})` : ""}`,
+        ).toBe(true);
+
+        pictureFile = await storedPictureFile(page);
+        expect(
+          pictureFile !== null,
+          "the app holds no picture file for this account after the upload it reported as done, " +
+            "so there is nothing for the sign-in below to be compared against",
+        ).toBe(true);
+      });
+    }
+
+    // The write side, judged before the sign-out — and these steps **pass**.
+    //
+    // They are here to say where the fault is not. Stories and chat answer the
+    // update with the row they wrote it into, carrying the new name and the new
+    // picture, so nothing is lost on the way in. Without this, the red steps
+    // below would read as "the save to stories failed", which is the wrong
+    // half of the flow and the wrong team.
+    for (const leg of UPDATE_LEGS) {
+      await test.step(`the ${leg} backend stored the change`, async () => {
+        const heard = await updates.waitForAnswer(leg, LEG_ANSWER_MS);
+        expect(
+          heard,
+          `the ${leg} backend never answered the save, so there is no record of what it stored`,
+        ).toBe(true);
+
+        const wrote = updates.reading(leg);
+        expect
+          .soft(
+            wrote.status !== null && wrote.status < 400,
+            `the ${leg} backend refused the save (status ${wrote.status})`,
+          )
+          .toBe(true);
+        expect
+          .soft(
+            wrote.name,
+            `the ${leg} backend answered the save with a name that is not the one just sent, so it stored something else`,
+          )
+          .toBe("matches");
+
+        if (judgePicture) {
+          expect
+            .soft(
+              wrote.picture,
+              `the ${leg} backend answered the save with no picture, although the account had none before and one was just uploaded`,
+            )
+            .toBe("matches");
+        }
+      });
+    }
+
+    // The static page, and before the sign-out rather than after it: signing
+    // out reloads wherever the browser is standing, and a settings page for a
+    // visitor who is no longer signed in is not the page to read the account
+    // menu from.
+    await gotoAbout(page);
+
+    // Attached **before** the sign-in, because the answer it reads goes past
+    // once and is never asked for again.
+    const signIn = recordSignInProfile(page, {
+      name: probeName,
+      picture: judgePicture ? pictureFile : null,
+    });
+
+    await test.step("the shopper signs out and signs in again", async () => {
+      const signedIn = await snapshotCredentials(page);
+      await signOutAndSettle(page, { signedIn });
+
+      const outcome = await attemptAuth(page, {
+        intent: "login",
+        phone: envValue("TEST_ACCOUNT_PHONE"),
+        method: "whatsapp",
+        otp: envValue("TEST_ACCOUNT_OTP"),
+      });
+
+      // **The screen is not the judgement here, and that is not a shortcut.**
+      //
+      // `attemptAuth` returns the first screen that reads the same twice in a
+      // row, a quarter of a second apart. The PIN screen reads the same twice
+      // for as long as the verification is still travelling — and this one
+      // travels to five backends on a second sign-in, which is the slowest
+      // sign-in the suite performs. So a **healthy** sign-in comes back from
+      // `attemptAuth` as "enter-pin", which is what the first run of this case
+      // reported: it failed on the screen while the restore that ran
+      // afterwards, which needs a live credential, worked perfectly.
+      //
+      // The answer the app received is the fact this case is about, and it is
+      // already listening for it. Fail closed: an answer never read is a
+      // failure to report, never "nothing went wrong" — every judgement below
+      // would otherwise read "not read" and say nothing.
+      const answered = await signIn.waitForSignIn(SIGN_IN_ANSWER_MS);
+      expect(
+        answered,
+        outcome.error
+          ? `signing in again failed: "${outcome.error}" — no backend answered with a profile`
+          : `no sign-in answer arrived, and the widget was left on the "${outcome.screen}" screen — ` +
+              "nothing below is a reading of any backend's copy",
+      ).toBe(true);
+
+      // Leave the widget shut, like PROF-01: its phone field and the "sign in
+      // again" prompt share one marker, so a widget left open makes the
+      // restores below ambiguous. After the answer, never before — Escape on a
+      // widget that is still verifying cancels the thing being measured.
+      await page.keyboard.press("Escape").catch(() => {});
+      await expect(prompt.phoneEntry(page)).toBeHidden();
+
+      // Polled for the same reason: the answer lands before the app has
+      // finished writing what it carried, and a single read here is a read of
+      // whichever moment it happened to catch.
+      await expect
+        .poll(async () => (await signedInSession(page)).phoneVerified, {
+          timeout: SIGN_IN_SETTLE_MS,
+          message:
+            "the app does not treat this visitor as a signed-in shopper after signing in again",
+        })
+        .toBe(true);
+    });
+
+    /** What the save's own answer said, for the two legs that give one.
+     *
+     *  `null` for the core backend: it is not asked twice, because its sign-in
+     *  answer already carries this run's values. */
+    const wroteTo = (leg: SignInProfileLeg): UpdateReading | null =>
+      leg === "core" ? null : updates.reading(leg);
+
+    // The read side. One judgement per backend per field, each naming both.
+    // Soft, so one backend that answers from the wrong row does not hide what
+    // the other two did — the case still fails.
+    for (const leg of SIGN_IN_PROFILE_LEGS) {
+      await test.step(`the ${leg} backend still holds the new name`, async () => {
+        const reading = signIn.reading(leg);
+        expect
+          .soft(reading.name, storedValueFailure(reading, leg, "name", wroteTo(leg)))
+          .toBe("matches");
+      });
+    }
+
+    if (judgePicture) {
+      for (const leg of SIGN_IN_PROFILE_LEGS) {
+        await test.step(`the ${leg} backend still holds the new picture`, async () => {
+          const reading = signIn.reading(leg);
+          expect
+            .soft(
+              reading.picture,
+              storedValueFailure(reading, leg, "picture", wroteTo(leg)),
+            )
+            .toBe("matches");
+        });
+      }
+    }
+  } finally {
+    if (changedName) {
+      // Soft, like the other restores in this file: when the case has already
+      // failed, the drift it could not undo must be reported alongside that
+      // failure rather than replacing it.
+      const restored = await restoreName(page, originalName);
+      expect
+        .soft(
+          restored,
+          `the shared test account is still called "${probeName}" — putting the original name back failed, ` +
+            "so the next run starts from the wrong value",
+        )
+        .toBe(true);
+    }
+
+    if (addedPicture) {
+      const removed = await gotoPicture(page)
+        .then(async () => {
+          if (!(await hasPicture(page))) return true;
+          await clearChosenPicture(page);
+          return (await attemptPictureSave(page)).saved;
+        })
+        .catch(() => false);
+      expect
+        .soft(
+          removed,
+          "the shared test account still carries this case's picture — removing it failed, " +
+            "so PROF-05 will next report an account that already had one",
+        )
+        .toBe(true);
+    }
+
+    await handOnSession(context, page, SIGNED_IN_STATE);
+    await context.close();
+  }
+});
+
+/** How long the sign-in answer may take to arrive and be read.
+ *
+ *  Generous, because this covers the sign-in itself: one OTP verification at
+ *  the core backend, then chat, stories, comments and the wallet in parallel,
+ *  on cold staging routes. It is not a wait on a screen — see the note where it
+ *  is used. */
+const SIGN_IN_ANSWER_MS = 90_000;
+
+/** How long the app may take to store what that answer carried.
+ *
+ *  The answer arrives first and the cookies it fills follow, so a session read
+ *  the instant the answer lands is a read of a half-written session. */
+const SIGN_IN_SETTLE_MS = 30_000;
+
+/** Say what this backend answered with, in words that name the fault.
+ *
+ *  Five different failures, and a reader needs a different next move for each.
+ *  The one worth reading twice is `absent`: the backend did not lose the value,
+ *  it does not answer a sign-in with that field at all. So the fault is in this
+ *  case, or the backend changed the shape of its answer — and the field names
+ *  it *did* send are what says which. */
+const storedValueFailure = (
+  reading: LegReading,
+  leg: SignInProfileLeg,
+  field: "name" | "picture",
+  wrote: UpdateReading | null,
+): string => {
+  const sent = reading.keys.length > 0 ? reading.keys.join(", ") : "nothing";
+
+  // The half a sign-in answer can never show. When the save reached one row and
+  // the sign-in answered from another, say both numbers — that is the fault,
+  // and every other wording sends the reader hunting for lost data instead.
+  const rows =
+    wrote?.row && reading.row && wrote.row !== reading.row
+      ? ` The save reached row ${wrote.row} and this answer came from row ${reading.row}, so the write and the read are not the same record.`
+      : "";
+
+  switch (reading[field]) {
+    case "differs":
+      return `the ${leg} backend answered the new sign-in with a different ${field} than the one just saved, so it did not keep the change.${rows}`;
+    case "empty":
+      return `the ${leg} backend answered the new sign-in with an empty ${field}, so the change is not in the record it answered from.${rows}`;
+    case "absent":
+      return `the ${leg} backend's sign-in answer carries no ${field} field at all, so this case cannot read its copy from here. It answered with: ${sent}`;
+    case "no user":
+      return `the ${leg} backend answered the new sign-in with no user, so its ${field} could not be read — read that backend's sign-in failure first`;
+    case "not read":
+      return `nothing was recorded for the ${leg} backend's ${field}, so this judgement is unproven — treat it as a gap in the test, not as a passing backend`;
+    default:
+      return `the ${leg} backend's stored ${field} was judged "${reading[field]}"`;
   }
 };

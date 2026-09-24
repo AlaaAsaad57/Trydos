@@ -1,0 +1,720 @@
+▲ Next.js 16.3.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://172.29.16.1:3000
+- Environments: .env.local, .env.development
+✓ Ready in 1440ms
+⚠ `images.domains` is deprecated in favor of `images.remotePatterns`. Please update next.config.ts to protect your application from malicious users.
+⚠ Warning: Next.js ignored yarn.lock in C:\Users\DELL\Desktop\workspace because it is outside the current Git repository (C:\Users\DELL\Desktop\workspace\TrydosApp\trydos).
+ To use this directory, set `turbopack.root` in your Next.js config.
+
+✓ Running next.config.ts took 2.2s
+- Cache Components enabled
+- Experiments (use with caution):
+  ✓ externalDir
+  · optimizePackageImports
+  ⨯ optimizeServerReact
+  · serverActions
+  · staleTimes
+  ✓ turbopackRustReactCompiler
+  · webVitalsAttribution
+
+ GET /sy-en/loginDemo 200 in 8.0s (next.js: 4.0s, proxy.ts: 415ms, generate-params: 2.0s, application-code: 1640ms)
+ GET /sy-en/loginDemo 200 in 239ms (next.js: 46ms, proxy.ts: 15ms, generate-params: 12ms, application-code: 166ms)
+ POST /api/auth/me 200 in 576ms (next.js: 396ms, application-code: 179ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/mobile/home/currency',
+  verified: false,
+  backend: 'gateway'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/web/home/startingSettings?language=en',
+  verified: false,
+  backend: 'gateway'
+}
+ POST /api/proxy 200 in 1662ms (next.js: 118ms, application-code: 1544ms)
+ POST /api/proxy 200 in 1662ms (next.js: 105ms, application-code: 1556ms)
+ POST /api/auth/register-device 200 in 1526ms (next.js: 79ms, application-code: 1448ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/mobile/home/currency","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T09:43:28.124Z"}
+[Proxy] {"type":"proxy-request","server":"market","url":"/web/home/startingSettings?language=en","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T09:43:29.315Z"}
+ GET /sy-en/loginDemo 200 in 1184ms (next.js: 463ms, proxy.ts: 129ms, generate-params: 46ms, application-code: 547ms)
+ POST /api/auth/me 200 in 56ms (next.js: 25ms, application-code: 30ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/web/home/startingSettings?language=en',
+  verified: false,
+  backend: 'gateway'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/mobile/home/currency',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/mobile/home/currency","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T10:08:51.395Z"}
+ POST /api/proxy 200 in 962ms (next.js: 30ms, application-code: 932ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/web/home/startingSettings?language=en","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T10:08:51.407Z"}
+ POST /api/proxy 200 in 973ms (next.js: 18ms, application-code: 955ms)
+ POST /api/auth/register-device 200 in 1000ms (next.js: 67ms, application-code: 933ms)
+ POST /api/auth/me 200 in 11ms (next.js: 3ms, application-code: 9ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...sh9E","timestamp":"2026-09-04T10:08:52.680Z"}
+ POST /api/proxy 200 in 264ms (next.js: 5ms, application-code: 259ms)
+ POST /api/auth/me 200 in 132ms (next.js: 5ms, application-code: 127ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/cart/cart_shipping',
+  verified: false,
+  backend: 'gateway'
+}
+ POST /api/auth/update-user 200 in 149ms (next.js: 126ms, application-code: 23ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/cart/cart_shipping","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...sh9E","timestamp":"2026-09-04T10:08:53.084Z"}
+ POST /api/proxy 200 in 392ms (next.js: 14ms, application-code: 378ms)
+ GET /sy-en/loginDemo 200 in 403ms (next.js: 35ms, proxy.ts: 8ms, generate-params: 13ms, application-code: 347ms)
+ POST /api/auth/me 200 in 20ms (next.js: 7ms, application-code: 12ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/web/home/startingSettings?language=en',
+  verified: false,
+  backend: 'gateway'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/mobile/home/currency',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/mobile/home/currency","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T10:09:02.079Z"}
+ POST /api/proxy 200 in 899ms (next.js: 18ms, application-code: 880ms)
+ POST /api/auth/register-device 200 in 978ms (next.js: 11ms, application-code: 967ms)
+ POST /api/auth/me 200 in 15ms (next.js: 6ms, application-code: 9ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/web/home/startingSettings?language=en","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T10:09:02.403Z"}
+ POST /api/proxy 200 in 1221ms (next.js: 7ms, application-code: 1213ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...zro0","timestamp":"2026-09-04T10:09:02.676Z"}
+ POST /api/proxy 200 in 267ms (next.js: 4ms, application-code: 264ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/cart/cart_shipping',
+  verified: false,
+  backend: 'gateway'
+}
+ POST /api/auth/me 200 in 45ms (next.js: 21ms, application-code: 24ms)
+ POST /api/auth/update-user 200 in 52ms (next.js: 39ms, application-code: 13ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/cart/cart_shipping","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...zro0","timestamp":"2026-09-04T10:09:02.991Z"}
+ POST /api/proxy 200 in 287ms (next.js: 6ms, application-code: 281ms)
+ GET /sy-en/loginDemo 200 in 315ms (next.js: 15ms, proxy.ts: 8ms, generate-params: 14ms, application-code: 278ms)
+ POST /api/auth/me 200 in 16ms (next.js: 5ms, application-code: 11ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/web/home/startingSettings?language=en',
+  verified: false,
+  backend: 'gateway'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/mobile/home/currency',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/mobile/home/currency","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T10:09:47.950Z"}
+ POST /api/proxy 200 in 803ms (next.js: 17ms, application-code: 787ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/web/home/startingSettings?language=en","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T10:09:47.980Z"}
+ POST /api/proxy 200 in 834ms (next.js: 8ms, application-code: 826ms)
+ POST /api/auth/register-device 200 in 931ms (next.js: 5ms, application-code: 926ms)
+ POST /api/auth/me 200 in 15ms (next.js: 5ms, application-code: 9ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...r4vw","timestamp":"2026-09-04T10:09:49.301Z"}
+ POST /api/proxy 200 in 281ms (next.js: 5ms, application-code: 276ms)
+ POST /api/auth/update-user 200 in 15ms (next.js: 4ms, application-code: 11ms)
+ POST /api/auth/me 200 in 17ms (next.js: 4ms, application-code: 12ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/cart/cart_shipping',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/cart/cart_shipping","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...r4vw","timestamp":"2026-09-04T10:09:49.620Z"}
+ POST /api/proxy 200 in 292ms (next.js: 10ms, application-code: 282ms)
+ GET /sy-en/loginDemo 200 in 216ms (next.js: 15ms, proxy.ts: 8ms, generate-params: 13ms, application-code: 180ms)
+ POST /api/auth/me 200 in 18ms (next.js: 10ms, application-code: 7ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/web/home/startingSettings?language=en',
+  verified: false,
+  backend: 'gateway'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/mobile/home/currency',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/mobile/home/currency","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T10:10:02.309Z"}
+ POST /api/proxy 200 in 829ms (next.js: 43ms, application-code: 786ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/web/home/startingSettings?language=en","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T10:10:02.394Z"}
+ POST /api/proxy 200 in 915ms (next.js: 19ms, application-code: 897ms)
+ POST /api/auth/register-device 200 in 966ms (next.js: 6ms, application-code: 960ms)
+ POST /api/auth/me 200 in 16ms (next.js: 7ms, application-code: 9ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...7HXI","timestamp":"2026-09-04T10:10:03.682Z"}
+ POST /api/proxy 200 in 240ms (next.js: 9ms, application-code: 230ms)
+ POST /api/auth/update-user 200 in 24ms (next.js: 10ms, application-code: 14ms)
+ POST /api/auth/me 200 in 31ms (next.js: 12ms, application-code: 18ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/cart/cart_shipping',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/cart/cart_shipping","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...7HXI","timestamp":"2026-09-04T10:10:03.993Z"}
+ POST /api/proxy 200 in 276ms (next.js: 34ms, application-code: 242ms)
+ GET /sy-en/loginDemo 200 in 1623ms (next.js: 846ms, proxy.ts: 205ms, generate-params: 46ms, application-code: 526ms)
+ GET /sy-en/loginDemo 200 in 953ms (next.js: 16ms, proxy.ts: 11ms, generate-params: 15ms, application-code: 912ms)
+ POST /api/auth/me 200 in 43ms (next.js: 26ms, application-code: 16ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/web/home/startingSettings?language=en',
+  verified: false,
+  backend: 'gateway'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/mobile/home/currency',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/mobile/home/currency","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T10:44:12.755Z"}
+ POST /api/proxy 200 in 1244ms (next.js: 29ms, application-code: 1215ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/web/home/startingSettings?language=en","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T10:44:12.920Z"}
+ POST /api/proxy 200 in 1408ms (next.js: 17ms, application-code: 1391ms)
+ POST /api/auth/register-device 200 in 5.3s (next.js: 56ms, application-code: 5.3s)
+ POST /api/auth/me 200 in 15ms (next.js: 7ms, application-code: 8ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...4I3k","timestamp":"2026-09-04T10:44:17.874Z"}
+ POST /api/proxy 200 in 937ms (next.js: 3ms, application-code: 934ms)
+ POST /api/auth/me 200 in 27ms (next.js: 6ms, application-code: 22ms)
+ POST /api/auth/update-user 200 in 37ms (next.js: 19ms, application-code: 18ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/cart/cart_shipping',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/cart/cart_shipping","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...4I3k","timestamp":"2026-09-04T10:44:18.304Z"}
+ POST /api/proxy 200 in 392ms (next.js: 9ms, application-code: 383ms)
+ GET /sy-en/loginDemo 200 in 502ms (next.js: 131ms, proxy.ts: 86ms, generate-params: 18ms, application-code: 267ms)
+ POST /api/auth/me 200 in 43ms (next.js: 13ms, application-code: 29ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/web/home/startingSettings?language=en',
+  verified: false,
+  backend: 'gateway'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/mobile/home/currency',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/web/home/startingSettings?language=en","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T10:48:45.963Z"}
+[Proxy] {"type":"proxy-request","server":"market","url":"/mobile/home/currency","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T10:48:45.994Z"}
+ POST /api/proxy 200 in 696ms (next.js: 14ms, application-code: 682ms)
+ POST /api/auth/register-device 200 in 655ms (next.js: 6ms, application-code: 649ms)
+ POST /api/auth/me 200 in 11ms (next.js: 5ms, application-code: 7ms)
+ POST /api/proxy 200 in 787ms (next.js: 7ms, application-code: 780ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...KjcQ","timestamp":"2026-09-04T10:48:46.359Z"}
+ POST /api/proxy 200 in 261ms (next.js: 9ms, application-code: 252ms)
+ POST /api/auth/update-user 200 in 18ms (next.js: 7ms, application-code: 11ms)
+ POST /api/auth/me 200 in 18ms (next.js: 6ms, application-code: 11ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/cart/cart_shipping',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/cart/cart_shipping","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...KjcQ","timestamp":"2026-09-04T10:48:46.676Z"}
+ POST /api/proxy 200 in 278ms (next.js: 12ms, application-code: 265ms)
+[ioredis] Unhandled error event: Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TCP.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TCP.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ETIMEDOUT
+    at Socket.<anonymous> (C:\Users\DELL\Desktop\workspace\TrydosApp\trydos\.next\dev\server\chunks\ssr\0bky_ioredis_built_0z9ig5d._.js:1186:41)
+    at Object.onceWrapper (node:events:638:28)
+    at Socket.emit (node:events:524:28)
+    at Socket._onTimeout (node:net:609:8)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+[ioredis] Unhandled error event: Error: connect ETIMEDOUT
+    at Socket.<anonymous> (C:\Users\DELL\Desktop\workspace\TrydosApp\trydos\.next\dev\server\chunks\ssr\0bky_ioredis_built_0z9ig5d._.js:1186:41)
+    at Object.onceWrapper (node:events:638:28)
+    at Socket.emit (node:events:524:28)
+    at Socket._onTimeout (node:net:609:8)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+[ioredis] Unhandled error event: Error: connect ETIMEDOUT
+    at Socket.<anonymous> (C:\Users\DELL\Desktop\workspace\TrydosApp\trydos\.next\dev\server\chunks\ssr\0bky_ioredis_built_0z9ig5d._.js:1186:41)
+    at Object.onceWrapper (node:events:638:28)
+    at Socket.emit (node:events:524:28)
+    at Socket._onTimeout (node:net:609:8)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+[ioredis] Unhandled error event: Error: connect ETIMEDOUT
+    at Socket.<anonymous> (C:\Users\DELL\Desktop\workspace\TrydosApp\trydos\.next\dev\server\chunks\ssr\0bky_ioredis_built_0z9ig5d._.js:1186:41)
+    at Object.onceWrapper (node:events:638:28)
+    at Socket.emit (node:events:524:28)
+    at Socket._onTimeout (node:net:609:8)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+[ioredis] Unhandled error event: Error: connect ETIMEDOUT
+    at Socket.<anonymous> (C:\Users\DELL\Desktop\workspace\TrydosApp\trydos\.next\dev\server\chunks\ssr\0bky_ioredis_built_0z9ig5d._.js:1186:41)
+    at Object.onceWrapper (node:events:638:28)
+    at Socket.emit (node:events:524:28)
+    at Socket._onTimeout (node:net:609:8)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+[ioredis] Unhandled error event: Error: connect ETIMEDOUT
+    at Socket.<anonymous> (C:\Users\DELL\Desktop\workspace\TrydosApp\trydos\.next\dev\server\chunks\ssr\0bky_ioredis_built_0z9ig5d._.js:1186:41)
+    at Object.onceWrapper (node:events:638:28)
+    at Socket.emit (node:events:524:28)
+    at Socket._onTimeout (node:net:609:8)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+[ioredis] Unhandled error event: Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TCP.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+    at TCP.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ENETUNREACH 65.0.21.24:6379
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)
+    at TCPConnectWrap.callbackTrampoline (node:internal/async_hooks:130:17)
+[ioredis] Unhandled error event: Error: connect ETIMEDOUT
+    at Socket.<anonymous> (C:\Users\DELL\Desktop\workspace\TrydosApp\trydos\.next\dev\server\chunks\ssr\0bky_ioredis_built_0z9ig5d._.js:1186:41)
+    at Object.onceWrapper (node:events:638:28)
+    at Socket.emit (node:events:524:28)
+    at Socket._onTimeout (node:net:609:8)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+[ioredis] Unhandled error event: Error: connect ETIMEDOUT
+    at Socket.<anonymous> (C:\Users\DELL\Desktop\workspace\TrydosApp\trydos\.next\dev\server\chunks\ssr\0bky_ioredis_built_0z9ig5d._.js:1186:41)
+    at Object.onceWrapper (node:events:638:28)
+    at Socket.emit (node:events:524:28)
+    at Socket._onTimeout (node:net:609:8)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+ GET /sy-en/loginDemo 200 in 1416ms (next.js: 435ms, proxy.ts: 165ms, generate-params: 49ms, application-code: 767ms)
+ GET /sy-en/loginDemo 200 in 424ms (next.js: 15ms, proxy.ts: 11ms, generate-params: 19ms, application-code: 379ms)
+ POST /api/auth/me 200 in 55ms (next.js: 23ms, application-code: 33ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/web/home/startingSettings?language=en',
+  verified: false,
+  backend: 'gateway'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/mobile/home/currency',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/web/home/startingSettings?language=en","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T11:11:42.850Z"}
+[Proxy] {"type":"proxy-request","server":"market","url":"/mobile/home/currency","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T11:11:42.854Z"}
+ POST /api/proxy 200 in 824ms (next.js: 32ms, application-code: 792ms)
+ POST /api/proxy 200 in 828ms (next.js: 14ms, application-code: 814ms)
+ POST /api/auth/register-device 200 in 774ms (next.js: 22ms, application-code: 751ms)
+ POST /api/auth/me 200 in 17ms (next.js: 4ms, application-code: 13ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...IBn8","timestamp":"2026-09-04T11:11:44.335Z"}
+ POST /api/proxy 200 in 392ms (next.js: 4ms, application-code: 388ms)
+ POST /api/auth/update-user 200 in 38ms (next.js: 19ms, application-code: 19ms)
+ POST /api/auth/me 200 in 19ms (next.js: 4ms, application-code: 15ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/cart/cart_shipping',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/cart/cart_shipping","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...IBn8","timestamp":"2026-09-04T11:11:45.511Z"}
+ POST /api/proxy 200 in 793ms (next.js: 4ms, application-code: 788ms)
+ GET /sy-en/loginDemo 200 in 1377ms (next.js: 422ms, proxy.ts: 25ms, generate-params: 46ms, application-code: 884ms)
+ GET /sy-en/loginDemo 200 in 665ms (next.js: 28ms, proxy.ts: 12ms, generate-params: 25ms, application-code: 601ms)
+ GET /sy-en/loginDemo 200 in 888ms (next.js: 55ms, proxy.ts: 15ms, generate-params: 36ms, application-code: 781ms)
+ GET /sy-en/loginDemo 200 in 263ms (next.js: 17ms, proxy.ts: 8ms, generate-params: 17ms, application-code: 221ms)
+ GET /sy-en/loginDemo 200 in 163ms (next.js: 9ms, proxy.ts: 5ms, generate-params: 9ms, application-code: 140ms)
+ POST /api/auth/me 200 in 96ms (next.js: 67ms, application-code: 29ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/mobile/home/currency',
+  verified: false,
+  backend: 'gateway'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/web/home/startingSettings?language=en',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/mobile/home/currency","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T11:15:04.310Z"}
+ POST /api/proxy 200 in 823ms (next.js: 45ms, application-code: 777ms)
+ POST /api/auth/register-device 200 in 748ms (next.js: 43ms, application-code: 704ms)
+ POST /api/auth/me 200 in 12ms (next.js: 3ms, application-code: 9ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/web/home/startingSettings?language=en","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T11:15:04.446Z"}
+ POST /api/proxy 200 in 950ms (next.js: 56ms, application-code: 894ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...dNj8","timestamp":"2026-09-04T11:15:04.893Z"}
+ POST /api/proxy 200 in 392ms (next.js: 3ms, application-code: 389ms)
+ POST /api/auth/me 200 in 11ms (next.js: 4ms, application-code: 7ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/cart/cart_shipping',
+  verified: false,
+  backend: 'gateway'
+}
+ POST /api/auth/update-user 200 in 49ms (next.js: 35ms, application-code: 14ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/cart/cart_shipping","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...dNj8","timestamp":"2026-09-04T11:15:05.184Z"}
+ POST /api/proxy 200 in 269ms (next.js: 6ms, application-code: 263ms)
+ GET /sy-en/loginDemo 200 in 192ms (next.js: 8ms, proxy.ts: 4ms, generate-params: 9ms, application-code: 170ms)
+ POST /api/auth/me 200 in 22ms (next.js: 6ms, application-code: 16ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/web/home/startingSettings?language=en',
+  verified: false,
+  backend: 'gateway'
+}
+[MarketRouting] {
+  source: 'proxy',
+  url: '/mobile/home/currency',
+  verified: false,
+  backend: 'gateway'
+}
+ POST /api/auth/register-device 200 in 863ms (next.js: 4ms, application-code: 859ms)
+ POST /api/auth/me 200 in 9ms (next.js: 3ms, application-code: 6ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/mobile/home/currency","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T11:15:47.329Z"}
+ POST /api/proxy 200 in 1038ms (next.js: 15ms, application-code: 1023ms)
+[Proxy] {"type":"proxy-request","server":"market","url":"/web/home/startingSettings?language=en","method":"GET","status":200,"tokenPresent":false,"tokenHint":"***","timestamp":"2026-09-04T11:15:47.435Z"}
+ POST /api/proxy 200 in 1146ms (next.js: 10ms, application-code: 1136ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/customer/info',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/customer/info","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...N2IY","timestamp":"2026-09-04T11:15:47.811Z"}
+ POST /api/proxy 200 in 366ms (next.js: 3ms, application-code: 363ms)
+ POST /api/auth/update-user 200 in 17ms (next.js: 6ms, application-code: 11ms)
+ POST /api/auth/me 200 in 15ms (next.js: 7ms, application-code: 8ms)
+[MarketRouting] {
+  source: 'proxy',
+  url: '/cart/cart_shipping',
+  verified: false,
+  backend: 'gateway'
+}
+[Proxy] {"type":"proxy-request","server":"market","url":"/cart/cart_shipping","method":"GET","status":200,"tokenPresent":true,"tokenHint":"eyJh...N2IY","timestamp":"2026-09-04T11:15:48.117Z"}
+ POST /api/proxy 200 in 263ms (next.js: 5ms, application-code: 258ms)

@@ -1,6 +1,6 @@
 import { useAppStore } from "store";
-import { getUserChat } from "utils/functions";
-import { Message, MessageContent, MessageStatus } from "utils/types/chat";
+import { getUserChat, LogError } from "utils/functions";
+import { MessageContent, MessageStatus } from "utils/types/chat";
 import { DeleteMessageApi } from "./actions";
 
 export const getMessageStatus = ({
@@ -158,34 +158,48 @@ export const getMessageTime = (ti, zone) => {
   }
 };
 
-export const getStatues = ({
-  message_status,
-}: {
-  message_status: MessageStatus[];
-}) => {
-  let a = message_status.filter((a) => a.user_id !== getUserChat()?.id);
-  if (a.length > 0) {
-    return a[0];
-  } else {
-    return { is_watched: false, is_received: 0 };
-  }
-};
-
 export const DeleteMessage = (ch_id, msg_id, bool) => {
   const { deleteMessage } = useAppStore.getState();
   deleteMessage({ ch_id, msg_id, bool });
   DeleteMessageApi(msg_id, bool);
 };
 
-export const copyText = ({
+/**
+ * Copy one text message to the clipboard.
+ *
+ * This used to go through a hidden `#text-copy` textarea, which only
+ * `ChatWindowModal` renders. The order chat mounts `ConversationContainer`
+ * through `ChatWidget` instead, so there the element was null and Copy threw
+ * on `elem.value` — the option was there but never worked.
+ *
+ * The clipboard API needs no element, so Copy now behaves the same in both
+ * windows. The old textarea path stays as a fallback for a browser without it.
+ */
+export const copyText = async ({
   message_content,
 }: {
   message_content: MessageContent;
 }) => {
-  let elem = document.querySelector<any>("#text-copy");
-  if (!Array.isArray(message_content)) elem.value = message_content?.content;
-  elem.select();
-  document.execCommand("Copy");
+  if (Array.isArray(message_content)) return;
+  const text = message_content?.content;
+  if (!text) return;
+
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+    const elem = document.querySelector<HTMLTextAreaElement>("#text-copy");
+    if (!elem) throw new Error("no clipboard support and no #text-copy field");
+    elem.value = text;
+    elem.select();
+    document.execCommand("Copy");
+  } catch (error) {
+    LogError({
+      error,
+      scenario: "copyText in chat utils - chat widget",
+    });
+  }
 };
 
 export const IsTextAvatar = () => {

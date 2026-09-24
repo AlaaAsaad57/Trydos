@@ -11,25 +11,26 @@ type PageVariant = 'scaled' | 'full';
  * Page — top-level wrapper for every route.
  *
  * variant="scaled" (default)
- *   430px design canvas scaled to fit the viewport via AppScaler.
+ *   The 430 x 932 design canvas, scaled whole to fit the window by AppScaler.
  *
  * variant="full"
  *   No scaling — raw viewport control.
  */
 export default function Page({
   variant = 'scaled',
-  landscapeThreshold = 1.7,
   outerBg,
+  maxDeficit,
   children,
 }: {
   variant?: PageVariant;
-  landscapeThreshold?: number;
   outerBg?: OuterBgKey;
+  /** Passed to AppScaler: how much height the current screen can give up. */
+  maxDeficit?: number;
   children: React.ReactNode;
 }) {
   if (variant === 'scaled') {
     return (
-      <AppScaler landscapeThreshold={landscapeThreshold}>
+      <AppScaler maxDeficit={maxDeficit}>
         <div
           className={`w-full h-full ${outerBg ? ` outer-bg-${outerBg}` : ''} transition-all duration-[300]`}
           style={{ backgroundColor: outerBg && OUTER_BG[outerBg] ? OUTER_BG[outerBg] : undefined }}

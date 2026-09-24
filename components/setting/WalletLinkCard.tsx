@@ -1,7 +1,7 @@
 "use client";
 
 import BottomSheet from "components/global/BottomSheet";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
@@ -10,7 +10,7 @@ import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
 import order from "services/order";
 // import "rdb/styles";
-import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+// import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 function WalletLinkCard({ isRtl, language, country }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);

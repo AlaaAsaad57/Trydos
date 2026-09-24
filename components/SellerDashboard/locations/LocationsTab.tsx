@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction, LogError } from "utils/functions";
 import { showSuccessMessage } from "components/global/AddToCartMessage";
@@ -10,13 +10,13 @@ import {
   EmptyState,
   ErrorState,
   InlineAlert,
-  LoadingState,
   Pagination,
   SectionHeader,
   StatusPill,
 } from "components/SellerDashboard/ui";
 import LocationFormModal from "./LocationFormModal";
 import { LocationsMeta, ShopLocation } from "./types";
+import { ListRowsSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
 
 const t = (s: string) => translateFunction(s);
 
@@ -85,9 +85,20 @@ export default function LocationsTab({
   };
 
   // Filters reset to page 1; the page control passes its own target.
+  //
+  // **`canRead` is a dependency, and leaving it out stopped the list loading at
+  // all.** The dashboard page mounts this section as soon as `?tab=locations`
+  // is in the address and passes `canRead` from the permissions in the store.
+  // On a fresh page load — a refresh, a bookmark, a link — that store is empty
+  // for the first render, so this effect used to run once with `canRead: false`,
+  // return from `load` before `setLoading(false)`, and never run again: neither
+  // `sellerId` nor `status` changes when the permissions arrive. The seller was
+  // left looking at the loading skeleton for ever. Reaching the tab from the
+  // dashboard home hid it, because the permissions were already in the store by
+  // then.
   useEffect(() => {
     load(1);
-  }, [sellerId, status]);
+  }, [sellerId, status, canRead]);
 
   const handleToggleStatus = async (location: ShopLocation) => {
     if (!canChangeStatus || togglingId !== null) return;
@@ -146,7 +157,12 @@ export default function LocationsTab({
           className="mb-0"
         />
         {canCreate && (
-          <DashButton size="sm" icon="plus" onClick={() => setEditing(null)}>
+          <DashButton
+            size="sm"
+            icon="plus"
+            data-pw="locations-add-btn"
+            onClick={() => setEditing(null)}
+          >
             {t("Add Location")}
           </DashButton>
         )}
@@ -155,6 +171,7 @@ export default function LocationsTab({
       <div className="flex items-center gap-2.5 flex-wrap mt-4">
         <select
           value={status}
+          data-pw="locations-status-filter"
           onChange={(e) => setStatus(e.target.value as StatusFilter)}
           aria-label={t("All statuses")}
           className={filterSelectClass}
@@ -166,17 +183,19 @@ export default function LocationsTab({
       </div>
 
       {actionError && (
-        <div className="mt-4">
+        <div className="mt-4" data-pw="locations-action-error">
           <InlineAlert tone="error">{actionError}</InlineAlert>
         </div>
       )}
 
       {loading ? (
-        <LoadingState label={t("Loading...")} />
+        <ListRowsSkeleton />
       ) : error ? (
-        <ErrorState message={error} onRetry={() => load(page)} />
+        <div data-pw="locations-error">
+          <ErrorState message={error} onRetry={() => load(page)} />
+        </div>
       ) : locations.length === 0 ? (
-        <div>
+        <div data-pw="locations-empty">
           <EmptyState
             icon="location"
             title={t("No locations found")}
@@ -192,10 +211,15 @@ export default function LocationsTab({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 mt-4">
+          <div
+            data-pw="locations-list"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 mt-4"
+          >
             {locations.map((location) => (
               <div
                 key={location.id}
+                data-pw="location-card"
+                data-location-id={location.id}
                 className="bg-white rounded-[16px] border border-[#ededed] p-4 flex flex-col gap-3 hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-shadow"
               >
                 <div className="flex items-start gap-3 w-full">
@@ -204,15 +228,24 @@ export default function LocationsTab({
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-[14px] semibold text-[#3c3c3c] truncate">
+                      <h3
+                        data-pw="location-name"
+                        className="text-[14px] semibold text-[#3c3c3c] truncate"
+                      >
                         {location.name}
                       </h3>
-                      <StatusPill active={location.status === 1}>
+                      <StatusPill
+                        data-pw="location-status"
+                        active={location.status === 1}
+                      >
                         {location.status === 1 ? t("Active") : t("Inactive")}
                       </StatusPill>
                     </div>
                     {location.address ? (
-                      <p className="text-[12px] text-[#8e8e8e] mt-1 line-clamp-2">
+                      <p
+                        data-pw="location-address"
+                        className="text-[12px] text-[#8e8e8e] mt-1 line-clamp-2"
+                      >
                         {location.address}
                       </p>
                     ) : (
@@ -236,6 +269,7 @@ export default function LocationsTab({
                         size="sm"
                         variant="secondary"
                         icon="edit"
+                        data-pw="location-edit-btn"
                         onClick={() => setEditing(location)}
                       >
                         {t("Edit")}
@@ -245,6 +279,7 @@ export default function LocationsTab({
                       <DashButton
                         size="sm"
                         variant={location.status === 1 ? "danger" : "ghost"}
+                        data-pw="location-toggle-btn"
                         loading={togglingId === location.id}
                         onClick={() => handleToggleStatus(location)}
                       >

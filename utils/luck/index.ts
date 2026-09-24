@@ -106,3 +106,22 @@ export function computeSecondsLeft(
   }
   return timer.pausedRemaining ?? 0;
 }
+
+/**
+ * Is the luck offer still open to this shopper for this product?
+ *
+ * `is_luck` comes from the product record, so it stays true after the shopper
+ * has redeemed the product. Every place that shows a luck price, or reports one
+ * to analytics, has to read the redeemed cookie as well — otherwise it claims an
+ * offer the shopper can no longer take.
+ *
+ * This matters more the more the product markup is shared: one cached card is
+ * shown to every shopper, including the ones who already redeemed.
+ */
+export function isLuckActive(
+  product: { is_luck?: unknown } | null | undefined,
+  id: string | number,
+): boolean {
+  if (!product?.is_luck) return false;
+  return !isRedeemed(id);
+}

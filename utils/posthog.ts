@@ -16,7 +16,6 @@
 //     `posthogCapture()` (see utils/gtag.ts), so the existing GA event taxonomy
 //     populates PostHog with zero new call sites.
 //   - Error tracking: `LogError` routes through `posthogCaptureException`.
-//   - Feature flags / experiments: `posthogIsFeatureEnabled` / `posthogGetFeatureFlag`.
 //   - Ad-blocker resilience: ingestion is reverse-proxied through our own
 //     `/ingest` path (rewrites in next.config.ts), so `api_host` is "/ingest".
 import type { PostHog } from "posthog-js";
@@ -133,26 +132,3 @@ export const posthogReset = async () => {
 };
 
 // Feature flags / experiments. Returns the fallback when PostHog isn't ready
-// (dev, pre-init, blocked) so callers always get a deterministic boolean/value.
-export const posthogIsFeatureEnabled = async (
-  flag: string,
-  fallback = false,
-): Promise<boolean> => {
-  const posthog = await ready();
-  try {
-    return posthog?.isFeatureEnabled(flag) ?? fallback;
-  } catch {
-    return fallback;
-  }
-};
-
-export const posthogGetFeatureFlag = async (
-  flag: string,
-): Promise<boolean | string | undefined> => {
-  const posthog = await ready();
-  try {
-    return posthog?.getFeatureFlag(flag);
-  } catch {
-    return undefined;
-  }
-};

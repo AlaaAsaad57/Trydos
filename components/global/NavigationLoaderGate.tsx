@@ -44,9 +44,27 @@ export default function NavigationLoaderGate({
   // top the moment it appears; this also captures the base scroll for restore
   // on back-out (see overlayScroll.ts). `enterOverlay` is idempotent, so the
   // subsequent overlay phase won't re-save or fight it.
+  //
+  // ONE EXCEPTION, AND IT IS OPT-IN
+  // `enterOverlay` was written for intercepted overlay routes, and it scrolls to
+  // the top. A navigation that is NOT an overlay does not want that — the seller
+  // dashboard's back journey, for one, which lands on an ordinary nested page
+  // (overlayScroll.ts names that exact route as not an intercept). So a
+  // navigation may opt out by putting `no_overlay_scroll` in its payload.
+  //
+  // Opt-IN, deliberately, rather than us trying to work out which navigations
+  // are overlays. We cannot: at this moment `pathname` is still the page being
+  // LEFT, not the destination, and eight call sites set `isNavigating` without
+  // going through NextLink, so there is no reliable record of where any given
+  // navigation is heading. Skipping on a guess would cost an overlay its base
+  // scroll and land the seller at the top on back-out — the exact bug
+  // overlayScroll.ts exists to fix. Skipping only when a call site says so
+  // means an unknown navigation keeps today's behaviour, always.
+  const skipOverlayScroll = !!isNavigating?.no_overlay_scroll;
+
   useEffect(() => {
-    if (showLoader) enterOverlay(pathname);
-  }, [showLoader]);
+    if (showLoader && !skipOverlayScroll) enterOverlay(pathname);
+  }, [showLoader, skipOverlayScroll]);
 
   return (
     <>

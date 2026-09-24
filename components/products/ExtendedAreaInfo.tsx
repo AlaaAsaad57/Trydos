@@ -1,6 +1,6 @@
 import CommentSection from "./CommentSection";
 import MoreOptionsSection from "./MoreOptionsSection";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import ShareSectionSkeleton from "components/skeleton/ShareSectionSkeleton";
 

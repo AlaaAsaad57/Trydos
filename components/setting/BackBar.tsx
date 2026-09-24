@@ -77,6 +77,7 @@ const BackBar = ({
           <img
             className=""
             src="/icons/OptionsIcon.svg"
+            data-pw="screen-options-button"
             onClick={() => {
               options();
             }}

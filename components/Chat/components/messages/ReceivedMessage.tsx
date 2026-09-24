@@ -1,5 +1,12 @@
-import React from "react";
 import RepliedMessageWrapper from "./RepliedMessage";
+
+/**
+ * The stacking level a row takes while its options menu is open.
+ *
+ * Just enough to beat its own siblings, which ask for nothing. See the comment
+ * on the style below for why it is not a big number.
+ */
+const MENU_OPEN_LEVEL = 2;
 
 function ReceivedMessage({
   id,
@@ -12,6 +19,7 @@ function ReceivedMessage({
   isDeleted,
   onClick,
   sender_message_id,
+  isMenuOpen,
 }) {
   return (
     <div
@@ -21,6 +29,12 @@ function ReceivedMessage({
       }}
       style={{
         marginTop: !parent_message && `12px`,
+        // The option labels of the hover menu hang below this row. Rows are
+        // painted in document order, so without this the next message covers
+        // them. One row at a time has its menu open, and the scroll list
+        // clips the row, so a small level is enough and cannot reach the
+        // chat header or the input bar.
+        zIndex: isMenuOpen ? MENU_OPEN_LEVEL : undefined,
       }}
       className={`message-container ${
         parent_message && "flex-wrap"

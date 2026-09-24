@@ -1,6 +1,6 @@
 "use client";
 import Spinner from "components/global/Spinner";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
 import { fetchData } from "utils/fetchData";

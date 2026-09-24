@@ -1,4 +1,5 @@
 import { LogServerError } from "utils/serverErrorReporter";
+import { logRequest, startTimer } from "reqLogger";
 
 interface FetchOptions {
   url: string;
@@ -49,6 +50,9 @@ const createServerFetch = async <T = any,>({
 
   const [country, lang] = local.split("-");
   const handleRetry = async (attempt: number): Promise<FetchResponse<T>> => {
+    // reqLogger stopwatch. Restarted per attempt, so a retried call reports the
+    // time of the attempt that answered, not the sum of all of them.
+    const elapsed = startTimer();
     try {
       const fetchOptions: RequestInit = {
         method: method,
@@ -79,6 +83,15 @@ const createServerFetch = async <T = any,>({
       // If response is ok and not a retryable status code, return success
       if (response.ok && !retryableStatusCodes.includes(response.status)) {
         const data = await response.json();
+        await logRequest({
+          server: "market",
+          url,
+          method,
+          status: response.status,
+          durationMs: elapsed(),
+          requestBody: body,
+          responseBody: data,
+        });
         return {
           data,
           error: null,
@@ -92,9 +105,11 @@ const createServerFetch = async <T = any,>({
         retryableStatusCodes.includes(response.status) &&
         attempt < retryAttempts
       ) {
-        console.warn(
-          `Attempt ${attempt} failed with status ${response.status}, retrying...`,
-        );
+        // Not logged. A retry that succeeds is not a failure, and printing a
+        // line per attempt buried the CI log in `Attempt 1 failed…` while
+        // saying nothing a reader could act on. What matters — that the call
+        // needed retries before it finally gave up — is carried on the report
+        // below as `attempts`.
         await new Promise((resolve) => setTimeout(resolve, backoffFor(attempt)));
         return handleRetry(attempt + 1);
       }
@@ -102,6 +117,15 @@ const createServerFetch = async <T = any,>({
       // If we've exhausted retries or it's not a retryable error, return error
       const errorText = await response.text();
       const message = `HTTP ${response.status} ${url}: ${(errorText || "").substring(0, 500)}`;
+      await logRequest({
+        server: "market",
+        url,
+        method,
+        status: response.status,
+        durationMs: elapsed(),
+        requestBody: body,
+        responseBody: errorText,
+      });
       // A non-OK backend response is a real failure — record it (network-only
       // logging in the catch below previously left these untracked).
       LogServerError({
@@ -111,6 +135,10 @@ const createServerFetch = async <T = any,>({
         status: response.status,
         request_server: "market",
         local,
+        // How many tries it took before giving up. 1 means it failed outright;
+        // anything higher means the backend was flapping, which is the one
+        // thing the old per-attempt console line was good for.
+        attempts: attempt,
       });
       return {
         data: null,
@@ -128,9 +156,8 @@ const createServerFetch = async <T = any,>({
         (error as any)?.message?.includes("fetch");
 
       if (isNetworkError && attempt < retryAttempts) {
-        console.warn(
-          `Attempt ${attempt} failed due to network error, retrying...`,
-        );
+        // See the note on the status retry above: reported through `attempts`
+        // on the failure below, never printed per attempt.
         await new Promise((resolve) => setTimeout(resolve, backoffFor(attempt)));
         return handleRetry(attempt + 1);
       }
@@ -139,6 +166,17 @@ const createServerFetch = async <T = any,>({
         error: error,
         url,
         scenario: "Error In fetchServerData in serverRequest/ServerFetch",
+        attempts: attempt,
+      });
+      await logRequest({
+        server: "market",
+        url,
+        method,
+        // status 0 — the call never landed (network error, abort or timeout).
+        status: 0,
+        durationMs: elapsed(),
+        requestBody: body,
+        error,
       });
       return {
         data: null,

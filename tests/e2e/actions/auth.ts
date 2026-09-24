@@ -16,10 +16,12 @@ import {
   type Response,
 } from "@playwright/test";
 
-import { auth, nav } from "../selectors";
+import { auth, nav, prompt } from "../selectors";
 
 import { arriveAsGuest } from "./locale";
+import { howTheClientStarted } from "../harness/clientStart";
 import { LIVE_ORIGIN } from "../harness/env";
+import { redact } from "../harness/redact";
 import {
   credentialsChangedSince,
   credentialsHeld,
@@ -41,9 +43,42 @@ import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
  *  longer than that getting to the starting line and die before the window it
  *  was there to measure. See `_specs/e2e-guest-token-lifecycle/implement.md`
  *  for the full sum. */
+/** How many digits a whole international number runs to, across every country
+ *  the login widget offers (`components/Login/Enhanced/ui/RdbPhoneInput.tsx`).
+ *
+ *  The widget wants the dial code **and** the national part in one field, and it
+ *  checks the total exactly. The shortest pair it lists is the United States,
+ *  1 + 10; the longest are the three-digit dial codes with a ten-digit national
+ *  part, such as Iraq's 964 + 10.
+ *
+ *  Used only to tell a mis-set `TEST_ACCOUNT_PHONE` from a broken login screen —
+ *  see `enterPhone`. */
+const SHORTEST_INTERNATIONAL_NUMBER = 11;
+const LONGEST_INTERNATIONAL_NUMBER = 13;
+
 const COUNTRY_LOOKUP_MS = 10_000;
 const BOOT_NAVIGATION_MS = 25_000;
 const REGISTRATION_MS = 15_000;
+
+/** How long the credentials themselves may take to land, once the registration
+ *  has been *sent*.
+ *
+ *  Its own budget, larger than `REGISTRATION_MS`, because it covers a different
+ *  thing: not "did the browser ask" but "did the gateway answer and did the
+ *  answer write two cookies". That is a round trip to
+ *  `/auth/register-guest` plus the route's own cookie writes.
+ *
+ *  **15 seconds was too tight for CI, twice.** Runs 35575484753 and
+ *  35592830847 both failed `session.live` cases with `the registration was
+ *  requested but no credentials arrived` and **zero** cookies — not one of two,
+ *  zero — while 47 other solo cases in the same run passed. Locally the same
+ *  step finishes in under four seconds. So the budget was measuring the link to
+ *  staging, not the app.
+ *
+ *  Still before the measured window opens (`session.live.spec.ts` starts its
+ *  30-second window at `registeredAt`, which is set *after* this wait), so a
+ *  slow boot cannot make a case pass that should not. */
+const CREDENTIALS_MS = 45_000;
 
 /** Where a case starts.
  *
@@ -179,8 +214,11 @@ export const bootAsNewGuest = async (
   // went wrong when these cases were written.
   await expect
     .poll(async () => (await credentialsHeld(page)).length, {
-      timeout: REGISTRATION_MS,
-      message: "the registration was requested but no credentials arrived",
+      timeout: CREDENTIALS_MS,
+      message:
+        "the registration was requested but no credentials arrived — the " +
+        "gateway either never answered /auth/register-guest or answered " +
+        "without a token pair",
     })
     .toBe(2);
 
@@ -257,6 +295,66 @@ export type OtpMethod = "sms" | "whatsapp";
 const AUTH_SCREEN_MS = 10_000;
 const SEND_OTP_MS = 20_000;
 
+/** How long the verify answer may take before the attempt counts as unfinished.
+ *
+ *  Generous, and the number is the work's, not a guess. `/api/auth/login` signs
+ *  the shopper in to five backends in turn — market, chat, stories, comments and
+ *  wallet — and only then does the widget wait its own extra second before
+ *  moving off the PIN screen. Locally that whole sequence runs in about eight
+ *  seconds; the CI runner reaches the same staging over a slower link.
+ *
+ *  Still well inside the 120-second per-case limit, so a verify that genuinely
+ *  never answers is still reported rather than waited out forever. */
+const VERIFY_ANSWER_MS = 60_000;
+
+/** How long the app may take to admit it has signed the shopper in.
+ *
+ *  Read from `/api/auth/me`, which answers from cookies the sign-in route
+ *  already wrote, so this is not another round trip to staging — it is the
+ *  browser catching up with a fan-out it has already been told about. */
+const SIGNED_IN_ANSWER_MS = 45_000;
+
+/** How often a waiting loop may ask the **app** what it believes.
+ *
+ *  Reading the widget's screen is free: the browser already holds the DOM.
+ *  `signedInSession` is not — it POSTs to `/api/auth/me` — and the app under
+ *  test is a Next server on the same two-core runner as the browser. A loop
+ *  that asked it four times a second would spend the whole sign-in competing
+ *  with the renders these waits exist to let finish. Once a second is plenty:
+ *  nothing downstream cares about a second either way. */
+const APP_READ_EVERY_MS = 1_000;
+
+/** Has the widget reached a screen that ends the attempt?
+ *
+ *  **Asked of each screen directly, never through `currentAuthScreen`.** That
+ *  helper answers "which screen is this" by walking a priority list, and
+ *  `enter-pin` sits above every finished screen in it. The PIN screen's own
+ *  input is `sr-only` — a 1px box, which Playwright counts as visible — so for
+ *  as long as it lingers in the DOM the priority list keeps answering
+ *  `enter-pin` and a finished screen underneath it is never noticed.
+ *
+ *  That cost real time rather than correctness: the scripted sign-ins went from
+ *  ~26s to 46-58s each, because the wait below ran to its deadline on cases
+ *  that had finished in a second. Reading the four end screens for themselves
+ *  takes the ordering out of the question.
+ *
+ *  "Closed" counts too, and is checked last: a widget that has gone from the
+ *  screen has finished by definition. */
+const reachedFinishedScreen = async (page: Page): Promise<boolean> => {
+  const ends = [
+    auth.welcomeTitle(page),
+    auth.nameInput(page),
+    auth.notRegisteredMessage(page),
+    auth.AlreadyRegistered(page),
+  ];
+
+  for (const locator of ends) {
+    if (await locator.isVisible().catch(() => false)) return true;
+  }
+
+  return (await currentAuthScreen(page)) === "closed";
+};
+
 /** How long to wait for the sign-in answer itself.
  *
  *  It arrives on the same request the widget is already waiting on, so by the
@@ -276,12 +374,51 @@ const SIGN_OUT_SETTLE_MS = 30_000;
  *  credential and trying again before it gives up. */
 const CART_ANSWER_MS = 30_000;
 
-/** Open the login widget from the nav bar and wait for the first screen. */
+/** Open the login widget from the nav bar and wait for the first screen.
+ *
+ *  Two questions, asked separately, for the same reason `openAccountMenu` asks
+ *  two: "did the widget open" and "is it on the first screen" are different
+ *  faults with different causes, and one check could only ever report the
+ *  second. `BUY-01` failed as `join-statement ... element(s) not found`, which
+ *  names a marker rather than a fault.
+ *
+ *  The press is repeated up to three times because the nav control is
+ *  server-rendered, so a press landing before React attaches does nothing at
+ *  all. It is **never** repeated while the widget is already open: the widget
+ *  covers the nav control it was opened from, so a second press is swallowed
+ *  and Playwright reports a click timeout instead. */
 export const openLoginWidget = async (page: Page): Promise<void> => {
   const button = auth.loginButton(page);
   await expect(button).toBeVisible();
-  await button.click();
-  await expect(auth.getStartedTitle(page)).toBeVisible();
+
+  let screen = await currentAuthScreen(page);
+  for (let attempt = 0; attempt < 3 && screen === "closed"; attempt += 1) {
+    await button.click();
+    await auth
+      .getStartedTitle(page)
+      .waitFor({ state: "visible", timeout: AUTH_SCREEN_MS })
+      .catch(() => undefined);
+    screen = await currentAuthScreen(page);
+  }
+
+  // First question. `"closed"` is `currentAuthScreen`'s own answer for "none of
+  // the widget's screens are in the page", so this is the app's reading, not a
+  // guess about one marker.
+  expect(
+    screen,
+    "the login control was pressed three times and the widget never opened, " +
+      "so no screen of it is in the page",
+  ).not.toBe("closed");
+
+  // Second question, and its own message. `null` means the widget is open on a
+  // screen this suite does not recognise — worth saying, because it is what a
+  // page that kept an earlier flow armed looks like.
+  expect(
+    screen,
+    `the login widget opened on the "${screen ?? "unrecognised"}" screen ` +
+      "instead of the first one, so the visitor was not asked to sign up or " +
+      "log in",
+  ).toBe("get-started");
 };
 
 /** Choose sign-up or login on the first screen. */
@@ -314,10 +451,66 @@ export const enterPhone = async (
   await expect(input).toBeVisible();
   const digits = options.phone.replace(/\D/g, "").replace(/^0+/, "");
   await input.fill(digits);
+
+  // **The submit control is drawn only for a number the widget calls complete**,
+  // and complete means an exact digit count, not a minimum:
+  // `isValidPhone = digits.length === dialCode.length + maxLocal`
+  // (`components/Login/Enhanced/ui/RdbPhoneInput.tsx`). Syria is 3 + 9, so
+  // twelve digits — the **whole** international number, country code included
+  // and no `+`. One digit short or one over and there is no control to press.
+  //
+  // So `TEST_ACCOUNT_PHONE` has to be one full international number. Two of
+  // them separated by a comma, or the national part on its own, both land here.
+  //
+  // Without the reading below, that failure is "element(s) not found" against
+  // `send-phone-number` — which names nothing anyone can act on and reads like
+  // the login screen changed. It cost a local run to work out, and the whole
+  // answer was the length of the value.
+  //
+  // **The number never reaches the message**, only how many digits it has.
   const submit = auth.submitPhoneButton(page);
+  const ready = await submit
+    .waitFor({ state: "visible", timeout: 5_000 })
+    .then(() => true)
+    .catch(() => false);
+
+  if (!ready) {
+    const shown = ((await input.inputValue().catch(() => "")) ?? "").replace(
+      /\D/g,
+      "",
+    );
+
+    // Which way it is wrong, said plainly. Every country the widget offers
+    // needs between eleven and thirteen digits in total, so a value outside
+    // that is the setting and nothing else.
+    const why =
+      digits.length > LONGEST_INTERNATIONAL_NUMBER
+        ? `TEST_ACCOUNT_PHONE carries ${digits.length} digits, which is more ` +
+          `than any one number the widget accepts — it is holding more than ` +
+          `one number. Set it to a single international number.`
+        : digits.length < SHORTEST_INTERNATIONAL_NUMBER
+          ? `TEST_ACCOUNT_PHONE carries ${digits.length} digits, which is too ` +
+            `few for a full international number — the country code is most ` +
+            `likely missing. Set it to the whole number, country code first ` +
+            `and no "+".`
+          : `The length is plausible for a full international number, so this ` +
+            `is the login screen or the account, not the setting.`;
+
+    expect(
+      false,
+      `the number was typed but the widget never drew its submit control, so ` +
+        `it does not consider the number complete. It asks for an exact digit ` +
+        `count — the country's dial code plus its national length, twelve for ` +
+        `Syria — and the field is holding ${shown.length}. ${why}`,
+    ).toBe(true);
+  }
+
   await expect(submit).toBeEnabled();
   await submit.click();
-  await expect(auth.screenTitle(page)).toBeVisible();
+  await expect(
+    auth.methodPhone(page),
+    "the number was submitted but the widget never reached the choose-a-method screen",
+  ).toBeVisible();
 };
 
 const OTP_GUARD_KEY = "otp_guard_v1";
@@ -444,7 +637,10 @@ export const currentAuthScreen = async (
   const pairs: Array<[AuthScreen, Locator]> = [
     ["get-started", auth.getStartedTitle(page)],
     ["input-phone", auth.phoneInput(page)],
-    ["select-method", auth.screenTitle(page)],
+    // The number, not the Edit button beside it. Edit is omitted whenever the
+    // account already owns the number — the re-verify path — and reading the
+    // screen by it reported "no auth screen" for a screen that was plainly up.
+    ["select-method", auth.methodPhone(page)],
     ["enter-pin", auth.otpInput(page)],
     ["welcome", auth.welcomeTitle(page)],
     ["input-name", auth.nameInput(page)],
@@ -523,18 +719,66 @@ export const attemptAuth = async (
   await sendOtpWithRetry(page, { method: options.method, phone: options.phone });
   await submitOtp(page, { otp: options.otp, phone: options.phone });
 
-  // After submit the widget may transition quickly (success) or stay on the
-  // PIN screen (wrong code / rate limit / server error). Poll for a stable
-  // screen instead of asserting immediately.
-  const deadline = Date.now() + AUTH_SCREEN_MS;
-  let lastScreen: AuthScreen | null = null;
+  // Wait for the widget to FINISH, not for it to hold still.
+  //
+  // **This used to return the first screen that read the same twice, a quarter
+  // of a second apart, and that is not the same question.** On the PIN screen
+  // nothing changes for the whole verify round trip — and for a full second
+  // after it, because `handleVerifyPin`
+  // (`components/Login/Enhanced/FullEnhancedLoginWidget.tsx:342`) moves the
+  // shopper on inside a `setTimeout(…, 1000)`. So two matching reads meant
+  // "the sign-in is still travelling", and the helper returned `enter-pin`
+  // exactly when the sign-in was slow, which is the one case it exists to wait
+  // for.
+  //
+  // It cost a whole file. On CI run 35592830847 `PROF-01` failed with `the
+  // sign-in ended on the "enter-pin" screen` while its sign-in was working
+  // perfectly, and PROF-02 to PROF-08 then had no saved session to open —
+  // eight of that lane's fourteen failures, from one race.
+  // `profile.live.spec.ts:1170` had already written the behaviour down ("a
+  // healthy sign-in comes back from `attemptAuth` as 'enter-pin'") and worked
+  // around it in that one case; this fixes it for every caller instead.
+  //
+  // **Three ways out, and the third one is not optional.** Waiting only for the
+  // widget was the first version of this fix, and it was a mistake that cost a
+  // CI run: when a backend of the fan-out refuses, `services/auth.ts` throws
+  // inside `VerifyOtp` **after** the core session is written, so the widget
+  // never leaves the PIN screen and never draws an error either. That version
+  // then sat out its whole budget on every single sign-in. Measured on runs
+  // 35626155490, 35632583274 and 35638479517 with the wallet refusing: AUTH-01
+  // went from 26.5s to 45.7s and the account lane from ~28 to 45 minutes, and
+  // the extra load pushed nine unrelated renders past their navigation timeout.
+  //
+  // So the app's own answer ends the wait too. It is also the truest of the
+  // three: a signed-in shopper is one the app names as signed in, whatever the
+  // widget happens to be showing.
+  const deadline = Date.now() + VERIFY_ANSWER_MS;
+  let nextAppRead = Date.now() + APP_READ_EVERY_MS;
 
   while (Date.now() < deadline) {
-    const screen = await currentAuthScreen(page);
-    if (screen === lastScreen && screen !== null) {
-      return { screen, error: await visibleVerifyError(page) };
+    // A visible verify error ends the attempt. A wrong code, a rate limit or a
+    // server error leaves the widget on the PIN screen **on purpose**, so a
+    // case about one of those branches must not sit out the whole budget.
+    const error = await visibleVerifyError(page);
+    if (error !== null) {
+      return { screen: (await currentAuthScreen(page)) ?? "closed", error };
     }
-    lastScreen = screen;
+
+    if (await reachedFinishedScreen(page)) {
+      return { screen: (await currentAuthScreen(page)) ?? "closed", error: null };
+    }
+
+    // The app, not the widget -- but asked on its own slower clock. Reading the
+    // screen is free (the browser already holds the DOM); `signedInSession`
+    // POSTs to `/api/auth/me`, so asking it every 250ms would put four requests
+    // a second on the very server whose renders this change exists to protect.
+    if (Date.now() >= nextAppRead) {
+      nextAppRead = Date.now() + APP_READ_EVERY_MS;
+      if ((await signedInSession(page)).phoneVerified) {
+        return { screen: (await currentAuthScreen(page)) ?? "closed", error: null };
+      }
+    }
+
     await page.waitForTimeout(250);
   }
 
@@ -599,6 +843,76 @@ export const signedInSession = async (
   );
 
   return reduced ?? NOTHING_READ;
+};
+
+/** Wait until the **app** says this is a signed-in shopper, and fail naming
+ *  what it said if it never does.
+ *
+ *  **The widget's screen is not the judgement, and that is not a shortcut.**
+ *  `services/auth.ts` builds the signed-in state out of all five backends'
+ *  answers at once — `checkWallet(...)` and `response.data.user` are read before
+ *  anything is stored — so one refused leg throws inside `VerifyOtp`, the widget
+ *  takes its own error path, and the shopper is left looking at the PIN screen.
+ *  The core session is already written by then: the shopper **is** signed in.
+ *
+ *  That was measured, not guessed. `harness/qaSeed.ts:428` records a run on
+ *  2026-09-19 where the core backend answered 200 to the code and the wallet
+ *  answered a Cloudflare 502, and the seed's earlier version reported "the core
+ *  backend refused the code" — which was untrue and sent the reader to the
+ *  wrong account.
+ *
+ *  So a case that is **not about the fan-out** asks this instead of reading the
+ *  screen. `auth.live.spec.ts` (AUTH-01) is the one case that judges every leg,
+ *  and it must stay the only one that turns red when a leg is down — otherwise a
+ *  single dead wallet paints eight unrelated cases red and says nothing about
+ *  any of them.
+ *
+ *  Returns what the app believes, so the caller can go on using it. */
+export const requireSignedInShopper = async (
+  page: Page,
+  options: { outcome?: AuthOutcome; who?: string; timeout?: number } = {},
+): Promise<SignedInSession> => {
+  const deadline = Date.now() + (options.timeout ?? SIGNED_IN_ANSWER_MS);
+  let session = NOTHING_READ;
+
+  while (Date.now() < deadline) {
+    session = await signedInSession(page);
+    if (session.phoneVerified) return session;
+    // Once a second, not twice — see `APP_READ_EVERY_MS`. Each turn of this
+    // loop is a POST to the app's own server.
+    await page.waitForTimeout(APP_READ_EVERY_MS);
+  }
+
+  const who = options.who ?? "the shopper";
+  // The widget's own sentence, through `redact()`. It is written by the app and
+  // can carry whatever the backend said back, and this repository's job logs are
+  // public.
+  const screen = options.outcome
+    ? ` The widget ended on the "${options.outcome.screen}" screen${
+        options.outcome.error
+          ? `, saying: ${redact(options.outcome.error)}`
+          : ""
+      }.`
+    : "";
+  // Which legs the app itself says are missing. Named, because "the sign-in
+  // failed" sends the reader nowhere: a dead wallet and a refused code look
+  // identical from the screen and need opposite actions.
+  const legs = [
+    ["chat", session.chat],
+    ["stories", session.stories],
+    ["wallet", session.wallet],
+  ] as const;
+  const missing = legs.filter(([, landed]) => !landed).map(([name]) => name);
+
+  expect(
+    session.phoneVerified,
+    `${who} is not signed in: the app still answers /api/auth/me with an ` +
+      `unverified phone.${screen} The backends whose part of the sign-in did ` +
+      `not land: ${missing.length > 0 ? missing.join(", ") : "none — so the core sign-in itself never completed"}. ` +
+      `Neither the number nor the code is printed here.`,
+  ).toBe(true);
+
+  return session;
 };
 
 /** Which of the sign-in's own cookies the browser currently holds.
@@ -771,6 +1085,218 @@ export const openCartAndProveBackendAnswered = async (
 // Signing out.
 // ---------------------------------------------------------------------------
 
+/** How long the sign-out item has to appear once the menu is open.
+ *
+ *  The menu reads the store, and the store is filled by a client fetch that
+ *  runs after the page is interactive — so this has to allow for that fetch
+ *  noticing a refused credential, exchanging it and trying again. */
+const SIGN_OUT_ITEM_MS = 20_000;
+
+/** How much longer it is waited for **after** the budget above has run out.
+ *
+ *  Spent only on a run that is already failing, so it costs a healthy suite
+ *  nothing. It exists to turn "it never came" into "it came at 23 seconds",
+ *  which are two different findings with two different fixes. */
+const SIGN_OUT_ITEM_LATE_MS = 25_000;
+
+/** Why the open account menu offered no sign-out.
+ *
+ *  `shouldShowLogout` (`components/Home/Menu.tsx`) hides the item unless the
+ *  **store** holds a user whose phone is neither empty nor `"0"`. Three quite
+ *  different faults end there, and each needs the opposite action from the
+ *  other two:
+ *
+ *    1. **The session was replaced.** On a credential the gateway will not
+ *       renew, `/api/auth/expire` mints a fresh guest and rewrites `User-Data`
+ *       (`app/api/auth/expire/route.ts`). `getCustomerInfo` then syncs that
+ *       guest, and `updateUserInfo` **assigns** rather than merges
+ *       (`store/auth/reducer.tsx`), so the shopper's phone is gone. The app is
+ *       behaving as designed and the finding is the renewal, not the menu.
+ *    2. **The store never got the profile.** Cookies still name a
+ *       phone-verified shopper, so the session is alive and only the client
+ *       copy is missing. That is a front-end fault, in this repository.
+ *    3. **The account has no usable phone.** Then the menu is right to hide
+ *       the item, and the case is asking for something the account cannot do.
+ *
+ *  Told apart by the app's own answer, read at the moment of the failure —
+ *  never by guessing. `/api/auth/me` returns the `User-Data` cookie with the
+ *  tokens stripped, which is the same copy the sync writes.
+ *
+ *  **The phone is never printed**, here or anywhere: only whether the app would
+ *  call it usable, by the same rule the menu applies. Job logs and artifacts in
+ *  this repository are public. */
+/** What the app's two start-up calls answer, read by doing them again.
+ *
+ *  **Only ever called once a case has already failed**, because it reloads the
+ *  page and a reload throws away whatever was on screen. That is the trade:
+ *  the fault it explains is a store that never filled, and the only moment the
+ *  filling can be watched is a page start — which by then is long gone.
+ *
+ *  Why these two calls and no others. `getClientData` (`services/home.ts`) is
+ *  the only thing that fills the store's user on a normal page load, and it
+ *  does them in one chain:
+ *
+ *    1. `GET /web/home/startingSettings`, and it **throws on a failure**.
+ *    2. `getCustomerInfo` -> `GET /customer/info` -> `updateUserInfo`.
+ *
+ *  Step 2 is inside the same `try` as step 1, after it and awaiting it. So a
+ *  settings read that fails takes the profile read down with it and the store
+ *  keeps no user at all — with nothing on screen to say so. Naming which of the
+ *  two answered is therefore the whole finding, and "the client copy is
+ *  missing" without it is not.
+ *
+ *  Both leave through `POST /api/proxy` with the real address in `x-proxy-url`
+ *  (`utils/fetchData.ts`), which is how they are recognised.
+ *
+ *  **Statuses only, never a body.** These answers carry the shopper's name and
+ *  phone, and this repository's job logs are public. */
+const whatTheBootCallsSaid = async (page: Page): Promise<string> => {
+  const calls: Record<string, string> = {
+    "/web/home/startingSettings": "was never sent",
+    "/customer/info": "was never sent",
+  };
+
+  // **When**, not only whether. A store that fills at 23 seconds and a store
+  // that never fills produce the same empty menu at 20, and they are a test
+  // budget and an application fault respectively. The elapsed figure is the
+  // only thing that separates them.
+  let startedAt = Date.now();
+  const since = (): string => `${Date.now() - startedAt}ms after the reload`;
+
+  const onRequest = (request: import("@playwright/test").Request): void => {
+    if (!request.url().includes("/api/proxy")) return;
+    const target = request.headers()["x-proxy-url"] ?? "";
+    for (const path of Object.keys(calls)) {
+      if (target.includes(path) && calls[path] === "was never sent") {
+        calls[path] = `was sent ${since()} and never answered`;
+      }
+    }
+  };
+
+  const onResponse = (response: import("@playwright/test").Response): void => {
+    const request = response.request();
+    if (!request.url().includes("/api/proxy")) return;
+    const target = request.headers()["x-proxy-url"] ?? "";
+    const path = Object.keys(calls).find((known) => target.includes(known));
+    if (path === undefined) return;
+
+    const status = response.status();
+    const answeredAt = since();
+    void response
+      .text()
+      .then((body) => {
+        // `success` is the flag `getClientData` and `getCustomerInfo` both
+        // branch on, and a `200` carrying `success: false` is exactly the case
+        // that makes them throw. The status alone would call that one healthy.
+        let success: unknown;
+        try {
+          success = (JSON.parse(body) as { success?: unknown }).success;
+        } catch {
+          success = "a body that is not JSON";
+        }
+        calls[path] = `answered ${status} with success=${String(success)}, ${answeredAt}`;
+      })
+      .catch(() => {
+        calls[path] = `answered ${status} ${answeredAt}, and its body could not be read`;
+      });
+  };
+
+  page.on("request", onRequest);
+  page.on("response", onResponse);
+
+  try {
+    startedAt = Date.now();
+    await page.reload({ waitUntil: "domcontentloaded" });
+    // The chain is started on a timer after mount and the first call carries a
+    // ten-second in-app wait of its own (`WaitForCondition`), so a short wait
+    // here would report "never sent" for a call that was merely slow.
+    await page.waitForTimeout(20_000);
+  } catch {
+    // A reload that fails is itself worth saying, and the readings below are
+    // still the truth about what did and did not go out.
+  } finally {
+    page.off("request", onRequest);
+    page.off("response", onResponse);
+  }
+
+  return Object.entries(calls)
+    .map(([path, said]) => `${path} ${said}`)
+    .join("; ");
+};
+
+const whySignOutIsMissing = async (page: Page): Promise<string> => {
+  const said = await page.evaluate(() =>
+    fetch("/api/auth/me", { method: "POST", credentials: "include" })
+      .then((response) => response.json())
+      .then((body) => ({
+        accountId: typeof body?.user?.id === "number" ? body.user.id : null,
+        phoneVerified: body?.user?.is_phone_verified === 1,
+        phoneUsable:
+          Boolean(body?.user?.phone) && String(body.user.phone) !== "0",
+      }))
+      // Caught in the browser so no parser message — which quotes the input it
+      // choked on — can reach the Node failure line.
+      .catch(() => null),
+  );
+
+  // The app's own marker for "this session died and I am asking them back in".
+  // `ExpiredUser` arms it for a shopper who *was* verified, so it separates a
+  // replaced session from one that was never signed in.
+  const askedToSignInAgain = await prompt
+    .sessionExpired(page)
+    .isVisible()
+    .catch(() => false);
+
+  const opened = "the account menu opened but never offered sign-out";
+
+  if (said === null) {
+    return (
+      `${opened}, and the app's own answer about who is signed in could not ` +
+      `be read, so nothing here can say which fault this is`
+    );
+  }
+
+  const who = said.accountId === null ? "no account" : `account ${said.accountId}`;
+
+  if (!said.phoneVerified) {
+    return (
+      `${opened} — and the app is right: it no longer holds a phone-verified ` +
+      `shopper, it holds ${who}. The session was replaced while this case was ` +
+      `running. /api/auth/expire mints a guest when the credential cannot be ` +
+      `renewed, so the finding is the renewal, not the menu. The app ` +
+      `${askedToSignInAgain ? "is" : "is not"} showing the "please sign in ` +
+      `again" prompt, which it arms only for a session that was verified.`
+    );
+  }
+
+  if (!said.phoneUsable) {
+    return (
+      `${opened}, and the menu is right to hide it: the cookies name ${who} ` +
+      `as phone-verified, but the account carries no usable phone, so ` +
+      `shouldShowLogout can never be true for it. That is the account this ` +
+      `case signs in as, not the session and not the menu.`
+    );
+  }
+
+  // The session is alive and the client copy is missing. Which of the two
+  // start-up calls failed is the finding, and it cannot be guessed — so the
+  // page is started again and both are watched. This costs about half a minute
+  // and it is spent only on a case that has already failed.
+  const boot = await whatTheBootCallsSaid(page);
+
+  return (
+    `${opened}, yet the cookies still name ${who} as a phone-verified shopper ` +
+    `with a usable phone — so the session is alive and only the client copy is ` +
+    `missing. The store is filled by getCustomerInfo -> updateUserInfo ` +
+    `(services/home.ts), and it did not arrive in ${SIGN_OUT_ITEM_MS}ms. ` +
+    `${howTheClientStarted(page)}. ` +
+    `Starting the page again, the two calls that fill it said: ${boot}. ` +
+    `getClientData runs them in one chain and throws on the first, so a ` +
+    `settings read that did not answer is the reason the profile read never ` +
+    `went out. This one is a fault in this repository.`
+  );
+};
+
 /** Open the account menu from the navigation bar.
  *
  *  The trigger carries the same marker whether or not the account has a picture,
@@ -781,8 +1307,129 @@ export const openCartAndProveBackendAnswered = async (
 export const openAccountMenu = async (page: Page): Promise<void> => {
   const trigger = auth.accountMenuTrigger(page);
   await expect(trigger).toHaveCount(1);
-  await trigger.click();
-  await expect(auth.signOutItem(page)).toBeVisible();
+
+  const signOut = auth.signOutItem(page);
+  const anyItem = auth.accountMenuAnyItem(page);
+
+  // Opening the menu and finding sign-out in it are **two questions**, and the
+  // first version of this asked them as one. That is what made `AUTH-03` fail
+  // with a bare "Timeout 20000ms exceeded" naming nothing.
+  //
+  // First question: is the menu open? Pressed up to three times, because the
+  // trigger is server-rendered and a press landing before React attaches does
+  // nothing at all. **Never pressed while it is already open** — an open menu
+  // lays a full-screen click-catcher over the page (the `setMenuOpen(false)`
+  // div in `components/Home/Menu.tsx`), so the second press is swallowed by
+  // that catcher and Playwright reports a click timeout instead of anything a
+  // reader can act on. Settings answers this question because the menu renders
+  // it whoever is looking.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if (await anyItem.isVisible().catch(() => false)) break;
+
+    await trigger.click();
+    await anyItem
+      .waitFor({ state: "visible", timeout: 5_000 })
+      .catch(() => undefined);
+  }
+
+  await expect(
+    anyItem,
+    "the account menu never opened — three presses on the trigger drew nothing",
+  ).toBeVisible();
+
+  // Second question: does it offer sign-out? A different thing entirely. The
+  // menu decides that from the store's own user (`shouldShowLogout`, same
+  // file), and the store is filled by a client fetch after the page is already
+  // interactive. So a menu that is open with no sign-out in it may just be
+  // ahead of that fetch — which is exactly what `AUTH-03` hit, on a page whose
+  // cookies said signed-in and whose header still read "Hello ,".
+  const waitingSince = Date.now();
+  const offered = await signOut
+    .waitFor({ state: "visible", timeout: SIGN_OUT_ITEM_MS })
+    .then(() => true)
+    .catch(() => false);
+  if (offered) return;
+
+  // **Missing at the budget is not the same as missing.** A store that fills at
+  // twenty-three seconds and a store that never fills leave the same empty menu
+  // at twenty, and they are two different findings: one is this budget, the
+  // other is the app. So the wait is carried on once, and the answer goes in the
+  // message. Only on the failing path — a healthy run has already returned.
+  const lateBy = await signOut
+    .waitFor({ state: "visible", timeout: SIGN_OUT_ITEM_LATE_MS })
+    .then(() => Date.now() - waitingSince)
+    .catch(() => null);
+
+  if (lateBy !== null) {
+    expect(
+      false,
+      `the account menu offered sign-out after ${lateBy}ms, which is inside ` +
+        `the ${SIGN_OUT_ITEM_MS + SIGN_OUT_ITEM_LATE_MS}ms this waits in total ` +
+        `but outside the ${SIGN_OUT_ITEM_MS}ms first budget. Nothing is broken ` +
+        `in the app: the item arrives with the store's user, and the store is ` +
+        `filled by getCustomerInfo (services/home.ts) over two round trips to ` +
+        `staging. This budget is the thing to change, and this message is the ` +
+        `measurement to change it by.`,
+    ).toBe(true);
+  }
+
+  // **Close it and open it again.** One question, and it separates the two
+  // findings that are left.
+  //
+  // The item is drawn from `shouldShowLogout` (`components/Home/Menu.tsx`),
+  // which reads the store through `auth.getUser()` — a `getState()` call, not a
+  // subscription. The menu is mounted when it is opened and unmounted when it
+  // is closed (`{menuOpen && <Menu …/>}`, `UserNavTopSection.tsx`). So:
+  //
+  //   * it appears on a second opening — the store had the shopper all along
+  //     and the **mounted** menu never re-read it. Nothing will fix that for a
+  //     shopper except closing the menu, which no shopper knows to do.
+  //   * it is still missing — the store really is empty, and the reading below
+  //     says which call failed to fill it.
+  // Closed the way a shopper closes it. **Not with Escape** — the menu has no
+  // key handler; it closes through the full-screen catcher it lays over the
+  // page (the `setMenuOpen(false)` div, same file), so the close is a click
+  // somewhere away from the panel. The panel is pinned to the top right, so the
+  // far left is safely off it.
+  const reopened = await (async () => {
+    const box = page.viewportSize();
+    await page.mouse
+      .click(5, Math.round((box?.height ?? 800) / 2))
+      .catch(() => undefined);
+
+    const closed = await anyItem
+      .waitFor({ state: "hidden", timeout: 5_000 })
+      .then(() => true)
+      .catch(() => false);
+    // It never closed, so opening it again proves nothing either way.
+    if (!closed) return false;
+
+    await trigger.click().catch(() => undefined);
+    return await signOut
+      .waitFor({ state: "visible", timeout: SIGN_OUT_ITEM_MS })
+      .then(() => true)
+      .catch(() => false);
+  })();
+
+  if (reopened) {
+    expect(
+      false,
+      `the account menu offered no sign-out while it was open, and offered it ` +
+        `as soon as it was closed and opened again. So the store held the ` +
+        `shopper the whole time and the mounted menu never re-read it: ` +
+        `shouldShowLogout calls auth.getUser(), which is a getState() read and ` +
+        `not a subscription (components/Home/Menu.tsx). A shopper who opens ` +
+        `the menu before the profile lands is left with no way to sign out.`,
+    ).toBe(true);
+  }
+
+  // Only now, and only because it is missing, ask the app who it thinks it is.
+  // The previous version of this asserted the answer instead of reading it: it
+  // said "so it is treating this visitor as a guest" for a state it had never
+  // looked at. Three different faults produce a menu with no sign-out in it,
+  // and they need three different actions — so the reading below is what goes
+  // in the message.
+  expect(offered, await whySignOutIsMissing(page)).toBe(true);
 };
 
 /** Sign out, and wait until the visitor is a guest again.

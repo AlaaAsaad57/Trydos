@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 
 import {
@@ -209,7 +209,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
         label: product.name,
         value: product.slug,
         images:
-          product?.sync_color_images?.[0].images[0] ?? product?.images?.[0],
+          product?.sync_color_images?.[0]?.images?.[0] ?? product?.images?.[0],
         price: product.price,
       };
       setProducts([option]);
@@ -310,7 +310,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
           scenario: "debouncedChangeHandler in Compare Page",
           search_text: value,
         });
-        console.error("Search error:", error);
+        LogError({ scenario: "compare: the search failed", error });
         setProducts([]);
       } finally {
         setSearchLoading(false);
@@ -320,7 +320,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
   );
 
   const LoadingCell = () => (
-    <div className="animate-pulse flex space-x-4">
+    <div data-pw="compare-cell-loading" className="animate-pulse flex space-x-4">
       <div className="h-4 bg-gray-200 rounded-sm w-3/4"></div>
     </div>
   );
@@ -358,7 +358,6 @@ const ComparePage = ({ showInstantLoading = true }) => {
             is_product: true,
             ...product,
           }}
-          ariaLabel={`Compare Product ${product.slug} ${lang}`}
           href={`/${lang}/products/${product.slug}`}
           className="text-blue-600 hover:text-blue-800 hover:underline"
         >
@@ -470,7 +469,10 @@ const ComparePage = ({ showInstantLoading = true }) => {
 
   return (
     <>
-      <div className="container mx-auto p-4 max-w-7xl pb-[200px]">
+      <div
+        data-pw="compare-page"
+        className="container mx-auto p-4 max-w-7xl pb-[200px]"
+      >
         <div
           className={`flex items-center gap-3 mb-8 flex-row ${
             isRtl ? "flex-row-reverse" : " "
@@ -566,6 +568,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
             <div className="min-w-[25%]" />
             <div className="flex-1">
               <AsyncSelectCustom
+                testId="compare-search-1"
                 placeholder={translateFunction("Search for Product 1")}
                 onChange={(option) =>
                   handleSearchChange(option, setProduct1, setLoading1, true)
@@ -598,6 +601,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
             </div>
             <div className="flex-1">
               <AsyncSelectCustom
+                testId="compare-search-2"
                 placeholder={translateFunction("Search for Product 2")}
                 onChange={(option) =>
                   handleSearchChange(option, setProduct2, setLoading2, false)
@@ -633,17 +637,21 @@ const ComparePage = ({ showInstantLoading = true }) => {
           <div className="mt-8 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 shadow-md">
             <div className="min-w-full">
               <div className="overflow-x-auto">
-                <table dir={isRtl?`rtl`:'ltr'} className="w-full border-collapse text-gray-800 regular">
+                <table dir={isRtl?`rtl`:'ltr'} data-pw="compare-table" className="w-full border-collapse text-gray-800 regular">
                   <tbody>
                     {compareFields.map(({ key, label, render }) => (
                       <tr
                         key={key}
+                        data-pw={`compare-row-${key}`}
                         className="border-b last:border-b-0 hover:bg-blue-50 transition-colors"
                       >
                         <th className="p-4 text-left bg-blue-100 w-1/4 font-semibold text-blue-900 whitespace-nowrap border-r border-gray-200 regular">
                           {label}
                         </th>
-                        <td className="p-4 w-[37.5%] bg-white border-r border-gray-100">
+                        <td
+                          data-pw="compare-cell-1"
+                          className="p-4 w-[37.5%] bg-white border-r border-gray-100"
+                        >
                           <div className="flex flex-col gap-2">
                             {loading1 ? (
                               <LoadingCell />
@@ -658,7 +666,10 @@ const ComparePage = ({ showInstantLoading = true }) => {
                             )}
                           </div>
                         </td>
-                        <td className="p-4 w-[37.5%] bg-white">
+                        <td
+                          data-pw="compare-cell-2"
+                          className="p-4 w-[37.5%] bg-white"
+                        >
                           <div className="flex flex-col gap-2">
                             {loading2 ? (
                               <LoadingCell />

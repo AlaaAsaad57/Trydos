@@ -21,14 +21,23 @@ const SECRET_KEYS: readonly string[] = [
   "TEST_ACCOUNT_PHONE",
   "TEST_ACCOUNT_PHONE_2",
   "TEST_ACCOUNT_OTP",
+  // Shopper B's own code. Added the moment the value existed -- an unmasked
+  // credential in a public CI log is published, not merely untidy.
+  "TEST_ACCOUNT_OTP_2",
   "FLEET_EMAIL",
   "FLEET_PASSWORD",
   "ADMIN_DASHBOARD_EMAIL",
   "ADMIN_DASHBOARD_PASSWORD",
+  // The QA seller account's own password, when an environment pins one.
+  "QA_SELLER_PASSWORD",
   // Not identities, but they are in the same file and a stack trace can carry
   // them just as easily.
   "REDIS_PASS",
   "OTP_KEY_SALT",
+  // The QA-mode secret. It is the one value that can unfilter the catalogue for
+  // whoever holds it, and the suite sends it on every request it makes in QA
+  // mode -- so it is exactly the sort of value a failing request dump carries.
+  "QA_VIEW_SECRET",
   "ELASTICSEARCH_PASSWORD",
   "WALLET_SECRET_KEY",
 ];
@@ -55,7 +64,20 @@ const JWT_PATTERN =
 // opaque rather than a JWT on some of these backends, so the shape rule above
 // would not catch it — but its cookie name is fixed and known.
 const TOKEN_COOKIE_PATTERN =
-  /\b(MARKET-TOKEN|MARKET-REFRESH-TOKEN|CHAT-TOKEN|CHAT-REFRESH-TOKEN|STORIES-TOKEN|STORIES-REFRESH-TOKEN|DEVICE-TOKEN|rdb_at|USER_ID_HASH|VISIT-ID)=([^;,\s"]+)/g;
+  /\b(MARKET-TOKEN|MARKET-REFRESH-TOKEN|CHAT-TOKEN|CHAT-REFRESH-TOKEN|STORIES-TOKEN|STORIES-REFRESH-TOKEN|COMMENTS-REFRESH-TOKEN|DEVICE-TOKEN|rdb_at|USER_ID_HASH|VISIT-ID)=([^;,\s"]+)/g;
+
+// The confirmation a phone change carries.
+//
+// Masked by field name rather than by shape: it is minted at run time, so it is
+// not a configured value `SECRET_KEYS` could name, and it is not always a JWT,
+// so the shape rule above does not always reach it. The profile save carries it
+// in its body as `id_token`.
+//
+// The real control is that no case reads its value at all — a case asserts it is
+// present and non-empty, never what it says. This is the second line, for the
+// day somebody prints a body while debugging.
+const CONFIRMATION_TOKEN_PATTERN =
+  /("?id_token"?\s*[:=]\s*"?)([^",;&\s}]{5,})/g;
 
 // An Authorization header, whatever scheme it carries.
 const BEARER_PATTERN = /\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{8,}/gi;
@@ -103,6 +125,7 @@ export const redact = (input: unknown): string => {
   text = text.replace(TOKEN_COOKIE_PATTERN, "$1=[redacted:token]");
   text = text.replace(JWT_PATTERN, "[redacted:jwt]");
   text = text.replace(BEARER_PATTERN, "$1 [redacted:token]");
+  text = text.replace(CONFIRMATION_TOKEN_PATTERN, "$1[redacted:confirmation]");
 
   return text;
 };
@@ -123,6 +146,7 @@ export const containsSecret = (input: unknown): boolean => {
   return (
     new RegExp(JWT_PATTERN.source).test(text) ||
     new RegExp(TOKEN_COOKIE_PATTERN.source).test(text) ||
-    new RegExp(BEARER_PATTERN.source, "i").test(text)
+    new RegExp(BEARER_PATTERN.source, "i").test(text) ||
+    new RegExp(CONFIRMATION_TOKEN_PATTERN.source).test(text)
   );
 };

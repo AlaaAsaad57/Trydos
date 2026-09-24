@@ -1,5 +1,6 @@
 import ProfilePicture from "public/images/profileNo.png";
-import { getCallType } from "../chatsFunctions";
+import { getCallDirection, getCallType } from "../chatsFunctions";
+import { getUserChat } from "utils/functions";
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 function CallItem({ photo, name, date, type, Delete, duration }) {
@@ -16,8 +17,15 @@ function CallItem({ photo, name, date, type, Delete, duration }) {
 
     return `${paddedMinutes}:${paddedSeconds}`;
   };
+  // `type` is the record, not a class name. The row is coloured by direction:
+  // chatcomponent.css has .missed, .incoming and .outgoing rules for it.
+  const direction = getCallDirection(
+    type.sender,
+    getUserChat()?.id,
+    type.duration,
+  );
   return (
-    <div className={`call-conversation-item ${type} call-item-row`}>
+    <div className={`call-conversation-item ${direction} call-item-row`}>
       <span className="options-icon" onClick={() => Delete()}>
         <img src="/icons/chat/delete.svg" className="w-[15px] h-[15px]" />
       </span>

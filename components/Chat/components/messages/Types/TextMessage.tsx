@@ -1,14 +1,7 @@
 import React from "react";
 import { getUserChat } from "utils/functions";
 import ChatPhoto from "../../ChatPhoto";
-import {
-  copyText,
-  DeleteMessage,
-  getMessageStatus,
-  getMessageTime,
-  getStatues,
-  IsTextAvatar,
-} from "store/chat/chatUtils";
+import { copyText, DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
 import { useAppStore } from "store";
 
@@ -48,8 +41,9 @@ function TextMessage({
   return (
     <div
       onMouseLeave={() => {
+        // Only the menu closes on hover-out. The delete confirm box must not:
+        // it closes on its own Cancel, backdrop, Escape, or a chosen answer.
         setOpen(false);
-        setDelete(false);
       }}
       className={"message-hold" + " " + `${openMenu && "ac"}`}
     >
@@ -110,40 +104,12 @@ function TextMessage({
           <div className="other-date">{getMessageTime(created_at, true)}</div>
         )}
       </div>
-      {/* <div className="message-date hovers">
-        <div className="sent-date">
-          {
-            <>
-              <img src="/icons/chat/sent.svg" />
-              {getMessageTime(created_at, true)}
-            </>
-          }
-        </div>
-
-        {getStatues({ message_status }).is_received === 1 && (
-          <div className="recieve-date">
-            <img src="/icons/chat/recieved.svg" />
-            {getMessageTime(
-              message_status.filter((a) => a.user_id !== user?.id)[0]
-                ?.received_at,
-              false
-            )}
-          </div>
-        )}
-        {getStatues({ message_status }).is_watched === true && (
-          <div className="recieve-date">
-            <img src="/icons/chat/read.svg" className="w-[10px] h-[10px]" />
-            {getMessageTime(
-              message_status.filter((a) => a.user_id !== user?.id)[0]
-                ?.watched_at,
-              false
-            )}
-          </div>
-        )}
-      </div> */}
       <OptionsMenu
         isPrivate={isPrivate}
-        isSender={true}
+        // Only the person who wrote the message may edit it. This component
+        // draws both sides of the conversation, so the answer comes from the
+        // message, not from a constant.
+        isSender={is_from_sender}
         message={{
           sender_user_id,
           type,
@@ -154,6 +120,11 @@ function TextMessage({
           created_at,
           mid,
           id,
+          // OptionsMenu shows Copy and Edit only for a text message, and it
+          // reads the type from here. Every other message type passes it too.
+          message_type: {
+            name: "TextMessage",
+          },
         }}
         DeleteModal={DeleteModal}
         setDelete={(e) => setDelete(e)}

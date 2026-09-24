@@ -1,6 +1,7 @@
 "use client";
 import Spinner from "components/global/Spinner";
 import BoutiqueLoader from "components/skeleton/loaders/BoutiqueLoader";
+import SellerDashboardLoader from "components/skeleton/loaders/SellerDashboardLoader";
 import CompareSkeleton from "components/skeleton/loaders/CompareSkeleton";
 import FilterLoader from "components/skeleton/loaders/FilterLoader";
 import FullHomeLoader from "components/skeleton/loaders/FullHomeLoader";
@@ -23,6 +24,7 @@ export default function InFlowPageLoader({ nav }: { nav: any }) {
   if (nav.is_settings) return <SettingsLoader />;
   if (nav.is_filter_search) return <FilterLoader isForSearch boutique={nav} />;
   if (nav.is_compare) return <CompareSkeleton />;
+  if (nav.is_seller_dashboard) return <SellerDashboardLoader />;
 
   // Bare-truthy isNavigating (e.g. setIsNavigating(true)) → generic spinner.
   return (

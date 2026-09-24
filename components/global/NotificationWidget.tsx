@@ -30,6 +30,12 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
   } = props;
   const { language, setNotificationModal } = useAppStore();
 
+  // Arabic and Kurdish read right to left. Nothing above this card sets the
+  // direction — `<html dir>` is commented out in app/(client)/[lang]/layout.tsx
+  // — so the card says it itself, the same way every card in
+  // components/global/NotificationsContainer.tsx already does.
+  const isRtl = language === "ar" || language === "ku";
+
   const [isClient, setIsClient] = useState(false);
   const [isSupported, setIsSupported] = useState<boolean | null>(null);
 
@@ -193,6 +199,7 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
       ].join(" ")}
     >
       <div
+        dir={isRtl ? "rtl" : "ltr"}
         className={[
           "group w-[min(92vw,28rem)] sm:w-md regular",
           "rounded-2xl bg-white",
@@ -222,7 +229,7 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
                 language,
               )}
             </p>
-            <ul className="mt-2 text-sm text-zinc-700 list-disc pl-5 space-y-1">
+            <ul className="mt-2 text-sm text-zinc-700 list-disc ps-5 space-y-1">
               <li>{translateFunction("Chat messages", language)}</li>
               <li>{translateFunction("Order updates", language)}</li>
               <li>
