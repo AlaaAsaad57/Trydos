@@ -382,3 +382,10 @@ describe("registering a guest to get an account id (AC-12, AC-13, AC-14)", () =>
     expect(JSON.stringify(identity)).not.toContain("market-token-for-tests");
   });
 });
+
+describe("an address that is neither IPv4 nor IPv6", () => {
+  it("is kept as it is", async () => {
+    const { normalizeIp } = await import("utils/server/otpIdentity");
+    expect(normalizeIp("localhost"), "a plain host name was changed").toBe("localhost");
+  });
+});

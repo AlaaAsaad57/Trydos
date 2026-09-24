@@ -7,6 +7,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import SessionTimer from "components/Login/SessionTimer";
+import { checkSessionExpiry } from "utils/sessionManager";
 
 import {
   restoreLocation,
@@ -14,6 +15,17 @@ import {
   type LocationStub,
 } from "../../mocks/location";
 import { renderWithProviders, screen, waitFor } from "../../render";
+
+// Real by default. One case below needs the check to pass while the stored
+// expiry is already past (the moment between the check and the read).
+const { sessionCheck } = vi.hoisted(() => ({ sessionCheck: { forceValid: false } }));
+vi.mock("utils/sessionManager", async (importOriginal) => {
+  const real = await importOriginal<any>();
+  return {
+    ...real,
+    checkSessionExpiry: () => (sessionCheck.forceValid ? true : real.checkSessionExpiry()),
+  };
+});
 
 let location: LocationStub;
 let alerted: ReturnType<typeof vi.fn>;
@@ -39,6 +51,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  sessionCheck.forceValid = false;
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   restoreLocation();
   window.localStorage.clear();
@@ -175,5 +189,36 @@ describe("when the session runs out while the tester is watching", () => {
       "and the page is still rendering the borrowed account — only a reload " +
         "puts the real one back",
     ).toHaveBeenCalled();
+  });
+});
+
+describe("an expiry that passes between two reads", () => {
+  it("ends the session when the stored expiry is already past at the first read", async () => {
+    sessionCheck.forceValid = true;
+    storeExpiry(-1);
+
+    await renderWithProviders(<SessionTimer />);
+
+    await waitFor(() =>
+      expect(alerted, "a past expiry read on mount did not end the session").toHaveBeenCalledWith(
+        "Session for simulate user has ended",
+      ),
+    );
+    expect(checkSessionExpiry(), "the forced check is not in place").toBe(true);
+  });
+
+  it("ends the session when it has run out by the next render", async () => {
+    vi.useFakeTimers({ now: new Date("2030-01-01T00:00:00Z") });
+    storeExpiry(2);
+    const { rerender } = await renderWithProviders(<SessionTimer />);
+    expect(screen.getByText("Session:"), "the clock did not show before the expiry").toBeInTheDocument();
+
+    vi.setSystemTime(new Date("2030-01-01T00:00:05Z"));
+    rerender(<SessionTimer className="again" />);
+
+    expect(alerted, "a render after the expiry did not end the session").toHaveBeenCalledWith(
+      "Session for simulate user has ended",
+    );
+    expect(screen.queryByText("Session:"), "the clock stayed after the expiry").not.toBeInTheDocument();
   });
 });

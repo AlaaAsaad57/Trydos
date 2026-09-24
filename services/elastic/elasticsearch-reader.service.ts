@@ -557,7 +557,7 @@ export class ElasticsearchReader {
             boutique.mainCategoriesForProductIds?.length ?? 0;
           return (
             categoriesLength <
-            (parseInt(process.env.MIN_CATEGORIES_UNDER_BOUTIQUE) ?? 5)
+            (parseInt(process.env.MIN_CATEGORIES_UNDER_BOUTIQUE) || 5)
           );
         })
         .map((boutique) => boutique.boutique_id)
@@ -581,7 +581,7 @@ export class ElasticsearchReader {
           const categoriesLength =
             boutique.mainCategoriesForProductIds?.length ?? 0;
           if (
-            categoriesLength <= (parseInt(process.env.MIN_CATEGORIES_UNDER_BOUTIQUE) ?? 5)&&
+            categoriesLength <= (parseInt(process.env.MIN_CATEGORIES_UNDER_BOUTIQUE) || 5)&&
             fallbackProductsByBoutique[key]?.length
           ) {
             boutique.mainCategoriesForProductIds =

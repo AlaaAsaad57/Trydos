@@ -29,7 +29,7 @@
 import { describe, expect, it, vi } from "vitest";
 import React from "react";
 
-import { renderWithProviders } from "../../render";
+import { fireEvent, renderWithProviders } from "../../render";
 
 import SentMessage from "components/Chat/components/messages/SentMessage";
 import ReceivedMessage from "components/Chat/components/messages/ReceivedMessage";
@@ -128,5 +128,44 @@ describe("a message row while its options menu is open", () => {
         "number is a promise to climb over the chat header and the input bar " +
         "the day one of them stops making its own stacking context",
     ).toBe(true);
+  });
+});
+
+describe("a message row — leaving it closes the menu", () => {
+  it("closes the menu when the pointer leaves my own row and the other person's row", async () => {
+    const closeSent = vi.fn();
+    const closeReceived = vi.fn();
+    await renderWithProviders(
+      <>
+        <SentMessage
+          id={1}
+          closeMenu={closeSent}
+          isMenuOpen={false}
+          created_at="2030-01-01T00:00:00.000Z"
+          message_status={[]}
+          message_type={{ name: "TextMessage" }}
+        >
+          <div>mine</div>
+        </SentMessage>
+        <ReceivedMessage
+          id={2}
+          closeMenu={closeReceived}
+          isMenuOpen={false}
+          message_type={{ name: "TextMessage" }}
+          parent_message={null}
+          isLonely={true}
+          channel_member={null}
+          isDeleted={false}
+          onClick={vi.fn()}
+          sender_message_id={99}
+        >
+          <div>theirs</div>
+        </ReceivedMessage>
+      </>,
+    );
+    fireEvent.mouseLeave(document.getElementById("main-container-1")!);
+    fireEvent.mouseLeave(document.getElementById("main-container-2")!);
+    expect(closeSent, "leaving my row did not close its menu").toHaveBeenCalled();
+    expect(closeReceived, "leaving their row did not close its menu").toHaveBeenCalled();
   });
 });

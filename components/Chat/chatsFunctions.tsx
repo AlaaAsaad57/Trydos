@@ -185,7 +185,7 @@ export const getTwoLetters = (name) => {
       let words = name.split(" ");
       if (words.length > 1) return `${words[0][0]}${words[1][0]}`;
     } else {
-      return `${name[0] + name[1]}`;
+      return name.slice(0, 2);
     }
   } else {
     return "";
@@ -700,5 +700,10 @@ export const showDate = (d) => {
     86400000 * 6
   )
     return day;
-  else return language === "ar" ? d.toLocaleString("ar-EG") : d;
+  // `d` is a "YYYY-MM-DD" string here, so toLocaleString() would return it
+  // unchanged. Swap each digit for its Arabic-Indic form instead.
+  else
+    return language === "ar"
+      ? d.replace(/\d/g, (digit) => "٠١٢٣٤٥٦٧٨٩"[Number(digit)])
+      : d;
 };

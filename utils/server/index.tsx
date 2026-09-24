@@ -50,7 +50,7 @@ export const formatTime = (timeString: string, language) => {
     ? new Date(timeStr + "Z")
     : new Date(timeStr);
   if (isNaN(date?.getTime())) {
-    date = new Date(timeString + "Z");
+    date = new Date(timeStr);
   }
   const today = new Date();
   const yesterday = new Date(today);

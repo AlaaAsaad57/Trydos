@@ -99,10 +99,6 @@ function ShareOptions({ product }: any) {
           boutique_id: product?.boutique_id,
         },
       });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
-      }
 
       // editInfo({
       //   ...SelectedProduct,

@@ -1,8 +1,8 @@
-import { getUserChat, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import ChatPhoto from "../ChatPhoto";
 import { IsTextAvatar } from "store/chat/chatUtils";
 
-function DeletedMessage({ type, activeChat }) {
+function DeletedMessage({ type, activeChat, sender_user_id }) {
   return (
     <div className={"message-hold deleted-message"}>
       <div
@@ -19,7 +19,7 @@ function DeletedMessage({ type, activeChat }) {
             <ChatPhoto
               user={
                 activeChat.channel_members.filter(
-                  (user) => String(user.user_id) === String(getUserChat()?.id)
+                  (user) => String(user.user_id) === String(sender_user_id)
                 )[0]?.user
               }
               width={30}

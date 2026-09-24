@@ -15,7 +15,7 @@ function ProductPricesWrapper({
     offer_price: qtyPricePromise?.offer_price,
     luck_price: qtyPricePromise?.luck_price,
     id: qtyPricePromise?.id,
-    currencySymbol: currencyPromise?.sumbol,
+    currencySymbol: currencyPromise?.symbol,
     exchangeRate: currencyPromise?.exchange_rate,
     points: currencyPromise?.decimal_digits,
     is_luck: qtyPricePromise?.is_luck,

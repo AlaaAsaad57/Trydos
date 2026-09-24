@@ -152,3 +152,18 @@ describe("choosing the line the error log is filed under (extractPrimaryErrorMes
     expect(extractPrimaryErrorMessage({ error: looping })).toBe("[object Object]");
   });
 });
+
+describe("a field that throws when it is read", () => {
+  it("is written as [Unserializable] and the other fields are kept", () => {
+    const value = {
+      ok: 1,
+      get broken() {
+        throw new Error("getter failed");
+      },
+    };
+    expect(serializeUnknownForErrorLog(value), "a throwing field broke the whole record").toEqual({
+      ok: 1,
+      broken: "[Unserializable]",
+    });
+  });
+});

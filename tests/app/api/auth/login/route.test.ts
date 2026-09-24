@@ -635,3 +635,60 @@ describe("the profiles it stores", () => {
     expect(wallet).not.toHaveProperty("sessionId");
   });
 });
+
+describe("a sub-service that breaks in an unusual way", () => {
+  it("still signs the shopper in when chat refuses with a body that is not JSON", async () => {
+    net.queueReply(verifyReply());
+    net.queueReply(jsonReply("<html>bad gateway</html>", 502));
+    net.queueReply(storiesReply());
+    net.queueReply(commentsReply());
+    net.queueReply(walletReply());
+    // The chat answer's body cannot be read as JSON — an HTML error page.
+    vi.stubGlobal("fetch", async (url: string, init: any) => {
+      const reply: any = await net.fetch(url, init);
+      if (String(url).startsWith(ADDRESSES.NEXT_PUBLIC_CHAT_BACKEND_URL)) {
+        return {
+          ...reply,
+          json: async () => {
+            throw new SyntaxError("Unexpected token <");
+          },
+        };
+      }
+      return reply;
+    });
+    const { GET } = await loadRoute();
+
+    const response = await GET(makeRequest());
+    const body = await response.json();
+
+    expect(response.status, "a chat HTML error page broke the whole sign-in").toBe(200);
+    expect(
+      body.is_failed?.find((f: any) => f.endpoint === "CHAT"),
+      "the chat refusal with an unreadable body was not reported as a CHAT failure with an empty body",
+    ).toMatchObject({ endpoint: "CHAT", status: 502, data: {} });
+  });
+
+  it("reports a wallet that never answered as a 504 timeout, and another dropped call as a 503", async () => {
+    const timeout = new Error("The operation was aborted due to timeout");
+    timeout.name = "TimeoutError";
+    net.queueReply(verifyReply());
+    net.queueReply({ kind: "failure", error: new Error("socket hang up") });
+    net.queueReply(storiesReply());
+    net.queueReply(commentsReply());
+    net.queueReply({ kind: "failure", error: timeout });
+    const { GET } = await loadRoute();
+
+    const response = await GET(makeRequest());
+    const body = await response.json();
+
+    expect(response.status, "a dead wallet and a dead chat broke the whole sign-in").toBe(200);
+    expect(
+      body.is_failed?.find((f: any) => f.endpoint === "WALLET"),
+      "the wallet timeout was not reported as a 504 that names the time limit",
+    ).toMatchObject({ status: 504, error: "the service did not answer within 10s" });
+    expect(
+      body.is_failed?.find((f: any) => f.endpoint === "CHAT"),
+      "the dropped chat call was not reported as a 503 carrying its own error text",
+    ).toMatchObject({ status: 503, error: "socket hang up" });
+  });
+});

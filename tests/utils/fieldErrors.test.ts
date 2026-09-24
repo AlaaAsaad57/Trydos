@@ -134,3 +134,9 @@ describe("writing the line the shopper reads", () => {
     ).toBeNull();
   });
 });
+
+describe("a message that only looks like a refusal", () => {
+  it("is not unpacked when its braces hold broken JSON", () => {
+    expect(parseFieldErrors("{email: broken"), "broken JSON was read as a field refusal").toBeNull();
+  });
+});

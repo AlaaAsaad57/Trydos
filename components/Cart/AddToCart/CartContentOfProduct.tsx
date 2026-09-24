@@ -55,7 +55,7 @@ function CartContentOfProduct({ product }) {
   };
   const getPriceOfProductInCart = () => {
     let total_products = localCart.filter(
-      (s) => s.id === product?.product_id || product?.id,
+      (s) => s.id === (product?.product_id ?? product?.id),
     );
 
     let total_price = 0;
@@ -100,7 +100,7 @@ function CartContentOfProduct({ product }) {
           <span>
             {
               localCart.filter(
-                (s) => s.id === product?.product_id || product?.id,
+                (s) => s.id === (product?.product_id ?? product?.id),
               )?.length
             }
           </span>

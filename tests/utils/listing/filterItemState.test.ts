@@ -187,3 +187,25 @@ describe("the older filter links, which use a query instead of a path", () => {
     expect(result.href).toBe("?");
   });
 });
+
+describe("the legacy price filter", () => {
+  it("sets one price range, and clears it when it was already chosen", () => {
+    const range = "[10-20]";
+    const off = getFilterStateForItemLegacy(new URLSearchParams(), range, "prices");
+    const chosen = new URLSearchParams({ prices: encodeURIComponent(JSON.stringify([range])) });
+    const on = getFilterStateForItemLegacy(chosen, range, "prices");
+    expect(off.isFiltered, "an unchosen range read as chosen").toBe(false);
+    expect(decodeURIComponent(decodeURIComponent(off.href)), "choosing the range did not write it").toContain(JSON.stringify([range]));
+    expect(on.isFiltered, "a chosen range read as not chosen").toBe(true);
+    expect(on.href.includes("prices="), "clearing the range left it in the address").toBe(false);
+  });
+});
+
+describe("the legacy filter with a parent value", () => {
+  it("replaces the chosen parent with the child when the child is added", () => {
+    const chosen = new URLSearchParams({ categories: encodeURIComponent(JSON.stringify(["men", "shoes"])) });
+    const state = getFilterStateForItemLegacy(chosen, "men-shirts", "categories", ["men"]);
+    const written = JSON.parse(decodeURIComponent(decodeURIComponent(state.href.split("=")[1])));
+    expect(written, "the parent stayed chosen next to its child").toEqual(["shoes", "men-shirts"]);
+  });
+});

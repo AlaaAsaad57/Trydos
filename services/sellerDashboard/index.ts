@@ -144,7 +144,7 @@ class SellerDashboardService {
         sellerId,
       });
             if(!res.success){
-        throw new Error(res.message || "Failed to confirm order detail status");
+        throw new Error(res.message || "Failed to pack order detail");
       }
       return res;
     } catch (error) {
@@ -165,7 +165,7 @@ class SellerDashboardService {
         sellerId,
       });
             if(!res.success){
-        throw new Error(res.message || "Failed to confirm order detail status");
+        throw new Error(res.message || "Failed to cancel order detail");
       }
       return res;
     } catch (error) {
@@ -188,7 +188,7 @@ class SellerDashboardService {
         sellerId,
       });
             if(!res.success){
-        throw new Error(res.message || "Failed to confirm order detail status");
+        throw new Error(res.message || "Failed to fetch roles");
       }
       return res;
     } catch (error) {
@@ -210,7 +210,7 @@ class SellerDashboardService {
         sellerId: data.seller_id,
       });
             if(!res.success){
-        throw new Error(res.message || "Failed to confirm order detail status");
+        throw new Error(res.message || "Failed to add user to shop");
       }
       return res;
     } catch (error) {
@@ -245,7 +245,7 @@ class SellerDashboardService {
         sellerId,
       });
             if(!res.success){
-        throw new Error(res.message || "Failed to confirm order detail status");
+        throw new Error(res.message || "Failed to delete user");
       }
       return res;
     } catch (error) {
@@ -267,7 +267,7 @@ class SellerDashboardService {
         sellerId,
       });
       if(!res.success){
-        throw new Error(res.message || "Failed to confirm order detail status");
+        throw new Error(res.message || "Failed to update user role");
       }
       return res;
     } catch (error) {

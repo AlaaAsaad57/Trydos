@@ -175,3 +175,22 @@ describe("orderFunnel utilities", () => {
   });
 });
 
+
+describe("orderFunnel — a store that cannot be read", () => {
+  it("still sends the event, with only the caller's own properties", () => {
+    (posthogModule.posthogCapture as any).mockClear();
+    const spy = vi.spyOn(useAppStore, "getState").mockImplementation(() => {
+      throw new Error("store not ready");
+    });
+    try {
+      trackOrder(ORDER_EVENTS.VERIFY_OTP_FAILED, { reason: "x" });
+      trackOrderMgmt(Object.values(ORDER_MGMT_EVENTS)[0] as any, { order_id: 1 });
+    } finally {
+      spy.mockRestore();
+    }
+    expect((posthogModule.posthogCapture as any).mock.calls.map((c: any[]) => c[1]), "the events lost their own properties").toEqual([
+      { reason: "x" },
+      { order_id: 1 },
+    ]);
+  });
+});

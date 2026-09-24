@@ -60,7 +60,7 @@ function ProductMessage({
       className={"message-hold" + " " + `${openMenu && "ac"}`}
     >
       <div
-        onClick={() => setOpen(true)}
+        onClick={() => setOpen(id)}
         className={
           "message-element-body flex-col message-body message-img-body product-share-message " +
           type

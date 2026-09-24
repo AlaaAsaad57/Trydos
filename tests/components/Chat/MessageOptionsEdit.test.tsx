@@ -28,7 +28,15 @@
 import { describe, expect, it, vi } from "vitest";
 import React from "react";
 
-import { renderWithProviders, screen } from "../../render";
+import { fireEvent, renderWithProviders, screen } from "../../render";
+
+// Delete and copy are recorded for the menu cases at the end of this file.
+const textBubble = vi.hoisted(() => ({ deleteMessage: vi.fn(), copyText: vi.fn() }));
+vi.mock("store/chat/chatUtils", async (importOriginal) => ({
+  ...(await importOriginal<any>()),
+  DeleteMessage: (...a: any[]) => textBubble.deleteMessage(...a),
+  copyText: (...a: any[]) => textBubble.copyText(...a),
+}));
 
 import TextMessage from "components/Chat/components/messages/Types/TextMessage";
 
@@ -113,4 +121,66 @@ describe("the hover menu on a text message", () => {
   });
 });
 
+describe("a text message bubble — the rest", () => {
+  async function mountText(extra: Record<string, any> = {}, chat: any = activeChat) {
+    const p = {
+      sender_user_id: ME,
+      is_from_sender: true,
+      DeleteModal: false,
+      GetMessage: vi.fn(),
+      created_at: "2030-01-01T08:05:00",
+      id: 77,
+      isPrivate: false,
+      is_forward: 1,
+      message_content: { content: "hello there" },
+      message_status: [],
+      openMenu: false,
+      mid: null,
+      parent_message: null,
+      parent_message_id: null,
+      setDelete: vi.fn(),
+      setOpen: vi.fn(),
+      type: "first-chat",
+      channel_id: activeChat.id,
+      channel_member: activeChat.channel_members[0].user,
+      ...extra,
+    };
+    const spies = { setForwardMessage: vi.fn(), setReplyMessage: vi.fn() };
+    await renderWithProviders(<TextMessage key={1} {...(p as any)} />, {
+      store: { userChat: { id: ME }, activeChat: chat, ...spies },
+    });
+    return { p, spies };
+  }
 
+  it("shows the text and forward mark, and opens the menu on a tap", async () => {
+    const { p } = await mountText();
+    expect(screen.getByText("hello there"), "the text was not shown").toBeInTheDocument();
+    expect(document.querySelector(".forwarded-message-icon"), "the forward mark was not shown").not.toBeNull();
+    fireEvent.click(document.querySelector(".text-body")!);
+    expect(p.setOpen, "a tap did not open the menu for this message").toHaveBeenCalledWith(77);
+    fireEvent.mouseLeave(document.querySelector(".message-hold")!);
+    expect(p.setOpen, "leaving did not close the menu").toHaveBeenLastCalledWith(false);
+    expect(document.querySelector(".absolute-avatar")!.className, "a member with a real photo got a text avatar").not.toContain("text-avatar");
+  });
+
+  it("shows the receive time on their message, no text for a file list, no avatar mid-run", async () => {
+    await mountText({ is_from_sender: false, sender_user_id: THEM, message_content: [], type: "middle-chat" }, null);
+    expect(document.querySelector(".other-date")?.textContent, "the time was not shown").toBe("08:05");
+    expect(document.querySelector(".message-body-text-content")?.textContent, "a file list was shown as text").toBe("");
+    expect(document.querySelector(".absolute-avatar"), "a middle bubble showed an avatar").toBeNull();
+  });
+
+  it("the menu replies, forwards, copies and deletes this message", async () => {
+    const { p, spies } = await mountText({ DeleteModal: true });
+    fireEvent.click(screen.getByText("Reply").parentElement!);
+    expect(spies.setReplyMessage.mock.calls[0][0].id, "the reply was not this message").toBe(77);
+    fireEvent.click(screen.getByText("Forward").parentElement!);
+    expect(spies.setForwardMessage.mock.calls[0][0].message_type, "the forward was not a text").toEqual({ name: "TextMessage" });
+    fireEvent.click(screen.getByText("Copy").parentElement!);
+    expect(textBubble.copyText, "the text was not copied").toHaveBeenCalledWith({ message_content: { content: "hello there" } });
+    fireEvent.click(screen.getByText("Delete").parentElement!);
+    expect(p.setDelete, "delete did not open the confirm box").toHaveBeenCalledWith(true);
+    fireEvent.click(screen.getByText("For All"));
+    expect(textBubble.deleteMessage, "the message was not deleted for everyone").toHaveBeenCalledWith(activeChat.id, 77, true);
+  });
+});

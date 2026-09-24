@@ -25,12 +25,15 @@
 // browser actually uses, in the order the browser uses them: the clamped layer,
 // and then document order.
 import { act, render } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import BottomSheet from "components/global/BottomSheet";
+import { fireEvent, renderWithProviders, screen } from "tests/render";
 import NotificationsContainer from "components/global/NotificationsContainer";
 import {
+  showChatNotification,
   showErrorNotification,
+  showSuccessNotification,
   useNotificationStore,
 } from "store/notifications/reducer";
 
@@ -39,6 +42,31 @@ import {
 // where a message is painted, so it is stood down for this file.
 vi.mock("components/Chat/components/CallComponent", () => ({
   default: () => null,
+}));
+
+// Opening a chat from a message asks the chat backend to watch the channel.
+// That call is replaced so no socket or request is made.
+const chatSpies = vi.hoisted(() => ({ watchChannel: vi.fn() }));
+vi.mock("store/chat/actions", async (importOriginal) => ({
+  ...(await importOriginal<any>()),
+  watchChannel: chatSpies.watchChannel,
+}));
+
+// next/link only follows a click inside a mounted App Router. The stand-in
+// keeps the caller's onClick and stops jsdom from leaving the page.
+vi.mock("next/link", () => ({
+  default: ({ href, onClick, prefetch, children, ...rest }: any) => (
+    <a
+      href={href}
+      {...rest}
+      onClick={(event) => {
+        event.preventDefault();
+        onClick?.(event);
+      }}
+    >
+      {children}
+    </a>
+  ),
 }));
 
 /** The largest `z-index` a browser keeps. Anything above is clamped to it. */
@@ -118,5 +146,205 @@ describe("a failure message shown while the add-to-cart sheet is open", () => {
       comesAfterInDocument(sheet!, message!),
       "the cart failure message is painted BEHIND the add-to-cart sheet: both sit on the same clamped z-index layer, and the message comes before the sheet in the document",
     ).toBe(true);
+  });
+});
+
+describe("what the shopper can do with a message", () => {
+  const messages = () => useNotificationStore.getState().notifications;
+
+  /** The store actions a click on a message reaches, as spies. */
+  const chatStore = (data: any[] = []) => ({
+    data,
+    openChat: vi.fn(),
+    setChatOpen: vi.fn(),
+    setMain: vi.fn(),
+    setIsNavigating: vi.fn(),
+    setOrderLoading: vi.fn(),
+    setShouldUpdateOrders: vi.fn(),
+    setShouldUpdateOrdersChat: vi.fn(),
+    shouldUpdateOrders: 4,
+  });
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    chatSpies.watchChannel.mockClear();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("hides a message by itself after its time runs out", async () => {
+    await renderWithProviders(<NotificationsContainer />);
+    act(() => showErrorNotification("Out of stock"));
+    expect(screen.getByText("Out of stock"), "the error message was not shown").toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(10000);
+    });
+    expect(
+      document.querySelector(".notification-slide-out"),
+      "when its time runs out the message must start to slide out",
+    ).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(messages(), "the message must be removed after it slid out").toEqual([]);
+  });
+
+  it("hides a message when it or its close button is pressed, sliding the Arabic way in Arabic", async () => {
+    await renderWithProviders(<NotificationsContainer />, { store: { language: "ar" } });
+    act(() => showErrorNotification("First"));
+    fireEvent.click(screen.getByText("First"));
+    expect(
+      document.querySelector(".notification-slide-out-rtl"),
+      "in Arabic a pressed message must slide out to the left",
+    ).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(messages(), "a pressed message must be removed").toEqual([]);
+
+    act(() => showErrorNotification("Second"));
+    fireEvent.click(document.querySelector("button[aria-label='Close notification'] svg") as Element);
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(messages(), "the close icon must remove the message").toEqual([]);
+
+    act(() => showErrorNotification("Third"));
+    fireEvent.click(screen.getByRole("button", { name: "Close notification" }));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(messages(), "the close button must remove the message").toEqual([]);
+  });
+
+  it("opens the linked page from a message with a link, and asks the orders to refresh", async () => {
+    const store = chatStore();
+    await renderWithProviders(<NotificationsContainer />, { store });
+    act(() => showSuccessNotification("Order placed", undefined, "/gb-en/settings/orders/5", "order"));
+
+    const link = screen.getByText("Order placed").closest("a") as HTMLAnchorElement;
+    expect(link.getAttribute("href"), "the message must link to the page it names").toBe("/gb-en/settings/orders/5");
+    fireEvent.click(link);
+
+    expect(store.setShouldUpdateOrders, "the orders list must be asked to refresh").toHaveBeenCalledWith(6);
+    expect(store.setShouldUpdateOrdersChat, "the order chat must be asked to refresh").toHaveBeenCalledWith(5);
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(messages(), "a followed link must remove the message").toEqual([]);
+  });
+
+  it("shows a chat message with the sender's photo or initials", async () => {
+    await renderWithProviders(<NotificationsContainer />);
+    act(() => showChatNotification("Sara Ali", "Hello there", "11", undefined, "https://example.com/sara.png"));
+    expect(screen.getByAltText("Sara Ali"), "a sender with a photo must show the photo").toBeInTheDocument();
+    expect(screen.getByText("Hello there"), "the message preview must be shown").toBeInTheDocument();
+
+    act(() => showChatNotification("", "No name here", "12"));
+    expect(screen.getByText("Unknown"), "a sender with no name must be shown as Unknown").toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Open chat with user" }),
+      "a chat with no sender name must still have a name for screen readers",
+    ).toBeInTheDocument();
+  });
+
+  it("opens the chat once the chat list is on the page", async () => {
+    const channel = { id: "11", name: "Sara" };
+    const store = chatStore([channel]);
+    await renderWithProviders(<NotificationsContainer />, { store });
+    act(() => showChatNotification("Sara", "Hi", "11"));
+
+    fireEvent.click(screen.getByRole("button", { name: "Open chat with Sara" }));
+    expect(store.setChatOpen, "the chat widget must open first").toHaveBeenCalledWith(true);
+
+    act(() => {
+      vi.advanceTimersByTime(150);
+    });
+    expect(store.openChat, "the chat must wait until the chat list exists").not.toHaveBeenCalled();
+
+    const list = document.createElement("div");
+    list.className = "chat-lists-class";
+    document.body.appendChild(list);
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    list.remove();
+
+    expect(chatSpies.watchChannel, "the chat backend must be asked to watch the channel").toHaveBeenCalledWith("11");
+    expect(store.openChat, "the chat with the sender must open").toHaveBeenCalledWith(channel);
+    expect(store.setMain, "the chat view must be shown").toHaveBeenCalledWith("chat");
+  });
+
+  it("opens the channel the message carries when the store does not know it, and gives up waiting after 5 seconds", async () => {
+    const channel = { id: "20" };
+    const store = chatStore([{ id: "99" }]);
+    await renderWithProviders(<NotificationsContainer />, { store });
+    act(() => showChatNotification("Omar", "Hey", "20", channel));
+
+    fireEvent.keyDown(screen.getByRole("button", { name: "Open chat with Omar" }), { key: "Enter" });
+    expect(store.setChatOpen, "Enter must open the chat like a click").toHaveBeenCalledWith(true);
+
+    act(() => {
+      vi.advanceTimersByTime(50 + 500 * 100);
+    });
+    expect(store.openChat, "after 5 seconds the chat must open anyway").toHaveBeenCalledWith(channel);
+    expect(store.setMain, "after 5 seconds the chat view must be shown anyway").toHaveBeenCalledWith("chat");
+    expect(chatSpies.watchChannel, "with no chat list there is nothing to watch yet").not.toHaveBeenCalled();
+  });
+
+  it("opens with the space key, ignores other keys, and does nothing when the channel is unknown", async () => {
+    const store = chatStore([]);
+    await renderWithProviders(<NotificationsContainer />, { store });
+    act(() => showChatNotification("Lina", "Yo", "30"));
+    const card = screen.getByRole("button", { name: "Open chat with Lina" });
+
+    fireEvent.keyDown(card, { key: "a" });
+    expect(store.setChatOpen, "a letter key must not open the chat").not.toHaveBeenCalled();
+
+    fireEvent.keyDown(card, { key: " " });
+    expect(store.setChatOpen, "an unknown channel must not open the chat widget").not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(messages(), "the space key must still remove the message").toEqual([]);
+  });
+
+  it("goes to the private order chat page for a private chat message", async () => {
+    const store = chatStore();
+    await renderWithProviders(<NotificationsContainer />, { store });
+    act(() =>
+      showChatNotification("Shop", "Your order", "40", undefined, undefined, undefined, undefined, undefined, "#order-chat"),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Open chat with Shop" }));
+    expect(store.setOrderLoading, "the order page loader must start").toHaveBeenCalledWith(true);
+    expect(store.setIsNavigating, "the settings loader must start").toHaveBeenCalledWith({ is_settings: true });
+    expect(window.location.hash, "the browser must go to the private chat address").toBe("#order-chat");
+    expect(store.setChatOpen, "a private chat must not open the chat widget").not.toHaveBeenCalled();
+  });
+
+  it("closes a chat message from its close button without opening the chat", async () => {
+    const store = chatStore([{ id: "50" }]);
+    await renderWithProviders(<NotificationsContainer />, { store });
+    act(() => showChatNotification("Nour", "Bye", "50"));
+
+    fireEvent.click(document.querySelector("button[aria-label='Close notification'] svg") as Element);
+    fireEvent.click(screen.getByRole("button", { name: "Close notification" }));
+    expect(store.setChatOpen, "closing a chat message must not open the chat").not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(messages(), "the close button must remove the chat message").toEqual([]);
+  });
+
+  it("shows the incoming call widget when a call is ringing", async () => {
+    const { container } = await renderWithProviders(<NotificationsContainer />, { store: { isCallIncoming: true } });
+    expect(
+      document.querySelector('[data-pw="notifications-root"]'),
+      "the message host must be on the page while a call rings",
+    ).toBeInTheDocument();
+    expect(container, "the container itself draws in a portal, not in place").toBeEmptyDOMElement();
   });
 });

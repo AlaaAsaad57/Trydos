@@ -1232,5 +1232,173 @@ describe("expireLuck & errRemoveFromCart in cart store", () => {
     expect(slice.s.localCart).toEqual([{ item_id: "item-missing", id: "item-missing" }]);
     expect(slice.s.cart).toEqual([{ item_id: "item-missing", id: "item-missing" }]);
   });
+  describe("simple setters", () => {
+    it("setSellerOrders accepts a list, an updater function, and drops anything else", () => {
+      const { setSellerOrders } = useAppStore.getState();
+      setSellerOrders([{ id: 1 }]);
+      expect(useAppStore.getState().sellerOrders, "a list should be stored as given").toEqual([{ id: 1 }]);
+      setSellerOrders((prev: any[]) => [...prev, { id: 2 }]);
+      expect(
+        useAppStore.getState().sellerOrders,
+        "an updater should receive the current list",
+      ).toEqual([{ id: 1 }, { id: 2 }]);
+      setSellerOrders("not a list" as any);
+      expect(useAppStore.getState().sellerOrders, "a non-list should become an empty list").toEqual([]);
+    });
+
+    it("each named setter writes its own field", () => {
+      const s = useAppStore.getState() as any;
+      s.setLastPathname("/gb-en/cart");
+      s.setLoggingOut(true);
+      s.setSettingLastPath("/gb-en/settings");
+      s.setOrderDetails({ id: 9 });
+      s.setCartShippingSuccess("done");
+      s.setOrderPageLoading(true);
+      s.setActivePacks(["p1"]);
+      s.setProvinces(["Damascus"]);
+      s.setShouldUpdateOrders(true);
+      s.setShouldUpdateOrdersChat(44);
+      s.setCouponDiscount(12);
+      s.setRdbLock({ locked: true });
+      s.setRdbPaymentScreenOpen(true);
+      s.setMapCenter({ lat: 1, lng: 2 });
+      s.setOrderLoading(true);
+      s.setLoadedCart(true);
+      s.setCartLoading(true);
+      const st = useAppStore.getState() as any;
+      expect(st.lastPathname, "setLastPathname").toBe("/gb-en/cart");
+      expect(st.LoggingOut, "setLoggingOut").toBe(true);
+      expect(st.settingLastPath, "setSettingLastPath").toBe("/gb-en/settings");
+      expect(st.selectedOrder, "setOrderDetails").toEqual({ id: 9 });
+      expect(st.cartShippingSuccess, "setCartShippingSuccess").toBe("done");
+      expect(st.orderPageLoading, "setOrderPageLoading").toBe(true);
+      expect(st.ActivePacks, "setActivePacks").toEqual(["p1"]);
+      expect(st.provinces, "setProvinces").toEqual(["Damascus"]);
+      expect(st.shouldUpdateOrders, "setShouldUpdateOrders").toBe(true);
+      expect(st.order_chat_id, "setShouldUpdateOrdersChat").toBe(44);
+      expect(st.coupon_discount, "setCouponDiscount").toBe(12);
+      expect(st.rdbLock, "setRdbLock").toEqual({ locked: true });
+      expect(st.rdbPaymentScreenOpen, "setRdbPaymentScreenOpen").toBe(true);
+      expect(st.center, "setMapCenter").toEqual({ lat: 1, lng: 2 });
+      expect(st.orderLoading, "setOrderLoading").toBe(true);
+      expect(st.loaded, "setLoadedCart").toBe(true);
+      expect(st.cart_loading, "setCartLoading").toBe(true);
+    });
+
+    it("setSelectedOrderItem opens the order options only when an item is chosen", () => {
+      const s = useAppStore.getState() as any;
+      s.setSelectedOrderItem({ id: 3 });
+      expect((useAppStore.getState() as any).showOrderOptions, "an item should open the options").toBe(true);
+      s.setSelectedOrderItem(null);
+      expect((useAppStore.getState() as any).showOrderOptions, "no item should close the options").toBe(false);
+      s.setOrderOptions(true);
+      expect((useAppStore.getState() as any).showOrderOptions, "setOrderOptions should set the flag").toBe(true);
+    });
+
+    it("setCryptoCardPayment opens the payment iframe on the gateway address", () => {
+      (useAppStore.getState() as any).setCryptoCardPayment({ url: "https://pay.example/1" });
+      const st = useAppStore.getState() as any;
+      expect(st.openPayIframe, "the payment iframe should open").toBe(true);
+      expect(st.payIframeURL, "the iframe should load the gateway address").toBe("https://pay.example/1");
+    });
+
+    it("wallet and cash setters copy the balances, falling back to 0", () => {
+      const s = useAppStore.getState() as any;
+      s.setWalletUser({ wallet_balance: 30 });
+      s.setWalletBalance();
+      expect((useAppStore.getState() as any).balance, "balance should come from the wallet").toBe(30);
+      s.setWalletUser(null);
+      expect(
+        (useAppStore.getState() as any).wallet.wallet_balance,
+        "a missing wallet should read as 0",
+      ).toBe(0);
+      s.setWalletBalance();
+      expect((useAppStore.getState() as any).balance, "an empty wallet should give 0").toBe(0);
+
+      useAppStore.setState({ total_cash: 70 } as any);
+      s.setCodUser();
+      s.setCryptoUser();
+      s.setCreditUser();
+      let st = useAppStore.getState() as any;
+      expect(st.balance, "setCodUser should copy total_cash").toBe(70);
+      expect(st.crypto, "setCryptoUser should copy total_cash").toBe(70);
+      expect(st.credit, "setCreditUser should copy total_cash").toBe(70);
+      useAppStore.setState({ total_cash: null } as any);
+      s.setCodUser();
+      s.setCryptoUser();
+      s.setCreditUser();
+      st = useAppStore.getState() as any;
+      expect([st.balance, st.crypto, st.credit], "no total_cash should give 0 for all three").toEqual([0, 0, 0]);
+    });
+
+    it("setOrderSuccess merges into the current order data", () => {
+      useAppStore.setState({ orderData: { id: 1 } } as any);
+      (useAppStore.getState() as any).setOrderSuccess({ success: true });
+      expect(
+        (useAppStore.getState() as any).orderData,
+        "the new fields should be merged, not replace the order",
+      ).toEqual({ id: 1, success: true });
+    });
+
+    it("setAddressDetails merges into the address being edited", () => {
+      (useAppStore.getState() as any).setAddressDetails({ address: "Main st" });
+      const details = (useAppStore.getState() as any).addressDetails;
+      expect(details.address, "the new field should be set").toBe("Main st");
+      expect(details.Country?.code, "the other fields should stay").toBe("sy");
+    });
+
+    it("setViewsProducts and editInfo merge into the selected product", () => {
+      useAppStore.setState({ SelectedProduct: { id: 1 } } as any);
+      (useAppStore.getState() as any).setViewsProducts({ views: 5 });
+      (useAppStore.getState() as any).editInfo({ name: "Shoe" });
+      expect(
+        (useAppStore.getState() as any).SelectedProduct,
+        "both calls should merge into the selected product",
+      ).toEqual({ id: 1, views: 5, name: "Shoe" });
+    });
+  });
+
+  it("startUpdateAddress builds the region text from every filled part, town included", () => {
+    (useAppStore.getState() as any).startUpdateAddress({
+      id: 5,
+      region_details: {
+        province: "Damascus",
+        city: "Mazzeh",
+        town: "Villat",
+        street: "null",
+        building: "B2",
+      },
+      contact_info: { contact_person_name: "Sam" },
+    });
+    expect(
+      (useAppStore.getState() as any).addressDetails.region,
+      "the text should list province, city, town and building, and skip the 'null' street",
+    ).toBe(" | Damascus | Mazzeh | Villat | B2");
+  });
+
+  describe("enableCart", () => {
+    it("opening the cart scales the page down and closing it slides the cart away", () => {
+      document.body.innerHTML =
+        '<div class="site-container"></div><div class="cart-provider"></div>';
+      (useAppStore.getState() as any).enableCart(true);
+      expect((useAppStore.getState() as any).cart_enable, "the cart should be open").toBe(true);
+      expect(
+        document.querySelector(".site-container")!.classList.contains("scale-95"),
+        "opening should scale the page down",
+      ).toBe(true);
+
+      (useAppStore.getState() as any).enableCart(false);
+      expect((useAppStore.getState() as any).cart_enable, "the cart should be closed").toBe(false);
+      expect(
+        document.querySelector(".site-container")!.classList.contains("scale-95"),
+        "closing should restore the page size",
+      ).toBe(false);
+      expect(
+        document.querySelector(".cart-provider")!.classList.contains("slideDown-cart"),
+        "closing should slide the cart down",
+      ).toBe(true);
+      document.body.innerHTML = "";
+    });
+  });
 });
 

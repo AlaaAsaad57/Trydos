@@ -146,6 +146,35 @@ describe("a circle in the listing's filter row", () => {
     });
   });
 
+  describe("a category chosen two levels down", () => {
+    it("opens the sub-category row and links the grand-child with its parent chain", async () => {
+      await renderFilterItem({
+        term: "categories",
+        item: {
+          slug: "shoes",
+          name: "Shoes",
+          childes: [
+            {
+              slug: "trainers",
+              name: "Trainers",
+              childes: [{ slug: "runners", name: "Runners" }],
+            },
+          ],
+        },
+        filterParams: { categories: ["trainers", "runners"] },
+      });
+
+      expect(
+        document.querySelector('a[href*="runners"]'),
+        "a chosen sub-category must open the row so its own sub-categories can be tapped",
+      ).not.toBeNull();
+      expect(
+        screen.getByText("Runners"),
+        "the grand-child category should be shown by name",
+      ).toBeInTheDocument();
+    });
+  });
+
   describe("a brand", () => {
     const brand = { slug: "nike", name: "Nike", icon: "brands/nike.png" };
 

@@ -17,7 +17,7 @@ import ListingShareControl from "components/Listing/ListingShareControl";
 
 import { restoreLocation, stubLocation } from "tests/mocks/location";
 
-import { renderWithProviders, screen, userEvent, waitFor } from "../../render";
+import { fireEvent, renderWithProviders, screen, userEvent, waitFor } from "../../render";
 
 const showSuccessNotification = vi.fn();
 
@@ -228,6 +228,26 @@ describe("the listing's share widget", () => {
         showSuccessNotification,
         "changing your mind is not an error and not a success — the shopper dismissed the sheet on purpose and must not be told anything happened",
       ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("closing the sheet", () => {
+    it("closes the share sheet when the shopper presses Escape", async () => {
+      await renderShareControl();
+      await openTheSheet();
+      expect(
+        screen.getByRole("dialog", { name: "Share this page" }),
+        "the share sheet did not open",
+      ).toBeInTheDocument();
+
+      fireEvent.keyDown(window, { key: "Escape" });
+
+      await waitFor(() =>
+        expect(
+          screen.queryByRole("dialog", { name: "Share this page" }),
+          "closing the sheet must take it off the page, or it stays over the listing",
+        ).toBeNull(),
+      );
     });
   });
 

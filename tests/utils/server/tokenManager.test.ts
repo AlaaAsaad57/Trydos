@@ -683,3 +683,21 @@ describe("what a request log is allowed to say", () => {
     });
   });
 });
+
+describe("a request log with no cookies to read", () => {
+  it("still records the failed request, as one with no token", async () => {
+    headers.__reset();
+    (headers.cookies as any).mockRejectedValueOnce(new Error("no request scope"));
+    const { logSecureRequest } = await import("utils/server/tokenManager");
+    const { LogServerError } = await import("utils/serverErrorReporter");
+    (LogServerError as any).mockClear();
+
+    await logSecureRequest({ server: "chat", url: "/x", method: "GET", status: 502, error: new Error("bad gateway") });
+
+    expect((LogServerError as any).mock.calls[0]?.[0], "the failed request was not recorded without a token").toMatchObject({
+      server: "chat",
+      status: 502,
+      tokenPresent: false,
+    });
+  });
+});

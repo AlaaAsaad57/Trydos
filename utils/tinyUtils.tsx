@@ -214,7 +214,7 @@ export const formatTime = (timeString: string) => {
     ? new Date(timeString + "Z")
     : new Date(timeString);
   if (isNaN(date?.getTime())) {
-    date = new Date(timeString + "Z");
+    date = new Date(timeString);
   }
   const today = new Date();
   const yesterday = new Date(today);

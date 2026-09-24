@@ -347,10 +347,10 @@ const SizeList = ({
             colors,
             sizes,
             currentColor,
-            s?.option,
+            s,
           );
           let disabled =
-            s?.name?.toLowerCase() === currentSize?.toLowerCase()
+            s?.toLowerCase() === currentSize?.toLowerCase()
               ? false
               : variation?.qty < item.qty;
 

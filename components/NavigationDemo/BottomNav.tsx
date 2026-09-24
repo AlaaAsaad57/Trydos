@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   animate,
   motion,
+  type MotionValue,
   useMotionValue,
   useSpring,
   useTransform,
@@ -266,10 +267,10 @@ const GLIDE = { stiffness: 300, damping: 30, mass: 0.85 } as const;
  * 38 / (2 * sqrt(560 * 0.85)) = 0.87, so it covers the distance fast and
  * settles with an overshoot of 0.4% — too small to see as a wobble.
  */
-const TRAVEL = { type: "spring", stiffness: 560, damping: 38, mass: 0.85 } as const;
+export const TRAVEL = { type: "spring", stiffness: 560, damping: 38, mass: 0.85 } as const;
 
 /** Reacts to a finger going down. */
-const PRESS = { type: "spring", stiffness: 700, damping: 38, mass: 0.6 } as const;
+export const PRESS = { type: "spring", stiffness: 700, damping: 38, mass: 0.6 } as const;
 
 /*
   There is no delay in front of the indicator any more.
@@ -310,14 +311,31 @@ const clamp = (n: number, min: number, max: number) =>
  * towards 1, scrolling up pulls it back towards 0, and it stays where it is
  * left when the page stops. A spring sits between it and the screen, so what
  * the browser draws is a smooth curve even where the scroll arrives in lumps.
+ *
+ * Where the scroll comes from
+ * ---------------------------
+ * `scope: "window"` (the default) reads the page scroll, which is what this
+ * demo page has. `scope: "any"` listens in the capture phase on the document,
+ * so it hears every element that scrolls up and down. The scaled app canvas
+ * needs it: the page itself never scrolls there, each screen scrolls its own
+ * box. A box that cannot scroll up and down (a sideways row of chips) is not
+ * counted, so swiping it does not move the bar.
+ *
+ * `resetKey` puts the bar back to full size when it changes. The app passes
+ * the screen it shows, because a new screen starts at its top.
  */
-function useScrollScale(
+export function useScrollScale(
   minScale: number,
   distance: number,
-  speedEffect: number
+  speedEffect: number,
+  { scope = "window", resetKey }: { scope?: "window" | "any"; resetKey?: unknown } = {}
 ) {
   const travelled = useMotionValue(0);
   const eased = useSpring(travelled, GLIDE);
+
+  useEffect(() => {
+    travelled.set(0);
+  }, [resetKey, travelled]);
 
   // The floor is a live motion value, not a plain number, so dragging the
   // slider redraws the bar at once instead of waiting for the next scroll.
@@ -395,8 +413,21 @@ function useScrollScale(
       frame = requestAnimationFrame(tick);
     };
 
-    const onScroll = () => {
-      const y = window.scrollY;
+    // The box the last scroll came from. When another box starts scrolling,
+    // its first reading is the new starting point, not a jump.
+    let source: EventTarget | null = null;
+
+    const onScroll = (event: Event) => {
+      const box =
+        scope === "any" && event.target instanceof Element ? event.target : null;
+      // A sideways scroller has nothing to say about up and down.
+      if (box && box.scrollHeight <= box.clientHeight) return;
+      const y = box ? box.scrollTop : window.scrollY;
+      const from = box ?? window;
+      if (from !== source) {
+        source = from;
+        lastY = y;
+      }
       pending += y - lastY;
       lastY = y;
       if (running) return;
@@ -406,14 +437,43 @@ function useScrollScale(
       frame = requestAnimationFrame(tick);
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
+    const target: Window | Document = scope === "any" ? document : window;
+    target.addEventListener("scroll", onScroll, { passive: true, capture: scope === "any" });
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      target.removeEventListener("scroll", onScroll, { capture: scope === "any" });
       cancelAnimationFrame(frame);
     };
-  }, [travelled]);
+  }, [travelled, scope]);
 
   return scale;
+}
+
+/**
+ * The press pulse on top of the scroll scale — see PULSE_PEAK.
+ *
+ * The pulse multiplies the scroll scale rather than replacing it, so a touch
+ * during a scroll does not snap the bar back to full size.
+ */
+export function useBarPulse(scrollScale: MotionValue<number>) {
+  const pulse = useMotionValue(1);
+  const scale = useTransform(
+    [scrollScale, pulse],
+    ([s, p]: number[]) => s * p
+  );
+
+  const lastPulse = useRef(0);
+  const firePulse = () => {
+    const now = performance.now();
+    if (now - lastPulse.current < PULSE_GAP_MS) return;
+    lastPulse.current = now;
+    animate(pulse, [1, PULSE_PEAK, 1], {
+      duration: PULSE_MS,
+      times: [0, 0.32, 1],
+      ease: PULSE_EASE,
+    });
+  };
+
+  return { scale, firePulse };
 }
 
 export default function BottomNav({
@@ -440,25 +500,7 @@ export default function BottomNav({
     theme.speedEffect
   );
 
-  // The pulse multiplies the scroll scale rather than replacing it, so a touch
-  // during a scroll does not snap the bar back to full size.
-  const pulse = useMotionValue(1);
-  const scale = useTransform(
-    [scrollScale, pulse],
-    ([s, p]: number[]) => s * p
-  );
-
-  const lastPulse = useRef(0);
-  const firePulse = () => {
-    const now = performance.now();
-    if (now - lastPulse.current < PULSE_GAP_MS) return;
-    lastPulse.current = now;
-    animate(pulse, [1, PULSE_PEAK, 1], {
-      duration: PULSE_MS,
-      times: [0, 0.32, 1],
-      ease: PULSE_EASE,
-    });
-  };
+  const { scale, firePulse } = useBarPulse(scrollScale);
 
   const slots = useRef<Partial<Record<TabId, HTMLLIElement | null>>>({});
   const pressedRef = useRef<TabId | null>(null);

@@ -65,7 +65,7 @@
 // to do with the app. The boundary a test fakes has to sit outside the code it
 // is judging.
 
-import { render, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import ChecklistView from "components/setting/checklist/ChecklistView";
@@ -80,6 +80,13 @@ import { fetchData } from "utils/fetchData";
 // had nothing to do with the app. Faking the request instead means the real
 // service runs on the real answer.
 vi.mock("utils/fetchData", () => ({ fetchData: vi.fn() }));
+
+// Replaced so the other cases below can read what the shopper was told.
+const notifications = vi.hoisted(() => ({
+  showErrorNotification: vi.fn(),
+  showSuccessNotification: vi.fn(),
+}));
+vi.mock("@/store/notifications/reducer", () => notifications);
 
 /** Ten rows, which is one full page. The rows themselves are not the point —
  *  what they prove is that the screen has something to draw, so an absent
@@ -165,4 +172,125 @@ describe("the checklist screen, when the shopper has more than one page saved", 
       ).not.toBeNull();
     },
   );
+});
+
+describe("the checklist screen, loading, paging and removing", () => {
+  const row = (id: number, name = `Saved product ${id}`) => ({ id, name, slug: `p-${id}`, image: "" });
+  const page = (rows: any[], current: number, last: number) => ({
+    success: true,
+    data: { current_page: current, last_page: last, data: rows },
+  });
+  /** An answer that breaks when read, so the screen's own failure path runs. */
+  const brokenAnswer = () => ({
+    get data(): any {
+      throw new Error("unreadable answer");
+    },
+  });
+
+  beforeEach(() => {
+    vi.mocked(fetchData).mockReset();
+    notifications.showErrorNotification.mockClear();
+    notifications.showSuccessNotification.mockClear();
+  });
+
+  it("shows the empty state for an empty checklist", async () => {
+    vi.mocked(fetchData).mockResolvedValue({ success: true, data: {} } as never);
+    render(<ChecklistView isRtl language="en" local="sy-en" />);
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-pw="checklist-empty"]'),
+        "an empty checklist did not show the empty state",
+      ).not.toBeNull(),
+    );
+  });
+
+  it("says something went wrong when the first page fails", async () => {
+    vi.mocked(fetchData).mockResolvedValue(brokenAnswer() as never);
+    render(<ChecklistView isRtl={false} language="en" local="sy-en" />);
+    await waitFor(() =>
+      expect(
+        notifications.showErrorNotification,
+        "a failed first page was not reported",
+      ).toHaveBeenCalledWith("Something went wrong"),
+    );
+  });
+
+  it("does nothing when the screen closes before the first page arrives", async () => {
+    let answer: (v: any) => void = () => {};
+    vi.mocked(fetchData).mockReturnValue(new Promise((r) => (answer = r)) as never);
+    const { unmount } = render(<ChecklistView isRtl={false} language="en" local="sy-en" />);
+    unmount();
+    await act(async () => answer(page([row(1)], 1, 1)));
+
+    let fail: (v: any) => void = () => {};
+    vi.mocked(fetchData).mockReturnValue(new Promise((r) => (fail = r)) as never);
+    const second = render(<ChecklistView isRtl={false} language="en" local="sy-en" />);
+    second.unmount();
+    await act(async () => fail(brokenAnswer()));
+    expect(
+      notifications.showErrorNotification,
+      "a closed screen still reported a failure",
+    ).not.toHaveBeenCalled();
+  });
+
+  it("loads the next page, shows Loading meanwhile, and hides Load more on the last page", async () => {
+    let next: (v: any) => void = () => {};
+    vi.mocked(fetchData)
+      .mockResolvedValueOnce(page([row(1)], 1, 2) as never)
+      .mockReturnValueOnce(new Promise((r) => (next = r)) as never);
+    render(<ChecklistView isRtl={false} language="en" local="sy-en" />);
+    await waitFor(() => expect(loadMoreButton()).not.toBeNull());
+
+    fireEvent.click(loadMoreButton()!);
+    expect(screen.getByText("Loading..."), "no progress while the next page loads").toBeInTheDocument();
+    fireEvent.click(loadMoreButton()!);
+    await act(async () => next(page([row(2)], 2, 2)));
+
+    expect(rowsOnScreen().length, "the next page was not added to the list").toBe(2);
+    expect(loadMoreButton(), "Load more stayed after the last page").toBeNull();
+    expect(vi.mocked(fetchData), "a second tap while loading asked for the page again").toHaveBeenCalledTimes(2);
+  });
+
+  it("reports a failed next page and keeps the list", async () => {
+    vi.mocked(fetchData)
+      .mockResolvedValueOnce(page([row(1)], 1, 2) as never)
+      .mockResolvedValueOnce(brokenAnswer() as never);
+    render(<ChecklistView isRtl={false} language="en" local="sy-en" />);
+    await waitFor(() => expect(loadMoreButton()).not.toBeNull());
+    fireEvent.click(loadMoreButton()!);
+    await waitFor(() =>
+      expect(notifications.showErrorNotification, "a failed next page was not reported").toHaveBeenCalledWith(
+        "Something went wrong",
+      ),
+    );
+    expect(rowsOnScreen().length, "a failed next page changed the list").toBe(1);
+  });
+
+  it("removes a product, ignores a second tap while removing, and keeps a product whose removal fails", async () => {
+    let removed: (v: any) => void = () => {};
+    vi.mocked(fetchData)
+      .mockResolvedValueOnce(page([row(1), row(2)], 1, 1) as never)
+      .mockReturnValueOnce(new Promise((r) => (removed = r)) as never)
+      .mockResolvedValueOnce({ success: false, message: "refused" } as never);
+    render(<ChecklistView isRtl={false} language="en" local="sy-en" />);
+    await waitFor(() => expect(rowsOnScreen().length).toBe(2));
+
+    const deletes = () => document.querySelectorAll<HTMLElement>('[data-pw="checklist-item-delete"]');
+    fireEvent.click(deletes()[0]);
+    fireEvent.click(deletes()[0]);
+    await act(async () => removed({ success: true }));
+    expect(rowsOnScreen().length, "the removed product is still listed").toBe(1);
+    expect(notifications.showSuccessNotification, "the removal was not confirmed").toHaveBeenCalledWith(
+      "Removed from checklist",
+    );
+    expect(vi.mocked(fetchData), "a second tap while removing sent the removal again").toHaveBeenCalledTimes(2);
+
+    fireEvent.click(deletes()[0]);
+    await waitFor(() =>
+      expect(notifications.showErrorNotification, "a refused removal was not reported").toHaveBeenCalledWith(
+        "Failed to remove from checklist",
+      ),
+    );
+    expect(rowsOnScreen().length, "a refused removal took the product off the list").toBe(1);
+  });
 });

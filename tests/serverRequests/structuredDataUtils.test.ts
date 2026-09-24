@@ -3,6 +3,7 @@ import {
   mapLocaleToBCP47,
   mapCurrencyToSymbol,
   buildParamsFromFilters,
+  getTitleAndTargetofListing,
 } from "serverRequests/meta/StructuredData/utils";
 
 describe("StructuredData utils", () => {
@@ -45,6 +46,42 @@ describe("StructuredData utils", () => {
         "brands",
         "nike",
       ]);
+    });
+
+    it("writes colours without the # and joins several values with commas", () => {
+      expect(
+        buildParamsFromFilters({ colors: ["#ff0000", "00ff00"], sizes: ["M", "L"], tags_names: [] }),
+        "colour or size params are wrong, or an empty filter was written",
+      ).toEqual(["colors", "ff0000,00ff00", "sizes", "M,L"]);
+    });
+  });
+
+  describe("getTitleAndTargetofListing", () => {
+    const filtersData = {
+      boutiques: [{ slug: "shop-a", name: "Shop A" }],
+      categories: [{ slug: "dresses", name: "Dresses" }],
+      brands: [{ slug: "acme", name: "Acme" }],
+    };
+
+    it("names the page after the chosen boutique, category and brand, and links to their filter page", () => {
+      expect(
+        getTitleAndTargetofListing({
+          filters: { boutiques: ["shop-a"], categories: ["dresses"], brands: ["acme"] },
+          filtersData,
+          language: "en",
+        }),
+        "the listing title or link is wrong",
+      ).toEqual({
+        title: ["Trydos", "Shop A", "Dresses", "Acme"],
+        path: "/filters/boutiques/shop-a/categories/dresses/brands/acme",
+      });
+    });
+
+    it("uses the site name alone and the bare filter page when nothing was chosen, in any language", () => {
+      expect(
+        getTitleAndTargetofListing({ filters: undefined, filtersData: undefined, language: "xx" }),
+        "a listing with no filters did not fall back to the site name and /filters",
+      ).toEqual({ title: ["Trydos"], path: "/filters" });
     });
   });
 });

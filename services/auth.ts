@@ -842,9 +842,10 @@ class AuthService {
         if (!res.success) {
           throw new Error(res.message);
         }
+        // Put back what the core backend was just given: the old profile.
         const revertMarket = {
-          name: userObj?.name ?? userProfile?.name,
-          phone: userObj?.phone ?? userProfile?.phone,
+          name: userProfile?.name,
+          phone: userProfile?.phone,
           image: this.getImageForCookie(userProfile?.image),
         };
         editUserInfo(revertMarket);

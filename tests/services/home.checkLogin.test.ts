@@ -12,10 +12,12 @@
 // recovery in `utils/fetchData.ts` skip the refresh path (see the comment on
 // `!isRegisteringReady` there) and ride the new guest instead.
 
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { afterEach, describe, expect, it, vi, beforeEach } from "vitest";
 import homeService from "services/home";
 import { fetchAuthMe } from "utils/authMe";
 import { useAppStore } from "store";
+import { posthogIdentify } from "utils/posthog";
+import { LogServerError } from "utils/serverErrorReporter";
 
 vi.mock("utils/authMe", () => ({ fetchAuthMe: vi.fn() }));
 vi.mock("utils/fetchData", () => ({ fetchData: vi.fn() }));
@@ -107,5 +109,102 @@ describe("CheckLogin — the app-load auth bootstrap", () => {
       `a visitor who already had a credential was registered again (ids ${registrations.join(", ")}), ` +
         `which replaces the guest the app was already talking to`,
     ).toHaveLength(0);
+  });
+});
+
+describe("CheckLogin — signing the stored visitor back in", () => {
+  const me = (overrides: Record<string, unknown>) =>
+    vi.mocked(fetchAuthMe).mockResolvedValue({
+      user: null,
+      chatUser: null,
+      storiesUser: null,
+      walletUser: null,
+      hasMarketToken: true,
+      ...overrides,
+    } as any);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    stubRegisterDevice();
+    vi.stubEnv("NODE_ENV", "production");
+    useAppStore.setState({
+      isRegisteringReady: true,
+      LoggingOut: false,
+      userProfile: null,
+      userChat: null,
+      userStories: null,
+      userWallet: null,
+    } as any);
+    window.history.pushState({}, "", "/sy-en/");
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("signs a verified shopper into the market, chat, stories and wallet", async () => {
+    me({
+      user: { id: 18081, name: "Shopper", is_phone_verified: 1, mobilePhone: "x" },
+      chatUser: { id: 1 },
+      storiesUser: { id: 2 },
+      walletUser: { id: 3 },
+    });
+
+    await homeService.CheckLogin();
+
+    const state: any = useAppStore.getState();
+    expect(state.userProfile?.id, "the verified shopper was not signed in").toBe(18081);
+    expect(state.userChat?.id, "the chat account was not signed in").toBe(1);
+    expect(state.userStories?.id, "the stories account was not signed in").toBe(2);
+    expect(state.userWallet?.id, "the wallet account was not signed in").toBe(3);
+    expect(posthogIdentify, "the verified shopper was not identified to analytics").toHaveBeenCalledWith(
+      18081,
+      expect.objectContaining({ name: "Shopper" }),
+    );
+  });
+
+  it("signs a verified shopper in without the side accounts they do not have", async () => {
+    me({ user: { id: 18081, name: "Shopper", is_phone_verified: 1 } });
+
+    await homeService.CheckLogin();
+
+    expect(useAppStore.getState().userChat, "a chat account appeared from nowhere").toBeNull();
+  });
+
+  it("signs an unverified visitor back in with their stories account", async () => {
+    me({ user: { id: 77, name: "Guest", is_phone_verified: 0 }, storiesUser: { id: 4 } });
+
+    await homeService.CheckLogin();
+
+    const state: any = useAppStore.getState();
+    expect(state.userProfile?.id, "the unverified visitor was not signed back in").toBe(77);
+    expect(state.userStories?.id, "the unverified visitor lost their stories account").toBe(4);
+    expect(posthogIdentify, "the unverified visitor was not identified to analytics").toHaveBeenCalledWith(
+      77,
+      expect.objectContaining({ name: "Guest" }),
+    );
+  });
+
+  it("registers a guest when a token exists but no visitor came back with it", async () => {
+    me({});
+
+    await homeService.CheckLogin();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(registrations, "a token with no visitor did not get a guest").toHaveLength(1);
+    expect(posthogIdentify, "the new guest was not identified to analytics").toHaveBeenCalledWith(
+      1001,
+      { name: "Guest", phone: "guest" },
+    );
+  });
+
+  it("reports a refused guest registration and frees the lock", async () => {
+    global.fetch = vi.fn(async () => ({ ok: false, json: async () => ({ message: "refused" }) })) as any;
+    me({ hasMarketToken: false });
+
+    await homeService.CheckLogin();
+
+    expect(
+      vi.mocked(LogServerError).mock.calls.map((call: any[]) => call[0]?.scenario),
+      "the refused guest registration was not reported",
+    ).toContain("Error In RegisterDevice in services/home");
+    expect(useAppStore.getState().isRegisteringReady, "the registration lock was left on").toBe(true);
   });
 });

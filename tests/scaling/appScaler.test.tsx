@@ -523,3 +523,48 @@ describe('AppScaler holds its fit and slides the canvas up while the keyboard is
     ).toBe(`${first}px`);
   });
 });
+
+describe('AppScaler waits for a touch pull (rubber band) to end before it re-fits', () => {
+  const touch = (type: string, touches: number) => {
+    const event = new Event(type);
+    (event as any).touches = { length: touches };
+    document.dispatchEvent(event);
+  };
+  const scale = () => Number(document.documentElement.style.getPropertyValue('--app-scale'));
+
+  it('holds the fit while a finger is down and until the snap-back stops, then fits once', () => {
+    vi.useFakeTimers();
+    mountAt(430, 932);
+    expect(scale(), '430 x 932 at mount: the canvas must be drawn at scale 1').toBe(1);
+
+    touch('touchstart', 1);
+    setViewport(215, 932);
+    window.dispatchEvent(new Event('resize'));
+    vi.runAllTimers();
+    expect(scale(), 'the canvas re-fitted while the finger was still down').toBe(1);
+
+    // A second finger lifts off while the first is still pulling: nothing yet.
+    touch('touchend', 1);
+    vi.runAllTimers();
+    expect(scale(), 'the canvas re-fitted while one finger was still on the screen').toBe(1);
+
+    touch('touchend', 0);
+    vi.advanceTimersByTime(200);
+    // A resize from the snap-back pushes the settle out again.
+    window.dispatchEvent(new Event('resize'));
+    vi.advanceTimersByTime(200);
+    expect(scale(), 'the canvas re-fitted in the middle of the snap-back').toBe(1);
+    vi.advanceTimersByTime(150);
+    expect(scale(), 'the canvas did not re-fit after the snap-back stopped').toBe(0.5);
+  });
+
+  it('a new touch cancels a pending settle', () => {
+    vi.useFakeTimers();
+    mountAt(430, 932);
+    touch('touchend', 0);
+    setViewport(215, 932);
+    touch('touchstart', 1);
+    vi.advanceTimersByTime(400);
+    expect(scale(), 'a cancelled settle still re-fitted the canvas').toBe(1);
+  });
+});

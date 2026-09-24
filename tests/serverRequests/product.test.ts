@@ -1007,3 +1007,69 @@ describe("GetProductStoriesData", () => {
     ).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// The failure paths the cases above do not reach.
+describe("the product readers when a search source fails", () => {
+  it("reports a view-count failure that is not a missing record, and counts zero views", async () => {
+    esGetAnswers[product_interactions_index] = { _source: { final_rating: 4, star_distribution: {} } };
+    esGetAnswers[views_index] = Object.assign(new Error("cluster busy"), { meta: { statusCode: 503 } });
+    esSearchAnswers[comments_index] = recommendationAggs(0, 0);
+
+    const { GetProductGeneralData } = await load();
+    const result = await GetProductGeneralData({ id: "1001" });
+
+    expect(result?.total_views, "a failed view count did not count as zero").toBe(0);
+    expect(
+      LogServerError.mock.calls.map((call: any[]) => call[0]?.type),
+      "a real view-count failure was not reported",
+    ).toContain("getProductViewsQuery (elastic) failed");
+  });
+
+  it("answers nothing, and reports it, when the recommendation count fails", async () => {
+    esGetAnswers[product_interactions_index] = { _source: {} };
+    esGetAnswers[views_index] = { _source: { view_count: 1 } };
+    esSearchAnswers[comments_index] = new Error("comments index down");
+
+    const { GetProductGeneralData } = await load();
+
+    expect(await GetProductGeneralData({ id: "1001" }), "a failed read still gave general data").toBeUndefined();
+    expect(
+      LogServerError.mock.calls.map((call: any[]) => call[0]?.scenario),
+      "the failed general data read was not reported",
+    ).toContain("Error In GetProductGeneralData in serverRequest/product");
+  });
+
+  it("treats an unreadable profile cookie as not a tester when reading product stories", async () => {
+    headers.__reset({ cookies: { [COOKIE_NAMES.USER_DATA]: "%7Bnot-json" } });
+    fetchServerData.mockResolvedValueOnce({ data: { data: { data: [] } } } as any);
+
+    const { GetProductStoriesData } = await load();
+    const result = await GetProductStoriesData({ page: 1, productId: "1001" });
+
+    expect(result.stories, "an unreadable profile cookie broke the story reader").toEqual([]);
+  });
+
+  it("falls back to zero likes and no shares, and reports both, when those sources fail", async () => {
+    esGetAnswers[product_interactions_index] = new Error("interactions down");
+    esSearchAnswers[share_index] = new Error("shares down");
+    esCountAnswer = { count: 2 };
+
+    const { GetSocialInfoForProduct } = await load();
+    const result = await GetSocialInfoForProduct({ productId: "1001", userId: undefined });
+
+    expect(result, "the fallback social figures are wrong").toEqual({
+      total_likes: 0,
+      is_liked: false,
+      total_comments: 2,
+      total_shares: null,
+    });
+    const scenarios = LogServerError.mock.calls.map((call: any[]) => call[0]?.scenario);
+    expect(scenarios, "the failed like read was not reported").toContain(
+      "Error In getProductInteractions in serverRequest/product",
+    );
+    expect(scenarios, "the failed share read was not reported").toContain(
+      "Error In getProductSharedCountFromElasticsearch in serverRequest/product",
+    );
+  });
+});

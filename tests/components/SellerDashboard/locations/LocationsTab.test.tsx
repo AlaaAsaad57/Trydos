@@ -31,8 +31,24 @@ vi.mock("components/global/AddToCartMessage", () => ({
 // The create/edit form carries a Google map. This section's job is the list,
 // so the form is stood in for by something that only says it opened.
 vi.mock("components/SellerDashboard/locations/LocationFormModal", () => ({
-  default: ({ location }: { location: unknown }) => (
-    <div data-testid="location-form">{location ? "editing" : "creating"}</div>
+  default: ({
+    location,
+    onClose,
+    onSaved,
+  }: {
+    location: unknown;
+    onClose: () => void;
+    onSaved: (message: string) => void;
+  }) => (
+    <div>
+      <div data-testid="location-form">{location ? "editing" : "creating"}</div>
+      <button type="button" onClick={onClose}>
+        stub-close
+      </button>
+      <button type="button" onClick={() => onSaved("Saved!")}>
+        stub-save
+      </button>
+    </div>
   ),
 }));
 
@@ -414,5 +430,93 @@ describe("Locations section — when the permission arrives after the first rend
       await screen.findByText("Damascus Warehouse"),
       "the location never reached the screen after READ_LOCATIONS arrived, so the section stayed on its skeleton",
     ).toBeInTheDocument();
+  });
+});
+
+describe("Locations section — closing and saving the form", () => {
+  it("closes the form without saving", async () => {
+    await mount();
+    await screen.findByText("Damascus Warehouse");
+    await userEvent.click(screen.getByRole("button", { name: /Add Location/ }));
+    await userEvent.click(await screen.findByRole("button", { name: "stub-close" }));
+    expect(
+      screen.queryByTestId("location-form"),
+      "closing the form should take it off the screen",
+    ).not.toBeInTheDocument();
+  });
+
+  it("confirms the save, closes the form and reloads the list", async () => {
+    await mount();
+    await screen.findByText("Damascus Warehouse");
+    await userEvent.click(screen.getByRole("button", { name: "Edit" }));
+    const callsBefore = getShopLocations.mock.calls.length;
+    await userEvent.click(await screen.findByRole("button", { name: "stub-save" }));
+
+    expect(
+      showSuccessMessage,
+      "the form's own success message should be shown to the seller",
+    ).toHaveBeenCalledWith("Saved!");
+    expect(
+      screen.queryByTestId("location-form"),
+      "a saved form should close",
+    ).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        getShopLocations.mock.calls.length,
+        "saving should ask the locations backend for the list again",
+      ).toBeGreaterThan(callsBefore),
+    );
+  });
+
+  it("opens an empty form from the empty state's add button", async () => {
+    getShopLocations.mockResolvedValue(listAnswer([]));
+    await mount();
+    await userEvent.click(
+      await screen.findByRole("button", { name: /Add your first location/ }),
+    );
+    expect(
+      (await screen.findByTestId("location-form")).textContent,
+      "the empty state's add button should open the create form",
+    ).toBe("creating");
+  });
+});
+
+describe("Locations section — page controls and double clicks", () => {
+  it("asks for the page before when the seller clicks Previous", async () => {
+    getShopLocations.mockResolvedValue(
+      listAnswer([location()], { total: 30, current_page: 2, last_page: 3 }),
+    );
+    await mount();
+    await screen.findByText("Damascus Warehouse");
+    await userEvent.click(screen.getByRole("button", { name: /Next/ }));
+    await waitFor(() =>
+      expect(getShopLocations.mock.calls.at(-1)?.[1]).toEqual({ status: null, page: 2 }),
+    );
+    await userEvent.click(screen.getByRole("button", { name: /Prev/ }));
+    await waitFor(() =>
+      expect(
+        getShopLocations.mock.calls.at(-1)?.[1],
+        "Previous should ask the locations backend for page 1",
+      ).toEqual({ status: null, page: 1 }),
+    );
+  });
+
+  it("sends no second status change while another row's change is still running", async () => {
+    let finish: (v: unknown) => void = () => {};
+    changeShopLocationStatus.mockReturnValue(new Promise((r) => (finish = r)));
+    getShopLocations.mockResolvedValue(
+      listAnswer([location(), location({ id: 2, name: "Aleppo Pickup" })]),
+    );
+    await mount();
+    await screen.findByText("Aleppo Pickup");
+    const [first, second] = screen.getAllByRole("button", { name: "Deactivate" });
+    await userEvent.click(first);
+    await userEvent.click(second);
+    expect(
+      changeShopLocationStatus.mock.calls.map((c) => c[1]),
+      "only the first location's change should be sent while it is still running",
+    ).toEqual([1]);
+    finish({ success: true, data: { status: 0 } });
+    await waitFor(() => expect(showSuccessMessage).toHaveBeenCalled());
   });
 });

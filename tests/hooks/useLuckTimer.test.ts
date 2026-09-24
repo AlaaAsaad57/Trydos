@@ -35,3 +35,24 @@ describe("useLuckTimer hook", () => {
     expect(result.current.luckActive, "luckActive should be false after expiration").toBe(false);
   });
 });
+
+describe("useLuckTimer — the countdown reaching zero", () => {
+  it("expires the product once its running countdown hits zero", async () => {
+    const { vi } = await import("vitest");
+    const { act } = await import("@testing-library/react");
+    vi.useFakeTimers();
+    try {
+      useAppStore.setState({ luckByProduct: {}, isNavigating: false } as any);
+      useAppStore.getState().startLuck(202, 2);
+      const { result } = renderHook(() => useLuckTimer(202, { isLuck: true }));
+      expect(result.current.luckActive, "the luck product did not start active").toBe(true);
+      await act(async () => {
+        vi.advanceTimersByTime(3000);
+      });
+      expect(useAppStore.getState().luckByProduct["202"]?.expired, "the countdown did not expire at zero").toBe(true);
+      expect(result.current.luckActive, "an expired luck product still shows as active").toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

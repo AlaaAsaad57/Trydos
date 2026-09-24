@@ -179,4 +179,84 @@ describe("CouponElement component", () => {
     );
     expect(LogError).toHaveBeenCalled();
   });
+  it("shows the discount already on the cart and opens itself", async () => {
+    const setActive = vi.fn();
+    await renderWithProviders(
+      <CouponElement active={false} setActive={setActive} close={vi.fn()} />,
+      { store: { coupon_discount: 15, currency: { symbol: "$", exchange_rate: 1 } } },
+    );
+    expect(setActive, "a cart with a discount should open the coupon box").toHaveBeenCalledWith(true);
+  });
+
+  it("does nothing when Apply is pressed with no code typed", async () => {
+    await renderWithProviders(
+      <CouponElement active={true} setActive={vi.fn()} close={vi.fn()} />,
+      { store: { orderData: { coupon_number: "" } } },
+    );
+    fireEvent.click(screen.getByText("Apply"));
+    expect(fetchData, "an empty code must not be sent to the core backend").not.toHaveBeenCalled();
+  });
+
+  it("does not send the code again once a discount is applied", async () => {
+    const Harness = () => {
+      const [active, setActive] = React.useState(false);
+      return <CouponElement active={active} setActive={setActive} close={vi.fn()} />;
+    };
+    await renderWithProviders(
+      <Harness />,
+      {
+        store: {
+          coupon_discount: 10,
+          orderData: { coupon_number: "SAVE10" },
+          currency: { symbol: "$", exchange_rate: 1 },
+        },
+      },
+    );
+    await waitFor(() => {
+      expect(document.querySelector(".apply-button"), "the box should open itself").not.toBeNull();
+    });
+    fireEvent.click(document.querySelector(".apply-button")!);
+    expect(fetchData, "an applied coupon must not be applied a second time").not.toHaveBeenCalled();
+  });
+
+  it("re-applies a code saved in the browser, and clears it when the core backend says it is not valid", async () => {
+    localStorage.setItem("coupon-number", "OLD5");
+    vi.mocked(fetchData).mockResolvedValueOnce({
+      success: true,
+      message: "Coupon expired",
+      data: { status: 0 },
+    });
+    const setActive = vi.fn();
+    await renderWithProviders(
+      <CouponElement active={true} setActive={setActive} close={vi.fn()} />,
+    );
+    await waitFor(() => {
+      expect(screen.getByText("Coupon expired"), "the core backend reason should be shown").toBeInTheDocument();
+    });
+    expect(fetchData, "the saved code should be sent").toHaveBeenCalledWith(
+      expect.objectContaining({ url: "/coupon/apply?code=OLD5" }),
+    );
+    expect(setActive, "a saved code should open the coupon box").toHaveBeenCalledWith(true);
+    expect(localStorage.getItem("coupon-number"), "an invalid saved code must be forgotten").toBeNull();
+  });
+
+  it("reloads the cart after a good code and starts an empty cart when the reload has none", async () => {
+    vi.mocked(fetchData).mockResolvedValueOnce({ success: true, data: { status: 1, discount: 5 } });
+    vi.mocked(getCart).mockImplementationOnce(async ({ callback }: any) => callback([undefined]));
+    const initCart = vi.fn();
+    await renderWithProviders(
+      <CouponElement active={true} setActive={vi.fn()} close={vi.fn()} />,
+      {
+        store: {
+          initCart,
+          orderData: { coupon_number: "GOOD5" },
+          currency: { symbol: "$", exchange_rate: 1 },
+        },
+      },
+    );
+    fireEvent.click(screen.getByText("Apply"));
+    await waitFor(() => {
+      expect(initCart, "an empty cart reload should start an empty cart").toHaveBeenCalledWith({ cart: [] });
+    });
+  });
 });

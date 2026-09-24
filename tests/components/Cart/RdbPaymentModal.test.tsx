@@ -10,6 +10,7 @@ import {
 } from "services/rdbPayment";
 import { fetchData } from "utils/fetchData";
 import { useAppStore } from "store";
+import { useNotificationStore } from "store/notifications/reducer";
 
 vi.mock("services/rdbPayment", () => ({
   StartRdbPayment: vi.fn(),
@@ -562,5 +563,169 @@ describe("RdbPaymentModal", () => {
     ).toBeInTheDocument();
 
     vi.useRealTimers();
+  });
+  describe("paths the other cases do not reach", () => {
+    const errorShown = (message: string) =>
+      useNotificationStore
+        .getState()
+        .notifications.some((n) => n.type === "error" && n.message === message);
+
+    it("says it could not start when the request it was asked to reopen no longer answers", async () => {
+      vi.mocked(GetRdbRequest).mockResolvedValueOnce(null);
+      await renderWithProviders(
+        <RdbPaymentModal reference="ref-gone" onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+      await waitFor(() => {
+        expect(
+          document.querySelector('[data-pw="rdb-start-error"]')?.textContent,
+          "a reference the core backend no longer knows must show the start error",
+        ).toBe("Could not start the payment. Please try again");
+      });
+      expect(StartRdbPayment, "reopening must never start a second request").not.toHaveBeenCalled();
+    });
+
+    it("shows a reopened request that was already cancelled as ended, without polling", async () => {
+      vi.mocked(GetRdbRequest).mockResolvedValueOnce({ ...pending, status: "cancelled" } as any);
+      await renderWithProviders(
+        <RdbPaymentModal reference="ref-1" onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+      expect(
+        await screen.findByText("Payment cancelled"),
+        "a cancelled request must be labelled as cancelled",
+      ).toBeInTheDocument();
+      expect(useAppStore.getState().rdbLock, "an ended request must release the cart").toBeNull();
+    });
+
+    it("still reports success for a paid request when there is no cart group to load orders from", async () => {
+      const onSuccess = vi.fn();
+      const onClose = vi.fn();
+      vi.mocked(GetRdbRequest).mockResolvedValueOnce({ ...pending, status: "paid" } as any);
+      await renderWithProviders(
+        <RdbPaymentModal reference="ref-1" onSuccess={onSuccess} onClose={onClose} />,
+        { store: { ...storeState, cart: [] } },
+      );
+      await waitFor(() => {
+        expect(onSuccess, "a paid request must report success").toHaveBeenCalled();
+      });
+      expect(fetchData, "with no cart group there is nothing to look up").not.toHaveBeenCalled();
+      expect(onClose, "a paid request must close the screen").toHaveBeenCalled();
+    });
+
+    it("tells the shopper when a cancel fails, and sends only one cancel for a double tap", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({ kind: "created", request: pending });
+      let finish: (v: any) => void = () => {};
+      vi.mocked(CancelRdbRequest).mockReturnValueOnce(
+        new Promise((resolve) => {
+          finish = resolve;
+        }) as any,
+      );
+      const onClose = vi.fn();
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={onClose} />,
+        { store: storeState },
+      );
+      const cancelButton = await waitFor(() => {
+        const el = document.querySelector('[data-pw="rdb-cancel"]');
+        if (!el) throw new Error("the cancel button is not up yet");
+        return el;
+      });
+      fireEvent.click(cancelButton);
+      fireEvent.click(cancelButton);
+      expect(CancelRdbRequest, "a double tap must send one cancel").toHaveBeenCalledTimes(1);
+
+      // A tap on the backdrop while the cancel is running must not close the screen.
+      fireEvent.click(document.querySelector(".bg-black\\/60")!);
+      expect(onClose, "the screen must stay while the cancel is running").not.toHaveBeenCalled();
+
+      await act(async () => finish({ ok: false, alreadyPaid: false, gone: false }));
+      await waitFor(() => {
+        expect(
+          errorShown("Could not cancel the payment. Please try again"),
+          "a failed cancel must tell the shopper",
+        ).toBe(true);
+      });
+    });
+
+    it("tells the shopper when the cancel says already paid but the request cannot be read back", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({ kind: "created", request: pending });
+      vi.mocked(CancelRdbRequest).mockResolvedValueOnce({ ok: false, alreadyPaid: true, gone: false });
+      vi.mocked(GetRdbRequest).mockResolvedValueOnce(null);
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+      fireEvent.click(await screen.findByText("Cancel payment"));
+      await waitFor(() => {
+        expect(
+          errorShown("Could not cancel the payment. Please try again"),
+          "an unreadable already-paid answer must fall back to the error message",
+        ).toBe(true);
+      });
+    });
+
+    it("closes when the shopper taps the backdrop", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({ kind: "created", request: pending });
+      const onClose = vi.fn();
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={onClose} />,
+        { store: storeState },
+      );
+      await screen.findByText("Cancel payment");
+      fireEvent.click(document.querySelector('[data-pw="rdb-payment-modal"]')!);
+      expect(onClose, "a tap inside the card must not close it").not.toHaveBeenCalled();
+      fireEvent.click(document.querySelector(".bg-black\\/60")!);
+      expect(onClose, "a tap on the backdrop should close the screen").toHaveBeenCalled();
+    });
+
+    it("does not start polling when the screen closed before the start answer came", async () => {
+      let started: (v: any) => void = () => {};
+      vi.mocked(StartRdbPayment).mockReturnValueOnce(
+        new Promise((resolve) => {
+          started = resolve;
+        }) as any,
+      );
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      const { unmount } = await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+      unmount();
+      await act(async () => started({ kind: "created", request: pending }));
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS * 2);
+      });
+      expect(GetRdbRequest, "a closed screen must never poll").not.toHaveBeenCalled();
+      vi.useRealTimers();
+    });
+
+    it("ignores a poll answer that lands after the screen was closed", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({ kind: "created", request: pending });
+      let answer: (v: any) => void = () => {};
+      vi.mocked(GetRdbRequest).mockReturnValueOnce(
+        new Promise((resolve) => {
+          answer = resolve;
+        }) as any,
+      );
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      const { unmount } = await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+      await screen.findByText("Waiting for your payment");
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+      });
+      expect(GetRdbRequest, "the poll must have been sent").toHaveBeenCalledWith("ref-1");
+      const lockBefore = useAppStore.getState().rdbLock;
+      unmount();
+      await act(async () => answer({ ...pending, status: "paid" }));
+      expect(
+        useAppStore.getState().rdbLock,
+        "a late poll answer must not change the lock after the screen closed",
+      ).toEqual(lockBefore);
+      vi.useRealTimers();
+    });
   });
 });

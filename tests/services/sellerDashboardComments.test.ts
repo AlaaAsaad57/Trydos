@@ -61,4 +61,43 @@ describe("SellerCommentsService", () => {
       commentId: "cmt-1",
     });
   });
+
+  it("EditReplyForFqaComment delegates to editReply", async () => {
+    vi.mocked(sellerCommentsElastic.editReply).mockResolvedValueOnce({ success: true } as any);
+
+    await sellerCommentsService.EditReplyForFqaComment("seller-123", "cmt-1", "Updated");
+
+    expect(sellerCommentsElastic.editReply, "should pass sellerId, commentId, and the new reply text").toHaveBeenCalledWith({
+      sellerId: "seller-123",
+      commentId: "cmt-1",
+      replyText: "Updated",
+    });
+  });
+
+  it("GetProductsSocial delegates to getSellerProductsSocial", async () => {
+    vi.mocked(sellerCommentsElastic.getSellerProductsSocial).mockResolvedValueOnce({ data: {} } as any);
+
+    await sellerCommentsService.GetProductsSocial("seller-123", [1, "2"]);
+
+    expect(sellerCommentsElastic.getSellerProductsSocial, "should pass sellerId and the product ids").toHaveBeenCalledWith({
+      sellerId: "seller-123",
+      productIds: [1, "2"],
+    });
+  });
+
+  it("GetFQAComments and GetReviewComments start at page 1 by default", async () => {
+    await sellerCommentsService.GetFQAComments("seller-123");
+    await sellerCommentsService.GetReviewComments("seller-123");
+
+    expect(sellerCommentsElastic.getSellerComments, "questions should default to page 1").toHaveBeenCalledWith({
+      sellerId: "seller-123",
+      isReview: false,
+      page: 1,
+    });
+    expect(sellerCommentsElastic.getSellerComments, "reviews should default to page 1").toHaveBeenCalledWith({
+      sellerId: "seller-123",
+      isReview: true,
+      page: 1,
+    });
+  });
 });

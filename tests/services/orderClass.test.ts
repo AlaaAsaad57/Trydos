@@ -1039,5 +1039,219 @@ describe("OrderService (services/order.ts)", () => {
       expect(res).toEqual({ group_id: "grp-10", status: "pending" });
     });
   });
+  describe("when a call is refused or fails", () => {
+    const refused = { success: false, message: "refused by the core backend" };
+    const loggedScenario = (scenario: string) =>
+      expect(
+        LogServerError,
+        `the failure should be logged under "${scenario}"`,
+      ).toHaveBeenCalledWith(expect.objectContaining({ scenario }));
+
+    it("uploadToMediaServer throws a clear error when the media server answer is not JSON", async () => {
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
+        ok: true,
+        json: async () => {
+          throw new SyntaxError("not json");
+        },
+      } as any);
+
+      await expect(
+        orderService.uploadToMediaServer(new File(["x"], "a.png"), "folder"),
+        "an unreadable media server answer must count as a failed upload",
+      ).rejects.toThrow("Media server upload failed");
+      fetchSpy.mockRestore();
+    });
+
+    it("uploadToMediaServer refuses to upload when no media server address is set", async () => {
+      vi.stubEnv("NEXT_PUBLIC_MEDIA_SERVER_BASE_URL", "");
+      vi.resetModules();
+      const fresh = (await import("services/order")).default;
+
+      await expect(
+        fresh.uploadToMediaServer(new File(["x"], "a.png"), "folder"),
+        "without a media server address the upload must stop before any request",
+      ).rejects.toThrow("Media server upload is not configured");
+      vi.unstubAllEnvs();
+    });
+
+    it("GetWalletBalanceToShow asks for phone re-verification on a wallet 401 when the flag is on", async () => {
+      vi.resetModules();
+      vi.doMock("services/wallet/reauthFlag", () => ({ WALLET_REAUTH_ON_401: true }));
+      const fresh = (await import("services/order")).default;
+      const freshStore = (await import("store")).useAppStore;
+      const setShouldAuthinticated = vi.fn();
+      freshStore.setState({ setShouldAuthinticated } as any);
+      const wallet = await import("services/wallet");
+      vi.mocked(wallet.GetWalletBalanceForCountryCurrency).mockResolvedValueOnce({
+        status: 401,
+      } as any);
+
+      const result: any = await fresh.GetWalletBalanceToShow({ country: "sy" });
+
+      expect(
+        setShouldAuthinticated,
+        "a wallet 401 should open the phone re-verification prompt",
+      ).toHaveBeenCalledWith(true);
+      expect(result.status, "the wallet answer should be passed on").toBe(401);
+      vi.doUnmock("services/wallet/reauthFlag");
+    });
+
+    it("UpdateAddressList logs a refused update", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce(refused);
+      const callback = vi.fn();
+      await orderService.UpdateAddressList({ address: { id: 1 }, callback });
+      loggedScenario("Error In UpdateAddressList in services/order");
+      expect(useAppStore.getState().orderLoading, "loading must stop after a refusal").toBe(false);
+    });
+
+    it("DeleteAddressList logs a refused delete", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce(refused);
+      await orderService.DeleteAddressList({ address: 7 });
+      loggedScenario("Error In DeleteAddressList in services/order");
+      expect(useAppStore.getState().orderLoading, "loading must stop after a refusal").toBe(false);
+    });
+
+    it("GetProvinces logs a refused provinces lookup", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce(refused);
+      await orderService.GetProvinces();
+      loggedScenario("Error In GetProvinces in services/order");
+      expect(useAppStore.getState().orderLoading, "loading must stop after a refusal").toBe(false);
+    });
+
+    it.each([
+      ["CancelOrder", () => orderService.CancelOrder({ order_id: 1 })],
+      ["HideOrder", () => orderService.HideOrder({ order_id: 1 })],
+      ["HideOrderDetail", () => orderService.HideOrderDetail({ detail_id: 1 })],
+      [
+        "ReportOrderItem",
+        () =>
+          orderService.ReportOrderItem({
+            order_id: 1,
+            order_detail_id: 2,
+            product_id: 3,
+            order_group_id: "g",
+            points: [],
+            note: "",
+          }),
+      ],
+      ["CancelOrderItem", () => orderService.CancelOrderItem({ order_id: 1, qty: 1, item_id: 2 })],
+      ["changeOrderAddress", () => orderService.changeOrderAddress({ order_id: 1, address_id: 2 })],
+    ] as const)("%s passes the core backend refusal on to the caller", async (name, call) => {
+      vi.mocked(fetchData).mockResolvedValueOnce(refused);
+      await expect(call(), `${name} must reject when the core backend refuses`).rejects.toThrow(
+        "refused by the core backend",
+      );
+      loggedScenario(`Error In ${name} in services/order`);
+    });
+
+    it.each([
+      [
+        "changeOrderItemVariant",
+        () =>
+          orderService.changeOrderItemVariant({
+            color: "red",
+            choice_1: undefined,
+            order_detail_id: 1,
+            image: "",
+          }),
+      ],
+      ["getReturnReasons", () => orderService.getReturnReasons()],
+      [
+        "UpdateReturnedProduct",
+        () => orderService.UpdateReturnedProduct({ reason_id: null, quantity: 1, images: [], id: 1 }),
+      ],
+      ["CancelReturn", () => orderService.CancelReturn({ return_request_product_id: 1 })],
+    ] as const)("%s gives back nothing when the core backend refuses", async (name, call) => {
+      vi.mocked(fetchData).mockResolvedValueOnce(refused);
+      expect(await call(), `${name} must not return data after a refusal`).toBeUndefined();
+      loggedScenario(`Error In ${name} in services/order`);
+    });
+
+    it("RateOrderWithhComment rejects with the comments backend message", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce({ success: false, message: "rating refused" });
+      await expect(
+        orderService.RateOrderWithhComment({
+          star_rating: 5,
+          comment: "ok",
+          order_detail_id: 1,
+          productId: 2,
+          id: 9,
+          variant: "",
+          owner_id: 3,
+          owner_type: "shop",
+        }),
+        "a refused rating must reject with the comments backend message",
+      ).rejects.toThrow("rating refused");
+      loggedScenario("Error In RateOrderWithhComment in services/order");
+    });
+
+    it("CreateReturnRequest gives back nothing when the request fails", async () => {
+      vi.mocked(fetchData).mockRejectedValueOnce(new Error("network"));
+      expect(
+        await orderService.CreateReturnRequest({ order_id: 1 }),
+        "a failed return request must give no id",
+      ).toBeUndefined();
+      loggedScenario("Error In CreateReturnRequest in services/order");
+    });
+
+    it.each([
+      ["UploadImageForOrderReturn", (image: File) => orderService.UploadImageForOrderReturn({ image })],
+      ["UploadImageForRating", (image: File) => orderService.UploadImageForRating({ image })],
+    ] as const)("%s gives null when the media server returns an address with no file name", async (name, call) => {
+      const spy = vi.spyOn(orderService, "uploadToMediaServer").mockResolvedValueOnce("");
+      expect(
+        await call(new File(["x"], "a.png")),
+        `${name} must not report an empty path as success`,
+      ).toBeNull();
+      loggedScenario(`Error In ${name} in services/order`);
+      spy.mockRestore();
+    });
+
+    it("ReturnProduct rejects when the core backend refuses, using the given return request", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce(refused);
+      await expect(
+        orderService.ReturnProduct({
+          product_id: 1,
+          order_detail_id: 2,
+          reason_id: { id: 3 },
+          quantity: 1,
+          images: [],
+          order_id: 4,
+          return_request_id: 55,
+        }),
+        "a refused product return must reject",
+      ).rejects.toThrow("refused by the core backend");
+      expect(
+        fetchData,
+        "no new return request should be made when one is given",
+      ).not.toHaveBeenCalledWith(
+        expect.objectContaining({ url: expect.stringContaining("return_requests/store") }),
+      );
+      loggedScenario("Error In ReturnProduct in services/order");
+    });
+
+    it("getReturnRequestDetails uses the given return request id and rejects a refusal", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce(refused);
+      await expect(
+        orderService.getReturnRequestDetails({ return_request_id: 77 }),
+        "a refused details request must reject",
+      ).rejects.toThrow();
+      expect(fetchData, "the details request should use the given id").toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: "/customer/order/return_requests/order_details?return_request_id=77",
+        }),
+      );
+      loggedScenario("Error In getReturnRequestDetails in services/order");
+    });
+
+    it.each([
+      ["ConfirmReturnRequest", () => orderService.ConfirmReturnRequest({ return_request_id: [1] })],
+      ["CancelReturnRequest", () => orderService.CancelReturnRequest({ return_request_id: [1] })],
+    ] as const)("%s rejects when the core backend refuses", async (name, call) => {
+      vi.mocked(fetchData).mockResolvedValueOnce(refused);
+      await expect(call(), `${name} must reject after a refusal`).rejects.toThrow();
+      loggedScenario(`Error In ${name} in services/order`);
+    });
+  });
 });
 

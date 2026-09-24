@@ -22,7 +22,7 @@ function OrderSuccess() {
   useEffect(() => {
     if (orderData.success) {
       setTimeout(() => {
-        document.querySelector(".order-sucess").scrollIntoView();
+        document.querySelector(".order-sucess")?.scrollIntoView();
       }, 200);
       GAevent({
         action: GA_EVENT_NAMES.SCREEN_VIEW,

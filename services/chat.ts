@@ -261,9 +261,9 @@ class ChatService {
     }
   }
   async getCalls(id?: number) {
-    const { setCallLoading, setCalls } = useAppStore.getState();
+    const { setCallLoadingState, setCalls } = useAppStore.getState();
     try {
-      setCallLoading(true);
+      setCallLoadingState(true);
       let response = await fetchData({
         url: "/api/v1/channels/my_calls",
         body: JSON.stringify({ limit: "20", last_message_id: id }),
@@ -275,13 +275,13 @@ class ChatService {
         throw new Error(response.message);
       }
       setCalls(response.data);
-      setCallLoading(false);
+      setCallLoadingState(false);
     } catch (err) {
       LogServerError({
         error: err,
         scenario: "Error In getCalls in services/chat",
       });
-      setCallLoading(false);
+      setCallLoadingState(false);
     }
   }
 }

@@ -149,3 +149,15 @@ describe("Wishlist Service", () => {
     });
   });
 });
+
+describe("wishlistService.removeFromWishlist — a refusal", () => {
+  it("throws the market backend's message, or its own when there is none", async () => {
+    vi.mocked(fetchData)
+      .mockResolvedValueOnce({ success: false, message: "not in list" } as any)
+      .mockResolvedValueOnce({ success: false } as any);
+    await expect(wishlistService.removeFromWishlist("1"), "a refused removal did not throw").rejects.toThrow("not in list");
+    await expect(wishlistService.removeFromWishlist("1"), "a bare refusal had no message").rejects.toThrow(
+      "Failed to remove product from wishlist",
+    );
+  });
+});

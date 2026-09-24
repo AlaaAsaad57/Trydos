@@ -14,7 +14,10 @@ vi.mock("services/rdbPayment", () => ({
 
 vi.mock("components/Cart/RdbPaymentModal", () => ({
   default: (props: any) => (
-    <div data-pw="rdb-payment-modal" data-reference={props.reference ?? ""} />
+    <div data-pw="rdb-payment-modal" data-reference={props.reference ?? ""}>
+      <button onClick={props.onSuccess}>modal-success</button>
+      <button onClick={props.onClose}>modal-close</button>
+    </div>
   ),
 }));
 
@@ -250,5 +253,56 @@ describe("RdbPaymentLockedSheet", () => {
       useAppStore.getState().rdbLock,
       "dismissing the sheet must not cancel the still-pending payment",
     ).not.toBeNull();
+  });
+  it.each(["modal-success", "modal-close"])(
+    "goes back to the locked sheet when the payment screen reports %s",
+    async (button) => {
+      vi.mocked(GetRdbRequest).mockResolvedValue(null as any);
+      await renderWithProviders(<RdbPaymentLockedSheet />, {
+        store: { rdbLock: { reference: "ref-1", expires_at: null } },
+      });
+      fireEvent.click(screen.getByText("Continue payment"));
+      fireEvent.click(await screen.findByText(button));
+      expect(
+        await screen.findByText("You have a payment in progress"),
+        "closing the payment screen should show the locked sheet again",
+      ).toBeInTheDocument();
+    },
+  );
+
+  it("hides itself when the shopper taps the dark backdrop, but not when tapping the sheet", async () => {
+    vi.mocked(GetRdbRequest).mockResolvedValue(null as any);
+    await renderWithProviders(<RdbPaymentLockedSheet />, {
+      store: { rdbLock: { reference: "ref-1", expires_at: null } },
+    });
+    fireEvent.click(screen.getByText("You have a payment in progress"));
+    expect(
+      screen.queryByText("You have a payment in progress"),
+      "a tap inside the sheet must not close it",
+    ).not.toBeNull();
+    fireEvent.click(document.querySelector('[data-pw="rdb-cart-locked"]')!);
+    expect(
+      screen.queryByText("You have a payment in progress"),
+      "a tap on the backdrop should hide the sheet",
+    ).toBeNull();
+    expect(useAppStore.getState().rdbLock, "hiding must keep the lock").not.toBeNull();
+  });
+
+  it("sends only one cancel while the first one is still running", async () => {
+    vi.mocked(GetRdbRequest).mockResolvedValue(null as any);
+    let finish: (v: any) => void = () => {};
+    vi.mocked(CancelRdbRequest).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finish = resolve;
+      }) as any,
+    );
+    await renderWithProviders(<RdbPaymentLockedSheet />, {
+      store: { rdbLock: { reference: "ref-1", expires_at: null } },
+    });
+    const cancelButton = document.querySelector('[data-pw="rdb-lock-cancel"]')!;
+    fireEvent.click(cancelButton);
+    fireEvent.click(cancelButton);
+    expect(CancelRdbRequest, "a second tap must not send a second cancel").toHaveBeenCalledTimes(1);
+    await act(async () => finish({ ok: true }));
   });
 });

@@ -22,3 +22,20 @@ describe("popupHistory utility", () => {
     expect(isBackClosing(), "isBackClosing should be true after markBackClosing").toBe(true);
   });
 });
+
+describe("popupHistory safety resets", () => {
+  it("drops an unused self-consume mark after 100 ms and the back-closing flag after 50 ms", async () => {
+    const { vi } = await import("vitest");
+    vi.useFakeTimers();
+    try {
+      beginSelfConsume();
+      markBackClosing();
+      vi.advanceTimersByTime(50);
+      expect(isBackClosing(), "the back-closing flag outlived its 50 ms").toBe(false);
+      vi.advanceTimersByTime(50);
+      expect(takeSelfConsume(), "an unused self-consume mark outlived its 100 ms").toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

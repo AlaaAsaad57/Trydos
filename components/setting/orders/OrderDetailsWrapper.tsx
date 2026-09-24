@@ -403,8 +403,7 @@ function OrderDetailsWrapper({
     const isOutForReturn =
       returns?.return_requests_data?.find(
         (return_item) =>
-          String(return_item.order_id) === String(order_id) ||
-          String(order_item?.return_request_id) === String(chatId),
+          String(return_item.order_id) === String(order_item?.id),
       )?.status?.value === "out_for_return";
     if (isOutForDelivery || isOutForReturn) {
       safeGetChatWithShipping({
@@ -1380,16 +1379,7 @@ const ProductCard = ({
                 getProductWithReturn(product)?.return_request_product_id
               }
             />
-          ) : (
-            <div
-              className="underline text-[14px] text-[#5d5d5d] medium w-full text-center flex items-center justify-center p-2 cursor-pointer"
-              onClick={() => {
-                getOrderDetails();
-              }}
-            >
-              {translateFunction("Failed To Load Return Details Try again")}
-            </div>
-          ))}
+          ) : null)}
       </div>
     </>
   );

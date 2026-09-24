@@ -46,3 +46,22 @@ describe("buildSearchRedirectTarget utility", () => {
     );
   });
 });
+
+describe("a search value that will not decode", () => {
+  it("is moved to ?search= as it was written", () => {
+    const target = buildSearchRedirectTarget("sy-en", "filters", ["search", "a%E0%A4%A"], {});
+    expect(new URL(`https://x${target}`).searchParams.get("search"), "the raw search value was lost").toBe("a%E0%A4%A");
+  });
+});
+
+describe("an existing query parameter given as a list", () => {
+  it("keeps its first value", () => {
+    const target = buildSearchRedirectTarget("sy-en", "filters", ["search", "shoes"], { sort: ["price", "name"], empty: [] });
+    const params = new URL(`https://x${target}`).searchParams;
+    expect([params.get("sort"), params.has("empty"), params.get("search")], "the query parameters were not carried over").toEqual([
+      "price",
+      false,
+      "shoes",
+    ]);
+  });
+});

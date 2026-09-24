@@ -96,6 +96,10 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
       onClose();
     };
 
+    // A notice with no type goes nowhere. Without this, `undefined` matches the
+    // "product hurry up" case below, and the notice opens the cart.
+    if (!parsedDescription?.type) return content;
+
     switch (parsedDescription.type) {
       case "boutique created": {
         const href = `/${lang}/filters/boutiques/${parsedDescription.boutique_slug}`;

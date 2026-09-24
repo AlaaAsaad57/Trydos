@@ -235,20 +235,6 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
           <div
             data-pw="Place-Order-Buttons"
             onClick={() => {
-              if (orderData.success) {
-                setOrderData({
-                  payment: [],
-                  coupon: false,
-                  agree: false,
-                  coupon_number: "",
-                  loading: false,
-                  success: false,
-                  data: [],
-                });
-
-                close();
-                return;
-              }
               Validate();
               if (isValid() && !(orderData.loading || loading)) {
                 VerifyCart();

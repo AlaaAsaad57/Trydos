@@ -11,8 +11,8 @@
 //
 // `duration_in_seconds` is 0 for every call that never connected, whichever
 // side started it — so duration alone can never tell direction.
-import { describe, expect, it } from "vitest";
-import { screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { fireEvent, screen } from "@testing-library/react";
 import React from "react";
 
 import CallItem from "components/Chat/components/CallItem";
@@ -183,5 +183,24 @@ describe("CallItem — the call log row", () => {
       row?.className,
       "the row class was built from an object, so it reads [object Object] and matches no stylesheet rule",
     ).not.toContain("[object Object]");
+  });
+});
+
+describe("CallItem — deleting a row", () => {
+  it("deletes the call from the log when its bin is pressed", async () => {
+    const Delete = vi.fn();
+    await renderWithProviders(
+      <CallItem
+        photo="customers/profile/test.jpg"
+        name="Alaa Test123"
+        date="15/09"
+        duration={65}
+        Delete={Delete}
+        type={{ type: "VoiceCall", sender: THEM, duration: 65 }}
+      />,
+      { store: { userChat: { id: ME } } },
+    );
+    fireEvent.click(document.querySelector(".options-icon")!);
+    expect(Delete, "the bin did not delete the call").toHaveBeenCalled();
   });
 });

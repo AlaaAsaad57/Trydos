@@ -197,8 +197,6 @@ function ExtraInfoArea({
   } else {
     return <CartContentOfProduct product={product} />;
   }
-
-  return <></>;
 }
 
 export default ExtraInfoArea;

@@ -95,7 +95,7 @@ export function LikeButton({
   };
   useEffect(() => {
     setIsLiked(is_liked);
-    setLikes(total_likes);
+    setLikes(total_likes || 0);
   }, [is_liked, total_likes]);
   return (
     <div

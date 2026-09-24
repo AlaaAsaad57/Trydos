@@ -362,3 +362,75 @@ describe("concurrent expiry (AC-22)", () => {
     expect(net.callCount).toBe(0);
   });
 });
+
+describe("small session helpers", () => {
+  it("cancelAuth registers a guest first when nobody is signed in, then cancels", async () => {
+    const { auth, store, home } = await load({ userProfile: null });
+    const cancelAuth = vi.fn();
+    store.useAppStore.setState({ cancelAuth } as any);
+    await auth.cancelAuth(true);
+    expect(home.registerForExpire, "no guest was registered for a signed-out cancel").toHaveBeenCalled();
+    expect(cancelAuth, "the cancel was not passed on").toHaveBeenCalledWith(true);
+  });
+
+  it("cancelAuth does not register a guest when a profile exists", async () => {
+    const { auth, store, home } = await load({ userProfile: { id: 7 } });
+    store.useAppStore.setState({ cancelAuth: vi.fn() } as any);
+    await auth.cancelAuth();
+    expect(home.registerForExpire, "a guest was registered over a signed-in profile").not.toHaveBeenCalled();
+  });
+
+  it("NotifyForProducts subscribes to the product, with the variant only when it is real", async () => {
+    const { auth, home } = await load();
+    (home.subscribeToTopicInventory as any).mockResolvedValue({ success: true });
+    expect(await auth.NotifyForProducts({ id: 5, variant: null }), "the answer was not returned").toEqual({
+      success: true,
+    });
+    await auth.NotifyForProducts({ id: 5, variant: "N/A-red" });
+    await auth.NotifyForProducts({ id: 5, variant: "red-M" });
+    expect((home.subscribeToTopicInventory as any).mock.calls.map((c: any[]) => c[0]), "the topics are wrong").toEqual([
+      { topic: "product_availability_5" },
+      { topic: "product_availability_5" },
+      { topic: "product_availability_5", variant: "red-M" },
+    ]);
+  });
+
+  it("getUser, User and UserID read the profile first, then the user", async () => {
+    const { auth, store } = await load({ userProfile: null, user: { id: 3 } });
+    expect(auth.getUser(), "getUser invented a profile").toBeNull();
+    expect(auth.User(), "User did not fall back to the user").toEqual({ id: 3 });
+    expect(auth.UserID(), "UserID did not fall back to the user").toBe(3);
+    store.useAppStore.setState({ userProfile: { id: 9 } } as any);
+    expect(auth.User(), "User did not prefer the profile").toEqual({ id: 9 });
+  });
+
+  it("validateFCMToken does nothing without a stored token record", async () => {
+    const { auth } = await load();
+    const fetchDataModule = await import("utils/fetchData");
+    expect(await auth.validateFCMToken(), "a check ran with no token record").toBeUndefined();
+    expect(fetchDataModule.fetchData, "the market backend was asked with no token record").not.toHaveBeenCalled();
+  });
+
+  it("validateFCMToken asks the market backend about the stored record", async () => {
+    const { auth } = await load();
+    const fetchDataModule = await import("utils/fetchData");
+    (fetchDataModule.fetchData as any).mockResolvedValue({ success: true, data: { valid: true } });
+    localStorage.setItem("FBID", "55");
+    expect(await auth.validateFCMToken(), "the answer was not returned").toEqual({ success: true, data: { valid: true } });
+    const request = (fetchDataModule.fetchData as any).mock.calls[0][0];
+    expect(request.url, "the wrong address was asked").toBe("/firebase_device_tokens/validate_token");
+    expect(JSON.parse(request.body), "the record id was not sent as a number").toEqual({ firebase_token_id: 55 });
+  });
+
+  it("validateFCMToken reports a failed check", async () => {
+    const { auth } = await load();
+    const fetchDataModule = await import("utils/fetchData");
+    const functions = await import("utils/functions");
+    (fetchDataModule.fetchData as any).mockRejectedValue(new Error("offline"));
+    localStorage.setItem("FBID", "55");
+    expect(await auth.validateFCMToken(), "a failed check returned something").toBeUndefined();
+    expect((functions.LogError as any).mock.calls[0]?.[0]?.scenario, "the failed check was not reported").toBe(
+      "Error in ValidateFcmToken in services/auth",
+    );
+  });
+});

@@ -19,7 +19,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import React from "react";
 
-import { renderWithProviders, screen, userEvent } from "../../render";
+import { act, renderWithProviders, screen, userEvent, waitFor } from "../../render";
 
 /**
  * The top layer a browser will honour.
@@ -59,6 +59,26 @@ vi.mock("components/Chat/components/MediaContainer", () => ({
   default: () => null,
 }));
 
+// The block / unblock requests, the copy toasts and Sentry, for the info-panel
+// cases at the end of this file.
+const info = vi.hoisted(() => ({
+  fetchData: vi.fn(),
+  showSuccess: vi.fn(),
+  showError: vi.fn(),
+  logError: vi.fn(),
+}));
+vi.mock("utils/fetchData", () => ({ fetchData: (...a: any[]) => info.fetchData(...a) }));
+vi.mock("@/store/notifications/reducer", async (importOriginal) => ({
+  ...(await importOriginal<any>()),
+  showSuccessNotification: (...a: any[]) => info.showSuccess(...a),
+  showErrorNotification: (...a: any[]) => info.showError(...a),
+}));
+vi.mock("utils/functions", async (importOriginal) => ({
+  ...(await importOriginal<any>()),
+  LogError: (...a: any[]) => info.logError(...a),
+}));
+
+import * as chatActions from "store/chat/actions";
 import ChatInfo from "components/Chat/components/ChatInfo";
 import ChatOptions from "components/Chat/components/ChatOptions";
 
@@ -393,5 +413,225 @@ describe("ChatInfo — Delete Chat in the conversation info panel", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The rest of the two components this file already covers: ChatOptions' other
+// tiles, and everything in the ChatInfo panel besides Delete.
+// ---------------------------------------------------------------------------
+
+describe("ChatOptions — the other swipe tiles", () => {
+  async function renderTiles(props: Record<string, any> = {}) {
+    const closeRow = vi.fn();
+    const spies = { setUnreadChat: vi.fn(), pinChat: vi.fn(), muteChat: vi.fn() };
+    const rendered = await renderWithProviders(
+      <ChatOptions
+        id={DOOMED_CHAT}
+        unread={false}
+        pinned={false}
+        muted={false}
+        member_id={5}
+        closeRow={closeRow}
+        {...props}
+      />,
+      { store: { data: chatList(), ...spies } },
+    );
+    const tile = (n: number) => rendered.container.querySelector(`.chat-option.chat-${n}`) as HTMLElement;
+    return { ...rendered, closeRow, spies, tile };
+  }
+
+  it("marks the chat unread, pins it and mutes it on the chat backend", async () => {
+    const { tile, spies, closeRow } = await renderTiles();
+    await userEvent.click(tile(1));
+    expect(spies.setUnreadChat, "the chat was not marked unread").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true });
+    await userEvent.click(tile(2));
+    expect(chatActions.PinnChat, "the pin was not sent to the chat backend").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true, member_id: 5 });
+    expect(spies.pinChat, "the pin was not stored").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true, member_id: 5 });
+    await userEvent.click(tile(3));
+    expect(chatActions.MuteChat, "the mute was not sent to the chat backend").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true, member_id: 5 });
+    expect(spies.muteChat, "the mute was not stored").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true, member_id: 5 });
+    await userEvent.click(tile(5));
+    expect(closeRow, "each tile did not close the row").toHaveBeenCalledTimes(4);
+  });
+
+  it("offers Read, Unpin and Unmute on a chat in those states", async () => {
+    await renderTiles({ unread: true, pinned: true, muted: true });
+    expect(screen.getByText("Read"), "an unread chat did not offer Read").toBeInTheDocument();
+    expect(screen.getByText("Unpin"), "a pinned chat did not offer Unpin").toBeInTheDocument();
+    expect(screen.getByText("Unmute"), "a muted chat did not offer Unmute").toBeInTheDocument();
+  });
+
+  it("works without a row to close", async () => {
+    const rendered = await renderWithProviders(
+      <ChatOptions id={1} unread={false} pinned={false} muted={false} member_id={5} closeRow={undefined as any} />,
+      { store: { setUnreadChat: vi.fn(), pinChat: vi.fn(), muteChat: vi.fn() } },
+    );
+    await userEvent.click(rendered.container.querySelector(".chat-option.chat-5") as HTMLElement);
+    await userEvent.click(rendered.container.querySelector(".chat-option.chat-1") as HTMLElement);
+    expect(rendered.container.querySelector(".chat-options-container"), "the tiles broke with no row to close").not.toBeNull();
+  });
+});
+
+describe("ChatInfo — the rest of the info panel", () => {
+  const ME = 1;
+  const other = (user: Record<string, any> = {}, extra: Record<string, any> = {}) => ({
+    user_id: 2,
+    user: { id: 2, name: "Other Person", username: "other", mobile_phone: "p-0", ...user },
+    ...extra,
+  });
+
+  async function renderPanel(chat: Record<string, any> = {}, props: Record<string, any> = {}) {
+    const handlers = {
+      cancel: vi.fn(),
+      makeAudioCall: vi.fn(),
+      makeVideoCall: vi.fn(),
+      enableSearch: vi.fn(),
+    };
+    const updateChannelBlockStatus = vi.fn();
+    const rendered = await renderWithProviders(
+      <ChatInfo
+        activeChat={{ id: DOOMED_CHAT, channel_members: [{ user_id: ME }, other()], ...chat }}
+        callLoading={false}
+        {...handlers}
+        {...props}
+      />,
+      { store: { data: chatList(), userChat: { id: ME }, updateChannelBlockStatus } },
+    );
+    return { ...rendered, ...handlers, updateChannelBlockStatus };
+  }
+
+  beforeEach(() => {
+    info.fetchData.mockReset();
+    info.fetchData.mockResolvedValue({ success: true });
+    info.showSuccess.mockClear();
+    info.showError.mockClear();
+    info.logError.mockClear();
+  });
+
+  it("shows the other person's name, phone and initials, and copies the phone", async () => {
+    const writeText = vi.fn(async () => {});
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    await renderPanel();
+    expect(document.querySelector(".chat-info-user-name")?.textContent, "the name was not shown").toBe("Other Person");
+    expect(document.querySelector(".text-avatar")?.textContent, "the initials were not shown").toBe("OP");
+    await userEvent.click(screen.getByText("p-0"));
+    expect(writeText, "the phone was not copied").toHaveBeenCalledWith("p-0");
+    expect(info.showSuccess, "the copy was not confirmed").toHaveBeenCalledWith("The number was copied successfully");
+  });
+
+  it("says when the phone could not be copied", async () => {
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText: vi.fn(async () => { throw new Error("denied"); }) },
+      configurable: true,
+    });
+    await renderPanel();
+    await userEvent.click(screen.getByText("p-0"));
+    expect(info.showError, "a failed copy was not shown").toHaveBeenCalledWith("Number copy failed");
+  });
+
+  it("falls back to the username, and shows a photo when there is one", async () => {
+    await renderPanel({ channel_members: [{ user_id: ME }, other({ name: "", username: "other-user" })] });
+    expect(document.querySelector(".chat-info-user-name")?.textContent, "the username was not used").toBe("other-user");
+    await renderPanel({ channel_members: [{ user_id: ME }, other({ photo_path: "/p.png" })] });
+    expect(document.querySelectorAll(".text-avatar").length, "a member with a photo still got initials").toBe(1);
+  });
+
+  it("calls, video-calls and searches from the panel", async () => {
+    const p = await renderPanel({}, { callLoading: "voice" });
+    await userEvent.click(screen.getByText("Call"));
+    await userEvent.click(screen.getByText("Video"));
+    await userEvent.click(screen.getByText("Search"));
+    expect(p.makeAudioCall, "the call did not start").toHaveBeenCalled();
+    expect(p.makeVideoCall, "the video call did not start").toHaveBeenCalled();
+    expect(p.enableSearch, "the search did not open").toHaveBeenCalled();
+    expect(p.cancel, "the panel did not close after starting a call").toHaveBeenCalledTimes(2);
+    expect(screen.getByText("Call").previousElementSibling!.className, "the calling button was not dimmed").toContain("opacity-40");
+  });
+
+  it("shows the media counts and a spinner until they arrive", async () => {
+    await renderPanel({
+      message_counts: {
+        image_messages_count: 3,
+        video_messages_count: 4,
+        file_messages_count: 5,
+        image_messages: [{ message_files: [{ file_path: "https://example.com/i.png" }] }],
+      },
+    });
+    const counts = Array.from(document.querySelectorAll(".chat-user-files-info-content-item")).map((el) => el.textContent?.trim());
+    expect(counts, "the media counts were not shown").toEqual(["3", "4", "5"]);
+    expect(screen.getByAltText("Image"), "the image strip was not shown").toBeInTheDocument();
+    await userEvent.click(screen.getByText("Media & Files"));
+    expect(document.querySelector(".chat-user-files-container"), "the media view did not replace the panel").toBeNull();
+  });
+
+  it("slides out and closes on the back arrow", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const p = await renderPanel();
+      const panel = document.querySelector(".chat-user-info-container") as HTMLElement;
+      await act(async () => {
+        vi.advanceTimersByTime(300);
+      });
+      expect(panel.style.right, "the panel did not slide in").toBe("0px");
+      (document.querySelector(".arrow-icon") as HTMLElement).click();
+      expect(panel.style.right, "the panel did not slide out").toBe("-430px");
+      await act(async () => {
+        vi.advanceTimersByTime(300);
+      });
+      expect(p.cancel, "the panel did not close after sliding out").toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("blocks and unblocks the other person on the chat backend", async () => {
+    const p = await renderPanel();
+    await userEvent.click(screen.getByText("Block"));
+    expect(info.fetchData.mock.calls[0]?.[0]?.url, "the block did not go to the chat backend").toBe("/api/v1/users/block/2");
+    expect(p.updateChannelBlockStatus, "the block was not stored").toHaveBeenCalledWith({ channelId: DOOMED_CHAT, userId: 2, isBlocked: true });
+    await userEvent.click(await screen.findByText("UnBlock"));
+    expect(info.fetchData.mock.calls[1]?.[0]?.url, "the unblock did not go to the chat backend").toBe("/api/v1/users/unblock/2");
+    expect(await screen.findByText("Block"), "the button did not go back to Block").toBeInTheDocument();
+  });
+
+  it("starts as UnBlock for a blocked member and ignores a tap while busy", async () => {
+    let finish: any;
+    info.fetchData.mockImplementation(() => new Promise((r) => (finish = r)));
+    await renderPanel({ channel_members: [{ user_id: ME }, other({}, { is_blocked: 1 })] });
+    await userEvent.click(screen.getByText("UnBlock"));
+    const busy = document.querySelectorAll(".chat-user-option")[1] as HTMLElement;
+    await userEvent.click(busy);
+    expect(info.fetchData, "a second tap sent a second request").toHaveBeenCalledTimes(1);
+    await act(async () => finish({ success: true }));
+  });
+
+  it("logs a refused block or unblock and keeps the state", async () => {
+    info.fetchData.mockResolvedValue({ success: false });
+    await renderPanel();
+    await userEvent.click(screen.getByText("Block"));
+    expect(await screen.findByText("Block"), "a refused block changed the button").toBeInTheDocument();
+    expect(info.logError.mock.calls[0]?.[0]?.error?.message, "the refused block was not logged").toBe("Block request failed");
+    await renderPanel({ channel_members: [{ user_id: ME }, other({}, { is_blocked: 1 })] });
+    await userEvent.click(screen.getAllByText("UnBlock")[0]);
+    await waitFor(() =>
+      expect(info.logError.mock.calls[1]?.[0]?.error?.message, "the refused unblock was not logged").toBe("Unblock request failed"),
+    );
+  });
+
+  it("does nothing without another member to block", async () => {
+    await renderPanel({ channel_members: [{ user_id: ME }, { user_id: 2, user: { name: "No Id" } }] });
+    await userEvent.click(screen.getByText("Block"));
+    expect(info.fetchData, "a block was sent with no user id").not.toHaveBeenCalled();
+    await renderPanel({ channel_members: [{ user_id: ME }, { user_id: 2, is_blocked: 1, user: { name: "No Id" } }] });
+    await userEvent.click(screen.getByText("UnBlock"));
+    expect(info.fetchData, "an unblock was sent with no user id").not.toHaveBeenCalled();
+  });
+
+  it("stores no block state for a chat with no id", async () => {
+    const p = await renderPanel({ id: undefined });
+    await userEvent.click(screen.getByText("Block"));
+    await screen.findByText("UnBlock");
+    expect(p.updateChannelBlockStatus, "a block was stored for a chat with no id").not.toHaveBeenCalled();
   });
 });

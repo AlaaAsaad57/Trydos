@@ -127,7 +127,7 @@ function WalletTransactions({ isRtl, local }) {
         });
 
         setTotalTransactions(response.total_wallet_transaction || 0);
-        setWalletBalance(response.wallet_balance || walletBalance);
+        setWalletBalance((prev) => response.wallet_balance || prev);
         setOffset(currentOffset + 1);
       }
     } catch (error) {

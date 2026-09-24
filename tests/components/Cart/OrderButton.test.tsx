@@ -27,7 +27,39 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import OrderButton from "components/Cart/OrderButton";
 
-import { renderWithProviders, userEvent } from "../../render";
+import { useNotificationStore } from "store/notifications/reducer";
+
+import { fireEvent, renderWithProviders, screen, userEvent, waitFor } from "../../render";
+
+// The checkout check (GoToOrders) reloads the cart, reads the profile from the
+// core backend and asks the auth service who is signed in. All three are
+// replaced so no request leaves the test.
+const getCartMock = vi.fn();
+const logError = vi.fn();
+vi.mock("utils/functions", async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual,
+    getCart: (...args: any[]) => getCartMock(...args),
+    LogError: (...args: any[]) => logError(...args),
+  };
+});
+const getCustomerInfo = vi.fn();
+vi.mock("services/home", () => ({
+  default: { getCustomerInfo: (...args: any[]) => getCustomerInfo(...args) },
+}));
+const getUser = vi.fn();
+vi.mock("services/auth", () => ({
+  default: { getUser: (...args: any[]) => getUser(...args) },
+}));
+vi.mock("components/Login/Enhanced/InlineVerifyPanel", () => ({
+  default: ({ onClose, onSuccess, phoneLocked }: any) => (
+    <div data-testid="inline-verify" data-locked={String(Boolean(phoneLocked))}>
+      <button onClick={onClose}>verify-close</button>
+      <button onClick={onSuccess}>verify-success</button>
+    </div>
+  ),
+}));
 
 // The mount effect reports the discount to the order funnel whenever
 // `total_discount > 0` (components/Cart/OrderButton.tsx:46-57), and this
@@ -165,5 +197,193 @@ describe("the Normal Price beside the total", () => {
       figure("Shipping-RoundPrice"),
       "the cart drew a shipping cost that is not the one the core backend sent",
     ).toBe(String(SHIPPING));
+  });
+});
+
+describe("the Confirm & Continue button", () => {
+  const verifiedProfile = { is_phone_verified: 1, phone: "+000" };
+  const availableRow = { id: "r1", check_availability: true, is_active: true };
+
+  beforeEach(() => {
+    trackOrder.mockClear();
+    getCartMock.mockReset();
+    getCustomerInfo.mockReset();
+    getUser.mockReset();
+    logError.mockClear();
+    useNotificationStore.setState({ notifications: [] });
+  });
+
+  const errorShown = (message: string) =>
+    useNotificationStore
+      .getState()
+      .notifications.some((n: any) => n.type === "error" && n.message === message);
+
+  const renderButton = async (
+    storeOverrides: Record<string, unknown> = {},
+    props: { close?: () => void; toOrders?: () => void } = {},
+  ) => {
+    const close = props.close ?? vi.fn();
+    const toOrders = props.toOrders ?? vi.fn();
+    await renderWithProviders(<OrderButton close={close} toOrders={toOrders} />, {
+      country: "sy",
+      path: "/cart",
+      store: money({ initCart: vi.fn(), ...storeOverrides }),
+    });
+    return { close, toOrders };
+  };
+
+  it("goes on to checkout when every item is available and the phone is verified", async () => {
+    getUser.mockReturnValue({ id: 1 });
+    getCustomerInfo.mockResolvedValue(verifiedProfile);
+    getCartMock.mockImplementation(async ({ callback }: any) => {
+      callback([undefined]);
+      return { cart: [availableRow] };
+    });
+    const initCart = vi.fn();
+    const { toOrders } = await renderButton({ user: { id: 1 }, userProfile: verifiedProfile, initCart });
+
+    await userEvent.click(mustFind("Confirm-Order-Button"));
+
+    await waitFor(() => {
+      expect(toOrders, "a clean cart must move on to the checkout screen").toHaveBeenCalled();
+    });
+    expect(initCart, "an empty cart reload must start an empty cart").toHaveBeenCalledWith({ cart: [] });
+  });
+
+  it("stays on the cart when the reloaded cart turns out to be empty", async () => {
+    getUser.mockReturnValue({ id: 1 });
+    getCustomerInfo.mockResolvedValue(verifiedProfile);
+    getCartMock.mockResolvedValue({ cart: [] });
+    const { toOrders } = await renderButton({ user: { id: 1 }, userProfile: verifiedProfile });
+
+    await userEvent.click(mustFind("Confirm-Order-Button"));
+
+    await waitFor(() => {
+      expect(marked("confirm-text"), "the button should come back after the check").not.toBeNull();
+    });
+    expect(toOrders, "an empty cart must not open the checkout").not.toHaveBeenCalled();
+  });
+
+  it("tells the shopper to review the cart when an item is not available", async () => {
+    getUser.mockReturnValue({ id: 1 });
+    getCustomerInfo.mockResolvedValue(verifiedProfile);
+    getCartMock.mockResolvedValue({ cart: [{ ...availableRow, check_availability: false }] });
+    const { toOrders } = await renderButton({ user: { id: 1 }, userProfile: verifiedProfile });
+
+    await userEvent.click(mustFind("Confirm-Order-Button"));
+
+    await waitFor(() => {
+      expect(
+        errorShown("Please Review Your Cart Some Products Not Available"),
+        "an unavailable item must stop checkout with a message",
+      ).toBe(true);
+    });
+    expect(toOrders, "checkout must not open with an unavailable item").not.toHaveBeenCalled();
+  });
+
+  it("opens the phone check without a message when the core backend says the phone is not verified", async () => {
+    getUser.mockReturnValue({ id: 1 });
+    getCustomerInfo.mockResolvedValue({ is_phone_verified: 0 });
+    getCartMock.mockResolvedValue({ cart: [availableRow] });
+    await renderButton({ user: { id: 1 }, userProfile: verifiedProfile });
+
+    await userEvent.click(mustFind("Confirm-Order-Button"));
+
+    expect(await screen.findByTestId("inline-verify"), "the phone check must open").toBeInTheDocument();
+    expect(logError, "the refusal should be logged").toHaveBeenCalled();
+    expect(
+      useNotificationStore.getState().notifications,
+      "an unverified phone is not an error message",
+    ).toEqual([]);
+  });
+
+  it("shows the error when the cart reload fails", async () => {
+    getUser.mockReturnValue({ id: 1 });
+    getCartMock.mockRejectedValue(new Error("cart reload failed"));
+    await renderButton({ user: { id: 1 }, userProfile: verifiedProfile });
+
+    await userEvent.click(mustFind("Confirm-Order-Button"));
+
+    await waitFor(() => {
+      expect(errorShown("cart reload failed"), "the failure reason should be shown").toBe(true);
+    });
+  });
+
+  it("asks a guest to verify first, then goes to checkout once verified", async () => {
+    getUser.mockReturnValue(null);
+    getCustomerInfo.mockResolvedValue(verifiedProfile);
+    getCartMock.mockResolvedValue({ cart: [availableRow] });
+    const { toOrders } = await renderButton({
+      user: null,
+      userProfile: { phone: "+000", is_phone_verified: 0 },
+    });
+
+    await userEvent.click(mustFind("Confirm-Order-Button"));
+    const panel = await screen.findByTestId("inline-verify");
+    expect(panel.getAttribute("data-locked"), "a known phone should be locked in the panel").toBe("true");
+
+    // A second tap on the button while the panel is open does nothing.
+    await userEvent.click(mustFind("Confirm-Order-Button"));
+    expect(getCartMock, "tapping while the panel is open must not start checkout").not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByText("verify-success"));
+    await waitFor(() => {
+      expect(toOrders, "a verified guest must move on to checkout").toHaveBeenCalled();
+    });
+  });
+
+  it("closes the phone check when the shopper closes it", async () => {
+    getUser.mockReturnValue(null);
+    await renderButton({ user: null, userProfile: { phone: null } });
+
+    await userEvent.click(mustFind("Confirm-Order-Button"));
+    const panel = await screen.findByTestId("inline-verify");
+    expect(panel.getAttribute("data-locked"), "no known phone means the field is open").toBe("false");
+    await userEvent.click(screen.getByText("verify-close"));
+    expect(screen.queryByTestId("inline-verify"), "closing must hide the phone check").toBeNull();
+  });
+
+  it("asks a signed-in shopper with no user row in the store to verify after the check", async () => {
+    getUser.mockReturnValue({ id: 1 });
+    getCustomerInfo.mockResolvedValue(verifiedProfile);
+    getCartMock.mockResolvedValue({ cart: [availableRow] });
+    const { toOrders } = await renderButton({ user: null, userProfile: verifiedProfile });
+
+    await userEvent.click(mustFind("Confirm-Order-Button"));
+
+    expect(await screen.findByTestId("inline-verify"), "the phone check must open").toBeInTheDocument();
+    expect(toOrders, "checkout must wait for the phone check").not.toHaveBeenCalled();
+  });
+
+  it("sends the shopper back when the bag is empty", async () => {
+    const { close } = await renderButton({ cart: [] });
+    expect(marked("backHome-text"), "an empty bag shows Back To HomePage").not.toBeNull();
+    await userEvent.click(mustFind("Confirm-Order-Button"));
+    expect(close, "an empty bag must close the cart").toHaveBeenCalled();
+  });
+
+  it("shows the cash total when cash on delivery is the chosen payment", async () => {
+    await renderButton({ total_cash: 99, orderData: { payment: [{ id: 0 }] } });
+    expect(figure("offer-total-price"), "cash on delivery must show the cash total").toBe("99");
+  });
+
+  it("folds the breakdown again when the dark backdrop is tapped", async () => {
+    await renderButton();
+    await userEvent.click(mustFind("total-expanded"));
+    expect(marked("cart-total-price"), "the breakdown should be open").not.toBeNull();
+    await userEvent.click(document.querySelector(".opacity-40")!);
+    expect(marked("cart-total-price"), "a tap on the backdrop must fold the breakdown").toBeNull();
+  });
+  it("folds the breakdown when the shopper swipes it down", async () => {
+    await renderButton();
+    await userEvent.click(mustFind("total-expanded"));
+    expect(marked("cart-total-price"), "the breakdown should be open").not.toBeNull();
+    const area = mustFind("overflow-hidden-container");
+    fireEvent.mouseDown(area, { clientX: 10, clientY: 10 });
+    fireEvent.mouseMove(document, { clientX: 10, clientY: 120 });
+    fireEvent.mouseUp(document, { clientX: 10, clientY: 120 });
+    await waitFor(() => {
+      expect(marked("cart-total-price"), "a downward swipe must fold the breakdown").toBeNull();
+    });
   });
 });

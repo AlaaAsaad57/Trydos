@@ -115,3 +115,28 @@ describe("luck utility functions", () => {
     });
   });
 });
+
+describe("the stored luck timers — damaged storage and the cap", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("reads broken storage as no timers", () => {
+    localStorage.setItem("luck_timers", "{broken");
+    expect(readTimer(1), "a timer was read out of broken storage").toBeNull();
+  });
+
+  it("drops the oldest timers once more products than the cap are stored", () => {
+    let now = 1000;
+    const realNow = Date.now;
+    Date.now = () => (now += 1);
+    try {
+      const cap = parseInt(process.env.NEXT_PUBLIC_MAX_ARRAY_LENGTH ?? "") || 5;
+      for (let i = 1; i <= cap + 2; i += 1) writeTimer(i, { deadlineTs: null, remainingMs: 1000, expired: false } as any);
+      expect([readTimer(1), readTimer(2)], "the two oldest timers were kept past the cap").toEqual([null, null]);
+      expect(readTimer(cap + 2), "the newest timer was dropped").not.toBeNull();
+    } finally {
+      Date.now = realNow;
+    }
+  });
+});

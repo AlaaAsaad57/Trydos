@@ -1840,3 +1840,51 @@ describe("the RDB cart lock", () => {
     ).toHaveBeenCalled();
   });
 });
+
+describe("the rarer branches", () => {
+  it("a market 401 behind a re-auth prompt the shopper cancels gives up", async () => {
+    const { store } = await setup({ shouldAuthinticated: true });
+    const net = makeMockFetch([jsonReply({ data: null }, 401)]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+    vi.useFakeTimers();
+
+    const promise = fetchData({ ...baseParams, server: "market" });
+    await vi.advanceTimersByTimeAsync(0);
+    store.useAppStore.setState({ reAuthResult: "cancelled" });
+    await vi.advanceTimersByTimeAsync(500);
+    const result = await promise;
+
+    expect(result.success, "a cancelled re-auth still reported success").toBe(false);
+    expect(net.calls.length, "the call was retried after the shopper cancelled").toBe(1);
+  });
+
+  it("a wallet 401 whose stale-token cleanup fails gives up instead of throwing", async () => {
+    await setup();
+    const net = makeMockFetch([jsonReply({ data: null }, 401), failureReply("clear-tokens down")]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result = await fetchData({ ...baseParams, server: "wallet" });
+
+    expect(net.calls[1]?.url, "the stale wallet tokens were not asked to be cleared").toBe("/api/auth/clear-tokens");
+    expect(result.success, "a failed cleanup still reported success").toBe(false);
+  });
+
+  it("viaProxyGet sends a GET through the proxy address by query string", async () => {
+    await setup();
+    const net = makeMockFetch([jsonReply({ data: [] }, 200)]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result = await fetchData({ ...baseParams, server: "market", url: "/home", viaProxyGet: true });
+
+    expect(net.calls[0]?.url.startsWith("/api/proxy?"), `the GET did not go through the proxy query form: ${net.calls[0]?.url}`).toBe(true);
+    expect(result.success, "the proxy GET did not succeed").toBe(true);
+  });
+
+  it("scrubRequestBody reports nothing for a body that is not JSON", async () => {
+    const { scrubRequestBody } = await import("utils/fetchData");
+    expect(scrubRequestBody("token=abc"), "a raw body was reported").toBe("[redacted]");
+  });
+});

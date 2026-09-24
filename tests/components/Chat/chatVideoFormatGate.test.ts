@@ -34,6 +34,7 @@ import {
   MEDIA_INPUT_ACCEPT,
   isImageOrVideoFile,
   isSupportedVideoFile,
+  isUnsupportedVideoFile,
   pickMessageType,
   toDownloadUrl,
 } from "components/Chat/videoSupport";
@@ -203,5 +204,24 @@ describe("asking the media server for a download", () => {
       toDownloadUrl("https://media.example.com/chat/file/abc.mov?v=2"),
       "the existing query was overwritten instead of extended",
     ).toBe("https://media.example.com/chat/file/abc.mov?v=2&download=1");
+  });
+});
+
+describe("choosing the refusal wording for a video the chat cannot show", () => {
+  it("does not call a playable video unsupported", () => {
+    expect(isUnsupportedVideoFile(fileNamed("clip.mp4")), "a playable .mp4 was called an unsupported video").toBe(false);
+  });
+
+  it("names a known unplayable container by its file name", () => {
+    expect(isUnsupportedVideoFile(fileNamed("clip.avi")), "an .avi was not called an unsupported video").toBe(true);
+  });
+
+  it("names an unknown video by its declared video type", () => {
+    expect(isUnsupportedVideoFile(fileNamed("clip.xyz", "video/x-foo")), "a file declared as an unknown video type was not called a video").toBe(true);
+  });
+
+  it("does not call a plain document a video", () => {
+    expect(isUnsupportedVideoFile(fileNamed("notes.pdf", "application/pdf")), "a PDF was called an unsupported video").toBe(false);
+    expect(isUnsupportedVideoFile(fileNamed("notes")), "a file with no type was called an unsupported video").toBe(false);
   });
 });

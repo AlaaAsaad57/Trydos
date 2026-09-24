@@ -53,6 +53,13 @@ const fake = vi.hoisted(() => {
 
   const client = {
     eval: vi.fn(),
+    // Reads and counter writes for the cache helpers further down. They only
+    // ever touch this object.
+    get: vi.fn(),
+    set: vi.fn(),
+    incr: vi.fn(),
+    expire: vi.fn(),
+    ttl: vi.fn(),
     del: destructive("del"),
     scan: destructive("scan"),
     keys: destructive("keys"),
@@ -105,7 +112,18 @@ vi.mock("utils/serverErrorReporter", () => ({
   default: vi.fn(async () => undefined),
 }));
 
-import { otpRateLimit } from "serverRequests/radis";
+import {
+  fixedWindowRateLimit,
+  flushOtpLimitsAction,
+  getCurrencyFromCache,
+  GetFromRedis,
+  getKeys,
+  otpRateLimit,
+  RedisGet,
+  RedisSet,
+  removeRedis,
+  StoreCurrency,
+} from "serverRequests/radis";
 
 /** Opaque, already-hashed identity keys. The wrapper never interprets them. */
 const SID = "session-key-fixture";
@@ -334,6 +352,280 @@ describe("the limits it applies", () => {
     });
 
     expect(lastScriptCall().limits).toEqual(["1", "2", "30", "15"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The cache helpers around the OTP limiter: the currency and product cache,
+// the key helpers, the generic limiter and the OTP key clean-up.
+//
+// removeRedis, getKeys and flushOtpLimitsAction must reach `del`, `scan` or
+// `keys`, which the fake client refuses on purpose. For those cases only, the
+// method is swapped for a harmless stand-in on the fake object and put back
+// afterwards (`withStandIn`). The tripwires at the end of the file still watch
+// the original refusing spies, which nothing here calls.
+// ---------------------------------------------------------------------------
+
+async function withStandIn(
+  name: "del" | "scan" | "keys",
+  standIn: ReturnType<typeof vi.fn>,
+  run: () => Promise<void>,
+) {
+  const original = fake.client[name];
+  (fake.client as any)[name] = standIn;
+  try {
+    await run();
+  } finally {
+    (fake.client as any)[name] = original;
+  }
+}
+
+/** The `type` each reported failure was filed under. */
+const reportedTypes = () => LogServerError.mock.calls.map((call: any[]) => call[0]?.type);
+
+describe("the currency cache", () => {
+  beforeEach(() => {
+    fake.client.get.mockReset();
+    fake.client.set.mockReset();
+  });
+
+  it("reads a stored currency and answers null when there is none", async () => {
+    fake.client.get.mockResolvedValueOnce(JSON.stringify({ code: "SYP" })).mockResolvedValueOnce(null);
+
+    expect(await getCurrencyFromCache("sy"), "the stored currency was not read back").toEqual({ code: "SYP" });
+    expect(await getCurrencyFromCache("iq"), "a missing currency was not null").toBeNull();
+    expect(fake.client.get.mock.calls[0][0], "the currency key is wrong").toBe("currency-sy");
+  });
+
+  it("reports and passes on a failed currency read", async () => {
+    fake.client.get.mockRejectedValueOnce(new Error("down"));
+
+    await expect(getCurrencyFromCache("sy"), "a failed currency read was hidden").rejects.toThrow("down");
+    expect(reportedTypes(), "the failed currency read was not reported").toContain(
+      "getting currency from redis",
+    );
+  });
+
+  it("stores a currency for the configured time, and reports a failed write", async () => {
+    vi.stubEnv("PRODUCT_REDIS_TTL_SECONDS", "120");
+    fake.client.set.mockResolvedValueOnce("OK").mockRejectedValueOnce(new Error("down"));
+
+    await StoreCurrency("sy", { code: "SYP" });
+    await StoreCurrency("sy", { code: "SYP" });
+
+    expect(fake.client.set.mock.calls[0], "the currency was not stored for 120 seconds").toEqual([
+      "currency-sy",
+      '{"code":"SYP"}',
+      "EX",
+      120,
+    ]);
+    expect(reportedTypes(), "the failed currency write was not reported").toContain(
+      "storing currency in redis",
+    );
+  });
+});
+
+describe("the general cache helpers", () => {
+  beforeEach(() => {
+    fake.client.get.mockReset();
+    fake.client.set.mockReset();
+  });
+
+  it("reads a stored value, and answers null for a missing or failed read", async () => {
+    fake.client.get
+      .mockResolvedValueOnce('{"a":1}')
+      .mockResolvedValueOnce(null)
+      .mockRejectedValueOnce(new Error("down"));
+
+    expect(await RedisGet("k"), "the stored value was not read back").toEqual({ a: 1 });
+    expect(await RedisGet("k"), "a missing value was not null").toBeNull();
+    expect(await RedisGet("k"), "a failed read was not null").toBeNull();
+    expect(reportedTypes(), "the failed read was not reported").toContain("redis RedisGet failed");
+  });
+
+  it("stores a value for the time asked, or the configured time", async () => {
+    vi.stubEnv("PRODUCT_REDIS_TTL_SECONDS", "90");
+    fake.client.set.mockResolvedValue("OK");
+
+    await RedisSet("k", { a: 1 }, 300);
+    await RedisSet("k", { a: 1 });
+
+    expect(
+      fake.client.set.mock.calls.map((call) => call[3]),
+      "the stored values did not get the asked or configured time",
+    ).toEqual([300, 90]);
+  });
+
+  it(
+    "BUG-data-3: a value stored with no time and no configured time lives for the 120-second default",
+    async () => {
+      vi.stubEnv("PRODUCT_REDIS_TTL_SECONDS", undefined as any);
+      fake.client.set.mockResolvedValue("OK");
+
+      await RedisSet("k", { a: 1 });
+
+      expect(
+        fake.client.set.mock.calls[0]?.[3],
+        "with PRODUCT_REDIS_TTL_SECONDS unset, the time sent was not the 120-second default " +
+          "(Number(undefined) is NaN, and `NaN ?? 120` is NaN, so Redis is asked for EX NaN and refuses the write)",
+      ).toBe(120);
+    },
+  );
+
+  it("reports a failed write", async () => {
+    fake.client.set.mockRejectedValueOnce(new Error("down"));
+
+    await RedisSet("k", 1, 10);
+
+    expect(reportedTypes(), "the failed write was not reported").toContain("redis RedisSet failed");
+  });
+
+  it("deletes a key, and reports a failed delete", async () => {
+    const del = vi.fn().mockResolvedValueOnce(1).mockRejectedValueOnce(new Error("down"));
+
+    await withStandIn("del", del, async () => {
+      await removeRedis("k");
+      expect(await removeRedis("k"), "a failed delete threw").toBeUndefined();
+    });
+
+    expect(del.mock.calls[0], "the wrong key was deleted").toEqual(["k"]);
+    expect(reportedTypes(), "the failed delete was not reported").toContain("redis removeRedis failed");
+  });
+
+  it("lists keys by pattern, and answers nothing for a failed list", async () => {
+    const keys = vi.fn().mockResolvedValueOnce(["a", "b"]).mockRejectedValueOnce(new Error("down"));
+
+    await withStandIn("keys", keys, async () => {
+      expect(await getKeys("x*"), "the matching keys were not listed").toEqual(["a", "b"]);
+      expect(await getKeys("x*"), "a failed list gave keys").toBeUndefined();
+    });
+
+    expect(reportedTypes(), "the failed list was not reported").toContain("redis getKeys failed");
+  });
+
+  it("reads a raw value, and passes on a failed raw read", async () => {
+    fake.client.get.mockResolvedValueOnce("raw").mockRejectedValueOnce(new Error("down"));
+
+    expect(await GetFromRedis("k"), "the raw value was not read").toBe("raw");
+    await expect(GetFromRedis("k"), "a failed raw read was hidden").rejects.toThrow("down");
+    expect(reportedTypes(), "the failed raw read was not reported").toContain("redis GetFromRedis failed");
+  });
+});
+
+describe("the fixed-window limiter", () => {
+  beforeEach(() => {
+    fake.client.incr.mockReset();
+    fake.client.expire.mockReset();
+    fake.client.ttl.mockReset();
+  });
+
+  it("starts the window on the first call and counts down what is left", async () => {
+    fake.client.incr.mockResolvedValueOnce(1);
+    fake.client.ttl.mockResolvedValueOnce(60);
+
+    expect(await fixedWindowRateLimit("rl", 3, 60), "the first call was not allowed").toEqual({
+      allowed: true,
+      remaining: 2,
+      ttl: 60,
+    });
+    expect(fake.client.expire, "the window was not started on the first call").toHaveBeenCalledWith("rl", 60);
+  });
+
+  it("refuses past the limit and falls back to the window when no time is left", async () => {
+    fake.client.incr.mockResolvedValueOnce(5);
+    fake.client.ttl.mockResolvedValueOnce(-1);
+
+    expect(await fixedWindowRateLimit("rl", 3, 60), "a call past the limit was allowed").toEqual({
+      allowed: false,
+      remaining: 0,
+      ttl: 60,
+    });
+    expect(fake.client.expire, "the window was restarted mid-way").not.toHaveBeenCalled();
+  });
+
+  it("allows the call, and reports it, when the store fails", async () => {
+    fake.client.incr.mockRejectedValueOnce(new Error("down"));
+
+    expect(await fixedWindowRateLimit("rl", 3, 60), "a store failure refused the call").toEqual({
+      allowed: true,
+      remaining: 3,
+      ttl: 0,
+    });
+    expect(reportedTypes(), "the store failure was not reported").toContain(
+      "redis fixedWindowRateLimit failed",
+    );
+  });
+});
+
+describe("clearing the OTP counters (flushOtpLimitsAction)", () => {
+  it("deletes every otp key page by page", async () => {
+    const scan = vi
+      .fn()
+      .mockResolvedValueOnce(["7", ["otp:cd:a", "otp:sid:b"]])
+      .mockResolvedValueOnce(["0", ["otp:ipc:a"]]);
+    const del = vi.fn(async () => 1);
+
+    await withStandIn("scan", scan, () =>
+      withStandIn("del", del, async () => {
+        expect(await flushOtpLimitsAction(), "the clean-up did not report success").toEqual({ success: true });
+      }),
+    );
+
+    expect(scan.mock.calls[0], "the scan did not look for otp keys").toEqual(["0", "MATCH", "otp:*", "COUNT", 100]);
+    expect(del.mock.calls, "not every otp key was deleted").toEqual([["otp:cd:a", "otp:sid:b"], ["otp:ipc:a"]]);
+  });
+
+  it("says so when there was nothing to delete", async () => {
+    const scan = vi.fn().mockResolvedValueOnce(["0", []]);
+
+    await withStandIn("scan", scan, async () => {
+      expect(await flushOtpLimitsAction(), "an empty clean-up did not answer success").toEqual({
+        success: true,
+        message: "",
+      });
+    });
+  });
+
+  it("answers a failure, and reports it, when the scan fails", async () => {
+    const scan = vi.fn().mockRejectedValueOnce(new Error("down"));
+
+    await withStandIn("scan", scan, async () => {
+      expect(await flushOtpLimitsAction(), "a failed clean-up answered success").toEqual({ success: false });
+    });
+    expect(
+      LogServerError.mock.calls.map((call: any[]) => call[0]?.scenario),
+      "the failed clean-up was not reported",
+    ).toContain("clearing the OTP keys failed");
+  });
+});
+
+describe("the helpers with no counter store (edge runtime)", () => {
+  // Same reload as the AC-11 case above, and put back the same way.
+  it("refuses the currency read, allows every limited call, and clears nothing", async () => {
+    vi.stubEnv("NEXT_RUNTIME", "edge");
+    delete (globalThis as Record<string, unknown>)._redis;
+    vi.resetModules();
+
+    try {
+      const edge = await import("serverRequests/radis");
+
+      await expect(edge.getCurrencyFromCache("sy"), "a currency read on the edge did not fail").rejects.toThrow(
+        "Redis is not available in Edge runtime",
+      );
+      expect(await edge.fixedWindowRateLimit("rl", 4, 60), "the edge limiter did not allow the call").toEqual({
+        allowed: true,
+        remaining: 4,
+        ttl: 0,
+      });
+      expect(await edge.flushOtpLimitsAction(), "the edge clean-up claimed success").toEqual({
+        success: false,
+        message: "",
+      });
+    } finally {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+      (globalThis as Record<string, unknown>)._redis = fake.client;
+    }
   });
 });
 
