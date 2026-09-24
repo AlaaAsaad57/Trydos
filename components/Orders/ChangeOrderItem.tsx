@@ -291,6 +291,7 @@ function ChangeOrderItem({
                 {translateFunction("New Price")}:{" "}
                 <span data-pw="new-price-after-change-value">
                   {RoundPrice({
+                    charged: true,
                     num: getVariant()?.offer_price * qty,
                     language: language,
                   })}

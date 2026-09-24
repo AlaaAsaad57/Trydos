@@ -67,6 +67,7 @@ function CancelOrderItemWrapper({ item, backToMain, cancelOrderItem }) {
           )}
           <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
             {RoundPrice({
+              charged: true,
               num: item.offer_price || item.price,
               rate: currency?.exchange_rate,
               language: language,

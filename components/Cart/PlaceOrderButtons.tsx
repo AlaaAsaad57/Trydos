@@ -261,6 +261,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
                 >
                   {cart.length} {translateFunction("items")}{" "}
                   {RoundPrice({
+                    charged: true,
                     num: getTotalPrice(),
                     returnNumber: true,
                     points: currency?.decimal_digits,

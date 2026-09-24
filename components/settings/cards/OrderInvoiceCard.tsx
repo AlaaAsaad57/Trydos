@@ -120,6 +120,7 @@ const OrderInvoiceCard = ({ amount, payments }) => {
         data-pw="order-amount"
       >
         {RoundPrice({
+          charged: true,
           num: amount,
           returnNumber: true,
           rate: currency?.exchange_rate,

@@ -51,6 +51,7 @@ function CancelOrderWrapper({
           )}
           <span className="bold text-[12px] text-[#8D8D8D] mx-[3px]">
             {RoundPrice({
+              charged: true,
               num: order.order_amount,
               rate: currency?.exchange_rate,
               language: language,

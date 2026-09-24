@@ -622,6 +622,246 @@ describe("RoundPrice", () => {
   });
 });
 
+// _specs/round-price-convert-then-round. Two rules, both rounding up:
+//   charged (`charged: true`) — multiply by the rate, then round up to the
+//     currency's decimals. The bag, checkout and orders use it: it is what the
+//     backend charges (69.9998 at rate 100 with 2 decimals → 6999.98).
+//   display (the default) — round up first, then multiply. Every other screen.
+// The browser copy here and the server copy in utils/server/helpers.ts must
+// give the same result for the same arguments.
+describe("RoundPrice — the charged rule and the display rule", () => {
+  /** [what, arguments, expected] for the charged rule. */
+  const CHARGED: [string, Record<string, any>, number][] = [
+    ["69.9998 at rate 100, 2 decimals", { num: 69.9998, rate: 100, points: 2 }, 6999.98],
+    ["0.1 at rate 0.2, 1 decimal", { num: 0.1, rate: 0.2, points: 1 }, 0.1],
+    ["1.2345 at rate 3, 2 decimals", { num: 1.2345, rate: 3, points: 2 }, 3.71],
+    ["10.001 at rate 1, 2 decimals", { num: 10.001, rate: 1, points: 2 }, 10.01],
+    ["8.3 at rate 1, 2 decimals", { num: 8.3, rate: 1, points: 2 }, 8.3],
+  ];
+
+  /** [what, arguments, expected] for the display rule — today's figures. */
+  const DISPLAY: [string, Record<string, any>, number][] = [
+    ["69.9998 at rate 100, 2 decimals", { num: 69.9998, rate: 100, points: 2 }, 7000],
+    ["1.2345 at rate 3, 2 decimals", { num: 1.2345, rate: 3, points: 2 }, 3.72],
+    ["0.1 at rate 0.2, 1 decimal", { num: 0.1, rate: 0.2, points: 1 }, 0.02],
+    ["8.3 at rate 1, 2 decimals", { num: 8.3, rate: 1, points: 2 }, 8.3],
+  ];
+
+  it("charged: 69.9998 at rate 100 with 2 decimals is 6999.98, as text and as a number (AC-1)", async () => {
+    const { RoundPrice } = await loadFunctions();
+    const args = { num: 69.9998, rate: 100, points: 2, charged: true };
+    expect(RoundPrice({ ...args, returnNumber: true }), "the browser copy's charged number is not what the backend charges").toBe(6999.98);
+    expect(RoundPrice(args), "the browser copy shows a charged price other than what the backend charges").toBe(6999.98);
+  });
+
+  it("charged: 0.1 at rate 0.2 with 1 decimal is 0.1, never more decimals than the currency (AC-2)", async () => {
+    const { RoundPrice } = await loadFunctions();
+    expect(
+      RoundPrice({ num: 0.1, rate: 0.2, points: 1, charged: true, returnNumber: true }),
+      "the browser copy's charged price carries more decimals than a 1-decimal currency allows",
+    ).toBe(0.1);
+  });
+
+  it("charged: rounds up after the rate — 1.2345 at rate 3 is 3.71; 10.001 at rate 1 is 10.01 (AC-3)", async () => {
+    const { RoundPrice } = await loadFunctions();
+    expect(
+      RoundPrice({ num: 1.2345, rate: 3, points: 2, charged: true, returnNumber: true }),
+      "the browser copy rounded before the rate (3.72) instead of after it (3.7035 → 3.71)",
+    ).toBe(3.71);
+    expect(
+      RoundPrice({ num: 10.001, rate: 1, points: 2, charged: true, returnNumber: true }),
+      "the browser copy's charged rule stopped rounding up",
+    ).toBe(10.01);
+  });
+
+  it("display rule is unchanged: 7000, 3.72, 0.02 (AC-4)", async () => {
+    const { RoundPrice } = await loadFunctions();
+    for (const [what, args, expected] of DISPLAY.slice(0, 3)) {
+      expect(
+        RoundPrice({ ...args, returnNumber: true }),
+        `the browser copy's display rule changed for ${what}`,
+      ).toBe(expected);
+    }
+  });
+
+  it("8.3 at rate 1 with 2 decimals stays 8.3 in both rules (AC-5)", async () => {
+    const { RoundPrice } = await loadFunctions();
+    expect(RoundPrice({ num: 8.3, rate: 1, points: 2, returnNumber: true }), "the browser copy lifted 8.3 in the display rule").toBe(8.3);
+    expect(
+      RoundPrice({ num: 8.3, rate: 1, points: 2, charged: true, returnNumber: true }),
+      "the browser copy lifted 8.3 in the charged rule",
+    ).toBe(8.3);
+  });
+
+  it("the browser copy and the server copy give the same figure, rule by rule (AC-6)", async () => {
+    const { RoundPrice } = await loadFunctions();
+    const server = await import("utils/server/helpers");
+    const cases: [string, Record<string, any>][] = [
+      ...CHARGED.map(([what, args]) => [`charged, ${what}`, { ...args, charged: true }] as [string, Record<string, any>]),
+      ...DISPLAY.map(([what, args]) => [`display, ${what}`, args] as [string, Record<string, any>]),
+      ["display, 150000 at rate 1, 2 decimals", { num: 150000, rate: 1, points: 2 }],
+      ["charged, 150000 at rate 1, 2 decimals", { num: 150000, rate: 1, points: 2, charged: true }],
+    ];
+    for (const [what, args] of cases) {
+      expect(
+        server.RoundPrice(args as any),
+        `the server copy (${String(server.RoundPrice(args as any))}) and the browser copy (${String(RoundPrice(args))}) disagree for ${what}`,
+      ).toBe(RoundPrice(args));
+    }
+  });
+
+  it("with rate 1 the charged rule gives the same figures as the display rule (AC-7)", async () => {
+    const { RoundPrice } = await loadFunctions();
+    const inputs: Record<string, any>[] = [
+      { num: 0 },
+      { num: 99999 },
+      { num: 100000 },
+      { num: 999999 },
+      { num: 1000000 },
+      { num: 2500000 },
+      { num: 100000, language: "ar" },
+      { num: 1000000, language: "ar" },
+      { num: "not a price" },
+      { num: 1234.5 },
+      { num: 25.4 },
+    ];
+    for (const args of inputs) {
+      expect(
+        RoundPrice({ ...args, rate: 1, charged: true }),
+        `with rate 1 the browser copy's charged rule moved ${JSON.stringify(args)}`,
+      ).toBe(RoundPrice({ ...args, rate: 1 }));
+    }
+  });
+
+  it("(a) nothing passed and nothing saved: both copies give 26 and 100K (AC-8)", async () => {
+    const { RoundPrice } = await loadFunctions();
+    const server = await import("utils/server/helpers");
+    for (const charged of [false, true]) {
+      expect(RoundPrice({ num: 25.4, charged }), `the browser copy did not fall back to 0 decimals (charged: ${charged})`).toBe(26);
+      expect(server.RoundPrice({ num: 25.4, charged } as any), `the server copy did not fall back to 0 decimals (charged: ${charged})`).toBe(26);
+      expect(RoundPrice({ num: 100000, charged }), `the browser copy did not fall back to rate 1 (charged: ${charged})`).toBe("100K");
+      expect(server.RoundPrice({ num: 100000, charged } as any), `the server copy did not fall back to rate 1 (charged: ${charged})`).toBe("100K");
+    }
+  });
+
+  it("(b) the server copy never reads the saved currency (AC-8)", async () => {
+    storeSeed.currency = { exchange_rate: 3, decimal_digits: 2 };
+    await loadFunctions();
+    const server = await import("utils/server/helpers");
+    expect(
+      // Decimals are passed, so only the rate is left out: read from the saved
+      // currency it would be 3 (→ 0.3); not read, it falls back to 1 (→ 0.1).
+      server.RoundPrice({ num: 0.1, points: 2, returnNumber: true }),
+      "the server copy filled a missing rate from the saved currency",
+    ).toBe(0.1);
+  });
+
+  it("(b) the browser copy on the server never reads the saved currency (AC-8)", async () => {
+    storeSeed.currency = { exchange_rate: 3, decimal_digits: 2 };
+    const { RoundPrice } = await loadFunctionsWithoutBrowser();
+    try {
+      expect(
+        // Only the rate is left out (see the case above).
+        RoundPrice({ num: 0.1, points: 2, returnNumber: true }),
+        "on the server the browser copy read the shared store's saved currency (rate 3), which may belong to another shopper",
+      ).toBe(0.1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  describe("which rule each screen uses (AC-9)", () => {
+    // The files are read as text: loading a TypeScript parser here would add
+    // seconds to a suite that gates every pull request.
+    const CHARGED_SCREENS = [
+      "components/Cart/index.tsx",
+      "components/Cart/couponElement.tsx",
+      "components/Cart/OrderButton.tsx",
+      "components/Cart/OrdersPage.tsx",
+      "components/Cart/PaymentMethod.tsx",
+      "components/Cart/PlaceOrderButtons.tsx",
+      "components/Cart/PlaceOrderWidget.tsx",
+      "components/products/ProductCartHeader.tsx",
+      "components/setting/orders/OrderDetailsWrapper.tsx",
+      "components/setting/orders/OrderInvoice.tsx",
+      "components/setting/orders/CancelOrderWrapper.tsx",
+      "components/setting/orders/CancelOrderItemWrapper.tsx",
+      "components/setting/orders/ReturnOrderItemWrapper.tsx",
+      "components/setting/orders/confirmations/OrderItemReturnConfirmationWindow.tsx",
+      "components/settings/cards/OrderInvoiceCard.tsx",
+      "components/Orders/ChangeOrderItem.tsx",
+    ];
+    const DISPLAY_SCREENS = [
+      "components/Cart/AddToCart/Card.tsx",
+      "components/Cart/AddToCart/PricesRow.tsx",
+      "components/Cart/AddToCart/CartContentOfProduct.tsx",
+      "components/Cart/AddToCart/ExtraInfoArea.tsx",
+      "components/Server/product/ProductPrices/ProductPricesWrapper.tsx",
+      "components/ServerWrapper/ProductWrapper/ProductButtonWrapper.tsx",
+      "components/ServerWrapper/ProductWrapper/RenderPrice.tsx",
+      "components/ServerWrapper/ProductWrapper/ProductColorsCards.tsx",
+      "components/products/ProductCard/index.tsx",
+      "components/global/compare.tsx",
+      "components/ListingPage/filterComponents/FiltersWindow/index.tsx",
+      "components/ListingPage/FilterItem.tsx",
+      "components/Server/FilterList.tsx",
+      "serverRequests/meta/StructuredData/ProductStructuredData.tsx",
+      "serverRequests/meta/StructuredData/ListingBreadcrumbList.tsx",
+    ];
+
+    /** Each live `RoundPrice(...)` call in a file: its line and its argument text.
+     *  Comments are blanked first (keeping line breaks), so a commented-out call
+     *  is neither counted nor asked to carry anything. */
+    const callsIn = async (file: string) => {
+      const { readFileSync } = await import("node:fs");
+      const raw = readFileSync(file, "utf8");
+      const blank = (text: string) => text.replace(/[^\n]/g, " ");
+      const source = raw
+        .replace(/\/\*[\s\S]*?\*\//g, blank)
+        .replace(/(^|[^:"'])\/\/[^\n]*/g, (m, lead) => lead + blank(m.slice(lead.length)));
+      const calls: { line: number; args: string }[] = [];
+      let at = source.indexOf("RoundPrice(");
+      while (at !== -1) {
+        let depth = 0;
+        let end = at + "RoundPrice".length;
+        for (; end < source.length; end++) {
+          if (source[end] === "(") depth++;
+          else if (source[end] === ")" && --depth === 0) break;
+        }
+        calls.push({ line: source.slice(0, at).split("\n").length, args: source.slice(at, end + 1) });
+        at = source.indexOf("RoundPrice(", end);
+      }
+      return calls;
+    };
+
+    it("every RoundPrice call on a charged screen passes charged: true", async () => {
+      for (const file of CHARGED_SCREENS) {
+        const calls = await callsIn(file);
+        expect(calls.length, `${file} is listed as a charged screen but has no RoundPrice call`).toBeGreaterThan(0);
+        for (const { line, args } of calls) {
+          expect(
+            /\bcharged:\s*true\b/.test(args),
+            `${file}:${line} is on a charged screen but does not pass charged: true, so it shows the display figure (7000 instead of 6999.98)`,
+          ).toBe(true);
+        }
+      }
+    });
+
+    it("no RoundPrice call on a display screen passes charged", async () => {
+      for (const file of DISPLAY_SCREENS) {
+        const calls = await callsIn(file);
+        expect(calls.length, `${file} is listed as a display screen but has no RoundPrice call`).toBeGreaterThan(0);
+        for (const { line, args } of calls) {
+          expect(
+            /\bcharged\b/.test(args),
+            `${file}:${line} is on a display screen but passes charged, so it no longer shows today's figure`,
+          ).toBe(false);
+        }
+      }
+    });
+  });
+});
+
 describe("onClickSearchHistory", () => {
   it("starts a new list when nothing is stored", async () => {
     const { onClickSearchHistory } = await loadFunctions();
