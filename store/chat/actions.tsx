@@ -123,6 +123,14 @@ export const SendMessage = async (payload, isNew, isPrivate?) => {
     }
     if (response?.data?.id) {
       if (isNew) {
+        // The chat list comes in pages, so the chat the backend put this
+        // message into may not be loaded yet. Then only the new message would
+        // show, so ask for the ones before it.
+        const loaded = useAppStore
+          .getState()
+          .data?.some(
+            (c: any) => String(c.id) === String(response.data.channel_id),
+          );
         sendNewMessage({
           channel: {
             id: response.data.channel_id,
@@ -130,6 +138,7 @@ export const SendMessage = async (payload, isNew, isPrivate?) => {
             mid: isNew,
           },
         });
+        if (!loaded) await getPage(response.data.channel_id, response.data.id);
       } else {
         sendRealMessage({
           ...response.data,

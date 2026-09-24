@@ -613,16 +613,36 @@ export const useChatStore = (set: any, get: any) => ({
     set((state: ChatState) => {
       // Optimized: Only filter once
       const channelId = payload.channel.mid;
-      const otherChannels = state.data.filter((c: any) => c.id !== channelId);
+      // A `ch-<user id>` placeholder whose first message the backend put into
+      // a chat that is already loaded: join the two, keeping that chat's
+      // history, instead of adding a second chat with the same id.
+      const loadedChannel = state.data.find(
+        (c: any) =>
+          c.id !== channelId && String(c.id) === String(payload.channel.id),
+      );
+      const otherChannels = state.data.filter(
+        (c: any) => c.id !== channelId && c !== loadedChannel,
+      );
       const existingChannel =
         state.data.find((c: any) => c.id === channelId) || {};
 
-      const updatedChannel = { ...existingChannel, ...payload.channel };
+      const updatedChannel = loadedChannel
+        ? {
+            ...loadedChannel,
+            ...payload.channel,
+            messages: [
+              ...(loadedChannel.messages ?? []),
+              ...(payload.channel.messages ?? []),
+            ],
+          }
+        : { ...existingChannel, ...payload.channel };
       const isActive = state.activeChat && state.activeChat.id === channelId;
 
       return {
         activeChat: isActive
-          ? { ...state.activeChat, ...payload.channel }
+          ? loadedChannel
+            ? updatedChannel
+            : { ...state.activeChat, ...payload.channel }
           : state.activeChat,
         data: [updatedChannel, ...otherChannels],
         main: "chat",

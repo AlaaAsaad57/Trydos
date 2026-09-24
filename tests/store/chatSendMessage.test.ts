@@ -112,13 +112,44 @@ describe("sending a chat message — the answer the chat backend gives", () => {
     expect(sendNewMessage.mock.calls[0]?.[0]?.channel?.id, "a new chat did not take the channel id from the chat backend").toBe(9);
 
     await SendMessage({ cid: 9, mid: "m2" }, false, 44);
-    expect(JSON.parse(fetchData.mock.calls[1][0].body).order_chat_participant_id, "a private message was not sent with the order participant id").toBe(44);
+    expect(JSON.parse(fetchData.mock.calls.at(-1)![0].body).order_chat_participant_id, "a private message was not sent with the order participant id").toBe(44);
     expect(sendRealMessage.mock.calls[0]?.[0], "the private answer was not stored against the pending copy").toMatchObject({ mid: "m2", cid: 9, isPrivate: 44 });
 
     sendRealMessage.mockClear();
     fetchData.mockResolvedValue({ success: true, data: {} });
     await SendMessage({ cid: 9, mid: "m3" }, false);
     expect(sendRealMessage, "an answer with no message id was stored").not.toHaveBeenCalled();
+  });
+
+  // The chat list comes in pages, so the chat a contact leads to may not be
+  // loaded yet. The first message then turns the placeholder into that chat
+  // with only the new message, and the history showed only after a reload.
+  it("a first message into a chat that is not loaded yet loads its earlier messages", async () => {
+    const { useAppStore } = await import("store");
+    useAppStore.setState({ data: [], sendNewMessage: vi.fn(), setPageData: vi.fn() } as any);
+    fetchData.mockResolvedValue({ success: true, data: { id: 77, channel_id: 40 } });
+    const { SendMessage } = await import("store/chat/actions");
+
+    await SendMessage({ cid: "ch-8", mid: "m1" }, "ch-8");
+
+    expect(
+      fetchData.mock.calls.map(([p]) => p.url),
+      "the earlier messages of the chat the backend used were not asked for",
+    ).toContain("/api/v1/messages/messages_of_channel/40?message_id=77&limit=10");
+  });
+
+  it("a first message into a loaded chat asks for no earlier messages", async () => {
+    const { useAppStore } = await import("store");
+    useAppStore.setState({ data: [{ id: 40, messages: [] }], sendNewMessage: vi.fn(), setPageData: vi.fn() } as any);
+    fetchData.mockResolvedValue({ success: true, data: { id: 77, channel_id: 40 } });
+    const { SendMessage } = await import("store/chat/actions");
+
+    await SendMessage({ cid: "ch-8", mid: "m1" }, "ch-8");
+
+    expect(
+      fetchData.mock.calls.map(([p]) => p.url).filter((url) => url.includes("messages_of_channel")),
+      "a loaded chat's history was asked for again",
+    ).toEqual([]);
   });
 
   it("logs a thrown non-Error as text", async () => {

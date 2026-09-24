@@ -1,67 +1,25 @@
 import ChatItem from "components/Chat/components/ChatItem";
 import { isNew } from "components/Chat/chatsFunctions";
 
-import { forwardMessage } from "../chatsFunctions";
-import SearchResult from "components/Chat/components/SearchResult";
+import ChatSearchResults, {
+  getLatestMessage,
+  openChatFromList,
+} from "components/Chat/components/ChatSearchResults";
 import { getUserChat } from "utils/functions";
-import { GetLastSeen } from "store/chat/actions";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 import GetMoreChats from "../components/GetMoreChats";
 import { useState } from "react";
-/**
- * The newest message of a chat, by time.
- *
- * The row used to read `messages[messages.length - 1]` — the last element —
- * which trusts the array order. Nothing guarantees that order: `setChats`
- * reverses whatever the server sent, `setPageData` prepends older pages, and
- * live messages are appended. Every other place that means "newest" reads the
- * time instead — `getSortedChats` below, and `sortedMessages` in the
- * conversation. So whenever the array order and the times disagreed, the chat
- * jumped to the top of the list (placed by time) while its row still showed an
- * older message (read by position).
- *
- * Reading by time makes the preview, its date, and the row's position agree,
- * whatever order the array happens to be in. A tie keeps the later element, so
- * two messages in the same second behave as before.
- */
-const getLatestMessage = (messages) => {
-  if (!messages || messages.length === 0) return null;
-  return messages.reduce((latest, current) =>
-    new Date(current.created_at).getTime() >=
-    new Date(latest.created_at).getTime()
-      ? current
-      : latest,
-  );
-};
 
 function ChatLists(props) {
   const {
     data: chats,
     chat_loading: loading,
-    openChat,
-    watchChannel,
     pinnedChats: pinned,
-    chatSearchResults: searchResults,
     activeChat,
-
-    forwarded_message,
   } = useAppStore();
   const [hasMore, setHasMore] = useState(true);
-  const handleClick = (e) => {
-    if (true) {
-      let friendId = e.channel_members.filter(
-        (member) => parseInt(member.user_id) !== parseInt(getUserChat().id),
-      )[0]?.user_id;
-      GetLastSeen(e.id, friendId);
-    }
-    openChat(e);
-    if (e?.id && !(typeof e?.id === "string" && e.id.includes("ch")))
-      watchChannel(e?.id);
-    if (forwarded_message) {
-      forwardMessage(forwarded_message, e);
-    }
-  };
+  const handleClick = openChatFromList;
   if (loading) {
     return (
       <div className="chat-list-items gap-[10px]">
@@ -103,54 +61,6 @@ function ChatLists(props) {
         return newestB - newestA;
       });
   };
-
-  /** Shown by the search because the other member's user name matches. */
-  const listedBySearch = (chat) =>
-    (!chat.isPrivate || chat.channel_name !== "Delivery Worker") &&
-    chat.channel_members.some(
-      (mem) =>
-        mem.user_id !== getUserChat()?.id &&
-        mem.user?.name?.toLowerCase()?.includes(props.search.toLowerCase()),
-    );
-
-  /** One chat row in the search results. */
-  const searchChatRow = (chat, key) => (
-    <ChatItem
-      key={key}
-      myKey={key}
-      isActive={activeChat?.id === chat.id}
-      handleClickChat={() => handleClick(chat)}
-      status={chat.status}
-      unread={chat.unread}
-      newMessage={isNew(chat.messages)}
-      pinned={
-        parseInt(
-          chat.channel_members.filter((s) => s.user_id === getUserChat()?.id)[0]
-            ?.pin,
-        ) === 1
-      }
-      muted={
-        parseInt(
-          chat.channel_members.filter((s) => s.user_id === getUserChat()?.id)[0]
-            ?.mute,
-        ) === 1
-      }
-      SenderName={
-        chat?.channel_members.filter(
-          (member) => member?.user_id !== getUserChat()?.id,
-        )[0]?.user?.name
-      }
-      photo={
-        chat?.channel_members.filter(
-          (member) => member?.user_id !== getUserChat()?.id,
-        )[0]?.user?.photo_path
-      }
-      lastMessage={getLatestMessage(chat.messages)}
-      id={chat.id}
-      chat={chat}
-      chat_members={chat?.channel_members}
-    />
-  );
 
   return (
     <div className="chat-list-items chat-lists-class ">
@@ -254,46 +164,7 @@ function ChatLists(props) {
               )}
             </>
           ) : (
-            <>
-              {chats
-                .filter(listedBySearch)
-                .map((chat, key) => searchChatRow(chat, key))}
-
-              {searchResults
-                .filter((mem) =>
-                  mem.name.toLowerCase().includes(props.search.toLowerCase()),
-                )
-                .map((item, key) => {
-                  // `item.id` is the contact record. The person is
-                  // `contact_user_id`, which the contact search sends as a
-                  // string, so compare as numbers.
-                  const existingChat = chats.find((chat) =>
-                    chat.channel_members.some(
-                      (mem) =>
-                        parseInt(mem.user_id) ===
-                        parseInt(item.contact_user_id),
-                    ),
-                  );
-                  // A contact who already has a chat opens that chat. A new
-                  // chat here would be an empty placeholder, while the backend
-                  // puts the message into the existing chat.
-                  if (existingChat) {
-                    return listedBySearch(existingChat)
-                      ? null
-                      : searchChatRow(existingChat, key);
-                  } else
-                    return (
-                      <SearchResult
-                        key={key}
-                        myKey={key}
-                        item={item}
-                        handleClickChat={(e) => handleClick(e)}
-                        SenderName={item.name}
-                        isUser={Boolean(item.contact_user_id)}
-                      />
-                    );
-                })}
-            </>
+            <ChatSearchResults search={props.search} />
           )}
         </>
       )}

@@ -1,32 +1,25 @@
 import ChatItem from "components/Chat/components/ChatItem";
 
-import { forwardMessage } from "../chatsFunctions";
 import SearchResult from "components/Chat/components/SearchResult";
+import ChatSearchResults, {
+  openChatFromList,
+} from "components/Chat/components/ChatSearchResults";
+import { dedupeContacts } from "components/Chat/chatSearch";
 import { getUserChat, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import ChatContactsUpload from "../components/ChatContactsUpload";
 
 function ContactLists(props) {
-  const {
-    data: chats,
-    language,
-    contacts,
-    forwarded_message,
-    openChat,
-    watchChannel,
-  } = useAppStore();
+  const { data: chats, language, contacts } = useAppStore();
 
-  const handleClick = (e) => {
-    openChat(e);
-    if (e?.id) watchChannel(e?.id);
-    if (forwarded_message) {
-      forwardMessage(forwarded_message, e);
-    }
-  };
+  const handleClick = openChatFromList;
   return (
     <div className="chat-list-items">
       <ChatContactsUpload />
-      {contacts.length === 0 ? (
+      {/* A search draws the same rows as in the chats tab. */}
+      {props.search.length > 0 ? (
+        <ChatSearchResults search={props.search} onOpened={props.close} />
+      ) : contacts.length === 0 ? (
         <div className="notification-enable">
           <div>{translateFunction("No Contacts", language)}</div>
           <div>
@@ -38,19 +31,8 @@ function ContactLists(props) {
         </div>
       ) : (
         <>
-          {contacts
-            .filter((contact) => {
-              if (props.search.length === 0) return true;
-              else
-                return (
-                  contact.name
-                    .toLowerCase()
-                    .includes(props.search.toLowerCase()) ||
-                  contact.mobile_phone
-                    .toLowerCase()
-                    .includes(props.search.toLowerCase())
-                );
-            })
+          {/* One row per person: the same phone or user saved twice shows once. */}
+          {dedupeContacts(contacts)
             .map((contact, key) => {
               if (
                 chats.filter(

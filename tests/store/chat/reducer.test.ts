@@ -307,6 +307,24 @@ describe("chat slice — message flow", () => {
     expect(s2.get().activeChat, "a message to another chat opened it").toBeNull();
   });
 
+  // A contact opens a `ch-<user id>` placeholder. The chat backend puts the
+  // first message into the chat it already has with that user and answers with
+  // its real id. The placeholder used to become a second chat with that id,
+  // holding only the new message, next to the real one with the history.
+  it("sendNewMessage joins a placeholder chat to the loaded chat with the same user", () => {
+    const history = msg("40-m1");
+    const sent = msg("40-m2");
+    const placeholder = channel("ch-2", { messages: [msg("pending")] });
+    const s = makeStore({ data: [channel(40, { messages: [history] }), placeholder], activeChat: placeholder });
+
+    s.get().sendNewMessage({ channel: { id: 40, messages: [sent], mid: "ch-2" } });
+
+    expect(s.get().data.map((c: any) => c.id), "the placeholder was not joined to the real chat").toEqual([40]);
+    expect(s.get().data[0].messages.map((m: any) => m.id), "the real chat lost its history or the new message").toEqual([history.id, sent.id]);
+    expect(s.get().activeChat?.id, "the open chat is still the placeholder").toBe(40);
+    expect(s.get().activeChat?.messages.map((m: any) => m.id), "the open chat does not show its history").toEqual([history.id, sent.id]);
+  });
+
   it("setIsTyping stores the typing state and keeps the old date when none is given", () => {
     const s = makeStore({ data: [channel(1, { activeDate: "old" })] });
     s.get().setIsTyping({ id: 1, desc: "typing" });
