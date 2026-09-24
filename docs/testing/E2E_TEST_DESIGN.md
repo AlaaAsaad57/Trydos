@@ -399,8 +399,8 @@ or a token in a failure message is published, not merely untidy.
 
 | File | Runs on | Runs |
 |---|---|---|
-| `tests.yml` *(unchanged)* | `pull_request` + `push` → `develop`, `main` | parity, lint, types, unit |
-| `test-e2e.yml` | `push` → `develop`; nightly; dispatch | calls `e2e-lane.yml` twice — once per lane |
+| `tests.yml` | Friday 02:10 UTC (`main`); dispatch | parity, lint, types, unit |
+| `test-e2e.yml` | Friday 02:30 UTC (`main`); dispatch | calls `e2e-lane.yml` twice — once per lane |
 | `e2e-lane.yml` | `workflow_call` only | preflight, build, browser journeys for one lane |
 
 **The suite runs as two lanes, at the same time.** It was one serial job of about
@@ -431,8 +431,8 @@ secret.
 
 1. **Never cancelled.** `cancel-in-progress: false`. A queued run is cheap; an
    orphaned order is not.
-2. **Only one run may touch staging at a time.** The push run and the nightly
-   share one global `live-suite` group. Two runs in the same staging shop break
+2. **Only one run may touch staging at a time.** The Friday run and a run
+   started by hand share one global `live-suite` group. Two runs in the same staging shop break
    each other for reasons that look exactly like product bugs.
 
 **The environment is one secret, `E2E_ENV_FILE`, holding the whole

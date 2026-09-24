@@ -1,4 +1,4 @@
-# The check that runs on every pull request into development and main.
+# The unit check: every Friday, or by hand. It tests `main`.
 #
 # It runs the four things that already pass locally, in one job, so a red run
 # points at exactly one broken thing. Every step carries `if: ${{ !cancelled() }}`
@@ -10,15 +10,28 @@
 # request fails the test rather than leaving the runner.
 #
 # ---------------------------------------------------------------------------
+# When it runs
+#
+# **Not on a push, and not on a pull request.** Only two events start it:
+#
+#   * `schedule` — every Friday at 02:10 UTC. GitHub reads `schedule:` only
+#     from the default branch, `main`, so the run checks out `main`.
+#   * `workflow_dispatch` — by hand, from the Actions tab or
+#     `gh workflow run Tests --ref main`. It checks out the ref you pick.
+#
+# So nothing blocks a pull request. That is a choice, not an accident: run it
+# by hand on a branch when you want an answer before the Friday run.
+#
+# ---------------------------------------------------------------------------
 # Where the browser suite goes
 #
 # It is **not** in this file. The suite that talks to the real staging backend
-# runs in Chromium and lives in `.github/workflows/test-e2e.yml`, on push and
-# nightly, never on a pull request.
+# runs in Chromium and lives in `.github/workflows/test-e2e.yml`, on the same
+# Friday / by-hand triggers.
 #
 # The reason it is a separate file rather than another job here is the
 # `cancel-in-progress: true` immediately below. That cancels the whole run —
-# every job in it — as soon as another push lands on the same branch, and a
+# every job in it — as soon as another run starts on the same ref, and a
 # job-level concurrency group cannot opt out of that. A browser run killed
 # halfway may already have created a real order on staging and would never reach
 # the teardown that cancels it. So it runs where nothing cancels it.
@@ -29,13 +42,14 @@
 name: Tests
 
 on:
-  pull_request:
-    branches: [development, main]
-  push:
-    branches: [development, main]
+  schedule:
+    # Friday, 02:10 UTC. Off the hour on purpose — the top of the hour is when
+    # every scheduled workflow on the platform queues at once. The browser suite
+    # starts at 02:30, so the unit result arrives first.
+    - cron: '10 2 * * 5'
   workflow_dispatch:
 
-# A new push to the same branch cancels the run still going for the old one.
+# A new run on the same ref cancels the run still going for the old one.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -166,12 +180,7 @@ jobs:
     name: Telegram
     needs: verify
     # `always()` so a red run is the one that definitely reports.
-    #
-    # Pull requests are left out on purpose: a pull request already shows its
-    # own result, and notifying there would be a message for every push to every
-    # open branch. Delete the second condition to include them — but note that a
-    # fork's pull request has no secrets, so it would send nothing anyway.
-    if: ${{ always() && github.event_name != 'pull_request' }}
+    if: ${{ always() }}
     uses: ./.github/workflows/notify-telegram.yml
     with:
       result: ${{ needs.verify.result }}

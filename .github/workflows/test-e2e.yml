@@ -1,4 +1,5 @@
-# The browser suite, against real staging.
+# The browser suite, against real staging: every Friday, or by hand. It tests
+# `main`.
 #
 # It drives a real `next build` + `next start` in Chromium against the real
 # staging backends. See docs/testing/E2E_TEST_DESIGN.md.
@@ -7,87 +8,71 @@
 # Why this is its own file and not a job in tests.yml
 #
 # tests.yml sets `cancel-in-progress: true` at the workflow level, which cancels
-# the entire run — every job in it — as soon as another push lands on the same
-# branch. A job-level concurrency group does not protect a job from that.
+# the entire run — every job in it — as soon as another run starts on the same
+# ref. A job-level concurrency group does not protect a job from that.
 #
-# The suite still needs its own group, and that is why it needs its own file. It
-# is cancelled by a newer push of its own (see `concurrency` below), but it must
+# The suite needs its own group, and that is why it needs its own file. It must
 # never be cancelled by an unrelated job in tests.yml, and it must hold one lock
-# that is shared across branches and across the nightly — which a job inside
+# that is shared across refs and across the Friday run — which a job inside
 # tests.yml cannot have separately from the rest of that workflow.
 # ---------------------------------------------------------------------------
 #
-# **Never on a pull request.** Two reasons, and both are load-bearing:
+# **Never on a pull request, and never on a push.** Only two events start it:
+#
+#   * `schedule` — every Friday at 02:30 UTC. GitHub reads `schedule:` only
+#     from the default branch, `main`, so the run tests `main`.
+#   * `workflow_dispatch` — by hand, from the Actions tab or
+#     `gh workflow run E2E --ref main`. It tests the ref you pick.
+#
+# Why never on a pull request, and both reasons still hold:
 #
 #   * A pull request must not be blocked because staging is down. A red check on
 #     a pull request has to mean "the code broke", nothing else.
 #   * It needs staging secrets, and a pull request from a fork never gets them.
-#     Gating on push and schedule keeps forks working.
 #
 # ---------------------------------------------------------------------------
 # This file has to exist on `main`, and so does `e2e-lane.yml`
 #
-# GitHub reads `schedule:` and `workflow_dispatch:` only from the **default**
-# branch, which in this repository is `main`. While this file lived on `development`
-# alone the cron below was never armed: every run in the history was a `push`,
-# and the nightly silently never happened.
+# The copy on `main` is the one the Friday run uses. A run started from this
+# file calls `./.github/workflows/e2e-lane.yml` from the same ref, so a `main`
+# that has this file without that one fails the Friday run at once with
+# "workflow not found". Any edit to either needs to reach `main`, or the copy
+# that runs on Friday is the old one.
 #
-# So `main` carries the workflow files — and only those — out of `development`. It
-# does not carry the suite: `main` is the staging gate and has no `tests/`, no
-# Playwright config and no `e2e:*` scripts. That shapes the two rules below:
-# nothing here triggers on a push to `main`, and a scheduled run checks out
-# `development` (the `ref:` for that is in `e2e-lane.yml`, which is where the
-# checkout now lives).
-#
-# **Two files now, and both must travel.** A run started from this file calls
-# `./.github/workflows/e2e-lane.yml` from the same ref, so a `main` that has
-# this file without that one fails the nightly immediately with "workflow not
-# found". Any edit to either needs a pull request to `main` as well as to
-# `development`, or the copies drift and the one that runs the nightly is the stale
-# one.
+# **Deploys no longer wait for this.** `deploy.yml` used to start when a push
+# run of this workflow finished. There are no push runs now, so deploying is by
+# hand only — see the note at the top of `deploy.yml`.
 # ---------------------------------------------------------------------------
 
 name: E2E
 
 on:
-  # **`development` only.** `main` carries this file (see above) but not the suite,
-  # so a push to `main` that started this workflow would die on
-  # `pnpm e2e:preflight` — script not found — and paint the staging branch red
-  # for tests it does not contain. Add `main` back on the day `development` is
-  # merged up and `main` carries the tooling.
-  push:
-    branches: [development]
   schedule:
-    # Nightly, 02:30 UTC. Off the hour on purpose — the top of the hour is when
+    # Friday, 02:30 UTC. Off the hour on purpose — the top of the hour is when
     # every scheduled workflow on the platform queues at once.
-    - cron: '30 2 * * *'
+    - cron: '30 2 * * 5'
   workflow_dispatch:
 
-# **One global group, and the newest push wins.**
+# **One global group, and a run is never cancelled.**
 #
-# `live-suite` is shared with every other run of this workflow, so a merge and
-# the nightly can never be in the same staging shop at the same time. Two runs
-# adding to one cart break each other for reasons that look exactly like product
-# bugs. That half has not changed.
+# `live-suite` is shared with every other run of this workflow, so the Friday
+# run and a run started by hand can never be in the same staging shop at the
+# same time. Two runs adding to one cart break each other for reasons that look
+# exactly like product bugs.
 #
-# `cancel-in-progress: true` is a deliberate trade, made because the suite takes
-# about half an hour and waiting it out told nobody anything about the code that
-# had just been pushed. The old value bought one thing, and this is what it cost
-# and what it now costs:
+# `cancel-in-progress: false`, so a second run waits in the queue instead of
+# killing the first. That is what keeps the `orders` fixture teardown
+# (`tests/e2e/fixtures.ts`) safe: a run is never killed mid-checkout, so it
+# always reaches the orphan net and cancels any order the journey left live on
+# staging. The old value, `true`, existed only so a new push did not wait for
+# the previous push run. There are no push runs any more, so nothing is gained
+# by cancelling.
 #
-#   * **What was bought:** a run is never killed mid-checkout, so the `orders`
-#     fixture teardown (`tests/e2e/fixtures.ts`) always reaches the orphan net
-#     and cancels any order the journey left live on staging.
-#   * **What it cost:** every push waited for the previous run to finish before
-#     it learned anything.
-#   * **What this now costs:** a cancelled run may have an order on staging and
-#     only a few seconds to cancel it — GitHub sends SIGINT, then kills. So the
-#     net can miss. If an order is found live on staging with nobody claiming
-#     it, a cancelled run is the first place to look, and `workflow_dispatch`
-#     re-runs the suite when nothing else is in the group.
+# GitHub keeps at most one run waiting per group. If a third run starts while
+# one runs and one waits, the waiting one is dropped, not the running one.
 concurrency:
   group: live-suite
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -103,8 +88,8 @@ permissions:
 # **The `live-suite` lock above still covers both**, and that matters: the two
 # lanes are jobs of one run, so the group keeps one E2E *run* in the staging
 # shop at a time while letting the two lanes inside it run together. A second
-# group per lane would have been wrong — it would let a merge's account lane and
-# the nightly's account lane into the same shop at once.
+# group per lane would have been wrong — it would let a hand-started run's
+# account lane and the Friday run's account lane into the same shop at once.
 #
 # `account` is the gate: it holds the money path, the sign-in and every real
 # write. `solo` is guests and faked answers. Each lane fails on its own, and

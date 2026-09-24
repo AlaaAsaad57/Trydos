@@ -5,7 +5,7 @@
 #
 # **Called twice by `test-e2e.yml`, once per lane, and never triggered on its
 # own.** Everything about *when* the suite runs — the events, the `live-suite`
-# lock, the nightly — lives in that file. Everything about *how* one lane runs
+# lock, the Friday schedule — lives in that file. Everything about *how* one lane runs
 # lives here.
 #
 # ---------------------------------------------------------------------------
@@ -45,16 +45,16 @@
 # more in upload and download than the 55 seconds it saves.
 #
 # ---------------------------------------------------------------------------
-# `ref:` further down, and why it is still needed here
+# Which code a lane tests
 #
-# A scheduled run is dispatched from the default branch, `main`, and the
-# `github` context inside a called workflow is still the original event's. So
-# the checkout below has to ask the same question it always did — see the note
-# on that step.
+# The checkout below takes no `ref:`, so it checks out `github.ref`. A
+# scheduled run starts from the default branch, `main`, so the Friday run tests
+# `main`. A run started by hand tests the ref it was started on. The `github`
+# context inside a called workflow is still the caller's, so this holds here
+# too.
 #
-# Any edit to this file needs a pull request to `main` as well as to `development`.
-# `main` carries the workflow files but not the suite, and the copy on `main` is
-# the one the nightly runs.
+# Any edit to this file must reach `main`. The copy on `main` is the one the
+# Friday run uses.
 # ---------------------------------------------------------------------------
 
 name: E2E lane
@@ -92,15 +92,10 @@ jobs:
       video_url: ${{ steps.upload.outputs.artifact-url }}
 
     steps:
-      # A scheduled run is dispatched from the default branch, `main`, so left
-      # alone it would check out `main` — the staging gate, which has no tests in
-      # it. The code under test at night is `development`. Every other event checks
-      # out whatever it was fired on, which is what a push and a manual run
-      # already mean.
+      # No `ref:` — see "Which code a lane tests" at the top. Friday = `main`;
+      # by hand = the ref the run was started on.
       - name: Check out the code under test
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'schedule' && 'development' || github.ref }}
 
       # Pinned here rather than in package.json's `packageManager` field: the
       # deploy platform runs its own install command, and a `packageManager`
@@ -381,7 +376,7 @@ jobs:
           # collision, and the second one fails.
           name: e2e-session-${{ inputs.lane }}
           path: /tmp/e2e-session.7z
-          # Short on purpose. The default is 90 days, and a nightly run would
+          # Short on purpose. The default is 90 days, and a weekly run would
           # otherwise leave three months of recordings of the staging account.
           # Three days covers a weekend, which is the longest a red run should
           # wait to be looked at.

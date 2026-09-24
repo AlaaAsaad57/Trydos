@@ -29,7 +29,7 @@ pnpm e2e:health     # is staging answering? run this before blaming a test
 pnpm lint:i18n-parity   # ar/tr/ku translation keys are in step
 ```
 
-Two suites exist: the **unit** suite (`tests/`, Vitest) and the **browser** suite (`tests/e2e/`, Playwright, run against staging). The unit suite gates pull requests (`tests.yml`: parity, lint, typecheck, unit). The browser suite does **not** — it runs on push, dispatch and nightly (`test-e2e.yml`). Do not add tests outside these two, and do not add a test for code that has no caller. Anything you do add must follow the rule below.
+Two suites exist: the **unit** suite (`tests/`, Vitest) and the **browser** suite (`tests/e2e/`, Playwright, run against staging). In CI, neither suite runs on a push or a pull request. Both run every **Friday** on `main` (unit at 02:10 UTC in `tests.yml`: parity, lint, typecheck, unit; browser at 02:30 UTC in `test-e2e.yml`), or by hand with `gh workflow run Tests` / `gh workflow run E2E --ref <branch>`. Deploying is by hand too (`gh workflow run Deploy`). Do not add tests outside these two, and do not add a test for code that has no caller. Anything you do add must follow the rule below.
 
 ## Opening the app by hand — always use the `sy-en` locale
 
@@ -273,9 +273,10 @@ the fix back.
 
 **Which suite.** Put the test where the bug lives: the unit suite (`tests/`) for
 anything that can be reproduced without a backend, and the browser suite
-(`tests/e2e/`) only when it genuinely cannot. Prefer the unit suite — it gates
-every pull request; the browser suite never does, so a fix proved only there is
-unguarded from the day it lands.
+(`tests/e2e/`) only when it genuinely cannot. Prefer the unit suite — it runs in about
+five minutes with no backend, so a fix proved there is checked on every run;
+the browser suite needs staging up, so a fix proved only there goes unchecked
+whenever staging is down.
 
 **The two allowed exceptions, both narrow.**
 
@@ -319,7 +320,7 @@ Check these **before** you suspect the app. Each one has turned a green app red.
 | No cash-on-delivery offered | COD exists only in `sy`; the live suite defaults to `iq` | Seed `sy` for any paying case |
 | Every journey fails on the nav logo | Staging Elasticsearch is down; one ES throw blanks the page | `pnpm e2e:health` first |
 | `ERR_ABORTED` on a `page.goto` | A popup (cart / login / stories) that just closed cancelled it | `waitForPopupHistorySettled` |
-| A dispatched E2E run shows `cancelled` | `test-e2e.yml` uses one global `live-suite` group with `cancel-in-progress` — any push to `development` cancels it | Do not push while a run you need is going |
+| A dispatched E2E run shows `cancelled` without starting | `test-e2e.yml` uses one global `live-suite` group; GitHub keeps only one run waiting, so a third run drops the one already waiting | Start one run at a time, and wait for it |
 | **AUTH-01** red | The wallet backend answers `502` on sign-in | Stays red on purpose — a backend fault |
 
 The shopper account is shared by every case. A killed run can leave its data

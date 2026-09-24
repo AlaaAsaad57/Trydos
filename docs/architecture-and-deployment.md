@@ -56,30 +56,31 @@ the install command `rm -rf node_modules && yarn install --production=false`
 
 | Workflow | When it runs | What it does |
 |---|---|---|
-| `tests.yml` | Every PR and push to `develop` / `main` | i18n parity, lint, type check, unit tests (Vitest). About 5 min |
-| `test-e2e.yml` + `e2e-lane.yml` | Push to `develop`, nightly 02:30 UTC | Builds the app, runs Playwright in 2 lanes against the staging backends. 15–45 min. |
-| `deploy.yml` | When E2E finishes, or started by hand | Deploys to Vercel if **both** suites passed |
+| `tests.yml` | Friday 02:10 UTC on `main`, or by hand | i18n parity, lint, type check, unit tests (Vitest). About 5 min |
+| `test-e2e.yml` + `e2e-lane.yml` | Friday 02:30 UTC on `main`, or by hand | Builds the app, runs Playwright in 2 lanes against the staging backends. 15–45 min. |
+| `deploy.yml` | By hand only | Deploys to Vercel if **both** suites passed for that commit (or with `force`) |
 | `notify-telegram.yml` | Called by the others | Sends the result to the Telegram channel |
 
 **How a deploy happens**
 
 1. Vercel's own Git deploys are **off** (`vercel.json` → `git.deploymentEnabled: false`).
    GitHub Actions is the only thing that deploys.
-2. A push to `develop` starts the unit tests and E2E.
-3. When E2E finishes, the `Deploy` gate checks if both suites passed for that exact commit.
+2. Nothing deploys on a push. You start `Deploy` by hand on a ref.
+3. The `Deploy` gate checks if both suites passed for that exact commit. The
+   Friday run covers the tip of `main`; any other commit needs both test
+   workflows started by hand on it first.
 4. If yes, it runs `vercel deploy --archive=tgz` without `--prebuilt`.
-   Vercel builds the app remotely with its own env vars. `develop` becomes a
-   **preview** deployment.
+   Vercel builds the app remotely with its own env vars. `main` becomes
+   **production**, `development` a **preview** deployment.
 5. The result goes to Telegram.
 
 **Switch:** the repo variable `DEPLOY_WHEN_SUCCESS` (now `true`). Set it to
 `false` to deploy even when the tests are red.
 
-**Production (`main`) is manual.** `main` has no test suite, so the gate can
-never pass for it. To deploy production:
-
 ```bash
-gh workflow run Deploy --ref main -f force=true
+gh workflow run Deploy --ref main                 # production, needs green Friday run
+gh workflow run Deploy --ref development          # preview
+gh workflow run Deploy --ref main -f force=true   # skip the test check once
 ```
 
 **Secrets** (GitHub repo): `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`,
