@@ -10,7 +10,7 @@
 //     has its own test file (tests/components/SellerDashboard/ui/RichTextEditor.test.tsx);
 //   - the gallery picker modal, by two buttons that pick / close — it talks to
 //     the media backend and is not what these sections decide.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
@@ -163,7 +163,9 @@ function Harness({
   props: Partial<SectionProps>;
 }) {
   const [form, setForm] = useState(initial);
-  latest = form;
+  useEffect(() => {
+    latest = form;
+  });
   const patch = (p: Partial<ProductForm>) => {
     patchSpy(p);
     setForm((f) => ({ ...f, ...p }));

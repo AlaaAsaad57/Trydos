@@ -36,12 +36,14 @@ export default function RdbPaymentLockedSheet() {
   const [dismissed, setDismissed] = useState(false);
   const isRtl = language === "ar" || language === "ku";
 
-  // A new pending request replaces whatever the shopper saw about the last
-  // one.
+  // Every refused cart write stores a new lock object, even for the same
+  // pending reference. Show the sheet again each time: a dismiss hides it only
+  // until the shopper's next refused action, otherwise that action fails
+  // without a word.
   useEffect(() => {
     setAlreadyPaid(false);
     setDismissed(false);
-  }, [rdbLock?.reference]);
+  }, [rdbLock]);
 
   // Rule 2 of the ownership fix (see the design doc): while this sheet's own
   // view is what is on screen, it is the only thing watching the request, so
@@ -90,7 +92,8 @@ export default function RdbPaymentLockedSheet() {
 
   // The shopper closed the sheet without finishing or cancelling. The lock
   // stays — the payment is still pending on the core backend — but nothing
-  // forces the sheet itself on screen everywhere the shopper goes. The poll
+  // forces the sheet itself on screen everywhere the shopper goes. The next
+  // refused cart write shows it again (see the reset effect above). The poll
   // effect above keeps running regardless, so the lock still clears on its
   // own the moment the request ends.
   if (dismissed) return null;

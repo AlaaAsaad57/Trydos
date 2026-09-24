@@ -1,4 +1,5 @@
 // The page body hides while an intercepted-route overlay shows, and comes back after.
+import { useEffect } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 const scroll = vi.hoisted(() => ({ restore: vi.fn() }));
@@ -13,7 +14,10 @@ import { act, renderWithProviders, screen } from "../../render";
 
 let setActive: (value: boolean) => void = () => {};
 function Switch() {
-  setActive = useOverlayVisibility().setOverlayActive;
+  const { setOverlayActive } = useOverlayVisibility();
+  useEffect(() => {
+    setActive = setOverlayActive;
+  });
   return null;
 }
 

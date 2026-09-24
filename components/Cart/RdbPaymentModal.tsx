@@ -404,6 +404,15 @@ export default function RdbPaymentModal({
                     {cancelling ? <Spinner /> : translateFunction("Cancel payment")}
                   </div>
                 )}
+                {!isOpen && (
+                  <div
+                    className="flex items-center justify-center h-[40px] flex-1 rounded-[15px] bg-[#F8F8F8] text-[#1D1D1D] regular text-[12px] cursor-pointer"
+                    data-pw="rdb-end-close"
+                    onClick={onClose}
+                  >
+                    {translateFunction("Close")}
+                  </div>
+                )}
               </div>
             </React.Fragment>
           )}

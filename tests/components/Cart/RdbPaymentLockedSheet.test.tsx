@@ -254,6 +254,30 @@ describe("RdbPaymentLockedSheet", () => {
       "dismissing the sheet must not cancel the still-pending payment",
     ).not.toBeNull();
   });
+  it("shows again after a dismiss when the core backend refuses another cart write for the same pending request", async () => {
+    vi.mocked(GetRdbRequest).mockResolvedValue(null as any);
+    await renderWithProviders(<RdbPaymentLockedSheet />, {
+      store: { rdbLock: { reference: "ref-1", expires_at: null } },
+    });
+
+    fireEvent.click(document.querySelector('[data-pw="rdb-lock-close"]')!);
+    expect(
+      screen.queryByText("You have a payment in progress"),
+      "the close control must hide the sheet before the second refusal",
+    ).toBeNull();
+
+    // The shopper taps + in the cart. The core backend answers 409 again with
+    // the same reference, and the cart service stores the lock again.
+    act(() => {
+      useAppStore.getState().setRdbLock({ reference: "ref-1", expires_at: null });
+    });
+
+    expect(
+      screen.queryByText("You have a payment in progress"),
+      "a new refused cart write must show the sheet again, even for the same reference, or the shopper sees nothing and the action fails without a word",
+    ).not.toBeNull();
+  });
+
   it.each(["modal-success", "modal-close"])(
     "goes back to the locked sheet when the payment screen reports %s",
     async (button) => {

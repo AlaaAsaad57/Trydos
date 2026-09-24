@@ -231,6 +231,35 @@ describe("RdbPaymentModal", () => {
     vi.useRealTimers();
   });
 
+  it("offers a Close button on an expired payment, and it closes the screen", async () => {
+    const onClose = vi.fn();
+    vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+      kind: "created",
+      request: pending,
+    });
+    vi.mocked(GetRdbRequest).mockResolvedValue({ ...pending, status: "expired" });
+
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
+    await renderWithProviders(
+      <RdbPaymentModal onSuccess={vi.fn()} onClose={onClose} />,
+      { store: storeState },
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+
+    const close = document.querySelector('[data-pw="rdb-end-close"]');
+    expect(
+      close,
+      "an expired payment must offer a Close button, not leave the shopper with only the backdrop",
+    ).not.toBeNull();
+    fireEvent.click(close!);
+    expect(onClose, "the Close button on an expired payment must close the screen").toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
   it("shows the core backend's own reason when the request failed", async () => {
     vi.mocked(StartRdbPayment).mockResolvedValueOnce({
       kind: "created",
