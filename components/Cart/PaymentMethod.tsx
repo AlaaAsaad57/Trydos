@@ -416,7 +416,7 @@ const CODInput = ({ active, setActive, total, disabled = false }) => {
         </span>
         {currency && (
           <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-            {RoundPrice({ num: cod_cost, returnNumber: true })}{" "}
+            {RoundPrice({ charged: true, num: cod_cost, returnNumber: true })}{" "}
             {currency?.symbol}
           </span>
         )}

@@ -903,6 +903,7 @@ const OrderExpandedDetails = ({
           {translateFunction("Items")} .{" "}
           <span className="bold mx-[2px]">
             {RoundPrice({
+              charged: true,
               num: order.order_amount,
               language: language,
               returnNumber: true,
@@ -1317,6 +1318,7 @@ const ProductCard = ({
                 >
                   {/* {RoundPrice({ num: product.price, language: language })} */}
                   {RoundPrice({
+                    charged: true,
                     num: product?.price,
                     language: language,
                     returnNumber: true,
@@ -1332,6 +1334,7 @@ const ProductCard = ({
                   language: language,
                 })} */}
                 {RoundPrice({
+                  charged: true,
                   num: product?.offer_price,
                   language: language,
                   returnNumber: true,
@@ -1363,6 +1366,7 @@ const ProductCard = ({
                 )?.status,
               }}
               price={RoundPrice({
+                charged: true,
                 num:
                   (product?.offer_price / product?.qty) *
                   Number(

@@ -921,6 +921,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
               >
                 {cart.length} {translateFunction("items")}{" "}
                 {RoundPrice({
+                  charged: true,
                   num: getTotalPrice(),
                   returnNumber: true,
                   points: currency?.decimal_digits,

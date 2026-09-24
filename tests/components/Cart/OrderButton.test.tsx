@@ -159,6 +159,23 @@ describe("the payable total on the cart", () => {
       "the core backend changed the total and the cart drew the old figure",
     ).toBe("42");
   });
+
+  // _specs/round-price-convert-then-round, AC-9. The bag is a charged screen:
+  // it must show what the backend charges — the total times the rate, then
+  // rounded up to the currency's decimals. Rounding first lifts 69.9998 to 70.00
+  // and the rate turns that into 7000.
+  it("at rate 100 shows 6999.98 for 69.9998, the amount the backend charges", async () => {
+    await openTheCart({
+      total: 69.9998,
+      total_cash: 69.9998,
+      currency: { symbol: "$", exchange_rate: 100, decimal_digits: 2 },
+    });
+
+    expect(
+      figure("offer-total-price"),
+      "the bag rounded the total before the exchange rate, so it shows more than the backend charges",
+    ).toBe("6999.98");
+  });
 });
 
 describe("the Normal Price beside the total", () => {

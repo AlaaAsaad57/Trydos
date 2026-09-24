@@ -203,6 +203,35 @@ describe("the product card once the deal has ended (AC-9)", () => {
   });
 });
 
+// _specs/round-price-convert-then-round, AC-9. The listing card is a display
+// screen: it keeps today's rule — round up to the currency's decimals first,
+// then multiply by the rate — even where the bag shows the charged figure.
+describe("the product card's price rule", () => {
+  it("at rate 100 shows 7000 for 69.9998, the display figure", async () => {
+    await renderWithProviders(
+      <ProductCard
+        product={buildListingProduct({
+          price: 69.9998,
+          offer_price: 69.9998,
+          flash_deal_price: null,
+          flash_deal_end_date: null,
+        })}
+        currency={{ exchange_rate: 100, decimal_digits: 2, symbol: "£" }}
+        country="gb"
+        language="en"
+        sliders={false}
+        sizesFilters={null}
+        fromRecomended={null}
+      />,
+    );
+
+    expect(
+      shownPrice(),
+      "the listing card no longer shows the display figure (7000) for 69.9998 at rate 100",
+    ).toBe("7000");
+  });
+});
+
 describe("the product card with no deal at all (AC-9)", () => {
   it("shows the offer price and nothing about a deal", async () => {
     await renderCard(
