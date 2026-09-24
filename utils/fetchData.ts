@@ -13,6 +13,7 @@ import { useAppStore } from "store";
 import { toServiceToken } from "./serviceTokens";
 import { buildProxyGetUrl } from "./proxyGetUrl";
 import { formatFieldErrors } from "./fieldErrors";
+import { ignoredMessages } from "./ignoredMessages";
 
 // ---------- Types ----------
 export type ServerType =
@@ -163,28 +164,6 @@ const withLogoutSignal = (signal?: AbortSignal): AbortSignal => {
   return controller.signal;
 };
 const retryableStatusCodes = [502, 504, 429, 503];
-const ignoredMessages = [
-  "Data Got!",
-  "Data Got",
-  "تم الحصول على البيانات!",
-  "Veri Alındı!",
-  "Success",
-  "Country and language updated successfully",
-  "Product created and view count initialized",
-  "View count updated",
-  "Subscribed successfully",
-  "signal is aborted without reason",
-  "Failed to fetch",
-  "Too many attempts",
-  "Unauthorized",
-  "The user aborted a request.",
-  "Fetch is aborted",
-  "success",
-  "Policies Approved!",
-  "firebase device token stored successfully",
-  "Firebase settings retrieved successfully",
-  "Languages retrieved successfully"
-];
 
 // ---------- Helper Functions ----------
 

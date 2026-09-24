@@ -15,7 +15,7 @@ import {
 
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
-import { parseFieldErrors } from "utils/fieldErrors";
+import { ignoredMessages } from "utils/ignoredMessages";
 import { fetchAuthMe } from "utils/authMe";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
@@ -642,6 +642,15 @@ class AuthService {
       chat_done = false,
       stories_done = false,
       wallet_done = false;
+    // Did the request layer already put the refusal on screen? `fetchData`
+    // shows every refused answer unless its text is on the ignore list — the
+    // named field ("Email: email already exists") and the plain backend text
+    // alike. Set where a leg is refused, read by the general line below.
+    let refusalShown = false;
+    const shownByRequestLayer = (answer: any) =>
+      !ignoredMessages.includes(
+        answer?.message ?? answer?.data?.message ?? "",
+      );
 
     try {
       // --- Wallet profile update DISABLED (under development) ---
@@ -682,6 +691,7 @@ class AuthService {
       });
 
       if (!wallet_update?.success) {
+        refusalShown = shownByRequestLayer(wallet_update);
         throw new Error(wallet_update?.message || "Wallet update failed");
       }
       wallet_done = true;
@@ -727,6 +737,7 @@ class AuthService {
           }),
         });
         if (!res.success) {
+          refusalShown = shownByRequestLayer(res);
           throw new Error(res.message);
         }
         stories_done = true;
@@ -760,6 +771,7 @@ class AuthService {
           }),
         });
         if (!chat_update.success) {
+          refusalShown = shownByRequestLayer(chat_update);
           throw new Error(chat_update.message);
         }
         chat_done = true;
@@ -790,6 +802,7 @@ class AuthService {
         server: "market",
       });
       if (!res.success) {
+        refusalShown = shownByRequestLayer(res);
         throw new Error(res.message);
       }
       market_done = true;
@@ -961,13 +974,14 @@ class AuthService {
           { name: COOKIE_NAMES.USER_CHAT, value: revertChat },
         ]);
       }
-      // When the backend refused a named field, the request layer has already
-      // told the shopper which field and why, in their own language ("Email:
-      // email already exists"). The general line below would sit on top of that
-      // and say nothing, so it is only shown when there is no named field —
-      // which is the only case where the shopper would otherwise be told
-      // nothing at all.
-      if (!parseFieldErrors((error as any)?.message)) {
+      // When the request layer already put the refusal on screen — a named
+      // field ("Email: email already exists") or the backend's own text — the
+      // general line below would be a second message about one save. So it is
+      // shown only when the shopper would otherwise be told nothing at all: an
+      // ignored answer such as "Failed to fetch", or a failure that was not a
+      // refused request. (Two messages used to look like one, because the store
+      // kept only the newest; BUG-utils-5 fixed that, and SCRIPT-07 saw both.)
+      if (!refusalShown) {
         showErrorNotification(
           translateFunction("Failed to update profile Info"),
         );
