@@ -351,6 +351,8 @@ export async function getContacts() {
   }
 }
 export const getMedia = async (id, media) => {
+  // A `ch-<user id>` chat is a placeholder with no channel on the backend yet.
+  if (typeof id === "string" && id.includes("ch")) return;
   const { editChatInfoMedia } = useAppStore.getState();
   try {
     let response = await fetchData({
@@ -389,6 +391,8 @@ export const getMediaReducer = (media, data) => {
 };
 
 export const GetChatDetails = async (id) => {
+  // A `ch-<user id>` chat is a placeholder with no channel on the backend yet.
+  if (typeof id === "string" && id.includes("ch")) return;
   const { editChatInfo } = useAppStore.getState();
   try {
     let response = await fetchData({

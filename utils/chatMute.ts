@@ -3,7 +3,7 @@
 // Mute is stored per member, not per channel. Every row in `channel_members`
 // carries its own `mute`, and only the row of the signed-in user counts —
 // `muteChat` in store/chat/reducer.ts writes exactly that row, and the chat list
-// reads it back the same way (components/Chat/pages/ChatLists.js).
+// reads it back the same way (components/Chat/pages/ChatLists.jsx).
 //
 // The push payload never carries the flag, so everything that reacts to a push
 // has to read it from the chat the store already holds. Two places do:

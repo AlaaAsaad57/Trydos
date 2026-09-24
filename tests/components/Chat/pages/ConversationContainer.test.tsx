@@ -472,6 +472,13 @@ describe("ConversationContainer — sending text", () => {
     });
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2100);
+      // The timer has fired, but its write first waits for getDb(), which
+      // answers on a real macrotask that fake time cannot skip. Drain that
+      // queue, or the check below races the write and fails on a slow machine.
+      // Not waitFor: with shouldAdvanceTime its 1 s of real time also moves the
+      // fake clock, so a timer that never fired by 2.1 s would still pass.
+      await h.dbQueue;
+      await new Promise((resolve) => h.realSetTimeout(resolve, 0));
     });
     expect(h.fb.set, "typing was not cleared after two seconds").toHaveBeenCalledWith({ path: `Transaction/${ME}/${THEM}` }, null);
     h.fb.set.mockClear();

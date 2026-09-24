@@ -104,6 +104,54 @@ function ChatLists(props) {
       });
   };
 
+  /** Shown by the search because the other member's user name matches. */
+  const listedBySearch = (chat) =>
+    (!chat.isPrivate || chat.channel_name !== "Delivery Worker") &&
+    chat.channel_members.some(
+      (mem) =>
+        mem.user_id !== getUserChat()?.id &&
+        mem.user?.name?.toLowerCase()?.includes(props.search.toLowerCase()),
+    );
+
+  /** One chat row in the search results. */
+  const searchChatRow = (chat, key) => (
+    <ChatItem
+      key={key}
+      myKey={key}
+      isActive={activeChat?.id === chat.id}
+      handleClickChat={() => handleClick(chat)}
+      status={chat.status}
+      unread={chat.unread}
+      newMessage={isNew(chat.messages)}
+      pinned={
+        parseInt(
+          chat.channel_members.filter((s) => s.user_id === getUserChat()?.id)[0]
+            ?.pin,
+        ) === 1
+      }
+      muted={
+        parseInt(
+          chat.channel_members.filter((s) => s.user_id === getUserChat()?.id)[0]
+            ?.mute,
+        ) === 1
+      }
+      SenderName={
+        chat?.channel_members.filter(
+          (member) => member?.user_id !== getUserChat()?.id,
+        )[0]?.user?.name
+      }
+      photo={
+        chat?.channel_members.filter(
+          (member) => member?.user_id !== getUserChat()?.id,
+        )[0]?.user?.photo_path
+      }
+      lastMessage={getLatestMessage(chat.messages)}
+      id={chat.id}
+      chat={chat}
+      chat_members={chat?.channel_members}
+    />
+  );
+
   return (
     <div className="chat-list-items chat-lists-class ">
       {!loading && (
@@ -208,81 +256,31 @@ function ChatLists(props) {
           ) : (
             <>
               {chats
-                .filter(
-                  (s) => !s.isPrivate || s.channel_name !== "Delivery Worker",
-                )
-                .filter(
-                  (chat) =>
-                    chat.channel_members.filter(
-                      (mem) =>
-                        mem.user_id !== getUserChat()?.id &&
-                        mem.user?.name
-                          ?.toLowerCase()
-                          ?.includes(props.search.toLowerCase()),
-                    ).length > 0,
-                )
-                .map((chat, key) => {
-                  return (
-                    <ChatItem
-                      key={key}
-                      myKey={key}
-                      isActive={activeChat?.id === chat.id}
-                      handleClickChat={() => handleClick(chat)}
-                      status={chat.status}
-                      unread={chat.unread}
-                      newMessage={isNew(chat.messages)}
-                      pinned={
-                        parseInt(
-                          chat.channel_members.filter(
-                            (s) => s.user_id === getUserChat()?.id,
-                          )[0]?.pin,
-                        ) === 1
-                      }
-                      muted={
-                        parseInt(
-                          chat.channel_members.filter(
-                            (s) => s.user_id === getUserChat()?.id,
-                          )[0]?.mute,
-                        ) === 1
-                      }
-                      SenderName={
-                        chat?.channel_members.filter(
-                          (member) => member?.user_id !== getUserChat()?.id,
-                        )[0]?.user?.name
-                      }
-                      photo={
-                        chat?.channel_members.filter(
-                          (member) => member?.user_id !== getUserChat()?.id,
-                        )[0]?.user?.photo_path
-                      }
-                      lastMessage={getLatestMessage(chat.messages)}
-                      id={chat.id}
-                      chat={chat}
-                      chat_members={chat?.channel_members}
-                    />
-                  );
-                })}
+                .filter(listedBySearch)
+                .map((chat, key) => searchChatRow(chat, key))}
 
               {searchResults
                 .filter((mem) =>
                   mem.name.toLowerCase().includes(props.search.toLowerCase()),
                 )
                 .map((item, key) => {
-                  if (
-                    chats.filter(
-                      (chat) =>
-                        chat.channel_members.filter(
-                          (mem) => mem.user_id === item.id,
-                        ).length > 0,
-                    ).length > 0 ||
-                    chats.filter(
-                      (chat) =>
-                        chat.channel_members.filter(
-                          (mem) => mem.user_id === item.id,
-                        ).length > 0,
-                    ).length > 0
-                  ) {
-                    return <></>;
+                  // `item.id` is the contact record. The person is
+                  // `contact_user_id`, which the contact search sends as a
+                  // string, so compare as numbers.
+                  const existingChat = chats.find((chat) =>
+                    chat.channel_members.some(
+                      (mem) =>
+                        parseInt(mem.user_id) ===
+                        parseInt(item.contact_user_id),
+                    ),
+                  );
+                  // A contact who already has a chat opens that chat. A new
+                  // chat here would be an empty placeholder, while the backend
+                  // puts the message into the existing chat.
+                  if (existingChat) {
+                    return listedBySearch(existingChat)
+                      ? null
+                      : searchChatRow(existingChat, key);
                   } else
                     return (
                       <SearchResult

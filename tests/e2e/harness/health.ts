@@ -69,8 +69,9 @@
 // **One blip must never skip a whole run.** `preflight` uses this answer to
 // decide whether to build and run at all, so a probe that says "down" when the
 // backend is fine costs an entire run and reports a green tick for having tested
-// nothing. Every check is therefore tried **twice**, two seconds apart, and only
-// a second failure counts. That is also why a 4xx from the gateway is not
+// nothing. Every check is therefore tried up to **five** times over about a
+// minute (see `RETRY_PAUSES_MS`), stops at the first answer, and only a fifth
+// failure counts. That is also why a 4xx from the gateway is not
 // "down": a box that refuses a request is a box that is serving.
 
 import { request as httpRequest } from "node:http";
@@ -83,11 +84,18 @@ import { envValue, loadLiveEnv } from "./env";
 // for a node the app has already given up on.
 const PROBE_TIMEOUT_MS = 8_000;
 
-/** How long to leave between the first failure and the retry.
+/** The pauses between tries: five tries, stopping at the first answer.
  *
- *  Short on purpose. This is here to ride out one dropped packet or one
- *  connection refused during a restart, not to wait out an outage. */
-const RETRY_PAUSE_MS = 2_000;
+ *  With every try using its full `PROBE_TIMEOUT_MS`, a backend that never
+ *  answers is called down after 5 × 8 s + 20 s = 60 s.
+ *
+ *  It was two tries, 2 s apart, and that gave up after about 18 s. The GitHub
+ *  runners meet slow patches longer than that: runs 35968694510, 35965400734,
+ *  35869919139 and 35840383129 each skipped a lane on a timeout while the other
+ *  lane's runner reached the same backends seconds earlier in about 600 ms. A
+ *  skipped lane reports a green tick for having tested nothing, so a real
+ *  outage costing one more minute is the cheaper mistake. */
+const RETRY_PAUSES_MS = [2_000, 4_000, 6_000, 8_000];
 
 // The cheapest endpoint that needs both a live node and working credentials. Not
 // `/`, which some proxies answer without ever reaching Elasticsearch.
@@ -314,28 +322,30 @@ export const BACKEND_PROBES: readonly {
   { role: "core backend", addressKey: "BACKEND_URL" },
 ];
 
-/** Run a check, and give it a second chance before believing the bad news.
+/** Run a check until it passes, up to five times, before believing the bad news.
  *
  *  See the note at the top of this file: a false "down" costs a whole run and
- *  reports a green tick for having tested nothing, so one dropped packet must
- *  not be able to produce one. */
-const twice = async (
+ *  reports a green tick for having tested nothing, so a slow patch of a few
+ *  seconds must not be able to produce one. */
+const untilUp = async (
   check: () => Promise<CheckResult | null>,
 ): Promise<CheckResult | null> => {
-  const first = await check();
-  if (first === null || first.ok) return first;
+  const startedAt = Date.now();
+  let result = await check();
 
-  await new Promise((resolve) => setTimeout(resolve, RETRY_PAUSE_MS));
-  const second = await check();
-  if (second === null) return null;
+  for (const pause of RETRY_PAUSES_MS) {
+    if (result === null || result.ok) return result;
+    await new Promise((resolve) => setTimeout(resolve, pause));
+    result = await check();
+  }
+  if (result === null || result.ok) return result;
 
-  return second.ok
-    ? second
-    : {
-        ...second,
-        ok: false,
-        detail: `${second.detail} (asked twice, ${RETRY_PAUSE_MS / 1000}s apart)`,
-      };
+  const tries = RETRY_PAUSES_MS.length + 1;
+  const seconds = Math.round((Date.now() - startedAt) / 1000);
+  return {
+    ...result,
+    detail: `${result.detail} (asked ${tries} times over ${seconds}s)`,
+  };
 };
 
 /** Ask staging whether it is in a state worth testing against.
@@ -350,9 +360,9 @@ export const probeStaging = async (): Promise<HealthReport> => {
   loadLiveEnv();
 
   const results = await Promise.all([
-    twice(checkSearchBackend),
+    untilUp(checkSearchBackend),
     ...BACKEND_PROBES.map((probe) =>
-      twice(async () => await checkBackend(probe.role, probe.addressKey)),
+      untilUp(async () => await checkBackend(probe.role, probe.addressKey)),
     ),
   ]);
   const asked = results.filter((result): result is CheckResult => result !== null);

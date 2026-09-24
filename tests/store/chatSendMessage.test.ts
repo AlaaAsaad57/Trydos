@@ -316,6 +316,16 @@ describe("chat actions — calls to the chat backend", () => {
     expect(logError.mock.calls.at(-1)?.[0]?.error, "a thrown string was not logged").toBe("g");
   });
 
+  // A `ch-<user id>` chat is a placeholder for a person with no chat yet. The
+  // chat backend has no channel by that id, so asking it for media only fails.
+  it("GetChatDetails and getMedia ask nothing for a placeholder ch- chat", async () => {
+    const { GetChatDetails, getMedia } = await import("store/chat/actions");
+    await GetChatDetails("ch-8");
+    expect(fetchData.mock.calls.map(([p]) => p.url), "the chat details of a placeholder chat were asked for").toEqual([]);
+    await getMedia("ch-8", "ImageMessage");
+    expect(fetchData.mock.calls.map(([p]) => p.url), "the images of a placeholder chat were asked for").toEqual([]);
+  });
+
   it("getMediaReducer names the count for each media type", async () => {
     const { getMediaReducer } = await import("store/chat/actions");
     expect(getMediaReducer("ImageMessage", 1), "images were not counted").toEqual({ image_messages: 1 });

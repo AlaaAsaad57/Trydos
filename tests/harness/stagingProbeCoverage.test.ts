@@ -20,11 +20,20 @@
 // the box that was ill. The same shape came back at 13:15 as a **522** on the
 // checklist read.
 //
-// This file asks only what the probe covers. Whether a given host is serving
-// today is the live suite's business, and it needs a network.
-import { describe, expect, it } from "vitest";
+// This file asks what the probe covers, and how long it keeps asking before it
+// believes a backend is down. Whether a given host is serving today is the live
+// suite's business, and it needs a network: here `fetch` and the env file are
+// stand-ins, and the clock is fake.
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { BACKEND_PROBES } from "../e2e/harness/health";
+const env = vi.hoisted(() => ({ values: {} as Record<string, string> }));
+
+vi.mock("../e2e/harness/env", () => ({
+  loadLiveEnv: () => {},
+  envValue: (key: string) => env.values[key] ?? "",
+}));
+
+import { BACKEND_PROBES, probeStaging } from "../e2e/harness/health";
 
 describe("the staging health probe — what it asks about", () => {
   it("asks the gateway, which serves every guest", () => {
@@ -56,5 +65,69 @@ describe("the staging health probe — what it asks about", () => {
       new Set(keys).size,
       `the probe list holds ${keys.length} entries for ${new Set(keys).size} distinct backends, so one is asked twice and pays a timeout twice before a lane may start`,
     ).toBe(keys.length);
+  });
+});
+
+// Runs 35968694510, 35965400734, 35869919139 and 35840383129 each skipped a
+// lane with a green tick on "the gateway … — 23 (asked twice, 2s apart)". The
+// 23 is a timeout; the backends were serving, and the other lane's runner
+// reached them seconds earlier in about 600 ms. Two tries 2 s apart gave up
+// after about 18 s — shorter than the slow patches these runners meet.
+describe("the staging health probe — how long it asks before it says down", () => {
+  /** A timeout, the way `fetch` throws one when AbortSignal.timeout fires. */
+  const timeout = () => new DOMException("The operation was aborted due to timeout", "TimeoutError");
+
+  /** Only the gateway is configured, so it is the one box asked. */
+  const onlyGateway = () => {
+    env.values = { GO_BACKEND_URL: "https://gateway.test" };
+  };
+
+  /** Run the probe to its end on the fake clock, noting when each try went out. */
+  async function probeWith(answers: Array<"timeout" | "ok">) {
+    const sentAt: number[] = [];
+    const start = Date.now();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        sentAt.push(Date.now() - start);
+        const answer = answers[Math.min(sentAt.length, answers.length) - 1];
+        if (answer === "timeout") throw timeout();
+        return new Response("{}", { status: 200 });
+      }),
+    );
+    const report = probeStaging();
+    await vi.runAllTimersAsync();
+    return { report: await report, sentAt };
+  }
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    env.values = {};
+  });
+
+  it("calls a backend up when it answers on a later try", async () => {
+    vi.useFakeTimers();
+    onlyGateway();
+    const { report } = await probeWith(["timeout", "timeout", "timeout", "ok"]);
+    expect(report.up, `a gateway that answered on its fourth try was called down: ${report.reason}`).toBe(true);
+  });
+
+  it("stops asking at the first answer", async () => {
+    vi.useFakeTimers();
+    onlyGateway();
+    const { sentAt } = await probeWith(["ok"]);
+    expect(sentAt, "a gateway that answered at once was asked again").toEqual([0]);
+  });
+
+  it("calls a backend down only after five tries over about a minute", async () => {
+    vi.useFakeTimers();
+    onlyGateway();
+    const { report, sentAt } = await probeWith(["timeout"]);
+    expect(report.up, "a gateway that never answered was called up").toBe(false);
+    // Pauses of 2, 4, 6 and 8 s. With every try using its full 8 s, that is
+    // 5 × 8 s + 20 s = 60 s before a real outage skips the lane.
+    expect(sentAt, "the tries did not go out at 0, 2, 6, 12 and 20 s").toEqual([0, 2_000, 6_000, 12_000, 20_000]);
+    expect(report.reason, "the reason does not say how often the gateway was asked").toContain("asked 5 times");
   });
 });
