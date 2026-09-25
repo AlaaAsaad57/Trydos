@@ -16,6 +16,8 @@ import {
   SHEET,
   bottom,
   headerTop,
+  lineBox,
+  paraTop,
   textTop,
   top,
 } from "./demoLayout";
@@ -85,6 +87,7 @@ export function Txt({
       style={{
         top: textTop(baseline, size),
         fontSize: size,
+        lineHeight: `${lineBox(size)}px`,
         color,
         ...place,
         ...style,
@@ -242,6 +245,7 @@ export function ScreenHeader({
   onBack,
   onAction,
   shadow = false,
+  nudge = 0,
   t,
 }: {
   title?: DemoKey;
@@ -251,6 +255,12 @@ export function ScreenHeader({
   onBack?: () => void;
   onAction?: () => void;
   shadow?: boolean;
+  /**
+   * How far the file puts the title off true centre, in px (+ is right). The
+   * file centres titles by eye, so each screen's English title sits up to 2 px
+   * off; this moves it to the file's x and keeps it centred in other languages.
+   */
+  nudge?: number;
   t: (key: DemoKey) => string;
 }) {
   return (
@@ -280,6 +290,7 @@ export function ScreenHeader({
         <h1
           className="absolute w-full text-center font-medium whitespace-nowrap pointer-events-none"
           style={{
+            left: nudge,
             top: textTop(HEADER.titleBaseline, 16) - HEADER.y,
             fontSize: 16,
             color: C.ink,
@@ -292,8 +303,10 @@ export function ScreenHeader({
         <h1
           className="absolute w-full flex justify-center pointer-events-none"
           style={{
+            left: nudge,
             top: textTop(HEADER.crumbBaseline, 14) - HEADER.y,
             fontSize: 14,
+            lineHeight: `${lineBox(14)}px`,
             color: C.ink,
           }}
         >
@@ -367,7 +380,7 @@ export function InfoBanner({
         className="absolute font-normal"
         style={{
           left: 48,
-          top: 119 - 11 - BANNER.y,
+          top: paraTop(119, 11, 16) - BANNER.y,
           width: 370,
           fontSize: 11,
           lineHeight: "16px",
@@ -735,7 +748,7 @@ export function WhyCard({
         className="absolute font-normal"
         style={{
           left: 24,
-          top: 43 - 11,
+          top: paraTop(43, 11, 16),
           width: 354,
           fontSize: 11,
           lineHeight: "16px",
@@ -771,8 +784,9 @@ export function WhyCard({
           background: C.field,
         }}
       >
+        {/* Top-aligned: centred on the 15 px icon, the 14 px line sat 1 px low. */}
         <span
-          className="absolute flex items-center"
+          className="absolute flex items-start"
           style={{ left: 134.5, top: 12 }}
         >
           <XdIcon name="help" />

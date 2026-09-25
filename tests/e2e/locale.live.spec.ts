@@ -29,7 +29,13 @@
 // here to pass.
 
 import { expect, test } from "./fixtures";
-import { arriveAsGuest, pickCountries } from "./actions/locale";
+import {
+  arriveAsGuest,
+  chooseCountryInSettings,
+  chooseLanguageInSettings,
+  pickCountries,
+  startInSettings,
+} from "./actions/locale";
 
 // Written as a browser sends them, weights and all, because that is what the
 // app parses. Neither list contains English: a language the app knows must be
@@ -570,5 +576,118 @@ test.describe("addresses the locale rules must not touch", () => {
 
     expect(arrival.hops[0]?.status).toBe(308);
     expect(arrival.url.pathname).toBe(`/${served[0]}-en${PLAIN_PAGE}`);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Choosing from the settings screens
+//
+// Everything above is the app deciding. These two are the shopper deciding:
+// already on the site, they open Settings and pick a new language or country.
+// Each screen writes the locale cookies itself and then loads a new address, so
+// three things must agree afterwards — the address, the saved choice (what the
+// next visit uses), and the page the server rendered. Each is checked on its
+// own, so a failure names the layer that did not follow.
+//
+// Each case puts the original back at the end, through the same screen. The
+// guest is thrown away with the browser context, so a case that dies half-way
+// leaves nothing behind.
+// ---------------------------------------------------------------------------
+
+/** Arabic script. A title with none of it was not translated into Arabic. */
+const ARABIC_SCRIPT = /[؀-ۿ]/;
+
+test.describe("choosing from the settings screens", () => {
+  test("GUEST-50 a language picked in settings becomes the address, the saved choice and the page's language, and back", async ({
+    page,
+  }) => {
+    const { served } = await pickCountries(page);
+    test.skip(served.length < 1, "the app offers no country to test with");
+    const country = served[0];
+
+    await startInSettings(page, { country });
+
+    await test.step("Arabic is picked and saved", async () => {
+      const after = await chooseLanguageInSettings(page, { language: "ar" });
+      expect(
+        after.prefix,
+        "the address did not move to Arabic after Save",
+      ).toBe(`${country}-ar`);
+      expect(
+        after.savedLanguage,
+        "the address moved to Arabic but the saved language did not, so the next visit reverts",
+      ).toBe("ar");
+      expect(
+        after.htmlLang.toLowerCase(),
+        `the server rendered the Arabic address as <html lang="${after.htmlLang}">`,
+      ).toMatch(/^ar/);
+      // The title is set by `generateMetadata`, which streams in after the
+      // document, so it is polled rather than read once.
+      await expect
+        .poll(() => page.title(), {
+          message: "the settings page title is not in Arabic after switching to Arabic",
+        })
+        .toMatch(ARABIC_SCRIPT);
+    });
+
+    await test.step("English is picked again, and everything follows back", async () => {
+      const back = await chooseLanguageInSettings(page, { language: "en" });
+      expect(back.prefix, "the address did not move back to English").toBe(
+        `${country}-en`,
+      );
+      expect(
+        back.savedLanguage,
+        "the saved language stayed Arabic after switching back to English",
+      ).toBe("en");
+      expect(
+        back.htmlLang.toLowerCase(),
+        `the server rendered the English address as <html lang="${back.htmlLang}">`,
+      ).toMatch(/^en/);
+      await expect
+        .poll(() => page.title(), {
+          message: "the settings page title still carries Arabic after switching back to English",
+        })
+        .not.toMatch(ARABIC_SCRIPT);
+    });
+  });
+
+  test("GUEST-51 a country picked in settings becomes the address, the saved choice and the flag, and back", async ({
+    page,
+  }) => {
+    const { served } = await pickCountries(page);
+    test.skip(served.length < 2, "the app offers only one country to test with");
+    const [first, second] = served;
+
+    await startInSettings(page, { country: first });
+
+    await test.step(`the country is changed from ${first} to ${second}`, async () => {
+      const after = await chooseCountryInSettings(page, { country: second });
+      expect(after.prefix, `the address did not move to ${second}`).toBe(
+        `${second}-en`,
+      );
+      expect(
+        after.savedCountry,
+        `the address moved to ${second} but the saved country did not, so the next visit reverts`,
+      ).toBe(second);
+      expect(
+        after.flag ?? "",
+        `the settings page still shows the flag of another country (${after.flag})`,
+      ).toContain(`/flag/${second}.svg`);
+    });
+
+    await test.step(`the country is changed back to ${first}`, async () => {
+      const back = await chooseCountryInSettings(page, { country: first });
+      expect(back.prefix, `the address did not move back to ${first}`).toBe(
+        `${first}-en`,
+      );
+      expect(
+        back.savedCountry,
+        `the saved country stayed ${second} after switching back`,
+      ).toBe(first);
+      expect(
+        back.flag ?? "",
+        `the settings page kept the flag of ${second} after switching back`,
+      ).toContain(`/flag/${first}.svg`);
+    });
   });
 });

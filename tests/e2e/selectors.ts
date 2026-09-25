@@ -52,11 +52,32 @@ export const region = {
    *  "intercepts pointer events". */
   backdrop: (page: Page): Locator => page.getByTestId("country-popup"),
   popup: (page: Page): Locator => page.getByTestId("Change-Url-Container"),
-  /** One country row. `iso` is lower case: `iq`, `lb`, `sy`, `tr`. */
+  /** One country row. `iso` is lower case: `iq`, `lb`, `sy`, `tr`.
+   *
+   *  Matched without regard to letter case. The hook carries the backend's own
+   *  `iso`, and the backend is not consistent: the settings screen was measured
+   *  drawing `LB` beside `sy` in the same list. */
   country: (page: Page, iso: string): Locator =>
-    page.getByTestId(`personal-info-countries-${iso}`),
+    page.locator(`[data-pw="personal-info-countries-${iso}" i]`),
   anyCountry: (page: Page): Locator =>
     page.locator('[data-pw^="personal-info-countries-"]'),
+};
+
+/** The two settings screens that change the locale
+ *  (`components/settings/LanguageSetting.tsx`,
+ *  `components/settings/PersonalInfoCountries.tsx`). */
+export const localeSettings = {
+  /** The entries on the main settings page that open each screen. */
+  countryEntry: (page: Page): Locator => page.getByTestId("country-button"),
+  languageEntry: (page: Page): Locator => page.getByTestId("language-button"),
+  /** One language row. `code` is `en`, `ar`, `tr` or `ku`. */
+  language: (page: Page, code: string): Locator =>
+    page.getByTestId(`language-${code}`),
+  /** The back bar's Save. Drawn only once a different language is picked. */
+  saveLanguage: (page: Page): Locator => page.getByTestId("language-setting"),
+  /** The "Confirm" in the country-change window. */
+  confirmCountry: (page: Page): Locator =>
+    page.getByTestId("country-change-confirm"),
 };
 
 export const search = {
@@ -82,6 +103,23 @@ export const listing = {
   cardLink: (page: Page): Locator =>
     page.locator('a[data-pw="product_link"][href*="/products/"]'),
   cardName: (page: Page): Locator => page.getByTestId("product-name"),
+  /** Every entry in the home page's category bar
+   *  (`components/Home/CategoryNavMobile.tsx`). Each carries its slug in
+   *  `data-id`.
+   *
+   *  **Visible entries only.** After a move between the home page and a
+   *  category page the app keeps the previous page in the document, hidden, so
+   *  the same entry exists twice. Measured: the hidden copy of the home page's
+   *  bar was matched first and read as "not open" for a category that was open
+   *  on screen. */
+  categoryLinks: (page: Page): Locator =>
+    page.locator('[data-pw="category-Link"]:visible'),
+  /** One entry in the category bar, by slug. Visible only — see above. */
+  categoryLink: (page: Page, slug: string): Locator =>
+    page.locator(`[data-pw="category-Link"][data-id="${slug}"]:visible`),
+  /** The mark drawn inside the category entry that is open now. */
+  activeCategoryMark: (scope: Locator): Locator =>
+    scope.getByTestId("activeCategoryIcon"),
   // There is deliberately no "any link containing /products/" locator here —
   // the address above is an extra condition on the card hook, never a hook of
   // its own.
@@ -553,6 +591,15 @@ export const checkout = {
    *  cart money never arrived. */
   confirmTotal: (page: Page): Locator =>
     page.getByTestId("Number-Of-Products-Required"),
+  /** The coupon box on the checkout screen (`components/Cart/couponElement.tsx`).
+   *  Pressing the box (not its Apply) opens the field. */
+  couponBox: (page: Page): Locator => page.getByTestId("coupon-box"),
+  couponInput: (page: Page): Locator => page.getByTestId("coupon-input"),
+  /** Apply. Once a coupon is accepted it turns into the discount itself, and
+   *  carries `data-applied="true"`. */
+  couponApply: (page: Page): Locator => page.getByTestId("coupon-apply"),
+  /** The refusal, drawn under the field. Absent while nothing was refused. */
+  couponError: (page: Page): Locator => page.getByTestId("coupon-error"),
   /** The address already on the order. Absent when the account has none saved,
    *  and the checkout refuses to go on until one is. */
   chosenAddress: (page: Page): Locator => page.getByTestId("Address-Added-Last"),
@@ -1179,6 +1226,15 @@ export const sellerProducts = {
   /** One count on a card. `stat` is `heart`, `comments`, `star` or `share`. */
   stat: (card: Locator, stat: string): Locator =>
     card.locator('[data-pw="seller-product-stat"][data-stat="' + stat + '"]'),
+  /** The Active / Inactive badge. `data-status` is the product's own status. */
+  status: (card: Locator): Locator =>
+    card.locator('[data-pw="seller-product-status"]'),
+  /** The price as drawn, two decimals and the shop's currency. */
+  price: (card: Locator): Locator =>
+    card.locator('[data-pw="seller-product-price"]'),
+  /** The stock badge. `data-stock` is the number the card was drawn from. */
+  stock: (card: Locator): Locator =>
+    card.locator('[data-pw="seller-product-stock"]'),
 
   /** The paging control. **Absent when the grid has one page** — the app draws
    *  it only past the first. Read that as one page, never as a missing
@@ -1189,6 +1245,17 @@ export const sellerProducts = {
 };
 
 /** The dashboard's comments section — the shop's own questions and answers. */
+/** The dashboard's Excel section — bulk upload by template
+ *  (`components/SellerDashboard/ExcelUploadTab.tsx`). */
+export const sellerExcel = {
+  /** The category list. Its first option is the empty "Select a category". */
+  category: (page: Page): Locator => page.getByTestId("seller-excel-category"),
+  /** Download Template. Disabled until a category is chosen. */
+  download: (page: Page): Locator => page.getByTestId("seller-excel-download"),
+  /** The section's message line. `data-type` is `success` or `error`. */
+  status: (page: Page): Locator => page.getByTestId("seller-excel-status"),
+};
+
 export const sellerComments = {
   card: (page: Page, commentId: string | number): Locator =>
     page.locator(
@@ -1205,6 +1272,10 @@ export const sellerComments = {
     card.locator('[data-pw="dashboard-comment-reply-btn"]'),
   replyText: (card: Locator): Locator =>
     card.locator('[data-pw="dashboard-comment-reply-text"]'),
+  /** Opens the reply form again, filled with the answer already given. Drawn
+   *  only with `EDIT_REPLY`, and only on a card that has an answer. */
+  editReplyButton: (card: Locator): Locator =>
+    card.locator('[data-pw="dashboard-comment-edit-reply-btn"]'),
   /** Removing the shop's answer. **Behind a browser confirm dialog** — a test
    *  that does not accept the dialog silently does nothing. */
   deleteReplyButton: (card: Locator): Locator =>
@@ -1288,6 +1359,13 @@ export const sellerStories = {
   productChosen: (page: Page): Locator =>
     page.getByTestId("seller-story-product-chosen"),
   shareButton: (page: Page): Locator => page.getByTestId("seller-story-share"),
+  /** The chosen photo or video. Drawn only once a file has been accepted. */
+  preview: (page: Page): Locator => page.getByTestId("seller-story-preview"),
+  /** The refusal under the link field. Absent while the link is acceptable. */
+  linkError: (page: Page): Locator =>
+    page.getByTestId("seller-story-link-error"),
+  cancelButton: (page: Page): Locator =>
+    page.getByTestId("seller-story-cancel"),
 };
 
 // ---------------------------------------------------------------------------

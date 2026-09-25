@@ -6,7 +6,7 @@ import { animate, motion, useMotionValue } from "framer-motion";
 import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { useDemoData } from "../DemoData";
-import { C } from "../demoLayout";
+import { C, lineBox } from "../demoLayout";
 import { Box, Icon, MenuRow, ScreenPage, Txt } from "../ui";
 import type { XdIconName } from "../xdIcons";
 
@@ -188,7 +188,9 @@ export default function ProfileScreen() {
         data-pw="demo-profile-photo"
         whileTap={{ scale: 0.97 }}
         onClick={() => navigate("settings/photo")}
-        className="absolute cursor-pointer overflow-hidden"
+        // Clipped only round a photo: with none, the dark strip (230 .. 252 in
+        // the file) must show its own round corners 1 px below the box.
+        className={`absolute cursor-pointer ${profile.photo ? "overflow-hidden" : ""}`}
         // 116 x 115 in the file, not a square; the dark strip at 230 ends 1 below it.
         style={{
           left: 290,
@@ -411,7 +413,11 @@ function PromoSlider({
               )}
               <span
                 className="font-medium"
-                style={{ fontSize: 11, color: C.ink }}
+                style={{
+                  fontSize: 11,
+                  lineHeight: `${lineBox(11)}px`,
+                  color: C.ink,
+                }}
               >
                 {t(promo.action)}
               </span>

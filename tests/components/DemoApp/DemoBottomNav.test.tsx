@@ -16,7 +16,7 @@ const rafQueue = vi.hoisted(() => {
 });
 
 // jsdom never paints a motion value, so the bar's size is read from the last
-// transform the bar builds (scroll scale x press pulse).
+// transform the bar builds (full size x press pulse).
 const painted = vi.hoisted(() => ({ values: [] as any[] }));
 vi.mock("framer-motion", async (importOriginal) => {
   const real = await importOriginal<typeof import("framer-motion")>();
@@ -95,7 +95,7 @@ describe("DemoBottomNav", () => {
     document.body.innerHTML = "";
   });
 
-  it("scales down while a screen's own box scrolls down, and back up when it returns to the top", () => {
+  it("keeps its full size while a screen's own box scrolls down, as `Home Page – 9` draws the scrolled bar", () => {
     render(nav());
     const box = scroller(true);
     for (let y = 100; y <= 1200; y += 100) {
@@ -105,14 +105,7 @@ describe("DemoBottomNav", () => {
     runFrames(60);
     expect(
       barScale(),
-      "scrolling a screen's box down did not shrink the bar (the page itself never scrolls here)",
-    ).toBeLessThan(0.8);
-
-    scrollBox(box, 0);
-    runFrames(80);
-    expect(
-      barScale(),
-      "the bar did not come back to full size at the top of the box",
+      "scrolling a screen's box shrank the bar; the file draws the scrolled bar at full size (386 x 58) and only moves it down",
     ).toBeCloseTo(1, 2);
   });
 
@@ -127,7 +120,7 @@ describe("DemoBottomNav", () => {
     runFrames(60);
     expect(
       barDrop(),
-      "at the scroll cap the bar only scaled; the file moves it down 35 px (top at 38 above the edge instead of 73)",
+      "at the scroll cap the bar did not move down; the file moves it down 35 px (top at 38 above the edge instead of 73)",
     ).toBeCloseTo(35, 0);
 
     scrollBox(box, 0);
@@ -136,6 +129,24 @@ describe("DemoBottomNav", () => {
       barDrop(),
       "the bar did not come back up to its rest position at the top of the box",
     ).toBeCloseTo(0, 1);
+  });
+
+  it("is fully down at the end of the profile tab, which scrolls only 197 px (1129 - 932), as `Home Page – 9` draws it", () => {
+    render(nav({ active: "settings", resetKey: "settings" }));
+    const box = document.createElement("div");
+    Object.defineProperty(box, "clientHeight", { value: 882 });
+    Object.defineProperty(box, "scrollHeight", { value: 882 + 197 });
+    document.body.appendChild(box);
+    for (let y = 10; y <= 197; y += 10) {
+      scrollBox(box, Math.min(y, 197));
+      runFrames(2);
+    }
+    scrollBox(box, 197);
+    runFrames(60);
+    expect(
+      barDrop(),
+      "at the end of the profile tab the bar is not at the file's y (1091 on the 1129 board = 35 below its rest)",
+    ).toBeCloseTo(35, 0);
   });
 
   it("does not move when a row that only scrolls sideways is swiped", () => {
@@ -152,7 +163,7 @@ describe("DemoBottomNav", () => {
     ).toBeCloseTo(1, 2);
   });
 
-  it("goes back to full size when the screen changes", () => {
+  it("comes back up to its rest position when the screen changes", () => {
     const { rerender } = render(nav());
     const box = scroller(true);
     for (let y = 100; y <= 1200; y += 100) {
@@ -161,19 +172,19 @@ describe("DemoBottomNav", () => {
     }
     runFrames(60);
     expect(
-      barScale(),
-      "the bar did not shrink before the screen changed",
-    ).toBeLessThan(0.8);
+      barDrop(),
+      "the bar did not drop before the screen changed",
+    ).toBeGreaterThan(30);
 
     rerender(nav({ resetKey: "search", active: "search" }));
     runFrames(80);
-    expect(barScale(), "a new screen started with a shrunken bar").toBeCloseTo(
-      1,
-      2,
-    );
+    expect(
+      barDrop(),
+      "a new screen started with the bar still dropped",
+    ).toBeCloseTo(0, 1);
   });
 
-  it("draws the file's glass: no fill of its own, blur 30 with 15% brightness behind it, on a layer that is not the one that scales", () => {
+  it("draws the file's glass: no fill of its own, blur 30 with 15% brightness behind it, on a layer that is not the one that moves", () => {
     const { container } = render(nav());
     const glass = container.querySelector(
       '[data-pw="demo-tab-glass"]',
@@ -199,13 +210,13 @@ describe("DemoBottomNav", () => {
       glass!.style.borderRadius,
       "the glass has not got the file's 10 / 40 corners",
     ).toBe("10px 10px 40px 40px");
-    // The scroll scale lives on the element with the centred transform origin.
-    // Safari on iPhone clips a backdrop filter wrongly when the same element
-    // also carries a transform, so the glass must be a child of it.
+    // The drop and the press pulse live on the element with the centred
+    // transform origin. Safari on iPhone clips a backdrop filter wrongly when
+    // the same element also carries a transform, so the glass must be a child of it.
     const scaled = glass!.parentElement as HTMLElement;
     expect(
       scaled.style.transformOrigin,
-      "the glass is not a child of the element that scales with the scroll",
+      "the glass is not a child of the element that moves with the scroll",
     ).toBe("center center");
     expect(
       glass!.style.transform,

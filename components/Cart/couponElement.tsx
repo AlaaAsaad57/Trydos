@@ -108,6 +108,7 @@ const CouponElement = ({
         }
       }}
       style={{ border: active ? "1px solid rgb(56 144 255 / 51%)" : undefined }}
+      data-pw="coupon-box"
       className={`w-full cursor-pointer pt-[12px] mt-[30px] ${
         active ? "h-[111px] bg-white" : " h-[42px] bg-[#f8f8f8]"
       } rounded-[15px] items-start px-[12px] ${
@@ -141,6 +142,7 @@ const CouponElement = ({
             >
               {!coupon && (
                 <input
+                  data-pw="coupon-input"
                   placeholder={translateFunction("Coupon No", language)}
                   value={orderData.coupon_number}
                   onChange={(e) => onChange(pollinateInput(e.target.value))}
@@ -155,6 +157,8 @@ const CouponElement = ({
                   coupon ? "min-w-full" : "w-[100px] min-w-[100px]"
                 } flex items-center justify-center h-[40px] rounded-[15px] bg-white`}
                 style={{ border: "1px solid rgb(56 144 255 / 51%)" }}
+                data-pw="coupon-apply"
+                data-applied={coupon ? "true" : "false"}
                 onClick={() => applyCoupon()}
               >
                 {loading
@@ -165,7 +169,11 @@ const CouponElement = ({
               </div>
             </div>
           </div>
-          {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+          {error && (
+            <div data-pw="coupon-error" className="text-red-500 text-sm mt-2">
+              {error}
+            </div>
+          )}
         </>
       )}
     </div>

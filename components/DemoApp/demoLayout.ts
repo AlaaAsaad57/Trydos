@@ -53,6 +53,26 @@ export const bottom = (y: number, h: number) => DESIGN_H - (y + h);
  */
 export const textTop = (baseline: number, size: number) => baseline - size;
 
+/**
+ * The line height that keeps a text's baseline exactly 1.0 em below its box top.
+ *
+ * `line-height: 1.25` is right on paper, but the browsers round the descender
+ * (0.25 em) to a whole px first. At 10, 11, 14, 15 and 18 px the half-leading
+ * then goes negative, and Chrome floors it: the text is drawn 1 px higher than
+ * the file puts it (WebKit 1/3 px). A line box of exactly the rounded ascender
+ * + descender has no half-leading, so both engines put the baseline where the
+ * file does, at every size (measured 9 to 28 px, Chrome and WebKit).
+ */
+export const lineBox = (size: number) => size + Math.round(size / 4);
+
+/**
+ * The box top of a paragraph whose lines are `lineHeight` apart, from the
+ * first line's baseline. The extra line height is shared above and below the
+ * text, so the first baseline sits half of it lower than in a `lineBox`.
+ */
+export const paraTop = (baseline: number, size: number, lineHeight: number) =>
+  textTop(baseline, size) - (lineHeight - lineBox(size)) / 2;
+
 /** The colours the new design uses, by the name of the job they do. */
 export const C = {
   ink: "#1D1D1D",

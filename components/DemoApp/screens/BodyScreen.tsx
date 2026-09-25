@@ -48,6 +48,7 @@ export default function BodyScreen() {
       header={
         <ScreenHeader
           crumb={["Profile", "Body measurements"]}
+          nudge={2}
           icon="titleBody"
           onBack={back}
           t={t}

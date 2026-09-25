@@ -13,6 +13,11 @@
 //   SD-10  the shop-info form is filled from the shop's own record
 //   SD-11  shop info refuses an empty and a non-numeric contact
 //   SD-12  a contact and address change reaches the backend, and is put back
+//   SD-13  the products list shows the backend's status, price and stock
+//   SD-16  the Excel section downloads a real .xlsx template
+//
+// SD-14 and SD-15 are kept for the gallery and team cases, which are not
+// written yet.
 //
 // ---------------------------------------------------------------------------
 // This file signs nobody in
@@ -127,6 +132,19 @@ import {
   saveShopInfo,
   type BackendShopInfo,
 } from "./actions/shopInfo";
+import {
+  findProductCard,
+  openProductsSection,
+  readProductCard,
+  readShopProduct,
+} from "./actions/sellerProducts";
+import {
+  downloadOffered,
+  downloadTemplate,
+  excelCategoryIds,
+  openExcelSection,
+  type TemplateDownload,
+} from "./actions/sellerExcel";
 import { shopLocations, shopInfo as shopInfoSelectors } from "./selectors";
 import { handOnSession, openSignedInSession } from "./harness/liveSession";
 import {
@@ -943,6 +961,138 @@ test("SD-12 a contact and address change reaches the backend, and is put back", 
       });
       test.info().annotations.push({ type: "tidy-up", description: said });
     }
+    await closeSellerPage(context, page);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// SD-13 — the products list
+//
+// The list only. The product edit page is being removed (see
+// `docs/seller-dashboard-e2e-test-cases.md`), so the card's link is checked for
+// where it points and is not followed.
+// ---------------------------------------------------------------------------
+
+test("SD-13 the products list shows the QA product with the status, price and stock the backend holds", async ({
+  browser,
+}) => {
+  test.setTimeout(180_000);
+  const seed = readQaSeedState();
+  const { context, page } = await openSellerPage(browser);
+
+  try {
+    await openProductsSection(page, { sellerId: seed.sellerId });
+    const { card } = await findProductCard(page, { productId: seed.productId });
+    const onScreen = await readProductCard(card);
+    const stored = await readShopProduct(page, {
+      sellerId: seed.sellerId,
+      productId: seed.productId,
+    });
+
+    await test.step("the status badge matches the backend's status", async () => {
+      expect(
+        onScreen.status,
+        `the card shows status "${onScreen.status}" while the core backend lists status ${stored.status}`,
+      ).toBe(String(stored.status));
+      expect(
+        onScreen.statusText,
+        "the card draws a status badge with no words on it",
+      ).not.toBe("");
+    });
+
+    await test.step("the price is the backend's price, with two decimals", async () => {
+      expect(
+        stored.unitPrice,
+        "the core backend lists the QA product with no price, so there is nothing to compare the card with",
+      ).not.toBeNull();
+      expect(
+        onScreen.priceText,
+        `the card shows the price "${onScreen.priceText}" while the core backend lists ${stored.unitPrice}`,
+      ).toContain(Number(stored.unitPrice).toFixed(2));
+    });
+
+    await test.step("the stock badge is the backend's stock", async () => {
+      expect(
+        onScreen.stock,
+        `the card shows stock "${onScreen.stock}" while the core backend lists ${stored.currentStock}`,
+      ).toBe(String(stored.currentStock));
+    });
+
+    await test.step("the card leads to this product in this shop", async () => {
+      expect(
+        onScreen.href,
+        `the card for product ${seed.productId} leads to "${onScreen.href}", not to that product in this shop`,
+      ).toContain(
+        `/sellerDashboard/${seed.sellerId}/products/${seed.productId}`,
+      );
+    });
+  } finally {
+    await closeSellerPage(context, page);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// SD-16 — the Excel template
+//
+// Only the download. An upload would create real products in the QA shop.
+// ---------------------------------------------------------------------------
+
+/** How many categories to try before calling the section broken. A category
+ *  the backend has no template for is refused, and that alone is not a fault. */
+const TEMPLATE_TRIES = 3;
+
+test("SD-16 the Excel section downloads a real .xlsx template for a category", async ({
+  browser,
+}) => {
+  test.setTimeout(240_000);
+  const seed = readQaSeedState();
+  const { context, page } = await openSellerPage(browser);
+
+  try {
+    await openExcelSection(page, { sellerId: seed.sellerId });
+
+    const categories = await test.step(
+      "the section offers categories, and no download before one is chosen",
+      async () => {
+        const ids = await excelCategoryIds(page);
+        expect(
+          ids.length,
+          "the core backend's /shop/excel/categories offered no category, so no template can be downloaded",
+        ).toBeGreaterThan(0);
+        expect(
+          await downloadOffered(page),
+          "Download Template can be pressed before any category is chosen",
+        ).toBe(false);
+        return ids;
+      },
+    );
+
+    await test.step("a template downloads, and it is a real spreadsheet", async () => {
+      const tried: string[] = [];
+      let got: TemplateDownload | null = null;
+      for (const categoryId of categories.slice(0, TEMPLATE_TRIES)) {
+        const attempt = await downloadTemplate(page, { categoryId });
+        if (attempt.downloaded) {
+          got = attempt;
+          break;
+        }
+        tried.push(`category ${categoryId}: ${attempt.refusal}`);
+      }
+
+      expect(
+        got,
+        `no template downloaded for the first ${Math.min(TEMPLATE_TRIES, categories.length)} categories. What the section said: ${tried.join("; ")}`,
+      ).not.toBeNull();
+      expect(
+        got?.filename ?? "",
+        `the template downloaded as "${got?.filename}", not as an Excel file`,
+      ).toMatch(/\.xls[xmb]?$/i);
+      expect(
+        got?.looksLikeXlsx,
+        `the file "${got?.filename}" is not a spreadsheet inside — it does not start like an .xlsx does, so the backend sent something else under that name`,
+      ).toBe(true);
+    });
+  } finally {
     await closeSellerPage(context, page);
   }
 });

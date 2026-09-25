@@ -52,6 +52,7 @@ export default function AddressListScreen() {
       header={
         <ScreenHeader
           crumb={["Profile", "Address"]}
+          nudge={1}
           icon="titleAddress"
           onBack={back}
           t={t}
@@ -147,7 +148,15 @@ export default function AddressListScreen() {
             exit={{ opacity: 0 }}
           >
             <Icon name="helpBig" x={205.5} y={432.5} />
-            <Txt center baseline={472} size={13} weight="medium" color={C.hint}>
+            {/* The file puts this line 2.67 px left of centre (x 135). */}
+            <Txt
+              center
+              baseline={472}
+              size={13}
+              weight="medium"
+              color={C.hint}
+              style={{ left: -2.67 }}
+            >
               {t("Your address list is empty")}
             </Txt>
             <Txt center baseline={492} size={11} color={C.hint}>

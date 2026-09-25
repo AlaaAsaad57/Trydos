@@ -30,7 +30,7 @@ import { throughProxyInPage } from "../harness/orderCleanup";
 import { redact } from "../harness/redact";
 import { gotoQaProduct } from "./qaProduct";
 import { signedInSession } from "./auth";
-import { waitForPopupHistorySettled } from "./nav";
+import { chooseRegionIfAsked, waitForPopupHistorySettled } from "./nav";
 
 /** How long a cart change has to come back from staging.
  *
@@ -2350,4 +2350,184 @@ export const removeLineNamed = async (
   } finally {
     money.stop();
   }
+};
+
+// ---------------------------------------------------------------------------
+// The coupon box
+//
+// It sits on the checkout screen, under the payment methods. It asks the core
+// backend `GET /coupon/apply?code=…`, and on a yes it re-reads the bag and turns
+// its Apply into the discount. There is no way to take a coupon off again from
+// this screen, so a case that applies one leaves the checkout by emptying the
+// bag, not by removing the coupon.
+// ---------------------------------------------------------------------------
+
+const COUPON_PATH = "/coupon/apply";
+
+/** What the core backend answered one coupon request with. */
+export type CouponAnswer = {
+  /** The first status that was not a 401, or 0 when none came. A 401 is the
+   *  first half of a renewal, not an answer. */
+  status: number;
+  /** The code the request carried, read from the request itself. */
+  sentCode: string;
+  /** The backend said yes: a good answer whose `data.status` is `1` — the
+   *  same test `utils/fetchData.ts` applies before the app believes it. */
+  accepted: boolean;
+  /** The backend's own message, redacted and cut short. */
+  said: string;
+};
+
+/** Start watching for the coupon request. **Call before the action that sends
+ *  it** — a response that has already come and gone cannot be waited for. */
+export const watchCouponAnswer = (
+  page: Page,
+  options: { timeout?: number } = {},
+): Promise<CouponAnswer> =>
+  page
+    .waitForResponse(
+      (response) =>
+        response.url().includes("/api/proxy") &&
+        // `headers()`, never `allHeaders()`: the latter carries the session.
+        (response.request().headers()["x-proxy-url"] ?? "").includes(
+          COUPON_PATH,
+        ) &&
+        response.status() !== 401,
+      { timeout: options.timeout ?? 30_000 },
+    )
+    .then(async (response) => {
+      const target = decodeURI(response.request().headers()["x-proxy-url"] ?? "");
+      const sentCode = decodeURIComponent(
+        /[?&]code=([^&]*)/.exec(target)?.[1] ?? "",
+      );
+      const body = (await response.json().catch(() => null)) as {
+        isSuccessful?: boolean;
+        success?: boolean;
+        message?: unknown;
+        data?: { status?: unknown };
+      } | null;
+      const good =
+        response.status() < 400 &&
+        (body?.isSuccessful ?? body?.success ?? true) !== false;
+      return {
+        status: response.status(),
+        sentCode,
+        accepted: good && Number(body?.data?.status) === 1,
+        said: redact(String(body?.message ?? "")).slice(0, 200),
+      };
+    })
+    .catch(() => ({
+      status: 0,
+      sentCode: "",
+      accepted: false,
+      said: `no answer to ${COUPON_PATH} came from the core backend within ${
+        (options.timeout ?? 30_000) / 1000
+      } seconds`,
+    }));
+
+/** What the coupon box shows once it has settled. */
+export type CouponBox = {
+  /** The box turned Apply into the discount (`data-applied="true"`). */
+  applied: boolean;
+  /** What Apply shows now — "Apply", or the discount once applied. */
+  applyText: string;
+  /** The refusal drawn under the field, or "" when there is none. */
+  shownError: string;
+  /** The field is still there to type into. */
+  fieldShown: boolean;
+};
+
+export const readCouponBox = async (page: Page): Promise<CouponBox> => {
+  const error = checkout.couponError(page);
+  return {
+    applied:
+      (await checkout.couponApply(page).getAttribute("data-applied").catch(() => null)) ===
+      "true",
+    applyText: ((await checkout.couponApply(page).textContent().catch(() => "")) ?? "").trim(),
+    shownError:
+      (await error.count()) > 0
+        ? ((await error.textContent()) ?? "").trim()
+        : "",
+    fieldShown: (await checkout.couponInput(page).count()) > 0,
+  };
+};
+
+/** Wait until the box has an outcome to read: applied, or a refusal shown. */
+export const waitForCouponOutcome = async (page: Page): Promise<CouponBox> => {
+  await expect
+    .poll(
+      async () => {
+        const box = await readCouponBox(page);
+        return box.applied || box.shownError !== "";
+      },
+      {
+        message:
+          "the coupon box neither applied the coupon nor showed a refusal, so the app gave the shopper no answer at all",
+        timeout: 20_000,
+      },
+    )
+    .toBe(true);
+  return readCouponBox(page);
+};
+
+/** Type a code into the coupon box and press Apply.
+ *
+ *  Returns what the core backend answered and what the box shows afterwards,
+ *  apart, so a case can say which of the two is wrong. */
+export const applyCouponCode = async (
+  page: Page,
+  options: { code: string },
+): Promise<{ answer: CouponAnswer; box: CouponBox }> => {
+  const box = checkout.couponBox(page);
+  await expect(
+    box,
+    "the checkout screen drew no coupon box",
+  ).toBeVisible({ timeout: CHECKOUT_MS });
+
+  // The box opens its field when it is pressed anywhere but Apply.
+  if ((await checkout.couponInput(page).count()) === 0) {
+    await box.click({ position: { x: 20, y: 12 } });
+  }
+  const input = checkout.couponInput(page);
+  await expect(input, "pressing the coupon box did not open its field").toBeVisible();
+  await input.fill(options.code);
+
+  const answered = watchCouponAnswer(page);
+  await checkout.couponApply(page).click();
+  const answer = await answered;
+
+  return { answer, box: await waitForCouponOutcome(page) };
+};
+
+/** The total the checkout is about to charge, as drawn in its confirm button. */
+export const readCheckoutTotal = async (page: Page): Promise<string> =>
+  ((await checkout.confirmTotal(page).textContent()) ?? "").replace(/\s+/g, " ").trim();
+
+/** Arrive from a shared coupon link, `/?coupon=CODE`.
+ *
+ *  The app keeps the code for later (`components/Cart/CartProvider.tsx` puts it
+ *  in `localStorage` about a second after the page mounts) and the coupon box
+ *  applies it by itself when the checkout opens. This waits until the code is
+ *  kept, so a case can say "the link was lost" apart from "the checkout did not
+ *  use it". */
+export const arriveWithCouponLink = async (
+  page: Page,
+  options: { code: string },
+): Promise<void> => {
+  await page.goto(`/?coupon=${encodeURIComponent(options.code)}`, {
+    waitUntil: "domcontentloaded",
+  });
+  await chooseRegionIfAsked(page);
+  await expect(nav.logo(page), "the home page did not render").toBeVisible();
+
+  await expect
+    .poll(
+      () => page.evaluate(() => window.localStorage.getItem("coupon-number")),
+      {
+        message:
+          "the app did not keep the coupon from the link, so the checkout has nothing to apply - the ?coupon= value was lost on the way in",
+        timeout: 15_000,
+      },
+    )
+    .toBe(options.code);
 };

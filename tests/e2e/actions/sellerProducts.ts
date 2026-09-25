@@ -30,7 +30,12 @@ import {
   walkedSentence,
 } from "../harness/gridWalk";
 import { sellerProducts } from "../selectors";
-import { gotoSellerDashboard, refuseIfSessionExpired } from "./sellerDashboard";
+import {
+  dashboardLocale,
+  gotoSellerDashboard,
+  refuseIfSessionExpired,
+} from "./sellerDashboard";
+import { rowsOf, SELLER_SERVICE, sellerCall } from "../harness/sellerDashboard";
 
 /** How far a count re-read may go. Four re-reads, fifteen seconds apart.
  *
@@ -195,6 +200,85 @@ export const waitForReactionCount = async (
   return {
     ...(found as { card: Locator; walked: number; of: number }),
     reactions: answered as number,
+  };
+};
+
+/** What one product card draws, read off its own hooks. */
+export type ProductCardOnScreen = {
+  /** `data-status`, the product status the card was drawn from. */
+  status: string | null;
+  /** The badge's own words — "Active" or "Inactive" in the page language. */
+  statusText: string;
+  /** The price line, e.g. `1000.00 SYP`. Empty when no price is drawn. */
+  priceText: string;
+  /** `data-stock`, or null when the card draws no stock badge. */
+  stock: string | null;
+  /** Where the card leads. */
+  href: string;
+};
+
+export const readProductCard = async (
+  card: Locator,
+): Promise<ProductCardOnScreen> => {
+  const text = async (locator: Locator): Promise<string> =>
+    (await locator.count()) > 0
+      ? ((await locator.first().textContent()) ?? "").replace(/\s+/g, " ").trim()
+      : "";
+  const status = sellerProducts.status(card);
+  const stock = sellerProducts.stock(card);
+  return {
+    status:
+      (await status.count()) > 0 ? await status.getAttribute("data-status") : null,
+    statusText: await text(status),
+    priceText: await text(sellerProducts.price(card)),
+    stock:
+      (await stock.count()) > 0 ? await stock.getAttribute("data-stock") : null,
+    href: (await card.getAttribute("href")) ?? "",
+  };
+};
+
+/** The product as the core backend lists it for this shop.
+ *
+ *  Read through the app's own proxy — the same list the grid is drawn from. The
+ *  case checks that the card shows what the backend sent. */
+export type ShopProductRow = {
+  status: number | null;
+  unitPrice: number | null;
+  currentStock: number | null;
+};
+
+export const readShopProduct = async (
+  page: Page,
+  options: { sellerId: string | number; productId: string | number },
+): Promise<ShopProductRow> => {
+  const result = await sellerCall(page, {
+    service: SELLER_SERVICE.dashboard,
+    url: "/shop/products",
+    method: "GET",
+    sellerId: String(options.sellerId),
+    country: dashboardLocale(page).country,
+    note: "read the shop's product list",
+  });
+  expect(
+    result.ok,
+    `the core backend refused the shop's product list (GET /shop/products answered ${result.status}${result.message ? `: ${result.message}` : ""})`,
+  ).toBe(true);
+
+  const row = rowsOf(result.data).find(
+    (candidate) =>
+      String(candidate?.product_id ?? candidate?.id) === String(options.productId),
+  );
+  expect(
+    row,
+    `the core backend's product list for this shop does not hold product ${options.productId}`,
+  ).toBeTruthy();
+
+  const numberOrNull = (value: unknown): number | null =>
+    value === undefined || value === null || value === "" ? null : Number(value);
+  return {
+    status: numberOrNull(row?.status),
+    unitPrice: numberOrNull(row?.unit_price),
+    currentStock: numberOrNull(row?.current_stock),
   };
 };
 

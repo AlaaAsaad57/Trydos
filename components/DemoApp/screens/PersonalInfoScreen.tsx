@@ -7,7 +7,7 @@ import RdbPinInputs from "components/Login/Enhanced/ui/RdbPinInputs";
 import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { useDemoData, type DemoGender } from "../DemoData";
-import { C } from "../demoLayout";
+import { C, lineBox } from "../demoLayout";
 import {
   Field,
   FieldInput,
@@ -163,6 +163,7 @@ export default function PersonalInfoScreen() {
                 top: 43 - 14 - 6,
                 padding: "6px 12px",
                 fontSize: 14,
+                lineHeight: `${lineBox(14)}px`,
                 color: on ? C.ink : C.hint,
                 transition: "color 0.2s",
               }}
@@ -264,7 +265,14 @@ function EmailCodeSheet({
         className="absolute flex items-center"
         style={{ left: 40, top: 400 - 11, height: 14 }}
       >
-        <span className="font-normal" style={{ fontSize: 11, color: C.purple }}>
+        <span
+          className="font-normal"
+          style={{
+            fontSize: 11,
+            lineHeight: `${lineBox(11)}px`,
+            color: C.purple,
+          }}
+        >
           {t("Your privacy is completely safe")}
         </span>
         <XdIcon name="shield" style={{ marginLeft: 6 }} />

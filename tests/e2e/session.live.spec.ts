@@ -56,6 +56,7 @@ import {
   spoilCredentials,
 } from "./harness/session";
 import { nav, prompt } from "./selectors";
+import { toServiceToken } from "utils/serviceTokens";
 
 // Every wait inside the measured window, named so the sum can be checked.
 const CART_OPEN_MS = 10_000;
@@ -263,5 +264,99 @@ test.describe("a guest's credential", () => {
     ).toBeHidden({ timeout: PROMPT_ABSENT_MS });
 
     withinWindow(guest.registeredAt, recorder, "after asserting");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The one-time-code relay
+//
+// `/api/proxy` attaches a real credential to whatever it forwards. The code
+// send must never go through it: it runs only through `sendOtpAction`, which
+// counts sends in Redis before the backend is asked. If the proxy forwarded
+// `send_otp`, anyone could skip that limit and use this app to text any number.
+//
+// A unit test (`tests/app/api/proxy/route.test.ts`) checks the rule in the
+// route file. This case checks the built app that shoppers actually reach.
+//
+// **The phone number is not a real one on purpose.** If the block were ever
+// broken, the call would reach the backend — and it must not text a stranger.
+// ---------------------------------------------------------------------------
+
+/** A number no backend can deliver to. */
+const UNDELIVERABLE_PHONE = "000";
+
+/** What the proxy answered, read from inside the page.
+ *
+ *  From the page and not from Node, so the call carries the same origin and
+ *  the same `Sec-Fetch-Site` a shopper's browser sends. */
+type RelayAnswer = { status: number; error: string | null };
+
+test.describe("the one-time-code relay", () => {
+  test("AUTH-04 the proxy refuses to send a one-time code, however the address is written", async ({
+    page,
+  }) => {
+    // Any page served from the app's own origin. `robots.txt` is the cheapest:
+    // the locale rules skip it, so nothing is rendered and no guest is made.
+    await page.goto("/robots.txt", { waitUntil: "domcontentloaded" });
+
+    const ask = (form: "post" | "post-escaped" | "get") =>
+      page.evaluate(
+        async ({ form, phone, market }): Promise<RelayAnswer> => {
+          const plain = "/auth/phone/send_otp";
+          // `%5F` is `_`. A backend router decodes it, so the proxy must too.
+          const escaped = "/auth/phone/send%5Fotp";
+          const response =
+            form === "get"
+              ? await fetch(
+                  `/api/proxy?${new URLSearchParams({ s: market, u: plain })}`,
+                )
+              : await fetch("/api/proxy", {
+                  method: "POST",
+                  headers: {
+                    "content-type": "application/json",
+                    "x-proxy-server": market,
+                    "x-proxy-url": form === "post" ? plain : escaped,
+                    "x-proxy-method": "POST",
+                  },
+                  body: JSON.stringify({ phone }),
+                });
+          const body = await response.json().catch(() => null);
+          return {
+            status: response.status,
+            error: typeof body?.error === "string" ? body.error : null,
+          };
+        },
+        { form, phone: UNDELIVERABLE_PHONE, market: toServiceToken("market") },
+      );
+
+    await test.step("a POST naming send_otp is refused", async () => {
+      const answer = await ask("post");
+      expect(
+        answer.status,
+        `the proxy forwarded a code send instead of refusing it (${answer.status}, "${answer.error}")`,
+      ).toBe(403);
+      expect(
+        answer.error,
+        "the 403 did not come from the proxy's own block, so something else refused it",
+      ).toBe("Forbidden");
+    });
+
+    await test.step("a POST with send_otp percent-escaped is refused", async () => {
+      const answer = await ask("post-escaped");
+      expect(
+        answer.status,
+        `the proxy forwarded an escaped code send (send%5Fotp) instead of refusing it (${answer.status}, "${answer.error}")`,
+      ).toBe(403);
+    });
+
+    await test.step("a GET naming send_otp is refused", async () => {
+      // The GET form is read-only, so it could never send a code. It is still
+      // checked: it must refuse by the same rule, not by luck.
+      const answer = await ask("get");
+      expect(
+        answer.status,
+        `the GET form of the proxy did not refuse a send_otp address (${answer.status}, "${answer.error}")`,
+      ).toBe(403);
+    });
   });
 });

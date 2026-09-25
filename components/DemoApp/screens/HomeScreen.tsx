@@ -17,12 +17,17 @@ import { TRAVEL } from "components/NavigationDemo/BottomNav";
  * `#F8F7FF` with a 0.3 `#707070` line and Medium text; the rest are bare
  * Regular text. The page under it is empty in the file.
  *
- * The chips are a row that scrolls sideways, starting at x 60 with 5 px
- * between chips. In English that lands every chip within 1 px of the file (the
- * file's own gaps are 6, 4, 6 and 5); in a longer language the row scrolls
- * instead of running off the edge.
+ * The chips are a row that scrolls sideways, starting at x 60. Each chip is a
+ * slot as wide as the file's step to the next chip (the words start at x 72,
+ * 128, 204, 283 and 348), so in English every word lands on the file's x in
+ * any browser, whatever width the browser gives the word. The picked pill
+ * hugs its word (12 px each side). A longer word in another language makes
+ * its slot wider, keeps 4 px before the next pill, and the row scrolls.
  */
 const CATEGORIES = ["Man", "Women", "Children", "Home", "Electronic"] as const;
+
+/** Slot widths: the file's distance from one chip's left edge to the next. */
+const SLOTS = [56, 76, 79, 65, undefined] as const;
 
 export default function HomeScreen() {
   const { t, navigate } = useDemoNav();
@@ -70,12 +75,11 @@ export default function HomeScreen() {
             right: 0,
             top: 7,
             height: 36,
-            gap: 5,
             padding: "2px 11px 2px 2px",
             scrollbarWidth: "none",
           }}
         >
-          {CATEGORIES.map((name) => {
+          {CATEGORIES.map((name, i) => {
             const on = name === picked;
             return (
               <button
@@ -84,28 +88,34 @@ export default function HomeScreen() {
                 data-pw={`demo-category-${name}`}
                 aria-pressed={on}
                 onClick={() => setPicked(name)}
-                className={`relative shrink-0 cursor-pointer whitespace-nowrap ${on ? "font-medium" : "font-normal"}`}
+                className={`relative shrink-0 cursor-pointer whitespace-nowrap text-left ${on ? "font-medium" : "font-normal"}`}
                 style={{
                   height: 32,
-                  padding: "0 12px",
+                  minWidth: SLOTS[i],
+                  paddingRight: 4,
                   fontSize: 13,
                   color: C.ink,
                   lineHeight: "32px",
                 }}
               >
-                {on && (
-                  <motion.span
-                    layoutId="demo-home-chip"
-                    transition={TRAVEL}
-                    className="absolute inset-0"
-                    style={{
-                      borderRadius: 12,
-                      background: "#F8F7FF",
-                      boxShadow: "inset 0 0 0 0.3px #707070",
-                    }}
-                  />
-                )}
-                <span className="relative">{t(name)}</span>
+                <span
+                  className="relative inline-block"
+                  style={{ height: 32, padding: "0 12px" }}
+                >
+                  {on && (
+                    <motion.span
+                      layoutId="demo-home-chip"
+                      transition={TRAVEL}
+                      className="absolute inset-0"
+                      style={{
+                        borderRadius: 12,
+                        background: "#F8F7FF",
+                        boxShadow: "inset 0 0 0 0.3px #707070",
+                      }}
+                    />
+                  )}
+                  <span className="relative">{t(name)}</span>
+                </span>
               </button>
             );
           })}

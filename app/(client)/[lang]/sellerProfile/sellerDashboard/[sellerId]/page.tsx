@@ -1182,6 +1182,8 @@ function SellerDashBoard() {
                 )}
                 {product.status !== undefined && (
                   <span
+                    data-pw="seller-product-status"
+                    data-status={product.status}
                     className={`absolute top-2.5 left-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] semibold backdrop-blur-md ${
                       product.status === 1
                         ? "bg-white/85 text-[#2ea84f]"
@@ -1211,7 +1213,10 @@ function SellerDashBoard() {
                 <div className="flex items-end justify-between gap-2 pt-2.5 border-t border-[#f4f4f4]">
                   {product.unit_price !== undefined &&
                   product.unit_price !== null ? (
-                    <p className="text-[16px] bold text-[#3c3c3c] leading-none">
+                    <p
+                      data-pw="seller-product-price"
+                      className="text-[16px] bold text-[#3c3c3c] leading-none"
+                    >
                       {Number(product.unit_price).toFixed(2)}
                       {shopCurrency && (
                         <span className="text-[10px] text-[#8e8e8e] ml-1 regular">
@@ -1224,6 +1229,8 @@ function SellerDashBoard() {
                   )}
                   {product.current_stock !== undefined && (
                     <span
+                      data-pw="seller-product-stock"
+                      data-stock={product.current_stock}
                       className={`shrink-0 inline-flex items-center px-2 py-1 rounded-full text-[10px] semibold ${
                         product.current_stock === 0
                           ? "bg-[#fff1f1] text-[#f85555]"

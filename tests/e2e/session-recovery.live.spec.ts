@@ -1,4 +1,6 @@
 // RECOV-01 — a signed-in shopper survives a credential refused mid-action.
+// RECOV-02 — when the renewal is refused too, the shopper is told, and nothing
+//            of the old session is kept.
 //
 // `session.live.spec.ts` proves this for a **guest**. This is the signed-in
 // half, and it is a different thing: a guest whose credentials are both refused
@@ -12,10 +14,16 @@
 // `spoilCredentials` takes a name list. Spoiling **both** cannot produce a
 // recovery for a verified shopper: the server returns the refusal untouched and
 // the app asks them to sign in again (`serverRequests/HandleAuthedFetch.ts`).
-// A case written that way would burn a real sign-in and a real one-time code on
-// a guaranteed red, every night, while looking like a product failure. The
-// means to renew is left intact — that is what makes this a recovery rather
-// than a logout.
+// A *recovery* case written that way would burn a real sign-in and a real
+// one-time code on a guaranteed red, every night, while looking like a product
+// failure. The means to renew is left intact in RECOV-01 — that is what makes it
+// a recovery rather than a logout.
+//
+// RECOV-02 is that other path, tested for what it is. Both credentials are
+// spoiled on purpose, and the case asserts what CLAUDE.md "Sessions and tokens"
+// says must happen when the market exchange is refused: the app issues a new
+// guest, deletes every sub-service cookie, and shows a verified shopper the
+// "please sign in again" prompt. It costs one more real one-time code.
 //
 // ---------------------------------------------------------------------------
 // The order of the checks is load-bearing
@@ -63,11 +71,13 @@ import {
   requireSignedInShopper,
   openCartAndProveBackendAnswered,
   signedInSession,
+  signInCookiesHeld,
   whoAmI,
 } from "./actions/auth";
 import { gotoHome } from "./actions/nav";
 import {
   ACCESS_COOKIE,
+  REFRESH_COOKIE,
   credentialsChangedSince,
   snapshotCredentials,
   spoilCredentials,
@@ -75,6 +85,8 @@ import {
 import { envValue, hasShopperA } from "./harness/env";
 import { redact } from "./harness/redact";
 import { nav, prompt } from "./selectors";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import type { Page } from "@playwright/test";
 
 /** Every wait this case owns, named so the budget below can be checked. */
 const HOME_READY_MS = 45_000;
@@ -115,52 +127,59 @@ test.beforeEach(() => {
   );
 });
 
+/** Sign the shared shopper in for real, and leave the widget shut.
+ *
+ *  Both cases need their own session to break, so both call this. */
+const signInForReal = async (page: Page): Promise<void> => {
+  await gotoHome(page);
+
+  // Rethrown as a **fresh** error. Mutating this one and rethrowing it would
+  // republish the original text through `error.stack`, whose first line is
+  // the message the error was built with — and the reporter prints the stack.
+  //
+  // `redact()` masks the configured phone as an **exact literal**, so a
+  // number the widget reformats (spaces, no "+", a local 0-prefix) can still
+  // slip through. That is why the fixed sentence comes first and carries the
+  // meaning: the mask is a second line of defence, not the proof.
+  let outcome;
+  try {
+    outcome = await attemptAuth(page, {
+      intent: "login",
+      phone: envValue("TEST_ACCOUNT_PHONE"),
+      method: "whatsapp",
+      otp: envValue("TEST_ACCOUNT_OTP"),
+    });
+  } catch (error) {
+    throw new Error(
+      `the sign-in leg failed before the recovery could be tested, against the core backend. ${redact(error)}`,
+    );
+  }
+
+  // **Asked of the app, not read off the widget.** One refused leg of the
+  // sign-in fan-out leaves the widget on the PIN screen for a shopper who is
+  // signed in -- see `requireSignedInShopper`. What this case needs is a
+  // session to spoil, and the app's own answer is what says there is one.
+  await requireSignedInShopper(page, {
+    outcome,
+    who: "the shopper whose session this case spoils",
+  });
+
+  // Leave the widget shut: its phone field and the "sign in again" prompt
+  // share one marker, so a widget left open makes AC-3 ambiguous.
+  await page.keyboard.press("Escape").catch(() => {});
+  await expect(
+    prompt.phoneEntry(page),
+    "the sign-in widget stayed open, which would make the prompt check below ambiguous",
+  ).toBeHidden();
+};
+
 test("RECOV-01 a signed-in shopper survives a credential refused mid-action", async ({
   page,
 }) => {
   test.setTimeout(CASE_BUDGET_MS);
 
   await test.step("the shopper signs in for real", async () => {
-    await gotoHome(page);
-
-    // Rethrown as a **fresh** error. Mutating this one and rethrowing it would
-    // republish the original text through `error.stack`, whose first line is
-    // the message the error was built with — and the reporter prints the stack.
-    //
-    // `redact()` masks the configured phone as an **exact literal**, so a
-    // number the widget reformats (spaces, no "+", a local 0-prefix) can still
-    // slip through. That is why the fixed sentence comes first and carries the
-    // meaning: the mask is a second line of defence, not the proof.
-    let outcome;
-    try {
-      outcome = await attemptAuth(page, {
-        intent: "login",
-        phone: envValue("TEST_ACCOUNT_PHONE"),
-        method: "whatsapp",
-        otp: envValue("TEST_ACCOUNT_OTP"),
-      });
-    } catch (error) {
-      throw new Error(
-        `the sign-in leg failed before the recovery could be tested, against the core backend. ${redact(error)}`,
-      );
-    }
-
-    // **Asked of the app, not read off the widget.** One refused leg of the
-    // sign-in fan-out leaves the widget on the PIN screen for a shopper who is
-    // signed in -- see `requireSignedInShopper`. What this case needs is a
-    // session to spoil, and the app's own answer is what says there is one.
-    await requireSignedInShopper(page, {
-      outcome,
-      who: "the shopper whose session this case spoils",
-    });
-
-    // Leave the widget shut: its phone field and the "sign in again" prompt
-    // share one marker, so a widget left open makes AC-3 ambiguous.
-    await page.keyboard.press("Escape").catch(() => {});
-    await expect(
-      prompt.phoneEntry(page),
-      "the sign-in widget stayed open, which would make the prompt check below ambiguous",
-    ).toBeHidden();
+    await signInForReal(page);
   });
 
   const before = await signedInSession(page);
@@ -254,5 +273,87 @@ test("RECOV-01 a signed-in shopper survives a credential refused mid-action", as
       storefront?.httpOnly,
       "the credential the CORE backend issued during the recovery is readable by page scripts",
     ).toBe(true);
+  });
+});
+
+/** The parts of the session that belong to one sub-service each.
+ *
+ *  Read from the app's own cookie names. When the market exchange is refused
+ *  the app must delete every one of these, because they were issued to the
+ *  shopper who is no longer signed in. */
+const SUB_SERVICE_SESSION = [
+  COOKIE_NAMES.CHAT_TOKEN,
+  COOKIE_NAMES.CHAT_REFRESH_TOKEN,
+  COOKIE_NAMES.STORIES_TOKEN,
+  COOKIE_NAMES.STORIES_REFRESH_TOKEN,
+  COOKIE_NAMES.WALLET_TOKEN,
+  COOKIE_NAMES.WALLET_USER,
+  COOKIE_NAMES.USER_ID_HASH,
+  COOKIE_NAMES.USER_CHAT,
+  COOKIE_NAMES.USER_STORIES,
+];
+
+/** How long the whole refusal path may take after the cart is pressed: the
+ *  refused call, the refused exchange, the last-chance exchange at
+ *  `/api/auth/expire`, and the new guest. */
+const REFUSAL_MS = 30_000;
+
+test("RECOV-02 a signed-in shopper whose renewal is also refused is told, and keeps nothing of the old session", async ({
+  page,
+}) => {
+  test.setTimeout(CASE_BUDGET_MS);
+
+  await test.step("the shopper signs in for real", async () => {
+    await signInForReal(page);
+  });
+
+  const before = await signedInSession(page);
+  expect(
+    before.phoneVerified,
+    "the app does not treat this visitor as a signed-in shopper, so this case would be testing a guest",
+  ).toBe(true);
+  expect(
+    before.accountId,
+    "the app could not name the signed-in shopper before the credentials were spoiled",
+  ).not.toBeNull();
+
+  await test.step("both the working credential and the means to renew are refused", async () => {
+    await gotoHome(page);
+    await expect(
+      nav.cartButton(page),
+      "the home page never rendered its cart control — the SEARCH backend is the usual cause. Run `pnpm e2e:health` before reading this as a failure",
+    ).toBeVisible({ timeout: HOME_READY_MS });
+
+    await spoilCredentials(page, [ACCESS_COOKIE, REFRESH_COOKIE]);
+  });
+
+  await test.step("an action is started, and the shopper is asked to sign in again", async () => {
+    await nav.cartButton(page).click();
+    await expect(
+      prompt.sessionExpired(page),
+      "both credentials were refused, but the app never showed the verified shopper the \"please sign in again\" prompt",
+    ).toBeVisible({ timeout: REFUSAL_MS });
+  });
+
+  await test.step("the visitor is a new guest, not the shopper", async () => {
+    const after = await signedInSession(page);
+    expect(
+      after.phoneVerified,
+      "after the refused renewal the app still treats the visitor as a signed-in shopper",
+    ).toBe(false);
+    expect(
+      after.accountId === before.accountId,
+      "after the refused renewal the app still names the shopper's own account instead of a new guest",
+    ).toBe(false);
+  });
+
+  await test.step("no sub-service cookie of the old session is kept", async () => {
+    // Names only: a cookie record passed to `expect` prints its value.
+    const held = await signInCookiesHeld(page);
+    const kept = SUB_SERVICE_SESSION.filter((name) => held.includes(name));
+    expect(
+      kept.sort(),
+      "the market renewal was refused and the shopper became a guest, but these sub-service cookies of the old session were kept",
+    ).toEqual([]);
   });
 });

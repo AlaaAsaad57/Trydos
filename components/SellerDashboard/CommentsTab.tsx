@@ -387,6 +387,7 @@ export default function CommentsTab({
                           <div className="flex items-center gap-3">
                             {canEditReply && (
                               <button
+                                data-pw="dashboard-comment-edit-reply-btn"
                                 onClick={() => openReplyModal(comment)}
                                 className="inline-flex items-center gap-1 text-[12px] semibold text-[#388CFF] hover:opacity-80 transition-colors"
                               >

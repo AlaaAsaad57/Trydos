@@ -119,7 +119,8 @@ export default function SearchScreen() {
                 data-pw={`demo-search-chip-${i}`}
                 aria-pressed={on}
                 onClick={() => setPicked(i)}
-                className={`relative shrink-0 cursor-pointer whitespace-nowrap ${on ? "font-medium" : "font-normal"}`}
+                // The file starts each word 12 px in, it does not centre it.
+                className={`relative shrink-0 cursor-pointer whitespace-nowrap text-left ${on ? "font-medium" : "font-normal"}`}
                 style={{
                   height: 32,
                   padding: "0 12px",

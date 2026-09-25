@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { useDemoData } from "../DemoData";
-import { C } from "../demoLayout";
+import { C, lineBox } from "../demoLayout";
 import { ScreenHeader, ScreenPage, WhyCard, WideButton } from "../ui";
 import type { XdIconName } from "../xdIcons";
 
@@ -109,6 +109,7 @@ export default function PhotoScreen() {
       header={
         <ScreenHeader
           title="Profile Photo"
+          nudge={1}
           onBack={back}
           action={showCancel ? "Cancel" : undefined}
           onAction={cancel}
@@ -169,7 +170,7 @@ export default function PhotoScreen() {
           background: C.card,
           boxShadow:
             photo && stage !== "uploading"
-              ? "0 3px 3px rgba(0,0,0,0.16), inset 0 0 0 1.5px #FFFFFF"
+              ? "0 3px 3px rgba(0,0,0,0.16)"
               : "inset 0 0 0 0.5px #D3D3D3",
           transition: "box-shadow 0.3s",
         }}
@@ -220,6 +221,15 @@ export default function PhotoScreen() {
             </motion.div>
           )}
         </AnimatePresence>
+        {/* The white line is its own layer over the photo: an inset shadow on
+            the box itself is painted under the <img> and never shows. */}
+        {photo && stage !== "uploading" && (
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 pointer-events-none"
+            style={{ borderRadius: 30, boxShadow: "inset 0 0 0 1.5px #FFFFFF" }}
+          />
+        )}
       </div>
 
       {stage === "uploading" ? (
@@ -230,7 +240,12 @@ export default function PhotoScreen() {
           <XdIcon name="uploadingIcon" />
           <span
             className="font-normal"
-            style={{ marginLeft: 6, fontSize: 14, color: C.hint }}
+            style={{
+              marginLeft: 6,
+              fontSize: 14,
+              lineHeight: `${lineBox(14)}px`,
+              color: C.hint,
+            }}
           >
             {t("Uploading profile photo …")}
           </span>
@@ -239,10 +254,11 @@ export default function PhotoScreen() {
         // Icons 20 x 20 at y 490, labels 11 px on baseline 527, each label
         // centred under its icon, the icons 88 apart. Two actions centre on
         // 167 and 255 — the pair sits 4 px left of the middle in the file,
-        // hence the padding; three centre on 126, 214 and 303.
+        // hence the padding. Three centre on 126, 214 and 303: the row sits
+        // 1 px left of the middle, and "Remove" is 1 px further right.
         <div
           className="absolute left-0 w-full flex justify-center"
-          style={{ top: 490, gap: 28, paddingRight: stage === "saved" ? 0 : 8 }}
+          style={{ top: 490, gap: 28, paddingRight: stage === "saved" ? 2 : 8 }}
         >
           {actions.map((action) => (
             <motion.button
@@ -252,12 +268,20 @@ export default function PhotoScreen() {
               whileTap={{ scale: 0.92 }}
               onClick={action.onClick}
               className="relative flex flex-col items-center cursor-pointer"
-              style={{ width: 60 }}
+              style={{
+                width: 60,
+                marginLeft: action.icon === "remove" ? 1 : undefined,
+              }}
             >
               <XdIcon name={action.icon} />
               <span
                 className="absolute font-normal whitespace-nowrap"
-                style={{ top: 527 - 11 - 490, fontSize: 11, color: C.ink }}
+                style={{
+                  top: 527 - 11 - 490,
+                  fontSize: 11,
+                  lineHeight: `${lineBox(11)}px`,
+                  color: C.ink,
+                }}
               >
                 {t(action.label)}
               </span>

@@ -47,15 +47,22 @@
 
 import { expect, test } from "./fixtures";
 import {
+  chooseStoryFile,
+  closeStoryForm,
   deleteSellerStory,
   describeSellerUpload,
   findSellerStoryByLink,
   openStoriesSection,
+  openStoryForm,
+  oversizePhoto,
   readSellerStories,
   sellerAccountId,
+  svgFile,
+  typeStoryLink,
   uploadSellerStory,
   waitForStoriesList,
 } from "./actions/sellerStories";
+import { messagesShown, recordNotifications } from "./harness/notifications";
 import { gotoSellerDashboard } from "./actions/sellerDashboard";
 import { chooseRegionIfAsked, gotoAbout, gotoHome, seedLocale } from "./actions/nav";
 import { signedInSession } from "./actions/auth";
@@ -529,4 +536,90 @@ test("SST-08 the story's product button opens the story's product", async () => 
     (await nameOnButtonPage.textContent())?.trim() ?? "",
     `the story's product button opened a product page, but a different product: the button's address "${productButtonHref}" shows one name and the product the seed attached (${seed.productSlug}) shows "${byOwnAddress.name}"`,
   ).toBe(byOwnAddress.name);
+});
+
+// ---------------------------------------------------------------------------
+// SST-09 — the form's own checks
+//
+// Nothing is uploaded and nothing is written: every file and link here is
+// refused by the form before any backend is asked, and the form is closed with
+// Cancel. It is last so that a failure here can never stop the journey above;
+// the file is serial, so it runs only when that journey passed.
+// ---------------------------------------------------------------------------
+
+test("SST-09 the story form refuses an SVG, a file over 10 MB, and a link that is not one", async () => {
+  test.setTimeout(180_000);
+
+  seed = seed ?? readQaSeedState();
+  // Before the navigation: the app removes each message after five seconds,
+  // so it is recorded as it appears.
+  await recordNotifications(page);
+
+  await gotoSellerDashboard(page, { sellerId: seed.sellerId });
+  const may = await openStoriesSection(page);
+  await waitForStoriesList(page);
+  expect(
+    may.canCreate,
+    "the QA seller may not create a story (CREATE_STORY is missing), so the form cannot be opened",
+  ).toBe(true);
+
+  await openStoryForm(page);
+
+  try {
+    await test.step("an SVG is refused, and the shopper is told", async () => {
+      const told = (await messagesShown(page)).length;
+      const choice = await chooseStoryFile(page, svgFile());
+      expect(choice.cropOpened, "an SVG was taken into the crop step").toBe(false);
+      expect(choice.previewShown, "an SVG was accepted as the story's media").toBe(
+        false,
+      );
+      expect(
+        choice.shareEnabled,
+        "Share can be pressed with an SVG as the only file",
+      ).toBe(false);
+      await expect
+        .poll(async () => (await messagesShown(page)).length, {
+          message: "the SVG was refused without a word to the seller",
+          timeout: 10_000,
+        })
+        .toBeGreaterThan(told);
+    });
+
+    await test.step("a file over 10 MB is refused, and the shopper is told", async () => {
+      const told = (await messagesShown(page)).length;
+      const choice = await chooseStoryFile(page, oversizePhoto());
+      expect(
+        choice.cropOpened,
+        "a photo over 10 MB was taken into the crop step",
+      ).toBe(false);
+      expect(
+        choice.previewShown,
+        "a photo over 10 MB was accepted as the story's media",
+      ).toBe(false);
+      await expect
+        .poll(async () => (await messagesShown(page)).length, {
+          message: "the photo over 10 MB was refused without a word to the seller",
+          timeout: 10_000,
+        })
+        .toBeGreaterThan(told);
+    });
+
+    await test.step("a link that is not one is refused, and a real one clears it", async () => {
+      const bad = await typeStoryLink(page, "not a link");
+      expect(
+        bad.errorShown,
+        "the form took \"not a link\" as a link and showed no error",
+      ).toBe(true);
+      expect(bad.shareEnabled, "Share can be pressed with a refused link").toBe(false);
+
+      // No scheme on purpose: the form adds `https://` itself when it saves.
+      const good = await typeStoryLink(page, "example.com/trydos-e2e");
+      expect(
+        good.errorShown,
+        "the form still shows a link error after a real address was typed",
+      ).toBe(false);
+    });
+  } finally {
+    await closeStoryForm(page);
+  }
 });

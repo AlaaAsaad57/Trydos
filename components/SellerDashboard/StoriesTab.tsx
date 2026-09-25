@@ -566,7 +566,10 @@ function UploadStoryModal({
                   {translateFunction("Preview")}
                 </p>
                 {preview ? (
-                  <div className="relative w-full aspect-9/16 max-h-[360px] mx-auto rounded-[15px] overflow-hidden bg-black border border-[#ededed]">
+                  <div
+                    data-pw="seller-story-preview"
+                    className="relative w-full aspect-9/16 max-h-[360px] mx-auto rounded-[15px] overflow-hidden bg-black border border-[#ededed]"
+                  >
                     {selectedFile?.type.startsWith("video/") ? (
                       <video
                         src={preview}
@@ -648,7 +651,10 @@ function UploadStoryModal({
                     />
                   </div>
                   {linkError && (
-                    <p className="text-[12px] text-[#f85555] mt-1 flex items-center gap-1">
+                    <p
+                      data-pw="seller-story-link-error"
+                      className="text-[12px] text-[#f85555] mt-1 flex items-center gap-1"
+                    >
                       <DashIcon name="alert" size={13} />
                       {linkError}
                     </p>
@@ -722,7 +728,12 @@ function UploadStoryModal({
 
           {/* Footer */}
           <div className="p-5 w-full lg:p-6 border-t border-[#ededed] bg-[#fafafa] flex items-center justify-end gap-3">
-            <DashButton type="button" variant="ghost" onClick={onClose}>
+            <DashButton
+              data-pw="seller-story-cancel"
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+            >
               {translateFunction("Cancel")}
             </DashButton>
             <DashButton

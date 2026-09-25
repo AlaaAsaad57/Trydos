@@ -157,7 +157,9 @@ import {
   openAddressList,
   openCart,
   placeOrder,
+  applyCouponCode,
   readCartMoney,
+  readCheckoutTotal,
   readShopCurrency,
   removeLineNamed,
   returnToBag,
@@ -1391,6 +1393,130 @@ test.describe("BUY-04 changing and removing a line in the bag", () => {
         `the bag still holds ${removed.linesLeft} lines after its only line was ` +
           `removed. ${removed.said}`,
       ).toBe(0);
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BUY-07 — a coupon the shop never issued is refused, and nothing changes
+//
+// Staging has no coupon this suite owns, so the case that a *good* coupon is
+// taken is scripted (`checkout.scripted.spec.ts`, SCRIPT-21 and SCRIPT-22).
+// The refusal needs no data at all: any code the shop never issued will do, and
+// the core backend's answer to it is real.
+//
+// Runs on the session BUY-04 handed on, so it spends no one-time code. Its own
+// `test.describe`, for the same reason BUY-04 has one: the bag is emptied in a
+// teardown that belongs to this case alone.
+// ---------------------------------------------------------------------------
+
+/** A code no shop issued. Marked and unique per run, so it can never match a
+ *  real coupon by accident. */
+const UNKNOWN_COUPON = `TRYDOSQANOSUCH${Date.now()}`;
+
+test.describe("BUY-07 a coupon the shop never issued", () => {
+  let openBag: {
+    context: import("@playwright/test").BrowserContext;
+    page: import("@playwright/test").Page;
+  } | null = null;
+
+  test.afterEach(async () => {
+    if (openBag === null) return;
+
+    const { context, page } = openBag;
+    openBag = null;
+
+    try {
+      // The checkout covers the navigation bar, so the bag is emptied from a
+      // fresh page. The page finishes any renewal first — a navigation cancels
+      // an exchange in flight (`harness/renewalGate.ts`).
+      await waitForRenewalSettled(page);
+      await gotoHome(page);
+      await emptyTheBag(page);
+    } finally {
+      await handOnSession(context, page, SESSION_STATE.shopper);
+      await context.close();
+    }
+  });
+
+  test("BUY-07 an unknown coupon code is refused, the shopper is told, and the total does not change", async ({
+    browser,
+  }) => {
+    test.setTimeout(6 * 60 * 1000);
+
+    const context = await openSignedInSession(
+      browser,
+      SESSION_STATE.shopper,
+      "BUY-01",
+    );
+    const page = await context.newPage();
+    openBag = { context, page };
+
+    await test.step("the shopper reaches the checkout with one line in the bag", async () => {
+      await gotoAbout(page, { country: CASH_ON_DELIVERY_COUNTRY });
+      await gotoHome(page);
+      await emptyTheBag(page);
+      await addQaProductToBag(page, { country: CASH_ON_DELIVERY_COUNTRY });
+
+      const opened = await openCart(page);
+      expect(
+        opened.lines,
+        `the bag holds ${opened.lines} lines after adding only the QA product`,
+      ).toBe(1);
+
+      const entered = await goToCheckout(page);
+      expect(
+        entered.reached,
+        `the cart did not open the checkout screen. ${entered.who}`,
+      ).toBe(true);
+    });
+
+    const totalBefore = await readCheckoutTotal(page);
+    expect(
+      totalBefore,
+      "the checkout drew no total, so this case cannot tell whether the coupon changed it",
+    ).not.toBe("");
+
+    const { answer, box } = await test.step(
+      "an unknown code is typed and applied",
+      async () => applyCouponCode(page, { code: UNKNOWN_COUPON }),
+    );
+
+    await test.step("the core backend refused the code", async () => {
+      expect(
+        answer.status,
+        `the core backend never answered the coupon request. ${answer.said}`,
+      ).not.toBe(0);
+      expect(
+        answer.sentCode,
+        "the coupon request did not carry the code the shopper typed",
+      ).toBe(UNKNOWN_COUPON);
+      expect(
+        answer.accepted,
+        `the core backend ACCEPTED a coupon code no shop ever issued (${answer.status}: ${answer.said})`,
+      ).toBe(false);
+    });
+
+    await test.step("the shopper is told, and the coupon is not applied", async () => {
+      expect(
+        box.shownError,
+        `the core backend refused the code (${answer.status}: ${answer.said}), but the coupon box showed the shopper no reason`,
+      ).not.toBe("");
+      expect(
+        box.applied,
+        "the coupon box shows a refused coupon as applied",
+      ).toBe(false);
+      expect(
+        box.fieldShown,
+        "the coupon field went away after a refusal, so the shopper cannot try another code",
+      ).toBe(true);
+    });
+
+    await test.step("the total the checkout will charge did not change", async () => {
+      expect(
+        await readCheckoutTotal(page),
+        "the checkout total changed after a coupon was refused",
+      ).toBe(totalBefore);
     });
   });
 });

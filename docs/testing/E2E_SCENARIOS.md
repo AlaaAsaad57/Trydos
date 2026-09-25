@@ -1,23 +1,25 @@
 # E2E scenarios
 
-Every case the browser suite runs — **115** of them today. Add a row whenever a
+Every case the browser suite runs — **131** of them today. Add a row whenever a
 case is added, and keep the count above in step.
 
 | Section | Cases | Signs in? | Writes to staging? |
 |---------|-------|-----------|--------------------|
-| Guest journeys | GUEST-01 to GUEST-42 | no | only the guest registrations in GUEST-32 to GUEST-34 |
+| Guest journeys | GUEST-01 to GUEST-43, GUEST-47 to GUEST-51, AUTH-04 | no | only the guest registrations in GUEST-32 to GUEST-34 |
 | Signed-in journeys | AUTH-01 to AUTH-03 | yes, once, shared | no |
 | Signed-in profile journeys | PROF-01 to PROF-08 | yes, twice, shared | yes — the shared test account |
-| Signed-in session recovery | RECOV-01 | yes, its own — a third real code per run | no |
-| **The money path** | BUY-01 to BUY-05 | BUY-01 and BUY-03 each sign in once, BUY-04 reuses BUY-03's session, BUY-05 signs in twice for itself — four real codes per run | **yes — one real order, placed and then cancelled, one address BUY-03 creates and removes again, and one bag line BUY-05 adds as a guest and removes again** |
+| Signed-in session recovery | RECOV-01, RECOV-02 | yes, each its own — two real codes per run | no |
+| **The money path** | BUY-01 to BUY-05, BUY-07 (reuses BUY-03's session) | BUY-01 and BUY-03 each sign in once, BUY-04 reuses BUY-03's session, BUY-05 signs in twice for itself — four real codes per run | **yes — one real order, placed and then cancelled, one address BUY-03 creates and removes again, and one bag line BUY-05 adds as a guest and removes again** |
 | Scripted auth branches | SCRIPT-01 to SCRIPT-05 | no | no — only the real one-time-code send |
 | Scripted profile branches | SCRIPT-07 to SCRIPT-12 | **yes — each case signs in for itself** | **no** — every leg is faked, but each sign-in and one change-number send are real |
-| Scripted checkout branches | SCRIPT-14 to SCRIPT-18, SCRIPT-20 | **no — the shopper is faked** | no — nothing but a guest registration |
+| Scripted checkout branches | SCRIPT-14 to SCRIPT-18, SCRIPT-20 to SCRIPT-22 | **no — the shopper is faked** | no — nothing but a guest registration |
 | Saved products, as a guest | WISH-01 to WISH-05 | no | yes — one product on one throwaway guest, removed again |
 | Saved products, signed in | WISH-06 | **yes — its own, a real code per run** | **yes — the shared test account, put back in the same case** |
 | Comparing two products | CMP-01 to CMP-07 | no | no — the whole feature is two cookies in the browser |
-| **Questions, answers and reactions** | CMT-01 to CMT-08 | CMT-01 does, for itself; the seller half opens the seed's jar and signs in to nothing | **yes — two questions, two shop answers and several reactions on the QA product, all removed again** |
+| **Questions, answers and reactions** | CMT-01 to CMT-08, CMT-10, CMT-11 | CMT-01 does, for itself; the seller half opens the seed's jar and signs in to nothing | **yes — two questions, two shop answers and several reactions on the QA product, all removed again** |
 | **The QA safety lock** | QA-01 to QA-11 (16 cases) | yes — Shopper B, through the seed | **yes — the seed builds this environment's QA seller, shop, location and product, once. Nothing is ever deleted** |
+| Seller dashboard, a faked small role | SCRIPT-26 | no — it opens the QA seed's seller jar | no — only the permissions answer is faked, and nothing is saved |
+| Seller dashboard and seller stories, added cases | SD-13, SD-16, SST-09 | no — the QA seed's seller jar | no — reads, a template download, and a story form closed with Cancel |
 
 Design: `docs/testing/E2E_TEST_DESIGN.md`. How to run: `tests/e2e/README.md`.
 
@@ -74,6 +76,22 @@ test — about five per run, and they are not cleaned up (see rule 6 in
 | GUEST-41 | The back button on a static page keeps the visitor in the app | `staticPages.live.spec.ts:61` | The back bar goes to settings rather than dead-ending or leaving the site |
 | GUEST-42 | The home page comes back where it was after a product opens and closes | `guest.live.spec.ts:93` | An intercepted overlay shares one window scroll with the page under it, so the page's position is saved and put back by hand — the fixed bug in `components/ModalRoute/overlayScroll.ts`, where it was saved after the page body was already hidden and read back as 2px |
 | GUEST-43 | The home page comes back where it was after a product opens and closes | `guest.live.spec.ts:94` | The intercepted product overlay restores the home page's scroll position, guarding `components/ModalRoute/overlayScroll.ts` against the browser overwriting it |
+| GUEST-47 | A category in the bar opens its own page, marked open, and leads back home | `listings.live.spec.ts:26` | The tap moves the address to `/categories/{slug}`, the entry carries the "open" mark and moves to the front of the bar, and the open entry links back to the home page. Only the **visible** bar is read: the app keeps the previous page in the document, hidden, and the hidden copy was matched first. The second tap is read, not pressed — see the note below the table |
+| GUEST-48 | The featured page shows products the index holds for it | `listings.live.spec.ts:67` | The index is asked first, through `/api/products/featured` — the route that runs the page's own query. A good `200` with no products skips the case; any other answer fails it. Every card on the page must be one of the products that query returned |
+| GUEST-49 | The flash-deal page shows products the index holds for it | `listings.live.spec.ts:67` | The same, through `/api/products/searchInCatalog?flash-deal=true`. On 2026-09-25 the index held one flash deal in `iq`, so it ran rather than skipped |
+| GUEST-50 | A language picked in settings becomes the address, the saved choice and the page's language, and back | `locale.live.spec.ts:601` | Three layers checked apart: the address (`/iq-ar/settings`), the saved `language` cookie, and the server-rendered `<html lang>` plus a title in Arabic script. Then back to English, the same three ways |
+| GUEST-51 | A country picked in settings becomes the address, the saved choice and the flag, and back | `locale.live.spec.ts:654` | The confirm step is pressed, then the address, the saved `country` cookie and the flag on the settings page are checked apart. The country rows are matched without regard to case: the backend's `iso` arrives as `LB` beside `sy` in one list |
+| AUTH-04 | The proxy refuses to send a one-time code, however the address is written | `session.live.spec.ts:295` | `/api/proxy` answers its own `403` for `send_otp` as a POST, as a POST with `send%5Fotp`, and in the GET form. The phone in the body cannot receive a code, so a broken block could never text a stranger. No account, no code spent |
+
+GUEST-44 to GUEST-46 are kept for the filter, sort and paging cases, which are
+not written yet.
+
+**The category bar's first entry sits under the search box.** When a category is
+open it moves to the front of the bar, and the nav bar's search input covers the
+middle of it: a browser test's tap there lands on the search box (measured on
+2026-09-25). GUEST-47 reads that entry's link instead of pressing it. **Not
+confirmed as a bug yet** — nobody has checked whether a real finger hits the
+same spot. It needs its own look before anything is changed.
 
 ## Signed-in journeys
 
@@ -175,6 +193,7 @@ Per run it costs: one one-time code, one sign-in, and no writes to the account.
 | ID | Case | Spec | What it proves |
 |----|------|------|----------------|
 | RECOV-01 | A signed-in shopper survives a credential refused mid-action | `session-recovery.live.spec.ts:118` | The action completes, the credentials really were exchanged, the app names the **same** shopper afterwards rather than a new guest, no sign-in prompt is ever shown, and the replacement credential is still kept from page scripts |
+| RECOV-02 | A signed-in shopper whose renewal is also refused is told, and keeps nothing of the old session | `session-recovery.live.spec.ts:301` | Both credentials are spoiled on purpose. The app must show the verified shopper the "please sign in again" prompt, name a new guest instead of the account, and delete every sub-service cookie of the old session (chat, stories, wallet, comments). Costs one more real one-time code |
 
 ## The money path
 
@@ -244,6 +263,7 @@ second sign-in.
 | BUY-03 | The bag shows the money the shop sent, and another address re-prices it | `shopper.live.spec.ts:681` | The two money figures in the bag — shipping and payable total — are the numbers the core backend sent for this bag in this run, never a literal. Then it creates an address through the API, taps it on the checkout, and checks the backend really stored it as the default, that the shop re-priced the bag, and that an edit to the address shows on the checkout and is stored |
 | BUY-04 | Plus raises a line to two, and removing it takes it out of the bag | `shopper.live.spec.ts:1030` | Pressing plus on a line makes it hold two — read only after the bag has been read again, so an optimistic number cannot pass for the shop's answer — and removing the line by name takes that product out of the bag |
 | BUY-05 | A guest's bag survives sign-in, and the line can then be removed | `shopper.live.spec.ts:1587` | The shopper's bag is emptied and the shopper signs out; the app then reports a guest. The guest adds the QA product and the **gateway** answers the add. The guest signs in from the navigation as the same shopper, and the **core** backend answers the bag read — proven a good read (`200`, `isSuccessful: true`) before anything in the bag is judged. The guest's line is still there by the bag's own name with the same quantity, and nothing else is in the bag. Removing it takes it out, and it is still gone after a reload. The docs' AC-12 (guest → verified upgrade) |
+| BUY-07 | An unknown coupon code is refused, the shopper is told, and the total does not change | `shopper.live.spec.ts:1442` | A code no shop issued is typed on the real checkout. The **core** backend's answer is judged on its own (a yes is `data.status === 1`, the test `utils/fetchData.ts` applies), then the box: a reason is shown, nothing is marked applied, the field stays, and the total in Confirm Shipping & Payment is unchanged. Runs on BUY-03's session, so it spends no code; the bag is emptied in its own teardown |
 
 ## Scripted auth branches
 
@@ -344,6 +364,8 @@ because from the shopper's side a silent refusal and a dead button look the same
 | SCRIPT-17 | A bag holding something this country cannot receive never reaches the checkout | `checkout.scripted.spec.ts:290` | The same guard, a different field (`is_country_restricted`). Both are covered rather than one standing in for the other — a change dropping one of the three conditions would leave the other case green |
 | SCRIPT-18 | A bag that empties between the two checkout steps sends the shopper back | `checkout.scripted.spec.ts:325` | The bag is emptied **after** the payment method is chosen, so the re-read that Confirm Shipping & Payment does is the first to see it. Emptying it any earlier zeroes the total, which disables the cash-on-delivery choice and fails the case on a control it is not about |
 | SCRIPT-20 | A credential refused mid-checkout is renewed and the order completes | `checkout.scripted.spec.ts:437` | The checkout answers `401` once and then accepts. Both answers being consumed is what "it was retried" means — one consumed answer would mean the app took the refusal and stopped |
+| SCRIPT-21 | A coupon the shop accepts is applied, and the bag is read again | `checkout.scripted.spec.ts:525` | Scripted because staging has no coupon this suite owns. The request carries the typed code, the box turns Apply into the discount and closes the field, and the app asks for the bag again — the new total comes from that re-read, so a faked bag cannot prove a total. The fake answers `status: 1`: an earlier version sent `true`, and `fetchData` refused it, which is the real contract |
+| SCRIPT-22 | A coupon from a shared link is applied at checkout by itself | `checkout.scripted.spec.ts:594` | `/?coupon=CODE` is kept by the app, the checkout applies that code without being asked, and the kept code is cleared once the shop accepted it, so it is not applied again on the next checkout |
 
 ## Saved products — the checklist
 
@@ -431,6 +453,8 @@ that already holds a real answer would overwrite it with no copy kept.
 | CMT-06 | A reload keeps every question, edit, answer and like | `comments.live.spec.ts:572` | One reload, then one named assertion per value. Ten values checked apart, so a failure names which one was lost rather than that "the reload failed" |
 | CMT-07 | Every like is removed, and a reload keeps them off | `comments.live.spec.ts:660` | The undo is proved the same way the do was. The comment like ignores its own backend answer (see the finding below), so only the reload can see a refused unlike |
 | CMT-08 | Both questions are deleted and the product unliked, and it sticks | `comments.live.spec.ts:741` | The deletes and the product unlike are separate checks, because they are separate calls to separate endpoints |
+| CMT-10 | The seller edits one answer and deletes the other | `comments.live.spec.ts:847` | Runs **before** CMT-08, which deletes the questions. Both writes are refused unless the question **and** the answer carry this run's mark — editing or deleting a real shop's answer cannot be undone. The dashboard changes the card only on the comments backend's yes, so the card is the proof |
+| CMT-11 | The shopper sees the edited answer, and no answer where one was deleted | `comments.live.spec.ts:886` | Read with the same bounded reloads as CMT-06, because the product page reads Elasticsearch. The deleted answer is gone and its question stayed — deleting an answer must not take the question with it |
 
 **What it leaves behind.** Nothing, on a green run: `CMT-08` removes the
 questions and the like, and `afterAll` removes the shop's answers. A run that
@@ -479,6 +503,20 @@ the net rather than left for it to fail on. Everything else is removed: the
 review is deleted in the last step, by the shopper, through the screens a
 shopper uses. The order is always placed against the **QA shop's own product**,
 so no real seller is ever asked to ship anything.
+
+## The seller dashboard — added cases
+
+SD-01 to SD-12 and SST-01 to SST-08 are described in the headers of
+`sellerDashboard.live.spec.ts` and `sellerStories.live.spec.ts`. The cases below
+were added later. All of them open the QA seed's seller jar and sign in to
+nothing.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| SD-13 | The products list shows the QA product with the status, price and stock the backend holds | `sellerDashboard.live.spec.ts:976` | The card's status, its price to two decimals and its stock are compared with the core backend's own list, one check each. The card's link is checked for where it points and is not followed — the product edit page is being removed |
+| SD-16 | The Excel section downloads a real `.xlsx` template for a category | `sellerDashboard.live.spec.ts:1044` | Download is disabled before a category is chosen; after one, a file arrives whose first bytes are `PK`, the mark of every `.xlsx` — a JSON error saved under a spreadsheet name would not pass. The upload is not driven: it would create real products |
+| SST-09 | The story form refuses an SVG, a file over 10 MB, and a link that is not one | `sellerStories.live.spec.ts:550` | Nothing is uploaded. Each refused file opens no crop step, draws no preview and says something to the seller; a bad link shows its error and keeps Share disabled, and a real address clears it. Last in a serial file, so it runs only after the journey above it passed |
+| SCRIPT-26 | A seller with a small role is offered only its sections, refused the rest, and cannot change the shop's record | `sellerDashboard.scripted.spec.ts:67` | Only the permissions answer is faked (`READ_PRODUCTS`, `READ_SHOP_INFO`). Each section is checked by name, offered or withheld; a direct link to Locations shows Access Denied; Shop Info is shown with every field disabled and no Save. **It proves the screen's gating only** — the session behind the fake still holds every permission, so the backend's own refusal is not covered. Trace is off: the session is real |
 
 ## A defect these files found, and fixed
 

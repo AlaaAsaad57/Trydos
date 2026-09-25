@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { useDemoData } from "../DemoData";
-import { C } from "../demoLayout";
+import { C, lineBox } from "../demoLayout";
 import { Box, ScreenHeader, ScreenPage, Txt } from "../ui";
 
 /**
@@ -66,7 +66,14 @@ export default function ClientInfoScreen() {
   return (
     <ScreenPage
       testId="demo-client-info"
-      header={<ScreenHeader title="client Information" onBack={back} t={t} />}
+      header={
+        <ScreenHeader
+          title="client Information"
+          nudge={-2}
+          onBack={back}
+          t={t}
+        />
+      }
       footer={
         <>
           {(
@@ -89,7 +96,10 @@ export default function ClientInfoScreen() {
                 background: C.card,
                 boxShadow: `inset 0 0 0 0.5px ${C.hint}`,
                 fontSize: 14,
+                lineHeight: `${lineBox(14)}px`,
                 color: C.ink,
+                // The file puts both words 1 px (and 1.33 px) right of centre.
+                paddingLeft: i === 0 ? 2.67 : 2,
               }}
             >
               {t(label)}

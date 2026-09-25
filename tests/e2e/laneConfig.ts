@@ -77,6 +77,10 @@ export const ACCOUNT_LANE = [
   // session and writes for real — a story on the stories backend and a file on
   // the media server. Two copies at once would fight over the same jar.
   "sellerStories.live.spec.ts",
+  // The seller dashboard with a faked small role. Only the permissions answer is
+  // faked; the session is the QA seed's real seller jar, which it hands back
+  // afterwards — so it belongs with the other readers of that jar.
+  "sellerDashboard.scripted.spec.ts",
 ];
 
 /** No account, no code, nothing real written. Safe to run several at once. */
@@ -89,6 +93,9 @@ export const SOLO_LANE = [
   "staticPages.live.spec.ts",
   // Compare writes nothing anywhere — its whole state is two cookies.
   "compare.live.spec.ts",
+  // A category, the featured page and the flash-deal page, as a guest. Reads
+  // only; it asks the index through the app's own routes and writes nothing.
+  "listings.live.spec.ts",
   // A throwaway guest saves one product and removes it again. It does write to
   // staging, but not to the shared account and not to anything a second worker
   // could collide with: each run registers its own guest.

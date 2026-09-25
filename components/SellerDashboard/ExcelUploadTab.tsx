@@ -333,6 +333,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
           </div>
         ) : (
           <select
+            data-pw="seller-excel-category"
             value={selectedCategory}
             onChange={(e) => {
               setSelectedCategory(e.target.value);
@@ -354,6 +355,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
 
       {/* Step 2 — Download template */}
       <DashButton
+        data-pw="seller-excel-download"
         variant="secondary"
         fullWidth
         icon="download"
@@ -427,6 +429,8 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
 
       {status && (
         <div
+          data-pw="seller-excel-status"
+          data-type={status.type}
           className={`p-4 rounded-[12px] text-[14px] medium border flex items-start gap-2 animate-fade-in ${
             status.type === "success"
               ? "bg-[#eaf7ef] border-[#bfe6cc] text-[#2ea84f]"

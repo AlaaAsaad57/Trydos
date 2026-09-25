@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { useDemoData } from "../DemoData";
-import { C } from "../demoLayout";
+import { C, lineBox } from "../demoLayout";
 import { Box, Icon, ScreenHeader, ScreenPage, Txt } from "../ui";
 import type { XdIconName } from "../xdIcons";
 
@@ -62,7 +62,8 @@ export default function ClientIdScreen() {
     {
       icon: "copy",
       label: "copy",
-      x: 125,
+      // The file centres "copy" on 124 and "share" on 304 (text at 111 and 290).
+      x: 124,
       iconX: 114.5,
       onClick: copy,
     },
@@ -73,13 +74,15 @@ export default function ClientIdScreen() {
       iconX: 203.49,
       onClick: download,
     },
-    { icon: "share", label: "share", x: 305, iconX: 295, onClick: share },
+    { icon: "share", label: "share", x: 304, iconX: 295, onClick: share },
   ];
 
   return (
     <ScreenPage
       testId="demo-client-id"
-      header={<ScreenHeader title="client ID" onBack={back} t={t} />}
+      header={
+        <ScreenHeader title="client ID" nudge={-1.67} onBack={back} t={t} />
+      }
       footer={
         <>
           {actions.map((action) => (
@@ -109,7 +112,12 @@ export default function ClientIdScreen() {
                   exit={{ opacity: 0, y: -3 }}
                   transition={{ duration: 0.15 }}
                   className="absolute left-0 w-full text-center font-normal whitespace-nowrap"
-                  style={{ top: 893 - 11 - 850, fontSize: 11, color: C.ink }}
+                  style={{
+                    top: 893 - 11 - 850,
+                    fontSize: 11,
+                    lineHeight: `${lineBox(11)}px`,
+                    color: C.ink,
+                  }}
                 >
                   {t(action.label)}
                 </motion.span>

@@ -6,7 +6,7 @@ import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { useDemoData, type DemoCountry } from "../DemoData";
 import { COUNTRIES, LEVELS, choicesAt, countryOf } from "../demoPlaces";
-import { C } from "../demoLayout";
+import { C, lineBox } from "../demoLayout";
 import {
   Field,
   FieldInput,
@@ -89,6 +89,7 @@ export default function AddressFormScreen() {
       header={
         <ScreenHeader
           crumb={["Profile", "Address"]}
+          nudge={1}
           icon="titleAddress"
           onBack={back}
           action="Cancel"
@@ -198,7 +199,11 @@ export default function AddressFormScreen() {
         >
           <span
             className="font-medium whitespace-nowrap"
-            style={{ fontSize: 11, color: "#F4F4F4" }}
+            style={{
+              fontSize: 11,
+              lineHeight: `${lineBox(11)}px`,
+              color: "#F4F4F4",
+            }}
           >
             {t(
               located ? "your location on map" : "Locate your location on map",
@@ -400,10 +405,18 @@ function CountrySheet({
   const { t } = useDemoNav();
   return (
     <Sheet open={open} onClose={onClose} y={539} testId="demo-country-sheet">
-      <Txt center baseline={593} size={30} weight="bold">
+      {/* The file centres both lines by eye: "Select" 1 px right of centre,
+          the second line 1 px left. */}
+      <Txt center baseline={593} size={30} weight="bold" style={{ left: 1 }}>
         {t("Select")}
       </Txt>
-      <Txt center baseline={629} size={16} weight="medium">
+      <Txt
+        center
+        baseline={629}
+        size={16}
+        weight="medium"
+        style={{ left: -1 }}
+      >
         {t("Country | Region")}
       </Txt>
       {COUNTRIES.map((c, i) => {
@@ -504,21 +517,34 @@ function PlaceSheet({
 
   return (
     <Sheet open={open} onClose={onClose} y={451} testId="demo-place-sheet">
-      <Txt center baseline={505} size={30} weight="bold">
+      {/* The file centres these three lines by eye, right of true centre by
+          3, 1 and 1.33 px. */}
+      <Txt center baseline={505} size={30} weight="bold" style={{ left: 3 }}>
         {t("Select")}
       </Txt>
-      <Txt center baseline={541} size={16} weight="medium">
+      <Txt
+        center
+        baseline={541}
+        size={16}
+        weight="medium"
+        style={{ left: 1 }}
+      >
         {LEVELS.map((l) => t(l)).join(" | ")}
       </Txt>
 
       <div
-        className="absolute left-0 w-full flex justify-center items-center"
-        style={{ top: 551, height: 18 }}
+        className="absolute w-full flex justify-center items-center"
+        style={{ left: 1.33, top: 551, height: 18 }}
       >
         {flag && <XdIcon name={flag} size={18} />}
         <span
           className="whitespace-nowrap"
-          style={{ marginLeft: 6, fontSize: 14, color: C.ink }}
+          style={{
+            marginLeft: 6,
+            fontSize: 14,
+            lineHeight: `${lineBox(14)}px`,
+            color: C.ink,
+          }}
         >
           <span className="font-normal">{t(countryOf(country).name)}</span>
           {LEVELS.map((l, i) => {
