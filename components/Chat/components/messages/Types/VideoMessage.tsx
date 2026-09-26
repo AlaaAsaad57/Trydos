@@ -5,12 +5,15 @@ import { DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chat
 import OptionsMenu from "../../OptionsMenu";
 import React from "react";
 import { toDownloadUrl } from "components/Chat/videoSupport";
+import MessageMarks from "../MessageMarks";
 function VideoMessage({
   setOpen,
   setDelete,
   openMenu,
   type,
   is_forward,
+  tags = [],
+  reminder = null,
   message_content,
   isPrivate,
   message_status,
@@ -74,11 +77,11 @@ function VideoMessage({
           ` ${openMenu && "ac"}`
         }
       >
-        {is_forward === 1 && (
-          <div className="forwarded-message-icon">
-            <img src="/icons/chat/forwarded.svg" />
-          </div>
-        )}
+        <MessageMarks
+          is_forward={is_forward}
+          tags={tags}
+          reminder={reminder}
+        />
         {/* <div className="border-element">
           {refmessage.current &&
             showBord(type, refmessage.current.clientHeight).map((ad, i) => (

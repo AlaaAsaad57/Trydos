@@ -4,6 +4,7 @@ import ChatPhoto from "../../ChatPhoto";
 import { copyText, DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
 import { useAppStore } from "store";
+import MessageMarks, { countMarks, marksMinWidth } from "../MessageMarks";
 
 function TextMessage({
   setOpen,
@@ -11,6 +12,9 @@ function TextMessage({
   openMenu,
   type,
   is_forward,
+  tags = [],
+  reminder = null,
+  is_edited = 0,
   message_content,
   isPrivate,
   message_status,
@@ -60,12 +64,18 @@ function TextMessage({
         onClick={() => setOpen(id)}
         // ref={refmessage}
         className={"message-element-body message-body text-body " + type}
+        style={{
+          minWidth: marksMinWidth(
+            countMarks({ is_forward, is_edited, tags, reminder }),
+          ),
+        }}
       >
-        {is_forward === 1 && (
-          <div className="forwarded-message-icon">
-            <img src="/icons/chat/forwarded.svg" />
-          </div>
-        )}
+        <MessageMarks
+          is_forward={is_forward}
+          is_edited={is_edited}
+          tags={tags}
+          reminder={reminder}
+        />
         {/* <div className="border-element">
                 {refmessage.current &&
                   showBord(type, refmessage.current.clientHeight).map(

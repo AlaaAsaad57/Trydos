@@ -28,7 +28,12 @@ vi.mock("components/Chat/components/SearchResult", () => ({
 }));
 vi.mock("components/Chat/components/ChatContactsUpload", () => ({ default: () => null }));
 vi.mock("components/Chat/components/GetMoreChats", () => ({ default: () => null }));
-vi.mock("store/chat/actions", () => ({ GetLastSeen: vi.fn() }));
+// ChatLists also asks for the archived chats and my reminders on mount.
+vi.mock("store/chat/actions", () => ({
+  GetLastSeen: vi.fn(),
+  GetArchivedChats: vi.fn(),
+  GetMyReminders: vi.fn(),
+}));
 
 import ChatLists from "components/Chat/pages/ChatLists";
 import ContactLists from "components/Chat/pages/ContactLists";

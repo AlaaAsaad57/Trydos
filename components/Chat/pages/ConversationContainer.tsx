@@ -1017,6 +1017,10 @@ function ConversationContainer({
               openDetails(false);
               enableSearch(true);
             }}
+            openMessage={(messageId) => {
+              openDetails(false);
+              GetMessage(null, messageId);
+            }}
           />
         )}
 
@@ -1080,6 +1084,9 @@ function ConversationContainer({
                 parent_message={mes.parent_message}
                 parent_message_id={mes.parent_message_id}
                 sender_user_id={mes.sender_user_id}
+                tags={mes.tags}
+                reminder={mes.reminder}
+                is_edited={mes.is_edited}
                 mid={mes?.mid}
                 isPrivate={isPrivate}
                 setVid={setVid}

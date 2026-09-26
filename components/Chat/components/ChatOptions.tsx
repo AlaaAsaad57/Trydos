@@ -6,12 +6,22 @@ import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 
 import {
+  ArchiveChannel,
+  MarkChannelUnread,
   MuteChat,
   PinnChat,
   deleteChat as DeleteChatAction,
 } from "store/chat/actions";
-function ChatOptions({ id, unread, pinned, muted, member_id, closeRow }) {
-  const { language, setUnreadChat, pinChat, muteChat, deleteChat } =
+function ChatOptions({
+  id,
+  unread,
+  pinned,
+  muted,
+  archived = false,
+  member_id,
+  closeRow,
+}) {
+  const { language, watchChannel, pinChat, muteChat, deleteChat } =
     useAppStore();
   const [confirmDelete, setConfirmDelete] = useState(false);
   let { lang } = useParams();
@@ -24,8 +34,12 @@ function ChatOptions({ id, unread, pinned, muted, member_id, closeRow }) {
     <div className="chat-options-container">
       <div
         className="chat-option chat-1"
+        data-pw="CHAT-UNREAD-OPTION"
         onClick={() => {
-          setUnreadChat({ id: id, value: !unread });
+          // "Read" is the same call as opening the chat: `/watched` clears
+          // the counter and the "marked unread" mark.
+          if (unread) watchChannel(id);
+          else MarkChannelUnread(id);
           closeRow?.();
         }}
       >
@@ -70,9 +84,20 @@ function ChatOptions({ id, unread, pinned, muted, member_id, closeRow }) {
 
         <div>{translate("Delete", language)}</div>
       </div>
-      <div className="chat-option chat-5" onClick={() => closeRow?.()}>
+      <div
+        className="chat-option chat-5"
+        data-pw="CHAT-ARCHIVE-OPTION"
+        onClick={() => {
+          ArchiveChannel(id, !archived);
+          closeRow?.();
+        }}
+      >
         <img src="/icons/chat/ArchiveIcon.svg" />
-        <div>{translate("Archive", language)}</div>
+        <div>
+          {archived
+            ? translate("Unarchive", language)
+            : translate("Archive", language)}
+        </div>
       </div>
       {confirmDelete &&
         createPortal(

@@ -62,6 +62,18 @@ const getMessageNotificationPreview = (messageType: string) => {
   }
 };
 
+/**
+ * Whether a message from an `UpdatingMessageEvent` was deleted for everyone.
+ * See `handleUpdatingMessage` for why a message with no status rows counts
+ * as deleted.
+ */
+const isDeletedForAll = (message: any): boolean => {
+  if (!message || !Array.isArray(message.message_status)) return true;
+  if (message.deleted_by_user_id != null) return true;
+  if (message.auth_message_status?.delete_for_all) return true;
+  return message.message_status.some((status: any) => !!status?.delete_for_all);
+};
+
 class ForegroundNotificationHandler {
   private isListening: boolean = false;
 
@@ -186,11 +198,11 @@ class ForegroundNotificationHandler {
           break;
 
         case "UpdatingMessageEvent":
-          state.deleteMessage({
-            ch_id: data.message.channel_id,
-            msg_id: data.message.id,
-            bool: true,
-          });
+          await this.handleUpdatingMessage(data, state);
+          break;
+
+        case "MessageReminderEvent":
+          this.handleMessageReminder(data, state);
           break;
 
         case "ChannelUpdatedEvent":
@@ -215,6 +227,129 @@ class ForegroundNotificationHandler {
   }
 
   // --- Domain Specific Handlers ---
+
+  /**
+   * `UpdatingMessageEvent` means one of three things: the sender deleted the
+   * message for everyone, the sender edited it, or someone changed its tags.
+   * The push does not say which. The message it carries does:
+   *
+   *   deleted  -> `deleted_by_user_id` is set, and every `message_status`
+   *               row has `delete_for_all: true`
+   *   edited or tagged -> neither, and the message is complete
+   *
+   * A message with no `message_status` array cannot be read either way, so
+   * it keeps the old meaning (delete). That was the only meaning of this
+   * event before edit and tags existed.
+   *
+   * An edit or tag change replaces the message, but keeps the local
+   * `reminder`: it is personal, and the push never carries it.
+   */
+  private async handleUpdatingMessage(data: any, state: any) {
+    let message = data?.message;
+    const channelId = data?.channel_id ?? message?.channel_id;
+    const messageId = data?.message_id ?? message?.id;
+    if (messageId == null) {
+      // Nothing to find. Throw, so the caller reports the broken push.
+      throw new Error("UpdatingMessageEvent carried no message id");
+    }
+
+    if (data?.compact) {
+      // Too big for a push: only ids arrived. Load the message itself.
+      const loaded = await this.loadUpdatedMessage(channelId, messageId);
+      if (loaded === "gone") {
+        state.deleteMessage({ ch_id: channelId, msg_id: messageId, bool: true });
+        return;
+      }
+      if (!loaded) {
+        chat.getChats(true);
+        return;
+      }
+      message = loaded;
+    }
+
+    if (isDeletedForAll(message)) {
+      state.deleteMessage({ ch_id: channelId, msg_id: messageId, bool: true });
+      return;
+    }
+
+    const { reminder, ...update } = message;
+    state.patchMessage({ ch_id: channelId, msg_id: messageId, patch: update });
+  }
+
+  /**
+   * Load one message by id, for a compact `UpdatingMessageEvent`.
+   * Answers the message, "gone" when the backend no longer returns it (it
+   * answers 404 for a message deleted for everyone), or null on any other
+   * failure.
+   */
+  private async loadUpdatedMessage(
+    channelId: any,
+    messageId: any,
+  ): Promise<any | "gone" | null> {
+    try {
+      const response = await fetchData({
+        url: "/api/v1/messages/get_all_messages_between_two_messages",
+        reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
+        method: "POST",
+        server: "chat",
+        noMessage: true,
+        body: JSON.stringify({
+          channel_id: channelId,
+          first_message_id: messageId,
+          second_message_id: messageId,
+        }),
+      });
+      if (!response.success) {
+        if (response.httpStatus === 404) return "gone";
+        throw new Error(response.message);
+      }
+      const message = (response.data || []).find(
+        (m: any) => String(m.id) === String(messageId),
+      );
+      return message || "gone";
+    } catch (error) {
+      LogError({
+        scenario: "Error in loadUpdatedMessage NotificationHandler",
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }
+  }
+
+  /**
+   * A reminder I set came due. The push has no visible text, so the app
+   * shows it. The service worker shows a system notification when no tab of
+   * the app is visible; a visible tab shows the in-app chat toast instead.
+   * Either way the reminder is no longer active, so it leaves the message.
+   */
+  private handleMessageReminder(data: any, state: any) {
+    const reminder = data?.payload || {};
+    const channelId = data?.channel_id ?? null;
+    state.reminderFired({
+      ch_id: channelId,
+      msg_id: data?.message_id,
+      reminder_id: reminder.reminder_id,
+    });
+
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+      return;
+    }
+    const channel =
+      channelId == null
+        ? null
+        : [...(state.data || []), ...(state.archivedChats || [])].find(
+            (ch: any) => String(ch.id) === String(channelId),
+          ) || null;
+    const preview = reminder.message_content
+      ? `${translateFunction("Reminder")}: ${reminder.message_content}`
+      : `${translateFunction("Reminder")}: ${getMessageNotificationPreview(reminder.message_type)}`;
+    showChatNotification(
+      reminder.sender_name || translateFunction("Reminder"),
+      preview,
+      channelId,
+      channel,
+    );
+  }
 
   /**
    * A long message arrives as a "compact" push: the push has a size limit, so

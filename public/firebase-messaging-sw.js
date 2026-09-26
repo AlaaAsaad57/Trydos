@@ -225,6 +225,43 @@ function isChatMutedForReceiver(message) {
   return Number(receiver?.mute) === 1;
 }
 
+// The service worker cannot load the app's translation files, so the reminder
+// card carries its own words. Keep them in step with the "Reminder" and
+// "Message" keys in public/translations/translations.<lang>.js.
+const REMINDER_WORDS = {
+  en: { title: "Reminder", message: "Message" },
+  ar: { title: "تذكير", message: "رسالة" },
+  tr: { title: "Hatırlatma", message: "Mesaj" },
+  ku: { title: "بیریارهێنەوە", message: "پەیام" },
+};
+
+// A reminder I set on a chat message came due (`MessageReminderEvent`). The
+// push is data-only, so nothing shows unless we show it. A visible tab shows
+// its own in-app toast (utils/NotificationHandler.ts), so the system card is
+// shown only when no tab of the app is visible.
+async function showReminderNotification(payload, localePrefix) {
+  const windows = await self.clients.matchAll({
+    type: "window",
+    includeUncontrolled: true,
+  });
+  if (windows.some((client) => client.visibilityState === "visible")) return;
+
+  const event = JSON.parse(payload.data.data || "{}");
+  const reminder = event.payload || {};
+  const language = (localePrefix.split("-")[1] || "en").toLowerCase();
+  const words = REMINDER_WORDS[language] || REMINDER_WORDS.en;
+  const title = reminder.sender_name
+    ? `${words.title}: ${reminder.sender_name}`
+    : words.title;
+  await self.registration.showNotification(title, {
+    body: reminder.message_content || words.message,
+    tag: `reminder-${reminder.reminder_id || event.message_id}`,
+    renotify: true,
+    requireInteraction: true,
+    data: { url: BASE_ORIGIN + (localePrefix || "") },
+  });
+}
+
 messaging.onBackgroundMessage(async function (payload) {
   try {
     // Resolve the active locale once so every notification URL points at the
@@ -233,6 +270,11 @@ messaging.onBackgroundMessage(async function (payload) {
 
     // Check if any tabs are open
     const sentToForeground = await sendToForeground(payload);
+
+    if (payload.data?.type === "MessageReminderEvent") {
+      await showReminderNotification(payload, localePrefix);
+      return;
+    }
 
     // If no tabs are open, proceed with background notifications
 

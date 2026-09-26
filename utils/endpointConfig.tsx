@@ -21,6 +21,20 @@ export const SEARCH_CONTACTS_URL = "/api/v1/users/search/";
 export const DELETE_CHAT_URL = "/api/v1/channels/destroy";
 export const SET_CHANNEL_OPT_UTL = UPDATED_API_DATA.MOD_UPDATE_CHAT_URL;
 
+// Chat message actions (used with fetchData `server: "chat"`).
+export const EDIT_MESSAGE_URL = "/api/v1/messages/update";
+export const MESSAGE_TAGS_URL = (messageId: string | number) =>
+  `/api/v1/messages/${messageId}/tags`;
+export const MESSAGE_REMINDERS_URL = (messageId: string | number) =>
+  `/api/v1/messages/${messageId}/reminders`;
+export const MY_REMINDERS_URL = "/api/v1/messages/reminders";
+export const CANCEL_REMINDER_URL = (reminderId: string | number) =>
+  `/api/v1/messages/reminders/${reminderId}`;
+export const ARCHIVE_CHANNEL_URL = (channelId: string | number) =>
+  `/api/v1/channels/${channelId}/archive`;
+export const UNREAD_CHANNEL_URL = (channelId: string | number) =>
+  `/api/v1/channels/${channelId}/unread`;
+
 // Comment backend (used with fetchData `server: "comments"`).
 export const CREATE_COMMENT_URL = "/public_comment/comments/create";
 export const UPDATE_COMMENT_URL = (id: string) =>

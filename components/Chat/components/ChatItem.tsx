@@ -47,6 +47,23 @@ function ChatItem({
   muted,
   chat_members,
   disabledOptions = false,
+  archived = false,
+}: {
+  isActive: boolean;
+  unread: boolean;
+  handleClickChat: () => void;
+  SenderName: string;
+  photo: string | null;
+  lastMessage: any;
+  id: string | number;
+  status: any;
+  newMessage: number;
+  pinned: boolean;
+  muted: boolean;
+  chat_members: any[];
+  disabledOptions?: boolean;
+  archived?: boolean;
+  [key: string]: any;
 }) {
   const { setMain, language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
@@ -295,6 +312,7 @@ function ChatItem({
           unread={unread}
           muted={muted}
           pinned={pinned}
+          archived={archived}
           id={id}
           closeRow={() => settle(0)}
           member_id={

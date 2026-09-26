@@ -81,6 +81,39 @@ export interface Message {
   message_status: MessageStatus[];
   parent_message?: Message | null;
   message_files: any[];
+  updated_at?: string | null;
+  is_edited?: 0 | 1;
+  tags?: MessageTagSummary[];
+  /** Personal to the signed-in user. Push events never carry it. */
+  reminder?: MessageReminderInfo | null;
+}
+
+export type MessageTagName = "urgent" | "important" | "todo" | "done";
+
+export interface MessageTagSummary {
+  tag: MessageTagName;
+  count: number;
+  /** Who put this tag on the message: "did I tag it?" = includes(my id). */
+  user_ids: number[];
+}
+
+export interface MessageReminderInfo {
+  id: string;
+  remind_at: string;
+  created_at: string;
+}
+
+/** One row of `GET /api/v1/messages/reminders`. */
+export interface MyReminder extends MessageReminderInfo {
+  message_id: string;
+  message: {
+    id: string;
+    channel_id: string | null;
+    message_type: string;
+    content: string;
+    sender_user: { id: number; name: string; photo_path: string | null } | null;
+    created_at: string | null;
+  };
 }
 
 export interface Channel {
@@ -97,6 +130,10 @@ export interface Channel {
   activeDate: any;
   created_at: string;
   is_mute: number;
+  is_pin?: 0 | 1;
+  is_archived?: 0 | 1;
+  /** Set on this device when I mark the chat unread; opening it clears it. */
+  marked_unread?: boolean;
   updated_at: string;
   channel_members: Member[];
   messages: Message[];

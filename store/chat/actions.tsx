@@ -1,8 +1,15 @@
 import {
+  ARCHIVE_CHANNEL_URL,
+  CANCEL_REMINDER_URL,
   DELETE_CHAT_URL,
+  EDIT_MESSAGE_URL,
+  MESSAGE_REMINDERS_URL,
+  MESSAGE_TAGS_URL,
+  MY_REMINDERS_URL,
   SEARCH_CONTACTS_URL,
   SEND_MESSAGE_URL,
   SET_CHANNEL_OPT_UTL,
+  UNREAD_CHANNEL_URL,
 } from "utils/endpointConfig";
 import { useAppStore } from "store";
 import chat from "services/chat";
@@ -421,3 +428,330 @@ export const GetChatDetails = async (id) => {
     });
   }
 };
+
+/* ------------------------------------------------------------------------ */
+/* Message edit, tags and reminders; chat archive and unread.               */
+/*                                                                          */
+/* Every call below passes `noMessage: true`. The chat backend answers in   */
+/* English ("Channel archived successfully"), and fetchData would show that */
+/* text as a toast. The caller shows its own translated text instead.       */
+/* ------------------------------------------------------------------------ */
+
+export type MessageTag = "urgent" | "important" | "todo" | "done";
+
+/** The fixed tag list, in the order the tag picker shows it. */
+export const MESSAGE_TAGS: MessageTag[] = [
+  "urgent",
+  "important",
+  "todo",
+  "done",
+];
+
+/**
+ * Change the text of my own text message.
+ *
+ * The backend answers with the whole message after the edit, and that
+ * message replaces the one in the store — except its `reminder`, which the
+ * store keeps. Answers `true` when the edit was saved.
+ */
+export async function EditMessageApi(
+  channelId: string | number,
+  messageId: string | number,
+  content: string,
+): Promise<boolean> {
+  const { patchMessage } = useAppStore.getState();
+  try {
+    const response = await fetchData({
+      url: EDIT_MESSAGE_URL,
+      body: JSON.stringify({ id: String(messageId), content }),
+      reqTitle: REQUESTS_DATA.EDIT_MESSAGE,
+      method: "POST",
+      server: "chat",
+      noMessage: true,
+    });
+    if (!response.success || !response.data) {
+      throw new Error(response.message || "the edit returned no message");
+    }
+    const { reminder, ...edited } = response.data;
+    patchMessage({ ch_id: channelId, msg_id: messageId, patch: edited });
+    return true;
+  } catch (error) {
+    showErrorNotification(translateFunction("Failed to edit the message"));
+    LogError({
+      scenario: "Error in EditMessageApi in chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}
+
+/**
+ * Add or remove one tag of the fixed list on a message. The backend answers
+ * with the full tag list after the change, and the store takes that list.
+ */
+export async function ToggleMessageTag(
+  channelId: string | number,
+  messageId: string | number,
+  tag: MessageTag,
+): Promise<boolean> {
+  const { patchMessage } = useAppStore.getState();
+  try {
+    const response = await fetchData({
+      url: MESSAGE_TAGS_URL(messageId),
+      body: JSON.stringify({ tag, action: "toggle" }),
+      reqTitle: REQUESTS_DATA.TAG_MESSAGE,
+      method: "POST",
+      server: "chat",
+      noMessage: true,
+    });
+    if (!response.success || !Array.isArray(response.data?.tags)) {
+      throw new Error(
+        response.message || "the tag change returned no tag list",
+      );
+    }
+    patchMessage({
+      ch_id: channelId,
+      msg_id: messageId,
+      patch: { tags: response.data.tags },
+    });
+    return true;
+  } catch (error) {
+    showErrorNotification(translateFunction("Failed to update the tag"));
+    LogError({
+      scenario: "Error in ToggleMessageTag in chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}
+
+/**
+ * Create a reminder on a message, or move the time of the one it has. The
+ * backend keeps one active reminder per message and user, and keeps its id
+ * when the time moves, so the answer replaces the reminder in the store.
+ */
+export async function SetMessageReminder(
+  channelId: string | number,
+  messageId: string | number,
+  remindAt: Date,
+): Promise<boolean> {
+  const { patchMessage } = useAppStore.getState();
+  try {
+    const response = await fetchData({
+      url: MESSAGE_REMINDERS_URL(messageId),
+      body: JSON.stringify({ remind_at: remindAt.toISOString() }),
+      reqTitle: REQUESTS_DATA.SET_MESSAGE_REMINDER,
+      method: "POST",
+      server: "chat",
+      noMessage: true,
+    });
+    if (!response.success || !response.data?.id) {
+      throw new Error(response.message || "the reminder returned no id");
+    }
+    const { id, remind_at, created_at } = response.data;
+    patchMessage({
+      ch_id: channelId,
+      msg_id: messageId,
+      patch: { reminder: { id, remind_at, created_at } },
+    });
+    // The Reminders folder shows the message text and sender too, which this
+    // answer does not carry. Reload the list rather than guess them.
+    GetMyReminders();
+    return true;
+  } catch (error) {
+    showErrorNotification(translateFunction("Failed to set the reminder"));
+    LogError({
+      scenario: "Error in SetMessageReminder in chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}
+
+/** Cancel a reminder. The backend takes the reminder id, not the message id. */
+export async function CancelMessageReminder(
+  channelId: string | number,
+  messageId: string | number,
+  reminderId: string | number,
+): Promise<boolean> {
+  const { patchMessage, removeReminder } = useAppStore.getState();
+  try {
+    const response = await fetchData({
+      url: CANCEL_REMINDER_URL(reminderId),
+      reqTitle: REQUESTS_DATA.CANCEL_MESSAGE_REMINDER,
+      method: "DELETE",
+      server: "chat",
+      noMessage: true,
+    });
+    // 404: the reminder is gone already. It fired while this tab missed the
+    // push, or another device cancelled it. Either way the goal is met.
+    if (!response.success && response.httpStatus !== 404) {
+      throw new Error(response.message || "the reminder was not cancelled");
+    }
+    patchMessage({
+      ch_id: channelId,
+      msg_id: messageId,
+      patch: { reminder: null },
+    });
+    removeReminder(reminderId);
+    return true;
+  } catch (error) {
+    showErrorNotification(translateFunction("Failed to cancel the reminder"));
+    LogError({
+      scenario: "Error in CancelMessageReminder in chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}
+
+/** My reminders that have not fired yet, soonest first. */
+export async function GetMyReminders() {
+  const { setReminders } = useAppStore.getState();
+  try {
+    const response = await fetchData({
+      url: MY_REMINDERS_URL,
+      reqTitle: REQUESTS_DATA.GET_MESSAGE_REMINDERS,
+      method: "GET",
+      server: "chat",
+      noMessage: true,
+    });
+    if (!response.success) {
+      throw new Error(response.message || "the reminders were not loaded");
+    }
+    setReminders(Array.isArray(response.data) ? response.data : []);
+  } catch (error) {
+    LogError({
+      scenario: "Error in GetMyReminders in chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+/**
+ * Archive or unarchive a chat. Archiving is personal: it hides the chat from
+ * my list only. The store moves the chat between the main list and the
+ * archived list once the backend agrees.
+ */
+export async function ArchiveChannel(
+  channelId: string | number,
+  archived: boolean,
+): Promise<boolean> {
+  const { archiveChat } = useAppStore.getState();
+  try {
+    const response = await fetchData({
+      url: ARCHIVE_CHANNEL_URL(channelId),
+      // A number, not a boolean: the backend refuses the string "false".
+      body: JSON.stringify({ archived: archived ? 1 : 0 }),
+      reqTitle: REQUESTS_DATA.ARCHIVE_CHANNEL,
+      method: "POST",
+      server: "chat",
+      noMessage: true,
+    });
+    if (!response.success) {
+      throw new Error(response.message || "the archive change was not saved");
+    }
+    archiveChat({ id: channelId, archived });
+    return true;
+  } catch (error) {
+    showErrorNotification(
+      archived
+        ? translateFunction("Failed to archive the chat")
+        : translateFunction("Failed to unarchive the chat"),
+    );
+    LogError({
+      scenario: "Error in ArchiveChannel in chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}
+
+/**
+ * Mark a chat as unread. The backend sets its unread counter to at least 1
+ * and tells nobody. Opening the chat (`/watched`) marks it read again.
+ */
+export async function MarkChannelUnread(
+  channelId: string | number,
+): Promise<boolean> {
+  const { setUnreadChat } = useAppStore.getState();
+  try {
+    const response = await fetchData({
+      url: UNREAD_CHANNEL_URL(channelId),
+      reqTitle: REQUESTS_DATA.UNREAD_CHANNEL,
+      method: "POST",
+      server: "chat",
+      noMessage: true,
+    });
+    if (!response.success) {
+      throw new Error(response.message || "the unread mark was not saved");
+    }
+    setUnreadChat({ id: channelId, value: true });
+    return true;
+  } catch (error) {
+    showErrorNotification(
+      translateFunction("Failed to mark the chat as unread"),
+    );
+    LogError({
+      scenario: "Error in MarkChannelUnread in chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}
+
+/** The chats I archived: `my_channels` returns only those when `archived` is true. */
+export async function GetArchivedChats() {
+  const { setArchivedChats } = useAppStore.getState();
+  try {
+    const response = await fetchData({
+      url: UPDATED_API_DATA.MOD_CHAT_URL,
+      body: JSON.stringify({ limit: 50, messages_limit: 10, archived: true }),
+      reqTitle: REQUESTS_DATA.GET_ARCHIVED_CHATS,
+      method: "POST",
+      server: "chat",
+      noMessage: true,
+    });
+    if (!response.success) {
+      throw new Error(response.message || "the archived chats were not loaded");
+    }
+    setArchivedChats([
+      ...(response.data?.pinned_channels ?? []),
+      ...(response.data?.channels ?? []),
+    ]);
+  } catch (error) {
+    LogError({
+      scenario: "Error in GetArchivedChats in chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+/** The messages of one chat that carry a tag, newest first. */
+export async function GetTaggedMessages(
+  channelId: string | number,
+  tag: MessageTag,
+): Promise<any[] | null> {
+  try {
+    const response = await fetchData({
+      url: `/api/v1/messages/messages_of_channel/${channelId}`,
+      body: JSON.stringify({ limit: 50, tag }),
+      reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
+      method: "POST",
+      server: "chat",
+      noMessage: true,
+    });
+    if (!response.success) {
+      throw new Error(
+        response.message || "the tagged messages were not loaded",
+      );
+    }
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    LogError({
+      scenario: "Error in GetTaggedMessages in chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+}

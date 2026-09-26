@@ -86,6 +86,13 @@ export const isNew = (ch) => {
   return a;
 };
 /**
+ * The unread number a chat row shows: its unread messages, or 1 when I
+ * marked the chat unread by hand and no message is unread (`marked_unread`,
+ * see store/chat/reducer.ts).
+ */
+export const unreadCount = (chat) =>
+  Math.max(isNew(chat?.messages) || 0, chat?.marked_unread ? 1 : 0);
+/**
  * Which way a call went, from the point of view of the signed-in chat user.
  *
  * `duration_in_seconds` is 0 for every call that never connected — one this

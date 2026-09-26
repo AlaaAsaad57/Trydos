@@ -5,6 +5,7 @@ import ChatPhoto from "../../ChatPhoto";
 import Spinner from "components/global/Spinner";
 import { DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
+import MessageMarks from "../MessageMarks";
 
 // 1. Move helper outside to prevent re-declaration on every render
 const formatAudioTime = (seconds) => {
@@ -23,6 +24,8 @@ function AudioMessage({
   type,
   sender_user_id,
   is_forward,
+  tags = [],
+  reminder = null,
   isPrivate,
   message_status,
   created_at,
@@ -119,11 +122,11 @@ function AudioMessage({
             onClick={() => setOpen(id)}
             className={"message-element-body message-body audio-body " + type}
           >
-            {is_forward === 1 && (
-              <div className="forwarded-message-icon">
-                <img src="/icons/chat/forwarded.svg" />
-              </div>
-            )}
+            <MessageMarks
+              is_forward={is_forward}
+              tags={tags}
+              reminder={reminder}
+            />
             <audio
               key={message_files[0]?.file_path}
               onEnded={() => {

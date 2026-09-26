@@ -2,7 +2,7 @@ import { getUserChat, translateFunction as translate } from "utils/functions";
 import { Recive, watchChannel as watchChannelAction } from "./actions";
 import { getMediaReducer } from "./actions";
 import { showErrorNotification } from "@/store/notifications/reducer";
-import { Channel } from "utils/types/chat";
+import { Channel, MyReminder } from "utils/types/chat";
 
 // --- Types ---
 interface ChatState {
@@ -67,6 +67,10 @@ interface ChatState {
     order_group_id: string;
   }[];
   tracks: any[];
+  /** The chats I archived, loaded when the archived list opens. */
+  archivedChats: Channel[];
+  /** My reminders that have not fired yet, soonest first. */
+  reminders: MyReminder[];
 }
 
 const initialState: ChatState = {
@@ -123,6 +127,8 @@ const initialState: ChatState = {
   nameModal: false,
   isNotificationModal: false,
   tracks: [],
+  archivedChats: [],
+  reminders: [],
 };
 
 // --- Helpers (Performance & DRY) ---
@@ -134,6 +140,28 @@ const areIdsEqual = (a: any, b: any): boolean => {
   if (a === null || a === undefined || b === null || b === undefined)
     return false;
   return String(a) === String(b);
+};
+
+/**
+ * Whether a chat from the backend was marked unread by hand.
+ *
+ * The backend keeps one counter, `total_unread_message_count`. "Mark as
+ * unread" sets it to at least 1 without any new message. The list counts
+ * unread messages from the messages themselves (`isNew`), so a hand-marked
+ * chat would show as read. It is hand-marked when the counter says unread
+ * but none of its loaded messages from the other side is unwatched by me.
+ */
+const seedMarkedUnread = (channel: any): boolean => {
+  if (!(Number(channel?.total_unread_message_count) > 0)) return false;
+  const me = getUserChat()?.id;
+  const hasUnwatched = (channel?.messages || []).some(
+    (mes: any) =>
+      !areIdsEqual(mes.sender_user_id, me) &&
+      (mes.message_status || []).some(
+        (st: any) => areIdsEqual(st.user_id, me) && st.is_watched === false,
+      ),
+  );
+  return !hasUnwatched;
 };
 
 /**
@@ -707,6 +735,10 @@ export const useChatStore = (set: any, get: any) => ({
       const updateResult = updateDataAndActiveChat(state, id, (ch) => ({
         ...ch,
         messages: processMessageStatuses(ch.messages, "watch", true),
+        // `/watched` also sets the backend counter to 0, so a chat marked
+        // unread by hand is read again.
+        marked_unread: false,
+        total_unread_message_count: 0,
       }));
 
       set({
@@ -717,6 +749,22 @@ export const useChatStore = (set: any, get: any) => ({
       // Just remove from newChats if not in data
       set({
         newChats: state.newChats.filter((a: any) => !areIdsEqual(a.id, id)),
+      });
+    }
+
+    // An archived chat is not in `data`, but it is read now too.
+    if (state.archivedChats.some((s: any) => areIdsEqual(s.id, id))) {
+      set({
+        archivedChats: get().archivedChats.map((ch: any) =>
+          areIdsEqual(ch.id, id)
+            ? {
+                ...ch,
+                messages: processMessageStatuses(ch.messages, "watch", true),
+                marked_unread: false,
+                total_unread_message_count: 0,
+              }
+            : ch,
+        ),
       });
     }
   },
@@ -943,10 +991,12 @@ export const useChatStore = (set: any, get: any) => ({
     const processedPayload = payload.map((a) => ({
       ...a,
       messages: a.messages.reverse(),
+      marked_unread: seedMarkedUnread(a),
     }));
     const processedParam = param.map((p) => ({
       ...p,
       messages: p.messages.reverse(),
+      marked_unread: seedMarkedUnread(p),
     }));
 
     // Generate chatUsers list
@@ -1140,11 +1190,160 @@ export const useChatStore = (set: any, get: any) => ({
     });
   },
 
-  setUnreadChat: (payload: any) => {
+  /**
+   * Show or clear the "marked unread" mark on a chat. The mark only exists
+   * so a chat with no unread message still shows as unread; see
+   * `seedMarkedUnread`. `watchChannel` clears it when the chat is opened.
+   */
+  setUnreadChat: (payload: { id: string | number; value: boolean }) => {
+    const state = get();
+    const mark = (chat: any) =>
+      areIdsEqual(chat.id, payload.id)
+        ? { ...chat, marked_unread: payload.value }
+        : chat;
+    set({
+      data: state.data.map(mark),
+      archivedChats: state.archivedChats.map(mark),
+    });
+  },
+
+  /**
+   * Merge `patch` into one message, wherever the store holds it: the chat
+   * list, the open chat and the archived list.
+   *
+   * A message that quotes this one keeps a copy of it in `parent_message`,
+   * so an edit is copied there too. Only the text and the edit mark are
+   * copied: the quote shows nothing else.
+   */
+  patchMessage: (payload: {
+    ch_id: string | number;
+    msg_id: string | number;
+    patch: Record<string, any>;
+  }) => {
+    const state = get();
+    const { msg_id, patch } = payload;
+    const quoteFields: Record<string, any> = {};
+    ["message_content", "is_edited", "updated_at"].forEach((key) => {
+      if (key in patch) quoteFields[key] = patch[key];
+    });
+    const hasQuoteFields = Object.keys(quoteFields).length > 0;
+
+    const patchMessages = (messages: any[] = []) =>
+      messages.map((msg) => {
+        let next = msg;
+        if (
+          hasQuoteFields &&
+          msg.parent_message &&
+          areIdsEqual(msg.parent_message.id, msg_id)
+        ) {
+          next = {
+            ...next,
+            parent_message: { ...msg.parent_message, ...quoteFields },
+          };
+        }
+        if (areIdsEqual(msg.id, msg_id)) next = { ...next, ...patch };
+        return next;
+      });
+    const patchChannel = (ch: any) => ({
+      ...ch,
+      messages: patchMessages(ch.messages),
+    });
+
+    const inList = updateDataAndActiveChat(state, payload.ch_id, patchChannel);
+    // The open chat can be one that is not in the list (an order chat, or a
+    // chat opened from a search). Patch it by the message id alone then.
+    const activeChat =
+      inList.activeChat === state.activeChat && state.activeChat
+        ? patchChannel(state.activeChat)
+        : inList.activeChat;
+
+    set({
+      data: inList.data,
+      activeChat,
+      archivedChats: state.archivedChats.map((ch: any) =>
+        areIdsEqual(ch.id, payload.ch_id) ? patchChannel(ch) : ch,
+      ),
+    });
+  },
+
+  /**
+   * Move a chat between my list and my archived list. Archiving is personal,
+   * so nothing else about the chat changes. The open chat stays open.
+   */
+  archiveChat: (payload: { id: string | number; archived: boolean }) => {
+    const state = get();
+    const flag = payload.archived ? 1 : 0;
+    const from = payload.archived ? state.data : state.archivedChats;
+    const moving = from.find((ch: any) => areIdsEqual(ch.id, payload.id));
+    const moved = moving ? { ...moving, is_archived: flag } : null;
+    const without = (list: any[]) =>
+      list.filter((ch: any) => !areIdsEqual(ch.id, payload.id));
+
+    set({
+      data: payload.archived
+        ? without(state.data)
+        : moved
+          ? [moved, ...without(state.data)]
+          : state.data,
+      archivedChats: payload.archived
+        ? moved
+          ? [moved, ...without(state.archivedChats)]
+          : state.archivedChats
+        : without(state.archivedChats),
+      activeChat:
+        state.activeChat && areIdsEqual(state.activeChat.id, payload.id)
+          ? { ...state.activeChat, is_archived: flag }
+          : state.activeChat,
+      newChats: payload.archived ? without(state.newChats) : state.newChats,
+    });
+  },
+
+  setArchivedChats: (payload: Channel[]) =>
+    set({
+      archivedChats: payload.map((ch: any) => ({
+        ...ch,
+        is_archived: 1,
+        // The backend sends the newest message first; the rest of the app
+        // keeps them oldest first (see `setChats`).
+        messages: [...(ch.messages || [])].reverse(),
+        marked_unread: seedMarkedUnread(ch),
+      })),
+    }),
+
+  setReminders: (payload: MyReminder[]) => set({ reminders: payload }),
+
+  removeReminder: (reminderId: string | number) => {
     const state = get();
     set({
-      data: state.data.map((chat: any) =>
-        chat.id === payload.id ? { ...chat, unread: payload.value } : chat,
+      reminders: state.reminders.filter((r) => !areIdsEqual(r.id, reminderId)),
+    });
+  },
+
+  /**
+   * A reminder fired. It is no longer active, so it leaves the message and
+   * the reminder list.
+   */
+  reminderFired: (payload: {
+    ch_id?: string | number | null;
+    msg_id: string | number;
+    reminder_id?: string | number | null;
+  }) => {
+    const state = get();
+    const clear = (messages: any[] = []) =>
+      messages.map((msg) =>
+        areIdsEqual(msg.id, payload.msg_id) && msg.reminder
+          ? { ...msg, reminder: null }
+          : msg,
+      );
+    const clearChannel = (ch: any) => ({ ...ch, messages: clear(ch.messages) });
+    set({
+      data: state.data.map(clearChannel),
+      archivedChats: state.archivedChats.map(clearChannel),
+      activeChat: state.activeChat ? clearChannel(state.activeChat) : null,
+      reminders: state.reminders.filter(
+        (r) =>
+          !areIdsEqual(r.message_id, payload.msg_id) &&
+          !areIdsEqual(r.id, payload.reminder_id),
       ),
     });
   },
@@ -1179,6 +1378,9 @@ export const useChatStore = (set: any, get: any) => ({
   deleteChat: (payload: any) => {
     set((state: ChatState) => ({
       data: state.data.filter(
+        (chat) => parseInt(chat.id) !== parseInt(payload.id),
+      ),
+      archivedChats: state.archivedChats.filter(
         (chat) => parseInt(chat.id) !== parseInt(payload.id),
       ),
       activeChat: null,

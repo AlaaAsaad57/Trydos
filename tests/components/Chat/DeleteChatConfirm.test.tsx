@@ -49,6 +49,10 @@ vi.mock("store/chat/actions", () => ({
   deleteChat: destroyChannelRequest,
   MuteChat: vi.fn(),
   PinnChat: vi.fn(),
+  MarkChannelUnread: vi.fn(),
+  ArchiveChannel: vi.fn(),
+  GetTaggedMessages: vi.fn(),
+  MESSAGE_TAGS: ["urgent", "important", "todo", "done"],
 }));
 
 // The media grid is stood in for, not exercised. components/Chat/components/
@@ -424,7 +428,7 @@ describe("ChatInfo — Delete Chat in the conversation info panel", () => {
 describe("ChatOptions — the other swipe tiles", () => {
   async function renderTiles(props: Record<string, any> = {}) {
     const closeRow = vi.fn();
-    const spies = { setUnreadChat: vi.fn(), pinChat: vi.fn(), muteChat: vi.fn() };
+    const spies = { watchChannel: vi.fn(), pinChat: vi.fn(), muteChat: vi.fn() };
     const rendered = await renderWithProviders(
       <ChatOptions
         id={DOOMED_CHAT}
@@ -441,10 +445,10 @@ describe("ChatOptions — the other swipe tiles", () => {
     return { ...rendered, closeRow, spies, tile };
   }
 
-  it("marks the chat unread, pins it and mutes it on the chat backend", async () => {
+  it("marks the chat unread, pins it, mutes it and archives it on the chat backend", async () => {
     const { tile, spies, closeRow } = await renderTiles();
     await userEvent.click(tile(1));
-    expect(spies.setUnreadChat, "the chat was not marked unread").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true });
+    expect(chatActions.MarkChannelUnread, "the unread mark was not sent to the chat backend").toHaveBeenCalledWith(DOOMED_CHAT);
     await userEvent.click(tile(2));
     expect(chatActions.PinnChat, "the pin was not sent to the chat backend").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true, member_id: 5 });
     expect(spies.pinChat, "the pin was not stored").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true, member_id: 5 });
@@ -452,7 +456,17 @@ describe("ChatOptions — the other swipe tiles", () => {
     expect(chatActions.MuteChat, "the mute was not sent to the chat backend").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true, member_id: 5 });
     expect(spies.muteChat, "the mute was not stored").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true, member_id: 5 });
     await userEvent.click(tile(5));
+    expect(chatActions.ArchiveChannel, "the archive was not sent to the chat backend").toHaveBeenCalledWith(DOOMED_CHAT, true);
     expect(closeRow, "each tile did not close the row").toHaveBeenCalledTimes(4);
+  });
+
+  it("marks an unread chat read, and unarchives an archived chat", async () => {
+    const { tile, spies } = await renderTiles({ unread: true, archived: true });
+    expect(screen.getByText("Unarchive"), "an archived chat did not offer Unarchive").toBeInTheDocument();
+    await userEvent.click(tile(1));
+    expect(spies.watchChannel, "Read did not mark the chat read the way opening it does").toHaveBeenCalledWith(DOOMED_CHAT);
+    await userEvent.click(tile(5));
+    expect(chatActions.ArchiveChannel, "Unarchive was not sent to the chat backend").toHaveBeenCalledWith(DOOMED_CHAT, false);
   });
 
   it("offers Read, Unpin and Unmute on a chat in those states", async () => {
@@ -465,7 +479,7 @@ describe("ChatOptions — the other swipe tiles", () => {
   it("works without a row to close", async () => {
     const rendered = await renderWithProviders(
       <ChatOptions id={1} unread={false} pinned={false} muted={false} member_id={5} closeRow={undefined as any} />,
-      { store: { setUnreadChat: vi.fn(), pinChat: vi.fn(), muteChat: vi.fn() } },
+      { store: { watchChannel: vi.fn(), pinChat: vi.fn(), muteChat: vi.fn() } },
     );
     await userEvent.click(rendered.container.querySelector(".chat-option.chat-5") as HTMLElement);
     await userEvent.click(rendered.container.querySelector(".chat-option.chat-1") as HTMLElement);

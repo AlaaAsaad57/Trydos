@@ -10,6 +10,7 @@ import {
 } from "@/store/notifications/reducer";
 
 import MediaContainer from "./MediaContainer";
+import TaggedMessages from "./TaggedMessages";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
 import { LogError, translateFunction } from "utils/functions";
@@ -23,6 +24,15 @@ function ChatInfo({
   makeAudioCall,
   makeVideoCall,
   enableSearch,
+  openMessage,
+}: {
+  activeChat: any;
+  cancel: () => void;
+  callLoading: any;
+  makeAudioCall: () => void;
+  makeVideoCall: () => void;
+  enableSearch: () => void;
+  openMessage?: (messageId: string | number) => void;
 }) {
   const { deleteChat, language, updateChannelBlockStatus } = useAppStore();
   const ref = useRef<any>(null);
@@ -304,6 +314,15 @@ function ChatInfo({
               )}
             </div>
           }
+          {openMessage &&
+            activeChat?.id &&
+            !String(activeChat.id).includes("ch") && (
+              <TaggedMessages
+                key={activeChat.id}
+                channelId={activeChat.id}
+                openMessage={openMessage}
+              />
+            )}
           <div className="chat-user-gallery-container">
             <div className="chat-user-info-arrow gallery-option">
               <span> {translateFunction("Never")}</span>{" "}

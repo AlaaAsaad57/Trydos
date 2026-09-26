@@ -3,7 +3,7 @@
 // ../chatSearch.ts.
 import ChatItem from "components/Chat/components/ChatItem";
 import SearchResult from "components/Chat/components/SearchResult";
-import { forwardMessage, isNew } from "components/Chat/chatsFunctions";
+import { forwardMessage, unreadCount } from "components/Chat/chatsFunctions";
 import { contactUserId, searchChatList } from "components/Chat/chatSearch";
 import { GetLastSeen } from "store/chat/actions";
 import { getUserChat } from "utils/functions";
@@ -83,8 +83,8 @@ function ChatSearchResults({
           isActive={activeChat?.id === chat.id}
           handleClickChat={() => open(chat)}
           status={chat.status}
-          unread={chat.unread}
-          newMessage={isNew(chat.messages)}
+          unread={unreadCount(chat) > 0}
+          newMessage={unreadCount(chat)}
           pinned={parseInt(mine(chat)?.pin) === 1}
           muted={parseInt(mine(chat)?.mute) === 1}
           SenderName={other(chat)?.user?.name}

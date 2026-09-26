@@ -365,3 +365,222 @@ describe("chat actions — calls to the chat backend", () => {
     expect(getMediaReducer("Other", 4), "an unknown type got a count").toBeUndefined();
   });
 });
+
+// Message edit, tags and reminders; chat archive and unread
+// (store/chat/actions.tsx). Each answer below is the shape the staging chat
+// backend gave on 2026-09-26, cut down to the fields the action reads.
+describe("chat actions — edit, tags, reminders, archive and unread", () => {
+  /** Store actions the chat actions call, recorded. */
+  async function seedStore() {
+    const { useAppStore } = await import("store");
+    const spies = {
+      patchMessage: vi.fn(),
+      archiveChat: vi.fn(),
+      setUnreadChat: vi.fn(),
+      setReminders: vi.fn(),
+      removeReminder: vi.fn(),
+      setArchivedChats: vi.fn(),
+    };
+    useAppStore.setState(spies as any);
+    return spies;
+  }
+
+  /** The request the action sent, with its body parsed. */
+  const sent = (n = 0) => {
+    const request = fetchData.mock.calls[n]?.[0] ?? {};
+    return { ...request, body: request.body ? JSON.parse(request.body) : undefined };
+  };
+
+  beforeEach(() => {
+    fetchData.mockReset();
+    logError.mockClear();
+    showErrorNotification.mockClear();
+  });
+
+  it("EditMessageApi sends the new text and stores the edited message, not its reminder", async () => {
+    const spies = await seedStore();
+    fetchData.mockResolvedValueOnce({
+      success: true,
+      data: { id: "339496", is_edited: 1, message_content: { content: "Tr" }, tags: [], reminder: null },
+    });
+    const { EditMessageApi } = await import("store/chat/actions");
+    const saved = await EditMessageApi(539, "339496", "Tr");
+
+    expect(saved, "a saved edit did not report success").toBe(true);
+    expect(sent(), "the edit request to the chat backend was wrong").toMatchObject({
+      url: "/api/v1/messages/update",
+      method: "POST",
+      server: "chat",
+      noMessage: true,
+      body: { id: "339496", content: "Tr" },
+    });
+    expect(spies.patchMessage.mock.calls[0]?.[0], "the edited message was not stored").toEqual({
+      ch_id: 539,
+      msg_id: "339496",
+      patch: { id: "339496", is_edited: 1, message_content: { content: "Tr" }, tags: [] },
+    });
+  });
+
+  it("EditMessageApi tells the user when the chat backend refuses the edit", async () => {
+    const spies = await seedStore();
+    fetchData.mockResolvedValueOnce({ success: false, httpStatus: 403, message: "Only the message sender can edit this message" });
+    const { EditMessageApi } = await import("store/chat/actions");
+    expect(await EditMessageApi(539, "339494", "hi"), "a refused edit reported success").toBe(false);
+    expect(showErrorNotification, "a refused edit showed no error").toHaveBeenCalledWith("Failed to edit the message");
+    expect(spies.patchMessage, "a refused edit changed the message").not.toHaveBeenCalled();
+  });
+
+  it("ToggleMessageTag toggles the tag and stores the full tag list", async () => {
+    const spies = await seedStore();
+    const tags = [{ tag: "urgent", count: 2, user_ids: [657, 672] }];
+    fetchData.mockResolvedValueOnce({ success: true, data: { message_id: "5", tag: "urgent", action: "added", tags } });
+    const { ToggleMessageTag } = await import("store/chat/actions");
+    await ToggleMessageTag(539, "5", "urgent");
+
+    expect(sent(), "the tag request to the chat backend was wrong").toMatchObject({
+      url: "/api/v1/messages/5/tags",
+      method: "POST",
+      noMessage: true,
+      body: { tag: "urgent", action: "toggle" },
+    });
+    expect(spies.patchMessage, "the tag list from the chat backend was not stored").toHaveBeenCalledWith({ ch_id: 539, msg_id: "5", patch: { tags } });
+  });
+
+  it("ToggleMessageTag tells the user when the tag change fails", async () => {
+    const spies = await seedStore();
+    fetchData.mockResolvedValueOnce({ success: false, httpStatus: 500, message: "Table message_tags does not exist" });
+    const { ToggleMessageTag } = await import("store/chat/actions");
+    expect(await ToggleMessageTag(539, "5", "todo"), "a failed tag change reported success").toBe(false);
+    expect(showErrorNotification, "a failed tag change showed no error").toHaveBeenCalledWith("Failed to update the tag");
+    expect(spies.patchMessage, "a failed tag change still changed the tags").not.toHaveBeenCalled();
+  });
+
+  it("SetMessageReminder sends the time in ISO form, stores the reminder and reloads my list", async () => {
+    const spies = await seedStore();
+    fetchData
+      .mockResolvedValueOnce({
+        success: true,
+        data: { message_id: "5", id: "r-1", remind_at: "2030-01-01T09:00:00.000Z", created_at: "2026-09-26T09:00:00.000Z" },
+      })
+      .mockResolvedValueOnce({ success: true, data: [] });
+    const { SetMessageReminder } = await import("store/chat/actions");
+    await SetMessageReminder(539, "5", new Date("2030-01-01T09:00:00.000Z"));
+
+    expect(sent(0), "the reminder request to the chat backend was wrong").toMatchObject({
+      url: "/api/v1/messages/5/reminders",
+      method: "POST",
+      noMessage: true,
+      body: { remind_at: "2030-01-01T09:00:00.000Z" },
+    });
+    expect(spies.patchMessage.mock.calls[0]?.[0]?.patch, "the new reminder was not put on the message").toEqual({
+      reminder: { id: "r-1", remind_at: "2030-01-01T09:00:00.000Z", created_at: "2026-09-26T09:00:00.000Z" },
+    });
+    await vi.waitFor(() =>
+      expect(sent(1).url, "my reminder list was not reloaded after a new reminder").toBe("/api/v1/messages/reminders"),
+    );
+  });
+
+  it("CancelMessageReminder deletes by the reminder id and clears it everywhere", async () => {
+    const spies = await seedStore();
+    fetchData.mockResolvedValueOnce({ success: true, hasContent: false, data: null });
+    const { CancelMessageReminder } = await import("store/chat/actions");
+    await CancelMessageReminder(539, "5", "r-1");
+
+    expect(sent(), "the cancel request to the chat backend was wrong").toMatchObject({
+      url: "/api/v1/messages/reminders/r-1",
+      method: "DELETE",
+      noMessage: true,
+    });
+    expect(spies.patchMessage, "the reminder stayed on the message").toHaveBeenCalledWith({ ch_id: 539, msg_id: "5", patch: { reminder: null } });
+    expect(spies.removeReminder, "the reminder stayed in my list").toHaveBeenCalledWith("r-1");
+  });
+
+  it("ArchiveChannel sends 1 or 0, never a boolean, and moves the chat", async () => {
+    const spies = await seedStore();
+    fetchData
+      .mockResolvedValueOnce({ success: true, data: { channel_id: 539, channel_member_id: 1078, archived: 1 } })
+      .mockResolvedValueOnce({ success: true, data: { channel_id: 539, channel_member_id: 1078, archived: 0 } });
+    const { ArchiveChannel } = await import("store/chat/actions");
+    await ArchiveChannel(539, true);
+    await ArchiveChannel(539, false);
+
+    expect(sent(0), "the archive request to the chat backend was wrong").toMatchObject({
+      url: "/api/v1/channels/539/archive",
+      method: "POST",
+      noMessage: true,
+      body: { archived: 1 },
+    });
+    expect(sent(1).body, "the unarchive request did not send 0").toEqual({ archived: 0 });
+    expect(spies.archiveChat.mock.calls, "the chat did not move between the lists").toEqual([
+      [{ id: 539, archived: true }],
+      [{ id: 539, archived: false }],
+    ]);
+  });
+
+  it("ArchiveChannel leaves the chat where it is when the chat backend refuses", async () => {
+    const spies = await seedStore();
+    fetchData.mockResolvedValueOnce({ success: false, httpStatus: 400, message: "Bad Request" });
+    const { ArchiveChannel } = await import("store/chat/actions");
+    await ArchiveChannel(539, true);
+    expect(showErrorNotification, "a refused archive showed no error").toHaveBeenCalledWith("Failed to archive the chat");
+    expect(spies.archiveChat, "a refused archive still moved the chat").not.toHaveBeenCalled();
+  });
+
+  it("MarkChannelUnread tells the chat backend, then marks the chat", async () => {
+    const spies = await seedStore();
+    fetchData.mockResolvedValueOnce({ success: true, data: { channel_id: 539, total_unread_message_count: 1 } });
+    const { MarkChannelUnread } = await import("store/chat/actions");
+    await MarkChannelUnread(539);
+    expect(sent(), "the unread request to the chat backend was wrong").toMatchObject({
+      url: "/api/v1/channels/539/unread",
+      method: "POST",
+      noMessage: true,
+    });
+    expect(spies.setUnreadChat, "the chat was not marked unread").toHaveBeenCalledWith({ id: 539, value: true });
+  });
+
+  it("GetArchivedChats asks my_channels for archived chats only, pinned ones included", async () => {
+    const spies = await seedStore();
+    fetchData.mockResolvedValueOnce({
+      success: true,
+      data: { channels: [{ id: 539 }], pinned_channels: [{ id: 7 }] },
+    });
+    const { GetArchivedChats } = await import("store/chat/actions");
+    await GetArchivedChats();
+    expect(sent().body?.archived, "the archived list was not asked with archived: true").toBe(true);
+    expect(spies.setArchivedChats, "the archived chats were not stored").toHaveBeenCalledWith([{ id: 7 }, { id: 539 }]);
+  });
+
+  it("GetTaggedMessages asks the chat's messages with one tag", async () => {
+    fetchData.mockResolvedValueOnce({ success: true, data: [{ id: 1 }] });
+    const { GetTaggedMessages } = await import("store/chat/actions");
+    const found = await GetTaggedMessages(539, "important");
+    expect(sent(), "the tag filter request was wrong").toMatchObject({
+      url: "/api/v1/messages/messages_of_channel/539",
+      method: "POST",
+      body: { limit: 50, tag: "important" },
+    });
+    expect(found, "the tagged messages were not returned").toEqual([{ id: 1 }]);
+
+    fetchData.mockResolvedValueOnce({ success: false, httpStatus: 500, message: "down" });
+    expect(await GetTaggedMessages(539, "important"), "a failed load looked like an empty list").toBeNull();
+  });
+});
+
+describe("chat actions — a reminder that is gone already", () => {
+  it("CancelMessageReminder clears a reminder the chat backend no longer has (404), with no error", async () => {
+    const { useAppStore } = await import("store");
+    const patchMessage = vi.fn();
+    const removeReminder = vi.fn();
+    useAppStore.setState({ patchMessage, removeReminder } as any);
+    fetchData.mockReset();
+    showErrorNotification.mockClear();
+    fetchData.mockResolvedValueOnce({ success: false, httpStatus: 404, message: "Reminder not found" });
+    const { CancelMessageReminder } = await import("store/chat/actions");
+
+    expect(await CancelMessageReminder(539, "5", "1"), "a reminder that is gone was reported as not cancelled").toBe(true);
+    expect(patchMessage, "a reminder that is gone stayed on the message").toHaveBeenCalledWith({ ch_id: 539, msg_id: "5", patch: { reminder: null } });
+    expect(removeReminder, "a reminder that is gone stayed in my list").toHaveBeenCalledWith("1");
+    expect(showErrorNotification, "a reminder that is gone showed an error").not.toHaveBeenCalled();
+  });
+});

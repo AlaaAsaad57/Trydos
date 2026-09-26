@@ -184,3 +184,81 @@ describe("a text message bubble — the rest", () => {
     expect(textBubble.deleteMessage, "the message was not deleted for everyone").toHaveBeenCalledWith(activeChat.id, 77, true);
   });
 });
+
+describe("a text message with marks next to its time", () => {
+  async function mountMarked(extra: Record<string, any>) {
+    return renderWithProviders(
+      <TextMessage
+        key={2}
+        sender_user_id={ME}
+        is_from_sender={true}
+        DeleteModal={false}
+        GetMessage={vi.fn()}
+        created_at="2030-01-01T08:05:00"
+        id={78}
+        isPrivate={false}
+        is_forward={0}
+        message_content={{ content: "ok" }}
+        message_status={[]}
+        openMenu={false}
+        mid={null}
+        parent_message={null}
+        parent_message_id={null}
+        setDelete={vi.fn()}
+        setOpen={vi.fn()}
+        type="lonely"
+        channel_id={activeChat.id}
+        channel_member={activeChat.channel_members[0].user}
+        {...extra}
+      />,
+      { store: { userChat: { id: ME }, activeChat } },
+    );
+  }
+
+  it("shows no mark on a plain message, and keeps its normal width", async () => {
+    const r = await mountMarked({});
+    expect(r.container.querySelector('[data-pw="MESSAGE-MARKS"]'), "a plain message showed marks").toBeNull();
+    expect((r.container.querySelector(".text-body") as HTMLElement).style.minWidth, "a plain message was widened").toBe("");
+  });
+
+  it("shows the edited, reminder and tag icons where the forward icon sits, each with its own tooltip", async () => {
+    const r = await mountMarked({
+      is_forward: 1,
+      is_edited: 1,
+      tags: [
+        { tag: "urgent", count: 1, user_ids: [ME] },
+        { tag: "todo", count: 2, user_ids: [ME, THEM] },
+      ],
+      reminder: { id: "r-1", remind_at: "2030-01-15T12:30:00", created_at: "2030-01-15T10:00:00" },
+    });
+    const marks = r.container.querySelector(".forwarded-message-icon");
+    const tip = (name: string) =>
+      marks?.querySelector(`[data-pw="MESSAGE-MARK-${name}"] [role="tooltip"]`)?.textContent;
+    expect(tip("FORWARDED"), "the forward icon has no tooltip").toBe("Forwarded");
+    expect(tip("EDITED"), "the edited icon has no tooltip").toBe("Edited");
+    expect(tip("TAGS"), "the tag icon tooltip did not list each tag").toBe("UrgentTo do (2)");
+    expect(tip("REMINDER"), "the reminder icon tooltip did not give the time").toMatch(/^Reminder: /);
+    expect(
+      (r.container.querySelector(".text-body") as HTMLElement).style.minWidth,
+      "a short bubble with four marks was not widened, so the marks run out of it",
+    ).toBe("151px");
+  });
+
+  it("does not open the message menu when a mark is tapped for its tooltip", async () => {
+    const setOpen = vi.fn();
+    const r = await mountMarked({ is_edited: 1, setOpen });
+    fireEvent.click(r.container.querySelector('[data-pw="MESSAGE-MARK-EDITED"]')!);
+    expect(setOpen, "tapping the edited icon opened the message menu").not.toHaveBeenCalled();
+  });
+
+  it("shows the edited icon on the other person's message too", async () => {
+    const r = await mountMarked({ is_from_sender: false, sender_user_id: THEM, is_edited: 1 });
+    expect(r.container.querySelector('[data-pw="MESSAGE-MARK-EDITED"]'), "their edited message had no edited icon").not.toBeNull();
+    expect(r.container.querySelector(".other-date")?.textContent, "the time next to the marks changed").toBe("08:05");
+  });
+
+  it("shows no tag icon when every tag was taken off", async () => {
+    const r = await mountMarked({ tags: [{ tag: "done", count: 0, user_ids: [] }] });
+    expect(r.container.querySelector('[data-pw="MESSAGE-MARK-TAGS"]'), "a message with no tag left showed the tag icon").toBeNull();
+  });
+});

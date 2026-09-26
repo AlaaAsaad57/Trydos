@@ -5,9 +5,16 @@ import { useAppStore } from "store";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Spinner from "components/global/Spinner";
+import { EditMessageApi } from "store/chat/actions";
+import ChatDialog from "./messages/ChatDialog";
+import MessageTagPicker from "./messages/MessageTagPicker";
+import MessageReminderPicker from "./messages/MessageReminderPicker";
 function OptionsMenu(props) {
-  const { language } = useAppStore();
+  const { language, activeChat } = useAppStore();
   const [edit, setEdit] = useState<any>(false);
+  const [saving, setSaving] = useState(false);
+  const [tagsOpen, setTagsOpen] = useState(false);
+  const [reminderOpen, setReminderOpen] = useState(false);
   let { lang } = useParams();
   const isRtl = language === "ar" || language === "ku";
   // @ts-ignore
@@ -19,6 +26,28 @@ function OptionsMenu(props) {
   const messageType = props.message?.message_type?.name;
   const isSender =
     parseInt(props.message.sender_user_id) === parseInt(getUserChat()?.id);
+  const messageId = props.message?.id;
+  // A message that is still sending has no id yet, so nothing can be tagged,
+  // reminded or edited on it.
+  const isSaved = messageId != null && messageId !== "";
+  const channelId = activeChat?.id ?? props.message?.channel_id;
+  // Tags and my reminder live on the message in the store. The menu is given
+  // a copy of a few fields only, so it reads these two from the open chat.
+  const storedMessage = isSaved
+    ? activeChat?.messages?.find((m: any) => String(m.id) === String(messageId))
+    : null;
+  const originalText = props.message.message_content?.content ?? "";
+  const editText = typeof edit === "string" ? edit.trim() : "";
+  const canSaveEdit =
+    !saving && editText.length > 0 && editText !== originalText.trim();
+
+  const submitEdit = async () => {
+    if (!canSaveEdit || !isSaved) return;
+    setSaving(true);
+    const saved = await EditMessageApi(channelId, messageId, editText);
+    setSaving(false);
+    if (saved) setEdit(false);
+  };
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       setDelete(false);
@@ -118,94 +147,92 @@ function OptionsMenu(props) {
         )
       : null;
 
-  if (isSender && (edit || edit === "")) {
-    return (
-      <>
-        {deleteConfirm}
-        <div
-          className="fixed inset-0 bg-[#0000006a] z-9999999999"
-          onClick={() => {
-            setEdit(false);
-          }}
-        />
-        <div
-          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-99999999999 w-full max-w-md mx-4"
-          aria-modal="true"
-          role="dialog"
-          tabIndex={-1}
+  const editDialog = (
+    <ChatDialog
+      open={isSender && isSaved && (!!edit || edit === "")}
+      onClose={() => setEdit(false)}
+      title={translateFunction("Edit message")}
+      dataPw="MESSAGE-EDIT-DIALOG"
+    >
+      <label
+        htmlFor="message-edit-input"
+        className="block text-sm font-medium text-gray-700 mb-2"
+      >
+        {translateFunction("Your Message")}
+      </label>
+      <textarea
+        id="message-edit-input"
+        value={typeof edit === "string" ? edit : ""}
+        onChange={(e) => setEdit(e.target.value)}
+        onKeyDown={(e) => {
+          // Enter saves, the same as Enter sends in the chat input.
+          // Shift+Enter still adds a new line.
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            submitEdit();
+          }
+        }}
+        className={`${
+          isRtl ? "text-right" : "text-left"
+        } w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors`}
+        placeholder={translateFunction("Edit")}
+        aria-label={translateFunction("Your Message")}
+        disabled={saving}
+        rows={3}
+        autoFocus
+      />
+      <div className="flex gap-[12px] mt-[10px]">
+        <button
+          type="button"
+          onClick={() => setEdit(false)}
+          className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors focus:outline-hidden focus:ring-2 focus:ring-gray-300"
+          disabled={saving}
         >
-          <div className="bg-white rounded-2xl shadow-2xl p-6">
-            {/* Header */}
-            <div className="text-center">
-              {/* <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {translateFunction("Rate Your Experience")}
-              </h3>
-              <p className="text-sm text-gray-600">
-                {translateFunction("Share your thoughts about this product")}
-              </p> */}
+          {translateFunction("Cancel")}
+        </button>
+        <button
+          type="button"
+          data-pw="MESSAGE-EDIT-SAVE"
+          onClick={submitEdit}
+          className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-hidden focus:ring-2 ${
+            canSaveEdit
+              ? "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
+          disabled={!canSaveEdit}
+        >
+          {saving ? (
+            <div className="flex items-center justify-center">
+              <Spinner />
             </div>
+          ) : (
+            translateFunction("Save")
+          )}
+        </button>
+      </div>
+    </ChatDialog>
+  );
 
-            {/* Comment Input */}
-            <div className="space-y-2">
-              <label
-                htmlFor="comment-input"
-                className="block text-sm font-medium text-gray-700"
-              >
-                {translateFunction("Your Message")}
-              </label>
-              <textarea
-                id="comment-input"
-                value={typeof edit === "string" ? edit : ""}
-                onChange={(e) => setEdit(e.target.value)}
-                className={`${
-                  isRtl ? "text-right" : "text-left"
-                } w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors`}
-                placeholder={translateFunction("Edit")}
-                aria-label="Message input"
-                disabled={false}
-                rows={3}
-              />
-            </div>
-            {/* Action Buttons */}
-            <div className="flex space-x-3 mt-[10px]">
-              <button
-                type="button"
-                onClick={() => {
-                  setEdit(false);
-                }}
-                className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors focus:outline-hidden focus:ring-2 focus:ring-gray-300"
-                disabled={false}
-              >
-                {translateFunction("Cancel")}
-              </button>
-              <button
-                type="button"
-                onClick={() => {}}
-                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-hidden focus:ring-2 ${
-                  props.message.message_content?.content === edit ||
-                  edit?.length === 0
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300"
-                }`}
-                disabled={
-                  props.message.message_content?.content === edit ||
-                  edit?.length === 0
-                }
-              >
-                {false ? (
-                  <div className="flex items-center justify-center">
-                    <Spinner />
-                  </div>
-                ) : (
-                  translateFunction("Edt")
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
+  const pickers = isSaved ? (
+    <>
+      <MessageTagPicker
+        open={tagsOpen}
+        onClose={() => setTagsOpen(false)}
+        channelId={channelId}
+        messageId={messageId}
+        tags={storedMessage?.tags || []}
+        myId={getUserChat()?.id}
+      />
+      <MessageReminderPicker
+        open={reminderOpen}
+        onClose={() => setReminderOpen(false)}
+        channelId={channelId}
+        messageId={messageId}
+        reminder={storedMessage?.reminder}
+      />
+    </>
+  ) : null;
+
   if (props.isCall) {
     return (
       <>
@@ -236,6 +263,8 @@ function OptionsMenu(props) {
   return (
     <>
       {deleteConfirm}
+      {editDialog}
+      {pickers}
       <div className="abs-menu">
         {props.setImg && (
           <div
@@ -285,12 +314,23 @@ function OptionsMenu(props) {
               <div className="rep-descs">{translate("Copy", language)}</div>
             </div>
           )}
-          <div className="message-opt">
-            <img src="/icons/chat/categ.svg" />
-            <div className="rep-descs">
-              {translate("CategoryMessage", language)}
+          {isSaved && (
+            <div
+              className="message-opt"
+              data-pw="TAG-OPTION"
+              tabIndex={0}
+              aria-label={translateFunction("Tag message")}
+              onClick={() => setTagsOpen(true)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") setTagsOpen(true);
+              }}
+            >
+              <img src="/icons/chat/categ.svg" />
+              <div className="rep-descs">
+                {translateFunction("Tag message")}
+              </div>
             </div>
-          </div>
+          )}
           <div
             className="message-opt"
             data-pw="DELETE-OPTION"
@@ -302,9 +342,11 @@ function OptionsMenu(props) {
             <div className="rep-descs">{translate("Delete", language)}</div>
           </div>
           {props.isSender &&
+            isSaved &&
             props.message?.message_type?.name === "TextMessage" && (
               <div
                 className="message-opt"
+                data-pw="EDIT-OPTION"
                 onClick={() => {
                   setEdit(props.message.message_content?.content);
                 }}
@@ -313,10 +355,21 @@ function OptionsMenu(props) {
                 <div className="rep-descs">{translate("Edit", language)}</div>
               </div>
             )}
-          <div className="message-opt">
-            <img src="/icons/chat/remind.svg" />
-            <div className="rep-descs">{translate("Reminder", language)}</div>
-          </div>
+          {isSaved && (
+            <div
+              className="message-opt"
+              data-pw="REMINDER-OPTION"
+              tabIndex={0}
+              aria-label={translateFunction("Reminder")}
+              onClick={() => setReminderOpen(true)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") setReminderOpen(true);
+              }}
+            >
+              <img src="/icons/chat/remind.svg" />
+              <div className="rep-descs">{translateFunction("Reminder")}</div>
+            </div>
+          )}
         </div>
       </div>
     </>

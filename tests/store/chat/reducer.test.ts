@@ -581,8 +581,8 @@ describe("chat slice — chat settings", () => {
   it("setUnreadChat, editChatInfo and editChatInfoMedia update the chat", () => {
     const s = makeStore({ data: [channel(1, { message_counts: { a: 1 } }), channel(2)] });
     s.get().setUnreadChat({ id: 1, value: true });
-    expect(s.get().data[0].unread, "the chat was not marked unread").toBe(true);
-    expect(s.get().data[1].unread, "another chat was marked unread").toBeUndefined();
+    expect(s.get().data[0].marked_unread, "the chat was not marked unread").toBe(true);
+    expect(s.get().data[1].marked_unread, "another chat was marked unread").toBeUndefined();
     s.get().editChatInfoMedia({ id: 1, media: "images", data: 4 });
     expect(s.get().data[0].message_counts, "the media count was not merged").toEqual({ a: 1, images: 4 });
     s.get().editChatInfo({ id: 1, data: { z: 2 } });
@@ -635,5 +635,101 @@ describe("chat slice — deleting messages", () => {
     const other = makeStore({ data: [], activeChat: { id: 5, messages: [{ mid: "a" }] } });
     other.get().deleteErrorMessage({ ch_id: 4, msg_id: "a" });
     expect(other.get().activeChat.messages, "a different chat lost a message").toEqual([{ mid: "a" }]);
+  });
+});
+
+describe("chat slice — edit, tags and reminders on a message", () => {
+  it("patchMessage changes one message in the list and the open chat, and the quotes of it", () => {
+    const quoted = msg("q1", { message_content: { content: "old" }, tags: [] });
+    const reply = msg("r1", { parent_message: { id: "q1", message_content: { content: "old" } } });
+    const ch = channel(1, { messages: [quoted, reply] });
+    const s = makeStore({ data: [ch, channel(2)], activeChat: ch });
+
+    s.get().patchMessage({
+      ch_id: 1,
+      msg_id: "q1",
+      patch: { message_content: { content: "new" }, is_edited: 1, tags: [{ tag: "todo", count: 1, user_ids: [ME] }] },
+    });
+
+    const inList = s.get().data[0].messages;
+    expect(inList[0].message_content, "the edited text did not reach the message in the list").toEqual({ content: "new" });
+    expect(inList[0].tags[0]?.tag, "the new tag list did not reach the message").toBe("todo");
+    expect(inList[1].parent_message.message_content, "a reply still quoted the old text").toEqual({ content: "new" });
+    expect(inList[1].parent_message.tags, "a quote took the tags, which it never shows").toBeUndefined();
+    expect(s.get().activeChat.messages[0].is_edited, "the open chat still showed the old message").toBe(1);
+    expect(s.get().data[1].messages[0].is_edited, "a message in another chat was changed").toBeUndefined();
+  });
+
+  it("patchMessage reaches an open chat that is not in the list (an order chat)", () => {
+    const s = makeStore({ data: [], activeChat: { id: 9, messages: [msg("m9")] } });
+    s.get().patchMessage({ ch_id: 9, msg_id: "m9", patch: { reminder: { id: "r", remind_at: "x", created_at: "y" } } });
+    expect(s.get().activeChat.messages[0].reminder?.id, "the reminder did not reach the open order chat").toBe("r");
+  });
+
+  it("reminderFired takes the reminder off the message and out of my list", () => {
+    const ch = channel(1, { messages: [msg("m1", { reminder: { id: "r-1" } }), msg("m2", { reminder: { id: "r-2" } })] });
+    const s = makeStore({
+      data: [ch],
+      activeChat: ch,
+      reminders: [{ id: "r-1", message_id: "m1" }, { id: "r-2", message_id: "m2" }],
+    });
+    s.get().reminderFired({ ch_id: 1, msg_id: "m1", reminder_id: "r-1" });
+    expect(s.get().data[0].messages[0].reminder, "the fired reminder stayed on the message").toBeNull();
+    expect(s.get().data[0].messages[1].reminder?.id, "another message lost its reminder").toBe("r-2");
+    expect(s.get().activeChat.messages[0].reminder, "the open chat still showed the fired reminder").toBeNull();
+    expect(s.get().reminders.map((r: any) => r.id), "the fired reminder stayed in my list").toEqual(["r-2"]);
+  });
+});
+
+describe("chat slice — archive and unread", () => {
+  it("archiveChat moves a chat to the archived list and back, and keeps it open", () => {
+    const s = makeStore({ data: [channel(1), channel(2)], activeChat: channel(1), archivedChats: [], newChats: [channel(1)] });
+
+    s.get().archiveChat({ id: 1, archived: true });
+    expect(s.get().data.map((c: any) => c.id), "the archived chat stayed in my list").toEqual([2]);
+    expect(s.get().archivedChats.map((c: any) => [c.id, c.is_archived]), "the chat did not reach the archived list").toEqual([[1, 1]]);
+    expect(s.get().activeChat?.is_archived, "the open chat was closed or not marked archived").toBe(1);
+    expect(s.get().newChats, "an archived chat still popped up as new").toEqual([]);
+
+    s.get().archiveChat({ id: 1, archived: false });
+    expect(s.get().data.map((c: any) => [c.id, c.is_archived]), "the unarchived chat did not come back to my list").toEqual([[1, 0], [2, undefined]]);
+    expect(s.get().archivedChats, "the unarchived chat stayed in the archived list").toEqual([]);
+  });
+
+  it("setArchivedChats keeps messages oldest first, like the main list", () => {
+    const s = makeStore({ archivedChats: [] });
+    s.get().setArchivedChats([channel(3, { messages: [msg("new"), msg("old")] })]);
+    expect(s.get().archivedChats[0].messages.map((m: any) => m.id), "the archived chat's messages were not put oldest first").toEqual(["old", "new"]);
+    expect(s.get().archivedChats[0].is_archived, "a chat from the archived list was not marked archived").toBe(1);
+  });
+
+  it("setChats marks a chat unread when its counter says so but no message is unread", () => {
+    const s = makeStore({ data: [] });
+    const readMsg = msg("a", { sender_user_id: THEM, message_status: [status(ME, { is_watched: true })] });
+    const unreadMsg = msg("b", { sender_user_id: THEM, message_status: [status(ME, { is_watched: false })] });
+    s.get().setChats(
+      [
+        channel(1, { total_unread_message_count: 1, messages: [readMsg] }),
+        channel(2, { total_unread_message_count: 1, messages: [unreadMsg] }),
+        channel(3, { total_unread_message_count: 0, messages: [readMsg] }),
+      ],
+      [],
+    );
+    const flags = Object.fromEntries(s.get().data.map((c: any) => [c.id, c.marked_unread]));
+    expect(flags[1], "a chat marked unread on another device came back as read").toBe(true);
+    expect(flags[2], "a chat with a real unread message was also counted as hand-marked").toBe(false);
+    expect(flags[3], "a read chat was marked unread").toBe(false);
+  });
+
+  it("watchChannel clears the unread mark, in my list and in the archived list", () => {
+    const s = makeStore({
+      data: [channel(1, { marked_unread: true, total_unread_message_count: 1 })],
+      archivedChats: [channel(2, { marked_unread: true, total_unread_message_count: 1 })],
+    });
+    s.get().watchChannel(1);
+    s.get().watchChannel(2);
+    expect(s.get().data[0].marked_unread, "opening a chat did not clear its unread mark").toBe(false);
+    expect(s.get().archivedChats[0].marked_unread, "opening an archived chat did not clear its unread mark").toBe(false);
+    expect(watchChannelAction, "the chat backend was not told the chats were read").toHaveBeenCalledTimes(2);
   });
 });
