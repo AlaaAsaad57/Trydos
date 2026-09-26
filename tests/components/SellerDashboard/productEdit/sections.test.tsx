@@ -491,6 +491,34 @@ describe("DescriptorsSection", () => {
     expect(latest.descriptor_values, "an emptied number must remove the key").toEqual({});
   });
 
+  it("shows a free-text string descriptor as a text input and sets / clears its value", async () => {
+    const lookups = {
+      ...LOOKUPS,
+      descriptor_groups: [
+        {
+          id: 398,
+          name: "Smartphone",
+          descriptors: [
+            { id: 181, name: "RAM Capacity (GP)", descriptor_group_id: 398, type: "string", options: null as any },
+          ],
+        },
+      ],
+    };
+    const { container } = await mount(DescriptorsSection, {}, { lookups });
+
+    expect(
+      screen.queryByText("RAM Capacity (GP)"),
+      "the string descriptor (options: null) was hidden from the editor",
+    ).toBeInTheDocument();
+    const text = container.querySelector('input[type="text"]') as HTMLInputElement;
+    expect(text, "the string descriptor has no text input to type its value in").not.toBeNull();
+
+    fireEvent.change(text, { target: { value: "8 GB" } });
+    expect(latest.descriptor_values, "the typed text must be stored for descriptor 181").toEqual({ 181: "8 GB" });
+    fireEvent.change(text, { target: { value: "" } });
+    expect(latest.descriptor_values, "emptied text must remove the key").toEqual({});
+  });
+
   it("asks for a category when there are no attributes, and shows the loading layer", async () => {
     await renderWithProviders(
       <Harness

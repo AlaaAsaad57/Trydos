@@ -94,7 +94,7 @@ export function getColorFromLookup(
   if (fallback) return fallback;
   return { code, name: code };
 }
-export type DescriptorType = "string_choice" | "numeric";
+export type DescriptorType = "string" | "string_choice" | "numeric" | "numeric_choice";
 export interface DescriptorLookup {
   id: number;
   name: string;
@@ -102,7 +102,8 @@ export interface DescriptorLookup {
   icon?: string;
   type: DescriptorType | string;
   /** Backend sends a JSON-encoded string, e.g. '["Glossy","Matte"]'. Parse with
-   *  parseDescriptorOptions. Only meaningful for string_choice descriptors. */
+   *  parseDescriptorOptions. Only meaningful for *_choice descriptors; null
+   *  for free `string` / `numeric` ones. */
   options?: string | string[];
 }
 export interface DescriptorGroup {
@@ -142,9 +143,14 @@ export function descriptorIconUrl(
 }
 
 /** A descriptor is renderable in the editor when the seller can supply a value:
- *  numeric always (free number input); string_choice only if it has options. */
+ *  string / numeric always (free text / number input); a *_choice only if it
+ *  has options. */
 export function descriptorHasInput(d: DescriptorLookup): boolean {
-  return d.type === "numeric" || parseDescriptorOptions(d.options).length > 0;
+  return (
+    d.type === "string" ||
+    d.type === "numeric" ||
+    parseDescriptorOptions(d.options).length > 0
+  );
 }
 
 /** Groups/descriptors the editor should actually render: drop descriptors with

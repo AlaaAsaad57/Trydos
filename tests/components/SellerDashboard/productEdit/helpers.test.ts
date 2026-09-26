@@ -97,6 +97,17 @@ describe("SellerDashboard ProductEdit helpers", () => {
       });
       expect(result, "string_choice with options should have input").toBe(true);
     });
+
+    it("returns true for free-text string descriptors, which come with options: null", () => {
+      const result = descriptorHasInput({
+        id: 181,
+        name: "RAM Capacity (GP)",
+        descriptor_group_id: 398,
+        type: "string",
+        options: null as any,
+      });
+      expect(result, "a string descriptor has no options but the seller types a value, so it must be shown").toBe(true);
+    });
   });
 
   describe("flattenDescriptorValues & buildDescriptorSyncPayload", () => {

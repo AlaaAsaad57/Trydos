@@ -591,10 +591,11 @@ export function CategoriesSection({ form, patch, errors, lookups, disabled, busy
 
 /**
  * Attributes: each descriptor GROUP (e.g. "Leather") holds DESCRIPTORS (e.g.
- * "Luster"), and the seller sets one VALUE per descriptor. `string_choice`
- * descriptors are single-select over their `options`; `numeric` descriptors take
- * a number. Groups with no renderable descriptors, and descriptors with no input
- * (a string_choice with no options), are dropped — never shown.
+ * "Luster"), and the seller sets one VALUE per descriptor. `*_choice`
+ * descriptors are single-select over their `options`; `string` descriptors take
+ * free text and `numeric` ones a number. Groups with no renderable descriptors,
+ * and descriptors with no input (a *_choice with no options), are dropped —
+ * never shown.
  */
 /** Group / descriptor icon: the media-server file when the lookup carries one,
  *  a muted tag placeholder otherwise (icons are decorative — empty alt). */
@@ -687,6 +688,13 @@ export function DescriptorsSection({ form, patch, disabled, busy, lookups }: Sec
                             disabled={disabled}
                             onChange={(e) => setValue(d.id, e.target.value)}
                             className={`${dashInputClass} max-w-[220px] ${disabled ? "opacity-70" : ""}`}
+                          />
+                        ) : d.type === "string" && !disabled ? (
+                          <input
+                            type="text"
+                            value={value}
+                            onChange={(e) => setValue(d.id, e.target.value)}
+                            className={`${dashInputClass} max-w-[320px]`}
                           />
                         ) : disabled ? (
                           // Read mode: show only the chosen option (mirrors the
