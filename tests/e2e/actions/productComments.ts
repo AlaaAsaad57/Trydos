@@ -60,6 +60,11 @@ export type CallOutcome = {
   refusedByProxy: boolean;
   /** Ready to put in a message: already redacted, and carries no body. */
   said: string;
+  /** The proxy's `x-market-backend` label on the answer — `gateway` or `core`
+   *  for a market call, `""` for any other service or when no answer came. The
+   *  app's own word for who answered, so a market write is never blamed on a
+   *  backend by guess. */
+  label: string;
 };
 
 /** Watch for the proxy call carrying `endpoint`, and report what it answered.
@@ -133,6 +138,7 @@ export const watchCommentCall = async (
     return {
       status: sawUnauthorised ? 401 : 0,
       refusedByProxy: false,
+      label: "",
       said: redact(
         sawUnauthorised
           ? `${backend} answered ${options.endpoint} with 401 and the app's token exchange did not recover it, so the call never went through`
@@ -152,6 +158,7 @@ export const watchCommentCall = async (
   return {
     status,
     refusedByProxy: proxyOwnHeader,
+    label: response.headers()["x-market-backend"] ?? "",
     said: redact(
       proxyOwnHeader
         ? `the app's own proxy refused the call to ${options.endpoint} with ${status}, so ${backend} was never reached`

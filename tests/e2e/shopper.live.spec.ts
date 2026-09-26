@@ -5,8 +5,10 @@
 //   BUY-03  the bag's money figures, and choosing another delivery address
 //   BUY-04  changing and removing a line in the bag
 //   BUY-05  a guest's bag survives sign-in
+//   ORD-01  a placed order is moved, hidden, restored, and its only line
+//           cancelled (last in the file — see its own header below)
 //
-// BUY-01 is the only one that places a real order. BUY-03, BUY-04 and BUY-05
+// BUY-01 and ORD-01 are the only ones that place a real order. BUY-03, BUY-04 and BUY-05
 // stop well before the checkout posts anything: BUY-03 never chooses a payment
 // method, and BUY-04 and BUY-05 never leave the bag.
 //
@@ -34,6 +36,11 @@
 // BUY-05: two one-time codes, two sign-ins and one sign-out, one line added as a
 // guest and removed again after sign-in. It empties the account's bag before
 // the guest part and, when it fails half-way, in its teardown.
+//
+// ORD-01: one one-time code, one sign-in, one order placed and its only line
+// cancelled, and one probe address created and deleted again. The order is
+// moved to the probe, hidden and restored on the way; its teardown restores,
+// cancels and deletes whatever a failed run left. It also empties the bag first.
 //
 // **The teardowns empty the whole bag of the shared shopper, not only their own
 // line.** That account belongs to this suite. Do not use it for testing by hand
@@ -71,9 +78,12 @@
 // attempt that would place a second order.
 //
 // A healthy run releases the order after cancelling it through the screens, so
-// the net catches nothing. The last step asserts exactly that: a net that has to
-// catch something every run is a journey that is quietly not finishing, and
-// nothing else would ever say so.
+// the net catches nothing. The fixture asserts exactly that, after its sweep: a
+// case that passed while the net still had to act on its order fails, with the
+// order number (`strandedOrderFailure` in `harness/orderCleanup.ts`). A net that
+// has to catch something every run is a journey that is quietly not finishing,
+// and nothing else would ever say so. It is judged in the fixture and not in the
+// case, because the case's body runs before the net does.
 //
 // ---------------------------------------------------------------------------
 // Two ids, and only one of them is ever on screen
@@ -96,7 +106,7 @@
 // names an id or the probe it created itself.
 //
 // ---------------------------------------------------------------------------
-// Four one-time codes per run
+// Five one-time codes per run
 //
 // BUY-01 signs in and hands its session on. BUY-03 signs in for itself and hands
 // its session on, so BUY-04 never inherits a credential the backend has since
@@ -109,9 +119,15 @@
 // still there" pass when the merge had lost it. The second sign-in is the one
 // under test.
 //
-// So a run spends four codes: BUY-01, BUY-03 and two by BUY-05. The shop
-// rate-limits them per phone number, so do not add a sign-in here without
-// counting it.
+// ORD-01 signs in once, for itself, and hands nothing on — it is the last case.
+//
+// So a run spends five codes: BUY-01, BUY-03, two by BUY-05 and ORD-01. The
+// shop rate-limits them per phone number, so do not add a sign-in here without
+// counting it. **ORD-01's send is the fifth in a row on the same number**,
+// straight after BUY-05's two, so it is the one most likely to wait out a
+// cooldown first; `sendOtpWithRetry` sleeps the cooldown it is told. Keep
+// `TEST_ACCOUNT_PHONE` in `OTP_TEST_PHONES` on staging, so only the backend's
+// own per-number throttle applies.
 //
 // ---------------------------------------------------------------------------
 // What BUY-03 writes, and what puts it back
@@ -167,10 +183,19 @@ import {
   watchCartMoney,
 } from "./actions/cart";
 import {
+  attemptCancelLine,
   attemptCancelOrder,
+  attemptChangeAddress,
+  attemptHideOrder,
+  attemptRestoreOrder,
+  findHiddenOrder,
   findOrderInList,
   gotoOrdersFromSettings,
+  leaveHiddenOrders,
+  listShowsOtherOrders,
+  openHiddenOrders,
   openOrderFromList,
+  pageShowsRecipient,
   readOrderStatus,
 } from "./actions/orders";
 import { addAddress, gotoSettings } from "./actions/profile";
@@ -578,14 +603,10 @@ test("BUY-01 a shopper buys something with cash on delivery and then cancels it"
     await context.close();
   }
 
-  // A green run cancels its own order, so the net catches nothing. Anything here
-  // means the journey did not finish and an order had to be cleared behind it.
-  const swept = orders.swept();
-  expect(
-    swept.map((entry) => entry.groupId),
-    "an order had to be cancelled by the safety net, so this journey did not " +
-      "finish through the screens",
-  ).toEqual([]);
+  // A green run cancels its own order and releases it, so the net catches
+  // nothing. That is judged by the `orders` fixture after its sweep
+  // (`strandedOrderFailure`), not here: this body runs before the fixture's
+  // teardown, so a check written here could only ever see an empty list.
 });
 
 test("BUY-02 a visitor with no verified phone is stopped before any order exists", async ({
@@ -1899,6 +1920,681 @@ test.describe("BUY-05 a guest's bag survives sign-in", () => {
       ).toHaveCount(0);
 
       lineInBag = null;
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ORD-01 — changing an order after it is placed
+//
+// A shopper places a cash-on-delivery order for one line of the QA product,
+// moves it to another delivery address, hides it, restores it, and cancels its
+// only line. Each change is judged twice: on the screen, and on the core
+// backend's own answer, read back afterwards.
+//
+// **It must stay the LAST case in this file.** BUY-04 and BUY-07 do not sign in:
+// they open the session file an earlier case saved. ORD-01 signs in for itself,
+// which rotates the account's token pair, so placed before them it would leave
+// that file holding a dead pair and both would fail with a lost session.
+//
+// **One line, on purpose.** "Cancel this product" cancels the whole quantity of
+// its line, and hiding the only line hides the whole order, so the two-line
+// checks need a second QA product the seed does not build yet.
+//
+// **Nothing here prints an address.** Playwright prints the value an assertion
+// received, and this run's output is public. So every check that touches an
+// address, a recipient or a pack is turned into `true` / `false` first, and a
+// message carries ids, status codes, flags and the backend label only.
+//
+// **Its teardown is the clean-up, not the `orders` fixture.** The fixture saves
+// the cookie jar when the order is registered and cancels from it after the
+// case — by then the refresh token it holds has been spent. It may also not see
+// a hidden order at all. So the `afterEach` below leaves the app, restores the
+// order if it may be hidden, cancels it by the pack ids this case read, puts the
+// default address back, deletes the probe, and only then re-registers the order
+// with the fixture if anything is still live.
+
+/** One pack of an order, reduced to the fields this case judges. Never quoted
+ *  whole: `shipping_address_data` is the account's own address. */
+type OrderPack = {
+  id: number | string;
+  order_group_id?: number | string;
+  shipping_address?: number | string | { id?: number | string } | null;
+  can_update_address?: boolean;
+  can_cancele_order?: boolean;
+  is_hidden?: boolean;
+  order_status?: { value?: string } | null;
+  order_group_status?: { value?: string } | null;
+  details?: Array<{ id: number | string; qty?: number }>;
+};
+
+/** Read one order group's packs from the core backend, through the page. The
+ *  message names the backend by `backendNamed` above, from the proxy's label. */
+const readOrderGroup = async (
+  page: import("@playwright/test").Page,
+  groupId: string,
+): Promise<{ status: number; backend: string; packs: OrderPack[] | null }> => {
+  const answer = await throughProxyInPage(page, {
+    target: `/customer/order/getOrdersByOrderGroupID?order_group_id=${groupId}`,
+    method: "GET",
+    country: CASH_ON_DELIVERY_COUNTRY,
+    language: "en",
+  });
+  const data = (answer.json as { data?: unknown } | null)?.data;
+  return {
+    status: answer.status,
+    backend: answer.backend,
+    // Only this group's packs. An answer holding another group's pack is never
+    // acted on — the account is shared.
+    packs: Array.isArray(data)
+      ? (data as OrderPack[]).filter(
+          (pack) =>
+            pack.order_group_id === undefined ||
+            String(pack.order_group_id) === groupId,
+        )
+      : null,
+  };
+};
+
+/** Read the shopper's hidden orders from the core backend, through the page. */
+const readHiddenOrders = async (
+  page: import("@playwright/test").Page,
+  timeout?: number,
+): Promise<{ status: number; backend: string; packs: OrderPack[] | null }> => {
+  const answer = await throughProxyInPage(page, {
+    target: "/customer/order/getHiddenOrders",
+    method: "GET",
+    country: CASH_ON_DELIVERY_COUNTRY,
+    language: "en",
+    timeout,
+  });
+  const data = (answer.json as { data?: unknown } | null)?.data;
+  return {
+    status: answer.status,
+    backend: answer.backend,
+    packs: Array.isArray(data) ? (data as OrderPack[]) : null,
+  };
+};
+
+/** The address id a pack is delivered to, whether the backend sends an id or
+ *  an object carrying one. */
+const shippingAddressIdOf = (pack: OrderPack): string =>
+  String(
+    typeof pack.shipping_address === "object" && pack.shipping_address !== null
+      ? pack.shipping_address.id
+      : pack.shipping_address,
+  );
+
+/** A pack's own state by its machine value. */
+const packStatusOf = (pack: OrderPack): string | undefined =>
+  pack.order_status?.value ?? pack.order_group_status?.value;
+
+test.describe("ORD-01 changing an order after it is placed", () => {
+  /** The context and page, still open, handed to the teardown. Every call the
+   *  teardown makes needs the page's own credential (`throughProxyInPage`). */
+  let opened: {
+    context: import("@playwright/test").BrowserContext;
+    page: import("@playwright/test").Page;
+  } | null = null;
+
+  /** The order this case placed, and what the teardown needs to undo. Ids only
+   *  — no address text is ever kept. */
+  let groupId: string | null = null;
+  let packIds: Array<number | string> = [];
+  let mayBeHidden = false;
+  let released = false;
+  let probeId: number | null = null;
+  let probeTitle = "";
+  let originalDefaultId: number | null = null;
+
+  test.afterEach(async ({ orders }, testInfo) => {
+    if (opened === null) return;
+
+    // Its own time. After-hooks get a fresh slot in this Playwright version,
+    // and this makes it long enough for the worst case: one proxy call can be
+    // three requests of up to 15 s, and this hook makes about eight.
+    testInfo.setTimeout(testInfo.timeout + 6 * 60 * 1000);
+
+    const { context, page } = opened;
+    const group = groupId;
+    const packs = packIds;
+    const hidden = mayBeHidden;
+    const created = probeId;
+    const original = originalDefaultId;
+    opened = null;
+    groupId = null;
+    packIds = [];
+    mayBeHidden = false;
+    probeId = null;
+    originalDefaultId = null;
+
+    const note = (type: string, description: string): void => {
+      testInfo.annotations.push({ type, description: redact(description) });
+    };
+
+    try {
+      // **Leave the app before any call.** The mounted app can renew its own
+      // token at the same moment this hook's first 401 does, and the refresh
+      // token works once — one of the two exchanges would be refused and the
+      // clean-up would run as a guest. So wait for any renewal in flight, then
+      // stand on a page that runs no app code, as the fixture net does.
+      await waitForRenewalSettled(page).catch(() => undefined);
+      await page
+        .goto("/robots.txt", { waitUntil: "domcontentloaded" })
+        .catch(() => undefined);
+
+      // Only with a real group id: an empty one would ask the backend for no
+      // group in particular, and its answer could hold other orders.
+      if (group !== null && group !== "" && !released) {
+        if (hidden) {
+          for (const packId of packs) {
+            const shown = await throughProxyInPage(page, {
+              target: `/customer/order/${packId}/visibility`,
+              method: "PATCH",
+              body: { is_hidden: false },
+              country: CASH_ON_DELIVERY_COUNTRY,
+              language: "en",
+            });
+            note(
+              "order restored by the teardown",
+              `order ${group}, pack ${packId}: the restore answered ${shown.status} from ${backendNamed(shown.backend)}`,
+            );
+          }
+        }
+
+        // Cancelled by the pack ids this case read, never by whatever an answer
+        // happens to hold — an empty answer must not count as "all handled".
+        const before = await readOrderGroup(page, group);
+        const seen = new Set((before.packs ?? []).map((pack) => String(pack.id)));
+        const missing = packs.filter((packId) => !seen.has(String(packId)));
+
+        for (const pack of before.packs ?? []) {
+          if (!packs.some((packId) => String(packId) === String(pack.id))) continue;
+          if (pack.can_cancele_order !== true) continue;
+          const cancelled = await throughProxyInPage(page, {
+            target: "/customer/order/cancel",
+            method: "POST",
+            body: { order_id: pack.id },
+            country: CASH_ON_DELIVERY_COUNTRY,
+            language: "en",
+          });
+          note(
+            "order cancelled by the teardown",
+            `order ${group}, pack ${pack.id}: the cancel answered ${cancelled.status} from ${backendNamed(cancelled.backend)}`,
+          );
+        }
+
+        const after = await readOrderGroup(page, group);
+        const afterPacks = after.packs ?? [];
+        const allThere =
+          packs.length > 0 &&
+          packs.every((packId) =>
+            afterPacks.some((pack) => String(pack.id) === String(packId)),
+          );
+        const noneLive = afterPacks.every((pack) => pack.can_cancele_order !== true);
+
+        if (allThere && noneLive) {
+          orders.release(group);
+          released = true;
+        } else {
+          note(
+            "order may still be live",
+            `order ${group}: the teardown could not prove it closed. The core ` +
+              `backend listed ${afterPacks.length} of its ${packs.length} packs ` +
+              `(status ${after.status}${missing.length > 0 ? `; missing before the cancel: ${missing.join(", ")}` : ""}). ` +
+              "It stays registered, so the fixture's net tries again.",
+          );
+        }
+      }
+
+      // The account's default address, put back if the probe took it.
+      let restored = original === null;
+      if (original !== null) {
+        const list = await readSavedAddresses(page);
+        if (list.addresses.find((entry) => entry.id === original)?.is_default !== 1) {
+          await throughProxyInPage(page, {
+            target: "/customer/address/set-default",
+            method: "POST",
+            body: { address_id: original },
+            country: CASH_ON_DELIVERY_COUNTRY,
+            language: "en",
+          });
+        }
+        const again = await readSavedAddresses(page);
+        restored =
+          again.addresses.find((entry) => entry.id === original)?.is_default === 1;
+        expect(
+          restored,
+          `the address that was the account's default before ORD-01 (id ${original}) ` +
+            `is not the default again. Reading the list said: ${again.said}. The ` +
+            "probe is left in place: deleting it while it is the default would " +
+            "leave the account with no default at all",
+        ).toBe(true);
+      }
+
+      // The probe, deleted by the id the add call returned — never by title,
+      // and never while it is the default.
+      if (created !== null && restored) {
+        await throughProxyInPage(page, {
+          target: `/customer/address/delete?address_id=${created}`,
+          method: "POST",
+          country: CASH_ON_DELIVERY_COUNTRY,
+          language: "en",
+        });
+        const final = await readSavedAddresses(page);
+        const stillThere = final.addresses.some((entry) => entry.id === created);
+        if (stillThere) {
+          note(
+            "stranded address",
+            `address ${created}, titled "${probeTitle}", could not be deleted and is still on the account`,
+          );
+        }
+        expect(
+          stillThere,
+          `the probe address (id ${created}) is still on the account after it ` +
+            "was deleted, so the core backend refused the delete",
+        ).toBe(false);
+      }
+
+      // AC-8 on a green run: nothing of this order is hidden. ("Nothing live" is
+      // the case's own last step.)
+      if (testInfo.status === "passed" && group !== null) {
+        const hiddenNow = await readHiddenOrders(page, 10_000);
+        expect(
+          hiddenNow.packs,
+          `after ORD-01, the core backend's hidden-orders list could not be read ` +
+            `(status ${hiddenNow.status} from ${backendNamed(hiddenNow.backend)})`,
+        ).not.toBeNull();
+        const stillHidden = (hiddenNow.packs ?? []).some(
+          (pack) => String(pack.order_group_id) === group,
+        );
+        expect(
+          stillHidden,
+          `order ${group} is still in the core backend's hidden-orders list after ORD-01 finished`,
+        ).toBe(false);
+      }
+    } finally {
+      // Anything still live goes back to the fixture's net, with the freshest
+      // cookie jar there is — every call above may have renewed the pair.
+      if (group !== null && group !== "" && !released) {
+        await orders.register({ groupId: group, context, page }).catch(() => undefined);
+      }
+      released = false;
+      await context.close();
+    }
+  });
+
+  test("ORD-01 a shopper moves an order to another address, hides it, restores it, and cancels its only line", async ({
+    browser,
+    orders,
+  }) => {
+    // A sign-in, an order, four screen flows and about eight backend reads.
+    // Fifteen minutes is a limit, not a sum of every worst-case wait.
+    test.setTimeout(15 * 60 * 1000);
+
+    const context = await newLiveContext(browser);
+    const page = await context.newPage();
+    opened = { context, page };
+
+    probeTitle = `${ADDRESS_PROBE_MARKER} ${RUN_TAG} order`;
+    const probeRecipient = `Trydos E2E Probe ${RUN_TAG}`;
+
+    /** The flags the core backend gave the order, read in step 5, so a later
+     *  failure can quote what the backend said rather than guess. */
+    let flags = { canUpdateAddress: "not read", canCancel: "not read" };
+    let detailId: string | null = null;
+
+    await test.step("the shopper signs in", async () => {
+      await gotoAbout(page, { country: CASH_ON_DELIVERY_COUNTRY });
+
+      const outcome = await attemptAuth(page, {
+        intent: "login",
+        phone: envValue("TEST_ACCOUNT_PHONE"),
+        method: "whatsapp",
+        otp: envValue("TEST_ACCOUNT_OTP"),
+      });
+      await requireSignedInShopper(page, {
+        outcome,
+        who: "the shopper who places and changes this order",
+      });
+      await page.keyboard.press("Escape").catch(() => {});
+    });
+
+    await test.step("a probe address exists, and the account's default is unchanged", async () => {
+      const list = await readSavedAddresses(page);
+      const current = list.addresses.find((entry) => entry.is_default === 1);
+      expect(
+        current,
+        "the account has no default delivery address, so ORD-01 stops here: " +
+          "without one, the probe would become the default and the order would " +
+          `be sent to it. ${list.said}`,
+      ).toBeDefined();
+      originalDefaultId = current!.id;
+
+      const answer = await throughProxyInPage(page, {
+        target: "/customer/address/add",
+        method: "POST",
+        body: { ...addressProbeBody(probeTitle), contact_person_name: probeRecipient },
+        country: CASH_ON_DELIVERY_COUNTRY,
+        language: "en",
+      });
+      expect(
+        answer.status,
+        `creating the probe address answered ${answer.status} from ` +
+          `${backendNamed(answer.backend)}, so there is no second address to move the order to`,
+      ).toBe(200);
+      const body = answer.json as { message?: string; data?: { id?: number } } | null;
+      expect(
+        body?.data?.id,
+        "creating the probe address came back with no id, so nothing below can " +
+          `name it. ${backendNamed(answer.backend)} said: ${body?.message ?? "nothing"}`,
+      ).toBeDefined();
+      probeId = body!.data!.id!;
+
+      // Creating an address makes it the default on the core backend. The
+      // original goes straight back, so the order is placed to it.
+      const after = await readSavedAddresses(page);
+      if (after.addresses.find((entry) => entry.id === probeId)?.is_default === 1) {
+        await throughProxyInPage(page, {
+          target: "/customer/address/set-default",
+          method: "POST",
+          body: { address_id: originalDefaultId },
+          country: CASH_ON_DELIVERY_COUNTRY,
+          language: "en",
+        });
+      }
+      const again = await readSavedAddresses(page);
+      expect(
+        again.addresses.find((entry) => entry.id === originalDefaultId)?.is_default,
+        `the account's default (id ${originalDefaultId}) is not the default after ` +
+          `the probe was created, so the order would go to the probe. ${again.said}`,
+      ).toBe(1);
+    });
+
+    await test.step("the bag holds one line of the QA product", async () => {
+      await waitForRenewalSettled(page);
+      await gotoHome(page);
+      await emptyTheBag(page);
+      await addQaProductToBag(page, { country: CASH_ON_DELIVERY_COUNTRY });
+      const bag = await openCart(page);
+      expect(
+        bag.lines,
+        `the bag was opened after adding the QA product and holds ${bag.lines} lines`,
+      ).toBe(1);
+    });
+
+    await test.step("the order is placed with cash on delivery, to the account's own address", async () => {
+      const reached = await goToCheckout(page);
+      expect(
+        reached.reached,
+        `Confirm & Continue did not reach the checkout screen, and: ${reached.who}`,
+      ).toBe(true);
+
+      // **Waited for, not read once.** The address block loads after the
+      // checkout screen does — a spinner and "No Address Selected" first — and
+      // `hasDeliveryAddress` is a single look. The first live run read it too
+      // early and failed on an account whose default the core backend had just
+      // confirmed. So the block gets the same allowance as any checkout read.
+      await checkout
+        .chosenAddress(page)
+        .first()
+        .waitFor({ state: "visible", timeout: 45_000 })
+        .catch(() => undefined);
+      expect(
+        await hasDeliveryAddress(page),
+        "the checkout shows no delivery address 45 s after it opened, although " +
+          "the core backend confirmed the account's default in step 2",
+      ).toBe(true);
+      const showing = await chosenAddressTitle(page);
+      expect(
+        showing.includes(ADDRESS_PROBE_MARKER),
+        "the checkout chose a test probe as the delivery address, so ORD-01 " +
+          "refuses to place an order onto it",
+      ).toBe(false);
+
+      const cod = await chooseCashOnDelivery(page);
+      expect(
+        cod.offered,
+        `the shop offered no cash-on-delivery method in "${CASH_ON_DELIVERY_COUNTRY}" for this bag`,
+      ).toBe(true);
+      expect(cod.chosen, `cash on delivery is offered but not chosen. ${cod.note}`).toBe(true);
+
+      const confirmed = await confirmShippingAndPayment(page);
+      expect(
+        confirmed.reached,
+        `Confirm Shipping & Payment did not reach the review step: ${confirmed.refusal}`,
+      ).toBe(true);
+
+      const placed = await placeOrder(page);
+      // Registered before it is judged, so a failure below never strands it.
+      if (placed.orderGroupId) {
+        groupId = placed.orderGroupId;
+        await orders.register({ groupId: placed.orderGroupId, context, page });
+      }
+      expect(
+        placed.panelShown,
+        `the checkout never reached the success panel, and ${describeCheckout(placed.attempt)}`,
+      ).toBe(true);
+      expect(
+        placed.orderGroupId,
+        "the success panel appeared but carried no order number, so nothing " +
+          `below can find or cancel the order. ${describeCheckout(placed.attempt)}`,
+      ).not.toBeNull();
+    });
+
+    const group = (): string => groupId!;
+
+    await test.step("the order is listed, opens, and the core backend holds its packs", async () => {
+      await checkout.done(page).click();
+      await waitForRenewalSettled(page);
+      await gotoSettings(page);
+      await gotoOrdersFromSettings(page);
+
+      const found = await findOrderInList(page, { groupId: group() });
+      expect(found.listed, `order ${group()} was placed but is not in the shopper's order list`).toBe(true);
+      expect(found.status, `order ${group()} is listed with no state on it`).not.toBeNull();
+
+      await openOrderFromList(page, { groupId: group() });
+
+      const read = await readOrderGroup(page, group());
+      expect(
+        read.packs,
+        `the core backend's order read for ${group()} answered ${read.status} from ` +
+          `${backendNamed(read.backend)} with no pack list`,
+      ).not.toBeNull();
+      expect(
+        read.packs!.length > 0,
+        `${backendNamed(read.backend)} listed no pack for order ${group()}`,
+      ).toBe(true);
+
+      packIds = read.packs!.map((pack) => pack.id);
+      const pack = read.packs![0];
+      flags = {
+        canUpdateAddress: String(pack.can_update_address),
+        canCancel: String(pack.can_cancele_order),
+      };
+      const line = pack.details?.[0];
+      expect(
+        line?.id,
+        `${backendNamed(read.backend)} returned order ${group()} with no product line on its pack`,
+      ).toBeDefined();
+      detailId = String(line!.id);
+    });
+
+    await test.step("the order offers an address change, and the core backend holds the probe", async () => {
+      const attempt = await attemptChangeAddress(page, {
+        groupId: group(),
+        recipient: probeRecipient,
+      });
+      expect(attempt.onOwnOrder, `the page is not order ${group()}'s own page, so nothing was changed`).toBe(true);
+      expect(
+        attempt.offered,
+        `order ${group()} does not offer an address change: the core backend ` +
+          `answered can_update_address=${flags.canUpdateAddress} for an order placed moments ago`,
+      ).toBe(true);
+      expect(
+        attempt.picked,
+        `the change-address sheet never showed the probe address for order ${group()}, so it could not be chosen`,
+      ).toBe(true);
+      expect(
+        attempt.confirmationShown,
+        "Change Request did not open the change confirmation, so nothing was posted",
+      ).toBe(true);
+      expect(
+        attempt.write.status >= 200 && attempt.write.status < 300,
+        `changing the address was refused: ${attempt.write.said} (${backendNamed(attempt.write.label)})`,
+      ).toBe(true);
+
+      const read = await readOrderGroup(page, group());
+      const onProbe =
+        (read.packs ?? []).length > 0 &&
+        read.packs!.every((pack) => shippingAddressIdOf(pack) === String(probeId));
+      expect(
+        onProbe,
+        `after the change, ${backendNamed(read.backend)} does not hold probe ` +
+          `address ${probeId} on every pack of order ${group()} (status ${read.status})`,
+      ).toBe(true);
+
+      expect(
+        await pageShowsRecipient(page, probeRecipient),
+        `the core backend moved order ${group()}, but its page does not show the probe's recipient`,
+      ).toBe(true);
+    });
+
+    await test.step("hiding the order takes it off the list, and the core backend holds it hidden", async () => {
+      mayBeHidden = true;
+      const attempt = await attemptHideOrder(page, {
+        groupId: group(),
+        packId: packIds[0],
+      });
+      expect(attempt.onOwnOrder, `the page is not order ${group()}'s own page, so nothing was hidden`).toBe(true);
+      expect(attempt.offered, `order ${group()}'s menu does not offer "Hide This Pack"`).toBe(true);
+      expect(attempt.confirmationShown, "Hide This Pack did not ask for confirmation, so nothing was posted").toBe(true);
+      expect(
+        attempt.write.status >= 200 && attempt.write.status < 300,
+        `hiding the order was refused: ${attempt.write.said} (${backendNamed(attempt.write.label)})`,
+      ).toBe(true);
+      expect(attempt.leftForList, "after hiding, the app did not go back to the order list").toBe(true);
+
+      expect(
+        await listShowsOtherOrders(page, { groupId: group() }),
+        "the order list drew no other order, so it cannot say whether order " +
+          `${group()} left it — the list may never have loaded`,
+      ).toBe(true);
+      const found = await findOrderInList(page, { groupId: group(), maxScrolls: 0 });
+      expect(found.listed, `order ${group()} is still in the order list after it was hidden`).toBe(false);
+
+      const hidden = await readHiddenOrders(page);
+      const held = (hidden.packs ?? []).some(
+        (pack) => String(pack.order_group_id) === group() && pack.is_hidden === true,
+      );
+      expect(
+        held,
+        `${backendNamed(hidden.backend)} does not list order ${group()} as hidden ` +
+          `(status ${hidden.status})`,
+      ).toBe(true);
+    });
+    await test.step("the hidden view shows it fully hidden, and restoring brings it back", async () => {
+      expect(await openHiddenOrders(page), "the order list's menu did not open the hidden-orders screen").toBe(true);
+
+      const card = await findHiddenOrder(page, { groupId: group() });
+      expect(card.listed, `order ${group()} is not on the hidden-orders screen`).toBe(true);
+      expect(
+        card.fullyHidden,
+        `order ${group()} is on the hidden-orders screen but not as a whole hidden order`,
+      ).toBe(true);
+
+      const attempt = await attemptRestoreOrder(page, { groupId: group(), packId: packIds[0] });
+      expect(attempt.offered, `order ${group()}'s card offers no restore`).toBe(true);
+      expect(attempt.confirmationShown, "restoring did not ask for confirmation, so nothing was posted").toBe(true);
+      expect(
+        attempt.write.status >= 200 && attempt.write.status < 300,
+        `restoring the order was refused: ${attempt.write.said} (${backendNamed(attempt.write.label)})`,
+      ).toBe(true);
+
+      expect(await leaveHiddenOrders(page), "the hidden-orders screen did not go back to the list").toBe(true);
+      const found = await findOrderInList(page, { groupId: group() });
+      expect(found.listed, `order ${group()} is not back in the order list after it was restored`).toBe(true);
+      expect(found.status, `order ${group()} is back in the list with no state on it`).not.toBeNull();
+
+      const hidden = await readHiddenOrders(page);
+      expect(
+        hidden.packs,
+        `the core backend's hidden-orders list could not be read (status ${hidden.status})`,
+      ).not.toBeNull();
+      const still = hidden.packs!.some((pack) => String(pack.order_group_id) === group());
+      expect(
+        still,
+        `${backendNamed(hidden.backend)} still lists order ${group()} as hidden after it was restored`,
+      ).toBe(false);
+      mayBeHidden = false;
+    });
+
+    await test.step("cancelling the only line leaves nothing to deliver", async () => {
+      await openOrderFromList(page, { groupId: group() });
+
+      const attempt = await attemptCancelLine(page, { groupId: group() });
+      expect(attempt.onOwnOrder, `the page is not order ${group()}'s own page, so nothing was cancelled`).toBe(true);
+      expect(
+        attempt.offered,
+        `order ${group()}'s line does not offer cancelling: the core backend ` +
+          `answered can_cancele_order=${flags.canCancel} when the order opened`,
+      ).toBe(true);
+      expect(
+        attempt.confirmationShown,
+        "the cancel-line screen took a reason but never opened its confirmation, so nothing was posted",
+      ).toBe(true);
+      expect(
+        attempt.write.status >= 200 && attempt.write.status < 300,
+        `cancelling the line was refused: ${attempt.write.said} (${backendNamed(attempt.write.label)})`,
+      ).toBe(true);
+
+      const read = await readOrderGroup(page, group());
+      const line = (read.packs ?? [])
+        .flatMap((pack) => pack.details ?? [])
+        .find((entry) => String(entry.id) === detailId);
+      expect(
+        line,
+        `${backendNamed(read.backend)} no longer lists line ${detailId} of order ` +
+          `${group()} at all (status ${read.status}), so its cancel cannot be judged`,
+      ).toBeDefined();
+      expect(
+        line!.qty,
+        `${backendNamed(read.backend)} still has quantity on line ${detailId} of order ${group()} after it was cancelled`,
+      ).toBe(0);
+
+      expect(
+        CANCELLED_VALUES,
+        `order ${group()}'s page still reads "${attempt.statusAfter}" after its only line was cancelled`,
+      ).toContain(attempt.statusAfter);
+    });
+
+    await test.step("nothing of the order is still live", async () => {
+      // A fresh read, and an empty one is a failure: "every pack is closed" is
+      // true of no packs at all.
+      const read = await readOrderGroup(page, group());
+      const packs = read.packs ?? [];
+      const allThere = packIds.every((packId) =>
+        packs.some((pack) => String(pack.id) === String(packId)),
+      );
+      expect(
+        allThere,
+        `${backendNamed(read.backend)} no longer lists every pack of order ${group()} ` +
+          `(status ${read.status}), so it cannot show the order closed`,
+      ).toBe(true);
+
+      const live = packs.filter(
+        (pack) =>
+          pack.can_cancele_order === true ||
+          !CANCELLED_VALUES.includes(packStatusOf(pack) ?? ""),
+      );
+      expect(
+        live.map((pack) => `${pack.id}: ${packStatusOf(pack) ?? "no state"}`),
+        `${backendNamed(read.backend)} still holds packs of order ${group()} that are not cancelled`,
+      ).toEqual([]);
+
+      orders.release(group());
+      released = true;
     });
   });
 });

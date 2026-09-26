@@ -698,6 +698,78 @@ export const orders = {
   cancelAgree: (page: Page): Locator => page.getByTestId("cancel-order-agree"),
   cancelConfirm: (page: Page): Locator =>
     page.getByTestId("cancel-order-confirm"),
+
+  /** "Change Delivery Address & Note" in the order's menu.
+   *
+   *  Drawn only when the order answers `can_update_address`, so its absence is
+   *  the core backend saying this order's address may not change. */
+  changeAddressOption: (page: Page): Locator =>
+    page.getByTestId("change-address-option"),
+  /** One saved address in the change-address sheet. Every row of the account is
+   *  here, so a case picks its own by content and never quotes a row. */
+  changeAddressRow: (page: Page): Locator => page.getByTestId("Address"),
+  /** "Change Request" under the address list. Does nothing until another
+   *  address is picked. */
+  changeAddressSubmit: (page: Page): Locator =>
+    page.getByTestId("change-address-submit"),
+  /** The terms tick on the change confirmation, and the button it unlocks. */
+  changeAddressAgree: (page: Page): Locator =>
+    page.getByTestId("change-address-agree"),
+  changeAddressConfirm: (page: Page): Locator =>
+    page.getByTestId("change-address-confirm"),
+  /** The delivery address card on the order page, and the recipient on it. */
+  addressCard: (page: Page): Locator => page.getByTestId("order-address-card"),
+  addressRecipient: (page: Page): Locator =>
+    page.getByTestId("order-address-recipient"),
+
+  /** "Hide This Pack" in the order's menu. Always drawn. */
+  hideOption: (page: Page): Locator => page.getByTestId("hide-order-option"),
+  /** The confirm button of the "hide this pack" question. */
+  hideConfirm: (page: Page): Locator => page.getByTestId("confirm-hide-order"),
+
+  /** "Hidden Orders" in the order list's own menu. */
+  openHidden: (page: Page): Locator => page.getByTestId("open-hidden-orders"),
+  /** The hidden-orders screen's back arrow, which is how a case knows it
+   *  arrived and how it leaves again (`BackBar` spends `DataCy` on it). */
+  hiddenScreenBack: (page: Page): Locator =>
+    page.getByTestId("hidden-orders-screen-back-button"),
+  /** One card on the hidden-orders screen. It carries the same `order-group-id`
+   *  hook a list row does, so read it on the screen you are on. */
+  hiddenCard: (page: Page): Locator => page.getByTestId("hidden-order-card"),
+  /** The eye that restores a whole hidden order. A **sibling** of its card, in
+   *  the card's own wrapper — never inside the card. */
+  restoreOrder: (page: Page): Locator =>
+    page.getByTestId("restore-hidden-order"),
+  /** The confirm button of the "restore" question. */
+  restoreConfirm: (page: Page): Locator => page.getByTestId("confirm-restore"),
+
+  /** The item count on the "Order Details · N Items" card.
+   *
+   *  **The order page draws no product line until this card is tapped.** The
+   *  lines live in `OrderExpandedDetails`, which shows only while the card is
+   *  expanded (`components/setting/orders/OrderDetailsWrapper.tsx`); the count
+   *  sits inside the card's click target, so tapping it toggles the card. */
+  productsCount: (page: Page): Locator =>
+    page.getByTestId("order-products-count"),
+  /** The three dots on one product line of the order page. Drawn only once
+   *  the "Order Details" card is expanded — see `productsCount`. */
+  lineOptions: (page: Page): Locator => page.getByTestId("order-item-options"),
+  /** "Cancel This Product" in a line's menu.
+   *
+   *  Drawn only when the order answers `can_cancele_order` and the line still
+   *  has a quantity, so its absence is an answer, not a slow render. */
+  cancelLineOption: (page: Page): Locator =>
+    page.getByTestId("cancel-line-option"),
+  /** One "why" chip. With none picked the button closes instead of posting. */
+  cancelLineReason: (page: Page): Locator =>
+    page.getByTestId("cancel-line-reason"),
+  cancelLineSubmit: (page: Page): Locator =>
+    page.getByTestId("cancel-line-submit"),
+  /** The terms tick on the line confirmation, and the button it unlocks. */
+  cancelLineAgree: (page: Page): Locator =>
+    page.getByTestId("cancel-line-agree"),
+  cancelLineConfirm: (page: Page): Locator =>
+    page.getByTestId("cancel-line-confirm"),
 };
 
 /** The shopper's saved products — the "checklist" screen under settings.

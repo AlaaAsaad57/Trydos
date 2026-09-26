@@ -256,6 +256,7 @@ function OrderItemOptions({
             )}
             {canCancelProduct() && (
               <div
+                data-pw="cancel-line-option"
                 onClick={() => {
                   setSelectedScreen("cancelProduct");
                 }}
