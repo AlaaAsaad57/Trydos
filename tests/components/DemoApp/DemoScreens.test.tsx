@@ -165,6 +165,51 @@ describe("Demo screens — numbers from the XD file", () => {
     ).toEqual(["56px", "76px", "79px", "65px"]);
   });
 
+  it("cart and chat: drawn like the empty address page (`Home Page – 96`) — white page, no shadow line, a 14 px Medium title on the crumb baseline, the same grey empty lines", () => {
+    for (const tab of ["cart", "chat"] as const) {
+      url.search = tab;
+      const container = open("/sy-en/demo");
+      const page = container.querySelector(
+        `[data-pw="demo-${tab}"]`,
+      ) as HTMLElement | null;
+      expect(page, `the ${tab} screen did not open`).not.toBeNull();
+      expect(
+        page!.style.background,
+        `the ${tab} page is not white; the address page is #FFFFFF`,
+      ).toBe("rgb(255, 255, 255)");
+      const header = page!.querySelector("header") as HTMLElement;
+      expect(
+        header.style.boxShadow,
+        `the ${tab} header draws a shadow line; the address header has none`,
+      ).toBe("");
+      const title = header.querySelector("h1") as HTMLElement;
+      expect(
+        title.style.fontSize,
+        `the ${tab} title is not 14 px like 'Profile | Address'`,
+      ).toBe("14px");
+      expect(
+        title.className,
+        `the ${tab} title is not Medium like 'Address'`,
+      ).toContain("font-medium");
+      expect(
+        title.style.top,
+        `the ${tab} title is not on the crumb baseline (design y 80, so 16 px into the header)`,
+      ).toBe("16px");
+      const lines = [...page!.querySelectorAll("span, p, div")].filter(
+        (e) => (e as HTMLElement).style.color === "rgb(195, 195, 195)",
+      ) as HTMLElement[];
+      expect(
+        lines.map((e) => e.style.fontSize),
+        `the ${tab} empty lines are not the address page's 13 px and 11 px`,
+      ).toEqual(["13px", "11px"]);
+      expect(
+        lines[0].className,
+        `the ${tab} first empty line is not Medium`,
+      ).toContain("font-medium");
+      document.body.innerHTML = "";
+    }
+  });
+
   it("search: each chip's word starts 12 px in, not centred, as `Home Page – 1` draws it", () => {
     url.search = "search";
     const container = open("/sy-en/demo");

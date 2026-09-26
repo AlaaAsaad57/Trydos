@@ -47,6 +47,19 @@ const runFrames = (count: number) => {
   }
 };
 
+/**
+ * Frames with a microtask between them, as a browser runs them. framer-motion
+ * keeps "now" in a cache it clears in a microtask; a test that never yields
+ * keeps the old time, and an `animate` spring then reads as finished on its
+ * first frame (or stops moving after it).
+ */
+const runFramesYielding = async (count: number) => {
+  for (let i = 0; i < count; i++) {
+    runFrames(1);
+    await Promise.resolve();
+  }
+};
+
 /** A box that scrolls up and down (or only sideways), like a demo screen's scroll area. */
 const scroller = (vertical: boolean) => {
   const box = document.createElement("div");
@@ -66,6 +79,19 @@ const scrollBox = (box: HTMLElement, y: number) => {
   act(() => {
     box.dispatchEvent(new Event("scroll"));
   });
+};
+
+/**
+ * The width a tab's icon is drawn at: its box times the scale framer-motion
+ * last wrote on it (jsdom paints nothing, so the transform is read back).
+ */
+const drawnSize = (container: HTMLElement, tab: string) => {
+  const box = container.querySelector(
+    `[data-pw="demo-tab-${tab}-icon"]`,
+  ) as HTMLElement | null;
+  if (!box) throw new Error(`the ${tab} tab has no icon box to size`);
+  const scale = /scale\(([-\d.e]+)\)/.exec(box.style.transform);
+  return parseFloat(box.style.width) * (scale ? parseFloat(scale[1]) : 1);
 };
 
 const nav = (
@@ -228,10 +254,88 @@ describe("DemoBottomNav", () => {
         `the active ${tab} tab draws ${on}; the design file draws the same icon as when it is idle (${idle}) — the dark ring, not a blue one`,
       ).toBe(idle);
     }
+    const search = render(nav({ active: "search" })).container.querySelector(
+      '[data-pw="demo-tab-search"] img[src="/assets/demo/xd/navSearchActive.svg"]',
+    ) as HTMLElement | null;
     expect(
-      src(render(nav({ active: "search" })).container, "search"),
-      "the active search tab does not grow into the file's blue ring",
-    ).toBe("/assets/demo/xd/navSearchActive.svg");
+      search,
+      "the active search tab does not draw the file's blue ring",
+    ).not.toBeNull();
+    expect(
+      search!.style.opacity,
+      "the active search tab draws the blue ring hidden",
+    ).toBe("1");
+  });
+
+  it("draws the active icon bigger — 35 grows to the file's 43 (search `– 1`), the profile box 34 to 42 — and every idle one at its own size", () => {
+    const { container } = render(nav({ active: "cart" }));
+    runFrames(80);
+    const sizes = Object.fromEntries(
+      (["home", "search", "cart", "chat", "settings"] as const).map((tab) => [
+        tab,
+        drawnSize(container, tab),
+      ]),
+    );
+    expect(sizes.cart, "the active cart icon is not drawn at 43 px").toBeCloseTo(
+      43,
+      0,
+    );
+    expect(sizes.home, "the idle home icon is not drawn at 35 px").toBeCloseTo(
+      35,
+      0,
+    );
+    expect(
+      sizes.search,
+      "the idle search icon is not drawn at 35 px",
+    ).toBeCloseTo(35, 0);
+    expect(sizes.chat, "the idle chat icon is not drawn at 34 px").toBeCloseTo(
+      34,
+      0,
+    );
+    expect(
+      sizes.settings,
+      "the idle profile box is not drawn at 34 px",
+    ).toBeCloseTo(34, 0);
+
+    for (const [tab, size] of [
+      ["home", 43],
+      ["search", 43],
+      ["chat", 41.8],
+      ["settings", 42],
+    ] as const) {
+      const { container: c } = render(nav({ active: tab }));
+      runFrames(80);
+      expect(
+        drawnSize(c, tab),
+        `the active ${tab} icon is not drawn at ${size} px`,
+      ).toBeCloseTo(size, 0);
+    }
+  });
+
+  it("grows the new active icon and shrinks the old one over several frames, not in one jump", async () => {
+    const { container, rerender } = render(nav({ active: "cart" }));
+    await runFramesYielding(80);
+    rerender(nav({ active: "home" }));
+    await runFramesYielding(6);
+    const home = drawnSize(container, "home");
+    const cart = drawnSize(container, "cart");
+    expect(
+      home > 35.5 && home < 42.5,
+      `six frames (100 ms) after the tap the home icon is ${home.toFixed(2)} px; it should be on its way from 35 to 43, not jump`,
+    ).toBe(true);
+    expect(
+      cart > 35.5 && cart < 42.5,
+      `six frames (100 ms) after the tap the cart icon is ${cart.toFixed(2)} px; it should be on its way from 43 back to 35, not jump`,
+    ).toBe(true);
+    await runFramesYielding(80);
+    expect(
+      drawnSize(container, "home"),
+      "the home icon did not settle at 43 px",
+    ).toBeCloseTo(43, 0);
+    expect(
+      drawnSize(container, "cart"),
+      "the cart icon did not settle back at 35 px",
+    ).toBeCloseTo(35, 0);
   });
 
   it("picks a tab with the keyboard and marks the active one", () => {

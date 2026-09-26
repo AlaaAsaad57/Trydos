@@ -30,13 +30,20 @@ import type { DemoKey } from "./demoKeys";
  *   - a press pulses the whole bar once and shrinks the icon under the finger;
  *   - press and slide without lifting, and the press follows the finger; lift
  *     to pick;
- *   - the icon that becomes active pops in.
+ *   - the icon that becomes active grows, and the one it replaces shrinks
+ *     back, on one spring (GROW_SPRING).
  *
  * What it does NOT copy: the grey pill behind the active item. The design has
  * no pill, and no blue "active" icon either: the `Home Page` artboard (home
  * tab active) draws the try mark with the same dark dotted ring as `– 1`
- * (search active). Only two tabs change when active — search grows into its
- * 43 px #4A31E7 ring, and the profile tab becomes the 42 px photo.
+ * (search active). The file shows the active size on two tabs: search grows
+ * from 35 into its 43 px #4A31E7 ring (`– 1`), and the profile box grows from
+ * 34 into the 42 px photo. Home, cart and chat grow by the same ratio
+ * (43 / 35) about their own centre, keeping their own icon.
+ *
+ * Each icon is drawn at its ACTIVE size and scaled down while idle. The icons
+ * are <img> SVGs: a browser can draw a shrunk image sharp, but an image grown
+ * past its layout size can come out soft.
  *
  * The shape: 386 x 58 at (22, 859), corners 10 on top and 40 below. The
  * material is the file's "background blur": blur 30, brightness +15%, and a
@@ -51,30 +58,45 @@ import type { DemoKey } from "./demoKeys";
  * the filter, and no transform of its own, is drawn right.
  */
 
+/** An icon box on the artboard: top-left corner and width. */
+type Box = { x: number; y: number; size: number };
+
 type Slot = {
   id: DemoTab;
   label: DemoKey;
   icon: XdIconName;
-  /** Design x, y of the icon box. */
-  x: number;
-  y: number;
-  /** The icon and box the file draws when the tab is active. Only search has one. */
-  active?: { icon: XdIconName; x: number; y: number };
+  idle: Box;
+  active: Box;
+  /** The icon the file draws when the tab is active. Only search has one. */
+  activeIcon?: XdIconName;
+};
+
+/** How much search grows in the file: the 34.99 icon becomes the 42.98 ring. */
+const GROW = 42.98 / 34.99;
+
+/** A box grown by GROW about its own centre. */
+const grown = (b: Box): Box => {
+  const size = b.size * GROW;
+  const shift = (size - b.size) / 2;
+  return { x: b.x - shift, y: b.y - shift, size };
 };
 
 /** Icon boxes straight from the artboard. Slots are 76 apart, centred on 63 .. 367. */
+const HOME: Box = { x: 45.5, y: 870.5, size: 35 };
+const CART: Box = { x: 197.5, y: 870.5, size: 35 };
+const CHAT: Box = { x: 274, y: 871, size: 34 };
 const SLOTS: Slot[] = [
-  { id: "home", label: "Home", icon: "navTry", x: 45.5, y: 870.5 },
+  { id: "home", label: "Home", icon: "navTry", idle: HOME, active: grown(HOME) },
   {
     id: "search",
     label: "Search",
     icon: "navSearch",
-    x: 121.5,
-    y: 870.5,
-    active: { icon: "navSearchActive", x: 113.5, y: 866.5 },
+    idle: { x: 121.5, y: 870.5, size: 34.99 },
+    active: { x: 113.5, y: 866.5, size: 42.98 },
+    activeIcon: "navSearchActive",
   },
-  { id: "cart", label: "Cart", icon: "navCart", x: 197.5, y: 870.5 },
-  { id: "chat", label: "Chat", icon: "navChat", x: 274, y: 871 },
+  { id: "cart", label: "Cart", icon: "navCart", idle: CART, active: grown(CART) },
+  { id: "chat", label: "Chat", icon: "navChat", idle: CHAT, active: grown(CHAT) },
 ];
 
 const SLOT_W = 76;
@@ -86,6 +108,21 @@ const PROFILE = {
   active: { x: 346, y: 865, size: 42 },
   radius: 12,
 };
+
+/**
+ * The grow and shrink of the active icon. A little under critical damping
+ * (26 against 2 * sqrt(420 * 0.8) = 36.7), so the new icon passes its size by
+ * a few percent and settles — the "answer" to the tap — in about 0.4 s.
+ */
+const GROW_SPRING = {
+  type: "spring",
+  stiffness: 420,
+  damping: 26,
+  mass: 0.8,
+} as const;
+
+/** The swap from the grey search icon to the blue ring, while it grows. */
+const SWAP = "opacity 180ms ease-out";
 
 export default function DemoBottomNav({
   active,
@@ -260,32 +297,53 @@ export default function DemoBottomNav({
               style={{ left: slotCentre(index) - SLOT_W / 2, width: SLOT_W }}
             >
               <motion.span
-                // Remounting on a new active tab replays the pop.
-                key={on ? `${id}-on` : id}
                 className="absolute inset-0 block"
-                initial={on ? { scale: 0.82 } : false}
                 animate={{ scale: pressed === id ? 0.88 : 1 }}
                 transition={pressed === id ? PRESS : TRAVEL}
               >
                 {slot ? (
-                  <XdIcon
-                    name={on && slot.active ? slot.active.icon : slot.icon}
-                    style={iconAt(
-                      on && slot.active ? slot.active.x : slot.x,
-                      on && slot.active ? slot.active.y : slot.y,
-                      index,
-                    )}
-                  />
-                ) : (
-                  <ProfileTab
+                  <GrowBox
+                    tab={id}
                     on={on}
-                    photo={photo}
-                    style={iconAt(
-                      on ? PROFILE.active.x : PROFILE.idle.x,
-                      on ? PROFILE.active.y : PROFILE.idle.y,
-                      index,
+                    idle={slot.idle}
+                    active={slot.active}
+                    at={iconAt(slot.active.x, slot.active.y, index)}
+                  >
+                    <XdIcon
+                      name={slot.icon}
+                      size={slot.active.size}
+                      style={{
+                        position: "absolute",
+                        left: 0,
+                        top: 0,
+                        opacity: on && slot.activeIcon ? 0 : 1,
+                        transition: SWAP,
+                      }}
+                    />
+                    {slot.activeIcon && (
+                      <XdIcon
+                        name={slot.activeIcon}
+                        size={slot.active.size}
+                        style={{
+                          position: "absolute",
+                          left: 0,
+                          top: 0,
+                          opacity: on ? 1 : 0,
+                          transition: SWAP,
+                        }}
+                      />
                     )}
-                  />
+                  </GrowBox>
+                ) : (
+                  <GrowBox
+                    tab={id}
+                    on={on}
+                    idle={PROFILE.idle}
+                    active={PROFILE.active}
+                    at={iconAt(PROFILE.active.x, PROFILE.active.y, index)}
+                  >
+                    <ProfileTab on={on} photo={photo} />
+                  </GrowBox>
                 )}
               </motion.span>
             </button>
@@ -297,30 +355,78 @@ export default function DemoBottomNav({
 }
 
 /**
- * The profile tab. Idle: the 34 grey box with the user glyph. Active: the 42
- * photo with XD's inner shadow (0 4 3, white at 50%). With no photo yet, the
- * active box keeps the grey fill and the glyph, drawn at the active size.
+ * One tab icon, laid out at its ACTIVE box and scaled down to its idle box
+ * while the tab is not active. The transform origin is the top-left corner,
+ * so moving to the idle corner and scaling there lands on the idle box
+ * exactly; the spring runs the move and the scale together.
  */
-function ProfileTab({
+function GrowBox({
+  tab,
   on,
-  photo,
-  style,
+  idle,
+  active,
+  at,
+  children,
 }: {
+  tab: DemoTab;
   on: boolean;
-  photo: string | null;
-  style: React.CSSProperties;
+  idle: Box;
+  active: Box;
+  /** Where the active box sits inside the slot. */
+  at: React.CSSProperties;
+  children: React.ReactNode;
 }) {
-  const size = on ? PROFILE.active.size : PROFILE.idle.size;
   return (
-    <span
-      className="block overflow-hidden"
+    <motion.span
+      data-pw={`demo-tab-${tab}-icon`}
+      className="block"
+      initial={false}
+      animate={
+        on
+          ? { x: 0, y: 0, scale: 1 }
+          : {
+              x: idle.x - active.x,
+              y: idle.y - active.y,
+              scale: idle.size / active.size,
+            }
+      }
+      transition={GROW_SPRING}
       style={{
-        ...style,
-        width: size,
-        height: size,
-        borderRadius: PROFILE.radius,
-        background: "#EFEFEF",
+        ...at,
+        width: active.size,
+        height: active.size,
+        transformOrigin: "0 0",
       }}
+    >
+      {children}
+    </motion.span>
+  );
+}
+
+/** Idle, the profile box is drawn at 34 / 42 of its size, so its corner and line are drawn this much bigger to land on the file's. */
+const PROFILE_UNSCALE = PROFILE.active.size / PROFILE.idle.size;
+const PROFILE_FADE = { duration: 0.25, ease: "easeOut" } as const;
+
+/**
+ * The profile tab, drawn at the active 42 and scaled by its GrowBox. Idle: the
+ * 34 grey box with the user glyph and the 0.3 `#1D1D1D` line. Active: the 42
+ * photo with XD's inner shadow (0 4 3, white at 50%). With no photo yet, the
+ * active box keeps the grey fill and the glyph.
+ *
+ * The corner (12) and the idle line (0.3) are the file's numbers at the size
+ * on screen, so while idle they are set PROFILE_UNSCALE bigger to cancel the
+ * scale. Both shadows use the same parts (inset, x, y, blur, spread, colour)
+ * so framer-motion can blend one into the other.
+ */
+function ProfileTab({ on, photo }: { on: boolean; photo: string | null }) {
+  const radius = on ? PROFILE.radius : PROFILE.radius * PROFILE_UNSCALE;
+  return (
+    <motion.span
+      className="absolute inset-0 block overflow-hidden"
+      initial={false}
+      animate={{ borderRadius: radius }}
+      transition={PROFILE_FADE}
+      style={{ background: "#EFEFEF" }}
     >
       {photo ? (
         <img
@@ -332,25 +438,27 @@ function ProfileTab({
       ) : (
         <XdIcon
           name="navUser"
-          size={(17.9 * size) / PROFILE.idle.size}
+          size={17.9 * PROFILE_UNSCALE}
           style={{
             position: "absolute",
-            left: (8.05 * size) / PROFILE.idle.size,
-            top: (6.06 * size) / PROFILE.idle.size,
+            left: 8.05 * PROFILE_UNSCALE,
+            top: 6.06 * PROFILE_UNSCALE,
           }}
         />
       )}
       {/* Over the photo, so the inner shadow is not hidden under it. */}
-      <span
+      <motion.span
         aria-hidden="true"
         className="absolute inset-0"
-        style={{
-          borderRadius: PROFILE.radius,
+        initial={false}
+        animate={{
+          borderRadius: radius,
           boxShadow: on
-            ? "inset 0 4px 3px rgba(255,255,255,0.5)"
-            : "inset 0 0 0 0.3px #1D1D1D",
+            ? "inset 0px 4px 3px 0px rgba(255, 255, 255, 0.5)"
+            : `inset 0px 0px 0px ${0.3 * PROFILE_UNSCALE}px rgba(29, 29, 29, 1)`,
         }}
+        transition={PROFILE_FADE}
       />
-    </span>
+    </motion.span>
   );
 }

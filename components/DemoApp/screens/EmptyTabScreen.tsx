@@ -9,11 +9,13 @@ import { Icon, ScreenHeader, Txt } from "../ui";
 /**
  * Cart and chat. The XD file has no design for either yet.
  *
- * Until it does, they are drawn only with parts the file already has, so they
- * sit in the same family as the screens around them: the header of the inner
- * screens (title 16 Medium, centred) without a back arrow, and the empty state
- * of `Home Page – 96` (the grey help mark, a 13 Medium line and an 11 line
- * under it, all `#C3C3C3`, centred on the artboard).
+ * Until it does, they are drawn like the empty address page (`Home Page – 96`)
+ * and nothing more: the white page, the header with no shadow line and the
+ * title in the crumb's type (14 Medium on baseline 80, like "Address"), with
+ * no back arrow, and the empty state (the grey help mark, a 13 Medium line and
+ * an 11 Regular line under it, all `#C3C3C3`, centred on the artboard). The
+ * address page's banner, card and button are left out: the file has no copy
+ * for them on these screens.
  */
 export default function EmptyTabScreen({
   title,
@@ -29,9 +31,9 @@ export default function EmptyTabScreen({
     <div
       data-pw={`demo-${title.toLowerCase()}`}
       className="absolute inset-0 font-quicksand"
-      style={{ background: C.page }}
+      style={{ background: C.white }}
     >
-      <ScreenHeader title={title} shadow t={t} />
+      <ScreenHeader title={title} small t={t} />
       <div
         className="absolute left-0 w-full"
         style={{

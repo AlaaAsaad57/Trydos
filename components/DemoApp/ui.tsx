@@ -246,9 +246,16 @@ export function ScreenHeader({
   onAction,
   shadow = false,
   nudge = 0,
+  small = false,
   t,
 }: {
   title?: DemoKey;
+  /**
+   * Draw `title` in the crumb's type — 14 Medium on the crumb baseline, like
+   * "Address" in "Profile | Address" — for a one-word screen that sits beside
+   * the profile pages (cart, chat).
+   */
+  small?: boolean;
   crumb?: [DemoKey, DemoKey];
   icon?: XdIconName;
   action?: DemoKey;
@@ -289,12 +296,22 @@ export function ScreenHeader({
       {title && (
         <h1
           className="absolute w-full text-center font-medium whitespace-nowrap pointer-events-none"
-          style={{
-            left: nudge,
-            top: textTop(HEADER.titleBaseline, 16) - HEADER.y,
-            fontSize: 16,
-            color: C.ink,
-          }}
+          style={
+            small
+              ? {
+                  left: nudge,
+                  top: textTop(HEADER.crumbBaseline, 14) - HEADER.y,
+                  fontSize: 14,
+                  lineHeight: `${lineBox(14)}px`,
+                  color: C.ink,
+                }
+              : {
+                  left: nudge,
+                  top: textTop(HEADER.titleBaseline, 16) - HEADER.y,
+                  fontSize: 16,
+                  color: C.ink,
+                }
+          }
         >
           {t(title)}
         </h1>
