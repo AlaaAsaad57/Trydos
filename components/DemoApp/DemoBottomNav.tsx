@@ -1,8 +1,14 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useTransform } from "framer-motion";
-import { PRESS, TRAVEL, useBarPulse } from "components/NavigationDemo/BottomNav";
+import { motion, useTransform } from "framer-motion";
+import {
+  DEFAULT_NAV_THEME,
+  PRESS,
+  TRAVEL,
+  useBarPulse,
+  useScrollScale,
+} from "components/NavigationDemo/BottomNav";
 import XdIcon from "./XdIcon";
 import { TAB_BAR, SCREEN_TRANSITION, bottom } from "./demoLayout";
 import type { DemoTab } from "./demoRoutes";
@@ -13,14 +19,14 @@ import type { DemoKey } from "./demoKeys";
  * The tab bar of the new design (`Home Page` artboard), with the motion of the
  * bottom bar built for /navigation (components/NavigationDemo/BottomNav.tsx):
  *
- *   - the bar follows the scroll position of the screen: at the top it is at
- *     rest, 15 px above the screen edge (`Home Page`); scrolled 35 px or more
- *     it is 35 px lower, 20 px of it below the edge, as the file's scrolled
- *     page (`Home Page – 9`) draws it — including at the end of that page,
- *     which scrolls only 197 px. In between it moves with the finger. It keeps
- *     its full size: the file draws the scrolled bar at 386 x 58. The scroll is
- *     heard on the document, from whatever screen box scrolls, because the
- *     scaled canvas never scrolls the page itself;
+ *   - scroll down and the bar scales down into its own centre, scroll up and it
+ *     scales back — the same `useScrollScale`, listening to whatever screen
+ *     box scrolls, because the scaled canvas never scrolls the page itself.
+ *     The same scroll also moves the bar DOWN, by up to TAB_BAR.drop (35): the
+ *     file's scrolled page (`Home Page – 9`) draws the bar 20 px below the
+ *     screen edge, and the rest page (`Home Page`) 15 px above it. The scale
+ *     is the demo's own motion (the file draws the scrolled bar at full size);
+ *     the drop is the file's;
  *   - a press pulses the whole bar once and shrinks the icon under the finger;
  *   - press and slide without lifting, and the press follows the finger; lift
  *     to pick;
@@ -38,11 +44,11 @@ import type { DemoKey } from "./demoKeys";
  * page behind it, blurred and lightened. On the empty pages that is white. The
  * file's drop shadow and inner shadow on the bar are both switched off.
  *
- * The glass is its own layer under the icons, not the element that moves.
+ * The glass is its own layer under the icons, not the element that scales.
  * Safari on iPhone clips a backdrop filter wrongly when the same element also
  * carries a transform: the blurred, brightened patch shows past the rounded
- * corners while the bar moves with the scroll or pulses on a press. A child
- * with the radius and the filter, and no transform of its own, is drawn right.
+ * corners while the bar scales with the scroll. A child with the radius and
+ * the filter, and no transform of its own, is drawn right.
  */
 
 type Slot = {
@@ -93,35 +99,24 @@ export default function DemoBottomNav({
   visible: boolean;
   /** The shopper's photo, for the profile tab. */
   photo: string | null;
-  /** The screen on show. A new screen starts at its top, so the bar goes back up. */
+  /** The screen on show. A new screen starts at its top, so the bar goes back to full size. */
   resetKey: string;
   onSelect: (tab: DemoTab) => void;
   t: (key: DemoKey) => string;
 }) {
-  // How far the screen on show is scrolled down. Only boxes that scroll up
-  // and down count: a sideways row of chips does not move the bar.
-  const scrolled = useMotionValue(0);
-  useEffect(() => {
-    scrolled.set(0);
-    const onScroll = (event: Event) => {
-      const box = event.target;
-      if (!(box instanceof Element) || box.scrollHeight <= box.clientHeight)
-        return;
-      scrolled.set(box.scrollTop);
-    };
-    document.addEventListener("scroll", onScroll, {
-      passive: true,
-      capture: true,
-    });
-    return () =>
-      document.removeEventListener("scroll", onScroll, { capture: true });
-  }, [resetKey, scrolled]);
-  const drop = useTransform(scrolled, (y) =>
-    Math.min(Math.max(y, 0), TAB_BAR.drop),
+  const scrollScale = useScrollScale(
+    DEFAULT_NAV_THEME.minScale,
+    DEFAULT_NAV_THEME.distance,
+    DEFAULT_NAV_THEME.speedEffect,
+    { scope: "any", resetKey },
   );
-  // The press pulse scales the bar from its full size.
-  const fullSize = useMotionValue(1);
-  const { scale, firePulse } = useBarPulse(fullSize);
+  // Full size = rest, the floor = the scroll cap. The drop follows the same
+  // reading, so the bar is 35 down exactly when it is smallest.
+  const drop = useTransform(
+    scrollScale,
+    (s) => ((1 - s) / (1 - DEFAULT_NAV_THEME.minScale)) * TAB_BAR.drop,
+  );
+  const { scale, firePulse } = useBarPulse(scrollScale);
 
   const [pressed, setPressed] = useState<DemoTab | null>(null);
   const [dragging, setDragging] = useState(false);
