@@ -92,6 +92,7 @@ function CancelOrderItemWrapper({ item, backToMain, cancelOrderItem }) {
         {options.map((option, index) => (
           <div
             key={option}
+            data-pw="cancel-line-reason"
             className={`px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px] bg-[#F8F8F8] `}
             style={{
               flex: "0 1 auto",
@@ -117,6 +118,7 @@ function CancelOrderItemWrapper({ item, backToMain, cancelOrderItem }) {
           )}
         </div>
         <div
+          data-pw="cancel-line-submit"
           className={`w-full h-[53px] items-center justify-center  flex cursor-pointer ${
             selectedOptions.length === 0 ? "bg-[#D3D3D3] " : "bg-[#FF5F61] "
           } rounded-[20px] text-[16px] text-white medium`}

@@ -9,7 +9,7 @@ case is added, and keep the count above in step.
 | Signed-in journeys | AUTH-01 to AUTH-03 | yes, once, shared | no |
 | Signed-in profile journeys | PROF-01 to PROF-08 | yes, twice, shared | yes — the shared test account |
 | Signed-in session recovery | RECOV-01, RECOV-02 | yes, each its own — two real codes per run | no |
-| **The money path** | BUY-01 to BUY-05, BUY-07 (reuses BUY-03's session) | BUY-01 and BUY-03 each sign in once, BUY-04 reuses BUY-03's session, BUY-05 signs in twice for itself — four real codes per run | **yes — one real order, placed and then cancelled, one address BUY-03 creates and removes again, and one bag line BUY-05 adds as a guest and removes again** |
+| **The money path** | BUY-01 to BUY-05, BUY-07 (reuses BUY-03's session), ORD-01 | BUY-01, BUY-03 and ORD-01 each sign in once, BUY-04 reuses BUY-03's session, BUY-05 signs in twice for itself — five real codes per run | **yes — two real orders, each placed and then cancelled (ORD-01's also moved, hidden and restored first), two addresses (one by BUY-03, one by ORD-01) created and removed again, and one bag line BUY-05 adds as a guest and removes again** |
 | Scripted auth branches | SCRIPT-01 to SCRIPT-05 | no | no — only the real one-time-code send |
 | Scripted profile branches | SCRIPT-07 to SCRIPT-12 | **yes — each case signs in for itself** | **no** — every leg is faked, but each sign-in and one change-number send are real |
 | Scripted checkout branches | SCRIPT-14 to SCRIPT-18, SCRIPT-20 to SCRIPT-22 | **no — the shopper is faked** | no — nothing but a guest registration |
@@ -228,21 +228,34 @@ about it is asserted. If the journey dies after that — a refused cancel, a
 timeout, a crash — the `orders` fixture cancels it directly through the app's own
 proxy when the test ends (`tests/e2e/harness/orderCleanup.ts`). Playwright
 retries are off, so there is never a second order. A healthy run cancels its own
-order through the screens and the net catches nothing, and the last assertion of
-BUY-01 is exactly that: a net that catches something every run is a journey that
-is quietly not finishing.
+order through the screens and the net catches nothing, and **the fixture asserts
+exactly that**: a net that catches something every run is a journey that is
+quietly not finishing.
+
+**Where that check lives, and why (FIND-3, fixed).** It is judged in the
+`orders` fixture's teardown, after the sweep — `strandedOrderFailure` in
+`tests/e2e/harness/orderCleanup.ts` fails a **passed** case whose order the net
+still had to act on, and names the order. It used to be BUY-01's last line,
+`expect(orders.swept()).toEqual([])`, and there it could never fail: a fixture's
+teardown runs after the test body and every `afterEach`, so the body always read
+an empty list. The tracker no longer offers `swept()` at all, so a spec body
+cannot make that mistake again. The rule is pinned by
+`tests/harness/orderCleanup.test.ts`. A case that already failed keeps its own
+error; the sweep is reported next to it as an annotation.
 
 **Two ids, and only one is ever on screen.** Every screen shows the *group* id;
 the cancel call takes a *pack* id, and one group can hold several packs — one per
 seller. So the cases are driven by the group id and only the net asks the backend
 for the pack ids.
 
-Per run they cost: four one-time codes and four sign-ins (see below), one
-sign-out, one order placed and cancelled, and at least two guest registrations
+Per run they cost: five one-time codes and five sign-ins (see below), one
+sign-out, two orders placed and cancelled, and at least two guest registrations
 (BUY-02 boots as a guest and adds to its bag; BUY-05's sign-out makes another).
 BUY-01 adds a delivery address only when the account has none.
 
-A run spends **four** one-time codes: BUY-01, BUY-03 and two by BUY-05. BUY-03
+A run spends **five** one-time codes: BUY-01, BUY-03, two by BUY-05, and ORD-01.
+ORD-01's is the fifth send in a row on the same number, so it is the one most
+likely to wait out a cooldown. BUY-03
 signs in for itself and hands its session on to BUY-04, which spends no code.
 BUY-03 creates one address through the API, makes it the account's default,
 edits its title, and then puts the old default back and deletes its own address
@@ -264,6 +277,7 @@ second sign-in.
 | BUY-04 | Plus raises a line to two, and removing it takes it out of the bag | `shopper.live.spec.ts:1030` | Pressing plus on a line makes it hold two — read only after the bag has been read again, so an optimistic number cannot pass for the shop's answer — and removing the line by name takes that product out of the bag |
 | BUY-05 | A guest's bag survives sign-in, and the line can then be removed | `shopper.live.spec.ts:1587` | The shopper's bag is emptied and the shopper signs out; the app then reports a guest. The guest adds the QA product and the **gateway** answers the add. The guest signs in from the navigation as the same shopper, and the **core** backend answers the bag read — proven a good read (`200`, `isSuccessful: true`) before anything in the bag is judged. The guest's line is still there by the bag's own name with the same quantity, and nothing else is in the bag. Removing it takes it out, and it is still gone after a reload. The docs' AC-12 (guest → verified upgrade) |
 | BUY-07 | An unknown coupon code is refused, the shopper is told, and the total does not change | `shopper.live.spec.ts:1442` | A code no shop issued is typed on the real checkout. The **core** backend's answer is judged on its own (a yes is `data.status === 1`, the test `utils/fetchData.ts` applies), then the box: a reason is shown, nothing is marked applied, the field stays, and the total in Confirm Shipping & Payment is unchanged. Runs on BUY-03's session, so it spends no code; the bag is emptied in its own teardown |
+| ORD-01 | A shopper moves an order to another address, hides it, restores it, and cancels its only line | `shopper.live.spec.ts:2227` | A cash-on-delivery order for one line of the QA product is placed to the account's own default address. The order's menu must offer the address change (red, naming `can_update_address`, if the core backend says no); after it, the **core** backend holds the run's probe address on every pack and the order page shows the probe's recipient. Hiding takes the order off the list — judged only after another row proves the list loaded — and the core backend lists it hidden; the hidden screen shows it hidden as a whole, restoring puts it back on the list, and the core backend no longer lists it hidden. Cancelling its only line leaves the line with quantity 0 on the core backend and the page cancelled, and a last read shows no pack of the order still live. Every address check is a yes/no, so no address text reaches the output. **Must stay the last case in the file**: its own sign-in would leave BUY-04 and BUY-07's saved session dead. **After a killed run** (the teardown covers a failed assertion, not a killed process) the order can be left live and hidden where nothing finds it: restore it with `PATCH /customer/order/{packId}/visibility {"is_hidden":false}`, cancel it with `POST /customer/order/cancel {"order_id":packId}`, and delete the address titled `Trydos E2E Address Probe <tag> order`; the run's annotations name the order number and the probe title |
 
 ## Scripted auth branches
 

@@ -71,6 +71,43 @@ export type CleanupOutcome = {
   problem?: string;
 };
 
+/** The failure a **passed** case earns when the net still had to act on one of
+ *  its orders, or `null` when there is nothing to report.
+ *
+ *  **It has to be decided in the fixture's teardown, after the sweep.** That is
+ *  the only moment the net's work is known. A check written in the test body
+ *  runs before the teardown, so it can only ever see an empty list — which is
+ *  exactly how `BUY-01`'s old last check passed on every run, including a run
+ *  that left an order live for the net to cancel.
+ *
+ *  Only a passed case is failed here. A case that already failed has its own
+ *  error, and the sweep is reported next to it as an annotation; replacing that
+ *  error with this one would hide what really broke.
+ *
+ *  Order numbers and counts only — never a credential or an address. */
+export const strandedOrderFailure = (
+  status: string | undefined,
+  swept: CleanupOutcome[],
+): string | null => {
+  if (status !== "passed" || swept.length === 0) return null;
+
+  const orders = swept
+    .map(
+      (outcome) =>
+        `order ${outcome.groupId} (${outcome.packs} packs, ${outcome.cancelled} ` +
+        `cancelled by the net, ${outcome.skipped} left alone` +
+        (outcome.problem ? `; ${outcome.problem}` : "") +
+        ")",
+    )
+    .join(", ");
+
+  return (
+    "the case passed, but it left a live order behind and the safety net had " +
+    `to act on it: ${orders}. The journey did not finish its own clean-up ` +
+    "through the screens — every case must release the orders it placed."
+  );
+};
+
 /** Ceiling on one proxy call. Playwright's own default is 30 s, which is what
  *  made a four-call teardown able to overrun a 60 s allowance (P-2). */
 const PROXY_CALL_MS = 15_000;
@@ -101,7 +138,9 @@ export const throughProxyInPage = async (
   page: Page,
   options: {
     target: string;
-    method: "GET" | "POST";
+    /** `PATCH` is what the order visibility calls take. It travels in
+     *  `x-proxy-method`, as the app's own `fetchData` sends it. */
+    method: "GET" | "POST" | "PATCH";
     body?: unknown;
     country: string;
     language: string;
@@ -120,7 +159,7 @@ export const throughProxyInPage = async (
      *  call — the exact misreading this helper's 401 branch was added to stop. */
     server?: InternalServiceName;
   },
-): Promise<{ status: number; json: unknown }> =>
+): Promise<{ status: number; json: unknown; backend: string }> =>
   await page.evaluate(
     async (call) => {
       const headers: Record<string, string> = {
@@ -182,12 +221,17 @@ export const throughProxyInPage = async (
         // Parsed in the browser, so a parser message quoting the body can
         // never reach the Node failure line.
         const json = await response.json().catch(() => null);
-        return { status: response.status, json };
+        // The proxy's own label for which market backend answered —
+        // `gateway` or `core`, `""` when it set none — so a message can name
+        // the backend the app says answered instead of guessing.
+        const backend = response.headers.get("x-market-backend") ?? "";
+        return { status: response.status, json, backend };
       } catch (error) {
         // Status `0` is "no answer", which is not the same as a refusal and
         // must not read like one.
         return {
           status: 0,
+          backend: "",
           json: {
             message:
               error instanceof Error && error.name === "TimeoutError"

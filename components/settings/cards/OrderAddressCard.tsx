@@ -8,6 +8,7 @@ function OrderAddressCard({ address }: any) {
   const isRtl = language === "ar" || language === "ku";
   return (
     <div
+      data-pw="order-address-card"
       className={`bg-[#F4F4F4] mt-[8px] ml-[8px] w-full min-h-[155px] h-auto  rounded-[15px] py-[7px] px-[12px] flex-col`}
     >
       <span
@@ -40,6 +41,7 @@ function OrderAddressCard({ address }: any) {
         {translateFunction("Recipient")}
       </span>
       <span
+        data-pw="order-address-recipient"
         className={`text-[#1D1D1D] text-[12px] regular mt-[3px] ${
           isRtl ? " text-right " : " "
         }`}
