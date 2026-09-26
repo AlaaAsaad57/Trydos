@@ -212,7 +212,7 @@ describe("ChatLists — unread, archived and reminders", () => {
       "the Reminders folder did not list the reminded message",
     ).toBeInTheDocument();
     expect(
-      screen.getByText("message"),
+      screen.getByText("Message"),
       "a reminder whose text came back empty showed a blank line instead of the word message",
     ).toBeInTheDocument();
   });

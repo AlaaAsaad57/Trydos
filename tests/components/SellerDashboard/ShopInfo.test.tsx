@@ -113,7 +113,7 @@ describe("Shop info — loading", () => {
     await mount();
     await waitFor(() => expect(nameInput(), "the form should be drawn after the load").toBeTruthy());
     expect(nameInput().value, "a refused load should leave the name empty").toBe("");
-    expect(screen.getByText("No banner yet"), "no banner should be shown").toBeInTheDocument();
+    expect(screen.getByText("No Banner Yet"), "no banner should be shown").toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^Upload$/ }), "with no logo the button should say Upload").toBeInTheDocument();
   });
 
@@ -135,7 +135,7 @@ describe("Shop info — read only", () => {
   it("locks the form, offers no Save and sends nothing", async () => {
     await mount({ canUpdate: false });
     await waitFor(() => expect(nameInput()?.value).toBe("Rama Shoes"));
-    expect(screen.getByText("Read only"), "a seller without UPDATE_SHOP_INFO should be told the form is read only").toBeInTheDocument();
+    expect(screen.getByText("Read Only"), "a seller without UPDATE_SHOP_INFO should be told the form is read only").toBeInTheDocument();
     expect(nameInput().disabled, "the name must be locked").toBe(true);
     expect(screen.queryByRole("button", { name: /Save Changes/ }), "there must be no Save").not.toBeInTheDocument();
     fireEvent.submit(field("shop-info-form"));
@@ -150,15 +150,15 @@ describe("Shop info — checking the fields", () => {
     await waitFor(() => expect(nameInput()).toBeTruthy());
     await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
 
-    expect(screen.getByText("Shop Name is required"), "an empty name must be refused").toBeInTheDocument();
-    expect(screen.getByText("Contact is required"), "an empty contact must be refused").toBeInTheDocument();
-    expect(screen.getByText("Address is required"), "an empty address must be refused").toBeInTheDocument();
+    expect(screen.getByText("Shop Name Is Required"), "an empty name must be refused").toBeInTheDocument();
+    expect(screen.getByText("Contact Is Required"), "an empty contact must be refused").toBeInTheDocument();
+    expect(screen.getByText("Address Is Required"), "an empty address must be refused").toBeInTheDocument();
     expect(updateShopInfo, "an invalid form must not reach the shop backend").not.toHaveBeenCalled();
 
     await userEvent.type(nameInput(), "A");
-    expect(screen.queryByText("Shop Name is required"), "typing a name should clear its error").not.toBeInTheDocument();
+    expect(screen.queryByText("Shop Name Is Required"), "typing a name should clear its error").not.toBeInTheDocument();
     await userEvent.type(addressInput(), "B");
-    expect(screen.getByText("Contact is required"), "the contact error should stay until the contact is edited").toBeInTheDocument();
+    expect(screen.getByText("Contact Is Required"), "the contact error should stay until the contact is edited").toBeInTheDocument();
   });
 
   it("refuses a contact that is not a number", async () => {
@@ -168,7 +168,7 @@ describe("Shop info — checking the fields", () => {
     await userEvent.type(contactInput(), "call me");
     await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
     expect(
-      screen.getByText("Contact must contain valid numbers"),
+      screen.getByText("Contact Must Contain Valid Numbers"),
       "a contact with letters must be refused",
     ).toBeInTheDocument();
   });

@@ -66,9 +66,9 @@ describe("SearchImage", () => {
   it("on desktop: opens a menu, and the file option opens a file picker", async () => {
     await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
     fireEvent.click(camIcon());
-    const fromFiles = screen.getByLabelText("Choose file from device");
+    const fromFiles = screen.getByLabelText("Choose File From Device");
     fireEvent.click(fromFiles);
-    expect(screen.queryByLabelText("Choose file from device"), "the menu stayed open after a pick").toBeNull();
+    expect(screen.queryByLabelText("Choose File From Device"), "the menu stayed open after a pick").toBeNull();
     expect(fileInputs().length, "no file picker was opened").toBe(1);
     expect(fileInputs()[0].onblur!(new FocusEvent("blur")), "the picker's blur handler should do nothing").toBeUndefined();
   });
@@ -76,11 +76,11 @@ describe("SearchImage", () => {
   it("on desktop: the camera option opens the camera, and a shot goes to the crop step", async () => {
     await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
     fireEvent.click(camIcon());
-    fireEvent.click(screen.getByLabelText("Take photo with camera"));
+    fireEvent.click(screen.getByLabelText("Take Photo With Camera"));
     fireEvent.click(screen.getByText("close camera"));
     expect(screen.queryByTestId("camera"), "the camera did not close").toBeNull();
     fireEvent.click(camIcon());
-    fireEvent.click(screen.getByLabelText("Take photo with camera"));
+    fireEvent.click(screen.getByLabelText("Take Photo With Camera"));
     fireEvent.click(screen.getByText("capture"));
     expect(screen.queryByTestId("camera"), "the camera stayed open after a shot").toBeNull();
     expect(screen.getByTestId("crop").dataset.name, "the shot did not go to the crop step").toBe("shot.png");
@@ -90,10 +90,10 @@ describe("SearchImage", () => {
     await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
     fireEvent.mouseDown(document.body);
     fireEvent.click(camIcon());
-    fireEvent.mouseDown(screen.getByLabelText("Take photo with camera"));
-    expect(screen.getByLabelText("Take photo with camera"), "a click inside closed the menu").toBeInTheDocument();
+    fireEvent.mouseDown(screen.getByLabelText("Take Photo With Camera"));
+    expect(screen.getByLabelText("Take Photo With Camera"), "a click inside closed the menu").toBeInTheDocument();
     fireEvent.mouseDown(document.body);
-    expect(screen.queryByLabelText("Take photo with camera"), "a click outside did not close the menu").toBeNull();
+    expect(screen.queryByLabelText("Take Photo With Camera"), "a click outside did not close the menu").toBeNull();
   });
 
   it.each([
@@ -103,7 +103,7 @@ describe("SearchImage", () => {
     setAgent(ua);
     await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
     fireEvent.click(camIcon());
-    expect(screen.queryByLabelText("Take photo with camera"), "a phone or tablet got the desktop menu").toBeNull();
+    expect(screen.queryByLabelText("Take Photo With Camera"), "a phone or tablet got the desktop menu").toBeNull();
     expect(fileInputs().length, "no file picker was opened").toBe(1);
     expect(fileInputs()[0].onblur!(new FocusEvent("blur")), "the picker's blur handler should do nothing").toBeUndefined();
   });

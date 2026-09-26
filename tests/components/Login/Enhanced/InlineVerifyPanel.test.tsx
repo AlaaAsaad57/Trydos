@@ -203,7 +203,7 @@ describe("a shopper whose account already owns a number", () => {
       screen.getByRole("button", { name: "I Have Already Account" }),
     );
     await user.type(phoneField()!, PHONE);
-    await user.click(screen.getByRole("button", { name: "Send phone number" }));
+    await user.click(screen.getByRole("button", { name: "Send Phone Number" }));
     await user.click(screen.getByRole("button", { name: "Change Number" }));
 
     expect(
@@ -267,7 +267,7 @@ describe("sending the code", () => {
     await renderPanel({ initialPhone: PHONE, phoneLocked: true });
 
     expect(
-      await screen.findByText("Session limit reached. Try again later."),
+      await screen.findByText("Session Limit Reached. Try Again Later."),
       "the cap has no countdown to show, so it must say what it is in words",
     ).toBeInTheDocument();
   });
@@ -327,7 +327,7 @@ describe("what a running cooldown is telling the shopper", () => {
       screen.getByRole("button", { name: "I Have Already Account" }),
     );
     await user.type(phoneField()!, PHONE);
-    await user.click(screen.getByRole("button", { name: "Send phone number" }));
+    await user.click(screen.getByRole("button", { name: "Send Phone Number" }));
     await user.click(screen.getByRole("button", { name: "Send SMS" }));
     await screen.findByText(/before trying again/);
 

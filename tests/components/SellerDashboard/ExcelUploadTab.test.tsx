@@ -282,7 +282,7 @@ describe("Excel section — uploading", () => {
     await chooseFileAndUpload();
 
     expect(
-      await screen.findByText("File uploaded and processed successfully!"),
+      await screen.findByText("File Uploaded And Processed Successfully!"),
       "a finished upload should be confirmed on screen",
     ).toBeInTheDocument();
     expect(
@@ -343,7 +343,7 @@ describe("Excel section — the uploaded files table", () => {
   it("says when nothing has been uploaded yet", async () => {
     await mount();
     expect(
-      await screen.findByText("No files uploaded yet."),
+      await screen.findByText("No Files Uploaded Yet."),
       "an empty table should say so rather than show empty rows",
     ).toBeInTheDocument();
   });
@@ -438,7 +438,7 @@ describe("Excel section — the uploaded files table", () => {
   it("loads the table again on Refresh", async () => {
     getExcelFiles.mockResolvedValue({ success: true, data: { data: [] } });
     await mount();
-    await screen.findByText("No files uploaded yet.");
+    await screen.findByText("No Files Uploaded Yet.");
 
     getExcelFiles.mockResolvedValue({
       success: true,

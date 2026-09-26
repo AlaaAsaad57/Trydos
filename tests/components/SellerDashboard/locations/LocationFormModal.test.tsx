@@ -159,7 +159,7 @@ describe("Location form — loading", () => {
     getShopLocationLookups.mockResolvedValue({ success: false, data: {} });
     await mount();
     expect(
-      await screen.findByText("Failed to load locations"),
+      await screen.findByText("Failed To Load Locations"),
       "a refusal with no message should still say the load failed",
     ).toBeInTheDocument();
   });
@@ -236,8 +236,8 @@ describe("Location form — checking the fields", () => {
     await mount();
     await waitFor(() => expect(nameInput()).toBeTruthy());
     await userEvent.click(saveButton());
-    expect(screen.getByText("Name is required"), "an empty name must be refused").toBeInTheDocument();
-    expect(screen.getByText("Country is required"), "no country must be refused").toBeInTheDocument();
+    expect(screen.getByText("Name Is Required"), "an empty name must be refused").toBeInTheDocument();
+    expect(screen.getByText("Country Is Required"), "no country must be refused").toBeInTheDocument();
     expect(addShopLocation, "an invalid form must not reach the backend").not.toHaveBeenCalled();
   });
 
@@ -250,11 +250,11 @@ describe("Location form — checking the fields", () => {
     // click first, and this test is about the form's own check behind it.
     fireEvent.submit(latInput().closest("form") as HTMLFormElement);
     expect(
-      screen.getByText("Latitude must be between -90 and 90"),
+      screen.getByText("Latitude Must Be Between -90 And 90"),
       "a latitude above 90 must be refused",
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Longitude must be between -180 and 180"),
+      screen.getByText("Longitude Must Be Between -180 And 180"),
       "a longitude above 180 must be refused",
     ).toBeInTheDocument();
   });
@@ -265,10 +265,10 @@ describe("Location form — checking the fields", () => {
     await userEvent.click(saveButton());
     await userEvent.selectOptions(countrySelect(), "1");
     expect(
-      screen.queryByText("Name is required"),
+      screen.queryByText("Name Is Required"),
       "editing the country should clear the name error too — the uniqueness rule spans both",
     ).not.toBeInTheDocument();
-    expect(screen.queryByText("Country is required"), "the country error should clear").not.toBeInTheDocument();
+    expect(screen.queryByText("Country Is Required"), "the country error should clear").not.toBeInTheDocument();
   });
 });
 
@@ -331,7 +331,7 @@ describe("Location form — saving", () => {
     await userEvent.selectOptions(countrySelect(), "1");
     await userEvent.click(saveButton());
     expect(
-      await screen.findByText("Failed to save location"),
+      await screen.findByText("Failed To Save Location"),
       "a bare refusal should still say the save failed",
     ).toBeInTheDocument();
   });
@@ -365,7 +365,7 @@ describe("Location form — read only", () => {
   it("locks every field, offers no Save and sends nothing on submit", async () => {
     await mount({ location: ROW, canSubmit: false });
     await waitFor(() => expect(nameInput()).toBeTruthy());
-    expect(screen.getByText("Read only"), "a seller without the permission should be told the form is read only").toBeInTheDocument();
+    expect(screen.getByText("Read Only"), "a seller without the permission should be told the form is read only").toBeInTheDocument();
     expect(nameInput().disabled, "the name must be locked").toBe(true);
     expect(screen.queryByRole("button", { name: /Save Changes/ }), "there must be no Save").not.toBeInTheDocument();
     fireEvent.submit(nameInput().closest("form") as HTMLFormElement);

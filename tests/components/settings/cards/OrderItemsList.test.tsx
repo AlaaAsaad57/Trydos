@@ -3,7 +3,7 @@
 //
 // The header counts the items and toggles the expanded view (except when the
 // tap is on the chat button). Each product shows its step icon and, before
-// delivery, its colour and size; after delivery it shows "delivered" and the
+// delivery, its colour and size; after delivery it shows "Delivered" and the
 // rating stars, which open the rating modal (stubbed here).
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -84,7 +84,7 @@ describe("each product before delivery", () => {
 });
 
 describe("each product after delivery", () => {
-  const delivered = { value: "delivered", label: "Delivered" };
+  const delivered = { value: "Delivered", label: "Delivered" };
 
   it("shows delivered and the rating stars, and opens the rating with the saved comment", async () => {
     const comment = { id: 4, star_rating: 4, comment: "ok", comments_images_customer: ["a.png"] };
@@ -92,7 +92,7 @@ describe("each product after delivery", () => {
       order_status: delivered,
       getProductComment: vi.fn(() => comment),
     });
-    expect(screen.getByText("delivered"), "a delivered product does not say delivered").toBeInTheDocument();
+    expect(screen.getByText("Delivered"), "a delivered product does not say delivered").toBeInTheDocument();
     const user = userEvent.setup();
     await user.click(document.querySelector(".rating-star-container")!);
     expect(screen.getByTestId("rating-modal").dataset.rating, "the rating did not open with the saved stars").toBe("4");
@@ -107,7 +107,7 @@ describe("each product after delivery", () => {
     await renderList({ order_status: delivered });
     const user = userEvent.setup();
     await user.click(document.querySelector(".rating-star-container")!);
-    await user.click(screen.getByText("rating busy"));
+    await user.click(screen.getByText("Rating Busy"));
     await user.click(screen.getByText("rating close"));
     expect(document.querySelector(".rating-star-container #Path_23396"), "the stars showed while the rating saves").toBeNull();
     await user.click(document.querySelector(".rating-star-container")!);
@@ -116,6 +116,6 @@ describe("each product after delivery", () => {
 
   it("treats a returned product as not delivered", async () => {
     await renderList({ order_status: delivered, items: [buildOrderLine({ is_returned: true } as any)] });
-    expect(screen.queryByText("delivered"), "a returned product says delivered").not.toBeInTheDocument();
+    expect(screen.queryByText("Delivered"), "a returned product says delivered").not.toBeInTheDocument();
   });
 });

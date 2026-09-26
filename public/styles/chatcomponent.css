@@ -1150,31 +1150,6 @@ html[lang="ar"] .new-chats {
   letter-spacing: 0.01em;
   justify-content: center;
 }
-.gallery-option span {
-  color: #5d5c5d;
-  margin-right: 36px;
-  font-size: 16px;
-  font-family: var(--SF-Pro-Rounded-Light);
-}
-
-.chat-user-gallery-container {
-  margin-top: 10px;
-  cursor: pointer;
-  width: 100%;
-  background-color: #f4f4f4;
-  height: 50px;
-  padding-left: 15px;
-  flex-shrink: 0;
-  display: flex;
-  border-radius: 20px;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  position: relative;
-}
-.chat-user-gallery-container .chat-user-info-arrow {
-  top: 7px;
-}
 .chat-user-options {
   width: 100%;
   display: flex;

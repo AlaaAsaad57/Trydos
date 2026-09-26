@@ -236,7 +236,7 @@ describe("a text message with marks next to its time", () => {
       marks?.querySelector(`[data-pw="MESSAGE-MARK-${name}"] [role="tooltip"]`)?.textContent;
     expect(tip("FORWARDED"), "the forward icon has no tooltip").toBe("Forwarded");
     expect(tip("EDITED"), "the edited icon has no tooltip").toBe("Edited");
-    expect(tip("TAGS"), "the tag icon tooltip did not list each tag").toBe("UrgentTo do (2)");
+    expect(tip("TAGS"), "the tag icon tooltip did not list each tag").toBe("UrgentTo Do (2)");
     expect(tip("REMINDER"), "the reminder icon tooltip did not give the time").toMatch(/^Reminder: /);
     expect(
       (r.container.querySelector(".text-body") as HTMLElement).style.minWidth,

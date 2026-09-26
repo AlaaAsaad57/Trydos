@@ -143,7 +143,7 @@ async function atCodeStep() {
   await user.click(await screen.findByText("I Have Already Account"));
   await user.type(phoneField(), PHONE);
   await user.click(
-    await screen.findByRole("button", { name: "Send phone number" }),
+    await screen.findByRole("button", { name: "Send Phone Number" }),
   );
   await screen.findByText("Choose Verification Method");
   await user.click(
@@ -307,7 +307,7 @@ async function openWidget() {
 type User = ReturnType<typeof userEvent.setup>;
 
 async function sendNumber(user: User) {
-  await user.click(await screen.findByRole("button", { name: "Send phone number" }));
+  await user.click(await screen.findByRole("button", { name: "Send Phone Number" }));
   await screen.findByText("Choose Verification Method");
 }
 
@@ -562,7 +562,7 @@ describe("FullEnhancedLoginWidget — the screens and their hand-offs", () => {
     await typePhoneAndSend(user);
     await user.click(pw("sms-receive-otp"));
     expect(
-      await screen.findByText("Something went wrong"),
+      await screen.findByText("Something Went Wrong"),
       "no fallback error text",
     ).toBeInTheDocument();
     expect(actions(), "the failed send was not reported").toContain(GA_EVENT_NAMES.EXCEPTION);

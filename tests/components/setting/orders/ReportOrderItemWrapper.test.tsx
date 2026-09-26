@@ -92,7 +92,7 @@ describe("filling in the report", () => {
     expect(notifications.showErrorNotification, "a photo over 4 MB was not refused").toHaveBeenCalledWith(
       "The photo must be 4 MB or less",
     );
-    expect(screen.queryByAltText("Report photo"), "a refused photo was attached").not.toBeInTheDocument();
+    expect(screen.queryByAltText("Report Photo"), "a refused photo was attached").not.toBeInTheDocument();
   });
 
   it("attaches a photo, previews it, and can remove it; Add Photo opens the picker", async () => {
@@ -103,11 +103,11 @@ describe("filling in the report", () => {
 
     pick(new File(["x"], "p.png", { type: "image/png" }));
     expect(
-      (await screen.findByAltText("Report photo")).getAttribute("src"),
+      (await screen.findByAltText("Report Photo")).getAttribute("src"),
       "the attached photo is not previewed",
     ).toBe("blob:report-photo");
     await userEvent.setup().click(screen.getByText("X"));
-    expect(screen.queryByAltText("Report photo"), "removing the photo left it attached").not.toBeInTheDocument();
+    expect(screen.queryByAltText("Report Photo"), "removing the photo left it attached").not.toBeInTheDocument();
     expect(URL.revokeObjectURL, "the preview address was not released").toHaveBeenCalledWith("blob:report-photo");
   });
 });
@@ -118,7 +118,7 @@ describe("submitting", () => {
     const props = await renderSheet();
     const user = userEvent.setup();
     await user.click(option("Damaged"));
-    await user.type(screen.getByPlaceholderText("Write more details here"), "  torn box  ");
+    await user.type(screen.getByPlaceholderText("Write More Details Here"), "  torn box  ");
     const photo = new File(["x"], "p.webp", { type: "image/webp" });
     pick(photo);
     await user.click(screen.getByText("Submit Report"));
@@ -143,7 +143,7 @@ describe("submitting", () => {
     reportOrderItem.mockReturnValue(new Promise(() => {}));
     await renderSheet();
     const user = userEvent.setup();
-    await user.type(screen.getByPlaceholderText("Write more details here"), "late");
+    await user.type(screen.getByPlaceholderText("Write More Details Here"), "late");
     const submitButton = screen.getByText("Submit Report");
     await user.click(submitButton);
     await user.click(submitButton);
@@ -156,7 +156,7 @@ describe("submitting", () => {
     });
     const props = await renderSheet();
     const user = userEvent.setup();
-    await user.type(screen.getByPlaceholderText("Write more details here"), "late");
+    await user.type(screen.getByPlaceholderText("Write More Details Here"), "late");
     await user.click(screen.getByText("Submit Report"));
     await waitFor(() =>
       expect(notifications.showErrorNotification, "a refused report was not reported").toHaveBeenCalledWith(

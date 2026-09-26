@@ -375,7 +375,7 @@ describe("the add-picture menu", () => {
     expect(click, "Choose From Library did not open the file picker").toHaveBeenCalled();
   });
 
-  describe("take photo", () => {
+  describe("Take Photo", () => {
     const track = { stop: vi.fn() };
     const stream = { getTracks: () => [track] };
 
@@ -399,7 +399,7 @@ describe("the add-picture menu", () => {
       const user = userEvent.setup();
       await show();
       await openMenu(user);
-      await user.click(screen.getByText("take photo"));
+      await user.click(screen.getByText("Take Photo"));
 
       await waitFor(() =>
         expect(cameraButtons()[1]?.onclick, "the camera capture button was never armed").toBeTruthy(),
@@ -417,7 +417,7 @@ describe("the add-picture menu", () => {
       const user = userEvent.setup();
       await show();
       await openMenu(user);
-      await user.click(screen.getByText("take photo"));
+      await user.click(screen.getByText("Take Photo"));
       await waitFor(() => expect(cameraButtons()[1]?.onclick).toBeTruthy());
       cameraButtons()[0].click();
       expect(track.stop, "cancel did not switch the camera off").toHaveBeenCalled();
@@ -432,7 +432,7 @@ describe("the add-picture menu", () => {
       const user = userEvent.setup();
       await show();
       await openMenu(user);
-      await user.click(screen.getByText("take photo"));
+      await user.click(screen.getByText("Take Photo"));
       await waitFor(() =>
         expect(logError, "a camera that could not open was not logged").toHaveBeenCalledWith(
           expect.objectContaining({ scenario: "UploadProfilePhoto: the camera could not be opened" }),

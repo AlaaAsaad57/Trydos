@@ -38,7 +38,7 @@ describe("RdbPaymentLockedSheet", () => {
     });
 
     expect(
-      screen.queryByText("You have a payment in progress"),
+      screen.queryByText("You Have A Payment In Progress"),
       "with no lock the sheet must stay out of the way",
     ).toBeNull();
   });
@@ -49,15 +49,15 @@ describe("RdbPaymentLockedSheet", () => {
     });
 
     expect(
-      screen.getByText("You have a payment in progress"),
+      screen.getByText("You Have A Payment In Progress"),
       "a locked cart must say so in words",
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Continue payment"),
+      screen.getByText("Continue Payment"),
       "the shopper must be able to go back to the payment screen",
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Cancel payment"),
+      screen.getByText("Cancel Payment"),
       "the shopper must be able to cancel and edit the cart again",
     ).toBeInTheDocument();
   });
@@ -67,7 +67,7 @@ describe("RdbPaymentLockedSheet", () => {
       store: { rdbLock: { reference: "ref-1", expires_at: null } },
     });
 
-    fireEvent.click(screen.getByText("Continue payment"));
+    fireEvent.click(screen.getByText("Continue Payment"));
 
     await waitFor(() => {
       const modal = document.querySelector('[data-pw="rdb-payment-modal"]');
@@ -93,7 +93,7 @@ describe("RdbPaymentLockedSheet", () => {
       store: { rdbLock: { reference: "ref-1", expires_at: null } },
     });
 
-    fireEvent.click(screen.getByText("Cancel payment"));
+    fireEvent.click(screen.getByText("Cancel Payment"));
 
     await waitFor(() => {
       expect(
@@ -118,11 +118,11 @@ describe("RdbPaymentLockedSheet", () => {
       store: { rdbLock: { reference: "ref-1", expires_at: null } },
     });
 
-    fireEvent.click(screen.getByText("Cancel payment"));
+    fireEvent.click(screen.getByText("Cancel Payment"));
 
     await waitFor(() => {
       expect(
-        screen.getByText("This payment is already paid"),
+        screen.getByText("This Payment Is Already Paid"),
         "a paid request cannot be cancelled and the shopper must be told why",
       ).toBeInTheDocument();
     });
@@ -139,7 +139,7 @@ describe("RdbPaymentLockedSheet", () => {
       store: { rdbLock: { reference: "ref-1", expires_at: null } },
     });
 
-    fireEvent.click(screen.getByText("Cancel payment"));
+    fireEvent.click(screen.getByText("Cancel Payment"));
 
     await waitFor(() => {
       expect(
@@ -166,7 +166,7 @@ describe("RdbPaymentLockedSheet", () => {
       store: { rdbLock: { reference: "ref-1", expires_at: null } },
     });
 
-    fireEvent.click(screen.getByText("Cancel payment"));
+    fireEvent.click(screen.getByText("Cancel Payment"));
 
     await waitFor(() => {
       expect(
@@ -175,7 +175,7 @@ describe("RdbPaymentLockedSheet", () => {
       ).toBeNull();
     });
     expect(
-      screen.queryByText("This payment is already paid"),
+      screen.queryByText("This Payment Is Already Paid"),
       "a gone reference is not the same case as an already-paid one",
     ).toBeNull();
   });
@@ -189,7 +189,7 @@ describe("RdbPaymentLockedSheet", () => {
     });
 
     expect(
-      screen.queryByText("You have a payment in progress"),
+      screen.queryByText("You Have A Payment In Progress"),
       "the sheet must never paint over a payment screen that is already open",
     ).toBeNull();
     expect(
@@ -236,7 +236,7 @@ describe("RdbPaymentLockedSheet", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("You have a payment in progress"),
+        screen.getByText("You Have A Payment In Progress"),
         "the sheet must be showing before it can be dismissed",
       ).toBeInTheDocument();
     });
@@ -246,7 +246,7 @@ describe("RdbPaymentLockedSheet", () => {
     fireEvent.click(closeControl!);
 
     expect(
-      screen.queryByText("You have a payment in progress"),
+      screen.queryByText("You Have A Payment In Progress"),
       "the close control must let the shopper stop seeing the sheet",
     ).toBeNull();
     expect(
@@ -262,7 +262,7 @@ describe("RdbPaymentLockedSheet", () => {
 
     fireEvent.click(document.querySelector('[data-pw="rdb-lock-close"]')!);
     expect(
-      screen.queryByText("You have a payment in progress"),
+      screen.queryByText("You Have A Payment In Progress"),
       "the close control must hide the sheet before the second refusal",
     ).toBeNull();
 
@@ -273,7 +273,7 @@ describe("RdbPaymentLockedSheet", () => {
     });
 
     expect(
-      screen.queryByText("You have a payment in progress"),
+      screen.queryByText("You Have A Payment In Progress"),
       "a new refused cart write must show the sheet again, even for the same reference, or the shopper sees nothing and the action fails without a word",
     ).not.toBeNull();
   });
@@ -285,10 +285,10 @@ describe("RdbPaymentLockedSheet", () => {
       await renderWithProviders(<RdbPaymentLockedSheet />, {
         store: { rdbLock: { reference: "ref-1", expires_at: null } },
       });
-      fireEvent.click(screen.getByText("Continue payment"));
+      fireEvent.click(screen.getByText("Continue Payment"));
       fireEvent.click(await screen.findByText(button));
       expect(
-        await screen.findByText("You have a payment in progress"),
+        await screen.findByText("You Have A Payment In Progress"),
         "closing the payment screen should show the locked sheet again",
       ).toBeInTheDocument();
     },
@@ -299,14 +299,14 @@ describe("RdbPaymentLockedSheet", () => {
     await renderWithProviders(<RdbPaymentLockedSheet />, {
       store: { rdbLock: { reference: "ref-1", expires_at: null } },
     });
-    fireEvent.click(screen.getByText("You have a payment in progress"));
+    fireEvent.click(screen.getByText("You Have A Payment In Progress"));
     expect(
-      screen.queryByText("You have a payment in progress"),
+      screen.queryByText("You Have A Payment In Progress"),
       "a tap inside the sheet must not close it",
     ).not.toBeNull();
     fireEvent.click(document.querySelector('[data-pw="rdb-cart-locked"]')!);
     expect(
-      screen.queryByText("You have a payment in progress"),
+      screen.queryByText("You Have A Payment In Progress"),
       "a tap on the backdrop should hide the sheet",
     ).toBeNull();
     expect(useAppStore.getState().rdbLock, "hiding must keep the lock").not.toBeNull();

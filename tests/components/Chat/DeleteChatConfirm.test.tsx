@@ -153,7 +153,7 @@ describe("ChatOptions — the swipe menu in the chat list", () => {
     await userEvent.click(deleteTile(container));
 
     expect(
-      screen.getByText("Are you sure you want to delete this chat?"),
+      screen.getByText("Are You Sure You Want To Delete This Chat?"),
       "no confirm question was shown after tapping Delete in the swipe menu",
     ).toBeInTheDocument();
   });
@@ -309,7 +309,7 @@ describe("ChatInfo — Delete Chat in the conversation info panel", () => {
     await userEvent.click(deleteRow(container));
 
     expect(
-      screen.getByText("Are you sure you want to delete this chat?"),
+      screen.getByText("Are You Sure You Want To Delete This Chat?"),
       "no confirm question was shown after tapping Delete Chat in the info panel",
     ).toBeInTheDocument();
   });
@@ -531,7 +531,7 @@ describe("ChatInfo — the rest of the info panel", () => {
     expect(document.querySelector(".text-avatar")?.textContent, "the initials were not shown").toBe("OP");
     await userEvent.click(screen.getByText("p-0"));
     expect(writeText, "the phone was not copied").toHaveBeenCalledWith("p-0");
-    expect(info.showSuccess, "the copy was not confirmed").toHaveBeenCalledWith("The number was copied successfully");
+    expect(info.showSuccess, "the copy was not confirmed").toHaveBeenCalledWith("The Number Was Copied Successfully");
   });
 
   it("says when the phone could not be copied", async () => {
@@ -541,7 +541,7 @@ describe("ChatInfo — the rest of the info panel", () => {
     });
     await renderPanel();
     await userEvent.click(screen.getByText("p-0"));
-    expect(info.showError, "a failed copy was not shown").toHaveBeenCalledWith("Number copy failed");
+    expect(info.showError, "a failed copy was not shown").toHaveBeenCalledWith("Number Copy Failed");
   });
 
   it("falls back to the username, and shows a photo when there is one", async () => {
@@ -575,6 +575,14 @@ describe("ChatInfo — the rest of the info panel", () => {
     const counts = Array.from(document.querySelectorAll(".chat-user-files-info-content-item")).map((el) => el.textContent?.trim());
     expect(counts, "the media counts were not shown").toEqual(["3", "4", "5"]);
     expect(screen.getByAltText("Image"), "the image strip was not shown").toBeInTheDocument();
+    expect(
+      screen.getByAltText("Image").closest(".horizntal-scroll"),
+      "the image strip is not in the shared horizontal scroll row, so a mouse cannot drag it",
+    ).not.toBeNull();
+    expect(
+      screen.queryByText("Save To Gallery"),
+      "the 'Save To Gallery' row is back, but a web page cannot save to the phone gallery",
+    ).toBeNull();
     await userEvent.click(screen.getByText("Media & Files"));
     expect(document.querySelector(".chat-user-files-container"), "the media view did not replace the panel").toBeNull();
   });

@@ -147,7 +147,7 @@ describe("AvailabilitySection", () => {
 describe("CountriesSection", () => {
   it("says so when there are no countries to pick", async () => {
     await renderWithProviders(<CountriesSection {...makeProps()} />);
-    expect(screen.getByText("No countries available."), "the empty country list says nothing").toBeInTheDocument();
+    expect(screen.getByText("No Countries Available."), "the empty country list says nothing").toBeInTheDocument();
   });
 
   it("adds and removes a country when its chip is clicked", async () => {
@@ -244,9 +244,9 @@ describe("TranslationsSection", () => {
 
   it("shows each field's error for the active language and shakes on a failed save", async () => {
     const errors = {
-      "translations.en.name": "Name is required",
-      "translations.en.icon": "Icon is required",
-      "translations.en.description": "Description is required",
+      "translations.en.name": "Name Is Required",
+      "translations.en.icon": "Icon Is Required",
+      "translations.en.description": "Description Is Required",
       "translations.en.bio": "Bio is required",
       "translations.en.banners": "At least one banner is required",
       "translations.ar.name": "not this one",
@@ -269,13 +269,13 @@ describe("TranslationsSection", () => {
   it("shows the icon preview and uploads a picked icon file", async () => {
     const props = makeProps();
     const { container } = await renderWithProviders(<TranslationsSection {...props} />);
-    expect(screen.getByAltText("Boutique icon"), "the icon preview is missing").toHaveAttribute(
+    expect(screen.getByAltText("Boutique Icon"), "the icon preview is missing").toHaveAttribute(
       "src",
       "https://example.com/icon.png",
     );
 
     const clickSpy = vi.spyOn(HTMLInputElement.prototype, "click").mockImplementation(() => {});
-    fireEvent.click(screen.getByRole("button", { name: /Upload icon/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Upload Icon/ }));
     expect(clickSpy, "the Upload icon button did not open the file picker").toHaveBeenCalled();
 
     const [iconInput, bannerInput] = Array.from(container.querySelectorAll('input[type="file"]')) as HTMLInputElement[];
@@ -294,15 +294,15 @@ describe("TranslationsSection", () => {
 
   it("shows a placeholder icon when there is no preview", async () => {
     await renderWithProviders(<TranslationsSection {...makeProps({ activeLang: "tr" })} />);
-    expect(screen.queryByAltText("Boutique icon"), "a preview was shown for a row with no icon").toBeNull();
+    expect(screen.queryByAltText("Boutique Icon"), "a preview was shown for a row with no icon").toBeNull();
   });
 
   it("moves, removes and adds banners", async () => {
     const props = makeProps();
     await renderWithProviders(<TranslationsSection {...props} />);
 
-    const left = screen.getAllByRole("button", { name: "Move left" });
-    const right = screen.getAllByRole("button", { name: "Move right" });
+    const left = screen.getAllByRole("button", { name: "Move Left" });
+    const right = screen.getAllByRole("button", { name: "Move Right" });
     expect(left[0], "the first banner can move further left").toBeDisabled();
     expect(right[1], "the last banner can move further right").toBeDisabled();
 
@@ -315,22 +315,22 @@ describe("TranslationsSection", () => {
     expect(props.onRemoveBanner, "deleting the second banner did not reach the editor").toHaveBeenCalledWith("en", 1);
 
     const clickSpy = vi.spyOn(HTMLInputElement.prototype, "click").mockImplementation(() => {});
-    fireEvent.click(screen.getByRole("button", { name: "Add banner" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add Banner" }));
     expect(clickSpy, "Add banner did not open the file picker").toHaveBeenCalled();
   });
 
   it("says a banner upload is running", async () => {
     await renderWithProviders(<TranslationsSection {...makeProps({ uploading: { banners: true, icon: true } })} />);
     expect(screen.getByText("Uploading…"), "a running banner upload says nothing").toBeInTheDocument();
-    expect(screen.queryByText("Add banner"), "the add button still invites a second upload").toBeNull();
+    expect(screen.queryByText("Add Banner"), "the add button still invites a second upload").toBeNull();
   });
 
   it("hides every edit control when the form is locked", async () => {
     await renderWithProviders(<TranslationsSection {...makeProps({ disabled: true })} />);
     expect(screen.queryByTitle("Copy from another language"), "a locked form still offers to copy").toBeNull();
-    expect(screen.queryByRole("button", { name: /Upload icon/ }), "a locked form still offers an icon upload").toBeNull();
+    expect(screen.queryByRole("button", { name: /Upload Icon/ }), "a locked form still offers an icon upload").toBeNull();
     expect(screen.queryByRole("button", { name: "Delete" }), "a locked form still lets a banner be deleted").toBeNull();
-    expect(screen.queryByRole("button", { name: "Add banner" }), "a locked form still lets a banner be added").toBeNull();
+    expect(screen.queryByRole("button", { name: "Add Banner" }), "a locked form still lets a banner be added").toBeNull();
     await waitFor(() =>
       expect(screen.getByLabelText("rich description"), "the locked description can still be edited").toBeDisabled(),
     );

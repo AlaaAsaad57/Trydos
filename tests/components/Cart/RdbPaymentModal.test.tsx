@@ -221,7 +221,7 @@ describe("RdbPaymentModal", () => {
     });
 
     expect(
-      screen.getByText("Payment expired"),
+      screen.getByText("Payment Expired"),
       "an expired request must say so instead of spinning",
     ).toBeInTheDocument();
     expect(
@@ -311,9 +311,9 @@ describe("RdbPaymentModal", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Cancel payment"), "the cancel button is missing").toBeInTheDocument();
+      expect(screen.getByText("Cancel Payment"), "the cancel button is missing").toBeInTheDocument();
     });
-    fireEvent.click(screen.getByText("Cancel payment"));
+    fireEvent.click(screen.getByText("Cancel Payment"));
 
     await waitFor(() => {
       expect(
@@ -356,7 +356,7 @@ describe("RdbPaymentModal", () => {
 
     // Hold the cancel call itself back too, so the click can be fired well
     // before the countdown reaches zero, exactly like a shopper who presses
-    // "Cancel payment" right as the request is about to expire.
+    // "Cancel Payment" right as the request is about to expire.
     let resolveCancel!: (value: unknown) => void;
     const cancelAnswer = new Promise((resolve) => {
       resolveCancel = resolve;
@@ -385,7 +385,7 @@ describe("RdbPaymentModal", () => {
       await vi.advanceTimersByTimeAsync(0);
     });
     await act(async () => {
-      fireEvent.click(screen.getByText("Cancel payment"));
+      fireEvent.click(screen.getByText("Cancel Payment"));
       await vi.advanceTimersByTimeAsync(0);
     });
     expect(
@@ -400,7 +400,7 @@ describe("RdbPaymentModal", () => {
       await vi.advanceTimersByTimeAsync(2100);
     });
     expect(
-      screen.getByText("Payment expired"),
+      screen.getByText("Payment Expired"),
       "the countdown must have already settled the screen as expired before the cancel answer below arrives",
     ).toBeInTheDocument();
 
@@ -425,7 +425,7 @@ describe("RdbPaymentModal", () => {
     });
 
     expect(
-      screen.getByText("Payment expired"),
+      screen.getByText("Payment Expired"),
       "settle() must not run a second time — the screen has to keep the first end state (expired), not be overwritten by the late 'already paid' answer",
     ).toBeInTheDocument();
     expect(
@@ -478,7 +478,7 @@ describe("RdbPaymentModal", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Could not start the payment. Please try again"),
+        screen.getByText("Could Not Start The Payment. Please Try Again"),
         "a 409 with no pending reference is not a documented case (design doc §3.3) and must not put the backend's raw sentence on screen",
       ).toBeInTheDocument();
     });
@@ -571,7 +571,7 @@ describe("RdbPaymentModal", () => {
       "the first poll must have fired",
     ).toBe(1);
     expect(
-      screen.getByText("Waiting for your payment"),
+      screen.getByText("Waiting For Your Payment"),
       "a lost poll answer must not end the screen or say the payment failed",
     ).toBeInTheDocument();
     expect(
@@ -587,7 +587,7 @@ describe("RdbPaymentModal", () => {
       "the screen must ask again after a lost answer instead of giving up",
     ).toBe(2);
     expect(
-      screen.getByText("Waiting for your payment"),
+      screen.getByText("Waiting For Your Payment"),
       "the screen must still be open after the retry",
     ).toBeInTheDocument();
 
@@ -609,7 +609,7 @@ describe("RdbPaymentModal", () => {
         expect(
           document.querySelector('[data-pw="rdb-start-error"]')?.textContent,
           "a reference the core backend no longer knows must show the start error",
-        ).toBe("Could not start the payment. Please try again");
+        ).toBe("Could Not Start The Payment. Please Try Again");
       });
       expect(StartRdbPayment, "reopening must never start a second request").not.toHaveBeenCalled();
     });
@@ -621,7 +621,7 @@ describe("RdbPaymentModal", () => {
         { store: storeState },
       );
       expect(
-        await screen.findByText("Payment cancelled"),
+        await screen.findByText("Payment Cancelled"),
         "a cancelled request must be labelled as cancelled",
       ).toBeInTheDocument();
       expect(useAppStore.getState().rdbLock, "an ended request must release the cart").toBeNull();
@@ -685,7 +685,7 @@ describe("RdbPaymentModal", () => {
         <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
         { store: storeState },
       );
-      fireEvent.click(await screen.findByText("Cancel payment"));
+      fireEvent.click(await screen.findByText("Cancel Payment"));
       await waitFor(() => {
         expect(
           errorShown("Could not cancel the payment. Please try again"),
@@ -701,7 +701,7 @@ describe("RdbPaymentModal", () => {
         <RdbPaymentModal onSuccess={vi.fn()} onClose={onClose} />,
         { store: storeState },
       );
-      await screen.findByText("Cancel payment");
+      await screen.findByText("Cancel Payment");
       fireEvent.click(document.querySelector('[data-pw="rdb-payment-modal"]')!);
       expect(onClose, "a tap inside the card must not close it").not.toHaveBeenCalled();
       fireEvent.click(document.querySelector(".bg-black\\/60")!);
@@ -742,7 +742,7 @@ describe("RdbPaymentModal", () => {
         <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
         { store: storeState },
       );
-      await screen.findByText("Waiting for your payment");
+      await screen.findByText("Waiting For Your Payment");
       await act(async () => {
         await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
       });

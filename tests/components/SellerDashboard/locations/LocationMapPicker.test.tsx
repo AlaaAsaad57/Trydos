@@ -83,13 +83,13 @@ describe("Location map — when the map cannot be shown", () => {
   it("says the map is unavailable when Google's script failed", async () => {
     loader.state = { isLoaded: false, loadError: new Error("blocked") };
     await mount();
-    expect(screen.getByText("Map is unavailable"), "a failed map should say so, not show a grey box").toBeInTheDocument();
+    expect(screen.getByText("Map Is Unavailable"), "a failed map should say so, not show a grey box").toBeInTheDocument();
   });
 
   it("says the map is unavailable when there is no maps key", async () => {
     mapsKey.value = "";
     await mount();
-    expect(screen.getByText("Map is unavailable"), "without a key the map should say it is unavailable").toBeInTheDocument();
+    expect(screen.getByText("Map Is Unavailable"), "without a key the map should say it is unavailable").toBeInTheDocument();
   });
 
   it("shows a spinner and no location button while the script loads", async () => {
@@ -97,7 +97,7 @@ describe("Location map — when the map cannot be shown", () => {
     await mount();
     expect(screen.queryByText("fake map"), "the map must not render before the script is loaded").not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Use my current location" }),
+      screen.queryByRole("button", { name: "Use My Current Location" }),
       "the location button needs the map, so it must wait too",
     ).not.toBeInTheDocument();
   });
@@ -109,7 +109,7 @@ describe("Location map — picking a point", () => {
     await userEvent.click(screen.getByRole("button", { name: "fake map" }));
     expect(onPick, "the clicked point should go up to the form").toHaveBeenCalledWith({ lat: 10, lng: 20 });
     expect(fakeMap.panTo, "the map should move to the clicked point").toHaveBeenCalledWith({ lat: 10, lng: 20 });
-    expect(screen.getByText("Pick the position on the map"), "an editable map should say how to use it").toBeInTheDocument();
+    expect(screen.getByText("Pick The Position On The Map"), "an editable map should say how to use it").toBeInTheDocument();
   });
 
   it("ignores a click with no position", async () => {
@@ -128,10 +128,10 @@ describe("Location map — picking a point", () => {
     await userEvent.click(screen.getByRole("button", { name: "fake map" }));
     expect(onPick, "a read-only map must not report a click").not.toHaveBeenCalled();
     expect(
-      screen.queryByRole("button", { name: "Use my current location" }),
+      screen.queryByRole("button", { name: "Use My Current Location" }),
       "a read-only map must not offer the location button",
     ).not.toBeInTheDocument();
-    expect(screen.getByText("Coordinates are optional"), "a read-only map should not ask the seller to pick").toBeInTheDocument();
+    expect(screen.getByText("Coordinates Are Optional"), "a read-only map should not ask the seller to pick").toBeInTheDocument();
   });
 });
 
@@ -142,7 +142,7 @@ describe("Location map — use my location", () => {
         ok({ coords: { latitude: 33.5, longitude: 36.3 } }),
     });
     const { onPick } = await mount();
-    await userEvent.click(screen.getByRole("button", { name: "Use my current location" }));
+    await userEvent.click(screen.getByRole("button", { name: "Use My Current Location" }));
     expect(onPick, "the device position should go up to the form").toHaveBeenCalledWith({ lat: 33.5, lng: 36.3 });
     expect(fakeMap.setZoom, "the map should zoom in on the device position").toHaveBeenCalledWith(14);
   });
@@ -152,14 +152,14 @@ describe("Location map — use my location", () => {
       getCurrentPosition: (_ok: unknown, fail: () => void) => fail(),
     });
     await mount();
-    await userEvent.click(screen.getByRole("button", { name: "Use my current location" }));
-    expect(screen.getByText("Error getting your location"), "a refused position should be explained").toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Use My Current Location" }));
+    expect(screen.getByText("Error Getting Your Location"), "a refused position should be explained").toBeInTheDocument();
   });
 
   it("shows a spinner while the position is being read", async () => {
     setGeolocation({ getCurrentPosition: () => {} });
     await mount();
-    const button = screen.getByRole("button", { name: "Use my current location" });
+    const button = screen.getByRole("button", { name: "Use My Current Location" });
     await userEvent.click(button);
     expect(
       button.querySelector('[data-pw="SpinneR"]'),
@@ -170,9 +170,9 @@ describe("Location map — use my location", () => {
   it("says so when the browser has no geolocation", async () => {
     setGeolocation(undefined);
     await mount();
-    await userEvent.click(screen.getByRole("button", { name: "Use my current location" }));
+    await userEvent.click(screen.getByRole("button", { name: "Use My Current Location" }));
     expect(
-      screen.getByText("Geolocation is not supported by your browser"),
+      screen.getByText("Geolocation Is Not Supported By Your Browser"),
       "a browser without geolocation should be told so",
     ).toBeInTheDocument();
   });

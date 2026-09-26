@@ -58,7 +58,7 @@ describe("ChatWindowModal", () => {
   it("asks to allow notifications otherwise", async () => {
     const { spies } = await mount("denied", false);
     expect(spies.setNotificationPermission, "a denied permission was stored as allowed").toHaveBeenCalledWith(false);
-    expect(screen.getByText("Please Enable Notification to use Chat"), "the notification request was not shown").toBeInTheDocument();
+    expect(screen.getByText("Please Enable Notification To Use Chat"), "the notification request was not shown").toBeInTheDocument();
   });
 
   it("treats a browser with no notifications as not allowed", async () => {

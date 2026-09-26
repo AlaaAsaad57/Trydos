@@ -1,4 +1,4 @@
-// The "Chat with delivery worker" button (components/settings/OrderChatIcon.tsx).
+// The "Chat With Delivery Worker" button (components/settings/OrderChatIcon.tsx).
 //
 // Hidden without an id. Shows a spinner while the chat is being fetched and
 // ignores taps then. Shows a red dot when there is an unread message for the
@@ -23,7 +23,7 @@ describe("the delivery chat button", () => {
       { store: { showNotificaionCircle: [{ order_id: 5 }] } },
     );
     expect(document.querySelector(".animate-pulse"), "the unread dot is not shown").not.toBeNull();
-    await userEvent.setup().click(screen.getByText("Chat with delivery worker"));
+    await userEvent.setup().click(screen.getByText("Chat With Delivery Worker"));
     expect(getChatWithShipping, "the tap did not open the chat").toHaveBeenCalled();
   });
 
@@ -35,6 +35,6 @@ describe("the delivery chat button", () => {
     );
     await userEvent.setup().click(screen.getByRole("button"));
     expect(getChatWithShipping, "a tap while loading opened the chat again").not.toHaveBeenCalled();
-    expect(screen.queryByText("Chat with delivery worker"), "the label showed while loading").not.toBeInTheDocument();
+    expect(screen.queryByText("Chat With Delivery Worker"), "the label showed while loading").not.toBeInTheDocument();
   });
 });

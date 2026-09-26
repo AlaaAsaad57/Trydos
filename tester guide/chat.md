@@ -509,7 +509,7 @@ chat list.
 | | |
 |---|---|
 | **Steps** | 1. Click **Copy Invite**. 2. Paste the text somewhere. |
-| **Expected Result** | Read the pasted text carefully and report exactly what it says. See **Known gaps, item 6**. |
+| **Expected Result** | Read the pasted text carefully and report exactly what it says. See **Known gaps, item 5**. |
 | **Severity if Failed** | MEDIUM |
 
 ---
@@ -1241,12 +1241,12 @@ conversation.
 
 ---
 
-**TC-J-11 — "Save To Gallery" row**
+**TC-J-11 — The photo strip slides, and there is no "Save To Gallery" row**
 
 | | |
 |---|---|
-| **Steps** | 1. Click the "Save To Gallery" row and the word "Never" next to it. |
-| **Expected Result** | See **Known gaps, item 5**. Nothing happens today. |
+| **Steps** | 1. Open the details drawer of a chat with 4 or more photos. 2. On a phone, swipe the photo strip left and right. 3. On a computer, press the mouse on the strip and drag it left and right. 4. Look below the strip. |
+| **Expected Result** | The strip moves with the finger and with the mouse drag. There is no "Save To Gallery" / "Never" row. A web page cannot save photos to the phone gallery, so the row was removed. |
 | **Severity if Failed** | LOW |
 
 ---
@@ -1712,9 +1712,7 @@ them. They are listed so you know that what you see is not new.
    text messages, where editing should not be offered at all.
 4. **Reminder and the category icon do nothing.** Both are in the message menu
    with no action behind them.
-5. **"Save To Gallery" and "Never" do nothing.** They are text only, in the chat
-   details drawer.
-6. **The invite text has a placeholder.** The app-store link inside the invite
+5. **The invite text has a placeholder.** The app-store link inside the invite
    message still ends with `your.app.id`, which is not a real app.
 
 ---

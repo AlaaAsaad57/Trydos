@@ -286,10 +286,37 @@ describe("SSRDetect", () => {
 });
 
 describe("translateFunction", () => {
-  it("gives the key back for English", async () => {
+  it("gives English with every word starting with a capital letter", async () => {
     setPath("/sy-en");
     const { translateFunction } = await loadFunctions();
-    expect(translateFunction("welcome")).toBe("welcome");
+    expect(translateFunction("welcome")).toBe("Welcome");
+    expect(
+      translateFunction("Items you add to your cart will show here"),
+      "an English sentence did not get a capital letter on every word",
+    ).toBe("Items You Add To Your Cart Will Show Here");
+    expect(
+      translateFunction("Tap “agree & continue” (or skip)"),
+      "a word after a quote or a bracket did not get a capital letter",
+    ).toBe("Tap “Agree & Continue” (Or Skip)");
+  });
+
+  it("leaves English words alone that a capital letter would break", async () => {
+    setPath("/sy-en");
+    const { translateFunction } = await loadFunctions();
+    const cases: [string, string, string][] = [
+      ["Buy an iPhone on WhatsApp", "Buy An iPhone On WhatsApp", "a word that already has a capital inside"],
+      ["Made in {country}", "Made In {country}", "a {placeholder}"],
+      ["Height must be between 110 and 250 cm", "Height Must Be Between 110 And 250 cm", "the unit cm"],
+      ["Weight must be between 40 and 180 kg", "Weight Must Be Between 40 And 180 kg", "the unit kg"],
+      ["e.g., Trade License", "e.g., Trade License", "e.g."],
+      ["Please enter a valid URL (e.g., example.com)", "Please Enter A Valid URL (e.g., example.com)", "a web address"],
+      ["example@mail.com", "example@mail.com", "an email address"],
+      ["ready_to_shipping", "ready_to_shipping", "a backend value with _"],
+      ["k", "k", "a one-letter number suffix"],
+    ];
+    for (const [key, shown, what] of cases) {
+      expect(translateFunction(key), `${what} was changed: "${key}"`).toBe(shown);
+    }
   });
 
   it("gives the key back for an address with no language part", async () => {
@@ -343,11 +370,14 @@ describe("translateFunction", () => {
     expect(localizationMock.default.GetAppLanguage).toHaveBeenCalled();
   });
 
-  it("gives the key back when the app language is English and there is no browser", async () => {
+  it("gives English with capital letters when the app language is English and there is no browser, as the browser does", async () => {
     localizationSeed = { language: "en" };
     const { translateFunction } = await loadFunctionsWithoutBrowser();
 
-    expect(translateFunction("welcome")).toBe("welcome");
+    expect(
+      translateFunction("welcome"),
+      "the server render printed other English than the browser will, so hydration breaks",
+    ).toBe("Welcome");
     expect(localizationMock.default.GetAppLanguage).toHaveBeenCalled();
   });
 
@@ -366,7 +396,10 @@ describe("translateFunction", () => {
     setPath("/sy-en");
     const { translateFunction } = await loadFunctions();
     // The address wins: the page says English, so Arabic is not used.
-    expect(translateFunction("welcome", "ar")).toBe("welcome");
+    expect(
+      translateFunction("welcome", "ar"),
+      "the Arabic passed in beat the English in the address",
+    ).toBe("Welcome");
   });
 });
 

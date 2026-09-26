@@ -211,7 +211,7 @@ describe("an order group that cannot be loaded", () => {
       "a failed order request did not show the not-found state",
     ).toBeInTheDocument();
 
-    await userEvent.setup().click(screen.getByText("Go to My Orders"));
+    await userEvent.setup().click(screen.getByText("Go To My Orders"));
     expect(
       routerSpies.replace,
       "the not-found button did not send the shopper to the orders list",
@@ -421,7 +421,7 @@ describe("the expanded view", () => {
       "a line with quantity 0 is not marked as cancelled",
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Back to your wallet"),
+      screen.getByText("Back To Your Wallet"),
       "a cancelled line on a paid order does not say the money goes back to the wallet",
     ).toBeInTheDocument();
     expect(

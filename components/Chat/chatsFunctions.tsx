@@ -100,6 +100,9 @@ export const unreadCount = (chat) =>
  * up. So duration alone cannot tell the two apart; `sender_user_id` does.
  * Only a call somebody else started, that nobody answered, is missed.
  *
+ * `isLive` is true while the call is still ringing or still running. Its
+ * duration is 0 then too, but nobody has missed it yet, so it is incoming.
+ *
  * Returns the modifier the stylesheet colours: chatcomponent.css styles the
  * row through `.missed`, `.incoming` and `.outgoing`.
  */
@@ -107,11 +110,12 @@ export const getCallDirection = (
   senderId,
   currentUserId,
   durationInSeconds,
+  isLive = false,
 ): "missed" | "incoming" | "outgoing" => {
   const isOutgoing =
     parseInt(String(senderId)) === parseInt(String(currentUserId));
   if (isOutgoing) return "outgoing";
-  return Number(durationInSeconds) > 0 ? "incoming" : "missed";
+  return isLive || Number(durationInSeconds) > 0 ? "incoming" : "missed";
 };
 
 /**

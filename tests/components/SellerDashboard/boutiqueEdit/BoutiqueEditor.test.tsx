@@ -236,15 +236,15 @@ describe("BoutiqueEditor — loading", () => {
     expect(screen.getByText("Inactive"), "an inactive boutique does not say Inactive").toBeInTheDocument();
   });
 
-  it("shows 'Boutique not found.' with a retry that loads again", async () => {
+  it("shows 'Boutique Not Found.' with a retry that loads again", async () => {
     svc.getBoutiqueForEdit.mockResolvedValueOnce({ success: true, data: {} });
     await renderWithProviders(<BoutiqueEditor sellerId={SELLER} boutiqueId="9" local={LOCAL} />);
-    expect(await screen.findByText("Boutique not found."), "the missing boutique is not reported").toBeInTheDocument();
+    expect(await screen.findByText("Boutique Not Found."), "the missing boutique is not reported").toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Retry" }));
     expect(await screen.findByTestId("availability"), "retry did not load the boutique").toBeInTheDocument();
     expect(logError, "the missing boutique was not logged").toHaveBeenCalledWith({
       scenario: "BoutiqueEditor.load",
-      error: "Boutique not found.",
+      error: "Boutique Not Found.",
       boutiqueId: "9",
     });
   });
@@ -253,21 +253,21 @@ describe("BoutiqueEditor — loading", () => {
     svc.getBoutiqueForEdit.mockRejectedValueOnce(new Error("403 Forbidden"));
     await renderWithProviders(<BoutiqueEditor sellerId={SELLER} boutiqueId="9" local={LOCAL} />);
     expect(
-      await screen.findByText("You don't have permission to view or edit this boutique."),
+      await screen.findByText("You Don't Have Permission To View Or Edit This Boutique."),
       "a 403 did not show access denied",
     ).toBeInTheDocument();
   });
 
-  it("uses 'Failed to load boutique.' when the edit error has no message", async () => {
+  it("uses 'Failed To Load Boutique.' when the edit error has no message", async () => {
     svc.getBoutiqueForEdit.mockRejectedValueOnce(new Error(""));
     await renderWithProviders(<BoutiqueEditor sellerId={SELLER} boutiqueId="9" local={LOCAL} />);
-    expect(await screen.findByText("Failed to load boutique."), "no fallback load error").toBeInTheDocument();
+    expect(await screen.findByText("Failed To Load Boutique."), "no fallback load error").toBeInTheDocument();
   });
 
-  it("uses 'Failed to load boutique form.' when the create form error has no message", async () => {
+  it("uses 'Failed To Load Boutique Form.' when the create form error has no message", async () => {
     svc.getBoutiqueCreateForm.mockRejectedValueOnce("");
     await renderWithProviders(<BoutiqueEditor sellerId={SELLER} local={LOCAL} mode="create" />);
-    expect(await screen.findByText("Failed to load boutique form."), "no fallback create-form error").toBeInTheDocument();
+    expect(await screen.findByText("Failed To Load Boutique Form."), "no fallback create-form error").toBeInTheDocument();
     expect(logError, "the create load failure was not logged as 'new'").toHaveBeenCalledWith(
       expect.objectContaining({ boutiqueId: "new" }),
     );
@@ -292,9 +292,9 @@ describe("BoutiqueEditor — edit mode and save", () => {
     await userEvent.click(screen.getByRole("button", { name: "Edit" }));
     expect(props.disabled, "Edit did not unlock the sections").toBe(false);
 
-    await userEvent.click(screen.getByRole("button", { name: "Set inactive" }));
+    await userEvent.click(screen.getByRole("button", { name: "Set Inactive" }));
     expect(screen.getByText("Inactive"), "Set inactive did not change the pill").toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Set active" }));
+    await userEvent.click(screen.getByRole("button", { name: "Set Active" }));
     expect(screen.getByText("Active"), "Set active did not change the pill").toBeInTheDocument();
 
     act(() => props.patchTranslation("en", { name: "Changed" }));
@@ -376,7 +376,7 @@ describe("BoutiqueEditor — edit mode and save", () => {
     svc.changeBoutiqueStatus.mockResolvedValueOnce({ success: true, data: { status: 0 } });
     await renderEdit();
     await userEvent.click(screen.getByRole("button", { name: "Edit" }));
-    await userEvent.click(screen.getByRole("button", { name: "Set inactive" }));
+    await userEvent.click(screen.getByRole("button", { name: "Set Inactive" }));
     await userEvent.click(screen.getAllByRole("button", { name: "Save Changes" })[0]);
     await waitFor(() =>
       expect(svc.changeBoutiqueStatus, "the status change was not sent").toHaveBeenCalledWith(SELLER, "9", 0),
@@ -385,7 +385,7 @@ describe("BoutiqueEditor — edit mode and save", () => {
     svc.updateBoutique.mockResolvedValueOnce({ success: true });
     svc.changeBoutiqueStatus.mockResolvedValueOnce({ success: true, data: {} });
     await userEvent.click(screen.getByRole("button", { name: "Edit" }));
-    await userEvent.click(screen.getByRole("button", { name: "Set active" }));
+    await userEvent.click(screen.getByRole("button", { name: "Set Active" }));
     await userEvent.click(screen.getAllByRole("button", { name: "Save Changes" })[0]);
     expect(await screen.findByText("Active"), "a status answer with no status did not keep the chosen one").toBeInTheDocument();
   });
@@ -398,7 +398,7 @@ describe("BoutiqueEditor — edit mode and save", () => {
     });
     await renderEdit();
     await userEvent.click(screen.getByRole("button", { name: "Edit" }));
-    await userEvent.click(screen.getByRole("button", { name: "Set inactive" }));
+    await userEvent.click(screen.getByRole("button", { name: "Set Inactive" }));
     await userEvent.click(screen.getAllByRole("button", { name: "Save Changes" })[0]);
     expect(await screen.findByText("• Needs products"), "the status blocker is not listed").toBeInTheDocument();
     expect(showErrorMessage, "no partial-save toast").toHaveBeenCalledWith(
@@ -409,13 +409,13 @@ describe("BoutiqueEditor — edit mode and save", () => {
 
     svc.changeBoutiqueStatus.mockResolvedValueOnce({ success: false, message: "Locked" });
     await userEvent.click(screen.getByRole("button", { name: "Edit" }));
-    await userEvent.click(screen.getByRole("button", { name: "Set inactive" }));
+    await userEvent.click(screen.getByRole("button", { name: "Set Inactive" }));
     await userEvent.click(screen.getAllByRole("button", { name: "Save Changes" })[0]);
     expect(await screen.findByText("• Locked"), "the status message is not listed").toBeInTheDocument();
 
     svc.changeBoutiqueStatus.mockResolvedValueOnce(null);
     await userEvent.click(screen.getByRole("button", { name: "Edit" }));
-    await userEvent.click(screen.getByRole("button", { name: "Set inactive" }));
+    await userEvent.click(screen.getByRole("button", { name: "Set Inactive" }));
     await userEvent.click(screen.getAllByRole("button", { name: "Save Changes" })[0]);
     expect(await screen.findByText("• Could not change status."), "no fallback status blocker").toBeInTheDocument();
   });
@@ -439,7 +439,7 @@ describe("BoutiqueEditor — create", () => {
     svc.getBoutiqueCreateForm.mockResolvedValueOnce({ success: true, data: { lookups: { countries: [] } } });
     await renderCreate();
     expect(screen.getByRole("heading", { name: "New Boutique" }), "no create heading").toBeInTheDocument();
-    expect(screen.getByText("Fill in the details and create your boutique."), "no create hint").toBeInTheDocument();
+    expect(screen.getByText("Fill In The Details And Create Your Boutique."), "no create hint").toBeInTheDocument();
     const cancels = screen.getAllByRole("button", { name: "Cancel" });
     await userEvent.click(cancels[0]);
     await userEvent.click(cancels[1]);
@@ -573,7 +573,7 @@ describe("BoutiqueEditor — handlers the sections call", () => {
     );
   });
 
-  it("pauses on a badly sized banner: Cancel skips it, 'Ignore & upload' sends it, the queue carries on", async () => {
+  it("pauses on a badly sized banner: Cancel skips it, 'Ignore & Upload' sends it, the queue carries on", async () => {
     await renderEdit();
     svc.bulkUploadImages.mockResolvedValue({ files: ["q.webp"] });
     checkBannerFile.mockResolvedValueOnce({ warning: "300×300" });
@@ -589,9 +589,9 @@ describe("BoutiqueEditor — handlers the sections call", () => {
     expect(svc.bulkUploadImages, "the cancelled banner was uploaded").not.toHaveBeenCalled();
     expect(await screen.findByText(/400×400/), "the second file was not checked after Cancel").toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: "Ignore & upload" }));
+    await userEvent.click(screen.getByRole("button", { name: "Ignore & Upload" }));
     await waitFor(() =>
-      expect(svc.bulkUploadImages, "'Ignore & upload' did not upload the banner").toHaveBeenCalledTimes(1),
+      expect(svc.bulkUploadImages, "'Ignore & Upload' did not upload the banner").toHaveBeenCalledTimes(1),
     );
 
     checkBannerFile.mockResolvedValueOnce({ warning: "10×10" });

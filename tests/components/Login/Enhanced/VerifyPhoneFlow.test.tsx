@@ -114,7 +114,7 @@ describe("a shopper confirming a number they typed", () => {
     await user.type(phoneField(), "96399");
 
     expect(
-      screen.queryByRole("button", { name: "Send phone number" }),
+      screen.queryByRole("button", { name: "Send Phone Number" }),
       "half a number must not be sendable — the backend refuses it and the " +
         "shopper spends an attempt finding out",
     ).not.toBeInTheDocument();
@@ -124,7 +124,7 @@ describe("a shopper confirming a number they typed", () => {
     const { user } = await renderFlow();
 
     await user.type(phoneField(), PHONE);
-    await user.click(screen.getByRole("button", { name: "Send phone number" }));
+    await user.click(screen.getByRole("button", { name: "Send Phone Number" }));
 
     expect(
       await screen.findByText("Choose Verification Method"),
@@ -141,7 +141,7 @@ describe("a shopper confirming a number they typed", () => {
     const { user } = await renderFlow();
 
     await user.type(phoneField(), PHONE);
-    await user.click(screen.getByRole("button", { name: "Send phone number" }));
+    await user.click(screen.getByRole("button", { name: "Send Phone Number" }));
 
     expect(
       await screen.findByText(`+${PHONE}`),
@@ -154,7 +154,7 @@ describe("a shopper confirming a number they typed", () => {
     const { user } = await renderFlow();
 
     await user.type(phoneField(), PHONE);
-    await user.click(screen.getByRole("button", { name: "Send phone number" }));
+    await user.click(screen.getByRole("button", { name: "Send Phone Number" }));
     await user.click(await screen.findByRole("button", { name: /Send SMS/ }));
     await screen.findByText(/Enter Verification Code Sent To Your/);
     await user.click(await screen.findByRole("button", { name: "Change Number" }));
@@ -169,7 +169,7 @@ describe("a shopper confirming a number they typed", () => {
     const { user } = await renderFlow();
 
     await user.type(phoneField(), PHONE);
-    await user.click(screen.getByRole("button", { name: "Send phone number" }));
+    await user.click(screen.getByRole("button", { name: "Send Phone Number" }));
     await user.click(await screen.findByRole("button", { name: "Edit" }));
 
     expect(
@@ -308,7 +308,7 @@ describe("choosing how the code arrives", () => {
     await renderFlow({ initialPhone: PHONE, phoneLocked: true });
 
     expect(
-      await screen.findByText("Session limit reached. Try again later."),
+      await screen.findByText("Session Limit Reached. Try Again Later."),
       "a shopper stopped by the per-session number cap must be told that is " +
         "why, not shown an empty countdown",
     ).toBeInTheDocument();
@@ -578,7 +578,7 @@ describe("in a right-to-left language", () => {
     await user.type(phoneField(), PHONE);
     await user.click(
       screen.getByRole("button", {
-        name: dictionary["Send phone number"] ?? "Send phone number",
+        name: dictionary["Send Phone Number"] ?? "Send Phone Number",
       }),
     );
 

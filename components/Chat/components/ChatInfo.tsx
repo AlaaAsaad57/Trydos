@@ -4,6 +4,7 @@ import { ConfirmModal } from "components/global/ConfirmModal";
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import Image from "next/image";
 import Spinner from "components/global/Spinner";
+import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import {
   showSuccessNotification,
   showErrorNotification,
@@ -295,25 +296,29 @@ function ChatInfo({
               </div>
             </div>
           </div>
-          {
-            <div className="slider-gallery">
-              {activeChat?.message_counts?.image_messages?.map(
-                (image, index) => (
-                  <div className="slider-gallery-item" key={index}>
-                    <Image
-                      className="max-h-[140px]"
-                      width={100}
-                      src={image.message_files[0]?.file_path}
-                      height={130}
-                      objectFit="cover"
-                      objectPosition="center"
-                      alt="Image"
-                    />
-                  </div>
-                ),
-              )}
-            </div>
-          }
+          <HortiznalScrollBar
+            id="chat-info-media-slider"
+            className="slider-gallery"
+            dataCy="chat-info-media-slider"
+          >
+            {activeChat?.message_counts?.image_messages?.map(
+              (image, index) => (
+                <div className="slider-gallery-item" key={index}>
+                  {/* A native image drag would stop the mouse drag of the row. */}
+                  <Image
+                    className="max-h-[140px]"
+                    width={100}
+                    src={image.message_files[0]?.file_path}
+                    height={130}
+                    objectFit="cover"
+                    objectPosition="center"
+                    alt="Image"
+                    draggable={false}
+                  />
+                </div>
+              ),
+            )}
+          </HortiznalScrollBar>
           {openMessage &&
             activeChat?.id &&
             !String(activeChat.id).includes("ch") && (
@@ -323,23 +328,6 @@ function ChatInfo({
                 openMessage={openMessage}
               />
             )}
-          <div className="chat-user-gallery-container">
-            <div className="chat-user-info-arrow gallery-option">
-              <span> {translateFunction("Never")}</span>{" "}
-              <img
-                src="/icons/chat/arrowRight.svg"
-                className="w-[3px] h-[13px]"
-              />
-            </div>
-            <div className="chat-user-files-icon">
-              <img src="/icons/chat/InfoGallery.svg" />
-            </div>
-            <div className="chat-user-files-info" style={{ height: "auto" }}>
-              <div className=".chat-user-files-info-text text-[#8d8d8d]">
-                {translateFunction("Save To Gallery")}
-              </div>
-            </div>
-          </div>
           <div className="chat-user-options">
             <div
               className="chat-user-option delete-option"

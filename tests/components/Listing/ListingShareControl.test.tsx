@@ -60,7 +60,7 @@ async function renderShareControl({
 
 const openTheSheet = async () => {
   await userEvent.click(
-    screen.getByRole("button", { name: "Share this page" }),
+    screen.getByRole("button", { name: "Share This Page" }),
   );
 };
 
@@ -236,7 +236,7 @@ describe("the listing's share widget", () => {
       await renderShareControl();
       await openTheSheet();
       expect(
-        screen.getByRole("dialog", { name: "Share this page" }),
+        screen.getByRole("dialog", { name: "Share This Page" }),
         "the share sheet did not open",
       ).toBeInTheDocument();
 
@@ -244,7 +244,7 @@ describe("the listing's share widget", () => {
 
       await waitFor(() =>
         expect(
-          screen.queryByRole("dialog", { name: "Share this page" }),
+          screen.queryByRole("dialog", { name: "Share This Page" }),
           "closing the sheet must take it off the page, or it stays over the listing",
         ).toBeNull(),
       );

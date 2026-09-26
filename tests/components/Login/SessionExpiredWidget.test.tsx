@@ -85,7 +85,7 @@ describe("choosing to carry on as a guest", () => {
     const user = userEvent.setup();
     await renderWithProviders(<SessionExpiredWidget />);
 
-    await user.click(screen.getByRole("button", { name: "Continue as Guest" }));
+    await user.click(screen.getByRole("button", { name: "Continue As Guest" }));
 
     expect(
       useAppStore.getState().reAuthResult,
@@ -102,7 +102,7 @@ describe("choosing to carry on as a guest", () => {
     const user = userEvent.setup();
     await renderWithProviders(<SessionExpiredWidget />);
 
-    await user.click(screen.getByRole("button", { name: "Continue as Guest" }));
+    await user.click(screen.getByRole("button", { name: "Continue As Guest" }));
 
     expect(
       location.reload,
@@ -121,7 +121,7 @@ describe("choosing to carry on as a guest", () => {
     const user = userEvent.setup();
     await renderWithProviders(<SessionExpiredWidget />);
 
-    await user.click(screen.getByRole("button", { name: "Continue as Guest" }));
+    await user.click(screen.getByRole("button", { name: "Continue As Guest" }));
 
     expect(
       location.href,
@@ -140,7 +140,7 @@ describe("what the prompt says", () => {
     await renderWithProviders(<SessionExpiredWidget />);
 
     expect(
-      screen.getByText("Your session has expired"),
+      screen.getByText("Your Session Has Expired"),
       "the shopper did nothing wrong and needs to know that — an unexplained " +
         "sign-in prompt reads as the account being lost",
     ).toBeInTheDocument();
@@ -157,7 +157,7 @@ describe("what the prompt says", () => {
     await renderWithProviders(<SessionExpiredWidget />, { language: "ar" });
 
     expect(
-      screen.getByText(dictionary["Your session has expired"]),
+      screen.getByText(dictionary["Your Session Has Expired"]),
       "the widget reads the language off the store, not off its props — an " +
         "English prompt over an Arabic page is the one screen a shopper cannot " +
         "skip",

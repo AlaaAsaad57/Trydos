@@ -144,7 +144,7 @@ describe("Orders section — the permission gate", () => {
     await mount(false);
     expect(
       screen.getByText(
-        "You need order viewing permissions to see this section",
+        "You Need Order Viewing Permissions To See This Section",
       ),
       "the blocked section should say what the seller is missing",
     ).toBeInTheDocument();
@@ -193,7 +193,7 @@ describe("Orders section — the list", () => {
     getSellerOrders.mockResolvedValue(listAnswer([]));
     await mount();
     expect(
-      await screen.findByText("No orders found"),
+      await screen.findByText("No Orders Found"),
       "an empty tab should say so rather than show nothing at all",
     ).toBeInTheDocument();
   });
@@ -219,7 +219,7 @@ describe("Orders section — the list", () => {
     await userEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     expect(
-      await screen.findByText("No orders found"),
+      await screen.findByText("No Orders Found"),
       "Retry should ask the orders backend again",
     ).toBeInTheDocument();
   });
@@ -529,7 +529,7 @@ describe("Orders section — how the list card reads its data", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("2026-02-01"), "updated_at with only a date should be the fallback time").toBeInTheDocument();
     expect(screen.getByText("15m"), "the remaining minutes should be shown on the card").toBeInTheDocument();
-    expect(screen.getByText("No items"), "an order whose details are not a list should say it has no items").toBeInTheDocument();
+    expect(screen.getByText("No Items"), "an order whose details are not a list should say it has no items").toBeInTheDocument();
     const statuses = Array.from(document.querySelectorAll('[data-pw="order-shop-status"]')).map((e) => e.textContent);
     expect(statuses[0], "an order with no status should read N/A").toBe("N/A");
     expect(statuses[2], "a snake_case status should read as words").toBe("In Progress");
@@ -552,7 +552,7 @@ describe("Orders section — how the list card reads its data", () => {
     const sources = Array.from(document.querySelectorAll('img[alt="item"]')).map((i) => i.getAttribute("src"));
     expect(sources.some((src) => src?.includes("from-string.webp")), "images sent as a JSON string should be read").toBe(true);
     expect(sources.some((src) => src?.includes("from-list.webp")), "images sent as a list should be read").toBe(true);
-    expect(screen.getByText("No image"), "images that cannot be read should show No image").toBeInTheDocument();
+    expect(screen.getByText("No Image"), "images that cannot be read should show No image").toBeInTheDocument();
   });
 });
 
@@ -592,12 +592,12 @@ describe("Orders section — the detail screen's edges", () => {
       useAppStore.setState({ sellerOrders: [] } as any);
     });
     expect(
-      await screen.findByText("No order selected"),
+      await screen.findByText("No Order Selected"),
       "an order that vanished from the list (a push refresh) should leave an empty detail, not a crash",
     ).toBeInTheDocument();
     await userEvent.click(screen.getAllByRole("button")[0]);
     expect(
-      await screen.findByText("No orders found"),
+      await screen.findByText("No Orders Found"),
       "the back arrow on the empty detail should go back to the list",
     ).toBeInTheDocument();
   });

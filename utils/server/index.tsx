@@ -11,11 +11,16 @@ export * from "./helpers";
 export * from "./country";
 
 import { countryNameFromIso } from "./country";
+import { titleCaseWords } from "utils/titleCase";
 
 const translations = { ar, ku, tr };
 
 export function translateFunction(key: string, language: string) {
-  return translations[language]?.[key] || key;
+  const table = translations[language];
+  if (table) return table[key] || key;
+  // The English key is the English text; shown with a capital on every word,
+  // the same as the client translateFunction (utils/functions).
+  return language === "en" ? titleCaseWords(key) : key;
 }
 
 // Build the localized "Made In <country>" label. Country name is localized and

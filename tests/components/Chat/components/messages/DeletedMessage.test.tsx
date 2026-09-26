@@ -31,7 +31,7 @@ describe("DeletedMessage", () => {
     await renderWithProviders(<DeletedMessage type="first-chat" activeChat={activeChat} sender_user_id={ME} />, {
       store: { userChat: { id: ME }, activeChat },
     });
-    expect(screen.getByText("this message was deleted"), "the deleted label was not shown").toBeInTheDocument();
+    expect(screen.getByText("This Message Was Deleted"), "the deleted label was not shown").toBeInTheDocument();
     expect(document.querySelector(".absolute-avatar")!.className, "a member with a name and no photo got no text avatar").toContain("text-avatar");
   });
 

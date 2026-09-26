@@ -109,7 +109,7 @@ describe("what the form refuses to save (AC-6)", () => {
     // The blunt one. See the note at the top: the length rule overwrites the
     // required rule, and that was accepted rather than fixed.
     expect(
-      screen.getByText("Name Should be atleast 8 characters"),
+      screen.getByText("Name Should Be Atleast 8 Characters"),
       "an empty name was accepted, or was refused with a message this screen does not actually show",
     ).toBeInTheDocument();
     expect(
@@ -125,7 +125,7 @@ describe("what the form refuses to save (AC-6)", () => {
     await save(user);
 
     expect(
-      screen.getByText("Name Should be atleast 8 characters"),
+      screen.getByText("Name Should Be Atleast 8 Characters"),
       "a name shorter than the minimum was accepted",
     ).toBeInTheDocument();
     expect(
@@ -147,7 +147,7 @@ describe("what the form refuses to save (AC-6)", () => {
     await save(user);
 
     expect(
-      screen.getByText("Phone number is required"),
+      screen.getByText("Phone Number Is Required"),
       "a signed-in shopper cleared their phone number and the form accepted it",
     ).toBeInTheDocument();
     expect(
@@ -163,7 +163,7 @@ describe("what the form refuses to save (AC-6)", () => {
     // Empty is fine — prove that first, or the case below proves nothing.
     await save(user);
     expect(
-      screen.queryByText("Please enter a valid email address"),
+      screen.queryByText("Please Enter A Valid Email Address"),
       "an empty e-mail was refused, although the field is optional",
     ).not.toBeInTheDocument();
 
@@ -175,7 +175,7 @@ describe("what the form refuses to save (AC-6)", () => {
     await save(user);
 
     expect(
-      screen.getByText("Please enter a valid email address"),
+      screen.getByText("Please Enter A Valid Email Address"),
       "an e-mail that is not an address was accepted",
     ).toBeInTheDocument();
     expect(
@@ -191,7 +191,7 @@ describe("what the form refuses to save (AC-6)", () => {
     await save(user);
 
     expect(
-      screen.getByText("Please select your gender"),
+      screen.getByText("Please Select Your Gender"),
       "a profile with no gender chosen was accepted",
     ).toBeInTheDocument();
     expect(
@@ -208,7 +208,7 @@ describe("correcting a field (AC-7)", () => {
 
     await save(user);
     expect(
-      screen.getByText("Name Should be atleast 8 characters"),
+      screen.getByText("Name Should Be Atleast 8 Characters"),
       "the name was not refused, so this case cannot show the message clearing",
     ).toBeInTheDocument();
 
@@ -217,7 +217,7 @@ describe("correcting a field (AC-7)", () => {
     await user.type(screen.getByPlaceholderText("Enter Full Name"), "lovelace");
 
     expect(
-      screen.queryByText("Name Should be atleast 8 characters"),
+      screen.queryByText("Name Should Be Atleast 8 Characters"),
       "the name message stayed on screen after the shopper corrected the name",
     ).not.toBeInTheDocument();
   });
@@ -356,7 +356,7 @@ describe("a visitor who is not signed in (AC-8)", () => {
     // them. Showing the rules here would be telling them to fix a form they are
     // not allowed to submit.
     expect(
-      screen.queryByText("Phone number is required"),
+      screen.queryByText("Phone Number Is Required"),
       "a visitor who is not signed in was shown validation messages instead of the sign-in surface",
     ).not.toBeInTheDocument();
   });
@@ -446,12 +446,12 @@ describe("the other field checks", () => {
     await user.type(phone, "+12");
     await save(user);
     expect(
-      screen.getByText("Please enter a valid phone number"),
+      screen.getByText("Please Enter A Valid Phone Number"),
       "a phone number that is too short was not refused",
     ).toBeInTheDocument();
     await user.type(phone, "3");
     expect(
-      screen.queryByText("Please enter a valid phone number"),
+      screen.queryByText("Please Enter A Valid Phone Number"),
       "editing the phone did not clear its message",
     ).not.toBeInTheDocument();
   });

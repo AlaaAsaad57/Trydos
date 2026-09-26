@@ -268,7 +268,7 @@ describe("ProductEditor — permissions", () => {
   it("keeps view-only when the permissions answer is not a list", async () => {
     svc.getSellerPermissions.mockResolvedValue({ data: null });
     await renderEditor({ perms: [] });
-    expect(screen.getByText("View only"), "a seller with no permissions must see 'View only'").toBeInTheDocument();
+    expect(screen.getByText("View Only"), "a seller with no permissions must see 'View Only'").toBeInTheDocument();
   });
 
   it("logs a refused permissions call", async () => {
@@ -344,7 +344,7 @@ describe("ProductEditor — loading and shop info", () => {
     svc.getProductForEdit.mockRejectedValue(new Error("403 Forbidden"));
     await renderEditor();
     expect(
-      screen.getByText("You don't have permission to view or edit this product."),
+      screen.getByText("You Don't Have Permission To View Or Edit This Product."),
       "a 403 from /edit was not shown as access denied",
     ).toBeInTheDocument();
   });
@@ -361,7 +361,7 @@ describe("ProductEditor — loading and shop info", () => {
   it("falls back to a generic message when the load error has no text", async () => {
     svc.getProductForEdit.mockRejectedValue("");
     await renderEditor();
-    expect(screen.getByText("Failed to load product"), "an empty load error left no message").toBeInTheDocument();
+    expect(screen.getByText("Failed To Load Product"), "an empty load error left no message").toBeInTheDocument();
   });
 
   it("opens an empty create form in edit mode with the taken ids from the flat create answer", async () => {
@@ -660,7 +660,7 @@ describe("ProductEditor — save (edit)", () => {
     expect(scrollToFirstError, "the page did not move to the refused field").toHaveBeenCalled();
     expect(screen.getByText("row e"), "the fifth loose message is missing").toBeInTheDocument();
     expect(screen.queryByText("row f"), "more than five loose messages were shown").toBeNull();
-    expect(screen.getByText("More problems were reported: 1"), "the hidden-message count is wrong").toBeInTheDocument();
+    expect(screen.getByText("More Problems Were Reported: 1"), "the hidden-message count is wrong").toBeInTheDocument();
     expect(toast.showErrorMessage, "the refusal summary did not point at the fields").toHaveBeenCalledWith(
       "Please fix the highlighted fields before saving.",
     );
@@ -727,8 +727,8 @@ describe("ProductEditor — save (edit)", () => {
   });
 
   it.each([
-    [true, "Changes were submitted"],
-    [false, "Changes were submitted and are pending admin approval — they go live once approved."],
+    [true, "Changes Were Submitted"],
+    [false, "Changes Were Submitted And Are Pending Admin Approval — They Go Live Once Approved."],
   ])("shows the approval note when the save needs approval (newProductsApproval %s)", async (approved, note) => {
     svc.updateProduct.mockResolvedValue({ success: true, data: { requires_approval: true } });
     await renderEditor({ shop: { ...shopInfo, newProductsApproval: approved } });
@@ -764,16 +764,16 @@ describe("ProductEditor — save (edit)", () => {
     await openEditAndSave();
     const cancels = screen.getAllByRole("button", { name: "Cancel" });
     fireEvent.click(cancels[cancels.length - 1]);
-    expect(screen.queryByText("Confirm changes"), "Cancel did not close the confirm dialog").toBeNull();
+    expect(screen.queryByText("Confirm Changes"), "Cancel did not close the confirm dialog").toBeNull();
 
     fireEvent.click(screen.getAllByRole("button", { name: "Save Changes" })[0]);
     fireEvent.click(screen.getByRole("button", { name: "Confirm & Save" }));
     const backdrop = document.querySelector(".bg-black\\/45") as HTMLElement;
     fireEvent.click(backdrop);
-    expect(screen.getByText("Confirm changes"), "the backdrop closed the dialog while the save was running").toBeInTheDocument();
+    expect(screen.getByText("Confirm Changes"), "the backdrop closed the dialog while the save was running").toBeInTheDocument();
     await act(async () => finish({ success: true, data: {} }));
     await settle();
-    expect(screen.queryByText("Confirm changes"), "a finished save left the dialog open").toBeNull();
+    expect(screen.queryByText("Confirm Changes"), "a finished save left the dialog open").toBeNull();
   });
 });
 
@@ -782,8 +782,8 @@ describe("ProductEditor — save (create)", () => {
     svc.getProductCreateForm.mockResolvedValue({ data: {} });
     await renderEditor({ mode: "create", productId: undefined });
     fireEvent.click(screen.getAllByRole("button", { name: "Create Product" })[0]);
-    expect(screen.getByText("Confirm new product"), "the create confirm dialog did not open").toBeInTheDocument();
-    expect(screen.getByText("These details will be saved (1 item(s))."), "the create dialog count line is wrong").toBeInTheDocument();
+    expect(screen.getByText("Confirm New Product"), "the create confirm dialog did not open").toBeInTheDocument();
+    expect(screen.getByText("These Details Will Be Saved (1 Item(s))."), "the create dialog count line is wrong").toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Confirm & Save" }));
     await settle();
   }
@@ -841,7 +841,7 @@ describe("ProductEditor — purchase status", () => {
     await renderEditor();
     expect(screen.getByText("Purchasable"), "a status 1 product must read Purchasable").toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Disable" }));
-    expect(screen.getByText("Disable purchasing?"), "the disable dialog did not open").toBeInTheDocument();
+    expect(screen.getByText("Disable Purchasing?"), "the disable dialog did not open").toBeInTheDocument();
     fireEvent.click(lastButton("Disable"));
     await settle();
     expect(svc.changeProductStatus, "the status call carried the wrong target").toHaveBeenCalledWith("77", "9001", 0);
@@ -853,7 +853,7 @@ describe("ProductEditor — purchase status", () => {
     svc.changeProductStatus.mockResolvedValue({ success: true });
     await renderEditor();
     fireEvent.click(screen.getByRole("button", { name: "Allow Purchase" }));
-    expect(screen.getByText("Allow this product to be purchased?"), "the enable dialog did not open").toBeInTheDocument();
+    expect(screen.getByText("Allow This Product To Be Purchased?"), "the enable dialog did not open").toBeInTheDocument();
     fireEvent.click(lastButton("Allow Purchase"));
     await settle();
     expect(screen.getByText("Purchasable"), "the requested status was not applied").toBeInTheDocument();
@@ -862,14 +862,14 @@ describe("ProductEditor — purchase status", () => {
   it.each([
     ["detailed errors", { success: false, detailed_error: [{ message: "Add a price" }] }, "Add a price"],
     ["a message", { success: false, message: "Not allowed", detailed_error: [] }, "Not allowed"],
-    ["nothing", null, "Could not change status"],
+    ["nothing", null, "Could Not Change Status"],
   ])("lists the blockers when the backend refuses with %s", async (_l, answer, shown) => {
     svc.changeProductStatus.mockResolvedValue(answer);
     await renderEditor();
     fireEvent.click(screen.getByRole("button", { name: "Allow Purchase" }));
     fireEvent.click(lastButton("Allow Purchase"));
     await settle();
-    expect(screen.getByText("Cannot enable yet — resolve these first:"), "the blocker list is missing").toBeInTheDocument();
+    expect(screen.getByText("Cannot Enable Yet — Resolve These First:"), "the blocker list is missing").toBeInTheDocument();
     expect(screen.getByText(shown), "the blocker text is wrong").toBeInTheDocument();
   });
 
@@ -893,10 +893,10 @@ describe("ProductEditor — purchase status", () => {
     fireEvent.click(lastButton("Allow Purchase"));
     expect(screen.getByText("Saving…"), "the dialog did not show it is saving").toBeInTheDocument();
     fireEvent.click(document.querySelector(".bg-black\\/45") as HTMLElement);
-    expect(screen.getByText("Allow this product to be purchased?"), "the dialog closed during the save").toBeInTheDocument();
+    expect(screen.getByText("Allow This Product To Be Purchased?"), "the dialog closed during the save").toBeInTheDocument();
     await act(async () => finish({ success: false, message: "Blocked" }));
     fireEvent.click(lastButton("Cancel"));
-    expect(screen.queryByText("Allow this product to be purchased?"), "Cancel did not close the status dialog").toBeNull();
+    expect(screen.queryByText("Allow This Product To Be Purchased?"), "Cancel did not close the status dialog").toBeNull();
   });
 });
 
@@ -987,9 +987,9 @@ describe("ProductEditor — confirm dialog diff views", () => {
   it("renders every expandable section once opened", async () => {
     vi.mocked(buildDiff).mockReturnValue(richDiff as any);
     await openEditAndSave();
-    expect(screen.getByText("These fields will be updated (14 item(s))."), "the edit count line is wrong").toBeInTheDocument();
-    expect(screen.getByText("3 languages"), "the translations badge is wrong").toBeInTheDocument();
-    expect(screen.getByText("2 variants"), "the variants badge is wrong").toBeInTheDocument();
+    expect(screen.getByText("These Fields Will Be Updated (14 Item(s))."), "the edit count line is wrong").toBeInTheDocument();
+    expect(screen.getByText("3 Languages"), "the translations badge is wrong").toBeInTheDocument();
+    expect(screen.getByText("2 Variants"), "the variants badge is wrong").toBeInTheDocument();
     expect(screen.getByText("3 images"), "the images badge is wrong").toBeInTheDocument();
     expect(screen.getByText("1 colors"), "the colours badge is wrong").toBeInTheDocument();
     expect(screen.getByText("3 countries"), "the countries badge is wrong").toBeInTheDocument();

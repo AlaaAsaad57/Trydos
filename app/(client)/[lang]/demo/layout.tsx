@@ -33,12 +33,11 @@ export default async function DemoLayout({
   children: React.ReactNode;
 }) {
   const language = (await langParam()).split("-")[1] || "en";
-  const dictionary: DemoDictionary =
-    language === "en"
-      ? {}
-      : Object.fromEntries(
-          DEMO_KEYS.map((key) => [key, translateFunction(key, language)]),
-        );
+  // English goes through the lookup too: it gives the key with a capital on
+  // every word, as everywhere else in the app.
+  const dictionary: DemoDictionary = Object.fromEntries(
+    DEMO_KEYS.map((key) => [key, translateFunction(key, language)]),
+  );
 
   return (
     <Suspense

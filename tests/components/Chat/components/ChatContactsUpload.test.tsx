@@ -65,7 +65,7 @@ describe("ChatContactsUpload — syncing from the phone", () => {
     });
     await mount();
     await act(async () => {
-      fireEvent.click(screen.getByText("Get from your contacts"));
+      fireEvent.click(screen.getByText("Get From Your Contacts"));
     });
     const body = JSON.parse(h.fetchData.mock.calls[0][0].body);
     expect(body.contacts, "the merged list was not deduplicated by number, keeping the longest name").toEqual([
@@ -80,18 +80,18 @@ describe("ChatContactsUpload — syncing from the phone", () => {
     setContactsApi({ select: vi.fn(async () => []) });
     await mount();
     await act(async () => {
-      fireEvent.click(screen.getByText("Get from your contacts"));
+      fireEvent.click(screen.getByText("Get From Your Contacts"));
     });
     expect(h.fetchData, "an empty pick was uploaded").not.toHaveBeenCalled();
-    expect(screen.getByText("Get from your contacts"), "the button stayed in the syncing state").toBeInTheDocument();
+    expect(screen.getByText("Get From Your Contacts"), "the button stayed in the syncing state").toBeInTheDocument();
   });
 
   it("tells the shopper when the browser has no contact picker", async () => {
     await mount();
     await act(async () => {
-      fireEvent.click(screen.getByText("Get from your contacts"));
+      fireEvent.click(screen.getByText("Get From Your Contacts"));
     });
-    expect(h.showError, "the missing contact picker was not shown").toHaveBeenCalledWith("Contacts API not supported on this browser");
+    expect(h.showError, "the missing contact picker was not shown").toHaveBeenCalledWith("Contacts API Not Supported On This Browser");
   });
 
   it("tells the shopper when the chat backend refuses the upload", async () => {
@@ -99,7 +99,7 @@ describe("ChatContactsUpload — syncing from the phone", () => {
     h.fetchData = vi.fn(async () => ({ success: false, message: "contacts refused" }));
     await mount([]);
     await act(async () => {
-      fireEvent.click(screen.getByText("Get from your contacts"));
+      fireEvent.click(screen.getByText("Get From Your Contacts"));
     });
     expect(h.showError, "the refused upload was not shown").toHaveBeenCalledWith("contacts refused");
     expect(h.logError.mock.calls[0]?.[0]?.scenario, "the refused upload was not logged").toBe("sync contact - chat widget");
@@ -109,7 +109,7 @@ describe("ChatContactsUpload — syncing from the phone", () => {
     setContactsApi({ select: vi.fn(async () => { throw "picker closed"; }) });
     await mount();
     await act(async () => {
-      fireEvent.click(screen.getByText("Get from your contacts"));
+      fireEvent.click(screen.getByText("Get From Your Contacts"));
     });
     expect(h.logError.mock.calls[0]?.[0]?.error, "the picker failure was not logged").toBe("picker closed");
   });
@@ -118,7 +118,7 @@ describe("ChatContactsUpload — syncing from the phone", () => {
     let finish: any;
     setContactsApi({ select: vi.fn(() => new Promise((r) => (finish = r))) });
     await mount();
-    const button = screen.getByText("Get from your contacts").closest("button")!;
+    const button = screen.getByText("Get From Your Contacts").closest("button")!;
     await act(async () => {
       fireEvent.click(button);
     });
@@ -178,7 +178,7 @@ describe("ChatContactsUpload — adding one by hand", () => {
       fireEvent.click(f.confirm);
     });
     expect(h.fetchData, "a contact with no name was saved").not.toHaveBeenCalled();
-    fireEvent.click(screen.getByText("Add a new contact").nextElementSibling as HTMLElement);
+    fireEvent.click(screen.getByText("Add A New Contact").nextElementSibling as HTMLElement);
     expect(screen.getByText("Add Contact Manually"), "close did not close the form").toBeInTheDocument();
   });
 
@@ -193,7 +193,7 @@ describe("ChatContactsUpload — adding one by hand", () => {
       fireEvent.click(f.confirm);
     });
     expect(h.logError.mock.calls[0]?.[0]?.scenario, "a failed save was not logged").toBe("add contact - chat widget");
-    expect(screen.getByText("Add a new contact"), "the form closed after a failed save").toBeInTheDocument();
+    expect(screen.getByText("Add A New Contact"), "the form closed after a failed save").toBeInTheDocument();
   });
 
   it("hides a flag that cannot load", async () => {
@@ -217,7 +217,7 @@ describe("ChatContactsUpload — adding one by hand", () => {
     await act(async () => {
       fireEvent.click(f.confirm);
     });
-    expect(screen.queryByText("Add a new contact") !== null, "the form closed as if the refused contact was saved").toBe(true);
+    expect(screen.queryByText("Add A New Contact") !== null, "the form closed as if the refused contact was saved").toBe(true);
   });
 
   it("BUG-chat-7: a failed contact save tells the shopper", async () => {

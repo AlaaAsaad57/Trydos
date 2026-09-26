@@ -200,7 +200,7 @@ describe("Stories section — loading the list", () => {
     getSellerStories.mockResolvedValue(listAnswer([]));
     await mount();
     expect(
-      await screen.findByText("No stories yet"),
+      await screen.findByText("No Stories Yet"),
       "an empty section should say so rather than show an empty grid",
     ).toBeInTheDocument();
   });
@@ -391,7 +391,7 @@ describe("Stories section — the link on a new story", () => {
     await userEvent.type(field, "example.com");
     expect(
       screen.queryByText(
-        "Please enter a valid URL (e.g., example.com or www.example.com)",
+        "Please Enter A Valid URL (e.g., example.com Or www.example.com)",
       ),
       "example.com is a link a seller may reasonably type",
     ).not.toBeInTheDocument();
@@ -402,7 +402,7 @@ describe("Stories section — the link on a new story", () => {
     await userEvent.type(field, "https://shop.example.com/sale");
     expect(
       screen.queryByText(
-        "Please enter a valid URL (e.g., example.com or www.example.com)",
+        "Please Enter A Valid URL (e.g., example.com Or www.example.com)",
       ),
       "a full https address should be accepted",
     ).not.toBeInTheDocument();
@@ -413,7 +413,7 @@ describe("Stories section — the link on a new story", () => {
     await userEvent.type(field, "notalink");
     expect(
       await screen.findByText(
-        "Please enter a valid URL (e.g., example.com or www.example.com)",
+        "Please Enter A Valid URL (e.g., example.com Or www.example.com)",
       ),
       "a single word is not an address and the seller should be told while typing",
     ).toBeInTheDocument();
@@ -425,7 +425,7 @@ describe("Stories section — the link on a new story", () => {
     await userEvent.clear(field);
     expect(
       screen.queryByText(
-        "Please enter a valid URL (e.g., example.com or www.example.com)",
+        "Please Enter A Valid URL (e.g., example.com Or www.example.com)",
       ),
       "a story does not need a link, so an empty field is not an error",
     ).not.toBeInTheDocument();
@@ -561,7 +561,7 @@ describe("Stories section — adding a story", () => {
   it("opens the file picker from both upload buttons", async () => {
     const input = await openUpload();
     const click = vi.spyOn(input, "click");
-    await userEvent.click(screen.getByRole("button", { name: /No media selected/ }));
+    await userEvent.click(screen.getByRole("button", { name: /No Media Selected/ }));
     await userEvent.click(screen.getByRole("button", { name: /Upload Photo\/Video/ }));
     expect(click.mock.calls.length, "each upload button should open the picker").toBe(2);
   });
@@ -569,10 +569,10 @@ describe("Stories section — adding a story", () => {
   it("closes from the Close button and from Cancel", async () => {
     await openUpload();
     await userEvent.click(screen.getAllByRole("button", { name: "Close" }).at(-1)!);
-    expect(screen.queryByText("No media selected"), "Close should end the upload window").not.toBeInTheDocument();
+    expect(screen.queryByText("No Media Selected"), "Close should end the upload window").not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /Add Story/ }));
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(screen.queryByText("No media selected"), "Cancel should end the upload window").not.toBeInTheDocument();
+    expect(screen.queryByText("No Media Selected"), "Cancel should end the upload window").not.toBeInTheDocument();
   });
 
   it("refuses an SVG and a file above 10 MB, and ignores an empty or unknown pick", async () => {
@@ -590,7 +590,7 @@ describe("Stories section — adding a story", () => {
     pick(input, null);
     pick(input, new File(["t"], "notes.txt", { type: "text/plain" }));
     expect(screen.queryByTestId("crop"), "nothing usable was picked, so no editor opens").not.toBeInTheDocument();
-    expect(screen.getByText("No media selected"), "the preview should still be empty").toBeInTheDocument();
+    expect(screen.getByText("No Media Selected"), "the preview should still be empty").toBeInTheDocument();
   });
 
   it("sends a picture through the editor, and the editor can be closed without saving", async () => {
@@ -598,15 +598,15 @@ describe("Stories section — adding a story", () => {
     pick(input, png());
     await userEvent.click(await screen.findByRole("button", { name: "crop-close" }));
     expect(screen.queryByTestId("crop"), "closing the editor should take it away").not.toBeInTheDocument();
-    expect(screen.getByText("No media selected"), "a closed editor leaves no preview").toBeInTheDocument();
+    expect(screen.getByText("No Media Selected"), "a closed editor leaves no preview").toBeInTheDocument();
 
     pick(input, png());
     await userEvent.click(await screen.findByRole("button", { name: "crop-save" }));
     expect(await screen.findByAltText("Preview"), "the saved picture should be previewed").toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Change media/ }), "the picker button should now offer a change").toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Change Media/ }), "the picker button should now offer a change").toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Remove" }));
-    expect(screen.getByText("No media selected"), "Remove should clear the preview").toBeInTheDocument();
+    expect(screen.getByText("No Media Selected"), "Remove should clear the preview").toBeInTheDocument();
   });
 
   it("previews a short video and refuses one over a minute", async () => {
@@ -653,11 +653,11 @@ describe("Stories section — adding a story", () => {
       .mockResolvedValueOnce({ success: true, data: [{ id: 4, name: "Scarf", slug: "scarf" }] });
     await openUpload();
 
-    await userEvent.click(screen.getByRole("button", { name: /Link to Product/ }));
+    await userEvent.click(screen.getByRole("button", { name: /Link To Product/ }));
     expect(await screen.findByText("Red Shoe"), "the shop's products should be offered").toBeInTheDocument();
     expect(screen.getByText("Unnamed Product"), "a product with no name should still be pickable").toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: "Load more" }));
+    await userEvent.click(screen.getByRole("button", { name: "Load More" }));
     expect(await screen.findByText("Scarf"), "Load more should add the next page").toBeInTheDocument();
     expect(getSellerProducts.mock.calls.at(-1), "Load more should ask for page 2").toEqual([SELLER_ID, 2]);
     expect(screen.getByText("Red Shoe"), "the first page must stay after Load more").toBeInTheDocument();
@@ -688,8 +688,8 @@ describe("Stories section — adding a story", () => {
   it("closes the product picker from its Close button and its backdrop, and survives a failed load", async () => {
     getSellerProducts.mockResolvedValue({ success: false });
     await openUpload();
-    await userEvent.click(screen.getByRole("button", { name: /Link to Product/ }));
-    expect(await screen.findByText("No products found"), "a failed product load should show an empty list").toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /Link To Product/ }));
+    expect(await screen.findByText("No Products Found"), "a failed product load should show an empty list").toBeInTheDocument();
     await userEvent.click(screen.getByText("Select Product"));
     expect(screen.getByText("Select Product"), "a click inside must not close the picker").toBeInTheDocument();
 
@@ -698,8 +698,8 @@ describe("Stories section — adding a story", () => {
     expect(screen.queryByText("Select Product"), "Close should end the picker").not.toBeInTheDocument();
 
     getSellerProducts.mockRejectedValue("offline");
-    await userEvent.click(screen.getByRole("button", { name: /Link to Product/ }));
-    await screen.findByText("No products found");
+    await userEvent.click(screen.getByRole("button", { name: /Link To Product/ }));
+    await screen.findByText("No Products Found");
     await userEvent.click(screen.getByText("Select Product").closest("[class*='bg-black/50']") as HTMLElement);
     expect(screen.queryByText("Select Product"), "the backdrop should end the picker").not.toBeInTheDocument();
   });
@@ -719,7 +719,7 @@ describe("Stories section — adding a story", () => {
     const link = document.querySelector('[data-pw="seller-story-link"]') as HTMLInputElement;
     await userEvent.type(link, "shop.example.com");
     fireEvent.blur(link);
-    await userEvent.click(screen.getByRole("button", { name: /Link to Product/ }));
+    await userEvent.click(screen.getByRole("button", { name: /Link To Product/ }));
     await userEvent.click(await screen.findByText("Red Shoe"));
     const callsBefore = getSellerStories.mock.calls.length;
 

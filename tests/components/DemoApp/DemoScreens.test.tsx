@@ -210,6 +210,133 @@ describe("Demo screens — numbers from the XD file", () => {
     }
   });
 
+  describe("address form: the field in use keeps the editing look (`Home Page – 94`, `– 95`, `– 97`)", () => {
+    const WHITE = "rgb(255, 255, 255)";
+    const box = (container: HTMLElement, id: string) => {
+      const el = container.querySelector(`[data-pw="${id}"]`) as HTMLElement;
+      return el.tagName === "INPUT" ? el.parentElement! : el;
+    };
+    const lined = (el: HTMLElement) => el.style.boxShadow.includes("0.5px");
+    const type = (container: HTMLElement, id: string, text: string) => {
+      const input = container.querySelector(`[data-pw="${id}"]`)!;
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: text } });
+    };
+    const pickPlace = async (container: HTMLElement) => {
+      fireEvent.click(box(container, "demo-address-place"));
+      // Province, district, town, street: each list slides in after the last one.
+      for (const level of ["province", "district", "town", "street"]) {
+        const row = await waitFor(
+          () => {
+            const found = container.ownerDocument.querySelector(
+              '[data-pw="demo-place-0"]',
+            );
+            if (!found) throw new Error("not yet");
+            return found;
+          },
+          { timeout: 2000 },
+        ).catch(() => null);
+        expect(row, `the place sheet shows no ${level} to pick`).not.toBeNull();
+        fireEvent.click(row!);
+        await new Promise((r) => setTimeout(r, 400));
+      }
+    };
+    const FORM = "/sy-en/demo/settings/profile/address/new";
+
+    it("a text field stays white with its line while it has focus, even after text is typed", () => {
+      const container = open(FORM);
+      type(container, "demo-address-detail", "vadistanbul");
+      const detail = box(container, "demo-address-detail");
+      expect(
+        detail.style.background,
+        "the focused 'Detailed address' field turned #FCFCFC while it is being typed in; the field in use is white",
+      ).toBe(WHITE);
+      expect(
+        lined(detail),
+        "the focused 'Detailed address' field lost its #D3D3D3 line",
+      ).toBe(true);
+    });
+
+    it("the field whose sheet is open is white with its line, as `Home Page – 95` draws the country field", () => {
+      const container = open(FORM);
+      fireEvent.click(box(container, "demo-address-country"));
+      const country = box(container, "demo-address-country");
+      expect(
+        country.style.background,
+        "the country field is #FCFCFC while its sheet is open; `Home Page – 95` draws it #FFFFFF",
+      ).toBe(WHITE);
+      expect(lined(country), "the country field has no line while its sheet is open").toBe(true);
+    });
+
+    it("typing the last letter drops every line at once, the focused field's too, as on `Home Page – 99`", async () => {
+      const container = open(FORM);
+      await pickPlace(container);
+      type(container, "demo-address-detail", "vadistanbul, ofisler");
+      fireEvent.blur(container.querySelector('[data-pw="demo-address-detail"]')!);
+      // The title keeps focus: the form is complete while the field is in use.
+      type(container, "demo-address-title", "My home");
+
+      for (const id of [
+        "demo-address-country",
+        "demo-address-place",
+        "demo-address-detail",
+        "demo-address-title",
+      ]) {
+        expect(
+          lined(box(container, id)),
+          `${id} still has a line on the complete form while 'Address title' has focus; \`Home Page – 99\` draws none`,
+        ).toBe(false);
+      }
+      expect(
+        box(container, "demo-address-title").style.background,
+        "the focused 'Address title' field is white with no line on the complete form, so it is lost on the white page; `Home Page – 99` draws it #FCFCFC",
+      ).toBe("rgb(252, 252, 252)");
+    }, 15000);
+
+    it("the map's 0.5 px line is drawn over the map picture, not under it, as `Home Page – 94` and `– 99` draw it", () => {
+      const container = open(FORM);
+      const img = container.querySelector(
+        '[data-pw="demo-address-map"] img',
+      ) as HTMLElement | null;
+      expect(img, "the map card has no map picture").not.toBeNull();
+      const line = [...img!.parentElement!.querySelectorAll<HTMLElement>("*")].find(
+        (el) => el !== img && lined(el),
+      );
+      expect(
+        line,
+        "the map's #D3D3D3 line sits on the map box itself, so the picture covers it and the line never shows",
+      ).toBeDefined();
+      expect(
+        !!(img!.compareDocumentPosition(line!) & Node.DOCUMENT_POSITION_FOLLOWING),
+        "the map's line is on a layer under the picture, so the picture covers it",
+      ).toBe(true);
+    });
+
+    it("the map card keeps its line after 'Locate' until the form is complete, like the fields under it", async () => {
+      const container = open(FORM);
+      fireEvent.click(container.querySelector('[data-pw="demo-address-locate"]')!);
+      await pickPlace(container);
+      const card = box(container, "demo-address-map");
+      expect(
+        lined(card),
+        "the map card lost its line on 'Locate' while the fields under it still have theirs",
+      ).toBe(true);
+
+      type(container, "demo-address-detail", "vadistanbul, ofisler");
+      fireEvent.blur(container.querySelector('[data-pw="demo-address-detail"]')!);
+      type(container, "demo-address-title", "My home");
+      fireEvent.blur(container.querySelector('[data-pw="demo-address-title"]')!);
+      const gone = await waitFor(
+        () => {
+          if (lined(card)) throw new Error("not yet");
+          return true;
+        },
+        { timeout: 2000 },
+      ).catch(() => false);
+      expect(gone, "the map card still has a line on the complete form; `Home Page – 99` draws none").toBe(true);
+    }, 15000);
+  });
+
   it("search: each chip's word starts 12 px in, not centred, as `Home Page – 1` draws it", () => {
     url.search = "search";
     const container = open("/sy-en/demo");

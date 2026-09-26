@@ -171,7 +171,7 @@ describe("ChangeAddressWidget", () => {
   it("keeps a delivery note up to 200 characters", async () => {
     await renderSheet();
     fireEvent.click(screen.getByText("Delivery Note"));
-    const note = screen.getByPlaceholderText("Add delivery instructions...") as HTMLTextAreaElement;
+    const note = screen.getByPlaceholderText("Add Delivery Instructions...") as HTMLTextAreaElement;
     fireEvent.change(note, { target: { value: "Ring twice" } });
     expect(screen.getByText("10/200"), "the note length is not shown").toBeInTheDocument();
     fireEvent.change(note, { target: { value: "x".repeat(201) } });
@@ -189,7 +189,7 @@ describe("ChangeAddressWidget", () => {
   it.fails("BUG-products-3: a delivery note the shopper confirms must be sent with the change", async () => {
     await renderSheet();
     fireEvent.click(screen.getByText("Delivery Note"));
-    fireEvent.change(screen.getByPlaceholderText("Add delivery instructions..."), {
+    fireEvent.change(screen.getByPlaceholderText("Add Delivery Instructions..."), {
       target: { value: "Ring twice" },
     });
     fireEvent.click(changeRequest());

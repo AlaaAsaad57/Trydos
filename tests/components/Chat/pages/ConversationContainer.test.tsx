@@ -455,7 +455,7 @@ describe("ConversationContainer — sending text", () => {
     const input = screen.getByLabelText("Type");
     fireEvent.change(input, { target: { value: "hi" } });
     fireEvent.keyDown(input, { key: "Enter" });
-    expect(h.showError, "the shopper was not told the message failed").toHaveBeenCalledWith("Failed to send message");
+    expect(h.showError, "the shopper was not told the message failed").toHaveBeenCalledWith("Failed To Send Message");
     expect(spies.deleteErrorMessage, "the failed copy was not removed").toHaveBeenCalled();
   });
 
@@ -551,7 +551,7 @@ describe("ConversationContainer — attaching files", () => {
     await act(async () => {
       pick(new File(["x"], "doc.pdf", { type: "application/pdf" }));
     });
-    await waitFor(() => expect(h.showError, "an upload failure with no message used no default").toHaveBeenCalledWith("Failed to Upload file"));
+    await waitFor(() => expect(h.showError, "an upload failure with no message used no default").toHaveBeenCalledWith("Failed To Upload File"));
   });
 
   it("does nothing when no file was chosen", async () => {
@@ -587,13 +587,13 @@ describe("ConversationContainer — attaching files", () => {
     await act(async () => {
       pick(new File(["x"], "doc.pdf", { type: "application/pdf" }));
     });
-    expect(h.showError, "a document in the media picker was not refused").toHaveBeenCalledWith("Only image and video files are allowed");
+    expect(h.showError, "a document in the media picker was not refused").toHaveBeenCalledWith("Only Image And Video Files Are Allowed");
     openFiles();
     await act(async () => {
       pick(new File(["x"], "clip.avi", { type: "video/x-msvideo" }));
     });
     expect(h.showError, "an unplayable video was not named").toHaveBeenCalledWith(
-      "This video format is not supported. Send an MP4 video instead.",
+      "This Video Format Is Not Supported. Send An MP4 Video Instead.",
     );
     expect(h.upload, "a refused file was uploaded").not.toHaveBeenCalled();
   });
@@ -669,7 +669,7 @@ describe("ConversationContainer — the camera", () => {
     h.permission.granted = false;
     await openCamera();
     expect(h.showError, "a refused camera permission was not shown").toHaveBeenCalledWith(
-      "Please enable camera permissions to use camera features",
+      "Please Enable Camera Permissions To Use Camera Features",
     );
     expect(h.props.Camera, "the camera opened without permission").toBeUndefined();
   });
@@ -800,7 +800,7 @@ describe("ConversationContainer — voice notes", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1600);
     });
-    await waitFor(() => expect(h.showError, "a failed voice upload was not shown").toHaveBeenCalledWith("Failed to Upload audio"));
+    await waitFor(() => expect(h.showError, "a failed voice upload was not shown").toHaveBeenCalledWith("Failed To Upload Audio"));
   });
 
   it("says there is no microphone when both recorders fail", async () => {
@@ -810,7 +810,7 @@ describe("ConversationContainer — voice notes", () => {
     await act(async () => {
       fireEvent.click(document.querySelector('img[src="/icons/chat/redmic.svg"]')!);
     });
-    await waitFor(() => expect(h.showError, "a missing microphone was not shown").toHaveBeenCalledWith("No available Microphone"));
+    await waitFor(() => expect(h.showError, "a missing microphone was not shown").toHaveBeenCalledWith("No Available Microphone"));
   });
 
   it("sends nothing when there is no recording", async () => {
@@ -870,15 +870,15 @@ describe("ConversationContainer — header, details and calls", () => {
       channel_members: [{ user_id: ME }, { user_id: THEM, is_blocked: 1 }],
     });
     await mount({ chat });
-    expect(screen.getByText("You cannot send messages or calls to this user"), "the blocked notice was not shown").toBeInTheDocument();
+    expect(screen.getByText("You Cannot Send Messages Or Calls To This User"), "the blocked notice was not shown").toBeInTheDocument();
     expect(screen.queryByLabelText("Type"), "a blocked chat still had an input").toBeNull();
     expect(h.props.ChatHeader.isBlockedEachOther, "the header was not told the chat is blocked").toBe(true);
     act(() => h.props.ChatHeader.openDetails());
     act(() => h.props.ChatInfo.makeAudioCall());
     act(() => h.props.ChatInfo.makeVideoCall());
     expect(h.showError.mock.calls.map((c) => c[0]), "the blocked calls were not refused with a message").toEqual([
-      "You cannot send messages or calls to this user",
-      "You cannot send messages or calls to this user",
+      "You Cannot Send Messages Or Calls To This User",
+      "You Cannot Send Messages Or Calls To This User",
     ]);
     expect(h.makeVoiceCall, "a blocked chat placed a call").not.toHaveBeenCalled();
   });

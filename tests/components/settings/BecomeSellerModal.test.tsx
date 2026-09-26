@@ -142,7 +142,7 @@ describe("the status screens", () => {
     statusReplies = [{ success: false, code: 500 }, { success: true, data: { status: "pending" } }];
     const { onClose } = await openModal();
     expect(
-      await screen.findByText("Couldn't load your request"),
+      await screen.findByText("Couldn't Load Your Request"),
       "a failed status lookup did not show the error screen",
     ).toBeInTheDocument();
     const user = userEvent.setup();
@@ -152,7 +152,7 @@ describe("the status screens", () => {
 
     await user.click(screen.getByText("Retry"));
     expect(
-      await screen.findByText("Your seller request is under review"),
+      await screen.findByText("Your Seller Request Is Under Review"),
       "retry did not show the pending status from the second lookup",
     ).toBeInTheDocument();
     await user.click(screen.getByText("Close"));
@@ -163,7 +163,7 @@ describe("the status screens", () => {
     statusReplies = [undefined];
     await openModal();
     expect(
-      await screen.findByText("Couldn't load your request"),
+      await screen.findByText("Couldn't Load Your Request"),
       "an empty status answer did not show the error screen",
     ).toBeInTheDocument();
   });
@@ -171,12 +171,12 @@ describe("the status screens", () => {
   it.each([
     [{ status: "REJECTED", rejection_reason: "Missing licence" }, "Missing licence"],
     [{ status: "rejected", reason: "Bad photo" }, "Bad photo"],
-    [{ status: "REJECTED" }, "Unfortunately, your seller request was not approved."],
+    [{ status: "REJECTED" }, "Unfortunately, Your Seller Request Was Not Approved."],
   ])("a rejected request shows the reason the backend gave (%o)", async (data, text) => {
     statusReplies = [{ success: true, data }];
     await openModal();
     expect(
-      await screen.findByText("Your seller request was rejected"),
+      await screen.findByText("Your Seller Request Was Rejected"),
       "a rejected request did not show the rejected screen",
     ).toBeInTheDocument();
     expect(screen.getByText(text), "the rejection text is not the one expected").toBeInTheDocument();
@@ -186,7 +186,7 @@ describe("the status screens", () => {
     statusReplies = [{ success: true, data: { status: "APPROVED" } }];
     await openModal();
     expect(
-      await screen.findByText("Your seller request was approved"),
+      await screen.findByText("Your Seller Request Was Approved"),
       "an approved request did not show the approved screen",
     ).toBeInTheDocument();
   });
@@ -262,17 +262,17 @@ describe("the country list", () => {
 
 describe("inline checks on blur", () => {
   it.each([
-    ["email", "", "Email is required"],
-    ["email", "bad@", "Enter a valid email address"],
-    ["phone", "", "Phone number is required"],
+    ["email", "", "Email Is Required"],
+    ["email", "bad@", "Enter A Valid Email Address"],
+    ["phone", "", "Phone Number Is Required"],
     ["phone", "123", "Invalid Phone Number"],
-    ["password", "", "Password is required"],
-    ["password", "short", "Min 8 characters, including a letter and a number"],
-    ["repeat_password", "", "Please repeat your password"],
-    ["repeat_password", "other123", "Passwords do not match"],
-    ["f_name", "", "First Name is required"],
-    ["f_name", "Abcdefghijk", "Must not exceed 10 characters"],
-    ["shop_address", "", "Shop Address is required"],
+    ["password", "", "Password Is Required"],
+    ["password", "short", "Min 8 Characters, Including A Letter And A Number"],
+    ["repeat_password", "", "Please Repeat Your Password"],
+    ["repeat_password", "other123", "Passwords Do Not Match"],
+    ["f_name", "", "First Name Is Required"],
+    ["f_name", "Abcdefghijk", "Must Not Exceed 10 Characters"],
+    ["shop_address", "", "Shop Address Is Required"],
   ])("%s = %j shows %j", async (name, value, message) => {
     await openForm();
     const user = userEvent.setup();
@@ -329,14 +329,14 @@ describe("documents", () => {
       target: { files: [new File(["x"], "notes.txt", { type: "text/plain" })] },
     });
     expect(
-      screen.getByText("Only image or PDF files are allowed"),
+      screen.getByText("Only Image Or PDF Files Are Allowed"),
       "a text file was not refused",
     ).toBeInTheDocument();
 
     fireEvent.change(input("doc-upload"), { target: { files: [new File(["x"], "scan.pdf", { type: "" })] } });
     expect(screen.getByText("scan.pdf"), "a PDF with no type was not accepted by name").toBeInTheDocument();
     expect(
-      screen.queryByText("Only image or PDF files are allowed"),
+      screen.queryByText("Only Image Or PDF Files Are Allowed"),
       "accepting a good file did not clear the file error",
     ).not.toBeInTheDocument();
 
@@ -351,10 +351,10 @@ describe("documents", () => {
     });
     const user = userEvent.setup();
     await user.click(screen.getByText("Upload Document"));
-    expect(screen.getByText("Please select a document type"), "an upload with no type was not stopped").toBeInTheDocument();
+    expect(screen.getByText("Please Select A Document Type"), "an upload with no type was not stopped").toBeInTheDocument();
     await user.selectOptions(document.querySelector("#doc-type")!, "passport");
     expect(
-      screen.queryByText("Please select a document type"),
+      screen.queryByText("Please Select A Document Type"),
       "choosing a type did not clear the type error",
     ).not.toBeInTheDocument();
     await user.selectOptions(document.querySelector("#doc-type")!, "");
@@ -377,7 +377,7 @@ describe("documents", () => {
     ).toBe("https://example.com/put?sig=1");
 
     await user.click(screen.getByText("Remove"));
-    expect(screen.getByText("No documents uploaded"), "removing the document left it listed").toBeInTheDocument();
+    expect(screen.getByText("No Documents Uploaded"), "removing the document left it listed").toBeInTheDocument();
   });
 
   it.each([
@@ -409,7 +409,7 @@ describe("documents", () => {
     await waitFor(() =>
       expect(notifications.showErrorNotification, `the failed presign did not say "${message}"`).toHaveBeenCalledWith(message),
     );
-    expect(screen.getByText("No documents uploaded"), "a failed upload still listed a document").toBeInTheDocument();
+    expect(screen.getByText("No Documents Uploaded"), "a failed upload still listed a document").toBeInTheDocument();
   });
 
   it("reports a refused file PUT and a PUT that throws", async () => {
@@ -440,8 +440,8 @@ describe("submitting", () => {
     await uploadOneDocument(user);
     await screen.findByText("docs/id.png");
     await user.click(screen.getByText("Submit"));
-    expect(screen.getByText("First Name is required"), "an empty first name was not flagged on submit").toBeInTheDocument();
-    expect(screen.getByText("Location Address is required"), "an empty location address was not flagged on submit").toBeInTheDocument();
+    expect(screen.getByText("First Name Is Required"), "an empty first name was not flagged on submit").toBeInTheDocument();
+    expect(screen.getByText("Location Address Is Required"), "an empty location address was not flagged on submit").toBeInTheDocument();
     expect(fetchDataMock.mock.calls.some((c) => c[0].method === "POST" && c[0].url === "/shop/vendor-requests"), "an incomplete form was sent").toBe(false);
   });
 
@@ -461,7 +461,7 @@ describe("submitting", () => {
     await submitValid();
 
     expect(
-      await screen.findByText("Your seller request is under review"),
+      await screen.findByText("Your Seller Request Is Under Review"),
       "a successful submit did not re-read and show the pending status",
     ).toBeInTheDocument();
     expect(notifications.showSuccessNotification, "a successful submit did not confirm it").toHaveBeenCalledWith(
@@ -477,7 +477,7 @@ describe("submitting", () => {
     statusReplies = [{ success: false, code: 404 }, { success: true, data: { status: "REJECTED" } }];
     await submitValid();
     expect(
-      await screen.findByText("Your seller request was rejected"),
+      await screen.findByText("Your Seller Request Was Rejected"),
       "an already-existing request did not show its real status",
     ).toBeInTheDocument();
   });
@@ -498,7 +498,7 @@ describe("submitting", () => {
     );
     act(() => store.setState({ reAuthResult: "success" } as any));
     expect(
-      await screen.findByText("Your seller request is under review", {}, { timeout: 3000 }),
+      await screen.findByText("Your Seller Request Is Under Review", {}, { timeout: 3000 }),
       "the request was not resent after the phone was verified",
     ).toBeInTheDocument();
   });

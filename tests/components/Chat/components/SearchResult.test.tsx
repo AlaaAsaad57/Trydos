@@ -105,7 +105,7 @@ describe("SearchResult — inviting someone", () => {
       fireEvent.click(screen.getByText("Copy Invite"));
     });
     expect(writeText.mock.calls[0]?.[0], "the invite text was not copied").toContain("Join us at");
-    expect(window.alert, "the copy was not confirmed").toHaveBeenCalledWith("Link copied to clipboard!");
+    expect(window.alert, "the copy was not confirmed").toHaveBeenCalledWith("Link Copied To Clipboard!");
     writeText.mockRejectedValueOnce(new Error("denied"));
     act(() => fireEvent.click(screen.getByText("Invite")));
     await act(async () => {

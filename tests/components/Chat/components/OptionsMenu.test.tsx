@@ -167,7 +167,7 @@ describe("OptionsMenu — the message menu", () => {
 describe("OptionsMenu — the delete confirm box", () => {
   it("my own message can be deleted for everyone or for me", async () => {
     const { props } = await mount({ DeleteModal: true });
-    expect(screen.getByText("Do you want to delete this message?").parentElement!.parentElement!.parentElement, "the confirm box was not put on the body").toBe(document.body);
+    expect(screen.getByText("Do You Want To Delete This Message?").parentElement!.parentElement!.parentElement, "the confirm box was not put on the body").toBe(document.body);
     fireEvent.click(screen.getByText("For All"));
     expect(props.deleteMessage, "delete for everyone did not run").toHaveBeenCalledWith(true);
     fireEvent.keyDown(screen.getByText("For All"), { key: "Enter" });

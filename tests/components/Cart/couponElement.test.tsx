@@ -46,7 +46,7 @@ describe("CouponElement component", () => {
       />,
     );
 
-    const container = screen.getByText("I Have a Discount Coupon");
+    const container = screen.getByText("I Have A Discount Coupon");
     expect(container).toBeInTheDocument();
 
     fireEvent.click(container);

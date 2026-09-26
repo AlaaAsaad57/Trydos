@@ -95,7 +95,7 @@ describe("the notifications panel list", () => {
     await scrollToBottom(body());
     expect(await screen.findByText("notice 3"), "scrolling to the bottom must load the next page").toBeInTheDocument();
     expect(spies.fetch, "the second request must ask for page 2").toHaveBeenLastCalledWith(2);
-    expect(screen.getByText("No more notifications"), "after the last page the panel must say there is no more").toBeInTheDocument();
+    expect(screen.getByText("No More Notifications"), "after the last page the panel must say there is no more").toBeInTheDocument();
 
     await scrollToBottom(body());
     expect(spies.fetch, "after the last page no more requests must be sent").toHaveBeenCalledTimes(2);
@@ -126,7 +126,7 @@ describe("the notifications panel list", () => {
 
     await act(async () => finish(page([], null)));
     expect(document.querySelector('[data-pw="notification-loading"]'), "the loading line must go after the load").toBeNull();
-    expect(screen.queryByText("No more notifications"), "an empty list must not say 'no more'").not.toBeInTheDocument();
+    expect(screen.queryByText("No More Notifications"), "an empty list must not say 'no more'").not.toBeInTheDocument();
   });
 
   it("logs a refused page with the backend's message", async () => {

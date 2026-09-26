@@ -117,7 +117,7 @@ describe("Gallery section — the grid", () => {
     getProductImages.mockResolvedValue(listAnswer([]));
     await mount();
     expect(
-      await screen.findByText("No images found"),
+      await screen.findByText("No Images Found"),
       "an empty gallery should say so rather than show an empty grid",
     ).toBeInTheDocument();
   });
@@ -392,7 +392,7 @@ describe("Gallery section — deleting several at once", () => {
     await screen.findByAltText("a.webp");
 
     await userEvent.click(toolbarSelectButton());
-    await userEvent.click(screen.getByRole("button", { name: "Select all" }));
+    await userEvent.click(screen.getByRole("button", { name: "Select All" }));
 
     expect(
       await screen.findByText(/2\s*selected/),
@@ -418,7 +418,7 @@ describe("Gallery section — deleting several at once", () => {
     await screen.findByAltText("a.webp");
 
     await userEvent.click(toolbarSelectButton());
-    await userEvent.click(screen.getByRole("button", { name: "Select all" }));
+    await userEvent.click(screen.getByRole("button", { name: "Select All" }));
     await userEvent.click(screen.getByRole("button", { name: /Delete \(2\)/ }));
     await userEvent.click(
       screen.getAllByRole("button", { name: /Delete \(2\)/ }).at(-1)!,
@@ -438,7 +438,7 @@ describe("Gallery section — deleting several at once", () => {
     await screen.findByAltText("a.webp");
 
     await userEvent.click(toolbarSelectButton());
-    await userEvent.click(screen.getByRole("button", { name: "Select all" }));
+    await userEvent.click(screen.getByRole("button", { name: "Select All" }));
     await userEvent.click(screen.getByRole("button", { name: /Delete \(2\)/ }));
     await userEvent.click(
       screen.getAllByRole("button", { name: /Delete \(2\)/ }).at(-1)!,
@@ -456,7 +456,7 @@ describe("Gallery section — the permission gates", () => {
     await mount({ canUpload: false });
     await screen.findByAltText("photo-1.webp");
     expect(
-      screen.queryByText("Drop images here"),
+      screen.queryByText("Drop Images Here"),
       "a seller who cannot upload must not be offered a drop zone",
     ).not.toBeInTheDocument();
   });
@@ -485,7 +485,7 @@ describe("Gallery section — the permission gates", () => {
 
 describe("Gallery section — choosing files other ways", () => {
   const dropZone = () =>
-    screen.getByText("Drop images here").closest("[class*='border-dashed']") as HTMLElement;
+    screen.getByText("Drop Images Here").closest("[class*='border-dashed']") as HTMLElement;
 
   it("highlights the drop zone while files are over it and takes dropped images", async () => {
     await mount();
@@ -640,7 +640,7 @@ describe("Gallery section — picking tiles", () => {
     await userEvent.click(tileB);
     expect(await screen.findByText(/1\s*selected/), "a second click should unselect it").toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: "Select all" }));
+    await userEvent.click(screen.getByRole("button", { name: "Select All" }));
     await userEvent.click(screen.getByRole("button", { name: "Deselect all" }));
     expect(
       screen.getByText("Select images to delete"),
@@ -655,18 +655,18 @@ describe("Gallery section — picking tiles", () => {
     await mount();
     await screen.findByAltText("a.webp");
     await userEvent.click(toolbarSelectButton());
-    await userEvent.click(screen.getByRole("button", { name: "Select all" }));
+    await userEvent.click(screen.getByRole("button", { name: "Select All" }));
     await userEvent.click(screen.getByRole("button", { name: /Delete \(2\)/ }));
-    const heading = screen.getByRole("heading", { name: /Delete 2 images/ });
+    const heading = screen.getByRole("heading", { name: /Delete 2 Images/ });
     await userEvent.click(heading);
-    expect(screen.getByRole("heading", { name: /Delete 2 images/ }), "a click inside must not close it").toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Delete 2 Images/ }), "a click inside must not close it").toBeInTheDocument();
 
     await userEvent.click(screen.getAllByRole("button", { name: "Cancel" }).at(-1)!);
-    expect(screen.queryByRole("heading", { name: /Delete 2 images/ }), "Cancel should close the confirm").not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /Delete 2 Images/ }), "Cancel should close the confirm").not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /Delete \(2\)/ }));
-    await userEvent.click(screen.getByRole("heading", { name: /Delete 2 images/ }).closest("[class*='bg-black']") as HTMLElement);
-    expect(screen.queryByRole("heading", { name: /Delete 2 images/ }), "the backdrop should close the confirm").not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("heading", { name: /Delete 2 Images/ }).closest("[class*='bg-black']") as HTMLElement);
+    expect(screen.queryByRole("heading", { name: /Delete 2 Images/ }), "the backdrop should close the confirm").not.toBeInTheDocument();
     expect(screen.getByText(/2\s*selected/), "closing the confirm must keep the selection").toBeInTheDocument();
   });
 
@@ -675,7 +675,7 @@ describe("Gallery section — picking tiles", () => {
     await mount();
     await screen.findByAltText("a.webp");
     await userEvent.click(toolbarSelectButton());
-    await userEvent.click(screen.getByRole("button", { name: "Select all" }));
+    await userEvent.click(screen.getByRole("button", { name: "Select All" }));
     await userEvent.click(screen.getByRole("button", { name: /Delete \(2\)/ }));
     await userEvent.click(screen.getAllByRole("button", { name: /Delete \(2\)/ }).at(-1)!);
     expect(await screen.findByText("Images are in use."), "the backend's refusal should be shown").toBeInTheDocument();
@@ -686,10 +686,10 @@ describe("Gallery section — picking tiles", () => {
     await mount();
     await screen.findByAltText("a.webp");
     await userEvent.click(toolbarSelectButton());
-    await userEvent.click(screen.getByRole("button", { name: "Select all" }));
+    await userEvent.click(screen.getByRole("button", { name: "Select All" }));
     await userEvent.click(screen.getByRole("button", { name: /Delete \(2\)/ }));
     await userEvent.click(screen.getAllByRole("button", { name: /Delete \(2\)/ }).at(-1)!);
-    expect(await screen.findByText("Failed to delete images"), "a bare refusal should still be explained").toBeInTheDocument();
+    expect(await screen.findByText("Failed To Delete Images"), "a bare refusal should still be explained").toBeInTheDocument();
   });
 });
 

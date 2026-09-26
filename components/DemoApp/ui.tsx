@@ -471,6 +471,7 @@ export function FieldInput({
   x = 12,
   inputMode,
   type = "text",
+  onFocus,
   onBlur,
   testId,
 }: {
@@ -482,6 +483,7 @@ export function FieldInput({
   x?: number;
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   type?: string;
+  onFocus?: () => void;
   onBlur?: () => void;
   testId?: string;
 }) {
@@ -494,6 +496,7 @@ export function FieldInput({
       inputMode={inputMode}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
+      onFocus={onFocus}
       onBlur={onBlur}
       className="absolute bg-transparent outline-none font-normal placeholder:text-[#D3D3D3]"
       // Baseline 43 in the box, 14 px: the box top is 29, the line 17.5.

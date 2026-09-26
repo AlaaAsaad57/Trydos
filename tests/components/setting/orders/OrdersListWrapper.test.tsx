@@ -260,7 +260,7 @@ describe("OrdersListWrapper (components/setting/orders/OrdersListWrapper.tsx)", 
 
       await waitFor(() => {
         expect(
-          screen.getByText("No orders found for this status."),
+          screen.getByText("No Orders Found For This Status."),
           "should display empty state message",
         ).toBeInTheDocument();
       });
@@ -301,7 +301,7 @@ describe("OrdersListWrapper (components/setting/orders/OrdersListWrapper.tsx)", 
       });
     });
 
-    it("displays 'No more orders' when hasMore is false and orders exist", async () => {
+    it("displays 'No More Orders' when hasMore is false and orders exist", async () => {
       mockFetchOrders.mockResolvedValueOnce({
         isSuccessful: true,
         data: {
@@ -328,8 +328,8 @@ describe("OrdersListWrapper (components/setting/orders/OrdersListWrapper.tsx)", 
 
       await waitFor(() => {
         expect(
-          screen.getByText("No more orders"),
-          "should show 'No more orders' when all available orders are loaded",
+          screen.getByText("No More Orders"),
+          "should show 'No More Orders' when all available orders are loaded",
         ).toBeInTheDocument();
       });
     });
@@ -454,7 +454,7 @@ describe("OrdersListWrapper (components/setting/orders/OrdersListWrapper.tsx)", 
       );
       await waitFor(() =>
         expect(
-          screen.getByText("No orders found for this status."),
+          screen.getByText("No Orders Found For This Status."),
           "a refused page did not end in the empty state",
         ).toBeInTheDocument(),
       );

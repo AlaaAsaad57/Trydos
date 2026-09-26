@@ -30,8 +30,10 @@ import {
  *
  * Fields, 55 tall, 4 px apart from y 285: country (opens the country sheet),
  * "Select from list" (opens the place sheet), detailed address, title. A field
- * with a value turns `#FCFCFC`; when the whole form is filled the lines go too
- * and "Add & save" rises, as on 99.
+ * with a value turns `#FCFCFC`; the field in use (focused, or its sheet open)
+ * stays white with its line, as on 95 and 97. When the whole form is filled
+ * "Add & save" rises and the lines go, the map card's included, as on 99 —
+ * at once, even while the last field still has focus.
  *
  * Nothing is looked up: the map is the picture in the file and the places are
  * the mock list in demoPlaces.ts.
@@ -55,9 +57,15 @@ export default function AddressFormScreen() {
   const [title, setTitle] = useState(editing?.title ?? "");
   const [located, setLocated] = useState(editing !== null);
   const [sheet, setSheet] = useState<"country" | "place" | null>(null);
+  const [focused, setFocused] = useState<"detail" | "title" | null>(null);
+  // The field in use: the text field with focus, or the one whose sheet is open.
+  const active = focused ?? sheet;
 
   const placeDone = picked.length === LEVELS.length;
   const complete = placeDone && detail.trim() !== "" && title.trim() !== "";
+  // The lines go the moment the form is complete, even with a field still
+  // focused. An open sheet keeps them, as on 95 and 97.
+  const done = complete && sheet === null;
   const shift = located ? MAP_GROWTH : 0;
   const countryName = t(countryOf(country).name);
 
@@ -78,9 +86,9 @@ export default function AddressFormScreen() {
     back();
   };
 
-  const fieldLook = (filled: boolean) => ({
-    editing: !(complete || filled),
-    filledLine: !complete,
+  const fieldLook = (id: "country" | "place", filled: boolean) => ({
+    editing: !done && (active === id || !filled),
+    filledLine: !done,
   });
 
   return (
@@ -129,11 +137,12 @@ export default function AddressFormScreen() {
 
       {/* The map card. */}
       <motion.div
+        data-pw="demo-address-map"
         className="absolute overflow-hidden"
         initial={false}
         animate={{
           height: located ? 186 : 121,
-          boxShadow: located
+          boxShadow: done
             ? "inset 0 0 0 0px #D3D3D3"
             : "inset 0 0 0 0.5px #D3D3D3",
         }}
@@ -156,7 +165,6 @@ export default function AddressFormScreen() {
             top: 12,
             width: 382,
             borderRadius: 15,
-            boxShadow: "inset 0 0 0 0.5px #D3D3D3",
           }}
         >
           {}
@@ -165,6 +173,12 @@ export default function AddressFormScreen() {
             alt=""
             className="absolute inset-0 w-full h-full object-cover"
             draggable={false}
+          />
+          {/* The line goes over the picture: on the box itself the picture covers it. */}
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 pointer-events-none"
+            style={{ borderRadius: 15, boxShadow: "inset 0 0 0 0.5px #D3D3D3" }}
           />
         </motion.div>
 
@@ -266,7 +280,7 @@ export default function AddressFormScreen() {
         <FieldShell
           y={285}
           label={t("Country | Region")}
-          {...fieldLook(true)}
+          {...fieldLook("country", true)}
           onClick={() => setSheet("country")}
           testId="demo-address-country"
         >
@@ -285,7 +299,7 @@ export default function AddressFormScreen() {
         <FieldShell
           y={344}
           label={t("Select from list")}
-          {...fieldLook(placeDone)}
+          {...fieldLook("place", placeDone)}
           onClick={() => setSheet("place")}
           testId="demo-address-place"
         >
@@ -310,12 +324,14 @@ export default function AddressFormScreen() {
         <Field
           y={403}
           label={t("Detailed address")}
-          {...fieldEditing(complete, detail)}
+          {...fieldEditing(done, detail, focused === "detail")}
         >
           <FieldInput
             testId="demo-address-detail"
             value={detail}
             onChange={setDetail}
+            onFocus={() => setFocused("detail")}
+            onBlur={() => setFocused(null)}
             editing
             placeholder={t("Street address, building, Flat, Door, unit.")}
           />
@@ -324,12 +340,14 @@ export default function AddressFormScreen() {
         <Field
           y={462}
           label={t("Address title")}
-          {...fieldEditing(complete, title)}
+          {...fieldEditing(done, title, focused === "title")}
         >
           <FieldInput
             testId="demo-address-title"
             value={title}
             onChange={setTitle}
+            onFocus={() => setFocused("title")}
+            onBlur={() => setFocused(null)}
             editing
             placeholder={t("Ex: Home, my office, 2 home ect.")}
           />
@@ -339,10 +357,14 @@ export default function AddressFormScreen() {
   );
 }
 
-/** A text field is white with a line while empty, `#FCFCFC` once it has text, and loses the line when the form is done. */
-const fieldEditing = (complete: boolean, value: string) => ({
-  editing: !complete && value.trim() === "",
-  line: !complete,
+/**
+ * A text field is white with a line while empty or in use, `#FCFCFC` once it
+ * has text, and `#FCFCFC` with no line when the form is done — focused or not,
+ * since a white field with no line is lost on the white page.
+ */
+const fieldEditing = (done: boolean, value: string, inUse: boolean) => ({
+  editing: !done && (inUse || value.trim() === ""),
+  line: !done,
 });
 
 /** A field that opens a sheet instead of taking text. */

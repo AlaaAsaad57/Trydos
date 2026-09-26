@@ -122,11 +122,11 @@ describe("UploadImageComponent", () => {
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Add Photo"));
-    expect(screen.getByText("files"), "the menu did not open").toBeInTheDocument();
+    expect(screen.getByText("Files"), "the menu did not open").toBeInTheDocument();
     const clickSpy = vi.spyOn(fileInput(), "click");
-    fireEvent.click(screen.getByText("files"));
+    fireEvent.click(screen.getByText("Files"));
     expect(clickSpy, "choosing files did not open the file dialog").toHaveBeenCalled();
-    expect(screen.queryByText("files"), "the menu stayed open").not.toBeInTheDocument();
+    expect(screen.queryByText("Files"), "the menu stayed open").not.toBeInTheDocument();
   });
 
   it("uploads a picked and cropped file as a return photo", async () => {
@@ -204,7 +204,7 @@ describe("UploadImageComponent", () => {
   it("warns when reading the picked file throws", async () => {
     await renderWithProviders(<Harness />);
     const input = fileInput();
-    Object.defineProperty(input, "files", {
+    Object.defineProperty(input, "Files", {
       configurable: true,
       get() {
         throw new Error("unreadable");
@@ -279,7 +279,7 @@ describe("UploadImageComponent", () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({ blob: async () => new Blob(["x"]) })));
     await renderWithProviders(<Harness />);
     fireEvent.click(screen.getByText("Add Photo"));
-    fireEvent.click(screen.getByText("camera"));
+    fireEvent.click(screen.getByText("Camera"));
     const cam = await screen.findByTestId("webcam");
     expect(cam.dataset.facing, "the camera did not start facing the user").toBe("user");
 
@@ -325,7 +325,7 @@ describe("UploadImageComponent", () => {
     vi.stubGlobal("fetch", vi.fn(async () => Promise.reject(new Error("bad data url"))));
     await renderWithProviders(<Harness />);
     fireEvent.click(screen.getByText("Add Photo"));
-    fireEvent.click(screen.getByText("camera"));
+    fireEvent.click(screen.getByText("Camera"));
     await screen.findByTestId("webcam");
     fireEvent.click(screen.getAllByRole("button")[1]);
     await act(async () => {

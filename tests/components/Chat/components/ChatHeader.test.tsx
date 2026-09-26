@@ -98,7 +98,7 @@ describe("ChatHeader — who and where", () => {
     await mount({ activeChat: chat({ status: "null", activeDate: "2030-01-15T11:58:00" }) });
     expect(screen.getByText("Online"), "someone seen two minutes ago was not online").toBeInTheDocument();
     await mount({ activeChat: chat({ activeDate: "2020-01-15T10:00:00" }) });
-    expect(screen.getByText(/last Seen/), "someone seen long ago did not show last seen").toBeInTheDocument();
+    expect(screen.getByText(/Last Seen/), "someone seen long ago did not show last seen").toBeInTheDocument();
   });
 
   it("hides the status of a blocked chat, and an empty status", async () => {
@@ -177,8 +177,8 @@ describe("ChatHeader — calls", () => {
     fireEvent.click(voiceBtn());
     fireEvent.click(videoBtn());
     expect(h.showError.mock.calls.map((c) => c[0]), "the blocked calls were not refused with a message").toEqual([
-      "You cannot send messages or calls to this user",
-      "You cannot send messages or calls to this user",
+      "You Cannot Send Messages Or Calls To This User",
+      "You Cannot Send Messages Or Calls To This User",
     ]);
     expect(h.voice, "a blocked chat placed a call").not.toHaveBeenCalled();
   });
@@ -188,8 +188,8 @@ describe("ChatHeader — calls", () => {
     fireEvent.click(voiceBtn());
     fireEvent.click(videoBtn());
     expect(h.showError.mock.calls.map((c) => c[0]), "a call that could not start was not reported").toEqual([
-      "Failed to Initialize Call",
-      "Failed to Initialize Call",
+      "Failed To Initialize Call",
+      "Failed To Initialize Call",
     ]);
     expect(h.logError.mock.calls.map((c) => c[0].scenario), "the failed calls were not logged").toEqual([
       "initial audioCallFunction in chat header - chat widget",

@@ -19,6 +19,7 @@ import {
 } from "./errorSerialization";
 import { CartApiInterface } from "./types/cart";
 import { RoundPrice as roundPriceRule } from "./server/helpers";
+import { titleCaseWords } from "./titleCase";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -77,7 +78,9 @@ export function translateFunction(key: string, language?: string | string[]) {
     languageUrl =
       (language as string) || LocalizationServiceClass.GetAppLanguage();
   }
-  if (!languageUrl || languageUrl === "en") return key;
+  if (!languageUrl) return key;
+  // The English key is the English text; shown with a capital on every word.
+  if (languageUrl === "en") return titleCaseWords(key);
 
   // Return from cache if already loaded (synchronous fast path)
   const cached = translationCache[languageUrl];

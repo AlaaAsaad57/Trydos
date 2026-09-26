@@ -107,7 +107,7 @@ describe("the reminder picker", () => {
   it("sets a quick choice about an hour from now and closes", async () => {
     const { onClose } = await mountReminder();
     const before = Date.now();
-    await act(async () => fireEvent.click(screen.getByText("In 1 hour")));
+    await act(async () => fireEvent.click(screen.getByText("In 1 Hour")));
     const [channelId, messageId, at] = h.setReminder.mock.calls[0] ?? [];
     expect(
       [channelId, messageId],
@@ -116,7 +116,7 @@ describe("the reminder picker", () => {
     const minutes = ((at as Date).getTime() - before) / 60000;
     expect(
       minutes >= 59 && minutes <= 61,
-      `"In 1 hour" asked for a time ${minutes} minutes away`,
+      `"In 1 Hour" asked for a time ${minutes} minutes away`,
     ).toBe(true);
     await waitFor(() =>
       expect(
@@ -135,7 +135,7 @@ describe("the reminder picker", () => {
     expect(
       screen.getByRole("alert").textContent,
       "a past time was not refused",
-    ).toBe("Choose a time in the future");
+    ).toBe("Choose A Time In The Future");
     expect(
       h.setReminder,
       "a past time was sent to the chat backend, which refuses it",
@@ -151,7 +151,7 @@ describe("the reminder picker", () => {
     expect(
       screen.getByRole("alert").textContent,
       "a time after 2038-01-19 was not refused",
-    ).toBe("Choose an earlier time");
+    ).toBe("Choose An Earlier Time");
     expect(
       h.setReminder,
       "a time after 2038-01-19 was sent to the chat backend",
@@ -165,7 +165,7 @@ describe("the reminder picker", () => {
       created_at: "2030-01-15T10:00:00",
     });
     expect(
-      screen.getByText(/Reminder set for/),
+      screen.getByText(/Reminder Set For/),
       "the picker did not show the reminder the message already has",
     ).toBeInTheDocument();
     await act(async () =>
@@ -188,7 +188,7 @@ describe("the reminder picker", () => {
   it("stays open when the chat backend refuses the reminder", async () => {
     h.setReminder.mockResolvedValueOnce(false);
     const { onClose } = await mountReminder();
-    await act(async () => fireEvent.click(screen.getByText("In 3 hours")));
+    await act(async () => fireEvent.click(screen.getByText("In 3 Hours")));
     expect(h.setReminder, "the reminder was not sent").toHaveBeenCalled();
     expect(
       onClose,

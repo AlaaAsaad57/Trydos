@@ -30,7 +30,7 @@ async function renderSortControl(search = "") {
 }
 
 const openTheSheet = async () => {
-  await userEvent.click(screen.getByRole("button", { name: /^Sort products/ }));
+  await userEvent.click(screen.getByRole("button", { name: /^Sort Products/ }));
 };
 
 const confirmButton = () => screen.getByRole("button", { name: "Confirm" });
@@ -49,7 +49,7 @@ describe("the listing sort widget", () => {
       await renderSortControl();
 
       expect(
-        screen.getByRole("button", { name: "Sort products — Default" }),
+        screen.getByRole("button", { name: "Sort Products — Default" }),
         "with no `?sort=` in the address the listing is in its default order, and the trigger's label is the only place a screen reader is told which order that is",
       ).toBeInTheDocument();
     });
@@ -59,7 +59,7 @@ describe("the listing sort widget", () => {
 
       expect(
         screen.getByRole("button", {
-          name: "Sort products — Price: Low to High",
+          name: "Sort Products — Price: Low To High",
         }),
         "a shared cheapest-first link must announce cheapest-first, not the default",
       ).toBeInTheDocument();
@@ -69,7 +69,7 @@ describe("the listing sort widget", () => {
       await renderSortControl("sort=cheapest");
 
       expect(
-        screen.getByRole("button", { name: "Sort products — Default" }),
+        screen.getByRole("button", { name: "Sort Products — Default" }),
         "a hand-edited or stale `?sort=` value must fall back to the default order rather than being passed to the backend as a key it does not know",
       ).toBeInTheDocument();
     });
@@ -79,7 +79,7 @@ describe("the listing sort widget", () => {
       await openTheSheet();
 
       expect(
-        screen.getByRole("radio", { name: "Name: Z to A" }),
+        screen.getByRole("radio", { name: "Name: Z To A" }),
         "the sheet must open showing what is actually applied, so the shopper can see the current order before changing it",
       ).toBeChecked();
     });
@@ -91,7 +91,7 @@ describe("the listing sort widget", () => {
       await openTheSheet();
 
       await userEvent.click(
-        screen.getByRole("radio", { name: "Price: High to Low" }),
+        screen.getByRole("radio", { name: "Price: High To Low" }),
       );
 
       expect(
@@ -99,7 +99,7 @@ describe("the listing sort widget", () => {
         "tapping a row only stages a draft — the listing must not reorder under the shopper before they press Confirm",
       ).toBe("");
       expect(
-        screen.getByRole("radio", { name: "Price: High to Low" }),
+        screen.getByRole("radio", { name: "Price: High To Low" }),
         "the tapped row must show as staged, otherwise the shopper cannot tell their tap registered",
       ).toBeChecked();
     });
@@ -109,7 +109,7 @@ describe("the listing sort widget", () => {
       await openTheSheet();
 
       await userEvent.click(
-        screen.getByRole("radio", { name: "Price: Low to High" }),
+        screen.getByRole("radio", { name: "Price: Low To High" }),
       );
       await userEvent.click(confirmButton());
 
@@ -136,7 +136,7 @@ describe("the listing sort widget", () => {
       await renderSortControl("search=blue+shirt");
       await openTheSheet();
 
-      await userEvent.click(screen.getByRole("radio", { name: "Name: A to Z" }));
+      await userEvent.click(screen.getByRole("radio", { name: "Name: A To Z" }));
       await userEvent.click(confirmButton());
 
       expect(
@@ -153,7 +153,7 @@ describe("the listing sort widget", () => {
       await renderSortControl();
       await openTheSheet();
 
-      await userEvent.click(screen.getByRole("radio", { name: /Best sellers/ }));
+      await userEvent.click(screen.getByRole("radio", { name: /Best Sellers/ }));
       await userEvent.click(confirmButton());
 
       expect(
@@ -178,7 +178,7 @@ describe("the listing sort widget", () => {
       await renderSortControl();
       await openTheSheet();
 
-      await userEvent.click(screen.getByRole("radio", { name: /Best sellers/ }));
+      await userEvent.click(screen.getByRole("radio", { name: /Best Sellers/ }));
       await userEvent.click(confirmButton());
 
       expect(
@@ -237,7 +237,7 @@ describe("the listing sort widget", () => {
 
       // Stage something else, then dismiss without confirming.
       await userEvent.click(
-        screen.getByRole("radio", { name: "Price: Low to High" }),
+        screen.getByRole("radio", { name: "Price: Low To High" }),
       );
       await userEvent.keyboard("{Escape}");
       await waitFor(
@@ -251,11 +251,11 @@ describe("the listing sort widget", () => {
       await openTheSheet();
 
       expect(
-        screen.getByRole("radio", { name: "New arrivals: Newest" }),
+        screen.getByRole("radio", { name: "New Arrivals: Newest" }),
         "the applied sort is newest-first, so that is the row the reopened sheet must show as chosen — not the draft that was walked away from",
       ).toBeChecked();
       expect(
-        screen.getByRole("radio", { name: "Price: Low to High" }),
+        screen.getByRole("radio", { name: "Price: Low To High" }),
         "the abandoned draft must not survive the sheet being dismissed",
       ).not.toBeChecked();
     });

@@ -168,7 +168,7 @@ describe("Locations section — nothing to show", () => {
     getShopLocations.mockResolvedValue(listAnswer([]));
     await mount();
     expect(
-      await screen.findByText("No locations found"),
+      await screen.findByText("No Locations Found"),
       "an empty shop should be told it has no locations, not left blank",
     ).toBeInTheDocument();
   });
@@ -177,7 +177,7 @@ describe("Locations section — nothing to show", () => {
     getShopLocations.mockResolvedValue(listAnswer([]));
     await mount();
     expect(
-      await screen.findByRole("button", { name: /Add your first location/ }),
+      await screen.findByRole("button", { name: /Add Your First Location/ }),
       "an empty section should offer the action that fills it",
     ).toBeInTheDocument();
   });
@@ -185,9 +185,9 @@ describe("Locations section — nothing to show", () => {
   it("offers no add action when the seller may not create", async () => {
     getShopLocations.mockResolvedValue(listAnswer([]));
     await mount({ canCreate: false });
-    await screen.findByText("No locations found");
+    await screen.findByText("No Locations Found");
     expect(
-      screen.queryByRole("button", { name: /Add your first location/ }),
+      screen.queryByRole("button", { name: /Add Your First Location/ }),
       "without CREATE_LOCATION the empty state must not offer to add one",
     ).not.toBeInTheDocument();
   });
@@ -472,7 +472,7 @@ describe("Locations section — closing and saving the form", () => {
     getShopLocations.mockResolvedValue(listAnswer([]));
     await mount();
     await userEvent.click(
-      await screen.findByRole("button", { name: /Add your first location/ }),
+      await screen.findByRole("button", { name: /Add Your First Location/ }),
     );
     expect(
       (await screen.findByTestId("location-form")).textContent,

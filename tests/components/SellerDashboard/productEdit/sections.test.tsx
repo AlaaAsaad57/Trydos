@@ -311,7 +311,7 @@ describe("Select drop-down (through CoreSection)", () => {
 
     fireEvent.change(search, { target: { value: "nothing-like-this" } });
     expect(
-      within(field(container, "brand_id")).getByText("No options found"),
+      within(field(container, "brand_id")).getByText("No Options Found"),
       "an empty search result must say so",
     ).toBeInTheDocument();
 
@@ -408,7 +408,7 @@ describe("PricingSection", () => {
     });
     expect(inputIn(container, "current_stock"), "stock must be locked with variants").toBeDisabled();
     expect(
-      screen.getByText("Auto-calculated from variations"),
+      screen.getByText("Auto-calculated From Variations"),
       "the stock hint must explain why it is locked",
     ).toBeInTheDocument();
   });
@@ -428,7 +428,7 @@ describe("CategoriesSection", () => {
   it("filters by name or translated name and explains an empty group", async () => {
     await mount(CategoriesSection);
     expect(
-      screen.getByText("No options available for the current selection."),
+      screen.getByText("No Options Available For The Current Selection."),
       "an empty sub-sub list must explain why it is empty",
     ).toBeInTheDocument();
 
@@ -438,7 +438,7 @@ describe("CategoriesSection", () => {
     expect(screen.getByRole("button", { name: "Hommes" }), "a translated name must match").toBeInTheDocument();
 
     fireEvent.change(mainSearch, { target: { value: "zzz" } });
-    expect(screen.getByText("No matching options."), "no match must say so").toBeInTheDocument();
+    expect(screen.getByText("No Matching Options."), "no match must say so").toBeInTheDocument();
 
     const subSearch = screen.getAllByPlaceholderText("Search...")[1];
     fireEvent.change(subSearch, { target: { value: "dress" } });
@@ -528,7 +528,7 @@ describe("DescriptorsSection", () => {
       />,
     );
     expect(
-      screen.getByText("Select a category to see its attributes."),
+      screen.getByText("Select A Category To See Its Attributes."),
       "no attributes in edit mode must ask for a category",
     ).toBeInTheDocument();
     expect(screen.getByText("Loading…"), "busy must show the loading layer").toBeInTheDocument();
@@ -572,7 +572,7 @@ describe("ClassificationSection", () => {
     expect(screen.getByRole("button", { name: "Sicak" }), "translated label must match").toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "New" }), "other labels hidden").toBeNull();
     fireEvent.change(labelSearch, { target: { value: "zzz" } });
-    expect(screen.getAllByText("No matching options.").length, "label search miss").toBe(1);
+    expect(screen.getAllByText("No Matching Options.").length, "label search miss").toBe(1);
 
     fireEvent.change(tagSearch, { target: { value: "summ" } });
     expect(screen.getByRole("button", { name: "summer" }), "a tag must match by name").toBeInTheDocument();
@@ -591,7 +591,7 @@ describe("ClassificationSection", () => {
     expect(latest.tags_ids, "clicking a tag must add its id").toEqual([3]);
 
     fireEvent.change(tagSearch, { target: { value: "zzz" } });
-    expect(screen.getByText("No matching options."), "tag search miss must say so").toBeInTheDocument();
+    expect(screen.getByText("No Matching Options."), "tag search miss must say so").toBeInTheDocument();
   });
 
   it("in view mode shows only chosen labels and tags, None when empty, and the label error", async () => {
@@ -640,13 +640,13 @@ describe("CountriesSection", () => {
     fireEvent.click(screen.getByRole("button", { name: "Iraq" }));
     expect(latest.countries_iso, "picking it again must remove IQ").toEqual([]);
 
-    expect(screen.getByText("No per-country surcharges."), "empty list message").toBeInTheDocument();
+    expect(screen.getByText("No Per-country Surcharges."), "empty list message").toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
 
     const selects = container.querySelectorAll("select");
     fireEvent.change(selects[0], { target: { value: "SY" } });
-    const prices = screen.getAllByPlaceholderText("Extra price");
+    const prices = screen.getAllByPlaceholderText("Extra Price");
     fireEvent.change(prices[0], { target: { value: "7" } });
     expect(latest.extra_price_for_country[0], "the first surcharge row must hold SY / 7").toEqual({
       country_iso: "SY",
@@ -672,7 +672,7 @@ describe("CountriesSection", () => {
       { disabled: true, lookups: { ...LOOKUPS, countries: undefined as any } },
     );
     expect(screen.queryByRole("button", { name: "Add" }), "view mode has no Add").toBeNull();
-    expect(screen.getByPlaceholderText("Extra price"), "view mode inputs are locked").toBeDisabled();
+    expect(screen.getByPlaceholderText("Extra Price"), "view mode inputs are locked").toBeDisabled();
   });
 });
 
@@ -708,7 +708,7 @@ describe("SeoSection", () => {
     const { container } = await mount(SeoSection, {}, { canUseGallery: true });
 
     fireEvent.click(screen.getByRole("button", { name: /Add Image/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Choose from gallery/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Choose From Gallery/ }));
     expect(screen.getByTestId("gallery-picker"), "the picker must open").toHaveAttribute("data-multiple", "false");
 
     fireEvent.click(screen.getByRole("button", { name: "pick from gallery" }));
@@ -728,12 +728,12 @@ describe("SeoSection", () => {
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     const clickSpy = vi.spyOn(input, "click");
     fireEvent.click(screen.getByRole("button", { name: /Change Image/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Upload from device/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Upload From Device/ }));
     expect(clickSpy, "Upload from device must open the file picker").toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: /Change Image/ }));
     fireEvent.click(container.querySelector(".fixed.inset-0") as HTMLElement);
-    expect(screen.queryByRole("button", { name: /Choose from gallery/ }), "a backdrop click closes the menu").toBeNull();
+    expect(screen.queryByRole("button", { name: /Choose From Gallery/ }), "a backdrop click closes the menu").toBeNull();
   });
 
   it("shows 'Change Image' on the device button and hides it in view mode", async () => {
@@ -818,7 +818,7 @@ describe("MediaSection", () => {
     ];
     await mount(MediaSection, { images: [IMGS[0]] }, { canUseGallery: true });
     fireEvent.click(screen.getByRole("button", { name: /Add/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Choose from gallery/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Choose From Gallery/ }));
     expect(screen.getByTestId("gallery-picker"), "the picker allows many").toHaveAttribute("data-multiple", "true");
     fireEvent.click(screen.getByRole("button", { name: "pick from gallery" }));
     expect(latest.images, "only z.png is new").toEqual([
@@ -884,7 +884,7 @@ describe("VariantsSection", () => {
       { errors: { variation_sku_Red: "Taken on the server" } },
     );
     expect(screen.getByText("Taken on the server"), "the server SKU error must win").toBeInTheDocument();
-    expect(screen.getByText("SKU must be unique"), "the duplicate must be flagged").toBeInTheDocument();
+    expect(screen.getByText("SKU Must Be Unique"), "the duplicate must be flagged").toBeInTheDocument();
 
     const blueRow = screen
       .getAllByText("Blue")
@@ -924,7 +924,7 @@ describe("VariantsSection", () => {
       { colors: [{ code: "#ABCDEF", name: "Custom" }] },
       { pricesLocked: true },
     );
-    expect(screen.getByText("Upload images first."), "no images must say so").toBeInTheDocument();
+    expect(screen.getByText("Upload Images First."), "no images must say so").toBeInTheDocument();
     expect(screen.queryByText("Price"), "locked prices hide the Price column").toBeNull();
 
     const [colorSearch, sizeSearch] = screen.getAllByPlaceholderText("Search...");
@@ -936,7 +936,7 @@ describe("VariantsSection", () => {
     fireEvent.change(sizeSearch, { target: { value: "x" } });
     expect(screen.getByRole("button", { name: "XL" }), "a size must match by name").toBeInTheDocument();
     fireEvent.change(sizeSearch, { target: { value: "zzz" } });
-    expect(screen.getAllByText("No matching options.").length, "both misses must say so").toBe(2);
+    expect(screen.getAllByText("No Matching Options.").length, "both misses must say so").toBe(2);
   });
 
   it("in view mode shows only the chosen color and size and seeds nothing", async () => {
@@ -1042,7 +1042,7 @@ describe("TranslationsSection (create)", () => {
 
   it("adds similar words by button and Enter, skips a repeat, and removes one", async () => {
     const { container } = await mount(TranslationsSection, {}, { isCreate: true });
-    const input = screen.getByPlaceholderText("Type a word and press Enter");
+    const input = screen.getByPlaceholderText("Type A Word And Press Enter");
 
     fireEvent.change(input, { target: { value: "  " } });
     fireEvent.keyDown(input, { key: "Enter" });
@@ -1087,7 +1087,7 @@ describe("TranslationsSection (edit)", () => {
       similar_words: [],
     });
 
-    const words = screen.getAllByPlaceholderText("Type a word and press Enter");
+    const words = screen.getAllByPlaceholderText("Type A Word And Press Enter");
     fireEvent.change(words[2], { target: { value: "atki" } });
     fireEvent.keyDown(words[2], { key: "Enter" });
     expect(latest.translations.find((t) => t.language_code === "tr")?.similar_words, "tr words").toEqual(["atki"]);
@@ -1099,7 +1099,7 @@ describe("TranslationsSection (edit)", () => {
       { translations: [{ language_code: "en", name: "S", description: "", similar_words: ["w"] }] },
       { disabled: true },
     );
-    expect(screen.queryByPlaceholderText("Type a word and press Enter"), "view mode has no word box").toBeNull();
+    expect(screen.queryByPlaceholderText("Type A Word And Press Enter"), "view mode has no word box").toBeNull();
     expect(screen.queryByRole("button", { name: "✕" }), "view mode cannot remove words").toBeNull();
     expect(screen.getByText("w"), "the word itself still shows").toBeInTheDocument();
   });

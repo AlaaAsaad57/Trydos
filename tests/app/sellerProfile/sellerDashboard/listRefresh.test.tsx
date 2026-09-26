@@ -882,7 +882,7 @@ describe("the seller dashboard users tab", () => {
     await openAs(["SUPER_ADMIN"], "users");
 
     getUsers.mockResolvedValue({ success: true, data: { users: [{ id: 11, name: "Page Two Person" }], meta: null } });
-    fireEvent.click(buttonWithText("Load more"));
+    fireEvent.click(buttonWithText("Load More"));
     await settle();
 
     expect(screen.queryByText("Page Two Person"), "Load more did not add the next page of users").not.toBeNull();
@@ -904,7 +904,7 @@ describe("the seller dashboard users tab", () => {
     await openAs(["SUPER_ADMIN"], "users");
 
     fireEvent.change(screen.getByPlaceholderText("+(country_code)XXX"), { target: { value: "+000" } });
-    fireEvent.focus(screen.getByPlaceholderText("Search roles..."));
+    fireEvent.focus(screen.getByPlaceholderText("Search Roles..."));
     fireEvent.mouseDown(roleOptions()[0]);
     fireEvent.change(document.querySelector("select")!, { target: { value: "1" } });
     fireEvent.change(document.querySelector('input[type="number"]')!, { target: { value: "5" } });
@@ -954,7 +954,7 @@ describe("the seller dashboard users tab", () => {
 
   it("searches roles after the debounce, loads more, and closes the list on blur", async () => {
     await openAs(["SUPER_ADMIN"], "users");
-    const search = screen.getByPlaceholderText("Search roles...");
+    const search = screen.getByPlaceholderText("Search Roles...");
 
     fireEvent.focus(search);
     fireEvent.change(search, { target: { value: "Ma" } });
@@ -966,13 +966,13 @@ describe("the seller dashboard users tab", () => {
       "a search typed over within 400 ms was still sent",
     ).toBe(false);
 
-    fireEvent.mouseDown(buttonWithText("Load more roles"));
+    fireEvent.mouseDown(buttonWithText("Load More Roles"));
     await settle();
     expect(getRoles, "Load more roles did not ask for page 2 of the search").toHaveBeenCalledWith(SELLER_ID, 2, "Man");
 
     fireEvent.blur(search);
     await wait(200);
-    expect(screen.queryByText("Load more roles"), "the role list stayed open after the input lost focus").toBeNull();
+    expect(screen.queryByText("Load More Roles"), "the role list stayed open after the input lost focus").toBeNull();
   });
 
   it("shows the roles failure in the add-user panel", async () => {

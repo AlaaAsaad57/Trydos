@@ -168,7 +168,7 @@ describe("the placeholder names the app stores instead of a picture", () => {
 });
 
 describe("signing in another device with the QR code", () => {
-  const qrButton = () => screen.getByLabelText("Scan QR to sign in");
+  const qrButton = () => screen.getByLabelText("Scan QR To Sign In");
 
   it("opens the scanner, and closing it closes it", async () => {
     const user = userEvent.setup();

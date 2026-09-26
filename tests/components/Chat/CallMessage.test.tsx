@@ -5,7 +5,7 @@
 // it voice or video. `duration_in_seconds` is 0 for every call that never
 // connected, so only `sender_user_id` says which side started it.
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, screen } from "@testing-library/react";
+import { act, fireEvent, screen } from "@testing-library/react";
 import React from "react";
 
 // The delete call and the menu props, for the menu cases at the end of this file.
@@ -98,6 +98,97 @@ describe("CallMessage — the call bubble in a conversation", () => {
     expect(
       screen.getByText(/Missed Voice Call At/),
       "a voice call from the other side that nobody answered was not labelled as missed",
+    ).toBeInTheDocument();
+  });
+});
+
+// The incoming-call push puts the call into the conversation at once, while
+// the phone is still ringing (utils/NotificationHandler.ts, handleIncomingCall).
+// Its duration is 0 at that moment, as it is for a call nobody answered. So the
+// bubble must look at the store too: the call that is ringing or running now is
+// `MessageActiveCall`, and it is live while `isCallIncoming` (ringing) or
+// `callInProgress` (answered) is set.
+describe("CallMessage — a call that is ringing now", () => {
+  const CALL_ID = 339309;
+
+  async function renderLive(store: Record<string, any>) {
+    return renderWithProviders(
+      <CallMessage
+        setOpen={() => {}}
+        setDelete={() => {}}
+        openMenu={false}
+        type="call"
+        isPrivate={false}
+        created_at="2026-09-15T10:20:40.000Z"
+        id={CALL_ID}
+        DeleteModal={false}
+        channel_id={539}
+        channel_member={{ id: THEM, name: "Alaa Test123", photo_path: null }}
+        message_type={{ name: "VoiceCall" }}
+        duration_in_seconds={0}
+        sender_user_id={THEM}
+      />,
+      { store: { userChat: { id: ME }, activeChat: null, ...store } },
+    );
+  }
+
+  it("shows a ringing voice call as incoming, not missed", async () => {
+    await renderLive({ MessageActiveCall: CALL_ID, isCallIncoming: true });
+
+    expect(
+      screen.queryByText(/Missed/),
+      "the call was shown as missed while the phone was still ringing",
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Incoming Voice Call/),
+      "a ringing voice call was not shown as an incoming voice call",
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector('img[src="/icons/chat/call.svg"]'),
+      "a ringing voice call did not get the normal call icon",
+    ).not.toBeNull();
+  });
+
+  it("keeps an answered call as incoming while the two people talk", async () => {
+    await renderLive({ MessageActiveCall: CALL_ID, callInProgress: true });
+
+    expect(
+      screen.getByText(/Incoming Voice Call/),
+      "an answered call was shown as missed before it ended",
+    ).toBeInTheDocument();
+  });
+
+  it("turns into a missed call when this user declines it", async () => {
+    const { store } = await renderLive({ MessageActiveCall: CALL_ID, isCallIncoming: true });
+
+    // The decline button in CallComponent.jsx calls the store's refuseCall first.
+    await act(async () => store.getState().refuseCall(CALL_ID));
+
+    expect(
+      screen.getByText(/Missed Voice Call At/),
+      "a declined call did not change from incoming to missed",
+    ).toBeInTheDocument();
+  });
+
+  it("turns into a missed call when the caller gives up", async () => {
+    const { store } = await renderLive({ MessageActiveCall: CALL_ID, isCallIncoming: true });
+
+    // The caller ends the call after 60 s with no answer. The push that follows
+    // (RefuseCallEvent) runs the store's endCall with this call's id.
+    await act(async () => store.getState().endCall(CALL_ID));
+
+    expect(
+      screen.getByText(/Missed Voice Call At/),
+      "a call nobody answered did not change from incoming to missed",
+    ).toBeInTheDocument();
+  });
+
+  it("does not mark an older missed call as live when another call rings", async () => {
+    await renderLive({ MessageActiveCall: CALL_ID + 1, isCallIncoming: true });
+
+    expect(
+      screen.getByText(/Missed Voice Call At/),
+      "an old missed call looked live because a different call was ringing",
     ).toBeInTheDocument();
   });
 });

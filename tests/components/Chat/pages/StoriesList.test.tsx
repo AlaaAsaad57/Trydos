@@ -81,7 +81,7 @@ describe("StoriesList", () => {
     });
     expect(h.fetch.mock.calls[0][2], "the second page was not asked for").toBe(2);
     expect(store.getState().storiesData.map((s: any) => s.id), "the second page was not added after the first").toEqual([1, 2]);
-    expect(screen.getByText("No more stories"), "the end of the list was not shown").toBeInTheDocument();
+    expect(screen.getByText("No More Stories"), "the end of the list was not shown").toBeInTheDocument();
   });
 
   it("opens a story when its row is chosen", async () => {

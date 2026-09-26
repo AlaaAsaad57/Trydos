@@ -87,7 +87,7 @@ describe("RepliedMessage — the quoted body", () => {
     "a deleted quoted %s says so and does not jump",
     async (type) => {
       const { onClick } = await mount(type, { isDeleted: true, chat: null });
-      expect(screen.getByText("this message was deleted"), `a deleted quoted ${type} was not labelled`).toBeInTheDocument();
+      expect(screen.getByText("This Message Was Deleted"), `a deleted quoted ${type} was not labelled`).toBeInTheDocument();
       fireEvent.click(document.querySelector(".message-hold")!);
       expect(onClick, `a tap on a deleted quoted ${type} still jumped`).not.toHaveBeenCalled();
     },

@@ -92,9 +92,9 @@ async function renderReturn(opts: { returnDetails?: any; qty?: number; isRtl?: b
 }
 
 const reason = (text: string) => screen.getByText(text).closest("[style]") as HTMLElement;
-const pieces = () => screen.getByText("enter number of pieces you want to return").nextElementSibling!.textContent;
+const pieces = () => screen.getByText("Enter Number Of Pieces You Want To Return").nextElementSibling!.textContent;
 const qtyButtons = () =>
-  screen.getByText("enter number of pieces you want to return").parentElement!.parentElement!.querySelectorAll("button");
+  screen.getByText("Enter Number Of Pieces You Want To Return").parentElement!.parentElement!.querySelectorAll("button");
 
 describe("a new return", () => {
   it("starts at the full quantity, can go down to 1 and back up", async () => {

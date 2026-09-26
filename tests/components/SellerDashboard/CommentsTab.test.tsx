@@ -143,7 +143,7 @@ describe("Comments section — the two lists", () => {
     GetFQAComments.mockResolvedValue(listAnswer([]));
     await mount();
     expect(
-      await screen.findByText("No comments found."),
+      await screen.findByText("No Comments Found."),
       "an empty list should say so rather than show a blank panel",
     ).toBeInTheDocument();
   });
@@ -155,7 +155,7 @@ describe("Comments section — the two lists", () => {
     });
     await mount();
     expect(
-      await screen.findByText("No comments found."),
+      await screen.findByText("No Comments Found."),
       "a refused load must still settle, not leave the skeleton on screen forever",
     ).toBeInTheDocument();
   });
@@ -199,7 +199,7 @@ describe("Comments section — answering a question", () => {
     await userEvent.click(screen.getByRole("button", { name: /Reply/ }));
 
     expect(
-      await screen.findByText("Reply to FQA Comment"),
+      await screen.findByText("Reply To FQA Comment"),
       "the box should say it is writing a new answer",
     ).toBeInTheDocument();
     expect(
@@ -487,24 +487,24 @@ describe("Comments section — edges of the list and the reply box", () => {
     await screen.findByText("Does this come in blue?");
 
     await userEvent.click(screen.getByRole("button", { name: /Reply/ }));
-    await screen.findByText("Reply to FQA Comment");
+    await screen.findByText("Reply To FQA Comment");
     const dialogClose = screen
       .getAllByRole("button", { name: "Cancel" })
       .find((b) => b.getAttribute("aria-label") === "Cancel");
     await userEvent.click(dialogClose as HTMLElement);
     expect(
-      screen.queryByText("Reply to FQA Comment"),
+      screen.queryByText("Reply To FQA Comment"),
       "the close button should close the reply box",
     ).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /Reply/ }));
-    await screen.findByText("Reply to FQA Comment");
+    await screen.findByText("Reply To FQA Comment");
     const cancel = screen
       .getAllByRole("button", { name: "Cancel" })
       .find((b) => !b.getAttribute("aria-label"));
     await userEvent.click(cancel as HTMLElement);
     expect(
-      screen.queryByText("Reply to FQA Comment"),
+      screen.queryByText("Reply To FQA Comment"),
       "Cancel should close the reply box",
     ).not.toBeInTheDocument();
   });
