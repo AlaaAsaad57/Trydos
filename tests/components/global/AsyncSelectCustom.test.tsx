@@ -152,7 +152,7 @@ describe("the async select", () => {
     expect(
       document.querySelector('[data-pw="slot-no-options"]'),
       "an empty list after loading must say nothing was found",
-    ).toHaveTextContent("No options found");
+    ).toHaveTextContent("No Options Found");
   });
 
   it("uses the default hook name when the page gives none", async () => {

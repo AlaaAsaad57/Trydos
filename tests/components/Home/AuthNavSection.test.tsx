@@ -110,7 +110,7 @@ describe("AuthNavSection", () => {
     fireEvent.click(chatIcon(container));
     await waitFor(() =>
       expect(showErrorNotification, "the blocked-notifications message was not shown").toHaveBeenCalledWith(
-        "Notification Is Not Enabled! please Allow Notification Access",
+        "Notification Is Not Enabled! Please Allow Notification Access",
       ),
     );
     expect(s.setChatOpen, "the chat opened with notifications blocked").not.toHaveBeenCalled();

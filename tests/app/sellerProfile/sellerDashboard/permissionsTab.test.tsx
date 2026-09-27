@@ -168,7 +168,7 @@ describe("the Permissions tab role banner, on an arrival by URL", () => {
     await arriveOnPermissionsTab();
 
     expect(
-      screen.queryByText("Your role in this shop"),
+      screen.queryByText("Your Role In This Shop"),
       "the role banner never appeared; the tab is stuck on the spinner it shows while the role name is unknown, and nothing else will ever set it unless the seller opens the side menu",
     ).not.toBeNull();
     expect(
@@ -197,7 +197,7 @@ describe("the Permissions tab role banner, on an arrival by URL", () => {
     await arriveOnPermissionsTab();
 
     expect(
-      screen.queryByText("You have full access to all features"),
+      screen.queryByText("You Have Full Access To All Features"),
       "the Super Admin banner is missing; the tab waits for a role name it does not need before it will draw the banner",
     ).not.toBeNull();
   });

@@ -1120,10 +1120,10 @@ describe("VideosSection", () => {
   it("drops a freshly uploaded video and uploads a new one", async () => {
     const onUploadVideo = vi.fn();
     const { container } = await mount(VideosSection, { cloud_video: "new.mp4" }, { onUploadVideo, uploading: { video: false } });
-    expect(screen.getByText(/New video ready/), "the new video must show").toBeInTheDocument();
+    expect(screen.getByText(/New Video Ready/), "the new video must show").toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Remove" }));
     expect(latest.cloud_video, "Remove must drop the new video").toBe("");
-    expect(screen.getByText("No video attached."), "then nothing is attached").toBeInTheDocument();
+    expect(screen.getByText("No Video Attached."), "then nothing is attached").toBeInTheDocument();
 
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     const clickSpy = vi.spyOn(input, "click");

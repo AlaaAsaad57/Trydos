@@ -259,7 +259,7 @@ describe("Locations section — changing a location's status", () => {
       expect(
         showSuccessMessage,
         "a successful status change should be confirmed on screen",
-      ).toHaveBeenCalledWith("Status changed successfully");
+      ).toHaveBeenCalledWith("Status Changed Successfully");
     });
   });
 

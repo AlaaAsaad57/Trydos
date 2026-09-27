@@ -82,7 +82,7 @@ describe("ReportStoryModal", () => {
     expect(submit().disabled, "Submit stayed on while sending").toBe(true);
     expect(reportStory, "the report sent the wrong reasons or details").toHaveBeenCalledWith(42, 7, ["violence", "other"], "why");
     await act(async () => finish());
-    expect(showSuccessNotification, "the shopper was not told the report went through").toHaveBeenCalledWith("Story reported successfully.");
+    expect(showSuccessNotification, "the shopper was not told the report went through").toHaveBeenCalledWith("Story Reported Successfully.");
     expect(onClose, "the sheet did not close after a good report").toHaveBeenCalled();
   });
 
@@ -102,7 +102,7 @@ describe("ReportStoryModal", () => {
     await renderWithProviders(<ReportStoryModal storyId={1} onClose={() => {}} />);
     fireEvent.click(pick("spam"));
     await act(async () => fireEvent.click(submit()));
-    expect(showErrorNotification, "no fallback message for an empty error").toHaveBeenCalledWith("Failed to report story.");
+    expect(showErrorNotification, "no fallback message for an empty error").toHaveBeenCalledWith("Failed To Report Story.");
   });
 
   it("closes from the backdrop, the X and Cancel, but not from a tap inside the sheet", async () => {

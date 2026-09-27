@@ -147,7 +147,7 @@ describe("ShareOptions", () => {
     fireEvent.click(document.querySelector('[data-pw="copy_link_button"]') as HTMLElement);
     await waitFor(() =>
       expect(showSuccessNotification, "copying did not confirm").toHaveBeenCalledWith(
-        "Link Copied to Clipboard",
+        "Link Copied To Clipboard",
       ),
     );
     expect(writeText, "the page link was not copied").toHaveBeenCalledWith(window.location.href);

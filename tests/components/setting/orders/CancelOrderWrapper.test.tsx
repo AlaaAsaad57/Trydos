@@ -25,7 +25,7 @@ describe("the cancel reasons", () => {
     );
     await userEvent.setup().click(submit());
     expect(showErrorNotification, "no reason was asked for").toHaveBeenCalledWith(
-      "Please select a reason for canceling this order",
+      "Please Select A Reason For Canceling This Order",
     );
     expect(setShouldConfirmCancel, "the cancel went ahead with no reason").not.toHaveBeenCalled();
   });

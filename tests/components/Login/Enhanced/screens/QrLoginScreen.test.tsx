@@ -48,7 +48,7 @@ describe("QrLoginScreen", () => {
       SESSION.qrPayload,
     );
     expect(
-      screen.getByText(/open Settings → Linked Devices → Scan/),
+      screen.getByText(/Open Settings → Linked Devices → Scan/),
       "the how-to line is missing while waiting",
     ).toBeInTheDocument();
 
@@ -58,7 +58,7 @@ describe("QrLoginScreen", () => {
     qr.getQrStatus.mockResolvedValue({ status: "scanned" });
     await tick();
     expect(
-      screen.getByText("Scanned — confirm on your phone to continue"),
+      screen.getByText("Scanned — Confirm On Your Phone To Continue"),
       "the scanned state is not shown",
     ).toBeInTheDocument();
     expect(screen.getByTestId("qr").parentElement!.className, "the QR is not dimmed once scanned").toContain(

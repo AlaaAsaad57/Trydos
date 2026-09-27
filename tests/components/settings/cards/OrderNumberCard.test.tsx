@@ -27,7 +27,7 @@ describe("the order number card", () => {
     fireEvent.click(screen.getByText("G-100"));
     expect(writeText, "the order number was not copied").toHaveBeenCalledWith("G-100");
     await waitFor(() =>
-      expect(showSuccessNotification, "the copy was not confirmed").toHaveBeenCalledWith("Order Number has been Copied"),
+      expect(showSuccessNotification, "the copy was not confirmed").toHaveBeenCalledWith("Order Number Has Been Copied"),
     );
   });
 

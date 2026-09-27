@@ -207,7 +207,7 @@ describe("Excel section — choosing the file", () => {
     await screen.findByRole("option", { name: "Shoes" });
 
     const dropZone = screen
-      .getByText(/Drag & drop Excel file here/)
+      .getByText(/Drag & Drop Excel File Here/)
       .closest("[class*='border-dashed']")!;
     fireEvent.drop(dropZone, {
       dataTransfer: { files: [sheet("photo.png")] },
@@ -215,7 +215,7 @@ describe("Excel section — choosing the file", () => {
 
     expect(
       await screen.findByText(
-        "Please upload a valid Excel file (.xlsx, .xls, .xlsm, .xlsb)",
+        "Please Upload A Valid Excel File (.xlsx, .xls, .xlsm, .xlsb)",
       ),
       "a .png is not a sheet and the seller should be told so",
     ).toBeInTheDocument();
@@ -458,7 +458,7 @@ describe("Excel section — dragging a file over the drop zone", () => {
     await mount();
     await screen.findByRole("option", { name: "Shoes" });
     const dropZone = screen
-      .getByText(/Drag & drop Excel file here/)
+      .getByText(/Drag & Drop Excel File Here/)
       .closest("[class*='border-dashed']") as HTMLElement;
 
     fireEvent.dragEnter(dropZone);
@@ -476,7 +476,7 @@ describe("Excel section — dragging a file over the drop zone", () => {
 
     fireEvent.drop(dropZone, { dataTransfer: { files: [] } });
     expect(
-      screen.queryByText("Please upload a valid Excel file (.xlsx, .xls, .xlsm, .xlsb)"),
+      screen.queryByText("Please Upload A Valid Excel File (.xlsx, .xls, .xlsm, .xlsb)"),
       "a drop that carries no file must not be refused as a wrong file",
     ).not.toBeInTheDocument();
   });

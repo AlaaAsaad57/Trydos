@@ -84,7 +84,7 @@ describe("each product before delivery", () => {
 });
 
 describe("each product after delivery", () => {
-  const delivered = { value: "Delivered", label: "Delivered" };
+  const delivered = { value: "delivered", label: "Delivered" };
 
   it("shows delivered and the rating stars, and opens the rating with the saved comment", async () => {
     const comment = { id: 4, star_rating: 4, comment: "ok", comments_images_customer: ["a.png"] };
@@ -107,7 +107,7 @@ describe("each product after delivery", () => {
     await renderList({ order_status: delivered });
     const user = userEvent.setup();
     await user.click(document.querySelector(".rating-star-container")!);
-    await user.click(screen.getByText("Rating Busy"));
+    await user.click(screen.getByText("rating busy"));
     await user.click(screen.getByText("rating close"));
     expect(document.querySelector(".rating-star-container #Path_23396"), "the stars showed while the rating saves").toBeNull();
     await user.click(document.querySelector(".rating-star-container")!);

@@ -206,7 +206,7 @@ describe("TranslationsSection", () => {
   it("offers to copy each field only from languages where it is filled", async () => {
     const props = makeProps();
     await renderWithProviders(<TranslationsSection {...props} />);
-    const selects = screen.getAllByTitle("Copy from another language") as HTMLSelectElement[];
+    const selects = screen.getAllByTitle("Copy From Another Language") as HTMLSelectElement[];
 
     expect(
       selects.map((s) => Array.from(s.options).map((o) => o.value)),
@@ -229,7 +229,7 @@ describe("TranslationsSection", () => {
 
   it("offers every filled language as a copy source to an empty language", async () => {
     await renderWithProviders(<TranslationsSection {...makeProps({ activeLang: "tr" })} />);
-    const selects = screen.getAllByTitle("Copy from another language") as HTMLSelectElement[];
+    const selects = screen.getAllByTitle("Copy From Another Language") as HTMLSelectElement[];
     expect(
       selects.map((s) => Array.from(s.options).map((o) => o.value)),
       "the empty Turkish row was offered as a copy source",
@@ -247,16 +247,16 @@ describe("TranslationsSection", () => {
       "translations.en.name": "Name Is Required",
       "translations.en.icon": "Icon Is Required",
       "translations.en.description": "Description Is Required",
-      "translations.en.bio": "Bio is required",
-      "translations.en.banners": "At least one banner is required",
-      "translations.ar.name": "not this one",
+      "translations.en.bio": "Bio Is Required",
+      "translations.en.banners": "At Least One Banner Is Required",
+      "translations.ar.name": "Not This One",
     };
     const { container } = await renderWithProviders(<TranslationsSection {...makeProps({ errors, shakeTick: 2 })} />);
 
     for (const message of Object.values(errors).slice(0, 5)) {
       expect(screen.getByText(message), `the error "${message}" is not shown`).toBeInTheDocument();
     }
-    expect(screen.queryByText("not this one"), "another language's error was shown").toBeNull();
+    expect(screen.queryByText("Not This One"), "another language's error was shown").toBeNull();
     expect(container.querySelectorAll(".shake-anim").length, "not every failing field shakes").toBe(5);
     expect(container.querySelector('input[type="text"]')!.className, "the failing name box is not red").toContain(
       "border-[#f85555]",
@@ -327,7 +327,7 @@ describe("TranslationsSection", () => {
 
   it("hides every edit control when the form is locked", async () => {
     await renderWithProviders(<TranslationsSection {...makeProps({ disabled: true })} />);
-    expect(screen.queryByTitle("Copy from another language"), "a locked form still offers to copy").toBeNull();
+    expect(screen.queryByTitle("Copy From Another Language"), "a locked form still offers to copy").toBeNull();
     expect(screen.queryByRole("button", { name: /Upload Icon/ }), "a locked form still offers an icon upload").toBeNull();
     expect(screen.queryByRole("button", { name: "Delete" }), "a locked form still lets a banner be deleted").toBeNull();
     expect(screen.queryByRole("button", { name: "Add Banner" }), "a locked form still lets a banner be added").toBeNull();

@@ -219,21 +219,21 @@ describe("the three-try cap on the login and signup screen", () => {
 
     await typeCode(user, "000000", 1);
     expect(
-      await screen.findByText(/Tries left: 2/),
+      await screen.findByText(/Tries Left: 2/),
       "this widget builds its own message and does not share the hook's — a " +
         "screen that locks silently tells the shopper nothing",
     ).toBeInTheDocument();
 
     await typeCode(user, "000000", 2);
     expect(
-      await screen.findByText(/Tries left: 1/),
+      await screen.findByText(/Tries Left: 1/),
       "the count must go down; a count stuck at two means the message is built " +
         "from a stale value and the cap is really four codes",
     ).toBeInTheDocument();
 
     await typeCode(user, "000000", 3);
     expect(
-      await screen.findByText("Too many wrong codes. Ask for a new code."),
+      await screen.findByText("Too Many Wrong Codes. Ask For A New Code."),
       "the third wrong code must replace the wording rather than offer a " +
         "count of zero tries",
     ).toBeInTheDocument();
@@ -254,7 +254,7 @@ describe("the three-try cap on the login and signup screen", () => {
         "retry",
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(/Tries left/),
+      screen.queryByText(/Tries Left/),
       "and it must not be counted as a wrong code — the shopper typed the " +
         "right digits",
     ).toBeNull();

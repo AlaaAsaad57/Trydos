@@ -157,7 +157,7 @@ describe("what the prompt says", () => {
     await renderWithProviders(<SessionExpiredWidget />, { language: "ar" });
 
     expect(
-      screen.getByText(dictionary["Your Session Has Expired"]),
+      screen.getByText(dictionary["Your session has expired"]),
       "the widget reads the language off the store, not off its props — an " +
         "English prompt over an Arabic page is the one screen a shopper cannot " +
         "skip",

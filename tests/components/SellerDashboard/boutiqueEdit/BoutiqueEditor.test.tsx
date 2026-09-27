@@ -310,7 +310,7 @@ describe("BoutiqueEditor — edit mode and save", () => {
     act(() => props.patchTranslation("ar", { bio: "  " }));
     await userEvent.click(screen.getAllByRole("button", { name: "Save Changes" })[0]);
     expect(showErrorMessage, "no toast for the blank bio").toHaveBeenCalledWith(
-      "Please fix the highlighted fields before saving.",
+      "Please Fix The Highlighted Fields Before Saving.",
     );
     expect(props.errors["translations.ar.bio"], "the Arabic bio error is missing").toBe("Bio is required.");
     expect(props.activeLang, "the editor did not jump to the Arabic tab").toBe("ar");
@@ -354,7 +354,7 @@ describe("BoutiqueEditor — edit mode and save", () => {
     svc.updateBoutique.mockResolvedValueOnce(null);
     await userEvent.click(screen.getAllByRole("button", { name: "Save Changes" })[0]);
     await waitFor(() =>
-      expect(showErrorMessage, "no fallback update error").toHaveBeenCalledWith("Failed to update boutique."),
+      expect(showErrorMessage, "no fallback update error").toHaveBeenCalledWith("Failed To Update Boutique."),
     );
   });
 
@@ -364,7 +364,7 @@ describe("BoutiqueEditor — edit mode and save", () => {
     await userEvent.click(screen.getByRole("button", { name: "Edit" }));
     await userEvent.click(screen.getAllByRole("button", { name: "Save Changes" })[0]);
     await waitFor(() =>
-      expect(showSuccessMessage, "no success toast after the update").toHaveBeenCalledWith("Boutique updated successfully."),
+      expect(showSuccessMessage, "no success toast after the update").toHaveBeenCalledWith("Boutique Updated Successfully."),
     );
     expect(svc.changeBoutiqueStatus, "a status call was sent for an unchanged status").not.toHaveBeenCalled();
     expect(svc.updateBoutique.mock.calls[0][2], "the update body has no per-language custom_data").toHaveProperty("custom_data");
@@ -402,7 +402,7 @@ describe("BoutiqueEditor — edit mode and save", () => {
     await userEvent.click(screen.getAllByRole("button", { name: "Save Changes" })[0]);
     expect(await screen.findByText("• Needs products"), "the status blocker is not listed").toBeInTheDocument();
     expect(showErrorMessage, "no partial-save toast").toHaveBeenCalledWith(
-      "Your changes were saved, but the status could not be updated.",
+      "Your Changes Were Saved, But The Status Could Not Be Updated.",
     );
     expect(showSuccessMessage, "a full success was reported for a partial save").not.toHaveBeenCalled();
     expect(screen.getByText("Active"), "the refused status was not reverted").toBeInTheDocument();
@@ -417,7 +417,7 @@ describe("BoutiqueEditor — edit mode and save", () => {
     await userEvent.click(screen.getByRole("button", { name: "Edit" }));
     await userEvent.click(screen.getByRole("button", { name: "Set Inactive" }));
     await userEvent.click(screen.getAllByRole("button", { name: "Save Changes" })[0]);
-    expect(await screen.findByText("• Could not change status."), "no fallback status blocker").toBeInTheDocument();
+    expect(await screen.findByText("• Could Not Change Status."), "no fallback status blocker").toBeInTheDocument();
   });
 });
 
@@ -456,7 +456,7 @@ describe("BoutiqueEditor — create", () => {
     await waitFor(() =>
       expect(routerSpies.replace, "the new boutique page was not opened").toHaveBeenCalledWith(`${DASH}/boutiques/42`),
     );
-    expect(showSuccessMessage, "no create toast").toHaveBeenCalledWith("Boutique created successfully.");
+    expect(showSuccessMessage, "no create toast").toHaveBeenCalledWith("Boutique Created Successfully.");
     expect(svc.addBoutique.mock.calls[0][1], "the create body lacks boutique_custom_data").toHaveProperty(
       "boutique_custom_data",
     );
@@ -489,7 +489,7 @@ describe("BoutiqueEditor — create", () => {
     svc.addBoutique.mockResolvedValueOnce(undefined);
     await userEvent.click(screen.getAllByRole("button", { name: "Create Boutique" })[0]);
     await waitFor(() =>
-      expect(showErrorMessage, "no fallback create error").toHaveBeenCalledWith("Failed to create boutique."),
+      expect(showErrorMessage, "no fallback create error").toHaveBeenCalledWith("Failed To Create Boutique."),
     );
   });
 });
@@ -526,7 +526,7 @@ describe("BoutiqueEditor — handlers the sections call", () => {
   it("refuses a non-image icon before any upload", async () => {
     await renderEdit();
     await act(() => props.onUploadIcon("en", img("a.txt", "text/plain")));
-    expect(showErrorMessage, "no toast for a non-image icon").toHaveBeenCalledWith("Please choose an image file.");
+    expect(showErrorMessage, "no toast for a non-image icon").toHaveBeenCalledWith("Please Choose An Image File.");
     expect(svc.uploadShopImage, "a non-image icon was uploaded").not.toHaveBeenCalled();
   });
 
@@ -534,10 +534,10 @@ describe("BoutiqueEditor — handlers the sections call", () => {
     await renderEdit();
     svc.uploadShopImage.mockResolvedValueOnce("");
     await act(() => props.onUploadIcon("en", img()));
-    expect(showErrorMessage, "an empty upload answer was not reported").toHaveBeenCalledWith("Upload returned no file.");
+    expect(showErrorMessage, "an empty upload answer was not reported").toHaveBeenCalledWith("Upload Returned No File.");
     svc.uploadShopImage.mockRejectedValueOnce("");
     await act(() => props.onUploadIcon("en", img()));
-    expect(showErrorMessage, "no fallback icon upload error").toHaveBeenCalledWith("Image upload failed.");
+    expect(showErrorMessage, "no fallback icon upload error").toHaveBeenCalledWith("Image Upload Failed.");
   });
 
   it("uploads a good banner and appends it as a new record", async () => {
@@ -557,17 +557,17 @@ describe("BoutiqueEditor — handlers the sections call", () => {
     checkBannerFile.mockResolvedValueOnce({ hardError: "Banner image must be 10 MB or smaller." });
     await act(() => props.onAddBanners("en", [img()]));
     expect(showErrorMessage, "no toast for an oversize banner").toHaveBeenCalledWith(
-      "Banner image must be 10 MB or smaller.",
+      "Banner Image Must Be 10 MB Or Smaller.",
     );
     expect(svc.bulkUploadImages, "an oversize banner was uploaded").not.toHaveBeenCalled();
 
     checkBannerFile.mockResolvedValue({});
     svc.bulkUploadImages.mockResolvedValueOnce({});
     await act(() => props.onAddBanners("en", [img()]));
-    expect(showErrorMessage, "an empty banner answer was not reported").toHaveBeenCalledWith("Upload returned no file.");
+    expect(showErrorMessage, "an empty banner answer was not reported").toHaveBeenCalledWith("Upload Returned No File.");
     svc.bulkUploadImages.mockRejectedValueOnce("");
     await act(() => props.onAddBanners("en", [img()]));
-    expect(showErrorMessage, "no fallback banner upload error").toHaveBeenCalledWith("Image upload failed.");
+    expect(showErrorMessage, "no fallback banner upload error").toHaveBeenCalledWith("Image Upload Failed.");
     expect(logError, "the banner failure was not logged").toHaveBeenCalledWith(
       expect.objectContaining({ scenario: "BoutiqueEditor.uploadBanner" }),
     );

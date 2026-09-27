@@ -133,7 +133,7 @@ describe("the notification permission prompt and right-to-left languages", () =>
 
 describe("what the notification permission prompt does", () => {
   const BLOCKED =
-    "Notification is Blocked in This Browser Please Enable Notification premission and refresh";
+    "Notification Is Blocked In This Browser Please Enable Notification Premission And Refresh";
 
   /** Put the prompt up with a given Notification stand-in. */
   const openPrompt = async (notification: Record<string, any>) => {

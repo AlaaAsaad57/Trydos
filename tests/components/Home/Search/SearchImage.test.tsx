@@ -114,7 +114,7 @@ describe("SearchImage", () => {
     fireEvent.click(camIcon());
     const target = choose(fileInputs()[0], new File(["x"], "a.pdf", { type: "application/pdf" }));
     expect(window.alert, "a wrong file type was not refused").toHaveBeenCalledWith(
-      "please select supported image format (jpeg, png, jpg, webp, svg, avif)",
+      "Please Select Supported Image Format (Jpeg, Png, Jpg, Webp, Svg, Avif)",
     );
     expect(target.value, "the refused file was left in the picker").toBeNull();
     expect(screen.queryByTestId("crop"), "a refused file reached the crop step").toBeNull();
@@ -149,8 +149,8 @@ describe("SearchImage", () => {
   });
 
   it.each([
-    ["the image-search route's own error", { error: "quota reached" }, "quota reached"],
-    ["a general message when the route gives none", {}, "Failed to search with image"],
+    ["the image-search route's own error", { error: "quota reached" }, "Quota Reached"],
+    ["a general message when the route gives none", {}, "Failed To Search With Image"],
   ])("shows %s when image search is refused", async (_name, body, shown) => {
     setAgent("android mobile");
     fetchMock.mockResolvedValue({ ok: false, json: async () => body });
@@ -163,8 +163,8 @@ describe("SearchImage", () => {
   });
 
   it.each([
-    ["a thrown string", "boom", "boom"],
-    ["an empty throw", "", "failed to search with image"],
+    ["a thrown string", "boom", "Boom"],
+    ["an empty throw", "", "Failed To Search With Image"],
   ])("shows %s when image search cannot be reached", async (_name, thrown, shown) => {
     setAgent("android mobile");
     fetchMock.mockRejectedValue(thrown);

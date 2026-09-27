@@ -472,7 +472,7 @@ describe("Stories section — viewing a story", () => {
     await userEvent.click(await screen.findByAltText("Story thumbnail"));
 
     expect(screen.getByAltText("Story"), "a photo story should open as a large picture").toBeInTheDocument();
-    expect(screen.getByText(/Linked to product/), "the linked product should be named").toBeInTheDocument();
+    expect(screen.getByText(/Linked To Product/), "the linked product should be named").toBeInTheDocument();
     const viewer = screen.getByAltText("Story").closest("[class*='bg-black/90']") as HTMLElement;
     expect(viewer.textContent, "the story's day should be shown in the viewer").toContain("2026-01-05");
 
@@ -510,7 +510,7 @@ describe("Stories section — viewing a story", () => {
 
     await userEvent.click(cards[1] as HTMLElement);
     expect(screen.queryByAltText("Story"), "a story with no media has no picture to show").not.toBeInTheDocument();
-    expect(screen.getByText(/viewers/).textContent, "a story with no view count should show 0").toContain("0");
+    expect(screen.getByText(/Viewers/).textContent, "a story with no view count should show 0").toContain("0");
   });
 });
 
@@ -584,7 +584,7 @@ describe("Stories section — adding a story", () => {
     Object.defineProperty(big, "size", { value: 10 * 1024 * 1024 + 1 });
     pick(input, big);
     expect(notificationMessages(), "a file above the limit must be refused").toContain(
-      "File size should not exceed 10 MB",
+      "File Size Should Not Exceed 10 MB",
     );
 
     pick(input, null);
@@ -623,7 +623,7 @@ describe("Stories section — adding a story", () => {
     const long = created.at(-1)!;
     Object.defineProperty(long, "duration", { value: 61 });
     long.onloadedmetadata!(new Event("loadedmetadata"));
-    expect(notificationMessages(), "a video over a minute must be refused").toContain("1 minutes video only");
+    expect(notificationMessages(), "a video over a minute must be refused").toContain("1 Minutes Video Only");
 
     pick(input, new File(["v"], "short.mp4", { type: "video/mp4" }));
     const short = created.at(-1)!;
@@ -726,7 +726,7 @@ describe("Stories section — adding a story", () => {
     await userEvent.click(screen.getByRole("button", { name: /Share Story/ }));
 
     await waitFor(() =>
-      expect(notificationMessages(), "a saved story should be confirmed").toContain("Story uploaded successfully"),
+      expect(notificationMessages(), "a saved story should be confirmed").toContain("Story Uploaded Successfully"),
     );
     expect(uploadStoryToMediaServer, "the picked file should go to the media server").toHaveBeenCalled();
     expect(saveSellerStory.mock.calls[0], "the stories server should get the media address, the link and the product").toEqual([

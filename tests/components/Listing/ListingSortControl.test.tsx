@@ -157,7 +157,7 @@ describe("the listing sort widget", () => {
       await userEvent.click(confirmButton());
 
       expect(
-        screen.queryByRole("dialog", { name: "Sort products" }),
+        screen.queryByRole("dialog", { name: "Sort Products" }),
         "the sheet must close once the sort is applied, or it covers the results the shopper just asked to see",
       ).not.toBeInTheDocument();
     });
@@ -243,7 +243,7 @@ describe("the listing sort widget", () => {
       await waitFor(
         () =>
           expect(
-            screen.queryByRole("dialog", { name: "Sort products" }),
+            screen.queryByRole("dialog", { name: "Sort Products" }),
             "Escape should close the sheet once its slide-out has played",
           ).not.toBeInTheDocument(),
         { timeout: 2000 },

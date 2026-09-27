@@ -287,7 +287,7 @@ describe("choosing how the code arrives", () => {
     await renderFlow({ initialPhone: PHONE, phoneLocked: true });
 
     expect(
-      await screen.findByText(/before trying again/),
+      await screen.findByText(/Before Trying Again/),
       "a shopper inside the cooldown must be told how long is left, not left " +
         "tapping a button that will be refused",
     ).toBeInTheDocument();
@@ -578,7 +578,7 @@ describe("in a right-to-left language", () => {
     await user.type(phoneField(), PHONE);
     await user.click(
       screen.getByRole("button", {
-        name: dictionary["Send Phone Number"] ?? "Send Phone Number",
+        name: dictionary["Send phone number"] ?? "Send Phone Number",
       }),
     );
 

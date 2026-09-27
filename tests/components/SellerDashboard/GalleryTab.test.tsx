@@ -180,7 +180,7 @@ describe("Gallery section — uploading", () => {
       "the seller should confirm before the images are sent",
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/2\s*files selected/),
+      screen.getByText(/2\s*Files Selected/),
       "the panel should say how many files are about to be sent",
     ).toBeInTheDocument();
   });
@@ -395,7 +395,7 @@ describe("Gallery section — deleting several at once", () => {
     await userEvent.click(screen.getByRole("button", { name: "Select All" }));
 
     expect(
-      await screen.findByText(/2\s*selected/),
+      await screen.findByText(/2\s*Selected/),
       "the toolbar should say how many images are selected",
     ).toBeInTheDocument();
   });
@@ -632,23 +632,23 @@ describe("Gallery section — picking tiles", () => {
     await screen.findByAltText("a.webp");
     // The tile checkboxes come after the toolbar's Select button.
     await userEvent.click(screen.getAllByRole("button", { name: "Select" })[1]);
-    expect(await screen.findByText(/1\s*selected/), "the checkbox should select its tile").toBeInTheDocument();
+    expect(await screen.findByText(/1\s*Selected/), "the checkbox should select its tile").toBeInTheDocument();
 
     const tileB = screen.getByAltText("b.webp").closest("[class*='group']") as HTMLElement;
     await userEvent.click(tileB);
-    expect(await screen.findByText(/2\s*selected/), "a click on a tile in select mode should select it").toBeInTheDocument();
+    expect(await screen.findByText(/2\s*Selected/), "a click on a tile in select mode should select it").toBeInTheDocument();
     await userEvent.click(tileB);
-    expect(await screen.findByText(/1\s*selected/), "a second click should unselect it").toBeInTheDocument();
+    expect(await screen.findByText(/1\s*Selected/), "a second click should unselect it").toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Select All" }));
-    await userEvent.click(screen.getByRole("button", { name: "Deselect all" }));
+    await userEvent.click(screen.getByRole("button", { name: "Deselect All" }));
     expect(
-      screen.getByText("Select images to delete"),
+      screen.getByText("Select Images To Delete"),
       "Deselect all should clear the selection",
     ).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(screen.queryByText("Select images to delete"), "Cancel should leave select mode").not.toBeInTheDocument();
+    expect(screen.queryByText("Select Images To Delete"), "Cancel should leave select mode").not.toBeInTheDocument();
   });
 
   it("closes the bulk confirm on Cancel and on the backdrop, keeping the selection", async () => {
@@ -667,7 +667,7 @@ describe("Gallery section — picking tiles", () => {
     await userEvent.click(screen.getByRole("button", { name: /Delete \(2\)/ }));
     await userEvent.click(screen.getByRole("heading", { name: /Delete 2 Images/ }).closest("[class*='bg-black']") as HTMLElement);
     expect(screen.queryByRole("heading", { name: /Delete 2 Images/ }), "the backdrop should close the confirm").not.toBeInTheDocument();
-    expect(screen.getByText(/2\s*selected/), "closing the confirm must keep the selection").toBeInTheDocument();
+    expect(screen.getByText(/2\s*Selected/), "closing the confirm must keep the selection").toBeInTheDocument();
   });
 
   it("shows why the image backend refused a bulk delete", async () => {

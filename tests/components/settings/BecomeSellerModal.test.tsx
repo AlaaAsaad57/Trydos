@@ -400,8 +400,8 @@ describe("documents", () => {
 
   it.each([
     [{ success: false, message: "Too big" }, "Too big"],
-    [null, "Something went wrong"],
-    [{ success: true, data: {} }, "Upload URL not found"],
+    [null, "Something Went Wrong"],
+    [{ success: true, data: {} }, "Upload URL Not Found"],
   ])("reports a failed presign (%o)", async (reply, message) => {
     presignReplies = [reply];
     await openForm();
@@ -419,7 +419,7 @@ describe("documents", () => {
     await uploadOneDocument(user);
     await waitFor(() =>
       expect(notifications.showErrorNotification, "a refused file upload was not reported").toHaveBeenCalledWith(
-        "Failed to upload document",
+        "Failed To Upload Document",
       ),
     );
 
@@ -427,7 +427,7 @@ describe("documents", () => {
     await user.click(screen.getByText("Upload Document"));
     await waitFor(() =>
       expect(notifications.showErrorNotification, "a file upload that threw was not reported").toHaveBeenCalledWith(
-        "Something went wrong",
+        "Something Went Wrong",
       ),
     );
   });
@@ -465,7 +465,7 @@ describe("submitting", () => {
       "a successful submit did not re-read and show the pending status",
     ).toBeInTheDocument();
     expect(notifications.showSuccessNotification, "a successful submit did not confirm it").toHaveBeenCalledWith(
-      "Request submitted successfully",
+      "Request Submitted Successfully",
     );
     const body = JSON.parse(fetchDataMock.mock.calls.find((c) => c[0].method === "POST" && c[0].url === "/shop/vendor-requests")![0].body);
     expect(body.latitude, "the latitude was not sent as a number").toBe(33.5);
@@ -494,7 +494,7 @@ describe("submitting", () => {
       expect((store.getState() as any).shouldAuthinticated, "the phone verify widget was not opened").toBe(true),
     );
     expect(notifications.showErrorNotification, "the shopper was not told to verify the phone").toHaveBeenCalledWith(
-      "Please verify your phone number to continue",
+      "Please Verify Your Phone Number To Continue",
     );
     act(() => store.setState({ reAuthResult: "success" } as any));
     expect(
@@ -549,7 +549,7 @@ describe("submitting", () => {
   it.each([
     [{ success: false, detailed_error: [{ message: "Shop name taken" }, "Raw error"] }, ["Shop name taken", "Raw error"]],
     [{ success: false, message: "Refused" }, ["Refused"]],
-    [{ success: false }, ["Something went wrong"]],
+    [{ success: false }, ["Something Went Wrong"]],
     [{ success: false, detailed_error: [{ code: "user_id" }], message: "Other" }, [{ code: "user_id" }]],
   ])("shows what the backend said on a refusal (%o)", async (reply, messages: any[]) => {
     submitReplies = [reply];
@@ -565,7 +565,7 @@ describe("submitting", () => {
     [{ detailed_error: [{ message: "Thrown detail" }, "Thrown raw"] }, ["Thrown detail", "Thrown raw"]],
     [{ response: { data: { message: "Response message" } } }, ["Response message"]],
     [new Error("Thrown message"), ["Thrown message"]],
-    [null, ["Something went wrong"]],
+    [null, ["Something Went Wrong"]],
   ])("shows what a thrown submit said (%o)", async (thrown, messages) => {
     submitReplies = [() => Promise.reject(thrown)];
     await submitValid();

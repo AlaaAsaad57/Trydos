@@ -204,7 +204,7 @@ describe("UploadImageComponent", () => {
   it("warns when reading the picked file throws", async () => {
     await renderWithProviders(<Harness />);
     const input = fileInput();
-    Object.defineProperty(input, "Files", {
+    Object.defineProperty(input, "files", {
       configurable: true,
       get() {
         throw new Error("unreadable");

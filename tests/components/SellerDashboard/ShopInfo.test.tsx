@@ -278,7 +278,7 @@ describe("Shop info — saving", () => {
     await mount();
     await waitFor(() => expect(nameInput()?.value).toBe("Rama Shoes"));
     await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
-    await waitFor(() => expect(alertSpy, "a refused save should be reported").toHaveBeenCalledWith("Failed to update"));
+    await waitFor(() => expect(alertSpy, "a refused save should be reported").toHaveBeenCalledWith("Failed To Update"));
     expect(showSuccessMessage, "a refused save must not be confirmed").not.toHaveBeenCalled();
   });
 

@@ -151,7 +151,7 @@ describe("asking the seller a question", () => {
   it("tells a guest to sign in, and keeps the box read-only", async () => {
     await renderInput({}, { user: null });
     fireEvent.mouseDown(input());
-    expect(showErrorNotification, "a guest should be told to sign in").toHaveBeenCalledWith("Please log in first");
+    expect(showErrorNotification, "a guest should be told to sign in").toHaveBeenCalledWith("Please Log In First");
     expect(input().readOnly, "a guest cannot type").toBe(true);
   });
 

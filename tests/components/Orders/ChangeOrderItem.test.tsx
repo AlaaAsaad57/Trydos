@@ -164,7 +164,7 @@ describe("ChangeOrderItem", () => {
     // Switching tab while a change is open is refused.
     fireEvent.click(screen.getByText("Change Size"));
     expect(showErrorNotification, "switching tab mid-change did not warn").toHaveBeenCalledWith(
-      "Confirm the Changes First",
+      "Confirm The Changes First",
     );
 
     fireEvent.click(screen.getByText("Change Request"));
@@ -198,7 +198,7 @@ describe("ChangeOrderItem", () => {
     await renderSheet();
     fireEvent.click(screen.getByText("Green"));
     expect(showErrorNotification, "an out-of-stock colour did not warn").toHaveBeenCalledWith(
-      "this option dosent have enough quantity",
+      "This Option Dosent Have Enough Quantity",
     );
   });
 
@@ -226,7 +226,7 @@ describe("ChangeOrderItem", () => {
     fireEvent.click(screen.getByText("Change Size"));
     fireEvent.click(screen.getByText("S"));
     expect(showErrorNotification, "an out-of-stock size did not warn").toHaveBeenCalledWith(
-      "this option dosent have enough quantity",
+      "This Option Dosent Have Enough Quantity",
     );
   });
 

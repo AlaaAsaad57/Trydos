@@ -119,7 +119,7 @@ describe("the camera widget", () => {
     await userEvent.click(screen.getByRole("button", { name: "Capture Photo" }));
     await userEvent.click(screen.getByText("Use Photo"));
     await waitFor(() =>
-      expect(spies.notify, "a failed photo must be reported to the shopper").toHaveBeenCalledWith("Failed to process image"),
+      expect(spies.notify, "a failed photo must be reported to the shopper").toHaveBeenCalledWith("Failed To Process Image"),
     );
     expect(onScreen.onCapture, "a failed photo must not be handed on").not.toHaveBeenCalled();
   });
@@ -145,15 +145,15 @@ describe("the camera widget", () => {
 
     expect(constraints().width, "the fallback must ask for 1280 x 720 at most").toEqual({ ideal: 1280, min: 640 });
     expect(spies.notify, "the shopper must be told the fallback is tried").toHaveBeenCalledWith(
-      "Camera constraints not supported, trying fallback settings",
+      "Camera Constraints Not Supported, Trying Fallback Settings",
     );
     expect(onClose, "a constraint problem must not close the camera").not.toHaveBeenCalled();
   });
 
   it.each([
-    ["NotAllowedError", "Camera access denied"],
-    ["NotFoundError", "No camera found"],
-    ["AbortError", "Camera error occurred"],
+    ["NotAllowedError", "Camera Access Denied"],
+    ["NotFoundError", "No Camera Found"],
+    ["AbortError", "Camera Error Occurred"],
   ])("on %s says '%s' and closes", async (name, message) => {
     const { onClose } = await setup();
     spies.errorName = name;

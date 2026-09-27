@@ -163,7 +163,7 @@ describe("MoreOptionsSection", () => {
     fireEvent.click(screen.getByText("Price drops"));
     await waitFor(() =>
       expect(showErrorNotification, "no token did not warn").toHaveBeenCalledWith(
-        "Notification Is Not Enabled! please Allow Notification Access",
+        "Notification Is Not Enabled! Please Allow Notification Access",
       ),
     );
     expect(home.subscribeToTopicInventory, "a subscribe was sent without a token").not.toHaveBeenCalled();
@@ -184,7 +184,7 @@ describe("MoreOptionsSection", () => {
     fireEvent.click(screen.getByText("Price drops"));
     await waitFor(() =>
       expect(showErrorNotification, "an error with no message did not use the default text").toHaveBeenCalledWith(
-        "Notification Is Not Enabled! please Allow Notification Access",
+        "Notification Is Not Enabled! Please Allow Notification Access",
       ),
     );
   });
@@ -204,7 +204,7 @@ describe("MoreOptionsSection", () => {
     const button = document.querySelector('[data-pw="add-checkList"]') as HTMLElement;
     fireEvent.click(button);
     await waitFor(() =>
-      expect(showSuccessNotification, "adding did not confirm").toHaveBeenCalledWith("Added to checklist"),
+      expect(showSuccessNotification, "adding did not confirm").toHaveBeenCalledWith("Added To Checklist"),
     );
     expect(wishlist.addToWishlist, "the product was not added").toHaveBeenCalledWith(5);
     expect(button.className, "the checklist button is not green after adding").toContain("bg-green-300");
@@ -214,7 +214,7 @@ describe("MoreOptionsSection", () => {
     GAevent.mockReset();
     fireEvent.click(button);
     await waitFor(() =>
-      expect(showSuccessNotification, "removing did not confirm").toHaveBeenCalledWith("Removed from checklist"),
+      expect(showSuccessNotification, "removing did not confirm").toHaveBeenCalledWith("Removed From Checklist"),
     );
     expect(wishlist.removeFromWishlist, "the product was not removed").toHaveBeenCalledWith("5");
     expect(GAevent, "removing sent a favourite event").not.toHaveBeenCalled();
@@ -227,7 +227,7 @@ describe("MoreOptionsSection", () => {
     fireEvent.click(document.querySelector('[data-pw="add-checkList"]') as HTMLElement);
     await waitFor(() =>
       expect(showErrorNotification, "a failed checklist update did not warn").toHaveBeenCalledWith(
-        "Failed to update checklist",
+        "Failed To Update Checklist",
       ),
     );
   });
@@ -247,7 +247,7 @@ describe("MoreOptionsSection", () => {
     fireEvent.click(compare);
     expect(addToCompare, "the slug was not added").toHaveBeenCalledWith("shoe");
     expect(showSuccessNotification, "a full compare did not say it replaced").toHaveBeenCalledWith(
-      "Compare was full — replaced the first product. Click To Go To Compare Page",
+      "Compare Was Full — Replaced The First Product. Click To Go To Compare Page",
       5000,
       "/gb-en/compare",
     );

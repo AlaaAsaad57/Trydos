@@ -507,7 +507,7 @@ describe("the cap on a cart row's quantity", () => {
 // callback fires on status 0 and not on a failed request.
 
 const QUESTION = "Do You Want Us To Notify You When It Is Available?";
-const ALREADY_ON = "You will be notified for this product already";
+const ALREADY_ON = "You Will Be Notified For This Product Already";
 
 /** `UpdateCart` behaving as the core backend refusing on stock: status 0. */
 const refuseOnStock = () =>

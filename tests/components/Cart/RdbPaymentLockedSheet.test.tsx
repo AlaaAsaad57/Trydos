@@ -148,7 +148,7 @@ describe("RdbPaymentLockedSheet", () => {
           .notifications.some(
             (n) =>
               n.type === "error" &&
-              n.message === "Could not cancel the payment. Please try again",
+              n.message === "Could Not Cancel The Payment. Please Try Again",
           ),
         "a cancel that fails for a reason other than already-paid must tell the shopper, not leave the spinner's old screen up with nothing changed",
       ).toBe(true);

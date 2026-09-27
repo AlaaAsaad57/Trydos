@@ -281,7 +281,7 @@ describe("Location form — saving", () => {
     await userEvent.selectOptions(countrySelect(), "2");
     await userEvent.click(saveButton());
 
-    await waitFor(() => expect(onSaved, "a created location should be confirmed").toHaveBeenCalledWith("Location created successfully"));
+    await waitFor(() => expect(onSaved, "a created location should be confirmed").toHaveBeenCalledWith("Location Created Successfully"));
     expect(
       addShopLocation.mock.calls[0],
       "the create call should send the trimmed name and the country id, and no empty optional field",
@@ -298,7 +298,7 @@ describe("Location form — saving", () => {
     expect(latInput().value, "the pin's latitude should fill the field with 6 decimals").toBe("33.500000");
     await userEvent.click(saveButton());
 
-    await waitFor(() => expect(onSaved, "an updated location should be confirmed").toHaveBeenCalledWith("Location updated successfully"));
+    await waitFor(() => expect(onSaved, "an updated location should be confirmed").toHaveBeenCalledWith("Location Updated Successfully"));
     expect(updateShopLocation.mock.calls[0], "the update should carry every filled field").toEqual([
       SELLER_ID,
       9,

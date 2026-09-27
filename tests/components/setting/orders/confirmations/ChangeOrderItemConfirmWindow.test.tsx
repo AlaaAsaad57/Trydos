@@ -106,7 +106,7 @@ describe("changing the colour", () => {
 
     await user.click(screen.getByText("Green"));
     expect(showErrorNotification, "a colour without stock was not refused").toHaveBeenCalledWith(
-      "this option dosent have enough quantity",
+      "This Option Dosent Have Enough Quantity",
     );
 
     await user.click(screen.getByText("Yes, I Agree"));
@@ -191,7 +191,7 @@ describe("changing the size", () => {
       expect(
         showErrorNotification,
         "size L has no stock in red (variation red-L, qty 0) but was not refused",
-      ).toHaveBeenCalledWith("this option dosent have enough quantity");
+      ).toHaveBeenCalledWith("This Option Dosent Have Enough Quantity");
       expect(lastData(props.onData).newSize, "a size with no stock was stored as the new size").toBeUndefined();
     },
   );

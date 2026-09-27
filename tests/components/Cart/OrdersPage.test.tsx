@@ -320,7 +320,7 @@ describe("OrdersPage (components/Cart/OrdersPage.tsx)", () => {
       expect(
         mockShowErrorNotification,
         "should notify user to select an address",
-      ).toHaveBeenCalledWith("Please Select an Address");
+      ).toHaveBeenCalledWith("Please Select An Address");
       expect(
         mockTrackOrder,
         "should track checkout_blocked_address_missing",
@@ -373,7 +373,7 @@ describe("OrdersPage (components/Cart/OrdersPage.tsx)", () => {
       expect(
         mockShowErrorNotification,
         "should notify insufficient balance",
-      ).toHaveBeenCalledWith("Your Balance Not meet purchase value");
+      ).toHaveBeenCalledWith("Your Balance Not Meet Purchase Value");
       expect(
         mockTrackOrder,
         "should track checkout_blocked_balance_insufficient with figures",

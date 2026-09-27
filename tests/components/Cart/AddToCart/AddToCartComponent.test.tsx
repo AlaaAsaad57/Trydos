@@ -570,7 +570,7 @@ describe("the notify-me button", () => {
     await act(async () => seen.NotifyButton.notifyAction());
     await waitFor(() =>
       expect(showSuccessNotification.mock.calls[0]?.[0], "the already-notified message was not shown").toBe(
-        "You will be notified for this product already",
+        "You Will Be Notified For This Product Already",
       ),
     );
   });
@@ -589,7 +589,7 @@ describe("the notify-me button", () => {
     await act(async () => seen.NotifyButton.notifyAction());
     await waitFor(() =>
       expect(showErrorMessage, "the default notify error was not shown").toHaveBeenCalledWith(
-        "Notification Is Not Enabled! please Allow Notification Access",
+        "Notification Is Not Enabled! Please Allow Notification Access",
       ),
     );
   });

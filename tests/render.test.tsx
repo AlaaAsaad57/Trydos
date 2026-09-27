@@ -168,6 +168,6 @@ describe("a real component through the helper", () => {
 
     await renderWithProviders(<EmptyCart />, { language: "ar" });
 
-    expect(screen.getByText(dictionary["Cart Is Empty"])).toBeInTheDocument();
+    expect(screen.getByText(dictionary["Cart is Empty"])).toBeInTheDocument();
   });
 });

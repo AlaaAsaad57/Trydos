@@ -84,13 +84,13 @@ describe("filling in the report", () => {
     pick();
     pick(new File(["x"], "a.gif", { type: "image/gif" }));
     expect(notifications.showErrorNotification, "a GIF was not refused").toHaveBeenCalledWith(
-      "Please choose a JPEG, PNG or WebP image",
+      "Please Choose A JPEG, PNG Or WebP Image",
     );
     const big = new File(["x"], "big.png", { type: "image/png" });
     Object.defineProperty(big, "size", { value: 4097 * 1024 });
     pick(big);
     expect(notifications.showErrorNotification, "a photo over 4 MB was not refused").toHaveBeenCalledWith(
-      "The photo must be 4 MB or less",
+      "The Photo Must Be 4 MB Or Less",
     );
     expect(screen.queryByAltText("Report Photo"), "a refused photo was attached").not.toBeInTheDocument();
   });
@@ -134,7 +134,7 @@ describe("submitting", () => {
       image: photo,
     });
     expect(notifications.showSuccessNotification, "the sent report was not confirmed").toHaveBeenCalledWith(
-      "We received your report. Thanks for your thoughts",
+      "We Received Your Report. Thanks For Your Thoughts",
     );
     expect(props.update, "the order was not refreshed after the report").toHaveBeenCalled();
   });
@@ -160,7 +160,7 @@ describe("submitting", () => {
     await user.click(screen.getByText("Submit Report"));
     await waitFor(() =>
       expect(notifications.showErrorNotification, "a refused report was not reported").toHaveBeenCalledWith(
-        "Could not submit your report. Please try again",
+        "Could Not Submit Your Report. Please Try Again",
       ),
     );
     expect(logError.mock.calls[0]?.[0]?.scenario, "a refused report was not logged").toBe(

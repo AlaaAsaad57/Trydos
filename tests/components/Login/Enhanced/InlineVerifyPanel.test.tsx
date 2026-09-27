@@ -294,7 +294,7 @@ describe("what a running cooldown is telling the shopper", () => {
         "and must be said that way",
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(/before trying again/),
+      screen.queryByText(/Before Trying Again/),
       "telling a shopper we refused the send, under the boxes holding the " +
         "code we just sent them, is the panel contradicting itself",
     ).not.toBeInTheDocument();
@@ -310,7 +310,7 @@ describe("what a running cooldown is telling the shopper", () => {
     await user.click(screen.getByRole("button", { name: "Send SMS" }));
 
     expect(
-      await screen.findByText(/before trying again/),
+      await screen.findByText(/Before Trying Again/),
       "no code is coming, so the wait must be stated as the refusal it is",
     ).toBeInTheDocument();
     expect(
@@ -329,7 +329,7 @@ describe("what a running cooldown is telling the shopper", () => {
     await user.type(phoneField()!, PHONE);
     await user.click(screen.getByRole("button", { name: "Send Phone Number" }));
     await user.click(screen.getByRole("button", { name: "Send SMS" }));
-    await screen.findByText(/before trying again/);
+    await screen.findByText(/Before Trying Again/);
 
     // A refusal is against the number, not against the shopper. Another number
     // carries its own cooldown and starts clean.
@@ -339,7 +339,7 @@ describe("what a running cooldown is telling the shopper", () => {
 
     await waitFor(() => {
       expect(
-        screen.queryByText(/before trying again/),
+        screen.queryByText(/Before Trying Again/),
         "holding the first number's refusal against the second stops a " +
           "shopper who simply mistyped their number",
       ).not.toBeInTheDocument();

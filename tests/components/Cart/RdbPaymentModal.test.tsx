@@ -671,7 +671,7 @@ describe("RdbPaymentModal", () => {
       await act(async () => finish({ ok: false, alreadyPaid: false, gone: false }));
       await waitFor(() => {
         expect(
-          errorShown("Could not cancel the payment. Please try again"),
+          errorShown("Could Not Cancel The Payment. Please Try Again"),
           "a failed cancel must tell the shopper",
         ).toBe(true);
       });
@@ -688,7 +688,7 @@ describe("RdbPaymentModal", () => {
       fireEvent.click(await screen.findByText("Cancel Payment"));
       await waitFor(() => {
         expect(
-          errorShown("Could not cancel the payment. Please try again"),
+          errorShown("Could Not Cancel The Payment. Please Try Again"),
           "an unreadable already-paid answer must fall back to the error message",
         ).toBe(true);
       });
