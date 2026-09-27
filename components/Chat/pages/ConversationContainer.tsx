@@ -123,6 +123,8 @@ function ConversationContainer({
     setQouted,
     setMessagesPage,
     setReplyMessage,
+    jumpToMessageId,
+    setJumpToMessage,
   } = useAppStore();
 
   /* --------------------------- Derived values --------------------------- */
@@ -141,9 +143,6 @@ function ConversationContainer({
   const [cameraEnabled, setCameraEnabled] = useState<boolean>(false);
   const [searchEnable, enableSearch] = useState<boolean>(false);
   const [DetailsVar, openDetails] = useState<boolean>(false);
-  const [pendingScrollToMessageId, setPendingScrollToMessageId] = useState<
-    string | null
-  >(null);
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [croppedImageFile, setCroppedImageFile] = useState<File | null>(null);
   const [croppedImagePreview, setCroppedImagePreview] = useState<string | null>(
@@ -152,9 +151,9 @@ function ConversationContainer({
   /* ----------------------------- scroll function ----------------------------- */
   const scrollToMessage = (quoteId) => {
     if (quoteId) {
-      if (activeChat?.messages?.filter((f) => f.id === quoteId)?.length > 0) {
-        var numb = quoteId?.toString()?.match(/\d/g);
-        numb = numb?.join("");
+      // By string: a reminder sends the id as a string, the chat may hold a
+      // number. `GetMessage` compares the same way.
+      if (activeChat?.messages?.some((f) => `${f.id}` === `${quoteId}`)) {
         let el = document.querySelector(`#main-container-${quoteId}`);
         if (el) {
           el.scrollIntoView({ block: "center" });
@@ -184,7 +183,7 @@ function ConversationContainer({
             channel_id: activeChat?.id,
           });
           setQouted(quoteId);
-          setPendingScrollToMessageId(quoteId);
+          setJumpToMessage(quoteId);
         } catch (err) {
           LogError({
             error: err,
@@ -194,7 +193,7 @@ function ConversationContainer({
         }
       }
     },
-    [activeChat, setQouted],
+    [activeChat, setQouted, setJumpToMessage],
   );
 
   /* ------------------------- Scroll Refs ------------------------------- */
@@ -491,19 +490,21 @@ function ConversationContainer({
     setSearch("");
   }, [activeChat]);
 
+  // A quote, a tagged message or a reminder asked for a message that was not
+  // loaded. Scroll to it once it is in the chat.
   useEffect(() => {
-    if (pendingScrollToMessageId) {
+    if (jumpToMessageId) {
       const exists = activeChat?.messages?.some(
-        (m) => `${m.id}` === `${pendingScrollToMessageId}`,
+        (m) => `${m.id}` === `${jumpToMessageId}`,
       );
       if (exists) {
         requestAnimationFrame(() => {
-          scrollToMessage(pendingScrollToMessageId);
-          setPendingScrollToMessageId(null);
+          scrollToMessage(jumpToMessageId);
+          setJumpToMessage(null);
         });
       }
     }
-  }, [activeChat?.messages, pendingScrollToMessageId]);
+  }, [activeChat?.messages, jumpToMessageId]);
 
   useEffect(() => {
     const input = fileInputRef.current;
@@ -1021,9 +1022,11 @@ function ConversationContainer({
               openDetails(false);
               enableSearch(true);
             }}
-            openMessage={(messageId) => {
+            openMessage={async (messageId) => {
+              // The details stay open, with a spinner on the row, until the
+              // messages up to this one have loaded.
+              await GetMessage(null, messageId);
               openDetails(false);
-              GetMessage(null, messageId);
             }}
           />
         )}

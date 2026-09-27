@@ -3,7 +3,7 @@ import { useAppStore } from "store";
 
 /**
  * A row at the top of the chat list that opens a folder: the archived chats,
- * or my reminders. It shows only while the folder holds something.
+ * or my reminders. It always shows, with the count of what the folder holds.
  */
 function ChatFolderRow({
   icon,

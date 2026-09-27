@@ -19,6 +19,7 @@ import { LogError, translateFunction } from "utils/functions";
 import { showErrorNotification } from "store/notifications/reducer";
 
 import UPDATED_API_DATA from "migration.staging";
+import type { Channel } from "utils/types/chat";
 
 export const GetLastSeen = async (chatId, friendID) => {
   const { setServerTime, setIsTyping } = useAppStore.getState();
@@ -724,6 +725,51 @@ export async function GetArchivedChats() {
       scenario: "Error in GetArchivedChats in chat/actions",
       error: error instanceof Error ? error.message : String(error),
     });
+  }
+}
+
+/**
+ * One page of my chats (not archived), without touching the store. The chat
+ * backend has no call for one chat by id, so a chat outside the loaded list is
+ * found by walking these pages. `timestamp` is the page cursor (see
+ * `nextCursor` in GetMoreChats). Answers null when the call failed.
+ */
+export async function GetMyChannelsPage(
+  timestamp: string | null,
+  limit = 50,
+): Promise<{ channels: Channel[]; pinned: Channel[] } | null> {
+  try {
+    const params = new URLSearchParams({
+      limit: String(limit),
+      messages_limit: "10",
+    });
+    if (timestamp) params.set("timestamp", timestamp);
+    const response = await fetchData({
+      url: `${UPDATED_API_DATA.MOD_CHAT_URL}?${params.toString()}`,
+      body: JSON.stringify({
+        limit,
+        messages_limit: 10,
+        role_id: 16,
+        ...(timestamp ? { timestamp } : {}),
+      }),
+      reqTitle: REQUESTS_DATA.GET_CHATS,
+      method: "POST",
+      server: "chat",
+      noMessage: true,
+    });
+    if (!response.success) {
+      throw new Error(response.message || "the chat page was not loaded");
+    }
+    return {
+      channels: response.data?.channels ?? [],
+      pinned: response.data?.pinned_channels ?? [],
+    };
+  } catch (error) {
+    LogError({
+      scenario: "Error in GetMyChannelsPage in chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
   }
 }
 

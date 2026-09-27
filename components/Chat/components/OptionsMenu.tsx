@@ -304,7 +304,7 @@ function OptionsMenu(props) {
             <div
               className="message-opt"
               tabIndex={0}
-              aria-label="Copy message text"
+              aria-label={translate("Copy message text", language)}
               onClick={() => props.copy()}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") props.copy();

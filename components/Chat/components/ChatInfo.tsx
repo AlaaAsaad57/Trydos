@@ -33,7 +33,7 @@ function ChatInfo({
   makeAudioCall: () => void;
   makeVideoCall: () => void;
   enableSearch: () => void;
-  openMessage?: (messageId: string | number) => void;
+  openMessage?: (messageId: string | number) => Promise<void> | void;
 }) {
   const { deleteChat, language, updateChannelBlockStatus } = useAppStore();
   const ref = useRef<any>(null);

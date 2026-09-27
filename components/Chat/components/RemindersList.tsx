@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Spinner from "components/global/Spinner";
-import { openChatFromList } from "components/Chat/components/ChatSearchResults";
+import { openMessageInChat } from "components/Chat/openMessageInChat";
 import { CancelMessageReminder, GetMyReminders } from "store/chat/actions";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
@@ -19,23 +19,33 @@ const TYPE_PREVIEW: Record<string, string> = {
 
 /**
  * My reminders that have not fired yet, soonest first. A tap opens the chat
- * the message is in; the cross cancels the reminder.
+ * the message is in, scrolled to the message; the row shows a spinner while
+ * the chat and the message load. The cross cancels the reminder.
  */
 function RemindersList({ onBack }: { onBack: () => void }) {
-  const { reminders, data, archivedChats, language } = useAppStore();
+  const { reminders, language } = useAppStore();
   const [cancelling, setCancelling] = useState<string | null>(null);
+  const [opening, setOpening] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // The list at the top of the chat list may be a few minutes old.
+  // Asked again on every opening: a reminder may have fired, or been set on
+  // another device, since the chat list loaded.
   useEffect(() => {
-    GetMyReminders();
+    Promise.resolve(GetMyReminders()).finally(() => setLoading(false));
   }, []);
 
-  const findChat = (channelId: string | null) =>
-    channelId == null
-      ? null
-      : [...data, ...archivedChats].find(
-          (c: any) => String(c.id) === String(channelId),
-        ) || null;
+  const open = async (reminder: MyReminder) => {
+    if (opening) return;
+    setOpening(reminder.id);
+    try {
+      await openMessageInChat(
+        reminder.message?.channel_id,
+        reminder.message_id,
+      );
+    } finally {
+      setOpening(null);
+    }
+  };
 
   const cancel = async (reminder: MyReminder) => {
     if (cancelling) return;
@@ -51,13 +61,16 @@ function RemindersList({ onBack }: { onBack: () => void }) {
   return (
     <div className="chat-list-items chat-lists-class" data-pw="REMINDERS-LIST">
       <ChatFolderHeader title="Reminders" onBack={onBack} />
-      {reminders.length === 0 ? (
+      {reminders.length === 0 && loading ? (
+        <div className="flex justify-center p-[20px]">
+          <Spinner />
+        </div>
+      ) : reminders.length === 0 ? (
         <div className="p-[20px] text-center text-[14px] text-[#8e8d92]">
           {translateFunction("No reminders")}
         </div>
       ) : (
         reminders.map((reminder) => {
-          const chat = findChat(reminder.message?.channel_id ?? null);
           // The chat backend sends `content: ""` for some text messages
           // (seen on staging, 2026-09-26), so an empty text falls back too.
           const text =
@@ -75,9 +88,9 @@ function RemindersList({ onBack }: { onBack: () => void }) {
             >
               <button
                 type="button"
-                disabled={!chat}
-                onClick={() => chat && openChatFromList(chat)}
-                className="flex-1 min-w-0 flex flex-col items-start text-start disabled:cursor-default"
+                disabled={!!opening}
+                onClick={() => open(reminder)}
+                className="flex-1 min-w-0 flex flex-col items-start text-start disabled:cursor-wait"
               >
                 <span className="text-[14px] text-[#1d1d1d] truncate max-w-full">
                   {reminder.message?.sender_user?.name ||
@@ -95,6 +108,7 @@ function RemindersList({ onBack }: { onBack: () => void }) {
                   {formatReminderTime(reminder.remind_at, language)}
                 </span>
               </button>
+              {opening === reminder.id && <Spinner />}
               <button
                 type="button"
                 aria-label={translateFunction("Cancel reminder")}

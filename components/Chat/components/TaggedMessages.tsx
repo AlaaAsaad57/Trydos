@@ -20,19 +20,31 @@ const TYPE_PREVIEW: Record<string, string> = {
 
 /**
  * The "Tagged messages" block of the chat info panel. Pick a tag to list the
- * messages of this chat that carry it; tap one to jump to it in the chat.
+ * messages of this chat that carry it; tap one to jump to it in the chat. The
+ * jump can load many messages first, so the row shows a spinner until then.
  */
 function TaggedMessages({
   channelId,
   openMessage,
 }: {
   channelId: string | number;
-  openMessage: (messageId: string | number) => void;
+  openMessage: (messageId: string | number) => Promise<void> | void;
 }) {
   const { language } = useAppStore();
   const [tag, setTag] = useState<MessageTag | null>(null);
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<any[] | null>(null);
+  const [opening, setOpening] = useState<string | null>(null);
+
+  const open = async (messageId: string | number) => {
+    if (opening) return;
+    setOpening(String(messageId));
+    try {
+      await openMessage(messageId);
+    } finally {
+      setOpening(null);
+    }
+  };
 
   const pick = async (next: MessageTag) => {
     if (loading) return;
@@ -99,7 +111,13 @@ function TaggedMessages({
         ))}
       </div>
       {tag && (
-        <div className="mt-[10px] flex flex-col">
+        <div
+          className="mt-[10px] flex flex-col"
+          data-pw="TAGGED-MESSAGES-LIST"
+          // Its own scroll box, so a long list does not push the rest of the
+          // panel away. Inline for the same reason as the box above.
+          style={{ maxHeight: 240, overflowY: "auto" }}
+        >
           {loading && (
             <div className="flex justify-center py-[10px]">
               <Spinner />
@@ -120,7 +138,8 @@ function TaggedMessages({
               <button
                 key={m.id}
                 type="button"
-                onClick={() => openMessage(m.id)}
+                disabled={!!opening}
+                onClick={() => open(m.id)}
                 className="flex items-center justify-between gap-[10px] py-[8px] border-b border-[#f0f0f0] text-start"
               >
                 <span className="flex-1 min-w-0 truncate text-[13px] text-[#1d1d1d]">
@@ -130,11 +149,15 @@ function TaggedMessages({
                         TYPE_PREVIEW[m.message_type?.name] || "message",
                       )}
                 </span>
-                <span className="shrink-0 text-[11px] text-[#8e8d92]">
-                  {new Date(m.created_at).toLocaleDateString(
-                    dateLocale(language),
-                  )}
-                </span>
+                {opening === String(m.id) ? (
+                  <Spinner />
+                ) : (
+                  <span className="shrink-0 text-[11px] text-[#8e8d92]">
+                    {new Date(m.created_at).toLocaleDateString(
+                      dateLocale(language),
+                    )}
+                  </span>
+                )}
               </button>
             ))}
         </div>

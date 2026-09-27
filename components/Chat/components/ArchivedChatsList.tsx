@@ -1,9 +1,12 @@
+import { useEffect, useState } from "react";
 import ChatItem from "components/Chat/components/ChatItem";
+import Spinner from "components/global/Spinner";
 import { unreadCount } from "components/Chat/chatsFunctions";
 import {
   getLatestMessage,
   openChatFromList,
 } from "components/Chat/components/ChatSearchResults";
+import { GetArchivedChats } from "store/chat/actions";
 import { getUserChat, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { ChatFolderHeader } from "./ChatFolderRow";
@@ -14,6 +17,13 @@ import { ChatFolderHeader } from "./ChatFolderRow";
  */
 function ArchivedChatsList({ onBack }: { onBack: () => void }) {
   const { archivedChats, activeChat } = useAppStore();
+  const [loading, setLoading] = useState(true);
+
+  // Asked again on every opening: another device may have archived or
+  // unarchived a chat since the chat list loaded.
+  useEffect(() => {
+    Promise.resolve(GetArchivedChats()).finally(() => setLoading(false));
+  }, []);
   const me = getUserChat()?.id;
   const mine = (chat: any) =>
     chat.channel_members?.find((m: any) => m.user_id === me);
@@ -23,7 +33,11 @@ function ArchivedChatsList({ onBack }: { onBack: () => void }) {
   return (
     <div className="chat-list-items chat-lists-class" data-pw="ARCHIVED-CHATS">
       <ChatFolderHeader title="Archived" onBack={onBack} />
-      {archivedChats.length === 0 ? (
+      {archivedChats.length === 0 && loading ? (
+        <div className="flex justify-center p-[20px]">
+          <Spinner />
+        </div>
+      ) : archivedChats.length === 0 ? (
         <div className="p-[20px] text-center text-[14px] text-[#8e8d92]">
           {translateFunction("No archived chats")}
         </div>

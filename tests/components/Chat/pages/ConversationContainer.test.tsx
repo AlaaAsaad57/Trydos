@@ -187,6 +187,12 @@ async function mount({
   return { ...utils, spies, setSearch, closeWidget };
 }
 
+/** Whether this element itself was scrolled into view. `scrollIntoView` is one
+ *  mock on the prototype, so a scroll to the bottom counts for every element. */
+function scrolledTo(el: Element) {
+  return vi.mocked(Element.prototype.scrollIntoView).mock.contexts.includes(el);
+}
+
 function fileInput() {
   return document.querySelector('input[type="file"]') as HTMLInputElement;
 }
@@ -394,6 +400,76 @@ describe("ConversationContainer — jumping to a quoted message", () => {
     });
     await waitFor(() =>
       expect(document.getElementById("main-container-5")!.scrollIntoView, "the loaded quoted message was not scrolled to").toHaveBeenCalled(),
+    );
+  });
+
+  it("scrolls to and flashes the message a reminder asked for, then forgets the request", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.stubGlobal("requestAnimationFrame", (cb: any) => {
+      cb(0);
+      return 0;
+    });
+    const { store } = await mount({ chat: chatWith([msg("10"), msg("11")]), store: { jumpToMessageId: "11" } });
+    const el = document.getElementById("main-container-11")!;
+    await waitFor(() =>
+      expect(scrolledTo(el), "the message a reminder asked for was not scrolled into view").toBe(true),
+    );
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(el.classList.contains("backdrop_msg"), "the message a reminder asked for was not highlighted").toBe(true);
+    expect(store.getState().jumpToMessageId, "the jump request stayed, so it would fire again").toBeNull();
+  });
+
+  it("scrolls to a message asked for by a string id when the loaded ids are numbers", async () => {
+    vi.stubGlobal("requestAnimationFrame", (cb: any) => {
+      cb(0);
+      return 0;
+    });
+    await mount({ chat: chatWith([msg(10), msg(11)]) });
+    await act(async () => {
+      h.props.messages[10].GetMessage(10, "11");
+    });
+    expect(
+      scrolledTo(document.getElementById("main-container-11")!),
+      "the message was found as loaded, but the scroll compared ids by type and did nothing",
+    ).toBe(true);
+  });
+
+  it("keeps the details open while a tagged message loads, then closes them and scrolls to it", async () => {
+    vi.stubGlobal("requestAnimationFrame", (cb: any) => {
+      cb(0);
+      return 0;
+    });
+    let answer!: () => void;
+    h.getBetween.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          answer = resolve;
+        }),
+    );
+    const chat = chatWith([msg(10)]);
+    const { store } = await mount({ chat });
+    act(() => h.props.ChatHeader.openDetails());
+
+    let opened!: Promise<unknown>;
+    act(() => {
+      opened = h.props.ChatInfo.openMessage(5);
+    });
+    expect(h.getBetween, "the messages up to the tagged one were not loaded").toHaveBeenCalledWith({ first: 10, second: 5, channel_id: 7 });
+    expect(
+      screen.queryByTestId("ChatInfo"),
+      "the details closed before the tagged message had loaded, so the tap looked like it did nothing",
+    ).toBeInTheDocument();
+
+    await act(async () => {
+      store.setState({ activeChat: { ...chat, messages: [msg(5, { created_at: "2030-01-15T09:00:00" }), ...chat.messages] } } as any);
+      answer();
+      await opened;
+    });
+    expect(screen.queryByTestId("ChatInfo"), "the details stayed open after the tagged message loaded").toBeNull();
+    await waitFor(() =>
+      expect(scrolledTo(document.getElementById("main-container-5")!), "the tagged message was not scrolled to").toBe(true),
     );
   });
 

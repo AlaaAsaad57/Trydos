@@ -71,6 +71,11 @@ interface ChatState {
   archivedChats: Channel[];
   /** My reminders that have not fired yet, soonest first. */
   reminders: MyReminder[];
+  /**
+   * A message the open conversation must scroll to and flash, once it is in
+   * `activeChat.messages`. Set by a quote, a tagged message or a reminder.
+   */
+  jumpToMessageId: string | null;
 }
 
 const initialState: ChatState = {
@@ -129,6 +134,7 @@ const initialState: ChatState = {
   tracks: [],
   archivedChats: [],
   reminders: [],
+  jumpToMessageId: null,
 };
 
 // --- Helpers (Performance & DRY) ---
@@ -1071,6 +1077,9 @@ export const useChatStore = (set: any, get: any) => ({
   setChatLoading: () => set({ chat_loading: true }),
   setChatDone: () => set({ chat_loading: false }),
   setQouted: (payload: any) => set({ qouted: payload }),
+
+  setJumpToMessage: (payload: string | number | null) =>
+    set({ jumpToMessageId: payload == null ? null : String(payload) }),
 
   setPageData: (payload: any) => {
     const state = get();

@@ -172,10 +172,6 @@ describe("ChatLists — unread, archived and reminders", () => {
       h.chatRows.some((p) => p.id === 41),
       "an archived chat was drawn in the main list",
     ).toBe(false);
-    expect(
-      screen.queryByText("Reminders"),
-      "the Reminders folder showed with no reminder",
-    ).toBeNull();
 
     h.chatRows = [];
     await act(async () => screen.getByText("Archived").click());
@@ -183,6 +179,41 @@ describe("ChatLists — unread, archived and reminders", () => {
       h.chatRows.find((p) => p.id === 41)?.archived,
       "the Archived folder did not list the archived chat with its Unarchive option",
     ).toBe(true);
+  });
+
+  it("shows both folders even when they hold nothing", async () => {
+    await mountList({ data: [bilalChat], archivedChats: [], reminders: [] });
+    expect(
+      document.querySelector('[data-pw="CHAT-REMINDERS-FOLDER"]'),
+      "the Reminders folder was hidden because I have no reminder",
+    ).not.toBeNull();
+    expect(
+      document.querySelector('[data-pw="CHAT-ARCHIVED-FOLDER"]'),
+      "the Archived folder was hidden because I have no archived chat",
+    ).not.toBeNull();
+  });
+
+  it("asks the chat backend again each time a folder opens", async () => {
+    const actions = await import("store/chat/actions");
+    await mountList({ data: [bilalChat] });
+    vi.mocked(actions.GetArchivedChats).mockClear();
+    vi.mocked(actions.GetMyReminders).mockClear();
+
+    const folder = (name: string) =>
+      document.querySelector(`[data-pw="CHAT-${name}-FOLDER"]`) as HTMLElement | null;
+    expect(folder("ARCHIVED"), "the Archived folder was hidden, so it could not be opened").not.toBeNull();
+    await act(async () => folder("ARCHIVED")!.click());
+    expect(
+      actions.GetArchivedChats,
+      "opening the Archived folder showed the list from before, without asking again",
+    ).toHaveBeenCalledTimes(1);
+    await act(async () => screen.getByLabelText("Back").click());
+
+    await act(async () => folder("REMINDERS")!.click());
+    expect(
+      actions.GetMyReminders,
+      "opening the Reminders folder showed the list from before, without asking again",
+    ).toHaveBeenCalledTimes(1);
   });
 
   it("shows the Reminders folder while I have a reminder", async () => {

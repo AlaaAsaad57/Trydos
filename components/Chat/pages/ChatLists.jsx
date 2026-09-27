@@ -30,8 +30,8 @@ function ChatLists(props) {
   const [view, setView] = useState("main");
   const handleClick = openChatFromList;
 
-  // The folder rows show only when they hold something, so both lists are
-  // asked for once the chat user is known.
+  // The folder rows show their counts, so both lists are asked for once the
+  // chat user is known. Each folder asks again when it opens.
   useEffect(() => {
     if (!userChat?.id) return;
     GetArchivedChats();
@@ -97,24 +97,20 @@ function ChatLists(props) {
         <>
           {props.search.length === 0 ? (
             <>
-              {reminders.length > 0 && (
-                <ChatFolderRow
-                  icon="/icons/chat/remind.svg"
-                  label="Reminders"
-                  count={reminders.length}
-                  onClick={() => setView("reminders")}
-                  dataPw="CHAT-REMINDERS-FOLDER"
-                />
-              )}
-              {archivedChats.length > 0 && (
-                <ChatFolderRow
-                  icon="/icons/chat/ArchiveIcon.svg"
-                  label="Archived"
-                  count={archivedChats.length}
-                  onClick={() => setView("archived")}
-                  dataPw="CHAT-ARCHIVED-FOLDER"
-                />
-              )}
+              <ChatFolderRow
+                icon="/icons/chat/remind.svg"
+                label="Reminders"
+                count={reminders.length}
+                onClick={() => setView("reminders")}
+                dataPw="CHAT-REMINDERS-FOLDER"
+              />
+              <ChatFolderRow
+                icon="/icons/chat/ArchiveIcon.svg"
+                label="Archived"
+                count={archivedChats.length}
+                onClick={() => setView("archived")}
+                dataPw="CHAT-ARCHIVED-FOLDER"
+              />
               {getSortedChats()
                 ?.filter(
                   (s) =>
