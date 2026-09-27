@@ -435,6 +435,32 @@ describe("Demo screens — numbers from the XD file", () => {
     }, 15000);
   });
 
+  it("search: the 'For you' chip is 70 wide, so the next chip starts at x 94 as `Home Page – 1` draws it", () => {
+    url.search = "search";
+    const container = open("/sy-en/demo");
+    const chip = container.querySelector(
+      '[data-pw="demo-search-chip-0"]',
+    ) as HTMLElement | null;
+    expect(chip, "the search screen has no 'For you' chip").not.toBeNull();
+    expect(
+      chip!.style.minWidth,
+      "the 'For you' chip is only as wide as its word, so every chip after it starts 1 px left of the file",
+    ).toBe("70px");
+  });
+
+  it("profile tab: the buttons in the 2nd and 3rd promo cards are 13 px in, the 1st 12, as `Home Page – 9` draws them", () => {
+    const container = open("/sy-en/demo/settings");
+    const slider = container.querySelector(
+      '[data-pw="demo-profile-slider"]',
+    ) as HTMLElement | null;
+    expect(slider, "the profile tab has no promo slider").not.toBeNull();
+    const buttons = [...slider!.querySelectorAll<HTMLElement>("button")];
+    expect(
+      buttons.map((b) => b.style.marginLeft),
+      "the promo buttons are not at x 24, 435 and 845 (12, 13 and 13 px into their cards)",
+    ).toEqual(["12px", "13px", "13px"]);
+  });
+
   it("search: each chip's word starts 12 px in, not centred, as `Home Page – 1` draws it", () => {
     url.search = "search";
     const container = open("/sy-en/demo");

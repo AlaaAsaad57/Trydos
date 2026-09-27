@@ -125,8 +125,9 @@ export default function SearchScreen() {
                 style={{
                   height: 32,
                   padding: "0 12px",
-                  // The file draws the other chips 63 wide round a 38 px word.
-                  minWidth: i === 0 ? undefined : 63,
+                  // The file draws "For you" 70 wide and the others 63 wide
+                  // round a 38 px word, whatever width the browser gives the word.
+                  minWidth: i === 0 ? 70 : 63,
                   marginLeft: i === 0 ? 0 : i === 1 ? 12 : 4,
                   fontSize: 13,
                   color: C.inkSoft,

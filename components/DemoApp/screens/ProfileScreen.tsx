@@ -32,6 +32,8 @@ type Promo = {
   button: string;
   /** Where the button's content starts, from the button's left edge (the file does not centre it). */
   contentX: number;
+  /** The button's left edge in the card: 12 in the first, 13 in the other two. */
+  buttonX: number;
   icon?: XdIconName;
   buttonIcon?: XdIconName;
   title: DemoKey;
@@ -44,6 +46,7 @@ const PROMOS: Promo[] = [
     bg: "#FFF9F0",
     button: "#FFF2DE",
     contentX: 131,
+    buttonX: 12,
     icon: "size",
     buttonIcon: "size",
     title: "Setup your size profile",
@@ -54,6 +57,7 @@ const PROMOS: Promo[] = [
     bg: "#F0F6FD",
     button: "#E0EDFF",
     contentX: 143,
+    buttonX: 13,
     icon: "verifiedDark",
     buttonIcon: "verifiedBlue",
     title: "Unverified account",
@@ -64,6 +68,7 @@ const PROMOS: Promo[] = [
     bg: "#F0FCFD",
     button: "#E0F7FF",
     contentX: 128,
+    buttonX: 13,
     title: "Get trydos Business",
     text: "Tap verify, skip the line, and enjoy exclusive offers.",
     action: "Start Your Business now",
@@ -446,7 +451,7 @@ function PromoSlider({
               className="flex items-center shrink-0 cursor-pointer"
               style={{
                 marginTop: 58 - textBottom(43, 11),
-                marginLeft: 12,
+                marginLeft: promo.buttonX,
                 width: 382,
                 height: 38,
                 borderRadius: 15,
