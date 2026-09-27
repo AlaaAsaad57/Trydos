@@ -265,8 +265,31 @@ describe("Demo screens — numbers from the XD file", () => {
       expect(lined(detail), "the focused 'Detailed address' field got its line back while it is typed in").toBe(false);
 
       fireEvent.blur(container.querySelector('[data-pw="demo-address-detail"]')!);
-      expect(lined(detail), "the filled 'Detailed address' field lost its line after focus left; the form is not complete").toBe(true);
+      expect(detail.style.background, "the filled 'Detailed address' field is not #FCFCFC after focus left").toBe(CARD);
+      expect(lined(detail), "the filled 'Detailed address' field got its line back after focus left").toBe(false);
+
+      // Emptied again: back to white with a line.
+      type(container, "demo-address-detail", "");
+      fireEvent.blur(container.querySelector('[data-pw="demo-address-detail"]')!);
+      expect(detail.style.background, "the emptied 'Detailed address' field did not turn white again").toBe(WHITE);
+      expect(lined(detail), "the emptied 'Detailed address' field did not get its line back").toBe(true);
     });
+
+    it("a sheet field with a value and no sheet open is #FCFCFC with no line, before the form is complete", async () => {
+      const container = open(FORM);
+      const country = box(container, "demo-address-country");
+      expect(country.style.background, "the country field, which always has a value, is not #FCFCFC").toBe(CARD);
+      expect(lined(country), "the country field has a value but still has a line").toBe(false);
+
+      await pickPlace(container);
+      const place = box(container, "demo-address-place");
+      expect(place.style.background, "the picked place field is not #FCFCFC after its sheet closed").toBe(CARD);
+      expect(lined(place), "the picked place field still has a line after its sheet closed").toBe(false);
+      expect(
+        lined(box(container, "demo-address-title")),
+        "the empty 'Address title' field lost its line; only filled fields drop it",
+      ).toBe(true);
+    }, 15000);
 
     it("the field whose sheet is open turns #FCFCFC with no line, like a focused text field", () => {
       const container = open(FORM);

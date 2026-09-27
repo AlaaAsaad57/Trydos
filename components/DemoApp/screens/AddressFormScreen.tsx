@@ -30,11 +30,12 @@ import {
  *
  * Fields, 55 tall, 4 px apart from y 285: country (opens the country sheet),
  * "Select from list" (opens the place sheet), detailed address, title. A field
- * with a value turns `#FCFCFC`. The field in use (focused, or its sheet open)
- * turns `#FCFCFC` with no line — asked for by the product; 95 and 97 draw it
- * white with its line. When the whole form is filled
- * "Add & save" rises and the lines go, the map card's included, as on 99 —
- * at once, even while the last field still has focus.
+ * that is empty and not in use is white with its line. A field in use
+ * (focused, or its sheet open) or with a value is `#FCFCFC` with no line —
+ * asked for by the product; 94, 95 and 97 draw a filled field and the field in
+ * use with their line. When the whole form is filled "Add & save" rises and
+ * the map card's line goes, as on 99 — at once, even while the last field
+ * still has focus.
  *
  * Nothing is looked up: the map is the picture in the file and the places are
  * the mock list in demoPlaces.ts.
@@ -64,8 +65,8 @@ export default function AddressFormScreen() {
 
   const placeDone = picked.length === LEVELS.length;
   const complete = placeDone && detail.trim() !== "" && title.trim() !== "";
-  // The lines go the moment the form is complete, even with a field still
-  // focused. An open sheet keeps them, as on 95 and 97.
+  // The map card's line goes the moment the form is complete, even with a
+  // field still focused. An open sheet keeps it, as on 95 and 97.
   const done = complete && sheet === null;
   const shift = located ? MAP_GROWTH : 0;
   const countryName = t(countryOf(country).name);
@@ -88,8 +89,7 @@ export default function AddressFormScreen() {
   };
 
   const fieldLook = (id: "country" | "place", filled: boolean) => ({
-    editing: !done && active !== id && !filled,
-    filledLine: !done && active !== id,
+    editing: active !== id && !filled,
   });
 
   return (
@@ -325,7 +325,7 @@ export default function AddressFormScreen() {
         <Field
           y={403}
           label={t("Detailed address")}
-          {...fieldEditing(done, detail, focused === "detail")}
+          {...fieldEditing(detail, focused === "detail")}
         >
           <FieldInput
             testId="demo-address-detail"
@@ -341,7 +341,7 @@ export default function AddressFormScreen() {
         <Field
           y={462}
           label={t("Address title")}
-          {...fieldEditing(done, title, focused === "title")}
+          {...fieldEditing(title, focused === "title")}
         >
           <FieldInput
             testId="demo-address-title"
@@ -359,13 +359,12 @@ export default function AddressFormScreen() {
 }
 
 /**
- * A text field is white with a line while empty, `#FCFCFC` with a line once it
- * has text, and `#FCFCFC` with no line while in use or when the form is done.
- * `#FCFCFC`, not white: a white field with no line is lost on the white page.
+ * A text field is white with a line while empty and not in use. In use, or
+ * with text, it is `#FCFCFC` with no line — `#FCFCFC`, not white, since a
+ * white field with no line is lost on the white page.
  */
-const fieldEditing = (done: boolean, value: string, inUse: boolean) => ({
-  editing: !done && !inUse && value.trim() === "",
-  line: !done && !inUse,
+const fieldEditing = (value: string, inUse: boolean) => ({
+  editing: !inUse && value.trim() === "",
 });
 
 /** A field that opens a sheet instead of taking text. */
@@ -373,7 +372,6 @@ function FieldShell({
   y,
   label,
   editing,
-  filledLine,
   onClick,
   testId,
   children,
@@ -381,7 +379,6 @@ function FieldShell({
   y: number;
   label: string;
   editing: boolean;
-  filledLine: boolean;
   onClick: () => void;
   testId: string;
   children: React.ReactNode;
@@ -401,8 +398,7 @@ function FieldShell({
         height: 55,
         borderRadius: 15,
         background: editing ? C.white : C.card,
-        boxShadow:
-          editing || filledLine ? `inset 0 0 0 0.5px ${C.line}` : undefined,
+        boxShadow: editing ? `inset 0 0 0 0.5px ${C.line}` : undefined,
       }}
     >
       <Txt x={12} baseline={20} size={12} color={C.label}>
