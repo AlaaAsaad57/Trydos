@@ -25,7 +25,11 @@ vi.mock("utils/functions", async (importOriginal) => ({
   LogError: (...a: any[]) => h.logError(...a),
 }));
 vi.mock("components/Chat/components/ChatPhoto", () => ({
-  default: (p: any) => <div data-testid="photo">{p.user?.name}</div>,
+  default: (p: any) => (
+    <div data-testid="photo" data-photo={p.user?.photo_path}>
+      {p.user?.name}
+    </div>
+  ),
 }));
 
 // TypingIndicator.js holds JSX in a .js file, which the test build cannot parse.
@@ -85,6 +89,17 @@ describe("ChatHeader — who and where", () => {
     expect(document.querySelector(".user-name-top-chat")?.textContent, "the other person's name was not shown").toBe("Other Person");
     fireEvent.click(document.querySelector(".user-top-chat")!);
     expect(p.openDetails, "the details did not open").toHaveBeenCalled();
+  });
+
+  it("names the chat after channel_name, with the other person's own picture", async () => {
+    await mount({ activeChat: chat({ channel_name: "Shop Name", photo_path: "/channel.png" }) });
+    expect(document.querySelector(".user-name-top-chat")?.textContent, "the header did not use the chat's channel_name").toBe(
+      "Shop Name",
+    );
+    expect(screen.getByTestId("photo").dataset.photo, "the header did not show the other person's own picture").toBe("/p.png");
+    expect(screen.getByTestId("photo").textContent, "the picture's initials did not come from the chat's channel_name").toBe(
+      "Shop Name",
+    );
   });
 
   it("falls back to the chat id when the other person has no name", async () => {
@@ -148,6 +163,26 @@ describe("ChatHeader — calls", () => {
     fireEvent.click(videoBtn());
     expect(h.voice, "the voice call was not placed").toHaveBeenCalledWith(7, "Other Person", "/p.png", "p-0", null);
     expect(h.video, "the video call was not placed").toHaveBeenCalledWith(7, "Other Person", "/p.png", "p-0", null);
+  });
+
+  it("names the call after channel_name", async () => {
+    await mount({ activeChat: chat({ channel_name: "Shop Name" }) });
+    fireEvent.click(voiceBtn());
+    fireEvent.click(videoBtn());
+    expect(h.voice, "the voice call screen was not given the chat's channel_name").toHaveBeenCalledWith(
+      7,
+      "Shop Name",
+      "/p.png",
+      "p-0",
+      null,
+    );
+    expect(h.video, "the video call screen was not given the chat's channel_name").toHaveBeenCalledWith(
+      7,
+      "Shop Name",
+      "/p.png",
+      "p-0",
+      null,
+    );
   });
 
   it("an order chat sends the order participant with the call", async () => {

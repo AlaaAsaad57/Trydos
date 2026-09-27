@@ -1,4 +1,9 @@
-import { getNew, showDate } from "../chatsFunctions";
+import {
+  getChatName,
+  getChatPhoto,
+  getNew,
+  showDate,
+} from "../chatsFunctions";
 import { getUserChat, LogError } from "utils/functions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
 import { translateFunction } from "../../../utils/functions";
@@ -71,12 +76,8 @@ function ChatHeader({
       !callLoading &&
         makeVoiceCall(
           activeChat.id,
-          activeChat.channel_members.filter(
-            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id),
-          )[0]?.user.name,
-          activeChat.channel_members.filter(
-            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id),
-          )[0]?.user?.photo_path,
+          getChatName(activeChat),
+          getChatPhoto(activeChat),
           activeChat.channel_members.filter(
             (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id),
           )[0]?.user.mobile_phone,
@@ -107,12 +108,8 @@ function ChatHeader({
       !callLoading &&
         makeVideoCall(
           activeChat.id,
-          activeChat.channel_members.filter(
-            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id),
-          )[0]?.user.name,
-          activeChat.channel_members.filter(
-            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id),
-          )[0]?.user?.photo_path,
+          getChatName(activeChat),
+          getChatPhoto(activeChat),
           activeChat.channel_members.filter(
             (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id),
           )[0]?.user.mobile_phone,
@@ -159,11 +156,10 @@ function ChatHeader({
         {activeChat && activeChat.channel_members && (
           <div className="img-uer">
             <ChatPhoto
-              user={
-                activeChat.channel_members.filter(
-                  (user) => String(user.user_id) !== String(getUserChat()?.id),
-                )[0]?.user
-              }
+              user={{
+                name: getChatName(activeChat),
+                photo_path: getChatPhoto(activeChat),
+              }}
               width={40}
               height={40}
             />
@@ -179,17 +175,7 @@ function ChatHeader({
               (activeChat.status || activeChat.activeDate) && (
                 <div className="user-status">{getStatues()}</div>
               )}
-            {(activeChat.channel_members &&
-              activeChat.channel_members.filter(
-                (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id),
-              )[0] &&
-              activeChat.channel_members.filter(
-                (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id),
-              )[0]?.user &&
-              activeChat.channel_members.filter(
-                (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id),
-              )[0]?.user.name) ||
-              "User-" + activeChat.id}
+            {getChatName(activeChat) || "User-" + activeChat.id}
           </div>
         )}
       </div>

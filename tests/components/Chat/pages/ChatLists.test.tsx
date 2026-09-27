@@ -119,6 +119,79 @@ describe("ChatLists search — a contact who already has a chat", () => {
   });
 });
 
+describe("ChatLists — the name and picture of each chat row", () => {
+  // The mobile app names a chat after `channel_name` and shows the other
+  // person's own picture. The web used the other person's user name, so the
+  // same chat had two names. Each list here must follow the app.
+
+  /** Bilal's chat as the chat backend sends it to me. The channel has its own
+   *  name and picture, and Bilal's user record has a different name and picture. */
+  const namedChat = (extra: Record<string, any> = {}, myPin = 0) => ({
+    ...bilalChat,
+    channel_name: "Bilal Shop",
+    photo_path: "/channel.png",
+    channel_members: [
+      { user_id: ME, pin: myPin, mute: 0, user: { name: "Me", photo_path: "/me.png" } },
+      { user_id: BILAL, pin: 0, mute: 0, user: { name: "bilal seller id 8", photo_path: "/bilal.png" } },
+    ],
+    ...extra,
+  });
+
+  /** The last props a row got. A stand-in renders more than once. */
+  const rowOf = (id: number) => h.chatRows.filter((p) => p.id === id).at(-1);
+
+  async function mountRows(search: string, store: Record<string, any>) {
+    await renderWithProviders(<ChatLists search={search} />, {
+      store: {
+        userChat: { id: ME },
+        chat_loading: false,
+        pinnedChats: [],
+        chatSearchResults: [],
+        activeChat: null,
+        archivedChats: [],
+        reminders: [],
+        ...store,
+      },
+    });
+  }
+
+  it("names a row after channel_name and shows the other person's picture", async () => {
+    await mountRows("", { data: [namedChat()] });
+    expect(rowOf(40)?.SenderName, "the row did not use the chat's channel_name").toBe("Bilal Shop");
+    expect(rowOf(40)?.photo, "the row did not show the other person's own picture").toBe("/bilal.png");
+  });
+
+  it("names a pinned row after channel_name and shows the other person's picture", async () => {
+    await mountRows("", { data: [namedChat({}, 1)] });
+    expect(rowOf(40)?.pinned, "the chat was not drawn in the pinned group, so this test checks the wrong row").toBe(true);
+    expect(rowOf(40)?.SenderName, "the pinned row did not use the chat's channel_name").toBe("Bilal Shop");
+    expect(rowOf(40)?.photo, "the pinned row did not show the other person's own picture").toBe("/bilal.png");
+  });
+
+  it("falls back to the other person's name when channel_name is empty", async () => {
+    await mountRows("", { data: [namedChat({ channel_name: "" })] });
+    expect(rowOf(40)?.SenderName, "a chat with no channel_name did not fall back to the other person's name").toBe(
+      "bilal seller id 8",
+    );
+  });
+
+  it("names an archived row after channel_name and shows the other person's picture", async () => {
+    const archived = namedChat({ id: 41, is_archived: 1 });
+    await mountRows("", { data: [archived], archivedChats: [archived] });
+    await act(async () => screen.getByText("Archived").click());
+    expect(rowOf(41)?.archived, "the Archived folder did not draw the archived chat").toBe(true);
+    expect(rowOf(41)?.SenderName, "the archived row did not use the chat's channel_name").toBe("Bilal Shop");
+    expect(rowOf(41)?.photo, "the archived row did not show the other person's own picture").toBe("/bilal.png");
+  });
+
+  it("finds a chat by its channel_name and names the result after it", async () => {
+    await mountRows("Bilal Shop", { data: [namedChat()] });
+    expect(rowOf(40), "searching the name shown on the row did not find the chat").toBeTruthy();
+    expect(rowOf(40)?.SenderName, "the search result did not use the chat's channel_name").toBe("Bilal Shop");
+    expect(rowOf(40)?.photo, "the search result did not show the other person's own picture").toBe("/bilal.png");
+  });
+});
+
 describe("ChatLists — unread, archived and reminders", () => {
   /** A message from Bilal, and whether I have seen it. */
   const fromBilal = (id: number, watched: boolean) => ({

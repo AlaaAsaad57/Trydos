@@ -3,7 +3,12 @@
 // ../chatSearch.ts.
 import ChatItem from "components/Chat/components/ChatItem";
 import SearchResult from "components/Chat/components/SearchResult";
-import { forwardMessage, unreadCount } from "components/Chat/chatsFunctions";
+import {
+  forwardMessage,
+  getChatName,
+  getChatPhoto,
+  unreadCount,
+} from "components/Chat/chatsFunctions";
 import { contactUserId, searchChatList } from "components/Chat/chatSearch";
 import { GetLastSeen } from "store/chat/actions";
 import { getUserChat } from "utils/functions";
@@ -72,8 +77,6 @@ function ChatSearchResults({
   };
   const mine = (chat: any) =>
     chat.channel_members.filter((s: any) => s.user_id === me)[0];
-  const other = (chat: any) =>
-    chat.channel_members.filter((member: any) => member?.user_id !== me)[0];
 
   return (
     <>
@@ -87,8 +90,8 @@ function ChatSearchResults({
           newMessage={unreadCount(chat)}
           pinned={parseInt(mine(chat)?.pin) === 1}
           muted={parseInt(mine(chat)?.mute) === 1}
-          SenderName={other(chat)?.user?.name}
-          photo={other(chat)?.user?.photo_path}
+          SenderName={getChatName(chat)}
+          photo={getChatPhoto(chat)}
           lastMessage={getLatestMessage(chat.messages)}
           id={chat.id}
           chat_members={chat.channel_members}

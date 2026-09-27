@@ -51,6 +51,14 @@ describe("NewChatsSide", () => {
     expect(document.querySelector(".min-text-avatar")?.textContent, "a placeholder photo did not fall back to initials").toBe("NO");
   });
 
+  it("takes the initials from channel_name when the other person has no picture", async () => {
+    await mount([unreadChat(1, { name: "other name", photo_path: null }, { channel_name: "Shop Name" })]);
+    expect(
+      document.querySelector(".min-text-avatar")?.textContent,
+      "the initials did not come from the chat's channel_name",
+    ).toBe("SN");
+  });
+
   it("opens a new chat, marks it watched and follows the other person's status", async () => {
     const spies = await mount([unreadChat(1, { name: "A B" })]);
     fireEvent.click(document.querySelector(".new-chat")!);

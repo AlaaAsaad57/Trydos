@@ -5,6 +5,7 @@ import ChatSearchResults, {
   openChatFromList,
 } from "components/Chat/components/ChatSearchResults";
 import { dedupeContacts } from "components/Chat/chatSearch";
+import { getChatName, getChatPhoto } from "components/Chat/chatsFunctions";
 import { getUserChat, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import ChatContactsUpload from "../components/ChatContactsUpload";
@@ -87,8 +88,8 @@ function ContactLists(props) {
                     pinned={false}
                     muted={false}
                     SenderName={
-                      chats
-                        .filter(
+                      getChatName(
+                        chats.filter(
                           (chat) =>
                             chat.channel_members.filter(
                               (mem) =>
@@ -96,11 +97,7 @@ function ContactLists(props) {
                                 parseInt(contact?.contact_user?.id)
                             ).length > 0
                         )[0]
-                        ?.channel_members.filter(
-                          (member) =>
-                            parseInt(member?.user_id) !==
-                            parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
+                      ) ||
                       chats
                         .filter(
                           (chat) =>
@@ -117,21 +114,16 @@ function ContactLists(props) {
                         )[0]?.user?.mobile_phone ||
                       "User"
                     }
-                    photo={
-                      chats
-                        .filter(
-                          (chat) =>
-                            chat.channel_members.filter(
-                              (mem) =>
-                                parseInt(mem.user_id) ===
-                                parseInt(contact?.contact_user?.id)
-                            ).length > 0
-                        )[0]
-                        ?.channel_members.filter(
-                          (member) =>
-                            parseInt(member?.user_id) !== getUserChat()?.id
-                        )[0]?.user?.photo_path
-                    }
+                    photo={getChatPhoto(
+                      chats.filter(
+                        (chat) =>
+                          chat.channel_members.filter(
+                            (mem) =>
+                              parseInt(mem.user_id) ===
+                              parseInt(contact?.contact_user?.id)
+                          ).length > 0
+                      )[0]
+                    )}
                     lastMessage={null}
                     id={
                       chats.filter(

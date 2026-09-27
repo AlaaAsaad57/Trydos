@@ -7,6 +7,7 @@ import "styles/chatstyles.css";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
+import { getChatPhoto } from "../chatsFunctions";
 import { requestPermissions } from "utils/tinyUtils";
 import { isChannelMutedForMe } from "utils/chatMute";
 import { getUserChat } from "utils/functions";
@@ -86,7 +87,14 @@ function CallComponent(props) {
           <source src={"/default.mp3"}></source>
         </audio>
       )}
-      <ChatPhoto width={40} height={40} user={caller} />
+      <ChatPhoto
+        width={40}
+        height={40}
+        user={{
+          name: caller.channel_name,
+          photo_path: getChatPhoto(callerChannel),
+        }}
+      />
       <div className="call-s">
         <span className="incomin">
           {" "}

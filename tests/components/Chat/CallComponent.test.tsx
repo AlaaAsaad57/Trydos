@@ -79,3 +79,27 @@ describe("the incoming call bar and a muted chat", () => {
     ).not.toBeNull();
   });
 });
+
+describe("the incoming call bar — the caller's picture", () => {
+  // The mobile app shows the other person's own picture for a chat, not the
+  // channel's picture. The call bar must show the same one.
+  it("shows the other person's own picture, not the channel's", async () => {
+    const callerChannel = buildCallerChannel(0);
+    callerChannel.channel_members[1].user = { id: THEM, photo_path: "/them.png" } as any;
+    await renderWithProviders(<CallComponent reply={() => {}} />, {
+      store: {
+        userChat: { id: ME },
+        isCallIncoming: true,
+        incomeCallType: "audio",
+        MessageActiveCall: 101,
+        incomeCallData: { channelId: CHANNEL_ID, message_id: 101 },
+        caller: { channel_name: "Alaa Test123", photo_path: "/channel.png" },
+        callerChannel,
+      },
+    });
+
+    expect(screen.getByText("Alaa Test123"), "the call bar did not name the caller").toBeInTheDocument();
+    const src = document.querySelector(".call-element img")?.getAttribute("src") ?? "";
+    expect(src, `the call bar showed "${src}" instead of the caller's own picture`).toMatch(/\/them\.png$/);
+  });
+});

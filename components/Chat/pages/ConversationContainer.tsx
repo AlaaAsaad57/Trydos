@@ -18,7 +18,12 @@ import ChatInfo from "components/Chat/components/ChatInfo";
 import Observable from "components/Chat/components/ChatHistoryElement";
 import WebcamCapture from "components/Chat/components/CameraComponent";
 import ChatSearch from "../components/ChatSearch";
-import { dataURLtoFile, upload, getUser } from "../chatsFunctions";
+import {
+  dataURLtoFile,
+  upload,
+  getUser,
+  getChatName,
+} from "../chatsFunctions";
 import {
   GetChatDetails,
   getMessagesBetweenTwoMessages,
@@ -993,7 +998,7 @@ function ConversationContainer({
               if (callLoading || !activeChat?.id) return;
               makeVoiceCall(
                 activeChat.id,
-                receiver?.user.name,
+                getChatName(activeChat),
                 receiver?.user?.photo_path,
                 receiver?.user.mobile_phone,
               );
@@ -1011,7 +1016,7 @@ function ConversationContainer({
               if (callLoading || !activeChat?.id) return;
               makeVideoCall(
                 activeChat.id,
-                receiver?.user.name,
+                getChatName(activeChat),
                 receiver?.user?.photo_path,
                 receiver?.user.mobile_phone,
               );

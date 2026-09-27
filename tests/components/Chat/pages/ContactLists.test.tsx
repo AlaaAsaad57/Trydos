@@ -15,10 +15,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "../../../render";
 
-const h = vi.hoisted(() => ({ contactRows: [] as any[] }));
+const h = vi.hoisted(() => ({ contactRows: [] as any[], chatRows: [] as any[] }));
 
 vi.mock("components/Chat/components/ChatItem", () => ({
-  default: (p: any) => <div data-row={`chat:${p.id}`} />,
+  default: (p: any) => {
+    h.chatRows.push(p);
+    return <div data-row={`chat:${p.id}`} />;
+  },
 }));
 vi.mock("components/Chat/components/SearchResult", () => ({
   default: (p: any) => {
@@ -84,6 +87,7 @@ async function rowsOf(tab: "chats" | "contacts", search: string, contacts: any[]
 beforeEach(() => {
   document.body.innerHTML = "";
   h.contactRows = [];
+  h.chatRows = [];
 });
 
 describe("chat search — the same rows in the chats tab and the contacts tab", () => {
@@ -144,5 +148,29 @@ describe("the contacts tab — opening a person with no chat yet", () => {
 
     expect(openChat.mock.calls[0]?.[0]?.id, "the placeholder chat was not opened").toBe("ch-9");
     expect(watchChannel, "a placeholder chat was marked watched on the chat backend").not.toHaveBeenCalled();
+  });
+});
+
+describe("the contacts tab — a person who already has a chat", () => {
+  // The mobile app names a chat after `channel_name` and shows the other
+  // person's own picture. The contacts tab draws the chat row too, so it must
+  // follow the same rule.
+  it("names the chat after channel_name and shows the other person's picture", async () => {
+    const named = {
+      ...bilalChat,
+      channel_name: "Bilal Shop",
+      photo_path: "/channel.png",
+      channel_members: [
+        { user_id: ME, pin: 0, mute: 0, user: { name: "Me", photo_path: "/me.png" } },
+        { user_id: 8, pin: 0, mute: 0, user: { name: "bilal seller id 8", photo_path: "/bilal.png" } },
+      ],
+    };
+    await renderWithProviders(<ContactLists search="" close={vi.fn()} />, {
+      store: { ...store([bilal]), data: [named] },
+    });
+    const row = h.chatRows.filter((p) => p.id === 40).at(-1);
+    expect(row, "the contact with a chat did not draw the chat row").toBeTruthy();
+    expect(row.SenderName, "the contacts tab did not use the chat's channel_name").toBe("Bilal Shop");
+    expect(row.photo, "the contacts tab did not show the other person's own picture").toBe("/bilal.png");
   });
 });

@@ -8,8 +8,9 @@
 // had a chat was offered as a new chat.
 //
 // The rows are: first the existing chats that match, then the contacts that
-// match and have no chat yet. A chat matches by the other user's name or phone,
-// or by the name or phone of the contact saved for that user.
+// match and have no chat yet. A chat matches by the name its row shows
+// (`channel_name`), by the other user's name or phone, or by the name or phone
+// of the contact saved for that user.
 
 /** The last 9 digits of a phone number.
  *
@@ -93,6 +94,7 @@ export const searchChatList = ({
         (m: any) => parseInt(m.user_id) !== me,
       );
       if (!other) return false;
+      if (matches(chat.channel_name)) return true;
       if (matches(other.user?.name, other.user?.mobile_phone)) return true;
       return people.some(
         (p: any) =>

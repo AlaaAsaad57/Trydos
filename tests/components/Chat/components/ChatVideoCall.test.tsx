@@ -130,6 +130,18 @@ describe("ChatVideoCall — joining", () => {
 });
 
 describe("ChatVideoCall — the other person", () => {
+  it("names the call after channel_name, with the other person's own picture", async () => {
+    const store = storeFor();
+    await mount({ ...store, activeChat: { ...store.activeChat, channel_name: "Shop Name", photo_path: "/channel.png" } } as any);
+    expect(document.querySelector(".caller-name")?.textContent, "the call screen did not use the chat's channel_name").toBe(
+      "Shop Name",
+    );
+    expect(
+      (document.querySelector(".hgg") as HTMLElement)?.style.backgroundImage,
+      "the call screen did not show the other person's own picture",
+    ).toContain("/p.png");
+  });
+
   it("shows their photo, else their initials, else the empty profile picture", async () => {
     const a = await mount();
     expect((document.querySelector(".hgg") as HTMLElement).style.backgroundImage, "the other person's photo was not shown").toContain("/p.png");

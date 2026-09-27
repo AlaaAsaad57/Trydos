@@ -981,6 +981,25 @@ describe("ConversationContainer — header, details and calls", () => {
     expect(h.makeVideoCall, "the video call was not placed").toHaveBeenCalledWith(7, "Them", "/p.png", "p");
   });
 
+  it("names a call from the details after channel_name", async () => {
+    await mount({ chat: chatWith([msg(10)], { channel_name: "Shop Name" }) });
+    act(() => h.props.ChatHeader.openDetails());
+    act(() => h.props.ChatInfo.makeAudioCall());
+    act(() => h.props.ChatInfo.makeVideoCall());
+    expect(h.makeVoiceCall, "the voice call screen was not given the chat's channel_name").toHaveBeenCalledWith(
+      7,
+      "Shop Name",
+      "/p.png",
+      "p",
+    );
+    expect(h.makeVideoCall, "the video call screen was not given the chat's channel_name").toHaveBeenCalledWith(
+      7,
+      "Shop Name",
+      "/p.png",
+      "p",
+    );
+  });
+
   it("does not place a call while another is being placed", async () => {
     await mount({ store: { callLoading: "video" } });
     act(() => h.props.ChatHeader.openDetails());

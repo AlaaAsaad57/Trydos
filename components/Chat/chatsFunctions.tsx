@@ -8,6 +8,26 @@ export const getUser: any = () => {
   return useAppStore.getState().userChat;
 };
 
+/** The other person in a chat: the member who is not me. */
+export const getChatPeer = (chat) =>
+  chat?.channel_members?.find(
+    (member) => String(member?.user_id) !== String(getUser()?.id),
+  );
+
+/**
+ * The name a chat shows. The mobile app uses the same rule, so one chat has one
+ * name on both: the channel's own name, else the other person's name.
+ *
+ * Only for a chat this user read from the chat backend. In a push, the
+ * channel's `channel_name` is the receiver's own name (see the real push in
+ * tests/public/firebaseMessagingSwTags.test.ts), so a push keeps the sender's name.
+ */
+export const getChatName = (chat) =>
+  chat?.channel_name || getChatPeer(chat)?.user?.name;
+
+/** The picture a chat shows: the other person's own picture, never the channel's. */
+export const getChatPhoto = (chat) => getChatPeer(chat)?.user?.photo_path;
+
 export const getMessageStatusIcon = (status_array, mid) => {
   if (mid) {
     return (

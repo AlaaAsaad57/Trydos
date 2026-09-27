@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import ChatItem from "components/Chat/components/ChatItem";
 import Spinner from "components/global/Spinner";
-import { unreadCount } from "components/Chat/chatsFunctions";
+import {
+  getChatName,
+  getChatPhoto,
+  unreadCount,
+} from "components/Chat/chatsFunctions";
 import {
   getLatestMessage,
   openChatFromList,
@@ -27,8 +31,6 @@ function ArchivedChatsList({ onBack }: { onBack: () => void }) {
   const me = getUserChat()?.id;
   const mine = (chat: any) =>
     chat.channel_members?.find((m: any) => m.user_id === me);
-  const other = (chat: any) =>
-    chat.channel_members?.find((m: any) => m.user_id !== me);
 
   return (
     <div className="chat-list-items chat-lists-class" data-pw="ARCHIVED-CHATS">
@@ -53,8 +55,8 @@ function ArchivedChatsList({ onBack }: { onBack: () => void }) {
             pinned={parseInt(mine(chat)?.pin) === 1}
             muted={parseInt(mine(chat)?.mute) === 1}
             archived={true}
-            SenderName={other(chat)?.user?.name}
-            photo={other(chat)?.user?.photo_path}
+            SenderName={getChatName(chat)}
+            photo={getChatPhoto(chat)}
             lastMessage={getLatestMessage(chat.messages)}
             id={chat.id}
             chat_members={chat.channel_members}

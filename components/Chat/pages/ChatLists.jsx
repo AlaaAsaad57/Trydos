@@ -1,5 +1,9 @@
 import ChatItem from "components/Chat/components/ChatItem";
-import { unreadCount } from "components/Chat/chatsFunctions";
+import {
+  getChatName,
+  getChatPhoto,
+  unreadCount,
+} from "components/Chat/chatsFunctions";
 
 import ChatSearchResults, {
   getLatestMessage,
@@ -136,16 +140,8 @@ function ChatLists(props) {
                           )[0]?.mute,
                         ) === 1
                       }
-                      SenderName={
-                        chat?.channel_members.filter(
-                          (member) => member?.user_id !== getUserChat()?.id,
-                        )[0]?.user?.name
-                      }
-                      photo={
-                        chat?.channel_members.filter(
-                          (member) => member?.user_id !== getUserChat()?.id,
-                        )[0]?.user?.photo_path
-                      }
+                      SenderName={getChatName(chat)}
+                      photo={getChatPhoto(chat)}
                       lastMessage={getLatestMessage(chat.messages)}
                       id={chat.id}
                       chat={chat}
@@ -185,16 +181,8 @@ function ChatLists(props) {
                           )[0]?.mute,
                         ) === 1
                       }
-                      SenderName={
-                        chat?.channel_members.filter(
-                          (member) => member?.user_id !== getUserChat()?.id,
-                        )[0]?.user?.name
-                      }
-                      photo={
-                        chat?.channel_members.filter(
-                          (member) => member?.user_id !== getUserChat()?.id,
-                        )[0]?.user?.photo_path
-                      }
+                      SenderName={getChatName(chat)}
+                      photo={getChatPhoto(chat)}
                       lastMessage={getLatestMessage(chat.messages)}
                       id={chat.id}
                       chat={chat}

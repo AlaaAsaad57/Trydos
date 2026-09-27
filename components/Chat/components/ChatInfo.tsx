@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ConfirmModal } from "components/global/ConfirmModal";
-import { getTwoLetters, getUser } from "../chatsFunctions";
+import {
+  getChatName,
+  getChatPhoto,
+  getTwoLetters,
+  getUser,
+} from "../chatsFunctions";
 import Image from "next/image";
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
@@ -156,15 +161,12 @@ function ChatInfo({
       {!showMedia ? (
         <>
           <div className="chat-info-user-avatar">
-            {activeChat?.channel_members?.filter(
-              (user) => user.user_id !== getUser()?.id,
-            )[0]?.user?.photo_path ? (
+            {getChatPhoto(activeChat) ? (
               <ChatPhoto
-                user={
-                  activeChat?.channel_members.filter(
-                    (user) => user.user_id !== getUser()?.id,
-                  )[0]?.user
-                }
+                user={{
+                  name: getChatName(activeChat),
+                  photo_path: getChatPhoto(activeChat),
+                }}
                 className="w-full h-full"
                 height={150}
                 width={150}
@@ -172,9 +174,7 @@ function ChatInfo({
             ) : (
               <div className="text-avatar">
                 {getTwoLetters(
-                  activeChat?.channel_members.filter(
-                    (user) => user.user_id !== getUser()?.id,
-                  )[0]?.user.name ||
+                  getChatName(activeChat) ||
                     activeChat?.channel_members.filter(
                       (user) => user.user_id !== getUser()?.id,
                     )[0]?.user.username,
@@ -184,9 +184,7 @@ function ChatInfo({
           </div>
           <div className="chat-user-info w-full flex items-center">
             <div className="chat-info-user-name p-0">
-              {activeChat?.channel_members.filter(
-                (user) => user.user_id !== getUser()?.id,
-              )[0]?.user?.name ||
+              {getChatName(activeChat) ||
                 activeChat?.channel_members.filter(
                   (user) => user.user_id !== getUser()?.id,
                 )[0]?.user?.username}
