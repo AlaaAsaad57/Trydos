@@ -681,6 +681,67 @@ describe("chat slice — edit, tags and reminders on a message", () => {
   });
 });
 
+// The chat backend stops listing a reminder the moment its time comes, but
+// its push (MessageReminderEvent) lands up to ~30 s later. A due reminder the
+// app already holds must stay until that push; a reminder that is not due yet
+// and is no longer listed was cancelled on another device, so it goes.
+describe("chat slice — a due reminder lives until its push arrives", () => {
+  const due = () => new Date(Date.now() - 5_000).toISOString();
+  const later = () => new Date(Date.now() + 3_600_000).toISOString();
+
+  it("setReminders keeps a due reminder the chat backend no longer lists, until it fires", () => {
+    const s = makeStore({
+      reminders: [
+        { id: "r-due", message_id: "m1", remind_at: due() },
+        { id: "r-later", message_id: "m2", remind_at: later() },
+      ],
+    });
+    s.get().setReminders([{ id: "r-later", message_id: "m2", remind_at: later() }] as any);
+    expect(
+      s.get().reminders.map((r: any) => r.id),
+      "a due reminder left the Reminders folder before its push arrived",
+    ).toEqual(["r-due", "r-later"]);
+
+    s.get().reminderFired({ ch_id: 1, msg_id: "m1", reminder_id: "r-due" });
+    expect(s.get().reminders.map((r: any) => r.id), "the push did not take the due reminder away").toEqual(["r-later"]);
+  });
+
+  it("setReminders drops a reminder that is not due yet when the chat backend no longer lists it", () => {
+    const s = makeStore({ reminders: [{ id: "r-later", message_id: "m2", remind_at: later() }] });
+    s.get().setReminders([]);
+    expect(s.get().reminders, "a reminder cancelled on another device stayed in the folder").toEqual([]);
+  });
+
+  it("setChats keeps the due reminder on a message, in the list and the open chat", () => {
+    const held = channel(1, {
+      messages: [
+        msg("m1", { reminder: { id: "r-due", remind_at: due() } }),
+        msg("m2", { reminder: { id: "r-later", remind_at: later() } }),
+      ],
+    });
+    const s = makeStore({ data: [held], activeChat: held, pinnedChats: [], newChats: [] });
+
+    // The chat backend answers the same chat with neither reminder.
+    s.get().setChats([channel(1, { messages: [msg("m2"), msg("m1")] })], []);
+
+    const byId = (list: any[]) => Object.fromEntries(list.map((m: any) => [m.id, m.reminder ?? null]));
+    expect(byId(s.get().data[0].messages).m1?.id, "a due reminder left its message in the list before its push").toBe("r-due");
+    expect(byId(s.get().activeChat.messages).m1?.id, "a due reminder left its message in the open chat before its push").toBe("r-due");
+    expect(byId(s.get().data[0].messages).m2, "a reminder cancelled on another device stayed on its message").toBeNull();
+  });
+
+  it("setArchivedChats keeps the due reminder on a message of an archived chat", () => {
+    const s = makeStore({
+      archivedChats: [channel(3, { messages: [msg("m1", { reminder: { id: "r-due", remind_at: due() } })] })],
+    });
+    s.get().setArchivedChats([channel(3, { messages: [msg("m1")] })] as any);
+    expect(
+      s.get().archivedChats[0].messages[0].reminder?.id,
+      "a due reminder left its message in an archived chat before its push",
+    ).toBe("r-due");
+  });
+});
+
 describe("chat slice — archive and unread", () => {
   it("archiveChat moves a chat to the archived list and back, and keeps it open", () => {
     const s = makeStore({ data: [channel(1), channel(2)], activeChat: channel(1), archivedChats: [], newChats: [channel(1)] });

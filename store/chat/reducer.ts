@@ -171,6 +171,35 @@ const seedMarkedUnread = (channel: any): boolean => {
 };
 
 /**
+ * Whether a reminder's time has come.
+ *
+ * The chat backend stops listing a reminder at that moment, but its push
+ * (`MessageReminderEvent`) lands up to ~30 s later. The app keeps a due
+ * reminder until the push (`reminderFired`). A reminder that is not due and
+ * is no longer listed was cancelled on another device, so it goes.
+ */
+const isDue = (reminder: any): boolean =>
+  !!reminder?.remind_at &&
+  new Date(reminder.remind_at).getTime() <= Date.now();
+
+/**
+ * Fresh messages from the chat backend, with the due reminders the store
+ * already holds put back on the messages the backend sent without one.
+ */
+const keepDueReminders = (fresh: any[] = [], held: any[] = []): any[] => {
+  const dueById = new Map<string, any>();
+  held.forEach((m: any) => {
+    if (isDue(m?.reminder)) dueById.set(String(m.id), m.reminder);
+  });
+  if (dueById.size === 0) return fresh;
+  return fresh.map((m: any) =>
+    !m.reminder && dueById.has(String(m.id))
+      ? { ...m, reminder: dueById.get(String(m.id)) }
+      : m,
+  );
+};
+
+/**
  * Updates a specific channel in the data array and syncs activeChat if it matches.
  * Returns the new partial state to be passed to set().
  */
@@ -994,14 +1023,17 @@ export const useChatStore = (set: any, get: any) => ({
     const state = get();
     const currentUserId = getUserChat()?.id;
 
+    // The messages the store holds for a chat, to keep their due reminders.
+    const held = (id: any) =>
+      state.data.find((c: any) => areIdsEqual(c.id, id))?.messages;
     const processedPayload = payload.map((a) => ({
       ...a,
-      messages: a.messages.reverse(),
+      messages: keepDueReminders(a.messages.reverse(), held(a.id)),
       marked_unread: seedMarkedUnread(a),
     }));
     const processedParam = param.map((p) => ({
       ...p,
-      messages: p.messages.reverse(),
+      messages: keepDueReminders(p.messages.reverse(), held(p.id)),
       marked_unread: seedMarkedUnread(p),
     }));
 
@@ -1307,19 +1339,37 @@ export const useChatStore = (set: any, get: any) => ({
     });
   },
 
-  setArchivedChats: (payload: Channel[]) =>
+  setArchivedChats: (payload: Channel[]) => {
+    const state = get();
     set({
       archivedChats: payload.map((ch: any) => ({
         ...ch,
         is_archived: 1,
         // The backend sends the newest message first; the rest of the app
         // keeps them oldest first (see `setChats`).
-        messages: [...(ch.messages || [])].reverse(),
+        messages: keepDueReminders(
+          [...(ch.messages || [])].reverse(),
+          state.archivedChats.find((c: any) => areIdsEqual(c.id, ch.id))
+            ?.messages,
+        ),
         marked_unread: seedMarkedUnread(ch),
       })),
-    }),
+    });
+  },
 
-  setReminders: (payload: MyReminder[]) => set({ reminders: payload }),
+  /**
+   * My reminders from the chat backend. A due reminder the store holds stays
+   * until its push arrives (`reminderFired`), even when the backend no longer
+   * lists it; see `isDue`.
+   */
+  setReminders: (payload: MyReminder[]) => {
+    const state = get();
+    const listed = new Set(payload.map((r) => String(r.id)));
+    const waiting = state.reminders.filter(
+      (r) => isDue(r) && !listed.has(String(r.id)),
+    );
+    set({ reminders: [...waiting, ...payload] });
+  },
 
   removeReminder: (reminderId: string | number) => {
     const state = get();
