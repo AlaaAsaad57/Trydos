@@ -497,7 +497,7 @@ function SellerDashBoard() {
       // fetchData returns { success: false } instead of throwing — treat that as
       // a failure so it flows into the catch and gets logged.
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to load products");
+        throw new Error(res?.message || translateFunction("Failed to load products"));
       }
       // API returns { data: { products: [...], meta: {...} } }
       const products = res.data?.products || res.data || [];
@@ -527,7 +527,7 @@ function SellerDashBoard() {
       setError(null);
       const res = await SellerDashboardService.getSellerBoutiques(sellerId);
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to load boutiques");
+        throw new Error(res?.message || translateFunction("Failed to load boutiques"));
       }
       // API returns { data: { boutiques: [...], meta: {...} } }
       const boutiques = res.data?.boutiques || res.data || [];
@@ -557,7 +557,7 @@ function SellerDashBoard() {
       setError(null);
       const res = await SellerDashboardService.getRoles(sellerId, page, search);
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to load roles");
+        throw new Error(res?.message || translateFunction("Failed to load roles"));
       }
       const rolesData = res.data?.shop_roles || res.data || [];
       if (page > 1) {
@@ -595,7 +595,7 @@ function SellerDashBoard() {
       setError(null);
       const res = await SellerDashboardService.getRoles(sellerId, page, search);
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to load roles");
+        throw new Error(res?.message || translateFunction("Failed to load roles"));
       }
       const rolesData = res.data?.shop_roles || res.data || [];
       if (page > 1) {
@@ -638,7 +638,7 @@ function SellerDashBoard() {
         langSegment,
       );
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to load users");
+        throw new Error(res?.message || translateFunction("Failed to load users"));
       }
       const usersData = res.data?.users || res.data || [];
       if (page > 1) {
@@ -670,7 +670,7 @@ function SellerDashBoard() {
       setUsersError(null);
       const res = await SellerDashboardService.deleteUser(userId, sellerId);
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to delete user");
+        throw new Error(res?.message || translateFunction("Failed to delete user"));
       }
       setUsers((prev) => prev.filter((u) => String(u.id) !== String(userId)));
     } catch (error: any) {
@@ -695,7 +695,7 @@ function SellerDashBoard() {
         sellerId,
       );
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to update user role");
+        throw new Error(res?.message || translateFunction("Failed to update user role"));
       }
       // Update local users array with new role info (name from roles list)
       const roleObj = roles.find((r) => Number(r.id) === Number(roleId));
@@ -728,7 +728,7 @@ function SellerDashBoard() {
       setUsersError(null);
       const res = await SellerDashboardService.leaveShop(sellerId);
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to leave shop");
+        throw new Error(res?.message || translateFunction("Failed to leave shop"));
       }
       // Left successfully — the shop is no longer accessible, so leave the
       // dashboard and send the user back to their shop picker. The navigation
@@ -800,7 +800,7 @@ function SellerDashBoard() {
       // Fallback: fetch from API
       const res = await SellerDashboardService.getSellerPermissions(sellerId);
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to load permissions");
+        throw new Error(res?.message || translateFunction("Failed to load permissions"));
       }
       // API returns array of shops: [{ seller_id, shop_name, permissions: [...] }]
       const shopData = Array.isArray(res.data)

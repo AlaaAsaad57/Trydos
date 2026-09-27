@@ -453,7 +453,7 @@ export default function ProductEditor({
         url: files[i] ? URL.createObjectURL(files[i]) : "",
         isNew: true,
       }));
-      if (!items.length) throw new Error("Upload returned no files");
+      if (!items.length) throw new Error(t("Upload returned no files"));
       setForm((prev) =>
         prev ? { ...prev, images: [...prev.images, ...items] } : prev,
       );
@@ -474,7 +474,7 @@ export default function ProductEditor({
         "product/meta",
       );
       const name = extractNames(data)[0];
-      if (!name) throw new Error("Upload returned no file");
+      if (!name) throw new Error(t("Upload returned no file"));
       setForm((prev) =>
         prev
           ? { ...prev, meta_image: name, meta_image_url: URL.createObjectURL(file) }
@@ -494,7 +494,7 @@ export default function ProductEditor({
     try {
       const url = await SellerDashboardService.uploadShopImage(file, "product/videos");
       const name = fileName(url);
-      if (!name) throw new Error("Upload returned no file");
+      if (!name) throw new Error(t("Upload returned no file"));
       patch({ cloud_video: name });
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : String(e);

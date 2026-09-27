@@ -305,7 +305,7 @@ describe("ProductEditor — loading and shop info", () => {
   it("says a missing READ_SHOP_INFO blocks opening a product", async () => {
     await renderEditor({ shop: { ...shopInfo, permitted: false } });
     expect(
-      screen.getByText(/Opening a product needs permission to view shop info/),
+      screen.getByText(/Opening A Product Needs Permission To View Shop Info/),
       "the edit path did not explain the missing shop-info permission",
     ).toBeInTheDocument();
   });
@@ -314,7 +314,7 @@ describe("ProductEditor — loading and shop info", () => {
     svc.getProductCreateForm.mockResolvedValue({ data: {} });
     await renderEditor({ mode: "create", shop: { ...shopInfo, permitted: false } });
     expect(
-      screen.getByText(/Adding a product needs permission to view shop info/),
+      screen.getByText(/Adding A Product Needs Permission To View Shop Info/),
       "the create path did not explain the missing shop-info permission",
     ).toBeInTheDocument();
   });
@@ -322,7 +322,7 @@ describe("ProductEditor — loading and shop info", () => {
   it("offers a retry when shop info could not be read, and the retry clears it and reloads", async () => {
     const { store } = await renderEditor({ shop: { ...shopInfo, available: false } });
     expect(
-      screen.getByText(/Editing this product is unavailable until they load/),
+      screen.getByText(/Editing This Product Is Unavailable Until They Load/),
       "the edit path did not say shop details failed to load",
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
@@ -335,7 +335,7 @@ describe("ProductEditor — loading and shop info", () => {
     svc.getProductCreateForm.mockResolvedValue({ data: {} });
     await renderEditor({ mode: "create", shop: { ...shopInfo, available: false } });
     expect(
-      screen.getByText(/Product creation is unavailable until they load/),
+      screen.getByText(/Product Creation Is Unavailable Until They Load/),
       "the create path did not say shop details failed to load",
     ).toBeInTheDocument();
   });
@@ -375,7 +375,7 @@ describe("ProductEditor — loading and shop info", () => {
     expect(
       JSON.parse(text("errors")).seller_product_id,
       "a seller product id already used in the shop was not flagged",
-    ).toBe("This Seller Product ID is already used");
+    ).toBe("This Seller Product ID Is Already Used");
   });
 
   it("builds the create form when the create answer carries no data", async () => {
@@ -407,14 +407,14 @@ describe("ProductEditor — header", () => {
     );
     await renderEditor({ perms: ["READ_PRODUCTS"] });
     expect(screen.getByText("Untitled Product"), "an unnamed product needs a placeholder title").toBeInTheDocument();
-    expect(screen.getByText(/pending changes awaiting admin approval/), "the pending-update banner is missing").toBeInTheDocument();
+    expect(screen.getByText(/Pending Changes Awaiting Admin Approval/), "the pending-update banner is missing").toBeInTheDocument();
     expect(screen.queryByText("Pending Approval"), "the pill contradicts the pending-update banner").toBeNull();
   });
 
   it("shows the denied banner for request_status 2", async () => {
     svc.getProductForEdit.mockResolvedValue(editProduct({ request_status: 2 }));
     await renderEditor();
-    expect(screen.getByText(/Your last changes to this product were denied/), "the denied banner is missing").toBeInTheDocument();
+    expect(screen.getByText(/Your Last Changes To This Product Were Denied/), "the denied banner is missing").toBeInTheDocument();
   });
 });
 
@@ -554,7 +554,7 @@ describe("ProductEditor — uploads", () => {
     svc.bulkUploadImages.mockResolvedValue({ files: "not-a-list" });
     await renderEditor();
     await act(() => h.props.onUploadImages([file("a.png")]));
-    expect(toast.showErrorMessage, "an empty upload answer was not reported").toHaveBeenCalledWith("Upload returned no files");
+    expect(toast.showErrorMessage, "an empty upload answer was not reported, translated").toHaveBeenCalledWith("Upload Returned No Files");
     expect(flags().uploading.images, "the images upload flag stayed on").toBe(false);
   });
 
@@ -562,7 +562,7 @@ describe("ProductEditor — uploads", () => {
     svc.bulkUploadImages.mockRejectedValue("");
     await renderEditor();
     await act(() => h.props.onUploadImages([file("a.png")]));
-    expect(toast.showErrorMessage, "an empty upload failure left no message").toHaveBeenCalledWith("Image upload failed");
+    expect(toast.showErrorMessage, "an empty upload failure left no message").toHaveBeenCalledWith("Image Upload Failed");
   });
 
   it("sets the meta image from the upload", async () => {
@@ -577,9 +577,9 @@ describe("ProductEditor — uploads", () => {
     svc.bulkUploadImages.mockResolvedValueOnce({ files: [] }).mockRejectedValueOnce("");
     await renderEditor();
     await act(() => h.props.onUploadMeta(file("m.png")));
-    expect(toast.showErrorMessage, "a meta upload with no file was not reported").toHaveBeenCalledWith("Upload returned no file");
+    expect(toast.showErrorMessage, "a meta upload with no file was not reported, translated").toHaveBeenCalledWith("Upload Returned No File");
     await act(() => h.props.onUploadMeta(file("m.png")));
-    expect(toast.showErrorMessage, "an empty meta failure left no message").toHaveBeenCalledWith("Image upload failed");
+    expect(toast.showErrorMessage, "an empty meta failure left no message").toHaveBeenCalledWith("Image Upload Failed");
   });
 
   it("stores the uploaded video's file name", async () => {
@@ -593,9 +593,9 @@ describe("ProductEditor — uploads", () => {
     svc.uploadShopImage.mockResolvedValueOnce("").mockRejectedValueOnce("");
     await renderEditor();
     await act(() => h.props.onUploadVideo(file("c.mp4")));
-    expect(toast.showErrorMessage, "a video upload with no file was not reported").toHaveBeenCalledWith("Upload returned no file");
+    expect(toast.showErrorMessage, "a video upload with no file was not reported, translated").toHaveBeenCalledWith("Upload Returned No File");
     await act(() => h.props.onUploadVideo(file("c.mp4")));
-    expect(toast.showErrorMessage, "an empty video failure left no message").toHaveBeenCalledWith("Video upload failed");
+    expect(toast.showErrorMessage, "an empty video failure left no message").toHaveBeenCalledWith("Video Upload Failed");
   });
 });
 
@@ -613,7 +613,7 @@ describe("ProductEditor — save (edit)", () => {
     vi.mocked(validate).mockReturnValue({ name: "Required" });
     await openEditAndSave();
     expect(toast.showErrorMessage, "invalid fields did not block the save").toHaveBeenCalledWith(
-      "Please fix the highlighted fields before saving.",
+      "Please Fix The Highlighted Fields Before Saving.",
     );
     expect(scrollToFirstError, "the page did not move to the first error").toHaveBeenCalledWith({ name: "Required" });
   });
@@ -625,14 +625,14 @@ describe("ProductEditor — save (edit)", () => {
     act(() => h.props.patch({ seller_product_id: "TAKEN-9" }));
     fireEvent.click(screen.getAllByRole("button", { name: "Save Changes" })[0]);
     expect(scrollToFirstError, "a taken seller product id did not block the save").toHaveBeenCalledWith({
-      seller_product_id: "This Seller Product ID is already used",
+      seller_product_id: "This Seller Product ID Is Already Used",
     });
   });
 
   it("says there is nothing to save when the diff is empty", async () => {
     vi.mocked(buildDiff).mockReturnValue([]);
     await openEditAndSave();
-    expect(toast.showErrorMessage, "an empty diff did not say there is nothing to save").toHaveBeenCalledWith("No changes to save.");
+    expect(toast.showErrorMessage, "an empty diff did not say there is nothing to save").toHaveBeenCalledWith("No Changes To Save.");
   });
 
   it("cancel restores view mode", async () => {
@@ -662,7 +662,7 @@ describe("ProductEditor — save (edit)", () => {
     expect(screen.queryByText("row f"), "more than five loose messages were shown").toBeNull();
     expect(screen.getByText("More Problems Were Reported: 1"), "the hidden-message count is wrong").toBeInTheDocument();
     expect(toast.showErrorMessage, "the refusal summary did not point at the fields").toHaveBeenCalledWith(
-      "Please fix the highlighted fields before saving.",
+      "Please Fix The Highlighted Fields Before Saving.",
     );
     act(() => h.props.patch({ name: "New name" }));
     expect(JSON.parse(text("errors")).name, "editing the field did not clear the backend's message").toBeUndefined();
@@ -673,7 +673,7 @@ describe("ProductEditor — save (edit)", () => {
     await openEditAndSave();
     fireEvent.click(screen.getByRole("button", { name: "Confirm & Save" }));
     await settle();
-    expect(toast.showErrorMessage, "an empty refusal did not use the fallback text").toHaveBeenCalledWith("Failed to update product");
+    expect(toast.showErrorMessage, "an empty refusal did not use the fallback text").toHaveBeenCalledWith("Failed To Update Product");
     expect(logError, "the refusal was not logged").toHaveBeenCalledWith(
       expect.objectContaining({ scenario: "ProductEditor.saveRejected", error: "rejected" }),
     );
@@ -690,7 +690,7 @@ describe("ProductEditor — save (edit)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Confirm & Save" }));
     await settle();
     expect(svc.syncProductDescriptors, "changed attributes were not synced").toHaveBeenCalled();
-    expect(toast.showSuccessMessage, "a clean save did not report success").toHaveBeenCalledWith("Product updated successfully.");
+    expect(toast.showSuccessMessage, "a clean save did not report success").toHaveBeenCalledWith("Product Updated Successfully.");
     expect(flags().disabled, "a saved form must go back to view mode").toBe(true);
   });
 
@@ -705,7 +705,7 @@ describe("ProductEditor — save (edit)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Confirm & Save" }));
     await settle();
     expect(toast.showErrorMessage, "the failed attribute sync was not reported").toHaveBeenCalledWith(
-      "Product updated, but attributes failed to save.",
+      "Product Updated, But Attributes Failed To Save.",
     );
     expect(formState().desc, "unsaved attribute values were left on screen").toEqual({});
     expect(toast.showSuccessMessage, "a partial save must not claim full success").not.toHaveBeenCalled();
@@ -791,7 +791,7 @@ describe("ProductEditor — save (create)", () => {
   it("goes to the new product after a create that returns its id", async () => {
     svc.addProduct.mockResolvedValue({ success: true, data: { product_id: 55 } });
     await openCreateAndConfirm();
-    expect(toast.showSuccessMessage, "a created product did not report success").toHaveBeenCalledWith("Product created successfully.");
+    expect(toast.showSuccessMessage, "a created product did not report success").toHaveBeenCalledWith("Product Created Successfully.");
     expect(routerSpies.replace, "the seller was not sent to the new product").toHaveBeenCalledWith(
       "/sy-en/sellerProfile/sellerDashboard/77/products/55",
     );
@@ -846,7 +846,7 @@ describe("ProductEditor — purchase status", () => {
     await settle();
     expect(svc.changeProductStatus, "the status call carried the wrong target").toHaveBeenCalledWith("77", "9001", 0);
     expect(screen.getByText("Disabled"), "the header did not show the new status").toBeInTheDocument();
-    expect(toast.showSuccessMessage, "the status change was not confirmed").toHaveBeenCalledWith("Status updated.");
+    expect(toast.showSuccessMessage, "the status change was not confirmed").toHaveBeenCalledWith("Status Updated.");
   });
 
   it("falls back to the requested status when the answer carries none", async () => {
@@ -991,8 +991,8 @@ describe("ProductEditor — confirm dialog diff views", () => {
     expect(screen.getByText("3 Languages"), "the translations badge is wrong").toBeInTheDocument();
     expect(screen.getByText("2 Variants"), "the variants badge is wrong").toBeInTheDocument();
     expect(screen.getByText("3 images"), "the images badge is wrong").toBeInTheDocument();
-    expect(screen.getByText("1 colors"), "the colours badge is wrong").toBeInTheDocument();
-    expect(screen.getByText("3 countries"), "the countries badge is wrong").toBeInTheDocument();
+    expect(screen.getByText("1 Colors"), "the colours badge is wrong").toBeInTheDocument();
+    expect(screen.getByText("3 Countries"), "the countries badge is wrong").toBeInTheDocument();
 
     for (const label of richDiff.slice(1).map((d) => d.label)) {
       fireEvent.click(screen.getByText(label));

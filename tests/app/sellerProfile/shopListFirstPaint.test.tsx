@@ -141,7 +141,7 @@ describe("the seller shop list when the shops call fails", () => {
 
     await mount();
 
-    expect(screen.queryByText("No shops available"), "a refused shops call should end on the empty state").not.toBeNull();
+    expect(screen.queryByText("No Shops Available"), "a refused shops call should end on the empty state").not.toBeNull();
     expect(LogError.mock.calls[0]?.[0], "the refused shops call was not logged with the core backend's message").toEqual({
       scenario: "sellerProfile.getInitialData",
       error: "core said no",
@@ -171,7 +171,7 @@ describe("the seller shop list when the shops call fails", () => {
 
     await mount();
 
-    expect(screen.queryByText("No shops available"), "a success with no data should show the empty state").not.toBeNull();
+    expect(screen.queryByText("No Shops Available"), "a success with no data should show the empty state").not.toBeNull();
   });
 });
 
@@ -186,7 +186,7 @@ describe("the seller shop cards", () => {
     expect(screen.queryByText("Super Admin"), "the Super Admin shop is not labelled Super Admin").not.toBeNull();
     expect(screen.queryByText("Editor"), "the shop's own role name is missing").not.toBeNull();
     expect(screen.queryByText("Member"), "a shop with no role should fall back to 'Member'").not.toBeNull();
-    expect(screen.queryByText(/2\s+permissions/), "the non-admin shop's permission count is missing").not.toBeNull();
+    expect(screen.queryByText(/2\s+Permissions/), "the non-admin shop's permission count is missing").not.toBeNull();
     expect(leaveButtons()[0].disabled, "the master shop's leave button should be disabled").toBe(true);
   });
 
@@ -250,6 +250,21 @@ describe("the seller shop cards", () => {
     expect(LogError.mock.calls.at(-1)?.[0]?.scenario, "the refused leave was not logged").toBe("sellerProfile.confirmLeaveShop");
   });
 
+  it("shows the generic leave error in the seller's language when the refusal has none", async () => {
+    leaveShop.mockResolvedValueOnce({ success: false });
+    await mount("ar");
+
+    fireEvent.click(leaveButtons()[2]);
+    await act(async () => {
+      fireEvent.click(confirmButton());
+    });
+    await settle();
+    expect(
+      screen.queryByText("فشل في مغادرة المتجر"),
+      "an Arabic seller got the generic leave error in English",
+    ).not.toBeNull();
+  });
+
   it("uses the generic messages when the leave refusal has none", async () => {
     leaveShop.mockResolvedValueOnce({ success: false });
     await mount();
@@ -259,7 +274,9 @@ describe("the seller shop cards", () => {
       fireEvent.click(confirmButton());
     });
     await settle();
-    expect(screen.queryByText("Failed to leave shop"), "a refusal with no message should show the generic error").not.toBeNull();
+    // Title case proves the text went through translateFunction: the raw
+    // English it used to throw ("Failed to leave shop") was never translated.
+    expect(screen.queryByText("Failed To Leave Shop"), "a refusal with no message should show the generic error, translated").not.toBeNull();
 
     leaveShop.mockRejectedValueOnce("socket closed");
     await act(async () => {
@@ -267,6 +284,6 @@ describe("the seller shop cards", () => {
     });
     await settle();
     expect(LogError.mock.calls.at(-1)?.[0]?.error, "a thrown string was not logged as that string").toBe("socket closed");
-    expect(screen.queryByText("Failed to leave shop"), "a thrown value with no message should show the generic error").not.toBeNull();
+    expect(screen.queryByText("Failed To Leave Shop"), "a thrown value with no message should show the generic error").not.toBeNull();
   });
 });

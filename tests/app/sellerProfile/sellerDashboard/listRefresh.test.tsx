@@ -536,7 +536,7 @@ describe("the seller dashboard home", () => {
     await openAs(null);
 
     expect(screen.queryByText("permissions are down"), "the home did not show the permissions failure").not.toBeNull();
-    expect(screen.queryByText("Welcome back"), "the home drew its tiles over a failed permission list").toBeNull();
+    expect(screen.queryByText("Welcome Back"), "the home drew its tiles over a failed permission list").toBeNull();
   });
 
   it("opens a section from its tile by writing ?tab= into the URL (ar)", async () => {
@@ -683,7 +683,7 @@ describe("the seller dashboard products tab", () => {
   it("refuses a seller with no product permission", async () => {
     await openAs(["READ_ORDERS"], "products");
 
-    expect(screen.queryByText("You don't have permission to view products"), "no refusal for a seller without product rights").not.toBeNull();
+    expect(screen.queryByText("You Don't Have Permission To View Products"), "no refusal for a seller without product rights").not.toBeNull();
   });
 
   it("pages through the list and marks a card click as a navigation", async () => {
@@ -771,8 +771,8 @@ describe("the seller dashboard boutiques tab", () => {
     fireEvent.click(buttonWithText("Retry"));
     await settle();
 
-    expect(screen.queryByText("No boutiques found"), "a retry that found nothing did not show the empty state").not.toBeNull();
-    expect(screen.queryByText(/Add your first boutique/), "a seller who may create boutiques got no create link").not.toBeNull();
+    expect(screen.queryByText("No Boutiques Found"), "a retry that found nothing did not show the empty state").not.toBeNull();
+    expect(screen.queryByText(/Add Your First Boutique/), "a seller who may create boutiques got no create link").not.toBeNull();
   });
 
   it("logs a thrown non-Error boutiques failure and shows the generic message", async () => {
@@ -783,7 +783,7 @@ describe("the seller dashboard boutiques tab", () => {
       scenario: "SellerDashboard.getSellerBoutiques",
       error: "socket closed",
     });
-    expect(screen.queryByText("Failed to load boutiques"), "the generic boutiques failure was not shown").not.toBeNull();
+    expect(screen.queryByText("Failed To Load Boutiques"), "the generic boutiques failure was not shown").not.toBeNull();
   });
 });
 
@@ -804,14 +804,14 @@ describe("the seller dashboard permissions tab", () => {
   it("says no permissions are assigned when the shop has none", async () => {
     await openAs([], "permissions");
 
-    expect(screen.queryByText("No permissions assigned"), "an empty permission list did not show the empty state").not.toBeNull();
+    expect(screen.queryByText("No Permissions Assigned"), "an empty permission list did not show the empty state").not.toBeNull();
   });
 
   it("treats an answer with no entry for this shop as a failure", async () => {
     getSellerPermissions.mockResolvedValue({ success: true, data: [] });
     await openAs(null, "permissions");
 
-    expect(screen.queryByText("Failed to load permissions"), "a permissions answer with no entry for this shop was not treated as a failure").not.toBeNull();
+    expect(screen.queryByText("Failed To Load Permissions"), "a permissions answer with no entry for this shop was not treated as a failure").not.toBeNull();
   });
 
   it("reads the permissions and role from the shop list without calling the backend", async () => {
@@ -854,7 +854,7 @@ describe("the seller dashboard users tab", () => {
   it("refuses a seller who may not manage users", async () => {
     await openAs(["READ_ORDERS"], "users");
 
-    expect(screen.queryByText("You don't have permission to manage users"), "no refusal for a seller without user rights").not.toBeNull();
+    expect(screen.queryByText("You Don't Have Permission To Manage Users"), "no refusal for a seller without user rights").not.toBeNull();
   });
 
   it("shows the permissions failure", async () => {
@@ -875,7 +875,7 @@ describe("the seller dashboard users tab", () => {
     getUsers.mockRejectedValue("socket closed");
     await openAs(["USER_MANAGEMENT_ACCESS"], "users");
 
-    expect(screen.queryByText("Failed to load users"), "the generic users failure was not shown").not.toBeNull();
+    expect(screen.queryByText("Failed To Load Users"), "the generic users failure was not shown").not.toBeNull();
   });
 
   it("appends the next page of users", async () => {
@@ -895,7 +895,7 @@ describe("the seller dashboard users tab", () => {
 
     fireEvent.submit(document.querySelector("form")!);
 
-    expect(screen.queryByText("Please fill in all fields"), "an empty form was not refused").not.toBeNull();
+    expect(screen.queryByText("Please Fill In All Fields"), "an empty form was not refused").not.toBeNull();
     expect(addUserToShop, "an empty form reached the backend").not.toHaveBeenCalled();
   });
 
@@ -919,10 +919,10 @@ describe("the seller dashboard users tab", () => {
       role_id: 1,
       seller_id: SELLER_ID,
     });
-    expect(screen.queryByText("User added successfully!"), "no success banner after the user was added").not.toBeNull();
+    expect(screen.queryByText("User Added Successfully!"), "no success banner after the user was added").not.toBeNull();
 
     await wait(3100);
-    expect(screen.queryByText("User added successfully!"), "the success banner never went away").toBeNull();
+    expect(screen.queryByText("User Added Successfully!"), "the success banner never went away").toBeNull();
   }, 10000);
 
   it("shows the add-user refusal, with the generic message when there is none", async () => {
@@ -942,14 +942,14 @@ describe("the seller dashboard users tab", () => {
       fireEvent.submit(document.querySelector("form")!);
     });
     await settle();
-    expect(screen.queryByText("Failed to add user"), "the generic add-user refusal was not shown").not.toBeNull();
+    expect(screen.queryByText("Failed To Add User"), "the generic add-user refusal was not shown").not.toBeNull();
 
     addUserToShop.mockRejectedValueOnce("socket closed");
     await act(async () => {
       fireEvent.submit(document.querySelector("form")!);
     });
     await settle();
-    expect(screen.queryByText("Failed to add user to shop"), "a thrown add-user failure did not show the generic message").not.toBeNull();
+    expect(screen.queryByText("Failed To Add User To Shop"), "a thrown add-user failure did not show the generic message").not.toBeNull();
   });
 
   it("searches roles after the debounce, loads more, and closes the list on blur", async () => {
@@ -997,7 +997,7 @@ describe("the seller dashboard users tab", () => {
     fireEvent.click(buttonWithText("Change Role", 1));
     await settle();
 
-    expect(screen.queryAllByText("Failed to load roles").length > 0, "the generic roles failure was not shown").toBe(true);
+    expect(screen.queryAllByText("Failed To Load Roles").length > 0, "the generic roles failure was not shown").toBe(true);
     expect(LogError, "the change-role roles failure was not logged").toHaveBeenCalledWith({
       scenario: "SellerDashboard.getRolesForChange",
       error: "roles socket closed",
@@ -1057,7 +1057,7 @@ describe("the seller dashboard users tab", () => {
       fireEvent.mouseDown(changeOption());
     });
     await settle();
-    expect(screen.queryByText("Failed to update user role"), "a thrown role change did not show the generic message").not.toBeNull();
+    expect(screen.queryByText("Failed To Update User Role"), "a thrown role change did not show the generic message").not.toBeNull();
   });
 
   it("opens, searches, pages and closes the per-user role list", async () => {
@@ -1100,7 +1100,7 @@ describe("the seller dashboard users tab", () => {
 
     fireEvent.click(buttonWithText("Change Role", 1));
     await settle();
-    expect(screen.queryByText("No roles found"), "an empty per-user role list did not say so").not.toBeNull();
+    expect(screen.queryByText("No Roles Found"), "an empty per-user role list did not say so").not.toBeNull();
     getRoles.mockClear();
     fireEvent.focus(document.querySelector(".w-56 input")!);
     await settle();
@@ -1140,7 +1140,7 @@ describe("the seller dashboard users tab", () => {
       fireEvent.click(buttonWithText("Delete", 1));
     });
     await settle();
-    expect(screen.queryByText("Failed to delete user"), "a thrown delete did not show the generic message").not.toBeNull();
+    expect(screen.queryByText("Failed To Delete User"), "a thrown delete did not show the generic message").not.toBeNull();
   });
 
   it("asks before leaving the shop and leaves on confirm", async () => {
@@ -1178,6 +1178,114 @@ describe("the seller dashboard users tab", () => {
       fireEvent.click(screen.getByText("Confirm"));
     });
     await settle();
-    expect(screen.queryByText("Failed to leave shop"), "a thrown leave did not show the generic message").not.toBeNull();
+    expect(screen.queryByText("Failed To Leave Shop"), "a thrown leave did not show the generic message").not.toBeNull();
+  });
+});
+
+/*
+ * A backend that refuses with no message of its own. The page used to throw a
+ * raw English text ("Failed to load boutiques") and then show `error.message`,
+ * so the translated fallback after `||` never ran: an Arabic, Turkish or
+ * Kurdish seller read English. Title case in the English checks proves the text
+ * went through translateFunction; the Arabic case checks the real harm.
+ */
+describe("the seller dashboard — a refusal with no message", () => {
+  const ROLES = {
+    success: true,
+    data: { shop_roles: [{ id: 1, name: "Manager", description: "runs" }], meta: null },
+  };
+  const USERS = [
+    { id: 1, name: "Me", role_name: "Owner" },
+    { id: 9, name: "A Teammate", role: { id: 5, name: "Staff" } },
+  ];
+
+  beforeEach(() => {
+    getRoles.mockResolvedValue(ROLES);
+    getUsers.mockResolvedValue({ success: true, data: { users: USERS, meta: null } });
+  });
+
+  const changeOption = () =>
+    (Array.from(document.querySelectorAll("div.cursor-pointer")) as HTMLElement[]).find((el) =>
+      el.closest(".w-56"),
+    ) as HTMLElement;
+
+  it("says the products failed to load, translated", async () => {
+    getSellerProducts.mockResolvedValue({ success: false });
+    await openAs(["SUPER_ADMIN"], "products");
+    expect(screen.queryAllByText("Failed To Load Products").length > 0, "the products refusal showed untranslated text").toBe(true);
+  });
+
+  it("says the boutiques failed to load, translated", async () => {
+    getSellerBoutiques.mockResolvedValue({ success: false });
+    await openAs(["READ_BUTIKS"], "boutiques");
+    expect(screen.queryByText("Failed To Load Boutiques"), "the boutiques refusal showed untranslated text").not.toBeNull();
+  });
+
+  it("says the boutiques failed to load in Arabic for an Arabic seller", async () => {
+    getSellerBoutiques.mockResolvedValue({ success: false });
+    await openAs(["READ_BUTIKS"], "boutiques", "ar");
+    expect(
+      screen.queryByText("فشل تحميل المتاجر المصغّرة"),
+      "an Arabic seller got the boutiques refusal in English",
+    ).not.toBeNull();
+  });
+
+  it("says the permissions failed to load, translated", async () => {
+    getSellerPermissions.mockResolvedValue({ success: false });
+    await openAs(null, "permissions");
+    expect(screen.queryByText("Failed To Load Permissions"), "the permissions refusal showed untranslated text").not.toBeNull();
+  });
+
+  it("says the users failed to load, translated", async () => {
+    getUsers.mockResolvedValue({ success: false });
+    await openAs(["USER_MANAGEMENT_ACCESS"], "users");
+    expect(screen.queryByText("Failed To Load Users"), "the users refusal showed untranslated text").not.toBeNull();
+  });
+
+  it("says the add-user roles failed to load, translated", async () => {
+    getRoles.mockResolvedValue({ success: false });
+    await openAs(["SUPER_ADMIN"], "users");
+    expect(screen.queryAllByText("Failed To Load Roles").length > 0, "the add-user roles refusal showed untranslated text").toBe(true);
+  });
+
+  it("says the change-role roles failed to load, translated", async () => {
+    await openAs(["SUPER_ADMIN"], "users");
+    getRoles.mockResolvedValue({ success: false });
+    fireEvent.click(buttonWithText("Change Role", 1));
+    await settle();
+    expect(screen.queryAllByText("Failed To Load Roles").length > 0, "the change-role roles refusal showed untranslated text").toBe(true);
+  });
+
+  it("says the role change failed, translated", async () => {
+    updateUserRole.mockResolvedValue({ success: false });
+    await openAs(["SUPER_ADMIN"], "users");
+    fireEvent.click(buttonWithText("Change Role", 1));
+    await settle();
+    await act(async () => {
+      fireEvent.mouseDown(changeOption());
+    });
+    await settle();
+    expect(screen.queryByText("Failed To Update User Role"), "the role-change refusal showed untranslated text").not.toBeNull();
+  });
+
+  it("says the delete failed, translated", async () => {
+    deleteUser.mockResolvedValue({ success: false });
+    await openAs(["SUPER_ADMIN"], "users");
+    await act(async () => {
+      fireEvent.click(buttonWithText("Delete", 1));
+    });
+    await settle();
+    expect(screen.queryByText("Failed To Delete User"), "the delete refusal showed untranslated text").not.toBeNull();
+  });
+
+  it("says leaving the shop failed, translated", async () => {
+    leaveShop.mockResolvedValue({ success: false });
+    await openAs(["SUPER_ADMIN"], "users");
+    fireEvent.click(buttonWithText("Leave Shop"));
+    await act(async () => {
+      fireEvent.click(screen.getByText("Confirm"));
+    });
+    await settle();
+    expect(screen.queryByText("Failed To Leave Shop"), "the leave refusal showed untranslated text").not.toBeNull();
   });
 });

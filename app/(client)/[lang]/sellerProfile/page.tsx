@@ -53,7 +53,9 @@ function Page() {
         String(leaveConfirmShopId),
       );
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to leave shop");
+        throw new Error(
+          res?.message || translateFunction("Failed to leave shop", language),
+        );
       }
       // remove from local list
       setShopes((prev: any[]) =>
