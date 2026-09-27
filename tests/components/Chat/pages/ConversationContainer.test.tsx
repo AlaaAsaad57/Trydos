@@ -554,6 +554,27 @@ describe("ConversationContainer — attaching files", () => {
     await waitFor(() => expect(h.showError, "an upload failure with no message used no default").toHaveBeenCalledWith("Failed To Upload File"));
   });
 
+  it("removes the pending video when the upload fails before the preview is read", async () => {
+    // The ticket call can fail before the browser has read the file for the
+    // pending bubble. The bubble must still leave the chat, as a failed text does.
+    const shown = new Set<string>();
+    h.upload.mockRejectedValueOnce(new Error("Failed to get ticket"));
+    await mount({
+      store: {
+        sendMessage: vi.fn((p: any) => shown.add(String(p.message.mid))),
+        deleteErrorMessage: vi.fn((p: any) => shown.delete(String(p.msg_id))),
+      },
+    });
+    await act(async () => {
+      pick(new File(["x"], "clip.mp4", { type: "video/mp4" }));
+    });
+    await waitFor(() => expect(h.showError, "the failed upload was not shown").toHaveBeenCalledWith("Failed to get ticket"));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+    expect([...shown], "the video stayed in the chat after its upload failed").toEqual([]);
+  });
+
   it("does nothing when no file was chosen", async () => {
     await mount();
     await act(async () => {
@@ -774,6 +795,34 @@ describe("ConversationContainer — voice notes", () => {
     });
     await waitFor(() => expect(h.sendMessageApi.mock.calls.at(-1)?.[0]?.message_type, "the voice note was not sent").toBe("VoiceMessage"));
     expect(URL.createObjectURL, "the recording was not turned into a playable URL").toHaveBeenCalled();
+  });
+
+  it("removes the pending voice note when the upload fails before the preview is read", async () => {
+    // Same order problem as the video above: the upload can fail before the
+    // recording is read for the pending bubble.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    stubMic();
+    const shown = new Set<string>();
+    h.upload.mockRejectedValueOnce(new Error("Failed to get ticket"));
+    await mount({
+      store: {
+        sendMessage: vi.fn((p: any) => shown.add(String(p.message.mid))),
+        deleteErrorMessage: vi.fn((p: any) => shown.delete(String(p.msg_id))),
+      },
+    });
+    await act(async () => {
+      fireEvent.click(document.querySelector('img[src="/icons/chat/redmic.svg"]')!);
+    });
+    fireEvent.click(document.querySelector('img[src="/icons/chat/sharechat.svg"]')!);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1600);
+    });
+    await waitFor(() => expect(h.showError, "the failed voice upload was not shown").toHaveBeenCalledWith("Failed To Upload Audio"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(50);
+    });
+    expect([...shown], "the voice note stayed in the chat after its upload failed").toEqual([]);
   });
 
   it("falls back to the other recorder when native recording is not there", async () => {

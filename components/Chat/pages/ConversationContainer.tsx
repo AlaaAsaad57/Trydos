@@ -86,6 +86,15 @@ const scrollToBottom = () =>
     inline: "end",
   });
 
+/** Reads a file or blob as a data URL, for the pending bubble's preview. */
+const readAsDataUrl = (file: Blob) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
 /* --------------------------------------------------------------------------
  * Component
  * ------------------------------------------------------------------------*/
@@ -357,24 +366,22 @@ function ConversationContainer({
     midLocal: string,
   ) => {
     try {
-      // optimistic UI update (uses base64 for img preview)
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = reader.result as string;
-        optimisticMessage({
-          ...baseMessagePayload({}),
-          sender_user_id: senderId,
-          parent_message: replyMessage,
-          message_type: { name: type },
-          message_content: [{ file_path: base64 }],
-          message_files: [{ file_path: base64, file_name: file.name }],
-          type: "pending",
-          created_at: new Date(),
-          message_status: buildMessageStatus(receiverId, senderId),
-          mid: midLocal,
-        });
-      };
-      reader.readAsDataURL(file);
+      // optimistic UI update (uses base64 for img preview). Awaited so the
+      // pending bubble is in the chat before the upload starts: a failed
+      // upload must find it there to remove it.
+      const base64 = await readAsDataUrl(file);
+      optimisticMessage({
+        ...baseMessagePayload({}),
+        sender_user_id: senderId,
+        parent_message: replyMessage,
+        message_type: { name: type },
+        message_content: [{ file_path: base64 }],
+        message_files: [{ file_path: base64, file_name: file.name }],
+        type: "pending",
+        created_at: new Date(),
+        message_status: buildMessageStatus(receiverId, senderId),
+        mid: midLocal,
+      });
       // real upload call
       const { path, name } = await upload(file);
 
@@ -689,24 +696,21 @@ function ConversationContainer({
         // Create file from blob
         const file = new File([blobs.current], `voice-${midLocal}.wav`);
 
-        // Create optimistic message with base64 data
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64data = reader.result as string;
-          optimisticMessage({
-            ...baseMessagePayload({}),
-            sender_user_id: senderId,
-            message_type: { name: "VoiceMessage" },
-            message_content: [{ file_path: base64data }],
-            message_files: [{ file_path: base64data, file_name: "Audio" }],
-            created_at: new Date(),
-            type: "pending",
-            parent_message: replyMessage,
-            mid: midLocal,
-            message_status: buildMessageStatus(receiverId, senderId),
-          });
-        };
-        reader.readAsDataURL(blobs.current);
+        // Create optimistic message with base64 data, before the upload starts
+        // (see handleMediaMessage).
+        const base64data = await readAsDataUrl(blobs.current);
+        optimisticMessage({
+          ...baseMessagePayload({}),
+          sender_user_id: senderId,
+          message_type: { name: "VoiceMessage" },
+          message_content: [{ file_path: base64data }],
+          message_files: [{ file_path: base64data, file_name: "Audio" }],
+          created_at: new Date(),
+          type: "pending",
+          parent_message: replyMessage,
+          mid: midLocal,
+          message_status: buildMessageStatus(receiverId, senderId),
+        });
 
         // Upload file and send actual message
         const { path, name } = await upload(file);
