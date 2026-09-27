@@ -30,8 +30,9 @@ import {
  *
  * Fields, 55 tall, 4 px apart from y 285: country (opens the country sheet),
  * "Select from list" (opens the place sheet), detailed address, title. A field
- * with a value turns `#FCFCFC`; the field in use (focused, or its sheet open)
- * stays white with its line, as on 95 and 97. When the whole form is filled
+ * with a value turns `#FCFCFC`. The field in use (focused, or its sheet open)
+ * turns `#FCFCFC` with no line — asked for by the product; 95 and 97 draw it
+ * white with its line. When the whole form is filled
  * "Add & save" rises and the lines go, the map card's included, as on 99 —
  * at once, even while the last field still has focus.
  *
@@ -87,8 +88,8 @@ export default function AddressFormScreen() {
   };
 
   const fieldLook = (id: "country" | "place", filled: boolean) => ({
-    editing: !done && (active === id || !filled),
-    filledLine: !done,
+    editing: !done && active !== id && !filled,
+    filledLine: !done && active !== id,
   });
 
   return (
@@ -358,13 +359,13 @@ export default function AddressFormScreen() {
 }
 
 /**
- * A text field is white with a line while empty or in use, `#FCFCFC` once it
- * has text, and `#FCFCFC` with no line when the form is done — focused or not,
- * since a white field with no line is lost on the white page.
+ * A text field is white with a line while empty, `#FCFCFC` with a line once it
+ * has text, and `#FCFCFC` with no line while in use or when the form is done.
+ * `#FCFCFC`, not white: a white field with no line is lost on the white page.
  */
 const fieldEditing = (done: boolean, value: string, inUse: boolean) => ({
-  editing: !done && (inUse || value.trim() === ""),
-  line: !done,
+  editing: !done && !inUse && value.trim() === "",
+  line: !done && !inUse,
 });
 
 /** A field that opens a sheet instead of taking text. */

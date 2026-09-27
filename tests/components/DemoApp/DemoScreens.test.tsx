@@ -210,8 +210,12 @@ describe("Demo screens — numbers from the XD file", () => {
     }
   });
 
-  describe("address form: the field in use keeps the editing look (`Home Page – 94`, `– 95`, `– 97`)", () => {
+  // The field in use (focused, or its sheet open) turns #FCFCFC with no line.
+  // The file draws it white with a line (`– 95`, `– 97`); the product asked for
+  // this look instead. The page is white, so the field still shows.
+  describe("address form: the field in use turns #FCFCFC with no line", () => {
     const WHITE = "rgb(255, 255, 255)";
+    const CARD = "rgb(252, 252, 252)";
     const box = (container: HTMLElement, id: string) => {
       const el = container.querySelector(`[data-pw="${id}"]`) as HTMLElement;
       return el.tagName === "INPUT" ? el.parentElement! : el;
@@ -243,29 +247,41 @@ describe("Demo screens — numbers from the XD file", () => {
     };
     const FORM = "/sy-en/demo/settings/profile/address/new";
 
-    it("a text field stays white with its line while it has focus, even after text is typed", () => {
+    it("a text field turns #FCFCFC with no line while it has focus, empty or typed in", () => {
       const container = open(FORM);
-      type(container, "demo-address-detail", "vadistanbul");
       const detail = box(container, "demo-address-detail");
+      expect(detail.style.background, "the empty 'Detailed address' field is not white before it has focus").toBe(WHITE);
+      expect(lined(detail), "the empty 'Detailed address' field has no line before it has focus").toBe(true);
+
+      fireEvent.focus(container.querySelector('[data-pw="demo-address-detail"]')!);
       expect(
         detail.style.background,
-        "the focused 'Detailed address' field turned #FCFCFC while it is being typed in; the field in use is white",
-      ).toBe(WHITE);
-      expect(
-        lined(detail),
-        "the focused 'Detailed address' field lost its #D3D3D3 line",
-      ).toBe(true);
+        "the focused, empty 'Detailed address' field stayed white; the field in use is #FCFCFC",
+      ).toBe(CARD);
+      expect(lined(detail), "the focused, empty 'Detailed address' field kept its line").toBe(false);
+
+      type(container, "demo-address-detail", "vadistanbul");
+      expect(detail.style.background, "the focused 'Detailed address' field is not #FCFCFC while it is typed in").toBe(CARD);
+      expect(lined(detail), "the focused 'Detailed address' field got its line back while it is typed in").toBe(false);
+
+      fireEvent.blur(container.querySelector('[data-pw="demo-address-detail"]')!);
+      expect(lined(detail), "the filled 'Detailed address' field lost its line after focus left; the form is not complete").toBe(true);
     });
 
-    it("the field whose sheet is open is white with its line, as `Home Page – 95` draws the country field", () => {
+    it("the field whose sheet is open turns #FCFCFC with no line, like a focused text field", () => {
       const container = open(FORM);
       fireEvent.click(box(container, "demo-address-country"));
       const country = box(container, "demo-address-country");
-      expect(
-        country.style.background,
-        "the country field is #FCFCFC while its sheet is open; `Home Page – 95` draws it #FFFFFF",
-      ).toBe(WHITE);
-      expect(lined(country), "the country field has no line while its sheet is open").toBe(true);
+      expect(country.style.background, "the country field is not #FCFCFC while its sheet is open").toBe(CARD);
+      expect(lined(country), "the country field kept its line while its sheet is open").toBe(false);
+    });
+
+    it("the place field turns #FCFCFC with no line while its sheet is open", () => {
+      const container = open(FORM);
+      fireEvent.click(box(container, "demo-address-place"));
+      const place = box(container, "demo-address-place");
+      expect(place.style.background, "the place field stayed white while its sheet is open").toBe(CARD);
+      expect(lined(place), "the place field kept its line while its sheet is open").toBe(false);
     });
 
     it("typing the last letter drops every line at once, the focused field's too, as on `Home Page – 99`", async () => {
