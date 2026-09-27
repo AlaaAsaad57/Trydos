@@ -362,7 +362,7 @@ describe("Demo screens — numbers from the XD file", () => {
       expect(blue(search), "the search box stayed blue after focus left").toBe(false);
     });
 
-    it("typing the last letter drops every line at once, the focused field's too, as on `Home Page – 99`", async () => {
+    it("typing the last letter drops every other line at once, as on `Home Page – 99`; the field in use keeps its blue line", async () => {
       const container = open(FORM);
       await pickPlace(container);
       type(container, "demo-address-detail", "vadistanbul, ofisler");
@@ -374,20 +374,34 @@ describe("Demo screens — numbers from the XD file", () => {
         "demo-address-country",
         "demo-address-place",
         "demo-address-detail",
-        "demo-address-title",
       ]) {
         expect(
           lined(box(container, id)),
           `${id} still has a line on the complete form while 'Address title' has focus; \`Home Page – 99\` draws none`,
         ).toBe(false);
       }
+      const title = box(container, "demo-address-title");
       expect(
-        box(container, "demo-address-title").style.background,
-        "the focused 'Address title' field is white with no line on the complete form, so it is lost on the white page; `Home Page – 99` draws it #FCFCFC",
-      ).toBe("rgb(252, 252, 252)");
+        blue(title),
+        "the focused 'Address title' field lost its blue line when the form became complete; the field in use always keeps it",
+      ).toBe(true);
       expect(
-        medium(box(container, "demo-address-title")),
-        "the focused 'Address title' label is not SemiBold on the complete form; only the line goes",
+        title.style.background,
+        "the focused 'Address title' field is not #FCFCFC on the complete form",
+      ).toBe(CARD);
+      expect(
+        medium(title),
+        "the focused 'Address title' label is not SemiBold on the complete form",
+      ).toBe(true);
+
+      fireEvent.blur(container.querySelector('[data-pw="demo-address-title"]')!);
+      expect(lined(title), "the 'Address title' field kept a line on the complete form after focus left").toBe(false);
+
+      // A sheet opened on the complete form puts its field in use too.
+      fireEvent.click(box(container, "demo-address-country"));
+      expect(
+        blue(box(container, "demo-address-country")),
+        "the country field has no blue line while its sheet is open on the complete form",
       ).toBe(true);
     }, 15000);
 

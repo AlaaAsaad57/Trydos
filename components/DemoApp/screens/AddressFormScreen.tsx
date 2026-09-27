@@ -39,7 +39,7 @@ import {
  * by the product; 94, 95 and 97 draw a filled field and the field in use with
  * the grey line and a Regular label. When the whole form is filled "Add & save" rises
  * and every line goes, the map card's too, as on 99 — at once, even while the
- * last field still has focus.
+ * last field still has focus. The field in use keeps its blue line: a product rule.
  *
  * Nothing is looked up: the map is the picture in the file and the places are
  * the mock list in demoPlaces.ts.
@@ -92,7 +92,7 @@ export default function AddressFormScreen() {
   };
 
   // A field whose sheet is open is in use: blue line, SemiBold label. On the
-  // complete form no field has a line.
+  // complete form only the field in use has a line.
   const fieldLook = (id: "country" | "place", filled: boolean) => ({
     editing: active !== id && !filled,
     focused: sheet === id,
