@@ -6,9 +6,15 @@ import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { useDemoData } from "../DemoData";
-import { C, lineBox } from "../demoLayout";
-import { ScreenHeader, ScreenPage, WhyCard, WideButton } from "../ui";
-import type { XdIconName } from "../xdIcons";
+import { C, lineBox, top } from "../demoLayout";
+import {
+  ScreenHeader,
+  ScreenPage,
+  Stroke,
+  WhyCard,
+  WideButton,
+} from "../ui";
+import { XD_ICON_SIZE, type XdIconName } from "../xdIcons";
 
 /**
  * Profile photo — five XD artboards, one screen:
@@ -139,6 +145,32 @@ export default function PhotoScreen() {
               setStage("saved");
             }}
           />
+          {/* `Home Page – 12`: while the phone's picker is open. A sheet over
+              the page, its top edge at design y 120. */}
+          <AnimatePresence>
+            {stage === "picking" && (
+              <motion.div
+                className="absolute left-0 w-full"
+                style={{
+                  top: top(120),
+                  bottom: 0,
+                  background: C.white,
+                  borderRadius: "30px 30px 0 0",
+                  boxShadow: "0 -3px 10px rgba(0,0,0,0.1)",
+                  zIndex: 4,
+                }}
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{
+                  type: "spring",
+                  stiffness: 320,
+                  damping: 34,
+                  mass: 0.9,
+                }}
+              />
+            )}
+          </AnimatePresence>
         </>
       }
     >
@@ -158,12 +190,13 @@ export default function PhotoScreen() {
         onChange={onPicked}
       />
 
-      {/* The box. Empty and uploading share the grey look; a photo gets the white line and shadow. */}
+      {/* The box, 350 x 350 at (40, 120). Empty and uploading share the grey
+          look with a 0.5 line; a photo gets the white line and the shadow. */}
       <div
-        className="absolute overflow-hidden"
+        className="relative shrink-0 overflow-hidden"
         style={{
-          left: 40,
-          top: 120,
+          marginTop: 120 - 100,
+          marginLeft: 40,
           width: 350,
           height: 350,
           borderRadius: 30,
@@ -171,7 +204,7 @@ export default function PhotoScreen() {
           boxShadow:
             photo && stage !== "uploading"
               ? "0 3px 3px rgba(0,0,0,0.16)"
-              : "inset 0 0 0 0.5px #D3D3D3",
+              : undefined,
           transition: "box-shadow 0.3s",
         }}
       >
@@ -191,15 +224,14 @@ export default function PhotoScreen() {
           ) : stage === "uploading" ? (
             <motion.div
               key="uploading"
-              className="absolute inset-0"
+              className="absolute inset-0 flex items-center justify-center"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
               {/* The mark turns while the photo "uploads". 151 x 151 at (139.5, 219.5), the box's centre. */}
               <motion.div
-                className="absolute"
-                style={{ left: 99.5, top: 99.5 }}
+                className="shrink-0"
                 animate={{ rotate: 360 }}
                 transition={{ repeat: Infinity, duration: 2.4, ease: "linear" }}
               >
@@ -214,28 +246,29 @@ export default function PhotoScreen() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
+              {/* The grey user at (104.68, 162.45). */}
               <XdIcon
                 name="avatarBig"
-                style={{ position: "absolute", left: 64.68, top: 42.45 }}
+                style={{ marginLeft: 64.68, marginTop: 42.45 }}
               />
             </motion.div>
           )}
         </AnimatePresence>
-        {/* The white line is its own layer over the photo: an inset shadow on
-            the box itself is painted under the <img> and never shows. */}
+        {/* The lines are drawn last, over the photo, which would cover them. */}
+        <Stroke
+          color={C.line}
+          radius={30}
+          visible={!(photo && stage !== "uploading")}
+        />
         {photo && stage !== "uploading" && (
-          <span
-            aria-hidden="true"
-            className="absolute inset-0 pointer-events-none"
-            style={{ borderRadius: 30, boxShadow: "inset 0 0 0 1.5px #FFFFFF" }}
-          />
+          <Stroke color={C.white} width={1.5} radius={30} />
         )}
       </div>
 
       {stage === "uploading" ? (
         <div
-          className="absolute left-0 w-full flex justify-center items-center"
-          style={{ top: 490, height: 18 }}
+          className="flex shrink-0 justify-center items-center"
+          style={{ marginTop: 490 - 470, height: 18 }}
         >
           <XdIcon name="uploadingIcon" />
           <span
@@ -251,14 +284,19 @@ export default function PhotoScreen() {
           </span>
         </div>
       ) : (
-        // Icons 20 x 20 at y 490, labels 11 px on baseline 527, each label
-        // centred under its icon, the icons 88 apart. Two actions centre on
-        // 167 and 255 — the pair sits 4 px left of the middle in the file,
-        // hence the padding. Three centre on 126, 214 and 303: the row sits
-        // 1 px left of the middle, and "Remove" is 1 px further right.
+        // Icons 20 x 20 at y 490 (20 under the box), labels 11 px on baseline
+        // 527, each label centred under its icon, the icons 88 apart. Two
+        // actions centre on 167 and 255 — the pair sits 4 px left of the
+        // middle in the file, hence the padding. Three centre on 126, 214 and
+        // 303: the row sits 1 px left of the middle, and "Remove" is 1 px
+        // further right.
         <div
-          className="absolute left-0 w-full flex justify-center"
-          style={{ top: 490, gap: 28, paddingRight: stage === "saved" ? 2 : 8 }}
+          className="flex shrink-0 justify-center"
+          style={{
+            marginTop: 490 - 470,
+            gap: 28,
+            paddingRight: stage === "saved" ? 2 : 8,
+          }}
         >
           {actions.map((action) => (
             <motion.button
@@ -273,11 +311,11 @@ export default function PhotoScreen() {
                 marginLeft: action.icon === "remove" ? 1 : undefined,
               }}
             >
-              <XdIcon name={action.icon} />
+              <XdIcon name={action.icon} className="shrink-0" />
               <span
-                className="absolute font-normal whitespace-nowrap"
+                className="block shrink-0 font-normal whitespace-nowrap"
                 style={{
-                  top: 527 - 11 - 490,
+                  marginTop: 527 - 11 - 490 - XD_ICON_SIZE[action.icon].h,
                   fontSize: 11,
                   lineHeight: `${lineBox(11)}px`,
                   color: C.ink,
@@ -289,32 +327,6 @@ export default function PhotoScreen() {
           ))}
         </div>
       )}
-
-      {/* `Home Page – 12`: while the phone's picker is open. */}
-      <AnimatePresence>
-        {stage === "picking" && (
-          <motion.div
-            className="absolute left-0 w-full"
-            style={{
-              top: 120,
-              height: 812,
-              background: C.white,
-              borderRadius: "30px 30px 0 0",
-              boxShadow: "0 -3px 10px rgba(0,0,0,0.1)",
-              zIndex: 4,
-            }}
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{
-              type: "spring",
-              stiffness: 320,
-              damping: 34,
-              mass: 0.9,
-            }}
-          />
-        )}
-      </AnimatePresence>
     </ScreenPage>
   );
 }

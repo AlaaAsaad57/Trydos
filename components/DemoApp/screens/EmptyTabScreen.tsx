@@ -3,8 +3,8 @@
 import type { DemoKey } from "../demoKeys";
 import React from "react";
 import { useDemoNav } from "../DemoShell";
-import { C } from "../demoLayout";
-import { Icon, ScreenHeader, Txt } from "../ui";
+import { BODY_Y, C, gapTo, textBottom } from "../demoLayout";
+import { Icon, ScreenHeader, ScreenPage, Txt } from "../ui";
 
 /**
  * Cart and chat. The XD file has no design for either yet.
@@ -28,27 +28,18 @@ export default function EmptyTabScreen({
 }) {
   const { t } = useDemoNav();
   return (
-    <div
-      data-pw={`demo-${title.toLowerCase()}`}
-      className="absolute inset-0 font-quicksand"
-      style={{ background: C.white }}
+    <ScreenPage
+      testId={`demo-${title.toLowerCase()}`}
+      header={<ScreenHeader title={title} small t={t} />}
     >
-      <ScreenHeader title={title} small t={t} />
-      <div
-        className="absolute left-0 w-full"
-        style={{
-          top: "calc(-50px + env(safe-area-inset-top, 0px))",
-          height: 932,
-        }}
-      >
-        <Icon name="helpBig" x={205.5} y={432.5} />
-        <Txt center baseline={472} size={13} weight="medium" color={C.hint}>
-          {t(message)}
-        </Txt>
-        <Txt center baseline={492} size={11} color={C.hint}>
-          {t(hint)}
-        </Txt>
-      </div>
-    </div>
+      {/* The 19 px mark at y 432.5, centred; the lines on baselines 472 and 492. */}
+      <Icon name="helpBig" mt={432.5 - BODY_Y} style={{ alignSelf: "center" }} />
+      <Txt center size={13} weight="medium" color={C.hint} mt={gapTo(451.5, 472, 13)}>
+        {t(message)}
+      </Txt>
+      <Txt center size={11} color={C.hint} mt={gapTo(textBottom(472, 13), 492, 11)}>
+        {t(hint)}
+      </Txt>
+    </ScreenPage>
   );
 }

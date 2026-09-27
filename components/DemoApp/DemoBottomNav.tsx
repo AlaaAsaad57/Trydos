@@ -10,6 +10,7 @@ import {
   useScrollScale,
 } from "components/NavigationDemo/BottomNav";
 import XdIcon from "./XdIcon";
+import { Stroke } from "./ui";
 import { TAB_BAR, SCREEN_TRANSITION, bottom } from "./demoLayout";
 import type { DemoTab } from "./demoRoutes";
 import type { XdIconName } from "./xdIcons";
@@ -415,8 +416,8 @@ const PROFILE_FADE = { duration: 0.25, ease: "easeOut" } as const;
  *
  * The corner (12) and the idle line (0.3) are the file's numbers at the size
  * on screen, so while idle they are set PROFILE_UNSCALE bigger to cancel the
- * scale. Both shadows use the same parts (inset, x, y, blur, spread, colour)
- * so framer-motion can blend one into the other.
+ * scale. The inner shadow fades to nothing while idle, and the idle line
+ * (an SVG Stroke) fades in.
  */
 function ProfileTab({ on, photo }: { on: boolean; photo: string | null }) {
   const radius = on ? PROFILE.radius : PROFILE.radius * PROFILE_UNSCALE;
@@ -455,10 +456,18 @@ function ProfileTab({ on, photo }: { on: boolean; photo: string | null }) {
           borderRadius: radius,
           boxShadow: on
             ? "inset 0px 4px 3px 0px rgba(255, 255, 255, 0.5)"
-            : `inset 0px 0px 0px ${0.3 * PROFILE_UNSCALE}px rgba(29, 29, 29, 1)`,
+            : "inset 0px 4px 3px 0px rgba(255, 255, 255, 0)",
         }}
         transition={PROFILE_FADE}
-      />
+      >
+        {/* The idle line, as SVG: Safari draws a thin inset shadow thick on its straight edges. */}
+        <Stroke
+          color="#1D1D1D"
+          width={0.3 * PROFILE_UNSCALE}
+          radius={radius}
+          visible={!on}
+        />
+      </motion.span>
     </motion.span>
   );
 }

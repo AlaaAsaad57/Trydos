@@ -6,16 +6,17 @@ import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { useDemoData } from "../DemoData";
-import { C, lineBox } from "../demoLayout";
+import { C, gapTo, lineBox, textBottom } from "../demoLayout";
 import { Box, Icon, ScreenHeader, ScreenPage, Txt } from "../ui";
-import type { XdIconName } from "../xdIcons";
+import { XD_ICON_SIZE, type XdIconName } from "../xdIcons";
 
 /**
  * Client ID — XD `Home Page – 81`, and the picture it saves (`Home Page – 82`).
  *
  * The 250 x 250 QR at (90, 120), the id under it ("1012-3456" Medium and "ID"
- * Regular, 16, centred on baseline 394), two 382 x 55 cards (name with the
- * blue verified badge, phone), and copy / download / share at the bottom.
+ * Regular, 16, centred on baseline 394), two 382 x 55 cards at (24, 448) and
+ * (24, 507) — name with the blue verified badge, phone — and copy / download /
+ * share at the bottom.
  *
  * The QR is the one drawn in the file. There is no service behind the id yet,
  * so a real code would point nowhere; it is swapped for a generated one when
@@ -52,6 +53,9 @@ export default function ClientIdScreen() {
     link.click();
   };
 
+  // Each action is a 60 x 50 target, the targets 30 apart from x 94, 32 above
+  // the bottom (850 .. 900 in the file). The icon sits `iconX` in the file and
+  // 5.5 down; the label is centred on the target, its line box 32 down.
   const actions: {
     icon: XdIconName;
     label: DemoKey;
@@ -84,25 +88,26 @@ export default function ClientIdScreen() {
         <ScreenHeader title="client ID" nudge={-1.67} onBack={back} t={t} />
       }
       footer={
-        <>
-          {actions.map((action) => (
+        // Pinned to the bottom like the login's buttons.
+        <div className="absolute inset-x-0 flex" style={{ bottom: 32 }}>
+          {actions.map((action, i) => (
             <motion.button
               key={action.icon}
               type="button"
               data-pw={`demo-client-id-${action.icon}`}
               whileTap={{ scale: 0.9 }}
               onClick={action.onClick}
-              className="absolute cursor-pointer"
-              // Pinned to the bottom like the login's buttons: 850 .. 900 in the file.
-              style={{ left: action.x - 30, bottom: 32, width: 60, height: 50 }}
+              className="flex flex-col shrink-0 cursor-pointer"
+              style={{
+                marginLeft: i === 0 ? action.x - 30 : 30,
+                width: 60,
+                height: 50,
+              }}
             >
-              <XdIcon
+              <Icon
                 name={action.icon}
-                style={{
-                  position: "absolute",
-                  left: action.iconX - (action.x - 30),
-                  top: 5.5,
-                }}
+                ml={action.iconX - (action.x - 30)}
+                mt={5.5}
               />
               <AnimatePresence mode="wait" initial={false}>
                 <motion.span
@@ -111,9 +116,10 @@ export default function ClientIdScreen() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -3 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute left-0 w-full text-center font-normal whitespace-nowrap"
+                  className="block self-stretch text-center font-normal whitespace-nowrap"
                   style={{
-                    top: 893 - 11 - 850,
+                    marginTop:
+                      893 - 11 - 850 - (5.5 + XD_ICON_SIZE[action.icon].h),
                     fontSize: 11,
                     lineHeight: `${lineBox(11)}px`,
                     color: C.ink,
@@ -124,21 +130,30 @@ export default function ClientIdScreen() {
               </AnimatePresence>
             </motion.button>
           ))}
-        </>
+        </div>
       }
     >
-      <Icon name="qrBig" x={90} y={120} />
-      <Txt center baseline={394} size={16}>
+      <Icon name="qrBig" mt={120 - 100} style={{ alignSelf: "center" }} />
+      <Txt center mt={gapTo(370, 394, 16)} size={16}>
         <span className="font-medium">{profile.clientId}</span> {t("ID")}
       </Txt>
 
-      <Box x={24} y={448} w={382} h={55} radius={15} fill={C.card}>
-        <Txt x={11.7} baseline={20} size={12} color={C.grey}>
+      <Box
+        mt={448 - textBottom(394, 16)}
+        ml={24}
+        w={382}
+        h={55}
+        radius={15}
+        fill={C.card}
+        className="flex flex-col"
+        style={{ padding: "8px 12px 0" }}
+      >
+        {/* The file puts the label 0.3 px left of the value. */}
+        <Txt ml={-0.3} size={12} color={C.grey}>
           {t("client name")}
         </Txt>
         <Txt
-          x={12}
-          baseline={43}
+          mt={6}
           size={14}
           weight="medium"
           color={profile.name ? C.ink : C.hint}
@@ -154,11 +169,20 @@ export default function ClientIdScreen() {
           </span>
         </Txt>
       </Box>
-      <Box x={24} y={507} w={382} h={55} radius={15} fill={C.card}>
-        <Txt x={11.7} baseline={20} size={12} color={C.grey}>
+      <Box
+        mt={4}
+        ml={24}
+        w={382}
+        h={55}
+        radius={15}
+        fill={C.card}
+        className="flex flex-col"
+        style={{ padding: "8px 12px 0" }}
+      >
+        <Txt ml={-0.3} size={12} color={C.grey}>
           {t("client Phone Number")}
         </Txt>
-        <Txt x={12} baseline={43} size={14} weight="medium">
+        <Txt mt={6} size={14} weight="medium">
           {profile.phone}
         </Txt>
       </Box>

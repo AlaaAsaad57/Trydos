@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { C, headerTop } from "../demoLayout";
+import { Icon, Stroke } from "../ui";
+import { XD_ICON_SIZE } from "../xdIcons";
 import { TRAVEL } from "components/NavigationDemo/BottomNav";
 
 /**
@@ -35,7 +37,7 @@ export default function SearchScreen() {
       style={{ background: C.page }}
     >
       <header
-        className="absolute left-0 w-full"
+        className="absolute left-0 w-full flex flex-col"
         style={{
           top: headerTop(50),
           height: 94,
@@ -44,20 +46,17 @@ export default function SearchScreen() {
         }}
       >
         <div
-          className="absolute"
+          className="flex items-start shrink-0"
           style={{
-            left: 12,
-            top: 6,
+            marginLeft: 12,
+            marginTop: 6,
             width: 406,
             height: 38,
             borderRadius: 12,
             background: C.field,
           }}
         >
-          <XdIcon
-            name="searchGlass"
-            style={{ position: "absolute", left: 9.5, top: 9.5 }}
-          />
+          <Icon name="searchGlass" ml={9.5} mt={9.5} />
           <input
             data-pw="demo-search-input"
             type="search"
@@ -66,11 +65,11 @@ export default function SearchScreen() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("Search anything…")}
             aria-label={t("Search anything…")}
-            className="absolute bg-transparent outline-none font-normal placeholder:text-[#8D8D8D]"
+            className="block shrink-0 bg-transparent outline-none font-normal placeholder:text-[#8D8D8D]"
             // Text left 52 on the artboard; baseline 80 → box top 66 at 14 px.
             style={{
-              left: 40,
-              top: 7,
+              marginLeft: 40 - (9.5 + XD_ICON_SIZE.searchGlass.w),
+              marginTop: 7,
               width: 280,
               height: 24,
               fontSize: 14,
@@ -79,32 +78,34 @@ export default function SearchScreen() {
               border: 0,
             }}
           />
+          {/* Voice at x 349.5 and scan at 387.5 on the artboard, 9.5 down. */}
           <button
             type="button"
             aria-label={t("Voice search")}
-            className="absolute cursor-pointer active:opacity-60"
-            style={{ left: 337.5, top: 9.5 }}
+            className="shrink-0 cursor-pointer active:opacity-60"
+            style={{ marginLeft: 337.5 - (40 + 280), marginTop: 9.5 }}
           >
             <XdIcon name="searchVoice" />
           </button>
           <button
             type="button"
             aria-label={t("Scan")}
-            className="absolute cursor-pointer active:opacity-60"
-            style={{ left: 375.5, top: 9.5 }}
+            className="shrink-0 cursor-pointer active:opacity-60"
+            style={{
+              marginLeft: 375.5 - (337.5 + XD_ICON_SIZE.searchVoice.w),
+              marginTop: 9.5,
+            }}
           >
             <XdIcon name="searchScan" />
           </button>
         </div>
 
         <div
-          className="absolute flex items-center overflow-x-auto"
+          className="flex shrink-0 items-center overflow-x-auto"
           style={{
-            left: 0,
-            right: 0,
-            // 2 px of room above and below, so the chips' 0.3 lines are not
-            // cut by the scroll box's edge.
-            top: 51,
+            // 2 px of room above and below (the chips are at y 103), so the
+            // chips' 0.3 lines are not cut by the scroll box's edge.
+            marginTop: 51 - (6 + 38),
             height: 36,
             padding: "2px 12px",
             scrollbarWidth: "none",
@@ -131,7 +132,6 @@ export default function SearchScreen() {
                   color: C.inkSoft,
                   lineHeight: "32px",
                   borderRadius: 12,
-                  boxShadow: on ? undefined : "inset 0 0 0 0.3px #D3D3D3",
                 }}
               >
                 {on && (
@@ -143,6 +143,7 @@ export default function SearchScreen() {
                   />
                 )}
                 <span className="relative">{t(name)}</span>
+                <Stroke color={C.line} width={0.3} radius={12} visible={!on} />
               </button>
             );
           })}

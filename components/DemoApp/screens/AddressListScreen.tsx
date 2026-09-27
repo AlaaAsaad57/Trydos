@@ -6,12 +6,13 @@ import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { useDemoData, type DemoAddress } from "../DemoData";
 import { countryOf } from "../demoPlaces";
-import { C, headerTop, top } from "../demoLayout";
+import { C, gapTo, textBottom, top } from "../demoLayout";
 import {
   Icon,
   InfoBanner,
   ScreenHeader,
   ScreenPage,
+  Stroke,
   Txt,
   WhyCard,
   WideButton,
@@ -25,9 +26,10 @@ import {
  * "Why add a address?" card at y 700 (it closes), and the dark
  * "Add Shipping Address" button (`#404040`).
  *
- * The list: 406 x 79 cards from y 160, 4 px apart, `#FCFCFC`. Title 12 Medium,
- * a 15 px map mark 12 px after it; the area line (12, the last three parts
- * Medium); the detail line; edit and delete marks at the top right.
+ * The list: 406 x 79 cards from y 160 (12 under the banner), 4 px apart,
+ * `#FCFCFC`. Title 12 Medium, a 15 px map mark 12 px after it; the area line
+ * (12, the last three parts Medium); the detail line; edit and delete marks at
+ * the top right.
  *
  * Delete: the whole screen dims to `#1D1D1D` at 90%, the big white bin at
  * (190, 380), "Delete below address ?", the card again drawn in white lines,
@@ -98,10 +100,10 @@ export default function AddressListScreen() {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -60, transition: { duration: 0.25 } }}
-            className="absolute"
+            className="flex items-start shrink-0"
             style={{
-              left: 12,
-              top: 160 + i * 83,
+              marginTop: i === 0 ? 12 : 4,
+              marginLeft: 12,
               width: 406,
               height: 79,
               borderRadius: 15,
@@ -110,30 +112,39 @@ export default function AddressListScreen() {
             data-pw={`demo-address-${i}`}
           >
             <AddressLines address={address} color={C.ink} />
+            {/* The marks at (356, 172) and (383, 172), each in a 31 px target
+                4 px down. The lines run 382 wide under them, so the targets
+                step back over the lines' end (12 + 382 = 394). */}
             <button
               type="button"
               aria-label={t("Edit")}
               onClick={() => open(address.id)}
-              className="absolute cursor-pointer active:opacity-60"
-              style={{ left: 344, top: 4, width: 31, height: 31 }}
+              className="shrink-0 cursor-pointer active:opacity-60"
+              style={{
+                marginTop: 4,
+                marginLeft: 344 - 394,
+                width: 31,
+                height: 31,
+                padding: 8,
+              }}
             >
-              <XdIcon
-                name="edit"
-                style={{ position: "absolute", left: 8, top: 8 }}
-              />
+              <XdIcon name="edit" />
             </button>
             <button
               type="button"
               aria-label={t("Delete")}
               data-pw={`demo-address-delete-${i}`}
               onClick={() => setDeleting(address)}
-              className="absolute cursor-pointer active:opacity-60"
-              style={{ left: 371, top: 4, width: 31, height: 31 }}
+              className="shrink-0 cursor-pointer active:opacity-60"
+              style={{
+                marginTop: 4,
+                marginLeft: 371 - (344 + 31),
+                width: 31,
+                height: 31,
+                padding: 8,
+              }}
             >
-              <XdIcon
-                name="trash"
-                style={{ position: "absolute", left: 8, top: 8 }}
-              />
+              <XdIcon name="trash" />
             </button>
           </motion.div>
         ))}
@@ -143,23 +154,34 @@ export default function AddressListScreen() {
         {list.length === 0 && (
           <motion.div
             key="empty"
+            className="flex flex-col shrink-0"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <Icon name="helpBig" x={205.5} y={432.5} />
+            {/* The 19 px mark at y 432.5, centred; the lines on 472 and 492. */}
+            <Icon
+              name="helpBig"
+              mt={432.5 - 148}
+              style={{ alignSelf: "center" }}
+            />
             {/* The file puts this line 2.67 px left of centre (x 135). */}
             <Txt
               center
-              baseline={472}
+              nudge={-2.67}
+              mt={gapTo(451.5, 472, 13)}
               size={13}
               weight="medium"
               color={C.hint}
-              style={{ left: -2.67 }}
             >
               {t("Your address list is empty")}
             </Txt>
-            <Txt center baseline={492} size={11} color={C.hint}>
+            <Txt
+              center
+              mt={gapTo(textBottom(472, 13), 492, 11)}
+              size={11}
+              color={C.hint}
+            >
               {t("You can also create multiple addresses to use")}
             </Txt>
           </motion.div>
@@ -169,7 +191,11 @@ export default function AddressListScreen() {
   );
 }
 
-/** Title with its map mark, the area line and the detail line — the card and the delete question share it. */
+/**
+ * Title with its map mark, the area line and the detail line — the card and
+ * the delete question share it. In the card: the title row (15 tall) 12 px
+ * down, the lines on baselines +45 and +64, all 12 px in and 382 wide.
+ */
 export function AddressLines({
   address,
   color,
@@ -184,10 +210,10 @@ export function AddressLines({
   // Street and town Regular, the rest Medium — "Cendere | Ayazağa | Sariyer | İstanbul | Turkiye".
   const [street, town, district, province] = address.area;
   return (
-    <>
+    <div className="flex flex-col shrink-0" style={{ marginLeft: 12 }}>
       <span
-        className="absolute flex items-center"
-        style={{ left: 12, top: 184 - 12 - 160, height: 15 }}
+        className="flex items-center shrink-0"
+        style={{ marginTop: 12, height: 15 }}
       >
         <span
           className="font-medium whitespace-nowrap"
@@ -195,11 +221,10 @@ export function AddressLines({
         >
           {address.title}
         </span>
-        {mark && <XdIcon name="mapTiny" style={{ marginLeft: 12 }} />}
+        {mark && <Icon name="mapTiny" ml={12} />}
       </span>
       <Txt
-        x={12}
-        baseline={205 - 160}
+        mt={gapTo(12 + 15, 45, 12)}
         size={12}
         color={color}
         width={382}
@@ -209,8 +234,7 @@ export function AddressLines({
         <span className="font-medium">{`${district} | ${province} | ${country}`}</span>
       </Txt>
       <Txt
-        x={12}
-        baseline={224 - 160}
+        mt={gapTo(textBottom(45, 12), 64, 12)}
         size={12}
         color={color}
         width={382}
@@ -218,10 +242,15 @@ export function AddressLines({
       >
         {address.detail}
       </Txt>
-    </>
+    </div>
   );
 }
 
+/**
+ * The delete question, over the whole screen: the white X at (384.5, 59.7) in
+ * a 36 px target, the 50 px bin centred at y 380, the question on baseline
+ * 456, and the card again in white lines at y 472.
+ */
 function DeleteQuestion({
   address,
   onClose,
@@ -238,8 +267,9 @@ function DeleteQuestion({
         <motion.div
           key="delete"
           data-pw="demo-address-delete"
-          className="absolute inset-0 z-30 font-quicksand"
-          style={{ background: C.backdrop }}
+          className="absolute inset-0 z-30 flex flex-col font-quicksand"
+          // The column starts at design y 50, the top of the app.
+          style={{ background: C.backdrop, paddingTop: top(50) }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -249,43 +279,44 @@ function DeleteQuestion({
             type="button"
             aria-label={t("Close")}
             onClick={onClose}
-            className="absolute cursor-pointer"
+            className="shrink-0 self-end cursor-pointer"
             style={{
-              left: 384.5 - 10,
-              top: headerTop(59.7 - 10),
+              marginTop: 59.7 - 10 - 50,
+              marginRight: 430 - (384.5 - 10 + 36),
               width: 36,
               height: 36,
+              padding: 10,
             }}
           >
-            <XdIcon
-              name="closeWhite"
-              style={{ position: "absolute", left: 10, top: 10 }}
-            />
+            <XdIcon name="closeWhite" />
           </button>
           <motion.div
-            className="absolute left-0 w-full"
-            style={{ top: top(0), height: 932 }}
+            className="flex flex-col shrink-0"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.05 }}
           >
-            <Icon name="trashBig" x={190} y={380} />
-            <Txt center baseline={456} size={14} color={C.white}>
+            <Icon
+              name="trashBig"
+              mt={380 - (59.7 - 10 + 36)}
+              style={{ alignSelf: "center" }}
+            />
+            <Txt center mt={gapTo(430, 456, 14)} size={14} color={C.white}>
               {t("Delete below address ?")}
             </Txt>
             <div
-              className="absolute"
+              className="relative flex shrink-0"
               style={{
-                left: 12,
-                top: 472,
+                marginTop: 472 - textBottom(456, 14),
+                marginLeft: 12,
                 width: 406,
                 height: 79,
                 borderRadius: 15,
-                boxShadow: "inset 0 0 0 0.5px #FFFFFF",
               }}
             >
               {/* The same lines as the card, in white; the file drops the map mark here. */}
               <AddressLines address={address} color={C.white} mark={false} />
+              <Stroke color={C.white} radius={15} />
             </div>
           </motion.div>
           <WideButton

@@ -53,8 +53,19 @@ describe("Demo screens — numbers from the XD file", () => {
       '[data-pw="demo-profile-photo"]',
     ) as HTMLElement | null;
     expect(box, "the profile tab has no photo box").not.toBeNull();
-    expect(box!.style.left, "the photo box is not at x 290").toBe("290px");
-    expect(box!.style.top, "the photo box is not at y 136").toBe("136px");
+    const card = box!.parentElement as HTMLElement;
+    expect(
+      card.getAttribute("data-pw"),
+      "the photo box is not inside the client card (406 wide at x 12, y 124)",
+    ).toBe("demo-profile-card");
+    expect(
+      card.style.padding,
+      "the client card has no 12 px padding at the top and the right, so the photo box is not at (290, 136)",
+    ).toBe("12px 12px 0px");
+    expect(
+      box!.className,
+      "the photo box does not sit at the card's right edge",
+    ).toContain("ml-auto");
     expect(box!.style.width, "the photo box is not 116 wide").toBe("116px");
     expect(
       box!.style.height,
@@ -106,10 +117,14 @@ describe("Demo screens — numbers from the XD file", () => {
       { timeout: 4000 },
     ).catch(() => null);
     expect(img, "the picked photo is not shown after the upload").not.toBeNull();
-    const line = [...container.querySelectorAll<HTMLElement>("*")].find((el) =>
-      el.style.boxShadow.includes("inset 0 0 0 1.5px"),
+    const line = container.querySelector<SVGElement>(
+      'svg[data-stroke="#FFFFFF"]',
     );
-    expect(line, "the photo box has no 1.5 px white line").toBeDefined();
+    expect(line, "the photo box has no white line").not.toBeNull();
+    expect(
+      line!.querySelector("rect[stroke]")?.getAttribute("stroke-width"),
+      "the white line is not 1.5 px inside the box (a 3 px stroke on the edge, the outer half clipped)",
+    ).toBe("3");
     expect(
       !!(
         img!.compareDocumentPosition(line!) & Node.DOCUMENT_POSITION_FOLLOWING
@@ -191,10 +206,16 @@ describe("Demo screens — numbers from the XD file", () => {
         title.className,
         `the ${tab} title is not Medium like 'Address'`,
       ).toContain("font-medium");
+      // An 18 px line box centred on the 50 px strip starts 16 px down, so
+      // the 14 px text sits on the crumb baseline, design y 80.
       expect(
-        title.style.top,
-        `the ${tab} title is not on the crumb baseline (design y 80, so 16 px into the header)`,
-      ).toBe("16px");
+        header.className,
+        `the ${tab} header does not centre its title on its height, so the title is off the crumb baseline (design y 80)`,
+      ).toContain("items-center");
+      expect(
+        title.style.lineHeight,
+        `the ${tab} title's line box is not 18 px, so it is off the crumb baseline (design y 80)`,
+      ).toBe("18px");
       const lines = [...page!.querySelectorAll("span, p, div")].filter(
         (e) => (e as HTMLElement).style.color === "rgb(195, 195, 195)",
       ) as HTMLElement[];
@@ -210,17 +231,29 @@ describe("Demo screens — numbers from the XD file", () => {
     }
   });
 
-  // The field in use (focused, or its sheet open) turns #FCFCFC with no line.
-  // The file draws it white with a line (`– 95`, `– 97`); the product asked for
-  // this look instead. The page is white, so the field still shows.
-  describe("address form: the field in use turns #FCFCFC with no line", () => {
+  // The field in use (focused, or its sheet open) turns #FCFCFC with a blue
+  // #388CFF line and a SemiBold label (Medium is too close to Regular to see
+  // at 12 px) — product rules, not in the file (`– 95`,
+  // `– 97` draw it white with a grey line and a Regular label). Once the form
+  // is complete, no field has a line, the focused one included.
+  describe("address form: the field in use turns #FCFCFC with a blue line and a SemiBold label", () => {
     const WHITE = "rgb(255, 255, 255)";
     const CARD = "rgb(252, 252, 252)";
     const box = (container: HTMLElement, id: string) => {
       const el = container.querySelector(`[data-pw="${id}"]`) as HTMLElement;
       return el.tagName === "INPUT" ? el.parentElement! : el;
     };
-    const lined = (el: HTMLElement) => el.style.boxShadow.includes("0.5px");
+    // A box's line is its own SVG Stroke, faded out when the box has none.
+    const lined = (el: HTMLElement) => {
+      const stroke = el.querySelector<SVGElement>(":scope > svg[data-stroke]");
+      return !!stroke && stroke.style.opacity !== "0";
+    };
+    const blue = (el: HTMLElement) =>
+      lined(el) &&
+      el.querySelector(":scope > svg[data-stroke]")!.getAttribute("data-stroke") === "#388CFF";
+    // The label is the field's first line of text.
+    const medium = (el: HTMLElement) =>
+      el.querySelector(":scope > span")!.className.includes("font-semibold");
     const type = (container: HTMLElement, id: string, text: string) => {
       const input = container.querySelector(`[data-pw="${id}"]`)!;
       fireEvent.focus(input);
@@ -247,32 +280,37 @@ describe("Demo screens — numbers from the XD file", () => {
     };
     const FORM = "/sy-en/demo/settings/profile/address/new";
 
-    it("a text field turns #FCFCFC with no line while it has focus, empty or typed in", () => {
+    it("a text field turns #FCFCFC with a blue line and a SemiBold label while it has focus, empty or typed in", () => {
       const container = open(FORM);
       const detail = box(container, "demo-address-detail");
       expect(detail.style.background, "the empty 'Detailed address' field is not white before it has focus").toBe(WHITE);
       expect(lined(detail), "the empty 'Detailed address' field has no line before it has focus").toBe(true);
+      expect(blue(detail), "the empty 'Detailed address' field is blue before it has focus; its line is grey").toBe(false);
+      expect(medium(detail), "the 'Detailed address' label is SemiBold before the field has focus").toBe(false);
 
       fireEvent.focus(container.querySelector('[data-pw="demo-address-detail"]')!);
       expect(
         detail.style.background,
         "the focused, empty 'Detailed address' field stayed white; the field in use is #FCFCFC",
       ).toBe(CARD);
-      expect(lined(detail), "the focused, empty 'Detailed address' field kept its line").toBe(false);
+      expect(blue(detail), "the focused, empty 'Detailed address' field has no blue #388CFF line").toBe(true);
+      expect(medium(detail), "the focused 'Detailed address' field's label is not SemiBold").toBe(true);
 
       type(container, "demo-address-detail", "vadistanbul");
       expect(detail.style.background, "the focused 'Detailed address' field is not #FCFCFC while it is typed in").toBe(CARD);
-      expect(lined(detail), "the focused 'Detailed address' field got its line back while it is typed in").toBe(false);
+      expect(blue(detail), "the focused 'Detailed address' field lost its blue line while it is typed in").toBe(true);
 
       fireEvent.blur(container.querySelector('[data-pw="demo-address-detail"]')!);
       expect(detail.style.background, "the filled 'Detailed address' field is not #FCFCFC after focus left").toBe(CARD);
-      expect(lined(detail), "the filled 'Detailed address' field got its line back after focus left").toBe(false);
+      expect(lined(detail), "the filled 'Detailed address' field kept a line after focus left").toBe(false);
+      expect(medium(detail), "the 'Detailed address' label stayed SemiBold after focus left").toBe(false);
 
       // Emptied again: back to white with a line.
       type(container, "demo-address-detail", "");
       fireEvent.blur(container.querySelector('[data-pw="demo-address-detail"]')!);
       expect(detail.style.background, "the emptied 'Detailed address' field did not turn white again").toBe(WHITE);
       expect(lined(detail), "the emptied 'Detailed address' field did not get its line back").toBe(true);
+      expect(blue(detail), "the emptied 'Detailed address' field kept the blue line after focus left").toBe(false);
     });
 
     it("a sheet field with a value and no sheet open is #FCFCFC with no line, before the form is complete", async () => {
@@ -291,20 +329,37 @@ describe("Demo screens — numbers from the XD file", () => {
       ).toBe(true);
     }, 15000);
 
-    it("the field whose sheet is open turns #FCFCFC with no line, like a focused text field", () => {
+    it("the field whose sheet is open turns #FCFCFC with a blue line and a SemiBold label, like a focused text field", () => {
       const container = open(FORM);
       fireEvent.click(box(container, "demo-address-country"));
       const country = box(container, "demo-address-country");
       expect(country.style.background, "the country field is not #FCFCFC while its sheet is open").toBe(CARD);
-      expect(lined(country), "the country field kept its line while its sheet is open").toBe(false);
+      expect(blue(country), "the country field has no blue line while its sheet is open").toBe(true);
+      expect(medium(country), "the country field's label is not SemiBold while its sheet is open").toBe(true);
     });
 
-    it("the place field turns #FCFCFC with no line while its sheet is open", () => {
+    it("the place field turns #FCFCFC with a blue line and a SemiBold label while its sheet is open", () => {
       const container = open(FORM);
       fireEvent.click(box(container, "demo-address-place"));
       const place = box(container, "demo-address-place");
       expect(place.style.background, "the place field stayed white while its sheet is open").toBe(CARD);
-      expect(lined(place), "the place field kept its line while its sheet is open").toBe(false);
+      expect(blue(place), "the place field has no blue line while its sheet is open").toBe(true);
+      expect(medium(place), "the place field's label is not SemiBold while its sheet is open").toBe(true);
+    });
+
+    it("the place sheet's search box turns its line blue while it has focus", () => {
+      const container = open(FORM);
+      fireEvent.click(box(container, "demo-address-place"));
+      const input = container.ownerDocument.querySelector(
+        '[data-pw="demo-place-search"]',
+      ) as HTMLInputElement | null;
+      expect(input, "the place sheet has no search box").not.toBeNull();
+      const search = input!.parentElement!;
+      expect(blue(search), "the search box is blue before it has focus; its line is grey").toBe(false);
+      fireEvent.focus(input!);
+      expect(blue(search), "the focused search box has no blue #388CFF line").toBe(true);
+      fireEvent.blur(input!);
+      expect(blue(search), "the search box stayed blue after focus left").toBe(false);
     });
 
     it("typing the last letter drops every line at once, the focused field's too, as on `Home Page – 99`", async () => {
@@ -330,6 +385,10 @@ describe("Demo screens — numbers from the XD file", () => {
         box(container, "demo-address-title").style.background,
         "the focused 'Address title' field is white with no line on the complete form, so it is lost on the white page; `Home Page – 99` draws it #FCFCFC",
       ).toBe("rgb(252, 252, 252)");
+      expect(
+        medium(box(container, "demo-address-title")),
+        "the focused 'Address title' label is not SemiBold on the complete form; only the line goes",
+      ).toBe(true);
     }, 15000);
 
     it("the map's 0.5 px line is drawn over the map picture, not under it, as `Home Page – 94` and `– 99` draw it", () => {
@@ -338,13 +397,13 @@ describe("Demo screens — numbers from the XD file", () => {
         '[data-pw="demo-address-map"] img',
       ) as HTMLElement | null;
       expect(img, "the map card has no map picture").not.toBeNull();
-      const line = [...img!.parentElement!.querySelectorAll<HTMLElement>("*")].find(
-        (el) => el !== img && lined(el),
+      const line = img!.parentElement!.querySelector<SVGElement>(
+        ':scope > svg[data-stroke="#D3D3D3"]',
       );
       expect(
         line,
-        "the map's #D3D3D3 line sits on the map box itself, so the picture covers it and the line never shows",
-      ).toBeDefined();
+        "the map box has no #D3D3D3 line of its own",
+      ).not.toBeNull();
       expect(
         !!(img!.compareDocumentPosition(line!) & Node.DOCUMENT_POSITION_FOLLOWING),
         "the map's line is on a layer under the picture, so the picture covers it",
@@ -387,5 +446,123 @@ describe("Demo screens — numbers from the XD file", () => {
       chip!.className,
       "the 'Empty' chip centres its word; the file starts it 12 px from the chip's left edge",
     ).toContain("text-left");
+  });
+});
+
+/**
+ * Safari draws a 0.5 px `inset` box-shadow with thick, dark straight edges and
+ * heavy corners (zoomedInScrenshot.jpeg, and a WebKit render beside the XD
+ * file). The line has to be drawn some other way on every screen.
+ *
+ * And the screens are laid out the way a page is: blocks stacked with margins
+ * and padding from the file, not each one pinned with `top` / `left`.
+ */
+describe("Demo screens — Safari lines and layout by margins", () => {
+  const SCREENS: [string, string, string][] = [
+    ["home", "/sy-en/demo", ""],
+    ["search", "/sy-en/demo", "search"],
+    ["cart", "/sy-en/demo", "cart"],
+    ["profile tab", "/sy-en/demo/settings", ""],
+    ["profile photo", "/sy-en/demo/settings/photo", ""],
+    ["client ID", "/sy-en/demo/settings/client-id", ""],
+    ["profile menu", "/sy-en/demo/settings/profile", ""],
+    ["client information", "/sy-en/demo/settings/profile/client-info", ""],
+    ["personal info", "/sy-en/demo/settings/profile/personal-info", ""],
+    ["body measurements", "/sy-en/demo/settings/profile/body", ""],
+    ["address list", "/sy-en/demo/settings/profile/address", ""],
+    ["address form", "/sy-en/demo/settings/profile/address/new", ""],
+  ];
+
+  const describeEl = (el: HTMLElement) =>
+    el.getAttribute("data-pw") ??
+    `<${el.tagName.toLowerCase()}> "${(el.textContent ?? "").trim().slice(0, 30)}"`;
+
+  for (const [name, pathname, search] of SCREENS) {
+    it(`${name}: no line is an inset box-shadow (Safari draws it thick on the straight edges)`, () => {
+      url.search = search;
+      const container = open(pathname);
+      const shadowed = [...container.querySelectorAll<HTMLElement>("*")]
+        // A line: an inset shadow with no offset and no blur. XD's inner
+        // shadows (the tab bar's photo) have a blur and are not lines.
+        .filter((el) => /inset\s+0(px)?\s+0(px)?\s+0(px)?\s/.test(el.style.boxShadow))
+        .map(describeEl);
+      expect(
+        shadowed,
+        `the ${name} screen draws these lines as an inset box-shadow`,
+      ).toEqual([]);
+      document.body.innerHTML = "";
+    });
+
+    it(`${name}: the header and the page are laid out with margins, nothing is placed with top / left`, () => {
+      url.search = search;
+      const container = open(pathname);
+      const screen = container.querySelector("[data-demo-screen]") as HTMLElement;
+      expect(screen, `the ${name} screen did not open`).not.toBeNull();
+      const regions = [
+        ...screen.querySelectorAll<HTMLElement>("header, .overflow-y-auto"),
+      ];
+      expect(regions.length, `the ${name} screen has no header or page`).toBeGreaterThan(0);
+      const pinned = regions
+        .flatMap((region) => [...region.querySelectorAll<HTMLElement>("*")])
+        .filter((el) => el.style.top !== "" || el.style.left !== "")
+        .map(describeEl);
+      expect(
+        pinned,
+        `these blocks on the ${name} screen are pinned with top / left instead of spaced with margins`,
+      ).toEqual([]);
+      document.body.innerHTML = "";
+    });
+  }
+});
+
+/**
+ * Every demo text field: while the shopper types in it, its label is SemiBold
+ * and its line is the site's blue #388CFF. A field that cannot be typed in
+ * (Personal Info before "Edit") does not react to a tap.
+ */
+describe("Demo fields — the focused field has a blue line and a SemiBold label", () => {
+  const field = (container: HTMLElement, id: string) => {
+    const input = container.querySelector(`[data-pw="${id}"]`) as HTMLInputElement | null;
+    expect(input, `the screen has no ${id} input`).not.toBeNull();
+    return { input: input!, box: input!.parentElement! };
+  };
+  const lineOf = (box: HTMLElement) => {
+    const stroke = box.querySelector<SVGElement>(":scope > svg[data-stroke]");
+    return stroke && stroke.style.opacity !== "0" ? stroke.getAttribute("data-stroke") : null;
+  };
+  const labelIsBold = (box: HTMLElement) =>
+    box.querySelector(":scope > span")!.className.includes("font-semibold");
+
+  beforeEach(() => {
+    url.search = "";
+  });
+
+  it("body measurements: the focused field turns blue with a SemiBold label, and back to grey when focus leaves", () => {
+    const container = open("/sy-en/demo/settings/profile/body");
+    const { input, box } = field(container, "demo-body-height");
+    expect(lineOf(box), "the 'How tall are you?' field has no grey #D3D3D3 line before it has focus").toBe("#D3D3D3");
+    expect(labelIsBold(box), "the 'How tall are you?' label is SemiBold before the field has focus").toBe(false);
+    fireEvent.focus(input);
+    expect(lineOf(box), "the focused 'How tall are you?' field has no blue #388CFF line").toBe("#388CFF");
+    expect(labelIsBold(box), "the focused 'How tall are you?' field's label is not SemiBold").toBe(true);
+    fireEvent.blur(input);
+    expect(lineOf(box), "the 'How tall are you?' field did not go back to its grey line after focus left").toBe("#D3D3D3");
+    expect(labelIsBold(box), "the 'How tall are you?' label stayed SemiBold after focus left").toBe(false);
+  });
+
+  it("personal info: a tap on a read-only field changes nothing; after 'Edit' the focused field is blue with a SemiBold label", async () => {
+    const container = open("/sy-en/demo/settings/profile/personal-info");
+    const { input, box } = field(container, "demo-personal-name");
+    fireEvent.focus(input);
+    expect(lineOf(box), "the read-only 'full Name' field got a line when tapped before 'Edit'").toBe(null);
+    expect(labelIsBold(box), "the read-only 'full Name' label turned SemiBold when tapped before 'Edit'").toBe(false);
+    fireEvent.blur(input);
+
+    fireEvent.click(container.querySelector('[data-pw="demo-header-action"]')!);
+    fireEvent.focus(input);
+    expect(lineOf(box), "the focused 'full Name' field has no blue #388CFF line after 'Edit'").toBe("#388CFF");
+    expect(labelIsBold(box), "the focused 'full Name' field's label is not SemiBold after 'Edit'").toBe(true);
+    fireEvent.blur(input);
+    expect(lineOf(box), "the 'full Name' field did not go back to its grey line after focus left").toBe("#D3D3D3");
   });
 });

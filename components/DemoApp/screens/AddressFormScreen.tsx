@@ -6,14 +6,17 @@ import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { useDemoData, type DemoCountry } from "../DemoData";
 import { COUNTRIES, LEVELS, choicesAt, countryOf } from "../demoPlaces";
-import { C, lineBox } from "../demoLayout";
+import { C, gapTo, lineBox, textBottom } from "../demoLayout";
 import {
+  Box,
   Field,
   FieldInput,
+  Icon,
   InfoBanner,
   ScreenHeader,
   ScreenPage,
   Sheet,
+  Stroke,
   Txt,
   WideButton,
 } from "../ui";
@@ -22,26 +25,27 @@ import {
  * Add / edit an address — XD `Home Page – 94` (the form), `– 95` (the country
  * sheet), `– 97` (the place sheet) and `– 99` (filled in).
  *
- * The map card (406 x 121 at y 160) holds the map (382 x 79, radius 15) and
- * the black "Locate your location on map" pill. Tapping it drops the pin: the
- * card grows to 186, the map to 162, the pill turns `#4A31E7` and reads
- * "your location on map", and every field under it moves down 65 — exactly the
- * difference between 94 and 99.
+ * The map card (406 x 121 at y 160, 12 under the banner) holds the map
+ * (382 x 79, radius 15) and the black "Locate your location on map" pill.
+ * Tapping it drops the pin: the card grows to 186, the map to 162, the pill
+ * turns `#4A31E7` and reads "your location on map", and every field under it
+ * moves down 65 with the card — exactly the difference between 94 and 99.
  *
- * Fields, 55 tall, 4 px apart from y 285: country (opens the country sheet),
+ * Fields, 55 tall, 4 px under the card and 4 px apart: country (opens the country sheet),
  * "Select from list" (opens the place sheet), detailed address, title. A field
- * that is empty and not in use is white with its line. A field in use
- * (focused, or its sheet open) or with a value is `#FCFCFC` with no line —
- * asked for by the product; 94, 95 and 97 draw a filled field and the field in
- * use with their line. When the whole form is filled "Add & save" rises and
- * the map card's line goes, as on 99 — at once, even while the last field
- * still has focus.
+ * that is empty and not in use is white with its grey line. A field with a
+ * value is `#FCFCFC` with no line. A field in use (focused, or its sheet open)
+ * is `#FCFCFC` with a blue `#388CFF` line and a SemiBold label. Both are asked for
+ * by the product; 94, 95 and 97 draw a filled field and the field in use with
+ * the grey line and a Regular label. When the whole form is filled "Add & save" rises
+ * and every line goes, the map card's too, as on 99 — at once, even while the
+ * last field still has focus.
  *
  * Nothing is looked up: the map is the picture in the file and the places are
  * the mock list in demoPlaces.ts.
  */
 
-/** How much the fields move when the map opens: 186 - 121. */
+/** How much the map card grows when the map opens: 186 - 121. */
 const MAP_GROWTH = 65;
 
 export default function AddressFormScreen() {
@@ -68,7 +72,6 @@ export default function AddressFormScreen() {
   // The map card's line goes the moment the form is complete, even with a
   // field still focused. An open sheet keeps it, as on 95 and 97.
   const done = complete && sheet === null;
-  const shift = located ? MAP_GROWTH : 0;
   const countryName = t(countryOf(country).name);
 
   const save = () => {
@@ -88,8 +91,12 @@ export default function AddressFormScreen() {
     back();
   };
 
+  // A field whose sheet is open is in use: blue line, SemiBold label. On the
+  // complete form no field has a line.
   const fieldLook = (id: "country" | "place", filled: boolean) => ({
     editing: active !== id && !filled,
+    focused: sheet === id,
+    plain: complete,
   });
 
   return (
@@ -136,34 +143,32 @@ export default function AddressFormScreen() {
     >
       <InfoBanner t={t} />
 
-      {/* The map card. */}
+      {/* The map card, 12 under the banner. Its height is animated, so the
+          fields under it move down with it. */}
       <motion.div
         data-pw="demo-address-map"
-        className="absolute overflow-hidden"
+        className="relative flex flex-col shrink-0 overflow-hidden"
         initial={false}
-        animate={{
-          height: located ? 186 : 121,
-          boxShadow: done
-            ? "inset 0 0 0 0px #D3D3D3"
-            : "inset 0 0 0 0.5px #D3D3D3",
-        }}
-        transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+        animate={{ height: located ? 121 + MAP_GROWTH : 121 }}
+        transition={GROW}
         style={{
-          left: 12,
-          top: 160,
+          marginTop: 12,
+          marginLeft: 12,
           width: 406,
           borderRadius: 15,
           background: C.card,
         }}
       >
+        {/* The map, 382 wide at (12, 12). The pill and the pin are laid out
+            on it, from its top-left corner. */}
         <motion.div
-          className="absolute overflow-hidden"
+          className="relative flex flex-col shrink-0 overflow-hidden"
           initial={false}
           animate={{ height: located ? 162 : 79 }}
-          transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+          transition={GROW}
           style={{
-            left: 12,
-            top: 12,
+            marginTop: 12,
+            marginLeft: 12,
             width: 382,
             borderRadius: 15,
           }}
@@ -175,92 +180,103 @@ export default function AddressFormScreen() {
             className="absolute inset-0 w-full h-full object-cover"
             draggable={false}
           />
-          {/* The line goes over the picture: on the box itself the picture covers it. */}
-          <span
-            aria-hidden="true"
-            className="absolute inset-0 pointer-events-none"
-            style={{ borderRadius: 15, boxShadow: "inset 0 0 0 0.5px #D3D3D3" }}
-          />
-        </motion.div>
 
-        <motion.button
-          type="button"
-          data-pw="demo-address-locate"
-          onClick={() => setLocated(true)}
-          whileTap={{ scale: 0.96 }}
-          className="absolute flex items-center cursor-pointer"
-          initial={false}
-          animate={
-            located
-              ? {
-                  left: 124,
-                  top: 58,
-                  width: 159,
-                  background: C.purple,
-                  boxShadow:
-                    "0 2px 2px rgba(0,0,0,0.16), inset 0 0 0 1px #388CFF",
-                }
-              : {
-                  left: 104,
-                  top: 37,
-                  width: 198,
-                  background: C.ink,
-                  boxShadow:
-                    "0 2px 2px rgba(0,0,0,0.16), inset 0 0 0 0.2px #D3D3D3",
-                }
-          }
-          transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-          style={{ height: 30, borderRadius: 10, paddingLeft: 12 }}
-        >
-          <span
-            className="font-medium whitespace-nowrap"
+          {/* 198 x 30 at (104, 37) in the card, black; located, 159 wide at
+              (124, 58) and `#4A31E7` with a 1 px `#388CFF` line. */}
+          <motion.button
+            type="button"
+            data-pw="demo-address-locate"
+            onClick={() => setLocated(true)}
+            whileTap={{ scale: 0.96 }}
+            className="relative flex items-center self-start shrink-0 cursor-pointer"
+            initial={false}
+            animate={
+              located
+                ? {
+                    marginLeft: 124 - 12,
+                    marginTop: 58 - 12,
+                    width: 159,
+                    background: C.purple,
+                  }
+                : {
+                    marginLeft: 104 - 12,
+                    marginTop: 37 - 12,
+                    width: 198,
+                    background: C.ink,
+                  }
+            }
+            transition={GROW}
             style={{
-              fontSize: 11,
-              lineHeight: `${lineBox(11)}px`,
-              color: "#F4F4F4",
+              height: 30,
+              borderRadius: 10,
+              paddingLeft: 12,
+              boxShadow: "0 2px 2px rgba(0,0,0,0.16)",
             }}
           >
-            {t(
-              located ? "your location on map" : "Locate your location on map",
-            )}
-          </span>
-          <XdIcon
-            name="navigation"
-            style={{ position: "absolute", right: 11.5, top: 7.5 }}
-          />
-        </motion.button>
-
-        <AnimatePresence>
-          {located && (
-            <motion.span
-              key="pin"
-              className="absolute"
-              style={{ left: 188.5, top: 90.5 }}
-              initial={{ y: -40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{
-                type: "spring",
-                stiffness: 400,
-                damping: 18,
-                delay: 0.2,
+            <span
+              className="font-medium whitespace-nowrap"
+              style={{
+                fontSize: 11,
+                lineHeight: `${lineBox(11)}px`,
+                color: "#F4F4F4",
               }}
             >
-              <XdIcon name="pin" />
-            </motion.span>
-          )}
-        </AnimatePresence>
+              {t(
+                located ? "your location on map" : "Locate your location on map",
+              )}
+            </span>
+            {/* 15 px, 11.5 in from the pill's right end. */}
+            <XdIcon
+              name="navigation"
+              className="shrink-0"
+              style={{ marginLeft: "auto", marginRight: 11.5 }}
+            />
+            <Stroke
+              color={located ? C.blue : C.line}
+              width={located ? 1 : 0.2}
+              radius={10}
+            />
+          </motion.button>
 
+          {/* The pin at (188.5, 90.5) in the card: 2.5 under the pill. */}
+          <AnimatePresence>
+            {located && (
+              <motion.span
+                key="pin"
+                // Relative, so it is drawn over the map picture (a positioned layer).
+                className="relative block self-start shrink-0"
+                style={{ marginLeft: 188.5 - 12, marginTop: 90.5 - 58 - 30 }}
+                initial={{ y: -40, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 18,
+                  delay: 0.2,
+                }}
+              >
+                <XdIcon name="pin" />
+              </motion.span>
+            )}
+          </AnimatePresence>
+
+          {/* The line goes over the picture: on the box itself the picture covers it. */}
+          <Stroke color={C.line} radius={15} />
+        </motion.div>
+
+        {/* 11 Medium on baseline 110 in the card, from x 52. */}
         <AnimatePresence>
           {!located && (
             <motion.span
               key="caption"
+              className="block shrink-0"
               initial={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
               <Txt
-                x={52}
-                baseline={110}
+                ml={52}
+                mt={gapTo(12 + 79, 110, 11)}
                 size={11}
                 weight="medium"
                 color={C.label}
@@ -270,47 +286,39 @@ export default function AddressFormScreen() {
             </motion.span>
           )}
         </AnimatePresence>
+
+        <Stroke color={C.line} radius={15} visible={!done} />
       </motion.div>
 
-      <motion.div
-        className="absolute left-0 top-0 w-full"
-        initial={false}
-        animate={{ y: shift }}
-        transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+      <Field
+        mt={4}
+        label={t("Country | Region")}
+        {...fieldLook("country", true)}
+        {...sheetField(() => setSheet("country"))}
+        testId="demo-address-country"
       >
-        <FieldShell
-          y={285}
-          label={t("Country | Region")}
-          {...fieldLook("country", true)}
-          onClick={() => setSheet("country")}
-          testId="demo-address-country"
-        >
+        {/* The 18 px flag at (12, 29), the name from x 38 on baseline 43. */}
+        <div className="flex items-start shrink-0" style={{ marginTop: 6 }}>
           {countryOf(country).flag && (
-            <XdIcon
-              name={countryOf(country).flag!}
-              size={18}
-              style={{ position: "absolute", left: 12, top: 29 }}
-            />
+            <Icon name={countryOf(country).flag!} size={18} />
           )}
-          <Txt x={38} baseline={43} size={14} weight="medium">
+          <Txt ml={countryOf(country).flag ? 8 : 26} size={14} weight="medium">
             {countryName}
           </Txt>
-        </FieldShell>
+        </div>
+      </Field>
 
-        <FieldShell
-          y={344}
-          label={t("Select from list")}
-          {...fieldLook("place", placeDone)}
-          onClick={() => setSheet("place")}
-          testId="demo-address-place"
-        >
-          <XdIcon
-            name={placeDone ? "radioOn" : "radio"}
-            style={{ position: "absolute", left: 12, top: 29 }}
-          />
+      <Field
+        mt={4}
+        label={t("Select from list")}
+        {...fieldLook("place", placeDone)}
+        {...sheetField(() => setSheet("place"))}
+        testId="demo-address-place"
+      >
+        <div className="flex items-start shrink-0" style={{ marginTop: 6 }}>
+          <Icon name={placeDone ? "radioOn" : "radio"} />
           <Txt
-            x={38}
-            baseline={43}
+            ml={8}
             size={14}
             color={placeDone ? C.ink : C.placeholder}
             width={356}
@@ -320,43 +328,48 @@ export default function AddressFormScreen() {
               ? [...[...picked].reverse(), countryName].join(" | ")
               : LEVELS.map((l) => t(l)).join(" | ")}
           </Txt>
-        </FieldShell>
+        </div>
+      </Field>
 
-        <Field
-          y={403}
-          label={t("Detailed address")}
-          {...fieldEditing(detail, focused === "detail")}
-        >
-          <FieldInput
-            testId="demo-address-detail"
-            value={detail}
-            onChange={setDetail}
-            onFocus={() => setFocused("detail")}
-            onBlur={() => setFocused(null)}
-            editing
-            placeholder={t("Street address, building, Flat, Door, unit.")}
-          />
-        </Field>
+      <Field
+        mt={4}
+        label={t("Detailed address")}
+        {...fieldEditing(detail, focused === "detail")}
+        plain={complete}
+      >
+        <FieldInput
+          testId="demo-address-detail"
+          value={detail}
+          onChange={setDetail}
+          onFocus={() => setFocused("detail")}
+          onBlur={() => setFocused(null)}
+          editing
+          placeholder={t("Street address, building, Flat, Door, unit.")}
+        />
+      </Field>
 
-        <Field
-          y={462}
-          label={t("Address title")}
-          {...fieldEditing(title, focused === "title")}
-        >
-          <FieldInput
-            testId="demo-address-title"
-            value={title}
-            onChange={setTitle}
-            onFocus={() => setFocused("title")}
-            onBlur={() => setFocused(null)}
-            editing
-            placeholder={t("Ex: Home, my office, 2 home ect.")}
-          />
-        </Field>
-      </motion.div>
+      <Field
+        mt={4}
+        label={t("Address title")}
+        {...fieldEditing(title, focused === "title")}
+        plain={complete}
+      >
+        <FieldInput
+          testId="demo-address-title"
+          value={title}
+          onChange={setTitle}
+          onFocus={() => setFocused("title")}
+          onBlur={() => setFocused(null)}
+          editing
+          placeholder={t("Ex: Home, my office, 2 home ect.")}
+        />
+      </Field>
     </ScreenPage>
   );
 }
+
+/** The map card and the map grow together. */
+const GROW = { duration: 0.35, ease: [0.4, 0, 0.2, 1] } as const;
 
 /**
  * A text field is white with a line while empty and not in use. In use, or
@@ -367,49 +380,20 @@ const fieldEditing = (value: string, inUse: boolean) => ({
   editing: !inUse && value.trim() === "",
 });
 
-/** A field that opens a sheet instead of taking text. */
-function FieldShell({
-  y,
-  label,
-  editing,
+/** A field that opens a sheet instead of taking text: a button to the keyboard too. */
+const sheetField = (onClick: () => void) => ({
+  role: "button",
+  tabIndex: 0,
   onClick,
-  testId,
-  children,
-}: {
-  y: number;
-  label: string;
-  editing: boolean;
-  onClick: () => void;
-  testId: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      data-pw={testId}
-      onClick={onClick}
-      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick()}
-      className="absolute cursor-pointer transition-[background-color,box-shadow] duration-300"
-      style={{
-        left: 12,
-        top: y,
-        width: 406,
-        height: 55,
-        borderRadius: 15,
-        background: editing ? C.white : C.card,
-        boxShadow: editing ? `inset 0 0 0 0.5px ${C.line}` : undefined,
-      }}
-    >
-      <Txt x={12} baseline={20} size={12} color={C.label}>
-        {label}
-      </Txt>
-      {children}
-    </div>
-  );
-}
+  onKeyDown: (e: React.KeyboardEvent) =>
+    (e.key === "Enter" || e.key === " ") && onClick(),
+});
 
-/** `Home Page – 95`: the sheet from y 539 with the four countries. */
+/**
+ * `Home Page – 95`: the sheet from y 539 with the four countries. "Select"
+ * (30 Bold) on baseline 593, "Country | Region" (16 Medium) on 629, then the
+ * 406 x 60 rows from y 645, 4 apart: a 30 px flag 12 in, the name from x 54.
+ */
 function CountrySheet({
   open,
   value,
@@ -426,15 +410,21 @@ function CountrySheet({
     <Sheet open={open} onClose={onClose} y={539} testId="demo-country-sheet">
       {/* The file centres both lines by eye: "Select" 1 px right of centre,
           the second line 1 px left. */}
-      <Txt center baseline={593} size={30} weight="bold" style={{ left: 1 }}>
+      <Txt
+        center
+        nudge={1}
+        mt={gapTo(539 + 13, 593, 30)}
+        size={30}
+        weight="bold"
+      >
         {t("Select")}
       </Txt>
       <Txt
         center
-        baseline={629}
+        nudge={-1}
+        mt={gapTo(textBottom(593, 30), 629, 16)}
         size={16}
         weight="medium"
-        style={{ left: -1 }}
       >
         {t("Country | Region")}
       </Txt>
@@ -447,28 +437,23 @@ function CountrySheet({
             data-pw={`demo-country-${c.id}`}
             whileTap={{ scale: 0.98 }}
             onClick={() => onPick(c.id)}
-            className="absolute cursor-pointer text-left"
+            className="relative flex items-center shrink-0 cursor-pointer text-left"
             style={{
-              left: 12,
-              top: 645 + i * 64,
+              marginTop: i === 0 ? 645 - textBottom(629, 16) : 4,
+              marginLeft: 12,
               width: 406,
               height: 60,
               borderRadius: 15,
               background: on ? C.field : C.card,
-              boxShadow: on ? "inset 0 0 0 0.5px #402CDD" : undefined,
             }}
           >
             {c.flag ? (
-              <XdIcon
-                name={c.flag}
-                style={{ position: "absolute", left: 12, top: 15 }}
-              />
+              <Icon name={c.flag} ml={12} />
             ) : (
               <span
-                className="absolute"
+                className="block shrink-0"
                 style={{
-                  left: 12,
-                  top: 15,
+                  marginLeft: 12,
                   width: 30,
                   height: 30,
                   borderRadius: 5,
@@ -476,9 +461,10 @@ function CountrySheet({
                 }}
               />
             )}
-            <Txt x={54} baseline={35} size={14}>
+            <Txt ml={54 - 12 - 30} size={14}>
               {t(c.name)}
             </Txt>
+            <Stroke color="#402CDD" radius={15} visible={on} />
           </motion.button>
         );
       })}
@@ -492,6 +478,10 @@ function CountrySheet({
  * country and the names picked so far Regular, the level being picked Medium,
  * the levels still to come `#D3D3D3`. Tapping a name already picked walks back
  * to that level.
+ *
+ * "Select" on baseline 505, the levels on 541, the walk (18 tall) at y 551,
+ * the 406 x 42 search box at y 581, and the list from y 631: 406 x 50 rows,
+ * 4 apart, the name from x 24.
  */
 function PlaceSheet({
   open,
@@ -509,6 +499,7 @@ function PlaceSheet({
   const { t } = useDemoNav();
   const [walk, setWalk] = useState<string[]>([]);
   const [query, setQuery] = useState("");
+  const [searching, setSearching] = useState(false);
   const level = Math.min(walk.length, LEVELS.length - 1);
   const choices = choicesAt(country, walk).filter((name) =>
     name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
@@ -538,24 +529,34 @@ function PlaceSheet({
     <Sheet open={open} onClose={onClose} y={451} testId="demo-place-sheet">
       {/* The file centres these three lines by eye, right of true centre by
           3, 1 and 1.33 px. */}
-      <Txt center baseline={505} size={30} weight="bold" style={{ left: 3 }}>
+      <Txt
+        center
+        nudge={3}
+        mt={gapTo(451 + 13, 505, 30)}
+        size={30}
+        weight="bold"
+      >
         {t("Select")}
       </Txt>
       <Txt
         center
-        baseline={541}
+        nudge={1}
+        mt={gapTo(textBottom(505, 30), 541, 16)}
         size={16}
         weight="medium"
-        style={{ left: 1 }}
       >
         {LEVELS.map((l) => t(l)).join(" | ")}
       </Txt>
 
       <div
-        className="absolute w-full flex justify-center items-center"
-        style={{ left: 1.33, top: 551, height: 18 }}
+        className="flex justify-center items-center shrink-0"
+        style={{
+          marginTop: 551 - textBottom(541, 16),
+          height: 18,
+          paddingLeft: 1.33 * 2,
+        }}
       >
-        {flag && <XdIcon name={flag} size={18} />}
+        {flag && <Icon name={flag} size={18} />}
         <span
           className="whitespace-nowrap"
           style={{
@@ -593,31 +594,29 @@ function PlaceSheet({
         </span>
       </div>
 
-      <div
-        className="absolute"
-        style={{
-          left: 12,
-          top: 581,
-          width: 406,
-          height: 42,
-          borderRadius: 12,
-          background: C.card,
-          boxShadow: `inset 0 0 0 0.5px ${C.line}`,
-        }}
+      <Box
+        mt={581 - (551 + 18)}
+        ml={12}
+        w={406}
+        h={42}
+        radius={12}
+        fill={C.card}
+        // Blue while it has focus, like every demo field.
+        stroke={searching ? C.blue : C.line}
+        className="flex items-start"
       >
-        <XdIcon
-          name="searchSmall"
-          style={{ position: "absolute", left: 12, top: 12 }}
-        />
+        <Icon name="searchSmall" ml={12} mt={12} />
         <input
           data-pw="demo-place-search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setSearching(true)}
+          onBlur={() => setSearching(false)}
           placeholder={t("Search Province | District | Town | Street")}
-          className="absolute bg-transparent outline-none font-light placeholder:text-[#C4C2C2]"
+          className="block shrink-0 bg-transparent outline-none font-light placeholder:text-[#C4C2C2]"
           style={{
-            left: 38,
-            top: 11,
+            marginLeft: 38 - 12 - 18,
+            marginTop: 11,
             width: 356,
             height: 20,
             fontSize: 14,
@@ -626,11 +625,11 @@ function PlaceSheet({
             border: 0,
           }}
         />
-      </div>
+      </Box>
 
       <div
-        className="absolute left-0 w-full overflow-y-auto overscroll-contain"
-        style={{ top: 631, height: 932 - 631, scrollbarWidth: "none" }}
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+        style={{ marginTop: 631 - (581 + 42), scrollbarWidth: "none" }}
       >
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
@@ -639,8 +638,7 @@ function PlaceSheet({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -40, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="relative"
-            style={{ height: choices.length * 54 }}
+            className="flex flex-col"
           >
             {choices.map((name, i) => (
               <motion.button
@@ -649,17 +647,17 @@ function PlaceSheet({
                 data-pw={`demo-place-${i}`}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => pick(name)}
-                className="absolute cursor-pointer text-left"
+                className="flex items-center shrink-0 cursor-pointer text-left"
                 style={{
-                  left: 12,
-                  top: i * 54,
+                  marginTop: i === 0 ? 0 : 4,
+                  marginLeft: 12,
                   width: 406,
                   height: 50,
                   borderRadius: 12,
                   background: C.card,
                 }}
               >
-                <Txt x={12} baseline={30} size={14}>
+                <Txt ml={12} size={14}>
                   {name}
                 </Txt>
               </motion.button>

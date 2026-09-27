@@ -65,6 +65,17 @@ export const textTop = (baseline: number, size: number) => baseline - size;
  */
 export const lineBox = (size: number) => size + Math.round(size / 4);
 
+/** The design y where a text's line box ends. */
+export const textBottom = (baseline: number, size: number) =>
+  textTop(baseline, size) + lineBox(size);
+
+/**
+ * The margin above a text, so that its baseline lands on the file's
+ * `baseline` when the block above it ends at design y `above`.
+ */
+export const gapTo = (above: number, baseline: number, size: number) =>
+  textTop(baseline, size) - above;
+
 /**
  * The box top of a paragraph whose lines are `lineHeight` apart, from the
  * first line's baseline. The extra line height is shared above and below the
@@ -111,7 +122,7 @@ export const BODY_Y = HEADER.y + HEADER.height;
 /** The grey banner under the header on the profile forms. */
 export const BANNER = { y: 100, height: 48 } as const;
 
-/** The wide button at the bottom of a form: 390 x 60 at (20, 836). */
+/** The wide button at the bottom of a form: 390 x 60 at (20, 836), 36 above the bottom. */
 export const CTA = {
   x: 20,
   y: 836,

@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { C, headerTop } from "../demoLayout";
+import { Stroke } from "../ui";
 import { TRAVEL } from "components/NavigationDemo/BottomNav";
 
 /**
@@ -42,7 +43,7 @@ export default function HomeScreen() {
       style={{ background: C.page }}
     >
       <header
-        className="absolute left-0 w-full"
+        className="absolute left-0 w-full flex items-start"
         style={{
           top: headerTop(50),
           height: 50,
@@ -50,30 +51,33 @@ export default function HomeScreen() {
           boxShadow: "0 0 3px rgba(0,0,0,0.1)",
         }}
       >
+        {/* The mark at (15.5, 64.5), in a 37 px target 8 px round it. */}
         <button
           type="button"
           aria-label={t("Search")}
           data-pw="demo-home-search"
           onClick={() => navigate("search")}
-          className="absolute cursor-pointer active:opacity-60"
-          style={{ left: 15.5 - 8, top: 14.5 - 8, width: 37, height: 37 }}
+          className="shrink-0 cursor-pointer active:opacity-60"
+          style={{
+            marginLeft: 15.5 - 8,
+            marginTop: 14.5 - 8,
+            width: 37,
+            height: 37,
+            padding: 8,
+          }}
         >
-          <XdIcon
-            name="homeLogo"
-            style={{ position: "absolute", left: 8, top: 8 }}
-          />
+          <XdIcon name="homeLogo" />
         </button>
 
         <div
-          className="absolute flex items-center overflow-x-auto"
+          className="flex flex-1 min-w-0 items-center overflow-x-auto"
           // The row scrolls sideways, and a scroll box clips at its edges. It
-          // starts 2 px early and 2 px higher, with the same padding inside, so
-          // the picked chip's 0.3 line sits inside the box instead of on its
-          // edge, where it was cut off.
+          // starts 2 px early (x 58) and 2 px higher (y 57), with the same
+          // padding inside, so the picked chip's 0.3 line sits inside the box
+          // instead of on its edge, where it was cut off.
           style={{
-            left: 58,
-            right: 0,
-            top: 7,
+            marginLeft: 58 - (15.5 - 8 + 37),
+            marginTop: 7,
             height: 36,
             padding: "2px 11px 2px 2px",
             scrollbarWidth: "none",
@@ -107,12 +111,10 @@ export default function HomeScreen() {
                       layoutId="demo-home-chip"
                       transition={TRAVEL}
                       className="absolute inset-0"
-                      style={{
-                        borderRadius: 12,
-                        background: "#F8F7FF",
-                        boxShadow: "inset 0 0 0 0.3px #707070",
-                      }}
-                    />
+                      style={{ borderRadius: 12, background: "#F8F7FF" }}
+                    >
+                      <Stroke color="#707070" width={0.3} radius={12} />
+                    </motion.span>
                   )}
                   <span className="relative">{t(name)}</span>
                 </span>

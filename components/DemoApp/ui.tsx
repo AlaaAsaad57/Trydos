@@ -3,7 +3,7 @@
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "./XdIcon";
-import type { XdIconName } from "./xdIcons";
+import { XD_ICON_SIZE, type XdIconName } from "./xdIcons";
 import type { DemoKey } from "./demoKeys";
 import {
   BANNER,
@@ -18,42 +18,109 @@ import {
   headerTop,
   lineBox,
   paraTop,
-  textTop,
   top,
 } from "./demoLayout";
 
 /**
  * The building blocks every demo screen is drawn with.
  *
- * All numbers are design px from the XD file. Blocks are placed with absolute
- * positions, the way the login screens are (NewLoginDesign/authLayout.ts),
- * because the design does not space things evenly and a stack of margins
- * cannot reproduce it.
+ * All numbers are design px from the XD file. A screen is laid out like a
+ * page: blocks stack in a column or sit in a row, and the space between them
+ * is a margin or a padding with the file's number. Where the file puts two
+ * blocks 4 px apart, the second one has `mt={4}`. Only layers that sit ON
+ * something are positioned: a line over a box, a sheet over the page, the
+ * header, and a button pinned to the bottom of the screen.
+ *
+ * Text is placed by the BASELINE the XD file stores: a line box of
+ * `lineBox(size)` puts the baseline exactly `size` below the box top, so the
+ * margin above a text is `textTop(baseline, size)` minus the bottom of the
+ * block above it (`gapTo` in demoLayout.ts).
  */
 
-export type Weight = "light" | "regular" | "medium" | "bold";
+export type Weight = "light" | "regular" | "medium" | "semibold" | "bold";
 
 const WEIGHT_CLASS: Record<Weight, string> = {
   light: "font-light",
   regular: "font-normal",
   medium: "font-medium",
+  semibold: "font-semibold",
   bold: "font-bold",
 };
 
+/** Moves a centred block `nudge` px right (or left) by padding one side. */
+const offCentre = (nudge: number): React.CSSProperties =>
+  nudge > 0
+    ? { paddingLeft: nudge * 2 }
+    : nudge < 0
+      ? { paddingRight: -nudge * 2 }
+      : {};
+
 /**
- * One line of text, placed by the BASELINE the XD file stores.
+ * A line on the inside of a box's edge, the way XD strokes a shape.
  *
- * `x` is the left edge. `center` centres it on the artboard instead (the file
- * centres titles by eye; every one of them measures within 2 px of 215).
+ * Drawn as SVG and not as an `inset` box-shadow: Safari draws a 0.5 px inset
+ * shadow with thick, dark straight edges and heavy corners, and the gaps
+ * between lined boxes then look uneven. The SVG line is even all round and
+ * matches the file in Safari and Chrome. The stroke is centred on the box's
+ * edge at twice the width, and the half outside the box is clipped away.
+ *
+ * Put it last in a box that is `relative` (or positioned), so it is drawn over
+ * a picture in the box.
+ */
+export function Stroke({
+  color,
+  width = 0.5,
+  radius = 0,
+  visible = true,
+}: {
+  color: string;
+  width?: number;
+  radius?: number;
+  /** Fades the line out (0.3 s) instead of removing it. */
+  visible?: boolean;
+}) {
+  const id = `demo-stroke-${React.useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+  return (
+    <svg
+      aria-hidden="true"
+      data-stroke={color}
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s" }}
+    >
+      <defs>
+        <clipPath id={id}>
+          <rect width="100%" height="100%" rx={radius} />
+        </clipPath>
+      </defs>
+      <rect
+        width="100%"
+        height="100%"
+        rx={radius}
+        fill="none"
+        stroke={color}
+        strokeWidth={width * 2}
+        clipPath={`url(#${id})`}
+        style={{ transition: "stroke 0.3s" }}
+      />
+    </svg>
+  );
+}
+
+/**
+ * One line of text in the flow, with a line box that puts its baseline where
+ * the file does (see `lineBox`).
+ *
+ * `center` centres it on the full width of its column. The file centres
+ * titles by eye; `nudge` moves a centred line that many px right (+) or left.
  */
 export function Txt({
-  x = 0,
-  baseline,
   size,
   weight = "regular",
   color = C.ink,
   center = false,
-  right,
+  nudge = 0,
+  mt,
+  ml,
   width,
   className = "",
   style,
@@ -61,35 +128,35 @@ export function Txt({
   as: Tag = "span",
   ...rest
 }: {
-  x?: number;
-  baseline: number;
   size: number;
   weight?: Weight;
   color?: string;
   center?: boolean;
-  /** Distance of the right edge from the artboard's right edge. */
-  right?: number;
+  nudge?: number;
+  /** Margin above, in design px. */
+  mt?: number;
+  /** Margin on the left, in design px. */
+  ml?: number;
   width?: number;
   className?: string;
   style?: React.CSSProperties;
   children: React.ReactNode;
   as?: "span" | "p" | "h1" | "h2" | "label";
 } & React.HTMLAttributes<HTMLElement>) {
-  const place: React.CSSProperties = center
-    ? { left: 0, width: DESIGN_W, textAlign: "center" }
-    : right !== undefined
-      ? { right, textAlign: "right" }
-      : { left: x, width };
   return (
     <Tag
       {...rest}
-      className={`absolute block ${width ? "" : "whitespace-nowrap"} ${WEIGHT_CLASS[weight]} ${className}`}
+      className={`block shrink-0 ${width ? "" : "whitespace-nowrap"} ${WEIGHT_CLASS[weight]} ${className}`}
       style={{
-        top: textTop(baseline, size),
         fontSize: size,
         lineHeight: `${lineBox(size)}px`,
         color,
-        ...place,
+        marginTop: mt,
+        marginLeft: ml,
+        width,
+        ...(center
+          ? { alignSelf: "stretch", textAlign: "center", ...offCentre(nudge) }
+          : {}),
         ...style,
       }}
     >
@@ -98,29 +165,31 @@ export function Txt({
   );
 }
 
-/** A box on the artboard: position, size and the fill/stroke/radius XD gives it. */
+/** A box in the flow: its size, its margins and the fill / line / radius XD gives it. */
 export function Box({
-  x,
-  y,
   w,
   h,
+  mt,
+  ml,
   fill,
   stroke,
   strokeWidth = 0.5,
+  strokeVisible = true,
   radius = 0,
   className = "",
   style,
   children,
   ...rest
 }: {
-  x: number;
-  y: number;
-  w: number;
+  w: number | string;
   h: number;
+  mt?: number;
+  ml?: number;
   fill?: string;
   stroke?: string;
   strokeWidth?: number;
-  radius?: number | string;
+  strokeVisible?: boolean;
+  radius?: number;
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
@@ -128,37 +197,41 @@ export function Box({
   return (
     <div
       {...rest}
-      className={`absolute ${className}`}
+      className={`relative shrink-0 ${className}`}
       style={{
-        left: x,
-        top: y,
         width: w,
         height: h,
+        marginTop: mt,
+        marginLeft: ml,
         background: fill,
         borderRadius: radius,
-        // XD aligns every stroke inside the box.
-        boxShadow: stroke
-          ? `inset 0 0 0 ${strokeWidth}px ${stroke}`
-          : undefined,
         ...style,
       }}
     >
       {children}
+      {stroke && (
+        <Stroke
+          color={stroke}
+          width={strokeWidth}
+          radius={radius}
+          visible={strokeVisible}
+        />
+      )}
     </div>
   );
 }
 
-/** An icon at its design position. */
+/** An icon in the flow, with its margins. */
 export function Icon({
   name,
-  x,
-  y,
+  mt,
+  ml,
   size,
   style,
 }: {
   name: XdIconName;
-  x: number;
-  y: number;
+  mt?: number;
+  ml?: number;
   size?: number;
   style?: React.CSSProperties;
 }) {
@@ -166,7 +239,8 @@ export function Icon({
     <XdIcon
       name={name}
       size={size}
-      style={{ position: "absolute", left: x, top: y, ...style }}
+      className="shrink-0"
+      style={{ marginTop: mt, marginLeft: ml, ...style }}
     />
   );
 }
@@ -174,11 +248,11 @@ export function Icon({
 /**
  * The page of an inner screen: the header strip, then a box that scrolls.
  *
- * Children are placed with DESIGN y values. The scroll box starts at the
- * bottom of the header (design y 100), so the page shifts its content up by
- * that much — a screen writes `y={160}` for a field the file draws at 160.
- * `contentHeight` is the design y where the content ends (932 for a screen
- * that fits, 1129 for the tall profile page).
+ * The scroll box starts at design y `scrollTop` (the bottom of the header,
+ * 100, on most screens), and the screen's blocks stack down from there. So the
+ * first block's `mt` is its design y minus `scrollTop`: the banner at 100 has
+ * none, a row at 120 has `mt={20}`. `contentHeight` is the design y where the
+ * page ends (932 for a screen that fits, 1129 for the tall profile page).
  */
 export function ScreenPage({
   header,
@@ -193,7 +267,7 @@ export function ScreenPage({
   children: React.ReactNode;
   /** Pinned to the bottom (the wide button). Drawn over the scroll box. */
   footer?: React.ReactNode;
-  /** The design height of the content from `scrollTop` down. */
+  /** The design y where the page ends. */
   contentHeight?: number;
   bg?: string;
   /** Design y where the scroll box begins. */
@@ -211,16 +285,10 @@ export function ScreenPage({
         style={{ top: top(scrollTop), bottom: 0, scrollbarWidth: "none" }}
       >
         <div
-          className="relative w-full"
-          style={{ height: contentHeight - scrollTop }}
+          className="flex flex-col w-full"
+          style={{ minHeight: contentHeight - scrollTop }}
         >
-          {/* Shifted up by the scroll box's own top, so children use design y. */}
-          <div
-            className="absolute left-0 w-full"
-            style={{ top: -scrollTop, height: contentHeight }}
-          >
-            {children}
-          </div>
+          {children}
         </div>
       </div>
       {header}
@@ -232,6 +300,11 @@ export function ScreenPage({
 /**
  * The header of every inner screen: a white 50 px strip with the back arrow,
  * a centred title and, on some screens, "Cancel" or "Edit" on the right.
+ *
+ * Three columns: the two sides share what is left equally, so the title in the
+ * middle is centred on the screen whatever sits beside it. Everything is
+ * centred on the strip's height, which puts the 16 px title on baseline 81,
+ * the 14 px crumb on 80 and the 21 px arrow at y 64.5 — the file's numbers.
  *
  * `crumb` draws the "Profile | Personal Info" form: the first part Regular, the
  * second Medium, both 14, and an 18 px icon 4 px after the text. The text is
@@ -272,10 +345,11 @@ export function ScreenHeader({
 }) {
   return (
     <header
-      className="absolute left-0 w-full font-quicksand z-10"
+      className="absolute left-0 w-full font-quicksand z-10 grid items-center"
       style={{
         top: headerTop(HEADER.y),
         height: HEADER.height,
+        gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
         background: C.white,
         boxShadow: shadow ? "0 0 3px rgba(0,0,0,0.1)" : undefined,
       }}
@@ -286,63 +360,61 @@ export function ScreenHeader({
           data-pw="demo-back"
           aria-label={t("Back")}
           onClick={onBack}
-          className="absolute flex items-center justify-center cursor-pointer active:opacity-60 transition-opacity"
-          // A 44 px target around the 12 x 21 arrow at (23.5, 64.5).
-          style={{ left: 7.5, top: 0, width: 44, height: HEADER.height }}
+          className="flex items-center justify-center justify-self-start cursor-pointer active:opacity-60 transition-opacity"
+          // A 44 px target round the 12 x 21 arrow at (23.5, 64.5).
+          style={{
+            gridColumn: 1,
+            gridRow: 1,
+            marginLeft: 7.5,
+            width: 44,
+            height: HEADER.height,
+          }}
         >
           <XdIcon name="back" />
         </button>
       )}
       {title && (
         <h1
-          className="absolute w-full text-center font-medium whitespace-nowrap pointer-events-none"
-          style={
-            small
-              ? {
-                  left: nudge,
-                  top: textTop(HEADER.crumbBaseline, 14) - HEADER.y,
-                  fontSize: 14,
-                  lineHeight: `${lineBox(14)}px`,
-                  color: C.ink,
-                }
-              : {
-                  left: nudge,
-                  top: textTop(HEADER.titleBaseline, 16) - HEADER.y,
-                  fontSize: 16,
-                  color: C.ink,
-                }
-          }
+          className="font-medium whitespace-nowrap pointer-events-none"
+          style={{
+            gridColumn: 2,
+            gridRow: 1,
+            fontSize: small ? 14 : 16,
+            lineHeight: `${lineBox(small ? 14 : 16)}px`,
+            color: C.ink,
+            ...offCentre(nudge),
+          }}
         >
           {t(title)}
         </h1>
       )}
       {crumb && (
         <h1
-          className="absolute w-full flex justify-center pointer-events-none"
+          className="flex items-start whitespace-nowrap pointer-events-none"
           style={{
-            left: nudge,
-            top: textTop(HEADER.crumbBaseline, 14) - HEADER.y,
+            gridColumn: 2,
+            gridRow: 1,
             fontSize: 14,
             lineHeight: `${lineBox(14)}px`,
             color: C.ink,
+            ...offCentre(nudge),
           }}
         >
-          <span className="relative whitespace-nowrap">
-            <span className="font-normal">{t(crumb[0])} | </span>
-            <span className="font-medium">{t(crumb[1])}</span>
-            {icon && (
-              <XdIcon
-                name={icon}
-                // The icon's top is design y 66; the text's is 66 too.
-                style={{
-                  position: "absolute",
-                  left: "100%",
-                  marginLeft: 4,
-                  top: 0,
-                }}
-              />
-            )}
-          </span>
+          <span className="font-normal whitespace-pre">{`${t(crumb[0])} | `}</span>
+          <span className="font-medium">{t(crumb[1])}</span>
+          {icon && (
+            // 4 px after the text, its top on the text's top (design y 66).
+            // The negative right margin keeps the icon out of the width that
+            // is centred.
+            <XdIcon
+              name={icon}
+              className="shrink-0"
+              style={{
+                marginLeft: 4,
+                marginRight: -(4 + XD_ICON_SIZE[icon].w),
+              }}
+            />
+          )}
         </h1>
       )}
       <AnimatePresence>
@@ -356,11 +428,13 @@ export function ScreenHeader({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute font-light cursor-pointer active:opacity-60"
+            className="justify-self-end font-light cursor-pointer active:opacity-60"
             style={{
-              right: 20,
-              top: textTop(HEADER.titleBaseline, 16) - HEADER.y,
+              gridColumn: 3,
+              gridRow: 1,
+              marginRight: 20,
               fontSize: 16,
+              lineHeight: `${lineBox(16)}px`,
               color: C.ink,
             }}
           >
@@ -372,7 +446,11 @@ export function ScreenHeader({
   );
 }
 
-/** The grey note under the header on the profile forms. */
+/**
+ * The grey note under the header on the profile forms: 48 tall, the 25 px
+ * info mark at (11.5, 111.5), the text from x 48 with its first baseline
+ * on 119 and 16 px between lines.
+ */
 export function InfoBanner({
   t,
   purple = false,
@@ -380,24 +458,21 @@ export function InfoBanner({
   t: (key: DemoKey) => string;
   purple?: boolean;
 }) {
+  const icon = purple ? "infoBannerPurple" : "infoBanner";
   return (
     <Box
-      x={0}
-      y={BANNER.y}
       w={DESIGN_W}
       h={BANNER.height}
       fill={C.field}
       stroke={C.line}
+      className="flex items-start"
     >
-      <XdIcon
-        name={purple ? "infoBannerPurple" : "infoBanner"}
-        style={{ position: "absolute", left: 11.5, top: 11.5 }}
-      />
+      <Icon name={icon} mt={11.5} ml={11.5} />
       <p
-        className="absolute font-normal"
+        className="shrink-0 font-normal"
         style={{
-          left: 48,
-          top: paraTop(119, 11, 16) - BANNER.y,
+          marginTop: paraTop(119, 11, 16) - BANNER.y,
+          marginLeft: 48 - 11.5 - XD_ICON_SIZE[icon].w,
           width: 370,
           fontSize: 11,
           lineHeight: "16px",
@@ -413,47 +488,73 @@ export function InfoBanner({
 }
 
 /**
- * A 406 x 55 field: a 12 px label and a 14 px value under it.
+ * A 406 x 55 field: a 12 px label on baseline +20 and a 14 px value on +43.
+ * The label box starts 8 px down (20 - 12), 12 px in.
  *
  * Two looks in the file. Editing (`88`, `93`): white with a 0.5 `#D3D3D3`
  * line. Saved (`92`, `99`): `#FCFCFC` and no line.
+ *
+ * In use — its input has focus, or `focused` (its sheet is open) — the label
+ * is SemiBold and the line is the site's blue `#388CFF`. A product rule: the
+ * file draws the field in use like the others. SemiBold, not Medium: at 12 px
+ * Quicksand Medium looks the same as Regular. An input that is read-only
+ * (Personal Info before "Edit") does not count as in use.
  */
 export function Field({
-  y,
+  mt,
   label,
-  x = ROW.x,
+  ml = ROW.x,
   w = ROW.width,
   editing,
   line = false,
+  focused = false,
+  plain = false,
   children,
   onClick,
   testId,
+  className = "",
+  ...rest
 }: {
-  y: number;
+  mt?: number;
   label: string;
-  x?: number;
+  ml?: number;
   w?: number;
   editing: boolean;
   /** Keep the line on a filled field (the address form until it is complete). */
   line?: boolean;
+  /** In use without an input of its own: a field whose sheet is open. */
+  focused?: boolean;
+  /** No line at all, in use or not (the complete address form, `Home Page – 99`). */
+  plain?: boolean;
   children: React.ReactNode;
   onClick?: () => void;
   testId?: string;
-}) {
+  className?: string;
+} & React.HTMLAttributes<HTMLDivElement>) {
+  // Focus events bubble up from the field's input.
+  const [typing, setTyping] = React.useState(false);
+  const inUse = focused || typing;
   return (
     <Box
-      x={x}
-      y={y}
+      {...rest}
+      mt={mt}
+      ml={ml}
       w={w}
       h={55}
       radius={ROW.radius}
       fill={editing ? C.white : C.card}
-      stroke={editing || line ? C.line : undefined}
+      stroke={inUse ? C.blue : C.line}
+      strokeVisible={!plain && (inUse || editing || line)}
       onClick={onClick}
+      onFocus={(e) =>
+        setTyping(e.target instanceof HTMLInputElement && !e.target.readOnly)
+      }
+      onBlur={() => setTyping(false)}
       data-pw={testId}
-      className={`transition-[background-color,box-shadow] duration-300 ${onClick ? "cursor-pointer" : ""}`}
+      className={`flex flex-col transition-[background-color] duration-300 ${onClick ? "cursor-pointer" : ""} ${className}`}
+      style={{ padding: "8px 12px 0" }}
     >
-      <Txt x={12} baseline={20} size={12} color={C.label}>
+      <Txt size={12} color={C.label} weight={inUse ? "semibold" : "regular"}>
         {label}
       </Txt>
       {children}
@@ -461,14 +562,17 @@ export function Field({
   );
 }
 
-/** The value line of a field: an input when editing, the text when saved. */
+/**
+ * The value line of a field: an input when editing, the text when saved.
+ * Its box is 23 tall from 26 px down the field (3 under the label), which puts
+ * the 14 px text on the field's baseline +43.
+ */
 export function FieldInput({
   value,
   placeholder,
   onChange,
   editing,
   color = C.ink,
-  x = 12,
   inputMode,
   type = "text",
   onFocus,
@@ -480,7 +584,6 @@ export function FieldInput({
   onChange: (v: string) => void;
   editing: boolean;
   color?: string;
-  x?: number;
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   type?: string;
   onFocus?: () => void;
@@ -498,12 +601,10 @@ export function FieldInput({
       onChange={(e) => onChange(e.target.value)}
       onFocus={onFocus}
       onBlur={onBlur}
-      className="absolute bg-transparent outline-none font-normal placeholder:text-[#D3D3D3]"
-      // Baseline 43 in the box, 14 px: the box top is 29, the line 17.5.
+      className="block shrink-0 bg-transparent outline-none font-normal placeholder:text-[#D3D3D3]"
       style={{
-        left: x,
-        top: 29 - 3,
-        width: 406 - x - 12,
+        marginTop: 3,
+        width: 406 - 24,
         height: 23,
         fontSize: 14,
         color,
@@ -514,7 +615,7 @@ export function FieldInput({
   );
 }
 
-/** The wide button at the bottom of a form, 390 x 60 at (20, 836). */
+/** The wide button at the bottom of a form, 390 x 60, centred, 36 above the bottom. */
 export function WideButton({
   label,
   onClick,
@@ -544,9 +645,8 @@ export function WideButton({
           exit={{ y: 30, opacity: 0 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           whileTap={{ scale: 0.98 }}
-          className={`absolute cursor-pointer font-quicksand ${WEIGHT_CLASS[weight]}`}
+          className={`absolute inset-x-0 mx-auto cursor-pointer font-quicksand ${WEIGHT_CLASS[weight]}`}
           style={{
-            left: CTA.x,
             bottom: bottom(CTA.y, CTA.height),
             width: CTA.width,
             height: CTA.height,
@@ -564,9 +664,9 @@ export function WideButton({
   );
 }
 
-/** A 406 x 60 list row with an icon and a 14 px label. */
+/** A 406 x 60 list row: the icon 12 px in, centred on the row, then the 14 px label. */
 export function MenuRow({
-  y,
+  mt,
   icon,
   iconSize,
   label,
@@ -574,11 +674,12 @@ export function MenuRow({
   onClick,
   testId,
 }: {
-  y: number;
+  mt: number;
   icon: XdIconName;
   /** 18 on the profile page, 30 on the profile menu. */
   iconSize: 18 | 30;
   label: string;
+  /** The label's design x. */
   textX: number;
   onClick?: () => void;
   testId?: string;
@@ -589,25 +690,18 @@ export function MenuRow({
       data-pw={testId}
       onClick={onClick}
       whileTap={{ scale: 0.985 }}
-      className="absolute cursor-pointer text-left"
+      className="flex items-center shrink-0 cursor-pointer text-left"
       style={{
-        left: ROW.x,
-        top: y,
+        marginTop: mt,
+        marginLeft: ROW.x,
         width: ROW.width,
         height: 60,
         borderRadius: ROW.radius,
         background: C.card,
       }}
     >
-      <XdIcon
-        name={icon}
-        style={{
-          position: "absolute",
-          left: 12,
-          top: iconSize === 18 ? 21 : 15,
-        }}
-      />
-      <Txt x={textX - ROW.x} baseline={35} size={14}>
+      <Icon name={icon} ml={12} />
+      <Txt size={14} ml={textX - ROW.x - 12 - iconSize}>
         {label}
       </Txt>
     </motion.button>
@@ -618,6 +712,10 @@ export function MenuRow({
  * The bottom sheet: the page dims to `#1D1D1D` at 90%, and a white sheet with
  * 30 px top corners and a 40 x 2 `#C4C2C2` handle slides up from the bottom.
  * The same sheet the login uses for its QR code (QrBottomSheet).
+ *
+ * The content stacks under the handle, which ends 13 px below the sheet's top
+ * edge (design y `y + 13`). So the first block's `mt` is its design y minus
+ * `y + 13`.
  */
 export function Sheet({
   open,
@@ -699,25 +797,23 @@ export function Sheet({
             }}
           >
             <div
-              className="absolute"
+              className="flex flex-col w-full h-full"
               style={{
-                left: (DESIGN_W - SHEET.handle.width) / 2,
-                top: SHEET.handle.top - 1,
-                width: SHEET.handle.width,
-                height: SHEET.handle.height,
-                background: "#C4C2C2",
-              }}
-            />
-            {/* Children use design y; the sheet shifts them up by its own top. */}
-            <div
-              className="absolute left-0 w-full"
-              style={{
-                top:
+                marginTop:
                   y < 300
-                    ? `calc(${-y}px - var(--app-keyboard-lift, 0px))`
-                    : -y,
+                    ? "calc(-1 * var(--app-keyboard-lift, 0px))"
+                    : undefined,
               }}
             >
+              <div
+                className="shrink-0 self-center"
+                style={{
+                  marginTop: SHEET.handle.top - 1,
+                  width: SHEET.handle.width,
+                  height: SHEET.handle.height,
+                  background: "#C4C2C2",
+                }}
+              />
               {children}
             </div>
           </motion.div>
@@ -728,12 +824,17 @@ export function Sheet({
 }
 
 /**
- * The grey "Why add a address?" card with its "Learn more" button.
+ * The grey "Why add a address?" card with its "Learn more" button: 390 x 124,
+ * centred on the screen.
  *
  * It sits just above the bottom of the screen in the file (above the wide
  * button where there is one), so it is pinned to the bottom like the button:
  * `bottom` is its distance from the artboard's bottom edge. Render it inside
  * AnimatePresence; it fades out when closed.
+ *
+ * Inside, from the file: the title 11 Medium on baseline 23, 24 px in; the
+ * close mark (14 px) at (364, 12) in a 30 px target; the text from baseline
+ * 43, 16 px between lines, 354 wide; the 366 x 38 button at (12, 74).
  */
 export function WhyCard({
   bottom: fromBottom,
@@ -746,9 +847,8 @@ export function WhyCard({
 }) {
   return (
     <motion.div
-      className="absolute"
+      className="absolute inset-x-0 mx-auto flex flex-col"
       style={{
-        left: 20,
         bottom: fromBottom,
         width: 390,
         height: 124,
@@ -761,14 +861,34 @@ export function WhyCard({
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.25 }}
     >
-      <Txt x={24} baseline={23} size={11} weight="medium">
-        {t("Why add a address?")}
-      </Txt>
+      <div className="flex items-start shrink-0">
+        <Txt size={11} weight="medium" mt={12} ml={24}>
+          {t("Why add a address?")}
+        </Txt>
+        <button
+          type="button"
+          aria-label={t("Close")}
+          onClick={onClose}
+          // The 30 px target reaches 8 px under the title's line box (4 + 30
+          // against 12 + 14); the negative margin keeps it out of the flow.
+          className="shrink-0 ml-auto cursor-pointer"
+          style={{
+            marginTop: 4,
+            marginRight: 4,
+            marginBottom: -8,
+            width: 30,
+            height: 30,
+            padding: 8,
+          }}
+        >
+          <XdIcon name="closeSmall" />
+        </button>
+      </div>
       <p
-        className="absolute font-normal"
+        className="shrink-0 font-normal"
         style={{
-          left: 24,
-          top: paraTop(43, 11, 16),
+          marginTop: paraTop(43, 11, 16) - 26,
+          marginLeft: 24,
           width: 354,
           fontSize: 11,
           lineHeight: "16px",
@@ -779,56 +899,35 @@ export function WhyCard({
           "Accurate address details ensure faster delivery of your correct products and show you the best options in your area.",
         )}
       </p>
-      <button
-        type="button"
-        aria-label={t("Close")}
-        onClick={onClose}
-        className="absolute cursor-pointer"
-        style={{ left: 364 - 8, top: 12 - 8, width: 30, height: 30 }}
-      >
-        <XdIcon
-          name="closeSmall"
-          style={{ position: "absolute", left: 8, top: 8 }}
-        />
-      </button>
       <motion.button
         type="button"
         whileTap={{ scale: 0.98 }}
-        className="absolute cursor-pointer"
+        className="shrink-0 flex items-start cursor-pointer"
         style={{
-          left: 12,
-          top: 74,
+          marginTop: "auto",
+          marginBottom: 12,
+          marginLeft: 12,
           width: 366,
           height: 38,
           borderRadius: 15,
           background: C.field,
+          // Top-aligned: centred on the 15 px icon, the 14 px line sat 1 px low.
+          padding: "12px 0 0 134.5px",
         }}
       >
-        {/* Top-aligned: centred on the 15 px icon, the 14 px line sat 1 px low. */}
+        <XdIcon name="help" className="shrink-0" />
         <span
-          className="absolute flex items-start"
-          style={{ left: 134.5, top: 12 }}
+          className="font-medium"
+          style={{
+            marginLeft: 4.5,
+            fontSize: 11,
+            color: C.ink,
+            lineHeight: "14px",
+          }}
         >
-          <XdIcon name="help" />
-          <span
-            className="font-medium"
-            style={{
-              marginLeft: 4.5,
-              fontSize: 11,
-              color: C.ink,
-              lineHeight: "14px",
-            }}
-          >
-            {t("Learn more")}
-          </span>
+          {t("Learn more")}
         </span>
       </motion.button>
     </motion.div>
   );
 }
-
-/** Hands a design position to a child of a Box that is itself placed at (bx, by). */
-export const inside = (bx: number, by: number) => (x: number, y: number) => ({
-  x: x - bx,
-  y: y - by,
-});

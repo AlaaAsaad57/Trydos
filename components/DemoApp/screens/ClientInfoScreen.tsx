@@ -1,18 +1,18 @@
 "use client";
 
-import type { DemoKey } from "../demoKeys";
 import React from "react";
 import { motion } from "framer-motion";
 import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { useDemoData } from "../DemoData";
 import { C, lineBox } from "../demoLayout";
-import { Box, ScreenHeader, ScreenPage, Txt } from "../ui";
+import { Box, ScreenHeader, ScreenPage, Stroke, Txt } from "../ui";
 
 /**
  * client Information — XD `Home Page – 87`.
  *
- * Six read-only cards, 55 tall, radius 15, `#FCFCFC`, 4 px apart: the id
+ * Six read-only cards, 55 tall, radius 15, `#FCFCFC`, from y 112 (12 under the
+ * header), 4 px apart down and across: the id
  * (406 wide, with the QR on its right, which opens the client ID screen),
  * status and "client since", type and verified (201 wide, in pairs), and the
  * phone (406, with a 0.5 `#D3D3D3` line). Label 12 Regular `#C3C3C3` on
@@ -27,41 +27,11 @@ export default function ClientInfoScreen() {
   const { t, back, navigate } = useDemoNav();
   const { profile } = useDemoData();
 
-  const cards: {
-    x: number;
-    y: number;
-    w: number;
-    label: DemoKey;
-    value: React.ReactNode;
-    /** The file draws every value Medium except "23 days": the number Medium, the word Regular. */
-    weight?: "regular" | "medium";
-    line?: boolean;
-  }[] = [
-    { x: 12, y: 171, w: 201, label: "client Status", value: t("Active") },
-    {
-      x: 217,
-      y: 171,
-      w: 201,
-      label: "client since",
-      value: (
-        <>
-          <span className="font-medium">{profile.clientSince}</span>{" "}
-          {t("days")}
-        </>
-      ),
-      weight: "regular",
-    },
-    { x: 12, y: 230, w: 201, label: "client type", value: t("Personal") },
-    { x: 217, y: 230, w: 201, label: "client Verified", value: t("Verified") },
-    {
-      x: 12,
-      y: 289,
-      w: 406,
-      label: "client Phone Number",
-      value: profile.phone,
-      line: true,
-    },
-  ];
+  const since = (
+    <>
+      <span className="font-medium">{profile.clientSince}</span> {t("days")}
+    </>
+  );
 
   return (
     <ScreenPage
@@ -75,7 +45,11 @@ export default function ClientInfoScreen() {
         />
       }
       footer={
-        <>
+        // 56 tall, 8 apart, the lower one 36 above the bottom.
+        <div
+          className="absolute inset-x-0 flex flex-col items-center"
+          style={{ bottom: 36 }}
+        >
           {(
             [
               "Change my Phone Number Request",
@@ -86,15 +60,13 @@ export default function ClientInfoScreen() {
               key={label}
               type="button"
               whileTap={{ scale: 0.98 }}
-              className="absolute cursor-pointer font-medium"
+              className="relative shrink-0 cursor-pointer font-medium"
               style={{
-                left: 12,
-                bottom: 36 + (1 - i) * 64,
+                marginTop: i === 0 ? 0 : 8,
                 width: 406,
                 height: 56,
                 borderRadius: 15,
                 background: C.card,
-                boxShadow: `inset 0 0 0 0.5px ${C.hint}`,
                 fontSize: 14,
                 lineHeight: `${lineBox(14)}px`,
                 color: C.ink,
@@ -103,49 +75,111 @@ export default function ClientInfoScreen() {
               }}
             >
               {t(label)}
+              <Stroke color={C.hint} radius={15} />
             </motion.button>
           ))}
-        </>
+        </div>
       }
     >
-      <Box x={12} y={112} w={406} h={55} radius={15} fill={C.card}>
-        <Txt x={12} baseline={20} size={12} color={C.hint}>
-          {t("client ID")}
-        </Txt>
-        <Txt x={12} baseline={43} size={14} weight="medium">
-          {profile.clientId}
-        </Txt>
+      <Box
+        mt={12}
+        ml={12}
+        w={406}
+        h={55}
+        radius={15}
+        fill={C.card}
+        className="flex items-start"
+        style={{ padding: "8px 12px 0" }}
+      >
+        <div className="flex flex-col">
+          <Txt size={12} color={C.hint}>
+            {t("client ID")}
+          </Txt>
+          <Txt size={14} weight="medium" mt={6}>
+            {profile.clientId}
+          </Txt>
+        </div>
         <button
           type="button"
           aria-label={t("client ID")}
           data-pw="demo-client-info-qr"
           onClick={() => navigate("settings/client-id")}
-          className="absolute cursor-pointer active:opacity-70"
-          style={{ left: 355, top: 8, width: 39, height: 39 }}
+          // 39 x 39 at (367, 120): 8 down, 12 in from the right.
+          className="shrink-0 ml-auto cursor-pointer active:opacity-70"
+          style={{ width: 39, height: 39 }}
         >
           <XdIcon name="qrBig" size={39} />
         </button>
       </Box>
 
-      {cards.map((card) => (
-        <Box
-          key={card.label}
-          x={card.x}
-          y={card.y}
-          w={card.w}
-          h={55}
-          radius={15}
-          fill={C.card}
-          stroke={card.line ? C.line : undefined}
-        >
-          <Txt x={12} baseline={20} size={12} color={C.hint}>
-            {t(card.label)}
-          </Txt>
-          <Txt x={12} baseline={43} size={14} weight={card.weight ?? "medium"}>
-            {card.value}
-          </Txt>
-        </Box>
-      ))}
+      <div className="flex shrink-0" style={{ marginTop: 4, marginLeft: 12 }}>
+        <InfoCard w={201} label={t("client Status")} value={t("Active")} />
+        <InfoCard
+          ml={4}
+          w={201}
+          label={t("client since")}
+          value={since}
+          weight="regular"
+        />
+      </div>
+      <div className="flex shrink-0" style={{ marginTop: 4, marginLeft: 12 }}>
+        <InfoCard w={201} label={t("client type")} value={t("Personal")} />
+        <InfoCard
+          ml={4}
+          w={201}
+          label={t("client Verified")}
+          value={t("Verified")}
+        />
+      </div>
+      <InfoCard
+        mt={4}
+        ml={12}
+        w={406}
+        label={t("client Phone Number")}
+        value={profile.phone}
+        line
+      />
     </ScreenPage>
+  );
+}
+
+/** A read-only card: the 12 px label on baseline +20, the 14 px value on +43. */
+function InfoCard({
+  mt,
+  ml,
+  w,
+  label,
+  value,
+  weight = "medium",
+  line = false,
+}: {
+  mt?: number;
+  ml?: number;
+  w: number;
+  label: string;
+  value: React.ReactNode;
+  /** The file draws every value Medium except "23 days": the number Medium, the word Regular. */
+  weight?: "regular" | "medium";
+  line?: boolean;
+}) {
+  return (
+    <Box
+      mt={mt}
+      ml={ml}
+      w={w}
+      h={55}
+      radius={15}
+      fill={C.card}
+      stroke={line ? C.line : undefined}
+      className="flex flex-col"
+      style={{ padding: "8px 12px 0" }}
+    >
+      <Txt size={12} color={C.hint}>
+        {label}
+      </Txt>
+      <Txt size={14} weight={weight} mt={6}>
+        {value}
+      </Txt>
+    </Box>
   );
 }

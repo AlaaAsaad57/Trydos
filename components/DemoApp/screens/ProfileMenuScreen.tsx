@@ -10,8 +10,8 @@ import type { XdIconName } from "../xdIcons";
 /**
  * Profile — XD `Home Page – 16`.
  *
- * Four 406 x 60 rows from y 120, 64 apart, radius 15, `#FCFCFC`; a 30 px icon
- * at x 24 and the label, 14 Regular, at x 66.
+ * Four 406 x 60 rows from y 120 (20 under the header), 4 px apart, radius 15,
+ * `#FCFCFC`; a 30 px icon at x 24 and the label, 14 Regular, at x 66.
  */
 const ROWS: { icon: XdIconName; label: DemoKey; to: DemoScreen }[] = [
   {
@@ -38,7 +38,7 @@ export default function ProfileMenuScreen() {
       {ROWS.map((row, i) => (
         <MenuRow
           key={row.to}
-          y={120 + i * 64}
+          mt={i === 0 ? 20 : 4}
           icon={row.icon}
           iconSize={30}
           label={t(row.label)}

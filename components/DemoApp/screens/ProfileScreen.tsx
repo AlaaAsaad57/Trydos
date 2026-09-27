@@ -6,9 +6,9 @@ import { animate, motion, useMotionValue } from "framer-motion";
 import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { useDemoData } from "../DemoData";
-import { C, lineBox } from "../demoLayout";
-import { Box, Icon, MenuRow, ScreenPage, Txt } from "../ui";
-import type { XdIconName } from "../xdIcons";
+import { C, gapTo, lineBox, textBottom } from "../demoLayout";
+import { Box, Icon, MenuRow, ScreenPage, Stroke, Txt } from "../ui";
+import { XD_ICON_SIZE, type XdIconName } from "../xdIcons";
 
 /**
  * The profile tab — XD `Home Page – 9`, the one tall artboard (430 x 1129).
@@ -23,9 +23,8 @@ import type { XdIconName } from "../xdIcons";
  *   - Orders and Trydos Wallet, 201 x 94, side by side at y 380;
  *   - the menu: eight 60 px rows, 18 px icons at x 24, text at x 54.
  *
- * The rows step 64 px apart except "About Us", which the file puts 58 below
- * "Legal Information" (the two overlap by 2 px, invisible on white). The y
- * values are kept exactly as drawn.
+ * Every block is spaced from the one above it by the file's own gap (see
+ * MENU for the one row the file overlaps).
  */
 
 type Promo = {
@@ -71,15 +70,20 @@ const PROMOS: Promo[] = [
   },
 ];
 
-const MENU: { icon: XdIconName; label: DemoKey | "English"; y: number }[] = [
-  { icon: "menuSettings", label: "Settings", y: 486 },
-  { icon: "menuTerms", label: "Terms & Conditions", y: 550 },
-  { icon: "menuLegal", label: "Legal Information", y: 614 },
-  { icon: "menuAbout", label: "About Us", y: 672 },
-  { icon: "menuShare", label: "Share App", y: 736 },
-  { icon: "menuLanguage", label: "English", y: 800 },
-  { icon: "menuHistory", label: "Login history", y: 864 },
-  { icon: "menuLogout", label: "logout", y: 928 },
+/**
+ * The menu rows, 60 tall, from y 486 (12 under Orders and Wallet), 4 px apart
+ * — except "About Us", which the file puts 58 below "Legal Information": the
+ * two overlap by 2 px, invisible on white, so its margin is -2.
+ */
+const MENU: { icon: XdIconName; label: DemoKey | "English"; mt: number }[] = [
+  { icon: "menuSettings", label: "Settings", mt: 12 },
+  { icon: "menuTerms", label: "Terms & Conditions", mt: 4 },
+  { icon: "menuLegal", label: "Legal Information", mt: 4 },
+  { icon: "menuAbout", label: "About Us", mt: -2 },
+  { icon: "menuShare", label: "Share App", mt: 4 },
+  { icon: "menuLanguage", label: "English", mt: 4 },
+  { icon: "menuHistory", label: "Login history", mt: 4 },
+  { icon: "menuLogout", label: "logout", mt: 4 },
 ];
 
 /**
@@ -92,6 +96,12 @@ const LANGUAGE_NAME: Record<string, string> = {
   tr: "Türkçe",
   ku: "کوردی",
 };
+
+/** The top row: the wordmark at (23.49, 69.5), then Web and lock, 26 wide, at x 335.49 and 380.49. */
+const SWITCHES = [
+  { icon: "web", label: "Web", x: 335.49, textX: 338 },
+  { icon: "lock", label: "lock", x: 380.49, textX: 382 },
+] as const;
 
 export default function ProfileScreen() {
   const { t, navigate, locale } = useDemoNav();
@@ -106,134 +116,150 @@ export default function ProfileScreen() {
 
   return (
     <ScreenPage scrollTop={50} contentHeight={1129} testId="demo-profile">
-      <Icon name="wordmark" x={23.49} y={69.5} />
+      {/* 69.5 .. 113.5: the wordmark (43 tall) and the two 44 px switches. */}
+      <div className="flex items-start shrink-0" style={{ marginTop: 19.5 }}>
+        <Icon name="wordmark" ml={23.49} />
+        {SWITCHES.map((item, i) => (
+          <motion.button
+            key={item.label}
+            type="button"
+            whileTap={{ scale: 0.92 }}
+            className="flex flex-col shrink-0 cursor-pointer text-left"
+            style={{
+              marginLeft:
+                i === 0
+                  ? item.x - (23.49 + XD_ICON_SIZE.wordmark.w)
+                  : item.x - (SWITCHES[0].x + 26),
+              width: 26,
+              height: 44,
+            }}
+          >
+            <XdIcon name={item.icon} className="shrink-0" />
+            {/* The 10 px label on baseline 109. */}
+            <Txt
+              ml={item.textX - item.x}
+              mt={gapTo(69.5 + XD_ICON_SIZE[item.icon].h, 109, 10)}
+              size={10}
+            >
+              {t(item.label)}
+            </Txt>
+          </motion.button>
+        ))}
+      </div>
 
-      {(
-        [
-          { icon: "web", x: 335.49, label: "Web", textX: 338 },
-          { icon: "lock", x: 380.49, label: "lock", textX: 382 },
-        ] as const
-      ).map((item) => (
-        <motion.button
-          key={item.label}
-          type="button"
-          whileTap={{ scale: 0.92 }}
-          className="absolute cursor-pointer"
-          style={{ left: item.x, top: 69.5, width: 26, height: 44 }}
-        >
-          <XdIcon
-            name={item.icon}
-            style={{ position: "absolute", left: 0, top: 0 }}
-          />
-          <Txt x={item.textX - item.x} baseline={109 - 69.5} size={10}>
-            {t(item.label)}
-          </Txt>
-        </motion.button>
-      ))}
-
-      {/* The client card. Tapping it opens the profile. */}
+      {/* The client card, 406 x 140 at (12, 124). Tapping it opens the profile. */}
       <Box
-        x={12}
-        y={124}
+        mt={124 - 113.5}
+        ml={12}
         w={406}
         h={140}
         radius={15}
         fill={C.card}
         data-pw="demo-profile-card"
-        className="cursor-pointer"
+        className="flex items-start cursor-pointer"
+        style={{ padding: "12px 12px 0" }}
         onClick={() => navigate("settings/profile")}
       >
-        <button
-          type="button"
-          aria-label={t("client ID")}
-          data-pw="demo-profile-qr"
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate("settings/client-id");
-          }}
-          className="absolute cursor-pointer active:opacity-70"
-          style={{ left: 12, top: 12, width: 50, height: 50 }}
-        >
-          <XdIcon name="qrBig" size={50} />
-        </button>
-        <Txt x={12} baseline={207 - 124} size={13}>
-          <span className="font-bold">{profile.clientId}</span> {t("ID")}
-        </Txt>
-        <Txt
-          x={12}
-          baseline={229 - 124}
-          size={13}
-          color={profile.name ? C.ink : C.hint}
-        >
-          {profile.name || t("Enter Your Name !")}
-        </Txt>
-        <Icon name="phone" x={12} y={238 - 124} />
-        <Txt x={32} baseline={249 - 124} size={11}>
-          {profile.phone}
-        </Txt>
-        <Icon name="mapSmall" x={135} y={238 - 124} />
-        <Txt
-          x={155}
-          baseline={249 - 124}
-          size={11}
-          color={address ? C.ink : C.hint}
-        >
-          {address ? address.title : t("Enter Address !")}
-        </Txt>
-      </Box>
-
-      {/* The photo box sits on the card; it opens the photo screen. */}
-      <motion.button
-        type="button"
-        data-pw="demo-profile-photo"
-        whileTap={{ scale: 0.97 }}
-        onClick={() => navigate("settings/photo")}
-        // Clipped only round a photo: with none, the dark strip (230 .. 252 in
-        // the file) must show its own round corners 1 px below the box.
-        className={`absolute cursor-pointer ${profile.photo ? "overflow-hidden" : ""}`}
-        // 116 x 115 in the file, not a square; the dark strip at 230 ends 1 below it.
-        style={{
-          left: 290,
-          top: 136,
-          width: 116,
-          height: 115,
-          borderRadius: 15,
-          background: C.card,
-          boxShadow: "inset 0 0 0 0.5px #C3C3C3",
-        }}
-      >
-        {profile.photo ? (
-          <img
-            src={profile.photo}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        ) : (
-          <>
-            <XdIcon
-              name="avatarSmall"
-              style={{ position: "absolute", left: 21, top: 13.75 }}
-            />
+        <div className="flex flex-col shrink-0">
+          <button
+            type="button"
+            aria-label={t("client ID")}
+            data-pw="demo-profile-qr"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate("settings/client-id");
+            }}
+            className="shrink-0 self-start cursor-pointer active:opacity-70"
+            style={{ width: 50, height: 50 }}
+          >
+            <XdIcon name="qrBig" size={50} />
+          </button>
+          {/* The id on baseline 207, the name on 229. */}
+          <Txt mt={gapTo(124 + 62, 207, 13)} size={13}>
+            <span className="font-bold">{profile.clientId}</span> {t("ID")}
+          </Txt>
+          <Txt
+            mt={gapTo(textBottom(207, 13), 229, 13)}
+            size={13}
+            color={profile.name ? C.ink : C.hint}
+          >
+            {profile.name || t("Enter Your Name !")}
+          </Txt>
+          {/* The phone and the address: 14 px marks at x 24 and 147, y 238,
+              the 11 px text 6 after each mark, on baseline 249. The phone
+              is a slot as wide as the step to the map mark. */}
+          <div
+            className="flex items-start shrink-0"
+            style={{ marginTop: 238 - textBottom(229, 13) }}
+          >
             <span
-              className="absolute left-0 w-full"
-              style={{
-                top: 94,
-                height: 22,
-                background: C.inkSoft,
-                borderRadius: "0 0 15px 15px",
-              }}
+              className="flex items-start shrink-0"
+              style={{ minWidth: 147 - 24 }}
             >
-              <XdIcon
-                name="addPhoto"
-                style={{ position: "absolute", left: 26, top: 5 }}
-              />
-              <Txt x={43} baseline={15} size={10} color={C.card}>
-                {t("Add photo")}
+              <Icon name="phone" />
+              <Txt ml={6} size={11}>
+                {profile.phone}
               </Txt>
             </span>
-          </>
-        )}
-      </motion.button>
+            <Icon name="mapSmall" />
+            <Txt ml={6} size={11} color={address ? C.ink : C.hint}>
+              {address ? address.title : t("Enter Address !")}
+            </Txt>
+          </div>
+        </div>
+
+        {/* The photo box, 116 x 115 at (290, 136): 12 down, 12 in from the
+            card's right edge. It opens the photo screen. */}
+        <motion.button
+          type="button"
+          data-pw="demo-profile-photo"
+          whileTap={{ scale: 0.97 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate("settings/photo");
+          }}
+          // Clipped only round a photo: with none, the dark strip (230 .. 252 in
+          // the file) must show its own round corners 1 px below the box.
+          className={`relative flex flex-col shrink-0 ml-auto cursor-pointer ${profile.photo ? "overflow-hidden" : ""}`}
+          // 116 x 115 in the file, not a square; the dark strip at 230 ends 1 below it.
+          style={{
+            width: 116,
+            height: 115,
+            borderRadius: 15,
+            background: C.card,
+          }}
+        >
+          {/* First, so the photo and the dark strip are drawn over it. */}
+          <Stroke color={C.hint} radius={15} />
+          {profile.photo ? (
+            <img
+              src={profile.photo}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <>
+              <Icon name="avatarSmall" ml={21} mt={13.75} />
+              {/* 22 tall from 94: it covers the user's last 7.24 px, as
+                  drawn. Relative, so it is drawn over the line. */}
+              <span
+                className="relative flex items-start shrink-0"
+                style={{
+                  marginTop: 94 - (13.75 + XD_ICON_SIZE.avatarSmall.h),
+                  height: 22,
+                  background: C.inkSoft,
+                  borderRadius: "0 0 15px 15px",
+                }}
+              >
+                <Icon name="addPhoto" ml={26} mt={5} />
+                <Txt ml={43 - 26 - 13} mt={5} size={10} color={C.card}>
+                  {t("Add photo")}
+                </Txt>
+              </span>
+            </>
+          )}
+        </motion.button>
+      </Box>
 
       {/* The three cards of the file's horizontal scroll group, as a slider. */}
       <PromoSlider
@@ -245,50 +271,52 @@ export default function ProfileScreen() {
         t={t}
       />
 
-      {(
-        [
-          {
-            x: 12,
-            icon: "orders",
-            title: "Orders",
-            value: `${profile.orderActions} ${t("action")}`,
-          },
-          {
-            x: 217,
-            icon: "wallet",
-            title: "Trydos Wallet",
-            value: `${profile.walletUsd} USD`,
-          },
-        ] as const
-      ).map((card) => (
-        <motion.button
-          key={card.title}
-          type="button"
-          whileTap={{ scale: 0.98 }}
-          className="absolute cursor-pointer text-left"
-          style={{
-            left: card.x,
-            top: 380,
-            width: 201,
-            height: 94,
-            borderRadius: 15,
-            background: C.card,
-          }}
-        >
-          <Icon name={card.icon} x={12} y={12} />
-          <Txt x={12} baseline={61} size={13} weight="medium">
-            {t(card.title)}
-          </Txt>
-          <Txt x={12} baseline={81} size={11}>
-            {card.value}
-          </Txt>
-        </motion.button>
-      ))}
+      {/* Orders and Trydos Wallet, 201 x 94 at y 380, 4 apart. */}
+      <div className="flex shrink-0" style={{ marginTop: 4, marginLeft: 12 }}>
+        {(
+          [
+            {
+              icon: "orders",
+              title: "Orders",
+              value: `${profile.orderActions} ${t("action")}`,
+            },
+            {
+              icon: "wallet",
+              title: "Trydos Wallet",
+              value: `${profile.walletUsd} USD`,
+            },
+          ] as const
+        ).map((card, i) => (
+          <motion.button
+            key={card.title}
+            type="button"
+            whileTap={{ scale: 0.98 }}
+            className="flex flex-col shrink-0 cursor-pointer text-left"
+            style={{
+              marginLeft: i === 0 ? 0 : 4,
+              width: 201,
+              height: 94,
+              borderRadius: 15,
+              background: C.card,
+              padding: "12px 12px 0",
+            }}
+          >
+            <Icon name={card.icon} />
+            {/* Baselines 61 and 81 in the card. */}
+            <Txt mt={gapTo(12 + 30, 61, 13)} size={13} weight="medium">
+              {t(card.title)}
+            </Txt>
+            <Txt mt={gapTo(textBottom(61, 13), 81, 11)} size={11}>
+              {card.value}
+            </Txt>
+          </motion.button>
+        ))}
+      </div>
 
       {MENU.map((row, i) => (
         <MenuRow
           key={row.label}
-          y={row.y}
+          mt={row.mt}
           icon={row.icon}
           iconSize={18}
           label={
@@ -309,11 +337,16 @@ export default function ProfileScreen() {
 const PROMO_STEP = 410;
 
 /**
- * The file's "Scroll Group 88": three 406 x 108 cards at y 268, 4 px apart,
- * the first at x 12 and the next one peeking in at the right edge.
+ * The file's "Scroll Group 88": three 406 x 108 cards at y 268 (4 under the
+ * client card), 4 px apart, the first at x 12 and the next one peeking in at
+ * the right edge.
  *
  * The shopper moves it by hand: swipe, and it snaps to the nearest card. The
  * design will later show one card at a time; three are shown for the demo.
+ *
+ * In a card: the 14 px mark at (12, 12), the title 11 Medium from x 32 on
+ * baseline 23, the help mark (15 px) at (379.5, 11.5), the text on baseline
+ * 43, and the 382 x 38 button at (12, 58).
  */
 function PromoSlider({
   onOpen,
@@ -338,12 +371,12 @@ function PromoSlider({
   return (
     <div
       data-pw="demo-profile-slider"
-      className="absolute left-0 w-full overflow-hidden"
-      style={{ top: 268, height: 108 }}
+      className="w-full shrink-0 overflow-hidden"
+      style={{ marginTop: 4, height: 108 }}
     >
       <motion.div
-        className="absolute top-0 flex"
-        style={{ left: 12, gap: 4, x, touchAction: "pan-y" }}
+        className="flex"
+        style={{ paddingLeft: 12, gap: 4, x, touchAction: "pan-y" }}
         drag="x"
         dragConstraints={{ left: -(PROMOS.length - 1) * PROMO_STEP, right: 0 }}
         dragElastic={0.15}
@@ -374,22 +407,35 @@ function PromoSlider({
         {PROMOS.map((promo) => (
           <div
             key={promo.title}
-            className="relative shrink-0"
+            className="flex flex-col shrink-0"
             style={{
               width: 406,
               height: 108,
               borderRadius: 15,
               background: promo.bg,
+              paddingTop: 12,
             }}
           >
-            {promo.icon && <Icon name={promo.icon} x={12} y={12} />}
-            <Txt x={32} baseline={23} size={11} weight="medium">
-              {t(promo.title)}
-            </Txt>
-            <Txt x={32} baseline={43} size={11}>
+            <div className="flex items-start shrink-0" style={{ paddingLeft: 12 }}>
+              {promo.icon && <Icon name={promo.icon} />}
+              <Txt
+                ml={32 - 12 - (promo.icon ? XD_ICON_SIZE[promo.icon].w : 0)}
+                size={11}
+                weight="medium"
+              >
+                {t(promo.title)}
+              </Txt>
+              {/* 0.5 px higher than the title and 1 px taller: the negative
+                  margins keep the row the title's 14 px. */}
+              <Icon
+                name="helpGrey"
+                mt={-0.5}
+                style={{ marginLeft: "auto", marginRight: 406 - 394.5, marginBottom: -0.5 }}
+              />
+            </div>
+            <Txt ml={32} mt={gapTo(12 + 14, 43, 11)} size={11}>
               {t(promo.text)}
             </Txt>
-            <Icon name="helpGrey" x={379.5} y={11.5} />
             <motion.button
               type="button"
               whileTap={{ scale: 0.98 }}
@@ -397,10 +443,10 @@ function PromoSlider({
                 // A swipe that ends on the button is not a tap.
                 if (!dragged.current) onOpen(promo);
               }}
-              className="absolute flex items-center cursor-pointer"
+              className="flex items-center shrink-0 cursor-pointer"
               style={{
-                left: 12,
-                top: 58,
+                marginTop: 58 - textBottom(43, 11),
+                marginLeft: 12,
                 width: 382,
                 height: 38,
                 borderRadius: 15,

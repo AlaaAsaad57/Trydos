@@ -7,7 +7,7 @@ import RdbPinInputs from "components/Login/Enhanced/ui/RdbPinInputs";
 import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
 import { useDemoData, type DemoGender } from "../DemoData";
-import { C, lineBox } from "../demoLayout";
+import { C, gapTo, lineBox, textBottom } from "../demoLayout";
 import {
   Field,
   FieldInput,
@@ -31,16 +31,22 @@ import {
  *       is new;
  *   91  "Add & save"; a right code saves the form and goes back to reading.
  *
- * Fields: 406 x 55 at y 160 (name), 219 (email) and 278 (gender); label 12
+ * Fields: 406 x 55 at y 160 (name), 219 (email) and 278 (gender) — 12 under
+ * the banner, then 4 apart; label 12
  * `#505050` on baseline +20, value 14 on +43. Gender is three words at x 68,
  * 186 and 326 — the picked one Medium `#1D1D1D`, the others Regular `#C3C3C3`.
  */
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const GENDERS: { id: DemoGender; label: DemoKey; x: number }[] = [
-  { id: "man", label: "Man", x: 68 },
-  { id: "women", label: "Women", x: 186 },
-  { id: "other", label: "Other", x: 326 },
+/**
+ * The words start at x 68, 186 and 326. Each button is a slot as wide as the
+ * step to the next word, with 12 px of padding round its word, so every word
+ * lands on the file's x whatever width the browser gives it.
+ */
+const GENDERS: { id: DemoGender; label: DemoKey; slot?: number }[] = [
+  { id: "man", label: "Man", slot: 186 - 68 },
+  { id: "women", label: "Women", slot: 326 - 186 },
+  { id: "other", label: "Other" },
 ];
 
 export default function PersonalInfoScreen() {
@@ -122,7 +128,7 @@ export default function PersonalInfoScreen() {
     >
       <InfoBanner t={t} />
 
-      <Field y={160} label={t("full Name")} editing={editing}>
+      <Field mt={12} label={t("full Name")} editing={editing}>
         <FieldInput
           testId="demo-personal-name"
           value={name}
@@ -132,7 +138,7 @@ export default function PersonalInfoScreen() {
         />
       </Field>
 
-      <Field y={219} label={t("Email")} editing={editing}>
+      <Field mt={4} label={t("Email")} editing={editing}>
         <FieldInput
           testId="demo-personal-email"
           type="email"
@@ -146,7 +152,9 @@ export default function PersonalInfoScreen() {
         />
       </Field>
 
-      <Field y={278} label={t("Gender")} editing={editing}>
+      <Field mt={4} label={t("Gender")} editing={editing}>
+        {/* The first word at x 68: the row starts 12 before it, under the label. */}
+        <div className="flex shrink-0" style={{ marginLeft: 68 - 12 - 12 - 12 }}>
         {GENDERS.map((g) => {
           const on = g.id === gender;
           return (
@@ -157,10 +165,9 @@ export default function PersonalInfoScreen() {
               aria-pressed={on}
               data-pw={`demo-gender-${g.id}`}
               onClick={() => setGender(g.id)}
-              className={`absolute ${editing ? "cursor-pointer" : ""} ${on ? "font-medium" : "font-normal"}`}
+              className={`shrink-0 text-left whitespace-nowrap ${editing ? "cursor-pointer" : ""} ${on ? "font-medium" : "font-normal"}`}
               style={{
-                left: g.x - 12 - 12,
-                top: 43 - 14 - 6,
+                minWidth: g.slot,
                 padding: "6px 12px",
                 fontSize: 14,
                 lineHeight: `${lineBox(14)}px`,
@@ -172,6 +179,7 @@ export default function PersonalInfoScreen() {
             </button>
           );
         })}
+        </div>
       </Field>
     </ScreenPage>
   );
@@ -185,9 +193,10 @@ const CODE_SECONDS = 120;
  *
  * The page dims (`#1D1D1D` at 90%) and a sheet rises from y 90: "verification
  * Email !" (30 Bold, baseline 318), the line under it (16 Medium, 354), the
- * address with "resend after - 01:58" (12, 378), the purple privacy line with
- * its shield (11, 400) and the six code boxes at y 502 — the login's own boxes
- * (RdbPinInputs), so the two flows cannot drift apart.
+ * address with "resend after - 01:58" (a 15 px row from y 366), the purple
+ * privacy line with its shield (a 14 px row from 389) and the six code boxes
+ * at y 502 — the login's own boxes (RdbPinInputs), so the two flows cannot
+ * drift apart. All 40 px in, the boxes 20.
  *
  * No email is sent. Any six digits verify the address.
  */
@@ -234,15 +243,25 @@ function EmailCodeSheet({
       testId="demo-email-code"
       onEntered={() => setReady(true)}
     >
-      <Txt x={40} baseline={318} size={30} weight="bold">
+      <Txt ml={40} mt={gapTo(90 + 13, 318, 30)} size={30} weight="bold">
         {t("verification Email !")}
       </Txt>
-      <Txt x={40} baseline={354} size={16} weight="medium">
+      <Txt
+        ml={40}
+        mt={gapTo(textBottom(318, 30), 354, 16)}
+        size={16}
+        weight="medium"
+      >
         {t("enter verification code sent to your Email")}
       </Txt>
       <div
-        className="absolute flex items-center"
-        style={{ left: 40, top: 378 - 12, height: 15, fontSize: 12 }}
+        className="flex items-center shrink-0"
+        style={{
+          marginLeft: 40,
+          marginTop: 366 - textBottom(354, 16),
+          height: 15,
+          fontSize: 12,
+        }}
       >
         <span className="font-medium" style={{ color: C.ink }}>
           {email}
@@ -262,8 +281,8 @@ function EmailCodeSheet({
         <XdIcon name="otpHelp" style={{ marginLeft: 3.5 }} />
       </div>
       <div
-        className="absolute flex items-center"
-        style={{ left: 40, top: 400 - 11, height: 14 }}
+        className="flex items-center shrink-0"
+        style={{ marginLeft: 40, marginTop: 389 - (366 + 15), height: 14 }}
       >
         <span
           className="font-normal"
@@ -277,7 +296,10 @@ function EmailCodeSheet({
         </span>
         <XdIcon name="shield" style={{ marginLeft: 6 }} />
       </div>
-      <motion.div className="absolute" style={{ left: 20, top: 502 }}>
+      <motion.div
+        className="shrink-0"
+        style={{ marginLeft: 20, marginTop: 502 - (389 + 14) }}
+      >
         <RdbPinInputs
           key={ready ? "focused" : "resting"}
           autoFocus={ready}
