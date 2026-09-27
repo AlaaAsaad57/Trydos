@@ -1,15 +1,12 @@
-// store/homepage/actions.jsx — the story viewer's small actions: open a story
-// (and report the view to analytics), move to the next or previous group, and
-// find the first unseen item in a group.
+// store/homepage/actions.jsx — the story viewer's small actions: open a story,
+// move to the next or previous group, and find the first unseen item in a group.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const GAevent = vi.hoisted(() => vi.fn());
 vi.mock("utils/gtag", () => ({ GAevent }));
 
 import StoryService from "services/story";
-import auth from "services/auth";
 import { useAppStore } from "store";
-import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import {
   GetUnviewedStory,
   SelectStory,
@@ -23,48 +20,23 @@ beforeEach(() => {
 });
 
 describe("SelectStory", () => {
-  it("opens the story, marks the first item watched and reports a video view on the product screen", () => {
+  // The viewer (StoryHolder) opens a ring on its first unseen item, and marks
+  // and reports the item it shows. So opening must not mark anything itself:
+  // an early mark on item 0 made the viewer skip that item, and counted it twice.
+  it("opens the story without marking or reporting an item, so the viewer starts on the first unseen one", () => {
     const watch = vi.spyOn(StoryService, "WatchStory").mockResolvedValue(undefined);
-    vi.spyOn(auth, "UserID").mockReturnValue(5 as any);
     const setSelectedStory = vi.fn();
     useAppStore.setState({ setSelectedStory } as any);
-    window.history.pushState({}, "", "/sy-en/products/shirt");
-    const story = {
-      id: 3,
-      stories: [{ id: 30, product_id: 7, full_video_path: "v.mp4", link: "https://x" }],
-    };
+    const story = { id: 3, stories: [{ id: 30, is_seen: false }, { id: 31, is_seen: false }] };
 
     SelectStory(story);
 
-    expect(watch, "the first item was not marked watched").toHaveBeenCalledWith(30, 3);
-    expect(GAevent.mock.calls[0]?.[0], "the story view was not reported").toEqual({
-      action: GA_EVENT_NAMES.VIEW_STORY,
-      params: {
-        user_id_custom: 5,
-        story_id: 30,
-        item_id: 7,
-        item_name: 7,
-        story_type: "video",
-        link: "https://x",
-        product_link: true,
-        screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
-        screen_path: "/sy-en/products/shirt",
-      },
-    });
+    expect(
+      watch,
+      "opening a ring marked its first item watched before the viewer showed it, so the viewer skips that item",
+    ).not.toHaveBeenCalled();
+    expect(GAevent, "opening a ring reported a view before the viewer showed any item").not.toHaveBeenCalled();
     expect(setSelectedStory, "the story was not opened").toHaveBeenCalledWith(story);
-  });
-
-  it("reports a picture story on the home screen", () => {
-    vi.spyOn(StoryService, "WatchStory").mockResolvedValue(undefined);
-    useAppStore.setState({ setSelectedStory: vi.fn() } as any);
-    window.history.pushState({}, "", "/sy-en");
-    SelectStory({ id: 1, stories: [{ id: 10 }] });
-    const params = GAevent.mock.calls[0]?.[0]?.params;
-    expect([params?.story_type, params?.screen_name, params?.product_link], "the picture view is reported wrongly").toEqual([
-      "image",
-      GA_GLOBAL_SCREEN.HOME_SCREEN,
-      false,
-    ]);
   });
 
   it("closes the viewer without reporting anything", () => {

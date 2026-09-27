@@ -30,12 +30,15 @@ viewers count in the dashboard.
 - **Counting a view.** When a story item starts, the holder calls `WatchStory(itemId, ownerId)`.
   Provided the visitor is logged into the stories service (`getUserStories()?.id` is truthy), this
   (a) optimistically marks the item seen in the store and (b) calls the backend to increment the
-  view. A view is also recorded for the first item the moment a story is opened from the bar
-  (`SelectStory`). A Google Analytics `VIEW_STORY` event fires per item with `story_type`,
-  `product_id` and screen context.
+  view. The holder also counts the item it shows when its pane comes to the front (a swipe, or
+  the previous ring ended), and never counts the same item twice in a row. Opening a ring
+  (`SelectStory`) counts nothing by itself. A Google Analytics `VIEW_STORY` event fires per item
+  with `story_type`, `product_id` and screen context.
 - **Marking seen.** Each item carries `is_seen` from the backend; watching flips it to `true` in the
   store (`watchStory`). The bar computes "all seen" as *no items with `is_seen === false` remain*, and
-  opening a user jumps to their first **unseen** item (`GetUnviewedStory`).
+  opening another user jumps to their first **unseen** item (`GetUnviewedStory`); your own ring
+  opens on your newest item. The home bar, the product page and the chat Stories tab share this
+  viewer, so all three open the same way.
 - **Viewers count** is incremented via the `increase_viewers` endpoint and surfaced (for shop
   stories) in the dashboard's story modal.
 
@@ -53,8 +56,7 @@ viewers count in the dashboard.
 
 | Item | Value |
 |------|-------|
-| View trigger | `onStoryStart` in `StoryViewer.tsx` → `WatchStory` in `StoryHolder.tsx` |
-| First-item view | `SelectStory` (`store/homepage/actions.jsx`) |
+| View trigger | `onStoryStart` in `StoryViewer.tsx`, and the pane coming to the front → `reportView` → `WatchStory` in `StoryHolder.tsx` |
 | Seen ring | `StoryElement.tsx` (`isSeen = stories with is_seen === false = 0`) |
 | Start-at-unseen | `GetUnviewedStory` (`store/homepage/actions.jsx`) |
 | Viewers count display | Seller Dashboard `StoryViewerModal` (`StoriesTab.tsx`) |

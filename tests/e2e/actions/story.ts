@@ -391,8 +391,9 @@ export const openRing = async (
 /** Step forward until the app is showing **this** story, or give up saying so.
  *
  *  Needed because the viewer does not open where a case would like. A
- *  non-owner's ring starts at the *oldest* item, an owner's at the newest, and
- *  either way the viewer advances on its own timer — including, at the end of a
+ *  non-owner's ring starts at the first item that viewer has not seen yet (the
+ *  oldest one when all are seen), an owner's at the newest, and either way the
+ *  viewer advances on its own timer — including, at the end of a
  *  ring, on to a **different author**, where the report control is still drawn.
  *  So a case that acts without landing on its own item first can report a real
  *  customer's story, and that cannot be undone.

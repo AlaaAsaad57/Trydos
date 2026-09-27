@@ -1,4 +1,5 @@
 import { act, fireEvent, screen } from "@testing-library/react";
+import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "../../../render";
@@ -9,23 +10,38 @@ vi.mock("services/story", () => ({ default: { configureStory: (s: any) => ({ ...
 const GAevent = vi.fn();
 vi.mock("utils/gtag", () => ({ GAevent: (...a: any[]) => GAevent(...a) }));
 vi.mock("components/global/ParamsUpdater", () => ({ default: () => null }));
+// `data-first` is the author the holder was first mounted with. A holder keeps
+// its own state (which item it is on), so it must never be handed a different
+// author without being mounted again.
 vi.mock("components/Home/Stories/StoryHolder", () => ({
-  default: ({ story, active }: any) => (
-    <div data-testid={`holder-${story.id}`} data-active={String(active)} data-configured={String(story.configured)} />
-  ),
+  default: ({ story, active }: any) => {
+    const [first] = useState(story.id);
+    return (
+      <div
+        data-testid={`holder-${story.id}`}
+        data-active={String(active)}
+        data-configured={String(story.configured)}
+        data-first={first}
+      />
+    );
+  },
 }));
 
 // The cube stand-in draws every pane and offers "go to pane i" buttons, which is
 // how the real cube reports a finished swipe.
+//
+// With `slotOffsets` set it draws fixed slots instead, as the real cube does
+// (react-cube-navigation keeps 4 panes and gives each a new author as it turns).
 let cubeProps: any = null;
+let slotOffsets: number[] | null = null;
 vi.mock("components/Home/Stories/CubeCarousel", () => ({
   default: (p: any) => {
     cubeProps = p;
     return (
       <div data-testid="cube" data-index={p.index} data-gestures={String(p.enableGestures)}>
-        {[-1, 0, 1, 2, 3].map((i) => (
-          <div key={i}>{p.renderItem(i, i === p.index)}</div>
-        ))}
+        {slotOffsets
+          ? slotOffsets.map((offset) => <div key={offset}>{p.renderItem(p.index + offset, offset === 0)}</div>)
+          : [-1, 0, 1, 2, 3].map((i) => <div key={i}>{p.renderItem(i, i === p.index)}</div>)}
       </div>
     );
   },
@@ -50,6 +66,7 @@ describe("StoriesContainer (NewStories)", () => {
   beforeEach(() => {
     SelectStory.mockReset();
     GAevent.mockReset();
+    slotOffsets = null;
     vi.stubGlobal("visualViewport", { height: 700 });
   });
   afterEach(() => {
@@ -91,6 +108,19 @@ describe("StoriesContainer (NewStories)", () => {
     expect(screen.getByTestId("cube").dataset.index, "an outside change of author did not move the cube").toBe("0");
     rerender(<StoriesContainer selectedStory={{ id: 1, again: true }} />);
     expect(screen.getByTestId("cube").dataset.index, "the same author moved the cube").toBe("0");
+  });
+
+  it("mounts a fresh holder when a pane moves on to another author", async () => {
+    slotOffsets = [0, 1];
+    await renderWithProviders(<StoriesContainer selectedStory={{ id: 1 }} />, { store: { storiesData: people } });
+    expect(screen.getByTestId("holder-2").dataset.first, "the next author's pane was not drawn").toBe("2");
+
+    // The shopper swipes on: the slot that showed author 2 now shows author 3.
+    act(() => cubeProps.onChange(1));
+    expect(
+      screen.getByTestId("holder-3").dataset.first,
+      "author 3 was drawn in a holder still carrying author 2's state, so it opens on author 2's item position, not on its own first unseen story",
+    ).toBe("3");
   });
 
   it("closes the viewer on a long pull down", async () => {

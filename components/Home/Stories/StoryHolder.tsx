@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import TransParentLoader from "components/global/TransParentLoader";
 import {
+  GetUnviewedStory,
   SelectStory,
   setNextStory,
   setPreviousStory,
@@ -22,8 +23,12 @@ import auth from "services/auth";
 import { ConfirmModal } from "components/global/ConfirmModal";
 function StoryHolder({ story, active, isPaused }) {
   const { shouldAuthinticated, removeStory, userStories } = useAppStore();
-  const [currentStoryId, setCurrentStoryId] = useState(
-    userStories?.id !== story.id ? 0 : story?.stories?.length - 1,
+  // Another author's ring opens on the first story not seen yet (the one its
+  // tile shows); the shopper's own ring opens on their newest story.
+  const [currentStoryId, setCurrentStoryId] = useState(() =>
+    userStories?.id !== story.id
+      ? GetUnviewedStory(story)
+      : story?.stories?.length - 1,
   );
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -41,6 +46,44 @@ function StoryHolder({ story, active, isPaused }) {
   // story.stories[0]?.id`), because the report is the irreversible one. Delete
   // reads the first half of the same expression, so this covers both.
   const actsOnStoryId = story.stories?.[currentStoryId]?.id || story.stories?.[0]?.id;
+
+  // Marks the story watched and reports the view — once per story in a row.
+  //
+  // The viewer reports a story when it starts (`onStoryStart`), but only on the
+  // pane in front. The cube mounts the next and previous authors' panes while
+  // they are hidden, so when the viewer moves to one of them (a swipe, or the
+  // ring before it ended) that start was ignored and the story was never marked
+  // seen. The effect below reports it when the pane comes to the front. The cube
+  // also hides the front pane for a moment while it turns, so the same story
+  // must not be counted twice.
+  const lastReportedId = useRef<unknown>(null);
+  const reportView = (storyIndex: number) => {
+    const s: any = story?.stories?.[storyIndex];
+    if (!s?.id || lastReportedId.current === s.id) return;
+    lastReportedId.current = s.id;
+    StoryServiceClass.WatchStory(s.id, story.id as any);
+    let url = window.location.pathname;
+    GAevent({
+      action: GA_EVENT_NAMES.VIEW_STORY,
+      params: {
+        user_id_custom: auth.UserID(),
+        story_id: s.id,
+        item_id: s.product_id,
+        item_name: s.product_id,
+        story_type: s.full_video_path ? "video" : "image",
+        link: s?.link,
+        product_link: Boolean(s.product_id),
+        screen_name: url?.includes("/products")
+          ? GA_GLOBAL_SCREEN.PRODUCT_SCREEN
+          : GA_GLOBAL_SCREEN.HOME_SCREEN,
+        screen_path: url,
+      },
+    });
+  };
+  useEffect(() => {
+    if (active) reportView(currentStoryId);
+  }, [active, currentStoryId]);
+
   const handleDeleteStory = async () => {
     setLoading(true);
     try {
@@ -220,29 +263,7 @@ function StoryHolder({ story, active, isPaused }) {
           showDeleteModal || !active || showReportModal || shouldAuthinticated
         }
         onStoryStart={(e) => {
-          if (active && story?.stories?.[e]) {
-            const s: any = story.stories[e];
-            if (s?.id) {
-              StoryServiceClass.WatchStory(s.id, story.id as any);
-              let url = window.location.pathname;
-              GAevent({
-                action: GA_EVENT_NAMES.VIEW_STORY,
-                params: {
-                  user_id_custom: auth.UserID(),
-                  story_id: s.id,
-                  item_id: s.product_id,
-                  item_name: s.product_id,
-                  story_type: s.full_video_path ? "video" : "image",
-                  link: s?.link,
-                  product_link: Boolean(s.product_id),
-                  screen_name: url?.includes("/products")
-                    ? GA_GLOBAL_SCREEN.PRODUCT_SCREEN
-                    : GA_GLOBAL_SCREEN.HOME_SCREEN,
-                  screen_path: url,
-                },
-              });
-            }
-          }
+          if (active) reportView(e);
         }}
         loader={<TransParentLoader />}
         currentIndex={currentStoryId}
