@@ -4,12 +4,14 @@ import StoryChatRow from "../components/StoryChatRow";
 import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
-import { fetchStoriesForUser } from "serverRequests";
-import { getUserStories, LogError, translateFunction } from "utils/functions";
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
+import { dropQaStories } from "utils/qaStoryFilter";
+import { LogError, translateFunction } from "utils/functions";
 import Skeleton from "react-loading-skeleton";
 import StoryServiceClass from "services/story";
 function StoriesList() {
-  const { storiesData, language, country, setStoryData } = useAppStore();
+  const { storiesData, setStoryData, userStories } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMoreStories, setHasMoreStories] = useState(true);
@@ -28,26 +30,40 @@ function StoriesList() {
 
     try {
       setLoading(true);
-      const response = await fetchStoriesForUser(
-        language,
-        country,
-        pageNumber,
-        getUserStories().access_token,
-      );
+      // The same path as the stories bar on the home page
+      // (StoriesBarClient / StoriesPaginationWrapper): /api/proxy attaches the
+      // HttpOnly stories token and renews it on a 401. The server action used
+      // here before had no renewal, so once the 60-second token expired the
+      // list lost what the shopper had already seen.
+      const response: any = await fetchData({
+        url: `/api/v1/stories/users_stories?page=${pageNumber}`,
+        method: "GET",
+        server: "stories",
+        reqTitle: REQUESTS_DATA.GET_USER_STORIES,
+        noMessage: true,
+      });
+      if (!response?.success) {
+        throw new Error(response?.message);
+      }
 
-      if (response.data) {
+      if (response.data?.data) {
+        const viewer = useAppStore.getState();
+        const pageStories = dropQaStories(
+          response.data.data,
+          viewer.userProfile?.phone ?? viewer.user?.phone,
+        );
         if (isInitial || pageNumber === 1) {
           // First load - replace existing data
-          setStoryData(response.data);
+          setStoryData(pageStories);
           setInitialLoad(false);
         } else {
           // Subsequent loads - append to existing data
-          setStoryData([...storiesData, ...response.data]);
+          setStoryData([...storiesData, ...pageStories]);
         }
 
         // Update pagination state
         setPage(pageNumber + 1);
-        setHasMoreStories(!!response.next_page_url);
+        setHasMoreStories(!!response.data.next_page_url);
       }
     } catch (error) {
       LogError({
@@ -91,7 +107,13 @@ function StoriesList() {
             index={index}
             story={story}
             stories={story}
-            viewedStory={story.stories[GetUnviewedStory(story)]}
+            // As on the stories bar (StoryElement): the shopper's own row shows
+            // their newest story, another author's the first one not seen yet.
+            viewedStory={
+              String(userStories?.id) === String(story.id)
+                ? story.stories[story.stories.length - 1]
+                : story.stories[GetUnviewedStory(story)]
+            }
             select={(e) => setSelectStory(story)}
           />
         ))}
