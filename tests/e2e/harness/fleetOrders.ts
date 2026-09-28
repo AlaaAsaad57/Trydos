@@ -46,6 +46,7 @@ import { expect, type Browser, type Page, type Locator } from "@playwright/test"
 
 import { openDashboardPage, type CallRecord } from "./adminSession";
 import { envValue } from "./env";
+import { retryUnstableBackends } from "./unstableRetry";
 
 /** How long a fleet screen has to come back. A server-rendered page on a
  *  shared staging host. */
@@ -117,6 +118,8 @@ export const withFleetPage = async <T>(
   work: (page: Page) => Promise<T>,
 ): Promise<T> => {
   const context = await browser.newContext();
+  // Cloudflare 52x from a backend is asked again (`harness/unstableRetry.ts`).
+  await retryUnstableBackends(context);
   const page = await context.newPage();
   page.setDefaultTimeout(FLEET_SCREEN_MS);
   try {

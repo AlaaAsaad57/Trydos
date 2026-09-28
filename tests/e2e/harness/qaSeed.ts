@@ -56,6 +56,7 @@ import { expect, test } from "@playwright/test";
 import { attemptAuth, signedInSession } from "../actions/auth";
 import { gotoAbout, gotoHome } from "../actions/nav";
 import { recordSignInOutcome } from "./session";
+import { retryUnstableBackends } from "./unstableRetry";
 import {
   rowsOf,
   SELLER_SERVICE,
@@ -396,6 +397,8 @@ test.describe(`QA seed ${PROD_SAFE_TAG}`, () => {
     };
 
     const context = await browser.newContext({ baseURL: LIVE_ORIGIN });
+    // Cloudflare 52x from a backend is asked again (`harness/unstableRetry.ts`).
+    await retryUnstableBackends(context);
     const page = await context.newPage();
     page.setDefaultTimeout(60_000);
 

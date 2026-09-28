@@ -41,6 +41,7 @@ import { test } from "../fixtures";
 import { signedInSession } from "../actions/auth";
 import { watchTheClientStarting } from "./clientStart";
 import { waitForRenewalSettled, watchRenewals } from "./renewalGate";
+import { retryUnstableBackends } from "./unstableRetry";
 
 /** Where each spec's signed-in session waits between its cases.
  *
@@ -112,6 +113,8 @@ export const newLiveContext = async (
   // Same moment, same reason: a renewal that started before anyone asked is
   // exactly the one a navigation would cancel (`harness/renewalGate.ts`).
   watchRenewals(context);
+  // Cloudflare 52x from a backend is asked again (`harness/unstableRetry.ts`).
+  await retryUnstableBackends(context);
 
   return context;
 };

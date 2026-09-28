@@ -27,6 +27,7 @@ import { expect, type Browser, type Page } from "@playwright/test";
 
 import { envValue } from "./env";
 import { redact } from "./redact";
+import { retryUnstableBackends } from "./unstableRetry";
 
 /** One write an admin helper made, recorded so a case can say the run stayed
  *  inside its own data. Method and URL only — never a body. */
@@ -210,6 +211,8 @@ export const withAdminPage = async <T>(
   work: (page: Page) => Promise<T>,
 ): Promise<T> => {
   const context = await browser.newContext();
+  // Cloudflare 52x from a backend is asked again (`harness/unstableRetry.ts`).
+  await retryUnstableBackends(context);
   const page = await context.newPage();
   page.setDefaultTimeout(45_000);
   try {

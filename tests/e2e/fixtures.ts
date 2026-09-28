@@ -16,6 +16,7 @@ import { test as base, expect } from "@playwright/test";
 import type { BrowserContext, Page } from "@playwright/test";
 
 import { hasBackends, LIVE_ORIGIN, loadLiveEnv } from "./harness/env";
+import { retryUnstableBackends } from "./harness/unstableRetry";
 import {
   cancelOrderGroup,
   strandedOrderFailure,
@@ -64,7 +65,17 @@ const localeFromUrl = (url: string): { country: string; language: string } => {
   return { country: match?.[1] ?? "sy", language: match?.[2] ?? "en" };
 };
 
-export const test = base.extend<{ orders: OrderTracker }>({
+export const test = base.extend<{ orders: OrderTracker; retryUnstable: void }>({
+  // Playwright's own `context` (the one behind the `page` fixture) gets the
+  // same Cloudflare 52x retry as every context `newLiveContext` builds
+  // (`harness/unstableRetry.ts`). Automatic, so no spec has to ask for it.
+  retryUnstable: [
+    async ({ context }, provide) => {
+      await retryUnstableBackends(context);
+      await provide();
+    },
+    { auto: true },
+  ],
   // The second argument is Playwright's `use`, renamed here only because the
   // React lint rule reads a bare `use(...)` as the React hook and warns about a
   // function that is not a component. It is passed positionally, so the name is
@@ -111,6 +122,7 @@ export const test = base.extend<{ orders: OrderTracker }>({
         baseURL: LIVE_ORIGIN,
         storageState: order.storageState,
       });
+      await retryUnstableBackends(context);
       const page = await context.newPage();
       try {
         // The page has to be **on** the origin before a same-origin `fetch`

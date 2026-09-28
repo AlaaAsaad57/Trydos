@@ -388,17 +388,10 @@ export const reloadAndOpenChat = async (
     return await attemptOpenChat(page);
   };
 
-  let opened = await reloadOnce();
-  // **One more read, only when the proxy could not reach the chat backend.**
-  // A read may retry; a write never does (tests/e2e/README.md, rule 5). The
-  // proxy answers 503 when its own fetch throws — measured three times on
-  // 2026-09-27 as `TypeError: fetch failed` between the app's server and the
-  // chat backend, with the next call fine. A refusal *from* the chat backend
-  // is never retried: that is an answer, and it is judged as one.
-  if (opened.outcome.status === 503) {
-    await page.waitForTimeout(3_000);
-    opened = await reloadOnce();
-  }
+  // The proxy's own 503 (`TypeError: fetch failed`, measured three times on
+  // 2026-09-27) and Cloudflare's 52x are asked again for every call by
+  // `harness/unstableRetry.ts`, so a refusal that reaches here is an answer.
+  const opened = await reloadOnce();
   requireChatAccepted(opened.outcome, "the chat list did not load");
   await waitForListLoaded(page);
   return opened;

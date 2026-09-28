@@ -115,8 +115,22 @@ catalogue change into a red suite, which teaches everyone to ignore it.
 **4. Never assert, log or snapshot a token, an OTP, a phone number, an email or
 a password.** `harness/redact.ts` masks all of them; use it on anything printed.
 
-**5. Reads may retry. Writes never.** `retries: 0` is set in the config, because
-a retried checkout is a duplicated order.
+**5. A case never re-runs; a failed backend call is asked again.** `retries: 0`
+is set in the config, because a re-run checkout is a duplicated order.
+
+A single network call is different. When Cloudflare answers for a backend
+that fell over (520–527), or the app's proxy could not reach it (503), the
+call is asked again: up to three more times, 5, 10 and 20 seconds apart, never
+later than 60 seconds after the first try (`harness/unstableRetry.ts`). Every
+context the suite builds has it. A retry costs time only when a call fails.
+
+**Writes are retried too — the owner's decision on 2026-09-28**, which
+replaced "reads may retry, writes never". A 520 does not say whether the
+backend did the work before it failed, so a retried write can be applied
+twice: a second order, a checklist toggle undone, a message sent twice. Every
+retry is written to the case's annotations (`backend retried`) and to the log,
+so read them before trusting what a rescued case left behind. Calls the
+Next.js server makes while it renders are not reached by this.
 
 **6. Everything you create, you tag and you register for teardown** — at the
 moment it is created, not after the assertions, so a failed assertion still
