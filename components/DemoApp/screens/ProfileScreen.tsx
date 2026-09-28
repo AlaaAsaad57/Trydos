@@ -295,6 +295,12 @@ export default function ProfileScreen() {
           <motion.button
             key={card.title}
             type="button"
+            data-pw={`demo-profile-${card.icon}`}
+            onClick={
+              card.icon === "wallet"
+                ? () => navigate("settings/wallet")
+                : undefined
+            }
             whileTap={{ scale: 0.98 }}
             className="flex flex-col shrink-0 cursor-pointer text-left"
             style={{

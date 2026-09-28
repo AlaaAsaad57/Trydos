@@ -66,40 +66,54 @@ const offCentre = (nudge: number): React.CSSProperties =>
  *
  * Put it last in a box that is `relative` (or positioned), so it is drawn over
  * a picture in the box.
+ *
+ * `align="center"` is XD's other stroke: the line sits ON the edge, half of it
+ * outside the box (the cards of the cash-out sheet, `Home Page – 21`). Nothing
+ * is clipped then, and the SVG lets the outer half show.
  */
 export function Stroke({
   color,
   width = 0.5,
   radius = 0,
   visible = true,
+  align = "inside",
 }: {
   color: string;
   width?: number;
   radius?: number;
   /** Fades the line out (0.3 s) instead of removing it. */
   visible?: boolean;
+  align?: "inside" | "center";
 }) {
   const id = `demo-stroke-${React.useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+  const centred = align === "center";
   return (
     <svg
       aria-hidden="true"
       data-stroke={color}
+      data-stroke-align={align}
       className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s" }}
+      style={{
+        opacity: visible ? 1 : 0,
+        transition: "opacity 0.3s",
+        overflow: centred ? "visible" : undefined,
+      }}
     >
-      <defs>
-        <clipPath id={id}>
-          <rect width="100%" height="100%" rx={radius} />
-        </clipPath>
-      </defs>
+      {!centred && (
+        <defs>
+          <clipPath id={id}>
+            <rect width="100%" height="100%" rx={radius} />
+          </clipPath>
+        </defs>
+      )}
       <rect
         width="100%"
         height="100%"
         rx={radius}
         fill="none"
         stroke={color}
-        strokeWidth={width * 2}
-        clipPath={`url(#${id})`}
+        strokeWidth={centred ? width : width * 2}
+        clipPath={centred ? undefined : `url(#${id})`}
         style={{ transition: "stroke 0.3s" }}
       />
     </svg>
@@ -175,6 +189,7 @@ export function Box({
   stroke,
   strokeWidth = 0.5,
   strokeVisible = true,
+  strokeAlign = "inside",
   radius = 0,
   className = "",
   style,
@@ -189,10 +204,12 @@ export function Box({
   stroke?: string;
   strokeWidth?: number;
   strokeVisible?: boolean;
+  strokeAlign?: "inside" | "center";
   radius?: number;
   className?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
+  ref?: React.Ref<HTMLDivElement>;
 } & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
@@ -215,6 +232,7 @@ export function Box({
           width={strokeWidth}
           radius={radius}
           visible={strokeVisible}
+          align={strokeAlign}
         />
       )}
     </div>
@@ -712,11 +730,18 @@ export function MenuRow({
  * The content stacks under the handle, which ends 13 px below the sheet's top
  * edge (design y `y + 13`). So the first block's `mt` is its design y minus
  * `y + 13`.
+ *
+ * `lower` is for a sheet with two steps of different height (cash out,
+ * `Home Page – 21` then `– 19`): the sheet is laid out at the taller step's
+ * `y` and rests `lower` px further down for the shorter one. Changing `lower`
+ * moves the open sheet on the same spring it rises with.
  */
 export function Sheet({
   open,
   onClose,
   y,
+  lower = 0,
+  radius = SHEET.radius,
   children,
   testId,
   onEntered,
@@ -727,6 +752,10 @@ export function Sheet({
   onEntered?: () => void;
   /** Design y of the sheet's top edge. */
   y: number;
+  /** How far under `y` the sheet rests, in design px. */
+  lower?: number;
+  /** The top corners: 30 in the file's pickers, 50 on the wallet sheets. */
+  radius?: number;
   children: React.ReactNode;
   testId?: string;
 }) {
@@ -773,10 +802,10 @@ export function Sheet({
                 : { height: 932 - y }),
               bottom: 0,
               background: C.white,
-              borderRadius: `${SHEET.radius}px ${SHEET.radius}px 0 0`,
+              borderRadius: `${radius}px ${radius}px 0 0`,
             }}
             initial={{ y: "100%" }}
-            animate={{ y: 0 }}
+            animate={{ y: lower }}
             onAnimationComplete={() => onEntered?.()}
             exit={{ y: "100%" }}
             transition={{
@@ -786,7 +815,7 @@ export function Sheet({
               mass: 0.9,
             }}
             drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
+            dragConstraints={{ top: lower, bottom: lower }}
             dragElastic={{ top: 0, bottom: 0.6 }}
             onDragEnd={(_, info) => {
               if (info.offset.y > 120 || info.velocity.y > 600) onClose();

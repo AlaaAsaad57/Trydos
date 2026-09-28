@@ -94,6 +94,10 @@ export const C = {
   line: "#D3D3D3",
   placeholder: "#D3D3D3",
   purple: "#4A31E7",
+  /** The pale purple behind "Recommended" on the cash-out sheet. */
+  purpleTint: "#F5F4FF",
+  /** The chosen tab on the cash-out form. */
+  green: "#79E9B3",
   blue: "#388CFF",
   red: "#FF5F61",
   card: "#FCFCFC",
@@ -101,6 +105,8 @@ export const C = {
   page: "#FCFCFC",
   white: "#FFFFFF",
   backdrop: "rgba(29, 29, 29, 0.9)",
+  /** Behind the receipt: `#1D1D1D` at 50%, over the file's background blur. */
+  backdropGlass: "rgba(29, 29, 29, 0.5)",
 } as const;
 
 /** The header every inner screen has: a white 50 px strip under the status bar. */
@@ -162,5 +168,7 @@ export const SCREEN_TRANSITION = {
 /** The bottom sheets (QR sheet in the login, the pickers here). */
 export const SHEET = {
   radius: 30,
+  /** The wallet sheets (`Home Page – 21`, `– 19`) have rounder corners. */
+  radiusWallet: 50,
   handle: { width: 40, top: 12, height: 2 },
 } as const;

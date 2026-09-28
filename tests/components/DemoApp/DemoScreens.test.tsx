@@ -1,6 +1,7 @@
 import React from "react";
 import { fireEvent, render, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { resetDevice, setDevice } from "../../mocks/device";
 
 // framer-motion reads requestAnimationFrame once, when it loads, and jsdom
 // has none. Without it an exit animation never ends, so one screen state can
@@ -563,6 +564,8 @@ describe("Demo screens — Safari lines and layout by margins", () => {
     ["body measurements", "/sy-en/demo/settings/profile/body", ""],
     ["address list", "/sy-en/demo/settings/profile/address", ""],
     ["address form", "/sy-en/demo/settings/profile/address/new", ""],
+    ["wallet", "/sy-en/demo/settings/wallet", ""],
+    ["wallet in dollars", "/sy-en/demo/settings/wallet/usd", ""],
   ];
 
   const describeEl = (el: HTMLElement) =>
@@ -656,5 +659,367 @@ describe("Demo fields — the focused field has a blue line and a Medium label",
     expect(labelIsBold(box), "the focused 'full Name' field's label is not Medium after 'Edit'").toBe(true);
     fireEvent.blur(input);
     expect(lineOf(box), "the 'full Name' field did not go back to its grey line after focus left").toBe("#D3D3D3");
+  });
+});
+
+/** Numbers read out of the XD file (Home Page – 11, – 17, – 21 and – 19). */
+describe("Demo wallet — numbers from the XD file", () => {
+  beforeEach(() => {
+    url.search = "";
+    router.push.mockClear();
+    document.body.innerHTML = "";
+  });
+  afterEach(() => resetDevice());
+
+  const px = (
+    el: Element | null | undefined,
+    prop: "width" | "height" | "marginLeft" | "marginTop",
+  ) => (el as HTMLElement | null | undefined)?.style[prop];
+
+  const find = (
+    container: HTMLElement,
+    testId: string,
+    timeout = 3000,
+  ): Promise<HTMLElement | null> =>
+    waitFor(
+      () => {
+        const found = container.querySelector(`[data-pw="${testId}"]`);
+        if (!found) throw new Error("not yet");
+        return found as HTMLElement;
+      },
+      { timeout },
+    ).catch(() => null);
+
+  it("every balance: two purple cards 200 x 103 with 6 px between them and four entries, as `Home Page – 11` draws them", () => {
+    const container = open("/sy-en/demo/settings/wallet");
+    const usd = container.querySelector<HTMLElement>('[data-pw="demo-wallet-card-usd"]');
+    const syp = container.querySelector<HTMLElement>('[data-pw="demo-wallet-card-syp"]');
+    expect(usd, "the wallet has no dollar card").not.toBeNull();
+    expect(syp, "the wallet has no Syrian pound card").not.toBeNull();
+    expect(px(usd, "width"), "the dollar card is not 200 wide").toBe("200px");
+    expect(px(usd, "height"), "the dollar card is not 103 tall").toBe("103px");
+    expect(px(syp, "width"), "the pound card is not 200 wide").toBe("200px");
+    expect(px(syp, "marginLeft"), "the two cards are not 6 px apart (212 to 218)").toBe("6px");
+    expect(usd!.style.borderRadius, "the card's corners are not 15").toBe("15px");
+    expect(
+      usd!.style.boxShadow,
+      "the card does not carry the file's drop shadow (0, 3, blur 3, black 16%)",
+    ).toContain("0.16");
+    expect(
+      usd!.style.boxShadow,
+      "the card does not carry the file's inner shadow (0, 3, blur 3, white 50%)",
+    ).toContain("inset");
+    expect(
+      container.querySelector('[data-pw="demo-wallet-cash-out"]'),
+      "Cash Out is on the card of every balance; the file has it only on the one-balance card",
+    ).toBeNull();
+    const shown = [...container.querySelectorAll('[data-pw^="demo-wallet-entry-"]')].map((el) =>
+      el.getAttribute("data-pw"),
+    );
+    expect(shown, "the entries under 'All Transactions' are not the four of the file").toEqual([
+      "demo-wallet-entry-deposit",
+      "demo-wallet-entry-withdrawal",
+      "demo-wallet-entry-order",
+      "demo-wallet-entry-refund",
+    ]);
+  });
+
+  it("every balance: a tap on the dollar card opens the dollar balance", () => {
+    const container = open("/sy-en/demo/settings/wallet");
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-card-usd"]')!);
+    expect(
+      router.push,
+      "the dollar card did not go to /demo/settings/wallet/usd",
+    ).toHaveBeenCalledWith("/sy-en/demo/settings/wallet/usd", { scroll: false });
+  });
+
+  it("profile tab: a tap on the Trydos Wallet tile opens the wallet", () => {
+    const container = open("/sy-en/demo/settings");
+    const tile = container.querySelector('[data-pw="demo-profile-wallet"]');
+    expect(tile, "the profile tab has no Trydos Wallet tile").not.toBeNull();
+    fireEvent.click(tile!);
+    expect(
+      router.push,
+      "the Trydos Wallet tile did not go to /demo/settings/wallet",
+    ).toHaveBeenCalledWith("/sy-en/demo/settings/wallet", { scroll: false });
+  });
+
+  it("one balance: a 406 wide card with Cash In and Cash Out, and only the first entry has a line, as `Home Page – 17` draws it", () => {
+    const container = open("/sy-en/demo/settings/wallet/usd");
+    const card = container.querySelector('[data-pw="demo-wallet-card-usd"]');
+    expect(px(card, "width"), "the dollar card is not 406 wide").toBe("406px");
+    expect(
+      container.querySelector('[data-pw="demo-wallet-card-syp"]'),
+      "the pound card is on the dollar balance",
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-pw="demo-wallet-cash-in"]'),
+      "the card has no Cash In",
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-pw="demo-wallet-cash-out"]'),
+      "the card has no Cash Out",
+    ).not.toBeNull();
+    const rows = [...container.querySelectorAll<HTMLElement>('[data-pw^="demo-wallet-entry-"]')];
+    expect(
+      rows.map((row) => row.getAttribute("data-pw")),
+      "the entries under 'All USD Transactions' are not the five of the file",
+    ).toEqual([
+      "demo-wallet-entry-deposit",
+      "demo-wallet-entry-withdrawal",
+      "demo-wallet-entry-order",
+      "demo-wallet-entry-refund",
+      "demo-wallet-entry-request",
+    ]);
+    expect(px(rows[0], "marginTop"), "the first entry is not 12 px under the list title (275 to 287)").toBe("12px");
+    expect(px(rows[1], "marginTop"), "the entries are not 4 px apart").toBe("4px");
+    expect(px(rows[0], "height"), "an entry is not 50 tall").toBe("50px");
+    const lined = rows
+      .filter((row) => row.querySelector("svg[data-stroke]"))
+      .map((row) => row.getAttribute("data-pw"));
+    expect(lined, "the 0.5 px line is not on the first entry alone").toEqual([
+      "demo-wallet-entry-deposit",
+    ]);
+    const amount = [...rows[0].querySelectorAll("span")].find((el) => el.textContent === "1000");
+    expect(amount?.className, "the first entry's amount is not Bold").toContain("font-bold");
+    const next = [...rows[1].querySelectorAll("span")].find((el) => el.textContent === "10");
+    expect(next?.className, "the second entry's amount is not Medium").toContain("font-medium");
+  });
+
+  it("cash out: the sheet has 50 px corners, opens on the ways to cash out and goes on to the form, as `Home Page – 21` and `– 19` draw it", async () => {
+    const container = open("/sy-en/demo/settings/wallet/usd");
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out"]')!);
+    const sheet = await find(container, "demo-wallet-cash-out-sheet");
+    expect(sheet, "a tap on Cash Out did not open the sheet").not.toBeNull();
+    const panel = [...sheet!.querySelectorAll<HTMLElement>("div")].find((el) =>
+      el.style.borderRadius.startsWith("50px"),
+    );
+    expect(panel, "the sheet has no panel with 50 px top corners").toBeDefined();
+    expect(
+      panel!.style.borderRadius,
+      "the sheet's bottom corners are round; the file rounds only the top two",
+    ).toMatch(/^50px 50px 0(px)? 0(px)?$/);
+    expect(
+      container.querySelector('[data-pw="demo-wallet-cash-out-ways"]'),
+      "the sheet did not open on the ways to cash out",
+    ).not.toBeNull();
+
+    const card = container.querySelector<HTMLElement>('[data-pw="demo-wallet-way-rdb"]');
+    expect(card, "the sheet has no trydos | rdb card").not.toBeNull();
+    // The card's own line, not the line of the small tag inside it.
+    const line = card!.querySelector(':scope > div > svg[data-stroke="#4A31E7"]');
+    expect(line, "the trydos | rdb card has no purple line").not.toBeNull();
+    expect(
+      line!.getAttribute("data-stroke-align"),
+      "the card's line is inside the edge; the file draws it on the edge (centre stroke)",
+    ).toBe("center");
+    expect(
+      line!.querySelector("rect[stroke]")?.getAttribute("stroke-width"),
+      "the card's line is not 0.5 px",
+    ).toBe("0.5");
+    expect(
+      card!.textContent,
+      "the brand is not written 'trydos | rdb' as the file writes it",
+    ).toContain("trydos | rdb");
+    const tiles = ["sham", "syriatel", "irsal"].map((id) =>
+      container.querySelector(`[data-pw="demo-wallet-way-${id}"]`),
+    );
+    expect(tiles[0], "the Sham Cash tile is missing").not.toBeNull();
+    expect(px(tiles[1], "marginLeft"), "the second tile is not 8 px after the first (145 to 153)").toBe("8px");
+    expect(px(tiles[2], "marginLeft"), "the third tile is not 7 px after the second (278 to 285)").toBe("7px");
+
+    fireEvent.click(card!);
+    const form = await find(container, "demo-wallet-cash-out-form");
+    expect(form, "a tap on the trydos | rdb card did not open the form").not.toBeNull();
+    const amount = container.querySelector<HTMLElement>('[data-pw="demo-wallet-amount"]');
+    expect(amount, "the form has no amount field").not.toBeNull();
+    expect(px(amount, "marginTop"), "the amount field is not at y 515, 122 under the add button").toBe("122px");
+    expect(px(amount, "height"), "the amount field is not 55 tall").toBe("55px");
+    const chosen = container.querySelector<HTMLElement>('[data-pw="demo-wallet-tab-cash"] div');
+    expect(
+      chosen?.style.background,
+      "the chosen tab is not the file's green #79E9B3",
+    ).toMatch(/#79E9B3|rgb\(121, 233, 179\)/i);
+  }, 10000);
+
+  it("cash out form: with a mouse and a keyboard the amount field turns its line blue while it is in use, and takes digits only", async () => {
+    setDevice("pointer");
+    const container = open("/sy-en/demo/settings/wallet/usd");
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out"]')!);
+    const card = await find(container, "demo-wallet-way-rdb");
+    expect(card, "the sheet has no trydos | rdb card").not.toBeNull();
+    fireEvent.click(card!);
+    const input = (await find(container, "demo-wallet-amount-input")) as HTMLInputElement | null;
+    expect(input, "the form has no amount input").not.toBeNull();
+    const field = container.querySelector<HTMLElement>('[data-pw="demo-wallet-amount"]')!;
+    fireEvent.focus(input!);
+    expect(
+      field.querySelector("svg[data-stroke]")?.getAttribute("data-stroke"),
+      "the amount field in use has no blue #388CFF line",
+    ).toBe("#388CFF");
+    expect(
+      field.textContent,
+      "the empty amount field does not show the grey '0,00 USD'",
+    ).toContain("0,00 USD");
+    fireEvent.change(input!, { target: { value: "12a5" } });
+    expect(input!.value, "the amount field kept a letter").toBe("125");
+    expect(
+      field.textContent,
+      "the grey '0,00 USD' is still drawn under a typed amount",
+    ).not.toContain("0,00");
+    fireEvent.blur(input!);
+    expect(
+      field.querySelector("svg[data-stroke]")?.getAttribute("data-stroke"),
+      "the amount field kept its blue line after focus left",
+    ).toBe("#D3D3D3");
+    expect(
+      document.querySelector("[data-keyboard-overlay]"),
+      "the app's keypad opened on a device with a mouse and a keyboard",
+    ).toBeNull();
+  }, 10000);
+
+  it("cash out form: on a touch device the login's keypad types the amount, and the field asks the canvas to keep it above the keypad", async () => {
+    setDevice("touch");
+    const container = open("/sy-en/demo/settings/wallet/usd");
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out"]')!);
+    const card = await find(container, "demo-wallet-way-rdb");
+    expect(card, "the sheet has no trydos | rdb card").not.toBeNull();
+    fireEvent.click(card!);
+    const field = await find(container, "demo-wallet-amount");
+    expect(field, "the form has no amount field").not.toBeNull();
+    // The keypad is a portal on <body>; it opens 350 ms after the form.
+    const keypad = await waitFor(
+      () => {
+        const found = document.querySelector("[data-keyboard-overlay]");
+        if (!found) throw new Error("not yet");
+        return found as HTMLElement;
+      },
+      { timeout: 3000 },
+    ).catch(() => null);
+    expect(keypad, "the app's keypad did not open under the amount field").not.toBeNull();
+    expect(
+      field!.hasAttribute("data-keyboard-anchor"),
+      "the amount field is not marked as the box to keep above the keypad",
+    ).toBe(true);
+    expect(
+      field!.querySelector("svg[data-stroke]")?.getAttribute("data-stroke"),
+      "the amount field has no blue #388CFF line while the keypad is up",
+    ).toBe("#388CFF");
+    const input = container.querySelector<HTMLInputElement>('[data-pw="demo-wallet-amount-input"]');
+    expect(
+      input?.readOnly,
+      "the amount input can take focus on a touch device, so the phone's own keyboard would open over the keypad",
+    ).toBe(true);
+    for (const digit of ["1", "0", "0"]) {
+      fireEvent.pointerDown(keypad!.querySelector(`[data-pw="keypad-digit-${digit}"]`)!);
+    }
+    await waitFor(() => expect(input!.value, "the keypad's digits did not reach the amount").toBe("100"));
+    fireEvent.pointerDown(keypad!.querySelector('[data-pw="keypad-backspace"]')!);
+    fireEvent.pointerUp(keypad!.querySelector('[data-pw="keypad-backspace"]')!);
+    await waitFor(() => expect(input!.value, "the keypad's backspace did not take the last digit off").toBe("10"));
+  }, 10000);
+
+  it("wallet info: the QR mark on the card opens a sheet with 50 px corners, the 350.21 px code at x 39.93 and three fields, as `Home Page – 23` draws it", async () => {
+    const container = open("/sy-en/demo/settings/wallet/usd");
+    const mark = container.querySelector('[data-pw="demo-wallet-info"]');
+    expect(mark, "the one-balance card has no QR mark to tap").not.toBeNull();
+    fireEvent.click(mark!);
+    const sheet = await find(container, "demo-wallet-info-sheet");
+    expect(sheet, "a tap on the QR mark did not open the wallet info sheet").not.toBeNull();
+    const panel = [...sheet!.querySelectorAll<HTMLElement>("div")].find((el) =>
+      el.style.borderRadius.startsWith("50px"),
+    );
+    expect(panel, "the wallet info sheet has no panel with 50 px top corners").toBeDefined();
+    const code = sheet!.querySelector<HTMLElement>('img[src$="/qrWallet.svg"]');
+    expect(code, "the sheet has no QR code").not.toBeNull();
+    expect(code!.style.width, "the QR code is not 350.21 wide").toBe("350.21px");
+    expect(code!.style.marginLeft, "the QR code does not start at x 39.93").toBe("39.93px");
+    const fields = ["name", "id", "phone"].map((id) =>
+      sheet!.querySelector<HTMLElement>(`[data-pw="demo-wallet-info-${id}"]`),
+    );
+    expect(fields[0], "the sheet has no client name field").not.toBeNull();
+    expect(fields[1]?.textContent, "the client ID field does not show the client's ID").toContain("1012-3456");
+    expect(fields[2]?.textContent, "the phone field does not show the client's number").toContain("+90 552 800 2000");
+    expect(px(fields[0], "marginTop"), "the first field is not at y 639, 30 under the 'trydos USD' line").toBe("30px");
+    expect(px(fields[1], "marginTop"), "the fields are not 4 px apart").toBe("4px");
+    expect(px(fields[0], "height"), "a field is not 55 tall").toBe("55px");
+    expect(
+      fields[0]!.querySelector('img[src$="/eyeGrey.svg"]'),
+      "the name field has no grey eye mark",
+    ).not.toBeNull();
+    expect(
+      fields[1]!.querySelector('img[src$="/eyeGrey.svg"]'),
+      "the ID field has an eye mark; the file draws it on the name field only",
+    ).toBeNull();
+    const actions = ["request", "copy", "download", "share"].filter(
+      (id) => !sheet!.querySelector(`[data-pw="demo-wallet-info-${id}"]`),
+    );
+    expect(actions, "these actions are missing under the fields").toEqual([]);
+  }, 10000);
+
+  it("receipt: a tap on the Cash Deposit entry opens the 406 x 568 card at y 149 over a blurred page, as `Home Page – 18` draws it", async () => {
+    const container = open("/sy-en/demo/settings/wallet");
+    expect(
+      container.querySelector('[data-pw="demo-wallet-receipt"]'),
+      "the receipt is open before any entry was tapped",
+    ).toBeNull();
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-entry-deposit"]')!);
+    const layer = await find(container, "demo-wallet-receipt");
+    expect(layer, "a tap on the Cash Deposit entry did not open the receipt").not.toBeNull();
+    expect(
+      layer!.style.background,
+      "the page behind the receipt is not covered with #1D1D1D at 50%",
+    ).toMatch(/rgba\(29, 29, 29, 0\.5\)/);
+    expect(
+      layer!.style.backdropFilter,
+      "the page behind the receipt is not blurred (the file's background blur is 15.37)",
+    ).toContain("blur(15.37px)");
+    const card = layer!.querySelector<HTMLElement>('[data-pw="demo-wallet-receipt-card"]');
+    expect(card, "the receipt has no card").not.toBeNull();
+    expect(px(card, "width"), "the receipt card is not 406 wide").toBe("406px");
+    expect(px(card, "height"), "the receipt card is not 568 tall").toBe("568px");
+    expect(px(card, "marginTop"), "the receipt card is not at y 149 (99 under the app's top)").toBe("99px");
+    expect(card!.style.borderRadius, "the receipt card's corners are not 50").toBe("50px");
+    const cell = (id: string) =>
+      card!.querySelector<HTMLElement>(`[data-pw="demo-wallet-receipt-${id}"]`);
+    expect(px(cell("date"), "width"), "the date cell is not 124 wide").toBe("124px");
+    expect(px(cell("reference"), "width"), "the reference cell is not 124 wide").toBe("124px");
+    expect(px(cell("amount"), "width"), "the amount cell is not 126 wide").toBe("126px");
+    expect(px(cell("type"), "width"), "the type cell is not 252 wide").toBe("252px");
+    expect(px(cell("sender"), "width"), "the sender cell is not 382 wide").toBe("382px");
+    expect(cell("reference")?.textContent, "the reference is not the file's").toContain("TSCR10012");
+    expect(cell("receiver")?.textContent, "the receiver line is not the file's").toContain("+963988222592");
+    const amount = [...cell("amount")!.querySelectorAll("span")].find(
+      (el) => el.textContent === "100,000",
+    );
+    expect(amount?.className, "the amount's number is not Medium").toContain("font-medium");
+    expect(
+      cell("status")!.querySelector('img[src$="/receiptDone.svg"]'),
+      "the status cell has no blue done mark",
+    ).not.toBeNull();
+
+    fireEvent.click(card!);
+    expect(
+      container.querySelector('[data-pw="demo-wallet-receipt-card"]'),
+      "a tap on the receipt itself closed it",
+    ).not.toBeNull();
+    fireEvent.click(layer!);
+    await waitFor(
+      () =>
+        expect(
+          container.querySelector('[data-pw="demo-wallet-receipt"]'),
+          "a tap on the page behind the receipt did not close it",
+        ).toBeNull(),
+      { timeout: 3000 },
+    );
+  }, 10000);
+
+  it("receipt: an entry with no receipt does not open one", () => {
+    const container = open("/sy-en/demo/settings/wallet");
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-entry-refund"]')!);
+    expect(
+      container.querySelector('[data-pw="demo-wallet-receipt"]'),
+      "the Refund Order entry opened a receipt; the file has one for the Cash Deposit only",
+    ).toBeNull();
   });
 });

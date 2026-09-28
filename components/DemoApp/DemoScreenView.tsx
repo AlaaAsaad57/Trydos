@@ -14,6 +14,7 @@ import PersonalInfoScreen from "./screens/PersonalInfoScreen";
 import BodyScreen from "./screens/BodyScreen";
 import AddressListScreen from "./screens/AddressListScreen";
 import AddressFormScreen from "./screens/AddressFormScreen";
+import WalletScreen from "./screens/WalletScreen";
 
 /** Which component draws which screen. XD artboard names are in each file. */
 export default function DemoScreenView({ screen }: { screen: DemoScreen }) {
@@ -56,5 +57,9 @@ export default function DemoScreenView({ screen }: { screen: DemoScreen }) {
       return <AddressListScreen />;
     case "settings/profile/address/new":
       return <AddressFormScreen />;
+    case "settings/wallet":
+      return <WalletScreen currency={null} />;
+    case "settings/wallet/usd":
+      return <WalletScreen currency="usd" />;
   }
 }
