@@ -111,9 +111,15 @@ export const listing = {
    *  category page the app keeps the previous page in the document, hidden, so
    *  the same entry exists twice. Measured: the hidden copy of the home page's
    *  bar was matched first and read as "not open" for a category that was open
-   *  on screen. */
+   *  on screen.
+   *
+   *  **Real entries only — `[data-id]`.** The loading skeleton
+   *  (`components/skeleton/MobileNavigation.tsx`) draws ten placeholder links
+   *  with the same `data-pw` and no `data-id`. Matching those let the wait
+   *  pass before the categories arrived, and the read then found no slug at
+   *  all: GUEST-47 failed that way on run 36395039292 in 5.6 seconds. */
   categoryLinks: (page: Page): Locator =>
-    page.locator('[data-pw="category-Link"]:visible'),
+    page.locator('[data-pw="category-Link"][data-id]:visible'),
   /** One entry in the category bar, by slug. Visible only — see above. */
   categoryLink: (page: Page, slug: string): Locator =>
     page.locator(`[data-pw="category-Link"][data-id="${slug}"]:visible`),
