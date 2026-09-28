@@ -2789,6 +2789,21 @@ const translations = {
   "wallet": "محفظة",
   "your total SYP balance": "إجمالي رصيدك بالليرة السورية",
   "All SYP Transactions": "جميع معاملات الليرة السورية",
+  "Enter Amount": "أدخل المبلغ",
+  "Your Balance is insufficient": "رصيدك غير كافٍ",
+  "Authorized recipient phone number": "رقم هاتف المستلم المفوَّض",
+  "Authorized recipient Full name ( Exact ID )": "الاسم الكامل للمستلم المفوَّض ( مطابق للهوية )",
+  "Enter {field}": "أدخل {field}",
+  "Edit {field}": "تعديل {field}",
+  "Enter recipient Phone number": "أدخل رقم هاتف المستلم",
+  "Only the named person may receive the amount !": "يحق للشخص المذكور فقط استلام المبلغ !",
+  "Withdrawal Request": "طلب سحب",
+  "Withdrawal Now": "اسحب الآن",
+  "Read the code on the opposite side to take action": "اقرأ الرمز في الجهة المقابلة لتنفيذ العملية",
+  "Cash withdraw": "سحب نقدي",
+  "Please read the code in front of you at the {brand} center, then receive the amount from the employee.": "يرجى قراءة الرمز الموجود أمامك في مركز {brand}، ثم استلم المبلغ من الموظف.",
+  "Do not leave the page or the center until you have confirmed that the transaction is complete.": "لا تغادر الصفحة أو المركز حتى تتأكد من اكتمال العملية.",
+  "Thank you.": "شكراً لك.",
 };
 
 export default translations;

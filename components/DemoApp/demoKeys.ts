@@ -187,6 +187,21 @@ export const DEMO_KEYS = [
   "Receiver",
   "receive",
   "wallet",
+  "Enter Amount",
+  "Your Balance is insufficient",
+  "Authorized recipient phone number",
+  "Authorized recipient Full name ( Exact ID )",
+  "Enter {field}",
+  "Edit {field}",
+  "Enter recipient Phone number",
+  "Only the named person may receive the amount !",
+  "Withdrawal Request",
+  "Withdrawal Now",
+  "Read the code on the opposite side to take action",
+  "Cash withdraw",
+  "Please read the code in front of you at the {brand} center, then receive the amount from the employee.",
+  "Do not leave the page or the center until you have confirmed that the transaction is complete.",
+  "Thank you.",
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];

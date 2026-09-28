@@ -79,6 +79,7 @@ export function Stroke({
   radius = 0,
   visible = true,
   align = "inside",
+  dash,
 }: {
   color: string;
   width?: number;
@@ -86,6 +87,8 @@ export function Stroke({
   /** Fades the line out (0.3 s) instead of removing it. */
   visible?: boolean;
   align?: "inside" | "center";
+  /** XD's dashed line, as "dash gap" in px ("3 3" on `Home Page – 30`). */
+  dash?: string;
 }) {
   const id = `demo-stroke-${React.useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const centred = align === "center";
@@ -115,6 +118,7 @@ export function Stroke({
         fill="none"
         stroke={color}
         strokeWidth={centred ? width : width * 2}
+        strokeDasharray={dash}
         clipPath={centred ? undefined : `url(#${id})`}
         style={{ transition: "stroke 0.3s" }}
       />
@@ -192,6 +196,7 @@ export function Box({
   strokeWidth = 0.5,
   strokeVisible = true,
   strokeAlign = "inside",
+  strokeDash,
   radius = 0,
   className = "",
   style,
@@ -207,6 +212,7 @@ export function Box({
   strokeWidth?: number;
   strokeVisible?: boolean;
   strokeAlign?: "inside" | "center";
+  strokeDash?: string;
   radius?: number;
   className?: string;
   style?: React.CSSProperties;
@@ -235,6 +241,7 @@ export function Box({
           radius={radius}
           visible={strokeVisible}
           align={strokeAlign}
+          dash={strokeDash}
         />
       )}
     </div>
@@ -281,8 +288,16 @@ export function ScreenPage({
   contentHeight = 932,
   bg = C.white,
   scrollTop = BODY_Y,
+  glass,
   testId,
 }: {
+  /**
+   * A CSS filter for the page and its header while a glass layer lies over
+   * them (the receipt, `Home Page – 18`). The page itself is blurred, not the
+   * layer's backdrop: in a window shorter than the artboard Chrome's
+   * `backdrop-filter` kept the purple cards strong at the canvas's edges.
+   */
+  glass?: string;
   header?: React.ReactNode;
   children: React.ReactNode;
   /** Pinned to the bottom (the wide button). Drawn over the scroll box. */
@@ -301,17 +316,22 @@ export function ScreenPage({
       style={{ background: bg }}
     >
       <div
-        className="absolute left-0 w-full overflow-y-auto overflow-x-hidden overscroll-contain"
-        style={{ top: top(scrollTop), bottom: 0, scrollbarWidth: "none" }}
+        className="absolute inset-0"
+        style={{ filter: glass, transition: "filter 0.25s" }}
       >
         <div
-          className="flex flex-col w-full"
-          style={{ minHeight: contentHeight - scrollTop }}
+          className="absolute left-0 w-full overflow-y-auto overflow-x-hidden overscroll-contain"
+          style={{ top: top(scrollTop), bottom: 0, scrollbarWidth: "none" }}
         >
-          {children}
+          <div
+            className="flex flex-col w-full"
+            style={{ minHeight: contentHeight - scrollTop }}
+          >
+            {children}
+          </div>
         </div>
+        {header}
       </div>
-      {header}
       {footer}
     </div>
   );

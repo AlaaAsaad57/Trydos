@@ -13,7 +13,7 @@ import {
 } from "../demoWallet";
 import WalletCashOutSheet from "./WalletCashOutSheet";
 import WalletInfoSheet from "./WalletInfoSheet";
-import WalletReceipt from "./WalletReceipt";
+import WalletReceipt, { RECEIPT_GLASS } from "./WalletReceipt";
 
 /**
  * Trydos Balance — XD `Home Page – 11` (every balance) and `– 17` (one
@@ -80,6 +80,7 @@ export default function WalletScreen() {
     <ScreenPage
       testId={currency ? `demo-wallet-${currency}` : "demo-wallet"}
       contentHeight={Math.max(932, 287 + entries.length * 54 + 40)}
+      glass={receipt ? RECEIPT_GLASS : undefined}
       header={
         <ScreenHeader
           crumb={["Profile", "Trydos Balance"]}

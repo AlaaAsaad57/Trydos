@@ -2839,6 +2839,21 @@ const translations = {
   "wallet": "جزدان",
   "your total SYP balance": "کۆی باڵانسی لیرەی سوورییەکەت",
   "All SYP Transactions": "هەموو مامەڵەکانی لیرەی سووری",
+  "Enter Amount": "بڕەکە بنووسە",
+  "Your Balance is insufficient": "باڵانسەکەت بەس نییە",
+  "Authorized recipient phone number": "ژمارەی تەلەفۆنی وەرگری ڕێگەپێدراو",
+  "Authorized recipient Full name ( Exact ID )": "ناوی تەواوی وەرگری ڕێگەپێدراو ( وەک ناسنامە )",
+  "Enter {field}": "{field} بنووسە",
+  "Edit {field}": "دەستکاریکردنی {field}",
+  "Enter recipient Phone number": "ژمارەی تەلەفۆنی وەرگر بنووسە",
+  "Only the named person may receive the amount !": "تەنها کەسی ناوبراو دەتوانێت بڕەکە وەربگرێت !",
+  "Withdrawal Request": "داواکاریی ڕاکێشان",
+  "Withdrawal Now": "ئێستا ڕایبکێشە",
+  "Read the code on the opposite side to take action": "کۆدەکەی بەرامبەر بخوێنەرەوە بۆ ئەنجامدانی کردارەکە",
+  "Cash withdraw": "ڕاکێشانی کاش",
+  "Please read the code in front of you at the {brand} center, then receive the amount from the employee.": "تکایە ئەو کۆدەی لەبەردەمتدایە لە سەنتەری {brand} بخوێنەرەوە، پاشان بڕەکە لە کارمەندەکە وەربگرە.",
+  "Do not leave the page or the center until you have confirmed that the transaction is complete.": "لاپەڕەکە یان سەنتەرەکە بەجێ مەهێڵە تا دڵنیا دەبیتەوە کە مامەڵەکە تەواو بووە.",
+  "Thank you.": "سوپاس.",
 };
 
 export default translations;

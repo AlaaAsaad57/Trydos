@@ -2821,6 +2821,21 @@ const translations = {
   "wallet": "cüzdan",
   "your total SYP balance": "Toplam SYP bakiyeniz",
   "All SYP Transactions": "Tüm SYP İşlemleri",
+  "Enter Amount": "Tutarı girin",
+  "Your Balance is insufficient": "Bakiyeniz yetersiz",
+  "Authorized recipient phone number": "Yetkili alıcının telefon numarası",
+  "Authorized recipient Full name ( Exact ID )": "Yetkili alıcının tam adı ( Kimlikteki gibi )",
+  "Enter {field}": "{field} girin",
+  "Edit {field}": "{field} düzenle",
+  "Enter recipient Phone number": "Alıcının telefon numarasını girin",
+  "Only the named person may receive the amount !": "Tutarı yalnızca adı yazılı kişi alabilir !",
+  "Withdrawal Request": "Para Çekme Talebi",
+  "Withdrawal Now": "Şimdi Çek",
+  "Read the code on the opposite side to take action": "İşlem için karşı taraftaki kodu okutun",
+  "Cash withdraw": "Nakit çekim",
+  "Please read the code in front of you at the {brand} center, then receive the amount from the employee.": "Lütfen {brand} merkezinde önünüzdeki kodu okutun, ardından tutarı görevliden alın.",
+  "Do not leave the page or the center until you have confirmed that the transaction is complete.": "İşlemin tamamlandığını doğrulamadan sayfadan veya merkezden ayrılmayın.",
+  "Thank you.": "Teşekkür ederiz.",
 };
 
 export default translations;

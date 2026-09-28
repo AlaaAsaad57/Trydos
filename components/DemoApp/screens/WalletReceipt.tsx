@@ -11,7 +11,7 @@ import { WALLET_RECEIPT } from "../demoWallet";
 /**
  * Receipt — XD `Home Page – 18`. A white card 406 x 568 at (12, 149) with
  * 50 px corners, over the wallet. The page behind it is covered with
- * `#1D1D1D` at 50% and the file's background blur (15.4).
+ * `#1D1D1D` at 50% and blurred by the file's background blur (15.4).
  *
  * In the card, top to bottom (design y):
  *   - the 50 px mark at (190, 161) and "Receipt" (40 Medium) on baseline 255;
@@ -23,8 +23,11 @@ import { WALLET_RECEIPT } from "../demoWallet";
  *     labels start at x 145 and 252.
  */
 
-/** XD's background blur 15.37 with brightness +0.41. */
-const GLASS = "blur(15.37px) brightness(1.0041)";
+/**
+ * XD's background blur 15.37 with brightness +0.41. The wallet page takes it
+ * as a filter of its own while the receipt is open (`ScreenPage glass`).
+ */
+export const RECEIPT_GLASS = "blur(15.37px) brightness(1.0041)";
 /** `#1D1D1D` at 50% over the white page, for the room round the canvas. */
 const ROUND_THE_RECEIPT =
   "linear-gradient(rgb(142, 142, 142), rgb(142, 142, 142))";
@@ -49,8 +52,6 @@ export default function WalletReceipt({
           // The column starts at design y 50, the top of the app.
           style={{
             background: C.backdropGlass,
-            backdropFilter: GLASS,
-            WebkitBackdropFilter: GLASS,
             paddingTop: top(50),
           }}
           initial={{ opacity: 0 }}

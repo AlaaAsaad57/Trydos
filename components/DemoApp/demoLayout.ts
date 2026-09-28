@@ -99,6 +99,14 @@ export const C = {
   /** The chosen tab on the cash-out form. */
   green: "#79E9B3",
   blue: "#388CFF",
+  /** The line of the amount field when the balance is too small (`Home Page – 20`). */
+  orange: "#F4BB7A",
+  /** Behind "Your balance is insufficient" (`– 20`). */
+  orangeTint: "#FFF8F4",
+  /** Behind "Only the named person may receive the amount !" (`– 27`). */
+  noteTint: "#FFF8F2",
+  /** The dashed line of the "Back" button (`– 30`). */
+  lineDark: "#5D5C5D",
   red: "#FF5F61",
   card: "#FCFCFC",
   field: "#F8F8F8",

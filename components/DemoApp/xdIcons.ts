@@ -119,6 +119,8 @@ export const XD_ICON_SIZE = {
   receiptCash: { w: 14, h: 14 },
   receiptArrow: { w: 14, h: 14 },
   receiptDone: { w: 14, h: 14 },
+  eyeGreySmall: { w: 15, h: 15 },
+  scanCode: { w: 25, h: 25 },
 } as const;
 
 export type XdIconName = keyof typeof XD_ICON_SIZE;

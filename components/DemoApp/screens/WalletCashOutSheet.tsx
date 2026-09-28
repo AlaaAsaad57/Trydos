@@ -6,7 +6,7 @@ import { NumericKeypad } from "components/Login/Enhanced/ui/NumericKeypad";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 import { useDemoNav } from "../DemoShell";
 import { C, SHEET, gapTo, lineBox, paraTop, textBottom } from "../demoLayout";
-import { Box, Icon, Sheet, Txt } from "../ui";
+import { Box, Icon, Sheet, Stroke, Txt } from "../ui";
 import type { XdIconName } from "../xdIcons";
 import {
   WALLET_BRAND,
@@ -16,20 +16,34 @@ import {
 } from "../demoWallet";
 
 /**
- * Cash Out — XD `Home Page – 21` (the ways to cash out) and `– 19` (the
- * trydos | rdb form).
+ * Cash Out — XD `Home Page – 21` (the ways to cash out), `– 19`, `– 20`,
+ * `– 25`, `– 27`, `– 29` (the trydos | rdb form and its states) and `– 30`
+ * (the code reader).
  *
- * One sheet, two steps. The file draws the first step from y 244 and the
- * second from y 90, both with 50 px top corners. The sheet is laid out at 90
+ * One sheet, three steps. The file draws the first step from y 244 and the
+ * others from y 90, all with 50 px top corners. The sheet is laid out at 90
  * and rests 154 px lower while the first step is on show.
  *
  * Every y below is the file's. The handle ends 13 px under the sheet's top
  * edge, so a step's first block has `mt` = its y minus (top + 13).
  */
 
-type Step = "ways" | "form";
+type Step = "ways" | "form" | "scan";
 
-const TOP: Record<Step, number> = { ways: 244, form: 90 };
+const TOP: Record<Step, number> = { ways: 244, form: 90, scan: 90 };
+
+/** The boards of the form and the code reader end at y 930. */
+const BOARD_END = 930;
+
+/** Someone else who may collect the money (`Home Page – 25`, `– 27`). */
+type Authorized = { phone: string; name: string };
+
+/** The field the shopper is typing in. */
+type InUse = "amount" | "phone" | "name" | null;
+
+/** A typed amount as a number. */
+const toNumber = (text: string) =>
+  Number.parseFloat(text.replace(",", ".")) || 0;
 
 /** The brand, as the file writes it: "try" and "rdb" Bold, the rest Regular. */
 function Brand({ size, mt, nudge }: { size: number; mt: number; nudge?: number }) {
@@ -96,12 +110,19 @@ export default function WalletCashOutSheet({
   balance: WalletBalance;
 }) {
   const [step, setStep] = useState<Step>("ways");
+  // Kept here, so the form has them again after "Back" on the code reader.
+  const [amount, setAmount] = useState("");
+  const [authorized, setAuthorized] = useState<Authorized | null>(null);
 
   // The sheet opens on its first step every time. The step goes back once
   // the sheet has slid away, so it does not change while it is leaving.
   useEffect(() => {
     if (open) return;
-    const timer = setTimeout(() => setStep("ways"), 400);
+    const timer = setTimeout(() => {
+      setStep("ways");
+      setAmount("");
+      setAuthorized(null);
+    }, 400);
     return () => clearTimeout(timer);
   }, [open]);
 
@@ -120,15 +141,36 @@ export default function WalletCashOutSheet({
           key={step}
           data-pw={`demo-wallet-cash-out-${step}`}
           className="flex flex-col shrink-0"
+          // The form and the code reader reach the board's end, where their
+          // buttons sit.
+          style={{
+            minHeight:
+              step === "ways" ? undefined : BOARD_END - (TOP[step] + 13),
+          }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
         >
-          {step === "ways" ? (
+          {step === "ways" && (
             <Ways mark={balance.mark} onPick={() => setStep("form")} />
-          ) : (
-            <Form balance={balance} />
+          )}
+          {step === "form" && (
+            <Form
+              balance={balance}
+              amount={amount}
+              setAmount={setAmount}
+              authorized={authorized}
+              setAuthorized={setAuthorized}
+              onNow={() => setStep("scan")}
+            />
+          )}
+          {step === "scan" && (
+            <Scan
+              balance={balance}
+              amount={amount}
+              onBack={() => setStep("form")}
+            />
           )}
         </motion.div>
       </AnimatePresence>
@@ -357,53 +399,107 @@ function InfoButton({
 }
 
 /**
- * `Home Page – 19`, sheet from y 90:
+ * The form, sheet from y 90. On every board:
  *   - the brand (24 px) on baseline 180;
  *   - two 193 x 28 tabs at y 213, 4 apart: the chosen one `#79E9B3`, the other
  *     `#FCFCFC` with a line;
- *   - the two recipient fields, 390 x 55 at y 245 and 304, `#FCFCFC`;
- *   - "+ Add Authorized Recipient", 356 x 30 at (32, 363), radius 12;
- *   - the amount field at y 515, white with the blue line of a field in use.
- *     The grey block the file draws from y 582, 12 px under it, stands for
- *     the login's own keypad (`NumericKeypad`).
+ *   - the two recipient fields, 390 x 55 at y 245 and 304, `#FCFCFC`.
  *
- * The keypad, as in the login's phone box (`RdbPhoneInput`): on a touch device
- * the amount is typed with the app's keypad, and the field marks itself
- * `data-keyboard-anchor` so the scaled canvas keeps it above the keypad. With a
- * mouse and a keyboard there is no keypad, and the field is a plain input.
+ * Under them, the states the file draws:
+ *   - `– 19`, the form as it opens: "+ Add Authorized Recipient", 356 x 30 at
+ *     (32, 363), and the amount field in use at y 515 (white, blue line).
+ *   - `– 20`, the amount is more than the balance: the amount field is 93
+ *     tall with an orange line, and holds "Your Balance Is Insufficient" on a
+ *     366 x 30 tint, 55 px down. It still ends at y 570, so it starts at 477.
+ *   - `– 25`, after "+ Add": two more fields at y 363 and 422, the first in
+ *     use, then "- Remove Authorized Recipient" at (37, 481).
+ *   - `– 27`, all filled, with an authorized recipient: every field `#FCFCFC`
+ *     with a blue "Edit" in its label, the note at (37, 574) and "Withdrawal
+ *     Request" at (20, 835).
+ *   - `– 29`, all filled, no authorized recipient: the amount field moves up
+ *     to y 397, 4 px under the add button, and "Withdrawal Now" (20, 767)
+ *     stands over "Withdrawal Request".
+ * `– 27` and `– 29` also draw a grey 15 px eye in the recipient's name field.
+ *
+ * The grey block the file draws from y 582, 12 px under the amount field,
+ * stands for the login's own keypad (`NumericKeypad`). As in the login's phone
+ * box (`RdbPhoneInput`): on a touch device the amount and the phone number are
+ * typed with the app's keypad, and the field in use marks itself
+ * `data-keyboard-anchor` so the scaled canvas keeps it above the keypad. With
+ * a mouse and a keyboard there is no keypad, and the fields are plain inputs.
  */
-function Form({ balance }: { balance: WalletBalance }) {
+function Form({
+  balance,
+  amount,
+  setAmount,
+  authorized,
+  setAuthorized,
+  onNow,
+}: {
+  balance: WalletBalance;
+  amount: string;
+  setAmount: React.Dispatch<React.SetStateAction<string>>;
+  authorized: Authorized | null;
+  setAuthorized: React.Dispatch<React.SetStateAction<Authorized | null>>;
+  /** "Withdrawal Now": on to the code reader. */
+  onNow: () => void;
+}) {
   const { t } = useDemoNav();
   const top = TOP.form;
-  const [amount, setAmount] = useState("");
-  const [typing, setTyping] = useState(false);
-  const [keypad, setKeypad] = useState(false);
+  const [active, setActive] = useState<InUse>(null);
+  /**
+   * True until the empty form puts its amount field in use, 350 ms after it
+   * opens. The field waits at y 515 meanwhile, so it does not move then.
+   */
+  const [opening, setOpening] = useState(amount === "");
   const touch = useIsTouchDevice();
-  const field = useRef<HTMLDivElement>(null);
   const keys = useRef<HTMLDivElement>(null);
-  const input = useRef<HTMLInputElement>(null);
-  const inUse = touch ? keypad : typing;
+  const amountInput = useRef<HTMLInputElement>(null);
+  const phoneInput = useRef<HTMLInputElement>(null);
+  const nameInput = useRef<HTMLInputElement>(null);
+  /** The app's keypad types the amount and the phone number. */
+  const keypad = touch && (active === "amount" || active === "phone");
 
-  const use = () => {
-    if (touch) setKeypad(true);
-    else input.current?.focus({ preventScroll: true });
+  const use = (field: Exclude<InUse, null>) => {
+    if (touch && field !== "name") {
+      nameInput.current?.blur();
+      setActive(field);
+      return;
+    }
+    const input =
+      field === "amount"
+        ? amountInput
+        : field === "phone"
+          ? phoneInput
+          : nameInput;
+    input.current?.focus({ preventScroll: true });
   };
+  const leave = (field: InUse) =>
+    setActive((now) => (now === field ? null : now));
 
-  // The file shows the amount field in use when the form opens.
+  // The file shows the amount field in use when the form opens. Not after
+  // "Back" on the code reader: the amount is typed by then.
   useEffect(() => {
-    const timer = setTimeout(use, 350);
+    if (amount !== "") return;
+    const timer = setTimeout(() => {
+      use("amount");
+      setOpening(false);
+    }, 350);
     return () => clearTimeout(timer);
     // Once per form, and again when the device turns out to be a touch one.
   }, [touch]);
 
-  // A tap outside the field and the keypad puts the keypad away.
+  // A tap outside the keypad and its fields puts the keypad away.
   useEffect(() => {
     if (!keypad) return;
     const onDown = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as Node;
-      if (field.current?.contains(target) || keys.current?.contains(target))
+      const target = e.target as Element;
+      if (
+        keys.current?.contains(target) ||
+        target.closest?.("[data-keypad-field]")
+      )
         return;
-      setKeypad(false);
+      setActive(null);
     };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("touchstart", onDown);
@@ -412,6 +508,22 @@ function Form({ balance }: { balance: WalletBalance }) {
       document.removeEventListener("touchstart", onDown);
     };
   }, [keypad]);
+
+  const typing = active === "amount";
+  /** `Home Page – 20`: more than the balance holds. */
+  const short = toNumber(amount) > toNumber(balance.amount);
+  /** The look of `– 27` and `– 29`: `#FCFCFC`, "Edit" in the label. */
+  const saved = amount !== "" && !typing && !short;
+  const complete =
+    !authorized || (authorized.phone !== "" && authorized.name.trim() !== "");
+  const ready = active === null && toNumber(amount) > 0 && !short && complete;
+
+  // Where the block above the amount field ends, and where the field starts.
+  // With the keypad up the field ends at y 570, 12 px over the keypad.
+  const above = authorized ? 481 + 30 : 363 + 30;
+  const amountHeight = short ? 93 : 55;
+  const amountTop =
+    authorized ? 515 : typing || opening ? 570 - amountHeight : 397;
 
   const [toMy, bank = ""] = t("To My {bank}").split("{bank}");
 
@@ -449,69 +561,195 @@ function Form({ balance }: { balance: WalletBalance }) {
         mt={304 - (245 + 55)}
         label={t("Trydos client Full name ( Exact ID )")}
         testId="demo-wallet-recipient-name"
+        // The file draws the eye on the boards with no field in use.
+        mark={active === null}
       >
         {WALLET_RECIPIENT.name}
       </Recipient>
 
-      <motion.button
-        type="button"
-        data-pw="demo-wallet-add-recipient"
-        whileTap={{ scale: 0.98 }}
-        className="flex flex-col shrink-0 cursor-pointer"
-        style={{
-          marginTop: 363 - (304 + 55),
-          marginLeft: 32,
-          width: 356,
-          height: 30,
-          borderRadius: 12,
-          background: C.card,
-        }}
-      >
-        <Txt
-          center
-          size={11}
-          mt={gapTo(363, 382, 11)}
-          style={{ whiteSpace: "pre" }}
-        >
-          <span className="font-medium">{`+ ${t("Add")} `}</span>
-          {t("Authorized recipient")}
-          {/* The file's line ends with a space, and it is centred with it.
-              A plain space at the end of a line takes no room; this one does. */}
-          <span className="font-medium">{" "}</span>
-        </Txt>
-      </motion.button>
+      {authorized ? (
+        <>
+          <Entry
+            mt={363 - (304 + 55)}
+            label={t("Authorized recipient phone number")}
+            filled={authorized.phone !== ""}
+            active={active === "phone"}
+            onUse={() => use("phone")}
+            keypadField
+            anchor={touch && active === "phone"}
+            testId="demo-wallet-authorized-phone"
+          >
+            <div
+              className="flex items-center shrink-0"
+              style={{ marginTop: 3, height: 23 }}
+            >
+              {/* "+" Bold at x 32, the number from x 44. */}
+              <span
+                className="font-bold shrink-0"
+                style={{
+                  minWidth: 44 - 32,
+                  fontSize: 14,
+                  lineHeight: `${lineBox(14)}px`,
+                  color: authorized.phone === "" ? C.placeholder : C.ink,
+                }}
+              >
+                +
+              </span>
+              <div className="grid shrink-0">
+                {authorized.phone === "" && (
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none font-light self-center whitespace-nowrap"
+                    style={{
+                      gridArea: "1 / 1",
+                      fontSize: 14,
+                      lineHeight: `${lineBox(14)}px`,
+                      color: C.placeholder,
+                    }}
+                  >
+                    {t("Enter recipient Phone number")}
+                  </span>
+                )}
+                <input
+                  ref={phoneInput}
+                  data-pw="demo-wallet-authorized-phone-input"
+                  type="text"
+                  // With the app's keypad the phone's own keyboard stays away.
+                  inputMode={touch ? "none" : "tel"}
+                  readOnly={touch}
+                  tabIndex={touch ? -1 : undefined}
+                  value={authorized.phone}
+                  aria-label={t("Authorized recipient phone number")}
+                  onChange={(e) => {
+                    const phone = e.target.value.replace(/[^0-9+ ]/g, "");
+                    setAuthorized((now) => now && { ...now, phone });
+                  }}
+                  onFocus={() => setActive("phone")}
+                  onBlur={() => leave("phone")}
+                  className={`block bg-transparent outline-none font-normal ${touch ? "pointer-events-none" : ""}`}
+                  style={{
+                    gridArea: "1 / 1",
+                    width: 390 - 24 - (44 - 32),
+                    height: 23,
+                    fontSize: 14,
+                    color: C.ink,
+                    padding: 0,
+                    border: 0,
+                  }}
+                />
+              </div>
+            </div>
+          </Entry>
+          <Entry
+            mt={422 - (363 + 55)}
+            label={t("Authorized recipient Full name ( Exact ID )")}
+            filled={authorized.name !== ""}
+            active={active === "name"}
+            onUse={() => use("name")}
+            testId="demo-wallet-authorized-name"
+          >
+            <input
+              ref={nameInput}
+              data-pw="demo-wallet-authorized-name-input"
+              type="text"
+              value={authorized.name}
+              aria-label={t("Authorized recipient Full name ( Exact ID )")}
+              onChange={(e) => {
+                const name = e.target.value;
+                setAuthorized((now) => now && { ...now, name });
+              }}
+              onFocus={() => setActive("name")}
+              onBlur={() => leave("name")}
+              className="block shrink-0 bg-transparent outline-none font-normal"
+              style={{
+                marginTop: 3,
+                width: 390 - 24,
+                height: 23,
+                fontSize: 14,
+                color: C.ink,
+                padding: 0,
+                border: 0,
+              }}
+            />
+          </Entry>
+          {/* The file draws this button 5 px right of the add button. */}
+          <RecipientButton
+            mt={481 - (422 + 55)}
+            ml={37}
+            sign="-"
+            verb={t("Remove")}
+            testId="demo-wallet-remove-recipient"
+            onClick={() => {
+              setAuthorized(null);
+              setActive(null);
+            }}
+          />
+        </>
+      ) : (
+        <RecipientButton
+          mt={363 - (304 + 55)}
+          ml={32}
+          sign="+"
+          verb={t("Add")}
+          testId="demo-wallet-add-recipient"
+          onClick={() => {
+            setAuthorized({ phone: "", name: "" });
+            // `Home Page – 25`: the new phone field is the one in use.
+            setTimeout(() => use("phone"), 0);
+          }}
+        />
+      )}
 
       <Box
         w={390}
-        h={55}
-        mt={515 - (363 + 30)}
+        h={amountHeight}
+        mt={amountTop - above}
         ml={20}
         radius={15}
-        fill={C.white}
-        stroke={inUse ? C.blue : C.line}
-        ref={field}
+        fill={saved ? C.card : C.white}
+        stroke={short ? C.orange : typing ? C.blue : C.line}
+        strokeVisible={!saved}
         data-pw="demo-wallet-amount"
+        data-keypad-field=""
         // While the app's keypad is up, the scaled canvas keeps this box above it.
-        data-keyboard-anchor={touch && keypad ? "" : undefined}
-        className="flex flex-col cursor-text"
-        style={{ padding: "8px 12px 0" }}
-        onClick={use}
+        data-keyboard-anchor={touch && typing ? "" : undefined}
+        className="flex flex-col overflow-hidden cursor-text"
+        style={{
+          padding: "8px 12px 0",
+          transition:
+            "margin-top 0.3s, height 0.3s, background-color 0.3s",
+        }}
+        onClick={() => use("amount")}
       >
         <div className="flex items-start shrink-0">
-          <Txt size={12} weight="medium" as="label">
-            {t("Enter withdrawal amount")}
-          </Txt>
-          {/* From x 291 in the file; it ends 12 px inside the field. */}
-          <Txt
-            size={12}
-            color={C.placeholder}
-            className="ml-auto"
-            style={{ width: 398 - 291, whiteSpace: "pre" }}
-          >
-            {`${t("Available")} `}
-            <span className="font-medium">{balance.amount}</span>
-            {` ${balance.code}`}
-          </Txt>
+          {short ? (
+            <Txt size={12} weight="medium" as="label">
+              {t("Enter Amount")}
+            </Txt>
+          ) : typing ? (
+            <>
+              <Txt size={12} weight="medium" as="label">
+                {t("Enter withdrawal amount")}
+              </Txt>
+              {/* From x 291 in the file; it ends 12 px inside the field. */}
+              <Txt
+                size={12}
+                color={C.placeholder}
+                className="ml-auto"
+                style={{ width: 398 - 291, whiteSpace: "pre" }}
+              >
+                {`${t("Available")} `}
+                <span className="font-medium">{balance.amount}</span>
+                {` ${balance.code}`}
+              </Txt>
+            </>
+          ) : saved ? (
+            <EditLabel field={t("amount")} />
+          ) : (
+            <Txt size={12} color={C.grey} as="label">
+              {t("amount")}
+            </Txt>
+          )}
         </div>
         {/* The value line of every demo field: 23 tall, 3 under the label,
             which puts the 14 px text on the field's baseline 43. The grey
@@ -533,8 +771,26 @@ function Form({ balance }: { balance: WalletBalance }) {
               {balance.code}
             </span>
           )}
+          {saved && (
+            // The code after the saved amount: "USD" starts at x 58, 5 px
+            // after "100". The unseen copy of the amount keeps that room.
+            <span
+              aria-hidden="true"
+              className="pointer-events-none font-normal self-center"
+              style={{
+                gridArea: "1 / 1",
+                fontSize: 14,
+                lineHeight: `${lineBox(14)}px`,
+                color: C.ink,
+                whiteSpace: "pre",
+              }}
+            >
+              <span className="font-medium invisible">{amount}</span>
+              <span style={{ marginLeft: 5 }}>{balance.code}</span>
+            </span>
+          )}
           <input
-            ref={input}
+            ref={amountInput}
             data-pw="demo-wallet-amount-input"
             type="text"
             // With the app's keypad the phone's own keyboard stays away.
@@ -544,9 +800,9 @@ function Form({ balance }: { balance: WalletBalance }) {
             value={amount}
             aria-label={t("Enter withdrawal amount")}
             onChange={(e) => setAmount(e.target.value.replace(/[^0-9.,]/g, ""))}
-            onFocus={() => setTyping(true)}
-            onBlur={() => setTyping(false)}
-            className={`block bg-transparent outline-none font-normal ${touch ? "pointer-events-none" : ""}`}
+            onFocus={() => setActive("amount")}
+            onBlur={() => leave("amount")}
+            className={`block bg-transparent outline-none ${saved ? "font-medium" : "font-normal"} ${touch ? "pointer-events-none" : ""}`}
             style={{
               gridArea: "1 / 1",
               width: 390 - 24,
@@ -558,17 +814,391 @@ function Form({ balance }: { balance: WalletBalance }) {
             }}
           />
         </div>
+        {short && (
+          // 366 x 30 at (32, 532): 55 px down the field, 6 under the value line.
+          <Box
+            w={366}
+            h={30}
+            mt={55 - (8 + lineBox(12) + 3 + 23)}
+            radius={15}
+            fill={C.orangeTint}
+            data-pw="demo-wallet-amount-short"
+            className="flex flex-col"
+          >
+            <Txt center size={11} mt={gapTo(532, 551, 11)}>
+              {t("Your Balance is insufficient")}
+            </Txt>
+          </Box>
+        )}
       </Box>
+
+      {authorized && active === null && (
+        // 356 x 30 at (37, 574), 4 px under the amount field. The file
+        // centres the words on x 210, 5 px left of the tint's centre.
+        <Box
+          w={356}
+          h={30}
+          mt={574 - (515 + 55)}
+          ml={37}
+          radius={12}
+          fill={C.noteTint}
+          data-pw="demo-wallet-named-only"
+          className="flex flex-col"
+        >
+          <Txt center nudge={-5} size={11} mt={gapTo(574, 593, 11)}>
+            {t("Only the named person may receive the amount !")}
+          </Txt>
+        </Box>
+      )}
+
+      {/* The buttons end at y 895, 35 px above the board's end. */}
+      <div
+        className="flex flex-col shrink-0 mt-auto"
+        style={{ paddingTop: 8, paddingBottom: BOARD_END - 895 }}
+      >
+        <AnimatePresence initial={false}>
+          {ready && !authorized && (
+            <SheetButton
+              key="now"
+              label={t("Withdrawal Now")}
+              fill={C.purple}
+              onClick={onNow}
+              testId="demo-wallet-withdraw-now"
+            />
+          )}
+          {ready && (
+            <SheetButton
+              key="request"
+              mt={835 - (767 + 60)}
+              label={t("Withdrawal Request")}
+              fill={C.inkSoft}
+              testId="demo-wallet-withdraw-request"
+            />
+          )}
+        </AnimatePresence>
+      </div>
 
       {touch && (
         <NumericKeypad
           open={keypad}
           keypadRef={keys}
-          onPress={(digit) => setAmount((now) => (now + digit).slice(0, 12))}
-          onBackspace={() => setAmount((now) => now.slice(0, -1))}
+          onPress={(digit) => {
+            if (active === "phone")
+              setAuthorized(
+                (now) =>
+                  now && { ...now, phone: (now.phone + digit).slice(0, 15) },
+              );
+            else setAmount((now) => (now + digit).slice(0, 12));
+          }}
+          onBackspace={() => {
+            if (active === "phone")
+              setAuthorized(
+                (now) => now && { ...now, phone: now.phone.slice(0, -1) },
+              );
+            else setAmount((now) => now.slice(0, -1));
+          }}
         />
       )}
     </>
+  );
+}
+
+/**
+ * `Home Page – 30`, sheet from y 90, after "Withdrawal Now":
+ *   - the brand (24 px) on baseline 180;
+ *   - the black box 350 x 350 at (40, 213), radius 30: the 25 px mark at
+ *     (202, 500) and one 11 px line on baseline 548;
+ *   - "Cash Withdraw" (16 Medium) on baseline 591 and the amount (24) on 631;
+ *   - the grey note, 13 px on an 18 px line, 366 wide, first baseline 662;
+ *   - "Back", 390 x 60 at (20, 835), `#FCFCFC` with a dashed line.
+ */
+function Scan({
+  balance,
+  amount,
+  onBack,
+}: {
+  balance: WalletBalance;
+  amount: string;
+  onBack: () => void;
+}) {
+  const { t } = useDemoNav();
+  const top = TOP.scan;
+  const [lead, tail = ""] = t(
+    "Please read the code in front of you at the {brand} center, then receive the amount from the employee.",
+  ).split("{brand}");
+  return (
+    <>
+      <Title top={top} mark={balance.mark} />
+      <Brand size={24} mt={gapTo(top + 24 + lineBox(24), 180, 24)} />
+
+      <Box
+        w={350}
+        h={350}
+        mt={213 - textBottom(180, 24)}
+        ml={40}
+        radius={30}
+        fill="#000000"
+        data-pw="demo-wallet-scan-box"
+        className="flex flex-col items-center"
+      >
+        {/* The file puts the mark half a px left of the box's centre. */}
+        <Icon name="scanCode" mt={500 - 213} style={{ marginRight: 1 }} />
+        {/* And the line 1 px right of it. */}
+        <Txt
+          center
+          nudge={1}
+          size={11}
+          color={C.card}
+          mt={gapTo(500 + 25, 548, 11)}
+        >
+          {t("Read the code on the opposite side to take action")}
+        </Txt>
+      </Box>
+
+      <Txt
+        center
+        nudge={-0.5}
+        size={16}
+        weight="medium"
+        mt={gapTo(213 + 350, 591, 16)}
+      >
+        {t("Cash withdraw")}
+      </Txt>
+      <Txt
+        center
+        nudge={-0.5}
+        size={24}
+        mt={gapTo(textBottom(591, 16), 631, 24)}
+        data-pw="demo-wallet-scan-amount"
+        style={{ whiteSpace: "pre" }}
+      >
+        <span className="font-medium">{`${amount} `}</span>
+        {balance.code}
+      </Txt>
+
+      <p
+        className="shrink-0 font-normal text-center"
+        style={{
+          marginTop: paraTop(662, 13, 18) - textBottom(631, 24),
+          marginLeft: 32,
+          width: 366,
+          fontSize: 13,
+          lineHeight: "18px",
+          color: C.grey,
+        }}
+      >
+        {lead}
+        <span className="font-bold">{WALLET_BRAND.start}</span>
+        {WALLET_BRAND.rest}
+        <span className="font-bold">{WALLET_BRAND.bank}</span>
+        {tail}
+        <br />
+        <br />
+        {t(
+          "Do not leave the page or the center until you have confirmed that the transaction is complete.",
+        )}
+        <br />
+        <span className="font-medium">{t("Thank you.")}</span>
+      </p>
+
+      <div
+        className="flex flex-col shrink-0 mt-auto"
+        style={{ paddingTop: 8, paddingBottom: BOARD_END - 895 }}
+      >
+        {/* The file starts "Back" at x 197: half a px right of centre. */}
+        <SheetButton
+          label={t("Back")}
+          nudge={0.5}
+          fill={C.card}
+          color={C.ink}
+          stroke={C.lineDark}
+          dash="3 3"
+          onClick={onBack}
+          testId="demo-wallet-scan-back"
+        />
+      </div>
+    </>
+  );
+}
+
+/** A wide button of the sheet, 390 x 60 at x 20, radius 20, 16 px words. */
+function SheetButton({
+  mt,
+  label,
+  nudge,
+  fill,
+  color = C.white,
+  stroke,
+  dash,
+  onClick,
+  testId,
+}: {
+  mt?: number;
+  label: string;
+  nudge?: number;
+  fill: string;
+  color?: string;
+  stroke?: string;
+  dash?: string;
+  onClick?: () => void;
+  testId: string;
+}) {
+  return (
+    <motion.button
+      type="button"
+      data-pw={testId}
+      onClick={onClick}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      whileTap={{ scale: 0.98 }}
+      className="relative flex flex-col shrink-0 cursor-pointer"
+      style={{
+        marginTop: mt,
+        marginLeft: 20,
+        width: 390,
+        height: 60,
+        borderRadius: 20,
+        background: fill,
+      }}
+    >
+      {/* Baseline 36 in the button (871 - 835). */}
+      <Txt center nudge={nudge} size={16} color={color} mt={gapTo(0, 36, 16)}>
+        {label}
+      </Txt>
+      {stroke && <Stroke color={stroke} radius={20} dash={dash} />}
+    </motion.button>
+  );
+}
+
+/**
+ * "+ Add Authorized Recipient" or "- Remove Authorized Recipient": 356 x 30,
+ * `#FCFCFC`, radius 12, 11 px words on baseline 19.
+ */
+function RecipientButton({
+  mt,
+  ml,
+  sign,
+  verb,
+  onClick,
+  testId,
+}: {
+  mt: number;
+  ml: number;
+  sign: "+" | "-";
+  verb: string;
+  onClick: () => void;
+  testId: string;
+}) {
+  const { t } = useDemoNav();
+  return (
+    <motion.button
+      type="button"
+      data-pw={testId}
+      onClick={onClick}
+      whileTap={{ scale: 0.98 }}
+      className="flex flex-col shrink-0 cursor-pointer"
+      style={{
+        marginTop: mt,
+        marginLeft: ml,
+        width: 356,
+        height: 30,
+        borderRadius: 12,
+        background: C.card,
+      }}
+    >
+      <Txt
+        center
+        size={11}
+        mt={gapTo(363, 382, 11)}
+        style={{ whiteSpace: "pre" }}
+      >
+        <span className="font-medium">{`${sign} ${verb} `}</span>
+        {t("Authorized recipient")}
+        {/* The file's line ends with a space, and it is centred with it.
+            A plain space at the end of a line takes no room; this one does. */}
+        <span className="font-medium">{" "}</span>
+      </Txt>
+    </motion.button>
+  );
+}
+
+/** The label of a filled field: the field's name in grey, "Edit" in blue. */
+function EditLabel({ field }: { field: string }) {
+  const { t } = useDemoNav();
+  const [before, after = ""] = t("Edit {field}").split("{field}");
+  return (
+    <Txt size={12} color={C.grey} as="label" style={{ whiteSpace: "pre" }}>
+      <span style={{ color: C.blue }}>{before}</span>
+      {field}
+      <span style={{ color: C.blue }}>{after}</span>
+    </Txt>
+  );
+}
+
+/**
+ * A field of the authorized recipient, 390 x 55. Three looks in the file:
+ *   - in use (`– 25`, the phone): white, blue line, the label Medium and
+ *     dark, starting with "Enter";
+ *   - empty and not in use (`– 25`, the name): white, grey line, grey label;
+ *   - filled (`– 27`): `#FCFCFC`, no line, "Edit" in blue before the label.
+ */
+function Entry({
+  mt,
+  label,
+  filled,
+  active,
+  onUse,
+  keypadField = false,
+  anchor = false,
+  children,
+  testId,
+}: {
+  mt: number;
+  label: string;
+  filled: boolean;
+  active: boolean;
+  onUse: () => void;
+  /** The app's keypad types in this field. */
+  keypadField?: boolean;
+  /** The scaled canvas keeps this field above the keypad. */
+  anchor?: boolean;
+  children: React.ReactNode;
+  testId: string;
+}) {
+  const { t } = useDemoNav();
+  const saved = filled && !active;
+  return (
+    <Box
+      w={390}
+      h={55}
+      mt={mt}
+      ml={20}
+      radius={15}
+      fill={saved ? C.card : C.white}
+      stroke={active ? C.blue : C.line}
+      strokeVisible={!saved}
+      data-pw={testId}
+      data-keypad-field={keypadField ? "" : undefined}
+      data-keyboard-anchor={anchor ? "" : undefined}
+      className="flex flex-col cursor-text transition-[background-color] duration-300"
+      style={{ padding: "8px 12px 0" }}
+      onClick={onUse}
+    >
+      {active ? (
+        <Txt size={12} weight="medium" as="label">
+          {t("Enter {field}").replace("{field}", label)}
+        </Txt>
+      ) : saved ? (
+        <EditLabel field={label} />
+      ) : (
+        <Txt size={12} color={C.grey} as="label">
+          {label}
+        </Txt>
+      )}
+      {children}
+    </Box>
   );
 }
 
@@ -618,17 +1248,20 @@ function Tab({
 
 /**
  * A recipient field, 390 x 55, `#FCFCFC`: the grey label (12, "Recipient"
- * Medium) on baseline 20 and the value (14) on 43, both 12 px in.
+ * Medium) on baseline 20 and the value (14) on 43, both 12 px in. `mark` adds
+ * the grey 15 px eye at (383, 324): 20 px down the field, 12 from its right.
  */
 function Recipient({
   mt,
   label,
   children,
+  mark = false,
   testId,
 }: {
   mt: number;
   label: string;
   children: React.ReactNode;
+  mark?: boolean;
   testId: string;
 }) {
   const { t } = useDemoNav();
@@ -641,16 +1274,29 @@ function Recipient({
       radius={15}
       fill={C.card}
       data-pw={testId}
-      className="flex flex-col"
+      className="flex items-start"
       style={{ padding: "8px 12px 0" }}
     >
-      <Txt size={12} color={C.grey} style={{ whiteSpace: "pre" }}>
-        <span className="font-medium">{t("recipient")}</span>
-        {` ${label}`}
-      </Txt>
-      <Txt size={14} mt={gapTo(8 + lineBox(12), 43, 14)} style={{ whiteSpace: "pre" }}>
-        {children}
-      </Txt>
+      <div className="flex flex-col shrink-0">
+        <Txt size={12} color={C.grey} style={{ whiteSpace: "pre" }}>
+          <span className="font-medium">{t("recipient")}</span>
+          {` ${label}`}
+        </Txt>
+        <Txt
+          size={14}
+          mt={gapTo(8 + lineBox(12), 43, 14)}
+          style={{ whiteSpace: "pre" }}
+        >
+          {children}
+        </Txt>
+      </div>
+      {mark && (
+        <Icon
+          name="eyeGreySmall"
+          mt={324 - (304 + 8)}
+          style={{ marginLeft: "auto" }}
+        />
+      )}
     </Box>
   );
 }

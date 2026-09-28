@@ -1127,10 +1127,19 @@ describe("Demo wallet — numbers from the XD file", () => {
       layer!.style.background,
       "the page behind the receipt is not covered with #1D1D1D at 50%",
     ).toMatch(/rgba\(29, 29, 29, 0\.5\)/);
+    // The page itself carries the blur. As the layer's backdrop-filter, Chrome
+    // kept the purple cards strong at the canvas's edges in a short window.
+    const page = container
+      .querySelector('[data-pw="demo-wallet"] header')
+      ?.closest<HTMLElement>("div");
     expect(
-      layer!.style.backdropFilter,
+      page?.style.filter,
       "the page behind the receipt is not blurred (the file's background blur is 15.37)",
     ).toContain("blur(15.37px)");
+    expect(
+      layer!.style.backdropFilter,
+      "the receipt's layer blurs its backdrop again; that is the blur Chrome draws wrong in a short window",
+    ).toBeFalsy();
     const card = layer!.querySelector<HTMLElement>('[data-pw="demo-wallet-receipt-card"]');
     expect(card, "the receipt has no card").not.toBeNull();
     expect(px(card, "width"), "the receipt card is not 406 wide").toBe("406px");
