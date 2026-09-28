@@ -231,7 +231,11 @@ describe("Demo screens — numbers from the XD file", () => {
     }
   });
 
-  it("empty address, cart and chat: the first grey line is 7 px under the help mark and the second 5 px under the first, as `Home Page – 96` draws them", () => {
+  // XD shows these gaps as 7 and 5, but it measures from its own text boxes
+  // (lineHeight 12 and 20 in the file). In CSS line boxes the same pixels are
+  // 7.5 under the mark (it ends at 451.5) and 6 between the lines (475 .. 481).
+  // 7 and 5 drew the lines 0.5 and 1.5 px above the file's baselines.
+  it("empty address, cart and chat: the grey lines sit on the file's baselines 472 and 492, as `Home Page – 96` draws them", () => {
     const screens = [
       { name: "address", path: "/sy-en/demo/settings/profile/address", search: "", testId: "demo-address-list" },
       { name: "cart", path: "/sy-en/demo", search: "cart", testId: "demo-cart" },
@@ -249,12 +253,12 @@ describe("Demo screens — numbers from the XD file", () => {
       expect(hint, `the ${name} screen has no grey hint under the message`).toBeDefined();
       expect(
         message.style.marginTop,
-        `the ${name} empty message is not 7 px under the help mark (XD shows 7)`,
-      ).toBe("7px");
+        `the ${name} empty message is off the file's baseline 472 (needs 7.5 px under the mark's box end, 451.5)`,
+      ).toBe("7.5px");
       expect(
         hint.style.marginTop,
-        `the ${name} hint is not 5 px under the empty message (XD shows 5)`,
-      ).toBe("5px");
+        `the ${name} hint is off the file's baseline 492 (needs 6 px under the message's line box end, 475)`,
+      ).toBe("6px");
       document.body.innerHTML = "";
     }
   });

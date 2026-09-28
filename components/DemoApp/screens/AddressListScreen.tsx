@@ -165,12 +165,13 @@ export default function AddressListScreen() {
               mt={432.5 - 148}
               style={{ alignSelf: "center" }}
             />
-            {/* The file puts this line 2.67 px left of centre (x 135). The
-                gaps are the ones XD shows: 7 under the mark, 5 between lines. */}
+            {/* The file puts this line 2.67 px left of centre (x 135). XD shows
+                the gaps as 7 and 5 from its own text boxes; placed by baseline
+                they are 7.5 and 6 here, the same pixels. */}
             <Txt
               center
               nudge={-2.67}
-              mt={7}
+              mt={gapTo(451.5, 472, 13)}
               size={13}
               weight="medium"
               color={C.hint}
@@ -179,7 +180,7 @@ export default function AddressListScreen() {
             </Txt>
             <Txt
               center
-              mt={5}
+              mt={gapTo(textBottom(472, 13), 492, 11)}
               size={11}
               color={C.hint}
             >
