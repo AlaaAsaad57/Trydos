@@ -7,10 +7,18 @@
 export const XD_ICON_SIZE = {
   navTry: { w: 35, h: 34.99 },
   navSearch: { w: 34.99, h: 34.99 },
-  navSearchActive: { w: 42.98, h: 42.99 },
   navCart: { w: 35, h: 35.01 },
   navChat: { w: 34, h: 34 },
   navUser: { w: 17.9, h: 21.88 },
+  // The tab states on the pasteboard under the `Home Page` artboard (not in
+  // any artboard). The counts in them are left out; the tab bar draws them.
+  navTryActive: { w: 42, h: 42 },
+  navSearchActive: { w: 34, h: 34 },
+  navCartCount: { w: 34, h: 34 },
+  navCartActiveCount: { w: 34, h: 34 },
+  navChatCount: { w: 34, h: 34 },
+  navChatActiveCount: { w: 34, h: 34 },
+  navUserActive: { w: 16.91, h: 20.88 },
   homeLogo: { w: 20.99, h: 20.99 },
   searchGlass: { w: 18.99, h: 18.99 },
   searchVoice: { w: 19.01, h: 18.99 },

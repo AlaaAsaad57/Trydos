@@ -291,6 +291,7 @@ function DemoShellInner({
               active={shown && isTabRoot(shown) ? tabOf(shown) : null}
               visible={showBar}
               photo={profile.photo}
+              verified={profile.emailVerified}
               resetKey={key}
               onSelect={onTab}
               t={t}

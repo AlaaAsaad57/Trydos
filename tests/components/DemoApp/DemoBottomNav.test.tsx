@@ -101,6 +101,7 @@ const nav = (
     active="home"
     visible
     photo={null}
+    verified={false}
     resetKey="home"
     onSelect={() => {}}
     t={(key) => key}
@@ -239,35 +240,124 @@ describe("DemoBottomNav", () => {
     ).toBe("");
   });
 
-  it("draws home, cart and chat with the same icon active or not (the file has no blue variant); only search changes", () => {
-    const src = (container: HTMLElement, tab: string) =>
-      (
-        container.querySelector(`[data-pw="demo-tab-${tab}"] img`) as
-          | HTMLImageElement
-          | null
-      )?.getAttribute("src");
-    for (const tab of ["home", "cart", "chat"] as const) {
-      const idle = src(render(nav({ active: "search" })).container, tab);
-      const on = src(render(nav({ active: tab })).container, tab);
+  /** The icon of a tab that is on show (not faded out), by its file name. */
+  const shownIcons = (container: HTMLElement, tab: string) =>
+    [
+      ...container.querySelectorAll<HTMLImageElement>(
+        `[data-pw="demo-tab-${tab}"] img`,
+      ),
+    ]
+      .filter((img) => img.style.opacity !== "0")
+      .map((img) => img.getAttribute("src")!.split("/").pop());
+
+  it("swaps each tab to its active icon from the set under the `Home Page` artboard, and back when it is idle", () => {
+    for (const [tab, idle, on] of [
+      ["home", "navTry.svg", "navTryActive.svg"],
+      ["search", "navSearch.svg", "navSearchActive.svg"],
+      ["cart", "navCartCount.svg", "navCartActiveCount.svg"],
+      ["chat", "navChatCount.svg", "navChatActiveCount.svg"],
+    ] as const) {
+      const other = tab === "home" ? "search" : "home";
       expect(
-        on,
-        `the active ${tab} tab draws ${on}; the design file draws the same icon as when it is idle (${idle}) — the dark ring, not a blue one`,
-      ).toBe(idle);
+        shownIcons(render(nav({ active: tab })).container, tab),
+        `the active ${tab} tab does not show only the file's active icon (${on})`,
+      ).toEqual([on]);
+      expect(
+        shownIcons(render(nav({ active: other })).container, tab),
+        `the idle ${tab} tab does not show only its idle icon (${idle})`,
+      ).toEqual([idle]);
     }
-    const search = render(nav({ active: "search" })).container.querySelector(
-      '[data-pw="demo-tab-search"] img[src="/assets/demo/xd/navSearchActive.svg"]',
-    ) as HTMLElement | null;
-    expect(
-      search,
-      "the active search tab does not draw the file's blue ring",
-    ).not.toBeNull();
-    expect(
-      search!.style.opacity,
-      "the active search tab draws the blue ring hidden",
-    ).toBe("1");
   });
 
-  it("draws the active icon bigger — 35 grows to the file's 43 (search `– 1`), the profile box 34 to 42 — and every idle one at its own size", () => {
+  it("shows the file's counts on cart (3) and chat (11): purple, and white on the active chat", () => {
+    /** The count on show: its text and colour. */
+    const count = (container: HTMLElement, tab: string) => {
+      const shown = [
+        ...container.querySelectorAll<HTMLElement>(
+          `[data-pw="demo-tab-${tab}-count"]`,
+        ),
+      ].filter((el) => el.style.opacity !== "0");
+      expect(
+        shown.length,
+        `the ${tab} tab does not show exactly one count`,
+      ).toBe(1);
+      return { text: shown[0].textContent, color: shown[0].style.color };
+    };
+    const purple = "rgb(74, 49, 231)";
+    for (const [tab, text, idleColor, onColor] of [
+      ["cart", "3", purple, purple],
+      ["chat", "11", purple, "rgb(255, 255, 255)"],
+    ] as const) {
+      expect(
+        count(render(nav({ active: "home" })).container, tab),
+        `the idle ${tab} tab does not show ${text} in #4A31E7`,
+      ).toEqual({ text, color: idleColor });
+      expect(
+        count(render(nav({ active: tab })).container, tab),
+        `the active ${tab} tab does not show ${text} in ${onColor}`,
+      ).toEqual({ text, color: onColor });
+    }
+  });
+
+  describe("the profile tab", () => {
+    const profile = (container: HTMLElement) =>
+      container.querySelector(
+        '[data-pw="demo-tab-settings-icon"] > span',
+      ) as HTMLElement;
+    /** The colour of the line round the box, or null when it is faded out. */
+    const line = (container: HTMLElement) => {
+      const svg = container.querySelector(
+        '[data-pw="demo-tab-settings"] svg[data-stroke]',
+      ) as SVGElement;
+      return svg.style.opacity === "0" ? null : svg.dataset.stroke;
+    };
+
+    it("with no photo: the grey box idle, the purple box and purple user glyph active", () => {
+      const idle = render(nav({ active: "home" })).container;
+      expect(
+        profile(idle).style.background,
+        "the idle profile box is not #EFEFEF",
+      ).toBe("rgb(239, 239, 239)");
+      expect(
+        shownIcons(idle, "settings"),
+        "the idle profile box does not show only the grey user glyph",
+      ).toEqual(["navUser.svg"]);
+
+      const on = render(nav({ active: "settings" })).container;
+      expect(
+        profile(on).style.background,
+        "the active profile box is not #D4D4FC",
+      ).toBe("rgb(212, 212, 252)");
+      expect(
+        shownIcons(on, "settings"),
+        "the active profile box does not show only the purple user glyph",
+      ).toEqual(["navUserActive.svg"]);
+      expect(
+        line(on),
+        "the active profile box lost the file's 0.3 #1D1D1D line",
+      ).toBe("#1D1D1D");
+    });
+
+    it("with a photo: a purple line when active, orange while the shopper still has to verify, none once verified", () => {
+      const photo = "blob:photo";
+      expect(
+        line(
+          render(nav({ active: "settings", photo, verified: false })).container,
+        ),
+        "the active photo is not framed in purple (#4A31E7)",
+      ).toBe("#4A31E7");
+      expect(
+        line(render(nav({ active: "home", photo, verified: false })).container),
+        "the idle photo of a shopper who has not verified is not framed in orange (#F5A03C)",
+      ).toBe("#F5A03C");
+      expect(
+        line(render(nav({ active: "home", photo, verified: true })).container),
+        "the idle photo of a verified shopper still has a line round it",
+      ).toBeNull();
+    });
+  });
+
+  it("draws the active icon bigger — home 35 to the file's 42 try mark, search 35 to 43 (`– 1`), the profile box 34 to 42, cart and chat 34 by the same 43/35 — and every idle one at its own size", () => {
     const { container } = render(nav({ active: "cart" }));
     runFrames(80);
     const sizes = Object.fromEntries(
@@ -276,10 +366,10 @@ describe("DemoBottomNav", () => {
         drawnSize(container, tab),
       ]),
     );
-    expect(sizes.cart, "the active cart icon is not drawn at 43 px").toBeCloseTo(
-      43,
-      0,
-    );
+    expect(
+      sizes.cart,
+      "the active cart icon is not drawn at 41.8 px",
+    ).toBeCloseTo(41.8, 0);
     expect(sizes.home, "the idle home icon is not drawn at 35 px").toBeCloseTo(
       35,
       0,
@@ -298,7 +388,7 @@ describe("DemoBottomNav", () => {
     ).toBeCloseTo(34, 0);
 
     for (const [tab, size] of [
-      ["home", 43],
+      ["home", 42],
       ["search", 43],
       ["chat", 41.8],
       ["settings", 42],
@@ -320,22 +410,22 @@ describe("DemoBottomNav", () => {
     const home = drawnSize(container, "home");
     const cart = drawnSize(container, "cart");
     expect(
-      home > 35.5 && home < 42.5,
-      `six frames (100 ms) after the tap the home icon is ${home.toFixed(2)} px; it should be on its way from 35 to 43, not jump`,
+      home > 35.5 && home < 41.5,
+      `six frames (100 ms) after the tap the home icon is ${home.toFixed(2)} px; it should be on its way from 35 to 42, not jump`,
     ).toBe(true);
     expect(
-      cart > 35.5 && cart < 42.5,
-      `six frames (100 ms) after the tap the cart icon is ${cart.toFixed(2)} px; it should be on its way from 43 back to 35, not jump`,
+      cart > 34.5 && cart < 41.3,
+      `six frames (100 ms) after the tap the cart icon is ${cart.toFixed(2)} px; it should be on its way from 41.8 back to 34, not jump`,
     ).toBe(true);
     await runFramesYielding(80);
     expect(
       drawnSize(container, "home"),
-      "the home icon did not settle at 43 px",
-    ).toBeCloseTo(43, 0);
+      "the home icon did not settle at 42 px",
+    ).toBeCloseTo(42, 0);
     expect(
       drawnSize(container, "cart"),
-      "the cart icon did not settle back at 35 px",
-    ).toBeCloseTo(35, 0);
+      "the cart icon did not settle back at 34 px",
+    ).toBeCloseTo(34, 0);
   });
 
   it("picks a tab with the keyboard and marks the active one", () => {

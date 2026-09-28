@@ -11,7 +11,13 @@ import {
 } from "components/NavigationDemo/BottomNav";
 import XdIcon from "./XdIcon";
 import { Stroke } from "./ui";
-import { TAB_BAR, SCREEN_TRANSITION, bottom } from "./demoLayout";
+import {
+  TAB_BAR,
+  SCREEN_TRANSITION,
+  bottom,
+  lineBox,
+  textTop,
+} from "./demoLayout";
 import type { DemoTab } from "./demoRoutes";
 import type { XdIconName } from "./xdIcons";
 import type { DemoKey } from "./demoKeys";
@@ -35,12 +41,19 @@ import type { DemoKey } from "./demoKeys";
  *     back, on one spring (GROW_SPRING).
  *
  * What it does NOT copy: the grey pill behind the active item. The design has
- * no pill, and no blue "active" icon either: the `Home Page` artboard (home
- * tab active) draws the try mark with the same dark dotted ring as `– 1`
- * (search active). The file shows the active size on two tabs: search grows
- * from 35 into its 43 px #4A31E7 ring (`– 1`), and the profile box grows from
- * 34 into the 42 px photo. Home, cart and chat grow by the same ratio
- * (43 / 35) about their own centre, keeping their own icon.
+ * no pill.
+ *
+ * The active icons are the set the file keeps on the pasteboard under the
+ * `Home Page` artboard: the purple try mark in its purple dotted ring (42),
+ * the purple search ring, the purple bag with the yellow handle, the purple
+ * chat bubbles, and the purple profile box. The idle icon fades out and the
+ * active one fades in while the tab grows. The sizes: home grows from 35 into
+ * the 42 try mark, search from 35 into its 43 ring (`– 1`), the profile box
+ * from 34 into 42, and cart and chat by the same ratio (43 / 35) about their
+ * own centre.
+ *
+ * Cart and chat show the file's counts, 3 and 11. The demo has no cart and no
+ * chat, so the counts are fixed: they show the badge design, not real data.
  *
  * Each icon is drawn at its ACTIVE size and scaled down while idle. The icons
  * are <img> SVGs: a browser can draw a shrunk image sharp, but an image grown
@@ -62,15 +75,32 @@ import type { DemoKey } from "./demoKeys";
 /** An icon box on the artboard: top-left corner and width. */
 type Box = { x: number; y: number; size: number };
 
+/**
+ * A count the file draws on a tab: Quicksand Bold 12, its left edge and its
+ * baseline in the tab's 34 px box. The active count sits 1 px lower.
+ */
+type Count = {
+  text: string;
+  x: number;
+  idle: { baseline: number; color: string };
+  active: { baseline: number; color: string };
+};
+
 type Slot = {
   id: DemoTab;
   label: DemoKey;
   icon: XdIconName;
   idle: Box;
   active: Box;
-  /** The icon the file draws when the tab is active. Only search has one. */
-  activeIcon?: XdIconName;
+  /** The icon the file draws when the tab is active. */
+  activeIcon: XdIconName;
+  count?: Count;
 };
+
+/** The box the file draws the counts in. */
+const COUNT_BOX = 34;
+const COUNT_SIZE = 12;
+const PURPLE = "#4A31E7";
 
 /** How much search grows in the file: the 34.99 icon becomes the 42.98 ring. */
 const GROW = 42.98 / 34.99;
@@ -82,12 +112,23 @@ const grown = (b: Box): Box => {
   return { x: b.x - shift, y: b.y - shift, size };
 };
 
-/** Icon boxes straight from the artboard. Slots are 76 apart, centred on 63 .. 367. */
-const HOME: Box = { x: 45.5, y: 870.5, size: 35 };
-const CART: Box = { x: 197.5, y: 870.5, size: 35 };
+/**
+ * Icon boxes straight from the artboard. Slots are 76 apart, centred on 63 .. 367.
+ * The cart box is the 34 px box of the cart with a count, centred where the
+ * artboard's 35 px cart is.
+ */
+const CART: Box = { x: 198, y: 871, size: 34 };
 const CHAT: Box = { x: 274, y: 871, size: 34 };
 const SLOTS: Slot[] = [
-  { id: "home", label: "Home", icon: "navTry", idle: HOME, active: grown(HOME) },
+  {
+    id: "home",
+    label: "Home",
+    icon: "navTry",
+    idle: { x: 45.5, y: 870.5, size: 35 },
+    // The 42 try mark, on the same centre (63, 888).
+    active: { x: 42, y: 867, size: 42 },
+    activeIcon: "navTryActive",
+  },
   {
     id: "search",
     label: "Search",
@@ -96,8 +137,34 @@ const SLOTS: Slot[] = [
     active: { x: 113.5, y: 866.5, size: 42.98 },
     activeIcon: "navSearchActive",
   },
-  { id: "cart", label: "Cart", icon: "navCart", idle: CART, active: grown(CART) },
-  { id: "chat", label: "Chat", icon: "navChat", idle: CHAT, active: grown(CHAT) },
+  {
+    id: "cart",
+    label: "Cart",
+    icon: "navCartCount",
+    idle: CART,
+    active: grown(CART),
+    activeIcon: "navCartActiveCount",
+    count: {
+      text: "3",
+      x: 17,
+      idle: { baseline: 26, color: PURPLE },
+      active: { baseline: 27, color: PURPLE },
+    },
+  },
+  {
+    id: "chat",
+    label: "Chat",
+    icon: "navChatCount",
+    idle: CHAT,
+    active: grown(CHAT),
+    activeIcon: "navChatActiveCount",
+    count: {
+      text: "11",
+      x: 20,
+      idle: { baseline: 26, color: PURPLE },
+      active: { baseline: 27, color: "#FFFFFF" },
+    },
+  },
 ];
 
 const SLOT_W = 76;
@@ -122,13 +189,14 @@ const GROW_SPRING = {
   mass: 0.8,
 } as const;
 
-/** The swap from the grey search icon to the blue ring, while it grows. */
+/** The swap from the idle icon to the active one, while it grows. */
 const SWAP = "opacity 180ms ease-out";
 
 export default function DemoBottomNav({
   active,
   visible,
   photo,
+  verified,
   resetKey,
   onSelect,
   t,
@@ -137,6 +205,8 @@ export default function DemoBottomNav({
   visible: boolean;
   /** The shopper's photo, for the profile tab. */
   photo: string | null;
+  /** False while the shopper still has to verify: the idle photo gets the orange line. */
+  verified: boolean;
   /** The screen on show. A new screen starts at its top, so the bar goes back to full size. */
   resetKey: string;
   onSelect: (tab: DemoTab) => void;
@@ -317,21 +387,27 @@ export default function DemoBottomNav({
                         position: "absolute",
                         left: 0,
                         top: 0,
-                        opacity: on && slot.activeIcon ? 0 : 1,
+                        opacity: on ? 0 : 1,
                         transition: SWAP,
                       }}
                     />
-                    {slot.activeIcon && (
-                      <XdIcon
-                        name={slot.activeIcon}
+                    <XdIcon
+                      name={slot.activeIcon}
+                      size={slot.active.size}
+                      style={{
+                        position: "absolute",
+                        left: 0,
+                        top: 0,
+                        opacity: on ? 1 : 0,
+                        transition: SWAP,
+                      }}
+                    />
+                    {slot.count && (
+                      <TabCount
+                        tab={id}
+                        on={on}
+                        count={slot.count}
                         size={slot.active.size}
-                        style={{
-                          position: "absolute",
-                          left: 0,
-                          top: 0,
-                          opacity: on ? 1 : 0,
-                          transition: SWAP,
-                        }}
                       />
                     )}
                   </GrowBox>
@@ -343,7 +419,7 @@ export default function DemoBottomNav({
                     active={PROFILE.active}
                     at={iconAt(PROFILE.active.x, PROFILE.active.y, index)}
                   >
-                    <ProfileTab on={on} photo={photo} />
+                    <ProfileTab on={on} photo={photo} verified={verified} />
                   </GrowBox>
                 )}
               </motion.span>
@@ -404,30 +480,134 @@ function GrowBox({
   );
 }
 
+/**
+ * A tab's count, in the file's 34 px box. The box is scaled up to the active
+ * icon's size, so the count grows with the icon and lands on the file's 12 px
+ * while the tab is idle. The idle and the active count fade into each other
+ * with the icons: the active one is 1 px lower, and white on the chat bubble.
+ */
+function TabCount({
+  tab,
+  on,
+  count,
+  size,
+}: {
+  tab: DemoTab;
+  on: boolean;
+  count: Count;
+  /** The active icon's size, the box this count is drawn in. */
+  size: number;
+}) {
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute left-0 top-0 block"
+      style={{
+        width: COUNT_BOX,
+        height: COUNT_BOX,
+        transform: `scale(${size / COUNT_BOX})`,
+        transformOrigin: "0 0",
+      }}
+    >
+      {(["idle", "active"] as const).map((state) => {
+        const { baseline, color } = count[state];
+        return (
+          <span
+            key={state}
+            data-pw={`demo-tab-${tab}-count`}
+            className="absolute block font-bold whitespace-nowrap"
+            style={{
+              left: count.x,
+              top: textTop(baseline, COUNT_SIZE),
+              fontSize: COUNT_SIZE,
+              lineHeight: `${lineBox(COUNT_SIZE)}px`,
+              color,
+              opacity: (state === "active") === on ? 1 : 0,
+              transition: SWAP,
+            }}
+          >
+            {count.text}
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
 /** Idle, the profile box is drawn at 34 / 42 of its size, so its corner and line are drawn this much bigger to land on the file's. */
 const PROFILE_UNSCALE = PROFILE.active.size / PROFILE.idle.size;
 const PROFILE_FADE = { duration: 0.25, ease: "easeOut" } as const;
 
 /**
- * The profile tab, drawn at the active 42 and scaled by its GrowBox. Idle: the
- * 34 grey box with the user glyph and the 0.3 `#1D1D1D` line. Active: the 42
- * photo with XD's inner shadow (0 4 3, white at 50%). With no photo yet, the
- * active box keeps the grey fill and the glyph.
- *
- * The corner (12) and the idle line (0.3) are the file's numbers at the size
- * on screen, so while idle they are set PROFILE_UNSCALE bigger to cancel the
- * scale. The inner shadow fades to nothing while idle, and the idle line
- * (an SVG Stroke) fades in.
+ * The line round the profile box, from the pasteboard set under `Home Page`:
+ * the 0.3 `#1D1D1D` line on the box with no photo, active or not; on a photo,
+ * 1 px purple when active and 1 px orange while the shopper still has to
+ * verify; no line on the idle photo of a verified shopper. Null = no line.
  */
-function ProfileTab({ on, photo }: { on: boolean; photo: string | null }) {
+const profileLine = (
+  on: boolean,
+  photo: boolean,
+  verified: boolean,
+): { color: string; width: number } | null => {
+  if (!photo) return { color: "#1D1D1D", width: 0.3 };
+  if (on) return { color: PURPLE, width: 1 };
+  return verified ? null : { color: "#F5A03C", width: 1 };
+};
+
+/**
+ * The profile tab, drawn at the active 42 and scaled by its GrowBox.
+ *
+ * With no photo: idle, the 34 grey (`#EFEFEF`) box with the grey user glyph;
+ * active, the purple (`#D4D4FC`) box with the purple (`#8888E5`) glyph. The
+ * glyphs fade into each other, like the other tabs' icons.
+ *
+ * With a photo: the photo, with XD's inner shadow (0 4 3, white at 50%) in
+ * every state, and the line `profileLine` picks.
+ *
+ * The corner (12) and the lines are the file's numbers at the size on screen,
+ * so while idle they are set PROFILE_UNSCALE bigger to cancel the scale.
+ */
+function ProfileTab({
+  on,
+  photo,
+  verified,
+}: {
+  on: boolean;
+  photo: string | null;
+  verified: boolean;
+}) {
   const radius = on ? PROFILE.radius : PROFILE.radius * PROFILE_UNSCALE;
+  const line = profileLine(on, photo !== null, verified);
+  const unscale = on ? 1 : PROFILE_UNSCALE;
+  const glyph = (
+    name: XdIconName,
+    size: number,
+    x: number,
+    y: number,
+    shown: boolean,
+  ) => (
+    <XdIcon
+      name={name}
+      size={size * PROFILE_UNSCALE}
+      style={{
+        position: "absolute",
+        left: x * PROFILE_UNSCALE,
+        top: y * PROFILE_UNSCALE,
+        opacity: shown ? 1 : 0,
+        transition: SWAP,
+      }}
+    />
+  );
   return (
     <motion.span
       className="absolute inset-0 block overflow-hidden"
       initial={false}
       animate={{ borderRadius: radius }}
       transition={PROFILE_FADE}
-      style={{ background: "#EFEFEF" }}
+      style={{
+        background: !photo && on ? "#D4D4FC" : "#EFEFEF",
+        transition: "background-color 180ms ease-out",
+      }}
     >
       {photo ? (
         <img
@@ -437,15 +617,10 @@ function ProfileTab({ on, photo }: { on: boolean; photo: string | null }) {
           draggable={false}
         />
       ) : (
-        <XdIcon
-          name="navUser"
-          size={17.9 * PROFILE_UNSCALE}
-          style={{
-            position: "absolute",
-            left: 8.05 * PROFILE_UNSCALE,
-            top: 6.06 * PROFILE_UNSCALE,
-          }}
-        />
+        <>
+          {glyph("navUser", 17.9, 8.05, 6.06, !on)}
+          {glyph("navUserActive", 16.91, 8.5, 6.6, on)}
+        </>
       )}
       {/* Over the photo, so the inner shadow is not hidden under it. */}
       <motion.span
@@ -454,18 +629,18 @@ function ProfileTab({ on, photo }: { on: boolean; photo: string | null }) {
         initial={false}
         animate={{
           borderRadius: radius,
-          boxShadow: on
+          boxShadow: photo
             ? "inset 0px 4px 3px 0px rgba(255, 255, 255, 0.5)"
             : "inset 0px 4px 3px 0px rgba(255, 255, 255, 0)",
         }}
         transition={PROFILE_FADE}
       >
-        {/* The idle line, as SVG: Safari draws a thin inset shadow thick on its straight edges. */}
+        {/* The line, as SVG: Safari draws a thin inset shadow thick on its straight edges. */}
         <Stroke
-          color="#1D1D1D"
-          width={0.3 * PROFILE_UNSCALE}
+          color={line?.color ?? PURPLE}
+          width={(line?.width ?? 1) * unscale}
           radius={radius}
-          visible={!on}
+          visible={line !== null}
         />
       </motion.span>
     </motion.span>
