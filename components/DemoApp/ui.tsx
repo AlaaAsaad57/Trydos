@@ -495,9 +495,8 @@ export function InfoBanner({
  * line. Saved (`92`, `99`): `#FCFCFC` and no line.
  *
  * In use — its input has focus, or `focused` (its sheet is open) — the label
- * is SemiBold and the line is the site's blue `#388CFF`. A product rule: the
- * file draws the field in use like the others. SemiBold, not Medium: at 12 px
- * Quicksand Medium looks the same as Regular. An input that is read-only
+ * is Medium and the line is the site's blue `#388CFF`. A product rule: the
+ * file draws the field in use like the others. An input that is read-only
  * (Personal Info before "Edit") does not count as in use.
  */
 export function Field({
@@ -551,7 +550,7 @@ export function Field({
       className={`flex flex-col transition-[background-color] duration-300 ${onClick ? "cursor-pointer" : ""} ${className}`}
       style={{ padding: "8px 12px 0" }}
     >
-      <Txt size={12} color={C.label} weight={inUse ? "semibold" : "regular"}>
+      <Txt size={12} color={C.label} weight={inUse ? "medium" : "regular"}>
         {label}
       </Txt>
       {children}
