@@ -438,7 +438,7 @@ html[lang="ar"] .chat-window-search-holder img {
 
   width: 85px;
   height: 80px;
-  margin-left: 1px;
+  margin-inline-start: 1px;
 }
 .chat-option div {
   font-size: 12px;
@@ -453,7 +453,7 @@ html[lang="ar"] .chat-window-search-holder img {
 }
 .chat-3 {
   background-color: #f6f5fd;
-  margin-left: 6px !important;
+  margin-inline-start: 6px !important;
 }
 .chat-4 {
   background-color: #ffe8e8;

@@ -1291,7 +1291,7 @@ svg.redwave g g path {
 
   width: 85px;
   height: 80px;
-  margin-left: 1px;
+  margin-inline-start: 1px;
 }
 
 .chat-option div {
@@ -1310,7 +1310,7 @@ svg.redwave g g path {
 
 .chat-3 {
   background-color: #f6f5fd;
-  margin-left: 6px !important;
+  margin-inline-start: 6px !important;
 }
 
 .chat-4 {

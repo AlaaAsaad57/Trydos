@@ -16,6 +16,8 @@
 //   2. the confirm window is on the page, and it is a child of document.body
 //   3. Cancel closes it and still deletes nothing
 //   4. only Confirm calls the chat backend and drops the row from the store
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import React from "react";
 
@@ -475,6 +477,49 @@ describe("ChatOptions — the other swipe tiles", () => {
     expect(screen.getByText("Unpin"), "a pinned chat did not offer Unpin").toBeInTheDocument();
     expect(screen.getByText("Unmute"), "a muted chat did not offer Unmute").toBeInTheDocument();
   });
+
+  // Arabic mirrors the tiles, the same as the mobile app: Unread first from
+  // the right edge, Archive last on the left. The container's `dir` sets the
+  // order. The gaps use margin-inline-start, so they flip with it; a plain
+  // margin-left would stay on the left and break the mirror.
+  it("mirrors the tiles in Arabic: Unread / Pin on the right, Mute / Delete / Archive on the left", async () => {
+    const { container } = await renderTiles({ rtl: true });
+    expect(
+      container.querySelector(".chat-options-container")!.getAttribute("dir"),
+      "the tiles are not laid out right to left in Arabic, so Unread / Pin stay on the left",
+    ).toBe("rtl");
+  });
+
+  it("keeps the tiles left to right in English, even inside a right-to-left page", async () => {
+    const { container } = await renderTiles({ rtl: false });
+    expect(
+      container.querySelector(".chat-options-container")!.getAttribute("dir"),
+      "the English tiles do not say left to right, so a right-to-left page around them would flip them",
+    ).toBe("ltr");
+  });
+
+  // jsdom does not apply these stylesheets, so the check reads them.
+  for (const sheet of ["chatcomponent.css", "ChatWindow.css"]) {
+    it(`${sheet}: the gaps between the tiles follow the direction, so they flip in Arabic`, () => {
+      const css = readFileSync(path.join(process.cwd(), "public", "styles", sheet), "utf8")
+        .replace(/\/\*[\s\S]*?\*\//g, "");
+      const rule = (selector: string) => {
+        const m = css.match(new RegExp(`(^|\\})\\s*${selector.replace(".", "\\.")}\\s*\\{([^}]*)\\}`));
+        expect(m, `${sheet} has no "${selector}" rule`).not.toBeNull();
+        return m![2];
+      };
+      for (const selector of [".chat-option", ".chat-3"]) {
+        expect(
+          rule(selector),
+          `${sheet} "${selector}" uses margin-left, which stays on the left in Arabic and breaks the mirrored gaps`,
+        ).not.toMatch(/margin-left/);
+        expect(
+          rule(selector),
+          `${sheet} "${selector}" has no margin-inline-start, so its gap is lost`,
+        ).toMatch(/margin-inline-start/);
+      }
+    });
+  }
 
   it("works without a row to close", async () => {
     const rendered = await renderWithProviders(

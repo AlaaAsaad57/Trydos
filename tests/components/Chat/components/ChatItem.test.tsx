@@ -218,6 +218,45 @@ describe("ChatItem — tapping and swiping", () => {
     expect(translate(rowA), "touching another row did not close the open one").toBe("translateX(0px)");
   });
 
+  // In Arabic the options behind the row are mirrored (ChatOptions, `rtl`):
+  // Unread / Pin sit on the right and Mute / Delete / Archive on the left. So
+  // the swipe is mirrored too, the same as the mobile app in Arabic: a swipe
+  // left uncovers Unread / Pin, a swipe right uncovers Mute / Delete / Archive.
+  it("in Arabic a swipe left opens Unread / Pin (180) and a swipe right opens Mute / Delete / Archive (250), as the mobile app does", async () => {
+    h.options = [];
+    const { row } = await mount({}, "ar");
+    expect(h.options.at(-1).rtl, "the options behind an Arabic row were not told to mirror").toBe(true);
+
+    swipe(row, -100);
+    expect(translate(row), "a slow swipe left in Arabic did not open Unread / Pin").toBe("translateX(-180px)");
+    fireEvent.click(row);
+    fireEvent.click(row);
+    expect(translate(row), "a tap on an open Arabic row did not close it").toBe("translateX(0px)");
+
+    swipe(row, 120);
+    expect(translate(row), "a slow swipe right in Arabic did not open Mute / Delete / Archive").toBe("translateX(250px)");
+    swipe(row, -30, { fast: true });
+    expect(translate(row), "a flick left did not close a right-open Arabic row").toBe("translateX(0px)");
+    swipe(row, -30, { fast: true });
+    expect(translate(row), "a flick left in Arabic did not open Unread / Pin").toBe("translateX(-180px)");
+    swipe(row, 30, { fast: true });
+    swipe(row, 30, { fast: true });
+    expect(translate(row), "a flick right in Arabic did not open Mute / Delete / Archive").toBe("translateX(250px)");
+
+    swipe(row, -30, { fast: true });
+    expect(translate(row), "a flick left did not close the Arabic row before the heavy pull").toBe("translateX(0px)");
+    pointer(row, "pointerdown", 0, 5000);
+    pointer(row, "pointermove", -400, 6000);
+    expect(translate(row), "dragging past Unread / Pin in Arabic was not slowed").toBe("translateX(-235px)");
+    pointer(row, "pointercancel", -400, 6001);
+  });
+
+  it("in English the options are not mirrored", async () => {
+    h.options = [];
+    await mount();
+    expect(h.options.at(-1).rtl, "the options behind an English row were told to mirror").toBe(false);
+  });
+
   it("the options can close the row", async () => {
     const { row } = await mount();
     swipe(row, -120);

@@ -9,9 +9,14 @@ import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getUserChat } from "utils/functions";
 
-/** How far the row slides to show the options that sit behind it. */
-const LEFT_OPEN = 250; // shows mute / delete / archive
-const RIGHT_OPEN = 180; // shows unread / pin
+/**
+ * How far the row slides to show the options that sit behind it. In English
+ * unread / pin sit on the left, so a swipe right shows them. In Arabic and
+ * Kurdish the options are mirrored, so a swipe left shows them, the same as
+ * the mobile app.
+ */
+const ACTIONS_OPEN = 250; // shows mute / delete / archive
+const READ_PIN_OPEN = 180; // shows unread / pin
 /** Move this far before we decide the gesture is a swipe and not a scroll. */
 const AXIS_LOCK = 8;
 /** How much of the panel you must uncover for the row to stay open. */
@@ -67,6 +72,9 @@ function ChatItem({
 }) {
   const { setMain, language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
+  /** How far the row may slide left, and right. */
+  const LEFT_OPEN = isRtl ? READ_PIN_OPEN : ACTIONS_OPEN;
+  const RIGHT_OPEN = isRtl ? ACTIONS_OPEN : READ_PIN_OPEN;
 
   const rowRef = useRef<HTMLDivElement>(null);
   const rowKey = useId();
@@ -316,6 +324,7 @@ function ChatItem({
           muted={muted}
           pinned={pinned}
           archived={archived}
+          rtl={isRtl}
           id={id}
           closeRow={() => settle(0)}
           member_id={

@@ -18,6 +18,7 @@ function ChatOptions({
   pinned,
   muted,
   archived = false,
+  rtl = false,
   member_id,
   closeRow,
 }) {
@@ -31,7 +32,9 @@ function ChatOptions({
     return translateFunction(key, languageVariable);
   };
   return (
-    <div className="chat-options-container">
+    // Arabic mirrors the tiles: Unread first from the right, as in the mobile
+    // app. "ltr" is set too, so a right-to-left page never flips English.
+    <div className="chat-options-container" dir={rtl ? "rtl" : "ltr"}>
       <div
         className="chat-option chat-1"
         data-pw="CHAT-UNREAD-OPTION"
