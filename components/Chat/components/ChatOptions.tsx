@@ -50,6 +50,7 @@ function ChatOptions({
       </div>
       <div
         className="chat-option chat-2"
+        data-pw="CHAT-PIN-OPTION"
         onClick={() => {
           PinnChat({ id: id, value: !pinned, member_id: member_id });
           pinChat({ id: id, value: !pinned, member_id: member_id });
@@ -64,6 +65,7 @@ function ChatOptions({
       </div>
       <div
         className="chat-option chat-3"
+        data-pw="CHAT-MUTE-OPTION"
         onClick={() => {
           MuteChat({ id: id, value: !muted, member_id: member_id });
           muteChat({ id: id, value: !muted, member_id: member_id });
@@ -79,7 +81,11 @@ function ChatOptions({
           {muted ? translate("Unmute", language) : translate("Mute", language)}
         </div>
       </div>
-      <div className="chat-option chat-4" onClick={() => setConfirmDelete(true)}>
+      <div
+        className="chat-option chat-4"
+        data-pw="CHAT-DELETE-OPTION"
+        onClick={() => setConfirmDelete(true)}
+      >
         <img src="/icons/chat/DeleteIcon.svg" />
 
         <div>{translate("Delete", language)}</div>

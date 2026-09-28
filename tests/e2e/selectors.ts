@@ -1462,3 +1462,178 @@ export const storyActions = {
   productLink: (page: Page): Locator =>
     page.getByTestId("story-product-link"),
 };
+
+// ---------------------------------------------------------------------------
+// Chat — the overlay opened from the nav bar (`components/Chat/**`).
+//
+// There is no chat page. The window is an overlay mounted by
+// `components/Home/AuthSections.tsx`, and it draws its content only when the
+// browser has granted notifications (`ChatWindowModal.tsx`). Otherwise it
+// draws `notificationGate` instead.
+//
+// Two rules the actions depend on:
+//
+// * **A message row is found by its id, never by position.** Every row
+//   carries `id="main-container-<id>"`. A message still sending carries its
+//   local `m…` id there; once the chat backend answers, the same row carries
+//   the backend's id. That swap is how an action proves the send landed.
+// * **A chat row is found by its channel id** (`data-chat-id`), and a person
+//   in a search result by their chat user id (`data-user-id`). Shopper A also
+//   has a chat with a real person on staging, and nothing may touch it.
+// ---------------------------------------------------------------------------
+
+export const chat = {
+  /** The nav icon when no chat has an unread message. */
+  navIcon: (page: Page): Locator => page.getByTestId("Chat-Icon"),
+  /** The nav icon when some chats have unread messages. `data-count` is the
+   *  number of such chats. */
+  navIconUnread: (page: Page): Locator => page.getByTestId("Chat-Icon-Unread"),
+  /** Whichever of the two the nav is drawing. */
+  navIconAny: (page: Page): Locator =>
+    page.locator('[data-pw="Chat-Icon"], [data-pw="Chat-Icon-Unread"]'),
+  /** The popup that asks the shopper to allow notifications. */
+  notificationPermissionWidget: (page: Page): Locator =>
+    page.getByTestId("notification-permission-widget"),
+  window: (page: Page): Locator => page.getByTestId("chat-window"),
+  /** "Please Enable Notification to use Chat", drawn inside the window. */
+  notificationGate: (page: Page): Locator =>
+    page.getByTestId("chat-notification-gate"),
+  closeButton: (page: Page): Locator => page.getByTestId("chat-close"),
+  listSearch: (page: Page): Locator => page.getByTestId("SearchInputChat"),
+  /** Every chat row, in every list (main, archived, search results). */
+  rows: (page: Page): Locator => page.getByTestId("ChatItem"),
+  row: (page: Page, chatId: string | number): Locator =>
+    page.locator(`[data-pw="ChatItem"][data-chat-id="${chatId}"]`),
+  /** The row and the options behind it. The options are its siblings, so
+   *  they are found from here, not from the row. */
+  rowContainer: (page: Page, chatId: string | number): Locator =>
+    page
+      .locator(".chat-conversation-item-container")
+      .filter({ has: chat.row(page, chatId) }),
+  rowUnread: (row: Locator): Locator => row.getByTestId("chat-row-unread"),
+  rowPinned: (row: Locator): Locator => row.getByTestId("chat-row-pinned"),
+  rowMuted: (row: Locator): Locator => row.getByTestId("chat-row-muted"),
+  optionUnread: (container: Locator): Locator =>
+    container.getByTestId("CHAT-UNREAD-OPTION"),
+  optionPin: (container: Locator): Locator =>
+    container.getByTestId("CHAT-PIN-OPTION"),
+  optionMute: (container: Locator): Locator =>
+    container.getByTestId("CHAT-MUTE-OPTION"),
+  optionDelete: (container: Locator): Locator =>
+    container.getByTestId("CHAT-DELETE-OPTION"),
+  optionArchive: (container: Locator): Locator =>
+    container.getByTestId("CHAT-ARCHIVE-OPTION"),
+  /** The confirm button of "delete chat" (`ConfirmModal` takes `dataCy`). */
+  confirmDeleteChat: (page: Page): Locator =>
+    page.getByTestId("confirm-delete-chat"),
+  /** A person the search found who has no chat with the shopper yet. */
+  contact: (page: Page, chatUserId: string | number): Locator =>
+    page.locator(`[data-pw="ContactItem"][data-user-id="${chatUserId}"]`),
+  remindersFolder: (page: Page): Locator =>
+    page.getByTestId("CHAT-REMINDERS-FOLDER"),
+  archivedFolder: (page: Page): Locator =>
+    page.getByTestId("CHAT-ARCHIVED-FOLDER"),
+  remindersList: (page: Page): Locator => page.getByTestId("REMINDERS-LIST"),
+  reminderRow: (page: Page, messageId: string | number): Locator =>
+    page.locator(`[data-pw="REMINDER-ROW"][data-message-id="${messageId}"]`),
+  archivedList: (page: Page): Locator => page.getByTestId("ARCHIVED-CHATS"),
+
+  /** The conversation screen. It is always mounted and slides in:
+   *  `data-open` is "true" while it is on screen, and `data-chat-id` names
+   *  the channel (`ch-<user id>` before the first message of a new chat). */
+  conversation: (page: Page): Locator => page.getByTestId("chat-conversation"),
+  headerUser: (page: Page): Locator => page.getByTestId("chat-header-user"),
+  input: (page: Page): Locator => page.getByTestId("chat-message-input"),
+  sendButton: (page: Page): Locator => page.getByTestId("chat-send-button"),
+  fileInput: (page: Page): Locator => page.getByTestId("chat-file-input"),
+  blockedBanner: (page: Page): Locator =>
+    page.getByTestId("chat-blocked-banner"),
+  replyPreview: (page: Page): Locator =>
+    page.getByTestId("chat-reply-preview"),
+  /** Every message row; `data-from` is "me" or "them". */
+  messages: (page: Page): Locator => page.getByTestId("chat-message"),
+  message: (page: Page, id: string | number): Locator =>
+    page.locator(`[data-pw="chat-message"][id="main-container-${id}"]`),
+  /** The loader at the top of a conversation. When it comes into view the
+   *  app asks for older messages. It is drawn 2 seconds after the chat opens
+   *  (`ChatHistoryElement.js`). */
+  olderMessagesLoader: (page: Page): Locator =>
+    page.getByTestId("chat-older-loader"),
+  /** Messages still on their local "sending" id (`m…`), not a saved one. */
+  pendingMessages: (page: Page): Locator =>
+    page.locator('[data-pw="chat-message"][id^="main-container-m"]'),
+  /** A message row by the exact text it shows. */
+  messageWithText: (page: Page, text: string): Locator =>
+    page.getByTestId("chat-message").filter({
+      has: page.getByTestId("chat-message-text").getByText(text, {
+        exact: true,
+      }),
+    }),
+  messageBubble: (row: Locator): Locator =>
+    row.getByTestId("chat-message-bubble"),
+  messageText: (row: Locator): Locator => row.getByTestId("chat-message-text"),
+  /** "This message was deleted", drawn in place of the content. */
+  messageDeleted: (row: Locator): Locator =>
+    row.getByTestId("chat-message-deleted"),
+  /** `data-status`: pending | sent | received | watched. */
+  messageStatus: (row: Locator): Locator =>
+    row.getByTestId("chat-message-status"),
+  markEdited: (row: Locator): Locator => row.getByTestId("MESSAGE-MARK-EDITED"),
+  markForwarded: (row: Locator): Locator =>
+    row.getByTestId("MESSAGE-MARK-FORWARDED"),
+  markReminder: (row: Locator): Locator =>
+    row.getByTestId("MESSAGE-MARK-REMINDER"),
+  markTags: (row: Locator): Locator => row.getByTestId("MESSAGE-MARK-TAGS"),
+  /** The quote of an earlier message, drawn above a reply. */
+  quote: (row: Locator): Locator => row.getByTestId("chat-replied-quote"),
+
+  // The menu a click on a bubble opens (`OptionsMenu.tsx`), scoped to its row.
+  menuReply: (row: Locator): Locator => row.getByTestId("REPLY-OPTION"),
+  menuForward: (row: Locator): Locator => row.getByTestId("FORWARD-OPTION"),
+  menuTag: (row: Locator): Locator => row.getByTestId("TAG-OPTION"),
+  menuDelete: (row: Locator): Locator =>
+    row.locator(".abs-menu").getByTestId("DELETE-OPTION"),
+  menuEdit: (row: Locator): Locator => row.getByTestId("EDIT-OPTION"),
+  menuReminder: (row: Locator): Locator => row.getByTestId("REMINDER-OPTION"),
+
+  // Windows the menu opens. Each is sent to `document.body`, so page-wide.
+  /** The delete question. Its `DELETE-OPTION` is "For All" when the shopper
+   *  wrote the message, and "Cancel" otherwise. */
+  deleteDialog: (page: Page): Locator =>
+    page.locator('[role="dialog"]').filter({
+      has: page.getByTestId("DELETE-FOR-ME"),
+    }),
+  deleteForMe: (page: Page): Locator => page.getByTestId("DELETE-FOR-ME"),
+  /** The dialog's second button: "for-all" on the shopper's own message,
+   *  "cancel" on someone else's. */
+  deleteChoice: (page: Page, choice: "for-all" | "cancel"): Locator =>
+    page.locator(`[data-pw="DELETE-OPTION"][data-choice="${choice}"]`),
+  editDialog: (page: Page): Locator => page.getByTestId("MESSAGE-EDIT-DIALOG"),
+  editInput: (page: Page): Locator => page.locator("#message-edit-input"),
+  editSave: (page: Page): Locator => page.getByTestId("MESSAGE-EDIT-SAVE"),
+  tagPicker: (page: Page): Locator => page.getByTestId("MESSAGE-TAG-PICKER"),
+  tag: (page: Page, tag: "urgent" | "important" | "todo" | "done"): Locator =>
+    page.getByTestId(`MESSAGE-TAG-${tag}`),
+  reminderPicker: (page: Page): Locator =>
+    page.getByTestId("MESSAGE-REMINDER-PICKER"),
+  reminderPreset: (
+    page: Page,
+    preset: "20m" | "1h" | "3h" | "tomorrow",
+  ): Locator => page.getByTestId(`MESSAGE-REMINDER-PRESET-${preset}`),
+  reminderCancel: (page: Page): Locator =>
+    page.getByTestId("MESSAGE-REMINDER-CANCEL"),
+
+  // The details drawer the header opens (`ChatInfo.tsx`).
+  infoSearch: (page: Page): Locator => page.getByTestId("chat-info-search"),
+  /** `data-blocked` says which way the next press goes. */
+  infoBlock: (page: Page): Locator => page.getByTestId("chat-info-block"),
+  infoDelete: (page: Page): Locator => page.getByTestId("chat-info-delete"),
+
+  // The search inside a conversation (`ChatSearch.tsx`).
+  searchInput: (page: Page): Locator => page.getByTestId("chat-search-input"),
+  searchNewer: (page: Page): Locator => page.getByTestId("chat-search-newer"),
+  searchOlder: (page: Page): Locator => page.getByTestId("chat-search-older"),
+  /** The row the search is on now: `ChatSearch.tsx` adds this class to it. */
+  searchHit: (page: Page): Locator =>
+    page.locator('[data-pw="chat-message"].chat-search-hit'),
+};

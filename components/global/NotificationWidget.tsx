@@ -200,6 +200,7 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
     >
       <div
         dir={isRtl ? "rtl" : "ltr"}
+        data-pw="notification-permission-widget"
         className={[
           "group w-[min(92vw,28rem)] sm:w-md regular",
           "rounded-2xl bg-white",

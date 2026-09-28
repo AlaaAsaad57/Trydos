@@ -78,7 +78,7 @@ function ReplyMessage({ message, cancel }) {
     }
   };
   return (
-    <div className="reply-message-container">
+    <div className="reply-message-container" data-pw="chat-reply-preview">
       <div className="reply-icon">
         <img src="/icons/chat/rep.svg" />
       </div>

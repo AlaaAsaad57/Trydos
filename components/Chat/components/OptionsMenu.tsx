@@ -101,6 +101,7 @@ function OptionsMenu(props) {
                   }}
                   tabIndex={0}
                   aria-label={translateFunction("For Me")}
+                  data-pw="DELETE-FOR-ME"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       props.deleteMessage(false);
@@ -114,6 +115,7 @@ function OptionsMenu(props) {
                   <button
                     className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-xs hover:shadow-md transition-shadow text-gray-900 font-medium"
                     data-pw="DELETE-OPTION"
+                    data-choice="for-all"
                     onClick={() => {
                       props.deleteMessage(true);
                       setDelete(false);
@@ -133,6 +135,7 @@ function OptionsMenu(props) {
                   <button
                     className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-xs hover:shadow-md transition-shadow text-gray-900 font-medium"
                     data-pw="DELETE-OPTION"
+                    data-choice="cancel"
                     onClick={() => setDelete(false)}
                     tabIndex={0}
                     aria-label={translateFunction("cancel")}
@@ -278,6 +281,7 @@ function OptionsMenu(props) {
         )}
         <div
           className="reply-but"
+          data-pw="REPLY-OPTION"
           onClick={() => {
             document.querySelector<HTMLInputElement>("#type")?.focus?.();
 

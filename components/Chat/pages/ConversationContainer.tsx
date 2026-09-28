@@ -891,6 +891,7 @@ function ConversationContainer({
         }}
         style={{ position: "absolute", opacity: 0 }}
         type="file"
+        data-pw="chat-file-input"
         onBlur={() => {
           sendStatus(null);
         }}
@@ -980,7 +981,13 @@ function ConversationContainer({
       )}
 
       {/* Main chat layout */}
-      <div className="chat-screen" style={{ right: ViewedScreen ? 0 : 431 }}>
+      <div
+        className="chat-screen"
+        data-pw="chat-conversation"
+        data-chat-id={activeChat?.id ?? ""}
+        data-open={ViewedScreen ? "true" : "false"}
+        style={{ right: ViewedScreen ? 0 : 431 }}
+      >
         {/* Details Drawer */}
         {DetailsVar && !isPrivate && (
           <ChatInfo
@@ -1120,7 +1127,10 @@ function ConversationContainer({
         <>
           {isBlockedEachOther() ? (
             <>
-              <div className="flex grow flex-row items-center justify-center medium text-pretty text-[#1d1d1d] bg-gray-200 p-3 rounded-md">
+              <div
+                className="flex grow flex-row items-center justify-center medium text-pretty text-[#1d1d1d] bg-gray-200 p-3 rounded-md"
+                data-pw="chat-blocked-banner"
+              >
                 {translateFunction(
                   "You cannot send messages or calls to this user",
                   language,
@@ -1208,6 +1218,7 @@ function ConversationContainer({
                       </label>
                       <input
                         id="type"
+                        data-pw="chat-message-input"
                         className={`input-chat wid31`}
                         value={message}
                         onChange={onChangeInput}
@@ -1218,6 +1229,7 @@ function ConversationContainer({
                     {message.length > 0 ? (
                       <img
                         src="/icons/chat/sendbutton.svg"
+                        data-pw="chat-send-button"
                         style={{ minWidth: 50, cursor: "pointer" }}
                         onClick={() => {
                           sendTextMessage(message);

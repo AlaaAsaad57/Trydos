@@ -135,15 +135,16 @@ sentence used to say so and was never true.)
 
 > The jars that exist: `signed-in.json`, `profile.json`,
 > `profile-scripted.json`, `shopper.json`, `stories.json`,
-> `stories-reporter.json`, `comments.json` — and `qa-seller.json`, which the
-> **seed** writes and three specs read. All of them live under
+> `stories-reporter.json`, `comments.json`, `chat.json` — and
+> `qa-seller.json`, which the **seed** writes and four specs read. All of them live under
 > `tests/e2e/.auth/` and `globalTeardown` clears the whole directory.
 >
 > **A jar is a snapshot, so every case that uses one hands it back.** The moment
 > a case does authenticated work the app can exchange the credential, and the
-> file on disk is then superseded. `comments.live.spec.ts` sorts **before**
-> `sellerDashboard.live.spec.ts` in the account lane and both read
-> `qa-seller.json`, so the first one to leave it stale breaks the second.
+> file on disk is then superseded. `chat.live.spec.ts` sorts **before**
+> `comments.live.spec.ts`, which sorts before `sellerDashboard.live.spec.ts`
+> in the account lane, and all three read `qa-seller.json`. So the first one to
+> leave it stale breaks the ones after it.
 
 > **One accepted exception: Shopper A signs in twice.** `profile.scripted.spec.ts`
 > keeps its own session rather than borrowing the live spec's, because a snapshot
@@ -154,7 +155,7 @@ sentence used to say so and was never true.)
 
 ### What a full run spends in real one-time codes
 
-Sixteen sends: `AUTH-01`, `PROF-01`, `RECOV-01`, `CMT-01`, five in
+Seventeen sends: `AUTH-01`, `PROF-01`, `RECOV-01`, `CMT-01`, `CHAT-01`, five in
 `auth.scripted.spec.ts`, and **seven** added by the profile branches — one
 sign-in for each of `SCRIPT-07` to `SCRIPT-12`, plus `SCRIPT-12`'s
 change-number send, which is a server action and cannot be intercepted.
@@ -164,6 +165,11 @@ the other seven cases open the jar it saves, and the seller half of that journey
 signs in to nothing at all — it opens the jar the QA seed saved. A throttled
 send sleeps the backend's own cooldown, so an extra one here is paid for out of
 a **different** case's budget.
+
+`CHAT-01` is the seventeenth, for the same reason and in the same way: one send
+for the whole chat journey. Shopper B, the other person in the chat, opens the
+seed's jar. The scripted chat cases (`SCRIPT-27` to `SCRIPT-43`) send none —
+their chat shopper is faked.
 
 **Why six sign-ins and not one.** Those cases may not share a session: several
 damage their own on purpose, and none may hand that on. A shared session was

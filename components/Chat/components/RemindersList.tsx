@@ -83,6 +83,7 @@ function RemindersList({ onBack }: { onBack: () => void }) {
             <div
               key={reminder.id}
               data-pw="REMINDER-ROW"
+              data-message-id={reminder.message_id ?? reminder.message?.id ?? ""}
               className="flex items-center gap-[12px] px-[24px] py-[12px] border-b border-[#f0f0f0] bg-white"
               style={{ fontFamily: "var(--SF-Pro-Rounded-Regular)" }}
             >

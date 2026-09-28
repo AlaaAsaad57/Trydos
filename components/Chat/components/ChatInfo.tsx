@@ -244,6 +244,7 @@ function ChatInfo({
               className="chat-user-info-option"
               style={{ marginLeft: "98px" }}
               onClick={() => enableSearch()}
+              data-pw="chat-info-search"
             >
               <img src="/icons/chat/InfoSearch.svg" />{" "}
               <span>{translateFunction("Search")}</span>
@@ -329,6 +330,7 @@ function ChatInfo({
           <div className="chat-user-options">
             <div
               className="chat-user-option delete-option"
+              data-pw="chat-info-delete"
               onClick={() => setConfirmDelete(true)}
             >
               <img src="/icons/chat/deleteInfo.svg" />{" "}
@@ -336,6 +338,8 @@ function ChatInfo({
             </div>
             <div
               className="chat-user-option"
+              data-pw="chat-info-block"
+              data-blocked={isBlocked ? "true" : "false"}
               onClick={() => {
                 if (loading) return;
                 if (isBlocked) UnBlockUser();

@@ -149,6 +149,7 @@ function ChatHeader({
       )}
       <div
         onClick={() => openDetails()}
+        data-pw="chat-header-user"
         className={`${
           isRtl ? "flex-row-reverse ml-0 mr-[11px]" : "mr-0 ml-[11px] flex-row"
         } user-top-chat cursor-pointer`}

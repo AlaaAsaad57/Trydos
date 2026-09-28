@@ -14,6 +14,7 @@ const Observable = (props) => {
       {show && (
         <InView
           className="spinner-container"
+          data-pw="chat-older-loader"
           as="div"
           onChange={(inView, entry) => {
             if (inView && props.loading) {

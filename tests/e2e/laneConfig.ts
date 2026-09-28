@@ -81,6 +81,11 @@ export const ACCOUNT_LANE = [
   // faked; the session is the QA seed's real seller jar, which it hands back
   // afterwards — so it belongs with the other readers of that jar.
   "sellerDashboard.scripted.spec.ts",
+  // The chat journey. Signs in as Shopper A (one real code), opens the QA
+  // seed's jar for Shopper B, and writes for real on the chat backend:
+  // messages, edits, tags, a reminder, a block, and a deleted chat. It sorts
+  // BEFORE `comments.live.spec.ts`, so it hands the seller jar back at the end.
+  "chat.live.spec.ts",
 ];
 
 /** No account, no code, nothing real written. Safe to run several at once. */
@@ -100,6 +105,11 @@ export const SOLO_LANE = [
   // staging, but not to the shared account and not to anything a second worker
   // could collide with: each run registers its own guest.
   "wishlist.live.spec.ts",
+  // The chat's refusals and edge cases, against faked chat answers. Nobody
+  // signs in, every chat call is faked, and the page is cut off from the
+  // chat's shared Firebase database. One throwaway guest per case, as in
+  // `checkout.scripted.spec.ts`.
+  "chat.scripted.spec.ts",
 ];
 
 /** How many workers a lane may use.

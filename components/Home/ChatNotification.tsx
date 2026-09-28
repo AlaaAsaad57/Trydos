@@ -2,6 +2,8 @@
 function ChatNotification({ num }) {
   return (
     <svg
+      data-pw="Chat-Icon-Unread"
+      data-count={num}
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       width="41"

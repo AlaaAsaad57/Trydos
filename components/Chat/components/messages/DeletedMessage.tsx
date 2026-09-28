@@ -4,7 +4,7 @@ import { IsTextAvatar } from "store/chat/chatUtils";
 
 function DeletedMessage({ type, activeChat, sender_user_id }) {
   return (
-    <div className={"message-hold deleted-message"}>
+    <div className={"message-hold deleted-message"} data-pw="chat-message-deleted">
       <div
         style={{ backgroundColor: "#cecece" }}
         className={"message-element-body message-body text-body " + type}

@@ -221,6 +221,7 @@ function ChatItem({
         ${isRtl ? "p-[10px_20px_10px_10px] flex-row-reverse" : "flex-row"}
         `}
         data-pw="ChatItem"
+        data-chat-id={id}
         style={{ touchAction: "pan-y", transform: `translateX(${offset}px)` }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -284,7 +285,9 @@ function ChatItem({
               src="/icons/chat/messageIcon.svg"
               className="w-[15px] h-[15px]"
             />
-            <div className="new-mes">{newMessage}</div>
+            <div className="new-mes" data-pw="chat-row-unread">
+              {newMessage}
+            </div>
           </div>
         )}
         {/*
@@ -302,8 +305,8 @@ function ChatItem({
               right: isRtl ? "initial" : "30px",
             }}
           >
-            {muted && <img className="w-[20px] h-[20px] bg-transparent" src="/icons/chat/MutedChat.svg" alt="muted" />}
-            {pinned && <img className="w-[20px] h-[20px] bg-transparent" src="/icons/chat/PinnedChat.svg" alt="pinned" />}
+            {muted && <img className="w-[20px] h-[20px] bg-transparent" src="/icons/chat/MutedChat.svg" alt="muted" data-pw="chat-row-muted" />}
+            {pinned && <img className="w-[20px] h-[20px] bg-transparent" src="/icons/chat/PinnedChat.svg" alt="pinned" data-pw="chat-row-pinned" />}
           </div>
         )}
       </div>

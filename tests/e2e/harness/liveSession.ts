@@ -64,6 +64,9 @@ export const SESSION_STATE = {
   // (`QA_SELLER_SESSION_PATH`), because a second sign-in on that account would
   // spend a real one-time code against limits that are not ours.
   comments: "tests/e2e/.auth/comments.json",
+  // The chat journey. **Shopper A only**, for the same reason as `comments`:
+  // Shopper B, who A talks to, is the QA seller and opens the seed's jar.
+  chat: "tests/e2e/.auth/chat.json",
 } as const;
 
 /** The directory all of them live in. Removed wholesale at teardown. */

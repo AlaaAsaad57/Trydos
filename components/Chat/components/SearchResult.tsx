@@ -116,6 +116,7 @@ function SearchResult({
     <div>
       <div
         data-pw="ContactItem"
+        data-user-id={item?.contact_user_id ?? ""}
         className="chat-conversation-item-container"
         key={key}
       >

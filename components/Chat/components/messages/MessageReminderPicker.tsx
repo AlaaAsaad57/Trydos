@@ -8,11 +8,12 @@ import ChatDialog from "./ChatDialog";
 import { REMINDER_LATEST, formatReminderTime } from "./messageExtras";
 
 /** The quick choices. `at` answers the time from "now". */
-const PRESETS: { label: string; at: (now: Date) => Date }[] = [
-  { label: "In 20 minutes", at: (now) => new Date(now.getTime() + 20 * 60000) },
-  { label: "In 1 hour", at: (now) => new Date(now.getTime() + 60 * 60000) },
-  { label: "In 3 hours", at: (now) => new Date(now.getTime() + 180 * 60000) },
+const PRESETS: { key: string; label: string; at: (now: Date) => Date }[] = [
+  { key: "20m", label: "In 20 minutes", at: (now) => new Date(now.getTime() + 20 * 60000) },
+  { key: "1h", label: "In 1 hour", at: (now) => new Date(now.getTime() + 60 * 60000) },
+  { key: "3h", label: "In 3 hours", at: (now) => new Date(now.getTime() + 180 * 60000) },
   {
+    key: "tomorrow",
     label: "Tomorrow morning",
     at: (now) => {
       const next = new Date(now);
@@ -124,6 +125,7 @@ function MessageReminderPicker({
           <button
             key={preset.label}
             type="button"
+            data-pw={`MESSAGE-REMINDER-PRESET-${preset.key}`}
             disabled={!!busy}
             className={optionClass}
             onClick={() => save(preset.label, preset.at(new Date()))}

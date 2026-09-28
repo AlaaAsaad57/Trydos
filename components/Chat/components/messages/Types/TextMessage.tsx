@@ -62,6 +62,7 @@ function TextMessage({
 
       <div
         onClick={() => setOpen(id)}
+        data-pw="chat-message-bubble"
         // ref={refmessage}
         className={"message-element-body message-body text-body " + type}
         style={{
@@ -96,7 +97,7 @@ function TextMessage({
             />
           </div>
         )}
-        <span className="message-body-text-content">
+        <span className="message-body-text-content" data-pw="chat-message-text">
           {!Array.isArray(message_content) &&
             message_content &&
             message_content?.content}
