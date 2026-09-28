@@ -38,6 +38,7 @@ import {
   currentTab,
   gotoSellerDashboard,
   openTab,
+  refuseIfSectionDenied,
   refuseIfSessionExpired,
 } from "./sellerDashboard";
 import { sellerDashboard } from "../selectors";
@@ -66,10 +67,17 @@ export const openCommentsSection = async (
     "the comments section opened but drew neither a comment nor a refusal, so its read never answered — the shop's own comments come from Elasticsearch behind a permission check against the core backend",
   ).toBeVisible({ timeout: 45_000 });
 
+  await refuseIfSectionDenied(page, {
+    section: "comments",
+    permission: "READ_COMMENTS",
+  });
+
+  // The refusal was lifted by a late permissions answer, so the comments are
+  // only starting to load now.
   await expect(
-    denied,
-    "this account is not permitted to read the shop's comments (READ_COMMENTS), so the section refused rather than failing to load",
-  ).toBeHidden();
+    anyCard,
+    "the comments section opened but drew no comment, so its read never answered — the shop's own comments come from Elasticsearch behind a permission check against the core backend",
+  ).toBeVisible({ timeout: 45_000 });
 };
 
 /** Close the section and open it again, so the list is fetched afresh. */

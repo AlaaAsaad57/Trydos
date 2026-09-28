@@ -51,6 +51,7 @@ import {
   gotoQaProduct,
 } from "./actions/qaProduct";
 import { envValue, hasQaMode, hasQaSeed } from "./harness/env";
+import { openPage } from "./harness/pageOpen";
 import { PROD_SAFE_TAG } from "./laneConfig";
 import {
   CALL_RECORD_PATH,
@@ -384,7 +385,7 @@ test.describe(`QA-09 the QA product is hidden everywhere a shopper looks ${PROD_
     page: import("@playwright/test").Page,
     path: string,
   ): Promise<{ served: boolean; mentions: boolean; length: number }> => {
-    const response = await page.goto(path, { waitUntil: "domcontentloaded" });
+    const response = await openPage(page, path);
     const body = await page.content();
     return {
       served: (response?.status() ?? 0) < 400,

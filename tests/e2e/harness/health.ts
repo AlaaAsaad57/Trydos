@@ -405,13 +405,24 @@ const untilUp = async (
  *  `skipped` rather than a plain `up` when nothing is configured, so the log says
  *  "nothing was checked" instead of "the check passed". A probe that checked
  *  nothing must never read like a healthy backend. */
-export const probeStaging = async (): Promise<HealthReport> => {
+export const probeStaging = async (
+  options: {
+    /** Ask each backend one time only. For a caller that wants to know what is
+     *  true **now** (`harness/pageOpen.ts`), where waiting for a backend to
+     *  come back would report a fault that has passed as healthy. */
+    once?: boolean;
+  } = {},
+): Promise<HealthReport> => {
   loadLiveEnv();
 
+  const ask = options.once
+    ? (check: () => Promise<CheckResult | null>) => check()
+    : untilUp;
+
   const results = await Promise.all([
-    untilUp(checkSearchBackend),
+    ask(checkSearchBackend),
     ...BACKEND_PROBES.map((probe) =>
-      untilUp(async () => await checkBackend(probe.role, probe.addressKey)),
+      ask(async () => await checkBackend(probe.role, probe.addressKey)),
     ),
   ]);
   const asked = results.filter((result): result is CheckResult => result !== null);

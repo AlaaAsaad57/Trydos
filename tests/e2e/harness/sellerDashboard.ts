@@ -281,6 +281,44 @@ const sendThroughProxy = async (
 export const worthRetrying = (status: number): boolean =>
   status === 0 || status === 429 || status >= 500;
 
+/** Why a dashboard section drew "Access Denied", in one sentence.
+ *
+ *  **The block alone cannot say.** The dashboard draws it whenever it holds no
+ *  permission for the section, and that is true while its own
+ *  `GET /shop/auth/permissions` is late or failed, not only when the account
+ *  lacks the permission. CI run 36416474747 blamed the account for SD-04 while
+ *  the core backend was answering that call with 522.
+ *
+ *  `read` is the answer to the same call, asked again by the case. The
+ *  sentence names the core backend when the read failed, the permission when
+ *  the backend says it is missing, and the dashboard when the backend says the
+ *  account holds it. */
+export const sectionRefusalReason = (options: {
+  section: string;
+  permission: string;
+  sellerId: string;
+  read: CallResult;
+}): string => {
+  const { section, permission, sellerId, read } = options;
+
+  if (!read.ok) {
+    const said = read.message ? ` (${read.message})` : "";
+    return `the ${section} section refused to draw, and the core backend answered GET /shop/auth/permissions with ${read.status}${said}, so the dashboard has no permissions to judge this account by`;
+  }
+
+  const shop = rowsOf(read.data).find(
+    (row) => String(row?.seller_id) === String(sellerId),
+  );
+  const held: string[] = Array.isArray(shop?.permissions) ? shop.permissions : [];
+  const holds = [permission, "SUPER_ADMIN"].find((name) => held.includes(name));
+
+  if (!holds) {
+    return `the ${section} section refused to draw: the core backend says this account does not hold ${permission} for shop ${sellerId}`;
+  }
+
+  return `the ${section} section still refuses to draw, while the core backend says this account holds ${holds} for shop ${sellerId}. The dashboard's own GET /shop/auth/permissions never arrived, or the dashboard did not use it`;
+};
+
 /** How many attempts, and how long to wait before each retry.
  *
  *  Two retries, because the seed is a **setup project**: when it throws, every

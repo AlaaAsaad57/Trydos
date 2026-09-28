@@ -47,6 +47,7 @@ import {
   dashboardLocale,
   gotoSellerDashboard,
   openTab,
+  refuseIfSectionDenied,
   refuseIfSessionExpired,
 } from "./sellerDashboard";
 
@@ -150,10 +151,10 @@ export const openShopInfo = async (
 
   await refuseIfSessionExpired(page, "opening the Shop Info section");
 
-  await expect(
-    denied,
-    "the Shop Info section refused to draw: this account does not hold READ_SHOP_INFO for this shop",
-  ).toBeHidden();
+  await refuseIfSectionDenied(page, {
+    section: "Shop Info",
+    permission: "READ_SHOP_INFO",
+  });
 
   await expect(
     shopInfo.nameInput(page),

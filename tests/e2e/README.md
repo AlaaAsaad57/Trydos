@@ -132,6 +132,19 @@ retry is written to the case's annotations (`backend retried`) and to the log,
 so read them before trusting what a rescued case left behind. Calls the
 Next.js server makes while it renders are not reached by this.
 
+Two calls are never asked again:
+
+- **A preload through the proxy.** On `127.0.0.1` the proxy answers every
+  preload with 503, and the app then asks with its own `fetch`. Only the app's
+  own call (`fetch` or `xhr`) is retried.
+- **A call whose page has closed.** Nobody is waiting for the answer, so it is
+  dropped without failing the case.
+
+**A page that does not open in time says why.** `harness/pageOpen.ts` asks
+staging once at that moment. The failure names the backend that was not
+serving, or says that every backend answered and the app's own server was the
+one waiting. Use `openPage` instead of `page.goto` in a new action.
+
 **6. Everything you create, you tag and you register for teardown** — at the
 moment it is created, not after the assertions, so a failed assertion still
 cleans up.

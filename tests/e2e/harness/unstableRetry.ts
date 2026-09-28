@@ -50,6 +50,9 @@ const RETRY_WINDOW_MS = 60_000;
  *  the same kind of passing fault, so it is asked again as well. */
 const PROXY_FAILED = 503;
 
+/** The two ways the app itself calls its proxy (`utils/fetchData.ts`). */
+const APP_CALLS = new Set(["fetch", "xhr"]);
+
 /** Every backend origin the browser may call directly (chat, media, …). */
 const backendOrigins = (): Set<string> => {
   const origins = new Set<string>();
@@ -92,6 +95,38 @@ const report = (line: string): void => {
   }
 };
 
+/** Has the page that made this call closed?
+ *
+ *  A call with no page behind it (a service worker's) cannot be asked, and
+ *  answers no: not knowing is not a reason to drop a call. */
+const pageIsGone = (route: Route): boolean => {
+  try {
+    return route.request().frame().page().isClosed();
+  } catch {
+    return false;
+  }
+};
+
+/** What Playwright says when the page, its context or the held answer went
+ *  away while a call was in hand. */
+const GONE = /has been (closed|disposed)|context disposed/i;
+
+/** Hand the answer to the page, unless the page is no longer there.
+ *
+ *  CI run 36416474747 lost "search finds products" and GUEST-48 here. Each
+ *  case had finished and closed its context while a picture request was still
+ *  held, and `route.fulfill` threw `Fetch response has been disposed`. An
+ *  answer nobody is waiting for is not a failure. Anything else still throws. */
+const handOver = async (route: Route, hand: () => Promise<void>): Promise<void> => {
+  try {
+    await hand();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (pageIsGone(route) || GONE.test(message)) return;
+    throw error;
+  }
+};
+
 /** Retry Cloudflare's backend failures for every call a context makes to a
  *  backend. Install once per context, before any page opens; routes that a
  *  case registers later (fakes, the closed-mode guard) still run first. */
@@ -103,8 +138,21 @@ export const retryUnstableBackends = async (
     url.pathname === "/api/proxy" || origins.has(url.origin);
 
   await context.route(isBackendCall, async (route) => {
-    const what = describe(route);
     const isProxy = new URL(route.request().url()).pathname === "/api/proxy";
+
+    // A preload through the proxy is left alone. It is the browser's call, not
+    // the app's: the app asks again with its own `fetch`, and that one is
+    // retried below. On `127.0.0.1` the proxy refuses every preload with 503
+    // (the call says `Origin: http://127.0.0.1:3100`, the app compares it with
+    // `http://localhost:3100`), so retrying it held a call for 35 seconds on
+    // every page, and the renewal gate waited 20 seconds for it before each
+    // navigation of a signed-in page.
+    if (isProxy && !APP_CALLS.has(route.request().resourceType())) {
+      await handOver(route, () => route.continue());
+      return;
+    }
+
+    const what = describe(route);
     const firstTryAt = Date.now();
 
     const unstable = (status: number): boolean =>
@@ -118,7 +166,15 @@ export const retryUnstableBackends = async (
         if (attempt > 0) {
           report(`${what} answered ${status} on try ${attempt + 1}, after the earlier tries failed`);
         }
-        await route.fulfill({ response });
+        await handOver(route, () => route.fulfill({ response }));
+        return;
+      }
+
+      // The page closed while the call was in hand, which is also why the call
+      // got no answer. Asking again would hold the route for up to 35 seconds
+      // for nobody.
+      if (pageIsGone(route)) {
+        await handOver(route, () => route.abort("failed"));
         return;
       }
 
@@ -126,8 +182,9 @@ export const retryUnstableBackends = async (
       const late = Date.now() - firstTryAt + (wait ?? 0) > RETRY_WINDOW_MS;
       if (wait === undefined || late) {
         report(`${what} still failed after ${attempt + 1} tries (${status || "no answer"}); the case sees that answer`);
-        if (response) await route.fulfill({ response });
-        else await route.abort("failed");
+        await handOver(route, () =>
+          response ? route.fulfill({ response }) : route.abort("failed"),
+        );
         return;
       }
 

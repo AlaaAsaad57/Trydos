@@ -18,6 +18,7 @@ import { expect, type Page } from "@playwright/test";
 
 import { profile } from "../selectors";
 import { chooseRegionIfAsked, localePrefix } from "./nav";
+import { openPage } from "../harness/pageOpen";
 import { waitForRenewalSettled } from "../harness/renewalGate";
 import { watchCommentCall } from "./productComments";
 
@@ -39,7 +40,7 @@ export const gotoUnderLocale = async (
   // credential spends the session (`harness/renewalGate.ts`). CI run
   // 36395039292 lost Shopper B that way on the way into the seller dashboard.
   await waitForRenewalSettled(page);
-  await page.goto(`/${prefix}${path}`, { waitUntil: "domcontentloaded" });
+  await openPage(page, `/${prefix}${path}`);
   await chooseRegionIfAsked(page);
 
   // Wait for the page to stop fetching, and this is not tidiness — it replaces
@@ -629,6 +630,20 @@ export const attemptPictureSave = async (
 
   await button.click();
 
+  // **The first of the two to happen is the answer.** This used to wait for
+  // both, so every save that worked still sat out the refusal watch's whole
+  // 45 seconds. `PROF-05` saves twice, which cost it 90 of its 180 seconds
+  // with nothing wrong. CI run 36416474747 then ran out of time there, and the
+  // three cases after it opened a session that was never handed on.
+  const first = await Promise.race([
+    navigation.then((landed) => (landed ? ("saved" as const) : null)),
+    refusal,
+  ]);
+  if (first === "saved") return { saved: true, refusedWith: null };
+  if (first !== null) return { saved: false, refusedWith: first };
+
+  // Neither happened in time. Both watches share one deadline, so the other
+  // one ends now too.
   const [saved, refusedWith] = await Promise.all([navigation, refusal]);
 
   return {

@@ -8,6 +8,15 @@ declare global {
 }
 
 const DEFAULT_TTL = 1800;
+// The longest one command may wait for its answer. ioredis has no limit of its
+// own, so a connection that died without a reset kept every reader waiting
+// until the socket itself gave up, minutes later, and each page that reads
+// this store hung with it. Every helper below already treats a refused
+// command as "nothing stored".
+const COMMAND_TIMEOUT_MS = 3000;
+// Send a TCP keep-alive on an idle connection. With none, a network device in
+// between may drop a quiet connection and tell neither side.
+const KEEP_ALIVE_MS = 30000;
 let redis: Redis | null = null;
 
 if (process.env.NEXT_RUNTIME !== "edge") {
@@ -20,6 +29,8 @@ if (process.env.NEXT_RUNTIME !== "edge") {
       port: 6379,
       username: process.env.REDIS_USERNAME,
       password: process.env.REDIS_PASS,
+      commandTimeout: COMMAND_TIMEOUT_MS,
+      keepAlive: KEEP_ALIVE_MS,
     });
   if (process.env.NODE_ENV !== "production") {
     // @ts-ignore
