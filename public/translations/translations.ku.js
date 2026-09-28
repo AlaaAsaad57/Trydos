@@ -2854,6 +2854,19 @@ const translations = {
   "Please read the code in front of you at the {brand} center, then receive the amount from the employee.": "تکایە ئەو کۆدەی لەبەردەمتدایە لە سەنتەری {brand} بخوێنەرەوە، پاشان بڕەکە لە کارمەندەکە وەربگرە.",
   "Do not leave the page or the center until you have confirmed that the transaction is complete.": "لاپەڕەکە یان سەنتەرەکە بەجێ مەهێڵە تا دڵنیا دەبیتەوە کە مامەڵەکە تەواو بووە.",
   "Thank you.": "سوپاس.",
+  "verification !": "پشتڕاستکردنەوە !",
+  "enter verification code sent to your WhatsApp": "ئەو کۆدەی بۆ واتسئاپەکەت نێردراوە بنووسە",
+  "Authorized recipient Full name": "ناوی تەواوی وەرگری ڕێگەپێدراو",
+  "Your Withdrawal Request Ready to Collect !": "داواکاریی ڕاکێشانەکەت ئامادەیە بۆ وەرگرتن !",
+  "Present this code along with your personal ID at any of our branches and receive the amount in complete security.": "ئەم کۆدە لەگەڵ ناسنامەی کەسیت لە هەر لقێکمان پیشان بدە و بڕەکە بە سەلامەتیی تەواو وەربگرە.",
+  "Thank you": "سوپاس",
+  "we are pleased to serve you": "خۆشحاڵین بە خزمەتکردنت",
+  "{bank} client ID": "ناسنامەی کڕیاری {bank}",
+  "{bank} client phone number": "ژمارەی تەلەفۆنی کڕیاری {bank}",
+  "{bank} client Full name (Exact ID)": "ناوی تەواوی کڕیاری {bank} (وەک ناسنامە)",
+  "Enter withdrawal amount to your {bank}": "بڕی ڕاکێشان بۆ هەژمارەکەت لە {bank} بنووسە",
+  "Withdrawal To {bank}": "ڕاکێشان بۆ {bank}",
+  "American dollars": "دۆلاری ئەمریکی",
 };
 
 export default translations;

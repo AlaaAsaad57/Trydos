@@ -202,6 +202,20 @@ export const DEMO_KEYS = [
   "Please read the code in front of you at the {brand} center, then receive the amount from the employee.",
   "Do not leave the page or the center until you have confirmed that the transaction is complete.",
   "Thank you.",
+  "verification !",
+  "enter verification code sent to your WhatsApp",
+  "Authorized recipient Full name",
+  "Your Withdrawal Request Ready to Collect !",
+  "Present this code along with your personal ID at any of our branches and receive the amount in complete security.",
+  "Thank you",
+  "we are pleased to serve you",
+  "{bank} client ID",
+  "{bank} client phone number",
+  "{bank} client Full name (Exact ID)",
+  "Enter withdrawal amount to your {bank}",
+  "Withdrawal To {bank}",
+  "American dollars",
+  "We have sent a verification code to the number",
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];

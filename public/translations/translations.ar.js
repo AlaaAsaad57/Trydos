@@ -2804,6 +2804,19 @@ const translations = {
   "Please read the code in front of you at the {brand} center, then receive the amount from the employee.": "يرجى قراءة الرمز الموجود أمامك في مركز {brand}، ثم استلم المبلغ من الموظف.",
   "Do not leave the page or the center until you have confirmed that the transaction is complete.": "لا تغادر الصفحة أو المركز حتى تتأكد من اكتمال العملية.",
   "Thank you.": "شكراً لك.",
+  "verification !": "التحقق !",
+  "enter verification code sent to your WhatsApp": "أدخل رمز التحقق المرسل إلى واتساب",
+  "Authorized recipient Full name": "الاسم الكامل للمستلم المفوَّض",
+  "Your Withdrawal Request Ready to Collect !": "طلب السحب جاهز للاستلام !",
+  "Present this code along with your personal ID at any of our branches and receive the amount in complete security.": "قدّم هذا الرمز مع هويتك الشخصية في أي فرع من فروعنا واستلم المبلغ بأمان تام.",
+  "Thank you": "شكراً لك",
+  "we are pleased to serve you": "يسعدنا خدمتك",
+  "{bank} client ID": "رقم عميل {bank}",
+  "{bank} client phone number": "رقم هاتف عميل {bank}",
+  "{bank} client Full name (Exact ID)": "الاسم الكامل لعميل {bank} (مطابق للهوية)",
+  "Enter withdrawal amount to your {bank}": "أدخل مبلغ السحب إلى حسابك في {bank}",
+  "Withdrawal To {bank}": "السحب إلى {bank}",
+  "American dollars": "دولار أمريكي",
 };
 
 export default translations;

@@ -121,6 +121,11 @@ export const XD_ICON_SIZE = {
   receiptDone: { w: 14, h: 14 },
   eyeGreySmall: { w: 15, h: 15 },
   scanCode: { w: 25, h: 25 },
+  codeSent: { w: 15, h: 15 },
+  codeHelp: { w: 15, h: 15 },
+  shieldGrey: { w: 14, h: 14 },
+  qrRequest: { w: 301, h: 301 },
+  qrRequestBig: { w: 351, h: 351 },
 } as const;
 
 export type XdIconName = keyof typeof XD_ICON_SIZE;

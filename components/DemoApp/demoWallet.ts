@@ -154,6 +154,28 @@ export const WALLET_RECIPIENT = {
   name: "Mohamad Katmawi",
 } as const;
 
+/**
+ * The client's own bank account, as the "To My rdb" tab fills it
+ * (`Home Page – 35`, `– 36`). The file spells the currency "American" here.
+ */
+export const WALLET_BANK_ACCOUNT: {
+  id: string;
+  currency: Record<WalletCurrency, DemoKey>;
+} = {
+  id: "100-708",
+  currency: { usd: "American dollars", syp: "syrian pounds" },
+};
+
+/**
+ * A withdrawal request, as `Home Page – 101`, `– 28` and `– 24` fill it: the
+ * number the code goes to, with its middle hidden, and what the request says.
+ */
+export const WALLET_REQUEST = {
+  codeSentTo: "+90 5x2 8xx xx00",
+  reference: "101213",
+  date: "03.march | 14:55",
+} as const;
+
 /** The other ways to cash out on `Home Page – 21`, left to right. */
 export const WALLET_PROVIDERS: {
   id: string;

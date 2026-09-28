@@ -9,18 +9,26 @@ import { C, SHEET, gapTo, lineBox, paraTop, textBottom } from "../demoLayout";
 import { Box, Icon, Sheet, Stroke, Txt } from "../ui";
 import type { XdIconName } from "../xdIcons";
 import {
+  WALLET_BANK_ACCOUNT,
   WALLET_BRAND,
   WALLET_PROVIDERS,
   WALLET_RECIPIENT,
   type WalletBalance,
 } from "../demoWallet";
+import {
+  RequestCode,
+  RequestPicture,
+  RequestReady,
+  type WithdrawalRequest,
+} from "./WalletWithdrawalRequest";
 
 /**
  * Cash Out — XD `Home Page – 21` (the ways to cash out), `– 19`, `– 20`,
- * `– 25`, `– 27`, `– 29` (the trydos | rdb form and its states) and `– 30`
- * (the code reader).
+ * `– 25`, `– 27`, `– 29`, `– 35`, `– 36` (the trydos | rdb form and its states),
+ * `– 30` (the code reader), and `– 101`, `– 28`, `– 24` (a withdrawal
+ * request, in WalletWithdrawalRequest.tsx).
  *
- * One sheet, three steps. The file draws the first step from y 244 and the
+ * One sheet, five steps. The file draws the first step from y 244 and the
  * others from y 90, all with 50 px top corners. The sheet is laid out at 90
  * and rests 154 px lower while the first step is on show.
  *
@@ -28,9 +36,15 @@ import {
  * edge, so a step's first block has `mt` = its y minus (top + 13).
  */
 
-type Step = "ways" | "form" | "scan";
+type Step = "ways" | "form" | "scan" | "code" | "request";
 
-const TOP: Record<Step, number> = { ways: 244, form: 90, scan: 90 };
+const TOP: Record<Step, number> = {
+  ways: 244,
+  form: 90,
+  scan: 90,
+  code: 90,
+  request: 90,
+};
 
 /** The boards of the form and the code reader end at y 930. */
 const BOARD_END = 930;
@@ -44,6 +58,18 @@ type InUse = "amount" | "phone" | "name" | null;
 /** A typed amount as a number. */
 const toNumber = (text: string) =>
   Number.parseFloat(text.replace(",", ".")) || 0;
+
+/** A sentence with the bank's name in it, which the file draws Bold. */
+function WithBank({ text }: { text: string }) {
+  const [before, after = ""] = text.split("{bank}");
+  return (
+    <>
+      {before}
+      <span className="font-bold">{WALLET_BRAND.bank}</span>
+      {after}
+    </>
+  );
+}
 
 /** The brand, as the file writes it: "try" and "rdb" Bold, the rest Regular. */
 function Brand({ size, mt, nudge }: { size: number; mt: number; nudge?: number }) {
@@ -113,6 +139,19 @@ export default function WalletCashOutSheet({
   // Kept here, so the form has them again after "Back" on the code reader.
   const [amount, setAmount] = useState("");
   const [authorized, setAuthorized] = useState<Authorized | null>(null);
+  /** The picture of the request (`Home Page – 24`) lies over the sheet. */
+  const [picture, setPicture] = useState(false);
+
+  const request: WithdrawalRequest = {
+    amount,
+    authorized: authorized?.name.trim() || undefined,
+  };
+  const head = (
+    <>
+      <Title top={TOP.form} mark={balance.mark} />
+      <Brand size={24} mt={gapTo(TOP.form + 24 + lineBox(24), 180, 24)} />
+    </>
+  );
 
   // The sheet opens on its first step every time. The step goes back once
   // the sheet has slid away, so it does not change while it is leaving.
@@ -122,59 +161,86 @@ export default function WalletCashOutSheet({
       setStep("ways");
       setAmount("");
       setAuthorized(null);
+      setPicture(false);
     }, 400);
     return () => clearTimeout(timer);
   }, [open]);
 
   return (
-    <Sheet
-      open={open}
-      onClose={onClose}
-      y={TOP.form}
-      lower={TOP[step] - TOP.form}
-      radius={SHEET.radiusWallet}
-      fit
-      testId="demo-wallet-cash-out-sheet"
-    >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={step}
-          data-pw={`demo-wallet-cash-out-${step}`}
-          className="flex flex-col shrink-0"
-          // The form and the code reader reach the board's end, where their
-          // buttons sit.
-          style={{
-            minHeight:
-              step === "ways" ? undefined : BOARD_END - (TOP[step] + 13),
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
-        >
-          {step === "ways" && (
-            <Ways mark={balance.mark} onPick={() => setStep("form")} />
-          )}
-          {step === "form" && (
-            <Form
-              balance={balance}
-              amount={amount}
-              setAmount={setAmount}
-              authorized={authorized}
-              setAuthorized={setAuthorized}
-              onNow={() => setStep("scan")}
-            />
-          )}
-          {step === "scan" && (
-            <Scan
-              balance={balance}
-              amount={amount}
-              onBack={() => setStep("form")}
-            />
-          )}
-        </motion.div>
-      </AnimatePresence>
-    </Sheet>
+    <>
+      <Sheet
+        open={open}
+        onClose={onClose}
+        y={TOP.form}
+        lower={TOP[step] - TOP.form}
+        radius={SHEET.radiusWallet}
+        fit
+        testId="demo-wallet-cash-out-sheet"
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={step}
+            data-pw={`demo-wallet-cash-out-${step}`}
+            className="flex flex-col shrink-0"
+            // The form and the code reader reach the board's end, where their
+            // buttons sit.
+            style={{
+              minHeight:
+                step === "ways" ? undefined : BOARD_END - (TOP[step] + 13),
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            {step === "ways" && (
+              <Ways mark={balance.mark} onPick={() => setStep("form")} />
+            )}
+            {step === "form" && (
+              <Form
+                balance={balance}
+                amount={amount}
+                setAmount={setAmount}
+                authorized={authorized}
+                setAuthorized={setAuthorized}
+                onNow={() => setStep("scan")}
+                onRequest={() => setStep("code")}
+              />
+            )}
+            {step === "scan" && (
+              <Scan
+                balance={balance}
+                amount={amount}
+                onBack={() => setStep("form")}
+              />
+            )}
+            {step === "code" && (
+              <RequestCode
+                head={head}
+                balance={balance}
+                request={request}
+                onVerified={() => setStep("request")}
+              />
+            )}
+            {step === "request" && (
+              <RequestReady
+                head={head}
+                balance={balance}
+                request={request}
+                onPicture={() => setPicture(true)}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </Sheet>
+      <RequestPicture
+        open={open && picture}
+        onClose={() => setPicture(false)}
+        head={head}
+        balance={balance}
+        request={request}
+      />
+    </>
   );
 }
 
@@ -421,6 +487,11 @@ function InfoButton({
  *     stands over "Withdrawal Request".
  * `– 27` and `– 29` also draw a grey 15 px eye in the recipient's name field.
  *
+ * `– 36` is the other tab, "To My rdb": the client's own account in three
+ * fields at y 245, 304 and 363, the amount field right under them at y 422,
+ * in use. The tab not chosen is `#F8F8F8` there, with Regular words. `– 35`
+ * is the same tab with the amount typed: "Withdrawal To rdb" at (20, 835).
+ *
  * The grey block the file draws from y 582, 12 px under the amount field,
  * stands for the login's own keypad (`NumericKeypad`). As in the login's phone
  * box (`RdbPhoneInput`): on a touch device the amount and the phone number are
@@ -435,6 +506,7 @@ function Form({
   authorized,
   setAuthorized,
   onNow,
+  onRequest,
 }: {
   balance: WalletBalance;
   amount: string;
@@ -443,10 +515,17 @@ function Form({
   setAuthorized: React.Dispatch<React.SetStateAction<Authorized | null>>;
   /** "Withdrawal Now": on to the code reader. */
   onNow: () => void;
+  /** "Withdrawal Request": on to the code (`Home Page – 101`). */
+  onRequest: () => void;
 }) {
   const { t } = useDemoNav();
   const top = TOP.form;
   const [active, setActive] = useState<InUse>(null);
+  /** The chosen tab: cash from a center, or to the client's own account. */
+  const [tab, setTab] = useState<"cash" | "bank">("cash");
+  const toBank = tab === "bank";
+  /** The authorized recipient is part of the cash tab only. */
+  const named = toBank ? null : authorized;
   /**
    * True until the empty form puts its amount field in use, 350 ms after it
    * opens. The field waits at y 515 meanwhile, so it does not move then.
@@ -515,17 +594,27 @@ function Form({
   /** The look of `– 27` and `– 29`: `#FCFCFC`, "Edit" in the label. */
   const saved = amount !== "" && !typing && !short;
   const complete =
-    !authorized || (authorized.phone !== "" && authorized.name.trim() !== "");
+    !named || (named.phone !== "" && named.name.trim() !== "");
   const ready = active === null && toNumber(amount) > 0 && !short && complete;
 
   // Where the block above the amount field ends, and where the field starts.
   // With the keypad up the field ends at y 570, 12 px over the keypad.
-  const above = authorized ? 481 + 30 : 363 + 30;
+  const above = toBank ? 363 + 55 : named ? 481 + 30 : 363 + 30;
   const amountHeight = short ? 93 : 55;
-  const amountTop =
-    authorized ? 515 : typing || opening ? 570 - amountHeight : 397;
+  const amountTop = toBank
+    ? 422
+    : named
+      ? 515
+      : typing || opening
+        ? 570 - amountHeight
+        : 397;
 
-  const [toMy, bank = ""] = t("To My {bank}").split("{bank}");
+  const choose = (next: "cash" | "bank") => {
+    if (next === tab) return;
+    setTab(next);
+    // `Home Page – 36`: the empty amount field is the one in use.
+    if (amount === "") setTimeout(() => use("amount"), 0);
+  };
 
   return (
     <>
@@ -536,19 +625,50 @@ function Form({
         className="flex shrink-0"
         style={{ marginTop: 213 - textBottom(180, 24), marginLeft: 20 }}
       >
-        <Tab chosen testId="demo-wallet-tab-cash">
+        <Tab
+          chosen={!toBank}
+          fill={C.field}
+          onClick={() => choose("cash")}
+          testId="demo-wallet-tab-cash"
+        >
           {t("Cash Withdrawal")}
         </Tab>
-        <Tab ml={4} testId="demo-wallet-tab-bank">
-          <span className="font-normal">{toMy}</span>
-          <span className="font-bold">{WALLET_BRAND.bank}</span>
-          <span className="font-normal">{bank}</span>
+        <Tab
+          chosen={toBank}
+          fill={C.card}
+          ml={4}
+          onClick={() => choose("bank")}
+          testId="demo-wallet-tab-bank"
+        >
+          <WithBank text={t("To My {bank}")} />
         </Tab>
       </div>
 
+      {toBank && (
+        <Recipient
+          mt={245 - (213 + 28)}
+          label={<WithBank text={t("{bank} client ID")} />}
+          testId="demo-wallet-bank-id"
+        >
+          {/* The number ends at x 81, the currency starts at 91. */}
+          <span className="font-medium">{WALLET_BANK_ACCOUNT.id}</span>
+          <span style={{ marginLeft: 91 - 81 }}>
+            {t(WALLET_BANK_ACCOUNT.currency[balance.currency])}
+          </span>
+        </Recipient>
+      )}
       <Recipient
-        mt={245 - (213 + 28)}
-        label={t("Trydos client phone number")}
+        mt={toBank ? 304 - (245 + 55) : 245 - (213 + 28)}
+        label={
+          toBank ? (
+            <WithBank text={t("{bank} client phone number")} />
+          ) : (
+            <>
+              <span className="font-medium">{t("recipient")}</span>
+              {` ${t("Trydos client phone number")}`}
+            </>
+          )
+        }
         testId="demo-wallet-recipient-phone"
       >
         {/* "+" Bold at x 32, the number from x 44. */}
@@ -558,16 +678,26 @@ function Form({
         {WALLET_RECIPIENT.phone}
       </Recipient>
       <Recipient
-        mt={304 - (245 + 55)}
-        label={t("Trydos client Full name ( Exact ID )")}
+        mt={4}
+        label={
+          toBank ? (
+            <WithBank text={t("{bank} client Full name (Exact ID)")} />
+          ) : (
+            <>
+              <span className="font-medium">{t("recipient")}</span>
+              {` ${t("Trydos client Full name ( Exact ID )")}`}
+            </>
+          )
+        }
         testId="demo-wallet-recipient-name"
-        // The file draws the eye on the boards with no field in use.
-        mark={active === null}
+        // The file draws the eye on the boards of the cash tab with no field
+        // in use.
+        mark={!toBank && active === null}
       >
         {WALLET_RECIPIENT.name}
       </Recipient>
 
-      {authorized ? (
+      {toBank ? null : authorized ? (
         <>
           <Entry
             mt={363 - (304 + 55)}
@@ -729,7 +859,11 @@ function Form({
           ) : typing ? (
             <>
               <Txt size={12} weight="medium" as="label">
-                {t("Enter withdrawal amount")}
+                {toBank ? (
+                  <WithBank text={t("Enter withdrawal amount to your {bank}")} />
+                ) : (
+                  t("Enter withdrawal amount")
+                )}
               </Txt>
               {/* From x 291 in the file; it ends 12 px inside the field. */}
               <Txt
@@ -832,7 +966,7 @@ function Form({
         )}
       </Box>
 
-      {authorized && active === null && (
+      {named && active === null && (
         // 356 x 30 at (37, 574), 4 px under the amount field. The file
         // centres the words on x 210, 5 px left of the tint's centre.
         <Box
@@ -857,7 +991,7 @@ function Form({
         style={{ paddingTop: 8, paddingBottom: BOARD_END - 895 }}
       >
         <AnimatePresence initial={false}>
-          {ready && !authorized && (
+          {ready && !toBank && !named && (
             <SheetButton
               key="now"
               label={t("Withdrawal Now")}
@@ -866,13 +1000,25 @@ function Form({
               testId="demo-wallet-withdraw-now"
             />
           )}
-          {ready && (
+          {ready && !toBank && (
             <SheetButton
               key="request"
               mt={835 - (767 + 60)}
               label={t("Withdrawal Request")}
               fill={C.inkSoft}
+              onClick={onRequest}
               testId="demo-wallet-withdraw-request"
+            />
+          )}
+          {ready && toBank && (
+            // `Home Page – 35`. The file starts the words at x 147: half a px
+            // right of centre.
+            <SheetButton
+              key="bank"
+              label={<WithBank text={t("Withdrawal To {bank}")} />}
+              nudge={0.5}
+              fill={C.inkSoft}
+              testId="demo-wallet-withdraw-bank"
             />
           )}
         </AnimatePresence>
@@ -1034,7 +1180,7 @@ function SheetButton({
   testId,
 }: {
   mt?: number;
-  label: string;
+  label: React.ReactNode;
   nudge?: number;
   fill: string;
   color?: string;
@@ -1202,15 +1348,24 @@ function Entry({
   );
 }
 
-/** A tab of the form, 193 x 28, radius 8, 13 px text on baseline 19. */
+/**
+ * A tab of the form, 193 x 28, radius 8, 13 px text on baseline 19. The
+ * chosen one is green with Medium words. The other has a line, Regular words
+ * and its own `fill`: `#FCFCFC` on `– 19`, `#F8F8F8` on `– 36`.
+ */
 function Tab({
-  chosen = false,
+  chosen,
+  fill,
   ml,
+  onClick,
   children,
   testId,
 }: {
-  chosen?: boolean;
+  chosen: boolean;
+  /** The fill while the tab is not chosen. */
+  fill: string;
   ml?: number;
+  onClick: () => void;
   children: React.ReactNode;
   testId: string;
 }) {
@@ -1219,6 +1374,7 @@ function Tab({
       type="button"
       data-pw={testId}
       aria-pressed={chosen}
+      onClick={onClick}
       className="shrink-0 cursor-pointer"
       style={{ marginLeft: ml }}
     >
@@ -1226,16 +1382,17 @@ function Tab({
         w={193}
         h={28}
         radius={8}
-        fill={chosen ? C.green : C.card}
-        stroke={chosen ? undefined : C.line}
-        className="flex flex-col"
+        fill={chosen ? C.green : fill}
+        stroke={C.line}
+        strokeVisible={!chosen}
+        className="flex flex-col transition-[background-color] duration-300"
       >
         {/* The file centres the words half a px right of the tab's centre. */}
         <Txt
           center
           nudge={0.5}
           size={13}
-          weight="medium"
+          weight={chosen ? "medium" : "regular"}
           mt={gapTo(213, 232, 13)}
           style={{ whiteSpace: "pre" }}
         >
@@ -1248,7 +1405,7 @@ function Tab({
 
 /**
  * A recipient field, 390 x 55, `#FCFCFC`: the grey label (12, "Recipient"
- * Medium) on baseline 20 and the value (14) on 43, both 12 px in. `mark` adds
+ * Medium or the bank's name Bold) on baseline 20 and the value (14) on 43, both 12 px in. `mark` adds
  * the grey 15 px eye at (383, 324): 20 px down the field, 12 from its right.
  */
 function Recipient({
@@ -1259,12 +1416,11 @@ function Recipient({
   testId,
 }: {
   mt: number;
-  label: string;
+  label: React.ReactNode;
   children: React.ReactNode;
   mark?: boolean;
   testId: string;
 }) {
-  const { t } = useDemoNav();
   return (
     <Box
       w={390}
@@ -1279,8 +1435,7 @@ function Recipient({
     >
       <div className="flex flex-col shrink-0">
         <Txt size={12} color={C.grey} style={{ whiteSpace: "pre" }}>
-          <span className="font-medium">{t("recipient")}</span>
-          {` ${label}`}
+          {label}
         </Txt>
         <Txt
           size={14}

@@ -2836,6 +2836,19 @@ const translations = {
   "Please read the code in front of you at the {brand} center, then receive the amount from the employee.": "Lütfen {brand} merkezinde önünüzdeki kodu okutun, ardından tutarı görevliden alın.",
   "Do not leave the page or the center until you have confirmed that the transaction is complete.": "İşlemin tamamlandığını doğrulamadan sayfadan veya merkezden ayrılmayın.",
   "Thank you.": "Teşekkür ederiz.",
+  "verification !": "doğrulama !",
+  "enter verification code sent to your WhatsApp": "WhatsApp'ınıza gönderilen doğrulama kodunu girin",
+  "Authorized recipient Full name": "Yetkili alıcının tam adı",
+  "Your Withdrawal Request Ready to Collect !": "Para çekme talebiniz teslim almaya hazır !",
+  "Present this code along with your personal ID at any of our branches and receive the amount in complete security.": "Bu kodu kimliğinizle birlikte herhangi bir şubemizde gösterin ve tutarı tam güvenlik içinde alın.",
+  "Thank you": "Teşekkür ederiz",
+  "we are pleased to serve you": "size hizmet etmekten memnuniyet duyarız",
+  "{bank} client ID": "{bank} müşteri numarası",
+  "{bank} client phone number": "{bank} müşteri telefon numarası",
+  "{bank} client Full name (Exact ID)": "{bank} müşterisinin tam adı (Kimlikteki gibi)",
+  "Enter withdrawal amount to your {bank}": "{bank} hesabınıza çekilecek tutarı girin",
+  "Withdrawal To {bank}": "{bank} Hesabına Çek",
+  "American dollars": "Amerikan doları",
 };
 
 export default translations;
