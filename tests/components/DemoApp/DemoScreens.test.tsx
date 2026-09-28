@@ -231,12 +231,13 @@ describe("Demo screens — numbers from the XD file", () => {
     }
   });
 
-  // The field in use (focused, or its sheet open) turns #FCFCFC with a blue
-  // #388CFF line and a SemiBold label (Medium is too close to Regular to see
-  // at 12 px) — product rules, not in the file (`– 95`,
-  // `– 97` draw it white with a grey line and a Regular label). Once the form
-  // is complete, no field has a line, the focused one included.
-  describe("address form: the field in use turns #FCFCFC with a blue line and a SemiBold label", () => {
+  // Until the whole form is filled, every field is white with its line, filled
+  // or not, as `– 94`, `– 95` and `– 97` draw it. The field in use (focused, or
+  // its sheet open) only turns its line blue #388CFF and its label SemiBold
+  // (Medium is too close to Regular to see at 12 px) — a product rule. Once the
+  // form is complete, every field is #FCFCFC with no line (`– 99`); the field in
+  // use keeps its blue line.
+  describe("address form: fields drop their line only when the whole form is filled; the field in use is blue", () => {
     const WHITE = "rgb(255, 255, 255)";
     const CARD = "rgb(252, 252, 252)";
     const box = (container: HTMLElement, id: string) => {
@@ -280,7 +281,7 @@ describe("Demo screens — numbers from the XD file", () => {
     };
     const FORM = "/sy-en/demo/settings/profile/address/new";
 
-    it("a text field turns #FCFCFC with a blue line and a SemiBold label while it has focus, empty or typed in", () => {
+    it("a text field keeps white and its line while it has focus and after it is filled; focus only turns the line blue", () => {
       const container = open(FORM);
       const detail = box(container, "demo-address-detail");
       expect(detail.style.background, "the empty 'Detailed address' field is not white before it has focus").toBe(WHITE);
@@ -291,58 +292,64 @@ describe("Demo screens — numbers from the XD file", () => {
       fireEvent.focus(container.querySelector('[data-pw="demo-address-detail"]')!);
       expect(
         detail.style.background,
-        "the focused, empty 'Detailed address' field stayed white; the field in use is #FCFCFC",
-      ).toBe(CARD);
+        "the focused, empty 'Detailed address' field is not white; before the form is complete no field changes its background",
+      ).toBe(WHITE);
       expect(blue(detail), "the focused, empty 'Detailed address' field has no blue #388CFF line").toBe(true);
       expect(medium(detail), "the focused 'Detailed address' field's label is not SemiBold").toBe(true);
 
       type(container, "demo-address-detail", "vadistanbul");
-      expect(detail.style.background, "the focused 'Detailed address' field is not #FCFCFC while it is typed in").toBe(CARD);
+      expect(detail.style.background, "the focused 'Detailed address' field is not white while it is typed in").toBe(WHITE);
       expect(blue(detail), "the focused 'Detailed address' field lost its blue line while it is typed in").toBe(true);
 
       fireEvent.blur(container.querySelector('[data-pw="demo-address-detail"]')!);
-      expect(detail.style.background, "the filled 'Detailed address' field is not #FCFCFC after focus left").toBe(CARD);
-      expect(lined(detail), "the filled 'Detailed address' field kept a line after focus left").toBe(false);
+      expect(
+        detail.style.background,
+        "the filled 'Detailed address' field changed its background after focus left, but the form is not complete yet",
+      ).toBe(WHITE);
+      expect(
+        lined(detail),
+        "the filled 'Detailed address' field lost its line after focus left, but the form is not complete yet",
+      ).toBe(true);
+      expect(blue(detail), "the 'Detailed address' field stayed blue after focus left").toBe(false);
       expect(medium(detail), "the 'Detailed address' label stayed SemiBold after focus left").toBe(false);
-
-      // Emptied again: back to white with a line.
-      type(container, "demo-address-detail", "");
-      fireEvent.blur(container.querySelector('[data-pw="demo-address-detail"]')!);
-      expect(detail.style.background, "the emptied 'Detailed address' field did not turn white again").toBe(WHITE);
-      expect(lined(detail), "the emptied 'Detailed address' field did not get its line back").toBe(true);
-      expect(blue(detail), "the emptied 'Detailed address' field kept the blue line after focus left").toBe(false);
     });
 
-    it("a sheet field with a value and no sheet open is #FCFCFC with no line, before the form is complete", async () => {
+    it("a sheet field with a value and no sheet open stays white with its line, before the form is complete", async () => {
       const container = open(FORM);
       const country = box(container, "demo-address-country");
-      expect(country.style.background, "the country field, which always has a value, is not #FCFCFC").toBe(CARD);
-      expect(lined(country), "the country field has a value but still has a line").toBe(false);
+      expect(
+        country.style.background,
+        "the country field, which always has a value, is not white before the form is complete",
+      ).toBe(WHITE);
+      expect(lined(country), "the country field lost its line before the form is complete").toBe(true);
 
       await pickPlace(container);
       const place = box(container, "demo-address-place");
-      expect(place.style.background, "the picked place field is not #FCFCFC after its sheet closed").toBe(CARD);
-      expect(lined(place), "the picked place field still has a line after its sheet closed").toBe(false);
       expect(
-        lined(box(container, "demo-address-title")),
-        "the empty 'Address title' field lost its line; only filled fields drop it",
+        place.style.background,
+        "the picked place field changed its background after its sheet closed, but the form is not complete yet",
+      ).toBe(WHITE);
+      expect(
+        lined(place),
+        "the picked place field lost its line after its sheet closed, but the form is not complete yet",
       ).toBe(true);
+      expect(blue(place), "the picked place field stayed blue after its sheet closed").toBe(false);
     }, 15000);
 
-    it("the field whose sheet is open turns #FCFCFC with a blue line and a SemiBold label, like a focused text field", () => {
+    it("the field whose sheet is open gets a blue line and a SemiBold label and stays white, like a focused text field", () => {
       const container = open(FORM);
       fireEvent.click(box(container, "demo-address-country"));
       const country = box(container, "demo-address-country");
-      expect(country.style.background, "the country field is not #FCFCFC while its sheet is open").toBe(CARD);
+      expect(country.style.background, "the country field is not white while its sheet is open").toBe(WHITE);
       expect(blue(country), "the country field has no blue line while its sheet is open").toBe(true);
       expect(medium(country), "the country field's label is not SemiBold while its sheet is open").toBe(true);
     });
 
-    it("the place field turns #FCFCFC with a blue line and a SemiBold label while its sheet is open", () => {
+    it("the place field gets a blue line and a SemiBold label and stays white while its sheet is open", () => {
       const container = open(FORM);
       fireEvent.click(box(container, "demo-address-place"));
       const place = box(container, "demo-address-place");
-      expect(place.style.background, "the place field stayed white while its sheet is open").toBe(CARD);
+      expect(place.style.background, "the place field is not white while its sheet is open").toBe(WHITE);
       expect(blue(place), "the place field has no blue line while its sheet is open").toBe(true);
       expect(medium(place), "the place field's label is not SemiBold while its sheet is open").toBe(true);
     });
@@ -379,6 +386,10 @@ describe("Demo screens — numbers from the XD file", () => {
           lined(box(container, id)),
           `${id} still has a line on the complete form while 'Address title' has focus; \`Home Page – 99\` draws none`,
         ).toBe(false);
+        expect(
+          box(container, id).style.background,
+          `${id} is not #FCFCFC on the complete form; \`Home Page – 99\` draws every field #FCFCFC`,
+        ).toBe(CARD);
       }
       const title = box(container, "demo-address-title");
       expect(
@@ -403,6 +414,15 @@ describe("Demo screens — numbers from the XD file", () => {
         blue(box(container, "demo-address-country")),
         "the country field has no blue line while its sheet is open on the complete form",
       ).toBe(true);
+      fireEvent.click(container.ownerDocument.querySelector('[data-pw="demo-country-tr"]')!);
+
+      // Emptying one field makes the form incomplete: every field is white with its line again.
+      type(container, "demo-address-title", "");
+      fireEvent.blur(container.querySelector('[data-pw="demo-address-title"]')!);
+      for (const id of ["demo-address-country", "demo-address-place", "demo-address-detail", "demo-address-title"]) {
+        expect(box(container, id).style.background, `${id} is not white again after the form became incomplete`).toBe(WHITE);
+        expect(lined(box(container, id)), `${id} did not get its line back after the form became incomplete`).toBe(true);
+      }
     }, 15000);
 
     it("the map's 0.5 px line is drawn over the map picture, not under it, as `Home Page – 94` and `– 99` draw it", () => {

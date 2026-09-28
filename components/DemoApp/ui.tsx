@@ -508,7 +508,6 @@ export function Field({
   editing,
   line = false,
   focused = false,
-  plain = false,
   children,
   onClick,
   testId,
@@ -524,8 +523,6 @@ export function Field({
   line?: boolean;
   /** In use without an input of its own: a field whose sheet is open. */
   focused?: boolean;
-  /** No line unless in use (the complete address form, `Home Page – 99`). The field in use keeps its blue line. */
-  plain?: boolean;
   children: React.ReactNode;
   onClick?: () => void;
   testId?: string;
@@ -544,7 +541,7 @@ export function Field({
       radius={ROW.radius}
       fill={editing ? C.white : C.card}
       stroke={inUse ? C.blue : C.line}
-      strokeVisible={inUse || (!plain && (editing || line))}
+      strokeVisible={inUse || editing || line}
       onClick={onClick}
       onFocus={(e) =>
         setTyping(e.target instanceof HTMLInputElement && !e.target.readOnly)

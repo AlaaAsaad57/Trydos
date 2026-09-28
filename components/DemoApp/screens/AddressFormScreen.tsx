@@ -32,14 +32,13 @@ import {
  * moves down 65 with the card — exactly the difference between 94 and 99.
  *
  * Fields, 55 tall, 4 px under the card and 4 px apart: country (opens the country sheet),
- * "Select from list" (opens the place sheet), detailed address, title. A field
- * that is empty and not in use is white with its grey line. A field with a
- * value is `#FCFCFC` with no line. A field in use (focused, or its sheet open)
- * is `#FCFCFC` with a blue `#388CFF` line and a SemiBold label. Both are asked for
- * by the product; 94, 95 and 97 draw a filled field and the field in use with
- * the grey line and a Regular label. When the whole form is filled "Add & save" rises
- * and every line goes, the map card's too, as on 99 — at once, even while the
- * last field still has focus. The field in use keeps its blue line: a product rule.
+ * "Select from list" (opens the place sheet), detailed address, title. Until
+ * the whole form is filled, every field is white with its grey line, filled or
+ * not, as 94, 95 and 97 draw it. A field in use (focused, or its sheet open)
+ * turns its line blue `#388CFF` and its label SemiBold: a product rule. When the
+ * whole form is filled "Add & save" rises, every field turns `#FCFCFC` and every
+ * line goes, the map card's too, as on 99 — at once, even while the last field
+ * still has focus. The field in use keeps its blue line: a product rule.
  *
  * Nothing is looked up: the map is the picture in the file and the places are
  * the mock list in demoPlaces.ts.
@@ -63,9 +62,6 @@ export default function AddressFormScreen() {
   const [title, setTitle] = useState(editing?.title ?? "");
   const [located, setLocated] = useState(editing !== null);
   const [sheet, setSheet] = useState<"country" | "place" | null>(null);
-  const [focused, setFocused] = useState<"detail" | "title" | null>(null);
-  // The field in use: the text field with focus, or the one whose sheet is open.
-  const active = focused ?? sheet;
 
   const placeDone = picked.length === LEVELS.length;
   const complete = placeDone && detail.trim() !== "" && title.trim() !== "";
@@ -91,12 +87,10 @@ export default function AddressFormScreen() {
     back();
   };
 
-  // A field whose sheet is open is in use: blue line, SemiBold label. On the
-  // complete form only the field in use has a line.
-  const fieldLook = (id: "country" | "place", filled: boolean) => ({
-    editing: active !== id && !filled,
+  // A field whose sheet is open is in use: blue line, SemiBold label.
+  const fieldLook = (id: "country" | "place") => ({
+    editing: !complete,
     focused: sheet === id,
-    plain: complete,
   });
 
   return (
@@ -293,7 +287,7 @@ export default function AddressFormScreen() {
       <Field
         mt={4}
         label={t("Country | Region")}
-        {...fieldLook("country", true)}
+        {...fieldLook("country")}
         {...sheetField(() => setSheet("country"))}
         testId="demo-address-country"
       >
@@ -311,7 +305,7 @@ export default function AddressFormScreen() {
       <Field
         mt={4}
         label={t("Select from list")}
-        {...fieldLook("place", placeDone)}
+        {...fieldLook("place")}
         {...sheetField(() => setSheet("place"))}
         testId="demo-address-place"
       >
@@ -334,15 +328,12 @@ export default function AddressFormScreen() {
       <Field
         mt={4}
         label={t("Detailed address")}
-        {...fieldEditing(detail, focused === "detail")}
-        plain={complete}
+        editing={!complete}
       >
         <FieldInput
           testId="demo-address-detail"
           value={detail}
           onChange={setDetail}
-          onFocus={() => setFocused("detail")}
-          onBlur={() => setFocused(null)}
           editing
           placeholder={t("Street address, building, Flat, Door, unit.")}
         />
@@ -351,15 +342,12 @@ export default function AddressFormScreen() {
       <Field
         mt={4}
         label={t("Address title")}
-        {...fieldEditing(title, focused === "title")}
-        plain={complete}
+        editing={!complete}
       >
         <FieldInput
           testId="demo-address-title"
           value={title}
           onChange={setTitle}
-          onFocus={() => setFocused("title")}
-          onBlur={() => setFocused(null)}
           editing
           placeholder={t("Ex: Home, my office, 2 home ect.")}
         />
@@ -370,15 +358,6 @@ export default function AddressFormScreen() {
 
 /** The map card and the map grow together. */
 const GROW = { duration: 0.35, ease: [0.4, 0, 0.2, 1] } as const;
-
-/**
- * A text field is white with a line while empty and not in use. In use, or
- * with text, it is `#FCFCFC` with no line — `#FCFCFC`, not white, since a
- * white field with no line is lost on the white page.
- */
-const fieldEditing = (value: string, inUse: boolean) => ({
-  editing: !inUse && value.trim() === "",
-});
 
 /** A field that opens a sheet instead of taking text: a button to the keyboard too. */
 const sheetField = (onClick: () => void) => ({
