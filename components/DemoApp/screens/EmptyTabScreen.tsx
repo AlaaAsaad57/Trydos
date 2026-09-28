@@ -3,7 +3,7 @@
 import type { DemoKey } from "../demoKeys";
 import React from "react";
 import { useDemoNav } from "../DemoShell";
-import { BODY_Y, C, gapTo, textBottom } from "../demoLayout";
+import { BODY_Y, C } from "../demoLayout";
 import { Icon, ScreenHeader, ScreenPage, Txt } from "../ui";
 
 /**
@@ -32,12 +32,13 @@ export default function EmptyTabScreen({
       testId={`demo-${title.toLowerCase()}`}
       header={<ScreenHeader title={title} small t={t} />}
     >
-      {/* The 19 px mark at y 432.5, centred; the lines on baselines 472 and 492. */}
+      {/* The 19 px mark at y 432.5, centred; the gaps XD shows: 7 under the
+          mark, 5 between the lines. */}
       <Icon name="helpBig" mt={432.5 - BODY_Y} style={{ alignSelf: "center" }} />
-      <Txt center size={13} weight="medium" color={C.hint} mt={gapTo(451.5, 472, 13)}>
+      <Txt center size={13} weight="medium" color={C.hint} mt={7}>
         {t(message)}
       </Txt>
-      <Txt center size={11} color={C.hint} mt={gapTo(textBottom(472, 13), 492, 11)}>
+      <Txt center size={11} color={C.hint} mt={5}>
         {t(hint)}
       </Txt>
     </ScreenPage>

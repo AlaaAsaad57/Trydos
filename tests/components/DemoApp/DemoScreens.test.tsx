@@ -231,6 +231,34 @@ describe("Demo screens — numbers from the XD file", () => {
     }
   });
 
+  it("empty address, cart and chat: the first grey line is 7 px under the help mark and the second 5 px under the first, as `Home Page – 96` draws them", () => {
+    const screens = [
+      { name: "address", path: "/sy-en/demo/settings/profile/address", search: "", testId: "demo-address-list" },
+      { name: "cart", path: "/sy-en/demo", search: "cart", testId: "demo-cart" },
+      { name: "chat", path: "/sy-en/demo", search: "chat", testId: "demo-chat" },
+    ];
+    for (const { name, path, search, testId } of screens) {
+      url.search = search;
+      const container = open(path);
+      const page = container.querySelector(`[data-pw="${testId}"]`);
+      expect(page, `the ${name} screen did not open`).not.toBeNull();
+      const [message, hint] = [...page!.querySelectorAll<HTMLElement>("span, p, div")].filter(
+        (e) => e.style.color === "rgb(195, 195, 195)",
+      );
+      expect(message, `the ${name} screen has no grey empty message`).toBeDefined();
+      expect(hint, `the ${name} screen has no grey hint under the message`).toBeDefined();
+      expect(
+        message.style.marginTop,
+        `the ${name} empty message is not 7 px under the help mark (XD shows 7)`,
+      ).toBe("7px");
+      expect(
+        hint.style.marginTop,
+        `the ${name} hint is not 5 px under the empty message (XD shows 5)`,
+      ).toBe("5px");
+      document.body.innerHTML = "";
+    }
+  });
+
   // Until the whole form is filled, every field is white with its line, filled
   // or not, as `– 94`, `– 95` and `– 97` draw it. The field in use (focused, or
   // its sheet open) only turns its line blue #388CFF and its label Medium — a
