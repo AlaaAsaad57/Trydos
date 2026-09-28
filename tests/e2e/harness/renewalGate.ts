@@ -43,10 +43,35 @@ const QUIET_MS = 1_000;
 /** How long a renewal may run before the wait gives up and says so. */
 const RENEWAL_MS = 20_000;
 
+/** How long after a page loads before the page counts as started.
+ *
+ *  **A renewal cannot be waited for before it has begun.** A page opened from
+ *  a saved session whose access token has aged out meets its first 401 only
+ *  when the app, started in the browser, sends its first authed call. Until
+ *  then nothing is open and nothing was refused, so a gate that only asked
+ *  "is a renewal running?" said no and let the case navigate.
+ *
+ *  CI run 36395039292 did exactly that. `SCRIPT-26` opened the QA seller's
+ *  saved session on `/about` and went straight to the dashboard. The app's
+ *  first calls were refused 0.4 s after the first proxied answer, its refresh
+ *  got 200 from the backend 2 s later, and the navigation had already
+ *  cancelled that answer. The old refresh token was spent, the browser never
+ *  got the new pair, the next refresh was refused, and Shopper B became a
+ *  guest — for every later case that opened the same saved session (the
+ *  seller dashboard, the seller stories, the chat's B side). */
+const STARTED_MS = 1_500;
+
 type RenewalState = {
   open: Set<Request>;
   /** When the last renewal ended, or a proxied call answered 401. */
   lastActivityAt: number;
+  /** Calls to `/api/proxy` still in flight. A refused one is where a renewal
+   *  begins, so none may be in the air when the page is left. */
+  proxied: Set<Request>;
+  /** When a proxied call last started or ended. */
+  lastProxiedAt: number;
+  /** When a page of this context last finished loading. */
+  lastLoadAt: number;
 };
 
 const renewals = new WeakMap<BrowserContext, RenewalState>();
@@ -61,14 +86,32 @@ const pathOf = (request: Request): string => {
 
 /** Start watching. Called once, by `newLiveContext`, before any page exists. */
 export const watchRenewals = (context: BrowserContext): void => {
-  const state: RenewalState = { open: new Set(), lastActivityAt: 0 };
+  const state: RenewalState = {
+    open: new Set(),
+    lastActivityAt: 0,
+    proxied: new Set(),
+    lastProxiedAt: 0,
+    lastLoadAt: 0,
+  };
   renewals.set(context, state);
 
   context.on("request", (request) => {
-    if (RENEWAL_ROUTES.has(pathOf(request))) state.open.add(request);
+    const path = pathOf(request);
+    if (RENEWAL_ROUTES.has(path)) state.open.add(request);
+    if (path === "/api/proxy") {
+      state.proxied.add(request);
+      state.lastProxiedAt = Date.now();
+    }
+  });
+
+  context.on("page", (page) => {
+    page.on("load", () => {
+      state.lastLoadAt = Date.now();
+    });
   });
 
   const ended = (request: Request): void => {
+    if (state.proxied.delete(request)) state.lastProxiedAt = Date.now();
     if (!state.open.delete(request)) return;
     state.lastActivityAt = Date.now();
   };
@@ -87,7 +130,9 @@ export const watchRenewals = (context: BrowserContext): void => {
 /** Wait until the page is not renewing its credential, then return.
  *
  *  Call it before a `page.goto` on a page that has already been signed in and
- *  has been showing the app. Throws — naming the route — if a renewal is still
+ *  has been showing the app. It returns once the page has been loaded for
+ *  `STARTED_MS`, no renewal and no proxied call is in flight, and nothing has
+ *  happened for `QUIET_MS`. Throws — naming the route — if a renewal is still
  *  running after `RENEWAL_MS`, because leaving then would spend the session. */
 export const waitForRenewalSettled = async (page: Page): Promise<void> => {
   const state = renewals.get(page.context());
@@ -97,8 +142,17 @@ export const waitForRenewalSettled = async (page: Page): Promise<void> => {
 
   const deadline = Date.now() + RENEWAL_MS;
   while (Date.now() < deadline) {
-    const quietFor = Date.now() - state.lastActivityAt;
-    if (state.open.size === 0 && quietFor >= QUIET_MS) return;
+    const now = Date.now();
+    const quietFor = now - Math.max(state.lastActivityAt, state.lastProxiedAt);
+    const started = now - state.lastLoadAt >= STARTED_MS;
+    if (
+      started &&
+      state.open.size === 0 &&
+      state.proxied.size === 0 &&
+      quietFor >= QUIET_MS
+    ) {
+      return;
+    }
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
@@ -113,7 +167,7 @@ export const waitForRenewalSettled = async (page: Page): Promise<void> => {
         "market backend",
     );
   }
-  // Only the quiet window was never reached: calls kept being refused for the
-  // whole wait. Nothing is in flight to lose, so the case goes on and reports
-  // whatever those refusals break.
+  // Only the quiet window was never reached: calls kept being made or refused
+  // for the whole wait, or one proxied call is simply slow. No renewal is in
+  // flight to lose, so the case goes on and reports whatever those calls break.
 };

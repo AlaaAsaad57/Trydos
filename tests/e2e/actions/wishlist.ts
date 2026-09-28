@@ -45,6 +45,7 @@ import { expect, type Page } from "@playwright/test";
 
 import { checklist, moreOptions } from "../selectors";
 import { credentialsHeld } from "../harness/session";
+import { redact } from "../harness/redact";
 import { localeParts } from "./nav";
 import { gotoUnderLocale } from "./profile";
 
@@ -317,6 +318,25 @@ export const pressChecklistToggle = async (
 ): Promise<{ wasSaved: boolean; nowSaved: boolean }> => {
   const wasSaved = await checklistToggleSaysSaved(page);
 
+  // What the shop answered the write itself, so a refusal names the backend
+  // and quotes its status instead of only saying the toggle did not move. CI
+  // run 36395039292 is why: core answered `POST /checklist` with a Cloudflare
+  // 520, and the old message said only "the shop did not confirm the save".
+  // The first answer that is not a 401 — a 401 is the first half of a renewal.
+  let answered = "no answer to the checklist write was seen";
+  const onResponse = (response: import("@playwright/test").Response): void => {
+    const request = response.request();
+    if (!response.url().includes("/api/proxy")) return;
+    const headers = request.headers();
+    const target = decodeURI(headers["x-proxy-url"] ?? "");
+    const method = (headers["x-proxy-method"] ?? "").toUpperCase();
+    if (!target.includes("/checklist") || method === "GET") return;
+    if (response.status() === 401) return;
+    const backend = response.headers()["x-market-backend"] || "the market";
+    answered = `the ${backend} backend answered ${method} ${target.split("?")[0]} with ${response.status()}`;
+  };
+  page.on("response", onResponse);
+
   await moreOptions.checklistToggle(page).click();
 
   // Waited on the toggle's own state, never on the spinner.
@@ -330,14 +350,22 @@ export const pressChecklistToggle = async (
   // The toggle is the right signal because `toggleWishlist` only flips it once
   // the shop has confirmed — so this waiting out means the shop refused, or
   // never answered.
-  await expect
-    .poll(() => checklistToggleSaysSaved(page), {
-      timeout: 45_000,
-      message: wasSaved
-        ? "the checklist toggle never turned off after it was pressed, so the shop did not confirm the removal"
-        : "the checklist toggle never turned on after it was pressed, so the shop did not confirm the save",
-    })
-    .toBe(!wasSaved);
+  const turned = await expect
+    .poll(() => checklistToggleSaysSaved(page), { timeout: 45_000 })
+    .toBe(!wasSaved)
+    .then(
+      () => true,
+      () => false,
+    );
+  page.off("response", onResponse);
+  expect(
+    turned,
+    redact(
+      wasSaved
+        ? `the checklist toggle never turned off after it was pressed, so the shop did not confirm the removal: ${answered}`
+        : `the checklist toggle never turned on after it was pressed, so the shop did not confirm the save: ${answered}`,
+    ),
+  ).toBe(true);
 
   return { wasSaved, nowSaved: await checklistToggleSaysSaved(page) };
 };

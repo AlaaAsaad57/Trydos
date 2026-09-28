@@ -18,6 +18,7 @@ import { expect, type Page } from "@playwright/test";
 
 import { profile } from "../selectors";
 import { chooseRegionIfAsked, localePrefix } from "./nav";
+import { waitForRenewalSettled } from "../harness/renewalGate";
 import { watchCommentCall } from "./productComments";
 
 /** Open a settings screen under the locale prefix, and wait for it to settle.
@@ -34,6 +35,10 @@ export const gotoUnderLocale = async (
     "no country-and-language prefix in the address yet — open a storefront page first",
   ).not.toBe("");
 
+  // Every caller is a signed-in page, and leaving one while it renews its
+  // credential spends the session (`harness/renewalGate.ts`). CI run
+  // 36395039292 lost Shopper B that way on the way into the seller dashboard.
+  await waitForRenewalSettled(page);
   await page.goto(`/${prefix}${path}`, { waitUntil: "domcontentloaded" });
   await chooseRegionIfAsked(page);
 

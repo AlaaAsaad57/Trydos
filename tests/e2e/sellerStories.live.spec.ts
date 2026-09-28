@@ -77,6 +77,7 @@ import {
   storyPhoto,
 } from "./actions/story";
 import { handOnSession, newLiveContext, openSignedInSession } from "./harness/liveSession";
+import { waitForRenewalSettled } from "./harness/renewalGate";
 import {
   NO_QA_SEED_REASON,
   QA_SELLER_SESSION_PATH,
@@ -518,6 +519,9 @@ test("SST-08 the story's product button opens the story's product", async () => 
   });
 
   await seedLocale(page, QA_COUNTRY);
+  // Leaving a signed-in page mid-renewal spends the session
+  // (`harness/renewalGate.ts`).
+  await waitForRenewalSettled(page);
   await page.goto(productButtonHref, { waitUntil: "domcontentloaded" });
   await chooseRegionIfAsked(page);
 
