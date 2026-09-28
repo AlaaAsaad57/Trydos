@@ -8,7 +8,11 @@ import { C, SHEET, gapTo, lineBox, textBottom } from "../demoLayout";
 import { Box, Icon, Sheet, Txt } from "../ui";
 import type { XdIconName } from "../xdIcons";
 import type { DemoKey } from "../demoKeys";
-import { WALLET_BALANCES, WALLET_BRAND, WALLET_RECIPIENT } from "../demoWallet";
+import {
+  WALLET_BRAND,
+  WALLET_RECIPIENT,
+  type WalletBalance,
+} from "../demoWallet";
 import { SheetTitle } from "./WalletCashOutSheet";
 
 /**
@@ -44,13 +48,15 @@ const ACTIONS: {
 export default function WalletInfoSheet({
   open,
   onClose,
+  balance,
 }: {
   open: boolean;
   onClose: () => void;
+  /** The balance the code is for. */
+  balance: WalletBalance;
 }) {
   const { t } = useDemoNav();
   const { profile } = useDemoData();
-  const balance = WALLET_BALANCES[0];
   // The file shows a client with a name; a new demo client has none yet.
   const name = profile.name || WALLET_RECIPIENT.name;
 
@@ -67,9 +73,15 @@ export default function WalletInfoSheet({
       onClose={onClose}
       y={TOP}
       radius={SHEET.radiusWallet}
+      fit
       testId="demo-wallet-info-sheet"
     >
-      <SheetTitle top={TOP} icon="qrDark" label={t("Wallet Info")} />
+      <SheetTitle
+        top={TOP}
+        icon="qrDark"
+        mark={balance.mark}
+        label={t("Wallet Info")}
+      />
       <Txt
         center
         size={24}
@@ -133,7 +145,12 @@ export default function WalletInfoSheet({
 
       <div
         className="flex items-start shrink-0"
-        style={{ marginTop: 855 - (757 + 55), marginLeft: ACTIONS[0].x }}
+        // The labels end at y 895: 35 px above the artboard's bottom.
+        style={{
+          marginTop: 855 - (757 + 55),
+          marginLeft: ACTIONS[0].x,
+          paddingBottom: 930 - 895,
+        }}
       >
         {ACTIONS.map((action, i) => (
           // The slot runs from one label's start to the next.

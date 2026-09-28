@@ -47,13 +47,9 @@ describe("demo routes — which screen a URL shows", () => {
       "/demo/settings/wallet is not the wallet",
     ).toBe("settings/wallet");
     expect(
-      screenFromUrl("/sy-en/demo/settings/wallet/usd", ""),
-      "/demo/settings/wallet/usd is not the dollar balance",
-    ).toBe("settings/wallet/usd");
-    expect(
-      parentOf("settings/wallet/usd"),
-      "back from the dollar balance with no history does not go to the wallet",
-    ).toBe("settings/wallet");
+      parentOf("settings/wallet"),
+      "back from the wallet with no history does not go to the profile tab",
+    ).toBe("settings");
     expect(
       screenFromUrl("/sy-en/demo/settings/nope", ""),
       "an unknown /demo path was taken for a demo screen",

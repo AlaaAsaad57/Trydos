@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useDemoNav } from "../DemoShell";
 import { C, gapTo, textBottom } from "../demoLayout";
 import { Box, Icon, ScreenHeader, ScreenPage, Txt } from "../ui";
@@ -9,7 +9,6 @@ import {
   WALLET_BALANCES,
   entriesFor,
   type WalletBalance,
-  type WalletCurrency,
   type WalletEntry,
 } from "../demoWallet";
 import WalletCashOutSheet from "./WalletCashOutSheet";
@@ -28,10 +27,34 @@ import WalletReceipt from "./WalletReceipt";
  *   - "All Transactions" on baseline 272;
  *   - the entries, 406 x 50 from y 287, 4 px apart.
  *
+ * One screen, two states. A tap on a card makes it grow to the full width, in
+ * place: the line above the cards names the currency, and the dots, Cash In,
+ * Cash Out and that currency's entries come in. A tap on the grown card, or
+ * the back arrow, brings the two cards back.
+ *
+ * The grown cards are a slider. Each one is a page of the screen's width (the
+ * 406 card and the 12 px on each side of it), so the next card waits just
+ * outside the screen, and a slide to the side brings it in. The dots show
+ * which one is on show.
+ *
+ * The dots sit in the 20 px between the cards (they end at y 241) and the
+ * list title (its box starts at 261), so the list does not move when they
+ * come in.
+ *
  * Three layers open over the page: Cash Out (`– 21`, `– 19`) and Wallet Info
  * (`– 23`) from the one-balance card, and the receipt (`– 18`) from an entry
  * that has one.
  */
+
+/** The move between the two states. */
+const GROW = { duration: 0.35, ease: [0.4, 0, 0.2, 1] as const };
+
+/** The cards side by side: 200 wide, 6 apart. */
+const SMALL = { width: 200, gap: 6 };
+/** The cards grown: 406 wide, a screen's width from one to the next. */
+const WIDE = { width: 406, gap: 24, step: 430 };
+/** A slide this far, or this fast, goes to the next card. */
+const SLIDE = { far: 60, fast: 400 };
 
 /** XD's drop shadow (0, 3, blur 3, black 16%) and inner shadow (0, 3, blur 3, white 50%). */
 const CARD_SHADOW =
@@ -39,20 +62,19 @@ const CARD_SHADOW =
 /** The shadow under the amount: 0, 3, blur 3, black 50%. */
 const AMOUNT_SHADOW = "0 3px 3px rgba(0, 0, 0, 0.5)";
 
-export default function WalletScreen({
-  currency,
-}: {
-  /** The balance on show, or null for all of them (`Home Page – 11`). */
-  currency: WalletCurrency | null;
-}) {
-  const { t, back, navigate } = useDemoNav();
+export default function WalletScreen() {
+  const { t, back } = useDemoNav();
+  /** The grown card's place in the row, or null for the two cards side by side (`Home Page – 11`). */
+  const [grown, setGrown] = useState<number | null>(null);
   const [cashOut, setCashOut] = useState(false);
   const [info, setInfo] = useState(false);
   const [receipt, setReceipt] = useState(false);
+  /** True while the row is being slid, so the slide's end is not read as a tap. */
+  const sliding = useRef(false);
+  const balance = grown === null ? null : WALLET_BALANCES[grown];
+  const currency = balance?.currency ?? null;
   const entries = entriesFor(currency);
-  const balances = WALLET_BALANCES.filter(
-    (balance) => currency === null || balance.currency === currency,
-  );
+  const rest = grown === null ? 0 : -grown * WIDE.step;
 
   return (
     <ScreenPage
@@ -62,19 +84,24 @@ export default function WalletScreen({
         <ScreenHeader
           crumb={["Profile", "Trydos Balance"]}
           icon="titleWallet"
-          onBack={back}
+          onBack={balance ? () => setGrown(null) : back}
           t={t}
         />
       }
       footer={
         <>
-          {currency && (
+          {balance && (
             <>
               <WalletCashOutSheet
                 open={cashOut}
                 onClose={() => setCashOut(false)}
+                balance={balance}
               />
-              <WalletInfoSheet open={info} onClose={() => setInfo(false)} />
+              <WalletInfoSheet
+                open={info}
+                onClose={() => setInfo(false)}
+                balance={balance}
+              />
             </>
           )}
           <WalletReceipt open={receipt} onClose={() => setReceipt(false)} />
@@ -90,9 +117,13 @@ export default function WalletScreen({
         <Txt
           size={11}
           weight="medium"
-          style={{ minWidth: (currency ? 152 : 125) - 24 }}
+          data-pw="demo-wallet-total"
+          style={{
+            minWidth: (currency ? 152 : 125) - 24,
+            transition: "min-width 0.35s",
+          }}
         >
-          {t(currency ? "your total USD balance" : "your total balance")}
+          {t(balance ? balance.total : "your total balance")}
         </Txt>
         <Icon name="eyeHidden" />
       </div>
@@ -101,52 +132,103 @@ export default function WalletScreen({
         className="flex shrink-0"
         style={{ marginTop: 138 - textBottom(123, 11), marginLeft: 12 }}
       >
-        {balances.map((balance, i) => (
-          <BalanceCard
-            key={balance.currency}
-            balance={balance}
-            wide={currency !== null}
-            ml={i === 0 ? 0 : 6}
-            // Only the dollar balance has a board of its own in the file.
-            onOpen={
-              currency === null && balance.currency === "usd"
-                ? () => navigate("settings/wallet/usd")
-                : undefined
-            }
-            onCashOut={() => setCashOut(true)}
-            onInfo={() => setInfo(true)}
-          />
-        ))}
+        <motion.div
+          data-pw="demo-wallet-cards"
+          className="flex shrink-0"
+          initial={false}
+          animate={{ x: rest }}
+          transition={GROW}
+          drag={grown === null ? false : "x"}
+          dragConstraints={{ left: rest, right: rest }}
+          dragElastic={0.35}
+          onDragStart={() => {
+            sliding.current = true;
+          }}
+          onDragEnd={(_, move) => {
+            // The click that ends the slide comes right after this.
+            setTimeout(() => {
+              sliding.current = false;
+            }, 50);
+            if (grown === null) return;
+            const next =
+              move.offset.x < -SLIDE.far || move.velocity.x < -SLIDE.fast
+                ? grown + 1
+                : move.offset.x > SLIDE.far || move.velocity.x > SLIDE.fast
+                  ? grown - 1
+                  : grown;
+            setGrown(Math.min(WALLET_BALANCES.length - 1, Math.max(0, next)));
+          }}
+        >
+          {WALLET_BALANCES.map((card, i) => (
+            <BalanceCard
+              key={card.currency}
+              balance={card}
+              wide={grown !== null}
+              ml={i === 0 ? 0 : grown === null ? SMALL.gap : WIDE.gap}
+              // A tap grows the card; a tap on the grown card folds it.
+              onTap={() => {
+                if (sliding.current) return;
+                setGrown(grown === null ? i : null);
+              }}
+              onCashOut={() => setCashOut(true)}
+              onInfo={() => setInfo(true)}
+            />
+          ))}
+        </motion.div>
       </div>
 
-      {currency && (
-        // The dots at (200, 247) and (222, 247): 30 wide together, centred.
-        <div
-          className="flex justify-center shrink-0"
-          style={{ marginTop: 247 - 241 }}
-        >
-          <Icon name="dotOn" />
-          <Icon name="dotOff" ml={6} />
-        </div>
-      )}
-
-      <Txt
-        size={11}
-        weight="medium"
-        mt={gapTo(currency ? 255 : 241, 272, 11)}
-        ml={24}
+      {/* The dots at (200, 247) and (222, 247): 30 wide together, centred,
+          6 px under the cards. The row is as tall as the gap to the title. */}
+      <div
+        className="flex justify-center items-start shrink-0"
+        style={{ height: gapTo(241, 272, 11) }}
       >
-        {t(currency ? "All USD Transactions" : "All Transactions")}
+        <AnimatePresence initial={false}>
+          {currency && (
+            <motion.div
+              key="dots"
+              data-pw="demo-wallet-dots"
+              className="flex shrink-0"
+              style={{ marginTop: 247 - 241 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={GROW}
+            >
+              {WALLET_BALANCES.map((card, i) => (
+                <Icon
+                  key={card.currency}
+                  name={i === grown ? "dotOn" : "dotOff"}
+                  ml={i === 0 ? 0 : 6}
+                />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <Txt size={11} weight="medium" ml={24} data-pw="demo-wallet-list-title">
+        {t(balance ? balance.list : "All Transactions")}
       </Txt>
 
-      {entries.map((entry, i) => (
-        <EntryRow
-          key={entry.id}
-          entry={entry}
-          mt={i === 0 ? 287 - textBottom(272, 11) : 4}
-          onOpen={entry.receipt ? () => setReceipt(true) : undefined}
-        />
-      ))}
+      <AnimatePresence initial={false}>
+        {entries.map((entry, i) => (
+          <motion.div
+            key={entry.id}
+            className="flex flex-col shrink-0 overflow-hidden"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={GROW}
+          >
+            <EntryRow
+              entry={entry}
+              mt={i === 0 ? 287 - textBottom(272, 11) : 4}
+              onOpen={entry.receipt ? () => setReceipt(true) : undefined}
+            />
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </ScreenPage>
   );
 }
@@ -167,14 +249,14 @@ function BalanceCard({
   balance,
   wide,
   ml,
-  onOpen,
+  onTap,
   onCashOut,
   onInfo,
 }: {
   balance: WalletBalance;
   wide: boolean;
   ml: number;
-  onOpen?: () => void;
+  onTap: () => void;
   onCashOut: () => void;
   onInfo: () => void;
 }) {
@@ -182,23 +264,27 @@ function BalanceCard({
   return (
     <motion.div
       data-pw={`demo-wallet-card-${balance.currency}`}
-      role={onOpen ? "button" : undefined}
-      tabIndex={onOpen ? 0 : undefined}
-      onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      aria-expanded={wide}
+      onClick={onTap}
       onKeyDown={(e) => {
-        if (onOpen && (e.key === "Enter" || e.key === " ")) onOpen();
+        if (e.key === "Enter" || e.key === " ") onTap();
       }}
-      whileTap={onOpen ? { scale: 0.98 } : undefined}
-      className={`flex items-start shrink-0 ${onOpen ? "cursor-pointer" : ""}`}
+      className="flex items-start shrink-0 overflow-hidden cursor-pointer"
       style={{
-        marginLeft: ml,
-        width: wide ? 406 : 200,
         height: 103,
         borderRadius: 15,
         background: C.purple,
         boxShadow: CARD_SHADOW,
         padding: "12px 12px 0",
       }}
+      initial={false}
+      animate={{
+        width: wide ? WIDE.width : SMALL.width,
+        marginLeft: ml,
+      }}
+      transition={GROW}
     >
       <div
         className="flex flex-col shrink-0"
@@ -232,12 +318,21 @@ function BalanceCard({
       </div>
 
       {wide && (
-        <div className="flex flex-col shrink-0" style={{ width: 406 - 302 }}>
+        <motion.div
+          className="flex flex-col shrink-0"
+          style={{ width: 406 - 302 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ ...GROW, delay: 0.15 }}
+        >
           <motion.button
             type="button"
-            data-pw="demo-wallet-info"
+            data-pw={`demo-wallet-info-${balance.currency}`}
             aria-label={t("Wallet Info")}
-            onClick={onInfo}
+            onClick={(e) => {
+              e.stopPropagation();
+              onInfo();
+            }}
             whileTap={{ scale: 0.92 }}
             className="shrink-0 self-end cursor-pointer"
           >
@@ -252,17 +347,17 @@ function BalanceCard({
               <CardAction
                 icon="cashIn"
                 label={t("Cash In")}
-                testId="demo-wallet-cash-in"
+                testId={`demo-wallet-cash-in-${balance.currency}`}
               />
             </div>
             <CardAction
               icon="cashOut"
               label={t("Cash Out")}
-              testId="demo-wallet-cash-out"
+              testId={`demo-wallet-cash-out-${balance.currency}`}
               onClick={onCashOut}
             />
           </div>
-        </div>
+        </motion.div>
       )}
     </motion.div>
   );

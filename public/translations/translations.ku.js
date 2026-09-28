@@ -2837,6 +2837,8 @@ const translations = {
   "Receiver": "وەرگر",
   "receive": "وەرگرتن",
   "wallet": "جزدان",
+  "your total SYP balance": "کۆی باڵانسی لیرەی سوورییەکەت",
+  "All SYP Transactions": "هەموو مامەڵەکانی لیرەی سووری",
 };
 
 export default translations;

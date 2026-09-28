@@ -2819,6 +2819,8 @@ const translations = {
   "Receiver": "Alıcı",
   "receive": "alma",
   "wallet": "cüzdan",
+  "your total SYP balance": "Toplam SYP bakiyeniz",
+  "All SYP Transactions": "Tüm SYP İşlemleri",
 };
 
 export default translations;

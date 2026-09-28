@@ -4,7 +4,7 @@ import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useDemoNav } from "../DemoShell";
 import { C, gapTo, lineBox, textBottom, top } from "../demoLayout";
-import { Box, Icon, Txt } from "../ui";
+import { Box, Icon, Txt, useOuterBackdrop } from "../ui";
 import type { XdIconName } from "../xdIcons";
 import { WALLET_RECEIPT } from "../demoWallet";
 
@@ -25,6 +25,9 @@ import { WALLET_RECEIPT } from "../demoWallet";
 
 /** XD's background blur 15.37 with brightness +0.41. */
 const GLASS = "blur(15.37px) brightness(1.0041)";
+/** `#1D1D1D` at 50% over the white page, for the room round the canvas. */
+const ROUND_THE_RECEIPT =
+  "linear-gradient(rgb(142, 142, 142), rgb(142, 142, 142))";
 
 export default function WalletReceipt({
   open,
@@ -35,6 +38,7 @@ export default function WalletReceipt({
 }) {
   const { t } = useDemoNav();
   const receipt = WALLET_RECEIPT;
+  useOuterBackdrop(open, ROUND_THE_RECEIPT);
   return (
     <AnimatePresence>
       {open && (

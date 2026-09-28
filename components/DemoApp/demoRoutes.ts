@@ -30,7 +30,6 @@ export const DEMO_SCREENS = [
   "settings/profile/address",
   "settings/profile/address/new",
   "settings/wallet",
-  "settings/wallet/usd",
 ] as const;
 
 export type DemoScreen = (typeof DEMO_SCREENS)[number];

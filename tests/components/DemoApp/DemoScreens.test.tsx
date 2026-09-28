@@ -565,7 +565,6 @@ describe("Demo screens — Safari lines and layout by margins", () => {
     ["address list", "/sy-en/demo/settings/profile/address", ""],
     ["address form", "/sy-en/demo/settings/profile/address/new", ""],
     ["wallet", "/sy-en/demo/settings/wallet", ""],
-    ["wallet in dollars", "/sy-en/demo/settings/wallet/usd", ""],
   ];
 
   const describeEl = (el: HTMLElement) =>
@@ -710,7 +709,7 @@ describe("Demo wallet — numbers from the XD file", () => {
       "the card does not carry the file's inner shadow (0, 3, blur 3, white 50%)",
     ).toContain("inset");
     expect(
-      container.querySelector('[data-pw="demo-wallet-cash-out"]'),
+      container.querySelector('[data-pw="demo-wallet-cash-out-usd"]'),
       "Cash Out is on the card of every balance; the file has it only on the one-balance card",
     ).toBeNull();
     const shown = [...container.querySelectorAll('[data-pw^="demo-wallet-entry-"]')].map((el) =>
@@ -724,13 +723,155 @@ describe("Demo wallet — numbers from the XD file", () => {
     ]);
   });
 
-  it("every balance: a tap on the dollar card opens the dollar balance", () => {
+  /** The wallet with the dollar card grown, as a tap on the card leaves it. */
+  const openDollars = async () => {
     const container = open("/sy-en/demo/settings/wallet");
     fireEvent.click(container.querySelector('[data-pw="demo-wallet-card-usd"]')!);
+    const grown = await find(container, "demo-wallet-cash-out-usd");
+    expect(grown, "a tap on the dollar card did not bring Cash Out in").not.toBeNull();
+    return container;
+  };
+
+  it("a tap on the dollar card grows it in place: no other page opens, the line above names the currency, and a tap on the grown card brings the two cards back", async () => {
+    const container = open("/sy-en/demo/settings/wallet");
+    const total = container.querySelector('[data-pw="demo-wallet-total"]');
+    expect(total?.textContent, "the line above the cards is not the file's 'your total balance'").toBe(
+      "your total balance",
+    );
+    const card = container.querySelector<HTMLElement>('[data-pw="demo-wallet-card-usd"]')!;
+    fireEvent.click(card);
+    expect(router.push, "the dollar card opened another page; it must grow where it is").not.toHaveBeenCalled();
     expect(
-      router.push,
-      "the dollar card did not go to /demo/settings/wallet/usd",
-    ).toHaveBeenCalledWith("/sy-en/demo/settings/wallet/usd", { scroll: false });
+      container.querySelector('[data-pw="demo-wallet-card-usd"]'),
+      "the dollar card was drawn again as a new card; the same card must grow",
+    ).toBe(card);
+    expect(total?.textContent, "the line above the cards does not name the currency").toBe(
+      "your total USD balance",
+    );
+    expect(
+      container.querySelector('[data-pw="demo-wallet-list-title"]')?.textContent,
+      "the list title does not name the currency",
+    ).toBe("All USD Transactions");
+    await waitFor(
+      () => expect(card.style.width, "the dollar card did not grow to 406 wide").toBe("406px"),
+      { timeout: 3000 },
+    );
+    expect(
+      container.querySelector('[data-pw="demo-wallet-dots"]'),
+      "the page dots did not come in under the grown card",
+    ).not.toBeNull();
+
+    fireEvent.click(card);
+    expect(total?.textContent, "a tap on the grown card did not bring 'your total balance' back").toBe(
+      "your total balance",
+    );
+    await waitFor(
+      () => expect(card.style.width, "the dollar card did not fold back to 200 wide").toBe("200px"),
+      { timeout: 3000 },
+    );
+    expect(
+      container.querySelector('[data-pw="demo-wallet-cash-out-usd"]'),
+      "Cash Out is still on the folded card",
+    ).toBeNull();
+    const shown = [...container.querySelectorAll('[data-pw^="demo-wallet-entry-"]')].map((el) =>
+      el.getAttribute("data-pw"),
+    );
+    await waitFor(
+      () =>
+        expect(
+          [...container.querySelectorAll('[data-pw^="demo-wallet-entry-"]')].map((el) =>
+            el.getAttribute("data-pw"),
+          ),
+          "the list did not go back to the four entries of `Home Page – 11`",
+        ).toEqual([
+          "demo-wallet-entry-deposit",
+          "demo-wallet-entry-withdrawal",
+          "demo-wallet-entry-order",
+          "demo-wallet-entry-refund",
+        ]),
+      { timeout: 3000 },
+    );
+    expect(shown.length, "the wallet lists no entries").toBeGreaterThan(0);
+  }, 10000);
+
+  it("a tap on the pound card grows that card: the row moves one screen to the left, and the lines name the pound", async () => {
+    const container = open("/sy-en/demo/settings/wallet");
+    const card = container.querySelector<HTMLElement>('[data-pw="demo-wallet-card-syp"]')!;
+    fireEvent.click(card);
+    expect(
+      container.querySelector('[data-pw="demo-wallet-total"]')?.textContent,
+      "the line above the cards does not name the pound",
+    ).toBe("your total SYP balance");
+    expect(
+      container.querySelector('[data-pw="demo-wallet-list-title"]')?.textContent,
+      "the list title does not name the pound",
+    ).toBe("All SYP Transactions");
+    await waitFor(
+      () => expect(card.style.width, "the pound card did not grow to 406 wide").toBe("406px"),
+      { timeout: 3000 },
+    );
+    expect(card.style.marginLeft, "the grown cards are not a screen's width apart (406 + 24)").toBe("24px");
+    const row = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cards"]')!;
+    await waitFor(
+      () =>
+        expect(
+          row.style.transform,
+          "the row did not move one screen (430 px) to the left, so the grown pound card is not on show",
+        ).toContain("-430px"),
+      { timeout: 3000 },
+    );
+    const dots = [...container.querySelectorAll<HTMLImageElement>('[data-pw="demo-wallet-dots"] img')].map(
+      (img) => img.getAttribute("src")?.split("/").pop(),
+    );
+    expect(dots, "the dots do not show the second card as the one on show").toEqual([
+      "dotOff.svg",
+      "dotOn.svg",
+    ]);
+    expect(
+      container.querySelector('[data-pw="demo-wallet-cash-out-syp"]'),
+      "the grown pound card has no Cash Out",
+    ).not.toBeNull();
+
+    fireEvent.click(container.querySelector('[data-pw="demo-back"]')!);
+    expect(
+      router.back,
+      "the back arrow left the wallet; with a card grown it must fold the card first",
+    ).not.toHaveBeenCalled();
+    await waitFor(
+      () => expect(card.style.width, "the back arrow did not fold the pound card").toBe("200px"),
+      { timeout: 3000 },
+    );
+  }, 10000);
+
+  it("the grown cards are a slider: the row can be slid sideways only while a card is grown", async () => {
+    const container = open("/sy-en/demo/settings/wallet");
+    const row = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cards"]')!;
+    expect(
+      row.style.touchAction,
+      "the two small cards can be slid; the file's `Home Page – 11` has nothing to slide to",
+    ).not.toBe("pan-y");
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-card-usd"]')!);
+    await waitFor(
+      () =>
+        expect(
+          row.style.touchAction,
+          "the row of grown cards does not take a sideways slide",
+        ).toBe("pan-y"),
+      { timeout: 3000 },
+    );
+  });
+
+  it("the list does not move when the card grows: the dots come in inside the 20 px between the cards and the list title", async () => {
+    const container = open("/sy-en/demo/settings/wallet");
+    const title = container.querySelector<HTMLElement>('[data-pw="demo-wallet-list-title"]')!;
+    const gap = title.previousElementSibling as HTMLElement;
+    expect(gap.style.height, "the gap between the cards and the list title is not 20 px (241 to 261)").toBe("20px");
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-card-usd"]')!);
+    const dots = await find(container, "demo-wallet-dots");
+    expect(dots, "the page dots did not come in").not.toBeNull();
+    expect(dots!.parentElement, "the dots are not inside the gap above the list title").toBe(gap);
+    expect(dots!.style.marginTop, "the dots are not 6 px under the card (241 to 247)").toBe("6px");
+    expect(gap.style.height, "the gap changed when the dots came in, so the list moved").toBe("20px");
   });
 
   it("profile tab: a tap on the Trydos Wallet tile opens the wallet", () => {
@@ -744,20 +885,23 @@ describe("Demo wallet — numbers from the XD file", () => {
     ).toHaveBeenCalledWith("/sy-en/demo/settings/wallet", { scroll: false });
   });
 
-  it("one balance: a 406 wide card with Cash In and Cash Out, and only the first entry has a line, as `Home Page – 17` draws it", () => {
-    const container = open("/sy-en/demo/settings/wallet/usd");
-    const card = container.querySelector('[data-pw="demo-wallet-card-usd"]');
-    expect(px(card, "width"), "the dollar card is not 406 wide").toBe("406px");
+  it("one balance: a 406 wide card with Cash In and Cash Out, and only the first entry has a line, as `Home Page – 17` draws it", async () => {
+    const container = await openDollars();
+    const card = container.querySelector<HTMLElement>('[data-pw="demo-wallet-card-usd"]')!;
+    await waitFor(
+      () => expect(card.style.width, "the dollar card is not 406 wide").toBe("406px"),
+      { timeout: 3000 },
+    );
     expect(
-      container.querySelector('[data-pw="demo-wallet-card-syp"]'),
-      "the pound card is on the dollar balance",
-    ).toBeNull();
+      container.querySelector('[data-pw="demo-wallet-cards"]')?.getAttribute("style") ?? "",
+      "the row moved; the grown dollar card is the first one and stays at x 12",
+    ).not.toContain("-430px");
     expect(
-      container.querySelector('[data-pw="demo-wallet-cash-in"]'),
+      container.querySelector('[data-pw="demo-wallet-cash-in-usd"]'),
       "the card has no Cash In",
     ).not.toBeNull();
     expect(
-      container.querySelector('[data-pw="demo-wallet-cash-out"]'),
+      container.querySelector('[data-pw="demo-wallet-cash-out-usd"]'),
       "the card has no Cash Out",
     ).not.toBeNull();
     const rows = [...container.querySelectorAll<HTMLElement>('[data-pw^="demo-wallet-entry-"]')];
@@ -784,11 +928,11 @@ describe("Demo wallet — numbers from the XD file", () => {
     expect(amount?.className, "the first entry's amount is not Bold").toContain("font-bold");
     const next = [...rows[1].querySelectorAll("span")].find((el) => el.textContent === "10");
     expect(next?.className, "the second entry's amount is not Medium").toContain("font-medium");
-  });
+  }, 10000);
 
   it("cash out: the sheet has 50 px corners, opens on the ways to cash out and goes on to the form, as `Home Page – 21` and `– 19` draw it", async () => {
-    const container = open("/sy-en/demo/settings/wallet/usd");
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out"]')!);
+    const container = await openDollars();
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!);
     const sheet = await find(container, "demo-wallet-cash-out-sheet");
     expect(sheet, "a tap on Cash Out did not open the sheet").not.toBeNull();
     const panel = [...sheet!.querySelectorAll<HTMLElement>("div")].find((el) =>
@@ -844,8 +988,8 @@ describe("Demo wallet — numbers from the XD file", () => {
 
   it("cash out form: with a mouse and a keyboard the amount field turns its line blue while it is in use, and takes digits only", async () => {
     setDevice("pointer");
-    const container = open("/sy-en/demo/settings/wallet/usd");
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out"]')!);
+    const container = await openDollars();
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!);
     const card = await find(container, "demo-wallet-way-rdb");
     expect(card, "the sheet has no trydos | rdb card").not.toBeNull();
     fireEvent.click(card!);
@@ -880,8 +1024,8 @@ describe("Demo wallet — numbers from the XD file", () => {
 
   it("cash out form: on a touch device the login's keypad types the amount, and the field asks the canvas to keep it above the keypad", async () => {
     setDevice("touch");
-    const container = open("/sy-en/demo/settings/wallet/usd");
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out"]')!);
+    const container = await openDollars();
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!);
     const card = await find(container, "demo-wallet-way-rdb");
     expect(card, "the sheet has no trydos | rdb card").not.toBeNull();
     fireEvent.click(card!);
@@ -920,8 +1064,8 @@ describe("Demo wallet — numbers from the XD file", () => {
   }, 10000);
 
   it("wallet info: the QR mark on the card opens a sheet with 50 px corners, the 350.21 px code at x 39.93 and three fields, as `Home Page – 23` draws it", async () => {
-    const container = open("/sy-en/demo/settings/wallet/usd");
-    const mark = container.querySelector('[data-pw="demo-wallet-info"]');
+    const container = await openDollars();
+    const mark = container.querySelector('[data-pw="demo-wallet-info-usd"]');
     expect(mark, "the one-balance card has no QR mark to tap").not.toBeNull();
     fireEvent.click(mark!);
     const sheet = await find(container, "demo-wallet-info-sheet");
@@ -930,6 +1074,19 @@ describe("Demo wallet — numbers from the XD file", () => {
       el.style.borderRadius.startsWith("50px"),
     );
     expect(panel, "the wallet info sheet has no panel with 50 px top corners").toBeDefined();
+    expect(
+      panel!.style.top,
+      "the sheet does not start higher on a short canvas: its top must give up the height the app lost (--xd-flex-deficit past the 50 px status bar), and stop at the canvas's top",
+    ).toMatch(/max\(0px, 40px.*- max\(0px, var\(--xd-flex-deficit, 0px\) - 50px\)\)/);
+    expect(
+      sheet!.querySelector('[data-pw="demo-sheet-grip"]'),
+      "the sheet has no strip to drag it by, so a finger on the content would drag the sheet and not scroll it",
+    ).not.toBeNull();
+    const body = panel!.querySelector<HTMLElement>(":scope > .overflow-y-auto");
+    expect(
+      body,
+      "the sheet's content does not scroll, so on a short window its last rows cannot be reached",
+    ).not.toBeNull();
     const code = sheet!.querySelector<HTMLElement>('img[src$="/qrWallet.svg"]');
     expect(code, "the sheet has no QR code").not.toBeNull();
     expect(code!.style.width, "the QR code is not 350.21 wide").toBe("350.21px");

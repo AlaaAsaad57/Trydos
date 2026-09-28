@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useDragControls } from "framer-motion";
 import XdIcon from "./XdIcon";
 import { XD_ICON_SIZE, type XdIconName } from "./xdIcons";
 import type { DemoKey } from "./demoKeys";
@@ -13,7 +13,9 @@ import {
   DESIGN_W,
   HEADER,
   ROW,
+  SAFE_TOP,
   SHEET,
+  STATUS_BAR,
   bottom,
   headerTop,
   lineBox,
@@ -723,6 +725,64 @@ export function MenuRow({
 }
 
 /**
+ * Paints the room round the canvas while a layer is open.
+ *
+ * The canvas does not always fill the window: on a window taller or wider
+ * than the artboard it is centred, and `#app-outer` (white) shows round it.
+ * A dark layer inside the canvas cannot reach out there, so the white showed
+ * as a strip above the dimmed page. This gives `#app-outer` the colour the
+ * layer has at the canvas's edge, and takes it back when the layer closes.
+ *
+ * Only the column the canvas stands in is painted. On a wide window the room
+ * left and right of the canvas stays white, as it is on every other screen.
+ */
+export function useOuterBackdrop(open: boolean, paint: string) {
+  // 1 px narrower on each side than the canvas, so no sliver of it shows
+  // beside the canvas where the two edges round differently.
+  const background = `${paint} calc(var(--app-canvas-left, 0px) + 1px) 0 / calc(${DESIGN_W}px * var(--app-scale, 1) - 2px) 100% no-repeat ${C.white}`;
+  React.useEffect(() => {
+    if (!open) return;
+    const outer = document.getElementById("app-outer");
+    if (!outer) return;
+    const before = outer.style.background;
+    outer.style.background = background;
+    return () => {
+      outer.style.background = before;
+    };
+  }, [open, background]);
+}
+
+/** `#1D1D1D` at 90% over the white page: what a dimmed page looks like. */
+export const DIMMED = "rgb(52, 52, 52)";
+/** Round an open sheet: the dimmed page above it, the white sheet below it. */
+const ROUND_A_SHEET = `linear-gradient(to bottom, ${DIMMED} 50%, ${C.white} 50%)`;
+
+/**
+ * The height the page does not have, in design px (`--xd-flex-deficit`, set
+ * by AppScaler). 0 on a full-height phone, up to 200 on a short window.
+ */
+function useDeficit(watch: boolean) {
+  const [deficit, setDeficit] = React.useState(0);
+  React.useEffect(() => {
+    if (!watch) return;
+    const read = () =>
+      setDeficit(
+        Number.parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue(
+            "--xd-flex-deficit",
+          ),
+        ) || 0,
+      );
+    read();
+    // AppScaler fits on the same event, a tick later.
+    const onResize = () => setTimeout(read, 50);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [watch]);
+  return deficit;
+}
+
+/**
  * The bottom sheet: the page dims to `#1D1D1D` at 90%, and a white sheet with
  * 30 px top corners and a 40 x 2 `#C4C2C2` handle slides up from the bottom.
  * The same sheet the login uses for its QR code (QrBottomSheet).
@@ -735,6 +795,13 @@ export function MenuRow({
  * `Home Page – 21` then `– 19`): the sheet is laid out at the taller step's
  * `y` and rests `lower` px further down for the shorter one. Changing `lower`
  * moves the open sheet on the same spring it rises with.
+ *
+ * `fit` is for a sheet that fills the artboard to its bottom (the wallet
+ * sheets). On a window shorter than the artboard the canvas is shorter too,
+ * and such a sheet lost its bottom rows. With `fit` the sheet starts higher by
+ * the height the canvas lost, up to the canvas's top; what still does not fit
+ * scrolls inside the sheet. The sheet is then dragged by its top strip only,
+ * so a finger on the content scrolls it.
  */
 export function Sheet({
   open,
@@ -742,12 +809,15 @@ export function Sheet({
   y,
   lower = 0,
   radius = SHEET.radius,
+  fit = false,
   children,
   testId,
   onEntered,
 }: {
   open: boolean;
   onClose: () => void;
+  /** Start higher on a short canvas, and scroll what still does not fit. */
+  fit?: boolean;
   /** Called once the sheet has finished rising. */
   onEntered?: () => void;
   /** Design y of the sheet's top edge. */
@@ -759,6 +829,16 @@ export function Sheet({
   children: React.ReactNode;
   testId?: string;
 }) {
+  useOuterBackdrop(open, ROUND_A_SHEET);
+  const grip = useDragControls();
+  // The app is the artboard without its 50 px status bar, so the first 50 px
+  // the canvas gives up cost the app nothing. What it gives up past that is
+  // height the app has lost.
+  const lost = Math.max(0, useDeficit(fit && open) - STATUS_BAR);
+  // Where the sheet's top edge is, from the top of the app, once the app has
+  // lost `lost` px: never above the canvas.
+  const edge = (from: number) => Math.max(0, from - STATUS_BAR - lost);
+  const rest = fit ? edge(y + lower) - edge(y) : lower;
   return (
     <AnimatePresence
       // A sheet can hold the code boxes, which make AppScaler lift the canvas
@@ -797,15 +877,19 @@ export function Sheet({
               // When AppScaler lifts the canvas for the keypad, a tall sheet
               // keeps its top edge where it was (the lift is added back here)
               // and only its content moves up with the canvas (below).
-              ...(y < 300
-                ? { top: `calc(${top(y)} + var(--app-keyboard-lift, 0px))` }
-                : { height: 932 - y }),
+              ...(fit
+                ? {
+                    top: `calc(max(0px, ${y - STATUS_BAR}px + ${SAFE_TOP} - max(0px, var(--xd-flex-deficit, 0px) - ${STATUS_BAR}px)) + var(--app-keyboard-lift, 0px))`,
+                  }
+                : y < 300
+                  ? { top: `calc(${top(y)} + var(--app-keyboard-lift, 0px))` }
+                  : { height: 932 - y }),
               bottom: 0,
               background: C.white,
               borderRadius: `${radius}px ${radius}px 0 0`,
             }}
             initial={{ y: "100%" }}
-            animate={{ y: lower }}
+            animate={{ y: rest }}
             onAnimationComplete={() => onEntered?.()}
             exit={{ y: "100%" }}
             transition={{
@@ -815,19 +899,33 @@ export function Sheet({
               mass: 0.9,
             }}
             drag="y"
-            dragConstraints={{ top: lower, bottom: lower }}
+            dragControls={fit ? grip : undefined}
+            dragListener={!fit}
+            dragConstraints={{ top: rest, bottom: rest }}
             dragElastic={{ top: 0, bottom: 0.6 }}
             onDragEnd={(_, info) => {
               if (info.offset.y > 120 || info.velocity.y > 600) onClose();
             }}
           >
+            {fit && (
+              // The strip the sheet is dragged by: the handle and the title row.
+              <div
+                data-pw="demo-sheet-grip"
+                className="absolute inset-x-0 top-0 z-10 cursor-grab"
+                style={{ height: 50, touchAction: "none" }}
+                onPointerDown={(e) => grip.start(e)}
+              />
+            )}
             <div
-              className="flex flex-col w-full h-full"
+              className={`flex flex-col w-full h-full ${fit ? "overflow-y-auto overflow-x-hidden overscroll-contain" : ""}`}
               style={{
                 marginTop:
-                  y < 300
+                  fit || y < 300
                     ? "calc(-1 * var(--app-keyboard-lift, 0px))"
                     : undefined,
+                // The part of a lowered sheet that hangs under the canvas.
+                paddingBottom: fit ? rest : undefined,
+                scrollbarWidth: fit ? "none" : undefined,
               }}
             >
               <div

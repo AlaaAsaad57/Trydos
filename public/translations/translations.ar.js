@@ -2787,6 +2787,8 @@ const translations = {
   "Receiver": "المستلم",
   "receive": "استلام",
   "wallet": "محفظة",
+  "your total SYP balance": "إجمالي رصيدك بالليرة السورية",
+  "All SYP Transactions": "جميع معاملات الليرة السورية",
 };
 
 export default translations;

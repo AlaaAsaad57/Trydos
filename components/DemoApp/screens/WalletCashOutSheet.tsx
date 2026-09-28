@@ -9,10 +9,10 @@ import { C, SHEET, gapTo, lineBox, paraTop, textBottom } from "../demoLayout";
 import { Box, Icon, Sheet, Txt } from "../ui";
 import type { XdIconName } from "../xdIcons";
 import {
-  WALLET_BALANCES,
   WALLET_BRAND,
   WALLET_PROVIDERS,
   WALLET_RECIPIENT,
+  type WalletBalance,
 } from "../demoWallet";
 
 /**
@@ -49,11 +49,14 @@ function Brand({ size, mt, nudge }: { size: number; mt: number; nudge?: number }
 export function SheetTitle({
   top,
   icon,
+  mark,
   label,
 }: {
   /** Design y of the sheet's top edge. */
   top: number;
   icon: XdIconName;
+  /** The currency's mark. */
+  mark: XdIconName;
   label: string;
 }) {
   return (
@@ -66,7 +69,7 @@ export function SheetTitle({
     >
       <div className="flex items-start">
         <Icon name={icon} ml={24} />
-        <Icon name="dollarDark" mt={5} ml={58 - (24 + 30)} />
+        <Icon name={mark} mt={5} ml={58 - (24 + 30)} />
       </div>
       <Txt size={24} weight="bold" as="h2">
         {label}
@@ -75,17 +78,22 @@ export function SheetTitle({
   );
 }
 
-function Title({ top }: { top: number }) {
+function Title({ top, mark }: { top: number; mark: XdIconName }) {
   const { t } = useDemoNav();
-  return <SheetTitle top={top} icon="cashOutBig" label={t("Cash Out")} />;
+  return (
+    <SheetTitle top={top} icon="cashOutBig" mark={mark} label={t("Cash Out")} />
+  );
 }
 
 export default function WalletCashOutSheet({
   open,
   onClose,
+  balance,
 }: {
   open: boolean;
   onClose: () => void;
+  /** The balance the money leaves. */
+  balance: WalletBalance;
 }) {
   const [step, setStep] = useState<Step>("ways");
 
@@ -104,6 +112,7 @@ export default function WalletCashOutSheet({
       y={TOP.form}
       lower={TOP[step] - TOP.form}
       radius={SHEET.radiusWallet}
+      fit
       testId="demo-wallet-cash-out-sheet"
     >
       <AnimatePresence mode="wait" initial={false}>
@@ -117,9 +126,9 @@ export default function WalletCashOutSheet({
           transition={{ duration: 0.15 }}
         >
           {step === "ways" ? (
-            <Ways onPick={() => setStep("form")} />
+            <Ways mark={balance.mark} onPick={() => setStep("form")} />
           ) : (
-            <Form />
+            <Form balance={balance} />
           )}
         </motion.div>
       </AnimatePresence>
@@ -137,12 +146,12 @@ export default function WalletCashOutSheet({
  *   - the grey card 390 x 188 at (20, 707) with its two 366 x 38 buttons.
  * The lines of the cards and the tiles sit ON the edge (XD's centre stroke).
  */
-function Ways({ onPick }: { onPick: () => void }) {
+function Ways({ mark, onPick }: { mark: XdIconName; onPick: () => void }) {
   const { t } = useDemoNav();
   const top = TOP.ways;
   return (
     <>
-      <Title top={top} />
+      <Title top={top} mark={mark} />
       <p
         className="shrink-0 font-normal text-center"
         style={{
@@ -255,7 +264,13 @@ function Ways({ onPick }: { onPick: () => void }) {
         stroke={C.line}
         strokeAlign="center"
         className="flex flex-col"
-        style={{ height: undefined, minHeight: 188, paddingBottom: 895 - (845 + 38) }}
+        // The card ends at y 895: 35 px above the artboard's bottom.
+        style={{
+          height: undefined,
+          minHeight: 188,
+          paddingBottom: 895 - (845 + 38),
+          marginBottom: 930 - 895,
+        }}
       >
         <Txt
           center
@@ -357,7 +372,7 @@ function InfoButton({
  * `data-keyboard-anchor` so the scaled canvas keeps it above the keypad. With a
  * mouse and a keyboard there is no keypad, and the field is a plain input.
  */
-function Form() {
+function Form({ balance }: { balance: WalletBalance }) {
   const { t } = useDemoNav();
   const top = TOP.form;
   const [amount, setAmount] = useState("");
@@ -367,7 +382,6 @@ function Form() {
   const field = useRef<HTMLDivElement>(null);
   const keys = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
-  const balance = WALLET_BALANCES[0];
   const inUse = touch ? keypad : typing;
 
   const use = () => {
@@ -403,7 +417,7 @@ function Form() {
 
   return (
     <>
-      <Title top={top} />
+      <Title top={top} mark={balance.mark} />
       <Brand size={24} mt={gapTo(top + 24 + lineBox(24), 180, 24)} />
 
       <div

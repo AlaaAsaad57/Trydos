@@ -14,7 +14,12 @@ export type WalletCurrency = "usd" | "syp";
 export type WalletBalance = {
   currency: WalletCurrency;
   icon: XdIconName;
+  /** The currency's mark beside a sheet's title, 20 px. */
+  mark: XdIconName;
   name: DemoKey;
+  /** The line above the cards and the list title while this card is grown. */
+  total: DemoKey;
+  list: DemoKey;
   amount: string;
   code: string;
 };
@@ -23,14 +28,20 @@ export const WALLET_BALANCES: WalletBalance[] = [
   {
     currency: "usd",
     icon: "dollarWhite",
+    mark: "dollarDark",
     name: "Amerikan dollars",
+    total: "your total USD balance",
+    list: "All USD Transactions",
     amount: "1000",
     code: "USD",
   },
   {
     currency: "syp",
     icon: "flagSy",
+    mark: "flagSy",
     name: "syrian pounds",
+    total: "your total SYP balance",
+    list: "All SYP Transactions",
     amount: "1000",
     code: "SYP",
   },
@@ -126,9 +137,16 @@ export const WALLET_ENTRIES: WalletEntry[] = [
   },
 ];
 
-/** `Home Page – 11` lists the first four entries, `– 17` all five. */
+/**
+ * `Home Page – 11` lists the first four entries, `– 17` (dollars) all five.
+ * The file has no board for the pound balance; it lists the entries in pounds.
+ */
 export const entriesFor = (currency: WalletCurrency | null) =>
-  currency === null ? WALLET_ENTRIES.slice(0, 4) : WALLET_ENTRIES;
+  currency === null
+    ? WALLET_ENTRIES.slice(0, 4)
+    : currency === "usd"
+      ? WALLET_ENTRIES
+      : WALLET_ENTRIES.filter((entry) => entry.unit === "SYP");
 
 /** Who the cash-out form sends to, as `Home Page – 19` fills it. */
 export const WALLET_RECIPIENT = {

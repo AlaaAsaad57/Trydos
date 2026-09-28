@@ -58,8 +58,6 @@ export default function DemoScreenView({ screen }: { screen: DemoScreen }) {
     case "settings/profile/address/new":
       return <AddressFormScreen />;
     case "settings/wallet":
-      return <WalletScreen currency={null} />;
-    case "settings/wallet/usd":
-      return <WalletScreen currency="usd" />;
+      return <WalletScreen />;
   }
 }
