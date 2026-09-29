@@ -125,6 +125,30 @@ function Slots({
   );
 }
 
+/**
+ * The part of a step under its tabs (the trydos | rdb step) or its network
+ * tag (the crypto code). On a canvas shorter than the board it scrolls on its
+ * own, and the head and the tabs above it stay in view. On a full-height
+ * canvas it fits and does not move.
+ */
+function Under({
+  testId,
+  children,
+}: {
+  testId: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      data-pw={testId}
+      className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain"
+      style={{ scrollbarWidth: "none" }}
+    >
+      {children}
+    </div>
+  );
+}
+
 /** The network as the tabs and the tag write it: the coin and the standard Medium. */
 function Network() {
   return (
@@ -204,10 +228,18 @@ export default function WalletCashInSheet({
    * A form keeps the sheet at its design top, so the dimmed wallet page shows
    * above it as in the file: while the keypad is up, and with the keypad away
    * while the form fits on the canvas down to its button (only the free gap
-   * over the button gets smaller). The codes are taller than a short canvas:
-   * their sheet starts higher, as every wallet sheet does.
+   * over the button gets smaller).
+   * The ways (`– 22`, y 216), the trydos | rdb step (`– 26`, `– 32`) and the
+   * crypto code (`– 37`, both y 90) stay at their design top too: what does
+   * not fit scrolls inside the sheet (see `Under`).
    */
-  const keep = formEnd !== null && (typing || (touch && formEnd <= end));
+  const keep =
+    step === "ways" ||
+    step === "rdb" ||
+    step === "code" ||
+    (formEnd !== null && (typing || (touch && formEnd <= end)));
+  /** The steps whose head and tabs stay while the part under them scrolls. */
+  const split = step === "rdb" || step === "code";
   /** The safety rules (`Home Page – 39`) lie over the crypto form. */
   const [safe, setSafe] = useState(false);
   /** The picture of a code lies over the sheet (`– 31`, `– 38`). */
@@ -257,14 +289,19 @@ export default function WalletCashInSheet({
             data-pw={`demo-wallet-cash-in-${step}`}
             className="flex flex-col shrink-0"
             // The forms and the codes reach the board's end, where their
-            // buttons sit.
-            style={{
-              minHeight:
-                step === "ways"
-                  ? undefined
-                  : (keep ? Math.min(BOARD_END, end) : BOARD_END) -
-                    (TOP[step] + 13),
-            }}
+            // buttons sit. A split step is as tall as the canvas lets it be,
+            // so only the part under its tabs scrolls.
+            style={
+              split
+                ? { height: Math.min(BOARD_END, end) - (TOP[step] + 13) }
+                : {
+                    minHeight:
+                      step === "ways"
+                        ? undefined
+                        : (keep ? Math.min(BOARD_END, end) : BOARD_END) -
+                          (TOP[step] + 13),
+                  }
+            }
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -758,87 +795,89 @@ function Rdb({
         </Tab>
       </div>
 
-      {fromBank ? (
-        <>
-          <Recipient
-            mt={245 - (213 + 28)}
-            label={<WithBank text={t("{bank} client ID")} />}
-            testId="demo-wallet-cash-in-bank-id"
-          >
-            {/* The number ends at x 81, the currency starts at 91. */}
-            <span className="font-medium">{WALLET_BANK_ACCOUNT.id}</span>
-            <span style={{ marginLeft: 91 - 81 }}>
-              {t(WALLET_BANK_ACCOUNT.currency[balance.currency])}
-            </span>
-          </Recipient>
-          <Recipient
-            mt={304 - (245 + 55)}
-            label={<WithBank text={t("{bank} client phone number")} />}
-            testId="demo-wallet-cash-in-bank-phone"
-          >
-            {/* "+" Bold at x 32, the number from x 44. */}
-            <span
-              className="font-bold inline-block"
-              style={{ minWidth: 44 - 32 }}
+      <Under testId="demo-wallet-cash-in-rdb-under">
+        {fromBank ? (
+          <>
+            <Recipient
+              mt={245 - (213 + 28)}
+              label={<WithBank text={t("{bank} client ID")} />}
+              testId="demo-wallet-cash-in-bank-id"
             >
-              +
-            </span>
-            {WALLET_RECIPIENT.phone}
-          </Recipient>
-          <Recipient
-            mt={4}
-            label={<WithBank text={t("{bank} client Full name (Exact ID)")} />}
-            testId="demo-wallet-cash-in-bank-name"
-          >
-            {WALLET_RECIPIENT.name}
-          </Recipient>
-          <AmountField
-            mt={422 - (363 + 55)}
-            label={
-              <WithBank text={t("Enter requested amount from your {bank}")} />
-            }
-            balance={balance}
-            amount={amount}
-            setAmount={setAmount}
-            onKeypad={onKeypad}
-          />
-          <div
-            className="flex flex-col shrink-0 mt-auto"
-            style={{ paddingTop: 8, paddingBottom: BOARD_END - 895 }}
-          >
-            <SheetButton
-              label={<WithBank text={t("Connect & request from your {bank}")} />}
-              fill={C.inkSoft}
-              testId="demo-wallet-cash-in-connect"
+              {/* The number ends at x 81, the currency starts at 91. */}
+              <span className="font-medium">{WALLET_BANK_ACCOUNT.id}</span>
+              <span style={{ marginLeft: 91 - 81 }}>
+                {t(WALLET_BANK_ACCOUNT.currency[balance.currency])}
+              </span>
+            </Recipient>
+            <Recipient
+              mt={304 - (245 + 55)}
+              label={<WithBank text={t("{bank} client phone number")} />}
+              testId="demo-wallet-cash-in-bank-phone"
+            >
+              {/* "+" Bold at x 32, the number from x 44. */}
+              <span
+                className="font-bold inline-block"
+                style={{ minWidth: 44 - 32 }}
+              >
+                +
+              </span>
+              {WALLET_RECIPIENT.phone}
+            </Recipient>
+            <Recipient
+              mt={4}
+              label={<WithBank text={t("{bank} client Full name (Exact ID)")} />}
+              testId="demo-wallet-cash-in-bank-name"
+            >
+              {WALLET_RECIPIENT.name}
+            </Recipient>
+            <AmountField
+              mt={422 - (363 + 55)}
+              label={
+                <WithBank text={t("Enter requested amount from your {bank}")} />
+              }
+              balance={balance}
+              amount={amount}
+              setAmount={setAmount}
+              onKeypad={onKeypad}
             />
-          </div>
-        </>
-      ) : (
-        <>
-          <Icon name="qrCashIn" mt={260.41 - (213 + 28)} ml={65} />
-          {/* The dots at (205, 573) and (217, 573): 20 wide together, centred. */}
-          <div
-            className="flex justify-center shrink-0"
-            style={{ marginTop: 573 - (260.41 + 300.12) }}
-          >
-            <Icon name="dotDark" />
-            <Icon name="dotBlueOff" ml={4} />
-          </div>
-          <DepositLine mt={gapTo(573 + 8, 605, 16)} balance={balance} />
-          <ClientFields
-            mt={639 - textBottom(605, 16)}
-            balance={balance}
-            eye
-            testId="demo-wallet-cash-in-client"
-          />
-          <Actions
-            mt={855 - (757 + 55)}
-            actions={DEPOSIT_ACTIONS}
-            onAct={act}
-            testId="demo-wallet-cash-in-deposit"
-          />
-        </>
-      )}
+            <div
+              className="flex flex-col shrink-0 mt-auto"
+              style={{ paddingTop: 8, paddingBottom: BOARD_END - 895 }}
+            >
+              <SheetButton
+                label={<WithBank text={t("Connect & request from your {bank}")} />}
+                fill={C.inkSoft}
+                testId="demo-wallet-cash-in-connect"
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <Icon name="qrCashIn" mt={260.41 - (213 + 28)} ml={65} />
+            {/* The dots at (205, 573) and (217, 573): 20 wide together, centred. */}
+            <div
+              className="flex justify-center shrink-0"
+              style={{ marginTop: 573 - (260.41 + 300.12) }}
+            >
+              <Icon name="dotDark" />
+              <Icon name="dotBlueOff" ml={4} />
+            </div>
+            <DepositLine mt={gapTo(573 + 8, 605, 16)} balance={balance} />
+            <ClientFields
+              mt={639 - textBottom(605, 16)}
+              balance={balance}
+              eye
+              testId="demo-wallet-cash-in-client"
+            />
+            <Actions
+              mt={855 - (757 + 55)}
+              actions={DEPOSIT_ACTIONS}
+              onAct={act}
+              testId="demo-wallet-cash-in-deposit"
+            />
+          </>
+        )}
+      </Under>
     </>
   );
 }
@@ -1726,85 +1765,87 @@ function CryptoCode({
     <>
       {head}
       <NetworkTag mt={213 - HEAD_END} />
-      <Icon name="qrCashIn" mt={260.41 - (213 + 28)} ml={65} />
-      <DepositRow mt={573 - (260.41 + 300.12)} amount={amount} />
-      <ScanRow mt={639 - (573 + 20)} />
+      <Under testId="demo-wallet-cash-in-code-under">
+        <Icon name="qrCashIn" mt={260.41 - (213 + 28)} ml={65} />
+        <DepositRow mt={573 - (260.41 + 300.12)} amount={amount} />
+        <ScanRow mt={639 - (573 + 20)} />
 
-      <div
-        className="flex items-start shrink-0"
-        style={{ marginTop: 666 - (639 + 15), marginLeft: 137.64 }}
-      >
-        <Icon name="timerBlue" />
-        <Txt
-          size={12}
-          color={C.cryptoBlue}
-          ml={158 - (137.64 + 13.73)}
-          data-pw="demo-wallet-cash-in-time-left"
-          style={{ whiteSpace: "pre" }}
+        <div
+          className="flex items-start shrink-0"
+          style={{ marginTop: 666 - (639 + 15), marginLeft: 137.64 }}
         >
-          <Slots
-            text={t("Within {time} minutes")}
-            slots={{ time: <span className="font-bold">{clock(left)}</span> }}
-          />
-        </Txt>
-      </div>
-
-      {/* The file starts this line at x 159: half a px right of centre. */}
-      <Txt
-        center
-        nudge={0.5}
-        size={12}
-        color={C.inkSoft}
-        mt={gapTo(666 + 15, 713, 12)}
-      >
-        {t("Or try direct link to")}
-      </Txt>
-      <div
-        className="flex shrink-0"
-        style={{ marginTop: 728 - textBottom(713, 12), marginLeft: 140 }}
-      >
-        {WALLET_CRYPTO_APPS.map((app, i) => (
-          <motion.button
-            key={app.id}
-            type="button"
-            aria-label={app.name}
-            data-pw={`demo-wallet-cash-in-app-${app.id}`}
-            whileTap={{ scale: 0.94 }}
-            className="shrink-0 cursor-pointer overflow-hidden"
-            style={{
-              marginLeft: i === 0 ? 0 : 30,
-              width: 30,
-              height: 30,
-              borderRadius: 5,
-            }}
+          <Icon name="timerBlue" />
+          <Txt
+            size={12}
+            color={C.cryptoBlue}
+            ml={158 - (137.64 + 13.73)}
+            data-pw="demo-wallet-cash-in-time-left"
+            style={{ whiteSpace: "pre" }}
           >
-            {app.icon ? (
-              <Icon name={app.icon} />
-            ) : (
-              <img
-                src={`/assets/demo/xd/${app.picture}`}
-                alt=""
-                draggable={false}
-                width={30}
-                height={30}
-                className="block object-cover select-none pointer-events-none"
-                style={{ width: 30, height: 30 }}
-              />
-            )}
-          </motion.button>
-        ))}
-      </div>
+            <Slots
+              text={t("Within {time} minutes")}
+              slots={{ time: <span className="font-bold">{clock(left)}</span> }}
+            />
+          </Txt>
+        </div>
 
-      <Expiry mt={sfTop(789, 12, 18) - (728 + 30)} first={789} />
+        {/* The file starts this line at x 159: half a px right of centre. */}
+        <Txt
+          center
+          nudge={0.5}
+          size={12}
+          color={C.inkSoft}
+          mt={gapTo(666 + 15, 713, 12)}
+        >
+          {t("Or try direct link to")}
+        </Txt>
+        <div
+          className="flex shrink-0"
+          style={{ marginTop: 728 - textBottom(713, 12), marginLeft: 140 }}
+        >
+          {WALLET_CRYPTO_APPS.map((app, i) => (
+            <motion.button
+              key={app.id}
+              type="button"
+              aria-label={app.name}
+              data-pw={`demo-wallet-cash-in-app-${app.id}`}
+              whileTap={{ scale: 0.94 }}
+              className="shrink-0 cursor-pointer overflow-hidden"
+              style={{
+                marginLeft: i === 0 ? 0 : 30,
+                width: 30,
+                height: 30,
+                borderRadius: 5,
+              }}
+            >
+              {app.icon ? (
+                <Icon name={app.icon} />
+              ) : (
+                <img
+                  src={`/assets/demo/xd/${app.picture}`}
+                  alt=""
+                  draggable={false}
+                  width={30}
+                  height={30}
+                  className="block object-cover select-none pointer-events-none"
+                  style={{ width: 30, height: 30 }}
+                />
+              )}
+            </motion.button>
+          ))}
+        </div>
 
-      <Actions
-        mt={855 - (sfTop(832, 12, 18) + 18)}
-        actions={CRYPTO_ACTIONS}
-        onAct={(id) => {
-          if (id === "download") onPicture();
-        }}
-        testId="demo-wallet-cash-in-code"
-      />
+        <Expiry mt={sfTop(789, 12, 18) - (728 + 30)} first={789} />
+
+        <Actions
+          mt={855 - (sfTop(832, 12, 18) + 18)}
+          actions={CRYPTO_ACTIONS}
+          onAct={(id) => {
+            if (id === "download") onPicture();
+          }}
+          testId="demo-wallet-cash-in-code"
+        />
+      </Under>
     </>
   );
 }

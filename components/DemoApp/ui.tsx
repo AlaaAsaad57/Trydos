@@ -927,7 +927,8 @@ export function useCanvasEnd(watch: boolean) {
  * `keep` holds a `fit` sheet at its design `y` on a short canvas, so the
  * dimmed page above it stays in view as in the file. It is for a sheet whose
  * content already fits under its design top (the wallet forms: above the
- * app's keypad, or with the keypad away, down to their buttons). When
+ * app's keypad, or with the keypad away, down to their buttons), or whose
+ * lower part may scroll inside it (the cash-in ways). When
  * AppScaler lifts the canvas for the keypad, a kept sheet moves up with the
  * canvas, only as far as the field in use needs.
  */
