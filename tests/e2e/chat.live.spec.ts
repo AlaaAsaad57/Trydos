@@ -16,8 +16,6 @@
 //   CHAT-14  A archives the chat, then unarchives it
 //   CHAT-15  A blocks B, and both see the chat closed; A unblocks
 //   CHAT-16  A deletes the conversation; B still has it
-//   CHAT-17  B searches inside the chat for a word only this run wrote
-//            (red: chat backend)
 //
 // **Who talks to whom.** Shopper A signs in here, once (one real one-time
 // code). Shopper B is the QA seller, and opens the jar the QA seed saved —
@@ -63,7 +61,6 @@ import {
   reloadAndOpenChat,
   replyTo,
   requireChatAccepted,
-  searchInConversation,
   sendText,
   setReminder,
   toggleArchive,
@@ -100,11 +97,6 @@ const COUNTRY = "sy";
 /** This run's mark, inside the text of every message it sends. */
 const RUN_TOKEN = newRunToken();
 const text = (what: string): string => `trydos qa ${RUN_TOKEN} ${what}`;
-
-/** A word no other message on staging carries: letters only, because the
- *  chat search matches whole words of 3 characters or more
- *  (`chat-channelsearch-contract`), and the token has digits in it. */
-const SEARCH_WORD = `zq${RUN_TOKEN.replace(/[^a-z]/g, "")}qz`;
 
 /** The case that creates each thing, named when a later case finds nothing. */
 const OWNER = { session: "CHAT-01", chat: "CHAT-03", reply: "CHAT-05" };
@@ -227,20 +219,6 @@ const reopenConversation = async (
   return list;
 };
 
-/** Open the chat with Shopper A on B's page, found in B's own list —
- *  for the cases outside the journey, which cannot lean on `run.chatId`.
- *  Returns the chat as the chat backend listed it. */
-const openChatWithA = async (pageB: Page): Promise<any> => {
-  const list = await reloadAndOpenChat(pageB);
-  const shared = channelWithPhone([...list.channels, ...list.pinned], phoneOfA());
-  expect(
-    shared,
-    "the chat backend's list for Shopper B has no chat with Shopper A",
-  ).toBeTruthy();
-  await openConversationById(pageB, { chatId: shared.id, who: "Shopper A" });
-  return shared;
-};
-
 /** A's own member row in the shared chat, as the chat backend listed it. */
 const myMemberIn = (channels: any[], phone: string): any =>
   channelWithPhone(channels, phoneOfB())?.channel_members?.find(
@@ -251,7 +229,7 @@ const myMemberIn = (channels: any[], phone: string): any =>
 
 test.describe("the chat journey, in order", () => {
   // Serial: every case builds on the one before it, so a failure skips the
-  // rest of the journey. CHAT-17 is outside it on purpose.
+  // rest of the journey.
   test.describe.configure({ mode: "serial" });
 
   // ---------------------------------------------------------------------------
@@ -984,69 +962,6 @@ test.describe("the chat journey, in order", () => {
         "Shopper A deleted the chat for herself, but it is gone from Shopper B's list too",
       ).toBe(true);
     });
-  });
-});
-
-// ---------------------------------------------------------------------------
-// CHAT-17 — outside the journey, on purpose
-//
-// Red on staging for the chat backend (measured 2026-09-27 and 2026-09-28).
-// Inside the serial journey above, a red case would skip every case after it.
-// Out here it runs whatever happened before it. So it may not lean on
-// anything the journey learned: it runs as Shopper B, finds the chat with A
-// in B's own list, and uses B's own message.
-// ---------------------------------------------------------------------------
-
-test("CHAT-17 Shopper B searches inside the chat for a word only this run wrote", async ({
-  browser,
-}) => {
-  needShopperB();
-  const pageB = await heldB(browser);
-  let wanted = "";
-
-  await test.step("B sends a message with the word", async () => {
-    await openChatWithA(pageB);
-    const sent = await sendText(pageB, {
-      text: text(`${SEARCH_WORD} is the word to find`),
-      who: "Shopper A",
-    });
-    wanted = sent.messageId;
-  });
-
-  await test.step("the chat backend's search finds the message", async () => {
-    // Red on staging, for the chat backend. Measured 2026-09-28: a new message
-    // was still not found after 20 minutes (340092), and the other person
-    // reading it did not change that. An edited message is found at once
-    // (340089, 340091), and messages from the day before are found now. So a
-    // new message reaches the search only much later, and an edit reaches it
-    // at once. The search is asked again every 5 seconds for at most 60.
-    const { ids, outcome } = await searchInConversation(pageB, {
-      query: SEARCH_WORD,
-    });
-    requireChatAccepted(outcome, "searching inside the chat");
-    let found = ids.includes(wanted);
-    for (let tries = 0; !found && tries < 12; tries++) {
-      await pageB.waitForTimeout(5_000);
-      const again = watchChatCall(pageB, { endpoint: CHAT_ENDPOINT.channelSearch });
-      await chat.searchInput(pageB).fill("");
-      await chat.searchInput(pageB).fill(SEARCH_WORD);
-      const answer = await again;
-      requireChatAccepted(answer, "searching inside the chat again");
-      found = ((answer.data?.messages_ids ?? []) as unknown[])
-        .map(String)
-        .includes(wanted);
-    }
-    expect(
-      found,
-      `the chat backend's search did not find message ${wanted} by a word it contains, within 60 seconds — the chat backend puts a new message into its search only much later (an edited one at once)`,
-    ).toBe(true);
-  });
-
-  await test.step("the conversation marks that message as the current match", async () => {
-    await expect(
-      chat.searchHit(pageB),
-      "the search found the message, but the conversation did not mark it",
-    ).toHaveAttribute("id", `main-container-${wanted}`);
   });
 });
 

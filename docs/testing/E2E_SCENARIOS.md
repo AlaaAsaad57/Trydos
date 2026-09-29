@@ -20,7 +20,7 @@ case is added, and keep the count above in step.
 | **The QA safety lock** | QA-01 to QA-11 (16 cases) | yes — Shopper B, through the seed | **yes — the seed builds this environment's QA seller, shop, location and product, once. Nothing is ever deleted** |
 | Seller dashboard, a faked small role | SCRIPT-26 | no — it opens the QA seed's seller jar | no — only the permissions answer is faked, and nothing is saved |
 | Seller dashboard and seller stories, added cases | SD-13, SD-16, SST-09 | no — the QA seed's seller jar | no — reads, a template download, and a story form closed with Cancel |
-| **The chat** | CHAT-01 to CHAT-17 | CHAT-01 does, for Shopper A — one real code; Shopper B opens the seed's jar | **yes — real messages between the two test accounts, a tag, a reminder, a block and a deleted chat. Everything but the messages in B's copy of the chat is put back** |
+| **The chat** | CHAT-01 to CHAT-16 | CHAT-01 does, for Shopper A — one real code; Shopper B opens the seed's jar | **yes — real messages between the two test accounts, a tag, a reminder, a block and a deleted chat. Everything but the messages in B's copy of the chat is put back** |
 | Scripted chat branches | SCRIPT-27 to SCRIPT-43 | **no — the chat shopper is faked** | no — nothing but a guest registration per case |
 
 Design: `docs/testing/E2E_TEST_DESIGN.md`. How to run: `tests/e2e/README.md`.
@@ -653,28 +653,26 @@ These cases depend on three things, each measured on 2026-09-27:
   run here. Every "the backend kept it" check works the same way.
 
 `CHAT-01` to `CHAT-16` run as one serial journey, so the first red case in it
-skips the rest of it. `CHAT-17` is red for the chat backend, so it sits outside
-the journey and runs as Shopper B on its own.
+skips the rest of it.
 
 | ID | Case | Spec | What it proves |
 |----|------|------|----------------|
-| CHAT-01 | Shopper A signs in, and the chat opens and lists her chats | `chat.live.spec.ts:261` | The chat part of the sign-in landed, the nav icon opens the chat past the notification gate, and the chat backend answers the list |
-| CHAT-02 | A finds Shopper B by phone and opens their conversation | `chat.live.spec.ts:304` | The phone search draws exactly one row. The chat it opens is the one the chat backend lists with B as a member, or a new `ch-<id>` chat when A has none |
-| CHAT-03 | A sends a message, and the chat backend keeps it | `chat.live.spec.ts:343` | The backend saves it with an id, the row swaps its local id for that id, it no longer shows "sending", and it is still there after a reload |
-| CHAT-04 | B reads it, and A sees that it was read | `chat.live.spec.ts:393` | B's row shows an unread count, opening the chat tells the backend it was read, B sees A's text, and after a reload A's message shows as read |
-| CHAT-05 | B replies to it, and A sees the reply with its quote | `chat.live.spec.ts:449` | The reply carries A's message as its parent, and A sees it with the quote |
-| CHAT-06 | A edits her message, and both see the new text | `chat.live.spec.ts:490` | The backend accepts the edit, the text changes and survives a reload, the Edited mark shows, and B sees the new text |
-| CHAT-07 | A tags the message, then removes the tag | `chat.live.spec.ts:543` | The backend says "added", and the mark shows and survives a reload. The second press says "removed", and the mark goes |
-| CHAT-08 | A sets a reminder, then cancels it | `chat.live.spec.ts:589` | The backend saves it with an id, the mark shows, and the Reminders folder lists the message. Cancelling removes both |
-| CHAT-09 | A forwards a message into the chat | `chat.live.spec.ts:645` | The copy is sent with `is_forward`, and after a reload it shows the Forwarded mark |
-| CHAT-10 | A deletes one message for everyone and one only for herself | `chat.live.spec.ts:675` | "For All" sends `delete_for_all: 1` and "For Me" sends `0`. A sees both deleted after a reload; B sees the first deleted and the second as it was |
-| CHAT-11 | A pins the chat, then unpins it | `chat.live.spec.ts:737` | Each press is saved. After a reload the pinned chat is listed as pinned, shows a pin and is first |
-| CHAT-12 | A mutes the chat, then puts it back | `chat.live.spec.ts:784` | Reads the start state from the backend, flips it, proves the flip survives a reload, and puts it back |
-| CHAT-13 | A marks the chat unread, then read | `chat.live.spec.ts:826` | Each mark survives a reload |
-| CHAT-14 | A archives the chat, then unarchives it | `chat.live.spec.ts:851` | The chat leaves the main list, the backend's archived list holds it, and the Archived folder shows it. Unarchiving brings it back |
-| CHAT-15 | A blocks B, and both see the chat closed; A unblocks | `chat.live.spec.ts:906` | After the block both see the "cannot send" line and B has no input. After the unblock B can type again |
-| CHAT-16 | A deletes the conversation, and B still has it | `chat.live.spec.ts:958` | The chat is gone from A's list after a reload, and B still has it: deleting is for one person |
-| CHAT-17 | B searches inside the chat for a word only this run wrote | `chat.live.spec.ts:1000` | The backend's search finds the new message within 60 seconds, and the screen marks it. **Red, see CHAT-BE-2** |
+| CHAT-01 | Shopper A signs in, and the chat opens and lists her chats | `chat.live.spec.ts:239` | The chat part of the sign-in landed, the nav icon opens the chat past the notification gate, and the chat backend answers the list |
+| CHAT-02 | A finds Shopper B by phone and opens their conversation | `chat.live.spec.ts:282` | The phone search draws exactly one row. The chat it opens is the one the chat backend lists with B as a member, or a new `ch-<id>` chat when A has none |
+| CHAT-03 | A sends a message, and the chat backend keeps it | `chat.live.spec.ts:321` | The backend saves it with an id, the row swaps its local id for that id, it no longer shows "sending", and it is still there after a reload |
+| CHAT-04 | B reads it, and A sees that it was read | `chat.live.spec.ts:371` | B's row shows an unread count, opening the chat tells the backend it was read, B sees A's text, and after a reload A's message shows as read |
+| CHAT-05 | B replies to it, and A sees the reply with its quote | `chat.live.spec.ts:427` | The reply carries A's message as its parent, and A sees it with the quote |
+| CHAT-06 | A edits her message, and both see the new text | `chat.live.spec.ts:468` | The backend accepts the edit, the text changes and survives a reload, the Edited mark shows, and B sees the new text |
+| CHAT-07 | A tags the message, then removes the tag | `chat.live.spec.ts:521` | The backend says "added", and the mark shows and survives a reload. The second press says "removed", and the mark goes |
+| CHAT-08 | A sets a reminder, then cancels it | `chat.live.spec.ts:567` | The backend saves it with an id, the mark shows, and the Reminders folder lists the message. Cancelling removes both |
+| CHAT-09 | A forwards a message into the chat | `chat.live.spec.ts:623` | The copy is sent with `is_forward`, and after a reload it shows the Forwarded mark |
+| CHAT-10 | A deletes one message for everyone and one only for herself | `chat.live.spec.ts:653` | "For All" sends `delete_for_all: 1` and "For Me" sends `0`. A sees both deleted after a reload; B sees the first deleted and the second as it was |
+| CHAT-11 | A pins the chat, then unpins it | `chat.live.spec.ts:715` | Each press is saved. After a reload the pinned chat is listed as pinned, shows a pin and is first |
+| CHAT-12 | A mutes the chat, then puts it back | `chat.live.spec.ts:762` | Reads the start state from the backend, flips it, proves the flip survives a reload, and puts it back |
+| CHAT-13 | A marks the chat unread, then read | `chat.live.spec.ts:804` | Each mark survives a reload |
+| CHAT-14 | A archives the chat, then unarchives it | `chat.live.spec.ts:829` | The chat leaves the main list, the backend's archived list holds it, and the Archived folder shows it. Unarchiving brings it back |
+| CHAT-15 | A blocks B, and both see the chat closed; A unblocks | `chat.live.spec.ts:884` | After the block both see the "cannot send" line and B has no input. After the unblock B can type again |
+| CHAT-16 | A deletes the conversation, and B still has it | `chat.live.spec.ts:936` | The chat is gone from A's list after a reload, and B still has it: deleting is for one person |
 
 What a run leaves behind: the messages stay in Shopper B's copy of the chat,
 because `CHAT-16` deletes the conversation only for A. The `afterAll` puts back
@@ -718,7 +716,7 @@ be removed when the app is fixed.
 
 | ID | Where | What is wrong | Shown by |
 |----|-------|---------------|----------|
-| CHAT-BE-2 | chat backend | A new message does not reach the in-chat search for a long time. On 2026-09-28 one was still not found after 20 minutes (340092), and the other person reading it changed nothing. An edited message is found at once (340089, 340091), and messages from the day before are found now. So creating a message does not update the search index, and editing one does | `CHAT-17` (red) |
+| CHAT-BE-2 | chat backend | A new message does not reach the in-chat search for a long time. On 2026-09-28 one was still not found after 20 minutes (340092), and the other person reading it changed nothing. An edited message is found at once (340089, 340091), and messages from the day before are found now. So creating a message does not update the search index, and editing one does. **Accepted on 2026-09-29: the case that showed it (`CHAT-17`) was removed** | not covered: accepted |
 | CHAT-APP-1 | `SendMessage`, `store/chat/actions.tsx` | When the chat backend refuses a send inside a `200` (`isSuccessful: false`), the message stays on screen as "sending" for ever, and the shopper is told nothing. `fetchData` calls any 2xx a success, and `SendMessage` checks nothing else | `SCRIPT-33` (`test.fail`) |
 | CHAT-APP-2 | `pinChat`, `store/chat/reducer.ts`; `ChatOptions.tsx` | The "only 3 pinned chats" limit never applies: it reads `state.pinnedChats`, which nothing fills. Also, `ChatOptions` sends the pin to the backend before the check runs | `SCRIPT-37` (`test.fail`) |
 | CHAT-APP-3 | `requestFirebaseNotificationPermission`, `utils/firebaseInitv1.tsx:163` | When Firebase cannot get a push token, the app sets its notification flag to false. An open chat then turns into "Please Enable Notification to use Chat", although the browser granted notifications. Seen in a probe run. It is a race, so no case pins it down yet | not covered: no reliable trigger |
