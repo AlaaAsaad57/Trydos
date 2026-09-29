@@ -896,6 +896,14 @@ function useDeficit(watch: boolean) {
 }
 
 /**
+ * The design y where the canvas ends: 932 on a full-height phone, less on a
+ * short one (the canvas is the artboard from y 50, less the deficit).
+ */
+export function useCanvasEnd(watch: boolean) {
+  return STATUS_BAR + 932 - useDeficit(watch);
+}
+
+/**
  * The bottom sheet: the page dims to `#1D1D1D` at 90%, and a white sheet with
  * 30 px top corners and a 40 x 2 `#C4C2C2` handle slides up from the bottom.
  * The same sheet the login uses for its QR code (QrBottomSheet).
@@ -918,9 +926,10 @@ function useDeficit(watch: boolean) {
  *
  * `keep` holds a `fit` sheet at its design `y` on a short canvas, so the
  * dimmed page above it stays in view as in the file. It is for a sheet whose
- * content already fits above the app's keypad (the cash-out form while its
- * keypad is up). When AppScaler lifts the canvas for the keypad, a kept sheet
- * moves up with the canvas, only as far as the field in use needs.
+ * content already fits under its design top (the wallet forms: above the
+ * app's keypad, or with the keypad away, down to their buttons). When
+ * AppScaler lifts the canvas for the keypad, a kept sheet moves up with the
+ * canvas, only as far as the field in use needs.
  */
 export function Sheet({
   open,

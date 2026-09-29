@@ -15,7 +15,15 @@ import {
   sfTop,
   textBottom,
 } from "../demoLayout";
-import { Box, FileLines, Icon, Sheet, Stroke, Txt } from "../ui";
+import {
+  Box,
+  FileLines,
+  Icon,
+  Sheet,
+  Stroke,
+  Txt,
+  useCanvasEnd,
+} from "../ui";
 import { useKeypadRoom } from "../useKeypadRoom";
 import type { XdIconName } from "../xdIcons";
 import type { DemoKey } from "../demoKeys";
@@ -63,6 +71,16 @@ const TOP: Record<Step, number> = { ways: 216, rdb: 90, crypto: 90, code: 90 };
 
 /** The boards end at y 930. */
 const BOARD_END = 930;
+
+/**
+ * How far down a form reaches with its button on show: its last block (the
+ * crypto summary card, 58 tall at y 519; the rdb amount field, 55 tall at
+ * 422), then the 60 px button 8 px under it and the 35 px under the button.
+ */
+const FORM_END = {
+  crypto: 519 + 58 + 8 + 60 + (BOARD_END - 895),
+  bank: 422 + 55 + 8 + 60 + (BOARD_END - 895),
+};
 
 /** The safety rules lie on a second sheet from y 265 (`Home Page – 39`). */
 const SAFE_TOP = 265;
@@ -168,12 +186,27 @@ export default function WalletCashInSheet({
   const [step, setStep] = useState<Step>("ways");
   // Kept here, so the code (`– 37`) shows what the form asked for.
   const [amount, setAmount] = useState("");
-  /**
-   * The app's keypad is up on a form. The sheet then stays at its design top,
-   * so the dimmed wallet page shows above it; the keypad covers the buttons
-   * that need the sheet higher on a short canvas.
-   */
+  /** The app's keypad is up on a form. */
   const [typing, setTyping] = useState(false);
+  /** The rdb step shows its form ("From My rdb"), not the deposit code. */
+  const [fromBank, setFromBank] = useState(false);
+  const touch = useIsTouchDevice();
+  /** Where the canvas ends (design y): a kept form ends there, not at 930. */
+  const end = useCanvasEnd(open);
+  const formEnd =
+    step === "crypto"
+      ? FORM_END.crypto
+      : step === "rdb" && fromBank
+        ? FORM_END.bank
+        : null;
+  /**
+   * A form keeps the sheet at its design top, so the dimmed wallet page shows
+   * above it as in the file: while the keypad is up, and with the keypad away
+   * while the form fits on the canvas down to its button (only the free gap
+   * over the button gets smaller). The codes are taller than a short canvas:
+   * their sheet starts higher, as every wallet sheet does.
+   */
+  const keep = formEnd !== null && (typing || (touch && formEnd <= end));
   /** The safety rules (`Home Page – 39`) lie over the crypto form. */
   const [safe, setSafe] = useState(false);
   /** The picture of a code lies over the sheet (`– 31`, `– 38`). */
@@ -214,7 +247,7 @@ export default function WalletCashInSheet({
         lower={TOP[step] - TOP.rdb}
         radius={SHEET.radiusWallet}
         fit
-        keep={typing && (step === "rdb" || step === "crypto")}
+        keep={keep}
         testId="demo-wallet-cash-in-sheet"
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -226,7 +259,10 @@ export default function WalletCashInSheet({
             // buttons sit.
             style={{
               minHeight:
-                step === "ways" ? undefined : BOARD_END - (TOP[step] + 13),
+                step === "ways"
+                  ? undefined
+                  : (keep ? Math.min(BOARD_END, end) : BOARD_END) -
+                    (TOP[step] + 13),
             }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -246,6 +282,7 @@ export default function WalletCashInSheet({
                 balance={balance}
                 onPicture={() => setPicture("deposit")}
                 onKeypad={setTyping}
+                onTab={setFromBank}
               />
             )}
             {step === "crypto" && (
@@ -658,6 +695,7 @@ function Rdb({
   balance,
   onPicture,
   onKeypad,
+  onTab,
 }: {
   head: React.ReactNode;
   balance: WalletBalance;
@@ -665,11 +703,19 @@ function Rdb({
   onPicture: () => void;
   /** The app's keypad went up or away. */
   onKeypad: (open: boolean) => void;
+  /** The chosen tab: true for "From My rdb". */
+  onTab: (fromBank: boolean) => void;
 }) {
   const { t } = useDemoNav();
   const [tab, setTab] = useState<"cash" | "bank">("cash");
   const [amount, setAmount] = useState("");
   const fromBank = tab === "bank";
+
+  useEffect(() => {
+    onTab(fromBank);
+  }, [fromBank]);
+  // A step that leaves takes its tab with it.
+  useEffect(() => () => onTab(false), []);
 
   const act = (id: Action["id"]) => {
     if (id === "copy")
