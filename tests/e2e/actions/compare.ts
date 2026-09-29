@@ -228,7 +228,19 @@ export const gotoCompare = async (page: Page): Promise<void> => {
  *  Focusing a search box is the cheapest thing that only a hydrated page can
  *  do: the dropdown is opened by `handleFocus`, in the browser, and it makes no
  *  request when the box has never had a product in it. The box is then left as
- *  it was found. */
+ *  it was found.
+ *
+ *  **One click is not enough.** One click and a long wait fails for good if
+ *  that first focus never reaches React: the box stays focused, so no second
+ *  focus event comes, however long the test waits. Two ways this can happen:
+ *  the click lands before React has attached any listener, or React throws the
+ *  server HTML away after a hydration error and draws a new, unfocused box.
+ *  CMP-01 went red once on CI with the box on screen and no dropdown (run
+ *  36533665766); which of the two it was is not known. A focus that lands
+ *  while hydration is running is fine — React replays it, measured locally
+ *  with the page's JavaScript held back 5 s. So each try blurs the box and
+ *  clicks again, until the dropdown opens or 20 s pass. A page that never
+ *  hydrates still fails here. */
 export const proveCompareIsInteractive = async (page: Page): Promise<void> => {
   const input = compare.searchInput(page, 1);
   await expect(
@@ -236,12 +248,14 @@ export const proveCompareIsInteractive = async (page: Page): Promise<void> => {
     "the compare page has no search box, so it did not render",
   ).toBeVisible();
 
-  await input.click();
-
-  await expect(
-    compare.searchOptions(page, 1),
-    "the compare page's search box did not open when it was focused, so the page never became interactive and its empty table says nothing",
-  ).toBeVisible({ timeout: 20_000 });
+  await expect(async () => {
+    await input.blur();
+    await input.click();
+    await expect(
+      compare.searchOptions(page, 1),
+      "the compare page's search dropdown did not open on this click",
+    ).toBeVisible({ timeout: 2_000 });
+  }, "the compare page's search box never opened its dropdown in 20 s of clicking it, so the page did not hydrate and its empty table says nothing").toPass({ timeout: 20_000 });
 
   // Put it back: click away, and wait for the dropdown to shut, so nothing the
   // caller does next lands on a panel this helper left open.
