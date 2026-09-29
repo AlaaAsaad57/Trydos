@@ -7,6 +7,7 @@ import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 import { useDemoNav } from "../DemoShell";
 import { C, SHEET, gapTo, lineBox, paraTop, textBottom } from "../demoLayout";
 import { Box, FileLines, Icon, Sheet, Stroke, Txt } from "../ui";
+import { useKeypadRoom } from "../useKeypadRoom";
 import type { XdIconName } from "../xdIcons";
 import {
   WALLET_BANK_ACCOUNT,
@@ -155,6 +156,13 @@ export default function WalletCashOutSheet({
   const [authorized, setAuthorized] = useState<Authorized | null>(null);
   /** The picture of the request (`Home Page – 24`) lies over the sheet. */
   const [picture, setPicture] = useState(false);
+  /**
+   * Set by the form: the sheet stays at its design top, this many px lower
+   * (see `Form`). Null: the sheet starts higher on a short canvas, as every
+   * wallet sheet does.
+   */
+  const [hold, setHold] = useState<number | null>(null);
+  const held = step === "form" ? hold : null;
 
   const request: WithdrawalRequest = {
     amount,
@@ -186,9 +194,15 @@ export default function WalletCashOutSheet({
         open={open}
         onClose={onClose}
         y={TOP.form}
-        lower={TOP[step] - TOP.form}
+        lower={TOP[step] - TOP.form + (held ?? 0)}
         radius={SHEET.radiusWallet}
         fit
+        keep={held !== null}
+        // AppScaler measures the amount field once, when the keypad opens. The
+        // sheet may still be moving then, so it measures again once it rests.
+        onEntered={() =>
+          document.dispatchEvent(new FocusEvent("focusout"))
+        }
         testId="demo-wallet-cash-out-sheet"
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -217,6 +231,7 @@ export default function WalletCashOutSheet({
                 setAmount={setAmount}
                 authorized={authorized}
                 setAuthorized={setAuthorized}
+                onHold={setHold}
                 onNow={() => setStep("scan")}
                 onRequest={() => setStep("code")}
               />
@@ -541,12 +556,19 @@ export function InfoButton({
  * `data-keyboard-anchor` so the scaled canvas keeps it above the keypad. With
  * a mouse and a keyboard there is no keypad, and the fields are plain inputs.
  */
+/**
+ * The gap over the amount field while the keypad is up on a short canvas:
+ * half of the file's 122 px (y 393 to 515).
+ */
+const SHORT_GAP = 61;
+
 function Form({
   balance,
   amount,
   setAmount,
   authorized,
   setAuthorized,
+  onHold,
   onNow,
   onRequest,
 }: {
@@ -555,6 +577,8 @@ function Form({
   setAmount: React.Dispatch<React.SetStateAction<string>>;
   authorized: Authorized | null;
   setAuthorized: React.Dispatch<React.SetStateAction<Authorized | null>>;
+  /** How far under its design top the sheet rests, or null for the usual place. */
+  onHold: (drop: number | null) => void;
   /** "Withdrawal Now": on to the code reader. */
   onNow: () => void;
   /** "Withdrawal Request": on to the code (`Home Page – 101`). */
@@ -639,17 +663,51 @@ function Form({
     !named || (named.phone !== "" && named.name.trim() !== "");
   const ready = active === null && toNumber(amount) > 0 && !short && complete;
 
+  /**
+   * With room for the file's spacing (the field ending at y 570 over the
+   * usual keypad), the form keeps it exactly. Only when there is not, the
+   * keypad loses its bottom gap, the gap over the field gets smaller and the
+   * sheet rests lower by the room that saves (see `drop` below).
+   */
+  const rooms = useKeypadRoom(touch);
+
   // Where the block above the amount field ends, and where the field starts.
-  // With the keypad up the field ends at y 570, 12 px over the keypad.
+  // With the keypad up the field ends at y 570, 12 px over the keypad
+  // (`– 19`), 122 px under the block above it. When the canvas is too short
+  // for that, the gap gets smaller (SHORT_GAP, and never under the 4 px of
+  // `– 29`), and the room it saves goes to the sheet: the sheet rests lower
+  // (`drop`), so more of the dimmed wallet page shows.
   const above = toBank ? 363 + 55 : named ? 481 + 30 : 363 + 30;
   const amountHeight = short ? 93 : 55;
+  /** The file's spacing fits with the usual keypad. */
+  const roomy = rooms.full >= 570;
+  const room = roomy ? rooms.full : rooms.flush;
+  const fits = room >= 570;
+  const shortTop = Math.max(
+    above + 4,
+    Math.min(above + SHORT_GAP, room - amountHeight),
+  );
   const amountTop = toBank
     ? 422
     : named
       ? 515
       : typing || opening
-        ? 570 - amountHeight
+        ? fits
+          ? 570 - amountHeight
+          : shortTop
         : 397;
+  const drop =
+    toBank || named || fits
+      ? 0
+      : Math.max(0, room - (shortTop + amountHeight));
+
+  // On a touch device the sheet stays at its design top (or `drop` px under
+  // it), so the dimmed wallet page shows above it as in the file. Only the
+  // buttons of `– 29` need the sheet to start higher on a short canvas, as
+  // every wallet sheet does.
+  useEffect(() => {
+    onHold(touch && !ready ? drop : null);
+  }, [touch, ready, drop]);
 
   const choose = (next: "cash" | "bank") => {
     if (next === tab) return;
@@ -1078,6 +1136,9 @@ function Form({
         <NumericKeypad
           open={keypad}
           keypadRef={keys}
+          // Only when the file's spacing does not fit: no gap between the keys
+          // and the browser bar, the room goes to the sheet.
+          flushBottom={!roomy}
           onPress={(digit) => {
             if (active === "phone")
               setAuthorized(

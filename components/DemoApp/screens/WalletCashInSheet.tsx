@@ -16,6 +16,7 @@ import {
   textBottom,
 } from "../demoLayout";
 import { Box, FileLines, Icon, Sheet, Stroke, Txt } from "../ui";
+import { useKeypadRoom } from "../useKeypadRoom";
 import type { XdIconName } from "../xdIcons";
 import type { DemoKey } from "../demoKeys";
 import {
@@ -167,6 +168,12 @@ export default function WalletCashInSheet({
   const [step, setStep] = useState<Step>("ways");
   // Kept here, so the code (`– 37`) shows what the form asked for.
   const [amount, setAmount] = useState("");
+  /**
+   * The app's keypad is up on a form. The sheet then stays at its design top,
+   * so the dimmed wallet page shows above it; the keypad covers the buttons
+   * that need the sheet higher on a short canvas.
+   */
+  const [typing, setTyping] = useState(false);
   /** The safety rules (`Home Page – 39`) lie over the crypto form. */
   const [safe, setSafe] = useState(false);
   /** The picture of a code lies over the sheet (`– 31`, `– 38`). */
@@ -207,6 +214,7 @@ export default function WalletCashInSheet({
         lower={TOP[step] - TOP.rdb}
         radius={SHEET.radiusWallet}
         fit
+        keep={typing && (step === "rdb" || step === "crypto")}
         testId="demo-wallet-cash-in-sheet"
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -237,6 +245,7 @@ export default function WalletCashInSheet({
                 head={rdbHead}
                 balance={balance}
                 onPicture={() => setPicture("deposit")}
+                onKeypad={setTyping}
               />
             )}
             {step === "crypto" && (
@@ -246,6 +255,7 @@ export default function WalletCashInSheet({
                 amount={amount}
                 setAmount={setAmount}
                 onGenerate={() => setSafe(true)}
+                onKeypad={setTyping}
               />
             )}
             {step === "code" && (
@@ -647,11 +657,14 @@ function Rdb({
   head,
   balance,
   onPicture,
+  onKeypad,
 }: {
   head: React.ReactNode;
   balance: WalletBalance;
   /** "Download": on to the picture of the code (`– 31`). */
   onPicture: () => void;
+  /** The app's keypad went up or away. */
+  onKeypad: (open: boolean) => void;
 }) {
   const { t } = useDemoNav();
   const [tab, setTab] = useState<"cash" | "bank">("cash");
@@ -740,6 +753,7 @@ function Rdb({
             balance={balance}
             amount={amount}
             setAmount={setAmount}
+            onKeypad={onKeypad}
           />
           <div
             className="flex flex-col shrink-0 mt-auto"
@@ -904,6 +918,7 @@ function AmountField({
   amount,
   setAmount,
   note,
+  onKeypad,
 }: {
   mt: number;
   label: React.ReactNode;
@@ -911,9 +926,24 @@ function AmountField({
   amount: string;
   setAmount: React.Dispatch<React.SetStateAction<string>>;
   note?: React.ReactNode;
+  /** The app's keypad went up or away. */
+  onKeypad: (open: boolean) => void;
 }) {
   const touch = useIsTouchDevice();
   const [keypad, setKeypad] = useState(false);
+  const rooms = useKeypadRoom(touch);
+  /**
+   * The file's spacing fits over the usual keypad: both forms draw the field
+   * at y 422, 55 tall, or 93 with the charge. Only when it does not fit, the
+   * keypad gives its bottom gap away.
+   */
+  const roomy = rooms.full >= 422 + (note ? 93 : 55);
+
+  useEffect(() => {
+    onKeypad(keypad);
+  }, [keypad]);
+  // A form that leaves takes its keypad with it.
+  useEffect(() => () => onKeypad(false), []);
   const keys = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const { t } = useDemoNav();
@@ -1040,6 +1070,7 @@ function AmountField({
         <NumericKeypad
           open={keypad}
           keypadRef={keys}
+          flushBottom={!roomy}
           onPress={(digit) => setAmount((now) => (now + digit).slice(0, 12))}
           onBackspace={() => setAmount((now) => now.slice(0, -1))}
         />
@@ -1065,6 +1096,7 @@ function Crypto({
   amount,
   setAmount,
   onGenerate,
+  onKeypad,
 }: {
   head: React.ReactNode;
   balance: WalletBalance;
@@ -1072,6 +1104,8 @@ function Crypto({
   setAmount: React.Dispatch<React.SetStateAction<string>>;
   /** "Generate QR Code": the safety rules first (`– 39`). */
   onGenerate: () => void;
+  /** The app's keypad went up or away. */
+  onKeypad: (open: boolean) => void;
 }) {
   const { t } = useDemoNav();
   const typed = toNumber(amount) > 0;
@@ -1119,6 +1153,7 @@ function Crypto({
         balance={balance}
         amount={amount}
         setAmount={setAmount}
+        onKeypad={onKeypad}
         note={
           typed ? (
             <Txt

@@ -10,6 +10,12 @@ interface NumericKeypadProps {
     onBackspace: () => void;
     disabled?: boolean;
     keypadRef?: React.RefObject<HTMLDivElement | null>;
+    /**
+     * No gap under the last row of keys: the keypad is shorter by its bottom
+     * padding and the keys keep their size. For a page that needs the room
+     * above the keypad (the demo's cash-out form).
+     */
+    flushBottom?: boolean;
 }
 
 const KEYS = [
@@ -30,6 +36,11 @@ const KEYS = [
     ],
 ] as const;
 
+/** The keypad's height. */
+export const KEYPAD_HEIGHT = '35vh';
+/** The keypad's height with `flushBottom`: 35vh less its bottom padding. */
+export const FLUSH_KEYPAD_HEIGHT = 'calc(35vh - var(--xd-unit, 1px) * 10)';
+
 const springTransition = {
     type: 'spring' as const,
     damping: 32,
@@ -43,6 +54,7 @@ export function NumericKeypad({
     onBackspace,
     disabled = false,
     keypadRef,
+    flushBottom = false,
 }: NumericKeypadProps) {
     const backspaceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [activeKey, setActiveKey] = useState<string | null>(null);
@@ -103,10 +115,10 @@ export function NumericKeypad({
                     transition={springTransition}
                 >
                     <div
-                        className="flex flex-col max-w-100 h-[35vh] mx-auto"
+                        className="flex flex-col max-w-100 mx-auto"
                         style={{
-                            padding:
-                                'calc(var(--xd-unit, 1px) * 10) calc(var(--xd-unit, 1px) * 3) calc(var(--xd-unit, 1px) * 10)',
+                            height: flushBottom ? FLUSH_KEYPAD_HEIGHT : KEYPAD_HEIGHT,
+                            padding: `calc(var(--xd-unit, 1px) * 10) calc(var(--xd-unit, 1px) * 3) ${flushBottom ? '0px' : 'calc(var(--xd-unit, 1px) * 10)'}`,
                             background: '#1C1C1E',
                             gap: 'calc(var(--xd-unit, 1px) * 10)',
                         }}
