@@ -432,6 +432,18 @@ test("BUY-01 a shopper buys something with cash on delivery and then cancels it"
       // Without this, the next run would place a real order, with a real seller
       // shipping it, to an address nobody lives at.
       //
+      // **Waited for, not read once** — the same allowance ORD-01 gives it. The
+      // address block loads after the checkout screen does, and both reads
+      // below are a single look. Run 36586083936 read them too early: the core
+      // backend had just listed 604 as the default, the block was not drawn
+      // yet, so the probe check passed on an empty title and "no address" sent
+      // this case into adding one it did not need.
+      await checkout
+        .chosenAddress(page)
+        .first()
+        .waitFor({ state: "visible", timeout: 45_000 })
+        .catch(() => undefined);
+
       // Read by title, because that is the only field the checkout shows.
       const showing = await chosenAddressTitle(page);
       expect(

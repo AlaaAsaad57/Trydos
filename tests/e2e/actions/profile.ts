@@ -764,6 +764,14 @@ export const addAddress = async (
   // one level deeper and leaves the picker open; only a leaf row sets the
   // region and closes it. The two carry different markers, so this takes the
   // province while one is offered and the leaf when one is.
+  //
+  // On the checkout the form sits on a slide (`OrdersPage.tsx`, `SlideWidget`).
+  // Run 36586083936 found the button drawn but off the screen for 20 s, and a
+  // bare click timeout said only "outside of the viewport". This names it.
+  await expect(
+    profile.selectRegionButton(page),
+    "the add-address form opened, but its region button never came onto the screen — on the checkout that means the form's slide did not finish moving in",
+  ).toBeInViewport({ timeout: 20_000 });
   await profile.selectRegionButton(page).click();
 
   for (let level = 0; level < 6; level += 1) {
