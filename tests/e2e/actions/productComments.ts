@@ -37,6 +37,7 @@ import { expect, type Locator, type Page } from "@playwright/test";
 
 import { signedInSession } from "./auth";
 import { redact } from "../harness/redact";
+import { waitForRenewalSettled } from "../harness/renewalGate";
 import { productComments } from "../selectors";
 
 /** Endpoints this journey drives, as they appear in `x-proxy-url`. */
@@ -765,6 +766,12 @@ export const checkpoint = async (
   let outstanding: string[] = [];
 
   for (let attempt = 1; attempt <= CHECKPOINT_RELOADS; attempt += 1) {
+    // A reload cancels a renewal in flight, after the backend has spent the
+    // old refresh token. Up to six reloads over a minute outlive the 60-second
+    // access token, so one of them lands inside a renewal sooner or later: CI
+    // run 36620489226 lost the shopper's session this way at the end of CMT-06,
+    // and CMT-07 failed on it.
+    await waitForRenewalSettled(page);
     await page.reload({ waitUntil: "domcontentloaded" });
     state = await readPageState(page, { commentIds: options.commentIds });
     outstanding = options.unmet(state);

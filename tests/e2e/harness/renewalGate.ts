@@ -28,7 +28,7 @@
 //
 // This file depends only on `@playwright/test`, like the rest of `harness/`.
 
-import type { BrowserContext, Page, Request } from "@playwright/test";
+import { test, type BrowserContext, type Page, type Request } from "@playwright/test";
 
 /** The same-origin routes that rotate or replace the credential. */
 const RENEWAL_ROUTES = new Set(["/api/auth/refresh", "/api/auth/expire"]);
@@ -76,6 +76,29 @@ type RenewalState = {
 
 const renewals = new WeakMap<BrowserContext, RenewalState>();
 
+/** When each watched request started. */
+const startedAt = new WeakMap<Request, number>();
+
+/** The page a request came from, or `null` for one with no page behind it (a
+ *  service worker's). */
+const pageOf = (request: Request): Page | null => {
+  try {
+    return request.frame().page();
+  } catch {
+    return null;
+  }
+};
+
+/** Say a renewal was cut off, in the log and on the running case. */
+const reportCancelled = (line: string): void => {
+  console.log(`[e2e] ${line}`);
+  try {
+    test.info().annotations.push({ type: "renewal cancelled", description: line });
+  } catch {
+    // No case is running (a hook or teardown): the log line is the record.
+  }
+};
+
 const pathOf = (request: Request): string => {
   try {
     return new URL(request.url()).pathname;
@@ -95,16 +118,59 @@ export const watchRenewals = (context: BrowserContext): void => {
   };
   renewals.set(context, state);
 
+  // When each page last started loading a new document.
+  const navigationStartedAt = new WeakMap<Page, number>();
+
   context.on("request", (request) => {
     const path = pathOf(request);
+    startedAt.set(request, Date.now());
     if (RENEWAL_ROUTES.has(path)) state.open.add(request);
     if (path === "/api/proxy") {
       state.proxied.add(request);
       state.lastProxiedAt = Date.now();
     }
+    if (request.isNavigationRequest() && request.frame().parentFrame() === null) {
+      const page = pageOf(request);
+      if (page) navigationStartedAt.set(page, Date.now());
+    }
   });
 
+  // **A new document ends every call the old one had in flight, and Playwright
+  // does not say so.** Measured on 2026-09-29: a `fetch` to `/api/auth/refresh`
+  // cut off by `page.reload()` or `page.goto()` gets neither `requestfinished`
+  // nor `requestfailed`. So it stayed in `open` for good, and the next wait on
+  // that page spent 20 s and blamed a renewal that was no longer running (CI
+  // run 36620489226, CMT-07). The calls are dropped when the new document has
+  // loaded, and only those that started before its navigation did — a
+  // client-side navigation (`pushState`) loads no document and ends nothing.
+  //
+  // A dropped renewal is written down: if the backend had already exchanged
+  // the token, the new pair never reached the jar, and the shopper is about to
+  // become a guest. The step that navigated is the one to fix.
+  const dropCallsOfOldDocument = (page: Page): void => {
+    const since = navigationStartedAt.get(page);
+    if (since === undefined) return;
+    const older = (request: Request): boolean =>
+      pageOf(request) === page && (startedAt.get(request) ?? 0) < since;
+    for (const request of [...state.open]) {
+      if (!older(request)) continue;
+      state.open.delete(request);
+      state.lastActivityAt = Date.now();
+      reportCancelled(
+        `a page load cut off ${pathOf(request)} while it was in flight ` +
+          `(it started ${since - (startedAt.get(request) ?? since)} ms before the navigation). ` +
+          "If the backend had already exchanged the token, the new pair never " +
+          "reached the jar and the session will end as a guest — the step that " +
+          "navigated did not wait for the renewal (waitForRenewalSettled).",
+      );
+    }
+    for (const request of [...state.proxied]) {
+      if (older(request)) state.proxied.delete(request);
+    }
+  };
+
   context.on("page", (page) => {
+    page.on("domcontentloaded", () => dropCallsOfOldDocument(page));
     page.on("load", () => {
       state.lastLoadAt = Date.now();
     });
