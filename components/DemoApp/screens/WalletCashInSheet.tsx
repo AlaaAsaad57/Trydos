@@ -1156,8 +1156,10 @@ function Crypto({
         onKeypad={onKeypad}
         note={
           typed ? (
+            // The file starts the line at x 53: 3.2 px right of centre.
             <Txt
               center
+              nudge={3.2}
               size={11}
               color={C.card}
               mt={gapTo(477, 496, 11)}
