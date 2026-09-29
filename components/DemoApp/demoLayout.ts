@@ -107,6 +107,21 @@ export const C = {
   noteTint: "#FFF8F2",
   /** The dashed line of the "Back" button (`– 30`). */
   lineDark: "#5D5C5D",
+  /** The chosen tab and the network tag on the cash-in sheet (`– 26`, `– 33`, `– 37`). */
+  yellow: "#FAE26B",
+  /** "I Agree" and the time left on the crypto code (`– 39`, `– 37`). */
+  cryptoBlue: "#3066CC",
+  /** The line of "I Agree" (`– 39`). */
+  agreeLine: "#3EAA72",
+  /** The line round the sheet that lies over another sheet (`– 39`). */
+  sheetEdge: "#707070",
+  /** The rings and the small text of the safety list (`– 39`). */
+  ring: "#8E8E8E",
+  /** The dots of the safety list: done (green) and take care (amber). */
+  safeGreen: "#00DD80",
+  safeAmber: "#F2B835",
+  /** The expiry lines of the crypto code (`– 37`, `– 38`). */
+  expiry: "#F4780E",
   red: "#FF5F61",
   card: "#FCFCFC",
   field: "#F8F8F8",
@@ -180,3 +195,24 @@ export const SHEET = {
   radiusWallet: 50,
   handle: { width: 40, top: 12, height: 2 },
 } as const;
+
+/**
+ * The phone's own rounded font. The file writes a few lines in it (the safety
+ * list of `Home Page – 39`, the expiry lines of `– 37`): `ui-rounded` is
+ * SF Pro Rounded on an iPhone. Other systems have no such font and fall back
+ * to Quicksand.
+ */
+export const SF_ROUNDED = `ui-rounded, "SF Pro Rounded", var(--Quicksand-Regular), sans-serif`;
+
+/**
+ * The box top of an SF Pro Rounded line, so that its baseline lands on the
+ * file's `baseline` in a line `lineHeight` tall. SF Pro's ascent is 0.952 em
+ * and its descent 0.241 em; WebKit rounds each to a whole px and shares what
+ * is left of the line above and below them (at 12 px on an 18 px line the
+ * baseline is 13 px down).
+ */
+export const sfTop = (baseline: number, size: number, lineHeight: number) => {
+  const ascent = Math.round(0.952 * size);
+  const descent = Math.round(0.241 * size);
+  return baseline - ((lineHeight - (ascent + descent)) / 2 + ascent);
+};

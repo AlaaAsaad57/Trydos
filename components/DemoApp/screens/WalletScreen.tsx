@@ -11,6 +11,7 @@ import {
   type WalletBalance,
   type WalletEntry,
 } from "../demoWallet";
+import WalletCashInSheet from "./WalletCashInSheet";
 import WalletCashOutSheet from "./WalletCashOutSheet";
 import WalletInfoSheet from "./WalletInfoSheet";
 import WalletReceipt, { RECEIPT_GLASS } from "./WalletReceipt";
@@ -41,9 +42,9 @@ import WalletReceipt, { RECEIPT_GLASS } from "./WalletReceipt";
  * list title (its box starts at 261), so the list does not move when they
  * come in.
  *
- * Three layers open over the page: Cash Out (`– 21`, `– 19`) and Wallet Info
- * (`– 23`) from the one-balance card, and the receipt (`– 18`) from an entry
- * that has one.
+ * Four layers open over the page: Cash In (`– 22`, in WalletCashInSheet),
+ * Cash Out (`– 21`, `– 19`) and Wallet Info (`– 23`) from the one-balance
+ * card, and the receipt (`– 18`) from an entry that has one.
  */
 
 /** The move between the two states. */
@@ -66,6 +67,7 @@ export default function WalletScreen() {
   const { t, back } = useDemoNav();
   /** The grown card's place in the row, or null for the two cards side by side (`Home Page – 11`). */
   const [grown, setGrown] = useState<number | null>(null);
+  const [cashIn, setCashIn] = useState(false);
   const [cashOut, setCashOut] = useState(false);
   const [info, setInfo] = useState(false);
   const [receipt, setReceipt] = useState(false);
@@ -93,6 +95,11 @@ export default function WalletScreen() {
         <>
           {balance && (
             <>
+              <WalletCashInSheet
+                open={cashIn}
+                onClose={() => setCashIn(false)}
+                balance={balance}
+              />
               <WalletCashOutSheet
                 open={cashOut}
                 onClose={() => setCashOut(false)}
@@ -171,6 +178,7 @@ export default function WalletScreen() {
                 if (sliding.current) return;
                 setGrown(grown === null ? i : null);
               }}
+              onCashIn={() => setCashIn(true)}
               onCashOut={() => setCashOut(true)}
               onInfo={() => setInfo(true)}
             />
@@ -251,6 +259,7 @@ function BalanceCard({
   wide,
   ml,
   onTap,
+  onCashIn,
   onCashOut,
   onInfo,
 }: {
@@ -258,6 +267,7 @@ function BalanceCard({
   wide: boolean;
   ml: number;
   onTap: () => void;
+  onCashIn: () => void;
   onCashOut: () => void;
   onInfo: () => void;
 }) {
@@ -349,6 +359,7 @@ function BalanceCard({
                 icon="cashIn"
                 label={t("Cash In")}
                 testId={`demo-wallet-cash-in-${balance.currency}`}
+                onClick={onCashIn}
               />
             </div>
             <CardAction

@@ -126,6 +126,17 @@ export const XD_ICON_SIZE = {
   shieldGrey: { w: 14, h: 14 },
   qrRequest: { w: 301, h: 301 },
   qrRequestBig: { w: 351, h: 351 },
+  cashInBig: { w: 30, h: 30 },
+  payCards: { w: 101, h: 101 },
+  payCrypto: { w: 101, h: 101 },
+  qrCashIn: { w: 300.12, h: 300.12 },
+  qrCashInBig: { w: 350.37, h: 350.37 },
+  usdtMark: { w: 20, h: 20 },
+  scanPhone: { w: 10.2, h: 14.68 },
+  timerBlue: { w: 13.73, h: 15 },
+  binance: { w: 30, h: 30 },
+  expiryClock: { w: 12.81, h: 14 },
+  shieldSafe: { w: 34.14, h: 40.09 },
 } as const;
 
 export type XdIconName = keyof typeof XD_ICON_SIZE;
