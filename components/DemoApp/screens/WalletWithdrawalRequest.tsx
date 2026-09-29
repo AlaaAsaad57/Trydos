@@ -380,7 +380,7 @@ export function PictureLayer({
   testId: string;
   children: React.ReactNode;
 }) {
-  useOuterBackdrop(open, `linear-gradient(${C.white}, ${C.white})`);
+  useOuterBackdrop(open, `linear-gradient(${C.white}, ${C.white})`, C.white);
   return (
     <AnimatePresence>
       {open && (

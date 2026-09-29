@@ -41,7 +41,7 @@ export default function WalletReceipt({
 }) {
   const { t } = useDemoNav();
   const receipt = WALLET_RECEIPT;
-  useOuterBackdrop(open, ROUND_THE_RECEIPT);
+  useOuterBackdrop(open, ROUND_THE_RECEIPT, "rgb(142, 142, 142)");
   return (
     <AnimatePresence>
       {open && (

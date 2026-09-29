@@ -848,8 +848,15 @@ export function MenuRow({
  *
  * Only the column the canvas stands in is painted. On a wide window the room
  * left and right of the canvas stays white, as it is on every other screen.
+ *
+ * `top` is the layer's colour at the top of the screen. Safari 26 on the
+ * iPhone paints its own top area (the clock and the battery) in the
+ * background colour of a fixed element at the top edge, not from
+ * `theme-color`. `#app-outer` is such an element, and it stays white under
+ * the painted column, so the top area stayed white over a dimmed page. A
+ * thin fixed strip in `top` gives Safari the layer's colour while it is open.
  */
-export function useOuterBackdrop(open: boolean, paint: string) {
+export function useOuterBackdrop(open: boolean, paint: string, top: string) {
   // 1 px narrower on each side than the canvas, so no sliver of it shows
   // beside the canvas where the two edges round differently.
   const background = `${paint} calc(var(--app-canvas-left, 0px) + 1px) 0 / calc(${DESIGN_W}px * var(--app-scale, 1) - 2px) 100% no-repeat ${C.white}`;
@@ -863,6 +870,25 @@ export function useOuterBackdrop(open: boolean, paint: string) {
       outer.style.background = before;
     };
   }, [open, background]);
+  React.useEffect(() => {
+    if (!open) return;
+    const strip = document.createElement("div");
+    strip.dataset.pw = "demo-top-tint";
+    // Over the canvas's column, as the paint above. The page under it has
+    // the same colour there, so the strip does not show.
+    Object.assign(strip.style, {
+      position: "fixed",
+      top: "0",
+      left: "var(--app-canvas-left, 0px)",
+      width: `calc(${DESIGN_W}px * var(--app-scale, 1))`,
+      height: "4px",
+      background: top,
+      pointerEvents: "none",
+      zIndex: "2147483647",
+    });
+    document.body.appendChild(strip);
+    return () => strip.remove();
+  }, [open, top]);
 }
 
 /** `#1D1D1D` at 90% over the white page: what a dimmed page looks like. */
@@ -967,7 +993,7 @@ export function Sheet({
   children: React.ReactNode;
   testId?: string;
 }) {
-  useOuterBackdrop(open, ROUND_A_SHEET);
+  useOuterBackdrop(open, ROUND_A_SHEET, DIMMED);
   const grip = useDragControls();
   // The app is the artboard without its 50 px status bar, so the first 50 px
   // the canvas gives up cost the app nothing. What it gives up past that is
