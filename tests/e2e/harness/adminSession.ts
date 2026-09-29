@@ -23,7 +23,7 @@
 // belong to a different product and can change without this repository hearing
 // about it.
 
-import { expect, type Browser, type Page } from "@playwright/test";
+import { expect, test, type Browser, type Page } from "@playwright/test";
 
 import { envValue } from "./env";
 import { redact } from "./redact";
@@ -168,7 +168,7 @@ export const signInToAdmin = async (page: Page): Promise<void> => {
     }
   })();
 
-  const landed = await page
+  let landed = await page
     .waitForURL((url) => !url.pathname.startsWith(loginPath), { timeout: 45_000 })
     .then(() => true)
     .catch(() => false);
@@ -177,6 +177,47 @@ export const signInToAdmin = async (page: Page): Promise<void> => {
   await watching.catch(() => undefined);
 
   if (landed) return;
+
+  // **What the screen said, read before anything moves the page.** A
+  // refusal is a 302 back to the sign-in screen (measured 2026-09-29 with a
+  // wrong password). CI twice got a plain `200` instead, with no redirect and
+  // no alert (runs 36533665766 and 36545622160), while the same credentials
+  // signed in from a desk. So the title and the start of the page text are the
+  // only way to learn what CI was shown. Redacted: the page may echo the
+  // account's e-mail, and the password field's value is never read.
+  const seen = await page
+    .evaluate(() => ({
+      title: document.title,
+      text: (document.body?.innerText ?? "").replace(/\s+/g, " ").trim(),
+    }))
+    .catch(() => ({ title: "", text: "" }));
+  const shownPage = ` The page it stayed on has the title "${redact(seen.title).slice(0, 80)}" and begins: "${redact(seen.text).slice(0, 300)}".`;
+
+  // **A 200 that stayed on the sign-in address: open the dashboard by hand.**
+  // If the panel kept a session from the POST and only failed to redirect,
+  // `/admin` opens. If it sends the browser back to the sign-in screen, no
+  // session was made and the sign-in really failed. Either way it is written
+  // down, so a pass that needed this step never looks like a clean one.
+  let byHand = "";
+  if (answers.some((answer) => answer.startsWith(`200 ${loginPath}`))) {
+    const home = new URL("/admin", loginUrl);
+    await page.goto(home.toString(), { waitUntil: "domcontentloaded" }).catch(() => null);
+    const now = new URL(page.url()).pathname;
+    landed = !now.startsWith(loginPath);
+    if (landed) {
+      const note = redact(
+        `the admin sign-in answered 200 and stayed on ${loginPath}; opening ${home.pathname} by hand reached ${now}, so the panel had kept a session and only failed to redirect.${shownPage}`,
+      );
+      console.log(`[e2e] ${note}`);
+      try {
+        test.info().annotations.push({ type: "admin sign-in by hand", description: note });
+      } catch {
+        // No case is running (a hook or teardown): the log line is the record.
+      }
+      return;
+    }
+    byHand = ` Opening ${home.pathname} by hand sent the browser to ${now}, so the panel kept no session from this sign-in.`;
+  }
 
   const said = answers.length
     ? `The panel answered: ${answers.join(", ")}.`
@@ -198,7 +239,7 @@ export const signInToAdmin = async (page: Page): Promise<void> => {
 
   expect(
     landed,
-    `the admin dashboard never left its sign-in address after the credentials were sent, so the sign-in did not complete. It is still on "${new URL(page.url()).pathname}". ${said}${quoted}${bouncedBack}${sameHost} The password is not printed here`,
+    `the admin dashboard never left its sign-in address after the credentials were sent, so the sign-in did not complete. It is still on "${new URL(page.url()).pathname}". ${said}${quoted}${bouncedBack}${sameHost}${byHand}${shownPage} The password is not printed here`,
   ).toBe(true);
 };
 
