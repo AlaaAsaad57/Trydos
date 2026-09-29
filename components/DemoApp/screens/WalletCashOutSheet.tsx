@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { NumericKeypad } from "components/Login/Enhanced/ui/NumericKeypad";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 import { useDemoNav } from "../DemoShell";
+import { NATIVE_WALLET_KEYBOARD } from "../demoKeyboard";
 import { C, SHEET, gapTo, lineBox, paraTop, textBottom } from "../demoLayout";
 import {
   Box,
@@ -620,15 +621,20 @@ function Form({
    */
   const [opening, setOpening] = useState(amount === "");
   const touch = useIsTouchDevice();
+  /**
+   * The app's keypad types the amount and the phone number. Off with the
+   * phone's own keyboard (`NATIVE_WALLET_KEYBOARD`): the fields are then
+   * plain inputs, as with a mouse and a keyboard.
+   */
+  const keyed = touch && !NATIVE_WALLET_KEYBOARD;
   const keys = useRef<HTMLDivElement>(null);
   const amountInput = useRef<HTMLInputElement>(null);
   const phoneInput = useRef<HTMLInputElement>(null);
   const nameInput = useRef<HTMLInputElement>(null);
-  /** The app's keypad types the amount and the phone number. */
-  const keypad = touch && (active === "amount" || active === "phone");
+  const keypad = keyed && (active === "amount" || active === "phone");
 
   const use = (field: Exclude<InUse, null>) => {
-    if (touch && field !== "name") {
+    if (keyed && field !== "name") {
       nameInput.current?.blur();
       setActive(field);
       return;
@@ -646,8 +652,13 @@ function Form({
 
   // The file shows the amount field in use when the form opens. Not after
   // "Back" on the code reader: the amount is typed by then.
+  // The phone's own keyboard opens only on a tap, so there the field waits.
   useEffect(() => {
     if (amount !== "") return;
+    if (touch && !keyed) {
+      setOpening(false);
+      return;
+    }
     const timer = setTimeout(() => {
       use("amount");
       setOpening(false);
@@ -691,7 +702,7 @@ function Form({
    * keypad loses its bottom gap, the gap over the field gets smaller and the
    * sheet rests lower by the room that saves (see `drop` below).
    */
-  const rooms = useKeypadRoom(touch);
+  const rooms = useKeypadRoom(keyed);
 
   // Where the block above the amount field ends, and where the field starts.
   // With the keypad up the field ends at y 570, 12 px over the keypad
@@ -745,7 +756,8 @@ function Form({
     if (next === tab) return;
     setTab(next);
     // `Home Page – 36`: the empty amount field is the one in use.
-    if (amount === "") setTimeout(() => use("amount"), 0);
+    if (amount === "" && (keyed || !touch))
+      setTimeout(() => use("amount"), 0);
   };
 
   return (
@@ -881,9 +893,10 @@ function Form({
                   data-pw="demo-wallet-authorized-phone-input"
                   type="text"
                   // With the app's keypad the phone's own keyboard stays away.
-                  inputMode={touch ? "none" : "tel"}
-                  readOnly={touch}
-                  tabIndex={touch ? -1 : undefined}
+                  inputMode={keyed ? "none" : "tel"}
+                  autoComplete="off"
+                  readOnly={keyed}
+                  tabIndex={keyed ? -1 : undefined}
                   value={authorized.phone}
                   aria-label={t("Authorized recipient phone number")}
                   onChange={(e) => {
@@ -892,7 +905,7 @@ function Form({
                   }}
                   onFocus={() => setActive("phone")}
                   onBlur={() => leave("phone")}
-                  className={`block bg-transparent outline-none font-normal ${touch ? "pointer-events-none" : ""}`}
+                  className={`block bg-transparent outline-none font-normal ${keyed ? "pointer-events-none" : ""}`}
                   style={{
                     gridArea: "1 / 1",
                     width: 390 - 24 - (44 - 32),
@@ -1068,15 +1081,16 @@ function Form({
             data-pw="demo-wallet-amount-input"
             type="text"
             // With the app's keypad the phone's own keyboard stays away.
-            inputMode={touch ? "none" : "decimal"}
-            readOnly={touch}
-            tabIndex={touch ? -1 : undefined}
+            inputMode={keyed ? "none" : "decimal"}
+            autoComplete="off"
+            readOnly={keyed}
+            tabIndex={keyed ? -1 : undefined}
             value={amount}
             aria-label={t("Enter withdrawal amount")}
             onChange={(e) => setAmount(e.target.value.replace(/[^0-9.,]/g, ""))}
             onFocus={() => setActive("amount")}
             onBlur={() => leave("amount")}
-            className={`block bg-transparent outline-none ${saved ? "font-medium" : "font-normal"} ${touch ? "pointer-events-none" : ""}`}
+            className={`block bg-transparent outline-none ${saved ? "font-medium" : "font-normal"} ${keyed ? "pointer-events-none" : ""}`}
             style={{
               gridArea: "1 / 1",
               width: 390 - 24,
@@ -1164,7 +1178,7 @@ function Form({
         </AnimatePresence>
       </div>
 
-      {touch && (
+      {keyed && (
         <NumericKeypad
           open={keypad}
           keypadRef={keys}

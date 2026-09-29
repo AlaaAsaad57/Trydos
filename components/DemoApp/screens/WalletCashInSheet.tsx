@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { NumericKeypad } from "components/Login/Enhanced/ui/NumericKeypad";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 import { useDemoNav } from "../DemoShell";
+import { NATIVE_WALLET_KEYBOARD } from "../demoKeyboard";
 import {
   C,
   SF_ROUNDED,
@@ -976,8 +977,13 @@ function AmountField({
   onKeypad: (open: boolean) => void;
 }) {
   const touch = useIsTouchDevice();
+  /** The app's keypad types the amount; off with the phone's own keyboard. */
+  const keyed = touch && !NATIVE_WALLET_KEYBOARD;
   const [keypad, setKeypad] = useState(false);
-  const rooms = useKeypadRoom(touch);
+  /** The phone's own keyboard is up on this field. */
+  const [focused, setFocused] = useState(false);
+  const typing = keypad || (touch && focused);
+  const rooms = useKeypadRoom(keyed);
   /**
    * The file's spacing fits over the usual keypad: both forms draw the field
    * at y 422, 55 tall, or 93 with the charge. Only when it does not fit, the
@@ -986,8 +992,8 @@ function AmountField({
   const roomy = rooms.full >= 422 + (note ? 93 : 55);
 
   useEffect(() => {
-    onKeypad(keypad);
-  }, [keypad]);
+    onKeypad(typing);
+  }, [typing]);
   // A form that leaves takes its keypad with it.
   useEffect(() => () => onKeypad(false), []);
   const keys = useRef<HTMLDivElement>(null);
@@ -1037,11 +1043,11 @@ function AmountField({
         data-pw="demo-wallet-cash-in-amount"
         data-keypad-field=""
         // While the app's keypad is up, the scaled canvas keeps this box above it.
-        data-keyboard-anchor={touch && keypad ? "" : undefined}
+        data-keyboard-anchor={touch && typing ? "" : undefined}
         className="flex flex-col overflow-hidden cursor-text"
         style={{ padding: "8px 12px 0", transition: "height 0.3s" }}
         onClick={() => {
-          if (touch) setKeypad(true);
+          if (keyed) setKeypad(true);
           else input.current?.focus({ preventScroll: true });
         }}
       >
@@ -1075,15 +1081,18 @@ function AmountField({
             data-pw="demo-wallet-cash-in-amount-input"
             type="text"
             // With the app's keypad the phone's own keyboard stays away.
-            inputMode={touch ? "none" : "decimal"}
-            readOnly={touch}
-            tabIndex={touch ? -1 : undefined}
+            inputMode={keyed ? "none" : "decimal"}
+            autoComplete="off"
+            readOnly={keyed}
+            tabIndex={keyed ? -1 : undefined}
             value={amount}
             aria-label={t("Enter requested amount")}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
             onChange={(e) =>
               setAmount(e.target.value.replace(/[^0-9.,]/g, "").slice(0, 12))
             }
-            className={`block bg-transparent outline-none font-medium ${touch ? "pointer-events-none" : ""}`}
+            className={`block bg-transparent outline-none font-medium ${keyed ? "pointer-events-none" : ""}`}
             style={{
               gridArea: "1 / 1",
               width: 390 - 24,
@@ -1112,7 +1121,7 @@ function AmountField({
         )}
       </Box>
 
-      {touch && (
+      {keyed && (
         <NumericKeypad
           open={keypad}
           keypadRef={keys}

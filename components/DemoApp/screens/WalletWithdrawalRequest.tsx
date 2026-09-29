@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import RdbPinInputs from "components/Login/Enhanced/ui/RdbPinInputs";
+import { NATIVE_WALLET_KEYBOARD } from "../demoKeyboard";
 import { useDemoNav } from "../DemoShell";
 import { C, gapTo, lineBox, paraTop, textBottom, top } from "../demoLayout";
 import { Box, Icon, Txt, useOuterBackdrop } from "../ui";
@@ -150,6 +151,7 @@ export function RequestCode({
       >
         <RdbPinInputs
           value={pin}
+          disableCustomKeypad={NATIVE_WALLET_KEYBOARD}
           onChange={setPin}
           isValidPin={valid}
           disabled={valid === "valid"}
