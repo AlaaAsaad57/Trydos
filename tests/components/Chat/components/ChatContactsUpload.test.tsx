@@ -34,8 +34,16 @@ const SAVED = [
   { mobile_phone: "", name: "No phone" },
 ];
 
-async function mount(contacts: any[] = SAVED) {
-  return renderWithProviders(<ChatContactsUpload />, { store: { contacts } });
+async function mount(contacts: any[] = SAVED, store: Record<string, any> = {}) {
+  return renderWithProviders(<ChatContactsUpload />, { store: { contacts, ...store } });
+}
+
+async function syncPicked(picked: any[]) {
+  setContactsApi({ select: vi.fn(async () => picked) });
+  await act(async () => {
+    fireEvent.click(screen.getByText("Get From Your Contacts"));
+  });
+  return JSON.parse(h.fetchData.mock.calls[0][0].body).contacts;
 }
 
 function setContactsApi(value: any) {
@@ -68,12 +76,71 @@ describe("ChatContactsUpload — syncing from the phone", () => {
       fireEvent.click(screen.getByText("Get From Your Contacts"));
     });
     const body = JSON.parse(h.fetchData.mock.calls[0][0].body);
-    expect(body.contacts, "the merged list was not deduplicated by number, keeping the longest name").toEqual([
-      { name: "Ali Saved Longer", mobile_phone: "+963912345678" },
+    expect(body.contacts, "the merged list was not deduplicated by number, keeping the saved name").toEqual([
+      { name: "Stored Name", mobile_phone: "+963912345678" },
       { name: "Short", mobile_phone: "+9630000" },
-      { name: "New Person", mobile_phone: "+447000000000" },
+      { name: "New Person", mobile_phone: "447000000000" },
     ]);
     expect(h.getContacts, "the contact list was not reloaded after the upload").toHaveBeenCalled();
+  });
+
+  // A phone book keeps local numbers ("0937288307"); the chat backend keeps
+  // full ones ("963937288307"). They are the same person, in every country.
+  it.each([
+    ["Syria", "963944000001", "963937288307", "0937288307"],
+    ["Iraq", "9647700000001", "9647701234567", "0770 123 4567"],
+    ["Turkey", "905300000001", "905321234567", "0532 123 45 67"],
+  ])("%s: a local number in the phone book is the saved contact with the full number", async (_, own, saved, local) => {
+    await mount([{ mobile_phone: saved, name: "alaa" }], { userChat: { mobile_phone: own } });
+    const contacts = await syncPicked([{ name: ["Alaa Asaad"], tel: [local] }]);
+    expect(contacts, `"${local}" was uploaded as a second contact beside "${saved}", or renamed it`).toEqual([
+      { name: "alaa", mobile_phone: saved },
+    ]);
+  });
+
+  it("gives a saved contact with no name the name from the phone book", async () => {
+    await mount([{ mobile_phone: "963937288307", name: "" }], { userChat: { mobile_phone: "963944000001" } });
+    const contacts = await syncPicked([{ name: ["Alaa Asaad"], tel: ["0937288307"] }]);
+    expect(contacts, "a saved contact with no name stayed nameless after the import").toEqual([
+      { name: "Alaa Asaad", mobile_phone: "963937288307" },
+    ]);
+  });
+
+  it("reads a local number in the country of the shopper's own phone, not the app region", async () => {
+    await mount([], { userChat: { mobile_phone: "963944000001" }, country: "iq" });
+    const contacts = await syncPicked([{ name: ["Alaa"], tel: ["0937288307"] }]);
+    expect(contacts, "a local number was not read as Syrian for a shopper with a Syrian phone").toEqual([
+      { name: "Alaa", mobile_phone: "963937288307" },
+    ]);
+  });
+
+  it("reads a local number in the app region when the shopper's own phone is not known", async () => {
+    await mount([], { country: "iq" });
+    const contacts = await syncPicked([{ name: ["Ali"], tel: ["07701234567"] }]);
+    expect(contacts, "a local number was not read as Iraqi in the iq region").toEqual([
+      { name: "Ali", mobile_phone: "9647701234567" },
+    ]);
+  });
+
+  it("keeps the country code of a number from another country", async () => {
+    await mount([], { userChat: { mobile_phone: "963944000001" } });
+    const contacts = await syncPicked([
+      { name: ["UK friend"], tel: ["+44 7911 123456"] },
+      { name: ["Iraq friend"], tel: ["00964 770 123 4567"] },
+    ]);
+    expect(contacts, "a foreign number lost or changed its country code").toEqual([
+      { name: "UK friend", mobile_phone: "447911123456" },
+      { name: "Iraq friend", mobile_phone: "9647701234567" },
+    ]);
+  });
+
+  it("imports every number of a picked contact, not only the first", async () => {
+    await mount([], { userChat: { mobile_phone: "963944000001" } });
+    const contacts = await syncPicked([{ name: ["Alaa"], tel: ["011 222 3333", "0937288307"] }]);
+    expect(
+      contacts.map((c: any) => c.mobile_phone),
+      "the second number of a picked contact was dropped",
+    ).toContain("963937288307");
   });
 
   it("does nothing when no contact was picked", async () => {
@@ -155,7 +222,7 @@ describe("ChatContactsUpload — adding one by hand", () => {
     });
     expect(JSON.parse(h.fetchData.mock.calls[0][0].body), "the contact was not saved with its dial code").toEqual({
       name: "New Person",
-      mobile_phone: "+447000000002",
+      mobile_phone: "447000000002",
     });
     expect(h.getContacts, "the list was not reloaded after the save").toHaveBeenCalled();
     expect(screen.getByText("Add Contact Manually"), "the form did not close after the save").toBeInTheDocument();
@@ -168,6 +235,27 @@ describe("ChatContactsUpload — adding one by hand", () => {
     expect(screen.getByText("Ali Saved"), "the saved name for the number was not shown").toBeInTheDocument();
     expect(f.confirm, "a number already saved could be added again").toBeDisabled();
     expect(f.phone.className, "the phone field was not marked as a conflict").toContain("border-orange-400");
+  });
+
+  it("warns about a saved number typed with the local 0", async () => {
+    const f = await openForm([{ mobile_phone: "963937288307", name: "alaa" }]);
+    fireEvent.change(f.name, { target: { value: "Alaa Asaad" } });
+    fireEvent.change(f.phone, { target: { value: "0937288307" } });
+    expect(screen.queryByText("alaa"), "+963 0937288307 was not seen as the saved 963937288307").toBeInTheDocument();
+    expect(f.confirm, "a saved number typed with the local 0 could be added again").toBeDisabled();
+  });
+
+  it("saves a number typed with the local 0 in its full form", async () => {
+    const f = await openForm([]);
+    fireEvent.change(f.name, { target: { value: "Alaa" } });
+    fireEvent.change(f.phone, { target: { value: "0937288307" } });
+    await act(async () => {
+      fireEvent.click(f.confirm);
+    });
+    expect(
+      JSON.parse(h.fetchData.mock.calls[0][0].body).mobile_phone,
+      "the local 0 was kept after the country code",
+    ).toBe("963937288307");
   });
 
   it("does not save with a missing field, and the close button closes the form", async () => {
