@@ -190,6 +190,68 @@ export const WALLET_PROVIDERS: {
 ];
 
 /**
+ * The client's own Trydos account, as the cash-in sheet shows it
+ * (`Home Page – 26`, `– 33`). The file uses the account number of the
+ * "To My rdb" tab here, not the client ID of Wallet Info.
+ */
+export const WALLET_CASH_IN = {
+  clientId: "100-708",
+  phone: "+90 552 800 2000",
+} as const;
+
+/**
+ * Cash in with crypto (`Home Page – 33`, `– 34`, `– 37`). The network is a
+ * name and not a sentence, so it is the same in every language; the file
+ * draws `coin` and `standard` Medium and `chain` Regular.
+ */
+export const WALLET_CRYPTO = {
+  coin: "USDT",
+  chain: "Tron",
+  standard: "TRC 20",
+  /** The other tab. The file draws no board for it. */
+  other: "ETH",
+  /** The file charges 110 USDT to top the balance up by 100 USD. */
+  fee: 0.1,
+  /** The code is good for 30 minutes; the file shows "29:59". */
+  seconds: 30 * 60 - 1,
+  expiry: { date: "27/08/2024", time: "13:30" },
+} as const;
+
+/** The crypto wallets of `Home Page – 37`, 30 px, 30 px apart from x 140. */
+export const WALLET_CRYPTO_APPS: {
+  id: string;
+  /** A picture in public/assets/demo/xd, or a cut icon. */
+  picture?: string;
+  icon?: XdIconName;
+  name: string;
+}[] = [
+  { id: "trust", picture: "walletTrust.jpg", name: "Trust Wallet" },
+  { id: "metamask", picture: "walletMetaMask.png", name: "MetaMask" },
+  { id: "binance", icon: "binance", name: "Binance" },
+];
+
+/**
+ * The ways to cash in on `Home Page – 22`, left to right, 8 px apart. The
+ * row is wider than the screen and slides sideways, as the file's scroll
+ * group does. The cards tile is not open yet ("Soon Available").
+ */
+export const WALLET_CASH_IN_WAYS: {
+  id: string;
+  /** A cut icon on a white box, or a photo (`WALLET_PROVIDERS`). */
+  icon?: XdIconName;
+  picture?: string;
+  /** The words for a screen reader. Brand names stay as they are. */
+  name: DemoKey | "Visa | Mastercard";
+  soon?: boolean;
+}[] = [
+  { id: "cards", icon: "payCards", name: "Visa | Mastercard", soon: true },
+  { id: "crypto", icon: "payCrypto", name: "Via crypto" },
+  { id: "sham", picture: "payShamCash", name: "Sham Cash" },
+  { id: "syriatel", picture: "paySyriatelCash", name: "Syriatel Cash" },
+  { id: "irsal", picture: "payIrsal", name: "Irsal" },
+];
+
+/**
  * The brand on the cash-out sheet, a name and not a sentence, so it is the
  * same in every language. The file writes "rdb" in small letters, and draws
  * `start` and `bank` Bold.

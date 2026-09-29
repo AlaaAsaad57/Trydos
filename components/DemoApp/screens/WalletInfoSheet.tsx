@@ -192,7 +192,7 @@ export default function WalletInfoSheet({
  * A field of the sheet, 390 x 55 at x 20. `mark` adds the grey 16 px eye of
  * the name field, at (362, 20) in the field.
  */
-function InfoField({
+export function InfoField({
   mt,
   label,
   children,
@@ -201,7 +201,7 @@ function InfoField({
   testId,
 }: {
   mt: number;
-  label: string;
+  label: React.ReactNode;
   children: React.ReactNode;
   /** The file writes the ID and the phone number Medium, the name Regular. */
   medium?: boolean;
@@ -228,6 +228,7 @@ function InfoField({
           size={14}
           weight={medium ? "medium" : "regular"}
           mt={gapTo(8 + lineBox(12), 43, 14)}
+          style={{ whiteSpace: "pre" }}
         >
           {children}
         </Txt>

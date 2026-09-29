@@ -289,13 +289,102 @@ export function RequestPicture({
   request: WithdrawalRequest;
 }) {
   const { t } = useDemoNav();
+  return (
+    <PictureLayer
+      open={open}
+      onClose={onClose}
+      head={head}
+      testId="demo-wallet-request-picture"
+    >
+      <Icon name="qrRequestBig" mt={167 - textBottom(132, 24)} ml={40} />
+      {/* The file starts the line at x 139.5: half a px right of centre. */}
+      <Txt
+        center
+        nudge={0.5}
+        size={16}
+        weight="medium"
+        mt={gapTo(167 + 351, 546, 16)}
+      >
+        {t("Withdrawal Request")}
+      </Txt>
+      <Cells
+        mt={561 - textBottom(546, 16)}
+        balance={balance}
+        request={request}
+      />
+      <Box
+        w={390}
+        h={90}
+        mt={805 - (738 + 55)}
+        ml={20}
+        radius={15}
+        fill={C.card}
+        stroke={C.line}
+        strokeAlign="center"
+        data-pw="demo-wallet-request-note"
+        className="flex flex-col"
+        style={{
+          height: undefined,
+          minHeight: 90,
+          paddingLeft: 12,
+          paddingBottom: 895 - (paraTop(848, 11, 16) + 3 * 16),
+          marginBottom: 930 - 895,
+        }}
+      >
+        <Txt size={11} weight="medium" mt={gapTo(805, 828, 11)}>
+          {t("Your Withdrawal Request Ready to Collect !")}
+        </Txt>
+        <p
+          className="shrink-0 font-normal"
+          style={{
+            marginTop: paraTop(848, 11, 16) - textBottom(828, 11),
+            width: 366,
+            fontSize: 11,
+            lineHeight: "16px",
+            color: C.ink,
+          }}
+        >
+          {`${t(
+            "Present this code along with your personal ID at any of our branches and receive the amount in complete security.",
+          )} `}
+          <span className="font-medium">{t("Thank you")}</span>
+          {" | "}
+          <span className="font-medium">
+            {t("we are pleased to serve you")}
+          </span>
+          .
+        </p>
+      </Box>
+    </PictureLayer>
+  );
+}
+
+/**
+ * The white page a picture is drawn on (`Home Page – 24`, `– 31`, `– 38`):
+ * the file draws no status bar there, and the sheet's title row at y 66. It
+ * lies over the sheet; a tap puts it away.
+ */
+export function PictureLayer({
+  open,
+  onClose,
+  head,
+  testId,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  /** The sheet's title row and the line under it. */
+  head: React.ReactNode;
+  testId: string;
+  children: React.ReactNode;
+}) {
   useOuterBackdrop(open, `linear-gradient(${C.white}, ${C.white})`);
   return (
     <AnimatePresence>
       {open && (
         <motion.div
           key="picture"
-          data-pw="demo-wallet-request-picture"
+          data-pw={testId}
           role="dialog"
           aria-modal="true"
           className="absolute inset-0 z-40 flex flex-col font-quicksand overflow-y-auto overflow-x-hidden overscroll-contain"
@@ -318,65 +407,7 @@ export function RequestPicture({
           >
             {head}
           </div>
-          <Icon name="qrRequestBig" mt={167 - textBottom(132, 24)} ml={40} />
-          {/* The file starts the line at x 139.5: half a px right of centre. */}
-          <Txt
-            center
-            nudge={0.5}
-            size={16}
-            weight="medium"
-            mt={gapTo(167 + 351, 546, 16)}
-          >
-            {t("Withdrawal Request")}
-          </Txt>
-          <Cells
-            mt={561 - textBottom(546, 16)}
-            balance={balance}
-            request={request}
-          />
-          <Box
-            w={390}
-            h={90}
-            mt={805 - (738 + 55)}
-            ml={20}
-            radius={15}
-            fill={C.card}
-            stroke={C.line}
-            strokeAlign="center"
-            data-pw="demo-wallet-request-note"
-            className="flex flex-col"
-            style={{
-              height: undefined,
-              minHeight: 90,
-              paddingLeft: 12,
-              paddingBottom: 895 - (paraTop(848, 11, 16) + 3 * 16),
-              marginBottom: 930 - 895,
-            }}
-          >
-            <Txt size={11} weight="medium" mt={gapTo(805, 828, 11)}>
-              {t("Your Withdrawal Request Ready to Collect !")}
-            </Txt>
-            <p
-              className="shrink-0 font-normal"
-              style={{
-                marginTop: paraTop(848, 11, 16) - textBottom(828, 11),
-                width: 366,
-                fontSize: 11,
-                lineHeight: "16px",
-                color: C.ink,
-              }}
-            >
-              {`${t(
-                "Present this code along with your personal ID at any of our branches and receive the amount in complete security.",
-              )} `}
-              <span className="font-medium">{t("Thank you")}</span>
-              {" | "}
-              <span className="font-medium">
-                {t("we are pleased to serve you")}
-              </span>
-              .
-            </p>
-          </Box>
+          {children}
         </motion.div>
       )}
     </AnimatePresence>

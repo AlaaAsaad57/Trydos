@@ -36,6 +36,7 @@ vi.mock("scaling/Page", () => ({
 vi.mock("NewLoginDesign/DemoDeviceInfoModal", () => ({ default: () => null }));
 
 import DemoShell from "components/DemoApp/DemoShell";
+import { FileLines } from "components/DemoApp/ui";
 
 const open = (pathname: string) => {
   url.pathname = pathname;
@@ -1114,6 +1115,191 @@ describe("Demo wallet — numbers from the XD file", () => {
     expect(actions, "these actions are missing under the fields").toEqual([]);
   }, 10000);
 
+  it("cash in: the Cash In action opens a sheet with 50 px corners on the ways to cash in: the trydos | rdb card, then five tiles in a row that slides sideways, as `Home Page – 22` draws it", async () => {
+    const container = await openDollars();
+    const action = container.querySelector('[data-pw="demo-wallet-cash-in-usd"]');
+    expect(action, "the one-balance card has no Cash In action").not.toBeNull();
+    fireEvent.click(action!);
+    const sheet = await find(container, "demo-wallet-cash-in-sheet");
+    expect(sheet, "a tap on Cash In did not open the cash-in sheet").not.toBeNull();
+    const panel = [...sheet!.querySelectorAll<HTMLElement>("div")].find((el) =>
+      el.style.borderRadius.startsWith("50px"),
+    );
+    expect(panel, "the cash-in sheet has no panel with 50 px top corners").toBeDefined();
+    const ways = container.querySelector('[data-pw="demo-wallet-cash-in-ways"]');
+    expect(ways, "the sheet did not open on the ways to cash in").not.toBeNull();
+    expect(
+      ways!.querySelector("h2")?.className,
+      "the title is not Medium; the file draws 'Cash In' Medium on this board only",
+    ).toContain("font-medium");
+    expect(
+      ways!.querySelector('[data-pw="demo-wallet-way-rdb"]')?.textContent,
+      "the ways to cash in have no trydos | rdb card",
+    ).toContain("trydos | rdb");
+
+    const row = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-ways-row"]');
+    expect(row, "the ways to cash in have no row of tiles").not.toBeNull();
+    expect(row!.className, "the row of tiles does not slide sideways, as the file's scroll group does").toContain(
+      "overflow-x-auto",
+    );
+    const missing = ["cards", "crypto", "sham", "syriatel", "irsal"].filter(
+      (id) => !row!.querySelector(`[data-pw="demo-wallet-cash-in-way-${id}"]`),
+    );
+    expect(missing, "these tiles are missing from the row").toEqual([]);
+    const slots = [...row!.children] as HTMLElement[];
+    expect(slots[0].style.marginLeft, "the first tile does not start at x 20").toBe("20px");
+    expect(slots[1].style.marginLeft, "the tiles are not 8 px apart (145 to 153)").toBe("8px");
+    const cards = row!.querySelector<HTMLButtonElement>('[data-pw="demo-wallet-cash-in-way-cards"]')!;
+    expect(cards.disabled, "the cards tile can be tapped; the file marks it 'Soon Available'").toBe(true);
+    expect(
+      row!.querySelector('[data-pw="demo-wallet-cash-in-soon"]')?.textContent,
+      "the cards tile has no 'Soon Available' tag",
+    ).toBe("Soon available");
+  }, 10000);
+
+  it("cash in: the trydos | rdb card opens the deposit code under a yellow tab, and 'From My rdb' shows the client's rdb account, as `Home Page – 26` and `– 32` draw them", async () => {
+    const container = await openDollars();
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+    const card = await find(container, "demo-wallet-way-rdb");
+    expect(card, "the ways to cash in have no trydos | rdb card").not.toBeNull();
+    fireEvent.click(card!);
+    const step = await find(container, "demo-wallet-cash-in-rdb");
+    expect(step, "a tap on the trydos | rdb card did not open the deposit code").not.toBeNull();
+
+    const cashTab = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-tab-cash"] div');
+    expect(cashTab?.style.background, "the chosen 'Cash Deposit' tab is not the file's yellow #FAE26B").toMatch(
+      /#FAE26B|rgb\(250, 226, 107\)/i,
+    );
+    const code = step!.querySelector<HTMLElement>('img[src$="/qrCashIn.svg"]');
+    expect(code, "the deposit step has no QR code").not.toBeNull();
+    expect(code!.style.width, "the deposit code is not 300.12 wide").toBe("300.12px");
+    expect(code!.style.marginLeft, "the deposit code does not start at x 65").toBe("65px");
+    const id = step!.querySelector('[data-pw="demo-wallet-cash-in-client-id"]');
+    expect(id?.textContent, "the client ID field does not show the file's account 100-708").toContain("100-708");
+    const actions = ["request", "copy", "download", "share"].filter(
+      (a) => !step!.querySelector(`[data-pw="demo-wallet-cash-in-deposit-${a}"]`),
+    );
+    expect(actions, "these actions are missing under the deposit code").toEqual([]);
+
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-tab-bank"]')!);
+    const bankId = await find(container, "demo-wallet-cash-in-bank-id");
+    expect(bankId, "the 'From My rdb' tab does not show the client's rdb account").not.toBeNull();
+    expect(
+      container.querySelector('img[src$="/qrCashIn.svg"]'),
+      "the deposit code stayed on the 'From My rdb' tab",
+    ).toBeNull();
+    const amount = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-amount"]');
+    expect(px(amount, "marginTop"), "the amount field is not at y 422, 4 px under the name field").toBe("4px");
+    expect(
+      amount!.querySelector("svg[data-stroke]")?.getAttribute("data-stroke"),
+      "the amount field has no blue #388CFF line; the file draws it in use",
+    ).toBe("#388CFF");
+    expect(
+      container.querySelector('[data-pw="demo-wallet-cash-in-connect"]')?.textContent,
+      "the 'From My rdb' tab has no 'Connect & Request From Your rdb' button",
+    ).toContain("rdb");
+  }, 10000);
+
+  it("cash in: Download on the deposit code opens its picture on a white page, as `Home Page – 31` draws it", async () => {
+    const container = await openDollars();
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+    fireEvent.click((await find(container, "demo-wallet-way-rdb"))!);
+    const download = await find(container, "demo-wallet-cash-in-deposit-download");
+    expect(download, "the deposit code has no Download action").not.toBeNull();
+    fireEvent.click(download!);
+    const picture = await find(container, "demo-wallet-cash-in-deposit-picture");
+    expect(picture, "Download did not open the picture of the deposit code").not.toBeNull();
+    expect(
+      picture!.querySelector('img[src$="/qrCashInBig.svg"]'),
+      "the picture has no 350.37 px code",
+    ).not.toBeNull();
+    expect(
+      picture!.querySelector('[data-pw="demo-wallet-cash-in-deposit-note"]')?.textContent,
+      "the picture has no 'Your Deposit Request Ready To Collect !' note",
+    ).toContain("Your deposit request ready to collect !");
+  }, 10000);
+
+  it("cash in with crypto: 100 typed shows the 110 USDT charge, the summary card and Generate QR Code; the safety rules come first, and I Agree opens the code with the time left, as `Home Page – 33`, `– 34`, `– 39` and `– 37` draw them", async () => {
+    setDevice("pointer");
+    const container = await openDollars();
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+    const tile = await find(container, "demo-wallet-cash-in-way-crypto");
+    expect(tile, "the ways to cash in have no crypto tile").not.toBeNull();
+    fireEvent.click(tile!);
+    const input = (await find(container, "demo-wallet-cash-in-amount-input")) as HTMLInputElement | null;
+    expect(input, "the crypto form has no amount input").not.toBeNull();
+    expect(
+      container.querySelector('[data-pw="demo-wallet-cash-in-generate"]'),
+      "Generate QR Code is on show with no amount; the file draws it only once one is typed",
+    ).toBeNull();
+
+    fireEvent.change(input!, { target: { value: "100" } });
+    const field = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-amount"]')!;
+    expect(px(field, "height"), "the amount field did not grow to 93 for the charge").toBe("93px");
+    expect(
+      container.querySelector('[data-pw="demo-wallet-cash-in-charge"]')?.textContent,
+      "the charge does not say 110 USDT for 100 USD (the file's 10% fee)",
+    ).toBe("We will charge 110 USDT for topping up your balance 100 USD.");
+    expect(
+      container.querySelector('[data-pw="demo-wallet-cash-in-summary"]')?.textContent,
+      "the summary card does not say what is paid and what arrives",
+    ).toContain("You will pay 110 USDT Tron TRC 20 to generated wallet");
+    const generate = await find(container, "demo-wallet-cash-in-generate");
+    expect(generate, "Generate QR Code did not come in once an amount was typed").not.toBeNull();
+
+    fireEvent.click(generate!);
+    const safe = await find(container, "demo-wallet-cash-in-safe");
+    expect(safe, "Generate QR Code did not open the safety rules").not.toBeNull();
+    expect(
+      safe!.querySelector('svg[data-stroke="#707070"]'),
+      "the safety sheet has no #707070 line round its edge",
+    ).not.toBeNull();
+    expect(
+      safe!.querySelectorAll('svg[data-bullet="ok"]').length > 0 &&
+        safe!.querySelectorAll('svg[data-bullet="care"]').length > 0,
+      "the safety list does not have both the green and the amber dots",
+    ).toBe(true);
+
+    fireEvent.click(safe!.querySelector('[data-pw="demo-wallet-cash-in-agree"]')!);
+    const code = await find(container, "demo-wallet-cash-in-code");
+    expect(code, "I Agree did not open the crypto code").not.toBeNull();
+    expect(
+      container.querySelector('[data-pw="demo-wallet-cash-in-deposit-row"]')?.textContent,
+      "the code does not say '110 USDT deposit'",
+    ).toBe("110 USDT deposit");
+    expect(
+      container.querySelector('[data-pw="demo-wallet-cash-in-time-left"]')?.textContent,
+      "the time left does not start at the file's 29:59",
+    ).toBe("Within 29:59 minutes");
+    const apps = ["trust", "metamask", "binance"].filter(
+      (id) => !container.querySelector(`[data-pw="demo-wallet-cash-in-app-${id}"]`),
+    );
+    expect(apps, "these wallets are missing under 'Or Try Direct Link To'").toEqual([]);
+  }, 15000);
+
+  it("cash in with crypto: 'I Disagree & Cancel' puts the safety rules away and keeps the form", async () => {
+    setDevice("pointer");
+    const container = await openDollars();
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+    fireEvent.click((await find(container, "demo-wallet-cash-in-way-crypto"))!);
+    const input = (await find(container, "demo-wallet-cash-in-amount-input")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "100" } });
+    fireEvent.click((await find(container, "demo-wallet-cash-in-generate"))!);
+    const cancel = await find(container, "demo-wallet-cash-in-disagree");
+    expect(cancel, "the safety rules have no 'I Disagree & Cancel'").not.toBeNull();
+    fireEvent.click(cancel!);
+    await waitFor(() =>
+      expect(
+        container.querySelector('[data-pw="demo-wallet-cash-in-safe"]'),
+        "'I Disagree & Cancel' did not put the safety rules away",
+      ).toBeNull(),
+    );
+    expect(
+      container.querySelector('[data-pw="demo-wallet-cash-in-crypto"]'),
+      "'I Disagree & Cancel' left the crypto form",
+    ).not.toBeNull();
+  }, 15000);
+
   it("receipt: a tap on the Cash Deposit entry opens the 406 x 568 card at y 149 over a blurred page, as `Home Page – 18` draws it", async () => {
     const container = open("/sy-en/demo/settings/wallet");
     expect(
@@ -1187,5 +1373,55 @@ describe("Demo wallet — numbers from the XD file", () => {
       container.querySelector('[data-pw="demo-wallet-receipt"]'),
       "the Refund Order entry opened a receipt; the file has one for the Cash Deposit only",
     ).toBeNull();
+  });
+});
+
+/**
+ * A paragraph the file centres: XD stores every line's x, and the browser's
+ * own centring landed 1 to 2 px off it (`Home Page – 21`, `– 22`).
+ */
+describe("Demo FileLines — the file's lines at the file's x", () => {
+  const LINES = [
+    { x: 61.11, text: "You Can Add Funds To An Account Through The " },
+    { x: 92.1, text: "Following Options Easily And Securely." },
+  ];
+
+  it("draws each of the file's lines from its own x when the text is the file's", () => {
+    const { container } = render(
+      <FileLines
+        text="You Can Add Funds To An Account Through The Following Options Easily And Securely."
+        lines={LINES}
+        left={32}
+        width={366}
+        size={14}
+        lineHeight={18}
+      />,
+    );
+    const lines = [...container.querySelectorAll<HTMLElement>("p > span")];
+    expect(
+      lines.map((line) => line.textContent),
+      "the paragraph is not broken where the file breaks it",
+    ).toEqual(["You Can Add Funds To An Account Through The", "Following Options Easily And Securely."]);
+    expect(lines[0].style.marginLeft, "the first line does not start at the file's x 61.11").toBe("29.11px");
+    expect(
+      Number.parseFloat(lines[1].style.marginLeft),
+      "the second line does not start at the file's x 92.1",
+    ).toBeCloseTo(92.1 - 32, 2);
+  });
+
+  it("wraps and centres another language's text as one paragraph", () => {
+    const { container } = render(
+      <FileLines
+        text="يمكنك إضافة الأموال إلى حسابك عبر الخيارات التالية بسهولة وأمان."
+        lines={LINES}
+        left={32}
+        width={366}
+        size={14}
+        lineHeight={18}
+      />,
+    );
+    const p = container.querySelector("p")!;
+    expect(p.querySelectorAll("span").length, "another language was cut into the English lines").toBe(0);
+    expect(p.className, "another language's paragraph is not centred").toContain("text-center");
   });
 });

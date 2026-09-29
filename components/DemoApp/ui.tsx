@@ -185,6 +185,99 @@ export function Txt({
   );
 }
 
+/**
+ * A paragraph, drawn the way the file draws it.
+ *
+ * XD stores the x of every line of a centred text, worked out with its own
+ * font widths. The browser's widths are a fraction different, and XD also
+ * counts a line's closing space when it centres it, so the browser's centred
+ * lines landed 1 to 2 px off the file's. When `text` is the file's own words
+ * (English), each of the file's `lines` is drawn from its x instead, which is
+ * exactly where the file puts it, with the file's own line breaks. Any other
+ * text (another language) wraps as a normal paragraph in `width`.
+ *
+ * `left` is the design x where the paragraph's box starts; a line's margin is
+ * its x minus `left`.
+ */
+export function FileLines({
+  text,
+  lines,
+  left,
+  width,
+  size,
+  lineHeight,
+  color = C.ink,
+  weight = "regular",
+  mt,
+  ml,
+  family,
+  align = "center",
+  testId,
+  children,
+}: {
+  text: string;
+  /**
+   * The file's lines: the x, the words, and, where a line mixes weights, the
+   * `node` to draw. A line with no words is an empty line of the file.
+   */
+  lines: { x: number; text: string; node?: React.ReactNode }[];
+  left: number;
+  width: number;
+  size: number;
+  lineHeight: number;
+  color?: string;
+  weight?: Weight;
+  /** Margins above and left of the paragraph's box, in design px. */
+  mt?: number;
+  ml?: number;
+  /** A font other than Quicksand (the phone's SF Pro Rounded). */
+  family?: string;
+  /** How another language's text is set: the file's lines are always at their x. */
+  align?: "center" | "left";
+  testId?: string;
+  /** What another language draws, when it is more than `text` (Bold words). */
+  children?: React.ReactNode;
+}) {
+  const plain = (t: string) => t.replace(/\s+/g, " ").trim();
+  const own = plain(lines.map((line) => line.text).join(" ")) === plain(text);
+  const style: React.CSSProperties = {
+    marginTop: mt,
+    marginLeft: ml,
+    width,
+    fontFamily: family,
+    fontSize: size,
+    lineHeight: `${lineHeight}px`,
+    color,
+  };
+  if (!own)
+    return (
+      <p
+        data-pw={testId}
+        className={`shrink-0 ${align === "center" ? "text-center" : ""} ${WEIGHT_CLASS[weight]}`}
+        style={style}
+      >
+        {children ?? text}
+      </p>
+    );
+  return (
+    <p
+      data-pw={testId}
+      className={`flex flex-col shrink-0 ${WEIGHT_CLASS[weight]}`}
+      style={style}
+    >
+      {lines.map((line, i) => (
+        <span
+          key={i}
+          className="block shrink-0 whitespace-pre"
+          style={{ marginLeft: line.x - left, minHeight: lineHeight }}
+        >
+          {line.node ?? line.text.trimEnd()}
+        </span>
+      ))}
+    </p>
+  );
+}
+
 /** A box in the flow: its size, its margins and the fill / line / radius XD gives it. */
 export function Box({
   w,
@@ -830,6 +923,7 @@ export function Sheet({
   lower = 0,
   radius = SHEET.radius,
   fit = false,
+  outline,
   children,
   testId,
   onEntered,
@@ -846,6 +940,11 @@ export function Sheet({
   lower?: number;
   /** The top corners: 30 in the file's pickers, 50 on the wallet sheets. */
   radius?: number;
+  /**
+   * A 0.5 px line inside the sheet's edge, in this colour. Only the sheet
+   * over another sheet has one (`Home Page – 39`, `#707070`).
+   */
+  outline?: string;
   children: React.ReactNode;
   testId?: string;
 }) {
@@ -959,6 +1058,26 @@ export function Sheet({
               />
               {children}
             </div>
+            {outline && (
+              // A 1 px line ON the edge; the panel's round clip keeps the
+              // inner half. The line runs on past the bottom, where the file's
+              // sheet ends with the screen.
+              <svg
+                aria-hidden="true"
+                data-stroke={outline}
+                className="absolute left-0 top-0 w-full pointer-events-none"
+                style={{ height: `calc(100% + ${radius}px)` }}
+              >
+                <rect
+                  width="100%"
+                  height="100%"
+                  rx={radius}
+                  fill="none"
+                  stroke={outline}
+                  strokeWidth={1}
+                />
+              </svg>
+            )}
           </motion.div>
         </motion.div>
       )}

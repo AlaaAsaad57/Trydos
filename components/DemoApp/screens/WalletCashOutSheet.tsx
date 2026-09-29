@@ -6,7 +6,7 @@ import { NumericKeypad } from "components/Login/Enhanced/ui/NumericKeypad";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 import { useDemoNav } from "../DemoShell";
 import { C, SHEET, gapTo, lineBox, paraTop, textBottom } from "../demoLayout";
-import { Box, Icon, Sheet, Stroke, Txt } from "../ui";
+import { Box, FileLines, Icon, Sheet, Stroke, Txt } from "../ui";
 import type { XdIconName } from "../xdIcons";
 import {
   WALLET_BANK_ACCOUNT,
@@ -60,7 +60,7 @@ const toNumber = (text: string) =>
   Number.parseFloat(text.replace(",", ".")) || 0;
 
 /** A sentence with the bank's name in it, which the file draws Bold. */
-function WithBank({ text }: { text: string }) {
+export function WithBank({ text }: { text: string }) {
   const [before, after = ""] = text.split("{bank}");
   return (
     <>
@@ -72,7 +72,7 @@ function WithBank({ text }: { text: string }) {
 }
 
 /** The brand, as the file writes it: "try" and "rdb" Bold, the rest Regular. */
-function Brand({ size, mt, nudge }: { size: number; mt: number; nudge?: number }) {
+export function Brand({ size, mt, nudge }: { size: number; mt: number; nudge?: number }) {
   return (
     <Txt center nudge={nudge} size={size} mt={mt} style={{ whiteSpace: "pre" }}>
       <span className="font-bold">{WALLET_BRAND.start}</span>
@@ -81,6 +81,14 @@ function Brand({ size, mt, nudge }: { size: number; mt: number; nudge?: number }
     </Txt>
   );
 }
+
+/** Moves a block `nudge` px right (or left) of its place by padding one side. */
+const offCentre = (nudge = 0): React.CSSProperties =>
+  nudge > 0
+    ? { paddingLeft: nudge * 2 }
+    : nudge < 0
+      ? { paddingRight: -nudge * 2 }
+      : {};
 
 /**
  * The top row of a wallet sheet: the 30 px picture at x 24, the dollar mark
@@ -91,6 +99,8 @@ export function SheetTitle({
   icon,
   mark,
   label,
+  weight = "bold",
+  nudge,
 }: {
   /** Design y of the sheet's top edge. */
   top: number;
@@ -98,6 +108,10 @@ export function SheetTitle({
   /** The currency's mark. */
   mark: XdIconName;
   label: string;
+  /** Bold on every sheet but the ways to cash in (`Home Page – 22`): Medium. */
+  weight?: "bold" | "medium";
+  /** How far the file puts the title off centre, in px (+ is right). */
+  nudge?: number;
 }) {
   return (
     <div
@@ -111,7 +125,7 @@ export function SheetTitle({
         <Icon name={icon} ml={24} />
         <Icon name={mark} mt={5} ml={58 - (24 + 30)} />
       </div>
-      <Txt size={24} weight="bold" as="h2">
+      <Txt size={24} weight={weight} as="h2" style={offCentre(nudge)}>
         {label}
       </Txt>
     </div>
@@ -260,70 +274,23 @@ function Ways({ mark, onPick }: { mark: XdIconName; onPick: () => void }) {
   return (
     <>
       <Title top={top} mark={mark} />
-      <p
-        className="shrink-0 font-normal text-center"
-        style={{
-          marginTop: paraTop(324, 14, 18) - (top + 24 + lineBox(24)),
-          marginLeft: 32,
-          width: 366,
-          fontSize: 14,
-          lineHeight: "18px",
-          color: C.ink,
-        }}
-      >
-        {t(
+      <FileLines
+        text={t(
           "You can withdraw your money through the following options easily and securely.",
         )}
-      </p>
+        lines={[
+          { x: 40.13, text: "You Can Withdraw Your Money Through The Following " },
+          { x: 124.5, text: "Options Easily And Securely." },
+        ]}
+        left={32}
+        ml={32}
+        width={366}
+        size={14}
+        lineHeight={18}
+        mt={paraTop(324, 14, 18) - (top + 24 + lineBox(24))}
+      />
 
-      <motion.button
-        type="button"
-        data-pw="demo-wallet-way-rdb"
-        onClick={onPick}
-        whileTap={{ scale: 0.985 }}
-        className="shrink-0 cursor-pointer"
-        style={{ marginTop: 366 - (310 + 36), marginLeft: 20 }}
-      >
-        <Box
-          w={390}
-          h={188}
-          radius={15}
-          fill={C.card}
-          stroke={C.purple}
-          strokeAlign="center"
-          className="flex flex-col"
-        >
-          <Box
-            w="auto"
-            h={22}
-            mt={372 - 366}
-            radius={8}
-            fill={C.purpleTint}
-            className="self-end"
-            style={{ marginRight: 410 - (310 + 94), minWidth: 94, padding: "0 8px" }}
-          >
-            <Txt center size={11} color={C.purple} mt={gapTo(372, 387, 11)}>
-              {t("Recommended")}
-            </Txt>
-          </Box>
-          {/* The file centres the brand on x 216, 1 px right of the card's centre. */}
-          <Brand size={30} mt={gapTo(372 + 22, 472, 30)} nudge={1} />
-          <Box
-            w="auto"
-            h={22}
-            mt={488 - textBottom(472, 30)}
-            radius={8}
-            fill={C.purpleTint}
-            stroke={C.purple}
-            className="self-center"
-            style={{ minWidth: 158, padding: "0 8px" }}
-          >
-            <Txt center size={11} color={C.purple} mt={gapTo(488, 503, 11)}>
-              {t("Easy . Fast . No commission")}
-            </Txt>
-          </Box>
-        </Box>
-      </motion.button>
+      <BrandCard y={366} mt={366 - (310 + 36)} onClick={onPick} />
 
       <div
         className="flex shrink-0"
@@ -380,30 +347,35 @@ function Ways({ mark, onPick }: { mark: XdIconName; onPick: () => void }) {
           marginBottom: 930 - 895,
         }}
       >
-        <Txt
-          center
+        <FileLines
+          text={t("Withdraw your funds !")}
+          lines={[{ x: 157.06, text: "Withdraw Your Funds !" }]}
+          left={32}
+          ml={32 - 20}
+          width={366}
           size={11}
+          lineHeight={lineBox(11)}
           weight="medium"
           color={C.grey}
           mt={gapTo(707, 730, 11)}
-        >
-          {t("Withdraw your funds !")}
-        </Txt>
-        <p
-          className="shrink-0 font-normal text-center"
-          style={{
-            marginTop: paraTop(752, 11, 18) - textBottom(730, 11),
-            marginLeft: 32 - 20,
-            width: 366,
-            fontSize: 11,
-            lineHeight: "18px",
-            color: C.grey,
-          }}
-        >
-          {t(
+        />
+        <FileLines
+          text={t(
             "You can withdraw your funds with complete ease through one of our Trydos & RDB centers. You can also withdraw your funds to your personal account on RDB.",
           )}
-        </p>
+          lines={[
+            { x: 33.01, text: "You Can Withdraw Your Funds With Complete Ease Through One Of Our " },
+            { x: 48.52, text: "Trydos & RDB Centers. You Can Also Withdraw Your Funds To Your " },
+            { x: 149.17, text: "Personal Account On RDB." },
+          ]}
+          left={32}
+          ml={32 - 20}
+          width={366}
+          size={11}
+          lineHeight={18}
+          color={C.grey}
+          mt={paraTop(752, 11, 18) - textBottom(730, 11)}
+        />
         {/* Three lines end at y 793; the first button is at 801. */}
         <InfoButton
           mt={801 - (paraTop(752, 11, 18) + 3 * 18)}
@@ -422,8 +394,78 @@ function Ways({ mark, onPick }: { mark: XdIconName; onPick: () => void }) {
   );
 }
 
+/**
+ * The trydos | rdb card of the ways to cash out (`Home Page – 21`, at y 366)
+ * and to cash in (`– 22`, at y 338): 390 x 188 at x 20 with a purple line ON
+ * its edge. From the card's top: the "Recommended" tag 94 x 22 at (310, +6),
+ * the brand (30 px) on baseline +106, the "Easy . Fast . No Commission" tag
+ * 158 x 22 at (136, +122).
+ */
+export function BrandCard({
+  y,
+  mt,
+  onClick,
+}: {
+  /** Design y of the card's top edge. */
+  y: number;
+  mt: number;
+  onClick: () => void;
+}) {
+  const { t } = useDemoNav();
+  return (
+    <motion.button
+      type="button"
+      data-pw="demo-wallet-way-rdb"
+      onClick={onClick}
+      whileTap={{ scale: 0.985 }}
+      className="shrink-0 cursor-pointer"
+      style={{ marginTop: mt, marginLeft: 20 }}
+    >
+      <Box
+        w={390}
+        h={188}
+        radius={15}
+        fill={C.card}
+        stroke={C.purple}
+        strokeAlign="center"
+        className="flex flex-col"
+      >
+        <Box
+          w="auto"
+          h={22}
+          mt={6}
+          radius={8}
+          fill={C.purpleTint}
+          className="self-end"
+          style={{ marginRight: 410 - (310 + 94), minWidth: 94, padding: "0 8px" }}
+        >
+          <Txt center size={11} color={C.purple} mt={gapTo(0, 15, 11)}>
+            {t("Recommended")}
+          </Txt>
+        </Box>
+        {/* The file centres the brand on x 216, 1 px right of the card's centre. */}
+        <Brand size={30} mt={gapTo(y + 6 + 22, y + 106, 30)} nudge={1} />
+        <Box
+          w="auto"
+          h={22}
+          mt={y + 122 - textBottom(y + 106, 30)}
+          radius={8}
+          fill={C.purpleTint}
+          stroke={C.purple}
+          className="self-center"
+          style={{ minWidth: 158, padding: "0 8px" }}
+        >
+          <Txt center size={11} color={C.purple} mt={gapTo(0, 15, 11)}>
+            {t("Easy . Fast . No commission")}
+          </Txt>
+        </Box>
+      </Box>
+    </motion.button>
+  );
+}
+
 /** A 366 x 38 button of the grey card: `#F8F8F8`, radius 15, 11 Medium grey. */
-function InfoButton({
+export function InfoButton({
   mt,
   nudge,
   label,
@@ -628,6 +670,8 @@ function Form({
         <Tab
           chosen={!toBank}
           fill={C.field}
+          // The file starts the Medium words at x 65.14.
+          nudge={toBank ? 0.5 : -0.5}
           onClick={() => choose("cash")}
           testId="demo-wallet-tab-cash"
         >
@@ -636,6 +680,8 @@ function Form({
         <Tab
           chosen={toBank}
           fill={C.card}
+          // The file starts the words at x 283.33 (Medium) and 283.55 (Regular).
+          nudge={toBank ? 0.5 : 1.17}
           ml={4}
           onClick={() => choose("bank")}
           testId="demo-wallet-tab-bank"
@@ -806,6 +852,8 @@ function Form({
           <RecipientButton
             mt={481 - (422 + 55)}
             ml={37}
+            // The file starts the words at x 134.99.
+            nudge={-2.67}
             sign="-"
             verb={t("Remove")}
             testId="demo-wallet-remove-recipient"
@@ -819,6 +867,8 @@ function Form({
         <RecipientButton
           mt={363 - (304 + 55)}
           ml={32}
+          // The file starts the words at x 140.06.
+          nudge={-2}
           sign="+"
           verb={t("Add")}
           testId="demo-wallet-add-recipient"
@@ -1072,6 +1122,10 @@ function Scan({
   const [lead, tail = ""] = t(
     "Please read the code in front of you at the {brand} center, then receive the amount from the employee.",
   ).split("{brand}");
+  const stay = t(
+    "Do not leave the page or the center until you have confirmed that the transaction is complete.",
+  );
+  const thanks = t("Thank you.");
   return (
     <>
       <Title top={top} mark={balance.mark} />
@@ -1122,16 +1176,38 @@ function Scan({
         {balance.code}
       </Txt>
 
-      <p
-        className="shrink-0 font-normal text-center"
-        style={{
-          marginTop: paraTop(662, 13, 18) - textBottom(631, 24),
-          marginLeft: 32,
-          width: 366,
-          fontSize: 13,
-          lineHeight: "18px",
-          color: C.grey,
-        }}
+      <FileLines
+        text={`${lead}${WALLET_BRAND.start}${WALLET_BRAND.rest}${WALLET_BRAND.bank}${tail} ${stay} ${thanks}`}
+        lines={[
+          {
+            x: 42.29,
+            text: "Please Read The Code In Front Of You At The trydos | rdb ",
+            node: (
+              <>
+                {"Please Read The Code In Front Of You At The "}
+                <span className="font-bold">{WALLET_BRAND.start}</span>
+                {WALLET_BRAND.rest}
+                <span className="font-bold">{WALLET_BRAND.bank}</span>
+              </>
+            ),
+          },
+          { x: 50.33, text: "Center, Then Receive The Amount From The Employee. " },
+          { x: 0, text: "" },
+          { x: 54.84, text: "Do Not Leave The Page Or The Center Until You Have " },
+          { x: 79.81, text: "Confirmed That The Transaction Is Complete." },
+          {
+            x: 181.34,
+            text: "Thank You.",
+            node: <span className="font-medium">Thank You.</span>,
+          },
+        ]}
+        left={32}
+        ml={32}
+        width={366}
+        size={13}
+        lineHeight={18}
+        color={C.grey}
+        mt={paraTop(662, 13, 18) - textBottom(631, 24)}
       >
         {lead}
         <span className="font-bold">{WALLET_BRAND.start}</span>
@@ -1140,12 +1216,10 @@ function Scan({
         {tail}
         <br />
         <br />
-        {t(
-          "Do not leave the page or the center until you have confirmed that the transaction is complete.",
-        )}
+        {stay}
         <br />
-        <span className="font-medium">{t("Thank you.")}</span>
-      </p>
+        <span className="font-medium">{thanks}</span>
+      </FileLines>
 
       <div
         className="flex flex-col shrink-0 mt-auto"
@@ -1168,7 +1242,7 @@ function Scan({
 }
 
 /** A wide button of the sheet, 390 x 60 at x 20, radius 20, 16 px words. */
-function SheetButton({
+export function SheetButton({
   mt,
   label,
   nudge,
@@ -1225,6 +1299,7 @@ function SheetButton({
 function RecipientButton({
   mt,
   ml,
+  nudge,
   sign,
   verb,
   onClick,
@@ -1232,6 +1307,8 @@ function RecipientButton({
 }: {
   mt: number;
   ml: number;
+  /** How far the file puts the words off the button's centre, in px. */
+  nudge?: number;
   sign: "+" | "-";
   verb: string;
   onClick: () => void;
@@ -1256,6 +1333,7 @@ function RecipientButton({
     >
       <Txt
         center
+        nudge={nudge}
         size={11}
         mt={gapTo(363, 382, 11)}
         style={{ whiteSpace: "pre" }}
@@ -1353,9 +1431,11 @@ function Entry({
  * chosen one is green with Medium words. The other has a line, Regular words
  * and its own `fill`: `#FCFCFC` on `– 19`, `#F8F8F8` on `– 36`.
  */
-function Tab({
+export function Tab({
   chosen,
   fill,
+  chosenFill = C.green,
+  nudge = 0.5,
   ml,
   onClick,
   children,
@@ -1364,6 +1444,10 @@ function Tab({
   chosen: boolean;
   /** The fill while the tab is not chosen. */
   fill: string;
+  /** Green on the cash-out form, yellow `#FAE26B` on the cash-in forms. */
+  chosenFill?: string;
+  /** How far the file puts the words off the tab's centre, in px. */
+  nudge?: number;
   ml?: number;
   onClick: () => void;
   children: React.ReactNode;
@@ -1382,15 +1466,15 @@ function Tab({
         w={193}
         h={28}
         radius={8}
-        fill={chosen ? C.green : fill}
+        fill={chosen ? chosenFill : fill}
         stroke={C.line}
         strokeVisible={!chosen}
         className="flex flex-col transition-[background-color] duration-300"
       >
-        {/* The file centres the words half a px right of the tab's centre. */}
+        {/* The cash-out file centres the words half a px right of the tab's centre. */}
         <Txt
           center
-          nudge={0.5}
+          nudge={nudge}
           size={13}
           weight={chosen ? "medium" : "regular"}
           mt={gapTo(213, 232, 13)}
@@ -1408,7 +1492,7 @@ function Tab({
  * Medium or the bank's name Bold) on baseline 20 and the value (14) on 43, both 12 px in. `mark` adds
  * the grey 15 px eye at (383, 324): 20 px down the field, 12 from its right.
  */
-function Recipient({
+export function Recipient({
   mt,
   label,
   children,
