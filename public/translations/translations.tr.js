@@ -584,6 +584,7 @@ const translations = {
   Price: "Fiyat",
   "Normal Price": "Normal Fiyat",
   "Please Enter Coupon Information": "Kupon Bilgilerini Girin",
+  "Your coupon has been applied": "Kuponunuz uygulandı",
   "Change From List": "Listeden Değiştir",
   "Contact Info": "İletişim Bilgileri",
   "Total Items": "Toplam Ürün",

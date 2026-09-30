@@ -649,6 +649,7 @@ const translations = {
   "One of the products was not found. Please try searching for a different product.":
     "یەکێک لە بەرهەمەکان نەدۆزرایەوە. تکایە هەوڵدەری بۆ گەڕان بە بەرهەمی تر.",
   "Please Enter Coupon Information": "تکایە زانیاری کوپۆن داخڵ بکە",
+  "Your coupon has been applied": "کوپۆنەکەت جێبەجێ کرا",
   "Applying...": "لە بەکاردهێنرایە...",
   "I Have a Discount Coupon": "من کوپۆنی داشکان هەیە",
   "Not Available Now, Stock Is Sold Out": "ئێستا بەردەست نییە، ستۆک فرمبردراوە",

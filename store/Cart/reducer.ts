@@ -47,6 +47,7 @@ const useCartStore = (set, get) => ({
   orderLoading: false,
   cart: [],
   coupon_discount: null,
+  coupon_code: null,
   total_discount: null,
   showOrderOptions: false,
   total_shipping_cost: null,

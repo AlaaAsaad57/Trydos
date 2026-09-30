@@ -659,6 +659,7 @@ const translations = {
   "One of the products was not found. Please try searching for a different product.":
     "لم يتم العثور على أحد المنتجات. يرجى البحث عن منتج آخر.",
   "Please Enter Coupon Information": "أدخل معلومات الكود",
+  "Your coupon has been applied": "تم تطبيق قسيمتك",
   "Applying...": "يتم التطبيق...",
   "I Have a Discount Coupon": "لدي كود خصم",
   "Not Available Now, Stock Is Sold Out": "غير متوفر حاليا, الكمية مباعة",
