@@ -1752,6 +1752,7 @@ const translations = {
   "Add a new contact": "زیادکردنی پەیوەندییەکی نوێ",
   "Contact Name": "ناوی پەیوەندی",
   "Already saved as": "پێشتر پاشەکەوتکراوە وەک",
+  "Some contacts already exist": "هەندێک پەیوەندی پێشتر هەن",
   "File": "فایل",
   "Image": "وێنە",
   "Product": "بەرهەم",

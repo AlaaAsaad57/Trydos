@@ -129,9 +129,20 @@ export const watchRenewals = (context: BrowserContext): void => {
       state.proxied.add(request);
       state.lastProxiedAt = Date.now();
     }
-    if (request.isNavigationRequest() && request.frame().parentFrame() === null) {
-      const page = pageOf(request);
-      if (page) navigationStartedAt.set(page, Date.now());
+    // `request.frame()` throws for the first navigation of a tab that was just
+    // opened (a `target="_blank"` link): the request exists before its frame
+    // does. An error thrown in this listener is uncaught and ends the running
+    // case (CI run 36628882987, ORD-01). A brand-new tab has no old document
+    // and no call in flight, so there is nothing to note for it.
+    if (request.isNavigationRequest()) {
+      try {
+        const frame = request.frame();
+        if (frame.parentFrame() === null) {
+          navigationStartedAt.set(frame.page(), Date.now());
+        }
+      } catch {
+        // The new tab's frame is not created yet.
+      }
     }
   });
 

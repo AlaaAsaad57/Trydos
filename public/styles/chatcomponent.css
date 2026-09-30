@@ -148,6 +148,20 @@ html[lang="ar"] .chat-window-search-holder img {
   overflow-x: hidden;
   padding-right: 6px;
 }
+/* A contact the import found already saved: a blue flash that fades out. */
+.contact-already-saved {
+  border-radius: 8px;
+  animation: contactAlreadySaved 3s ease-out 1 forwards;
+}
+@keyframes contactAlreadySaved {
+  0%,
+  40% {
+    background-color: #8fc3ff80;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
 .chat-conversation-item {
   width: 420px;
   height: 80px;

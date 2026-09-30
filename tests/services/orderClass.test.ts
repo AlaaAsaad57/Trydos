@@ -522,6 +522,50 @@ describe("OrderService (services/order.ts)", () => {
       expect(useAppStore.getState().orderLoading).toBe(false);
     });
 
+    // CI run 36628882987, BUY-03. A list read started 0.4 s before the save
+    // and answered 0.16 s after it, still carrying the old title. It replaced
+    // the edited row in the store, so the checkout drew the old title although
+    // the core backend had stored the new one.
+    it("a list read that started before an address save does not put the old title back", async () => {
+      const old = { id: 615, address: "Probe", is_default: 1 };
+      const edited = { ...old, address: "Probe edited" };
+      useAppStore.setState({ addressLists: [old] });
+
+      let answerFirstRead: (value: unknown) => void = () => undefined;
+      let listReads = 0;
+      vi.mocked(fetchData).mockImplementation(async ({ url }: any) => {
+        if (url.includes("/customer/address/list")) {
+          listReads += 1;
+          // The first read is the slow one; any later read sees the saved row.
+          if (listReads === 1) {
+            return await new Promise((resolve) => {
+              answerFirstRead = resolve;
+            });
+          }
+          return { success: true, data: [edited] };
+        }
+        return { success: true, data: [] };
+      });
+
+      const slowRead = orderService.GetAddressList();
+
+      await orderService.UpdateAddressList({
+        address: { ...edited, Country: { name: "Syria", code: "sy" } },
+        callback: () => undefined,
+      });
+      // What `AddAddressForm` does once the save has answered.
+      useAppStore.getState().updateAddress(edited);
+
+      answerFirstRead({ success: true, data: [old] });
+      await slowRead;
+
+      expect(
+        useAppStore.getState().addressLists.find((row: any) => row.id === 615)
+          ?.address,
+        "the list read that started before the save answered after it, and its old title replaced the saved one in the store",
+      ).toBe("Probe edited");
+    });
+
     it("DeleteAddressList calls delete endpoint and sets orderLoading false", async () => {
       vi.mocked(fetchData).mockResolvedValueOnce({ success: true });
 

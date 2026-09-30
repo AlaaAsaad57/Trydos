@@ -1727,6 +1727,7 @@ const translations = {
   "Add a new contact": "Yeni kişi ekle",
   "Contact Name": "Kişi Adı",
   "Already saved as": "Şu adla zaten kayıtlı",
+  "Some contacts already exist": "Bazı kişiler zaten kayıtlı",
   "File": "Dosya",
   "Image": "Resim",
   "Product": "Ürün",

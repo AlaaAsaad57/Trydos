@@ -1721,6 +1721,7 @@ const translations = {
   "Add a new contact": "إضافة جهة اتصال جديدة",
   "Contact Name": "اسم جهة الاتصال",
   "Already saved as": "محفوظ بالفعل باسم",
+  "Some contacts already exist": "بعض جهات الاتصال موجودة بالفعل",
   "File": "ملف",
   "Image": "صورة",
   "Product": "منتج",

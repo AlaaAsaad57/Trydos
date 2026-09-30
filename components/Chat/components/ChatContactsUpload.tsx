@@ -6,7 +6,10 @@ import { fetchData } from "utils/fetchData";
 import { pollinateInput, sanitizePhone } from "@/utils/tinyUtils";
 import { REQUESTS_DATA } from "utils/Requests";
 import { allCountries } from "country-telephone-data";
-import { showErrorNotification } from "store/notifications/reducer";
+import {
+  showErrorNotification,
+  showSuccessNotification,
+} from "store/notifications/reducer";
 import { getLocalizedCountryName } from "utils/countryData";
 import {
   canonicalPhone,
@@ -27,15 +30,20 @@ import {
  * - Among picks for one new number, the longest name wins.
  * - A new number is sent in its full form, and every number of a picked
  *   contact is imported, not only the first.
+ *
+ * `alreadySaved` holds the saved number of every pick that was saved before.
  */
 const mergeContacts = (saved: any[], picked: any[], region: PhoneRegion) => {
   const byPhone = new Map<string, { name: string; mobile_phone: string }>();
   // Numbers whose name came from the phone book, not from a saved contact.
   const namedByPick = new Set<string>();
+  const savedKeys = new Set<string>();
+  const alreadySaved = new Set<string>();
 
   saved.forEach((c) => {
     const key = canonicalPhone(c.mobile_phone, region);
     if (!key || byPhone.has(key)) return;
+    savedKeys.add(key);
     byPhone.set(key, {
       name: String(c.name ?? "").trim(),
       mobile_phone: String(c.mobile_phone).replace(/\s+/g, ""),
@@ -49,6 +57,7 @@ const mergeContacts = (saved: any[], picked: any[], region: PhoneRegion) => {
       const key = canonicalPhone(tel, region);
       if (!key) return;
       const entry = byPhone.get(key);
+      if (entry && savedKeys.has(key)) alreadySaved.add(entry.mobile_phone);
       if (!entry) {
         byPhone.set(key, { name, mobile_phone: key });
         namedByPick.add(key);
@@ -62,12 +71,20 @@ const mergeContacts = (saved: any[], picked: any[], region: PhoneRegion) => {
     });
   });
 
-  return Array.from(byPhone.values());
+  return {
+    contacts: Array.from(byPhone.values()),
+    alreadySaved: Array.from(alreadySaved),
+  };
 };
 
 // --- Component ---
 
-function ChatContactsUpload() {
+function ChatContactsUpload({
+  onAlreadySaved,
+}: {
+  // Gets the saved numbers of the picked contacts that were saved before.
+  onAlreadySaved?: (phones: string[]) => void;
+}) {
   const { contacts: ContactsData, userChat, user, country } = useAppStore();
   const region = phoneRegion(userChat?.mobile_phone ?? user?.phone, country);
   const [isUploading, setIsUploading] = useState(false);
@@ -172,9 +189,20 @@ function ChatContactsUpload() {
       if (!rawContacts || !rawContacts.length) return;
 
       // Logic: Merge ALL current store data with NEWly selected contacts, one entry per number
-      const finalPayload = mergeContacts(ContactsData, rawContacts, region);
+      const { contacts: finalPayload, alreadySaved } = mergeContacts(
+        ContactsData,
+        rawContacts,
+        region,
+      );
 
       await uploadToServer(finalPayload);
+
+      if (alreadySaved.length) {
+        showSuccessNotification(
+          translateFunction("Some contacts already exist"),
+        );
+        onAlreadySaved?.(alreadySaved);
+      }
     } catch (err) {
       LogError({
         error: err,

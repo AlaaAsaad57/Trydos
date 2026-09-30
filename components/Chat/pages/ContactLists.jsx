@@ -8,15 +8,38 @@ import { dedupeContacts } from "components/Chat/chatSearch";
 import { getChatName, getChatPhoto } from "components/Chat/chatsFunctions";
 import { getUserChat, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
+import { useRef, useState } from "react";
 import ChatContactsUpload from "../components/ChatContactsUpload";
 
 function ContactLists(props) {
   const { data: chats, language, contacts } = useAppStore();
 
+  // The contacts the last import found already saved. They are drawn first and
+  // flash once. `run` changes on every import, so the flash plays again.
+  const [alreadySaved, setAlreadySaved] = useState({ phones: [], run: 0 });
+  const listRef = useRef(null);
+  const wasAlreadySaved = (contact) =>
+    alreadySaved.phones.includes(
+      String(contact?.mobile_phone ?? "").replace(/\s+/g, "")
+    );
+  const flash = (contact, key, row) =>
+    wasAlreadySaved(contact) ? (
+      <div key={`${alreadySaved.run}-${key}`} className="contact-already-saved">
+        {row}
+      </div>
+    ) : (
+      row
+    );
+
   const handleClick = openChatFromList;
   return (
-    <div className="chat-list-items">
-      <ChatContactsUpload />
+    <div className="chat-list-items" ref={listRef}>
+      <ChatContactsUpload
+        onAlreadySaved={(phones) => {
+          setAlreadySaved((last) => ({ phones, run: last.run + 1 }));
+          listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      />
       {/* A search draws the same rows as in the chats tab. */}
       {props.search.length > 0 ? (
         <ChatSearchResults search={props.search} onOpened={props.close} />
@@ -34,6 +57,7 @@ function ContactLists(props) {
         <>
           {/* One row per person: the same phone or user saved twice shows once. */}
           {dedupeContacts(contacts)
+            .sort((a, b) => wasAlreadySaved(b) - wasAlreadySaved(a))
             .map((contact, key) => {
               if (
                 chats.filter(
@@ -45,7 +69,7 @@ function ContactLists(props) {
                     ).length > 0
                 ).length > 0
               ) {
-                return (
+                return flash(contact, key,
                   <ChatItem
                     disabledOptions={true}
                     myKey={key}
@@ -156,7 +180,7 @@ function ContactLists(props) {
                   />
                 );
               } else {
-                return (
+                return flash(contact, key,
                   <SearchResult
                     myKey={key}
                     key={key}
