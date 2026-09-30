@@ -58,6 +58,10 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
+  // The seller pressed the X on a stored picture; the next save removes it.
+  const [imageCleared, setImageCleared] = useState(false);
+  const [bannerCleared, setBannerCleared] = useState(false);
+
   // Cropping States
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [croppingType, setCroppingType] = useState<'image' | 'banner' | null>(null);
@@ -140,6 +144,21 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
     setCroppingType(null);
   };
 
+  // 4. Clear the logo / banner (staged file and stored picture)
+  const handleClearImage = (type: 'image' | 'banner') => {
+    if (type === 'image') {
+      if (imageUrl) setImageCleared(true);
+      setImageFile(null);
+      setImagePreview(null);
+      setImageUrl(null);
+    } else {
+      if (bannerUrl) setBannerCleared(true);
+      setBannerFile(null);
+      setBannerPreview(null);
+      setBannerUrl(null);
+    }
+  };
+
   // Vanilla Form Validation
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -208,8 +227,8 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
         name: formData.shopName.trim(),
         address: formData.address.trim(),
         contact: formData.contact.trim(),
-        image: normializeImage(finalImage),
-        banner: normializeImage(finalBanner),
+        image: imageCleared && !finalImage ? '' : normializeImage(finalImage),
+        banner: bannerCleared && !finalBanner ? '' : normializeImage(finalBanner),
       });
 
       if (res && res.success === false) {
@@ -223,6 +242,8 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
       setBannerFile(null);
       setImagePreview(null);
       setBannerPreview(null);
+      setImageCleared(false);
+      setBannerCleared(false);
 
       showSuccessMessage(translateFunction('Shop Info Updated Successfully!', language));
     } catch (error) {
@@ -361,15 +382,28 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
               <Skeleton height={160} width={160} borderRadius={15} />
             ) : (
               <div className="flex items-start gap-4">
-                <div className="w-40 h-40 rounded-[15px] overflow-hidden bg-[#f8f8f8] border border-[#ededed] flex items-center justify-center shrink-0">
-                  {imageSrc ? (
-                    <img
-                      src={imageSrc}
-                      alt="Shop logo preview"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Monogram name={formData.shopName} size={80} rounded={15} />
+                <div className="relative w-40 h-40 shrink-0">
+                  <div className="w-full h-full rounded-[15px] overflow-hidden bg-[#f8f8f8] border border-[#ededed] flex items-center justify-center">
+                    {imageSrc ? (
+                      <img
+                        src={imageSrc}
+                        alt="Shop logo preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Monogram name={formData.shopName} size={80} rounded={15} />
+                    )}
+                  </div>
+                  {imageSrc && canUpdate && (
+                    <button
+                      type="button"
+                      data-pw="shop-info-logo-clear-btn"
+                      aria-label={translateFunction('Remove', language)}
+                      onClick={() => handleClearImage('image')}
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 text-[#f85555] shadow-[0_2px_6px_rgba(0,0,0,0.18)] flex items-center justify-center hover:bg-white"
+                    >
+                      <DashIcon name="close" size={14} />
+                    </button>
                   )}
                 </div>
                 <div className="space-y-2 pt-1">
@@ -431,6 +465,17 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
                         {translateFunction('No banner yet', language)}
                       </span>
                     </div>
+                  )}
+                  {bannerSrc && canUpdate && (
+                    <button
+                      type="button"
+                      data-pw="shop-info-banner-clear-btn"
+                      aria-label={translateFunction('Remove', language)}
+                      onClick={() => handleClearImage('banner')}
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 text-[#f85555] shadow-[0_2px_6px_rgba(0,0,0,0.18)] flex items-center justify-center hover:bg-white"
+                    >
+                      <DashIcon name="close" size={14} />
+                    </button>
                   )}
                 </div>
                 <div className="flex items-center gap-3">

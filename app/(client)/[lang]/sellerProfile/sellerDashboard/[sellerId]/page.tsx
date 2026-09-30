@@ -1786,7 +1786,10 @@ function SellerDashBoard() {
                   <thead>
                     <tr>
                       <th className="py-3 px-3 text-[12px] semibold text-[#8e8e8e]">
-                        {translateFunction("Name / Phone")}
+                        {translateFunction("Name")}
+                      </th>
+                      <th className="py-3 px-3 text-[12px] semibold text-[#8e8e8e]">
+                        {translateFunction("Phone Number")}
                       </th>
                       <th className="py-3 px-3 text-[12px] semibold text-[#8e8e8e]">{translateFunction("Role")}</th>
                       <th className="py-3 px-3 text-[12px] semibold text-[#8e8e8e]">
@@ -1797,7 +1800,10 @@ function SellerDashBoard() {
                   <tbody className="p-2">
                     {users.map((user: any) => (
                       <tr key={user.id} className="border-t border-[#ededed]">
-                        <td className="py-3 px-3 text-[14px] text-[#3c3c3c] align-top">{user.name || user.phone}</td>
+                        <td className="py-3 px-3 text-[14px] text-[#3c3c3c] align-top">{user.name || "-"}</td>
+                        <td className="py-3 px-3 text-[14px] text-[#3c3c3c] align-top whitespace-nowrap">
+                          <span dir="ltr">{user.phone || "-"}</span>
+                        </td>
                         <td className="py-3 px-3 text-[14px] text-[#3c3c3c] align-top">
                           <div className="flex items-center gap-2">
                             <span className="text-[13px] text-[#505050]">

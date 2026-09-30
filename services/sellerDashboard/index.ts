@@ -659,8 +659,9 @@ class SellerDashboardService {
       const { image, banner, ...rest } = data;
       const body = {
         ...rest,
-        ...(image ? { image } : {}),
-        ...(banner ? { banner } : {}),
+        // null = leave the picture as it is; "" = the seller removed it.
+        ...(image !== null ? { image } : {}),
+        ...(banner !== null ? { banner } : {}),
       };
 
       const res = await fetchData({
