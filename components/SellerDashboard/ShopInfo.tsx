@@ -84,8 +84,15 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
           contact: data.contact ?? '',
           address: data.address ?? '',
         });
-        setImageUrl(GetImageUrl(data.image) ?? null);
-        setBannerUrl(GetImageUrl(data.banner) ?? null);
+        const sanitizeMediaUrl = (url: unknown): string | null => {
+          if (!url || typeof url !== 'string') return null;
+          const trimmed = url.trim();
+          if (!trimmed || trimmed.endsWith('/')) return null;
+          return GetImageUrl(trimmed) ?? null;
+        };
+
+        setImageUrl(sanitizeMediaUrl(data.image));
+        setBannerUrl(sanitizeMediaUrl(data.banner));
       } catch (error) {
         LogError({
           scenario: 'ShopInfo.loadData',
@@ -186,12 +193,14 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
     setErrors(newErrors);
     return isValid;
   };
-  const normializeImage=(image:string)=>{
-    if(!image) return null
-    let newImage=image?.split('/');
-    let normalizedStr=newImage?.[newImage.length-1];
-    return normalizedStr;
-  }
+  const normializeImage = (image: string | null) => {
+    if (!image) return null;
+    const trimmed = image.trim();
+    if (trimmed.endsWith('/')) return null;
+    const newImage = trimmed.split('/');
+    const normalizedStr = newImage[newImage.length - 1];
+    return normalizedStr || null;
+  };
 
   const normalizedWithImageUpload=(image:string)=>{
     if(!image) return null;

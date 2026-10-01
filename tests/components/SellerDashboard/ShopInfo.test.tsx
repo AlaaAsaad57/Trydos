@@ -293,4 +293,51 @@ describe("Shop info — saving", () => {
       expect(alertSpy, "a thrown save should be reported the same way").toHaveBeenCalledTimes(2),
     );
   });
+
+  it("sends empty string for image and banner when cleared by the seller", async () => {
+    await mount();
+    await waitFor(() => expect(nameInput()?.value).toBe("Rama Shoes"));
+
+    const logoClearBtn = document.querySelector('[data-pw="shop-info-logo-clear-btn"]');
+    const bannerClearBtn = document.querySelector('[data-pw="shop-info-banner-clear-btn"]');
+    expect(logoClearBtn).toBeInTheDocument();
+    expect(bannerClearBtn).toBeInTheDocument();
+
+    await userEvent.click(logoClearBtn!);
+    await userEvent.click(bannerClearBtn!);
+
+    expect(screen.queryByAltText("Shop logo preview")).not.toBeInTheDocument();
+    expect(screen.queryByAltText("Banner preview")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
+    await waitFor(() => expect(updateShopInfo).toHaveBeenCalled());
+    expect(updateShopInfo.mock.calls[0][1]).toMatchObject({
+      image: "",
+      banner: "",
+    });
+  });
+
+  it("handles legacy media URLs ending with a trailing slash as empty (null)", async () => {
+    getShopInfo.mockResolvedValue({
+      success: true,
+      data: {
+        ...SHOP,
+        image: "https://example.com/seller/",
+        banner: "https://example.com/seller/",
+      },
+    });
+    await mount();
+    await waitFor(() => expect(nameInput()?.value).toBe("Rama Shoes"));
+
+    expect(screen.queryByAltText("Shop logo preview")).not.toBeInTheDocument();
+    expect(screen.queryByAltText("Banner preview")).not.toBeInTheDocument();
+    expect(screen.getByText(/no banner yet/i)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
+    await waitFor(() => expect(updateShopInfo).toHaveBeenCalled());
+    expect(updateShopInfo.mock.calls[0][1]).toMatchObject({
+      image: null,
+      banner: null,
+    });
+  });
 });
