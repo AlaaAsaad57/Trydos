@@ -866,13 +866,18 @@ export function useOuterBackdrop(open: boolean, paint: string, top: string) {
   React.useEffect(() => {
     if (!open) return;
     const outer = document.getElementById("app-outer");
+    const demoApp = document.querySelector<HTMLElement>('[data-pw="demo-app"]');
     const beforeOuter = outer?.style.background ?? "";
     const beforeOuterBg = outer?.style.backgroundColor ?? "";
+    const beforeDemoAppBg = demoApp?.style.backgroundColor ?? "";
     const beforeBody = document.body.style.backgroundColor;
     const beforeHtml = document.documentElement.style.backgroundColor;
     if (outer) {
       outer.style.background = background;
       outer.style.backgroundColor = top;
+    }
+    if (demoApp) {
+      demoApp.style.backgroundColor = top;
     }
     document.body.style.backgroundColor = top;
     document.documentElement.style.backgroundColor = top;
@@ -893,6 +898,9 @@ export function useOuterBackdrop(open: boolean, paint: string, top: string) {
         outer.style.background = beforeOuter;
         outer.style.backgroundColor = beforeOuterBg;
       }
+      if (demoApp) {
+        demoApp.style.backgroundColor = beforeDemoAppBg;
+      }
       document.body.style.backgroundColor = beforeBody;
       document.documentElement.style.backgroundColor = beforeHtml;
       if (created) meta?.remove();
@@ -910,13 +918,15 @@ export function useOuterBackdrop(open: boolean, paint: string, top: string) {
       top: "0",
       left: "0",
       width: "100vw",
-      height: "max(4px, env(safe-area-inset-top, 44px))",
+      height: "max(59px, env(safe-area-inset-top, 59px))",
       backgroundColor: top,
       background: top,
       pointerEvents: "none",
       zIndex: "2147483647",
     });
-    document.body.appendChild(strip);
+    const targetParent =
+      document.querySelector<HTMLElement>('[data-pw="demo-app"]') || document.body;
+    targetParent.appendChild(strip);
     return () => strip.remove();
   }, [open, top]);
 }

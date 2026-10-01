@@ -239,7 +239,7 @@ function DemoShellInner({
     <NavCtx.Provider value={{ shown, navigate, back, locale, t }}>
       <main
         data-pw="demo-app"
-        className="fixed inset-0 z-[99999999999] w-full h-dvh overflow-hidden font-quicksand bg-white"
+        className="fixed inset-0 z-[99999999999] w-full h-dvh overflow-hidden font-quicksand"
       >
         {/* The demo's own switches, outside the canvas so nothing scales them.
                     The same switches the login demo carries, but on the right edge at
