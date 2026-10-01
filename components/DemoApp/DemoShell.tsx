@@ -148,12 +148,23 @@ function DemoShellInner({
       el.style.getPropertyValue("overscroll-behavior"),
     );
     roots.forEach((el) => el.style.setProperty("overscroll-behavior", "none"));
-    return () =>
+
+    // Ensure the viewport scroll position stays pinned to top on iOS Safari
+    const onScroll = () => {
+      if (window.scrollY !== 0 || window.scrollX !== 0) {
+        window.scrollTo(0, 0);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
       roots.forEach((el, i) =>
         before[i]
           ? el.style.setProperty("overscroll-behavior", before[i])
           : el.style.removeProperty("overscroll-behavior"),
       );
+    };
   }, []);
 
   // The URL moved without us: the browser's back or forward, or a plain link.

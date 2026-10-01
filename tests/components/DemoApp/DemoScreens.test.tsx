@@ -1080,6 +1080,28 @@ describe("Demo wallet — numbers from the XD file", () => {
     }
   }, 10000);
 
+  it("sheet inputs on touch devices: inputs have pointer-events: none in CSS and clicking field delegates focus with preventScroll: true", async () => {
+    setDevice("touch");
+    const container = await openDollars();
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!);
+    fireEvent.click((await find(container, "demo-wallet-way-rdb"))!);
+    const sheet = (await find(container, "demo-wallet-cash-out-sheet"))!;
+    expect(sheet.hasAttribute("data-no-keyboard-lift"), "sheet must have data-no-keyboard-lift").toBe(true);
+
+    const style = sheet.querySelector("style");
+    expect(style?.textContent, "touch device must inject pointer-events: none rule for sheet inputs").toContain(
+      "pointer-events: none",
+    );
+
+    const input = (await find(container, "demo-wallet-amount-input")) as HTMLInputElement;
+    const focusSpy = vi.spyOn(input, "focus");
+    const fieldBox = container.querySelector<HTMLElement>('[data-pw="demo-wallet-amount"]')!;
+    fireEvent.click(fieldBox);
+    expect(focusSpy, "tapping field container must call focus({ preventScroll: true })").toHaveBeenCalledWith({
+      preventScroll: true,
+    });
+  });
+
   it("wallet info: the QR mark on the card opens a sheet with 50 px corners, the 350.21 px code at x 39.93 and three fields, as `Home Page – 23` draws it", async () => {
     const container = await openDollars();
     const mark = container.querySelector('[data-pw="demo-wallet-info-usd"]');

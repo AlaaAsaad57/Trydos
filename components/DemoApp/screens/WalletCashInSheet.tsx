@@ -1087,10 +1087,7 @@ function AmountField({
         style={{ padding: "8px 12px 0", transition: "height 0.3s" }}
         onClick={() => {
           if (keyed) setKeypad(true);
-          else {
-            input.current?.focus({ preventScroll: true });
-            input.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
-          }
+          else input.current?.focus({ preventScroll: true });
         }}
       >
         <Txt size={12} weight="medium" as="label" style={{ whiteSpace: "pre" }}>
@@ -1134,7 +1131,7 @@ function AmountField({
             onChange={(e) =>
               setAmount(e.target.value.replace(/[^0-9.,]/g, "").slice(0, 12))
             }
-            className={`block bg-transparent outline-none font-medium ${keyed ? "pointer-events-none" : ""}`}
+            className={`block bg-transparent outline-none font-medium ${touch ? "pointer-events-none" : ""}`}
             style={{
               gridArea: "1 / 1",
               width: 390 - 24,

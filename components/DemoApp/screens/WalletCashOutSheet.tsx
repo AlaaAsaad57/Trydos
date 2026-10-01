@@ -646,7 +646,6 @@ function Form({
           ? phoneInput
           : nameInput;
     input.current?.focus({ preventScroll: true });
-    input.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
   };
   const leave = (field: InUse) =>
     setActive((now) => (now === field ? null : now));
@@ -908,7 +907,7 @@ function Form({
                   }}
                   onFocus={() => setActive("phone")}
                   onBlur={() => leave("phone")}
-                  className={`block bg-transparent outline-none font-normal ${keyed ? "pointer-events-none" : ""}`}
+                  className={`block bg-transparent outline-none font-normal ${touch ? "pointer-events-none" : ""}`}
                   style={{
                     gridArea: "1 / 1",
                     width: 390 - 24 - (44 - 32),
@@ -942,7 +941,7 @@ function Form({
               }}
               onFocus={() => setActive("name")}
               onBlur={() => leave("name")}
-              className="block shrink-0 bg-transparent outline-none font-normal"
+              className={`block shrink-0 bg-transparent outline-none font-normal ${touch ? "pointer-events-none" : ""}`}
               style={{
                 marginTop: 3,
                 width: 390 - 24,
@@ -1093,7 +1092,7 @@ function Form({
             onChange={(e) => setAmount(e.target.value.replace(/[^0-9.,]/g, ""))}
             onFocus={() => setActive("amount")}
             onBlur={() => leave("amount")}
-            className={`block bg-transparent outline-none ${saved ? "font-medium" : "font-normal"} ${keyed ? "pointer-events-none" : ""}`}
+            className={`block bg-transparent outline-none ${saved ? "font-medium" : "font-normal"} ${touch ? "pointer-events-none" : ""}`}
             style={{
               gridArea: "1 / 1",
               width: 390 - 24,

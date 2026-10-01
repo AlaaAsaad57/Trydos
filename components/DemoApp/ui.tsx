@@ -2,6 +2,7 @@
 
 import React from "react";
 import { AnimatePresence, motion, useDragControls } from "framer-motion";
+import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 import XdIcon from "./XdIcon";
 import { XD_ICON_SIZE, type XdIconName } from "./xdIcons";
 import type { DemoKey } from "./demoKeys";
@@ -1013,6 +1014,7 @@ export function Sheet({
   testId?: string;
 }) {
   useOuterBackdrop(open, ROUND_A_SHEET, DIMMED);
+  const touch = useIsTouchDevice();
   const grip = useDragControls();
   // The app is the artboard without its 50 px status bar, so the first 50 px
   // the canvas gives up cost the app nothing. What it gives up past that is
@@ -1043,6 +1045,14 @@ export function Sheet({
           data-pw={testId}
           data-no-keyboard-lift=""
         >
+          {touch && (
+            <style>{`
+              [data-no-keyboard-lift] input:not([type="file"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+              [data-no-keyboard-lift] textarea {
+                pointer-events: none;
+              }
+            `}</style>
+          )}
           <motion.div
             className="absolute inset-0"
             style={{ background: C.backdrop }}
@@ -1128,6 +1138,72 @@ export function Sheet({
                 // The part of a lowered sheet that hangs under the canvas.
                 paddingBottom: fit ? rest : undefined,
                 scrollbarWidth: fit ? "none" : undefined,
+              }}
+              onClick={(e) => {
+                if (!touch) return;
+                const target = e.target as HTMLElement;
+                if (!target || target === e.currentTarget) return;
+                if (
+                  target.closest(
+                    "button, a, [role='button'], [data-pw='demo-sheet-grip']"
+                  )
+                )
+                  return;
+
+                const sheet = e.currentTarget as HTMLElement;
+                const inputSelector =
+                  'input:not([type="file"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea';
+
+                let targetInput: HTMLInputElement | HTMLTextAreaElement | null =
+                  null;
+
+                // 1. Check by client coordinates if the tap lands directly within any input's rect
+                if (
+                  typeof e.clientX === "number" &&
+                  typeof e.clientY === "number" &&
+                  (e.clientX !== 0 || e.clientY !== 0)
+                ) {
+                  const allInputs =
+                    sheet.querySelectorAll<
+                      HTMLInputElement | HTMLTextAreaElement
+                    >(inputSelector);
+                  for (const el of allInputs) {
+                    const rect = el.getBoundingClientRect();
+                    if (
+                      rect.width > 0 &&
+                      rect.height > 0 &&
+                      e.clientX >= rect.left - 8 &&
+                      e.clientX <= rect.right + 8 &&
+                      e.clientY >= rect.top - 8 &&
+                      e.clientY <= rect.bottom + 8
+                    ) {
+                      targetInput = el;
+                      break;
+                    }
+                  }
+                }
+
+                // 2. If not found by coordinate hit, check closest container (e.g. field box or label)
+                if (!targetInput) {
+                  let curr: HTMLElement | null = target;
+                  while (curr && curr !== sheet) {
+                    const found =
+                      curr.querySelectorAll<
+                        HTMLInputElement | HTMLTextAreaElement
+                      >(inputSelector);
+                    if (found.length === 1) {
+                      targetInput = found[0];
+                      break;
+                    } else if (found.length > 1) {
+                      break;
+                    }
+                    curr = curr.parentElement;
+                  }
+                }
+
+                if (targetInput && document.activeElement !== targetInput) {
+                  targetInput.focus({ preventScroll: true });
+                }
               }}
             >
               <div

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../XdIcon";
 import { useDemoNav } from "../DemoShell";
@@ -479,6 +479,7 @@ function PlaceSheet({
   const [walk, setWalk] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
+  const searchInput = useRef<HTMLInputElement>(null);
   const level = Math.min(walk.length, LEVELS.length - 1);
   const choices = choicesAt(country, walk).filter((name) =>
     name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
@@ -582,10 +583,12 @@ function PlaceSheet({
         fill={C.card}
         // Blue while it has focus, like every demo field.
         stroke={searching ? C.blue : C.line}
-        className="flex items-start"
+        className="flex items-start cursor-text"
+        onClick={() => searchInput.current?.focus({ preventScroll: true })}
       >
         <Icon name="searchSmall" ml={12} mt={12} />
         <input
+          ref={searchInput}
           data-pw="demo-place-search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
