@@ -197,6 +197,13 @@ export default function AppScaler({
       const field =
         document.querySelector<HTMLElement>('[data-keyboard-anchor]') ??
         (isTextField(active) ? active : null);
+      if (
+        field?.closest('[data-no-keyboard-lift]') ||
+        active?.closest('[data-no-keyboard-lift]')
+      ) {
+        root.style.setProperty(LIFT_VAR, '0px');
+        return;
+      }
       if (!field) {
         root.style.setProperty(LIFT_VAR, '0px');
         return;

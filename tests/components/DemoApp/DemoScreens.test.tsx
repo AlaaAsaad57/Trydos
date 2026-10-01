@@ -36,7 +36,8 @@ vi.mock("scaling/Page", () => ({
 vi.mock("NewLoginDesign/DemoDeviceInfoModal", () => ({ default: () => null }));
 
 import DemoShell from "components/DemoApp/DemoShell";
-import { FileLines } from "components/DemoApp/ui";
+import { FileLines, useOuterBackdrop } from "components/DemoApp/ui";
+import { NATIVE_WALLET_KEYBOARD } from "components/DemoApp/demoKeyboard";
 
 const open = (pathname: string) => {
   url.pathname = pathname;
@@ -1023,7 +1024,7 @@ describe("Demo wallet — numbers from the XD file", () => {
     ).toBeNull();
   }, 10000);
 
-  it("cash out form: on a touch device the login's keypad types the amount, and the field asks the canvas to keep it above the keypad", async () => {
+  it("cash out form: keyboard setup and movable amount field behavior", async () => {
     setDevice("touch");
     const container = await openDollars();
     fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!);
@@ -1032,36 +1033,51 @@ describe("Demo wallet — numbers from the XD file", () => {
     fireEvent.click(card!);
     const field = await find(container, "demo-wallet-amount");
     expect(field, "the form has no amount field").not.toBeNull();
-    // The keypad is a portal on <body>; it opens 350 ms after the form.
-    const keypad = await waitFor(
-      () => {
-        const found = document.querySelector("[data-keyboard-overlay]");
-        if (!found) throw new Error("not yet");
-        return found as HTMLElement;
-      },
-      { timeout: 3000 },
-    ).catch(() => null);
-    expect(keypad, "the app's keypad did not open under the amount field").not.toBeNull();
-    expect(
-      field!.hasAttribute("data-keyboard-anchor"),
-      "the amount field is not marked as the box to keep above the keypad",
-    ).toBe(true);
-    expect(
-      field!.querySelector("svg[data-stroke]")?.getAttribute("data-stroke"),
-      "the amount field has no blue #388CFF line while the keypad is up",
-    ).toBe("#388CFF");
+    const sheet = container.querySelector('[data-pw="demo-wallet-cash-out-sheet"]');
+    expect(sheet?.hasAttribute("data-no-keyboard-lift"), "the sheet must have data-no-keyboard-lift").toBe(true);
+
     const input = container.querySelector<HTMLInputElement>('[data-pw="demo-wallet-amount-input"]');
-    expect(
-      input?.readOnly,
-      "the amount input can take focus on a touch device, so the phone's own keyboard would open over the keypad",
-    ).toBe(true);
-    for (const digit of ["1", "0", "0"]) {
-      fireEvent.pointerDown(keypad!.querySelector(`[data-pw="keypad-digit-${digit}"]`)!);
+    if (!NATIVE_WALLET_KEYBOARD) {
+      // The keypad is a portal on <body>; it opens 350 ms after the form.
+      const keypad = await waitFor(
+        () => {
+          const found = document.querySelector("[data-keyboard-overlay]");
+          if (!found) throw new Error("not yet");
+          return found as HTMLElement;
+        },
+        { timeout: 3000 },
+      ).catch(() => null);
+      expect(keypad, "the app's keypad did not open under the amount field").not.toBeNull();
+      expect(
+        field!.hasAttribute("data-keyboard-anchor"),
+        "the amount field is not marked as the box to keep above the keypad",
+      ).toBe(true);
+      expect(
+        field!.querySelector("svg[data-stroke]")?.getAttribute("data-stroke"),
+        "the amount field has no blue #388CFF line while the keypad is up",
+      ).toBe("#388CFF");
+      expect(
+        input?.readOnly,
+        "the amount input can take focus on a touch device, so the phone's own keyboard would open over the keypad",
+      ).toBe(true);
+      for (const digit of ["1", "0", "0"]) {
+        fireEvent.pointerDown(keypad!.querySelector(`[data-pw="keypad-digit-${digit}"]`)!);
+      }
+      await waitFor(() => expect(input!.value, "the keypad's digits did not reach the amount").toBe("100"));
+      fireEvent.pointerDown(keypad!.querySelector('[data-pw="keypad-backspace"]')!);
+      fireEvent.pointerUp(keypad!.querySelector('[data-pw="keypad-backspace"]')!);
+      await waitFor(() => expect(input!.value, "the keypad's backspace did not take the last digit off").toBe("10"));
+    } else {
+      expect(input?.readOnly, "the amount input must be editable with native keyboard").toBe(false);
+      expect(input?.inputMode, "the amount input should specify decimal inputMode").toBe("decimal");
+      fireEvent.focus(input!);
+      expect(
+        field!.querySelector("svg[data-stroke]")?.getAttribute("data-stroke"),
+        "the amount field has no blue #388CFF line while focused",
+      ).toBe("#388CFF");
+      fireEvent.change(input!, { target: { value: "100" } });
+      expect(input!.value).toBe("100");
     }
-    await waitFor(() => expect(input!.value, "the keypad's digits did not reach the amount").toBe("100"));
-    fireEvent.pointerDown(keypad!.querySelector('[data-pw="keypad-backspace"]')!);
-    fireEvent.pointerUp(keypad!.querySelector('[data-pw="keypad-backspace"]')!);
-    await waitFor(() => expect(input!.value, "the keypad's backspace did not take the last digit off").toBe("10"));
   }, 10000);
 
   it("wallet info: the QR mark on the card opens a sheet with 50 px corners, the 350.21 px code at x 39.93 and three fields, as `Home Page – 23` draws it", async () => {
@@ -1423,5 +1439,28 @@ describe("Demo FileLines — the file's lines at the file's x", () => {
     const p = container.querySelector("p")!;
     expect(p.querySelectorAll("span").length, "another language was cut into the English lines").toBe(0);
     expect(p.className, "another language's paragraph is not centred").toContain("text-center");
+  });
+
+  it("Safari topbar tinting: useOuterBackdrop manages meta theme-color and body background", () => {
+    function TestComponent({ open }: { open: boolean }) {
+      useOuterBackdrop(open, "rgba(0,0,0,0.5)", "rgb(52, 52, 52)");
+      return null;
+    }
+    const { rerender, unmount } = render(<TestComponent open={false} />);
+    expect(document.querySelector('meta[name="theme-color"]')).toBeNull();
+
+    rerender(<TestComponent open={true} />);
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    expect(meta, "theme-color meta tag must be created").not.toBeNull();
+    expect(meta?.content, "theme-color content must match backdrop top color").toBe("rgb(52, 52, 52)");
+    expect(document.body.style.backgroundColor).toBe("rgb(52, 52, 52)");
+    expect(document.documentElement.style.backgroundColor).toBe("rgb(52, 52, 52)");
+
+    const strip = document.querySelector<HTMLElement>('[data-pw="demo-top-tint"]');
+    expect(strip, "top tint overlay must be rendered").not.toBeNull();
+    expect(strip?.style.width).toBe("100vw");
+
+    unmount();
+    expect(document.querySelector('meta[name="theme-color"]'), "meta tag must be removed on unmount").toBeNull();
   });
 });

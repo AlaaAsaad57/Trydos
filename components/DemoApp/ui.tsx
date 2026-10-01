@@ -863,25 +863,44 @@ export function useOuterBackdrop(open: boolean, paint: string, top: string) {
   React.useEffect(() => {
     if (!open) return;
     const outer = document.getElementById("app-outer");
-    if (!outer) return;
-    const before = outer.style.background;
-    outer.style.background = background;
+    const beforeOuter = outer?.style.background ?? "";
+    const beforeBody = document.body.style.backgroundColor;
+    const beforeHtml = document.documentElement.style.backgroundColor;
+    if (outer) outer.style.background = background;
+    document.body.style.backgroundColor = top;
+    document.documentElement.style.backgroundColor = top;
+
+    // Safari 15+ native mobile topbar theme-color API
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const created = !meta;
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "theme-color";
+      document.head.appendChild(meta);
+    }
+    const beforeMeta = meta.content;
+    meta.content = top;
+
     return () => {
-      outer.style.background = before;
+      if (outer) outer.style.background = beforeOuter;
+      document.body.style.backgroundColor = beforeBody;
+      document.documentElement.style.backgroundColor = beforeHtml;
+      if (created) meta?.remove();
+      else if (meta) meta.content = beforeMeta;
     };
-  }, [open, background]);
+  }, [open, background, top]);
   React.useEffect(() => {
     if (!open) return;
     const strip = document.createElement("div");
     strip.dataset.pw = "demo-top-tint";
-    // Over the canvas's column, as the paint above. The page under it has
-    // the same colour there, so the strip does not show.
+    // Over the entire viewport width and safe-area-inset-top so Safari paints
+    // the native status bar and dynamic island area in the backdrop colour.
     Object.assign(strip.style, {
       position: "fixed",
       top: "0",
-      left: "var(--app-canvas-left, 0px)",
-      width: `calc(${DESIGN_W}px * var(--app-scale, 1))`,
-      height: "4px",
+      left: "0",
+      width: "100vw",
+      height: "max(4px, env(safe-area-inset-top, 44px))",
       background: top,
       pointerEvents: "none",
       zIndex: "2147483647",
@@ -1022,6 +1041,7 @@ export function Sheet({
           key="sheet"
           className="absolute inset-0 z-30 font-quicksand"
           data-pw={testId}
+          data-no-keyboard-lift=""
         >
           <motion.div
             className="absolute inset-0"

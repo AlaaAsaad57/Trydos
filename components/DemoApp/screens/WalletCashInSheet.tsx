@@ -1087,7 +1087,10 @@ function AmountField({
         style={{ padding: "8px 12px 0", transition: "height 0.3s" }}
         onClick={() => {
           if (keyed) setKeypad(true);
-          else input.current?.focus({ preventScroll: true });
+          else {
+            input.current?.focus({ preventScroll: true });
+            input.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+          }
         }}
       >
         <Txt size={12} weight="medium" as="label" style={{ whiteSpace: "pre" }}>

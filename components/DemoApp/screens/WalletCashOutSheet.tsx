@@ -646,6 +646,7 @@ function Form({
           ? phoneInput
           : nameInput;
     input.current?.focus({ preventScroll: true });
+    input.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
   };
   const leave = (field: InUse) =>
     setActive((now) => (now === field ? null : now));
@@ -716,19 +717,21 @@ function Form({
   const roomy = rooms.full >= 570;
   const room = roomy ? rooms.full : rooms.flush;
   const fits = room >= 570;
-  const shortTop = Math.max(
-    above + 4,
-    Math.min(above + SHORT_GAP, room - amountHeight),
-  );
+  const shortTop = keyed
+    ? Math.max(
+        above + 4,
+        Math.min(above + SHORT_GAP, room - amountHeight),
+      )
+    : above + 4;
   const amountTop = toBank
     ? 422
     : named
       ? 515
-      : typing || opening
-        ? fits
-          ? 570 - amountHeight
-          : shortTop
-        : 397;
+      : typing
+        ? shortTop
+        : opening || amount === ""
+          ? 515
+          : 397;
   const drop =
     toBank || named || fits
       ? 0
