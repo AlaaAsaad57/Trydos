@@ -249,7 +249,7 @@ export default function CommentProductInfo({
     language,
   });
 
-  const productUrl = productSlug ? `/${language}/product/${productSlug}` : null;
+  const productUrl = productSlug ? `/products/${productSlug}` : null;
 
   return (
     <div
