@@ -343,18 +343,31 @@ export default function CommentsTab({
                         isRtl={isRtl}
                       />
                     )}
-                    <div className="flex-row items-center">
-                      <div className="comment-photo">
-                        <img
-                          src={comment.user_avatar || FALLBACK_AVATAR}
-                          alt={comment.user_name}
-                        />
-                      </div>
-                      <div className="comment-content capitalize mx-[10px]">
-                        <div className="comment-source text-[#1D1D1D] text-[9px] regular">
-                          {!isReview && <span className="bold pr-[4px]">Q</span>}
-                          {comment.user_name}
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex-row items-center">
+                        <div className="comment-photo">
+                          <img
+                            src={comment.user_avatar || FALLBACK_AVATAR}
+                            alt={comment.user_name}
+                          />
                         </div>
+                        <div className="comment-content capitalize mx-[10px]">
+                          <div className="comment-source text-[#1D1D1D] text-[9px] regular">
+                            {!isReview && <span className="bold pr-[4px]">Q</span>}
+                            {comment.user_name}
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        className="comment-date text-[9px] text-[#1d1d1d] shrink-0"
+                        style={{
+                          position: "static",
+                          top: "auto",
+                          right: "auto",
+                          left: "auto",
+                        }}
+                      >
+                        {formatDate(comment.created_at, language)}
                       </div>
                     </div>
                     {!comment.product_id && comment.variant && (
@@ -362,15 +375,6 @@ export default function CommentsTab({
                         {comment.variant}
                       </span>
                     )}
-                    <div
-                      className="comment-date text-[9px] absolute text-[#1d1d1d]"
-                      style={{
-                        right: isRtl ? "initial" : "10px",
-                        left: isRtl ? "10px" : "initial",
-                      }}
-                    >
-                      {formatDate(comment.created_at, language)}
-                    </div>
                     <div
                       data-pw="dashboard-comment-text"
                       className={`${
