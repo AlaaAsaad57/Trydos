@@ -17,6 +17,12 @@ const ReplyToFQAComment = vi.fn();
 const EditReplyForFqaComment = vi.fn();
 const DeleteReplyForFqaComment = vi.fn();
 
+const mockFetchData = vi.fn();
+
+vi.mock("utils/fetchData", () => ({
+  fetchData: (...a: unknown[]) => mockFetchData(...a),
+}));
+
 vi.mock("services/sellerDashboard/comments", () => ({
   default: {
     GetFQAComments: (...a: unknown[]) => GetFQAComments(...a),
@@ -84,6 +90,8 @@ beforeEach(() => {
   ]) {
     spy.mockReset();
   }
+  mockFetchData.mockReset();
+  mockFetchData.mockResolvedValue({ success: true, data: null });
   GetFQAComments.mockResolvedValue(listAnswer([comment()]));
   GetReviewComments.mockResolvedValue(listAnswer([]));
 });
@@ -545,3 +553,124 @@ describe("Comments section — edges of the list and the reply box", () => {
     await waitFor(() => expect(screen.queryByText("First answer")).not.toBeInTheDocument());
   });
 });
+
+describe("Comments section — product display for comments", () => {
+  const sampleProduct = {
+    id: 55,
+    name: "Classic Silk Dress",
+    slug: "classic-silk-dress",
+    thumbnail: "/uploads/dress-thumb.jpg",
+    colors: [{ name: "Red", code: "#FF0000" }],
+    sizes: ["M"],
+    sync_color_images: [
+      {
+        color_name: "Red",
+        color_code: "#FF0000",
+        images: ["/uploads/red-dress.jpg"],
+      },
+    ],
+  };
+
+  it("fetches product details by ID and shows product name, color image, and variant", async () => {
+    mockFetchData.mockImplementation(async ({ url }: any) => {
+      if (url.includes("/web/product/globalDetailsById/p1")) {
+        return { success: true, data: sampleProduct };
+      }
+      return { success: true, data: null };
+    });
+
+    GetFQAComments.mockResolvedValue(
+      listAnswer([
+        comment({
+          comment_id: "c1",
+          product_id: "p1",
+          variant: "Red - M",
+          text: "Is this dress available in other sizes?",
+        }),
+      ]),
+    );
+
+    await mount();
+
+    // Verify fetchData called for the product with market server
+    await waitFor(() => {
+      expect(mockFetchData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: "/web/product/globalDetailsById/p1",
+          server: "market",
+          method: "GET",
+        }),
+      );
+    });
+
+    // Verify product name, color, size, and image rendered
+    expect(await screen.findByText("Classic Silk Dress")).toBeInTheDocument();
+    expect(screen.getByText("Red")).toBeInTheDocument();
+    expect(screen.getByText("M")).toBeInTheDocument();
+
+    const img = screen.getByRole("img", { name: "Classic Silk Dress" });
+    expect(img).toHaveAttribute("src", expect.stringContaining("red-dress.jpg"));
+  });
+
+  it("shows fallback standard pill when comment has no variant", async () => {
+    mockFetchData.mockImplementation(async ({ url }: any) => {
+      if (url.includes("/web/product/globalDetailsById/p1")) {
+        return { success: true, data: sampleProduct };
+      }
+      return { success: true, data: null };
+    });
+
+    GetFQAComments.mockResolvedValue(
+      listAnswer([
+        comment({
+          comment_id: "c1",
+          product_id: "p1",
+          variant: "",
+          text: "When will this be restocked?",
+        }),
+      ]),
+    );
+
+    await mount();
+
+    expect(await screen.findByText("Classic Silk Dress")).toBeInTheDocument();
+    expect(screen.getByText("Standard")).toBeInTheDocument();
+  });
+
+  it("deduplicates product fetches when multiple comments share the same product_id", async () => {
+    mockFetchData.mockImplementation(async ({ url }: any) => {
+      if (url.includes("/web/product/globalDetailsById/p1")) {
+        return { success: true, data: sampleProduct };
+      }
+      return { success: true, data: null };
+    });
+
+    GetFQAComments.mockResolvedValue(
+      listAnswer([
+        comment({
+          comment_id: "c1",
+          product_id: "p1",
+          text: "First comment",
+        }),
+        comment({
+          comment_id: "c2",
+          product_id: "p1",
+          text: "Second comment",
+        }),
+      ]),
+    );
+
+    await mount();
+
+    await screen.findByText("First comment");
+    await screen.findByText("Second comment");
+
+    await waitFor(() => {
+      const p1Calls = mockFetchData.mock.calls.filter(([params]) =>
+        params?.url?.includes("/web/product/globalDetailsById/p1"),
+      );
+      expect(p1Calls.length).toBe(1);
+    });
+  });
+});
+
