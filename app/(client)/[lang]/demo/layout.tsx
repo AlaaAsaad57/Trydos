@@ -27,6 +27,14 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1.0,
+  maximumScale: 1.0,
+  userScalable: false,
+  viewportFit: "cover",
+};
+
 export default async function DemoLayout({
   children,
 }: {

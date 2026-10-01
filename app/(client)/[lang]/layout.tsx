@@ -57,6 +57,7 @@ export const viewport = {
   initialScale: 1.0,
   maximumScale: 1.0,
   userScalable: false,
+  viewportFit: "cover",
 };
 // All five faces come from ONE variable Quicksand file (wght 300–700) — the same
 // font binary the rdb app uses. The previous five static per-weight woff2 files

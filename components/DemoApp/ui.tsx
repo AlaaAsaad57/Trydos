@@ -860,14 +860,20 @@ export function MenuRow({
 export function useOuterBackdrop(open: boolean, paint: string, top: string) {
   // 1 px narrower on each side than the canvas, so no sliver of it shows
   // beside the canvas where the two edges round differently.
-  const background = `${paint} calc(var(--app-canvas-left, 0px) + 1px) 0 / calc(${DESIGN_W}px * var(--app-scale, 1) - 2px) 100% no-repeat ${C.white}`;
+  // The fallback background-color is `top` so Safari's modern sampling engine
+  // samples `top` instead of white across the entire viewport.
+  const background = `${paint} calc(var(--app-canvas-left, 0px) + 1px) 0 / calc(${DESIGN_W}px * var(--app-scale, 1) - 2px) 100% no-repeat ${top}`;
   React.useEffect(() => {
     if (!open) return;
     const outer = document.getElementById("app-outer");
     const beforeOuter = outer?.style.background ?? "";
+    const beforeOuterBg = outer?.style.backgroundColor ?? "";
     const beforeBody = document.body.style.backgroundColor;
     const beforeHtml = document.documentElement.style.backgroundColor;
-    if (outer) outer.style.background = background;
+    if (outer) {
+      outer.style.background = background;
+      outer.style.backgroundColor = top;
+    }
     document.body.style.backgroundColor = top;
     document.documentElement.style.backgroundColor = top;
 
@@ -883,7 +889,10 @@ export function useOuterBackdrop(open: boolean, paint: string, top: string) {
     meta.content = top;
 
     return () => {
-      if (outer) outer.style.background = beforeOuter;
+      if (outer) {
+        outer.style.background = beforeOuter;
+        outer.style.backgroundColor = beforeOuterBg;
+      }
       document.body.style.backgroundColor = beforeBody;
       document.documentElement.style.backgroundColor = beforeHtml;
       if (created) meta?.remove();
@@ -902,6 +911,7 @@ export function useOuterBackdrop(open: boolean, paint: string, top: string) {
       left: "0",
       width: "100vw",
       height: "max(4px, env(safe-area-inset-top, 44px))",
+      backgroundColor: top,
       background: top,
       pointerEvents: "none",
       zIndex: "2147483647",
