@@ -23,6 +23,7 @@ import {
   Sheet,
   Stroke,
   Txt,
+  Under,
   useCanvasEnd,
 } from "../ui";
 import { useKeypadRoom } from "../useKeypadRoom";
@@ -115,30 +116,6 @@ function Slots({
   );
 }
 
-/**
- * The part of a step under its tabs (the trydos | rdb step) or its network
- * tag (the crypto code). On a canvas shorter than the board it scrolls on its
- * own, and the head and the tabs above it stay in view. On a full-height
- * canvas it fits and does not move.
- */
-function Under({
-  testId,
-  children,
-}: {
-  testId: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      data-pw={testId}
-      className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain"
-      style={{ scrollbarWidth: "none" }}
-    >
-      {children}
-    </div>
-  );
-}
-
 /** The network as the tabs and the tag write it: the coin and the standard Medium. */
 function Network() {
   return (
@@ -205,8 +182,6 @@ export default function WalletCashInSheet({
   const [typing, setTyping] = useState(false);
   /** Where the canvas ends (design y): a form in use ends there, not at 930. */
   const end = useCanvasEnd(open);
-  /** The steps whose head and tabs stay while the part under them scrolls. */
-  const split = step === "rdb" || step === "code";
   /** The safety rules (`Home Page – 39`) lie over the crypto form. */
   const [safe, setSafe] = useState(false);
   /** The picture of a code lies over the sheet (`– 31`, `– 38`). */
@@ -254,22 +229,9 @@ export default function WalletCashInSheet({
             key={step}
             data-pw={`demo-wallet-cash-in-${step}`}
             className="flex flex-col shrink-0"
-            // The forms and the codes reach the board's end, where their
-            // buttons sit. Only a form in use ends where the canvas ends, so
-            // it does not scroll under the keyboard. A split step is as tall
-            // as the canvas lets it be, so only the part under its tabs
-            // scrolls.
-            style={
-              split
-                ? { height: Math.min(BOARD_END, end) - (TOP[step] + 13) }
-                : {
-                    minHeight:
-                      step === "ways"
-                        ? undefined
-                        : (typing ? Math.min(BOARD_END, end) : BOARD_END) -
-                          (TOP[step] + 13),
-                  }
-            }
+            // A step is as tall as the canvas lets it be: its head stays in
+            // place and only the part under the head scrolls (see `Under`).
+            style={{ height: Math.min(BOARD_END, end) - (TOP[step] + 13) }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -298,6 +260,7 @@ export default function WalletCashInSheet({
                 amount={amount}
                 setAmount={setAmount}
                 onGenerate={() => setSafe(true)}
+                typing={typing}
                 onKeypad={setTyping}
               />
             )}
@@ -322,6 +285,7 @@ export default function WalletCashInSheet({
         testId="demo-wallet-cash-in-safe"
       >
         <Safe
+          end={end}
           onAgree={() => {
             setSafe(false);
             setStep("code");
@@ -374,173 +338,175 @@ function Ways({
   return (
     <>
       <Title top={top} mark={mark} medium />
-      <FileLines
-        text={t(
-          "You can add funds to an account through the following options easily and securely.",
-        )}
-        lines={[
-          { x: 61.11, text: "You Can Add Funds To An Account Through The " },
-          { x: 92.1, text: "Following Options Easily And Securely." },
-        ]}
-        left={32}
-        ml={32}
-        width={366}
-        size={14}
-        lineHeight={18}
-        mt={paraTop(296, 14, 18) - (top + 24 + lineBox(24))}
-      />
-
-      {/* Two lines of 18 from y 282 end at 318. */}
-      <BrandCard y={338} mt={338 - (282 + 36)} onClick={onRdb} />
-
-      {/* The row starts 1 px above the tiles, so the outer half of their
-          lines (ON the edge) is not cut off by the row's own edge. */}
-      <div
-        data-pw="demo-wallet-cash-in-ways-row"
-        className="flex shrink-0 overflow-x-auto overflow-y-hidden overscroll-x-contain"
-        style={{
-          marginTop: 534 - (338 + 188) - 1,
-          paddingTop: 1,
-          height: 1 + (669 - 534),
-          scrollbarWidth: "none",
-        }}
-      >
-        {WALLET_CASH_IN_WAYS.map((way, i) => (
-          <div
-            key={way.id}
-            className="flex flex-col shrink-0"
-            style={{
-              marginLeft: i === 0 ? 20 : 8,
-              // The row ends 20 px after the last tile, as it starts.
-              marginRight: i === WALLET_CASH_IN_WAYS.length - 1 ? 20 : 0,
-            }}
-          >
-            <motion.button
-              type="button"
-              aria-label={way.name === "Visa | Mastercard" ? way.name : t(way.name)}
-              data-pw={`demo-wallet-cash-in-way-${way.id}`}
-              onClick={way.id === "crypto" ? onCrypto : undefined}
-              disabled={way.soon}
-              whileTap={way.soon ? undefined : { scale: 0.97 }}
-              className={`shrink-0 ${way.soon ? "" : "cursor-pointer"}`}
-            >
-              <Box
-                w={125}
-                h={125}
-                radius={15}
-                fill={C.card}
-                stroke={C.line}
-                strokeAlign="center"
-                style={{ padding: 12 }}
-              >
-                {way.icon ? (
-                  <Box
-                    w={101}
-                    h={101}
-                    radius={15}
-                    fill={C.white}
-                    stroke={C.line}
-                    strokeAlign="center"
-                  >
-                    <Icon name={way.icon} />
-                  </Box>
-                ) : (
-                  <img
-                    src={`/assets/demo/xd/${way.picture}.jpg`}
-                    alt=""
-                    draggable={false}
-                    width={101}
-                    height={101}
-                    className="block object-cover select-none pointer-events-none"
-                    style={{ width: 101, height: 101, borderRadius: 15 }}
-                  />
-                )}
-              </Box>
-            </motion.button>
-            {way.soon && (
-              // The tag hangs 9 px over the tile's bottom edge.
-              <Box
-                w={76}
-                h={19}
-                mt={650 - (534 + 125)}
-                ml={45 - 20}
-                radius={6.8}
-                fill={C.card}
-                stroke={C.hint}
-                data-pw="demo-wallet-cash-in-soon"
-                className="flex flex-col"
-              >
-                <Txt center size={9} mt={gapTo(650, 663, 9)}>
-                  {t("Soon available")}
-                </Txt>
-              </Box>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <Box
-        w={390}
-        h={204}
-        mt={691 - 669}
-        ml={20}
-        radius={15}
-        fill={C.card}
-        stroke={C.line}
-        strokeAlign="center"
-        className="flex flex-col"
-        // The card ends at y 895: 35 px above the artboard's bottom.
-        style={{
-          height: undefined,
-          minHeight: 204,
-          paddingBottom: 895 - (845 + 38),
-          marginBottom: BOARD_END - 895,
-        }}
-      >
-        <FileLines
-          text={t("Add funds !")}
-          lines={[{ x: 184.94, text: "Add Funds !" }]}
-          left={32}
-          ml={32 - 20}
-          width={366}
-          size={11}
-          lineHeight={lineBox(11)}
-          weight="medium"
-          color={C.grey}
-          mt={gapTo(691, 714, 11)}
-        />
+      <Under testId="demo-wallet-cash-in-ways-under">
         <FileLines
           text={t(
-            "You can deposit your funds with complete ease through one of our Trydos & RDB centers. You can also deposit your funds into your personal account on RDB. Additionally, any person or another account can add funds to your account.",
+            "You can add funds to an account through the following options easily and securely.",
           )}
           lines={[
-            { x: 38, text: "You Can Deposit Your Funds With Complete Ease Through One Of Our " },
-            { x: 49.79, text: "Trydos & RDB Centers. You Can Also Deposit Your Funds Into Your " },
-            { x: 34.93, text: "Personal Account On RDB. Additionally, Any Person Or Another Account " },
-            { x: 133.04, text: "Can Add Funds To Your Account." },
+            { x: 61.11, text: "You Can Add Funds To An Account Through The " },
+            { x: 92.1, text: "Following Options Easily And Securely." },
           ]}
           left={32}
-          ml={32 - 20}
+          ml={32}
           width={366}
-          size={11}
+          size={14}
           lineHeight={18}
-          color={C.grey}
-          mt={paraTop(736, 11, 18) - textBottom(714, 11)}
+          mt={paraTop(296, 14, 18) - (top + 24 + lineBox(24))}
         />
-        {/* Four lines end at y 795; the first button is at 801. */}
-        <InfoButton
-          mt={801 - (paraTop(736, 11, 18) + 4 * 18)}
-          label={t("Available branches")}
-          testId="demo-wallet-cash-in-branches"
-        />
-        {/* The file starts "More Info" at x 190: half a px left of centre. */}
-        <InfoButton
-          mt={845 - (801 + 38)}
-          nudge={-0.5}
-          label={t("More Info")}
-          testId="demo-wallet-cash-in-more-info"
-        />
-      </Box>
+
+        {/* Two lines of 18 from y 282 end at 318. */}
+        <BrandCard y={338} mt={338 - (282 + 36)} onClick={onRdb} />
+
+        {/* The row starts 1 px above the tiles, so the outer half of their
+            lines (ON the edge) is not cut off by the row's own edge. */}
+        <div
+          data-pw="demo-wallet-cash-in-ways-row"
+          className="flex shrink-0 overflow-x-auto overflow-y-hidden overscroll-x-contain"
+          style={{
+            marginTop: 534 - (338 + 188) - 1,
+            paddingTop: 1,
+            height: 1 + (669 - 534),
+            scrollbarWidth: "none",
+          }}
+        >
+          {WALLET_CASH_IN_WAYS.map((way, i) => (
+            <div
+              key={way.id}
+              className="flex flex-col shrink-0"
+              style={{
+                marginLeft: i === 0 ? 20 : 8,
+                // The row ends 20 px after the last tile, as it starts.
+                marginRight: i === WALLET_CASH_IN_WAYS.length - 1 ? 20 : 0,
+              }}
+            >
+              <motion.button
+                type="button"
+                aria-label={way.name === "Visa | Mastercard" ? way.name : t(way.name)}
+                data-pw={`demo-wallet-cash-in-way-${way.id}`}
+                onClick={way.id === "crypto" ? onCrypto : undefined}
+                disabled={way.soon}
+                whileTap={way.soon ? undefined : { scale: 0.97 }}
+                className={`shrink-0 ${way.soon ? "" : "cursor-pointer"}`}
+              >
+                <Box
+                  w={125}
+                  h={125}
+                  radius={15}
+                  fill={C.card}
+                  stroke={C.line}
+                  strokeAlign="center"
+                  style={{ padding: 12 }}
+                >
+                  {way.icon ? (
+                    <Box
+                      w={101}
+                      h={101}
+                      radius={15}
+                      fill={C.white}
+                      stroke={C.line}
+                      strokeAlign="center"
+                    >
+                      <Icon name={way.icon} />
+                    </Box>
+                  ) : (
+                    <img
+                      src={`/assets/demo/xd/${way.picture}.jpg`}
+                      alt=""
+                      draggable={false}
+                      width={101}
+                      height={101}
+                      className="block object-cover select-none pointer-events-none"
+                      style={{ width: 101, height: 101, borderRadius: 15 }}
+                    />
+                  )}
+                </Box>
+              </motion.button>
+              {way.soon && (
+                // The tag hangs 9 px over the tile's bottom edge.
+                <Box
+                  w={76}
+                  h={19}
+                  mt={650 - (534 + 125)}
+                  ml={45 - 20}
+                  radius={6.8}
+                  fill={C.card}
+                  stroke={C.hint}
+                  data-pw="demo-wallet-cash-in-soon"
+                  className="flex flex-col"
+                >
+                  <Txt center size={9} mt={gapTo(650, 663, 9)}>
+                    {t("Soon available")}
+                  </Txt>
+                </Box>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <Box
+          w={390}
+          h={204}
+          mt={691 - 669}
+          ml={20}
+          radius={15}
+          fill={C.card}
+          stroke={C.line}
+          strokeAlign="center"
+          className="flex flex-col"
+          // The card ends at y 895: 35 px above the artboard's bottom.
+          style={{
+            height: undefined,
+            minHeight: 204,
+            paddingBottom: 895 - (845 + 38),
+            marginBottom: BOARD_END - 895,
+          }}
+        >
+          <FileLines
+            text={t("Add funds !")}
+            lines={[{ x: 184.94, text: "Add Funds !" }]}
+            left={32}
+            ml={32 - 20}
+            width={366}
+            size={11}
+            lineHeight={lineBox(11)}
+            weight="medium"
+            color={C.grey}
+            mt={gapTo(691, 714, 11)}
+          />
+          <FileLines
+            text={t(
+              "You can deposit your funds with complete ease through one of our Trydos & RDB centers. You can also deposit your funds into your personal account on RDB. Additionally, any person or another account can add funds to your account.",
+            )}
+            lines={[
+              { x: 38, text: "You Can Deposit Your Funds With Complete Ease Through One Of Our " },
+              { x: 49.79, text: "Trydos & RDB Centers. You Can Also Deposit Your Funds Into Your " },
+              { x: 34.93, text: "Personal Account On RDB. Additionally, Any Person Or Another Account " },
+              { x: 133.04, text: "Can Add Funds To Your Account." },
+            ]}
+            left={32}
+            ml={32 - 20}
+            width={366}
+            size={11}
+            lineHeight={18}
+            color={C.grey}
+            mt={paraTop(736, 11, 18) - textBottom(714, 11)}
+          />
+          {/* Four lines end at y 795; the first button is at 801. */}
+          <InfoButton
+            mt={801 - (paraTop(736, 11, 18) + 4 * 18)}
+            label={t("Available branches")}
+            testId="demo-wallet-cash-in-branches"
+          />
+          {/* The file starts "More Info" at x 190: half a px left of centre. */}
+          <InfoButton
+            mt={845 - (801 + 38)}
+            nudge={-0.5}
+            label={t("More Info")}
+            testId="demo-wallet-cash-in-more-info"
+          />
+        </Box>
+      </Under>
     </>
   );
 }
@@ -757,20 +723,14 @@ function Rdb({
         </Tab>
       </div>
 
-      <Under testId="demo-wallet-cash-in-rdb-under">
+      {/* "From My rdb" is as tall as the board under the tabs (y 241 to 930),
+          so its button keeps the file's place (y 835). */}
+      <Under
+        testId="demo-wallet-cash-in-rdb-under"
+        minHeight={fromBank && !typing ? BOARD_END - (213 + 28) : undefined}
+      >
         {fromBank ? (
-          // As tall as the board under the tabs (y 241 to 930), so the button
-          // keeps the file's place (y 835) and its spacing: on a short canvas
-          // it is under the screen's end and this part scrolls to it. With
-          // the field in use the form ends where the canvas ends, so it does
-          // not scroll under the keyboard.
-          <div
-            data-pw="demo-wallet-cash-in-bank-form"
-            className={`flex flex-col shrink-0 ${typing ? "grow" : ""}`}
-            style={{
-              minHeight: typing ? undefined : BOARD_END - (213 + 28),
-            }}
-          >
+          <>
             <Recipient
               mt={245 - (213 + 28)}
               label={<WithBank text={t("{bank} client ID")} />}
@@ -823,7 +783,7 @@ function Rdb({
                 testId="demo-wallet-cash-in-connect"
               />
             </div>
-          </div>
+          </>
         ) : (
           <>
             <Icon name="qrCashIn" mt={260.41 - (213 + 28)} ml={65} />
@@ -1163,6 +1123,7 @@ function Crypto({
   amount,
   setAmount,
   onGenerate,
+  typing,
   onKeypad,
 }: {
   head: React.ReactNode;
@@ -1172,6 +1133,8 @@ function Crypto({
   /** "Generate QR Code": the safety rules first (`– 39`). */
   onGenerate: () => void;
   /** The app's keypad went up or away. */
+  /** The amount field is in use. */
+  typing: boolean;
   onKeypad: (open: boolean) => void;
 }) {
   const { t } = useDemoNav();
@@ -1208,115 +1171,120 @@ function Crypto({
         </Tab>
       </div>
 
-      <ClientFields
-        mt={245 - (213 + 28)}
-        balance={balance}
-        eye
-        testId="demo-wallet-cash-in-crypto-client"
-      />
-      <AmountField
-        mt={422 - (363 + 55)}
-        label={t("Enter requested amount")}
-        balance={balance}
-        amount={amount}
-        setAmount={setAmount}
-        onKeypad={onKeypad}
-        note={
-          typed ? (
-            // The file starts the line at x 53: 3.2 px right of centre.
-            <Txt
-              center
-              nudge={3.2}
-              size={11}
-              color={C.card}
-              mt={gapTo(477, 496, 11)}
-              style={{ whiteSpace: "pre" }}
-            >
-              <Slots
-                text={t(
-                  "We will charge {charge} {coin} for topping up your balance {amount} {code}.",
-                )}
-                slots={{
-                  charge: <span className="font-medium">{fee}</span>,
-                  coin: WALLET_CRYPTO.coin,
-                  amount: <span className="font-medium">{amount}</span>,
-                  code: balance.code,
-                }}
-              />
-            </Txt>
-          ) : undefined
-        }
-      />
-
-      <AnimatePresence initial={false}>
-        {typed && (
-          <motion.div
-            key="summary"
-            className="flex flex-col shrink-0"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            {/* 390 x 58 at (20, 519), 4 px under the field. */}
-            <Box
-              w={390}
-              h={58}
-              mt={519 - (422 + 93)}
-              ml={20}
-              radius={15}
-              fill={C.card}
-              stroke={C.line}
-              strokeAlign="center"
-              data-pw="demo-wallet-cash-in-summary"
-              className="flex flex-col"
-              style={{ paddingLeft: 12 }}
-            >
+      <Under
+        testId="demo-wallet-cash-in-crypto-under"
+        minHeight={typing ? undefined : BOARD_END - (213 + 28)}
+      >
+        <ClientFields
+          mt={245 - (213 + 28)}
+          balance={balance}
+          eye
+          testId="demo-wallet-cash-in-crypto-client"
+        />
+        <AmountField
+          mt={422 - (363 + 55)}
+          label={t("Enter requested amount")}
+          balance={balance}
+          amount={amount}
+          setAmount={setAmount}
+          onKeypad={onKeypad}
+          note={
+            typed ? (
+              // The file starts the line at x 53: 3.2 px right of centre.
               <Txt
+                center
+                nudge={3.2}
                 size={11}
-                weight="medium"
-                mt={gapTo(519, 542, 11)}
+                color={C.card}
+                mt={gapTo(477, 496, 11)}
                 style={{ whiteSpace: "pre" }}
               >
                 <Slots
-                  text={t("You will pay {charge} {network} to generated wallet")}
-                  slots={{ charge: fee, network: NETWORK }}
-                />
-              </Txt>
-              <Txt
-                size={11}
-                mt={gapTo(textBottom(542, 11), 562, 11)}
-                style={{ whiteSpace: "pre" }}
-              >
-                <Slots
-                  text={t("We will send to your Trydos balance {amount} {code}")}
+                  text={t(
+                    "We will charge {charge} {coin} for topping up your balance {amount} {code}.",
+                  )}
                   slots={{
-                    amount: <span className="font-bold">{amount}</span>,
+                    charge: <span className="font-medium">{fee}</span>,
+                    coin: WALLET_CRYPTO.coin,
+                    amount: <span className="font-medium">{amount}</span>,
                     code: balance.code,
                   }}
                 />
               </Txt>
-            </Box>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            ) : undefined
+          }
+        />
 
-      <div
-        className="flex flex-col shrink-0 mt-auto"
-        style={{ paddingTop: 8, paddingBottom: BOARD_END - 895 }}
-      >
         <AnimatePresence initial={false}>
           {typed && (
-            <SheetButton
-              key="generate"
-              label={t("Generate QR code")}
-              fill={C.inkSoft}
-              onClick={onGenerate}
-              testId="demo-wallet-cash-in-generate"
-            />
+            <motion.div
+              key="summary"
+              className="flex flex-col shrink-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              {/* 390 x 58 at (20, 519), 4 px under the field. */}
+              <Box
+                w={390}
+                h={58}
+                mt={519 - (422 + 93)}
+                ml={20}
+                radius={15}
+                fill={C.card}
+                stroke={C.line}
+                strokeAlign="center"
+                data-pw="demo-wallet-cash-in-summary"
+                className="flex flex-col"
+                style={{ paddingLeft: 12 }}
+              >
+                <Txt
+                  size={11}
+                  weight="medium"
+                  mt={gapTo(519, 542, 11)}
+                  style={{ whiteSpace: "pre" }}
+                >
+                  <Slots
+                    text={t("You will pay {charge} {network} to generated wallet")}
+                    slots={{ charge: fee, network: NETWORK }}
+                  />
+                </Txt>
+                <Txt
+                  size={11}
+                  mt={gapTo(textBottom(542, 11), 562, 11)}
+                  style={{ whiteSpace: "pre" }}
+                >
+                  <Slots
+                    text={t("We will send to your Trydos balance {amount} {code}")}
+                    slots={{
+                      amount: <span className="font-bold">{amount}</span>,
+                      code: balance.code,
+                    }}
+                  />
+                </Txt>
+              </Box>
+            </motion.div>
           )}
         </AnimatePresence>
-      </div>
+
+        <div
+          className="flex flex-col shrink-0 mt-auto"
+          style={{ paddingTop: 8, paddingBottom: BOARD_END - 895 }}
+        >
+          <AnimatePresence initial={false}>
+            {typed && (
+              <SheetButton
+                key="generate"
+                label={t("Generate QR code")}
+                fill={C.inkSoft}
+                onClick={onGenerate}
+                testId="demo-wallet-cash-in-generate"
+              />
+            )}
+          </AnimatePresence>
+        </div>
+      </Under>
     </>
   );
 }
@@ -1440,9 +1408,12 @@ const SF_LINE = { fontFamily: SF_ROUNDED, fontSize: 12, lineHeight: "18px" };
  *     on baseline 891.
  */
 function Safe({
+  end,
   onAgree,
   onCancel,
 }: {
+  /** The design y where the canvas ends. */
+  end: number;
   onAgree: () => void;
   onCancel: () => void;
 }) {
@@ -1452,7 +1423,9 @@ function Safe({
     <div
       data-pw="demo-wallet-cash-in-safe-rules"
       className="flex flex-col shrink-0"
-      style={{ minHeight: BOARD_END - (SAFE_TOP + 13) }}
+      // As tall as the canvas lets it be: the shield and the title stay in
+      // place, and the rules and the buttons scroll under them.
+      style={{ height: Math.min(BOARD_END, end) - (SAFE_TOP + 13) }}
     >
       <Icon
         name="shieldSafe"
@@ -1470,99 +1443,104 @@ function Safe({
         {t("Your transactions are safe")}
       </Txt>
 
-      {RULES.map((item, i) => (
-        <React.Fragment key={item.rule}>
-          <div
-            className="flex items-start shrink-0"
-            style={{
-              marginTop: i === 0 ? first - textBottom(354, 14) : 4,
-              marginLeft: 20,
-            }}
-          >
-            {/* The dot's top is 2 px under the line's top (378 against 376). */}
-            <div className="shrink-0" style={{ marginTop: 2 }}>
-              <Bullet big ok={item.ok} />
-            </div>
-            <span
-              className="block shrink-0 font-normal whitespace-nowrap"
+      <Under
+        testId="demo-wallet-cash-in-safe-under"
+        minHeight={BOARD_END - textBottom(354, 14)}
+      >
+        {RULES.map((item, i) => (
+          <React.Fragment key={item.rule}>
+            <div
+              className="flex items-start shrink-0"
               style={{
-                ...SF_LINE,
-                color: C.ink,
-                marginLeft: (i === 0 ? 40 : 42) - (20 + 14),
+                marginTop: i === 0 ? first - textBottom(354, 14) : 4,
+                marginLeft: 20,
               }}
             >
-              {t(item.rule)}
-            </span>
-          </div>
-          {item.notes.map((note, n) => {
-            const x = i === 0 ? 56 : 58;
-            return (
-              <div
-                key={`${note.text}-${n}`}
-                className="flex items-start shrink-0"
-                style={{ marginTop: 4, marginLeft: i === 0 ? 40 : 42 }}
-              >
-                {/* The dot's top is 4 px under the line's top (402 against 398). */}
-                <div className="shrink-0" style={{ marginTop: 4 }}>
-                  <Bullet big={false} ok={note.ok} />
-                </div>
-                <FileLines
-                  text={t(note.text)}
-                  lines={note.lines.map((line) => ({ x, text: line }))}
-                  left={x}
-                  ml={16 - 10}
-                  width={351}
-                  size={12}
-                  lineHeight={18}
-                  family={SF_ROUNDED}
-                  weight="light"
-                  color={C.ring}
-                  align="left"
-                />
+              {/* The dot's top is 2 px under the line's top (378 against 376). */}
+              <div className="shrink-0" style={{ marginTop: 2 }}>
+                <Bullet big ok={item.ok} />
               </div>
-            );
-          })}
-        </React.Fragment>
-      ))}
+              <span
+                className="block shrink-0 font-normal whitespace-nowrap"
+                style={{
+                  ...SF_LINE,
+                  color: C.ink,
+                  marginLeft: (i === 0 ? 40 : 42) - (20 + 14),
+                }}
+              >
+                {t(item.rule)}
+              </span>
+            </div>
+            {item.notes.map((note, n) => {
+              const x = i === 0 ? 56 : 58;
+              return (
+                <div
+                  key={`${note.text}-${n}`}
+                  className="flex items-start shrink-0"
+                  style={{ marginTop: 4, marginLeft: i === 0 ? 40 : 42 }}
+                >
+                  {/* The dot's top is 4 px under the line's top (402 against 398). */}
+                  <div className="shrink-0" style={{ marginTop: 4 }}>
+                    <Bullet big={false} ok={note.ok} />
+                  </div>
+                  <FileLines
+                    text={t(note.text)}
+                    lines={note.lines.map((line) => ({ x, text: line }))}
+                    left={x}
+                    ml={16 - 10}
+                    width={351}
+                    size={12}
+                    lineHeight={18}
+                    family={SF_ROUNDED}
+                    weight="light"
+                    color={C.ring}
+                    align="left"
+                  />
+                </div>
+              );
+            })}
+          </React.Fragment>
+        ))}
 
-      <div
-        className="flex flex-col shrink-0 mt-auto"
-        style={{ paddingTop: 8, paddingBottom: BOARD_END - 895 }}
-      >
-        <motion.button
-          type="button"
-          data-pw="demo-wallet-cash-in-agree"
-          onClick={onAgree}
-          whileTap={{ scale: 0.98 }}
-          className="relative flex flex-col shrink-0 cursor-pointer"
-          style={{
-            marginLeft: 30,
-            width: 370,
-            height: 60,
-            borderRadius: 20,
-            background: C.cryptoBlue,
-          }}
+        <div
+          className="flex flex-col shrink-0 mt-auto"
+          style={{ paddingTop: 8, paddingBottom: BOARD_END - 895 }}
         >
-          {/* Baseline 36 in the button (839 - 803). */}
-          <Txt center size={16} color={C.white} mt={gapTo(0, 36, 16)}>
-            {t("I agree")}
-          </Txt>
-          <Stroke color={C.agreeLine} radius={20} />
-        </motion.button>
-        <motion.button
-          type="button"
-          data-pw="demo-wallet-cash-in-disagree"
-          onClick={onCancel}
-          whileTap={{ scale: 0.98 }}
-          className="flex flex-col shrink-0 cursor-pointer"
-          style={{ marginTop: gapTo(803 + 60, 891, 16) }}
-        >
-          {/* XD's letter spacing 25 is 25 / 1000 em. */}
-          <Txt center size={16} style={{ letterSpacing: "0.025em" }}>
-            {t("I disagree & cancel")}
-          </Txt>
-        </motion.button>
-      </div>
+          <motion.button
+            type="button"
+            data-pw="demo-wallet-cash-in-agree"
+            onClick={onAgree}
+            whileTap={{ scale: 0.98 }}
+            className="relative flex flex-col shrink-0 cursor-pointer"
+            style={{
+              marginLeft: 30,
+              width: 370,
+              height: 60,
+              borderRadius: 20,
+              background: C.cryptoBlue,
+            }}
+          >
+            {/* Baseline 36 in the button (839 - 803). */}
+            <Txt center size={16} color={C.white} mt={gapTo(0, 36, 16)}>
+              {t("I agree")}
+            </Txt>
+            <Stroke color={C.agreeLine} radius={20} />
+          </motion.button>
+          <motion.button
+            type="button"
+            data-pw="demo-wallet-cash-in-disagree"
+            onClick={onCancel}
+            whileTap={{ scale: 0.98 }}
+            className="flex flex-col shrink-0 cursor-pointer"
+            style={{ marginTop: gapTo(803 + 60, 891, 16) }}
+          >
+            {/* XD's letter spacing 25 is 25 / 1000 em. */}
+            <Txt center size={16} style={{ letterSpacing: "0.025em" }}>
+              {t("I disagree & cancel")}
+            </Txt>
+          </motion.button>
+        </div>
+      </Under>
     </div>
   );
 }

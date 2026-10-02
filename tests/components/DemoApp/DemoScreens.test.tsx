@@ -1102,8 +1102,9 @@ describe("Demo wallet — numbers from the XD file", () => {
     });
   });
 
-  describe("on a short screen the forms keep the file's spacing and scroll", () => {
-    // A phone in Safari: the canvas is 150 design px shorter than the artboard.
+  describe("on a short screen a sheet keeps its head in place and scrolls the part under it, with the file's spacing", () => {
+    // A phone in Safari: the canvas is 150 design px shorter than the artboard,
+    // so it ends at design y 832.
     beforeEach(() => {
       setDevice("touch");
       document.documentElement.style.setProperty("--xd-flex-deficit", "150px");
@@ -1112,15 +1113,44 @@ describe("Demo wallet — numbers from the XD file", () => {
       document.documentElement.style.removeProperty("--xd-flex-deficit");
     });
 
-    const panelOf = (sheet: HTMLElement) =>
-      [...sheet.querySelectorAll<HTMLElement>("div")].find((el) =>
-        el.style.borderRadius.startsWith("50px"),
-      );
+    /**
+     * The part of a step that scrolls: it must exist, hold `inside` and not
+     * hold the sheet's title, which stays in place over it.
+     */
+    const scrollingPart = (container: HTMLElement, name: string, underId: string, inside: string) => {
+      const under = container.querySelector<HTMLElement>(`[data-pw="${underId}"]`);
+      expect(
+        under,
+        `${name}: no part under the head scrolls on its own, so the handle and the title scroll away with the content`,
+      ).not.toBeNull();
+      expect(
+        under!.className,
+        `${name}: the part under the head does not scroll`,
+      ).toContain("overflow-y-auto");
+      // The sheet's title is the first heading of the step.
+      const title = under!.parentElement!.querySelector("h2");
+      expect(title, `${name}: the step has no title beside the part that scrolls`).not.toBeNull();
+      expect(
+        under!.contains(title),
+        `${name}: the title is inside the part that scrolls; it must stay in place over it`,
+      ).toBe(false);
+      expect(
+        under!.querySelector(`[data-pw="${inside}"]`),
+        `${name}: '${inside}' is not inside the part that scrolls`,
+      ).not.toBeNull();
+      return under!;
+    };
+    /** The block inside the scrolling part that keeps the file's height. */
+    const body = (under: HTMLElement) => under.firstElementChild as HTMLElement | null;
 
-    it("cash out: with the amount typed, the form is as tall as the board (to y 930), so its buttons stay at y 767 and 835 and the sheet scrolls to them", async () => {
+    const openCashOut = async () => {
       const container = await openDollars();
       fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!);
-      fireEvent.click((await find(container, "demo-wallet-way-rdb"))!);
+      await find(container, "demo-wallet-way-rdb");
+      return container;
+    };
+    const typeAmount = async (container: HTMLElement) => {
+      fireEvent.click(container.querySelector('[data-pw="demo-wallet-way-rdb"]')!);
       const input = (await find(container, "demo-wallet-amount-input")) as HTMLInputElement | null;
       expect(input, "the form has no amount input").not.toBeNull();
       if (NATIVE_WALLET_KEYBOARD) {
@@ -1144,48 +1174,118 @@ describe("Demo wallet — numbers from the XD file", () => {
       }
       const now = await find(container, "demo-wallet-withdraw-now");
       expect(now, "'Withdrawal Now' did not come in once the amount was typed").not.toBeNull();
+    };
 
-      const form = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-out-form"]');
-      await waitFor(() =>
-        expect(
-          form?.style.minHeight,
-          "the form ends where the short canvas ends, so its buttons moved up over the browser bar and the gap over them got smaller; it must reach y 930 (827 px under the handle) and scroll",
-        ).toBe("827px"),
-      );
-      const sheet = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-out-sheet"]')!;
-      const panel = panelOf(sheet);
+    it("cash out, the ways: the title stays and the ways scroll under it", async () => {
+      const container = await openCashOut();
+      const step = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-out-ways"]');
       expect(
-        panel?.style.top,
-        "the sheet left its design top (y 90) on the short canvas; the form must stay there and scroll",
-      ).not.toContain("--xd-flex-deficit");
-      expect(
-        panel?.querySelector(":scope > .overflow-y-auto"),
-        "the sheet's content does not scroll, so the buttons under the screen's end cannot be reached",
-      ).not.toBeNull();
+        step?.style.height,
+        "the step is not as tall as the canvas lets it be (y 257 to the canvas's end at 832), so the sheet scrolls as a whole",
+      ).toBe("575px");
+      scrollingPart(container, "cash out ways", "demo-wallet-cash-out-ways-under", "demo-wallet-way-rdb");
     }, 10000);
 
-    it("cash in with crypto: with the keyboard away, the form is as tall as the board (to y 930), so 'Generate QR Code' stays at y 835", async () => {
+    it("cash out form: the title, the brand and the two tabs stay; the fields and the buttons scroll under them, and the buttons keep y 767 and 835", async () => {
+      const container = await openCashOut();
+      await typeAmount(container);
+      const step = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-out-form"]');
+      await waitFor(() =>
+        expect(
+          step?.style.height,
+          "the step is not as tall as the canvas lets it be (y 103 to the canvas's end at 832), so the sheet scrolls as a whole",
+        ).toBe("729px"),
+      );
+      const under = scrollingPart(container, "cash out form", "demo-wallet-cash-out-form-under", "demo-wallet-withdraw-now");
+      expect(
+        under.querySelector('[data-pw="demo-wallet-tab-cash"]'),
+        "the tabs are inside the part that scrolls; they must stay in place with the title",
+      ).toBeNull();
+      expect(
+        body(under)?.style.minHeight,
+        "the part under the tabs ends where the short canvas ends, so the buttons moved up and the gap over them got smaller; it must reach y 930 (689 px under the tabs)",
+      ).toBe("689px");
+      const sheet = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-out-sheet"]')!;
+      const panel = [...sheet.querySelectorAll<HTMLElement>("div")].find((el) =>
+        el.style.borderRadius.startsWith("50px"),
+      );
+      expect(
+        panel?.style.top,
+        "the sheet left its design top (y 90) on the short canvas",
+      ).not.toContain("--xd-flex-deficit");
+    }, 10000);
+
+    it("cash out, the code reader: the title and the brand stay; the code and 'Back' scroll under them, and 'Back' keeps y 835", async () => {
+      const container = await openCashOut();
+      await typeAmount(container);
+      fireEvent.click(container.querySelector('[data-pw="demo-wallet-withdraw-now"]')!);
+      const back = await find(container, "demo-wallet-scan-back");
+      expect(back, "'Withdrawal Now' did not open the code reader").not.toBeNull();
+      const under = scrollingPart(container, "code reader", "demo-wallet-cash-out-scan-under", "demo-wallet-scan-back");
+      expect(
+        body(under)?.style.minHeight,
+        "the part under the brand does not reach y 930 (744 px under the brand), so 'Back' left y 835",
+      ).toBe("744px");
+    }, 10000);
+
+    it("cash out, the request code: the title and the brand stay; the code boxes scroll under them", async () => {
+      const container = await openCashOut();
+      await typeAmount(container);
+      fireEvent.click(container.querySelector('[data-pw="demo-wallet-withdraw-request"]')!);
+      const line = await find(container, "demo-wallet-code-request");
+      expect(line, "'Withdrawal Request' did not open the code step").not.toBeNull();
+      scrollingPart(container, "request code", "demo-wallet-cash-out-code-under", "demo-wallet-code-request");
+    }, 10000);
+
+    it("wallet info: the title and the client ID stay; the code, the fields and the actions scroll under them, and the actions keep y 855", async () => {
+      const container = await openDollars();
+      fireEvent.click(container.querySelector('[data-pw="demo-wallet-info-usd"]')!);
+      const share = await find(container, "demo-wallet-info-share");
+      expect(share, "the wallet info sheet did not open").not.toBeNull();
+      const under = scrollingPart(container, "wallet info", "demo-wallet-info-under", "demo-wallet-info-share");
+      expect(
+        body(under)?.style.minHeight,
+        "the part under the client ID does not reach y 930 (744 px under it), so the actions left y 855",
+      ).toBe("744px");
+    }, 10000);
+
+    it("cash in, the ways: the title stays and the ways scroll under it", async () => {
+      const container = await openDollars();
+      fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+      const step = await find(container, "demo-wallet-cash-in-ways");
+      expect(
+        step?.style.height,
+        "the step is not as tall as the canvas lets it be (y 229 to the canvas's end at 832), so the sheet scrolls as a whole",
+      ).toBe("603px");
+      scrollingPart(container, "cash in ways", "demo-wallet-cash-in-ways-under", "demo-wallet-way-rdb");
+    }, 10000);
+
+    it("cash in with crypto: the title, 'Via Crypto' and the two tabs stay; the form scrolls under them and 'Generate QR Code' keeps y 835", async () => {
       const container = await openDollars();
       fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
       const way = await find(container, "demo-wallet-cash-in-way-crypto");
       expect(way, "the ways to cash in have no crypto tile").not.toBeNull();
       fireEvent.click(way!);
-      const form = await find(container, "demo-wallet-cash-in-crypto");
-      expect(form, "a tap on the crypto tile did not open the form").not.toBeNull();
+      const step = await find(container, "demo-wallet-cash-in-crypto");
+      expect(step, "a tap on the crypto tile did not open the form").not.toBeNull();
+      expect(
+        step!.style.height,
+        "the step is not as tall as the canvas lets it be (y 103 to the canvas's end at 832), so the sheet scrolls as a whole",
+      ).toBe("729px");
+      const under = scrollingPart(container, "crypto form", "demo-wallet-cash-in-crypto-under", "demo-wallet-cash-in-amount");
+      expect(
+        under.querySelector('[data-pw="demo-wallet-cash-in-tab-usdt"]'),
+        "the tabs are inside the part that scrolls; they must stay in place with the title",
+      ).toBeNull();
       await waitFor(() =>
         expect(
-          form!.style.minHeight,
-          "the crypto form ends where the short canvas ends, so its button moved up; it must reach y 930 (827 px under the handle) and scroll",
-        ).toBe("827px"),
+          body(under)?.style.minHeight,
+          "the part under the tabs ends where the short canvas ends, so the button moved up; it must reach y 930 (689 px under the tabs)",
+        ).toBe("689px"),
       );
-      const sheet = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-sheet"]')!;
-      expect(
-        panelOf(sheet)?.style.top,
-        "the sheet left its design top (y 90) on the short canvas; the form must stay there and scroll",
-      ).not.toContain("--xd-flex-deficit");
     }, 10000);
 
-    it("cash in, 'From My rdb': with the keyboard away, the part under the tabs is as tall as the board (y 241 to 930), so the button stays at y 835 and that part scrolls", async () => {
+    it("cash in, 'From My rdb': with the keyboard away, the part under the tabs reaches y 930, so the button keeps y 835 and that part scrolls", async () => {
       const container = await openDollars();
       fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
       fireEvent.click((await find(container, "demo-wallet-way-rdb"))!);
@@ -1194,15 +1294,46 @@ describe("Demo wallet — numbers from the XD file", () => {
       fireEvent.click(tab!);
       const button = await find(container, "demo-wallet-cash-in-connect");
       expect(button, "the 'From My rdb' tab has no button").not.toBeNull();
-      const form = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-bank-form"]');
+      const under = scrollingPart(container, "From My rdb", "demo-wallet-cash-in-rdb-under", "demo-wallet-cash-in-connect");
       expect(
-        form?.style.minHeight,
-        "the 'From My rdb' form ends where the short canvas ends, so its button moved up; it must reach y 930 (689 px under the tabs) and scroll",
+        body(under)?.style.minHeight,
+        "the 'From My rdb' form ends where the short canvas ends, so its button moved up; it must reach y 930 (689 px under the tabs)",
       ).toBe("689px");
+    }, 10000);
+
+    it("cash in, the safety rules: the shield and its title stay; the rules and 'I Agree' scroll under them, and 'I Agree' keeps y 803", async () => {
+      const container = await openDollars();
+      fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+      fireEvent.click((await find(container, "demo-wallet-cash-in-way-crypto"))!);
+      const input = (await find(container, "demo-wallet-cash-in-amount-input")) as HTMLInputElement | null;
+      expect(input, "the crypto form has no amount input").not.toBeNull();
+      fireEvent.focus(input!);
+      fireEvent.change(input!, { target: { value: "100" } });
+      fireEvent.blur(input!);
+      const generate = await find(container, "demo-wallet-cash-in-generate");
+      expect(generate, "'Generate QR Code' did not come in once the amount was typed").not.toBeNull();
+      fireEvent.click(generate!);
+      const agree = await find(container, "demo-wallet-cash-in-agree");
+      expect(agree, "'Generate QR Code' did not open the safety rules").not.toBeNull();
+      const rules = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-safe-rules"]');
       expect(
-        form?.parentElement?.getAttribute("data-pw"),
-        "the form is not inside the part that scrolls under the tabs",
-      ).toBe("demo-wallet-cash-in-rdb-under");
+        rules?.style.height,
+        "the rules are not as tall as the canvas lets them be (y 278 to the canvas's end at 832), so the sheet scrolls as a whole",
+      ).toBe("554px");
+      const under = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-safe-under"]');
+      expect(under, "safety rules: no part under the title scrolls on its own").not.toBeNull();
+      expect(
+        under!.querySelector('[data-pw="demo-wallet-cash-in-agree"]'),
+        "'I Agree' is not inside the part that scrolls",
+      ).not.toBeNull();
+      expect(
+        under!.querySelector('img[src$="/shieldSafe.svg"]'),
+        "the shield is inside the part that scrolls; it must stay in place with the title",
+      ).toBeNull();
+      expect(
+        body(under!)?.style.minHeight,
+        "the part under the title does not reach y 930 (572 px under the title), so 'I Agree' left y 803",
+      ).toBe("572px");
     }, 10000);
   });
 

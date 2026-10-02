@@ -989,6 +989,10 @@ export function useCanvasEnd(watch: boolean) {
  * content keeps the file's spacing; what does not fit scrolls inside the
  * sheet. The sheet is then dragged by its top strip only, so a finger on the
  * content scrolls it.
+ *
+ * The wallet sheets do not scroll as a whole. Each step is as tall as the
+ * canvas lets it be, keeps its head (the handle, the title row and its tabs)
+ * in place, and scrolls only the part under the head (see `Under`).
  */
 export function Sheet({
   open,
@@ -1223,6 +1227,41 @@ export function Sheet({
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+/**
+ * The part of a sheet's step under its head: under the title row, the line
+ * under it and the tabs. On a canvas shorter than the board it scrolls on its
+ * own, and the handle and the head above it stay in view. On a full-height
+ * canvas it fits and does not move.
+ *
+ * `minHeight` is the height the file gives this part, from the head's end to
+ * the board's end (y 930). With it the blocks keep the file's spacing on a
+ * short canvas too: a button at the bottom stays at its design y, under the
+ * screen's end, and the part scrolls to it. Without it the part ends where
+ * the canvas ends (a form with a field in use, so it does not scroll under
+ * the keyboard).
+ */
+export function Under({
+  testId,
+  minHeight,
+  children,
+}: {
+  testId: string;
+  minHeight?: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      data-pw={testId}
+      className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain"
+      style={{ scrollbarWidth: "none" }}
+    >
+      <div className="flex flex-col shrink-0 grow" style={{ minHeight }}>
+        {children}
+      </div>
+    </div>
   );
 }
 

@@ -6,7 +6,7 @@ import RdbPinInputs from "components/Login/Enhanced/ui/RdbPinInputs";
 import { NATIVE_WALLET_KEYBOARD } from "../demoKeyboard";
 import { useDemoNav } from "../DemoShell";
 import { C, gapTo, lineBox, paraTop, textBottom, top } from "../demoLayout";
-import { Box, Icon, Txt, useOuterBackdrop } from "../ui";
+import { Box, Icon, Txt, Under, useOuterBackdrop } from "../ui";
 import type { XdIconName } from "../xdIcons";
 import type { DemoKey } from "../demoKeys";
 import {
@@ -76,91 +76,93 @@ export function RequestCode({
   return (
     <>
       {head}
-      <Txt
-        size={16}
-        ml={40}
-        mt={gapTo(HEAD_END, 276, 16)}
-        data-pw="demo-wallet-code-request"
-        style={{ whiteSpace: "pre" }}
-      >
-        <span className="font-bold">{request.amount}</span>
-        {` ${balance.code} ${t("Withdrawal Request")}`}
-      </Txt>
-      <Txt
-        size={30}
-        weight="bold"
-        ml={40}
-        mt={gapTo(textBottom(276, 16), 318, 30)}
-        as="h2"
-      >
-        {t("verification !")}
-      </Txt>
-      <Txt
-        size={16}
-        weight="medium"
-        ml={40}
-        mt={gapTo(textBottom(318, 30), 354, 16)}
-      >
-        {t("enter verification code sent to your WhatsApp")}
-      </Txt>
-
-      <div
-        className="flex items-start shrink-0"
-        style={{ marginLeft: 40, marginTop: 366 - textBottom(354, 16) }}
-      >
-        <Txt size={12}>
-          {t("We have sent a verification code to the number")}
-        </Txt>
-        <Icon name="codeSent" ml={4} />
-      </div>
-      <div
-        className="flex items-start shrink-0"
-        style={{ marginLeft: 40, marginTop: 389 - (366 + 15) }}
-      >
-        <Txt size={12}>{WALLET_REQUEST.codeSentTo}</Txt>
-        <button
-          type="button"
-          data-pw="demo-wallet-code-resend"
-          disabled={left > 0}
-          onClick={() => setLeft(CODE_SECONDS)}
-          className="shrink-0"
-          style={{ marginLeft: 6 }}
+      <Under testId="demo-wallet-cash-out-code-under">
+        <Txt
+          size={16}
+          ml={40}
+          mt={gapTo(HEAD_END, 276, 16)}
+          data-pw="demo-wallet-code-request"
+          style={{ whiteSpace: "pre" }}
         >
-          <Txt size={12} color={C.hint} style={{ whiteSpace: "pre" }}>
-            {t("resend after")}
-            <span className="font-medium" style={{ color: C.blue }}>
-              {` - ${clock}`}
-            </span>
-          </Txt>
-        </button>
-        <Icon name="codeHelp" ml={4} />
-      </div>
-      <div
-        className="flex items-start shrink-0"
-        style={{ marginLeft: 40, marginTop: 412 - (389 + 15) }}
-      >
-        <Txt size={11} color={C.hint}>
-          {t("Your privacy is completely safe")}
+          <span className="font-bold">{request.amount}</span>
+          {` ${balance.code} ${t("Withdrawal Request")}`}
         </Txt>
-        <Icon name="shieldGrey" ml={3} />
-      </div>
+        <Txt
+          size={30}
+          weight="bold"
+          ml={40}
+          mt={gapTo(textBottom(276, 16), 318, 30)}
+          as="h2"
+        >
+          {t("verification !")}
+        </Txt>
+        <Txt
+          size={16}
+          weight="medium"
+          ml={40}
+          mt={gapTo(textBottom(318, 30), 354, 16)}
+        >
+          {t("enter verification code sent to your WhatsApp")}
+        </Txt>
 
-      <div
-        className="shrink-0"
-        style={{ marginLeft: 20, marginTop: 502 - (412 + 14) }}
-      >
-        <RdbPinInputs
-          value={pin}
-          disableCustomKeypad={NATIVE_WALLET_KEYBOARD}
-          onChange={setPin}
-          isValidPin={valid}
-          disabled={valid === "valid"}
-          onComplete={() => {
-            setValid("valid");
-            setTimeout(onVerified, 600);
-          }}
-        />
-      </div>
+        <div
+          className="flex items-start shrink-0"
+          style={{ marginLeft: 40, marginTop: 366 - textBottom(354, 16) }}
+        >
+          <Txt size={12}>
+            {t("We have sent a verification code to the number")}
+          </Txt>
+          <Icon name="codeSent" ml={4} />
+        </div>
+        <div
+          className="flex items-start shrink-0"
+          style={{ marginLeft: 40, marginTop: 389 - (366 + 15) }}
+        >
+          <Txt size={12}>{WALLET_REQUEST.codeSentTo}</Txt>
+          <button
+            type="button"
+            data-pw="demo-wallet-code-resend"
+            disabled={left > 0}
+            onClick={() => setLeft(CODE_SECONDS)}
+            className="shrink-0"
+            style={{ marginLeft: 6 }}
+          >
+            <Txt size={12} color={C.hint} style={{ whiteSpace: "pre" }}>
+              {t("resend after")}
+              <span className="font-medium" style={{ color: C.blue }}>
+                {` - ${clock}`}
+              </span>
+            </Txt>
+          </button>
+          <Icon name="codeHelp" ml={4} />
+        </div>
+        <div
+          className="flex items-start shrink-0"
+          style={{ marginLeft: 40, marginTop: 412 - (389 + 15) }}
+        >
+          <Txt size={11} color={C.hint}>
+            {t("Your privacy is completely safe")}
+          </Txt>
+          <Icon name="shieldGrey" ml={3} />
+        </div>
+
+        <div
+          className="shrink-0"
+          style={{ marginLeft: 20, marginTop: 502 - (412 + 14) }}
+        >
+          <RdbPinInputs
+            value={pin}
+            disableCustomKeypad={NATIVE_WALLET_KEYBOARD}
+            onChange={setPin}
+            isValidPin={valid}
+            disabled={valid === "valid"}
+            onComplete={() => {
+              setValid("valid");
+              setTimeout(onVerified, 600);
+            }}
+          />
+        </div>
+      </Under>
     </>
   );
 }
@@ -211,57 +213,62 @@ export function RequestReady({
   return (
     <>
       {head}
-      <Icon name="qrRequest" mt={215 - HEAD_END} ml={65} />
-      <Txt center size={16} weight="medium" mt={gapTo(215 + 301, 544, 16)}>
-        {t("Withdrawal Request")}
-      </Txt>
-      <Cells
-        mt={588 - textBottom(544, 16)}
-        balance={balance}
-        request={request}
-      />
-
-      <div
-        className="flex items-start shrink-0"
-        // The labels end at y 895: 35 px above the artboard's bottom.
-        style={{
-          marginTop: 855 - (765 + 55),
-          marginLeft: ACTIONS[0].x,
-          paddingBottom: 930 - 895,
-        }}
+      <Under
+        testId="demo-wallet-cash-out-request-under"
+        minHeight={930 - HEAD_END}
       >
-        {ACTIONS.map((action, i) => (
-          // The slot runs from one label's start to the next.
-          <div
-            key={action.id}
-            className="flex shrink-0"
-            style={{
-              minWidth:
-                i < ACTIONS.length - 1 ? ACTIONS[i + 1].x - action.x : undefined,
-            }}
-          >
-            <motion.button
-              type="button"
-              data-pw={`demo-wallet-request-${action.id}`}
-              onClick={() => act(action.id)}
-              whileTap={{ scale: 0.96 }}
-              className="flex flex-col items-center shrink-0 cursor-pointer"
+        <Icon name="qrRequest" mt={215 - HEAD_END} ml={65} />
+        <Txt center size={16} weight="medium" mt={gapTo(215 + 301, 544, 16)}>
+          {t("Withdrawal Request")}
+        </Txt>
+        <Cells
+          mt={588 - textBottom(544, 16)}
+          balance={balance}
+          request={request}
+        />
+
+        <div
+          className="flex items-start shrink-0"
+          // The labels end at y 895: 35 px above the artboard's bottom.
+          style={{
+            marginTop: 855 - (765 + 55),
+            marginLeft: ACTIONS[0].x,
+            paddingBottom: 930 - 895,
+          }}
+        >
+          {ACTIONS.map((action, i) => (
+            // The slot runs from one label's start to the next.
+            <div
+              key={action.id}
+              className="flex shrink-0"
+              style={{
+                minWidth:
+                  i < ACTIONS.length - 1 ? ACTIONS[i + 1].x - action.x : undefined,
+              }}
             >
-              <Icon
-                name={action.icon}
-                style={
-                  action.off > 0
-                    ? { marginLeft: action.off * 2 }
-                    : { marginRight: -action.off * 2 }
-                }
-              />
-              <Txt size={11} mt={gapTo(855 + 20, 892, 11)}>
-                {t(action.label)}
-              </Txt>
-            </motion.button>
-          </div>
-        ))}
-      </div>
+              <motion.button
+                type="button"
+                data-pw={`demo-wallet-request-${action.id}`}
+                onClick={() => act(action.id)}
+                whileTap={{ scale: 0.96 }}
+                className="flex flex-col items-center shrink-0 cursor-pointer"
+              >
+                <Icon
+                  name={action.icon}
+                  style={
+                    action.off > 0
+                      ? { marginLeft: action.off * 2 }
+                      : { marginRight: -action.off * 2 }
+                  }
+                />
+                <Txt size={11} mt={gapTo(855 + 20, 892, 11)}>
+                  {t(action.label)}
+                </Txt>
+              </motion.button>
+            </div>
+          ))}
+        </div>
+      </Under>
     </>
   );
 }

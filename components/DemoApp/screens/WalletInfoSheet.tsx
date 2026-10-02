@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useDemoNav } from "../DemoShell";
 import { useDemoData } from "../DemoData";
 import { C, SHEET, gapTo, lineBox, textBottom } from "../demoLayout";
-import { Box, Icon, Sheet, Txt } from "../ui";
+import { Box, Icon, Sheet, Txt, Under, useCanvasEnd } from "../ui";
 import type { XdIconName } from "../xdIcons";
 import type { DemoKey } from "../demoKeys";
 import {
@@ -57,6 +57,8 @@ export default function WalletInfoSheet({
 }) {
   const { t } = useDemoNav();
   const { profile } = useDemoData();
+  /** Where the canvas ends (design y). */
+  const end = useCanvasEnd(open);
   // The file shows a client with a name; a new demo client has none yet.
   const name = profile.name || WALLET_RECIPIENT.name;
 
@@ -76,113 +78,125 @@ export default function WalletInfoSheet({
       fit
       testId="demo-wallet-info-sheet"
     >
-      <SheetTitle
-        top={TOP}
-        icon="qrDark"
-        mark={balance.mark}
-        label={t("Wallet Info")}
-      />
-      <Txt
-        center
-        size={24}
-        weight="bold"
-        mt={gapTo(TOP + 24 + lineBox(24), 180, 24)}
-      >
-        {profile.clientId}
-      </Txt>
-
-      <Icon
-        name="qrWallet"
-        mt={210.32 - textBottom(180, 24)}
-        ml={39.93}
-      />
-
-      {/* The dots at (205, 573) and (217, 573): 20 wide together, centred. */}
+      {/* As tall as the canvas lets it be: the title and the client ID stay
+          in place, and the part under them scrolls. */}
       <div
-        className="flex justify-center shrink-0"
-        style={{ marginTop: 573 - (210.32 + 350.21) }}
+        className="flex flex-col shrink-0"
+        style={{ height: Math.min(930, end) - (TOP + 13) }}
       >
-        <Icon name="dotDark" />
-        <Icon name="dotBlueOff" ml={4} />
-      </div>
-      {/* The file starts this line at x 172: half a px left of centre. */}
-      <Txt
-        center
-        nudge={-0.5}
-        size={16}
-        mt={gapTo(573 + 8, 605, 16)}
-        style={{ whiteSpace: "pre" }}
-      >
-        <span className="font-bold">{WALLET_BRAND.start}</span>
-        {WALLET_BRAND.rest.slice(0, 3)}
-        <span className="font-medium">{` ${balance.code}`}</span>
-      </Txt>
+        <SheetTitle
+          top={TOP}
+          icon="qrDark"
+          mark={balance.mark}
+          label={t("Wallet Info")}
+        />
+        <Txt
+          center
+          size={24}
+          weight="bold"
+          mt={gapTo(TOP + 24 + lineBox(24), 180, 24)}
+        >
+          {profile.clientId}
+        </Txt>
 
-      <InfoField
-        mt={639 - textBottom(605, 16)}
-        label={t("Trydos client Name")}
-        testId="demo-wallet-info-name"
-        mark
-      >
-        {name}
-      </InfoField>
-      <InfoField
-        mt={698 - (639 + 55)}
-        label={t("Trydos client ID")}
-        testId="demo-wallet-info-id"
-        medium
-      >
-        {profile.clientId}
-      </InfoField>
-      <InfoField
-        mt={757 - (698 + 55)}
-        label={t("Trydos client Phone Number")}
-        testId="demo-wallet-info-phone"
-        medium
-      >
-        {profile.phone}
-      </InfoField>
+        <Under
+          testId="demo-wallet-info-under"
+          minHeight={930 - textBottom(180, 24)}
+        >
+          <Icon
+            name="qrWallet"
+            mt={210.32 - textBottom(180, 24)}
+            ml={39.93}
+          />
 
-      <div
-        className="flex items-start shrink-0"
-        // The labels end at y 895: 35 px above the artboard's bottom.
-        style={{
-          marginTop: 855 - (757 + 55),
-          marginLeft: ACTIONS[0].x,
-          paddingBottom: 930 - 895,
-        }}
-      >
-        {ACTIONS.map((action, i) => (
-          // The slot runs from one label's start to the next.
+          {/* The dots at (205, 573) and (217, 573): 20 wide together, centred. */}
           <div
-            key={action.id}
-            className="flex shrink-0"
+            className="flex justify-center shrink-0"
+            style={{ marginTop: 573 - (210.32 + 350.21) }}
+          >
+            <Icon name="dotDark" />
+            <Icon name="dotBlueOff" ml={4} />
+          </div>
+          {/* The file starts this line at x 172: half a px left of centre. */}
+          <Txt
+            center
+            nudge={-0.5}
+            size={16}
+            mt={gapTo(573 + 8, 605, 16)}
+            style={{ whiteSpace: "pre" }}
+          >
+            <span className="font-bold">{WALLET_BRAND.start}</span>
+            {WALLET_BRAND.rest.slice(0, 3)}
+            <span className="font-medium">{` ${balance.code}`}</span>
+          </Txt>
+
+          <InfoField
+            mt={639 - textBottom(605, 16)}
+            label={t("Trydos client Name")}
+            testId="demo-wallet-info-name"
+            mark
+          >
+            {name}
+          </InfoField>
+          <InfoField
+            mt={698 - (639 + 55)}
+            label={t("Trydos client ID")}
+            testId="demo-wallet-info-id"
+            medium
+          >
+            {profile.clientId}
+          </InfoField>
+          <InfoField
+            mt={757 - (698 + 55)}
+            label={t("Trydos client Phone Number")}
+            testId="demo-wallet-info-phone"
+            medium
+          >
+            {profile.phone}
+          </InfoField>
+
+          <div
+            className="flex items-start shrink-0"
+            // The labels end at y 895: 35 px above the artboard's bottom.
             style={{
-              minWidth:
-                i < ACTIONS.length - 1 ? ACTIONS[i + 1].x - action.x : undefined,
+              marginTop: 855 - (757 + 55),
+              marginLeft: ACTIONS[0].x,
+              paddingBottom: 930 - 895,
             }}
           >
-            <motion.button
-              type="button"
-              data-pw={`demo-wallet-info-${action.id}`}
-              onClick={() => act(action.id)}
-              whileTap={{ scale: 0.96 }}
-              className="flex flex-col items-center shrink-0 cursor-pointer"
-            >
-              <Icon
-                name={action.icon}
-                style={
-                  action.off > 0
-                    ? { marginLeft: action.off * 2 }
-                    : { marginRight: -action.off * 2 }
-                }
-              />
-              <Txt size={11} mt={gapTo(855 + 20, 892, 11)}>
-                {t(action.label)}
-              </Txt>
-            </motion.button>
+            {ACTIONS.map((action, i) => (
+              // The slot runs from one label's start to the next.
+              <div
+                key={action.id}
+                className="flex shrink-0"
+                style={{
+                  minWidth:
+                    i < ACTIONS.length - 1 ? ACTIONS[i + 1].x - action.x : undefined,
+                }}
+              >
+                <motion.button
+                  type="button"
+                  data-pw={`demo-wallet-info-${action.id}`}
+                  onClick={() => act(action.id)}
+                  whileTap={{ scale: 0.96 }}
+                  className="flex flex-col items-center shrink-0 cursor-pointer"
+                >
+                  <Icon
+                    name={action.icon}
+                    style={
+                      action.off > 0
+                        ? { marginLeft: action.off * 2 }
+                        : { marginRight: -action.off * 2 }
+                    }
+                  />
+                  <Txt size={11} mt={gapTo(855 + 20, 892, 11)}>
+                    {t(action.label)}
+                  </Txt>
+                </motion.button>
+              </div>
+            ))}
           </div>
-        ))}
+        </Under>
       </div>
     </Sheet>
   );
