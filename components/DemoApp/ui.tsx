@@ -14,7 +14,6 @@ import {
   DESIGN_W,
   HEADER,
   ROW,
-  SAFE_TOP,
   SHEET,
   STATUS_BAR,
   bottom,
@@ -985,18 +984,11 @@ export function useCanvasEnd(watch: boolean) {
  *
  * `fit` is for a sheet that fills the artboard to its bottom (the wallet
  * sheets). On a window shorter than the artboard the canvas is shorter too,
- * and such a sheet lost its bottom rows. With `fit` the sheet starts higher by
- * the height the canvas lost, up to the canvas's top; what still does not fit
- * scrolls inside the sheet. The sheet is then dragged by its top strip only,
- * so a finger on the content scrolls it.
- *
- * `keep` holds a `fit` sheet at its design `y` on a short canvas, so the
- * dimmed page above it stays in view as in the file. It is for a sheet whose
- * content already fits under its design top (the wallet forms: above the
- * app's keypad, or with the keypad away, down to their buttons), or whose
- * lower part may scroll inside it (the cash-in ways). When
- * AppScaler lifts the canvas for the keypad, a kept sheet moves up with the
- * canvas, only as far as the field in use needs.
+ * and such a sheet lost its bottom rows. A `fit` sheet stays at its design
+ * `y`, so the dimmed page above it stays in view as in the file, and its
+ * content keeps the file's spacing; what does not fit scrolls inside the
+ * sheet. The sheet is then dragged by its top strip only, so a finger on the
+ * content scrolls it.
  */
 export function Sheet({
   open,
@@ -1005,7 +997,6 @@ export function Sheet({
   lower = 0,
   radius = SHEET.radius,
   fit = false,
-  keep = false,
   outline,
   children,
   testId,
@@ -1013,10 +1004,8 @@ export function Sheet({
 }: {
   open: boolean;
   onClose: () => void;
-  /** Start higher on a short canvas, and scroll what still does not fit. */
+  /** Stay at `y` on a short canvas, and scroll what does not fit. */
   fit?: boolean;
-  /** With `fit`: stay at `y` on a short canvas, and move with the keyboard lift. */
-  keep?: boolean;
   /** Called once the sheet has finished rising. */
   onEntered?: () => void;
   /** Design y of the sheet's top edge. */
@@ -1036,15 +1025,7 @@ export function Sheet({
   useOuterBackdrop(open, ROUND_A_SHEET, DIMMED);
   const touch = useIsTouchDevice();
   const grip = useDragControls();
-  // The app is the artboard without its 50 px status bar, so the first 50 px
-  // the canvas gives up cost the app nothing. What it gives up past that is
-  // height the app has lost.
-  const deficit = useDeficit(fit && open);
-  const lost = keep ? 0 : Math.max(0, deficit - STATUS_BAR);
-  // Where the sheet's top edge is, from the top of the app, once the app has
-  // lost `lost` px: never above the canvas.
-  const edge = (from: number) => Math.max(0, from - STATUS_BAR - lost);
-  const rest = fit ? edge(y + lower) - edge(y) : lower;
+  const rest = lower;
   return (
     <AnimatePresence
       // A sheet can hold the code boxes, which make AppScaler lift the canvas
@@ -1092,18 +1073,11 @@ export function Sheet({
               // When AppScaler lifts the canvas for the keypad, a tall sheet
               // keeps its top edge where it was (the lift is added back here)
               // and only its content moves up with the canvas (below).
-              ...(fit && keep
+              ...(fit
                 ? { top: top(y) }
-                : fit
-                ? {
-                    top: `calc(max(0px, ${y - STATUS_BAR}px + ${SAFE_TOP} - max(0px, var(--xd-flex-deficit, 0px) - ${STATUS_BAR}px)) + var(--app-keyboard-lift, 0px))`,
-                  }
                 : y < 300
                   ? { top: `calc(${top(y)} + var(--app-keyboard-lift, 0px))` }
                   : { height: 932 - y }),
-              // A fit sheet slides between its places (in and out of `keep`,
-              // and with the keyboard lift, the same way the canvas slides).
-              transition: fit ? "top 0.25s ease-out" : undefined,
               bottom: 0,
               background: C.white,
               borderRadius: `${radius}px ${radius}px 0 0`,
@@ -1111,13 +1085,6 @@ export function Sheet({
             initial={{ y: "100%" }}
             animate={{ y: rest }}
             onAnimationComplete={() => onEntered?.()}
-            // AppScaler measures the field in use once, when the keypad
-            // opens. A sheet that slid to a new place after that has moved the
-            // field, so it asks for a new measure (focusout, as above).
-            onTransitionEnd={(e) => {
-              if (e.target === e.currentTarget && e.propertyName === "top")
-                document.dispatchEvent(new FocusEvent("focusout"));
-            }}
             exit={{ y: "100%" }}
             transition={{
               type: "spring",
@@ -1146,15 +1113,10 @@ export function Sheet({
             <div
               className={`flex flex-col w-full h-full ${fit ? "overflow-y-auto overflow-x-hidden overscroll-contain" : ""}`}
               style={{
-                marginTop: fit
-                  ? keep
-                    ? "0px"
-                    : "calc(-1 * var(--app-keyboard-lift, 0px))"
-                  : y < 300
+                marginTop:
+                  !fit && y < 300
                     ? "calc(-1 * var(--app-keyboard-lift, 0px))"
                     : undefined,
-                // With the sheet's `top`, so the content moves with the canvas.
-                transition: fit ? "margin-top 0.25s ease-out" : undefined,
                 // The part of a lowered sheet that hangs under the canvas.
                 paddingBottom: fit ? rest : undefined,
                 scrollbarWidth: fit ? "none" : undefined,

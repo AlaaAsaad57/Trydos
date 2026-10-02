@@ -166,13 +166,19 @@ export default function WalletCashOutSheet({
   /** The picture of the request (`Home Page – 24`) lies over the sheet. */
   const [picture, setPicture] = useState(false);
   /**
-   * Set by the form: the sheet stays at its design top, this many px lower
-   * (see `Form`). Null: the sheet starts higher on a short canvas, as every
-   * wallet sheet does.
+   * Set by the form in use on a touch device: the sheet rests this many px
+   * under its design top, and the form ends where the canvas ends (see
+   * `Form`). Null: the sheet is at its design top and the step is as tall as
+   * the board.
    */
   const [hold, setHold] = useState<number | null>(null);
   const held = step === "form" ? hold : null;
-  /** Where the canvas ends (design y): a kept form ends there, not at 930. */
+  /**
+   * Set by the form with its buttons on show: it is as tall as the board, so
+   * the buttons keep the file's place and the sheet scrolls down to them.
+   */
+  const [full, setFull] = useState(false);
+  /** Where the canvas ends (design y): a form in use ends there, not at 930. */
   const end = useCanvasEnd(open);
 
   const request: WithdrawalRequest = {
@@ -208,7 +214,6 @@ export default function WalletCashOutSheet({
         lower={TOP[step] - TOP.form + (held ?? 0)}
         radius={SHEET.radiusWallet}
         fit
-        keep={held !== null}
         // AppScaler measures the amount field once, when the keypad opens. The
         // sheet may still be moving then, so it measures again once it rests.
         onEntered={() =>
@@ -224,13 +229,15 @@ export default function WalletCashOutSheet({
             // The form and the code reader reach the board's end, where their
             // buttons sit.
             style={{
-              // A form held at its design top on a short canvas ends where the
-              // canvas ends: its buttons sit at the bottom of the screen and
-              // only the free gap over them gets smaller.
+              // A form in use, held at its design top on a short canvas, ends
+              // where the canvas ends, so it does not scroll under the keypad.
+              // With its buttons on show it is the whole board again: the
+              // buttons keep the file's place, under the screen's end, and
+              // the sheet scrolls to them.
               minHeight:
                 step === "ways"
                   ? undefined
-                  : (held === null
+                  : (held === null || full
                       ? BOARD_END
                       : Math.min(BOARD_END, end - held)) -
                     (TOP[step] + 13),
@@ -250,8 +257,10 @@ export default function WalletCashOutSheet({
                 setAmount={setAmount}
                 authorized={authorized}
                 setAuthorized={setAuthorized}
-                onHold={setHold}
-                end={end}
+                onHold={(drop, whole) => {
+                  setHold(drop);
+                  setFull(whole);
+                }}
                 onNow={() => setStep("scan")}
                 onRequest={() => setStep("code")}
               />
@@ -589,7 +598,6 @@ function Form({
   authorized,
   setAuthorized,
   onHold,
-  end,
   onNow,
   onRequest,
 }: {
@@ -598,10 +606,11 @@ function Form({
   setAmount: React.Dispatch<React.SetStateAction<string>>;
   authorized: Authorized | null;
   setAuthorized: React.Dispatch<React.SetStateAction<Authorized | null>>;
-  /** How far under its design top the sheet rests, or null for the usual place. */
-  onHold: (drop: number | null) => void;
-  /** The design y where the canvas ends. */
-  end: number;
+  /**
+   * How far under its design top the sheet rests, or null for the usual place;
+   * and whether the form is as tall as the board (its buttons are on show).
+   */
+  onHold: (drop: number | null, whole: boolean) => void;
   /** "Withdrawal Now": on to the code reader. */
   onNow: () => void;
   /** "Withdrawal Request": on to the code (`Home Page – 101`). */
@@ -736,23 +745,15 @@ function Form({
       ? 0
       : Math.max(0, room - (shortTop + amountHeight));
 
-  // With the keypad away and the amount ready (`– 29`, `– 27`, `– 35`), the
-  // form reaches down to its buttons: its last block, then the buttons (60 px
-  // each, 8 apart) and the 35 px under them.
-  const readyEnd =
-    (toBank ? 422 + 55 : named ? 574 + 30 : 397 + 55) +
-    8 +
-    (toBank || named ? 60 : 60 + 8 + 60) +
-    (BOARD_END - 895);
-
   // On a touch device the sheet stays at its design top (or `drop` px under
   // it), so the dimmed wallet page shows above it as in the file. With the
-  // buttons on show it stays there too while they fit on the canvas; only
-  // the free gap over them gets smaller. When they do not fit, the sheet
-  // starts higher on the short canvas, as every wallet sheet does.
+  // buttons on show it stays there too, and the form is as tall as the board:
+  // the buttons keep the file's place (y 767 and 835) and its spacing. On a
+  // short canvas they are under the screen's end, and the sheet scrolls to
+  // them.
   useEffect(() => {
-    onHold(!touch ? null : ready ? (readyEnd <= end ? 0 : null) : drop);
-  }, [touch, ready, drop, readyEnd, end]);
+    onHold(!touch ? null : ready ? 0 : drop, ready);
+  }, [touch, ready, drop]);
 
   const choose = (next: "cash" | "bank") => {
     if (next === tab) return;

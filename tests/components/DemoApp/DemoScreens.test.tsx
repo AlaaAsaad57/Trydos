@@ -1102,6 +1102,110 @@ describe("Demo wallet — numbers from the XD file", () => {
     });
   });
 
+  describe("on a short screen the forms keep the file's spacing and scroll", () => {
+    // A phone in Safari: the canvas is 150 design px shorter than the artboard.
+    beforeEach(() => {
+      setDevice("touch");
+      document.documentElement.style.setProperty("--xd-flex-deficit", "150px");
+    });
+    afterEach(() => {
+      document.documentElement.style.removeProperty("--xd-flex-deficit");
+    });
+
+    const panelOf = (sheet: HTMLElement) =>
+      [...sheet.querySelectorAll<HTMLElement>("div")].find((el) =>
+        el.style.borderRadius.startsWith("50px"),
+      );
+
+    it("cash out: with the amount typed, the form is as tall as the board (to y 930), so its buttons stay at y 767 and 835 and the sheet scrolls to them", async () => {
+      const container = await openDollars();
+      fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!);
+      fireEvent.click((await find(container, "demo-wallet-way-rdb"))!);
+      const input = (await find(container, "demo-wallet-amount-input")) as HTMLInputElement | null;
+      expect(input, "the form has no amount input").not.toBeNull();
+      if (NATIVE_WALLET_KEYBOARD) {
+        fireEvent.focus(input!);
+        fireEvent.change(input!, { target: { value: "100" } });
+        fireEvent.blur(input!);
+      } else {
+        const keypad = await waitFor(
+          () => {
+            const found = document.querySelector("[data-keyboard-overlay]");
+            if (!found) throw new Error("not yet");
+            return found as HTMLElement;
+          },
+          { timeout: 3000 },
+        );
+        for (const digit of ["1", "0", "0"]) {
+          fireEvent.pointerDown(keypad.querySelector(`[data-pw="keypad-digit-${digit}"]`)!);
+        }
+        // A tap outside the keypad puts it away.
+        fireEvent.mouseDown(document.body);
+      }
+      const now = await find(container, "demo-wallet-withdraw-now");
+      expect(now, "'Withdrawal Now' did not come in once the amount was typed").not.toBeNull();
+
+      const form = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-out-form"]');
+      await waitFor(() =>
+        expect(
+          form?.style.minHeight,
+          "the form ends where the short canvas ends, so its buttons moved up over the browser bar and the gap over them got smaller; it must reach y 930 (827 px under the handle) and scroll",
+        ).toBe("827px"),
+      );
+      const sheet = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-out-sheet"]')!;
+      const panel = panelOf(sheet);
+      expect(
+        panel?.style.top,
+        "the sheet left its design top (y 90) on the short canvas; the form must stay there and scroll",
+      ).not.toContain("--xd-flex-deficit");
+      expect(
+        panel?.querySelector(":scope > .overflow-y-auto"),
+        "the sheet's content does not scroll, so the buttons under the screen's end cannot be reached",
+      ).not.toBeNull();
+    }, 10000);
+
+    it("cash in with crypto: with the keyboard away, the form is as tall as the board (to y 930), so 'Generate QR Code' stays at y 835", async () => {
+      const container = await openDollars();
+      fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+      const way = await find(container, "demo-wallet-cash-in-way-crypto");
+      expect(way, "the ways to cash in have no crypto tile").not.toBeNull();
+      fireEvent.click(way!);
+      const form = await find(container, "demo-wallet-cash-in-crypto");
+      expect(form, "a tap on the crypto tile did not open the form").not.toBeNull();
+      await waitFor(() =>
+        expect(
+          form!.style.minHeight,
+          "the crypto form ends where the short canvas ends, so its button moved up; it must reach y 930 (827 px under the handle) and scroll",
+        ).toBe("827px"),
+      );
+      const sheet = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-sheet"]')!;
+      expect(
+        panelOf(sheet)?.style.top,
+        "the sheet left its design top (y 90) on the short canvas; the form must stay there and scroll",
+      ).not.toContain("--xd-flex-deficit");
+    }, 10000);
+
+    it("cash in, 'From My rdb': with the keyboard away, the part under the tabs is as tall as the board (y 241 to 930), so the button stays at y 835 and that part scrolls", async () => {
+      const container = await openDollars();
+      fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+      fireEvent.click((await find(container, "demo-wallet-way-rdb"))!);
+      const tab = await find(container, "demo-wallet-cash-in-tab-bank");
+      expect(tab, "the trydos | rdb step has no 'From My rdb' tab").not.toBeNull();
+      fireEvent.click(tab!);
+      const button = await find(container, "demo-wallet-cash-in-connect");
+      expect(button, "the 'From My rdb' tab has no button").not.toBeNull();
+      const form = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-bank-form"]');
+      expect(
+        form?.style.minHeight,
+        "the 'From My rdb' form ends where the short canvas ends, so its button moved up; it must reach y 930 (689 px under the tabs) and scroll",
+      ).toBe("689px");
+      expect(
+        form?.parentElement?.getAttribute("data-pw"),
+        "the form is not inside the part that scrolls under the tabs",
+      ).toBe("demo-wallet-cash-in-rdb-under");
+    }, 10000);
+  });
+
   it("wallet info: the QR mark on the card opens a sheet with 50 px corners, the 350.21 px code at x 39.93 and three fields, as `Home Page – 23` draws it", async () => {
     const container = await openDollars();
     const mark = container.querySelector('[data-pw="demo-wallet-info-usd"]');
@@ -1115,8 +1219,12 @@ describe("Demo wallet — numbers from the XD file", () => {
     expect(panel, "the wallet info sheet has no panel with 50 px top corners").toBeDefined();
     expect(
       panel!.style.top,
-      "the sheet does not start higher on a short canvas: its top must give up the height the app lost (--xd-flex-deficit past the 50 px status bar), and stop at the canvas's top",
-    ).toMatch(/max\(0px, 40px.*- max\(0px, var\(--xd-flex-deficit, 0px\) - 50px\)\)/);
+      "the sheet is not at its design top (y 90, 40 px under the top of the app)",
+    ).toContain("40px");
+    expect(
+      panel!.style.top,
+      "the sheet starts higher on a short canvas; it must stay at its design top (y 90) and scroll what does not fit",
+    ).not.toContain("--xd-flex-deficit");
     expect(
       sheet!.querySelector('[data-pw="demo-sheet-grip"]'),
       "the sheet has no strip to drag it by, so a finger on the content would drag the sheet and not scroll it",

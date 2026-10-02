@@ -73,16 +73,6 @@ const TOP: Record<Step, number> = { ways: 216, rdb: 90, crypto: 90, code: 90 };
 /** The boards end at y 930. */
 const BOARD_END = 930;
 
-/**
- * How far down a form reaches with its button on show: its last block (the
- * crypto summary card, 58 tall at y 519; the rdb amount field, 55 tall at
- * 422), then the 60 px button 8 px under it and the 35 px under the button.
- */
-const FORM_END = {
-  crypto: 519 + 58 + 8 + 60 + (BOARD_END - 895),
-  bank: 422 + 55 + 8 + 60 + (BOARD_END - 895),
-};
-
 /** The safety rules lie on a second sheet from y 265 (`Home Page – 39`). */
 const SAFE_TOP = 265;
 
@@ -213,31 +203,8 @@ export default function WalletCashInSheet({
   const [amount, setAmount] = useState("");
   /** The app's keypad is up on a form. */
   const [typing, setTyping] = useState(false);
-  /** The rdb step shows its form ("From My rdb"), not the deposit code. */
-  const [fromBank, setFromBank] = useState(false);
-  const touch = useIsTouchDevice();
-  /** Where the canvas ends (design y): a kept form ends there, not at 930. */
+  /** Where the canvas ends (design y): a form in use ends there, not at 930. */
   const end = useCanvasEnd(open);
-  const formEnd =
-    step === "crypto"
-      ? FORM_END.crypto
-      : step === "rdb" && fromBank
-        ? FORM_END.bank
-        : null;
-  /**
-   * A form keeps the sheet at its design top, so the dimmed wallet page shows
-   * above it as in the file: while the keypad is up, and with the keypad away
-   * while the form fits on the canvas down to its button (only the free gap
-   * over the button gets smaller).
-   * The ways (`– 22`, y 216), the trydos | rdb step (`– 26`, `– 32`) and the
-   * crypto code (`– 37`, both y 90) stay at their design top too: what does
-   * not fit scrolls inside the sheet (see `Under`).
-   */
-  const keep =
-    step === "ways" ||
-    step === "rdb" ||
-    step === "code" ||
-    (formEnd !== null && (typing || (touch && formEnd <= end)));
   /** The steps whose head and tabs stay while the part under them scrolls. */
   const split = step === "rdb" || step === "code";
   /** The safety rules (`Home Page – 39`) lie over the crypto form. */
@@ -280,7 +247,6 @@ export default function WalletCashInSheet({
         lower={TOP[step] - TOP.rdb}
         radius={SHEET.radiusWallet}
         fit
-        keep={keep}
         testId="demo-wallet-cash-in-sheet"
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -289,8 +255,10 @@ export default function WalletCashInSheet({
             data-pw={`demo-wallet-cash-in-${step}`}
             className="flex flex-col shrink-0"
             // The forms and the codes reach the board's end, where their
-            // buttons sit. A split step is as tall as the canvas lets it be,
-            // so only the part under its tabs scrolls.
+            // buttons sit. Only a form in use ends where the canvas ends, so
+            // it does not scroll under the keyboard. A split step is as tall
+            // as the canvas lets it be, so only the part under its tabs
+            // scrolls.
             style={
               split
                 ? { height: Math.min(BOARD_END, end) - (TOP[step] + 13) }
@@ -298,7 +266,7 @@ export default function WalletCashInSheet({
                     minHeight:
                       step === "ways"
                         ? undefined
-                        : (keep ? Math.min(BOARD_END, end) : BOARD_END) -
+                        : (typing ? Math.min(BOARD_END, end) : BOARD_END) -
                           (TOP[step] + 13),
                   }
             }
@@ -319,8 +287,8 @@ export default function WalletCashInSheet({
                 head={rdbHead}
                 balance={balance}
                 onPicture={() => setPicture("deposit")}
+                typing={typing}
                 onKeypad={setTyping}
-                onTab={setFromBank}
               />
             )}
             {step === "crypto" && (
@@ -732,28 +700,22 @@ function Rdb({
   head,
   balance,
   onPicture,
+  typing,
   onKeypad,
-  onTab,
 }: {
   head: React.ReactNode;
   balance: WalletBalance;
   /** "Download": on to the picture of the code (`– 31`). */
   onPicture: () => void;
+  /** The amount field of "From My rdb" is in use. */
+  typing: boolean;
   /** The app's keypad went up or away. */
   onKeypad: (open: boolean) => void;
-  /** The chosen tab: true for "From My rdb". */
-  onTab: (fromBank: boolean) => void;
 }) {
   const { t } = useDemoNav();
   const [tab, setTab] = useState<"cash" | "bank">("cash");
   const [amount, setAmount] = useState("");
   const fromBank = tab === "bank";
-
-  useEffect(() => {
-    onTab(fromBank);
-  }, [fromBank]);
-  // A step that leaves takes its tab with it.
-  useEffect(() => () => onTab(false), []);
 
   const act = (id: Action["id"]) => {
     if (id === "copy")
@@ -797,7 +759,18 @@ function Rdb({
 
       <Under testId="demo-wallet-cash-in-rdb-under">
         {fromBank ? (
-          <>
+          // As tall as the board under the tabs (y 241 to 930), so the button
+          // keeps the file's place (y 835) and its spacing: on a short canvas
+          // it is under the screen's end and this part scrolls to it. With
+          // the field in use the form ends where the canvas ends, so it does
+          // not scroll under the keyboard.
+          <div
+            data-pw="demo-wallet-cash-in-bank-form"
+            className={`flex flex-col shrink-0 ${typing ? "grow" : ""}`}
+            style={{
+              minHeight: typing ? undefined : BOARD_END - (213 + 28),
+            }}
+          >
             <Recipient
               mt={245 - (213 + 28)}
               label={<WithBank text={t("{bank} client ID")} />}
@@ -850,7 +823,7 @@ function Rdb({
                 testId="demo-wallet-cash-in-connect"
               />
             </div>
-          </>
+          </div>
         ) : (
           <>
             <Icon name="qrCashIn" mt={260.41 - (213 + 28)} ml={65} />
