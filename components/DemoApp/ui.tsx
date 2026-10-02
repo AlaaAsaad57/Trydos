@@ -912,12 +912,16 @@ export function useOuterBackdrop(open: boolean, paint: string, top: string) {
     strip.dataset.pw = "demo-top-tint";
     // Over the entire viewport width and safe-area-inset-top so Safari paints
     // the native status bar and dynamic island area in the backdrop colour.
+    // In a browser tab the inset is 0, and the strip is 6 px: enough for
+    // Safari to read its colour, and well above a sheet from y 90, which
+    // starts 40 px under the top of the app. A 59 px strip lay over that
+    // sheet's handle and round corners, so the sheet looked cut at the top.
     Object.assign(strip.style, {
       position: "fixed",
       top: "0",
       left: "0",
       width: "100vw",
-      height: "max(59px, env(safe-area-inset-top, 59px))",
+      height: "max(6px, env(safe-area-inset-top, 0px))",
       backgroundColor: top,
       background: top,
       pointerEvents: "none",
@@ -1128,7 +1132,7 @@ export function Sheet({
               onClick={(e) => {
                 if (!touch) return;
                 const target = e.target as HTMLElement;
-                if (!target || target === e.currentTarget) return;
+                if (!target) return;
                 if (
                   target.closest(
                     "button, a, [role='button'], [data-pw='demo-sheet-grip']"
@@ -1169,10 +1173,15 @@ export function Sheet({
                   }
                 }
 
-                // 2. If not found by coordinate hit, check closest container (e.g. field box or label)
+                // 2. If not found by coordinate hit, check closest container (e.g. field box or label).
+                // Only a box about as tall as a field counts. A taller one is
+                // a part of the sheet (the form, the part that scrolls): a tap
+                // on its free room is a tap outside the fields, and taking it
+                // for the form's only input kept that input in use for ever.
                 if (!targetInput) {
                   let curr: HTMLElement | null = target;
                   while (curr && curr !== sheet) {
+                    if (curr.getBoundingClientRect().height > 150) break;
                     const found =
                       curr.querySelectorAll<
                         HTMLInputElement | HTMLTextAreaElement
@@ -1187,9 +1196,16 @@ export function Sheet({
                   }
                 }
 
-                if (targetInput && document.activeElement !== targetInput) {
-                  targetInput.focus({ preventScroll: true });
+                if (targetInput) {
+                  if (document.activeElement !== targetInput)
+                    targetInput.focus({ preventScroll: true });
+                  return;
                 }
+                // A tap outside every field: the field in use lets go. The
+                // inputs take no taps here, so the browser does not do it.
+                const inUse = document.activeElement as HTMLElement | null;
+                if (inUse && sheet.contains(inUse) && inUse.matches(inputSelector))
+                  inUse.blur();
               }}
             >
               <div
