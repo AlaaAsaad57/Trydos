@@ -898,7 +898,10 @@ export function useOuterBackdrop(open: boolean, paint: string, top: string) {
         outer.style.backgroundColor = beforeOuterBg;
       }
       if (demoApp) {
-        demoApp.style.backgroundColor = beforeDemoAppBg;
+        // Safari follows the top colour to grey, but not back to transparent:
+        // its bar stayed grey over the white page. So the last layer to close
+        // leaves the page's white there, which Safari does follow.
+        demoApp.style.backgroundColor = beforeDemoAppBg || C.white;
       }
       document.body.style.backgroundColor = beforeBody;
       document.documentElement.style.backgroundColor = beforeHtml;

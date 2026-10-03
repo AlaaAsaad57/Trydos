@@ -1724,4 +1724,44 @@ describe("Demo FileLines — the file's lines at the file's x", () => {
     unmount();
     expect(document.querySelector('meta[name="theme-color"]'), "meta tag must be removed on unmount").toBeNull();
   });
+
+  // Safari 26 on the iPhone tints its top bar from the fixed element at the
+  // top edge. It follows that element to grey, but it does not follow it back
+  // to "transparent": the bar stayed grey over the white page after a sheet
+  // closed. So the app must end on an opaque white there, not on nothing.
+  it("Safari topbar tinting: the app's top is white again after the last layer closes", () => {
+    function Layers({ sheet, picture }: { sheet: boolean; picture: boolean }) {
+      useOuterBackdrop(sheet, "rgba(0,0,0,0.5)", "rgb(52, 52, 52)");
+      useOuterBackdrop(sheet && picture, "white", "rgb(255, 255, 255)");
+      return null;
+    }
+    const { rerender, getByTestId } = render(
+      <main data-testid="app" data-pw="demo-app">
+        <Layers sheet={false} picture={false} />
+      </main>,
+    );
+    const app = getByTestId("app");
+    const show = (sheet: boolean, picture: boolean) =>
+      rerender(
+        <main data-testid="app" data-pw="demo-app">
+          <Layers sheet={sheet} picture={picture} />
+        </main>,
+      );
+
+    show(true, false);
+    expect(app.style.backgroundColor, "an open sheet does not tint the app's top grey").toBe("rgb(52, 52, 52)");
+
+    show(true, true);
+    show(true, false);
+    expect(
+      app.style.backgroundColor,
+      "closing the picture over the sheet did not give the top back to the sheet's grey",
+    ).toBe("rgb(52, 52, 52)");
+
+    show(false, false);
+    expect(
+      app.style.backgroundColor,
+      "after the sheet closed the app's top is not opaque white, so Safari keeps its top bar grey",
+    ).toBe("rgb(255, 255, 255)");
+  });
 });
