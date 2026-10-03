@@ -1,11 +1,13 @@
-import React, { Suspense } from "react";
-import { lang as langParam } from "next/root-params";
-import DemoShell from "components/DemoApp/DemoShell";
-import { DEMO_KEYS, type DemoDictionary } from "components/DemoApp/demoKeys";
-import { translateFunction } from "utils/server";
+import React from "react";
 
 /*
   The new app design, as a demo for the client: /[lang]/demo.
+
+  TURNED OFF: every page under this folder sends the browser to the same
+  screen on /demo1 (see redirectToDemo1.ts). So this layout renders only the
+  page, not the demo shell: the shell draws each screen from the URL itself
+  and never renders the page, so the page's redirect would never run. The
+  notes below say how the layout worked while /demo was on.
 
   The layout owns the whole app (components/DemoApp/DemoShell): the scaled
   canvas, the tab bar and the screen on show. It stays mounted while the
@@ -35,23 +37,10 @@ export const viewport = {
   viewportFit: "cover",
 };
 
-export default async function DemoLayout({
+export default function DemoLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const language = (await langParam()).split("-")[1] || "en";
-  // English goes through the lookup too: it gives the key with a capital on
-  // every word, as everywhere else in the app.
-  const dictionary: DemoDictionary = Object.fromEntries(
-    DEMO_KEYS.map((key) => [key, translateFunction(key, language)]),
-  );
-
-  return (
-    <Suspense
-      fallback={<div className="fixed inset-0 z-[99999999999] bg-white" />}
-    >
-      <DemoShell dictionary={dictionary}>{children}</DemoShell>
-    </Suspense>
-  );
+  return children;
 }

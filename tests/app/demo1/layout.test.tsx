@@ -3,25 +3,29 @@ import { describe, expect, it, vi } from "vitest";
 
 const root = vi.hoisted(() => ({ lang: "sy-en" }));
 vi.mock("next/root-params", () => ({ lang: async () => root.lang }));
-vi.mock("components/DemoApp/DemoShell", () => ({ default: () => null }));
+vi.mock("components/DemoApp1/Demo1Shell", () => ({ default: () => null }));
 
-import DemoLayout from "app/(client)/[lang]/demo/layout";
-import DemoShell from "components/DemoApp/DemoShell";
+import Demo1Layout from "app/(client)/[lang]/demo1/layout";
+import Demo1Shell from "components/DemoApp1/Demo1Shell";
 
 /** The word list the layout hands to the demo shell. */
 const dictionaryFor = async (lang: string) => {
   root.lang = lang;
-  const tree = (await DemoLayout({ children: null })) as React.ReactElement<{
-    children: React.ReactElement<{ dictionary: Record<string, string> }>;
+  // The layout gives a fragment: the style that hides the site's navbar, then
+  // the Suspense boundary round the shell.
+  const tree = (await Demo1Layout({ children: null })) as React.ReactElement<{
+    children: React.ReactElement<{
+      children: React.ReactElement<{ dictionary: Record<string, string> }>;
+    }>[];
   }>;
-  const shell = tree.props.children;
-  expect(shell.type, "the layout does not render the demo shell").toBe(
-    DemoShell,
-  );
-  return shell.props.dictionary;
+  const shell = tree.props.children
+    .map((child) => child?.props?.children)
+    .find((child) => child?.type === Demo1Shell);
+  expect(shell, "the layout does not render the demo1 shell").toBeDefined();
+  return shell!.props.dictionary;
 };
 
-describe("demo layout", () => {
+describe("demo1 layout", () => {
   it("hands the shell English with a capital letter on every word, as the rest of the app shows it", async () => {
     const english = await dictionaryFor("sy-en");
     expect(

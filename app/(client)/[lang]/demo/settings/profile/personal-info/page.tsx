@@ -1,6 +1,7 @@
-// The demo shell (the layout at the top of /demo) draws this screen from the
-// URL, so the page itself has nothing to render — and a page that renders
-// nothing never blocks a navigation.
+import { redirectToDemo1 } from "../../../redirectToDemo1";
+
+// /demo is off: this page sends the browser to the same screen on /demo1
+// (see redirectToDemo1.ts).
 //
 // Instant validation is off, as on /loginDemo: the check renders the whole
 // route from the root, and the shared [lang] layout above this folder
@@ -8,6 +9,10 @@
 // adoption task for the root layout, not something this page can fix.
 export const instant = false;
 
-export default function Page() {
-  return null;
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  await redirectToDemo1("settings/profile/personal-info", searchParams);
 }
