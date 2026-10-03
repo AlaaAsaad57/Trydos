@@ -10,7 +10,6 @@ import { NATIVE_WALLET_KEYBOARD } from "../../DemoApp/demoKeyboard";
 import {
   C,
   DESIGN_W,
-  SAFE_BOTTOM,
   SAFE_TOP,
   SF_ROUNDED,
   SHEET,
@@ -94,11 +93,12 @@ const HEAD_END = textBottom(180, 24);
 /**
  * The height of a step whose blocks start at design y `from`: it ends with
  * the board (y 930), or with the screen (`end`) when the screen is shorter.
- * The device's own insets (a home-screen app) are taken off too, so the step
- * fits the sheet and only the part under its head scrolls.
+ * The device's top inset (a home-screen app) is taken off, as the sheet
+ * starts under it. The bottom is not: as on /demo, the sheet runs on under
+ * Safari's bar, and the part under the head scrolls to what the bar covers.
  */
 const stepHeight = (from: number, end: number) =>
-  `min(${BOARD_END - from}px, calc(${end - from}px - ${SAFE_TOP} - ${SAFE_BOTTOM}))`;
+  `min(${BOARD_END - from}px, calc(${end - from}px - ${SAFE_TOP}))`;
 
 /**
  * True while the screen is narrower than the artboard (430 px). The file's

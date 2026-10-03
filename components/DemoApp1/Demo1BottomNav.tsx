@@ -41,8 +41,9 @@ import {
  *    file's 76 px slots do on the 386 px bar. Each icon keeps the file's
  *    distance from its slot's centre.
  *
- * It has no fill and no full-width box of its own, so Safari 26 does not take
- * it for a bottom edge to paint its bar with.
+ * It has no fill of its own. Its glass holds the tabs, so when the bar drops
+ * onto the bottom edge Safari 26 reads it as a glass bar and keeps its own bar
+ * glass, instead of painting it the white of the page.
  */
 
 /** The file's centre of slot `index`, on the 430 artboard. */
@@ -190,103 +191,110 @@ export default function Demo1BottomNav({
           setDragging(true);
         }}
       >
-        <span
-          aria-hidden="true"
+        {/* The glass holds the tabs. Safari 26 looks for a fixed bar at the
+            bottom edge from the tab under its test point upwards; with the
+            glass on the way it leaves its own bar glass too. As a sibling of
+            the tabs it was missed, and Safari painted its bar the white of
+            the page under the dropped bar. The glass still has no transform
+            of its own (Safari clips a backdrop filter wrongly then): the box
+            above it scales. */}
+        <div
           data-pw="demo-tab-glass"
-          className="absolute inset-0 block pointer-events-none"
+          className="absolute inset-0"
           style={{
             borderRadius: TAB_BAR.radius,
             backgroundColor: "transparent",
             backdropFilter: TAB_BAR.glass,
             WebkitBackdropFilter: TAB_BAR.glass,
           }}
-        />
-        {all.map((id, index) => {
-          const on = id === active;
-          const slot = SLOTS[index];
-          const label: DemoKey = slot ? slot.label : "Profile";
-          return (
-            <button
-              key={id}
-              ref={(el) => {
-                slots.current[id] = el;
-              }}
-              type="button"
-              aria-label={t(label)}
-              aria-current={on ? "page" : undefined}
-              data-pw={`demo-tab-${id}`}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  firePulse();
-                  onSelect(id);
-                }
-              }}
-              className="absolute top-0 h-full cursor-pointer"
-              style={{
-                left: `calc(${SLOT_INSET}px + (100% - ${2 * SLOT_INSET}px) * ${index / all.length})`,
-                width: `calc((100% - ${2 * SLOT_INSET}px) / ${all.length})`,
-              }}
-            >
-              <motion.span
-                className="absolute inset-0 block"
-                animate={{ scale: pressed === id ? 0.88 : 1 }}
-                transition={pressed === id ? PRESS : TRAVEL}
+        >
+          {all.map((id, index) => {
+            const on = id === active;
+            const slot = SLOTS[index];
+            const label: DemoKey = slot ? slot.label : "Profile";
+            return (
+              <button
+                key={id}
+                ref={(el) => {
+                  slots.current[id] = el;
+                }}
+                type="button"
+                aria-label={t(label)}
+                aria-current={on ? "page" : undefined}
+                data-pw={`demo-tab-${id}`}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    firePulse();
+                    onSelect(id);
+                  }
+                }}
+                className="absolute top-0 h-full cursor-pointer"
+                style={{
+                  left: `calc(${SLOT_INSET}px + (100% - ${2 * SLOT_INSET}px) * ${index / all.length})`,
+                  width: `calc((100% - ${2 * SLOT_INSET}px) / ${all.length})`,
+                }}
               >
-                {slot ? (
-                  <GrowBox
-                    tab={id}
-                    on={on}
-                    idle={slot.idle}
-                    active={slot.active}
-                    at={iconAt(slot.active.x, slot.active.y, index)}
-                  >
-                    <XdIcon
-                      name={slot.icon}
-                      size={slot.active.size}
-                      style={{
-                        position: "absolute",
-                        left: 0,
-                        top: 0,
-                        opacity: on ? 0 : 1,
-                        transition: SWAP,
-                      }}
-                    />
-                    <XdIcon
-                      name={slot.activeIcon}
-                      size={slot.active.size}
-                      style={{
-                        position: "absolute",
-                        left: 0,
-                        top: 0,
-                        opacity: on ? 1 : 0,
-                        transition: SWAP,
-                      }}
-                    />
-                    {slot.count && (
-                      <TabCount
-                        tab={id}
-                        on={on}
-                        count={slot.count}
+                <motion.span
+                  className="absolute inset-0 block"
+                  animate={{ scale: pressed === id ? 0.88 : 1 }}
+                  transition={pressed === id ? PRESS : TRAVEL}
+                >
+                  {slot ? (
+                    <GrowBox
+                      tab={id}
+                      on={on}
+                      idle={slot.idle}
+                      active={slot.active}
+                      at={iconAt(slot.active.x, slot.active.y, index)}
+                    >
+                      <XdIcon
+                        name={slot.icon}
                         size={slot.active.size}
+                        style={{
+                          position: "absolute",
+                          left: 0,
+                          top: 0,
+                          opacity: on ? 0 : 1,
+                          transition: SWAP,
+                        }}
                       />
-                    )}
-                  </GrowBox>
-                ) : (
-                  <GrowBox
-                    tab={id}
-                    on={on}
-                    idle={PROFILE.idle}
-                    active={PROFILE.active}
-                    at={iconAt(PROFILE.active.x, PROFILE.active.y, index)}
-                  >
-                    <ProfileTab on={on} photo={photo} verified={verified} />
-                  </GrowBox>
-                )}
-              </motion.span>
-            </button>
-          );
-        })}
+                      <XdIcon
+                        name={slot.activeIcon}
+                        size={slot.active.size}
+                        style={{
+                          position: "absolute",
+                          left: 0,
+                          top: 0,
+                          opacity: on ? 1 : 0,
+                          transition: SWAP,
+                        }}
+                      />
+                      {slot.count && (
+                        <TabCount
+                          tab={id}
+                          on={on}
+                          count={slot.count}
+                          size={slot.active.size}
+                        />
+                      )}
+                    </GrowBox>
+                  ) : (
+                    <GrowBox
+                      tab={id}
+                      on={on}
+                      idle={PROFILE.idle}
+                      active={PROFILE.active}
+                      at={iconAt(PROFILE.active.x, PROFILE.active.y, index)}
+                    >
+                      <ProfileTab on={on} photo={photo} verified={verified} />
+                    </GrowBox>
+                  )}
+                </motion.span>
+              </button>
+            );
+          })}
+        </div>
       </motion.div>
     </motion.nav>
   );

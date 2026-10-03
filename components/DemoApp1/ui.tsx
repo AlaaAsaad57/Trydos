@@ -149,6 +149,11 @@ function useMounted() {
  *
  * `fixed` and not `absolute`: the page under it is the document, so a layer
  * inside the page would scroll away with it.
+ *
+ * It is as tall as the window (`innerHeight`), the height /demo's canvas has,
+ * and not the box `inset: 0` gives: on iOS 26 that box ends above Safari's
+ * floating bar. So a sheet runs on under the bar, as on /demo, and what the
+ * bar covers is reached by scrolling the sheet.
  */
 export function Layer({
   children,
@@ -180,12 +185,13 @@ export function Layer({
     if (!tint || !present) return;
     return holdTopTint(tint, DEMO1_TINT);
   }, [tint, present]);
+  const height = useScreenHeight();
   if (!mounted) return null;
   return createPortal(
     <div
       data-pw={testId}
-      className={`fixed inset-y-0 left-0 right-0 mx-auto w-full font-quicksand ${className}`}
-      style={{ maxWidth: PAGE_MAX, zIndex: 2147483000 + z, ...style }}
+      className={`fixed top-0 left-0 right-0 mx-auto w-full font-quicksand ${className}`}
+      style={{ maxWidth: PAGE_MAX, height, zIndex: 2147483000 + z, ...style }}
     >
       {children}
     </div>,
@@ -783,15 +789,38 @@ export function MenuRow({
  * the screen's height, from the top of the app (design y 50).
  */
 export function useCanvasEnd(watch: boolean) {
-  const [height, setHeight] = React.useState(DESIGN_H);
-  React.useEffect(() => {
+  const height = useScreenHeight(watch);
+  return STATUS_BAR + (height ?? DESIGN_H);
+}
+
+const isTextField = (el: Element | null) =>
+  !!el &&
+  (el.tagName === "INPUT" ||
+    el.tagName === "TEXTAREA" ||
+    (el as HTMLElement).isContentEditable);
+
+/**
+ * The window's height (`innerHeight`), the number /demo's canvas is fitted to.
+ * Held while a text field has focus, as on /demo: Android makes `innerHeight`
+ * smaller when the keyboard opens, and the layer must not shrink under it.
+ * Undefined before the page runs in the browser.
+ */
+function useScreenHeight(watch = true) {
+  const [height, setHeight] = React.useState<number | undefined>(undefined);
+  React.useLayoutEffect(() => {
     if (!watch) return;
-    const read = () => setHeight(window.innerHeight);
+    const read = () => {
+      if (!isTextField(document.activeElement)) setHeight(window.innerHeight);
+    };
     read();
     window.addEventListener("resize", read);
-    return () => window.removeEventListener("resize", read);
+    document.addEventListener("focusout", read);
+    return () => {
+      window.removeEventListener("resize", read);
+      document.removeEventListener("focusout", read);
+    };
   }, [watch]);
-  return STATUS_BAR + height;
+  return height;
 }
 
 /**
@@ -858,7 +887,7 @@ export function Sheet({
                 // sheet keeps its top, so the dimmed page shows above it.
                 ...(fit || y < 300
                   ? { top: top(y) }
-                  : { height: `calc(${DESIGN_H - y}px + ${SAFE_BOTTOM})` }),
+                  : { height: DESIGN_H - y }),
                 bottom: 0,
                 background: C.white,
                 borderRadius: `${radius}px ${radius}px 0 0`,
@@ -893,9 +922,8 @@ export function Sheet({
               <div
                 className={`flex flex-col w-full h-full ${fit ? "overflow-y-auto overflow-x-hidden overscroll-contain" : ""}`}
                 style={{
-                  paddingBottom: fit
-                    ? `calc(${rest}px + ${SAFE_BOTTOM})`
-                    : SAFE_BOTTOM,
+                  // The part of a lowered sheet that hangs under the screen.
+                  paddingBottom: fit ? rest : undefined,
                   scrollbarWidth: fit ? "none" : undefined,
                 }}
                 onClick={(e) => focusTappedField(e, touch)}

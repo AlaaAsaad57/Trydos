@@ -294,6 +294,84 @@ describe("Demo1 layers — Safari's top bar follows an open sheet", () => {
   });
 });
 
+describe("Demo1 bottom — like /demo, Safari's bottom bar lies over the app", () => {
+  const innerHeight = window.innerHeight;
+  afterEach(() => {
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      value: innerHeight,
+    });
+  });
+
+  it("a sheet runs to the bottom of the window: its layer is as tall as innerHeight and keeps no room for the bottom inset", () => {
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      value: 800,
+    });
+    render(
+      <Sheet open onClose={() => {}} y={400} testId="sheet-h">
+        <span>a</span>
+      </Sheet>,
+    );
+    const layer = document.body.querySelector<HTMLElement>(
+      '[data-pw="sheet-h"]',
+    );
+    expect(layer, "the open sheet was not drawn").not.toBeNull();
+    expect(
+      layer!.style.height,
+      "the sheet's layer is not as tall as the window (innerHeight), so it ends above Safari's bar instead of under it as on /demo",
+    ).toBe("800px");
+    const inset = [layer!, ...layer!.querySelectorAll<HTMLElement>("*")].filter(
+      (el) =>
+        (el.getAttribute("style") ?? "").includes("safe-area-inset-bottom"),
+    );
+    expect(
+      inset.map((el) => el.getAttribute("data-pw") ?? el.tagName),
+      "the sheet keeps room for the device's bottom inset, so its last rows stop above Safari's bar",
+    ).toEqual([]);
+  });
+
+  it("cash in: the sheet's steps keep no room for the bottom inset either", () => {
+    const { container } = openOn("settings/wallet");
+    const card = container.querySelector('[data-pw="demo-wallet-card-usd"]');
+    expect(card, "the wallet has no dollar card").not.toBeNull();
+    fireEvent.click(card!);
+    const cashIn = container.querySelector(
+      '[data-pw="demo-wallet-cash-in-usd"]',
+    );
+    expect(cashIn, "the grown dollar card has no Cash In").not.toBeNull();
+    fireEvent.click(cashIn!);
+    const sheet = document.body.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-cash-in-sheet"]',
+    );
+    expect(sheet, "Cash In did not open its sheet").not.toBeNull();
+    const inset = [...sheet!.querySelectorAll<HTMLElement>("*")].filter((el) =>
+      (el.getAttribute("style") ?? "").includes("safe-area-inset-bottom"),
+    );
+    expect(
+      inset.map((el) => el.getAttribute("data-pw") ?? el.tagName),
+      "a cash-in step is cut short by the bottom inset, so its button sits above Safari's bar",
+    ).toEqual([]);
+  });
+
+  // Safari reads a fixed bar near the bottom edge. With no glass on the way
+  // up from the point it tests, it takes a snapshot of the white page and
+  // paints its own bar solid white; with a backdrop-filter there it leaves its
+  // own glass (WebKit LocalFrameView::fixedContainerEdges, foundBackdropFilter).
+  it("the tab bar's glass holds its tabs, so Safari keeps its own bar glass when the bar drops onto the bottom edge", () => {
+    openOn("home");
+    const glass = document.body.querySelector('[data-pw="demo-tab-glass"]');
+    expect(glass, "the tab bar has no glass").not.toBeNull();
+    for (const tab of ["home", "search", "cart", "chat", "settings"]) {
+      const button = document.body.querySelector(`[data-pw="demo-tab-${tab}"]`);
+      expect(
+        glass!.contains(button),
+        `the ${tab} tab is not inside the glass, so Safari does not see the glass above it and paints its bar white`,
+      ).toBe(true);
+    }
+  });
+});
+
 describe("Demo1 layers — a sheet holds the page still", () => {
   it("draws the sheet on <body> and stops the page scrolling until the last layer closes", async () => {
     const Two = ({ a, b }: { a: boolean; b: boolean }) => (
