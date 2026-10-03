@@ -430,7 +430,7 @@ export function PictureLayer({
   return (
     <AnimatePresence>
       {open && (
-        <Layer key="picture" z={40}>
+        <Layer key="picture" z={40} tint={C.white}>
           {/* White over the whole window, also beside the page column on a
               wide screen, so the dimmed page under the sheet does not show. */}
           <motion.div

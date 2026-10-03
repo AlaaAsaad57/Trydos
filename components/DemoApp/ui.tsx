@@ -6,6 +6,7 @@ import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 import XdIcon from "./XdIcon";
 import { XD_ICON_SIZE, type XdIconName } from "./xdIcons";
 import type { DemoKey } from "./demoKeys";
+import { holdTopTint, type TintHome } from "./topTint";
 import {
   BANNER,
   BODY_Y,
@@ -850,11 +851,11 @@ export function MenuRow({
  * left and right of the canvas stays white, as it is on every other screen.
  *
  * `top` is the layer's colour at the top of the screen. Safari 26 on the
- * iPhone paints its own top area (the clock and the battery) in the
- * background colour of a fixed element at the top edge, not from
- * `theme-color`. `#app-outer` is such an element, and it stays white under
- * the painted column, so the top area stayed white over a dimmed page. A
- * thin fixed strip in `top` gives Safari the layer's colour while it is open.
+ * iPhone takes the colour of its own top area (the clock and the battery)
+ * from a fixed strip the demo keeps at the top (topTint.ts): `top` while the
+ * layer is open, white after the last layer closes. The strip is never taken
+ * away: under it is only the screen-sized `#app-outer`, and for a box that
+ * size Safari keeps the colour it already shows, so the bar stayed grey.
  */
 export function useOuterBackdrop(open: boolean, paint: string, top: string) {
   // 1 px narrower on each side than the canvas, so no sliver of it shows
@@ -882,7 +883,9 @@ export function useOuterBackdrop(open: boolean, paint: string, top: string) {
     document.documentElement.style.backgroundColor = top;
 
     // Safari 15+ native mobile topbar theme-color API
-    let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    let meta = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"]',
+    );
     const created = !meta;
     if (!meta) {
       meta = document.createElement("meta");
@@ -898,9 +901,8 @@ export function useOuterBackdrop(open: boolean, paint: string, top: string) {
         outer.style.backgroundColor = beforeOuterBg;
       }
       if (demoApp) {
-        // Safari follows the top colour to grey, but not back to transparent:
-        // its bar stayed grey over the white page. So the last layer to close
-        // leaves the page's white there, which Safari does follow.
+        // The page's white again. Safari does not read this box's colour (it
+        // is as big as the screen); the top strip below is what it reads.
         demoApp.style.backgroundColor = beforeDemoAppBg || C.white;
       }
       document.body.style.backgroundColor = beforeBody;
@@ -911,31 +913,21 @@ export function useOuterBackdrop(open: boolean, paint: string, top: string) {
   }, [open, background, top]);
   React.useEffect(() => {
     if (!open) return;
-    const strip = document.createElement("div");
-    strip.dataset.pw = "demo-top-tint";
-    // Over the entire viewport width and safe-area-inset-top so Safari paints
-    // the native status bar and dynamic island area in the backdrop colour.
-    // In a browser tab the inset is 0, and the strip is 6 px: enough for
-    // Safari to read its colour, and well above a sheet from y 90, which
-    // starts 40 px under the top of the app. A 59 px strip lay over that
-    // sheet's handle and round corners, so the sheet looked cut at the top.
-    Object.assign(strip.style, {
-      position: "fixed",
-      top: "0",
-      left: "0",
-      width: "100vw",
-      height: "max(6px, env(safe-area-inset-top, 0px))",
-      backgroundColor: top,
-      background: top,
-      pointerEvents: "none",
-      zIndex: "2147483647",
-    });
-    const targetParent =
-      document.querySelector<HTMLElement>('[data-pw="demo-app"]') || document.body;
-    targetParent.appendChild(strip);
-    return () => strip.remove();
+    return holdTopTint(top, DEMO_TINT);
   }, [open, top]);
 }
+
+/**
+ * The top strip of /demo: inside the demo's <main>, so it is drawn over the
+ * canvas, and white while no layer is open. It must stay opaque then: under
+ * it is only the screen-sized `#app-outer`, which Safari never reads again.
+ */
+const DEMO_TINT: TintHome = {
+  host: () =>
+    document.querySelector<HTMLElement>('[data-pw="demo-app"]') ??
+    document.body,
+  rest: C.white,
+};
 
 /** `#1D1D1D` at 90% over the white page: what a dimmed page looks like. */
 export const DIMMED = "rgb(52, 52, 52)";
@@ -1138,7 +1130,7 @@ export function Sheet({
                 if (!target) return;
                 if (
                   target.closest(
-                    "button, a, [role='button'], [data-pw='demo-sheet-grip']"
+                    "button, a, [role='button'], [data-pw='demo-sheet-grip']",
                   )
                 )
                   return;
@@ -1156,10 +1148,9 @@ export function Sheet({
                   typeof e.clientY === "number" &&
                   (e.clientX !== 0 || e.clientY !== 0)
                 ) {
-                  const allInputs =
-                    sheet.querySelectorAll<
-                      HTMLInputElement | HTMLTextAreaElement
-                    >(inputSelector);
+                  const allInputs = sheet.querySelectorAll<
+                    HTMLInputElement | HTMLTextAreaElement
+                  >(inputSelector);
                   for (const el of allInputs) {
                     const rect = el.getBoundingClientRect();
                     if (
@@ -1185,10 +1176,9 @@ export function Sheet({
                   let curr: HTMLElement | null = target;
                   while (curr && curr !== sheet) {
                     if (curr.getBoundingClientRect().height > 150) break;
-                    const found =
-                      curr.querySelectorAll<
-                        HTMLInputElement | HTMLTextAreaElement
-                      >(inputSelector);
+                    const found = curr.querySelectorAll<
+                      HTMLInputElement | HTMLTextAreaElement
+                    >(inputSelector);
                     if (found.length === 1) {
                       targetInput = found[0];
                       break;
@@ -1207,7 +1197,11 @@ export function Sheet({
                 // A tap outside every field: the field in use lets go. The
                 // inputs take no taps here, so the browser does not do it.
                 const inUse = document.activeElement as HTMLElement | null;
-                if (inUse && sheet.contains(inUse) && inUse.matches(inputSelector))
+                if (
+                  inUse &&
+                  sheet.contains(inUse) &&
+                  inUse.matches(inputSelector)
+                )
                   inUse.blur();
               }}
             >

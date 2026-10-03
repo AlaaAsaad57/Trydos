@@ -105,7 +105,7 @@ export const searchChatList = ({
 
   const newContacts = people.filter(
     (p: any) =>
-      matches(p.name, p.mobile_phone) &&
+      (matches(p.name, p.mobile_phone) || matches(p.contact_user?.name)) &&
       !directChatWith(chats, contactUserId(p)),
   );
 

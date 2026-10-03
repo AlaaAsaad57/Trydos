@@ -13,6 +13,7 @@ import XdIcon from "../DemoApp/XdIcon";
 import { XD_ICON_SIZE, type XdIconName } from "../DemoApp/xdIcons";
 import type { DemoKey } from "../DemoApp/demoKeys";
 import { Box, Icon, Txt, type Weight } from "../DemoApp/ui";
+import { holdTopTint, type TintHome } from "../DemoApp/topTint";
 import {
   BANNER,
   BODY_Y,
@@ -126,6 +127,13 @@ export function useScrollLock(on: boolean) {
   }, [on]);
 }
 
+/**
+ * The top strip of /demo1 (see components/DemoApp/topTint.ts), on <body>.
+ * Hidden while no layer is open: Safari then reads what is under it, the
+ * screen's white sticky header, or the page through its glass.
+ */
+const DEMO1_TINT: TintHome = { host: () => document.body, rest: null };
+
 /** True once the page runs in the browser, so a portal has a <body> to go to. */
 function useMounted() {
   const [mounted, setMounted] = React.useState(false);
@@ -145,18 +153,33 @@ function useMounted() {
 export function Layer({
   children,
   z = 30,
+  tint,
   testId,
   className = "",
   style,
 }: {
   children: React.ReactNode;
   z?: number;
+  /**
+   * The colour the layer shows at the top of the screen (the dimmed page's
+   * grey for a sheet). Safari's top area takes it while the layer is open, and
+   * gives it back as the layer starts to close. None for a layer that leaves
+   * the top of the page in view.
+   */
+  tint?: string;
   testId?: string;
   className?: string;
   style?: React.CSSProperties;
 }) {
   const mounted = useMounted();
   useScrollLock(true);
+  // Inside AnimatePresence a closing layer stays mounted while it fades;
+  // the top follows the start of the fade, with the page under it.
+  const present = useIsPresent();
+  React.useEffect(() => {
+    if (!tint || !present) return;
+    return holdTopTint(tint, DEMO1_TINT);
+  }, [tint, present]);
   if (!mounted) return null;
   return createPortal(
     <div
@@ -774,8 +797,8 @@ export function useCanvasEnd(watch: boolean) {
 /**
  * The bottom sheet: the page dims to `#1D1D1D` at 90%, and a white sheet with
  * round top corners slides up from the bottom. The /demo sheet, as a layer on
- * <body> over the whole screen (`Layer`). Safari then takes the dimmed colour
- * for its top area by itself: the backdrop is the fixed layer at the top edge.
+ * <body> over the whole screen (`Layer`), with the dimmed page's grey as the
+ * colour of Safari's top area while it is open (`tint`).
  *
  * `y`, `lower`, `fit` and `outline` mean what they mean in /demo, with the
  * screen in place of the canvas.
@@ -809,7 +832,7 @@ export function Sheet({
   return (
     <AnimatePresence>
       {open && (
-        <Layer key="sheet" testId={testId}>
+        <Layer key="sheet" testId={testId} tint={DIMMED}>
           <div data-no-keyboard-lift="" className="absolute inset-0">
             {touch && (
               <style>{`

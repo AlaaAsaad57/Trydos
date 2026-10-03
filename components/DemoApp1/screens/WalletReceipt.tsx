@@ -44,7 +44,13 @@ export default function WalletReceipt({
   return (
     <AnimatePresence>
       {open && (
-        <Layer key="receipt" z={30} testId="demo-wallet-receipt">
+        <Layer
+          key="receipt"
+          z={30}
+          testId="demo-wallet-receipt"
+          // `#1D1D1D` at 50% over the white page.
+          tint="rgb(142, 142, 142)"
+        >
           {/* The dimmed glass covers the whole window, also the room beside
               the page column on a wide screen. */}
           <motion.div

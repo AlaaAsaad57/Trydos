@@ -81,7 +81,10 @@ describe("Demo screens — numbers from the XD file", () => {
     const value = [...container.querySelectorAll("span")].find(
       (el) => el.textContent?.replace(/\s+/g, " ").trim() === "23 days",
     ) as HTMLElement | undefined;
-    expect(value, "the 'client since' value '23 days' is not on the screen").toBeDefined();
+    expect(
+      value,
+      "the 'client since' value '23 days' is not on the screen",
+    ).toBeDefined();
     const number = [...value!.querySelectorAll("span")].find(
       (el) => el.textContent?.trim() === "23",
     );
@@ -89,10 +92,9 @@ describe("Demo screens — numbers from the XD file", () => {
       number,
       "the number of days is not its own span, so it cannot be Medium while 'days' stays Regular",
     ).toBeDefined();
-    expect(
-      number!.className,
-      "the number of days is not Medium",
-    ).toContain("font-medium");
+    expect(number!.className, "the number of days is not Medium").toContain(
+      "font-medium",
+    );
     expect(
       value!.className,
       "the word 'days' is Medium; the file draws only the number Medium and the word Regular",
@@ -119,7 +121,10 @@ describe("Demo screens — numbers from the XD file", () => {
       },
       { timeout: 4000 },
     ).catch(() => null);
-    expect(img, "the picked photo is not shown after the upload").not.toBeNull();
+    expect(
+      img,
+      "the picked photo is not shown after the upload",
+    ).not.toBeNull();
     const line = container.querySelector<SVGElement>(
       'svg[data-stroke="#FFFFFF"]',
     );
@@ -240,20 +245,41 @@ describe("Demo screens — numbers from the XD file", () => {
   // 7 and 5 drew the lines 0.5 and 1.5 px above the file's baselines.
   it("empty address, cart and chat: the grey lines sit on the file's baselines 472 and 492, as `Home Page – 96` draws them", () => {
     const screens = [
-      { name: "address", path: "/sy-en/demo/settings/profile/address", search: "", testId: "demo-address-list" },
-      { name: "cart", path: "/sy-en/demo", search: "cart", testId: "demo-cart" },
-      { name: "chat", path: "/sy-en/demo", search: "chat", testId: "demo-chat" },
+      {
+        name: "address",
+        path: "/sy-en/demo/settings/profile/address",
+        search: "",
+        testId: "demo-address-list",
+      },
+      {
+        name: "cart",
+        path: "/sy-en/demo",
+        search: "cart",
+        testId: "demo-cart",
+      },
+      {
+        name: "chat",
+        path: "/sy-en/demo",
+        search: "chat",
+        testId: "demo-chat",
+      },
     ];
     for (const { name, path, search, testId } of screens) {
       url.search = search;
       const container = open(path);
       const page = container.querySelector(`[data-pw="${testId}"]`);
       expect(page, `the ${name} screen did not open`).not.toBeNull();
-      const [message, hint] = [...page!.querySelectorAll<HTMLElement>("span, p, div")].filter(
-        (e) => e.style.color === "rgb(195, 195, 195)",
-      );
-      expect(message, `the ${name} screen has no grey empty message`).toBeDefined();
-      expect(hint, `the ${name} screen has no grey hint under the message`).toBeDefined();
+      const [message, hint] = [
+        ...page!.querySelectorAll<HTMLElement>("span, p, div"),
+      ].filter((e) => e.style.color === "rgb(195, 195, 195)");
+      expect(
+        message,
+        `the ${name} screen has no grey empty message`,
+      ).toBeDefined();
+      expect(
+        hint,
+        `the ${name} screen has no grey hint under the message`,
+      ).toBeDefined();
       expect(
         message.style.marginTop,
         `the ${name} empty message is off the file's baseline 472 (needs 7.5 px under the mark's box end, 451.5)`,
@@ -286,7 +312,9 @@ describe("Demo screens — numbers from the XD file", () => {
     };
     const blue = (el: HTMLElement) =>
       lined(el) &&
-      el.querySelector(":scope > svg[data-stroke]")!.getAttribute("data-stroke") === "#388CFF";
+      el
+        .querySelector(":scope > svg[data-stroke]")!
+        .getAttribute("data-stroke") === "#388CFF";
     // The label is the field's first line of text.
     const medium = (el: HTMLElement) =>
       el.querySelector(":scope > span")!.className.includes("font-medium");
@@ -319,24 +347,52 @@ describe("Demo screens — numbers from the XD file", () => {
     it("a text field keeps white and its line while it has focus and after it is filled; focus only turns the line blue", () => {
       const container = open(FORM);
       const detail = box(container, "demo-address-detail");
-      expect(detail.style.background, "the empty 'Detailed address' field is not white before it has focus").toBe(WHITE);
-      expect(lined(detail), "the empty 'Detailed address' field has no line before it has focus").toBe(true);
-      expect(blue(detail), "the empty 'Detailed address' field is blue before it has focus; its line is grey").toBe(false);
-      expect(medium(detail), "the 'Detailed address' label is Medium before the field has focus").toBe(false);
+      expect(
+        detail.style.background,
+        "the empty 'Detailed address' field is not white before it has focus",
+      ).toBe(WHITE);
+      expect(
+        lined(detail),
+        "the empty 'Detailed address' field has no line before it has focus",
+      ).toBe(true);
+      expect(
+        blue(detail),
+        "the empty 'Detailed address' field is blue before it has focus; its line is grey",
+      ).toBe(false);
+      expect(
+        medium(detail),
+        "the 'Detailed address' label is Medium before the field has focus",
+      ).toBe(false);
 
-      fireEvent.focus(container.querySelector('[data-pw="demo-address-detail"]')!);
+      fireEvent.focus(
+        container.querySelector('[data-pw="demo-address-detail"]')!,
+      );
       expect(
         detail.style.background,
         "the focused, empty 'Detailed address' field is not white; before the form is complete no field changes its background",
       ).toBe(WHITE);
-      expect(blue(detail), "the focused, empty 'Detailed address' field has no blue #388CFF line").toBe(true);
-      expect(medium(detail), "the focused 'Detailed address' field's label is not Medium").toBe(true);
+      expect(
+        blue(detail),
+        "the focused, empty 'Detailed address' field has no blue #388CFF line",
+      ).toBe(true);
+      expect(
+        medium(detail),
+        "the focused 'Detailed address' field's label is not Medium",
+      ).toBe(true);
 
       type(container, "demo-address-detail", "vadistanbul");
-      expect(detail.style.background, "the focused 'Detailed address' field is not white while it is typed in").toBe(WHITE);
-      expect(blue(detail), "the focused 'Detailed address' field lost its blue line while it is typed in").toBe(true);
+      expect(
+        detail.style.background,
+        "the focused 'Detailed address' field is not white while it is typed in",
+      ).toBe(WHITE);
+      expect(
+        blue(detail),
+        "the focused 'Detailed address' field lost its blue line while it is typed in",
+      ).toBe(true);
 
-      fireEvent.blur(container.querySelector('[data-pw="demo-address-detail"]')!);
+      fireEvent.blur(
+        container.querySelector('[data-pw="demo-address-detail"]')!,
+      );
       expect(
         detail.style.background,
         "the filled 'Detailed address' field changed its background after focus left, but the form is not complete yet",
@@ -345,8 +401,14 @@ describe("Demo screens — numbers from the XD file", () => {
         lined(detail),
         "the filled 'Detailed address' field lost its line after focus left, but the form is not complete yet",
       ).toBe(true);
-      expect(blue(detail), "the 'Detailed address' field stayed blue after focus left").toBe(false);
-      expect(medium(detail), "the 'Detailed address' label stayed Medium after focus left").toBe(false);
+      expect(
+        blue(detail),
+        "the 'Detailed address' field stayed blue after focus left",
+      ).toBe(false);
+      expect(
+        medium(detail),
+        "the 'Detailed address' label stayed Medium after focus left",
+      ).toBe(false);
     });
 
     it("a sheet field with a value and no sheet open stays white with its line, before the form is complete", async () => {
@@ -356,7 +418,10 @@ describe("Demo screens — numbers from the XD file", () => {
         country.style.background,
         "the country field, which always has a value, is not white before the form is complete",
       ).toBe(WHITE);
-      expect(lined(country), "the country field lost its line before the form is complete").toBe(true);
+      expect(
+        lined(country),
+        "the country field lost its line before the form is complete",
+      ).toBe(true);
 
       await pickPlace(container);
       const place = box(container, "demo-address-place");
@@ -368,25 +433,46 @@ describe("Demo screens — numbers from the XD file", () => {
         lined(place),
         "the picked place field lost its line after its sheet closed, but the form is not complete yet",
       ).toBe(true);
-      expect(blue(place), "the picked place field stayed blue after its sheet closed").toBe(false);
+      expect(
+        blue(place),
+        "the picked place field stayed blue after its sheet closed",
+      ).toBe(false);
     }, 15000);
 
     it("the field whose sheet is open gets a blue line and a Medium label and stays white, like a focused text field", () => {
       const container = open(FORM);
       fireEvent.click(box(container, "demo-address-country"));
       const country = box(container, "demo-address-country");
-      expect(country.style.background, "the country field is not white while its sheet is open").toBe(WHITE);
-      expect(blue(country), "the country field has no blue line while its sheet is open").toBe(true);
-      expect(medium(country), "the country field's label is not Medium while its sheet is open").toBe(true);
+      expect(
+        country.style.background,
+        "the country field is not white while its sheet is open",
+      ).toBe(WHITE);
+      expect(
+        blue(country),
+        "the country field has no blue line while its sheet is open",
+      ).toBe(true);
+      expect(
+        medium(country),
+        "the country field's label is not Medium while its sheet is open",
+      ).toBe(true);
     });
 
     it("the place field gets a blue line and a Medium label and stays white while its sheet is open", () => {
       const container = open(FORM);
       fireEvent.click(box(container, "demo-address-place"));
       const place = box(container, "demo-address-place");
-      expect(place.style.background, "the place field is not white while its sheet is open").toBe(WHITE);
-      expect(blue(place), "the place field has no blue line while its sheet is open").toBe(true);
-      expect(medium(place), "the place field's label is not Medium while its sheet is open").toBe(true);
+      expect(
+        place.style.background,
+        "the place field is not white while its sheet is open",
+      ).toBe(WHITE);
+      expect(
+        blue(place),
+        "the place field has no blue line while its sheet is open",
+      ).toBe(true);
+      expect(
+        medium(place),
+        "the place field's label is not Medium while its sheet is open",
+      ).toBe(true);
     });
 
     it("the place sheet's search box turns its line blue while it has focus", () => {
@@ -397,18 +483,28 @@ describe("Demo screens — numbers from the XD file", () => {
       ) as HTMLInputElement | null;
       expect(input, "the place sheet has no search box").not.toBeNull();
       const search = input!.parentElement!;
-      expect(blue(search), "the search box is blue before it has focus; its line is grey").toBe(false);
+      expect(
+        blue(search),
+        "the search box is blue before it has focus; its line is grey",
+      ).toBe(false);
       fireEvent.focus(input!);
-      expect(blue(search), "the focused search box has no blue #388CFF line").toBe(true);
+      expect(
+        blue(search),
+        "the focused search box has no blue #388CFF line",
+      ).toBe(true);
       fireEvent.blur(input!);
-      expect(blue(search), "the search box stayed blue after focus left").toBe(false);
+      expect(blue(search), "the search box stayed blue after focus left").toBe(
+        false,
+      );
     });
 
     it("typing the last letter drops every other line at once, as on `Home Page – 99`; the field in use keeps its blue line", async () => {
       const container = open(FORM);
       await pickPlace(container);
       type(container, "demo-address-detail", "vadistanbul, ofisler");
-      fireEvent.blur(container.querySelector('[data-pw="demo-address-detail"]')!);
+      fireEvent.blur(
+        container.querySelector('[data-pw="demo-address-detail"]')!,
+      );
       // The title keeps focus: the form is complete while the field is in use.
       type(container, "demo-address-title", "My home");
 
@@ -440,8 +536,13 @@ describe("Demo screens — numbers from the XD file", () => {
         "the focused 'Address title' label is not Medium on the complete form",
       ).toBe(true);
 
-      fireEvent.blur(container.querySelector('[data-pw="demo-address-title"]')!);
-      expect(lined(title), "the 'Address title' field kept a line on the complete form after focus left").toBe(false);
+      fireEvent.blur(
+        container.querySelector('[data-pw="demo-address-title"]')!,
+      );
+      expect(
+        lined(title),
+        "the 'Address title' field kept a line on the complete form after focus left",
+      ).toBe(false);
 
       // A sheet opened on the complete form puts its field in use too.
       fireEvent.click(box(container, "demo-address-country"));
@@ -449,14 +550,29 @@ describe("Demo screens — numbers from the XD file", () => {
         blue(box(container, "demo-address-country")),
         "the country field has no blue line while its sheet is open on the complete form",
       ).toBe(true);
-      fireEvent.click(container.ownerDocument.querySelector('[data-pw="demo-country-tr"]')!);
+      fireEvent.click(
+        container.ownerDocument.querySelector('[data-pw="demo-country-tr"]')!,
+      );
 
       // Emptying one field makes the form incomplete: every field is white with its line again.
       type(container, "demo-address-title", "");
-      fireEvent.blur(container.querySelector('[data-pw="demo-address-title"]')!);
-      for (const id of ["demo-address-country", "demo-address-place", "demo-address-detail", "demo-address-title"]) {
-        expect(box(container, id).style.background, `${id} is not white again after the form became incomplete`).toBe(WHITE);
-        expect(lined(box(container, id)), `${id} did not get its line back after the form became incomplete`).toBe(true);
+      fireEvent.blur(
+        container.querySelector('[data-pw="demo-address-title"]')!,
+      );
+      for (const id of [
+        "demo-address-country",
+        "demo-address-place",
+        "demo-address-detail",
+        "demo-address-title",
+      ]) {
+        expect(
+          box(container, id).style.background,
+          `${id} is not white again after the form became incomplete`,
+        ).toBe(WHITE);
+        expect(
+          lined(box(container, id)),
+          `${id} did not get its line back after the form became incomplete`,
+        ).toBe(true);
       }
     }, 15000);
 
@@ -469,19 +585,20 @@ describe("Demo screens — numbers from the XD file", () => {
       const line = img!.parentElement!.querySelector<SVGElement>(
         ':scope > svg[data-stroke="#D3D3D3"]',
       );
+      expect(line, "the map box has no #D3D3D3 line of its own").not.toBeNull();
       expect(
-        line,
-        "the map box has no #D3D3D3 line of its own",
-      ).not.toBeNull();
-      expect(
-        !!(img!.compareDocumentPosition(line!) & Node.DOCUMENT_POSITION_FOLLOWING),
+        !!(
+          img!.compareDocumentPosition(line!) & Node.DOCUMENT_POSITION_FOLLOWING
+        ),
         "the map's line is on a layer under the picture, so the picture covers it",
       ).toBe(true);
     });
 
     it("the map card keeps its line after 'Locate' until the form is complete, like the fields under it", async () => {
       const container = open(FORM);
-      fireEvent.click(container.querySelector('[data-pw="demo-address-locate"]')!);
+      fireEvent.click(
+        container.querySelector('[data-pw="demo-address-locate"]')!,
+      );
       await pickPlace(container);
       const card = box(container, "demo-address-map");
       expect(
@@ -490,9 +607,13 @@ describe("Demo screens — numbers from the XD file", () => {
       ).toBe(true);
 
       type(container, "demo-address-detail", "vadistanbul, ofisler");
-      fireEvent.blur(container.querySelector('[data-pw="demo-address-detail"]')!);
+      fireEvent.blur(
+        container.querySelector('[data-pw="demo-address-detail"]')!,
+      );
       type(container, "demo-address-title", "My home");
-      fireEvent.blur(container.querySelector('[data-pw="demo-address-title"]')!);
+      fireEvent.blur(
+        container.querySelector('[data-pw="demo-address-title"]')!,
+      );
       const gone = await waitFor(
         () => {
           if (lined(card)) throw new Error("not yet");
@@ -500,7 +621,10 @@ describe("Demo screens — numbers from the XD file", () => {
         },
         { timeout: 2000 },
       ).catch(() => false);
-      expect(gone, "the map card still has a line on the complete form; `Home Page – 99` draws none").toBe(true);
+      expect(
+        gone,
+        "the map card still has a line on the complete form; `Home Page – 99` draws none",
+      ).toBe(true);
     }, 15000);
   });
 
@@ -580,7 +704,9 @@ describe("Demo screens — Safari lines and layout by margins", () => {
       const shadowed = [...container.querySelectorAll<HTMLElement>("*")]
         // A line: an inset shadow with no offset and no blur. XD's inner
         // shadows (the tab bar's photo) have a blur and are not lines.
-        .filter((el) => /inset\s+0(px)?\s+0(px)?\s+0(px)?\s/.test(el.style.boxShadow))
+        .filter((el) =>
+          /inset\s+0(px)?\s+0(px)?\s+0(px)?\s/.test(el.style.boxShadow),
+        )
         .map(describeEl);
       expect(
         shadowed,
@@ -592,12 +718,17 @@ describe("Demo screens — Safari lines and layout by margins", () => {
     it(`${name}: the header and the page are laid out with margins, nothing is placed with top / left`, () => {
       url.search = search;
       const container = open(pathname);
-      const screen = container.querySelector("[data-demo-screen]") as HTMLElement;
+      const screen = container.querySelector(
+        "[data-demo-screen]",
+      ) as HTMLElement;
       expect(screen, `the ${name} screen did not open`).not.toBeNull();
       const regions = [
         ...screen.querySelectorAll<HTMLElement>("header, .overflow-y-auto"),
       ];
-      expect(regions.length, `the ${name} screen has no header or page`).toBeGreaterThan(0);
+      expect(
+        regions.length,
+        `the ${name} screen has no header or page`,
+      ).toBeGreaterThan(0);
       const pinned = regions
         .flatMap((region) => [...region.querySelectorAll<HTMLElement>("*")])
         .filter((el) => el.style.top !== "" || el.style.left !== "")
@@ -618,13 +749,17 @@ describe("Demo screens — Safari lines and layout by margins", () => {
  */
 describe("Demo fields — the focused field has a blue line and a Medium label", () => {
   const field = (container: HTMLElement, id: string) => {
-    const input = container.querySelector(`[data-pw="${id}"]`) as HTMLInputElement | null;
+    const input = container.querySelector(
+      `[data-pw="${id}"]`,
+    ) as HTMLInputElement | null;
     expect(input, `the screen has no ${id} input`).not.toBeNull();
     return { input: input!, box: input!.parentElement! };
   };
   const lineOf = (box: HTMLElement) => {
     const stroke = box.querySelector<SVGElement>(":scope > svg[data-stroke]");
-    return stroke && stroke.style.opacity !== "0" ? stroke.getAttribute("data-stroke") : null;
+    return stroke && stroke.style.opacity !== "0"
+      ? stroke.getAttribute("data-stroke")
+      : null;
   };
   const labelIsBold = (box: HTMLElement) =>
     box.querySelector(":scope > span")!.className.includes("font-medium");
@@ -636,30 +771,63 @@ describe("Demo fields — the focused field has a blue line and a Medium label",
   it("body measurements: the focused field turns blue with a Medium label, and back to grey when focus leaves", () => {
     const container = open("/sy-en/demo/settings/profile/body");
     const { input, box } = field(container, "demo-body-height");
-    expect(lineOf(box), "the 'How tall are you?' field has no grey #D3D3D3 line before it has focus").toBe("#D3D3D3");
-    expect(labelIsBold(box), "the 'How tall are you?' label is Medium before the field has focus").toBe(false);
+    expect(
+      lineOf(box),
+      "the 'How tall are you?' field has no grey #D3D3D3 line before it has focus",
+    ).toBe("#D3D3D3");
+    expect(
+      labelIsBold(box),
+      "the 'How tall are you?' label is Medium before the field has focus",
+    ).toBe(false);
     fireEvent.focus(input);
-    expect(lineOf(box), "the focused 'How tall are you?' field has no blue #388CFF line").toBe("#388CFF");
-    expect(labelIsBold(box), "the focused 'How tall are you?' field's label is not Medium").toBe(true);
+    expect(
+      lineOf(box),
+      "the focused 'How tall are you?' field has no blue #388CFF line",
+    ).toBe("#388CFF");
+    expect(
+      labelIsBold(box),
+      "the focused 'How tall are you?' field's label is not Medium",
+    ).toBe(true);
     fireEvent.blur(input);
-    expect(lineOf(box), "the 'How tall are you?' field did not go back to its grey line after focus left").toBe("#D3D3D3");
-    expect(labelIsBold(box), "the 'How tall are you?' label stayed Medium after focus left").toBe(false);
+    expect(
+      lineOf(box),
+      "the 'How tall are you?' field did not go back to its grey line after focus left",
+    ).toBe("#D3D3D3");
+    expect(
+      labelIsBold(box),
+      "the 'How tall are you?' label stayed Medium after focus left",
+    ).toBe(false);
   });
 
   it("personal info: a tap on a read-only field changes nothing; after 'Edit' the focused field is blue with a Medium label", async () => {
     const container = open("/sy-en/demo/settings/profile/personal-info");
     const { input, box } = field(container, "demo-personal-name");
     fireEvent.focus(input);
-    expect(lineOf(box), "the read-only 'full Name' field got a line when tapped before 'Edit'").toBe(null);
-    expect(labelIsBold(box), "the read-only 'full Name' label turned Medium when tapped before 'Edit'").toBe(false);
+    expect(
+      lineOf(box),
+      "the read-only 'full Name' field got a line when tapped before 'Edit'",
+    ).toBe(null);
+    expect(
+      labelIsBold(box),
+      "the read-only 'full Name' label turned Medium when tapped before 'Edit'",
+    ).toBe(false);
     fireEvent.blur(input);
 
     fireEvent.click(container.querySelector('[data-pw="demo-header-action"]')!);
     fireEvent.focus(input);
-    expect(lineOf(box), "the focused 'full Name' field has no blue #388CFF line after 'Edit'").toBe("#388CFF");
-    expect(labelIsBold(box), "the focused 'full Name' field's label is not Medium after 'Edit'").toBe(true);
+    expect(
+      lineOf(box),
+      "the focused 'full Name' field has no blue #388CFF line after 'Edit'",
+    ).toBe("#388CFF");
+    expect(
+      labelIsBold(box),
+      "the focused 'full Name' field's label is not Medium after 'Edit'",
+    ).toBe(true);
     fireEvent.blur(input);
-    expect(lineOf(box), "the 'full Name' field did not go back to its grey line after focus left").toBe("#D3D3D3");
+    expect(
+      lineOf(box),
+      "the 'full Name' field did not go back to its grey line after focus left",
+    ).toBe("#D3D3D3");
   });
 });
 
@@ -693,15 +861,24 @@ describe("Demo wallet — numbers from the XD file", () => {
 
   it("every balance: two purple cards 200 x 103 with 6 px between them and four entries, as `Home Page – 11` draws them", () => {
     const container = open("/sy-en/demo/settings/wallet");
-    const usd = container.querySelector<HTMLElement>('[data-pw="demo-wallet-card-usd"]');
-    const syp = container.querySelector<HTMLElement>('[data-pw="demo-wallet-card-syp"]');
+    const usd = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-card-usd"]',
+    );
+    const syp = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-card-syp"]',
+    );
     expect(usd, "the wallet has no dollar card").not.toBeNull();
     expect(syp, "the wallet has no Syrian pound card").not.toBeNull();
     expect(px(usd, "width"), "the dollar card is not 200 wide").toBe("200px");
     expect(px(usd, "height"), "the dollar card is not 103 tall").toBe("103px");
     expect(px(syp, "width"), "the pound card is not 200 wide").toBe("200px");
-    expect(px(syp, "marginLeft"), "the two cards are not 6 px apart (212 to 218)").toBe("6px");
-    expect(usd!.style.borderRadius, "the card's corners are not 15").toBe("15px");
+    expect(
+      px(syp, "marginLeft"),
+      "the two cards are not 6 px apart (212 to 218)",
+    ).toBe("6px");
+    expect(usd!.style.borderRadius, "the card's corners are not 15").toBe(
+      "15px",
+    );
     expect(
       usd!.style.boxShadow,
       "the card does not carry the file's drop shadow (0, 3, blur 3, black 16%)",
@@ -714,10 +891,13 @@ describe("Demo wallet — numbers from the XD file", () => {
       container.querySelector('[data-pw="demo-wallet-cash-out-usd"]'),
       "Cash Out is on the card of every balance; the file has it only on the one-balance card",
     ).toBeNull();
-    const shown = [...container.querySelectorAll('[data-pw^="demo-wallet-entry-"]')].map((el) =>
-      el.getAttribute("data-pw"),
-    );
-    expect(shown, "the entries under 'All Transactions' are not the four of the file").toEqual([
+    const shown = [
+      ...container.querySelectorAll('[data-pw^="demo-wallet-entry-"]'),
+    ].map((el) => el.getAttribute("data-pw"));
+    expect(
+      shown,
+      "the entries under 'All Transactions' are not the four of the file",
+    ).toEqual([
       "demo-wallet-entry-deposit",
       "demo-wallet-entry-withdrawal",
       "demo-wallet-entry-order",
@@ -728,34 +908,51 @@ describe("Demo wallet — numbers from the XD file", () => {
   /** The wallet with the dollar card grown, as a tap on the card leaves it. */
   const openDollars = async () => {
     const container = open("/sy-en/demo/settings/wallet");
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-card-usd"]')!);
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-card-usd"]')!,
+    );
     const grown = await find(container, "demo-wallet-cash-out-usd");
-    expect(grown, "a tap on the dollar card did not bring Cash Out in").not.toBeNull();
+    expect(
+      grown,
+      "a tap on the dollar card did not bring Cash Out in",
+    ).not.toBeNull();
     return container;
   };
 
   it("a tap on the dollar card grows it in place: no other page opens, the line above names the currency, and a tap on the grown card brings the two cards back", async () => {
     const container = open("/sy-en/demo/settings/wallet");
     const total = container.querySelector('[data-pw="demo-wallet-total"]');
-    expect(total?.textContent, "the line above the cards is not the file's 'your total balance'").toBe(
-      "your total balance",
-    );
-    const card = container.querySelector<HTMLElement>('[data-pw="demo-wallet-card-usd"]')!;
+    expect(
+      total?.textContent,
+      "the line above the cards is not the file's 'your total balance'",
+    ).toBe("your total balance");
+    const card = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-card-usd"]',
+    )!;
     fireEvent.click(card);
-    expect(router.push, "the dollar card opened another page; it must grow where it is").not.toHaveBeenCalled();
+    expect(
+      router.push,
+      "the dollar card opened another page; it must grow where it is",
+    ).not.toHaveBeenCalled();
     expect(
       container.querySelector('[data-pw="demo-wallet-card-usd"]'),
       "the dollar card was drawn again as a new card; the same card must grow",
     ).toBe(card);
-    expect(total?.textContent, "the line above the cards does not name the currency").toBe(
-      "your total USD balance",
-    );
     expect(
-      container.querySelector('[data-pw="demo-wallet-list-title"]')?.textContent,
+      total?.textContent,
+      "the line above the cards does not name the currency",
+    ).toBe("your total USD balance");
+    expect(
+      container.querySelector('[data-pw="demo-wallet-list-title"]')
+        ?.textContent,
       "the list title does not name the currency",
     ).toBe("All USD Transactions");
     await waitFor(
-      () => expect(card.style.width, "the dollar card did not grow to 406 wide").toBe("406px"),
+      () =>
+        expect(
+          card.style.width,
+          "the dollar card did not grow to 406 wide",
+        ).toBe("406px"),
       { timeout: 3000 },
     );
     expect(
@@ -764,26 +961,31 @@ describe("Demo wallet — numbers from the XD file", () => {
     ).not.toBeNull();
 
     fireEvent.click(card);
-    expect(total?.textContent, "a tap on the grown card did not bring 'your total balance' back").toBe(
-      "your total balance",
-    );
+    expect(
+      total?.textContent,
+      "a tap on the grown card did not bring 'your total balance' back",
+    ).toBe("your total balance");
     await waitFor(
-      () => expect(card.style.width, "the dollar card did not fold back to 200 wide").toBe("200px"),
+      () =>
+        expect(
+          card.style.width,
+          "the dollar card did not fold back to 200 wide",
+        ).toBe("200px"),
       { timeout: 3000 },
     );
     expect(
       container.querySelector('[data-pw="demo-wallet-cash-out-usd"]'),
       "Cash Out is still on the folded card",
     ).toBeNull();
-    const shown = [...container.querySelectorAll('[data-pw^="demo-wallet-entry-"]')].map((el) =>
-      el.getAttribute("data-pw"),
-    );
+    const shown = [
+      ...container.querySelectorAll('[data-pw^="demo-wallet-entry-"]'),
+    ].map((el) => el.getAttribute("data-pw"));
     await waitFor(
       () =>
         expect(
-          [...container.querySelectorAll('[data-pw^="demo-wallet-entry-"]')].map((el) =>
-            el.getAttribute("data-pw"),
-          ),
+          [
+            ...container.querySelectorAll('[data-pw^="demo-wallet-entry-"]'),
+          ].map((el) => el.getAttribute("data-pw")),
           "the list did not go back to the four entries of `Home Page – 11`",
         ).toEqual([
           "demo-wallet-entry-deposit",
@@ -798,22 +1000,34 @@ describe("Demo wallet — numbers from the XD file", () => {
 
   it("a tap on the pound card grows that card: the row moves one screen to the left, and the lines name the pound", async () => {
     const container = open("/sy-en/demo/settings/wallet");
-    const card = container.querySelector<HTMLElement>('[data-pw="demo-wallet-card-syp"]')!;
+    const card = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-card-syp"]',
+    )!;
     fireEvent.click(card);
     expect(
       container.querySelector('[data-pw="demo-wallet-total"]')?.textContent,
       "the line above the cards does not name the pound",
     ).toBe("your total SYP balance");
     expect(
-      container.querySelector('[data-pw="demo-wallet-list-title"]')?.textContent,
+      container.querySelector('[data-pw="demo-wallet-list-title"]')
+        ?.textContent,
       "the list title does not name the pound",
     ).toBe("All SYP Transactions");
     await waitFor(
-      () => expect(card.style.width, "the pound card did not grow to 406 wide").toBe("406px"),
+      () =>
+        expect(
+          card.style.width,
+          "the pound card did not grow to 406 wide",
+        ).toBe("406px"),
       { timeout: 3000 },
     );
-    expect(card.style.marginLeft, "the grown cards are not a screen's width apart (406 + 24)").toBe("24px");
-    const row = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cards"]')!;
+    expect(
+      card.style.marginLeft,
+      "the grown cards are not a screen's width apart (406 + 24)",
+    ).toBe("24px");
+    const row = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-cards"]',
+    )!;
     await waitFor(
       () =>
         expect(
@@ -822,13 +1036,15 @@ describe("Demo wallet — numbers from the XD file", () => {
         ).toContain("-430px"),
       { timeout: 3000 },
     );
-    const dots = [...container.querySelectorAll<HTMLImageElement>('[data-pw="demo-wallet-dots"] img')].map(
-      (img) => img.getAttribute("src")?.split("/").pop(),
-    );
-    expect(dots, "the dots do not show the second card as the one on show").toEqual([
-      "dotOff.svg",
-      "dotOn.svg",
-    ]);
+    const dots = [
+      ...container.querySelectorAll<HTMLImageElement>(
+        '[data-pw="demo-wallet-dots"] img',
+      ),
+    ].map((img) => img.getAttribute("src")?.split("/").pop());
+    expect(
+      dots,
+      "the dots do not show the second card as the one on show",
+    ).toEqual(["dotOff.svg", "dotOn.svg"]);
     expect(
       container.querySelector('[data-pw="demo-wallet-cash-out-syp"]'),
       "the grown pound card has no Cash Out",
@@ -840,19 +1056,27 @@ describe("Demo wallet — numbers from the XD file", () => {
       "the back arrow left the wallet; with a card grown it must fold the card first",
     ).not.toHaveBeenCalled();
     await waitFor(
-      () => expect(card.style.width, "the back arrow did not fold the pound card").toBe("200px"),
+      () =>
+        expect(
+          card.style.width,
+          "the back arrow did not fold the pound card",
+        ).toBe("200px"),
       { timeout: 3000 },
     );
   }, 10000);
 
   it("the grown cards are a slider: the row can be slid sideways only while a card is grown", async () => {
     const container = open("/sy-en/demo/settings/wallet");
-    const row = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cards"]')!;
+    const row = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-cards"]',
+    )!;
     expect(
       row.style.touchAction,
       "the two small cards can be slid; the file's `Home Page – 11` has nothing to slide to",
     ).not.toBe("pan-y");
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-card-usd"]')!);
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-card-usd"]')!,
+    );
     await waitFor(
       () =>
         expect(
@@ -865,15 +1089,31 @@ describe("Demo wallet — numbers from the XD file", () => {
 
   it("the list does not move when the card grows: the dots come in inside the 20 px between the cards and the list title", async () => {
     const container = open("/sy-en/demo/settings/wallet");
-    const title = container.querySelector<HTMLElement>('[data-pw="demo-wallet-list-title"]')!;
+    const title = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-list-title"]',
+    )!;
     const gap = title.previousElementSibling as HTMLElement;
-    expect(gap.style.height, "the gap between the cards and the list title is not 20 px (241 to 261)").toBe("20px");
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-card-usd"]')!);
+    expect(
+      gap.style.height,
+      "the gap between the cards and the list title is not 20 px (241 to 261)",
+    ).toBe("20px");
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-card-usd"]')!,
+    );
     const dots = await find(container, "demo-wallet-dots");
     expect(dots, "the page dots did not come in").not.toBeNull();
-    expect(dots!.parentElement, "the dots are not inside the gap above the list title").toBe(gap);
-    expect(dots!.style.marginTop, "the dots are not 6 px under the card (241 to 247)").toBe("6px");
-    expect(gap.style.height, "the gap changed when the dots came in, so the list moved").toBe("20px");
+    expect(
+      dots!.parentElement,
+      "the dots are not inside the gap above the list title",
+    ).toBe(gap);
+    expect(
+      dots!.style.marginTop,
+      "the dots are not 6 px under the card (241 to 247)",
+    ).toBe("6px");
+    expect(
+      gap.style.height,
+      "the gap changed when the dots came in, so the list moved",
+    ).toBe("20px");
   });
 
   it("profile tab: a tap on the Trydos Wallet tile opens the wallet", () => {
@@ -889,13 +1129,20 @@ describe("Demo wallet — numbers from the XD file", () => {
 
   it("one balance: a 406 wide card with Cash In and Cash Out, and only the first entry has a line, as `Home Page – 17` draws it", async () => {
     const container = await openDollars();
-    const card = container.querySelector<HTMLElement>('[data-pw="demo-wallet-card-usd"]')!;
+    const card = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-card-usd"]',
+    )!;
     await waitFor(
-      () => expect(card.style.width, "the dollar card is not 406 wide").toBe("406px"),
+      () =>
+        expect(card.style.width, "the dollar card is not 406 wide").toBe(
+          "406px",
+        ),
       { timeout: 3000 },
     );
     expect(
-      container.querySelector('[data-pw="demo-wallet-cards"]')?.getAttribute("style") ?? "",
+      container
+        .querySelector('[data-pw="demo-wallet-cards"]')
+        ?.getAttribute("style") ?? "",
       "the row moved; the grown dollar card is the first one and stays at x 12",
     ).not.toContain("-430px");
     expect(
@@ -906,7 +1153,11 @@ describe("Demo wallet — numbers from the XD file", () => {
       container.querySelector('[data-pw="demo-wallet-cash-out-usd"]'),
       "the card has no Cash Out",
     ).not.toBeNull();
-    const rows = [...container.querySelectorAll<HTMLElement>('[data-pw^="demo-wallet-entry-"]')];
+    const rows = [
+      ...container.querySelectorAll<HTMLElement>(
+        '[data-pw^="demo-wallet-entry-"]',
+      ),
+    ];
     expect(
       rows.map((row) => row.getAttribute("data-pw")),
       "the entries under 'All USD Transactions' are not the five of the file",
@@ -917,8 +1168,13 @@ describe("Demo wallet — numbers from the XD file", () => {
       "demo-wallet-entry-refund",
       "demo-wallet-entry-request",
     ]);
-    expect(px(rows[0], "marginTop"), "the first entry is not 12 px under the list title (275 to 287)").toBe("12px");
-    expect(px(rows[1], "marginTop"), "the entries are not 4 px apart").toBe("4px");
+    expect(
+      px(rows[0], "marginTop"),
+      "the first entry is not 12 px under the list title (275 to 287)",
+    ).toBe("12px");
+    expect(px(rows[1], "marginTop"), "the entries are not 4 px apart").toBe(
+      "4px",
+    );
     expect(px(rows[0], "height"), "an entry is not 50 tall").toBe("50px");
     const lined = rows
       .filter((row) => row.querySelector("svg[data-stroke]"))
@@ -926,21 +1182,35 @@ describe("Demo wallet — numbers from the XD file", () => {
     expect(lined, "the 0.5 px line is not on the first entry alone").toEqual([
       "demo-wallet-entry-deposit",
     ]);
-    const amount = [...rows[0].querySelectorAll("span")].find((el) => el.textContent === "1000");
-    expect(amount?.className, "the first entry's amount is not Bold").toContain("font-bold");
-    const next = [...rows[1].querySelectorAll("span")].find((el) => el.textContent === "10");
-    expect(next?.className, "the second entry's amount is not Medium").toContain("font-medium");
+    const amount = [...rows[0].querySelectorAll("span")].find(
+      (el) => el.textContent === "1000",
+    );
+    expect(amount?.className, "the first entry's amount is not Bold").toContain(
+      "font-bold",
+    );
+    const next = [...rows[1].querySelectorAll("span")].find(
+      (el) => el.textContent === "10",
+    );
+    expect(
+      next?.className,
+      "the second entry's amount is not Medium",
+    ).toContain("font-medium");
   }, 10000);
 
   it("cash out: the sheet has 50 px corners, opens on the ways to cash out and goes on to the form, as `Home Page – 21` and `– 19` draw it", async () => {
     const container = await openDollars();
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!);
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!,
+    );
     const sheet = await find(container, "demo-wallet-cash-out-sheet");
     expect(sheet, "a tap on Cash Out did not open the sheet").not.toBeNull();
     const panel = [...sheet!.querySelectorAll<HTMLElement>("div")].find((el) =>
       el.style.borderRadius.startsWith("50px"),
     );
-    expect(panel, "the sheet has no panel with 50 px top corners").toBeDefined();
+    expect(
+      panel,
+      "the sheet has no panel with 50 px top corners",
+    ).toBeDefined();
     expect(
       panel!.style.borderRadius,
       "the sheet's bottom corners are round; the file rounds only the top two",
@@ -950,10 +1220,14 @@ describe("Demo wallet — numbers from the XD file", () => {
       "the sheet did not open on the ways to cash out",
     ).not.toBeNull();
 
-    const card = container.querySelector<HTMLElement>('[data-pw="demo-wallet-way-rdb"]');
+    const card = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-way-rdb"]',
+    );
     expect(card, "the sheet has no trydos | rdb card").not.toBeNull();
     // The card's own line, not the line of the small tag inside it.
-    const line = card!.querySelector(':scope > div > svg[data-stroke="#4A31E7"]');
+    const line = card!.querySelector(
+      ':scope > div > svg[data-stroke="#4A31E7"]',
+    );
     expect(line, "the trydos | rdb card has no purple line").not.toBeNull();
     expect(
       line!.getAttribute("data-stroke-align"),
@@ -971,17 +1245,35 @@ describe("Demo wallet — numbers from the XD file", () => {
       container.querySelector(`[data-pw="demo-wallet-way-${id}"]`),
     );
     expect(tiles[0], "the Sham Cash tile is missing").not.toBeNull();
-    expect(px(tiles[1], "marginLeft"), "the second tile is not 8 px after the first (145 to 153)").toBe("8px");
-    expect(px(tiles[2], "marginLeft"), "the third tile is not 7 px after the second (278 to 285)").toBe("7px");
+    expect(
+      px(tiles[1], "marginLeft"),
+      "the second tile is not 8 px after the first (145 to 153)",
+    ).toBe("8px");
+    expect(
+      px(tiles[2], "marginLeft"),
+      "the third tile is not 7 px after the second (278 to 285)",
+    ).toBe("7px");
 
     fireEvent.click(card!);
     const form = await find(container, "demo-wallet-cash-out-form");
-    expect(form, "a tap on the trydos | rdb card did not open the form").not.toBeNull();
-    const amount = container.querySelector<HTMLElement>('[data-pw="demo-wallet-amount"]');
+    expect(
+      form,
+      "a tap on the trydos | rdb card did not open the form",
+    ).not.toBeNull();
+    const amount = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-amount"]',
+    );
     expect(amount, "the form has no amount field").not.toBeNull();
-    expect(px(amount, "marginTop"), "the amount field is not at y 515, 122 under the add button").toBe("122px");
-    expect(px(amount, "height"), "the amount field is not 55 tall").toBe("55px");
-    const chosen = container.querySelector<HTMLElement>('[data-pw="demo-wallet-tab-cash"] div');
+    expect(
+      px(amount, "marginTop"),
+      "the amount field is not at y 515, 122 under the add button",
+    ).toBe("122px");
+    expect(px(amount, "height"), "the amount field is not 55 tall").toBe(
+      "55px",
+    );
+    const chosen = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-tab-cash"] div',
+    );
     expect(
       chosen?.style.background,
       "the chosen tab is not the file's green #79E9B3",
@@ -991,13 +1283,20 @@ describe("Demo wallet — numbers from the XD file", () => {
   it("cash out form: with a mouse and a keyboard the amount field turns its line blue while it is in use, and takes digits only", async () => {
     setDevice("pointer");
     const container = await openDollars();
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!);
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!,
+    );
     const card = await find(container, "demo-wallet-way-rdb");
     expect(card, "the sheet has no trydos | rdb card").not.toBeNull();
     fireEvent.click(card!);
-    const input = (await find(container, "demo-wallet-amount-input")) as HTMLInputElement | null;
+    const input = (await find(
+      container,
+      "demo-wallet-amount-input",
+    )) as HTMLInputElement | null;
     expect(input, "the form has no amount input").not.toBeNull();
-    const field = container.querySelector<HTMLElement>('[data-pw="demo-wallet-amount"]')!;
+    const field = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-amount"]',
+    )!;
     fireEvent.focus(input!);
     expect(
       field.querySelector("svg[data-stroke]")?.getAttribute("data-stroke"),
@@ -1027,16 +1326,25 @@ describe("Demo wallet — numbers from the XD file", () => {
   it("cash out form: keyboard setup and movable amount field behavior", async () => {
     setDevice("touch");
     const container = await openDollars();
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!);
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!,
+    );
     const card = await find(container, "demo-wallet-way-rdb");
     expect(card, "the sheet has no trydos | rdb card").not.toBeNull();
     fireEvent.click(card!);
     const field = await find(container, "demo-wallet-amount");
     expect(field, "the form has no amount field").not.toBeNull();
-    const sheet = container.querySelector('[data-pw="demo-wallet-cash-out-sheet"]');
-    expect(sheet?.hasAttribute("data-no-keyboard-lift"), "the sheet must have data-no-keyboard-lift").toBe(true);
+    const sheet = container.querySelector(
+      '[data-pw="demo-wallet-cash-out-sheet"]',
+    );
+    expect(
+      sheet?.hasAttribute("data-no-keyboard-lift"),
+      "the sheet must have data-no-keyboard-lift",
+    ).toBe(true);
 
-    const input = container.querySelector<HTMLInputElement>('[data-pw="demo-wallet-amount-input"]');
+    const input = container.querySelector<HTMLInputElement>(
+      '[data-pw="demo-wallet-amount-input"]',
+    );
     if (!NATIVE_WALLET_KEYBOARD) {
       // The keypad is a portal on <body>; it opens 350 ms after the form.
       const keypad = await waitFor(
@@ -1047,7 +1355,10 @@ describe("Demo wallet — numbers from the XD file", () => {
         },
         { timeout: 3000 },
       ).catch(() => null);
-      expect(keypad, "the app's keypad did not open under the amount field").not.toBeNull();
+      expect(
+        keypad,
+        "the app's keypad did not open under the amount field",
+      ).not.toBeNull();
       expect(
         field!.hasAttribute("data-keyboard-anchor"),
         "the amount field is not marked as the box to keep above the keypad",
@@ -1061,15 +1372,37 @@ describe("Demo wallet — numbers from the XD file", () => {
         "the amount input can take focus on a touch device, so the phone's own keyboard would open over the keypad",
       ).toBe(true);
       for (const digit of ["1", "0", "0"]) {
-        fireEvent.pointerDown(keypad!.querySelector(`[data-pw="keypad-digit-${digit}"]`)!);
+        fireEvent.pointerDown(
+          keypad!.querySelector(`[data-pw="keypad-digit-${digit}"]`)!,
+        );
       }
-      await waitFor(() => expect(input!.value, "the keypad's digits did not reach the amount").toBe("100"));
-      fireEvent.pointerDown(keypad!.querySelector('[data-pw="keypad-backspace"]')!);
-      fireEvent.pointerUp(keypad!.querySelector('[data-pw="keypad-backspace"]')!);
-      await waitFor(() => expect(input!.value, "the keypad's backspace did not take the last digit off").toBe("10"));
+      await waitFor(() =>
+        expect(
+          input!.value,
+          "the keypad's digits did not reach the amount",
+        ).toBe("100"),
+      );
+      fireEvent.pointerDown(
+        keypad!.querySelector('[data-pw="keypad-backspace"]')!,
+      );
+      fireEvent.pointerUp(
+        keypad!.querySelector('[data-pw="keypad-backspace"]')!,
+      );
+      await waitFor(() =>
+        expect(
+          input!.value,
+          "the keypad's backspace did not take the last digit off",
+        ).toBe("10"),
+      );
     } else {
-      expect(input?.readOnly, "the amount input must be editable with native keyboard").toBe(false);
-      expect(input?.inputMode, "the amount input should specify decimal inputMode").toBe("decimal");
+      expect(
+        input?.readOnly,
+        "the amount input must be editable with native keyboard",
+      ).toBe(false);
+      expect(
+        input?.inputMode,
+        "the amount input should specify decimal inputMode",
+      ).toBe("decimal");
       fireEvent.focus(input!);
       expect(
         field!.querySelector("svg[data-stroke]")?.getAttribute("data-stroke"),
@@ -1083,21 +1416,35 @@ describe("Demo wallet — numbers from the XD file", () => {
   it("sheet inputs on touch devices: inputs have pointer-events: none in CSS and clicking field delegates focus with preventScroll: true", async () => {
     setDevice("touch");
     const container = await openDollars();
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!);
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!,
+    );
     fireEvent.click((await find(container, "demo-wallet-way-rdb"))!);
     const sheet = (await find(container, "demo-wallet-cash-out-sheet"))!;
-    expect(sheet.hasAttribute("data-no-keyboard-lift"), "sheet must have data-no-keyboard-lift").toBe(true);
+    expect(
+      sheet.hasAttribute("data-no-keyboard-lift"),
+      "sheet must have data-no-keyboard-lift",
+    ).toBe(true);
 
     const style = sheet.querySelector("style");
-    expect(style?.textContent, "touch device must inject pointer-events: none rule for sheet inputs").toContain(
-      "pointer-events: none",
-    );
+    expect(
+      style?.textContent,
+      "touch device must inject pointer-events: none rule for sheet inputs",
+    ).toContain("pointer-events: none");
 
-    const input = (await find(container, "demo-wallet-amount-input")) as HTMLInputElement;
+    const input = (await find(
+      container,
+      "demo-wallet-amount-input",
+    )) as HTMLInputElement;
     const focusSpy = vi.spyOn(input, "focus");
-    const fieldBox = container.querySelector<HTMLElement>('[data-pw="demo-wallet-amount"]')!;
+    const fieldBox = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-amount"]',
+    )!;
     fireEvent.click(fieldBox);
-    expect(focusSpy, "tapping field container must call focus({ preventScroll: true })").toHaveBeenCalledWith({
+    expect(
+      focusSpy,
+      "tapping field container must call focus({ preventScroll: true })",
+    ).toHaveBeenCalledWith({
       preventScroll: true,
     });
   });
@@ -1117,8 +1464,15 @@ describe("Demo wallet — numbers from the XD file", () => {
      * The part of a step that scrolls: it must exist, hold `inside` and not
      * hold the sheet's title, which stays in place over it.
      */
-    const scrollingPart = (container: HTMLElement, name: string, underId: string, inside: string) => {
-      const under = container.querySelector<HTMLElement>(`[data-pw="${underId}"]`);
+    const scrollingPart = (
+      container: HTMLElement,
+      name: string,
+      underId: string,
+      inside: string,
+    ) => {
+      const under = container.querySelector<HTMLElement>(
+        `[data-pw="${underId}"]`,
+      );
       expect(
         under,
         `${name}: no part under the head scrolls on its own, so the handle and the title scroll away with the content`,
@@ -1129,7 +1483,10 @@ describe("Demo wallet — numbers from the XD file", () => {
       ).toContain("overflow-y-auto");
       // The sheet's title is the first heading of the step.
       const title = under!.parentElement!.querySelector("h2");
-      expect(title, `${name}: the step has no title beside the part that scrolls`).not.toBeNull();
+      expect(
+        title,
+        `${name}: the step has no title beside the part that scrolls`,
+      ).not.toBeNull();
       expect(
         under!.contains(title),
         `${name}: the title is inside the part that scrolls; it must stay in place over it`,
@@ -1141,17 +1498,25 @@ describe("Demo wallet — numbers from the XD file", () => {
       return under!;
     };
     /** The block inside the scrolling part that keeps the file's height. */
-    const body = (under: HTMLElement) => under.firstElementChild as HTMLElement | null;
+    const body = (under: HTMLElement) =>
+      under.firstElementChild as HTMLElement | null;
 
     const openCashOut = async () => {
       const container = await openDollars();
-      fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!);
+      fireEvent.click(
+        container.querySelector('[data-pw="demo-wallet-cash-out-usd"]')!,
+      );
       await find(container, "demo-wallet-way-rdb");
       return container;
     };
     const typeAmount = async (container: HTMLElement) => {
-      fireEvent.click(container.querySelector('[data-pw="demo-wallet-way-rdb"]')!);
-      const input = (await find(container, "demo-wallet-amount-input")) as HTMLInputElement | null;
+      fireEvent.click(
+        container.querySelector('[data-pw="demo-wallet-way-rdb"]')!,
+      );
+      const input = (await find(
+        container,
+        "demo-wallet-amount-input",
+      )) as HTMLInputElement | null;
       expect(input, "the form has no amount input").not.toBeNull();
       if (NATIVE_WALLET_KEYBOARD) {
         fireEvent.focus(input!);
@@ -1167,36 +1532,55 @@ describe("Demo wallet — numbers from the XD file", () => {
           { timeout: 3000 },
         );
         for (const digit of ["1", "0", "0"]) {
-          fireEvent.pointerDown(keypad.querySelector(`[data-pw="keypad-digit-${digit}"]`)!);
+          fireEvent.pointerDown(
+            keypad.querySelector(`[data-pw="keypad-digit-${digit}"]`)!,
+          );
         }
         // A tap outside the keypad puts it away.
         fireEvent.mouseDown(document.body);
       }
       const now = await find(container, "demo-wallet-withdraw-now");
-      expect(now, "'Withdrawal Now' did not come in once the amount was typed").not.toBeNull();
+      expect(
+        now,
+        "'Withdrawal Now' did not come in once the amount was typed",
+      ).not.toBeNull();
     };
 
     it("cash out, the ways: the title stays and the ways scroll under it", async () => {
       const container = await openCashOut();
-      const step = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-out-ways"]');
+      const step = container.querySelector<HTMLElement>(
+        '[data-pw="demo-wallet-cash-out-ways"]',
+      );
       expect(
         step?.style.height,
         "the step is not as tall as the canvas lets it be (y 257 to the canvas's end at 832), so the sheet scrolls as a whole",
       ).toBe("575px");
-      scrollingPart(container, "cash out ways", "demo-wallet-cash-out-ways-under", "demo-wallet-way-rdb");
+      scrollingPart(
+        container,
+        "cash out ways",
+        "demo-wallet-cash-out-ways-under",
+        "demo-wallet-way-rdb",
+      );
     }, 10000);
 
     it("cash out form: the title, the brand and the two tabs stay; the fields and the buttons scroll under them, and the buttons keep y 767 and 835", async () => {
       const container = await openCashOut();
       await typeAmount(container);
-      const step = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-out-form"]');
+      const step = container.querySelector<HTMLElement>(
+        '[data-pw="demo-wallet-cash-out-form"]',
+      );
       await waitFor(() =>
         expect(
           step?.style.height,
           "the step is not as tall as the canvas lets it be (y 103 to the canvas's end at 832), so the sheet scrolls as a whole",
         ).toBe("729px"),
       );
-      const under = scrollingPart(container, "cash out form", "demo-wallet-cash-out-form-under", "demo-wallet-withdraw-now");
+      const under = scrollingPart(
+        container,
+        "cash out form",
+        "demo-wallet-cash-out-form-under",
+        "demo-wallet-withdraw-now",
+      );
       expect(
         under.querySelector('[data-pw="demo-wallet-tab-cash"]'),
         "the tabs are inside the part that scrolls; they must stay in place with the title",
@@ -1205,7 +1589,9 @@ describe("Demo wallet — numbers from the XD file", () => {
         body(under)?.style.minHeight,
         "the part under the tabs ends where the short canvas ends, so the buttons moved up and the gap over them got smaller; it must reach y 930 (689 px under the tabs)",
       ).toBe("689px");
-      const sheet = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-out-sheet"]')!;
+      const sheet = container.querySelector<HTMLElement>(
+        '[data-pw="demo-wallet-cash-out-sheet"]',
+      )!;
       const panel = [...sheet.querySelectorAll<HTMLElement>("div")].find((el) =>
         el.style.borderRadius.startsWith("50px"),
       );
@@ -1218,10 +1604,20 @@ describe("Demo wallet — numbers from the XD file", () => {
     it("cash out, the code reader: the title and the brand stay; the code and 'Back' scroll under them, and 'Back' keeps y 835", async () => {
       const container = await openCashOut();
       await typeAmount(container);
-      fireEvent.click(container.querySelector('[data-pw="demo-wallet-withdraw-now"]')!);
+      fireEvent.click(
+        container.querySelector('[data-pw="demo-wallet-withdraw-now"]')!,
+      );
       const back = await find(container, "demo-wallet-scan-back");
-      expect(back, "'Withdrawal Now' did not open the code reader").not.toBeNull();
-      const under = scrollingPart(container, "code reader", "demo-wallet-cash-out-scan-under", "demo-wallet-scan-back");
+      expect(
+        back,
+        "'Withdrawal Now' did not open the code reader",
+      ).not.toBeNull();
+      const under = scrollingPart(
+        container,
+        "code reader",
+        "demo-wallet-cash-out-scan-under",
+        "demo-wallet-scan-back",
+      );
       expect(
         body(under)?.style.minHeight,
         "the part under the brand does not reach y 930 (744 px under the brand), so 'Back' left y 835",
@@ -1231,18 +1627,35 @@ describe("Demo wallet — numbers from the XD file", () => {
     it("cash out, the request code: the title and the brand stay; the code boxes scroll under them", async () => {
       const container = await openCashOut();
       await typeAmount(container);
-      fireEvent.click(container.querySelector('[data-pw="demo-wallet-withdraw-request"]')!);
+      fireEvent.click(
+        container.querySelector('[data-pw="demo-wallet-withdraw-request"]')!,
+      );
       const line = await find(container, "demo-wallet-code-request");
-      expect(line, "'Withdrawal Request' did not open the code step").not.toBeNull();
-      scrollingPart(container, "request code", "demo-wallet-cash-out-code-under", "demo-wallet-code-request");
+      expect(
+        line,
+        "'Withdrawal Request' did not open the code step",
+      ).not.toBeNull();
+      scrollingPart(
+        container,
+        "request code",
+        "demo-wallet-cash-out-code-under",
+        "demo-wallet-code-request",
+      );
     }, 10000);
 
     it("wallet info: the title and the client ID stay; the code, the fields and the actions scroll under them, and the actions keep y 855", async () => {
       const container = await openDollars();
-      fireEvent.click(container.querySelector('[data-pw="demo-wallet-info-usd"]')!);
+      fireEvent.click(
+        container.querySelector('[data-pw="demo-wallet-info-usd"]')!,
+      );
       const share = await find(container, "demo-wallet-info-share");
       expect(share, "the wallet info sheet did not open").not.toBeNull();
-      const under = scrollingPart(container, "wallet info", "demo-wallet-info-under", "demo-wallet-info-share");
+      const under = scrollingPart(
+        container,
+        "wallet info",
+        "demo-wallet-info-under",
+        "demo-wallet-info-share",
+      );
       expect(
         body(under)?.style.minHeight,
         "the part under the client ID does not reach y 930 (744 px under it), so the actions left y 855",
@@ -1251,28 +1664,45 @@ describe("Demo wallet — numbers from the XD file", () => {
 
     it("cash in, the ways: the title stays and the ways scroll under it", async () => {
       const container = await openDollars();
-      fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+      fireEvent.click(
+        container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!,
+      );
       const step = await find(container, "demo-wallet-cash-in-ways");
       expect(
         step?.style.height,
         "the step is not as tall as the canvas lets it be (y 229 to the canvas's end at 832), so the sheet scrolls as a whole",
       ).toBe("603px");
-      scrollingPart(container, "cash in ways", "demo-wallet-cash-in-ways-under", "demo-wallet-way-rdb");
+      scrollingPart(
+        container,
+        "cash in ways",
+        "demo-wallet-cash-in-ways-under",
+        "demo-wallet-way-rdb",
+      );
     }, 10000);
 
     it("cash in with crypto: the title, 'Via Crypto' and the two tabs stay; the form scrolls under them and 'Generate QR Code' keeps y 835", async () => {
       const container = await openDollars();
-      fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+      fireEvent.click(
+        container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!,
+      );
       const way = await find(container, "demo-wallet-cash-in-way-crypto");
       expect(way, "the ways to cash in have no crypto tile").not.toBeNull();
       fireEvent.click(way!);
       const step = await find(container, "demo-wallet-cash-in-crypto");
-      expect(step, "a tap on the crypto tile did not open the form").not.toBeNull();
+      expect(
+        step,
+        "a tap on the crypto tile did not open the form",
+      ).not.toBeNull();
       expect(
         step!.style.height,
         "the step is not as tall as the canvas lets it be (y 103 to the canvas's end at 832), so the sheet scrolls as a whole",
       ).toBe("729px");
-      const under = scrollingPart(container, "crypto form", "demo-wallet-cash-in-crypto-under", "demo-wallet-cash-in-amount");
+      const under = scrollingPart(
+        container,
+        "crypto form",
+        "demo-wallet-cash-in-crypto-under",
+        "demo-wallet-cash-in-amount",
+      );
       expect(
         under.querySelector('[data-pw="demo-wallet-cash-in-tab-usdt"]'),
         "the tabs are inside the part that scrolls; they must stay in place with the title",
@@ -1287,14 +1717,24 @@ describe("Demo wallet — numbers from the XD file", () => {
 
     it("cash in, 'From My rdb': with the keyboard away, the part under the tabs reaches y 930, so the button keeps y 835 and that part scrolls", async () => {
       const container = await openDollars();
-      fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+      fireEvent.click(
+        container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!,
+      );
       fireEvent.click((await find(container, "demo-wallet-way-rdb"))!);
       const tab = await find(container, "demo-wallet-cash-in-tab-bank");
-      expect(tab, "the trydos | rdb step has no 'From My rdb' tab").not.toBeNull();
+      expect(
+        tab,
+        "the trydos | rdb step has no 'From My rdb' tab",
+      ).not.toBeNull();
       fireEvent.click(tab!);
       const button = await find(container, "demo-wallet-cash-in-connect");
       expect(button, "the 'From My rdb' tab has no button").not.toBeNull();
-      const under = scrollingPart(container, "From My rdb", "demo-wallet-cash-in-rdb-under", "demo-wallet-cash-in-connect");
+      const under = scrollingPart(
+        container,
+        "From My rdb",
+        "demo-wallet-cash-in-rdb-under",
+        "demo-wallet-cash-in-connect",
+      );
       expect(
         body(under)?.style.minHeight,
         "the 'From My rdb' form ends where the short canvas ends, so its button moved up; it must reach y 930 (689 px under the tabs)",
@@ -1303,25 +1743,45 @@ describe("Demo wallet — numbers from the XD file", () => {
 
     it("cash in, the safety rules: the shield and its title stay; the rules and 'I Agree' scroll under them, and 'I Agree' keeps y 803", async () => {
       const container = await openDollars();
-      fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
-      fireEvent.click((await find(container, "demo-wallet-cash-in-way-crypto"))!);
-      const input = (await find(container, "demo-wallet-cash-in-amount-input")) as HTMLInputElement | null;
+      fireEvent.click(
+        container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!,
+      );
+      fireEvent.click(
+        (await find(container, "demo-wallet-cash-in-way-crypto"))!,
+      );
+      const input = (await find(
+        container,
+        "demo-wallet-cash-in-amount-input",
+      )) as HTMLInputElement | null;
       expect(input, "the crypto form has no amount input").not.toBeNull();
       fireEvent.focus(input!);
       fireEvent.change(input!, { target: { value: "100" } });
       fireEvent.blur(input!);
       const generate = await find(container, "demo-wallet-cash-in-generate");
-      expect(generate, "'Generate QR Code' did not come in once the amount was typed").not.toBeNull();
+      expect(
+        generate,
+        "'Generate QR Code' did not come in once the amount was typed",
+      ).not.toBeNull();
       fireEvent.click(generate!);
       const agree = await find(container, "demo-wallet-cash-in-agree");
-      expect(agree, "'Generate QR Code' did not open the safety rules").not.toBeNull();
-      const rules = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-safe-rules"]');
+      expect(
+        agree,
+        "'Generate QR Code' did not open the safety rules",
+      ).not.toBeNull();
+      const rules = container.querySelector<HTMLElement>(
+        '[data-pw="demo-wallet-cash-in-safe-rules"]',
+      );
       expect(
         rules?.style.height,
         "the rules are not as tall as the canvas lets them be (y 278 to the canvas's end at 832), so the sheet scrolls as a whole",
       ).toBe("554px");
-      const under = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-safe-under"]');
-      expect(under, "safety rules: no part under the title scrolls on its own").not.toBeNull();
+      const under = container.querySelector<HTMLElement>(
+        '[data-pw="demo-wallet-cash-in-safe-under"]',
+      );
+      expect(
+        under,
+        "safety rules: no part under the title scrolls on its own",
+      ).not.toBeNull();
       expect(
         under!.querySelector('[data-pw="demo-wallet-cash-in-agree"]'),
         "'I Agree' is not inside the part that scrolls",
@@ -1343,11 +1803,17 @@ describe("Demo wallet — numbers from the XD file", () => {
     expect(mark, "the one-balance card has no QR mark to tap").not.toBeNull();
     fireEvent.click(mark!);
     const sheet = await find(container, "demo-wallet-info-sheet");
-    expect(sheet, "a tap on the QR mark did not open the wallet info sheet").not.toBeNull();
+    expect(
+      sheet,
+      "a tap on the QR mark did not open the wallet info sheet",
+    ).not.toBeNull();
     const panel = [...sheet!.querySelectorAll<HTMLElement>("div")].find((el) =>
       el.style.borderRadius.startsWith("50px"),
     );
-    expect(panel, "the wallet info sheet has no panel with 50 px top corners").toBeDefined();
+    expect(
+      panel,
+      "the wallet info sheet has no panel with 50 px top corners",
+    ).toBeDefined();
     expect(
       panel!.style.top,
       "the sheet is not at its design top (y 90, 40 px under the top of the app)",
@@ -1367,16 +1833,32 @@ describe("Demo wallet — numbers from the XD file", () => {
     ).not.toBeNull();
     const code = sheet!.querySelector<HTMLElement>('img[src$="/qrWallet.svg"]');
     expect(code, "the sheet has no QR code").not.toBeNull();
-    expect(code!.style.width, "the QR code is not 350.21 wide").toBe("350.21px");
-    expect(code!.style.marginLeft, "the QR code does not start at x 39.93").toBe("39.93px");
+    expect(code!.style.width, "the QR code is not 350.21 wide").toBe(
+      "350.21px",
+    );
+    expect(
+      code!.style.marginLeft,
+      "the QR code does not start at x 39.93",
+    ).toBe("39.93px");
     const fields = ["name", "id", "phone"].map((id) =>
       sheet!.querySelector<HTMLElement>(`[data-pw="demo-wallet-info-${id}"]`),
     );
     expect(fields[0], "the sheet has no client name field").not.toBeNull();
-    expect(fields[1]?.textContent, "the client ID field does not show the client's ID").toContain("1012-3456");
-    expect(fields[2]?.textContent, "the phone field does not show the client's number").toContain("+90 552 800 2000");
-    expect(px(fields[0], "marginTop"), "the first field is not at y 639, 30 under the 'trydos USD' line").toBe("30px");
-    expect(px(fields[1], "marginTop"), "the fields are not 4 px apart").toBe("4px");
+    expect(
+      fields[1]?.textContent,
+      "the client ID field does not show the client's ID",
+    ).toContain("1012-3456");
+    expect(
+      fields[2]?.textContent,
+      "the phone field does not show the client's number",
+    ).toContain("+90 552 800 2000");
+    expect(
+      px(fields[0], "marginTop"),
+      "the first field is not at y 639, 30 under the 'trydos USD' line",
+    ).toBe("30px");
+    expect(px(fields[1], "marginTop"), "the fields are not 4 px apart").toBe(
+      "4px",
+    );
     expect(px(fields[0], "height"), "a field is not 55 tall").toBe("55px");
     expect(
       fields[0]!.querySelector('img[src$="/eyeGrey.svg"]'),
@@ -1394,17 +1876,30 @@ describe("Demo wallet — numbers from the XD file", () => {
 
   it("cash in: the Cash In action opens a sheet with 50 px corners on the ways to cash in: the trydos | rdb card, then five tiles in a row that slides sideways, as `Home Page – 22` draws it", async () => {
     const container = await openDollars();
-    const action = container.querySelector('[data-pw="demo-wallet-cash-in-usd"]');
+    const action = container.querySelector(
+      '[data-pw="demo-wallet-cash-in-usd"]',
+    );
     expect(action, "the one-balance card has no Cash In action").not.toBeNull();
     fireEvent.click(action!);
     const sheet = await find(container, "demo-wallet-cash-in-sheet");
-    expect(sheet, "a tap on Cash In did not open the cash-in sheet").not.toBeNull();
+    expect(
+      sheet,
+      "a tap on Cash In did not open the cash-in sheet",
+    ).not.toBeNull();
     const panel = [...sheet!.querySelectorAll<HTMLElement>("div")].find((el) =>
       el.style.borderRadius.startsWith("50px"),
     );
-    expect(panel, "the cash-in sheet has no panel with 50 px top corners").toBeDefined();
-    const ways = container.querySelector('[data-pw="demo-wallet-cash-in-ways"]');
-    expect(ways, "the sheet did not open on the ways to cash in").not.toBeNull();
+    expect(
+      panel,
+      "the cash-in sheet has no panel with 50 px top corners",
+    ).toBeDefined();
+    const ways = container.querySelector(
+      '[data-pw="demo-wallet-cash-in-ways"]',
+    );
+    expect(
+      ways,
+      "the sheet did not open on the ways to cash in",
+    ).not.toBeNull();
     expect(
       ways!.querySelector("h2")?.className,
       "the title is not Medium; the file draws 'Cash In' Medium on this board only",
@@ -1414,20 +1909,34 @@ describe("Demo wallet — numbers from the XD file", () => {
       "the ways to cash in have no trydos | rdb card",
     ).toContain("trydos | rdb");
 
-    const row = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-ways-row"]');
-    expect(row, "the ways to cash in have no row of tiles").not.toBeNull();
-    expect(row!.className, "the row of tiles does not slide sideways, as the file's scroll group does").toContain(
-      "overflow-x-auto",
+    const row = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-cash-in-ways-row"]',
     );
+    expect(row, "the ways to cash in have no row of tiles").not.toBeNull();
+    expect(
+      row!.className,
+      "the row of tiles does not slide sideways, as the file's scroll group does",
+    ).toContain("overflow-x-auto");
     const missing = ["cards", "crypto", "sham", "syriatel", "irsal"].filter(
       (id) => !row!.querySelector(`[data-pw="demo-wallet-cash-in-way-${id}"]`),
     );
     expect(missing, "these tiles are missing from the row").toEqual([]);
     const slots = [...row!.children] as HTMLElement[];
-    expect(slots[0].style.marginLeft, "the first tile does not start at x 20").toBe("20px");
-    expect(slots[1].style.marginLeft, "the tiles are not 8 px apart (145 to 153)").toBe("8px");
-    const cards = row!.querySelector<HTMLButtonElement>('[data-pw="demo-wallet-cash-in-way-cards"]')!;
-    expect(cards.disabled, "the cards tile can be tapped; the file marks it 'Soon Available'").toBe(true);
+    expect(
+      slots[0].style.marginLeft,
+      "the first tile does not start at x 20",
+    ).toBe("20px");
+    expect(
+      slots[1].style.marginLeft,
+      "the tiles are not 8 px apart (145 to 153)",
+    ).toBe("8px");
+    const cards = row!.querySelector<HTMLButtonElement>(
+      '[data-pw="demo-wallet-cash-in-way-cards"]',
+    )!;
+    expect(
+      cards.disabled,
+      "the cards tile can be tapped; the file marks it 'Soon Available'",
+    ).toBe(true);
     expect(
       row!.querySelector('[data-pw="demo-wallet-cash-in-soon"]')?.textContent,
       "the cards tile has no 'Soon Available' tag",
@@ -1436,62 +1945,107 @@ describe("Demo wallet — numbers from the XD file", () => {
 
   it("cash in: the trydos | rdb card opens the deposit code under a yellow tab, and 'From My rdb' shows the client's rdb account, as `Home Page – 26` and `– 32` draw them", async () => {
     const container = await openDollars();
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!,
+    );
     const card = await find(container, "demo-wallet-way-rdb");
-    expect(card, "the ways to cash in have no trydos | rdb card").not.toBeNull();
+    expect(
+      card,
+      "the ways to cash in have no trydos | rdb card",
+    ).not.toBeNull();
     fireEvent.click(card!);
     const step = await find(container, "demo-wallet-cash-in-rdb");
-    expect(step, "a tap on the trydos | rdb card did not open the deposit code").not.toBeNull();
+    expect(
+      step,
+      "a tap on the trydos | rdb card did not open the deposit code",
+    ).not.toBeNull();
 
-    const cashTab = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-tab-cash"] div');
-    expect(cashTab?.style.background, "the chosen 'Cash Deposit' tab is not the file's yellow #FAE26B").toMatch(
-      /#FAE26B|rgb\(250, 226, 107\)/i,
+    const cashTab = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-cash-in-tab-cash"] div',
     );
+    expect(
+      cashTab?.style.background,
+      "the chosen 'Cash Deposit' tab is not the file's yellow #FAE26B",
+    ).toMatch(/#FAE26B|rgb\(250, 226, 107\)/i);
     const code = step!.querySelector<HTMLElement>('img[src$="/qrCashIn.svg"]');
     expect(code, "the deposit step has no QR code").not.toBeNull();
-    expect(code!.style.width, "the deposit code is not 300.12 wide").toBe("300.12px");
-    expect(code!.style.marginLeft, "the deposit code does not start at x 65").toBe("65px");
-    const id = step!.querySelector('[data-pw="demo-wallet-cash-in-client-id"]');
-    expect(id?.textContent, "the client ID field does not show the file's account 100-708").toContain("100-708");
-    const actions = ["request", "copy", "download", "share"].filter(
-      (a) => !step!.querySelector(`[data-pw="demo-wallet-cash-in-deposit-${a}"]`),
+    expect(code!.style.width, "the deposit code is not 300.12 wide").toBe(
+      "300.12px",
     );
-    expect(actions, "these actions are missing under the deposit code").toEqual([]);
+    expect(
+      code!.style.marginLeft,
+      "the deposit code does not start at x 65",
+    ).toBe("65px");
+    const id = step!.querySelector('[data-pw="demo-wallet-cash-in-client-id"]');
+    expect(
+      id?.textContent,
+      "the client ID field does not show the file's account 100-708",
+    ).toContain("100-708");
+    const actions = ["request", "copy", "download", "share"].filter(
+      (a) =>
+        !step!.querySelector(`[data-pw="demo-wallet-cash-in-deposit-${a}"]`),
+    );
+    expect(actions, "these actions are missing under the deposit code").toEqual(
+      [],
+    );
 
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-tab-bank"]')!);
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-cash-in-tab-bank"]')!,
+    );
     const bankId = await find(container, "demo-wallet-cash-in-bank-id");
-    expect(bankId, "the 'From My rdb' tab does not show the client's rdb account").not.toBeNull();
+    expect(
+      bankId,
+      "the 'From My rdb' tab does not show the client's rdb account",
+    ).not.toBeNull();
     expect(
       container.querySelector('img[src$="/qrCashIn.svg"]'),
       "the deposit code stayed on the 'From My rdb' tab",
     ).toBeNull();
-    const amount = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-amount"]');
-    expect(px(amount, "marginTop"), "the amount field is not at y 422, 4 px under the name field").toBe("4px");
+    const amount = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-cash-in-amount"]',
+    );
+    expect(
+      px(amount, "marginTop"),
+      "the amount field is not at y 422, 4 px under the name field",
+    ).toBe("4px");
     expect(
       amount!.querySelector("svg[data-stroke]")?.getAttribute("data-stroke"),
       "the amount field has no blue #388CFF line; the file draws it in use",
     ).toBe("#388CFF");
     expect(
-      container.querySelector('[data-pw="demo-wallet-cash-in-connect"]')?.textContent,
+      container.querySelector('[data-pw="demo-wallet-cash-in-connect"]')
+        ?.textContent,
       "the 'From My rdb' tab has no 'Connect & Request From Your rdb' button",
     ).toContain("rdb");
   }, 10000);
 
   it("cash in: Download on the deposit code opens its picture on a white page, as `Home Page – 31` draws it", async () => {
     const container = await openDollars();
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!,
+    );
     fireEvent.click((await find(container, "demo-wallet-way-rdb"))!);
-    const download = await find(container, "demo-wallet-cash-in-deposit-download");
+    const download = await find(
+      container,
+      "demo-wallet-cash-in-deposit-download",
+    );
     expect(download, "the deposit code has no Download action").not.toBeNull();
     fireEvent.click(download!);
-    const picture = await find(container, "demo-wallet-cash-in-deposit-picture");
-    expect(picture, "Download did not open the picture of the deposit code").not.toBeNull();
+    const picture = await find(
+      container,
+      "demo-wallet-cash-in-deposit-picture",
+    );
+    expect(
+      picture,
+      "Download did not open the picture of the deposit code",
+    ).not.toBeNull();
     expect(
       picture!.querySelector('img[src$="/qrCashInBig.svg"]'),
       "the picture has no 350.37 px code",
     ).not.toBeNull();
     expect(
-      picture!.querySelector('[data-pw="demo-wallet-cash-in-deposit-note"]')?.textContent,
+      picture!.querySelector('[data-pw="demo-wallet-cash-in-deposit-note"]')
+        ?.textContent,
       "the picture has no 'Your Deposit Request Ready To Collect !' note",
     ).toContain("Your deposit request ready to collect !");
   }, 10000);
@@ -1499,11 +2053,16 @@ describe("Demo wallet — numbers from the XD file", () => {
   it("cash in with crypto: 100 typed shows the 110 USDT charge, the summary card and Generate QR Code; the safety rules come first, and I Agree opens the code with the time left, as `Home Page – 33`, `– 34`, `– 39` and `– 37` draw them", async () => {
     setDevice("pointer");
     const container = await openDollars();
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!,
+    );
     const tile = await find(container, "demo-wallet-cash-in-way-crypto");
     expect(tile, "the ways to cash in have no crypto tile").not.toBeNull();
     fireEvent.click(tile!);
-    const input = (await find(container, "demo-wallet-cash-in-amount-input")) as HTMLInputElement | null;
+    const input = (await find(
+      container,
+      "demo-wallet-cash-in-amount-input",
+    )) as HTMLInputElement | null;
     expect(input, "the crypto form has no amount input").not.toBeNull();
     expect(
       container.querySelector('[data-pw="demo-wallet-cash-in-generate"]'),
@@ -1511,22 +2070,35 @@ describe("Demo wallet — numbers from the XD file", () => {
     ).toBeNull();
 
     fireEvent.change(input!, { target: { value: "100" } });
-    const field = container.querySelector<HTMLElement>('[data-pw="demo-wallet-cash-in-amount"]')!;
-    expect(px(field, "height"), "the amount field did not grow to 93 for the charge").toBe("93px");
+    const field = container.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-cash-in-amount"]',
+    )!;
     expect(
-      container.querySelector('[data-pw="demo-wallet-cash-in-charge"]')?.textContent,
+      px(field, "height"),
+      "the amount field did not grow to 93 for the charge",
+    ).toBe("93px");
+    expect(
+      container.querySelector('[data-pw="demo-wallet-cash-in-charge"]')
+        ?.textContent,
       "the charge does not say 110 USDT for 100 USD (the file's 10% fee)",
     ).toBe("We will charge 110 USDT for topping up your balance 100 USD.");
     expect(
-      container.querySelector('[data-pw="demo-wallet-cash-in-summary"]')?.textContent,
+      container.querySelector('[data-pw="demo-wallet-cash-in-summary"]')
+        ?.textContent,
       "the summary card does not say what is paid and what arrives",
     ).toContain("You will pay 110 USDT Tron TRC 20 to generated wallet");
     const generate = await find(container, "demo-wallet-cash-in-generate");
-    expect(generate, "Generate QR Code did not come in once an amount was typed").not.toBeNull();
+    expect(
+      generate,
+      "Generate QR Code did not come in once an amount was typed",
+    ).not.toBeNull();
 
     fireEvent.click(generate!);
     const safe = await find(container, "demo-wallet-cash-in-safe");
-    expect(safe, "Generate QR Code did not open the safety rules").not.toBeNull();
+    expect(
+      safe,
+      "Generate QR Code did not open the safety rules",
+    ).not.toBeNull();
     expect(
       safe!.querySelector('svg[data-stroke="#707070"]'),
       "the safety sheet has no #707070 line round its edge",
@@ -1537,33 +2109,49 @@ describe("Demo wallet — numbers from the XD file", () => {
       "the safety list does not have both the green and the amber dots",
     ).toBe(true);
 
-    fireEvent.click(safe!.querySelector('[data-pw="demo-wallet-cash-in-agree"]')!);
+    fireEvent.click(
+      safe!.querySelector('[data-pw="demo-wallet-cash-in-agree"]')!,
+    );
     const code = await find(container, "demo-wallet-cash-in-code");
     expect(code, "I Agree did not open the crypto code").not.toBeNull();
     expect(
-      container.querySelector('[data-pw="demo-wallet-cash-in-deposit-row"]')?.textContent,
+      container.querySelector('[data-pw="demo-wallet-cash-in-deposit-row"]')
+        ?.textContent,
       "the code does not say '110 USDT deposit'",
     ).toBe("110 USDT deposit");
     expect(
-      container.querySelector('[data-pw="demo-wallet-cash-in-time-left"]')?.textContent,
+      container.querySelector('[data-pw="demo-wallet-cash-in-time-left"]')
+        ?.textContent,
       "the time left does not start at the file's 29:59",
     ).toBe("Within 29:59 minutes");
     const apps = ["trust", "metamask", "binance"].filter(
-      (id) => !container.querySelector(`[data-pw="demo-wallet-cash-in-app-${id}"]`),
+      (id) =>
+        !container.querySelector(`[data-pw="demo-wallet-cash-in-app-${id}"]`),
     );
-    expect(apps, "these wallets are missing under 'Or Try Direct Link To'").toEqual([]);
+    expect(
+      apps,
+      "these wallets are missing under 'Or Try Direct Link To'",
+    ).toEqual([]);
   }, 15000);
 
   it("cash in with crypto: 'I Disagree & Cancel' puts the safety rules away and keeps the form", async () => {
     setDevice("pointer");
     const container = await openDollars();
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!,
+    );
     fireEvent.click((await find(container, "demo-wallet-cash-in-way-crypto"))!);
-    const input = (await find(container, "demo-wallet-cash-in-amount-input")) as HTMLInputElement;
+    const input = (await find(
+      container,
+      "demo-wallet-cash-in-amount-input",
+    )) as HTMLInputElement;
     fireEvent.change(input, { target: { value: "100" } });
     fireEvent.click((await find(container, "demo-wallet-cash-in-generate"))!);
     const cancel = await find(container, "demo-wallet-cash-in-disagree");
-    expect(cancel, "the safety rules have no 'I Disagree & Cancel'").not.toBeNull();
+    expect(
+      cancel,
+      "the safety rules have no 'I Disagree & Cancel'",
+    ).not.toBeNull();
     fireEvent.click(cancel!);
     await waitFor(() =>
       expect(
@@ -1583,9 +2171,14 @@ describe("Demo wallet — numbers from the XD file", () => {
       container.querySelector('[data-pw="demo-wallet-receipt"]'),
       "the receipt is open before any entry was tapped",
     ).toBeNull();
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-entry-deposit"]')!);
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-entry-deposit"]')!,
+    );
     const layer = await find(container, "demo-wallet-receipt");
-    expect(layer, "a tap on the Cash Deposit entry did not open the receipt").not.toBeNull();
+    expect(
+      layer,
+      "a tap on the Cash Deposit entry did not open the receipt",
+    ).not.toBeNull();
     expect(
       layer!.style.background,
       "the page behind the receipt is not covered with #1D1D1D at 50%",
@@ -1603,25 +2196,54 @@ describe("Demo wallet — numbers from the XD file", () => {
       layer!.style.backdropFilter,
       "the receipt's layer blurs its backdrop again; that is the blur Chrome draws wrong in a short window",
     ).toBeFalsy();
-    const card = layer!.querySelector<HTMLElement>('[data-pw="demo-wallet-receipt-card"]');
+    const card = layer!.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-receipt-card"]',
+    );
     expect(card, "the receipt has no card").not.toBeNull();
     expect(px(card, "width"), "the receipt card is not 406 wide").toBe("406px");
-    expect(px(card, "height"), "the receipt card is not 568 tall").toBe("568px");
-    expect(px(card, "marginTop"), "the receipt card is not at y 149 (99 under the app's top)").toBe("99px");
-    expect(card!.style.borderRadius, "the receipt card's corners are not 50").toBe("50px");
+    expect(px(card, "height"), "the receipt card is not 568 tall").toBe(
+      "568px",
+    );
+    expect(
+      px(card, "marginTop"),
+      "the receipt card is not at y 149 (99 under the app's top)",
+    ).toBe("99px");
+    expect(
+      card!.style.borderRadius,
+      "the receipt card's corners are not 50",
+    ).toBe("50px");
     const cell = (id: string) =>
       card!.querySelector<HTMLElement>(`[data-pw="demo-wallet-receipt-${id}"]`);
-    expect(px(cell("date"), "width"), "the date cell is not 124 wide").toBe("124px");
-    expect(px(cell("reference"), "width"), "the reference cell is not 124 wide").toBe("124px");
-    expect(px(cell("amount"), "width"), "the amount cell is not 126 wide").toBe("126px");
-    expect(px(cell("type"), "width"), "the type cell is not 252 wide").toBe("252px");
-    expect(px(cell("sender"), "width"), "the sender cell is not 382 wide").toBe("382px");
-    expect(cell("reference")?.textContent, "the reference is not the file's").toContain("TSCR10012");
-    expect(cell("receiver")?.textContent, "the receiver line is not the file's").toContain("+963988222592");
+    expect(px(cell("date"), "width"), "the date cell is not 124 wide").toBe(
+      "124px",
+    );
+    expect(
+      px(cell("reference"), "width"),
+      "the reference cell is not 124 wide",
+    ).toBe("124px");
+    expect(px(cell("amount"), "width"), "the amount cell is not 126 wide").toBe(
+      "126px",
+    );
+    expect(px(cell("type"), "width"), "the type cell is not 252 wide").toBe(
+      "252px",
+    );
+    expect(px(cell("sender"), "width"), "the sender cell is not 382 wide").toBe(
+      "382px",
+    );
+    expect(
+      cell("reference")?.textContent,
+      "the reference is not the file's",
+    ).toContain("TSCR10012");
+    expect(
+      cell("receiver")?.textContent,
+      "the receiver line is not the file's",
+    ).toContain("+963988222592");
     const amount = [...cell("amount")!.querySelectorAll("span")].find(
       (el) => el.textContent === "100,000",
     );
-    expect(amount?.className, "the amount's number is not Medium").toContain("font-medium");
+    expect(amount?.className, "the amount's number is not Medium").toContain(
+      "font-medium",
+    );
     expect(
       cell("status")!.querySelector('img[src$="/receiptDone.svg"]'),
       "the status cell has no blue done mark",
@@ -1645,7 +2267,9 @@ describe("Demo wallet — numbers from the XD file", () => {
 
   it("receipt: an entry with no receipt does not open one", () => {
     const container = open("/sy-en/demo/settings/wallet");
-    fireEvent.click(container.querySelector('[data-pw="demo-wallet-entry-refund"]')!);
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-entry-refund"]')!,
+    );
     expect(
       container.querySelector('[data-pw="demo-wallet-receipt"]'),
       "the Refund Order entry opened a receipt; the file has one for the Cash Deposit only",
@@ -1678,8 +2302,14 @@ describe("Demo FileLines — the file's lines at the file's x", () => {
     expect(
       lines.map((line) => line.textContent),
       "the paragraph is not broken where the file breaks it",
-    ).toEqual(["You Can Add Funds To An Account Through The", "Following Options Easily And Securely."]);
-    expect(lines[0].style.marginLeft, "the first line does not start at the file's x 61.11").toBe("29.11px");
+    ).toEqual([
+      "You Can Add Funds To An Account Through The",
+      "Following Options Easily And Securely.",
+    ]);
+    expect(
+      lines[0].style.marginLeft,
+      "the first line does not start at the file's x 61.11",
+    ).toBe("29.11px");
     expect(
       Number.parseFloat(lines[1].style.marginLeft),
       "the second line does not start at the file's x 92.1",
@@ -1698,8 +2328,14 @@ describe("Demo FileLines — the file's lines at the file's x", () => {
       />,
     );
     const p = container.querySelector("p")!;
-    expect(p.querySelectorAll("span").length, "another language was cut into the English lines").toBe(0);
-    expect(p.className, "another language's paragraph is not centred").toContain("text-center");
+    expect(
+      p.querySelectorAll("span").length,
+      "another language was cut into the English lines",
+    ).toBe(0);
+    expect(
+      p.className,
+      "another language's paragraph is not centred",
+    ).toContain("text-center");
   });
 
   it("Safari topbar tinting: useOuterBackdrop manages meta theme-color and body background", () => {
@@ -1711,18 +2347,30 @@ describe("Demo FileLines — the file's lines at the file's x", () => {
     expect(document.querySelector('meta[name="theme-color"]')).toBeNull();
 
     rerender(<TestComponent open={true} />);
-    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const meta = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"]',
+    );
     expect(meta, "theme-color meta tag must be created").not.toBeNull();
-    expect(meta?.content, "theme-color content must match backdrop top color").toBe("rgb(52, 52, 52)");
+    expect(
+      meta?.content,
+      "theme-color content must match backdrop top color",
+    ).toBe("rgb(52, 52, 52)");
     expect(document.body.style.backgroundColor).toBe("rgb(52, 52, 52)");
-    expect(document.documentElement.style.backgroundColor).toBe("rgb(52, 52, 52)");
+    expect(document.documentElement.style.backgroundColor).toBe(
+      "rgb(52, 52, 52)",
+    );
 
-    const strip = document.querySelector<HTMLElement>('[data-pw="demo-top-tint"]');
+    const strip = document.querySelector<HTMLElement>(
+      '[data-pw="demo-top-tint"]',
+    );
     expect(strip, "top tint overlay must be rendered").not.toBeNull();
     expect(strip?.style.width).toBe("100vw");
 
     unmount();
-    expect(document.querySelector('meta[name="theme-color"]'), "meta tag must be removed on unmount").toBeNull();
+    expect(
+      document.querySelector('meta[name="theme-color"]'),
+      "meta tag must be removed on unmount",
+    ).toBeNull();
   });
 
   // Safari 26 on the iPhone tints its top bar from the fixed element at the
@@ -1749,7 +2397,10 @@ describe("Demo FileLines — the file's lines at the file's x", () => {
       );
 
     show(true, false);
-    expect(app.style.backgroundColor, "an open sheet does not tint the app's top grey").toBe("rgb(52, 52, 52)");
+    expect(
+      app.style.backgroundColor,
+      "an open sheet does not tint the app's top grey",
+    ).toBe("rgb(52, 52, 52)");
 
     show(true, true);
     show(true, false);
@@ -1762,6 +2413,70 @@ describe("Demo FileLines — the file's lines at the file's x", () => {
     expect(
       app.style.backgroundColor,
       "after the sheet closed the app's top is not opaque white, so Safari keeps its top bar grey",
+    ).toBe("rgb(255, 255, 255)");
+  });
+
+  // How Safari 26 picks the colour (WebKit, LocalFrameView::fixedContainerEdges):
+  // it hit-tests 4 px under the top edge and takes the first fixed ancestor.
+  //  - A fixed box about as big as the screen (#app-outer, the demo's <main>)
+  //    is "viewport sized": Safari KEEPS the colour it already has and never
+  //    reads the box's own colour (`preferExistingColor`).
+  //  - A box 10 px tall or less gives no colour of its own either.
+  // So the top must always end on a fixed strip of our own, full width and
+  // more than 10 px tall, whose background colour Safari reads every time it
+  // changes. Removing the strip on close left only #app-outer at the top, and
+  // Safari kept the grey for good.
+  it("Safari topbar tinting: the top strip stays after the sheet closes, white, and tall enough for Safari to read its colour", () => {
+    function Layer({ open }: { open: boolean }) {
+      useOuterBackdrop(open, "rgba(0,0,0,0.5)", "rgb(52, 52, 52)");
+      return null;
+    }
+    const { rerender, container } = render(
+      <main data-pw="demo-app">
+        <Layer open={false} />
+      </main>,
+    );
+    const show = (open: boolean) =>
+      rerender(
+        <main data-pw="demo-app">
+          <Layer open={open} />
+        </main>,
+      );
+    const strip = () =>
+      container.querySelector<HTMLElement>('[data-pw="demo-top-tint"]');
+    /** The strip's height in px on a page with no safe-area inset. */
+    const height = (el: HTMLElement) =>
+      Number(/(\d+(?:\.\d+)?)px/.exec(el.style.height)?.[1] ?? 0);
+
+    show(true);
+    expect(
+      strip(),
+      "an open sheet put no strip at the top for Safari to read",
+    ).not.toBeNull();
+    expect(
+      height(strip()!),
+      `the top strip is ${strip()!.style.height} tall; Safari ignores the colour of a box 10 px tall or less`,
+    ).toBeGreaterThan(10);
+    expect(
+      strip()!.style.backgroundColor,
+      "the strip is not the sheet's dimmed grey",
+    ).toBe("rgb(52, 52, 52)");
+
+    show(false);
+    expect(
+      strip(),
+      "the strip was removed when the sheet closed, so Safari is left with the screen-sized #app-outer and keeps its bar grey",
+    ).not.toBeNull();
+    expect(
+      strip()!.style.position,
+      "the strip is not fixed, so Safari does not look at it",
+    ).toBe("fixed");
+    expect(strip()!.style.width, "the strip does not span the screen").toBe(
+      "100vw",
+    );
+    expect(
+      strip()!.style.backgroundColor,
+      "after the sheet closed the strip is not white, so Safari's bar does not go back to the page's white",
     ).toBe("rgb(255, 255, 255)");
   });
 });

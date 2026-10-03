@@ -8,6 +8,7 @@ import { useDemoData, type DemoAddress } from "../../DemoApp/DemoData";
 import { countryOf } from "../../DemoApp/demoPlaces";
 import { C, fill, gapTo, textBottom, top } from "../demo1Layout";
 import {
+  DIMMED,
   Icon,
   InfoBanner,
   Layer,
@@ -284,7 +285,7 @@ function DeleteQuestion({
   return (
     <AnimatePresence>
       {address && (
-        <Layer key="delete" testId="demo-address-delete">
+        <Layer key="delete" testId="demo-address-delete" tint={DIMMED}>
           <motion.div
             className="fixed inset-0"
             style={{ background: C.backdrop }}

@@ -100,10 +100,12 @@ function ChatSearchResults({
       {contacts.map((item: any, key) => (
         <SearchResult
           key={`contact-${item.id ?? key}`}
-          photo={undefined}
+          photo={item.contact_user?.photo_path}
           item={item}
           handleClickChat={(chat: any) => open(chat)}
-          SenderName={item.name || item.mobile_phone}
+          SenderName={
+            item.contact_user?.name || item.name || item.mobile_phone
+          }
           isUser={contactUserId(item) !== null}
         />
       ))}

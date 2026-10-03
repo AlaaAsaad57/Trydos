@@ -243,6 +243,57 @@ describe("Demo1 screens — fluid pages that the document scrolls", () => {
   }
 });
 
+describe("Demo1 layers — Safari's top bar follows an open sheet", () => {
+  // Safari 26 keeps the colour it already shows when the box at the top is a
+  // "dimming layer" (the sheet's see-through backdrop), so the bar never went
+  // grey. A fixed strip of the demo's own, more than 10 px tall and opaque, is
+  // what it reads; see components/DemoApp/topTint.ts.
+  const strip = () =>
+    document.body.querySelector<HTMLElement>('[data-pw="demo-top-tint"]');
+
+  it("puts the sheet's grey at the top while it is open, and hides the strip again when it closes", () => {
+    const { rerender } = render(
+      <Sheet open onClose={() => {}} y={400} testId="sheet">
+        <span>a</span>
+      </Sheet>,
+    );
+    expect(
+      strip(),
+      "an open sheet put no strip at the top for Safari to read",
+    ).not.toBeNull();
+    expect(
+      strip()!.style.position,
+      "the top strip is not fixed, so Safari does not look at it",
+    ).toBe("fixed");
+    expect(
+      Number(/(\d+)px/.exec(strip()!.style.height)?.[1] ?? 0),
+      `the top strip is ${strip()!.style.height} tall; Safari ignores the colour of a box 10 px tall or less`,
+    ).toBeGreaterThan(10);
+    expect(
+      strip()!.style.visibility,
+      "the top strip is hidden while the sheet is open",
+    ).toBe("visible");
+    expect(
+      strip()!.style.backgroundColor,
+      "the top strip is not the dimmed page's grey",
+    ).toBe("rgb(52, 52, 52)");
+
+    rerender(
+      <Sheet open={false} onClose={() => {}} y={400} testId="sheet">
+        <span>a</span>
+      </Sheet>,
+    );
+    expect(
+      strip(),
+      "the strip was taken away on close; Safari only looks again when a fixed layer repaints, so it must stay and change",
+    ).not.toBeNull();
+    expect(
+      strip()!.style.visibility,
+      "the strip still shows after the sheet closed, so the page's own header cannot colour the bar",
+    ).toBe("hidden");
+  });
+});
+
 describe("Demo1 layers — a sheet holds the page still", () => {
   it("draws the sheet on <body> and stops the page scrolling until the last layer closes", async () => {
     const Two = ({ a, b }: { a: boolean; b: boolean }) => (
