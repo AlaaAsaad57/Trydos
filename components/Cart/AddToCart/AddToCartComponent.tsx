@@ -454,9 +454,14 @@ function AddToCartComponent({ product, slug, color }) {
   const reachedMaxQty = () => {
     const selectedItem = getSelectedItemCart();
     if (!selectedItem) return false;
-    const maxQty = Number(ProductData?.max_allowed_qty);
-    if (maxQty === 0) return false;
-    return selectedItem.quantity >= maxQty;
+    // The seller's limit and a running flash deal's limit both cap the
+    // quantity, and the lower one wins. A 0, null or missing value is no limit.
+    const limits = [
+      Number(ProductData?.max_allowed_qty),
+      Number(ProductData?.flash_deal_max_allowed_quantity),
+    ].filter((limit) => Number.isFinite(limit) && limit > 0);
+    if (limits.length === 0) return false;
+    return selectedItem.quantity >= Math.min(...limits);
   };
   const getVariantSizeQty = (size) => {
     if (!ProductData?.variation?.length) {

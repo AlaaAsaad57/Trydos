@@ -21,6 +21,9 @@ import { DemoDataProvider, useDemoData } from "./DemoData";
 import DemoBottomNav from "./DemoBottomNav";
 import DemoScreenView from "./DemoScreenView";
 import { SCREEN_TRANSITION } from "./demoLayout";
+import { DebugButtons, useDemoDebug } from "./demoDebug";
+import { holdTopTint } from "./topTint";
+import { DEMO_TINT } from "./ui";
 import type { DemoDictionary, DemoKey } from "./demoKeys";
 import {
   direction,
@@ -133,6 +136,21 @@ function DemoShellInner({
   const trail = useRef<DemoScreen[]>([urlScreen ?? "home"]);
   const [hideMenu, setHideMenu] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState(false);
+  const { color: debugColor } = useDemoDebug();
+
+  // The debug page colour (demoDebug.tsx) also paints the room round the
+  // canvas and the top strip, so Safari's top area shows it too.
+  useEffect(() => {
+    if (!debugColor) return;
+    const outer = document.getElementById("app-outer");
+    const before = outer?.style.backgroundColor ?? "";
+    if (outer) outer.style.backgroundColor = debugColor;
+    const release = holdTopTint(debugColor, DEMO_TINT);
+    return () => {
+      if (outer) outer.style.backgroundColor = before;
+      release();
+    };
+  }, [debugColor]);
 
   // No rubber band on the page itself. On iPhone, Safari bounces the whole
   // document on a swipe even when it has nothing to scroll, and the canvas
@@ -267,6 +285,7 @@ function DemoShellInner({
               i
             </button>
           )}
+          {!hideMenu && <DebugButtons t={t} />}
         </div>
         <DemoDeviceInfoModal
           open={deviceInfo}

@@ -390,6 +390,45 @@ describe("stock, price and the max quantity", () => {
     expect(seen.Button.reachedMaxQty(), "an item not in the cart was treated as at the max").toBe(false);
   });
 
+  // A running flash deal sends its own limit, `flash_deal_max_allowed_quantity`
+  // (gateway globalDetails). The lower of it and `max_allowed_qty` wins; a null
+  // or 0 means the deal sets no limit.
+  it("stops at the flash deal limit when it is lower than the seller's limit", async () => {
+    await renderSheet(
+      { id: 1, slug: "a", max_allowed_qty: 3, flash_deal_max_allowed_quantity: 2 },
+      { store: { localCart: [{ id: 1, quantity: 2 }] } },
+    );
+    expect(seen.Button.reachedMaxQty(), "two in the bag under a flash deal limit of two (seller limit three) did not count as the max").toBe(true);
+  });
+
+  it("stops at the flash deal limit when the seller set no limit", async () => {
+    await renderSheet(
+      { id: 1, slug: "a", max_allowed_qty: 0, flash_deal_max_allowed_quantity: "2" },
+      { store: { localCart: [{ id: 1, quantity: 2 }] } },
+    );
+    expect(seen.Button.reachedMaxQty(), "two in the bag under a flash deal limit of two (no seller limit) did not count as the max").toBe(true);
+  });
+
+  it("keeps the seller's limit when the flash deal limit is higher", async () => {
+    await renderSheet(
+      { id: 1, slug: "a", max_allowed_qty: 2, flash_deal_max_allowed_quantity: 5 },
+      { store: { localCart: [{ id: 1, quantity: 2 }] } },
+    );
+    expect(seen.Button.reachedMaxQty(), "a higher flash deal limit of five lifted the seller's limit of two").toBe(true);
+  });
+
+  it.each([
+    ["null", null],
+    ["0", 0],
+    ["missing", undefined],
+  ])("ignores a flash deal limit of %s", async (_label, flashLimit) => {
+    await renderSheet(
+      { id: 1, slug: "a", max_allowed_qty: 0, flash_deal_max_allowed_quantity: flashLimit },
+      { store: { localCart: [{ id: 1, quantity: 9 }] } },
+    );
+    expect(seen.Button.reachedMaxQty(), `a flash deal limit of ${String(flashLimit)} was treated as a real limit`).toBe(false);
+  });
+
   it("finds the cart row of the selected variant", async () => {
     const variation = [{ product_variation_id: 11, color: { name: "Red" }, size: "S", qty: 3, offer_price: 20 }];
     await renderSheet(

@@ -471,6 +471,73 @@ describe("the cap on a cart row's quantity", () => {
     ).toBeUndefined();
   });
 
+  // A flash deal row carries a third cap: `flash_deal_details.
+  // flash_deal_max_allowed_quantity`. The gateway refuses a quantity above it
+  // ("sorry, stock is limited"), so the cart must stop there too. A null or 0
+  // means the deal sets no limit, the same reading as `max_allowed_qty`.
+  it("does not ask for more than the flash deal limit when it is lower than the seller's limit", async () => {
+    await openTheCartRowAt(2, () => {}, {
+      max: 99,
+      product: {
+        max_allowed_qty: "3",
+        flash_deal_details: { flash_deal_max_allowed_quantity: 2 },
+      },
+    });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "the row is at the flash deal limit of 2 (seller limit 3), and pressing plus still asked the backend for a 3rd",
+    ).toBeUndefined();
+    expect(
+      messagesShown(),
+      "the row hit the flash deal limit and the shopper was told nothing",
+    ).toContain(MAX_REACHED_MESSAGE);
+  });
+
+  it("keeps the seller's limit when the flash deal limit is higher", async () => {
+    await openTheCartRowAt(2, () => {}, {
+      max: 99,
+      product: {
+        max_allowed_qty: "2",
+        flash_deal_details: { flash_deal_max_allowed_quantity: 5 },
+      },
+    });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0],
+      "the row is at the seller's limit of 2, and a higher flash deal limit of 5 let plus ask for a 3rd",
+    ).toBeUndefined();
+  });
+
+  it.each([
+    ["null", null],
+    ["0", 0],
+    ['"0"', "0"],
+    ["missing", undefined],
+  ])(
+    "ignores a flash deal limit of %s",
+    async (_label, flashLimit) => {
+      await openTheCartRowAt(2, () => {}, {
+        max: 99,
+        product: {
+          max_allowed_qty: "0",
+          flash_deal_details: { flash_deal_max_allowed_quantity: flashLimit },
+        },
+      });
+
+      await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+      expect(
+        UpdateCart.mock.calls[0]?.[0],
+        `a flash deal limit of ${String(flashLimit)} means no limit, but the row was capped`,
+      ).toMatchObject({ cart_id: cartRow.id, qty: 3 });
+    },
+  );
+
   it("keeps plus working when the row carries neither cap", async () => {
     // Guards the shape of the fix: a missing field is not a cap of 0. If it
     // were, every row the backend answers without these fields would freeze.

@@ -14,6 +14,7 @@ import { XD_ICON_SIZE, type XdIconName } from "../DemoApp/xdIcons";
 import type { DemoKey } from "../DemoApp/demoKeys";
 import { Box, Icon, Txt, type Weight } from "../DemoApp/ui";
 import { holdTopTint, type TintHome } from "../DemoApp/topTint";
+import { useDemoDebug } from "../DemoApp/demoDebug";
 import {
   BANNER,
   BODY_Y,
@@ -360,12 +361,14 @@ export function ScreenPage({
   tabBar?: boolean;
   testId?: string;
 }) {
-  usePageColor(bg);
+  // The debug page colour (demoDebug.tsx) wins over the design's.
+  const page = useDemoDebug().color ?? bg;
+  usePageColor(page);
   return (
     <div
       data-pw={testId}
       className="relative flex flex-col w-full font-quicksand"
-      style={{ background: bg, minHeight: "100dvh" }}
+      style={{ background: page, minHeight: "100dvh" }}
     >
       <div
         className="flex flex-col w-full grow"

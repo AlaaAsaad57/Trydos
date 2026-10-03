@@ -2625,6 +2625,8 @@ const translations = {
   "This payment is already paid": "تم دفع هذه العملية بالفعل",
   "Hide menu": "إخفاء القائمة",
   "Device and browser info": "معلومات الجهاز والمتصفح",
+  "Change page colour": "تغيير لون الصفحة",
+  "Show test pictures": "عرض صور تجريبية",
   "Main": "الرئيسية",
   "Cart": "السلة",
   "Chat": "المحادثة",

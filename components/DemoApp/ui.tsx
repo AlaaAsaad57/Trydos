@@ -7,6 +7,7 @@ import XdIcon from "./XdIcon";
 import { XD_ICON_SIZE, type XdIconName } from "./xdIcons";
 import type { DemoKey } from "./demoKeys";
 import { holdTopTint, type TintHome } from "./topTint";
+import { useDemoDebug } from "./demoDebug";
 import {
   BANNER,
   BODY_Y,
@@ -403,11 +404,13 @@ export function ScreenPage({
   scrollTop?: number;
   testId?: string;
 }) {
+  // The debug page colour (demoDebug.tsx) wins over the design's.
+  const { color: debugColor } = useDemoDebug();
   return (
     <div
       data-pw={testId}
       className="absolute inset-0 font-quicksand"
-      style={{ background: bg }}
+      style={{ background: debugColor ?? bg }}
     >
       <div
         className="absolute inset-0"
@@ -922,7 +925,7 @@ export function useOuterBackdrop(open: boolean, paint: string, top: string) {
  * canvas, and white while no layer is open. It must stay opaque then: under
  * it is only the screen-sized `#app-outer`, which Safari never reads again.
  */
-const DEMO_TINT: TintHome = {
+export const DEMO_TINT: TintHome = {
   host: () =>
     document.querySelector<HTMLElement>('[data-pw="demo-app"]') ??
     document.body,

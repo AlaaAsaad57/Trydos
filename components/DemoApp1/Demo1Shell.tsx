@@ -22,6 +22,7 @@ import {
 } from "framer-motion";
 import DemoDeviceInfoModal from "NewLoginDesign/DemoDeviceInfoModal";
 import { DemoDataProvider, useDemoData } from "../DemoApp/DemoData";
+import { DebugButtons } from "../DemoApp/demoDebug";
 import type { DemoDictionary, DemoKey } from "../DemoApp/demoKeys";
 import {
   direction,
@@ -271,6 +272,7 @@ function Demo1ShellInner({
             i
           </button>
         )}
+        {!hideMenu && <DebugButtons t={t} />}
       </div>
       <DemoDeviceInfoModal
         open={deviceInfo}

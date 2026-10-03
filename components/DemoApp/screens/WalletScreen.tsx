@@ -3,6 +3,7 @@
 import React, { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useDemoNav } from "../DemoShell";
+import { DebugPictures } from "../demoDebug";
 import { C, gapTo, textBottom } from "../demoLayout";
 import { Box, Icon, ScreenHeader, ScreenPage, Txt } from "../ui";
 import {
@@ -238,6 +239,8 @@ export default function WalletScreen() {
           </motion.div>
         ))}
       </AnimatePresence>
+
+      <DebugPictures />
     </ScreenPage>
   );
 }

@@ -637,12 +637,15 @@ export const QuantutyInput = ({
       setLoading(false);
     }
   };
-  // How many of this item the shopper may hold. Two separate caps apply and the
-  // lower one wins:
+  // How many of this item the shopper may hold. Three separate caps apply and
+  // the lowest one wins:
   //
   //   * `max_allowed_qty` — the per-order limit the seller set. A 0 means the
   //     seller set no limit, the same reading the product page uses
-  //     (components/Cart/AddToCart/AddToCartComponent.tsx:458-459).
+  //     (components/Cart/AddToCart/AddToCartComponent.tsx, `reachedMaxQty`).
+  //   * `flash_deal_details.flash_deal_max_allowed_quantity` — the limit of a
+  //     running flash deal. A null or 0 means the deal sets no limit. The
+  //     gateway refuses a quantity above it ("sorry, stock is limited").
   //   * `max` — the stock left, which the cart page passes as the row's
   //     `available_quantity`. Here a 0 does cap the row: there is none left.
   //
@@ -654,6 +657,11 @@ export const QuantutyInput = ({
     const perOrderLimit = Number(product?.max_allowed_qty);
     if (Number.isFinite(perOrderLimit) && perOrderLimit > 0)
       caps.push(perOrderLimit);
+    const flashDealLimit = Number(
+      product?.flash_deal_details?.flash_deal_max_allowed_quantity,
+    );
+    if (Number.isFinite(flashDealLimit) && flashDealLimit > 0)
+      caps.push(flashDealLimit);
     const stockLeft = Number(max);
     if (
       max !== null &&

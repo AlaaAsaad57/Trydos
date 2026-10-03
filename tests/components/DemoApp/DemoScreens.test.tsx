@@ -38,6 +38,7 @@ vi.mock("NewLoginDesign/DemoDeviceInfoModal", () => ({ default: () => null }));
 import DemoShell from "components/DemoApp/DemoShell";
 import { FileLines, useOuterBackdrop } from "components/DemoApp/ui";
 import { NATIVE_WALLET_KEYBOARD } from "components/DemoApp/demoKeyboard";
+import { DEBUG_COLORS, resetDemoDebug } from "components/DemoApp/demoDebug";
 
 const open = (pathname: string) => {
   url.pathname = pathname;
@@ -2478,5 +2479,67 @@ describe("Demo FileLines — the file's lines at the file's x", () => {
       strip()!.style.backgroundColor,
       "after the sheet closed the strip is not white, so Safari's bar does not go back to the page's white",
     ).toBe("rgb(255, 255, 255)");
+  });
+});
+
+describe("Demo debug buttons — page colour and test pictures", () => {
+  beforeEach(() => {
+    url.search = "";
+    document.body.innerHTML = "";
+  });
+  afterEach(() => resetDemoDebug());
+
+  const button = (container: HTMLElement, testId: string) => {
+    const found = container.querySelector<HTMLElement>(
+      `[data-pw="demo-controls"] [data-pw="${testId}"]`,
+    );
+    expect(found, `the demo's switches have no "${testId}" button`).not.toBeNull();
+    return found!;
+  };
+
+  it("the colour button paints the page and the top strip in the next colour, and gives the design's colour back after the last one", () => {
+    const container = open("/sy-en/demo/settings/wallet");
+    const page = container.querySelector<HTMLElement>('[data-pw="demo-wallet"]');
+    expect(page, "the wallet screen did not open").not.toBeNull();
+    const strip = () =>
+      container.querySelector<HTMLElement>('[data-pw="demo-top-tint"]');
+
+    fireEvent.click(button(container, "demo-debug-color"));
+    expect(
+      page!.style.background,
+      "the first tap did not paint the wallet's page red",
+    ).toBe("rgb(255, 59, 48)");
+    expect(
+      strip()?.style.backgroundColor,
+      "the top strip did not take the page colour, so Safari's top area stays white",
+    ).toBe("rgb(255, 59, 48)");
+
+    // One tap per colour after the first, then one more for the design's.
+    for (let i = 1; i <= DEBUG_COLORS.length; i++)
+      fireEvent.click(button(container, "demo-debug-color"));
+    expect(
+      page!.style.background,
+      "after the last colour the page did not go back to the design's white",
+    ).toBe("rgb(255, 255, 255)");
+    expect(
+      strip()?.style.backgroundColor,
+      "after the last colour the top strip did not go back to white",
+    ).toBe("rgb(255, 255, 255)");
+  });
+
+  it("the pictures button puts the test pictures under the wallet's transactions, and takes them away again", () => {
+    const container = open("/sy-en/demo/settings/wallet");
+    const pictures = () =>
+      container.querySelector('[data-pw="demo-debug-pictures"]');
+    expect(pictures(), "test pictures show before the button was tapped").toBeNull();
+
+    fireEvent.click(button(container, "demo-debug-pictures-toggle"));
+    expect(
+      pictures()?.querySelectorAll("img").length,
+      "the pictures button did not put any picture under the wallet",
+    ).toBeGreaterThan(0);
+
+    fireEvent.click(button(container, "demo-debug-pictures-toggle"));
+    expect(pictures(), "a second tap did not take the pictures away").toBeNull();
   });
 });

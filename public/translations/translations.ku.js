@@ -2675,6 +2675,8 @@ const translations = {
   "This payment is already paid": "ئەم پارەدانە پێشتر دراوە",
   "Hide menu": "شاردنەوەی لیست",
   "Device and browser info": "زانیاری ئامێر و وێبگەڕ",
+  "Change page colour": "گۆڕینی ڕەنگی پەڕە",
+  "Show test pictures": "پیشاندانی وێنەی تاقیکردنەوە",
   "Main": "سەرەکی",
   "Cart": "سەبەتە",
   "Chat": "گفتوگۆ",

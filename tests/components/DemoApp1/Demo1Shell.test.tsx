@@ -24,6 +24,7 @@ vi.mock("NewLoginDesign/DemoDeviceInfoModal", () => ({ default: () => null }));
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
 import { Sheet } from "components/DemoApp1/ui";
 import { DEMO_SCREENS, hrefFor } from "components/DemoApp/demoRoutes";
+import { DEBUG_COLORS, resetDemoDebug } from "components/DemoApp/demoDebug";
 
 /** Every screen on stage — the one leaving and the one coming in while a slide runs. */
 const onStage = (container: HTMLElement) =>
@@ -413,5 +414,53 @@ describe("Demo1 layers — a sheet holds the page still", () => {
         ).toBe(""),
       { timeout: 3000 },
     );
+  });
+});
+
+describe("Demo1 debug buttons — page colour and test pictures", () => {
+  afterEach(() => resetDemoDebug());
+
+  const button = (container: HTMLElement, testId: string) => {
+    const found = container.querySelector<HTMLElement>(
+      `[data-pw="demo-controls"] [data-pw="${testId}"]`,
+    );
+    expect(found, `the demo's switches have no "${testId}" button`).not.toBeNull();
+    return found!;
+  };
+
+  it("the colour button paints the document, which Safari 26 takes for its bars, and gives the design's colour back after the last one", () => {
+    const { container } = openOn("settings/wallet");
+    fireEvent.click(button(container, "demo-debug-color"));
+    expect(
+      document.documentElement.style.backgroundColor,
+      "the first tap did not paint <html> red",
+    ).toBe("rgb(255, 59, 48)");
+    expect(
+      document.body.style.backgroundColor,
+      "the first tap did not paint <body> red",
+    ).toBe("rgb(255, 59, 48)");
+
+    for (let i = 1; i <= DEBUG_COLORS.length; i++)
+      fireEvent.click(button(container, "demo-debug-color"));
+    expect(
+      document.documentElement.style.backgroundColor,
+      "after the last colour <html> did not go back to the wallet's white",
+    ).toBe("rgb(255, 255, 255)");
+  });
+
+  it("the pictures button puts the test pictures under the wallet's transactions, and takes them away again", () => {
+    const { container } = openOn("settings/wallet");
+    const pictures = () =>
+      container.querySelector('[data-pw="demo-debug-pictures"]');
+    expect(pictures(), "test pictures show before the button was tapped").toBeNull();
+
+    fireEvent.click(button(container, "demo-debug-pictures-toggle"));
+    expect(
+      pictures()?.querySelectorAll("img").length,
+      "the pictures button did not put any picture under the wallet",
+    ).toBeGreaterThan(0);
+
+    fireEvent.click(button(container, "demo-debug-pictures-toggle"));
+    expect(pictures(), "a second tap did not take the pictures away").toBeNull();
   });
 });

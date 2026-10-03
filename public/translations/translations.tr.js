@@ -2657,6 +2657,8 @@ const translations = {
   "This payment is already paid": "Bu ödeme zaten yapıldı",
   "Hide menu": "Menüyü gizle",
   "Device and browser info": "Cihaz ve tarayıcı bilgisi",
+  "Change page colour": "Sayfa rengini değiştir",
+  "Show test pictures": "Test resimlerini göster",
   "Main": "Ana menü",
   "Cart": "Sepet",
   "Chat": "Sohbet",
