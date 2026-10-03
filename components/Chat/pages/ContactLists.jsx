@@ -189,7 +189,12 @@ function ContactLists(props) {
                       props.close();
                       handleClick(e);
                     }}
-                    SenderName={contact.name || contact.mobile_phone}
+                    photo={contact.contact_user?.photo_path}
+                    SenderName={
+                      contact.contact_user?.name ||
+                      contact.name ||
+                      contact.mobile_phone
+                    }
                     isUser={Boolean(contact.contact_user_id)}
                   />
                 );

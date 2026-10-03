@@ -119,7 +119,7 @@ const grown = (b: Box): Box => {
  */
 const CART: Box = { x: 198, y: 871, size: 34 };
 const CHAT: Box = { x: 274, y: 871, size: 34 };
-const SLOTS: Slot[] = [
+export const SLOTS: Slot[] = [
   {
     id: "home",
     label: "Home",
@@ -167,11 +167,11 @@ const SLOTS: Slot[] = [
   },
 ];
 
-const SLOT_W = 76;
+export const SLOT_W = 76;
 const slotCentre = (index: number) => 63 + index * SLOT_W - TAB_BAR.x;
 
 /** The profile tab: a 34 box (`#EFEFEF`, 0.3 `#1D1D1D`) that becomes a 42 photo when active. */
-const PROFILE = {
+export const PROFILE = {
   idle: { x: 350, y: 871, size: 34 },
   active: { x: 346, y: 865, size: 42 },
   radius: 12,
@@ -190,7 +190,7 @@ const GROW_SPRING = {
 } as const;
 
 /** The swap from the idle icon to the active one, while it grows. */
-const SWAP = "opacity 180ms ease-out";
+export const SWAP = "opacity 180ms ease-out";
 
 export default function DemoBottomNav({
   active,
@@ -437,7 +437,7 @@ export default function DemoBottomNav({
  * so moving to the idle corner and scaling there lands on the idle box
  * exactly; the spring runs the move and the scale together.
  */
-function GrowBox({
+export function GrowBox({
   tab,
   on,
   idle,
@@ -486,7 +486,7 @@ function GrowBox({
  * while the tab is idle. The idle and the active count fade into each other
  * with the icons: the active one is 1 px lower, and white on the chat bubble.
  */
-function TabCount({
+export function TabCount({
   tab,
   on,
   count,
@@ -567,7 +567,7 @@ const profileLine = (
  * The corner (12) and the lines are the file's numbers at the size on screen,
  * so while idle they are set PROFILE_UNSCALE bigger to cancel the scale.
  */
-function ProfileTab({
+export function ProfileTab({
   on,
   photo,
   verified,

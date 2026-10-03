@@ -146,3 +146,42 @@ describe("demo routes — how screens relate", () => {
     ).toBe(1);
   });
 });
+
+describe("demo routes — the fluid demo at /demo1 shares the table", () => {
+  it("reads /demo1 URLs only when asked for the demo1 base", () => {
+    expect(
+      screenFromUrl("/sy-en/demo1", "search", "demo1"),
+      "/demo1?search did not open search",
+    ).toBe("search");
+    expect(
+      screenFromUrl("/sy-en/demo1/settings/wallet", "", "demo1"),
+      "/demo1/settings/wallet is not the wallet",
+    ).toBe("settings/wallet");
+    expect(
+      screenFromUrl("/sy-en/demo1/settings", ""),
+      "a /demo1 URL was read as a /demo screen",
+    ).toBeNull();
+    expect(
+      screenFromUrl("/sy-en/demo/settings", "", "demo1"),
+      "a /demo URL was read as a /demo1 screen",
+    ).toBeNull();
+  });
+
+  it("writes /demo1 URLs for the demo1 base, and /demo URLs by default", () => {
+    expect(hrefFor("sy-en", "home", "demo1"), "demo1 home URL is wrong").toBe(
+      "/sy-en/demo1",
+    );
+    expect(
+      hrefFor("sy-en", "cart", "demo1"),
+      "demo1 cart must be a search param on /demo1",
+    ).toBe("/sy-en/demo1?cart");
+    expect(
+      hrefFor("sy-en", "settings/wallet", "demo1"),
+      "demo1 settings screens must be paths under /demo1",
+    ).toBe("/sy-en/demo1/settings/wallet");
+    expect(
+      hrefFor("sy-en", "settings/wallet"),
+      "the default base is no longer /demo",
+    ).toBe("/sy-en/demo/settings/wallet");
+  });
+});

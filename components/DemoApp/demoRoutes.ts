@@ -51,6 +51,12 @@ const isScreen = (key: string): key is DemoScreen =>
   (DEMO_SCREENS as readonly string[]).includes(key);
 
 /**
+ * The route segment the demo lives under: `demo` for the scaled canvas,
+ * `demo1` for the fluid page (components/DemoApp1). Both share this table.
+ */
+export type DemoBase = "demo" | "demo1";
+
+/**
  * Which screen a URL shows, or null for a path under /demo that is not a
  * screen of its own (a server-rendered page added later — the shell shows the
  * route's own page for it).
@@ -58,9 +64,10 @@ const isScreen = (key: string): key is DemoScreen =>
 export function screenFromUrl(
   pathname: string,
   search: URLSearchParams | string,
+  base: DemoBase = "demo",
 ): DemoScreen | null {
   const parts = pathname.split("/").filter(Boolean);
-  const at = parts.indexOf("demo");
+  const at = parts.indexOf(base);
   if (at === -1) return null;
   const rest = parts.slice(at + 1).join("/");
   if (!rest) {
@@ -72,10 +79,14 @@ export function screenFromUrl(
 }
 
 /** The URL of a screen, under a locale segment such as `sy-en`. */
-export function hrefFor(lang: string, key: DemoScreen): string {
-  if (key === "home") return `/${lang}/demo`;
-  if (OVERLAYS.includes(key)) return `/${lang}/demo?${key}`;
-  return `/${lang}/demo/${key}`;
+export function hrefFor(
+  lang: string,
+  key: DemoScreen,
+  base: DemoBase = "demo",
+): string {
+  if (key === "home") return `/${lang}/${base}`;
+  if (OVERLAYS.includes(key)) return `/${lang}/${base}?${key}`;
+  return `/${lang}/${base}/${key}`;
 }
 
 /** True when going from one screen to the other changes only the search params. */
