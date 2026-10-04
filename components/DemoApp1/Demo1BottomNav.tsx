@@ -23,7 +23,7 @@ import {
 import type { DemoTab } from "../DemoApp/demoRoutes";
 import type { DemoKey } from "../DemoApp/demoKeys";
 import {
-  PAGE_MAX,
+  COLUMN_W,
   SAFE_BOTTOM,
   SCREEN_TRANSITION,
   TAB_BAR,
@@ -33,17 +33,22 @@ import {
  * The tab bar of the fluid demo: the /demo bar (DemoBottomNav) — the same
  * icons, the same grow, press and scroll motion — in a fluid frame.
  *
- *  - It is `fixed` to the bottom of the window, on <body>: the document
+ *  - It is fixed to the bottom of the window, on <body>: the document
  *    scrolls under it. It reads the document's scroll for its shrink and drop.
+ *    The fixed box is an anchor with no width in the middle of the window,
+ *    and the bar's own box hangs on it.
  *  - It keeps the file's 22 px to both edges of the screen (386 wide on a 430
  *    phone) and 15 px above the bottom.
  *  - Its five slots share the bar's width, 3 px in from each end, as the
  *    file's 76 px slots do on the 386 px bar. Each icon keeps the file's
  *    distance from its slot's centre.
  *
- * It has no fill of its own. Its glass holds the tabs, so when the bar drops
- * onto the bottom edge Safari 26 reads it as a glass bar and keeps its own bar
- * glass, instead of painting it the white of the page.
+ * Why the anchor. Safari 26 paints the room under its own bar in one solid
+ * colour when it finds a fixed box as wide as the screen at the bottom edge,
+ * a glass one too (see EDGE_ANCHOR in demo1Layout.ts). The bar passes that
+ * edge when it drops on a scroll and when it slides in and out, and Safari
+ * then kept it for as long as the tab screen was open. An anchor with no
+ * width is too small for Safari to count, so its own bar stays glass.
  */
 
 /** The file's centre of slot `index`, on the 430 artboard. */
@@ -52,8 +57,8 @@ const fileCentre = (index: number) => 63 + index * SLOT_W;
 /** The gap between the bar's ends and its first and last slot (41 - 38). */
 const SLOT_INSET = fileCentre(0) - TAB_BAR.x - SLOT_W / 2;
 
-/** The bar keeps 22 px to the screen's edges, inside the centred page column. */
-const SIDE = `max(${TAB_BAR.x}px, calc(50% - ${PAGE_MAX / 2 - TAB_BAR.x}px))`;
+/** The bar keeps 22 px to both edges of the page column. */
+const BAR_W = `calc(${COLUMN_W} - ${2 * TAB_BAR.x}px)`;
 
 export default function Demo1BottomNav({
   active,
@@ -168,16 +173,20 @@ export default function Demo1BottomNav({
       }
       transition={SCREEN_TRANSITION}
       style={{
-        left: SIDE,
-        right: SIDE,
+        // An anchor with no width: see the note at the top of this file.
+        left: "50%",
+        width: 0,
         bottom: `calc(${15}px + ${SAFE_BOTTOM})`,
         height: TAB_BAR.height,
         pointerEvents: visible ? "auto" : "none",
       }}
     >
       <motion.div
-        className="relative w-full h-full"
+        data-pw="demo-tab-box"
+        className="absolute top-0 h-full"
         style={{
+          left: `calc(${BAR_W} / -2)`,
+          width: BAR_W,
           transformOrigin: "center center",
           y: drop,
           scale,
@@ -191,13 +200,8 @@ export default function Demo1BottomNav({
           setDragging(true);
         }}
       >
-        {/* The glass holds the tabs. Safari 26 looks for a fixed bar at the
-            bottom edge from the tab under its test point upwards; with the
-            glass on the way it leaves its own bar glass too. As a sibling of
-            the tabs it was missed, and Safari painted its bar the white of
-            the page under the dropped bar. The glass still has no transform
-            of its own (Safari clips a backdrop filter wrongly then): the box
-            above it scales. */}
+        {/* The glass has no transform of its own (Safari clips a backdrop
+            filter wrongly then): the box above it scales. */}
         <div
           data-pw="demo-tab-glass"
           className="absolute inset-0"

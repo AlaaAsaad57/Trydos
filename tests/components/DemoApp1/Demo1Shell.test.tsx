@@ -39,6 +39,32 @@ const pressTab = (tab: string) => {
   fireEvent.keyDown(button!, { key: "Enter" });
 };
 
+/** The demo's own fixed boxes that Safari may keep reading: none of them is at the bottom edge. */
+const NOT_AT_THE_BOTTOM = ["demo-top-tint", "demo-controls"];
+
+/**
+ * The fixed boxes on the page that Safari 26 could read at the bottom edge:
+ * every fixed box, but for an anchor with no width. jsdom lays nothing out,
+ * so the size is read from the box's own style.
+ */
+const readableAtTheBottom = () =>
+  [...document.body.querySelectorAll<HTMLElement>("*")]
+    .filter(
+      (el) =>
+        el.style.position === "fixed" ||
+        String(el.getAttribute("class") ?? "")
+          .split(/\s+/)
+          .includes("fixed"),
+    )
+    .filter((el) => el.style.width !== "0px")
+    .map(
+      (el) =>
+        el.getAttribute("data-pw") ??
+        el.getAttribute("data-demo-screen") ??
+        `${el.tagName} ${el.getAttribute("class") ?? ""}`,
+    )
+    .filter((name) => !NOT_AT_THE_BOTTOM.includes(name));
+
 /** Opens the shell on a screen's URL. */
 const openOn = (screen: (typeof DEMO_SCREENS)[number]) => {
   const [path, query = ""] = hrefFor("sy-en", screen, "demo1").split("?");
@@ -141,10 +167,12 @@ describe("Demo1Shell — a web page, not a scaled canvas", () => {
     expect(bar!.className, "the tab bar is not fixed to the window").toContain(
       "fixed",
     );
+    const box = bar!.querySelector<HTMLElement>('[data-pw="demo-tab-box"]');
+    expect(box, "the tab bar has no box for its tabs").not.toBeNull();
     expect(
-      bar!.style.left,
-      "the tab bar does not keep the file's 22 px from the left edge",
-    ).toContain("22px");
+      box!.style.width,
+      "the tab bar does not keep the file's 22 px from both edges of the screen (44 px in all)",
+    ).toContain("44px");
   });
 });
 
@@ -355,21 +383,54 @@ describe("Demo1 bottom — like /demo, Safari's bottom bar lies over the app", (
     ).toEqual([]);
   });
 
-  // Safari reads a fixed bar near the bottom edge. With no glass on the way
-  // up from the point it tests, it takes a snapshot of the white page and
-  // paints its own bar solid white; with a backdrop-filter there it leaves its
-  // own glass (WebKit LocalFrameView::fixedContainerEdges, foundBackdropFilter).
-  it("the tab bar's glass holds its tabs, so Safari keeps its own bar glass when the bar drops onto the bottom edge", () => {
-    openOn("home");
-    const glass = document.body.querySelector('[data-pw="demo-tab-glass"]');
-    expect(glass, "the tab bar has no glass").not.toBeNull();
-    for (const tab of ["home", "search", "cart", "chat", "settings"]) {
-      const button = document.body.querySelector(`[data-pw="demo-tab-${tab}"]`);
-      expect(
-        glass!.contains(button),
-        `the ${tab} tab is not inside the glass, so Safari does not see the glass above it and paints its bar white`,
-      ).toBe(true);
-    }
+  // Safari 26 hit-tests the middle of the bottom edge and walks up to the
+  // first fixed or sticky box that is about as wide as the screen. When it
+  // finds one, it covers the room under its own bar with one solid colour:
+  // the box's colour, or the page's background colour when the box holds a
+  // backdrop-filter. So glass on the way does NOT keep Safari's bar glass; an
+  // older test here said it did, and it was wrong. Only "no such box" does
+  // (WebKit LocalFrameView::fixedContainerEdges, Page::updateFixedContainerEdges
+  // and WKWebView _updateFixedColorExtensionViews). Safari also keeps the last
+  // box it found for as long as that box is on the page, so one bad moment
+  // (a slide, a bar passing the edge) is enough.
+  //
+  // A fixed box with no width and no height is "too small" for Safari. The
+  // demo hangs every layer on such an anchor.
+  it("the tab bar hangs on a fixed anchor with no width, so Safari finds no bar at the bottom edge", () => {
+    openOn("settings");
+    expect(
+      readableAtTheBottom(),
+      "a fixed box as wide as the screen is on the page with the tab bar; Safari paints the room under its bar solid",
+    ).toEqual([]);
+  });
+
+  it("an open sheet hangs on a fixed anchor with no size, and its backdrop is not fixed", () => {
+    render(
+      <Sheet open onClose={() => {}} y={400} testId="sheet-edge">
+        <span>a</span>
+      </Sheet>,
+    );
+    expect(
+      document.body.querySelector('[data-pw="sheet-edge"]'),
+      "the open sheet was not drawn",
+    ).not.toBeNull();
+    expect(
+      readableAtTheBottom(),
+      "the sheet's layer or its backdrop is a fixed box as wide as the screen; Safari paints the room under its bar solid",
+    ).toEqual([]);
+  });
+
+  it("a screen that slides out hangs on a fixed anchor with no size", () => {
+    const { container } = openOn("home");
+    pressTab("search");
+    expect(
+      onStage(container),
+      "the slide did not keep the old screen on stage, so this test saw no screen leaving",
+    ).toEqual(expect.arrayContaining(["home", "search"]));
+    expect(
+      readableAtTheBottom(),
+      "the screen that slides out is a fixed box the size of the screen; Safari paints the room under its bar in its colour, and keeps it",
+    ).toEqual([]);
   });
 });
 

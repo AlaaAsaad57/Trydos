@@ -2859,6 +2859,8 @@ const translations = {
   "So once the payment is completed, the balance will be added automatically. It is considered a one-time-use wallet only": "لذلك بمجرد إتمام الدفع ستتم إضافة الرصيد تلقائياً. وتُعد محفظة للاستخدام مرة واحدة فقط",
   "Your deposit request ready to collect !": "طلب الإيداع جاهز !",
   "Present this code along with your personal ID at any of our branches and pay the amount in complete security.": "قدّم هذا الرمز مع هويتك الشخصية في أي فرع من فروعنا وادفع المبلغ بأمان تام.",
+  "Standard": "قياسي",
+  "View product": "عرض المنتج",
 };
 
 export default translations;

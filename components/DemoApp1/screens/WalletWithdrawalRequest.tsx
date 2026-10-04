@@ -7,6 +7,7 @@ import { NATIVE_WALLET_KEYBOARD } from "../../DemoApp/demoKeyboard";
 import { useDemoNav } from "../Demo1Shell";
 import {
   C,
+  WINDOW_COVER,
   fill,
   gapTo,
   lineBox,
@@ -434,8 +435,7 @@ export function PictureLayer({
           {/* White over the whole window, also beside the page column on a
               wide screen, so the dimmed page under the sheet does not show. */}
           <motion.div
-            className="fixed inset-0"
-            style={{ background: C.white }}
+            style={{ ...WINDOW_COVER, background: C.white }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

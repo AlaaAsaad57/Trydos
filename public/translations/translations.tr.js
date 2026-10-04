@@ -2891,6 +2891,8 @@ const translations = {
   "So once the payment is completed, the balance will be added automatically. It is considered a one-time-use wallet only": "Bu nedenle ödeme tamamlandığında bakiye otomatik olarak eklenir. Yalnızca tek kullanımlık bir cüzdan sayılır",
   "Your deposit request ready to collect !": "Para yatırma talebiniz hazır !",
   "Present this code along with your personal ID at any of our branches and pay the amount in complete security.": "Bu kodu kimliğinizle birlikte şubelerimizden herhangi birinde gösterin ve tutarı tam güvenle ödeyin.",
+  "Standard": "Standart",
+  "View product": "Ürünü Görüntüle",
 };
 
 export default translations;

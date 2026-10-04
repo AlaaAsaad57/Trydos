@@ -21,14 +21,16 @@ import {
   C,
   CTA,
   DESIGN_H,
+  EDGE_ANCHOR,
   HEADER,
-  PAGE_MAX,
   ROW,
   SAFE_BOTTOM,
   SAFE_TOP,
   SHEET,
   STATUS_BAR,
   TAB_ROOM,
+  WINDOW_COVER,
+  columnBox,
   fill,
   lineBox,
   paraTop,
@@ -148,8 +150,11 @@ function useMounted() {
  * holds the page still while it is up. Put it inside AnimatePresence when it
  * fades or slides.
  *
- * `fixed` and not `absolute`: the page under it is the document, so a layer
- * inside the page would scroll away with it.
+ * Fixed to the window and not inside the page: the page under it is the
+ * document, so a layer inside the page would scroll away with it. The fixed
+ * box is an anchor with no size, and the layer's own box hangs on it: Safari
+ * 26 paints the room under its bar solid when it finds a fixed box as wide as
+ * the screen at the bottom edge (see EDGE_ANCHOR in demo1Layout.ts).
  *
  * It is as tall as the window (`innerHeight`), the height /demo's canvas has,
  * and not the box `inset: 0` gives: on iOS 26 that box ends above Safari's
@@ -189,12 +194,14 @@ export function Layer({
   const height = useScreenHeight();
   if (!mounted) return null;
   return createPortal(
-    <div
-      data-pw={testId}
-      className={`fixed top-0 left-0 right-0 mx-auto w-full font-quicksand ${className}`}
-      style={{ maxWidth: PAGE_MAX, height, zIndex: 2147483000 + z, ...style }}
-    >
-      {children}
+    <div style={{ ...EDGE_ANCHOR, zIndex: 2147483000 + z }}>
+      <div
+        data-pw={testId}
+        className={`font-quicksand ${className}`}
+        style={{ ...columnBox(height), ...style }}
+      >
+        {children}
+      </div>
     </div>,
     document.body,
   );
@@ -875,8 +882,7 @@ export function Sheet({
               `}</style>
             )}
             <motion.div
-              className="fixed inset-0"
-              style={{ background: C.backdrop }}
+              style={{ ...WINDOW_COVER, background: C.backdrop }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
