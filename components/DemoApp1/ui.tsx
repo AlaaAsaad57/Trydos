@@ -187,11 +187,19 @@ function useMounted() {
  * holds the page still while it is up. Put it inside AnimatePresence when it
  * fades or slides.
  *
- * Fixed to the window and not inside the page: the page under it is the
- * document, so a layer inside the page would scroll away with it. The fixed
- * box is an anchor with no size, and the layer's own box hangs on it: Safari
- * 26 paints the room under its bar solid when it finds a fixed box as wide as
- * the screen at the bottom edge (see EDGE_ANCHOR in demo1Layout.ts).
+ * It is IN THE DOCUMENT, not fixed to the window: an `absolute` anchor with
+ * no size on <body>, at the place the page is scrolled to, and the layer's
+ * own box hangs on it. The page is held still while the layer is open, so
+ * the layer stays on the screen; if a browser lets the page move all the
+ * same, the anchor follows the scroll.
+ *
+ * Why not `fixed`. Seen on the iPhone: under the window's end, where its
+ * floating bar lies, Safari 26 draws the document, but of a fixed layer it
+ * draws only a plain colour. A fixed sheet was a solid white block under the
+ * bar, with its rows cut at the window's end. A sheet in the document is
+ * drawn under the bar like the page, and the bar is glass over it. A fixed
+ * box as wide as the screen is also what makes Safari paint that room in one
+ * solid colour (see EDGE_ANCHOR in demo1Layout.ts).
  *
  * It is as tall as the window (`innerHeight`), the height /demo's canvas has,
  * and not the box `inset: 0` gives: on iOS 26 that box ends above Safari's
@@ -229,9 +237,27 @@ export function Layer({
     return holdTopTint(tint, DEMO1_TINT);
   }, [tint, present]);
   const height = useScreenHeight();
+  const anchor = React.useRef<HTMLDivElement>(null);
+  React.useLayoutEffect(() => {
+    if (!mounted) return;
+    const follow = () => {
+      if (anchor.current) anchor.current.style.top = `${window.scrollY}px`;
+    };
+    follow();
+    window.addEventListener("scroll", follow, { passive: true });
+    return () => window.removeEventListener("scroll", follow);
+  }, [mounted]);
   if (!mounted) return null;
   return createPortal(
-    <div style={{ ...EDGE_ANCHOR, zIndex: 2147483000 + z }}>
+    <div
+      ref={anchor}
+      style={{
+        ...EDGE_ANCHOR,
+        position: "absolute",
+        top: window.scrollY,
+        zIndex: 2147483000 + z,
+      }}
+    >
       <div
         data-pw={testId}
         className={`font-quicksand ${className}`}

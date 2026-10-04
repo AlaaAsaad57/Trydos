@@ -384,6 +384,46 @@ describe("Demo1 bottom — like /demo, Safari's bottom bar lies over the app", (
     ).toEqual([]);
   });
 
+  // Seen on the iPhone: Safari 26 draws nothing of a FIXED layer under the
+  // window's end but a plain colour, so a fixed sheet was a solid white block
+  // under Safari's bar and its rows were cut at the window's end. Only what
+  // is in the document is drawn under the bar. So a layer is in the document:
+  // `absolute` on <body>, at the place the page is scrolled to (the page is
+  // held still while the layer is open).
+  it("a sheet is in the document, at the place the page is scrolled to, and not fixed to the window", () => {
+    scrollY = 300;
+    render(
+      <Sheet open onClose={() => {}} y={400} testId="sheet-doc">
+        <span>a</span>
+      </Sheet>,
+    );
+    const layer = document.body.querySelector<HTMLElement>(
+      '[data-pw="sheet-doc"]',
+    );
+    expect(layer, "the open sheet was not drawn").not.toBeNull();
+    const anchor = layer!.parentElement!;
+    expect(
+      anchor.parentElement,
+      "the sheet's layer does not hang on <body>",
+    ).toBe(document.body);
+    expect(
+      anchor.style.position,
+      "the sheet's layer is fixed to the window; Safari draws only a plain colour for it under its bar",
+    ).toBe("absolute");
+    expect(
+      anchor.style.top,
+      "the sheet's layer is not at the place the page is scrolled to, so it is off the screen",
+    ).toBe("300px");
+
+    // The page moved all the same (a browser that does not hold it still).
+    scrollY = 340;
+    fireEvent.scroll(window);
+    expect(
+      anchor.style.top,
+      "the sheet's layer did not follow the page when it scrolled under the open sheet",
+    ).toBe("340px");
+  });
+
   // On the iPhone the window (innerHeight) ends ABOVE Safari 26's floating
   // bar. A sheet that ends with the window leaves the page showing under the
   // bar. So the sheet's white panel and its backdrop run UNDER_BAR px past the
