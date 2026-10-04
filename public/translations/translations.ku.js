@@ -2909,6 +2909,8 @@ const translations = {
   "So once the payment is completed, the balance will be added automatically. It is considered a one-time-use wallet only": "بۆیە کاتێک پارەدانەکە تەواو بوو، باڵانسەکە خۆکارانە زیاد دەکرێت. تەنها جزدانێکی یەکجار بەکارهێنانە",
   "Your deposit request ready to collect !": "داواکاریی دانانەکەت ئامادەیە !",
   "Present this code along with your personal ID at any of our branches and pay the amount in complete security.": "ئەم کۆدە لەگەڵ ناسنامەی کەسیت لە هەر لقێکی ئێمە پیشان بدە و بڕەکە بە سەلامەتیی تەواو بدە.",
+  "Standard": "ستاندارد",
+  "View product": "بینینی بەرهەم",
 };
 
 export default translations;

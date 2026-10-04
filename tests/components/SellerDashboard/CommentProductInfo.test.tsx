@@ -1,6 +1,7 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { renderWithProviders } from "../../render";
 import CommentProductInfo, {
   resolveProductVariantDetails,
 } from "components/SellerDashboard/CommentProductInfo";
@@ -201,8 +202,32 @@ describe("CommentProductInfo component", () => {
       />,
     );
 
+    // The link has no locale on purpose: the proxy adds the shopper's locale
+    // (sy-en, iq-ar, …) on the way in. The route is /products, not /product.
     const link = screen.getByRole("link", { name: "Running Sneakers" });
-    expect(link).toHaveAttribute("href", "/en/product/running-sneakers");
+    expect(link, "the product link does not point at the products route").toHaveAttribute(
+      "href",
+      "/products/running-sneakers",
+    );
+  });
+
+  it("shows the no-variant pill and the link title in Arabic", async () => {
+    // translateFunction reads the language from the URL. The other cases here
+    // render at "/", so the Arabic URL is put back when this case ends.
+    try {
+      const { container } = await renderWithProviders(
+        <CommentProductInfo productId="42" variant="" product={mockProduct} language="ar" />,
+        { language: "ar" },
+      );
+
+      expect(screen.queryByText("قياسي"), "the 'Standard' pill was not translated to Arabic").toBeInTheDocument();
+      expect(
+        container.querySelector('[data-pw="comment-product-link"]')?.getAttribute("title"),
+        "the 'View product' link title was not translated to Arabic",
+      ).toBe("عرض المنتج");
+    } finally {
+      window.history.replaceState(null, "", "/");
+    }
   });
 
   it("renders fallback pill when comment has no variant", () => {
