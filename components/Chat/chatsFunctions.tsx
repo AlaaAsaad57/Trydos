@@ -25,6 +25,32 @@ export const getChatPeer = (chat) =>
 export const getChatName = (chat) =>
   chat?.channel_name || getChatPeer(chat)?.user?.name;
 
+/**
+ * The name the contacts tab shows for a contact. A contact whose user already
+ * has a chat is drawn as that chat: the chat's name, else the other person's
+ * phone. Any other contact shows its user's name, its saved name, or its phone.
+ * The add-contact warning uses it too, so the warning names the row it means.
+ */
+export const contactRowName = (contact, chats) => {
+  const chat = (chats ?? []).find((c) =>
+    c?.channel_members?.some(
+      (mem) => parseInt(mem.user_id) === parseInt(contact?.contact_user?.id),
+    ),
+  );
+  if (!chat) {
+    return (
+      contact?.contact_user?.name || contact?.name || contact?.mobile_phone
+    );
+  }
+  return (
+    getChatName(chat) ||
+    chat.channel_members.filter(
+      (member) => parseInt(member?.user_id) !== parseInt(getUserChat()?.id),
+    )[0]?.user?.mobile_phone ||
+    "User"
+  );
+};
+
 /** The picture a chat shows: the other person's own picture, never the channel's. */
 export const getChatPhoto = (chat) => getChatPeer(chat)?.user?.photo_path;
 

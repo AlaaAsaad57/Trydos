@@ -5,7 +5,14 @@
 // ChatLists.test.tsx; these pin the rules those tests rely on.
 import { describe, expect, it } from "vitest";
 
-import { contactUserId, dedupeContacts, directChatWith, normalizePhone, searchChatList } from "components/Chat/chatSearch";
+import {
+  contactUserId,
+  dedupeContacts,
+  directChatWith,
+  drawnContactFor,
+  normalizePhone,
+  searchChatList,
+} from "components/Chat/chatSearch";
 
 describe("chatSearch — phone numbers", () => {
   it("reads a Syrian number the same in the international and the local form", () => {
@@ -60,5 +67,36 @@ describe("chatSearch — which chat a contact leads to", () => {
       meId: me,
     });
     expect(contacts.map((c: any) => c.name), "an order chat hid the offer to start a direct chat").toEqual(["bilal"]);
+  });
+});
+
+// The add-contact form finds a saved record by its phone. The contact list draws
+// one row per person (dedupeContacts), and that row can be a different record of
+// the same person. drawnContactFor finds the row the list draws.
+describe("chatSearch — the row the list draws for a matched contact", () => {
+  const samer = { id: 60, contact_user_id: null, name: "سامر", mobile_phone: "+963 944 555 666" };
+  const samerAgain = { id: 61, contact_user_id: null, name: "سامر", mobile_phone: "0944555666" };
+  const bilal = { id: 55, contact_user_id: "8", contact_user: { id: 8 }, name: "بلال", mobile_phone: "0999111222" };
+  const bilalShop = { id: 56, contact_user_id: "8", contact_user: { id: 8 }, name: "Bilal shop", mobile_phone: "+963933000000" };
+
+  it("drawnContactFor gives the kept row for either record of a person saved twice", () => {
+    const contacts = [samer, samerAgain, bilal];
+    expect(drawnContactFor(contacts, samerAgain)?.id, "the second format of a phone did not lead to the drawn row").toBe(60);
+    expect(drawnContactFor(contacts, samer)?.id, "the drawn record did not lead to itself").toBe(60);
+  });
+
+  it("drawnContactFor gives the kept row for a user saved twice with two phones", () => {
+    expect(
+      drawnContactFor([bilal, bilalShop], bilalShop)?.id,
+      "a second record of the same user did not lead to the drawn row",
+    ).toBe(55);
+  });
+
+  it("drawnContactFor gives nothing when there is no match", () => {
+    expect(drawnContactFor([samer, bilal], null), "no match still gave a row").toBeNull();
+    expect(
+      drawnContactFor([samer], { id: 99, contact_user_id: null, name: "Stranger", mobile_phone: "+447000000001" }),
+      "a person not in the list still gave a row",
+    ).toBeNull();
   });
 });

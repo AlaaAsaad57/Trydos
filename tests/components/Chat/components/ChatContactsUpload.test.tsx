@@ -34,8 +34,20 @@ const SAVED = [
   { mobile_phone: "", name: "No phone" },
 ];
 
-async function mount(contacts: any[] = SAVED, store: Record<string, any> = {}) {
-  return renderWithProviders(<ChatContactsUpload />, { store: { contacts, ...store } });
+async function mount(contacts: any[] = SAVED, store: Record<string, any> = {}, props: Record<string, any> = {}) {
+  return renderWithProviders(<ChatContactsUpload {...props} />, { store: { contacts, ...store } });
+}
+
+/** Opens the add-by-hand form and returns its fields. */
+async function openForm(contacts?: any[], store?: Record<string, any>, props?: Record<string, any>) {
+  await mount(contacts, store, props);
+  fireEvent.click(screen.getByText("Add Contact Manually"));
+  return {
+    name: screen.getByPlaceholderText("Enter Full Name"),
+    phone: screen.getByPlaceholderText("123 4567"),
+    dial: screen.getByRole("combobox") as HTMLSelectElement,
+    confirm: screen.getByText("Confirm Add").closest("button")!,
+  };
 }
 
 async function syncPicked(picked: any[]) {
@@ -200,17 +212,6 @@ describe("ChatContactsUpload — syncing from the phone", () => {
 });
 
 describe("ChatContactsUpload — adding one by hand", () => {
-  async function openForm(contacts?: any[]) {
-    await mount(contacts);
-    fireEvent.click(screen.getByText("Add Contact Manually"));
-    return {
-      name: screen.getByPlaceholderText("Enter Full Name"),
-      phone: screen.getByPlaceholderText("123 4567"),
-      dial: screen.getByRole("combobox") as HTMLSelectElement,
-      confirm: screen.getByText("Confirm Add").closest("button")!,
-    };
-  }
-
   it("saves a new contact with the chosen dial code", async () => {
     const f = await openForm();
     expect(f.confirm, "confirm was enabled on an empty form").toBeDisabled();
@@ -234,7 +235,34 @@ describe("ChatContactsUpload — adding one by hand", () => {
     fireEvent.change(f.phone, { target: { value: "912345678" } });
     expect(screen.getByText("Ali Saved"), "the saved name for the number was not shown").toBeInTheDocument();
     expect(f.confirm, "a number already saved could be added again").toBeDisabled();
-    expect(f.phone.className, "the phone field was not marked as a conflict").toContain("border-orange-400");
+    expect(f.phone.className, "the phone field was not marked red as a conflict").toContain("border-red-400");
+    expect(
+      screen.getByText("Ali Saved").closest("div")!.className,
+      "the 'Already saved as' line was not red",
+    ).toContain("text-red-600");
+    await act(async () => {
+      f.confirm.disabled = false;
+      fireEvent.click(f.confirm);
+    });
+    expect(h.fetchData, "a number already saved was sent to the chat backend").not.toHaveBeenCalled();
+  });
+
+  it("BUG-1: refuses a saved number whose contact has no name", async () => {
+    const f = await openForm([{ id: 7, mobile_phone: "963937288307", name: "" }], {
+      userChat: { mobile_phone: "963944000001" },
+    });
+    fireEvent.change(f.name, { target: { value: "Alaa" } });
+    fireEvent.change(f.phone, { target: { value: "0937288307" } });
+    expect(f.confirm, "a saved contact with no name could be added again").toBeDisabled();
+    expect(
+      screen.queryByText("963937288307"),
+      "the warning did not name the nameless contact by its phone, as its row does",
+    ).toBeInTheDocument();
+    await act(async () => {
+      f.confirm.disabled = false;
+      fireEvent.click(f.confirm);
+    });
+    expect(h.fetchData, "a saved contact with no name was sent to the chat backend again").not.toHaveBeenCalled();
   });
 
   it("warns about a saved number typed with the local 0", async () => {
@@ -324,5 +352,99 @@ describe("ChatContactsUpload — adding one by hand", () => {
         "a failed save showed nothing to the shopper",
       ).toBe(true),
     );
+  });
+});
+
+// The form tells the contact list which row has the typed number
+// (`onDuplicate`), so the list can draw it first with a red frame. The warning
+// names that contact the way its row in the list does.
+describe("ChatContactsUpload — the contact that already has the number", () => {
+  const SY = { userChat: { id: 1, mobile_phone: "963944000001" } };
+  const alaa = { id: 1, contact_user_id: null, name: "alaa", mobile_phone: "963937288307" };
+  const samer = { id: 60, contact_user_id: null, name: "سامر", mobile_phone: "+963 944 555 666" };
+  const samerAgain = { id: 61, contact_user_id: null, name: "سامر", mobile_phone: "0944555666" };
+
+  async function typing(contacts: any[], store: Record<string, any> = SY) {
+    const onDuplicate = vi.fn();
+    const f = await openForm(contacts, store, { onDuplicate });
+    fireEvent.change(f.name, { target: { value: "Someone" } });
+    const type = (value: string) => fireEvent.change(f.phone, { target: { value } });
+    /** What the list was told, from the first match on. */
+    const reportsSinceMatch = () => {
+      const calls = onDuplicate.mock.calls.map((c) => c[0]);
+      return calls.slice(calls.findIndex(Boolean));
+    };
+    return { f, type, onDuplicate, reportsSinceMatch };
+  }
+
+  it("reports the same row once while the typed number still matches it", async () => {
+    const t = await typing([alaa]);
+    t.type("0937288307");
+    t.type("937288307");
+    expect(
+      t.reportsSinceMatch().map((row) => row?.id ?? null),
+      "the matched row was reported again, or dropped, while the number still matched it",
+    ).toEqual([1]);
+  });
+
+  it("reports no match when the number changes to an unsaved one, is cleared, or the form closes", async () => {
+    const t = await typing([alaa]);
+    t.type("0937288307");
+    expect(t.onDuplicate.mock.lastCall?.[0]?.id, "the saved number was not reported to the list").toBe(1);
+    t.type("0937000000");
+    expect(t.onDuplicate.mock.lastCall?.[0], "an unsaved number still marked the old contact").toBeNull();
+    t.type("0937288307");
+    t.type("");
+    expect(t.onDuplicate.mock.lastCall?.[0], "a cleared number still marked the old contact").toBeNull();
+    t.type("0937288307");
+    fireEvent.click(screen.getByText("Add A New Contact").nextElementSibling as HTMLElement);
+    expect(t.onDuplicate.mock.lastCall?.[0], "closing the form still marked the old contact").toBeNull();
+  });
+
+  it("reports contact B after the number changes from A's to B's", async () => {
+    const t = await typing([alaa, samer]);
+    t.type("0937288307");
+    t.type("0944555666");
+    expect(
+      t.reportsSinceMatch().map((row) => row?.id ?? null),
+      "the list was not told A, then B",
+    ).toEqual([1, 60]);
+  });
+
+  it("reports the drawn row when the person is saved twice in two formats", async () => {
+    const t = await typing([samer, samerAgain]);
+    t.type("0944555666");
+    expect(
+      t.onDuplicate.mock.lastCall?.[0]?.id,
+      "the list was told a record it does not draw, so no row would be marked",
+    ).toBe(60);
+  });
+
+  it("names a contact the shopper chats with as the chat row does, not by the account name", async () => {
+    const qussai = {
+      id: 5,
+      contact_user_id: "8",
+      contact_user: { id: 8, name: "qussai2" },
+      name: "قصي",
+      mobile_phone: "963984902640",
+    };
+    const chat = {
+      id: 40,
+      channel_name: "قصي بدوي",
+      channel_members: [
+        { user_id: 1, user: { name: "Me" } },
+        { user_id: 8, user: { name: "qussai2", mobile_phone: "963984902640" } },
+      ],
+    };
+    const t = await typing([qussai], { ...SY, data: [chat] });
+    t.type("984902640");
+    expect(screen.queryByText("قصي بدوي"), "the warning did not use the chat row's name").toBeInTheDocument();
+    expect(screen.queryByText("qussai2"), "the warning showed the account name, which no row shows").toBeNull();
+  });
+
+  it("names a contact with no chat as its row does", async () => {
+    const t = await typing([samer]);
+    t.type("0944555666");
+    expect(screen.queryByText("سامر"), "the warning did not use the contact row's name").toBeInTheDocument();
   });
 });

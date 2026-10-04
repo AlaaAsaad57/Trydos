@@ -15,7 +15,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "../../../render";
 
-const h = vi.hoisted(() => ({ contactRows: [] as any[], chatRows: [] as any[] }));
+const h = vi.hoisted(() => ({ contactRows: [] as any[], chatRows: [] as any[], upload: null as any }));
 
 vi.mock("components/Chat/components/ChatItem", () => ({
   default: (p: any) => {
@@ -29,7 +29,14 @@ vi.mock("components/Chat/components/SearchResult", () => ({
     return <div data-row={`contact:${p.SenderName}`} />;
   },
 }));
-vi.mock("components/Chat/components/ChatContactsUpload", () => ({ default: () => null }));
+// The add-contact form is a stand-in that keeps its props, so a test can call
+// `onDuplicate` / `onAlreadySaved` the way the real form does.
+vi.mock("components/Chat/components/ChatContactsUpload", () => ({
+  default: (p: any) => {
+    h.upload = p;
+    return null;
+  },
+}));
 vi.mock("components/Chat/components/GetMoreChats", () => ({ default: () => null }));
 // ChatLists also asks for the archived chats and my reminders on mount.
 vi.mock("store/chat/actions", () => ({
@@ -88,6 +95,7 @@ beforeEach(() => {
   document.body.innerHTML = "";
   h.contactRows = [];
   h.chatRows = [];
+  h.upload = null;
 });
 
 describe("chat search — the same rows in the chats tab and the contacts tab", () => {
@@ -172,5 +180,99 @@ describe("the contacts tab — a person who already has a chat", () => {
     expect(row, "the contact with a chat did not draw the chat row").toBeTruthy();
     expect(row.SenderName, "the contacts tab did not use the chat's channel_name").toBe("Bilal Shop");
     expect(row.photo, "the contacts tab did not show the other person's own picture").toBe("/bilal.png");
+  });
+});
+
+// The add-contact form reports the row that already has the typed number
+// (`onDuplicate`). The list draws that row first, inside a steady red frame,
+// for as long as the form keeps reporting it.
+describe("the contacts tab — the contact the add form matched", () => {
+  const rana = { id: 70, contact_user_id: "9", contact_user: { id: 9 }, name: "رنا", mobile_phone: "0933000111" };
+
+  // An import scrolls the list to the top. jsdom has no scrollTo.
+  beforeEach(() => {
+    Element.prototype.scrollTo = vi.fn();
+  });
+
+  async function contactsTab(contacts: any[]) {
+    const { container } = await renderWithProviders(<ContactLists search="" close={vi.fn()} />, {
+      store: store(contacts),
+    });
+    const rows = () => [...container.querySelectorAll("[data-row]")].map((el) => (el as HTMLElement).dataset.row);
+    const framed = () =>
+      [...container.querySelectorAll(".contact-duplicate [data-row]")].map((el) => (el as HTMLElement).dataset.row);
+    const report = (row: any) => act(async () => h.upload.onDuplicate(row));
+    return { container, rows, framed, report };
+  }
+
+  it("draws the contact the form matched first — a contact with a chat", async () => {
+    const tab = await contactsTab([samer, bilal]);
+    await tab.report(bilal);
+    expect(tab.rows()[0], "the matched contact with a chat was not drawn first").toBe("chat:40");
+  });
+
+  it("draws the contact the form matched first — a contact with no chat, above the import's rows", async () => {
+    const tab = await contactsTab([bilal, rana, samer]);
+    await act(async () => h.upload.onAlreadySaved([rana.mobile_phone]));
+    await tab.report(samer);
+    expect(tab.rows(), "the matched contact was not first, or the import's row lost its place after it").toEqual([
+      "contact:سامر",
+      "contact:رنا",
+      "chat:40",
+    ]);
+  });
+
+  it("frames the matched row in red, and no other row", async () => {
+    const tab = await contactsTab([bilal, samer]);
+    await tab.report(samer);
+    expect(tab.framed(), "the frame was not on the matched row only").toEqual(["contact:سامر"]);
+    expect(
+      tab.container.querySelector(".contact-duplicate")!.className,
+      "the frame around the matched row was not red",
+    ).toContain("outline-red-500");
+  });
+
+  it("keeps a steady frame, not the import's fading flash", async () => {
+    const tab = await contactsTab([bilal, samer]);
+    await tab.report(samer);
+    const frame = tab.container.querySelector(".contact-duplicate")!.className;
+    expect(frame, "the matched row's frame is the import's fading flash").not.toContain("contact-already-saved");
+    expect(frame, "the matched row's frame is animated").not.toMatch(/animate-/);
+  });
+
+  it("removes the frame and restores the order when the match ends", async () => {
+    const tab = await contactsTab([bilal, samer]);
+    await tab.report(samer);
+    await tab.report(null);
+    expect(tab.framed(), "a row stayed framed after the match ended").toEqual([]);
+    expect(tab.rows(), "the rows did not go back to their normal order").toEqual(["chat:40", "contact:سامر"]);
+  });
+
+  it("moves the frame from A to B", async () => {
+    const tab = await contactsTab([samer, rana, bilal]);
+    await tab.report(samer);
+    await tab.report(bilal);
+    expect(tab.rows()[0], "contact B was not drawn first").toBe("chat:40");
+    expect(tab.framed(), "the frame did not move from A to B").toEqual(["chat:40"]);
+  });
+
+  it("after an import, the contacts already saved move to the top and flash", async () => {
+    const tab = await contactsTab([bilal, samer, rana]);
+    await act(async () => h.upload.onAlreadySaved([rana.mobile_phone]));
+    expect(tab.rows()[0], "the contact the import found already saved was not drawn first").toBe("contact:رنا");
+    const flashed = tab.container.querySelector(".contact-already-saved");
+    expect(
+      flashed?.querySelector("[data-row]")?.getAttribute("data-row"),
+      "the contact the import found already saved did not flash",
+    ).toBe("contact:رنا");
+
+    // Review finding S-1: the manual match moves rows. The import's flashed row
+    // must keep its element, or its 3 s flash plays again.
+    await tab.report(samer);
+    await tab.report(null);
+    expect(
+      tab.container.querySelector(".contact-already-saved"),
+      "a manual match remounted the import's flashed row, so its flash played again",
+    ).toBe(flashed);
   });
 });

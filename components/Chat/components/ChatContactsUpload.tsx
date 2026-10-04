@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import { getContacts } from "store/chat/actions";
 import { useAppStore } from "store";
@@ -17,6 +17,8 @@ import {
   phoneWithDialCode,
   type PhoneRegion,
 } from "components/Chat/contactPhone";
+import { drawnContactFor } from "components/Chat/chatSearch";
+import { contactRowName } from "components/Chat/chatsFunctions";
 // --- Utilities ---
 
 /**
@@ -81,11 +83,20 @@ const mergeContacts = (saved: any[], picked: any[], region: PhoneRegion) => {
 
 function ChatContactsUpload({
   onAlreadySaved,
+  onDuplicate,
 }: {
   // Gets the saved numbers of the picked contacts that were saved before.
   onAlreadySaved?: (phones: string[]) => void;
+  // Gets the list row that already has the typed number, or null.
+  onDuplicate?: (row: any | null) => void;
 }) {
-  const { contacts: ContactsData, userChat, user, country } = useAppStore();
+  const {
+    contacts: ContactsData,
+    data: chats,
+    userChat,
+    user,
+    country,
+  } = useAppStore();
   const region = phoneRegion(userChat?.mobile_phone ?? user?.phone, country);
   const [isUploading, setIsUploading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -96,21 +107,37 @@ function ChatContactsUpload({
   const [dialCode, setDialCode] = useState("+963"); // Default to Syria or your preference
   const [localPhone, setLocalPhone] = useState("");
 
+  // The saved contact for each number. The record, not its name: a saved
+  // contact with no name is still a saved contact.
   const existingNormalizedMap = useMemo(() => {
-    const map = new Map<string, string>();
+    const map = new Map<string, any>();
     ContactsData.forEach((c) => {
       const norm = canonicalPhone(c.mobile_phone, region);
-      if (norm) map.set(norm, c.contact_user?.name || c.name);
+      if (norm) map.set(norm, c);
     });
     return map;
   }, [ContactsData, region]);
 
   // Combine for validation
   const fullPhoneString = phoneWithDialCode(dialCode, localPhone);
-  const conflictingName = existingNormalizedMap.get(fullPhoneString);
+  const savedContact = existingNormalizedMap.get(fullPhoneString);
+  // The row the contact list draws for that person, and the name it shows.
+  const conflictingRow = savedContact
+    ? (drawnContactFor(ContactsData, savedContact) ?? savedContact)
+    : null;
+  const conflictingName = conflictingRow
+    ? contactRowName(conflictingRow, chats)
+    : "";
+
+  // Tell the list which row to mark: only when the matched row changes or the
+  // form opens or closes, not on every keystroke. `onDuplicate` is left out of
+  // the deps on purpose: the parent passes a new function on every render.
+  useEffect(() => {
+    onDuplicate?.(showAddForm ? conflictingRow : null);
+  }, [conflictingRow, showAddForm]);
 
   const handleAddContact = async () => {
-    if (!manualName || !localPhone || conflictingName) return;
+    if (!manualName || !localPhone || conflictingRow) return;
 
     try {
       setError("");
@@ -278,11 +305,11 @@ function ChatContactsUpload({
                 phoneNumber={localPhone}
                 onDialChange={setDialCode}
                 onPhoneChange={(val) => setLocalPhone(sanitizePhone(val))}
-                hasConflict={!!conflictingName}
+                hasConflict={!!conflictingRow}
               />
 
-              {conflictingName && (
-                <div className="flex items-center gap-1 mt-1 text-orange-600">
+              {conflictingRow && (
+                <div className="flex items-center gap-1 mt-1 text-red-600">
                   <p className="text-xs">
                     {translateFunction("Already saved as")} <strong>{conflictingName}</strong>
                   </p>
@@ -294,7 +321,7 @@ function ChatContactsUpload({
               onClick={handleAddContact}
               disabled={
                 isUploading ||
-                !!conflictingName ||
+                !!conflictingRow ||
                 !manualName ||
                 !localPhone ||
                 localPhone.length < 6
@@ -403,7 +430,7 @@ const PhoneInput = ({
         onChange={(e) => onPhoneChange(e.target.value)}
         className={`flex-1 p-2 border rounded-md outline-hidden text-[#1d1d1d] transition-colors ${
           hasConflict
-            ? "border-orange-400 bg-orange-50"
+            ? "border-red-400 bg-red-50"
             : "border-gray-300 focus:ring-2 focus:ring-blue-200"
         }`}
         placeholder="123 4567"

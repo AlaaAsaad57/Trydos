@@ -56,6 +56,27 @@ export const dedupeContacts = <T>(contacts: T[] | null | undefined): T[] => {
   return kept;
 };
 
+/** The row `dedupeContacts` keeps for the person `match` is, or null.
+ *
+ *  The add-contact form finds a saved record by its phone, but the list may
+ *  draw another record of the same person: the same object first, else the
+ *  kept row with the same user, else the one with the same phone. */
+export const drawnContactFor = <T>(
+  contacts: T[] | null | undefined,
+  match: T | null | undefined,
+): T | null => {
+  if (!match) return null;
+  const kept = dedupeContacts(contacts);
+  const user = contactUserId(match);
+  const phone = normalizePhone((match as any)?.mobile_phone);
+  return (
+    kept.find((c) => c === match) ??
+    (user !== null ? kept.find((c) => contactUserId(c) === user) : undefined) ??
+    (phone ? kept.find((c) => normalizePhone((c as any)?.mobile_phone) === phone) : undefined) ??
+    null
+  );
+};
+
 /** The direct chat with a user. An order chat with the same user does not count. */
 export const directChatWith = (chats: any[], userId: number | null) =>
   userId === null

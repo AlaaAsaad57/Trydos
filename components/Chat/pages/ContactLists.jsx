@@ -5,8 +5,11 @@ import ChatSearchResults, {
   openChatFromList,
 } from "components/Chat/components/ChatSearchResults";
 import { dedupeContacts } from "components/Chat/chatSearch";
-import { getChatName, getChatPhoto } from "components/Chat/chatsFunctions";
-import { getUserChat, translateFunction } from "utils/functions";
+import {
+  contactRowName,
+  getChatPhoto,
+} from "components/Chat/chatsFunctions";
+import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { useRef, useState } from "react";
 import ChatContactsUpload from "../components/ChatContactsUpload";
@@ -22,9 +25,30 @@ function ContactLists(props) {
     alreadySaved.phones.includes(
       String(contact?.mobile_phone ?? "").replace(/\s+/g, "")
     );
+  // A row's React key is the contact, not its place in the list. The sort moves
+  // rows, and an index key would remount them and play the flash again.
+  const rowKey = (contact, key) => contact?.id ?? contact?.mobile_phone ?? key;
   const flash = (contact, key, row) =>
     wasAlreadySaved(contact) ? (
-      <div key={`${alreadySaved.run}-${key}`} className="contact-already-saved">
+      <div
+        key={`${alreadySaved.run}-${rowKey(contact, key)}`}
+        className="contact-already-saved"
+      >
+        {row}
+      </div>
+    ) : (
+      row
+    );
+
+  // The row that already has the number typed in the add form. It is drawn
+  // first, with a steady red frame, until the form reports another or null.
+  const [duplicate, setDuplicate] = useState(null);
+  const frame = (contact, key, row) =>
+    contact === duplicate ? (
+      <div
+        key={`duplicate-${rowKey(contact, key)}`}
+        className="contact-duplicate rounded-[8px] outline-2 outline-red-500 -outline-offset-2"
+      >
         {row}
       </div>
     ) : (
@@ -39,6 +63,7 @@ function ContactLists(props) {
           setAlreadySaved((last) => ({ phones, run: last.run + 1 }));
           listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
         }}
+        onDuplicate={setDuplicate}
       />
       {/* A search draws the same rows as in the chats tab. */}
       {props.search.length > 0 ? (
@@ -57,7 +82,11 @@ function ContactLists(props) {
         <>
           {/* One row per person: the same phone or user saved twice shows once. */}
           {dedupeContacts(contacts)
-            .sort((a, b) => wasAlreadySaved(b) - wasAlreadySaved(a))
+            .sort(
+              (a, b) =>
+                (b === duplicate) - (a === duplicate) ||
+                wasAlreadySaved(b) - wasAlreadySaved(a)
+            )
             .map((contact, key) => {
               if (
                 chats.filter(
@@ -69,11 +98,11 @@ function ContactLists(props) {
                     ).length > 0
                 ).length > 0
               ) {
-                return flash(contact, key,
+                return frame(contact, key, flash(contact, key,
                   <ChatItem
                     disabledOptions={true}
                     myKey={key}
-                    key={key}
+                    key={rowKey(contact, key)}
                     isActive={false}
                     handleClickChat={() => {
                       props.close();
@@ -111,33 +140,7 @@ function ContactLists(props) {
                     newMessage={0}
                     pinned={false}
                     muted={false}
-                    SenderName={
-                      getChatName(
-                        chats.filter(
-                          (chat) =>
-                            chat.channel_members.filter(
-                              (mem) =>
-                                parseInt(mem.user_id) ===
-                                parseInt(contact?.contact_user?.id)
-                            ).length > 0
-                        )[0]
-                      ) ||
-                      chats
-                        .filter(
-                          (chat) =>
-                            chat.channel_members.filter(
-                              (mem) =>
-                                parseInt(mem.user_id) ===
-                                parseInt(contact?.contact_user?.id)
-                            ).length > 0
-                        )[0]
-                        ?.channel_members.filter(
-                          (member) =>
-                            parseInt(member?.user_id) !==
-                            parseInt(getUserChat()?.id)
-                        )[0]?.user?.mobile_phone ||
-                      "User"
-                    }
+                    SenderName={contactRowName(contact, chats)}
                     photo={getChatPhoto(
                       chats.filter(
                         (chat) =>
@@ -178,26 +181,22 @@ function ContactLists(props) {
                       )[0]?.channel_members
                     }
                   />
-                );
+                ));
               } else {
-                return flash(contact, key,
+                return frame(contact, key, flash(contact, key,
                   <SearchResult
                     myKey={key}
-                    key={key}
+                    key={rowKey(contact, key)}
                     item={contact}
                     handleClickChat={(e) => {
                       props.close();
                       handleClick(e);
                     }}
                     photo={contact.contact_user?.photo_path}
-                    SenderName={
-                      contact.contact_user?.name ||
-                      contact.name ||
-                      contact.mobile_phone
-                    }
+                    SenderName={contactRowName(contact, chats)}
                     isUser={Boolean(contact.contact_user_id)}
                   />
-                );
+                ));
               }
             })}
         </>
