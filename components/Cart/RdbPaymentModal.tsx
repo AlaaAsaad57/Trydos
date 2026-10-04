@@ -6,7 +6,10 @@ import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import CustomQRCode from "components/Login/Enhanced/ui/CustomQRCode";
-import { showErrorNotification } from "@/store/notifications/reducer";
+import {
+  showErrorNotification,
+  showSuccessNotification,
+} from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
@@ -283,6 +286,13 @@ export default function RdbPaymentModal({
     );
   };
 
+  const copyCode = (code: string) => {
+    navigator.clipboard?.writeText(code).then(
+      () => showSuccessNotification(translateFunction("Copied!")),
+      () => {},
+    );
+  };
+
   const statusLabel = () => {
     switch (request?.status) {
       case "paid":
@@ -367,9 +377,24 @@ export default function RdbPaymentModal({
                   <span className="regular text-[12px] text-[#8D8D8D]">
                     {translateFunction("Payment code")}
                   </span>
-                  <span className="semibold text-[18px] tracking-[4px] text-[#1D1D1D]" data-pw="rdb-short-code">
-                    {request.short_code}
-                  </span>
+                  <div className="flex-row items-center gap-[8px]">
+                    <span className="semibold text-[18px] tracking-[4px] text-[#1D1D1D]" data-pw="rdb-short-code">
+                      {request.short_code}
+                    </span>
+                    <button
+                      type="button"
+                      className="flex items-center justify-center w-[24px] h-[24px] cursor-pointer"
+                      aria-label={translateFunction("Copy payment code")}
+                      title={translateFunction("Copy payment code")}
+                      data-pw="rdb-copy-code"
+                      onClick={() => copyCode(request.short_code)}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8D8D8D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                    </button>
+                  </div>
                 </React.Fragment>
               )}
 

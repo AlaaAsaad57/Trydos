@@ -2640,6 +2640,7 @@ const translations = {
   "Do You Want Us To Notify You When It Is Available?": "Ürün tekrar stoklara girdiğinde sizi bilgilendirelim mi?",
   "Scan this code in the RDB app": "Bu kodu RDB uygulamasında taratın",
   "Payment code": "Ödeme kodu",
+  "Copy payment code": "Ödeme kodunu kopyala",
   "Open the RDB app": "RDB uygulamasını aç",
   "Cancel payment": "Ödemeyi iptal et",
   "Waiting for your payment": "Ödemeniz bekleniyor",

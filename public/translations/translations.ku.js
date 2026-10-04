@@ -2658,6 +2658,7 @@ const translations = {
   "Do You Want Us To Notify You When It Is Available?": "دەتەوێت ئاگادارت بکەینەوە کاتێک بەردەست بوو؟",
   "Scan this code in the RDB app": "ئەم کۆدە لە ئەپی RDB سکان بکە",
   "Payment code": "کۆدی پارەدان",
+  "Copy payment code": "کۆدی پارەدان کۆپی بکە",
   "Open the RDB app": "ئەپی RDB بکەرەوە",
   "Cancel payment": "هەڵوەشاندنەوەی پارەدان",
   "Waiting for your payment": "چاوەڕێی پارەدانەکەت دەکەین",

@@ -2608,6 +2608,7 @@ const translations = {
   "Do You Want Us To Notify You When It Is Available?": "هل تريد أن نعلمك عندما يتوفر؟",
   "Scan this code in the RDB app": "امسح هذا الرمز في تطبيق RDB",
   "Payment code": "رمز الدفع",
+  "Copy payment code": "نسخ رمز الدفع",
   "Open the RDB app": "افتح تطبيق RDB",
   "Cancel payment": "إلغاء الدفع",
   "Waiting for your payment": "بانتظار الدفع",

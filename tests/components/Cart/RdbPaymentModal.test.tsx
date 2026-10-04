@@ -88,6 +88,43 @@ describe("RdbPaymentModal", () => {
     ).toBeInTheDocument();
   });
 
+  it("copies the payment code when the shopper taps the copy icon", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    });
+    vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+      kind: "created",
+      request: pending,
+    });
+
+    await renderWithProviders(
+      <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+      { store: storeState },
+    );
+
+    const copy = await waitFor(() => {
+      const el = document.querySelector('[data-pw="rdb-copy-code"]');
+      if (!el) throw new Error("the copy icon next to the payment code is missing");
+      return el;
+    });
+    fireEvent.click(copy);
+
+    expect(
+      writeText,
+      "tapping the copy icon must put the payment code on the clipboard",
+    ).toHaveBeenCalledWith("12345678");
+    await waitFor(() => {
+      expect(
+        useNotificationStore
+          .getState()
+          .notifications.some((n) => n.type === "success" && n.message === "Copied!"),
+        "the shopper must be told the payment code was copied",
+      ).toBe(true);
+    });
+  });
+
   it("sends the default address to the core backend when it starts a payment", async () => {
     vi.mocked(StartRdbPayment).mockResolvedValueOnce({
       kind: "created",
