@@ -6,7 +6,7 @@ import XdIcon from "../../DemoApp/XdIcon";
 import { useDemoNav } from "../Demo1Shell";
 import { useDemoData, type DemoAddress } from "../../DemoApp/DemoData";
 import { countryOf } from "../../DemoApp/demoPlaces";
-import { C, fill, gapTo, textBottom, top } from "../demo1Layout";
+import { C, WINDOW_COVER, fill, gapTo, textBottom, top } from "../demo1Layout";
 import {
   DIMMED,
   Icon,
@@ -287,8 +287,7 @@ function DeleteQuestion({
       {address && (
         <Layer key="delete" testId="demo-address-delete" tint={DIMMED}>
           <motion.div
-            className="fixed inset-0"
-            style={{ background: C.backdrop }}
+            style={{ ...WINDOW_COVER, background: C.backdrop }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

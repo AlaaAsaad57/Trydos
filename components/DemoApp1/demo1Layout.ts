@@ -51,6 +51,66 @@ export const SAFE_TOP = "env(safe-area-inset-top, 0px)";
 /** The device's own bottom inset. 0 in a browser tab, the home bar in a home-screen app. */
 export const SAFE_BOTTOM = "env(safe-area-inset-bottom, 0px)";
 
+/** The width of the page column: the window's, up to PAGE_MAX. */
+export const COLUMN_W = `min(100vw, ${PAGE_MAX}px)`;
+
+/**
+ * Where every fixed thing of /demo1 hangs: a fixed point with no width and no
+ * height, in the middle of the window's top edge (give it `bottom` instead of
+ * `top` to hang from the bottom edge).
+ *
+ * Why not a fixed box of the real size. Safari 26 on the iPhone hit-tests the
+ * middle of each edge of the window and walks up to the first `fixed` or
+ * `sticky` box that is about as wide as the screen (90 % or more). When it
+ * finds one at the bottom edge, it covers the room under its own floating bar
+ * with ONE SOLID COLOUR: the box's colour, or the page's background colour
+ * when the box holds a backdrop-filter. The page is then cut off above the
+ * bar, and the bar is no longer glass. Safari also keeps the last box it
+ * found for as long as that box is on the page and visible, so one moment is
+ * enough: a screen sliding out, the tab bar passing the edge.
+ * (WebKit: LocalFrameView::fixedContainerEdges, Page::updateFixedContainerEdges,
+ * WKWebView _updateFixedColorExtensionViews.)
+ *
+ * A fixed box smaller than 90 % of the screen both ways is "too small" for
+ * Safari, and it walks on. A box that is not fixed or sticky never counts. So
+ * the fixed box is this anchor, and the real box is an `absolute` child of
+ * it (`columnBox`). Safari then finds no box at the bottom edge and draws the
+ * page, the sheet or the tab bar under its glass bar.
+ */
+export const EDGE_ANCHOR = {
+  position: "fixed",
+  top: 0,
+  left: "50%",
+  width: 0,
+  height: 0,
+} as const;
+
+/**
+ * The box of a layer on an EDGE_ANCHOR: the page column, `height` tall, with
+ * the anchor in the middle of its top edge.
+ */
+export const columnBox = (height: number | string | undefined) =>
+  ({
+    position: "absolute",
+    top: 0,
+    left: `calc(${COLUMN_W} / -2)`,
+    width: COLUMN_W,
+    height,
+  }) as const;
+
+/**
+ * A backdrop inside a layer's box that covers the whole window, also the room
+ * beside the page column on a wide screen. `absolute`, not `fixed`: a fixed
+ * backdrop is one more box Safari reads at the bottom edge (see EDGE_ANCHOR).
+ */
+export const WINDOW_COVER = {
+  position: "absolute",
+  top: 0,
+  bottom: 0,
+  left: "calc(50% - 50vw)",
+  width: "100vw",
+} as const;
+
 /**
  * A width that keeps `left` px to the left edge and `right` px to the right
  * edge of its parent. Use it with `ml={left}`. On a 430 px phone it is the

@@ -3,7 +3,7 @@
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useDemoNav } from "../Demo1Shell";
-import { C, fill, gapTo, lineBox, textBottom, top } from "../demo1Layout";
+import { C, WINDOW_COVER, fill, gapTo, lineBox, textBottom, top } from "../demo1Layout";
 import { Box, Icon, Layer, Txt, fromCentre } from "../ui";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import { WALLET_RECEIPT } from "../../DemoApp/demoWallet";
@@ -54,8 +54,7 @@ export default function WalletReceipt({
           {/* The dimmed glass covers the whole window, also the room beside
               the page column on a wide screen. */}
           <motion.div
-            className="fixed inset-0"
-            style={{ background: C.backdropGlass }}
+            style={{ ...WINDOW_COVER, background: C.backdropGlass }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

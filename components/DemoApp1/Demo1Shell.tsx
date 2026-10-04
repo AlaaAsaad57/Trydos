@@ -36,7 +36,12 @@ import {
 } from "../DemoApp/demoRoutes";
 import Demo1BottomNav from "./Demo1BottomNav";
 import Demo1ScreenView from "./Demo1ScreenView";
-import { PAGE_MAX, SCREEN_TRANSITION } from "./demo1Layout";
+import {
+  EDGE_ANCHOR,
+  PAGE_MAX,
+  SCREEN_TRANSITION,
+  columnBox,
+} from "./demo1Layout";
 
 /**
  * The shell of the fluid demo at /[lang]/demo1.
@@ -284,8 +289,13 @@ function Demo1ShellInner({
 
 /**
  * One screen on stage. In the document while it is on show; while it slides
- * out it is a fixed layer the size of the window that keeps the scroll it had,
- * so its sticky header stays where it was too.
+ * out it is a layer the size of the window, fixed to it, that keeps the scroll
+ * it had, so its sticky header stays where it was too.
+ *
+ * The fixed box is an anchor with no size and the screen hangs on it. A fixed
+ * box the size of the screen is what Safari 26 reads at the bottom edge: it
+ * painted the room under its bar in the leaving screen's colour, and kept it
+ * after the slide (see EDGE_ANCHOR in demo1Layout.ts).
  */
 function ScreenFrame({
   id,
@@ -307,33 +317,28 @@ function ScreenFrame({
   }, [present, leaving]);
 
   return (
-    <motion.div
-      ref={frame}
-      data-demo-screen={id}
-      custom={leave}
-      variants={slide}
-      initial="enter"
-      animate="center"
-      exit="exit"
-      transition={SCREEN_TRANSITION}
-      className="w-full"
-      style={
-        present
-          ? { position: "relative" }
-          : {
-              position: "fixed",
-              top: 0,
-              bottom: 0,
-              left: 0,
-              right: 0,
-              marginInline: "auto",
-              maxWidth: PAGE_MAX,
-              overflow: "hidden",
-              pointerEvents: "none",
-            }
-      }
-    >
-      {children}
-    </motion.div>
+    <div style={present ? { position: "relative", width: "100%" } : EDGE_ANCHOR}>
+      <motion.div
+        ref={frame}
+        data-demo-screen={id}
+        custom={leave}
+        variants={slide}
+        initial="enter"
+        animate="center"
+        exit="exit"
+        transition={SCREEN_TRANSITION}
+        style={
+          present
+            ? { position: "relative", width: "100%" }
+            : {
+                ...columnBox("100dvh"),
+                overflow: "hidden",
+                pointerEvents: "none",
+              }
+        }
+      >
+        {children}
+      </motion.div>
+    </div>
   );
 }
