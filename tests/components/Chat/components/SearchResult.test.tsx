@@ -13,6 +13,7 @@ vi.mock("utils/functions", async (importOriginal) => ({
 }));
 
 import SearchResult from "components/Chat/components/SearchResult";
+import { getChatName, getChatPhoto } from "components/Chat/chatsFunctions";
 
 const ME = 1;
 const ITEM = { name: "Other Person", mobile_phone: "+10000000000", photo_path: "/p.png", contact_user_id: 9 };
@@ -55,6 +56,34 @@ describe("SearchResult — a contact on the app", () => {
     expect(chat?.channel_members.map((m: any) => m.user_id), "the new chat did not hold both people").toEqual([9, ME]);
     expect(setMain, "the view did not switch to the chat").toHaveBeenCalledWith("chat");
     expect(document.querySelector("img")?.getAttribute("src"), "the contact photo was not shown").toContain("/p.png");
+  });
+
+  // A saved contact keeps the account's name and photo in `contact_user`, and
+  // the name I saved in `name`. The row shows the account's name and photo
+  // (ContactLists.jsx, ChatSearchResults.tsx). The chat it opened showed the
+  // saved name and no photo, because it read the contact record itself.
+  it("opens a chat with the same name and photo as the row", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const contact = {
+      id: 55,
+      contact_user_id: "9",
+      contact_user: { id: 9, name: "Account Name", photo_path: "/account.png" },
+      name: "Saved Name",
+      mobile_phone: "0999111222",
+    };
+    const { handleClickChat } = await mount({
+      isUser: true,
+      item: contact,
+      SenderName: contact.contact_user.name,
+      photo: contact.contact_user.photo_path,
+    });
+    fireEvent.click(document.querySelector(".chat-conversation-item")!);
+    await act(async () => {
+      vi.advanceTimersByTime(500);
+    });
+    const chat = handleClickChat.mock.calls[0]?.[0];
+    expect(getChatName(chat), "the opened chat did not show the row's name").toBe("Account Name");
+    expect(getChatPhoto(chat), "the opened chat did not show the row's photo").toBe("/account.png");
   });
 });
 

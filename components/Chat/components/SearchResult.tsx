@@ -20,14 +20,16 @@ function SearchResult({
   const handleClick = () => {
     if (isUser) {
       setTimeout(() => {
+        // The chat shows the same name and photo as this row. The contact
+        // record keeps the account's photo in `contact_user`, not on itself.
         handleClickChat({
-          channel_name: item.name,
+          channel_name: SenderName,
           mobile_phone: item.mobile_phone,
-          photo_path: item.photo_path,
+          photo_path: photo,
           channel_members: [
             {
               user_id: item.contact_user_id,
-              user: item,
+              user: { ...item, name: SenderName, photo_path: photo },
               mute: 0,
               pin: 0,
               archived: 0,

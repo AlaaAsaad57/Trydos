@@ -139,11 +139,19 @@ export const SendMessage = async (payload, isNew, isPrivate?) => {
           .data?.some(
             (c: any) => String(c.id) === String(response.data.channel_id),
           );
+        // The placeholder knows only the saved contact. The answer's channel
+        // gives the chat its real name, and the other person's picture.
+        const channel = response.data.channel;
         sendNewMessage({
           channel: {
             id: response.data.channel_id,
             messages: [{ ...response.data }],
             mid: isNew,
+            ...(channel && {
+              channel_name: channel.channel_name,
+              mobile_phone: channel.mobile_phone,
+              photo_path: channel.photo_path,
+            }),
           },
         });
         if (!loaded) await getPage(response.data.channel_id, response.data.id);

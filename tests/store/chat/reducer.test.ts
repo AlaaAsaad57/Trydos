@@ -325,6 +325,32 @@ describe("chat slice — message flow", () => {
     expect(s.get().activeChat?.messages.map((m: any) => m.id), "the open chat does not show its history").toEqual([history.id, sent.id]);
   });
 
+  // The placeholder's other member holds the saved contact as its `user`, with
+  // no picture. The chat screens read the picture from that member
+  // (getChatPhoto), so the answer's picture must land there.
+  it("sendNewMessage gives a placeholder chat the name and picture from the answer", () => {
+    const contact = { id: 55, contact_user_id: THEM, name: "saved contact name" };
+    const placeholder = channel(`ch-${THEM}`, {
+      channel_name: contact.name,
+      channel_members: [
+        { user_id: THEM, user: contact, mute: 0, pin: 0 },
+        { user_id: ME, user: { id: ME }, mute: 0, pin: 0 },
+      ],
+    });
+    const s = makeStore({ data: [placeholder], activeChat: placeholder });
+
+    s.get().sendNewMessage({
+      channel: { id: 539, messages: [msg("539-m1")], mid: `ch-${THEM}`, channel_name: "Alaa Test123", photo_path: "them.jpg" },
+    });
+
+    const peer = (chat: any) => chat?.channel_members.find((m: any) => m.user_id === THEM);
+    const me = (chat: any) => chat?.channel_members.find((m: any) => m.user_id === ME);
+    expect(s.get().activeChat?.channel_name, "the open chat kept the saved contact's name").toBe("Alaa Test123");
+    expect(peer(s.get().activeChat)?.user?.photo_path, "the open chat's other person got no picture").toBe("them.jpg");
+    expect(peer(s.get().data[0])?.user?.photo_path, "the chat in the list got no picture for the other person").toBe("them.jpg");
+    expect(me(s.get().activeChat)?.user?.photo_path, "my own member got the other person's picture").toBeUndefined();
+  });
+
   it("setIsTyping stores the typing state and keeps the old date when none is given", () => {
     const s = makeStore({ data: [channel(1, { activeDate: "old" })] });
     s.get().setIsTyping({ id: 1, desc: "typing" });

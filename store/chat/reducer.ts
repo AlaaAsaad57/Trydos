@@ -149,6 +149,27 @@ const areIdsEqual = (a: any, b: any): boolean => {
 };
 
 /**
+ * Puts a picture on the other person's member of a chat.
+ *
+ * A `ch-<user id>` placeholder holds the saved contact as that member's `user`,
+ * with no picture. The send answer gives the other person's picture as the
+ * channel's `photo_path`. The chat screens read the picture from the member
+ * (getChatPhoto), so it goes there.
+ */
+const withPeerPhoto = (chat: any, photo?: string | null): any => {
+  if (!photo) return chat;
+  const me = getUserChat()?.id;
+  return {
+    ...chat,
+    channel_members: chat.channel_members?.map((member: any) =>
+      areIdsEqual(member?.user_id, me)
+        ? member
+        : { ...member, user: { ...member?.user, photo_path: photo } },
+    ),
+  };
+};
+
+/**
  * Whether a chat from the backend was marked unread by hand.
  *
  * The backend keeps one counter, `total_unread_message_count`. "Mark as
@@ -698,14 +719,20 @@ export const useChatStore = (set: any, get: any) => ({
               ...(payload.channel.messages ?? []),
             ],
           }
-        : { ...existingChannel, ...payload.channel };
+        : withPeerPhoto(
+            { ...existingChannel, ...payload.channel },
+            payload.channel.photo_path,
+          );
       const isActive = state.activeChat && state.activeChat.id === channelId;
 
       return {
         activeChat: isActive
           ? loadedChannel
             ? updatedChannel
-            : { ...state.activeChat, ...payload.channel }
+            : withPeerPhoto(
+                { ...state.activeChat, ...payload.channel },
+                payload.channel.photo_path,
+              )
           : state.activeChat,
         data: [updatedChannel, ...otherChannels],
         main: "chat",

@@ -121,6 +121,32 @@ describe("sending a chat message — the answer the chat backend gives", () => {
     expect(sendRealMessage, "an answer with no message id was stored").not.toHaveBeenCalled();
   });
 
+  // A contact opens a `ch-<user id>` placeholder named after the saved contact,
+  // with no picture. The send answer carries the real chat in `channel` (a
+  // staging answer from 2026-10-04, cut down). Its name and picture were dropped,
+  // so the chat kept the contact's name and showed no picture.
+  it("a new chat takes its name and picture from the answer's channel", async () => {
+    const { useAppStore } = await import("store");
+    const sendNewMessage = vi.fn();
+    useAppStore.setState({ data: [{ id: "539", messages: [] }], sendNewMessage } as any);
+    const photo = "https://media_server.ramaaz.dev/image/upload/customers/profile/2025-10-06-68e4270d2046c.jpg";
+    fetchData.mockResolvedValue({
+      success: true,
+      data: {
+        id: "340307",
+        channel_id: "539",
+        channel: { id: "539", channel_name: "Alaa Test123", mobile_phone: "963937729850", photo_path: photo },
+      },
+    });
+    const { SendMessage } = await import("store/chat/actions");
+
+    await SendMessage({ cid: "ch-672", mid: "m1" }, "ch-672");
+
+    const channel = sendNewMessage.mock.calls[0]?.[0]?.channel;
+    expect(channel?.channel_name, "the chat did not take its name from the chat backend's answer").toBe("Alaa Test123");
+    expect(channel?.photo_path, "the chat did not take its picture from the chat backend's answer").toBe(photo);
+  });
+
   // The chat list comes in pages, so the chat a contact leads to may not be
   // loaded yet. The first message then turns the placeholder into that chat
   // with only the new message, and the history showed only after a reload.
