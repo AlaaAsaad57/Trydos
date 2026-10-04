@@ -144,24 +144,94 @@ export function usePageColor(color: string) {
 let locks = 0;
 
 /**
+ * True for a box that scrolls on its own and can still move the way the
+ * gesture goes: `dx`, `dy` are how far the content is asked to scroll (0, 0
+ * when the way is not known yet). A box at its end does not count: there the
+ * browser would pass the scroll on to the page.
+ */
+const takesScroll = (el: Element, dx: number, dy: number) => {
+  const style = getComputedStyle(el);
+  const scrolls = (overflow: string) => /auto|scroll/.test(overflow);
+  const down = Math.abs(dy) >= Math.abs(dx);
+  if (down && scrolls(style.overflowY) && el.scrollHeight > el.clientHeight) {
+    if (dy > 0) return el.scrollTop + el.clientHeight < el.scrollHeight - 1;
+    if (dy < 0) return el.scrollTop > 0;
+    return true;
+  }
+  if (
+    (!down || dy === 0) &&
+    scrolls(style.overflowX) &&
+    el.scrollWidth > el.clientWidth
+  )
+    return true;
+  return false;
+};
+
+/** Where the finger was at the last touch event, to tell which way it moves. */
+let finger: { x: number; y: number } | null = null;
+
+const startTouch = (e: TouchEvent) => {
+  const touch = e.touches[0];
+  finger = touch ? { x: touch.clientX, y: touch.clientY } : null;
+};
+
+/**
+ * Stops a touch or a wheel from scrolling the page. A part of a sheet that
+ * scrolls on its own keeps the gesture while it can still move that way.
+ */
+const holdPage = (e: Event) => {
+  let dx = 0;
+  let dy = 0;
+  if (e instanceof WheelEvent) {
+    dx = e.deltaX;
+    dy = e.deltaY;
+  } else if (typeof TouchEvent !== "undefined" && e instanceof TouchEvent) {
+    const touch = e.touches[0];
+    if (touch && finger) {
+      // A finger moving up asks the content to scroll down.
+      dx = finger.x - touch.clientX;
+      dy = finger.y - touch.clientY;
+    }
+  }
+  for (
+    let el = e.target instanceof Element ? e.target : null;
+    el && el !== document.body;
+    el = el.parentElement
+  )
+    if (takesScroll(el, dx, dy)) return;
+  if (e.cancelable) e.preventDefault();
+};
+
+/**
  * Holds the page still while a layer is open: a finger on the dimmed page
  * must not scroll the page under it. Layers can lie on layers, so the page
  * moves again only when the last one closes.
+ *
+ * Not with `overflow: hidden` on <html>. Seen on the iPhone: while the
+ * document cannot scroll, Safari 26 draws nothing of it under its floating
+ * bar but the page's background colour, so the room under the bar was a plain
+ * block whenever a sheet was open, whatever the sheet drew there. The touch
+ * and the wheel are stopped instead, and the document stays one that scrolls.
  */
 export function useScrollLock(on: boolean) {
   React.useEffect(() => {
     if (!on) return;
     const html = document.documentElement;
     if (locks === 0) {
-      html.style.setProperty("overflow", "hidden");
       html.style.setProperty("overscroll-behavior", "none");
+      // `passive: false`: a passive listener cannot stop the scroll.
+      document.addEventListener("touchstart", startTouch, { passive: true });
+      document.addEventListener("touchmove", holdPage, { passive: false });
+      document.addEventListener("wheel", holdPage, { passive: false });
     }
     locks += 1;
     return () => {
       locks -= 1;
       if (locks === 0) {
-        html.style.removeProperty("overflow");
         html.style.removeProperty("overscroll-behavior");
+        document.removeEventListener("touchstart", startTouch);
+        document.removeEventListener("touchmove", holdPage);
+        document.removeEventListener("wheel", holdPage);
       }
     };
   }, [on]);

@@ -537,7 +537,16 @@ describe("Demo1 bottom — like /demo, Safari's bottom bar lies over the app", (
 });
 
 describe("Demo1 layers — a sheet holds the page still", () => {
-  it("draws the sheet on <body> and stops the page scrolling until the last layer closes", async () => {
+  /** True when the page was stopped from moving under this touch or wheel. */
+  const held = (el: Element, type: "touchMove" | "wheel") =>
+    !fireEvent[type](el);
+
+  // The page was held still with `overflow: hidden` on <html>. Seen on the
+  // iPhone: while that is set, Safari 26 draws nothing of the document under
+  // its floating bar but the page's background colour, so the room under the
+  // bar was a plain block whenever a sheet was open. The page is held still by
+  // stopping the touch and the wheel instead, and <html> keeps its overflow.
+  it("holds the page still by stopping the touch and the wheel, without `overflow: hidden` on <html>, until the last layer closes", async () => {
     const Two = ({ a, b }: { a: boolean; b: boolean }) => (
       <>
         <Sheet open={a} onClose={() => {}} y={400} testId="sheet-a">
@@ -558,25 +567,81 @@ describe("Demo1 layers — a sheet holds the page still", () => {
     ).toBe(false);
     expect(
       html.style.overflow,
-      "the page still scrolls under an open sheet",
-    ).toBe("hidden");
+      "<html> is `overflow: hidden` under an open sheet; Safari 26 then draws only a plain colour under its bar",
+    ).toBe("");
+    const backdrop = sheet!.querySelector('[data-pw="demo-sheet-backdrop"]');
+    expect(backdrop, "the sheet has no backdrop").not.toBeNull();
+    expect(
+      held(backdrop!, "touchMove"),
+      "a finger on the dimmed page scrolls the page under the open sheet",
+    ).toBe(true);
+    expect(
+      held(backdrop!, "wheel"),
+      "the wheel over the dimmed page scrolls the page under the open sheet",
+    ).toBe(true);
 
     rerender(<Two a b />);
     rerender(<Two a={false} b />);
     expect(
-      html.style.overflow,
+      held(document.body, "touchMove"),
       "the page scrolled again while a second sheet was still open",
-    ).toBe("hidden");
+    ).toBe(true);
 
     rerender(<Two a={false} b={false} />);
     await waitFor(
       () =>
         expect(
-          html.style.overflow,
+          held(document.body, "touchMove"),
           "the page did not scroll again after the last sheet closed",
-        ).toBe(""),
+        ).toBe(false),
       { timeout: 3000 },
     );
+  });
+
+  it("lets a part of the sheet that scrolls on its own take the touch", () => {
+    render(
+      <Sheet open onClose={() => {}} y={400} testId="sheet-scroll">
+        <div data-pw="own-scroll" style={{ overflowY: "auto" }}>
+          <span data-pw="own-row">row</span>
+        </div>
+      </Sheet>,
+    );
+    const part = document.body.querySelector<HTMLElement>(
+      '[data-pw="own-scroll"]',
+    );
+    expect(part, "the sheet's own scrolling part was not drawn").not.toBeNull();
+    // jsdom lays nothing out: say the part holds more than it shows.
+    Object.defineProperty(part!, "scrollHeight", { value: 900 });
+    Object.defineProperty(part!, "clientHeight", { value: 300 });
+    expect(
+      held(part!.querySelector('[data-pw="own-row"]')!, "touchMove"),
+      "a finger on the sheet's own scrolling part was stopped, so the sheet does not scroll",
+    ).toBe(false);
+  });
+
+  it("holds the page when the sheet's own scrolling part is at its end and the wheel goes on", () => {
+    render(
+      <Sheet open onClose={() => {}} y={400} testId="sheet-end">
+        <div data-pw="own-scroll-end" style={{ overflowY: "auto" }}>
+          <span>row</span>
+        </div>
+      </Sheet>,
+    );
+    const part = document.body.querySelector<HTMLElement>(
+      '[data-pw="own-scroll-end"]',
+    );
+    expect(part, "the sheet's own scrolling part was not drawn").not.toBeNull();
+    Object.defineProperty(part!, "scrollHeight", { value: 900 });
+    Object.defineProperty(part!, "clientHeight", { value: 300 });
+    part!.scrollTop = 600;
+    expect(
+      !fireEvent.wheel(part!, { deltaY: 120 }),
+      "the wheel at the end of the sheet's rows scrolled the page under the sheet",
+    ).toBe(true);
+    expect(
+      !fireEvent.wheel(part!, { deltaY: -120 }),
+      "the wheel back up from the end of the sheet's rows was stopped, so the rows do not scroll back",
+    ).toBe(false);
   });
 });
 
