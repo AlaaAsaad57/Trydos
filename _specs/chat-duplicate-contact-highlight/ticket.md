@@ -12,7 +12,7 @@ created_at: 2026-10-04
 updated_at: 2026-10-04
 links:
   clickup: ""
-  github: ""
+  github: "https://github.com/AlaaAsaad57/Trydos/pull/139"
 ---
 
 # Ticket Record — chat-duplicate-contact-highlight
