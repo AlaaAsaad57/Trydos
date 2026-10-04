@@ -41,13 +41,14 @@ function ContactLists(props) {
     );
 
   // The row that already has the number typed in the add form. It is drawn
-  // first, with a steady red frame, until the form reports another or null.
+  // first, with a red frame that pulses (chatcomponent.css), until the form
+  // reports another row or null.
   const [duplicate, setDuplicate] = useState(null);
   const frame = (contact, key, row) =>
     contact === duplicate ? (
       <div
         key={`duplicate-${rowKey(contact, key)}`}
-        className="contact-duplicate rounded-[8px] outline-2 outline-red-500 -outline-offset-2"
+        className="contact-duplicate"
       >
         {row}
       </div>

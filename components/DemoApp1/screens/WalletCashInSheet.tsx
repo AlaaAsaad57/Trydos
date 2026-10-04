@@ -14,6 +14,7 @@ import {
   SF_ROUNDED,
   SHEET,
   STATUS_BAR,
+  UNDER_BAR,
   fill,
   gapTo,
   lineBox,
@@ -94,11 +95,12 @@ const HEAD_END = textBottom(180, 24);
  * The height of a step whose blocks start at design y `from`: it ends with
  * the board (y 930), or with the screen (`end`) when the screen is shorter.
  * The device's top inset (a home-screen app) is taken off, as the sheet
- * starts under it. The bottom is not: as on /demo, the sheet runs on under
- * Safari's bar, and the part under the head scrolls to what the bar covers.
+ * starts under it. Then the step runs on under Safari's bar (UNDER_BAR), as
+ * the sheet does; the part under the head keeps room at its end to scroll
+ * what the bar covers back over it (see `Under`).
  */
 const stepHeight = (from: number, end: number) =>
-  `min(${BOARD_END - from}px, calc(${end - from}px - ${SAFE_TOP}))`;
+  `calc(min(${BOARD_END - from}px, calc(${end - from}px - ${SAFE_TOP})) + ${UNDER_BAR}px)`;
 
 /**
  * True while the screen is narrower than the artboard (430 px). The file's

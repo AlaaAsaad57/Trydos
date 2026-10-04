@@ -162,6 +162,35 @@ html[lang="ar"] .chat-window-search-holder img {
     background-color: transparent;
   }
 }
+/* The contact whose number is typed in the add-contact form: a red frame and
+   tint that pulse 3 times, then stay. The row below has an opaque background
+   and z-index 4, so the frame is a layer above it, not a style on the wrapper.
+   The pulse changes colour only; nothing moves. */
+.contact-duplicate {
+  position: relative;
+}
+.contact-duplicate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  border: 2px solid #f85555;
+  border-radius: 10px;
+  background-color: rgba(248, 85, 85, 0.08);
+  animation: contactDuplicatePulse 0.9s ease-in-out 3;
+}
+@keyframes contactDuplicatePulse {
+  0%,
+  100% {
+    background-color: rgba(248, 85, 85, 0.08);
+    box-shadow: 0 0 0 0 rgba(248, 85, 85, 0);
+  }
+  50% {
+    background-color: rgba(248, 85, 85, 0.28);
+    box-shadow: 0 0 0 4px rgba(248, 85, 85, 0.35);
+  }
+}
 .chat-conversation-item {
   width: 420px;
   height: 80px;

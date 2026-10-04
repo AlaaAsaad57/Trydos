@@ -29,6 +29,7 @@ import {
   SHEET,
   STATUS_BAR,
   TAB_ROOM,
+  UNDER_BAR,
   WINDOW_COVER,
   columnBox,
   fill,
@@ -56,7 +57,43 @@ import {
  */
 
 export { Box, Icon, Stroke, Txt, type Weight } from "../DemoApp/ui";
-export { Under } from "../DemoApp/ui";
+
+/**
+ * The part of a sheet that scrolls: everything under the head. The /demo
+ * block (`Under` in DemoApp/ui), with room at its end.
+ *
+ * On /demo1 a sheet runs on under Safari's bar (UNDER_BAR), and this part
+ * with it, so its rows are seen through the bar's glass while they scroll.
+ * The room at the end, as tall as the part under the bar, lets the last row
+ * scroll back up over the bar.
+ */
+export function Under({
+  testId,
+  minHeight,
+  children,
+}: {
+  testId: string;
+  minHeight?: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      data-pw={testId}
+      className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain"
+      style={{ scrollbarWidth: "none" }}
+    >
+      <div className="flex flex-col shrink-0 grow" style={{ minHeight }}>
+        {children}
+      </div>
+      <div
+        aria-hidden="true"
+        data-pw="demo-under-bar-room"
+        className="shrink-0"
+        style={{ height: UNDER_BAR }}
+      />
+    </div>
+  );
+}
 
 const WEIGHT_CLASS: Record<Weight, string> = {
   light: "font-light",
@@ -882,6 +919,7 @@ export function Sheet({
               `}</style>
             )}
             <motion.div
+              data-pw="demo-sheet-backdrop"
               style={{ ...WINDOW_COVER, background: C.backdrop }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -890,14 +928,17 @@ export function Sheet({
               onClick={onClose}
             />
             <motion.div
+              data-pw="demo-sheet-panel"
               className="absolute left-0 w-full overflow-hidden"
               style={{
                 // A picker keeps its height and rests on the bottom; a tall
                 // sheet keeps its top, so the dimmed page shows above it.
+                // Both run on under Safari's bar (UNDER_BAR): the window ends
+                // above that bar, and the page would show under it.
                 ...(fit || y < 300
                   ? { top: top(y) }
-                  : { height: DESIGN_H - y }),
-                bottom: 0,
+                  : { height: DESIGN_H - y + UNDER_BAR }),
+                bottom: -UNDER_BAR,
                 background: C.white,
                 borderRadius: `${radius}px ${radius}px 0 0`,
               }}
@@ -931,8 +972,11 @@ export function Sheet({
               <div
                 className={`flex flex-col w-full h-full ${fit ? "overflow-y-auto overflow-x-hidden overscroll-contain" : ""}`}
                 style={{
-                  // The part of a lowered sheet that hangs under the screen.
-                  paddingBottom: fit ? rest : undefined,
+                  // A `fit` sheet scrolls, and its steps run on under
+                  // Safari's bar; it keeps room for the part of a lowered
+                  // sheet that hangs under the screen. Any other sheet keeps
+                  // its blocks over the bar, and only its white runs on.
+                  paddingBottom: fit ? rest : UNDER_BAR,
                   scrollbarWidth: fit ? "none" : undefined,
                 }}
                 onClick={(e) => focusTappedField(e, touch)}

@@ -99,14 +99,27 @@ export const columnBox = (height: number | string | undefined) =>
   }) as const;
 
 /**
+ * How far a sheet runs on past the window's end.
+ *
+ * On the iPhone the window (`innerHeight`, and the box a fixed layer gets)
+ * ends ABOVE Safari 26's floating bar; the bar lies over what the page draws
+ * under that line. CSS cannot ask how tall that part is (the safe-area inset
+ * is 0 in a browser tab), so the sheet simply runs on 120 px: more than the
+ * bar and the home bar take on any iPhone. What is past the screen is not
+ * seen. On a phone or a laptop with no such bar all of it is past the screen.
+ */
+export const UNDER_BAR = 120;
+
+/**
  * A backdrop inside a layer's box that covers the whole window, also the room
  * beside the page column on a wide screen. `absolute`, not `fixed`: a fixed
  * backdrop is one more box Safari reads at the bottom edge (see EDGE_ANCHOR).
+ * It runs on under Safari's bar (UNDER_BAR), so the page is dimmed there too.
  */
 export const WINDOW_COVER = {
   position: "absolute",
   top: 0,
-  bottom: 0,
+  bottom: -UNDER_BAR,
   left: "calc(50% - 50vw)",
   width: "100vw",
 } as const;

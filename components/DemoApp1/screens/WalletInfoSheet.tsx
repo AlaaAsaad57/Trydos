@@ -4,7 +4,15 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useDemoNav } from "../Demo1Shell";
 import { useDemoData } from "../../DemoApp/DemoData";
-import { C, SHEET, fill, gapTo, lineBox, textBottom } from "../demo1Layout";
+import {
+  C,
+  SHEET,
+  UNDER_BAR,
+  fill,
+  gapTo,
+  lineBox,
+  textBottom,
+} from "../demo1Layout";
 import { Box, Icon, Sheet, Txt, Under, fromCentre, useCanvasEnd } from "../ui";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import type { DemoKey } from "../../DemoApp/demoKeys";
@@ -89,10 +97,11 @@ export default function WalletInfoSheet({
       testId="demo-wallet-info-sheet"
     >
       {/* As tall as the screen lets it be: the title and the client ID stay
-          in place, and the part under them scrolls. */}
+          in place, and the part under them scrolls. It runs on under
+          Safari's bar, as the sheet does. */}
       <div
         className="flex flex-col shrink-0"
-        style={{ height: Math.min(930, end) - (TOP + 13) }}
+        style={{ height: Math.min(930, end) - (TOP + 13) + UNDER_BAR }}
       >
         <SheetTitle
           top={TOP}

@@ -11,6 +11,7 @@ import {
   DESIGN_W,
   SAFE_TOP,
   SHEET,
+  UNDER_BAR,
   fill,
   gapTo,
   lineBox,
@@ -243,7 +244,8 @@ export default function WalletCashOutSheet({
             style={{
               flex: "1 1 auto",
               minHeight: 0,
-              maxHeight: BOARD_END - (TOP[step] + 13),
+              // It runs on under Safari's bar, as the sheet does.
+              maxHeight: BOARD_END - (TOP[step] + 13) + UNDER_BAR,
             }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

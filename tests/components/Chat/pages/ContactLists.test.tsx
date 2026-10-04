@@ -11,6 +11,8 @@
 // `contact:<name>`, so a test reads the rows in order from the page. Both files
 // were .js; the test build cannot read JSX in a .js file, so they are .jsx now.
 import { act } from "@testing-library/react";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "../../../render";
@@ -226,18 +228,15 @@ describe("the contacts tab — the contact the add form matched", () => {
     const tab = await contactsTab([bilal, samer]);
     await tab.report(samer);
     expect(tab.framed(), "the frame was not on the matched row only").toEqual(["contact:سامر"]);
-    expect(
-      tab.container.querySelector(".contact-duplicate")!.className,
-      "the frame around the matched row was not red",
-    ).toContain("outline-red-500");
   });
 
-  it("keeps a steady frame, not the import's fading flash", async () => {
+  it("frames the matched row with its own mark, not the import's flash", async () => {
     const tab = await contactsTab([bilal, samer]);
     await tab.report(samer);
-    const frame = tab.container.querySelector(".contact-duplicate")!.className;
-    expect(frame, "the matched row's frame is the import's fading flash").not.toContain("contact-already-saved");
-    expect(frame, "the matched row's frame is animated").not.toMatch(/animate-/);
+    expect(
+      tab.container.querySelector(".contact-duplicate")!.className,
+      "the matched row's frame is the import's flash",
+    ).not.toContain("contact-already-saved");
   });
 
   it("removes the frame and restores the order when the match ends", async () => {
@@ -274,5 +273,61 @@ describe("the contacts tab — the contact the add form matched", () => {
       tab.container.querySelector(".contact-already-saved"),
       "a manual match remounted the import's flashed row, so its flash played again",
     ).toBe(flashed);
+  });
+});
+
+// How the frame looks lives in public/styles/chatcomponent.css. jsdom does not
+// compute CSS stacking, so these cases read the rules themselves.
+//
+// The row (.chat-conversation-item) has an opaque background and z-index 4,
+// and it is a flex item, so it paints above its wrapper. A frame or a tint
+// drawn on the wrapper itself is hidden under the row: on a phone only the
+// frame's corners showed. The frame must be a layer above the row.
+describe("the contacts tab — how the matched row's frame looks", () => {
+  // Comments removed, so a comment above a rule is not read as its selector.
+  const css = readFileSync(path.resolve(process.cwd(), "public/styles/chatcomponent.css"), "utf8").replace(
+    /\/\*[\s\S]*?\*\//g,
+    "",
+  );
+  /** The declarations of the rule whose selector is exactly `selector`. */
+  const rule = (selector: string) =>
+    css
+      .split("}")
+      .map((chunk) => chunk.split("{"))
+      .find(([sel]) => sel.trim() === selector)?.[1] ?? "";
+  /** One declaration's value in a rule, or undefined. */
+  const value = (block: string, prop: string) =>
+    block
+      .split(";")
+      .map((d) => d.split(":"))
+      .find(([name]) => name.trim() === prop)
+      ?.slice(1)
+      .join(":")
+      .trim();
+
+  const frame = rule(".contact-duplicate::after");
+
+  it("draws the frame as a layer above the row, not under it", () => {
+    expect(frame, "there is no .contact-duplicate::after layer for the frame").not.toBe("");
+    expect(value(rule(".contact-duplicate"), "position"), "the frame's layer is not placed against the row").toBe(
+      "relative",
+    );
+    expect(value(frame, "position"), "the frame layer does not cover the row").toBe("absolute");
+    const rowZ = Number(value(rule(".chat-conversation-item"), "z-index"));
+    expect(Number(value(frame, "z-index")), `the frame is not above the row (row z-index ${rowZ})`).toBeGreaterThan(
+      rowZ,
+    );
+    expect(value(frame, "pointer-events"), "the frame layer catches the taps meant for the row").toBe("none");
+  });
+
+  it("draws the frame and its tint in red", () => {
+    expect(value(frame, "border") ?? "", "the frame's border is not red").toMatch(/#f85555/i);
+    expect(value(frame, "background-color") ?? "", "the matched row has no red tint").toMatch(/248,\s*85,\s*85/);
+  });
+
+  it("pulses so the shopper notices the row", () => {
+    const name = (value(frame, "animation") ?? "").split(/\s+/)[0];
+    expect(name, "the frame has no animation").toBeTruthy();
+    expect(css, `the frame's animation "${name}" has no @keyframes`).toContain(`@keyframes ${name}`);
   });
 });

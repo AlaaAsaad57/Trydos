@@ -447,7 +447,7 @@ chat list.
 | | |
 |---|---|
 | **Steps** | 1. Start adding a contact. 2. Type a phone number that is already saved (try it in a different format too, for example with and without the country code). |
-| **Expected Result** | A red line appears: "Already saved as <name>". The name is the same name that contact shows in the list. The phone field turns red, and the confirm button stays disabled. In the list under the form, that contact moves to the top and has a red frame. The frame goes away, and the contact goes back to its place, when you change the number or close the form. |
+| **Expected Result** | A red line appears: "Already saved as <name>". The name is the same name that contact shows in the list. The phone field turns red, and the confirm button stays disabled. In the list under the form, that contact moves to the top, with a red frame and a light red tint that pulse 3 times and then stay. The frame goes away, and the contact goes back to its place, when you change the number or close the form. |
 | **Severity if Failed** | MEDIUM |
 
 ---

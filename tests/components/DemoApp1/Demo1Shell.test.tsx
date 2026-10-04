@@ -23,6 +23,7 @@ vi.mock("NewLoginDesign/DemoDeviceInfoModal", () => ({ default: () => null }));
 
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
 import { Sheet } from "components/DemoApp1/ui";
+import { UNDER_BAR } from "components/DemoApp1/demo1Layout";
 import { DEMO_SCREENS, hrefFor } from "components/DemoApp/demoRoutes";
 import { DEBUG_COLORS, resetDemoDebug } from "components/DemoApp/demoDebug";
 
@@ -381,6 +382,67 @@ describe("Demo1 bottom — like /demo, Safari's bottom bar lies over the app", (
       inset.map((el) => el.getAttribute("data-pw") ?? el.tagName),
       "a cash-in step is cut short by the bottom inset, so its button sits above Safari's bar",
     ).toEqual([]);
+  });
+
+  // On the iPhone the window (innerHeight) ends ABOVE Safari 26's floating
+  // bar. A sheet that ends with the window leaves the page showing under the
+  // bar. So the sheet's white panel and its backdrop run UNDER_BAR px past the
+  // window's end, and Safari's glass bar lies over the sheet.
+  it("a sheet's panel and its backdrop run on past the window's end, under Safari's bar", () => {
+    render(
+      <Sheet open onClose={() => {}} y={400} testId="sheet-tail">
+        <span>a</span>
+      </Sheet>,
+    );
+    const layer = document.body.querySelector<HTMLElement>(
+      '[data-pw="sheet-tail"]',
+    );
+    expect(layer, "the open sheet was not drawn").not.toBeNull();
+    const panel = layer!.querySelector<HTMLElement>(
+      '[data-pw="demo-sheet-panel"]',
+    );
+    expect(panel, "the sheet has no panel").not.toBeNull();
+    expect(
+      panel!.style.bottom,
+      "the sheet's panel ends with the window, so the page shows under Safari's bar",
+    ).toBe(`-${UNDER_BAR}px`);
+    const backdrop = layer!.querySelector<HTMLElement>(
+      '[data-pw="demo-sheet-backdrop"]',
+    );
+    expect(backdrop, "the sheet has no backdrop").not.toBeNull();
+    expect(
+      backdrop!.style.bottom,
+      "the sheet's backdrop ends with the window, so the page under Safari's bar is not dimmed",
+    ).toBe(`-${UNDER_BAR}px`);
+  });
+
+  it("cash in: the scrolling part of a step runs under Safari's bar and keeps room to scroll its end back over it", () => {
+    const { container } = openOn("settings/wallet");
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-card-usd"]')!,
+    );
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!,
+    );
+    const step = document.body.querySelector<HTMLElement>(
+      '[data-pw="demo-wallet-cash-in-ways"]',
+    );
+    expect(step, "Cash In did not open on its first step").not.toBeNull();
+    expect(
+      step!.style.height,
+      "the step ends with the window, so nothing of it shows under Safari's bar",
+    ).toContain(`${UNDER_BAR}px`);
+    const room = step!.querySelector<HTMLElement>(
+      '[data-pw="demo-under-bar-room"]',
+    );
+    expect(
+      room,
+      "the scrolling part has no room at its end, so its last rows stay under Safari's bar",
+    ).not.toBeNull();
+    expect(
+      room!.style.height,
+      "the room at the end of the scrolling part is not as tall as the part under the bar",
+    ).toBe(`${UNDER_BAR}px`);
   });
 
   // Safari 26 hit-tests the middle of the bottom edge and walks up to the
