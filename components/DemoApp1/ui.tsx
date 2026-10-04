@@ -308,34 +308,60 @@ export function Layer({
   }, [tint, present]);
   const height = useScreenHeight();
   const anchor = React.useRef<HTMLDivElement>(null);
+  const room = React.useRef<HTMLDivElement>(null);
+  /** How tall the document must be to reach the layer's tail under Safari's bar. */
+  const reach = (h: number | undefined) =>
+    window.scrollY + (h ?? window.innerHeight) + UNDER_BAR;
   React.useLayoutEffect(() => {
     if (!mounted) return;
     const follow = () => {
       if (anchor.current) anchor.current.style.top = `${window.scrollY}px`;
+      if (room.current) room.current.style.height = `${reach(height)}px`;
     };
     follow();
     window.addEventListener("scroll", follow, { passive: true });
     return () => window.removeEventListener("scroll", follow);
-  }, [mounted]);
+  }, [mounted, height]);
   if (!mounted) return null;
   return createPortal(
-    <div
-      ref={anchor}
-      style={{
-        ...EDGE_ANCHOR,
-        position: "absolute",
-        top: window.scrollY,
-        zIndex: 2147483000 + z,
-      }}
-    >
+    <>
+      {/* The document itself must reach under Safari's bar. Safari draws
+          there only what the document holds; a layer that hangs past the
+          document's end showed the page's background colour instead. This
+          block is in <body>'s flow, with no width, and as tall as the
+          layer's tail is low. Only on a touch device: with a mouse there is
+          no such bar, and the block would make a short page scroll. */}
+      {navigator.maxTouchPoints > 0 && (
+        <div
+          ref={room}
+          aria-hidden="true"
+          data-pw="demo-doc-room"
+          style={{
+            flex: "0 0 0px",
+            width: 0,
+            height: reach(height),
+            pointerEvents: "none",
+          }}
+        />
+      )}
       <div
-        data-pw={testId}
-        className={`font-quicksand ${className}`}
-        style={{ ...columnBox(height), ...style }}
+        ref={anchor}
+        style={{
+          ...EDGE_ANCHOR,
+          position: "absolute",
+          top: window.scrollY,
+          zIndex: 2147483000 + z,
+        }}
       >
-        {children}
+        <div
+          data-pw={testId}
+          className={`font-quicksand ${className}`}
+          style={{ ...columnBox(height), ...style }}
+        >
+          {children}
+        </div>
       </div>
-    </div>,
+    </>,
     document.body,
   );
 }

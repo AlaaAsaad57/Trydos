@@ -424,6 +424,90 @@ describe("Demo1 bottom — like /demo, Safari's bottom bar lies over the app", (
     ).toBe("340px");
   });
 
+  // Safari draws under its bar only what the DOCUMENT holds there. A sheet
+  // opened on a page as tall as the window hung past the document's end, and
+  // Safari showed the page's background colour there instead. So an open
+  // layer keeps a block in the document's flow that makes the document reach
+  // UNDER_BAR px past the window's end, where the sheet's tail lies.
+  it("an open sheet makes the document itself reach under Safari's bar", () => {
+    Object.defineProperty(window, "innerHeight", {
+      configurable: true,
+      value: 800,
+    });
+    scrollY = 300;
+    // A phone: the block is only for a device that can have Safari's bar.
+    Object.defineProperty(navigator, "maxTouchPoints", {
+      configurable: true,
+      value: 5,
+    });
+    render(
+      <Sheet open onClose={() => {}} y={400} testId="sheet-room">
+        <span>a</span>
+      </Sheet>,
+    );
+    const room = document.body.querySelector<HTMLElement>(
+      '[data-pw="demo-doc-room"]',
+    );
+    expect(
+      room,
+      "the open sheet keeps no block in the document's flow, so the document ends above Safari's bar",
+    ).not.toBeNull();
+    expect(
+      room!.parentElement,
+      "the block is not in <body>'s own flow",
+    ).toBe(document.body);
+    expect(
+      room!.style.position,
+      "the block is taken out of the flow, so it does not make the document taller",
+    ).toBe("");
+    expect(
+      room!.style.height,
+      "the document does not reach the sheet's tail: the page's scroll + the window + the part under the bar",
+    ).toBe(`${300 + 800 + UNDER_BAR}px`);
+    Object.defineProperty(navigator, "maxTouchPoints", {
+      configurable: true,
+      value: 0,
+    });
+  });
+
+  it("with a mouse the document is left as it is: no block, so no scrollbar comes with an open sheet", () => {
+    render(
+      <Sheet open onClose={() => {}} y={400} testId="sheet-no-room">
+        <span>a</span>
+      </Sheet>,
+    );
+    expect(
+      document.body.querySelector('[data-pw="sheet-no-room"]'),
+      "the open sheet was not drawn",
+    ).not.toBeNull();
+    expect(
+      document.body.querySelector('[data-pw="demo-doc-room"]'),
+      "a device with no touch got the block; it makes a short page scroll and a scrollbar appear",
+    ).toBeNull();
+  });
+
+  // The site's <html> carries `overflow-x: clip` (a class in the [lang]
+  // layout). /demo1 does not need it: its page column clips itself. A clip
+  // on the root is one more thing between the document and what Safari 26
+  // draws under its bar, so the shell takes it off while the demo is open.
+  it("takes the site's sideways clip off <html> while the demo is open, and gives it back", () => {
+    const { unmount } = openOn("home");
+    const html = document.documentElement;
+    expect(
+      html.style.getPropertyValue("overflow-x"),
+      "<html> keeps the site's `overflow-x: clip` while the demo is open",
+    ).toBe("visible");
+    expect(
+      html.style.getPropertyPriority("overflow-x"),
+      "the site's class is `!important`, so the demo's value must be too",
+    ).toBe("important");
+    unmount();
+    expect(
+      html.style.getPropertyValue("overflow-x"),
+      "the demo left its own value on <html> after it closed",
+    ).toBe("");
+  });
+
   // On the iPhone the window (innerHeight) ends ABOVE Safari 26's floating
   // bar. A sheet that ends with the window leaves the page showing under the
   // bar. So the sheet's white panel and its backdrop run UNDER_BAR px past the

@@ -145,8 +145,19 @@ function Demo1ShellInner({
   useEffect(() => {
     const before = window.history.scrollRestoration;
     window.history.scrollRestoration = "manual";
+    // The site's <html> carries `overflow-x: clip` (a class in the [lang]
+    // layout, `!important`). The demo's page column clips itself, and a clip
+    // on the root is one more thing between the document and what Safari 26
+    // draws under its floating bar. An inline `!important` is the only thing
+    // that wins over the class.
+    document.documentElement.style.setProperty(
+      "overflow-x",
+      "visible",
+      "important",
+    );
     return () => {
       window.history.scrollRestoration = before;
+      document.documentElement.style.removeProperty("overflow-x");
       document.documentElement.style.removeProperty("background-color");
       document.body.style.removeProperty("background-color");
     };
