@@ -877,6 +877,30 @@ describe("Demo1 debug buttons — page colour and test pictures", () => {
     ).toBe("rgb(255, 255, 255)");
   });
 
+  it("the colour button paints an open sheet too, and gives its white back after the last colour", () => {
+    const { container } = openOn("settings/wallet");
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-card-usd"]')!);
+    fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+    const panel = () =>
+      document.body.querySelector<HTMLElement>(
+        '[data-pw="demo-wallet-cash-in-sheet"] [data-pw="demo-sheet-panel"]',
+      );
+    expect(panel(), "Cash In did not open its sheet").not.toBeNull();
+
+    fireEvent.click(button(container, "demo-debug-color"));
+    expect(
+      panel()!.style.backgroundColor,
+      "the first tap did not paint the open sheet red",
+    ).toBe("rgb(255, 59, 48)");
+
+    for (let i = 1; i <= DEBUG_COLORS.length; i++)
+      fireEvent.click(button(container, "demo-debug-color"));
+    expect(
+      panel()!.style.backgroundColor,
+      "after the last colour the sheet did not go back to white",
+    ).toBe("rgb(255, 255, 255)");
+  });
+
   it("the pictures button puts the test pictures under the wallet's transactions, and takes them away again", () => {
     const { container } = openOn("settings/wallet");
     const pictures = () =>

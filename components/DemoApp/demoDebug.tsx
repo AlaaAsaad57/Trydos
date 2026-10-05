@@ -5,9 +5,10 @@ import React, { useSyncExternalStore } from "react";
 /**
  * Two debug switches for /demo, next to the "i" button.
  *
- *  - The page colour: each tap paints the screen's page in the next colour of
- *    DEBUG_COLORS, and the tap after the last one gives the design's colour
- *    back. So the tester sees how Safari's glass bars look over each colour.
+ *  - The page colour: each tap paints the screen's page, and an open sheet,
+ *    in the next colour of DEBUG_COLORS, and the tap after the last one gives
+ *    the design's colour back. So the tester sees how Safari's glass bars and
+ *    the keyboard's glass look over each colour.
  *  - The test pictures: a list of photos under the wallet's transactions, so
  *    the tester can scroll busy pictures under the bars.
  *

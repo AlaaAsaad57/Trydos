@@ -1027,6 +1027,8 @@ export function Sheet({
   const touch = useIsTouchDevice();
   const grip = useDragControls();
   const rest = lower;
+  // The debug page colour (demoDebug.tsx) paints the sheet too.
+  const paper = useDemoDebug().color ?? C.white;
   return (
     <AnimatePresence>
       {open && (
@@ -1061,7 +1063,7 @@ export function Sheet({
                   ? { top: top(y) }
                   : { height: DESIGN_H - y + UNDER_BAR }),
                 bottom: -UNDER_BAR,
-                background: C.white,
+                background: paper,
                 borderRadius: `${radius}px ${radius}px 0 0`,
               }}
               initial={{ y: "100%" }}
