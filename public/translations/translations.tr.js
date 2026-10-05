@@ -2663,6 +2663,7 @@ const translations = {
   "Symbols": "Semboller",
   "Letters": "Harfler",
   "Next keyboard": "Sonraki klavye",
+  "Dark keyboard": "Koyu klavye",
   "Hide menu": "Menüyü gizle",
   "Device and browser info": "Cihaz ve tarayıcı bilgisi",
   "Change page colour": "Sayfa rengini değiştir",

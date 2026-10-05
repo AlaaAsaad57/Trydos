@@ -8,6 +8,10 @@ import {
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import DemoKeyboard from "components/DemoApp1/keyboard/DemoKeyboard";
+import {
+  DebugButtons,
+  resetDemoDebug,
+} from "components/DemoApp/demoDebug";
 import { resetDevice, setDevice } from "../../../mocks/device";
 
 /** Three fields like the demo's: a name, an amount with its filter, an email. */
@@ -193,21 +197,6 @@ describe("DemoKeyboard — the page's own keyboard on a touch device", () => {
       keyboard()!.style.paddingRight,
       "the keys do not end 37 px before the right (34 for the bar, 3 of the panel's own)",
     ).toBe("37px");
-  });
-
-  // For now, to check the look on the phone: dark in a light theme too.
-  it("is dark whatever the phone's theme is", () => {
-    render(<Page />);
-    focus("name");
-    const css = keyboard()!.querySelector("style")?.textContent ?? "";
-    expect(
-      css,
-      "the dark colours are still only for a phone in the dark theme",
-    ).not.toContain("prefers-color-scheme");
-    expect(
-      css,
-      "the dark colours are not given for every theme",
-    ).toContain("@media all {");
   });
 
   it("has the colour of Safari's bar: white at 53 %, and round on all four corners", () => {
@@ -494,6 +483,71 @@ describe("DemoKeyboard — the page's own keyboard on a touch device", () => {
         "a tap on the field in use put the keyboard away",
       ).not.toBeNull();
     });
+  });
+});
+
+describe("DemoKeyboard — the debug switch for its theme", () => {
+  beforeEach(() => setDevice("touch"));
+  afterEach(() => {
+    cleanup();
+    resetDemoDebug();
+    resetDevice();
+  });
+
+  /** The page with the demo's debug buttons in their box, as in the shell. */
+  const WithSwitch = () => (
+    <>
+      <div data-pw="demo-controls">
+        <DebugButtons t={(key) => key} />
+      </div>
+      <Page />
+    </>
+  );
+
+  const theme = () => keyboard()?.getAttribute("data-theme");
+  const flip = () => {
+    const button = document.querySelector(
+      '[data-pw="demo-debug-keyboard-theme"]',
+    );
+    expect(
+      button,
+      "the debug buttons have no keyboard theme switch",
+    ).not.toBeNull();
+    fireEvent.click(button!);
+  };
+
+  it("starts on the app theme", () => {
+    render(<WithSwitch />);
+    focus("name");
+    expect(theme(), "the keyboard did not start on the app theme").toBe("app");
+  });
+
+  it("a tap gives the dark keyboard, and the next tap the app theme again, with the keyboard still up", async () => {
+    render(<WithSwitch />);
+    focus("name");
+    flip();
+    expect(theme(), "the switch did not turn the keyboard dark").toBe("dark");
+    await new Promise((done) => setTimeout(done, 50));
+    expect(
+      keyboard(),
+      "a tap on the switch put the keyboard away, so the tester cannot compare the two themes",
+    ).not.toBeNull();
+    flip();
+    expect(theme(), "a second tap did not give the app theme back").toBe("app");
+  });
+
+  it("the dark colours are in the style for both the switch and a dark phone", () => {
+    render(<WithSwitch />);
+    focus("name");
+    const css = keyboard()!.querySelector("style")!.textContent ?? "";
+    expect(
+      css,
+      'the style has no rule for the switch (.dkb[data-theme="dark"])',
+    ).toContain('.dkb[data-theme="dark"]');
+    expect(
+      css,
+      "the style no longer follows the phone's dark theme",
+    ).toContain("@media (prefers-color-scheme: dark)");
   });
 });
 

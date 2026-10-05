@@ -3,7 +3,7 @@
 import React, { useSyncExternalStore } from "react";
 
 /**
- * Two debug switches for /demo, next to the "i" button.
+ * Three debug switches for /demo, next to the "i" button.
  *
  *  - The page colour: each tap paints the screen's page, and an open sheet,
  *    in the next colour of DEBUG_COLORS, and the tap after the last one gives
@@ -11,6 +11,9 @@ import React, { useSyncExternalStore } from "react";
  *    the keyboard's glass look over each colour.
  *  - The test pictures: a list of photos under the wallet's transactions, so
  *    the tester can scroll busy pictures under the bars.
+ *  - The keyboard's theme: off, the demo's keyboard follows the phone's theme
+ *    (the app theme); on, it is dark on a light phone too. So the tester can
+ *    compare the two looks.
  *
  * The state lives in this module, so it stays the same
  * while the tester moves between screens.
@@ -31,9 +34,11 @@ type DebugState = {
   /** The page colour, or null for the design's own colour. */
   color: string | null;
   pictures: boolean;
+  /** The demo's keyboard is dark whatever the phone's theme is. */
+  darkKeyboard: boolean;
 };
 
-let state: DebugState = { color: null, pictures: false };
+let state: DebugState = { color: null, pictures: false, darkKeyboard: false };
 const listeners = new Set<() => void>();
 
 function set(next: DebugState) {
@@ -46,9 +51,9 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
-const OFF: DebugState = { color: null, pictures: false };
+const OFF: DebugState = { color: null, pictures: false, darkKeyboard: false };
 
-/** The debug switches as they are now. On the server both are off. */
+/** The debug switches as they are now. On the server all are off. */
 export function useDemoDebug(): DebugState {
   return useSyncExternalStore(subscribe, () => state, () => OFF);
 }
@@ -65,7 +70,11 @@ export function toggleDebugPictures() {
   set({ ...state, pictures: !state.pictures });
 }
 
-/** Puts both switches off again. For tests. */
+export function toggleDebugKeyboardTheme() {
+  set({ ...state, darkKeyboard: !state.darkKeyboard });
+}
+
+/** Puts every switch off again. For tests. */
 export function resetDemoDebug() {
   set(OFF);
 }
@@ -99,13 +108,15 @@ export function DebugPictures() {
   );
 }
 
-/** The two debug buttons, drawn under the "i" button. */
+/** The debug buttons, drawn under the "i" button. */
 export function DebugButtons({
   t,
 }: {
-  t: (key: "Change page colour" | "Show test pictures") => string;
+  t: (
+    key: "Change page colour" | "Show test pictures" | "Dark keyboard",
+  ) => string;
 }) {
-  const { color, pictures } = useDemoDebug();
+  const { color, pictures, darkKeyboard } = useDemoDebug();
   const round =
     "w-7 h-7 rounded-full shadow border border-gray-200 cursor-pointer flex items-center justify-center";
   return (
@@ -135,6 +146,22 @@ export function DebugButtons({
           <path
             fill="currentColor"
             d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm0 16H5V5h14v14Zm-5.04-6.71-2.75 3.54-1.96-2.36L6.5 17h11l-3.54-4.71Z"
+          />
+        </svg>
+      </button>
+      <button
+        type="button"
+        data-pw="demo-debug-keyboard-theme"
+        aria-label={t("Dark keyboard")}
+        aria-pressed={darkKeyboard}
+        onClick={toggleDebugKeyboardTheme}
+        className={`${round} ${darkKeyboard ? "bg-[#1D1D1D] text-white" : "bg-white/90 text-[#402CDD]"}`}
+      >
+        {/* A keyboard: off is the app theme, on is the dark keyboard. */}
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M20 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 12H4V7h16v10ZM6 9h2v2H6V9Zm3 0h2v2H9V9Zm3 0h2v2h-2V9Zm3 0h3v2h-3V9ZM6 12h3v2H6v-2Zm4 0h2v2h-2v-2Zm3 0h2v2h-2v-2Zm3 0h2v2h-2v-2Zm-8 3h8v1H8v-1Z"
           />
         </svg>
       </button>

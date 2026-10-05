@@ -4,6 +4,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
+import { useDemoDebug } from "../../DemoApp/demoDebug";
 import { DEMO_KEYBOARD } from "../../DemoApp/demoKeyboard";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { COLUMN_W, EDGE_ANCHOR, PAGE_MAX, UNDER_BAR } from "../demo1Layout";
@@ -122,11 +123,22 @@ const TOP = 16;
 const BAR_SIDE = 34;
 
 /**
- * For now the keyboard is dark in a light theme too, to check that look on
- * the phone. `false` gives the theme's own colours back.
+ * The dark keyboard's colours. The phone's dark theme uses them, and so does
+ * the debug switch that shows the dark keyboard on a light phone.
  */
-const ALWAYS_DARK = true;
-const DARK_WHEN = ALWAYS_DARK ? "all" : "(prefers-color-scheme: dark)";
+const DARK = `
+    --dkb-panel: linear-gradient(180deg, rgba(34, 36, 42, 0.52), rgba(18, 19, 23, 0.58));
+    --dkb-rim: linear-gradient(165deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.08) 28%, rgba(255, 255, 255, 0.02) 62%, rgba(255, 255, 255, 0.22));
+    --dkb-glow: rgba(255, 255, 255, 0.12);
+    --dkb-key: rgba(255, 255, 255, 0.19);
+    --dkb-key-edge: rgba(255, 255, 255, 0.22);
+    --dkb-down: rgba(255, 255, 255, 0.42);
+    --dkb-pop: rgba(112, 112, 118, 0.98);
+    --dkb-ink: #ffffff;
+    --dkb-soft: rgba(235, 235, 245, 0.75);
+    --dkb-shade: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --dkb-lens: blur(40px) saturate(170%) brightness(0.8);
+`;
 const CHIN = 58;
 
 /**
@@ -188,21 +200,12 @@ const STYLE = `
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
   pointer-events: none;
 }
-@media ${DARK_WHEN} {
+@media (prefers-color-scheme: dark) {
   .dkb {
-    --dkb-panel: linear-gradient(180deg, rgba(34, 36, 42, 0.52), rgba(18, 19, 23, 0.58));
-    --dkb-rim: linear-gradient(165deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.08) 28%, rgba(255, 255, 255, 0.02) 62%, rgba(255, 255, 255, 0.22));
-    --dkb-glow: rgba(255, 255, 255, 0.12);
-    --dkb-key: rgba(255, 255, 255, 0.19);
-    --dkb-key-edge: rgba(255, 255, 255, 0.22);
-    --dkb-down: rgba(255, 255, 255, 0.42);
-    --dkb-pop: rgba(112, 112, 118, 0.98);
-    --dkb-ink: #ffffff;
-    --dkb-soft: rgba(235, 235, 245, 0.75);
-    --dkb-shade: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --dkb-lens: blur(40px) saturate(170%) brightness(0.8);
-  }
+${DARK}  }
 }
+.dkb[data-theme="dark"] {
+${DARK}}
 .dkb-row { display: flex; height: var(--dkb-row); }
 .dkb-cell {
   position: relative;
@@ -284,6 +287,7 @@ export default function DemoKeyboard({
   t: (key: DemoKey) => string;
 }) {
   const touch = useIsTouchDevice();
+  const { darkKeyboard } = useDemoDebug();
   const on = touch && DEMO_KEYBOARD;
 
   const [field, setField] = useState<TextField | null>(null);
@@ -384,6 +388,9 @@ export default function DemoKeyboard({
     const onClick = (e: MouseEvent) => {
       const target = e.target as Element | null;
       if (!target || panel.current?.contains(target)) return;
+      // The demo's own switches: the tester changes the keyboard's theme
+      // or the page's colour with the keyboard up.
+      if (target.closest('[data-pw="demo-controls"]')) return;
       setTimeout(() => {
         if (document.activeElement !== field) return;
         // The tap was on the field, or on the small box drawn round it.
@@ -661,6 +668,8 @@ export default function DemoKeyboard({
               data-kind={kind}
               data-language={pad ? undefined : letters}
               data-page={pad ? "pad" : page}
+              // "app": the phone's theme. "dark": the debug switch.
+              data-theme={darkKeyboard ? "dark" : "app"}
               className="dkb"
               style={{
                 position: "absolute",

@@ -2681,6 +2681,7 @@ const translations = {
   "Symbols": "هێماکان",
   "Letters": "پیتەکان",
   "Next keyboard": "تەختەکلیلی داهاتوو",
+  "Dark keyboard": "تەختەکلیلی تاریک",
   "Hide menu": "شاردنەوەی لیست",
   "Device and browser info": "زانیاری ئامێر و وێبگەڕ",
   "Change page colour": "گۆڕینی ڕەنگی پەڕە",

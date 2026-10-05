@@ -2631,6 +2631,7 @@ const translations = {
   "Symbols": "رموز",
   "Letters": "أحرف",
   "Next keyboard": "لوحة المفاتيح التالية",
+  "Dark keyboard": "لوحة مفاتيح داكنة",
   "Hide menu": "إخفاء القائمة",
   "Device and browser info": "معلومات الجهاز والمتصفح",
   "Change page colour": "تغيير لون الصفحة",
