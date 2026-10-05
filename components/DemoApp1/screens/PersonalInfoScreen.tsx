@@ -37,7 +37,7 @@ import {
  * `#505050` on baseline +20, value 14 on +43. Gender is three words at x 68,
  * 186 and 326 — the picked one Medium `#1D1D1D`, the others Regular `#C3C3C3`.
  *
- * On /demo1 the banner and the fields keep 12 px to both edges of the screen
+ * On /demo the banner and the fields keep 12 px to both edges of the screen
  * (fluid, 406 on a 430 px phone). The gender words keep their x from the
  * left: they are words, not a block that stretches.
  */
@@ -227,8 +227,8 @@ function EmailCodeSheet({
   const [left, setLeft] = useState(CODE_SECONDS);
   /**
    * True once the sheet has finished rising. The code boxes open the keypad
-   * 300 ms after they mount. In /demo a keypad opened while the sheet was
-   * still low pushed the sheet's top off the screen. /demo1 has no canvas
+   * 300 ms after they mount. In the old scaled demo a keypad opened while the sheet was
+   * still low pushed the sheet's top off the screen. /demo has no canvas
    * to lift, but it keeps the same rule: the boxes are mounted again,
    * focused, only when the sheet is in place, so the keypad opens on a sheet
    * that has stopped moving.

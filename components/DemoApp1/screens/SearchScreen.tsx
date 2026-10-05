@@ -23,7 +23,7 @@ import { TRAVEL } from "components/NavigationDemo/BottomNav";
  *     12 px after "For you", 4 px between the others. The row scrolls sideways
  *     — the file runs it off the right edge.
  *
- * On /demo1 the header is the sticky head of a fluid page (`ScreenPage`). The
+ * On /demo the header is the sticky head of a fluid page (`ScreenPage`). The
  * field keeps 12 px to both edges of the screen; the text box takes the room
  * the screen gives, and voice and scan keep the file's gap to the field's
  * right edge.

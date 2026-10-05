@@ -1,25 +1,14 @@
 /**
  * The grid of the new app design, read out of the XD file.
  *
- * Every number is design px on the 430 x 932 artboard, the same canvas the new
- * login uses (scaling/scale.config.ts). Inside `#master-canvas` one design px is
- * one CSS px, so a screen places a block with the number from the file and it
- * lands where the designer put it, on every device.
+ * Every number is design px on the 430 x 932 artboard. The fluid demo draws
+ * one design px as one CSS px (see components/DemoApp1/demo1Layout.ts).
  *
  * The status bar
  * --------------
  * Every artboard draws a phone status bar in its top 50 px (time, network,
  * battery). The real phone draws its own, so the app does not. That makes the
- * design y 50 the top of the app. `top(y)` turns a design y into a CSS top:
- * `y - 50`, plus the device's own top inset, the same rule `controlTop()` in
- * NewLoginDesign/authLayout.ts uses for the login's corner control.
- *
- * The bottom
- * ----------
- * Bottom elements (the tab bar, the wide buttons) keep their distance from the
- * bottom of the canvas, like `fromBottom()` in the login. The canvas is
- * `932 - deficit` tall, so a CSS `bottom` equal to the design gap does exactly
- * that: `bottom(y, h)` = 932 - (y + h).
+ * design y 50 the top of the app.
  */
 
 export const DESIGN_W = 430;
@@ -27,22 +16,6 @@ export const DESIGN_H = 932;
 
 /** The phone status bar every artboard draws on top. */
 export const STATUS_BAR = 50;
-
-/** The device's own top inset. 0 in a browser tab, the notch in a home-screen app. */
-export const SAFE_TOP = "env(safe-area-inset-top, 0px)";
-
-/** A design y as a CSS top, with the drawn status bar taken off. */
-export const top = (y: number) => `calc(${y - STATUS_BAR}px + ${SAFE_TOP})`;
-
-/**
- * The same for the header row. It also cancels the keyboard lift, so the
- * header stays on screen when AppScaler slides the canvas up for the keyboard.
- */
-export const headerTop = (y: number) =>
-  `calc(${y - STATUS_BAR}px + ${SAFE_TOP} + var(--app-keyboard-lift, 0px))`;
-
-/** A design box as a CSS bottom: its distance from the bottom of the artboard. */
-export const bottom = (y: number, h: number) => DESIGN_H - (y + h);
 
 /**
  * The top of a text box from the y that XD stores.

@@ -30,7 +30,7 @@ import {
 } from "./demo1Layout";
 
 /**
- * The tab bar of the fluid demo: the /demo bar (DemoBottomNav) — the same
+ * The tab bar of the fluid demo: the old scaled demo bar (DemoBottomNav) — the same
  * icons, the same grow, press and scroll motion — in a fluid frame.
  *
  *  - It is fixed to the bottom of the window, on <body>: the document

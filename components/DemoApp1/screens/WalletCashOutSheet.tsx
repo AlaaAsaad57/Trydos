@@ -57,7 +57,7 @@ import {
  * Every y below is the file's. The handle ends 13 px under the sheet's top
  * edge, so a step's first block has `mt` = its y minus (top + 13).
  *
- * On /demo1 the widths are fluid: a block keeps the file's distance to both
+ * On /demo the widths are fluid: a block keeps the file's distance to both
  * edges of the sheet (`fill()`), so on a 430 px phone it is the file's width.
  */
 
@@ -613,8 +613,8 @@ export function InfoButton({
  * typed with the app's keypad. With a mouse and a keyboard there is no
  * keypad, and the fields are plain inputs.
  *
- * /demo lifts its scaled canvas to keep the field in use above the keypad.
- * /demo1 has no canvas to lift: when the field in use would end under the
+ * The old scaled demo lifted its scaled canvas to keep the field in use above the keypad.
+ * /demo has no canvas to lift: when the field in use would end under the
  * keypad, the part under the tabs scrolls it up instead (see `lift`).
  */
 /**
@@ -1068,7 +1068,7 @@ function Form({
           strokeVisible={!saved}
           data-pw="demo-wallet-amount"
           data-keypad-field=""
-          // The /demo mark for the field in use; /demo1 keeps it up with `lift`.
+          // The old scaled demo mark for the field in use; /demo keeps it up with `lift`.
           data-keyboard-anchor={touch && typing ? "" : undefined}
           className="flex flex-col overflow-hidden cursor-text"
           style={{
@@ -1598,7 +1598,7 @@ function Entry({
   onUse: () => void;
   /** The app's keypad types in this field. */
   keypadField?: boolean;
-  /** The field in use over the keypad (the /demo mark; /demo1 uses `lift`). */
+  /** The field in use over the keypad (the old scaled demo mark; /demo uses `lift`). */
   anchor?: boolean;
   children: React.ReactNode;
   testId: string;

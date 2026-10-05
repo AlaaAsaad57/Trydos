@@ -6,13 +6,13 @@ import { DEMO_KEYS, type DemoDictionary } from "components/DemoApp/demoKeys";
 import { translateFunction } from "utils/server";
 
 /*
-  The new app design as a normal web page, for the client: /[lang]/demo1.
+  The new app design as a normal web page, for the client: /[lang]/demo.
 
-  The same screens, data and words as /demo, without the scaled canvas: the
+  The same screens, data and words as the old scaled demo, without the scaled canvas: the
   page is fluid and the document scrolls, so Safari 26 on the iPhone draws its
   glass bar over the page. See components/DemoApp1/Demo1Shell.tsx.
 
-  The words are looked up here, on the server, exactly as /demo does it (see
+  The words are looked up here, on the server, exactly as the old scaled demo does it (see
   components/DemoApp/demoKeys.ts). The shell reads the URL, so it sits in a
   Suspense boundary; the fallback is a plain white page.
 */

@@ -49,7 +49,7 @@ import {
  * Nothing is looked up: the map is the picture in the file and the places are
  * the mock list in demoPlaces.ts.
  *
- * On /demo1 the page is the document, and the widths are fluid: the map card,
+ * On /demo the page is the document, and the widths are fluid: the map card,
  * the fields, and the rows and the search box of the sheets keep 12 px to
  * both edges (406 on a 430 px phone). The pill, the pin and the caption are
  * centred on the map in the file, so they stay centred on it.

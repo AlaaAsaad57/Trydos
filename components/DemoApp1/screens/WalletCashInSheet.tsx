@@ -73,7 +73,7 @@ import { PictureLayer } from "./WalletWithdrawalRequest";
  * Every y below is the file's. The handle ends 13 px under the sheet's top
  * edge, so a step's first block has `mt` = its y minus (top + 13).
  *
- * On /demo1 the widths are fluid: a block keeps the file's distance to both
+ * On /demo the widths are fluid: a block keeps the file's distance to both
  * edges of the screen, and a block the file centres stays centred. Icons, the
  * codes, the tiles and the tags keep their size.
  */
@@ -1049,7 +1049,7 @@ function ThankYou() {
  * away; the file draws these forms with the keypad away. With a mouse and a
  * keyboard the field is a plain input, in use as the form opens.
  *
- * /demo lifts the whole scaled canvas over the keyboard. /demo1 has no
+ * The old scaled demo lifted the whole scaled canvas over the keyboard. /demo has no
  * canvas, so the part under the head scrolls the field up over the keyboard
  * instead (see `KeyboardRoom`).
  */
@@ -1179,8 +1179,8 @@ function AmountField({
         stroke={C.blue}
         data-pw="demo-wallet-cash-in-amount"
         data-keypad-field=""
-        // The mark /demo's scaled canvas reads to stay over the keyboard.
-        // Nothing reads it on /demo1; the scroll above does that job here.
+        // The mark the old scaled demo's canvas read to stay over the keyboard.
+        // Nothing reads it on /demo; the scroll above does that job here.
         data-keyboard-anchor={touch && typing ? "" : undefined}
         className="flex flex-col overflow-hidden cursor-text"
         style={{ padding: "8px 12px 0", transition: "height 0.3s" }}

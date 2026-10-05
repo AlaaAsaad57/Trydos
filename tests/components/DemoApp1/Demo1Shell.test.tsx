@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // The URL the fake router reports. A test changes it and re-renders, which is
 // what Next does when a navigation lands or the browser goes back.
-const url = vi.hoisted(() => ({ pathname: "/sy-en/demo1", search: "" }));
+const url = vi.hoisted(() => ({ pathname: "/sy-en/demo", search: "" }));
 const router = vi.hoisted(() => ({
   push: vi.fn(),
   replace: vi.fn(),
@@ -68,7 +68,7 @@ const readableAtTheBottom = () =>
 
 /** Opens the shell on a screen's URL. */
 const openOn = (screen: (typeof DEMO_SCREENS)[number]) => {
-  const [path, query = ""] = hrefFor("sy-en", screen, "demo1").split("?");
+  const [path, query = ""] = hrefFor("sy-en", screen).split("?");
   url.pathname = path;
   url.search = query;
   return render(<Demo1Shell dictionary={{}}>{null}</Demo1Shell>);
@@ -88,7 +88,7 @@ let scrollY = 0;
 const scrollTo = vi.fn();
 
 beforeEach(() => {
-  url.pathname = "/sy-en/demo1";
+  url.pathname = "/sy-en/demo";
   url.search = "";
   router.push.mockClear();
   router.replace.mockClear();
@@ -111,17 +111,17 @@ describe("Demo1Shell — a web page, not a scaled canvas", () => {
     const { container } = openOn("home");
     expect(
       document.getElementById("app-outer"),
-      "/demo1 mounted AppScaler's #app-outer, the fixed box that stops the document scrolling",
+      "/demo mounted AppScaler's #app-outer, the fixed box that stops the document scrolling",
     ).toBeNull();
     expect(
       document.getElementById("master-canvas"),
-      "/demo1 mounted AppScaler's scaled #master-canvas",
+      "/demo mounted AppScaler's scaled #master-canvas",
     ).toBeNull();
     const app = container.querySelector<HTMLElement>('[data-pw="demo1-app"]');
-    expect(app, "the /demo1 page column is missing").not.toBeNull();
+    expect(app, "the /demo page column is missing").not.toBeNull();
     expect(
       getComputedStyle(app!).position,
-      "the /demo1 page column is not in the document flow",
+      "the /demo page column is not in the document flow",
     ).not.toBe("fixed");
   });
 
@@ -134,7 +134,7 @@ describe("Demo1Shell — a web page, not a scaled canvas", () => {
     });
     expect(
       scrollTo,
-      "the shell moved the window back after the shopper scrolled (the /demo pin to 0)",
+      "the shell moved the window back after the shopper scrolled (the old scaled demo pin to 0)",
     ).not.toHaveBeenCalled();
   });
 
@@ -177,16 +177,16 @@ describe("Demo1Shell — a web page, not a scaled canvas", () => {
   });
 });
 
-describe("Demo1Shell — navigation, with URLs under /demo1", () => {
+describe("Demo1Shell — navigation, with URLs under /demo", () => {
   it("opens on the screen the URL names", () => {
     const { container } = openOn("settings/profile");
     expect(
       onStage(container),
-      "a direct visit to /demo1/settings/profile did not show the profile menu",
+      "a direct visit to /demo/settings/profile did not show the profile menu",
     ).toEqual(["settings/profile"]);
   });
 
-  it("slides to search at once and moves the URL to /demo1?search with no server call", () => {
+  it("slides to search at once and moves the URL to /demo?search with no server call", () => {
     const pushState = vi.spyOn(window.history, "pushState");
     const { container } = openOn("home");
     pressTab("search");
@@ -196,8 +196,8 @@ describe("Demo1Shell — navigation, with URLs under /demo1", () => {
     ).toContain("search");
     expect(
       pushState,
-      "the URL was not moved to /demo1?search with history.pushState",
-    ).toHaveBeenCalledWith(null, "", "/sy-en/demo1?search");
+      "the URL was not moved to /demo?search with history.pushState",
+    ).toHaveBeenCalledWith(null, "", "/sy-en/demo?search");
     expect(
       router.push,
       "a search-param screen went through the router (a server round trip)",
@@ -219,7 +219,7 @@ describe("Demo1Shell — navigation, with URLs under /demo1", () => {
     url.search = "search";
     rerender(<Demo1Shell dictionary={{}}>{null}</Demo1Shell>);
 
-    // The browser's back lands on /demo1 again.
+    // The browser's back lands on /demo again.
     url.search = "";
     scrollY = 0;
     rerender(<Demo1Shell dictionary={{}}>{null}</Demo1Shell>);
@@ -234,7 +234,7 @@ describe("Demo1Shell — navigation, with URLs under /demo1", () => {
 });
 
 describe("Demo1 screens — fluid pages that the document scrolls", () => {
-  // The /demo screens' artboard widths. On /demo1 a block that spans the
+  // The old scaled demo screens' artboard widths. On /demo a block that spans the
   // screen keeps its distance to the edges instead of one of these numbers.
   const ARTBOARD_WIDTHS = ["430px", "406px", "390px", "386px", "382px"];
 
@@ -324,7 +324,7 @@ describe("Demo1 layers — Safari's top bar follows an open sheet", () => {
   });
 });
 
-describe("Demo1 bottom — like /demo, Safari's bottom bar lies over the app", () => {
+describe("Demo1 bottom — like the old scaled demo, Safari's bottom bar lies over the app", () => {
   const innerHeight = window.innerHeight;
   afterEach(() => {
     Object.defineProperty(window, "innerHeight", {
@@ -349,7 +349,7 @@ describe("Demo1 bottom — like /demo, Safari's bottom bar lies over the app", (
     expect(layer, "the open sheet was not drawn").not.toBeNull();
     expect(
       layer!.style.height,
-      "the sheet's layer is not as tall as the window (innerHeight), so it ends above Safari's bar instead of under it as on /demo",
+      "the sheet's layer is not as tall as the window (innerHeight), so it ends above Safari's bar instead of under it as on the old scaled demo",
     ).toBe("800px");
     const inset = [layer!, ...layer!.querySelectorAll<HTMLElement>("*")].filter(
       (el) =>
@@ -487,7 +487,7 @@ describe("Demo1 bottom — like /demo, Safari's bottom bar lies over the app", (
   });
 
   // The site's <html> carries `overflow-x: clip` (a class in the [lang]
-  // layout). /demo1 does not need it: its page column clips itself. A clip
+  // layout). /demo does not need it: its page column clips itself. A clip
   // on the root is one more thing between the document and what Safari 26
   // draws under its bar, so the shell takes it off while the demo is open.
   it("takes the site's sideways clip off <html> while the demo is open, and gives it back", () => {

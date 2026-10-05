@@ -7,7 +7,7 @@ import React, { createContext, useContext, useState } from "react";
  *
  * Nothing here talks to a backend. The design is not approved yet, so every
  * screen reads and writes this one object, and it lives in the demo shell
- * (DemoShell), which stays mounted across every /demo route. A change made on
+ * (Demo1Shell), which stays mounted across every /demo route. A change made on
  * one screen is still there on the next one, the way the real app will behave
  * once each field is wired to its service.
  *

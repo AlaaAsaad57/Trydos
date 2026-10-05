@@ -3,7 +3,7 @@
 import React, { useSyncExternalStore } from "react";
 
 /**
- * Two debug switches for /demo and /demo1, next to the "i" button.
+ * Two debug switches for /demo, next to the "i" button.
  *
  *  - The page colour: each tap paints the screen's page in the next colour of
  *    DEBUG_COLORS, and the tap after the last one gives the design's colour
@@ -11,7 +11,7 @@ import React, { useSyncExternalStore } from "react";
  *  - The test pictures: a list of photos under the wallet's transactions, so
  *    the tester can scroll busy pictures under the bars.
  *
- * Shared by both demos. The state lives in this module, so it stays the same
+ * The state lives in this module, so it stays the same
  * while the tester moves between screens.
  */
 

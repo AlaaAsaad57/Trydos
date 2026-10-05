@@ -26,7 +26,7 @@ const HALF = "calc((100% - 4px) / 2)";
  * Medium, centred), pinned to the bottom of the page like the login's buttons.
  * No service takes these requests yet.
  *
- * On /demo1 the widths are fluid: every card and button keeps 12 px to both
+ * On /demo the widths are fluid: every card and button keeps 12 px to both
  * edges of the screen, and the two cards of a pair share the width with the
  * file's 4 px gap. On a 430 px phone they are the file's 406 and 201.
  */

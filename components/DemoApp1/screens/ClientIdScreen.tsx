@@ -34,7 +34,7 @@ import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
  * browser, nothing is sent anywhere. The picture keeps the file's 430 x 932
  * size on every screen.
  *
- * On /demo1 the two cards keep the file's 24 px to both edges of the screen,
+ * On /demo the two cards keep the file's 24 px to both edges of the screen,
  * and the three actions are a group centred on the screen at the bottom.
  */
 
@@ -67,7 +67,7 @@ export default function ClientIdScreen() {
   // Each action is a 60 x 50 target, the targets 30 apart from x 94, 32 above
   // the bottom (850 .. 900 in the file). The icon sits `iconX` in the file and
   // 5.5 down; the label is centred on the target, its line box 32 down. The
-  // group (94 .. 334) sits 1 px left of the artboard's middle; on /demo1 it
+  // group (94 .. 334) sits 1 px left of the artboard's middle; on /demo it
   // stays centred that way on any screen width.
   const actions: {
     icon: XdIconName;

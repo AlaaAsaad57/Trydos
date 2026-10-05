@@ -1,6 +1,6 @@
 /**
  * The colour of Safari's top area (the clock and the battery) while a layer
- * of the demo is open. Shared by /demo and /demo1.
+ * of the demo is open.
  *
  * How Safari 26 on the iPhone picks that colour
  * ---------------------------------------------
@@ -13,7 +13,7 @@
  *     is a "dimming layer" (a see-through backdrop with no children), Safari
  *     KEEPS the colour it already shows. It does not read the box's colour.
  *     On /demo the box at the top is the screen-sized #app-outer, so the bar
- *     stayed grey after a sheet closed. On /demo1 the box is the sheet's
+ *     stayed grey after a sheet closed. On /demo the box is the sheet's
  *     backdrop, a dimming layer, so the bar never went grey at all.
  *  3. A box 10 px tall or less gives no colour of its own either.
  *  4. Safari looks again only when a fixed or sticky layer repaints or moves.

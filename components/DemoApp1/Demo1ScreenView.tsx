@@ -16,7 +16,7 @@ import AddressListScreen from "./screens/AddressListScreen";
 import AddressFormScreen from "./screens/AddressFormScreen";
 import WalletScreen from "./screens/WalletScreen";
 
-/** Which component draws which screen of /demo1. XD artboard names are in each file. */
+/** Which component draws which screen of /demo. XD artboard names are in each file. */
 export default function Demo1ScreenView({ screen }: { screen: DemoScreen }) {
   switch (screen) {
     case "home":

@@ -1,8 +1,8 @@
 /**
- * The grid of the fluid demo at /[lang]/demo1.
+ * The grid of the fluid demo at /[lang]/demo.
  *
- * /demo draws the 430 x 932 artboard on one canvas and scales the whole
- * canvas to the window (AppScaler). /demo1 draws the same design as a normal
+ * The old scaled demo drew the 430 x 932 artboard on one canvas and scaled the whole
+ * canvas to the window (AppScaler). /demo draws the same design as a normal
  * web page instead, the way a shop site is built:
  *
  *  - One design px is one CSS px on every phone. Text, icons, heights and the
@@ -15,7 +15,7 @@
  *    top area from the sticky header.
  *
  * Everything that does not depend on the canvas (colours, the text rules, the
- * file's boxes) is shared with /demo and comes from its demoLayout.ts.
+ * file's boxes) is shared with the old scaled demo and comes from its demoLayout.ts.
  */
 
 export {
@@ -55,7 +55,7 @@ export const SAFE_BOTTOM = "env(safe-area-inset-bottom, 0px)";
 export const COLUMN_W = `min(100vw, ${PAGE_MAX}px)`;
 
 /**
- * Where every fixed thing of /demo1 hangs: a fixed point with no width and no
+ * Where every fixed thing of /demo hangs: a fixed point with no width and no
  * height, in the middle of the window's top edge (give it `bottom` instead of
  * `top` to hang from the bottom edge).
  *

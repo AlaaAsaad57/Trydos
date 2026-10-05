@@ -34,7 +34,7 @@ import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
  * Nothing is uploaded: the design is waiting for approval, so the "upload" is
  * a short wait and the photo stays in this browser (an object URL).
  *
- * On /demo1 the box keeps the file's 40 px to both edges of the screen and
+ * On /demo the box keeps the file's 40 px to both edges of the screen and
  * the file's 350 px height, so it is a square on a 430 px screen only. The
  * picking sheet is a layer on <body> (`Layer`), as the page scrolls.
  */
@@ -172,7 +172,7 @@ export default function PhotoScreen() {
 
       {/* `Home Page – 12`: while the phone's picker is open. A sheet over
           the page, its top edge at design y 120. The layer itself lets taps
-          through, so "Cancel" in the header still works, as in /demo. */}
+          through, so "Cancel" in the header still works, as in the old scaled demo. */}
       <AnimatePresence>
         {stage === "picking" && (
           <Layer key="picking" z={4} className="pointer-events-none">

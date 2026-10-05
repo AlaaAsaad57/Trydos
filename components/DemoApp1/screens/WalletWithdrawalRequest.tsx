@@ -32,7 +32,7 @@ import {
  * Each of them starts with `head`: the sheet's title row and the brand, which
  * ends at y 186 on the sheet (baseline 180, 24 px).
  *
- * On /demo1 the sheet and the picture page are as wide as the screen. The
+ * On /demo the sheet and the picture page are as wide as the screen. The
  * cells keep 20 px to both edges. The QR codes, the code boxes and the rows
  * of actions keep their size and stay centred the way the file centres them.
  */
@@ -411,7 +411,7 @@ export function RequestPicture({
  * the file draws no status bar there, and the sheet's title row at y 66. It
  * lies over the sheet; a tap puts it away.
  *
- * On /demo1 it is a layer on <body> (`Layer`), above the sheet's layer. The
+ * On /demo it is a layer on <body> (`Layer`), above the sheet's layer. The
  * page scrolls inside the layer when it is taller than the screen.
  */
 export function PictureLayer({

@@ -12,7 +12,7 @@
  *
  * The demo shell draws the screen from this table, not from the page file of
  * the route, so a tap slides the next screen in on the same frame and the URL
- * catches up behind it. See DemoShell for why.
+ * catches up behind it. See Demo1Shell for why.
  */
 
 export const DEMO_SCREENS = [
@@ -51,12 +51,6 @@ const isScreen = (key: string): key is DemoScreen =>
   (DEMO_SCREENS as readonly string[]).includes(key);
 
 /**
- * The route segment the demo lives under: `demo` for the scaled canvas,
- * `demo1` for the fluid page (components/DemoApp1). Both share this table.
- */
-export type DemoBase = "demo" | "demo1";
-
-/**
  * Which screen a URL shows, or null for a path under /demo that is not a
  * screen of its own (a server-rendered page added later — the shell shows the
  * route's own page for it).
@@ -64,10 +58,9 @@ export type DemoBase = "demo" | "demo1";
 export function screenFromUrl(
   pathname: string,
   search: URLSearchParams | string,
-  base: DemoBase = "demo",
 ): DemoScreen | null {
   const parts = pathname.split("/").filter(Boolean);
-  const at = parts.indexOf(base);
+  const at = parts.indexOf("demo");
   if (at === -1) return null;
   const rest = parts.slice(at + 1).join("/");
   if (!rest) {
@@ -79,14 +72,10 @@ export function screenFromUrl(
 }
 
 /** The URL of a screen, under a locale segment such as `sy-en`. */
-export function hrefFor(
-  lang: string,
-  key: DemoScreen,
-  base: DemoBase = "demo",
-): string {
-  if (key === "home") return `/${lang}/${base}`;
-  if (OVERLAYS.includes(key)) return `/${lang}/${base}?${key}`;
-  return `/${lang}/${base}/${key}`;
+export function hrefFor(lang: string, key: DemoScreen): string {
+  if (key === "home") return `/${lang}/demo`;
+  if (OVERLAYS.includes(key)) return `/${lang}/demo?${key}`;
+  return `/${lang}/demo/${key}`;
 }
 
 /** True when going from one screen to the other changes only the search params. */
@@ -127,6 +116,6 @@ export function direction(from: DemoScreen, to: DemoScreen): 1 | -1 {
   if (a !== b) return b > a ? 1 : -1;
   // A move inside one tab that is neither up nor down (client info → client
   // ID) is still a tap on something, so it goes forward. Only going back
-  // through history slides the other way, and DemoShell decides that itself.
+  // through history slides the other way, and Demo1Shell decides that itself.
   return 1;
 }

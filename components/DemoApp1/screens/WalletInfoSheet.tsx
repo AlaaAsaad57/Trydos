@@ -35,7 +35,7 @@ import { SheetTitle } from "./WalletCashOutSheet";
  *   - four actions at y 855: a 20 px picture over an 11 px label. The labels
  *     start at x 65, 157, 234 and 336.
  *
- * On /demo1 the sheet is as wide as the screen. The fields keep 20 px to both
+ * On /demo the sheet is as wide as the screen. The fields keep 20 px to both
  * edges. The QR code and the row of actions keep their size and stay centred
  * the way the file centres them.
  */

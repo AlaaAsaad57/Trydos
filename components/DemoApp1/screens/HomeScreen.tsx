@@ -25,7 +25,7 @@ import { TRAVEL } from "components/NavigationDemo/BottomNav";
  * hugs its word (12 px each side). A longer word in another language makes
  * its slot wider, keeps 4 px before the next pill, and the row scrolls.
  *
- * On /demo1 the header is the sticky head of a fluid page (`ScreenPage`), and
+ * On /demo the header is the sticky head of a fluid page (`ScreenPage`), and
  * the chip row takes whatever width the screen leaves after the mark.
  */
 const CATEGORIES = ["Man", "Women", "Children", "Home", "Electronic"] as const;

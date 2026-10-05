@@ -39,7 +39,7 @@ import WalletReceipt, { RECEIPT_GLASS } from "./WalletReceipt";
  * outside the screen, and a slide to the side brings it in. The dots show
  * which one is on show.
  *
- * On /demo1 the screen's width is not 430, so the cards are measured from the
+ * On /demo the screen's width is not 430, so the cards are measured from the
  * page column: two small cards share the row (12 px to the edges, 6 between
  * them), a grown card is the column less 24, and one slider page is the
  * column's width. On a 430 px phone that is the file's 200, 406 and 430. The
@@ -287,7 +287,7 @@ export default function WalletScreen() {
  * The wide card of `Home Page – 17` has a second column from x 302 to 406: the
  * QR mark at its right end, and under it Cash In and Cash Out — a 20 px
  * picture at y 189 over an 11 px label on baseline 226. The labels start at
- * x 302 and 359. On /demo1 that column is pinned to the card's right edge, so
+ * x 302 and 359. On /demo that column is pinned to the card's right edge, so
  * it keeps its 104 px and the room before it follows the screen's width.
  */
 function BalanceCard({

@@ -5,7 +5,7 @@ const root = vi.hoisted(() => ({ lang: "sy-en" }));
 vi.mock("next/root-params", () => ({ lang: async () => root.lang }));
 vi.mock("components/DemoApp1/Demo1Shell", () => ({ default: () => null }));
 
-import Demo1Layout from "app/(client)/[lang]/demo1/layout";
+import Demo1Layout from "app/(client)/[lang]/demo/layout";
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
 
 /** The word list the layout hands to the demo shell. */
@@ -21,11 +21,11 @@ const dictionaryFor = async (lang: string) => {
   const shell = tree.props.children
     .map((child) => child?.props?.children)
     .find((child) => child?.type === Demo1Shell);
-  expect(shell, "the layout does not render the demo1 shell").toBeDefined();
+  expect(shell, "the layout does not render the demo shell").toBeDefined();
   return shell!.props.dictionary;
 };
 
-describe("demo1 layout", () => {
+describe("demo layout", () => {
   it("hands the shell English with a capital letter on every word, as the rest of the app shows it", async () => {
     const english = await dictionaryFor("sy-en");
     expect(

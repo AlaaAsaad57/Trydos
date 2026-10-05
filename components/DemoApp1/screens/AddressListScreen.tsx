@@ -37,7 +37,7 @@ import {
  * (190, 380), "Delete below address ?", the card again drawn in white lines,
  * a white X top right, and a white "Sure, Delete" button.
  *
- * On /demo1 the cards keep 12 px to both edges of the screen (fluid, 406 on a
+ * On /demo the cards keep 12 px to both edges of the screen (fluid, 406 on a
  * 430 px phone), and the edit and delete marks keep their distance to the
  * card's right edge. The card and the button are pinned to the bottom of
  * the screen in the page's footer. The delete question is a layer on <body>

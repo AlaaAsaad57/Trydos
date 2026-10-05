@@ -22,7 +22,7 @@ import { WALLET_RECEIPT } from "../../DemoApp/demoWallet";
  *   - Download and Share at y 664: a 20 px picture over an 11 px label. The
  *     labels start at x 145 and 252.
  *
- * On /demo1 the receipt is a layer on <body> (`Layer`). The card keeps 12 px
+ * On /demo the receipt is a layer on <body> (`Layer`). The card keeps 12 px
  * to both edges of the screen, and its cells share the card's width in the
  * file's ratio. The marks, the QR code and the two actions keep their size.
  */

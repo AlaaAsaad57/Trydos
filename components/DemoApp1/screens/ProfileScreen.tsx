@@ -26,7 +26,7 @@ import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
  * Every block is spaced from the one above it by the file's own gap (see
  * MENU for the one row the file overlaps).
  *
- * On /demo1 the page is the document, and the widths are fluid: the cards
+ * On /demo the page is the document, and the widths are fluid: the cards
  * keep the file's 12 px to both edges of the screen, the switches keep their
  * distance to the right edge, and Orders and Wallet share their row. On a
  * 430 px screen every width is the file's.
@@ -382,7 +382,7 @@ const PROMO_GAP = 4;
  * baseline 23, the help mark (15 px) at (379.5, 11.5), the text on baseline
  * 43, and the 382 x 38 button at (12, 58).
  *
- * On /demo1 a card keeps 12 px to both edges of the screen (406 on a 430 px
+ * On /demo a card keeps 12 px to both edges of the screen (406 on a 430 px
  * screen), so the next card still peeks in by the file's 8 px. One step of a
  * swipe is a card and the gap, read from the slider's width.
  */

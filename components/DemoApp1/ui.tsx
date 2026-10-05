@@ -39,11 +39,11 @@ import {
 } from "./demo1Layout";
 
 /**
- * The building blocks of the fluid demo (/demo1).
+ * The building blocks of the fluid demo (/demo).
  *
- * The blocks that do not care about the canvas are the /demo ones, unchanged:
+ * The blocks that do not care about the canvas are the old scaled demo ones, unchanged:
  * a line (`Stroke`), a text line (`Txt`), a box (`Box`), an icon (`Icon`) and
- * the scrolling part of a sheet (`Under`). Every block below is the /demo
+ * the scrolling part of a sheet (`Under`). Every block below is the old scaled demo
  * block, changed in three ways only:
  *
  *  1. Widths are fluid (`fill()` in demo1Layout.ts): a row keeps the file's
@@ -59,10 +59,10 @@ import {
 export { Box, Icon, Stroke, Txt, type Weight } from "../DemoApp/ui";
 
 /**
- * The part of a sheet that scrolls: everything under the head. The /demo
+ * The part of a sheet that scrolls: everything under the head. The old scaled demo
  * block (`Under` in DemoApp/ui), with room at its end.
  *
- * On /demo1 a sheet runs on under Safari's bar (UNDER_BAR), and this part
+ * On /demo a sheet runs on under Safari's bar (UNDER_BAR), and this part
  * with it, so its rows are seen through the bar's glass while they scroll.
  * The room at the end, as tall as the part under the bar, lets the last row
  * scroll back up over the bar.
@@ -238,7 +238,7 @@ export function useScrollLock(on: boolean) {
 }
 
 /**
- * The top strip of /demo1 (see components/DemoApp/topTint.ts), on <body>.
+ * The top strip of /demo (see components/DemoApp/topTint.ts), on <body>.
  * Hidden while no layer is open: Safari then reads what is under it, the
  * screen's white sticky header, or the page through its glass.
  */
@@ -271,9 +271,9 @@ function useMounted() {
  * box as wide as the screen is also what makes Safari paint that room in one
  * solid colour (see EDGE_ANCHOR in demo1Layout.ts).
  *
- * It is as tall as the window (`innerHeight`), the height /demo's canvas has,
+ * It is as tall as the window (`innerHeight`), the height the old scaled demo's canvas has,
  * and not the box `inset: 0` gives: on iOS 26 that box ends above Safari's
- * floating bar. So a sheet runs on under the bar, as on /demo, and what the
+ * floating bar. So a sheet runs on under the bar, as on the old scaled demo, and what the
  * bar covers is reached by scrolling the sheet.
  */
 export function Layer({
@@ -499,7 +499,7 @@ export function FileLines({
  * button, the "Why add a address?" card). It is a sticky anchor 0 px tall at
  * the end of the page: it rests on the bottom of the screen while the page
  * scrolls, and the blocks inside it are placed with `bottom`, their distance
- * from the bottom of the screen, as in /demo.
+ * from the bottom of the screen, as in the old scaled demo.
  *
  * `tabBar` keeps room for the tab bar under the last block of a tab screen.
  */
@@ -587,7 +587,7 @@ export function PageFooter({ children }: { children: React.ReactNode }) {
 /**
  * The header of every inner screen: a white 50 px strip with the back arrow,
  * a centred title and, on some screens, "Cancel" or "Edit" on the right. It is
- * the /demo header in the flow: `ScreenPage` makes the head sticky.
+ * the old scaled demo header in the flow: `ScreenPage` makes the head sticky.
  */
 export function ScreenHeader({
   title,
@@ -750,7 +750,7 @@ export function InfoBanner({
 /**
  * A field: a 12 px label on baseline +20 and a 14 px value on +43, 55 tall,
  * 12 px in from both edges of the screen (the file's 406 on a 430 phone).
- * Same looks and the same "in use" rule as the /demo field.
+ * Same looks and the same "in use" rule as the old scaled demo field.
  */
 export function Field({
   mt,
@@ -969,8 +969,8 @@ const isTextField = (el: Element | null) =>
     (el as HTMLElement).isContentEditable);
 
 /**
- * The window's height (`innerHeight`), the number /demo's canvas is fitted to.
- * Held while a text field has focus, as on /demo: Android makes `innerHeight`
+ * The window's height (`innerHeight`), the number the old scaled demo's canvas is fitted to.
+ * Held while a text field has focus, as on the old scaled demo: Android makes `innerHeight`
  * smaller when the keyboard opens, and the layer must not shrink under it.
  * Undefined before the page runs in the browser.
  */
@@ -994,11 +994,11 @@ function useScreenHeight(watch = true) {
 
 /**
  * The bottom sheet: the page dims to `#1D1D1D` at 90%, and a white sheet with
- * round top corners slides up from the bottom. The /demo sheet, as a layer on
+ * round top corners slides up from the bottom. The old scaled demo sheet, as a layer on
  * <body> over the whole screen (`Layer`), with the dimmed page's grey as the
  * colour of Safari's top area while it is open (`tint`).
  *
- * `y`, `lower`, `fit` and `outline` mean what they mean in /demo, with the
+ * `y`, `lower`, `fit` and `outline` mean what they mean in the old scaled demo, with the
  * screen in place of the canvas.
  */
 export function Sheet({
@@ -1145,7 +1145,7 @@ const INPUT_SELECTOR =
 /**
  * On a touch device the inputs of a sheet take no taps (the app's own keypad
  * opens instead of the phone's), so a tap is handed to the field under it.
- * The same rule as the /demo sheet.
+ * The same rule as the old scaled demo sheet.
  */
 function focusTappedField(e: React.MouseEvent<HTMLDivElement>, touch: boolean) {
   if (!touch) return;
@@ -1207,7 +1207,7 @@ function focusTappedField(e: React.MouseEvent<HTMLDivElement>, touch: boolean) {
 /**
  * The grey "Why add a address?" card with its "Learn more" button, 20 px from
  * both edges of the screen. Put it in the `footer` of `ScreenPage`; `bottom`
- * is its distance from the bottom of the screen, as in /demo.
+ * is its distance from the bottom of the screen, as in the old scaled demo.
  */
 export function WhyCard({
   bottom: fromBottom,

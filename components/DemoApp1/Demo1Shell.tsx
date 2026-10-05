@@ -44,10 +44,10 @@ import {
 } from "./demo1Layout";
 
 /**
- * The shell of the fluid demo at /[lang]/demo1.
+ * The shell of the fluid demo at /[lang]/demo.
  *
- * The same app as /demo (the same screens, the same data, the same URLs under
- * /demo1), built as a normal web page instead of a scaled canvas:
+ * The same app as the old scaled demo (the same screens, the same data, the same URLs under
+ * /demo), built as a normal web page instead of a scaled canvas:
  *
  *  - No AppScaler and no fixed layer over the window. The screen on show is
  *    in the document, and the DOCUMENT scrolls. That is what lets Safari 26 on
@@ -58,7 +58,7 @@ import {
  *    on show (HIDE_SITE_CHROME, served by the route's layout, so it is hidden
  *    on the first paint too).
  *
- * Navigation is the /demo shell's (see DemoShell for why it feels instant):
+ * Navigation is the old scaled demo shell's:
  * the screen changes on the tap, and the URL follows behind it.
  *
  * The slide between two screens
@@ -125,7 +125,7 @@ function Demo1ShellInner({
   const t = (key: DemoKey) => dictionary[key] ?? key;
   const { profile } = useDemoData();
 
-  const urlScreen = screenFromUrl(pathname, searchParams.toString(), "demo1");
+  const urlScreen = screenFromUrl(pathname, searchParams.toString());
   const [shown, setShown] = useState<DemoScreen | null>(urlScreen);
   const [leave, setLeave] = useState<Leave>({ dir: 1, scrollY: 0 });
   /** The screen a navigation we started is still on its way to. */
@@ -201,7 +201,7 @@ function Demo1ShellInner({
   const go = (to: DemoScreen, d: 1 | -1, how: "push" | "replace") => {
     const from = shown;
     leaveTo(to, d);
-    const href = hrefFor(locale, to, "demo1");
+    const href = hrefFor(locale, to);
     if (from && sameRoute(from, to)) {
       // Search params only: no server call. Next keeps useSearchParams in step.
       if (how === "push") window.history.pushState(null, "", href);
@@ -264,7 +264,7 @@ function Demo1ShellInner({
         t={t}
       />
 
-      {/* The demo's own switches, as on /demo: the right edge, mid-height. */}
+      {/* The demo's own switches, as on the old scaled demo: the right edge, mid-height. */}
       <div
         data-pw="demo-controls"
         className="fixed right-2 top-1/2 -translate-y-1/2 z-[999999999999] flex flex-col items-end gap-2 font-quicksand select-none"

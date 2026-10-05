@@ -18,7 +18,7 @@ import { Field, FieldInput, InfoBanner, ScreenHeader, ScreenPage } from "../ui";
  * The file has this one state only: no save button and nothing in the top
  * bar. So nothing is added — what the shopper types is kept as it is typed.
  *
- * On /demo1 the banner and the fields keep 12 px to both edges of the screen
+ * On /demo the banner and the fields keep 12 px to both edges of the screen
  * (fluid, 406 on a 430 px phone); `Field` and `InfoBanner` do it.
  */
 const FIELDS: {
