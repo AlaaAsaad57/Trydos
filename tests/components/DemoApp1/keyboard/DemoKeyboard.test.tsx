@@ -126,33 +126,86 @@ describe("DemoKeyboard — the page's own keyboard on a touch device", () => {
     );
   });
 
-  it("hangs on a fixed anchor with no width, so Safari 26 finds no bar at the bottom edge", () => {
-    render(<Page />);
-    focus("name");
-    const anchor = keyboard()!.parentElement!;
-    expect(anchor.style.position, "the keyboard's anchor is not fixed").toBe(
-      "fixed",
-    );
-    expect(
-      anchor.style.width,
-      "the keyboard's fixed box has a width; Safari paints the room under its bar solid",
-    ).toBe("0px");
+  // Seen on the iPhone: Safari draws a fixed box only down to the window's
+  // end, 16 pt above its bar, so a fixed keyboard stopped above the bar. Only
+  // what is in the document is drawn under the bar, like a sheet's tail.
+  it("is in the document at the window's end, not fixed, so Safari draws it under its bar", () => {
+    Object.defineProperty(window, "scrollY", { value: 300, configurable: true });
+    Object.defineProperty(window, "innerHeight", { value: 800, configurable: true });
+    try {
+      render(<Page />);
+      focus("name");
+      const anchor = keyboard()!.parentElement!;
+      expect(
+        anchor.style.position,
+        "the keyboard's anchor is fixed; Safari cuts a fixed box at the window's end, above its bar",
+      ).toBe("absolute");
+      expect(
+        anchor.style.top,
+        "the anchor is not at the window's end (the page's scroll, 300, and the window's height, 800)",
+      ).toBe("1100px");
+      expect(
+        anchor.style.width,
+        "the keyboard's anchor has a width of its own",
+      ).toBe("0px");
+      Object.defineProperty(window, "scrollY", { value: 450, configurable: true });
+      act(() => {
+        window.dispatchEvent(new Event("scroll"));
+      });
+      expect(
+        anchor.style.top,
+        "the keyboard did not stay at the window's end when the page scrolled to 450",
+      ).toBe("1250px");
+    } finally {
+      Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
+      Object.defineProperty(window, "innerHeight", { value: 768, configurable: true });
+    }
   });
 
-  // Seen on the iPhone: the panel ran on 120 px past the window's end, and
-  // Safari painted the room under its bar in one solid colour. The panel ends
-  // with the window; under the bar the page shows, and the bar stays glass.
-  it("ends with the window, so the page shows under Safari's bar and not the keyboard's fixed panel", () => {
+  it("runs on 120 px past the window's end, so its glass starts behind Safari's bar and the keys stay over the bar", () => {
     render(<Page />);
     focus("name");
     expect(
       keyboard()!.style.bottom,
-      "the keyboard's fixed panel runs on past the window's end, under Safari's bar",
-    ).toBe("0px");
+      "the keyboard's glass stops at the window's end, above Safari's bar",
+    ).toBe("-120px");
     expect(
       keyboard()!.style.paddingBottom,
-      "the keyboard keeps a tail under its keys for the room under Safari's bar",
-    ).toBe("0px");
+      "the keys have no room under them, so the last row would be under Safari's bar",
+    ).toBe("120px");
+  });
+
+  // Measured on a picture from a 440 pt iPhone: Safari's bar starts 34 pt
+  // from each side of the screen, and its glass is white at about 66 %.
+  it("is as wide as Safari's bar: 34 px in from each side of the page column", () => {
+    render(<Page />);
+    focus("name");
+    expect(
+      keyboard()!.style.marginLeft,
+      "the keyboard does not start 34 px in from the column's left side",
+    ).toBe("34px");
+    expect(
+      keyboard()!.style.marginRight,
+      "the keyboard does not end 34 px before the column's right side",
+    ).toBe("34px");
+    expect(
+      keyboard()!.style.width,
+      "the keyboard has a width of its own, so the side margins cannot make it narrower",
+    ).toBe("");
+  });
+
+  it("has the glass of Safari's bar: white at 66 %, and round on all four corners", () => {
+    render(<Page />);
+    focus("name");
+    const css = keyboard()!.querySelector("style")?.textContent ?? "";
+    expect(
+      css,
+      "the panel's tint is not the white at 66 % measured on Safari's bar",
+    ).toContain("--dkb-panel: rgba(255, 255, 255, 0.66);");
+    expect(
+      css,
+      "the panel is not round on all four corners, like a card over the page",
+    ).toContain("border-radius: 26px;");
   });
 
   describe("when the keys would cover the field in use", () => {

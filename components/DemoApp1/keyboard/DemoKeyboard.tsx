@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 import { DEMO_KEYBOARD } from "../../DemoApp/demoKeyboard";
 import type { DemoKey } from "../../DemoApp/demoKeys";
-import { COLUMN_W, EDGE_ANCHOR, PAGE_MAX } from "../demo1Layout";
+import { COLUMN_W, EDGE_ANCHOR, PAGE_MAX, UNDER_BAR } from "../demo1Layout";
 import {
   isPad,
   kindOf,
@@ -50,10 +50,15 @@ import {
  *
  * Where it is
  * -----------
- * On <body>, on a fixed anchor with no size at the window's bottom edge, like
- * the tab bar (see EDGE_ANCHOR in demo1Layout.ts). It ends with the window:
- * under Safari's floating bar the page shows, and the bar stays glass. A
- * fixed panel that ran on under the bar was painted there in one solid colour.
+ * On <body>, in the document: an `absolute` anchor with no size, kept at the
+ * window's end while the page scrolls, like a sheet's layer (Layer in ui.tsx).
+ * Safari 26 draws a fixed box only down to the window's end, which is above
+ * its floating bar; only the document is drawn under the bar. So the panel
+ * runs on under the bar (UNDER_BAR) and the bar lies on the keyboard's glass.
+ * The keys end with the window, over the bar.
+ *
+ * It is as wide as Safari's bar (BAR_SIDE) and has the bar's glass, so the
+ * two read as one set.
  *
  * It moves nothing: no scroll, no room added to the page, no sheet moved up.
  * A field that is under the keys stays there until the shopper scrolls to it.
@@ -108,6 +113,12 @@ const SPRING = {
  * panel's top and the first keys, corners 8.5 on a key and 26 on the panel.
  */
 const TOP = 16;
+
+/**
+ * How far Safari 26's floating bar starts from each side of the screen, in
+ * px. Measured on a picture from a 440 pt iPhone; the keyboard is as wide.
+ */
+const BAR_SIDE = 34;
 const CHIN = 58;
 
 /**
@@ -123,7 +134,9 @@ const PAD_CHIN = 14;
 
 const STYLE = `
 .dkb {
-  --dkb-panel: linear-gradient(180deg, rgba(196, 199, 206, 0.5), rgba(186, 190, 198, 0.5));
+  /* The glass of Safari's bar, measured on the same picture: the bar's
+     pills are white at about 66 % over what is behind them. */
+  --dkb-panel: rgba(255, 255, 255, 0.66);
   --dkb-rim: linear-gradient(165deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.2) 28%, rgba(255, 255, 255, 0.06) 62%, rgba(255, 255, 255, 0.55));
   --dkb-glow: rgba(255, 255, 255, 0.55);
   --dkb-key: rgba(255, 255, 255, 0.96);
@@ -132,8 +145,9 @@ const STYLE = `
   --dkb-pop: rgba(255, 255, 255, 0.97);
   --dkb-ink: #000000;
   --dkb-soft: rgba(40, 40, 46, 0.78);
-  --dkb-shade: 0 0.5px 1px rgba(0, 0, 0, 0.1);
-  --dkb-lens: blur(40px) saturate(190%) brightness(1.06);
+  /* Over a white page the panel is white too: the shade is what shows a key. */
+  --dkb-shade: 0 1px 2.5px rgba(0, 0, 0, 0.16), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+  --dkb-lens: blur(24px) saturate(180%);
   color: var(--dkb-ink);
   font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
   /* Liquid glass: a thin tint, so the page shows through; the blur, the
@@ -142,8 +156,8 @@ const STYLE = `
   -webkit-backdrop-filter: var(--dkb-lens);
   backdrop-filter: var(--dkb-lens);
   box-shadow: inset 0 1.5px 1px var(--dkb-glow), inset 0 10px 24px -12px var(--dkb-glow),
-    0 -12px 40px rgba(0, 0, 0, 0.14);
-  border-radius: 26px 26px 0 0;
+    0 8px 30px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+  border-radius: 26px;
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
@@ -270,6 +284,7 @@ export default function DemoKeyboard({
   const [shift, setShift] = useState<Shift>("off");
   const [down, setDown] = useState<string | null>(null);
   const panel = useRef<HTMLDivElement>(null);
+  const anchor = useRef<HTMLDivElement>(null);
   const repeat = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shiftAt = useRef(0);
 
@@ -387,8 +402,25 @@ export default function DemoKeyboard({
     return stopRepeat;
   }, [field]);
 
-  // A press on the keys must not take the focus off the field.
   const shown = field !== null;
+
+  // The anchor is in the document, so it follows the window's end by hand.
+  useLayoutEffect(() => {
+    if (!shown) return;
+    const follow = () => {
+      if (anchor.current)
+        anchor.current.style.top = `${window.scrollY + window.innerHeight}px`;
+    };
+    follow();
+    window.addEventListener("scroll", follow, { passive: true });
+    window.addEventListener("resize", follow);
+    return () => {
+      window.removeEventListener("scroll", follow);
+      window.removeEventListener("resize", follow);
+    };
+  }, [shown]);
+
+  // A press on the keys must not take the focus off the field.
   useEffect(() => {
     const box = panel.current;
     if (!shown || !box) return;
@@ -604,10 +636,11 @@ export default function DemoKeyboard({
         {field && (
           <div
             key="keyboard"
+            ref={anchor}
             style={{
               ...EDGE_ANCHOR,
-              top: undefined,
-              bottom: 0,
+              position: "absolute",
+              top: window.scrollY + window.innerHeight,
               zIndex: 2147483647,
             }}
           >
@@ -621,12 +654,14 @@ export default function DemoKeyboard({
               className="dkb"
               style={{
                 position: "absolute",
+                // The page column, less the bar's room on each side.
                 left: `calc(${COLUMN_W} / -2)`,
-                width: COLUMN_W,
-                // The panel ends with the window: past it, under Safari's
-                // floating bar, a fixed box is painted in one solid colour.
-                bottom: 0,
-                padding: `${TOP}px 3px 0`,
+                right: `calc(${COLUMN_W} / -2)`,
+                margin: `0 ${BAR_SIDE}px`,
+                // The glass runs on under Safari's bar; the keys end
+                // with the window.
+                bottom: -UNDER_BAR,
+                padding: `${TOP}px 3px ${UNDER_BAR}px`,
                 ["--dkb-row" as string]: `${row}px`,
               }}
               initial={{ y: "100%" }}
