@@ -355,6 +355,8 @@ export function Layer({
       >
         <div
           data-pw={testId}
+          // The demo's keyboard moves this box up when a field in it cannot scroll.
+          data-demo-layer=""
           className={`font-quicksand ${className}`}
           style={{ ...columnBox(height), ...style }}
         >

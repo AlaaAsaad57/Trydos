@@ -255,6 +255,13 @@ export const DEMO_KEYS = [
   "So once the payment is completed, the balance will be added automatically. It is considered a one-time-use wallet only",
   "Your deposit request ready to collect !",
   "Present this code along with your personal ID at any of our branches and pay the amount in complete security.",
+  "Shift",
+  "Space",
+  "Return",
+  "Numbers",
+  "Symbols",
+  "Letters",
+  "Next keyboard",
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];

@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import RdbPinInputs from "components/Login/Enhanced/ui/RdbPinInputs";
 import XdIcon from "../../DemoApp/XdIcon";
+import { DEMO_KEYBOARD } from "../../DemoApp/demoKeyboard";
 import { useDemoNav } from "../Demo1Shell";
 import { useDemoData, type DemoGender } from "../../DemoApp/DemoData";
 import { C, DESIGN_W, gapTo, lineBox, textBottom } from "../demo1Layout";
@@ -321,6 +322,8 @@ function EmailCodeSheet({
         <RdbPinInputs
           key={ready ? "focused" : "resting"}
           autoFocus={ready}
+          // The demo's keyboard types the code, not the login's keypad.
+          disableCustomKeypad={DEMO_KEYBOARD}
           value={pin}
           onChange={setPin}
           isValidPin={valid}

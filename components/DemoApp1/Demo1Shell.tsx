@@ -42,6 +42,7 @@ import {
   SCREEN_TRANSITION,
   columnBox,
 } from "./demo1Layout";
+import DemoKeyboard from "./keyboard/DemoKeyboard";
 
 /**
  * The shell of the fluid demo at /[lang]/demo.
@@ -290,6 +291,7 @@ function Demo1ShellInner({
         )}
         {!hideMenu && <DebugButtons t={t} />}
       </div>
+      <DemoKeyboard locale={locale} t={t} />
       <DemoDeviceInfoModal
         open={deviceInfo}
         onClose={() => setDeviceInfo(false)}
