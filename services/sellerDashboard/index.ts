@@ -707,19 +707,35 @@ class SellerDashboardService {
     ).split("-");
     const targetUrl = `/shop/excel/downloadExcel/${categoryId}`;
 
-    const res = await fetch("/api/proxy", {
-      method: "POST",
-      headers: {
-        "x-proxy-server": toServiceToken("market-dashboard"),
-        "x-proxy-url": encodeURI(targetUrl),
-        "x-proxy-method": "GET",
-        "x-country": country || "sy",
-        "x-language": lang || "en",
-        "x-need-decode": "true",
-        "x-seller-id": sellerId,
-      },
-      credentials: "include",
-    });
+    const request = () =>
+      fetch("/api/proxy", {
+        method: "POST",
+        headers: {
+          "x-proxy-server": toServiceToken("market-dashboard"),
+          "x-proxy-url": encodeURI(targetUrl),
+          "x-proxy-method": "GET",
+          "x-country": country || "sy",
+          "x-language": lang || "en",
+          "x-need-decode": "true",
+          "x-seller-id": sellerId,
+        },
+        credentials: "include",
+      });
+
+    const sentAt = Date.now();
+    let res = await request();
+
+    // fetchData renews the session on a 401; this call bypasses it, so do the
+    // same here: one exchange, then the same request once more.
+    if (res.status === 401) {
+      const authService = await import("services/auth");
+      const refresh = await authService.default.RefreshSession(
+        targetUrl,
+        "market-dashboard",
+        sentAt,
+      );
+      if (refresh.eligible) res = await request();
+    }
 
     const contentType = res.headers.get("content-type") || "";
 

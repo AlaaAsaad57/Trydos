@@ -36,6 +36,12 @@ vi.mock("utils/fetchData", () => ({
   fetchData: (...args: unknown[]) => fetchData(...args),
 }));
 
+const refreshSession = vi.fn();
+
+vi.mock("services/auth", () => ({
+  default: { RefreshSession: (...args: unknown[]) => refreshSession(...args) },
+}));
+
 import sellerDashboard from "services/sellerDashboard";
 
 /** The body the service actually sent, parsed back from the request. */
@@ -618,5 +624,54 @@ describe("seller-dashboard service — downloadExcelTemplate", () => {
       s.downloadExcelTemplate("9", 4),
       "the status should be in the default message",
     ).rejects.toThrow("Failed to download template (502)");
+  });
+
+  // The access token lives 60 seconds, so a seller who waits on the tab meets a
+  // 401 here. This call does not go through fetchData, so it must renew the
+  // session itself: one exchange, then the same request once more.
+  it("renews the session on a 401 and asks for the template again", async () => {
+    refreshSession.mockReset().mockResolvedValue({ refreshed: true, eligible: true });
+    fetchMock
+      .mockResolvedValueOnce(response({ ok: false, status: 401, json: { message: "Unauthenticated." } }))
+      .mockResolvedValueOnce(response({ headers: { "content-type": "application/octet-stream" } }));
+
+    const out = await s.downloadExcelTemplate("9", 4);
+
+    const [url, server] = refreshSession.mock.calls[0] ?? [];
+    expect(url, "the 401 did not start a market session renewal for the template address").toBe(
+      "/shop/excel/downloadExcel/4",
+    );
+    expect(server, "the renewal was not asked for the market-dashboard service").toBe("market-dashboard");
+    expect(
+      fetchMock.mock.calls[1]?.[1]?.headers["x-proxy-url"],
+      "the template was not asked for again after the renewal",
+    ).toBe("/shop/excel/downloadExcel/4");
+    expect(out.blob, "the retry answered a file, but it was not returned").toBeInstanceOf(Blob);
+  });
+
+  it("fails with the backend message when the retry after a renewal is a 401 too", async () => {
+    refreshSession.mockReset().mockResolvedValue({ refreshed: false, eligible: true });
+    fetchMock.mockResolvedValue(response({ ok: false, status: 401, json: { message: "Unauthenticated." } }));
+
+    await expect(
+      s.downloadExcelTemplate("9", 4),
+      "a second 401 must reach the seller as an error",
+    ).rejects.toThrow("Unauthenticated.");
+    expect(
+      fetchMock.mock.calls[2],
+      "the template was asked for a third time; one retry is the limit",
+    ).toBeUndefined();
+    expect(refreshSession.mock.calls[1], "the session was renewed twice for one download").toBeUndefined();
+  });
+
+  it("does not retry a 401 when the renewal says the request is not eligible", async () => {
+    refreshSession.mockReset().mockResolvedValue({ refreshed: false, eligible: false });
+    fetchMock.mockResolvedValue(response({ ok: false, status: 401, json: { message: "Unauthenticated." } }));
+
+    await expect(
+      s.downloadExcelTemplate("9", 4),
+      "an ineligible 401 must reach the seller as an error",
+    ).rejects.toThrow("Unauthenticated.");
+    expect(fetchMock.mock.calls[1], "the template was asked for again without a renewal").toBeUndefined();
   });
 });
