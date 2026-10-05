@@ -139,6 +139,73 @@ describe("DemoKeyboard — the page's own keyboard on a touch device", () => {
     ).toBe("0px");
   });
 
+  // Seen on the iPhone: the panel ran on 120 px past the window's end, and
+  // Safari painted the room under its bar in one solid colour. The panel ends
+  // with the window; under the bar the page shows, and the bar stays glass.
+  it("ends with the window, so the page shows under Safari's bar and not the keyboard's fixed panel", () => {
+    render(<Page />);
+    focus("name");
+    expect(
+      keyboard()!.style.bottom,
+      "the keyboard's fixed panel runs on past the window's end, under Safari's bar",
+    ).toBe("0px");
+    expect(
+      keyboard()!.style.paddingBottom,
+      "the keyboard keeps a tail under its keys for the room under Safari's bar",
+    ).toBe("0px");
+  });
+
+  describe("when the keys would cover the field in use", () => {
+    // jsdom lays nothing out: here every box ends far under the keys.
+    const scrollBy = vi.fn();
+    const scrollByBefore = Element.prototype.scrollBy;
+    beforeEach(() => {
+      vi.useFakeTimers();
+      scrollBy.mockClear();
+      vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(
+        () => ({ height: 23, bottom: 5000 }) as DOMRect,
+      );
+      vi.spyOn(window, "scrollBy").mockImplementation(scrollBy);
+      Element.prototype.scrollBy = scrollBy;
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+      Element.prototype.scrollBy = scrollByBefore;
+    });
+
+    it("scrolls nothing and adds no room to the page: the keyboard moves nothing", () => {
+      render(<Page />);
+      focus("name");
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(
+        scrollBy.mock.calls,
+        "the keyboard scrolled the page to bring the field over the keys",
+      ).toEqual([]);
+      expect(
+        document.body.querySelector('[data-pw="demo-keyboard-room"]'),
+        "the keyboard added room to the page so it could scroll the field up",
+      ).toBeNull();
+    });
+
+    it("leaves a sheet that cannot scroll where it is", () => {
+      render(
+        <div data-demo-layer="" data-pw="layer">
+          <Page />
+        </div>,
+      );
+      focus("name");
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(
+        document.querySelector<HTMLElement>('[data-pw="layer"]')!.style.transform,
+        "the keyboard moved the sheet up to bring the field over the keys",
+      ).toBe("");
+    });
+  });
+
   it("types a capital first and small letters after it", () => {
     render(<Page />);
     focus("name");

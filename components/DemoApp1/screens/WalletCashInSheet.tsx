@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NumericKeypad } from "components/Login/Enhanced/ui/NumericKeypad";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
-import { KEYBOARD_GAP } from "scaling/scale.config";
 import { useDemoNav } from "../Demo1Shell";
 import { NATIVE_WALLET_KEYBOARD } from "../../DemoApp/demoKeyboard";
 import {
@@ -13,7 +12,6 @@ import {
   SAFE_TOP,
   SF_ROUNDED,
   SHEET,
-  STATUS_BAR,
   UNDER_BAR,
   fill,
   gapTo,
@@ -127,17 +125,6 @@ const fileLines = <L,>(narrow: boolean, lines: L[]) => (narrow ? [] : lines);
 const wrap = (narrow: boolean): React.CSSProperties => ({
   whiteSpace: narrow ? "pre-wrap" : "pre",
 });
-
-/**
- * Room at the end of a form while a field is in use: the part under the head
- * can then scroll the field up over the keyboard. The app's keypad is 35vh;
- * a phone's own keyboard is about half the screen.
- */
-function KeyboardRoom() {
-  return (
-    <div aria-hidden="true" className="shrink-0" style={{ height: "50vh" }} />
-  );
-}
 
 /** A typed amount as a number. */
 const toNumber = (text: string) =>
@@ -874,7 +861,6 @@ function Rdb({
                 testId="demo-wallet-cash-in-connect"
               />
             </div>
-            {typing && <KeyboardRoom />}
           </>
         ) : (
           <>
@@ -1049,9 +1035,8 @@ function ThankYou() {
  * away; the file draws these forms with the keypad away. With a mouse and a
  * keyboard the field is a plain input, in use as the form opens.
  *
- * The old scaled demo lifted the whole scaled canvas over the keyboard. /demo has no
- * canvas, so the part under the head scrolls the field up over the keyboard
- * instead (see `KeyboardRoom`).
+ * The old scaled demo lifted the whole scaled canvas over the keyboard. On
+ * /demo the keyboard moves nothing: the form stays where it is.
  */
 function AmountField({
   mt,
@@ -1106,35 +1091,7 @@ function AmountField({
   useEffect(() => () => onKeypad(false), []);
   const keys = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
-  const field = useRef<HTMLDivElement>(null);
   const { t } = useDemoNav();
-
-  // While the field is in use, the part under the head scrolls it up until
-  // it ends over the keyboard: the app's keypad, or the phone's own keyboard
-  // (the visual viewport ends over it). The check runs again as the phone's
-  // keyboard slides in.
-  useEffect(() => {
-    if (!typing) return;
-    const box = field.current;
-    const under = box?.closest<HTMLElement>("[data-pw$='-under']");
-    if (!box || !under) return;
-    const view = window.visualViewport;
-    const lift = () => {
-      const limit = keyed
-        ? (roomy ? rooms.full : rooms.flush) - STATUS_BAR
-        : (view ? view.offsetTop + view.height : window.innerHeight) -
-          KEYBOARD_GAP;
-      const over = box.getBoundingClientRect().bottom - limit;
-      if (over > 0) under.scrollBy({ top: over, behavior: "smooth" });
-    };
-    // A moment later: the room at the end of the form comes on the next render.
-    const timer = setTimeout(lift, 50);
-    view?.addEventListener("resize", lift);
-    return () => {
-      clearTimeout(timer);
-      view?.removeEventListener("resize", lift);
-    };
-  }, [typing]);
 
   // With a keyboard, the field the file shows in use takes the typing.
   useEffect(() => {
@@ -1169,7 +1126,6 @@ function AmountField({
   return (
     <>
       <Box
-        ref={field}
         w={fill(20)}
         h={height}
         mt={mt}
@@ -1180,7 +1136,7 @@ function AmountField({
         data-pw="demo-wallet-cash-in-amount"
         data-keypad-field=""
         // The mark the old scaled demo's canvas read to stay over the keyboard.
-        // Nothing reads it on /demo; the scroll above does that job here.
+        // Nothing reads it on /demo.
         data-keyboard-anchor={touch && typing ? "" : undefined}
         className="flex flex-col overflow-hidden cursor-text"
         style={{ padding: "8px 12px 0", transition: "height 0.3s" }}
@@ -1476,7 +1432,6 @@ function Crypto({
             )}
           </AnimatePresence>
         </div>
-        {typing && <KeyboardRoom />}
       </Under>
     </>
   );

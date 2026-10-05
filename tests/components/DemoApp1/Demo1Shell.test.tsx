@@ -433,6 +433,12 @@ describe("Demo1 bottom — like the old scaled demo, Safari's bottom bar lies ov
         form().style.minHeight,
         "the crypto form lost its height while typing, so what is at its bottom moved up",
       ).toBe(resting);
+      // The room for the keyboard must not be inside the form's own box: there
+      // it takes the free height, and the button block ends up under the field.
+      expect(
+        form().lastElementChild?.getAttribute("aria-hidden"),
+        "an empty block sits after the button block inside the form, so the keyboard pushes the button up",
+      ).not.toBe("true");
     }));
 
   // On a phone the empty amount field used to jump from y 515 to y 397 as the
@@ -484,6 +490,12 @@ describe("Demo1 bottom — like the old scaled demo, Safari's bottom bar lies ov
         form().style.minHeight,
         "the form lost its height while typing, so the button moved up under the field",
       ).toBe(resting);
+      // The room for the keyboard must not be inside the form's own box: there
+      // it takes the free height, and the button block ends up under the field.
+      expect(
+        form().lastElementChild?.getAttribute("aria-hidden"),
+        "an empty block sits after the button block inside the form, so the keyboard pushes the button up",
+      ).not.toBe("true");
     } finally {
       Object.defineProperty(window, "innerWidth", { configurable: true, value: width });
     }

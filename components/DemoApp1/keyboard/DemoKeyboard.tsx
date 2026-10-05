@@ -4,10 +4,9 @@ import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
-import { KEYBOARD_GAP } from "scaling/scale.config";
 import { DEMO_KEYBOARD } from "../../DemoApp/demoKeyboard";
 import type { DemoKey } from "../../DemoApp/demoKeys";
-import { COLUMN_W, EDGE_ANCHOR, PAGE_MAX, UNDER_BAR } from "../demo1Layout";
+import { COLUMN_W, EDGE_ANCHOR, PAGE_MAX } from "../demo1Layout";
 import {
   isPad,
   kindOf,
@@ -52,12 +51,12 @@ import {
  * Where it is
  * -----------
  * On <body>, on a fixed anchor with no size at the window's bottom edge, like
- * the tab bar (see EDGE_ANCHOR in demo1Layout.ts). Its glass runs on under
- * Safari's floating bar (UNDER_BAR).
+ * the tab bar (see EDGE_ANCHOR in demo1Layout.ts). It ends with the window:
+ * under Safari's floating bar the page shows, and the bar stays glass. A
+ * fixed panel that ran on under the bar was painted there in one solid colour.
  *
- * The field in use is kept over the keys: the box that scrolls it (a sheet's
- * own part, or the document) gets room at its end and scrolls the field up.
- * A sheet that does not scroll is moved up instead.
+ * It moves nothing: no scroll, no room added to the page, no sheet moved up.
+ * A field that is under the keys stays there until the shopper scrolls to it.
  */
 
 const TEXT_FIELD =
@@ -93,30 +92,6 @@ const isTextField = (el: unknown): el is TextField =>
   el.matches(TEXT_FIELD) &&
   !(el as TextField).readOnly &&
   !(el as TextField).disabled;
-
-/** The box of the field that must stay over the keys. */
-function boxOf(field: TextField): Element {
-  const marked = field.closest("[data-keyboard-anchor]");
-  if (marked) return marked;
-  // A field that is hidden from the eye (the code boxes' own input): the
-  // boxes drawn before it are what the shopper looks at.
-  if (field.getBoundingClientRect().height < 4)
-    return field.previousElementSibling ?? field.parentElement ?? field;
-  return field;
-}
-
-/** The box inside the page that scrolls the field, if there is one. */
-function scrollerOf(field: Element): HTMLElement | null {
-  for (
-    let box = field.parentElement;
-    box && box !== document.body;
-    box = box.parentElement
-  ) {
-    const overflow = getComputedStyle(box).overflowY;
-    if (overflow === "auto" || overflow === "scroll") return box;
-  }
-  return null;
-}
 
 type Shift = "off" | "on" | "lock";
 
@@ -304,7 +279,6 @@ export default function DemoKeyboard({
   // An email is typed in Latin letters, whatever the page's language.
   const letters: Language = kind === "email" ? "en" : language;
   const row = on ? rowHeight() : 54;
-  const height = TOP + 4 * row + (pad ? PAD_CHIN : CHIN);
 
   // Every text field on the page is marked for this keyboard, and so is each
   // one that comes later (a sheet, a new screen).
@@ -426,46 +400,6 @@ export default function DemoKeyboard({
       box.removeEventListener("mousedown", keep);
     };
   }, [shown]);
-
-  // The field in use stays over the keys.
-  const [host, setHost] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    if (!field) {
-      setHost(null);
-      return;
-    }
-    const scroller = scrollerOf(field);
-    const layer = scroller
-      ? null
-      : field.closest<HTMLElement>("[data-demo-layer]");
-    // Room at the end of what scrolls, so the field can go up far enough.
-    setHost(
-      scroller ??
-        (layer
-          ? null
-          : document.querySelector<HTMLElement>('[data-pw="demo1-app"]')),
-    );
-    const lift = () => {
-      if (!field.isConnected) return;
-      if (layer) layer.style.transform = "";
-      const limit = window.innerHeight - height - KEYBOARD_GAP;
-      const over = boxOf(field).getBoundingClientRect().bottom - limit;
-      if (layer) {
-        layer.style.transition = "transform 0.3s";
-        if (over > 0) layer.style.transform = `translateY(${-over}px)`;
-        return;
-      }
-      if (over <= 0) return;
-      if (scroller) scroller.scrollBy({ top: over, behavior: "smooth" });
-      else window.scrollBy({ top: over, behavior: "smooth" });
-    };
-    // After the room is in the page, and again when a sheet has come to rest.
-    const timers = [setTimeout(lift, 80), setTimeout(lift, 550)];
-    return () => {
-      timers.forEach(clearTimeout);
-      if (layer) layer.style.transform = "";
-    };
-  }, [field, height]);
 
   const afterTyping = (to: TextField) => {
     if (shift === "lock") return;
@@ -666,17 +600,6 @@ export default function DemoKeyboard({
 
   return createPortal(
     <>
-      {field && host && host.isConnected
-        ? createPortal(
-            <div
-              aria-hidden="true"
-              data-pw="demo-keyboard-room"
-              className="shrink-0"
-              style={{ height: height + KEYBOARD_GAP, pointerEvents: "none" }}
-            />,
-            host,
-          )
-        : null}
       <AnimatePresence>
         {field && (
           <div
@@ -700,10 +623,10 @@ export default function DemoKeyboard({
                 position: "absolute",
                 left: `calc(${COLUMN_W} / -2)`,
                 width: COLUMN_W,
-                // The glass runs on under Safari's floating bar; the keys
-                // end with the window.
-                bottom: -UNDER_BAR,
-                padding: `${TOP}px 3px ${UNDER_BAR}px`,
+                // The panel ends with the window: past it, under Safari's
+                // floating bar, a fixed box is painted in one solid colour.
+                bottom: 0,
+                padding: `${TOP}px 3px 0`,
                 ["--dkb-row" as string]: `${row}px`,
               }}
               initial={{ y: "100%" }}
