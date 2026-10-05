@@ -175,8 +175,9 @@ describe("DemoKeyboard — the page's own keyboard on a touch device", () => {
     ).toBe("120px");
   });
 
-  // Measured on a picture from a 440 pt iPhone: Safari's bar starts 34 pt
-  // from each side of the screen, and its glass is white at about 66 %.
+  // Measured on pictures from the iPhone: Safari's bar starts 34 pt from each
+  // side of the screen. Its glass is white at about 48 %, and it lies on the
+  // keyboard's own glass; the panel at 53 % then shows the bar's colour.
   it("is as wide as Safari's bar: 34 px in from each side of the page column", () => {
     render(<Page />);
     focus("name");
@@ -194,14 +195,14 @@ describe("DemoKeyboard — the page's own keyboard on a touch device", () => {
     ).toBe("");
   });
 
-  it("has the glass of Safari's bar: white at 66 %, and round on all four corners", () => {
+  it("has the colour of Safari's bar: white at 53 %, and round on all four corners", () => {
     render(<Page />);
     focus("name");
     const css = keyboard()!.querySelector("style")?.textContent ?? "";
     expect(
       css,
-      "the panel's tint is not the white at 66 % measured on Safari's bar",
-    ).toContain("--dkb-panel: rgba(255, 255, 255, 0.66);");
+      "the panel's tint is not the white at 53 % that gives the colour of Safari's bar",
+    ).toContain("--dkb-panel: rgba(255, 255, 255, 0.53);");
     expect(
       css,
       "the panel is not round on all four corners, like a card over the page",

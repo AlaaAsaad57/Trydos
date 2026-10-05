@@ -134,9 +134,11 @@ const PAD_CHIN = 14;
 
 const STYLE = `
 .dkb {
-  /* The glass of Safari's bar, measured on the same picture: the bar's
-     pills are white at about 66 % over what is behind them. */
-  --dkb-panel: rgba(255, 255, 255, 0.66);
+  /* The colour of Safari's bar, measured on pictures from the iPhone. The
+     bar's pills are white at about 48 %, and they lie on this panel's tail,
+     which Safari fades to about a sixth under its bar. A panel at 53 % then
+     has the pills' colour, whatever the page's colour is. */
+  --dkb-panel: rgba(255, 255, 255, 0.53);
   --dkb-rim: linear-gradient(165deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.2) 28%, rgba(255, 255, 255, 0.06) 62%, rgba(255, 255, 255, 0.55));
   --dkb-glow: rgba(255, 255, 255, 0.55);
   --dkb-key: rgba(255, 255, 255, 0.96);
