@@ -57,7 +57,8 @@ import {
  * runs on under the bar (UNDER_BAR) and the bar lies on the keyboard's glass.
  * The keys end with the window, over the bar.
  *
- * It is as wide as Safari's bar (BAR_SIDE) and has the bar's glass, so the
+ * Its glass is as wide as the page column. Its keys are as wide as Safari's
+ * bar (BAR_SIDE of padding on each side). It has the bar's glass, so the
  * two read as one set.
  *
  * It moves nothing: no scroll, no room added to the page, no sheet moved up.
@@ -119,6 +120,13 @@ const TOP = 16;
  * px. Measured on a picture from a 440 pt iPhone; the keyboard is as wide.
  */
 const BAR_SIDE = 34;
+
+/**
+ * For now the keyboard is dark in a light theme too, to check that look on
+ * the phone. `false` gives the theme's own colours back.
+ */
+const ALWAYS_DARK = true;
+const DARK_WHEN = ALWAYS_DARK ? "all" : "(prefers-color-scheme: dark)";
 const CHIN = 58;
 
 /**
@@ -180,7 +188,7 @@ const STYLE = `
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
   pointer-events: none;
 }
-@media (prefers-color-scheme: dark) {
+@media ${DARK_WHEN} {
   .dkb {
     --dkb-panel: linear-gradient(180deg, rgba(34, 36, 42, 0.52), rgba(18, 19, 23, 0.58));
     --dkb-rim: linear-gradient(165deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.08) 28%, rgba(255, 255, 255, 0.02) 62%, rgba(255, 255, 255, 0.22));
@@ -656,14 +664,14 @@ export default function DemoKeyboard({
               className="dkb"
               style={{
                 position: "absolute",
-                // The page column, less the bar's room on each side.
+                // The page column. The padding keeps the keys as wide as
+                // Safari's bar.
                 left: `calc(${COLUMN_W} / -2)`,
                 right: `calc(${COLUMN_W} / -2)`,
-                margin: `0 ${BAR_SIDE}px`,
                 // The glass runs on under Safari's bar; the keys end
                 // with the window.
                 bottom: -UNDER_BAR,
-                padding: `${TOP}px 3px ${UNDER_BAR}px`,
+                padding: `${TOP}px ${BAR_SIDE + 3}px ${UNDER_BAR}px`,
                 ["--dkb-row" as string]: `${row}px`,
               }}
               initial={{ y: "100%" }}

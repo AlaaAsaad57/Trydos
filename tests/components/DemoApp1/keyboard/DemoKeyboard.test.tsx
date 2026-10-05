@@ -178,21 +178,36 @@ describe("DemoKeyboard — the page's own keyboard on a touch device", () => {
   // Measured on pictures from the iPhone: Safari's bar starts 34 pt from each
   // side of the screen. Its glass is white at about 48 %, and it lies on the
   // keyboard's own glass; the panel at 53 % then shows the bar's colour.
-  it("is as wide as Safari's bar: 34 px in from each side of the page column", () => {
+  it("is as wide as the page column, and the keys stay as wide as Safari's bar: 34 px of padding more on each side", () => {
     render(<Page />);
     focus("name");
     expect(
       keyboard()!.style.marginLeft,
-      "the keyboard does not start 34 px in from the column's left side",
-    ).toBe("34px");
-    expect(
-      keyboard()!.style.marginRight,
-      "the keyboard does not end 34 px before the column's right side",
-    ).toBe("34px");
-    expect(
-      keyboard()!.style.width,
-      "the keyboard has a width of its own, so the side margins cannot make it narrower",
+      "the keyboard's glass starts 34 px in from the column's left side, not at the side",
     ).toBe("");
+    expect(
+      keyboard()!.style.paddingLeft,
+      "the keys do not start 37 px in from the left (34 for the bar, 3 of the panel's own)",
+    ).toBe("37px");
+    expect(
+      keyboard()!.style.paddingRight,
+      "the keys do not end 37 px before the right (34 for the bar, 3 of the panel's own)",
+    ).toBe("37px");
+  });
+
+  // For now, to check the look on the phone: dark in a light theme too.
+  it("is dark whatever the phone's theme is", () => {
+    render(<Page />);
+    focus("name");
+    const css = keyboard()!.querySelector("style")?.textContent ?? "";
+    expect(
+      css,
+      "the dark colours are still only for a phone in the dark theme",
+    ).not.toContain("prefers-color-scheme");
+    expect(
+      css,
+      "the dark colours are not given for every theme",
+    ).toContain("@media all {");
   });
 
   it("has the colour of Safari's bar: white at 53 %, and round on all four corners", () => {
