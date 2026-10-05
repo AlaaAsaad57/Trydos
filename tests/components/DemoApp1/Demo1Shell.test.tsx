@@ -384,6 +384,111 @@ describe("Demo1 bottom — like the old scaled demo, Safari's bottom bar lies ov
     ).toEqual([]);
   });
 
+  // The form used to drop its height while the amount was typed, so the
+  // button jumped from the file's place (y 835) to just under the field.
+  /** Waits for a part of an open wallet sheet. */
+  const pick = (testId: string) =>
+    waitFor(() => {
+      const found = document.body.querySelector<HTMLElement>(`[data-pw="${testId}"]`);
+      expect(found, `the wallet sheet did not show "${testId}"`).not.toBeNull();
+      return found!;
+    });
+
+  /** Opens a sheet of the dollar card on a phone-wide window. */
+  const onPhone = async (
+    open: "demo-wallet-cash-in-usd" | "demo-wallet-cash-out-usd",
+    run: () => Promise<void>,
+  ) => {
+    const width = window.innerWidth;
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 440 });
+    try {
+      const { container } = openOn("settings/wallet");
+      fireEvent.click(container.querySelector('[data-pw="demo-wallet-card-usd"]')!);
+      fireEvent.click(container.querySelector(`[data-pw="${open}"]`)!);
+      await run();
+    } finally {
+      Object.defineProperty(window, "innerWidth", { configurable: true, value: width });
+    }
+  };
+
+  it("cash in, via crypto: the form keeps its height while the amount is typed", () =>
+    onPhone("demo-wallet-cash-in-usd", async () => {
+      fireEvent.click(await pick("demo-wallet-cash-in-way-crypto"));
+      await pick("demo-wallet-cash-in-crypto-under");
+      const form = () =>
+        document.body.querySelector<HTMLElement>(
+          '[data-pw="demo-wallet-cash-in-crypto-under"] > div',
+        )!;
+      const resting = form().style.minHeight;
+      expect(resting, "the crypto form is not as tall as the board before typing").not.toBe("");
+
+      fireEvent.focus(await pick("demo-wallet-cash-in-amount-input"));
+      await waitFor(() =>
+        expect(
+          document.body.querySelector('[data-pw="demo-wallet-cash-in-amount"][data-keyboard-anchor]'),
+          "the crypto amount field did not go into use on focus",
+        ).not.toBeNull(),
+      );
+      expect(
+        form().style.minHeight,
+        "the crypto form lost its height while typing, so what is at its bottom moved up",
+      ).toBe(resting);
+    }));
+
+  // On a phone the empty amount field used to jump from y 515 to y 397 as the
+  // keyboard came up.
+  it("cash out: the empty amount field keeps its place when it goes into use on a phone", () =>
+    onPhone("demo-wallet-cash-out-usd", async () => {
+      fireEvent.click(await pick("demo-wallet-way-rdb"));
+      const field = await pick("demo-wallet-amount");
+      const resting = field.style.marginTop;
+      expect(resting, "the amount field has no place of its own before typing").not.toBe("");
+
+      fireEvent.focus(await pick("demo-wallet-amount-input"));
+      await waitFor(() =>
+        expect(
+          document.body.querySelector('[data-pw="demo-wallet-amount"][data-keyboard-anchor]'),
+          "the cash-out amount field did not go into use on focus",
+        ).not.toBeNull(),
+      );
+      expect(
+        (await pick("demo-wallet-amount")).style.marginTop,
+        "the amount field moved when the keyboard came up",
+      ).toBe(resting);
+    }));
+
+  it("cash in, From My rdb: the button keeps its place at the bottom while the amount is typed", async () => {
+    const width = window.innerWidth;
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 440 });
+    try {
+      const { container } = openOn("settings/wallet");
+      fireEvent.click(container.querySelector('[data-pw="demo-wallet-card-usd"]')!);
+      fireEvent.click(container.querySelector('[data-pw="demo-wallet-cash-in-usd"]')!);
+      fireEvent.click(await pick("demo-wallet-way-rdb"));
+      fireEvent.click(await pick("demo-wallet-cash-in-tab-bank"));
+      const form = () =>
+        document.body.querySelector<HTMLElement>(
+          '[data-pw="demo-wallet-cash-in-rdb-under"] > div',
+        )!;
+      const resting = (await pick("demo-wallet-cash-in-rdb-under")) && form().style.minHeight;
+      expect(resting, "the form is not as tall as the board before typing").not.toBe("");
+
+      fireEvent.focus(await pick("demo-wallet-cash-in-amount-input"));
+      await waitFor(() =>
+        expect(
+          document.body.querySelector('[data-pw="demo-wallet-cash-in-amount"][data-keyboard-anchor]'),
+          "the amount field did not go into use on focus",
+        ).not.toBeNull(),
+      );
+      expect(
+        form().style.minHeight,
+        "the form lost its height while typing, so the button moved up under the field",
+      ).toBe(resting);
+    } finally {
+      Object.defineProperty(window, "innerWidth", { configurable: true, value: width });
+    }
+  });
+
   // Seen on the iPhone: Safari 26 draws nothing of a FIXED layer under the
   // window's end but a plain colour, so a fixed sheet was a solid white block
   // under Safari's bar and its rows were cut at the window's end. Only what

@@ -811,10 +811,10 @@ function Rdb({
       </div>
 
       {/* "From My rdb" is as tall as the board under the tabs (y 241 to 930),
-          so its button keeps the file's place (y 835). */}
+          so its button keeps the file's place (y 835), while typing too. */}
       <Under
         testId="demo-wallet-cash-in-rdb-under"
-        minHeight={fromBank && !typing ? BOARD_END - (213 + 28) : undefined}
+        minHeight={fromBank ? BOARD_END - (213 + 28) : undefined}
       >
         {fromBank ? (
           <>
@@ -1347,7 +1347,8 @@ function Crypto({
 
       <Under
         testId="demo-wallet-cash-in-crypto-under"
-        minHeight={typing ? undefined : BOARD_END - (213 + 28)}
+        // As tall as the board while typing too: the keyboard moves nothing.
+        minHeight={BOARD_END - (213 + 28)}
       >
         <ClientFields
           mt={245 - (213 + 28)}

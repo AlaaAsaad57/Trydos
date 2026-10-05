@@ -743,6 +743,8 @@ function Form({
   }, [keypad]);
 
   const typing = active === "amount";
+  /** The amount field was empty when it last went into use. */
+  const [fromEmpty, setFromEmpty] = useState(false);
   /** `Home Page – 20`: more than the balance holds. */
   const short = toNumber(amount) > toNumber(balance.amount);
   /** The look of `– 27` and `– 29`: `#FCFCFC`, "Edit" in the label. */
@@ -773,12 +775,16 @@ function Form({
   const shortTop = keyed
     ? Math.max(above + 4, Math.min(above + SHORT_GAP, room - amountHeight))
     : above + 4;
+  // On a phone with its own keyboard, the keyboard moves nothing: an empty
+  // field that goes into use stays at y 515 until it is left.
   const amountTop = toBank
     ? 422
     : named
       ? 515
       : typing
-        ? shortTop
+        ? touch && !keyed && fromEmpty
+          ? 515
+          : shortTop
         : opening || amount === ""
           ? 515
           : 397;
@@ -1165,7 +1171,10 @@ function Form({
               onChange={(e) =>
                 setAmount(e.target.value.replace(/[^0-9.,]/g, ""))
               }
-              onFocus={() => setActive("amount")}
+              onFocus={() => {
+                setFromEmpty(amount === "");
+                setActive("amount");
+              }}
               onBlur={() => leave("amount")}
               className={`block bg-transparent outline-none ${saved ? "font-medium" : "font-normal"} ${touch ? "pointer-events-none" : ""}`}
               style={{
