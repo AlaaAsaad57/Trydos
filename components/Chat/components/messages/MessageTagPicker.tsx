@@ -1,15 +1,22 @@
 import { useState } from "react";
 import Spinner from "components/global/Spinner";
 import { translateFunction } from "utils/functions";
-import { MESSAGE_TAGS, MessageTag, ToggleMessageTag } from "store/chat/actions";
+import { MessageTag, ToggleMessageTag } from "store/chat/actions";
 import type { MessageTagSummary } from "utils/types/chat";
 import ChatDialog from "./ChatDialog";
-import { TAG_STYLES, isMyTag } from "./messageExtras";
+import {
+  MAX_TAG_LENGTH,
+  isMyTag,
+  normalizeTag,
+  tagLabel,
+  tagStyle,
+} from "./messageExtras";
 
 /**
- * Put a tag of the fixed list on a message, or take mine off. Each row
- * toggles one tag and the dialog stays open, so several tags can change in
- * one visit. A tick marks the tags I put on the message.
+ * Put a tag on a message, or take mine off. The list shows the suggested tags
+ * and the tags already on the message, and the input adds any new free-text
+ * tag (up to 30 characters). Each row toggles one tag and the dialog stays
+ * open, so several tags can change in one visit. A tick marks my tags.
  */
 function MessageTagPicker({
   open,
@@ -17,6 +24,7 @@ function MessageTagPicker({
   channelId,
   messageId,
   tags,
+  channelTags = [],
   myId,
 }: {
   open: boolean;
@@ -24,15 +32,35 @@ function MessageTagPicker({
   channelId: string | number;
   messageId: string | number;
   tags: MessageTagSummary[];
+  /** Tags used by the chat's loaded messages (repeats are fine). */
+  channelTags?: MessageTag[];
   myId: number | string | undefined | null;
 }) {
   const [busy, setBusy] = useState<MessageTag | null>(null);
+  const [text, setText] = useState("");
 
   const toggle = async (tag: MessageTag) => {
     if (busy) return;
     setBusy(tag);
     await ToggleMessageTag(channelId, messageId, tag);
     setBusy(null);
+  };
+
+  // Every tag the chat's loaded messages use, then this message's own.
+  const allTags: MessageTag[] = Array.from(
+    new Set([
+      ...channelTags,
+      ...tags.filter((t) => t.count > 0).map((t) => t.tag),
+    ]),
+  );
+
+  const addTag = async () => {
+    const tag = normalizeTag(text);
+    if (!tag || busy) return;
+    const existing = tags.find((t) => t.tag === tag);
+    // A toggle would take my own tag off, so an add of a tag I have is a no-op.
+    if (!isMyTag(existing?.user_ids, myId)) await toggle(tag);
+    setText("");
   };
 
   return (
@@ -42,8 +70,35 @@ function MessageTagPicker({
       title={translateFunction("Tag message")}
       dataPw="MESSAGE-TAG-PICKER"
     >
-      <div className="flex flex-col gap-[8px]">
-        {MESSAGE_TAGS.map((tag) => {
+      <form
+        className="flex gap-[8px] mb-[8px]"
+        onSubmit={(e) => {
+          e.preventDefault();
+          addTag();
+        }}
+      >
+        <input
+          type="text"
+          data-pw="MESSAGE-TAG-INPUT"
+          value={text}
+          maxLength={MAX_TAG_LENGTH * 2}
+          onChange={(e) =>
+            setText(Array.from(e.target.value).slice(0, MAX_TAG_LENGTH).join(""))
+          }
+          placeholder={translateFunction("New tag")}
+          className="flex-1 min-w-0 rounded-lg px-3 py-2 border border-gray-200 text-gray-900"
+        />
+        <button
+          type="submit"
+          data-pw="MESSAGE-TAG-ADD"
+          disabled={!!busy || !normalizeTag(text)}
+          className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium disabled:opacity-50"
+        >
+          {translateFunction("Add")}
+        </button>
+      </form>
+      <div className="flex flex-col gap-[8px] max-h-[50vh] overflow-y-auto">
+        {allTags.map((tag) => {
           const summary = tags.find((t) => t.tag === tag);
           const mine = isMyTag(summary?.user_ids, myId);
           return (
@@ -60,12 +115,14 @@ function MessageTagPicker({
                   : "bg-white border-gray-200 shadow-xs hover:shadow-md"
               } disabled:cursor-wait`}
             >
-              <span className="flex items-center gap-[10px]">
+              <span className="flex items-center gap-[10px] min-w-0">
                 <span
-                  className="w-[10px] h-[10px] rounded-full"
-                  style={{ backgroundColor: TAG_STYLES[tag].color }}
+                  className="w-[10px] h-[10px] shrink-0 rounded-full"
+                  style={{ backgroundColor: tagStyle(tag).color }}
                 />
-                {translateFunction(TAG_STYLES[tag].label)}
+                <span className="truncate">
+                  {tagLabel(tag, translateFunction)}
+                </span>
                 {summary && summary.count > 0 && (
                   <span className="text-[12px] text-gray-500">
                     {summary.count}

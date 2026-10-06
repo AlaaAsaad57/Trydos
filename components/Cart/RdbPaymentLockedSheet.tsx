@@ -56,23 +56,51 @@ export default function RdbPaymentLockedSheet() {
 
     const reference = rdbLock.reference;
     let stopped = false;
+    // Latest known expiry; the backend may keep reporting `awaiting_payment`
+    // (or answer 404) for a while after the timer ran out.
+    let expiresAt = rdbLock.expires_at
+      ? new Date(rdbLock.expires_at).getTime()
+      : NaN;
+
+    const clear = (by: string) => {
+      if (stopped) return;
+      stopped = true;
+      trackOrder(ORDER_EVENTS.RDB_CART_LOCK_CLEARED, { by });
+      setRdbLock(null);
+    };
 
     const poll = async () => {
       const latest = await GetRdbRequest(reference);
-      if (stopped || !latest) return;
-      if (latest.status !== "awaiting_payment") {
-        trackOrder(ORDER_EVENTS.RDB_CART_LOCK_CLEARED, { by: "poll" });
-        setRdbLock(null);
+      if (stopped) return;
+      if (latest) {
+        if (latest.status !== "awaiting_payment") return clear("poll");
+        if (latest.expires_at) {
+          const t = new Date(latest.expires_at).getTime();
+          if (!Number.isNaN(t)) expiresAt = t;
+        }
       }
+      if (!Number.isNaN(expiresAt) && Date.now() >= expiresAt) clear("expired");
     };
 
     void poll();
     const id = setInterval(poll, POLL_INTERVAL_MS);
+    // Also fire right at expiry so the sheet disappears within seconds.
+    const delay = Number.isNaN(expiresAt)
+      ? null
+      : Math.max(expiresAt - Date.now(), 0) + 1000;
+    const timeoutId = delay === null ? null : setTimeout(poll, delay);
     return () => {
       stopped = true;
       clearInterval(id);
+      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [rdbLock?.reference, showPayment, rdbPaymentScreenOpen, setRdbLock]);
+  }, [
+    rdbLock?.reference,
+    rdbLock?.expires_at,
+    showPayment,
+    rdbPaymentScreenOpen,
+    setRdbLock,
+  ]);
 
   if (!rdbLock) return null;
 

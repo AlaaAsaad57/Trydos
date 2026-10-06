@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import type { MessageReminderInfo, MessageTagSummary } from "utils/types/chat";
-import { TAG_STYLES, formatReminderTime } from "./messageExtras";
+import { formatReminderTime, tagLabel, tagStyle } from "./messageExtras";
 
 /** Size of one mark, and the gap between two, in px. */
 const MARK = 10;
@@ -64,9 +64,7 @@ function Mark({
  */
 function MessageMarks({ is_forward, is_edited, tags, reminder }: Marks) {
   const { language } = useAppStore();
-  const shownTags = (tags || []).filter(
-    (t) => t.count > 0 && TAG_STYLES[t.tag],
-  );
+  const shownTags = (tags || []).filter((t) => t.count > 0);
   if (countMarks({ is_forward, is_edited, tags, reminder }) === 0) return null;
 
   const reminderText = reminder?.remind_at
@@ -76,7 +74,7 @@ function MessageMarks({ is_forward, is_edited, tags, reminder }: Marks) {
       )}`
     : "";
   const tagNames = shownTags
-    .map((t) => translateFunction(TAG_STYLES[t.tag].label))
+    .map((t) => tagLabel(t.tag, translateFunction))
     .join(", ");
 
   return (
@@ -120,9 +118,9 @@ function MessageMarks({ is_forward, is_edited, tags, reminder }: Marks) {
             <span key={t.tag} className="flex items-center gap-[4px]">
               <span
                 className="w-[6px] h-[6px] rounded-full"
-                style={{ backgroundColor: TAG_STYLES[t.tag].color }}
+                style={{ backgroundColor: tagStyle(t.tag).color }}
               />
-              {translateFunction(TAG_STYLES[t.tag].label)}
+              {tagLabel(t.tag, translateFunction)}
               {t.count > 1 && ` (${t.count})`}
             </span>
           ))}

@@ -318,7 +318,10 @@ function ChatInfo({
               ),
             )}
           </HortiznalScrollBar>
-          {openMessage &&
+          {/* Tag filter hidden for now: there is no source yet for the list
+              of tags a chat uses. TaggedMessages is kept to bring it back. */}
+          {false &&
+            openMessage &&
             activeChat?.id &&
             !String(activeChat.id).includes("ch") && (
               <TaggedMessages

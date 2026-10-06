@@ -88,7 +88,7 @@ export interface Message {
   reminder?: MessageReminderInfo | null;
 }
 
-export type MessageTagName = "urgent" | "important" | "todo" | "done";
+export type MessageTagName = string;
 
 export interface MessageTagSummary {
   tag: MessageTagName;

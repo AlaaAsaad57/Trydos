@@ -446,9 +446,10 @@ export const GetChatDetails = async (id) => {
 /* text as a toast. The caller shows its own translated text instead.       */
 /* ------------------------------------------------------------------------ */
 
-export type MessageTag = "urgent" | "important" | "todo" | "done";
+/** A tag is free text: up to 30 characters, any language or emoji. */
+export type MessageTag = string;
 
-/** The fixed tag list, in the order the tag picker shows it. */
+/** The suggested tags the picker offers first; users may add any other. */
 export const MESSAGE_TAGS: MessageTag[] = [
   "urgent",
   "important",

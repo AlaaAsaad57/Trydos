@@ -224,6 +224,11 @@ function OptionsMenu(props) {
         channelId={channelId}
         messageId={messageId}
         tags={storedMessage?.tags || []}
+        channelTags={(activeChat?.messages || []).flatMap((m: any) =>
+          (m.tags || [])
+            .filter((t: any) => t.count > 0)
+            .map((t: any) => t.tag),
+        )}
         myId={getUserChat()?.id}
       />
       <MessageReminderPicker

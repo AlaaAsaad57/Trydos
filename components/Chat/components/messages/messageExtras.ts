@@ -1,16 +1,40 @@
 import type { MessageTag } from "store/chat/actions";
 
 /**
- * How each message tag looks. The label is the English translation key; the
- * colour follows the chat and seller-dashboard palette.
+ * Look of the suggested tags. The label is the English translation key; the
+ * colour follows the chat and seller-dashboard palette. A tag is free text,
+ * so a tag that is not here is drawn by `tagStyle` with the default colour.
  */
-export const TAG_STYLES: Record<MessageTag, { label: string; color: string }> =
-  {
-    urgent: { label: "Urgent", color: "#f85555" },
-    important: { label: "Important", color: "#ff9500" },
-    todo: { label: "To do", color: "#388CFF" },
-    done: { label: "Done", color: "#34c759" },
-  };
+export const TAG_STYLES: Record<string, { label: string; color: string }> = {
+  urgent: { label: "Urgent", color: "#f85555" },
+  important: { label: "Important", color: "#ff9500" },
+  todo: { label: "To do", color: "#388CFF" },
+  done: { label: "Done", color: "#34c759" },
+};
+
+const CUSTOM_TAG_COLOR = "#8e8d92";
+
+const isSuggested = (tag: string) =>
+  Object.prototype.hasOwnProperty.call(TAG_STYLES, tag);
+
+/** The style of any tag: a suggested one, or a custom one in grey. */
+export const tagStyle = (tag: MessageTag) =>
+  isSuggested(tag)
+    ? TAG_STYLES[tag]
+    : { label: tag, color: CUSTOM_TAG_COLOR };
+
+/** The tag as the user sees it: suggested tags are translated, custom ones are not. */
+export const tagLabel = (
+  tag: MessageTag,
+  translate: (key: string) => string,
+) => (isSuggested(tag) ? translate(TAG_STYLES[tag].label) : tag);
+
+/** The longest tag the backend accepts, in characters (emoji count as one). */
+export const MAX_TAG_LENGTH = 30;
+
+/** Trim a typed tag and cut it to the allowed length; "" when nothing is left. */
+export const normalizeTag = (text: string) =>
+  Array.from(text.trim()).slice(0, MAX_TAG_LENGTH).join("");
 
 /**
  * The latest time the backend accepts for a reminder. It stores the time as a

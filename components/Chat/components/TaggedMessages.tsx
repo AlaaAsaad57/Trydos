@@ -7,7 +7,13 @@ import {
   MESSAGE_TAGS,
   MessageTag,
 } from "store/chat/actions";
-import { TAG_STYLES, dateLocale } from "./messages/messageExtras";
+import {
+  MAX_TAG_LENGTH,
+  dateLocale,
+  normalizeTag,
+  tagLabel,
+  tagStyle,
+} from "./messages/messageExtras";
 
 /** The text a row shows for a message that is not text. */
 const TYPE_PREVIEW: Record<string, string> = {
@@ -32,6 +38,7 @@ function TaggedMessages({
 }) {
   const { language } = useAppStore();
   const [tag, setTag] = useState<MessageTag | null>(null);
+  const [custom, setCustom] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<any[] | null>(null);
   const [opening, setOpening] = useState<string | null>(null);
@@ -85,31 +92,57 @@ function TaggedMessages({
         </div>
       </div>
       <div className="flex flex-wrap gap-[6px] mt-[10px]">
-        {MESSAGE_TAGS.map((t) => (
+        {(tag && !MESSAGE_TAGS.includes(tag)
+          ? [...MESSAGE_TAGS, tag]
+          : MESSAGE_TAGS
+        ).map((t) => (
           <button
             key={t}
             type="button"
             aria-pressed={tag === t}
             data-pw={`TAGGED-FILTER-${t}`}
             onClick={() => pick(t)}
-            className={`flex items-center gap-[5px] h-[26px] px-[10px] rounded-[12px] text-[12px] text-[#404040] transition-colors ${
+            className={`flex items-center gap-[5px] h-[26px] px-[10px] max-w-full rounded-[12px] text-[12px] text-[#404040] transition-colors ${
               tag === t ? "bg-[#f0f0f0]" : "bg-[#fafafa]"
             }`}
             style={{
               boxShadow:
                 tag === t
-                  ? `inset 0 0 0 1px ${TAG_STYLES[t].color}`
+                  ? `inset 0 0 0 1px ${tagStyle(t).color}`
                   : "rgba(0, 0, 0, 0.167) 0px 2px 10px",
             }}
           >
             <span
-              className="w-[7px] h-[7px] rounded-full"
-              style={{ backgroundColor: TAG_STYLES[t].color }}
+              className="w-[7px] h-[7px] shrink-0 rounded-full"
+              style={{ backgroundColor: tagStyle(t).color }}
             />
-            {translateFunction(TAG_STYLES[t].label)}
+            <span className="truncate">{tagLabel(t, translateFunction)}</span>
           </button>
         ))}
       </div>
+      <form
+        className="flex gap-[6px] mt-[8px]"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const next = normalizeTag(custom);
+          if (!next) return;
+          setCustom("");
+          if (next !== tag) pick(next);
+        }}
+      >
+        <input
+          type="text"
+          data-pw="TAGGED-FILTER-INPUT"
+          value={custom}
+          onChange={(e) =>
+            setCustom(
+              Array.from(e.target.value).slice(0, MAX_TAG_LENGTH).join(""),
+            )
+          }
+          placeholder={translateFunction("Search a tag")}
+          className="flex-1 min-w-0 h-[28px] px-[10px] rounded-[12px] text-[12px] bg-[#fafafa] border border-[#f0f0f0]"
+        />
+      </form>
       {tag && (
         <div
           className="mt-[10px] flex flex-col"
