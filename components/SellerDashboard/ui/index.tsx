@@ -4,8 +4,41 @@ import Spinner from "components/global/Spinner";
 import { translateFunction } from "utils/functions";
 import { DashIcon, IconName } from "./icons";
 
+import { GetImageUrl } from "utils/tinyUtils";
+
 export { DashIcon };
 export type { IconName };
+
+export const getShopImageUrl = (image: any): string | undefined => {
+  if (!image) return undefined;
+  if (typeof image === "string") {
+    const trimmed = image.trim();
+    if (!trimmed || trimmed.endsWith("/")) return undefined;
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
+      return trimmed;
+    }
+    const res = GetImageUrl(trimmed);
+    if (typeof res === "string" && res.startsWith("undefined/")) {
+      return "/" + trimmed;
+    }
+    return res || undefined;
+  }
+  if (typeof image === "object") {
+    if (image.file_path) {
+      if (typeof image.file_path === "string" && (image.file_path.startsWith("http://") || image.file_path.startsWith("https://"))) {
+        return image.file_path;
+      }
+      const res = GetImageUrl(image);
+      if (typeof res === "string" && res.startsWith("undefined/")) {
+        return "/" + (image.file_path.startsWith("/") ? image.file_path.slice(1) : image.file_path);
+      }
+      return res || undefined;
+    }
+    if (image.url && typeof image.url === "string") return getShopImageUrl(image.url);
+    if (image.path && typeof image.path === "string") return getShopImageUrl(image.path);
+  }
+  return undefined;
+};
 
 /**
  * Seller-dashboard design tokens, lifted from the live storefront *as the
@@ -73,11 +106,20 @@ export function Monogram({
   className = "",
 }: {
   name?: string;
-  src?: string | null;
+  src?: any;
   size?: number;
   rounded?: number;
   className?: string;
 }) {
+  const [hasError, setHasError] = React.useState(false);
+  const resolvedSrc = React.useMemo(() => getShopImageUrl(src), [src]);
+
+  React.useEffect(() => {
+    setHasError(false);
+  }, [resolvedSrc]);
+
+  const showImage = Boolean(resolvedSrc && !hasError);
+
   const initials = (name || "")
     .trim()
     .split(/\s+/)
@@ -92,16 +134,16 @@ export function Monogram({
         width: size,
         height: size,
         borderRadius: rounded,
-        background: src ? undefined : DASH.primaryTint,
+        background: showImage ? undefined : DASH.primaryTint,
         color: DASH.primary,
       }}
     >
-      {src ? (
-        // eslint-disable-next-line @next/next/no-img-element
+      {showImage ? (
         <img
-          src={src}
+          src={resolvedSrc!}
           alt={name || ""}
           className="w-full h-full object-cover"
+          onError={() => setHasError(true)}
         />
       ) : initials ? (
         <span className="bold" style={{ fontSize: size * 0.4 }}>

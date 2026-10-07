@@ -593,6 +593,31 @@ describe("the expanded view", () => {
       "cancel was offered although the pack may not edit its return",
     ).not.toBeInTheDocument();
   });
+
+  it("shows Back To Your Wallet beside the price when product is returned to location", async () => {
+    const returned = buildOrderLine({ id: 1, qty: 1 });
+    orderService.getOrderDetails.mockResolvedValue([
+      buildOrder({
+        return_request_id: 50,
+        order_has_return_request: true,
+        details: [returned],
+      } as any),
+    ]);
+    orderService.GetReturnDetailsForOrderGroup.mockResolvedValue({
+      return_requests_data: [
+        returnEntry({
+          order_id: 1,
+          status: { name: "returned_to_location", value: "returned_to_location" },
+          order_details: [{ detail_id: 1, already_return: true, return_request_id: 99 }],
+        }),
+      ],
+    });
+    await renderPage({ local: "gb-en" });
+    await screen.findByTestId("order-items-list");
+    await userEvent.setup().click(screen.getByText("expand"));
+
+    expect(screen.getByText("Back To Your Wallet")).toBeInTheDocument();
+  });
 });
 
 describe("the delivery chat", () => {

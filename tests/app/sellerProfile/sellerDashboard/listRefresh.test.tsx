@@ -574,6 +574,18 @@ describe("the seller dashboard home", () => {
 
     expect(routerSpies.replace, "the orders tab's hand-off did not clear ?tab=").toHaveBeenCalledWith(DASH_PATH, { scroll: false });
   });
+
+  it("renders the shop image in the navbar when the shop carries shop_image", async () => {
+    getSellerPermissions.mockResolvedValue(
+      permsFor(["SUPER_ADMIN"], { shop_image: "https://example.com/navbar-logo.jpg" }),
+    );
+    await openAs(null);
+
+    const images = screen.getAllByAltText("A Shop");
+    expect(images.length).toBeGreaterThanOrEqual(2);
+    expect(images[0].getAttribute("src")).toBe("https://example.com/navbar-logo.jpg");
+    expect(images[1].getAttribute("src")).toBe("https://example.com/navbar-logo.jpg");
+  });
 });
 
 describe("the seller dashboard side menu", () => {
@@ -581,6 +593,21 @@ describe("the seller dashboard side menu", () => {
     "products", "boutiques", "locations", "orders", "permissions",
     "users", "gallery", "stories", "comments", "excel", "shopInfo",
   ];
+
+  it("renders the shop image in the drawer menu header", async () => {
+    getSellerPermissions.mockResolvedValue(
+      permsFor(["SUPER_ADMIN"], { shop_image: "https://example.com/navbar-logo.jpg" }),
+    );
+    await openAs(null);
+
+    fireEvent.click(byPw("seller-dashboard-menu-btn"));
+    await settle();
+
+    const images = screen.getAllByAltText("A Shop");
+    expect(images.length).toBeGreaterThanOrEqual(2);
+    expect(images[0].getAttribute("src")).toBe("https://example.com/navbar-logo.jpg");
+    expect(images[1].getAttribute("src")).toBe("https://example.com/navbar-logo.jpg");
+  });
 
   it("opens every section it lists", async () => {
     await openAs(["SUPER_ADMIN"]);

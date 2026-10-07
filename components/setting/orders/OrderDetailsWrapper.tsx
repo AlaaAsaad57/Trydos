@@ -1159,6 +1159,16 @@ const ProductCard = ({
     returnedQty,
   });
 
+  const isReturnedSuccessfully =
+    Boolean(
+      productReturnInfo?.already_return || (product as any)?.is_returned,
+    ) &&
+    (returnRequestStatus?.value?.toLowerCase() === "returned_to_location" ||
+      productReturnInfo?.return_request_product_status?.value?.toLowerCase() ===
+        "returned_to_location" ||
+      (product as any)?.return_status?.value?.toLowerCase() ===
+        "returned_to_location");
+
   return (
     <>
       <div className={`relative w-full flex-col`}>
@@ -1343,15 +1353,16 @@ const ProductCard = ({
               <span className="text-[#1D1D1D] light text-[10px] ">
                 {currency?.symbol}
               </span>
-              {product.qty === 0 /*|| product.is_returned*/ &&
+              {((product.qty === 0 &&
                 // COD orders are never paid up-front, so a cancellation has
                 // nothing to refund to the wallet — hide the badge for them.
                 order?.payment_method?.value?.toLowerCase() !==
-                  "cash_on_delivery" && (
-                  <div className="text-[#388CFF] text-[10px] regular mx-[7px]">
-                    {translateFunction("Back to your wallet")}
-                  </div>
-                )}
+                  "cash_on_delivery") ||
+                isReturnedSuccessfully) && (
+                <div className="text-[#388CFF] text-[10px] regular mx-[7px]">
+                  {translateFunction("Back to your wallet")}
+                </div>
+              )}
             </div>
           </div>
         </NextLink>

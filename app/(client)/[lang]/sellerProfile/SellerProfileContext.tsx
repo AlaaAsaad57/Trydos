@@ -9,15 +9,20 @@ interface SellerProfileContextType {
   shopes: Array<{
     seller_id: number;
     shop_name: string;
-    shop_role: string;
+    shop_role?: string;
     permissions: Array<string>;
+    shop_image?: any;
+    is_master?: number;
   }>;
   setShopes: React.Dispatch<
     React.SetStateAction<
       Array<{
         seller_id: number;
         shop_name: string;
+        shop_role?: string;
         permissions: Array<string>;
+        shop_image?: any;
+        is_master?: number;
       }>
     >
   >;

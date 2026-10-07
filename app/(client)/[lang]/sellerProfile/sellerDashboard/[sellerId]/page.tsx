@@ -239,6 +239,7 @@ function SellerDashBoard() {
     sellerPermissions,
     setSellerPermissions,
     shopes,
+    setShopes,
   } = useSellerProfile();
 
   // One flag per section, each starting in the loading position. They replace
@@ -387,9 +388,15 @@ function SellerDashBoard() {
   );
   const rolesForChangeRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [shopFromPermissions, setShopFromPermissions] = useState<any>(null);
   const currentShop = useMemo(() => {
-    return shopes.find((shop) => shop.seller_id?.toString() === sellerId);
-  }, [shopes, sellerId]);
+    const fromContext = shopes.find((shop) => shop.seller_id?.toString() === sellerId);
+    if (!fromContext) return shopFromPermissions;
+    if (shopFromPermissions) {
+      return { ...fromContext, ...shopFromPermissions };
+    }
+    return fromContext;
+  }, [shopes, sellerId, shopFromPermissions]);
 
   const hasPermission = (permission: string): boolean => {
     return (
@@ -815,6 +822,13 @@ function SellerDashBoard() {
           translateFunction("Failed to load permissions"),
         );
       }
+      if (shopData) {
+        setShopFromPermissions(shopData);
+        if (shopData.shop_role) setCurrentRole(shopData.shop_role);
+      }
+      if (Array.isArray(res.data) && res.data.length > 0 && shopes.length === 0 && setShopes) {
+        setShopes(res.data);
+      }
       const permissions =
         shopData?.permissions || currentShop?.permissions || [];
       setSellerPermissions(Array.isArray(permissions) ? permissions : []);
@@ -1045,6 +1059,15 @@ function SellerDashBoard() {
       // leaving the current role unset.
       if (!ShopesRes?.success) {
         throw new Error(ShopesRes?.message || "Failed to fetch seller shops");
+      }
+      if (Array.isArray(ShopesRes.data) && ShopesRes.data.length > 0 && setShopes) {
+        setShopes(ShopesRes.data);
+        const freshShop = ShopesRes.data.find(
+          (s: any) => s.seller_id?.toString() === sellerId,
+        );
+        if (freshShop) {
+          setShopFromPermissions((prev: any) => ({ ...prev, ...freshShop }));
+        }
       }
       const isSuperAdmin = sellerPermissions.includes("SUPER_ADMIN");
       if (isSuperAdmin) {
@@ -2183,9 +2206,7 @@ function SellerDashBoard() {
             <div className="px-5 py-5 border-b border-[#ededed] flex items-center gap-2.5">
               <Monogram
                 name={currentShop?.shop_name}
-                src={
-            undefined
-                }
+                src={currentShop?.shop_image}
                 size={40}
               />
               <h2 className="text-[#3c3c3c] text-[16px] semibold truncate">
@@ -2484,7 +2505,11 @@ function SellerDashBoard() {
             ></span>
           </button>
 
-          <Monogram name={currentShop?.shop_name} size={52} />
+          <Monogram
+            name={currentShop?.shop_name}
+            src={currentShop?.shop_image}
+            size={52}
+          />
 
           <div className="min-w-0 flex-1">
             <h1 className="text-[20px] bold text-[#1d1d1d] truncate">

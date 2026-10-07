@@ -166,7 +166,11 @@ function Page() {
               >
                 {/* Identity row */}
                 <div className="flex items-center gap-3.5">
-                  <Monogram name={shop.shop_name} size={52} />
+                  <Monogram
+                    name={shop.shop_name}
+                    src={shop.shop_image}
+                    size={52}
+                  />
                   <div className="min-w-0 flex-1">
                     <h3
                       data-pw="seller-shop-card-name"

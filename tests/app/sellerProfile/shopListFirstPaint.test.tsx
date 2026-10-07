@@ -190,6 +190,26 @@ describe("the seller shop cards", () => {
     expect(leaveButtons()[0].disabled, "the master shop's leave button should be disabled").toBe(true);
   });
 
+  it("renders the shop image when the backend returns shop_image", async () => {
+    getShopes.mockResolvedValue({
+      success: true,
+      data: [
+        {
+          seller_id: 10,
+          shop_name: "Visual Shop",
+          shop_image: "https://example.com/visual-shop.jpg",
+          permissions: ["SUPER_ADMIN"],
+        },
+      ],
+    });
+    await mount();
+
+    const img = screen.getByAltText("Visual Shop");
+    expect(img).toBeInTheDocument();
+    expect(img.getAttribute("src")).toBe("https://example.com/visual-shop.jpg");
+    expect(screen.queryByText("VS")).toBeNull();
+  });
+
   it("links each card to its dashboard and shows the loader on click", async () => {
     await mount();
 
