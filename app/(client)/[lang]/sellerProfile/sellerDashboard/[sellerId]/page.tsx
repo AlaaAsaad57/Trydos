@@ -2140,14 +2140,15 @@ function SellerDashBoard() {
     <div className="w-full max-w-[1366px] mx-auto setting-screen">
       <div className="mb-3 bg-white">
         <BackBar
-        onBackIntercept={()=>{
-          if(activeTab==="none"){
-            return false
-          }else{
-            changeTab("none");
-            return true
-          }
-        }}
+          key={`seller-dashboard-back-${sellerId}`}
+          onBackIntercept={() => {
+            if (activeTab === "none") {
+              return false;
+            } else {
+              changeTab("none");
+              return true;
+            }
+          }}
           isRtl={isRtl}
           local={local}
           name={translateFunction("Seller Dashboard", language)}
@@ -2523,9 +2524,10 @@ function SellerDashBoard() {
       {/* Content */}
       <div
         data-pw="seller-dashboard-panel"
+        
         data-tab={activeTab}
         className="bg-white rounded-[15px] pt-4 px-4 min-h-[400px] pb-[150px]!"
-        style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
+        style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" ,direction: isRtl ? "rtl" : "ltr"}}
       >
         {activeTab === "none" && renderHome()}
         {activeTab === "products" && renderProducts()}

@@ -93,6 +93,7 @@ function Page() {
     <div className="w-full max-w-[1366px] mx-auto setting-screen">
       <div className="mb-3">
         <BackBar
+          key="seller-profile-select-shop-back"
           isRtl={isRtl}
           local={lang?.toString()}
           name={translateFunction("Select Shop", language)}

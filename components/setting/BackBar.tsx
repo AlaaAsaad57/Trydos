@@ -1,6 +1,6 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
@@ -15,12 +15,35 @@ const BackBar = ({
   Save = null,
   preivous_page = null,
   onBackIntercept = null,
-}) => {
+}: any) => {
   const [, language] = local.split("-");
   const { lastPathname } = useAppStore();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    setLoading(false);
+    document.querySelectorAll(".setting-screen").forEach((el) => {
+      el.classList.remove("loading-page-class");
+    });
+    return () => {
+      document.querySelectorAll(".setting-screen").forEach((el) => {
+        el.classList.remove("loading-page-class");
+      });
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!loading) return;
+    const timer = setTimeout(() => {
+      setLoading(false);
+      document.querySelectorAll(".setting-screen").forEach((el) => {
+        el.classList.remove("loading-page-class");
+      });
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const handleBack = () => {
     if (loading) return;
