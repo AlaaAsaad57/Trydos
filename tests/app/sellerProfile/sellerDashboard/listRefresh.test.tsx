@@ -75,7 +75,25 @@ vi.mock("components/SellerDashboard/orders", () => ({
     <button data-pw="orders-stub-home" onClick={() => setActiveTab("none")} />
   ),
 }));
-vi.mock("components/SellerDashboard/ShopInfo", () => ({ default: () => null }));
+vi.mock("components/SellerDashboard/ShopInfo", () => ({
+  default: ({
+    onShopInfoUpdated,
+  }: {
+    onShopInfoUpdated?: (info: { name: string; image?: string | null }) => void;
+  }) => (
+    <div data-testid="shop-info-stub">
+      <button
+        data-testid="shop-info-update-btn"
+        onClick={() =>
+          onShopInfoUpdated?.({
+            name: "Updated Shop Directly",
+            image: "https://example.com/updated-live.jpg",
+          })
+        }
+      />
+    </div>
+  ),
+}));
 
 import SellerDashBoard from "app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page";
 import {
@@ -585,6 +603,32 @@ describe("the seller dashboard home", () => {
     expect(images.length).toBeGreaterThanOrEqual(2);
     expect(images[0].getAttribute("src")).toBe("https://example.com/navbar-logo.jpg");
     expect(images[1].getAttribute("src")).toBe("https://example.com/navbar-logo.jpg");
+  });
+
+  it("directly updates shop name and image in navbar and drawer when shop info changes", async () => {
+    getSellerPermissions.mockResolvedValue(
+      permsFor(["SUPER_ADMIN", "READ_SHOP_INFO", "UPDATE_SHOP_INFO"], {
+        shop_name: "Original Shop",
+        shop_image: "https://example.com/original.jpg",
+      }),
+    );
+    await openAs(null, "shopInfo");
+
+    expect(screen.queryAllByText("Original Shop").length).toBeGreaterThan(0);
+
+    const updateBtn = screen.getByTestId("shop-info-update-btn");
+    await act(async () => {
+      fireEvent.click(updateBtn);
+    });
+    await settle();
+
+    // Verify the navbar and drawer reflect the new shop name immediately
+    expect(screen.queryAllByText("Updated Shop Directly").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Original Shop")).toBeNull();
+
+    // Verify the Monograms reflect the new image immediately
+    const images = screen.getAllByAltText("Updated Shop Directly");
+    expect(images[0].getAttribute("src")).toBe("https://example.com/updated-live.jpg");
   });
 });
 

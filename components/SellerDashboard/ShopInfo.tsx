@@ -19,6 +19,7 @@ interface ShopInfoProps {
   language: string;
   // UPDATE_SHOP_INFO permission — when false the form is read-only.
   canUpdate?: boolean;
+  onShopInfoUpdated?: (info: { name: string; image?: string | null }) => void;
 }
 
 interface ShopFormData {
@@ -34,7 +35,12 @@ interface FormErrors {
 }
 
 // --- Main Component ---
-export default function ShopInfo({ sellerId, language, canUpdate = false }: ShopInfoProps) {
+export default function ShopInfo({
+  sellerId,
+  language,
+  canUpdate = false,
+  onShopInfoUpdated,
+}: ShopInfoProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -69,6 +75,11 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
   const imageInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
+  const onShopInfoUpdatedRef = useRef(onShopInfoUpdated);
+  useEffect(() => {
+    onShopInfoUpdatedRef.current = onShopInfoUpdated;
+  }, [onShopInfoUpdated]);
+
   // Fetch Initial Data — GET /shop/info (READ_SHOP_INFO)
   useEffect(() => {
     const loadData = async () => {
@@ -91,8 +102,18 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
           return GetImageUrl(trimmed) ?? null;
         };
 
-        setImageUrl(sanitizeMediaUrl(data.image));
-        setBannerUrl(sanitizeMediaUrl(data.banner));
+        const loadedImage = sanitizeMediaUrl(data.image);
+        const loadedBanner = sanitizeMediaUrl(data.banner);
+
+        setImageUrl(loadedImage);
+        setBannerUrl(loadedBanner);
+
+        if (data.name) {
+          onShopInfoUpdatedRef.current?.({
+            name: data.name,
+            image: loadedImage,
+          });
+        }
       } catch (error) {
         LogError({
           scenario: 'ShopInfo.loadData',
@@ -244,6 +265,9 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
         throw new Error(res.message || 'Failed to update');
       }
 
+      const updatedName = formData.shopName.trim();
+      const updatedImage = imageCleared && !finalImage ? null : finalImage;
+
       // Persist the new URLs and clear the staged files
       setImageUrl(finalImage);
       setBannerUrl(finalBanner);
@@ -253,6 +277,11 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
       setBannerPreview(null);
       setImageCleared(false);
       setBannerCleared(false);
+
+      onShopInfoUpdatedRef.current?.({
+        name: updatedName,
+        image: updatedImage,
+      });
 
       showSuccessMessage(translateFunction('Shop Info Updated Successfully!', language));
     } catch (error) {

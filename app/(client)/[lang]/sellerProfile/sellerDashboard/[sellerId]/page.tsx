@@ -6,7 +6,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import Link from "next/link";
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useAppStore } from "store";
 import { useSellerProfile } from "../../SellerProfileContext";
 import Spinner from "components/global/Spinner";
@@ -397,6 +397,31 @@ function SellerDashBoard() {
     }
     return fromContext;
   }, [shopes, sellerId, shopFromPermissions]);
+
+  const handleShopInfoUpdated = useCallback(
+    ({ name, image }: { name: string; image?: string | null }) => {
+      setShopFromPermissions((prev: any) => ({
+        ...(prev || {}),
+        shop_name: name,
+        ...(image !== undefined ? { shop_image: image } : {}),
+      }));
+
+      if (setShopes) {
+        setShopes((prev: any[]) =>
+          (prev || []).map((s: any) =>
+            s.seller_id?.toString() === sellerId?.toString()
+              ? {
+                  ...s,
+                  shop_name: name,
+                  ...(image !== undefined ? { shop_image: image } : {}),
+                }
+              : s,
+          ),
+        );
+      }
+    },
+    [sellerId, setShopes],
+  );
 
   const hasPermission = (permission: string): boolean => {
     return (
@@ -2610,6 +2635,7 @@ function SellerDashBoard() {
             sellerId={sellerId}
             language={language}
             canUpdate={canUpdateShopInfo}
+            onShopInfoUpdated={handleShopInfoUpdated}
           />
         )}
       </div>

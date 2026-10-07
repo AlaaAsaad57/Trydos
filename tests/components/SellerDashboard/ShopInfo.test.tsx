@@ -62,9 +62,14 @@ const SHOP = {
   banner: "https://example.com/seller/banner.webp",
 };
 
-async function mount(props: { canUpdate?: boolean; sellerId?: string } = {}) {
+async function mount(props: { canUpdate?: boolean; sellerId?: string; onShopInfoUpdated?: (info: { name: string; image?: string | null }) => void } = {}) {
   return renderWithProviders(
-    <ShopInfo sellerId={props.sellerId ?? SELLER_ID} language="en" canUpdate={props.canUpdate ?? true} />,
+    <ShopInfo
+      sellerId={props.sellerId ?? SELLER_ID}
+      language="en"
+      canUpdate={props.canUpdate ?? true}
+      onShopInfoUpdated={props.onShopInfoUpdated}
+    />,
     { path: `/sellerProfile/sellerDashboard/${SELLER_ID}` },
   );
 }
@@ -338,6 +343,32 @@ describe("Shop info — saving", () => {
     expect(updateShopInfo.mock.calls[0][1]).toMatchObject({
       image: null,
       banner: null,
+    });
+  });
+
+  it("calls onShopInfoUpdated with initial shop name and image when loaded", async () => {
+    const onShopInfoUpdated = vi.fn();
+    await mount({ onShopInfoUpdated });
+    await waitFor(() => expect(onShopInfoUpdated).toHaveBeenCalledWith({
+      name: "Rama Shoes",
+      image: "https://example.com/seller/logo.webp",
+    }));
+  });
+
+  it("calls onShopInfoUpdated with updated name and image after saving", async () => {
+    const onShopInfoUpdated = vi.fn();
+    await mount({ onShopInfoUpdated });
+    await waitFor(() => expect(nameInput()?.value).toBe("Rama Shoes"));
+
+    await userEvent.clear(nameInput());
+    await userEvent.type(nameInput(), "Updated Boutique Name");
+
+    await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
+    await waitFor(() => expect(updateShopInfo).toHaveBeenCalled());
+
+    expect(onShopInfoUpdated).toHaveBeenCalledWith({
+      name: "Updated Boutique Name",
+      image: "https://example.com/seller/logo.webp",
     });
   });
 });
