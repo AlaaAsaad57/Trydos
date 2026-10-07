@@ -21,3 +21,15 @@ export const NATIVE_WALLET_KEYBOARD = true;
  * false: the device's own keyboard. Nothing else changes.
  */
 export const DEMO_KEYBOARD = true;
+
+/**
+ * Which keyboard types the letters (a name, an address, an email, a search)
+ * while DEMO_KEYBOARD is on.
+ *
+ * true: the device's own keyboard. A field that asks for letters is left
+ * exactly as the screen made it: no `inputmode="none"`, no `data-kb`, and the
+ * page's keyboard does not come up for it. The number pads (`decimal`, `tel`,
+ * `numeric`) stay with the page's keyboard.
+ * false: the page's keyboard types the letters too.
+ */
+export const NATIVE_TEXT_KEYBOARD = true;

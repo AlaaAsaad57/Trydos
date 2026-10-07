@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 import { useDemoDebug } from "../../DemoApp/demoDebug";
-import { DEMO_KEYBOARD } from "../../DemoApp/demoKeyboard";
+import { DEMO_KEYBOARD, NATIVE_TEXT_KEYBOARD } from "../../DemoApp/demoKeyboard";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import {
   COLUMN_W,
@@ -38,13 +38,16 @@ import {
  * The demo's own keyboard: the iOS 26 keyboard, drawn by the page.
  *
  * On a phone or a tablet it takes the place of the device's keyboard for
- * every field of the demo. With a mouse and a real keyboard it is never shown.
+ * the number fields of the demo. The letters (a name, an address, an email, a
+ * search) are typed with the device's own keyboard while NATIVE_TEXT_KEYBOARD
+ * is on (demoKeyboard.ts): those fields are not touched here. With a mouse and
+ * a real keyboard it is never shown.
  *
  * How the device's keyboard is kept away
  * --------------------------------------
- * Every text field on the page gets `inputmode="none"`: the browser then
+ * Every number field on the page gets `inputmode="none"`: the browser then
  * gives the field focus and a caret, but opens no keyboard and no form bar.
- * What the field asked for (`decimal`, `tel`, `email`, …) is kept on it as
+ * What the field asked for (`decimal`, `tel`, `numeric`, …) is kept on it as
  * `data-kb`, and picks the keys shown here. The fields are marked by this
  * component (`adopt`), also the ones that come later with a sheet, so a screen
  * needs no change to use the keyboard.
@@ -78,8 +81,34 @@ const TEXT_FIELD =
 /** The field's own `inputmode`, kept so it can be given back. */
 const NATIVE_MODE = "data-kb-native";
 
-/** Marks a field for this keyboard and keeps the device's keyboard off it. */
+/**
+ * What a field asks for. Read from the field itself, not only from the mark:
+ * a field that takes the focus the moment it is added is read before the
+ * sweep has marked it.
+ */
+function kindFor(field: Element): FieldKind {
+  const mark = field.getAttribute("data-kb");
+  if (mark) return mark as FieldKind;
+  const mode = field.getAttribute("inputmode");
+  return kindOf(field.getAttribute("type") ?? "text", mode === "none" ? null : mode);
+}
+
+/**
+ * Whether this keyboard types into the field. With NATIVE_TEXT_KEYBOARD the
+ * letters go to the device's keyboard, so only the number pads are ours.
+ * `NATIVE_TEXT_KEYBOARD` is read here, when asked, and not once at load.
+ */
+const ownsField = (field: Element) =>
+  !NATIVE_TEXT_KEYBOARD || isPad(kindFor(field));
+
+/**
+ * Marks a field for this keyboard and keeps the device's keyboard off it.
+ * A field this keyboard does not own is not touched at all: it keeps its own
+ * `inputmode`, so the device's keyboard opens on it as it always did. Writing
+ * nothing also keeps the observer in `DemoKeyboard` from seeing a change.
+ */
 function adopt(field: Element) {
+  if (!ownsField(field)) return;
   const mode = field.getAttribute("inputmode");
   if (mode === "none" && field.hasAttribute("data-kb")) return;
   if (mode !== "none") field.setAttribute(NATIVE_MODE, mode ?? "");
@@ -105,6 +134,10 @@ const isTextField = (el: unknown): el is TextField =>
   el.matches(TEXT_FIELD) &&
   !(el as TextField).readOnly &&
   !(el as TextField).disabled;
+
+/** A text field this keyboard types into: the keyboard comes up on its focus. */
+const isOurField = (el: unknown): el is TextField =>
+  isTextField(el) && ownsField(el);
 
 type Shift = "off" | "on" | "lock";
 
@@ -365,14 +398,18 @@ export default function DemoKeyboard({
       );
     };
     const onIn = (e: FocusEvent) => {
-      if (isTextField(e.target)) take(e.target);
+      if (!isTextField(e.target)) return;
+      // A letter field of the device's own keyboard: the page's keyboard,
+      // up for the number field before it, goes away.
+      if (isOurField(e.target)) take(e.target);
+      else setField(null);
     };
     const onOut = () =>
       // A moment later: the focus may be on its way to the next field.
       setTimeout(() => {
-        if (!isTextField(document.activeElement)) setField(null);
+        if (!isOurField(document.activeElement)) setField(null);
       }, 0);
-    if (isTextField(document.activeElement)) take(document.activeElement);
+    if (isOurField(document.activeElement)) take(document.activeElement);
     document.addEventListener("focusin", onIn);
     document.addEventListener("focusout", onOut);
     return () => {

@@ -14,6 +14,23 @@ import {
 } from "components/DemoApp/demoDebug";
 import { resetDevice, setDevice } from "../../../mocks/device";
 
+/**
+ * NATIVE_TEXT_KEYBOARD is on in the app: the letters go to the device's own
+ * keyboard. The tests of the page's letter keys turn it off here, and the
+ * describe at the end of the file turns it on again.
+ */
+const flags = vi.hoisted(() => ({ nativeText: false }));
+vi.mock("components/DemoApp/demoKeyboard", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("components/DemoApp/demoKeyboard")>();
+  return {
+    ...actual,
+    get NATIVE_TEXT_KEYBOARD() {
+      return flags.nativeText;
+    },
+  };
+});
+
 /** Three fields like the demo's: a name, an amount with its filter, an email. */
 function Page({ locale = "sy-en" }: { locale?: string }) {
   const [name, setName] = useState("");
@@ -566,5 +583,90 @@ describe("DemoKeyboard — with a mouse and a real keyboard", () => {
       input("amount").getAttribute("inputmode"),
       "the amount field lost its decimal inputmode on a desktop",
     ).toBe("decimal");
+  });
+});
+
+describe("DemoKeyboard — the letters go to the device's own keyboard", () => {
+  beforeEach(() => {
+    flags.nativeText = true;
+    setDevice("touch");
+  });
+  afterEach(() => {
+    cleanup();
+    flags.nativeText = false;
+    resetDevice();
+  });
+
+  it("leaves a name, an email and a search exactly as the screen made them", () => {
+    render(<Page />);
+    for (const name of ["name", "email", "query"]) {
+      expect(
+        input(name).hasAttribute("inputmode"),
+        `the ${name} field got an inputmode, so the phone's keyboard would not open`,
+      ).toBe(false);
+      expect(
+        input(name).hasAttribute("data-kb"),
+        `the ${name} field was marked for the page's keyboard`,
+      ).toBe(false);
+    }
+  });
+
+  it("still keeps the phone's keyboard off a number field", () => {
+    render(<Page />);
+    expect(
+      input("amount").getAttribute("inputmode"),
+      "the amount field lost the page's number pad",
+    ).toBe("none");
+    expect(input("amount").getAttribute("data-kb")).toBe("decimal");
+  });
+
+  it("does not bring the page's keyboard up on a letter field", async () => {
+    render(<Page />);
+    for (const name of ["name", "email", "query"]) {
+      focus(name);
+      await new Promise((done) => setTimeout(done, 10));
+      expect(
+        keyboard(),
+        `the page's keyboard came up on the ${name} field`,
+      ).toBeNull();
+      act(() => input(name).blur());
+    }
+  });
+
+  it("brings the page's keyboard up on a number field, and puts it away when the focus goes to a letter field", async () => {
+    render(<Page />);
+    focus("amount");
+    expect(keyboard(), "the number pad did not come up").not.toBeNull();
+    focus("name");
+    await waitFor(() =>
+      expect(
+        keyboard(),
+        "the number pad stayed up over the phone's own keyboard",
+      ).toBeNull(),
+    );
+    focus("amount");
+    expect(keyboard(), "the number pad did not come back").not.toBeNull();
+  });
+
+  it("marks a number field that arrives later, and leaves a letter field that arrives with it", async () => {
+    const { rerender } = render(<Page />);
+    function Later() {
+      return (
+        <>
+          <Page />
+          <input data-pw="late-text" />
+          <input data-pw="late-tel" type="tel" />
+        </>
+      );
+    }
+    rerender(<Later />);
+    await waitFor(() =>
+      expect(input("late-tel").getAttribute("inputmode")).toBe("none"),
+    );
+    expect(input("late-tel").getAttribute("data-kb")).toBe("tel");
+    expect(
+      input("late-text").hasAttribute("inputmode"),
+      "a letter field that came later was marked for the page's keyboard",
+    ).toBe(false);
   });
 });
