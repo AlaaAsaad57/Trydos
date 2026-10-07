@@ -94,9 +94,9 @@ export function letterRows(
       ];
 }
 
-/** A key of the number pad: the digit and the letters the iPhone writes under it. */
+/** A key of the number pad: the digit only, with no letters under it. */
 export type PadKey =
-  | { type: "char"; char: string; letters?: string }
+  | { type: "char"; char: string }
   | { type: "action"; action: "back" }
   | { type: "empty" };
 
@@ -105,11 +105,7 @@ export type PadKey =
  * an amount, "+" for a phone number, and no key for a code.
  */
 export function padRows(kind: FieldKind): PadKey[][] {
-  const digit = (char: string, letters?: string): PadKey => ({
-    type: "char",
-    char,
-    letters,
-  });
+  const digit = (char: string): PadKey => ({ type: "char", char });
   const corner: PadKey =
     kind === "decimal"
       ? digit(".")
@@ -117,9 +113,9 @@ export function padRows(kind: FieldKind): PadKey[][] {
         ? digit("+")
         : { type: "empty" };
   return [
-    [digit("1"), digit("2", "ABC"), digit("3", "DEF")],
-    [digit("4", "GHI"), digit("5", "JKL"), digit("6", "MNO")],
-    [digit("7", "PQRS"), digit("8", "TUV"), digit("9", "WXYZ")],
+    [digit("1"), digit("2"), digit("3")],
+    [digit("4"), digit("5"), digit("6")],
+    [digit("7"), digit("8"), digit("9")],
     [corner, digit("0"), { type: "action", action: "back" }],
   ];
 }

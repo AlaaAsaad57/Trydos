@@ -209,8 +209,8 @@ describe("DemoKeyboard — the page's own keyboard on a touch device", () => {
     ).toContain("--dkb-panel: rgba(255, 255, 255, 0.53);");
     expect(
       css,
-      "the panel is not round on all four corners, like a card over the page",
-    ).toContain("border-radius: 26px;");
+      "the panel's top corners are not the wallet sheets' radius (50)",
+    ).toContain("border-radius: 50px 50px 26px 26px;");
   });
 
   describe("when the keys would cover the field in use", () => {

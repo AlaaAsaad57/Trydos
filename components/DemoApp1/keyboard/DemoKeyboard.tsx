@@ -7,7 +7,13 @@ import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 import { useDemoDebug } from "../../DemoApp/demoDebug";
 import { DEMO_KEYBOARD } from "../../DemoApp/demoKeyboard";
 import type { DemoKey } from "../../DemoApp/demoKeys";
-import { COLUMN_W, EDGE_ANCHOR, PAGE_MAX, UNDER_BAR } from "../demo1Layout";
+import {
+  COLUMN_W,
+  EDGE_ANCHOR,
+  PAGE_MAX,
+  SHEET,
+  UNDER_BAR,
+} from "../demo1Layout";
 import {
   isPad,
   kindOf,
@@ -179,7 +185,9 @@ const STYLE = `
   backdrop-filter: var(--dkb-lens);
   box-shadow: inset 0 1.5px 1px var(--dkb-glow), inset 0 10px 24px -12px var(--dkb-glow),
     0 8px 30px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
-  border-radius: 26px;
+  /* The top corners are the sheets' (the wallet sheets' 50); the bottom ones
+     run on under Safari's bar. */
+  border-radius: ${SHEET.radiusWallet}px ${SHEET.radiusWallet}px 26px 26px;
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
@@ -249,13 +257,6 @@ ${DARK}}
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
   font-size: 36px;
   pointer-events: none;
-}
-.dkb-letters {
-  margin-top: 2px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  min-height: 10px;
 }
 .dkb-chin {
   display: flex;
@@ -635,12 +636,7 @@ export default function DemoKeyboard({
         style={{ flex: "1 1 0" }}
         {...press(id, () => type(key.char))}
       >
-        <span className="dkb-face">
-          {key.char}
-          {/\d/.test(key.char) && (
-            <span className="dkb-letters">{key.letters ?? ""}</span>
-          )}
-        </span>
+        <span className="dkb-face">{key.char}</span>
       </button>
     );
   };
