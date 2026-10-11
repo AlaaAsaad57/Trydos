@@ -580,7 +580,7 @@ export default function RdbPaymentModal({
                 )}
                 {isOpen && request.deep_link && (
                   <a
-                    className={`flex items-center justify-center h-[40px] flex-1 rounded-[15px] bg-[#388CFF] text-white regular text-[12px] ${
+                    className={`flex p-[10px] items-center justify-center h-[40px] flex-1 rounded-[15px] bg-[#388CFF] text-white regular text-[12px] ${
                       !isOnline ? "opacity-50 pointer-events-none" : ""
                     }`}
                     href={request.deep_link}
@@ -593,7 +593,7 @@ export default function RdbPaymentModal({
                 )}
                 {isOpen && (
                   <div
-                    className={`flex items-center justify-center h-[40px] flex-1 rounded-[15px] bg-[#F8F8F8] text-[#f85555] regular text-[12px] ${
+                    className={`flex p-[10px] items-center justify-center h-[40px] flex-1 rounded-[15px] bg-[#F8F8F8] text-[#f85555] regular text-[12px] ${
                       !isOnline ? "opacity-50 pointer-events-none" : "cursor-pointer"
                     }`}
                     data-pw="rdb-cancel"

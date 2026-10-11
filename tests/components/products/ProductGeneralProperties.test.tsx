@@ -76,4 +76,20 @@ describe("ProductGeneralProperties and GeneralPropertiesModal", () => {
     expect(screen.getByText("1", { selector: ".view-count span" }), "missing views do not fall back to 1").toBeInTheDocument();
     expect(document.querySelector(".flex-row-reverse"), "the Arabic strip is not flipped").not.toBeNull();
   });
+
+  it("renders correctly when ratingGroup is a string or unmatched without throwing", async () => {
+    await renderStrip(
+      {
+        languageVariable: "en",
+        rating_stats: [
+          { ratingGroup: "4", count: 3 },
+          { ratingGroup: "5", count: 7 },
+          { ratingGroup: "unknown", count: 1 },
+        ],
+      },
+      { ColorBottomSheet: { is_general_properties: true }, language: "en" },
+    );
+    expect(screen.getByText("Good")).toBeInTheDocument();
+    expect(screen.getByText("Very Good")).toBeInTheDocument();
+  });
 });

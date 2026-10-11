@@ -16,6 +16,7 @@ import { titleCaseWords } from "utils/titleCase";
 const translations = { ar, ku, tr };
 
 export function translateFunction(key: string, language: string) {
+  if (!key) return key;
   const table = translations[language];
   if (table) return table[key] || key;
   // The English key is the English text; shown with a capital on every word,

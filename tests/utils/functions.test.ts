@@ -319,6 +319,14 @@ describe("translateFunction", () => {
     }
   });
 
+  it("handles undefined, null, and empty keys safely without throwing", async () => {
+    setPath("/sy-en");
+    const { translateFunction } = await loadFunctions();
+    expect(translateFunction("" as any)).toBe("");
+    expect(translateFunction(undefined as any)).toBeUndefined();
+    expect(translateFunction(null as any)).toBeNull();
+  });
+
   it("gives the key back for an address with no language part", async () => {
     setPath("/");
     const { translateFunction } = await loadFunctions();

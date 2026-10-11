@@ -70,6 +70,7 @@ if (typeof window !== "undefined") {
 }
 
 export function translateFunction(key: string, language?: string | string[]) {
+  if (!key) return key;
   let languageUrl: string | undefined;
 
   if (typeof window !== "undefined") {

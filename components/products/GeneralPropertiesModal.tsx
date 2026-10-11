@@ -31,9 +31,11 @@ function GeneralPropertiesModal({
     { rating: 5, title: "Very Good", count: 200 },
   ];
   const rating_arr = rating_stats?.map((s) => ({
-    rating: s.ratingGroup,
+    rating: Number(s.ratingGroup),
     count: s.count,
-    title: rating_arr_text.find((_t) => _t.rating === s.ratingGroup)?.title,
+    title:
+      rating_arr_text.find((_t) => _t.rating === Number(s.ratingGroup))?.title ??
+      "",
   }));
   const isRtl = language === "ar" || language === "ku";
 
@@ -120,7 +122,7 @@ function GeneralPropertiesModal({
                       />
                       <div className="regular text-[11px] text-[#1d1d1d] gap-[4px] flex-row items-center">
                         <span className="bold">{s.count}</span>
-                        <span>{translateFunction(s.title, language)}</span>
+                        <span>{s.title ? translateFunction(s.title, language) : ""}</span>
                       </div>
                     </div>
                   ))}

@@ -20,6 +20,7 @@
 const UNITS = new Set(["cm", "kg"]);
 
 export function titleCaseWords(text: string): string {
+  if (!text || typeof text !== "string") return text;
   if (text.length <= 1) return text;
   return text.replace(
     /(^|[\s(\["“‘«])([a-z]\S*)/g,

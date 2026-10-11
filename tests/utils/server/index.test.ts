@@ -39,6 +39,9 @@ describe("translateFunction (server)", () => {
       translateFunction("no such key", "ar"),
       "a missing Arabic key must fall back to the key as it is",
     ).toBe("no such key");
+    expect(translateFunction("" as any, "en")).toBe("");
+    expect(translateFunction(undefined as any, "en")).toBeUndefined();
+    expect(translateFunction(null as any, "en")).toBeNull();
   });
 });
 
