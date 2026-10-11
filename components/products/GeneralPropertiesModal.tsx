@@ -30,13 +30,15 @@ function GeneralPropertiesModal({
     { rating: 4, title: "Good", count: 100 },
     { rating: 5, title: "Very Good", count: 200 },
   ];
-  const rating_arr = rating_stats?.map((s) => ({
-    rating: Number(s.ratingGroup),
-    count: s.count,
-    title:
-      rating_arr_text.find((_t) => _t.rating === Number(s.ratingGroup))?.title ??
-      "",
-  }));
+  const rating_arr = rating_stats?.map((s) => {
+    const num = Number(s.ratingGroup);
+    return {
+      rating: Number.isFinite(num) ? num : 0,
+      count: s.count,
+      title:
+        rating_arr_text.find((_t) => _t.rating === num)?.title ?? "",
+    };
+  });
   const isRtl = language === "ar" || language === "ku";
 
   return (
