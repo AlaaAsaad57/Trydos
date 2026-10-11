@@ -676,11 +676,11 @@ describe("ConversationContainer — attaching files", () => {
     const input = fileInput();
     vi.spyOn(input, "click").mockImplementation(() => {});
     fireEvent.click(document.querySelector(".camer-icon")!);
-    const openFiles = () => act(() => h.props.Popup.options[0].onClick());
+    const openFiles = () => act(() => h.props.Popup.options[1].onClick());
     openFiles();
     expect(input.accept, "the media picker did not limit the files").toContain("video/mp4");
-    expect(h.props.Popup.options[0].render(), "the files option has no label").toBeTruthy();
-    expect(h.props.Popup.options[1].render(), "the camera option has no label").toBeTruthy();
+    expect(h.props.Popup.options[0].render(), "the camera option has no label").toBeTruthy();
+    expect(h.props.Popup.options[1].render(), "the gallery option has no label").toBeTruthy();
     await act(async () => {
       pick(new File(["x"], "doc.pdf", { type: "application/pdf" }));
     });
@@ -701,7 +701,7 @@ describe("ConversationContainer — attaching files", () => {
     const input = fileInput();
     vi.spyOn(input, "click").mockImplementation(() => {});
     fireEvent.click(document.querySelector(".camer-icon")!);
-    act(() => h.props.Popup.options[0].onClick());
+    act(() => h.props.Popup.options[1].onClick());
     await act(async () => {
       vi.advanceTimersByTime(1000);
     });
@@ -757,7 +757,7 @@ describe("ConversationContainer — the camera", () => {
     const r = await mount();
     fireEvent.click(document.querySelector(".camer-icon")!);
     await act(async () => {
-      await h.props.Popup.options[1].onClick();
+      await h.props.Popup.options[0].onClick();
     });
     return r;
   }
@@ -781,11 +781,11 @@ describe("ConversationContainer — the camera", () => {
     act(() => h.props.Crop.onClose());
 
     await act(async () => {
-      await h.props.Popup?.options?.[1]?.onClick?.();
+      await h.props.Popup?.options?.[0]?.onClick?.();
     });
     fireEvent.click(document.querySelector(".camer-icon")!);
     await act(async () => {
-      await h.props.Popup.options[1].onClick();
+      await h.props.Popup.options[0].onClick();
     });
     await act(async () => {
       h.props.Camera.send(new File(["v"], "clip.webm", { type: "video/webm" }));
@@ -794,7 +794,7 @@ describe("ConversationContainer — the camera", () => {
 
     fireEvent.click(document.querySelector(".camer-icon")!);
     await act(async () => {
-      await h.props.Popup.options[1].onClick();
+      await h.props.Popup.options[0].onClick();
     });
     await act(async () => {
       h.props.Camera.send(new File(["i"], "shot.jpg", { type: "image/jpeg" }));
@@ -804,14 +804,14 @@ describe("ConversationContainer — the camera", () => {
 
     fireEvent.click(document.querySelector(".camer-icon")!);
     await act(async () => {
-      await h.props.Popup.options[1].onClick();
+      await h.props.Popup.options[0].onClick();
     });
     await act(async () => {
       h.props.Camera.send(42 as any);
     });
     fireEvent.click(document.querySelector(".camer-icon")!);
     await act(async () => {
-      await h.props.Popup.options[1].onClick();
+      await h.props.Popup.options[0].onClick();
     });
     await act(async () => {
       await h.props.Camera.close();

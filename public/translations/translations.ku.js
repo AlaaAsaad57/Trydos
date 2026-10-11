@@ -1398,9 +1398,13 @@ const translations = {
   "I Agree & Return": "ڕازیەم و گەڕاندنوە دەکەم",
   "Delay Confirmation. I want to Return more product":
     "دڵنیاکردنەوە پاشەکشە بکە. دەمەوێت زیاتر بەرهەم بگەڕێنمەوە",
+  "choose photo or video from gallery or camera":
+    "وێنە یان ڤیدیۆێك لە گەلەری یان کامێرا ھەڵبژێرە",
   "chosse an image or video from camera or files":
     "وێنە یان ڤیدیۆێك لە کامێرا یان فایلەکان ھەڵبژێرە",
   camera: "کامێرا",
+  Camera: "کامێرا",
+  gallery: "گالەری",
   files: "فایلەکان",
   "Terms Of Change Address": " مەرجەکانی گۆڕینی ناونیشان",
   Block: "بلۆک کردن",
@@ -2919,6 +2923,8 @@ const translations = {
   "Present this code along with your personal ID at any of our branches and pay the amount in complete security.": "ئەم کۆدە لەگەڵ ناسنامەی کەسیت لە هەر لقێکی ئێمە پیشان بدە و بڕەکە بە سەلامەتیی تەواو بدە.",
   "Standard": "ستاندارد",
   "View product": "بینینی بەرهەم",
+  "No internet connection": "پەیوەندی ئینتەرنێت نییە",
+  "Please check your connection to scan and pay": "تکایە پەیوەندییەکەت بپشکنە بۆ سکانکردن و پارەدان",
 };
 
 export default translations;

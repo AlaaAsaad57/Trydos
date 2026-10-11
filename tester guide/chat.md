@@ -699,16 +699,16 @@ chat list.
 | | |
 |---|---|
 | **Steps** | 1. With an empty input box, click the **camera** icon. |
-| **Expected Result** | A small window opens with the title "chosse an image or video from camera or files" and two choices: **files** and **camera**. |
+| **Expected Result** | A small window opens with the title "choose photo or video from gallery or camera" and two choices: **camera** and **Gallery**. |
 | **Severity if Failed** | MEDIUM |
 
 ---
 
-**TC-F-11 — "files" only accepts images and videos**
+**TC-F-11 — "Gallery" only accepts images and videos**
 
 | | |
 |---|---|
-| **Steps** | 1. Camera icon → **files**. 2. In the file picker, force-select `document.pdf` (choose "All files" if needed). |
+| **Steps** | 1. Camera icon → **Gallery**. 2. In the file picker, force-select `document.pdf` (choose "All files" if needed). |
 | **Expected Result** | A red error appears: "Only image and video files are allowed". Nothing is sent. |
 | **Severity if Failed** | MEDIUM |
 

@@ -1290,7 +1290,7 @@ function ConversationContainer({
       {showMenu && (
         <CustomPopup
           modalTitle={translateFunction(
-            "chosse an image or video from camera or files",
+            "choose photo or video from gallery or camera",
           )}
           close={() => {
             setShowMenu(false);
@@ -1300,7 +1300,11 @@ function ConversationContainer({
           }}
           options={[
             {
-              render: () => <>{translateFunction("files")}</>,
+              render: () => <>{translateFunction("camera")}</>,
+              onClick: () => enableCamera(true),
+            },
+            {
+              render: () => <>{translateFunction("Gallery")}</>,
               onClick: () => {
                 onlyMediaRef.current = true;
                 const fileInput =
@@ -1321,10 +1325,6 @@ function ConversationContainer({
                   }, 1000);
                 }
               },
-            },
-            {
-              render: () => <>{translateFunction("camera")}</>,
-              onClick: () => enableCamera(true),
             },
           ]}
         />

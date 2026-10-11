@@ -794,4 +794,187 @@ describe("RdbPaymentModal", () => {
       vi.useRealTimers();
     });
   });
+
+  describe("network offline / online resilience", () => {
+    it("disables the QR code widget with an offline overlay when offline and enables it when online", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+        kind: "created",
+        request: pending,
+      });
+
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("12345678")).toBeInTheDocument();
+      });
+
+      // Internet goes off
+      act(() => {
+        window.dispatchEvent(new Event("offline"));
+      });
+
+      expect(
+        document.querySelector('[data-pw="rdb-offline-overlay"]'),
+        "the offline overlay must appear when the internet goes off",
+      ).not.toBeNull();
+      expect(
+        screen.getByText("No Internet Connection"),
+        "the offline message must be shown when internet goes off",
+      ).toBeInTheDocument();
+      // Code and amount must remain visible and intact
+      expect(screen.getByText("12345678"), "the payment code must remain visible during outage").toBeInTheDocument();
+      expect(screen.getByText("100.50 USD"), "the amount must remain visible during outage").toBeInTheDocument();
+
+      // Internet comes back
+      act(() => {
+        window.dispatchEvent(new Event("online"));
+      });
+
+      expect(
+        document.querySelector('[data-pw="rdb-offline-overlay"]'),
+        "the offline overlay must be removed when the internet comes back",
+      ).toBeNull();
+      expect(
+        screen.queryByText("No Internet Connection"),
+        "the offline message must disappear when internet comes back",
+      ).toBeNull();
+    });
+
+    it("continues to poll repeatedly even after multiple failed status requests", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+        kind: "created",
+        request: pending,
+      });
+      // 3 consecutive failed poll answers followed by success
+      vi.mocked(GetRdbRequest)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValue(pending);
+
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+
+      // Advance through 4 polling intervals
+      for (let i = 1; i <= 4; i++) {
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+        });
+        expect(
+          vi.mocked(GetRdbRequest).mock.calls.length,
+          `poll attempt ${i} must have fired`,
+        ).toBe(i);
+        expect(
+          screen.getByText("Waiting For Your Payment"),
+          "screen must not abort or show failure after multiple failed polls",
+        ).toBeInTheDocument();
+      }
+
+      vi.useRealTimers();
+    });
+
+    it("resumes polling immediately upon reconnecting and completes order if paid during outage", async () => {
+      const onSuccess = vi.fn();
+      const onClose = vi.fn();
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+        kind: "created",
+        request: pending,
+      });
+      vi.mocked(GetRdbRequest).mockResolvedValue(null);
+      vi.mocked(fetchData).mockResolvedValue({
+        success: true,
+        data: [{ id: 501, order_group_id: "og-1" }],
+      } as any);
+
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={onSuccess} onClose={onClose} />,
+        { store: storeState },
+      );
+
+      // Simulate network going offline
+      act(() => {
+        window.dispatchEvent(new Event("offline"));
+      });
+
+      // Time passes during outage; polls return null
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS * 2);
+      });
+
+      // User paid on second phone during outage -> backend has status 'paid'
+      vi.mocked(GetRdbRequest).mockResolvedValue({
+        ...pending,
+        status: "paid",
+        order_ids: [501],
+      });
+
+      // Network comes back online
+      await act(async () => {
+        window.dispatchEvent(new Event("online"));
+      });
+
+      await waitFor(() => {
+        expect(onSuccess, "onSuccess must be called when payment was made during outage").toHaveBeenCalled();
+        expect(onClose, "modal must close when payment is verified after reconnect").toHaveBeenCalled();
+      });
+
+      vi.useRealTimers();
+    });
+
+    it("after reconnecting, settles as expired if timer expired before payment was made", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+        kind: "created",
+        request: {
+          ...pending,
+          expires_at: new Date(Date.now() + 2000).toISOString(),
+        },
+      });
+
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+
+      // Internet goes off
+      act(() => {
+        window.dispatchEvent(new Event("offline"));
+      });
+
+      // Timer expires while offline (2500ms passes)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2500);
+      });
+
+      // Backend reports expired because shopper did not pay
+      vi.mocked(GetRdbRequest).mockResolvedValue({
+        ...pending,
+        status: "expired",
+      });
+
+      // Internet returns
+      await act(async () => {
+        window.dispatchEvent(new Event("online"));
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Payment Expired"),
+          "screen must show payment expired after reconnecting if shopper did not pay",
+        ).toBeInTheDocument();
+      });
+
+      vi.useRealTimers();
+    });
+  });
 });

@@ -1359,9 +1359,13 @@ const translations = {
   "I Agree & Return": "أوافق وأرجع",
   "Delay Confirmation. I want to Return more product":
     "تأجيل. أرغب في إرجاع المزيد من المنتجات",
+  "choose photo or video from gallery or camera":
+    "اختر صورة أو فيديو من المعرض أو الكاميرا",
   "chosse an image or video from camera or files":
     "اختر صورة أو فيديو من الكاميرا أو الملفات",
   camera: "الكاميرا",
+  Camera: "الكاميرا",
+  gallery: "المعرض",
   files: "الملفات",
   Block: "حظر",
   UnBlock: "إلغاء الحظر",
@@ -2869,6 +2873,8 @@ const translations = {
   "Present this code along with your personal ID at any of our branches and pay the amount in complete security.": "قدّم هذا الرمز مع هويتك الشخصية في أي فرع من فروعنا وادفع المبلغ بأمان تام.",
   "Standard": "قياسي",
   "View product": "عرض المنتج",
+  "No internet connection": "لا يوجد اتصال بالإنترنت",
+  "Please check your connection to scan and pay": "يرجى التحقق من اتصالك للمسح والدفع",
 };
 
 export default translations;

@@ -1343,9 +1343,13 @@ const translations = {
   "I Agree & Return": "Kabul Ediyorum ve İade Ediyorum",
   "Delay Confirmation. I want to Return more product":
     "Onayı ertele. Daha fazla ürün iade etmek istiyorum",
+  "choose photo or video from gallery or camera":
+    "Galeriden veya kameradan bir fotoğraf ya da video seçin",
   "chosse an image or video from camera or files":
     "Kameradan veya dosyalardan bir fotoğraf ya da video seçin",
   camera: "Kamera",
+  Camera: "Kamera",
+  gallery: "Galeri",
   files: "Dosyalar",
   "Terms Of Change Address": " Adres Değişikliği Şartları",
   "You cannot send messages or calls to this user":
@@ -2901,6 +2905,8 @@ const translations = {
   "Present this code along with your personal ID at any of our branches and pay the amount in complete security.": "Bu kodu kimliğinizle birlikte şubelerimizden herhangi birinde gösterin ve tutarı tam güvenle ödeyin.",
   "Standard": "Standart",
   "View product": "Ürünü Görüntüle",
+  "No internet connection": "İnternet bağlantısı yok",
+  "Please check your connection to scan and pay": "Taramak ve ödemek için lütfen bağlantınızı kontrol edin",
 };
 
 export default translations;

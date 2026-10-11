@@ -87,18 +87,22 @@ export async function StartRdbPayment({
 export async function GetRdbRequest(
   reference: string,
 ): Promise<RdbPaymentRequest | null> {
-  const response: any = await fetchData({
-    url: `/customer/order/rdb-request/${encodeURIComponent(reference)}`,
-    method: "GET",
-    server: "market",
-    reqTitle: REQUESTS_DATA.RDB_PAYMENT_STATUS,
-    noMessage: true,
-  });
+  try {
+    const response: any = await fetchData({
+      url: `/customer/order/rdb-request/${encodeURIComponent(reference)}`,
+      method: "GET",
+      server: "market",
+      reqTitle: REQUESTS_DATA.RDB_PAYMENT_STATUS,
+      noMessage: true,
+    });
 
-  if (response?.success && response?.data?.status) {
-    return response.data as RdbPaymentRequest;
+    if (response?.success && response?.data?.status) {
+      return response.data as RdbPaymentRequest;
+    }
+    return null;
+  } catch {
+    return null;
   }
-  return null;
 }
 
 /**

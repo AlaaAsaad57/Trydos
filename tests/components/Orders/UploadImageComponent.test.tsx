@@ -122,11 +122,11 @@ describe("UploadImageComponent", () => {
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Add Photo"));
-    expect(screen.getByText("Files"), "the menu did not open").toBeInTheDocument();
+    expect(screen.getByText("Gallery"), "the menu did not open").toBeInTheDocument();
     const clickSpy = vi.spyOn(fileInput(), "click");
-    fireEvent.click(screen.getByText("Files"));
+    fireEvent.click(screen.getByText("Gallery"));
     expect(clickSpy, "choosing files did not open the file dialog").toHaveBeenCalled();
-    expect(screen.queryByText("Files"), "the menu stayed open").not.toBeInTheDocument();
+    expect(screen.queryByText("Gallery"), "the menu stayed open").not.toBeInTheDocument();
   });
 
   it("uploads a picked and cropped file as a return photo", async () => {
