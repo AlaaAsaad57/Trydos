@@ -210,6 +210,7 @@ const defaultStoreState = {
     coupon_number: "",
     loading: false,
     success: false,
+    receipt_number: null,
   },
   user: { name: "Sami" },
   userProfile: { is_phone_verified: 1 },

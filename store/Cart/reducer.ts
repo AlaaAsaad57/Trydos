@@ -42,6 +42,19 @@ const openCart = (val) => {
   }
 };
 
+export type OrderDataState = {
+  data: any;
+  payment: any[];
+  coupon: boolean;
+  agree: boolean;
+  coupon_number: string;
+  loading: boolean;
+  success: boolean;
+  receipt_number?: string | null;
+  attempt_id?: string;
+  [key: string]: any;
+};
+
 const useCartStore = (set, get) => ({
   // Initial state
   orderLoading: false,
@@ -92,8 +105,8 @@ const useCartStore = (set, get) => ({
     coupon_number: "",
     loading: false,
     success: false,
-    receipt_number: null as string | null,
-  },
+    receipt_number: null,
+  } as OrderDataState,
   cart_enable: false,
   AddToCartOption: {
     enable: false,

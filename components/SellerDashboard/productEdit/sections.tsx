@@ -1021,14 +1021,14 @@ function SourceMenu({
             <button
               type="button"
               onClick={() => { setOpen(false); onGallery(); }}
-              className="w-full flex items-center gap-2.5 px-3 h-[40px] rounded-[10px] text-[13px] text-[#3c3c3c] hover:bg-[#f4f4f4] text-left"
+              className="w-full flex items-center gap-2.5 px-3 h-[40px] rounded-[10px] text-[13px] text-[#3c3c3c] hover:bg-[#f4f4f4] text-start"
             >
               <DashIcon name="gallery" size={16} /> {t("Choose from gallery")}
             </button>
             <button
               type="button"
               onClick={() => { setOpen(false); onDevice(); }}
-              className="w-full flex items-center gap-2.5 px-3 h-[40px] rounded-[10px] text-[13px] text-[#3c3c3c] hover:bg-[#f4f4f4] text-left"
+              className="w-full flex items-center gap-2.5 px-3 h-[40px] rounded-[10px] text-[13px] text-[#3c3c3c] hover:bg-[#f4f4f4] text-start"
             >
               <DashIcon name="upload" size={16} /> {t("Upload from device")}
             </button>
@@ -1303,12 +1303,12 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                   the columns (worst with the wider ar/ku headers, and worst of
                   all when `pricesLocked` removes three columns) and pull each
                   label off its input. The wrapper scrolls instead. */}
-              <table className="w-auto text-left border-separate border-spacing-y-1.5">
+              <table className="w-auto text-start border-separate border-spacing-y-1.5">
                 <thead>
                   <tr className="text-[11px] semibold text-[#8e8e8e]">
                     {/* Horizontal padding matches the body cells (`px-1`) so each
                         label lines up with the input under it. */}
-                    <th className="py-1 pr-3">{t("Variant")}</th>
+                    <th className="py-1 pe-3">{t("Variant")}</th>
                     {!pricesLocked && (
                       <>
                         <th className="py-1 px-1">{t("Price")}</th>

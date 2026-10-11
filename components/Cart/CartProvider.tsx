@@ -94,7 +94,6 @@ const CartProvider = ({ language, country }) => {
         storeState.cart_enable ||
         Boolean(storeState.selectedStory) ||
         Boolean(storeState.addStoryEnable) ||
-        storeState.chat_open ||
         storeState.chatVar ||
         storeState.enable_search ||
         Boolean(storeState.selected_product_for_add_to_cart);

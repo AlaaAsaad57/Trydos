@@ -10,7 +10,7 @@ export default function SellerBoutiqueEditPage() {
   const sellerId = params.sellerId as string;
   const boutiqueId = params.boutiqueId as string;
   const local = params.lang?.toString() || "";
-  const [, language] = local.split("-");
+  const language = local.includes("-") ? local.split("-")[1] : local;
   const isRtl = language === "ar" || language === "ku";
   const onBackIntercept = useDashboardDetailBack(sellerId);
 

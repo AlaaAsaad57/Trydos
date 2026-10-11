@@ -1328,7 +1328,7 @@ const OrderListScreen = ({
   const { lang: local } = useParams();
   const isRtl = language === "ar" || language === "ku";
   return (
-    <div className="flex flex-col h-full bg-white font-sans w-full">
+    <div dir={isRtl ? "rtl" : "ltr"} className="flex flex-col h-full bg-white font-sans w-full">
       {/* Header */}
       <div className="bg-white sticky top-0 z-10 w-full">
         <BackBar
@@ -1506,12 +1506,17 @@ const OrderDetailScreen = ({
   onPackItem: (orderId: number | string, item: any) => void;
   onCancelItem: (orderId: number | string, item: any) => void;
 }) => {
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   if (!order) {
     return (
-      <div className="flex flex-col h-full bg-gray-50 w-full">
+      <div dir={isRtl ? "rtl" : "ltr"} className="flex flex-col h-full bg-gray-50 w-full">
         <div className="bg-white flex items-center justify-between sticky top-0 z-20 w-full mb-4">
-          <button onClick={onBack} className="p-2">
-            <Icons.ChevronLeft />
+          <button onClick={onBack} aria-label={translateFunction("Back")} className="p-2">
+            <span className={isRtl ? "inline-block rotate-180" : ""}>
+              <Icons.ChevronLeft />
+            </span>
           </button>
           <h1 className="text-[14px] font-bold text-[#1D1D1D] flex items-center gap-2 w-full justify-center">
             <Icons.Bag2 className="text-red-500 fill-red-500" />
@@ -1551,11 +1556,13 @@ const OrderDetailScreen = ({
   const remainingMinutes = Number(order?.remaining_in_minutes || 0);
 
   return (
-    <div className="flex flex-col h-full bg-white font-sans w-full">
+    <div dir={isRtl ? "rtl" : "ltr"} className="flex flex-col h-full bg-white font-sans w-full">
       {/* Header */}
       <div className="bg-white flex items-center justify-between sticky top-0 z-20 w-full mb-4">
-        <button onClick={onBack} className="p-2">
-          <Icons.ChevronLeft />
+        <button onClick={onBack} aria-label={translateFunction("Back")} className="p-2">
+          <span className={isRtl ? "inline-block rotate-180" : ""}>
+            <Icons.ChevronLeft />
+          </span>
         </button>
         <div className="font-medium text-[#1D1D1D] text-[14px] flex items-center gap-1 w-full justify-center">
           <Icons.Bag className="text-red-500 fill-red-500" />{" "}
@@ -1786,20 +1793,20 @@ const OrderDetailScreen = ({
                     <div className="space-y-1">
                       <div className="flex flex-row items-center gap-10">
                         <div className="text-xs flex mb-[5px]">
-                          <span className="text-gray-400 mr-[5px]">{translateFunction("Color:")}</span>{" "}
+                          <span className="text-gray-400 me-[5px]">{translateFunction("Color:")}</span>{" "}
                           <span className="text-gray-700 font-medium">
                             {variantColor || translateFunction("N/A")}
                           </span>
                         </div>
                         <div className="text-xs flex mb-[5px]">
-                          <span className="text-gray-400 mr-[5px]">{translateFunction("Size:")}</span>{" "}
+                          <span className="text-gray-400 me-[5px]">{translateFunction("Size:")}</span>{" "}
                           <span className="text-gray-700 font-medium">
                             {variantSize || translateFunction("N/A")}
                           </span>
                         </div>
                       </div>
                       <div className="text-xs flex mb-[5px]">
-                        <span className="text-gray-400 mr-[5px]">{translateFunction("ID:")}</span>{" "}
+                        <span className="text-gray-400 me-[5px]">{translateFunction("ID:")}</span>{" "}
                         <span className="text-gray-700 font-medium">
                           {item?.product_id ?? item?.id ?? "N/A"}
                         </span>
@@ -1811,7 +1818,7 @@ const OrderDetailScreen = ({
                         {translateFunction("Quantity:")}{" "}
                         <span className="text-gray-900 font-bold">{qty}</span>
                       </div>
-                      <div className="text-right">
+                      <div className="text-end">
                         <span className="font-bold text-[#1D1D1D] text-[12px]">
                           {qty > 1
                             ? `${offerPrice} / ${itemTotalPrice}`

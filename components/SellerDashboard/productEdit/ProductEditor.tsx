@@ -104,6 +104,8 @@ export default function ProductEditor({
   const isCreate = mode === "create";
   const { sellerProducts, sellerPermissions, setSellerPermissions } =
     useSellerProfile();
+  const language = (local || "").includes("-") ? (local || "").split("-")[1] : (local || "");
+  const isRtl = language === "ar" || language === "ku";
 
   // Shop info (fetched dashboard-wide by ShopInfoLoader). Only trusted when it
   // belongs to THIS shop — otherwise the inputs render without an overlay.
@@ -875,7 +877,7 @@ export default function ProductEditor({
   const cover = form.images[0]?.url || listProduct?.images?.[0];
 
   return (
-    <div className="space-y-5">
+    <div dir={isRtl ? "rtl" : "ltr"} style={{ direction: isRtl ? "rtl" : "ltr" }} className="space-y-5">
       {/* Header card */}
       <div
         className="bg-white rounded-[15px] p-4 lg:p-5"
@@ -1103,7 +1105,7 @@ export default function ProductEditor({
             className="bg-white rounded-[15px] p-3 flex items-center justify-between gap-3"
             style={{ boxShadow: "0 6px 20px rgba(0,0,0,0.14)" }}
           >
-            <span className="text-[12px] text-[#8e8e8e] pl-1">
+            <span className="text-[12px] text-[#8e8e8e] ps-1">
               {t("Review your changes before saving.")}
             </span>
             <div className="flex items-center gap-2.5">
@@ -1151,6 +1153,7 @@ export default function ProductEditor({
           diff={confirm}
           saving={saving}
           create={isCreate}
+          isRtl={isRtl}
           onCancel={() => !saving && setConfirm(null)}
           onConfirm={confirmSave}
         />
@@ -1162,6 +1165,7 @@ export default function ProductEditor({
           target={statusTarget}
           saving={statusSaving}
           blockers={statusBlockers}
+          isRtl={isRtl}
           onCancel={() => !statusSaving && setStatusTarget(null)}
           onConfirm={confirmStatus}
         />
@@ -1176,13 +1180,15 @@ function Scrim({
   children,
   onClose,
   maxWidth = "max-w-[720px]",
+  isRtl,
 }: {
   children: React.ReactNode;
   onClose: () => void;
   maxWidth?: string;
+  isRtl?: boolean;
 }) {
   return (
-    <div className="fixed inset-0 z-[999999999] flex items-center justify-center p-4">
+    <div dir={isRtl ? "rtl" : "ltr"} style={{ direction: isRtl ? "rtl" : "ltr" }} className="fixed inset-0 z-[999999999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" onClick={onClose} />
       <div
         className={`relative bg-white rounded-[20px] z-10 w-full ${maxWidth} max-h-[88vh] flex flex-col overflow-hidden transition-all duration-200`}
@@ -1231,12 +1237,12 @@ function TranslationsDiffView({ details }: { details: TranslationDiffItem[] }) {
             </div>
             <StatusBadge status={tr.status} />
           </div>
-          <div className="space-y-1.5 pl-3">
+          <div className="space-y-1.5 ps-3">
             {tr.changes.map((c, i) => (
               <div key={i} className="flex flex-wrap items-center gap-2 text-[12px] bg-[#f9fafb] p-2 rounded-[8px] border border-[#f3f4f6]">
                 <span className="font-medium text-[#6b7280] min-w-[110px]">{c.fieldLabel}:</span>
                 <span className="text-[#9ca3af] line-through max-w-[200px] truncate">{c.from}</span>
-                <DashIcon name="chevronRight" size={12} className="text-[#9ca3af]" />
+                <DashIcon name="chevronRight" size={12} className="text-[#9ca3af] rtl:rotate-180" />
                 <span className="font-semibold text-[#111827] flex-1 min-w-[120px]">{c.to}</span>
               </div>
             ))}
@@ -1264,13 +1270,13 @@ function VariantsDiffView({ details }: { details: VariantDiffItem[] }) {
             </div>
             <StatusBadge status={v.status} />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 ps-1">
             {v.changes.map((c, i) => (
               <div key={i} className="flex items-center justify-between gap-2 text-[12px] bg-[#f9fafb] p-2 rounded-[8px] border border-[#f3f4f6]">
                 <span className="font-medium text-[#6b7280]">{c.fieldLabel}:</span>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[#9ca3af] line-through">{c.from}</span>
-                  <DashIcon name="chevronRight" size={12} className="text-[#9ca3af]" />
+                  <DashIcon name="chevronRight" size={12} className="text-[#9ca3af] rtl:rotate-180" />
                   <span className="font-bold text-[#111827]">{c.to}</span>
                 </div>
               </div>
@@ -1472,12 +1478,14 @@ function ConfirmDialog({
   create,
   onCancel,
   onConfirm,
+  isRtl,
 }: {
   diff: DiffEntry[];
   saving: boolean;
   create?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  isRtl?: boolean;
 }) {
   const [expandedKeys, setExpandedKeys] = useState<Record<string, boolean>>({});
 
@@ -1486,7 +1494,7 @@ function ConfirmDialog({
   };
 
   return (
-    <Scrim onClose={onCancel} maxWidth="max-w-[720px]">
+    <Scrim onClose={onCancel} maxWidth="max-w-[720px]" isRtl={isRtl}>
       <div className="p-5 border-b border-[#ededed] bg-[#fafafa]">
         <h3 className="text-[16px] font-bold text-[#111827]">
           {create ? t("Confirm new product") : t("Confirm changes")}
@@ -1630,16 +1638,18 @@ function StatusDialog({
   blockers,
   onCancel,
   onConfirm,
+  isRtl,
 }: {
   target: 0 | 1;
   saving: boolean;
   blockers: string[];
   onCancel: () => void;
   onConfirm: () => void;
+  isRtl?: boolean;
 }) {
   const enabling = target === 1;
   return (
-    <Scrim onClose={onCancel}>
+    <Scrim onClose={onCancel} isRtl={isRtl}>
       <div className="p-6 text-center">
         <div
           className={`w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center ${
@@ -1658,7 +1668,7 @@ function StatusDialog({
         </p>
 
         {blockers.length > 0 && (
-          <div className="text-left mb-4 p-3 rounded-[12px] bg-[#fff1f1] border border-[#ffd9d9]">
+          <div className="text-start mb-4 p-3 rounded-[12px] bg-[#fff1f1] border border-[#ffd9d9]">
             <p className="text-[12px] semibold text-[#f85555] mb-1.5">
               {t("Cannot enable yet — resolve these first:")}
             </p>

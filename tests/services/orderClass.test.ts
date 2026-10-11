@@ -191,6 +191,7 @@ describe("OrderService (services/order.ts)", () => {
             coupon_number: "",
             loading: false,
             success: false,
+            receipt_number: null,
           },
         });
         vi.mocked(fetchData).mockResolvedValueOnce({
