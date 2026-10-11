@@ -1232,7 +1232,7 @@ function SellerDashBoard() {
                   <span
                     data-pw="seller-product-status"
                     data-status={product.status}
-                    className={`absolute top-2.5 left-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] semibold backdrop-blur-md ${
+                    className={`absolute top-2.5 ${isRtl ? "right-2.5" : "left-2.5"} inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] semibold backdrop-blur-md ${
                       product.status === 1
                         ? "bg-white/85 text-[#2ea84f]"
                         : "bg-white/85 text-[#8e8e8e]"
@@ -1267,7 +1267,7 @@ function SellerDashBoard() {
                     >
                       {Number(product.unit_price).toFixed(2)}
                       {shopCurrency && (
-                        <span className="text-[10px] text-[#8e8e8e] ml-1 regular">
+                        <span className="text-[10px] text-[#8e8e8e] ms-1 regular">
                           {shopCurrency}
                         </span>
                       )}
@@ -1354,6 +1354,7 @@ function SellerDashBoard() {
             current={productsMeta.current_page || currentPage}
             last={productsMeta.last_page}
             disabled={productsLoading}
+            isRtl={isRtl}
             onPrev={() => getSellerProducts(currentPage - 1)}
             onNext={() => getSellerProducts(currentPage + 1)}
           />
@@ -1457,7 +1458,7 @@ function SellerDashBoard() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent pointer-events-none" />
                 {boutique.status !== undefined && (
                   <span
-                    className={`absolute top-2.5 left-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] semibold backdrop-blur-md ${
+                    className={`absolute top-2.5 ${isRtl ? "right-2.5" : "left-2.5"} inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] semibold backdrop-blur-md ${
                       boutique.status === 1
                         ? "bg-white/85 text-[#2ea84f]"
                         : "bg-white/85 text-[#8e8e8e]"
@@ -1830,7 +1831,7 @@ function SellerDashBoard() {
               />
             ) : (
               <div className="overflow-auto mb-[100px]">
-                <table className="w-full text-left mb-[300px]">
+                <table className="w-full text-start mb-[300px]">
                   <thead>
                     <tr>
                       <th className="py-3 px-3 text-[12px] semibold text-[#8e8e8e]">
@@ -1862,7 +1863,7 @@ function SellerDashBoard() {
                                   : "-")}
                             </span>
                             {hasPermission("SUPER_ADMIN") && (
-                              <div className="relative ml-2">
+                              <div className="relative ms-2">
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -1885,7 +1886,7 @@ function SellerDashBoard() {
                                   String(user.id) && (
                                   <div
                                     ref={rolesForChangeRef}
-                                    className="absolute z-50 right-0 mt-1 w-56 bg-white border border-[#ededed] rounded-[12px] shadow-[0_8px_24px_rgba(0,0,0,0.12)] max-h-48 overflow-auto"
+                                    className={`absolute z-50 ${isRtl ? "left-0" : "right-0"} mt-1 w-56 bg-white border border-[#ededed] rounded-[12px] shadow-[0_8px_24px_rgba(0,0,0,0.12)] max-h-48 overflow-auto`}
                                   >
                                     <input
                                       type="text"
@@ -2160,7 +2161,7 @@ function SellerDashBoard() {
               key={t.tab}
               data-pw={`seller-dashboard-tab-${t.tab}`}
               onClick={() => changeTab(t.tab)}
-              className="group flex items-center gap-3.5 p-4 rounded-[15px] bg-[#f8f8f8] border border-transparent hover:bg-white hover:border-[#ededed] hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-all active:scale-[0.99] text-left"
+              className="group flex items-center gap-3.5 p-4 rounded-[15px] bg-[#f8f8f8] border border-transparent hover:bg-white hover:border-[#ededed] hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-all active:scale-[0.99] text-start"
             >
               <span className="w-11 h-11 shrink-0 rounded-[12px] bg-[#5d5d5d]/10 text-[#5d5d5d] flex items-center justify-center group-hover:bg-[#5d5d5d] group-hover:text-white transition-colors">
                 <DashIcon name={t.icon} size={20} />
@@ -2185,7 +2186,7 @@ function SellerDashBoard() {
   };
 
   return (
-    <div className="w-full max-w-[1366px] mx-auto setting-screen">
+    <div className="w-full max-w-[1366px] mx-auto setting-screen" dir={isRtl ? "rtl" : "ltr"}>
       <div className="mb-3 bg-white">
         <BackBar
           key={`seller-dashboard-back-${sellerId}`}
@@ -2207,7 +2208,7 @@ function SellerDashBoard() {
       {/* Header */}
       <div
         className="bg-white rounded-[15px] p-5 lg:p-6 mb-6"
-        style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
+        style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)", direction: isRtl ? "rtl" : "ltr" }}
       >
         {/* Navigation Menu */}
         <div className="relative" ref={menuRef}>
@@ -2223,9 +2224,14 @@ function SellerDashBoard() {
 
           {/* Sliding Menu */}
           <div
-            className={`fixed left-0 top-0 h-screen w-64 shadow-2xl z-[9999999999] transition-transform duration-300 ease-in-out overflow-y-auto bg-white ${
-              menuOpen ? "translate-x-0" : "-translate-x-full"
+            className={`fixed ${isRtl ? "right-0" : "left-0"} top-0 h-screen w-64 shadow-2xl z-[9999999999] transition-transform duration-300 ease-in-out overflow-y-auto bg-white ${
+              menuOpen
+                ? "translate-x-0"
+                : isRtl
+                ? "translate-x-full"
+                : "-translate-x-full"
             }`}
+            dir={isRtl ? "rtl" : "ltr"}
           >
             {/* Menu Header — shop image (placeholder if none) + shop name */}
             <div className="px-5 py-5 border-b border-[#ededed] flex items-center gap-2.5">
@@ -2248,7 +2254,9 @@ function SellerDashBoard() {
                     changeTab("products");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "products"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2256,11 +2264,11 @@ function SellerDashBoard() {
                 >
                   <DashIcon name="products" size={20} />
                   <span>{translateFunction("Products")}</span>
-                  <span className="rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center ml-auto text-[11px] semibold bg-[#5d5d5d]/10 text-[#5d5d5d]">
+                  <span className="rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center ms-auto text-[11px] semibold bg-[#5d5d5d]/10 text-[#5d5d5d]">
                     {loadingSideBar ? <Spinner /> : sellerProducts?.length}
                   </span>
                   {activeTab === "products" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="text-[#5d5d5d] shrink-0">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2273,7 +2281,9 @@ function SellerDashBoard() {
                     changeTab("boutiques");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "boutiques"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2281,11 +2291,11 @@ function SellerDashBoard() {
                 >
                   <DashIcon name="boutiques" size={20} />
                   <span>{translateFunction("Boutiques")}</span>
-                  <span className="rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center ml-auto text-[11px] semibold bg-[#5d5d5d]/10 text-[#5d5d5d]">
+                  <span className="rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center ms-auto text-[11px] semibold bg-[#5d5d5d]/10 text-[#5d5d5d]">
                     {loadingSideBar ? <Spinner /> : sellerBoutiques?.length}
                   </span>
                   {activeTab === "boutiques" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="text-[#5d5d5d] shrink-0">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2299,7 +2309,9 @@ function SellerDashBoard() {
                     changeTab("locations");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "locations"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2308,7 +2320,7 @@ function SellerDashBoard() {
                   <DashIcon name="location" size={20} />
                   <span>{translateFunction("Locations")}</span>
                   {activeTab === "locations" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2322,7 +2334,9 @@ function SellerDashBoard() {
                     changeTab("orders");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "orders"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2331,7 +2345,7 @@ function SellerDashBoard() {
                   <DashIcon name="orders" size={20} />
                   <span>{translateFunction("Orders")}</span>
                   {activeTab === "orders" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2344,7 +2358,9 @@ function SellerDashBoard() {
                     changeTab("permissions");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "permissions"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2353,7 +2369,7 @@ function SellerDashBoard() {
                   <DashIcon name="permissions" size={20} />
                   <span>{translateFunction("Permissions")}</span>
                   {activeTab === "permissions" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2366,7 +2382,9 @@ function SellerDashBoard() {
                     changeTab("users");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "users"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2375,7 +2393,7 @@ function SellerDashBoard() {
                   <DashIcon name="users" size={20} />
                   <span>{translateFunction("Users")}</span>
                   {activeTab === "users" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2388,7 +2406,9 @@ function SellerDashBoard() {
                     changeTab("gallery");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "gallery"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2397,7 +2417,7 @@ function SellerDashBoard() {
                   <DashIcon name="gallery" size={20} />
                   <span>{translateFunction("Gallery")}</span>
                   {activeTab === "gallery" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2410,7 +2430,9 @@ function SellerDashBoard() {
                     changeTab("stories");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "stories"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2419,7 +2441,7 @@ function SellerDashBoard() {
                   <DashIcon name="stories" size={20} />
                   <span>{translateFunction("Stories")}</span>
                   {activeTab === "stories" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2432,7 +2454,9 @@ function SellerDashBoard() {
                     changeTab("comments");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "comments"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2441,7 +2465,7 @@ function SellerDashBoard() {
                   <DashIcon name="comments" size={20} />
                   <span>{translateFunction("Customers Comments")}</span>
                   {activeTab === "comments" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2454,7 +2478,9 @@ function SellerDashBoard() {
                     changeTab("excel");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "excel"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2463,7 +2489,7 @@ function SellerDashBoard() {
                   <DashIcon name="excel" size={20} />
                   <span>{translateFunction("Upload Excel File")}</span>
                   {activeTab === "excel" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2476,7 +2502,9 @@ function SellerDashBoard() {
                     changeTab("shopInfo");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "shopInfo"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2485,7 +2513,7 @@ function SellerDashBoard() {
                   <DashIcon name="shopInfo" size={20} />
                   <span>{translateFunction("Shop Info")}</span>
                   {activeTab === "shopInfo" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}

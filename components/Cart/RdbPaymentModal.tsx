@@ -24,6 +24,12 @@ import {
  *  The backend asks for 3 to 5 seconds (design doc §4). */
 const POLL_INTERVAL_MS = 4000;
 
+/** When a request takes longer than this, consider the connection offline. */
+const SLOW_REQUEST_THRESHOLD_MS = 3000;
+
+/** Maximum time to wait for a poll before treating it as timed out and retrying. */
+const HANG_TIMEOUT_MS = 4500;
+
 /** True on a phone or tablet browser, where an `rdb://` link can actually open
  *  the RDB app. On a desktop browser the link does nothing, so the button is
  *  not drawn there. The QR is always drawn and is the fallback. */
@@ -80,6 +86,8 @@ export default function RdbPaymentModal({
   const stoppedRef = useRef(false);
   const startedRef = useRef(false);
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const slowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hangTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeRef = useRef<string | null>(reference);
   const isOnlineRef = useRef(isOnline);
   isOnlineRef.current = isOnline;
@@ -88,7 +96,7 @@ export default function RdbPaymentModal({
   /** Load the orders the payment created. The poll answer carries `order_ids`,
    *  but the success screen needs the order rows and their group id, and the
    *  cart-to-order lookup returns both. */
-  const loadOrders = async () => {
+  const loadOrders = async (receiptNumber?: string | null) => {
     const cartGroupId = cart?.[0]?.cart_group_id;
     if (!cartGroupId) return;
     const response: any = await fetchData({
@@ -99,7 +107,11 @@ export default function RdbPaymentModal({
       noMessage: true,
     });
     if (response?.success && response?.data?.length > 0) {
-      setOrderData({ data: response.data, success: true });
+      setOrderData({
+        data: response.data,
+        success: true,
+        ...(receiptNumber ? { receipt_number: receiptNumber } : {}),
+      });
     }
   };
 
@@ -109,6 +121,8 @@ export default function RdbPaymentModal({
     if (stoppedRef.current) return;
     stoppedRef.current = true;
     if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+    if (slowTimerRef.current) clearTimeout(slowTimerRef.current);
+    if (hangTimerRef.current) clearTimeout(hangTimerRef.current);
     setRequest(req);
     setRdbLock(null);
 
@@ -116,7 +130,10 @@ export default function RdbPaymentModal({
       trackOrder(ORDER_EVENTS.RDB_PAYMENT_PAID, {
         reference: req.request_reference,
       });
-      await loadOrders();
+      if (req.receipt_number) {
+        setOrderData({ receipt_number: req.receipt_number });
+      }
+      await loadOrders(req.receipt_number);
       onSuccess();
       onClose();
       return;
@@ -144,18 +161,40 @@ export default function RdbPaymentModal({
 
   const pollOnce = async (ref: string) => {
     if (stoppedRef.current) return;
+    if (slowTimerRef.current) clearTimeout(slowTimerRef.current);
+    if (hangTimerRef.current) clearTimeout(hangTimerRef.current);
+
+    slowTimerRef.current = setTimeout(() => {
+      // If the request takes longer than expected, consider user offline
+      setIsOnline(false);
+    }, SLOW_REQUEST_THRESHOLD_MS);
+
     try {
-      const next = await GetRdbRequest(ref);
+      const next = await Promise.race([
+        GetRdbRequest(ref),
+        new Promise<null>((resolve) => {
+          hangTimerRef.current = setTimeout(() => resolve(null), HANG_TIMEOUT_MS);
+        }),
+      ]);
+
+      if (slowTimerRef.current) {
+        clearTimeout(slowTimerRef.current);
+        slowTimerRef.current = null;
+      }
+      if (hangTimerRef.current) {
+        clearTimeout(hangTimerRef.current);
+        hangTimerRef.current = null;
+      }
       if (stoppedRef.current) return;
-      // A lost answer is not an end state. Ask again rather than tell the
-      // shopper the payment failed. Always ask for payment request status even after multiple failed requests!
+
+      // When the call fails (returns null), consider user is offline
       if (!next) {
-        if (typeof navigator !== "undefined" && !navigator.onLine) {
-          setIsOnline(false);
-        }
+        setIsOnline(false);
         schedulePoll(ref);
         return;
       }
+
+      // When the call succeeds, consider user is online
       setIsOnline(true);
       setRequest(next);
       if (next.status === "awaiting_payment") {
@@ -171,6 +210,15 @@ export default function RdbPaymentModal({
       }
       void settle(next);
     } catch {
+      if (slowTimerRef.current) {
+        clearTimeout(slowTimerRef.current);
+        slowTimerRef.current = null;
+      }
+      if (hangTimerRef.current) {
+        clearTimeout(hangTimerRef.current);
+        hangTimerRef.current = null;
+      }
+      setIsOnline(false);
       if (!stoppedRef.current) {
         schedulePoll(ref);
       }
@@ -287,6 +335,8 @@ export default function RdbPaymentModal({
     return () => {
       stoppedRef.current = true;
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+      if (slowTimerRef.current) clearTimeout(slowTimerRef.current);
+      if (hangTimerRef.current) clearTimeout(hangTimerRef.current);
     };
   }, []);
 
@@ -516,7 +566,7 @@ export default function RdbPaymentModal({
                 </span>
               )}
 
-              <div className="flex-row w-full gap-[8px] mt-[8px]">
+              <div className="flex flex-col sm:flex-row w-full gap-[8px] mt-[8px]">
                 {isOpen && request.deep_link && isMobileBrowser() && (
                   <a
                     className={`flex items-center justify-center h-[40px] flex-1 rounded-[15px] bg-[#388CFF] text-white regular text-[12px] ${
@@ -526,6 +576,19 @@ export default function RdbPaymentModal({
                     data-pw="rdb-deep-link"
                   >
                     {translateFunction("Open the RDB app")}
+                  </a>
+                )}
+                {isOpen && request.deep_link && (
+                  <a
+                    className={`flex items-center justify-center h-[40px] flex-1 rounded-[15px] bg-[#388CFF] text-white regular text-[12px] ${
+                      !isOnline ? "opacity-50 pointer-events-none" : ""
+                    }`}
+                    href={request.deep_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-pw="rdb-web-link"
+                  >
+                    {translateFunction("Pay with web RDB")}
                   </a>
                 )}
                 {isOpen && (

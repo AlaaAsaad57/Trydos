@@ -2907,6 +2907,7 @@ const translations = {
   "View product": "Ürünü Görüntüle",
   "No internet connection": "İnternet bağlantısı yok",
   "Please check your connection to scan and pay": "Taramak ve ödemek için lütfen bağlantınızı kontrol edin",
+  "Pay with web RDB": "Web RDB ile öde",
 };
 
 export default translations;

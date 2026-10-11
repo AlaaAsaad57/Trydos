@@ -92,6 +92,7 @@ const useCartStore = (set, get) => ({
     coupon_number: "",
     loading: false,
     success: false,
+    receipt_number: null as string | null,
   },
   cart_enable: false,
   AddToCartOption: {

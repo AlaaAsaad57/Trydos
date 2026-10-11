@@ -76,6 +76,7 @@ function CartContainer({ close, toOrders }) {
       loading: false,
       success: false,
       data: [],
+      receipt_number: null,
     });
   }, []);
   const getData = async () => {

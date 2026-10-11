@@ -461,19 +461,21 @@ export function Pagination({
   disabled,
   onPrev,
   onNext,
+  isRtl,
 }: {
   current: number;
   last: number;
   disabled?: boolean;
   onPrev: () => void;
   onNext: () => void;
+  isRtl?: boolean;
 }) {
   return (
     <div className="flex items-center justify-center gap-3 mt-6">
       <DashButton
         variant="secondary"
         size="sm"
-        icon="chevronLeft"
+        icon={isRtl ? "chevronRight" : "chevronLeft"}
         onClick={onPrev}
         disabled={current <= 1 || disabled}
       >
@@ -491,7 +493,7 @@ export function Pagination({
         data-pw="pagination-next"
         variant="secondary"
         size="sm"
-        iconRight="chevronRight"
+        iconRight={isRtl ? "chevronLeft" : "chevronRight"}
         onClick={onNext}
         disabled={current >= last || disabled}
       >
@@ -524,7 +526,7 @@ export function DashField({
   return (
     <div data-pw={dataPw}>
       {label && (
-        <label className="block text-[13px] medium text-[#505050] mb-1.5">
+        <label className="block text-[13px] medium text-[#505050] mb-1.5 text-start">
           {label}
         </label>
       )}
@@ -538,11 +540,11 @@ export function DashField({
           {error}
         </p>
       ) : (
-        hint && <p className="text-[12px] text-[#8e8e8e] mt-1">{hint}</p>
+        hint && <p className="text-[12px] text-[#8e8e8e] mt-1 text-start">{hint}</p>
       )}
     </div>
   );
 }
 
 export const dashInputClass =
-  "w-full px-4 h-[48px] bg-[#f8f8f8] border border-[#ededed] rounded-[12px] text-[14px] text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:border-[#5d5d5d] focus:bg-white transition-colors";
+  "w-full px-4 h-[48px] bg-[#f8f8f8] border border-[#ededed] rounded-[12px] text-[14px] text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:border-[#5d5d5d] focus:bg-white transition-colors text-start";

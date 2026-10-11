@@ -12,6 +12,9 @@ import {
 import auth from "services/auth";
 function OrderSuccess() {
   const { orderData, currency, total_shipping_cost, cart } = useAppStore();
+  const receiptNumber =
+    (orderData as any)?.receipt_number ||
+    (orderData?.data as any)?.[0]?.receipt_number;
   const getTotalCash = () => {
     let total = 0;
     orderData.data.map((item) => {
@@ -126,6 +129,14 @@ function OrderSuccess() {
           {translateFunction("Order Invoice")}
         </span>
       </div>
+      {receiptNumber && (
+        <span
+          className="regular text-[12px] text-[#404040] mt-[4px]"
+          data-pw="order-receipt-number"
+        >
+          {receiptNumber}
+        </span>
+      )}
       <InfoOrder />
     </div>
   );

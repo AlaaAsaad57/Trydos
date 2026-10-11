@@ -2925,6 +2925,7 @@ const translations = {
   "View product": "بینینی بەرهەم",
   "No internet connection": "پەیوەندی ئینتەرنێت نییە",
   "Please check your connection to scan and pay": "تکایە پەیوەندییەکەت بپشکنە بۆ سکانکردن و پارەدان",
+  "Pay with web RDB": "پارەدان لە ڕێگەی وێبی RDB",
 };
 
 export default translations;

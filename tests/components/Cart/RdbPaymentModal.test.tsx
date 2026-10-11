@@ -967,7 +967,7 @@ describe("RdbPaymentModal", () => {
         window.dispatchEvent(new Event("online"));
       });
 
-      await waitFor(() => {
+        await waitFor(() => {
         expect(
           screen.getByText("Payment Expired"),
           "screen must show payment expired after reconnecting if shopper did not pay",
@@ -976,5 +976,125 @@ describe("RdbPaymentModal", () => {
 
       vi.useRealTimers();
     });
+
+    it("treats failed status call as offline and successful call as online without relying on navigator events", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+        kind: "created",
+        request: pending,
+      });
+
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+
+      // Initially online (StartRdbPayment succeeded)
+      expect(
+        document.querySelector('[data-pw="rdb-offline-overlay"]'),
+        "no offline overlay while online",
+      ).toBeNull();
+
+      // Next poll fails (network dropped quietly without browser offline event)
+      vi.mocked(GetRdbRequest).mockResolvedValueOnce(null);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+      });
+
+      // Status call failure sets isOnline to false
+      expect(
+        document.querySelector('[data-pw="rdb-offline-overlay"]'),
+        "offline overlay must appear when status call fails",
+      ).toBeInTheDocument();
+
+      // Next poll succeeds
+      vi.mocked(GetRdbRequest).mockResolvedValueOnce(pending);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+      });
+
+      // Status call success restores isOnline to true
+      expect(
+        document.querySelector('[data-pw="rdb-offline-overlay"]'),
+        "offline overlay must disappear when status call succeeds",
+      ).toBeNull();
+
+      vi.useRealTimers();
+    });
+  });
+
+  describe("Pay with web RDB button and receipt_number", () => {
+    it("renders 'Pay with web RDB' button pointing to deep_link with target blank", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+        kind: "created",
+        request: {
+          ...pending,
+          deep_link: "https://rdb.wallet.example/checkout/123",
+        },
+      });
+
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+
+      await waitFor(() => {
+        const webBtn = document.querySelector('[data-pw="rdb-web-link"]');
+        expect(webBtn, "Pay with web RDB link must be rendered").toBeInTheDocument();
+        expect(webBtn?.getAttribute("href"), "href must match request.deep_link").toBe(
+          "https://rdb.wallet.example/checkout/123",
+        );
+        expect(webBtn?.getAttribute("target"), "must open in a new tab").toBe("_blank");
+        expect(webBtn?.getAttribute("rel"), "must have rel noopener noreferrer").toContain("noopener");
+      });
+    });
+
+    it("passes receipt_number to orderData when payment settles as paid", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+        kind: "created",
+        request: pending,
+      });
+      vi.mocked(GetRdbRequest).mockResolvedValueOnce({
+        ...pending,
+        status: "paid",
+        receipt_number: "RCPT-RDB-888999",
+        order_ids: [1001],
+      });
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: [{ id: 1001, order_group_id: "GRP-RDB-1" }],
+      } as any);
+
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      const onSuccess = vi.fn();
+      const onClose = vi.fn();
+
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={onSuccess} onClose={onClose} />,
+        { store: storeState },
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+      });
+
+      await waitFor(() => {
+        expect(onSuccess, "onSuccess must be called").toHaveBeenCalled();
+        expect(onClose, "onClose must be called").toHaveBeenCalled();
+      });
+
+      const currentOrderData = useAppStore.getState().orderData;
+      expect(
+        currentOrderData.receipt_number,
+        "receipt_number must be stored in orderData",
+      ).toBe("RCPT-RDB-888999");
+
+      vi.useRealTimers();
+    });
   });
 });
+

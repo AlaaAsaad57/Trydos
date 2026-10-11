@@ -41,6 +41,7 @@ export default function ShopInfo({
   canUpdate = false,
   onShopInfoUpdated,
 }: ShopInfoProps) {
+  const isRtl = language === 'ar' || language === 'ku';
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -302,7 +303,7 @@ export default function ShopInfo({
   const bannerFileLabel = bannerFile?.name || (bannerUrl ? bannerUrl.split('/').pop() : '');
 
   return (
-    <div className="relative">
+    <div className="relative" dir={isRtl ? 'rtl' : 'ltr'}>
 
       {/* Conditionally Render the Crop Widget */}
       {pendingImageFile && croppingType && (
@@ -348,7 +349,7 @@ export default function ShopInfo({
                   onChange={handleTextChange}
                   disabled={!canUpdate}
                   placeholder={translateFunction('Shop Name', language)}
-                  className={`w-full px-4 h-[48px] rounded-[12px] bg-[#f8f8f8] border text-[14px] text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                  className={`w-full px-4 h-[48px] rounded-[12px] bg-[#f8f8f8] border text-[14px] text-start text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                     errors.shopName
                       ? 'border-[#f85555]'
                       : 'border-[#ededed] focus:border-[#5d5d5d]'
@@ -370,12 +371,13 @@ export default function ShopInfo({
                 <input
                   type="text"
                   name="contact"
+                  dir="ltr"
                   data-pw="shop-info-contact-input"
                   value={formData.contact}
                   onChange={handleTextChange}
                   disabled={!canUpdate}
                   placeholder="971XXXXXXXXX"
-                  className={`w-full px-4 h-[48px] rounded-[12px] bg-[#f8f8f8] border text-[14px] text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                  className={`w-full px-4 h-[48px] rounded-[12px] bg-[#f8f8f8] border text-[14px] text-start text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                     errors.contact
                       ? 'border-[#f85555]'
                       : 'border-[#ededed] focus:border-[#5d5d5d]'
@@ -401,7 +403,7 @@ export default function ShopInfo({
                   onChange={handleTextChange}
                   disabled={!canUpdate}
                   placeholder={translateFunction('Address', language)}
-                  className={`w-full px-4 py-3 rounded-[12px] bg-[#f8f8f8] border text-[14px] text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white resize-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                  className={`w-full px-4 py-3 rounded-[12px] bg-[#f8f8f8] border text-[14px] text-start text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white resize-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                     errors.address
                       ? 'border-[#f85555]'
                       : 'border-[#ededed] focus:border-[#5d5d5d]'
@@ -438,7 +440,7 @@ export default function ShopInfo({
                       data-pw="shop-info-logo-clear-btn"
                       aria-label={translateFunction('Remove', language)}
                       onClick={() => handleClearImage('image')}
-                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 text-[#f85555] shadow-[0_2px_6px_rgba(0,0,0,0.18)] flex items-center justify-center hover:bg-white"
+                      className={`absolute top-2 ${isRtl ? 'left-2' : 'right-2'} w-7 h-7 rounded-full bg-white/90 text-[#f85555] shadow-[0_2px_6px_rgba(0,0,0,0.18)] flex items-center justify-center hover:bg-white`}
                     >
                       <DashIcon name="close" size={14} />
                     </button>
@@ -510,7 +512,7 @@ export default function ShopInfo({
                       data-pw="shop-info-banner-clear-btn"
                       aria-label={translateFunction('Remove', language)}
                       onClick={() => handleClearImage('banner')}
-                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 text-[#f85555] shadow-[0_2px_6px_rgba(0,0,0,0.18)] flex items-center justify-center hover:bg-white"
+                      className={`absolute top-2 ${isRtl ? 'left-2' : 'right-2'} w-7 h-7 rounded-full bg-white/90 text-[#f85555] shadow-[0_2px_6px_rgba(0,0,0,0.18)] flex items-center justify-center hover:bg-white`}
                     >
                       <DashIcon name="close" size={14} />
                     </button>

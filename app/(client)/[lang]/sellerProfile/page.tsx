@@ -90,7 +90,7 @@ function Page() {
     shop.permissions.includes("SUPER_ADMIN");
 
   return (
-    <div className="w-full max-w-[1366px] mx-auto setting-screen">
+    <div className="w-full max-w-[1366px] mx-auto setting-screen" dir={isRtl ? "rtl" : "ltr"}>
       <div className="mb-3">
         <BackBar
           key="seller-profile-select-shop-back"

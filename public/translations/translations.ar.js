@@ -2875,6 +2875,7 @@ const translations = {
   "View product": "عرض المنتج",
   "No internet connection": "لا يوجد اتصال بالإنترنت",
   "Please check your connection to scan and pay": "يرجى التحقق من اتصالك للمسح والدفع",
+  "Pay with web RDB": "الدفع عبر RDB ويب",
 };
 
 export default translations;
