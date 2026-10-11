@@ -229,7 +229,7 @@ function SellerDashBoard() {
   const params = useParams();
   const sellerId = params.sellerId as string;
   const local = params.lang?.toString() || "";
-  const [, language] = local.split("-");
+  const language = local.includes("-") ? local.split("-")[1] : local;
   const isRtl = language === "ar" || language === "ku";
   const {
     sellerProducts,
@@ -2635,6 +2635,8 @@ function SellerDashBoard() {
             sellerId={sellerId}
             canUpload={canUploadProductImages}
             canDelete={canDeleteProductImages}
+            language={language}
+            isRtl={isRtl}
           />
         )}
         {activeTab === "stories" && canViewStories && (
@@ -2643,6 +2645,8 @@ function SellerDashBoard() {
             userId={currentUserId}
             canCreate={canCreateStory}
             canDelete={canDeleteStory}
+            language={language}
+            isRtl={isRtl}
           />
         )}
         {activeTab === "comments" && canViewComments && (

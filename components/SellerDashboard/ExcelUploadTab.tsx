@@ -61,6 +61,7 @@ const buildDownloadUrl = (file: ExcelFile) => {
 };
 
 export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabProps) {
+  const isRtl = language === "ar" || language === "ku";
   // ----- categories -----
   const [categories, setCategories] = useState<ExcelCategory[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState<boolean>(false);
@@ -289,7 +290,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
   };
 
   return (
-    <div className="w-full mx-auto space-y-6">
+    <div dir={isRtl ? "rtl" : "ltr"} className="w-full mx-auto space-y-6">
     <div
       className="w-full mx-auto p-5 lg:p-8 bg-white rounded-[15px] border border-[#ededed] space-y-6"
       style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
@@ -407,7 +408,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
             <span className="text-[#2ea84f] shrink-0">
               <DashIcon name="file" size={22} />
             </span>
-            <div className="text-left overflow-hidden">
+            <div className="text-start overflow-hidden">
               <p className="text-[14px] medium text-[#3c3c3c] truncate">{file.name}</p>
               <p className="text-[12px] text-[#8e8e8e]">
                 {(file.size / 1024).toFixed(1)} {translateFunction("KB")}
@@ -440,7 +441,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
           <span className="mt-0.5 shrink-0">
             <DashIcon name={status.type === "success" ? "check" : "alert"} size={16} />
           </span>
-          <span className="text-left">{status.message}</span>
+          <span className="text-start">{status.message}</span>
         </div>
       )}
 
@@ -500,14 +501,14 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
           />
         ) : (
           <div className="overflow-x-auto -mx-2">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-start border-collapse">
               <thead>
                 <tr className="text-[12px] semibold text-[#8e8e8e] border-b border-[#ededed]">
                   <th className="px-3 py-3">{translateFunction("Title", language)}</th>
                   <th className="px-3 py-3">{translateFunction("ID", language)}</th>
                   <th className="px-3 py-3">{translateFunction("Status", language)}</th>
                   <th className="px-3 py-3">{translateFunction("Created At", language)}</th>
-                  <th className="px-3 py-3 text-right">{translateFunction("Actions", language)}</th>
+                  <th className="px-3 py-3 text-end">{translateFunction("Actions", language)}</th>
                 </tr>
               </thead>
               <tbody className="text-[13px] text-[#505050]">
@@ -572,8 +573,9 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
           onClick={() => setNotesModal(null)}
         >
           <div
+            dir={isRtl ? "rtl" : "ltr"}
             className="w-full max-w-md bg-white rounded-[20px] p-5 lg:p-6 space-y-4"
-            style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
+            style={{ direction: isRtl ? "rtl" : "ltr", boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between gap-2">

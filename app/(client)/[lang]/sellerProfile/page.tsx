@@ -14,7 +14,8 @@ import { Monogram, DashButton, EmptyState } from "components/SellerDashboard/ui"
 function Page() {
   const [, setActiveTab] = useState(null);
   const { lang } = useParams();
-  let [, language] = lang?.toString()?.split("-");
+  const langStr = lang?.toString() || "";
+  const language = langStr.includes("-") ? langStr.split("-")[1] : langStr;
   const isRtl = language === "ar" || language === "ku";
   const { setLoading, loading, shopes, setShopes } = useSellerProfile(); // Use the context
 

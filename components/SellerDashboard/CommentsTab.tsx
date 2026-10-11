@@ -353,7 +353,7 @@ export default function CommentsTab({
                         </div>
                         <div className="comment-content capitalize mx-[10px]">
                           <div className="comment-source text-[#1D1D1D] text-[9px] regular">
-                            {!isReview && <span className="bold pr-[4px]">Q</span>}
+                            {!isReview && <span className="bold pe-[4px]">Q</span>}
                             {comment.user_name}
                           </div>
                         </div>
@@ -420,7 +420,7 @@ export default function CommentsTab({
                             <div className="comment-content capitalize mx-[10px]">
                               {/* Reply is attributed to the shop, never a user. */}
                               <div className="comment-source text-[#1D1D1D] text-[9px] regular">
-                                <span className="bold pr-[4px]">A</span>
+                                <span className="bold pe-[4px]">A</span>
                                 {comment.seller_name ||
                                   translateFunction("Your shop", language)}
                               </div>
@@ -550,14 +550,14 @@ export default function CommentsTab({
 
             <form onSubmit={handleReplySubmit}>
               <div className="p-5 lg:p-6 space-y-4">
-                <div className="p-4 bg-[#f8f8f8] rounded-[12px] border border-[#ededed] text-left space-y-2">
+                <div className="p-4 bg-[#f8f8f8] rounded-[12px] border border-[#ededed] text-start space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="semibold text-[#3c3c3c]">{selectedComment.user_name}</span>
                   </div>
                   <p className="text-[14px] text-[#505050] italic">"{selectedComment.text}"</p>
                 </div>
 
-                <div className="space-y-2 text-left">
+                <div className="space-y-2 text-start">
                   <label className="block text-[13px] medium text-[#505050]">
                     {translateFunction("Reply Text", language)}
                   </label>
