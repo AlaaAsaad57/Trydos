@@ -4,14 +4,19 @@ import { translateFunction } from "utils/server";
 async function ProductSizeReviews({ qtyPricePromise, language, isRtl }) {
   let productData = await qtyPricePromise;
   let sizes = productData?.sizes;
+  const hasSizes =
+    productData?.has_sizes !== false &&
+    productData?.hasSizes !== false &&
+    Array.isArray(sizes) &&
+    sizes.some((s) => (typeof s === "string" ? s.trim().length > 0 : Boolean(s)));
 
-  if (!sizes || sizes?.length === 0) return <></>;
+  if (!hasSizes) return <></>;
 
   let size_reviews = await GetProductGeneralData({
     id: productData?.id,
   });
 
-  let sizeFitData = size_reviews.size_analysis;
+  let sizeFitData = size_reviews?.size_analysis;
   let reviews_arr = [
     { value: sizeFitData?.true_percentage ?? 0, title: "True" },
     { value: sizeFitData?.small_percentage ?? 0, title: "Small" },

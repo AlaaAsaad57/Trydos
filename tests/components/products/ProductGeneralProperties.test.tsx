@@ -92,4 +92,22 @@ describe("ProductGeneralProperties and GeneralPropertiesModal", () => {
     expect(screen.getByText("Good")).toBeInTheDocument();
     expect(screen.getByText("Very Good")).toBeInTheDocument();
   });
+
+  it("does not show the review on product sizing when the product has no sizes", async () => {
+    await renderStrip(
+      { hasSizes: false },
+      { ColorBottomSheet: { is_general_properties: true }, language: "en" },
+    );
+    expect(screen.queryByText("Buyers Reviews On Product Sizing")).not.toBeInTheDocument();
+    expect(screen.queryByText("60%")).not.toBeInTheDocument();
+  });
+
+  it("does not show the review on product sizing when sizes array is empty", async () => {
+    await renderStrip(
+      { sizes: [] },
+      { ColorBottomSheet: { is_general_properties: true }, language: "en" },
+    );
+    expect(screen.queryByText("Buyers Reviews On Product Sizing")).not.toBeInTheDocument();
+  });
 });
+

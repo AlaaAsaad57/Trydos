@@ -72,4 +72,29 @@ describe("the product facts row", () => {
     expect(text, "quality needs buyers to vouch for it").not.toContain("Good Quality Product");
     expect(text, "an unknown country must not be shown").not.toContain("Made in");
   });
+
+  it("passes hasSizes false when the product has no sizes", async () => {
+    GetProductGeneralData.mockResolvedValue({ final_rating: 4, ratingDetails: [] });
+    render(
+      await ProductGeneralPropertiesWrapper({
+        globalData: Promise.resolve({ id: 1, origin_country_iso: "tr" }),
+        qtyPricePromise: Promise.resolve({ sizes: [] }),
+        language: "en",
+      }),
+    );
+    expect(props.general.hasSizes).toBe(false);
+  });
+
+  it("passes hasSizes true when the product has sizes", async () => {
+    GetProductGeneralData.mockResolvedValue({ final_rating: 4, ratingDetails: [] });
+    render(
+      await ProductGeneralPropertiesWrapper({
+        globalData: Promise.resolve({ id: 1, origin_country_iso: "tr" }),
+        qtyPricePromise: Promise.resolve({ sizes: ["S", "M"] }),
+        language: "en",
+      }),
+    );
+    expect(props.general.hasSizes).toBe(true);
+  });
 });
+

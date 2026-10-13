@@ -260,6 +260,23 @@ describe("the three-try cap on the login and signup screen", () => {
     ).toBeNull();
   });
 
+  it("does not spend a try on server error, clears the input, and displays the server error message", async () => {
+    const serverError = new Error("The server did not respond in time. Please try again.");
+    (serverError as any).isServerError = true;
+    verifyOtp.mockRejectedValue(serverError);
+    const { user } = await atCodeStep();
+
+    await typeCode(user, "000000", 1);
+
+    expect(
+      await screen.findByText("The server did not respond in time. Please try again."),
+    ).toBeInTheDocument();
+
+    expect(screen.queryByText(/Tries Left/i)).toBeNull();
+    expect(codeField()).not.toBeDisabled();
+    expect(codeField()).toHaveValue("");
+  });
+
   it("keeps the analytics attempt count separate from the cap", async () => {
     verifyOtp.mockRejectedValue(new Error("Wrong Code"));
     const { user } = await atCodeStep();

@@ -78,7 +78,7 @@ export const BuyersRatingBar = ({ language, recommendation_stats }) => {
           <span className="bold ">{not_recomended}</span>
           <span>{translateFunction("Buyer", language)}</span>
           <span className="bold">
-            {translateFunction("Dont Recommend It", language)}
+            {translateFunction("Don't Recommend It", language)}
           </span>
         </div>
       </div>

@@ -6,12 +6,22 @@ import ProductViews from "components/products/ProductViews";
 import { GetProductGeneralData } from "serverRequests/product";
 import { FlagIcon, VALID_ISO } from "utils/tinyUtils";
 
-async function ProductGeneralPropertiesWrapper({ globalData, language }) {
+async function ProductGeneralPropertiesWrapper({
+  globalData,
+  qtyPricePromise,
+  language,
+}: {
+  globalData: any;
+  qtyPricePromise?: any;
+  language: string;
+}) {
   let productGlobalData = await globalData;
+  if (!productGlobalData?.id) return <></>;
+
+  let productQtyData = qtyPricePromise ? await qtyPricePromise : null;
   let product = await GetProductGeneralData({
     id: productGlobalData?.id,
   });
-  if(!productGlobalData?.id) return <></>;
   const originIso = productGlobalData?.origin_country_iso;
   const originText = madeInText(originIso, language);
   const TotalBuyers = () => {
@@ -20,16 +30,25 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
     return total;
   };
 
+  const sizes = productQtyData?.sizes ?? (productGlobalData as any)?.sizes;
+  const hasSizes =
+    sizes !== undefined
+      ? Array.isArray(sizes) &&
+        sizes.some((s) => (typeof s === "string" ? s.trim().length > 0 : Boolean(s)))
+      : undefined;
+
   return (
     <Suspense fallback={<></>}>
       <ProductGeneralProperties
-        good_quality_product={product.good_quality_product}
+        good_quality_product={product?.good_quality_product}
         views={product?.total_views}
         recommendation_stats={product?.recommendation_stats}
         rating_stats={product?.ratingDetails}
-        total_rating={product.final_rating}
+        total_rating={product?.final_rating}
         languageVariable={language}
         sizeFitData={product?.size_analysis}
+        hasSizes={hasSizes}
+        sizes={sizes}
       >
         <ProductRating rating={product.final_rating} />
         {TotalBuyers() > 0 && (

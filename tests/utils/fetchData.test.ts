@@ -991,6 +991,26 @@ describe("error handling and retries", () => {
     expect(functions.LogError).toHaveBeenCalled();
   });
 
+  it("GET /api/auth/login does NOT retry on 504 timeout or network failures", async () => {
+    await setup();
+    const net = makeMockFetch([
+      jsonReply({ message: "Gateway Timeout" }, 504),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result = await fetchData({
+      method: "GET",
+      server: "local",
+      url: "/api/auth/login?verificationId=v1&otp=123456",
+      reqTitle: { code: 99, reqTitle: "verify otp" },
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.httpStatus).toBe(504);
+    expect(net.callCount).toBe(1);
+  });
+
   it("treats a missing method as non-mutating and retryable", async () => {
     await setup();
     const net = makeMockFetch([

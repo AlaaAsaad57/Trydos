@@ -164,18 +164,54 @@ class AuthService {
         method: "GET",
         server: "local",
         reqTitle: REQUESTS_DATA.VERIFY_OTP_FROM_GUEST,
+        signal: AbortSignal.timeout(12000),
       });
 
       if (response.code === 501 && !response.success) {
         showErrorNotification(response?.message);
         throw new Error("Wrong Code", { cause: response?.message });
       }
-      if (response?.data?.message === "user not found") {
+      if (response?.data?.message === "user not found" || response?.message === "user not found") {
         throw new Error("user not found");
       }
       if (response?.isSuccessful === false && !response.success) {
         throw new Error("Wrong Code", { cause: response?.message });
       }
+
+      if (!response?.success || !response?.data?.user) {
+        const isServerError =
+          (typeof response?.httpStatus === "number" && response.httpStatus >= 500) ||
+          response?.httpStatus === 0 ||
+          response?.httpStatus === 504 ||
+          response?.httpStatus === 503 ||
+          response?.httpStatus === 502;
+
+        const msg =
+          response?.message ||
+          response?.error ||
+          (response?.httpStatus === 504
+            ? "The server did not respond in time. Please try again."
+            : response?.httpStatus === 503
+            ? "Service temporarily unavailable. Please try again."
+            : isServerError
+            ? "Server error. Please try again."
+            : "Verification failed. Please try again.");
+
+        if (!isServerError) {
+          const isWrongCode =
+            response?.httpStatus === 422 ||
+            /\b(wrong|invalid|incorrect|expired)\s*(code|otp|pin)?\b/i.test(msg) ||
+            msg.toLowerCase() === "wrong code";
+          if (isWrongCode) {
+            throw new Error("Wrong Code", { cause: msg });
+          }
+        }
+
+        const serverError = new Error(msg);
+        (serverError as any).isServerError = true;
+        throw serverError;
+      }
+
       if (response?.is_failed) {
         LogError({
           source: "login server api",

@@ -37,4 +37,19 @@ describe("the size reviews", () => {
       "the section should align right in Arabic",
     ).toContain("items-end");
   });
+
+  it("shows nothing when sizes array contains only empty strings or has_sizes is false", async () => {
+    GetProductGeneralData.mockClear();
+    const { container: c1 } = render(
+      await ProductSizeReviews({ qtyPricePromise: Promise.resolve({ id: 1, sizes: ["   "] }), language: "en", isRtl: false }),
+    );
+    expect(c1.innerHTML).toBe("");
+
+    const { container: c2 } = render(
+      await ProductSizeReviews({ qtyPricePromise: Promise.resolve({ id: 1, sizes: ["M"], has_sizes: false }), language: "en", isRtl: false }),
+    );
+    expect(c2.innerHTML).toBe("");
+    expect(GetProductGeneralData).not.toHaveBeenCalled();
+  });
 });
+

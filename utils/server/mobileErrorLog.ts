@@ -14,6 +14,7 @@ import { serializeUnknownForErrorLog } from "../errorSerialization";
 // turn — a loop.
 export async function postServerErrorLog(error: unknown) {
   try {
+    if (!process.env.GO_BACKEND_URL) return;
     const safeError = serializeUnknownForErrorLog(error ?? {});
     await fetch(process.env.GO_BACKEND_URL + "/mobile_error_log/store", {
       method: "POST",
@@ -28,6 +29,7 @@ export async function postServerErrorLog(error: unknown) {
             : { payload: safeError }),
         }),
       }),
+      signal: AbortSignal.timeout(2500),
     }).catch(() => {});
   } catch {
     // ignore - logging must be best-effort

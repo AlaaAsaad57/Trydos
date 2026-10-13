@@ -96,6 +96,7 @@ import {
   FlagIcon,
   ShowNotificationSign,
   requestPermissions,
+  whenUserIdReady,
 } from "utils/tinyUtils";
 import { abortInFlightForLogout } from "utils/fetchData";
 import { render } from "@testing-library/react";
@@ -1049,5 +1050,56 @@ describe("asking for camera and microphone (requestPermissions)", () => {
     expect(legacy, "the old API was not called").toHaveBeenCalled();
     setNavigator({});
     expect(await requestPermissions({ camera: true }), "a browser with no camera API said yes").toBe(false);
+  });
+});
+
+describe("waiting for a user id (whenUserIdReady)", () => {
+  beforeEach(() => {
+    vi.useRealTimers();
+    useAppStore.setState({ userProfile: null, user: null } as any);
+  });
+
+  it("calls callback immediately when user id is already present in store", () => {
+    useAppStore.setState({ userProfile: { id: 123 } } as any);
+    const cb = vi.fn();
+    whenUserIdReady(cb);
+    expect(cb).toHaveBeenCalledWith(123);
+  });
+
+  it("calls callback immediately when getCurrentId returns an id", () => {
+    const cb = vi.fn();
+    whenUserIdReady(cb, () => 456);
+    expect(cb).toHaveBeenCalledWith(456);
+  });
+
+  it("waits until user id is set in store then fires callback", () => {
+    const cb = vi.fn();
+    whenUserIdReady(cb);
+    expect(cb).not.toHaveBeenCalled();
+
+    useAppStore.setState({ userProfile: { id: 789 } } as any);
+    expect(cb).toHaveBeenCalledWith(789);
+  });
+
+  it("calls callback on fallback timeout if user id never arrives", () => {
+    vi.useFakeTimers();
+    const cb = vi.fn();
+    whenUserIdReady(cb);
+    expect(cb).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(3000);
+    expect(cb).toHaveBeenCalledWith(undefined);
+  });
+
+  it("cleans up subscription and timer when returned cancel function is called", () => {
+    vi.useFakeTimers();
+    const cb = vi.fn();
+    const cleanup = whenUserIdReady(cb);
+
+    cleanup();
+
+    useAppStore.setState({ userProfile: { id: 999 } } as any);
+    vi.advanceTimersByTime(3000);
+    expect(cb).not.toHaveBeenCalled();
   });
 });

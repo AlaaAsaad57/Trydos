@@ -397,25 +397,31 @@ export default function FullEnhancedLoginWidget() {
                 return;
             }
 
-            // Counted here, after the `user not found` return above: that reply
-            // means the digits were right and the account simply does not exist,
-            // and it takes the shopper off this screen entirely.
-            //
-            // `next` is a local, not `wrongCodes` — the state value is still the
-            // pre-failure one inside this catch, so reading it would show
-            // "Tries left: 3" on the first failure and make the cap four checks.
-            const next = wrongCodes + 1;
-            setWrongCodes(next);
-            setIsValidPin('notvalid');
-            setError(
-                next >= MAX_VERIFY_ATTEMPTS
-                    ? translate('Too many wrong codes. Ask for a new code.')
-                    : `${translate('Please Enter The Correct Code Sent To Your Phone')} — ${translate('Tries left')}: ${MAX_VERIFY_ATTEMPTS - next}`,
-            );
-            setTimeout(() => {
+            const isWrongCode =
+                !((e as any)?.isServerError) &&
+                (e instanceof Error &&
+                    (e.message === 'Wrong Code' || e.message.toLowerCase().includes('wrong code')));
+
+            if (isWrongCode) {
+                const next = wrongCodes + 1;
+                setWrongCodes(next);
+                setIsValidPin('notvalid');
+                setError(
+                    next >= MAX_VERIFY_ATTEMPTS
+                        ? translate('Too many wrong codes. Ask for a new code.')
+                        : `${translate('Please Enter The Correct Code Sent To Your Phone')} — ${translate('Tries left')}: ${MAX_VERIFY_ATTEMPTS - next}`,
+                );
+                setTimeout(() => {
+                    setIsValidPin('');
+                    setPin('');
+                }, 1500);
+            } else {
+                // Server / network / timeout error:
+                // Clear the OTP immediately, do not burn attempts, and show the failure message.
                 setIsValidPin('');
                 setPin('');
-            }, 1500);
+                setError(errorText(e));
+            }
         } finally {
             // Released once the request has settled: a retry (or a resend that
             // brings the user back to this screen) must not stay blocked.

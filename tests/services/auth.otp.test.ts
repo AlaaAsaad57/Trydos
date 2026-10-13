@@ -281,6 +281,22 @@ describe("verifying a code", () => {
       expect.objectContaining({ flow_source: "expired" }),
     );
   });
+
+  it("throws server error on 504 timeout without treating it as wrong code", async () => {
+    market.reply({ httpStatus: 504, success: false, message: "The server did not respond in time" });
+
+    await expect(auth.VerifyOtp("123456", "vid-1")).rejects.toThrow(
+      "The server did not respond in time",
+    );
+  });
+
+  it("throws server error on 500 internal server error", async () => {
+    market.reply({ httpStatus: 500, success: false, message: "Internal Server Error" });
+
+    await expect(auth.VerifyOtp("123456", "vid-1")).rejects.toThrow(
+      "Internal Server Error",
+    );
+  });
 });
 
 describe("verifying a changed number", () => {

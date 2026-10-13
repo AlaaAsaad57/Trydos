@@ -542,4 +542,21 @@ describe("the three-try cap on this surface", () => {
       ).toBeDisabled(),
     );
   });
+
+  it("does not spend a try on server error and displays the error message", async () => {
+    const serverError = new Error("The server did not respond in time. Please try again.");
+    (serverError as any).isServerError = true;
+    verifyOtp.mockRejectedValue(serverError);
+    const { user } = await atCodeStep();
+
+    await user.clear(codeField()!);
+    await user.type(codeField()!, "000000");
+
+    expect(
+      await screen.findByText("The server did not respond in time. Please try again."),
+    ).toBeInTheDocument();
+
+    expect(codeField()).not.toBeDisabled();
+    expect(codeField()).toHaveValue("");
+  });
 });

@@ -214,7 +214,7 @@ const translations = {
   "Good Quality": "جودة جيدة",
   "True Size": "المقاس الصحيح",
   "Recommend It": "أنصح به",
-  "Dont Recommend It": "لا أنصح به",
+  "Don't Recommend It": "لا أنصح به",
   "FAQ Buyer & Seller": "الأسئلة الشائعة بين المشتري والبائع",
   Dear: "عزيزي",
   "Sizes Available": "المقاسات المتوفرة",

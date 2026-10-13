@@ -763,8 +763,10 @@ export const fetchData = async <T = any>(
       return { ...(responseData || {}), success: true, httpStatus: status };
     } catch (err: any) {
       retryCount++;
+      const isAuthLoginRoute = typeof url === "string" && url.includes("/api/auth/login");
       if (
         !isMutatingMethod &&
+        !isAuthLoginRoute &&
         ((err instanceof TypeError && err.message.includes("fetch")) ||
           retryableStatusCodes.includes(status))
       ) {

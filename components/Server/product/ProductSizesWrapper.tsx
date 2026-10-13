@@ -12,8 +12,13 @@ async function ProductSizesWrapper({
 }) {
   let productData = await qtyPricePromise;
   let sizes = productData?.sizes;
+  const hasSizes =
+    productData?.has_sizes !== false &&
+    productData?.hasSizes !== false &&
+    Array.isArray(sizes) &&
+    sizes.some((s) => (typeof s === "string" ? s.trim().length > 0 : Boolean(s)));
 
-  if (!sizes || sizes?.length === 0) return <></>;
+  if (!hasSizes) return <></>;
   let new_sizes_options = ["Standard", "EU", "IN", "US", "UK"];
   return (
     <div className="w-full rounded-[15px] mt-[20px] bg-[#FCFCFC] py-[8px] pr-[8px] pl-[10px] h-[135px] flex-col">

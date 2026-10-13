@@ -14,8 +14,18 @@ function GeneralPropertiesModal({
   views,
   sizeFitData,
   good_quality_product = false,
+  hasSizes,
+  sizes,
 }) {
   const { ColorBottomSheet, setColorBottomSheet, language } = useAppStore();
+  const hasProductSizes =
+    hasSizes !== undefined
+      ? Boolean(hasSizes)
+      : sizes !== undefined
+      ? Array.isArray(sizes) &&
+        sizes.some((s) => (typeof s === "string" ? s.trim().length > 0 : Boolean(s)))
+      : true;
+
   let reviews_arr = [
     { value: sizeFitData?.true_percentage ?? 0, title: "True" },
     { value: sizeFitData?.small_percentage ?? 0, title: "Small" },
@@ -133,22 +143,26 @@ function GeneralPropertiesModal({
             <div className="w-full bg-[#FFFFFF] py-[11px]">
               <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
             </div>
-            <div className="flex-col regular text-[13px] text-[#1d1d1d] gap-[12px]">
-              <div className="flex">
-                {translateFunction(
-                  "Buyers Reviews On Product Sizing",
-                  language,
-                )}
-              </div>
-              <div className="flex-col gap-[4px]">
-                {reviews_arr.map((s) => (
-                  <ReviewProgress key={s.title} title={s.title} value={s.value} />
-                ))}
-              </div>
-            </div>
-            <div className="w-full bg-[#FFFFFF] py-[11px]">
-              <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
-            </div>
+            {hasProductSizes && (
+              <>
+                <div className="flex-col regular text-[13px] text-[#1d1d1d] gap-[12px]">
+                  <div className="flex">
+                    {translateFunction(
+                      "Buyers Reviews On Product Sizing",
+                      language,
+                    )}
+                  </div>
+                  <div className="flex-col gap-[4px]">
+                    {reviews_arr.map((s) => (
+                      <ReviewProgress key={s.title} title={s.title} value={s.value} />
+                    ))}
+                  </div>
+                </div>
+                <div className="w-full bg-[#FFFFFF] py-[11px]">
+                  <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
+                </div>
+              </>
+            )}
             <div className="flex-col gap-[7px]">
               <img
                 src="/icons/SolidRecomendIcon.svg"
@@ -253,7 +267,7 @@ const BuyersRatingBar = ({ language, recommendation_stats }) => {
           </div>
           <span className={`w-full flex justify-end bold px-[4px]`}>
             <img src="/icons/NegRecomendIcon.svg" className="opacity-0" />
-            {translateFunction("Dont Recommend It", language)}
+            {translateFunction("Don't Recommend It", language)}
           </span>
         </div>
       </div>

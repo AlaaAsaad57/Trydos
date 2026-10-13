@@ -13,6 +13,8 @@ function ProductGeneralProperties({
   views,
   sizeFitData,
   good_quality_product = false,
+  hasSizes,
+  sizes,
   children,
 }) {
   const { setColorBottomSheet } = useAppStore();
@@ -41,6 +43,8 @@ function ProductGeneralProperties({
         total_rating={total_rating}
         TotalBuyers={TotalBuyers}
         sizeFitData={sizeFitData}
+        hasSizes={hasSizes}
+        sizes={sizes}
       />
       <HortiznalScrollBar
         onClick={() => {

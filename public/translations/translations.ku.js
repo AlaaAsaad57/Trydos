@@ -216,7 +216,7 @@ const translations = {
   November: "تشرینی دووەم",
   December: "کانونی دووەم",
   "Recommend It": "پێشنیاز دەکەم",
-  "Dont Recommend It": "پێشنیاز ناکەم",
+  "Don't Recommend It": "پێشنیاز ناکەم",
   "FAQ Buyer & Seller": "پرسیارە دووبارەکراوەکان کریار و فرۆشیار",
   Dear: "ئازیز",
   "Sizes Available": "قەبارەکان بەردەستن",
