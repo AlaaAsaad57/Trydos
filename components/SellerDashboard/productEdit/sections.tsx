@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { translateFunction } from "utils/functions";
 import { getLocalizedCountryName } from "utils/countryData";
 import LocalizationServiceClass from "services/localization";
@@ -59,6 +59,8 @@ export interface SectionProps {
   isCreate?: boolean;
   /** Shop currency code (e.g. "SYP") overlaid on money inputs; "" = no overlay. */
   currency?: string;
+  /** Maximum decimal digits allowed by the shop's currency (e.g. 2, 0). */
+  decimalDigits?: number;
   /**
    * Creating a product as a seller who is not approved for new products: every
    * price except Purchase Price is hidden (not merely disabled — an input the
@@ -69,7 +71,15 @@ export interface SectionProps {
   pricesLocked?: boolean;
 }
 
-const t = (s: string) => translateFunction(s);
+const t = (s: string, params?: Record<string, string | number>) => {
+  let res = translateFunction(s);
+  if (params) {
+    for (const [key, val] of Object.entries(params)) {
+      res = res.replaceAll(`{${key}}`, String(val));
+    }
+  }
+  return res;
+};
 
 /** One titled card section — matches the dashboard DashCard rhythm. */
 export function Section({
@@ -145,6 +155,103 @@ function Txt({
   );
 }
 
+function LiteTooltip({ message }: { message: string }) {
+  return (
+    <div
+      role="tooltip"
+      className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 z-50 pointer-events-none whitespace-nowrap animate-in fade-in zoom-in-95 duration-150"
+    >
+      <div className="bg-[#242424] text-white text-[11px] font-medium px-2.5 py-1 rounded-[6px] shadow-lg flex items-center gap-1">
+        <span>{message}</span>
+      </div>
+      <div className="w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-[#242424] mx-auto" />
+    </div>
+  );
+}
+
+function useDecimalRestriction({
+  decimalDigits,
+  value,
+  onChange,
+}: {
+  decimalDigits?: number;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [tooltip, setTooltip] = useState<string | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showTooltip = useCallback((msg: string) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setTooltip(msg);
+    timerRef.current = setTimeout(() => {
+      setTooltip(null);
+    }, 2200);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (decimalDigits === undefined) return;
+      if (e.key === "e" || e.key === "E" || e.key === "+" || e.key === "-") {
+        e.preventDefault();
+        return;
+      }
+      if (decimalDigits === 0 && (e.key === "." || e.key === ",")) {
+        e.preventDefault();
+        showTooltip(t("Decimal digits are not allowed for this currency"));
+        return;
+      }
+      if ((e.key === "." || e.key === ",") && value.includes(".")) {
+        e.preventDefault();
+        return;
+      }
+    },
+    [decimalDigits, value, showTooltip]
+  );
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      if (val && parseFloat(val) < 0) return;
+
+      if (decimalDigits !== undefined && val) {
+        const parts = val.split(".");
+        if (parts.length > 1) {
+          if (decimalDigits === 0) {
+            onChange(value);
+            showTooltip(t("Decimal digits are not allowed for this currency"));
+            return;
+          }
+          if (parts[1].length > decimalDigits) {
+            onChange(value);
+            showTooltip(
+              t("Maximum {n} decimal digits allowed for this currency", {
+                n: decimalDigits,
+              })
+            );
+            return;
+          }
+        }
+      }
+
+      onChange(val);
+    },
+    [decimalDigits, value, onChange, showTooltip]
+  );
+
+  return {
+    tooltip,
+    handleKeyDown,
+    handleChange,
+  };
+}
+
 function Num({
   label,
   value,
@@ -156,6 +263,7 @@ function Num({
   step = "any",
   fieldKey,
   suffix,
+  decimalDigits,
 }: {
   label: string;
   value: string;
@@ -168,7 +276,17 @@ function Num({
   fieldKey?: string;
   /** Static overlay at the input's inline end (e.g. a currency code). */
   suffix?: string;
+  decimalDigits?: number;
 }) {
+  const { tooltip, handleKeyDown, handleChange } = useDecimalRestriction({
+    decimalDigits,
+    value,
+    onChange,
+  });
+
+  const effectiveStep =
+    decimalDigits !== undefined ? (decimalDigits === 0 ? "1" : "any") : step;
+
   return (
     <div data-field={fieldKey}>
       <DashField label={required ? `${t(label)} *` : t(label)} error={error} hint={hint}>
@@ -176,14 +294,11 @@ function Num({
           <input
             type="number"
             min="0"
-            step={step}
+            step={effectiveStep}
             value={value}
             disabled={disabled}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val && parseFloat(val) < 0) return;
-              onChange(val);
-            }}
+            onKeyDown={handleKeyDown}
+            onChange={handleChange}
             className={`${dashInputClass} ${suffix ? "pe-14" : ""} ${
               error ? "border-[#f85555]" : ""
             } ${disabled ? "opacity-70" : ""}`}
@@ -193,6 +308,7 @@ function Num({
               {suffix}
             </span>
           )}
+          {tooltip && <LiteTooltip message={tooltip} />}
         </div>
       </DashField>
     </div>
@@ -432,7 +548,7 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
   );
 }
 
-export function PricingSection({ form, patch, errors, disabled, currency, pricesLocked }: SectionProps) {
+export function PricingSection({ form, patch, errors, disabled, currency, decimalDigits, pricesLocked }: SectionProps) {
   const hasVariants = combos(form).length > 0;
   // Every price except Purchase Price is hidden for an unapproved seller — an
   // input that cannot be filled is noise, so it is not rendered at all rather
@@ -443,14 +559,14 @@ export function PricingSection({ form, patch, errors, disabled, currency, prices
     <Section icon="orders" title="Pricing & Stock" desc="Prices are in your display currency; converted server-side.">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {!pricesLocked && (
-          <Num label="Unit Price" fieldKey="unit_price" value={form.unit_price} required error={errors.unit_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ unit_price: v })} />
+          <Num label="Unit Price" fieldKey="unit_price" value={form.unit_price} required error={errors.unit_price} disabled={disabled} suffix={currency} decimalDigits={decimalDigits} onChange={(v) => patch({ unit_price: v })} />
         )}
         {!pricesLocked && (
-          <Num label="Discount Price" fieldKey="discount_price" value={form.discount_price} error={errors.discount_price} hint={t("Must be ≤ unit price")} disabled={disabled} suffix={currency} onChange={(v) => patch({ discount_price: v })} />
+          <Num label="Discount Price" fieldKey="discount_price" value={form.discount_price} error={errors.discount_price} hint={t("Must be ≤ unit price")} disabled={disabled} suffix={currency} decimalDigits={decimalDigits} onChange={(v) => patch({ discount_price: v })} />
         )}
-        <Num label="Purchase Price" fieldKey="purchase_price" value={form.purchase_price} error={errors.purchase_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ purchase_price: v })} />
+        <Num label="Purchase Price" fieldKey="purchase_price" value={form.purchase_price} error={errors.purchase_price} disabled={disabled} suffix={currency} decimalDigits={decimalDigits} onChange={(v) => patch({ purchase_price: v })} />
         {!pricesLocked && (
-          <Num label="Luck Price" fieldKey="luck_price" value={form.luck_price} error={errors.luck_price} disabled={disabled} suffix={currency} onChange={(v) => patch({ luck_price: v })} />
+          <Num label="Luck Price" fieldKey="luck_price" value={form.luck_price} error={errors.luck_price} disabled={disabled} suffix={currency} decimalDigits={decimalDigits} onChange={(v) => patch({ luck_price: v })} />
         )}
         <Num
           label="Current Stock"
@@ -465,7 +581,7 @@ export function PricingSection({ form, patch, errors, disabled, currency, prices
         <Num label="Max Allowed Qty" fieldKey="max_allowed_qty" value={form.max_allowed_qty} error={errors.max_allowed_qty} disabled={disabled} onChange={(v) => patch({ max_allowed_qty: v })} />
         <Num label="Pieces / Unit" fieldKey="count_of_pieces" value={form.count_of_pieces} error={errors.count_of_pieces} hint={t("Must be a whole number between 1 and 100")} disabled={disabled} step="1" onChange={(v) => patch({ count_of_pieces: v })} />
         {!pricesLocked && (
-          <Num label="Shipping Cost" fieldKey="shipping_cost" value={form.shipping_cost} error={errors.shipping_cost} disabled={disabled} suffix={currency} onChange={(v) => patch({ shipping_cost: v })} />
+          <Num label="Shipping Cost" fieldKey="shipping_cost" value={form.shipping_cost} error={errors.shipping_cost} disabled={disabled} suffix={currency} decimalDigits={decimalDigits} onChange={(v) => patch({ shipping_cost: v })} />
         )}
         <Num label="Shipping Days" fieldKey="shipping_days" value={form.shipping_days} error={errors.shipping_days} disabled={disabled} step="1" onChange={(v) => patch({ shipping_days: v })} />
         {/* A flat tax is an amount in the display currency and is converted
@@ -480,6 +596,7 @@ export function PricingSection({ form, patch, errors, disabled, currency, prices
             error={errors.tax}
             disabled={disabled}
             suffix={form.tax_type === "flat" ? currency : "%"}
+            decimalDigits={form.tax_type === "flat" ? decimalDigits : undefined}
             onChange={(v) => patch({ tax: v })}
           />
         )}
@@ -838,7 +955,49 @@ export function ClassificationSection({ form, patch, errors, lookups, disabled }
   );
 }
 
-export function CountriesSection({ form, patch, lookups, disabled, currency, pricesLocked ,errors}: SectionProps) {
+function CountryExtraPriceInput({
+  value,
+  disabled,
+  currency,
+  decimalDigits,
+  onChange,
+}: {
+  value: string;
+  disabled?: boolean;
+  currency?: string;
+  decimalDigits?: number;
+  onChange: (val: string) => void;
+}) {
+  const { tooltip, handleKeyDown, handleChange } = useDecimalRestriction({
+    decimalDigits,
+    value,
+    onChange,
+  });
+
+  return (
+    <div className="relative shrink-0">
+      <input
+        type="number"
+        min="0"
+        step={decimalDigits === 0 ? "1" : "any"}
+        value={value}
+        disabled={disabled}
+        placeholder={t("Extra price")}
+        onKeyDown={handleKeyDown}
+        onChange={handleChange}
+        className={`${dashInputClass} w-[130px] ${currency ? "pe-12" : ""}`}
+      />
+      {currency && (
+        <span className="absolute end-3 top-1/2 -translate-y-1/2 text-[11px] semibold text-[#8e8e8e] pointer-events-none">
+          {currency}
+        </span>
+      )}
+      {tooltip && <LiteTooltip message={tooltip} />}
+    </div>
+  );
+}
+
+export function CountriesSection({ form, patch, lookups, disabled, currency, decimalDigits, pricesLocked ,errors}: SectionProps) {
   // Per-country surcharge is a price: an unapproved seller cannot set one,
   // so the whole block is hidden rather than rendered greyed out.
   const extraPriceDisabled = disabled;
@@ -913,14 +1072,13 @@ export function CountriesSection({ form, patch, lookups, disabled, currency, pri
                       <option key={c.iso} value={c.iso}>{getLocalizedCountryName(c.iso, language)}</option>
                     ))}
                   </select>
-                  <div className="relative shrink-0">
-                    <input type="number" step="any" value={e.extra_price} disabled={extraPriceDisabled} placeholder={t("Extra price")} onChange={(ev) => setExtra(i, "extra_price", ev.target.value)} className={`${dashInputClass} w-[130px] ${currency ? "pe-12" : ""}`} />
-                    {currency && (
-                      <span className="absolute end-3 top-1/2 -translate-y-1/2 text-[11px] semibold text-[#8e8e8e] pointer-events-none">
-                        {currency}
-                      </span>
-                    )}
-                  </div>
+                  <CountryExtraPriceInput
+                    value={e.extra_price}
+                    disabled={extraPriceDisabled}
+                    currency={currency}
+                    decimalDigits={decimalDigits}
+                    onChange={(val) => setExtra(i, "extra_price", val)}
+                  />
                   {!extraPriceDisabled && (
                     <button type="button" onClick={() => removeExtra(i)} className="shrink-0 w-[44px] h-[44px] rounded-[12px] bg-[#fff1f1] text-[#f85555] flex items-center justify-center hover:bg-[#ffe6e6]">
                       <DashIcon name="trash" size={17} />
@@ -1134,7 +1292,58 @@ export function MediaSection({ form, patch, errors, disabled, onUploadImages, up
   );
 }
 
-export function VariantsSection({ form, patch, errors, lookups, disabled, currency, pricesLocked, isCreate }: SectionProps) {
+function VariantCellInput({
+  value,
+  type,
+  disabled,
+  suffix,
+  hasErr,
+  widthClass,
+  isMoney,
+  decimalDigits,
+  onChange,
+}: {
+  value: string;
+  type: string;
+  disabled?: boolean;
+  suffix?: string;
+  hasErr?: boolean;
+  widthClass: string;
+  isMoney: boolean;
+  decimalDigits?: number;
+  onChange: (val: string) => void;
+}) {
+  const { tooltip, handleKeyDown, handleChange } = useDecimalRestriction({
+    decimalDigits: isMoney ? decimalDigits : undefined,
+    value,
+    onChange,
+  });
+
+  return (
+    <div className="relative w-fit">
+      <input
+        type={type}
+        min={type === "number" ? "0" : undefined}
+        step={isMoney && decimalDigits === 0 ? "1" : "any"}
+        value={value}
+        disabled={disabled}
+        onKeyDown={handleKeyDown}
+        onChange={handleChange}
+        className={`${widthClass} h-[38px] px-2.5 ${suffix ? "pe-8" : ""} bg-[#f8f8f8] border ${
+          hasErr ? "border-[#f85555] bg-[#fff8f8]" : "border-[#ededed]"
+        } rounded-[10px] text-[13px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white`}
+      />
+      {suffix && (
+        <span className="absolute end-1.5 top-1/2 -translate-y-1/2 text-[10px] semibold text-[#8e8e8e] pointer-events-none">
+          {suffix}
+        </span>
+      )}
+      {tooltip && <LiteTooltip message={tooltip} />}
+    </div>
+  );
+}
+
+export function VariantsSection({ form, patch, errors, lookups, disabled, currency, decimalDigits, pricesLocked, isCreate }: SectionProps) {
   const cmb = combos(form);
   const [colorQuery, setColorQuery] = useState("");
   const [sizeQuery, setSizeQuery] = useState("");
@@ -1342,28 +1551,17 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                       const cellDisabled = disabled;
                       return (
                         <td className="px-1 align-top">
-                          <div className="relative w-fit">
-                          <input
-                            type={type}
-                            min={type === "number" ? "0" : undefined}
-                            step="any"
+                          <VariantCellInput
                             value={r[field]}
+                            type={type}
                             disabled={cellDisabled}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (type === "number" && val && parseFloat(val) < 0) return;
-                              setVariant(c.key, field, val);
-                            }}
-                            className={`${w} h-[38px] px-2.5 ${suffix ? "pe-8" : ""} bg-[#f8f8f8] border ${
-                              hasErr ? "border-[#f85555] bg-[#fff8f8]" : "border-[#ededed]"
-                            } rounded-[10px] text-[13px] text-[#3c3c3c] outline-none focus:border-[#5d5d5d] focus:bg-white`}
+                            suffix={suffix}
+                            hasErr={Boolean(hasErr)}
+                            widthClass={w}
+                            isMoney={isMoney}
+                            decimalDigits={decimalDigits}
+                            onChange={(val) => setVariant(c.key, field, val)}
                           />
-                          {suffix && (
-                            <span className="absolute end-1.5 top-1/2 -translate-y-1/2 text-[10px] semibold text-[#8e8e8e] pointer-events-none">
-                              {suffix}
-                            </span>
-                          )}
-                          </div>
                           {hasErr && (
                             <span className="text-[11px] text-[#f85555] block mt-0.5 leading-tight whitespace-nowrap">
                               {skuErrMsg}

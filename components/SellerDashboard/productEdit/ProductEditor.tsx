@@ -114,6 +114,7 @@ export default function ProductEditor({
   const shopInfo =
     dashboardShopInfo?.sellerId === sellerId ? dashboardShopInfo : null;
   const currency = shopInfo?.currency.code ?? "";
+  const decimalDigits = shopInfo?.currency?.decimal_digits;
 
   // Shop-info gating, applied to BOTH paths. Prices are the substance of this
   // screen and they are meaningless without the shop's currency, so the editor
@@ -872,6 +873,7 @@ export default function ProductEditor({
     busy: catLoading,
     isCreate,
     currency,
+    decimalDigits,
   };
 
   const cover = form.images[0]?.url || listProduct?.images?.[0];

@@ -2876,6 +2876,8 @@ const translations = {
   "No internet connection": "لا يوجد اتصال بالإنترنت",
   "Please check your connection to scan and pay": "يرجى التحقق من اتصالك للمسح والدفع",
   "Pay with web RDB": "الدفع عبر RDB ويب",
+  "Decimal digits are not allowed for this currency": "الأرقام العشرية غير مسموحة لهذه العملة",
+  "Maximum {n} decimal digits allowed for this currency": "الحد الأقصى المسموح به هو {n} خانات عشرية لهذه العملة",
 };
 
 export default translations;

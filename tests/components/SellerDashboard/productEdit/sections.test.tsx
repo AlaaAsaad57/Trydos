@@ -412,6 +412,61 @@ describe("PricingSection", () => {
       "the stock hint must explain why it is locked",
     ).toBeInTheDocument();
   });
+
+  it("prohibits decimal digits and shows tooltip when decimalDigits is 0", async () => {
+    const { container } = await mount(PricingSection, {}, { currency: "SYP", decimalDigits: 0 });
+
+    const priceInput = inputIn(container, "unit_price");
+    // Entering valid integer
+    fireEvent.change(priceInput, { target: { value: "100" } });
+    expect(latest.unit_price).toBe("100");
+
+    // Attempting to type dot on keydown
+    fireEvent.keyDown(priceInput, { key: "." });
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Decimal Digits Are Not Allowed For This Currency");
+
+    // Attempting to enter decimal value
+    fireEvent.change(priceInput, { target: { value: "100.5" } });
+    expect(latest.unit_price, "decimal value must be revoked when decimalDigits is 0").toBe("100");
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Decimal Digits Are Not Allowed For This Currency");
+  });
+
+  it("allows up to decimalDigits decimals and revokes extra digits with tooltip", async () => {
+    const { container } = await mount(PricingSection, {}, { currency: "USD", decimalDigits: 2 });
+
+    const priceInput = inputIn(container, "unit_price");
+    fireEvent.change(priceInput, { target: { value: "12.22" } });
+    expect(latest.unit_price).toBe("12.22");
+
+    // Attempting to enter a 3rd decimal digit
+    fireEvent.change(priceInput, { target: { value: "12.223" } });
+    expect(latest.unit_price, "3rd decimal digit must be revoked").toBe("12.22");
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Maximum 2 Decimal Digits Allowed For This Currency");
+
+    // Other valid values
+    fireEvent.change(priceInput, { target: { value: "99.99" } });
+    expect(latest.unit_price).toBe("99.99");
+
+    fireEvent.change(priceInput, { target: { value: "1000000.59" } });
+    expect(latest.unit_price).toBe("1000000.59");
+  });
+
+  it("does not restrict non-price numeric fields with currency decimalDigits", async () => {
+    const { container } = await mount(PricingSection, {}, { currency: "SYP", decimalDigits: 0 });
+
+    const weightInput = inputIn(container, "weight");
+    fireEvent.change(weightInput, { target: { value: "1.75" } });
+    expect(latest.weight, "weight can have decimal digits even when currency decimalDigits is 0").toBe("1.75");
+  });
+
+  it("does not restrict price fields when decimalDigits is undefined", async () => {
+    const { container } = await mount(PricingSection, {}, { currency: "USD", decimalDigits: undefined });
+
+    const priceInput = inputIn(container, "unit_price");
+    fireEvent.change(priceInput, { target: { value: "12.3456" } });
+    expect(latest.unit_price).toBe("12.3456");
+    expect(screen.queryByRole("tooltip")).toBeNull();
+  });
 });
 
 /* ------------------------------ Categories ------------------------------- */
@@ -673,6 +728,21 @@ describe("CountriesSection", () => {
     );
     expect(screen.queryByRole("button", { name: "Add" }), "view mode has no Add").toBeNull();
     expect(screen.getByPlaceholderText("Extra Price"), "view mode inputs are locked").toBeDisabled();
+  });
+
+  it("enforces currency decimalDigits on per-country extra_price", async () => {
+    await mount(
+      CountriesSection,
+      { extra_price_for_country: [{ country_iso: "SY", extra_price: "10" }] },
+      { currency: "USD", decimalDigits: 2 },
+    );
+    const extraPriceInput = screen.getByPlaceholderText("Extra Price");
+    fireEvent.change(extraPriceInput, { target: { value: "10.50" } });
+    expect(latest.extra_price_for_country[0].extra_price).toBe("10.50");
+
+    fireEvent.change(extraPriceInput, { target: { value: "10.505" } });
+    expect(latest.extra_price_for_country[0].extra_price, "3rd decimal must be revoked").toBe("10.50");
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Maximum 2 Decimal Digits Allowed For This Currency");
   });
 });
 
@@ -975,6 +1045,33 @@ describe("VariantsSection", () => {
     );
     const row = screen.getAllByText("S").find((el) => el.tagName === "TD")!.closest("tr") as HTMLElement;
     expect(within(row).getAllByRole("option").length, "only the Select option").toBe(1);
+  });
+
+  it("enforces currency decimalDigits on variant money cells and revokes extra decimals", async () => {
+    await mount(
+      VariantsSection,
+      {
+        colors: [{ code: "#FF0000", name: "Red" }],
+        sizes: [{ id: 1, name: "S" }],
+        images: [{ name: "img.jpg", url: "http://example.com/img.jpg" }],
+        colorImages: { "#FF0000": ["img.jpg"] },
+        variations: {
+          "Red-S": { price: "10", discount: "8", luck: "5", qty: "3", sku: "SKU1", barcode: "", location_id: "1" },
+        },
+      },
+      { currency: "USD", decimalDigits: 2 },
+    );
+
+    const row = screen.getByText("Red · S").closest("tr") as HTMLElement;
+    const inputs = within(row).getAllByRole("spinbutton");
+    const priceCell = inputs[0];
+
+    fireEvent.change(priceCell, { target: { value: "10.99" } });
+    expect(latest.variations["Red-S"].price).toBe("10.99");
+
+    fireEvent.change(priceCell, { target: { value: "10.999" } });
+    expect(latest.variations["Red-S"].price, "3rd decimal in variant price must be revoked").toBe("10.99");
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Maximum 2 Decimal Digits Allowed For This Currency");
   });
 });
 

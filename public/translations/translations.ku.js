@@ -2926,6 +2926,8 @@ const translations = {
   "No internet connection": "پەیوەندی ئینتەرنێت نییە",
   "Please check your connection to scan and pay": "تکایە پەیوەندییەکەت بپشکنە بۆ سکانکردن و پارەدان",
   "Pay with web RDB": "پارەدان لە ڕێگەی وێبی RDB",
+  "Decimal digits are not allowed for this currency": "ژمارەی دەیی بۆ ئەم دراوە رێگەپێدراو نییە",
+  "Maximum {n} decimal digits allowed for this currency": "زۆرترین ژمارەی دەیی رێگەپێدراو {n} خانەیە بۆ ئەم دراوە",
 };
 
 export default translations;

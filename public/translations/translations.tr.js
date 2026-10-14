@@ -2908,6 +2908,8 @@ const translations = {
   "No internet connection": "İnternet bağlantısı yok",
   "Please check your connection to scan and pay": "Taramak ve ödemek için lütfen bağlantınızı kontrol edin",
   "Pay with web RDB": "Web RDB ile öde",
+  "Decimal digits are not allowed for this currency": "Bu para birimi için ondalık basamaklara izin verilmez",
+  "Maximum {n} decimal digits allowed for this currency": "Bu para birimi için en fazla {n} ondalık basamağa izin verilir",
 };
 
 export default translations;
