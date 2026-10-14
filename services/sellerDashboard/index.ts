@@ -2,6 +2,13 @@ import { fetchData } from "utils/fetchData";
 import { toServiceToken } from "utils/serviceTokens";
 import { REQUESTS_DATA } from "utils/Requests";
 import { GetTicket } from "utils/UploadUtils";
+import type {
+  CartsListResponse,
+  CartDetailsResponse,
+  ProductCartsResponse,
+  OldCartsListResponse,
+  OldCartDetailsResponse,
+} from "components/SellerDashboard/carts/types";
 
 const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
@@ -1216,5 +1223,86 @@ class SellerDashboardService {
     });
   }
 
+  // --- Seller Carts Endpoints (Contract: shop-seller-carts-apis.md) ---
+
+  // GET /shop/carts — Active open carts list (paginated)
+  async getSellerCarts(
+    sellerId: string,
+    page: number = 1,
+  ): Promise<CartsListResponse> {
+    return fetchData({
+      url: `/shop/carts${page > 1 ? `?page=${page}` : ""}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SELLER_CARTS,
+      sellerId,
+    });
+  }
+
+  // GET /shop/carts/{cartGroupId} — Active cart details
+  async getSellerCartDetails(
+    sellerId: string,
+    cartGroupId: string,
+  ): Promise<CartDetailsResponse> {
+    return fetchData({
+      url: `/shop/carts/${encodeURIComponent(cartGroupId)}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SELLER_CART_DETAILS,
+      sellerId,
+    });
+  }
+
+  // GET /shop/products/{productId}/carts — All open cart lines for this product
+  async getSellerProductCarts(
+    sellerId: string,
+    productId: number | string,
+    page: number = 1,
+  ): Promise<ProductCartsResponse> {
+    return fetchData({
+      url: `/shop/products/${encodeURIComponent(String(productId))}/carts${page > 1 ? `?page=${page}` : ""}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SELLER_PRODUCT_CARTS,
+      sellerId,
+    });
+  }
+
+  // GET /shop/old-carts — Old carts list (paginated, optional ?search=product_or_customer_id)
+  async getSellerOldCarts(
+    sellerId: string,
+    params?: { search?: number | string; page?: number },
+  ): Promise<OldCartsListResponse> {
+    const query = new URLSearchParams();
+    if (params?.page && params.page > 1) {
+      query.set("page", String(params.page));
+    }
+    if (params?.search !== undefined && params?.search !== null && String(params.search).trim() !== "") {
+      query.set("search", String(params.search).trim());
+    }
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    return fetchData({
+      url: `/shop/old-carts${qs}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SELLER_OLD_CARTS,
+      sellerId,
+    });
+  }
+
+  // GET /shop/old-carts/{customerId} — One customer's old cart lines
+  async getSellerOldCartDetails(
+    sellerId: string,
+    customerId: number | string,
+    page: number = 1,
+  ): Promise<OldCartDetailsResponse> {
+    return fetchData({
+      url: `/shop/old-carts/${encodeURIComponent(String(customerId))}${page > 1 ? `?page=${page}` : ""}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SELLER_OLD_CART_DETAILS,
+      sellerId,
+    });
+  }
 }
 export default new SellerDashboardService();
