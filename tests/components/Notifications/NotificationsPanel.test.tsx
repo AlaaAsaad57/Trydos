@@ -92,11 +92,21 @@ describe("the notifications panel list", () => {
       params: { screen_name: "notifications_screen", screen_path: "/sy-en" },
     });
 
-    await scrollToBottom(body());
+    // The panel puts its scroll listener back in an effect after each render.
+    // The list can show before that effect runs, and until then the old
+    // listener still sees `loading: true` and ignores the scroll. On a busy
+    // machine that gap is long enough to lose the scroll, so repeat it until
+    // page 2 is asked for.
+    await waitFor(async () => {
+      await scrollToBottom(body());
+      expect(spies.fetch, "scrolling to the bottom must ask for page 2").toHaveBeenLastCalledWith(2);
+    });
     expect(await screen.findByText("notice 3"), "scrolling to the bottom must load the next page").toBeInTheDocument();
-    expect(spies.fetch, "the second request must ask for page 2").toHaveBeenLastCalledWith(2);
     expect(screen.getByText("No More Notifications"), "after the last page the panel must say there is no more").toBeInTheDocument();
 
+    // Let the listener catch up with the last page first, so the check below
+    // tests `hasMore` and not an old listener that would ignore any scroll.
+    await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
     await scrollToBottom(body());
     expect(spies.fetch, "after the last page no more requests must be sent").toHaveBeenCalledTimes(2);
   });

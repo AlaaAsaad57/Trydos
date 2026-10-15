@@ -86,7 +86,10 @@ export default function ProductCartsModal({
           page,
         );
         if (res && res.isSuccessful === false) {
-          throw new Error(res.message || "Failed to load product carts");
+          throw new Error(
+            res.message ||
+              translateFunction("Failed to load product carts", language),
+          );
         }
         const data = res?.data;
         setActiveItems(Array.isArray(data?.items) ? data.items : []);
@@ -100,7 +103,7 @@ export default function ProductCartsModal({
         setActiveLoading(false);
       }
     },
-    [sellerId, productId],
+    [sellerId, productId, language],
   );
 
   // Load old carts for product
@@ -117,7 +120,10 @@ export default function ProductCartsModal({
           },
         );
         if (res && res.isSuccessful === false) {
-          throw new Error(res.message || "Failed to load product old carts");
+          throw new Error(
+            res.message ||
+              translateFunction("Failed to load product old carts", language),
+          );
         }
         const data = res?.data;
         setOldCarts(Array.isArray(data?.old_carts) ? data.old_carts : []);
@@ -131,7 +137,7 @@ export default function ProductCartsModal({
         setOldLoading(false);
       }
     },
-    [sellerId, productId],
+    [sellerId, productId, language],
   );
 
   // Initial load: fetch BOTH active and old carts so totals are accurate immediately
@@ -176,7 +182,7 @@ export default function ProductCartsModal({
                   height: 44,
                   q: 75,
                 })}
-                alt={productName || "Product"}
+                alt={productName || translateFunction("Product", language)}
                 className="w-11 h-11 rounded-[10px] object-cover shrink-0 border border-[#ededed]"
               />
             )}

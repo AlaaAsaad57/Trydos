@@ -99,7 +99,9 @@ export default function CartsTab({
           page,
         );
         if (res && res.isSuccessful === false) {
-          throw new Error(res.message || "Failed to load carts");
+          throw new Error(
+            res.message || translateFunction("Failed to load carts", language),
+          );
         }
         const data = res?.data;
         const items = Array.isArray(data?.carts) ? data.carts : [];
@@ -116,7 +118,7 @@ export default function CartsTab({
         setActiveLoading(false);
       }
     },
-    [sellerId, onActiveCountChange],
+    [sellerId, onActiveCountChange, language],
   );
 
   // Fetch old carts
@@ -130,7 +132,10 @@ export default function CartsTab({
           { page },
         );
         if (res && res.isSuccessful === false) {
-          throw new Error(res.message || "Failed to load old carts");
+          throw new Error(
+            res.message ||
+              translateFunction("Failed to load old carts", language),
+          );
         }
         const data = res?.data;
         setOldCarts(Array.isArray(data?.old_carts) ? data.old_carts : []);
@@ -144,7 +149,7 @@ export default function CartsTab({
         setOldLoading(false);
       }
     },
-    [sellerId],
+    [sellerId, language],
   );
 
   // Initial load: always fetch BOTH active carts and old carts on mount so totals are accurate immediately
@@ -421,7 +426,7 @@ export default function CartsTab({
                   <span className="w-11 h-11 shrink-0 rounded-2xl bg-[#8e8e8e]/10 text-[#8e8e8e] flex items-center justify-center font-bold text-[16px]">
                     <img
                       src="/icons/OldCartIcon.svg"
-                      alt="old-cart"
+                      alt=""
                       width={20}
                       height={20}
                     />

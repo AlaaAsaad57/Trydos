@@ -1002,6 +1002,13 @@ const translations = {
   "Register With Us In A Few Simple Steps": "قم بالتسجيل ببضع خطوات بسيطة",
   "Please Enter The Correct Code Sent To Your Phone":
     " رجاءً ادخل الرمز الصحيح الذي تم ارساله لهاتفك",
+  "Server error. Please try again.": "خطأ في الخادم. يرجى المحاولة مرة أخرى.",
+  "The server did not respond in time. Please try again.":
+    "لم يستجب الخادم في الوقت المحدد. يرجى المحاولة مرة أخرى.",
+  "Service temporarily unavailable. Please try again.":
+    "الخدمة غير متاحة مؤقتاً. يرجى المحاولة مرة أخرى.",
+  "Verification failed. Please try again.":
+    "فشل التحقق. يرجى المحاولة مرة أخرى.",
   "You Have": "لديك",
   Attempts: "محاولات",
   "Change The Method Of Receiving": "تغيير طريقة استلام الرمز",
@@ -2901,6 +2908,12 @@ const translations = {
   "Product ID:": "معرّف المنتج:",
   "No customer currently has this product in their active cart.": "لا يوجد أي عميل لديه هذا المنتج في سلته النشطة حالياً.",
   "No expired customer carts found for this product.": "لم يتم العثور على سلات عملاء منتهية الصلاحية لهذا المنتج.",
+  "Failed to load carts": "فشل تحميل السلات",
+  "Failed to load old carts": "فشل تحميل السلات السابقة",
+  "Failed to load cart details": "فشل تحميل تفاصيل السلة",
+  "Failed to load old cart details": "فشل تحميل تفاصيل السلة السابقة",
+  "Failed to load product carts": "فشل تحميل سلات المنتج",
+  "Failed to load product old carts": "فشل تحميل السلات السابقة للمنتج",
   "View Carts": "عرض السلات",
   "Line Total": "إجمالي البند",
 };

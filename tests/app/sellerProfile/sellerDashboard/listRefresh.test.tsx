@@ -33,12 +33,16 @@ const GetProductsSocial = vi.fn();
 const getSellerCarts = vi
   .fn()
   .mockResolvedValue({ isSuccessful: true, data: { carts: [], meta: { total: 0 } } });
+const getSellerOldCarts = vi
+  .fn()
+  .mockResolvedValue({ isSuccessful: true, data: { old_carts: [], meta: { total: 0 } } });
 
 vi.mock("services/sellerDashboard", () => ({
   default: {
     getSellerProducts: (...a: unknown[]) => getSellerProducts(...a),
     getSellerBoutiques: (...a: unknown[]) => getSellerBoutiques(...a),
     getSellerCarts: (...a: unknown[]) => getSellerCarts(...a),
+    getSellerOldCarts: (...a: unknown[]) => getSellerOldCarts(...a),
     getSellerPermissions: (...a: unknown[]) => getSellerPermissions(...a),
     getRoles: (...a: unknown[]) => getRoles(...a),
     getUsers: (...a: unknown[]) => getUsers(...a),
@@ -72,7 +76,19 @@ vi.mock("components/SellerDashboard/StoriesTab", () => ({ default: () => null })
 vi.mock("components/SellerDashboard/CommentsTab", () => ({ default: () => null }));
 vi.mock("components/SellerDashboard/ExcelUploadTab", () => ({ default: () => null }));
 vi.mock("components/SellerDashboard/locations/LocationsTab", () => ({ default: () => null }));
-vi.mock("components/SellerDashboard/carts/CartsTab", () => ({ default: () => null }));
+// The carts tab is a stand-in unless a test sets `cartsTab.real`. The carts
+// tests need the real tab, because the bugs they cover sit between the page and
+// the tab: which request each one sends, and what the tab shows before the
+// permissions arrive.
+const cartsTab = vi.hoisted(() => ({ real: false }));
+vi.mock("components/SellerDashboard/carts/CartsTab", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("components/SellerDashboard/carts/CartsTab")>();
+  const RealCartsTab = actual.default;
+  return {
+    default: (props: React.ComponentProps<typeof RealCartsTab>) =>
+      cartsTab.real ? <RealCartsTab {...props} /> : null,
+  };
+});
 vi.mock("components/SellerDashboard/carts/ProductCartsModal", () => ({ default: () => null }));
 // The orders tab hands the page a way to change tab; the stand-in exposes it as
 // a button so the hand-off can be pressed.
@@ -181,6 +197,7 @@ async function arriveAgain(rerender: (ui: React.ReactElement) => void) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  cartsTab.real = false;
   getSellerPermissions.mockResolvedValue(permissionsPayload);
   getShopes.mockResolvedValue({ success: true, data: [] });
   getRoles.mockResolvedValue({ success: true, data: { shop_roles: [] } });
@@ -781,6 +798,64 @@ describe("the seller dashboard side menu", () => {
     const cartsMenuItem = byPw("seller-dashboard-menu-carts");
     expect(cartsMenuItem).toBeInTheDocument();
     expect(cartsMenuItem).toHaveTextContent("42");
+  });
+});
+
+describe("the seller dashboard carts tab", () => {
+  const cartsPage = (total: number) => ({
+    isSuccessful: true,
+    data: {
+      carts: [
+        {
+          cart_group_id: "cg-1",
+          customer: null,
+          items_count: 1,
+          total_quantity: 1,
+          created_at: "",
+          updated_at: "",
+        },
+      ],
+      meta: { total, current_page: 1, last_page: 1, per_page: 25 },
+    },
+  });
+
+  it("waits rather than refusing while permissions are still on the way", async () => {
+    cartsTab.real = true;
+    // The deep-link path: no shop in the store, so permissions must be fetched.
+    getSellerPermissions.mockReturnValue(new Promise(() => {}));
+    await openAs(null, "carts");
+
+    expect(
+      screen.queryByText(/You do not have permission to view carts/i),
+      "the carts tab told the seller they have no permission while the permission list was still being fetched — a seller with READ_CARTS is shown a refusal",
+    ).toBeNull();
+    expect(
+      byPw("dash-skeleton-list-rows"),
+      "nothing was on screen in the carts tab while permissions were still on the way",
+    ).not.toBeNull();
+  });
+
+  it("asks the core backend for the first carts page once when the tab opens, and the side menu reuses it", async () => {
+    cartsTab.real = true;
+    getSellerCarts.mockResolvedValue(cartsPage(42));
+    await openAs(["READ_CARTS"], "carts");
+
+    expect(
+      getSellerCarts.mock.calls.length,
+      `opening the carts tab asked GET /shop/carts page 1 ${getSellerCarts.mock.calls.length} times — the page and the tab both sent it`,
+    ).toBe(1);
+
+    fireEvent.click(byPw("seller-dashboard-menu-btn"));
+    await settle();
+
+    expect(
+      getSellerCarts.mock.calls.length,
+      "opening the side menu after the carts tab loaded asked GET /shop/carts again",
+    ).toBe(1);
+    expect(
+      byPw("seller-dashboard-menu-carts").textContent,
+      "the side menu's carts badge did not show the count the carts tab loaded",
+    ).toContain("42");
   });
 });
 

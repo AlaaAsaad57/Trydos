@@ -164,43 +164,54 @@ class AuthService {
         method: "GET",
         server: "local",
         reqTitle: REQUESTS_DATA.VERIFY_OTP_FROM_GUEST,
-        signal: AbortSignal.timeout(12000),
+        // The login route can take up to about 22.5 s: 10 s for the core
+        // verify, then 10 s for the chat / stories / comments / wallet logins
+        // (in parallel), then 2.5 s to store an error log. Wait longer than
+        // that, or the browser gives up on a sign-in that is still working.
+        signal: AbortSignal.timeout(30000),
       });
 
-      if (response.code === 501 && !response.success) {
+      // A 5xx is the backend failing, never a verdict on the code. Decide it
+      // first: the route forwards a core 5xx body as it is, and that body can
+      // also carry `isSuccessful: false` or `code: 501`, which the checks
+      // below would read as a wrong code and spend one of the shopper's tries.
+      const isServerError =
+        (typeof response?.httpStatus === "number" && response.httpStatus >= 500) ||
+        response?.httpStatus === 0;
+
+      if (!isServerError && response.code === 501 && !response.success) {
         showErrorNotification(response?.message);
         throw new Error("Wrong Code", { cause: response?.message });
       }
       if (response?.data?.message === "user not found" || response?.message === "user not found") {
         throw new Error("user not found");
       }
-      if (response?.isSuccessful === false && !response.success) {
+      if (!isServerError && response?.isSuccessful === false && !response.success) {
         throw new Error("Wrong Code", { cause: response?.message });
       }
 
       if (!response?.success || !response?.data?.user) {
-        const isServerError =
-          (typeof response?.httpStatus === "number" && response.httpStatus >= 500) ||
-          response?.httpStatus === 0 ||
-          response?.httpStatus === 504 ||
-          response?.httpStatus === 503 ||
-          response?.httpStatus === 502;
-
         const msg =
           response?.message ||
           response?.error ||
-          (response?.httpStatus === 504
-            ? "The server did not respond in time. Please try again."
-            : response?.httpStatus === 503
-            ? "Service temporarily unavailable. Please try again."
-            : isServerError
-            ? "Server error. Please try again."
-            : "Verification failed. Please try again.");
+          translateFunction(
+            response?.httpStatus === 504
+              ? "The server did not respond in time. Please try again."
+              : response?.httpStatus === 503
+              ? "Service temporarily unavailable. Please try again."
+              : isServerError
+              ? "Server error. Please try again."
+              : "Verification failed. Please try again.",
+          );
 
         if (!isServerError) {
+          // The word code / otp / pin is required, next to the verdict word in
+          // either order ("Invalid verification code", "The code is invalid").
+          // Without it, "Invalid verificationId" or "Session expired" were read
+          // as a wrong code and spent a try.
           const isWrongCode =
             response?.httpStatus === 422 ||
-            /\b(wrong|invalid|incorrect|expired)\s*(code|otp|pin)?\b/i.test(msg) ||
+            /\b(wrong|invalid|incorrect|expired)\s+(\w+\s+)?(code|otp|pin)\b|\b(code|otp|pin)\s+(is\s+)?(wrong|invalid|incorrect|expired)\b/i.test(msg) ||
             msg.toLowerCase() === "wrong code";
           if (isWrongCode) {
             throw new Error("Wrong Code", { cause: msg });

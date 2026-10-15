@@ -3,6 +3,7 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import React from "react";
 import { translateFunction } from "utils/server";
 import SizeItemWrapper from "./SizeItemWrapper";
+import { productHasSizes } from "./productHasSizes";
 
 async function ProductSizesWrapper({
   language,
@@ -12,13 +13,7 @@ async function ProductSizesWrapper({
 }) {
   let productData = await qtyPricePromise;
   let sizes = productData?.sizes;
-  const hasSizes =
-    productData?.has_sizes !== false &&
-    productData?.hasSizes !== false &&
-    Array.isArray(sizes) &&
-    sizes.some((s) => (typeof s === "string" ? s.trim().length > 0 : Boolean(s)));
-
-  if (!hasSizes) return <></>;
+  if (!productHasSizes(productData)) return <></>;
   let new_sizes_options = ["Standard", "EU", "IN", "US", "UK"];
   return (
     <div className="w-full rounded-[15px] mt-[20px] bg-[#FCFCFC] py-[8px] pr-[8px] pl-[10px] h-[135px] flex-col">

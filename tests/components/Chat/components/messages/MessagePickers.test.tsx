@@ -46,6 +46,10 @@ describe("the tag picker", () => {
           { tag: "urgent", count: 1, user_ids: [ME] },
           { tag: "todo", count: 1, user_ids: [THEM] },
         ]}
+        // The picker has no fixed tag list: it offers the tags the chat's
+        // loaded messages use, plus this message's own. "important" is on
+        // another message in the chat.
+        channelTags={["important"]}
         myId={ME}
       />,
       { store: { userChat: { id: ME } } },

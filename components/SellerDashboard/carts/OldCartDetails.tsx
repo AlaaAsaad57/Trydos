@@ -52,7 +52,10 @@ export default function OldCartDetails({
           targetPage,
         );
         if (res && res.isSuccessful === false) {
-          throw new Error(res.message || "Failed to load old cart details");
+          throw new Error(
+            res.message ||
+              translateFunction("Failed to load old cart details", language),
+          );
         }
         const data = res?.data;
         setOldCartDetails(data || null);
@@ -65,7 +68,7 @@ export default function OldCartDetails({
         setLoading(false);
       }
     },
-    [sellerId],
+    [sellerId, language],
   );
 
   useEffect(() => {
@@ -115,7 +118,7 @@ export default function OldCartDetails({
           <div className="flex items-center gap-3 p-4 rounded-2xl bg-[#f8f8f8] border border-[#ededed]">
             <img
               src="/icons/OldCartIcon.svg"
-              alt="old-cart"
+              alt=""
               width={24}
               height={24}
             />

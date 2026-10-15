@@ -5,6 +5,7 @@ import { translateFunction } from "utils/functions";
 import RatingStars from "components/settings/cards/RatingStars";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import ProductViews from "./ProductViews";
+import { productHasSizes } from "components/Server/product/productHasSizes";
 
 function GeneralPropertiesModal({
   rating_stats,
@@ -18,12 +19,13 @@ function GeneralPropertiesModal({
   sizes,
 }) {
   const { ColorBottomSheet, setColorBottomSheet, language } = useAppStore();
+  // ProductGeneralPropertiesWrapper decides with productHasSizes and passes
+  // hasSizes. Without that answer, use the same rule on the sizes list.
   const hasProductSizes =
     hasSizes !== undefined
       ? Boolean(hasSizes)
       : sizes !== undefined
-      ? Array.isArray(sizes) &&
-        sizes.some((s) => (typeof s === "string" ? s.trim().length > 0 : Boolean(s)))
+      ? productHasSizes({ sizes })
       : true;
 
   let reviews_arr = [

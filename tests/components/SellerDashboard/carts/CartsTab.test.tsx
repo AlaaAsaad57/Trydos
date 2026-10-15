@@ -412,6 +412,60 @@ describe("Seller Dashboard Carts Section — CartsTab", () => {
     });
   });
 
+  it("shows the active-carts failure in Arabic when the backend refuses with no message", async () => {
+    getSellerCarts.mockResolvedValue({ isSuccessful: false });
+
+    await renderWithProviders(
+      <CartsTab sellerId={SELLER_ID} canRead={true} language="ar" />,
+      { language: "ar" },
+    );
+
+    expect(
+      await screen.findByText("فشل تحميل السلات"),
+      "a refused active-carts list showed raw English instead of the Arabic message",
+    ).toBeInTheDocument();
+  });
+
+  it("shows the old-carts failure in Arabic when the backend refuses with no message", async () => {
+    const user = userEvent.setup();
+    getSellerOldCarts.mockResolvedValue({ isSuccessful: false });
+
+    await renderWithProviders(
+      <CartsTab sellerId={SELLER_ID} canRead={true} language="ar" />,
+      { language: "ar" },
+    );
+    await user.click(await screen.findByRole("tab", { name: /السلات السابقة/ }));
+
+    expect(
+      await screen.findByText("فشل تحميل السلات السابقة"),
+      "a refused old-carts list showed raw English instead of the Arabic message",
+    ).toBeInTheDocument();
+  });
+
+  it("shows the old-cart-details failure in Arabic, and no English slug on the old-cart icon", async () => {
+    const user = userEvent.setup();
+    getSellerOldCartDetails.mockResolvedValue({ isSuccessful: false });
+
+    await renderWithProviders(
+      <CartsTab sellerId={SELLER_ID} canRead={true} language="ar" />,
+      { language: "ar" },
+    );
+    await user.click(await screen.findByRole("tab", { name: /السلات السابقة/ }));
+    await screen.findByText("Axxxx Sxxxx");
+
+    expect(
+      document.querySelector('img[alt="old-cart"]'),
+      "the old-cart row icon still reads the English slug 'old-cart' to screen readers",
+    ).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: /عرض التفاصيل/ }));
+
+    expect(
+      await screen.findByText("فشل تحميل تفاصيل السلة السابقة"),
+      "a refused old-cart-details answer showed raw English instead of the Arabic message",
+    ).toBeInTheDocument();
+  });
+
   it("calls onActiveCountChange with active carts total count on load", async () => {
     const onActiveCountChange = vi.fn();
     await renderWithProviders(

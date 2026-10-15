@@ -11,7 +11,7 @@ import {
 } from "components/SellerDashboard/ui";
 import { ListRowsSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
 import CartLineItem from "./CartLineItem";
-import { CartDetailsData } from "./types";
+import { CartDetailsData, getCartLinePrice } from "./types";
 
 interface ActiveCartDetailsProps {
   cartGroupId: string;
@@ -49,7 +49,10 @@ export default function ActiveCartDetails({
           groupId,
         );
         if (res && res.isSuccessful === false) {
-          throw new Error(res.message || "Failed to load cart details");
+          throw new Error(
+            res.message ||
+              translateFunction("Failed to load cart details", language),
+          );
         }
         const data = res?.data;
         setCartDetails(data || null);
@@ -61,7 +64,7 @@ export default function ActiveCartDetails({
         setLoading(false);
       }
     },
-    [sellerId],
+    [sellerId, language],
   );
 
   useEffect(() => {
@@ -74,22 +77,14 @@ export default function ActiveCartDetails({
     ? convertTextToXFormat(cartDetails.customer.name)
     : translateFunction("Customer", language);
 
-  const totalValue = (cartDetails?.items || []).reduce((acc, item) => {
-    const hasCurrency =
-      item.unit_price_in_currency !== null &&
-      item.unit_price_in_currency !== undefined;
-    const unit = hasCurrency
-      ? Number(item.unit_price_in_currency)
-      : Number(item.unit_price || 0);
-    const offer = hasCurrency
-      ? Number(item.offer_price_in_currency || 0)
-      : Number(item.offer_price || 0);
-    const eff = offer > 0 && offer < unit ? offer : unit;
-    return acc + eff * Number(item.quantity || 1);
-  }, 0);
-
-  const currencyCode =
-    cartDetails?.items?.[0]?.currency?.code || shopCurrency || "USD";
+  // One total per currency. A line with no shop-currency price is in USD, so
+  // it must not be added to the shop-currency lines under one code.
+  const totals: Record<string, number> = {};
+  (cartDetails?.items || []).forEach((item) => {
+    const { currencyCode, lineTotal } = getCartLinePrice(item, shopCurrency);
+    totals[currencyCode] = (totals[currencyCode] || 0) + lineTotal;
+  });
+  const totalEntries = Object.entries(totals);
 
   return (
     <div className="space-y-4">
@@ -184,8 +179,14 @@ export default function ActiveCartDetails({
               </div>
               <div className="text-[15px] bold text-[#1d1d1d]">
                 <span>{translateFunction("Cart Total:", language)} </span>
-                <span className="text-[18px] text-[#3c3c3c]">
-                  {totalValue.toFixed(2)} {currencyCode}
+                <span className="text-[18px] text-[#3c3c3c] inline-flex flex-col items-end">
+                  {totalEntries.length === 0
+                    ? (0).toFixed(2)
+                    : totalEntries.map(([code, sum]) => (
+                        <span key={code}>
+                          {sum.toFixed(2)} {code}
+                        </span>
+                      ))}
                 </span>
               </div>
             </div>

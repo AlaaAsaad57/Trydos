@@ -245,6 +245,66 @@ describe("Seller Dashboard ProductCartsModal", () => {
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
 
+  it("shows the product-carts failure in Arabic when the backend refuses with no message", async () => {
+    getSellerProductCarts.mockResolvedValue({ isSuccessful: false });
+
+    await renderWithProviders(
+      <ProductCartsModal
+        productId={PRODUCT_ID}
+        productName="Azure Silk Slip"
+        sellerId={SELLER_ID}
+        language="ar"
+        onClose={vi.fn()}
+      />,
+      { language: "ar" },
+    );
+
+    expect(
+      await screen.findByText("فشل تحميل سلات المنتج"),
+      "a refused product-carts list showed raw English instead of the Arabic message",
+    ).toBeInTheDocument();
+  });
+
+  it("shows the product old-carts failure in Arabic when the backend refuses with no message", async () => {
+    const user = userEvent.setup();
+    getSellerOldCarts.mockResolvedValue({ isSuccessful: false });
+
+    await renderWithProviders(
+      <ProductCartsModal
+        productId={PRODUCT_ID}
+        productName="Azure Silk Slip"
+        sellerId={SELLER_ID}
+        language="ar"
+        onClose={vi.fn()}
+      />,
+      { language: "ar" },
+    );
+    await user.click(await screen.findByRole("tab", { name: /السلات السابقة/ }));
+
+    expect(
+      await screen.findByText("فشل تحميل السلات السابقة للمنتج"),
+      "a refused product old-carts list showed raw English instead of the Arabic message",
+    ).toBeInTheDocument();
+  });
+
+  it("gives the header image a translated alt text when the product has no name", async () => {
+    await renderWithProviders(
+      <ProductCartsModal
+        productId={PRODUCT_ID}
+        productImage="https://storage.example.com/product/abc.webp"
+        sellerId={SELLER_ID}
+        language="ar"
+        onClose={vi.fn()}
+      />,
+      { language: "ar" },
+    );
+
+    expect(
+      document.querySelector('[role="dialog"] img[alt="منتج"]'),
+      "the header image of an unnamed product did not use the Arabic alt text for 'Product'",
+    ).not.toBeNull();
+  });
+
   it("renders empty state when product has no active carts", async () => {
     getSellerProductCarts.mockResolvedValueOnce({
       isSuccessful: true,

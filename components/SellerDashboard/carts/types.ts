@@ -101,6 +101,36 @@ export type OldCartsListResponse = ApiResponse<{
 
 export type OldCartDetailsResponse = ApiResponse<OldCartDetailsData>;
 
+/**
+ * Price and currency of one cart line. The `*_in_currency` prices are in the
+ * shop currency. When they are missing, the line uses `unit_price` /
+ * `offer_price`, which the backend always sends in USD. CartLineItem and the
+ * cart total both use this, so they never disagree about a line's currency.
+ */
+export function getCartLinePrice(item: CartLine, shopCurrency: string = "") {
+  const hasCurrencyPrice =
+    item.unit_price_in_currency !== null &&
+    item.unit_price_in_currency !== undefined;
+
+  const unitPrice = hasCurrencyPrice
+    ? Number(item.unit_price_in_currency)
+    : Number(item.unit_price || 0);
+
+  const offerPrice = hasCurrencyPrice
+    ? Number(item.offer_price_in_currency || 0)
+    : Number(item.offer_price || 0);
+
+  const currencyCode = hasCurrencyPrice
+    ? item.currency?.code || shopCurrency
+    : "USD";
+
+  const hasDiscount = offerPrice > 0 && offerPrice < unitPrice;
+  const effectivePrice = hasDiscount ? offerPrice : unitPrice;
+  const lineTotal = effectivePrice * Number(item.quantity || 1);
+
+  return { unitPrice, currencyCode, hasDiscount, effectivePrice, lineTotal };
+}
+
 export function formatCartTimestamp(
   dateStr?: string | null,
   language: string = "en",

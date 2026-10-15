@@ -5,6 +5,7 @@ import { madeInText, translateFunction } from "utils/server";
 import ProductViews from "components/products/ProductViews";
 import { GetProductGeneralData } from "serverRequests/product";
 import { FlagIcon, VALID_ISO } from "utils/tinyUtils";
+import { productHasSizes } from "./productHasSizes";
 
 async function ProductGeneralPropertiesWrapper({
   globalData,
@@ -18,10 +19,13 @@ async function ProductGeneralPropertiesWrapper({
   let productGlobalData = await globalData;
   if (!productGlobalData?.id) return <></>;
 
-  let productQtyData = qtyPricePromise ? await qtyPricePromise : null;
-  let product = await GetProductGeneralData({
-    id: productGlobalData?.id,
-  });
+  // Start the facts request now. Do not wait for the price data first.
+  const [productQtyData, product] = await Promise.all([
+    qtyPricePromise ?? null,
+    GetProductGeneralData({
+      id: productGlobalData?.id,
+    }),
+  ]);
   const originIso = productGlobalData?.origin_country_iso;
   const originText = madeInText(originIso, language);
   const TotalBuyers = () => {
@@ -30,12 +34,10 @@ async function ProductGeneralPropertiesWrapper({
     return total;
   };
 
-  const sizes = productQtyData?.sizes ?? (productGlobalData as any)?.sizes;
-  const hasSizes =
-    sizes !== undefined
-      ? Array.isArray(sizes) &&
-        sizes.some((s) => (typeof s === "string" ? s.trim().length > 0 : Boolean(s)))
-      : undefined;
+  // Same data and same rule as ProductSizesWrapper / ProductSizeReviews, so the
+  // sheet shows sizing reviews only when the page shows the size sections.
+  const sizes = productQtyData?.sizes;
+  const hasSizes = productHasSizes(productQtyData);
 
   return (
     <Suspense fallback={<></>}>

@@ -990,6 +990,14 @@ const translations = {
     "لەگەڵمان تۆمار بکە بە چەند هەنگاوێکی سادە",
   "Please Enter The Correct Code Sent To Your Phone":
     "تکایە کۆدی دروست کە بۆ تەلەفۆنەکەت ناردراوە بنووسە",
+  "Server error. Please try again.":
+    "هەڵەی سێرڤەر. تکایە دووبارە هەوڵ بدەرەوە.",
+  "The server did not respond in time. Please try again.":
+    "سێرڤەر لە کاتی خۆیدا وەڵامی نەدایەوە. تکایە دووبارە هەوڵ بدەرەوە.",
+  "Service temporarily unavailable. Please try again.":
+    "خزمەتگوزارییەکە بە شێوەیەکی کاتی بەردەست نییە. تکایە دووبارە هەوڵ بدەرەوە.",
+  "Verification failed. Please try again.":
+    "پشتڕاستکردنەوە سەرکەوتوو نەبوو. تکایە دووبارە هەوڵ بدەرەوە.",
   "You Have": "تۆ هەیە",
   Attempts: "هەوڵەکان",
   "Change The Method Of Receiving": "گۆڕینی شێوازی وەرگرتنی کۆد",
@@ -2951,6 +2959,12 @@ const translations = {
   "Product ID:": "ناسنامەی بەرهەم:",
   "No customer currently has this product in their active cart.": "لە ئێستادا هیچ کڕیارێک ئەم بەرهەمەی لە سەبەتە چالاکەکەیدا نییە.",
   "No expired customer carts found for this product.": "هیچ سەبەتەیەکی بەسەرچووی کڕیار بۆ ئەم بەرهەمە نەدۆزرایەوە.",
+  "Failed to load carts": "بارکردنی سەبەتەکان سەرکەوتوو نەبوو",
+  "Failed to load old carts": "بارکردنی سەبەتە کۆنەکان سەرکەوتوو نەبوو",
+  "Failed to load cart details": "بارکردنی وردەکارییەکانی سەبەتە سەرکەوتوو نەبوو",
+  "Failed to load old cart details": "بارکردنی وردەکارییەکانی سەبەتەی کۆن سەرکەوتوو نەبوو",
+  "Failed to load product carts": "بارکردنی سەبەتەکانی بەرهەم سەرکەوتوو نەبوو",
+  "Failed to load product old carts": "بارکردنی سەبەتە کۆنەکانی بەرهەم سەرکەوتوو نەبوو",
   "View Carts": "بینینی سەبەتەکان",
   "Line Total": "کۆی گشتی بابەت",
 };

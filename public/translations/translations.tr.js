@@ -854,6 +854,14 @@ const translations = {
     "Birkaç Basit Adımla Bizimle Kayıt Olun",
   "Please Enter The Correct Code Sent To Your Phone":
     "Telefonunuza Gönderilen Doğru Kodu Girin",
+  "Server error. Please try again.":
+    "Sunucu hatası. Lütfen tekrar deneyin.",
+  "The server did not respond in time. Please try again.":
+    "Sunucu zamanında yanıt vermedi. Lütfen tekrar deneyin.",
+  "Service temporarily unavailable. Please try again.":
+    "Hizmet geçici olarak kullanılamıyor. Lütfen tekrar deneyin.",
+  "Verification failed. Please try again.":
+    "Doğrulama başarısız oldu. Lütfen tekrar deneyin.",
   "You Have": "Sizin Var",
   Attempts: "Denemeler",
   "Change The Method Of Receiving": "Alım Yöntemini Değiştir",
@@ -2933,6 +2941,12 @@ const translations = {
   "Product ID:": "Ürün Kimliği:",
   "No customer currently has this product in their active cart.": "Şu anda hiçbir müşterinin aktif sepetinde bu ürün bulunmuyor.",
   "No expired customer carts found for this product.": "Bu ürün için süresi dolmuş müşteri sepeti bulunamadı.",
+  "Failed to load carts": "Sepetler yüklenemedi",
+  "Failed to load old carts": "Eski sepetler yüklenemedi",
+  "Failed to load cart details": "Sepet detayları yüklenemedi",
+  "Failed to load old cart details": "Eski sepet detayları yüklenemedi",
+  "Failed to load product carts": "Ürün sepetleri yüklenemedi",
+  "Failed to load product old carts": "Ürünün eski sepetleri yüklenemedi",
   "View Carts": "Sepetleri Görüntüle",
   "Line Total": "Satır Toplamı",
 };

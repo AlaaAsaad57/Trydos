@@ -297,6 +297,105 @@ describe("verifying a code", () => {
       "Internal Server Error",
     );
   });
+
+  // The login route forwards a core 5xx with the core body as it is:
+  // `{ isSuccessful: false, code, message }` (app/api/auth/login/route.ts).
+  // That body also matches the older "isSuccessful === false" wrong-code check,
+  // so a backend fault used to come out as "Wrong Code" and spend a try.
+  it.each([
+    ["a core 500 with isSuccessful:false", { httpStatus: 500, success: false, isSuccessful: false, code: 500, message: "Internal Server Error" }],
+    ["a core 503 with body code 501", { httpStatus: 503, success: false, code: 501, message: "Service Unavailable" }],
+  ])("reads %s as a server error, never as a wrong code", async (_label, reply) => {
+    market.reply(reply);
+
+    const err: any = await auth.VerifyOtp("123456", "vid-1").then(
+      () => null,
+      (e) => e,
+    );
+
+    expect(err, "the core backend failed, but VerifyOtp did not fail").not.toBeNull();
+    expect(
+      err.message,
+      `a core ${reply.httpStatus} was read as a wrong code, so the shopper loses a try for a backend fault`,
+    ).not.toBe("Wrong Code");
+    expect(
+      err.isServerError,
+      `a core ${reply.httpStatus} was not marked as a server error, so the widgets count it as a try`,
+    ).toBe(true);
+  });
+
+  it("waits longer for the login route than the route itself can take", async () => {
+    // The route waits up to 10 s for the core verify, then up to 10 s more for
+    // the chat / stories / comments / wallet logins (they run in parallel),
+    // then up to 2.5 s to store an error log when one of them failed.
+    const ROUTE_WORST_CASE_MS = 10_000 + 10_000 + 2_500;
+    const timeout = vi.spyOn(AbortSignal, "timeout");
+    market.reply(loginReply());
+
+    await auth.VerifyOtp("123456", "vid-1");
+
+    const waitMs = timeout.mock.calls[0]?.[0];
+    timeout.mockRestore();
+    expect(waitMs, "VerifyOtp sent the login call with no time limit").toBeTypeOf("number");
+    expect(
+      waitMs,
+      `the browser gives up after ${waitMs} ms, before the login route can answer (up to ${ROUTE_WORST_CASE_MS} ms)`,
+    ).toBeGreaterThan(ROUTE_WORST_CASE_MS);
+  });
+
+  it.each([
+    ["Invalid verificationId"],
+    ["Session expired"],
+  ])("does not spend a try when the backend says %j", async (message) => {
+    market.reply({ httpStatus: 400, success: false, message });
+
+    const err: any = await auth.VerifyOtp("123456", "vid-1").then(
+      () => null,
+      (e) => e,
+    );
+
+    expect(err, "the backend refused the call, but VerifyOtp did not fail").not.toBeNull();
+    expect(
+      err.message,
+      `"${message}" says nothing about the code, but it was read as a wrong code and spends a try`,
+    ).toBe(message);
+  });
+
+  it.each([
+    ["Invalid verification code"],
+    ["Wrong Code"],
+    ["Invalid OTP"],
+    ["The code is invalid"],
+  ])("still reads %j as a wrong code", async (message) => {
+    market.reply({ httpStatus: 400, success: false, message });
+
+    const err: any = await auth.VerifyOtp("000000", "vid-1").then(
+      () => null,
+      (e) => e,
+    );
+
+    expect(
+      err?.message,
+      `"${message}" is a real wrong-code answer, but it was not read as a wrong code`,
+    ).toBe("Wrong Code");
+  });
+
+  it.each([
+    [504, "The server did not respond in time. Please try again."],
+    [503, "Service temporarily unavailable. Please try again."],
+    [500, "Server error. Please try again."],
+    [400, "Verification failed. Please try again."],
+  ])("shows the translated fallback line when a %i carries no message", async (httpStatus, line) => {
+    const functions = await import("utils/functions");
+    market.reply({ httpStatus, success: false });
+
+    await expect(auth.VerifyOtp("123456", "vid-1")).rejects.toThrow(line);
+
+    expect(
+      functions.translateFunction,
+      `"${line}" reaches the screen in English for every language — it was never translated`,
+    ).toHaveBeenCalledWith(line);
+  });
 });
 
 describe("verifying a changed number", () => {

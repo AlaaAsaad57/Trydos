@@ -96,5 +96,49 @@ describe("the product facts row", () => {
     );
     expect(props.general.hasSizes).toBe(true);
   });
+
+  // The size chips and the size reviews hide when a flag says "no sizes".
+  // The sheet must agree, or it shows "Buyers Reviews On Product Sizing"
+  // for a product whose page shows no sizes.
+  it.each([
+    ["has_sizes", { sizes: ["M"], has_sizes: false }],
+    ["hasSizes", { sizes: ["M"], hasSizes: false }],
+  ])("passes hasSizes false when the %s flag is false, even with a sizes list", async (_flag, qty) => {
+    GetProductGeneralData.mockResolvedValue({ final_rating: 4, ratingDetails: [] });
+    render(
+      await ProductGeneralPropertiesWrapper({
+        globalData: Promise.resolve({ id: 1, origin_country_iso: "tr" }),
+        qtyPricePromise: Promise.resolve(qty),
+        language: "en",
+      }),
+    );
+    expect(
+      props.general.hasSizes,
+      `the sheet would show sizing reviews for ${JSON.stringify(qty)}, but the size sections on the page are hidden`,
+    ).toBe(false);
+  });
+
+  it("starts the product facts request without waiting for the price data", async () => {
+    GetProductGeneralData.mockClear();
+    GetProductGeneralData.mockResolvedValue({ final_rating: 4, ratingDetails: [] });
+    let finishQty: (v: any) => void = () => {};
+    const qtyPricePromise = new Promise((resolve) => {
+      finishQty = resolve;
+    });
+    const pending = ProductGeneralPropertiesWrapper({
+      globalData: Promise.resolve({ id: 1 }),
+      qtyPricePromise,
+      language: "en",
+    });
+    // Let the wrapper read globalData. The price data is still open.
+    await new Promise((r) => setTimeout(r, 0));
+    expect(
+      GetProductGeneralData,
+      "the facts request waited for the price data, so the two fetches ran one after the other",
+    ).toHaveBeenCalledWith({ id: 1 });
+    finishQty({ sizes: ["M"] });
+    render(await pending);
+    expect(props.general.hasSizes, "the price data did not reach the sheet after it arrived").toBe(true);
+  });
 });
 

@@ -25,6 +25,8 @@ describe("postServerErrorLog", () => {
   });
 
   it("wraps a list or a plain value in a payload field", async () => {
+    // With no backend address the helper posts nothing, so set one.
+    vi.stubEnv("GO_BACKEND_URL", "https://api.example.com");
     const fetchSpy = vi.fn(async (_url: string, _init: any) => ({}));
     vi.stubGlobal("fetch", fetchSpy);
     await postServerErrorLog([1, 2]);

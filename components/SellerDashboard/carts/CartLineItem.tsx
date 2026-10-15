@@ -4,7 +4,7 @@ import { getConfiguredImage, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import { convertTextToXFormat } from "utils/server/helpers";
 import { DashIcon } from "components/SellerDashboard/ui/icons";
-import { CartLine } from "./types";
+import { CartLine, getCartLinePrice } from "./types";
 
 interface CartLineItemProps {
   item: CartLine;
@@ -27,24 +27,8 @@ export default function CartLineItem({
 
   // Currency & price calculation:
   // Prefer shop currency when available, fallback to default USD.
-  const hasCurrencyPrice =
-    item.unit_price_in_currency !== null &&
-    item.unit_price_in_currency !== undefined;
-
-  const unitPrice = hasCurrencyPrice
-    ? Number(item.unit_price_in_currency)
-    : Number(item.unit_price || 0);
-
-  const offerPrice = hasCurrencyPrice
-    ? Number(item.offer_price_in_currency || 0)
-    : Number(item.offer_price || 0);
-
-  const currencyCode =
-    item.currency?.code || (hasCurrencyPrice ? shopCurrency : "USD");
-
-  const hasDiscount = offerPrice > 0 && offerPrice < unitPrice;
-  const effectivePrice = hasDiscount ? offerPrice : unitPrice;
-  const lineTotal = effectivePrice * Number(item.quantity || 1);
+  const { unitPrice, currencyCode, hasDiscount, effectivePrice, lineTotal } =
+    getCartLinePrice(item, shopCurrency);
 
   // Masked customer name (e.g. "Axxxx Sxxxx"), never raw name or phone
   const maskedCustomerName = item.customer?.name
@@ -68,7 +52,7 @@ export default function CartLineItem({
               width: 110,
               src: GetImageUrl(item.cart_image),
             })}
-            alt={item.name || "Product"}
+            alt={item.name || translateFunction("Product", language)}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -89,7 +73,7 @@ export default function CartLineItem({
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 mb-2 rounded-[8px] bg-[#f8f8f8] text-[#8e8e8e] text-[11px] bold">
               <img
                 src="/icons/OldCartIcon.svg"
-                alt="old-cart"
+                alt=""
                 width={14}
                 height={14}
               />
@@ -119,7 +103,7 @@ export default function CartLineItem({
               <div className="flex items-center gap-1.5">
                 <img
                   src="/icons/CartColorIcon.svg"
-                  alt="cart-color"
+                  alt=""
                   width={12}
                   height={12}
                   className="max-h-[12px] object-contain"
@@ -134,7 +118,7 @@ export default function CartLineItem({
               <div className="flex items-center gap-1.5">
                 <img
                   src="/icons/CartSizeIcon.svg"
-                  alt="cart-size"
+                  alt=""
                   width={12}
                   height={12}
                   className="max-h-[12px] object-contain"

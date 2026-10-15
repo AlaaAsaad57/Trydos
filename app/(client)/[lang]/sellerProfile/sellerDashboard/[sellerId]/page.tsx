@@ -1078,11 +1078,21 @@ function SellerDashBoard() {
     }
   }, [activeTab, canViewBoutiques, sellerId]);
 
-  useEffect(() => {
-    if (activeTab === "carts" && canViewCarts) {
-      fetchOnce(`${sellerId}:carts-count`, () => getActiveCartsCount());
-    }
-  }, [activeTab, canViewCarts, sellerId]);
+  // The carts tab has no arrival fetch here. CartsTab loads GET /shop/carts
+  // page 1 itself and reports the total through this function. The function
+  // also marks the side-menu count as loaded, so opening the menu does not ask
+  // for the same page again. `useCallback` keeps the function the same between
+  // renders, because CartsTab fetches again when it changes.
+  const handleActiveCartsCount = useCallback(
+    (count: number) => {
+      setActiveCartsCount(count);
+      fetchedThisMount.current.set(
+        `${sellerId}:carts-count`,
+        Promise.resolve(true),
+      );
+    },
+    [sellerId],
+  );
 
   useEffect(() => {
     if (
@@ -2779,16 +2789,19 @@ function SellerDashBoard() {
             onShopInfoUpdated={handleShopInfoUpdated}
           />
         )}
-        {activeTab === "carts" && (
-          <CartsTab
-            sellerId={sellerId}
-            language={language}
-            canRead={canViewCarts}
-            shopCurrency={shopCurrency}
-            onOpenProductCarts={(target) => setProductCartsTarget(target)}
-            onActiveCountChange={setActiveCartsCount}
-          />
-        )}
+        {activeTab === "carts" &&
+          (permissionsReady ? (
+            <CartsTab
+              sellerId={sellerId}
+              language={language}
+              canRead={canViewCarts}
+              shopCurrency={shopCurrency}
+              onOpenProductCarts={(target) => setProductCartsTarget(target)}
+              onActiveCountChange={handleActiveCartsCount}
+            />
+          ) : (
+            <ListRowsSkeleton />
+          ))}
         {productCartsTarget && (
           <ProductCartsModal
             productId={productCartsTarget.productId}

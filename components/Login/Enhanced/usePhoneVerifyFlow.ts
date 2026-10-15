@@ -296,8 +296,12 @@ export function usePhoneVerifyFlow({
                     (e.message === 'Wrong Code' || e.message.toLowerCase().includes('wrong code')));
 
             if (isUserNotFound) {
+                // Not a wrong code, so no try is spent. Say why the check
+                // failed: these hosts have no "not registered" screen of their
+                // own, so without this line the boxes just empty.
                 setIsValidPin('');
                 setPin('');
+                setError(translate('Sorry, This Number Is Not Registered With Us !'));
             } else if (isWrongCode) {
                 const next = wrongCodes + 1;
                 setWrongCodes(next);
