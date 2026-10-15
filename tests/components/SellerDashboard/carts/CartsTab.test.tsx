@@ -110,7 +110,7 @@ describe("Seller Dashboard Carts Section — CartsTab", () => {
       isSuccessful: true,
       data: {
         old_carts: [sampleOldCart],
-        meta: { total: 1, current_page: 1, last_page: 1, per_page: 25 },
+        meta: { total: 5, current_page: 1, last_page: 1, per_page: 25 },
       },
     });
 
@@ -152,14 +152,24 @@ describe("Seller Dashboard Carts Section — CartsTab", () => {
     expect(getSellerOldCarts).not.toHaveBeenCalled();
   });
 
-  it("fetches active carts and renders masked customer name and cart details", async () => {
+  it("always fetches BOTH active and old carts on mount so totals are immediately accurate in tabs", async () => {
     await renderWithProviders(
       <CartsTab sellerId={SELLER_ID} canRead={true} language="en" />,
     );
 
+    // Eagerly called on mount for accurate tab counts
     await waitFor(() => {
       expect(getSellerCarts).toHaveBeenCalledWith(SELLER_ID, 1);
+      expect(getSellerOldCarts).toHaveBeenCalledWith(SELLER_ID, { page: 1 });
     });
+
+    // Both tabs immediately show real totals without waiting for user to click
+    expect(
+      screen.getByRole("tab", { name: /Active Carts \(1\)/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("tab", { name: /Old Carts \(5\)/i }),
+    ).toBeInTheDocument();
 
     // Customer name "Ahmad Saleh" should be masked to "Axxxx Sxxxx"
     expect(screen.getByText("Axxxx Sxxxx")).toBeInTheDocument();
@@ -172,6 +182,82 @@ describe("Seller Dashboard Carts Section — CartsTab", () => {
     expect(screen.getByText("1542-aB3dE-1759310000")).toBeInTheDocument();
     expect(screen.getByText(/3 Items/i)).toBeInTheDocument();
     expect(screen.getByText(/4 Pieces/i)).toBeInTheDocument();
+  });
+
+  it("paginates active carts correctly across multiple pages", async () => {
+    const user = userEvent.setup();
+    getSellerCarts.mockResolvedValueOnce({
+      isSuccessful: true,
+      data: {
+        carts: [sampleActiveCart],
+        meta: { total: 50, current_page: 1, last_page: 2, per_page: 25 },
+      },
+    });
+    getSellerCarts.mockResolvedValueOnce({
+      isSuccessful: true,
+      data: {
+        carts: [{ ...sampleActiveCart, cart_group_id: "page-2-group-id" }],
+        meta: { total: 50, current_page: 2, last_page: 2, per_page: 25 },
+      },
+    });
+
+    await renderWithProviders(
+      <CartsTab sellerId={SELLER_ID} canRead={true} language="en" />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Page 1 \/ 2/i)).toBeInTheDocument();
+    });
+
+    // Click Next
+    const nextBtn = screen.getByRole("button", { name: /Next/i });
+    await user.click(nextBtn);
+
+    await waitFor(() => {
+      expect(getSellerCarts).toHaveBeenCalledWith(SELLER_ID, 2);
+    });
+  });
+
+  it("paginates old carts correctly across multiple pages", async () => {
+    const user = userEvent.setup();
+    getSellerOldCarts.mockResolvedValueOnce({
+      isSuccessful: true,
+      data: {
+        old_carts: [sampleOldCart],
+        meta: { total: 40, current_page: 1, last_page: 2, per_page: 25 },
+      },
+    });
+    getSellerOldCarts.mockResolvedValueOnce({
+      isSuccessful: true,
+      data: {
+        old_carts: [{ ...sampleOldCart, customer_id: 9999 }],
+        meta: { total: 40, current_page: 2, last_page: 2, per_page: 25 },
+      },
+    });
+
+    await renderWithProviders(
+      <CartsTab sellerId={SELLER_ID} canRead={true} language="en" />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: /Old Carts/i })).toBeInTheDocument();
+    });
+
+    // Switch to Old Carts tab
+    const oldCartsTabBtn = screen.getByRole("tab", { name: /Old Carts/i });
+    await user.click(oldCartsTabBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Page 1 \/ 2/i)).toBeInTheDocument();
+    });
+
+    // Click Next
+    const nextBtn = screen.getByRole("button", { name: /Next/i });
+    await user.click(nextBtn);
+
+    await waitFor(() => {
+      expect(getSellerOldCarts).toHaveBeenCalledWith(SELLER_ID, { page: 2 });
+    });
   });
 
   it("renders empty state when there are no active carts", async () => {
@@ -289,6 +375,10 @@ describe("Seller Dashboard Carts Section — CartsTab", () => {
 
     await waitFor(() => {
       expect(getSellerProductCarts).toHaveBeenCalledWith(SELLER_ID, 2310, 1);
+      expect(getSellerOldCarts).toHaveBeenCalledWith(SELLER_ID, {
+        search: 2310,
+        page: 1,
+      });
     });
 
     // Modal dialog is open
@@ -319,6 +409,22 @@ describe("Seller Dashboard Carts Section — CartsTab", () => {
 
     await waitFor(() => {
       expect(getSellerCarts).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it("calls onActiveCountChange with active carts total count on load", async () => {
+    const onActiveCountChange = vi.fn();
+    await renderWithProviders(
+      <CartsTab
+        sellerId={SELLER_ID}
+        canRead={true}
+        language="en"
+        onActiveCountChange={onActiveCountChange}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(onActiveCountChange).toHaveBeenCalledWith(1);
     });
   });
 });

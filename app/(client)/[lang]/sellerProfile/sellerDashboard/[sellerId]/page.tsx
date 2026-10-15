@@ -257,6 +257,7 @@ function SellerDashBoard() {
   const [rolesLoading, setRolesLoading] = useState<boolean>(true);
   const [rolesForChangeLoading, setRolesForChangeLoading] =
     useState<boolean>(true);
+  const [activeCartsCount, setActiveCartsCount] = useState<number | null>(null);
 
   // "Are this shop's permissions known yet?" — not "is a request running".
   // Every permission-gated section waits on this before it decides between
@@ -588,6 +589,32 @@ function SellerDashBoard() {
       return false;
     } finally {
       setBoutiquesLoading(false);
+    }
+  };
+
+  const getActiveCartsCount = async (): Promise<boolean> => {
+    if (!canViewCarts) {
+      return false;
+    }
+    try {
+      if (typeof SellerDashboardService?.getSellerCarts !== "function") {
+        return false;
+      }
+      const res = await SellerDashboardService.getSellerCarts(sellerId, 1);
+      if (res && (res as any).isSuccessful === false) {
+        throw new Error(res.message || translateFunction("Failed to load carts"));
+      }
+      const total =
+        res?.data?.meta?.total ??
+        (Array.isArray(res?.data?.carts) ? res.data.carts.length : 0);
+      setActiveCartsCount(total);
+      return true;
+    } catch (error: any) {
+      LogError({
+        scenario: "SellerDashboard.getActiveCartsCount",
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return false;
     }
   };
 
@@ -1052,6 +1079,12 @@ function SellerDashBoard() {
   }, [activeTab, canViewBoutiques, sellerId]);
 
   useEffect(() => {
+    if (activeTab === "carts" && canViewCarts) {
+      fetchOnce(`${sellerId}:carts-count`, () => getActiveCartsCount());
+    }
+  }, [activeTab, canViewCarts, sellerId]);
+
+  useEffect(() => {
     if (
       activeTab === "permissions" &&
       canViewPermissions &&
@@ -1067,25 +1100,28 @@ function SellerDashBoard() {
   const initializeData = async () => {
     setLoadingSideBar(true);
     try {
-      // All three go through `fetchOnce`. This runs on EVERY menu open, so
+      // All go through `fetchOnce`. This runs on EVERY menu open, so
       // without it the fifth open costs a fifth round of calls — and it could
       // start a second products fetch while the arrival one was still open, with
       // the slower answer overwriting the fresher list.
       //
-      // The two list calls keep their permission check here as well as inside
+      // The list calls keep their permission check here as well as inside
       // the fetcher: entering `fetchOnce` unpermitted would store a key for a
       // fetch that never happens, and the section would then wait for a list
       // that is never coming.
       //
       // The results are unused, but the calls are not: they fill
-      // `sellerProducts` / `sellerBoutiques`, which the side-menu count badges
+      // `sellerProducts` / `sellerBoutiques` / `activeCartsCount`, which the side-menu count badges
       // below read.
-      const [, , ShopesRes] = await Promise.all([
+      const [, , , ShopesRes] = await Promise.all([
         canViewProducts
           ? fetchOnce(`${sellerId}:products`, () => getSellerProducts())
           : Promise.resolve(false),
         canViewBoutiques
           ? fetchOnce(`${sellerId}:boutiques`, () => getSellerBoutiques())
+          : Promise.resolve(false),
+        canViewCarts
+          ? fetchOnce(`${sellerId}:carts-count`, () => getActiveCartsCount())
           : Promise.resolve(false),
         fetchOnce(`${sellerId}:shopes`, async () => {
           const res = await SellerDashboardService.getShopes(true);
@@ -2414,8 +2450,11 @@ function SellerDashBoard() {
                 >
                   <DashIcon name="carts" size={20} />
                   <span>{translateFunction("Carts")}</span>
+                  <span className="rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center ms-auto text-[11px] semibold bg-[#5d5d5d]/10 text-[#5d5d5d]">
+                    {loadingSideBar ? <Spinner /> : activeCartsCount ?? 0}
+                  </span>
                   {activeTab === "carts" && (
-                    <span className="ms-auto text-[#5d5d5d]">
+                    <span className="text-[#5d5d5d] shrink-0">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2747,6 +2786,7 @@ function SellerDashBoard() {
             canRead={canViewCarts}
             shopCurrency={shopCurrency}
             onOpenProductCarts={(target) => setProductCartsTarget(target)}
+            onActiveCountChange={setActiveCartsCount}
           />
         )}
         {productCartsTarget && (

@@ -30,11 +30,15 @@ const addUserToShop = vi.fn();
 const deleteUser = vi.fn();
 const updateUserRole = vi.fn();
 const GetProductsSocial = vi.fn();
+const getSellerCarts = vi
+  .fn()
+  .mockResolvedValue({ isSuccessful: true, data: { carts: [], meta: { total: 0 } } });
 
 vi.mock("services/sellerDashboard", () => ({
   default: {
     getSellerProducts: (...a: unknown[]) => getSellerProducts(...a),
     getSellerBoutiques: (...a: unknown[]) => getSellerBoutiques(...a),
+    getSellerCarts: (...a: unknown[]) => getSellerCarts(...a),
     getSellerPermissions: (...a: unknown[]) => getSellerPermissions(...a),
     getRoles: (...a: unknown[]) => getRoles(...a),
     getUsers: (...a: unknown[]) => getUsers(...a),
@@ -68,6 +72,8 @@ vi.mock("components/SellerDashboard/StoriesTab", () => ({ default: () => null })
 vi.mock("components/SellerDashboard/CommentsTab", () => ({ default: () => null }));
 vi.mock("components/SellerDashboard/ExcelUploadTab", () => ({ default: () => null }));
 vi.mock("components/SellerDashboard/locations/LocationsTab", () => ({ default: () => null }));
+vi.mock("components/SellerDashboard/carts/CartsTab", () => ({ default: () => null }));
+vi.mock("components/SellerDashboard/carts/ProductCartsModal", () => ({ default: () => null }));
 // The orders tab hands the page a way to change tab; the stand-in exposes it as
 // a button so the hand-off can be pressed.
 vi.mock("components/SellerDashboard/orders", () => ({
@@ -634,7 +640,7 @@ describe("the seller dashboard home", () => {
 
 describe("the seller dashboard side menu", () => {
   const MENU_TABS = [
-    "products", "boutiques", "locations", "orders", "permissions",
+    "products", "boutiques", "locations", "orders", "carts", "permissions",
     "users", "gallery", "stories", "comments", "excel", "shopInfo",
   ];
 
@@ -747,6 +753,34 @@ describe("the seller dashboard side menu", () => {
       getSellerProducts.mock.calls.length,
       "opening the menu while the product list was loading asked the core backend for it a second time",
     ).toBe(1);
+  });
+
+  it("renders active carts count in the side menu drawer", async () => {
+    getSellerCarts.mockResolvedValueOnce({
+      isSuccessful: true,
+      data: {
+        carts: [
+          {
+            cart_group_id: "cg-1",
+            customer: null,
+            items_count: 2,
+            total_quantity: 2,
+            created_at: "",
+            updated_at: "",
+          },
+        ],
+        meta: { total: 42, current_page: 1, last_page: 1, per_page: 10 },
+      },
+    });
+
+    await openAs(["SUPER_ADMIN"]);
+
+    fireEvent.click(byPw("seller-dashboard-menu-btn"));
+    await settle();
+
+    const cartsMenuItem = byPw("seller-dashboard-menu-carts");
+    expect(cartsMenuItem).toBeInTheDocument();
+    expect(cartsMenuItem).toHaveTextContent("42");
   });
 });
 

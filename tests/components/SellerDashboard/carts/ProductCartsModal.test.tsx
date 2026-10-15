@@ -80,12 +80,12 @@ describe("Seller Dashboard ProductCartsModal", () => {
       isSuccessful: true,
       data: {
         old_carts: [sampleOldCartSummary],
-        meta: { total: 1, current_page: 1, last_page: 1, per_page: 25 },
+        meta: { total: 3, current_page: 1, last_page: 1, per_page: 25 },
       },
     });
   });
 
-  it("fetches active carts on mount and displays masked customer name", async () => {
+  it("always fetches BOTH active and old carts on mount to show accurate totals in tab headers immediately", async () => {
     const handleClose = vi.fn();
     await renderWithProviders(
       <ProductCartsModal
@@ -98,12 +98,22 @@ describe("Seller Dashboard ProductCartsModal", () => {
       />,
     );
 
+    // Both are requested eagerly on mount so totals are never 0
     await waitFor(() => {
       expect(getSellerProductCarts).toHaveBeenCalledWith(SELLER_ID, PRODUCT_ID, 1);
+      expect(getSellerOldCarts).toHaveBeenCalledWith(SELLER_ID, {
+        search: PRODUCT_ID,
+        page: 1,
+      });
     });
 
-    // Lazy load: old carts should NOT have been fetched on mount
-    expect(getSellerOldCarts).not.toHaveBeenCalled();
+    // Both totals are immediately displayed without waiting for user tab click
+    expect(
+      screen.getByRole("tab", { name: /Active Carts \(1\)/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("tab", { name: /Old Carts \(3\)/i }),
+    ).toBeInTheDocument();
 
     // Check title & product id
     expect(screen.getAllByText("Azure Silk Slip").length).toBeGreaterThan(0);
@@ -114,7 +124,7 @@ describe("Seller Dashboard ProductCartsModal", () => {
     expect(screen.queryByText("Ahmad Saleh")).not.toBeInTheDocument();
   });
 
-  it("lazy loads old carts when switching to Old Carts sub-tab", async () => {
+  it("switches to Old Carts sub-tab and renders old carts holding this product", async () => {
     const user = userEvent.setup();
     const handleClose = vi.fn();
     await renderWithProviders(
@@ -135,17 +145,50 @@ describe("Seller Dashboard ProductCartsModal", () => {
     const oldTab = screen.getByRole("tab", { name: /Old Carts/i });
     await user.click(oldTab);
 
-    await waitFor(() => {
-      expect(getSellerOldCarts).toHaveBeenCalledWith(SELLER_ID, {
-        search: PRODUCT_ID,
-        page: 1,
-      });
-    });
-
     // Masked customer name and last added timestamp
     expect(screen.getByText("Axxxx Sxxxx")).toBeInTheDocument();
     expect(screen.getByText(/(2026-09-28|9\/28\/2026|Sep 28, 2026)/)).toBeInTheDocument();
     expect(screen.getByText(/3 Items/i)).toBeInTheDocument();
+  });
+
+  it("paginates active product carts correctly when multiple pages exist", async () => {
+    const user = userEvent.setup();
+    getSellerProductCarts.mockResolvedValueOnce({
+      isSuccessful: true,
+      data: {
+        items: [sampleProductCartLine],
+        meta: { total: 30, current_page: 1, last_page: 2, per_page: 25 },
+      },
+    });
+    getSellerProductCarts.mockResolvedValueOnce({
+      isSuccessful: true,
+      data: {
+        items: [{ ...sampleProductCartLine, id: 88232, name: "Second Page Slip" }],
+        meta: { total: 30, current_page: 2, last_page: 2, per_page: 25 },
+      },
+    });
+
+    await renderWithProviders(
+      <ProductCartsModal
+        productId={PRODUCT_ID}
+        productName="Azure Silk Slip"
+        sellerId={SELLER_ID}
+        language="en"
+        onClose={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Page 1 \/ 2/i)).toBeInTheDocument();
+    });
+
+    // Click Next button
+    const nextBtn = screen.getByRole("button", { name: /Next/i });
+    await user.click(nextBtn);
+
+    await waitFor(() => {
+      expect(getSellerProductCarts).toHaveBeenCalledWith(SELLER_ID, PRODUCT_ID, 2);
+    });
   });
 
   it("calls onClose when Close button or top-right close icon is clicked", async () => {

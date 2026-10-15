@@ -8,6 +8,7 @@ import {
   DashIcon,
   EmptyState,
   ErrorState,
+  InlineAlert,
   Pagination,
   Segmented,
 } from "components/SellerDashboard/ui";
@@ -32,6 +33,7 @@ interface CartsTabProps {
     productName?: string;
     productImage?: string;
   }) => void;
+  onActiveCountChange?: (count: number) => void;
 }
 
 export default function CartsTab({
@@ -40,6 +42,7 @@ export default function CartsTab({
   language = "en",
   shopCurrency = "",
   onOpenProductCarts,
+  onActiveCountChange,
 }: CartsTabProps) {
   const isRtl = language === "ar" || language === "ku";
   const [activeTab, setActiveTab] = useState<"active" | "old">("active");
@@ -59,13 +62,12 @@ export default function CartsTab({
   const [activeLoading, setActiveLoading] = useState(true);
   const [activeError, setActiveError] = useState<string | null>(null);
 
-  // Old Carts list state
+  // Old Carts list state — fetched on mount alongside active carts to guarantee accurate totals
   const [oldCarts, setOldCarts] = useState<OldCartSummary[]>([]);
   const [oldMeta, setOldMeta] = useState<PaginationMeta | null>(null);
   const [oldPage, setOldPage] = useState(1);
-  const [oldLoading, setOldLoading] = useState(false);
+  const [oldLoading, setOldLoading] = useState(true);
   const [oldError, setOldError] = useState<string | null>(null);
-  const [hasLoadedOld, setHasLoadedOld] = useState(false);
 
   // Internal fallback modal state if parent didn't provide onOpenProductCarts
   const [internalProductCartsTarget, setInternalProductCartsTarget] = useState<{
@@ -100,9 +102,12 @@ export default function CartsTab({
           throw new Error(res.message || "Failed to load carts");
         }
         const data = res?.data;
-        setActiveCarts(Array.isArray(data?.carts) ? data.carts : []);
-        setActiveMeta(data?.meta || null);
+        const items = Array.isArray(data?.carts) ? data.carts : [];
+        const meta = data?.meta || null;
+        setActiveCarts(items);
+        setActiveMeta(meta);
         setActivePage(page);
+        onActiveCountChange?.(meta?.total ?? items.length);
       } catch (err: any) {
         const msg = err?.message || String(err);
         LogError({ scenario: "CartsTab.loadActiveCarts", error: msg });
@@ -111,10 +116,10 @@ export default function CartsTab({
         setActiveLoading(false);
       }
     },
-    [sellerId],
+    [sellerId, onActiveCountChange],
   );
 
-  // Fetch old carts (lazy loaded)
+  // Fetch old carts
   const loadOldCarts = useCallback(
     async (page = 1) => {
       setOldLoading(true);
@@ -131,7 +136,6 @@ export default function CartsTab({
         setOldCarts(Array.isArray(data?.old_carts) ? data.old_carts : []);
         setOldMeta(data?.meta || null);
         setOldPage(page);
-        setHasLoadedOld(true);
       } catch (err: any) {
         const msg = err?.message || String(err);
         LogError({ scenario: "CartsTab.loadOldCarts", error: msg });
@@ -143,19 +147,13 @@ export default function CartsTab({
     [sellerId],
   );
 
-  // Initial load: active carts
+  // Initial load: always fetch BOTH active carts and old carts on mount so totals are accurate immediately
   useEffect(() => {
     if (canRead) {
       loadActiveCarts(1);
-    }
-  }, [canRead, loadActiveCarts]);
-
-  // Lazy load old carts on tab switch
-  useEffect(() => {
-    if (canRead && activeTab === "old" && !hasLoadedOld) {
       loadOldCarts(1);
     }
-  }, [canRead, activeTab, hasLoadedOld, loadOldCarts]);
+  }, [canRead, loadActiveCarts, loadOldCarts]);
 
   // Permission Refusal
   if (!canRead) {
@@ -223,10 +221,15 @@ export default function CartsTab({
     );
   }
 
+  // Counts reflect total across all pages from meta when available
   const activeCount = activeMeta?.total ?? activeCarts.length;
   const oldCount = oldMeta?.total ?? oldCarts.length;
-  const activeLastPage = activeMeta?.last_page || 1;
-  const oldLastPage = oldMeta?.last_page || 1;
+
+  const currentActivePage = activeMeta?.current_page ?? activePage;
+  const activeLastPage = activeMeta?.last_page ?? 1;
+
+  const currentOldPage = oldMeta?.current_page ?? oldPage;
+  const oldLastPage = oldMeta?.last_page ?? 1;
 
   return (
     <div className="space-y-5" dir={isRtl ? "rtl" : "ltr"}>
@@ -283,6 +286,12 @@ export default function CartsTab({
           />
         ) : (
           <div className="space-y-3">
+            {activeError && (
+              <InlineAlert tone="error">
+                {activeError}
+              </InlineAlert>
+            )}
+
             {activeCarts.map((cart) => {
               const maskedName = cart.customer?.name
                 ? convertTextToXFormat(cart.customer.name)
@@ -350,12 +359,20 @@ export default function CartsTab({
             {/* Pagination */}
             {activeMeta && activeMeta.last_page > 1 && (
               <Pagination
-                current={activeMeta.current_page || activePage}
-                last={activeMeta.last_page}
+                current={currentActivePage}
+                last={activeLastPage}
                 disabled={activeLoading}
                 isRtl={isRtl}
-                onPrev={() => activePage > 1 && loadActiveCarts(Math.max(1, activePage - 1))}
-                onNext={() => activePage < activeLastPage && loadActiveCarts(Math.min(activeLastPage, activePage + 1))}
+                onPrev={() => {
+                  if (currentActivePage > 1 && !activeLoading) {
+                    loadActiveCarts(currentActivePage - 1);
+                  }
+                }}
+                onNext={() => {
+                  if (currentActivePage < activeLastPage && !activeLoading) {
+                    loadActiveCarts(currentActivePage + 1);
+                  }
+                }}
               />
             )}
           </div>
@@ -378,6 +395,12 @@ export default function CartsTab({
         />
       ) : (
         <div className="space-y-3">
+          {oldError && (
+            <InlineAlert tone="error">
+              {oldError}
+            </InlineAlert>
+          )}
+
           {oldCarts.map((oc) => {
             const maskedName = oc.customer?.name
               ? convertTextToXFormat(oc.customer.name)
@@ -440,12 +463,20 @@ export default function CartsTab({
           {/* Pagination */}
           {oldMeta && oldMeta.last_page > 1 && (
             <Pagination
-              current={oldMeta.current_page || oldPage}
-              last={oldMeta.last_page}
+              current={currentOldPage}
+              last={oldLastPage}
               disabled={oldLoading}
               isRtl={isRtl}
-              onPrev={() => oldPage > 1 && loadOldCarts(Math.max(1, oldPage - 1))}
-              onNext={() => oldPage < oldLastPage && loadOldCarts(Math.min(oldLastPage, oldPage + 1))}
+              onPrev={() => {
+                if (currentOldPage > 1 && !oldLoading) {
+                  loadOldCarts(currentOldPage - 1);
+                }
+              }}
+              onNext={() => {
+                if (currentOldPage < oldLastPage && !oldLoading) {
+                  loadOldCarts(currentOldPage + 1);
+                }
+              }}
             />
           )}
         </div>

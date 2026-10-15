@@ -7,6 +7,7 @@ import {
   DashIcon,
   EmptyState,
   ErrorState,
+  InlineAlert,
   Pagination,
 } from "components/SellerDashboard/ui";
 import { ListRowsSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
@@ -78,7 +79,8 @@ export default function OldCartDetails({
     : translateFunction("Customer", language);
 
   const meta = oldCartDetails?.meta;
-  const lastPage = meta?.last_page || 1;
+  const currentDetailsPage = meta?.current_page ?? page;
+  const detailsLastPage = meta?.last_page ?? 1;
 
   return (
     <div className="space-y-4">
@@ -128,6 +130,12 @@ export default function OldCartDetails({
           </div>
 
           {/* Expired Cart Items List */}
+          {error && oldCartDetails.items.length > 0 && (
+            <InlineAlert tone="error">
+              {error}
+            </InlineAlert>
+          )}
+
           <div className="space-y-3">
             {(oldCartDetails.items || []).map((item) => (
               <CartLineItem
@@ -153,12 +161,20 @@ export default function OldCartDetails({
           {/* Pagination */}
           {meta && meta.last_page > 1 && (
             <Pagination
-              current={meta.current_page || page}
-              last={meta.last_page}
+              current={currentDetailsPage}
+              last={detailsLastPage}
               disabled={loading}
               isRtl={isRtl}
-              onPrev={() => page > 1 && loadOldCartDetails(customerId, Math.max(1, page - 1))}
-              onNext={() => page < lastPage && loadOldCartDetails(customerId, Math.min(lastPage, page + 1))}
+              onPrev={() => {
+                if (currentDetailsPage > 1 && !loading) {
+                  loadOldCartDetails(customerId, currentDetailsPage - 1);
+                }
+              }}
+              onNext={() => {
+                if (currentDetailsPage < detailsLastPage && !loading) {
+                  loadOldCartDetails(customerId, currentDetailsPage + 1);
+                }
+              }}
             />
           )}
         </div>

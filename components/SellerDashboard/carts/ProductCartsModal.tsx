@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction, getConfiguredImage, LogError } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
@@ -8,6 +9,7 @@ import {
   DashIcon,
   EmptyState,
   ErrorState,
+  InlineAlert,
   Segmented,
   Pagination,
 } from "components/SellerDashboard/ui";
@@ -40,7 +42,12 @@ export default function ProductCartsModal({
   onClose,
 }: ProductCartsModalProps) {
   const isRtl = language === "ar" || language === "ku";
+  const [mounted, setMounted] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState<"active" | "old">("active");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Active carts holding this product
   const [activeItems, setActiveItems] = useState<CartLine[]>([]);
@@ -49,13 +56,12 @@ export default function ProductCartsModal({
   const [activeLoading, setActiveLoading] = useState(true);
   const [activeError, setActiveError] = useState<string | null>(null);
 
-  // Old carts holding this product (lazy loaded)
+  // Old carts holding this product — always fetched on mount to display accurate totals
   const [oldCarts, setOldCarts] = useState<OldCartSummary[]>([]);
   const [oldMeta, setOldMeta] = useState<PaginationMeta | null>(null);
   const [oldPage, setOldPage] = useState(1);
-  const [oldLoading, setOldLoading] = useState(false);
+  const [oldLoading, setOldLoading] = useState(true);
   const [oldError, setOldError] = useState<string | null>(null);
-  const [hasLoadedOld, setHasLoadedOld] = useState(false);
 
   // Keyboard Escape listener
   useEffect(() => {
@@ -117,7 +123,6 @@ export default function ProductCartsModal({
         setOldCarts(Array.isArray(data?.old_carts) ? data.old_carts : []);
         setOldMeta(data?.meta || null);
         setOldPage(page);
-        setHasLoadedOld(true);
       } catch (err: any) {
         const msg = err?.message || String(err);
         LogError({ scenario: "ProductCartsModal.loadOld", error: msg });
@@ -129,26 +134,28 @@ export default function ProductCartsModal({
     [sellerId, productId],
   );
 
-  // Initial load: active carts
+  // Initial load: fetch BOTH active and old carts so totals are accurate immediately
   useEffect(() => {
     loadActive(1);
-  }, [loadActive]);
-
-  // Lazy load old carts when switched to old sub-tab
-  useEffect(() => {
-    if (activeSubTab === "old" && !hasLoadedOld) {
-      loadOld(1);
-    }
-  }, [activeSubTab, hasLoadedOld, loadOld]);
+    loadOld(1);
+  }, [loadActive, loadOld]);
 
   const activeCount = activeMeta?.total ?? activeItems.length;
   const oldCount = oldMeta?.total ?? oldCarts.length;
-  const activeLastPage = activeMeta?.last_page || 1;
-  const oldLastPage = oldMeta?.last_page || 1;
 
-  return (
+  const currentActivePage = activeMeta?.current_page ?? activePage;
+  const activeLastPage = activeMeta?.last_page ?? 1;
+
+  const currentOldPage = oldMeta?.current_page ?? oldPage;
+  const oldLastPage = oldMeta?.last_page ?? 1;
+
+  if (!mounted || typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs transition-opacity"
+      className="fixed inset-0 z-[999999999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs transition-opacity"
       dir={isRtl ? "rtl" : "ltr"}
       role="dialog"
       aria-modal="true"
@@ -216,7 +223,7 @@ export default function ProductCartsModal({
           {activeSubTab === "active" ? (
             activeLoading && activeItems.length === 0 ? (
               <ListRowsSkeleton />
-            ) : activeError ? (
+            ) : activeError && activeItems.length === 0 ? (
               <ErrorState
                 message={activeError}
                 onRetry={() => loadActive(activePage)}
@@ -232,6 +239,12 @@ export default function ProductCartsModal({
               />
             ) : (
               <div className="space-y-3">
+                {activeError && (
+                  <InlineAlert tone="error">
+                    {activeError}
+                  </InlineAlert>
+                )}
+
                 {activeItems.map((line) => (
                   <CartLineItem
                     key={line.id}
@@ -243,19 +256,27 @@ export default function ProductCartsModal({
                 ))}
                 {activeMeta && activeMeta.last_page > 1 && (
                   <Pagination
-                    current={activeMeta.current_page || activePage}
-                    last={activeMeta.last_page}
+                    current={currentActivePage}
+                    last={activeLastPage}
                     disabled={activeLoading}
                     isRtl={isRtl}
-                    onPrev={() => activePage > 1 && loadActive(Math.max(1, activePage - 1))}
-                    onNext={() => activePage < activeLastPage && loadActive(Math.min(activeLastPage, activePage + 1))}
+                    onPrev={() => {
+                      if (currentActivePage > 1 && !activeLoading) {
+                        loadActive(currentActivePage - 1);
+                      }
+                    }}
+                    onNext={() => {
+                      if (currentActivePage < activeLastPage && !activeLoading) {
+                        loadActive(currentActivePage + 1);
+                      }
+                    }}
                   />
                 )}
               </div>
             )
           ) : oldLoading && oldCarts.length === 0 ? (
             <ListRowsSkeleton />
-          ) : oldError ? (
+          ) : oldError && oldCarts.length === 0 ? (
             <ErrorState
               message={oldError}
               onRetry={() => loadOld(oldPage)}
@@ -271,6 +292,12 @@ export default function ProductCartsModal({
             />
           ) : (
             <div className="space-y-3">
+              {oldError && (
+                <InlineAlert tone="error">
+                  {oldError}
+                </InlineAlert>
+              )}
+
               {oldCarts.map((oc) => {
                 const maskedName = oc.customer?.name
                   ? convertTextToXFormat(oc.customer.name)
@@ -307,12 +334,20 @@ export default function ProductCartsModal({
               })}
               {oldMeta && oldMeta.last_page > 1 && (
                 <Pagination
-                  current={oldMeta.current_page || oldPage}
-                  last={oldMeta.last_page}
+                  current={currentOldPage}
+                  last={oldLastPage}
                   disabled={oldLoading}
                   isRtl={isRtl}
-                  onPrev={() => oldPage > 1 && loadOld(Math.max(1, oldPage - 1))}
-                  onNext={() => oldPage < oldLastPage && loadOld(Math.min(oldLastPage, oldPage + 1))}
+                  onPrev={() => {
+                    if (currentOldPage > 1 && !oldLoading) {
+                      loadOld(currentOldPage - 1);
+                    }
+                  }}
+                  onNext={() => {
+                    if (currentOldPage < oldLastPage && !oldLoading) {
+                      loadOld(currentOldPage + 1);
+                    }
+                  }}
                 />
               )}
             </div>
@@ -330,6 +365,7 @@ export default function ProductCartsModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
