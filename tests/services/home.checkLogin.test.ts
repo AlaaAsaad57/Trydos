@@ -208,3 +208,119 @@ describe("CheckLogin — signing the stored visitor back in", () => {
     expect(useAppStore.getState().isRegisteringReady, "the registration lock was left on").toBe(true);
   });
 });
+
+// A verified shopper who stays away for 48 hours comes back with no market
+// token: the browser drops `MARKET-TOKEN` after `TOKEN_COOKIE_MAX_AGE` (48 h),
+// but `User-Data` (1 year) still says "verified". `CheckLogin` used to register
+// a guest at once for any visitor with no token, so the shopper became an
+// anonymous guest and the "session expired" prompt never appeared. That prompt
+// is armed only by `/api/auth/expire` (`ExpiredUser`), which the boot never
+// called.
+describe("CheckLogin — a verified shopper whose market cookie expired", () => {
+  /** Every call the run sent to `/api/auth/expire`. */
+  let expireCalls = 0;
+
+  /** Stand in for `/api/auth/expire` (with `answer` as its body) and for
+   *  `/api/auth/register-device`, so a case can say which of the two ran. */
+  const stubExpire = (answer: Record<string, unknown>) => {
+    stubRegisterDevice();
+    expireCalls = 0;
+    const registerDevice = global.fetch as any;
+    global.fetch = vi.fn(async (url: any, init?: any) => {
+      if (String(url).includes("/api/auth/expire")) {
+        expireCalls++;
+        return { ok: true, json: async () => answer } as any;
+      }
+      return registerDevice(url, init);
+    }) as any;
+  };
+
+  const verifiedShopperWithNoToken = () =>
+    vi.mocked(fetchAuthMe).mockResolvedValue({
+      user: { id: 18081, name: "Shopper", is_phone_verified: 1, phone: "100" },
+      chatUser: { id: 1 },
+      storiesUser: { id: 2 },
+      walletUser: { id: 3 },
+      hasMarketToken: false,
+    } as any);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useAppStore.setState({
+      isRegisteringReady: true,
+      LoggingOut: false,
+      shouldAuthinticated: false,
+      reAuthResult: null,
+      userProfile: null,
+      user: null,
+      userChat: null,
+      userStories: null,
+      userWallet: null,
+    } as any);
+    window.history.pushState({}, "", "/sy-en/");
+  });
+
+  it("shows the session-expired prompt when the refresh cookie is dead too", async () => {
+    stubExpire({ expired: true, wasVerified: true });
+    verifiedShopperWithNoToken();
+
+    await homeService.CheckLogin();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const state: any = useAppStore.getState();
+    expect(
+      expireCalls,
+      "the boot never asked /api/auth/expire about the dead session, so nothing could arm the prompt",
+    ).toBeGreaterThan(0);
+    expect(
+      state.shouldAuthinticated,
+      `the session-expired prompt was not armed (shouldAuthinticated = ${JSON.stringify(state.shouldAuthinticated)})`,
+    ).toBe("expired");
+    expect(
+      registrations,
+      `the boot registered its own guest (ids ${registrations.join(", ")}) on top of the one /api/auth/expire makes`,
+    ).toEqual([]);
+    expect(
+      state.userProfile?.is_phone_verified,
+      "the store still shows the expired shopper as verified behind the prompt",
+    ).not.toBe(1);
+  });
+
+  it("keeps the shopper signed in when the refresh cookie still renews the session", async () => {
+    stubExpire({ renewed: true, expired: false });
+    verifiedShopperWithNoToken();
+
+    await homeService.CheckLogin();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const state: any = useAppStore.getState();
+    expect(
+      registrations,
+      `a shopper whose session renewed was replaced by a guest (ids ${registrations.join(", ")})`,
+    ).toEqual([]);
+    expect(
+      state.shouldAuthinticated,
+      "the session-expired prompt was shown for a session that renewed",
+    ).toBeFalsy();
+    expect(state.userProfile?.is_phone_verified, "the renewed shopper was not signed in as verified").toBe(1);
+    expect(state.userChat?.id, "the renewed shopper's chat account was not signed in").toBe(1);
+  });
+
+  it("still registers a guest silently for an unverified visitor with no token", async () => {
+    stubExpire({ expired: true, wasVerified: false });
+    vi.mocked(fetchAuthMe).mockResolvedValue({
+      user: { id: 77, name: "Guest", is_phone_verified: 0 },
+      chatUser: null,
+      storiesUser: null,
+      walletUser: null,
+      hasMarketToken: false,
+    } as any);
+
+    await homeService.CheckLogin();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(expireCalls, "an unverified visitor was sent down the session-expired path").toBe(0);
+    expect(registrations, "an unverified visitor with no token got no guest").toEqual([1001]);
+    expect(useAppStore.getState().shouldAuthinticated, "an unverified visitor was shown a prompt").toBeFalsy();
+  });
+});
