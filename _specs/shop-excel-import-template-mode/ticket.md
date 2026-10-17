@@ -12,7 +12,7 @@ created_at: 2026-10-17
 updated_at: 2026-10-17
 links:
   clickup: ""
-  github: ""
+  github: "https://github.com/AlaaAsaad57/Trydos/pull/140"
 ---
 
 # Ticket Record — shop-excel-import-template-mode
