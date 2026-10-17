@@ -36,6 +36,7 @@ import {
   screen,
   userEvent,
   waitFor,
+  within,
 } from "../../render";
 
 const SELLER_ID = "77";
@@ -78,17 +79,35 @@ const tree = [
 const withTree = (list: Record<string, unknown>[] = tree) =>
   getExcelCategories.mockResolvedValue({ success: true, data: list });
 
-/** The category select (the search box is a searchbox, not a combobox). */
-const categorySelect = () => screen.getAllByRole("combobox")[0] as HTMLSelectElement;
+/** The category picker: a closed field (role combobox) that opens a list with
+ *  a search box on top. */
+const picker = () => screen.getByRole("combobox", { name: /category/i });
 
-/** The labels of the categories offered, without the empty "Select a category" row. */
-const offered = () =>
-  Array.from(categorySelect().options)
-    .filter((o) => o.value)
+/** Wait until the categories have loaded and the picker is drawn. */
+const categoriesLoaded = () => screen.findByRole("combobox", { name: /category/i });
+
+/** Open the picker (when it is closed) and return its list. */
+async function openPicker() {
+  const field = await categoriesLoaded();
+  if (field.getAttribute("aria-expanded") !== "true") await userEvent.click(field);
+  return screen.getByRole("listbox");
+}
+
+/** The id of the picked category, "" when none is picked. */
+const pickedId = () => picker().getAttribute("data-value") ?? "";
+
+/** The labels of the categories offered in the open picker. */
+const offered = async () =>
+  within(await openPicker())
+    .queryAllByRole("option")
     .map((o) => o.textContent?.trim());
 
 const pick = async (id: string | number) => {
-  await userEvent.selectOptions(categorySelect(), String(id));
+  const option = within(await openPicker())
+    .getAllByRole("option")
+    .find((o) => o.getAttribute("data-value") === String(id));
+  if (!option) throw new Error(`category ${id} is not offered in the picker`);
+  await userEvent.click(option);
 };
 
 const addNew = () => screen.getByRole("radio", { name: /^add new products$/i });
@@ -127,9 +146,10 @@ beforeEach(() => {
 describe("Excel section — picking a category", () => {
   it("lists the categories the shop backend offers", async () => {
     await mount();
+    await openPicker();
     expect(
       await screen.findByRole("option", { name: "Shoes" }),
-      "the categories from the shop backend should fill the select",
+      "the categories from the shop backend should fill the picker",
     ).toBeInTheDocument();
   });
 
@@ -139,6 +159,7 @@ describe("Excel section — picking a category", () => {
       data: { categories: [{ id: 9 }] },
     });
     await mount();
+    await openPicker();
     expect(
       await screen.findByRole("option", { name: "#9" }),
       "a nameless category should still be pickable, shown by its id",
@@ -162,6 +183,7 @@ describe("Excel section — picking a category", () => {
       data: { categories: [{ id: 3, display_name: "Shoes" }] },
     });
     await userEvent.click(screen.getAllByRole("button", { name: "Retry" })[0]);
+    await openPicker();
 
     expect(
       await screen.findByRole("option", { name: "Shoes" }),
@@ -182,7 +204,7 @@ describe("Excel section — the template", () => {
   it('the button says "Download empty template" or "Download N products"', async () => {
     withTree();
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     await pick(78);
     expect(
       downloadButton().textContent,
@@ -207,8 +229,7 @@ describe("Excel section — the template", () => {
     });
 
     await mount();
-    await screen.findByRole("option", { name: "Shoes" });
-    await userEvent.selectOptions(screen.getAllByRole("combobox")[0], "3");
+    await pick(3);
     await userEvent.click(
       screen.getByRole("button", { name: /Download Empty Template/i }),
     );
@@ -226,8 +247,7 @@ describe("Excel section — the template", () => {
       new Error("The template service is down."),
     );
     await mount();
-    await screen.findByRole("option", { name: "Shoes" });
-    await userEvent.selectOptions(screen.getAllByRole("combobox")[0], "3");
+    await pick(3);
     await userEvent.click(
       screen.getByRole("button", { name: /Download Empty Template/i }),
     );
@@ -242,7 +262,7 @@ describe("Excel section — the template", () => {
 describe("Excel section — choosing the file", () => {
   it("accepts a .xlsx sheet and shows its name", async () => {
     await mount();
-    await screen.findByRole("option", { name: "Shoes" });
+    await categoriesLoaded();
 
     await userEvent.upload(fileInput(), sheet("products.xlsx"));
 
@@ -258,7 +278,7 @@ describe("Excel section — choosing the file", () => {
   // is the whole reason the component checks the extension itself.
   it("refuses a dropped file that is not a spreadsheet", async () => {
     await mount();
-    await screen.findByRole("option", { name: "Shoes" });
+    await categoriesLoaded();
 
     const dropZone = screen
       .getByText(/Drag & Drop Excel File Here/)
@@ -289,7 +309,7 @@ describe("Excel section — choosing the file", () => {
 
   it("lets the seller drop the chosen file again", async () => {
     await mount();
-    await screen.findByRole("option", { name: "Shoes" });
+    await categoriesLoaded();
     await userEvent.upload(fileInput(), sheet("products.xlsx"));
     await screen.findByText("products.xlsx");
 
@@ -305,7 +325,7 @@ describe("Excel section — choosing the file", () => {
 describe("Excel section — uploading", () => {
   async function chooseFileAndUpload() {
     await mount();
-    await screen.findByRole("option", { name: "Shoes" });
+    await categoriesLoaded();
     await userEvent.upload(fileInput(), sheet("products.xlsx"));
     await screen.findByText("products.xlsx");
     await userEvent.click(screen.getByRole("button", { name: /Upload Excel/ }));
@@ -510,7 +530,7 @@ describe("Excel section — the uploaded files table", () => {
 describe("Excel section — dragging a file over the drop zone", () => {
   it("highlights the zone while a file is over it, and not after it leaves", async () => {
     await mount();
-    await screen.findByRole("option", { name: "Shoes" });
+    await categoriesLoaded();
     const dropZone = screen
       .getByText(/Drag & Drop Excel File Here/)
       .closest("[class*='border-dashed']") as HTMLElement;
@@ -537,7 +557,7 @@ describe("Excel section — dragging a file over the drop zone", () => {
 
   it("does nothing when the picker is closed without a file", async () => {
     await mount();
-    await screen.findByRole("option", { name: "Shoes" });
+    await categoriesLoaded();
     fireEvent.change(fileInput(), { target: { files: [] } });
     expect(
       screen.getByRole("button", { name: /Upload Excel/ }),
@@ -663,9 +683,9 @@ describe("Excel section — counts, search and the products-only box", () => {
   it('shows "(N Products)" after a category the seller has products in, and nothing for an empty one', async () => {
     withTree();
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     expect(
-      offered(),
+      await offered(),
       "each category should read as its full path, with the count only when the seller has products there",
     ).toEqual([
       "Clothes (37 Products)",
@@ -678,32 +698,44 @@ describe("Excel section — counts, search and the products-only box", () => {
   it("indents sub categories one step and sub-sub categories two steps", async () => {
     withTree();
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
-    const label = (id: number) =>
-      Array.from(categorySelect().options).find((o) => o.value === String(id))?.textContent ?? "";
-    const indent = (text: string) => text.length - text.replace(/^ +/, "").length;
-    expect(indent(label(12)), "a top category should not be indented").toBe(0);
-    expect(indent(label(45)), "a sub category should be indented more than its parent").toBeGreaterThan(0);
+    const list = await openPicker();
+    const indent = (id: number) => {
+      const option = within(list)
+        .getAllByRole("option")
+        .find((o) => o.getAttribute("data-value") === String(id));
+      return parseFloat(option?.style.paddingInlineStart ?? "0");
+    };
+    expect(indent(45), "a sub category should be indented more than its parent").toBeGreaterThan(indent(12));
     expect(
-      indent(label(78)),
+      indent(78),
       "a sub-sub category should be indented more than a sub category",
-    ).toBeGreaterThan(indent(label(45)));
+    ).toBeGreaterThan(indent(45));
   });
 
   it("the search box keeps only categories whose path matches, in any letter case", async () => {
     withTree();
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    // The products-only box appears once the categories have loaded.
+    await screen.findByRole("checkbox", { name: /show only categories that have my products/i });
+    expect(
+      screen.queryByRole("searchbox"),
+      "the search box belongs inside the category picker, not as a separate field above it",
+    ).toBeNull();
+    const list = await openPicker();
     const search = screen.getByRole("searchbox", { name: /search categories/i });
+    expect(
+      list.parentElement?.contains(search),
+      "the search box should sit in the opened picker, together with the category list",
+    ).toBe(true);
 
     await userEvent.type(search, "MEN");
     expect(
-      offered(),
+      await offered(),
       'typing "MEN" should keep only the categories whose path contains "men"',
     ).toEqual(["Clothes -> Men (12 Products)", "Clothes -> Men -> Shirts (5 Products)"]);
 
     await userEvent.clear(search);
-    expect(offered()?.length, "clearing the search should bring every category back").toBe(tree.length);
+    expect((await offered()).length, "clearing the search should bring every category back").toBe(tree.length);
 
     await userEvent.type(search, "zzz");
     expect(
@@ -712,10 +744,30 @@ describe("Excel section — counts, search and the products-only box", () => {
     ).toBeInTheDocument();
   });
 
+  it("the picker works by keyboard: open, search, move and pick", async () => {
+    withTree();
+    await mount();
+    const field = await categoriesLoaded();
+    field.focus();
+    await userEvent.keyboard("{ArrowDown}");
+    const search = screen.getByRole("searchbox", { name: /search categories/i });
+    expect(search, "opening the picker should put the cursor in its search box").toHaveFocus();
+    await userEvent.type(search, "men");
+    await userEvent.keyboard("{ArrowDown}{Enter}");
+    expect(pickedId(), 'Down then Enter should pick the second match, "Clothes -> Men -> Shirts"').toBe("78");
+    expect(screen.queryByRole("listbox"), "picking should close the picker").toBeNull();
+    expect(field, "after a pick the focus should go back to the picker").toHaveFocus();
+
+    await userEvent.keyboard("{Enter}");
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("listbox"), "Escape should close the picker").toBeNull();
+    expect(pickedId(), "Escape must not change the pick").toBe("78");
+  });
+
   it('"only categories that have my products" hides the empty ones and says how many are left', async () => {
     withTree();
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     expect(
       onlyMine().closest("label")?.textContent,
       "the number of categories with products should show next to the box",
@@ -723,29 +775,29 @@ describe("Excel section — counts, search and the products-only box", () => {
 
     await userEvent.click(onlyMine());
     expect(
-      offered(),
+      await offered(),
       "ticking the box should leave out Shoes, which has no products",
     ).not.toContain("Shoes");
-    expect(offered()?.length, "the three categories with products should stay").toBe(3);
+    expect((await offered()).length, "the three categories with products should stay").toBe(3);
 
     await userEvent.click(onlyMine());
-    expect(offered(), "unticking the box should bring Shoes back").toContain("Shoes");
+    expect(await offered(), "unticking the box should bring Shoes back").toContain("Shoes");
   });
 
   it("the products-only box cannot be ticked when the seller has no products anywhere", async () => {
     withTree(tree.map((c) => ({ ...c, products_count: 0 })));
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     expect(onlyMine(), "with no products anywhere there is nothing to filter to").toBeDisabled();
   });
 
   it("ticking the products-only box clears a picked category that has no products", async () => {
     withTree();
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     await pick(13);
     await userEvent.click(onlyMine());
-    expect(categorySelect().value, "the hidden category must not stay picked").toBe("");
+    expect(pickedId(), "the hidden category must not stay picked").toBe("");
     expect(downloadButton(), "with no category the download must be off again").toBeDisabled();
   });
 });
@@ -754,7 +806,7 @@ describe("Excel section — what to download", () => {
   it('offers "Add new products" and "Update my products", with "Add new products" chosen first', async () => {
     withTree();
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     expect(addNew(), '"Add new products" should be chosen when nothing is remembered').toBeChecked();
     expect(updateMine(), '"Update my products" should be offered, not chosen').not.toBeChecked();
     expect(
@@ -772,7 +824,7 @@ describe("Excel section — what to download", () => {
     downloadExcelTemplate.mockResolvedValue({ blob: new Blob(["x"]), filename: "a.xlsx" });
     const downloads = captureDownloads();
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     await pick(78);
     await userEvent.click(downloadButton());
     expect(
@@ -787,7 +839,7 @@ describe("Excel section — what to download", () => {
     downloadExcelTemplate.mockResolvedValue({ blob: new Blob(["x"]), filename: "a.xlsx" });
     const downloads = captureDownloads();
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     await pick(78);
     await userEvent.click(updateMine());
     await userEvent.click(downloadButton());
@@ -801,7 +853,7 @@ describe("Excel section — what to download", () => {
   it('"Update my products" is off with no category, and off with a hint for a category with no products', async () => {
     withTree();
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     expect(updateMine(), "with no category there are no products to update").toBeDisabled();
     expect(
       screen.queryByText(/you have no products in this category yet/i),
@@ -819,7 +871,7 @@ describe("Excel section — what to download", () => {
   it('picking a category with no products moves the choice back to "Add new products"', async () => {
     withTree();
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     await pick(78);
     await userEvent.click(updateMine());
     expect(updateMine(), "the seller chose to update Shirts").toBeChecked();
@@ -837,7 +889,7 @@ describe("Excel section — what to download", () => {
     );
     const downloads = captureDownloads();
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     await pick(78);
     await userEvent.click(downloadButton());
     await waitFor(() => {
@@ -854,24 +906,24 @@ describe("Excel section — remembering the last choice", () => {
   it("remembers category, box and choice for this seller, and not for another seller", async () => {
     withTree();
     const first = await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     await pick(78);
     await userEvent.click(onlyMine());
     await userEvent.click(updateMine());
     first.unmount();
 
     const second = await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     await waitFor(() => {
-      expect(categorySelect().value, "the next visit should pick Shirts again").toBe("78");
+      expect(pickedId(), "the next visit should pick Shirts again").toBe("78");
     });
     expect(onlyMine(), "the next visit should tick the products-only box again").toBeChecked();
     expect(updateMine(), 'the next visit should choose "Update my products" again').toBeChecked();
     second.unmount();
 
     await mount("88");
-    await screen.findByRole("option", { name: /Shirts/ });
-    expect(categorySelect().value, "another seller must not get this seller's category").toBe("");
+    await categoriesLoaded();
+    expect(pickedId(), "another seller must not get this seller's category").toBe("");
   });
 
   it("restores a choice that was stored before the tab opened", async () => {
@@ -881,9 +933,9 @@ describe("Excel section — remembering the last choice", () => {
     );
     withTree();
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     await waitFor(() => {
-      expect(categorySelect().value, "the stored category should be picked on open").toBe("45");
+      expect(pickedId(), "the stored category should be picked on open").toBe("45");
     });
     expect(updateMine(), "the stored choice should survive the first render").toBeChecked();
     expect(
@@ -899,8 +951,8 @@ describe("Excel section — remembering the last choice", () => {
       JSON.stringify({ categoryId: "999", onlyWithProducts: false, mode: "products" }),
     );
     const gone = await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
-    expect(categorySelect().value, "a category that is no longer offered must not be picked").toBe("");
+    await categoriesLoaded();
+    expect(pickedId(), "a category that is no longer offered must not be picked").toBe("");
     expect(addNew(), 'with no category the choice must be "Add new products"').toBeChecked();
     gone.unmount();
 
@@ -909,9 +961,9 @@ describe("Excel section — remembering the last choice", () => {
       JSON.stringify({ categoryId: "13", onlyWithProducts: false, mode: "products" }),
     );
     const empty = await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     await waitFor(() => {
-      expect(categorySelect().value, "Shoes still exists, so it should be picked").toBe("13");
+      expect(pickedId(), "Shoes still exists, so it should be picked").toBe("13");
     });
     expect(addNew(), 'Shoes has no products now, so the choice must be "Add new products"').toBeChecked();
     empty.unmount();
@@ -921,9 +973,9 @@ describe("Excel section — remembering the last choice", () => {
       JSON.stringify({ categoryId: "78", onlyWithProducts: false, mode: "anything&else=1" }),
     );
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     await waitFor(() => {
-      expect(categorySelect().value, "Shirts should be picked").toBe("78");
+      expect(pickedId(), "Shirts should be picked").toBe("78");
     });
     expect(addNew(), 'an unknown stored mode must fall back to "Add new products"').toBeChecked();
   });
@@ -938,7 +990,7 @@ describe("Excel section — remembering the last choice", () => {
     withTree();
     await mount();
     expect(
-      await screen.findByRole("option", { name: /Shirts/ }),
+      await categoriesLoaded(),
       "the categories should still load when storage throws",
     ).toBeInTheDocument();
     await pick(78);
@@ -1061,7 +1113,7 @@ describe("Excel section — the category question on upload", () => {
     withTree();
     uploadExcelFile.mockResolvedValue({ key: "excel/products.xlsx" });
     await mount();
-    await screen.findByRole("option", { name: /Shirts/ });
+    await categoriesLoaded();
     if (categoryId) await pick(categoryId);
     await userEvent.upload(fileInput(), sheet("products.xlsx"));
     await screen.findByText("products.xlsx");

@@ -38,17 +38,25 @@ export const openExcelSection = async (
   ).toBeVisible({ timeout: 45_000 });
 };
 
-/** The categories offered, as their ids. The empty "Select a category" row is
- *  left out. */
-export const excelCategoryIds = async (page: Page): Promise<string[]> =>
-  (
+/** Open the category picker, unless it is open already. */
+const openCategoryPicker = async (page: Page): Promise<void> => {
+  if ((await sellerExcel.category(page).getAttribute("aria-expanded")) !== "true") {
+    await sellerExcel.category(page).click();
+  }
+};
+
+/** The categories offered, as their ids. Opens the picker to read them, and
+ *  closes it again. */
+export const excelCategoryIds = async (page: Page): Promise<string[]> => {
+  await openCategoryPicker(page);
+  const ids = (
     await sellerExcel
-      .category(page)
-      .locator("option")
-      .evaluateAll((options) =>
-        options.map((option) => (option as HTMLOptionElement).value),
-      )
+      .categoryOptions(page)
+      .evaluateAll((options) => options.map((option) => option.getAttribute("data-value") ?? ""))
   ).filter(Boolean);
+  await page.keyboard.press("Escape");
+  return ids;
+};
 
 /** Is the download button pressable right now? */
 export const downloadOffered = async (page: Page): Promise<boolean> =>
@@ -77,7 +85,15 @@ export const downloadTemplate = async (
   page: Page,
   options: { categoryId: string },
 ): Promise<TemplateDownload> => {
-  await sellerExcel.category(page).selectOption(options.categoryId);
+  await openCategoryPicker(page);
+  await sellerExcel
+    .categoryOptions(page)
+    .and(page.locator(`[data-value="${options.categoryId}"]`))
+    .click();
+  await expect(
+    sellerExcel.category(page),
+    `category ${options.categoryId} was clicked in the picker, but the picker did not take it`,
+  ).toHaveAttribute("data-value", options.categoryId);
   await sellerExcel.modeTemplate(page).check();
   await expect(
     sellerExcel.download(page),

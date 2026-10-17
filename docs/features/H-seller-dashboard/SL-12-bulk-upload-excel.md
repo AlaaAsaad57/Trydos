@@ -31,8 +31,9 @@ turns it into products. A table shows past uploads, and offers the rows that fai
 - **Pick a category.**
   - Each category shows its full path (`Clothes -> Men -> Shirts`), indented by level.
   - When the seller has products in it, the label adds **"(N Products)"**.
-  - A **search box** filters the list by path; letter case does not matter. Typing never drops the
-    category already picked.
+  - The category field is a **searchable dropdown**: opening it shows a search box on top and the
+    list under it. The search filters by path; letter case does not matter. It works by keyboard
+    (arrows, Enter, Escape).
   - A **"Show only categories that have my products"** box hides the empty ones and shows how many
     are left. It is off when the seller has no products at all. If it hides the picked category, the
     pick is cleared.

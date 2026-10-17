@@ -1326,8 +1326,11 @@ export const sellerProducts = {
 /** The dashboard's Excel section — bulk upload by template
  *  (`components/SellerDashboard/ExcelUploadTab.tsx`). */
 export const sellerExcel = {
-  /** The category list. Its first option is the empty "Select a category". */
+  /** The category picker: a closed field that opens a list with a search box
+   *  on top. Its `data-value` is the picked category id ("" when none). */
   category: (page: Page): Locator => page.getByTestId("seller-excel-category"),
+  /** The categories in the opened picker. Each carries its id in `data-value`. */
+  categoryOptions: (page: Page): Locator => page.getByTestId("seller-excel-category-option"),
   /** The download button ("Download empty template" / "Download N products").
    *  Disabled until a category is chosen. */
   download: (page: Page): Locator => page.getByTestId("seller-excel-download"),

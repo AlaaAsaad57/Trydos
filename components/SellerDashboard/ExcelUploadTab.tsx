@@ -72,10 +72,6 @@ const buildDownloadUrl = (file: ExcelFile) => {
   )}`;
 };
 
-// One indent step per category level. An <option> cannot take padding in every
-// browser, so the indent is a run of non-breaking spaces in its text.
-const LEVEL_INDENT = "    ";
-
 const productsCount = (cat: ExcelCategory) => Number(cat.products_count) || 0;
 
 // The proxy does not forward the backend's file name, so the tab builds one.
@@ -125,7 +121,6 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
   const [categoriesLoading, setCategoriesLoading] = useState<boolean>(false);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [search, setSearch] = useState<string>("");
   const [onlyWithProducts, setOnlyWithProducts] = useState<boolean>(false);
   const [mode, setMode] = useState<ExcelMode>("template");
   // Which seller's remembered choice has been read. Nothing is written for a
@@ -167,22 +162,17 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
   const updateDisabled = !selected || selectedCount === 0;
   const effectiveMode: ExcelMode = updateDisabled ? "template" : mode;
 
-  const query = search.trim().toLowerCase();
-  const visibleCategories = categories.filter((cat) => {
-    if (onlyWithProducts && productsCount(cat) === 0) return false;
-    // Typing a search never drops the category already picked.
-    if (String(cat.id) === selectedCategory) return true;
-    return !query || getCategoryName(cat).toLowerCase().includes(query);
-  });
+  const visibleCategories = categories.filter(
+    (cat) => !onlyWithProducts || productsCount(cat) > 0,
+  );
 
   const categoryLabel = (cat: ExcelCategory) => {
     const count = productsCount(cat);
-    const indent = LEVEL_INDENT.repeat(Math.max(0, Math.min(2, Number(cat.level) || 0)));
     const suffix =
       count > 0
         ? ` (${translateFunction("{count} Products", language).replace("{count}", String(count))})`
         : "";
-    return `${indent}${getCategoryName(cat)}${suffix}`;
+    return `${getCategoryName(cat)}${suffix}`;
   };
 
   // Apply the remembered choice to a freshly loaded category list. Category,
@@ -545,7 +535,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
 
       {/* Step 1 — Category select */}
       <div className="space-y-2">
-        <label className="block text-[13px] medium text-[#505050]">
+        <label id="excel-category-label" className="block text-[13px] medium text-[#505050]">
           {translateFunction("Category", language)}
         </label>
         {categoriesLoading ? (
@@ -583,36 +573,14 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
                 {withProductsCount}
               </span>
             </label>
-            <input
-              type="search"
-              data-pw="seller-excel-search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={translateFunction("Search categories", language)}
-              aria-label={translateFunction("Search categories", language)}
-              className="w-full px-4 h-[44px] border border-[#ededed] rounded-[12px] outline-none focus:border-[#388CFF] text-[14px] text-[#3c3c3c] bg-[#f8f8f8] focus:bg-white transition-colors"
-            />
-            <select
-              data-pw="seller-excel-category"
+            <CategoryPicker
+              categories={visibleCategories}
               value={selectedCategory}
-              onChange={(e) => handleCategoryChange(e.target.value)}
-              className="w-full px-4 h-[48px] border border-[#ededed] rounded-[12px] outline-none focus:border-[#388CFF] text-[14px] text-[#3c3c3c] bg-[#f8f8f8] focus:bg-white transition-colors"
-            >
-              <option value="">
-                {translateFunction("Select a category", language)}
-              </option>
-              {visibleCategories.map((cat) => (
-                <option key={cat.id} value={String(cat.id)}>
-                  {categoryLabel(cat)}
-                </option>
-              ))}
-            </select>
-            {categories.length > 0 &&
-              !visibleCategories.some((cat) => String(cat.id) !== selectedCategory) && (
-                <p className="text-[12px] text-[#8e8e8e]">
-                  {translateFunction("No categories match", language)}
-                </p>
-              )}
+              onChange={handleCategoryChange}
+              labelOf={categoryLabel}
+              searchTextOf={getCategoryName}
+              language={language}
+            />
           </>
         )}
       </div>
@@ -994,6 +962,189 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
               </DashButton>
             </div>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// The category picker: a closed field that opens a panel with a search box on
+// top and the categories under it, like the product editor's Select. It follows
+// the select-only combobox pattern, so it works by keyboard (arrows, Enter,
+// Escape) and with a screen reader.
+function CategoryPicker({
+  categories,
+  value,
+  onChange,
+  labelOf,
+  searchTextOf,
+  language,
+}: {
+  categories: ExcelCategory[];
+  value: string;
+  onChange: (value: string) => void;
+  labelOf: (cat: ExcelCategory) => string;
+  searchTextOf: (cat: ExcelCategory) => string;
+  language: string;
+}) {
+  const [open, setOpen] = useState<boolean>(false);
+  const [query, setQuery] = useState<string>("");
+  const [active, setActive] = useState<number>(0);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const searchRef = useRef<HTMLInputElement | null>(null);
+
+  const selectedCat = categories.find((cat) => String(cat.id) === value);
+  const q = query.trim().toLowerCase();
+  // The search matches the full path, in any letter case.
+  const shown = categories.filter(
+    (cat) => !q || searchTextOf(cat).toLowerCase().includes(q),
+  );
+
+  const openPanel = () => {
+    setActive(Math.max(0, categories.findIndex((cat) => String(cat.id) === value)));
+    setOpen(true);
+  };
+
+  const close = (refocus = false) => {
+    setOpen(false);
+    setQuery("");
+    if (refocus) triggerRef.current?.focus();
+  };
+
+  const choose = (cat: ExcelCategory) => {
+    onChange(String(cat.id));
+    close(true);
+  };
+
+  // While open: focus the search box, and close on a click outside the picker.
+  useEffect(() => {
+    if (!open) return;
+    searchRef.current?.focus();
+    const onMouseDown = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+        setQuery("");
+      }
+    };
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, [open]);
+
+  const onSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive((i) => Math.min(shown.length - 1, i + 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((i) => Math.max(0, i - 1));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (shown[active]) choose(shown[active]);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      close(true);
+    }
+  };
+
+  const optionId = (cat: ExcelCategory) => `excel-category-option-${cat.id}`;
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        ref={triggerRef}
+        type="button"
+        role="combobox"
+        data-pw="seller-excel-category"
+        data-value={value}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls="excel-category-list"
+        aria-labelledby="excel-category-label"
+        onClick={() => (open ? close() : openPanel())}
+        onKeyDown={(e) => {
+          if (!open && (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            openPanel();
+          }
+        }}
+        className="w-full px-4 h-[48px] flex items-center justify-between gap-2 border border-[#ededed] rounded-[12px] outline-none focus:border-[#388CFF] text-[14px] text-start bg-[#f8f8f8] focus:bg-white transition-colors"
+      >
+        <span className={`truncate ${selectedCat ? "text-[#3c3c3c]" : "text-[#8e8e8e]"}`}>
+          {selectedCat
+            ? labelOf(selectedCat)
+            : translateFunction("Select a category", language)}
+        </span>
+        <span
+          className={`shrink-0 text-[#8e8e8e] transition-transform duration-200 ${
+            open ? "rotate-180" : ""
+          }`}
+        >
+          <DashIcon name="chevronDown" size={14} />
+        </span>
+      </button>
+
+      {open && (
+        <div
+          className="absolute start-0 end-0 top-full z-50 mt-1.5 bg-white rounded-[12px] border border-[#ededed] p-2 space-y-1.5"
+          style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.14)" }}
+        >
+          <input
+            ref={searchRef}
+            type="search"
+            data-pw="seller-excel-search"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setActive(0);
+            }}
+            onKeyDown={onSearchKeyDown}
+            placeholder={translateFunction("Search categories", language)}
+            aria-label={translateFunction("Search categories", language)}
+            aria-controls="excel-category-list"
+            aria-activedescendant={shown[active] ? optionId(shown[active]) : undefined}
+            className="w-full h-[36px] px-3 bg-[#f8f8f8] border border-[#ededed] rounded-[8px] text-[13px] text-[#3c3c3c] outline-none focus:border-[#388CFF] focus:bg-white"
+          />
+          <ul
+            id="excel-category-list"
+            role="listbox"
+            aria-labelledby="excel-category-label"
+            className="max-h-60 overflow-y-auto space-y-0.5"
+          >
+            {shown.length === 0 ? (
+              <li role="presentation" className="px-3 py-2 text-[12px] text-[#b8b8b8] text-center">
+                {translateFunction("No categories match", language)}
+              </li>
+            ) : (
+              shown.map((cat, i) => {
+                const id = String(cat.id);
+                const level = Math.max(0, Math.min(2, Number(cat.level) || 0));
+                const isSelected = id === value;
+                return (
+                  <li
+                    key={id}
+                    id={optionId(cat)}
+                    role="option"
+                    aria-selected={isSelected}
+                    data-pw="seller-excel-category-option"
+                    data-value={id}
+                    data-level={level}
+                    // Keep the focus in the search box while the mouse picks.
+                    onMouseDown={(e) => e.preventDefault()}
+                    onMouseEnter={() => setActive(i)}
+                    onClick={() => choose(cat)}
+                    // One indent step per category level.
+                    style={{ paddingInlineStart: 12 + level * 16 }}
+                    className={`pe-3 py-2 rounded-[8px] text-[13px] cursor-pointer truncate transition-colors ${
+                      isSelected ? "text-[#388CFF] medium" : "text-[#3c3c3c]"
+                    } ${i === active ? "bg-[#f4f4f4]" : ""}`}
+                  >
+                    {labelOf(cat)}
+                  </li>
+                );
+              })
+            )}
+          </ul>
         </div>
       )}
     </div>
