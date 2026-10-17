@@ -81,6 +81,24 @@ describe("the product page body", () => {
     expect(findProp(tree, "activeSize"), "the chosen size should reach the sizes section").toBe("M");
   });
 
+  it("hands the /products/temp fake counts to the three sections that show counts", async () => {
+    const fakeCounts = {
+      generalData: { total_views: 10000 },
+      buyersComments: { buyers_comments: [{ id: "temp-1" }] },
+      recommendationStats: { stats: [] },
+      socialData: { total_likes: 1000 },
+    };
+    const tree = await ProductPageContent({
+      params: { lang: "sy-en", productId: "shoe" },
+      searchParams: {},
+      fakeCounts,
+    });
+    expect(findProp(tree, "generalData"), "the facts row did not get the fake buyers / views / recommend counts").toBe(fakeCounts.generalData);
+    expect(findProp(tree, "commentsData"), "the buyers comments section did not get the fake comments").toBe(fakeCounts.buyersComments);
+    expect(findProp(tree, "recommendationData"), "the buyers comments section did not get the fake recommend stats").toBe(fakeCounts.recommendationStats);
+    expect(findProp(tree, "socialData"), "the footer did not get the fake likes / comments / shares").toBe(fakeCounts.socialData);
+  });
+
   it("works without any query values", async () => {
     const tree = await ProductPageContent({
       params: { lang: "sy-en", productId: "shoe" },

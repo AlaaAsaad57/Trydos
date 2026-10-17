@@ -90,6 +90,29 @@ describe("the buyers comments section", () => {
     ).toContain("flex-row-reverse");
   });
 
+  it("uses ready comments and stats when they are given, and fetches neither (the /products/temp page)", async () => {
+    getCookieServer.mockResolvedValue(null);
+    GetRatingCommentsForProduct.mockClear();
+    GetRecommendationCountForProduct.mockClear();
+    list.mockClear();
+    render(
+      await ProductBuyersCommentsWrapper({
+        globalPromise: Promise.resolve({ id: 1 }),
+        language: "en",
+        commentsData: { buyers_comments: [{ id: "temp-1" }], filters_key: [], searchAfter: null },
+        recommendationData: { stats: [{ category: "recommend", count: 1000000 }] },
+      }),
+    );
+    expect(GetRatingCommentsForProduct, "the comments were fetched even though ready ones were given").not.toHaveBeenCalled();
+    expect(GetRecommendationCountForProduct, "the stats were fetched even though ready ones were given").not.toHaveBeenCalled();
+    expect(list.mock.calls[0][0], "the list should get the ready comments and stats").toEqual(
+      expect.objectContaining({
+        comments: [{ id: "temp-1" }],
+        recommendation_stats: [{ category: "recommend", count: 1000000 }],
+      }),
+    );
+  });
+
   it("keeps the title row left to right in English", async () => {
     getCookieServer.mockResolvedValue(null);
     GetRatingCommentsForProduct.mockResolvedValue({

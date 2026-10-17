@@ -1,15 +1,18 @@
-import "styles/productDetails.css";
-import "styles/product-body.css";
 import { lang as langParam } from "next/root-params";
+import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import ProductGeneralPropertiesWrapper from "components/Server/product/ProductGeneralPropertiesWrapper";
+import ProductPageContent from "components/Product/ProductPageContent";
+import { GetGlobalProduct, GetProductGeneralData } from "serverRequests/product";
+import { GetProducts } from "serverRequests/listing";
 import { getRobotsConfig } from "utils/server";
-import TempCountsDemo from "./TempCountsDemo";
 
-// A test page for testers, not a real product. It shows the product page parts
-// that show a count, fed with fixed big numbers, so testers can see the short
-// form ("1.2K", "10K", "1M", "2.4B") without a real product that has that many
-// buyers, likes or comments. The counts are in TempCountsDemo.tsx.
+// A test page for testers, not a real route. It draws a real staging product
+// with the real product page layout (ProductPageContent), but every count is a
+// fixed big number, so testers can see the short form ("1.2K", "10K", "1M",
+// "2.4B") without a product that really has that many buyers, likes or
+// comments.
+//
+// The product is the first one in the listing, or the one named by ?slug=.
 // Remove this folder once testers have checked the short counts.
 
 export const instant = false;
@@ -19,47 +22,96 @@ export const metadata: Metadata = {
 };
 
 // 1,000,000 + 35,000 + 1,500 + 999 + 12 = 1,037,511 buyers -> "1M".
-const GENERAL_DATA = {
-  final_rating: 4.5,
-  ratingDetails: [
-    { ratingGroup: 5, count: 1000000 },
-    { ratingGroup: 4, count: 35000 },
-    { ratingGroup: 3, count: 1500 },
-    { ratingGroup: 2, count: 999 },
-    { ratingGroup: 1, count: 12 },
-  ],
-  total_views: 10000,
-  good_quality_product: true,
-  recommendation_stats: [
-    { category: "recommend", count: 1000000, percentage: 97 },
-    { category: "not_recommend", count: 25300, percentage: 3 },
-  ],
-  size_analysis: { true_percentage: 80, small_percentage: 15, large_percentage: 5 },
+const RATING_DETAILS = [
+  { ratingGroup: 5, count: 1000000 },
+  { ratingGroup: 4, count: 35000 },
+  { ratingGroup: 3, count: 1500 },
+  { ratingGroup: 2, count: 999 },
+  { ratingGroup: 1, count: 12 },
+];
+
+// "1M" recommend it, "25.3K" do not.
+const RECOMMENDATION_STATS = [
+  { category: "recommend", count: 1000000, percentage: 97 },
+  { category: "not_recommend", count: 25300, percentage: 3 },
+];
+
+// Likes under each comment: "1.5K", "25K", "2.4B".
+const FAKE_COMMENTS = [
+  { likes: 1500, rating: 5, recommend: true },
+  { likes: 25000, rating: 4, recommend: true },
+  { likes: 2450000000, rating: 3, recommend: false },
+].map((s, i) => ({
+  id: `temp-comment-${i + 1}`,
+  comment: `Test comment ${i + 1}`,
+  customer: { name: `Test Buyer ${i + 1}` },
+  star_rating: s.rating,
+  recommendation: s.recommend,
+  good_quality_comment: true,
+  true_size: true,
+  total_likes: s.likes,
+  is_liked: false,
+  created_at: new Date().toISOString(),
+}));
+
+// Footer: "1K" likes, "10K" comments, "1M" shares.
+const SOCIAL_DATA = {
+  total_likes: 1000,
+  total_comments: 10000,
+  total_shares: 1000000,
+  is_liked: false,
 };
 
-export default async function Page() {
+export default async function Page({ searchParams }) {
+  const SearchParams = (await searchParams) || {};
   const lang = await langParam();
-  const [, language] = lang.split("-");
-  const isRtl = language === "ar" || language === "ku";
+  const [country, language] = lang.split("-");
+
+  const slug =
+    SearchParams.slug ??
+    (
+      await GetProducts({
+        language,
+        country,
+        offset: undefined,
+        parsedFilters: {},
+        currency: undefined,
+      })
+    )?.products?.[0]?.slug;
+  if (!slug) notFound();
+
+  const product = await GetGlobalProduct({ slug, language, country });
+  // @ts-ignore
+  if (!product?.id) notFound();
+
+  // The real facts (rating, size fit) with the counts swapped for big ones.
+  // @ts-ignore
+  const realGeneral = await GetProductGeneralData({ id: product.id });
+  const generalData = {
+    ...(realGeneral || {}),
+    ratingDetails: RATING_DETAILS,
+    total_views: 10000,
+    good_quality_product: true,
+    recommendation_stats: RECOMMENDATION_STATS,
+  };
+
+  // `slug` is not a product option, so it does not go on to the sections.
+  const { slug: _slug, ...productSearchParams } = SearchParams;
 
   return (
-    <div className="product-details-container w-full relative bg-[#ffffff] pt-[20px] pb-[120px]">
-      <div
-        className={`${isRtl ? "pr-[10px]" : "pl-[10px]"} product-info-section bg-[#ffffff] flex-col align-start`}
-      >
-        <div className="flex-col px-[10px] max-w-full w-full">
-          <ProductGeneralPropertiesWrapper
-            globalData={{ id: "temp" }}
-            generalData={GENERAL_DATA}
-            language={language}
-          />
-        </div>
-        <TempCountsDemo
-          language={language}
-          isRtl={isRtl}
-          recommendation_stats={GENERAL_DATA.recommendation_stats}
-        />
-      </div>
-    </div>
+    <ProductPageContent
+      params={{ lang, productId: slug }}
+      searchParams={productSearchParams}
+      fakeCounts={{
+        generalData,
+        buyersComments: {
+          buyers_comments: FAKE_COMMENTS,
+          filters_key: [],
+          searchAfter: null,
+        },
+        recommendationStats: { stats: RECOMMENDATION_STATS },
+        socialData: SOCIAL_DATA,
+      }}
+    />
   );
 }
