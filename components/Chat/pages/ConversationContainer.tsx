@@ -24,6 +24,7 @@ import {
   getUser,
   getChatName,
 } from "../chatsFunctions";
+import { finishUpload, startUpload } from "../uploadCancel";
 import {
   GetChatDetails,
   getMessagesBetweenTwoMessages,
@@ -369,6 +370,7 @@ function ConversationContainer({
     type: string,
     midLocal: string,
   ) => {
+    let signal: AbortSignal | undefined;
     try {
       // optimistic UI update (uses base64 for img preview). Awaited so the
       // pending bubble is in the chat before the upload starts: a failed
@@ -386,8 +388,13 @@ function ConversationContainer({
         message_status: buildMessageStatus(receiverId, senderId),
         mid: midLocal,
       });
-      // real upload call
-      const { path, name } = await upload(file);
+      // real upload call. The sender can cancel it from the pending bubble.
+      signal = startUpload(midLocal, () =>
+        deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id }),
+      );
+      const { path, name } = await upload(file, signal);
+      finishUpload(midLocal);
+      if (signal.aborted) return;
 
       const sendPayload = baseMessagePayload({
         content: [{ file_path: path, file_name: name }],
@@ -403,6 +410,9 @@ function ConversationContainer({
         is_reply: !!replyMessage,
       });
     } catch (err) {
+      finishUpload(midLocal);
+      // Cancelled by the sender: the bubble is already gone, nothing failed.
+      if (signal?.aborted) return;
       LogError({
         error: err,
         scenario: "handleMediaMessage in conversation container - chat widget",
@@ -691,6 +701,7 @@ function ConversationContainer({
   /* ------------------------- Audio Sender ------------------------------- */
   const sendAudio = useCallback(
     async (midLocal: string) => {
+      let signal: AbortSignal | undefined;
       try {
         if (!blobs.current || !activeChat) return;
 
@@ -718,8 +729,14 @@ function ConversationContainer({
           message_status: buildMessageStatus(receiverId, senderId),
         });
 
-        // Upload file and send actual message
-        const { path, name } = await upload(file);
+        // Upload file and send actual message. The sender can cancel the
+        // upload from the pending bubble.
+        signal = startUpload(midLocal, () =>
+          deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id }),
+        );
+        const { path, name } = await upload(file, signal);
+        finishUpload(midLocal);
+        if (signal.aborted) return;
 
         // @ts-ignore – original send util expects certain shape
         SendMessage(
@@ -734,6 +751,9 @@ function ConversationContainer({
           isPrivate,
         );
       } catch (error) {
+        finishUpload(midLocal);
+        // Cancelled by the sender: the bubble is already gone, nothing failed.
+        if (signal?.aborted) return;
         LogError({
           error: error,
           scenario: "sendAudio in conversation container - chat widget",

@@ -6,7 +6,7 @@
 // real child would call. The chat backend calls (`SendMessage`, `getPage`, …),
 // the media upload and firebase are replaced too; nothing reaches a network.
 import React from "react";
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "../../../render";
@@ -116,6 +116,7 @@ vi.mock("utils/firebaseInitv1", () => ({
 vi.mock("firebase/database", () => h.fb);
 
 import ConversationContainer from "components/Chat/pages/ConversationContainer";
+import { getMessageStatus } from "store/chat/chatUtils";
 
 const ME = 1;
 const THEM = 2;
@@ -202,6 +203,48 @@ function pick(file: any, writable = true) {
   const input = fileInput();
   Object.defineProperty(input, "files", { value: file ? [file] : [], writable, configurable: true });
   fireEvent.change(input);
+}
+
+/**
+ * Makes the next upload run until the sender cancels it, like a large file on a
+ * slow line. Returns the signal the upload was given, so a test can tell
+ * whether the request was really stopped.
+ */
+function uploadThatRunsUntilCancelled() {
+  const seen: { signal?: AbortSignal } = {};
+  h.upload.mockImplementationOnce((_file: File, signal?: AbortSignal) => {
+    seen.signal = signal;
+    return new Promise((_resolve, reject) => {
+      signal?.addEventListener("abort", () =>
+        reject(new DOMException("The upload was cancelled.", "AbortError")),
+      );
+    });
+  });
+  return seen;
+}
+
+/** A store that keeps the pending bubbles the way the chat list does. */
+function bubblesInChat() {
+  const shown = new Set<string>();
+  return {
+    shown,
+    store: {
+      sendMessage: vi.fn((p: any) => shown.add(String(p.message.mid))),
+      deleteErrorMessage: vi.fn((p: any) => shown.delete(String(p.msg_id))),
+    },
+  };
+}
+
+/**
+ * The cancel button under my pending bubble `mid`, or null. ChatMessage is a
+ * stand-in in this file, so the status line under the bubble is drawn here —
+ * the same `getMessageStatus` every message type draws.
+ */
+function cancelButtonOn(mid: string) {
+  const { container } = render(
+    getMessageStatus({ mid, message_status: [], created_at: "2030-01-15T10:00:00" }),
+  );
+  return within(container).queryByRole("button", { name: /cancel upload/i });
 }
 
 beforeEach(() => {
@@ -651,6 +694,51 @@ describe("ConversationContainer — attaching files", () => {
     expect([...shown], "the video stayed in the chat after its upload failed").toEqual([]);
   });
 
+  it.each([
+    ["video", "clip.mp4", "video/mp4"],
+    ["document", "doc.pdf", "application/pdf"],
+  ])("the sender can cancel a %s while it uploads, and nothing is sent", async (kind, name, type) => {
+    const upload = uploadThatRunsUntilCancelled();
+    const { shown, store } = bubblesInChat();
+    await mount({ store });
+    await act(async () => {
+      pick(new File(["x"], name, { type }));
+    });
+    await waitFor(() => expect(h.upload, `the ${kind} upload did not start`).toHaveBeenCalled());
+    const [mid] = [...shown];
+    expect(mid, `no pending ${kind} bubble was shown while it uploads`).toBeTruthy();
+
+    const cancel = cancelButtonOn(mid);
+    expect(cancel, `the pending ${kind} offers no way to cancel its upload`).not.toBeNull();
+    act(() => {
+      fireEvent.click(cancel!);
+    });
+
+    expect(upload.signal?.aborted, `pressing cancel did not stop the ${kind} upload request`).toBe(true);
+    expect([...shown], `the pending ${kind} stayed in the chat after the sender cancelled it`).toEqual([]);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+    expect(h.sendMessageApi, `a cancelled ${kind} was still sent to the chat backend`).not.toHaveBeenCalled();
+    expect(h.showError, `cancelling the ${kind} was shown to the sender as a failed upload`).not.toHaveBeenCalled();
+    expect(h.logError, `cancelling the ${kind} was reported to Sentry as an upload error`).not.toHaveBeenCalledWith(
+      expect.objectContaining({ scenario: "handleMediaMessage in conversation container - chat widget" }),
+    );
+  });
+
+  it("a file whose upload is done offers no cancel, because it is already being sent", async () => {
+    const { spies } = await mount();
+    await act(async () => {
+      pick(new File(["x"], "doc.pdf", { type: "application/pdf" }));
+    });
+    await waitFor(() => expect(h.sendMessageApi, "the file was not sent").toHaveBeenCalled());
+    const mid = String(spies.sendMessage.mock.calls[0]?.[0]?.message?.mid);
+    expect(
+      cancelButtonOn(mid),
+      "the bubble still offers cancel after the upload finished; pressing it would hide a message that is already sent",
+    ).toBeNull();
+  });
+
   it("does nothing when no file was chosen", async () => {
     await mount();
     await act(async () => {
@@ -899,6 +987,42 @@ describe("ConversationContainer — voice notes", () => {
       await vi.advanceTimersByTimeAsync(50);
     });
     expect([...shown], "the voice note stayed in the chat after its upload failed").toEqual([]);
+  });
+
+  it("the sender can cancel a voice note while it uploads, and nothing is sent", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    stubMic();
+    const upload = uploadThatRunsUntilCancelled();
+    const { shown, store } = bubblesInChat();
+    await mount({ store });
+    await act(async () => {
+      fireEvent.click(document.querySelector('img[src="/icons/chat/redmic.svg"]')!);
+    });
+    fireEvent.click(document.querySelector('img[src="/icons/chat/sharechat.svg"]')!);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1600);
+    });
+    await waitFor(() => expect(h.upload, "the voice note upload did not start").toHaveBeenCalled());
+    const [mid] = [...shown];
+    expect(mid, "no pending voice note bubble was shown while it uploads").toBeTruthy();
+
+    const cancel = cancelButtonOn(mid);
+    expect(cancel, "the pending voice note offers no way to cancel its upload").not.toBeNull();
+    act(() => {
+      fireEvent.click(cancel!);
+    });
+
+    expect(upload.signal?.aborted, "pressing cancel did not stop the voice note upload request").toBe(true);
+    expect([...shown], "the pending voice note stayed in the chat after the sender cancelled it").toEqual([]);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(50);
+    });
+    expect(h.sendMessageApi, "a cancelled voice note was still sent to the chat backend").not.toHaveBeenCalled();
+    expect(h.showError, "cancelling the voice note was shown to the sender as a failed upload").not.toHaveBeenCalled();
+    expect(h.logError, "cancelling the voice note was reported to Sentry as an upload error").not.toHaveBeenCalledWith(
+      expect.objectContaining({ scenario: "sendAudio in conversation container - chat widget" }),
+    );
   });
 
   it("falls back to the other recorder when native recording is not there", async () => {

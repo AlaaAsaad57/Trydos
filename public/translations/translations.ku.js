@@ -2323,6 +2323,8 @@ const translations = {
   "Link copied to clipboard!": "بەستەرەکە کۆپی کرا!",
   "Telegram": "تێلێگرام",
   "Failed to Upload file": "بارکردنی فایلەکە سەرکەوتوو نەبوو",
+
+  "Cancel upload": "پاشگەزبوونەوە لە بارکردن",
   "Failed to send message": "ناردنی پەیامەکە سەرکەوتوو نەبوو",
   "Please enable camera permissions to use camera features": "تکایە مۆڵەتەکانی کامێرا چالاک بکە بۆ بەکارهێنانی تایبەتمەندییەکانی کامێرا",
   "Failed to Upload audio": "بارکردنی دەنگەکە سەرکەوتوو نەبوو",

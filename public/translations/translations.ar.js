@@ -2283,6 +2283,8 @@ const translations = {
   "Link copied to clipboard!": "تم نسخ الرابط!",
   "Telegram": "تيليجرام",
   "Failed to Upload file": "فشل رفع الملف",
+
+  "Cancel upload": "إلغاء الرفع",
   "Failed to send message": "فشل إرسال الرسالة",
   "Please enable camera permissions to use camera features": "يرجى تفعيل أذونات الكاميرا لاستخدام ميزات الكاميرا",
   "Failed to Upload audio": "فشل رفع الملف الصوتي",

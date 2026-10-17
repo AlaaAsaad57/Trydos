@@ -2290,6 +2290,8 @@ const translations = {
   "Link copied to clipboard!": "Bağlantı panoya kopyalandı!",
   "Telegram": "Telegram",
   "Failed to Upload file": "Dosya yüklenemedi",
+
+  "Cancel upload": "Yüklemeyi iptal et",
   "Failed to send message": "Mesaj gönderilemedi",
   "Please enable camera permissions to use camera features": "Kamera özelliklerini kullanmak için lütfen kamera izinlerini etkinleştirin",
   "Failed to Upload audio": "Ses yüklenemedi",

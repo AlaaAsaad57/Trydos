@@ -637,7 +637,7 @@ export const forwardMessage = async (m, activeChat) => {
   }
 };
 
-const uploadFile = async (file_name, file) => {
+const uploadFile = async (file_name, file, signal?: AbortSignal) => {
   let formData = new FormData();
   formData.append("file", file);
   formData.append("file_name", file_name);
@@ -647,7 +647,7 @@ const uploadFile = async (file_name, file) => {
      headers:{"X-Upload-Ticket":ticket},
       method: "POST",
       body: formData,
-  
+      signal,
     });
 
     if (!response.ok) {
@@ -658,6 +658,8 @@ const uploadFile = async (file_name, file) => {
      if(!JsonResponse?.isSuccessful) throw new Error(JsonResponse?.message??'Failed to upload file');
     return JsonResponse;
   } catch (err) {
+    // The sender cancelled. That is not an error.
+    if (signal?.aborted) throw err;
     LogError({
       error: err,
       scenario: "Upload file for chat",
@@ -672,7 +674,7 @@ const MAX_CHAT_FILE_SIZE_MB = 25;
 /** The same cap in bytes, which is the only unit `File.size` speaks. */
 const MAX_CHAT_FILE_SIZE_BYTES = MAX_CHAT_FILE_SIZE_MB * 1024 * 1024;
 
-export const upload = async (file) => {
+export const upload = async (file, signal?: AbortSignal) => {
   // Checked here, not at each screen, because every chat attachment comes
   // through this one function — the file picker, the camera, the cropped image
   // and the voice recorder all call it. Without this the only cap was the media
@@ -691,6 +693,7 @@ export const upload = async (file) => {
   let response = await uploadFile(
     currentFile.name?.split(".")[0] || "image",
     file,
+    signal,
   );
   if (response && response.code === 200 && response.data?.file_path) {
     a = response.data.file_path;
