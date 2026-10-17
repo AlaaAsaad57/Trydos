@@ -180,6 +180,8 @@ const requestCases: RequestCase[] = [
   { name: "getShopInfo", run: () => s.getShopInfo("9"), url: "/shop/info", method: "GET", server: MD, sellerId: "9" },
   { name: "getExcelCategories", run: () => s.getExcelCategories("9"), url: "/shop/excel/categories", method: "GET", server: MD, sellerId: "9" },
   { name: "processExcel", run: () => s.processExcel("9", "k.xlsx"), url: "/shop/excel/processExcel", method: "POST", server: MD, sellerId: "9", body: { file_url: "https://example.com/file/upload/k.xlsx" } },
+  { name: "processExcel sends the expected category only when it is given", run: () => s.processExcel("9", "k.xlsx", { expectedCategoryId: 13 }), url: "/shop/excel/processExcel", method: "POST", server: MD, sellerId: "9", body: { file_url: "https://example.com/file/upload/k.xlsx", expected_category_id: 13 } },
+  { name: "processExcel sends confirm_category when asked to", run: () => s.processExcel("9", "k.xlsx", { expectedCategoryId: 13, confirmCategory: true }), url: "/shop/excel/processExcel", method: "POST", server: MD, sellerId: "9", body: { file_url: "https://example.com/file/upload/k.xlsx", expected_category_id: 13, confirm_category: true } },
   { name: "getExcelFiles", run: () => s.getExcelFiles("9"), url: "/shop/excel/getUploadedExcelFiles", method: "GET", server: MD, sellerId: "9" },
   { name: "getProductForEdit", run: () => s.getProductForEdit("9", 8), url: "/shop/products/8/edit", method: "GET", server: MD, sellerId: "9" },
   { name: "getProductCreateForm", run: () => s.getProductCreateForm("9"), url: "/shop/products/lookups", method: "GET", server: MD, sellerId: "9" },
@@ -553,7 +555,7 @@ describe("seller-dashboard service — media server calls", () => {
   });
 });
 
-describe("seller-dashboard service — downloadExcelTemplate", () => {
+describe("seller-dashboard service — Excel file downloads", () => {
   const fetchMock = vi.fn();
   const response = (opts: {
     ok?: boolean;
@@ -587,10 +589,10 @@ describe("seller-dashboard service — downloadExcelTemplate", () => {
         },
       }),
     );
-    const out = await s.downloadExcelTemplate("9", 4);
+    const out = await s.downloadExcelTemplate("9", 4, "template", "Shoes_template.xlsx");
     const [url, init] = fetchMock.mock.calls[0];
     expect(url, "the template must be asked for through the proxy").toBe("/api/proxy");
-    expect(init.headers["x-proxy-url"], "wrong template address").toBe("/shop/excel/downloadExcel/4");
+    expect(init.headers["x-proxy-url"], "wrong template address").toBe("/shop/excel/downloadExcel/4?mode=template");
     expect(init.headers["x-country"], "the country was not read from the path").toBe("iq");
     expect(init.headers["x-language"], "the language was not read from the path").toBe("ar");
     expect(init.headers["x-seller-id"], "the shop was not sent").toBe("9");
@@ -598,32 +600,48 @@ describe("seller-dashboard service — downloadExcelTemplate", () => {
     expect(out.blob, "the file itself was not returned").toBeInstanceOf(Blob);
   });
 
-  it("uses the default country, language and file name when none are known", async () => {
+  it("uses the default country and language, and the name it is given, when none come back", async () => {
     window.history.pushState({}, "", "/");
     fetchMock.mockResolvedValue(response({}));
-    const out = await s.downloadExcelTemplate("9", 4);
+    const out = await s.downloadExcelTemplate("9", 4, "template", "Shoes_template.xlsx");
     const init = fetchMock.mock.calls[0][1];
     expect(init.headers["x-country"], "the default country should be sy").toBe("sy");
     expect(init.headers["x-language"], "the default language should be en").toBe("en");
-    expect(out.filename, "the default file name should name the category").toBe("template-4.xlsx");
+    expect(out.filename, "with no file name in the answer, the name the tab gave must be used").toBe(
+      "Shoes_template.xlsx",
+    );
   });
 
   it("fails with the backend message when the backend answers JSON", async () => {
     fetchMock.mockResolvedValue(
       response({ headers: { "content-type": "application/json" }, json: { message: "no template" } }),
     );
-    await expect(s.downloadExcelTemplate("9", 4), "the backend message was lost").rejects.toThrow(
+    await expect(s.downloadExcelTemplate("9", 4, "template", "Shoes_template.xlsx"), "the backend message was lost").rejects.toThrow(
       "no template",
     );
     fetchMock.mockResolvedValue(response({ ok: false, status: 404, json: { error: "gone" } }));
-    await expect(s.downloadExcelTemplate("9", 4), "the backend `error` field was lost").rejects.toThrow(
+    await expect(s.downloadExcelTemplate("9", 4, "template", "Shoes_template.xlsx"), "the backend `error` field was lost").rejects.toThrow(
       "gone",
     );
     fetchMock.mockResolvedValue(response({ ok: false, status: 502, json: new Error("not json") }));
     await expect(
-      s.downloadExcelTemplate("9", 4),
+      s.downloadExcelTemplate("9", 4, "template", "Shoes_template.xlsx"),
       "the status should be in the default message",
     ).rejects.toThrow("Failed to download template (502)");
+  });
+
+  it("downloadExcelTemplate puts the mode in the address it asks the proxy for", async () => {
+    fetchMock.mockResolvedValue(response({ headers: { "content-type": "application/octet-stream" } }));
+    await s.downloadExcelTemplate("9", 4, "template", "Shoes_template.xlsx");
+    await s.downloadExcelTemplate("9", 4, "products", "Shoes_products.xlsx");
+    expect(
+      fetchMock.mock.calls[0]?.[1]?.headers["x-proxy-url"],
+      '"Add new products" must ask the core backend for the empty template',
+    ).toBe("/shop/excel/downloadExcel/4?mode=template");
+    expect(
+      fetchMock.mock.calls[1]?.[1]?.headers["x-proxy-url"],
+      "\"Update my products\" must ask the core backend for the seller's own products",
+    ).toBe("/shop/excel/downloadExcel/4?mode=products");
   });
 
   // The access token lives 60 seconds, so a seller who waits on the tab meets a
@@ -635,17 +653,17 @@ describe("seller-dashboard service — downloadExcelTemplate", () => {
       .mockResolvedValueOnce(response({ ok: false, status: 401, json: { message: "Unauthenticated." } }))
       .mockResolvedValueOnce(response({ headers: { "content-type": "application/octet-stream" } }));
 
-    const out = await s.downloadExcelTemplate("9", 4);
+    const out = await s.downloadExcelTemplate("9", 4, "template", "Shoes_template.xlsx");
 
     const [url, server] = refreshSession.mock.calls[0] ?? [];
     expect(url, "the 401 did not start a market session renewal for the template address").toBe(
-      "/shop/excel/downloadExcel/4",
+      "/shop/excel/downloadExcel/4?mode=template",
     );
     expect(server, "the renewal was not asked for the market-dashboard service").toBe("market-dashboard");
     expect(
       fetchMock.mock.calls[1]?.[1]?.headers["x-proxy-url"],
       "the template was not asked for again after the renewal",
-    ).toBe("/shop/excel/downloadExcel/4");
+    ).toBe("/shop/excel/downloadExcel/4?mode=template");
     expect(out.blob, "the retry answered a file, but it was not returned").toBeInstanceOf(Blob);
   });
 
@@ -654,7 +672,7 @@ describe("seller-dashboard service — downloadExcelTemplate", () => {
     fetchMock.mockResolvedValue(response({ ok: false, status: 401, json: { message: "Unauthenticated." } }));
 
     await expect(
-      s.downloadExcelTemplate("9", 4),
+      s.downloadExcelTemplate("9", 4, "template", "Shoes_template.xlsx"),
       "a second 401 must reach the seller as an error",
     ).rejects.toThrow("Unauthenticated.");
     expect(
@@ -669,9 +687,47 @@ describe("seller-dashboard service — downloadExcelTemplate", () => {
     fetchMock.mockResolvedValue(response({ ok: false, status: 401, json: { message: "Unauthenticated." } }));
 
     await expect(
-      s.downloadExcelTemplate("9", 4),
+      s.downloadExcelTemplate("9", 4, "template", "Shoes_template.xlsx"),
       "an ineligible 401 must reach the seller as an error",
     ).rejects.toThrow("Unauthenticated.");
     expect(fetchMock.mock.calls[1], "the template was asked for again without a renewal").toBeUndefined();
+  });
+  it("downloadFailedRows asks the proxy for that upload's failed rows", async () => {
+    fetchMock.mockResolvedValue(response({ headers: { "content-type": "application/octet-stream" } }));
+    const out = await s.downloadFailedRows("9", 931, "shirts_failed_rows.xlsx");
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url, "the failed rows must be asked for through the proxy").toBe("/api/proxy");
+    expect(init.headers["x-proxy-url"], "wrong failed-rows address").toBe("/shop/excel/failedRows/931");
+    expect(init.headers["x-seller-id"], "the shop was not sent").toBe("9");
+    expect(out.filename, "with no file name in the answer, the name the tab gave must be used").toBe(
+      "shirts_failed_rows.xlsx",
+    );
+    expect(out.blob, "the file itself was not returned").toBeInstanceOf(Blob);
+
+    fetchMock.mockResolvedValue(response({ ok: false, status: 500, json: new Error("not json") }));
+    await expect(
+      s.downloadFailedRows("9", 931, "shirts_failed_rows.xlsx"),
+      "a refused failed-rows download must not be reported as a template",
+    ).rejects.toThrow("Failed to download the failed rows (500)");
+  });
+
+  it("downloadFailedRows renews the session once on a 401 and asks again", async () => {
+    refreshSession.mockReset().mockResolvedValue({ refreshed: true, eligible: true });
+    fetchMock
+      .mockResolvedValueOnce(response({ ok: false, status: 401, json: { message: "Unauthenticated." } }))
+      .mockResolvedValueOnce(response({ headers: { "content-type": "application/octet-stream" } }));
+
+    const out = await s.downloadFailedRows("9", 931, "shirts_failed_rows.xlsx");
+
+    expect(
+      refreshSession.mock.calls[0]?.[0],
+      "the 401 did not start a market session renewal for the failed-rows address",
+    ).toBe("/shop/excel/failedRows/931");
+    expect(
+      fetchMock.mock.calls[1]?.[1]?.headers["x-proxy-url"],
+      "the failed rows were not asked for again after the renewal",
+    ).toBe("/shop/excel/failedRows/931");
+    expect(fetchMock.mock.calls[2], "the failed rows were asked for a third time").toBeUndefined();
+    expect(out.blob, "the retry answered a file, but it was not returned").toBeInstanceOf(Blob);
   });
 });

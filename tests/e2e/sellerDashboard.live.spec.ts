@@ -1061,13 +1061,13 @@ test("SD-16 the Excel section downloads a real .xlsx template for a category", a
         ).toBeGreaterThan(0);
         expect(
           await downloadOffered(page),
-          "Download Template can be pressed before any category is chosen",
+          "the download button can be pressed before any category is chosen",
         ).toBe(false);
         return ids;
       },
     );
 
-    await test.step("a template downloads, and it is a real spreadsheet", async () => {
+    const got = await test.step("a template downloads, and it is a real spreadsheet", async () => {
       const tried: string[] = [];
       let got: TemplateDownload | null = null;
       for (const categoryId of categories.slice(0, TEMPLATE_TRIES)) {
@@ -1091,6 +1091,14 @@ test("SD-16 the Excel section downloads a real .xlsx template for a category", a
         got?.looksLikeXlsx,
         `the file "${got?.filename}" is not a spreadsheet inside — it does not start like an .xlsx does, so the backend sent something else under that name`,
       ).toBe(true);
+      return got;
+    });
+
+    await test.step("the download asked the core backend for the empty template (mode=template)", async () => {
+      expect(
+        got?.proxyUrl ?? "",
+        `"Add new products" must ask the core backend for the empty template, but the download asked for "${got?.proxyUrl || "nothing that was seen"}"`,
+      ).toMatch(/\/shop\/excel\/downloadExcel\/[^?]+\?mode=template$/);
     });
   } finally {
     await closeSellerPage(context, page);

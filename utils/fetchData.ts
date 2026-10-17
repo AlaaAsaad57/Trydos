@@ -709,6 +709,13 @@ export const fetchData = async <T = any>(
         return { ...responseData, success: false, httpStatus: 409 };
       }
 
+      // The seller dashboard's Excel upload answers 409 when the sheet was made
+      // for another category than the one picked. The tab asks the seller to
+      // confirm, so this is a question, not a fault: no toast, no Sentry event.
+      if (status === 409 && responseData?.data?.category_mismatch === true) {
+        return { ...responseData, success: false, httpStatus: 409 };
+      }
+
       if (!res.ok) {
         throw new Error(
           responseData?.message ??

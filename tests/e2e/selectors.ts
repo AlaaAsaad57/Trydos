@@ -1328,9 +1328,12 @@ export const sellerProducts = {
 export const sellerExcel = {
   /** The category list. Its first option is the empty "Select a category". */
   category: (page: Page): Locator => page.getByTestId("seller-excel-category"),
-  /** Download Template. Disabled until a category is chosen. */
+  /** The download button ("Download empty template" / "Download N products").
+   *  Disabled until a category is chosen. */
   download: (page: Page): Locator => page.getByTestId("seller-excel-download"),
-  /** The section's message line. `data-type` is `success` or `error`. */
+  /** The "Add new products" choice: the empty template (`mode=template`). */
+  modeTemplate: (page: Page): Locator => page.getByTestId("seller-excel-mode-template"),
+  /** The section's message line. `data-type` is `success`, `error` or `info`. */
   status: (page: Page): Locator => page.getByTestId("seller-excel-status"),
 };
 

@@ -14,6 +14,75 @@ const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
 const MEDIA_API_KEY = process.env.NEXT_PUBLIC_MEDIA_API_KEY ?? "";
 
+// Download a binary file the shop backend streams (an .xlsx), not a URL.
+// fetchData always parses JSON, so this hits the proxy directly — the proxy
+// injects the auth token server-side and passes binary answers through — and
+// returns the blob plus a file name the caller can save it under.
+async function downloadShopFile(
+  sellerId: string,
+  targetUrl: string,
+  fallbackName: string,
+  errorText: string,
+): Promise<{ blob: Blob; filename: string }> {
+  const [country, lang] = (
+    window.location.pathname.split("/")[1] || ""
+  ).split("-");
+
+  const request = () =>
+    fetch("/api/proxy", {
+      method: "POST",
+      headers: {
+        "x-proxy-server": toServiceToken("market-dashboard"),
+        "x-proxy-url": encodeURI(targetUrl),
+        "x-proxy-method": "GET",
+        "x-country": country || "sy",
+        "x-language": lang || "en",
+        "x-need-decode": "true",
+        "x-seller-id": sellerId,
+      },
+      credentials: "include",
+    });
+
+  const sentAt = Date.now();
+  let res = await request();
+
+  // fetchData renews the session on a 401; this call bypasses it, so do the
+  // same here: one exchange, then the same request once more.
+  if (res.status === 401) {
+    const authService = await import("services/auth");
+    const refresh = await authService.default.RefreshSession(
+      targetUrl,
+      "market-dashboard",
+      sentAt,
+    );
+    if (refresh.eligible) res = await request();
+  }
+
+  const contentType = res.headers.get("content-type") || "";
+
+  // On an error the backend/proxy returns JSON, not a file.
+  if (!res.ok || contentType.includes("application/json")) {
+    let message = `${errorText} (${res.status})`;
+    try {
+      const data = await res.json();
+      message = data?.message || data?.error || message;
+    } catch {}
+    throw new Error(message);
+  }
+
+  const blob = await res.blob();
+
+  // The proxy doesn't forward Content-Disposition, so fall back to the name the
+  // caller built (still try the header in case it's present).
+  const disposition = res.headers.get("content-disposition") || "";
+  const match = disposition.match(
+    /filename\*?=(?:UTF-8'')?["']?([^"';]+)/i,
+  );
+  const filename = match?.[1] ? decodeURIComponent(match[1]) : fallbackName;
+
+  return { blob, filename };
+}
+
 class SellerDashboardService {
   async getShopes(noMessage = false) {
     try {
@@ -700,85 +769,58 @@ class SellerDashboardService {
     });
   }
 
-  // GET /shop/excel/downloadExcel/{category_id} — the template for a category.
-  // The backend streams the .xlsx file itself (binary), not a URL. We can't use
-  // fetchData (it always parses JSON), so we hit the proxy directly — which
-  // injects the auth token server-side and passes binary responses through —
-  // and return the blob + filename so the caller can trigger a download.
+  // GET /shop/excel/downloadExcel/{category_id}?mode=template|products.
+  // `template` is the empty sheet for new products; `products` is the seller's
+  // own products of that category, for updating them. The backend treats a
+  // missing mode as `products`, so a mode is always sent.
   async downloadExcelTemplate(
     sellerId: string,
     categoryId: string | number,
+    mode: "template" | "products",
+    fallbackName: string,
   ): Promise<{ blob: Blob; filename: string }> {
-    const [country, lang] = (
-      window.location.pathname.split("/")[1] || ""
-    ).split("-");
-    const targetUrl = `/shop/excel/downloadExcel/${categoryId}`;
-
-    const request = () =>
-      fetch("/api/proxy", {
-        method: "POST",
-        headers: {
-          "x-proxy-server": toServiceToken("market-dashboard"),
-          "x-proxy-url": encodeURI(targetUrl),
-          "x-proxy-method": "GET",
-          "x-country": country || "sy",
-          "x-language": lang || "en",
-          "x-need-decode": "true",
-          "x-seller-id": sellerId,
-        },
-        credentials: "include",
-      });
-
-    const sentAt = Date.now();
-    let res = await request();
-
-    // fetchData renews the session on a 401; this call bypasses it, so do the
-    // same here: one exchange, then the same request once more.
-    if (res.status === 401) {
-      const authService = await import("services/auth");
-      const refresh = await authService.default.RefreshSession(
-        targetUrl,
-        "market-dashboard",
-        sentAt,
-      );
-      if (refresh.eligible) res = await request();
-    }
-
-    const contentType = res.headers.get("content-type") || "";
-
-    // On error (or "no template") the backend/proxy returns JSON, not a file.
-    if (!res.ok || contentType.includes("application/json")) {
-      let message = `Failed to download template (${res.status})`;
-      try {
-        const data = await res.json();
-        message = data?.message || data?.error || message;
-      } catch {}
-      throw new Error(message);
-    }
-
-    const blob = await res.blob();
-
-    // The proxy doesn't forward Content-Disposition, so fall back to a default
-    // name (still try the header in case it's present).
-    const disposition = res.headers.get("content-disposition") || "";
-    const match = disposition.match(
-      /filename\*?=(?:UTF-8'')?["']?([^"';]+)/i,
+    return downloadShopFile(
+      sellerId,
+      `/shop/excel/downloadExcel/${categoryId}?mode=${mode}`,
+      fallbackName,
+      "Failed to download template",
     );
-    const filename = match?.[1]
-      ? decodeURIComponent(match[1])
-      : `template-${categoryId}.xlsx`;
+  }
 
-    return { blob, filename };
+  // GET /shop/excel/failedRows/{uploadedFileId} — the rows of one upload that
+  // were not imported, with a Reason column, as an .xlsx file.
+  async downloadFailedRows(
+    sellerId: string,
+    uploadedFileId: string | number,
+    fallbackName: string,
+  ): Promise<{ blob: Blob; filename: string }> {
+    return downloadShopFile(
+      sellerId,
+      `/shop/excel/failedRows/${uploadedFileId}`,
+      fallbackName,
+      "Failed to download the failed rows",
+    );
   }
 
   // POST /shop/excel/processExcel — process a filled excel by its media url.
-  async processExcel(sellerId: string, url: string) {
+  // `expectedCategoryId` is the category picked in the tab: the backend answers
+  // 409 with `data.category_mismatch` when the sheet was made for another one.
+  // `confirmCategory` is sent after the seller confirmed that question.
+  async processExcel(
+    sellerId: string,
+    url: string,
+    options: { expectedCategoryId?: number | string; confirmCategory?: boolean } = {},
+  ) {
     return fetchData({
       url: `/shop/excel/processExcel`,
       method: "POST",
       server: "market-dashboard",
       reqTitle: REQUESTS_DATA.PROCESS_EXCEL,
-      body: JSON.stringify({ file_url:process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL+'/file/upload/'+url }),
+      body: JSON.stringify({
+        file_url: process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL + "/file/upload/" + url,
+        ...(options.expectedCategoryId ? { expected_category_id: options.expectedCategoryId } : {}),
+        ...(options.confirmCategory ? { confirm_category: true } : {}),
+      }),
       sellerId,
     });
   }
