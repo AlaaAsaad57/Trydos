@@ -5,6 +5,7 @@ import ChatPhoto from "../../ChatPhoto";
 import { DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
 import MessageMarks from "../MessageMarks";
+import CancelUploadButton from "../CancelUploadButton";
 
 function ImageMessage({
   setOpen,
@@ -98,6 +99,9 @@ function ImageMessage({
             />
           </div>
         )}
+        {/* A photo has no play button, so its cancel X goes where a video
+            draws one: in the middle of the picture. */}
+        <CancelUploadButton mid={mid} className="play-vid-icon" />
         <img
           alt="user"
           onClick={() => setImg(message_files?.[0]?.file_path)}

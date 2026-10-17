@@ -10,6 +10,7 @@ import {
 import OptionsMenu from "../../OptionsMenu";
 import Spinner from "components/global/Spinner";
 import MessageMarks, { countMarks, marksMinWidth } from "../MessageMarks";
+import CancelUploadButton from "../CancelUploadButton";
 
 function FileMessage({
   setOpen,
@@ -117,7 +118,9 @@ function FileMessage({
               <div className="file-type"></div>
             </div>
             {mid ? (
-             <Spinner/>
+              <CancelUploadButton mid={mid}>
+                <Spinner />
+              </CancelUploadButton>
             ) : (
               <img src="/icons/chat/down.svg" style={{ minWidth: "34px" }} />
             )}

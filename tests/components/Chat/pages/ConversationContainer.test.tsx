@@ -116,7 +116,7 @@ vi.mock("utils/firebaseInitv1", () => ({
 vi.mock("firebase/database", () => h.fb);
 
 import ConversationContainer from "components/Chat/pages/ConversationContainer";
-import { getMessageStatus } from "store/chat/chatUtils";
+import CancelUploadButton from "components/Chat/components/messages/CancelUploadButton";
 
 const ME = 1;
 const THEM = 2;
@@ -236,14 +236,13 @@ function bubblesInChat() {
 }
 
 /**
- * The cancel button under my pending bubble `mid`, or null. ChatMessage is a
- * stand-in in this file, so the status line under the bubble is drawn here —
- * the same `getMessageStatus` every message type draws.
+ * The cancel button on my pending bubble `mid`, or null. ChatMessage is a
+ * stand-in in this file, so the X is drawn here — the same
+ * `CancelUploadButton` every bubble draws in its play/spinner place. Where each
+ * bubble puts it is checked in that bubble's own test.
  */
 function cancelButtonOn(mid: string) {
-  const { container } = render(
-    getMessageStatus({ mid, message_status: [], created_at: "2030-01-15T10:00:00" }),
-  );
+  const { container } = render(<CancelUploadButton mid={mid} />);
   return within(container).queryByRole("button", { name: /cancel upload/i });
 }
 

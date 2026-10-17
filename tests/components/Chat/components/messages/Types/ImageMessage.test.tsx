@@ -20,6 +20,7 @@ vi.mock("store/chat/chatUtils", async (importOriginal) => ({
 }));
 
 import ImageMessage from "components/Chat/components/messages/Types/ImageMessage";
+import { finishUpload, startUpload } from "components/Chat/uploadCancel";
 
 const ME = 1;
 const activeChat = { id: 7, channel_members: [{ user_id: ME, user: { name: "Me", photo_path: "/real.png" } }] };
@@ -91,5 +92,25 @@ describe("ImageMessage", () => {
     h.menu.setDelete(true);
     expect(p.setDelete, "the delete box was not opened").toHaveBeenCalledWith(true);
     h.menu.copy();
+  });
+
+  it("while the photo uploads, the cancel X sits in the middle of it, and stops the upload", async () => {
+    const onCancel = vi.fn();
+    const signal = startUpload("m-photo", onCancel);
+    try {
+      const { p } = await mount({ mid: "m-photo", openMenu: false });
+      const cancel = screen.queryByRole("button", { name: /cancel upload/i });
+      expect(cancel, "an uploading photo offers no cancel X").not.toBeNull();
+      expect(cancel!.className, "the cancel X is not in the middle of the photo, where a video shows its play button").toContain("play-vid-icon");
+      expect(cancel!.closest(".message-date"), "the cancel X is still in the status line under the photo").toBeNull();
+
+      fireEvent.click(cancel!);
+      expect(signal.aborted, "pressing the X did not stop the photo upload").toBe(true);
+      expect(onCancel, "pressing the X did not remove the pending photo").toHaveBeenCalled();
+      expect(p.setImg, "pressing the X also opened the photo viewer").not.toHaveBeenCalled();
+      expect(p.setOpen, "pressing the X also opened the message menu").not.toHaveBeenCalled();
+    } finally {
+      finishUpload("m-photo");
+    }
   });
 });

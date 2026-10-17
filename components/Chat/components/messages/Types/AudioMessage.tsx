@@ -6,6 +6,7 @@ import Spinner from "components/global/Spinner";
 import { DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
 import MessageMarks from "../MessageMarks";
+import CancelUploadButton from "../CancelUploadButton";
 
 // 1. Move helper outside to prevent re-declaration on every render
 const formatAudioTime = (seconds) => {
@@ -156,17 +157,19 @@ function AudioMessage({
               </div>
             )}
             <div className="audio-message">
-              {duration > 0 ? (
-                <img
-                  src={
-                    playing ? "/icons/chat/pause.svg" : "/icons/chat/play.svg"
-                  }
-                  className="play-icon"
-                  onClick={handleTogglePlay}
-                />
-              ) : (
-                <Spinner className="play-icon" />
-              )}{" "}
+              <CancelUploadButton mid={mid} className="play-icon">
+                {duration > 0 ? (
+                  <img
+                    src={
+                      playing ? "/icons/chat/pause.svg" : "/icons/chat/play.svg"
+                    }
+                    className="play-icon"
+                    onClick={handleTogglePlay}
+                  />
+                ) : (
+                  <Spinner className="play-icon" />
+                )}
+              </CancelUploadButton>{" "}
               <div className="player-cont">
                 <div className="wave-absolute">
                   {duration > 0 ? (

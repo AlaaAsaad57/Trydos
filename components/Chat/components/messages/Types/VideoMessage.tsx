@@ -6,6 +6,7 @@ import OptionsMenu from "../../OptionsMenu";
 import React from "react";
 import { toDownloadUrl } from "components/Chat/videoSupport";
 import MessageMarks from "../MessageMarks";
+import CancelUploadButton from "../CancelUploadButton";
 function VideoMessage({
   setOpen,
   setDelete,
@@ -129,16 +130,18 @@ function VideoMessage({
             />
           </a>
         ) : (
-          <img
-            src="/icons/chat/play.svg"
-            data-pw="VIDEO-PLAY"
-            alt={translateFunction("Play")}
-            onClick={(e) => {
-              e.stopPropagation();
-              setVid(filePath);
-            }}
-            className="play-vid-icon"
-          />
+          <CancelUploadButton mid={mid} className="play-vid-icon">
+            <img
+              src="/icons/chat/play.svg"
+              data-pw="VIDEO-PLAY"
+              alt={translateFunction("Play")}
+              onClick={(e) => {
+                e.stopPropagation();
+                setVid(filePath);
+              }}
+              className="play-vid-icon"
+            />
+          </CancelUploadButton>
         )}
         {/* `preload="metadata"` makes the browser read the header, which is
             what lets it report an unsupported codec without downloading the

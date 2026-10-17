@@ -1,36 +1,7 @@
 import { useAppStore } from "store";
-import { cancelUpload, useUploadRunning } from "components/Chat/uploadCancel";
-import { getUserChat, LogError, translateFunction } from "utils/functions";
+import { getUserChat, LogError } from "utils/functions";
 import { MessageContent, MessageStatus } from "utils/types/chat";
 import { DeleteMessageApi } from "./actions";
-
-/**
- * The X beside a pending bubble while its file, video or voice note is still
- * uploading. Pressing it stops the upload and removes the bubble. It is not
- * drawn once the upload ends, because the message is then already being sent.
- */
-function CancelUploadButton({ mid }: { mid: string }) {
-  const uploading = useUploadRunning(mid);
-  if (!uploading) return null;
-  const label = translateFunction("Cancel upload");
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      data-pw="chat-cancel-upload"
-      className="flex items-center justify-center w-[16px] h-[16px] me-[4px] rounded-full bg-[#3C3C3C] cursor-pointer"
-      onClick={(e) => {
-        e.stopPropagation();
-        cancelUpload(mid);
-      }}
-    >
-      <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true">
-        <path d="M1 1l6 6M7 1L1 7" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-    </button>
-  );
-}
 
 export const getMessageStatus = ({
   mid,
@@ -45,7 +16,6 @@ export const getMessageStatus = ({
   if (mid) {
     return (
       <>
-        <CancelUploadButton mid={String(mid)} />
         {
           <div className="sent-date" data-pw="chat-message-status" data-status="pending">
             {
