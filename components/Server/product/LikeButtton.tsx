@@ -4,6 +4,7 @@ import home from "services/home";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { LogError, translateFunction } from "utils/functions";
+import { formatCount } from "utils/formatCount";
 
 export function LikeButton({
   comment_id,
@@ -12,6 +13,7 @@ export function LikeButton({
   disabled = false,
   is_liked,
   total_likes,
+  language = "en",
 }) {
   const [isLiked, setIsLiked] = useState(is_liked || false);
   const [loading, setLoading] = useState(false);
@@ -107,7 +109,7 @@ export function LikeButton({
       data-comment-id={realId}
       data-target-type={target_type}
       data-liked={isLiked ? "true" : "false"}
-      // The visible count is `toLocaleString()`-formatted; this carries the raw
+      // The visible count is short (`formatCount`: "1.2K"); this carries the raw
       // number so nothing has to parse it back.
       data-likes={likes ?? 0}
       className={`${loading && "opacity-65 scale-90"} ${
@@ -158,7 +160,7 @@ export function LikeButton({
           fill={"transparent"}
         />
       </svg>
-      <span data-pw="comment-like-count">{likes.toLocaleString()}</span>
+      <span data-pw="comment-like-count">{formatCount(likes, language)}</span>
     </div>
   );
 }

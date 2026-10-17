@@ -126,6 +126,12 @@ describe("the comment like heart", () => {
     expect(heart().getAttribute("data-liked"), "the liked state should follow the list").toBe("true");
   });
 
+  it("shows a big like count in short form, and keeps the raw number for the browser suite", async () => {
+    await renderHeart({ total_likes: 1500, language: "en" });
+    expect(count(), "1,500 likes should show as 1.5K").toBe("1.5K");
+    expect(heart().getAttribute("data-likes"), "data-likes must keep the raw count").toBe("1500");
+  });
+
   it("BUG-server-30: draws a comment that has no like count yet as 0", async () => {
     await renderHeart({ total_likes: undefined, is_liked: undefined });
     await waitFor(() => expect(count(), "a comment without a like count should show 0").toBe("0"));

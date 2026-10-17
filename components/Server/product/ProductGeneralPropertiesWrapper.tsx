@@ -6,15 +6,20 @@ import ProductViews from "components/products/ProductViews";
 import { GetProductGeneralData } from "serverRequests/product";
 import { FlagIcon, VALID_ISO } from "utils/tinyUtils";
 import { productHasSizes } from "./productHasSizes";
+import { formatCount } from "utils/formatCount";
 
 async function ProductGeneralPropertiesWrapper({
   globalData,
   qtyPricePromise,
   language,
+  generalData,
 }: {
   globalData: any;
   qtyPricePromise?: any;
   language: string;
+  // Ready facts data. Only the /products/temp page passes it (fixed big
+  // numbers for testers); the product page fetches it below.
+  generalData?: any;
 }) {
   let productGlobalData = await globalData;
   if (!productGlobalData?.id) return <></>;
@@ -22,9 +27,10 @@ async function ProductGeneralPropertiesWrapper({
   // Start the facts request now. Do not wait for the price data first.
   const [productQtyData, product] = await Promise.all([
     qtyPricePromise ?? null,
-    GetProductGeneralData({
-      id: productGlobalData?.id,
-    }),
+    generalData ??
+      GetProductGeneralData({
+        id: productGlobalData?.id,
+      }),
   ]);
   const originIso = productGlobalData?.origin_country_iso;
   const originText = madeInText(originIso, language);
@@ -55,7 +61,7 @@ async function ProductGeneralPropertiesWrapper({
         <ProductRating rating={product.final_rating} />
         {TotalBuyers() > 0 && (
           <div className="flex-row items-center px-[4px]">
-            <span className="bold px-[4px]"> {TotalBuyers()}</span>
+            <span className="bold px-[4px]"> {formatCount(TotalBuyers(), language)}</span>
             {translateFunction("Buyer Rate", language)}
           </div>
         )}
@@ -63,7 +69,7 @@ async function ProductGeneralPropertiesWrapper({
         {product.total_views > 0 && (
           <>
             <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-            <ProductViews views={product.total_views} />
+            <ProductViews views={product.total_views} language={language} />
           </>
         )}
 
@@ -84,7 +90,7 @@ async function ProductGeneralPropertiesWrapper({
               <span>
                 {translateFunction("Recommend It By", language)}
                 <span className="m-0 px-[3px]">
-                  {product?.recommendation_stats?.[0]?.count}
+                  {formatCount(product?.recommendation_stats?.[0]?.count, language)}
                 </span>
                 <span className="m-0">
                   {translateFunction("Buyer", language)}

@@ -77,6 +77,20 @@ describe("the recommend bar", () => {
     ).not.toBeNull();
   });
 
+  it("shows big counts in short form, with the Arabic letters in Arabic", () => {
+    render(
+      <BuyersRatingBar
+        language="ar"
+        recommendation_stats={[
+          { category: "recommend", count: 25000, percentage: 94 },
+          { category: "not_recommend", count: 1500, percentage: 6 },
+        ]}
+      />,
+    );
+    expect(screen.getByText("25أ"), "25,000 recommends in Arabic should show as 25أ").toBeInTheDocument();
+    expect(screen.getByText("1.5أ"), "1,500 do-not-recommends in Arabic should show as 1.5أ").toBeInTheDocument();
+  });
+
   it("draws without stats, left to right in English", () => {
     const { container } = render(<BuyersRatingBar language="en" recommendation_stats={undefined} />);
     expect(container.querySelector(".flex-row-reverse"), "English must not be mirrored").toBeNull();

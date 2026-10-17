@@ -113,6 +113,7 @@ function FaqItemComponent({
             productId={c.product_id}
             target_type={"comment"}
             total_likes={c.total_likes}
+            language={language}
           />
         </div>
       </div>
@@ -179,6 +180,7 @@ function FaqItemComponent({
                 productId={c.product_id}
                 target_type={"seller_reply"}
                 total_likes={c.reply_total_likes}
+                language={language}
               />
               <BuyersReplyMenu
                 id={c.id}

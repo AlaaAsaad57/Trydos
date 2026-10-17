@@ -22,7 +22,7 @@ vi.mock("components/products/ProductGeneralProperties", () => ({
   },
 }));
 vi.mock("components/products/ProductViews", () => ({
-  default: ({ views }: any) => <span>views:{views}</span>,
+  default: ({ views, language }: any) => <span>views:{views}{language ? `:${language}` : ""}</span>,
 }));
 
 import ProductGeneralPropertiesWrapper from "components/Server/product/ProductGeneralPropertiesWrapper";
@@ -57,6 +57,38 @@ describe("the product facts row", () => {
     expect(text, "the recommendations should be counted").toContain("Recommend It By6");
     expect(text, "the origin country should be shown").toContain("Made in tr");
     expect(props.general.total_rating, "the rating should reach the facts panel").toBe(4);
+  });
+
+  it("shows big buyer and recommendation counts in short form, and hands the language to the views", async () => {
+    GetProductGeneralData.mockResolvedValue({
+      final_rating: 4,
+      ratingDetails: [{ count: 1000 }, { count: 250 }],
+      total_views: 15300,
+      recommendation_stats: [{ count: 10000 }],
+    });
+    const { container } = render(
+      await ProductGeneralPropertiesWrapper({
+        globalData: Promise.resolve({ id: 1 }),
+        language: "en",
+      }),
+    );
+    const text = container.textContent;
+    expect(text, "1,250 buyers should show as 1.2K").toContain("1.2KBuyer Rate");
+    expect(text, "10,000 recommendations should show as 10K").toContain("Recommend It By10K");
+    expect(text, "the views should get the page language to shorten in").toContain("views:15300:en");
+  });
+
+  it("uses ready facts data when it is given, and does not fetch (the /products/temp page)", async () => {
+    GetProductGeneralData.mockClear();
+    const { container } = render(
+      await ProductGeneralPropertiesWrapper({
+        globalData: Promise.resolve({ id: "temp" }),
+        language: "en",
+        generalData: { final_rating: 5, ratingDetails: [{ count: 1000000 }], total_views: 0 },
+      }),
+    );
+    expect(GetProductGeneralData, "the facts were fetched even though ready data was given").not.toHaveBeenCalled();
+    expect(container.textContent, "the ready data's 1,000,000 buyers should show as 1M").toContain("1MBuyer Rate");
   });
 
   it("leaves out the empty facts", async () => {

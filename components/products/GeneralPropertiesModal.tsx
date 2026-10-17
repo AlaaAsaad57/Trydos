@@ -6,6 +6,7 @@ import RatingStars from "components/settings/cards/RatingStars";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import ProductViews from "./ProductViews";
 import { productHasSizes } from "components/Server/product/productHasSizes";
+import { formatCount } from "utils/formatCount";
 
 function GeneralPropertiesModal({
   rating_stats,
@@ -100,7 +101,7 @@ function GeneralPropertiesModal({
                 className="flex-row px-[3px] product-properties items-center justify-start w-full text-[#1d1d1d] text-[11px] *:text-[11px]!"
               >
                 <div className="flex-row items-center">
-                  <span className="bold pr-[4px]"> {TotalBuyers}</span>
+                  <span className="bold pr-[4px]"> {formatCount(TotalBuyers, language)}</span>
                   {translateFunction("Buyer Rate", language)}
                 </div>
 
@@ -118,7 +119,7 @@ function GeneralPropertiesModal({
                   </>
                 )}
                 <span className="px-[5px] text-[11px] text-[#1d1d1d]">|</span>
-                <ProductViews views={views} />
+                <ProductViews views={views} language={language} />
                 <span className="px-[4px] flex">
                   {translateFunction("Views Product", language)}
                 </span>
@@ -135,7 +136,7 @@ function GeneralPropertiesModal({
                         initialRating={s.rating}
                       />
                       <div className="regular text-[11px] text-[#1d1d1d] gap-[4px] flex-row items-center">
-                        <span className="bold">{s.count}</span>
+                        <span className="bold">{formatCount(s.count, language)}</span>
                         <span>{s.title ? translateFunction(s.title, language) : ""}</span>
                       </div>
                     </div>
@@ -250,7 +251,7 @@ const BuyersRatingBar = ({ language, recommendation_stats }) => {
         >
           <div className={`flex-row`}>
             <img src="/icons/RecomendedIcon.svg" />
-            <span className="bold px-[4px]">{recomended}</span>
+            <span className="bold px-[4px]">{formatCount(recomended, language)}</span>
             <span>{translateFunction("Buyer", language)}</span>
           </div>
           <span className="bold w-full flex justify-end px-[4px]">
@@ -264,7 +265,7 @@ const BuyersRatingBar = ({ language, recommendation_stats }) => {
         >
           <div className="flex-row">
             <img src="/icons/NegRecomendIcon.svg" />
-            <span className="bold px-[4px]">{not_recomended}</span>
+            <span className="bold px-[4px]">{formatCount(not_recomended, language)}</span>
             <span>{translateFunction("Buyer", language)}</span>
           </div>
           <span className={`w-full flex justify-end bold px-[4px]`}>

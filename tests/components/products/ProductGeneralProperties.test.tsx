@@ -77,6 +77,29 @@ describe("ProductGeneralProperties and GeneralPropertiesModal", () => {
     expect(document.querySelector(".flex-row-reverse"), "the Arabic strip is not flipped").not.toBeNull();
   });
 
+  it("shows big totals, views, star counts and recommend counts in short form in the sheet", async () => {
+    await renderStrip(
+      {
+        rating_stats: [
+          { ratingGroup: 5, count: 1200000 },
+          { ratingGroup: 4, count: 350000 },
+        ],
+        recommendation_stats: [
+          { category: "recommend", count: 10000 },
+          { category: "not_recommend", count: 2500 },
+        ],
+        views: 15300,
+      },
+      { ColorBottomSheet: { is_general_properties: true }, language: "en" },
+    );
+    expect(screen.getByText("1.5M", { selector: "span.bold" }), "the buyer total 1,550,000 should show as 1.5M").toBeInTheDocument();
+    expect(screen.getByText("15.3K", { selector: ".view-count span" }), "15,300 views should show as 15.3K").toBeInTheDocument();
+    const stars = screen.getAllByText(/^(1\.2M|350K)$/, { selector: "span.bold" }).map((el) => el.textContent);
+    expect(stars, "the star rows should show 1.2M and 350K, highest star first").toEqual(["1.2M", "350K"]);
+    expect(screen.getByText("10K"), "10,000 recommends should show as 10K").toBeInTheDocument();
+    expect(screen.getByText("2.5K"), "2,500 do-not-recommends should show as 2.5K").toBeInTheDocument();
+  });
+
   it("renders correctly when ratingGroup is a string or unmatched without throwing", async () => {
     await renderStrip(
       {

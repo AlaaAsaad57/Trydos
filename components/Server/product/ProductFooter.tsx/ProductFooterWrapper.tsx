@@ -3,6 +3,7 @@ import ProductFooter from "./ProductFooter";
 
 function ProductFooterWrapper({
   isRtl,
+  language = "en",
   globalPromise,
   QtyPricePromise,
   color,
@@ -22,6 +23,7 @@ function ProductFooterWrapper({
     <>
       <ProductFooter
         isRtl={isRtl}
+        language={language}
         productLightData={{
           id: product.id,
           image: GetImageUrl(
