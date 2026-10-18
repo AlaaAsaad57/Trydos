@@ -25,6 +25,7 @@ import BackBar from "components/setting/BackBar";
 import ShopInfo from "components/SellerDashboard/ShopInfo";
 import CartsTab from "components/SellerDashboard/carts/CartsTab";
 import ProductCartsModal from "components/SellerDashboard/carts/ProductCartsModal";
+import ProductOrdersModal from "components/SellerDashboard/productOrders/ProductOrdersModal";
 import { ConfirmModal } from "components/global/ConfirmModal";
 import { DashIcon, IconName } from "components/SellerDashboard/ui/icons";
 import {
@@ -230,6 +231,16 @@ const getPermissionGroupLabel = (group: string): string => {
   return PERMISSION_GROUP_LABELS[group] || group.replace(/_/g, " ");
 };
 
+// What the product carts / product orders modals need from a product card.
+const productModalTarget = (product: any) => ({
+  productId: product.product_id || product.id,
+  productName: product.name,
+  productImage:
+    typeof product.images?.[0] === "string"
+      ? product.images[0]
+      : product.images?.[0]?.file_path,
+});
+
 function SellerDashBoard() {
   const params = useParams();
   const sellerId = params.sellerId as string;
@@ -309,6 +320,11 @@ function SellerDashBoard() {
     tabParam && VALID_TABS.includes(tabParam) ? tabParam : "none";
 
   const [productCartsTarget, setProductCartsTarget] = useState<{
+    productId: number | string;
+    productName?: string;
+    productImage?: string;
+  } | null>(null);
+  const [productOrdersTarget, setProductOrdersTarget] = useState<{
     productId: number | string;
     productName?: string;
     productImage?: string;
@@ -490,6 +506,9 @@ function SellerDashBoard() {
   const canDeleteReply = hasPermission("DELETE_REPLY");
   // Carts tab (gated on READ_CARTS, SUPER_ADMIN included via hasPermission)
   const canViewCarts = hasPermission("READ_CARTS");
+  // Product orders (GET /shop/products/{id}/orders) needs READ_ORDERS exactly,
+  // not any orders permission (SUPER_ADMIN included via hasPermission).
+  const canViewProductOrders = hasPermission("READ_ORDERS");
   // Excel bulk upload is gated on product create/update (SUPER_ADMIN included via hasPermission)
   const canUploadExcel =
     hasPermission("CREATE_PRODUCT") || hasPermission("UPDATE_PRODUCT");
@@ -1308,30 +1327,45 @@ function SellerDashBoard() {
                       : translateFunction("Inactive")}
                   </span>
                 )}
-                {canViewCarts && (
-                  <button
-                    type="button"
-                    data-pw="seller-product-carts-btn"
-                    title={translateFunction("View Carts")}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setProductCartsTarget({
-                        productId: product.product_id || product.id,
-                        productName: product.name,
-                        productImage:
-                          typeof product.images?.[0] === "string"
-                            ? product.images[0]
-                            : product.images?.[0]?.file_path,
-                      });
-                    }}
+                {(canViewCarts || canViewProductOrders) && (
+                  <div
                     className={`absolute top-2.5 ${
-                      isRtl ? "left-2.5" : "right-2.5"
-                    } inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] semibold backdrop-blur-md bg-white/85 text-[#5d5d5d] hover:bg-white hover:text-[#1d1d1d] shadow-xs transition-colors z-10`}
+                      isRtl ? "left-2.5 items-start" : "right-2.5 items-end"
+                    } flex flex-col gap-1.5 z-10`}
                   >
-                    <DashIcon name="carts" size={12} />
-                    <span>{translateFunction("Carts")}</span>
-                  </button>
+                    {canViewCarts && (
+                      <button
+                        type="button"
+                        data-pw="seller-product-carts-btn"
+                        title={translateFunction("View Carts")}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setProductCartsTarget(productModalTarget(product));
+                        }}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] semibold backdrop-blur-md bg-white/85 text-[#5d5d5d] hover:bg-white hover:text-[#1d1d1d] shadow-xs transition-colors"
+                      >
+                        <DashIcon name="carts" size={12} />
+                        <span>{translateFunction("Carts")}</span>
+                      </button>
+                    )}
+                    {canViewProductOrders && (
+                      <button
+                        type="button"
+                        data-pw="seller-product-orders-btn"
+                        title={translateFunction("View Orders")}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setProductOrdersTarget(productModalTarget(product));
+                        }}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] semibold backdrop-blur-md bg-white/85 text-[#5d5d5d] hover:bg-white hover:text-[#1d1d1d] shadow-xs transition-colors"
+                      >
+                        <DashIcon name="orders" size={12} />
+                        <span>{translateFunction("Orders")}</span>
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
               <div className="p-3.5">
@@ -2811,6 +2845,16 @@ function SellerDashBoard() {
             language={language}
             shopCurrency={shopCurrency}
             onClose={() => setProductCartsTarget(null)}
+          />
+        )}
+        {productOrdersTarget && (
+          <ProductOrdersModal
+            productId={productOrdersTarget.productId}
+            productName={productOrdersTarget.productName}
+            productImage={productOrdersTarget.productImage}
+            sellerId={sellerId}
+            language={language}
+            onClose={() => setProductOrdersTarget(null)}
           />
         )}
       </div>

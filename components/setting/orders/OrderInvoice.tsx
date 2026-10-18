@@ -1,12 +1,17 @@
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
 
+// `totalLabel` shows an amount the caller already formatted with its own
+// currency (the seller dashboard). Without it, `total` is converted with the
+// shopper's currency, as before.
 const OrderInvoice = ({
   invoice,
   isRtl,
+  totalLabel,
 }: {
   invoice: { items: number; total: number };
   isRtl: boolean;
+  totalLabel?: string;
 }) => {
   const { currency, language } = useAppStore();
 
@@ -133,15 +138,21 @@ const OrderInvoice = ({
         } regular gap-[2px]  text-[12px] text-[#505050]`}
       >
         <span className="bold mx-[2px]">.</span>
-        <span>
-          {RoundPrice({
-            charged: true,
-            num: invoice.total,
-            language: language,
-            returnNumber: true,
-          })}
-        </span>
-        <span>{currency?.symbol}</span>
+        {totalLabel !== undefined ? (
+          <span dir="ltr">{totalLabel}</span>
+        ) : (
+          <>
+            <span>
+              {RoundPrice({
+                charged: true,
+                num: invoice.total,
+                language: language,
+                returnNumber: true,
+              })}
+            </span>
+            <span>{currency?.symbol}</span>
+          </>
+        )}
       </div>
     </div>
   );

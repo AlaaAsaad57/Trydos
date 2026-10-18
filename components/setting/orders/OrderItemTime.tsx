@@ -1,5 +1,15 @@
 
-const OrderItemTime = ({ time, isRtl }) => {
+// `label` shows a time the caller already formatted (the seller orders API
+// sends `{ date, time }`, not a date string). Without it, `time` is parsed.
+const OrderItemTime = ({
+  time,
+  isRtl,
+  label,
+}: {
+  time?: string;
+  isRtl: boolean;
+  label?: string;
+}) => {
   const formatTime = (timeString: string) => {
     // const date = new Date(timeString + "Z");
     const date = new Date(timeString);
@@ -107,7 +117,7 @@ const OrderItemTime = ({ time, isRtl }) => {
       </svg>
 
       <span className=" text-[#1D1D1D] text-[12px] regular">
-        {formatTime(time)}
+        {label ?? formatTime(time ?? "")}
       </span>
     </div>
   );

@@ -9,6 +9,10 @@ import type {
   OldCartsListResponse,
   OldCartDetailsResponse,
 } from "components/SellerDashboard/carts/types";
+import type {
+  ProductOrdersResponse,
+  ProductOrdersStatus,
+} from "components/SellerDashboard/productOrders/types";
 
 const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
@@ -1306,6 +1310,27 @@ class SellerDashboardService {
       method: "GET",
       server: "market-dashboard",
       reqTitle: REQUESTS_DATA.GET_SELLER_PRODUCT_CARTS,
+      sellerId,
+    });
+  }
+
+  // GET /shop/products/{productId}/orders — This seller's orders holding the
+  // product (paginated). Contract: shop-seller-orders-apis.md §4.1.
+  async getSellerProductOrders(
+    sellerId: string,
+    productId: number | string,
+    page: number = 1,
+    status: ProductOrdersStatus = "all",
+  ): Promise<ProductOrdersResponse> {
+    const query = new URLSearchParams();
+    if (status !== "all") query.set("status", status);
+    if (page > 1) query.set("page", String(page));
+    const qs = query.toString();
+    return fetchData({
+      url: `/shop/products/${encodeURIComponent(String(productId))}/orders${qs ? `?${qs}` : ""}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SELLER_PRODUCT_ORDERS,
       sellerId,
     });
   }
