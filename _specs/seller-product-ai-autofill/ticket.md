@@ -12,7 +12,7 @@ created_at: 2026-10-19
 updated_at: 2026-10-19
 links:
   clickup: ""
-  github: ""
+  github: "https://github.com/AlaaAsaad57/Trydos/pull/141"
 ---
 
 # Ticket Record — seller-product-ai-autofill
