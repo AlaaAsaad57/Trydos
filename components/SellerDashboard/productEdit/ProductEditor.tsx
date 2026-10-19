@@ -30,6 +30,7 @@ import {
   DescriptorGroup,
   DiffEntry,
   emptyProductForm,
+  extractNames,
   chooseSaveErrorSummary,
   clearServerFieldErrors,
   fileName,
@@ -61,6 +62,7 @@ import {
   SectionProps,
 } from "./sections";
 import { FormSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
+import { applyAiSuggestion, clearAiPrefill, peekAiPrefill } from "./aiPrefill";
 
 const t = (s: string) => translateFunction(s);
 
@@ -68,26 +70,6 @@ const t = (s: string) => translateFunction(s);
  *  rest. One refusal on a product with ten colours and six sizes can carry a
  *  line per row, and a wall of near-identical lines above the form helps nobody. */
 const SERVER_MESSAGE_LIMIT = 5;
-
-/** Best-effort filename extraction from the media-server /upload/bulk shapes. */
-function extractNames(data: any): string[] {
-  const arr =
-    data?.files ??
-    data?.urls ??
-    data?.results ??
-    data?.data ??
-    (data?.url ? [data.url] : Array.isArray(data) ? data : []);
-  if (!Array.isArray(arr)) return [];
-  return arr
-    .map((item: any) => {
-      const raw =
-        typeof item === "string"
-          ? item
-          : item?.url ?? item?.path ?? item?.file_name ?? item?.name ?? "";
-      return fileName(raw);
-    })
-    .filter(Boolean);
-}
 
 export default function ProductEditor({
   sellerId,
@@ -102,6 +84,13 @@ export default function ProductEditor({
 }) {
   const router = useRouter();
   const isCreate = mode === "create";
+  // "Add with AI" hand-off: read once into state (StrictMode-safe), then
+  // cleared so a later manual "Add Product" opens empty.
+  const [aiPrefill] = useState(() => (isCreate ? peekAiPrefill(sellerId) : null));
+  const aiAnnounced = useRef(false);
+  useEffect(() => {
+    if (isCreate) clearAiPrefill(sellerId);
+  }, []);
   const { sellerProducts, sellerPermissions, setSellerPermissions } =
     useSellerProfile();
   const language = (local || "").includes("-") ? (local || "").split("-")[1] : (local || "");
@@ -243,12 +232,14 @@ export default function ProductEditor({
         // Create lookups sit flat under `data`; the edit endpoint nests them
         // under `data.lookups`. Same datasets, different nesting.
         const lk = withSellerProductIds(res.data || {}, res.data);
-        const built = emptyProductForm();
+        const empty = emptyProductForm();
+        // AI values count as unsaved changes: `initial` stays the empty form.
+        const built = aiPrefill ? applyAiSuggestion(empty, aiPrefill) : empty;
         baseLookups.current = lk;
         catCache.current = new Map();
         setLookups(lk);
         setForm(built);
-        setInitial(built);
+        setInitial(empty);
         setStatus(0);
         setEditMode(true);
         return;
@@ -785,6 +776,28 @@ export default function ProductEditor({
       setStatusSaving(false);
     }
   };
+
+  // After an AI fill: once the real form (not the skeleton or a gate message)
+  // is on screen, say so once and bring the Name field into view.
+  const formShown =
+    !loading &&
+    !shopInfoPending &&
+    !denied &&
+    !shopInfoForbidden &&
+    !shopInfoUnavailable &&
+    !loadError &&
+    !!form &&
+    !!lookups;
+  useEffect(() => {
+    if (!aiPrefill || !formShown || aiAnnounced.current) return;
+    aiAnnounced.current = true;
+    showSuccessMessage(t("The details were filled by AI. Please check them before saving."));
+    requestAnimationFrame(() => {
+      document
+        .querySelector('[data-field="name"]')
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }, [aiPrefill, formShown]);
 
   /* ------------------------------- render --------------------------------- */
 

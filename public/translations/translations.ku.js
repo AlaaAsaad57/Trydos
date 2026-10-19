@@ -2999,6 +2999,19 @@ const translations = {
   "Upload cancelled. Nothing was imported.": "بارکردن هەڵوەشێنرایەوە. هیچ شتێک نەهێنرا.",
   "Preparing file...": "ئامادەکردنی فایل...",
   "Failed to download the failed rows": "داگرتنی ڕیزە سەرنەکەوتووەکان سەرکەوتوو نەبوو",
+  "Add with AI": "زیادکردن بە زیرەکی دەستکرد",
+  "Upload a product photo and AI will fill in the product details for you.": "وێنەیەکی بەرهەم باربکە و زیرەکی دەستکرد وردەکارییەکانی بەرهەمەکەت بۆ پڕدەکاتەوە.",
+  "Choose a photo": "وێنەیەک هەڵبژێرە",
+  "Product photo": "وێنەی بەرهەم",
+  "Analyze with AI": "شیکردنەوە بە زیرەکی دەستکرد",
+  "Analyzing photo...": "وێنەکە شیدەکرێتەوە...",
+  "Please choose a JPEG, PNG or WebP photo.": "تکایە وێنەیەکی JPEG یان PNG یان WebP هەڵبژێرە.",
+  "The details were filled by AI. Please check them before saving.": "وردەکارییەکان بە زیرەکی دەستکرد پڕکرانەوە. تکایە پێش پاشەکەوتکردن بیانپشکنە.",
+  "AI analysis failed": "شیکردنەوەی زیرەکی دەستکرد سەرکەوتوو نەبوو",
+  "The image must be uploaded to the media server": "وێنەکە دەبێت بۆ ڕاژەکاری میدیا باربکرێت",
+  "The AI service is busy right now. Please try again in a moment.": "خزمەتگوزاری زیرەکی دەستکرد ئێستا سەرقاڵە. تکایە کەمێکی تر دووبارە هەوڵبدەرەوە.",
+  "You do not have permission for this action.": "مۆڵەتی ئەم کارەت نییە.",
+  "Too many requests. Please try again in a moment.": "داواکاری زۆرە. تکایە کەمێکی تر دووبارە هەوڵبدەرەوە.",
 };
 
 export default translations;

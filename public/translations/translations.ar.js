@@ -2948,6 +2948,19 @@ const translations = {
   "Upload cancelled. Nothing was imported.": "تم إلغاء الرفع. لم يتم استيراد أي شيء.",
   "Preparing file...": "جاري تجهيز الملف...",
   "Failed to download the failed rows": "تعذّر تنزيل الصفوف الفاشلة",
+  "Add with AI": "أضف بالذكاء الاصطناعي",
+  "Upload a product photo and AI will fill in the product details for you.": "ارفع صورة للمنتج وسيملأ الذكاء الاصطناعي تفاصيل المنتج نيابةً عنك.",
+  "Choose a photo": "اختر صورة",
+  "Product photo": "صورة المنتج",
+  "Analyze with AI": "حلّل بالذكاء الاصطناعي",
+  "Analyzing photo...": "جارٍ تحليل الصورة...",
+  "Please choose a JPEG, PNG or WebP photo.": "يرجى اختيار صورة بصيغة JPEG أو PNG أو WebP.",
+  "The details were filled by AI. Please check them before saving.": "تم ملء التفاصيل بالذكاء الاصطناعي. يرجى مراجعتها قبل الحفظ.",
+  "AI analysis failed": "فشل التحليل بالذكاء الاصطناعي",
+  "The image must be uploaded to the media server": "يجب رفع الصورة إلى خادم الوسائط",
+  "The AI service is busy right now. Please try again in a moment.": "خدمة الذكاء الاصطناعي مشغولة الآن. يرجى المحاولة بعد قليل.",
+  "You do not have permission for this action.": "ليست لديك صلاحية لهذا الإجراء.",
+  "Too many requests. Please try again in a moment.": "طلبات كثيرة جدًا. يرجى المحاولة بعد قليل.",
 };
 
 export default translations;
