@@ -12,14 +12,10 @@ async function ProductGeneralPropertiesWrapper({
   globalData,
   qtyPricePromise,
   language,
-  generalData,
 }: {
   globalData: any;
   qtyPricePromise?: any;
   language: string;
-  // Ready facts data. Only the /products/temp page passes it (fixed big
-  // numbers for testers); the product page fetches it below.
-  generalData?: any;
 }) {
   let productGlobalData = await globalData;
   if (!productGlobalData?.id) return <></>;
@@ -27,10 +23,9 @@ async function ProductGeneralPropertiesWrapper({
   // Start the facts request now. Do not wait for the price data first.
   const [productQtyData, product] = await Promise.all([
     qtyPricePromise ?? null,
-    generalData ??
-      GetProductGeneralData({
-        id: productGlobalData?.id,
-      }),
+    GetProductGeneralData({
+      id: productGlobalData?.id,
+    }),
   ]);
   const originIso = productGlobalData?.origin_country_iso;
   const originText = madeInText(originIso, language);

@@ -16,10 +16,7 @@ async function ProductFooter({
   Params,
   color,
   Size,
-  StarttingSettingPromise,
-  // Ready likes / comments / shares from the /products/temp test page. The
-  // product page never passes it, so the numbers are fetched below.
-  socialData: fakeSocialData = undefined,
+  StarttingSettingPromise
 }) {
   let [GlobalDataPromise, qtyPricePromise, currencyPromise, settingResponse] = await Promise.all(
     [GlobalData, QtyPricesData, currency, StarttingSettingPromise],
@@ -30,11 +27,10 @@ async function ProductFooter({
   // Both depend only on the product id and are independent of each other, so fetch in parallel.
   // ratingData feeds the Product JSON-LD (truthful aggregateRating, omitted when no reviews).
   let [socialData, ratingData] = await Promise.all([
-    fakeSocialData ??
-      GetSocialInfoForProduct({
-        productId: GlobalDataPromise?.id,
-        userId: parsedUser?.id,
-      }),
+    GetSocialInfoForProduct({
+      productId: GlobalDataPromise?.id,
+      userId: parsedUser?.id,
+    }),
     GetProductGeneralData({ id: GlobalDataPromise?.id }),
   ]);
   const isRedeemed = async () => {

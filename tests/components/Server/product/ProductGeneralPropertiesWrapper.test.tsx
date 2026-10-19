@@ -78,19 +78,6 @@ describe("the product facts row", () => {
     expect(text, "the views should get the page language to shorten in").toContain("views:15300:en");
   });
 
-  it("uses ready facts data when it is given, and does not fetch (the /products/temp page)", async () => {
-    GetProductGeneralData.mockClear();
-    const { container } = render(
-      await ProductGeneralPropertiesWrapper({
-        globalData: Promise.resolve({ id: "temp" }),
-        language: "en",
-        generalData: { final_rating: 5, ratingDetails: [{ count: 1000000 }], total_views: 0 },
-      }),
-    );
-    expect(GetProductGeneralData, "the facts were fetched even though ready data was given").not.toHaveBeenCalled();
-    expect(container.textContent, "the ready data's 1,000,000 buyers should show as 1M").toContain("1MBuyer Rate");
-  });
-
   it("leaves out the empty facts", async () => {
     GetProductGeneralData.mockResolvedValue({ final_rating: 0, total_views: 0, good_quality_product: true });
     const { container } = render(

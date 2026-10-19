@@ -60,28 +60,6 @@ describe("the product footer (server part)", () => {
     expect(client.socialData, "the social numbers should reach the footer").toEqual({ total_likes: 3 });
   });
 
-  it("uses ready social numbers when they are given, and does not fetch them (the /products/temp page)", async () => {
-    getCookieServer.mockResolvedValue(null);
-    const tree: any = await ProductFooter({
-      GlobalData: Promise.resolve({ id: 9 }),
-      language: "en",
-      QtyPricesData: Promise.resolve({ id: 9, is_luck: 0 }),
-      currency: Promise.resolve({ symbol: "$" }),
-      isRtl: false,
-      Params: { lang: "sy-en" },
-      color: undefined,
-      Size: undefined,
-      StarttingSettingPromise: Promise.resolve(null),
-      socialData: { total_likes: 1000, total_comments: 10000, total_shares: 1000000 },
-    });
-    expect(GetSocialInfoForProduct, "the social numbers were fetched even though ready ones were given").not.toHaveBeenCalled();
-    expect(tree.props.children[1].props.socialData, "the footer should show the ready social numbers").toEqual({
-      total_likes: 1000,
-      total_comments: 10000,
-      total_shares: 1000000,
-    });
-  });
-
   it("keeps the luck window open for a luck product the shopper has not used", async () => {
     const { client } = await runFooter({ redeemed: [{ id: 1 }] });
     expect(client.redeemed_status, "an unused luck product should still offer luck").toBe(true);

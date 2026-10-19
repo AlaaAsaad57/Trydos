@@ -32,21 +32,11 @@ import RelatedProductsSection from "components/Server/product/RelatedProductsSec
 interface ProductPageContentProps {
   params: { lang: string; productId: string };
   searchParams: { color?: string; size?: string };
-  // Fixed big counts for the /products/temp test page, so testers can see the
-  // short form ("1.2K", "1M"). The product page never passes it: each section
-  // then fetches its own counts.
-  fakeCounts?: {
-    generalData?: any;
-    buyersComments?: any;
-    recommendationStats?: any;
-    socialData?: any;
-  };
 }
 
 export default async function ProductPageContent({
   params,
   searchParams,
-  fakeCounts,
 }: ProductPageContentProps) {
   const Params = params;
   const SearchParams = searchParams || {};
@@ -139,7 +129,6 @@ export default async function ProductPageContent({
                   globalData={GlobalData}
                   qtyPricePromise={QtyPricesData}
                   language={language}
-                  generalData={fakeCounts?.generalData}
                 />
                 <ProductFeaturesWrapper
                   isRtl={isRtl}
@@ -218,8 +207,6 @@ export default async function ProductPageContent({
                 <ProductBuyersCommentsWrapper
                   globalPromise={GlobalData}
                   language={language}
-                  commentsData={fakeCounts?.buyersComments}
-                  recommendationData={fakeCounts?.recommendationStats}
                 />
                 <ProductFaqSectionWrapper
                   color={color}
@@ -263,7 +250,6 @@ export default async function ProductPageContent({
             currency={currency}
             isRtl={isRtl}
             color={color}
-            socialData={fakeCounts?.socialData}
           />
         </Suspense>
       </div>

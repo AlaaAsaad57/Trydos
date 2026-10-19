@@ -8,14 +8,7 @@ import { GetRatingCommentsForProduct } from "utils/pagesDataRequests/ProductPage
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { getCookieServer } from "utils/cookies/server-cookie-manager";
 
-// commentsData / recommendationData: ready data from the /products/temp test
-// page. The product page never passes them, so both are fetched below.
-async function ProductBuyersCommentsWrapper({
-  globalPromise,
-  language,
-  commentsData = undefined,
-  recommendationData = undefined,
-}) {
+async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
   let product = await globalPromise;
   let productId = product?.id;
 
@@ -23,15 +16,13 @@ async function ProductBuyersCommentsWrapper({
     COOKIE_NAMES.USER_DATA,
   );
   let [buyersComments, recommendation_stats] = await Promise.all([
-    commentsData ??
-      GetRatingCommentsForProduct({
-        product_id: productId,
-        user_id: parsedUser?.id,
-        language,
-        pageSize: 5,
-      }),
-    recommendationData ??
-      GetRecommendationCountForProduct({ product_id: productId }),
+    GetRatingCommentsForProduct({
+      product_id: productId,
+      user_id: parsedUser?.id,
+      language,
+      pageSize: 5,
+    }),
+    GetRecommendationCountForProduct({ product_id: productId }),
   ]);
   const isRtl = language === "ar" || language === "ku";
   if (buyersComments.buyers_comments.length === 0) return <></>;
