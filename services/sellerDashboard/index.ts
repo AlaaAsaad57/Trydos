@@ -237,7 +237,7 @@ class SellerDashboardService {
   ) {
     try {
       let res = await fetchData({
-        url: `/api/v1/shop/orders/details/cancel`,
+        url: `/shop/orders/details/cancel`,
         method: "PUT",
         server: "market-dashboard",
         reqTitle: REQUESTS_DATA.CANCEL_SELLER_ORDER_DETAIL,

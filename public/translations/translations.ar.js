@@ -606,6 +606,7 @@ const translations = {
   Returned: "مرتجع",
   Failed: "فشل",
   Canceled: "ملغي",
+  "Cancelled": "ملغي",
   "Canceled Archived": "ملغي ومؤرشف",
   Gender: "الجنس",
   Man: "ذكر",

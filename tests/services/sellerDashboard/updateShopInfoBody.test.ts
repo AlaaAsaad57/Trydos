@@ -157,7 +157,7 @@ const requestCases: RequestCase[] = [
   { name: "updateOrderStatus", run: () => s.updateOrderStatus("9", { id: 5, status: "done" }), url: "/shop/orders/status", method: "PATCH", server: MD, sellerId: "9", body: { id: 5, status: "done" } },
   { name: "confirmOrderDetailStatus", run: () => s.confirmOrderDetailStatus("9", { order_detail_id: 4 }), url: "/shop/orders/details/status/confirmed", method: "PUT", server: MD, sellerId: "9", body: { order_detail_id: 4 } },
   { name: "packOrderDetailStatus", run: () => s.packOrderDetailStatus("9", { order_detail_id: 4 }), url: "/shop/orders/details/status/packed", method: "PUT", server: MD, sellerId: "9", body: { order_detail_id: 4 } },
-  { name: "cancelOrderDetail", run: () => s.cancelOrderDetail("9", { detail_id: 1, order_id: 2, qty: 3 }), url: "/api/v1/shop/orders/details/cancel", method: "PUT", server: MD, sellerId: "9", body: { detail_id: 1, order_id: 2, qty: 3 } },
+  { name: "cancelOrderDetail", run: () => s.cancelOrderDetail("9", { detail_id: 1, order_id: 2, qty: 3 }), url: "/shop/orders/details/cancel", method: "PUT", server: MD, sellerId: "9", body: { detail_id: 1, order_id: 2, qty: 3 } },
   { name: "getRoles no filters", run: () => s.getRoles("9"), url: "/shop/users/roles", method: "GET", server: MD, sellerId: "9" },
   { name: "getRoles page and search", run: () => s.getRoles("9", 2, "a b"), url: "/shop/users/roles?page=2&search=a%20b", method: "GET", server: MD, sellerId: "9" },
   { name: "addUserToShop", run: () => s.addUserToShop({ phone: "x", role_id: 1, seller_id: "9" }), url: "/shop/users/add", method: "POST", server: MD, sellerId: "9", body: { phone: "x", role_id: 1, seller_id: "9" } },
@@ -217,6 +217,22 @@ describe("seller-dashboard service — the request each method sends", () => {
       expect(call.sellerId, `${c.name} did not scope the call to the shop`).toBe(c.sellerId);
     if (c.body !== undefined)
       expect(JSON.parse(call.body), `${c.name} sent the wrong body`).toEqual(c.body);
+  });
+
+  // BUG-seller-701 (fixed): the market bases (BACKEND_URL, GO_BACKEND_URL) already end
+  // in "/api/v1", and /api/proxy joins base + path. So "/api/v1/shop/..." goes
+  // out as ".../api/v1/api/v1/shop/orders/details/cancel". Staging answers that
+  // with 404 "The route api/v1/api/v1/shop/orders/details/cancel could not be
+  // found."; "/shop/orders/details/cancel" exists there (401 without a token).
+  // The service used to send "/api/v1/shop/orders/details/cancel".
+  it("BUG-seller-701: cancelOrderDetail asks for the cancel path the shop backend serves", async () => {
+    fetchData.mockReset();
+    fetchData.mockResolvedValue({ success: true, data: {} });
+    await s.cancelOrderDetail("9", { detail_id: 1, order_id: 2, qty: 3 });
+    expect(
+      lastCall().url,
+      "the item cancel must use the same /shop/orders/... path family as confirm and pack, not a second /api/v1 prefix",
+    ).toBe("/shop/orders/details/cancel");
   });
 
   it("saveSellerStory sends the shop id as a number and rounds the video length", async () => {

@@ -564,6 +564,7 @@ const translations = {
   Returned: "گەڕاندراوە",
   Failed: "سەرکەوتوو نەبوو",
   Canceled: "ڕەتکراو",
+  "Cancelled": "ڕەتکراو",
   "Canceled Archived": "ڕەتکراو و مۆڵەتکراو",
   Gender: "ڕەگەز",
   Man: "نێر",

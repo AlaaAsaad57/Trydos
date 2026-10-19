@@ -511,6 +511,7 @@ const translations = {
   Returned: "İade Edildi",
   Failed: "Başarısız",
   Canceled: "İptal Edildi",
+  "Cancelled": "İptal Edildi",
   "Canceled Archived": "İptal Edildi ve Arşivlendi",
   Man: "Erkek",
   Woman: "Kadın",

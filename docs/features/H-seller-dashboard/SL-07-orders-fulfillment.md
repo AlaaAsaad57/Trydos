@@ -46,7 +46,7 @@ quantity). Orders can be filtered by status.
 | Orders list | `getSellerOrders(sellerId, page, status)` → **GET `/shop/orders`** (`?page=&status=`) |
 | Confirm item | `confirmOrderDetailStatus` → **PUT `/shop/orders/details/status/confirmed`** |
 | Pack item | `packOrderDetailStatus` → **PUT `/shop/orders/details/status/packed`** |
-| Cancel item | `cancelOrderDetail` → **PUT `/api/v1/shop/orders/details/cancel`** (note the inconsistent `/api/v1` prefix) |
+| Cancel item | `cancelOrderDetail` → **PUT `/shop/orders/details/cancel`** |
 | Change whole-order status | `updateOrderStatus` → **PATCH `/shop/orders/status`** — *service exists but its UI trigger is commented out* |
 
 All on the `market-dashboard` backend, shop-scoped by seller ID.
@@ -78,7 +78,7 @@ UI or service for payments, refunds, shipping assignment, or tracking.
 - **No per-permission gating.** All 11 order permissions collapse to a single "has any" check, so a
   user with only `READ_ORDERS` still sees the Confirm/Pack/Cancel buttons (backend re-enforcement is
   out of scope of these files).
-- Minor: `cancelOrderDetail` uses a `/api/v1/...` path where its siblings use `/shop/...`; the FCM
+- Minor: the FCM
   topic unsubscribe on cleanup is commented out; and `page.tsx` declares order state
   (`sellerOrders`, `selectedOrderStatuses`, `orderActionLoading`) that is never passed to
   `RenderOrders` (dead duplicates).

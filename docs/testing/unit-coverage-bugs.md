@@ -118,6 +118,11 @@ Lines still listed under "Cannot cover" were kept on purpose:
 | BUG-products-6 (**fixed**) | products | closing the full-size product video leaves the page unscrollable |
 | BUG-seller-400 (**fixed**) | seller | wrong fallback error message in six seller-dashboard service methods |
 | BUG-seller-100 | seller | a filled purchase price is never validated — **blocked**: needs a product decision: is the purchase price required? |
+| BUG-seller-701 (**fixed**) | seller | an order item cancel always fails: the path carries a second `/api/v1` and the backend answers 404 |
+| BUG-seller-702 (**fixed**) | seller | an order item with no offer shows a price of 0 |
+| BUG-seller-703 (**fixed**) | seller | a refused Confirm / Packed / Cancel on an order item shows no message |
+| BUG-seller-704 (**fixed**) | seller | the Orders tab filter names and card status stay in English in ar / tr / ku |
+| BUG-seller-705 (**fixed**) | seller | loading the next page of orders replaces the list with placeholders |
 | BUG-server-1 (**fixed**) | server | recommendations "Show More" spins forever after one failed load |
 | BUG-server-2 (**fixed**) | server | the listing grid keeps retrying a failed load after it has left the page |
 | BUG-server-3 (**fixed**) | server | the filter window drops the re-ask for a chip tapped while a re-ask is running |
@@ -685,6 +690,46 @@ Unreachable branches inside a live file (no code path can run them; not deleted 
 - Expected: `purchase_price` error "Unit price must be greater than purchase price" (or "Enter a valid purchase price" for a negative value); also "Discount price must be greater than purchase price" when the discount is not above it.
 - Actual: no error. The block runs only when `purchase_price` is EMPTY (`=== "" || !form.purchase_price`). In that case `pp` is always NaN, so only "Enter a valid purchase price" can fire, and lines 939-943 can never run. A filled purchase price is never checked. The condition looks inverted (compare the locked branch at line 966).
 - Confirming test: tests/components/SellerDashboard/productEdit/helpers.test.ts > "validate — every rule" > "BUG-seller-100: refuses a purchase price above the unit price" (it.fails, seen as expected failure).
+
+### BUG-seller-701 — an order item cancel always fails (404)
+- Source: services/sellerDashboard/index.ts `cancelOrderDetail` — `url: "/api/v1/shop/orders/details/cancel"`.
+- Scenario: the seller taps **Cancel** on an order item (Orders tab → order detail).
+- Expected: the call reaches `PUT /shop/orders/details/cancel`, the path its siblings use (`/shop/orders/details/status/confirmed`, `/shop/orders/details/status/packed`).
+- Actual: the market bases (`BACKEND_URL`, `GO_BACKEND_URL`) end in `/api/v1`, and /api/proxy joins base + path, so the call goes to `.../api/v1/api/v1/shop/orders/details/cancel`. Staging check on 2026-10-19, unsigned `PUT` (refused without a token, so nothing changes): `/shop/orders/details/cancel` → 401 (the route exists); `/api/v1/shop/orders/details/cancel` → 404 "The route api/v1/api/v1/shop/orders/details/cancel could not be found." The handler gets `success: false`, so the item stays on the screen, and with BUG-seller-703 the seller sees no message. No item can be cancelled from the dashboard.
+- Fix: the service now sends `/shop/orders/details/cancel`; the request table row was corrected with it.
+- Confirming test: tests/services/sellerDashboard/updateShopInfoBody.test.ts > "BUG-seller-701: cancelOrderDetail asks for the cancel path the shop backend serves" (seen red before the fix, green after). The `cancelOrderDetail` row of the request table records today's wrong path; change it with the fix.
+
+### BUG-seller-702 — an order item with no offer shows a price of 0
+- Source: components/SellerDashboard/orders.tsx `OrderDetailScreen` — `const offerPrice = Number(item.offer_price || 0) ?? unitPrice;`
+- Scenario: an order line with `offer_price: 0`, `unit_price: 25`, `qty: 2`. The contract (shop-seller-orders-apis.md) says a line "is sold at offer_price when it is above 0, else at unit_price", so 0 means "no offer".
+- Expected: `25 / 50 USD`.
+- Actual: `0 / 0 USD`. `Number(...)` never returns null, so `?? unitPrice` never runs.
+- Fix: `offerPrice` is `offer_price` when it is above 0, else `unit_price`.
+- Confirming test: tests/components/SellerDashboard/orders.test.tsx > "Orders section — open bugs" > "BUG-seller-702: an item with no offer shows its unit price, not 0" (seen red before the fix, green after).
+
+### BUG-seller-703 — a refused order item action shows no message
+- Source: components/SellerDashboard/orders.tsx `RenderOrders` — the handlers put the reason in `ordersError`, but `ordersError` is drawn only by the full-screen error, which needs `sellerOrders.length === 0`.
+- Scenario: the shop backend refuses Confirm & Start Packing (also Packed, Cancel, and a failed next page) while orders are on screen.
+- Expected: the backend's reason is shown to the seller.
+- Actual: the button goes back to normal and nothing tells the seller the action failed.
+- Fix: `ordersError` is passed to both screens and shown as an `InlineAlert` (detail screen, and above a non-empty list). Opening an order or going back clears it.
+- Confirming test: tests/components/SellerDashboard/orders.test.tsx > "Orders section — open bugs" > "BUG-seller-703: tells the seller why the shop backend refused to confirm an item" (seen red before the fix, green after).
+
+### BUG-seller-704 — Orders tab filter names and card status stay in English
+- Source: components/SellerDashboard/orders.tsx `OrderListScreen` — the filter tabs print `{tabItem.label}`, and the card prints `formatStatusLabel(order.order_status)`; neither calls `translateFunction`. The ar / tr / ku files have "In Progress" and "Waiting Confirm".
+- Scenario: open the Orders tab in Arabic.
+- Expected: "قيد التنفيذ" on the tab, "بانتظار التأكيد" on a waiting card.
+- Actual: "In Progress" and "Waiting Confirm". An item with no name also showed "Product #900" in English.
+- Fix: the tab names, the card status and the "Product #" / "Item #" fallback go through `translateFunction`. New key "Cancelled" in ar / tr / ku (same wording as "Canceled").
+- Confirming tests: tests/components/SellerDashboard/orders.test.tsx > "Orders section — open bugs" > "BUG-seller-704: the filter tabs are translated", "…the order status on a list card is translated" and "…an item with no name is called a product in the page's language" (both seen red before the fix, green after).
+
+### BUG-seller-705 — loading the next page of orders replaces the list with placeholders
+- Source: components/SellerDashboard/orders.tsx — `loadMoreOrders` sets the same `ordersLoading` flag as the first load, and `OrderListScreen` draws 4 placeholder cards instead of the list while it is true.
+- Scenario: the seller scrolls to the bottom of a list that has more pages.
+- Expected: page 1 stays on screen while page 2 loads.
+- Actual: page 1 disappears until page 2 answers. The page gets shorter, so the seller loses their place.
+- Fix: a separate `loadingMore` flag for page 2+. The list stays, one placeholder card goes under it, and the filter tabs stay locked until the page answers.
+- Confirming test: tests/components/SellerDashboard/orders.test.tsx > "when the bottom of the list scrolls into view" > "BUG-seller-705: keeps the first page on screen while the next page loads" (seen red before the fix, green after).
 
 ### Cannot cover
 - components/SellerDashboard/productEdit/helpers.ts:939-942 — unreachable because of BUG-seller-100: inside `if (purchase_price === "")`, `pp` is always NaN, so the `else if` branches never run.

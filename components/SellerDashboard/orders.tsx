@@ -16,6 +16,7 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import BackBar from "components/setting/BackBar";
+import { InlineAlert } from "components/SellerDashboard/ui";
 
 // --- 1. Icons (Inline SVGs) ---
 const Icons = {
@@ -1313,6 +1314,8 @@ const OrderListScreen = ({
   selectedTab,
   onSelectTab,
   isLoading,
+  isLoadingMore,
+  error,
   sellerId,
   setActiveTab
 }: {
@@ -1321,12 +1324,17 @@ const OrderListScreen = ({
   selectedTab: OrderFilterTabLabel;
   onSelectTab: (tab: OrderFilterTabLabel) => void;
   isLoading: boolean;
+  // The next page is loading: the list stays, one placeholder goes under it.
+  isLoadingMore: boolean;
+  error: string | null;
   sellerId:string;
   setActiveTab:(s:any)=>void
 }) => {
   const { language } = useAppStore();
   const { lang: local } = useParams();
   const isRtl = language === "ar" || language === "ku";
+  // A tab change while a page loads would mix two filters in one list.
+  const tabsLocked = isLoading || isLoadingMore;
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="flex flex-col h-full bg-white font-sans w-full">
       {/* Header */}
@@ -1352,15 +1360,15 @@ const OrderListScreen = ({
           {ORDER_FILTER_TABS.map((tabItem) => (
             <button
               key={tabItem.label}
-              onClick={() => !isLoading && onSelectTab(tabItem.label)}
-              disabled={isLoading}
+              onClick={() => !tabsLocked && onSelectTab(tabItem.label)}
+              disabled={tabsLocked}
               className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-opacity ${
                 selectedTab === tabItem.label
                   ? "bg-gray-800 text-white"
                   : "bg-[#F8F8F8] text-[#8D8D8D]"
-              } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+              } ${tabsLocked ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              {tabItem.label}
+              {translateFunction(tabItem.label)}
             </button>
           ))}
         </div>
@@ -1368,6 +1376,8 @@ const OrderListScreen = ({
 
       {/* List Content */}
       <div className="p-2 flex-1 overflow-y-auto w-full">
+        {/* An empty list with an error gets the full-screen error instead. */}
+        {error && !isLoading && <InlineAlert tone="error">{error}</InlineAlert>}
         <div className="space-y-3">
           {isLoading ? (
             [0, 1, 2, 3].map((i) => <SellerOrderCardSkeleton key={i} />)
@@ -1418,7 +1428,7 @@ const OrderListScreen = ({
                     <div className="flex items-center gap-1">
                       <Icons.Bell />
                       <span className="font-medium text-[#1D1D1D] text-[12px]" data-pw="order-shop-status">
-                        {formatStatusLabel(order.order_status)}
+                        {translateFunction(formatStatusLabel(order.order_status))}
                       </span>
                       <div className="bg-gray-100 p-1 rounded-full">
                         <Icons.CheckCircle />
@@ -1473,7 +1483,7 @@ const OrderListScreen = ({
               );
             })
           )}
-
+          {isLoadingMore && <SellerOrderCardSkeleton />}
         </div>
       </div>
     </div>
@@ -1493,9 +1503,12 @@ const OrderDetailScreen = ({
   onConfirmItem,
   onPackItem,
   onCancelItem,
+  error,
 }: {
   order: any | null;
   onBack: () => void;
+  // Why the shop backend refused the last item action.
+  error: string | null;
   orderStatusOptions: string[];
   selectedOrderStatuses: Record<string, string>;
   setSelectedOrderStatuses: Dispatch<SetStateAction<Record<string, string>>>;
@@ -1574,6 +1587,7 @@ const OrderDetailScreen = ({
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-2 w-full bg-white">
+        {error && <InlineAlert tone="error">{error}</InlineAlert>}
         {/* Top Stats Grid */}
         <div className="grid grid-cols-3 gap-1 w-full">
           <div className="bg-[#F4F4F4] px-3 py-2 rounded-[15px] flex flex-col justify-start h-[74px] items-start">
@@ -1732,8 +1746,8 @@ const OrderDetailScreen = ({
               item.product_name ||
               productDetails?.product_name ||
               (item?.product_id
-                ? `Product #${item.product_id}`
-                : `Item #${item.id ?? idx + 1}`);
+                ? `${translateFunction("Product")} #${item.product_id}`
+                : `${translateFunction("Item")} #${item.id ?? idx + 1}`);
             const brandImage = GetImageUrl(
               getConfiguredImage({
                 src: item.brand_icon,
@@ -1745,7 +1759,9 @@ const OrderDetailScreen = ({
             const variantColor = item.color || "";
             const variantSize = item.size || "";
             const unitPrice = Number(item.unit_price || 0);
-            const offerPrice = Number(item.offer_price || 0) ?? unitPrice;
+            // offer_price is 0 when the line has no offer; it is then sold at unit_price.
+            const offerPrice =
+              Number(item.offer_price || 0) > 0 ? Number(item.offer_price) : unitPrice;
             const qty = Number(item.qty || 0);
             const itemTotalPrice = offerPrice * qty;
             const isConfirmed = Boolean(item?.is_confirm);
@@ -1921,6 +1937,8 @@ const RenderOrders = ({
 
   const shouldUpdateOrders = useAppStore((state) => state.shouldUpdateOrders);
   const [hasMore, setHasMore] = useState<boolean>(false);
+  // Separate from ordersLoading, so loading page 2+ keeps the list on screen.
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const getSellerOrders = async (page: number = 1) => {
     try {
       setOrdersLoading(true);
@@ -2142,7 +2160,7 @@ const RenderOrders = ({
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useCallback(
     (node: HTMLDivElement) => {
-      if (ordersLoading) return;
+      if (ordersLoading || loadingMore) return;
       if (observerRef.current) observerRef.current.disconnect();
 
       observerRef.current = new IntersectionObserver((entries) => {
@@ -2153,7 +2171,7 @@ const RenderOrders = ({
 
       if (node) observerRef.current.observe(node);
     },
-    [ordersLoading, hasMore, ordersPage],
+    [ordersLoading, loadingMore, hasMore, ordersPage],
   );
 
   if (!canViewOrders) {
@@ -2187,9 +2205,9 @@ const RenderOrders = ({
     );
   }
   const loadMoreOrders = async (page) => {
-    if (!ordersLoading && hasMore) {
+    if (!ordersLoading && !loadingMore && hasMore) {
       try {
-        setOrdersLoading(true);
+        setLoadingMore(true);
         setOrdersError(null);
         const status = getOrderStatusFromTab(selectedOrderFilterTab);
         const res = await SellerDashboardService.getSellerOrders(
@@ -2218,7 +2236,7 @@ const RenderOrders = ({
           error?.message || translateFunction("Failed to load orders"),
         );
       } finally {
-        setOrdersLoading(false);
+        setLoadingMore(false);
       }
     }
   };
@@ -2236,25 +2254,29 @@ const RenderOrders = ({
                 orders={sellerOrders}
                 selectedTab={selectedOrderFilterTab}
                 isLoading={ordersLoading}
+                isLoadingMore={loadingMore}
+                error={ordersError}
                 onSelectTab={(tab) => {
                   setSelectedOrderFilterTab(tab);
                   setScreen("list");
                   setSelectedOrderId(null);
                 }}
                 onSelectOrder={(order) => {
+                  setOrdersError(null);
                   setSelectedOrderId(order?.id ?? null);
                   setScreen("detail");
                 }}
               />
 
-              {sellerId.length > 0 && !ordersLoading && (
+              {sellerId.length > 0 && !ordersLoading && !loadingMore && (
                 <div ref={lastElementRef} className="h-4" />
               )}
             </>
           ) : (
             <OrderDetailScreen
               order={selectedOrder}
-              onBack={() => { setScreen("list"); setSelectedOrderId(null); }}
+              onBack={() => { setOrdersError(null); setScreen("list"); setSelectedOrderId(null); }}
+              error={ordersError}
               orderStatusOptions={orderStatusOptions}
               selectedOrderStatuses={selectedOrderStatuses}
               setSelectedOrderStatuses={setSelectedOrderStatuses}
