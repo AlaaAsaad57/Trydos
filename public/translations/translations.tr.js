@@ -2981,6 +2981,19 @@ const translations = {
   "Upload cancelled. Nothing was imported.": "Yükleme iptal edildi. Hiçbir şey içe aktarılmadı.",
   "Preparing file...": "Dosya hazırlanıyor...",
   "Failed to download the failed rows": "Hatalı satırlar indirilemedi",
+  "Add with AI": "Yapay zekâ ile ekle",
+  "Upload a product photo and AI will fill in the product details for you.": "Bir ürün fotoğrafı yükleyin, yapay zekâ ürün bilgilerini sizin için doldursun.",
+  "Choose a photo": "Bir fotoğraf seçin",
+  "Product photo": "Ürün fotoğrafı",
+  "Analyze with AI": "Yapay zekâ ile analiz et",
+  "Analyzing photo...": "Fotoğraf analiz ediliyor...",
+  "Please choose a JPEG, PNG or WebP photo.": "Lütfen JPEG, PNG veya WebP biçiminde bir fotoğraf seçin.",
+  "The details were filled by AI. Please check them before saving.": "Bilgiler yapay zekâ tarafından dolduruldu. Lütfen kaydetmeden önce kontrol edin.",
+  "AI analysis failed": "Yapay zekâ analizi başarısız oldu",
+  "The image must be uploaded to the media server": "Görsel medya sunucusuna yüklenmelidir",
+  "The AI service is busy right now. Please try again in a moment.": "Yapay zekâ hizmeti şu anda meşgul. Lütfen birazdan tekrar deneyin.",
+  "You do not have permission for this action.": "Bu işlem için yetkiniz yok.",
+  "Too many requests. Please try again in a moment.": "Çok fazla istek. Lütfen birazdan tekrar deneyin.",
 };
 
 export default translations;

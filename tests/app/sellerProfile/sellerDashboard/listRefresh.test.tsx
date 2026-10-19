@@ -1469,3 +1469,56 @@ describe("the seller dashboard — a refusal with no message", () => {
     expect(screen.queryByText("Failed To Leave Shop"), "the leave refusal showed untranslated text").not.toBeNull();
   });
 });
+
+describe("the Add with AI entry on the Products tab", () => {
+  const withPermissions = (permissions: string[]) =>
+    getSellerPermissions.mockResolvedValue({
+      success: true,
+      data: [{ seller_id: Number(SELLER_ID), shop_name: "A Shop", permissions }],
+    });
+  const aiButtons = () => Array.from(document.querySelectorAll('[data-pw="seller-add-with-ai"]'));
+  const addLinks = () =>
+    Array.from(document.querySelectorAll('a[href$="/products/new"]')).map((a) => a.textContent?.trim());
+
+  it("shows Add with AI beside Add Product only to a user who may create products (AC-1)", async () => {
+    for (const permissions of [["CREATE_PRODUCT"], ["SUPER_ADMIN"]]) {
+      withPermissions(permissions);
+      getSellerProducts.mockResolvedValue(productsPayload([product(1, "First Shirt")]));
+      const header = await openDashboard();
+      await waitFor(() => expect(addLinks(), `${permissions} did not get Add Product in the header`).toEqual(["+ Add Product"]));
+      expect(aiButtons(), `${permissions} did not get Add with AI beside Add Product`).toHaveLength(1);
+      expect(aiButtons()[0].parentElement, "Add with AI is not beside Add Product").toBe(
+        document.querySelector('a[href$="/products/new"]')?.parentElement,
+      );
+      header.unmount();
+
+      getSellerProducts.mockResolvedValue(productsPayload([]));
+      const empty = await openDashboard();
+      await waitFor(() =>
+        expect(addLinks(), `${permissions} did not get the empty-state add link`).toEqual(["+ Add Your First Product"]),
+      );
+      expect(aiButtons(), `${permissions} did not get Add with AI in the empty state`).toHaveLength(1);
+      empty.unmount();
+    }
+
+    withPermissions(["READ_PRODUCTS", "UPDATE_PRODUCT"]);
+    getSellerProducts.mockResolvedValue(productsPayload([product(1, "First Shirt")]));
+    await openDashboard();
+    await waitFor(() => expect(screen.getByText("First Shirt"), "the list did not load").toBeInTheDocument());
+    expect(aiButtons(), "a user without CREATE_PRODUCT was offered Add with AI").toHaveLength(0);
+  });
+
+  it("opens the Add with AI dialog from the button", async () => {
+    withPermissions(["CREATE_PRODUCT"]);
+    getSellerProducts.mockResolvedValue(productsPayload([product(1, "First Shirt")]));
+    await openDashboard();
+    await waitFor(() => expect(aiButtons()).toHaveLength(1));
+
+    fireEvent.click(aiButtons()[0]);
+
+    expect(
+      document.querySelector('[data-pw="ai-autofill-dialog"]'),
+      "the button did not open the dialog",
+    ).not.toBeNull();
+  });
+});

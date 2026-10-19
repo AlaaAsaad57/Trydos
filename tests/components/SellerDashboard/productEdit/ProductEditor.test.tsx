@@ -140,6 +140,8 @@ import {
   scrollToFirstError,
   validate,
 } from "components/SellerDashboard/productEdit/helpers";
+import { clearAiPrefill, setAiPrefill } from "components/SellerDashboard/productEdit/aiPrefill";
+import { translateFunction } from "utils/functions";
 
 const SELLER_ID = "77";
 const PRODUCT_ID = "9001";
@@ -1200,5 +1202,103 @@ describe("ProductEditor — read-only seller, category lookups refused", () => {
       svc.getCategoryLookups.mock.calls.map((call: unknown[]) => call[1]),
       "clicking Edit did not load the product's category branch, so the sub-category and attribute pickers would open with no options to choose from",
     ).toEqual([1, 21, 31]);
+  });
+});
+
+/* ------------------------- "Add with AI" hand-off ------------------------ */
+
+describe("ProductEditor — Add with AI hand-off", () => {
+  const AI_PREFILL = {
+    suggestion: {
+      title: "White Silk Robe",
+      description: "A soft robe.",
+      brand_id: 2,
+      category_id: 1,
+      sub_category_id: 21,
+      sub_sub_category_id: 31,
+    },
+    image: { name: "a1b2c3.jpg", url: "blob:ai-photo", isNew: true },
+  };
+  // Read at call time: the page language is set when the editor renders.
+  const aiMessage = () => translateFunction("The details were filled by AI. Please check them before saving.");
+  let nameField: HTMLDivElement;
+
+  beforeEach(() => {
+    svc.getProductCreateForm.mockResolvedValue({
+      data: { parent_categories: [{ id: 1, name: "Shoes" }], brands: [{ id: 2, name: "Nike" }] },
+    });
+    svc.getCategoryLookups.mockImplementation(async (_s: string, id: number) =>
+      id === 1
+        ? { sub_categories: [{ id: 21, name: "Running" }], sub_sub_categories: [{ id: 31, name: "Trail" }], descriptor_groups: [] }
+        : id === 21
+          ? { sub_categories: [{ id: 31, name: "Trail" }], sub_sub_categories: [], descriptor_groups: [] }
+          : { sub_categories: [], sub_sub_categories: [], descriptor_groups: [] },
+    );
+    // The real CoreSection renders the Name input inside [data-field="name"];
+    // the stand-in does not, so the test provides that anchor itself.
+    nameField = document.createElement("div");
+    nameField.setAttribute("data-field", "name");
+    nameField.scrollIntoView = vi.fn();
+    document.body.appendChild(nameField);
+  });
+
+  afterEach(() => {
+    clearAiPrefill(SELLER_ID);
+    nameField.remove();
+  });
+
+  it("opens the create form filled from the AI hand-off and keeps the category ids after the lower levels load (AC-10)", async () => {
+    setAiPrefill(SELLER_ID, AI_PREFILL);
+    await renderEditor({ mode: "create", productId: undefined });
+    await settle();
+
+    expect(h.props.form.name, "the AI title is not in Name").toBe("White Silk Robe");
+    expect(h.props.form.description, "the AI description is not a safe paragraph").toBe("<p>A soft robe.</p>");
+    expect(h.props.form.brand_id, "the AI brand is not selected").toBe("2");
+    expect(h.props.form.category_id, "the AI category is not selected").toEqual([1]);
+    expect(svc.getCategoryLookups.mock.calls.map((c) => c[1]).sort(), "the lower levels were not loaded").toEqual([1, 21, 31]);
+    expect(text("subs"), "the sub-category options did not load").toBe("Running");
+    expect(formState().sub, "the AI sub-category was dropped after its options loaded").toEqual([21]);
+    expect(formState().subSub, "the AI sub-sub-category was dropped after its options loaded").toEqual([31]);
+    expect(formState().images, "the AI photo is not the first product image").toEqual(["a1b2c3.jpg@blob:ai-photo"]);
+  });
+
+  it("shows the check-the-values message once and scrolls to the Name field after an AI fill (AC-11)", async () => {
+    setAiPrefill(SELLER_ID, AI_PREFILL);
+    await renderEditor({ mode: "create", productId: undefined });
+    await waitFor(() => expect(nameField.scrollIntoView, "the page did not scroll to Name").toHaveBeenCalled());
+
+    expect(
+      toast.showSuccessMessage.mock.calls.filter(([m]) => m === aiMessage()),
+      "the check-the-values message was not shown exactly once",
+    ).toHaveLength(1);
+  });
+
+  it("a second create mount after an AI fill opens the empty form (AC-12)", async () => {
+    setAiPrefill(SELLER_ID, AI_PREFILL);
+    const first = await renderEditor({ mode: "create", productId: undefined });
+    first.unmount();
+    toast.showSuccessMessage.mockReset();
+
+    await renderEditor({ mode: "create", productId: undefined });
+
+    expect(h.props.form.name, "a manual Add Product reused the AI title").toBe("");
+    expect(h.props.form.category_id, "a manual Add Product reused the AI category").toEqual([]);
+    expect(formState().images, "a manual Add Product reused the AI photo").toEqual([]);
+    expect(toast.showSuccessMessage, "a manual Add Product showed the AI message").not.toHaveBeenCalledWith(aiMessage());
+  });
+
+  it("an AI-filled form creates nothing until the seller saves (AC-17)", async () => {
+    setAiPrefill(SELLER_ID, AI_PREFILL);
+    svc.addProduct.mockResolvedValue({ success: true, data: { product_id: 55 } });
+    await renderEditor({ mode: "create", productId: undefined });
+    await settle();
+
+    expect(svc.addProduct, "opening the AI-filled form created a product").not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Create Product" })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Confirm & Save" }));
+    await settle();
+    expect(svc.addProduct, "the seller's own save did not create the product").toHaveBeenCalledTimes(1);
   });
 });

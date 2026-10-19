@@ -26,6 +26,7 @@ import ShopInfo from "components/SellerDashboard/ShopInfo";
 import CartsTab from "components/SellerDashboard/carts/CartsTab";
 import ProductCartsModal from "components/SellerDashboard/carts/ProductCartsModal";
 import ProductOrdersModal from "components/SellerDashboard/productOrders/ProductOrdersModal";
+import AiAutofillDialog from "components/SellerDashboard/productEdit/AiAutofillDialog";
 import { ConfirmModal } from "components/global/ConfirmModal";
 import { DashIcon, IconName } from "components/SellerDashboard/ui/icons";
 import {
@@ -365,6 +366,8 @@ function SellerDashBoard() {
   const [productsMeta, setProductsMeta] = useState<any>(null);
   // Per-product social counts (reactions / FAQ / reviews / shares), keyed by
   // product id. Loaded lazily once the Products tab has products.
+  // "Add with AI" dialog on the Products tab.
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [productsSocial, setProductsSocial] = useState<Record<string, any>>({});
   const requestedSocialIds = useRef<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
@@ -1242,7 +1245,7 @@ function SellerDashBoard() {
             )}
           />
           {hasPermission("CREATE_PRODUCT") && (
-            <div className="flex justify-center mt-4">
+            <div className="flex justify-center flex-wrap gap-2 mt-4">
               <Link
                 href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/products/new`}
                 onClick={handleCardNavigate}
@@ -1250,6 +1253,14 @@ function SellerDashBoard() {
               >
                 + {translateFunction("Add your first product")}
               </Link>
+              <button
+                type="button"
+                data-pw="seller-add-with-ai"
+                onClick={() => setAiDialogOpen(true)}
+                className="inline-flex items-center gap-1.5 h-[40px] px-5 rounded-[12px] bg-white text-[#388CFF] border border-[#388CFF] text-[14px] medium hover:bg-[#388CFF]/[0.06] transition-colors active:scale-[0.98]"
+              >
+                {translateFunction("Add with AI")}
+              </button>
             </div>
           )}
         </div>
@@ -1264,13 +1275,23 @@ function SellerDashBoard() {
             count={productsMeta?.total ?? sellerProducts.length}
           />
           {hasPermission("CREATE_PRODUCT") && (
-            <Link
-              href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/products/new`}
-              onClick={handleCardNavigate}
-              className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[12px] bg-[#5d5d5d] text-white text-[13px] medium hover:bg-[#4d4d4d] transition-colors active:scale-[0.98]"
-            >
-              + {translateFunction("Add Product")}
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                data-pw="seller-add-with-ai"
+                onClick={() => setAiDialogOpen(true)}
+                className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[12px] bg-white text-[#388CFF] border border-[#388CFF] text-[13px] medium hover:bg-[#388CFF]/[0.06] transition-colors active:scale-[0.98]"
+              >
+                {translateFunction("Add with AI")}
+              </button>
+              <Link
+                href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/products/new`}
+                onClick={handleCardNavigate}
+                className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[12px] bg-[#5d5d5d] text-white text-[13px] medium hover:bg-[#4d4d4d] transition-colors active:scale-[0.98]"
+              >
+                + {translateFunction("Add Product")}
+              </Link>
+            </div>
           )}
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
@@ -2845,6 +2866,14 @@ function SellerDashBoard() {
             language={language}
             shopCurrency={shopCurrency}
             onClose={() => setProductCartsTarget(null)}
+          />
+        )}
+        {aiDialogOpen && (
+          <AiAutofillDialog
+            sellerId={sellerId}
+            local={local}
+            onClose={() => setAiDialogOpen(false)}
+            onNavigate={handleCardNavigate}
           />
         )}
         {productOrdersTarget && (

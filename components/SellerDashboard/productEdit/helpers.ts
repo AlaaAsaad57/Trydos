@@ -635,6 +635,26 @@ export function fileName(url: any): string {
   return clean.substring(clean.lastIndexOf("/") + 1);
 }
 
+/** Best-effort filename extraction from the media-server /upload/bulk shapes. */
+export function extractNames(data: any): string[] {
+  const arr =
+    data?.files ??
+    data?.urls ??
+    data?.results ??
+    data?.data ??
+    (data?.url ? [data.url] : Array.isArray(data) ? data : []);
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .map((item: any) => {
+      const raw =
+        typeof item === "string"
+          ? item
+          : item?.url ?? item?.path ?? item?.file_name ?? item?.name ?? "";
+      return fileName(raw);
+    })
+    .filter(Boolean);
+}
+
 /** The color × size combinations that currently make up the variant matrix. */
 export function combos(form: ProductForm): VariantCombo[] {
   const out: VariantCombo[] = [];
