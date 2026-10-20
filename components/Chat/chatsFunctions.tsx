@@ -22,8 +22,13 @@ export const getChatPeer = (chat) =>
  * channel's `channel_name` is the receiver's own name (see the real push in
  * tests/public/firebaseMessagingSwTags.test.ts), so a push keeps the sender's name.
  */
-export const getChatName = (chat) =>
-  chat?.channel_name || getChatPeer(chat)?.user?.name;
+export const getChatName = (chat) => {
+  const name = chat?.channel_name || getChatPeer(chat)?.user?.name;
+  // "Delivery Worker" is a stored marker shared with the mobile app (the
+  // order chats and `chatSearch` read the raw value), so it is translated only
+  // here, where it is shown.
+  return name === "Delivery Worker" ? translateFunction("Delivery Worker") : name;
+};
 
 /**
  * The name the contacts tab shows for a contact. A contact whose user already
@@ -47,7 +52,7 @@ export const contactRowName = (contact, chats) => {
     chat.channel_members.filter(
       (member) => parseInt(member?.user_id) !== parseInt(getUserChat()?.id),
     )[0]?.user?.mobile_phone ||
-    "User"
+    translateFunction("User")
   );
 };
 
@@ -655,7 +660,7 @@ const uploadFile = async (file_name, file, signal?: AbortSignal) => {
       throw new Error(JsonResponse?.message);
     }
      let JsonResponse=await response.json();
-     if(!JsonResponse?.isSuccessful) throw new Error(JsonResponse?.message??'Failed to upload file');
+     if(!JsonResponse?.isSuccessful) throw new Error(JsonResponse?.message??translateFunction("Failed to Upload file"));
     return JsonResponse;
   } catch (err) {
     // The sender cancelled. That is not an error.
@@ -700,7 +705,7 @@ export const upload = async (file, signal?: AbortSignal) => {
     b = currentFile.name;
     return { path: a, name: b };
   } else {
-    throw new Error(response?.message || "Failed to upload file");
+    throw new Error(response?.message || translateFunction("Failed to Upload file"));
   }
 };
 export function dataURLtoFile(dataurl, filename) {

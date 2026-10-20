@@ -155,10 +155,13 @@ describe("the compare page", () => {
     expect(cell("price", 1), "the price must show with the shopper's currency").toHaveTextContent("SYP");
   });
 
-  it("loads only product 2 when only it is in the address, with a dollar sign when no currency is set", async () => {
+  // L-8. The prices are in the shopper's own currency, so "$" was a wrong
+  // symbol, not a safe default. Like the rest of the app, no symbol until the
+  // currency is known.
+  it("loads only product 2 when only it is in the address, with no symbol when no currency is set", async () => {
     await open("s_p=cap", { store: { isNavigating: true, currency: null } });
     await waitFor(() => expect(within(cell("name", 2)).getByText("Cap"), "product 2 was not loaded").toBeInTheDocument());
-    expect(cell("price", 2), "with no currency set the price must use '$'").toHaveTextContent("$");
+    expect(cell("price", 2), "with no currency set the price showed a '$' that is not the shopper's currency").not.toHaveTextContent("$");
     expect(cell("name", 1), "slot 1 must stay empty").toHaveTextContent("-");
   });
 
@@ -303,4 +306,63 @@ describe("the compare page", () => {
       expect(spies.notifyError, "a product that exists must not be reported as not found").not.toHaveBeenCalled();
     },
   );
+});
+
+describe("the compare page, two pickers", () => {
+  const results = (...names: string[]) => ({
+    ok: true,
+    json: async () => ({
+      data: {
+        products: names.map((name) => ({
+          name,
+          slug: name.toLowerCase(),
+          price: 1,
+          images: [{ file_path: `${name}.jpg` }],
+        })),
+      },
+    }),
+  });
+
+  // L-6. Red before the fix: both pickers drew from one shared result list.
+  it("keeps each picker's search results to itself", async () => {
+    searchReply.mockResolvedValue(results("Hat"));
+    await open();
+
+    await userEvent.type(box(1), "ha");
+    await waitFor(
+      () =>
+        expect(
+          within(document.querySelector('[data-pw="compare-search-1-options"]') as HTMLElement).queryByText("Hat"),
+          "picker 1 never showed its own search result",
+        ).not.toBeNull(),
+      { timeout: 2000 },
+    );
+
+    await userEvent.click(box(2));
+    const picker2 = document.querySelector('[data-pw="compare-search-2-options"]') as HTMLElement;
+    expect(picker2, "picker 2 did not open").not.toBeNull();
+    expect(
+      within(picker2).queryByText("Hat"),
+      "picker 2 shows the result of a search typed in picker 1",
+    ).toBeNull();
+  });
+
+  // L-7. Red before the fix: picker 2 offered the product already in column 1,
+  // so the same product could fill both columns.
+  it("does not offer the product that is already in the other column", async () => {
+    searchReply.mockResolvedValue(results("Shirt", "Sock"));
+    await open("f_p=shirt");
+    await waitFor(() => expect(within(cell("name", 1)).getByText("Shirt"), "product 1 was not loaded").toBeInTheDocument());
+
+    await userEvent.type(box(2), "s");
+    const picker2 = () => document.querySelector('[data-pw="compare-search-2-options"]') as HTMLElement;
+    await waitFor(
+      () => expect(within(picker2()).queryByText("Sock"), "picker 2 never showed the search results").not.toBeNull(),
+      { timeout: 2000 },
+    );
+    expect(
+      within(picker2()).queryByText("Shirt"),
+      "picker 2 offers Shirt, which is already in column 1, so the same product can fill both columns",
+    ).toBeNull();
+  });
 });

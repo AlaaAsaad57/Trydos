@@ -433,7 +433,7 @@ export async function GetProductGeneralData({ id }) {
       ratingDetails: [],
       size_analysis: null,
       good_quality_product: false,
-      recommendation_stats: { stats: [] },
+      recommendation_stats: [],
       total_buyers: 0,
     };
   try {
@@ -469,6 +469,27 @@ export async function GetProductGeneralData({ id }) {
 }
 
 export const GetRecommendationCountForProduct = async ({ product_id }) => {
+  try {
+    return await readRecommendationCount({ product_id });
+  } catch (error) {
+    // The bar is optional. A search error gives zero counts, not an error page.
+    LogServerError({
+      id: product_id,
+      error,
+      scenario:
+        "Error In GetRecommendationCountForProduct in serverRequest/product",
+    });
+    return {
+      stats: [
+        { category: "recommend", count: 0, percentage: "0" },
+        { category: "not_recommend", count: 0, percentage: "0" },
+      ],
+      total_buyers: 0,
+    };
+  }
+};
+
+const readRecommendationCount = async ({ product_id }) => {
   const result = await client.search({
     index: comments_index,
     size: 0,
@@ -595,6 +616,9 @@ export async function GetProductStoriesData({ page, productId }) {
   const rawStories = dropQaStories(response.data.data.data, viewerPhone);
   return {
     data: rawStories,
+    // The backend decides whether there is another page. A short page proves
+    // nothing: the QA filter above can remove rows from it.
+    has_more: Boolean(response.data.data.next_page_url),
     stories: rawStories?.map((story) => ({
       id: story.id,
       has_new: story.stories?.filter((s) => s.is_seen === false)?.length > 0,
@@ -653,11 +677,18 @@ async function getProductInteractions(productId: string, userId?: string) {
   try {
     // Run both queries in parallel
     const [productRes, likeRes] = await Promise.all([
-      client.get({
-        index: product_interactions_index,
-        id: productId,
-        _source: ["total_likes", "total_comments"],
-      }),
+      client
+        .get({
+          index: product_interactions_index,
+          id: productId,
+          _source: ["total_likes", "total_comments"],
+        })
+        .catch((err: any) => {
+          // A product nobody has liked yet has no document, and the search
+          // index answers 404. That is zero likes, not a fault to report.
+          if (err?.meta?.statusCode === 404) return { _source: null } as any;
+          throw err;
+        }),
       userId
         ? client.search({
             index: user_interactions_index,

@@ -462,6 +462,10 @@ export async function GET(request: NextRequest) {
           ...otp_response.data,
           token: undefined, // Strip market token from response
           refresh_token: undefined, // Never expose the refresh token (NFR-3)
+          // The one-time credential that signed the shopper in to the
+          // sub-services above. Its work is done here; no page script needs it
+          // (readiness A1-9).
+          id_token: undefined,
         },
         ChatUser: sanitizeServiceUser(chatUserData),
         StoriesUser: sanitizeServiceUser(storiesUserData),

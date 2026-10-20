@@ -181,14 +181,14 @@ describe("SearchIcon", () => {
     );
   });
 
-  it("searches the typed word after the pause and shows the products and the analysis", async () => {
+  it("searches the typed word after the pause and shows the products, but never the AI analysis", async () => {
     GetSearchData.mockResolvedValue({ products: [{ product_id: 1, name: "Red shoe" }], total_size: 1, isAnalyzed: { a: 1 } });
     const { store: st } = await renderWithProviders(<SearchIcon language="en" country="sy" />, { store: store() });
     await open();
     await type("shoe");
     expect(filtersSent().search_text, "the typed word was not searched").toBe("shoe");
     expect(screen.getByText("product Red shoe"), "the product result is missing").toBeInTheDocument();
-    expect(showSuccessNotification, "the analysis was not shown").toHaveBeenCalledWith('{"a":1}');
+    expect(showSuccessNotification, "the raw AI analysis reached the shopper as a success toast").not.toHaveBeenCalled();
     expect(screen.getByTestId("apply-search").getAttribute("href"), "the Search button links to the wrong page").toBe(
       "/gb-en/filters?search=shoe",
     );

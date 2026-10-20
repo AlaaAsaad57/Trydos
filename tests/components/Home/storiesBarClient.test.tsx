@@ -31,7 +31,10 @@ describe("StoriesBarClient", () => {
     );
   });
 
-  it("shows the skeleton, not an error, when the stories backend refuses", async () => {
+  // L-2 (stories readiness): a failed request used to leave the skeleton on
+  // screen for ever. Like a refused answer, it now gives an empty bar, with no
+  // error: a dead stories service must not stop a shopper browsing.
+  it("shows an empty bar, not an endless skeleton and not an error, when the stories request fails", async () => {
     fetchData.mockRejectedValue(new Error("Proxy request failed"));
 
     render(<StoriesBarClient language="en" country="sy" />);
@@ -42,10 +45,12 @@ describe("StoriesBarClient", () => {
         "the stories bar never asked for any stories",
       ).toHaveBeenCalled(),
     );
-    expect(
-      document.querySelector('[data-pw="stories-skeleton"]'),
-      "the stories backend refused and the bar rendered something other than its skeleton; a dead stories service must not stop a shopper browsing",
-    ).not.toBeNull();
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-pw="stories-skeleton"]'),
+        "the stories request failed and the bar kept its loading skeleton for ever",
+      ).toBeNull(),
+    );
   });
 
   it("never carries a token of its own", async () => {

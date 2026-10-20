@@ -146,6 +146,18 @@ export const useHomeStore = (set, get) => ({
     set({ storiesData: data, loadingStories: false });
   },
 
+  /** Put a fresh first page in front, and keep the people from the later
+   *  pages the shopper already loaded. After an upload only page 1 is read
+   *  again; replacing the whole list made the later pages disappear. */
+  mergeFirstStoriesPage: (page: Story[]) =>
+    set((state) => {
+      const fresh = new Set(page.map((story) => String(story.id)));
+      const later = (state.storiesData ?? []).filter(
+        (story) => !fresh.has(String(story.id)),
+      );
+      return { storiesData: [...page, ...later], loadingStories: false };
+    }),
+
   nextStory: (currentId: string | number) =>
     set((state) => {
       if (!state.storiesData) return state;

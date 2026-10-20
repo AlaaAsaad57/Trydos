@@ -20,6 +20,11 @@ import { makeNextHeadersMock } from "../../../../mocks/nextHeaders";
 const headers = makeNextHeadersMock();
 vi.mock("next/headers", () => headers);
 vi.mock("utils/serverErrorReporter", () => makeErrorReporterMock());
+// The per-address limit (A1-17). Allowed unless a test says otherwise.
+const rateLimit = vi.hoisted(() => vi.fn());
+vi.mock("serverRequests/radis", () => ({
+  fixedWindowRateLimit: (...a: unknown[]) => rateLimit(...a),
+}));
 
 const ADDRESSES = {
   BACKEND_URL: "https://core.invalid/api/v1",
@@ -86,6 +91,8 @@ beforeEach(() => {
   Object.entries(ADDRESSES).forEach(([key, value]) => vi.stubEnv(key, value));
   net = makeMockFetch();
   vi.stubGlobal("fetch", net.fetch);
+  rateLimit.mockReset();
+  rateLimit.mockResolvedValue({ allowed: true, remaining: 29, ttl: 600 });
 });
 
 afterEach(() => {
@@ -113,6 +120,32 @@ describe("while a logout is in progress (AC-23)", () => {
     // A request racing the logout must not re-register the person just signed out.
     expect(net.callCount).toBe(0);
     expect(headers.__writes).toEqual([]);
+  });
+});
+
+describe("the per-address limit (A1-17)", () => {
+  it("refuses an address over the limit before asking the gateway", async () => {
+    rateLimit.mockResolvedValue({ allowed: false, remaining: 0, ttl: 120 });
+    const { POST } = await loadRoute();
+
+    const response = await POST(makeRequest({ "x-forwarded-for": "203.0.113.7" }));
+
+    expect(response.status, "an address over the limit still got a guest").toBe(429);
+    expect(net.callCount, "the gateway was asked for an address over the limit").toBe(0);
+    expect(headers.__writes, "a cookie was written for a refused call").toEqual([]);
+    expect(rateLimit.mock.calls[0][0], "the limiter key does not name this route").toMatch(/^register-device:rl:/);
+    expect(rateLimit.mock.calls[0][0], "the raw address reached the limiter key").not.toContain("203.0.113.7");
+  });
+
+  it("still registers a guest when the limiter is not available", async () => {
+    rateLimit.mockResolvedValue({ allowed: true, remaining: 30, ttl: 0 });
+    net.queueReply(guestReply());
+    const { POST } = await loadRoute();
+
+    const response = await POST(makeRequest());
+
+    expect(response.status, "a missing limiter blocked guest registration").toBe(200);
+    expect(net.callCount, "the gateway was not asked with no limiter").toBe(1);
   });
 });
 

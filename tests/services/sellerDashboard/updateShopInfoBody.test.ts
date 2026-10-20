@@ -167,8 +167,6 @@ const requestCases: RequestCase[] = [
   { name: "deleteUser", run: () => s.deleteUser(12, "9"), url: "/shop/users/12/delete", method: "DELETE", server: MD, sellerId: "9" },
   { name: "updateUserRole", run: () => s.updateUserRole({ user_id: 1, role_id: 2 }, "9"), url: "/shop/users/role/update", method: "PUT", server: MD, sellerId: "9", body: { user_id: 1, role_id: 2 } },
   { name: "leaveShop", run: () => s.leaveShop("9"), url: "/shop/users/leave", method: "DELETE", server: MD, sellerId: "9" },
-  { name: "getUploadedImages defaults", run: () => s.getUploadedImages(undefined, undefined, undefined, undefined, "9"), url: "/seller/product/get-uploaded-images?page=1&per_page=60&date=&search=", method: "GET", server: MD, sellerId: "9" },
-  { name: "deleteImage", run: () => s.deleteImage(3, "9"), url: "/seller/product/delete-image/3", method: "DELETE", server: MD, sellerId: "9" },
   { name: "getSellerStories", run: () => s.getSellerStories("9", 7), url: "/api/v1/stories/seller-stories?user_id=7&seller_id=9&page=1&perPage=20", method: "GET", server: "stories" },
   { name: "getSellerStories with no user", run: () => s.getSellerStories("9", undefined, 2, 5), url: "/api/v1/stories/seller-stories?user_id=&seller_id=9&page=2&perPage=5", method: "GET", server: "stories" },
   { name: "deleteSellerStory", run: () => s.deleteSellerStory(4, "9", 7), url: "/api/v1/stories/delete-seller-story", method: "POST", server: "stories", body: { user_id: 7, seller_id: "9", story_id: 4 } },
@@ -378,16 +376,33 @@ describe("seller-dashboard service — a refused answer becomes an error", () =>
   });
 });
 
-describe("seller-dashboard service — media server calls when it is not configured", () => {
-  // The test env leaves NEXT_PUBLIC_MEDIA_API_KEY empty, so the module loaded
-  // at the top of this file has no media key.
+describe("seller-dashboard service — media server calls carry the ticket alone", () => {
+  // The media store authorises `/gated/*` by the upload ticket only; its auth
+  // hook never reads `x-api-key` there. So no static key is set in the test
+  // env, none is sent, and the upload still goes out.
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve({ url: "/x.png", files: [] }) });
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it.each([
-    ["uploadStoryToMediaServer", () => s.uploadStoryToMediaServer(new File(["a"], "a.png")), "Media server upload is not configured"],
-    ["bulkUploadImages", () => s.bulkUploadImages([]), "Media server is not configured"],
-    ["uploadShopImage", () => s.uploadShopImage(new File(["a"], "a.png")), "Media server upload is not configured"],
-    ["uploadExcelFile", () => s.uploadExcelFile(new File(["a"], "a.xlsx")), "Media server upload is not configured"],
-  ] as const)("%s refuses before sending anything", async (name, run, message) => {
-    await expect(run(), `${name} should stop when the media key is missing`).rejects.toThrow(message);
+    ["uploadStoryToMediaServer", () => s.uploadStoryToMediaServer(new File(["a"], "a.png"))],
+    ["bulkUploadImages", () => s.bulkUploadImages([new File(["a"], "a.png")])],
+    ["uploadShopImage", () => s.uploadShopImage(new File(["a"], "a.png"))],
+    ["uploadExcelFile", () => s.uploadExcelFile(new File(["a"], "a.xlsx"))],
+  ] as const)("%s sends the upload with the ticket and no static key", async (name, run) => {
+    await run().catch(() => undefined);
+    const init = fetchMock.mock.calls[0]?.[1];
+    expect(init, `${name} sent nothing to the media server`).toBeDefined();
+    expect(init.headers["x-api-key"], `${name} still sent the static media key`).toBeUndefined();
+    expect(init.headers["X-Upload-Ticket"], `${name} did not send the upload ticket`).toBe("ticket-1");
   });
 });
 
@@ -402,7 +417,6 @@ describe("seller-dashboard service — media server calls", () => {
   });
 
   beforeAll(async () => {
-    vi.stubEnv("NEXT_PUBLIC_MEDIA_API_KEY", "media-key");
     vi.stubEnv("NEXT_PUBLIC_MEDIA_SERVER_BASE_URL", "https://media.example.com/");
     vi.resetModules();
     svc = (await import("services/sellerDashboard")).default;

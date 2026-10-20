@@ -161,3 +161,34 @@ describe("wishlistService.removeFromWishlist — a refusal", () => {
     );
   });
 });
+
+describe("wishlistService — a refused read is an error, not an answer", () => {
+  beforeEach(() => {
+    vi.mocked(fetchData).mockReset();
+  });
+
+  // M-2. A refused list used to come back as an empty page, so the checklist
+  // screen said "Your CheckList is empty" while the products were still saved.
+  it("getWishlist throws when the market backend refuses the list", async () => {
+    vi.mocked(fetchData).mockResolvedValueOnce({ success: false, message: "refused" } as any);
+    await expect(
+      wishlistService.getWishlist(1),
+      "a refused checklist read came back as a page, so the screen shows an empty list instead of an error",
+    ).rejects.toThrow("refused");
+  });
+
+  // L-4. A refused "is it saved?" read used to crash on `data.data.is_exist`
+  // with a TypeError, which hid the real reason in the log.
+  it("isInWishlist throws a plain error, not a TypeError, when the read is refused", async () => {
+    vi.mocked(fetchData).mockResolvedValueOnce({ success: false } as any);
+    const failure = await wishlistService.isInWishlist("500").then(
+      () => null,
+      (error: unknown) => error,
+    );
+    expect(failure, "a refused existence read did not fail at all").toBeInstanceOf(Error);
+    expect(
+      failure,
+      "a refused existence read crashed on a missing field instead of saying the read was refused",
+    ).not.toBeInstanceOf(TypeError);
+  });
+});

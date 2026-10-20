@@ -31,10 +31,8 @@ class OrderService {
 
     const response = await fetch(`${MEDIA_SERVER_BASE_URL}/gated/upload`, {
       method: "POST",
-      headers: {
-        "x-api-key": process.env.NEXT_PUBLIC_MEDIA_API_KEY,
-        "X-Upload-Ticket":ticket
-      },
+      // Ticket only: the media store never reads `x-api-key` under `/gated/*`.
+      headers: { "X-Upload-Ticket": ticket },
       body: form,
 
     });

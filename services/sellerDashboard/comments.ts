@@ -14,10 +14,6 @@ import {
   getSellerProductsSocial,
 } from "services/elastic/sellerComments";
 
-const MEDIA_SERVER_BASE_URL =
-  process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
-const MEDIA_API_KEY = process.env.NEXT_PUBLIC_MEDIA_API_KEY ?? "";
-
 class SellerCommentsService {
   async GetFQAComments(sellerId: string, page: number = 1): Promise<any> {
     return getSellerComments({ sellerId, isReview: false, page });

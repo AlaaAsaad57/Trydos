@@ -3,7 +3,17 @@ import Webcam from "react-webcam";
 import Image from "next/image";
 import UploadVideo from "../UploadVideo";
 import { useStopwatch } from "react-timer-hook";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
+import { showErrorNotification } from "@/store/notifications/reducer";
+
+// Safari before 18.4 cannot record WebM, and asking for it throws. So ask the
+// browser which type it can record. MP4 is the fallback; "" lets the browser
+// choose its own default.
+const RECORDING_TYPES = ["video/webm", "video/mp4"];
+const pickRecordingType = () =>
+  typeof MediaRecorder === "undefined"
+    ? ""
+    : (RECORDING_TYPES.find((type) => MediaRecorder.isTypeSupported?.(type)) ?? "");
 
 interface NewStoryModalProps {
   close: () => void;
@@ -23,6 +33,8 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalProps)
 
   const webcamRef = useRef<Webcam>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  // The type the recorder really uses, for the preview and the shared file.
+  const recordingTypeRef = useRef("video/webm");
 
   const [webcamConstraints, setWebcamConstraints] = useState({
     width: 1280,
@@ -81,21 +93,31 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalProps)
   const handleStartCapture = useCallback(() => {
     if (!webcamRef.current?.stream) return;
 
+    const stream = webcamRef.current.stream;
+    const type = pickRecordingType();
+
+    // Make the recorder first: if this browser cannot record, the timer and
+    // the "recording" state must not start.
+    let recorder: MediaRecorder;
+    try {
+      recorder = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+    } catch (error) {
+      LogError({ scenario: "CameraStory: the browser cannot record video", error });
+      showErrorNotification(translateFunction("Not Supported"));
+      return;
+    }
+    mediaRecorderRef.current = recorder;
+    recordingTypeRef.current = recorder.mimeType || type || "video/webm";
+
     reset();
     start();
     setCapturing(true);
     setRecordedChunks([]);
 
-    const stream = webcamRef.current.stream;
-    const options = { mimeType: "video/webm" };
-
-    const recorder = new MediaRecorder(stream, options);
-    mediaRecorderRef.current = recorder;
-
     recorder.addEventListener("dataavailable", ({ data }) => {
       if (data.size > 0) {
         setRecordedChunks((prev) => [...prev, data]);
-        const blob = new Blob([data], { type: "video/webm" });
+        const blob = new Blob([data], { type: recordingTypeRef.current });
         const localUrl = URL.createObjectURL(blob);
         setVidUrl(localUrl);
       }
@@ -123,9 +145,12 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalProps)
   // Share/Upload Video
   const handleShareVideo = useCallback(() => {
     if (recordedChunks.length) {
-      const blob = new Blob(recordedChunks, { type: "video/webm" });
-      const videoFile = new File([blob], `video-story-${Date.now()}.webm`, {
-        type: "video/webm",
+      // Keep only the main type: "video/webm;codecs=vp9" → "video/webm".
+      const type = recordingTypeRef.current.split(";")[0];
+      const extension = type.includes("mp4") ? "mp4" : "webm";
+      const blob = new Blob(recordedChunks, { type });
+      const videoFile = new File([blob], `video-story-${Date.now()}.${extension}`, {
+        type,
       });
 
       HandleUploadedVideo(videoFile);

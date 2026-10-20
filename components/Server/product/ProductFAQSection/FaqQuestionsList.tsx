@@ -14,7 +14,8 @@ import {
   UPDATE_COMMENT_URL,
 } from "utils/endpointConfig";
 import { REQUESTS_DATA } from "utils/Requests";
-import { LogError } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
+import { showErrorNotification } from "store/notifications/reducer";
 import { useLiveColor, useLiveParam } from "hooks/useLiveColor";
 
 // Internal Next route (same-origin) returning the FAQ-comments data page.
@@ -33,6 +34,11 @@ async function fetchFaqComments({
     `/api/products/comments/fqa_comments?${params.toString()}`,
     { headers: { language: language ?? "en" } },
   );
+  if (!res.ok) {
+    // A 500 must not look like "no more items": the caller's catch keeps the
+    // list it has and tells the shopper.
+    throw new Error(`loading the FAQ comments answered ${res.status}`);
+  }
   const json = await res.json();
   return {
     comments: json?.data?.fqa_comments ?? [],
@@ -96,6 +102,7 @@ function FaqQuestionsList({
         error,
         scenario: "Error In GetNextComments in FaqQuestionsList",
       });
+      showErrorNotification(translateFunction("Something went wrong"));
     } finally {
       setLoading(false);
     }
@@ -118,8 +125,12 @@ function FaqQuestionsList({
         reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
         noMessage: true,
       });
-      // Only mutate local state once the server confirms the write.
+      // Only mutate local state once the server confirms the write. A refusal
+      // is shown: the sheet stays open with the text, so the shopper can retry.
       if (!res?.success) {
+        showErrorNotification(
+          res?.message || translateFunction("Something went wrong"),
+        );
         setLoading(false);
         return;
       }
@@ -153,6 +164,9 @@ function FaqQuestionsList({
       });
       // Only remove locally once the server confirms the delete.
       if (!res?.success) {
+        showErrorNotification(
+          res?.message || translateFunction("Something went wrong"),
+        );
         setLoading(false);
         return;
       }

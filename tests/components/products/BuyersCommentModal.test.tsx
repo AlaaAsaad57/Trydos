@@ -40,6 +40,7 @@ vi.mock("components/Server/product/ProductBuyersComment/RatingCommentOptions", (
 
 const fetchMock = vi.fn();
 const page = (comments: any[], offset: any = null) => ({
+  ok: true,
   json: async () => ({ data: { buyers_comments: comments, offset } }),
 });
 const urls = () => fetchMock.mock.calls.map(([u]: any) => new URL(u, "http://x").searchParams);

@@ -7,8 +7,9 @@
  *    (`/demo?search`). They open over the home screen and are changed with
  *    `history.pushState`, which Next.js keeps in step with `useSearchParams`,
  *    so there is no server round trip at all.
- *  - The settings and profile pages are real paths under `/demo/settings`.
- *    They can be linked to and reloaded.
+ *  - The settings and profile pages are real paths under `/demo/settings`,
+ *    and the screens inside the chat tab (a conversation, a contact, a call)
+ *    are real paths under `/demo/chat`. They can be linked to and reloaded.
  *
  * The demo shell draws the screen from this table, not from the page file of
  * the route, so a tap slides the next screen in on the same frame and the URL
@@ -20,6 +21,9 @@ export const DEMO_SCREENS = [
   "search",
   "cart",
   "chat",
+  "chat/conversation",
+  "chat/contact",
+  "chat/call",
   "settings",
   "settings/photo",
   "settings/client-id",

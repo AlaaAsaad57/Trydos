@@ -13,7 +13,23 @@ import { FlagIcon } from "./tinyUtils";
 import { setLocaizationCookies } from "./cookies/cookie-manager";
 import { countryNameFromIso } from "./server/country";
 
-const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
+// `loadFailed` and `onRetry` are optional (A2-21): when the country list could
+// not be read, the popup offers a retry instead of a spinner that never ends.
+const PopupCountry = ({
+  options,
+  countries,
+  forChanged,
+  noCountry,
+  loadFailed = false,
+  onRetry,
+}: {
+  options: any;
+  countries: any;
+  forChanged: any;
+  noCountry: any;
+  loadFailed?: boolean;
+  onRetry?: () => void;
+}) => {
   const [loading, setLoading] = useState(true);
   const [loadingWidget, setLoadingWidget] = useState(false);
 
@@ -384,6 +400,28 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
             </div>
           </div>
         )
+      ) : !navigating && loadFailed ? (
+        // A2-21: the country list could not be read. Without this branch the
+        // spinner below stayed for ever over a dark layer with no way out.
+        <div
+          className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center justify-center animate-in zoom-in-95 duration-200"
+          data-pw="country-load-failed"
+        >
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+            {translateFunction(
+              "The country list could not be loaded",
+              currentLanguage,
+            )}
+          </h3>
+          <button
+            type="button"
+            data-pw="country-retry"
+            onClick={() => onRetry?.()}
+            className="px-6 py-2 rounded-full bg-linear-to-r from-blue-500 to-purple-600 text-white text-sm font-semibold cursor-pointer"
+          >
+            {translateFunction("Try again", currentLanguage)}
+          </button>
+        </div>
       ) : (
         <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center justify-center animate-in zoom-in-95 duration-200">
           {/* Progress Header */}

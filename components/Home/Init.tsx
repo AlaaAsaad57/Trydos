@@ -27,6 +27,9 @@ function Init() {
   const [country, language] = lang?.split("-");
   const searchParams = useSearchParams();
   const [dataCountries, setCountriesData] = useState([]);
+  // A2-21: true when the country list could not be read. The popup then
+  // shows a retry instead of a spinner that never ends.
+  const [countriesFailed, setCountriesFailed] = useState(false);
 
   // Initialize login check once. CheckLogin's proactive refresh returns true
   // when it rotated an expired session's token pair — server components were
@@ -46,6 +49,7 @@ function Init() {
   }, []);
 
   const getCountries = async () => {
+    setCountriesFailed(false);
     if (sessionStorage.getItem(`countries-${country}-${language}`)) {
       const data = sessionStorage.getItem(`countries-${country}-${language}`);
       setCountriesData(JSON.parse(data));
@@ -59,6 +63,7 @@ function Init() {
         setCountriesData(data);
       } catch (error) {
         LogError({ scenario: "Init: the country list could not be read", error });
+        setCountriesFailed(true);
       }
     }
   };
@@ -196,6 +201,8 @@ function Init() {
         <PopupCountry
           forChanged={searchParams.get("changed-country")}
           noCountry={searchParams.get("no-country") || lang?.includes("gb-")}
+          loadFailed={countriesFailed}
+          onRetry={getCountries}
           countries={dataCountries.map((s) => s.iso)}
           options={dataCountries.map((s) => {
             return { label: s.name, value: s.iso };

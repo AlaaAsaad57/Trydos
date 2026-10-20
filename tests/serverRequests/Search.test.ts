@@ -28,7 +28,7 @@ vi.mock("services/elastic/elasticsearch.config", () => ({
   elasticSearchClient: { search: io.search },
   elasticSearchComment: {},
 }));
-vi.mock("services/elastic/analyzeSearchTextCerebras", () => ({ default: io.analyze }));
+vi.mock("services/elastic/analyzeSearchText", () => ({ default: io.analyze }));
 vi.mock("utils/server/qaMode", () => ({ qaMode: io.qaMode }));
 vi.mock("utils/serverErrorReporter", () => ({ LogServerError: io.logServerError }));
 vi.mock("next/headers", () => ({ headers: vi.fn() }));

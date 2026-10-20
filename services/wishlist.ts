@@ -37,7 +37,12 @@ interface WishlistResponse {
   has_next: boolean;
 }
 
+/** Rows per checklist page. The screen also needs it to work out which page
+ *  to ask for after the shopper removes rows (see `ChecklistView`). */
+export const CHECKLIST_PAGE_SIZE = 10;
+
 interface WishlistExistenceResponse {
+  success?: boolean;
   data?: { is_exist: boolean };
 }
 
@@ -73,11 +78,17 @@ class WishlistService {
 
   async getWishlist(page = 1): Promise<WishlistResponse> {
     const data = await fetchData({
-      url: `/checklist?page=${page}&page_size=10`,
+      url: `/checklist?page=${page}&page_size=${CHECKLIST_PAGE_SIZE}`,
       method: "GET",
       server: "market",
       reqTitle: REQUESTS_DATA.GET_CHECKLIST,
     });
+
+    // A refusal is an error, not an empty page. Returned as a page, it made
+    // the screen say "Your CheckList is empty" while the products were saved.
+    if (!data?.success) {
+      throw new Error(data?.message || "Failed to load the checklist");
+    }
 
     const paginator = data?.data;
 
@@ -111,10 +122,11 @@ class WishlistService {
       noMessage: true,
     });
 
-    if (data.data.is_exist) {
-      return true;
+    // Say the read was refused, rather than crash on a missing field.
+    if (!data?.success) {
+      throw new Error("Failed to check whether the product is in the checklist");
     }
-    return false;
+    return data.data?.is_exist === true;
   }
 }
 

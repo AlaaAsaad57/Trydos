@@ -4,6 +4,7 @@ import profilePicture from "public/images/profileNo.png";
 import { GetUnviewedStory } from "store/homepage/actions";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
+import StoryServiceClass from "services/story";
 
 function StoryElement({ index, story, userData }) {
   if (String(userData?.id) === String(story?.id))
@@ -27,7 +28,7 @@ function StoryElement({ index, story, userData }) {
           index={1}
           key={story.stories[story.stories?.length - 1]}
           media={story.stories[story.stories?.length - 1]}
-          Name={story.name ?? story.mobile_phone ?? "Unknown"}
+          Name={StoryServiceClass.authorName(story)}
           story={story}
         />
       </div>
@@ -52,7 +53,7 @@ function StoryElement({ index, story, userData }) {
         <Story
           index={1}
           media={story.stories[GetUnviewedStory(story)]}
-          Name={story.name ?? story.mobile_phone ?? "Unknown"}
+          Name={StoryServiceClass.authorName(story)}
           story={story}
         />
       </div>

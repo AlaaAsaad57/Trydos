@@ -77,6 +77,10 @@ export interface OldCartDetailsData {
 }
 
 export interface ApiResponse<T> {
+  // `isSuccessful` is the backend's own flag. `success` is added by `fetchData`
+  // and is false on a network failure, when no backend body exists at all.
+  success?: boolean;
+  httpStatus?: number;
   isSuccessful: boolean;
   message?: string;
   data: T;

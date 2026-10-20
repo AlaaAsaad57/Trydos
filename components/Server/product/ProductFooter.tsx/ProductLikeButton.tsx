@@ -1,5 +1,6 @@
 import { useState } from "react";
 import auth from "services/auth";
+import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import { LogError, translateFunction } from "utils/functions";
@@ -22,6 +23,7 @@ function ProductLikeButton({
 }) {
   const [likeLoading, setLikeLoading] = useState(false);
   const [isLikedState, setLiked] = useState(isLiked);
+  const setLoginOpen = useAppStore((s) => s.setLoginOpen);
   const [totalLikes, setTotalLikes] = useState(total_likes);
 
   const getLikesCount = () => {
@@ -143,6 +145,17 @@ function ProductLikeButton({
       } transition-all`}
       data-pw="LoveSymbol"
       onClick={() => {
+        // A second tap while the request runs must not flip the heart: the
+        // guard inside LikeProduct would drop the request, and the heart
+        // would stay wrong until the first answer lands.
+        if (likeLoading) return;
+        // A guest has no comments token. Ask for sign-in here, instead of
+        // sending a request that only ends in the sign-in prompt 2 s later.
+        if (!auth.UserID()) {
+          setLoginOpen(true);
+          showErrorNotification(translateFunction("Please Login First"));
+          return;
+        }
         setLiked(!isLikedState);
         if (isLikedState) LikeProduct(false);
         else LikeProduct(true);

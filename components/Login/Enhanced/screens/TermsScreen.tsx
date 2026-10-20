@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import { translateFunction } from 'utils/functions';
 import { GA_EVENT_NAMES } from 'utils/GAEvents';
@@ -15,6 +16,11 @@ interface TermsScreenProps {
 
 export default function TermsScreen({ onAgree, onLater, lang = 'en' }: TermsScreenProps) {
     const translate = (key: string) => translateFunction(key, lang);
+    // A3-5: the terms page exists; Product replaces its text later. `lang` is
+    // the language only, so the locale comes from the route. The login demo
+    // has no locale in its route; there the language alone is used.
+    const { lang: locale } = useParams<{ lang?: string }>() ?? {};
+    const termsHref = `/${typeof locale === 'string' && locale ? locale : lang}/terms-of-service`;
 
     return (
         <div className="w-full bg-white flex flex-col font-quicksand">
@@ -54,9 +60,14 @@ export default function TermsScreen({ onAgree, onLater, lang = 'en' }: TermsScre
                             className="w-xd-25 h-xd-25 object-contain"
                         />
                     </div>
-                    <span className="text-xd-14 text-[#388CFF]">
+                    <a
+                        href={termsHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xd-14 text-[#388CFF]"
+                    >
                         {translate('Terms Of Services')}
-                    </span>
+                    </a>
                 </div>
                 <FlexibleSpace size={50} share={0.07} />
 

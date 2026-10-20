@@ -959,14 +959,15 @@ export function validate(
       }
     }
 
-    if (form.purchase_price === ""||!form.purchase_price) {
-      if (isNaN(pp) || pp < 0) {
-        e.purchase_price = tx("Enter a valid purchase price");
-      } else if (form.discount_price !== "" && !isNaN(dp) && dp <= pp) {
-        e.discount_price = tx("Discount price must be greater than purchase price");
-      } else if (form.discount_price === "" && !isNaN(up) && up <= pp) {
-        e.purchase_price = tx("Unit price must be greater than purchase price");
-      }
+    // A filled purchase price is checked too (BUG-seller-100: these checks used
+    // to run only when the field was empty). A selling price that already has
+    // its own error is not compared, so its message is kept.
+    if (form.purchase_price === "" || isNaN(pp) || pp < 0) {
+      e.purchase_price = tx("Enter a valid purchase price");
+    } else if (form.discount_price !== "" && !e.discount_price && dp <= pp) {
+      e.discount_price = tx("Discount price must be greater than purchase price");
+    } else if (form.discount_price === "" && !e.unit_price && up <= pp) {
+      e.purchase_price = tx("Unit price must be greater than purchase price");
     }
 
     // Luck price is what a shopper pays through a luck draw, so it can never sit

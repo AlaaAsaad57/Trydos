@@ -633,6 +633,20 @@ describe("GetProductGeneralData", () => {
     ).not.toHaveBeenCalled();
   });
 
+  // The empty shape must have the same type as the full one. It used to give
+  // `recommendation_stats: { stats: [] }` (an object) where the full answer gives
+  // an array, so `ProductGeneralProperties` crashed on `.find`, and `tsc` failed
+  // on this file.
+  it("returns the recommendation stats as an empty list when there is no product id", async () => {
+    const { GetProductGeneralData } = await load();
+    const result = await GetProductGeneralData({ id: undefined });
+
+    expect(
+      result?.recommendation_stats,
+      "with no product id the recommendation stats are not a list, so the product page cannot read them",
+    ).toEqual([]);
+  });
+
   it("AC-21 turns the star spread into rating groups with their counts", async () => {
     esGetAnswers[product_interactions_index] = {
       _source: { final_rating: 4.5, star_distribution: { star_1: 2, star_5: 7 } },
@@ -840,6 +854,22 @@ describe("GetProductStoriesData", () => {
     data: { data: { data: stories } },
   });
 
+  // L-8 (stories readiness): the row guessed "no more pages" from a short page.
+  // The QA filter can shorten a page, so the backend's own answer must decide.
+  it("says whether the backend has another page of product stories", async () => {
+    fetchServerData.mockResolvedValueOnce({
+      data: { data: { data: [], next_page_url: "https://stories.example/p?page=2" } },
+    } as any);
+    fetchServerData.mockResolvedValueOnce({ data: { data: { data: [], next_page_url: null } } } as any);
+
+    const { GetProductStoriesData } = await load();
+    const first = await GetProductStoriesData({ page: 1, productId: "1001" });
+    const last = await GetProductStoriesData({ page: 2, productId: "1001" });
+
+    expect((first as any).has_more, "the backend has page 2, but the reader did not say so").toBe(true);
+    expect((last as any).has_more, "the backend has no next page, but the reader said there is one").toBe(false);
+  });
+
   it("AC-29 sends the stories credential when the shopper has one", async () => {
     headers.__reset({
       cookies: { [COOKIE_NAMES.STORIES_TOKEN]: "stories-credential-for-tests" },
@@ -1026,18 +1056,24 @@ describe("the product readers when a search source fails", () => {
     ).toContain("getProductViewsQuery (elastic) failed");
   });
 
-  it("answers nothing, and reports it, when the recommendation count fails", async () => {
+  it("answers zero recommendations, and reports it, when the recommendation count fails", async () => {
     esGetAnswers[product_interactions_index] = { _source: {} };
     esGetAnswers[views_index] = { _source: { view_count: 1 } };
     esSearchAnswers[comments_index] = new Error("comments index down");
 
     const { GetProductGeneralData } = await load();
+    const result = await GetProductGeneralData({ id: "1001" });
 
-    expect(await GetProductGeneralData({ id: "1001" }), "a failed read still gave general data").toBeUndefined();
+    expect(result?.product_id, "a failed recommendation count removed the general data").toBe("1001");
+    expect(
+      result?.recommendation_stats?.map((s: any) => s.percentage),
+      "a failed recommendation count should answer zero for both bars",
+    ).toEqual(["0", "0"]);
+    expect(result?.total_buyers, "a failed recommendation count should answer no buyers").toBe(0);
     expect(
       LogServerError.mock.calls.map((call: any[]) => call[0]?.scenario),
-      "the failed general data read was not reported",
-    ).toContain("Error In GetProductGeneralData in serverRequest/product");
+      "the failed recommendation count was not reported",
+    ).toContain("Error In GetRecommendationCountForProduct in serverRequest/product");
   });
 
   it("treats an unreadable profile cookie as not a tester when reading product stories", async () => {

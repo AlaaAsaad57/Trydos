@@ -28,6 +28,7 @@ import ProductCartsModal from "components/SellerDashboard/carts/ProductCartsModa
 import ProductOrdersModal from "components/SellerDashboard/productOrders/ProductOrdersModal";
 import AiAutofillDialog from "components/SellerDashboard/productEdit/AiAutofillDialog";
 import { ConfirmModal } from "components/global/ConfirmModal";
+import { unsubscribeShopOrderTopics } from "utils/shopOrderTopics";
 import { DashIcon, IconName } from "components/SellerDashboard/ui/icons";
 import {
   DashCard,
@@ -270,6 +271,9 @@ function SellerDashBoard() {
   const [rolesForChangeLoading, setRolesForChangeLoading] =
     useState<boolean>(true);
   const [activeCartsCount, setActiveCartsCount] = useState<number | null>(null);
+  // "Delete" removes a member from the shop, so it asks first.
+  const [deleteUserTarget, setDeleteUserTarget] = useState<any>(null);
+  const [deleteUserLoading, setDeleteUserLoading] = useState<boolean>(false);
 
   // "Are this shop's permissions known yet?" — not "is a request running".
   // Every permission-gated section waits on this before it decides between
@@ -519,6 +523,21 @@ function SellerDashBoard() {
 
   const currentUserId = auth.UserID ? auth.UserID() : null;
 
+  // A direct link to a gated tab must never show an empty white panel: wait
+  // while the permissions are unknown, show the load error, or say that the
+  // permission is missing.
+  const renderGated = (
+    allowed: boolean,
+    content: React.ReactNode,
+    deniedMessage: string,
+  ) => {
+    if (!permissionsReady) return <ListRowsSkeleton />;
+    if (error && sellerPermissions.length === 0)
+      return <ErrorState message={error} onRetry={getSellerPermissions} />;
+    if (!allowed) return <AccessDenied message={deniedMessage} />;
+    return content;
+  };
+
   // Sections already fetched during THIS mount, keyed `${sellerId}:<section>`.
   //
   // It holds the promise, not just a marker, for two reasons. A second caller
@@ -762,6 +781,7 @@ function SellerDashBoard() {
 
   const handleDeleteUser = async (userId: number | string) => {
     try {
+      setDeleteUserLoading(true);
       setUsersError(null);
       const res = await SellerDashboardService.deleteUser(userId, sellerId);
       if (!res?.success) {
@@ -776,6 +796,9 @@ function SellerDashBoard() {
       setUsersError(
         error?.message || translateFunction("Failed to delete user"),
       );
+    } finally {
+      setDeleteUserLoading(false);
+      setDeleteUserTarget(null);
     }
   };
 
@@ -828,6 +851,8 @@ function SellerDashBoard() {
       // Left successfully — the shop is no longer accessible, so leave the
       // dashboard and send the user back to their shop picker. The navigation
       // itself is the success signal; keep the spinner up until it unloads.
+      // The order pushes for this shop must stop on this device first.
+      await unsubscribeShopOrderTopics(sellerId);
       window.location.href = `/${local}/sellerProfile`;
     } catch (error: any) {
       LogError({
@@ -966,11 +991,20 @@ function SellerDashBoard() {
   }, [sellerId]);
 
   useEffect(() => {
-    if (activeTab === "users" && canManageUsers) {
-      if (roles.length === 0) getRoles();
+    if (activeTab === "users" && canViewUsersList) {
+      // Roles are only needed for the add / change-role forms.
+      if (canManageUsers && roles.length === 0) getRoles();
       if (users.length === 0) getUsers();
     }
-  }, [activeTab, canManageUsers]);
+  }, [activeTab, canViewUsersList, canManageUsers]);
+
+  // A member who lost every order permission must stop getting the shop's
+  // order pushes on this device. Permissions that failed to load are unknown,
+  // not missing, so they are left alone.
+  useEffect(() => {
+    if (!permissionsReady || !sellerId || sellerPermissions.length === 0) return;
+    if (!canViewOrders) void unsubscribeShopOrderTopics(sellerId);
+  }, [permissionsReady, sellerId, sellerPermissions, canViewOrders]);
 
   // Debounced server-side search for roles (add user)
   useEffect(() => {
@@ -1059,6 +1093,9 @@ function SellerDashBoard() {
   useEffect(() => {
     if (activeTab !== "products" || !canViewProducts || sellerProducts.length === 0)
       return;
+    // The server action refuses without READ_COMMENTS; the card says so
+    // instead of asking and showing dashes for ever.
+    if (!canViewComments) return;
     // Asked-for ids are remembered, not just answered ones. This effect runs
     // twice per arrival — once against the list already held, then again when the
     // refetch swaps the array — and without this the second run repeats the whole
@@ -1092,7 +1129,7 @@ function SellerDashBoard() {
       });
     // productsSocial intentionally omitted from deps — it's updated here and
     // re-including it would re-trigger after every successful batch.
-  }, [activeTab, canViewProducts, sellerProducts, sellerId]);
+  }, [activeTab, canViewProducts, canViewComments, sellerProducts, sellerId]);
 
   useEffect(() => {
     if (activeTab === "boutiques" && canViewBoutiques) {
@@ -1436,6 +1473,17 @@ function SellerDashBoard() {
                 {/* Social stats — reactions / questions / reviews / shares.
                     "—" until the permission-gated counts arrive. */}
                 {(() => {
+                  if (!canViewComments)
+                    return (
+                      <p
+                        data-pw="seller-product-stats-denied"
+                        className="mt-2.5 pt-2.5 border-t border-[#f4f4f4] text-[11px] text-[#b8b8b8]"
+                      >
+                        {translateFunction(
+                          "Comment counts need the comments permission",
+                        )}
+                      </p>
+                    );
                   const s =
                     productsSocial[String(product.product_id ?? product.id)];
                   const stats = [
@@ -1737,7 +1785,10 @@ function SellerDashBoard() {
     if (error && sellerPermissions.length === 0)
       return <ErrorState message={error} onRetry={getSellerPermissions} />;
 
-    if (!canManageUsers)
+    // READ_EMPLOYEES alone opens the list below, read-only. Adding a member
+    // needs USER_MANAGEMENT_ACCESS; changing a role or removing a member needs
+    // SUPER_ADMIN.
+    if (!canViewUsersList)
       return (
         <AccessDenied
           message={translateFunction(
@@ -1749,6 +1800,7 @@ function SellerDashBoard() {
     return (
       <div className="space-y-5">
         {/* Add User Form */}
+        {canManageUsers && (
         <DashCard>
           <SectionHeader
             icon="plus"
@@ -1918,6 +1970,7 @@ function SellerDashBoard() {
             </DashButton>
           </form>
         </DashCard>
+        )}
 
         {/* Available Roles List
         <div className="bg-white rounded-[15px] shadow-md p-6">
@@ -2133,7 +2186,7 @@ function SellerDashBoard() {
                                 variant="danger"
                                
                                 icon="trash"
-                                onClick={() => handleDeleteUser(user.id)}
+                                onClick={() => setDeleteUserTarget(user)}
                               >
                                 {translateFunction("Delete")}
                               </DashButton>
@@ -2184,6 +2237,18 @@ function SellerDashBoard() {
                 confirmMessage="Are you sure you want to leave this shop? You will lose access to it."
                 onCancel={() => setShowLeaveConfirm(false)}
                 onConfirm={handleLeaveShop}
+              />
+            )}
+            {deleteUserTarget && (
+              <ConfirmModal
+                showModal={!!deleteUserTarget}
+                type="Delete"
+                loading={deleteUserLoading}
+                confirmTilte="Remove member"
+                confirmMessage="This member will lose access to the shop. Continue?"
+                dataCy="seller-user-delete-confirm"
+                onCancel={() => setDeleteUserTarget(null)}
+                onConfirm={() => handleDeleteUser(deleteUserTarget.id)}
               />
             )}
           </DashCard>
@@ -2412,7 +2477,7 @@ function SellerDashBoard() {
                   <DashIcon name="products" size={20} />
                   <span>{translateFunction("Products")}</span>
                   <span className="rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center ms-auto text-[11px] semibold bg-[#5d5d5d]/10 text-[#5d5d5d]">
-                    {loadingSideBar ? <Spinner /> : sellerProducts?.length}
+                    {loadingSideBar ? <Spinner /> : productsMeta?.total ?? sellerProducts?.length}
                   </span>
                   {activeTab === "products" && (
                     <span className="text-[#5d5d5d] shrink-0">
@@ -2796,54 +2861,74 @@ function SellerDashBoard() {
         )}
         {activeTab === "permissions" && renderPermissions()}
         {activeTab === "users" && renderUsers()}
-        {activeTab === "orders" && (
-          <RenderOrders
-            canViewOrders={canViewOrders}
-            sellerId={sellerId}
-            setActiveTab={(s)=>changeTab(s)}
-            activeTab={activeTab}
-          />
-        )}
-        {activeTab === "gallery" && canViewGallery && (
-          <GalleryTab
-            sellerId={sellerId}
-            canUpload={canUploadProductImages}
-            canDelete={canDeleteProductImages}
-            language={language}
-            isRtl={isRtl}
-          />
-        )}
-        {activeTab === "stories" && canViewStories && (
-          <StoriesTab
-            sellerId={sellerId}
-            userId={currentUserId}
-            canCreate={canCreateStory}
-            canDelete={canDeleteStory}
-            language={language}
-            isRtl={isRtl}
-          />
-        )}
-        {activeTab === "comments" && canViewComments && (
-          <CommentsTab
-            sellerId={sellerId}
-            language={language}
-            isRtl={isRtl}
-            canReply={canReplyComment}
-            canEditReply={canEditReply}
-            canDelete={canDeleteReply}
-          />
-        )}
-        {activeTab === "excel" && canUploadExcel && (
-          <ExcelUploadTab sellerId={sellerId} language={language} />
-        )}
-        {activeTab === "shopInfo" && canViewShopInfo && (
-          <ShopInfo
-            sellerId={sellerId}
-            language={language}
-            canUpdate={canUpdateShopInfo}
-            onShopInfoUpdated={handleShopInfoUpdated}
-          />
-        )}
+        {activeTab === "orders" &&
+          renderGated(
+            canViewOrders,
+            <RenderOrders
+              canViewOrders={canViewOrders}
+              sellerId={sellerId}
+              setActiveTab={(s) => changeTab(s)}
+              activeTab={activeTab}
+            />,
+            translateFunction(
+              "You need order viewing permissions to see this section",
+            ),
+          )}
+        {activeTab === "gallery" &&
+          renderGated(
+            canViewGallery,
+            <GalleryTab
+              sellerId={sellerId}
+              canUpload={canUploadProductImages}
+              canDelete={canDeleteProductImages}
+              language={language}
+              isRtl={isRtl}
+            />,
+            translateFunction("You don't have permission to view the gallery"),
+          )}
+        {activeTab === "stories" &&
+          renderGated(
+            canViewStories,
+            <StoriesTab
+              sellerId={sellerId}
+              userId={currentUserId}
+              canCreate={canCreateStory}
+              canDelete={canDeleteStory}
+              language={language}
+              isRtl={isRtl}
+            />,
+            translateFunction("You don't have permission to view stories"),
+          )}
+        {activeTab === "comments" &&
+          renderGated(
+            canViewComments,
+            <CommentsTab
+              sellerId={sellerId}
+              language={language}
+              isRtl={isRtl}
+              canReply={canReplyComment}
+              canEditReply={canEditReply}
+              canDelete={canDeleteReply}
+            />,
+            translateFunction("You don't have permission to view comments"),
+          )}
+        {activeTab === "excel" &&
+          renderGated(
+            canUploadExcel,
+            <ExcelUploadTab sellerId={sellerId} language={language} />,
+            translateFunction("You don't have permission to upload products"),
+          )}
+        {activeTab === "shopInfo" &&
+          renderGated(
+            canViewShopInfo,
+            <ShopInfo
+              sellerId={sellerId}
+              language={language}
+              canUpdate={canUpdateShopInfo}
+              onShopInfoUpdated={handleShopInfoUpdated}
+            />,
+            translateFunction("You don't have permission to view shop info"),
+          )}
         {activeTab === "carts" &&
           (permissionsReady ? (
             <CartsTab

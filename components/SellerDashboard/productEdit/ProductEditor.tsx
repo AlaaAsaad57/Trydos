@@ -673,78 +673,6 @@ export default function ProductEditor({
     setEditMode(false);
   };
 
-  /* ------------------------------ draft save/load ------------------------- */
-
-  const getDraftKey = () => `trydos_product_editor_draft_${sellerId}_${productId || "new"}`;
-
-  const handleSaveDraft = () => {
-    if (!form || typeof window === "undefined") return;
-    try {
-      const dataStr = JSON.stringify(form);
-      const primaryKey = getDraftKey();
-      const genericKey = `trydos_product_editor_draft_${sellerId}`;
-      localStorage.setItem(primaryKey, dataStr);
-      localStorage.setItem(genericKey, dataStr);
-      showSuccessMessage(t("Draft saved successfully."));
-    } catch (e) {
-      showErrorMessage(t("Failed to save draft."));
-    }
-  };
-
-  const handleLoadDraft = () => {
-    if (!form || typeof window === "undefined") return;
-    try {
-      const primaryKey = getDraftKey();
-      const genericKey = `trydos_product_editor_draft_${sellerId}`;
-      const savedStr =
-        localStorage.getItem(primaryKey) ||
-        localStorage.getItem(genericKey) ||
-        localStorage.getItem("trydos_product_editor_draft");
-      if (!savedStr) {
-        showErrorMessage(t("No saved draft found."));
-        return;
-      }
-      const draftData = JSON.parse(savedStr);
-      if (!draftData || typeof draftData !== "object") {
-        showErrorMessage(t("No saved draft found."));
-        return;
-      }
-      const merged: ProductForm = {
-        ...emptyProductForm(),
-        ...draftData,
-        category_id: Array.isArray(draftData.category_id) ? draftData.category_id : [],
-        sub_category_id: Array.isArray(draftData.sub_category_id) ? draftData.sub_category_id : [],
-        sub_sub_category_id: Array.isArray(draftData.sub_sub_category_id) ? draftData.sub_sub_category_id : [],
-        labels: Array.isArray(draftData.labels) ? draftData.labels : [],
-        tags_ids: Array.isArray(draftData.tags_ids) ? draftData.tags_ids : [],
-        descriptor_values:
-          draftData.descriptor_values && typeof draftData.descriptor_values === "object"
-            ? draftData.descriptor_values
-            : {},
-        countries_iso: Array.isArray(draftData.countries_iso) ? draftData.countries_iso : [],
-        extra_price_for_country: Array.isArray(draftData.extra_price_for_country)
-          ? draftData.extra_price_for_country
-          : [],
-        images: Array.isArray(draftData.images) ? draftData.images : [],
-        colors: Array.isArray(draftData.colors) ? draftData.colors : [],
-        sizes: Array.isArray(draftData.sizes) ? draftData.sizes : [],
-        variations:
-          draftData.variations && typeof draftData.variations === "object"
-            ? draftData.variations
-            : {},
-        colorImages:
-          draftData.colorImages && typeof draftData.colorImages === "object"
-            ? draftData.colorImages
-            : {},
-        translations: Array.isArray(draftData.translations) ? draftData.translations : [],
-      };
-      setForm(merged);
-      showSuccessMessage(t("Draft loaded successfully."));
-    } catch (e) {
-      showErrorMessage(t("Failed to load draft."));
-    }
-  };
-
   /* --------------------------- change status ------------------------------ */
 
   const confirmStatus = async () => {
@@ -947,22 +875,6 @@ export default function ProductEditor({
                 >
                   {t("Cancel")}
                 </DashButton>
-                {/* <DashButton
-                  variant="secondary"
-
-                  icon="download"
-                  onClick={handleSaveDraft}
-                >
-                  {t("Save Draft")}
-                </DashButton>
-                <DashButton
-                  variant="secondary"
-
-                  icon="upload"
-                  onClick={handleLoadDraft}
-                >
-                  {t("Load Draft")}
-                </DashButton> */}
                 <DashButton icon="check" onClick={startSave} disabled={isSaveDisabled} loading={saving}>
                   {t("Create Product")}
                 </DashButton>
@@ -997,22 +909,6 @@ export default function ProductEditor({
                     <DashButton variant="ghost"  onClick={cancelEdit}>
                       {t("Cancel")}
                     </DashButton>
-                    {/* <DashButton
-                      variant="secondary"
-                      
-                      icon="download"
-                      onClick={handleSaveDraft}
-                    >
-                      {t("Save Draft")}
-                    </DashButton>
-                    <DashButton
-                      variant="secondary"
-                      
-                      icon="upload"
-                      onClick={handleLoadDraft}
-                    >
-                      {t("Load Draft")}
-                    </DashButton> */}
                     <DashButton icon="check" onClick={startSave} disabled={isSaveDisabled} loading={saving}>
                       {t("Save Changes")}
                     </DashButton>
@@ -1138,22 +1034,6 @@ export default function ProductEditor({
               >
                 {t("Cancel")}
               </DashButton>
-              {/* <DashButton
-                variant="secondary"
-                
-                icon="download"
-                onClick={handleSaveDraft}
-              >
-                {t("Save Draft")}
-              </DashButton>
-              <DashButton
-                variant="secondary"
-                
-                icon="upload"
-                onClick={handleLoadDraft}
-              >
-                {t("Load Draft")}
-              </DashButton> */}
               <DashButton icon="check" onClick={startSave} disabled={isSaveDisabled} loading={saving}>
                 {isCreate ? t("Create Product") : t("Save Changes")}
               </DashButton>

@@ -32,10 +32,10 @@ const updateUserRole = vi.fn();
 const GetProductsSocial = vi.fn();
 const getSellerCarts = vi
   .fn()
-  .mockResolvedValue({ isSuccessful: true, data: { carts: [], meta: { total: 0 } } });
+  .mockResolvedValue({ success: true, isSuccessful: true, data: { carts: [], meta: { total: 0 } } });
 const getSellerOldCarts = vi
   .fn()
-  .mockResolvedValue({ isSuccessful: true, data: { old_carts: [], meta: { total: 0 } } });
+  .mockResolvedValue({ success: true, isSuccessful: true, data: { old_carts: [], meta: { total: 0 } } });
 
 vi.mock("services/sellerDashboard", () => ({
   default: {
@@ -656,6 +656,27 @@ describe("the seller dashboard home", () => {
 });
 
 describe("the seller dashboard side menu", () => {
+  // L-5 (seller catalog readiness): the badge showed the number of products on
+  // the loaded page, not the shop total the core backend reports.
+  it("shows the shop's product total on the Products badge, not the size of one page", async () => {
+    getSellerProducts.mockResolvedValue({
+      success: true,
+      data: {
+        products: [product(1, "First Shirt"), product(2, "Second Shirt")],
+        meta: { total: 37, last_page: 4, current_page: 1 },
+      },
+    });
+    await openDashboard();
+
+    fireEvent.click(byPw("seller-dashboard-menu-btn"));
+    await settle();
+
+    expect(
+      byPw("seller-dashboard-menu-products").textContent,
+      "the Products badge does not show the total of 37 the core backend reported",
+    ).toContain("37");
+  });
+
   const MENU_TABS = [
     "products", "boutiques", "locations", "orders", "carts", "permissions",
     "users", "gallery", "stories", "comments", "excel", "shopInfo",
@@ -774,7 +795,7 @@ describe("the seller dashboard side menu", () => {
 
   it("renders active carts count in the side menu drawer", async () => {
     getSellerCarts.mockResolvedValueOnce({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: {
         carts: [
           {
@@ -803,7 +824,7 @@ describe("the seller dashboard side menu", () => {
 
 describe("the seller dashboard carts tab", () => {
   const cartsPage = (total: number) => ({
-    isSuccessful: true,
+    success: true, isSuccessful: true,
     data: {
       carts: [
         {
@@ -1297,6 +1318,11 @@ describe("the seller dashboard users tab", () => {
     await act(async () => {
       fireEvent.click(buttonWithText("Delete", 1));
     });
+    expect(deleteUser, "Delete must ask before it removes the member").not.toHaveBeenCalled();
+    // Delete asks first; the member goes only after the confirm.
+    await act(async () => {
+      fireEvent.click(byPw("seller-user-delete-confirm"));
+    });
     await settle();
     expect(screen.queryByText("A Teammate"), "the deleted user is still listed").toBeNull();
 
@@ -1311,6 +1337,10 @@ describe("the seller dashboard users tab", () => {
     await act(async () => {
       fireEvent.click(buttonWithText("Delete", 1));
     });
+    // Delete asks first; the member goes only after the confirm.
+    await act(async () => {
+      fireEvent.click(byPw("seller-user-delete-confirm"));
+    });
     await settle();
     expect(screen.queryByText("delete refused"), "the delete refusal was not shown").not.toBeNull();
     expect(screen.queryByText("A Teammate"), "a refused delete removed the user anyway").not.toBeNull();
@@ -1318,6 +1348,10 @@ describe("the seller dashboard users tab", () => {
     deleteUser.mockRejectedValueOnce("socket closed");
     await act(async () => {
       fireEvent.click(buttonWithText("Delete", 1));
+    });
+    // Delete asks first; the member goes only after the confirm.
+    await act(async () => {
+      fireEvent.click(byPw("seller-user-delete-confirm"));
     });
     await settle();
     expect(screen.queryByText("Failed To Delete User"), "a thrown delete did not show the generic message").not.toBeNull();
@@ -1453,6 +1487,10 @@ describe("the seller dashboard — a refusal with no message", () => {
     await openAs(["SUPER_ADMIN"], "users");
     await act(async () => {
       fireEvent.click(buttonWithText("Delete", 1));
+    });
+    // Delete asks first; the member goes only after the confirm.
+    await act(async () => {
+      fireEvent.click(byPw("seller-user-delete-confirm"));
     });
     await settle();
     expect(screen.queryByText("Failed To Delete User"), "the delete refusal showed untranslated text").not.toBeNull();

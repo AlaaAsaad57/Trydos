@@ -173,7 +173,7 @@ function BuyersCommentMenu({
           }}
           tabIndex={0}
           role="button"
-          aria-label="Comment options menu"
+          aria-label={translateFunction("Comment options menu", language)}
           data-pw={
             !fromComments ? "success-comment-options" : "comment-options"
           }

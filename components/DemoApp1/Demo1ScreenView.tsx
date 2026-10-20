@@ -15,6 +15,10 @@ import BodyScreen from "./screens/BodyScreen";
 import AddressListScreen from "./screens/AddressListScreen";
 import AddressFormScreen from "./screens/AddressFormScreen";
 import WalletScreen from "./screens/WalletScreen";
+import ChatListScreen from "./screens/ChatListScreen";
+import ConversationScreen from "./screens/ConversationScreen";
+import ContactScreen from "./screens/ContactScreen";
+import CallScreen from "./screens/CallScreen";
 
 /** Which component draws which screen of /demo. XD artboard names are in each file. */
 export default function Demo1ScreenView({ screen }: { screen: DemoScreen }) {
@@ -32,13 +36,13 @@ export default function Demo1ScreenView({ screen }: { screen: DemoScreen }) {
         />
       );
     case "chat":
-      return (
-        <EmptyTabScreen
-          title="Chat"
-          message="No conversations yet"
-          hint="Messages with sellers will show here"
-        />
-      );
+      return <ChatListScreen />;
+    case "chat/conversation":
+      return <ConversationScreen />;
+    case "chat/contact":
+      return <ContactScreen />;
+    case "chat/call":
+      return <CallScreen />;
     case "settings":
       return <ProfileScreen />;
     case "settings/photo":

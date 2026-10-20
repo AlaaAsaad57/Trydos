@@ -464,8 +464,8 @@ Upload first, save second. The save body carries only the **bare file name**.
    `{ "success": true, "ticket": "<ticket>" }`. The route asks the media
    server (`/gated/ticket`) for it.
 2. **Upload** to the media server (`NEXT_PUBLIC_MEDIA_SERVER_BASE_URL`), with
-   headers `x-api-key: <NEXT_PUBLIC_MEDIA_API_KEY>` and
-   `X-Upload-Ticket: <ticket>`, as `multipart/form-data`:
+   the header `X-Upload-Ticket: <ticket>` (no static key; the media server
+   authorises `/gated/*` by the ticket alone), as `multipart/form-data`:
 
    | What | Endpoint | Form fields | Folder | Answer |
    |---|---|---|---|---|

@@ -15,6 +15,7 @@ import {
   showErrorNotification,
 } from "@/store/notifications/reducer";
 import { LogError } from "utils/functions";
+import { GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_LOADER_ID } from "utils/mapsConfig";
 type MapProps = {
   center: {
     lat: number | string;
@@ -32,8 +33,8 @@ export const MapElement: React.FC<MapProps> = memo(
 
     const { addressDetails, language, setAddressDetails } = useAppStore();
     const { isLoaded } = useJsApiLoader({
-      id: "google-map-script",
-      googleMapsApiKey: "AIzaSyCq5Gi3oBlQv5qbaX2w_piuYmXpGHVwxnM",
+      id: GOOGLE_MAPS_LOADER_ID,
+      googleMapsApiKey: GOOGLE_MAPS_API_KEY,
       language: language,
       preventGoogleFontsLoading: true,
     });

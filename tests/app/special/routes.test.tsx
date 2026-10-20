@@ -74,14 +74,16 @@ describe.each([
 });
 
 describe("the call screens", () => {
-  it("says the call was answered on another account", () => {
-    render(<CallInProgPage />);
+  // The two screens read the `lang` cookie on the server; here there is no
+  // request, so they fall back to English, shown with a capital on every word.
+  it("says the call was answered on another account", async () => {
+    render(await CallInProgPage());
 
-    expect(screen.getByText("Call Answered from another Account"), "the call-in-progress text is missing").toBeInTheDocument();
+    expect(screen.getByText("Call Answered From Another Account"), "the call-in-progress text is missing").toBeInTheDocument();
   });
 
-  it("says the call ended", () => {
-    render(<EndCallPage />);
+  it("says the call ended", async () => {
+    render(await EndCallPage());
 
     expect(screen.getByText("Call Ended."), "the call-ended text is missing").toBeInTheDocument();
   });

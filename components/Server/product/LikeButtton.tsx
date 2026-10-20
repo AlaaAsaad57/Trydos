@@ -55,18 +55,18 @@ export function LikeButton({
 
     try {
       setLoading(true);
-      if (isLiked) {
-        await home.UnLikeComment({
-          comment_id: comment_id,
-          target_type: target_type,
-          product_id: productId,
-        });
-      } else {
-        await home.LikeComment({
-          comment_id: comment_id,
-          target_type: target_type,
-          product_id: productId,
-        });
+      const target = {
+        comment_id: comment_id,
+        target_type: target_type,
+        product_id: productId,
+      };
+      // The service answers false on a refusal (fetchData never throws), so
+      // the heart must be put back here, not only in the catch below.
+      const accepted = isLiked
+        ? await home.UnLikeComment(target)
+        : await home.LikeComment(target);
+      if (!accepted) {
+        throw new Error("the comments backend refused the like");
       }
       setLoading(false);
     } catch (error) {
@@ -78,6 +78,12 @@ export function LikeButton({
       setIsLiked(previousIsLiked);
       setLikes(previousLikes);
       syncEntity(previousIsLiked, previousLikes);
+      showErrorNotification(
+        translateFunction(
+          "Failed to update like status. Please try again.",
+          language,
+        ),
+      );
     } finally {
       setLoading(false);
       // small delay to allow the animation to finish

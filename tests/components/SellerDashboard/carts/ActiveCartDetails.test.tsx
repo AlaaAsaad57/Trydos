@@ -43,7 +43,7 @@ const line = (overrides: Record<string, unknown>) => ({
 
 function answerWith(items: unknown[]) {
   getSellerCartDetails.mockResolvedValue({
-    isSuccessful: true,
+    success: true, isSuccessful: true,
     data: {
       cart_group_id: GROUP_ID,
       customer: { id: 1542, name: "Ahmad Saleh" },

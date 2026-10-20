@@ -1,5 +1,5 @@
 "use client";
-import { _isStoreLastJson, LogError } from "utils/functions";
+import { _isStoreLastJson, LogError, translateFunction } from "utils/functions";
 import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";
 
@@ -12,7 +12,10 @@ import { dropQaStories } from "utils/qaStoryFilter";
 
 const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
-const MEDIA_API_KEY = process.env.NEXT_PUBLIC_MEDIA_API_KEY ?? "";
+// The media store authorises every `/gated/*` call by the upload ticket alone
+// (`X-Upload-Ticket`, minted through `/api/ticket` with the shopper's session).
+// Its auth hook never reads `x-api-key` under `/gated/*`, so the app sends no
+// static key and needs none set.
 
 class StoryService {
   /* get stories */
@@ -84,7 +87,7 @@ class StoryService {
     }
   }
   async uploadToMediaServer(file: File) {
-    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+    if (!MEDIA_SERVER_BASE_URL) {
       throw new Error("Media server upload is not configured");
     }
     let IsVideo=file.type.startsWith("video/");
@@ -99,10 +102,7 @@ class StoryService {
 
     const response = await fetch(uploadUrl, {
       method: "POST",
-      headers: {
-        "x-api-key": MEDIA_API_KEY,
-        "X-Upload-Ticket": ticket,
-      },
+      headers: { "X-Upload-Ticket": ticket },
       body: form,
     });
 
@@ -228,6 +228,11 @@ class StoryService {
   getUserStories() {
     return useAppStore.getState().userStories;
   }
+  /** The name shown on a story. Never the phone number: it is private, and a
+   *  story is seen by every shopper. */
+  authorName(story) {
+    return story?.name || translateFunction("Unknown");
+  }
   configureStory(story) {
     const withMediaBase = (url?: string) => {
       if (!url) return "";
@@ -249,7 +254,7 @@ class StoryService {
           is_seen: storyItem.is_seen,
           id: storyItem.id,
           header: {
-            heading: story.name ?? story.mobile_phone ?? "Unknown",
+            heading: this.authorName(story),
             subheading: formatTime(storyItem.created_at),
             profileImage: story.photo_path
               ? GetImageUrl(story.photo_path)
@@ -279,7 +284,7 @@ class StoryService {
           duration: 5000,
           id: storyItem.id,
           header: {
-            heading: story.name ?? story.mobile_phone ?? "Unknown",
+            heading: this.authorName(story),
             subheading: formatTime(storyItem.created_at),
             profileImage: story.photo_path
               ? GetImageUrl(story.photo_path)

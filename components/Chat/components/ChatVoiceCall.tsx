@@ -24,7 +24,9 @@ const useClient = createClient({
 });
 const useMicrophoneTrack = createMicrophoneAudioTrack();
 
-const appId = "0af959943ff542df8f2cb1b925ec0cc4";
+import { AGORA_APP_ID } from "utils/agoraConfig";
+// One App ID for every call screen (readiness A2-24, A2-25).
+const appId = AGORA_APP_ID;
 function ChatVoiceCall({ token }) {
   const [loading, setLoading] = useState(false);
   const endCall = async (duration) => {
@@ -295,7 +297,7 @@ function ChatVoiceCall({ token }) {
                   className="hgg text-avatar"
                   style={{ left: 0, right: 0, margin: "0 auto" }}
                 >
-                  {getTwoLetters(chatName || "User")}
+                  {getTwoLetters(chatName || translateFunction("User"))}
                 </div>
               ) : (
                 <div

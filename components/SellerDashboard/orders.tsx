@@ -9,7 +9,8 @@ import {
 } from "react";
 import { getConfiguredImage, translateFunction, LogError } from "utils/functions";
 import SellerDashboardService from "services/sellerDashboard";
-import home from "services/home";
+import { subscribeShopOrderTopics } from "utils/shopOrderTopics";
+import { ConfirmModal } from "components/global/ConfirmModal";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import Skeleton from "react-loading-skeleton";
@@ -1928,6 +1929,11 @@ const RenderOrders = ({
   >(null);
   const [selectedOrderFilterTab, setSelectedOrderFilterTab] =
     useState<OrderFilterTabLabel>("All");
+  // "Cancel" removes the whole item quantity, so it asks first.
+  const [cancelTarget, setCancelTarget] = useState<{
+    orderId: number | string;
+    item: any;
+  } | null>(null);
 
   const sellerOrders = useAppStore((state) => state.sellerOrders);
   const setSellerOrders = useAppStore((state) => state.setSellerOrders);
@@ -2130,18 +2136,15 @@ const RenderOrders = ({
     }
   }, [activeTab, canViewOrders, sellerId, selectedOrderFilterTab]);
 
+  // Subscribe this device to the shop's order push topics, once per shop and
+  // only for a member who may see orders. The subscription stays after the tab
+  // closes on purpose: the push is how the seller hears about a new order. It
+  // is removed when the member leaves the shop, is removed, or loses order
+  // access (`utils/shopOrderTopics.ts`).
   useEffect(() => {
-    const orderTopic = `shop_${sellerId}_order`;
-    const orderDetailTopic = `shop_${sellerId}_order_detail`;
-
-    void home.subscribeToTopic({ topic: orderTopic });
-    void home.subscribeToTopic({ topic: orderDetailTopic });
-
-    return () => {
-      // void home.UnsubscripeFromTopic({ topic: orderTopic });
-      // void home.UnsubscripeFromTopic({ topic: orderDetailTopic });
-    };
-  }, [activeTab, canViewOrders, sellerId, sellerOrders]);
+    if (!sellerId || !canViewOrders) return;
+    void subscribeShopOrderTopics(sellerId);
+  }, [sellerId, canViewOrders]);
 
   useEffect(() => {
     if (
@@ -2285,11 +2288,26 @@ const RenderOrders = ({
               orderDetailActionLoading={orderDetailActionLoading}
               onConfirmItem={handleConfirmItem}
               onPackItem={handlePackItem}
-              onCancelItem={handleCancelItem}
+              onCancelItem={(orderId, item) => setCancelTarget({ orderId, item })}
             />
           )}
         </div>
       </div>
+      {cancelTarget && (
+        <ConfirmModal
+          showModal={!!cancelTarget}
+          type="Delete"
+          loading={orderDetailActionLoading === String(cancelTarget.item?.id)}
+          confirmTilte="Cancel order item"
+          confirmMessage="This cancels the whole quantity of this item. The buyer will be told. Continue?"
+          dataCy="seller-order-cancel-confirm"
+          onCancel={() => setCancelTarget(null)}
+          onConfirm={async () => {
+            await handleCancelItem(cancelTarget.orderId, cancelTarget.item);
+            setCancelTarget(null);
+          }}
+        />
+      )}
     </div>
   );
 };

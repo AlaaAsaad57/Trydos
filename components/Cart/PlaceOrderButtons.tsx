@@ -191,7 +191,14 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
             </span>
             <div className={` ${isRtl ? "dir-rtl" : ""} flex `}>
               <span>{translateFunction("I read and agree to the")}</span>
-              <span
+              {/* A3-6: the privacy and terms pages exist; Product replaces
+                  their text later. The click stays on the link, so it does
+                  not also tick the box. */}
+              <a
+                href={`/${lang}/privacy-policy`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
                 className={`underline ${
                   LocalizationServiceClass.GetAppLanguage() === "ar"
                     ? "mr-[4px]"
@@ -199,7 +206,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
                 } text-[#388CFF]`}
               >
                 {translateFunction("policies")}
-              </span>
+              </a>
               <span
                 className={` ${
                   LocalizationServiceClass.GetAppLanguage() === "ar"
@@ -209,7 +216,11 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
               >
                 {translateFunction("and")}
               </span>
-              <span
+              <a
+                href={`/${lang}/terms-of-service`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
                 className={`underline  ${
                   LocalizationServiceClass.GetAppLanguage() === "ar"
                     ? "mr-[4px]"
@@ -217,7 +228,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
                 } text-[#388CFF]`}
               >
                 {translateFunction("terms")}
-              </span>
+              </a>
             </div>
           </div>
         </div>

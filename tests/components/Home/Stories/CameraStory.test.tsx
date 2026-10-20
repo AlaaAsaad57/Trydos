@@ -22,9 +22,20 @@ import NewStoryModal from "components/Home/Stories/CameraStory";
 // real one, hands over the recording in a "dataavailable" event on stop.
 let recorders: FakeRecorder[] = [];
 class FakeRecorder extends EventTarget {
+  /** The types this browser can record. Chrome-like by default. */
+  static supported = ["video/webm"];
+  static isTypeSupported(type: string) {
+    return FakeRecorder.supported.includes(type);
+  }
   state = "inactive";
+  mimeType: string;
   constructor(public stream: any, public options: any) {
     super();
+    // Like Safari: asking for a type it cannot record throws.
+    if (options?.mimeType && !FakeRecorder.supported.includes(options.mimeType)) {
+      throw new Error(`NotSupportedError: ${options.mimeType}`);
+    }
+    this.mimeType = options?.mimeType ?? FakeRecorder.supported[0] ?? "";
     recorders.push(this);
   }
   start() {
@@ -33,7 +44,7 @@ class FakeRecorder extends EventTarget {
   stop() {
     this.state = "inactive";
     const ev = new Event("dataavailable") as any;
-    ev.data = new Blob(["frames"], { type: "video/webm" });
+    ev.data = new Blob(["frames"], { type: this.mimeType });
     this.dispatchEvent(ev);
   }
 }
@@ -66,6 +77,7 @@ const discard = () => buttons()[buttons().length - 1];
 describe("CameraStory (NewStoryModal)", () => {
   beforeEach(() => {
     recorders = [];
+    FakeRecorder.supported = ["video/webm"];
     cam.screenshot = "data:image/webp;base64,AAAA";
     cam.stream = {};
     timer.seconds = 0;
@@ -161,6 +173,36 @@ describe("CameraStory (NewStoryModal)", () => {
     expect(file.type, "the shared video is not webm").toBe("video/webm");
     expect(file.name, "the shared video has the wrong name").toMatch(/^video-story-\d+\.webm$/);
     expect(p.close, "the camera did not close after sharing the video").toHaveBeenCalled();
+  });
+
+  // M-2 (stories readiness): the recorder always asked for WebM. Safari before
+  // 18.4 cannot record WebM, so the timer ran and no video was ever made.
+  it("records in MP4 on a browser that cannot record WebM, and shares an .mp4 file", async () => {
+    FakeRecorder.supported = ["video/mp4"];
+    media([], "ok");
+    const p = props();
+    render(<NewStoryModal {...p} />);
+    fireEvent.click(screen.getByText("Video"));
+    await waitFor(() => expect(screen.getByTestId("webcam").dataset.audio).toBe("true"));
+    fireEvent.click(center());
+    expect(recorders.length, "no recorder was made on a browser that records only MP4").toBe(1);
+    expect(recorders[0].options, "the recording did not ask for MP4").toEqual({ mimeType: "video/mp4" });
+    act(() => fireEvent.click(center()));
+    fireEvent.click(screen.getAllByAltText("Share")[0].closest("button")!);
+    const file: File = p.HandleUploadedVideo.mock.calls[0]?.[0];
+    expect(file?.type, "the shared video is not MP4").toBe("video/mp4");
+    expect(file?.name, "the shared MP4 video has a .webm name").toMatch(/^video-story-\d+\.mp4$/);
+  });
+
+  it("does not start the timer on a browser that has no MediaRecorder", async () => {
+    vi.stubGlobal("MediaRecorder", undefined);
+    media([], "ok");
+    render(<NewStoryModal {...props()} />);
+    fireEvent.click(screen.getByText("Video"));
+    await waitFor(() => expect(screen.getByTestId("webcam").dataset.audio).toBe("true"));
+    timer.start.mockClear();
+    expect(() => fireEvent.click(center()), "starting a recording the browser cannot make threw").not.toThrow();
+    expect(timer.start, "the red timer started although no recording could be made").not.toHaveBeenCalled();
   });
 
   it("warns when the microphone is refused and records without sound", async () => {

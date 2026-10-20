@@ -63,12 +63,13 @@ const isolatedEnv = {
   NEXT_PUBLIC_DEFAULT_LANGUAGE: 'en',
   NEXT_PUBLIC_APP_VERSION: '0.0.0-test',
   NEXT_PUBLIC_MAX_ARRAY_LENGTH: '50',
+  // The meta and sitemap tests build their expected URLs on this origin.
+  NEXT_PUBLIC_SITE_URL: 'https://trydos.ramaaz.dev',
   // Left empty on purpose: the analytics and maps keys are the ones that would
   // reach a real service if anything ever used them.
   NEXT_PUBLIC_GA_MEASUREMENT_ID: '',
   NEXT_PUBLIC_POSTHOG_KEY: '',
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: '',
-  NEXT_PUBLIC_MEDIA_API_KEY: '',
   NEXT_PUBLIC_ALLOW_INDEXING: 'false',
   NEXT_PUBLIC_ANALYTICS_LOG: 'false',
 }

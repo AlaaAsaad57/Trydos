@@ -16,7 +16,10 @@ import type {
 
 const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
-const MEDIA_API_KEY = process.env.NEXT_PUBLIC_MEDIA_API_KEY ?? "";
+// The media store authorises every `/gated/*` call by the upload ticket alone
+// (`X-Upload-Ticket`, minted through `/api/ticket` with the shopper's session).
+// Its auth hook never reads `x-api-key` under `/gated/*`, so the app sends no
+// static key and needs none set.
 
 // Download a binary file the shop backend streams (an .xlsx), not a URL.
 // fetchData always parses JSON, so this hits the proxy directly — the proxy
@@ -373,43 +376,10 @@ class SellerDashboardService {
     }
   }
 
-  async getUploadedImages(
-    page: number = 1,
-    perPage: number = 60,
-    date: string = "",
-    search: string = "",
-    sellerId: string,
-  ) {
-    const params = new URLSearchParams({
-      page: String(page),
-      per_page: String(perPage),
-      date,
-      search,
-    });
-    return fetchData({
-      url: `/seller/product/get-uploaded-images?${params.toString()}`,
-      method: "GET",
-      server: "market-dashboard",
-      reqTitle: REQUESTS_DATA.GET_UPLOADED_IMAGES,
-         sellerId,
-    });
-  }
-
-  async deleteImage(imageId: number | string, sellerId: string) {
-    return fetchData({
-      url: `/seller/product/delete-image/${imageId}`,
-      method: "DELETE",
-      server: "market-dashboard",
-      reqTitle: REQUESTS_DATA.DELETE_UPLOADED_IMAGE,
-        sellerId,
-
-    });
-  }
-
   async uploadStoryToMediaServer(
     file: File,
   ): Promise<{ url: string; durationSeconds?: number }> {
-    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+    if (!MEDIA_SERVER_BASE_URL) {
       throw new Error("Media server upload is not configured");
     }
     let IsVideo=file.type.startsWith("video/");
@@ -422,7 +392,7 @@ class SellerDashboardService {
       : `${MEDIA_SERVER_BASE_URL}/gated/upload`;
     const response = await fetch(uploadUrl, {
       method: "POST",
-      headers: { "x-api-key": MEDIA_API_KEY ,"X-Upload-Ticket":ticket},
+      headers: { "X-Upload-Ticket": ticket },
       body: form,
 
     });
@@ -517,7 +487,7 @@ class SellerDashboardService {
   }
 
   async bulkUploadImages(files: File[], folder: string = "product") {
-    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+    if (!MEDIA_SERVER_BASE_URL) {
       throw new Error("Media server is not configured");
     }
     let ticket=await GetTicket(folder,false,files.length);
@@ -527,7 +497,7 @@ class SellerDashboardService {
 
     const response = await fetch(`${MEDIA_SERVER_BASE_URL}/gated/upload/bulk`, {
       method: "POST",
-      headers: { "x-api-key": MEDIA_API_KEY ,"X-Upload-Ticket":ticket},
+      headers: { "X-Upload-Ticket": ticket },
       body: form,
     
     });
@@ -658,7 +628,7 @@ class SellerDashboardService {
     file: File,
     folder: string = "shops",
   ): Promise<string> {
-    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+    if (!MEDIA_SERVER_BASE_URL) {
       throw new Error("Media server upload is not configured");
     }
     let ticket=await GetTicket(folder,false,1);
@@ -668,10 +638,7 @@ class SellerDashboardService {
 
     const response = await fetch(`${MEDIA_SERVER_BASE_URL}/gated/upload`, {
       method: "POST",
-      headers: {
-        "x-api-key": MEDIA_API_KEY,
-        "X-Upload-Ticket": ticket,
-      },
+      headers: { "X-Upload-Ticket": ticket },
       body: form,
       
     });
@@ -833,8 +800,6 @@ class SellerDashboardService {
   // POST /upload/excel?folder=<folder> — multipart field "file", X-API-Key header.
   // Accepted: .xlsx, .xls, .xlsm, .xlsb (max 512 MB).
   // Success 201 → { url, key, filename, originalName, contentType }.
-  //
-  // NOTE: dummy implementation — replace with the real upload logic.
   async uploadExcelFile(
     file: File,
     folder: string = "excel",
@@ -845,7 +810,7 @@ class SellerDashboardService {
     originalName?: string;
     contentType?: string;
   }> {
-    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+    if (!MEDIA_SERVER_BASE_URL) {
       throw new Error("Media server upload is not configured");
     }
     let ticket=await GetTicket(folder,false,1);
@@ -857,7 +822,7 @@ class SellerDashboardService {
       `${MEDIA_SERVER_BASE_URL}/gated/upload/excel?folder=${encodeURIComponent(folder)}`,
       {
         method: "POST",
-        headers: { "x-api-key": MEDIA_API_KEY, "X-Upload-Ticket": ticket },
+        headers: { "X-Upload-Ticket": ticket },
         body: form,
     
       },

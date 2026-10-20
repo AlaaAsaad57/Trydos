@@ -1,5 +1,5 @@
 // The notifications side panel: a page-by-page list from the market backend,
-// the push-notification status box, and the link to notification settings.
+// and the link to notification settings.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const spies = vi.hoisted(() => ({
@@ -219,66 +219,22 @@ describe("closing the notifications panel", () => {
   );
 });
 
-describe("the push notification status box", () => {
-  it("says push is off when the browser has no Notification support", async () => {
-    spies.fetch.mockResolvedValue(page([], null));
-    const writeText = vi.fn();
-    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
-    await setup();
-
-    expect(screen.getByText("Not Enabled"), "with no Notification support push must show as off").toBeInTheDocument();
-    expect(screen.getByText("Not Supported"), "with no permission the firebase check must not run").toBeInTheDocument();
-    expect(screen.getByText("77"), "the box must show the user id").toBeInTheDocument();
-
-    fireEvent.click(screen.getByText("Notification Permission:"));
-    expect(writeText.mock.calls[0][0], "the copied report must say Notification is not supported").toContain(
-      "notification_permission:not supported",
-    );
-  });
-
-  it("stops when the shopper refuses permission", async () => {
-    spies.fetch.mockResolvedValue(page([], null));
-    const requestPermission = vi.fn(async () => "denied");
-    vi.stubGlobal("Notification", { permission: "denied", requestPermission });
-    await setup();
-
-    await waitFor(() => expect(requestPermission, "the panel must ask for permission").toHaveBeenCalled());
-    expect(spies.requestToken, "with permission refused no push token must be asked for").not.toHaveBeenCalled();
-  });
-
-  it("shows support, the token and the permission when push is allowed, and copies them", async () => {
+describe("the notification settings link", () => {
+  it("shows no push debug data and asks for no push token", async () => {
     spies.fetch.mockResolvedValue(page([], null));
     vi.stubGlobal("Notification", { permission: "granted", requestPermission: vi.fn(async () => "granted") });
     spies.isSupported.mockResolvedValue(true);
     spies.requestToken.mockResolvedValue("abcdefghijklmnopqrstuvwxyz0123456789");
-    const writeText = vi.fn();
-    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
     await setup();
+    await waitFor(() => expect(spies.fetch, "the panel did not load its first page").toHaveBeenCalled());
+    await act(async () => {});
 
-    expect(await screen.findByText("Supported"), "firebase support must be shown").toBeInTheDocument();
-    expect(screen.getByText("Enabled"), "granted permission must show as enabled").toBeInTheDocument();
-    await waitFor(() =>
-      expect(document.body.textContent, "only the first 30 characters of the push token must be shown").toContain(
-        "abcdefghijklmnopqrstuvwxyz0123...",
-      ),
-    );
-
-    fireEvent.click(screen.getByText("FireBase Supported"));
-    expect(writeText.mock.calls[0][0], "the copied report must carry the permission").toContain(
-      "notification_permission:granted",
-    );
-  });
-
-  it("shows and logs a push token failure", async () => {
-    spies.fetch.mockResolvedValue(page([], null));
-    vi.stubGlobal("Notification", { permission: "granted", requestPermission: vi.fn(async () => "granted") });
-    spies.isSupported.mockResolvedValue(false);
-    const failure = new Error("messaging blocked");
-    spies.requestToken.mockRejectedValue(failure);
-    await setup();
-
-    expect(await screen.findByText("messaging blocked"), "the push token error must be shown").toBeInTheDocument();
-    expect(spies.logError, "the push token error must be logged").toHaveBeenCalledWith(failure);
+    for (const label of ["Notification Permission:", "FireBase Supported", "User ID:", "FCM Token:", "FCM Error:"]) {
+      expect(screen.queryByText(label), `the debug line "${label}" is shown to the shopper`).toBeNull();
+    }
+    expect(screen.queryByText("77"), "the shopper's user id is shown").toBeNull();
+    expect(document.body.textContent, "part of the push token is shown").not.toContain("abcdefghij");
+    expect(spies.requestToken, "opening the panel asked for a push token").not.toHaveBeenCalled();
   });
 
   it("closes the window when the settings link is pressed", async () => {

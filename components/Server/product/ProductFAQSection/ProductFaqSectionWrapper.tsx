@@ -1,5 +1,6 @@
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { getCookieServer } from "utils/cookies/server-cookie-manager";
+import { LogServerError } from "utils/serverErrorReporter";
 import { GetFQACommentsForProduct } from "utils/pagesDataRequests/ProductPageData";
 import FaqSectionTopBar from "./FaqSectionTopBar";
 
@@ -18,12 +19,26 @@ async function ProductFaqSectionWrapper({
   let parsedUser = await getCookieServer<{ id: string }>(
     COOKIE_NAMES.USER_DATA,
   );
-  let faq_questions = await GetFQACommentsForProduct({
-    product_id: productId,
-    language,
-    user_id: parsedUser?.id,
-    pageSize: 5,
-  });
+  // The FAQ is an optional section. A search error here must not reach the
+  // page's error boundary and take the whole product (and Add to cart) with
+  // it: the section is simply left out.
+  let faq_questions;
+  try {
+    faq_questions = await GetFQACommentsForProduct({
+      product_id: productId,
+      language,
+      user_id: parsedUser?.id,
+      pageSize: 5,
+    });
+  } catch (error) {
+    LogServerError({
+      id: productId,
+      error,
+      scenario:
+        "Error In ProductFaqSectionWrapper: the FAQ section was left out",
+    });
+    return <></>;
+  }
   const isRtl = language === "ar" || language === "ku";
 
   return (

@@ -85,7 +85,7 @@ export default function ProductCartsModal({
           productId,
           page,
         );
-        if (res && res.isSuccessful === false) {
+        if (!res?.success || res.isSuccessful === false) {
           throw new Error(
             res.message ||
               translateFunction("Failed to load product carts", language),
@@ -119,7 +119,7 @@ export default function ProductCartsModal({
             page,
           },
         );
-        if (res && res.isSuccessful === false) {
+        if (!res?.success || res.isSuccessful === false) {
           throw new Error(
             res.message ||
               translateFunction("Failed to load product old carts", language),

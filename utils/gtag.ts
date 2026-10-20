@@ -52,9 +52,10 @@ export const GAevent = ({
       params.user_id_custom = userData.id;
     }
     let user_param = getUserParam();
+    // No `debug_mode` here: a GA "developer traffic" filter would drop every
+    // real event sent with it (A2-27).
     // @ts-ignore
     window.gtag?.("event", action, {
-      debug_mode: true,
       screen_name: DetectScreen(),
       screen_path: window.location.pathname,
       ...params,
@@ -81,7 +82,6 @@ export const GAevent = ({
     posthogCapture(action, { ...globalProps(), ...params });
     if (process.env.NEXT_PUBLIC_ANALYTICS_LOG === "true") {
       console.log(`🟡🟡  window?.gtag?.("event", ${action}, {
-        debug_mode: true,
         ${Object.entries(params || {})
           .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
           .join(",\n")},
@@ -107,7 +107,7 @@ export const GAevent = ({
 // The lean global-property block attached to every PostHog event — shared by the
 // GAevent fan-out above and the posthog-only trackPosthog() wrapper
 // (utils/posthogEvents.ts) so both streams carry identical context. No GA-only
-// debug fields here (event_id / timestamp_now / debug_mode stay on the gtag call).
+// debug fields here (event_id / timestamp_now stay on the gtag call).
 export const globalProps = (): Record<string, unknown> => {
   const { session_id } = useAppStore.getState();
   return {

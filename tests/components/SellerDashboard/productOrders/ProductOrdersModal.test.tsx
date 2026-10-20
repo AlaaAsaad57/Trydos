@@ -60,7 +60,7 @@ const sampleOrder = {
 };
 
 const page = (orders: unknown[], meta: Record<string, number> = {}) => ({
-  isSuccessful: true,
+  success: true, isSuccessful: true,
   data: {
     orders,
     meta: { total: orders.length, current_page: 1, last_page: 1, per_page: 25, ...meta },

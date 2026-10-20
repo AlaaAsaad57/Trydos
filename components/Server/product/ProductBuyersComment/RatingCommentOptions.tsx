@@ -58,7 +58,14 @@ export const RatingCommentOptions = ({
     const handleInputKeyDown = (
       e: React.KeyboardEvent<HTMLTextAreaElement>,
     ) => {
-      if (e.key === "Enter" && comment_str.trim() && rating > 0) {
+      // Same gate as the button: nothing is sent while loading or unchanged.
+      if (
+        e.key === "Enter" &&
+        comment_str.trim() &&
+        rating > 0 &&
+        !loading &&
+        isChanged()
+      ) {
         updateAction({
           ...comment,
           comment: comment_str,
@@ -148,7 +155,7 @@ export const RatingCommentOptions = ({
                   isRtl ? "text-right" : "text-left"
                 } w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors`}
                 placeholder={translateFunction("Add your comment")}
-                aria-label="Comment input"
+                aria-label={translateFunction("Comment input")}
                 disabled={loading}
                 rows={3}
               />

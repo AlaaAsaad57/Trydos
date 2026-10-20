@@ -1,0 +1,109 @@
+# Orders and returns — Production readiness
+
+**Status:** 🟡 Ready with conditions
+**In one line:** Shoppers can see, cancel, hide, rate and return orders. But the app never sends cancel reasons, and shows several fixed promises that nobody has confirmed.
+**Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
+
+## What this section is
+- The shopper opens **Settings → Orders** (`OrdersLinkCard`, `components/setting/orders/index.tsx`) to reach `/[lang]/settings/orders`. The list shows every order group, with status filter tabs and a "three dots" menu for hidden orders.
+- A tap on an order card opens `/[lang]/settings/orders/[id]` (`OrderDetailsWrapper.tsx`). There the shopper sees each pack, its status and its products. The shopper acts on a whole pack (three dots in the top bar) or on one product (tap the product in the expanded view).
+- An order notification also opens the details page (`components/Notifications/NotificationItem.tsx:168`). A delivery-worker message opens the order chat on that page.
+- All order calls go to the **core** backend (`server: "market"`). Reviews go to the **comments** backend. The order chat goes to the **chat** backend.
+
+## ✅ Working cases
+| # | Case (user action → result) | Backend | Proof in code | Test |
+|---|---|---|---|---|
+| W-1 | Signed-in shopper opens Settings → the Orders card shows the number of order groups. A guest who taps it gets the sign-in sheet. | core `GET /customer/order/list?limit=1` | `components/setting/orders/index.tsx`, `services/orders.ts` `fetchOrdersCount` | `tests/components/setting/orders/index.test.tsx`, `tests/services/orders.test.ts` |
+| W-2 | Shopper opens the orders list → sees order cards (date, group id, status, item count, total, product photos), 10 per page. | core `GET /customer/order/list` | `OrdersListWrapper.tsx`, `services/orders.ts` `fetchOrders` | `OrdersListWrapper.test.tsx`, `OrdersView.test.tsx` |
+| W-3 | Shopper scrolls to the end → the next page loads. At the end the list says "No more orders". | core `GET /customer/order/list` | `OrdersListWrapper.tsx` (IntersectionObserver, `hasMore`) | `OrdersListWrapper.test.tsx` |
+| W-4 | Shopper taps a status tab ("All", plus the statuses the backend sends in `starting_setting.order_group_statuses`) → the list reloads with only that status. | core `starting-setting` + `GET /customer/order/list?order_group_status=` | `app/(client)/[lang]/settings/orders/page.tsx`, `serverRequests/settings/index.ts`, `OrdersListWrapper.tsx` | `OrdersListWrapper.test.tsx` |
+| W-5 | Order totals on the list and on the details page use the currency the shopper paid with (`order.currency`), not today's shop currency. | core (order `currency` field) | `utils/orderCurrency.ts`, `OrderItem.tsx`, `OrderInvoiceCard.tsx`, `OrderDetailsWrapper.tsx` | `tests/components/settings/cards/OrderInvoiceCard.test.tsx`, `OrderItem.test.tsx` |
+| W-6 | Shopper opens an order → sees group number, date, total with the payment-method icon, group status, one tab per pack, pack status and delivery address. | core `GET /customer/order/getOrdersByOrderGroupID` | `OrderDetailsWrapper.tsx` `getOrderDetails`, `components/settings/cards/*` | `OrderDetailsWrapper.test.tsx`, `tests/components/settings/cards/*.test.tsx` |
+| W-7 | Shopper opens a wrong or foreign order id → sees "Order Not Found" and a "Go to My Orders" button. | core | `OrderDetailsWrapper.tsx` `OrderNotFoundState` | `OrderDetailsWrapper.test.tsx` |
+| W-8 | Shopper taps a pack tab → the page shows that pack's products and status. | none (client) | `OrderDetailsWrapper.tsx` `setActivePack` | `OrderDetailsWrapper.test.tsx` |
+| W-9 | Shopper expands the product list → each line shows colour, size, quantity, price and status (cancelled / return requested / returned quantity). Each line links to the product page with the bought colour and size. | core | `OrderDetailsWrapper.tsx` `OrderExpandedDetails`, `ProductCard`, `returnedQty.ts` | `OrderDetailsWrapper.test.tsx`, `returnedQty.test.ts` |
+| W-10 | Shopper sees an expected delivery date: order date + the longest product `shipping_days` + `shipping_duration_days` from settings. | core (settings + product data) | `components/settings/cards/OrderExpectedDeliveryCard.tsx` `getExpectedDelivery` | `OrderExpectedDeliveryCard.test.tsx` |
+| W-11 | Shopper changes the delivery address (pack menu → "Change Delivery Address & Note", only when `can_update_address`) → picks or edits an address, ticks the terms, confirms → the order reloads with the new address. A refusal keeps the sheet open. | core `POST /customer/order/change-address` | `OrderOptionsMenu.tsx`, `components/Orders/ChangeAddressWidget.tsx` `ChangeAddress`, `services/order.ts` `changeOrderAddress` | `ChangeAddressWidget.test.tsx`; e2e `ORD-01` |
+| W-12 | Shopper cancels a whole pack (pack menu → "Cancel This Pack", only when `can_cancele_order`) → picks at least one reason, ticks the terms, taps "I Agree & Cancel" → the backend cancels the pack and the page reloads. | core `POST /customer/order/cancel` | `CancelOrderWrapper.tsx`, `confirmations/OrderCancelConfirmationWindow.tsx`, `services/order.ts` `CancelOrder` | `OrderCancelConfirmationWindow.test.tsx`, `CancelOrderWrapper.test.tsx`; e2e `BUY-01` |
+| W-13 | Shopper cancels one product line (product menu → "Cancel This Product", only when `can_cancele_order` and qty > 0) → confirms → the backend cancels the line and the page reloads. | core `POST /customer/order/cancel-item` | `CancelOrderItemWrapper.tsx`, `confirmations/CancelOrderItemConfirmationWindow.tsx`, `services/order.ts` `CancelOrderItem` | `CancelOrderItemConfirmationWindow.test.tsx`; e2e `ORD-01` |
+| W-14 | Shopper lowers the quantity of a line (product menu → "Change Product Request" → "Change Qty") → the app cancels the extra pieces through the same cancel-item call. | core `POST /customer/order/cancel-item` | `components/Orders/ChangeOrderItem.tsx` `CancelQty` | `ChangeOrderItem.test.tsx` |
+| W-15 | Shopper changes the colour or size of a line before delivery (only when `can_change_variant`) → the app refuses options with too little stock → shopper confirms → the app sends the request and reloads the page. | core `GET /web/product/qtyPriceDetails`, `GET /web/product/globalDetails`, `POST /customer/order/change-item-variant` | `ChangeOrderItem.tsx`, `confirmations/ChangeOrderItemConfirmWindow.tsx` `ConfirmChange` | `ChangeOrderItem.test.tsx`, `ChangeOrderItemConfirmWindow.test.tsx`, `ModifyOrderItemModal.test.tsx` |
+| W-16 | Shopper hides a pack (pack menu → "Hide This Pack" → confirm) → the app leaves the details page for the orders list. | core `PATCH /customer/order/{id}/visibility` | `OrderOptionsMenu.tsx` `handleHideOrder`, `services/order.ts` `HideOrder` | `OrderOptionsMenu.test.tsx`; e2e `ORD-01` |
+| W-17 | Shopper hides one product → stays on the page. If it was the only product of the only pack, the app warns that the whole order hides, then leaves for the list. | core `PATCH /customer/order/detail/{id}/visibility` | `OrderItemOptions.tsx` `handleHideProduct` | `OrderItemOptions.test.tsx` |
+| W-18 | Shopper opens "Hidden Orders" from the list menu → sees hidden packs (dimmed) and visible packs with hidden products. The browser back button returns to the list. | core `GET /customer/order/getHiddenOrders` | `OrdersView.tsx`, `OrdersOptionsMenu.tsx`, `HiddenOrdersWidget.tsx` | `HiddenOrdersWidget.test.tsx`, `OrdersOptionsMenu.test.tsx`, `OrdersView.test.tsx` |
+| W-19 | Shopper restores a hidden pack or a hidden product (eye button → confirm) → the hidden list reloads. | core `PATCH .../visibility` with `is_hidden: false` | `components/Orders/HiddenOrderItem.tsx` `handleConfirm` | `HiddenOrderItem.test.tsx`; e2e `ORD-01` |
+| W-20 | Shopper reports a delivered product (product menu → "Report This Product") → ticks points in 4 groups, writes a note, adds one photo (jpeg/png/webp, max 4 MB) → submits → sees a success message. The line then shows "We received your report". | core `POST /customer/order/report` (JSON, or multipart with a photo) | `ReportOrderItemWrapper.tsx`, `utils/orderReportOptions.ts`, `services/order.ts` `ReportOrderItem` | `ReportOrderItemWrapper.test.tsx` |
+| W-21 | Shopper rates a delivered product → picks stars, writes a comment, adds up to 5 photos → the review is saved. Each line shows the stars of an earlier review. Editing an existing review updates it. | comments `POST /public_comment/comments/create`, `PUT /public_comment/comments/{id}/update`; media upload; read through local `POST /api/products/comments/order_rating` (Elasticsearch) | `components/Orders/RatingOrderItem.tsx`, `UploadImageComponent.tsx`, `services/order.ts` `RateOrderWithhComment`, `app/api/products/comments/order_rating/route.ts` | `RatingOrderItem.test.tsx`, `UploadImageComponent.test.tsx`, `RateOrderButton.test.tsx`, `tests/app/api/products/comments/order_rating/route.test.ts`; e2e `CMT-09` |
+| W-22 | Shopper starts a return of a delivered product (product menu → "Return This Product", only when `can_return_order`) → the app creates a draft return request → shopper picks a reason from the backend list (a reason with a cost shows the cost), the number of pieces, and at least one photo → confirms. | core `GET return_requests/store` (draft), `GET return_requests/reasons`, `POST return_request_products/store`; media upload | `OrderItemOptions.tsx` `initializeReturn`, `ReturnOrderItemWrapper.tsx`, `confirmations/OrderItemReturnConfirmationWindow.tsx`, `services/order.ts` | `ReturnOrderItemWrapper.test.tsx`, `OrderItemReturnConfirmationWindow.test.tsx`, `OrderItemOptions.test.tsx` |
+| W-23 | Shopper edits a product already in a draft return (reason, pieces, new photos), or removes a saved photo. | core `POST return_request_products/update`, `GET return_request_products/remove_image` | `ReturnOrderItemWrapper.tsx`, `OrderItemReturnConfirmationWindow.tsx` | `ReturnOrderItemWrapper.test.tsx`, `OrderItemReturnConfirmationWindow.test.tsx` |
+| W-24 | Shopper taps "Confirm Return Request" → the app confirms all draft requests of the group and reloads the page. | core `POST return_requests/confirm_return_request` | `OrderDetailsWrapper.tsx` `shouldShowConfirmReturn`, `OrderItemReturnConfirmationWindow.tsx` | `OrderDetailsWrapper.test.tsx`, `OrderItemReturnConfirmationWindow.test.tsx` |
+| W-25 | Shopper taps "Cancel Return Request" under the product list → the app cancels every return request of the group and reloads the page. | core `POST return_requests/bulk_cancel` | `OrderDetailsWrapper.tsx` `CancelReturnRequest` | `OrderDetailsWrapper.test.tsx` |
+| W-26 | Shopper follows a return → each returned line shows its step (requested, approved, out for return, returned, resolved, cancelled, rejected) and the refund amount in the paid currency. | core `GET return_requests/order_details_by_group` | `components/Orders/OrderRetailsReturnInfo.tsx`, `OrderDetailsWrapper.tsx` | `OrderRetailsReturnInfo.test.tsx`, `OrderDetailsWrapper.test.tsx` |
+| W-27 | Shopper chats with the delivery worker while a pack is `out_for_delivery` or its return is `out_for_return` → a chat icon opens the chat (existing channel or a new one). | chat `POST /api/v1/channels/orderChatParticipant/get-recipient` | `OrderDetailsWrapper.tsx` `getChatWithShipping`, `components/settings/OrderChatIcon.tsx` | `OrderDetailsWrapper.test.tsx`, `OrderChatIcon.test.tsx` |
+| W-28 | A push about a delivery-worker message opens the order page with `?chat_id=`, or opens the chat in a tab that is already open. | chat | `OrderDetailsWrapper.tsx` `openShippingChatForChatId`, `OPEN_DELIVERY_CHAT_EVENT` | `OrderDetailsWrapper.test.tsx` |
+| W-29 | A refused write (cancel, hide, report, change address, return) shows the backend's error text as a toast and keeps the sheet open. | all of the above | `utils/fetchData.ts` (error toast unless `noMessage`), the `catch` in each caller | the "logs … and stays open" cases in the tests above |
+
+## ⚠️ Works, with limits
+- **L-1 — The expected delivery date counts calendar days.** The label says "Work Days", but `getExpectedDelivery` adds `days × 24 h`, so weekends count. The browser computes this estimate; it is not tracking data. (`OrderExpectedDeliveryCard.tsx:35-42`)
+- **L-2 — No live tracking.** "Tracking" is the current status of the group and of each pack. There is no status history and no courier position.
+- **L-3 — No invoice document.** "Invoice" is only the total, the item count and the payment icon. There is no PDF, print or e-mail receipt anywhere in the code.
+- **L-4 — A new review may not show at once.** The page reads stars back from Elasticsearch (`order_rating` route). It reloads straight after the save, so the old stars can show for some seconds.
+- **L-5 — A failed colour/size change looks like a normal close.** `changeOrderItemVariant` catches its own error and returns nothing (`services/order.ts:621-651`). `ConfirmChange` still sends the `ORDER_ITEM_CHANGE_REQUESTED` analytics event and closes the sheet (`ChangeOrderItemConfirmWindow.tsx:35-70`). The shopper sees only the backend's error toast. Analytics counts a request that did not happen. The old "success screen on failure" is gone.
+- **L-6 — The same pattern for return updates.** `UpdateReturnedProduct` and `CancelReturn` swallow errors (`services/order.ts:801-830`, `871-890`). The confirm window closes as if the update worked. Only the error toast tells the shopper.
+- **L-7 — The colour/size screen can hang.** If the two product calls fail, `ChangeOrderItem` shows its skeleton forever (`ChangeOrderItem.tsx:97-137`). The shopper must close the sheet.
+- **L-8 — "Cancel Return Request" has no confirm step.** It also cancels the return requests of **every** pack in the group, not only the open pack (`OrderDetailsWrapper.tsx:817-870`).
+- **L-9 — Return reasons use one fixed field.** The label is `option.reason_ae_en` for every language (`ReturnOrderItemWrapper.tsx:231`). Arabic, Turkish and Kurdish shoppers may see English text.
+- **L-10 — "Delivery Worker" is not translated.** The chat partner name is a hardcoded English string (`OrderDetailsWrapper.tsx:317`, `342`).
+- **L-11 — Hidden-order cards use the shop currency.** The hidden-orders API sends no `currency`, so `HiddenOrderItem` shows totals in today's shop currency.
+- **L-12 — Return window text.** "Return This Product In N Days" now comes from `allow_return_in_days`, so the old hardcoded window is fixed. If the backend leaves the field out, the text reads "NaN Days" (`OrderItemOptions.tsx:72-76`).
+- **L-13 — A partial-quantity cancel works only through "Change Qty".** "Cancel This Product" always cancels the whole line quantity.
+- **L-14 — The rating read route is open.** `POST /api/products/comments/order_rating` has no session check, sends `Access-Control-Allow-Origin: *`, and trusts `user_id` from the body. It returns only public review fields (no phone), so the risk is low.
+- **L-15 — The refund price of a returned line divides by `qty`.** The formula is `offer_price / qty × returned quantity` (`OrderDetailsWrapper.tsx`, near line 1397). If the backend sends `qty: 0` for a fully returned line, the amount shows as `NaN` or `Infinity`.
+
+## ❌ Missing, broken or not built
+| # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
+|---|---|---|---|---|---|
+| M-2 | The backend never receives cancel reasons. A pack cancel sends them only to analytics. A line cancel sends them nowhere. | The shopper must pick a reason, but the shop never gets it. | `confirmations/OrderCancelConfirmationWindow.tsx:27-35`, `CancelOrderItemWrapper.tsx` (reasons stay in the component), `services/order.ts` `CancelOrder` / `CancelOrderItem` | Frontend + Backend | No — Product must decide if the shop needs the reason. |
+| M-3 | The "Cancellation Terms." and "Terms Of Return" links point to `#`. | A tap does nothing. The shopper must tick "I Read And Agree To" terms they cannot open. | `OrderCancelConfirmationWindow.tsx:94`, `CancelOrderItemConfirmationWindow.tsx:96`, `ChangeOrderItemConfirmWindow.tsx:186`, `OrderItemReturnConfirmationWindow.tsx:230` | Product + Frontend | Yes — a legal agreement with no text behind it. |
+| M-4 | Fixed promises that no code or backend value supports: "You Will Receive Your Refund Within 12 Hours", "You Will Not Be Charged Any Fees" (cancel), "Cancel This Product In 3 Hours", "Product Collection Within 1 Day", and a 3-hour countdown that restarts on every page load. | Promises about time and money that may be false. | `OrderCancelConfirmationWindow.tsx:64,67`, `CancelOrderItemConfirmationWindow.tsx:66,69`, `OrderItemReturnConfirmationWindow.tsx:199`, `OrderItemOptions.tsx:285`, `OrderRetailsReturnInfo.tsx:59,251,253` | Product + Frontend | Yes — refund time and fees are promises to the customer. Confirm the real values or remove the text. |
+| M-5 | The refund text says "Back to your wallet" / "Back To Your Wallet", but the wallet is not usable (see file 09). | The shopper reads that the money goes to a wallet that opens "Under Development". | `OrderDetailsWrapper.tsx:1374`, `OrderRetailsReturnInfo.tsx:71` | Product + Backend | Yes — the refund destination must be true at launch. |
+| M-6 | The per-product "Cancel Return Request" link never shows. `OrderRetailsReturnInfo` reads `ActivePacks` from the global store, and no code calls `setActivePacks`. The unit test passes only because it fills the store by hand. | The shopper cannot cancel the return of one product, only all returns of the group (L-8). | `components/Orders/OrderRetailsReturnInfo.tsx:27,270`, `store/Cart/reducer.ts:179` | Frontend | No — the group-level cancel still works. |
+| M-7 | Exchange is not built. The app sends every return with `is_for_exchange=0`. | No "exchange for another size or colour" after delivery. | `services/order.ts:746`, `:850` | Product | No — unless exchange is a launch promise. |
+| M-8 | "Learn More Tips." looks like a link but has no action. | A tap does nothing. | `CancelOrderWrapper.tsx:79`, `CancelOrderItemWrapper.tsx:101`, `ReturnOrderItemWrapper.tsx:197` | Frontend | No |
+| M-9 | No downloadable invoice or receipt. | Nothing to download or print for an order. | — | Product | No — unless the law in a launch country needs one. |
+
+## 🔒 Must do before launch
+- [ ] Put real pages behind the cancellation and return terms links (M-3).
+- [ ] Confirm or remove each fixed promise: 12-hour refund, no fees, 3-hour cancel window, 1-day collection, 3-hour timer (M-4).
+- [ ] Decide where refunds go at launch, and make the "Back to your wallet" text true (M-5).
+
+## ❓ Needs confirmation from the backend team
+- Should the backend store cancel reasons? Which field on `/customer/order/cancel` and `/customer/order/cancel-item`? (M-2)
+- Where does a refund go today: card, cash, the core wallet (`/customer/wallet/list`) or the RDB wallet? How long does it take? (M-4, M-5)
+- `GET /customer/order/return_requests/store` creates a draft with a GET request. Is that intended? Is it safe to call twice?
+- After a full return, does a line keep its original `qty`, or does it become `0`? (L-15)
+- Is `allow_return_in_days` always present on delivered lines? (L-12)
+- Is a return-reason label available per language, or only `reason_ae_en`? (L-9)
+- Does `/customer/order/getOrdersByOrderGroupID` refuse an order group of another shopper? The app treats only an empty answer as "not found".
+- Does `/customer/order/list` always leave out hidden packs and hidden lines?
+
+## 🧪 Tests that cover this section
+**Unit (Vitest):**
+- `tests/components/setting/orders/`: `OrdersView`, `OrdersListWrapper`, `OrdersOptionsMenu`, `HiddenOrdersWidget`, `index`, `OrderDetailsWrapper` (27 cases), `OrderOptionsMenu`, `OrderItemOptions`, `CancelOrderWrapper`, `CancelOrderItemWrapper`, `ReturnOrderItemWrapper`, `ReportOrderItemWrapper`, `OrderInvoice`, `OrderItemBanner`, `OrderItemId`, `OrderItemTime`, `OrderNotified`, `OrderProductSlider`, `OrderStatus`, `returnedQty`.
+- `tests/components/setting/orders/confirmations/`: `OrderCancelConfirmationWindow`, `CancelOrderItemConfirmationWindow`, `ChangeOrderItemConfirmWindow`, `OrderItemReturnConfirmationWindow`.
+- `tests/components/Orders/`: `ChangeAddressWidget`, `ChangeOrderItem`, `HiddenOrderItem`, `ModifyOrderItemModal`, `OrderItem`, `OrderRetailsReturnInfo`, `RatingOrderItem`, `UploadImageComponent`.
+- `tests/components/settings/cards/` (order cards), `tests/components/settings/OrderChatIcon.test.tsx`, `tests/services/orders.test.ts`, `tests/services/orderClass.test.ts`, `tests/app/api/products/comments/order_rating/route.test.ts`.
+
+**Expected-failure markers:**
+- Named bug guards that pass today: `BUG-settings-1` (`OrderDetailsWrapper.test.tsx:823`) and `BUG-settings-3` (`ChangeOrderItemConfirmWindow.test.tsx:187`).
+
+**Browser (Playwright, staging):**
+- `BUY-01` (`tests/e2e/shopper.live.spec.ts`) — buy with cash on delivery, then cancel the pack.
+- `ORD-01` (`tests/e2e/shopper.live.spec.ts:2239`) — change the address, hide, restore, cancel the only line. It fails when `BUY-01` fails.
+- `CMT-09` (`tests/e2e/orderRating.live.spec.ts:150`) — a delivered order gets a review; the test changes it and removes it. It goes red on and off.
+
+**Important cases with NO test:**
+- No browser test for returns (create, photos, confirm, cancel), for the product report, for the colour/size change, or for the delivery chat.
+- No unit test checks that a failed colour/size change counts as a failure (L-5), or that a failed return update keeps the window open (L-6).
+- The unit test for the per-product return cancel fills `ActivePacks` by hand, so it cannot see M-6.
+- No test proves that cancel reasons reach the backend (M-2). They do not.

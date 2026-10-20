@@ -46,7 +46,12 @@ const renderStory = (story) => (
   </div>
 );
 
-function ProductStories({ id, initialStories, InitialStoriesData }) {
+function ProductStories({
+  id,
+  initialStories,
+  InitialStoriesData,
+  hasMore = false,
+}) {
   const selectedStory = useAppStore((s) => s.selectedStory);
   const isProductPage = useAppStore((s) => s.isProductPage);
   const setStoryData = useAppStore((s) => s.setStoryData);
@@ -56,7 +61,9 @@ function ProductStories({ id, initialStories, InitialStoriesData }) {
   const [page, setPage] = useState(2);
   const [loading, setLoading] = useState(false);
 
-  const [hasEnd, setHasEnd] = useState(InitialStoriesData.length < 10);
+  // The backend's `has_more` decides, not the size of a page: the QA filter
+  // can make a page short while more pages exist.
+  const [hasEnd, setHasEnd] = useState(!hasMore);
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   // The story viewer reads the shared list (SelectStory, next, previous,
@@ -76,10 +83,6 @@ function ProductStories({ id, initialStories, InitialStoriesData }) {
     SelectStory(e);
   };
   const GetData = async () => {
-    if (stories.length < 10) {
-      setHasEnd(true);
-      return;
-    }
     setLoading(true);
     const data = await GetProductStoriesData({
       page: page,
@@ -89,7 +92,7 @@ function ProductStories({ id, initialStories, InitialStoriesData }) {
     setStoriesData([...storiesData, ...(data?.data ?? [])]);
     setStories([...stories, ...(data?.stories ?? [])]);
     setLoading(false);
-    if (data.data?.length < 10) {
+    if (!data?.has_more) {
       setHasEnd(true);
     }
   };

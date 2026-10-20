@@ -33,7 +33,7 @@ function StoryChatRow({ story, index, viewedStory, stories, select }) {
         )}
       />
       <div className="story-name text-[#1d1d1d]" style={{ marginLeft: "5px" }}>
-        {story.name ?? story.mobile_phone ?? "Unknown"}
+        {StoryServiceClass.authorName(story)}
       </div>
     </div>
   );

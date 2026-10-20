@@ -1,6 +1,6 @@
 "use server";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
-import AnalyzeSearchText from "./analyzeSearchTextCerebras";
+import AnalyzeSearchText from "./analyzeSearchText";
 import {
   buildAggregations,
   buildBaseConditions,

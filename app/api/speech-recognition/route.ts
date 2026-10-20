@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LogServerError } from "utils/serverErrorReporter";
+import { guardPaidCall } from "utils/server/paidRouteGuard";
+
+// Every call costs money (AssemblyAI, and up to 60 s of polling), so the route
+// refuses a caller with no session, a recording over the cap, and more than
+// this many calls per address per window. See `utils/server/paidRouteGuard.ts`.
+const MAX_AUDIO_BYTES = 4 * 1024 * 1024;
+const RATE_LIMIT = 10;
+const RATE_WINDOW_SECONDS = 60;
 
 const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY ;
 const ASSEMBLYAI_BASE_URL = process.env.ASSEMBLYAI_BASE_URL;
@@ -17,6 +25,20 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const audioFile = formData.get("audio") as File;
     const language = (formData.get("language") as string) || "en";
+
+    const refused = await guardPaidCall(request, {
+      name: "speech-recognition",
+      file: audioFile,
+      maxBytes: MAX_AUDIO_BYTES,
+      limit: RATE_LIMIT,
+      windowSeconds: RATE_WINDOW_SECONDS,
+    });
+    if (refused) {
+      return NextResponse.json(
+        { error: refused.message, success: false },
+        { status: refused.status, headers: { "Cache-Control": "no-store" } },
+      );
+    }
 
     if (!audioFile) {
       return NextResponse.json(

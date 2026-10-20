@@ -136,16 +136,26 @@ const leaveButtons = () =>
   Array.from(document.querySelectorAll("button[aria-label]")) as HTMLButtonElement[];
 
 describe("the seller shop list when the shops call fails", () => {
-  it("logs a refused answer and shows the empty state", async () => {
-    getShopes.mockResolvedValue({ success: false, message: "core said no" });
+  it("logs a refused answer and shows the error with a retry, not the empty state", async () => {
+    getShopes.mockResolvedValueOnce({ success: false, message: "core said no" });
 
     await mount();
 
-    expect(screen.queryByText("No Shops Available"), "a refused shops call should end on the empty state").not.toBeNull();
+    const errorBox = document.querySelector('[data-pw="seller-shops-error"]');
+    expect(errorBox, "a refused shops call should show an error, not 'no shops'").not.toBeNull();
+    expect(errorBox?.textContent, "the error should carry the core backend's own message").toContain("core said no");
+    expect(screen.queryByText("No Shops Available"), "a refused shops call must not look like an empty list").toBeNull();
     expect(LogError.mock.calls[0]?.[0], "the refused shops call was not logged with the core backend's message").toEqual({
       scenario: "sellerProfile.getInitialData",
       error: "core said no",
     });
+
+    getShopes.mockResolvedValueOnce({ success: true, data: threeShops });
+    await act(async () => {
+      screen.getByRole("button", { name: /Retry/ }).click();
+    });
+    expect(getShopes, "Retry should ask the core backend for the shops again").toHaveBeenCalledTimes(2);
+    expect(screen.queryByText("Super Admin"), "the shops should show after the retry succeeds").not.toBeNull();
   });
 
   it("logs a generic message when the refusal carries none", async () => {
@@ -153,9 +163,13 @@ describe("the seller shop list when the shops call fails", () => {
 
     await mount();
 
-    expect(LogError.mock.calls[0]?.[0]?.error, "a shops call with no answer should log the generic failure").toBe(
-      "Failed to fetch seller shops",
+    expect(LogError.mock.calls[0]?.[0]?.error, "a shops call with no answer should log the generic failure").toMatch(
+      /failed to load shops/i,
     );
+    expect(
+      document.querySelector('[data-pw="seller-shops-error"]')?.textContent,
+      "a shops call with no answer should show the generic failure",
+    ).toMatch(/failed to load shops/i);
   });
 
   it("logs a thrown non-Error value as a string", async () => {

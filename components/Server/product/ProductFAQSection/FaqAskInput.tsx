@@ -81,7 +81,9 @@ export const AskInput = ({
         noMessage: true,
       });
       if (!res?.success || !res?.data?.comment_id) {
-        throw new Error(res?.message || "Failed to create comment");
+        throw new Error(
+          res?.message || translateFunction("Something went wrong", language),
+        );
       }
       // Prepend the new question as data (no ES-indexing setTimeout, no JSX
       // action): the fields not returned by the create call are known locally.
@@ -121,6 +123,10 @@ export const AskInput = ({
         error: error,
         scenario: "Error In addComment in FaqAskInput",
       });
+      // The text stays in the box so the shopper can try again.
+      showErrorNotification(
+        error?.message || translateFunction("Something went wrong", language),
+      );
       setLoading(false);
     }
   };
@@ -175,12 +181,14 @@ export const AskInput = ({
             if (comment.length > 0) addComment();
           }
         }}
-        value={comment.slice(0, 200)}
+        value={comment}
+        maxLength={200}
         style={{
           textAlign: getFirstLetterLang(comment),
         }}
         onChange={(e) => {
-          setComment(e.target.value);
+          // Cut once, in state, so what is shown is exactly what is posted.
+          setComment(e.target.value.slice(0, 200));
         }}
         onMouseDown={() => {
           if (user?.phone === "0" || !user)

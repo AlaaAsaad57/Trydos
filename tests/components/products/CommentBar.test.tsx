@@ -169,8 +169,8 @@ describe("CommentBar", () => {
     fireEvent.change(box(), { target: { value: "Hi" } });
     fireEvent.keyDown(box(), { key: "Enter" });
     await waitFor(() =>
-      expect(logError.mock.calls[0]?.[0].error.message, "a missing id was not treated as a failure").toBe(
-        "Failed to create comment",
+      expect(logError.mock.calls[0]?.[0].error.message, "a missing id was not treated as a failure").toMatch(
+        /something went wrong/i,
       ),
     );
   });

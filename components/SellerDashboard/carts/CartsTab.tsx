@@ -98,7 +98,7 @@ export default function CartsTab({
           sellerId,
           page,
         );
-        if (res && res.isSuccessful === false) {
+        if (!res?.success || res.isSuccessful === false) {
           throw new Error(
             res.message || translateFunction("Failed to load carts", language),
           );
@@ -131,7 +131,7 @@ export default function CartsTab({
           sellerId,
           { page },
         );
-        if (res && res.isSuccessful === false) {
+        if (!res?.success || res.isSuccessful === false) {
           throw new Error(
             res.message ||
               translateFunction("Failed to load old carts", language),

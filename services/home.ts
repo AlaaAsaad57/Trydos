@@ -17,7 +17,6 @@ import {
   UNLIKE_COMMENT_URL,
 } from "utils/endpointConfig";
 import auth from "./auth";
-import LocalizationServiceClass from "./localization";
 import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
 import { showErrorNotification } from "@/store/notifications/reducer";
@@ -671,204 +670,6 @@ class HomeService {
     }
   }
 
-  async TestNotificationBoutique({ boutique_id }) {
-    await this.subscribeToTopic({ topic: "boutique_created" });
-    try {
-      let response = await fetchData({
-        url: "/firebase_device_tokens/send_boutique_created",
-        body: JSON.stringify({
-          boutique_id: boutique_id,
-          topic: "boutique_created",
-          language_code: LocalizationServiceClass.GetAppLanguage(),
-          country_iso: LocalizationServiceClass.GetAppCountry(),
-        }),
-        reqTitle: REQUESTS_DATA.SEND_BOUTIQUE_CREATED,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
-      }
-    } catch (err) {
-      LogError({ scenario: "services/home request failed", error: err });
-    }
-  }
-
-  async TestNotificationProductToOldCart() {
-    try {
-      let response = await fetchData({
-        url: "/firebase_device_tokens/send_product_cart_expiration",
-        body: JSON.stringify({
-          product_id: 7681,
-          language_code: LocalizationServiceClass.GetAppLanguage(),
-          country_iso: LocalizationServiceClass.GetAppCountry(),
-        }),
-        reqTitle: REQUESTS_DATA.SEND_PRODUCT_CART_EXPIRATION,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
-      }
-    } catch (err) {
-      LogError({ scenario: "services/home request failed", error: err });
-    }
-  }
-
-  async TestNotificationProductAvailable() {
-    await this.subscribeToTopic({
-      topic: "product_availability_7681",
-      variant: "Blue-XXL",
-    });
-
-    try {
-      let response = await fetchData({
-        url: "/firebase_device_tokens/send_product_availability",
-        body: JSON.stringify({
-          product_id: 7681,
-          variant: "Blue-XXL",
-          topic: "product_availability_7681",
-          language_code: LocalizationServiceClass.GetAppLanguage(),
-          country_iso: LocalizationServiceClass.GetAppCountry(),
-        }),
-        reqTitle: REQUESTS_DATA.SEND_PRODUCT_AVAILABILITY,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
-      }
-    } catch (err) {
-      LogError({ scenario: "services/home request failed", error: err });
-    }
-  }
-
-  async TestNotificationProductComment() {
-    await this.subscribeToTopic({ topic: "product_comment_7681" });
-    try {
-      let response = await fetchData({
-        url: "/firebase_device_tokens/send_product_comment",
-        body: JSON.stringify({
-          product_id: 7681,
-          topic: "product_comment_7681",
-          language_code: LocalizationServiceClass.GetAppLanguage(),
-          country_iso: LocalizationServiceClass.GetAppCountry(),
-        }),
-        reqTitle: REQUESTS_DATA.SEND_PRODUCT_COMMENT,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
-      }
-    } catch (err) {
-      LogError({ scenario: "services/home request failed", error: err });
-    }
-  }
-
-  async TestNotificationProductDiscount() {
-    await this.subscribeToTopic({ topic: "product_discount_7681" });
-    try {
-      let response = await fetchData({
-        url: "/firebase_device_tokens/send_product_discount",
-        body: JSON.stringify({
-          product_id: 7681,
-          topic: "product_discount_7681",
-          language_code: LocalizationServiceClass.GetAppLanguage(),
-          country_iso: LocalizationServiceClass.GetAppCountry(),
-        }),
-        reqTitle: REQUESTS_DATA.SEND_PRODUCT_DISCOUNT,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
-      }
-    } catch (err) {
-      LogError({ scenario: "services/home request failed", error: err });
-    }
-  }
-
-  async TestNotificationCategoryCreated() {
-    await this.subscribeToTopic({ topic: "category_created" });
-    try {
-      let response = await fetchData({
-        url: "/firebase_device_tokens/send_category_created",
-        body: JSON.stringify({
-          category_id: 392,
-          topic: "category_created",
-          language_code: LocalizationServiceClass.GetAppLanguage(),
-          country_iso: LocalizationServiceClass.GetAppCountry(),
-        }),
-        reqTitle: REQUESTS_DATA.SEND_CATEGORY_CREATED,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
-      }
-    } catch (err) {
-      LogError({ scenario: "services/home request failed", error: err });
-    }
-  }
-
-  //before stock out and change in price
-  async TestNotificationBeforeStockOut() {
-    await this.subscribeToTopic({ topic: "product_before_stock_out_7681" });
-    try {
-      let response = await fetchData({
-        url: "/firebase_device_tokens/send_product_before_stock_out",
-        body: JSON.stringify({
-          user_id: auth.UserID(),
-          product_id: 7681,
-          topic: "product_before_stock_out_7681",
-          language_code: LocalizationServiceClass.GetAppLanguage(),
-          country_iso: LocalizationServiceClass.GetAppCountry(),
-        }),
-        reqTitle: REQUESTS_DATA.SEND_PRODUCT_BEFORE_STOCK_OUT,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
-      }
-    } catch (err) {
-      LogError({ scenario: "services/home request failed", error: err });
-    }
-  }
-
-  async TestNotificationChangeInPrice() {
-    await this.subscribeToTopic({ topic: "product_when_change_in_price_7681" });
-    try {
-      let response = await fetchData({
-        url: "/firebase_device_tokens/send_product_when_change_in_price",
-        body: JSON.stringify({
-          user_id: auth.UserID(),
-          product_id: 7681,
-          topic: "product_when_change_in_price_7681",
-          language_code: LocalizationServiceClass.GetAppLanguage(),
-          country_iso: LocalizationServiceClass.GetAppCountry(),
-        }),
-        reqTitle: REQUESTS_DATA.SEND_PRODUCT_WHEN_CHANGE_IN_PRICE,
-        method: "POST",
-        server: "market",
-      });
-      // @ts-ignore
-      if (!response.success) {
-        throw new Error(response.message);
-      }
-    } catch (err) {
-      LogError({ scenario: "services/home request failed", error: err });
-    }
-  }
-
   async EditNotificationSettings({ url, body }) {
     // Returns true on success, false on failure so callers can revert
     // optimistic UI updates when the request doesn't go through.
@@ -892,7 +693,10 @@ class HomeService {
       return false;
     }
   }
-  async LikeComment({ comment_id, target_type, product_id }) {
+  // Both answer true only when the comments backend agreed. fetchData never
+  // throws on a refusal; it returns `success: false`, so the caller must read
+  // the answer to roll the heart back.
+  async LikeComment({ comment_id, target_type, product_id }): Promise<boolean> {
     let resp = await fetchData({
       url: LIKE_COMMENT_URL,
       server: "comments",
@@ -901,8 +705,13 @@ class HomeService {
       reqTitle: REQUESTS_DATA.LIKE_FOR_COMMENT,
       noMessage: true,
     });
+    return resp?.success === true;
   }
-  async UnLikeComment({ comment_id, target_type, product_id }) {
+  async UnLikeComment({
+    comment_id,
+    target_type,
+    product_id,
+  }): Promise<boolean> {
     let resp = await fetchData({
       url: UNLIKE_COMMENT_URL,
       server: "comments",
@@ -911,6 +720,7 @@ class HomeService {
       reqTitle: REQUESTS_DATA.LIKE_FOR_COMMENT,
       noMessage: true,
     });
+    return resp?.success === true;
   }
 }
 

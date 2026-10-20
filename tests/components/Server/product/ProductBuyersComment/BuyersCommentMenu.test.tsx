@@ -57,7 +57,7 @@ const renderMenu = async (
 };
 
 const openMenu = () =>
-  userEvent.click(screen.getByRole("button", { name: "Comment options menu" }));
+  userEvent.click(screen.getByRole("button", { name: /comment options menu/i }));
 
 describe("the comment menu", () => {
   beforeEach(() => {
@@ -215,7 +215,7 @@ describe("the comment menu", () => {
   it("hides the menu button while a comment modal is open", async () => {
     await renderMenu({}, { BuyerCommentModalOption: { option: "Update" } });
     expect(
-      screen.queryByRole("button", { name: "Comment options menu" }),
+      screen.queryByRole("button", { name: /comment options menu/i }),
       "no menu button while a modal is open",
     ).toBeNull();
   });

@@ -3,6 +3,9 @@ import { cookies } from "next/headers";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 import { logRequest, startTimer } from "reqLogger";
+import { fixedWindowRateLimit } from "serverRequests/radis";
+import { hashKey, normalizeIp } from "utils/server/otpIdentity";
+import { clientIp } from "utils/server/paidRouteGuard";
 import {
   SECURE_COOKIE_OPTIONS,
   REFRESH_COOKIE_OPTIONS,
@@ -32,6 +35,14 @@ const SUB_SERVICE_COOKIES = [
 
 const REGISTER_DEVICE_URL = "/auth/register-guest";
 
+// A1-17: every POST here creates a brand-new guest on the gateway, so a script
+// could mint guests without end. This many per address per window is far above
+// what one browser needs (one guest per session, plus the rare lost session).
+// `proxy.ts` never runs on `/api`, so the limit lives in the route; the
+// Firewall rule is a second layer, not the only one.
+const RATE_LIMIT = 30;
+const RATE_WINDOW_SECONDS = 600;
+
 export async function POST(request: NextRequest) {
   try {
     // Logout guard: while a logout is in progress (cookies just cleared, guard
@@ -42,6 +53,22 @@ export async function POST(request: NextRequest) {
     const guardStore = await cookies();
     if (guardStore.get(COOKIE_NAMES.LOGOUT_GUARD)?.value) {
       return NextResponse.json({ loggingOut: true }, { status: 200 });
+    }
+
+    // Hashed, never the raw address (same rule as the OTP limiter keys). This
+    // limit FAILS OPEN when Redis is missing (`ttl === 0`): a guest must always
+    // be registerable, or nobody can browse at all. That is the opposite of
+    // the paid routes, which must never run uncapped.
+    const rl = await fixedWindowRateLimit(
+      `register-device:rl:${hashKey(normalizeIp(clientIp(request)))}`,
+      RATE_LIMIT,
+      RATE_WINDOW_SECONDS,
+    );
+    if (rl.ttl !== 0 && !rl.allowed) {
+      return NextResponse.json(
+        { message: "Too many requests. Please try again in a moment." },
+        { status: 429 },
+      );
     }
 
     const country = request.headers.get("x-country")?.trim() || "sy";

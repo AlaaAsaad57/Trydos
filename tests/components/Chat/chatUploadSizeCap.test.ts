@@ -155,13 +155,13 @@ describe("upload — when the media server refuses", () => {
   it("fails the upload on an HTTP error from the media server", async () => {
     server.use(http.post(UPLOAD_URL, () => HttpResponse.json({ message: "too big for us" }, { status: 413 })));
     const { upload } = await import("components/Chat/chatsFunctions");
-    await expect(upload(fileOfSize(10, "a.png")), "an HTTP refusal from the media server did not fail the upload").rejects.toThrow("Failed to upload file");
+    await expect(upload(fileOfSize(10, "a.png")), "an HTTP refusal from the media server did not fail the upload").rejects.toThrow("Failed to Upload file");
   });
 
   it("throws when the media server says it was not successful", async () => {
     server.use(http.post(UPLOAD_URL, () => HttpResponse.json({ isSuccessful: false })));
     const { upload } = await import("components/Chat/chatsFunctions");
-    await expect(upload(fileOfSize(10, "a.png")), "an unsuccessful upload answer did not fail the upload").rejects.toThrow("Failed to upload file");
+    await expect(upload(fileOfSize(10, "a.png")), "an unsuccessful upload answer did not fail the upload").rejects.toThrow("Failed to Upload file");
   });
 
   it("throws when the answer has no file path, and names a file with no name 'image'", async () => {
@@ -181,7 +181,7 @@ describe("upload — when the media server refuses", () => {
   it("throws the default message when the answer carries none", async () => {
     server.use(http.post(UPLOAD_URL, () => HttpResponse.json({ isSuccessful: true, code: 500 })));
     const { upload } = await import("components/Chat/chatsFunctions");
-    await expect(upload(fileOfSize(10, "a.png")), "a failed upload with no message did not use the default").rejects.toThrow("Failed to upload file");
+    await expect(upload(fileOfSize(10, "a.png")), "a failed upload with no message did not use the default").rejects.toThrow("Failed to Upload file");
   });
 });
 

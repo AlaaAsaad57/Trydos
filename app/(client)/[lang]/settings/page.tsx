@@ -67,9 +67,10 @@ async function page() {
       href: `/${lang}/terms-of-service`,
     },
     {
+      // A3-4 / A3-8: the privacy page exists; Product replaces its text later.
       name: "Legal Information",
       Icon: `/icons/LegalInfoIcon.svg`,
-      href: `#`,
+      href: `/${lang}/privacy-policy`,
     },
     // {
     //   name: "Contact Us",
@@ -77,9 +78,10 @@ async function page() {
     //   href: `/${lang}/contact`,
     // },
     {
+      // A3-8: the about page exists; Product replaces its text later.
       name: "About Us",
       Icon: `/icons/AboutIcon.svg`,
-      href: `#`,
+      href: `/${lang}/about`,
     },
     // {
     //   name: "Compare",

@@ -294,3 +294,102 @@ describe("the checklist screen, loading, paging and removing", () => {
     expect(rowsOnScreen().length, "a refused removal took the product off the list").toBe(1);
   });
 });
+
+describe("the checklist screen, when the market backend refuses or the list shifts", () => {
+  beforeEach(() => {
+    vi.mocked(fetchData).mockReset();
+    notifications.showErrorNotification.mockClear();
+    notifications.showSuccessNotification.mockClear();
+  });
+
+  // M-2. Red before the fix: the refusal became an empty page, and the shopper
+  // read "Your CheckList is empty" while the products were still saved.
+  it("shows an error with a retry, not the empty list, when the first page is refused", async () => {
+    vi.mocked(fetchData)
+      .mockResolvedValueOnce({ success: false, message: "refused" } as never)
+      .mockResolvedValueOnce({
+        success: true,
+        data: { current_page: 1, last_page: 1, data: [{ id: 1, name: "Saved product 1", slug: "p-1", image: "" }] },
+      } as never);
+    render(<ChecklistView isRtl={false} language="en" local="sy-en" />);
+
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-pw="checklist-error"]'),
+        "a refused checklist read did not show the error state",
+      ).not.toBeNull(),
+    );
+    expect(
+      document.querySelector('[data-pw="checklist-empty"]'),
+      "a refused checklist read told the shopper the checklist is empty",
+    ).toBeNull();
+
+    fireEvent.click(document.querySelector('[data-pw="checklist-retry"]')!);
+    await waitFor(() =>
+      expect(rowsOnScreen().length, "Try again did not load the checklist").toBe(1),
+    );
+    expect(
+      document.querySelector('[data-pw="checklist-error"]'),
+      "the error state stayed after a good retry",
+    ).toBeNull();
+  });
+
+  // L-1. Red before the fix: page 2 was asked for by number, but after two
+  // removals the shop's page 2 starts two products later, so products 11 and
+  // 12 were never shown.
+  it("shows every product after the shopper removes some and taps Load more", async () => {
+    const PAGE = 10;
+    let saved = Array.from({ length: 25 }, (_, i) => ({
+      id: i + 1,
+      name: `Saved product ${i + 1}`,
+      slug: `p-${i + 1}`,
+      image: "",
+    }));
+    // A small fake shop: it pages the list as it is now, and removals change it.
+    vi.mocked(fetchData).mockImplementation((async ({ url, method }: any) => {
+      if (method === "DELETE") {
+        const id = Number(url.split("/").pop());
+        saved = saved.filter((p) => p.id !== id);
+        return { success: true };
+      }
+      const page = Number(new URL(url, "https://x.invalid").searchParams.get("page"));
+      const last = Math.max(1, Math.ceil(saved.length / PAGE));
+      return {
+        success: true,
+        data: {
+          current_page: page,
+          last_page: last,
+          per_page: PAGE,
+          data: saved.slice((page - 1) * PAGE, page * PAGE),
+        },
+      };
+    }) as never);
+
+    render(<ChecklistView isRtl={false} language="en" local="sy-en" />);
+    await waitFor(() => expect(rowsOnScreen().length, "the first page did not load").toBe(10));
+
+    const deleteButtons = () =>
+      document.querySelectorAll<HTMLElement>('[data-pw="checklist-item-delete"]');
+    fireEvent.click(deleteButtons()[0]);
+    await waitFor(() => expect(rowsOnScreen().length, "the first removal did not finish").toBe(9));
+    fireEvent.click(deleteButtons()[0]);
+    await waitFor(() => expect(rowsOnScreen().length, "the second removal did not finish").toBe(8));
+
+    let taps = 0;
+    while (loadMoreButton() && taps < 5) {
+      taps += 1;
+      const before = rowsOnScreen().length;
+      fireEvent.click(loadMoreButton()!);
+      await waitFor(() => expect(rowsOnScreen().length, "Load more added nothing").toBeGreaterThan(before));
+    }
+
+    const shown = rowsOnScreen().map((row) => row.textContent ?? "");
+    for (const product of saved) {
+      expect(
+        shown.some((text) => text.includes(product.name)),
+        `${product.name} is saved but never shown — Load more skipped it after the removals`,
+      ).toBe(true);
+    }
+    expect(new Set(shown).size, "a product is shown twice after Load more").toBe(shown.length);
+  });
+});

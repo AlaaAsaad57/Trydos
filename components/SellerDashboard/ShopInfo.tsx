@@ -11,6 +11,8 @@ import {
   DashButton,
   DashField,
   Monogram,
+  ErrorState,
+  InlineAlert,
 } from 'components/SellerDashboard/ui';
 
 // --- Types & Interfaces ---
@@ -44,6 +46,9 @@ export default function ShopInfo({
   const isRtl = language === 'ar' || language === 'ku';
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  // Why the form could not load, or why the last save was refused.
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<ShopFormData>({
     shopName: '',
@@ -81,14 +86,17 @@ export default function ShopInfo({
     onShopInfoUpdatedRef.current = onShopInfoUpdated;
   }, [onShopInfoUpdated]);
 
-  // Fetch Initial Data — GET /shop/info (READ_SHOP_INFO)
-  useEffect(() => {
-    const loadData = async () => {
+  // Fetch Initial Data — GET /shop/info (READ_SHOP_INFO). A failed load shows
+  // an error with a retry, never an empty form.
+  const loadData = async () => {
       setIsLoading(true);
+      setLoadError(null);
       try {
         const res = await SellerDashboardService.getShopInfo(sellerId);
         if (!res?.success) {
-          throw new Error(res?.message || 'Failed to fetch shop data');
+          throw new Error(
+            res?.message || translateFunction('Failed to load shop info', language),
+          );
         }
         const data = res?.data ?? res ?? {};
         setFormData({
@@ -120,10 +128,16 @@ export default function ShopInfo({
           scenario: 'ShopInfo.loadData',
           error: error instanceof Error ? error.message : String(error),
         });
+        setLoadError(
+          error instanceof Error && error.message
+            ? error.message
+            : translateFunction('Failed to load shop info', language),
+        );
       } finally {
         setIsLoading(false);
       }
-    };
+  };
+  useEffect(() => {
     if (sellerId) loadData();
   }, [sellerId]);
 
@@ -240,6 +254,7 @@ export default function ShopInfo({
     if (!validateForm()) return;
 
     setIsSaving(true);
+    setSaveError(null);
     try {
       // Upload only the media that changed; otherwise keep the existing URL.
       let finalImage = imageUrl;
@@ -263,7 +278,9 @@ export default function ShopInfo({
       });
 
       if (res && res.success === false) {
-        throw new Error(res.message || 'Failed to update');
+        throw new Error(
+          res.message || translateFunction('Failed to update', language),
+        );
       }
 
       const updatedName = formData.shopName.trim();
@@ -290,7 +307,12 @@ export default function ShopInfo({
         scenario: 'ShopInfo.handleSubmit',
         error: error instanceof Error ? error.message : String(error),
       });
-      alert(translateFunction('Failed to update', language));
+      // The backend's own reason when it gave one, shown in the form.
+      setSaveError(
+        error instanceof Error && error.message
+          ? error.message
+          : translateFunction('Failed to update', language),
+      );
     } finally {
       setIsSaving(false);
     }
@@ -327,6 +349,13 @@ export default function ShopInfo({
         }
       />
 
+      {loadError && !isLoading ? (
+        <ErrorState
+          data-pw="shop-info-load-error"
+          message={loadError}
+          onRetry={loadData}
+        />
+      ) : (
       <form data-pw="shop-info-form" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
 
@@ -549,6 +578,12 @@ export default function ShopInfo({
           </div>
         </div>
 
+        {saveError && (
+          <div className="mt-6" data-pw="shop-info-save-error">
+            <InlineAlert tone="error">{saveError}</InlineAlert>
+          </div>
+        )}
+
         {/* Action Buttons */}
         {canUpdate && (
           <div className="mt-8 flex justify-end items-center border-t border-[#ededed] pt-6">
@@ -565,6 +600,7 @@ export default function ShopInfo({
           </div>
         )}
       </form>
+      )}
     </div>
   );
 }

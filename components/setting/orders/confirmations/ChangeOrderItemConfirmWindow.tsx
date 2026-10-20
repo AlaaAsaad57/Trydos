@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useParams } from "next/navigation";
 
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
@@ -18,6 +19,8 @@ export const ModifyOrderItemModal = ({
   close,
 }) => {
   const { language } = useAppStore();
+  // A3-7: the terms page exists; Product replaces its text later.
+  const { lang } = useParams();
   const [loading, setLoading] = useState(false);
 
   const isChanged = () => {
@@ -183,7 +186,9 @@ export const ModifyOrderItemModal = ({
             <span>{translateFunction("I Read And Agree To", language)}</span>
             <a
               target="_blank"
-              href="#"
+              rel="noopener noreferrer"
+              href={`/${lang}/terms-of-service`}
+              onClick={(e) => e.stopPropagation()}
               className=" medium text-[14px] text-white underline"
             >
               {type === "Color"

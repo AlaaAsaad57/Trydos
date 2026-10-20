@@ -38,8 +38,8 @@ export type MockMap = Record<string, MockResponse>;
 
 /** The headers a browser demands before it will read a cross-origin answer.
  *
- *  The media store is a different origin, and the upload carries `x-api-key` and
- *  `X-Upload-Ticket` — custom headers, so the browser sends a preflight first
+ *  The media store is a different origin, and the upload carries
+ *  `X-Upload-Ticket` — a custom header, so the browser sends a preflight first
  *  and then refuses to read the real answer unless it is allowed to.
  *
  *  This matters more than it looks. A fake without these makes `fetch` throw a

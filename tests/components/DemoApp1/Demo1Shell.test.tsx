@@ -238,7 +238,13 @@ describe("Demo1 screens — fluid pages that the document scrolls", () => {
   // screen keeps its distance to the edges instead of one of these numbers.
   const ARTBOARD_WIDTHS = ["430px", "406px", "390px", "386px", "382px"];
 
+  // The conversation is the one page whose body scrolls under a head that
+  // stays put (asked for on 2026-10-20: "the chat container should be
+  // scrollable, not all the screen"); ScreenPage's `scrollBody`.
+  const SCROLLS_ITS_BODY = new Set(["chat/conversation"]);
+
   for (const screen of DEMO_SCREENS) {
+    if (SCROLLS_ITS_BODY.has(screen)) continue;
     it(`${screen}: no box inside the page scrolls on its own`, () => {
       const { container } = openOn(screen);
       const boxes = [...container.querySelectorAll<HTMLElement>("*")].filter(

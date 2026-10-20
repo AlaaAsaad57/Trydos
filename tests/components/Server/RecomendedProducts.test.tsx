@@ -7,13 +7,11 @@ const GetNextRecommendations = vi.fn();
 const showErrorMessage = vi.fn();
 const LogError = vi.fn();
 
-vi.mock("serverRequests/home", () => ({
+// The action reads the shopper from the session cookie on the server, so the
+// row sends no user id (A1-8).
+vi.mock("serverRequests/recommendations", () => ({
   GetNextRecommendations: (...args: any[]) => GetNextRecommendations(...args),
 }));
-vi.mock("services/auth", async () => {
-  const { makeMockAuthModule } = await import("../../mocks/auth");
-  return makeMockAuthModule();
-});
 vi.mock("components/global/AddToCartMessage", () => ({
   showErrorMessage: (...args: any[]) => showErrorMessage(...args),
 }));
@@ -25,7 +23,6 @@ vi.mock("components/products/ProductCard", () => ({
   default: ({ product }: any) => <div data-pw="card">{product.name}</div>,
 }));
 
-import auth from "services/auth";
 import RecomendedProducts from "components/Server/RecomendedProducts";
 
 import { renderWithProviders, screen, userEvent, waitFor } from "../../render";
@@ -41,34 +38,29 @@ describe("Show More on the recommendations row", () => {
     GetNextRecommendations.mockReset();
     showErrorMessage.mockReset();
     LogError.mockReset();
-    (auth.UserID as any).mockReset();
   });
 
-  it("loads the next page from where the server stopped, for the signed-in shopper", async () => {
-    (auth.UserID as any).mockReturnValue(null);
+  it("loads the next page from where the server stopped, with no user id in the call", async () => {
     GetNextRecommendations.mockResolvedValue({ items: [{ id: 1, name: "Shoe" }], offset: [10] });
     await renderRow();
     await userEvent.click(screen.getByText("Show More"));
     expect(await screen.findByText("Shoe"), "the next product should be added to the row").toBeInTheDocument();
-    expect(GetNextRecommendations, "the next page must start at the server's offset, for the store's user").toHaveBeenCalledWith({
+    expect(GetNextRecommendations, "the next page must start at the server's offset, and carry no user id").toHaveBeenCalledWith({
       country: "sy",
       language: "en",
       limit: 7,
       offset: "[3]",
-      userId: 7,
     });
     expect(screen.getByText("Show More"), "more pages may follow, so the button stays").toBeInTheDocument();
   });
 
   it("hides the button when a page comes back empty", async () => {
-    (auth.UserID as any).mockReturnValue(99);
     GetNextRecommendations.mockResolvedValue({ items: [], offset: [] });
     await renderRow({ user: { id: 99 } });
     await userEvent.click(screen.getByText("Show More"));
     await waitFor(() =>
       expect(screen.queryByText("Show More"), "an empty page means the end, so the button should go").toBeNull(),
     );
-    expect(GetNextRecommendations.mock.calls[0][0].userId, "the cookie's user id should be preferred").toBe(99);
     expect(GetNextRecommendations.mock.calls[0][0].offset, "a different shopper should start from the first page").toBe("[]");
   });
 

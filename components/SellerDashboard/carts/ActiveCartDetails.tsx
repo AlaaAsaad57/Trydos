@@ -48,7 +48,7 @@ export default function ActiveCartDetails({
           sellerId,
           groupId,
         );
-        if (res && res.isSuccessful === false) {
+        if (!res?.success || res.isSuccessful === false) {
           throw new Error(
             res.message ||
               translateFunction("Failed to load cart details", language),

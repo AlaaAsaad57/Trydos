@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
 import AuthService from 'services/auth';
 import { translateFunction } from 'utils/functions';
 import { getNumberLockRemaining, isSessionCapReached } from 'utils/otpLocks';
@@ -48,6 +49,10 @@ export default function InlineVerifyPanel({
     lang = 'en',
 }: InlineVerifyPanelProps) {
     const translate = (key: string) => translateFunction(key, lang);
+    // A3-5: the terms page exists; Product replaces its text later. `lang` is
+    // the language only, so the locale comes from the route.
+    const { lang: locale } = useParams<{ lang?: string }>() ?? {};
+    const termsHref = `/${typeof locale === 'string' && locale ? locale : lang}/terms-of-service`;
 
     const {
         step,
@@ -211,9 +216,14 @@ export default function InlineVerifyPanel({
                             height={20}
                             className="w-xd-20 h-xd-20 object-contain"
                         />
-                        <span className="text-xd-12 text-[#388CFF]">
+                        <a
+                            href={termsHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xd-12 text-[#388CFF]"
+                        >
                             {translate('Terms Of Services')}
-                        </span>
+                        </a>
                     </div>
                     <button
                         onClick={agreeTerms}

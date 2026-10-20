@@ -98,8 +98,10 @@ export default function StoriesBarClient({
         setNextPageUrl(response?.data?.next_page_url);
       })
       .catch(() => {
-        // Nothing to say and nothing to do. `stories` stays null, so the
-        // skeleton stays on screen.
+        // Nothing to say: a dead stories service must not stop a shopper
+        // browsing. Show an empty bar, as for a refused answer — never an
+        // endless skeleton.
+        if (!cancelled) setRawStories([]);
       });
 
     return () => {

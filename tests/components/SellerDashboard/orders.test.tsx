@@ -127,6 +127,16 @@ beforeEach(() => {
   getSellerOrders.mockResolvedValue(listAnswer([order()]));
 });
 
+// "Cancel" on an item asks first; the cancel is sent only after this confirm.
+const confirmCancel = async () => {
+  const button = await waitFor(() => {
+    const el = document.querySelector('[data-pw="seller-order-cancel-confirm"]');
+    if (!el) throw new Error("the cancel confirm dialog did not open");
+    return el as HTMLElement;
+  });
+  await userEvent.click(button);
+};
+
 describe("Orders section — the permission gate", () => {
   it("never asks the shop backend without the order permission", async () => {
     await mount(false);
@@ -368,6 +378,7 @@ describe("Orders section — working through an item", () => {
     await screen.findByText("Order Number");
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await confirmCancel();
 
     await waitFor(() => {
       expect(
@@ -388,6 +399,7 @@ describe("Orders section — working through an item", () => {
     await screen.findByText("Order Number");
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await confirmCancel();
 
     await waitFor(() => {
       expect(
@@ -610,6 +622,7 @@ describe("Orders section — item actions that stop early or fail", () => {
     await openFirstOrderDetail();
     await userEvent.click(screen.getByRole("button", { name: "Confirm & Start Packing" }));
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await confirmCancel();
     expect(confirmOrderDetailStatus, "an item with no id cannot be confirmed").not.toHaveBeenCalled();
     expect(cancelOrderDetail, "an item with no id cannot be cancelled").not.toHaveBeenCalled();
   });
@@ -629,6 +642,7 @@ describe("Orders section — item actions that stop early or fail", () => {
     await mount();
     await openFirstOrderDetail();
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await confirmCancel();
     expect(cancelOrderDetail, "there is nothing to cancel on an item with no quantity").not.toHaveBeenCalled();
   });
 
@@ -650,8 +664,10 @@ describe("Orders section — item actions that stop early or fail", () => {
     await mount();
     await openFirstOrderDetail();
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await confirmCancel();
     await waitFor(() => expect(cancelOrderDetail).toHaveBeenCalledTimes(1));
     await userEvent.click(await screen.findByRole("button", { name: "Cancel" }));
+    await confirmCancel();
     await waitFor(() => expect(cancelOrderDetail).toHaveBeenCalledTimes(2));
     expect(screen.getByText("Blue Shoe"), "a cancel that did not go through must keep the item on the order").toBeInTheDocument();
   });
@@ -720,6 +736,7 @@ describe("Orders section — items that arrive grouped", () => {
     await mount();
     await openFirstOrderDetail();
     await userEvent.click(screen.getAllByRole("button", { name: "Cancel" })[0]);
+    await confirmCancel();
     await waitFor(() => {
       const current = useAppStore.getState().sellerOrders[0] as any;
       expect(
@@ -748,6 +765,7 @@ describe("Orders section — items that arrive grouped", () => {
     await mount();
     await openFirstOrderDetail();
     await userEvent.click(screen.getAllByRole("button", { name: "Cancel" })[0]);
+    await confirmCancel();
     await waitFor(() =>
       expect(
         (useAppStore.getState().sellerOrders[0] as any).details.map((d: any) => d.qty),

@@ -311,6 +311,12 @@ describe("OrderService (services/order.ts)", () => {
       const url = await orderService.uploadToMediaServer(mockFile, "receipts");
 
       expect(url).toBe("https://media.example.com/uploads/receipt.pdf");
+      // The media store authorises `/gated/*` by the ticket alone, so the app
+      // sends no static key.
+      const init = fetchSpy.mock.calls[0][1] as RequestInit;
+      const headers = init.headers as Record<string, string>;
+      expect(headers["x-api-key"], "the static media key was still sent").toBeUndefined();
+      expect(headers["X-Upload-Ticket"], "the upload ticket was not sent").toBe("mock-ticket-123");
       fetchSpy.mockRestore();
     });
 

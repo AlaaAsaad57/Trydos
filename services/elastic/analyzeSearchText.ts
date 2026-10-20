@@ -1,0 +1,233 @@
+import crypto from "crypto";
+import { GetColorAndSizes } from "serverRequests/analyticsUtility";
+import { fixedWindowRateLimit, RedisGet, RedisSet } from "serverRequests/radis";
+import { LogServerError } from "utils/serverErrorReporter";
+
+// Gemini variant of AnalyzeSearchText. Return contract: { name?, color?,
+// size?, error? } — it never throws, so the two callers need no logic changes.
+// Returns a clear, non-cryptic error on a 429 so QA can tell a quota hit from a
+// real bug.
+
+// Flip the model without a redeploy via GEMINI_SEARCH_MODEL.
+const MODEL = process.env.GEMINI_SEARCH_MODEL || "gemini-2.5-flash-lite";
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+
+// Hard ceiling on the whole analysis — **this is the only part of the search
+// route that could run without one.**
+//
+// The analysis is best-effort: `services/elastic/elasticSearch.ts` catches the
+// error this returns and searches with the raw text instead. So a slow analysis
+// must give up and let the search run. It must never hold it.
+//
+// Everything else on `/api/products/searchInCatalog` is already bounded —
+// Elasticsearch at `requestTimeout: 8000` with two retries, `fetchServerData`
+// at 15 000 ms. This call was not, in three places: `GetColorAndSizes` reads
+// Redis with no command timeout, then fetches with no abort signal, and the
+// AI call below had no signal either. Any one of them could stall for ever.
+//
+// It did. On CI runs 35499149467 and 35529493739 the browser case QA-09e failed
+// with `page.goto: Timeout 45000ms exceeded` on that route. The request logged
+// nothing at all — not even the AI error the route always prints — so it was
+// still inside this function when the browser gave up 45 seconds later. The
+// same case passed in 3.3 s on run 35504570850, with the same AI 402 in the
+// log, which is what says the AI failure was never the problem.
+//
+// 6 seconds: generous for a working call (a healthy one answers in about two),
+// and it keeps the route's worst case near 14 s, well inside the 45 s a browser
+// or the mobile app will wait. Tunable without a redeploy, like the model above.
+const DEFAULT_ANALYZE_TIMEOUT_MS = 6000;
+const analyzeBudgetMs = () =>
+  Number(process.env.SEARCH_ANALYZE_TIMEOUT_MS) || DEFAULT_ANALYZE_TIMEOUT_MS;
+
+// Every analysis is a paid call, and the search route is public. Two caps:
+//
+// - A store: the same search (case and spaces folded) is one paid call per
+//   lifetime, not one per shopper. Only a good answer is stored; a refusal or
+//   an unreadable answer is retried next time.
+// - One shared budget of calls per minute. Over it, the search runs on the
+//   raw text, which is what it does on any analysis failure anyway. The
+//   shared limiter FAILS OPEN when Redis is missing (`ttl === 0`); a paid call
+//   must not run uncapped, so that case also skips the AI — the same rule the
+//   paid API routes use.
+//
+// Both are tunable without a redeploy.
+const CACHE_PREFIX = "search:analyze:v1:";
+const DEFAULT_CACHE_SECONDS = 24 * 60 * 60;
+const DEFAULT_MAX_PER_MINUTE = 300;
+const BUDGET_KEY = "search:analyze:rl:global";
+const cacheSeconds = () =>
+  Number(process.env.SEARCH_ANALYZE_CACHE_SECONDS) || DEFAULT_CACHE_SECONDS;
+const maxPerMinute = () =>
+  Number(process.env.SEARCH_ANALYZE_MAX_PER_MINUTE) || DEFAULT_MAX_PER_MINUTE;
+
+// Hashed, so the shopper's words never become a Redis key.
+const cacheKey = (query: string) =>
+  CACHE_PREFIX +
+  crypto
+    .createHash("sha1")
+    .update(query.trim().replace(/\s+/g, " ").toLowerCase())
+    .digest("hex");
+
+// responseMimeType forces JSON, but strip any stray markdown fence and fall
+// back to the first {...} block so a formatting hiccup never crashes search.
+function safeParseJson(text: string): Record<string, any> {
+  if (!text) return {};
+  let t = text.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+  try {
+    return JSON.parse(t);
+  } catch {
+    const match = t.match(/\{[\s\S]*\}/);
+    if (match) {
+      try {
+        return JSON.parse(match[0]);
+      } catch {
+        /* fall through */
+      }
+    }
+    return {};
+  }
+}
+
+/** Analyse a search query, and give up rather than hold the search.
+ *
+ *  A wrapper over `runAnalysis` that does nothing but enforce the deadline
+ *  above. It keeps the same return contract — `{ name?, color?, size?, error? }`
+ *  and never throws — so the two callers need no change. */
+export default async function AnalyzeSearchText(query): Promise<any> {
+  const budgetMs = analyzeBudgetMs();
+  let giveUp: ReturnType<typeof setTimeout> | undefined;
+
+  const deadline = new Promise<any>((resolve) => {
+    giveUp = setTimeout(
+      () =>
+        resolve({
+          error:
+            `search analysis gave up after ${budgetMs}ms — the search ran on ` +
+            `the raw text, so this is a slow dependency, not a broken search`,
+          timedOut: true,
+        }),
+      budgetMs,
+    );
+  });
+
+  try {
+    return await Promise.race([runAnalysis(query, budgetMs), deadline]);
+  } finally {
+    // Stops the timer holding the process open once the analysis has answered.
+    clearTimeout(giveUp);
+  }
+}
+
+async function runAnalysis(query, budgetMs: number): Promise<any> {
+  const modifiedQuery = decodeURIComponent(query);
+  const start = process.hrtime.bigint();
+
+  const key = cacheKey(modifiedQuery);
+  const cached = await RedisGet(key);
+  if (cached && typeof cached === "object") {
+    return { ...cached, cached: true, model: MODEL };
+  }
+
+  const budget = await fixedWindowRateLimit(BUDGET_KEY, maxPerMinute(), 60);
+  if (budget.ttl === 0) {
+    return {
+      error:
+        "search analysis skipped — the limiter is not available, so the " +
+        "search ran on the raw text",
+      skipped: true,
+    };
+  }
+  if (!budget.allowed) {
+    return {
+      error:
+        "search analysis skipped — the AI budget for this minute is spent, " +
+        "so the search ran on the raw text",
+      rateLimited: true,
+    };
+  }
+
+  const data = await GetColorAndSizes();
+
+  // Minified input: bare comma lists (no JSON.stringify wrapping) to spend
+  // fewer tokens. HEX codes must stay — the model returns them as the answer.
+  const colors = (data?.colors || "").replace(/,\s+/g, ",");
+  const sizes = (data?.sizes || "").replace(/,\s+/g, ",");
+
+  const prompt = `Parse this e-commerce search query into JSON.
+
+ALLOWED_COLORS (hex): ${colors}
+ALLOWED_SIZES: ${sizes}
+
+Return ONLY this JSON, no markdown, no prose:
+{"name": string, "color": string[], "size": string[]}
+
+Rules:
+- name: the product only. Strip color/size/material words. A word that looks like a color can still be the product (e.g. "باذنجان ابيض" → name "باذنجان", color white). Omit if there is no product.
+- color: hex codes from ALLOWED_COLORS matching the query's color in ANY language. Prefer the standard hex (e.g. #000000) over custom codes. Map "dark"/"light" to the closest. Omit if none.
+- size: values from ALLOWED_SIZES. Map terms like "extra large"/"كبير جدا" → XL/XXL, "small" → S, "medium" → M. Omit if none.
+- Omit any field you cannot determine — never output "Unknown".
+
+QUERY: "${modifiedQuery}"`;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // The key travels only in the header, never in the URL.
+        "x-goog-api-key": process.env.GEMINI_API_KEY || "",
+      },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          // Thinking tokens are billed and add seconds; this task does not need them.
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      }),
+      cache: "no-store",
+      // The deadline above already stops a slow call holding the search. This
+      // drops the socket as well, so a hung Gemini never leaves a request
+      // running behind a search that has already answered.
+      signal: AbortSignal.timeout(budgetMs),
+    });
+
+    if (response.status === 429) {
+      return {
+        error: "AI quota reached — not a bug (Gemini rate limit)",
+        rateLimited: true,
+      };
+    }
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => "");
+      throw new Error(
+        `Gemini API error: ${response.status} — ${bodyText.slice(0, 200)}`,
+      );
+    }
+
+    const result: any = await response.json();
+    const outputText =
+      result?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "{}";
+    const parsed = safeParseJson(outputText);
+
+    // Drop empties so the caller's `if (CleanSearchText?.x)` guards stay clean.
+    const filtered = Object.fromEntries(
+      Object.entries(parsed).filter(([_, v]) => {
+        if (v === "Unknown" || v === "" || v == null) return false;
+        if (Array.isArray(v) && v.length === 0) return false;
+        return true;
+      }),
+    );
+
+    await RedisSet(key, filtered, cacheSeconds());
+
+    const end = process.hrtime.bigint();
+    return { ...filtered, analyzeTime: Number(end - start) / 1_000_000, model: MODEL };
+  } catch (error) {
+    LogServerError({
+      scenario: "AnalyzeSearchText in services/elastic/analyzeSearchText",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return { error: `${error?.message}`, details: error.message };
+  }
+}

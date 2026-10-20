@@ -60,6 +60,7 @@ async function ProductStoriesWrapper({ globalPromise, language }) {
       <ProductStories
         id={product?.id}
         InitialStoriesData={stories.data}
+        hasMore={Boolean(stories.has_more)}
         initialStories={stories.stories}
       />
     </div>

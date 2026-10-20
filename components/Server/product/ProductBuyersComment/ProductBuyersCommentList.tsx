@@ -15,7 +15,8 @@ import {
   UPDATE_COMMENT_URL,
 } from "utils/endpointConfig";
 import { REQUESTS_DATA } from "utils/Requests";
-import { LogError } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
+import { showErrorNotification } from "store/notifications/reducer";
 
 // Internal Next route (same-origin) returning the buyers-comments data page.
 async function fetchBuyersComments({
@@ -33,6 +34,11 @@ async function fetchBuyersComments({
     `/api/products/comments/buyers_comments?${params.toString()}`,
     { headers: { language: language ?? "en" } },
   );
+  if (!res.ok) {
+    // A 500 must not look like "no more items": the caller's catch keeps the
+    // list it has and tells the shopper.
+    throw new Error(`loading the buyers comments answered ${res.status}`);
+  }
   const json = await res.json();
   return {
     comments: json?.data?.buyers_comments ?? [],
@@ -80,6 +86,7 @@ function ProductBuyersCommentList({
         error,
         scenario: "Error In GetNextComments in ProductBuyersCommentList",
       });
+      showErrorNotification(translateFunction("Something went wrong"));
     } finally {
       setLoading(false);
     }

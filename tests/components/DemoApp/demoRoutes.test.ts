@@ -51,6 +51,26 @@ describe("demo routes — which screen a URL shows", () => {
       "back from the wallet with no history does not go to the profile tab",
     ).toBe("settings");
     expect(
+      screenFromUrl("/sy-en/demo/chat/conversation", ""),
+      "/demo/chat/conversation is not the conversation screen",
+    ).toBe("chat/conversation");
+    expect(
+      parentOf("chat/contact"),
+      "back from a contact with no history does not go to the chat tab",
+    ).toBe("chat");
+    expect(
+      hrefFor("sy-en", "chat/call"),
+      "the call screen must be a real path under /demo/chat, not a search param",
+    ).toBe("/sy-en/demo/chat/call");
+    expect(
+      sameRoute("chat", "chat/conversation"),
+      "chat → a conversation changes the path, so it needs the router",
+    ).toBe(false);
+    expect(
+      isTabRoot("chat/conversation"),
+      "a conversation should hide the tab bar",
+    ).toBe(false);
+    expect(
       screenFromUrl("/sy-en/demo/settings/nope", ""),
       "an unknown /demo path was taken for a demo screen",
     ).toBeNull();

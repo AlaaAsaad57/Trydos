@@ -474,29 +474,28 @@ describe("picture paths (AC-27)", () => {
 });
 
 describe("uploading a picture", () => {
-  it("refuses to run when the upload is not configured (AC-28)", async () => {
-    // The runner leaves the media key empty on purpose, so this is the branch a
-    // test gets without asking.
+  it("refuses to run when no media server address is set (AC-28)", async () => {
+    vi.stubEnv("NEXT_PUBLIC_MEDIA_SERVER_BASE_URL", "");
     await expect(auth.uploadToMediaServer(new File(["x"], "ada.png"))).rejects.toThrow(
       "Media server upload is not configured",
     );
-    expect(net.calls).toHaveLength(0);
+    expect(net.calls, "an upload was sent with no media server address").toHaveLength(0);
   });
 
-  it("reports where the picture was stored (AC-28)", async () => {
-    vi.stubEnv("NEXT_PUBLIC_MEDIA_API_KEY", "test-key");
+  it("reports where the picture was stored, sending the ticket and no static key (AC-28)", async () => {
+    // The media store authorises `/gated/*` by the ticket alone (its auth hook
+    // never reads `x-api-key` there), so the app sends no key and needs none.
     net.queueReply(jsonReply({ url: "https://example.com/customers/profile/ada.png" }));
 
     const result = await auth.UpdateProfileImage(new File(["x"], "ada.png"));
 
     expect(result).toEqual({ sub_path: "https://example.com/customers/profile/ada.png" });
     expect(net.calls[0].url).toBe("https://example.com/gated/upload");
-    expect(net.calls[0].headers["x-api-key"]).toBe("test-key");
+    expect(net.calls[0].headers["x-api-key"], "the static media key was still sent").toBeUndefined();
     expect(net.calls[0].headers["x-upload-ticket"]).toBe("test-upload-ticket");
   });
 
   it("reports a failure rather than a picture when the upload is refused (AC-28)", async () => {
-    vi.stubEnv("NEXT_PUBLIC_MEDIA_API_KEY", "test-key");
     net.queueReply(jsonReply({ error: "file too large" }, 413));
 
     const result = await auth.UpdateProfileImage(new File(["x"], "ada.png"));
@@ -507,7 +506,6 @@ describe("uploading a picture", () => {
   it("reports the failure rather than raising when a refused upload's reply cannot be read (AC-29)", async () => {
     // It used to read `data.error` from a null value here and throw, instead of
     // returning the failure it was built to return.
-    vi.stubEnv("NEXT_PUBLIC_MEDIA_API_KEY", "test-key");
     (net.fetch as any).mockImplementationOnce(async () => ({
       ok: false,
       status: 500,

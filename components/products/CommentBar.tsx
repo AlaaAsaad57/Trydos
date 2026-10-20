@@ -61,7 +61,9 @@ function CommentBar({ product_data, setCommentsData }) {
         noMessage: true,
       });
       if (!res?.success || !res?.data?.comment_id) {
-        throw new Error(res?.message || "Failed to create comment");
+        throw new Error(
+          res?.message || translateFunction("Something went wrong"),
+        );
       }
       // Prepend the new question as data (no ES-indexing setTimeout, no JSX
       // action): the fields not returned by the create call are known locally.
@@ -107,6 +109,10 @@ function CommentBar({ product_data, setCommentsData }) {
         error: error,
         scenario: "Error In addComment in CommentBar",
       });
+      // The text stays in the box so the shopper can try again.
+      showErrorNotification(
+        error?.message || translateFunction("Something went wrong"),
+      );
       setLoading(false);
     }
   };
@@ -146,9 +152,11 @@ function CommentBar({ product_data, setCommentsData }) {
           e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
         }}
         placeholder={translateFunction("type a comment")}
-        value={val?.slice(0, 200)}
+        value={val}
+        maxLength={200}
         onChange={(e) => {
-          setVal(e.target.value);
+          // Cut once, in state, so what is shown is exactly what is posted.
+          setVal(e.target.value.slice(0, 200));
         }}
       />
       {val?.length > 0 && (
