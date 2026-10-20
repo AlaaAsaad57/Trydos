@@ -1,5 +1,5 @@
 "use client";
-import { _isStoreLastJson, LogError } from "utils/functions";
+import { _isStoreLastJson, LogError, translateFunction } from "utils/functions";
 import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";
 
@@ -228,6 +228,11 @@ class StoryService {
   getUserStories() {
     return useAppStore.getState().userStories;
   }
+  /** The name shown on a story. Never the phone number: it is private, and a
+   *  story is seen by every shopper. */
+  authorName(story) {
+    return story?.name || translateFunction("Unknown");
+  }
   configureStory(story) {
     const withMediaBase = (url?: string) => {
       if (!url) return "";
@@ -249,7 +254,7 @@ class StoryService {
           is_seen: storyItem.is_seen,
           id: storyItem.id,
           header: {
-            heading: story.name ?? story.mobile_phone ?? "Unknown",
+            heading: this.authorName(story),
             subheading: formatTime(storyItem.created_at),
             profileImage: story.photo_path
               ? GetImageUrl(story.photo_path)
@@ -279,7 +284,7 @@ class StoryService {
           duration: 5000,
           id: storyItem.id,
           header: {
-            heading: story.name ?? story.mobile_phone ?? "Unknown",
+            heading: this.authorName(story),
             subheading: formatTime(storyItem.created_at),
             profileImage: story.photo_path
               ? GetImageUrl(story.photo_path)

@@ -5,7 +5,7 @@
 
 ## The short answer
 
-**We cannot go to production today.** Most of the shop works. We found **560 working cases** across 20 sections. But some items block launch, and they are in four groups:
+**We cannot go to production today.** Most of the shop works. We found **565 working cases** across 20 sections. But some items block launch, and they are in four groups:
 
 1. **There is no production environment yet.** Every backend host is staging. The Elasticsearch index names fall back to the staging names (`_develop`) until the `ELASTIC_*_INDEX` values are set.
 2. **Security holes in the web app.** Some API routes are open to anyone. Session tokens reach logs and Sentry. A few screens show private data.
@@ -32,7 +32,7 @@ None of these is a big rebuild. Most are small fixes, settings, or a product dec
 | 10 | [Sign-in & session](10-sign-in-and-session.md) | 🟡 | 28 | 5 | Open `/api/clearRedis` removes all OTP limits; QR login is a mock that shoppers can see |
 | 11 | [Profile & settings](11-profile-and-settings.md) | 🟡 | 26 | 4 | Developer "Notification Test" tab visible to every shopper; legal links go to `#` |
 | 12 | [Chat & calls](12-chat-and-calls.md) | 🟡 | 52 | 9 | Mobile-app call page shows and logs the chat token; no production chat host or Agora project |
-| 13 | [Stories](13-stories.md) | 🟡 | 21 | 1 | A story author's phone number is shown to other shoppers when the name is empty |
+| 13 | [Stories](13-stories.md) | 🟡 | 26 | 0 | No code blocker; Ops values and one real-iPhone video check before launch |
 | 14 | [Notifications](14-notifications.md) | 🟡 | 18 | 5 | Anyone can subscribe to another shop's order pushes; chat needs push permission, so it cannot open in iPhone Safari |
 | 15 | [Seller dashboard — catalog](15-seller-dashboard-catalog.md) | 🟡 | 39 | 1 | Backend 500 on product create with similar words (every "Add with AI" create) |
 | 16 | [Seller dashboard — operations](16-seller-dashboard-operations.md) | 🟡 | 36 | 2 | A removed member keeps getting the shop's order pushes |
@@ -40,7 +40,7 @@ None of these is a big rebuild. Most are small fixes, settings, or a product dec
 | 18 | [Static pages & legal](18-static-pages-and-legal.md) | 🔴 | 17 | 8 | Placeholder legal text; no link to the privacy policy; no cookie consent |
 | 19 | [Languages, regions, SEO & monitoring](19-languages-regions-seo-and-monitoring.md) | 🟡 | 41 | 5 | Site URL and indexing not set; region popup can block the whole site; every GA event is marked debug |
 | 20 | [Security & infrastructure](20-security-and-infrastructure.md) | 🔴 | 25 | 15 | Tokens in logs; open debug routes; no production backend; paid AI APIs with no limit |
-| | **Total** | | **560** | **92** | Some blockers appear in more than one file (for example the index names) |
+| | **Total** | | **565** | **91** | Some blockers appear in more than one file (for example the index names) |
 
 "Launch blockers" counts the rows marked "Blocks launch = Yes" in each file.
 

@@ -594,7 +594,10 @@ describe("StoryService helpers for the story viewer", () => {
     );
   });
 
-  it("configureStory falls back to the phone, then to 'Unknown', and to the default picture", async () => {
+  // M-1 (stories readiness): the phone number used to be shown to every viewer
+  // when the author had no name. It is private data, so the name falls back to
+  // "Unknown", never to the phone.
+  it("configureStory never shows the phone as the name, falls back to 'Unknown' and to the default picture", async () => {
     const byPhone = StoryServiceClass.configureStory({
       mobile_phone: "x",
       stories: [{ id: 1, full_video_path: "v.mp4" }, { id: 2, photo_path: "i.png" }],
@@ -602,7 +605,10 @@ describe("StoryService helpers for the story viewer", () => {
     const nobody = StoryServiceClass.configureStory({
       stories: [{ id: 1, full_video_path: "v.mp4" }, { id: 2, photo_path: "i.png" }],
     });
-    expect(byPhone.stories.map((s: any) => s.header.heading), "the phone fallback is wrong").toEqual(["x", "x"]);
+    expect(
+      byPhone.stories.map((s: any) => s.header.heading),
+      "a story author with no name was shown to other shoppers by their phone number",
+    ).toEqual(["Unknown", "Unknown"]);
     expect(nobody.stories.map((s: any) => s.header.heading), "the Unknown fallback is wrong").toEqual([
       "Unknown",
       "Unknown",

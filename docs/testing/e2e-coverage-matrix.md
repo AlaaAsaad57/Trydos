@@ -1283,7 +1283,7 @@ Scope: the shopper stories bar, the story viewer, upload, report and delete, pro
 | STO-s48 | Product story row: pagination; hidden when the product has no stories | ❌ | — | unit only: ProductStories.test.tsx, ProductStoriesWrapper.test.tsx |
 | STO-s49 | Chat window "Stories" tab: list, paging, open a story | ❌ | — | unit only: tests/components/Chat/pages/StoriesList.test.tsx |
 | STO-s50 | Browser Back closes the open viewer (popup history entry) | ❌ | — | No story-specific test found. |
-| STO-s51 | `/api/revalidateStories` clears the stories cache tag | ❌ | — | unit only: tests/app/api/revalidateStories/route.test.ts |
+| STO-s51 | `/api/revalidateStories` — removed: it cleared the `stories` tag, which no cache entry used | — | — | none (route removed) |
 
 #### Stories session
 | # | Case / sub-task | Status | E2E test (file › ID or test name) | Notes |

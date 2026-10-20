@@ -475,9 +475,7 @@ export default function AddStoryWidget() {
     //   value: GA_CLICK_EVENT_VALUES.CHOOSE_CAMERA_FOR_ADD_STORY,
     // });
 
-    // TODO: Integrate with existing camera component
     setOpenCamera(true);
-    // onClose();
   };
 
   const handleFileClick = () => {
