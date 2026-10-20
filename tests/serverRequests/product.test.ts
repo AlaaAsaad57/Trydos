@@ -633,6 +633,20 @@ describe("GetProductGeneralData", () => {
     ).not.toHaveBeenCalled();
   });
 
+  // The empty shape must have the same type as the full one. It used to give
+  // `recommendation_stats: { stats: [] }` (an object) where the full answer gives
+  // an array, so `ProductGeneralProperties` crashed on `.find`, and `tsc` failed
+  // on this file.
+  it("returns the recommendation stats as an empty list when there is no product id", async () => {
+    const { GetProductGeneralData } = await load();
+    const result = await GetProductGeneralData({ id: undefined });
+
+    expect(
+      result?.recommendation_stats,
+      "with no product id the recommendation stats are not a list, so the product page cannot read them",
+    ).toEqual([]);
+  });
+
   it("AC-21 turns the star spread into rating groups with their counts", async () => {
     esGetAnswers[product_interactions_index] = {
       _source: { final_rating: 4.5, star_distribution: { star_1: 2, star_5: 7 } },

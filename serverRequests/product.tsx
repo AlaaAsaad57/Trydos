@@ -433,7 +433,7 @@ export async function GetProductGeneralData({ id }) {
       ratingDetails: [],
       size_analysis: null,
       good_quality_product: false,
-      recommendation_stats: { stats: [] },
+      recommendation_stats: [],
       total_buyers: 0,
     };
   try {
