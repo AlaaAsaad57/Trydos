@@ -1,14 +1,14 @@
 import { GetColorAndSizes } from "serverRequests/analyticsUtility";
 import { LogServerError } from "utils/serverErrorReporter";
 
-// Cerebras variant of AnalyzeSearchText. Same return contract as the Gemini
-// version ({ name?, color?, size?, error? }) so callers need no logic changes.
+// Gemini variant of AnalyzeSearchText. Return contract: { name?, color?,
+// size?, error? } — it never throws, so the two callers need no logic changes.
 // Returns a clear, non-cryptic error on a 429 so QA can tell a quota hit from a
 // real bug.
 
-const API_URL = "https://api.cerebras.ai/v1/chat/completions";
-// Flip the model without a redeploy via CEREBRAS_MODEL (e.g. "gemma-4-31b").
-const MODEL = process.env.CEREBRAS_MODEL || "gpt-oss-120b";
+// Flip the model without a redeploy via GEMINI_SEARCH_MODEL.
+const MODEL = process.env.GEMINI_SEARCH_MODEL || "gemini-2.5-flash-lite";
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 // Hard ceiling on the whole analysis — **this is the only part of the search
 // route that could run without one.**
@@ -21,15 +21,14 @@ const MODEL = process.env.CEREBRAS_MODEL || "gpt-oss-120b";
 // Elasticsearch at `requestTimeout: 8000` with two retries, `fetchServerData`
 // at 15 000 ms. This call was not, in three places: `GetColorAndSizes` reads
 // Redis with no command timeout, then fetches with no abort signal, and the
-// Cerebras call below had no signal either. Any one of them could stall for
-// ever.
+// AI call below had no signal either. Any one of them could stall for ever.
 //
 // It did. On CI runs 35499149467 and 35529493739 the browser case QA-09e failed
 // with `page.goto: Timeout 45000ms exceeded` on that route. The request logged
-// nothing at all — not even the Cerebras error the route always prints — so it
-// was still inside this function when the browser gave up 45 seconds later. The
-// same case passed in 3.3 s on run 35504570850, with the same Cerebras 402 in
-// the log, which is what says the AI failure was never the problem.
+// nothing at all — not even the AI error the route always prints — so it was
+// still inside this function when the browser gave up 45 seconds later. The
+// same case passed in 3.3 s on run 35504570850, with the same AI 402 in the
+// log, which is what says the AI failure was never the problem.
 //
 // 6 seconds: generous for a working call (a healthy one answers in about two),
 // and it keeps the route's worst case near 14 s, well inside the 45 s a browser
@@ -38,9 +37,8 @@ const DEFAULT_ANALYZE_TIMEOUT_MS = 6000;
 const analyzeBudgetMs = () =>
   Number(process.env.SEARCH_ANALYZE_TIMEOUT_MS) || DEFAULT_ANALYZE_TIMEOUT_MS;
 
-// gpt-oss is a reasoning model; even with response_format the content is the
-// final answer, but strip any stray markdown fence and fall back to the first
-// {...} block so a formatting hiccup never crashes search.
+// responseMimeType forces JSON, but strip any stray markdown fence and fall
+// back to the first {...} block so a formatting hiccup never crashes search.
 function safeParseJson(text: string): Record<string, any> {
   if (!text) return {};
   let t = text.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
@@ -64,7 +62,7 @@ function safeParseJson(text: string): Record<string, any> {
  *  A wrapper over `runAnalysis` that does nothing but enforce the deadline
  *  above. It keeps the same return contract — `{ name?, color?, size?, error? }`
  *  and never throws — so the two callers need no change. */
-export default async function AnalyzeSearchTextCerebras(query): Promise<any> {
+export default async function AnalyzeSearchText(query): Promise<any> {
   const budgetMs = analyzeBudgetMs();
   let giveUp: ReturnType<typeof setTimeout> | undefined;
 
@@ -120,35 +118,40 @@ QUERY: "${modifiedQuery}"`;
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.CEREBRAS_API_KEY}`,
+        // The key travels only in the header, never in the URL.
+        "x-goog-api-key": process.env.GEMINI_API_KEY || "",
       },
       body: JSON.stringify({
-        model: MODEL,
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" },
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          // Thinking tokens are billed and add seconds; this task does not need them.
+          thinkingConfig: { thinkingBudget: 0 },
+        },
       }),
+      cache: "no-store",
       // The deadline above already stops a slow call holding the search. This
-      // drops the socket as well, so a hung Cerebras never leaves a request
+      // drops the socket as well, so a hung Gemini never leaves a request
       // running behind a search that has already answered.
       signal: AbortSignal.timeout(budgetMs),
     });
 
     if (response.status === 429) {
       return {
-        error: "AI quota reached — not a bug (Cerebras rate limit)",
+        error: "AI quota reached — not a bug (Gemini rate limit)",
         rateLimited: true,
       };
     }
     if (!response.ok) {
       const bodyText = await response.text().catch(() => "");
       throw new Error(
-        `Cerebras API error: ${response.status} — ${bodyText.slice(0, 200)}`,
+        `Gemini API error: ${response.status} — ${bodyText.slice(0, 200)}`,
       );
     }
 
     const result: any = await response.json();
     const outputText =
-      result?.choices?.[0]?.message?.content?.trim() || "{}";
+      result?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "{}";
     const parsed = safeParseJson(outputText);
 
     // Drop empties so the caller's `if (CleanSearchText?.x)` guards stay clean.
@@ -161,10 +164,10 @@ QUERY: "${modifiedQuery}"`;
     );
 
     const end = process.hrtime.bigint();
-    return { ...filtered, cerebrasTime: Number(end - start) / 1_000_000, model: MODEL };
+    return { ...filtered, analyzeTime: Number(end - start) / 1_000_000, model: MODEL };
   } catch (error) {
     LogServerError({
-      scenario: "AnalyzeSearchTextCerebras in services/analyzeSearchTextCerebras",
+      scenario: "AnalyzeSearchText in services/elastic/analyzeSearchText",
       error: error instanceof Error ? error.message : String(error),
     });
     return { error: `${error?.message}`, details: error.message };

@@ -60,7 +60,7 @@ vi.hoisted(() => {
   vi.stubEnv("ELASTICSEARCH_NODE", "http://127.0.0.1:1");
   vi.stubEnv("ELASTICSEARCH_USERNAME", "not-a-real-user");
   vi.stubEnv("ELASTICSEARCH_PASSWORD", "not-a-real-password");
-  vi.stubEnv("CEREBRAS_API_KEY", "not-a-real-key");
+  vi.stubEnv("GEMINI_API_KEY", "not-a-real-key");
 });
 
 // The real helpers module imports next/headers at its second line.
@@ -120,7 +120,7 @@ vi.mock("services/elastic/elasticsearch.config", () => ({
 // ------------------------------------------------------------ the other seams
 
 const analyze = vi.fn(async (_text: string) => ({}) as any);
-vi.mock("services/elastic/analyzeSearchTextCerebras", () => ({
+vi.mock("services/elastic/analyzeSearchText", () => ({
   default: (...args: any[]) => analyze(...(args as [string])),
 }));
 

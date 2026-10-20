@@ -253,7 +253,7 @@ This section asks whether each storefront page opens and shows its content: home
 5. **VIEW-SEO11 / VIEW-SEO12 / VIEW-SEO13** — OG tags, canonical/hreflang and JSON-LD are never read from a served page.
 
 ### Search
-Scope: the nav search overlay (typing, autocomplete, history, popular words, image and voice search, AI analyzer, submit), the listing search box and `?search=` results page, and the search routes. Filters and sort are in their own sections. Main files: `components/Home/Search/SearchIcon.tsx`, `components/filterPage/SearchBoutiquePage.tsx`, `serverRequests/Search.tsx`, `services/elastic/analyzeSearchTextCerebras.ts`.
+Scope: the nav search overlay (typing, autocomplete, history, popular words, image and voice search, AI analyzer, submit), the listing search box and `?search=` results page, and the search routes. Filters and sort are in their own sections. Main files: `components/Home/Search/SearchIcon.tsx`, `components/filterPage/SearchBoutiquePage.tsx`, `serverRequests/Search.tsx`, `services/elastic/analyzeSearchText.ts`.
 
 | # | Case / sub-task | Status | E2E test (file › ID or test name) | Notes |
 |---|---|---|---|---|
@@ -288,8 +288,8 @@ Scope: the nav search overlay (typing, autocomplete, history, popular words, ima
 | SRCH-x29 | A misspelled word still finds products (fuzzy match) | ❌ | — | No test found, unit or e2e. |
 | SRCH-x30 | Race: an older answer that lands late is dropped | ❌ | — | Unit only: SearchIcon.test.tsx |
 | SRCH-x31 | Search request fails: the error is logged, the spinner stops, the shopper sees no message | ❌ | — | Unit only: SearchIcon.test.tsx, serverRequests/Search.test.ts |
-| SRCH-x32 | AI analyzer (Cerebras) on multi-word text pulls out name / colour / size; a toast shows the result | ⚠️ | qaLock.live.spec.ts › QA-01, QA-02, QA-10 | "Trydos QA" is two words, so the analyzer runs, but no test asserts its output. The toast shows raw JSON. Unit: Search.test.ts |
-| SRCH-x33 | Analyzer refuses, hits the 429 quota, or passes the 6 s timeout: the search runs on the raw text | ⚠️ | qaLock.live.spec.ts › QA-09e | The route must answer, but the analyzer failure itself is not asserted. Unit: analyzeSearchTextCerebras.test.ts |
+| SRCH-x32 | AI analyzer (Gemini) on multi-word text pulls out name / colour / size; a toast shows the result | ⚠️ | qaLock.live.spec.ts › QA-01, QA-02, QA-10 | "Trydos QA" is two words, so the analyzer runs, but no test asserts its output. The toast shows raw JSON. Unit: Search.test.ts |
+| SRCH-x33 | Analyzer refuses, hits the 429 quota, or passes the 6 s timeout: the search runs on the raw text | ⚠️ | qaLock.live.spec.ts › QA-09e | The route must answer, but the analyzer failure itself is not asserted. Unit: analyzeSearchText.test.ts |
 | SRCH-x34 | A one-word search skips the analyzer | ❌ | — | Unit only: tests/serverRequests/Search.test.ts |
 | SRCH-x35 | Search in Arabic / Kurdish (RTL layout, Arabic analyzer) | ❌ | — | Every e2e search runs in English (`gotoHome`). |
 | SRCH-x36 | Search in Turkish | ❌ | — | No test, unit or e2e. |

@@ -621,8 +621,8 @@ Two invariants to assert against the real index while you are there:
 `offered_price` is always present, and a per-country override is **always**
 nested under `country_offer_prices`, never flat only.
 
-The AI search analyser (phase 10 or 12, wherever it lands) runs on Cerebras and
-the free tier is about five requests a minute. Mocking that one call is
+The AI search analyser (phase 10 or 12, wherever it lands) runs on Gemini and
+the free tier has a low request-per-minute quota. Mocking that one call is
 explicitly allowed; mocking the search around it is not.
 
 **Phase 11** is the widest single phase in the journey. Split it in `/research`
