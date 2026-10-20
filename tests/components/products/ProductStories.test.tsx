@@ -154,13 +154,34 @@ describe("ProductStories — the row itself", () => {
     expect((await screen.findByTestId("story-viewer")).textContent, "the viewer did not open").toBe("90");
   });
 
-  it("loads the next page when the end comes into view, and stops at a short page", async () => {
+  // L-8 (stories readiness): the row used to guess "no more pages" from a page
+  // with fewer than 10 groups. The QA filter can shorten a page, so the row now
+  // follows the backend's `has_more`.
+  it("keeps loading after a page the QA filter made short, when the backend has more pages", async () => {
     getProductStoriesData.mockResolvedValue({
       data: [person(300, "Late")],
       stories: [{ id: 30000, thumb: "/late.jpg", has_new: true }],
+      has_more: false,
     });
     await renderWithProviders(
-      <ProductStories id={7} initialStories={TEN_THUMBS} InitialStoriesData={TEN} />,
+      <ProductStories id={7} initialStories={PRODUCT_THUMBS} InitialStoriesData={PRODUCT_LIST} hasMore />,
+    );
+    const sentinel = screen.queryByTestId("product-stories-sentinel");
+    expect(sentinel, "a short first page hid the loader although the backend has more pages").not.toBeNull();
+    fireEvent.click(sentinel!);
+    await waitFor(() =>
+      expect(document.querySelector('[data-id="30000"]'), "page 2 was not added").not.toBeNull(),
+    );
+  });
+
+  it("loads the next page when the end comes into view, and stops when the backend has no more", async () => {
+    getProductStoriesData.mockResolvedValue({
+      data: [person(300, "Late")],
+      stories: [{ id: 30000, thumb: "/late.jpg", has_new: true }],
+      has_more: false,
+    });
+    await renderWithProviders(
+      <ProductStories id={7} initialStories={TEN_THUMBS} InitialStoriesData={TEN} hasMore />,
     );
     fireEvent.click(screen.getByTestId("product-stories-sentinel"));
     await waitFor(() =>
@@ -172,14 +193,16 @@ describe("ProductStories — the row itself", () => {
     });
     expect(
       screen.queryByTestId("product-stories-sentinel"),
-      "a short page did not end the loading",
+      "the last page did not end the loading",
     ).not.toBeInTheDocument();
   });
 
-  it("keeps loading after a full page, and handles an empty answer", async () => {
-    getProductStoriesData.mockResolvedValueOnce({ data: TEN, stories: TEN_THUMBS }).mockResolvedValueOnce({});
+  it("keeps loading while the backend has more pages, and ends on an empty answer", async () => {
+    getProductStoriesData
+      .mockResolvedValueOnce({ data: TEN, stories: TEN_THUMBS, has_more: true })
+      .mockResolvedValueOnce({});
     await renderWithProviders(
-      <ProductStories id={7} initialStories={TEN_THUMBS} InitialStoriesData={TEN} />,
+      <ProductStories id={7} initialStories={TEN_THUMBS} InitialStoriesData={TEN} hasMore />,
     );
     fireEvent.click(screen.getByTestId("product-stories-sentinel"));
     await waitFor(() => expect(getProductStoriesData, "page 2 was not loaded").toHaveBeenCalledTimes(1));
@@ -190,16 +213,19 @@ describe("ProductStories — the row itself", () => {
     await waitFor(() =>
       expect(getProductStoriesData, "page 3 was not asked for").toHaveBeenCalledWith({ page: 3, productId: 7 }),
     );
+    await waitFor(() =>
+      expect(screen.queryByTestId("product-stories-sentinel"), "an empty answer did not end the loading").not.toBeInTheDocument(),
+    );
   });
 
-  it("ends at once when the row started short but the sentinel still fired", async () => {
+  it("shows no loader when the backend has only one page", async () => {
     await renderWithProviders(
-      <ProductStories id={7} initialStories={PRODUCT_THUMBS} InitialStoriesData={TEN} />,
+      <ProductStories id={7} initialStories={TEN_THUMBS} InitialStoriesData={TEN} hasMore={false} />,
     );
-    fireEvent.click(screen.getByTestId("product-stories-sentinel"));
-    await waitFor(() =>
-      expect(screen.queryByTestId("product-stories-sentinel"), "a short row did not end the loading").not.toBeInTheDocument(),
-    );
-    expect(getProductStoriesData, "a short row asked for another page").not.toHaveBeenCalled();
+    expect(
+      screen.queryByTestId("product-stories-sentinel"),
+      "the row offered more stories although the backend has only one page",
+    ).not.toBeInTheDocument();
+    expect(getProductStoriesData, "a one-page row asked for another page").not.toHaveBeenCalled();
   });
 });

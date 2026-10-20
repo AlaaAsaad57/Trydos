@@ -854,6 +854,22 @@ describe("GetProductStoriesData", () => {
     data: { data: { data: stories } },
   });
 
+  // L-8 (stories readiness): the row guessed "no more pages" from a short page.
+  // The QA filter can shorten a page, so the backend's own answer must decide.
+  it("says whether the backend has another page of product stories", async () => {
+    fetchServerData.mockResolvedValueOnce({
+      data: { data: { data: [], next_page_url: "https://stories.example/p?page=2" } },
+    } as any);
+    fetchServerData.mockResolvedValueOnce({ data: { data: { data: [], next_page_url: null } } } as any);
+
+    const { GetProductStoriesData } = await load();
+    const first = await GetProductStoriesData({ page: 1, productId: "1001" });
+    const last = await GetProductStoriesData({ page: 2, productId: "1001" });
+
+    expect((first as any).has_more, "the backend has page 2, but the reader did not say so").toBe(true);
+    expect((last as any).has_more, "the backend has no next page, but the reader said there is one").toBe(false);
+  });
+
   it("AC-29 sends the stories credential when the shopper has one", async () => {
     headers.__reset({
       cookies: { [COOKIE_NAMES.STORIES_TOKEN]: "stories-credential-for-tests" },

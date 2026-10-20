@@ -171,7 +171,7 @@ export default function AddStoryWidget() {
     checkCameraPermissions,
     setAddStory,
     addStoryEnable,
-    setStoryData,
+    mergeFirstStoriesPage,
     setStoriesRefreshing,
   } = useAppStore();
   const [uploaded, setUpload] = useState(-1);
@@ -298,7 +298,7 @@ export default function AddStoryWidget() {
         setStoriesRefreshing(true);
         router.refresh();
 
-        setStoryData(storiesData.data);
+        mergeFirstStoriesPage(storiesData.data);
         trackPosthog(STORY_EVENTS.STORY_UPLOADED, {
           media_type: "video",
           has_link: !!link,
@@ -347,7 +347,7 @@ export default function AddStoryWidget() {
         let storiesData = await fetchStoriesForUser(language, country, 1);
         setStoriesRefreshing(true);
         router.refresh();
-        setStoryData(storiesData.data);
+        mergeFirstStoriesPage(storiesData.data);
         trackPosthog(STORY_EVENTS.STORY_UPLOADED, {
           media_type: "image",
           has_link: !!link,

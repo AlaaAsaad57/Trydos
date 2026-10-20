@@ -616,6 +616,9 @@ export async function GetProductStoriesData({ page, productId }) {
   const rawStories = dropQaStories(response.data.data.data, viewerPhone);
   return {
     data: rawStories,
+    // The backend decides whether there is another page. A short page proves
+    // nothing: the QA filter above can remove rows from it.
+    has_more: Boolean(response.data.data.next_page_url),
     stories: rawStories?.map((story) => ({
       id: story.id,
       has_new: story.stories?.filter((s) => s.is_seen === false)?.length > 0,

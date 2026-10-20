@@ -276,6 +276,39 @@ describe("AddStoryWidget — choosing, previewing and uploading", () => {
     expect((useAppStore.getState() as any).addStoryEnable, "the sheet did not close after the upload").toBeFalsy();
   });
 
+  // L-6 (stories readiness): after an upload the sheet re-read page 1 and wrote
+  // it over the whole list, so people from the pages loaded before vanished.
+  it("keeps the people from later pages on the bar after an upload", async () => {
+    upload.mockImplementation(async () => ({}));
+    useAppStore.setState({
+      storiesData: [
+        { id: 1, name: "Me", stories: [{ id: 10 }] },
+        { id: 5, name: "From page 2", stories: [{ id: 50 }] },
+      ],
+    } as any);
+    fetchStoriesForUser.mockResolvedValue({
+      data: [{ id: 1, name: "Me", stories: [{ id: 10 }, { id: 11 }] }],
+      next_page_url: "page-2",
+    });
+    render(<AddStoryWidget />);
+    await pickImage();
+    await act(async () => {
+      fireEvent.click(shareButton()!);
+    });
+    await waitFor(() => expect(showSuccessNotification).toHaveBeenCalledWith("Story Uploaded"));
+
+    const list = (useAppStore.getState() as any).storiesData ?? [];
+    expect(
+      list.map((p: any) => p.id),
+      "after the upload the bar lost the people it had loaded from page 2",
+    ).toEqual([1, 5]);
+    expect(
+      list[0].stories.map((s: any) => s.id),
+      "after the upload the shopper's own tile does not show the new story",
+    ).toEqual([10, 11]);
+    useAppStore.setState({ storiesData: [] } as any);
+  });
+
   it("keeps the sheet open and tells the shopper when the stories media upload refuses a picture", async () => {
     upload.mockRejectedValue(new Error("media down"));
     render(<AddStoryWidget />);
