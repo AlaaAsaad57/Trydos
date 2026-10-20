@@ -154,6 +154,16 @@ describe("AiAutofillDialog", () => {
     });
   });
 
+  it("closes itself once the form is opened, so Back does not return to an open dialog stuck in its loading state", async () => {
+    await open();
+    pick(photo());
+    await waitFor(() => expect(analyzeButton().disabled).toBe(false));
+    fireEvent.click(analyzeButton());
+    await waitFor(() => expect(routerSpies.push, "the create form was not opened").toHaveBeenCalled());
+
+    expect(onClose, "the dialog stayed open after it handed the suggestion to the form").toHaveBeenCalledTimes(1);
+  });
+
   it("sends the seller's page language to the route and hands it to the form, so the text is written in it", async () => {
     await open("sy-ar");
     pick(photo());

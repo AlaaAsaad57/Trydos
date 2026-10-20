@@ -140,6 +140,9 @@ export default function AiAutofillDialog({
         navigating = true;
         onNavigate?.();
         router.push(`/${local}/sellerProfile/sellerDashboard/${sellerId}/products/new`);
+        // The dashboard owns the open state. Close now, or Back brings the
+        // seller to this dialog still open and still "analyzing".
+        close();
         return;
       }
       const message = KNOWN_MESSAGES.has(json?.message) ? json.message : "AI analysis failed";
