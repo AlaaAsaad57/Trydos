@@ -644,6 +644,8 @@ const translations = {
   Compare: "پێوانین",
   "Added To Compare! Click To Go To Compare Page":
     "بۆ پێوانین زیادکرا! کرتە بکە بۆ چوون بۆ پەڕەی پێوانین",
+  "Compare was full — replaced the first product. Click To Go To Compare Page":
+    "پێوانین پڕ بوو — یەکەم بەرهەم گۆڕدرا. کرتە بکە بۆ چوون بۆ پەڕەی پێوانین",
   "Already Added To Compare!": "پێشتر بۆ پێوانین زیادکرا!",
   "Added To Compare": "بۆ پێوانین زیادکرا",
   "Total Items": "کۆی پارچەکان",

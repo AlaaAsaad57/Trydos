@@ -100,7 +100,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
     isFirstProduct: boolean,
   ) => {
     if (!selectedOption) {
-      setProducts([]);
+      (isFirstProduct ? setOptions1 : setOptions2)([]);
       return;
     }
     handleProductSelect(
@@ -111,7 +111,12 @@ const ComparePage = ({ showInstantLoading = true }) => {
     );
   };
 
-  const [searchLoading, setSearchLoading] = useState(false);
+  // Each picker has its own results and its own spinner, so a search typed in
+  // one picker does not show up in the other.
+  const [options1, setOptions1] = useState<any[]>([]);
+  const [options2, setOptions2] = useState<any[]>([]);
+  const [searching1, setSearching1] = useState(false);
+  const [searching2, setSearching2] = useState(false);
   const [country, language] = (lang as string)?.split("-");
 
   const searchFunction = async (inputValue: string) => {
@@ -150,8 +155,6 @@ const ComparePage = ({ showInstantLoading = true }) => {
       return [];
     }
   };
-
-  const [products, setProducts] = useState<any[]>([]);
 
   const GetProductData = async (slug: string) => {
     try {
@@ -212,7 +215,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
           product?.sync_color_images?.[0]?.images?.[0] ?? product?.images?.[0],
         price: product.price,
       };
-      setProducts([option]);
+      (isFirstProduct ? setOptions1 : setOptions2)([option]);
 
       const currentParams = new URLSearchParams(window.location.search);
       if (isFirstProduct) {
@@ -258,15 +261,6 @@ const ComparePage = ({ showInstantLoading = true }) => {
     }
   };
 
-  const loadOptions = (
-    inputValue: string,
-    callback: (options: any[]) => void,
-  ) => {
-    const options =
-      products?.map((s) => ({ label: s.name, value: s.slug })) || [];
-    callback(options);
-    return Promise.resolve(options);
-  };
   const debounce = <T extends (...args: any[]) => Promise<void>>(
     func: T,
     delay: number,
@@ -282,17 +276,20 @@ const ComparePage = ({ showInstantLoading = true }) => {
       });
     };
   };
-  const debouncedChangeHandler = useCallback(
+  const searchInto = (
+    setOptions: (options: any[]) => void,
+    setSearching: (searching: boolean) => void,
+  ) =>
     debounce(async (value: string) => {
       if (!value || value.trim().length === 0) {
-        setProducts([]);
-        setSearchLoading(false);
+        setOptions([]);
+        setSearching(false);
         return;
       }
-      setSearchLoading(true);
+      setSearching(true);
       try {
         const productsVar = await searchFunction(value);
-        setProducts(
+        setOptions(
           productsVar?.map((p) => ({
             label: p.name,
             value: p.slug,
@@ -311,13 +308,30 @@ const ComparePage = ({ showInstantLoading = true }) => {
           search_text: value,
         });
         LogError({ scenario: "compare: the search failed", error });
-        setProducts([]);
+        setOptions([]);
       } finally {
-        setSearchLoading(false);
+        setSearching(false);
       }
-    }, 500),
-    [language, country],
-  );
+    }, 500);
+  const searchHandler1 = useCallback(searchInto(setOptions1, setSearching1), [
+    language,
+    country,
+  ]);
+  const searchHandler2 = useCallback(searchInto(setOptions2, setSearching2), [
+    language,
+    country,
+  ]);
+
+  // A picker never offers the product that is already in the other column, so
+  // the same product cannot fill both columns.
+  const toSelectOptions = (list: any[], otherProduct: any) =>
+    list
+      .filter((p) => !otherProduct || p.value !== otherProduct.slug)
+      .map((p) => ({
+        ...p,
+        images:
+          typeof p.images === "string" ? { file_path: p.images } : p.images,
+      }));
 
   const LoadingCell = () => (
     <div data-pw="compare-cell-loading" className="animate-pulse flex space-x-4">
@@ -420,7 +434,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
       label: translateFunction("Price"),
       render: (product: any) => (
         <span className="font-semibold regular">
-          {RoundPrice({ num: product.price })} {currency?.symbol || "$"}
+          {RoundPrice({ num: product.price })} {currency?.symbol}
         </span>
       ),
     },
@@ -430,7 +444,7 @@ const ComparePage = ({ showInstantLoading = true }) => {
       render: (product: any) =>
         product.offer_price ? (
           <span className="text-green-600 font-semibold regular">
-            {RoundPrice({ num: product.offer_price })} {currency?.symbol || "$"}
+            {RoundPrice({ num: product.offer_price })} {currency?.symbol}
           </span>
         ) : (
           "-"
@@ -574,15 +588,9 @@ const ComparePage = ({ showInstantLoading = true }) => {
                   handleSearchChange(option, setProduct1, setLoading1, true)
                 }
                 onClear={() => handleClear(true)}
-                onSearch={debouncedChangeHandler}
-                options={products.map((p) => ({
-                  ...p,
-                  images:
-                    typeof p.images === "string"
-                      ? { file_path: p.images }
-                      : p.images,
-                }))}
-                isLoading={searchLoading || loading1}
+                onSearch={searchHandler1}
+                options={toSelectOptions(options1, product2)}
+                isLoading={searching1 || loading1}
                 className="w-full"
                 selectedOption={
                   product1
@@ -607,15 +615,9 @@ const ComparePage = ({ showInstantLoading = true }) => {
                   handleSearchChange(option, setProduct2, setLoading2, false)
                 }
                 onClear={() => handleClear(false)}
-                onSearch={debouncedChangeHandler}
-                options={products.map((p) => ({
-                  ...p,
-                  images:
-                    typeof p.images === "string"
-                      ? { file_path: p.images }
-                      : p.images,
-                }))}
-                isLoading={searchLoading || loading2}
+                onSearch={searchHandler2}
+                options={toSelectOptions(options2, product1)}
+                isLoading={searching2 || loading2}
                 className="w-full"
                 selectedOption={
                   product2
@@ -645,12 +647,12 @@ const ComparePage = ({ showInstantLoading = true }) => {
                         data-pw={`compare-row-${key}`}
                         className="border-b last:border-b-0 hover:bg-blue-50 transition-colors"
                       >
-                        <th className="p-4 text-left bg-blue-100 w-1/4 font-semibold text-blue-900 whitespace-nowrap border-r border-gray-200 regular">
+                        <th className="p-4 text-start bg-blue-100 w-1/4 font-semibold text-blue-900 whitespace-nowrap border-e border-gray-200 regular">
                           {label}
                         </th>
                         <td
                           data-pw="compare-cell-1"
-                          className="p-4 w-[37.5%] bg-white border-r border-gray-100"
+                          className="p-4 w-[37.5%] bg-white border-e border-gray-100"
                         >
                           <div className="flex flex-col gap-2">
                             {loading1 ? (

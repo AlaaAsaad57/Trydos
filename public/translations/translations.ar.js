@@ -654,6 +654,8 @@ const translations = {
   Compare: "مقارنة",
   "Added To Compare! Click To Go To Compare Page":
     "تم إضافة للمقارنة! انقر للذهاب إلى صفحة المقارنة",
+  "Compare was full — replaced the first product. Click To Go To Compare Page":
+    "المقارنة ممتلئة — تم استبدال المنتج الأول. انقر للذهاب إلى صفحة المقارنة",
   "Already Added To Compare!": "تم إضافة للمقارنة",
   "Added To Compare": "تم إضافة للمقارنة",
   "Total Items": "إجمالي المنتجات",

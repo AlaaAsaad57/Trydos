@@ -553,6 +553,8 @@ const translations = {
   "Added To Compare": "Karşılaştırmaya Eklendi",
   "Added To Compare! Click To Go To Compare Page":
     "Karşılaştırmaya Eklendi! Karşılaştırma Sayfasına Gitmek İçin Tıklayın",
+  "Compare was full — replaced the first product. Click To Go To Compare Page":
+    "Karşılaştırma doluydu — ilk ürün değiştirildi. Karşılaştırma Sayfasına Gitmek İçin Tıklayın",
   Details: "Detaylar",
   "One of the products was not found. Please try searching for a different product.":
     "Bir veya daha fazla ürün bulunamadı. Lütfen farklı bir ürün arayın.",
