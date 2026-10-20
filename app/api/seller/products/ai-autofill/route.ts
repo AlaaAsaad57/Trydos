@@ -11,14 +11,17 @@ import {
   loadLists,
   MESSAGES,
   parseImageName,
+  parseLanguage,
 } from "./_autofill";
 
-// POST /api/seller/products/ai-autofill   body: { sellerId, image }
+// POST /api/seller/products/ai-autofill   body: { sellerId, image, language? }
 //
 // Web dashboard only: identity comes from the HttpOnly market cookie. The seller
 // uploads the photo to the media server first and sends its bare file name; this
-// route suggests title / description / brand / three category levels for the
-// new-product form. It never saves anything.
+// route suggests title / description / similar words / meta title and
+// description / brand / three category levels for the new-product form. The
+// text is written in `language` (en | ar | tr | ku, else en). It never saves
+// anything.
 //
 // Answers: 200 { success, data } | 401 / 403 not allowed | 422 bad image |
 // 429 over the limit | 503 AI busy or limiter down | 500 anything else.
@@ -57,7 +60,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const lists = await loadLists(sellerId);
-    const raw = await callGemini(buildGeminiRequest(image, lists));
+    const raw = await callGemini(buildGeminiRequest(image, lists, parseLanguage(body?.language)));
     return NextResponse.json(
       { success: true, data: checkSuggestion(raw, lists) },
       { headers: { "Cache-Control": "no-store" } },

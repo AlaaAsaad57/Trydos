@@ -11,10 +11,13 @@ import {
 } from "components/SellerDashboard/productEdit/aiPrefill";
 import { emptyProductForm } from "components/SellerDashboard/productEdit/helpers";
 
-const prefill = (over: Partial<AiPrefill["suggestion"]> = {}): AiPrefill => ({
+const prefill = (over: Partial<AiPrefill["suggestion"]> = {}, language = "en"): AiPrefill => ({
   suggestion: {
     title: "White Silk Robe",
     description: "A soft robe.\n\nIt has a belt.",
+    similar_words: ["robe", "silk robe"],
+    meta_title: "White Silk Robe | Shop",
+    meta_description: "A soft white silk robe.",
     brand_id: 2,
     category_id: 1,
     sub_category_id: 15,
@@ -22,6 +25,7 @@ const prefill = (over: Partial<AiPrefill["suggestion"]> = {}): AiPrefill => ({
     ...over,
   },
   image: { name: "a1b2c3.jpg", url: "blob:preview", isNew: true },
+  language,
 });
 
 afterEach(() => {
@@ -47,6 +51,37 @@ describe("applyAiSuggestion", () => {
     expect(form.unit, "a field the AI does not fill was changed").toBe(emptyProductForm().unit);
   });
 
+  it("fills the SEO / Meta section: the meta title, the meta description and the photo as the meta image", () => {
+    const form = applyAiSuggestion(emptyProductForm(), prefill());
+
+    expect(form.meta_title, "the meta title did not go into Meta Title").toBe("White Silk Robe | Shop");
+    expect(form.meta_description, "the meta description did not go into Meta Description").toBe("A soft white silk robe.");
+    expect(form.meta_image, "the photo is not the meta image (bare file name, as the gallery picker sets it)").toBe("a1b2c3.jpg");
+    expect(form.meta_image_url, "the meta image has no preview").toBe("blob:preview");
+  });
+
+  it("puts the name, description and similar words into the translation row of the seller's language, and makes it the product's default language", () => {
+    const form = applyAiSuggestion(emptyProductForm(), prefill({}, "ar"));
+
+    expect(form.default_language_code, "the default language is not the seller's page language").toBe("ar");
+    expect(form.translations, "the Arabic translation row is not the AI text").toEqual([
+      {
+        language_code: "ar",
+        name: "White Silk Robe",
+        description: "<p>A soft robe.</p><p>It has a belt.</p>",
+        similar_words: ["robe", "silk robe"],
+      },
+    ]);
+    expect(form.name, "Name was not filled alongside the translation row").toBe("White Silk Robe");
+  });
+
+  it("falls back to English when the hand-off names a language the form does not offer", () => {
+    const form = applyAiSuggestion(emptyProductForm(), prefill({}, "fr"));
+
+    expect(form.default_language_code, "an unknown language became the default language").toBe("en");
+    expect(form.translations[0]?.language_code, "the translation row is not English").toBe("en");
+  });
+
   it("leaves every field the AI left empty empty", () => {
     const form = applyAiSuggestion(
       emptyProductForm(),
@@ -57,11 +92,17 @@ describe("applyAiSuggestion", () => {
         category_id: null,
         sub_category_id: null,
         sub_sub_category_id: null,
+        similar_words: [],
+        meta_title: null,
+        meta_description: null,
       }),
     );
 
     expect(form.name, "an empty title filled Name").toBe("");
     expect(form.description, "an empty description filled Description").toBe("");
+    expect(form.meta_title, "an empty meta title filled Meta Title").toBe("");
+    expect(form.meta_description, "an empty meta description filled Meta Description").toBe("");
+    expect(form.translations[0]?.similar_words, "empty similar words became something else").toEqual([]);
     expect(form.brand_id, "an empty brand selected a brand").toBe("");
     expect(form.category_id, "an empty category selected a chip").toEqual([]);
     expect(form.images.length, "the photo was lost when the AI found nothing").toBe(1);

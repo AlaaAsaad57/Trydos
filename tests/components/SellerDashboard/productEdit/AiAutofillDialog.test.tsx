@@ -23,6 +23,9 @@ import { act, fireEvent, renderWithProviders, screen, waitFor } from "../../../r
 const SUGGESTION = {
   title: "White Silk Robe",
   description: "A soft robe.",
+  similar_words: ["robe"],
+  meta_title: "White Silk Robe",
+  meta_description: "A soft silk robe.",
   brand_id: 2,
   category_id: 1,
   sub_category_id: 15,
@@ -43,9 +46,9 @@ const pick = (file: File) => fireEvent.change(fileInput(), { target: { files: [f
 const answer = (status: number, body: unknown) =>
   new Response(typeof body === "string" ? body : JSON.stringify(body), { status });
 
-async function open() {
+async function open(local = "sy-en") {
   await renderWithProviders(
-    <AiAutofillDialog sellerId="12" local="sy-en" onClose={onClose} onNavigate={onNavigate} />,
+    <AiAutofillDialog sellerId="12" local={local} onClose={onClose} onNavigate={onNavigate} />,
   );
 }
 
@@ -124,9 +127,10 @@ describe("AiAutofillDialog", () => {
     await waitFor(() => expect(fetchMock, "the AI route was not asked after the upload").toHaveBeenCalledTimes(1));
     const [url, init] = fetchMock.mock.calls[0];
     expect(url, "the dialog called the wrong route").toBe("/api/seller/products/ai-autofill");
-    expect(JSON.parse(init.body), "the route did not get the shop and the bare file name").toEqual({
+    expect(JSON.parse(init.body), "the route did not get the shop, the bare file name and the page language").toEqual({
       sellerId: "12",
       image: "a1b2c3.jpg",
+      language: "en",
     });
     expect(analyzeButton().disabled, "Analyze became clickable while the AI ran").toBe(true);
 
@@ -140,7 +144,22 @@ describe("AiAutofillDialog", () => {
     expect(peekAiPrefill("12"), "the suggestion was not handed to the form").toEqual({
       suggestion: SUGGESTION,
       image: { name: "a1b2c3.jpg", url: "blob:preview", isNew: true },
+      language: "en",
     });
+  });
+
+  it("sends the seller's page language to the route and hands it to the form, so the text is written in it", async () => {
+    await open("sy-ar");
+    pick(photo());
+    await waitFor(() => expect(analyzeButton().disabled).toBe(false));
+    fireEvent.click(analyzeButton());
+    await waitFor(() => expect(routerSpies.push).toHaveBeenCalled());
+
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).language, "the route was not told the page is Arabic").toBe("ar");
+    expect(peekAiPrefill("12")?.language, "the form was not told the text is Arabic").toBe("ar");
+    expect(routerSpies.push, "the create form was not opened under the Arabic locale").toHaveBeenCalledWith(
+      "/sy-ar/sellerProfile/sellerDashboard/12/products/new",
+    );
   });
 
   it("enables Analyze again after a failure", async () => {

@@ -15,6 +15,8 @@ const MAX_IMAGE_BYTES = 7 * 1024 * 1024;
 const IMAGE_TIMEOUT_MS = 10_000;
 const AI_TIMEOUT_MS = 30_000;
 const TITLE_MAX = 255;
+const SIMILAR_WORDS_MAX = 10;
+const SIMILAR_WORD_MAX = 50;
 const AI_MODEL = "gemini-2.5-flash";
 const AI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent`;
 
@@ -59,6 +61,10 @@ export interface AutofillImage {
 export interface AutofillSuggestion {
   title: string | null;
   description: string | null;
+  /** Short search words a shopper may type, in the product language. */
+  similar_words: string[];
+  meta_title: string | null;
+  meta_description: string | null;
   brand_id: number | null;
   category_id: number | null;
   sub_category_id: number | null;
@@ -115,6 +121,26 @@ export async function assertProductCreateAccess(
     return { ok: false, status: 403 };
   }
   return { ok: true, status: 200 };
+}
+
+/* ------------------------------------------------------------------------- */
+/* Language                                                                  */
+/* ------------------------------------------------------------------------- */
+
+/** The product languages the create form offers (`LANGS` in sections.tsx),
+ *  with the name the model is told to write in. */
+export const PRODUCT_LANGUAGES: Record<string, string> = {
+  en: "English",
+  ar: "Arabic",
+  tr: "Turkish",
+  ku: "Kurdish",
+};
+
+/** The dialog sends the seller's page language. Only a known code is used —
+ *  the value goes into the prompt, so nothing else may reach it. */
+export function parseLanguage(value: unknown): string {
+  const code = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return code in PRODUCT_LANGUAGES ? code : "en";
 }
 
 /* ------------------------------------------------------------------------- */
@@ -273,25 +299,38 @@ export async function loadLists(sellerId: string): Promise<AutofillLists> {
 /* AI call                                                                   */
 /* ------------------------------------------------------------------------- */
 
-export const INSTRUCTIONS = [
-  "You help a seller add a product to an online shop. Look at the product photo.",
-  "Write a short, marketable product title of at most 100 characters.",
-  "Write a short, factual description of 2 to 4 sentences.",
-  "Always write in English, whatever text appears in the photo.",
-  "Describe only what is visible. Never invent sizes, materials, specifications or prices.",
-  "Choose the brand and the categories ONLY from the lists below, by id.",
-  "The sub-category must be under the chosen category, and the sub-sub-category under the chosen sub-category.",
-  "Return null for any field you cannot match with confidence. Do not guess.",
-].join("\n");
+/** The instructions for one product language (see `parseLanguage`). */
+export function instructionsFor(language: string): string {
+  const name = PRODUCT_LANGUAGES[language] ?? PRODUCT_LANGUAGES.en;
+  return [
+    "You help a seller add a product to an online shop. Look at the product photo.",
+    "Write a short, marketable product title of at most 100 characters.",
+    "Write a short, factual description of 2 to 4 sentences.",
+    "Give 3 to 10 similar words: short search words a shopper may type to find this product.",
+    "Write an SEO meta title of at most 60 characters and an SEO meta description of at most 160 characters.",
+    `Always write in ${name}, whatever text appears in the photo.`,
+    "Describe only what is visible. Never invent sizes, materials, specifications or prices.",
+    "Choose the brand and the categories ONLY from the lists below, by id.",
+    "The sub-category must be under the chosen category, and the sub-sub-category under the chosen sub-category.",
+    "Return null for any field you cannot match with confidence. Do not guess.",
+  ].join("\n");
+}
+
+/** The English instructions, as the prompt tests pin them. */
+export const INSTRUCTIONS = instructionsFor("en");
 
 const lines = (items: { id: number; name?: string; path?: string }[]) =>
   items.length ? items.map((i) => `${i.id}: ${i.path ?? i.name}`).join("\n") : "(none)";
 
 const nullable = (type: "STRING" | "INTEGER") => ({ type, nullable: true });
 
-export function buildGeminiRequest(image: AutofillImage, lists: AutofillLists) {
+export function buildGeminiRequest(
+  image: AutofillImage,
+  lists: AutofillLists,
+  language: string = "en",
+) {
   const text = [
-    INSTRUCTIONS,
+    instructionsFor(language),
     `\nBRANDS (id: name)\n${lines(lists.brands)}`,
     `\nCATEGORIES (id: path)\n${lines(lists.categories)}`,
     `\nSUB-CATEGORIES (id: path)\n${lines(lists.subCategories)}`,
@@ -315,6 +354,9 @@ export function buildGeminiRequest(image: AutofillImage, lists: AutofillLists) {
         properties: {
           title: nullable("STRING"),
           description: nullable("STRING"),
+          similar_words: { type: "ARRAY", items: { type: "STRING" } },
+          meta_title: nullable("STRING"),
+          meta_description: nullable("STRING"),
           brand_id: nullable("INTEGER"),
           category_id: nullable("INTEGER"),
           sub_category_id: nullable("INTEGER"),
@@ -323,6 +365,9 @@ export function buildGeminiRequest(image: AutofillImage, lists: AutofillLists) {
         required: [
           "title",
           "description",
+          "similar_words",
+          "meta_title",
+          "meta_description",
           "brand_id",
           "category_id",
           "sub_category_id",
@@ -380,6 +425,18 @@ const toText = (v: unknown, max?: number): string | null => {
   return max ? t.slice(0, max) : t;
 };
 
+/** Strings only, trimmed, no blanks or repeats, capped in count and length. */
+const toWords = (v: unknown): string[] => {
+  if (!Array.isArray(v)) return [];
+  const out: string[] = [];
+  for (const w of v) {
+    const word = toText(w, SIMILAR_WORD_MAX);
+    if (word && !out.includes(word)) out.push(word);
+    if (out.length === SIMILAR_WORDS_MAX) break;
+  }
+  return out;
+};
+
 /** Every id must be one we sent, and the three levels must fit together. */
 export function checkSuggestion(raw: any, lists: AutofillLists): AutofillSuggestion {
   const brandIds = new Set(lists.brands.map((b) => b.id));
@@ -403,6 +460,9 @@ export function checkSuggestion(raw: any, lists: AutofillLists): AutofillSuggest
   return {
     title: toText(raw?.title, TITLE_MAX),
     description: toText(raw?.description),
+    similar_words: toWords(raw?.similar_words),
+    meta_title: toText(raw?.meta_title, TITLE_MAX),
+    meta_description: toText(raw?.meta_description),
     brand_id: brand !== null && brandIds.has(brand) ? brand : null,
     category_id,
     sub_category_id,

@@ -1212,12 +1212,16 @@ describe("ProductEditor — Add with AI hand-off", () => {
     suggestion: {
       title: "White Silk Robe",
       description: "A soft robe.",
+      similar_words: ["robe"],
+      meta_title: "White Silk Robe",
+      meta_description: "A soft silk robe.",
       brand_id: 2,
       category_id: 1,
       sub_category_id: 21,
       sub_sub_category_id: 31,
     },
     image: { name: "a1b2c3.jpg", url: "blob:ai-photo", isNew: true },
+    language: "ar",
   };
   // Read at call time: the page language is set when the editor renders.
   const aiMessage = () => translateFunction("The details were filled by AI. Please check them before saving.");
@@ -1261,6 +1265,12 @@ describe("ProductEditor — Add with AI hand-off", () => {
     expect(formState().sub, "the AI sub-category was dropped after its options loaded").toEqual([21]);
     expect(formState().subSub, "the AI sub-sub-category was dropped after its options loaded").toEqual([31]);
     expect(formState().images, "the AI photo is not the first product image").toEqual(["a1b2c3.jpg@blob:ai-photo"]);
+    expect(h.props.form.meta_title, "the AI meta title is not in Meta Title").toBe("White Silk Robe");
+    expect(h.props.form.meta_image, "the AI photo is not the meta image").toBe("a1b2c3.jpg");
+    expect(h.props.form.default_language_code, "the product's default language is not the page language").toBe("ar");
+    expect(h.props.form.translations, "the Arabic translation row was not filled from the AI").toEqual([
+      { language_code: "ar", name: "White Silk Robe", description: "<p>A soft robe.</p>", similar_words: ["robe"] },
+    ]);
   });
 
   it("shows the check-the-values message once and scrolls to the Name field after an AI fill (AC-11)", async () => {

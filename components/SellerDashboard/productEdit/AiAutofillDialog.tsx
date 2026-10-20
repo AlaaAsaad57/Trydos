@@ -6,7 +6,7 @@ import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction, LogError } from "utils/functions";
 import { DashButton, DashIcon } from "components/SellerDashboard/ui";
 import { extractNames } from "./helpers";
-import { setAiPrefill } from "./aiPrefill";
+import { productLanguage, setAiPrefill } from "./aiPrefill";
 
 const t = (s: string) => translateFunction(s);
 
@@ -41,6 +41,9 @@ export default function AiAutofillDialog({
   onNavigate?: () => void;
 }) {
   const router = useRouter();
+  // The seller's page language: the AI writes the text in it, and the form
+  // opens with it as the product's default language.
+  const language = productLanguage(local);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   const [busy, setBusy] = useState(false);
@@ -106,7 +109,7 @@ export default function AiAutofillDialog({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ sellerId, image: name }),
+        body: JSON.stringify({ sellerId, image: name, language }),
       });
       const json: any = await res.json().catch(() => null);
       if (closedRef.current) return;
@@ -116,6 +119,7 @@ export default function AiAutofillDialog({
         setAiPrefill(sellerId, {
           suggestion: json.data,
           image: { name, url: preview, isNew: true },
+          language,
         });
         navigating = true;
         onNavigate?.();
