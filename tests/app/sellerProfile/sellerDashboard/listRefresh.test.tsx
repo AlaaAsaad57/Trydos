@@ -30,11 +30,19 @@ const addUserToShop = vi.fn();
 const deleteUser = vi.fn();
 const updateUserRole = vi.fn();
 const GetProductsSocial = vi.fn();
+const getSellerCarts = vi
+  .fn()
+  .mockResolvedValue({ isSuccessful: true, data: { carts: [], meta: { total: 0 } } });
+const getSellerOldCarts = vi
+  .fn()
+  .mockResolvedValue({ isSuccessful: true, data: { old_carts: [], meta: { total: 0 } } });
 
 vi.mock("services/sellerDashboard", () => ({
   default: {
     getSellerProducts: (...a: unknown[]) => getSellerProducts(...a),
     getSellerBoutiques: (...a: unknown[]) => getSellerBoutiques(...a),
+    getSellerCarts: (...a: unknown[]) => getSellerCarts(...a),
+    getSellerOldCarts: (...a: unknown[]) => getSellerOldCarts(...a),
     getSellerPermissions: (...a: unknown[]) => getSellerPermissions(...a),
     getRoles: (...a: unknown[]) => getRoles(...a),
     getUsers: (...a: unknown[]) => getUsers(...a),
@@ -68,6 +76,20 @@ vi.mock("components/SellerDashboard/StoriesTab", () => ({ default: () => null })
 vi.mock("components/SellerDashboard/CommentsTab", () => ({ default: () => null }));
 vi.mock("components/SellerDashboard/ExcelUploadTab", () => ({ default: () => null }));
 vi.mock("components/SellerDashboard/locations/LocationsTab", () => ({ default: () => null }));
+// The carts tab is a stand-in unless a test sets `cartsTab.real`. The carts
+// tests need the real tab, because the bugs they cover sit between the page and
+// the tab: which request each one sends, and what the tab shows before the
+// permissions arrive.
+const cartsTab = vi.hoisted(() => ({ real: false }));
+vi.mock("components/SellerDashboard/carts/CartsTab", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("components/SellerDashboard/carts/CartsTab")>();
+  const RealCartsTab = actual.default;
+  return {
+    default: (props: React.ComponentProps<typeof RealCartsTab>) =>
+      cartsTab.real ? <RealCartsTab {...props} /> : null,
+  };
+});
+vi.mock("components/SellerDashboard/carts/ProductCartsModal", () => ({ default: () => null }));
 // The orders tab hands the page a way to change tab; the stand-in exposes it as
 // a button so the hand-off can be pressed.
 vi.mock("components/SellerDashboard/orders", () => ({
@@ -75,7 +97,25 @@ vi.mock("components/SellerDashboard/orders", () => ({
     <button data-pw="orders-stub-home" onClick={() => setActiveTab("none")} />
   ),
 }));
-vi.mock("components/SellerDashboard/ShopInfo", () => ({ default: () => null }));
+vi.mock("components/SellerDashboard/ShopInfo", () => ({
+  default: ({
+    onShopInfoUpdated,
+  }: {
+    onShopInfoUpdated?: (info: { name: string; image?: string | null }) => void;
+  }) => (
+    <div data-testid="shop-info-stub">
+      <button
+        data-testid="shop-info-update-btn"
+        onClick={() =>
+          onShopInfoUpdated?.({
+            name: "Updated Shop Directly",
+            image: "https://example.com/updated-live.jpg",
+          })
+        }
+      />
+    </div>
+  ),
+}));
 
 import SellerDashBoard from "app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page";
 import {
@@ -157,6 +197,7 @@ async function arriveAgain(rerender: (ui: React.ReactElement) => void) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  cartsTab.real = false;
   getSellerPermissions.mockResolvedValue(permissionsPayload);
   getShopes.mockResolvedValue({ success: true, data: [] });
   getRoles.mockResolvedValue({ success: true, data: { shop_roles: [] } });
@@ -536,7 +577,7 @@ describe("the seller dashboard home", () => {
     await openAs(null);
 
     expect(screen.queryByText("permissions are down"), "the home did not show the permissions failure").not.toBeNull();
-    expect(screen.queryByText("Welcome back"), "the home drew its tiles over a failed permission list").toBeNull();
+    expect(screen.queryByText("Welcome Back"), "the home drew its tiles over a failed permission list").toBeNull();
   });
 
   it("opens a section from its tile by writing ?tab= into the URL (ar)", async () => {
@@ -574,13 +615,66 @@ describe("the seller dashboard home", () => {
 
     expect(routerSpies.replace, "the orders tab's hand-off did not clear ?tab=").toHaveBeenCalledWith(DASH_PATH, { scroll: false });
   });
+
+  it("renders the shop image in the navbar when the shop carries shop_image", async () => {
+    getSellerPermissions.mockResolvedValue(
+      permsFor(["SUPER_ADMIN"], { shop_image: "https://example.com/navbar-logo.jpg" }),
+    );
+    await openAs(null);
+
+    const images = screen.getAllByAltText("A Shop");
+    expect(images.length).toBeGreaterThanOrEqual(2);
+    expect(images[0].getAttribute("src")).toBe("https://example.com/navbar-logo.jpg");
+    expect(images[1].getAttribute("src")).toBe("https://example.com/navbar-logo.jpg");
+  });
+
+  it("directly updates shop name and image in navbar and drawer when shop info changes", async () => {
+    getSellerPermissions.mockResolvedValue(
+      permsFor(["SUPER_ADMIN", "READ_SHOP_INFO", "UPDATE_SHOP_INFO"], {
+        shop_name: "Original Shop",
+        shop_image: "https://example.com/original.jpg",
+      }),
+    );
+    await openAs(null, "shopInfo");
+
+    expect(screen.queryAllByText("Original Shop").length).toBeGreaterThan(0);
+
+    const updateBtn = screen.getByTestId("shop-info-update-btn");
+    await act(async () => {
+      fireEvent.click(updateBtn);
+    });
+    await settle();
+
+    // Verify the navbar and drawer reflect the new shop name immediately
+    expect(screen.queryAllByText("Updated Shop Directly").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Original Shop")).toBeNull();
+
+    // Verify the Monograms reflect the new image immediately
+    const images = screen.getAllByAltText("Updated Shop Directly");
+    expect(images[0].getAttribute("src")).toBe("https://example.com/updated-live.jpg");
+  });
 });
 
 describe("the seller dashboard side menu", () => {
   const MENU_TABS = [
-    "products", "boutiques", "locations", "orders", "permissions",
+    "products", "boutiques", "locations", "orders", "carts", "permissions",
     "users", "gallery", "stories", "comments", "excel", "shopInfo",
   ];
+
+  it("renders the shop image in the drawer menu header", async () => {
+    getSellerPermissions.mockResolvedValue(
+      permsFor(["SUPER_ADMIN"], { shop_image: "https://example.com/navbar-logo.jpg" }),
+    );
+    await openAs(null);
+
+    fireEvent.click(byPw("seller-dashboard-menu-btn"));
+    await settle();
+
+    const images = screen.getAllByAltText("A Shop");
+    expect(images.length).toBeGreaterThanOrEqual(2);
+    expect(images[0].getAttribute("src")).toBe("https://example.com/navbar-logo.jpg");
+    expect(images[1].getAttribute("src")).toBe("https://example.com/navbar-logo.jpg");
+  });
 
   it("opens every section it lists", async () => {
     await openAs(["SUPER_ADMIN"]);
@@ -677,13 +771,99 @@ describe("the seller dashboard side menu", () => {
       "opening the menu while the product list was loading asked the core backend for it a second time",
     ).toBe(1);
   });
+
+  it("renders active carts count in the side menu drawer", async () => {
+    getSellerCarts.mockResolvedValueOnce({
+      isSuccessful: true,
+      data: {
+        carts: [
+          {
+            cart_group_id: "cg-1",
+            customer: null,
+            items_count: 2,
+            total_quantity: 2,
+            created_at: "",
+            updated_at: "",
+          },
+        ],
+        meta: { total: 42, current_page: 1, last_page: 1, per_page: 10 },
+      },
+    });
+
+    await openAs(["SUPER_ADMIN"]);
+
+    fireEvent.click(byPw("seller-dashboard-menu-btn"));
+    await settle();
+
+    const cartsMenuItem = byPw("seller-dashboard-menu-carts");
+    expect(cartsMenuItem).toBeInTheDocument();
+    expect(cartsMenuItem).toHaveTextContent("42");
+  });
+});
+
+describe("the seller dashboard carts tab", () => {
+  const cartsPage = (total: number) => ({
+    isSuccessful: true,
+    data: {
+      carts: [
+        {
+          cart_group_id: "cg-1",
+          customer: null,
+          items_count: 1,
+          total_quantity: 1,
+          created_at: "",
+          updated_at: "",
+        },
+      ],
+      meta: { total, current_page: 1, last_page: 1, per_page: 25 },
+    },
+  });
+
+  it("waits rather than refusing while permissions are still on the way", async () => {
+    cartsTab.real = true;
+    // The deep-link path: no shop in the store, so permissions must be fetched.
+    getSellerPermissions.mockReturnValue(new Promise(() => {}));
+    await openAs(null, "carts");
+
+    expect(
+      screen.queryByText(/You do not have permission to view carts/i),
+      "the carts tab told the seller they have no permission while the permission list was still being fetched — a seller with READ_CARTS is shown a refusal",
+    ).toBeNull();
+    expect(
+      byPw("dash-skeleton-list-rows"),
+      "nothing was on screen in the carts tab while permissions were still on the way",
+    ).not.toBeNull();
+  });
+
+  it("asks the core backend for the first carts page once when the tab opens, and the side menu reuses it", async () => {
+    cartsTab.real = true;
+    getSellerCarts.mockResolvedValue(cartsPage(42));
+    await openAs(["READ_CARTS"], "carts");
+
+    expect(
+      getSellerCarts.mock.calls.length,
+      `opening the carts tab asked GET /shop/carts page 1 ${getSellerCarts.mock.calls.length} times — the page and the tab both sent it`,
+    ).toBe(1);
+
+    fireEvent.click(byPw("seller-dashboard-menu-btn"));
+    await settle();
+
+    expect(
+      getSellerCarts.mock.calls.length,
+      "opening the side menu after the carts tab loaded asked GET /shop/carts again",
+    ).toBe(1);
+    expect(
+      byPw("seller-dashboard-menu-carts").textContent,
+      "the side menu's carts badge did not show the count the carts tab loaded",
+    ).toContain("42");
+  });
 });
 
 describe("the seller dashboard products tab", () => {
   it("refuses a seller with no product permission", async () => {
     await openAs(["READ_ORDERS"], "products");
 
-    expect(screen.queryByText("You don't have permission to view products"), "no refusal for a seller without product rights").not.toBeNull();
+    expect(screen.queryByText("You Don't Have Permission To View Products"), "no refusal for a seller without product rights").not.toBeNull();
   });
 
   it("pages through the list and marks a card click as a navigation", async () => {
@@ -771,8 +951,8 @@ describe("the seller dashboard boutiques tab", () => {
     fireEvent.click(buttonWithText("Retry"));
     await settle();
 
-    expect(screen.queryByText("No boutiques found"), "a retry that found nothing did not show the empty state").not.toBeNull();
-    expect(screen.queryByText(/Add your first boutique/), "a seller who may create boutiques got no create link").not.toBeNull();
+    expect(screen.queryByText("No Boutiques Found"), "a retry that found nothing did not show the empty state").not.toBeNull();
+    expect(screen.queryByText(/Add Your First Boutique/), "a seller who may create boutiques got no create link").not.toBeNull();
   });
 
   it("logs a thrown non-Error boutiques failure and shows the generic message", async () => {
@@ -783,7 +963,7 @@ describe("the seller dashboard boutiques tab", () => {
       scenario: "SellerDashboard.getSellerBoutiques",
       error: "socket closed",
     });
-    expect(screen.queryByText("Failed to load boutiques"), "the generic boutiques failure was not shown").not.toBeNull();
+    expect(screen.queryByText("Failed To Load Boutiques"), "the generic boutiques failure was not shown").not.toBeNull();
   });
 });
 
@@ -804,14 +984,14 @@ describe("the seller dashboard permissions tab", () => {
   it("says no permissions are assigned when the shop has none", async () => {
     await openAs([], "permissions");
 
-    expect(screen.queryByText("No permissions assigned"), "an empty permission list did not show the empty state").not.toBeNull();
+    expect(screen.queryByText("No Permissions Assigned"), "an empty permission list did not show the empty state").not.toBeNull();
   });
 
   it("treats an answer with no entry for this shop as a failure", async () => {
     getSellerPermissions.mockResolvedValue({ success: true, data: [] });
     await openAs(null, "permissions");
 
-    expect(screen.queryByText("Failed to load permissions"), "a permissions answer with no entry for this shop was not treated as a failure").not.toBeNull();
+    expect(screen.queryByText("Failed To Load Permissions"), "a permissions answer with no entry for this shop was not treated as a failure").not.toBeNull();
   });
 
   it("reads the permissions and role from the shop list without calling the backend", async () => {
@@ -854,7 +1034,7 @@ describe("the seller dashboard users tab", () => {
   it("refuses a seller who may not manage users", async () => {
     await openAs(["READ_ORDERS"], "users");
 
-    expect(screen.queryByText("You don't have permission to manage users"), "no refusal for a seller without user rights").not.toBeNull();
+    expect(screen.queryByText("You Don't Have Permission To Manage Users"), "no refusal for a seller without user rights").not.toBeNull();
   });
 
   it("shows the permissions failure", async () => {
@@ -875,14 +1055,14 @@ describe("the seller dashboard users tab", () => {
     getUsers.mockRejectedValue("socket closed");
     await openAs(["USER_MANAGEMENT_ACCESS"], "users");
 
-    expect(screen.queryByText("Failed to load users"), "the generic users failure was not shown").not.toBeNull();
+    expect(screen.queryByText("Failed To Load Users"), "the generic users failure was not shown").not.toBeNull();
   });
 
   it("appends the next page of users", async () => {
     await openAs(["SUPER_ADMIN"], "users");
 
     getUsers.mockResolvedValue({ success: true, data: { users: [{ id: 11, name: "Page Two Person" }], meta: null } });
-    fireEvent.click(buttonWithText("Load more"));
+    fireEvent.click(buttonWithText("Load More"));
     await settle();
 
     expect(screen.queryByText("Page Two Person"), "Load more did not add the next page of users").not.toBeNull();
@@ -895,7 +1075,7 @@ describe("the seller dashboard users tab", () => {
 
     fireEvent.submit(document.querySelector("form")!);
 
-    expect(screen.queryByText("Please fill in all fields"), "an empty form was not refused").not.toBeNull();
+    expect(screen.queryByText("Please Fill In All Fields"), "an empty form was not refused").not.toBeNull();
     expect(addUserToShop, "an empty form reached the backend").not.toHaveBeenCalled();
   });
 
@@ -904,7 +1084,7 @@ describe("the seller dashboard users tab", () => {
     await openAs(["SUPER_ADMIN"], "users");
 
     fireEvent.change(screen.getByPlaceholderText("+(country_code)XXX"), { target: { value: "+000" } });
-    fireEvent.focus(screen.getByPlaceholderText("Search roles..."));
+    fireEvent.focus(screen.getByPlaceholderText("Search Roles..."));
     fireEvent.mouseDown(roleOptions()[0]);
     fireEvent.change(document.querySelector("select")!, { target: { value: "1" } });
     fireEvent.change(document.querySelector('input[type="number"]')!, { target: { value: "5" } });
@@ -919,10 +1099,10 @@ describe("the seller dashboard users tab", () => {
       role_id: 1,
       seller_id: SELLER_ID,
     });
-    expect(screen.queryByText("User added successfully!"), "no success banner after the user was added").not.toBeNull();
+    expect(screen.queryByText("User Added Successfully!"), "no success banner after the user was added").not.toBeNull();
 
     await wait(3100);
-    expect(screen.queryByText("User added successfully!"), "the success banner never went away").toBeNull();
+    expect(screen.queryByText("User Added Successfully!"), "the success banner never went away").toBeNull();
   }, 10000);
 
   it("shows the add-user refusal, with the generic message when there is none", async () => {
@@ -942,19 +1122,19 @@ describe("the seller dashboard users tab", () => {
       fireEvent.submit(document.querySelector("form")!);
     });
     await settle();
-    expect(screen.queryByText("Failed to add user"), "the generic add-user refusal was not shown").not.toBeNull();
+    expect(screen.queryByText("Failed To Add User"), "the generic add-user refusal was not shown").not.toBeNull();
 
     addUserToShop.mockRejectedValueOnce("socket closed");
     await act(async () => {
       fireEvent.submit(document.querySelector("form")!);
     });
     await settle();
-    expect(screen.queryByText("Failed to add user to shop"), "a thrown add-user failure did not show the generic message").not.toBeNull();
+    expect(screen.queryByText("Failed To Add User To Shop"), "a thrown add-user failure did not show the generic message").not.toBeNull();
   });
 
   it("searches roles after the debounce, loads more, and closes the list on blur", async () => {
     await openAs(["SUPER_ADMIN"], "users");
-    const search = screen.getByPlaceholderText("Search roles...");
+    const search = screen.getByPlaceholderText("Search Roles...");
 
     fireEvent.focus(search);
     fireEvent.change(search, { target: { value: "Ma" } });
@@ -966,13 +1146,13 @@ describe("the seller dashboard users tab", () => {
       "a search typed over within 400 ms was still sent",
     ).toBe(false);
 
-    fireEvent.mouseDown(buttonWithText("Load more roles"));
+    fireEvent.mouseDown(buttonWithText("Load More Roles"));
     await settle();
     expect(getRoles, "Load more roles did not ask for page 2 of the search").toHaveBeenCalledWith(SELLER_ID, 2, "Man");
 
     fireEvent.blur(search);
     await wait(200);
-    expect(screen.queryByText("Load more roles"), "the role list stayed open after the input lost focus").toBeNull();
+    expect(screen.queryByText("Load More Roles"), "the role list stayed open after the input lost focus").toBeNull();
   });
 
   it("shows the roles failure in the add-user panel", async () => {
@@ -997,7 +1177,7 @@ describe("the seller dashboard users tab", () => {
     fireEvent.click(buttonWithText("Change Role", 1));
     await settle();
 
-    expect(screen.queryAllByText("Failed to load roles").length > 0, "the generic roles failure was not shown").toBe(true);
+    expect(screen.queryAllByText("Failed To Load Roles").length > 0, "the generic roles failure was not shown").toBe(true);
     expect(LogError, "the change-role roles failure was not logged").toHaveBeenCalledWith({
       scenario: "SellerDashboard.getRolesForChange",
       error: "roles socket closed",
@@ -1057,7 +1237,7 @@ describe("the seller dashboard users tab", () => {
       fireEvent.mouseDown(changeOption());
     });
     await settle();
-    expect(screen.queryByText("Failed to update user role"), "a thrown role change did not show the generic message").not.toBeNull();
+    expect(screen.queryByText("Failed To Update User Role"), "a thrown role change did not show the generic message").not.toBeNull();
   });
 
   it("opens, searches, pages and closes the per-user role list", async () => {
@@ -1100,7 +1280,7 @@ describe("the seller dashboard users tab", () => {
 
     fireEvent.click(buttonWithText("Change Role", 1));
     await settle();
-    expect(screen.queryByText("No roles found"), "an empty per-user role list did not say so").not.toBeNull();
+    expect(screen.queryByText("No Roles Found"), "an empty per-user role list did not say so").not.toBeNull();
     getRoles.mockClear();
     fireEvent.focus(document.querySelector(".w-56 input")!);
     await settle();
@@ -1140,7 +1320,7 @@ describe("the seller dashboard users tab", () => {
       fireEvent.click(buttonWithText("Delete", 1));
     });
     await settle();
-    expect(screen.queryByText("Failed to delete user"), "a thrown delete did not show the generic message").not.toBeNull();
+    expect(screen.queryByText("Failed To Delete User"), "a thrown delete did not show the generic message").not.toBeNull();
   });
 
   it("asks before leaving the shop and leaves on confirm", async () => {
@@ -1178,6 +1358,167 @@ describe("the seller dashboard users tab", () => {
       fireEvent.click(screen.getByText("Confirm"));
     });
     await settle();
-    expect(screen.queryByText("Failed to leave shop"), "a thrown leave did not show the generic message").not.toBeNull();
+    expect(screen.queryByText("Failed To Leave Shop"), "a thrown leave did not show the generic message").not.toBeNull();
+  });
+});
+
+/*
+ * A backend that refuses with no message of its own. The page used to throw a
+ * raw English text ("Failed to load boutiques") and then show `error.message`,
+ * so the translated fallback after `||` never ran: an Arabic, Turkish or
+ * Kurdish seller read English. Title case in the English checks proves the text
+ * went through translateFunction; the Arabic case checks the real harm.
+ */
+describe("the seller dashboard — a refusal with no message", () => {
+  const ROLES = {
+    success: true,
+    data: { shop_roles: [{ id: 1, name: "Manager", description: "runs" }], meta: null },
+  };
+  const USERS = [
+    { id: 1, name: "Me", role_name: "Owner" },
+    { id: 9, name: "A Teammate", role: { id: 5, name: "Staff" } },
+  ];
+
+  beforeEach(() => {
+    getRoles.mockResolvedValue(ROLES);
+    getUsers.mockResolvedValue({ success: true, data: { users: USERS, meta: null } });
+  });
+
+  const changeOption = () =>
+    (Array.from(document.querySelectorAll("div.cursor-pointer")) as HTMLElement[]).find((el) =>
+      el.closest(".w-56"),
+    ) as HTMLElement;
+
+  it("says the products failed to load, translated", async () => {
+    getSellerProducts.mockResolvedValue({ success: false });
+    await openAs(["SUPER_ADMIN"], "products");
+    expect(screen.queryAllByText("Failed To Load Products").length > 0, "the products refusal showed untranslated text").toBe(true);
+  });
+
+  it("says the boutiques failed to load, translated", async () => {
+    getSellerBoutiques.mockResolvedValue({ success: false });
+    await openAs(["READ_BUTIKS"], "boutiques");
+    expect(screen.queryByText("Failed To Load Boutiques"), "the boutiques refusal showed untranslated text").not.toBeNull();
+  });
+
+  it("says the boutiques failed to load in Arabic for an Arabic seller", async () => {
+    getSellerBoutiques.mockResolvedValue({ success: false });
+    await openAs(["READ_BUTIKS"], "boutiques", "ar");
+    expect(
+      screen.queryByText("فشل تحميل المتاجر المصغّرة"),
+      "an Arabic seller got the boutiques refusal in English",
+    ).not.toBeNull();
+  });
+
+  it("says the permissions failed to load, translated", async () => {
+    getSellerPermissions.mockResolvedValue({ success: false });
+    await openAs(null, "permissions");
+    expect(screen.queryByText("Failed To Load Permissions"), "the permissions refusal showed untranslated text").not.toBeNull();
+  });
+
+  it("says the users failed to load, translated", async () => {
+    getUsers.mockResolvedValue({ success: false });
+    await openAs(["USER_MANAGEMENT_ACCESS"], "users");
+    expect(screen.queryByText("Failed To Load Users"), "the users refusal showed untranslated text").not.toBeNull();
+  });
+
+  it("says the add-user roles failed to load, translated", async () => {
+    getRoles.mockResolvedValue({ success: false });
+    await openAs(["SUPER_ADMIN"], "users");
+    expect(screen.queryAllByText("Failed To Load Roles").length > 0, "the add-user roles refusal showed untranslated text").toBe(true);
+  });
+
+  it("says the change-role roles failed to load, translated", async () => {
+    await openAs(["SUPER_ADMIN"], "users");
+    getRoles.mockResolvedValue({ success: false });
+    fireEvent.click(buttonWithText("Change Role", 1));
+    await settle();
+    expect(screen.queryAllByText("Failed To Load Roles").length > 0, "the change-role roles refusal showed untranslated text").toBe(true);
+  });
+
+  it("says the role change failed, translated", async () => {
+    updateUserRole.mockResolvedValue({ success: false });
+    await openAs(["SUPER_ADMIN"], "users");
+    fireEvent.click(buttonWithText("Change Role", 1));
+    await settle();
+    await act(async () => {
+      fireEvent.mouseDown(changeOption());
+    });
+    await settle();
+    expect(screen.queryByText("Failed To Update User Role"), "the role-change refusal showed untranslated text").not.toBeNull();
+  });
+
+  it("says the delete failed, translated", async () => {
+    deleteUser.mockResolvedValue({ success: false });
+    await openAs(["SUPER_ADMIN"], "users");
+    await act(async () => {
+      fireEvent.click(buttonWithText("Delete", 1));
+    });
+    await settle();
+    expect(screen.queryByText("Failed To Delete User"), "the delete refusal showed untranslated text").not.toBeNull();
+  });
+
+  it("says leaving the shop failed, translated", async () => {
+    leaveShop.mockResolvedValue({ success: false });
+    await openAs(["SUPER_ADMIN"], "users");
+    fireEvent.click(buttonWithText("Leave Shop"));
+    await act(async () => {
+      fireEvent.click(screen.getByText("Confirm"));
+    });
+    await settle();
+    expect(screen.queryByText("Failed To Leave Shop"), "the leave refusal showed untranslated text").not.toBeNull();
+  });
+});
+
+describe("the Add with AI entry on the Products tab", () => {
+  const withPermissions = (permissions: string[]) =>
+    getSellerPermissions.mockResolvedValue({
+      success: true,
+      data: [{ seller_id: Number(SELLER_ID), shop_name: "A Shop", permissions }],
+    });
+  const aiButtons = () => Array.from(document.querySelectorAll('[data-pw="seller-add-with-ai"]'));
+  const addLinks = () =>
+    Array.from(document.querySelectorAll('a[href$="/products/new"]')).map((a) => a.textContent?.trim());
+
+  it("shows Add with AI beside Add Product only to a user who may create products (AC-1)", async () => {
+    for (const permissions of [["CREATE_PRODUCT"], ["SUPER_ADMIN"]]) {
+      withPermissions(permissions);
+      getSellerProducts.mockResolvedValue(productsPayload([product(1, "First Shirt")]));
+      const header = await openDashboard();
+      await waitFor(() => expect(addLinks(), `${permissions} did not get Add Product in the header`).toEqual(["+ Add Product"]));
+      expect(aiButtons(), `${permissions} did not get Add with AI beside Add Product`).toHaveLength(1);
+      expect(aiButtons()[0].parentElement, "Add with AI is not beside Add Product").toBe(
+        document.querySelector('a[href$="/products/new"]')?.parentElement,
+      );
+      header.unmount();
+
+      getSellerProducts.mockResolvedValue(productsPayload([]));
+      const empty = await openDashboard();
+      await waitFor(() =>
+        expect(addLinks(), `${permissions} did not get the empty-state add link`).toEqual(["+ Add Your First Product"]),
+      );
+      expect(aiButtons(), `${permissions} did not get Add with AI in the empty state`).toHaveLength(1);
+      empty.unmount();
+    }
+
+    withPermissions(["READ_PRODUCTS", "UPDATE_PRODUCT"]);
+    getSellerProducts.mockResolvedValue(productsPayload([product(1, "First Shirt")]));
+    await openDashboard();
+    await waitFor(() => expect(screen.getByText("First Shirt"), "the list did not load").toBeInTheDocument());
+    expect(aiButtons(), "a user without CREATE_PRODUCT was offered Add with AI").toHaveLength(0);
+  });
+
+  it("opens the Add with AI dialog from the button", async () => {
+    withPermissions(["CREATE_PRODUCT"]);
+    getSellerProducts.mockResolvedValue(productsPayload([product(1, "First Shirt")]));
+    await openDashboard();
+    await waitFor(() => expect(aiButtons()).toHaveLength(1));
+
+    fireEvent.click(aiButtons()[0]);
+
+    expect(
+      document.querySelector('[data-pw="ai-autofill-dialog"]'),
+      "the button did not open the dialog",
+    ).not.toBeNull();
   });
 });

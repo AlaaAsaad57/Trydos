@@ -13,6 +13,8 @@ function ProductGeneralProperties({
   views,
   sizeFitData,
   good_quality_product = false,
+  hasSizes,
+  sizes,
   children,
 }) {
   const { setColorBottomSheet } = useAppStore();
@@ -41,6 +43,8 @@ function ProductGeneralProperties({
         total_rating={total_rating}
         TotalBuyers={TotalBuyers}
         sizeFitData={sizeFitData}
+        hasSizes={hasSizes}
+        sizes={sizes}
       />
       <HortiznalScrollBar
         onClick={() => {
@@ -51,7 +55,7 @@ function ProductGeneralProperties({
         id="product-properties-general"
         className={`${
           isRtl ? "flex-row-reverse pl-[90px]" : "flex-row pr-[90px]"
-        }  product-properties items-center justify-start w-full text-[#1d1d1d] text-[9px]`}
+        }  product-properties items-center justify-start w-full text-[#1d1d1d] text-[9px] [&>*]:shrink-0`}
       >
         {children}
       </HortiznalScrollBar>

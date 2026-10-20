@@ -3,7 +3,7 @@
 //
 // The header counts the items and toggles the expanded view (except when the
 // tap is on the chat button). Each product shows its step icon and, before
-// delivery, its colour and size; after delivery it shows "delivered" and the
+// delivery, its colour and size; after delivery it shows "Delivered" and the
 // rating stars, which open the rating modal (stubbed here).
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -92,7 +92,7 @@ describe("each product after delivery", () => {
       order_status: delivered,
       getProductComment: vi.fn(() => comment),
     });
-    expect(screen.getByText("delivered"), "a delivered product does not say delivered").toBeInTheDocument();
+    expect(screen.getByText("Delivered"), "a delivered product does not say delivered").toBeInTheDocument();
     const user = userEvent.setup();
     await user.click(document.querySelector(".rating-star-container")!);
     expect(screen.getByTestId("rating-modal").dataset.rating, "the rating did not open with the saved stars").toBe("4");
@@ -116,6 +116,6 @@ describe("each product after delivery", () => {
 
   it("treats a returned product as not delivered", async () => {
     await renderList({ order_status: delivered, items: [buildOrderLine({ is_returned: true } as any)] });
-    expect(screen.queryByText("delivered"), "a returned product says delivered").not.toBeInTheDocument();
+    expect(screen.queryByText("Delivered"), "a returned product says delivered").not.toBeInTheDocument();
   });
 });

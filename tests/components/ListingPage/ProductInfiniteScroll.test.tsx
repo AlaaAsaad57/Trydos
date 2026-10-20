@@ -255,7 +255,7 @@ describe("the listing's product grid", () => {
 
       await waitFor(() =>
         expect(
-          screen.getByText("You've reached the end"),
+          screen.getByText("You've Reached The End"),
           "a page shorter than the page size is the last page — carrying on would ask for a page the backend has already said is not there",
         ).toBeInTheDocument(),
       );
@@ -280,7 +280,7 @@ describe("the listing's product grid", () => {
 
       await waitFor(() =>
         expect(
-          screen.getByText("You've reached the end"),
+          screen.getByText("You've Reached The End"),
           "a cursor that does not advance means the next request would fetch this same page again, for ever",
         ).toBeInTheDocument(),
       );
@@ -292,7 +292,7 @@ describe("the listing's product grid", () => {
 
       await waitFor(() =>
         expect(
-          screen.getByText("You've reached the end"),
+          screen.getByText("You've Reached The End"),
           "an empty page is the end of the list",
         ).toBeInTheDocument(),
       );
@@ -303,7 +303,7 @@ describe("the listing's product grid", () => {
       await renderGrid();
 
       await waitFor(() =>
-        expect(screen.getByText("You've reached the end")).toBeInTheDocument(),
+        expect(screen.getByText("You've Reached The End")).toBeInTheDocument(),
       );
 
       expect(
@@ -348,7 +348,7 @@ describe("the listing's product grid", () => {
 
       await waitFor(() =>
         expect(
-          screen.getByText("You've reached the end"),
+          screen.getByText("You've Reached The End"),
           "a backend that keeps answering with products already shown would spin this loop for ever; the grid caps it and calls the list finished",
         ).toBeInTheDocument(),
       );
@@ -510,12 +510,12 @@ describe("the listing's product grid", () => {
 
       await waitFor(() =>
         expect(
-          screen.getByText("No products found"),
+          screen.getByText("No Products Found"),
           "'you have reached the end' after typing a word reads as though the search worked and the list was short; the shopper needs to be told the word matched nothing",
         ).toBeInTheDocument(),
       );
       expect(
-        screen.getByText("Try changing or clearing your filters."),
+        screen.getByText("Try Changing Or Clearing Your Filters."),
         "and to be told what to do about it — the filters still applied are the usual reason a search finds nothing",
       ).toBeInTheDocument();
     });
@@ -589,7 +589,7 @@ describe("the listing's product grid", () => {
   });
 });
 
-describe("the listing's product grid � less common answers", () => {
+describe("the listing's product grid � less common answers", () => {
   // An earlier test left a grid whose 3-second retry keeps firing after it was
   // unmounted (see BUG-server-2 at the end of this file). Answer those stray
   // retries with an empty page so they stop, before these tests count calls.

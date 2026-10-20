@@ -66,7 +66,7 @@ export default function BoutiqueEditor({
   local: string;
   mode?: "edit" | "create";
 }) {
-  const [, language] = (local || "").split("-");
+  const language = (local || "").includes("-") ? (local || "").split("-")[1] : (local || "");
   const isRtl = language === "ar" || language === "ku";
 
   const router = useRouter();
@@ -555,7 +555,7 @@ export default function BoutiqueEditor({
   };
 
   return (
-    <div className="space-y-5" style={{ direction: isRtl ? "rtl" : "ltr" }}>
+    <div dir={isRtl ? "rtl" : "ltr"} className="space-y-5" style={{ direction: isRtl ? "rtl" : "ltr" }}>
       {/* Header card */}
       <div
         className="bg-white rounded-[15px] p-4 lg:p-5"

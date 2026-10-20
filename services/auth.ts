@@ -15,7 +15,7 @@ import {
 
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
-import { parseFieldErrors } from "utils/fieldErrors";
+import { ignoredMessages } from "utils/ignoredMessages";
 import { fetchAuthMe } from "utils/authMe";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
@@ -164,18 +164,65 @@ class AuthService {
         method: "GET",
         server: "local",
         reqTitle: REQUESTS_DATA.VERIFY_OTP_FROM_GUEST,
+        // The login route can take up to about 22.5 s: 10 s for the core
+        // verify, then 10 s for the chat / stories / comments / wallet logins
+        // (in parallel), then 2.5 s to store an error log. Wait longer than
+        // that, or the browser gives up on a sign-in that is still working.
+        signal: AbortSignal.timeout(30000),
       });
 
-      if (response.code === 501 && !response.success) {
+      // A 5xx is the backend failing, never a verdict on the code. Decide it
+      // first: the route forwards a core 5xx body as it is, and that body can
+      // also carry `isSuccessful: false` or `code: 501`, which the checks
+      // below would read as a wrong code and spend one of the shopper's tries.
+      const isServerError =
+        (typeof response?.httpStatus === "number" && response.httpStatus >= 500) ||
+        response?.httpStatus === 0;
+
+      if (!isServerError && response.code === 501 && !response.success) {
         showErrorNotification(response?.message);
         throw new Error("Wrong Code", { cause: response?.message });
       }
-      if (response?.data?.message === "user not found") {
+      if (response?.data?.message === "user not found" || response?.message === "user not found") {
         throw new Error("user not found");
       }
-      if (response?.isSuccessful === false && !response.success) {
+      if (!isServerError && response?.isSuccessful === false && !response.success) {
         throw new Error("Wrong Code", { cause: response?.message });
       }
+
+      if (!response?.success || !response?.data?.user) {
+        const msg =
+          response?.message ||
+          response?.error ||
+          translateFunction(
+            response?.httpStatus === 504
+              ? "The server did not respond in time. Please try again."
+              : response?.httpStatus === 503
+              ? "Service temporarily unavailable. Please try again."
+              : isServerError
+              ? "Server error. Please try again."
+              : "Verification failed. Please try again.",
+          );
+
+        if (!isServerError) {
+          // The word code / otp / pin is required, next to the verdict word in
+          // either order ("Invalid verification code", "The code is invalid").
+          // Without it, "Invalid verificationId" or "Session expired" were read
+          // as a wrong code and spent a try.
+          const isWrongCode =
+            response?.httpStatus === 422 ||
+            /\b(wrong|invalid|incorrect|expired)\s+(\w+\s+)?(code|otp|pin)\b|\b(code|otp|pin)\s+(is\s+)?(wrong|invalid|incorrect|expired)\b/i.test(msg) ||
+            msg.toLowerCase() === "wrong code";
+          if (isWrongCode) {
+            throw new Error("Wrong Code", { cause: msg });
+          }
+        }
+
+        const serverError = new Error(msg);
+        (serverError as any).isServerError = true;
+        throw serverError;
+      }
+
       if (response?.is_failed) {
         LogError({
           source: "login server api",
@@ -642,6 +689,15 @@ class AuthService {
       chat_done = false,
       stories_done = false,
       wallet_done = false;
+    // Did the request layer already put the refusal on screen? `fetchData`
+    // shows every refused answer unless its text is on the ignore list — the
+    // named field ("Email: email already exists") and the plain backend text
+    // alike. Set where a leg is refused, read by the general line below.
+    let refusalShown = false;
+    const shownByRequestLayer = (answer: any) =>
+      !ignoredMessages.includes(
+        answer?.message ?? answer?.data?.message ?? "",
+      );
 
     try {
       // --- Wallet profile update DISABLED (under development) ---
@@ -682,6 +738,7 @@ class AuthService {
       });
 
       if (!wallet_update?.success) {
+        refusalShown = shownByRequestLayer(wallet_update);
         throw new Error(wallet_update?.message || "Wallet update failed");
       }
       wallet_done = true;
@@ -727,6 +784,7 @@ class AuthService {
           }),
         });
         if (!res.success) {
+          refusalShown = shownByRequestLayer(res);
           throw new Error(res.message);
         }
         stories_done = true;
@@ -760,6 +818,7 @@ class AuthService {
           }),
         });
         if (!chat_update.success) {
+          refusalShown = shownByRequestLayer(chat_update);
           throw new Error(chat_update.message);
         }
         chat_done = true;
@@ -790,6 +849,7 @@ class AuthService {
         server: "market",
       });
       if (!res.success) {
+        refusalShown = shownByRequestLayer(res);
         throw new Error(res.message);
       }
       market_done = true;
@@ -961,13 +1021,14 @@ class AuthService {
           { name: COOKIE_NAMES.USER_CHAT, value: revertChat },
         ]);
       }
-      // When the backend refused a named field, the request layer has already
-      // told the shopper which field and why, in their own language ("Email:
-      // email already exists"). The general line below would sit on top of that
-      // and say nothing, so it is only shown when there is no named field —
-      // which is the only case where the shopper would otherwise be told
-      // nothing at all.
-      if (!parseFieldErrors((error as any)?.message)) {
+      // When the request layer already put the refusal on screen — a named
+      // field ("Email: email already exists") or the backend's own text — the
+      // general line below would be a second message about one save. So it is
+      // shown only when the shopper would otherwise be told nothing at all: an
+      // ignored answer such as "Failed to fetch", or a failure that was not a
+      // refused request. (Two messages used to look like one, because the store
+      // kept only the newest; BUG-utils-5 fixed that, and SCRIPT-07 saw both.)
+      if (!refusalShown) {
         showErrorNotification(
           translateFunction("Failed to update profile Info"),
         );

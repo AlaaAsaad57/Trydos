@@ -23,6 +23,7 @@ vi.mock("store/chat/chatUtils", async (importOriginal) => ({
 }));
 
 import AudioMessage from "components/Chat/components/messages/Types/AudioMessage";
+import { finishUpload, startUpload } from "components/Chat/uploadCancel";
 
 const ME = 1;
 
@@ -134,6 +135,29 @@ describe("AudioMessage", () => {
     expect(p.setOpen, "a tap did not open the menu").toHaveBeenCalledWith(5);
     fireEvent.mouseLeave(document.querySelector(".message-hold")!);
     expect(p.setOpen, "leaving did not close the menu").toHaveBeenCalledWith(false);
+  });
+
+  it("while the note uploads, the cancel X sits where the play button and spinner go, and stops the upload", async () => {
+    const onCancel = vi.fn();
+    const signal = startUpload("m-voice", onCancel);
+    try {
+      const { p, audio } = await mount({ mid: "m-voice" });
+      // The base64 preview can load before the upload ends; the X must still win.
+      loaded(audio, 4);
+      const cancel = screen.queryByRole("button", { name: /cancel upload/i });
+      expect(cancel, "an uploading voice note offers no cancel X").not.toBeNull();
+      expect(cancel!.closest(".audio-message"), "the cancel X is not in the play/spinner place of the voice note").not.toBeNull();
+      expect(cancel!.closest(".message-date"), "the cancel X is still in the status line under the voice note").toBeNull();
+      expect(document.querySelector('img[src="/icons/chat/play.svg"]'), "the play button is shown next to the cancel X").toBeNull();
+      expect(document.querySelector('.audio-message [data-pw="spinner-container2"]'), "the spinner is shown next to the cancel X").toBeNull();
+
+      fireEvent.click(cancel!);
+      expect(signal.aborted, "pressing the X did not stop the voice note upload").toBe(true);
+      expect(onCancel, "pressing the X did not remove the pending voice note").toHaveBeenCalled();
+      expect(p.setOpen, "pressing the X also opened the message menu").not.toHaveBeenCalled();
+    } finally {
+      finishUpload("m-voice");
+    }
   });
 
   it("the menu replies, forwards and deletes this note", async () => {

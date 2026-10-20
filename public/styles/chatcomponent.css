@@ -148,6 +148,49 @@ html[lang="ar"] .chat-window-search-holder img {
   overflow-x: hidden;
   padding-right: 6px;
 }
+/* A contact the import found already saved: a blue flash that fades out. */
+.contact-already-saved {
+  border-radius: 8px;
+  animation: contactAlreadySaved 3s ease-out 1 forwards;
+}
+@keyframes contactAlreadySaved {
+  0%,
+  40% {
+    background-color: #8fc3ff80;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+/* The contact whose number is typed in the add-contact form: a red frame and
+   tint that pulse 3 times, then stay. The row below has an opaque background
+   and z-index 4, so the frame is a layer above it, not a style on the wrapper.
+   The pulse changes colour only; nothing moves. */
+.contact-duplicate {
+  position: relative;
+}
+.contact-duplicate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  border: 2px solid #f85555;
+  border-radius: 10px;
+  background-color: rgba(248, 85, 85, 0.08);
+  animation: contactDuplicatePulse 0.9s ease-in-out 3;
+}
+@keyframes contactDuplicatePulse {
+  0%,
+  100% {
+    background-color: rgba(248, 85, 85, 0.08);
+    box-shadow: 0 0 0 0 rgba(248, 85, 85, 0);
+  }
+  50% {
+    background-color: rgba(248, 85, 85, 0.28);
+    box-shadow: 0 0 0 4px rgba(248, 85, 85, 0.35);
+  }
+}
 .chat-conversation-item {
   width: 420px;
   height: 80px;
@@ -438,7 +481,7 @@ html[lang="ar"] .chat-window-search-holder img {
 
   width: 85px;
   height: 80px;
-  margin-left: 1px;
+  margin-inline-start: 1px;
 }
 .chat-option div {
   font-size: 12px;
@@ -453,7 +496,7 @@ html[lang="ar"] .chat-window-search-holder img {
 }
 .chat-3 {
   background-color: #f6f5fd;
-  margin-left: 6px !important;
+  margin-inline-start: 6px !important;
 }
 .chat-4 {
   background-color: #ffe8e8;
@@ -869,6 +912,7 @@ html[lang="ar"] .new-chats {
 }
 .message-body {
   z-index: 10;
+  cursor: pointer;
 }
 .replied-message-container.me-to-me .message-body .absolute-avatar {
   position: absolute;
@@ -1149,31 +1193,6 @@ html[lang="ar"] .new-chats {
   align-items: center;
   letter-spacing: 0.01em;
   justify-content: center;
-}
-.gallery-option span {
-  color: #5d5c5d;
-  margin-right: 36px;
-  font-size: 16px;
-  font-family: var(--SF-Pro-Rounded-Light);
-}
-
-.chat-user-gallery-container {
-  margin-top: 10px;
-  cursor: pointer;
-  width: 100%;
-  background-color: #f4f4f4;
-  height: 50px;
-  padding-left: 15px;
-  flex-shrink: 0;
-  display: flex;
-  border-radius: 20px;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  position: relative;
-}
-.chat-user-gallery-container .chat-user-info-arrow {
-  top: 7px;
 }
 .chat-user-options {
   width: 100%;

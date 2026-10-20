@@ -38,9 +38,18 @@ export const GAevent = ({
   try {
     let event_id = new Date().getTime();
     const { session_id, previous_event_button_name } = useAppStore.getState();
-    const userData = useAppStore.getState().userProfile;
+    const userData =
+      useAppStore.getState().userProfile || useAppStore.getState().user;
     if (userData) {
       SetGAUser(userData, false);
+    }
+    if (
+      params &&
+      "user_id_custom" in params &&
+      params.user_id_custom === undefined &&
+      userData?.id
+    ) {
+      params.user_id_custom = userData.id;
     }
     let user_param = getUserParam();
     // @ts-ignore
@@ -115,7 +124,8 @@ export const globalProps = (): Record<string, unknown> => {
   };
 };
 const getUserParam = () => {
-  const userData = useAppStore.getState().userProfile as any;
+  const userData = (useAppStore.getState().userProfile ||
+    useAppStore.getState().user) as any;
   if (
     userData?.phone === "0" ||
     !userData?.phone ||

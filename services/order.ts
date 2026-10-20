@@ -195,9 +195,14 @@ class OrderService {
       throw error;
     }
   }
+  // How many address writes the core backend has accepted. A list read that
+  // was in flight while one landed may carry the rows from before it.
+  private addressWrites = 0;
+
   async GetAddressList() {
     const { setOrderLoading, setAddressList } = useAppStore.getState();
     this.GetProvinces();
+    const writesAtStart = this.addressWrites;
     try {
       setOrderLoading(true);
       let response: any = await fetchData({
@@ -210,6 +215,12 @@ class OrderService {
       if (!response.success) {
         // @ts-ignore
         throw new Error(response.message);
+      }
+      // A write landed while this read was in flight, so this answer may be
+      // older than the store. Storing it put an edited title back to the old
+      // one on the checkout. Read again instead.
+      if (writesAtStart !== this.addressWrites) {
+        return await this.GetAddressList();
       }
       setAddressList(response.data);
       setOrderLoading(false);
@@ -240,6 +251,7 @@ class OrderService {
       if (!response.success) {
         throw new Error(response.message);
       }
+      this.addressWrites += 1;
       await GetCartOreview();
       setOrderLoading(false);
     } catch (error) {
@@ -283,6 +295,7 @@ class OrderService {
       if (!response.success) {
         throw new Error(response.message);
       }
+      this.addressWrites += 1;
       await this.GetAddressList();
       await GetCartOreview();
 
@@ -339,6 +352,7 @@ class OrderService {
       if (!data.success) {
         throw new Error(data.message);
       }
+      this.addressWrites += 1;
       setOrderLoading(false);
     } catch (error) {
       LogServerError({
@@ -363,6 +377,7 @@ class OrderService {
       if (!data.success) {
         throw new Error(data.message);
       }
+      this.addressWrites += 1;
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);

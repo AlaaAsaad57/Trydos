@@ -9,6 +9,8 @@ import {
 } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
 import Spinner from "components/global/Spinner";
+import MessageMarks, { countMarks, marksMinWidth } from "../MessageMarks";
+import CancelUploadButton from "../CancelUploadButton";
 
 function FileMessage({
   setOpen,
@@ -16,6 +18,8 @@ function FileMessage({
   openMenu,
   type,
   is_forward,
+  tags = [],
+  reminder = null,
   isPrivate,
   message_status,
   created_at,
@@ -65,12 +69,15 @@ function FileMessage({
       <div
         onClick={() => setOpen(id)}
         className={"message-element-body message-body text-body " + type}
+        style={{
+          minWidth: marksMinWidth(countMarks({ is_forward, tags, reminder })),
+        }}
       >
-        {is_forward === 1 && (
-          <div className="forwarded-message-icon">
-            <img src="/icons/chat/forwarded.svg" />
-          </div>
-        )}
+        <MessageMarks
+          is_forward={is_forward}
+          tags={tags}
+          reminder={reminder}
+        />
         {/* <div className="border-element">
               {refmessage.current &&
                 showBord(type, refmessage.current.clientHeight).map((ad, i) => (
@@ -111,7 +118,9 @@ function FileMessage({
               <div className="file-type"></div>
             </div>
             {mid ? (
-             <Spinner/>
+              <CancelUploadButton mid={mid}>
+                <Spinner />
+              </CancelUploadButton>
             ) : (
               <img src="/icons/chat/down.svg" style={{ minWidth: "34px" }} />
             )}

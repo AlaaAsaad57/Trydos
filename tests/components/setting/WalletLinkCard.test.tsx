@@ -57,7 +57,7 @@ describe("the balance", () => {
   });
 
   it.each([
-    [null, "Failed to load wallet balance"],
+    [null, "Failed To Load Wallet Balance"],
     [{ success: false, message: "Wallet locked" }, "Wallet locked"],
     [{ success: false, error: "Wallet error" }, "Wallet error"],
   ])("shows -- and the reason when the answer is %o", async (answer, reason) => {
@@ -69,7 +69,7 @@ describe("the balance", () => {
 
   it.each([
     [new Error("wallet down"), "wallet down"],
-    [{}, "Failed to load wallet balance"],
+    [{}, "Failed To Load Wallet Balance"],
   ])("shows the reason when reading the balance fails (%o)", async (thrown, reason) => {
     getWalletBalanceToShow.mockResolvedValue(breakingAnswer(thrown));
     await renderCard();
@@ -79,14 +79,14 @@ describe("the balance", () => {
   it("Retry by click or by Enter/Space loads the balance again without opening the sheet", async () => {
     getWalletBalanceToShow.mockResolvedValue(null);
     await renderCard();
-    const retry = await screen.findByLabelText("Retry fetching wallet balance");
+    const retry = await screen.findByLabelText("Retry Fetching Wallet Balance");
     await userEvent.setup().click(retry);
     await waitFor(() => expect(getWalletBalanceToShow).toHaveBeenCalledTimes(2));
-    fireEvent.keyDown(await screen.findByLabelText("Retry fetching wallet balance"), { key: "Enter" });
+    fireEvent.keyDown(await screen.findByLabelText("Retry Fetching Wallet Balance"), { key: "Enter" });
     await waitFor(() => expect(getWalletBalanceToShow).toHaveBeenCalledTimes(3));
-    fireEvent.keyDown(await screen.findByLabelText("Retry fetching wallet balance"), { key: " " });
+    fireEvent.keyDown(await screen.findByLabelText("Retry Fetching Wallet Balance"), { key: " " });
     await waitFor(() => expect(getWalletBalanceToShow).toHaveBeenCalledTimes(4));
-    fireEvent.keyDown(await screen.findByLabelText("Retry fetching wallet balance"), { key: "a" });
+    fireEvent.keyDown(await screen.findByLabelText("Retry Fetching Wallet Balance"), { key: "a" });
     expect(getWalletBalanceToShow, "another key retried the balance").toHaveBeenCalledTimes(4);
     expect(screen.queryByTestId("wallet-sheet"), "Retry opened the wallet sheet").not.toBeInTheDocument();
   });

@@ -42,11 +42,25 @@ const openCart = (val) => {
   }
 };
 
+export type OrderDataState = {
+  data: any;
+  payment: any[];
+  coupon: boolean;
+  agree: boolean;
+  coupon_number: string;
+  loading: boolean;
+  success: boolean;
+  receipt_number?: string | null;
+  attempt_id?: string;
+  [key: string]: any;
+};
+
 const useCartStore = (set, get) => ({
   // Initial state
   orderLoading: false,
   cart: [],
   coupon_discount: null,
+  coupon_code: null,
   total_discount: null,
   showOrderOptions: false,
   total_shipping_cost: null,
@@ -91,7 +105,8 @@ const useCartStore = (set, get) => ({
     coupon_number: "",
     loading: false,
     success: false,
-  },
+    receipt_number: null,
+  } as OrderDataState,
   cart_enable: false,
   AddToCartOption: {
     enable: false,

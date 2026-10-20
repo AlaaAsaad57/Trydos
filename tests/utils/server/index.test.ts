@@ -25,6 +25,24 @@ describe("translateFunction (server)", () => {
       "Made In {country}",
     );
   });
+
+  it("gives English with every word starting with a capital letter, as the client does", () => {
+    expect(
+      translateFunction("Your cart is empty", "en"),
+      "the server English differs from the client English",
+    ).toBe("Your Cart Is Empty");
+    expect(
+      translateFunction("Weight must be between 40 and 180 kg", "en"),
+      "the server changed the unit kg",
+    ).toBe("Weight Must Be Between 40 And 180 kg");
+    expect(
+      translateFunction("no such key", "ar"),
+      "a missing Arabic key must fall back to the key as it is",
+    ).toBe("no such key");
+    expect(translateFunction("" as any, "en")).toBe("");
+    expect(translateFunction(undefined as any, "en")).toBeUndefined();
+    expect(translateFunction(null as any, "en")).toBeNull();
+  });
 });
 
 describe("countryNameFromIso and madeInText", () => {

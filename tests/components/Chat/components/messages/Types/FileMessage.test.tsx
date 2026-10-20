@@ -20,6 +20,7 @@ vi.mock("store/chat/chatUtils", async (importOriginal) => ({
 }));
 
 import FileMessage from "components/Chat/components/messages/Types/FileMessage";
+import { finishUpload, startUpload } from "components/Chat/uploadCancel";
 
 const ME = 1;
 const activeChat = { id: 7, channel_members: [{ user_id: ME, user: { name: "Me" } }] };
@@ -75,6 +76,26 @@ describe("FileMessage", () => {
   it("shows a spinner while the file is still uploading", async () => {
     await mount({ mid: "m1" });
     expect(document.querySelector('img[src="/icons/chat/down.svg"]'), "an uploading file showed the download arrow").toBeNull();
+  });
+
+  it("while the file uploads, the cancel X takes the spinner's place, and stops the upload", async () => {
+    const onCancel = vi.fn();
+    const signal = startUpload("m-file", onCancel);
+    try {
+      const { p } = await mount({ mid: "m-file" });
+      const cancel = screen.queryByRole("button", { name: /cancel upload/i });
+      expect(cancel, "an uploading file offers no cancel X").not.toBeNull();
+      expect(cancel!.closest("a.file-msg"), "the cancel X is not in the spinner place of the file").not.toBeNull();
+      expect(cancel!.closest(".message-date"), "the cancel X is still in the status line under the file").toBeNull();
+      expect(document.querySelector('a.file-msg [data-pw="spinner-container2"]'), "the spinner is shown next to the cancel X").toBeNull();
+
+      expect(fireEvent.click(cancel!), "pressing the X also followed the file's download link").toBe(false);
+      expect(signal.aborted, "pressing the X did not stop the file upload").toBe(true);
+      expect(onCancel, "pressing the X did not remove the pending file").toHaveBeenCalled();
+      expect(p.setOpen, "pressing the X also opened the message menu").not.toHaveBeenCalled();
+    } finally {
+      finishUpload("m-file");
+    }
   });
 
   it("shows the receive time on someone else's file, nothing with no file, no avatar mid-run", async () => {

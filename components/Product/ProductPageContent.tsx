@@ -127,6 +127,7 @@ export default async function ProductPageContent({
               >
                 <ProductGeneralPropertiesWrapper
                   globalData={GlobalData}
+                  qtyPricePromise={QtyPricesData}
                   language={language}
                 />
                 <ProductFeaturesWrapper

@@ -246,6 +246,26 @@ describe("the back button over a popup", () => {
     });
   });
 
+  it("closes the login popup on back-press without pushing history when the address is already clean", async () => {
+    const { store } = await mountProvider({ store: { loginOpen: true } });
+    window.history.pushState({}, "", "/sy-en");
+    await popState({});
+    expect(popup.markBackClosing, "the back-press was not marked as a popup close").toHaveBeenCalled();
+    expect(store.getState().loginOpen, "the login stayed open after back").toBe(false);
+    expect(routerSpies.push, "a redundant push was made when the address was already clean").not.toHaveBeenCalled();
+  });
+
+  it("closes the login popup and strips ?login=true if still present in the address", async () => {
+    const { store } = await mountProvider({ store: { loginOpen: true } });
+    window.history.pushState({}, "", "/sy-en?login=true");
+    await popState({});
+    expect(popup.markBackClosing, "the back-press was not marked as a popup close").toHaveBeenCalled();
+    expect(store.getState().loginOpen, "the login stayed open after back").toBe(false);
+    expect(routerSpies.push, "?login was not stripped from the live address").toHaveBeenCalledWith("/sy-en", {
+      shallow: true,
+    });
+  });
+
   it("stops listening once it is unmounted", async () => {
     const { unmount } = await mountProvider();
     unmount();

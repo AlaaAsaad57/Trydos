@@ -12,6 +12,7 @@ import AudioMessage from "./messages/Types/AudioMessage";
 import FileMessage from "./messages/Types/FileMessage";
 import ProductMessage from "./messages/Types/ProductMessage";
 import CallMessage from "./messages/Types/CallMessage";
+import { MessageReminderInfo, MessageTagSummary } from "utils/types/chat";
 // Add a helper to sanitize IDs
 const getSafeId = (id) => {
   if (!id) return "";
@@ -41,6 +42,9 @@ function ChatMessage({
   parent_message,
   parent_message_id,
   duration_in_seconds,
+  tags,
+  reminder,
+  is_edited,
 }: {
   isPrivate: number | string | null;
   setVid: (e: any) => void;
@@ -64,6 +68,9 @@ function ChatMessage({
   parent_message: Message;
   parent_message_id: number | string;
   duration_in_seconds: number | null;
+  tags?: MessageTagSummary[];
+  reminder?: MessageReminderInfo | null;
+  is_edited?: 0 | 1;
 }) {
   const { activeChat } = useAppStore();
   let message = {
@@ -136,6 +143,9 @@ function ChatMessage({
               id={id}
               isPrivate={isPrivate}
               is_forward={is_forward}
+              tags={tags}
+              reminder={reminder}
+              is_edited={is_edited}
               message_content={message_content}
               message_status={message_status}
               openMenu={opens === id}
@@ -172,6 +182,8 @@ function ChatMessage({
               id={id}
               isPrivate={isPrivate}
               is_forward={is_forward}
+              tags={tags}
+              reminder={reminder}
               message_content={message_content}
               message_status={message_status}
               openMenu={opens === id}
@@ -220,6 +232,8 @@ function ChatMessage({
               id={id}
               isPrivate={isPrivate}
               is_forward={is_forward}
+              tags={tags}
+              reminder={reminder}
               message_content={message_content}
               message_status={message_status}
               openMenu={opens === id}
@@ -243,6 +257,8 @@ function ChatMessage({
               id={id}
               isPrivate={isPrivate}
               is_forward={is_forward}
+              tags={tags}
+              reminder={reminder}
               message_status={message_status}
               openMenu={opens === id}
               mid={mid}
@@ -277,6 +293,8 @@ function ChatMessage({
               id={id}
               isPrivate={isPrivate}
               is_forward={is_forward}
+              tags={tags}
+              reminder={reminder}
               message_status={message_status}
               openMenu={opens === id}
               mid={mid}
@@ -310,6 +328,8 @@ function ChatMessage({
               id={id}
               isPrivate={isPrivate}
               is_forward={is_forward}
+              tags={tags}
+              reminder={reminder}
               message_content={message_content}
               message_status={message_status}
               openMenu={opens === id}

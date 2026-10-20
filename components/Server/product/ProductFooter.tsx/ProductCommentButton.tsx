@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import { GetProductCommentsCount } from "serverRequests/product";
 import { useAppStore } from "store";
 import { LogError } from "utils/functions";
+import { formatCount } from "utils/formatCount";
 
 function ProductCommentButton({
   isActive,
   setActive,
   total_comments,
   productId,
+  language = "en",
 }) {
   const { shouldUpdateCommentsCount, setShouldUpdateCommentsCount } =
     useAppStore();
@@ -31,7 +33,7 @@ function ProductCommentButton({
     if (shouldUpdateCommentsCount) UpdateCommentCount();
   }, [shouldUpdateCommentsCount]);
   const getCommentsCount = () => {
-    if (commentsTotal > 0) return commentsTotal;
+    if (commentsTotal > 0) return formatCount(commentsTotal, language);
     else return <></>;
   };
   return (

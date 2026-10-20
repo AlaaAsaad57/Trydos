@@ -1,23 +1,27 @@
 # E2E scenarios
 
-Every case the browser suite runs — **115** of them today. Add a row whenever a
+Every case the browser suite runs — **165** of them today. Add a row whenever a
 case is added, and keep the count above in step.
 
 | Section | Cases | Signs in? | Writes to staging? |
 |---------|-------|-----------|--------------------|
-| Guest journeys | GUEST-01 to GUEST-42 | no | only the guest registrations in GUEST-32 to GUEST-34 |
+| Guest journeys | GUEST-01 to GUEST-43, GUEST-47 to GUEST-51, AUTH-04 | no | only the guest registrations in GUEST-32 to GUEST-34 |
 | Signed-in journeys | AUTH-01 to AUTH-03 | yes, once, shared | no |
 | Signed-in profile journeys | PROF-01 to PROF-08 | yes, twice, shared | yes — the shared test account |
-| Signed-in session recovery | RECOV-01 | yes, its own — a third real code per run | no |
-| **The money path** | BUY-01 to BUY-05 | BUY-01 and BUY-03 each sign in once, BUY-04 reuses BUY-03's session, BUY-05 signs in twice for itself — four real codes per run | **yes — one real order, placed and then cancelled, one address BUY-03 creates and removes again, and one bag line BUY-05 adds as a guest and removes again** |
+| Signed-in session recovery | RECOV-01, RECOV-02 | yes, each its own — two real codes per run | no |
+| **The money path** | BUY-01 to BUY-05, BUY-07 (reuses BUY-03's session), ORD-01 | BUY-01, BUY-03 and ORD-01 each sign in once, BUY-04 reuses BUY-03's session, BUY-05 signs in twice for itself — five real codes per run | **yes — two real orders, each placed and then cancelled (ORD-01's also moved, hidden and restored first), two addresses (one by BUY-03, one by ORD-01) created and removed again, and one bag line BUY-05 adds as a guest and removes again** |
 | Scripted auth branches | SCRIPT-01 to SCRIPT-05 | no | no — only the real one-time-code send |
 | Scripted profile branches | SCRIPT-07 to SCRIPT-12 | **yes — each case signs in for itself** | **no** — every leg is faked, but each sign-in and one change-number send are real |
-| Scripted checkout branches | SCRIPT-14 to SCRIPT-18, SCRIPT-20 | **no — the shopper is faked** | no — nothing but a guest registration |
+| Scripted checkout branches | SCRIPT-14 to SCRIPT-18, SCRIPT-20 to SCRIPT-22 | **no — the shopper is faked** | no — nothing but a guest registration |
 | Saved products, as a guest | WISH-01 to WISH-05 | no | yes — one product on one throwaway guest, removed again |
 | Saved products, signed in | WISH-06 | **yes — its own, a real code per run** | **yes — the shared test account, put back in the same case** |
 | Comparing two products | CMP-01 to CMP-07 | no | no — the whole feature is two cookies in the browser |
-| **Questions, answers and reactions** | CMT-01 to CMT-08 | CMT-01 does, for itself; the seller half opens the seed's jar and signs in to nothing | **yes — two questions, two shop answers and several reactions on the QA product, all removed again** |
+| **Questions, answers and reactions** | CMT-01 to CMT-08, CMT-10, CMT-11 | CMT-01 does, for itself; the seller half opens the seed's jar and signs in to nothing | **yes — two questions, two shop answers and several reactions on the QA product, all removed again** |
 | **The QA safety lock** | QA-01 to QA-11 (16 cases) | yes — Shopper B, through the seed | **yes — the seed builds this environment's QA seller, shop, location and product, once. Nothing is ever deleted** |
+| Seller dashboard, a faked small role | SCRIPT-26 | no — it opens the QA seed's seller jar | no — only the permissions answer is faked, and nothing is saved |
+| Seller dashboard and seller stories, added cases | SD-13, SD-16, SST-09 | no — the QA seed's seller jar | no — reads, a template download, and a story form closed with Cancel |
+| **The chat** | CHAT-01 to CHAT-16 | CHAT-01 does, for Shopper A — one real code; Shopper B opens the seed's jar | **yes — real messages between the two test accounts, a tag, a reminder, a block and a deleted chat. Everything but the messages in B's copy of the chat is put back** |
+| Scripted chat branches | SCRIPT-27 to SCRIPT-43 | **no — the chat shopper is faked** | no — nothing but a guest registration per case |
 
 Design: `docs/testing/E2E_TEST_DESIGN.md`. How to run: `tests/e2e/README.md`.
 
@@ -74,6 +78,22 @@ test — about five per run, and they are not cleaned up (see rule 6 in
 | GUEST-41 | The back button on a static page keeps the visitor in the app | `staticPages.live.spec.ts:61` | The back bar goes to settings rather than dead-ending or leaving the site |
 | GUEST-42 | The home page comes back where it was after a product opens and closes | `guest.live.spec.ts:93` | An intercepted overlay shares one window scroll with the page under it, so the page's position is saved and put back by hand — the fixed bug in `components/ModalRoute/overlayScroll.ts`, where it was saved after the page body was already hidden and read back as 2px |
 | GUEST-43 | The home page comes back where it was after a product opens and closes | `guest.live.spec.ts:94` | The intercepted product overlay restores the home page's scroll position, guarding `components/ModalRoute/overlayScroll.ts` against the browser overwriting it |
+| GUEST-47 | A category in the bar opens its own page, marked open, and leads back home | `listings.live.spec.ts:26` | The tap moves the address to `/categories/{slug}`, the entry carries the "open" mark and moves to the front of the bar, and the open entry links back to the home page. Only the **visible** bar is read: the app keeps the previous page in the document, hidden, and the hidden copy was matched first. The second tap is read, not pressed — see the note below the table |
+| GUEST-48 | The featured page shows products the index holds for it | `listings.live.spec.ts:67` | The index is asked first, through `/api/products/featured` — the route that runs the page's own query. A good `200` with no products skips the case; any other answer fails it. Every card on the page must be one of the products that query returned |
+| GUEST-49 | The flash-deal page shows products the index holds for it | `listings.live.spec.ts:67` | The same, through `/api/products/searchInCatalog?flash-deal=true`. On 2026-09-25 the index held one flash deal in `iq`, so it ran rather than skipped |
+| GUEST-50 | A language picked in settings becomes the address, the saved choice and the page's language, and back | `locale.live.spec.ts:601` | Three layers checked apart: the address (`/iq-ar/settings`), the saved `language` cookie, and the server-rendered `<html lang>` plus a title in Arabic script. Then back to English, the same three ways |
+| GUEST-51 | A country picked in settings becomes the address, the saved choice and the flag, and back | `locale.live.spec.ts:654` | The confirm step is pressed, then the address, the saved `country` cookie and the flag on the settings page are checked apart. The country rows are matched without regard to case: the backend's `iso` arrives as `LB` beside `sy` in one list |
+| AUTH-04 | The proxy refuses to send a one-time code, however the address is written | `session.live.spec.ts:295` | `/api/proxy` answers its own `403` for `send_otp` as a POST, as a POST with `send%5Fotp`, and in the GET form. The phone in the body cannot receive a code, so a broken block could never text a stranger. No account, no code spent |
+
+GUEST-44 to GUEST-46 are kept for the filter, sort and paging cases, which are
+not written yet.
+
+**The category bar's first entry sits under the search box.** When a category is
+open it moves to the front of the bar, and the nav bar's search input covers the
+middle of it: a browser test's tap there lands on the search box (measured on
+2026-09-25). GUEST-47 reads that entry's link instead of pressing it. **Not
+confirmed as a bug yet** — nobody has checked whether a real finger hits the
+same spot. It needs its own look before anything is changed.
 
 ## Signed-in journeys
 
@@ -130,14 +150,14 @@ inside `actions/profile.ts` and come back as booleans.
 
 | ID | Case | Spec | What it proves |
 |----|------|------|----------------|
-| PROF-01 | The settings screens show the signed-in shopper, not a guest | `profile.live.spec.ts:234` | A real sign-in leaves a session the settings pages render from, and the profile card carries this account rather than a guest placeholder or the previous one |
-| PROF-02 | A name change reaches every backend that keeps a copy | `profile.live.spec.ts:335` | One Save lands on stories, chat and the core backend — each named on its own — and the app's stored copy is updated too, checked separately by a reload |
-| PROF-03 | Gender, e-mail and alternative phone save together | `profile.live.spec.ts:425` | The fix for a real defect: all three backends accepted the change, but only five fields were mirrored into the app's stored copy, so a changed gender was back to the old one after a reload. Seen red before the fix, green after |
-| PROF-05 | A chosen picture is the account's, and removing it removes it | `profile.live.spec.ts:741` | The upload reaches the media store, the app's stored copy keeps it across a reload, and removing it takes it off both. Skips when the media store is not configured |
-| PROF-06 | The profile card leads to the picture screen | `profile.live.spec.ts:816` | The card's link is found by address, not by accessible name — the links carry none, which is a real defect in 22 places and this ticket's out of scope |
-| PROF-07 | An address the shopper adds is listed, and can be removed | `profile.live.spec.ts:854` | Read back by its details, not by its presence: an address listed without what was entered is a partial success, and a partial success is a failure |
-| PROF-04 | The size screen saves a height and a weight | `profile.live.spec.ts:534` | The same fan-out from the size screen — and the control for PROF-03, because `tall` and `weight` were always mirrored, which is what ruled out the test rather than the app |
-| PROF-08 | The backends' own copy carries the change after signing out and in | `profile.live.spec.ts:1000` | **Red on purpose — it found a live defect.** Every other profile case judges a save by the status it was answered with, which says the write was accepted, not that it was kept. This one changes the name and the picture, signs out, signs back in, and reads what the backends answer a fresh sign-in with. The core backend is fine. Stories and chat store the change in one row and answer the sign-in from another, so a shopper who renames themselves finds chat still holding their old name and no picture. The failure names both row numbers |
+| PROF-01 | The settings screens show the signed-in shopper, not a guest | `profile.live.spec.ts:321` | A real sign-in leaves a session the settings pages render from, and the profile card carries this account rather than a guest placeholder or the previous one |
+| PROF-02 | A name change reaches every backend that keeps a copy | `profile.live.spec.ts:420` | One Save lands on stories, chat and the core backend — each named on its own — and the app's stored copy is updated too, checked separately by a reload |
+| PROF-03 | Gender, e-mail and alternative phone save together | `profile.live.spec.ts:510` | The fix for a real defect: all three backends accepted the change, but only five fields were mirrored into the app's stored copy, so a changed gender was back to the old one after a reload. Seen red before the fix, green after |
+| PROF-05 | A chosen picture is the account's, and removing it removes it | `profile.live.spec.ts:826` | The upload reaches the media store, the app's stored copy keeps it across a reload, and removing it takes it off both. Skips when the media store is not configured |
+| PROF-06 | The profile card leads to the picture screen | `profile.live.spec.ts:915` | The card's link is found by address, not by accessible name — the links carry none, which is a real defect in 22 places and this ticket's out of scope |
+| PROF-07 | An address the shopper adds is listed, and can be removed | `profile.live.spec.ts:953` | Read back by its details, not by its presence: an address listed without what was entered is a partial success, and a partial success is a failure. Adding an address takes the account's default away (the core backend gives it to the new one), so the case gives the default back to the address that had it, checks the backend holds it, and only then deletes its address |
+| PROF-04 | The size screen saves a height and a weight | `profile.live.spec.ts:619` | The same fan-out from the size screen — and the control for PROF-03, because `tall` and `weight` were always mirrored, which is what ruled out the test rather than the app |
+| PROF-08 | The backends' own copy carries the change after signing out and in | `profile.live.spec.ts:1122` | **Red on purpose — it found a live defect.** Every other profile case judges a save by the status it was answered with, which says the write was accepted, not that it was kept. This one changes the name and the picture, signs out, signs back in, and reads what the backends answer a fresh sign-in with. The core backend is fine. Stories and chat store the change in one row and answer the sign-in from another, so a shopper who renames themselves finds chat still holding their old name and no picture. The failure names both row numbers |
 
 ## Signed-in session recovery
 
@@ -175,6 +195,7 @@ Per run it costs: one one-time code, one sign-in, and no writes to the account.
 | ID | Case | Spec | What it proves |
 |----|------|------|----------------|
 | RECOV-01 | A signed-in shopper survives a credential refused mid-action | `session-recovery.live.spec.ts:118` | The action completes, the credentials really were exchanged, the app names the **same** shopper afterwards rather than a new guest, no sign-in prompt is ever shown, and the replacement credential is still kept from page scripts |
+| RECOV-02 | A signed-in shopper whose renewal is also refused is told, and keeps nothing of the old session | `session-recovery.live.spec.ts:301` | Both credentials are spoiled on purpose. The app must show the verified shopper the "please sign in again" prompt, name a new guest instead of the account, and delete every sub-service cookie of the old session (chat, stories, wallet, comments). Costs one more real one-time code |
 
 ## The money path
 
@@ -209,21 +230,34 @@ about it is asserted. If the journey dies after that — a refused cancel, a
 timeout, a crash — the `orders` fixture cancels it directly through the app's own
 proxy when the test ends (`tests/e2e/harness/orderCleanup.ts`). Playwright
 retries are off, so there is never a second order. A healthy run cancels its own
-order through the screens and the net catches nothing, and the last assertion of
-BUY-01 is exactly that: a net that catches something every run is a journey that
-is quietly not finishing.
+order through the screens and the net catches nothing, and **the fixture asserts
+exactly that**: a net that catches something every run is a journey that is
+quietly not finishing.
+
+**Where that check lives, and why (FIND-3, fixed).** It is judged in the
+`orders` fixture's teardown, after the sweep — `strandedOrderFailure` in
+`tests/e2e/harness/orderCleanup.ts` fails a **passed** case whose order the net
+still had to act on, and names the order. It used to be BUY-01's last line,
+`expect(orders.swept()).toEqual([])`, and there it could never fail: a fixture's
+teardown runs after the test body and every `afterEach`, so the body always read
+an empty list. The tracker no longer offers `swept()` at all, so a spec body
+cannot make that mistake again. The rule is pinned by
+`tests/harness/orderCleanup.test.ts`. A case that already failed keeps its own
+error; the sweep is reported next to it as an annotation.
 
 **Two ids, and only one is ever on screen.** Every screen shows the *group* id;
 the cancel call takes a *pack* id, and one group can hold several packs — one per
 seller. So the cases are driven by the group id and only the net asks the backend
 for the pack ids.
 
-Per run they cost: four one-time codes and four sign-ins (see below), one
-sign-out, one order placed and cancelled, and at least two guest registrations
+Per run they cost: five one-time codes and five sign-ins (see below), one
+sign-out, two orders placed and cancelled, and at least two guest registrations
 (BUY-02 boots as a guest and adds to its bag; BUY-05's sign-out makes another).
 BUY-01 adds a delivery address only when the account has none.
 
-A run spends **four** one-time codes: BUY-01, BUY-03 and two by BUY-05. BUY-03
+A run spends **five** one-time codes: BUY-01, BUY-03, two by BUY-05, and ORD-01.
+ORD-01's is the fifth send in a row on the same number, so it is the one most
+likely to wait out a cooldown. BUY-03
 signs in for itself and hands its session on to BUY-04, which spends no code.
 BUY-03 creates one address through the API, makes it the account's default,
 edits its title, and then puts the old default back and deletes its own address
@@ -239,11 +273,13 @@ second sign-in.
 
 | ID | Case | Spec | What it proves |
 |----|------|------|----------------|
-| BUY-01 | A shopper buys something with cash on delivery and then cancels it | `shopper.live.spec.ts:250` | The whole money path against real staging: sign in, empty the bag, add a product, reach checkout, have an address, choose cash on delivery, place the order, find it in the shopper's own list, open it, cancel it through the screens, and see the list agree it is cancelled. The design's AC-5 and AC-6 |
-| BUY-02 | A visitor with no verified phone is stopped before any order exists | `shopper.live.spec.ts:515` | The gate in the cart: a visitor who never verified a phone can fill a bag and is offered the verify panel instead of the checkout screen. Real, live, and it costs no code — the panel is where a code would be asked for |
-| BUY-03 | The bag shows the money the shop sent, and another address re-prices it | `shopper.live.spec.ts:681` | The two money figures in the bag — shipping and payable total — are the numbers the core backend sent for this bag in this run, never a literal. Then it creates an address through the API, taps it on the checkout, and checks the backend really stored it as the default, that the shop re-priced the bag, and that an edit to the address shows on the checkout and is stored |
-| BUY-04 | Plus raises a line to two, and removing it takes it out of the bag | `shopper.live.spec.ts:1030` | Pressing plus on a line makes it hold two — read only after the bag has been read again, so an optimistic number cannot pass for the shop's answer — and removing the line by name takes that product out of the bag |
-| BUY-05 | A guest's bag survives sign-in, and the line can then be removed | `shopper.live.spec.ts:1587` | The shopper's bag is emptied and the shopper signs out; the app then reports a guest. The guest adds the QA product and the **gateway** answers the add. The guest signs in from the navigation as the same shopper, and the **core** backend answers the bag read — proven a good read (`200`, `isSuccessful: true`) before anything in the bag is judged. The guest's line is still there by the bag's own name with the same quantity, and nothing else is in the bag. Removing it takes it out, and it is still gone after a reload. The docs' AC-12 (guest → verified upgrade) |
+| BUY-01 | A shopper buys something with cash on delivery and then cancels it | `shopper.live.spec.ts:335` | The whole money path against real staging: sign in, empty the bag, add a product, reach checkout, have an address, choose cash on delivery, place the order, find it in the shopper's own list, open it, cancel it through the screens, and see the list agree it is cancelled. The design's AC-5 and AC-6 |
+| BUY-02 | A visitor with no verified phone is stopped before any order exists | `shopper.live.spec.ts:624` | The gate in the cart: a visitor who never verified a phone can fill a bag and is offered the verify panel instead of the checkout screen. Real, live, and it costs no code — the panel is where a code would be asked for |
+| BUY-03 | The bag shows the money the shop sent, and another address re-prices it | `shopper.live.spec.ts:835` | The two money figures in the bag — shipping and payable total — are the numbers the core backend sent for this bag in this run, never a literal. Then it creates an address through the API, taps it on the checkout, and checks the backend really stored it as the default, that the shop re-priced the bag, and that an edit to the address shows on the checkout and is stored |
+| BUY-04 | Plus raises a line to two, and removing it takes it out of the bag | `shopper.live.spec.ts:1338` | Pressing plus on a line makes it hold two — read only after the bag has been read again, so an optimistic number cannot pass for the shop's answer — and removing the line by name takes that product out of the bag |
+| BUY-05 | A guest's bag survives sign-in, and the line can then be removed | `shopper.live.spec.ts:1748` | The shopper's bag is emptied and the shopper signs out; the app then reports a guest. The guest adds the QA product and the **gateway** answers the add. The guest signs in from the navigation as the same shopper, and the **core** backend answers the bag read — proven a good read (`200`, `isSuccessful: true`) before anything in the bag is judged. The guest's line is still there by the bag's own name with the same quantity, and nothing else is in the bag. Removing it takes it out, and it is still gone after a reload. The docs' AC-12 (guest → verified upgrade) |
+| BUY-07 | An unknown coupon code is refused, the shopper is told, and the total does not change | `shopper.live.spec.ts:1475` | A code no shop issued is typed on the real checkout. The **core** backend's answer is judged on its own (a yes is `data.status === 1`, the test `utils/fetchData.ts` applies), then the box: a reason is shown, nothing is marked applied, the field stays, and the total in Confirm Shipping & Payment is unchanged. Runs on BUY-03's session, so it spends no code; the bag is emptied in its own teardown |
+| ORD-01 | A shopper moves an order to another address, hides it, restores it, and cancels its only line | `shopper.live.spec.ts:2239` | A cash-on-delivery order for one line of the QA product is placed to the account's own default address. The order's menu must offer the address change (red, naming `can_update_address`, if the core backend says no); after it, the **core** backend holds the run's probe address on every pack and the order page shows the probe's recipient. Hiding takes the order off the list — judged only after another row proves the list loaded — and the core backend lists it hidden; the hidden screen shows it hidden as a whole, restoring puts it back on the list, and the core backend no longer lists it hidden. Cancelling its only line leaves the line with quantity 0 on the core backend and the page cancelled, and a last read shows no pack of the order still live. Every address check is a yes/no, so no address text reaches the output. **Must stay the last case in the file**: its own sign-in would leave BUY-04 and BUY-07's saved session dead. **After a killed run** (the teardown covers a failed assertion, not a killed process) the order can be left live and hidden where nothing finds it: restore it with `PATCH /customer/order/{packId}/visibility {"is_hidden":false}`, cancel it with `POST /customer/order/cancel {"order_id":packId}`, and delete the address titled `Trydos E2E Address Probe <tag> order`; the run's annotations name the order number and the probe title |
 
 ## Scripted auth branches
 
@@ -344,6 +380,8 @@ because from the shopper's side a silent refusal and a dead button look the same
 | SCRIPT-17 | A bag holding something this country cannot receive never reaches the checkout | `checkout.scripted.spec.ts:290` | The same guard, a different field (`is_country_restricted`). Both are covered rather than one standing in for the other — a change dropping one of the three conditions would leave the other case green |
 | SCRIPT-18 | A bag that empties between the two checkout steps sends the shopper back | `checkout.scripted.spec.ts:325` | The bag is emptied **after** the payment method is chosen, so the re-read that Confirm Shipping & Payment does is the first to see it. Emptying it any earlier zeroes the total, which disables the cash-on-delivery choice and fails the case on a control it is not about |
 | SCRIPT-20 | A credential refused mid-checkout is renewed and the order completes | `checkout.scripted.spec.ts:437` | The checkout answers `401` once and then accepts. Both answers being consumed is what "it was retried" means — one consumed answer would mean the app took the refusal and stopped |
+| SCRIPT-21 | A coupon the shop accepts is applied, and the bag is read again | `checkout.scripted.spec.ts:525` | Scripted because staging has no coupon this suite owns. The request carries the typed code, the box turns Apply into the discount and closes the field, and the app asks for the bag again — the new total comes from that re-read, so a faked bag cannot prove a total. The fake answers `status: 1`: an earlier version sent `true`, and `fetchData` refused it, which is the real contract |
+| SCRIPT-22 | A coupon from a shared link is applied at checkout by itself | `checkout.scripted.spec.ts:594` | `/?coupon=CODE` is kept by the app, the checkout applies that code without being asked, and the kept code is cleared once the shop accepted it, so it is not applied again on the next checkout |
 
 ## Saved products — the checklist
 
@@ -431,6 +469,8 @@ that already holds a real answer would overwrite it with no copy kept.
 | CMT-06 | A reload keeps every question, edit, answer and like | `comments.live.spec.ts:572` | One reload, then one named assertion per value. Ten values checked apart, so a failure names which one was lost rather than that "the reload failed" |
 | CMT-07 | Every like is removed, and a reload keeps them off | `comments.live.spec.ts:660` | The undo is proved the same way the do was. The comment like ignores its own backend answer (see the finding below), so only the reload can see a refused unlike |
 | CMT-08 | Both questions are deleted and the product unliked, and it sticks | `comments.live.spec.ts:741` | The deletes and the product unlike are separate checks, because they are separate calls to separate endpoints |
+| CMT-10 | The seller edits one answer and deletes the other | `comments.live.spec.ts:847` | Runs **before** CMT-08, which deletes the questions. Both writes are refused unless the question **and** the answer carry this run's mark — editing or deleting a real shop's answer cannot be undone. The dashboard changes the card only on the comments backend's yes, so the card is the proof |
+| CMT-11 | The shopper sees the edited answer, and no answer where one was deleted | `comments.live.spec.ts:886` | Read with the same bounded reloads as CMT-06, because the product page reads Elasticsearch. The deleted answer is gone and its question stayed — deleting an answer must not take the question with it |
 
 **What it leaves behind.** Nothing, on a green run: `CMT-08` removes the
 questions and the like, and `afterAll` removes the shop's answers. A run that
@@ -479,6 +519,20 @@ the net rather than left for it to fail on. Everything else is removed: the
 review is deleted in the last step, by the shopper, through the screens a
 shopper uses. The order is always placed against the **QA shop's own product**,
 so no real seller is ever asked to ship anything.
+
+## The seller dashboard — added cases
+
+SD-01 to SD-12 and SST-01 to SST-08 are described in the headers of
+`sellerDashboard.live.spec.ts` and `sellerStories.live.spec.ts`. The cases below
+were added later. All of them open the QA seed's seller jar and sign in to
+nothing.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| SD-13 | The products list shows the QA product with the status, price and stock the backend holds | `sellerDashboard.live.spec.ts:976` | The card's status, its price to two decimals and its stock are compared with the core backend's own list, one check each. The card's link is checked for where it points and is not followed — the product edit page is being removed |
+| SD-16 | The Excel section downloads a real `.xlsx` template for a category | `sellerDashboard.live.spec.ts:1044` | Download is disabled before a category is chosen; after one, a file arrives whose first bytes are `PK`, the mark of every `.xlsx` — a JSON error saved under a spreadsheet name would not pass. The upload is not driven: it would create real products |
+| SST-09 | The story form refuses an SVG, a file over 10 MB, and a link that is not one | `sellerStories.live.spec.ts:550` | Nothing is uploaded. Each refused file opens no crop step, draws no preview and says something to the seller; a bad link shows its error and keeps Share disabled, and a real address clears it. Last in a serial file, so it runs only after the journey above it passed |
+| SCRIPT-26 | A seller with a small role is offered only its sections, refused the rest, and cannot change the shop's record | `sellerDashboard.scripted.spec.ts:67` | Only the permissions answer is faked (`READ_PRODUCTS`, `READ_SHOP_INFO`). Each section is checked by name, offered or withheld; a direct link to Locations shows Access Denied; Shop Info is shown with every field disabled and no Save. **It proves the screen's gating only** — the session behind the fake still holds every permission, so the backend's own refusal is not covered. Trace is off: the session is real |
 
 ## A defect these files found, and fixed
 
@@ -577,3 +631,94 @@ B stays a permanent seller once approved.
 * **A real seller who names a shop so its slug starts `trydos-qa-`** vanishes
   from the catalogue, silently. Blocking the prefix at create time is a separate
   piece of work.
+
+## The chat
+
+Real staging: the real chat backend and two real test accounts. `CHAT-01`
+signs in as Shopper A, which costs one real code. Shopper B, who A talks to, is
+the QA seller and opens the seed's jar. So the cases that need B skip, with the
+seed's own reason, when the seed did not run. Every message carries the run's
+token.
+
+These cases depend on three things, each measured on 2026-09-27:
+
+* **Full Chromium, not the headless shell.** The chat opens only when
+  `Notification.permission` is "granted", and the headless shell answers
+  "denied" to every grant. The spec sets `channel: "chromium"`.
+* **A browser without push.** Chromium has no push keys, so Firebase's
+  `getToken` always fails in it, and the app then closes the open chat (see
+  CHAT-APP-3 below). The cases remove `PushManager` before the app loads. That
+  is a real kind of browser, and the app already supports it.
+* **The other person is read after a reload**, because push delivery does not
+  run here. Every "the backend kept it" check works the same way.
+
+`CHAT-01` to `CHAT-16` run as one serial journey, so the first red case in it
+skips the rest of it.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| CHAT-01 | Shopper A signs in, and the chat opens and lists her chats | `chat.live.spec.ts:239` | The chat part of the sign-in landed, the nav icon opens the chat past the notification gate, and the chat backend answers the list |
+| CHAT-02 | A finds Shopper B by phone and opens their conversation | `chat.live.spec.ts:282` | The phone search draws exactly one row. The chat it opens is the one the chat backend lists with B as a member, or a new `ch-<id>` chat when A has none |
+| CHAT-03 | A sends a message, and the chat backend keeps it | `chat.live.spec.ts:321` | The backend saves it with an id, the row swaps its local id for that id, it no longer shows "sending", and it is still there after a reload |
+| CHAT-04 | B reads it, and A sees that it was read | `chat.live.spec.ts:371` | B's row shows an unread count, opening the chat tells the backend it was read, B sees A's text, and after a reload A's message shows as read |
+| CHAT-05 | B replies to it, and A sees the reply with its quote | `chat.live.spec.ts:427` | The reply carries A's message as its parent, and A sees it with the quote |
+| CHAT-06 | A edits her message, and both see the new text | `chat.live.spec.ts:468` | The backend accepts the edit, the text changes and survives a reload, the Edited mark shows, and B sees the new text |
+| CHAT-07 | A tags the message, then removes the tag | `chat.live.spec.ts:521` | The backend says "added", and the mark shows and survives a reload. The second press says "removed", and the mark goes |
+| CHAT-08 | A sets a reminder, then cancels it | `chat.live.spec.ts:567` | The backend saves it with an id, the mark shows, and the Reminders folder lists the message. Cancelling removes both |
+| CHAT-09 | A forwards a message into the chat | `chat.live.spec.ts:623` | The copy is sent with `is_forward`, and after a reload it shows the Forwarded mark |
+| CHAT-10 | A deletes one message for everyone and one only for herself | `chat.live.spec.ts:653` | "For All" sends `delete_for_all: 1` and "For Me" sends `0`. A sees both deleted after a reload; B sees the first deleted and the second as it was |
+| CHAT-11 | A pins the chat, then unpins it | `chat.live.spec.ts:715` | Each press is saved. After a reload the pinned chat is listed as pinned, shows a pin and is first |
+| CHAT-12 | A mutes the chat, then puts it back | `chat.live.spec.ts:762` | Reads the start state from the backend, flips it, proves the flip survives a reload, and puts it back |
+| CHAT-13 | A marks the chat unread, then read | `chat.live.spec.ts:804` | Each mark survives a reload |
+| CHAT-14 | A archives the chat, then unarchives it | `chat.live.spec.ts:829` | The chat leaves the main list, the backend's archived list holds it, and the Archived folder shows it. Unarchiving brings it back |
+| CHAT-15 | A blocks B, and both see the chat closed; A unblocks | `chat.live.spec.ts:884` | After the block both see the "cannot send" line and B has no input. After the unblock B can type again |
+| CHAT-16 | A deletes the conversation, and B still has it | `chat.live.spec.ts:936` | The chat is gone from A's list after a reload, and B still has it: deleting is for one person |
+
+What a run leaves behind: the messages stay in Shopper B's copy of the chat,
+because `CHAT-16` deletes the conversation only for A. The `afterAll` puts back
+a block, an archive, a pin and a mute that a failed case left changed.
+
+## Scripted chat branches
+
+Nobody signs in. `/api/auth/me` and `/customer/info` are faked, so the app
+takes a fake chat user, and every chat call is faked too
+(`tests/e2e/scenarios/chat.ts`). The closed-mode guard refuses and records any
+call a case did not name, and every case ends by asserting it refused nothing.
+The page is also cut off from the chat's Firebase realtime database. That
+database is one shared project with no staging copy.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| SCRIPT-27 | The browser refuses notifications | `chat.scripted.spec.ts:179` | The shopper is told, and the chat does not open |
+| SCRIPT-28 | The browser has not been asked yet | `chat.scripted.spec.ts:202` | The "allow notifications" window opens, not the chat |
+| SCRIPT-29 | A verified shopper with no chat account | `chat.scripted.spec.ts:228` | The chat icon opens the phone check, not the chat |
+| SCRIPT-30 | The nav icon counts chats with unread messages | `chat.scripted.spec.ts:266` | Two chats with three unread messages show 2. Each row shows its own count, and a read chat shows none |
+| SCRIPT-31 | The list order | `chat.scripted.spec.ts:316` | A pinned chat is first although it is the oldest, the rest are newest first, and an archived chat is not in the main list |
+| SCRIPT-32 | The chat backend refuses a message | `chat.scripted.spec.ts:383` | The message is taken off the screen, and the shopper is told |
+| SCRIPT-33 | The chat backend refuses a message inside a 200 | `chat.scripted.spec.ts:408` | **Expected to fail, see CHAT-APP-1** |
+| SCRIPT-34 | The chat token has expired | `chat.scripted.spec.ts:445` | A 401 on the list renews the **chat** token, and the list then loads |
+| SCRIPT-35 | The chat token cannot be renewed | `chat.scripted.spec.ts:500` | Only the chat's own two tokens are cleared, and the shopper is asked to verify the phone |
+| SCRIPT-36 | A blocked chat | `chat.scripted.spec.ts:548` | The "cannot send" line shows, and there is no input |
+| SCRIPT-37 | A fourth pin | `chat.scripted.spec.ts:573` | **Expected to fail, see CHAT-APP-2** |
+| SCRIPT-38 | Only the writer may edit, or delete for everyone | `chat.scripted.spec.ts:630` | Own message: Edit and "For All". Someone else's: no Edit, and Cancel in place of "For All" |
+| SCRIPT-39 | The search walks the matches from the newest | `chat.scripted.spec.ts:676` | The first match is the newest, and "older" and "newer" move one step each way |
+| SCRIPT-40 | A file over 25 MB | `chat.scripted.spec.ts:726` | The shopper is told, nothing is uploaded or sent, and no "sending" message is left |
+| SCRIPT-41 | Reaching the top of a chat | `chat.scripted.spec.ts:770` | The page before the oldest loaded message is asked for, and it appears |
+| SCRIPT-42 | The Reminders folder | `chat.scripted.spec.ts:823` | It lists the reminded message, and pressing it opens the chat with that message on screen |
+| SCRIPT-43 | The chat backend refuses an edit | `chat.scripted.spec.ts:872` | The old text stays, and the shopper is told |
+
+## Findings from the chat cases
+
+Found on 2026-09-27 while building the chat cases, and re-checked on 2026-09-28. **None is fixed here**, and
+each needs its own ticket. The tests that show them stay in the suite. The
+backend ones stay red. The app ones run under a strict `test.fail`, which must
+be removed when the app is fixed.
+
+| ID | Where | What is wrong | Shown by |
+|----|-------|---------------|----------|
+| CHAT-BE-2 | chat backend | A new message does not reach the in-chat search for a long time. On 2026-09-28 one was still not found after 20 minutes (340092), and the other person reading it changed nothing. An edited message is found at once (340089, 340091), and messages from the day before are found now. So creating a message does not update the search index, and editing one does. **Accepted on 2026-09-29: the case that showed it (`CHAT-17`) was removed** | not covered: accepted |
+| CHAT-APP-1 | `SendMessage`, `store/chat/actions.tsx` | When the chat backend refuses a send inside a `200` (`isSuccessful: false`), the message stays on screen as "sending" for ever, and the shopper is told nothing. `fetchData` calls any 2xx a success, and `SendMessage` checks nothing else | `SCRIPT-33` (`test.fail`) |
+| CHAT-APP-2 | `pinChat`, `store/chat/reducer.ts`; `ChatOptions.tsx` | The "only 3 pinned chats" limit never applies: it reads `state.pinnedChats`, which nothing fills. Also, `ChatOptions` sends the pin to the backend before the check runs | `SCRIPT-37` (`test.fail`) |
+| CHAT-APP-3 | `requestFirebaseNotificationPermission`, `utils/firebaseInitv1.tsx:163` | When Firebase cannot get a push token, the app sets its notification flag to false. An open chat then turns into "Please Enable Notification to use Chat", although the browser granted notifications. Seen in a probe run. It is a race, so no case pins it down yet | not covered: no reliable trigger |
+| ~~CHAT-BE-1~~ | chat backend | **Not a bug.** `is_edited` is 1 only when `updated_at` and `created_at` differ, to the second. The tests edited within the same second as the send, which a person cannot do. An edit 10 s after the send is 1. `CHAT-06` now checks the mark on an edit made a minute after the send | `CHAT-06` |
+| CHAT-APP-4 | `setChats`, `store/chat/reducer.ts`; `ConversationContainer.tsx:494` | Text typed in the chat search before the list finishes loading is wiped. The nav icon opens the chat with `openChat(true)`, storing the list then resets the active chat to `null`, and an effect on the active chat clears the search box. The gap is longest when a chat has unread messages, because the list waits for `/received` first. Seen in a `CHAT-02` run; the cases now wait for the list to finish loading | not covered: the live cases wait it out |

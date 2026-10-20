@@ -389,8 +389,31 @@ class HomeService {
     // and skip the refresh entirely.
     let registeredGuest = false;
     if (!hasMarketToken) {
-      await this.RegisterDevice();
-      registeredGuest = true;
+      // The MARKET_TOKEN cookie lives 48 h (TOKEN_COOKIE_MAX_AGE), but User-Data
+      // lives a year. So a verified shopper who comes back after 48 h has no
+      // token and still a verified profile. A silent guest here would downgrade
+      // them with no word. The expire path tries the refresh cookie first, and
+      // only when that is dead too does it make the guest and arm the
+      // "session expired" prompt.
+      if (userData?.is_phone_verified === 1) {
+        try {
+          const outcome = await auth.ExpiredUser();
+          // Not renewed: ExpiredUser already moved the store to the new guest
+          // and owns the prompt. Signing the old profile in below would mark
+          // it verified again.
+          if (!outcome.renewed) return sessionRefreshed;
+          hasMarketToken = true;
+        } catch (error) {
+          LogServerError({
+            error,
+            scenario: "Error In CheckLogin expire in services/home",
+          });
+          return sessionRefreshed;
+        }
+      } else {
+        await this.RegisterDevice();
+        registeredGuest = true;
+      }
     }
 
     if (userData && userData?.is_phone_verified === 1 && hasMarketToken) {

@@ -629,6 +629,88 @@ describe("the helpers with no counter store (edge runtime)", () => {
   });
 });
 
+describe("a cache store that stops answering", () => {
+  // Found on CI runs 36403714599 and 36416474747. The connection to the cache
+  // store died without a reset, the client waited for an answer with no limit,
+  // and every page that reads the store hung with it: the home page for 54
+  // seconds until Next gave up ("Filling a cache during prerender timed out"),
+  // the product page for longer. Eighteen browser cases failed on
+  // `page.goto: Timeout 45000ms`, and the server log ended each stretch with
+  // `[ioredis] Unhandled error event: Error: read ETIMEDOUT`.
+  //
+  // The options are the module's own, read from what it handed the client when
+  // it was loaded. Only the address is replaced, by a server this test starts
+  // on the loopback interface, which accepts the connection and never answers.
+  // The client is the real one: the stand-in has no timers to prove anything.
+  async function optionsTheModuleBuildsWith(): Promise<Record<string, unknown>> {
+    delete (globalThis as Record<string, unknown>)._redis;
+    vi.resetModules();
+    try {
+      await import("serverRequests/radis");
+      return { ...(fake.built.options.at(-1) as Record<string, unknown>) };
+    } finally {
+      // The client built here is the stand-in, and the tripwire at the end of
+      // the file counts real mistakes only.
+      fake.built.count = 0;
+      fake.built.options = [];
+      vi.resetModules();
+      (globalThis as Record<string, unknown>)._redis = fake.client;
+    }
+  }
+
+  it("refuses the read after a few seconds instead of waiting with no limit", async () => {
+    const options = await optionsTheModuleBuildsWith();
+
+    const { createServer } = await import("node:net");
+    const silent = createServer((socket) => {
+      socket.on("error", () => {});
+      socket.on("data", () => {});
+    });
+    await new Promise<void>((resolve) => silent.listen(0, "127.0.0.1", resolve));
+    const { port } = silent.address() as { port: number };
+
+    const { default: RealRedis } =
+      await vi.importActual<typeof import("ioredis")>("ioredis");
+    const client = new RealRedis({
+      ...options,
+      host: "127.0.0.1",
+      port,
+      username: undefined,
+      password: undefined,
+    });
+    client.on("error", () => {});
+
+    try {
+      const outcome = await Promise.race([
+        client.get("k").then(
+          () => "answered",
+          (error: Error) => `refused: ${error.message}`,
+        ),
+        new Promise<string>((resolve) =>
+          setTimeout(() => resolve("still waiting after 10 seconds"), 10_000),
+        ),
+      ]);
+
+      expect(
+        outcome,
+        "a read from a cache store that never answers was not refused by the client, so the page that made it waits with it",
+      ).toBe("refused: Command timed out");
+    } finally {
+      client.disconnect();
+      await new Promise<void>((resolve) => silent.close(() => resolve()));
+    }
+  }, 20_000);
+
+  it("keeps an idle connection alive, so it is not dropped while nobody reads", async () => {
+    const options = await optionsTheModuleBuildsWith();
+
+    expect(
+      Number(options.keepAlive) > 0,
+      `the client is built with keepAlive ${String(options.keepAlive)}, so an idle connection sends nothing and a network device in between may drop it`,
+    ).toBe(true);
+  });
+});
+
 describe("nothing real was touched", () => {
   // AC-16. Tripwires. If any of these fires, one of the three measures at the
   // top of this file stopped working — and the run may already have opened a

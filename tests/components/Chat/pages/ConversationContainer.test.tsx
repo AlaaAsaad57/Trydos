@@ -6,7 +6,7 @@
 // real child would call. The chat backend calls (`SendMessage`, `getPage`, …),
 // the media upload and firebase are replaced too; nothing reaches a network.
 import React from "react";
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "../../../render";
@@ -116,6 +116,7 @@ vi.mock("utils/firebaseInitv1", () => ({
 vi.mock("firebase/database", () => h.fb);
 
 import ConversationContainer from "components/Chat/pages/ConversationContainer";
+import CancelUploadButton from "components/Chat/components/messages/CancelUploadButton";
 
 const ME = 1;
 const THEM = 2;
@@ -187,6 +188,12 @@ async function mount({
   return { ...utils, spies, setSearch, closeWidget };
 }
 
+/** Whether this element itself was scrolled into view. `scrollIntoView` is one
+ *  mock on the prototype, so a scroll to the bottom counts for every element. */
+function scrolledTo(el: Element) {
+  return vi.mocked(Element.prototype.scrollIntoView).mock.contexts.includes(el);
+}
+
 function fileInput() {
   return document.querySelector('input[type="file"]') as HTMLInputElement;
 }
@@ -196,6 +203,47 @@ function pick(file: any, writable = true) {
   const input = fileInput();
   Object.defineProperty(input, "files", { value: file ? [file] : [], writable, configurable: true });
   fireEvent.change(input);
+}
+
+/**
+ * Makes the next upload run until the sender cancels it, like a large file on a
+ * slow line. Returns the signal the upload was given, so a test can tell
+ * whether the request was really stopped.
+ */
+function uploadThatRunsUntilCancelled() {
+  const seen: { signal?: AbortSignal } = {};
+  h.upload.mockImplementationOnce((_file: File, signal?: AbortSignal) => {
+    seen.signal = signal;
+    return new Promise((_resolve, reject) => {
+      signal?.addEventListener("abort", () =>
+        reject(new DOMException("The upload was cancelled.", "AbortError")),
+      );
+    });
+  });
+  return seen;
+}
+
+/** A store that keeps the pending bubbles the way the chat list does. */
+function bubblesInChat() {
+  const shown = new Set<string>();
+  return {
+    shown,
+    store: {
+      sendMessage: vi.fn((p: any) => shown.add(String(p.message.mid))),
+      deleteErrorMessage: vi.fn((p: any) => shown.delete(String(p.msg_id))),
+    },
+  };
+}
+
+/**
+ * The cancel button on my pending bubble `mid`, or null. ChatMessage is a
+ * stand-in in this file, so the X is drawn here — the same
+ * `CancelUploadButton` every bubble draws in its play/spinner place. Where each
+ * bubble puts it is checked in that bubble's own test.
+ */
+function cancelButtonOn(mid: string) {
+  const { container } = render(<CancelUploadButton mid={mid} />);
+  return within(container).queryByRole("button", { name: /cancel upload/i });
 }
 
 beforeEach(() => {
@@ -397,6 +445,76 @@ describe("ConversationContainer — jumping to a quoted message", () => {
     );
   });
 
+  it("scrolls to and flashes the message a reminder asked for, then forgets the request", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.stubGlobal("requestAnimationFrame", (cb: any) => {
+      cb(0);
+      return 0;
+    });
+    const { store } = await mount({ chat: chatWith([msg("10"), msg("11")]), store: { jumpToMessageId: "11" } });
+    const el = document.getElementById("main-container-11")!;
+    await waitFor(() =>
+      expect(scrolledTo(el), "the message a reminder asked for was not scrolled into view").toBe(true),
+    );
+    await act(async () => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(el.classList.contains("backdrop_msg"), "the message a reminder asked for was not highlighted").toBe(true);
+    expect(store.getState().jumpToMessageId, "the jump request stayed, so it would fire again").toBeNull();
+  });
+
+  it("scrolls to a message asked for by a string id when the loaded ids are numbers", async () => {
+    vi.stubGlobal("requestAnimationFrame", (cb: any) => {
+      cb(0);
+      return 0;
+    });
+    await mount({ chat: chatWith([msg(10), msg(11)]) });
+    await act(async () => {
+      h.props.messages[10].GetMessage(10, "11");
+    });
+    expect(
+      scrolledTo(document.getElementById("main-container-11")!),
+      "the message was found as loaded, but the scroll compared ids by type and did nothing",
+    ).toBe(true);
+  });
+
+  it("keeps the details open while a tagged message loads, then closes them and scrolls to it", async () => {
+    vi.stubGlobal("requestAnimationFrame", (cb: any) => {
+      cb(0);
+      return 0;
+    });
+    let answer!: () => void;
+    h.getBetween.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          answer = resolve;
+        }),
+    );
+    const chat = chatWith([msg(10)]);
+    const { store } = await mount({ chat });
+    act(() => h.props.ChatHeader.openDetails());
+
+    let opened!: Promise<unknown>;
+    act(() => {
+      opened = h.props.ChatInfo.openMessage(5);
+    });
+    expect(h.getBetween, "the messages up to the tagged one were not loaded").toHaveBeenCalledWith({ first: 10, second: 5, channel_id: 7 });
+    expect(
+      screen.queryByTestId("ChatInfo"),
+      "the details closed before the tagged message had loaded, so the tap looked like it did nothing",
+    ).toBeInTheDocument();
+
+    await act(async () => {
+      store.setState({ activeChat: { ...chat, messages: [msg(5, { created_at: "2030-01-15T09:00:00" }), ...chat.messages] } } as any);
+      answer();
+      await opened;
+    });
+    expect(screen.queryByTestId("ChatInfo"), "the details stayed open after the tagged message loaded").toBeNull();
+    await waitFor(() =>
+      expect(scrolledTo(document.getElementById("main-container-5")!), "the tagged message was not scrolled to").toBe(true),
+    );
+  });
+
   it("logs a failed gap load", async () => {
     h.getBetween.mockRejectedValueOnce(new Error("range refused"));
     await mount();
@@ -455,7 +573,7 @@ describe("ConversationContainer — sending text", () => {
     const input = screen.getByLabelText("Type");
     fireEvent.change(input, { target: { value: "hi" } });
     fireEvent.keyDown(input, { key: "Enter" });
-    expect(h.showError, "the shopper was not told the message failed").toHaveBeenCalledWith("Failed to send message");
+    expect(h.showError, "the shopper was not told the message failed").toHaveBeenCalledWith("Failed To Send Message");
     expect(spies.deleteErrorMessage, "the failed copy was not removed").toHaveBeenCalled();
   });
 
@@ -551,7 +669,73 @@ describe("ConversationContainer — attaching files", () => {
     await act(async () => {
       pick(new File(["x"], "doc.pdf", { type: "application/pdf" }));
     });
-    await waitFor(() => expect(h.showError, "an upload failure with no message used no default").toHaveBeenCalledWith("Failed to Upload file"));
+    await waitFor(() => expect(h.showError, "an upload failure with no message used no default").toHaveBeenCalledWith("Failed To Upload File"));
+  });
+
+  it("removes the pending video when the upload fails before the preview is read", async () => {
+    // The ticket call can fail before the browser has read the file for the
+    // pending bubble. The bubble must still leave the chat, as a failed text does.
+    const shown = new Set<string>();
+    h.upload.mockRejectedValueOnce(new Error("Failed to get ticket"));
+    await mount({
+      store: {
+        sendMessage: vi.fn((p: any) => shown.add(String(p.message.mid))),
+        deleteErrorMessage: vi.fn((p: any) => shown.delete(String(p.msg_id))),
+      },
+    });
+    await act(async () => {
+      pick(new File(["x"], "clip.mp4", { type: "video/mp4" }));
+    });
+    await waitFor(() => expect(h.showError, "the failed upload was not shown").toHaveBeenCalledWith("Failed to get ticket"));
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+    expect([...shown], "the video stayed in the chat after its upload failed").toEqual([]);
+  });
+
+  it.each([
+    ["video", "clip.mp4", "video/mp4"],
+    ["document", "doc.pdf", "application/pdf"],
+  ])("the sender can cancel a %s while it uploads, and nothing is sent", async (kind, name, type) => {
+    const upload = uploadThatRunsUntilCancelled();
+    const { shown, store } = bubblesInChat();
+    await mount({ store });
+    await act(async () => {
+      pick(new File(["x"], name, { type }));
+    });
+    await waitFor(() => expect(h.upload, `the ${kind} upload did not start`).toHaveBeenCalled());
+    const [mid] = [...shown];
+    expect(mid, `no pending ${kind} bubble was shown while it uploads`).toBeTruthy();
+
+    const cancel = cancelButtonOn(mid);
+    expect(cancel, `the pending ${kind} offers no way to cancel its upload`).not.toBeNull();
+    act(() => {
+      fireEvent.click(cancel!);
+    });
+
+    expect(upload.signal?.aborted, `pressing cancel did not stop the ${kind} upload request`).toBe(true);
+    expect([...shown], `the pending ${kind} stayed in the chat after the sender cancelled it`).toEqual([]);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+    expect(h.sendMessageApi, `a cancelled ${kind} was still sent to the chat backend`).not.toHaveBeenCalled();
+    expect(h.showError, `cancelling the ${kind} was shown to the sender as a failed upload`).not.toHaveBeenCalled();
+    expect(h.logError, `cancelling the ${kind} was reported to Sentry as an upload error`).not.toHaveBeenCalledWith(
+      expect.objectContaining({ scenario: "handleMediaMessage in conversation container - chat widget" }),
+    );
+  });
+
+  it("a file whose upload is done offers no cancel, because it is already being sent", async () => {
+    const { spies } = await mount();
+    await act(async () => {
+      pick(new File(["x"], "doc.pdf", { type: "application/pdf" }));
+    });
+    await waitFor(() => expect(h.sendMessageApi, "the file was not sent").toHaveBeenCalled());
+    const mid = String(spies.sendMessage.mock.calls[0]?.[0]?.message?.mid);
+    expect(
+      cancelButtonOn(mid),
+      "the bubble still offers cancel after the upload finished; pressing it would hide a message that is already sent",
+    ).toBeNull();
   });
 
   it("does nothing when no file was chosen", async () => {
@@ -579,21 +763,21 @@ describe("ConversationContainer — attaching files", () => {
     const input = fileInput();
     vi.spyOn(input, "click").mockImplementation(() => {});
     fireEvent.click(document.querySelector(".camer-icon")!);
-    const openFiles = () => act(() => h.props.Popup.options[0].onClick());
+    const openFiles = () => act(() => h.props.Popup.options[1].onClick());
     openFiles();
     expect(input.accept, "the media picker did not limit the files").toContain("video/mp4");
-    expect(h.props.Popup.options[0].render(), "the files option has no label").toBeTruthy();
-    expect(h.props.Popup.options[1].render(), "the camera option has no label").toBeTruthy();
+    expect(h.props.Popup.options[0].render(), "the camera option has no label").toBeTruthy();
+    expect(h.props.Popup.options[1].render(), "the gallery option has no label").toBeTruthy();
     await act(async () => {
       pick(new File(["x"], "doc.pdf", { type: "application/pdf" }));
     });
-    expect(h.showError, "a document in the media picker was not refused").toHaveBeenCalledWith("Only image and video files are allowed");
+    expect(h.showError, "a document in the media picker was not refused").toHaveBeenCalledWith("Only Image And Video Files Are Allowed");
     openFiles();
     await act(async () => {
       pick(new File(["x"], "clip.avi", { type: "video/x-msvideo" }));
     });
     expect(h.showError, "an unplayable video was not named").toHaveBeenCalledWith(
-      "This video format is not supported. Send an MP4 video instead.",
+      "This Video Format Is Not Supported. Send An MP4 Video Instead.",
     );
     expect(h.upload, "a refused file was uploaded").not.toHaveBeenCalled();
   });
@@ -604,7 +788,7 @@ describe("ConversationContainer — attaching files", () => {
     const input = fileInput();
     vi.spyOn(input, "click").mockImplementation(() => {});
     fireEvent.click(document.querySelector(".camer-icon")!);
-    act(() => h.props.Popup.options[0].onClick());
+    act(() => h.props.Popup.options[1].onClick());
     await act(async () => {
       vi.advanceTimersByTime(1000);
     });
@@ -660,7 +844,7 @@ describe("ConversationContainer — the camera", () => {
     const r = await mount();
     fireEvent.click(document.querySelector(".camer-icon")!);
     await act(async () => {
-      await h.props.Popup.options[1].onClick();
+      await h.props.Popup.options[0].onClick();
     });
     return r;
   }
@@ -669,7 +853,7 @@ describe("ConversationContainer — the camera", () => {
     h.permission.granted = false;
     await openCamera();
     expect(h.showError, "a refused camera permission was not shown").toHaveBeenCalledWith(
-      "Please enable camera permissions to use camera features",
+      "Please Enable Camera Permissions To Use Camera Features",
     );
     expect(h.props.Camera, "the camera opened without permission").toBeUndefined();
   });
@@ -684,11 +868,11 @@ describe("ConversationContainer — the camera", () => {
     act(() => h.props.Crop.onClose());
 
     await act(async () => {
-      await h.props.Popup?.options?.[1]?.onClick?.();
+      await h.props.Popup?.options?.[0]?.onClick?.();
     });
     fireEvent.click(document.querySelector(".camer-icon")!);
     await act(async () => {
-      await h.props.Popup.options[1].onClick();
+      await h.props.Popup.options[0].onClick();
     });
     await act(async () => {
       h.props.Camera.send(new File(["v"], "clip.webm", { type: "video/webm" }));
@@ -697,7 +881,7 @@ describe("ConversationContainer — the camera", () => {
 
     fireEvent.click(document.querySelector(".camer-icon")!);
     await act(async () => {
-      await h.props.Popup.options[1].onClick();
+      await h.props.Popup.options[0].onClick();
     });
     await act(async () => {
       h.props.Camera.send(new File(["i"], "shot.jpg", { type: "image/jpeg" }));
@@ -707,14 +891,14 @@ describe("ConversationContainer — the camera", () => {
 
     fireEvent.click(document.querySelector(".camer-icon")!);
     await act(async () => {
-      await h.props.Popup.options[1].onClick();
+      await h.props.Popup.options[0].onClick();
     });
     await act(async () => {
       h.props.Camera.send(42 as any);
     });
     fireEvent.click(document.querySelector(".camer-icon")!);
     await act(async () => {
-      await h.props.Popup.options[1].onClick();
+      await h.props.Popup.options[0].onClick();
     });
     await act(async () => {
       await h.props.Camera.close();
@@ -776,6 +960,70 @@ describe("ConversationContainer — voice notes", () => {
     expect(URL.createObjectURL, "the recording was not turned into a playable URL").toHaveBeenCalled();
   });
 
+  it("removes the pending voice note when the upload fails before the preview is read", async () => {
+    // Same order problem as the video above: the upload can fail before the
+    // recording is read for the pending bubble.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    stubMic();
+    const shown = new Set<string>();
+    h.upload.mockRejectedValueOnce(new Error("Failed to get ticket"));
+    await mount({
+      store: {
+        sendMessage: vi.fn((p: any) => shown.add(String(p.message.mid))),
+        deleteErrorMessage: vi.fn((p: any) => shown.delete(String(p.msg_id))),
+      },
+    });
+    await act(async () => {
+      fireEvent.click(document.querySelector('img[src="/icons/chat/redmic.svg"]')!);
+    });
+    fireEvent.click(document.querySelector('img[src="/icons/chat/sharechat.svg"]')!);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1600);
+    });
+    await waitFor(() => expect(h.showError, "the failed voice upload was not shown").toHaveBeenCalledWith("Failed To Upload Audio"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(50);
+    });
+    expect([...shown], "the voice note stayed in the chat after its upload failed").toEqual([]);
+  });
+
+  it("the sender can cancel a voice note while it uploads, and nothing is sent", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    stubMic();
+    const upload = uploadThatRunsUntilCancelled();
+    const { shown, store } = bubblesInChat();
+    await mount({ store });
+    await act(async () => {
+      fireEvent.click(document.querySelector('img[src="/icons/chat/redmic.svg"]')!);
+    });
+    fireEvent.click(document.querySelector('img[src="/icons/chat/sharechat.svg"]')!);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1600);
+    });
+    await waitFor(() => expect(h.upload, "the voice note upload did not start").toHaveBeenCalled());
+    const [mid] = [...shown];
+    expect(mid, "no pending voice note bubble was shown while it uploads").toBeTruthy();
+
+    const cancel = cancelButtonOn(mid);
+    expect(cancel, "the pending voice note offers no way to cancel its upload").not.toBeNull();
+    act(() => {
+      fireEvent.click(cancel!);
+    });
+
+    expect(upload.signal?.aborted, "pressing cancel did not stop the voice note upload request").toBe(true);
+    expect([...shown], "the pending voice note stayed in the chat after the sender cancelled it").toEqual([]);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(50);
+    });
+    expect(h.sendMessageApi, "a cancelled voice note was still sent to the chat backend").not.toHaveBeenCalled();
+    expect(h.showError, "cancelling the voice note was shown to the sender as a failed upload").not.toHaveBeenCalled();
+    expect(h.logError, "cancelling the voice note was reported to Sentry as an upload error").not.toHaveBeenCalledWith(
+      expect.objectContaining({ scenario: "sendAudio in conversation container - chat widget" }),
+    );
+  });
+
   it("falls back to the other recorder when native recording is not there", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.stubGlobal("MediaRecorder", undefined);
@@ -800,7 +1048,7 @@ describe("ConversationContainer — voice notes", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1600);
     });
-    await waitFor(() => expect(h.showError, "a failed voice upload was not shown").toHaveBeenCalledWith("Failed to Upload audio"));
+    await waitFor(() => expect(h.showError, "a failed voice upload was not shown").toHaveBeenCalledWith("Failed To Upload Audio"));
   });
 
   it("says there is no microphone when both recorders fail", async () => {
@@ -810,7 +1058,7 @@ describe("ConversationContainer — voice notes", () => {
     await act(async () => {
       fireEvent.click(document.querySelector('img[src="/icons/chat/redmic.svg"]')!);
     });
-    await waitFor(() => expect(h.showError, "a missing microphone was not shown").toHaveBeenCalledWith("No available Microphone"));
+    await waitFor(() => expect(h.showError, "a missing microphone was not shown").toHaveBeenCalledWith("No Available Microphone"));
   });
 
   it("sends nothing when there is no recording", async () => {
@@ -856,6 +1104,25 @@ describe("ConversationContainer — header, details and calls", () => {
     expect(h.makeVideoCall, "the video call was not placed").toHaveBeenCalledWith(7, "Them", "/p.png", "p");
   });
 
+  it("names a call from the details after channel_name", async () => {
+    await mount({ chat: chatWith([msg(10)], { channel_name: "Shop Name" }) });
+    act(() => h.props.ChatHeader.openDetails());
+    act(() => h.props.ChatInfo.makeAudioCall());
+    act(() => h.props.ChatInfo.makeVideoCall());
+    expect(h.makeVoiceCall, "the voice call screen was not given the chat's channel_name").toHaveBeenCalledWith(
+      7,
+      "Shop Name",
+      "/p.png",
+      "p",
+    );
+    expect(h.makeVideoCall, "the video call screen was not given the chat's channel_name").toHaveBeenCalledWith(
+      7,
+      "Shop Name",
+      "/p.png",
+      "p",
+    );
+  });
+
   it("does not place a call while another is being placed", async () => {
     await mount({ store: { callLoading: "video" } });
     act(() => h.props.ChatHeader.openDetails());
@@ -870,15 +1137,15 @@ describe("ConversationContainer — header, details and calls", () => {
       channel_members: [{ user_id: ME }, { user_id: THEM, is_blocked: 1 }],
     });
     await mount({ chat });
-    expect(screen.getByText("You cannot send messages or calls to this user"), "the blocked notice was not shown").toBeInTheDocument();
+    expect(screen.getByText("You Cannot Send Messages Or Calls To This User"), "the blocked notice was not shown").toBeInTheDocument();
     expect(screen.queryByLabelText("Type"), "a blocked chat still had an input").toBeNull();
     expect(h.props.ChatHeader.isBlockedEachOther, "the header was not told the chat is blocked").toBe(true);
     act(() => h.props.ChatHeader.openDetails());
     act(() => h.props.ChatInfo.makeAudioCall());
     act(() => h.props.ChatInfo.makeVideoCall());
     expect(h.showError.mock.calls.map((c) => c[0]), "the blocked calls were not refused with a message").toEqual([
-      "You cannot send messages or calls to this user",
-      "You cannot send messages or calls to this user",
+      "You Cannot Send Messages Or Calls To This User",
+      "You Cannot Send Messages Or Calls To This User",
     ]);
     expect(h.makeVoiceCall, "a blocked chat placed a call").not.toHaveBeenCalled();
   });

@@ -18,7 +18,13 @@ import ChatInfo from "components/Chat/components/ChatInfo";
 import Observable from "components/Chat/components/ChatHistoryElement";
 import WebcamCapture from "components/Chat/components/CameraComponent";
 import ChatSearch from "../components/ChatSearch";
-import { dataURLtoFile, upload, getUser } from "../chatsFunctions";
+import {
+  dataURLtoFile,
+  upload,
+  getUser,
+  getChatName,
+} from "../chatsFunctions";
+import { finishUpload, startUpload } from "../uploadCancel";
 import {
   GetChatDetails,
   getMessagesBetweenTwoMessages,
@@ -86,6 +92,15 @@ const scrollToBottom = () =>
     inline: "end",
   });
 
+/** Reads a file or blob as a data URL, for the pending bubble's preview. */
+const readAsDataUrl = (file: Blob) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
 /* --------------------------------------------------------------------------
  * Component
  * ------------------------------------------------------------------------*/
@@ -114,6 +129,8 @@ function ConversationContainer({
     setQouted,
     setMessagesPage,
     setReplyMessage,
+    jumpToMessageId,
+    setJumpToMessage,
   } = useAppStore();
 
   /* --------------------------- Derived values --------------------------- */
@@ -132,9 +149,6 @@ function ConversationContainer({
   const [cameraEnabled, setCameraEnabled] = useState<boolean>(false);
   const [searchEnable, enableSearch] = useState<boolean>(false);
   const [DetailsVar, openDetails] = useState<boolean>(false);
-  const [pendingScrollToMessageId, setPendingScrollToMessageId] = useState<
-    string | null
-  >(null);
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [croppedImageFile, setCroppedImageFile] = useState<File | null>(null);
   const [croppedImagePreview, setCroppedImagePreview] = useState<string | null>(
@@ -143,9 +157,9 @@ function ConversationContainer({
   /* ----------------------------- scroll function ----------------------------- */
   const scrollToMessage = (quoteId) => {
     if (quoteId) {
-      if (activeChat?.messages?.filter((f) => f.id === quoteId)?.length > 0) {
-        var numb = quoteId?.toString()?.match(/\d/g);
-        numb = numb?.join("");
+      // By string: a reminder sends the id as a string, the chat may hold a
+      // number. `GetMessage` compares the same way.
+      if (activeChat?.messages?.some((f) => `${f.id}` === `${quoteId}`)) {
         let el = document.querySelector(`#main-container-${quoteId}`);
         if (el) {
           el.scrollIntoView({ block: "center" });
@@ -175,7 +189,7 @@ function ConversationContainer({
             channel_id: activeChat?.id,
           });
           setQouted(quoteId);
-          setPendingScrollToMessageId(quoteId);
+          setJumpToMessage(quoteId);
         } catch (err) {
           LogError({
             error: err,
@@ -185,7 +199,7 @@ function ConversationContainer({
         }
       }
     },
-    [activeChat, setQouted],
+    [activeChat, setQouted, setJumpToMessage],
   );
 
   /* ------------------------- Scroll Refs ------------------------------- */
@@ -356,27 +370,31 @@ function ConversationContainer({
     type: string,
     midLocal: string,
   ) => {
+    let signal: AbortSignal | undefined;
     try {
-      // optimistic UI update (uses base64 for img preview)
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = reader.result as string;
-        optimisticMessage({
-          ...baseMessagePayload({}),
-          sender_user_id: senderId,
-          parent_message: replyMessage,
-          message_type: { name: type },
-          message_content: [{ file_path: base64 }],
-          message_files: [{ file_path: base64, file_name: file.name }],
-          type: "pending",
-          created_at: new Date(),
-          message_status: buildMessageStatus(receiverId, senderId),
-          mid: midLocal,
-        });
-      };
-      reader.readAsDataURL(file);
-      // real upload call
-      const { path, name } = await upload(file);
+      // optimistic UI update (uses base64 for img preview). Awaited so the
+      // pending bubble is in the chat before the upload starts: a failed
+      // upload must find it there to remove it.
+      const base64 = await readAsDataUrl(file);
+      optimisticMessage({
+        ...baseMessagePayload({}),
+        sender_user_id: senderId,
+        parent_message: replyMessage,
+        message_type: { name: type },
+        message_content: [{ file_path: base64 }],
+        message_files: [{ file_path: base64, file_name: file.name }],
+        type: "pending",
+        created_at: new Date(),
+        message_status: buildMessageStatus(receiverId, senderId),
+        mid: midLocal,
+      });
+      // real upload call. The sender can cancel it from the pending bubble.
+      signal = startUpload(midLocal, () =>
+        deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id }),
+      );
+      const { path, name } = await upload(file, signal);
+      finishUpload(midLocal);
+      if (signal.aborted) return;
 
       const sendPayload = baseMessagePayload({
         content: [{ file_path: path, file_name: name }],
@@ -392,6 +410,9 @@ function ConversationContainer({
         is_reply: !!replyMessage,
       });
     } catch (err) {
+      finishUpload(midLocal);
+      // Cancelled by the sender: the bubble is already gone, nothing failed.
+      if (signal?.aborted) return;
       LogError({
         error: err,
         scenario: "handleMediaMessage in conversation container - chat widget",
@@ -484,19 +505,21 @@ function ConversationContainer({
     setSearch("");
   }, [activeChat]);
 
+  // A quote, a tagged message or a reminder asked for a message that was not
+  // loaded. Scroll to it once it is in the chat.
   useEffect(() => {
-    if (pendingScrollToMessageId) {
+    if (jumpToMessageId) {
       const exists = activeChat?.messages?.some(
-        (m) => `${m.id}` === `${pendingScrollToMessageId}`,
+        (m) => `${m.id}` === `${jumpToMessageId}`,
       );
       if (exists) {
         requestAnimationFrame(() => {
-          scrollToMessage(pendingScrollToMessageId);
-          setPendingScrollToMessageId(null);
+          scrollToMessage(jumpToMessageId);
+          setJumpToMessage(null);
         });
       }
     }
-  }, [activeChat?.messages, pendingScrollToMessageId]);
+  }, [activeChat?.messages, jumpToMessageId]);
 
   useEffect(() => {
     const input = fileInputRef.current;
@@ -678,6 +701,7 @@ function ConversationContainer({
   /* ------------------------- Audio Sender ------------------------------- */
   const sendAudio = useCallback(
     async (midLocal: string) => {
+      let signal: AbortSignal | undefined;
       try {
         if (!blobs.current || !activeChat) return;
 
@@ -689,27 +713,30 @@ function ConversationContainer({
         // Create file from blob
         const file = new File([blobs.current], `voice-${midLocal}.wav`);
 
-        // Create optimistic message with base64 data
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64data = reader.result as string;
-          optimisticMessage({
-            ...baseMessagePayload({}),
-            sender_user_id: senderId,
-            message_type: { name: "VoiceMessage" },
-            message_content: [{ file_path: base64data }],
-            message_files: [{ file_path: base64data, file_name: "Audio" }],
-            created_at: new Date(),
-            type: "pending",
-            parent_message: replyMessage,
-            mid: midLocal,
-            message_status: buildMessageStatus(receiverId, senderId),
-          });
-        };
-        reader.readAsDataURL(blobs.current);
+        // Create optimistic message with base64 data, before the upload starts
+        // (see handleMediaMessage).
+        const base64data = await readAsDataUrl(blobs.current);
+        optimisticMessage({
+          ...baseMessagePayload({}),
+          sender_user_id: senderId,
+          message_type: { name: "VoiceMessage" },
+          message_content: [{ file_path: base64data }],
+          message_files: [{ file_path: base64data, file_name: "Audio" }],
+          created_at: new Date(),
+          type: "pending",
+          parent_message: replyMessage,
+          mid: midLocal,
+          message_status: buildMessageStatus(receiverId, senderId),
+        });
 
-        // Upload file and send actual message
-        const { path, name } = await upload(file);
+        // Upload file and send actual message. The sender can cancel the
+        // upload from the pending bubble.
+        signal = startUpload(midLocal, () =>
+          deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id }),
+        );
+        const { path, name } = await upload(file, signal);
+        finishUpload(midLocal);
+        if (signal.aborted) return;
 
         // @ts-ignore – original send util expects certain shape
         SendMessage(
@@ -724,6 +751,9 @@ function ConversationContainer({
           isPrivate,
         );
       } catch (error) {
+        finishUpload(midLocal);
+        // Cancelled by the sender: the bubble is already gone, nothing failed.
+        if (signal?.aborted) return;
         LogError({
           error: error,
           scenario: "sendAudio in conversation container - chat widget",
@@ -881,6 +911,7 @@ function ConversationContainer({
         }}
         style={{ position: "absolute", opacity: 0 }}
         type="file"
+        data-pw="chat-file-input"
         onBlur={() => {
           sendStatus(null);
         }}
@@ -970,7 +1001,13 @@ function ConversationContainer({
       )}
 
       {/* Main chat layout */}
-      <div className="chat-screen" style={{ right: ViewedScreen ? 0 : 431 }}>
+      <div
+        className="chat-screen"
+        data-pw="chat-conversation"
+        data-chat-id={activeChat?.id ?? ""}
+        data-open={ViewedScreen ? "true" : "false"}
+        style={{ right: ViewedScreen ? 0 : 431 }}
+      >
         {/* Details Drawer */}
         {DetailsVar && !isPrivate && (
           <ChatInfo
@@ -988,7 +1025,7 @@ function ConversationContainer({
               if (callLoading || !activeChat?.id) return;
               makeVoiceCall(
                 activeChat.id,
-                receiver?.user.name,
+                getChatName(activeChat),
                 receiver?.user?.photo_path,
                 receiver?.user.mobile_phone,
               );
@@ -1006,7 +1043,7 @@ function ConversationContainer({
               if (callLoading || !activeChat?.id) return;
               makeVideoCall(
                 activeChat.id,
-                receiver?.user.name,
+                getChatName(activeChat),
                 receiver?.user?.photo_path,
                 receiver?.user.mobile_phone,
               );
@@ -1016,6 +1053,12 @@ function ConversationContainer({
             enableSearch={() => {
               openDetails(false);
               enableSearch(true);
+            }}
+            openMessage={async (messageId) => {
+              // The details stay open, with a spinner on the row, until the
+              // messages up to this one have loaded.
+              await GetMessage(null, messageId);
+              openDetails(false);
             }}
           />
         )}
@@ -1080,6 +1123,9 @@ function ConversationContainer({
                 parent_message={mes.parent_message}
                 parent_message_id={mes.parent_message_id}
                 sender_user_id={mes.sender_user_id}
+                tags={mes.tags}
+                reminder={mes.reminder}
+                is_edited={mes.is_edited}
                 mid={mes?.mid}
                 isPrivate={isPrivate}
                 setVid={setVid}
@@ -1101,7 +1147,10 @@ function ConversationContainer({
         <>
           {isBlockedEachOther() ? (
             <>
-              <div className="flex grow flex-row items-center justify-center medium text-pretty text-[#1d1d1d] bg-gray-200 p-3 rounded-md">
+              <div
+                className="flex grow flex-row items-center justify-center medium text-pretty text-[#1d1d1d] bg-gray-200 p-3 rounded-md"
+                data-pw="chat-blocked-banner"
+              >
                 {translateFunction(
                   "You cannot send messages or calls to this user",
                   language,
@@ -1189,6 +1238,7 @@ function ConversationContainer({
                       </label>
                       <input
                         id="type"
+                        data-pw="chat-message-input"
                         className={`input-chat wid31`}
                         value={message}
                         onChange={onChangeInput}
@@ -1199,6 +1249,7 @@ function ConversationContainer({
                     {message.length > 0 ? (
                       <img
                         src="/icons/chat/sendbutton.svg"
+                        data-pw="chat-send-button"
                         style={{ minWidth: 50, cursor: "pointer" }}
                         onClick={() => {
                           sendTextMessage(message);
@@ -1259,7 +1310,7 @@ function ConversationContainer({
       {showMenu && (
         <CustomPopup
           modalTitle={translateFunction(
-            "chosse an image or video from camera or files",
+            "choose photo or video from gallery or camera",
           )}
           close={() => {
             setShowMenu(false);
@@ -1269,7 +1320,11 @@ function ConversationContainer({
           }}
           options={[
             {
-              render: () => <>{translateFunction("files")}</>,
+              render: () => <>{translateFunction("camera")}</>,
+              onClick: () => enableCamera(true),
+            },
+            {
+              render: () => <>{translateFunction("Gallery")}</>,
               onClick: () => {
                 onlyMediaRef.current = true;
                 const fileInput =
@@ -1290,10 +1345,6 @@ function ConversationContainer({
                   }, 1000);
                 }
               },
-            },
-            {
-              render: () => <>{translateFunction("camera")}</>,
-              onClick: () => enableCamera(true),
             },
           ]}
         />

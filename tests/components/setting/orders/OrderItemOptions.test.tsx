@@ -175,7 +175,7 @@ describe("which actions are offered", () => {
       isRtl: true,
     });
     expect(screen.getByText("7 Days"), "a seven-day return window did not read 7 Days").toBeInTheDocument();
-    expect(screen.getByText("We received your report"), "a reported line did not say the report arrived").toBeInTheDocument();
+    expect(screen.getByText("We Received Your Report"), "a reported line did not say the report arrived").toBeInTheDocument();
   });
 
   it("a delivered line with qty 0 offers no return", async () => {
@@ -286,7 +286,7 @@ describe("starting a return", () => {
     await userEvent.setup().click(screen.getByText("Return This Product"));
     await waitFor(() =>
       expect(showErrorNotification, "the shopper was not told the product cannot be returned").toHaveBeenCalledWith(
-        "return this product is not allowed",
+        "Return This Product Is Not Allowed",
       ),
     );
     expect(screen.queryByTestId("return-screen"), "the return screen opened for a product not in the request").not.toBeInTheDocument();

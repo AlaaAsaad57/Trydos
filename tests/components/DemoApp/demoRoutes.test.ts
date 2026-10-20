@@ -43,6 +43,14 @@ describe("demo routes — which screen a URL shows", () => {
       "the new-address path is not the address form",
     ).toBe("settings/profile/address/new");
     expect(
+      screenFromUrl("/sy-en/demo/settings/wallet", ""),
+      "/demo/settings/wallet is not the wallet",
+    ).toBe("settings/wallet");
+    expect(
+      parentOf("settings/wallet"),
+      "back from the wallet with no history does not go to the profile tab",
+    ).toBe("settings");
+    expect(
       screenFromUrl("/sy-en/demo/settings/nope", ""),
       "an unknown /demo path was taken for a demo screen",
     ).toBeNull();

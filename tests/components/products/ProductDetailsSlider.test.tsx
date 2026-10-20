@@ -27,9 +27,10 @@ const { embla } = vi.hoisted(() => {
 });
 vi.mock("embla-carousel-react", () => ({ default: () => [() => {}, embla.api] }));
 
+const { authMock } = vi.hoisted(() => ({ authMock: { UserID: vi.fn(() => 7) } }));
 const GAevent = vi.fn();
 vi.mock("utils/gtag", () => ({ GAevent: (...a: any[]) => GAevent(...a) }));
-vi.mock("services/auth", () => ({ default: { UserID: () => 7 } }));
+vi.mock("services/auth", () => ({ default: authMock }));
 
 const GA = { item_id: 1, item_name: "Shoe" };
 const IMAGES = [{ file_path: "/a.jpg" }, { file_path: "/b.jpg" }];
@@ -50,6 +51,8 @@ describe("ProductDetailsSlider", () => {
   let slides: HTMLElement[] = [];
   beforeEach(() => {
     GAevent.mockReset();
+    authMock.UserID.mockReset();
+    authMock.UserID.mockReturnValue(7);
     embla.api.on.mockClear();
     embla.api.off.mockClear();
     embla.api.scrollTo.mockClear();
@@ -131,5 +134,61 @@ describe("ProductDetailsSlider", () => {
     fireEvent.click(slides[0]);
     expect(zooms().length === 0, "a click was listened to without reset").toBe(true);
     unmount();
+  });
+
+  it("waits till user id is not null before launching the view_item event", async () => {
+    vi.useFakeTimers();
+    authMock.UserID.mockReturnValue(undefined as any);
+    const { store } = await renderWithProviders(
+      <ProductDetailsSlider images={IMAGES} productGA={GA} />,
+    );
+    expect(
+      GAevent.mock.calls.some(([p]: any) => p.action === GA_EVENT_NAMES.VIEW_PRODUCT_EVENT),
+      "the event should wait and not launch while user id is null",
+    ).toBe(false);
+
+    // Verified user profile arrives after auth bootstrap finishes
+    act(() => {
+      store.setState({
+        userProfile: { id: 4849, is_phone_verified: 1 },
+      } as any);
+    });
+
+    expect(GAevent, "the product view was not reported once user id became available").toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: GA_EVENT_NAMES.VIEW_PRODUCT_EVENT,
+        params: expect.objectContaining({ user_id_custom: 4849 }),
+      }),
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(20000);
+    });
+    expect(GAevent, "20 seconds of engagement were not reported with the verified user id").toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: GA_EVENT_NAMES.VIEW_ITEM_PRODUCT,
+        params: expect.objectContaining({ user_id_custom: 4849, engagement_time: 20 }),
+      }),
+    );
+  });
+
+  it("launches the event on fallback timeout if user id never arrives", async () => {
+    vi.useFakeTimers();
+    authMock.UserID.mockReturnValue(undefined as any);
+    await renderWithProviders(
+      <ProductDetailsSlider images={IMAGES} productGA={GA} />,
+    );
+    expect(
+      GAevent.mock.calls.some(([p]: any) => p.action === GA_EVENT_NAMES.VIEW_PRODUCT_EVENT),
+    ).toBe(false);
+
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+
+    expect(
+      GAevent.mock.calls.some(([p]: any) => p.action === GA_EVENT_NAMES.VIEW_PRODUCT_EVENT),
+      "the event should launch on fallback timeout so it is never dropped",
+    ).toBe(true);
   });
 });

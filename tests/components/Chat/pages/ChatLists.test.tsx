@@ -32,7 +32,12 @@ vi.mock("components/Chat/components/SearchResult", () => ({
   },
 }));
 vi.mock("components/Chat/components/GetMoreChats", () => ({ default: () => null }));
-vi.mock("store/chat/actions", () => ({ GetLastSeen: vi.fn() }));
+// ChatLists also asks for the archived chats and my reminders on mount.
+vi.mock("store/chat/actions", () => ({
+  GetLastSeen: vi.fn(),
+  GetArchivedChats: vi.fn(),
+  GetMyReminders: vi.fn(),
+}));
 
 import ChatLists from "components/Chat/pages/ChatLists";
 
@@ -111,5 +116,208 @@ describe("ChatLists search — a contact who already has a chat", () => {
       h.contactRows.map((p) => p.SenderName),
       "a contact with no chat was not offered as a new chat",
     ).toContain("سامر");
+  });
+});
+
+describe("ChatLists — the name and picture of each chat row", () => {
+  // The mobile app names a chat after `channel_name` and shows the other
+  // person's own picture. The web used the other person's user name, so the
+  // same chat had two names. Each list here must follow the app.
+
+  /** Bilal's chat as the chat backend sends it to me. The channel has its own
+   *  name and picture, and Bilal's user record has a different name and picture. */
+  const namedChat = (extra: Record<string, any> = {}, myPin = 0) => ({
+    ...bilalChat,
+    channel_name: "Bilal Shop",
+    photo_path: "/channel.png",
+    channel_members: [
+      { user_id: ME, pin: myPin, mute: 0, user: { name: "Me", photo_path: "/me.png" } },
+      { user_id: BILAL, pin: 0, mute: 0, user: { name: "bilal seller id 8", photo_path: "/bilal.png" } },
+    ],
+    ...extra,
+  });
+
+  /** The last props a row got. A stand-in renders more than once. */
+  const rowOf = (id: number) => h.chatRows.filter((p) => p.id === id).at(-1);
+
+  async function mountRows(search: string, store: Record<string, any>) {
+    await renderWithProviders(<ChatLists search={search} />, {
+      store: {
+        userChat: { id: ME },
+        chat_loading: false,
+        pinnedChats: [],
+        chatSearchResults: [],
+        activeChat: null,
+        archivedChats: [],
+        reminders: [],
+        ...store,
+      },
+    });
+  }
+
+  it("names a row after channel_name and shows the other person's picture", async () => {
+    await mountRows("", { data: [namedChat()] });
+    expect(rowOf(40)?.SenderName, "the row did not use the chat's channel_name").toBe("Bilal Shop");
+    expect(rowOf(40)?.photo, "the row did not show the other person's own picture").toBe("/bilal.png");
+  });
+
+  it("names a pinned row after channel_name and shows the other person's picture", async () => {
+    await mountRows("", { data: [namedChat({}, 1)] });
+    expect(rowOf(40)?.pinned, "the chat was not drawn in the pinned group, so this test checks the wrong row").toBe(true);
+    expect(rowOf(40)?.SenderName, "the pinned row did not use the chat's channel_name").toBe("Bilal Shop");
+    expect(rowOf(40)?.photo, "the pinned row did not show the other person's own picture").toBe("/bilal.png");
+  });
+
+  it("falls back to the other person's name when channel_name is empty", async () => {
+    await mountRows("", { data: [namedChat({ channel_name: "" })] });
+    expect(rowOf(40)?.SenderName, "a chat with no channel_name did not fall back to the other person's name").toBe(
+      "bilal seller id 8",
+    );
+  });
+
+  it("names an archived row after channel_name and shows the other person's picture", async () => {
+    const archived = namedChat({ id: 41, is_archived: 1 });
+    await mountRows("", { data: [archived], archivedChats: [archived] });
+    await act(async () => screen.getByText("Archived").click());
+    expect(rowOf(41)?.archived, "the Archived folder did not draw the archived chat").toBe(true);
+    expect(rowOf(41)?.SenderName, "the archived row did not use the chat's channel_name").toBe("Bilal Shop");
+    expect(rowOf(41)?.photo, "the archived row did not show the other person's own picture").toBe("/bilal.png");
+  });
+
+  it("finds a chat by its channel_name and names the result after it", async () => {
+    await mountRows("Bilal Shop", { data: [namedChat()] });
+    expect(rowOf(40), "searching the name shown on the row did not find the chat").toBeTruthy();
+    expect(rowOf(40)?.SenderName, "the search result did not use the chat's channel_name").toBe("Bilal Shop");
+    expect(rowOf(40)?.photo, "the search result did not show the other person's own picture").toBe("/bilal.png");
+  });
+});
+
+describe("ChatLists — unread, archived and reminders", () => {
+  /** A message from Bilal, and whether I have seen it. */
+  const fromBilal = (id: number, watched: boolean) => ({
+    id,
+    created_at: "2026-09-20T10:00:00.000Z",
+    sender_user_id: BILAL,
+    message_type: { name: "TextMessage" },
+    message_status: [{ user_id: ME, is_watched: watched }],
+    auth_message_status: { delete_for_all: false },
+  });
+
+  async function mountList(store: Record<string, any>) {
+    await renderWithProviders(<ChatLists search="" />, {
+      store: {
+        userChat: { id: ME },
+        chat_loading: false,
+        pinnedChats: [],
+        chatSearchResults: [],
+        activeChat: null,
+        archivedChats: [],
+        reminders: [],
+        ...store,
+      },
+    });
+  }
+
+  it("draws a chat I have read as read, so its swipe option offers Unread", async () => {
+    await mountList({ data: [{ ...bilalChat, messages: [fromBilal(1, true)] }] });
+    const row = h.chatRows.find((p) => p.id === bilalChat.id);
+    expect(row?.unread, "a chat with every message read was drawn as unread").toBe(false);
+    expect(row?.newMessage, "a read chat showed an unread count").toBe(0);
+  });
+
+  it("draws a chat I marked unread as unread, with a count of 1", async () => {
+    await mountList({
+      data: [{ ...bilalChat, messages: [fromBilal(1, true)], marked_unread: true }],
+    });
+    const row = h.chatRows.find((p) => p.id === bilalChat.id);
+    expect(row?.unread, "a chat marked unread was drawn as read").toBe(true);
+    expect(row?.newMessage, "a chat marked unread showed no unread count").toBe(1);
+  });
+
+  it("keeps an archived chat out of the list and opens it from the Archived folder", async () => {
+    const actions = await import("store/chat/actions");
+    const archived = { ...bilalChat, id: 41, messages: [], is_archived: 1 };
+    await mountList({ data: [bilalChat, archived], archivedChats: [archived] });
+
+    expect(actions.GetArchivedChats, "the archived chats were not asked for").toHaveBeenCalled();
+    expect(actions.GetMyReminders, "my reminders were not asked for").toHaveBeenCalled();
+    expect(
+      h.chatRows.some((p) => p.id === 41),
+      "an archived chat was drawn in the main list",
+    ).toBe(false);
+
+    h.chatRows = [];
+    await act(async () => screen.getByText("Archived").click());
+    expect(
+      h.chatRows.find((p) => p.id === 41)?.archived,
+      "the Archived folder did not list the archived chat with its Unarchive option",
+    ).toBe(true);
+  });
+
+  it("shows both folders even when they hold nothing", async () => {
+    await mountList({ data: [bilalChat], archivedChats: [], reminders: [] });
+    expect(
+      document.querySelector('[data-pw="CHAT-REMINDERS-FOLDER"]'),
+      "the Reminders folder was hidden because I have no reminder",
+    ).not.toBeNull();
+    expect(
+      document.querySelector('[data-pw="CHAT-ARCHIVED-FOLDER"]'),
+      "the Archived folder was hidden because I have no archived chat",
+    ).not.toBeNull();
+  });
+
+  it("asks the chat backend again each time a folder opens", async () => {
+    const actions = await import("store/chat/actions");
+    await mountList({ data: [bilalChat] });
+    vi.mocked(actions.GetArchivedChats).mockClear();
+    vi.mocked(actions.GetMyReminders).mockClear();
+
+    const folder = (name: string) =>
+      document.querySelector(`[data-pw="CHAT-${name}-FOLDER"]`) as HTMLElement | null;
+    expect(folder("ARCHIVED"), "the Archived folder was hidden, so it could not be opened").not.toBeNull();
+    await act(async () => folder("ARCHIVED")!.click());
+    expect(
+      actions.GetArchivedChats,
+      "opening the Archived folder showed the list from before, without asking again",
+    ).toHaveBeenCalledTimes(1);
+    await act(async () => screen.getByLabelText("Back").click());
+
+    await act(async () => folder("REMINDERS")!.click());
+    expect(
+      actions.GetMyReminders,
+      "opening the Reminders folder showed the list from before, without asking again",
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows the Reminders folder while I have a reminder", async () => {
+    await mountList({
+      data: [bilalChat],
+      reminders: [
+        {
+          id: "r-1",
+          remind_at: "2030-01-01T09:00:00.000Z",
+          created_at: "2026-09-26T09:00:00.000Z",
+          message_id: "5",
+          message: { id: "5", channel_id: "40", message_type: "TextMessage", content: "call the shop", sender_user: { id: BILAL, name: "Bilal", photo_path: null }, created_at: null },
+        },
+        {
+          // The chat backend sends an empty text for some text messages.
+          id: "r-2",
+          remind_at: "2030-01-02T09:00:00.000Z",
+          created_at: "2026-09-26T09:00:00.000Z",
+          message_id: "6",
+          message: { id: "6", channel_id: "40", message_type: "TextMessage", content: "", sender_user: { id: BILAL, name: "Bilal", photo_path: null }, created_at: null },
+        },
+      ],
+    });
+    await act(async () => screen.getByText("Reminders").click());
+    expect(
+      screen.getByText("call the shop"),
+      "the Reminders folder did not list the reminded message",
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Message"),
+      "a reminder whose text came back empty showed a blank line instead of the word message",
+    ).toBeInTheDocument();
   });
 });

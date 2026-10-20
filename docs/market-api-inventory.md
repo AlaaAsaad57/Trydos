@@ -164,7 +164,7 @@ except the bootstrap/onboarding calls noted as `market`.
 | 30 | Orders | `/shop/orders/status` | PATCH | market-dashboard | Laravel | sellerDashboard · `updateOrderStatus` | Update an order's status |
 | 31 | Orders | `/shop/orders/details/status/confirmed` | PUT | market-dashboard | Laravel | sellerDashboard · `confirmOrderDetailStatus` | Mark order line confirmed |
 | 32 | Orders | `/shop/orders/details/status/packed` | PUT | market-dashboard | Laravel | sellerDashboard · `packOrderDetailStatus` | Mark order line packed |
-| 33 | Orders | `/api/v1/shop/orders/details/cancel` | PUT | market-dashboard | Laravel | sellerDashboard · `cancelOrderDetail` | Cancel an order line (qty) |
+| 33 | Orders | `/shop/orders/details/cancel` | PUT | market-dashboard | Laravel | sellerDashboard · `cancelOrderDetail` | Cancel an order line (qty) |
 | 34 | Users/roles | `/shop/users/roles?page=…&search=…` | GET | market-dashboard | Laravel | sellerDashboard · `getRoles` | List shop roles |
 | 35 | Users/roles | `/shop/users/add` | POST | market-dashboard | Laravel | sellerDashboard · `addUserToShop` | Add a user to the shop |
 | 36 | Users/roles | `/shop/users?page=…&lang=…` | GET | market-dashboard | Laravel | sellerDashboard · `getUsers` | List shop users |

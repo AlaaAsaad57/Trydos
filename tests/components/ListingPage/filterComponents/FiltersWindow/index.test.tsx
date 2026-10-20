@@ -127,11 +127,11 @@ describe("the filter window", () => {
       await renderWindow();
 
       expect(
-        screen.getByText("Filter By categories"),
+        screen.getByText("Filter By Categories"),
         "each row is one kind of filter, and its heading is the only thing naming which kind the chips under it belong to",
       ).toBeInTheDocument();
       expect(
-        screen.getByText("Filter By brands"),
+        screen.getByText("Filter By Brands"),
         "the brands row must be drawn when the listing has brands to offer",
       ).toBeInTheDocument();
       expect(
@@ -144,7 +144,7 @@ describe("the filter window", () => {
       await renderWindow({ rows: seedRows({ brands: [] }) });
 
       expect(
-        screen.queryByText("Filter By brands"),
+        screen.queryByText("Filter By Brands"),
         "an empty row is a heading over nothing — it tells the shopper there is a choice to make where there is none",
       ).not.toBeInTheDocument();
     });

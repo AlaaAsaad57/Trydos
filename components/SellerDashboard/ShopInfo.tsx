@@ -19,6 +19,7 @@ interface ShopInfoProps {
   language: string;
   // UPDATE_SHOP_INFO permission — when false the form is read-only.
   canUpdate?: boolean;
+  onShopInfoUpdated?: (info: { name: string; image?: string | null }) => void;
 }
 
 interface ShopFormData {
@@ -34,7 +35,13 @@ interface FormErrors {
 }
 
 // --- Main Component ---
-export default function ShopInfo({ sellerId, language, canUpdate = false }: ShopInfoProps) {
+export default function ShopInfo({
+  sellerId,
+  language,
+  canUpdate = false,
+  onShopInfoUpdated,
+}: ShopInfoProps) {
+  const isRtl = language === 'ar' || language === 'ku';
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -58,12 +65,21 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
+  // The seller pressed the X on a stored picture; the next save removes it.
+  const [imageCleared, setImageCleared] = useState(false);
+  const [bannerCleared, setBannerCleared] = useState(false);
+
   // Cropping States
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [croppingType, setCroppingType] = useState<'image' | 'banner' | null>(null);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  const onShopInfoUpdatedRef = useRef(onShopInfoUpdated);
+  useEffect(() => {
+    onShopInfoUpdatedRef.current = onShopInfoUpdated;
+  }, [onShopInfoUpdated]);
 
   // Fetch Initial Data — GET /shop/info (READ_SHOP_INFO)
   useEffect(() => {
@@ -80,8 +96,25 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
           contact: data.contact ?? '',
           address: data.address ?? '',
         });
-        setImageUrl(GetImageUrl(data.image) ?? null);
-        setBannerUrl(GetImageUrl(data.banner) ?? null);
+        const sanitizeMediaUrl = (url: unknown): string | null => {
+          if (!url || typeof url !== 'string') return null;
+          const trimmed = url.trim();
+          if (!trimmed || trimmed.endsWith('/')) return null;
+          return GetImageUrl(trimmed) ?? null;
+        };
+
+        const loadedImage = sanitizeMediaUrl(data.image);
+        const loadedBanner = sanitizeMediaUrl(data.banner);
+
+        setImageUrl(loadedImage);
+        setBannerUrl(loadedBanner);
+
+        if (data.name) {
+          onShopInfoUpdatedRef.current?.({
+            name: data.name,
+            image: loadedImage,
+          });
+        }
       } catch (error) {
         LogError({
           scenario: 'ShopInfo.loadData',
@@ -140,6 +173,21 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
     setCroppingType(null);
   };
 
+  // 4. Clear the logo / banner (staged file and stored picture)
+  const handleClearImage = (type: 'image' | 'banner') => {
+    if (type === 'image') {
+      if (imageUrl) setImageCleared(true);
+      setImageFile(null);
+      setImagePreview(null);
+      setImageUrl(null);
+    } else {
+      if (bannerUrl) setBannerCleared(true);
+      setBannerFile(null);
+      setBannerPreview(null);
+      setBannerUrl(null);
+    }
+  };
+
   // Vanilla Form Validation
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -167,12 +215,14 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
     setErrors(newErrors);
     return isValid;
   };
-  const normializeImage=(image:string)=>{
-    if(!image) return null
-    let newImage=image?.split('/');
-    let normalizedStr=newImage?.[newImage.length-1];
-    return normalizedStr;
-  }
+  const normializeImage = (image: string | null) => {
+    if (!image) return null;
+    const trimmed = image.trim();
+    if (trimmed.endsWith('/')) return null;
+    const newImage = trimmed.split('/');
+    const normalizedStr = newImage[newImage.length - 1];
+    return normalizedStr || null;
+  };
 
   const normalizedWithImageUpload=(image:string)=>{
     if(!image) return null;
@@ -208,13 +258,16 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
         name: formData.shopName.trim(),
         address: formData.address.trim(),
         contact: formData.contact.trim(),
-        image: normializeImage(finalImage),
-        banner: normializeImage(finalBanner),
+        image: imageCleared && !finalImage ? '' : normializeImage(finalImage),
+        banner: bannerCleared && !finalBanner ? '' : normializeImage(finalBanner),
       });
 
       if (res && res.success === false) {
         throw new Error(res.message || 'Failed to update');
       }
+
+      const updatedName = formData.shopName.trim();
+      const updatedImage = imageCleared && !finalImage ? null : finalImage;
 
       // Persist the new URLs and clear the staged files
       setImageUrl(finalImage);
@@ -223,6 +276,13 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
       setBannerFile(null);
       setImagePreview(null);
       setBannerPreview(null);
+      setImageCleared(false);
+      setBannerCleared(false);
+
+      onShopInfoUpdatedRef.current?.({
+        name: updatedName,
+        image: updatedImage,
+      });
 
       showSuccessMessage(translateFunction('Shop Info Updated Successfully!', language));
     } catch (error) {
@@ -243,7 +303,7 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
   const bannerFileLabel = bannerFile?.name || (bannerUrl ? bannerUrl.split('/').pop() : '');
 
   return (
-    <div className="relative">
+    <div className="relative" dir={isRtl ? 'rtl' : 'ltr'}>
 
       {/* Conditionally Render the Crop Widget */}
       {pendingImageFile && croppingType && (
@@ -289,7 +349,7 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
                   onChange={handleTextChange}
                   disabled={!canUpdate}
                   placeholder={translateFunction('Shop Name', language)}
-                  className={`w-full px-4 h-[48px] rounded-[12px] bg-[#f8f8f8] border text-[14px] text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                  className={`w-full px-4 h-[48px] rounded-[12px] bg-[#f8f8f8] border text-[14px] text-start text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                     errors.shopName
                       ? 'border-[#f85555]'
                       : 'border-[#ededed] focus:border-[#5d5d5d]'
@@ -311,12 +371,13 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
                 <input
                   type="text"
                   name="contact"
+                  dir="ltr"
                   data-pw="shop-info-contact-input"
                   value={formData.contact}
                   onChange={handleTextChange}
                   disabled={!canUpdate}
                   placeholder="971XXXXXXXXX"
-                  className={`w-full px-4 h-[48px] rounded-[12px] bg-[#f8f8f8] border text-[14px] text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                  className={`w-full px-4 h-[48px] rounded-[12px] bg-[#f8f8f8] border text-[14px] text-start text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                     errors.contact
                       ? 'border-[#f85555]'
                       : 'border-[#ededed] focus:border-[#5d5d5d]'
@@ -342,7 +403,7 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
                   onChange={handleTextChange}
                   disabled={!canUpdate}
                   placeholder={translateFunction('Address', language)}
-                  className={`w-full px-4 py-3 rounded-[12px] bg-[#f8f8f8] border text-[14px] text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white resize-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                  className={`w-full px-4 py-3 rounded-[12px] bg-[#f8f8f8] border text-[14px] text-start text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:bg-white resize-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                     errors.address
                       ? 'border-[#f85555]'
                       : 'border-[#ededed] focus:border-[#5d5d5d]'
@@ -361,15 +422,28 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
               <Skeleton height={160} width={160} borderRadius={15} />
             ) : (
               <div className="flex items-start gap-4">
-                <div className="w-40 h-40 rounded-[15px] overflow-hidden bg-[#f8f8f8] border border-[#ededed] flex items-center justify-center shrink-0">
-                  {imageSrc ? (
-                    <img
-                      src={imageSrc}
-                      alt="Shop logo preview"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Monogram name={formData.shopName} size={80} rounded={15} />
+                <div className="relative w-40 h-40 shrink-0">
+                  <div className="w-full h-full rounded-[15px] overflow-hidden bg-[#f8f8f8] border border-[#ededed] flex items-center justify-center">
+                    {imageSrc ? (
+                      <img
+                        src={imageSrc}
+                        alt="Shop logo preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Monogram name={formData.shopName} size={80} rounded={15} />
+                    )}
+                  </div>
+                  {imageSrc && canUpdate && (
+                    <button
+                      type="button"
+                      data-pw="shop-info-logo-clear-btn"
+                      aria-label={translateFunction('Remove', language)}
+                      onClick={() => handleClearImage('image')}
+                      className={`absolute top-2 ${isRtl ? 'left-2' : 'right-2'} w-7 h-7 rounded-full bg-white/90 text-[#f85555] shadow-[0_2px_6px_rgba(0,0,0,0.18)] flex items-center justify-center hover:bg-white`}
+                    >
+                      <DashIcon name="close" size={14} />
+                    </button>
                   )}
                 </div>
                 <div className="space-y-2 pt-1">
@@ -431,6 +505,17 @@ export default function ShopInfo({ sellerId, language, canUpdate = false }: Shop
                         {translateFunction('No banner yet', language)}
                       </span>
                     </div>
+                  )}
+                  {bannerSrc && canUpdate && (
+                    <button
+                      type="button"
+                      data-pw="shop-info-banner-clear-btn"
+                      aria-label={translateFunction('Remove', language)}
+                      onClick={() => handleClearImage('banner')}
+                      className={`absolute top-2 ${isRtl ? 'left-2' : 'right-2'} w-7 h-7 rounded-full bg-white/90 text-[#f85555] shadow-[0_2px_6px_rgba(0,0,0,0.18)] flex items-center justify-center hover:bg-white`}
+                    >
+                      <DashIcon name="close" size={14} />
+                    </button>
                   )}
                 </div>
                 <div className="flex items-center gap-3">

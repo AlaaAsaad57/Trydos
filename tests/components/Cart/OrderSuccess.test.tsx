@@ -144,4 +144,64 @@ describe("OrderSuccess", () => {
       "the success block must stay folded",
     ).toContain("h-0");
   });
+
+  it("displays receipt_number under the order invoice label when present on orderData", async () => {
+    await renderWithProviders(<OrderSuccess />, {
+      store: {
+        orderData: {
+          success: true,
+          data: [{ order_group_id: "GRP-REC-1", order_amount: 50 }],
+          receipt_number: "RCPT-987654",
+        },
+        currency: { code: "USD" },
+        cart: [],
+      },
+    });
+
+    const receiptEl = document.querySelector('[data-pw="order-receipt-number"]');
+    expect(receiptEl, "receipt number element must be rendered").toBeInTheDocument();
+    expect(receiptEl?.textContent, "receipt number text must match orderData.receipt_number").toBe("RCPT-987654");
+    expect(
+      screen.getByText("Order Invoice"),
+      "the order invoice label must be rendered above the receipt number",
+    ).toBeInTheDocument();
+  });
+
+  it("displays receipt_number when present on orderData.data[0]", async () => {
+    await renderWithProviders(<OrderSuccess />, {
+      store: {
+        orderData: {
+          success: true,
+          data: [{ order_group_id: "GRP-REC-2", order_amount: 50, receipt_number: "RCPT-FROM-ROW" }],
+          receipt_number: null,
+        },
+        currency: { code: "USD" },
+        cart: [],
+      },
+    });
+
+    const receiptEl = document.querySelector('[data-pw="order-receipt-number"]');
+    expect(receiptEl, "receipt number element must be rendered from orderData.data[0]").toBeInTheDocument();
+    expect(receiptEl?.textContent, "receipt number text must match row receipt_number").toBe("RCPT-FROM-ROW");
+  });
+
+  it("does not render receipt number element when receipt_number is null", async () => {
+    await renderWithProviders(<OrderSuccess />, {
+      store: {
+        orderData: {
+          success: true,
+          data: [{ order_group_id: "GRP-NO-REC", order_amount: 50 }],
+          receipt_number: null,
+        },
+        currency: { code: "USD" },
+        cart: [],
+      },
+    });
+
+    expect(
+      document.querySelector('[data-pw="order-receipt-number"]'),
+      "receipt number element must not be rendered when receipt_number is null",
+    ).toBeNull();
+  });
 });
+

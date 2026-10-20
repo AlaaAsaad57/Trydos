@@ -268,7 +268,7 @@ describe("adding to the bag from the add-to-cart button", () => {
       { localCart: [{ id: 101, item_id: "cart-1", quantity: 2, product_variation_id: 9 }] },
     );
     expect(screen.getByText("X 1"), "the count in the bag was not shown").toBeInTheDocument();
-    expect(screen.getByText("Add More to Your Bag"), "the add-more label was not shown").toBeInTheDocument();
+    expect(screen.getByText("Add More To Your Bag"), "the add-more label was not shown").toBeInTheDocument();
 
     await tapAdd();
 

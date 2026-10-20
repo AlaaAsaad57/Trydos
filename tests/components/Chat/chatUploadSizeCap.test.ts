@@ -185,6 +185,44 @@ describe("upload — when the media server refuses", () => {
   });
 });
 
+describe("upload — when the sender cancels", () => {
+  it("stops the request to the media server and does not report it as an error", async () => {
+    // The media server holds the request open, like a large file on a slow
+    // line, until the test lets it answer.
+    let reached!: () => void;
+    const requestReached = new Promise<void>((resolve) => (reached = resolve));
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => (release = resolve));
+    server.use(
+      http.post(UPLOAD_URL, async () => {
+        reached();
+        await held;
+        return HttpResponse.json({ isSuccessful: true, code: 200, data: { file_path: "/chat/2026/late.mp4" } });
+      }),
+    );
+    const { upload } = await import("components/Chat/chatsFunctions");
+    const { LogError } = await import("utils/functions");
+    // The mock outlives `vi.resetModules()`, so it still holds the calls of the
+    // refusal tests above.
+    vi.mocked(LogError).mockClear();
+
+    const controller = new AbortController();
+    const outcome = upload(fileOfSize(1024, "clip.mp4"), controller.signal).then(
+      () => "finished",
+      () => "stopped",
+    );
+    await requestReached;
+    controller.abort();
+    release();
+
+    expect(
+      await outcome,
+      "the upload finished after the sender cancelled it, so the request to the media server was never stopped",
+    ).toBe("stopped");
+    expect(LogError, "a cancel by the sender was reported to Sentry as an upload error").not.toHaveBeenCalled();
+  });
+});
+
 describe("chatsFunctions — small helpers", () => {
   const ME = 1;
   const THEM = 2;

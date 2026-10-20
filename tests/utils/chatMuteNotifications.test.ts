@@ -1090,6 +1090,167 @@ describe("foreground handler — chat message pushes", () => {
   });
 });
 
+// `UpdatingMessageEvent` carries three different changes: a delete for
+// everyone, an edit, and a tag change. The push does not name which one; the
+// message inside it does (see handleUpdatingMessage in
+// utils/NotificationHandler.ts). Before edit and tags existed the handler
+// treated every such push as a delete, so an edit made the message vanish on
+// the other side.
+describe("foreground handler — a message changed by someone else", () => {
+  /** A full message, as the chat backend puts it in the push. */
+  const fullMessage = (extra: Record<string, any> = {}) => ({
+    id: "339496",
+    channel_id: "539",
+    sender_user_id: THEM,
+    deleted_by_user_id: null,
+    is_edited: 1,
+    message_content: { content: "Tr (edited)" },
+    message_type: { name: "TextMessage" },
+    message_status: [
+      { user_id: ME, delete_for_all: false },
+      { user_id: THEM, delete_for_all: false },
+    ],
+    tags: [{ tag: "urgent", count: 1, user_ids: [THEM] }],
+    ...extra,
+  });
+
+  beforeEach(() => {
+    fetchData.mockClear();
+    showChatNotification.mockClear();
+  });
+
+  it("puts an edited message in place and keeps it", async () => {
+    const state = seedSpyStore({ patchMessage: vi.fn() });
+    await handle(systemPush("UpdatingMessageEvent", { message: fullMessage() }));
+    expect(
+      state.deleteMessage,
+      "an edited message was deleted on the receiving side",
+    ).not.toHaveBeenCalled();
+    expect(
+      state.patchMessage.mock.calls[0]?.[0]?.patch?.message_content,
+      "the edited text did not reach the message in the store",
+    ).toEqual({ content: "Tr (edited)" });
+    expect(
+      state.patchMessage.mock.calls[0]?.[0]?.patch?.tags,
+      "the new tag list did not reach the message in the store",
+    ).toEqual([{ tag: "urgent", count: 1, user_ids: [THEM] }]);
+  });
+
+  it("never overwrites my reminder with the one in the push", async () => {
+    const state = seedSpyStore({ patchMessage: vi.fn() });
+    await handle(
+      systemPush("UpdatingMessageEvent", {
+        message: fullMessage({ reminder: { id: "r-them" } }),
+      }),
+    );
+    expect(
+      "reminder" in (state.patchMessage.mock.calls[0]?.[0]?.patch ?? {}),
+      "the push replaced my personal reminder on the message",
+    ).toBe(false);
+  });
+
+  it("still deletes a message the sender deleted for everyone", async () => {
+    const state = seedSpyStore({ patchMessage: vi.fn() });
+    await handle(
+      systemPush("UpdatingMessageEvent", {
+        message: fullMessage({
+          deleted_by_user_id: THEM,
+          message_status: [
+            { user_id: ME, delete_for_all: true },
+            { user_id: THEM, delete_for_all: true },
+          ],
+        }),
+      }),
+    );
+    expect(
+      state.deleteMessage,
+      "a message deleted for everyone was not deleted",
+    ).toHaveBeenCalledWith({ ch_id: "539", msg_id: "339496", bool: true });
+    expect(state.patchMessage, "a deleted message was patched instead").not.toHaveBeenCalled();
+  });
+
+  it("loads a compact edit push from the chat backend, then puts it in place", async () => {
+    const state = seedSpyStore({ patchMessage: vi.fn() });
+    fetchData.mockResolvedValueOnce({ success: true, data: [fullMessage()] });
+    await handle(
+      systemPush("UpdatingMessageEvent", {
+        compact: true,
+        channel_id: 539,
+        message_id: "339496",
+        message: { id: "339496", channel_id: 539, sender_user_id: THEM },
+      }),
+    );
+    expect(
+      fetchData.mock.calls[0]?.[0]?.url,
+      "the compact push did not load the message from the chat backend",
+    ).toBe("/api/v1/messages/get_all_messages_between_two_messages");
+    expect(
+      state.patchMessage.mock.calls[0]?.[0]?.patch?.is_edited,
+      "the loaded message did not replace the one in the store",
+    ).toBe(1);
+  });
+
+  it("deletes a compact push whose message the chat backend no longer has", async () => {
+    const state = seedSpyStore({ patchMessage: vi.fn() });
+    fetchData.mockResolvedValueOnce({ success: false, httpStatus: 404, message: "Message not found" });
+    await handle(
+      systemPush("UpdatingMessageEvent", { compact: true, channel_id: 539, message_id: "339900" }),
+    );
+    expect(
+      state.deleteMessage,
+      "a compact push for a message the chat backend deleted (404) was not deleted",
+    ).toHaveBeenCalledWith({ ch_id: 539, msg_id: "339900", bool: true });
+  });
+});
+
+// `MessageReminderEvent` is data-only: nothing shows unless the app shows it.
+describe("foreground handler — my reminder came due", () => {
+  const reminderPush = () =>
+    systemPush("MessageReminderEvent", {
+      channel_id: 539,
+      message_id: 339827,
+      payload: {
+        reminder_id: "r-1",
+        remind_at: "2026-09-26T12:00:00.000Z",
+        message_type: "TextMessage",
+        message_content: "Hi",
+        sender_name: "Alaa Test123",
+      },
+    });
+
+  beforeEach(() => showChatNotification.mockClear());
+
+  it("shows the reminder in a visible tab and takes it off the message", async () => {
+    const state = seedSpyStore({ reminderFired: vi.fn(), archivedChats: [] });
+    await handle(reminderPush());
+    expect(
+      state.reminderFired,
+      "the fired reminder stayed on the message",
+    ).toHaveBeenCalledWith({ ch_id: 539, msg_id: 339827, reminder_id: "r-1" });
+    expect(
+      showChatNotification.mock.calls[0]?.slice(0, 3),
+      "the reminder was not shown with the sender, the text and its chat",
+    ).toEqual(["Alaa Test123", "Reminder: Hi", 539]);
+  });
+
+  it("leaves a hidden tab to the service worker's system card", async () => {
+    const state = seedSpyStore({ reminderFired: vi.fn(), archivedChats: [] });
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    try {
+      await handle(reminderPush());
+    } finally {
+      visibility.mockRestore();
+    }
+    expect(state.reminderFired, "a hidden tab kept the fired reminder").toHaveBeenCalled();
+    expect(
+      showChatNotification,
+      "a hidden tab showed a toast nobody sees, on top of the system card",
+    ).not.toHaveBeenCalled();
+  });
+});
+
+// Runs last: it resets the module registry, so a test after it would drive
+// a fresh store that `seedSpyStore` never filled.
 describe("foreground handler — service worker messages", () => {
   it("listens to the service worker and forwards pushes and delivery-chat requests", async () => {
     let listener: ((event: any) => void) | undefined;
@@ -1131,3 +1292,4 @@ describe("foreground handler — service worker messages", () => {
     delete (navigator as any).serviceWorker;
   });
 });
+

@@ -17,11 +17,12 @@
 // same dead end in a different window. The `download` attribute cannot fix it
 // either: the media server is a different origin, and browsers ignore
 // `download` cross-origin.
-import { fireEvent } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import React from "react";
 
 import { renderWithProviders } from "../../render";
+import { finishUpload, startUpload } from "components/Chat/uploadCancel";
 
 // The menu props and the delete call are recorded for the menu cases at the
 // end of this file.
@@ -224,6 +225,26 @@ describe("the rest of a chat video bubble", () => {
     expect(p.setOpen, "leaving did not close the menu").toHaveBeenLastCalledWith(false);
     expect(document.querySelector(".forwarded-message-icon"), "the forward mark was not shown").not.toBeNull();
     expect(document.querySelector(".absolute-avatar")!.className, "a member with a name and no photo got no text avatar").toContain("text-avatar");
+  });
+
+  it("while the video uploads, the cancel X takes the play button's place, and stops the upload", async () => {
+    const onCancel = vi.fn();
+    const signal = startUpload("m-video", onCancel);
+    try {
+      const { p } = await mountBubble({ mid: "m-video", openMenu: false });
+      const cancel = screen.queryByRole("button", { name: /cancel upload/i });
+      expect(cancel, "an uploading video offers no cancel X").not.toBeNull();
+      expect(cancel!.className, "the cancel X is not in the play button's place on the video").toContain("play-vid-icon");
+      expect(playButton(), "the play button is shown next to the cancel X").toBeNull();
+
+      fireEvent.click(cancel!);
+      expect(signal.aborted, "pressing the X did not stop the video upload").toBe(true);
+      expect(onCancel, "pressing the X did not remove the pending video").toHaveBeenCalled();
+      expect(p.setVid, "pressing the X also opened the video player").not.toHaveBeenCalled();
+      expect(p.setOpen, "pressing the X also opened the message menu").not.toHaveBeenCalled();
+    } finally {
+      finishUpload("m-video");
+    }
   });
 
   it("shows no avatar mid-run and works with no open chat", async () => {

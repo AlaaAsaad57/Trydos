@@ -88,6 +88,43 @@ describe("RdbPaymentModal", () => {
     ).toBeInTheDocument();
   });
 
+  it("copies the payment code when the shopper taps the copy icon", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    });
+    vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+      kind: "created",
+      request: pending,
+    });
+
+    await renderWithProviders(
+      <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+      { store: storeState },
+    );
+
+    const copy = await waitFor(() => {
+      const el = document.querySelector('[data-pw="rdb-copy-code"]');
+      if (!el) throw new Error("the copy icon next to the payment code is missing");
+      return el;
+    });
+    fireEvent.click(copy);
+
+    expect(
+      writeText,
+      "tapping the copy icon must put the payment code on the clipboard",
+    ).toHaveBeenCalledWith("12345678");
+    await waitFor(() => {
+      expect(
+        useNotificationStore
+          .getState()
+          .notifications.some((n) => n.type === "success" && n.message === "Copied!"),
+        "the shopper must be told the payment code was copied",
+      ).toBe(true);
+    });
+  });
+
   it("sends the default address to the core backend when it starts a payment", async () => {
     vi.mocked(StartRdbPayment).mockResolvedValueOnce({
       kind: "created",
@@ -221,7 +258,7 @@ describe("RdbPaymentModal", () => {
     });
 
     expect(
-      screen.getByText("Payment expired"),
+      screen.getByText("Payment Expired"),
       "an expired request must say so instead of spinning",
     ).toBeInTheDocument();
     expect(
@@ -311,9 +348,9 @@ describe("RdbPaymentModal", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Cancel payment"), "the cancel button is missing").toBeInTheDocument();
+      expect(screen.getByText("Cancel Payment"), "the cancel button is missing").toBeInTheDocument();
     });
-    fireEvent.click(screen.getByText("Cancel payment"));
+    fireEvent.click(screen.getByText("Cancel Payment"));
 
     await waitFor(() => {
       expect(
@@ -356,7 +393,7 @@ describe("RdbPaymentModal", () => {
 
     // Hold the cancel call itself back too, so the click can be fired well
     // before the countdown reaches zero, exactly like a shopper who presses
-    // "Cancel payment" right as the request is about to expire.
+    // "Cancel Payment" right as the request is about to expire.
     let resolveCancel!: (value: unknown) => void;
     const cancelAnswer = new Promise((resolve) => {
       resolveCancel = resolve;
@@ -385,7 +422,7 @@ describe("RdbPaymentModal", () => {
       await vi.advanceTimersByTimeAsync(0);
     });
     await act(async () => {
-      fireEvent.click(screen.getByText("Cancel payment"));
+      fireEvent.click(screen.getByText("Cancel Payment"));
       await vi.advanceTimersByTimeAsync(0);
     });
     expect(
@@ -400,7 +437,7 @@ describe("RdbPaymentModal", () => {
       await vi.advanceTimersByTimeAsync(2100);
     });
     expect(
-      screen.getByText("Payment expired"),
+      screen.getByText("Payment Expired"),
       "the countdown must have already settled the screen as expired before the cancel answer below arrives",
     ).toBeInTheDocument();
 
@@ -425,7 +462,7 @@ describe("RdbPaymentModal", () => {
     });
 
     expect(
-      screen.getByText("Payment expired"),
+      screen.getByText("Payment Expired"),
       "settle() must not run a second time — the screen has to keep the first end state (expired), not be overwritten by the late 'already paid' answer",
     ).toBeInTheDocument();
     expect(
@@ -478,7 +515,7 @@ describe("RdbPaymentModal", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Could not start the payment. Please try again"),
+        screen.getByText("Could Not Start The Payment. Please Try Again"),
         "a 409 with no pending reference is not a documented case (design doc §3.3) and must not put the backend's raw sentence on screen",
       ).toBeInTheDocument();
     });
@@ -571,7 +608,7 @@ describe("RdbPaymentModal", () => {
       "the first poll must have fired",
     ).toBe(1);
     expect(
-      screen.getByText("Waiting for your payment"),
+      screen.getByText("Waiting For Your Payment"),
       "a lost poll answer must not end the screen or say the payment failed",
     ).toBeInTheDocument();
     expect(
@@ -587,7 +624,7 @@ describe("RdbPaymentModal", () => {
       "the screen must ask again after a lost answer instead of giving up",
     ).toBe(2);
     expect(
-      screen.getByText("Waiting for your payment"),
+      screen.getByText("Waiting For Your Payment"),
       "the screen must still be open after the retry",
     ).toBeInTheDocument();
 
@@ -609,7 +646,7 @@ describe("RdbPaymentModal", () => {
         expect(
           document.querySelector('[data-pw="rdb-start-error"]')?.textContent,
           "a reference the core backend no longer knows must show the start error",
-        ).toBe("Could not start the payment. Please try again");
+        ).toBe("Could Not Start The Payment. Please Try Again");
       });
       expect(StartRdbPayment, "reopening must never start a second request").not.toHaveBeenCalled();
     });
@@ -621,7 +658,7 @@ describe("RdbPaymentModal", () => {
         { store: storeState },
       );
       expect(
-        await screen.findByText("Payment cancelled"),
+        await screen.findByText("Payment Cancelled"),
         "a cancelled request must be labelled as cancelled",
       ).toBeInTheDocument();
       expect(useAppStore.getState().rdbLock, "an ended request must release the cart").toBeNull();
@@ -671,7 +708,7 @@ describe("RdbPaymentModal", () => {
       await act(async () => finish({ ok: false, alreadyPaid: false, gone: false }));
       await waitFor(() => {
         expect(
-          errorShown("Could not cancel the payment. Please try again"),
+          errorShown("Could Not Cancel The Payment. Please Try Again"),
           "a failed cancel must tell the shopper",
         ).toBe(true);
       });
@@ -685,10 +722,10 @@ describe("RdbPaymentModal", () => {
         <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
         { store: storeState },
       );
-      fireEvent.click(await screen.findByText("Cancel payment"));
+      fireEvent.click(await screen.findByText("Cancel Payment"));
       await waitFor(() => {
         expect(
-          errorShown("Could not cancel the payment. Please try again"),
+          errorShown("Could Not Cancel The Payment. Please Try Again"),
           "an unreadable already-paid answer must fall back to the error message",
         ).toBe(true);
       });
@@ -701,7 +738,7 @@ describe("RdbPaymentModal", () => {
         <RdbPaymentModal onSuccess={vi.fn()} onClose={onClose} />,
         { store: storeState },
       );
-      await screen.findByText("Cancel payment");
+      await screen.findByText("Cancel Payment");
       fireEvent.click(document.querySelector('[data-pw="rdb-payment-modal"]')!);
       expect(onClose, "a tap inside the card must not close it").not.toHaveBeenCalled();
       fireEvent.click(document.querySelector(".bg-black\\/60")!);
@@ -742,7 +779,7 @@ describe("RdbPaymentModal", () => {
         <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
         { store: storeState },
       );
-      await screen.findByText("Waiting for your payment");
+      await screen.findByText("Waiting For Your Payment");
       await act(async () => {
         await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
       });
@@ -757,4 +794,307 @@ describe("RdbPaymentModal", () => {
       vi.useRealTimers();
     });
   });
+
+  describe("network offline / online resilience", () => {
+    it("disables the QR code widget with an offline overlay when offline and enables it when online", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+        kind: "created",
+        request: pending,
+      });
+
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("12345678")).toBeInTheDocument();
+      });
+
+      // Internet goes off
+      act(() => {
+        window.dispatchEvent(new Event("offline"));
+      });
+
+      expect(
+        document.querySelector('[data-pw="rdb-offline-overlay"]'),
+        "the offline overlay must appear when the internet goes off",
+      ).not.toBeNull();
+      expect(
+        screen.getByText("No Internet Connection"),
+        "the offline message must be shown when internet goes off",
+      ).toBeInTheDocument();
+      // Code and amount must remain visible and intact
+      expect(screen.getByText("12345678"), "the payment code must remain visible during outage").toBeInTheDocument();
+      expect(screen.getByText("100.50 USD"), "the amount must remain visible during outage").toBeInTheDocument();
+
+      // Internet comes back
+      act(() => {
+        window.dispatchEvent(new Event("online"));
+      });
+
+      expect(
+        document.querySelector('[data-pw="rdb-offline-overlay"]'),
+        "the offline overlay must be removed when the internet comes back",
+      ).toBeNull();
+      expect(
+        screen.queryByText("No Internet Connection"),
+        "the offline message must disappear when internet comes back",
+      ).toBeNull();
+    });
+
+    it("continues to poll repeatedly even after multiple failed status requests", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+        kind: "created",
+        request: pending,
+      });
+      // 3 consecutive failed poll answers followed by success
+      vi.mocked(GetRdbRequest)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValue(pending);
+
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+
+      // Advance through 4 polling intervals
+      for (let i = 1; i <= 4; i++) {
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+        });
+        expect(
+          vi.mocked(GetRdbRequest).mock.calls.length,
+          `poll attempt ${i} must have fired`,
+        ).toBe(i);
+        expect(
+          screen.getByText("Waiting For Your Payment"),
+          "screen must not abort or show failure after multiple failed polls",
+        ).toBeInTheDocument();
+      }
+
+      vi.useRealTimers();
+    });
+
+    it("resumes polling immediately upon reconnecting and completes order if paid during outage", async () => {
+      const onSuccess = vi.fn();
+      const onClose = vi.fn();
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+        kind: "created",
+        request: pending,
+      });
+      vi.mocked(GetRdbRequest).mockResolvedValue(null);
+      vi.mocked(fetchData).mockResolvedValue({
+        success: true,
+        data: [{ id: 501, order_group_id: "og-1" }],
+      } as any);
+
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={onSuccess} onClose={onClose} />,
+        { store: storeState },
+      );
+
+      // Simulate network going offline
+      act(() => {
+        window.dispatchEvent(new Event("offline"));
+      });
+
+      // Time passes during outage; polls return null
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS * 2);
+      });
+
+      // User paid on second phone during outage -> backend has status 'paid'
+      vi.mocked(GetRdbRequest).mockResolvedValue({
+        ...pending,
+        status: "paid",
+        order_ids: [501],
+      });
+
+      // Network comes back online
+      await act(async () => {
+        window.dispatchEvent(new Event("online"));
+      });
+
+      await waitFor(() => {
+        expect(onSuccess, "onSuccess must be called when payment was made during outage").toHaveBeenCalled();
+        expect(onClose, "modal must close when payment is verified after reconnect").toHaveBeenCalled();
+      });
+
+      vi.useRealTimers();
+    });
+
+    it("after reconnecting, settles as expired if timer expired before payment was made", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+        kind: "created",
+        request: {
+          ...pending,
+          expires_at: new Date(Date.now() + 2000).toISOString(),
+        },
+      });
+
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+
+      // Internet goes off
+      act(() => {
+        window.dispatchEvent(new Event("offline"));
+      });
+
+      // Timer expires while offline (2500ms passes)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2500);
+      });
+
+      // Backend reports expired because shopper did not pay
+      vi.mocked(GetRdbRequest).mockResolvedValue({
+        ...pending,
+        status: "expired",
+      });
+
+      // Internet returns
+      await act(async () => {
+        window.dispatchEvent(new Event("online"));
+      });
+
+        await waitFor(() => {
+        expect(
+          screen.getByText("Payment Expired"),
+          "screen must show payment expired after reconnecting if shopper did not pay",
+        ).toBeInTheDocument();
+      });
+
+      vi.useRealTimers();
+    });
+
+    it("treats failed status call as offline and successful call as online without relying on navigator events", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+        kind: "created",
+        request: pending,
+      });
+
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+
+      // Initially online (StartRdbPayment succeeded)
+      expect(
+        document.querySelector('[data-pw="rdb-offline-overlay"]'),
+        "no offline overlay while online",
+      ).toBeNull();
+
+      // Next poll fails (network dropped quietly without browser offline event)
+      vi.mocked(GetRdbRequest).mockResolvedValueOnce(null);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+      });
+
+      // Status call failure sets isOnline to false
+      expect(
+        document.querySelector('[data-pw="rdb-offline-overlay"]'),
+        "offline overlay must appear when status call fails",
+      ).toBeInTheDocument();
+
+      // Next poll succeeds
+      vi.mocked(GetRdbRequest).mockResolvedValueOnce(pending);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+      });
+
+      // Status call success restores isOnline to true
+      expect(
+        document.querySelector('[data-pw="rdb-offline-overlay"]'),
+        "offline overlay must disappear when status call succeeds",
+      ).toBeNull();
+
+      vi.useRealTimers();
+    });
+  });
+
+  describe("Pay with web RDB button and receipt_number", () => {
+    it("renders 'Pay with web RDB' button pointing to deep_link with target blank", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+        kind: "created",
+        request: {
+          ...pending,
+          deep_link: "https://rdb.wallet.example/checkout/123",
+        },
+      });
+
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={vi.fn()} onClose={vi.fn()} />,
+        { store: storeState },
+      );
+
+      await waitFor(() => {
+        const webBtn = document.querySelector('[data-pw="rdb-web-link"]');
+        expect(webBtn, "Pay with web RDB link must be rendered").toBeInTheDocument();
+        expect(webBtn?.getAttribute("href"), "href must match request.deep_link").toBe(
+          "https://rdb.wallet.example/checkout/123",
+        );
+        expect(webBtn?.getAttribute("target"), "must open in a new tab").toBe("_blank");
+        expect(webBtn?.getAttribute("rel"), "must have rel noopener noreferrer").toContain("noopener");
+      });
+    });
+
+    it("passes receipt_number to orderData when payment settles as paid", async () => {
+      vi.mocked(StartRdbPayment).mockResolvedValueOnce({
+        kind: "created",
+        request: pending,
+      });
+      vi.mocked(GetRdbRequest).mockResolvedValueOnce({
+        ...pending,
+        status: "paid",
+        receipt_number: "RCPT-RDB-888999",
+        order_ids: [1001],
+      });
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: [{ id: 1001, order_group_id: "GRP-RDB-1" }],
+      } as any);
+
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      const onSuccess = vi.fn();
+      const onClose = vi.fn();
+
+      await renderWithProviders(
+        <RdbPaymentModal onSuccess={onSuccess} onClose={onClose} />,
+        { store: storeState },
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(POLL_INTERVAL_MS);
+      });
+
+      await waitFor(() => {
+        expect(onSuccess, "onSuccess must be called").toHaveBeenCalled();
+        expect(onClose, "onClose must be called").toHaveBeenCalled();
+      });
+
+      const currentOrderData = useAppStore.getState().orderData;
+      expect(
+        currentOrderData.receipt_number,
+        "receipt_number must be stored in orderData",
+      ).toBe("RCPT-RDB-888999");
+
+      vi.useRealTimers();
+    });
+  });
 });
+

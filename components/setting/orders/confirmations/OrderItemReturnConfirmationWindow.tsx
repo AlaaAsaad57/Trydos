@@ -14,6 +14,7 @@ import { OrderInterface, returnDetails } from "utils/types/OrderInterface";
 
 import order from "services/order";
 import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
+import { getOrderCurrency, OrderCurrency } from "utils/orderCurrency";
 function OrderItemReturnConfirmationWindow({
   close,
   setShouldConfirmReturn,
@@ -204,7 +205,10 @@ function OrderItemReturnConfirmationWindow({
           </span>
         </div>
         <div className="w-full flex-row">
-          <RenderReturnedItem returned_items={ReturnedItems()} />
+          <RenderReturnedItem
+            returned_items={ReturnedItems()}
+            paidCurrency={orderItem?.currency}
+          />
         </div>
         <div className="flex-col mt-auto w-full items-center">
           <img src="/icons/OrderCancelTerms.svg" />
@@ -287,7 +291,10 @@ export default OrderItemReturnConfirmationWindow;
 
 const RenderReturnedItem = ({
   returned_items,
+  paidCurrency,
 }: {
+  // The currency the order was paid with; amounts are shown in it.
+  paidCurrency?: OrderCurrency | null;
   returned_items: {
     detail_id: number;
     product_id: number;
@@ -309,6 +316,7 @@ const RenderReturnedItem = ({
   }[];
 }) => {
   const { currency } = useAppStore();
+  const paid = getOrderCurrency({ currency: paidCurrency }, currency);
   const { lang } = useParams();
   const [country, language] = (lang as string).split("-");
   return (
@@ -363,9 +371,11 @@ const RenderReturnedItem = ({
                   {RoundPrice({
                     charged: true,
                     num: return_item.product_price,
+                    rate: paid.rate,
+                    points: paid.points,
                     language: language,
                   })}
-                  {currency?.symbol}
+                  {paid.symbol}
                 </span>
               </div>
               <div className="flex flex-col items-end">
@@ -379,9 +389,11 @@ const RenderReturnedItem = ({
                         return_item.return_request_product_quantity ||
                           return_item.quantity?.toString(),
                       ),
+                    rate: paid.rate,
+                    points: paid.points,
                     language: language,
                   })}
-                  {currency?.symbol}
+                  {paid.symbol}
                 </span>
               </div>
             </div>

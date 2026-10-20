@@ -133,21 +133,21 @@ describe("the transactions", () => {
     expect(orderService.GetWalletTransactions, "the second page was not asked for").toHaveBeenCalledWith(10, 2);
 
     await user.click(screen.getByText("Load More"));
-    expect(await screen.findByText("No more orders"), "an empty page did not end the list").toBeInTheDocument();
+    expect(await screen.findByText("No More Orders"), "an empty page did not end the list").toBeInTheDocument();
   });
 
   it("treats a page with no list as empty", async () => {
     orderService.GetWallet.mockResolvedValue(null);
     orderService.GetWalletTransactions.mockResolvedValue({});
     await renderWallet();
-    expect(await screen.findByText("No more orders"), "a page with no list did not end the list").toBeInTheDocument();
+    expect(await screen.findByText("No More Orders"), "a page with no list did not end the list").toBeInTheDocument();
   });
 
   it("logs a failing page and stops offering more", async () => {
     orderService.GetWallet.mockResolvedValue(null);
     orderService.GetWalletTransactions.mockRejectedValue(new Error("tx down"));
     await renderWallet();
-    expect(await screen.findByText("No more orders"), "a failing page still offered more").toBeInTheDocument();
+    expect(await screen.findByText("No More Orders"), "a failing page still offered more").toBeInTheDocument();
     expect(logError, "a failing page was not logged").toHaveBeenCalledWith(
       expect.objectContaining({ scenario: "Error In loadMore in walletTransations" }),
     );

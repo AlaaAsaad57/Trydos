@@ -28,7 +28,7 @@ import {
   StatusPill,
 } from "components/SellerDashboard/ui";
 
-import { renderWithProviders, screen, userEvent } from "../../../render";
+import { fireEvent, renderWithProviders, screen, userEvent } from "../../../render";
 
 describe("Monogram", () => {
   it("shows the first letter of each of the first two words", async () => {
@@ -60,6 +60,26 @@ describe("Monogram", () => {
       screen.queryByText("MS"),
       "the initials must not be drawn on top of the logo",
     ).not.toBeInTheDocument();
+  });
+
+  it("handles object shop_image with file_path", async () => {
+    await renderWithProviders(
+      <Monogram name="My Shop" src={{ file_path: "https://example.com/obj.png" }} />,
+    );
+    const logo = screen.getByRole("img");
+    expect(logo.getAttribute("src")).toBe("https://example.com/obj.png");
+  });
+
+  it("falls back to initials when the image fails to load (onError)", async () => {
+    await renderWithProviders(
+      <Monogram name="Broken Image Shop" src="https://example.com/broken.png" />,
+    );
+    const logo = screen.getByRole("img");
+    fireEvent.error(logo);
+    expect(
+      screen.getByText("BI"),
+      "falling back after an error should show the shop initials",
+    ).toBeInTheDocument();
   });
 
   it("falls back to an icon when there is neither a name nor a logo", async () => {

@@ -59,10 +59,10 @@ describe("SettingsModal", () => {
     expect(fetchData.mock.calls[0][0].server, "the settings were not read from the market backend").toBe("market");
   });
 
-  it("shows 'No topics subscribed.' and logs when the backend refuses the read", async () => {
+  it("shows 'No Topics Subscribed.' and logs when the backend refuses the read", async () => {
     fetchData.mockResolvedValue({ success: false, message: "core refused" });
     await renderWithProviders(<SettingsModal onClose={() => {}} lang={["ar"]} />);
-    expect(await screen.findByText("No topics subscribed."), "the empty state is missing").toBeInTheDocument();
+    expect(await screen.findByText("No Topics Subscribed."), "the empty state is missing").toBeInTheDocument();
     expect(LogError.mock.calls[0][0].error.message, "the refusal was not logged with the backend's message").toBe("core refused");
     expect(document.querySelector('[dir="rtl"]'), "an Arabic modal must run right to left").not.toBeNull();
   });

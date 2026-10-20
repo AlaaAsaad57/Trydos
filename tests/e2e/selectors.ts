@@ -52,11 +52,32 @@ export const region = {
    *  "intercepts pointer events". */
   backdrop: (page: Page): Locator => page.getByTestId("country-popup"),
   popup: (page: Page): Locator => page.getByTestId("Change-Url-Container"),
-  /** One country row. `iso` is lower case: `iq`, `lb`, `sy`, `tr`. */
+  /** One country row. `iso` is lower case: `iq`, `lb`, `sy`, `tr`.
+   *
+   *  Matched without regard to letter case. The hook carries the backend's own
+   *  `iso`, and the backend is not consistent: the settings screen was measured
+   *  drawing `LB` beside `sy` in the same list. */
   country: (page: Page, iso: string): Locator =>
-    page.getByTestId(`personal-info-countries-${iso}`),
+    page.locator(`[data-pw="personal-info-countries-${iso}" i]`),
   anyCountry: (page: Page): Locator =>
     page.locator('[data-pw^="personal-info-countries-"]'),
+};
+
+/** The two settings screens that change the locale
+ *  (`components/settings/LanguageSetting.tsx`,
+ *  `components/settings/PersonalInfoCountries.tsx`). */
+export const localeSettings = {
+  /** The entries on the main settings page that open each screen. */
+  countryEntry: (page: Page): Locator => page.getByTestId("country-button"),
+  languageEntry: (page: Page): Locator => page.getByTestId("language-button"),
+  /** One language row. `code` is `en`, `ar`, `tr` or `ku`. */
+  language: (page: Page, code: string): Locator =>
+    page.getByTestId(`language-${code}`),
+  /** The back bar's Save. Drawn only once a different language is picked. */
+  saveLanguage: (page: Page): Locator => page.getByTestId("language-setting"),
+  /** The "Confirm" in the country-change window. */
+  confirmCountry: (page: Page): Locator =>
+    page.getByTestId("country-change-confirm"),
 };
 
 export const search = {
@@ -82,6 +103,29 @@ export const listing = {
   cardLink: (page: Page): Locator =>
     page.locator('a[data-pw="product_link"][href*="/products/"]'),
   cardName: (page: Page): Locator => page.getByTestId("product-name"),
+  /** Every entry in the home page's category bar
+   *  (`components/Home/CategoryNavMobile.tsx`). Each carries its slug in
+   *  `data-id`.
+   *
+   *  **Visible entries only.** After a move between the home page and a
+   *  category page the app keeps the previous page in the document, hidden, so
+   *  the same entry exists twice. Measured: the hidden copy of the home page's
+   *  bar was matched first and read as "not open" for a category that was open
+   *  on screen.
+   *
+   *  **Real entries only — `[data-id]`.** The loading skeleton
+   *  (`components/skeleton/MobileNavigation.tsx`) draws ten placeholder links
+   *  with the same `data-pw` and no `data-id`. Matching those let the wait
+   *  pass before the categories arrived, and the read then found no slug at
+   *  all: GUEST-47 failed that way on run 36395039292 in 5.6 seconds. */
+  categoryLinks: (page: Page): Locator =>
+    page.locator('[data-pw="category-Link"][data-id]:visible'),
+  /** One entry in the category bar, by slug. Visible only — see above. */
+  categoryLink: (page: Page, slug: string): Locator =>
+    page.locator(`[data-pw="category-Link"][data-id="${slug}"]:visible`),
+  /** The mark drawn inside the category entry that is open now. */
+  activeCategoryMark: (scope: Locator): Locator =>
+    scope.getByTestId("activeCategoryIcon"),
   // There is deliberately no "any link containing /products/" locator here —
   // the address above is an extra condition on the card hook, never a hook of
   // its own.
@@ -553,6 +597,15 @@ export const checkout = {
    *  cart money never arrived. */
   confirmTotal: (page: Page): Locator =>
     page.getByTestId("Number-Of-Products-Required"),
+  /** The coupon box on the checkout screen (`components/Cart/couponElement.tsx`).
+   *  Pressing the box (not its Apply) opens the field. */
+  couponBox: (page: Page): Locator => page.getByTestId("coupon-box"),
+  couponInput: (page: Page): Locator => page.getByTestId("coupon-input"),
+  /** Apply. Once a coupon is accepted it turns into the discount itself, and
+   *  carries `data-applied="true"`. */
+  couponApply: (page: Page): Locator => page.getByTestId("coupon-apply"),
+  /** The refusal, drawn under the field. Absent while nothing was refused. */
+  couponError: (page: Page): Locator => page.getByTestId("coupon-error"),
   /** The address already on the order. Absent when the account has none saved,
    *  and the checkout refuses to go on until one is. */
   chosenAddress: (page: Page): Locator => page.getByTestId("Address-Added-Last"),
@@ -651,6 +704,78 @@ export const orders = {
   cancelAgree: (page: Page): Locator => page.getByTestId("cancel-order-agree"),
   cancelConfirm: (page: Page): Locator =>
     page.getByTestId("cancel-order-confirm"),
+
+  /** "Change Delivery Address & Note" in the order's menu.
+   *
+   *  Drawn only when the order answers `can_update_address`, so its absence is
+   *  the core backend saying this order's address may not change. */
+  changeAddressOption: (page: Page): Locator =>
+    page.getByTestId("change-address-option"),
+  /** One saved address in the change-address sheet. Every row of the account is
+   *  here, so a case picks its own by content and never quotes a row. */
+  changeAddressRow: (page: Page): Locator => page.getByTestId("Address"),
+  /** "Change Request" under the address list. Does nothing until another
+   *  address is picked. */
+  changeAddressSubmit: (page: Page): Locator =>
+    page.getByTestId("change-address-submit"),
+  /** The terms tick on the change confirmation, and the button it unlocks. */
+  changeAddressAgree: (page: Page): Locator =>
+    page.getByTestId("change-address-agree"),
+  changeAddressConfirm: (page: Page): Locator =>
+    page.getByTestId("change-address-confirm"),
+  /** The delivery address card on the order page, and the recipient on it. */
+  addressCard: (page: Page): Locator => page.getByTestId("order-address-card"),
+  addressRecipient: (page: Page): Locator =>
+    page.getByTestId("order-address-recipient"),
+
+  /** "Hide This Pack" in the order's menu. Always drawn. */
+  hideOption: (page: Page): Locator => page.getByTestId("hide-order-option"),
+  /** The confirm button of the "hide this pack" question. */
+  hideConfirm: (page: Page): Locator => page.getByTestId("confirm-hide-order"),
+
+  /** "Hidden Orders" in the order list's own menu. */
+  openHidden: (page: Page): Locator => page.getByTestId("open-hidden-orders"),
+  /** The hidden-orders screen's back arrow, which is how a case knows it
+   *  arrived and how it leaves again (`BackBar` spends `DataCy` on it). */
+  hiddenScreenBack: (page: Page): Locator =>
+    page.getByTestId("hidden-orders-screen-back-button"),
+  /** One card on the hidden-orders screen. It carries the same `order-group-id`
+   *  hook a list row does, so read it on the screen you are on. */
+  hiddenCard: (page: Page): Locator => page.getByTestId("hidden-order-card"),
+  /** The eye that restores a whole hidden order. A **sibling** of its card, in
+   *  the card's own wrapper — never inside the card. */
+  restoreOrder: (page: Page): Locator =>
+    page.getByTestId("restore-hidden-order"),
+  /** The confirm button of the "restore" question. */
+  restoreConfirm: (page: Page): Locator => page.getByTestId("confirm-restore"),
+
+  /** The item count on the "Order Details · N Items" card.
+   *
+   *  **The order page draws no product line until this card is tapped.** The
+   *  lines live in `OrderExpandedDetails`, which shows only while the card is
+   *  expanded (`components/setting/orders/OrderDetailsWrapper.tsx`); the count
+   *  sits inside the card's click target, so tapping it toggles the card. */
+  productsCount: (page: Page): Locator =>
+    page.getByTestId("order-products-count"),
+  /** The three dots on one product line of the order page. Drawn only once
+   *  the "Order Details" card is expanded — see `productsCount`. */
+  lineOptions: (page: Page): Locator => page.getByTestId("order-item-options"),
+  /** "Cancel This Product" in a line's menu.
+   *
+   *  Drawn only when the order answers `can_cancele_order` and the line still
+   *  has a quantity, so its absence is an answer, not a slow render. */
+  cancelLineOption: (page: Page): Locator =>
+    page.getByTestId("cancel-line-option"),
+  /** One "why" chip. With none picked the button closes instead of posting. */
+  cancelLineReason: (page: Page): Locator =>
+    page.getByTestId("cancel-line-reason"),
+  cancelLineSubmit: (page: Page): Locator =>
+    page.getByTestId("cancel-line-submit"),
+  /** The terms tick on the line confirmation, and the button it unlocks. */
+  cancelLineAgree: (page: Page): Locator =>
+    page.getByTestId("cancel-line-agree"),
+  cancelLineConfirm: (page: Page): Locator =>
+    page.getByTestId("cancel-line-confirm"),
 };
 
 /** The shopper's saved products — the "checklist" screen under settings.
@@ -1179,6 +1304,15 @@ export const sellerProducts = {
   /** One count on a card. `stat` is `heart`, `comments`, `star` or `share`. */
   stat: (card: Locator, stat: string): Locator =>
     card.locator('[data-pw="seller-product-stat"][data-stat="' + stat + '"]'),
+  /** The Active / Inactive badge. `data-status` is the product's own status. */
+  status: (card: Locator): Locator =>
+    card.locator('[data-pw="seller-product-status"]'),
+  /** The price as drawn, two decimals and the shop's currency. */
+  price: (card: Locator): Locator =>
+    card.locator('[data-pw="seller-product-price"]'),
+  /** The stock badge. `data-stock` is the number the card was drawn from. */
+  stock: (card: Locator): Locator =>
+    card.locator('[data-pw="seller-product-stock"]'),
 
   /** The paging control. **Absent when the grid has one page** — the app draws
    *  it only past the first. Read that as one page, never as a missing
@@ -1189,6 +1323,23 @@ export const sellerProducts = {
 };
 
 /** The dashboard's comments section — the shop's own questions and answers. */
+/** The dashboard's Excel section — bulk upload by template
+ *  (`components/SellerDashboard/ExcelUploadTab.tsx`). */
+export const sellerExcel = {
+  /** The category picker: a closed field that opens a list with a search box
+   *  on top. Its `data-value` is the picked category id ("" when none). */
+  category: (page: Page): Locator => page.getByTestId("seller-excel-category"),
+  /** The categories in the opened picker. Each carries its id in `data-value`. */
+  categoryOptions: (page: Page): Locator => page.getByTestId("seller-excel-category-option"),
+  /** The download button ("Download empty template" / "Download N products").
+   *  Disabled until a category is chosen. */
+  download: (page: Page): Locator => page.getByTestId("seller-excel-download"),
+  /** The "Add new products" choice: the empty template (`mode=template`). */
+  modeTemplate: (page: Page): Locator => page.getByTestId("seller-excel-mode-template"),
+  /** The section's message line. `data-type` is `success`, `error` or `info`. */
+  status: (page: Page): Locator => page.getByTestId("seller-excel-status"),
+};
+
 export const sellerComments = {
   card: (page: Page, commentId: string | number): Locator =>
     page.locator(
@@ -1205,6 +1356,10 @@ export const sellerComments = {
     card.locator('[data-pw="dashboard-comment-reply-btn"]'),
   replyText: (card: Locator): Locator =>
     card.locator('[data-pw="dashboard-comment-reply-text"]'),
+  /** Opens the reply form again, filled with the answer already given. Drawn
+   *  only with `EDIT_REPLY`, and only on a card that has an answer. */
+  editReplyButton: (card: Locator): Locator =>
+    card.locator('[data-pw="dashboard-comment-edit-reply-btn"]'),
   /** Removing the shop's answer. **Behind a browser confirm dialog** — a test
    *  that does not accept the dialog silently does nothing. */
   deleteReplyButton: (card: Locator): Locator =>
@@ -1288,6 +1443,13 @@ export const sellerStories = {
   productChosen: (page: Page): Locator =>
     page.getByTestId("seller-story-product-chosen"),
   shareButton: (page: Page): Locator => page.getByTestId("seller-story-share"),
+  /** The chosen photo or video. Drawn only once a file has been accepted. */
+  preview: (page: Page): Locator => page.getByTestId("seller-story-preview"),
+  /** The refusal under the link field. Absent while the link is acceptable. */
+  linkError: (page: Page): Locator =>
+    page.getByTestId("seller-story-link-error"),
+  cancelButton: (page: Page): Locator =>
+    page.getByTestId("seller-story-cancel"),
 };
 
 // ---------------------------------------------------------------------------
@@ -1311,4 +1473,179 @@ export const storyActions = {
   /** "View Product". Its label is translated, so it is never matched by text. */
   productLink: (page: Page): Locator =>
     page.getByTestId("story-product-link"),
+};
+
+// ---------------------------------------------------------------------------
+// Chat — the overlay opened from the nav bar (`components/Chat/**`).
+//
+// There is no chat page. The window is an overlay mounted by
+// `components/Home/AuthSections.tsx`, and it draws its content only when the
+// browser has granted notifications (`ChatWindowModal.tsx`). Otherwise it
+// draws `notificationGate` instead.
+//
+// Two rules the actions depend on:
+//
+// * **A message row is found by its id, never by position.** Every row
+//   carries `id="main-container-<id>"`. A message still sending carries its
+//   local `m…` id there; once the chat backend answers, the same row carries
+//   the backend's id. That swap is how an action proves the send landed.
+// * **A chat row is found by its channel id** (`data-chat-id`), and a person
+//   in a search result by their chat user id (`data-user-id`). Shopper A also
+//   has a chat with a real person on staging, and nothing may touch it.
+// ---------------------------------------------------------------------------
+
+export const chat = {
+  /** The nav icon when no chat has an unread message. */
+  navIcon: (page: Page): Locator => page.getByTestId("Chat-Icon"),
+  /** The nav icon when some chats have unread messages. `data-count` is the
+   *  number of such chats. */
+  navIconUnread: (page: Page): Locator => page.getByTestId("Chat-Icon-Unread"),
+  /** Whichever of the two the nav is drawing. */
+  navIconAny: (page: Page): Locator =>
+    page.locator('[data-pw="Chat-Icon"], [data-pw="Chat-Icon-Unread"]'),
+  /** The popup that asks the shopper to allow notifications. */
+  notificationPermissionWidget: (page: Page): Locator =>
+    page.getByTestId("notification-permission-widget"),
+  window: (page: Page): Locator => page.getByTestId("chat-window"),
+  /** "Please Enable Notification to use Chat", drawn inside the window. */
+  notificationGate: (page: Page): Locator =>
+    page.getByTestId("chat-notification-gate"),
+  closeButton: (page: Page): Locator => page.getByTestId("chat-close"),
+  listSearch: (page: Page): Locator => page.getByTestId("SearchInputChat"),
+  /** Every chat row, in every list (main, archived, search results). */
+  rows: (page: Page): Locator => page.getByTestId("ChatItem"),
+  row: (page: Page, chatId: string | number): Locator =>
+    page.locator(`[data-pw="ChatItem"][data-chat-id="${chatId}"]`),
+  /** The row and the options behind it. The options are its siblings, so
+   *  they are found from here, not from the row. */
+  rowContainer: (page: Page, chatId: string | number): Locator =>
+    page
+      .locator(".chat-conversation-item-container")
+      .filter({ has: chat.row(page, chatId) }),
+  rowUnread: (row: Locator): Locator => row.getByTestId("chat-row-unread"),
+  rowPinned: (row: Locator): Locator => row.getByTestId("chat-row-pinned"),
+  rowMuted: (row: Locator): Locator => row.getByTestId("chat-row-muted"),
+  optionUnread: (container: Locator): Locator =>
+    container.getByTestId("CHAT-UNREAD-OPTION"),
+  optionPin: (container: Locator): Locator =>
+    container.getByTestId("CHAT-PIN-OPTION"),
+  optionMute: (container: Locator): Locator =>
+    container.getByTestId("CHAT-MUTE-OPTION"),
+  optionDelete: (container: Locator): Locator =>
+    container.getByTestId("CHAT-DELETE-OPTION"),
+  optionArchive: (container: Locator): Locator =>
+    container.getByTestId("CHAT-ARCHIVE-OPTION"),
+  /** The confirm button of "delete chat" (`ConfirmModal` takes `dataCy`). */
+  confirmDeleteChat: (page: Page): Locator =>
+    page.getByTestId("confirm-delete-chat"),
+  /** A person the search found who has no chat with the shopper yet. */
+  contact: (page: Page, chatUserId: string | number): Locator =>
+    page.locator(`[data-pw="ContactItem"][data-user-id="${chatUserId}"]`),
+  remindersFolder: (page: Page): Locator =>
+    page.getByTestId("CHAT-REMINDERS-FOLDER"),
+  archivedFolder: (page: Page): Locator =>
+    page.getByTestId("CHAT-ARCHIVED-FOLDER"),
+  remindersList: (page: Page): Locator => page.getByTestId("REMINDERS-LIST"),
+  reminderRow: (page: Page, messageId: string | number): Locator =>
+    page.locator(`[data-pw="REMINDER-ROW"][data-message-id="${messageId}"]`),
+  archivedList: (page: Page): Locator => page.getByTestId("ARCHIVED-CHATS"),
+
+  /** The conversation screen. It is always mounted and slides in:
+   *  `data-open` is "true" while it is on screen, and `data-chat-id` names
+   *  the channel (`ch-<user id>` before the first message of a new chat). */
+  conversation: (page: Page): Locator => page.getByTestId("chat-conversation"),
+  headerUser: (page: Page): Locator => page.getByTestId("chat-header-user"),
+  input: (page: Page): Locator => page.getByTestId("chat-message-input"),
+  sendButton: (page: Page): Locator => page.getByTestId("chat-send-button"),
+  fileInput: (page: Page): Locator => page.getByTestId("chat-file-input"),
+  blockedBanner: (page: Page): Locator =>
+    page.getByTestId("chat-blocked-banner"),
+  replyPreview: (page: Page): Locator =>
+    page.getByTestId("chat-reply-preview"),
+  /** Every message row; `data-from` is "me" or "them". */
+  messages: (page: Page): Locator => page.getByTestId("chat-message"),
+  message: (page: Page, id: string | number): Locator =>
+    page.locator(`[data-pw="chat-message"][id="main-container-${id}"]`),
+  /** The loader at the top of a conversation. When it comes into view the
+   *  app asks for older messages. It is drawn 2 seconds after the chat opens
+   *  (`ChatHistoryElement.js`). */
+  olderMessagesLoader: (page: Page): Locator =>
+    page.getByTestId("chat-older-loader"),
+  /** Messages still on their local "sending" id (`m…`), not a saved one. */
+  pendingMessages: (page: Page): Locator =>
+    page.locator('[data-pw="chat-message"][id^="main-container-m"]'),
+  /** A message row by the exact text it shows. */
+  messageWithText: (page: Page, text: string): Locator =>
+    page.getByTestId("chat-message").filter({
+      has: page.getByTestId("chat-message-text").getByText(text, {
+        exact: true,
+      }),
+    }),
+  messageBubble: (row: Locator): Locator =>
+    row.getByTestId("chat-message-bubble"),
+  messageText: (row: Locator): Locator => row.getByTestId("chat-message-text"),
+  /** "This message was deleted", drawn in place of the content. */
+  messageDeleted: (row: Locator): Locator =>
+    row.getByTestId("chat-message-deleted"),
+  /** `data-status`: pending | sent | received | watched. */
+  messageStatus: (row: Locator): Locator =>
+    row.getByTestId("chat-message-status"),
+  markEdited: (row: Locator): Locator => row.getByTestId("MESSAGE-MARK-EDITED"),
+  markForwarded: (row: Locator): Locator =>
+    row.getByTestId("MESSAGE-MARK-FORWARDED"),
+  markReminder: (row: Locator): Locator =>
+    row.getByTestId("MESSAGE-MARK-REMINDER"),
+  markTags: (row: Locator): Locator => row.getByTestId("MESSAGE-MARK-TAGS"),
+  /** The quote of an earlier message, drawn above a reply. */
+  quote: (row: Locator): Locator => row.getByTestId("chat-replied-quote"),
+
+  // The menu a click on a bubble opens (`OptionsMenu.tsx`), scoped to its row.
+  menuReply: (row: Locator): Locator => row.getByTestId("REPLY-OPTION"),
+  menuForward: (row: Locator): Locator => row.getByTestId("FORWARD-OPTION"),
+  menuTag: (row: Locator): Locator => row.getByTestId("TAG-OPTION"),
+  menuDelete: (row: Locator): Locator =>
+    row.locator(".abs-menu").getByTestId("DELETE-OPTION"),
+  menuEdit: (row: Locator): Locator => row.getByTestId("EDIT-OPTION"),
+  menuReminder: (row: Locator): Locator => row.getByTestId("REMINDER-OPTION"),
+
+  // Windows the menu opens. Each is sent to `document.body`, so page-wide.
+  /** The delete question. Its `DELETE-OPTION` is "For All" when the shopper
+   *  wrote the message, and "Cancel" otherwise. */
+  deleteDialog: (page: Page): Locator =>
+    page.locator('[role="dialog"]').filter({
+      has: page.getByTestId("DELETE-FOR-ME"),
+    }),
+  deleteForMe: (page: Page): Locator => page.getByTestId("DELETE-FOR-ME"),
+  /** The dialog's second button: "for-all" on the shopper's own message,
+   *  "cancel" on someone else's. */
+  deleteChoice: (page: Page, choice: "for-all" | "cancel"): Locator =>
+    page.locator(`[data-pw="DELETE-OPTION"][data-choice="${choice}"]`),
+  editDialog: (page: Page): Locator => page.getByTestId("MESSAGE-EDIT-DIALOG"),
+  editInput: (page: Page): Locator => page.locator("#message-edit-input"),
+  editSave: (page: Page): Locator => page.getByTestId("MESSAGE-EDIT-SAVE"),
+  tagPicker: (page: Page): Locator => page.getByTestId("MESSAGE-TAG-PICKER"),
+  tag: (page: Page, tag: "urgent" | "important" | "todo" | "done"): Locator =>
+    page.getByTestId(`MESSAGE-TAG-${tag}`),
+  reminderPicker: (page: Page): Locator =>
+    page.getByTestId("MESSAGE-REMINDER-PICKER"),
+  reminderPreset: (
+    page: Page,
+    preset: "20m" | "1h" | "3h" | "tomorrow",
+  ): Locator => page.getByTestId(`MESSAGE-REMINDER-PRESET-${preset}`),
+  reminderCancel: (page: Page): Locator =>
+    page.getByTestId("MESSAGE-REMINDER-CANCEL"),
+
+  // The details drawer the header opens (`ChatInfo.tsx`).
+  infoSearch: (page: Page): Locator => page.getByTestId("chat-info-search"),
+  /** `data-blocked` says which way the next press goes. */
+  infoBlock: (page: Page): Locator => page.getByTestId("chat-info-block"),
+  infoDelete: (page: Page): Locator => page.getByTestId("chat-info-delete"),
+
+  // The search inside a conversation (`ChatSearch.tsx`).
+  searchInput: (page: Page): Locator => page.getByTestId("chat-search-input"),
+  searchNewer: (page: Page): Locator => page.getByTestId("chat-search-newer"),
+  searchOlder: (page: Page): Locator => page.getByTestId("chat-search-older"),
+  /** The row the search is on now: `ChatSearch.tsx` adds this class to it. */
+  searchHit: (page: Page): Locator =>
+    page.locator('[data-pw="chat-message"].chat-search-hit'),
 };

@@ -1,7 +1,8 @@
+import { formatCount } from "utils/formatCount";
 
-function ProductShareButton({ Active, total_shares, setActive }) {
+function ProductShareButton({ Active, total_shares, setActive, language = "en" }) {
   const getSharesCount = () => {
-    if (total_shares > 0) return total_shares;
+    if (total_shares > 0) return formatCount(total_shares, language);
     else return <></>;
   };
   return (

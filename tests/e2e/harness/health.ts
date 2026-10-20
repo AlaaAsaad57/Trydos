@@ -140,6 +140,9 @@ type CheckResult = {
   label: string;
   /** Milliseconds the check took, round trip. */
   ms: number;
+  /** The host's Cloudflare `/cdn-cgi/trace`, asked when this check fails. Set
+   *  only for the backends behind Cloudflare. */
+  edgeTrace?: URL;
 };
 
 /** One GET, resolving to the status code, rejecting on a transport failure. */
@@ -274,6 +277,7 @@ const checkBackend = async (
   }
 
   const startedAt = Date.now();
+  const edgeTrace = new URL("/cdn-cgi/trace", url);
 
   try {
     const response = await fetch(url, {
@@ -290,6 +294,7 @@ const checkBackend = async (
           detail: `the ${role} ${url.host} answered HTTP ${response.status} to the storefront's own boot call`,
           label: role,
           ms,
+          edgeTrace,
         };
   } catch (error: unknown) {
     return {
@@ -297,7 +302,51 @@ const checkBackend = async (
       detail: `the ${role} ${url.host} — ${failureDetail(error)}`,
       label: role,
       ms: Date.now() - startedAt,
+      edgeTrace,
     };
+  }
+};
+
+/** Where was the answer lost: before Cloudflare, or after it?
+ *
+ *  Run 36003550313 (2026-09-24) is why this exists. The account lane's runner
+ *  got no answer from the gateway for three minutes while the solo lane's
+ *  runner got one in about 600 ms. Cloudflare's Security Analytics showed every
+ *  try arriving on time, "Not mitigated", cache status "None": the request
+ *  reached Cloudflare and no answer came back. The run itself could only say
+ *  "23", and the Free plan's dashboard shows no data centre and no status code.
+ *
+ *  `/cdn-cgi/trace` is answered by the Cloudflare edge itself, without asking
+ *  our server. So an answer here means the runner reaches Cloudflare and the
+ *  loss is behind it; no answer means the runner could not reach Cloudflare.
+ *  It also names the runner's address and the data centre, the two things to
+ *  search for in the dashboard. Asked once, after the last try failed. */
+const whereItWasLost = async (trace: URL): Promise<string> => {
+  const startedAt = Date.now();
+
+  try {
+    const response = await fetch(trace, { signal: AbortSignal.timeout(PROBE_TIMEOUT_MS) });
+    const ms = Date.now() - startedAt;
+    if (!response.ok) {
+      return `${trace.host}/cdn-cgi/trace answered HTTP ${response.status}, so this host may not be behind Cloudflare`;
+    }
+
+    const fields = new Map(
+      (await response.text()).split("\n").map((line) => {
+        const at = line.indexOf("=");
+        return [line.slice(0, at), line.slice(at + 1)] as const;
+      }),
+    );
+    return (
+      `the Cloudflare edge of ${trace.host} answered in ${ms}ms from data centre ` +
+      `${fields.get("colo") ?? "unknown"} to runner ${fields.get("ip") ?? "unknown"}, ` +
+      "so the request reached Cloudflare and the answer was lost between Cloudflare and our server"
+    );
+  } catch (error: unknown) {
+    return (
+      `the Cloudflare edge of ${trace.host} did not answer either (${failureDetail(error)}), ` +
+      "so this runner could not reach Cloudflare at all"
+    );
   }
 };
 
@@ -356,13 +405,24 @@ const untilUp = async (
  *  `skipped` rather than a plain `up` when nothing is configured, so the log says
  *  "nothing was checked" instead of "the check passed". A probe that checked
  *  nothing must never read like a healthy backend. */
-export const probeStaging = async (): Promise<HealthReport> => {
+export const probeStaging = async (
+  options: {
+    /** Ask each backend one time only. For a caller that wants to know what is
+     *  true **now** (`harness/pageOpen.ts`), where waiting for a backend to
+     *  come back would report a fault that has passed as healthy. */
+    once?: boolean;
+  } = {},
+): Promise<HealthReport> => {
   loadLiveEnv();
 
+  const ask = options.once
+    ? (check: () => Promise<CheckResult | null>) => check()
+    : untilUp;
+
   const results = await Promise.all([
-    untilUp(checkSearchBackend),
+    ask(checkSearchBackend),
     ...BACKEND_PROBES.map((probe) =>
-      untilUp(async () => await checkBackend(probe.role, probe.addressKey)),
+      ask(async () => await checkBackend(probe.role, probe.addressKey)),
     ),
   ]);
   const asked = results.filter((result): result is CheckResult => result !== null);
@@ -379,9 +439,16 @@ export const probeStaging = async (): Promise<HealthReport> => {
 
   const failed = asked.filter((result) => !result.ok);
   if (failed.length > 0) {
+    const reasons = await Promise.all(
+      failed.map(async (result) =>
+        result.edgeTrace
+          ? `${result.detail} — ${await whereItWasLost(result.edgeTrace)}`
+          : result.detail,
+      ),
+    );
     return {
       up: false,
-      reason: failed.map((result) => result.detail).join("; "),
+      reason: reasons.join("; "),
       skipped: false,
       timings,
     };

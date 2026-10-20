@@ -1,50 +1,55 @@
 import React, { Suspense } from "react";
 import { lang as langParam } from "next/root-params";
-import DemoShell from "components/DemoApp/DemoShell";
+import Demo1Shell from "components/DemoApp1/Demo1Shell";
+import { HIDE_SITE_CHROME } from "components/DemoApp1/demo1Layout";
 import { DEMO_KEYS, type DemoDictionary } from "components/DemoApp/demoKeys";
 import { translateFunction } from "utils/server";
 
 /*
-  The new app design, as a demo for the client: /[lang]/demo.
+  The new app design as a normal web page, for the client: /[lang]/demo.
 
-  The layout owns the whole app (components/DemoApp/DemoShell): the scaled
-  canvas, the tab bar and the screen on show. It stays mounted while the
-  shopper moves between /demo, /demo?search|cart|chat and /demo/settings/...,
-  which is what lets every move slide at once. The page files under this
-  folder render nothing — they exist so each screen has a real URL.
+  The same screens, data and words as the old scaled demo, without the scaled canvas: the
+  page is fluid and the document scrolls, so Safari 26 on the iPhone draws its
+  glass bar over the page. See components/DemoApp1/Demo1Shell.tsx.
 
-  The demo's words are looked up here, on the server, and handed to the shell
-  (see components/DemoApp/demoKeys.ts for why). Only the demo's own keys go
-  over the wire, not the whole translation table.
-
-  The shell reads the URL (usePathname / useSearchParams), so it sits in a
-  Suspense boundary. The fallback is a plain white page, the colour every demo
-  screen starts from.
+  The words are looked up here, on the server, exactly as the old scaled demo does it (see
+  components/DemoApp/demoKeys.ts). The shell reads the URL, so it sits in a
+  Suspense boundary; the fallback is a plain white page.
 */
 export const metadata = {
-  title: "App Design Demo | Trydos",
-  description: "Interactive demo of the new Trydos app design.",
+  title: "App Design Demo (fluid) | Trydos",
+  description: "Interactive demo of the new Trydos app design, as a web page.",
   robots: { index: false, follow: false },
 };
 
-export default async function DemoLayout({
+export const viewport = {
+  width: "device-width",
+  initialScale: 1.0,
+  maximumScale: 1.0,
+  userScalable: false,
+  viewportFit: "cover",
+};
+
+export default async function Demo1Layout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const language = (await langParam()).split("-")[1] || "en";
-  const dictionary: DemoDictionary =
-    language === "en"
-      ? {}
-      : Object.fromEntries(
-          DEMO_KEYS.map((key) => [key, translateFunction(key, language)]),
-        );
+  const dictionary: DemoDictionary = Object.fromEntries(
+    DEMO_KEYS.map((key) => [key, translateFunction(key, language)]),
+  );
 
   return (
-    <Suspense
-      fallback={<div className="fixed inset-0 z-[99999999999] bg-white" />}
-    >
-      <DemoShell dictionary={dictionary}>{children}</DemoShell>
-    </Suspense>
+    <>
+      <style>{HIDE_SITE_CHROME}</style>
+      <Suspense
+        fallback={
+          <div data-pw="demo1-app" className="w-full min-h-dvh bg-white" />
+        }
+      >
+        <Demo1Shell dictionary={dictionary}>{children}</Demo1Shell>
+      </Suspense>
+    </>
   );
 }

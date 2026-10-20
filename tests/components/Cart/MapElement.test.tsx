@@ -147,7 +147,7 @@ describe("the Google map in the address form", () => {
     expect(
       showSuccessNotification,
       "no 'be accurate' hint was shown at a far zoom",
-    ).toHaveBeenCalledWith("Please Be Accurate and select your Location");
+    ).toHaveBeenCalledWith("Please Be Accurate And Select Your Location");
     expect(
       setLocation,
       "a tap at a far zoom was stored as the location",
@@ -255,7 +255,7 @@ describe("the Google map in the address form", () => {
       expect(
         showErrorNotification,
         "no error for a device location outside the country",
-      ).toHaveBeenCalledWith("Your Current Location is Not belong to Country Bounds");
+      ).toHaveBeenCalledWith("Your Current Location Is Not Belong To Country Bounds");
       expect(
         setLocation,
         "a device location outside the country was stored",
@@ -271,7 +271,7 @@ describe("the Google map in the address form", () => {
       expect(
         showErrorNotification,
         "no error when the device refused its location",
-      ).toHaveBeenCalledWith("Error getting your location");
+      ).toHaveBeenCalledWith("Error Getting Your Location");
     });
 
     it("says so when the browser has no geolocation", async () => {
@@ -281,7 +281,7 @@ describe("the Google map in the address form", () => {
       expect(
         showErrorNotification,
         "no error when the browser has no geolocation",
-      ).toHaveBeenCalledWith("Geolocation is not supported by your browser");
+      ).toHaveBeenCalledWith("Geolocation Is Not Supported By Your Browser");
     });
   });
 });

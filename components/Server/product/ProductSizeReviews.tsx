@@ -1,17 +1,16 @@
 import { GetProductGeneralData } from "serverRequests/product";
 import { translateFunction } from "utils/server";
+import { productHasSizes } from "./productHasSizes";
 
 async function ProductSizeReviews({ qtyPricePromise, language, isRtl }) {
   let productData = await qtyPricePromise;
-  let sizes = productData?.sizes;
-
-  if (!sizes || sizes?.length === 0) return <></>;
+  if (!productHasSizes(productData)) return <></>;
 
   let size_reviews = await GetProductGeneralData({
     id: productData?.id,
   });
 
-  let sizeFitData = size_reviews.size_analysis;
+  let sizeFitData = size_reviews?.size_analysis;
   let reviews_arr = [
     { value: sizeFitData?.true_percentage ?? 0, title: "True" },
     { value: sizeFitData?.small_percentage ?? 0, title: "Small" },

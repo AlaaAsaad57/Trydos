@@ -35,7 +35,8 @@ function CallMessage({
   sender_user_id,
 }) {
   const user = getUserChat();
-  const { activeChat } = useAppStore();
+  const { activeChat, MessageActiveCall, isCallIncoming, callInProgress } =
+    useAppStore();
   const showTextAvatar = React.useMemo(() => {
     if (!activeChat) return false;
     const member = activeChat.channel_members.find(
@@ -47,12 +48,22 @@ function CallMessage({
     );
   }, [activeChat, user]);
 
+  // The incoming-call push adds this bubble while the phone still rings, with
+  // duration 0. It is live while it rings (`isCallIncoming`) or runs
+  // (`callInProgress`). A decline or a caller who gives up clears both through
+  // the store's refuseCall / endCall, and the bubble becomes missed.
+  const isLive =
+    MessageActiveCall != null &&
+    String(MessageActiveCall) === String(id) &&
+    (isCallIncoming || !!callInProgress);
+
   // A call with no duration never connected — but that happens on both sides.
   // Only a call the other person started, that nobody answered, is missed.
   const direction = getCallDirection(
     sender_user_id,
     user?.id,
     duration_in_seconds,
+    isLive,
   );
   const isVoiceCall = message_type.name === "VoiceCall";
   const getCallText = () => {

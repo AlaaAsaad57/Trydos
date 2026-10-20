@@ -203,7 +203,7 @@ describe("a shopper whose account already owns a number", () => {
       screen.getByRole("button", { name: "I Have Already Account" }),
     );
     await user.type(phoneField()!, PHONE);
-    await user.click(screen.getByRole("button", { name: "Send phone number" }));
+    await user.click(screen.getByRole("button", { name: "Send Phone Number" }));
     await user.click(screen.getByRole("button", { name: "Change Number" }));
 
     expect(
@@ -267,7 +267,7 @@ describe("sending the code", () => {
     await renderPanel({ initialPhone: PHONE, phoneLocked: true });
 
     expect(
-      await screen.findByText("Session limit reached. Try again later."),
+      await screen.findByText("Session Limit Reached. Try Again Later."),
       "the cap has no countdown to show, so it must say what it is in words",
     ).toBeInTheDocument();
   });
@@ -294,7 +294,7 @@ describe("what a running cooldown is telling the shopper", () => {
         "and must be said that way",
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(/before trying again/),
+      screen.queryByText(/Before Trying Again/),
       "telling a shopper we refused the send, under the boxes holding the " +
         "code we just sent them, is the panel contradicting itself",
     ).not.toBeInTheDocument();
@@ -310,7 +310,7 @@ describe("what a running cooldown is telling the shopper", () => {
     await user.click(screen.getByRole("button", { name: "Send SMS" }));
 
     expect(
-      await screen.findByText(/before trying again/),
+      await screen.findByText(/Before Trying Again/),
       "no code is coming, so the wait must be stated as the refusal it is",
     ).toBeInTheDocument();
     expect(
@@ -327,9 +327,9 @@ describe("what a running cooldown is telling the shopper", () => {
       screen.getByRole("button", { name: "I Have Already Account" }),
     );
     await user.type(phoneField()!, PHONE);
-    await user.click(screen.getByRole("button", { name: "Send phone number" }));
+    await user.click(screen.getByRole("button", { name: "Send Phone Number" }));
     await user.click(screen.getByRole("button", { name: "Send SMS" }));
-    await screen.findByText(/before trying again/);
+    await screen.findByText(/Before Trying Again/);
 
     // A refusal is against the number, not against the shopper. Another number
     // carries its own cooldown and starts clean.
@@ -339,7 +339,7 @@ describe("what a running cooldown is telling the shopper", () => {
 
     await waitFor(() => {
       expect(
-        screen.queryByText(/before trying again/),
+        screen.queryByText(/Before Trying Again/),
         "holding the first number's refusal against the second stops a " +
           "shopper who simply mistyped their number",
       ).not.toBeInTheDocument();
@@ -541,5 +541,22 @@ describe("the three-try cap on this surface", () => {
           "the same as every other place a code is typed",
       ).toBeDisabled(),
     );
+  });
+
+  it("does not spend a try on server error and displays the error message", async () => {
+    const serverError = new Error("The server did not respond in time. Please try again.");
+    (serverError as any).isServerError = true;
+    verifyOtp.mockRejectedValue(serverError);
+    const { user } = await atCodeStep();
+
+    await user.clear(codeField()!);
+    await user.type(codeField()!, "000000");
+
+    expect(
+      await screen.findByText("The server did not respond in time. Please try again."),
+    ).toBeInTheDocument();
+
+    expect(codeField()).not.toBeDisabled();
+    expect(codeField()).toHaveValue("");
   });
 });

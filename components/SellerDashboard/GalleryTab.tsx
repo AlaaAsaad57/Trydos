@@ -31,11 +31,16 @@ export default function GalleryTab({
   sellerId,
   canUpload = false,
   canDelete = false,
+  language,
+  isRtl,
 }: {
   sellerId: string;
   canUpload?: boolean;
   canDelete?: boolean;
+  language?: string;
+  isRtl?: boolean;
 }) {
+  const isRtlResolved = isRtl ?? (language === "ar" || language === "ku");
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [meta, setMeta] = useState<GalleryMeta | null>(null);
   const [page, setPage] = useState(1);
@@ -265,7 +270,7 @@ export default function GalleryTab({
   const getImageName = (img: GalleryImage) => img.name ?? img.file_name ?? String(img.id);
 
   return (
-    <div className="space-y-6">
+    <div dir={isRtlResolved ? "rtl" : "ltr"} className="space-y-6">
       {/* Upload Zone */}
       {canUpload && (
       <div
@@ -458,7 +463,7 @@ export default function GalleryTab({
                           if (!selectMode) setSelectMode(true);
                           toggleSelect(img.id);
                         }}
-                        className={`absolute top-2 left-2 z-10 w-6 h-6 rounded-full flex items-center justify-center border transition-all active:scale-[0.9] ${
+                        className={`absolute top-2 ${isRtlResolved ? "right-2" : "left-2"} z-10 w-6 h-6 rounded-full flex items-center justify-center border transition-all active:scale-[0.9] ${
                           selected
                             ? "bg-[#388CFF] border-[#388CFF] text-white"
                             : "bg-white/85 border-white/90 text-transparent"
@@ -531,6 +536,7 @@ export default function GalleryTab({
           current={meta.current_page || page}
           last={meta.last_page}
           disabled={loading}
+          isRtl={isRtlResolved}
           onPrev={() => fetchImages(page - 1)}
           onNext={() => fetchImages(page + 1)}
         />
@@ -540,8 +546,9 @@ export default function GalleryTab({
       {showConfirm && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div
+            dir={isRtlResolved ? "rtl" : "ltr"}
             className="bg-white rounded-[20px] p-5 lg:p-6 max-w-2xl w-full max-h-[80vh] flex flex-col"
-            style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
+            style={{ direction: isRtlResolved ? "rtl" : "ltr", boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
           >
             <h2 className="text-[16px] bold text-[#3c3c3c] mb-1">
               {translateFunction("Confirm Upload")}
@@ -555,7 +562,7 @@ export default function GalleryTab({
                   <button
                     type="button"
                     aria-label={translateFunction("Cancel")}
-                    className="absolute bg-[#f85555] w-[24px] h-[24px] flex items-center justify-center top-1 right-1 cursor-pointer text-white rounded-full hover:bg-[#e84444] z-10"
+                    className={`absolute bg-[#f85555] w-[24px] h-[24px] flex items-center justify-center top-1 ${isRtlResolved ? "left-1" : "right-1"} cursor-pointer text-white rounded-full hover:bg-[#e84444] z-10`}
                     onClick={() => {
                       const newFiles = [...selectedFiles];
                       newFiles.splice(i, 1);
@@ -729,7 +736,7 @@ export default function GalleryTab({
         >
           <button
             aria-label={translateFunction("Close")}
-            className="absolute top-4 right-4 text-white hover:opacity-70"
+            className={`absolute top-4 ${isRtlResolved ? "left-4" : "right-4"} text-white hover:opacity-70`}
             onClick={() => setLightboxUrl(null)}
           >
             <DashIcon name="close" size={32} />

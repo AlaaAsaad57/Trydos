@@ -44,10 +44,10 @@ describe("QrApprovalSheet", () => {
     expect(document.querySelector(".qr-sheet-backdrop")?.getAttribute("dir"), "LTR is not set").toBe("ltr");
   });
 
-  it("says 'a device' when the session has no context", async () => {
+  it("says 'A Device' when the session has no context", async () => {
     qr.getQrStatus.mockResolvedValue({ status: "scanned" });
     await openSheet(true);
-    expect(screen.getByText("a device"), "no fallback device line").toBeInTheDocument();
+    expect(screen.getByText("A Device"), "no fallback device line").toBeInTheDocument();
     expect(document.querySelector(".qr-sheet-backdrop")?.getAttribute("dir"), "RTL is not set").toBe("rtl");
   });
 

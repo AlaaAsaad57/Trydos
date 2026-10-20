@@ -2,10 +2,90 @@ import { fetchData } from "utils/fetchData";
 import { toServiceToken } from "utils/serviceTokens";
 import { REQUESTS_DATA } from "utils/Requests";
 import { GetTicket } from "utils/UploadUtils";
+import type {
+  CartsListResponse,
+  CartDetailsResponse,
+  ProductCartsResponse,
+  OldCartsListResponse,
+  OldCartDetailsResponse,
+} from "components/SellerDashboard/carts/types";
+import type {
+  ProductOrdersResponse,
+  ProductOrdersStatus,
+} from "components/SellerDashboard/productOrders/types";
 
 const MEDIA_SERVER_BASE_URL =
   process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
 const MEDIA_API_KEY = process.env.NEXT_PUBLIC_MEDIA_API_KEY ?? "";
+
+// Download a binary file the shop backend streams (an .xlsx), not a URL.
+// fetchData always parses JSON, so this hits the proxy directly — the proxy
+// injects the auth token server-side and passes binary answers through — and
+// returns the blob plus a file name the caller can save it under.
+async function downloadShopFile(
+  sellerId: string,
+  targetUrl: string,
+  fallbackName: string,
+  errorText: string,
+): Promise<{ blob: Blob; filename: string }> {
+  const [country, lang] = (
+    window.location.pathname.split("/")[1] || ""
+  ).split("-");
+
+  const request = () =>
+    fetch("/api/proxy", {
+      method: "POST",
+      headers: {
+        "x-proxy-server": toServiceToken("market-dashboard"),
+        "x-proxy-url": encodeURI(targetUrl),
+        "x-proxy-method": "GET",
+        "x-country": country || "sy",
+        "x-language": lang || "en",
+        "x-need-decode": "true",
+        "x-seller-id": sellerId,
+      },
+      credentials: "include",
+    });
+
+  const sentAt = Date.now();
+  let res = await request();
+
+  // fetchData renews the session on a 401; this call bypasses it, so do the
+  // same here: one exchange, then the same request once more.
+  if (res.status === 401) {
+    const authService = await import("services/auth");
+    const refresh = await authService.default.RefreshSession(
+      targetUrl,
+      "market-dashboard",
+      sentAt,
+    );
+    if (refresh.eligible) res = await request();
+  }
+
+  const contentType = res.headers.get("content-type") || "";
+
+  // On an error the backend/proxy returns JSON, not a file.
+  if (!res.ok || contentType.includes("application/json")) {
+    let message = `${errorText} (${res.status})`;
+    try {
+      const data = await res.json();
+      message = data?.message || data?.error || message;
+    } catch {}
+    throw new Error(message);
+  }
+
+  const blob = await res.blob();
+
+  // The proxy doesn't forward Content-Disposition, so fall back to the name the
+  // caller built (still try the header in case it's present).
+  const disposition = res.headers.get("content-disposition") || "";
+  const match = disposition.match(
+    /filename\*?=(?:UTF-8'')?["']?([^"';]+)/i,
+  );
+  const filename = match?.[1] ? decodeURIComponent(match[1]) : fallbackName;
+
+  return { blob, filename };
+}
 
 class SellerDashboardService {
   async getShopes(noMessage = false) {
@@ -157,7 +237,7 @@ class SellerDashboardService {
   ) {
     try {
       let res = await fetchData({
-        url: `/api/v1/shop/orders/details/cancel`,
+        url: `/shop/orders/details/cancel`,
         method: "PUT",
         server: "market-dashboard",
         reqTitle: REQUESTS_DATA.CANCEL_SELLER_ORDER_DETAIL,
@@ -659,8 +739,9 @@ class SellerDashboardService {
       const { image, banner, ...rest } = data;
       const body = {
         ...rest,
-        ...(image ? { image } : {}),
-        ...(banner ? { banner } : {}),
+        // null = leave the picture as it is; "" = the seller removed it.
+        ...(image !== null ? { image } : {}),
+        ...(banner !== null ? { banner } : {}),
       };
 
       const res = await fetchData({
@@ -692,69 +773,58 @@ class SellerDashboardService {
     });
   }
 
-  // GET /shop/excel/downloadExcel/{category_id} — the template for a category.
-  // The backend streams the .xlsx file itself (binary), not a URL. We can't use
-  // fetchData (it always parses JSON), so we hit the proxy directly — which
-  // injects the auth token server-side and passes binary responses through —
-  // and return the blob + filename so the caller can trigger a download.
+  // GET /shop/excel/downloadExcel/{category_id}?mode=template|products.
+  // `template` is the empty sheet for new products; `products` is the seller's
+  // own products of that category, for updating them. The backend treats a
+  // missing mode as `products`, so a mode is always sent.
   async downloadExcelTemplate(
     sellerId: string,
     categoryId: string | number,
+    mode: "template" | "products",
+    fallbackName: string,
   ): Promise<{ blob: Blob; filename: string }> {
-    const [country, lang] = (
-      window.location.pathname.split("/")[1] || ""
-    ).split("-");
-    const targetUrl = `/shop/excel/downloadExcel/${categoryId}`;
-
-    const res = await fetch("/api/proxy", {
-      method: "POST",
-      headers: {
-        "x-proxy-server": toServiceToken("market-dashboard"),
-        "x-proxy-url": encodeURI(targetUrl),
-        "x-proxy-method": "GET",
-        "x-country": country || "sy",
-        "x-language": lang || "en",
-        "x-need-decode": "true",
-        "x-seller-id": sellerId,
-      },
-      credentials: "include",
-    });
-
-    const contentType = res.headers.get("content-type") || "";
-
-    // On error (or "no template") the backend/proxy returns JSON, not a file.
-    if (!res.ok || contentType.includes("application/json")) {
-      let message = `Failed to download template (${res.status})`;
-      try {
-        const data = await res.json();
-        message = data?.message || data?.error || message;
-      } catch {}
-      throw new Error(message);
-    }
-
-    const blob = await res.blob();
-
-    // The proxy doesn't forward Content-Disposition, so fall back to a default
-    // name (still try the header in case it's present).
-    const disposition = res.headers.get("content-disposition") || "";
-    const match = disposition.match(
-      /filename\*?=(?:UTF-8'')?["']?([^"';]+)/i,
+    return downloadShopFile(
+      sellerId,
+      `/shop/excel/downloadExcel/${categoryId}?mode=${mode}`,
+      fallbackName,
+      "Failed to download template",
     );
-    const filename = match?.[1]
-      ? decodeURIComponent(match[1])
-      : `template-${categoryId}.xlsx`;
+  }
 
-    return { blob, filename };
+  // GET /shop/excel/failedRows/{uploadedFileId} — the rows of one upload that
+  // were not imported, with a Reason column, as an .xlsx file.
+  async downloadFailedRows(
+    sellerId: string,
+    uploadedFileId: string | number,
+    fallbackName: string,
+  ): Promise<{ blob: Blob; filename: string }> {
+    return downloadShopFile(
+      sellerId,
+      `/shop/excel/failedRows/${uploadedFileId}`,
+      fallbackName,
+      "Failed to download the failed rows",
+    );
   }
 
   // POST /shop/excel/processExcel — process a filled excel by its media url.
-  async processExcel(sellerId: string, url: string) {
+  // `expectedCategoryId` is the category picked in the tab: the backend answers
+  // 409 with `data.category_mismatch` when the sheet was made for another one.
+  // `confirmCategory` is sent after the seller confirmed that question.
+  async processExcel(
+    sellerId: string,
+    url: string,
+    options: { expectedCategoryId?: number | string; confirmCategory?: boolean } = {},
+  ) {
     return fetchData({
       url: `/shop/excel/processExcel`,
       method: "POST",
       server: "market-dashboard",
       reqTitle: REQUESTS_DATA.PROCESS_EXCEL,
-      body: JSON.stringify({ file_url:process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL+'/file/upload/'+url }),
+      body: JSON.stringify({
+        file_url: process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL + "/file/upload/" + url,
+        ...(options.expectedCategoryId ? { expected_category_id: options.expectedCategoryId } : {}),
+        ...(options.confirmCategory ? { confirm_category: true } : {}),
+      }),
       sellerId,
     });
   }
@@ -1199,5 +1269,107 @@ class SellerDashboardService {
     });
   }
 
+  // --- Seller Carts Endpoints (Contract: shop-seller-carts-apis.md) ---
+
+  // GET /shop/carts — Active open carts list (paginated)
+  async getSellerCarts(
+    sellerId: string,
+    page: number = 1,
+  ): Promise<CartsListResponse> {
+    return fetchData({
+      url: `/shop/carts${page > 1 ? `?page=${page}` : ""}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SELLER_CARTS,
+      sellerId,
+    });
+  }
+
+  // GET /shop/carts/{cartGroupId} — Active cart details
+  async getSellerCartDetails(
+    sellerId: string,
+    cartGroupId: string,
+  ): Promise<CartDetailsResponse> {
+    return fetchData({
+      url: `/shop/carts/${encodeURIComponent(cartGroupId)}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SELLER_CART_DETAILS,
+      sellerId,
+    });
+  }
+
+  // GET /shop/products/{productId}/carts — All open cart lines for this product
+  async getSellerProductCarts(
+    sellerId: string,
+    productId: number | string,
+    page: number = 1,
+  ): Promise<ProductCartsResponse> {
+    return fetchData({
+      url: `/shop/products/${encodeURIComponent(String(productId))}/carts${page > 1 ? `?page=${page}` : ""}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SELLER_PRODUCT_CARTS,
+      sellerId,
+    });
+  }
+
+  // GET /shop/products/{productId}/orders — This seller's orders holding the
+  // product (paginated). Contract: shop-seller-orders-apis.md §4.1.
+  async getSellerProductOrders(
+    sellerId: string,
+    productId: number | string,
+    page: number = 1,
+    status: ProductOrdersStatus = "all",
+  ): Promise<ProductOrdersResponse> {
+    const query = new URLSearchParams();
+    if (status !== "all") query.set("status", status);
+    if (page > 1) query.set("page", String(page));
+    const qs = query.toString();
+    return fetchData({
+      url: `/shop/products/${encodeURIComponent(String(productId))}/orders${qs ? `?${qs}` : ""}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SELLER_PRODUCT_ORDERS,
+      sellerId,
+    });
+  }
+
+  // GET /shop/old-carts — Old carts list (paginated, optional ?search=product_or_customer_id)
+  async getSellerOldCarts(
+    sellerId: string,
+    params?: { search?: number | string; page?: number },
+  ): Promise<OldCartsListResponse> {
+    const query = new URLSearchParams();
+    if (params?.page && params.page > 1) {
+      query.set("page", String(params.page));
+    }
+    if (params?.search !== undefined && params?.search !== null && String(params.search).trim() !== "") {
+      query.set("search", String(params.search).trim());
+    }
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    return fetchData({
+      url: `/shop/old-carts${qs}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SELLER_OLD_CARTS,
+      sellerId,
+    });
+  }
+
+  // GET /shop/old-carts/{customerId} — One customer's old cart lines
+  async getSellerOldCartDetails(
+    sellerId: string,
+    customerId: number | string,
+    page: number = 1,
+  ): Promise<OldCartDetailsResponse> {
+    return fetchData({
+      url: `/shop/old-carts/${encodeURIComponent(String(customerId))}${page > 1 ? `?page=${page}` : ""}`,
+      method: "GET",
+      server: "market-dashboard",
+      reqTitle: REQUESTS_DATA.GET_SELLER_OLD_CART_DETAILS,
+      sellerId,
+    });
+  }
 }
 export default new SellerDashboardService();

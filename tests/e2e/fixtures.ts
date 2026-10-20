@@ -16,7 +16,12 @@ import { test as base, expect } from "@playwright/test";
 import type { BrowserContext, Page } from "@playwright/test";
 
 import { hasBackends, LIVE_ORIGIN, loadLiveEnv } from "./harness/env";
-import { cancelOrderGroup, type CleanupOutcome } from "./harness/orderCleanup";
+import { retryUnstableBackends } from "./harness/unstableRetry";
+import {
+  cancelOrderGroup,
+  strandedOrderFailure,
+  type CleanupOutcome,
+} from "./harness/orderCleanup";
 
 /** What a spec registers, and what it says when it no longer needs to. */
 export type OrderTracker = {
@@ -25,12 +30,14 @@ export type OrderTracker = {
    *  first would leave the order unregistered and uncancelled. */
   register: (options: { groupId: string; context: BrowserContext; page: Page }) => Promise<void>;
   /** Say a registered order has been cancelled through the screens, so the net
-   *  has nothing left to do for it. */
+   *  has nothing left to do for it.
+   *
+   *  **A passed case that never releases its order fails.** The fixture's
+   *  teardown cancels whatever is still registered and then, when the case had
+   *  passed, fails it with the order numbers (`strandedOrderFailure`). There is
+   *  deliberately no way to read the net's work from the test body: the body
+   *  runs before the teardown, so it could only ever see an empty list. */
   release: (groupId: string) => void;
-  /** What the net actually had to cancel. Empty on a healthy run — a case that
-   *  cancels its own order releases it — so anything in here is a case that did
-   *  not finish, and the spec can say so. */
-  swept: () => CleanupOutcome[];
 };
 
 /** One registered order, with everything needed to cancel it later.
@@ -58,7 +65,17 @@ const localeFromUrl = (url: string): { country: string; language: string } => {
   return { country: match?.[1] ?? "sy", language: match?.[2] ?? "en" };
 };
 
-export const test = base.extend<{ orders: OrderTracker }>({
+export const test = base.extend<{ orders: OrderTracker; retryUnstable: void }>({
+  // Playwright's own `context` (the one behind the `page` fixture) gets the
+  // same Cloudflare 52x retry as every context `newLiveContext` builds
+  // (`harness/unstableRetry.ts`). Automatic, so no spec has to ask for it.
+  retryUnstable: [
+    async ({ context }, provide) => {
+      await retryUnstableBackends(context);
+      await provide();
+    },
+    { auto: true },
+  ],
   // The second argument is Playwright's `use`, renamed here only because the
   // React lint rule reads a bare `use(...)` as the React hook and warns about a
   // function that is not a component. It is passed positionally, so the name is
@@ -78,7 +95,6 @@ export const test = base.extend<{ orders: OrderTracker }>({
       release: (groupId) => {
         live.delete(groupId);
       },
-      swept: () => [...swept],
     };
 
     await provide(tracker);
@@ -106,6 +122,7 @@ export const test = base.extend<{ orders: OrderTracker }>({
         baseURL: LIVE_ORIGIN,
         storageState: order.storageState,
       });
+      await retryUnstableBackends(context);
       const page = await context.newPage();
       try {
         // The page has to be **on** the origin before a same-origin `fetch`
@@ -135,6 +152,13 @@ export const test = base.extend<{ orders: OrderTracker }>({
         await context.close();
       }
     }
+
+    // **Judged here, after the sweep, because only here is it known.** A case
+    // that passed but left an order for the net is a journey that did not finish
+    // its own clean-up, and a green tick would hide that on every run. Thrown
+    // from the teardown, which fails the case with the order numbers.
+    const failure = strandedOrderFailure(testInfo.status, swept);
+    if (failure !== null) throw new Error(failure);
   },
 });
 

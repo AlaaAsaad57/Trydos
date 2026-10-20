@@ -1,6 +1,7 @@
 import RatingStars from "components/settings/cards/RatingStars";
 
 import { translateFunction } from "utils/functions";
+import { formatCount } from "utils/formatCount";
 import { LikeButton } from "../LikeButtton";
 
 export const BuyerCommentRateInfo = ({
@@ -17,6 +18,7 @@ export const BuyerCommentRateInfo = ({
         productId={comment.product_id}
         target_type={"comment"}
         total_likes={comment.total_likes}
+        language={language}
       />
       <div className="flex-row gap-[4px] text-[9px] text-[#1d1d1d]">
         <RatingStars color="#1d1d1d" initialRating={rating} readOnly={true} />
@@ -67,7 +69,7 @@ export const BuyersRatingBar = ({ language, recommendation_stats }) => {
           }  regular items-center text-[#1d1d1d] text-[9px] gap-[4px]`}
         >
           <img src="/icons/RecomendedIcon.svg" />
-          <span className="bold ">{recomended}</span>
+          <span className="bold ">{formatCount(recomended, language)}</span>
           <span>{translateFunction("Buyer", language)}</span>
           <span className="bold">
             {translateFunction("Recommend It", language)}
@@ -75,10 +77,10 @@ export const BuyersRatingBar = ({ language, recommendation_stats }) => {
         </div>
         <div className="flex-row items-center regular text-[#1d1d1d] text-[9px] gap-[4px]">
           <img src="/icons/NegRecomendIcon.svg" />
-          <span className="bold ">{not_recomended}</span>
+          <span className="bold ">{formatCount(not_recomended, language)}</span>
           <span>{translateFunction("Buyer", language)}</span>
           <span className="bold">
-            {translateFunction("Dont Recommend It", language)}
+            {translateFunction("Don't Recommend It", language)}
           </span>
         </div>
       </div>

@@ -18,6 +18,8 @@ import { expect, type Page } from "@playwright/test";
 
 import { profile } from "../selectors";
 import { chooseRegionIfAsked, localePrefix } from "./nav";
+import { openPage } from "../harness/pageOpen";
+import { waitForRenewalSettled } from "../harness/renewalGate";
 import { watchCommentCall } from "./productComments";
 
 /** Open a settings screen under the locale prefix, and wait for it to settle.
@@ -34,7 +36,11 @@ export const gotoUnderLocale = async (
     "no country-and-language prefix in the address yet — open a storefront page first",
   ).not.toBe("");
 
-  await page.goto(`/${prefix}${path}`, { waitUntil: "domcontentloaded" });
+  // Every caller is a signed-in page, and leaving one while it renews its
+  // credential spends the session (`harness/renewalGate.ts`). CI run
+  // 36395039292 lost Shopper B that way on the way into the seller dashboard.
+  await waitForRenewalSettled(page);
+  await openPage(page, `/${prefix}${path}`);
   await chooseRegionIfAsked(page);
 
   // Wait for the page to stop fetching, and this is not tidiness — it replaces
@@ -215,14 +221,21 @@ export const phoneFieldMatchesAccount = async (
  *  Matched by text, which is normally forbidden in this suite — but these four
  *  strings **are** the thing being reported, there is no marker on them, and
  *  every spec that reaches this form has pinned the language to English. If a
- *  marker is ever added to the app, use it instead. */
+ *  marker is ever added to the app, use it instead.
+ *
+ *  Written as the screen shows them, not as the translation keys: in English
+ *  `translateFunction` passes the key through `titleCaseWords`
+ *  (`utils/titleCase.ts`), so "Full name is required" is drawn as "Full Name Is
+ *  Required". A string in the old casing is never on screen, so this reader
+ *  would answer `null` for a form that did refuse — and a spec that expects
+ *  `null` would pass for the wrong reason. */
 const VALIDATION_MESSAGES = [
-  "Full name is required",
-  "Name Should be atleast 8 characters",
-  "Phone number is required",
-  "Please enter a valid phone number",
-  "Please enter a valid email address",
-  "Please select your gender",
+  "Full Name Is Required",
+  "Name Should Be Atleast 8 Characters",
+  "Phone Number Is Required",
+  "Please Enter A Valid Phone Number",
+  "Please Enter A Valid Email Address",
+  "Please Select Your Gender",
 ] as const;
 
 /** Whichever validation message the form is showing, or `null`.
@@ -458,12 +471,13 @@ export const sizeIs = async (
 
 /** The size screen's own validation messages, for the same reason as the
  *  personal-info ones above: they are what is being reported and carry no
- *  marker. */
+ *  marker. Title-cased as the screen draws them, the same as above; the units
+ *  "cm" and "kg" stay small (`titleCaseWords` leaves them). */
 const SIZE_VALIDATION_MESSAGES = [
-  "Height is required",
-  "Height must be between 110 and 250 cm",
-  "Weight is required",
-  "Weight must be between 40 and 180 kg",
+  "Height Is Required",
+  "Height Must Be Between 110 And 250 cm",
+  "Weight Is Required",
+  "Weight Must Be Between 40 And 180 kg",
 ] as const;
 
 export const visibleSizeValidationMessage = async (
@@ -600,10 +614,10 @@ export const attemptPictureSave = async (
   // found nothing every time and reported "the shopper was not told" about a
   // screen that had told them and moved on.
   const refusal = page
-    .getByText("File upload failed.", { exact: true })
+    .getByText("File Upload Failed.", { exact: true })
     .first()
     .waitFor({ state: "visible", timeout })
-    .then(() => "File upload failed." as const)
+    .then(() => "File Upload Failed." as const)
     .catch(() => null);
 
   const navigation = page
@@ -616,6 +630,20 @@ export const attemptPictureSave = async (
 
   await button.click();
 
+  // **The first of the two to happen is the answer.** This used to wait for
+  // both, so every save that worked still sat out the refusal watch's whole
+  // 45 seconds. `PROF-05` saves twice, which cost it 90 of its 180 seconds
+  // with nothing wrong. CI run 36416474747 then ran out of time there, and the
+  // three cases after it opened a session that was never handed on.
+  const first = await Promise.race([
+    navigation.then((landed) => (landed ? ("saved" as const) : null)),
+    refusal,
+  ]);
+  if (first === "saved") return { saved: true, refusedWith: null };
+  if (first !== null) return { saved: false, refusedWith: first };
+
+  // Neither happened in time. Both watches share one deadline, so the other
+  // one ends now too.
   const [saved, refusedWith] = await Promise.all([navigation, refusal]);
 
   return {
@@ -633,10 +661,12 @@ export const attemptPictureSave = async (
  *
  *  Matched by text for the same reason the form's messages are: the string *is*
  *  the thing being reported, there is no marker on it, and every spec that
- *  reaches here has pinned the language to English. */
+ *  reaches here has pinned the language to English. The key is "File upload
+ *  failed." (`components/settings/UploadProfilePhoto.tsx`); English shows it
+ *  title-cased by `titleCaseWords`, so the screen says "File Upload Failed.". */
 const pictureRefusalMessage = async (page: Page): Promise<string | null> => {
-  const failed = page.getByText("File upload failed.", { exact: true }).first();
-  if (await failed.isVisible().catch(() => false)) return "File upload failed.";
+  const failed = page.getByText("File Upload Failed.", { exact: true }).first();
+  if (await failed.isVisible().catch(() => false)) return "File Upload Failed.";
 
   // Anything else the notification strip is showing, so a refusal nobody
   // anticipated still comes back as words rather than as `null`.
@@ -734,6 +764,14 @@ export const addAddress = async (
   // one level deeper and leaves the picker open; only a leaf row sets the
   // region and closes it. The two carry different markers, so this takes the
   // province while one is offered and the leaf when one is.
+  //
+  // On the checkout the form sits on a slide (`OrdersPage.tsx`, `SlideWidget`).
+  // Run 36586083936 found the button drawn but off the screen for 20 s, and a
+  // bare click timeout said only "outside of the viewport". This names it.
+  await expect(
+    profile.selectRegionButton(page),
+    "the add-address form opened, but its region button never came onto the screen — on the checkout that means the form's slide did not finish moving in",
+  ).toBeInViewport({ timeout: 20_000 });
   await profile.selectRegionButton(page).click();
 
   for (let level = 0; level < 6; level += 1) {

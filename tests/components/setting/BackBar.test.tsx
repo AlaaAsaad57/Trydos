@@ -68,6 +68,60 @@ describe("the back arrow", () => {
     expect(routerSpies.back, "the bar did not go back in history").toHaveBeenCalled();
     expect(routerSpies.push, "the bar pushed a page as well as going back").not.toHaveBeenCalled();
   });
+
+  it("clears loading state and loading-page-class when entering a new screen or on remount", async () => {
+    const screenEl = document.createElement("div");
+    screenEl.className = "setting-screen loading-page-class";
+    document.body.appendChild(screenEl);
+
+    // Initial render cleans up any leftover loading-page-class
+    const { unmount } = await renderWithProviders(
+      <BackBar
+        local="gb-en"
+        isRtl={false}
+        preivous_page="/gb-en/sellerProfile"
+        onBackIntercept={() => false}
+      />,
+      { path: "/gb-en/sellerProfile/sellerDashboard/77" },
+    );
+    expect(
+      screenEl.classList.contains("loading-page-class"),
+      "the loading-page-class was not cleared on mount",
+    ).toBe(false);
+
+    // Tap back to simulate leaving
+    const user = userEvent.setup();
+    await user.click(back());
+    expect(screenEl.classList.contains("loading-page-class")).toBe(true);
+
+    unmount();
+
+    // Re-mount (re-entering screen)
+    await renderWithProviders(
+      <BackBar
+        local="gb-en"
+        isRtl={false}
+        preivous_page="/gb-en/sellerProfile"
+        onBackIntercept={() => false}
+      />,
+      { path: "/gb-en/sellerProfile/sellerDashboard/77" },
+    );
+
+    expect(
+      screenEl.classList.contains("loading-page-class"),
+      "re-entering the screen kept the loading-page-class",
+    ).toBe(false);
+
+    // Clicking back on re-entry works and navigates again
+    routerSpies.push.mockClear();
+    await user.click(back());
+    expect(
+      routerSpies.push,
+      "the back arrow failed to navigate on re-entry",
+    ).toHaveBeenCalledWith("/gb-en/sellerProfile");
+
+    screenEl.remove();
+  });
 });
 
 describe("the right side", () => {

@@ -81,6 +81,29 @@ describe("ShopInfoLoader — the shop answers", () => {
     ).toEqual({ code: "SYP", name: "Syrian Pound" });
   });
 
+  it("stores the currency decimal_digits when provided", async () => {
+    getShopInfo.mockResolvedValue(
+      shopInfoAnswer({
+        currency: { code: "TRY", name: "Turkish Lira", decimal_digits: 2 },
+      }),
+    );
+    const info = await mountAndSettle(true);
+    expect(
+      info.currency,
+      "the currency record must include decimal_digits",
+    ).toEqual({ code: "TRY", name: "Turkish Lira", decimal_digits: 2 });
+  });
+
+  it("stores decimal_digits: 0 when currency has 0 decimal digits", async () => {
+    getShopInfo.mockResolvedValue(
+      shopInfoAnswer({
+        currency: { code: "JPY", name: "Japanese Yen", decimal_digits: 0 },
+      }),
+    );
+    const info = await mountAndSettle(true);
+    expect(info.currency.decimal_digits).toBe(0);
+  });
+
   it("records the shop id it resolved, so another shop is fetched fresh", async () => {
     const info = await mountAndSettle(true);
     expect(

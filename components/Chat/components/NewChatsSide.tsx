@@ -1,4 +1,10 @@
-import { getNew, getTwoLetters, getUser } from "../chatsFunctions";
+import {
+  getChatName,
+  getChatPhoto,
+  getNew,
+  getTwoLetters,
+  getUser,
+} from "../chatsFunctions";
 
 import Image from "next/image";
 import profilePicture from "public/images/profileNo.png";
@@ -40,9 +46,7 @@ function NewChatsSide({ activeChat, chats }) {
                 <img src="/icons/chat/point.svg" />
 
                 <div className="img-cont">
-                  {a.channel_members.filter(
-                    (ada) => parseInt(ada.user_id) !== parseInt(getUser()?.id)
-                  )[0]?.user?.photo_path &&
+                  {getChatPhoto(a) &&
                   !a.channel_members
                     .filter(
                       (ada) => parseInt(ada.user_id) !== parseInt(getUser()?.id)
@@ -58,23 +62,11 @@ function NewChatsSide({ activeChat, chats }) {
                       width={30}
                       height={30}
                       alt="new-user"
-                      src={GetImageUrl(
-                        a.channel_members.filter(
-                          (ada) =>
-                            parseInt(ada.user_id) !== parseInt(getUser()?.id)
-                        )[0]?.user?.photo_path
-                      )}
+                      src={GetImageUrl(getChatPhoto(a))}
                     />
-                  ) : a.channel_members.filter(
-                      (ada) => parseInt(ada.user_id) !== parseInt(getUser()?.id)
-                    )[0]?.user?.name ? (
+                  ) : getChatName(a) ? (
                     <div className="min-text-avatar">
-                      {getTwoLetters(
-                        a.channel_members.filter(
-                          (ada) =>
-                            parseInt(ada.user_id) !== parseInt(getUser()?.id)
-                        )[0]?.user?.name
-                      )}
+                      {getTwoLetters(getChatName(a))}
                     </div>
                   ) : (
                     <Image

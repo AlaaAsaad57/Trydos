@@ -13,6 +13,7 @@ import { useAppStore } from "store";
 import { toServiceToken } from "./serviceTokens";
 import { buildProxyGetUrl } from "./proxyGetUrl";
 import { formatFieldErrors } from "./fieldErrors";
+import { ignoredMessages } from "./ignoredMessages";
 
 // ---------- Types ----------
 export type ServerType =
@@ -163,28 +164,6 @@ const withLogoutSignal = (signal?: AbortSignal): AbortSignal => {
   return controller.signal;
 };
 const retryableStatusCodes = [502, 504, 429, 503];
-const ignoredMessages = [
-  "Data Got!",
-  "Data Got",
-  "تم الحصول على البيانات!",
-  "Veri Alındı!",
-  "Success",
-  "Country and language updated successfully",
-  "Product created and view count initialized",
-  "View count updated",
-  "Subscribed successfully",
-  "signal is aborted without reason",
-  "Failed to fetch",
-  "Too many attempts",
-  "Unauthorized",
-  "The user aborted a request.",
-  "Fetch is aborted",
-  "success",
-  "Policies Approved!",
-  "firebase device token stored successfully",
-  "Firebase settings retrieved successfully",
-  "Languages retrieved successfully"
-];
 
 // ---------- Helper Functions ----------
 
@@ -730,6 +709,13 @@ export const fetchData = async <T = any>(
         return { ...responseData, success: false, httpStatus: 409 };
       }
 
+      // The seller dashboard's Excel upload answers 409 when the sheet was made
+      // for another category than the one picked. The tab asks the seller to
+      // confirm, so this is a question, not a fault: no toast, no Sentry event.
+      if (status === 409 && responseData?.data?.category_mismatch === true) {
+        return { ...responseData, success: false, httpStatus: 409 };
+      }
+
       if (!res.ok) {
         throw new Error(
           responseData?.message ??
@@ -784,8 +770,10 @@ export const fetchData = async <T = any>(
       return { ...(responseData || {}), success: true, httpStatus: status };
     } catch (err: any) {
       retryCount++;
+      const isAuthLoginRoute = typeof url === "string" && url.includes("/api/auth/login");
       if (
         !isMutatingMethod &&
+        !isAuthLoginRoute &&
         ((err instanceof TypeError && err.message.includes("fetch")) ||
           retryableStatusCodes.includes(status))
       ) {

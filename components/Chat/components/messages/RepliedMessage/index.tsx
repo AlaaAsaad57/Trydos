@@ -41,6 +41,7 @@ function RepliedMessageWrapper({
 }) {
   return (
     <div
+      data-pw="chat-replied-quote"
       className={`${getMessageReplyType({
         parent_message_sender_id: parent_message?.sender_user_id,
         sender_user_id: sender_user_id,

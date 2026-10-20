@@ -65,6 +65,7 @@ export default function LocationFormModal({
   onClose: () => void;
   onSaved: (message: string) => void;
 }) {
+  const isRtl = language === "ar" || language === "ku";
   const isEdit = !!location;
   const [form, setForm] = useState<FormState>(
     location ? toFormState(location) : EMPTY_FORM,
@@ -238,6 +239,7 @@ export default function LocationFormModal({
       <div
         data-pw="location-form"
         data-mode={isEdit ? "edit" : "create"}
+        dir={isRtl ? "rtl" : "ltr"}
         className="relative bg-white rounded-[20px] z-10 w-full max-w-2xl max-h-[88vh] flex flex-col overflow-hidden"
         style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
       >

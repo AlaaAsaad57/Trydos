@@ -1,6 +1,6 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
@@ -15,12 +15,35 @@ const BackBar = ({
   Save = null,
   preivous_page = null,
   onBackIntercept = null,
-}) => {
-  const [, language] = local.split("-");
+}: any) => {
+  const language = local?.includes("-") ? local.split("-")[1] : (local || "");
   const { lastPathname } = useAppStore();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    setLoading(false);
+    document.querySelectorAll(".setting-screen").forEach((el) => {
+      el.classList.remove("loading-page-class");
+    });
+    return () => {
+      document.querySelectorAll(".setting-screen").forEach((el) => {
+        el.classList.remove("loading-page-class");
+      });
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!loading) return;
+    const timer = setTimeout(() => {
+      setLoading(false);
+      document.querySelectorAll(".setting-screen").forEach((el) => {
+        el.classList.remove("loading-page-class");
+      });
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   const handleBack = () => {
     if (loading) return;
@@ -45,7 +68,7 @@ const BackBar = ({
       style={{
         direction: isRtl ? "rtl" : "ltr",
       }}
-      className="flex-row w-full min-h-[50px] h-[50px] items-center px-[12px] justify-between"
+      className="flex flex-row w-full min-h-[50px] h-[50px] items-center px-[12px] justify-between"
     >
       <span
         className="cursor-pointer"
@@ -58,13 +81,13 @@ const BackBar = ({
         <img src="/icons/backIcon.svg" />
       </span>
       {name && (
-        <div className="flex-row gap-[4px] items-center">
+        <div className="flex flex-row gap-[4px] items-center">
           {Icon && <img src={Icon} className="w-auto h-auto" />}
           <span className={` text-[#1D1D1D] text-[14px] medium`}>{name}</span>
         </div>
       )}
       <span
-        className={"cursor-pointer medium text-[#402CDD] text-[14px] flex-row"}
+        className={"cursor-pointer medium text-[#402CDD] text-[14px] flex flex-row items-center"}
         data-pw={DataCy || "save-button"}
         onClick={() => {
           if (validateFunction && !validateFunction()) return;

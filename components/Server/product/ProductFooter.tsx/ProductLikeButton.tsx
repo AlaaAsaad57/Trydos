@@ -3,6 +3,7 @@ import auth from "services/auth";
 import { showErrorNotification } from "store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import { LogError, translateFunction } from "utils/functions";
+import { formatCount } from "utils/formatCount";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -17,13 +18,14 @@ function ProductLikeButton({
   price,
   brand_id,
   category_id,
+  language = "en",
 }) {
   const [likeLoading, setLikeLoading] = useState(false);
   const [isLikedState, setLiked] = useState(isLiked);
   const [totalLikes, setTotalLikes] = useState(total_likes);
 
   const getLikesCount = () => {
-    if (totalLikes > 0) return totalLikes;
+    if (totalLikes > 0) return formatCount(totalLikes, language);
     return "";
   };
 

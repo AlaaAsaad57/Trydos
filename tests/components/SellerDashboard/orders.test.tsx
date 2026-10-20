@@ -36,7 +36,7 @@ vi.mock("services/home", () => ({
 
 import RenderOrders from "components/SellerDashboard/orders";
 
-import { act, renderWithProviders, screen, userEvent, waitFor } from "../../render";
+import { act, renderWithProviders, screen, userEvent, waitFor, within } from "../../render";
 import { useAppStore } from "store";
 
 // Every browser has IntersectionObserver; jsdom has none. The section uses one
@@ -144,7 +144,7 @@ describe("Orders section — the permission gate", () => {
     await mount(false);
     expect(
       screen.getByText(
-        "You need order viewing permissions to see this section",
+        "You Need Order Viewing Permissions To See This Section",
       ),
       "the blocked section should say what the seller is missing",
     ).toBeInTheDocument();
@@ -193,7 +193,7 @@ describe("Orders section — the list", () => {
     getSellerOrders.mockResolvedValue(listAnswer([]));
     await mount();
     expect(
-      await screen.findByText("No orders found"),
+      await screen.findByText("No Orders Found"),
       "an empty tab should say so rather than show nothing at all",
     ).toBeInTheDocument();
   });
@@ -219,7 +219,7 @@ describe("Orders section — the list", () => {
     await userEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     expect(
-      await screen.findByText("No orders found"),
+      await screen.findByText("No Orders Found"),
       "Retry should ask the orders backend again",
     ).toBeInTheDocument();
   });
@@ -529,7 +529,7 @@ describe("Orders section — how the list card reads its data", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("2026-02-01"), "updated_at with only a date should be the fallback time").toBeInTheDocument();
     expect(screen.getByText("15m"), "the remaining minutes should be shown on the card").toBeInTheDocument();
-    expect(screen.getByText("No items"), "an order whose details are not a list should say it has no items").toBeInTheDocument();
+    expect(screen.getByText("No Items"), "an order whose details are not a list should say it has no items").toBeInTheDocument();
     const statuses = Array.from(document.querySelectorAll('[data-pw="order-shop-status"]')).map((e) => e.textContent);
     expect(statuses[0], "an order with no status should read N/A").toBe("N/A");
     expect(statuses[2], "a snake_case status should read as words").toBe("In Progress");
@@ -552,7 +552,7 @@ describe("Orders section — how the list card reads its data", () => {
     const sources = Array.from(document.querySelectorAll('img[alt="item"]')).map((i) => i.getAttribute("src"));
     expect(sources.some((src) => src?.includes("from-string.webp")), "images sent as a JSON string should be read").toBe(true);
     expect(sources.some((src) => src?.includes("from-list.webp")), "images sent as a list should be read").toBe(true);
-    expect(screen.getByText("No image"), "images that cannot be read should show No image").toBeInTheDocument();
+    expect(screen.getByText("No Image"), "images that cannot be read should show No image").toBeInTheDocument();
   });
 });
 
@@ -592,12 +592,12 @@ describe("Orders section — the detail screen's edges", () => {
       useAppStore.setState({ sellerOrders: [] } as any);
     });
     expect(
-      await screen.findByText("No order selected"),
+      await screen.findByText("No Order Selected"),
       "an order that vanished from the list (a push refresh) should leave an empty detail, not a crash",
     ).toBeInTheDocument();
     await userEvent.click(screen.getAllByRole("button")[0]);
     expect(
-      await screen.findByText("No orders found"),
+      await screen.findByText("No Orders Found"),
       "the back arrow on the empty detail should go back to the list",
     ).toBeInTheDocument();
   });
@@ -845,6 +845,27 @@ describe("Orders section — refreshes from outside and more pages", () => {
       expect(await firstPageCard(), "a refused next page must keep the first page on screen").toBeInTheDocument();
     });
 
+    // BUG-seller-705 (fixed): while the next page loads, `ordersLoading` is true, and
+    // OrderListScreen draws 4 placeholder cards INSTEAD of the list. The orders
+    // the seller was reading vanish, and the page height drops, so the scroll
+    // place is lost.
+    it("BUG-seller-705: keeps the first page on screen while the next page loads", async () => {
+      let answerPage2: (v: unknown) => void = () => {};
+      getSellerOrders
+        .mockResolvedValueOnce(listAnswer([order()], { has_more_pages: true }))
+        .mockReturnValueOnce(new Promise((resolve) => (answerPage2 = resolve)));
+      await mount();
+      await firstPageCard();
+      await scrollToBottom();
+      await waitFor(() => expect(getSellerOrders).toHaveBeenCalledTimes(2));
+      const stillShown = screen.queryByText("In Progress", { selector: '[data-pw="order-shop-status"]' });
+      await act(async () => answerPage2(listAnswer([], { has_more_pages: false })));
+      expect(
+        stillShown,
+        "page 1 disappeared from the screen while page 2 was loading",
+      ).not.toBeNull();
+    });
+
     it("keeps the first page when the next page throws a non-error", async () => {
       getSellerOrders
         .mockResolvedValueOnce(listAnswer([order()], { has_more_pages: true }))
@@ -855,5 +876,90 @@ describe("Orders section — refreshes from outside and more pages", () => {
       await waitFor(() => expect(getSellerOrders).toHaveBeenCalledTimes(2));
       expect(await firstPageCard(), "a failed next page must keep the first page on screen").toBeInTheDocument();
     });
+  });
+});
+
+// Bugs found while writing the tester guide
+// (docs/testing/seller-dashboard-orders-tester-guide.md). Each test was seen red
+// before its fix. Register: docs/testing/unit-coverage-bugs.md.
+describe("Orders section — fixed bugs", () => {
+  // BUG-seller-702 (fixed): orders.tsx reads the line price as
+  // `Number(item.offer_price || 0) ?? unitPrice`. `Number(...)` is never null,
+  // so the fallback never runs. A line with no offer has offer_price 0
+  // (shop-seller-orders-apis.md: "sold at offer_price when it is above 0, else
+  // at unit_price"), and the seller sees a price of 0.
+  it("BUG-seller-702: an item with no offer shows its unit price, not 0", async () => {
+    getSellerOrders.mockResolvedValue(
+      listAnswer([
+        order({ order_amount: 50, details: [item({ qty: 2, unit_price: 25, offer_price: 0 })] }),
+      ]),
+    );
+    await mount();
+    await openFirstOrder();
+    const itemBlock = (await screen.findByText("Blue Shoe")).closest(".rounded-2xl") as HTMLElement;
+    expect(
+      within(itemBlock).queryByText("25 / 50"),
+      `a line with no offer must show unit price / line total (25 / 50); the item block reads "${itemBlock.textContent}"`,
+    ).not.toBeNull();
+  });
+
+  // BUG-seller-703 (fixed): a refused Confirm / Packed / Cancel puts the reason in
+  // `ordersError`, but the only place that shows `ordersError` is the
+  // full-screen error, drawn when the list is EMPTY. On the detail screen the
+  // button goes back to normal and the seller is never told the action failed.
+  it("BUG-seller-703: tells the seller why the shop backend refused to confirm an item", async () => {
+    confirmOrderDetailStatus.mockResolvedValue({
+      success: false,
+      message: "This order line is already collected.",
+    });
+    await mount();
+    await openFirstOrder();
+    await screen.findByText("Order Number");
+    await userEvent.click(screen.getByRole("button", { name: "Confirm & Start Packing" }));
+    await waitFor(() => expect(confirmOrderDetailStatus).toHaveBeenCalled());
+    expect(
+      screen.queryByText("This order line is already collected."),
+      "the backend refused the confirm, but its reason is not on the screen",
+    ).not.toBeNull();
+  });
+
+  // BUG-seller-704 (fixed): the filter tabs print `tabItem.label` and the card prints
+  // `formatStatusLabel(order.order_status)`; neither goes through
+  // translateFunction, although ar / tr / ku have both keys.
+  const mountInArabic = () =>
+    renderWithProviders(
+      <RenderOrders canViewOrders sellerId={SELLER_ID} activeTab="orders" setActiveTab={() => {}} />,
+      { language: "ar", path: `/sellerProfile/sellerDashboard/${SELLER_ID}`, search: "tab=orders" },
+    );
+
+  it("BUG-seller-704: the filter tabs are translated", async () => {
+    await mountInArabic();
+    await waitFor(() => expect(getSellerOrders).toHaveBeenCalled());
+    expect(
+      screen.queryByRole("button", { name: "قيد التنفيذ" }),
+      "the In Progress filter tab is still in English on the Arabic page",
+    ).not.toBeNull();
+  });
+
+  it("BUG-seller-704: an item with no name is called a product in the page's language", async () => {
+    getSellerOrders.mockResolvedValue(
+      listAnswer([order({ details: [item({ product_name: null, product_id: 900 })] })]),
+    );
+    await mountInArabic();
+    await openFirstOrder();
+    expect(
+      await screen.findByText(/#900$/),
+      "an item with no name shows its fallback 'Product #900' in English on the Arabic page",
+    ).toHaveTextContent("منتج #900");
+  });
+
+  it("BUG-seller-704: the order status on a list card is translated", async () => {
+    getSellerOrders.mockResolvedValue(listAnswer([order({ order_status: "Waiting Confirm" })]));
+    await mountInArabic();
+    const status = await screen.findByText(/./, { selector: '[data-pw="order-shop-status"]' });
+    expect(
+      status.textContent,
+      "the card status 'Waiting Confirm' is still in English on the Arabic page",
+    ).toBe("بانتظار التأكيد");
   });
 });

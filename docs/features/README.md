@@ -337,7 +337,6 @@ Private real-time messaging and calling. **All conversations are 1-to-1 (Agora);
 > - **Category** and **Reminder** message options — icon + label only, no action (`OptionsMenu.tsx`).
 > - **Archive** chat option — inert, while its siblings (Unread / Pin / Mute / Delete) all work
 >   (`Chat/components/ChatOptions.tsx`).
-> - **Save to Gallery / Never** auto-download row — decorative, no handler (`ChatInfo.tsx`).
 >
 > Decision needed: finish these or remove them so the UI doesn't promise actions it can't perform.
 

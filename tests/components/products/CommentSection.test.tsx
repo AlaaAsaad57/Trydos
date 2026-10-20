@@ -84,7 +84,7 @@ describe("CommentSection", () => {
   it("asks a guest to log in and gives no comment bar", async () => {
     fetchMock.mockResolvedValue(page([], 0));
     await renderWithProviders(<CommentSection product_data={PRODUCT} />, { store: { user: null } });
-    expect(screen.getByText("Please Login so You Can Add a comment"), "a guest is not asked to log in").toBeInTheDocument();
+    expect(screen.getByText("Please Login So You Can Add A Comment"), "a guest is not asked to log in").toBeInTheDocument();
     expect(screen.queryByText("comment bar"), "a guest got the comment bar").not.toBeInTheDocument();
     await waitFor(() => expect(fetchMock, "the page was not loaded").toHaveBeenCalled());
     expect(params(0).get("user_id"), "a guest sent a user id").toBeNull();
@@ -93,7 +93,7 @@ describe("CommentSection", () => {
   it("treats a placeholder account (phone '0') as a guest", async () => {
     fetchMock.mockResolvedValue(page([], 0));
     await renderWithProviders(<CommentSection product_data={PRODUCT} />, { store: { user: { phone: "0" } } });
-    expect(screen.getByText("Please Login so You Can Add a comment"), "a placeholder account can comment").toBeInTheDocument();
+    expect(screen.getByText("Please Login So You Can Add A Comment"), "a placeholder account can comment").toBeInTheDocument();
   });
 
   it("shows this session's new questions first, without repeating loaded ones", async () => {

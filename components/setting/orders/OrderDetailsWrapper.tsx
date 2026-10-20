@@ -50,6 +50,7 @@ import OrderItemOptions from "./OrderItemOptions";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
 import OrderItemReturnConfirmationWindow from "./confirmations/OrderItemReturnConfirmationWindow";
 import { createPortal } from "react-dom";
+import { getOrderCurrency } from "utils/orderCurrency";
 
 function OrderDetailsWrapper({
   order_id,
@@ -602,6 +603,7 @@ const isNotDraft=()=>{
                   <OrderInvoiceCard
                     amount={ActivePack?.order_amount}
                     payments={ActivePack?.payment_method}
+                    paidCurrency={ActivePack?.currency}
                   />
                 </div>
                 {ActivePack.order_group_status && (
@@ -801,6 +803,7 @@ const OrderExpandedDetails = ({
   setSelectedOrderItem: any;
 }) => {
   const { currency, user, settings } = useAppStore();
+  const paid = getOrderCurrency(order, currency);
 
   const { expectedWorkDays, expectedDate } = getExpectedDelivery({
     productsShippingDays: (order?.details || []).map(
@@ -905,10 +908,12 @@ const OrderExpandedDetails = ({
             {RoundPrice({
               charged: true,
               num: order.order_amount,
+              rate: paid.rate,
+              points: paid.points,
               language: language,
               returnNumber: true,
             })}{" "}
-            {currency?.symbol}
+            {paid.symbol}
           </span>
         </div>
       </div>
@@ -1139,6 +1144,8 @@ const ProductCard = ({
     };
   };
   const { currency } = useAppStore();
+  // Amounts are shown in the currency the order was paid with.
+  const paid = getOrderCurrency(order, currency);
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
@@ -1158,6 +1165,16 @@ const ProductCard = ({
     requestStatus: returnRequestStatus,
     returnedQty,
   });
+
+  const isReturnedSuccessfully =
+    Boolean(
+      productReturnInfo?.already_return || (product as any)?.is_returned,
+    ) &&
+    (returnRequestStatus?.value?.toLowerCase() === "returned_to_location" ||
+      productReturnInfo?.return_request_product_status?.value?.toLowerCase() ===
+        "returned_to_location" ||
+      (product as any)?.return_status?.value?.toLowerCase() ===
+        "returned_to_location");
 
   return (
     <>
@@ -1320,6 +1337,8 @@ const ProductCard = ({
                   {RoundPrice({
                     charged: true,
                     num: product?.price,
+                    rate: paid.rate,
+                    points: paid.points,
                     language: language,
                     returnNumber: true,
                   })}
@@ -1336,22 +1355,25 @@ const ProductCard = ({
                 {RoundPrice({
                   charged: true,
                   num: product?.offer_price,
+                  rate: paid.rate,
+                  points: paid.points,
                   language: language,
                   returnNumber: true,
                 })}
               </div>
               <span className="text-[#1D1D1D] light text-[10px] ">
-                {currency?.symbol}
+                {paid.symbol}
               </span>
-              {product.qty === 0 /*|| product.is_returned*/ &&
+              {((product.qty === 0 &&
                 // COD orders are never paid up-front, so a cancellation has
                 // nothing to refund to the wallet — hide the badge for them.
                 order?.payment_method?.value?.toLowerCase() !==
-                  "cash_on_delivery" && (
-                  <div className="text-[#388CFF] text-[10px] regular mx-[7px]">
-                    {translateFunction("Back to your wallet")}
-                  </div>
-                )}
+                  "cash_on_delivery") ||
+                isReturnedSuccessfully) && (
+                <div className="text-[#388CFF] text-[10px] regular mx-[7px]">
+                  {translateFunction("Back to your wallet")}
+                </div>
+              )}
             </div>
           </div>
         </NextLink>
@@ -1373,9 +1395,12 @@ const ProductCard = ({
                     getProductWithReturn(product)
                       ?.return_request_product_quantity,
                   ),
+                rate: paid.rate,
+                points: paid.points,
                 language: language,
                 returnNumber: true,
               })}
+              paidCurrency={order?.currency}
               callback={() => {
                 getOrderDetails();
               }}

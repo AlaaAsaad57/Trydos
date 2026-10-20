@@ -188,10 +188,14 @@ test.describe("scripted authentication", () => {
         // message is visible. A stale message from the previous attempt is
         // exactly what hid the no-op fills, so "a message is showing" is not
         // evidence that this attempt happened.
-        const expected =
-          attempt < 3 ? `Tries left: ${3 - attempt}` : "Too many wrong codes";
+        // Compared without case: English copy is title-cased word by word on
+        // purpose (`translateFunction`, utils/functions.tsx), so the screen
+        // reads "Tries Left: 2". CI run 36395039292 failed on the capital L.
+        const expected = (
+          attempt < 3 ? `Tries left: ${3 - attempt}` : "Too many wrong codes"
+        ).toLowerCase();
         await expect
-          .poll(async () => await visibleVerifyError(page), {
+          .poll(async () => (await visibleVerifyError(page))?.toLowerCase(), {
             timeout: 10_000,
             message:
               `after wrong code ${attempt} the PIN screen should read ` +

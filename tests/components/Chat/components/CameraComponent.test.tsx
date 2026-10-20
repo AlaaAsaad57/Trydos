@@ -184,10 +184,10 @@ describe("CameraComponent — video", () => {
     await mount();
     fireEvent.click(screen.getByText("Video"));
     await waitFor(() =>
-      expect(screen.getByText("Microphone not detected or permission denied"), "the missing mic was not shown").toBeInTheDocument(),
+      expect(screen.getByText("Microphone Not Detected Or Permission Denied"), "the missing mic was not shown").toBeInTheDocument(),
     );
     fireEvent.click(screen.getByText("Photo"));
-    expect(screen.queryByText("Microphone not detected or permission denied"), "the mic warning stayed on the photo tab").toBeNull();
+    expect(screen.queryByText("Microphone Not Detected Or Permission Denied"), "the mic warning stayed on the photo tab").toBeNull();
   });
 
   it("does not record before the camera stream is there", async () => {

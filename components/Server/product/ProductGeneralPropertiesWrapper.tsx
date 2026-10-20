@@ -5,13 +5,28 @@ import { madeInText, translateFunction } from "utils/server";
 import ProductViews from "components/products/ProductViews";
 import { GetProductGeneralData } from "serverRequests/product";
 import { FlagIcon, VALID_ISO } from "utils/tinyUtils";
+import { productHasSizes } from "./productHasSizes";
+import { formatCount } from "utils/formatCount";
 
-async function ProductGeneralPropertiesWrapper({ globalData, language }) {
+async function ProductGeneralPropertiesWrapper({
+  globalData,
+  qtyPricePromise,
+  language,
+}: {
+  globalData: any;
+  qtyPricePromise?: any;
+  language: string;
+}) {
   let productGlobalData = await globalData;
-  let product = await GetProductGeneralData({
-    id: productGlobalData?.id,
-  });
-  if(!productGlobalData?.id) return <></>;
+  if (!productGlobalData?.id) return <></>;
+
+  // Start the facts request now. Do not wait for the price data first.
+  const [productQtyData, product] = await Promise.all([
+    qtyPricePromise ?? null,
+    GetProductGeneralData({
+      id: productGlobalData?.id,
+    }),
+  ]);
   const originIso = productGlobalData?.origin_country_iso;
   const originText = madeInText(originIso, language);
   const TotalBuyers = () => {
@@ -20,21 +35,28 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
     return total;
   };
 
+  // Same data and same rule as ProductSizesWrapper / ProductSizeReviews, so the
+  // sheet shows sizing reviews only when the page shows the size sections.
+  const sizes = productQtyData?.sizes;
+  const hasSizes = productHasSizes(productQtyData);
+
   return (
     <Suspense fallback={<></>}>
       <ProductGeneralProperties
-        good_quality_product={product.good_quality_product}
+        good_quality_product={product?.good_quality_product}
         views={product?.total_views}
         recommendation_stats={product?.recommendation_stats}
         rating_stats={product?.ratingDetails}
-        total_rating={product.final_rating}
+        total_rating={product?.final_rating}
         languageVariable={language}
         sizeFitData={product?.size_analysis}
+        hasSizes={hasSizes}
+        sizes={sizes}
       >
         <ProductRating rating={product.final_rating} />
         {TotalBuyers() > 0 && (
           <div className="flex-row items-center px-[4px]">
-            <span className="bold px-[4px]"> {TotalBuyers()}</span>
+            <span className="bold px-[4px]"> {formatCount(TotalBuyers(), language)}</span>
             {translateFunction("Buyer Rate", language)}
           </div>
         )}
@@ -42,7 +64,7 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
         {product.total_views > 0 && (
           <>
             <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-            <ProductViews views={product.total_views} />
+            <ProductViews views={product.total_views} language={language} />
           </>
         )}
 
@@ -63,7 +85,7 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
               <span>
                 {translateFunction("Recommend It By", language)}
                 <span className="m-0 px-[3px]">
-                  {product?.recommendation_stats?.[0]?.count}
+                  {formatCount(product?.recommendation_stats?.[0]?.count, language)}
                 </span>
                 <span className="m-0">
                   {translateFunction("Buyer", language)}

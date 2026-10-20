@@ -120,7 +120,7 @@ describe("sending the return", () => {
     const props = await renderWindow({ isRtl: true });
     const user = userEvent.setup();
     await user.click(screen.getByText("I Agree & Return"));
-    await user.click(screen.getByText("Delay Confirmation. I want to Return more product"));
+    await user.click(screen.getByText("Delay Confirmation. I Want To Return More Product"));
     expect(orderService.ReturnProduct, "the return was sent before the terms were ticked").not.toHaveBeenCalled();
     await user.click(screen.getByText("I Disagree"));
     expect(props.setShouldConfirmReturn, "I Disagree did not close").toHaveBeenCalledWith(false);
@@ -175,7 +175,7 @@ describe("sending the return", () => {
     });
     const user = userEvent.setup();
     await user.click(agree());
-    await user.click(screen.getByText("Delay Confirmation. I want to Return more product"));
+    await user.click(screen.getByText("Delay Confirmation. I Want To Return More Product"));
     await waitFor(() =>
       expect(orderService.UpdateReturnedProduct, "only the new photo was not sent").toHaveBeenCalledWith({
         images: ["new.png"],

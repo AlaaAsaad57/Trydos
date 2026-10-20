@@ -6,7 +6,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import Link from "next/link";
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useAppStore } from "store";
 import { useSellerProfile } from "../../SellerProfileContext";
 import Spinner from "components/global/Spinner";
@@ -23,6 +23,10 @@ import ExcelUploadTab from "components/SellerDashboard/ExcelUploadTab";
 import LocationsTab from "components/SellerDashboard/locations/LocationsTab";
 import BackBar from "components/setting/BackBar";
 import ShopInfo from "components/SellerDashboard/ShopInfo";
+import CartsTab from "components/SellerDashboard/carts/CartsTab";
+import ProductCartsModal from "components/SellerDashboard/carts/ProductCartsModal";
+import ProductOrdersModal from "components/SellerDashboard/productOrders/ProductOrdersModal";
+import AiAutofillDialog from "components/SellerDashboard/productEdit/AiAutofillDialog";
 import { ConfirmModal } from "components/global/ConfirmModal";
 import { DashIcon, IconName } from "components/SellerDashboard/ui/icons";
 import {
@@ -57,6 +61,7 @@ type TabType =
   | "comments"
   | "excel"
   | "shopInfo"
+  | "carts"
   | "none";
 
 const PERMISSION_GROUPS = {
@@ -169,6 +174,7 @@ const PERMISSION_GROUPS = {
   ],
   STORIES: ["READ_STORY", "CREATE_STORY", "DELETE_STORY"],
   COMMENTS: ["READ_COMMENTS", "REPLY_COMMENT", "EDIT_REPLY", "DELETE_REPLY"],
+  CARTS: ["READ_CARTS"],
   ADMIN: ["SUPER_ADMIN", "USER_MANAGEMENT_ACCESS"],
 };
 
@@ -217,6 +223,7 @@ const PERMISSION_GROUP_LABELS: Record<string, string> = {
   PRODUCT_IMAGES: "Product Images",
   STORIES: "Stories",
   COMMENTS: "Comments",
+  CARTS: "Carts",
   ADMIN: "Admin",
   OTHER: "Other",
 };
@@ -225,11 +232,21 @@ const getPermissionGroupLabel = (group: string): string => {
   return PERMISSION_GROUP_LABELS[group] || group.replace(/_/g, " ");
 };
 
+// What the product carts / product orders modals need from a product card.
+const productModalTarget = (product: any) => ({
+  productId: product.product_id || product.id,
+  productName: product.name,
+  productImage:
+    typeof product.images?.[0] === "string"
+      ? product.images[0]
+      : product.images?.[0]?.file_path,
+});
+
 function SellerDashBoard() {
   const params = useParams();
   const sellerId = params.sellerId as string;
   const local = params.lang?.toString() || "";
-  const [, language] = local.split("-");
+  const language = local.includes("-") ? local.split("-")[1] : local;
   const isRtl = language === "ar" || language === "ku";
   const {
     sellerProducts,
@@ -239,6 +256,7 @@ function SellerDashBoard() {
     sellerPermissions,
     setSellerPermissions,
     shopes,
+    setShopes,
   } = useSellerProfile();
 
   // One flag per section, each starting in the loading position. They replace
@@ -251,6 +269,7 @@ function SellerDashBoard() {
   const [rolesLoading, setRolesLoading] = useState<boolean>(true);
   const [rolesForChangeLoading, setRolesForChangeLoading] =
     useState<boolean>(true);
+  const [activeCartsCount, setActiveCartsCount] = useState<number | null>(null);
 
   // "Are this shop's permissions known yet?" — not "is a request running".
   // Every permission-gated section waits on this before it decides between
@@ -295,10 +314,22 @@ function SellerDashBoard() {
     "comments",
     "excel",
     "shopInfo",
+    "carts",
   ];
   const tabParam = searchParams.get("tab") as TabType | null;
   const activeTab: TabType =
     tabParam && VALID_TABS.includes(tabParam) ? tabParam : "none";
+
+  const [productCartsTarget, setProductCartsTarget] = useState<{
+    productId: number | string;
+    productName?: string;
+    productImage?: string;
+  } | null>(null);
+  const [productOrdersTarget, setProductOrdersTarget] = useState<{
+    productId: number | string;
+    productName?: string;
+    productImage?: string;
+  } | null>(null);
 
   const changeTab = (tab: TabType) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -335,6 +366,8 @@ function SellerDashBoard() {
   const [productsMeta, setProductsMeta] = useState<any>(null);
   // Per-product social counts (reactions / FAQ / reviews / shares), keyed by
   // product id. Loaded lazily once the Products tab has products.
+  // "Add with AI" dialog on the Products tab.
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [productsSocial, setProductsSocial] = useState<Record<string, any>>({});
   const requestedSocialIds = useRef<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
@@ -387,9 +420,40 @@ function SellerDashBoard() {
   );
   const rolesForChangeRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [shopFromPermissions, setShopFromPermissions] = useState<any>(null);
   const currentShop = useMemo(() => {
-    return shopes.find((shop) => shop.seller_id?.toString() === sellerId);
-  }, [shopes, sellerId]);
+    const fromContext = shopes.find((shop) => shop.seller_id?.toString() === sellerId);
+    if (!fromContext) return shopFromPermissions;
+    if (shopFromPermissions) {
+      return { ...fromContext, ...shopFromPermissions };
+    }
+    return fromContext;
+  }, [shopes, sellerId, shopFromPermissions]);
+
+  const handleShopInfoUpdated = useCallback(
+    ({ name, image }: { name: string; image?: string | null }) => {
+      setShopFromPermissions((prev: any) => ({
+        ...(prev || {}),
+        shop_name: name,
+        ...(image !== undefined ? { shop_image: image } : {}),
+      }));
+
+      if (setShopes) {
+        setShopes((prev: any[]) =>
+          (prev || []).map((s: any) =>
+            s.seller_id?.toString() === sellerId?.toString()
+              ? {
+                  ...s,
+                  shop_name: name,
+                  ...(image !== undefined ? { shop_image: image } : {}),
+                }
+              : s,
+          ),
+        );
+      }
+    },
+    [sellerId, setShopes],
+  );
 
   const hasPermission = (permission: string): boolean => {
     return (
@@ -443,6 +507,11 @@ function SellerDashBoard() {
   const canReplyComment = hasPermission("REPLY_COMMENT");
   const canEditReply = hasPermission("EDIT_REPLY");
   const canDeleteReply = hasPermission("DELETE_REPLY");
+  // Carts tab (gated on READ_CARTS, SUPER_ADMIN included via hasPermission)
+  const canViewCarts = hasPermission("READ_CARTS");
+  // Product orders (GET /shop/products/{id}/orders) needs READ_ORDERS exactly,
+  // not any orders permission (SUPER_ADMIN included via hasPermission).
+  const canViewProductOrders = hasPermission("READ_ORDERS");
   // Excel bulk upload is gated on product create/update (SUPER_ADMIN included via hasPermission)
   const canUploadExcel =
     hasPermission("CREATE_PRODUCT") || hasPermission("UPDATE_PRODUCT");
@@ -497,7 +566,7 @@ function SellerDashBoard() {
       // fetchData returns { success: false } instead of throwing — treat that as
       // a failure so it flows into the catch and gets logged.
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to load products");
+        throw new Error(res?.message || translateFunction("Failed to load products"));
       }
       // API returns { data: { products: [...], meta: {...} } }
       const products = res.data?.products || res.data || [];
@@ -527,7 +596,7 @@ function SellerDashBoard() {
       setError(null);
       const res = await SellerDashboardService.getSellerBoutiques(sellerId);
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to load boutiques");
+        throw new Error(res?.message || translateFunction("Failed to load boutiques"));
       }
       // API returns { data: { boutiques: [...], meta: {...} } }
       const boutiques = res.data?.boutiques || res.data || [];
@@ -545,6 +614,32 @@ function SellerDashBoard() {
     }
   };
 
+  const getActiveCartsCount = async (): Promise<boolean> => {
+    if (!canViewCarts) {
+      return false;
+    }
+    try {
+      if (typeof SellerDashboardService?.getSellerCarts !== "function") {
+        return false;
+      }
+      const res = await SellerDashboardService.getSellerCarts(sellerId, 1);
+      if (res && (res as any).isSuccessful === false) {
+        throw new Error(res.message || translateFunction("Failed to load carts"));
+      }
+      const total =
+        res?.data?.meta?.total ??
+        (Array.isArray(res?.data?.carts) ? res.data.carts.length : 0);
+      setActiveCartsCount(total);
+      return true;
+    } catch (error: any) {
+      LogError({
+        scenario: "SellerDashboard.getActiveCartsCount",
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return false;
+    }
+  };
+
   const getRoles = async (page: number = 1, search: string = "") => {
     try {
       if (page === 1) {
@@ -557,7 +652,7 @@ function SellerDashBoard() {
       setError(null);
       const res = await SellerDashboardService.getRoles(sellerId, page, search);
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to load roles");
+        throw new Error(res?.message || translateFunction("Failed to load roles"));
       }
       const rolesData = res.data?.shop_roles || res.data || [];
       if (page > 1) {
@@ -595,7 +690,7 @@ function SellerDashBoard() {
       setError(null);
       const res = await SellerDashboardService.getRoles(sellerId, page, search);
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to load roles");
+        throw new Error(res?.message || translateFunction("Failed to load roles"));
       }
       const rolesData = res.data?.shop_roles || res.data || [];
       if (page > 1) {
@@ -638,7 +733,7 @@ function SellerDashBoard() {
         langSegment,
       );
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to load users");
+        throw new Error(res?.message || translateFunction("Failed to load users"));
       }
       const usersData = res.data?.users || res.data || [];
       if (page > 1) {
@@ -670,7 +765,7 @@ function SellerDashBoard() {
       setUsersError(null);
       const res = await SellerDashboardService.deleteUser(userId, sellerId);
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to delete user");
+        throw new Error(res?.message || translateFunction("Failed to delete user"));
       }
       setUsers((prev) => prev.filter((u) => String(u.id) !== String(userId)));
     } catch (error: any) {
@@ -695,7 +790,7 @@ function SellerDashBoard() {
         sellerId,
       );
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to update user role");
+        throw new Error(res?.message || translateFunction("Failed to update user role"));
       }
       // Update local users array with new role info (name from roles list)
       const roleObj = roles.find((r) => Number(r.id) === Number(roleId));
@@ -728,7 +823,7 @@ function SellerDashBoard() {
       setUsersError(null);
       const res = await SellerDashboardService.leaveShop(sellerId);
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to leave shop");
+        throw new Error(res?.message || translateFunction("Failed to leave shop"));
       }
       // Left successfully — the shop is no longer accessible, so leave the
       // dashboard and send the user back to their shop picker. The navigation
@@ -800,7 +895,7 @@ function SellerDashBoard() {
       // Fallback: fetch from API
       const res = await SellerDashboardService.getSellerPermissions(sellerId);
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to load permissions");
+        throw new Error(res?.message || translateFunction("Failed to load permissions"));
       }
       // API returns array of shops: [{ seller_id, shop_name, permissions: [...] }]
       const shopData = Array.isArray(res.data)
@@ -814,6 +909,13 @@ function SellerDashBoard() {
         throw new Error(
           translateFunction("Failed to load permissions"),
         );
+      }
+      if (shopData) {
+        setShopFromPermissions(shopData);
+        if (shopData.shop_role) setCurrentRole(shopData.shop_role);
+      }
+      if (Array.isArray(res.data) && res.data.length > 0 && shopes.length === 0 && setShopes) {
+        setShopes(res.data);
       }
       const permissions =
         shopData?.permissions || currentShop?.permissions || [];
@@ -998,6 +1100,22 @@ function SellerDashBoard() {
     }
   }, [activeTab, canViewBoutiques, sellerId]);
 
+  // The carts tab has no arrival fetch here. CartsTab loads GET /shop/carts
+  // page 1 itself and reports the total through this function. The function
+  // also marks the side-menu count as loaded, so opening the menu does not ask
+  // for the same page again. `useCallback` keeps the function the same between
+  // renders, because CartsTab fetches again when it changes.
+  const handleActiveCartsCount = useCallback(
+    (count: number) => {
+      setActiveCartsCount(count);
+      fetchedThisMount.current.set(
+        `${sellerId}:carts-count`,
+        Promise.resolve(true),
+      );
+    },
+    [sellerId],
+  );
+
   useEffect(() => {
     if (
       activeTab === "permissions" &&
@@ -1014,25 +1132,28 @@ function SellerDashBoard() {
   const initializeData = async () => {
     setLoadingSideBar(true);
     try {
-      // All three go through `fetchOnce`. This runs on EVERY menu open, so
+      // All go through `fetchOnce`. This runs on EVERY menu open, so
       // without it the fifth open costs a fifth round of calls — and it could
       // start a second products fetch while the arrival one was still open, with
       // the slower answer overwriting the fresher list.
       //
-      // The two list calls keep their permission check here as well as inside
+      // The list calls keep their permission check here as well as inside
       // the fetcher: entering `fetchOnce` unpermitted would store a key for a
       // fetch that never happens, and the section would then wait for a list
       // that is never coming.
       //
       // The results are unused, but the calls are not: they fill
-      // `sellerProducts` / `sellerBoutiques`, which the side-menu count badges
+      // `sellerProducts` / `sellerBoutiques` / `activeCartsCount`, which the side-menu count badges
       // below read.
-      const [, , ShopesRes] = await Promise.all([
+      const [, , , ShopesRes] = await Promise.all([
         canViewProducts
           ? fetchOnce(`${sellerId}:products`, () => getSellerProducts())
           : Promise.resolve(false),
         canViewBoutiques
           ? fetchOnce(`${sellerId}:boutiques`, () => getSellerBoutiques())
+          : Promise.resolve(false),
+        canViewCarts
+          ? fetchOnce(`${sellerId}:carts-count`, () => getActiveCartsCount())
           : Promise.resolve(false),
         fetchOnce(`${sellerId}:shopes`, async () => {
           const res = await SellerDashboardService.getShopes(true);
@@ -1045,6 +1166,15 @@ function SellerDashBoard() {
       // leaving the current role unset.
       if (!ShopesRes?.success) {
         throw new Error(ShopesRes?.message || "Failed to fetch seller shops");
+      }
+      if (Array.isArray(ShopesRes.data) && ShopesRes.data.length > 0 && setShopes) {
+        setShopes(ShopesRes.data);
+        const freshShop = ShopesRes.data.find(
+          (s: any) => s.seller_id?.toString() === sellerId,
+        );
+        if (freshShop) {
+          setShopFromPermissions((prev: any) => ({ ...prev, ...freshShop }));
+        }
       }
       const isSuperAdmin = sellerPermissions.includes("SUPER_ADMIN");
       if (isSuperAdmin) {
@@ -1115,7 +1245,7 @@ function SellerDashBoard() {
             )}
           />
           {hasPermission("CREATE_PRODUCT") && (
-            <div className="flex justify-center mt-4">
+            <div className="flex justify-center flex-wrap gap-2 mt-4">
               <Link
                 href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/products/new`}
                 onClick={handleCardNavigate}
@@ -1123,6 +1253,14 @@ function SellerDashBoard() {
               >
                 + {translateFunction("Add your first product")}
               </Link>
+              <button
+                type="button"
+                data-pw="seller-add-with-ai"
+                onClick={() => setAiDialogOpen(true)}
+                className="inline-flex items-center gap-1.5 h-[40px] px-5 rounded-[12px] bg-white text-[#388CFF] border border-[#388CFF] text-[14px] medium hover:bg-[#388CFF]/[0.06] transition-colors active:scale-[0.98]"
+              >
+                {translateFunction("Add with AI")}
+              </button>
             </div>
           )}
         </div>
@@ -1137,13 +1275,23 @@ function SellerDashBoard() {
             count={productsMeta?.total ?? sellerProducts.length}
           />
           {hasPermission("CREATE_PRODUCT") && (
-            <Link
-              href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/products/new`}
-              onClick={handleCardNavigate}
-              className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[12px] bg-[#5d5d5d] text-white text-[13px] medium hover:bg-[#4d4d4d] transition-colors active:scale-[0.98]"
-            >
-              + {translateFunction("Add Product")}
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                data-pw="seller-add-with-ai"
+                onClick={() => setAiDialogOpen(true)}
+                className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[12px] bg-white text-[#388CFF] border border-[#388CFF] text-[13px] medium hover:bg-[#388CFF]/[0.06] transition-colors active:scale-[0.98]"
+              >
+                {translateFunction("Add with AI")}
+              </button>
+              <Link
+                href={`/${local}/sellerProfile/sellerDashboard/${sellerId}/products/new`}
+                onClick={handleCardNavigate}
+                className="inline-flex items-center gap-1.5 h-[38px] px-4 rounded-[12px] bg-[#5d5d5d] text-white text-[13px] medium hover:bg-[#4d4d4d] transition-colors active:scale-[0.98]"
+              >
+                + {translateFunction("Add Product")}
+              </Link>
+            </div>
           )}
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
@@ -1182,7 +1330,9 @@ function SellerDashBoard() {
                 )}
                 {product.status !== undefined && (
                   <span
-                    className={`absolute top-2.5 left-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] semibold backdrop-blur-md ${
+                    data-pw="seller-product-status"
+                    data-status={product.status}
+                    className={`absolute top-2.5 ${isRtl ? "right-2.5" : "left-2.5"} inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] semibold backdrop-blur-md ${
                       product.status === 1
                         ? "bg-white/85 text-[#2ea84f]"
                         : "bg-white/85 text-[#8e8e8e]"
@@ -1198,6 +1348,46 @@ function SellerDashBoard() {
                       : translateFunction("Inactive")}
                   </span>
                 )}
+                {(canViewCarts || canViewProductOrders) && (
+                  <div
+                    className={`absolute top-2.5 ${
+                      isRtl ? "left-2.5 items-start" : "right-2.5 items-end"
+                    } flex flex-col gap-1.5 z-10`}
+                  >
+                    {canViewCarts && (
+                      <button
+                        type="button"
+                        data-pw="seller-product-carts-btn"
+                        title={translateFunction("View Carts")}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setProductCartsTarget(productModalTarget(product));
+                        }}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] semibold backdrop-blur-md bg-white/85 text-[#5d5d5d] hover:bg-white hover:text-[#1d1d1d] shadow-xs transition-colors"
+                      >
+                        <DashIcon name="carts" size={12} />
+                        <span>{translateFunction("Carts")}</span>
+                      </button>
+                    )}
+                    {canViewProductOrders && (
+                      <button
+                        type="button"
+                        data-pw="seller-product-orders-btn"
+                        title={translateFunction("View Orders")}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setProductOrdersTarget(productModalTarget(product));
+                        }}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] semibold backdrop-blur-md bg-white/85 text-[#5d5d5d] hover:bg-white hover:text-[#1d1d1d] shadow-xs transition-colors"
+                      >
+                        <DashIcon name="orders" size={12} />
+                        <span>{translateFunction("Orders")}</span>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="p-3.5">
                 {product.categories?.[0]?.name && (
@@ -1211,10 +1401,13 @@ function SellerDashBoard() {
                 <div className="flex items-end justify-between gap-2 pt-2.5 border-t border-[#f4f4f4]">
                   {product.unit_price !== undefined &&
                   product.unit_price !== null ? (
-                    <p className="text-[16px] bold text-[#3c3c3c] leading-none">
+                    <p
+                      data-pw="seller-product-price"
+                      className="text-[16px] bold text-[#3c3c3c] leading-none"
+                    >
                       {Number(product.unit_price).toFixed(2)}
                       {shopCurrency && (
-                        <span className="text-[10px] text-[#8e8e8e] ml-1 regular">
+                        <span className="text-[10px] text-[#8e8e8e] ms-1 regular">
                           {shopCurrency}
                         </span>
                       )}
@@ -1224,6 +1417,8 @@ function SellerDashBoard() {
                   )}
                   {product.current_stock !== undefined && (
                     <span
+                      data-pw="seller-product-stock"
+                      data-stock={product.current_stock}
                       className={`shrink-0 inline-flex items-center px-2 py-1 rounded-full text-[10px] semibold ${
                         product.current_stock === 0
                           ? "bg-[#fff1f1] text-[#f85555]"
@@ -1299,6 +1494,7 @@ function SellerDashBoard() {
             current={productsMeta.current_page || currentPage}
             last={productsMeta.last_page}
             disabled={productsLoading}
+            isRtl={isRtl}
             onPrev={() => getSellerProducts(currentPage - 1)}
             onNext={() => getSellerProducts(currentPage + 1)}
           />
@@ -1402,7 +1598,7 @@ function SellerDashBoard() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent pointer-events-none" />
                 {boutique.status !== undefined && (
                   <span
-                    className={`absolute top-2.5 left-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] semibold backdrop-blur-md ${
+                    className={`absolute top-2.5 ${isRtl ? "right-2.5" : "left-2.5"} inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] semibold backdrop-blur-md ${
                       boutique.status === 1
                         ? "bg-white/85 text-[#2ea84f]"
                         : "bg-white/85 text-[#8e8e8e]"
@@ -1775,11 +1971,14 @@ function SellerDashBoard() {
               />
             ) : (
               <div className="overflow-auto mb-[100px]">
-                <table className="w-full text-left mb-[300px]">
+                <table className="w-full text-start mb-[300px]">
                   <thead>
                     <tr>
                       <th className="py-3 px-3 text-[12px] semibold text-[#8e8e8e]">
-                        {translateFunction("Name / Phone")}
+                        {translateFunction("Name")}
+                      </th>
+                      <th className="py-3 px-3 text-[12px] semibold text-[#8e8e8e]">
+                        {translateFunction("Phone Number")}
                       </th>
                       <th className="py-3 px-3 text-[12px] semibold text-[#8e8e8e]">{translateFunction("Role")}</th>
                       <th className="py-3 px-3 text-[12px] semibold text-[#8e8e8e]">
@@ -1790,7 +1989,10 @@ function SellerDashBoard() {
                   <tbody className="p-2">
                     {users.map((user: any) => (
                       <tr key={user.id} className="border-t border-[#ededed]">
-                        <td className="py-3 px-3 text-[14px] text-[#3c3c3c] align-top">{user.name || user.phone}</td>
+                        <td className="py-3 px-3 text-[14px] text-[#3c3c3c] align-top">{user.name || "-"}</td>
+                        <td className="py-3 px-3 text-[14px] text-[#3c3c3c] align-top whitespace-nowrap">
+                          <span dir="ltr">{user.phone || "-"}</span>
+                        </td>
                         <td className="py-3 px-3 text-[14px] text-[#3c3c3c] align-top">
                           <div className="flex items-center gap-2">
                             <span className="text-[13px] text-[#505050]">
@@ -1801,7 +2003,7 @@ function SellerDashBoard() {
                                   : "-")}
                             </span>
                             {hasPermission("SUPER_ADMIN") && (
-                              <div className="relative ml-2">
+                              <div className="relative ms-2">
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -1824,7 +2026,7 @@ function SellerDashBoard() {
                                   String(user.id) && (
                                   <div
                                     ref={rolesForChangeRef}
-                                    className="absolute z-50 right-0 mt-1 w-56 bg-white border border-[#ededed] rounded-[12px] shadow-[0_8px_24px_rgba(0,0,0,0.12)] max-h-48 overflow-auto"
+                                    className={`absolute z-50 ${isRtl ? "left-0" : "right-0"} mt-1 w-56 bg-white border border-[#ededed] rounded-[12px] shadow-[0_8px_24px_rgba(0,0,0,0.12)] max-h-48 overflow-auto`}
                                   >
                                     <input
                                       type="text"
@@ -2026,6 +2228,13 @@ function SellerDashBoard() {
       show: canViewOrders,
     },
     {
+      tab: "carts",
+      icon: "carts",
+      label: translateFunction("Carts"),
+      desc: translateFunction("Customer active and expired carts"),
+      show: canViewCarts,
+    },
+    {
       tab: "gallery",
       icon: "gallery",
       label: translateFunction("Gallery"),
@@ -2099,7 +2308,7 @@ function SellerDashBoard() {
               key={t.tab}
               data-pw={`seller-dashboard-tab-${t.tab}`}
               onClick={() => changeTab(t.tab)}
-              className="group flex items-center gap-3.5 p-4 rounded-[15px] bg-[#f8f8f8] border border-transparent hover:bg-white hover:border-[#ededed] hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-all active:scale-[0.99] text-left"
+              className="group flex items-center gap-3.5 p-4 rounded-[15px] bg-[#f8f8f8] border border-transparent hover:bg-white hover:border-[#ededed] hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-all active:scale-[0.99] text-start"
             >
               <span className="w-11 h-11 shrink-0 rounded-[12px] bg-[#5d5d5d]/10 text-[#5d5d5d] flex items-center justify-center group-hover:bg-[#5d5d5d] group-hover:text-white transition-colors">
                 <DashIcon name={t.icon} size={20} />
@@ -2124,17 +2333,18 @@ function SellerDashBoard() {
   };
 
   return (
-    <div className="w-full max-w-[1366px] mx-auto setting-screen">
+    <div className="w-full max-w-[1366px] mx-auto setting-screen" dir={isRtl ? "rtl" : "ltr"}>
       <div className="mb-3 bg-white">
         <BackBar
-        onBackIntercept={()=>{
-          if(activeTab==="none"){
-            return false
-          }else{
-            changeTab("none");
-            return true
-          }
-        }}
+          key={`seller-dashboard-back-${sellerId}`}
+          onBackIntercept={() => {
+            if (activeTab === "none") {
+              return false;
+            } else {
+              changeTab("none");
+              return true;
+            }
+          }}
           isRtl={isRtl}
           local={local}
           name={translateFunction("Seller Dashboard", language)}
@@ -2145,7 +2355,7 @@ function SellerDashBoard() {
       {/* Header */}
       <div
         className="bg-white rounded-[15px] p-5 lg:p-6 mb-6"
-        style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
+        style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)", direction: isRtl ? "rtl" : "ltr" }}
       >
         {/* Navigation Menu */}
         <div className="relative" ref={menuRef}>
@@ -2161,17 +2371,20 @@ function SellerDashBoard() {
 
           {/* Sliding Menu */}
           <div
-            className={`fixed left-0 top-0 h-screen w-64 shadow-2xl z-[9999999999] transition-transform duration-300 ease-in-out overflow-y-auto bg-white ${
-              menuOpen ? "translate-x-0" : "-translate-x-full"
+            className={`fixed ${isRtl ? "right-0" : "left-0"} top-0 h-screen w-64 shadow-2xl z-[9999999999] transition-transform duration-300 ease-in-out overflow-y-auto bg-white ${
+              menuOpen
+                ? "translate-x-0"
+                : isRtl
+                ? "translate-x-full"
+                : "-translate-x-full"
             }`}
+            dir={isRtl ? "rtl" : "ltr"}
           >
             {/* Menu Header — shop image (placeholder if none) + shop name */}
             <div className="px-5 py-5 border-b border-[#ededed] flex items-center gap-2.5">
               <Monogram
                 name={currentShop?.shop_name}
-                src={
-            undefined
-                }
+                src={currentShop?.shop_image}
                 size={40}
               />
               <h2 className="text-[#3c3c3c] text-[16px] semibold truncate">
@@ -2188,7 +2401,9 @@ function SellerDashBoard() {
                     changeTab("products");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "products"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2196,11 +2411,11 @@ function SellerDashBoard() {
                 >
                   <DashIcon name="products" size={20} />
                   <span>{translateFunction("Products")}</span>
-                  <span className="rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center ml-auto text-[11px] semibold bg-[#5d5d5d]/10 text-[#5d5d5d]">
+                  <span className="rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center ms-auto text-[11px] semibold bg-[#5d5d5d]/10 text-[#5d5d5d]">
                     {loadingSideBar ? <Spinner /> : sellerProducts?.length}
                   </span>
                   {activeTab === "products" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="text-[#5d5d5d] shrink-0">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2213,7 +2428,9 @@ function SellerDashBoard() {
                     changeTab("boutiques");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "boutiques"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2221,11 +2438,11 @@ function SellerDashBoard() {
                 >
                   <DashIcon name="boutiques" size={20} />
                   <span>{translateFunction("Boutiques")}</span>
-                  <span className="rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center ml-auto text-[11px] semibold bg-[#5d5d5d]/10 text-[#5d5d5d]">
+                  <span className="rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center ms-auto text-[11px] semibold bg-[#5d5d5d]/10 text-[#5d5d5d]">
                     {loadingSideBar ? <Spinner /> : sellerBoutiques?.length}
                   </span>
                   {activeTab === "boutiques" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="text-[#5d5d5d] shrink-0">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2239,7 +2456,9 @@ function SellerDashBoard() {
                     changeTab("locations");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "locations"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2248,7 +2467,7 @@ function SellerDashBoard() {
                   <DashIcon name="location" size={20} />
                   <span>{translateFunction("Locations")}</span>
                   {activeTab === "locations" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2262,7 +2481,9 @@ function SellerDashBoard() {
                     changeTab("orders");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "orders"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2271,7 +2492,34 @@ function SellerDashBoard() {
                   <DashIcon name="orders" size={20} />
                   <span>{translateFunction("Orders")}</span>
                   {activeTab === "orders" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
+                      <DashIcon name="check" size={16} />
+                    </span>
+                  )}
+                </button>
+              )}
+              {canViewCarts && (
+                <button
+                  data-pw="seller-dashboard-menu-carts"
+                  onClick={() => {
+                    changeTab("carts");
+                    setMenuOpen(false);
+                  }}
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
+                    activeTab === "carts"
+                      ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
+                      : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
+                  }`}
+                >
+                  <DashIcon name="carts" size={20} />
+                  <span>{translateFunction("Carts")}</span>
+                  <span className="rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center ms-auto text-[11px] semibold bg-[#5d5d5d]/10 text-[#5d5d5d]">
+                    {loadingSideBar ? <Spinner /> : activeCartsCount ?? 0}
+                  </span>
+                  {activeTab === "carts" && (
+                    <span className="text-[#5d5d5d] shrink-0">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2284,7 +2532,9 @@ function SellerDashBoard() {
                     changeTab("permissions");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "permissions"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2293,7 +2543,7 @@ function SellerDashBoard() {
                   <DashIcon name="permissions" size={20} />
                   <span>{translateFunction("Permissions")}</span>
                   {activeTab === "permissions" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2306,7 +2556,9 @@ function SellerDashBoard() {
                     changeTab("users");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "users"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2315,7 +2567,7 @@ function SellerDashBoard() {
                   <DashIcon name="users" size={20} />
                   <span>{translateFunction("Users")}</span>
                   {activeTab === "users" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2328,7 +2580,9 @@ function SellerDashBoard() {
                     changeTab("gallery");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "gallery"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2337,7 +2591,7 @@ function SellerDashBoard() {
                   <DashIcon name="gallery" size={20} />
                   <span>{translateFunction("Gallery")}</span>
                   {activeTab === "gallery" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2350,7 +2604,9 @@ function SellerDashBoard() {
                     changeTab("stories");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "stories"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2359,7 +2615,7 @@ function SellerDashBoard() {
                   <DashIcon name="stories" size={20} />
                   <span>{translateFunction("Stories")}</span>
                   {activeTab === "stories" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2372,7 +2628,9 @@ function SellerDashBoard() {
                     changeTab("comments");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "comments"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2381,7 +2639,7 @@ function SellerDashBoard() {
                   <DashIcon name="comments" size={20} />
                   <span>{translateFunction("Customers Comments")}</span>
                   {activeTab === "comments" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2394,7 +2652,9 @@ function SellerDashBoard() {
                     changeTab("excel");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "excel"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2403,7 +2663,7 @@ function SellerDashBoard() {
                   <DashIcon name="excel" size={20} />
                   <span>{translateFunction("Upload Excel File")}</span>
                   {activeTab === "excel" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2416,7 +2676,9 @@ function SellerDashBoard() {
                     changeTab("shopInfo");
                     setMenuOpen(false);
                   }}
-                  className={`w-full text-left px-5 py-3.5 flex items-center gap-3 transition-colors border-l-[3px] ${
+                  className={`w-full text-start px-5 py-3.5 flex items-center gap-3 transition-colors ${
+                    isRtl ? "border-r-[3px]" : "border-l-[3px]"
+                  } ${
                     activeTab === "shopInfo"
                       ? "border-[#5d5d5d] bg-[#5d5d5d]/[0.07] text-[#5d5d5d] semibold"
                       : "border-transparent text-[#505050] hover:bg-[#f5f5f5]"
@@ -2425,7 +2687,7 @@ function SellerDashBoard() {
                   <DashIcon name="shopInfo" size={20} />
                   <span>{translateFunction("Shop Info")}</span>
                   {activeTab === "shopInfo" && (
-                    <span className="ml-auto text-[#5d5d5d]">
+                    <span className="ms-auto text-[#5d5d5d]">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2470,7 +2732,11 @@ function SellerDashBoard() {
             ></span>
           </button>
 
-          <Monogram name={currentShop?.shop_name} size={52} />
+          <Monogram
+            name={currentShop?.shop_name}
+            src={currentShop?.shop_image}
+            size={52}
+          />
 
           <div className="min-w-0 flex-1">
             <h1 className="text-[20px] bold text-[#1d1d1d] truncate">
@@ -2510,9 +2776,10 @@ function SellerDashBoard() {
       {/* Content */}
       <div
         data-pw="seller-dashboard-panel"
+        
         data-tab={activeTab}
         className="bg-white rounded-[15px] pt-4 px-4 min-h-[400px] pb-[150px]!"
-        style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
+        style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" ,direction: isRtl ? "rtl" : "ltr"}}
       >
         {activeTab === "none" && renderHome()}
         {activeTab === "products" && renderProducts()}
@@ -2542,6 +2809,8 @@ function SellerDashBoard() {
             sellerId={sellerId}
             canUpload={canUploadProductImages}
             canDelete={canDeleteProductImages}
+            language={language}
+            isRtl={isRtl}
           />
         )}
         {activeTab === "stories" && canViewStories && (
@@ -2550,6 +2819,8 @@ function SellerDashBoard() {
             userId={currentUserId}
             canCreate={canCreateStory}
             canDelete={canDeleteStory}
+            language={language}
+            isRtl={isRtl}
           />
         )}
         {activeTab === "comments" && canViewComments && (
@@ -2570,6 +2841,49 @@ function SellerDashBoard() {
             sellerId={sellerId}
             language={language}
             canUpdate={canUpdateShopInfo}
+            onShopInfoUpdated={handleShopInfoUpdated}
+          />
+        )}
+        {activeTab === "carts" &&
+          (permissionsReady ? (
+            <CartsTab
+              sellerId={sellerId}
+              language={language}
+              canRead={canViewCarts}
+              shopCurrency={shopCurrency}
+              onOpenProductCarts={(target) => setProductCartsTarget(target)}
+              onActiveCountChange={handleActiveCartsCount}
+            />
+          ) : (
+            <ListRowsSkeleton />
+          ))}
+        {productCartsTarget && (
+          <ProductCartsModal
+            productId={productCartsTarget.productId}
+            productName={productCartsTarget.productName}
+            productImage={productCartsTarget.productImage}
+            sellerId={sellerId}
+            language={language}
+            shopCurrency={shopCurrency}
+            onClose={() => setProductCartsTarget(null)}
+          />
+        )}
+        {aiDialogOpen && (
+          <AiAutofillDialog
+            sellerId={sellerId}
+            local={local}
+            onClose={() => setAiDialogOpen(false)}
+            onNavigate={handleCardNavigate}
+          />
+        )}
+        {productOrdersTarget && (
+          <ProductOrdersModal
+            productId={productOrdersTarget.productId}
+            productName={productOrdersTarget.productName}
+            productImage={productOrdersTarget.productImage}
+            sellerId={sellerId}
+            language={language}
+            onClose={() => setProductOrdersTarget(null)}
           />
         )}
       </div>

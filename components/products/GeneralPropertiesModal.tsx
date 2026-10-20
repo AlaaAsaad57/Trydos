@@ -5,6 +5,8 @@ import { translateFunction } from "utils/functions";
 import RatingStars from "components/settings/cards/RatingStars";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import ProductViews from "./ProductViews";
+import { productHasSizes } from "components/Server/product/productHasSizes";
+import { formatCount } from "utils/formatCount";
 
 function GeneralPropertiesModal({
   rating_stats,
@@ -14,8 +16,19 @@ function GeneralPropertiesModal({
   views,
   sizeFitData,
   good_quality_product = false,
+  hasSizes,
+  sizes,
 }) {
   const { ColorBottomSheet, setColorBottomSheet, language } = useAppStore();
+  // ProductGeneralPropertiesWrapper decides with productHasSizes and passes
+  // hasSizes. Without that answer, use the same rule on the sizes list.
+  const hasProductSizes =
+    hasSizes !== undefined
+      ? Boolean(hasSizes)
+      : sizes !== undefined
+      ? productHasSizes({ sizes })
+      : true;
+
   let reviews_arr = [
     { value: sizeFitData?.true_percentage ?? 0, title: "True" },
     { value: sizeFitData?.small_percentage ?? 0, title: "Small" },
@@ -30,11 +43,15 @@ function GeneralPropertiesModal({
     { rating: 4, title: "Good", count: 100 },
     { rating: 5, title: "Very Good", count: 200 },
   ];
-  const rating_arr = rating_stats?.map((s) => ({
-    rating: s.ratingGroup,
-    count: s.count,
-    title: rating_arr_text.find((_t) => _t.rating === s.ratingGroup)?.title,
-  }));
+  const rating_arr = rating_stats?.map((s) => {
+    const num = Number(s.ratingGroup);
+    return {
+      rating: Number.isFinite(num) ? num : 0,
+      count: s.count,
+      title:
+        rating_arr_text.find((_t) => _t.rating === num)?.title ?? "",
+    };
+  });
   const isRtl = language === "ar" || language === "ku";
 
   return (
@@ -84,7 +101,7 @@ function GeneralPropertiesModal({
                 className="flex-row px-[3px] product-properties items-center justify-start w-full text-[#1d1d1d] text-[11px] *:text-[11px]!"
               >
                 <div className="flex-row items-center">
-                  <span className="bold pr-[4px]"> {TotalBuyers}</span>
+                  <span className="bold pr-[4px]"> {formatCount(TotalBuyers, language)}</span>
                   {translateFunction("Buyer Rate", language)}
                 </div>
 
@@ -102,7 +119,7 @@ function GeneralPropertiesModal({
                   </>
                 )}
                 <span className="px-[5px] text-[11px] text-[#1d1d1d]">|</span>
-                <ProductViews views={views} />
+                <ProductViews views={views} language={language} />
                 <span className="px-[4px] flex">
                   {translateFunction("Views Product", language)}
                 </span>
@@ -119,8 +136,8 @@ function GeneralPropertiesModal({
                         initialRating={s.rating}
                       />
                       <div className="regular text-[11px] text-[#1d1d1d] gap-[4px] flex-row items-center">
-                        <span className="bold">{s.count}</span>
-                        <span>{translateFunction(s.title, language)}</span>
+                        <span className="bold">{formatCount(s.count, language)}</span>
+                        <span>{s.title ? translateFunction(s.title, language) : ""}</span>
                       </div>
                     </div>
                   ))}
@@ -129,22 +146,26 @@ function GeneralPropertiesModal({
             <div className="w-full bg-[#FFFFFF] py-[11px]">
               <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
             </div>
-            <div className="flex-col regular text-[13px] text-[#1d1d1d] gap-[12px]">
-              <div className="flex">
-                {translateFunction(
-                  "Buyers Reviews On Product Sizing",
-                  language,
-                )}
-              </div>
-              <div className="flex-col gap-[4px]">
-                {reviews_arr.map((s) => (
-                  <ReviewProgress key={s.title} title={s.title} value={s.value} />
-                ))}
-              </div>
-            </div>
-            <div className="w-full bg-[#FFFFFF] py-[11px]">
-              <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
-            </div>
+            {hasProductSizes && (
+              <>
+                <div className="flex-col regular text-[13px] text-[#1d1d1d] gap-[12px]">
+                  <div className="flex">
+                    {translateFunction(
+                      "Buyers Reviews On Product Sizing",
+                      language,
+                    )}
+                  </div>
+                  <div className="flex-col gap-[4px]">
+                    {reviews_arr.map((s) => (
+                      <ReviewProgress key={s.title} title={s.title} value={s.value} />
+                    ))}
+                  </div>
+                </div>
+                <div className="w-full bg-[#FFFFFF] py-[11px]">
+                  <hr className="text-[#D3D3D37f] h-px bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
+                </div>
+              </>
+            )}
             <div className="flex-col gap-[7px]">
               <img
                 src="/icons/SolidRecomendIcon.svg"
@@ -230,7 +251,7 @@ const BuyersRatingBar = ({ language, recommendation_stats }) => {
         >
           <div className={`flex-row`}>
             <img src="/icons/RecomendedIcon.svg" />
-            <span className="bold px-[4px]">{recomended}</span>
+            <span className="bold px-[4px]">{formatCount(recomended, language)}</span>
             <span>{translateFunction("Buyer", language)}</span>
           </div>
           <span className="bold w-full flex justify-end px-[4px]">
@@ -244,12 +265,12 @@ const BuyersRatingBar = ({ language, recommendation_stats }) => {
         >
           <div className="flex-row">
             <img src="/icons/NegRecomendIcon.svg" />
-            <span className="bold px-[4px]">{not_recomended}</span>
+            <span className="bold px-[4px]">{formatCount(not_recomended, language)}</span>
             <span>{translateFunction("Buyer", language)}</span>
           </div>
           <span className={`w-full flex justify-end bold px-[4px]`}>
             <img src="/icons/NegRecomendIcon.svg" className="opacity-0" />
-            {translateFunction("Dont Recommend It", language)}
+            {translateFunction("Don't Recommend It", language)}
           </span>
         </div>
       </div>

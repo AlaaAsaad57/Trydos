@@ -134,3 +134,24 @@ describe("ChatMessage", () => {
     expect(h.got.TextMessage.DeleteModal, "the delete box state did not reach the body").toBe(true);
   });
 });
+
+describe("ChatMessage — tags and my reminder", () => {
+  const tags = [{ tag: "urgent", count: 1, user_ids: [ME] }];
+  const reminder = { id: "r-1", remind_at: "2030-01-15T12:30:00", created_at: "2030-01-15T10:00:00" };
+
+  it("hands the tags, my reminder and the edit mark to a text message", async () => {
+    await mount({ tags, reminder, is_edited: 1 });
+    expect(h.got.TextMessage?.tags, "the text message did not get its tags").toEqual(tags);
+    expect(h.got.TextMessage?.reminder, "the text message did not get my reminder").toEqual(reminder);
+    expect(h.got.TextMessage?.is_edited, "the text message did not get its edit mark").toBe(1);
+  });
+
+  it("hands the tags and my reminder to every other type that can carry them", async () => {
+    for (const name of ["ImageMessage", "VideoMessage", "VoiceMessage", "FileMessage", "ShareProduct"]) {
+      h.got = {};
+      await mount({ tags, reminder, message_type: { name, event_name: "message", created_at: null } });
+      expect(h.got[name]?.tags, `a ${name} did not get its tags`).toEqual(tags);
+      expect(h.got[name]?.reminder, `a ${name} did not get my reminder`).toEqual(reminder);
+    }
+  });
+});

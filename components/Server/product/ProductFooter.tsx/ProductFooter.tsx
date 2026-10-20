@@ -10,7 +10,7 @@ import ProductShareButton from "./ProductShareButton";
 import ProductMoreButton from "./ProductMoreButton";
 import ExtendedAreaInfo from "components/products/ExtendedAreaInfo";
 
-function ProductFooter({ isRtl, productLightData }) {
+function ProductFooter({ isRtl, productLightData, language = "en" }) {
   const { loginOpen, selectedContactsForShare, setSelectedContactsForShare } =
     useAppStore();
   let [activeTab, setActiveTab] = useState<string | boolean>(false);
@@ -74,10 +74,12 @@ function ProductFooter({ isRtl, productLightData }) {
                 category_id={productLightData.category?.id}
                 name={productLightData.name}
                 price={productLightData?.offer_price}
+                language={language}
               />
               <ProductCommentButton
                 productId={productLightData?.id}
                 total_comments={productLightData?.total_comments}
+                language={language}
                 isActive={activeTab === "Comment"}
                 setActive={() => {
                   setActiveTab("Comment");
@@ -92,6 +94,7 @@ function ProductFooter({ isRtl, productLightData }) {
             >
               <ProductShareButton
                 total_shares={productLightData?.total_shares}
+                language={language}
                 Active={activeTab === "shares"}
                 setActive={() => {
                   setActiveTab("shares");

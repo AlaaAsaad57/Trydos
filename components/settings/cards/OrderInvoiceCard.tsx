@@ -1,9 +1,21 @@
 import { RoundPrice, translateFunction } from "utils/functions";
 
 import { useAppStore } from "store";
+import { getOrderCurrency, OrderCurrency } from "utils/orderCurrency";
 
-const OrderInvoiceCard = ({ amount, payments }) => {
+// `paidCurrency` is the currency the order was paid with. Without it the
+// amount is shown in the shop currency.
+const OrderInvoiceCard = ({
+  amount,
+  payments,
+  paidCurrency,
+}: {
+  amount: number;
+  payments: any;
+  paidCurrency?: OrderCurrency | null;
+}) => {
   const { currency } = useAppStore();
+  const shown = getOrderCurrency({ currency: paidCurrency }, currency);
   // };
 
   return (
@@ -123,9 +135,10 @@ const OrderInvoiceCard = ({ amount, payments }) => {
           charged: true,
           num: amount,
           returnNumber: true,
-          rate: currency?.exchange_rate,
+          rate: shown.rate,
+          points: shown.points,
         })}{" "}
-        {currency?.symbol}
+        {shown.symbol}
       </span>
     </div>
   );

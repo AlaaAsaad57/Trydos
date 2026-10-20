@@ -158,7 +158,7 @@ describe("a real component through the helper", () => {
   it("renders EmptyCart in English", async () => {
     await renderWithProviders(<EmptyCart />);
 
-    expect(screen.getByText("Cart is Empty")).toBeInTheDocument();
+    expect(screen.getByText("Cart Is Empty")).toBeInTheDocument();
   });
 
   it("renders EmptyCart in Arabic", async () => {

@@ -101,14 +101,14 @@ describe("TryOnModal", () => {
       vi.advanceTimersByTime(3000);
     });
     expect(screen.getByAltText("Result"), "no result after 3 seconds").toBeInTheDocument();
-    fireEvent.click(screen.getByText("Try again"));
+    fireEvent.click(screen.getByText("Try Again"));
     expect(screen.getByText("Upload Photo"), "try again did not go back to the choice").toBeInTheDocument();
   });
 
   it("the preview's try again goes back to the choice", async () => {
     await openModal();
     await pickFile();
-    fireEvent.click(screen.getByText("Try again"));
+    fireEvent.click(screen.getByText("Try Again"));
     expect(screen.getByText("Take Photo"), "try again from preview did not reset").toBeInTheDocument();
   });
 

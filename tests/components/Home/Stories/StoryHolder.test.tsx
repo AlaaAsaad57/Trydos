@@ -8,7 +8,11 @@ const actions = vi.hoisted(() => ({
   setNextStory: vi.fn(),
   setPreviousStory: vi.fn(),
 }));
-vi.mock("store/homepage/actions", () => actions);
+// The real GetUnviewedStory stays: where a ring opens is part of what is tested.
+vi.mock("store/homepage/actions", async (importOriginal) => ({
+  ...(await importOriginal<any>()),
+  ...actions,
+}));
 
 const storyService = vi.hoisted(() => ({ deleteStory: vi.fn(), WatchStory: vi.fn() }));
 vi.mock("services/story", () => ({ default: storyService }));
@@ -100,6 +104,38 @@ describe("StoryHolder", () => {
     expect(index(), "the end of the ring did not reset to the first story").toBe("0");
     expect(actions.setNextStory, "the end of the ring did not open the next author").toHaveBeenCalledTimes(2);
     click("end");
+  });
+
+  it("opens another author's ring on the first story the shopper has not seen yet", async () => {
+    const story = { id: 2, stories: [{ id: 20, is_seen: true }, { id: 21, is_seen: false }, { id: 22, is_seen: false }] };
+    await renderWithProviders(<StoryHolder story={story} active isPaused={false} />);
+    expect(index(), "the ring did not open on the first unseen story (21); it replayed a story already seen").toBe("1");
+  });
+
+  it("opens a fully seen ring of another author on its first story", async () => {
+    const story = { id: 2, stories: [{ id: 20, is_seen: true }, { id: 21, is_seen: true }] };
+    await renderWithProviders(<StoryHolder story={story} active isPaused={false} />);
+    expect(index(), "a ring with nothing new did not open on its first story").toBe("0");
+  });
+
+  it("marks and reports the story a hidden pane shows once it comes to the front, and only once", async () => {
+    const story = { id: 2, stories: [{ id: 20, is_seen: true }, { id: 21, is_seen: false }] };
+    const { rerender } = await renderWithProviders(<StoryHolder story={story} active={false} isPaused />);
+    expect(storyService.WatchStory, "a hidden pane marked a story as watched").not.toHaveBeenCalled();
+
+    // The viewer moved to this author (a swipe, or the previous ring ended).
+    rerender(<StoryHolder story={story} active isPaused={false} />);
+    expect(
+      storyService.WatchStory,
+      "the story shown after moving to this author was never marked watched, so the stories backend never counted it and the ring reopens on it",
+    ).toHaveBeenCalledWith(21, 2);
+    expect(GAevent.mock.calls[0]?.[0]?.params?.story_id, "the view of the story shown after moving to this author was not reported").toBe(21);
+
+    // The cube hides the front pane for a moment while it turns; that is not a new view.
+    rerender(<StoryHolder story={story} active={false} isPaused />);
+    rerender(<StoryHolder story={story} active isPaused={false} />);
+    click("start");
+    expect(storyService.WatchStory, "the same story was counted more than once").toHaveBeenCalledTimes(1);
   });
 
   it("opens the shopper's own ring on the newest story", async () => {
@@ -204,7 +240,7 @@ describe("StoryHolder", () => {
     expect(storyService.deleteStory, "the wrong story was sent to the stories backend").toHaveBeenCalledWith(50);
     expect(actions.setNextStory, "deleting the only story did not move to the next author").toHaveBeenCalledWith(5);
     expect(removeStory, "the story stayed in the bar after deleting").toHaveBeenCalledWith(5, 50);
-    expect(notify.showSuccessNotification, "the shopper was not told the story was deleted").toHaveBeenCalledWith("Story deleted successfully.");
+    expect(notify.showSuccessNotification, "the shopper was not told the story was deleted").toHaveBeenCalledWith("Story Deleted Successfully.");
     expect(screen.queryByTestId("confirm"), "the delete prompt stayed open").toBeNull();
   });
 
@@ -244,6 +280,6 @@ describe("StoryHolder", () => {
     });
     fireEvent.click(screen.getByLabelText("Delete story"));
     await act(async () => click("confirm delete"));
-    expect(notify.showErrorNotification, "no fallback for an empty refusal").toHaveBeenCalledWith("Failed to delete story.");
+    expect(notify.showErrorNotification, "no fallback for an empty refusal").toHaveBeenCalledWith("Failed To Delete Story.");
   });
 });

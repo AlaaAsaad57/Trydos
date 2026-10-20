@@ -5,12 +5,16 @@ import { DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chat
 import OptionsMenu from "../../OptionsMenu";
 import React from "react";
 import { toDownloadUrl } from "components/Chat/videoSupport";
+import MessageMarks from "../MessageMarks";
+import CancelUploadButton from "../CancelUploadButton";
 function VideoMessage({
   setOpen,
   setDelete,
   openMenu,
   type,
   is_forward,
+  tags = [],
+  reminder = null,
   message_content,
   isPrivate,
   message_status,
@@ -74,11 +78,11 @@ function VideoMessage({
           ` ${openMenu && "ac"}`
         }
       >
-        {is_forward === 1 && (
-          <div className="forwarded-message-icon">
-            <img src="/icons/chat/forwarded.svg" />
-          </div>
-        )}
+        <MessageMarks
+          is_forward={is_forward}
+          tags={tags}
+          reminder={reminder}
+        />
         {/* <div className="border-element">
           {refmessage.current &&
             showBord(type, refmessage.current.clientHeight).map((ad, i) => (
@@ -126,16 +130,18 @@ function VideoMessage({
             />
           </a>
         ) : (
-          <img
-            src="/icons/chat/play.svg"
-            data-pw="VIDEO-PLAY"
-            alt={translateFunction("Play")}
-            onClick={(e) => {
-              e.stopPropagation();
-              setVid(filePath);
-            }}
-            className="play-vid-icon"
-          />
+          <CancelUploadButton mid={mid} className="play-vid-icon">
+            <img
+              src="/icons/chat/play.svg"
+              data-pw="VIDEO-PLAY"
+              alt={translateFunction("Play")}
+              onClick={(e) => {
+                e.stopPropagation();
+                setVid(filePath);
+              }}
+              className="play-vid-icon"
+            />
+          </CancelUploadButton>
         )}
         {/* `preload="metadata"` makes the browser read the header, which is
             what lets it report an unsupported codec without downloading the

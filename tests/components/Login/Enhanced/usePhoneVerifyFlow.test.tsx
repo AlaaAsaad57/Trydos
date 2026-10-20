@@ -650,6 +650,27 @@ describe("verifying the code", () => {
       "the second, correct code must be accepted",
     ).toBe("valid");
   });
+
+  it("tells the shopper the number is not registered, and spends no try", async () => {
+    const verify = vi.fn(async () => {
+      throw new Error("user not found");
+    });
+    const { result } = await atCodeStep({ verify });
+
+    await act(async () => {
+      await result.current.verifyPin("123456");
+    });
+
+    expect(
+      result.current.error,
+      "the backend does not know this number, but the screen shows no reason — " +
+        "the boxes just empty and the shopper is left guessing",
+    ).toBe("Sorry, This Number Is Not Registered With Us !");
+    expect(
+      result.current.isValidPin,
+      "an unknown number is not a wrong code, so the boxes must not be marked wrong",
+    ).toBe("");
+  });
 });
 
 // Three wrong codes per code sent, then the boxes go dead until a new code
@@ -799,9 +820,10 @@ describe("the three-try cap", () => {
     ).toBe(true);
   });
 
-  it("spends a try on a check that never reached a verdict", async () => {
+  it("spends no try on a check that never reached a verdict", async () => {
     // Not a refused code: the request itself failed, so nobody judged the
-    // digits. Counting it is a deliberate decision, recorded as EC-9.
+    // digits. Since commit 6922d1a6 such a failure no longer counts (this
+    // replaces the old EC-9 rule, where every failed check counted the same).
     const verify = vi.fn().mockRejectedValue(new Error("Network request failed"));
     const { result } = await atCodeStep({ verify });
 
@@ -809,9 +831,13 @@ describe("the three-try cap", () => {
 
     expect(
       result.current.attemptsLocked,
-      "every failed check counts the same, whatever the reason — a shopper " +
-        "offline spends tries exactly as a guesser does",
-    ).toBe(true);
+      "three network failures locked the boxes — a shopper who is offline " +
+        "must not lose tries for codes the backend never judged",
+    ).toBe(false);
+    expect(
+      result.current.error,
+      "a network failure must show the failure itself, not a tries-left count",
+    ).toBe("Network request failed");
   });
 
   it("keeps the analytics attempt count separate from the cap", async () => {

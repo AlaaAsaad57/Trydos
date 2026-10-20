@@ -4,6 +4,7 @@ import ChatPhoto from "../../ChatPhoto";
 import { copyText, DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
 import { useAppStore } from "store";
+import MessageMarks, { countMarks, marksMinWidth } from "../MessageMarks";
 
 function TextMessage({
   setOpen,
@@ -11,6 +12,9 @@ function TextMessage({
   openMenu,
   type,
   is_forward,
+  tags = [],
+  reminder = null,
+  is_edited = 0,
   message_content,
   isPrivate,
   message_status,
@@ -58,14 +62,21 @@ function TextMessage({
 
       <div
         onClick={() => setOpen(id)}
+        data-pw="chat-message-bubble"
         // ref={refmessage}
         className={"message-element-body message-body text-body " + type}
+        style={{
+          minWidth: marksMinWidth(
+            countMarks({ is_forward, is_edited, tags, reminder }),
+          ),
+        }}
       >
-        {is_forward === 1 && (
-          <div className="forwarded-message-icon">
-            <img src="/icons/chat/forwarded.svg" />
-          </div>
-        )}
+        <MessageMarks
+          is_forward={is_forward}
+          is_edited={is_edited}
+          tags={tags}
+          reminder={reminder}
+        />
         {/* <div className="border-element">
                 {refmessage.current &&
                   showBord(type, refmessage.current.clientHeight).map(
@@ -86,7 +97,7 @@ function TextMessage({
             />
           </div>
         )}
-        <span className="message-body-text-content">
+        <span className="message-body-text-content" data-pw="chat-message-text">
           {!Array.isArray(message_content) &&
             message_content &&
             message_content?.content}

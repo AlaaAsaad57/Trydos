@@ -82,13 +82,17 @@ describe("the staging health probe — how long it asks before it says down", ()
     env.values = { GO_BACKEND_URL: "https://gateway.test" };
   };
 
-  /** Run the probe to its end on the fake clock, noting when each try went out. */
+  /** Run the probe to its end on the fake clock, noting when each try went out.
+   *
+   *  A call to the Cloudflare edge's `/cdn-cgi/trace` is not a try, so it is
+   *  not noted: `sentAt` is the probe's own tries and nothing else. */
   async function probeWith(answers: Array<"timeout" | "ok">) {
     const sentAt: number[] = [];
     const start = Date.now();
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => {
+      vi.fn(async (input: URL | string) => {
+        if (String(input).includes("/cdn-cgi/trace")) throw timeout();
         sentAt.push(Date.now() - start);
         const answer = answers[Math.min(sentAt.length, answers.length) - 1];
         if (answer === "timeout") throw timeout();
@@ -129,5 +133,81 @@ describe("the staging health probe — how long it asks before it says down", ()
     // 5 × 8 s + 20 s = 60 s before a real outage skips the lane.
     expect(sentAt, "the tries did not go out at 0, 2, 6, 12 and 20 s").toEqual([0, 2_000, 6_000, 12_000, 20_000]);
     expect(report.reason, "the reason does not say how often the gateway was asked").toContain("asked 5 times");
+  });
+});
+
+// Run 36003550313 (2026-09-24): the account lane's runner, 128.24.161.38, got
+// no answer from the gateway for three minutes while the solo lane's runner got
+// one in about 600 ms. Cloudflare's Security Analytics showed every try arriving
+// on time, "Not mitigated", with cache status "None" — so the request reached
+// Cloudflare and no answer came back. The run could not say that itself. These
+// cases ask the probe to find it out on its own, from the Cloudflare edge's
+// `/cdn-cgi/trace`, which answers without asking our server.
+describe("the staging health probe — where a backend that did not answer was lost", () => {
+  const timeout = () => new DOMException("The operation was aborted due to timeout", "TimeoutError");
+
+  /** What `/cdn-cgi/trace` sends: one `key=value` per line. */
+  const EDGE_TRACE = ["h=gateway.test", "ip=128.24.161.38", "colo=AMS", "loc=US", ""].join("\n");
+
+  async function probeWith(answer: "timeout" | "ok", trace: "timeout" | string) {
+    const traced: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: URL | string) => {
+        if (String(input).includes("/cdn-cgi/trace")) {
+          traced.push(String(input));
+          if (trace === "timeout") throw timeout();
+          return new Response(trace, { status: 200 });
+        }
+        if (answer === "timeout") throw timeout();
+        return new Response("{}", { status: 200 });
+      }),
+    );
+    const report = probeStaging();
+    await vi.runAllTimersAsync();
+    return { report: await report, traced };
+  }
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    env.values = {};
+  });
+
+  it("asks the Cloudflare edge of the same host once the backend is called down", async () => {
+    vi.useFakeTimers();
+    env.values = { GO_BACKEND_URL: "https://gateway.test/api/v1" };
+    const { traced } = await probeWith("timeout", EDGE_TRACE);
+    expect(traced, "the probe never asked the gateway host's Cloudflare edge, so the run cannot say where the answer was lost").toEqual([
+      "https://gateway.test/cdn-cgi/trace",
+    ]);
+  });
+
+  it("names the runner and the Cloudflare data centre when the edge answered", async () => {
+    vi.useFakeTimers();
+    env.values = { GO_BACKEND_URL: "https://gateway.test" };
+    const { report } = await probeWith("timeout", EDGE_TRACE);
+    expect(report.reason, "the reason does not name the Cloudflare data centre that took the request").toContain("data centre AMS");
+    expect(report.reason, "the reason does not name the runner's own address, so it cannot be found in the Cloudflare dashboard").toContain("128.24.161.38");
+    expect(report.reason, "the edge answered, but the reason does not say the answer was lost between Cloudflare and our server").toContain(
+      "between Cloudflare and our server",
+    );
+  });
+
+  it("says the runner could not reach Cloudflare when the edge did not answer either", async () => {
+    vi.useFakeTimers();
+    env.values = { GO_BACKEND_URL: "https://gateway.test" };
+    const { report } = await probeWith("timeout", "timeout");
+    expect(report.reason, "the edge did not answer either, but the reason does not say the runner could not reach Cloudflare").toContain(
+      "could not reach Cloudflare",
+    );
+  });
+
+  it("does not ask the edge when the backend answered", async () => {
+    vi.useFakeTimers();
+    env.values = { GO_BACKEND_URL: "https://gateway.test" };
+    const { report, traced } = await probeWith("ok", EDGE_TRACE);
+    expect(report.up, `a gateway that answered was called down: ${report.reason}`).toBe(true);
+    expect(traced, "a healthy gateway was traced as well, which adds a request to every run for nothing").toEqual([]);
   });
 });

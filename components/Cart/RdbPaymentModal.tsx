@@ -6,7 +6,10 @@ import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import CustomQRCode from "components/Login/Enhanced/ui/CustomQRCode";
-import { showErrorNotification } from "@/store/notifications/reducer";
+import {
+  showErrorNotification,
+  showSuccessNotification,
+} from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
@@ -20,6 +23,12 @@ import {
 /** How often the screen asks the core backend whether the payment landed.
  *  The backend asks for 3 to 5 seconds (design doc §4). */
 const POLL_INTERVAL_MS = 4000;
+
+/** When a request takes longer than this, consider the connection offline. */
+const SLOW_REQUEST_THRESHOLD_MS = 3000;
+
+/** Maximum time to wait for a poll before treating it as timed out and retrying. */
+const HANG_TIMEOUT_MS = 4500;
 
 /** True on a phone or tablet browser, where an `rdb://` link can actually open
  *  the RDB app. On a desktop browser the link does nothing, so the button is
@@ -68,16 +77,26 @@ export default function RdbPaymentModal({
   const [starting, setStarting] = useState(true);
   const [cancelling, setCancelling] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  const [isOnline, setIsOnline] = useState<boolean>(() =>
+    typeof navigator !== "undefined" && typeof navigator.onLine === "boolean"
+      ? navigator.onLine
+      : true,
+  );
 
   const stoppedRef = useRef(false);
   const startedRef = useRef(false);
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const slowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hangTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeRef = useRef<string | null>(reference);
+  const isOnlineRef = useRef(isOnline);
+  isOnlineRef.current = isOnline;
   const isRtl = language === "ar" || language === "ku";
 
   /** Load the orders the payment created. The poll answer carries `order_ids`,
    *  but the success screen needs the order rows and their group id, and the
    *  cart-to-order lookup returns both. */
-  const loadOrders = async () => {
+  const loadOrders = async (receiptNumber?: string | null) => {
     const cartGroupId = cart?.[0]?.cart_group_id;
     if (!cartGroupId) return;
     const response: any = await fetchData({
@@ -88,7 +107,11 @@ export default function RdbPaymentModal({
       noMessage: true,
     });
     if (response?.success && response?.data?.length > 0) {
-      setOrderData({ data: response.data, success: true });
+      setOrderData({
+        data: response.data,
+        success: true,
+        ...(receiptNumber ? { receipt_number: receiptNumber } : {}),
+      });
     }
   };
 
@@ -98,6 +121,8 @@ export default function RdbPaymentModal({
     if (stoppedRef.current) return;
     stoppedRef.current = true;
     if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+    if (slowTimerRef.current) clearTimeout(slowTimerRef.current);
+    if (hangTimerRef.current) clearTimeout(hangTimerRef.current);
     setRequest(req);
     setRdbLock(null);
 
@@ -105,7 +130,10 @@ export default function RdbPaymentModal({
       trackOrder(ORDER_EVENTS.RDB_PAYMENT_PAID, {
         reference: req.request_reference,
       });
-      await loadOrders();
+      if (req.receipt_number) {
+        setOrderData({ receipt_number: req.receipt_number });
+      }
+      await loadOrders(req.receipt_number);
       onSuccess();
       onClose();
       return;
@@ -125,26 +153,80 @@ export default function RdbPaymentModal({
 
   const schedulePoll = (ref: string) => {
     if (stoppedRef.current) return;
-    pollTimerRef.current = setTimeout(async () => {
+    if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+    pollTimerRef.current = setTimeout(() => {
+      void pollOnce(ref);
+    }, POLL_INTERVAL_MS);
+  };
+
+  const pollOnce = async (ref: string) => {
+    if (stoppedRef.current) return;
+    if (slowTimerRef.current) clearTimeout(slowTimerRef.current);
+    if (hangTimerRef.current) clearTimeout(hangTimerRef.current);
+
+    slowTimerRef.current = setTimeout(() => {
+      // If the request takes longer than expected, consider user offline
+      setIsOnline(false);
+    }, SLOW_REQUEST_THRESHOLD_MS);
+
+    try {
+      const next = await Promise.race([
+        GetRdbRequest(ref),
+        new Promise<null>((resolve) => {
+          hangTimerRef.current = setTimeout(() => resolve(null), HANG_TIMEOUT_MS);
+        }),
+      ]);
+
+      if (slowTimerRef.current) {
+        clearTimeout(slowTimerRef.current);
+        slowTimerRef.current = null;
+      }
+      if (hangTimerRef.current) {
+        clearTimeout(hangTimerRef.current);
+        hangTimerRef.current = null;
+      }
       if (stoppedRef.current) return;
-      const next = await GetRdbRequest(ref);
-      if (stoppedRef.current) return;
-      // A lost answer is not an end state. Ask again rather than tell the
-      // shopper the payment failed.
+
+      // When the call fails (returns null), consider user is offline
       if (!next) {
+        setIsOnline(false);
         schedulePoll(ref);
         return;
       }
+
+      // When the call succeeds, consider user is online
+      setIsOnline(true);
       setRequest(next);
       if (next.status === "awaiting_payment") {
+        if (
+          next.expires_at &&
+          Math.floor((new Date(next.expires_at).getTime() - Date.now()) / 1000) <= 0
+        ) {
+          void settle({ ...next, status: "expired" });
+          return;
+        }
         schedulePoll(ref);
         return;
       }
       void settle(next);
-    }, POLL_INTERVAL_MS);
+    } catch {
+      if (slowTimerRef.current) {
+        clearTimeout(slowTimerRef.current);
+        slowTimerRef.current = null;
+      }
+      if (hangTimerRef.current) {
+        clearTimeout(hangTimerRef.current);
+        hangTimerRef.current = null;
+      }
+      setIsOnline(false);
+      if (!stoppedRef.current) {
+        schedulePoll(ref);
+      }
+    }
   };
 
   const adopt = (req: RdbPaymentRequest) => {
+    activeRef.current = req.request_reference;
     setRequest(req);
     if (req.status === "awaiting_payment") {
       setRdbLock({
@@ -156,6 +238,32 @@ export default function RdbPaymentModal({
     }
     void settle(req);
   };
+
+  // Listen to network online and offline events so the payment widget disables
+  // when offline, and immediately polls the status when internet returns.
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      const currentRef = activeRef.current;
+      if (currentRef && !stoppedRef.current) {
+        if (pollTimerRef.current) {
+          clearTimeout(pollTimerRef.current);
+          pollTimerRef.current = null;
+        }
+        void pollOnce(currentRef);
+      }
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   // Rule 1 of the ownership fix (see the design doc): exactly one payment
   // screen may be on screen at a time. This flag tells `RdbPaymentLockedSheet`
@@ -227,6 +335,8 @@ export default function RdbPaymentModal({
     return () => {
       stoppedRef.current = true;
       if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+      if (slowTimerRef.current) clearTimeout(slowTimerRef.current);
+      if (hangTimerRef.current) clearTimeout(hangTimerRef.current);
     };
   }, []);
 
@@ -242,7 +352,9 @@ export default function RdbPaymentModal({
       );
       setSecondsLeft(left > 0 ? left : 0);
       if (left <= 0 && request) {
-        void settle({ ...request, status: "expired" });
+        if (isOnlineRef.current) {
+          void settle({ ...request, status: "expired" });
+        }
       }
     };
 
@@ -252,7 +364,7 @@ export default function RdbPaymentModal({
   }, [request?.expires_at, request?.status]);
 
   const cancel = async () => {
-    if (!request || cancelling) return;
+    if (!request || cancelling || !isOnline) return;
     setCancelling(true);
     const result = await CancelRdbRequest(request.request_reference);
     setCancelling(false);
@@ -280,6 +392,13 @@ export default function RdbPaymentModal({
 
     showErrorNotification(
       translateFunction("Could not cancel the payment. Please try again"),
+    );
+  };
+
+  const copyCode = (code: string) => {
+    navigator.clipboard?.writeText(code).then(
+      () => showSuccessNotification(translateFunction("Copied!")),
+      () => {},
     );
   };
 
@@ -352,12 +471,59 @@ export default function RdbPaymentModal({
                   <span className="regular text-[12px] text-[#8D8D8D]">
                     {translateFunction("Scan this code in the RDB app")}
                   </span>
-                  <div className="w-full flex items-center justify-center">
-                    <CustomQRCode
-                      value={request.qr_payload}
-                      size={200}
-                      errorCorrectionLevel="Q"
-                    />
+                  <div
+                    className="relative w-full flex items-center justify-center min-h-[200px]"
+                    data-pw="rdb-qr-container"
+                  >
+                    <div
+                      className={`flex items-center justify-center transition-opacity duration-200 ${
+                        !isOnline
+                          ? "opacity-20 blur-[2px] pointer-events-none select-none"
+                          : ""
+                      }`}
+                    >
+                      <CustomQRCode
+                        value={request.qr_payload}
+                        size={200}
+                        errorCorrectionLevel="Q"
+                      />
+                    </div>
+                    {!isOnline && (
+                      <div
+                        className="absolute inset-0 flex flex-col items-center justify-center bg-white/85 rounded-[12px] p-[16px] text-center gap-[8px] z-10"
+                        data-pw="rdb-offline-overlay"
+                      >
+                        <svg
+                          width="32"
+                          height="32"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#8D8D8D"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                          <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
+                          <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
+                          <path d="M10.71 5.05A16 16 0 0 1 22.58 9" />
+                          <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
+                          <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+                          <line x1="12" y1="20" x2="12.01" y2="20" />
+                        </svg>
+                        <span
+                          className="semibold text-[13px] text-[#1D1D1D]"
+                          data-pw="rdb-offline-message"
+                        >
+                          {translateFunction("No internet connection")}
+                        </span>
+                        <span className="regular text-[11px] text-[#8D8D8D]">
+                          {translateFunction(
+                            "Please check your connection to scan and pay",
+                          )}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </React.Fragment>
               )}
@@ -367,9 +533,24 @@ export default function RdbPaymentModal({
                   <span className="regular text-[12px] text-[#8D8D8D]">
                     {translateFunction("Payment code")}
                   </span>
-                  <span className="semibold text-[18px] tracking-[4px] text-[#1D1D1D]" data-pw="rdb-short-code">
-                    {request.short_code}
-                  </span>
+                  <div className="flex-row items-center gap-[8px]">
+                    <span className="semibold text-[18px] tracking-[4px] text-[#1D1D1D]" data-pw="rdb-short-code">
+                      {request.short_code}
+                    </span>
+                    <button
+                      type="button"
+                      className="flex items-center justify-center w-[24px] h-[24px] cursor-pointer"
+                      aria-label={translateFunction("Copy payment code")}
+                      title={translateFunction("Copy payment code")}
+                      data-pw="rdb-copy-code"
+                      onClick={() => copyCode(request.short_code)}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8D8D8D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                    </button>
+                  </div>
                 </React.Fragment>
               )}
 
@@ -385,19 +566,36 @@ export default function RdbPaymentModal({
                 </span>
               )}
 
-              <div className="flex-row w-full gap-[8px] mt-[8px]">
+              <div className="flex flex-col sm:flex-row w-full gap-[8px] mt-[8px]">
                 {isOpen && request.deep_link && isMobileBrowser() && (
                   <a
-                    className="flex items-center justify-center h-[40px] flex-1 rounded-[15px] bg-[#388CFF] text-white regular text-[12px]"
+                    className={`flex items-center justify-center h-[40px] flex-1 rounded-[15px] bg-[#388CFF] text-white regular text-[12px] ${
+                      !isOnline ? "opacity-50 pointer-events-none" : ""
+                    }`}
                     href={request.deep_link}
                     data-pw="rdb-deep-link"
                   >
                     {translateFunction("Open the RDB app")}
                   </a>
                 )}
+                {isOpen && request.deep_link && (
+                  <a
+                    className={`flex p-[10px] items-center justify-center h-[40px] flex-1 rounded-[15px] bg-[#388CFF] text-white regular text-[12px] ${
+                      !isOnline ? "opacity-50 pointer-events-none" : ""
+                    }`}
+                    href={request.deep_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-pw="rdb-web-link"
+                  >
+                    {translateFunction("Pay with web RDB")}
+                  </a>
+                )}
                 {isOpen && (
                   <div
-                    className="flex items-center justify-center h-[40px] flex-1 rounded-[15px] bg-[#F8F8F8] text-[#f85555] regular text-[12px] cursor-pointer"
+                    className={`flex p-[10px] items-center justify-center h-[40px] flex-1 rounded-[15px] bg-[#F8F8F8] text-[#f85555] regular text-[12px] ${
+                      !isOnline ? "opacity-50 pointer-events-none" : "cursor-pointer"
+                    }`}
                     data-pw="rdb-cancel"
                     onClick={cancel}
                   >

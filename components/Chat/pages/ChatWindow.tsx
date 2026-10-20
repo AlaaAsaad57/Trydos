@@ -41,6 +41,7 @@ function ChatWindow({ close, setOpenContacts, open, setSearch, search }) {
       <div
         className="absolute cursor-pointer right-[20px] top-[19px] max-w-[20px] max-h-[20px]"
         aria-label="close icon"
+        data-pw="chat-close"
         onClick={() => {
           setForwardMessage(null);
           close();

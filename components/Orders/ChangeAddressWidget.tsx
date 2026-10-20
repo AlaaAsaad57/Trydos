@@ -458,6 +458,7 @@ function ChangeAddressWidget({
             </div>
           )}
           <div
+            data-pw="change-address-submit"
             className={`w-full min-h-[53px] items-center justify-center  flex cursor-pointer ${
               selectedAddressId === address_id && deliveryNote === ""
                 ? "bg-[#D3D3D3] "

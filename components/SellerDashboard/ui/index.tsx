@@ -4,8 +4,41 @@ import Spinner from "components/global/Spinner";
 import { translateFunction } from "utils/functions";
 import { DashIcon, IconName } from "./icons";
 
+import { GetImageUrl } from "utils/tinyUtils";
+
 export { DashIcon };
 export type { IconName };
+
+export const getShopImageUrl = (image: any): string | undefined => {
+  if (!image) return undefined;
+  if (typeof image === "string") {
+    const trimmed = image.trim();
+    if (!trimmed || trimmed.endsWith("/")) return undefined;
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
+      return trimmed;
+    }
+    const res = GetImageUrl(trimmed);
+    if (typeof res === "string" && res.startsWith("undefined/")) {
+      return "/" + trimmed;
+    }
+    return res || undefined;
+  }
+  if (typeof image === "object") {
+    if (image.file_path) {
+      if (typeof image.file_path === "string" && (image.file_path.startsWith("http://") || image.file_path.startsWith("https://"))) {
+        return image.file_path;
+      }
+      const res = GetImageUrl(image);
+      if (typeof res === "string" && res.startsWith("undefined/")) {
+        return "/" + (image.file_path.startsWith("/") ? image.file_path.slice(1) : image.file_path);
+      }
+      return res || undefined;
+    }
+    if (image.url && typeof image.url === "string") return getShopImageUrl(image.url);
+    if (image.path && typeof image.path === "string") return getShopImageUrl(image.path);
+  }
+  return undefined;
+};
 
 /**
  * Seller-dashboard design tokens, lifted from the live storefront *as the
@@ -73,11 +106,20 @@ export function Monogram({
   className = "",
 }: {
   name?: string;
-  src?: string | null;
+  src?: any;
   size?: number;
   rounded?: number;
   className?: string;
 }) {
+  const [hasError, setHasError] = React.useState(false);
+  const resolvedSrc = React.useMemo(() => getShopImageUrl(src), [src]);
+
+  React.useEffect(() => {
+    setHasError(false);
+  }, [resolvedSrc]);
+
+  const showImage = Boolean(resolvedSrc && !hasError);
+
   const initials = (name || "")
     .trim()
     .split(/\s+/)
@@ -92,16 +134,16 @@ export function Monogram({
         width: size,
         height: size,
         borderRadius: rounded,
-        background: src ? undefined : DASH.primaryTint,
+        background: showImage ? undefined : DASH.primaryTint,
         color: DASH.primary,
       }}
     >
-      {src ? (
-        // eslint-disable-next-line @next/next/no-img-element
+      {showImage ? (
         <img
-          src={src}
+          src={resolvedSrc!}
           alt={name || ""}
           className="w-full h-full object-cover"
+          onError={() => setHasError(true)}
         />
       ) : initials ? (
         <span className="bold" style={{ fontSize: size * 0.4 }}>
@@ -419,19 +461,21 @@ export function Pagination({
   disabled,
   onPrev,
   onNext,
+  isRtl,
 }: {
   current: number;
   last: number;
   disabled?: boolean;
   onPrev: () => void;
   onNext: () => void;
+  isRtl?: boolean;
 }) {
   return (
     <div className="flex items-center justify-center gap-3 mt-6">
       <DashButton
         variant="secondary"
         size="sm"
-        icon="chevronLeft"
+        icon={isRtl ? "chevronRight" : "chevronLeft"}
         onClick={onPrev}
         disabled={current <= 1 || disabled}
       >
@@ -449,7 +493,7 @@ export function Pagination({
         data-pw="pagination-next"
         variant="secondary"
         size="sm"
-        iconRight="chevronRight"
+        iconRight={isRtl ? "chevronLeft" : "chevronRight"}
         onClick={onNext}
         disabled={current >= last || disabled}
       >
@@ -482,7 +526,7 @@ export function DashField({
   return (
     <div data-pw={dataPw}>
       {label && (
-        <label className="block text-[13px] medium text-[#505050] mb-1.5">
+        <label className="block text-[13px] medium text-[#505050] mb-1.5 text-start">
           {label}
         </label>
       )}
@@ -496,11 +540,11 @@ export function DashField({
           {error}
         </p>
       ) : (
-        hint && <p className="text-[12px] text-[#8e8e8e] mt-1">{hint}</p>
+        hint && <p className="text-[12px] text-[#8e8e8e] mt-1 text-start">{hint}</p>
       )}
     </div>
   );
 }
 
 export const dashInputClass =
-  "w-full px-4 h-[48px] bg-[#f8f8f8] border border-[#ededed] rounded-[12px] text-[14px] text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:border-[#5d5d5d] focus:bg-white transition-colors";
+  "w-full px-4 h-[48px] bg-[#f8f8f8] border border-[#ededed] rounded-[12px] text-[14px] text-[#3c3c3c] placeholder:text-[#b8b8b8] outline-none focus:border-[#5d5d5d] focus:bg-white transition-colors text-start";

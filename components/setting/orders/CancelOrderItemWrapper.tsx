@@ -6,9 +6,22 @@ import {
   translateFunction,
 } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
+import { getOrderCurrency, OrderCurrency } from "utils/orderCurrency";
 
-function CancelOrderItemWrapper({ item, backToMain, cancelOrderItem }) {
+function CancelOrderItemWrapper({
+  item,
+  backToMain,
+  cancelOrderItem,
+  paidCurrency,
+}: {
+  item: any;
+  backToMain: () => void;
+  cancelOrderItem: (e: any) => void;
+  // The currency the order was paid with; the refund goes back in it.
+  paidCurrency?: OrderCurrency | null;
+}) {
   const { currency, language } = useAppStore();
+  const paid = getOrderCurrency({ currency: paidCurrency }, currency);
   const [selectedOptions, setSelectedOptions] = useState([]);
   let options = [
     "I Changed My Mind",
@@ -69,12 +82,13 @@ function CancelOrderItemWrapper({ item, backToMain, cancelOrderItem }) {
             {RoundPrice({
               charged: true,
               num: item.offer_price || item.price,
-              rate: currency?.exchange_rate,
+              rate: paid.rate,
+              points: paid.points,
               language: language,
               returnNumber: true,
             })}
           </span>
-          <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>
+          <span className="text-[#8D8D8D] mx-[4px]">{paid.symbol}</span>
           {translateFunction("To Your Account")}.
         </p>
         <span className="border-[#C4C2C280] border-b w-full mt-[12px]" />
@@ -92,6 +106,7 @@ function CancelOrderItemWrapper({ item, backToMain, cancelOrderItem }) {
         {options.map((option, index) => (
           <div
             key={option}
+            data-pw="cancel-line-reason"
             className={`px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px] bg-[#F8F8F8] `}
             style={{
               flex: "0 1 auto",
@@ -117,6 +132,7 @@ function CancelOrderItemWrapper({ item, backToMain, cancelOrderItem }) {
           )}
         </div>
         <div
+          data-pw="cancel-line-submit"
           className={`w-full h-[53px] items-center justify-center  flex cursor-pointer ${
             selectedOptions.length === 0 ? "bg-[#D3D3D3] " : "bg-[#FF5F61] "
           } rounded-[20px] text-[16px] text-white medium`}

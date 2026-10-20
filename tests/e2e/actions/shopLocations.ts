@@ -42,6 +42,7 @@ import {
   dashboardLocale,
   gotoSellerDashboard,
   openTab,
+  refuseIfSectionDenied,
   refuseIfSessionExpired,
 } from "./sellerDashboard";
 
@@ -194,10 +195,17 @@ export const settleLocations = async (page: Page): Promise<void> => {
   // blaming the permission would send the reader to the wrong place.
   await refuseIfSessionExpired(page, "opening the Locations section");
 
+  await refuseIfSectionDenied(page, {
+    section: "Locations",
+    permission: "READ_LOCATIONS",
+  });
+
+  // The refusal was lifted by a late permissions answer, so the list is only
+  // starting to load now.
   await expect(
-    denied,
-    "the Locations section refused to draw: this account does not hold READ_LOCATIONS for this shop",
-  ).toBeHidden();
+    list.or(empty).or(failed),
+    "the Locations section never finished loading — it drew no list, no empty state and no error",
+  ).toBeVisible({ timeout: 45_000 });
 
   await expect(
     failed,

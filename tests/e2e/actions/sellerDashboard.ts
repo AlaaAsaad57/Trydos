@@ -37,6 +37,11 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
 import { sellerDashboard, type DashboardTab } from "../selectors";
+import {
+  SELLER_SERVICE,
+  sectionRefusalReason,
+  sellerCall,
+} from "../harness/sellerDashboard";
 import { gotoUnderLocale } from "./profile";
 import { localeParts, localePrefix } from "./nav";
 
@@ -69,6 +74,49 @@ export const refuseIfSessionExpired = async (
     expired,
     `${what}: the app drew its "your session has expired" screen, so the saved session was refused and this page is being shown to a guest. The case that ran before this one did authenticated work and did not hand its session on.`,
   ).toBe(false);
+};
+
+/** How long a section may go on drawing "Access Denied" before it is judged.
+ *
+ *  The dashboard draws the block until its own permissions call answers. That
+ *  call is asked again for up to 60 seconds when the core backend fails
+ *  (`harness/unstableRetry.ts`), so a shorter wait judges a late answer. */
+const REFUSAL_WAIT_MS = 75_000;
+
+/** Fail, saying why, when a section goes on drawing "Access Denied".
+ *
+ *  Returns at once when the block is not there. When it is, this waits for the
+ *  dashboard's own permissions to arrive. If the block is still there after
+ *  that, the case asks the core backend itself and reports what it said
+ *  (`sectionRefusalReason`), so a failed backend is never reported as a
+ *  missing permission. */
+export const refuseIfSectionDenied = async (
+  page: Page,
+  options: { section: string; permission: string },
+): Promise<void> => {
+  const denied = sellerDashboard.accessDenied(page);
+  if (!(await denied.isVisible().catch(() => false))) return;
+
+  const lifted = await denied
+    .waitFor({ state: "hidden", timeout: REFUSAL_WAIT_MS })
+    .then(() => true)
+    .catch(() => false);
+  if (lifted) return;
+
+  const sellerId = /\/sellerDashboard\/([^/?#]+)/.exec(page.url())?.[1] ?? "";
+  const read = await sellerCall(page, {
+    service: SELLER_SERVICE.market,
+    url: "/shop/auth/permissions",
+    method: "GET",
+    sellerId,
+    country: dashboardLocale(page).country,
+    note: `read the permissions behind the refused ${options.section} section`,
+  });
+
+  expect(
+    false,
+    sectionRefusalReason({ ...options, sellerId, read }),
+  ).toBe(true);
 };
 
 /** The value `data-tab` carries on the dashboard home screen.

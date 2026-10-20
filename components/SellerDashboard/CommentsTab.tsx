@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import sellerCommentsService from "services/sellerDashboard/comments";
 import { translateFunction, LogError } from "utils/functions";
 import { DashIcon } from "components/SellerDashboard/ui/icons";
@@ -11,6 +11,9 @@ import {
 import RatingStars from "components/settings/cards/RatingStars";
 import "styles/comment.css";
 import { ListRowsSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
+import CommentProductInfo from "components/SellerDashboard/CommentProductInfo";
 
 const FALLBACK_AVATAR = "/images/profileNo.png";
 
@@ -90,6 +93,11 @@ export default function CommentsTab({
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(false);
 
+  // Products Cache (keyed by product_id)
+  const [productsCache, setProductsCache] = useState<Record<string, any>>({});
+  const [loadingProductIds, setLoadingProductIds] = useState<Set<string>>(new Set());
+  const fetchedProductIdsRef = useRef<Set<string>>(new Set());
+
   // Reply Modal State
   const [replyModalOpen, setReplyModalOpen] = useState<boolean>(false);
   const [selectedComment, setSelectedComment] = useState<CommentData | null>(null);
@@ -154,6 +162,48 @@ export default function CommentsTab({
   useEffect(() => {
     fetchComments(true);
   }, [subTab, sellerId]);
+
+  useEffect(() => {
+    const missingIds = Array.from(
+      new Set(
+        comments
+          .map((c) => String(c.product_id || "").trim())
+          .filter((id) => Boolean(id) && !fetchedProductIdsRef.current.has(id)),
+      ),
+    );
+
+    if (missingIds.length === 0) return;
+
+    missingIds.forEach((id) => fetchedProductIdsRef.current.add(id));
+    setLoadingProductIds((prev) => new Set([...prev, ...missingIds]));
+
+    missingIds.forEach(async (id) => {
+      try {
+        const res = await fetchData({
+          url: `/web/product/globalDetailsById/${id}`,
+          method: "GET",
+          server: "market",
+          reqTitle: REQUESTS_DATA.GET_PRODUCT_GLOBAL_DETAILS,
+        });
+
+        const product = res?.data?.data || res?.data || (res?.id ? res : null);
+        if (product) {
+          setProductsCache((prev) => ({ ...prev, [id]: product }));
+        }
+      } catch (err) {
+        LogError({
+          scenario: "CommentsTab.fetchProductDetails",
+          error: err instanceof Error ? err.message : String(err),
+        });
+      } finally {
+        setLoadingProductIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      }
+    });
+  }, [comments]);
 
   const openReplyModal = (comment: CommentData) => {
     setSelectedComment(comment);
@@ -283,34 +333,48 @@ export default function CommentsTab({
                   style={{ direction: isRtl ? "rtl" : "ltr" }}
                 >
                   <div className="w-full flex-col">
-                    <div className="flex-row items-center">
-                      <div className="comment-photo">
-                        <img
-                          src={comment.user_avatar || FALLBACK_AVATAR}
-                          alt={comment.user_name}
-                        />
-                      </div>
-                      <div className="comment-content capitalize mx-[10px]">
-                        <div className="comment-source text-[#1D1D1D] text-[9px] regular">
-                          {!isReview && <span className="bold pr-[4px]">Q</span>}
-                          {comment.user_name}
+                    {comment.product_id && (
+                      <CommentProductInfo
+                        productId={comment.product_id}
+                        variant={comment.variant}
+                        product={productsCache[String(comment.product_id)]}
+                        loading={loadingProductIds.has(String(comment.product_id))}
+                        language={language}
+                        isRtl={isRtl}
+                      />
+                    )}
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex-row items-center">
+                        <div className="comment-photo">
+                          <img
+                            src={comment.user_avatar || FALLBACK_AVATAR}
+                            alt={comment.user_name}
+                          />
+                        </div>
+                        <div className="comment-content capitalize mx-[10px]">
+                          <div className="comment-source text-[#1D1D1D] text-[9px] regular">
+                            {!isReview && <span className="bold pe-[4px]">Q</span>}
+                            {comment.user_name}
+                          </div>
                         </div>
                       </div>
+                      <div
+                        className="comment-date text-[9px] text-[#1d1d1d] shrink-0"
+                        style={{
+                          position: "static",
+                          top: "auto",
+                          right: "auto",
+                          left: "auto",
+                        }}
+                      >
+                        {formatDate(comment.created_at, language)}
+                      </div>
                     </div>
-                    {comment.variant && (
+                    {!comment.product_id && comment.variant && (
                       <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
                         {comment.variant}
                       </span>
                     )}
-                    <div
-                      className="comment-date text-[9px] absolute text-[#1d1d1d]"
-                      style={{
-                        right: isRtl ? "initial" : "10px",
-                        left: isRtl ? "10px" : "initial",
-                      }}
-                    >
-                      {formatDate(comment.created_at, language)}
-                    </div>
                     <div
                       data-pw="dashboard-comment-text"
                       className={`${
@@ -356,7 +420,7 @@ export default function CommentsTab({
                             <div className="comment-content capitalize mx-[10px]">
                               {/* Reply is attributed to the shop, never a user. */}
                               <div className="comment-source text-[#1D1D1D] text-[9px] regular">
-                                <span className="bold pr-[4px]">A</span>
+                                <span className="bold pe-[4px]">A</span>
                                 {comment.seller_name ||
                                   translateFunction("Your shop", language)}
                               </div>
@@ -387,6 +451,7 @@ export default function CommentsTab({
                           <div className="flex items-center gap-3">
                             {canEditReply && (
                               <button
+                                data-pw="dashboard-comment-edit-reply-btn"
                                 onClick={() => openReplyModal(comment)}
                                 className="inline-flex items-center gap-1 text-[12px] semibold text-[#388CFF] hover:opacity-80 transition-colors"
                               >
@@ -485,14 +550,14 @@ export default function CommentsTab({
 
             <form onSubmit={handleReplySubmit}>
               <div className="p-5 lg:p-6 space-y-4">
-                <div className="p-4 bg-[#f8f8f8] rounded-[12px] border border-[#ededed] text-left space-y-2">
+                <div className="p-4 bg-[#f8f8f8] rounded-[12px] border border-[#ededed] text-start space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="semibold text-[#3c3c3c]">{selectedComment.user_name}</span>
                   </div>
                   <p className="text-[14px] text-[#505050] italic">"{selectedComment.text}"</p>
                 </div>
 
-                <div className="space-y-2 text-left">
+                <div className="space-y-2 text-start">
                   <label className="block text-[13px] medium text-[#505050]">
                     {translateFunction("Reply Text", language)}
                   </label>

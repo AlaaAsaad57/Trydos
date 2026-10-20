@@ -64,7 +64,7 @@ afterEach(() => {
 describe("the camera widget", () => {
   it("offers the camera switch only when there is more than one camera, and flips the facing mode", async () => {
     await setup(["videoinput", "videoinput", "audioinput"]);
-    const toggle = await screen.findByRole("button", { name: "Switch camera" });
+    const toggle = await screen.findByRole("button", { name: "Switch Camera" });
     expect(constraints().facingMode, "the back camera must be used first").toBe("environment");
 
     await userEvent.click(toggle);
@@ -76,7 +76,7 @@ describe("the camera widget", () => {
   it("hides the switch with one camera", async () => {
     await setup(["videoinput"]);
     await waitFor(() => expect(navigator.mediaDevices.enumerateDevices, "the cameras must be counted").toHaveBeenCalled());
-    expect(screen.queryByRole("button", { name: "Switch camera" }), "one camera must not offer a switch").toBeNull();
+    expect(screen.queryByRole("button", { name: "Switch Camera" }), "one camera must not offer a switch").toBeNull();
   });
 
   it("logs it when the cameras cannot be counted", async () => {
@@ -95,7 +95,7 @@ describe("the camera widget", () => {
       vi.fn().mockResolvedValue({ blob: () => Promise.resolve(new Blob(["jpg"], { type: "image/jpeg" })) }),
     );
 
-    await userEvent.click(screen.getByRole("button", { name: "Capture photo" }));
+    await userEvent.click(screen.getByRole("button", { name: "Capture Photo" }));
     expect(screen.getByAltText("Captured"), "the taken photo must be shown").toHaveAttribute(
       "src",
       "data:image/jpeg;base64,shot",
@@ -104,7 +104,7 @@ describe("the camera widget", () => {
     await userEvent.click(screen.getByText("Retake"));
     expect(screen.queryByAltText("Captured"), "retake must go back to the live camera").toBeNull();
 
-    await userEvent.click(screen.getByRole("button", { name: "Capture photo" }));
+    await userEvent.click(screen.getByRole("button", { name: "Capture Photo" }));
     await userEvent.click(screen.getByText("Use Photo"));
     await waitFor(() => expect(onScreen.onCapture, "the used photo must be handed on").toHaveBeenCalled());
     const file = onScreen.onCapture.mock.calls[0][0] as File;
@@ -116,10 +116,10 @@ describe("the camera widget", () => {
     const onScreen = await setup();
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("bad data")));
 
-    await userEvent.click(screen.getByRole("button", { name: "Capture photo" }));
+    await userEvent.click(screen.getByRole("button", { name: "Capture Photo" }));
     await userEvent.click(screen.getByText("Use Photo"));
     await waitFor(() =>
-      expect(spies.notify, "a failed photo must be reported to the shopper").toHaveBeenCalledWith("Failed to process image"),
+      expect(spies.notify, "a failed photo must be reported to the shopper").toHaveBeenCalledWith("Failed To Process Image"),
     );
     expect(onScreen.onCapture, "a failed photo must not be handed on").not.toHaveBeenCalled();
   });
@@ -127,13 +127,13 @@ describe("the camera widget", () => {
   it("stays on the live camera when the camera gives no screenshot", async () => {
     await setup();
     spies.screenshot.mockReturnValue(null);
-    await userEvent.click(screen.getByRole("button", { name: "Capture photo" }));
+    await userEvent.click(screen.getByRole("button", { name: "Capture Photo" }));
     expect(screen.queryByAltText("Captured"), "with no screenshot there is nothing to show").toBeNull();
   });
 
   it("closes on the cross and on cancel", async () => {
     const { onClose } = await setup();
-    await userEvent.click(screen.getByRole("button", { name: "Close camera" }));
+    await userEvent.click(screen.getByRole("button", { name: "Close Camera" }));
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(onClose, "both the cross and cancel must close the camera").toHaveBeenCalledTimes(2);
   });
@@ -145,15 +145,15 @@ describe("the camera widget", () => {
 
     expect(constraints().width, "the fallback must ask for 1280 x 720 at most").toEqual({ ideal: 1280, min: 640 });
     expect(spies.notify, "the shopper must be told the fallback is tried").toHaveBeenCalledWith(
-      "Camera constraints not supported, trying fallback settings",
+      "Camera Constraints Not Supported, Trying Fallback Settings",
     );
     expect(onClose, "a constraint problem must not close the camera").not.toHaveBeenCalled();
   });
 
   it.each([
-    ["NotAllowedError", "Camera access denied"],
-    ["NotFoundError", "No camera found"],
-    ["AbortError", "Camera error occurred"],
+    ["NotAllowedError", "Camera Access Denied"],
+    ["NotFoundError", "No Camera Found"],
+    ["AbortError", "Camera Error Occurred"],
   ])("on %s says '%s' and closes", async (name, message) => {
     const { onClose } = await setup();
     spies.errorName = name;

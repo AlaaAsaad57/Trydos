@@ -509,3 +509,96 @@ export const deleteSellerStory = async (
 /** One card, for a caller that wants to read it. */
 export const storyCard = (page: Page, storyId: string | number): Locator =>
   sel.card(page, storyId);
+
+// ---------------------------------------------------------------------------
+// The form's own checks — nothing is uploaded
+// ---------------------------------------------------------------------------
+
+/** A file the form must refuse, and why. */
+export type RefusedFile = { name: string; mimeType: string; buffer: Buffer };
+
+/** An SVG. The form refuses the type outright. */
+export const svgFile = (): RefusedFile => ({
+  name: "trydos-e2e-story.svg",
+  mimeType: "image/svg+xml",
+  buffer: Buffer.from(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>',
+  ),
+});
+
+/** A PNG one byte over the form's 10 MB limit. Only its size matters: the form
+ *  refuses it before it reads a single pixel. */
+export const oversizePhoto = (): RefusedFile => ({
+  name: "trydos-e2e-story-too-big.png",
+  mimeType: "image/png",
+  buffer: Buffer.alloc(10 * 1024 * 1024 + 1),
+});
+
+/** Open the Add Story form. */
+export const openStoryForm = async (page: Page): Promise<void> => {
+  await expect(
+    sel.addButton(page),
+    "the Stories section drew no Add Story control, although this account reports CREATE_STORY",
+  ).toBeVisible();
+  await sel.addButton(page).click();
+  await expect(
+    sel.uploadDialog(page),
+    "the Add Story control was pressed but the upload dialog never opened",
+  ).toBeVisible();
+};
+
+/** Close the form with Cancel, so nothing is sent. */
+export const closeStoryForm = async (page: Page): Promise<void> => {
+  await sel.cancelButton(page).click();
+  await expect(
+    sel.uploadDialog(page),
+    "Cancel was pressed but the upload dialog stayed open",
+  ).toBeHidden();
+};
+
+/** What the form did with one chosen file. */
+export type FileChoice = {
+  /** The crop step opened, which only happens for an accepted photo. */
+  cropOpened: boolean;
+  /** A preview is drawn, which only happens for an accepted file. */
+  previewShown: boolean;
+  /** Share can be pressed. */
+  shareEnabled: boolean;
+};
+
+/** Choose a file in the open form and report what the form did with it.
+ *
+ *  Waits a short, fixed moment: a refusal is the absence of a crop step and a
+ *  preview, and absence can only be read after the form had its chance. The
+ *  crop step for an accepted photo opens well inside it. */
+export const chooseStoryFile = async (
+  page: Page,
+  file: RefusedFile,
+): Promise<FileChoice> => {
+  await sel.fileInput(page).setInputFiles(file);
+  const cropOpened = await storySel
+    .cropSave(page)
+    .waitFor({ state: "visible", timeout: 5_000 })
+    .then(() => true)
+    .catch(() => false);
+  return {
+    cropOpened,
+    previewShown: (await sel.preview(page).count()) > 0,
+    shareEnabled: await sel.shareButton(page).isEnabled(),
+  };
+};
+
+/** Type a link into the open form and report what the form says about it. */
+export const typeStoryLink = async (
+  page: Page,
+  link: string,
+): Promise<{ errorShown: boolean; shareEnabled: boolean }> => {
+  await sel.linkInput(page).fill(link);
+  return {
+    errorShown: await sel
+      .linkError(page)
+      .isVisible()
+      .catch(() => false),
+    shareEnabled: await sel.shareButton(page).isEnabled(),
+  };
+};

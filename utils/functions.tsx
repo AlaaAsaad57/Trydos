@@ -19,6 +19,7 @@ import {
 } from "./errorSerialization";
 import { CartApiInterface } from "./types/cart";
 import { RoundPrice as roundPriceRule } from "./server/helpers";
+import { titleCaseWords } from "./titleCase";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -69,6 +70,7 @@ if (typeof window !== "undefined") {
 }
 
 export function translateFunction(key: string, language?: string | string[]) {
+  if (!key) return key;
   let languageUrl: string | undefined;
 
   if (typeof window !== "undefined") {
@@ -77,7 +79,9 @@ export function translateFunction(key: string, language?: string | string[]) {
     languageUrl =
       (language as string) || LocalizationServiceClass.GetAppLanguage();
   }
-  if (!languageUrl || languageUrl === "en") return key;
+  if (!languageUrl) return key;
+  // The English key is the English text; shown with a capital on every word.
+  if (languageUrl === "en") return titleCaseWords(key);
 
   // Return from cache if already loaded (synchronous fast path)
   const cached = translationCache[languageUrl];
@@ -161,7 +165,9 @@ export const RoundPrice = ({
   return roundPriceRule({
     num,
     rate: rate || saved.currency?.exchange_rate,
-    points: points || saved.currency?.decimal_digits,
+    // `points: 0` is a real value (a currency with no decimals), so only an
+    // absent value falls back to the shop currency.
+    points: points ?? saved.currency?.decimal_digits,
     language: language ?? saved.language,
     returnNumber,
     charged,

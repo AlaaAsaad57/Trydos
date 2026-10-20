@@ -17,7 +17,7 @@ export const getMessageStatus = ({
     return (
       <>
         {
-          <div className="sent-date">
+          <div className="sent-date" data-pw="chat-message-status" data-status="pending">
             {
               <>
                 <svg
@@ -87,7 +87,7 @@ export const getMessageStatus = ({
     return (
       <>
         {
-          <div className="sent-date">
+          <div className="sent-date" data-pw="chat-message-status" data-status="watched">
             {
               <>
                 <img src="/icons/chat/read.svg" className="w-[10px] h-[10px]" />
@@ -107,7 +107,7 @@ export const getMessageStatus = ({
     return (
       <>
         {
-          <div className="sent-date">
+          <div className="sent-date" data-pw="chat-message-status" data-status="received">
             {
               <>
                 <img src="/icons/chat/recieved.svg" />
@@ -122,7 +122,7 @@ export const getMessageStatus = ({
     return (
       <>
         {
-          <div className="sent-date">
+          <div className="sent-date" data-pw="chat-message-status" data-status="sent">
             {
               <>
                 <img src="/icons/chat/sent.svg" />

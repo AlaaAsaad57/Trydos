@@ -15,6 +15,8 @@
 import { expect, type Page } from "@playwright/test";
 
 import { LIVE_ORIGIN } from "../harness/env";
+import { openPage } from "../harness/pageOpen";
+import { waitForRenewalSettled } from "../harness/renewalGate";
 
 /** How long a product page gets to draw its title after the address changes.
  *
@@ -259,7 +261,10 @@ export const chooseRegionIfAsked = async (
  *  there is a real fragility in the app here and it deserves its own ticket —
  *  but it is not this suite's to expose by changing where it browses. */
 export const gotoHome = async (page: Page): Promise<void> => {
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+  // A signed-in page may be renewing its credential; leaving it now would
+  // spend the session (`harness/renewalGate.ts`). Instant on a fresh page.
+  await waitForRenewalSettled(page);
+  await openPage(page, "/");
   await chooseRegionIfAsked(page);
   await expect(nav.logo(page)).toBeVisible();
 };
@@ -380,6 +385,9 @@ export const gotoAbout = async (
 ): Promise<void> => {
   await seedLocale(page, options.country);
 
+  // A signed-in page may be renewing its credential; leaving it now would
+  // spend the session (`harness/renewalGate.ts`). Instant on a fresh page.
+  await waitForRenewalSettled(page);
   await page.goto("/about", { waitUntil: "domcontentloaded" });
   await chooseRegionIfAsked(page);
   await expect(nav.logo(page)).toBeVisible();

@@ -16,6 +16,8 @@
 //   2. the confirm window is on the page, and it is a child of document.body
 //   3. Cancel closes it and still deletes nothing
 //   4. only Confirm calls the chat backend and drops the row from the store
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import React from "react";
 
@@ -49,6 +51,10 @@ vi.mock("store/chat/actions", () => ({
   deleteChat: destroyChannelRequest,
   MuteChat: vi.fn(),
   PinnChat: vi.fn(),
+  MarkChannelUnread: vi.fn(),
+  ArchiveChannel: vi.fn(),
+  GetTaggedMessages: vi.fn(),
+  MESSAGE_TAGS: ["urgent", "important", "todo", "done"],
 }));
 
 // The media grid is stood in for, not exercised. components/Chat/components/
@@ -149,7 +155,7 @@ describe("ChatOptions — the swipe menu in the chat list", () => {
     await userEvent.click(deleteTile(container));
 
     expect(
-      screen.getByText("Are you sure you want to delete this chat?"),
+      screen.getByText("Are You Sure You Want To Delete This Chat?"),
       "no confirm question was shown after tapping Delete in the swipe menu",
     ).toBeInTheDocument();
   });
@@ -305,7 +311,7 @@ describe("ChatInfo — Delete Chat in the conversation info panel", () => {
     await userEvent.click(deleteRow(container));
 
     expect(
-      screen.getByText("Are you sure you want to delete this chat?"),
+      screen.getByText("Are You Sure You Want To Delete This Chat?"),
       "no confirm question was shown after tapping Delete Chat in the info panel",
     ).toBeInTheDocument();
   });
@@ -424,7 +430,7 @@ describe("ChatInfo — Delete Chat in the conversation info panel", () => {
 describe("ChatOptions — the other swipe tiles", () => {
   async function renderTiles(props: Record<string, any> = {}) {
     const closeRow = vi.fn();
-    const spies = { setUnreadChat: vi.fn(), pinChat: vi.fn(), muteChat: vi.fn() };
+    const spies = { watchChannel: vi.fn(), pinChat: vi.fn(), muteChat: vi.fn() };
     const rendered = await renderWithProviders(
       <ChatOptions
         id={DOOMED_CHAT}
@@ -441,10 +447,10 @@ describe("ChatOptions — the other swipe tiles", () => {
     return { ...rendered, closeRow, spies, tile };
   }
 
-  it("marks the chat unread, pins it and mutes it on the chat backend", async () => {
+  it("marks the chat unread, pins it, mutes it and archives it on the chat backend", async () => {
     const { tile, spies, closeRow } = await renderTiles();
     await userEvent.click(tile(1));
-    expect(spies.setUnreadChat, "the chat was not marked unread").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true });
+    expect(chatActions.MarkChannelUnread, "the unread mark was not sent to the chat backend").toHaveBeenCalledWith(DOOMED_CHAT);
     await userEvent.click(tile(2));
     expect(chatActions.PinnChat, "the pin was not sent to the chat backend").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true, member_id: 5 });
     expect(spies.pinChat, "the pin was not stored").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true, member_id: 5 });
@@ -452,7 +458,17 @@ describe("ChatOptions — the other swipe tiles", () => {
     expect(chatActions.MuteChat, "the mute was not sent to the chat backend").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true, member_id: 5 });
     expect(spies.muteChat, "the mute was not stored").toHaveBeenCalledWith({ id: DOOMED_CHAT, value: true, member_id: 5 });
     await userEvent.click(tile(5));
+    expect(chatActions.ArchiveChannel, "the archive was not sent to the chat backend").toHaveBeenCalledWith(DOOMED_CHAT, true);
     expect(closeRow, "each tile did not close the row").toHaveBeenCalledTimes(4);
+  });
+
+  it("marks an unread chat read, and unarchives an archived chat", async () => {
+    const { tile, spies } = await renderTiles({ unread: true, archived: true });
+    expect(screen.getByText("Unarchive"), "an archived chat did not offer Unarchive").toBeInTheDocument();
+    await userEvent.click(tile(1));
+    expect(spies.watchChannel, "Read did not mark the chat read the way opening it does").toHaveBeenCalledWith(DOOMED_CHAT);
+    await userEvent.click(tile(5));
+    expect(chatActions.ArchiveChannel, "Unarchive was not sent to the chat backend").toHaveBeenCalledWith(DOOMED_CHAT, false);
   });
 
   it("offers Read, Unpin and Unmute on a chat in those states", async () => {
@@ -462,10 +478,53 @@ describe("ChatOptions — the other swipe tiles", () => {
     expect(screen.getByText("Unmute"), "a muted chat did not offer Unmute").toBeInTheDocument();
   });
 
+  // Arabic mirrors the tiles, the same as the mobile app: Unread first from
+  // the right edge, Archive last on the left. The container's `dir` sets the
+  // order. The gaps use margin-inline-start, so they flip with it; a plain
+  // margin-left would stay on the left and break the mirror.
+  it("mirrors the tiles in Arabic: Unread / Pin on the right, Mute / Delete / Archive on the left", async () => {
+    const { container } = await renderTiles({ rtl: true });
+    expect(
+      container.querySelector(".chat-options-container")!.getAttribute("dir"),
+      "the tiles are not laid out right to left in Arabic, so Unread / Pin stay on the left",
+    ).toBe("rtl");
+  });
+
+  it("keeps the tiles left to right in English, even inside a right-to-left page", async () => {
+    const { container } = await renderTiles({ rtl: false });
+    expect(
+      container.querySelector(".chat-options-container")!.getAttribute("dir"),
+      "the English tiles do not say left to right, so a right-to-left page around them would flip them",
+    ).toBe("ltr");
+  });
+
+  // jsdom does not apply these stylesheets, so the check reads them.
+  for (const sheet of ["chatcomponent.css", "ChatWindow.css"]) {
+    it(`${sheet}: the gaps between the tiles follow the direction, so they flip in Arabic`, () => {
+      const css = readFileSync(path.join(process.cwd(), "public", "styles", sheet), "utf8")
+        .replace(/\/\*[\s\S]*?\*\//g, "");
+      const rule = (selector: string) => {
+        const m = css.match(new RegExp(`(^|\\})\\s*${selector.replace(".", "\\.")}\\s*\\{([^}]*)\\}`));
+        expect(m, `${sheet} has no "${selector}" rule`).not.toBeNull();
+        return m![2];
+      };
+      for (const selector of [".chat-option", ".chat-3"]) {
+        expect(
+          rule(selector),
+          `${sheet} "${selector}" uses margin-left, which stays on the left in Arabic and breaks the mirrored gaps`,
+        ).not.toMatch(/margin-left/);
+        expect(
+          rule(selector),
+          `${sheet} "${selector}" has no margin-inline-start, so its gap is lost`,
+        ).toMatch(/margin-inline-start/);
+      }
+    });
+  }
+
   it("works without a row to close", async () => {
     const rendered = await renderWithProviders(
       <ChatOptions id={1} unread={false} pinned={false} muted={false} member_id={5} closeRow={undefined as any} />,
-      { store: { setUnreadChat: vi.fn(), pinChat: vi.fn(), muteChat: vi.fn() } },
+      { store: { watchChannel: vi.fn(), pinChat: vi.fn(), muteChat: vi.fn() } },
     );
     await userEvent.click(rendered.container.querySelector(".chat-option.chat-5") as HTMLElement);
     await userEvent.click(rendered.container.querySelector(".chat-option.chat-1") as HTMLElement);
@@ -517,7 +576,7 @@ describe("ChatInfo — the rest of the info panel", () => {
     expect(document.querySelector(".text-avatar")?.textContent, "the initials were not shown").toBe("OP");
     await userEvent.click(screen.getByText("p-0"));
     expect(writeText, "the phone was not copied").toHaveBeenCalledWith("p-0");
-    expect(info.showSuccess, "the copy was not confirmed").toHaveBeenCalledWith("The number was copied successfully");
+    expect(info.showSuccess, "the copy was not confirmed").toHaveBeenCalledWith("The Number Was Copied Successfully");
   });
 
   it("says when the phone could not be copied", async () => {
@@ -527,7 +586,7 @@ describe("ChatInfo — the rest of the info panel", () => {
     });
     await renderPanel();
     await userEvent.click(screen.getByText("p-0"));
-    expect(info.showError, "a failed copy was not shown").toHaveBeenCalledWith("Number copy failed");
+    expect(info.showError, "a failed copy was not shown").toHaveBeenCalledWith("Number Copy Failed");
   });
 
   it("falls back to the username, and shows a photo when there is one", async () => {
@@ -561,6 +620,14 @@ describe("ChatInfo — the rest of the info panel", () => {
     const counts = Array.from(document.querySelectorAll(".chat-user-files-info-content-item")).map((el) => el.textContent?.trim());
     expect(counts, "the media counts were not shown").toEqual(["3", "4", "5"]);
     expect(screen.getByAltText("Image"), "the image strip was not shown").toBeInTheDocument();
+    expect(
+      screen.getByAltText("Image").closest(".horizntal-scroll"),
+      "the image strip is not in the shared horizontal scroll row, so a mouse cannot drag it",
+    ).not.toBeNull();
+    expect(
+      screen.queryByText("Save To Gallery"),
+      "the 'Save To Gallery' row is back, but a web page cannot save to the phone gallery",
+    ).toBeNull();
     await userEvent.click(screen.getByText("Media & Files"));
     expect(document.querySelector(".chat-user-files-container"), "the media view did not replace the panel").toBeNull();
   });

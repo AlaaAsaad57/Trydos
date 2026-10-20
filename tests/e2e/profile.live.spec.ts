@@ -98,7 +98,7 @@ import {
   signOutAndSettle,
   signedInSession,
 } from "./actions/auth";
-import { gotoAbout } from "./actions/nav";
+import { CASH_ON_DELIVERY_COUNTRY, gotoAbout, localeParts } from "./actions/nav";
 import {
   alternativePhoneIs,
   attemptSave,
@@ -144,6 +144,7 @@ import {
   openSignedInSession,
   saveSession,
 } from "./harness/liveSession";
+import { throughProxyInPage } from "./harness/orderCleanup";
 import {
   PROFILE_LEGS,
   recordProfileWrites,
@@ -217,6 +218,92 @@ const PROBE_PICTURE = {
  *  something that reads as "a test stopped here". */
 const PROBE_ADDRESS_TITLE = "Trydos E2E Probe";
 const PROBE_ADDRESS_DETAIL = "Trydos E2E probe address, please delete";
+
+/** One saved address, as the core backend lists it. */
+type SavedAddress = { id: number; is_default: number };
+
+/** The account's default address, and the country it is listed under.
+ *
+ *  **Adding an address takes the default away from the one that had it.** The
+ *  core backend keeps one default for the whole account and gives it to a new
+ *  address, even one in another country. Deleting that address gives it back
+ *  to nobody. So PROF-07 used to leave the shared account with no default at
+ *  all, and ORD-01 failed on it later (run 36545622160). BUY-01 hid this,
+ *  because its own new address became the default.
+ *
+ *  The backend lists addresses per country (the `country` header), and the
+ *  default is not always in the country this page serves — on staging it sits
+ *  in `sy` while this file runs in `iq`. So both are asked. A refused read is
+ *  returned, not skipped: a case that cannot see the default cannot promise to
+ *  put it back. */
+const readDefaultAddress = async (
+  page: Page,
+): Promise<{
+  found: { id: number; country: string } | null;
+  refused: string | null;
+}> => {
+  const { country: here, language } = localeParts(page);
+  for (const country of [...new Set([here, CASH_ON_DELIVERY_COUNTRY])]) {
+    const answer = await throughProxyInPage(page, {
+      target: "/customer/address/list",
+      method: "GET",
+      country,
+      language: language || "en",
+    });
+    if (answer.status !== 200) {
+      return {
+        found: null,
+        refused: `the ${answer.backend || "core"} backend answered /customer/address/list in "${country}" with ${answer.status}`,
+      };
+    }
+    const list =
+      (answer.json as { data?: SavedAddress[] } | null)?.data ?? [];
+    const current = list.find((entry) => entry.is_default === 1);
+    if (current) return { found: { id: current.id, country }, refused: null };
+  }
+  return { found: null, refused: null };
+};
+
+/** Make `address` the account's default again, and say whether the core
+ *  backend now holds it. Asks nothing when it is already the default. */
+const putDefaultBack = async (
+  page: Page,
+  address: { id: number; country: string },
+): Promise<{ restored: boolean; said: string }> => {
+  const { language } = localeParts(page);
+  const call = {
+    country: address.country,
+    language: language || "en",
+  };
+  const isDefault = async (): Promise<{ yes: boolean; status: number }> => {
+    const answer = await throughProxyInPage(page, {
+      ...call,
+      target: "/customer/address/list",
+      method: "GET",
+    });
+    const list =
+      (answer.json as { data?: SavedAddress[] } | null)?.data ?? [];
+    return {
+      yes: list.find((entry) => entry.id === address.id)?.is_default === 1,
+      status: answer.status,
+    };
+  };
+
+  if ((await isDefault()).yes) {
+    return { restored: true, said: "it was still the default" };
+  }
+  const setDefault = await throughProxyInPage(page, {
+    ...call,
+    target: "/customer/address/set-default",
+    method: "POST",
+    body: { address_id: address.id },
+  });
+  const after = await isDefault();
+  return {
+    restored: after.yes,
+    said: `set-default answered ${setDefault.status}, and the list read after it answered ${after.status}`,
+  };
+};
 
 /** How long a leg of the save may take before it counts as never sent.
  *
@@ -871,10 +958,20 @@ test("PROF-07 an address the shopper adds is listed, and can be removed", async 
   const context = await openSignedInSession(browser, SIGNED_IN_STATE, "PROF-01");
   const page = await context.newPage();
   let created = false;
+  let previousDefault: { id: number; country: string } | null = null;
 
   try {
     await gotoAbout(page);
     await gotoAddresses(page);
+
+    // Before anything is added: the address to hand the default back to.
+    const beforeDefault = await readDefaultAddress(page);
+    expect(
+      beforeDefault.refused,
+      `reading the account's addresses before adding one was refused, so PROF-07 could not put the default address back afterwards — nothing was added. ${beforeDefault.refused}`,
+    ).toBeNull();
+    previousDefault = beforeDefault.found;
+
     const before = await addressCount(page);
 
     const offered = await addAddress(page, {
@@ -903,6 +1000,19 @@ test("PROF-07 an address the shopper adds is listed, and can be removed", async 
     ).toBe(true);
   } finally {
     if (created) {
+      // The default first, and only then the probe: deleting the probe while it
+      // is still the default leaves the account with no default at all.
+      if (previousDefault) {
+        const putBack = await putDefaultBack(page, previousDefault).catch(
+          (error) => ({ restored: false, said: `the call threw: ${error}` }),
+        );
+        expect
+          .soft(
+            putBack.restored,
+            `the address that was the account's default before PROF-07 (id ${previousDefault.id}, listed in "${previousDefault.country}") is not the default again, so the shared account is left changed and ORD-01 will stop on it — ${putBack.said}`,
+          )
+          .toBe(true);
+      }
       const gone = await removeAddress(page, PROBE_ADDRESS_DETAIL).catch(
         () => false,
       );

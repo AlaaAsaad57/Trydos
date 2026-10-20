@@ -5,7 +5,7 @@ import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 import CloseIcon from "components/Home/Stories/CloseIcon";
 import { useAppStore } from "store";
-import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
+import { DisableScroll, EnableScroll, GetImageUrl, whenUserIdReady } from "utils/tinyUtils";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import auth from "services/auth";
@@ -85,42 +85,54 @@ function ProductDetailsSlider({ images, productGA, resetLoader = true }: any) {
     }
   }, [emblaApi, imageShow]);
   useEffect(() => {
-    GAevent({
-      action: GA_EVENT_NAMES.VIEW_PRODUCT_EVENT,
-      params: {
-        user_id_custom: auth.UserID(),
+    if (!productGA) return;
+    let engagementTimeoutId: NodeJS.Timeout | null = null;
 
-        ...productGA,
-      },
-    });
-    const handleTwentySecondAction = () => {
-      // Add your 20-second action here
-
-      // Example actions you might want to perform:
-      // - Send analytics data
-      // - Show a notification
-      // - Trigger some business logic
-      // - Update component state
-
-      // Example: Track user engagement after 20 seconds
-      if (!productGA) return;
+    const launchEvents = (userId: any) => {
+      const activeUserId =
+        userId ??
+        auth.UserID() ??
+        useAppStore.getState().userProfile?.id ??
+        useAppStore.getState().user?.id;
 
       GAevent({
-        action: GA_EVENT_NAMES.VIEW_ITEM_PRODUCT,
+        action: GA_EVENT_NAMES.VIEW_PRODUCT_EVENT,
         params: {
-          user_id_custom: auth.UserID(),
-          engagement_time: 20,
+          user_id_custom: activeUserId,
           ...productGA,
         },
       });
+
+      const handleTwentySecondAction = () => {
+        if (!productGA) return;
+
+        GAevent({
+          action: GA_EVENT_NAMES.VIEW_ITEM_PRODUCT,
+          params: {
+            user_id_custom:
+              auth.UserID() ??
+              useAppStore.getState().userProfile?.id ??
+              useAppStore.getState().user?.id ??
+              activeUserId,
+            engagement_time: 20,
+            ...productGA,
+          },
+        });
+      };
+
+      // Set up the 20-second timeout
+      engagementTimeoutId = setTimeout(handleTwentySecondAction, 20000);
     };
 
-    // Set up the 20-second timeout
-    const timeoutId = setTimeout(handleTwentySecondAction, 20000);
+    const cleanup = whenUserIdReady(launchEvents, () => auth.UserID());
+
     return () => {
-      clearTimeout(timeoutId);
+      cleanup();
+      if (engagementTimeoutId) {
+        clearTimeout(engagementTimeoutId);
+      }
     };
-  }, []);
+  }, [productGA?.item_id]);
 
   return (
     <>

@@ -12,14 +12,14 @@ const { order } = vi.hoisted(() => ({ order: { CancelReturn: vi.fn() } }));
 vi.mock("services/order", () => ({ default: order }));
 vi.mock("components/Login/Timer", () => ({ default: () => <span data-testid="timer" /> }));
 
-async function renderInfo(status: string | undefined, store: any = {}) {
+async function renderInfo(status: string | undefined, store: any = {}, price: number | string = "20 $") {
   const callback = vi.fn();
   await renderWithProviders(
     <OrderRetailsReturnInfo
       product={{ return_status: status ? { value: status } : undefined }}
       return_request_id={77}
       callback={callback}
-      price="20 $"
+      price={price}
     />,
     { store },
   );
@@ -41,6 +41,13 @@ describe("OrderRetailsReturnInfo", () => {
     );
     expect(screen.getAllByTestId("timer").length === 1, "the current step has no timer, or more than one step has").toBe(true);
     expect(screen.getByText("Product Has Been Returned Successfully"), "the last step is missing").toBeInTheDocument();
+  });
+
+  it("shows Back To Your Wallet with price when returned to location", async () => {
+    await renderInfo("returned_to_location", { currency: { symbol: "USD" } }, 140);
+    expect(screen.getByText("Product Has Been Returned Successfully")).toBeInTheDocument();
+    expect(screen.getByText("Back To Your Wallet")).toBeInTheDocument();
+    expect(screen.getByText("140 usd")).toBeInTheDocument();
   });
 
   it.each([

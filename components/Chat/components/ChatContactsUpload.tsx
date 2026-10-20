@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import { getContacts } from "store/chat/actions";
 import { useAppStore } from "store";
@@ -6,54 +6,98 @@ import { fetchData } from "utils/fetchData";
 import { pollinateInput, sanitizePhone } from "@/utils/tinyUtils";
 import { REQUESTS_DATA } from "utils/Requests";
 import { allCountries } from "country-telephone-data";
-import { showErrorNotification } from "store/notifications/reducer";
+import {
+  showErrorNotification,
+  showSuccessNotification,
+} from "store/notifications/reducer";
 import { getLocalizedCountryName } from "utils/countryData";
+import {
+  canonicalPhone,
+  phoneRegion,
+  phoneWithDialCode,
+  type PhoneRegion,
+} from "components/Chat/contactPhone";
+import { drawnContactFor } from "components/Chat/chatSearch";
+import { contactRowName } from "components/Chat/chatsFunctions";
 // --- Utilities ---
 
 /**
- * Normalizes phone numbers for comparison.
- * Slices the last 10 digits to catch matches between international and local formats.
+ * Merges the saved contacts with the ones picked from the phone, one entry
+ * per number. Numbers are compared in their full international form, so the
+ * phone book's "0937288307" is the saved "963937288307".
+ *
+ * - A saved contact keeps its saved number, so the backend sees the same record.
+ * - A saved contact keeps its saved name: the import never renames it. A
+ *   picked name fills a saved contact only when it has no name.
+ * - Among picks for one new number, the longest name wins.
+ * - A new number is sent in its full form, and every number of a picked
+ *   contact is imported, not only the first.
+ *
+ * `alreadySaved` holds the saved number of every pick that was saved before.
  */
-const normalizePhoneStrict = (phone: string): string => {
-  if (!phone) return "";
-  const cleaned = phone.replace(/\D/g, "");
-  return cleaned.length >= 10 ? cleaned.slice(-10) : cleaned;
-};
+const mergeContacts = (saved: any[], picked: any[], region: PhoneRegion) => {
+  const byPhone = new Map<string, { name: string; mobile_phone: string }>();
+  // Numbers whose name came from the phone book, not from a saved contact.
+  const namedByPick = new Set<string>();
+  const savedKeys = new Set<string>();
+  const alreadySaved = new Set<string>();
 
-/**
- * Deduplicates a list of contacts.
- * If a number repeats, it keeps the version with the longest name.
- */
-const deduplicateContacts = (contacts: any[]) => {
-  const uniqueMap = new Map();
-
-  contacts.forEach((c) => {
-    // Handle both navigator.contacts format (tel array) and store format (mobile_phone)
-    const rawPhone =
-      c.mobile_phone || (Array.isArray(c.tel) ? c.tel[0] : c.tel) || "";
-    const normalized = normalizePhoneStrict(rawPhone);
-
-    if (!normalized) return;
-
-    const existing = uniqueMap.get(normalized);
-    const currentName = (Array.isArray(c.name) ? c.name[0] : c.name) || "";
-
-    // Keep the entry if it's new or if the new name is more descriptive (longer)
-    if (!existing || currentName.trim().length > existing.name.length) {
-      uniqueMap.set(normalized, {
-        name: currentName.trim(),
-        mobile_phone: rawPhone.replace(/\s+/g, ""), // Cleaned original for storage
-      });
-    }
+  saved.forEach((c) => {
+    const key = canonicalPhone(c.mobile_phone, region);
+    if (!key || byPhone.has(key)) return;
+    savedKeys.add(key);
+    byPhone.set(key, {
+      name: String(c.name ?? "").trim(),
+      mobile_phone: String(c.mobile_phone).replace(/\s+/g, ""),
+    });
   });
 
-  return Array.from(uniqueMap.values());
+  picked.forEach((c) => {
+    const name = String((Array.isArray(c.name) ? c.name[0] : c.name) ?? "").trim();
+    const tels = Array.isArray(c.tel) ? c.tel : [c.tel];
+    tels.forEach((tel: string) => {
+      const key = canonicalPhone(tel, region);
+      if (!key) return;
+      const entry = byPhone.get(key);
+      if (entry && savedKeys.has(key)) alreadySaved.add(entry.mobile_phone);
+      if (!entry) {
+        byPhone.set(key, { name, mobile_phone: key });
+        namedByPick.add(key);
+      } else if (
+        !entry.name ||
+        (namedByPick.has(key) && name.length > entry.name.length)
+      ) {
+        entry.name = name;
+        namedByPick.add(key);
+      }
+    });
+  });
+
+  return {
+    contacts: Array.from(byPhone.values()),
+    alreadySaved: Array.from(alreadySaved),
+  };
 };
 
 // --- Component ---
 
-function ChatContactsUpload() {
-  const { contacts: ContactsData } = useAppStore();
+function ChatContactsUpload({
+  onAlreadySaved,
+  onDuplicate,
+}: {
+  // Gets the saved numbers of the picked contacts that were saved before.
+  onAlreadySaved?: (phones: string[]) => void;
+  // Gets the list row that already has the typed number, or null.
+  onDuplicate?: (row: any | null) => void;
+}) {
+  const {
+    contacts: ContactsData,
+    data: chats,
+    userChat,
+    user,
+    country,
+  } = useAppStore();
+  const region = phoneRegion(userChat?.mobile_phone ?? user?.phone, country);
   const [isUploading, setIsUploading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [error, setError] = useState<string>("");
@@ -63,22 +107,37 @@ function ChatContactsUpload() {
   const [dialCode, setDialCode] = useState("+963"); // Default to Syria or your preference
   const [localPhone, setLocalPhone] = useState("");
 
+  // The saved contact for each number. The record, not its name: a saved
+  // contact with no name is still a saved contact.
   const existingNormalizedMap = useMemo(() => {
-    const map = new Map<string, string>();
+    const map = new Map<string, any>();
     ContactsData.forEach((c) => {
-      const norm = normalizePhoneStrict(c.mobile_phone);
-      if (norm) map.set(norm, c.contact_user?.name || c.name);
+      const norm = canonicalPhone(c.mobile_phone, region);
+      if (norm) map.set(norm, c);
     });
     return map;
-  }, [ContactsData]);
+  }, [ContactsData, region]);
 
   // Combine for validation
-  const fullPhoneString = `${dialCode}${localPhone}`;
-  const normalizedNewPhone = normalizePhoneStrict(fullPhoneString);
-  const conflictingName = existingNormalizedMap.get(normalizedNewPhone);
+  const fullPhoneString = phoneWithDialCode(dialCode, localPhone);
+  const savedContact = existingNormalizedMap.get(fullPhoneString);
+  // The row the contact list draws for that person, and the name it shows.
+  const conflictingRow = savedContact
+    ? (drawnContactFor(ContactsData, savedContact) ?? savedContact)
+    : null;
+  const conflictingName = conflictingRow
+    ? contactRowName(conflictingRow, chats)
+    : "";
+
+  // Tell the list which row to mark: only when the matched row changes or the
+  // form opens or closes, not on every keystroke. `onDuplicate` is left out of
+  // the deps on purpose: the parent passes a new function on every render.
+  useEffect(() => {
+    onDuplicate?.(showAddForm ? conflictingRow : null);
+  }, [conflictingRow, showAddForm]);
 
   const handleAddContact = async () => {
-    if (!manualName || !localPhone || conflictingName) return;
+    if (!manualName || !localPhone || conflictingRow) return;
 
     try {
       setError("");
@@ -91,7 +150,7 @@ function ChatContactsUpload() {
         method: "POST",
         body: JSON.stringify({
           name: manualName.trim(),
-          mobile_phone: fullPhoneString.replace(/\s+/g, ""), // Cleaned version
+          mobile_phone: fullPhoneString,
         }),
         reqTitle: { reqTitle: "ADD_CONTACTS", code: 999 },
       });
@@ -107,7 +166,7 @@ function ChatContactsUpload() {
         error: err,
         scenario: "add contact - chat widget",
         name: manualName.trim(),
-        mobile_phone: fullPhoneString.replace(/\s+/g, ""),
+        mobile_phone: fullPhoneString,
       });
       setError("Failed to add contact");
       showErrorNotification(translateFunction("Failed to add contact"));
@@ -156,11 +215,21 @@ function ChatContactsUpload() {
 
       if (!rawContacts || !rawContacts.length) return;
 
-      // Logic: Merge ALL current store data with NEWly selected contacts, then deduplicate
-      const combinedList = [...ContactsData, ...rawContacts];
-      const finalPayload = deduplicateContacts(combinedList);
+      // Logic: Merge ALL current store data with NEWly selected contacts, one entry per number
+      const { contacts: finalPayload, alreadySaved } = mergeContacts(
+        ContactsData,
+        rawContacts,
+        region,
+      );
 
       await uploadToServer(finalPayload);
+
+      if (alreadySaved.length) {
+        showSuccessNotification(
+          translateFunction("Some contacts already exist"),
+        );
+        onAlreadySaved?.(alreadySaved);
+      }
     } catch (err) {
       LogError({
         error: err,
@@ -236,11 +305,11 @@ function ChatContactsUpload() {
                 phoneNumber={localPhone}
                 onDialChange={setDialCode}
                 onPhoneChange={(val) => setLocalPhone(sanitizePhone(val))}
-                hasConflict={!!conflictingName}
+                hasConflict={!!conflictingRow}
               />
 
-              {conflictingName && (
-                <div className="flex items-center gap-1 mt-1 text-orange-600">
+              {conflictingRow && (
+                <div className="flex items-center gap-1 mt-1 text-red-600">
                   <p className="text-xs">
                     {translateFunction("Already saved as")} <strong>{conflictingName}</strong>
                   </p>
@@ -252,7 +321,7 @@ function ChatContactsUpload() {
               onClick={handleAddContact}
               disabled={
                 isUploading ||
-                !!conflictingName ||
+                !!conflictingRow ||
                 !manualName ||
                 !localPhone ||
                 localPhone.length < 6
@@ -361,7 +430,7 @@ const PhoneInput = ({
         onChange={(e) => onPhoneChange(e.target.value)}
         className={`flex-1 p-2 border rounded-md outline-hidden text-[#1d1d1d] transition-colors ${
           hasConflict
-            ? "border-orange-400 bg-orange-50"
+            ? "border-red-400 bg-red-50"
             : "border-gray-300 focus:ring-2 focus:ring-blue-200"
         }`}
         placeholder="123 4567"

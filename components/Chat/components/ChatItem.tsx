@@ -9,9 +9,14 @@ import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getUserChat } from "utils/functions";
 
-/** How far the row slides to show the options that sit behind it. */
-const LEFT_OPEN = 250; // shows mute / delete / archive
-const RIGHT_OPEN = 180; // shows unread / pin
+/**
+ * How far the row slides to show the options that sit behind it. In English
+ * unread / pin sit on the left, so a swipe right shows them. In Arabic and
+ * Kurdish the options are mirrored, so a swipe left shows them, the same as
+ * the mobile app.
+ */
+const ACTIONS_OPEN = 250; // shows mute / delete / archive
+const READ_PIN_OPEN = 180; // shows unread / pin
 /** Move this far before we decide the gesture is a swipe and not a scroll. */
 const AXIS_LOCK = 8;
 /** How much of the panel you must uncover for the row to stay open. */
@@ -47,9 +52,29 @@ function ChatItem({
   muted,
   chat_members,
   disabledOptions = false,
+  archived = false,
+}: {
+  isActive: boolean;
+  unread: boolean;
+  handleClickChat: () => void;
+  SenderName: string;
+  photo: string | null;
+  lastMessage: any;
+  id: string | number;
+  status: any;
+  newMessage: number;
+  pinned: boolean;
+  muted: boolean;
+  chat_members: any[];
+  disabledOptions?: boolean;
+  archived?: boolean;
+  [key: string]: any;
 }) {
   const { setMain, language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
+  /** How far the row may slide left, and right. */
+  const LEFT_OPEN = isRtl ? READ_PIN_OPEN : ACTIONS_OPEN;
+  const RIGHT_OPEN = isRtl ? ACTIONS_OPEN : READ_PIN_OPEN;
 
   const rowRef = useRef<HTMLDivElement>(null);
   const rowKey = useId();
@@ -204,6 +229,7 @@ function ChatItem({
         ${isRtl ? "p-[10px_20px_10px_10px] flex-row-reverse" : "flex-row"}
         `}
         data-pw="ChatItem"
+        data-chat-id={id}
         style={{ touchAction: "pan-y", transform: `translateX(${offset}px)` }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -267,7 +293,9 @@ function ChatItem({
               src="/icons/chat/messageIcon.svg"
               className="w-[15px] h-[15px]"
             />
-            <div className="new-mes">{newMessage}</div>
+            <div className="new-mes" data-pw="chat-row-unread">
+              {newMessage}
+            </div>
           </div>
         )}
         {/*
@@ -285,8 +313,8 @@ function ChatItem({
               right: isRtl ? "initial" : "30px",
             }}
           >
-            {muted && <img className="w-[20px] h-[20px] bg-transparent" src="/icons/chat/MutedChat.svg" alt="muted" />}
-            {pinned && <img className="w-[20px] h-[20px] bg-transparent" src="/icons/chat/PinnedChat.svg" alt="pinned" />}
+            {muted && <img className="w-[20px] h-[20px] bg-transparent" src="/icons/chat/MutedChat.svg" alt="muted" data-pw="chat-row-muted" />}
+            {pinned && <img className="w-[20px] h-[20px] bg-transparent" src="/icons/chat/PinnedChat.svg" alt="pinned" data-pw="chat-row-pinned" />}
           </div>
         )}
       </div>
@@ -295,6 +323,8 @@ function ChatItem({
           unread={unread}
           muted={muted}
           pinned={pinned}
+          archived={archived}
+          rtl={isRtl}
           id={id}
           closeRow={() => settle(0)}
           member_id={

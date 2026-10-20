@@ -729,3 +729,65 @@ export const isGuestName = (name?: string): boolean => {
   return lower === "guest" || lower === "verified_guest" || lower === "verfied_guest";
 };
 
+/**
+ * Waits until a non-null user id is available, then executes the callback.
+ * If user id is already present, the callback runs immediately and synchronously.
+ * If not, it subscribes to store updates and fires as soon as the user id is set
+ * (e.g. when CheckLogin finishes).
+ * A fallback timer ensures the callback is never skipped/ignored if resolution stalls.
+ */
+export const whenUserIdReady = (
+  callback: (userId: number | string | undefined) => void,
+  getCurrentId?: () => any,
+  timeoutMs = 3000,
+): (() => void) => {
+  const getId = () => {
+    if (getCurrentId) {
+      try {
+        const id = getCurrentId();
+        if (id !== null && id !== undefined) return id;
+      } catch {}
+    }
+    const state = useAppStore.getState();
+    return state.userProfile?.id || state.user?.id;
+  };
+
+  const initialId = getId();
+  if (initialId !== null && initialId !== undefined) {
+    callback(initialId);
+    return () => {};
+  }
+
+  let finished = false;
+  let timer: NodeJS.Timeout | null = null;
+  let unsub: (() => void) | null = null;
+
+  const done = (id: any) => {
+    if (finished) return;
+    finished = true;
+    if (timer) clearTimeout(timer);
+    if (unsub) {
+      unsub();
+      unsub = null;
+    }
+    callback(id);
+  };
+
+  unsub = useAppStore.subscribe((state) => {
+    const id = getId() || state.userProfile?.id || state.user?.id;
+    if (id !== null && id !== undefined) {
+      done(id);
+    }
+  });
+
+  timer = setTimeout(() => {
+    done(getId());
+  }, timeoutMs);
+
+  return () => {
+    finished = true;
+    if (timer) clearTimeout(timer);
+    if (unsub) unsub();
+  };
+};
+

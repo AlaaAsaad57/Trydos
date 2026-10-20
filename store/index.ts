@@ -20,7 +20,7 @@ const withDevtools =
 /** Settled GET /shop/info outcome for one shop. See the field notes below. */
 export type DashboardShopInfo = {
   sellerId: string;
-  currency: { code: string; name: string };
+  currency: { code: string; name: string; decimal_digits?: number };
   /** false ONLY when the backend explicitly says so; absent field => true. */
   newProductsApproval: boolean;
   /** false when the request did not succeed — the standing is unknown. */

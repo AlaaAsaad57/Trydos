@@ -310,6 +310,7 @@ function ConfirmAddressModal({ close, confirm, confirmationData }) {
           {translateFunction("Terms Of Change Address")}
         </span>
         <p
+          data-pw="change-address-agree"
           className="text-[14px] text-white regular mt-[15px] flex-row  gap-[4px]"
           style={{
             direction: isRtl ? "rtl" : "ltr",
@@ -329,6 +330,7 @@ function ConfirmAddressModal({ close, confirm, confirmationData }) {
           </a>
         </p>
         <div
+          data-pw="change-address-confirm"
           className={`${
             !active ? "bg-[#D3D3D3] text-white" : "bg-[#3066CC] text-white"
           } cursor-pointer mt-[10px] w-full h-[50px] rounded-[15px]  text-[16px] bold flex items-center justify-center `}

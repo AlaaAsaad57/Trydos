@@ -14,7 +14,8 @@ import { Monogram, DashButton, EmptyState } from "components/SellerDashboard/ui"
 function Page() {
   const [, setActiveTab] = useState(null);
   const { lang } = useParams();
-  let [, language] = lang?.toString()?.split("-");
+  const langStr = lang?.toString() || "";
+  const language = langStr.includes("-") ? langStr.split("-")[1] : langStr;
   const isRtl = language === "ar" || language === "ku";
   const { setLoading, loading, shopes, setShopes } = useSellerProfile(); // Use the context
 
@@ -53,7 +54,9 @@ function Page() {
         String(leaveConfirmShopId),
       );
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to leave shop");
+        throw new Error(
+          res?.message || translateFunction("Failed to leave shop", language),
+        );
       }
       // remove from local list
       setShopes((prev: any[]) =>
@@ -88,9 +91,10 @@ function Page() {
     shop.permissions.includes("SUPER_ADMIN");
 
   return (
-    <div className="w-full max-w-[1366px] mx-auto setting-screen">
+    <div className="w-full max-w-[1366px] mx-auto setting-screen" dir={isRtl ? "rtl" : "ltr"}>
       <div className="mb-3">
         <BackBar
+          key="seller-profile-select-shop-back"
           isRtl={isRtl}
           local={lang?.toString()}
           name={translateFunction("Select Shop", language)}
@@ -163,7 +167,11 @@ function Page() {
               >
                 {/* Identity row */}
                 <div className="flex items-center gap-3.5">
-                  <Monogram name={shop.shop_name} size={52} />
+                  <Monogram
+                    name={shop.shop_name}
+                    src={shop.shop_image}
+                    size={52}
+                  />
                   <div className="min-w-0 flex-1">
                     <h3
                       data-pw="seller-shop-card-name"

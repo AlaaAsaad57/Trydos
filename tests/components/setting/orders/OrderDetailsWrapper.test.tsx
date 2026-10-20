@@ -211,7 +211,7 @@ describe("an order group that cannot be loaded", () => {
       "a failed order request did not show the not-found state",
     ).toBeInTheDocument();
 
-    await userEvent.setup().click(screen.getByText("Go to My Orders"));
+    await userEvent.setup().click(screen.getByText("Go To My Orders"));
     expect(
       routerSpies.replace,
       "the not-found button did not send the shopper to the orders list",
@@ -421,7 +421,7 @@ describe("the expanded view", () => {
       "a line with quantity 0 is not marked as cancelled",
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Back to your wallet"),
+      screen.getByText("Back To Your Wallet"),
       "a cancelled line on a paid order does not say the money goes back to the wallet",
     ).toBeInTheDocument();
     expect(
@@ -592,6 +592,31 @@ describe("the expanded view", () => {
       screen.queryByText("Cancel Return Request"),
       "cancel was offered although the pack may not edit its return",
     ).not.toBeInTheDocument();
+  });
+
+  it("shows Back To Your Wallet beside the price when product is returned to location", async () => {
+    const returned = buildOrderLine({ id: 1, qty: 1 });
+    orderService.getOrderDetails.mockResolvedValue([
+      buildOrder({
+        return_request_id: 50,
+        order_has_return_request: true,
+        details: [returned],
+      } as any),
+    ]);
+    orderService.GetReturnDetailsForOrderGroup.mockResolvedValue({
+      return_requests_data: [
+        returnEntry({
+          order_id: 1,
+          status: { name: "returned_to_location", value: "returned_to_location" },
+          order_details: [{ detail_id: 1, already_return: true, return_request_id: 99 }],
+        }),
+      ],
+    });
+    await renderPage({ local: "gb-en" });
+    await screen.findByTestId("order-items-list");
+    await userEvent.setup().click(screen.getByText("expand"));
+
+    expect(screen.getByText("Back To Your Wallet")).toBeInTheDocument();
   });
 });
 

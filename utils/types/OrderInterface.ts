@@ -1,3 +1,5 @@
+import { OrderCurrency } from "utils/orderCurrency";
+
 export interface OrderInterface {
   id: number;
   customer_id: number;
@@ -15,6 +17,9 @@ export interface OrderInterface {
     label: string;
   };
   transaction_ref: string;
+  // The currency the shopper paid with, saved at checkout. All amounts on the
+  // order stay in USD; see utils/orderCurrency.ts for how to show them.
+  currency?: OrderCurrency | null;
   order_amount: number;
   partial_payment_by_wallet: number;
   discount_amount: number;

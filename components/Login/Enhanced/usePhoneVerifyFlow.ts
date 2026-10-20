@@ -288,19 +288,37 @@ export function usePhoneVerifyFlow({
             // anywhere to flag it.
             setTimeout(() => onSuccess(result), 600);
         } catch (e) {
-            // Every failed check counts the same — a refused code, a network
-            // fault and a server fault are not told apart. That is a decision,
-            // not an oversight; its cost is written up in the ticket's EC-9.
-            const next = wrongCodes + 1;
-            setWrongCodes(next);
             setLoading('');
-            setIsValidPin('notvalid');
-            setError(attemptMessage(next));
-            LogError({ error: e, scenario: `Error verifying OTP in ${source}` });
-            setTimeout(() => {
+            const isUserNotFound = e instanceof Error && e.message === 'user not found';
+            const isWrongCode =
+                !((e as any)?.isServerError) &&
+                (e instanceof Error &&
+                    (e.message === 'Wrong Code' || e.message.toLowerCase().includes('wrong code')));
+
+            if (isUserNotFound) {
+                // Not a wrong code, so no try is spent. Say why the check
+                // failed: these hosts have no "not registered" screen of their
+                // own, so without this line the boxes just empty.
                 setIsValidPin('');
                 setPin('');
-            }, 1500);
+                setError(translate('Sorry, This Number Is Not Registered With Us !'));
+            } else if (isWrongCode) {
+                const next = wrongCodes + 1;
+                setWrongCodes(next);
+                setIsValidPin('notvalid');
+                setError(attemptMessage(next));
+                setTimeout(() => {
+                    setIsValidPin('');
+                    setPin('');
+                }, 1500);
+            } else {
+                // Server / network / timeout error:
+                // Clear the OTP immediately, do not burn attempts, and show the failure message.
+                setIsValidPin('');
+                setPin('');
+                setError(errorText(e));
+            }
+            LogError({ error: e, scenario: `Error verifying OTP in ${source}` });
         } finally {
             // Released once the request settled: a retry, or a resend that brings
             // the user back here, must not stay blocked.

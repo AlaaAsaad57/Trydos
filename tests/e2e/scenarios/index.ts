@@ -106,6 +106,14 @@ export const ENDPOINTS = {
    *  never matches a card or a crypto checkout. */
   checkoutCashOnDelivery: "/customer/order/checkout/cash_on_delivery",
 
+  /** Applying a coupon on the checkout screen. A GET that carries the code in
+   *  its query, `/coupon/apply?code=…`. */
+  applyCoupon: "/coupon/apply",
+
+  /** The shops this account works in, each with its permissions. The seller
+   *  dashboard gates every section on this one answer. */
+  sellerPermissions: "/shop/auth/permissions",
+
   /** The order screens. `ordersByGroup` is what the order's own page reads, and
    *  it is the only place a **pack** id appears — the cancel call takes that,
    *  not the group id every screen shows. */
@@ -436,6 +444,10 @@ const emptyBag = {
   }),
 };
 
+/** The discount every faked coupon answers with. Small and odd, so it cannot
+ *  be mistaken for a real one. */
+export const FAKE_COUPON_DISCOUNT = 7;
+
 /** The order number every faked checkout answers with.
  *
  *  A fixed, obviously-fake value: no order with this number exists anywhere, so
@@ -547,6 +559,25 @@ export const checkout = {
     },
   } satisfies MockMap,
 
+  /** The shop takes the coupon. Staging has no coupon this suite owns, so a
+   *  good one can only be faked. The discount is an odd, obviously-fake amount
+   *  so a case can tell it read this answer. */
+  couponAccepted: {
+    ...checkoutWorks,
+    [ENDPOINTS.applyCoupon]: {
+      status: 200,
+      body: {
+        isSuccessful: true,
+        success: true,
+        message: "coupon applied",
+        // `status: 1`, not `true`: `utils/fetchData.ts` treats a coupon answer
+        // as a yes only when `data.status === 1`, which is what the core
+        // backend sends.
+        data: { status: 1, discount: FAKE_COUPON_DISCOUNT },
+      },
+    },
+  } satisfies MockMap,
+
   /** A line in the bag cannot be shipped to this country. A different field and
    *  a different cause from the one above, judged by the same guard — so both
    *  are covered rather than one standing in for the other. */
@@ -590,3 +621,33 @@ export const credentialRefusedMidCheckout = [
 ];
 
 export const scenarios = { auth, save, checkout } as const;
+
+// ---------------------------------------------------------------------------
+// The seller dashboard with fewer permissions
+//
+// The QA seller holds every permission, and there is no second seller account
+// with a smaller role. So the smaller role is faked: only the permissions answer
+// changes, and everything else the dashboard reads is the QA shop's real data.
+// ---------------------------------------------------------------------------
+
+/** The permissions answer for one shop, holding only `permissions`. */
+export const sellerWithPermissions = (
+  sellerId: string | number,
+  permissions: string[],
+): MockMap => ({
+  [ENDPOINTS.sellerPermissions]: {
+    status: 200,
+    body: {
+      isSuccessful: true,
+      success: true,
+      data: [
+        {
+          seller_id: String(sellerId),
+          shop_name: "Trydos QA (scripted role)",
+          shop_role: "Scripted limited role",
+          permissions,
+        },
+      ],
+    },
+  },
+});

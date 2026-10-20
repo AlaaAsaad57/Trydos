@@ -8,6 +8,52 @@ export const getUser: any = () => {
   return useAppStore.getState().userChat;
 };
 
+/** The other person in a chat: the member who is not me. */
+export const getChatPeer = (chat) =>
+  chat?.channel_members?.find(
+    (member) => String(member?.user_id) !== String(getUser()?.id),
+  );
+
+/**
+ * The name a chat shows. The mobile app uses the same rule, so one chat has one
+ * name on both: the channel's own name, else the other person's name.
+ *
+ * Only for a chat this user read from the chat backend. In a push, the
+ * channel's `channel_name` is the receiver's own name (see the real push in
+ * tests/public/firebaseMessagingSwTags.test.ts), so a push keeps the sender's name.
+ */
+export const getChatName = (chat) =>
+  chat?.channel_name || getChatPeer(chat)?.user?.name;
+
+/**
+ * The name the contacts tab shows for a contact. A contact whose user already
+ * has a chat is drawn as that chat: the chat's name, else the other person's
+ * phone. Any other contact shows its user's name, its saved name, or its phone.
+ * The add-contact warning uses it too, so the warning names the row it means.
+ */
+export const contactRowName = (contact, chats) => {
+  const chat = (chats ?? []).find((c) =>
+    c?.channel_members?.some(
+      (mem) => parseInt(mem.user_id) === parseInt(contact?.contact_user?.id),
+    ),
+  );
+  if (!chat) {
+    return (
+      contact?.contact_user?.name || contact?.name || contact?.mobile_phone
+    );
+  }
+  return (
+    getChatName(chat) ||
+    chat.channel_members.filter(
+      (member) => parseInt(member?.user_id) !== parseInt(getUserChat()?.id),
+    )[0]?.user?.mobile_phone ||
+    "User"
+  );
+};
+
+/** The picture a chat shows: the other person's own picture, never the channel's. */
+export const getChatPhoto = (chat) => getChatPeer(chat)?.user?.photo_path;
+
 export const getMessageStatusIcon = (status_array, mid) => {
   if (mid) {
     return (
@@ -86,12 +132,22 @@ export const isNew = (ch) => {
   return a;
 };
 /**
+ * The unread number a chat row shows: its unread messages, or 1 when I
+ * marked the chat unread by hand and no message is unread (`marked_unread`,
+ * see store/chat/reducer.ts).
+ */
+export const unreadCount = (chat) =>
+  Math.max(isNew(chat?.messages) || 0, chat?.marked_unread ? 1 : 0);
+/**
  * Which way a call went, from the point of view of the signed-in chat user.
  *
  * `duration_in_seconds` is 0 for every call that never connected — one this
  * user started and nobody picked up, and one that came in and nobody picked
  * up. So duration alone cannot tell the two apart; `sender_user_id` does.
  * Only a call somebody else started, that nobody answered, is missed.
+ *
+ * `isLive` is true while the call is still ringing or still running. Its
+ * duration is 0 then too, but nobody has missed it yet, so it is incoming.
  *
  * Returns the modifier the stylesheet colours: chatcomponent.css styles the
  * row through `.missed`, `.incoming` and `.outgoing`.
@@ -100,11 +156,12 @@ export const getCallDirection = (
   senderId,
   currentUserId,
   durationInSeconds,
+  isLive = false,
 ): "missed" | "incoming" | "outgoing" => {
   const isOutgoing =
     parseInt(String(senderId)) === parseInt(String(currentUserId));
   if (isOutgoing) return "outgoing";
-  return Number(durationInSeconds) > 0 ? "incoming" : "missed";
+  return isLive || Number(durationInSeconds) > 0 ? "incoming" : "missed";
 };
 
 /**
@@ -580,7 +637,7 @@ export const forwardMessage = async (m, activeChat) => {
   }
 };
 
-const uploadFile = async (file_name, file) => {
+const uploadFile = async (file_name, file, signal?: AbortSignal) => {
   let formData = new FormData();
   formData.append("file", file);
   formData.append("file_name", file_name);
@@ -590,7 +647,7 @@ const uploadFile = async (file_name, file) => {
      headers:{"X-Upload-Ticket":ticket},
       method: "POST",
       body: formData,
-  
+      signal,
     });
 
     if (!response.ok) {
@@ -601,6 +658,8 @@ const uploadFile = async (file_name, file) => {
      if(!JsonResponse?.isSuccessful) throw new Error(JsonResponse?.message??'Failed to upload file');
     return JsonResponse;
   } catch (err) {
+    // The sender cancelled. That is not an error.
+    if (signal?.aborted) throw err;
     LogError({
       error: err,
       scenario: "Upload file for chat",
@@ -615,7 +674,7 @@ const MAX_CHAT_FILE_SIZE_MB = 25;
 /** The same cap in bytes, which is the only unit `File.size` speaks. */
 const MAX_CHAT_FILE_SIZE_BYTES = MAX_CHAT_FILE_SIZE_MB * 1024 * 1024;
 
-export const upload = async (file) => {
+export const upload = async (file, signal?: AbortSignal) => {
   // Checked here, not at each screen, because every chat attachment comes
   // through this one function — the file picker, the camera, the cropped image
   // and the voice recorder all call it. Without this the only cap was the media
@@ -634,6 +693,7 @@ export const upload = async (file) => {
   let response = await uploadFile(
     currentFile.name?.split(".")[0] || "image",
     file,
+    signal,
   );
   if (response && response.code === 200 && response.data?.file_path) {
     a = response.data.file_path;

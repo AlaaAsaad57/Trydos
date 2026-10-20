@@ -38,6 +38,7 @@ import {
   currentTab,
   gotoSellerDashboard,
   openTab,
+  refuseIfSectionDenied,
   refuseIfSessionExpired,
 } from "./sellerDashboard";
 import { sellerDashboard } from "../selectors";
@@ -66,10 +67,17 @@ export const openCommentsSection = async (
     "the comments section opened but drew neither a comment nor a refusal, so its read never answered — the shop's own comments come from Elasticsearch behind a permission check against the core backend",
   ).toBeVisible({ timeout: 45_000 });
 
+  await refuseIfSectionDenied(page, {
+    section: "comments",
+    permission: "READ_COMMENTS",
+  });
+
+  // The refusal was lifted by a late permissions answer, so the comments are
+  // only starting to load now.
   await expect(
-    denied,
-    "this account is not permitted to read the shop's comments (READ_COMMENTS), so the section refused rather than failing to load",
-  ).toBeHidden();
+    anyCard,
+    "the comments section opened but drew no comment, so its read never answered — the shop's own comments come from Elasticsearch behind a permission check against the core backend",
+  ).toBeVisible({ timeout: 45_000 });
 };
 
 /** Close the section and open it again, so the list is fetched afresh. */
@@ -237,4 +245,128 @@ export const removeAnswer = async (
     // Quiet on purpose — see the note above.
     return false;
   }
+};
+
+/** Prove an **answered** card belongs to this run, and refuse otherwise.
+ *
+ *  The mirror of `requireOurCard`: the question must carry this run's mark, and
+ *  so must the answer already on it. Editing or deleting an answer this run did
+ *  not write would change a real shop's reply to a real shopper, with no copy
+ *  kept. */
+const requireOurAnsweredCard = async (
+  card: Locator,
+  options: { commentId: string; runToken: string },
+): Promise<void> => {
+  expect(
+    await card.getAttribute("data-comment-id"),
+    `the card being changed carries no comment id, so this run cannot prove it is the question it created (${options.commentId})`,
+  ).toBe(options.commentId);
+
+  // Read, never printed — see `requireOurCard`.
+  const question = (await sellerComments.cardText(card).textContent()) ?? "";
+  expect(
+    question.includes(options.runToken),
+    `the card for question ${options.commentId} does not carry this run's mark, so this run refused to change it`,
+  ).toBe(true);
+
+  expect(
+    await card.getAttribute("data-has-reply"),
+    `question ${options.commentId} shows no answer, so there is nothing of this run's to change`,
+  ).toBe("true");
+
+  const answer = (await sellerComments.replyText(card).textContent()) ?? "";
+  expect(
+    answer.includes(options.runToken),
+    `the answer on question ${options.commentId} does not carry this run's mark, so this run refused to change an answer it did not write`,
+  ).toBe(true);
+};
+
+/** Change the shop's answer on one question, and read the new text back.
+ *
+ *  Uses the dashboard's own Edit Reply, which opens the same form as Reply but
+ *  filled with the answer already given. The dashboard changes the card only
+ *  when the comments backend accepted the edit (`handleReplySubmit`), so the new
+ *  text on the card is the backend's yes. */
+export const editAnswer = async (
+  page: Page,
+  options: {
+    sellerId: string | number;
+    commentId: string;
+    runToken: string;
+    text: string;
+  },
+): Promise<void> => {
+  const card = await findQuestionCard(page, {
+    sellerId: options.sellerId,
+    commentId: options.commentId,
+  });
+  await requireOurAnsweredCard(card, options);
+
+  const edit = sellerComments.editReplyButton(card);
+  await expect(
+    edit,
+    `the dashboard offers no Edit Reply on question ${options.commentId}, so this account lacks EDIT_REPLY`,
+  ).toBeVisible({ timeout: 20_000 });
+  await edit.click();
+
+  const modal = sellerComments.replyModal(page);
+  await expect(
+    modal,
+    `Edit Reply was pressed on question ${options.commentId} but the form never opened`,
+  ).toBeVisible({ timeout: 20_000 });
+  await expect(
+    modal,
+    `the edit form opened against a different question than ${options.commentId}`,
+  ).toHaveAttribute("data-comment-id", options.commentId);
+  await expect(
+    sellerComments.replyInput(page),
+    `the edit form for question ${options.commentId} did not start from the answer already given`,
+  ).toHaveValue(new RegExp(options.runToken));
+
+  await sellerComments.replyInput(page).fill(options.text);
+  await sellerComments.replySubmit(page).click();
+
+  await expect(
+    modal,
+    `the edit to the answer on question ${options.commentId} was submitted but the form stayed open, which is what the dashboard does when the comments backend refused it`,
+  ).toBeHidden({ timeout: 30_000 });
+  await expect(
+    sellerComments.replyText(sellerComments.card(page, options.commentId)),
+    `the edit form closed but the dashboard does not show the new answer on question ${options.commentId}`,
+  ).toHaveText(options.text, { timeout: 30_000 });
+};
+
+/** Delete the shop's answer on one question, as a checked step.
+ *
+ *  Not `removeAnswer`: that one is for teardown and stays quiet on purpose. This
+ *  one fails by name. The dashboard clears the card only when the comments
+ *  backend accepted the delete (`handleDeleteReply`), so the card going back to
+ *  "no answer" is the backend's yes. */
+export const deleteAnswer = async (
+  page: Page,
+  options: { sellerId: string | number; commentId: string; runToken: string },
+): Promise<void> => {
+  const card = await findQuestionCard(page, {
+    sellerId: options.sellerId,
+    commentId: options.commentId,
+  });
+  await requireOurAnsweredCard(card, options);
+
+  const remove = sellerComments.deleteReplyButton(card);
+  await expect(
+    remove,
+    `the dashboard offers no Delete Reply on question ${options.commentId}, so this account lacks DELETE_REPLY`,
+  ).toBeVisible({ timeout: 20_000 });
+
+  // The app asks with the browser's own confirm, which Playwright dismisses by
+  // default — and a dismissed confirm is a delete that silently does nothing.
+  page.once("dialog", (dialog) => {
+    dialog.accept().catch(() => undefined);
+  });
+  await remove.click();
+
+  await expect(
+    card,
+    `Delete Reply was confirmed on question ${options.commentId}, but the card still shows the answer — the comments backend refused the delete, or it never answered`,
+  ).toHaveAttribute("data-has-reply", "false", { timeout: 30_000 });
 };

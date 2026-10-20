@@ -42,7 +42,7 @@ const isPinned = (chat, userId) =>
  * That cursor lands above the real page edge, so the server repeats rows and
  * the walk needs an extra request to reach the same place.
  */
-const nextCursor = (chats) => {
+export const nextCursor = (chats) => {
   let oldestAt = null;
   let oldestTime = Infinity;
   for (const c of chats ?? []) {

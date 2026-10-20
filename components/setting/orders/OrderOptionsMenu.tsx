@@ -86,6 +86,7 @@ function OrderOptionsMenu({
               <>
                 {shouldShowChangeAddress() && (
                   <div
+                    data-pw="change-address-option"
                     onClick={() => {
                       setSelectedScreen("changeAddress");
                     }}
@@ -116,6 +117,7 @@ function OrderOptionsMenu({
                 )}
                 {
                   <div
+                    data-pw="hide-order-option"
                     onClick={() => {
                       trackOrderMgmt(ORDER_MGMT_EVENTS.ORDER_PACK_HIDDEN, {
                         order_id: order?.id,

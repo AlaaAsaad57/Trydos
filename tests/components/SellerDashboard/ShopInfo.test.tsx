@@ -62,9 +62,14 @@ const SHOP = {
   banner: "https://example.com/seller/banner.webp",
 };
 
-async function mount(props: { canUpdate?: boolean; sellerId?: string } = {}) {
+async function mount(props: { canUpdate?: boolean; sellerId?: string; onShopInfoUpdated?: (info: { name: string; image?: string | null }) => void } = {}) {
   return renderWithProviders(
-    <ShopInfo sellerId={props.sellerId ?? SELLER_ID} language="en" canUpdate={props.canUpdate ?? true} />,
+    <ShopInfo
+      sellerId={props.sellerId ?? SELLER_ID}
+      language="en"
+      canUpdate={props.canUpdate ?? true}
+      onShopInfoUpdated={props.onShopInfoUpdated}
+    />,
     { path: `/sellerProfile/sellerDashboard/${SELLER_ID}` },
   );
 }
@@ -113,7 +118,7 @@ describe("Shop info — loading", () => {
     await mount();
     await waitFor(() => expect(nameInput(), "the form should be drawn after the load").toBeTruthy());
     expect(nameInput().value, "a refused load should leave the name empty").toBe("");
-    expect(screen.getByText("No banner yet"), "no banner should be shown").toBeInTheDocument();
+    expect(screen.getByText("No Banner Yet"), "no banner should be shown").toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^Upload$/ }), "with no logo the button should say Upload").toBeInTheDocument();
   });
 
@@ -135,7 +140,7 @@ describe("Shop info — read only", () => {
   it("locks the form, offers no Save and sends nothing", async () => {
     await mount({ canUpdate: false });
     await waitFor(() => expect(nameInput()?.value).toBe("Rama Shoes"));
-    expect(screen.getByText("Read only"), "a seller without UPDATE_SHOP_INFO should be told the form is read only").toBeInTheDocument();
+    expect(screen.getByText("Read Only"), "a seller without UPDATE_SHOP_INFO should be told the form is read only").toBeInTheDocument();
     expect(nameInput().disabled, "the name must be locked").toBe(true);
     expect(screen.queryByRole("button", { name: /Save Changes/ }), "there must be no Save").not.toBeInTheDocument();
     fireEvent.submit(field("shop-info-form"));
@@ -150,15 +155,15 @@ describe("Shop info — checking the fields", () => {
     await waitFor(() => expect(nameInput()).toBeTruthy());
     await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
 
-    expect(screen.getByText("Shop Name is required"), "an empty name must be refused").toBeInTheDocument();
-    expect(screen.getByText("Contact is required"), "an empty contact must be refused").toBeInTheDocument();
-    expect(screen.getByText("Address is required"), "an empty address must be refused").toBeInTheDocument();
+    expect(screen.getByText("Shop Name Is Required"), "an empty name must be refused").toBeInTheDocument();
+    expect(screen.getByText("Contact Is Required"), "an empty contact must be refused").toBeInTheDocument();
+    expect(screen.getByText("Address Is Required"), "an empty address must be refused").toBeInTheDocument();
     expect(updateShopInfo, "an invalid form must not reach the shop backend").not.toHaveBeenCalled();
 
     await userEvent.type(nameInput(), "A");
-    expect(screen.queryByText("Shop Name is required"), "typing a name should clear its error").not.toBeInTheDocument();
+    expect(screen.queryByText("Shop Name Is Required"), "typing a name should clear its error").not.toBeInTheDocument();
     await userEvent.type(addressInput(), "B");
-    expect(screen.getByText("Contact is required"), "the contact error should stay until the contact is edited").toBeInTheDocument();
+    expect(screen.getByText("Contact Is Required"), "the contact error should stay until the contact is edited").toBeInTheDocument();
   });
 
   it("refuses a contact that is not a number", async () => {
@@ -168,7 +173,7 @@ describe("Shop info — checking the fields", () => {
     await userEvent.type(contactInput(), "call me");
     await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
     expect(
-      screen.getByText("Contact must contain valid numbers"),
+      screen.getByText("Contact Must Contain Valid Numbers"),
       "a contact with letters must be refused",
     ).toBeInTheDocument();
   });
@@ -278,7 +283,7 @@ describe("Shop info — saving", () => {
     await mount();
     await waitFor(() => expect(nameInput()?.value).toBe("Rama Shoes"));
     await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
-    await waitFor(() => expect(alertSpy, "a refused save should be reported").toHaveBeenCalledWith("Failed to update"));
+    await waitFor(() => expect(alertSpy, "a refused save should be reported").toHaveBeenCalledWith("Failed To Update"));
     expect(showSuccessMessage, "a refused save must not be confirmed").not.toHaveBeenCalled();
   });
 
@@ -292,5 +297,78 @@ describe("Shop info — saving", () => {
     await waitFor(() =>
       expect(alertSpy, "a thrown save should be reported the same way").toHaveBeenCalledTimes(2),
     );
+  });
+
+  it("sends empty string for image and banner when cleared by the seller", async () => {
+    await mount();
+    await waitFor(() => expect(nameInput()?.value).toBe("Rama Shoes"));
+
+    const logoClearBtn = document.querySelector('[data-pw="shop-info-logo-clear-btn"]');
+    const bannerClearBtn = document.querySelector('[data-pw="shop-info-banner-clear-btn"]');
+    expect(logoClearBtn).toBeInTheDocument();
+    expect(bannerClearBtn).toBeInTheDocument();
+
+    await userEvent.click(logoClearBtn!);
+    await userEvent.click(bannerClearBtn!);
+
+    expect(screen.queryByAltText("Shop logo preview")).not.toBeInTheDocument();
+    expect(screen.queryByAltText("Banner preview")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
+    await waitFor(() => expect(updateShopInfo).toHaveBeenCalled());
+    expect(updateShopInfo.mock.calls[0][1]).toMatchObject({
+      image: "",
+      banner: "",
+    });
+  });
+
+  it("handles legacy media URLs ending with a trailing slash as empty (null)", async () => {
+    getShopInfo.mockResolvedValue({
+      success: true,
+      data: {
+        ...SHOP,
+        image: "https://example.com/seller/",
+        banner: "https://example.com/seller/",
+      },
+    });
+    await mount();
+    await waitFor(() => expect(nameInput()?.value).toBe("Rama Shoes"));
+
+    expect(screen.queryByAltText("Shop logo preview")).not.toBeInTheDocument();
+    expect(screen.queryByAltText("Banner preview")).not.toBeInTheDocument();
+    expect(screen.getByText(/no banner yet/i)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
+    await waitFor(() => expect(updateShopInfo).toHaveBeenCalled());
+    expect(updateShopInfo.mock.calls[0][1]).toMatchObject({
+      image: null,
+      banner: null,
+    });
+  });
+
+  it("calls onShopInfoUpdated with initial shop name and image when loaded", async () => {
+    const onShopInfoUpdated = vi.fn();
+    await mount({ onShopInfoUpdated });
+    await waitFor(() => expect(onShopInfoUpdated).toHaveBeenCalledWith({
+      name: "Rama Shoes",
+      image: "https://example.com/seller/logo.webp",
+    }));
+  });
+
+  it("calls onShopInfoUpdated with updated name and image after saving", async () => {
+    const onShopInfoUpdated = vi.fn();
+    await mount({ onShopInfoUpdated });
+    await waitFor(() => expect(nameInput()?.value).toBe("Rama Shoes"));
+
+    await userEvent.clear(nameInput());
+    await userEvent.type(nameInput(), "Updated Boutique Name");
+
+    await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
+    await waitFor(() => expect(updateShopInfo).toHaveBeenCalled());
+
+    expect(onShopInfoUpdated).toHaveBeenCalledWith({
+      name: "Updated Boutique Name",
+      image: "https://example.com/seller/logo.webp",
+    });
   });
 });

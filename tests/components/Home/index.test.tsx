@@ -68,13 +68,13 @@ describe("Home", () => {
 
   it("shows 'Product not found' and strips only the message from the address", async () => {
     await renderWithProviders(<Home />, { search: "message=product_not_found&tab=2" });
-    expect(showErrorNotification, "the missing-product message was not shown").toHaveBeenCalledWith("Product not found");
+    expect(showErrorNotification, "the missing-product message was not shown").toHaveBeenCalledWith("Product Not Found");
     expect(routerSpies.push, "the message was not stripped from the address").toHaveBeenCalledWith("/gb-en?tab=2", { shallow: true });
   });
 
   it("shows 'Boutique not found' and leaves a clean address", async () => {
     await renderWithProviders(<Home />, { search: "message=boutique_not_found" });
-    expect(showErrorNotification, "the missing-boutique message was not shown").toHaveBeenCalledWith("Boutique not found");
+    expect(showErrorNotification, "the missing-boutique message was not shown").toHaveBeenCalledWith("Boutique Not Found");
     expect(routerSpies.push, "the address was not cleaned").toHaveBeenCalledWith("/gb-en", { shallow: true });
   });
 

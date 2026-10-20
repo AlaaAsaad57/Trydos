@@ -36,6 +36,13 @@ describe("the product footer comment button", () => {
     expect(setActive, "tapping should open the comment tab").toHaveBeenCalledWith("Comment");
   });
 
+  it("shows a big comment count in short form", async () => {
+    await renderWithProviders(
+      <ProductCommentButton isActive={false} setActive={vi.fn()} total_comments={10000} productId={9} language="en" />,
+    );
+    expect(count(), "10,000 comments should show as 10K").toBe("10K");
+  });
+
   it("shows no number when there are no comments", async () => {
     await renderWithProviders(
       <ProductCommentButton isActive setActive={vi.fn()} total_comments={0} productId={9} />,

@@ -27,6 +27,7 @@ function OrderItemBanner({ isRtl, order }) {
             items: order.details.length,
             total: order.order_amount,
           }}
+          paidCurrency={order.currency}
         />
       </div>
       <OrderProductSlider isRtl={isRtl} products={order?.details} />

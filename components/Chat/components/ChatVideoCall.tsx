@@ -304,6 +304,8 @@ function ChatVideoCall({ token }) {
       )?.user || null
     );
   }, [activeChat?.channel_members, userData?.id]);
+  // The same name as the chat's row: the channel's own name, else theirs.
+  const chatName = activeChat?.channel_name || otherUser?.name;
 
   return (
     <>
@@ -330,12 +332,12 @@ function ChatVideoCall({ token }) {
                     margin: "0 auto",
                   }}
                 ></div>
-              ) : otherUser?.name ? (
+              ) : chatName ? (
                 <div
                   className="hgg text-avatar"
                   style={{ left: 0, right: 0, margin: "0 auto" }}
                 >
-                  {getTwoLetters(otherUser?.name || "User")}
+                  {getTwoLetters(chatName || "User")}
                 </div>
               ) : (
                 <div
@@ -361,7 +363,7 @@ function ChatVideoCall({ token }) {
             </div>
           )} */}
           <span className="caller-name">
-            {otherUser?.name || otherUser?.mobile_phone}
+            {chatName || otherUser?.mobile_phone}
           </span>
 
           {users.length > 0 &&

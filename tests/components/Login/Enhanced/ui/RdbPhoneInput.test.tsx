@@ -50,7 +50,7 @@ const field = () =>
     '[data-pw="input-phone-number-field"]',
   );
 const sendButton = () =>
-  screen.queryByRole("button", { name: "Send phone number" });
+  screen.queryByRole("button", { name: "Send Phone Number" });
 const keypadKey = (digit: string) =>
   screen.queryByRole("button", { name: digit });
 

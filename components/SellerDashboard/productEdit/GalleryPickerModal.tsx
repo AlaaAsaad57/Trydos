@@ -145,7 +145,7 @@ export default function GalleryPickerModal({
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={imgUrl(im)} alt="" className="w-full h-full object-cover" />
                       {on && (
-                        <span className="absolute top-1 right-1 w-5 h-5 rounded-full bg-[#5d5d5d] text-white flex items-center justify-center">
+                        <span className="absolute top-1 end-1 w-5 h-5 rounded-full bg-[#5d5d5d] text-white flex items-center justify-center">
                           <DashIcon name="check" size={12} />
                         </span>
                       )}

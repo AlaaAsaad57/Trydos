@@ -4,6 +4,8 @@ import { getUserChat } from "utils/functions";
 import ChatPhoto from "../../ChatPhoto";
 import { DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
+import MessageMarks from "../MessageMarks";
+import CancelUploadButton from "../CancelUploadButton";
 
 function ImageMessage({
   setOpen,
@@ -11,6 +13,8 @@ function ImageMessage({
   openMenu,
   type,
   is_forward,
+  tags = [],
+  reminder = null,
   message_content,
   isPrivate,
   message_status,
@@ -68,11 +72,11 @@ function ImageMessage({
           ` ${openMenu && "ac"}`
         }
       >
-        {is_forward === 1 && (
-          <div className="forwarded-message-icon">
-            <img src="/icons/chat/forwarded.svg" />
-          </div>
-        )}
+        <MessageMarks
+          is_forward={is_forward}
+          tags={tags}
+          reminder={reminder}
+        />
         {/* <div className="border-element">
           {refmessage.current &&
             showBord(type, refmessage.current.clientHeight).map((ad, i) => (
@@ -95,6 +99,9 @@ function ImageMessage({
             />
           </div>
         )}
+        {/* A photo has no play button, so its cancel X goes where a video
+            draws one: in the middle of the picture. */}
+        <CancelUploadButton mid={mid} className="play-vid-icon" />
         <img
           alt="user"
           onClick={() => setImg(message_files?.[0]?.file_path)}

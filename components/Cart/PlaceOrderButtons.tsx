@@ -285,6 +285,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
                 loading: false,
                 success: false,
                 data: [],
+                receipt_number: null,
               });
               // @ts-ignore
               initCart({ cart: [] });

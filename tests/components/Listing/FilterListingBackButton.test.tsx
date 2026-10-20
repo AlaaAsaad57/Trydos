@@ -88,7 +88,7 @@ describe("what the back control is called", () => {
     expect(
       theControl(),
       "an icon-only link with no label reaches a screen reader as just 'link' — there is nothing else inside it to name it",
-    ).toHaveAccessibleName("Back to Home");
+    ).toHaveAccessibleName("Back To Home");
   });
 
   it("names the overlay button too", async () => {

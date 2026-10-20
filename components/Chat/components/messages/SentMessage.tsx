@@ -67,6 +67,8 @@ function SentMessage({
         closeMenu();
       }}
       id={`main-container-${id}`}
+      data-pw="chat-message"
+      data-from="me"
       style={{
         marginTop: !parent_message ? "12px" : undefined,
         // The option labels of the hover menu hang below this row. Rows are

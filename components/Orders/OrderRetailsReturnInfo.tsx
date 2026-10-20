@@ -5,21 +5,38 @@ import Timer from "components/Login/Timer";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
+import { OrderCurrency } from "utils/orderCurrency";
 
 function OrderRetailsReturnInfo({
   product,
   return_request_id,
   callback,
   price,
+  paidCurrency,
 }: {
   product: any;
   return_request_id: number;
   callback: () => void;
+  // Already converted by the caller into `paidCurrency` (or the shop currency).
   price: number | string;
+  // The currency the order was paid with; the refund goes back in it.
+  paidCurrency?: OrderCurrency | null;
 }) {
   const [expanded, setExpanded] = useState(true);
   const [loading, setLoading] = useState(false);
-  const { language, ActivePacks } = useAppStore();
+  const { language, ActivePacks, currency } = useAppStore();
+
+  const currencyCode =
+    paidCurrency?.symbol?.toLowerCase() ||
+    paidCurrency?.code?.toLowerCase() ||
+    currency?.symbol?.toLowerCase() ||
+    currency?.code?.toLowerCase() ||
+    "usd";
+
+  const displayPrice =
+    typeof price === "string" && /[^\d.,\s]/.test(price)
+      ? price
+      : `${price} ${currencyCode}`;
 
   const CancelReturn = async () => {
     setLoading(true);
@@ -51,7 +68,7 @@ function OrderRetailsReturnInfo({
       index: 4,
       label: "returned_to_location",
       title: "Product Has Been Returned Successfully",
-      desc: `${price} ${translateFunction("Back To Your Wallet")}`,
+      desc: `${translateFunction("Back To Your Wallet")} ${displayPrice}`,
     },
     {
       index: 5,
@@ -191,6 +208,19 @@ function OrderRetailsReturnInfo({
                       }
                     </div>
                   </div>
+
+                  {s.label === "returned_to_location" && (active || completed) && (
+                    <div
+                      className={`flex-row items-center text-[#1D1D1D] text-[12px] regular mt-[2px] ${
+                        isRtl ? "dir-rtl" : ""
+                      }`}
+                    >
+                      <span>{translateFunction("Back To Your Wallet")}</span>
+                      <span className="bold mx-[4px]">
+                        {displayPrice}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Only active status shows waiting for the next step */}
                   {s.desc && s.label !== "returned_to_location" && (

@@ -1,15 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ConfirmModal } from "components/global/ConfirmModal";
-import { getTwoLetters, getUser } from "../chatsFunctions";
+import {
+  getChatName,
+  getChatPhoto,
+  getTwoLetters,
+  getUser,
+} from "../chatsFunctions";
 import Image from "next/image";
 import Spinner from "components/global/Spinner";
+import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import {
   showSuccessNotification,
   showErrorNotification,
 } from "@/store/notifications/reducer";
 
 import MediaContainer from "./MediaContainer";
+import TaggedMessages from "./TaggedMessages";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
 import { LogError, translateFunction } from "utils/functions";
@@ -23,6 +30,15 @@ function ChatInfo({
   makeAudioCall,
   makeVideoCall,
   enableSearch,
+  openMessage,
+}: {
+  activeChat: any;
+  cancel: () => void;
+  callLoading: any;
+  makeAudioCall: () => void;
+  makeVideoCall: () => void;
+  enableSearch: () => void;
+  openMessage?: (messageId: string | number) => Promise<void> | void;
 }) {
   const { deleteChat, language, updateChannelBlockStatus } = useAppStore();
   const ref = useRef<any>(null);
@@ -145,15 +161,12 @@ function ChatInfo({
       {!showMedia ? (
         <>
           <div className="chat-info-user-avatar">
-            {activeChat?.channel_members?.filter(
-              (user) => user.user_id !== getUser()?.id,
-            )[0]?.user?.photo_path ? (
+            {getChatPhoto(activeChat) ? (
               <ChatPhoto
-                user={
-                  activeChat?.channel_members.filter(
-                    (user) => user.user_id !== getUser()?.id,
-                  )[0]?.user
-                }
+                user={{
+                  name: getChatName(activeChat),
+                  photo_path: getChatPhoto(activeChat),
+                }}
                 className="w-full h-full"
                 height={150}
                 width={150}
@@ -161,9 +174,7 @@ function ChatInfo({
             ) : (
               <div className="text-avatar">
                 {getTwoLetters(
-                  activeChat?.channel_members.filter(
-                    (user) => user.user_id !== getUser()?.id,
-                  )[0]?.user.name ||
+                  getChatName(activeChat) ||
                     activeChat?.channel_members.filter(
                       (user) => user.user_id !== getUser()?.id,
                     )[0]?.user.username,
@@ -173,9 +184,7 @@ function ChatInfo({
           </div>
           <div className="chat-user-info w-full flex items-center">
             <div className="chat-info-user-name p-0">
-              {activeChat?.channel_members.filter(
-                (user) => user.user_id !== getUser()?.id,
-              )[0]?.user?.name ||
+              {getChatName(activeChat) ||
                 activeChat?.channel_members.filter(
                   (user) => user.user_id !== getUser()?.id,
                 )[0]?.user?.username}
@@ -235,6 +244,7 @@ function ChatInfo({
               className="chat-user-info-option"
               style={{ marginLeft: "98px" }}
               onClick={() => enableSearch()}
+              data-pw="chat-info-search"
             >
               <img src="/icons/chat/InfoSearch.svg" />{" "}
               <span>{translateFunction("Search")}</span>
@@ -285,45 +295,45 @@ function ChatInfo({
               </div>
             </div>
           </div>
-          {
-            <div className="slider-gallery">
-              {activeChat?.message_counts?.image_messages?.map(
-                (image, index) => (
-                  <div className="slider-gallery-item" key={index}>
-                    <Image
-                      className="max-h-[140px]"
-                      width={100}
-                      src={image.message_files[0]?.file_path}
-                      height={130}
-                      objectFit="cover"
-                      objectPosition="center"
-                      alt="Image"
-                    />
-                  </div>
-                ),
-              )}
-            </div>
-          }
-          <div className="chat-user-gallery-container">
-            <div className="chat-user-info-arrow gallery-option">
-              <span> {translateFunction("Never")}</span>{" "}
-              <img
-                src="/icons/chat/arrowRight.svg"
-                className="w-[3px] h-[13px]"
+          <HortiznalScrollBar
+            id="chat-info-media-slider"
+            className="slider-gallery"
+            dataCy="chat-info-media-slider"
+          >
+            {activeChat?.message_counts?.image_messages?.map(
+              (image, index) => (
+                <div className="slider-gallery-item" key={index}>
+                  {/* A native image drag would stop the mouse drag of the row. */}
+                  <Image
+                    className="max-h-[140px]"
+                    width={100}
+                    src={image.message_files[0]?.file_path}
+                    height={130}
+                    objectFit="cover"
+                    objectPosition="center"
+                    alt="Image"
+                    draggable={false}
+                  />
+                </div>
+              ),
+            )}
+          </HortiznalScrollBar>
+          {/* Tag filter hidden for now: there is no source yet for the list
+              of tags a chat uses. TaggedMessages is kept to bring it back. */}
+          {false &&
+            openMessage &&
+            activeChat?.id &&
+            !String(activeChat.id).includes("ch") && (
+              <TaggedMessages
+                key={activeChat.id}
+                channelId={activeChat.id}
+                openMessage={openMessage}
               />
-            </div>
-            <div className="chat-user-files-icon">
-              <img src="/icons/chat/InfoGallery.svg" />
-            </div>
-            <div className="chat-user-files-info" style={{ height: "auto" }}>
-              <div className=".chat-user-files-info-text text-[#8d8d8d]">
-                {translateFunction("Save To Gallery")}
-              </div>
-            </div>
-          </div>
+            )}
           <div className="chat-user-options">
             <div
               className="chat-user-option delete-option"
+              data-pw="chat-info-delete"
               onClick={() => setConfirmDelete(true)}
             >
               <img src="/icons/chat/deleteInfo.svg" />{" "}
@@ -331,6 +341,8 @@ function ChatInfo({
             </div>
             <div
               className="chat-user-option"
+              data-pw="chat-info-block"
+              data-blocked={isBlocked ? "true" : "false"}
               onClick={() => {
                 if (loading) return;
                 if (isBlocked) UnBlockUser();

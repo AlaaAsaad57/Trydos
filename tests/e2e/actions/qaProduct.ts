@@ -17,7 +17,9 @@
 
 import { expect, type Page } from "@playwright/test";
 
+import { openPage } from "../harness/pageOpen";
 import { readQaSeedState } from "../harness/qaSeedState";
+import { waitForRenewalSettled } from "../harness/renewalGate";
 import { product, search } from "../selectors";
 import { chooseRegionIfAsked, seedLocale } from "./nav";
 
@@ -56,9 +58,10 @@ export const gotoQaProduct = async (
   // and a bag filled in the wrong country is offered no cash on delivery.
   await seedLocale(page, country);
 
-  await page.goto(`/${country}-${language}/products/${slug}`, {
-    waitUntil: "domcontentloaded",
-  });
+  // A signed-in page may be renewing its credential; leaving it now would
+  // spend the session (`harness/renewalGate.ts`). Instant on a fresh page.
+  await waitForRenewalSettled(page);
+  await openPage(page, `/${country}-${language}/products/${slug}`);
 
   await chooseRegionIfAsked(page);
 

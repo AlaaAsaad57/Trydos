@@ -311,7 +311,7 @@ describe("Select drop-down (through CoreSection)", () => {
 
     fireEvent.change(search, { target: { value: "nothing-like-this" } });
     expect(
-      within(field(container, "brand_id")).getByText("No options found"),
+      within(field(container, "brand_id")).getByText("No Options Found"),
       "an empty search result must say so",
     ).toBeInTheDocument();
 
@@ -408,9 +408,64 @@ describe("PricingSection", () => {
     });
     expect(inputIn(container, "current_stock"), "stock must be locked with variants").toBeDisabled();
     expect(
-      screen.getByText("Auto-calculated from variations"),
+      screen.getByText("Auto-calculated From Variations"),
       "the stock hint must explain why it is locked",
     ).toBeInTheDocument();
+  });
+
+  it("prohibits decimal digits and shows tooltip when decimalDigits is 0", async () => {
+    const { container } = await mount(PricingSection, {}, { currency: "SYP", decimalDigits: 0 });
+
+    const priceInput = inputIn(container, "unit_price");
+    // Entering valid integer
+    fireEvent.change(priceInput, { target: { value: "100" } });
+    expect(latest.unit_price).toBe("100");
+
+    // Attempting to type dot on keydown
+    fireEvent.keyDown(priceInput, { key: "." });
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Decimal Digits Are Not Allowed For This Currency");
+
+    // Attempting to enter decimal value
+    fireEvent.change(priceInput, { target: { value: "100.5" } });
+    expect(latest.unit_price, "decimal value must be revoked when decimalDigits is 0").toBe("100");
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Decimal Digits Are Not Allowed For This Currency");
+  });
+
+  it("allows up to decimalDigits decimals and revokes extra digits with tooltip", async () => {
+    const { container } = await mount(PricingSection, {}, { currency: "USD", decimalDigits: 2 });
+
+    const priceInput = inputIn(container, "unit_price");
+    fireEvent.change(priceInput, { target: { value: "12.22" } });
+    expect(latest.unit_price).toBe("12.22");
+
+    // Attempting to enter a 3rd decimal digit
+    fireEvent.change(priceInput, { target: { value: "12.223" } });
+    expect(latest.unit_price, "3rd decimal digit must be revoked").toBe("12.22");
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Maximum 2 Decimal Digits Allowed For This Currency");
+
+    // Other valid values
+    fireEvent.change(priceInput, { target: { value: "99.99" } });
+    expect(latest.unit_price).toBe("99.99");
+
+    fireEvent.change(priceInput, { target: { value: "1000000.59" } });
+    expect(latest.unit_price).toBe("1000000.59");
+  });
+
+  it("does not restrict non-price numeric fields with currency decimalDigits", async () => {
+    const { container } = await mount(PricingSection, {}, { currency: "SYP", decimalDigits: 0 });
+
+    const weightInput = inputIn(container, "weight");
+    fireEvent.change(weightInput, { target: { value: "1.75" } });
+    expect(latest.weight, "weight can have decimal digits even when currency decimalDigits is 0").toBe("1.75");
+  });
+
+  it("does not restrict price fields when decimalDigits is undefined", async () => {
+    const { container } = await mount(PricingSection, {}, { currency: "USD", decimalDigits: undefined });
+
+    const priceInput = inputIn(container, "unit_price");
+    fireEvent.change(priceInput, { target: { value: "12.3456" } });
+    expect(latest.unit_price).toBe("12.3456");
+    expect(screen.queryByRole("tooltip")).toBeNull();
   });
 });
 
@@ -428,7 +483,7 @@ describe("CategoriesSection", () => {
   it("filters by name or translated name and explains an empty group", async () => {
     await mount(CategoriesSection);
     expect(
-      screen.getByText("No options available for the current selection."),
+      screen.getByText("No Options Available For The Current Selection."),
       "an empty sub-sub list must explain why it is empty",
     ).toBeInTheDocument();
 
@@ -438,7 +493,7 @@ describe("CategoriesSection", () => {
     expect(screen.getByRole("button", { name: "Hommes" }), "a translated name must match").toBeInTheDocument();
 
     fireEvent.change(mainSearch, { target: { value: "zzz" } });
-    expect(screen.getByText("No matching options."), "no match must say so").toBeInTheDocument();
+    expect(screen.getByText("No Matching Options."), "no match must say so").toBeInTheDocument();
 
     const subSearch = screen.getAllByPlaceholderText("Search...")[1];
     fireEvent.change(subSearch, { target: { value: "dress" } });
@@ -491,6 +546,34 @@ describe("DescriptorsSection", () => {
     expect(latest.descriptor_values, "an emptied number must remove the key").toEqual({});
   });
 
+  it("shows a free-text string descriptor as a text input and sets / clears its value", async () => {
+    const lookups = {
+      ...LOOKUPS,
+      descriptor_groups: [
+        {
+          id: 398,
+          name: "Smartphone",
+          descriptors: [
+            { id: 181, name: "RAM Capacity (GP)", descriptor_group_id: 398, type: "string", options: null as any },
+          ],
+        },
+      ],
+    };
+    const { container } = await mount(DescriptorsSection, {}, { lookups });
+
+    expect(
+      screen.queryByText("RAM Capacity (GP)"),
+      "the string descriptor (options: null) was hidden from the editor",
+    ).toBeInTheDocument();
+    const text = container.querySelector('input[type="text"]') as HTMLInputElement;
+    expect(text, "the string descriptor has no text input to type its value in").not.toBeNull();
+
+    fireEvent.change(text, { target: { value: "8 GB" } });
+    expect(latest.descriptor_values, "the typed text must be stored for descriptor 181").toEqual({ 181: "8 GB" });
+    fireEvent.change(text, { target: { value: "" } });
+    expect(latest.descriptor_values, "emptied text must remove the key").toEqual({});
+  });
+
   it("asks for a category when there are no attributes, and shows the loading layer", async () => {
     await renderWithProviders(
       <Harness
@@ -500,7 +583,7 @@ describe("DescriptorsSection", () => {
       />,
     );
     expect(
-      screen.getByText("Select a category to see its attributes."),
+      screen.getByText("Select A Category To See Its Attributes."),
       "no attributes in edit mode must ask for a category",
     ).toBeInTheDocument();
     expect(screen.getByText("Loading…"), "busy must show the loading layer").toBeInTheDocument();
@@ -544,7 +627,7 @@ describe("ClassificationSection", () => {
     expect(screen.getByRole("button", { name: "Sicak" }), "translated label must match").toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "New" }), "other labels hidden").toBeNull();
     fireEvent.change(labelSearch, { target: { value: "zzz" } });
-    expect(screen.getAllByText("No matching options.").length, "label search miss").toBe(1);
+    expect(screen.getAllByText("No Matching Options.").length, "label search miss").toBe(1);
 
     fireEvent.change(tagSearch, { target: { value: "summ" } });
     expect(screen.getByRole("button", { name: "summer" }), "a tag must match by name").toBeInTheDocument();
@@ -563,7 +646,7 @@ describe("ClassificationSection", () => {
     expect(latest.tags_ids, "clicking a tag must add its id").toEqual([3]);
 
     fireEvent.change(tagSearch, { target: { value: "zzz" } });
-    expect(screen.getByText("No matching options."), "tag search miss must say so").toBeInTheDocument();
+    expect(screen.getByText("No Matching Options."), "tag search miss must say so").toBeInTheDocument();
   });
 
   it("in view mode shows only chosen labels and tags, None when empty, and the label error", async () => {
@@ -612,13 +695,13 @@ describe("CountriesSection", () => {
     fireEvent.click(screen.getByRole("button", { name: "Iraq" }));
     expect(latest.countries_iso, "picking it again must remove IQ").toEqual([]);
 
-    expect(screen.getByText("No per-country surcharges."), "empty list message").toBeInTheDocument();
+    expect(screen.getByText("No Per-country Surcharges."), "empty list message").toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
 
     const selects = container.querySelectorAll("select");
     fireEvent.change(selects[0], { target: { value: "SY" } });
-    const prices = screen.getAllByPlaceholderText("Extra price");
+    const prices = screen.getAllByPlaceholderText("Extra Price");
     fireEvent.change(prices[0], { target: { value: "7" } });
     expect(latest.extra_price_for_country[0], "the first surcharge row must hold SY / 7").toEqual({
       country_iso: "SY",
@@ -644,7 +727,22 @@ describe("CountriesSection", () => {
       { disabled: true, lookups: { ...LOOKUPS, countries: undefined as any } },
     );
     expect(screen.queryByRole("button", { name: "Add" }), "view mode has no Add").toBeNull();
-    expect(screen.getByPlaceholderText("Extra price"), "view mode inputs are locked").toBeDisabled();
+    expect(screen.getByPlaceholderText("Extra Price"), "view mode inputs are locked").toBeDisabled();
+  });
+
+  it("enforces currency decimalDigits on per-country extra_price", async () => {
+    await mount(
+      CountriesSection,
+      { extra_price_for_country: [{ country_iso: "SY", extra_price: "10" }] },
+      { currency: "USD", decimalDigits: 2 },
+    );
+    const extraPriceInput = screen.getByPlaceholderText("Extra Price");
+    fireEvent.change(extraPriceInput, { target: { value: "10.50" } });
+    expect(latest.extra_price_for_country[0].extra_price).toBe("10.50");
+
+    fireEvent.change(extraPriceInput, { target: { value: "10.505" } });
+    expect(latest.extra_price_for_country[0].extra_price, "3rd decimal must be revoked").toBe("10.50");
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Maximum 2 Decimal Digits Allowed For This Currency");
   });
 });
 
@@ -680,7 +778,7 @@ describe("SeoSection", () => {
     const { container } = await mount(SeoSection, {}, { canUseGallery: true });
 
     fireEvent.click(screen.getByRole("button", { name: /Add Image/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Choose from gallery/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Choose From Gallery/ }));
     expect(screen.getByTestId("gallery-picker"), "the picker must open").toHaveAttribute("data-multiple", "false");
 
     fireEvent.click(screen.getByRole("button", { name: "pick from gallery" }));
@@ -700,12 +798,12 @@ describe("SeoSection", () => {
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     const clickSpy = vi.spyOn(input, "click");
     fireEvent.click(screen.getByRole("button", { name: /Change Image/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Upload from device/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Upload From Device/ }));
     expect(clickSpy, "Upload from device must open the file picker").toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: /Change Image/ }));
     fireEvent.click(container.querySelector(".fixed.inset-0") as HTMLElement);
-    expect(screen.queryByRole("button", { name: /Choose from gallery/ }), "a backdrop click closes the menu").toBeNull();
+    expect(screen.queryByRole("button", { name: /Choose From Gallery/ }), "a backdrop click closes the menu").toBeNull();
   });
 
   it("shows 'Change Image' on the device button and hides it in view mode", async () => {
@@ -790,7 +888,7 @@ describe("MediaSection", () => {
     ];
     await mount(MediaSection, { images: [IMGS[0]] }, { canUseGallery: true });
     fireEvent.click(screen.getByRole("button", { name: /Add/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Choose from gallery/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Choose From Gallery/ }));
     expect(screen.getByTestId("gallery-picker"), "the picker allows many").toHaveAttribute("data-multiple", "true");
     fireEvent.click(screen.getByRole("button", { name: "pick from gallery" }));
     expect(latest.images, "only z.png is new").toEqual([
@@ -856,7 +954,7 @@ describe("VariantsSection", () => {
       { errors: { variation_sku_Red: "Taken on the server" } },
     );
     expect(screen.getByText("Taken on the server"), "the server SKU error must win").toBeInTheDocument();
-    expect(screen.getByText("SKU must be unique"), "the duplicate must be flagged").toBeInTheDocument();
+    expect(screen.getByText("SKU Must Be Unique"), "the duplicate must be flagged").toBeInTheDocument();
 
     const blueRow = screen
       .getAllByText("Blue")
@@ -896,7 +994,7 @@ describe("VariantsSection", () => {
       { colors: [{ code: "#ABCDEF", name: "Custom" }] },
       { pricesLocked: true },
     );
-    expect(screen.getByText("Upload images first."), "no images must say so").toBeInTheDocument();
+    expect(screen.getByText("Upload Images First."), "no images must say so").toBeInTheDocument();
     expect(screen.queryByText("Price"), "locked prices hide the Price column").toBeNull();
 
     const [colorSearch, sizeSearch] = screen.getAllByPlaceholderText("Search...");
@@ -908,7 +1006,7 @@ describe("VariantsSection", () => {
     fireEvent.change(sizeSearch, { target: { value: "x" } });
     expect(screen.getByRole("button", { name: "XL" }), "a size must match by name").toBeInTheDocument();
     fireEvent.change(sizeSearch, { target: { value: "zzz" } });
-    expect(screen.getAllByText("No matching options.").length, "both misses must say so").toBe(2);
+    expect(screen.getAllByText("No Matching Options.").length, "both misses must say so").toBe(2);
   });
 
   it("in view mode shows only the chosen color and size and seeds nothing", async () => {
@@ -947,6 +1045,33 @@ describe("VariantsSection", () => {
     );
     const row = screen.getAllByText("S").find((el) => el.tagName === "TD")!.closest("tr") as HTMLElement;
     expect(within(row).getAllByRole("option").length, "only the Select option").toBe(1);
+  });
+
+  it("enforces currency decimalDigits on variant money cells and revokes extra decimals", async () => {
+    await mount(
+      VariantsSection,
+      {
+        colors: [{ code: "#FF0000", name: "Red" }],
+        sizes: [{ id: 1, name: "S" }],
+        images: [{ name: "img.jpg", url: "http://example.com/img.jpg" }],
+        colorImages: { "#FF0000": ["img.jpg"] },
+        variations: {
+          "Red-S": { price: "10", discount: "8", luck: "5", qty: "3", sku: "SKU1", barcode: "", location_id: "1" },
+        },
+      },
+      { currency: "USD", decimalDigits: 2 },
+    );
+
+    const row = screen.getByText("Red · S").closest("tr") as HTMLElement;
+    const inputs = within(row).getAllByRole("spinbutton");
+    const priceCell = inputs[0];
+
+    fireEvent.change(priceCell, { target: { value: "10.99" } });
+    expect(latest.variations["Red-S"].price).toBe("10.99");
+
+    fireEvent.change(priceCell, { target: { value: "10.999" } });
+    expect(latest.variations["Red-S"].price, "3rd decimal in variant price must be revoked").toBe("10.99");
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Maximum 2 Decimal Digits Allowed For This Currency");
   });
 });
 
@@ -1014,7 +1139,7 @@ describe("TranslationsSection (create)", () => {
 
   it("adds similar words by button and Enter, skips a repeat, and removes one", async () => {
     const { container } = await mount(TranslationsSection, {}, { isCreate: true });
-    const input = screen.getByPlaceholderText("Type a word and press Enter");
+    const input = screen.getByPlaceholderText("Type A Word And Press Enter");
 
     fireEvent.change(input, { target: { value: "  " } });
     fireEvent.keyDown(input, { key: "Enter" });
@@ -1059,7 +1184,7 @@ describe("TranslationsSection (edit)", () => {
       similar_words: [],
     });
 
-    const words = screen.getAllByPlaceholderText("Type a word and press Enter");
+    const words = screen.getAllByPlaceholderText("Type A Word And Press Enter");
     fireEvent.change(words[2], { target: { value: "atki" } });
     fireEvent.keyDown(words[2], { key: "Enter" });
     expect(latest.translations.find((t) => t.language_code === "tr")?.similar_words, "tr words").toEqual(["atki"]);
@@ -1071,7 +1196,7 @@ describe("TranslationsSection (edit)", () => {
       { translations: [{ language_code: "en", name: "S", description: "", similar_words: ["w"] }] },
       { disabled: true },
     );
-    expect(screen.queryByPlaceholderText("Type a word and press Enter"), "view mode has no word box").toBeNull();
+    expect(screen.queryByPlaceholderText("Type A Word And Press Enter"), "view mode has no word box").toBeNull();
     expect(screen.queryByRole("button", { name: "✕" }), "view mode cannot remove words").toBeNull();
     expect(screen.getByText("w"), "the word itself still shows").toBeInTheDocument();
   });
@@ -1092,10 +1217,10 @@ describe("VideosSection", () => {
   it("drops a freshly uploaded video and uploads a new one", async () => {
     const onUploadVideo = vi.fn();
     const { container } = await mount(VideosSection, { cloud_video: "new.mp4" }, { onUploadVideo, uploading: { video: false } });
-    expect(screen.getByText(/New video ready/), "the new video must show").toBeInTheDocument();
+    expect(screen.getByText(/New Video Ready/), "the new video must show").toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Remove" }));
     expect(latest.cloud_video, "Remove must drop the new video").toBe("");
-    expect(screen.getByText("No video attached."), "then nothing is attached").toBeInTheDocument();
+    expect(screen.getByText("No Video Attached."), "then nothing is attached").toBeInTheDocument();
 
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     const clickSpy = vi.spyOn(input, "click");

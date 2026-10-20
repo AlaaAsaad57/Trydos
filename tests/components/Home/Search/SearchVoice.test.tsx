@@ -87,14 +87,14 @@ describe("SearchVoice", () => {
     vi.stubGlobal("MediaRecorder", undefined);
     await renderWithProviders(<SearchVoice setSearchValue={() => {}} />);
     fireEvent.click(micIcon());
-    expect(showErrorNotification, "an unsupported browser was not reported").toHaveBeenCalledWith("Browser does not support this feature");
+    expect(showErrorNotification, "an unsupported browser was not reported").toHaveBeenCalledWith("Browser Does Not Support This Feature");
   });
 
   it("tells the shopper when the microphone is refused", async () => {
     mic(true);
     await renderWithProviders(<SearchVoice setSearchValue={() => {}} />);
     await tap();
-    expect(showErrorNotification, "a refused microphone was not reported").toHaveBeenCalledWith("Microphone access denied");
+    expect(showErrorNotification, "a refused microphone was not reported").toHaveBeenCalledWith("Microphone Access Denied");
   });
 
   it("records, sends the voice to speech recognition, and fills the search box", async () => {
@@ -140,7 +140,7 @@ describe("SearchVoice", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1600);
     });
-    await waitFor(() => expect(showErrorNotification, "no toast after nothing was heard").toHaveBeenCalledWith("Try again with clear voice"));
+    await waitFor(() => expect(showErrorNotification, "no toast after nothing was heard").toHaveBeenCalledWith("Try Again With Clear Voice"));
   });
 
   it("shows 'Failed to process audio' when speech recognition cannot be reached", async () => {
@@ -152,7 +152,7 @@ describe("SearchVoice", () => {
     await tap();
     expect(speech, "Kurdish started a browser recogniser it does not have").toEqual([]);
     await tap();
-    await waitFor(() => expect(showErrorNotification, "a failed request was not reported").toHaveBeenCalledWith("Failed to process audio"));
+    await waitFor(() => expect(showErrorNotification, "a failed request was not reported").toHaveBeenCalledWith("Failed To Process Audio"));
   });
 
   it("settles the live fallback on an error, and survives a recogniser that throws", async () => {
@@ -170,7 +170,7 @@ describe("SearchVoice", () => {
     act(() => speech[0].onerror());
     act(() => speech[0].onerror());
     await tap();
-    await waitFor(() => expect(showErrorNotification, "no toast after the recogniser failed").toHaveBeenCalledWith("Try again with clear voice"));
+    await waitFor(() => expect(showErrorNotification, "no toast after the recogniser failed").toHaveBeenCalledWith("Try Again With Clear Voice"));
   });
 
   it("keeps recording when the browser recogniser cannot even start", async () => {

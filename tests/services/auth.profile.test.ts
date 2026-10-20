@@ -310,7 +310,13 @@ describe("updating the profile", () => {
     ).toEqual([]);
   });
 
-  it("still says something general when the refusal names no field", async () => {
+  // `fetchData` is a stand-in in this file, so its own message never shows here.
+  // The real one does show it: utils/fetchData.ts puts every refusal on screen
+  // unless the text is on its ignore list. So a general line added here is a
+  // SECOND message about one save. PR #132 fixed the store dropping all but the
+  // newest message, and from then on the shopper saw both — SCRIPT-07 went red
+  // on it (run 36010985438: "the shopper saw 2 messages at once").
+  it("does not add a second line over a refusal the request layer already showed", async () => {
     (store as any).__resetAuthStore({ userProfile: { id: 7, name: "old" } });
     market.reply({ success: false, message: "market refused" });
 
@@ -320,8 +326,27 @@ describe("updating the profile", () => {
     ).rejects.toThrow("market refused");
 
     expect(
+      (notifications.showErrorNotification as any).mock.calls.map(
+        (call: any[]) => call[0],
+      ),
+      "the profile save added a general line on top of the core backend's own refusal, which the request layer already shows — the shopper is told twice about one save",
+    ).toEqual([]);
+  });
+
+  it("still says something general when the request layer stayed silent", async () => {
+    (store as any).__resetAuthStore({ userProfile: { id: 7, name: "old" } });
+    // "Failed to fetch" is on the request layer's ignore list, so it shows
+    // nothing for it. Without the general line the shopper hears nothing.
+    market.reply({ success: false, message: "Failed to fetch" });
+
+    await expect(
+      auth.UpdateProfile({ name: "Ada" }, {}),
+      "a save that never reached the core backend must still reject",
+    ).rejects.toThrow("Failed to fetch");
+
+    expect(
       notifications.showErrorNotification,
-      "a refusal that names no field left the shopper with nothing at all",
+      "a refusal the request layer does not show left the shopper with nothing at all",
     ).toHaveBeenCalledWith("Failed to update profile Info");
   });
 
@@ -344,7 +369,12 @@ describe("updating the profile", () => {
     expect(urls).toHaveLength(5);
     expect(urls[3]).toBe("/api/v1/users/update");
     expect(urls[4]).toContain("/api/v1/users/");
-    expect(notifications.showErrorNotification).toHaveBeenCalledTimes(1);
+    // Once, and the request layer is the one that says it: "market refused" is
+    // not on its ignore list, so the real `fetchData` has already shown it.
+    expect(
+      notifications.showErrorNotification,
+      "the profile save added its own line on top of the refusal the request layer already showed",
+    ).not.toHaveBeenCalled();
   });
 
   it("puts the OLD value into the shopper's own copies when a leg is rolled back (AC-25)", async () => {

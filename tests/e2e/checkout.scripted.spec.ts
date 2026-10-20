@@ -7,6 +7,8 @@
 //   SCRIPT-18  the bag empties between the two checkout steps
 //   SCRIPT-20  the credential is refused mid-checkout, renewed, and the order
 //              completes
+//   SCRIPT-21  a coupon the shop accepts is applied, and the bag is read again
+//   SCRIPT-22  a coupon from a shared link is applied at checkout by itself
 //
 // **There is no SCRIPT-19, and the gap is on purpose.** It covered a phone that
 // stops being verified between the two checkout steps. A shopper on this app
@@ -67,11 +69,15 @@
 
 import { expect, test } from "./fixtures";
 import {
+  applyCouponCode,
+  arriveWithCouponLink,
   chooseCashOnDelivery,
   confirmShippingAndPayment,
   goToCheckout,
   openCart,
   placeOrder,
+  waitForCouponOutcome,
+  watchCouponAnswer,
 } from "./actions/cart";
 import { gotoHome } from "./actions/nav";
 import {
@@ -86,6 +92,7 @@ import {
   bagEmptiedSince,
   credentialRefusedMidCheckout,
   ENDPOINTS,
+  FAKE_COUPON_DISCOUNT,
   FAKE_ORDER_GROUP_ID,
   scenarios,
 } from "./scenarios";
@@ -463,6 +470,181 @@ test("SCRIPT-20 a credential refused mid-checkout is renewed and the order compl
       placed.orderGroupId,
       "the order placed after the credential was renewed carries no number",
     ).toBe(FAKE_ORDER_GROUP_ID);
+  } finally {
+    expect(
+      guard.blocked(),
+      "this case reached calls it never named, and each one went nowhere",
+    ).toEqual([]);
+    await context.close();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// SCRIPT-21 and SCRIPT-22 — a coupon the shop accepts
+//
+// Scripted because staging has no coupon this suite owns: the only coupon a
+// live case can use is one the shop refuses (BUY-07 in `shopper.live.spec.ts`).
+// The acceptance is faked; everything the app does with it is real.
+//
+// **What is asserted, and what is not.** On a yes the app re-reads the bag and
+// turns Apply into the discount. The new total comes from that re-read — the
+// shop does the sum, not the app — so a faked bag cannot prove a total. These
+// cases prove the app's half: it asked with the right code, showed the
+// discount, closed the field, and asked the shop for the bag again.
+// ---------------------------------------------------------------------------
+
+/** A code for the faked yes. Never sent to staging — the case runs closed. */
+const ACCEPTED_COUPON = "TRYDOSQAFAKE7";
+
+/** Walk from the home page to the checkout screen, where the coupon box is. */
+const reachTheCheckoutScreen = async (page: Parameters<typeof openCart>[0]) => {
+  const bag = await openCart(page);
+  expect(
+    bag.lines,
+    "the faked bag did not reach the cart screen, so nothing below is about the coupon",
+  ).toBe(1);
+
+  const entered = await goToCheckout(page);
+  expect(
+    entered.reached,
+    "the cart did not open the checkout screen for the faked verified shopper",
+  ).toBe(true);
+};
+
+/** Count the bag reads from here on. */
+const countBagReads = (page: Parameters<typeof openCart>[0]) => {
+  let reads = 0;
+  page.on("request", (request) => {
+    if ((request.headers()["x-proxy-url"] ?? "").includes(ENDPOINTS.cart)) {
+      reads += 1;
+    }
+  });
+  return () => reads;
+};
+
+test("SCRIPT-21 a coupon the shop accepts is applied, and the bag is read again", async ({
+  browser,
+}) => {
+  test.setTimeout(5 * 60 * 1000);
+
+  const { context, page, guard, fakes } = await openScriptedShopper(
+    browser,
+    scenarios.checkout.couponAccepted,
+  );
+
+  try {
+    await gotoHome(page);
+    await reachTheCheckoutScreen(page);
+
+    const bagReads = countBagReads(page);
+    const { answer, box } = await test.step(
+      "the code is typed and applied",
+      async () => applyCouponCode(page, { code: ACCEPTED_COUPON }),
+    );
+
+    await test.step("the request carried the code, and the faked yes answered it", async () => {
+      expect(
+        fakes.used(ENDPOINTS.applyCoupon),
+        "the coupon fake never matched, so the request may have reached real staging",
+      ).toBe(true);
+      expect(
+        answer.sentCode,
+        "the coupon request did not carry the code the shopper typed",
+      ).toBe(ACCEPTED_COUPON);
+      expect(answer.accepted, "the faked yes was not read as a yes").toBe(true);
+    });
+
+    await test.step("the box shows the discount instead of Apply", async () => {
+      expect(
+        box.applied,
+        `the shop accepted the coupon, but the box did not mark it applied (it shows "${box.applyText}")`,
+      ).toBe(true);
+      expect(
+        box.applyText,
+        `the applied coupon does not show a discount (the shop gave ${FAKE_COUPON_DISCOUNT})`,
+      ).toMatch(/^-\s*\S/);
+      expect(
+        box.fieldShown,
+        "the coupon field is still open after the coupon was applied",
+      ).toBe(false);
+      expect(
+        box.shownError,
+        "the box shows a refusal next to a coupon the shop accepted",
+      ).toBe("");
+    });
+
+    await test.step("the bag is asked for again, so the total can include the discount", async () => {
+      await expect
+        .poll(bagReads, {
+          message:
+            "the coupon was applied but the app never asked for the bag again, so the total it shows cannot include the discount",
+          timeout: 15_000,
+        })
+        .toBeGreaterThan(0);
+    });
+  } finally {
+    expect(
+      guard.blocked(),
+      "this case reached calls it never named, and each one went nowhere",
+    ).toEqual([]);
+    await context.close();
+  }
+});
+
+test("SCRIPT-22 a coupon from a shared link is applied at checkout by itself", async ({
+  browser,
+}) => {
+  test.setTimeout(5 * 60 * 1000);
+
+  const { context, page, guard, fakes } = await openScriptedShopper(
+    browser,
+    scenarios.checkout.couponAccepted,
+  );
+
+  try {
+    await test.step("the shopper arrives from the coupon link", async () => {
+      await arriveWithCouponLink(page, { code: ACCEPTED_COUPON });
+    });
+
+    // A long wait on purpose: it is armed before the walk to the checkout, and
+    // that walk alone can take most of a minute on a slow staging.
+    const answered = watchCouponAnswer(page, { timeout: 120_000 });
+    await test.step("the shopper goes to the checkout", async () => {
+      await reachTheCheckoutScreen(page);
+    });
+
+    await test.step("the checkout applied the link's code without being asked", async () => {
+      const answer = await answered;
+      expect(
+        fakes.used(ENDPOINTS.applyCoupon),
+        "the checkout never asked for the coupon from the link",
+      ).toBe(true);
+      expect(
+        answer.sentCode,
+        "the checkout applied a different code than the one in the link",
+      ).toBe(ACCEPTED_COUPON);
+
+      const box = await waitForCouponOutcome(page);
+      expect(
+        box.applied,
+        `the coupon from the link was accepted, but the box does not show it applied ("${box.applyText}")`,
+      ).toBe(true);
+    });
+
+    await test.step("the kept code is used up", async () => {
+      // The box forgets the code once the shop has accepted it, so the same
+      // link is not applied again on every later checkout.
+      await expect
+        .poll(
+          () => page.evaluate(() => window.localStorage.getItem("coupon-number")),
+          {
+            message:
+              "the coupon from the link is still kept after the shop accepted it, so it would be applied again on the next checkout",
+            timeout: 10_000,
+          },
+        )
+        .toBeNull();
+    });
   } finally {
     expect(
       guard.blocked(),

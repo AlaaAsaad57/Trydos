@@ -45,6 +45,7 @@ export default function LocationsTab({
   canUpdate: boolean;
   canChangeStatus: boolean;
 }) {
+  const isRtl = language === "ar" || language === "ku";
   const [locations, setLocations] = useState<ShopLocation[]>([]);
   const [meta, setMeta] = useState<LocationsMeta | null>(null);
   const [page, setPage] = useState(1);
@@ -297,6 +298,7 @@ export default function LocationsTab({
               current={meta.current_page || page}
               last={meta.last_page}
               disabled={loading}
+              isRtl={isRtl}
               onPrev={() => load(page - 1)}
               onNext={() => load(page + 1)}
             />

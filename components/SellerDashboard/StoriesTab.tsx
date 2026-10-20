@@ -178,16 +178,19 @@ function DeleteConfirmModal({
   onConfirm,
   onCancel,
   loading,
+  isRtl,
 }: {
   onConfirm: () => void;
   onCancel: () => void;
   loading: boolean;
+  isRtl?: boolean;
 }) {
   return createPortal(
     <div className="fixed inset-0 z-999999999 bg-black/45 flex items-center justify-center p-4">
       <div
+        dir={isRtl ? "rtl" : "ltr"}
         className="bg-white rounded-[20px] p-6 max-w-sm w-full text-center"
-        style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
+        style={{ direction: isRtl ? "rtl" : "ltr", boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
       >
         <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[#fff1f1] text-[#f85555] flex items-center justify-center">
           <DashIcon name="trash" size={24} />
@@ -232,10 +235,12 @@ function ProductPickerModal({
   sellerId,
   onSelect,
   onClose,
+  isRtl,
 }: {
   sellerId: string;
   onSelect: (product: LinkedProduct) => void;
   onClose: () => void;
+  isRtl?: boolean;
 }) {
   const [products, setProducts] = useState<any[]>([]);
   const [meta, setMeta] = useState<any>(null);
@@ -284,8 +289,9 @@ function ProductPickerModal({
       onClick={onClose}
     >
       <div
+        dir={isRtl ? "rtl" : "ltr"}
         className="bg-white rounded-[20px] max-w-lg w-full mx-4 max-h-[80vh] flex flex-col"
-        style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
+        style={{ direction: isRtl ? "rtl" : "ltr", boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-2 p-5 lg:p-6 border-b border-[#ededed] w-full">
@@ -333,7 +339,7 @@ function ProductPickerModal({
                           image: imgSrc,
                         })
                       }
-                      className="group flex flex-col bg-[#f8f8f8] border border-[#ededed] rounded-[12px] overflow-hidden hover:border-[#5d5d5d]/40 hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-all active:scale-[0.98] text-left"
+                      className="group flex flex-col bg-[#f8f8f8] border border-[#ededed] rounded-[12px] overflow-hidden hover:border-[#5d5d5d]/40 hover:shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-all active:scale-[0.98] text-start"
                     >
                       <div className="w-full aspect-square bg-[#e6e6e6]">
                         {imgSrc ? (
@@ -384,11 +390,13 @@ function UploadStoryModal({
   userId,
   onUploaded,
   onClose,
+  isRtl,
 }: {
   sellerId: string;
   userId: number | string;
   onUploaded: () => void;
   onClose: () => void;
+  isRtl?: boolean;
 }) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -524,6 +532,7 @@ function UploadStoryModal({
       {showProductPicker && (
         <ProductPickerModal
           sellerId={sellerId}
+          isRtl={isRtl}
           onSelect={(p) => {
             setLinkedProduct(p);
             setShowProductPicker(false);
@@ -534,11 +543,12 @@ function UploadStoryModal({
 
       <div className="fixed inset-0 z-999999999 flex items-center justify-center p-4 bg-black/45">
         <div
+          dir={isRtl ? "rtl" : "ltr"}
           data-pw="seller-story-upload"
           className={`relative w-full max-w-[400px] max-h-[92vh] flex flex-col bg-white rounded-[20px] overflow-hidden text-[#3c3c3c] ${
             uploading ? "pointer-events-none" : ""
           }`}
-          style={{ boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
+          style={{ direction: isRtl ? "rtl" : "ltr", boxShadow: "0 12px 40px rgba(0,0,0,0.18)" }}
         >
           {/* Header */}
           <div className="flex justify-between items-center gap-2 p-5 lg:p-6 border-b border-[#ededed] w-full">
@@ -566,7 +576,10 @@ function UploadStoryModal({
                   {translateFunction("Preview")}
                 </p>
                 {preview ? (
-                  <div className="relative w-full aspect-9/16 max-h-[360px] mx-auto rounded-[15px] overflow-hidden bg-black border border-[#ededed]">
+                  <div
+                    data-pw="seller-story-preview"
+                    className="relative w-full aspect-9/16 max-h-[360px] mx-auto rounded-[15px] overflow-hidden bg-black border border-[#ededed]"
+                  >
                     {selectedFile?.type.startsWith("video/") ? (
                       <video
                         src={preview}
@@ -648,7 +661,10 @@ function UploadStoryModal({
                     />
                   </div>
                   {linkError && (
-                    <p className="text-[12px] text-[#f85555] mt-1 flex items-center gap-1">
+                    <p
+                      data-pw="seller-story-link-error"
+                      className="text-[12px] text-[#f85555] mt-1 flex items-center gap-1"
+                    >
                       <DashIcon name="alert" size={13} />
                       {linkError}
                     </p>
@@ -710,7 +726,7 @@ function UploadStoryModal({
                       <span className="text-[14px]">
                         {translateFunction("Link to Product")}
                       </span>
-                      <span className="ml-auto text-[#c4c2c2]">
+                      <span className="ms-auto text-[#c4c2c2]">
                         <DashIcon name="plus" size={16} />
                       </span>
                     </button>
@@ -722,7 +738,12 @@ function UploadStoryModal({
 
           {/* Footer */}
           <div className="p-5 w-full lg:p-6 border-t border-[#ededed] bg-[#fafafa] flex items-center justify-end gap-3">
-            <DashButton type="button" variant="ghost" onClick={onClose}>
+            <DashButton
+              data-pw="seller-story-cancel"
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+            >
               {translateFunction("Cancel")}
             </DashButton>
             <DashButton
@@ -876,12 +897,17 @@ export default function StoriesTab({
   userId,
   canCreate = false,
   canDelete = false,
+  language,
+  isRtl,
 }: {
   sellerId: string;
   userId: number | string;
   canCreate?: boolean;
   canDelete?: boolean;
+  language?: string;
+  isRtl?: boolean;
 }) {
+  const isRtlResolved = isRtl ?? (language === "ar" || language === "ku");
   const [stories, setStories] = useState<SellerStory[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [hasMore, setHasMore] = useState(false);
@@ -984,6 +1010,7 @@ export default function StoriesTab({
     // delete button cannot work: that button lives inside a story card, so on
     // an empty grid "absent" means both "no permission" and "no stories".
     <div
+      dir={isRtlResolved ? "rtl" : "ltr"}
       data-pw="seller-stories"
       data-can-create={String(canCreate)}
       data-can-delete={String(canDelete)}
@@ -1102,6 +1129,7 @@ export default function StoriesTab({
           onConfirm={handleDelete}
           onCancel={() => setDeletingStory(null)}
           loading={deleteLoading}
+          isRtl={isRtlResolved}
         />
       )}
 
@@ -1111,6 +1139,7 @@ export default function StoriesTab({
           userId={userId}
           onUploaded={() => fetchStories(1)}
           onClose={() => setShowUploadModal(false)}
+          isRtl={isRtlResolved}
         />
       )}
     </div>

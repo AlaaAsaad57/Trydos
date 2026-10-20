@@ -164,7 +164,7 @@ describe("a row of filter chips", () => {
     await renderRow({ children: <Chip value="shoes" label="Shoes" /> });
 
     expect(
-      screen.getByText("Filter By categories"),
+      screen.getByText("Filter By Categories"),
       "the chips carry no clue about which kind of filter they are; the heading is the only thing that says it",
     ).toBeInTheDocument();
   });

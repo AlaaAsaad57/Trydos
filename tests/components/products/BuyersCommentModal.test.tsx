@@ -100,7 +100,7 @@ describe("BuyersCommentModal", () => {
     await openSheet();
     await waitFor(() => expect(fetchMock, "the first page was not loaded").toHaveBeenCalledTimes(1));
     expect(urls()[0].get("user_id"), "a guest sent a user id").toBeNull();
-    expect(screen.getByText("There is No Comments Yet.."), "an empty list has no message").toBeInTheDocument();
+    expect(screen.getByText("There Is No Comments Yet.."), "an empty list has no message").toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Size"));
     await waitFor(() => expect(fetchMock, "the filter did not reload").toHaveBeenCalledTimes(2));

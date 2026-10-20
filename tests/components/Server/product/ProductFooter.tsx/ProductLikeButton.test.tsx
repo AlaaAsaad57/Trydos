@@ -71,6 +71,11 @@ describe("the product like button", () => {
     expect(GAevent.mock.calls[0][0].params.action, "a like should be reported to analytics").toBe("like");
   });
 
+  it("shows a big like count in short form", async () => {
+    await renderLike({ total_likes: 1000000, language: "en" });
+    expect(count(), "1,000,000 likes should show as 1M").toBe("1M");
+  });
+
   it("unlikes a liked product and counts it down", async () => {
     fetchData.mockResolvedValue({ success: true });
     await renderLike({ isLiked: true, total_likes: 1 });

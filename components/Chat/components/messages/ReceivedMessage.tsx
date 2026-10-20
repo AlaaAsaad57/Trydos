@@ -24,6 +24,8 @@ function ReceivedMessage({
   return (
     <div
       id={`main-container-${id}`}
+      data-pw="chat-message"
+      data-from="them"
       onMouseLeave={() => {
         closeMenu();
       }}

@@ -52,6 +52,7 @@ function Chat(props) {
         }`}
       ></div>
       <div
+        data-pw="chat-window"
         className={`app ${language}-app xs:right-0 xs:left-auto xs:top-0 xs:z-9999999999999 xs:h-screen`}
       >
         <textarea id="text-copy"></textarea>
@@ -81,7 +82,10 @@ function Chat(props) {
             <NewChatsSide activeChat={activeChat} chats={chats} />
           </>
         ) : (
-          <div className="notification-enable text-[#5d5d5d]">
+          <div
+            className="notification-enable text-[#5d5d5d]"
+            data-pw="chat-notification-gate"
+          >
             {translate("Please Enable Notification to use Chat", language)}
           </div>
         )}

@@ -87,7 +87,7 @@ describe("QrScannerModal", () => {
     expect((document.querySelector("video") as HTMLVideoElement).srcObject, "the stream is not on the video").toBe(
       stream,
     );
-    expect(screen.getByText("Scan to sign in"), "the title is missing").toBeInTheDocument();
+    expect(screen.getByText("Scan To Sign In"), "the title is missing").toBeInTheDocument();
     const close = document.querySelector('[data-pw="qr-scanner-close"]') as HTMLElement;
     expect(close.style.right, "the LTR close button is not on the right").toBe("20px");
   });
@@ -164,7 +164,7 @@ describe("QrScannerModal", () => {
     getUserMedia.mockRejectedValue(new Error("denied"));
     await openScanner();
     expect(
-      screen.getByText("Camera unavailable — allow camera access to scan"),
+      screen.getByText("Camera Unavailable — Allow Camera Access To Scan"),
       "a refused camera gave no message",
     ).toBeInTheDocument();
   });
@@ -180,7 +180,7 @@ describe("QrScannerModal", () => {
       refuse(new Error("denied"));
     });
     expect(
-      screen.queryByText("Camera unavailable — allow camera access to scan"),
+      screen.queryByText("Camera Unavailable — Allow Camera Access To Scan"),
       "a closed scanner showed a message",
     ).not.toBeInTheDocument();
   });

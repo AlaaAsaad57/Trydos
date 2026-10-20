@@ -44,9 +44,9 @@ function renderSize(initialData: any = { tall: 170, weight: 70 }, local = "gb-en
 
 describe("checking the values", () => {
   it.each([
-    [{}, "Height is required", "Weight is required"],
-    [{ tall: 100, weight: 30 }, "Height must be between 110 and 250 cm", "Weight must be between 40 and 180 kg"],
-    [{ tall: 260, weight: 190 }, "Height must be between 110 and 250 cm", "Weight must be between 40 and 180 kg"],
+    [{}, "Height Is Required", "Weight Is Required"],
+    [{ tall: 100, weight: 30 }, "Height Must Be Between 110 And 250 cm", "Weight Must Be Between 40 And 180 kg"],
+    [{ tall: 260, weight: 190 }, "Height Must Be Between 110 And 250 cm", "Weight Must Be Between 40 And 180 kg"],
   ])("refuses %o and names both problems", async (initial, tallError, weightError) => {
     await renderSize(initial);
     await userEvent.setup().click(save());
@@ -59,9 +59,9 @@ describe("checking the values", () => {
     await renderSize(null);
     await userEvent.setup().click(save());
     fireEvent.change(tall(), { target: { value: "180" } });
-    expect(screen.queryByText("Height is required"), "editing the height kept its error").not.toBeInTheDocument();
+    expect(screen.queryByText("Height Is Required"), "editing the height kept its error").not.toBeInTheDocument();
     fireEvent.change(weight(), { target: { value: "80" } });
-    expect(screen.queryByText("Weight is required"), "editing the weight kept its error").not.toBeInTheDocument();
+    expect(screen.queryByText("Weight Is Required"), "editing the weight kept its error").not.toBeInTheDocument();
     fireEvent.change(tall(), { target: { value: "181" } });
     fireEvent.change(weight(), { target: { value: "81" } });
     expect(tall().value, "the height input did not take the new value").toBe("181");

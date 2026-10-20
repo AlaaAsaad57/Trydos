@@ -75,7 +75,7 @@ describe("ShareButton", () => {
     await renderButton({ selectedContactsForShare: [], shareLoading: false });
     fireEvent.click(screen.getByText("Share"));
     expect(showErrorNotification, "no contact did not ask for one").toHaveBeenCalledWith(
-      "please select one contact at least",
+      "Please Select One Contact At Least",
     );
     expect(chat.ShareProduct, "a share was sent to nobody").not.toHaveBeenCalled();
   });

@@ -38,7 +38,7 @@ describe("LastMessageBody", () => {
 
   it("says a deleted message was deleted", async () => {
     await mount({ auth_message_status: { is_deleted: 1 }, message_type: { name: "TextMessage" } });
-    expect(screen.getByText("this message was deleted"), "a deleted last message was not labelled").toBeInTheDocument();
+    expect(screen.getByText("This Message Was Deleted"), "a deleted last message was not labelled").toBeInTheDocument();
     await mount({ sender_user_id: THEM, auth_message_status: { is_deleted: 1 }, message_type: { name: "TextMessage" } });
   });
 

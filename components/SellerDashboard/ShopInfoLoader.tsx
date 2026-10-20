@@ -74,9 +74,18 @@ export default function ShopInfoLoader({
         }
         const currency = res?.data?.currency;
         const rawApproval = res?.data?.is_new_products_approval;
+        const rawDigits = currency?.decimal_digits;
+        const decimalDigits =
+          rawDigits !== undefined && rawDigits !== null && !isNaN(Number(rawDigits))
+            ? Number(rawDigits)
+            : undefined;
         setDashboardShopInfo({
           sellerId,
-          currency: { code: currency?.code ?? "", name: currency?.name ?? "" },
+          currency: {
+            code: currency?.code ?? "",
+            name: currency?.name ?? "",
+            ...(decimalDigits !== undefined ? { decimal_digits: decimalDigits } : {}),
+          },
           // Restrict ONLY on an explicit falsy value (false / 0, incl. string
           // forms). Absent or null means the backend does not gate this seller.
           newProductsApproval:

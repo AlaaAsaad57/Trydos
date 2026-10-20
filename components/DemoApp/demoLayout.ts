@@ -1,25 +1,14 @@
 /**
  * The grid of the new app design, read out of the XD file.
  *
- * Every number is design px on the 430 x 932 artboard, the same canvas the new
- * login uses (scaling/scale.config.ts). Inside `#master-canvas` one design px is
- * one CSS px, so a screen places a block with the number from the file and it
- * lands where the designer put it, on every device.
+ * Every number is design px on the 430 x 932 artboard. The fluid demo draws
+ * one design px as one CSS px (see components/DemoApp1/demo1Layout.ts).
  *
  * The status bar
  * --------------
  * Every artboard draws a phone status bar in its top 50 px (time, network,
  * battery). The real phone draws its own, so the app does not. That makes the
- * design y 50 the top of the app. `top(y)` turns a design y into a CSS top:
- * `y - 50`, plus the device's own top inset, the same rule `controlTop()` in
- * NewLoginDesign/authLayout.ts uses for the login's corner control.
- *
- * The bottom
- * ----------
- * Bottom elements (the tab bar, the wide buttons) keep their distance from the
- * bottom of the canvas, like `fromBottom()` in the login. The canvas is
- * `932 - deficit` tall, so a CSS `bottom` equal to the design gap does exactly
- * that: `bottom(y, h)` = 932 - (y + h).
+ * design y 50 the top of the app.
  */
 
 export const DESIGN_W = 430;
@@ -27,22 +16,6 @@ export const DESIGN_H = 932;
 
 /** The phone status bar every artboard draws on top. */
 export const STATUS_BAR = 50;
-
-/** The device's own top inset. 0 in a browser tab, the notch in a home-screen app. */
-export const SAFE_TOP = "env(safe-area-inset-top, 0px)";
-
-/** A design y as a CSS top, with the drawn status bar taken off. */
-export const top = (y: number) => `calc(${y - STATUS_BAR}px + ${SAFE_TOP})`;
-
-/**
- * The same for the header row. It also cancels the keyboard lift, so the
- * header stays on screen when AppScaler slides the canvas up for the keyboard.
- */
-export const headerTop = (y: number) =>
-  `calc(${y - STATUS_BAR}px + ${SAFE_TOP} + var(--app-keyboard-lift, 0px))`;
-
-/** A design box as a CSS bottom: its distance from the bottom of the artboard. */
-export const bottom = (y: number, h: number) => DESIGN_H - (y + h);
 
 /**
  * The top of a text box from the y that XD stores.
@@ -52,6 +25,37 @@ export const bottom = (y: number, h: number) => DESIGN_H - (y + h);
  * the baseline minus the font size — see docs/login-design-xd-parity.md.
  */
 export const textTop = (baseline: number, size: number) => baseline - size;
+
+/**
+ * The line height that keeps a text's baseline exactly 1.0 em below its box top.
+ *
+ * `line-height: 1.25` is right on paper, but the browsers round the descender
+ * (0.25 em) to a whole px first. At 10, 11, 14, 15 and 18 px the half-leading
+ * then goes negative, and Chrome floors it: the text is drawn 1 px higher than
+ * the file puts it (WebKit 1/3 px). A line box of exactly the rounded ascender
+ * + descender has no half-leading, so both engines put the baseline where the
+ * file does, at every size (measured 9 to 28 px, Chrome and WebKit).
+ */
+export const lineBox = (size: number) => size + Math.round(size / 4);
+
+/** The design y where a text's line box ends. */
+export const textBottom = (baseline: number, size: number) =>
+  textTop(baseline, size) + lineBox(size);
+
+/**
+ * The margin above a text, so that its baseline lands on the file's
+ * `baseline` when the block above it ends at design y `above`.
+ */
+export const gapTo = (above: number, baseline: number, size: number) =>
+  textTop(baseline, size) - above;
+
+/**
+ * The box top of a paragraph whose lines are `lineHeight` apart, from the
+ * first line's baseline. The extra line height is shared above and below the
+ * text, so the first baseline sits half of it lower than in a `lineBox`.
+ */
+export const paraTop = (baseline: number, size: number, lineHeight: number) =>
+  textTop(baseline, size) - (lineHeight - lineBox(size)) / 2;
 
 /** The colours the new design uses, by the name of the job they do. */
 export const C = {
@@ -63,13 +67,42 @@ export const C = {
   line: "#D3D3D3",
   placeholder: "#D3D3D3",
   purple: "#4A31E7",
+  /** The pale purple behind "Recommended" on the cash-out sheet. */
+  purpleTint: "#F5F4FF",
+  /** The chosen tab on the cash-out form. */
+  green: "#79E9B3",
   blue: "#388CFF",
+  /** The line of the amount field when the balance is too small (`Home Page – 20`). */
+  orange: "#F4BB7A",
+  /** Behind "Your balance is insufficient" (`– 20`). */
+  orangeTint: "#FFF8F4",
+  /** Behind "Only the named person may receive the amount !" (`– 27`). */
+  noteTint: "#FFF8F2",
+  /** The dashed line of the "Back" button (`– 30`). */
+  lineDark: "#5D5C5D",
+  /** The chosen tab and the network tag on the cash-in sheet (`– 26`, `– 33`, `– 37`). */
+  yellow: "#FAE26B",
+  /** "I Agree" and the time left on the crypto code (`– 39`, `– 37`). */
+  cryptoBlue: "#3066CC",
+  /** The line of "I Agree" (`– 39`). */
+  agreeLine: "#3EAA72",
+  /** The line round the sheet that lies over another sheet (`– 39`). */
+  sheetEdge: "#707070",
+  /** The rings and the small text of the safety list (`– 39`). */
+  ring: "#8E8E8E",
+  /** The dots of the safety list: done (green) and take care (amber). */
+  safeGreen: "#00DD80",
+  safeAmber: "#F2B835",
+  /** The expiry lines of the crypto code (`– 37`, `– 38`). */
+  expiry: "#F4780E",
   red: "#FF5F61",
   card: "#FCFCFC",
   field: "#F8F8F8",
   page: "#FCFCFC",
   white: "#FFFFFF",
   backdrop: "rgba(29, 29, 29, 0.9)",
+  /** Behind the receipt: `#1D1D1D` at 50%, over the file's background blur. */
+  backdropGlass: "rgba(29, 29, 29, 0.5)",
 } as const;
 
 /** The header every inner screen has: a white 50 px strip under the status bar. */
@@ -91,7 +124,7 @@ export const BODY_Y = HEADER.y + HEADER.height;
 /** The grey banner under the header on the profile forms. */
 export const BANNER = { y: 100, height: 48 } as const;
 
-/** The wide button at the bottom of a form: 390 x 60 at (20, 836). */
+/** The wide button at the bottom of a form: 390 x 60 at (20, 836), 36 above the bottom. */
 export const CTA = {
   x: 20,
   y: 836,
@@ -131,5 +164,28 @@ export const SCREEN_TRANSITION = {
 /** The bottom sheets (QR sheet in the login, the pickers here). */
 export const SHEET = {
   radius: 30,
+  /** The wallet sheets (`Home Page – 21`, `– 19`) have rounder corners. */
+  radiusWallet: 50,
   handle: { width: 40, top: 12, height: 2 },
 } as const;
+
+/**
+ * The phone's own rounded font. The file writes a few lines in it (the safety
+ * list of `Home Page – 39`, the expiry lines of `– 37`): `ui-rounded` is
+ * SF Pro Rounded on an iPhone. Other systems have no such font and fall back
+ * to Quicksand.
+ */
+export const SF_ROUNDED = `ui-rounded, "SF Pro Rounded", var(--Quicksand-Regular), sans-serif`;
+
+/**
+ * The box top of an SF Pro Rounded line, so that its baseline lands on the
+ * file's `baseline` in a line `lineHeight` tall. SF Pro's ascent is 0.952 em
+ * and its descent 0.241 em; WebKit rounds each to a whole px and shares what
+ * is left of the line above and below them (at 12 px on an 18 px line the
+ * baseline is 13 px down).
+ */
+export const sfTop = (baseline: number, size: number, lineHeight: number) => {
+  const ascent = Math.round(0.952 * size);
+  const descent = Math.round(0.241 * size);
+  return baseline - ((lineHeight - (ascent + descent)) / 2 + ascent);
+};

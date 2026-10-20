@@ -48,7 +48,7 @@ describe("QrLoginScreen", () => {
       SESSION.qrPayload,
     );
     expect(
-      screen.getByText(/open Settings → Linked Devices → Scan/),
+      screen.getByText(/Open Settings → Linked Devices → Scan/),
       "the how-to line is missing while waiting",
     ).toBeInTheDocument();
 
@@ -58,7 +58,7 @@ describe("QrLoginScreen", () => {
     qr.getQrStatus.mockResolvedValue({ status: "scanned" });
     await tick();
     expect(
-      screen.getByText("Scanned — confirm on your phone to continue"),
+      screen.getByText("Scanned — Confirm On Your Phone To Continue"),
       "the scanned state is not shown",
     ).toBeInTheDocument();
     expect(screen.getByTestId("qr").parentElement!.className, "the QR is not dimmed once scanned").toContain(
@@ -92,7 +92,7 @@ describe("QrLoginScreen", () => {
 
     qr.getQrStatus.mockResolvedValue({ status: "denied" });
     await tick();
-    expect(screen.getByText("Login was declined on your phone"), "the decline is not shown").toBeInTheDocument();
+    expect(screen.getByText("Login Was Declined On Your Phone"), "the decline is not shown").toBeInTheDocument();
 
     fireEvent.click(document.querySelector('[data-pw="qr-show-new-code"]') as HTMLElement);
     await act(async () => {});
@@ -102,10 +102,10 @@ describe("QrLoginScreen", () => {
   it.each([
     ["the session service fails", () => qr.createQrSession.mockRejectedValue(new Error("down"))],
     ["the session answer has no payload", () => qr.createQrSession.mockResolvedValue({ requestId: "r" })],
-  ])("shows 'Something went wrong' when %s", async (_name, setup) => {
+  ])("shows 'Something Went Wrong' when %s", async (_name, setup) => {
     setup();
     await openScreen();
-    expect(screen.getByText("Something went wrong"), "no error with a retry").toBeInTheDocument();
+    expect(screen.getByText("Something Went Wrong"), "no error with a retry").toBeInTheDocument();
     expect(screen.queryByTestId("qr"), "a code showed without a session").not.toBeInTheDocument();
   });
 

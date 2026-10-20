@@ -115,8 +115,35 @@ catalogue change into a red suite, which teaches everyone to ignore it.
 **4. Never assert, log or snapshot a token, an OTP, a phone number, an email or
 a password.** `harness/redact.ts` masks all of them; use it on anything printed.
 
-**5. Reads may retry. Writes never.** `retries: 0` is set in the config, because
-a retried checkout is a duplicated order.
+**5. A case never re-runs; a failed backend call is asked again.** `retries: 0`
+is set in the config, because a re-run checkout is a duplicated order.
+
+A single network call is different. When Cloudflare answers for a backend
+that fell over (520–527), or the app's proxy could not reach it (503), the
+call is asked again: up to three more times, 5, 10 and 20 seconds apart, never
+later than 60 seconds after the first try (`harness/unstableRetry.ts`). Every
+context the suite builds has it. A retry costs time only when a call fails.
+
+**Writes are retried too — the owner's decision on 2026-09-28**, which
+replaced "reads may retry, writes never". A 520 does not say whether the
+backend did the work before it failed, so a retried write can be applied
+twice: a second order, a checklist toggle undone, a message sent twice. Every
+retry is written to the case's annotations (`backend retried`) and to the log,
+so read them before trusting what a rescued case left behind. Calls the
+Next.js server makes while it renders are not reached by this.
+
+Two calls are never asked again:
+
+- **A preload through the proxy.** On `127.0.0.1` the proxy answers every
+  preload with 503, and the app then asks with its own `fetch`. Only the app's
+  own call (`fetch` or `xhr`) is retried.
+- **A call whose page has closed.** Nobody is waiting for the answer, so it is
+  dropped without failing the case.
+
+**A page that does not open in time says why.** `harness/pageOpen.ts` asks
+staging once at that moment. The failure names the backend that was not
+serving, or says that every backend answered and the app's own server was the
+one waiting. Use `openPage` instead of `page.goto` in a new action.
 
 **6. Everything you create, you tag and you register for teardown** — at the
 moment it is created, not after the assertions, so a failed assertion still
@@ -135,15 +162,16 @@ sentence used to say so and was never true.)
 
 > The jars that exist: `signed-in.json`, `profile.json`,
 > `profile-scripted.json`, `shopper.json`, `stories.json`,
-> `stories-reporter.json`, `comments.json` — and `qa-seller.json`, which the
-> **seed** writes and three specs read. All of them live under
+> `stories-reporter.json`, `comments.json`, `chat.json` — and
+> `qa-seller.json`, which the **seed** writes and four specs read. All of them live under
 > `tests/e2e/.auth/` and `globalTeardown` clears the whole directory.
 >
 > **A jar is a snapshot, so every case that uses one hands it back.** The moment
 > a case does authenticated work the app can exchange the credential, and the
-> file on disk is then superseded. `comments.live.spec.ts` sorts **before**
-> `sellerDashboard.live.spec.ts` in the account lane and both read
-> `qa-seller.json`, so the first one to leave it stale breaks the second.
+> file on disk is then superseded. `chat.live.spec.ts` sorts **before**
+> `comments.live.spec.ts`, which sorts before `sellerDashboard.live.spec.ts`
+> in the account lane, and all three read `qa-seller.json`. So the first one to
+> leave it stale breaks the ones after it.
 
 > **One accepted exception: Shopper A signs in twice.** `profile.scripted.spec.ts`
 > keeps its own session rather than borrowing the live spec's, because a snapshot
@@ -154,7 +182,7 @@ sentence used to say so and was never true.)
 
 ### What a full run spends in real one-time codes
 
-Sixteen sends: `AUTH-01`, `PROF-01`, `RECOV-01`, `CMT-01`, five in
+Seventeen sends: `AUTH-01`, `PROF-01`, `RECOV-01`, `CMT-01`, `CHAT-01`, five in
 `auth.scripted.spec.ts`, and **seven** added by the profile branches — one
 sign-in for each of `SCRIPT-07` to `SCRIPT-12`, plus `SCRIPT-12`'s
 change-number send, which is a server action and cannot be intercepted.
@@ -164,6 +192,11 @@ the other seven cases open the jar it saves, and the seller half of that journey
 signs in to nothing at all — it opens the jar the QA seed saved. A throttled
 send sleeps the backend's own cooldown, so an extra one here is paid for out of
 a **different** case's budget.
+
+`CHAT-01` is the seventeenth, for the same reason and in the same way: one send
+for the whole chat journey. Shopper B, the other person in the chat, opens the
+seed's jar. The scripted chat cases (`SCRIPT-27` to `SCRIPT-43`) send none —
+their chat shopper is faked.
 
 **Why six sign-ins and not one.** Those cases may not share a session: several
 damage their own on purpose, and none may hand that on. A shared session was

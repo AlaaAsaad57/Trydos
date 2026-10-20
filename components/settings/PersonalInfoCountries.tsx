@@ -419,6 +419,7 @@ function PersonalInfoCountries({
                     }
                   }}
                   aria-label={translateFunction("Confirm")}
+                  data-pw="country-change-confirm"
                   autoFocus
                 >
                   {translateFunction("Confirm")}

@@ -66,9 +66,9 @@ describe("SearchImage", () => {
   it("on desktop: opens a menu, and the file option opens a file picker", async () => {
     await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
     fireEvent.click(camIcon());
-    const fromFiles = screen.getByLabelText("Choose file from device");
+    const fromFiles = screen.getByLabelText("Choose File From Device");
     fireEvent.click(fromFiles);
-    expect(screen.queryByLabelText("Choose file from device"), "the menu stayed open after a pick").toBeNull();
+    expect(screen.queryByLabelText("Choose File From Device"), "the menu stayed open after a pick").toBeNull();
     expect(fileInputs().length, "no file picker was opened").toBe(1);
     expect(fileInputs()[0].onblur!(new FocusEvent("blur")), "the picker's blur handler should do nothing").toBeUndefined();
   });
@@ -76,11 +76,11 @@ describe("SearchImage", () => {
   it("on desktop: the camera option opens the camera, and a shot goes to the crop step", async () => {
     await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
     fireEvent.click(camIcon());
-    fireEvent.click(screen.getByLabelText("Take photo with camera"));
+    fireEvent.click(screen.getByLabelText("Take Photo With Camera"));
     fireEvent.click(screen.getByText("close camera"));
     expect(screen.queryByTestId("camera"), "the camera did not close").toBeNull();
     fireEvent.click(camIcon());
-    fireEvent.click(screen.getByLabelText("Take photo with camera"));
+    fireEvent.click(screen.getByLabelText("Take Photo With Camera"));
     fireEvent.click(screen.getByText("capture"));
     expect(screen.queryByTestId("camera"), "the camera stayed open after a shot").toBeNull();
     expect(screen.getByTestId("crop").dataset.name, "the shot did not go to the crop step").toBe("shot.png");
@@ -90,10 +90,10 @@ describe("SearchImage", () => {
     await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
     fireEvent.mouseDown(document.body);
     fireEvent.click(camIcon());
-    fireEvent.mouseDown(screen.getByLabelText("Take photo with camera"));
-    expect(screen.getByLabelText("Take photo with camera"), "a click inside closed the menu").toBeInTheDocument();
+    fireEvent.mouseDown(screen.getByLabelText("Take Photo With Camera"));
+    expect(screen.getByLabelText("Take Photo With Camera"), "a click inside closed the menu").toBeInTheDocument();
     fireEvent.mouseDown(document.body);
-    expect(screen.queryByLabelText("Take photo with camera"), "a click outside did not close the menu").toBeNull();
+    expect(screen.queryByLabelText("Take Photo With Camera"), "a click outside did not close the menu").toBeNull();
   });
 
   it.each([
@@ -103,7 +103,7 @@ describe("SearchImage", () => {
     setAgent(ua);
     await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
     fireEvent.click(camIcon());
-    expect(screen.queryByLabelText("Take photo with camera"), "a phone or tablet got the desktop menu").toBeNull();
+    expect(screen.queryByLabelText("Take Photo With Camera"), "a phone or tablet got the desktop menu").toBeNull();
     expect(fileInputs().length, "no file picker was opened").toBe(1);
     expect(fileInputs()[0].onblur!(new FocusEvent("blur")), "the picker's blur handler should do nothing").toBeUndefined();
   });
@@ -114,7 +114,7 @@ describe("SearchImage", () => {
     fireEvent.click(camIcon());
     const target = choose(fileInputs()[0], new File(["x"], "a.pdf", { type: "application/pdf" }));
     expect(window.alert, "a wrong file type was not refused").toHaveBeenCalledWith(
-      "please select supported image format (jpeg, png, jpg, webp, svg, avif)",
+      "Please Select Supported Image Format (Jpeg, Png, Jpg, Webp, Svg, Avif)",
     );
     expect(target.value, "the refused file was left in the picker").toBeNull();
     expect(screen.queryByTestId("crop"), "a refused file reached the crop step").toBeNull();
@@ -149,8 +149,8 @@ describe("SearchImage", () => {
   });
 
   it.each([
-    ["the image-search route's own error", { error: "quota reached" }, "quota reached"],
-    ["a general message when the route gives none", {}, "Failed to search with image"],
+    ["the image-search route's own error", { error: "quota reached" }, "Quota Reached"],
+    ["a general message when the route gives none", {}, "Failed To Search With Image"],
   ])("shows %s when image search is refused", async (_name, body, shown) => {
     setAgent("android mobile");
     fetchMock.mockResolvedValue({ ok: false, json: async () => body });
@@ -163,8 +163,8 @@ describe("SearchImage", () => {
   });
 
   it.each([
-    ["a thrown string", "boom", "boom"],
-    ["an empty throw", "", "failed to search with image"],
+    ["a thrown string", "boom", "Boom"],
+    ["an empty throw", "", "Failed To Search With Image"],
   ])("shows %s when image search cannot be reached", async (_name, thrown, shown) => {
     setAgent("android mobile");
     fetchMock.mockRejectedValue(thrown);

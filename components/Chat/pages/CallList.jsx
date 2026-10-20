@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { showDate } from "../chatsFunctions";
+import { getChatName, getChatPhoto, showDate } from "../chatsFunctions";
 import CallItem from "components/Chat/components/CallItem";
 import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
@@ -9,8 +9,14 @@ import chat from "services/chat";
 import Skeleton from "react-loading-skeleton";
 
 function CallList() {
-  const { calls, call_loading, deleteMessage, deleteCall, activeChat } =
-    useAppStore();
+  const {
+    calls,
+    call_loading,
+    deleteMessage,
+    deleteCall,
+    activeChat,
+    data: chats,
+  } = useAppStore();
   const [loading, setLoading] = useState(true);
   const init = async () => {
     setLoading(true);
@@ -64,6 +70,12 @@ function CallList() {
 
     return oldestCall.id;
   };
+  // The chat a call belongs to, with its members. The call record may carry
+  // its channel without the members, so the chat from the list fills in.
+  const chatOf = (call) =>
+    call.channel?.channel_members
+      ? call.channel
+      : chats?.find((c) => String(c.id) === String(call.channel_id));
   return (
     <div className="chat-list-items">
       {calls
@@ -76,8 +88,8 @@ function CallList() {
             Delete={() => {
               DeleteCall(call.id, call.channel_id);
             }}
-            photo={call.channel.photo_path}
-            name={call.channel.channel_name}
+            photo={getChatPhoto(chatOf(call))}
+            name={call.channel?.channel_name || getChatName(chatOf(call))}
             type={{
               type: call.message_type.name,
               sender: call.sender_user_id,

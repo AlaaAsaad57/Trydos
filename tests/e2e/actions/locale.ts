@@ -18,7 +18,8 @@
 import { expect, type Page } from "@playwright/test";
 
 import { LIVE_ORIGIN } from "../harness/env";
-import { region } from "../selectors";
+import { localeSettings, region } from "../selectors";
+import { localeParts, localePrefix, seedLocale } from "./nav";
 
 /** A browser that is plainly a person, not a crawler.
  *
@@ -287,4 +288,196 @@ export const pickCountries = async (
     FOREIGN_CANDIDATES.find((iso) => !list.includes(iso)) ?? "";
 
   return { served, foreign };
+};
+
+// ---------------------------------------------------------------------------
+// Changing the locale from the settings screens
+//
+// Everything above reads what `proxy.ts` decides from an address. These helpers
+// drive the other way in: a shopper who is already on the site and picks a new
+// language or country from Settings. The two screens write the locale cookies
+// themselves and then load a new address, so what matters is that all three
+// agree afterwards — the address, the saved choice, and the page.
+// ---------------------------------------------------------------------------
+
+/** The locale as the shopper meets it, read in one place.
+ *
+ *  Each value comes from a different layer, so a case can say which one did
+ *  not follow: the address is `proxy.ts` and the screen, the cookies are what
+ *  the next visit will use, and `<html lang>` is what the server rendered. */
+export type LocaleOnScreen = {
+  /** `iq-ar`, from the address. */
+  prefix: string;
+  /** The rendered `<html lang>`, e.g. `ar-IQ`. */
+  htmlLang: string;
+  /** The saved `country` cookie, or null when there is none. */
+  savedCountry: string | null;
+  /** The saved `language` cookie, or null when there is none. */
+  savedLanguage: string | null;
+};
+
+export const readLocaleOnScreen = async (page: Page): Promise<LocaleOnScreen> => {
+  // Every cookie, not `cookies(LIVE_ORIGIN)`. Both the app and `proxy.ts`
+  // write these as `Secure`, and Playwright leaves a `Secure` cookie out of a
+  // lookup by an `http://` address — even though the browser itself sends it to
+  // loopback. Asking by address reported a saved language as missing.
+  const host = new URL(LIVE_ORIGIN).hostname;
+  const cookies = (await page.context().cookies()).filter(
+    (cookie) => cookie.domain.replace(/^\./, "") === host,
+  );
+  // The app's own writer JSON-encodes the value and then URI-encodes it, so
+  // `ar` can arrive as `%22ar%22`. Both layers are taken off.
+  const saved = (name: string): string | null => {
+    const raw = cookies.find((cookie) => cookie.name === name)?.value;
+    if (raw === undefined) return null;
+    const decoded = decodeURIComponent(raw);
+    return decoded.replace(/^"(.*)"$/, "$1");
+  };
+
+  return {
+    prefix: localePrefix(page),
+    htmlLang: await page.evaluate(() => document.documentElement.lang),
+    savedCountry: saved("country"),
+    savedLanguage: saved("language"),
+  };
+};
+
+/** Start a guest on the settings page, in a country the app serves.
+ *
+ *  The country and language are saved first, so the region picker never opens
+ *  over the page. The settings page is opened by address rather than through
+ *  the home page: the home page builds every section from the search backend,
+ *  and a case about the settings screens should not wait on that. */
+export const startInSettings = async (
+  page: Page,
+  options: { country: string },
+): Promise<void> => {
+  await seedLocale(page, options.country);
+  await page.goto(`/${options.country}-en/settings`, {
+    waitUntil: "domcontentloaded",
+  });
+  await expect(
+    localeSettings.countryEntry(page),
+    "the settings page did not render",
+  ).toBeVisible();
+};
+
+/** Press one of the two entries on the settings page and wait for its screen.
+ *
+ *  Pressed until the address moves, not once. The settings page is
+ *  server-rendered, so the entry is on screen before React has attached its
+ *  handler, and a press in that window can do nothing at all. Measured: the
+ *  second switch in GUEST-50 pressed Languages on the freshly loaded Arabic
+ *  settings page and stayed there. `openCart` handles the same race the same
+ *  way. */
+const openSettingsEntry = async (
+  page: Page,
+  options: { entry: "language" | "country" },
+): Promise<void> => {
+  const control =
+    options.entry === "language"
+      ? localeSettings.languageEntry(page)
+      : localeSettings.countryEntry(page);
+  const screen = options.entry === "language" ? "/settings/languages" : "/settings/countries";
+
+  for (let press = 0; press < 3; press += 1) {
+    await control.click({ timeout: 10_000 }).catch(() => undefined);
+    const moved = await page
+      .waitForURL((url) => url.pathname.endsWith(screen), { timeout: 10_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (moved) return;
+  }
+  expect(
+    new URL(page.url()).pathname,
+    `pressing the ${options.entry} entry on the settings page never opened ${screen}`,
+  ).toContain(screen);
+};
+
+/** Pick a language on Settings → Languages and press Save.
+ *
+ *  Returns once the new settings page has rendered under the new address. The
+ *  screen reloads the whole document (`window.location.href`), so waiting for
+ *  the address is waiting for the change itself. */
+export const chooseLanguageInSettings = async (
+  page: Page,
+  options: { language: string },
+): Promise<LocaleOnScreen> => {
+  const { country } = localeParts(page);
+
+  await openSettingsEntry(page, { entry: "language" });
+  const row = localeSettings.language(page, options.language);
+  await expect(
+    row,
+    `the language screen offers no "${options.language}" row — the backend's /languages list may have dropped it`,
+  ).toBeVisible();
+  await row.click();
+
+  const save = localeSettings.saveLanguage(page);
+  await expect(
+    save,
+    `picking "${options.language}" did not offer a Save button`,
+  ).toBeVisible();
+
+  await Promise.all([
+    page.waitForURL(
+      (url) => url.pathname === `/${country}-${options.language}/settings`,
+    ),
+    save.click(),
+  ]);
+  await expect(
+    localeSettings.countryEntry(page),
+    `the settings page did not render again under /${country}-${options.language}`,
+  ).toBeVisible();
+
+  return readLocaleOnScreen(page);
+};
+
+/** Pick a country on Settings → Countries and confirm it.
+ *
+ *  The screen asks "are you sure?" before it changes anything, so this presses
+ *  Confirm too. Returns once the settings page has rendered under the new
+ *  address. */
+export const chooseCountryInSettings = async (
+  page: Page,
+  options: { country: string },
+): Promise<LocaleOnScreen & { flag: string | null }> => {
+  const { language } = localeParts(page);
+
+  await openSettingsEntry(page, { entry: "country" });
+  const row = region.country(page, options.country);
+  await expect(
+    row,
+    `the country screen offers no "${options.country}" row`,
+  ).toBeVisible();
+  await row.click();
+
+  const confirm = localeSettings.confirmCountry(page);
+  await expect(
+    confirm,
+    `picking "${options.country}" did not ask to confirm the change`,
+  ).toBeVisible();
+
+  await Promise.all([
+    page.waitForURL(
+      (url) => url.pathname === `/${options.country}-${language}/settings`,
+      // The screen fetches the new country's starting settings before it
+      // moves, so this is one backend round trip longer than a plain click.
+      { timeout: 30_000 },
+    ),
+    confirm.click(),
+  ]);
+  await expect(
+    localeSettings.countryEntry(page),
+    `the settings page did not render again under /${options.country}-${language}`,
+  ).toBeVisible();
+
+  return {
+    ...(await readLocaleOnScreen(page)),
+    flag: await localeSettings
+      .countryEntry(page)
+      .locator("img")
+      .first()
+      .getAttribute("src"),
+  };
 };

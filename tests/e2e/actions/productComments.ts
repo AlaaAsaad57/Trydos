@@ -37,6 +37,7 @@ import { expect, type Locator, type Page } from "@playwright/test";
 
 import { signedInSession } from "./auth";
 import { redact } from "../harness/redact";
+import { waitForRenewalSettled } from "../harness/renewalGate";
 import { productComments } from "../selectors";
 
 /** Endpoints this journey drives, as they appear in `x-proxy-url`. */
@@ -60,6 +61,11 @@ export type CallOutcome = {
   refusedByProxy: boolean;
   /** Ready to put in a message: already redacted, and carries no body. */
   said: string;
+  /** The proxy's `x-market-backend` label on the answer — `gateway` or `core`
+   *  for a market call, `""` for any other service or when no answer came. The
+   *  app's own word for who answered, so a market write is never blamed on a
+   *  backend by guess. */
+  label: string;
 };
 
 /** Watch for the proxy call carrying `endpoint`, and report what it answered.
@@ -133,6 +139,7 @@ export const watchCommentCall = async (
     return {
       status: sawUnauthorised ? 401 : 0,
       refusedByProxy: false,
+      label: "",
       said: redact(
         sawUnauthorised
           ? `${backend} answered ${options.endpoint} with 401 and the app's token exchange did not recover it, so the call never went through`
@@ -152,6 +159,7 @@ export const watchCommentCall = async (
   return {
     status,
     refusedByProxy: proxyOwnHeader,
+    label: response.headers()["x-market-backend"] ?? "",
     said: redact(
       proxyOwnHeader
         ? `the app's own proxy refused the call to ${options.endpoint} with ${status}, so ${backend} was never reached`
@@ -758,6 +766,12 @@ export const checkpoint = async (
   let outstanding: string[] = [];
 
   for (let attempt = 1; attempt <= CHECKPOINT_RELOADS; attempt += 1) {
+    // A reload cancels a renewal in flight, after the backend has spent the
+    // old refresh token. Up to six reloads over a minute outlive the 60-second
+    // access token, so one of them lands inside a renewal sooner or later: CI
+    // run 36620489226 lost the shopper's session this way at the end of CMT-06,
+    // and CMT-07 failed on it.
+    await waitForRenewalSettled(page);
     await page.reload({ waitUntil: "domcontentloaded" });
     state = await readPageState(page, { commentIds: options.commentIds });
     outstanding = options.unmet(state);

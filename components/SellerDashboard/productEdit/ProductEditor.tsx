@@ -30,6 +30,7 @@ import {
   DescriptorGroup,
   DiffEntry,
   emptyProductForm,
+  extractNames,
   chooseSaveErrorSummary,
   clearServerFieldErrors,
   fileName,
@@ -61,6 +62,7 @@ import {
   SectionProps,
 } from "./sections";
 import { FormSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
+import { applyAiSuggestion, clearAiPrefill, peekAiPrefill } from "./aiPrefill";
 
 const t = (s: string) => translateFunction(s);
 
@@ -68,26 +70,6 @@ const t = (s: string) => translateFunction(s);
  *  rest. One refusal on a product with ten colours and six sizes can carry a
  *  line per row, and a wall of near-identical lines above the form helps nobody. */
 const SERVER_MESSAGE_LIMIT = 5;
-
-/** Best-effort filename extraction from the media-server /upload/bulk shapes. */
-function extractNames(data: any): string[] {
-  const arr =
-    data?.files ??
-    data?.urls ??
-    data?.results ??
-    data?.data ??
-    (data?.url ? [data.url] : Array.isArray(data) ? data : []);
-  if (!Array.isArray(arr)) return [];
-  return arr
-    .map((item: any) => {
-      const raw =
-        typeof item === "string"
-          ? item
-          : item?.url ?? item?.path ?? item?.file_name ?? item?.name ?? "";
-      return fileName(raw);
-    })
-    .filter(Boolean);
-}
 
 export default function ProductEditor({
   sellerId,
@@ -102,8 +84,17 @@ export default function ProductEditor({
 }) {
   const router = useRouter();
   const isCreate = mode === "create";
+  // "Add with AI" hand-off: read once into state (StrictMode-safe), then
+  // cleared so a later manual "Add Product" opens empty.
+  const [aiPrefill] = useState(() => (isCreate ? peekAiPrefill(sellerId) : null));
+  const aiAnnounced = useRef(false);
+  useEffect(() => {
+    if (isCreate) clearAiPrefill(sellerId);
+  }, []);
   const { sellerProducts, sellerPermissions, setSellerPermissions } =
     useSellerProfile();
+  const language = (local || "").includes("-") ? (local || "").split("-")[1] : (local || "");
+  const isRtl = language === "ar" || language === "ku";
 
   // Shop info (fetched dashboard-wide by ShopInfoLoader). Only trusted when it
   // belongs to THIS shop — otherwise the inputs render without an overlay.
@@ -112,6 +103,7 @@ export default function ProductEditor({
   const shopInfo =
     dashboardShopInfo?.sellerId === sellerId ? dashboardShopInfo : null;
   const currency = shopInfo?.currency.code ?? "";
+  const decimalDigits = shopInfo?.currency?.decimal_digits;
 
   // Shop-info gating, applied to BOTH paths. Prices are the substance of this
   // screen and they are meaningless without the shop's currency, so the editor
@@ -240,12 +232,14 @@ export default function ProductEditor({
         // Create lookups sit flat under `data`; the edit endpoint nests them
         // under `data.lookups`. Same datasets, different nesting.
         const lk = withSellerProductIds(res.data || {}, res.data);
-        const built = emptyProductForm();
+        const empty = emptyProductForm();
+        // AI values count as unsaved changes: `initial` stays the empty form.
+        const built = aiPrefill ? applyAiSuggestion(empty, aiPrefill) : empty;
         baseLookups.current = lk;
         catCache.current = new Map();
         setLookups(lk);
         setForm(built);
-        setInitial(built);
+        setInitial(empty);
         setStatus(0);
         setEditMode(true);
         return;
@@ -453,7 +447,7 @@ export default function ProductEditor({
         url: files[i] ? URL.createObjectURL(files[i]) : "",
         isNew: true,
       }));
-      if (!items.length) throw new Error("Upload returned no files");
+      if (!items.length) throw new Error(t("Upload returned no files"));
       setForm((prev) =>
         prev ? { ...prev, images: [...prev.images, ...items] } : prev,
       );
@@ -474,7 +468,7 @@ export default function ProductEditor({
         "product/meta",
       );
       const name = extractNames(data)[0];
-      if (!name) throw new Error("Upload returned no file");
+      if (!name) throw new Error(t("Upload returned no file"));
       setForm((prev) =>
         prev
           ? { ...prev, meta_image: name, meta_image_url: URL.createObjectURL(file) }
@@ -494,7 +488,7 @@ export default function ProductEditor({
     try {
       const url = await SellerDashboardService.uploadShopImage(file, "product/videos");
       const name = fileName(url);
-      if (!name) throw new Error("Upload returned no file");
+      if (!name) throw new Error(t("Upload returned no file"));
       patch({ cloud_video: name });
     } catch (e: any) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -783,6 +777,28 @@ export default function ProductEditor({
     }
   };
 
+  // After an AI fill: once the real form (not the skeleton or a gate message)
+  // is on screen, say so once and bring the Name field into view.
+  const formShown =
+    !loading &&
+    !shopInfoPending &&
+    !denied &&
+    !shopInfoForbidden &&
+    !shopInfoUnavailable &&
+    !loadError &&
+    !!form &&
+    !!lookups;
+  useEffect(() => {
+    if (!aiPrefill || !formShown || aiAnnounced.current) return;
+    aiAnnounced.current = true;
+    showSuccessMessage(t("The details were filled by AI. Please check them before saving."));
+    requestAnimationFrame(() => {
+      document
+        .querySelector('[data-field="name"]')
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }, [aiPrefill, formShown]);
+
   /* ------------------------------- render --------------------------------- */
 
   // Both paths wait for shop info before rendering any price input, so a form
@@ -870,12 +886,13 @@ export default function ProductEditor({
     busy: catLoading,
     isCreate,
     currency,
+    decimalDigits,
   };
 
   const cover = form.images[0]?.url || listProduct?.images?.[0];
 
   return (
-    <div className="space-y-5">
+    <div dir={isRtl ? "rtl" : "ltr"} style={{ direction: isRtl ? "rtl" : "ltr" }} className="space-y-5">
       {/* Header card */}
       <div
         className="bg-white rounded-[15px] p-4 lg:p-5"
@@ -1103,7 +1120,7 @@ export default function ProductEditor({
             className="bg-white rounded-[15px] p-3 flex items-center justify-between gap-3"
             style={{ boxShadow: "0 6px 20px rgba(0,0,0,0.14)" }}
           >
-            <span className="text-[12px] text-[#8e8e8e] pl-1">
+            <span className="text-[12px] text-[#8e8e8e] ps-1">
               {t("Review your changes before saving.")}
             </span>
             <div className="flex items-center gap-2.5">
@@ -1151,6 +1168,7 @@ export default function ProductEditor({
           diff={confirm}
           saving={saving}
           create={isCreate}
+          isRtl={isRtl}
           onCancel={() => !saving && setConfirm(null)}
           onConfirm={confirmSave}
         />
@@ -1162,6 +1180,7 @@ export default function ProductEditor({
           target={statusTarget}
           saving={statusSaving}
           blockers={statusBlockers}
+          isRtl={isRtl}
           onCancel={() => !statusSaving && setStatusTarget(null)}
           onConfirm={confirmStatus}
         />
@@ -1176,13 +1195,15 @@ function Scrim({
   children,
   onClose,
   maxWidth = "max-w-[720px]",
+  isRtl,
 }: {
   children: React.ReactNode;
   onClose: () => void;
   maxWidth?: string;
+  isRtl?: boolean;
 }) {
   return (
-    <div className="fixed inset-0 z-[999999999] flex items-center justify-center p-4">
+    <div dir={isRtl ? "rtl" : "ltr"} style={{ direction: isRtl ? "rtl" : "ltr" }} className="fixed inset-0 z-[999999999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" onClick={onClose} />
       <div
         className={`relative bg-white rounded-[20px] z-10 w-full ${maxWidth} max-h-[88vh] flex flex-col overflow-hidden transition-all duration-200`}
@@ -1231,12 +1252,12 @@ function TranslationsDiffView({ details }: { details: TranslationDiffItem[] }) {
             </div>
             <StatusBadge status={tr.status} />
           </div>
-          <div className="space-y-1.5 pl-3">
+          <div className="space-y-1.5 ps-3">
             {tr.changes.map((c, i) => (
               <div key={i} className="flex flex-wrap items-center gap-2 text-[12px] bg-[#f9fafb] p-2 rounded-[8px] border border-[#f3f4f6]">
                 <span className="font-medium text-[#6b7280] min-w-[110px]">{c.fieldLabel}:</span>
                 <span className="text-[#9ca3af] line-through max-w-[200px] truncate">{c.from}</span>
-                <DashIcon name="chevronRight" size={12} className="text-[#9ca3af]" />
+                <DashIcon name="chevronRight" size={12} className="text-[#9ca3af] rtl:rotate-180" />
                 <span className="font-semibold text-[#111827] flex-1 min-w-[120px]">{c.to}</span>
               </div>
             ))}
@@ -1264,13 +1285,13 @@ function VariantsDiffView({ details }: { details: VariantDiffItem[] }) {
             </div>
             <StatusBadge status={v.status} />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 ps-1">
             {v.changes.map((c, i) => (
               <div key={i} className="flex items-center justify-between gap-2 text-[12px] bg-[#f9fafb] p-2 rounded-[8px] border border-[#f3f4f6]">
                 <span className="font-medium text-[#6b7280]">{c.fieldLabel}:</span>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[#9ca3af] line-through">{c.from}</span>
-                  <DashIcon name="chevronRight" size={12} className="text-[#9ca3af]" />
+                  <DashIcon name="chevronRight" size={12} className="text-[#9ca3af] rtl:rotate-180" />
                   <span className="font-bold text-[#111827]">{c.to}</span>
                 </div>
               </div>
@@ -1472,12 +1493,14 @@ function ConfirmDialog({
   create,
   onCancel,
   onConfirm,
+  isRtl,
 }: {
   diff: DiffEntry[];
   saving: boolean;
   create?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
+  isRtl?: boolean;
 }) {
   const [expandedKeys, setExpandedKeys] = useState<Record<string, boolean>>({});
 
@@ -1486,7 +1509,7 @@ function ConfirmDialog({
   };
 
   return (
-    <Scrim onClose={onCancel} maxWidth="max-w-[720px]">
+    <Scrim onClose={onCancel} maxWidth="max-w-[720px]" isRtl={isRtl}>
       <div className="p-5 border-b border-[#ededed] bg-[#fafafa]">
         <h3 className="text-[16px] font-bold text-[#111827]">
           {create ? t("Confirm new product") : t("Confirm changes")}
@@ -1630,16 +1653,18 @@ function StatusDialog({
   blockers,
   onCancel,
   onConfirm,
+  isRtl,
 }: {
   target: 0 | 1;
   saving: boolean;
   blockers: string[];
   onCancel: () => void;
   onConfirm: () => void;
+  isRtl?: boolean;
 }) {
   const enabling = target === 1;
   return (
-    <Scrim onClose={onCancel}>
+    <Scrim onClose={onCancel} isRtl={isRtl}>
       <div className="p-6 text-center">
         <div
           className={`w-14 h-14 mx-auto mb-4 rounded-full flex items-center justify-center ${
@@ -1658,7 +1683,7 @@ function StatusDialog({
         </p>
 
         {blockers.length > 0 && (
-          <div className="text-left mb-4 p-3 rounded-[12px] bg-[#fff1f1] border border-[#ffd9d9]">
+          <div className="text-start mb-4 p-3 rounded-[12px] bg-[#fff1f1] border border-[#ffd9d9]">
             <p className="text-[12px] semibold text-[#f85555] mb-1.5">
               {t("Cannot enable yet — resolve these first:")}
             </p>

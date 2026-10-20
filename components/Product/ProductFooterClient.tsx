@@ -69,6 +69,7 @@ const ProductFooterClient = ({
         QtyPricePromise={QtyPricesData}
         globalPromise={GlobalData}
         isRtl={isRtl}
+        language={language}
         color={color}
         size={Size}
         currencyPromise={currency}

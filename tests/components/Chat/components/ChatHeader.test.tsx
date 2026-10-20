@@ -25,7 +25,11 @@ vi.mock("utils/functions", async (importOriginal) => ({
   LogError: (...a: any[]) => h.logError(...a),
 }));
 vi.mock("components/Chat/components/ChatPhoto", () => ({
-  default: (p: any) => <div data-testid="photo">{p.user?.name}</div>,
+  default: (p: any) => (
+    <div data-testid="photo" data-photo={p.user?.photo_path}>
+      {p.user?.name}
+    </div>
+  ),
 }));
 
 // TypingIndicator.js holds JSX in a .js file, which the test build cannot parse.
@@ -87,6 +91,17 @@ describe("ChatHeader — who and where", () => {
     expect(p.openDetails, "the details did not open").toHaveBeenCalled();
   });
 
+  it("names the chat after channel_name, with the other person's own picture", async () => {
+    await mount({ activeChat: chat({ channel_name: "Shop Name", photo_path: "/channel.png" }) });
+    expect(document.querySelector(".user-name-top-chat")?.textContent, "the header did not use the chat's channel_name").toBe(
+      "Shop Name",
+    );
+    expect(screen.getByTestId("photo").dataset.photo, "the header did not show the other person's own picture").toBe("/p.png");
+    expect(screen.getByTestId("photo").textContent, "the picture's initials did not come from the chat's channel_name").toBe(
+      "Shop Name",
+    );
+  });
+
   it("falls back to the chat id when the other person has no name", async () => {
     await mount({ activeChat: chat({ channel_members: [{ user_id: ME }, { user_id: 2, user: {} }] }) });
     expect(screen.getByText("User-7"), "a nameless chat did not fall back to its id").toBeInTheDocument();
@@ -98,7 +113,7 @@ describe("ChatHeader — who and where", () => {
     await mount({ activeChat: chat({ status: "null", activeDate: "2030-01-15T11:58:00" }) });
     expect(screen.getByText("Online"), "someone seen two minutes ago was not online").toBeInTheDocument();
     await mount({ activeChat: chat({ activeDate: "2020-01-15T10:00:00" }) });
-    expect(screen.getByText(/last Seen/), "someone seen long ago did not show last seen").toBeInTheDocument();
+    expect(screen.getByText(/Last Seen/), "someone seen long ago did not show last seen").toBeInTheDocument();
   });
 
   it("hides the status of a blocked chat, and an empty status", async () => {
@@ -150,6 +165,26 @@ describe("ChatHeader — calls", () => {
     expect(h.video, "the video call was not placed").toHaveBeenCalledWith(7, "Other Person", "/p.png", "p-0", null);
   });
 
+  it("names the call after channel_name", async () => {
+    await mount({ activeChat: chat({ channel_name: "Shop Name" }) });
+    fireEvent.click(voiceBtn());
+    fireEvent.click(videoBtn());
+    expect(h.voice, "the voice call screen was not given the chat's channel_name").toHaveBeenCalledWith(
+      7,
+      "Shop Name",
+      "/p.png",
+      "p-0",
+      null,
+    );
+    expect(h.video, "the video call screen was not given the chat's channel_name").toHaveBeenCalledWith(
+      7,
+      "Shop Name",
+      "/p.png",
+      "p-0",
+      null,
+    );
+  });
+
   it("an order chat sends the order participant with the call", async () => {
     await mount({ isPrivate: 5, activeChat: chat({ order_chat_participant_id: 33 }) });
     fireEvent.click(voiceBtn());
@@ -177,8 +212,8 @@ describe("ChatHeader — calls", () => {
     fireEvent.click(voiceBtn());
     fireEvent.click(videoBtn());
     expect(h.showError.mock.calls.map((c) => c[0]), "the blocked calls were not refused with a message").toEqual([
-      "You cannot send messages or calls to this user",
-      "You cannot send messages or calls to this user",
+      "You Cannot Send Messages Or Calls To This User",
+      "You Cannot Send Messages Or Calls To This User",
     ]);
     expect(h.voice, "a blocked chat placed a call").not.toHaveBeenCalled();
   });
@@ -188,8 +223,8 @@ describe("ChatHeader — calls", () => {
     fireEvent.click(voiceBtn());
     fireEvent.click(videoBtn());
     expect(h.showError.mock.calls.map((c) => c[0]), "a call that could not start was not reported").toEqual([
-      "Failed to Initialize Call",
-      "Failed to Initialize Call",
+      "Failed To Initialize Call",
+      "Failed To Initialize Call",
     ]);
     expect(h.logError.mock.calls.map((c) => c[0].scenario), "the failed calls were not logged").toEqual([
       "initial audioCallFunction in chat header - chat widget",

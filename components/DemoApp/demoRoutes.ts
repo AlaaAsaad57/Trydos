@@ -12,7 +12,7 @@
  *
  * The demo shell draws the screen from this table, not from the page file of
  * the route, so a tap slides the next screen in on the same frame and the URL
- * catches up behind it. See DemoShell for why.
+ * catches up behind it. See Demo1Shell for why.
  */
 
 export const DEMO_SCREENS = [
@@ -29,6 +29,7 @@ export const DEMO_SCREENS = [
   "settings/profile/body",
   "settings/profile/address",
   "settings/profile/address/new",
+  "settings/wallet",
 ] as const;
 
 export type DemoScreen = (typeof DEMO_SCREENS)[number];
@@ -115,6 +116,6 @@ export function direction(from: DemoScreen, to: DemoScreen): 1 | -1 {
   if (a !== b) return b > a ? 1 : -1;
   // A move inside one tab that is neither up nor down (client info → client
   // ID) is still a tap on something, so it goes forward. Only going back
-  // through history slides the other way, and DemoShell decides that itself.
+  // through history slides the other way, and Demo1Shell decides that itself.
   return 1;
 }

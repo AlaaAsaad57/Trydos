@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import auth from "services/auth";
+import { whenUserIdReady } from "utils/tinyUtils";
+import { useAppStore } from "store";
 
 function ProductImagesSlider({ children, language, productGA }) {
   const isRtl = language === "ar" || language === "ku";
@@ -17,22 +19,36 @@ function ProductImagesSlider({ children, language, productGA }) {
   });
 
   useEffect(() => {
-    GAevent({
-      action: GA_EVENT_NAMES.VIEW_IMAGE,
-      params: {
-        // image_index: slideIndex,
-        user_id_custom: auth.UserID(),
-        ...productGA,
-      },
-    });
-    GAevent({
-      action: GA_EVENT_NAMES.SCREEN_VIEW,
-      params: {
-        screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
-        screen_path: window.location.pathname,
-      },
-    });
-  }, []);
+    const launchEvents = (userId: any) => {
+      const activeUserId =
+        userId ??
+        auth.UserID() ??
+        useAppStore.getState().userProfile?.id ??
+        useAppStore.getState().user?.id;
+
+      GAevent({
+        action: GA_EVENT_NAMES.VIEW_IMAGE,
+        params: {
+          // image_index: slideIndex,
+          user_id_custom: activeUserId,
+          ...productGA,
+        },
+      });
+      GAevent({
+        action: GA_EVENT_NAMES.SCREEN_VIEW,
+        params: {
+          screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
+          screen_path: window.location.pathname,
+        },
+      });
+    };
+
+    const cleanup = whenUserIdReady(launchEvents, () => auth.UserID());
+
+    return () => {
+      cleanup();
+    };
+  }, [productGA?.item_id]);
   return (
     <div className="embla" ref={emblaRef}>
       <div

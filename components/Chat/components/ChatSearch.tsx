@@ -328,6 +328,7 @@ function ChatSearch({ close }) {
         <DebounceInput
           className="w-full text-[#1d1d1d] h-full border-none outline-hidden absolute top-0 left-0 pl-11 z-10 light rounded-[15px] bg-[#fafafa]"
           minLength={1}
+          data-pw="chat-search-input"
           placeholder={translateFunction("Search")}
           value={searchChat.searchValue}
           onChange={(e) => {

@@ -109,7 +109,7 @@ describe("the FAQ sheet", () => {
     fetchMock.mockResolvedValue(answer({ fqa_comments: [], offset: null }));
     await renderSheet();
     await waitFor(() => expect(fetchMock, "the sheet should load on open").toHaveBeenCalledTimes(1));
-    expect(screen.getByText("There is No Comments Yet.."), "an empty list should say so").toBeInTheDocument();
+    expect(screen.getByText("There Is No Comments Yet.."), "an empty list should say so").toBeInTheDocument();
     await userEvent.click(screen.getByText("size"));
     await waitFor(() => expect(fetchMock, "the filter should reload").toHaveBeenCalledTimes(2));
     expect(fetchMock.mock.calls[1][0], "the chosen kind should be sent").toContain("filter=size");

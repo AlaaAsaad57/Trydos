@@ -8,8 +8,9 @@
 // had a chat was offered as a new chat.
 //
 // The rows are: first the existing chats that match, then the contacts that
-// match and have no chat yet. A chat matches by the other user's name or phone,
-// or by the name or phone of the contact saved for that user.
+// match and have no chat yet. A chat matches by the name its row shows
+// (`channel_name`), by the other user's name or phone, or by the name or phone
+// of the contact saved for that user.
 
 /** The last 9 digits of a phone number.
  *
@@ -55,6 +56,27 @@ export const dedupeContacts = <T>(contacts: T[] | null | undefined): T[] => {
   return kept;
 };
 
+/** The row `dedupeContacts` keeps for the person `match` is, or null.
+ *
+ *  The add-contact form finds a saved record by its phone, but the list may
+ *  draw another record of the same person: the same object first, else the
+ *  kept row with the same user, else the one with the same phone. */
+export const drawnContactFor = <T>(
+  contacts: T[] | null | undefined,
+  match: T | null | undefined,
+): T | null => {
+  if (!match) return null;
+  const kept = dedupeContacts(contacts);
+  const user = contactUserId(match);
+  const phone = normalizePhone((match as any)?.mobile_phone);
+  return (
+    kept.find((c) => c === match) ??
+    (user !== null ? kept.find((c) => contactUserId(c) === user) : undefined) ??
+    (phone ? kept.find((c) => normalizePhone((c as any)?.mobile_phone) === phone) : undefined) ??
+    null
+  );
+};
+
 /** The direct chat with a user. An order chat with the same user does not count. */
 export const directChatWith = (chats: any[], userId: number | null) =>
   userId === null
@@ -93,6 +115,7 @@ export const searchChatList = ({
         (m: any) => parseInt(m.user_id) !== me,
       );
       if (!other) return false;
+      if (matches(chat.channel_name)) return true;
       if (matches(other.user?.name, other.user?.mobile_phone)) return true;
       return people.some(
         (p: any) =>
@@ -103,7 +126,7 @@ export const searchChatList = ({
 
   const newContacts = people.filter(
     (p: any) =>
-      matches(p.name, p.mobile_phone) &&
+      (matches(p.name, p.mobile_phone) || matches(p.contact_user?.name)) &&
       !directChatWith(chats, contactUserId(p)),
   );
 

@@ -263,7 +263,7 @@ describe("the compare page", () => {
     await waitFor(() => expect(spies.logError, "a search answer that is not a list must be logged").toHaveBeenCalledWith(
       expect.objectContaining({ scenario: "debouncedChangeHandler in Compare Page" }),
     ), { timeout: 2000 });
-    await waitFor(() => expect(document.querySelector('[data-pw="compare-search-1-no-options"]'), "a failed search must show no results").toHaveTextContent("No options found"));
+    await waitFor(() => expect(document.querySelector('[data-pw="compare-search-1-no-options"]'), "a failed search must show no results").toHaveTextContent("No Options Found"));
   });
 
   it("does not search for spaces only", async () => {

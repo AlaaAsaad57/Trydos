@@ -130,6 +130,10 @@ export default function NextLink({
       className={className}
       style={style}
       data-pw={props["data-pw"] ?? ""}
+      // Only when the caller passes one — the category bar puts the slug here,
+      // and the browser tests find an entry by it. Left undefined, React draws
+      // no attribute at all.
+      data-id={props["data-id"]}
       prefetch={"auto"}
       // See the note on the same attribute above.
       aria-label={ariaLabel}

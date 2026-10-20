@@ -155,7 +155,12 @@ function StoriesContainer({ selectedStory, stories }: any) {
               {i > -1 && i < storiesData.length && (
                 <>
                   {
+                    // Keyed by author: the cube keeps 4 panes and hands a pane
+                    // a new author as it turns. Without the key the holder kept
+                    // the last author's position and opened the new author
+                    // there, not on its first unseen story.
                     <StoryHolder
+                      key={storiesData[i].id}
                       active={i === cubeIndex}
                       isPaused={i !== cubeIndex}
                       story={StoryServiceClass.configureStory(storiesData[i])}

@@ -447,7 +447,7 @@ chat list.
 | | |
 |---|---|
 | **Steps** | 1. Start adding a contact. 2. Type a phone number that is already saved (try it in a different format too, for example with and without the country code). |
-| **Expected Result** | An orange line appears: "Already saved as <the old name>". The confirm button stays disabled. |
+| **Expected Result** | A red line appears: "Already saved as <name>". The name is the same name that contact shows in the list. The phone field turns red, and the confirm button stays disabled. In the list under the form, that contact moves to the top, with a red frame and a light red tint that pulse 3 times and then stay. The frame goes away, and the contact goes back to its place, when you change the number or close the form. |
 | **Severity if Failed** | MEDIUM |
 
 ---
@@ -509,7 +509,7 @@ chat list.
 | | |
 |---|---|
 | **Steps** | 1. Click **Copy Invite**. 2. Paste the text somewhere. |
-| **Expected Result** | Read the pasted text carefully and report exactly what it says. See **Known gaps, item 6**. |
+| **Expected Result** | Read the pasted text carefully and report exactly what it says. See **Known gaps, item 5**. |
 | **Severity if Failed** | MEDIUM |
 
 ---
@@ -699,16 +699,16 @@ chat list.
 | | |
 |---|---|
 | **Steps** | 1. With an empty input box, click the **camera** icon. |
-| **Expected Result** | A small window opens with the title "chosse an image or video from camera or files" and two choices: **files** and **camera**. |
+| **Expected Result** | A small window opens with the title "choose photo or video from gallery or camera" and two choices: **camera** and **Gallery**. |
 | **Severity if Failed** | MEDIUM |
 
 ---
 
-**TC-F-11 — "files" only accepts images and videos**
+**TC-F-11 — "Gallery" only accepts images and videos**
 
 | | |
 |---|---|
-| **Steps** | 1. Camera icon → **files**. 2. In the file picker, force-select `document.pdf` (choose "All files" if needed). |
+| **Steps** | 1. Camera icon → **Gallery**. 2. In the file picker, force-select `document.pdf` (choose "All files" if needed). |
 | **Expected Result** | A red error appears: "Only image and video files are allowed". Nothing is sent. |
 | **Severity if Failed** | MEDIUM |
 
@@ -1241,12 +1241,12 @@ conversation.
 
 ---
 
-**TC-J-11 — "Save To Gallery" row**
+**TC-J-11 — The photo strip slides, and there is no "Save To Gallery" row**
 
 | | |
 |---|---|
-| **Steps** | 1. Click the "Save To Gallery" row and the word "Never" next to it. |
-| **Expected Result** | See **Known gaps, item 5**. Nothing happens today. |
+| **Steps** | 1. Open the details drawer of a chat with 4 or more photos. 2. On a phone, swipe the photo strip left and right. 3. On a computer, press the mouse on the strip and drag it left and right. 4. Look below the strip. |
+| **Expected Result** | The strip moves with the finger and with the mouse drag. There is no "Save To Gallery" / "Never" row. A web page cannot save photos to the phone gallery, so the row was removed. |
 | **Severity if Failed** | LOW |
 
 ---
@@ -1712,9 +1712,7 @@ them. They are listed so you know that what you see is not new.
    text messages, where editing should not be offered at all.
 4. **Reminder and the category icon do nothing.** Both are in the message menu
    with no action behind them.
-5. **"Save To Gallery" and "Never" do nothing.** They are text only, in the chat
-   details drawer.
-6. **The invite text has a placeholder.** The app-store link inside the invite
+5. **The invite text has a placeholder.** The app-store link inside the invite
    message still ends with `your.app.id`, which is not a real app.
 
 ---

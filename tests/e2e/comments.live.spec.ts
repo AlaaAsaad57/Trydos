@@ -7,7 +7,13 @@
 //   CMT-05  both answers reach the shopper, who likes them; Edit is now gone
 //   CMT-06  a reload keeps every question, edit, answer and like
 //   CMT-07  every like is removed, and a reload keeps them off
+//   CMT-10  the seller edits one answer and deletes the other
+//   CMT-11  the shopper sees the edited answer, and no answer on the other
 //   CMT-08  both questions are deleted, the product is unliked, and it sticks
+//
+// CMT-10 and CMT-11 were added later and run **before** CMT-08, because CMT-08
+// deletes the two questions they need. The order in this file is the order they
+// run in.
 //
 // ---------------------------------------------------------------------------
 // Serial, and why that is not a preference
@@ -77,6 +83,8 @@ import {
 } from "./actions/productComments";
 import {
   answerQuestion,
+  deleteAnswer,
+  editAnswer,
   openCommentsSection,
   removeAnswer,
 } from "./actions/sellerComments";
@@ -125,6 +133,9 @@ const editedText = (place: string): string =>
 
 const answerText = (place: string): string =>
   `trydos qa ${RUN_TOKEN} shop answer for the ${place} question`;
+
+const editedAnswerText = (place: string): string =>
+  `trydos qa ${RUN_TOKEN} edited shop answer for the ${place} question`;
 
 /** What CMT-01 created, read by everything after it. */
 const asked: { inPage: string | null; inExtended: string | null } = {
@@ -821,6 +832,113 @@ test("CMT-07 every like is removed, and a reload keeps them off", async ({
           `after the reload the answer to the ${place} question (${id}) is liked again, so the unlike did not stick`,
         ).toBe(false);
       }
+    });
+  } finally {
+    finishShopperCase(context, page);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// CMT-10 and CMT-11 — the shop changes its mind
+//
+// Before CMT-08 on purpose: they need both questions, and CMT-08 deletes them.
+// ---------------------------------------------------------------------------
+
+test("CMT-10 the seller edits one answer and deletes the other", async ({
+  browser,
+}) => {
+  test.setTimeout(240_000);
+  test.skip(
+    !qaSellerSessionSaved(),
+    "the QA seed left no signed-in seller session, so it skipped or stopped before it signed in. Read the setup project's own line — it names the setting that is missing.",
+  );
+
+  const ids = idsFromCmt01();
+  const seed = readQaSeedState();
+  const { context, page } = await openSellerPage(browser);
+
+  try {
+    await test.step("the seller is offered the comments section", async () => {
+      await openCommentsSection(page, { sellerId: seed.sellerId });
+    });
+
+    await test.step("the answer to the page-FAQ question is edited", async () => {
+      await editAnswer(page, {
+        sellerId: seed.sellerId,
+        commentId: ids.inPage,
+        runToken: RUN_TOKEN,
+        text: editedAnswerText("page FAQ section"),
+      });
+    });
+
+    await test.step("the answer to the extended-area question is deleted", async () => {
+      await deleteAnswer(page, {
+        sellerId: seed.sellerId,
+        commentId: ids.inExtended,
+        runToken: RUN_TOKEN,
+      });
+    });
+  } finally {
+    await closeSellerPage(context, page);
+  }
+});
+
+test("CMT-11 the shopper sees the edited answer, and no answer where one was deleted", async ({
+  browser,
+}) => {
+  test.setTimeout(240_000);
+
+  const ids = idsFromCmt01();
+  const { context, page } = await openShopperOnProduct(browser);
+
+  try {
+    const state = await test.step(
+      "the product page is read until both changes show",
+      async () =>
+        checkpoint(page, {
+          commentIds: [ids.inPage, ids.inExtended],
+          what: "the edited answer and the deleted one",
+          unmet: (read) => {
+            const missing: string[] = [];
+            const edited = read.questions[ids.inPage];
+            if (!edited) {
+              missing.push(`the page FAQ question (${ids.inPage}) is not on the page`);
+            } else if (!(edited.replyText ?? "").includes("edited shop answer")) {
+              missing.push(
+                `the page FAQ question (${ids.inPage}) still shows the answer from before the edit`,
+              );
+            }
+            const cleared = read.questions[ids.inExtended];
+            if (!cleared) {
+              missing.push(
+                `the extended-area question (${ids.inExtended}) is not on the page`,
+              );
+            } else if (cleared.hasReply) {
+              missing.push(
+                `the extended-area question (${ids.inExtended}) still shows the answer the seller deleted`,
+              );
+            }
+            return missing;
+          },
+        }),
+    );
+
+    await test.step("the edited answer is the one the seller wrote", async () => {
+      expect(
+        state.questions[ids.inPage]?.replyText,
+        `the page FAQ question (${ids.inPage}) does not show the seller's edited answer`,
+      ).toContain(`${RUN_TOKEN} edited shop answer`);
+    });
+
+    await test.step("the deleted answer is gone, and the question stayed", async () => {
+      expect(
+        state.questions[ids.inExtended],
+        `the extended-area question (${ids.inExtended}) went away with its answer, but only the answer was deleted`,
+      ).not.toBeNull();
+      expect(
+        state.questions[ids.inExtended]?.hasReply,
+        `the extended-area question (${ids.inExtended}) still shows an answer after the seller deleted it`,
+      ).toBe(false);
     });
   } finally {
     finishShopperCase(context, page);

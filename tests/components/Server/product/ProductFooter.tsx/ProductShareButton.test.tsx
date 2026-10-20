@@ -22,4 +22,14 @@ describe("the product footer's small pieces", () => {
     render(<ProductShareButton Active={false} total_shares={0} setActive={vi.fn()} />);
     expect(byPw("CountOfShares").textContent, "zero shares should show no number").toBe("");
   });
+
+  it("the share button shows a big share count in short form", () => {
+    render(<ProductShareButton Active={false} total_shares={1250000} setActive={vi.fn()} language="en" />);
+    expect(byPw("CountOfShares").textContent, "1,250,000 shares should show as 1.2M").toBe("1.2M");
+  });
+
+  it("the share button uses the Arabic letter for a big count in Arabic", () => {
+    render(<ProductShareButton Active={false} total_shares={1250} setActive={vi.fn()} language="ar" />);
+    expect(byPw("CountOfShares").textContent, "1,250 shares in Arabic should show as 1.2أ").toBe("1.2أ");
+  });
 });

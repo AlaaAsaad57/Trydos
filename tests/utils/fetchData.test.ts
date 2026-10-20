@@ -991,6 +991,26 @@ describe("error handling and retries", () => {
     expect(functions.LogError).toHaveBeenCalled();
   });
 
+  it("GET /api/auth/login does NOT retry on 504 timeout or network failures", async () => {
+    await setup();
+    const net = makeMockFetch([
+      jsonReply({ message: "Gateway Timeout" }, 504),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result = await fetchData({
+      method: "GET",
+      server: "local",
+      url: "/api/auth/login?verificationId=v1&otp=123456",
+      reqTitle: { code: 99, reqTitle: "verify otp" },
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.httpStatus).toBe(504);
+    expect(net.callCount).toBe(1);
+  });
+
   it("treats a missing method as non-mutating and retryable", async () => {
     await setup();
     const net = makeMockFetch([
@@ -1838,6 +1858,56 @@ describe("the RDB cart lock", () => {
       notifications.showErrorNotification,
       "an ordinary 409 must still tell the shopper something went wrong",
     ).toHaveBeenCalled();
+  });
+});
+
+describe("the Excel category question", () => {
+  // The shop backend answers 409 when a seller uploads a sheet made for another
+  // category than the one picked. That is a question for the seller, not a fault.
+  const mismatchBody = {
+    isSuccessful: false,
+    code: 409,
+    hasContent: false,
+    message: "This file is for another category than the one selected.",
+    detailed_error: [
+      { message: "This file is for another category than the one selected." },
+    ],
+    data: {
+      category_mismatch: true,
+      file_category: { id: 78, name: "Shirts" },
+      chosen_category: { id: 13, name: "Shoes" },
+    },
+  };
+
+  it("hands a category-mismatch 409 back without a toast or an error report", async () => {
+    const { notifications, functions } = await setup();
+    const net = makeMockFetch([jsonReply(mismatchBody, 409)]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result: any = await fetchData({
+      ...baseParams,
+      server: "market-dashboard",
+      method: "POST",
+      url: "/shop/excel/processExcel",
+      body: JSON.stringify({ file_url: "https://media/x.xlsx", expected_category_id: 13 }),
+      reqTitle: { code: 178, reqTitle: "PROCESS_EXCEL" },
+      sellerId: "77",
+    });
+
+    expect(result.httpStatus, "the category question must reach the tab as a 409").toBe(409);
+    expect(
+      result.data?.file_category?.name,
+      "the file's own category must survive the answer, so the question can name it",
+    ).toBe("Shirts");
+    expect(
+      notifications.showErrorNotification,
+      "the category question must not raise an error notification",
+    ).not.toHaveBeenCalled();
+    expect(
+      functions.LogError,
+      "the category question is normal behaviour and must not be reported to Sentry",
+    ).not.toHaveBeenCalled();
   });
 });
 

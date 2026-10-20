@@ -83,12 +83,22 @@ const CartProvider = ({ language, country }) => {
       }
     }, 10);
     const handlePopState = (event: PopStateEvent) => {
-      if (event.state?.isPopup) {
-        // A popup closing via React state consumes its own history entry with
-        // history.back(); that lands here on the entry underneath. Leave any
-        // popup still open below it alone (e.g. the cart during checkout→login).
-        if (takeSelfConsume()) return;
+      // A popup closing via React state consumes its own history entry with
+      // history.back(); that lands here on the entry underneath. Leave any
+      // popup still open below it alone (e.g. the cart during checkout→login).
+      if (takeSelfConsume()) return;
 
+      const storeState = useAppStore.getState();
+      const isAnyPopupOpen =
+        storeState.loginOpen ||
+        storeState.cart_enable ||
+        Boolean(storeState.selectedStory) ||
+        Boolean(storeState.addStoryEnable) ||
+        storeState.chatVar ||
+        storeState.enable_search ||
+        Boolean(storeState.selected_product_for_add_to_cart);
+
+      if (event.state?.isPopup || isAnyPopupOpen) {
         // A real user back-press: tell the unmount cleanups it triggers not to
         // history.back() again.
         markBackClosing();
@@ -101,18 +111,33 @@ const CartProvider = ({ language, country }) => {
         // entry — pushed by a popup that was closed via React state instead of
         // history.back() — is traversed.
         const params = new URLSearchParams(window.location.search);
-        params.delete("cart");
-        params.delete("modal");
-        params.delete("story");
-        params.delete("search");
-        const query = params.toString();
-        router.push(
-          query
-            ? `${window.location.pathname}?${query}`
-            : window.location.pathname,
-          // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-          { shallow: true },
-        );
+        const popupKeys = [
+          "cart",
+          "login",
+          "modal",
+          "story",
+          "stories",
+          "StoryModal",
+          "search",
+        ];
+        let hasPopupKey = false;
+        for (const key of popupKeys) {
+          if (params.has(key)) {
+            params.delete(key);
+            hasPopupKey = true;
+          }
+        }
+
+        if (hasPopupKey) {
+          const query = params.toString();
+          router.push(
+            query
+              ? `${window.location.pathname}?${query}`
+              : window.location.pathname,
+            // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+            { shallow: true },
+          );
+        }
         setSelectedStory(null);
         enableCart(false);
         setLoginOpen(false);
