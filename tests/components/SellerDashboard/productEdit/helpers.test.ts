@@ -568,13 +568,26 @@ describe("validate — every rule", () => {
     expect(validate(validForm({ unit_price: "" }), false, true), "a locked form with a purchase price was refused").toEqual({});
   });
 
-  it.fails("BUG-seller-100: refuses a purchase price above the unit price", () => {
-    // helpers.ts:936 only runs the purchase checks when purchase_price is EMPTY,
-    // where it is always NaN — so a filled purchase price is never checked.
+  // BUG-seller-100: the purchase checks ran only when purchase_price was EMPTY,
+  // where it is always NaN, so a filled purchase price was never checked.
+  it("BUG-seller-100: refuses a purchase price above the unit price", () => {
     const e = validate(validForm({ unit_price: "100", purchase_price: "150" }));
     expect(e.purchase_price, "a purchase price above the unit price was accepted").toBe(
       "Unit price must be greater than purchase price",
     );
+  });
+
+  it("BUG-seller-100: refuses a purchase price at or above the discount price", () => {
+    const e = validate(validForm({ unit_price: "100", discount_price: "80", purchase_price: "90" }));
+    expect(e.discount_price, "a purchase price above the discount price was accepted").toBe(
+      "Discount price must be greater than purchase price",
+    );
+  });
+
+  it("accepts a purchase price below the selling price, and still requires one", () => {
+    expect(validate(validForm({ unit_price: "100", purchase_price: "50" })).purchase_price, "a valid purchase price was refused").toBeUndefined();
+    expect(validate(validForm({ purchase_price: "" })).purchase_price, "an empty purchase price was accepted").toBe("Enter a valid purchase price");
+    expect(validate(validForm({ purchase_price: "-1" })).purchase_price, "a negative purchase price was accepted").toBe("Enter a valid purchase price");
   });
 
   it("asks for an image on every colour, then for every image to have a colour", () => {

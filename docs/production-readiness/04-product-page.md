@@ -62,7 +62,7 @@ Buyer comments, ratings and the FAQ also sit on this page. They are covered in t
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
 | M-1 | Virtual try-on is not built. "Try On" only waits 3 s (`setTimeout`) and then shows the shopper's own photo as the "result". No AI call exists. | A try-on button on the first photo of every product whose first category has an icon. The result is the same photo they uploaded. | `components/products/TryOnModal.tsx:146-150`; button shown by `ProductPhotoSliderWrapper.tsx:304` | Frontend / Product | Yes — a fake feature on almost every product; hide it or build it |
-| M-2 | Canonical, Open Graph and JSON-LD URLs fall back to `https://trydos.ramaaz.dev` when `NEXT_PUBLIC_SITE_URL` is missing | Shared links and Google results point to the dev domain | `serverRequests/meta/StructuredData/Constants.ts:4` | Ops | Yes — set the env value in production |
+| M-2 | **Fixed 2026-10-20.** Canonical, Open Graph and JSON-LD URLs fell back to `https://trydos.ramaaz.dev` when `NEXT_PUBLIC_SITE_URL` was missing. Now they use the setting, else the Vercel production domain, never staging. | — | `serverRequests/meta/StructuredData/Constants.ts` | Frontend | No — proof: `tests/serverRequests/meta/StructuredData/Constants.test.ts`, seen red first |
 | M-3 | The meta cache key has no colour or size, but the title has them. The first visitor's title is kept for 1 hour for everyone. | Title "Shirt \| red \| …" on the plain product URL, or the plain title on a colour URL | `serverRequests/product.tsx:278` and `:302-305` | Frontend | No |
 | M-4 | Flash-deal end is "23:59:59 of the end date" in local time. The server (Vercel, UTC) and the shopper's phone use different time zones. | In Syria / Iraq (UTC+3) the countdown can run 3 hours past the planned end, or the banner can show on a deal the backend already closed | `ProductPhotoSliderWrapper.tsx:47`, `FlashDealBanner.tsx:38` | Product / Backend | No — but agree the time zone before the first flash deal |
 | M-5 | The flash-deal banner checks only the end date. It does not check a start date or a status. | A deal that has not started can show a countdown | `ProductPhotoSliderWrapper.tsx` `isFlashDeal` | Frontend / Backend | No — confirm the backend sends the end date only for running deals |
@@ -75,7 +75,7 @@ Buyer comments, ratings and the FAQ also sit on this page. They are covered in t
 
 ## 🔒 Must do before launch
 - [ ] Hide the virtual try-on button, or connect a real try-on service (M-1).
-- [ ] Set `NEXT_PUBLIC_SITE_URL` (and `NEXT_PUBLIC_ALLOW_INDEXING=true` on the real domain only) in production (M-2).
+- [x] M-2: the staging fallback is gone (2026-10-20). Still set `NEXT_PUBLIC_ALLOW_INDEXING=true` on the real domain only.
 - [ ] Get the backend's answer on the luck window and the like `user_id` (questions below). If the backend trusts the client, this becomes a blocker.
 
 ## ❓ Needs confirmation from the backend team

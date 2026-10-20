@@ -76,22 +76,22 @@
 ## ❌ Missing, broken or not built
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
-| M-1 | If `NEXT_PUBLIC_SITE_URL` is not set, every canonical, hreflang, sitemap URL, robots sitemap line and structured-data URL points to `https://trydos.ramaaz.dev`. | Google indexes the dev domain address, or ignores the real one. | `serverRequests/meta/StructuredData/Constants.ts:4` | Ops | Yes — set it on the production project. |
+| M-1 | **Fixed 2026-10-20.** The site origin was `https://trydos.ramaaz.dev` whenever `NEXT_PUBLIC_SITE_URL` was not set, and an empty setting gave an empty origin that broke `metadataBase`. Now: the setting, else the production domain Vercel gives the project (`VERCEL_PROJECT_PRODUCTION_URL`), else localhost. | — | `serverRequests/meta/StructuredData/Constants.ts` | Frontend | No — proof: `tests/serverRequests/meta/StructuredData/Constants.test.ts`, seen red first |
 | M-2 | Indexing is off unless `NEXT_PUBLIC_ALLOW_INDEXING=true`. Then `robots.txt` blocks all, every page says `noindex`, and the `X-Robots-Tag` header says `noindex, nofollow`. | The shop does not appear in Google. | `utils/server/helpers.ts:458`; `next.config.ts:9`; `app/robots.ts:35` | Ops | Yes — set it on production only, never on preview. |
-| M-3 | The region popup never ends if the country list fails to load. `loading` stays true, so the shopper sees "Loading…" over a dark, full-screen layer with no close button. A unit test asserts this state ("keeps the spinner up while the countries have not arrived"). | Every `gb-*` visitor is blocked from the whole site while `/countries` fails. | `utils/PopupCountry.tsx:94-99`, `:201-202`, `:400-425`; `Init.tsx:46-63` | Frontend | Yes — a single core outage blocks all new visitors outside served countries. |
+| M-3 | **Fixed 2026-10-20.** The region popup stayed on "Loading…" for ever when the country list failed. Now it shows "The country list could not be loaded" and a "Try again" button that reloads the list. The dark layer stays, because the shopper still has to pick a region. | — | `utils/PopupCountry.tsx`, `components/Home/Init.tsx` | Frontend | No — the existing cases in `tests/utils/PopupCountry.test.tsx` and `tests/components/Home/Init.test.tsx` stay green; no new test was asked for |
 | M-4 | A Redis outage gives empty currency. `getCurrencyFromCache` throws when Redis fails (`serverRequests/radis/index.ts:53-56`). `currencyFromBase` catches it and returns `{}`; it does not ask the backend. Each read can first wait up to 3 s (`commandTimeout`). | Server-rendered prices with no rate or symbol, after a 3 s wait. | `serverRequests/currency.ts:36-75` | Frontend | No — only during a Redis fault, but fix soon. |
 | M-5 | A version bump does not detach the push token. `performVersionUpdate` clears `localStorage` first (`version-manager.ts:89`), and then `clearAllUserData` reads `FB-DEVICE-TOKEN` from it (`utils/tinyUtils.tsx:67`). The token is already gone, so the logout route gets an empty token. Found by reading the code; no test confirms it yet. | After an update, the device can keep getting pushes for the old account. | `utils/version-manager.ts:84-102` | Frontend | No |
 | M-6 | The Organization logo URL is a 404 on Vercel (case mismatch). | Google cannot show the brand logo in results. | `serverRequests/meta/StructuredData/Organaization.tsx:11` | Frontend | No |
-| M-7 | Google Analytics marks every event as `debug_mode: true`. | Nothing visible. A "developer traffic" filter in GA would drop all real data. | `utils/gtag.ts:57`, `:84` | Frontend | Yes — remove before launch, or the launch data cannot be trusted. |
+| M-7 | **Fixed 2026-10-20.** `debug_mode: true` is removed from every Google Analytics event. | — | `utils/gtag.ts` | Frontend | No |
 | M-8 | No consent step exists before GA, PostHog and Speed Insights start. See `18-static-pages-and-legal.md` M-3. | Tracking starts at once. | `[lang]/layout.tsx:195-213`; `Init.tsx:136` | Product, Frontend | Yes, if a launch country needs consent (Product decides). |
 | M-9 | Instagram in-app visitors are treated as crawlers (L-2). | Every visit from the Instagram bio link shows the region picker. | `proxy.ts:79` | Frontend | No — but it hits marketing traffic. |
 
 ## 🔒 Must do before launch
-- [ ] Ops: set `NEXT_PUBLIC_SITE_URL` to the production domain on the production project (M-1).
+- [x] M-1: the staging fallback is gone (2026-10-20). `NEXT_PUBLIC_SITE_URL` is now optional: without it the code uses the Vercel production domain.
 - [ ] Ops: set `NEXT_PUBLIC_ALLOW_INDEXING=true` on production only, then clear the Redis `meta-obj-*` keys (M-2, L-10).
 - [ ] Ops: set `NEXT_PUBLIC_GA_MEASUREMENT_ID`, `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_DSN_SENTRY`, and the Sentry upload settings on production.
-- [ ] Frontend: give the region popup an error state with "try again" when `/countries` fails (M-3).
-- [ ] Frontend: remove `debug_mode: true` from GA events (M-7).
+- [x] Frontend: give the region popup an error state with "try again" when `/countries` fails (M-3). (done 2026-10-20)
+- [x] Frontend: remove `debug_mode: true` from GA events (M-7). (done 2026-10-20)
 - [ ] Product: decide what a visitor from a non-served country sees first: the blocking picker, or a default market (L-1, L-6).
 - [ ] Product + Frontend: consent banner decision (M-8).
 - [ ] Frontend: fix the Organization logo path and its test (M-6).

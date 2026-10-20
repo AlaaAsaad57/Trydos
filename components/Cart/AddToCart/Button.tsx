@@ -216,11 +216,14 @@ function AddToCartButton({
 
       if (isVariantInCart({ exact: false })) {
         animateButton();
+        // A2-14: read the luck flag when the shopper taps, not when the sheet
+        // opened. After the timer ends the redeemed cookie turns it off.
+        const luckNow = isLuckActive(product, id);
         let response = await cart.UpdateCart({
           cart_id: isVariantInCart({ exact: false })?.item_id,
           qty: (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
           isFromAddWidget: true,
-          is_luck: product?.is_luck,
+          is_luck: luckNow,
         });
         if (response === false) {
           throw "error";
@@ -270,6 +273,9 @@ function AddToCartButton({
         );
       } else {
         animateButton();
+        // A2-14: read the luck flag when the shopper taps, not when the sheet
+        // opened. After the timer ends the redeemed cookie turns it off.
+        const luckNow = isLuckActive(product, id);
         let val = await cart.AddToCart({
           product_id: id,
           product_variation_id: productVariationId,
@@ -291,12 +297,12 @@ function AddToCartButton({
             product?.images?.[0]?.file_path ||
             product?.images?.[0],
           isFromAddWidget: true,
-          is_luck: product?.is_luck,
-          offer_price: product?.is_luck
+          is_luck: luckNow,
+          offer_price: luckNow
             ? selectedVariant?.luck_price
             : selectedVariant?.offer_price,
         });
-        if (product?.is_luck) useAppStore.getState().expireLuck(id);
+        if (luckNow) useAppStore.getState().expireLuck(id);
 
         if (val) {
           GAevent({

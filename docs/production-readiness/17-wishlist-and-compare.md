@@ -1,7 +1,7 @@
 # Wishlist and compare — Production readiness
 
 **Status:** ✅ Closed — the owner closed this section on 2026-10-20. Nothing is left to do here before launch.
-**In one line:** Saving, listing, paging and removing products work for guests and signed-in shoppers, and compare works end to end. The one open item was accepted by the owner (see "Accepted by the owner").
+**In one line:** Saving, listing, paging and removing products work for guests and signed-in shoppers, and compare works end to end. The one open item was accepted by the owner; it is listed in `IMPORTANT-PRODUCTION-NOTES.md`.
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
 **Fixed after the first check:** M-1, M-2, L-1, L-4, L-6, L-7, L-8 and the RTL labels of L-9. They are now W-22 to W-29. Each code fix has a unit test that was seen red before the fix and green after it.
 
@@ -55,10 +55,6 @@ The checklist is stored on the market backend: a guest reaches the **gateway**, 
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
 | M-1 | There is no save button on product cards (listing, home, search). Saving is possible only from the product page "More" panel. | No heart on cards. | no code (searched all `components/`) | Product | No — a product decision. |
-
-## ✔️ Accepted by the owner
-The owner accepted this on 2026-10-20. It does not block launch.
-- **A guest's saved products do not survive sign-in.** A guest's checklist is saved on the gateway; a signed-in shopper's checklist is read from the core backend, and nothing moves the list at sign-in. After sign-in the shopper sees the checklist of their signed-in account only.
 
 ## 🔒 Must do before launch
 Nothing.

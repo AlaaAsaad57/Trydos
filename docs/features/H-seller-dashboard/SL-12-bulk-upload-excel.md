@@ -108,8 +108,8 @@ pass its address to the backend. The results come back in the uploads table.
   products" file (a top category with many products) could meet the platform's response size limit.
 - Only the new "Completed with errors" status label is translated; the other status labels show the
   backend's raw value.
-- Requires the media-server env vars (`NEXT_PUBLIC_MEDIA_SERVER_BASE_URL` /
-  `NEXT_PUBLIC_MEDIA_API_KEY`) to be set, or the upload/list-download URLs no-op.
+- Requires the media-server env var `NEXT_PUBLIC_MEDIA_SERVER_BASE_URL` to be set, or the
+  upload/list-download URLs no-op. (The static media key is gone; uploads use the ticket alone.)
 - Minor (code hygiene): the media-upload helper still carries a "dummy implementation — replace with
   real upload logic" comment, though the POST itself is written and functional.
 

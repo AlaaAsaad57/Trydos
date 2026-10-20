@@ -45,10 +45,10 @@
 | M-1 | The legal text is placeholder copy: one intro and two short sections per page, written as constants. The text makes promises nobody has checked ("Thousands of products", "easy returns", "We never sell your personal information"). | A Privacy Policy and Terms of about 60 words each. | `privacy-policy/page.tsx:6-21`, `terms-of-service/page.tsx:6-21`, `about/page.tsx:6-21`, `contact/page.tsx:6-21` | Product | Yes — a shop that takes orders and payments needs real, approved terms and a real privacy policy in 4 languages. |
 | M-2 | The privacy text does not name the data the app sends out: Sentry with `sendDefaultPii: true`, PostHog with the user's phone number (`components/Home/Init.tsx:144-147`), Google Analytics and Firebase push. It says nothing about cookies, how long data is kept, or how to delete an account. | Nothing — the shopper is not told. | `privacy-policy/page.tsx:12-21` | Product | Yes — the policy must describe what the code really does. |
 | M-3 | No cookie consent banner exists. Google Analytics, PostHog and Speed Insights start on every page without asking. No file in `app/`, `components/` or `utils/` mentions "consent". | No banner. Tracking starts at once. | `app/(client)/[lang]/layout.tsx:195-213`; `components/Home/Init.tsx:136` | Product (decide), Frontend (build) | Yes, if Turkey is a launch market (KVKK asks for consent for analytics cookies). Product must decide per country. |
-| M-4 | The Privacy Policy has no link anywhere in the app. | The page exists, but a shopper cannot find it. | `settings/page.tsx:53-93` (no entry) | Frontend | Yes — the policy must be reachable. |
-| M-5 | "Terms Of Services" on the sign-up Terms screen looks like a blue link but is plain text. It has no `href` and no click handler. | The shopper taps "Agree & Continue" with no way to read the terms. | `components/Login/Enhanced/screens/TermsScreen.tsx:56-58`; `components/Login/Enhanced/InlineVerifyPanel.tsx:214-216` | Frontend | Yes — consent to terms that cannot be opened is weak consent. |
-| M-6 | At checkout, "policies" and "terms" are blue and underlined, but they are not links. A tap on them only ticks the "I read and agree" box. | The shopper agrees to policies they cannot open. | `components/Cart/PlaceOrderButtons.tsx:181-220` | Frontend | Yes — same reason as M-5. |
-| M-7 | "About Us" and "Legal Information" in the settings menu point to `#`. The About page exists but is not linked. "Contact Us" is commented out. "Share App" is also `#`. | Tapping these items does nothing. | `settings/page.tsx:69-93` | Frontend (links), Product (what "Legal Information" holds) | Yes for "Legal Information" if it is meant to hold the privacy policy; No for the others. |
+| M-4 | **Fixed 2026-10-20.** The Privacy Policy had no link. "Legal Information" in settings now opens `/[lang]/privacy-policy`. | — | `settings/page.tsx` | Frontend | No |
+| M-5 | **Fixed 2026-10-20.** "Terms Of Services" on both sign-up Terms screens now opens `/[locale]/terms-of-service` in a new tab. | — | `components/Login/Enhanced/screens/TermsScreen.tsx`, `components/Login/Enhanced/InlineVerifyPanel.tsx` | Frontend | No |
+| M-6 | **Fixed 2026-10-20.** "policies" and "terms" at checkout open the privacy and terms pages in a new tab. A tap on a link no longer ticks the box. | — | `components/Cart/PlaceOrderButtons.tsx` | Frontend | No |
+| M-7 | **Fixed 2026-10-20.** "About Us" opens `/[lang]/about` and "Legal Information" opens `/[lang]/privacy-policy`. "Contact Us" is still commented out and "Share App" is still `#` (file 20 D-10). | — | `settings/page.tsx` | Frontend | No |
 | M-8 | The Contact page cannot be reached from the app. | Only a shopper who types the address finds it. | `settings/page.tsx:74-78` (commented out) | Frontend | No |
 | M-9 | There is no site footer, so there is no second place for legal links on desktop. | No footer on any page. | `app/(client)/[lang]/layout.tsx` (none) | Product | No |
 | M-10 | The support channels are not decided. The contact page mentions `support@trydos.com` and "through the app", but it links to no in-app support entry. | A shopper with a problem has one email address in plain text. | `contact/page.tsx:11-20` | Product | Yes — shoppers who pay need a working way to reach support. |
@@ -58,10 +58,10 @@
 - [ ] Product: list in the Privacy Policy every service that receives user data: Sentry, PostHog, Google Analytics, Firebase, the core backend and the gateway (M-2).
 - [ ] Product: decide per launch country if a cookie consent banner is required. If yes, Frontend builds it and holds GA and PostHog until consent (M-3).
 - [ ] Frontend: show the English legal body without Title Case, or the real text will be hard to read (L-1).
-- [ ] Frontend: link the Privacy Policy from the settings menu (M-4).
-- [ ] Frontend: make "Terms Of Services" on both sign-up Terms screens open the terms page (M-5).
-- [ ] Frontend: make "policies" and "terms" at checkout open the right pages, without ticking the box (M-6).
-- [ ] Frontend: point "About Us" to `/{locale}/about`, and give "Legal Information" a real target or remove it (M-7).
+- [x] Frontend: link the Privacy Policy from the settings menu (M-4). (done 2026-10-20)
+- [x] Frontend: make "Terms Of Services" on both sign-up Terms screens open the terms page (M-5). (done 2026-10-20)
+- [x] Frontend: make "policies" and "terms" at checkout open the right pages, without ticking the box (M-6). (done 2026-10-20)
+- [x] Frontend: point "About Us" to `/{locale}/about`, and give "Legal Information" a real target or remove it (M-7). (done 2026-10-20)
 - [ ] Product: decide the support channels (email, phone, WhatsApp, in-app chat) and put them on the contact page as links (M-10, L-6).
 - [ ] Frontend: translate the 404 title, text and button for `tr` and `ku` (L-2).
 

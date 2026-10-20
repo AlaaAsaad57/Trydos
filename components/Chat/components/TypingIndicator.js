@@ -1,11 +1,14 @@
 import { translateFunction } from "utils/functions";
 
-// The sender writes the English "Typing..." straight into Firebase, and every
-// other client reads that same value, so the stored text has to stay English.
+// The sender writes the English status ("Typing...", "Sending file...",
+// "Recording...") straight into Firebase, and every other client, the mobile
+// app included, reads that same value. So the stored text has to stay English.
 // Translate it here, where it is shown. Any other status — a last-seen date —
 // is passed through as it is.
+const SHARED_STATUSES = ["Typing...", "Sending file...", "Recording..."];
+
 export const typingLabel = (status) =>
-  status === "Typing..." ? translateFunction("Typing...") : status;
+  SHARED_STATUSES.includes(status) ? translateFunction(status) : status;
 
 function TypingIndicator({ status }) {
   return (

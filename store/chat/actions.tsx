@@ -129,6 +129,15 @@ export const SendMessage = async (payload, isNew, isPrivate?) => {
     if (!response.success) {
       throw new Error(response.message);
     }
+    // CHAT-APP-1 / SCRIPT-33: the chat backend can refuse a send inside a 200
+    // (`isSuccessful: false`, no `data.id`). `fetchData` calls any 2xx a
+    // success, so without this check the pending copy stayed "sending" for
+    // ever. The catch below takes it back and tells the shopper.
+    if (response?.isSuccessful === false || !response?.data?.id) {
+      throw new Error(
+        response?.message || "the chat backend refused the message",
+      );
+    }
     if (response?.data?.id) {
       if (isNew) {
         // The chat list comes in pages, so the chat the backend put this

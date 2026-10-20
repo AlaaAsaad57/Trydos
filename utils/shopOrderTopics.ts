@@ -1,4 +1,5 @@
 import home from "services/home";
+import { ORDER_PERMISSIONS } from "utils/shopOrderTopicRules";
 
 /**
  * The shop order push topics this device is subscribed to.
@@ -15,22 +16,8 @@ import home from "services/home";
  */
 const STORAGE_KEY = "SHOP-ORDER-TOPICS";
 
-// Any of these means the member may see the shop's orders, and so may keep the
-// push topics. Mirrors `PERMISSION_GROUPS.ORDERS` on the dashboard page.
-const ORDER_PERMISSIONS = [
-  "SUPER_ADMIN",
-  "READ_ORDERS",
-  "UPDATE_ORDER_INFO",
-  "CHANGE_ORDER_STATUS",
-  "READ_ORDER_PAYMENTS",
-  "CONFIRM_ORDER_PAYMENT",
-  "REFUND_ORDER_PAYMENT",
-  "CANCEL_ORDER",
-  "ASSIGN_SHIPPING",
-  "UPDATE_TRACKING",
-  "CHANGE_ORDER_STATUS_PACKAGED",
-  "CHANGE_ORDER_STATUS_CANCELED",
-];
+// The permission list lives in `utils/shopOrderTopicRules.ts`, so the server
+// routes can check it without pulling this file's client graph in.
 
 export const shopOrderTopics = (sellerId: string | number): string[] => [
   `shop_${sellerId}_order`,

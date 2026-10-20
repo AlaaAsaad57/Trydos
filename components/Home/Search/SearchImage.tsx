@@ -78,10 +78,11 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
         "prompt",
         "Describe the product most clearly shown in this picture with no more than 5 words like: T-shirt black xxl",
       );
+      // The route refuses a call with no session cookie, so the cookie goes.
       const result = await fetch("/api/image-search", {
         method: "POST",
         body: formData,
-        credentials: "omit",
+        credentials: "same-origin",
       });
       if (!result.ok) {
         const response = await result.json();

@@ -1,7 +1,7 @@
 # Orders and returns — Production readiness
 
 **Status:** 🟡 Ready with conditions
-**In one line:** Shoppers can see, cancel, hide, rate and return orders. But the app loses the delivery note, never sends cancel reasons, and shows several fixed promises that nobody has confirmed.
+**In one line:** Shoppers can see, cancel, hide, rate and return orders. But the app never sends cancel reasons, and shows several fixed promises that nobody has confirmed.
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
 
 ## What this section is
@@ -63,7 +63,6 @@
 ## ❌ Missing, broken or not built
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
-| M-1 | The app never sends the delivery note. The "Delivery Note" tab turns "Change Request" on, but `ChangeAddress()` sends only the group id and the address id. Known bug **BUG-products-3**. | The shopper writes a note, the change "succeeds", and the note is lost. | `components/Orders/ChangeAddressWidget.tsx:61-75`, `services/order.ts:595-620` | Frontend + Backend (the endpoint has no note field) | Yes — the app silently drops what the shopper typed. Send it, or remove the tab. |
 | M-2 | The backend never receives cancel reasons. A pack cancel sends them only to analytics. A line cancel sends them nowhere. | The shopper must pick a reason, but the shop never gets it. | `confirmations/OrderCancelConfirmationWindow.tsx:27-35`, `CancelOrderItemWrapper.tsx` (reasons stay in the component), `services/order.ts` `CancelOrder` / `CancelOrderItem` | Frontend + Backend | No — Product must decide if the shop needs the reason. |
 | M-3 | The "Cancellation Terms." and "Terms Of Return" links point to `#`. | A tap does nothing. The shopper must tick "I Read And Agree To" terms they cannot open. | `OrderCancelConfirmationWindow.tsx:94`, `CancelOrderItemConfirmationWindow.tsx:96`, `ChangeOrderItemConfirmWindow.tsx:186`, `OrderItemReturnConfirmationWindow.tsx:230` | Product + Frontend | Yes — a legal agreement with no text behind it. |
 | M-4 | Fixed promises that no code or backend value supports: "You Will Receive Your Refund Within 12 Hours", "You Will Not Be Charged Any Fees" (cancel), "Cancel This Product In 3 Hours", "Product Collection Within 1 Day", and a 3-hour countdown that restarts on every page load. | Promises about time and money that may be false. | `OrderCancelConfirmationWindow.tsx:64,67`, `CancelOrderItemConfirmationWindow.tsx:66,69`, `OrderItemReturnConfirmationWindow.tsx:199`, `OrderItemOptions.tsx:285`, `OrderRetailsReturnInfo.tsx:59,251,253` | Product + Frontend | Yes — refund time and fees are promises to the customer. Confirm the real values or remove the text. |
@@ -74,13 +73,11 @@
 | M-9 | No downloadable invoice or receipt. | Nothing to download or print for an order. | — | Product | No — unless the law in a launch country needs one. |
 
 ## 🔒 Must do before launch
-- [ ] Send the delivery note with the address change, or remove the "Delivery Note" tab (M-1, BUG-products-3). The `it.fails` case in `ChangeAddressWidget.test.tsx:189` must then turn into a normal passing test.
 - [ ] Put real pages behind the cancellation and return terms links (M-3).
 - [ ] Confirm or remove each fixed promise: 12-hour refund, no fees, 3-hour cancel window, 1-day collection, 3-hour timer (M-4).
 - [ ] Decide where refunds go at launch, and make the "Back to your wallet" text true (M-5).
 
 ## ❓ Needs confirmation from the backend team
-- Does `POST /customer/order/change-address` accept a delivery note? Under which field name? (M-1)
 - Should the backend store cancel reasons? Which field on `/customer/order/cancel` and `/customer/order/cancel-item`? (M-2)
 - Where does a refund go today: card, cash, the core wallet (`/customer/wallet/list`) or the RDB wallet? How long does it take? (M-4, M-5)
 - `GET /customer/order/return_requests/store` creates a draft with a GET request. Is that intended? Is it safe to call twice?
@@ -98,7 +95,6 @@
 - `tests/components/settings/cards/` (order cards), `tests/components/settings/OrderChatIcon.test.tsx`, `tests/services/orders.test.ts`, `tests/services/orderClass.test.ts`, `tests/app/api/products/comments/order_rating/route.test.ts`.
 
 **Expected-failure markers:**
-- `it.fails` — **BUG-products-3** in `tests/components/Orders/ChangeAddressWidget.test.tsx:189` (the delivery note is not sent). It stays an expected failure until M-1 is fixed.
 - Named bug guards that pass today: `BUG-settings-1` (`OrderDetailsWrapper.test.tsx:823`) and `BUG-settings-3` (`ChangeOrderItemConfirmWindow.test.tsx:187`).
 
 **Browser (Playwright, staging):**

@@ -176,7 +176,8 @@ function ChatHeader({
               (activeChat.status || activeChat.activeDate) && (
                 <div className="user-status">{getStatues()}</div>
               )}
-            {getChatName(activeChat) || "User-" + activeChat.id}
+            {getChatName(activeChat) ||
+              `${translateFunction("User")}-${activeChat.id}`}
           </div>
         )}
       </div>

@@ -52,7 +52,7 @@
 - **L-5 — The chat "Stories" tab replaces the list when it opens.** It reads page 1 and writes it over the shared list (`StoriesList.tsx:55-58`), so pages the home bar loaded before are dropped until the bar loads them again.
 - **L-6 — Screen-reader text is English only.** The `aria-label` values "Delete story", "Report story", "Close story viewer" (`StoryHolder.tsx:149, 170, 201`), "Story link" (`StoryViewer.tsx:415`) and `alt="story"` are not translated. Visible text is translated.
 - **L-7 — `components/Home/UploadVideo.tsx` is only a preview.** It is an 8-line `<video controls>` wrapper with an empty `useEffect`. It uploads nothing. The story camera preview and the chat camera use it.
-- **L-8 — The media upload key is public.** The browser sends `NEXT_PUBLIC_MEDIA_API_KEY` as `x-api-key` (`services/story.ts:15, 103`), so the key is in the bundle. The real gate is the upload ticket from `/api/ticket`. That route needs a market token, and a guest token is enough.
+- **L-8 — Closed 2026-10-20.** The browser no longer sends a static media key. The media store authorises `/gated/*` by the upload ticket alone (checked in its auth hook), and the app sends only `X-Upload-Ticket`. The ticket route `/api/ticket` needs a market token, and a guest token is enough.
 
 ## ❌ Missing, broken or not built
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
@@ -64,7 +64,7 @@
 ## 🔒 Must do before launch
 - [ ] Test story video on a real iPhone (iOS 17 and iOS 18): record in the app (W-23, MP4 on older Safari), upload from the gallery (L-3), and watch a video story with sound (L-2). Fix or hide what fails.
 - [ ] Ops: in the Vercel production build, `NEXT_PUBLIC_QA_STORY_VIEWER_PHONES` must be empty. The value is inlined into the browser bundle.
-- [ ] Ops: set `STORIES_BACKEND_URL`, `NEXT_PUBLIC_MEDIA_SERVER_BASE_URL` and `NEXT_PUBLIC_MEDIA_API_KEY` for the production build. Without the two media values every upload fails with "Media server upload is not configured" (`services/story.ts:87-89`).
+- [ ] Ops: set `STORIES_BACKEND_URL` and `NEXT_PUBLIC_MEDIA_SERVER_BASE_URL` for the production build. Without the media value every upload fails with "Media server upload is not configured". (`NEXT_PUBLIC_MEDIA_API_KEY` is gone since 2026-10-20; uploads use the ticket alone.)
 
 ## ❓ Needs confirmation from the backend team
 - Does `users_stories` answer a guest (no token) with the public feed? The home bar and e2e STORY-03b expect this.
@@ -76,7 +76,6 @@
 - Do stories expire (for example after 24 h) on the backend? The app has no expiry logic.
 - Does the media server convert WebM, MP4 and MOV uploads (`?story=true`) to a format that iPhones play? Does `?target=snapshot` give a thumbnail for every video type?
 - Is the story `link` checked on the server (allowed hosts, length)?
-- Is `NEXT_PUBLIC_MEDIA_API_KEY` meant to be public, with the upload ticket as the only real gate?
 
 ## 🧪 Tests that cover this section
 **Unit (Vitest):**

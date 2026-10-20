@@ -7,7 +7,8 @@ import { BODY_Y, C, gapTo, textBottom } from "../demo1Layout";
 import { Icon, ScreenHeader, ScreenPage, Txt } from "../ui";
 
 /**
- * Cart and chat. The XD file has no design for either yet.
+ * The cart. The XD file has no design for it yet (chat has its own now:
+ * ChatListScreen).
  *
  * Until it does, they are drawn like the empty address page (`Home Page – 96`)
  * and nothing more: the white page, the header with no shadow line and the

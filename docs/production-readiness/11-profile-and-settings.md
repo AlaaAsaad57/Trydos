@@ -1,7 +1,7 @@
 # Profile and settings — Production readiness
 
 **Status:** 🟡 Ready with conditions
-**In one line:** Profile editing, photo, size, addresses, country, language and the become-seller request all work, but a developer "Notification Test" panel, dead legal links and an empty "Bank Cards" page are visible to every shopper.
+**In one line:** Profile editing, photo, size, addresses, country, language and the become-seller request all work, but dead legal links and an empty "Bank Cards" page are visible to every shopper. The developer "Notification Test" panel was removed on 2026-10-20.
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
 
 ## What this section is
@@ -35,7 +35,7 @@ Orders (`/settings/orders`), wallet and "My Checklist" belong to other files; th
 | W-20 | "Remove Photo" → `image: null` is saved, and the app stops showing the old photo | core | `UploadProfilePhoto.tsx`, `services/auth.ts` (null is kept, not replaced) | `auth.profile.test.ts`; e2e PROF-05 |
 | W-21 | A refused photo upload → "File upload failed." and nothing is saved | media | `UploadProfilePhoto.tsx` lines 151–165 | `UploadProfilePhoto.test.tsx`; e2e SCRIPT-09 |
 | W-22 | Address list loads; add (region picker + map) → saved; edit → saved; delete with a confirm dialog → removed | core `/customer/address/list`, `/add`, `/update`, `/delete` | `components/settings/PersonalInfoAddress.tsx`, `PersonalInfoAddressModal.tsx` → `services/order.ts` | `tests/components/settings/PersonalInfoAddress.test.tsx`, `PersonalInfoAddressModal.test.tsx`; e2e PROF-07 |
-| W-23 | Preferences → "Notifications Settings" tab: subscribed and unsubscribed topics load; "Subscribe" / "Unsubscribe" move a topic | core `/firebase_device_tokens/...` settings, `subscribe_topic`, `unsubscribe_topic` | `components/Home/SettingsModal.tsx` `InitTopics`, `handleSubscribe`, `handleUnsubscribe` | `tests/components/Home/SettingsModal.test.tsx` |
+| W-23 | Preferences: subscribed and unsubscribed topics load; "Subscribe" / "Unsubscribe" move a topic | core `/firebase_device_tokens/...` settings, `subscribe_topic`, `unsubscribe_topic` | `components/Home/SettingsModal.tsx` `InitTopics`, `handleSubscribe`, `handleUnsubscribe` | `tests/components/Home/SettingsModal.test.tsx` |
 | W-24 | E-mail / push / WhatsApp switches and the daily / weekly / monthly select save at once; a refused save puts the old value back | core `/firebase_device_tokens/update_*`, `update_notification_frequency` | `SettingsModal.tsx` `togglePreference`, `changeFrequency` → `services/home.ts` `EditNotificationSettings` | `SettingsModal.test.tsx` |
 | W-25 | Avatar menu: "Notifications" opens the panel, "Compare" opens `/compare`, "Logout" for signed-in shoppers (sign-out is in file 10) | none | `components/Home/Menu.tsx` | `Menu.test.tsx` |
 | W-26 | A guest who taps anything on Personal Info or Picture gets the sign-in overlay instead | none | `PersonalInfoForm.tsx` `handleFormClick`, `UploadProfilePhoto.tsx` `handleFormClick` | `PersonalInfoForm.test.tsx`, `UploadProfilePhoto.test.tsx` |
@@ -48,7 +48,7 @@ Orders (`/settings/orders`), wallet and "My Checklist" belong to other files; th
 - **L-5 The wallet and comments copies of the profile are never updated.** The wallet `PATCH /users/me` is commented out (`services/auth.ts` line 703). Comments gets no call.
 - **L-6 Topic names are raw backend ids.** "product_availability_123" shows as "product availability 123", not translated (`SettingsModal.tsx` `formatTopicName`).
 - **L-7 Subscribe / unsubscribe can fail with no word.** Without a push token (`FB-DEVICE-TOKEN`), or when the backend refuses, nothing happens on screen; the error only goes to the log (`noMessage: true`).
-- **L-8 "Enable FireBase Notifications"** names the technology to the shopper (naming rule).
+- **L-8** Fixed 2026-10-20: the push switch now says "Enable Push Notifications" and no longer names the technology.
 - **L-9 Country change can stop half way.** The cookie is written first. If the starter-settings call fails, the page stays, and no message is shown (`PersonalInfoCountries.tsx` lines 69–104).
 - **L-10 Language list comes from the backend as it is.** A code other than en / ar / tr / ku shows an empty label. "Turkish" is shown in English, while Arabic and Kurdish show in their own script.
 - **L-11 Camera refused → the camera layer closes with no message** (log only, `UploadProfilePhoto.tsx` lines 119–122).
@@ -63,8 +63,8 @@ Orders (`/settings/orders`), wallet and "My Checklist" belong to other files; th
 ## ❌ Missing, broken or not built
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
-| M-1 | Preferences has a second tab, "Notification Test". It renders a developer panel: English developer notes and 8 "Test" buttons. The buttons subscribe the shopper to topics and call `/firebase_device_tokens/send_*` (one with a hardcoded `boutique_id: 66`). These calls may push notifications to every subscriber of a topic. | A developer test page inside settings | `components/Home/SettingsModal.tsx:5,324,500`; `components/global/NotificationsTest.tsx:15` | Frontend | Yes — test tool in front of shoppers, and it can send real pushes |
-| M-2 | "Legal Information" and "About Us" link to `#`. The pages `/[lang]/privacy-policy` and `/[lang]/about` already exist. | Tap does nothing | `app/(client)/[lang]/settings/page.tsx:72,82` | Frontend + Product (confirm the page text) | Yes — legal and privacy text must be reachable |
+| M-1 | **Fixed 2026-10-20.** Preferences had a developer tab, "Notification Test", with 8 "Test" buttons that called `/firebase_device_tokens/send_*`. The tab, `NotificationsTest` and the 8 `TestNotification*` service functions are removed. | — | `components/Home/SettingsModal.tsx` | Frontend | No — closed |
+| M-2 | **Fixed 2026-10-20.** "Legal Information" now opens `/[lang]/privacy-policy` and "About Us" opens `/[lang]/about`. | — | `app/(client)/[lang]/settings/page.tsx` | Frontend | No — Product still replaces the page text (file 18 M-1) |
 | M-3 | "Share App" links to `#`. | Tap does nothing | `settings/page.tsx:92` | Product + Frontend | No — hide it or build sharing |
 | M-4 | "Bank Cards" in the profile menu opens a page with only a back bar. | An empty page | `settings/profile/page.tsx:38-43`; `settings/profile/Bank-Cards/page.tsx:18-30` | Product + Frontend | Yes — hide the entry (1 line) or build it |
 | M-5 | The "Sales" card shows "0 Action" for every seller. The number is hardcoded. | A wrong count | `components/settings/GoToSellerDashBoard.tsx:188` | Frontend + Backend (a count to show) | No |
@@ -72,8 +72,8 @@ Orders (`/settings/orders`), wallet and "My Checklist" belong to other files; th
 | M-7 | The QR icon on the profile card opens a scanner for the QR login mock. Covered in file 10, M-2. | "Approve" does nothing real | `components/setting/profile/index.tsx:73-86` | Frontend | Yes — same item as file 10 M-2 |
 
 ## 🔒 Must do before launch
-- [ ] Remove the "Notification Test" tab and `NotificationsTest` from the preferences screen (M-1).
-- [ ] Point "Legal Information" to `/[lang]/privacy-policy` and "About Us" to `/[lang]/about`, after Product approves the page text (M-2).
+- [x] "Notification Test" tab and `NotificationsTest` removed (M-1, done 2026-10-20). Proof: `SettingsModal.test.tsx` "never shows the developer Notification Test tab…", seen red first.
+- [x] Point "Legal Information" to `/[lang]/privacy-policy` and "About Us" to `/[lang]/about`, after Product approves the page text (M-2). (done 2026-10-20)
 - [ ] Hide "Bank Cards" from the profile menu, or build the page (M-4).
 - [ ] Hide the QR scan icon on the profile card (M-7, file 10 M-2).
 
@@ -81,14 +81,13 @@ Orders (`/settings/orders`), wallet and "My Checklist" belong to other files; th
 - Core: can any signed-in shopper call `/firebase_device_tokens/send_*` in production? Do these calls broadcast to every subscriber of the topic?
 - Core `/shop/vendor-requests`: are latitude 0 / longitude 0 accepted? Must currency and language be chosen by the seller, or are "USD" and "en" correct?
 - Core `/shop/uploads/presigned-url`: which reply field holds the stored path the request must carry?
-- Media server: `NEXT_PUBLIC_MEDIA_API_KEY` ships in the browser bundle. Is the upload ticket enough to stop misuse, and is this key meant to be public?
 - Core `/customer/update-profile`: what is the backend's real minimum name length? The form asks for 8.
 - Comments and wallet: how do they learn a new name, photo or phone? The app does not send it to them today.
 - Core `/languages`: will production return only en / ar / tr / ku?
 
 ## 🧪 Tests that cover this section
 - **Unit — pages:** `tests/app/settings/pages.test.tsx` (hub, profile, bank cards, address, languages, template). The "copes with no language list" case mocks `LanguageSetting`, so it does not cover M-6.
-- **Unit — components:** `tests/components/setting/profile/index.test.tsx`, `PersonalInfoForm.test.tsx`, `VerifyUser.test.tsx`; `tests/components/setting/BackBar.test.tsx`, `WalletLinkCard.test.tsx`, `orders/index.test.tsx`; `tests/components/settings/GoToSellerDashBoard.test.tsx`, `BecomeSellerModal.test.tsx`, `becomeSellerLimits.test.ts`, `ProfileSizeInfo.test.tsx`, `UploadProfilePhoto.test.tsx`, `PersonalInfoAddress.test.tsx`, `PersonalInfoAddressModal.test.tsx`, `PersonalInfoCountries.test.tsx`, `LanguageSetting.test.tsx`, `TopBar.test.tsx`; `tests/components/Home/SettingsModal.test.tsx` (mocks `NotificationsTest`), `Menu.test.tsx`; `tests/components/global/NotificationsTest.test.tsx` (tests the developer panel itself).
+- **Unit — components:** `tests/components/setting/profile/index.test.tsx`, `PersonalInfoForm.test.tsx`, `VerifyUser.test.tsx`; `tests/components/setting/BackBar.test.tsx`, `WalletLinkCard.test.tsx`, `orders/index.test.tsx`; `tests/components/settings/GoToSellerDashBoard.test.tsx`, `BecomeSellerModal.test.tsx`, `becomeSellerLimits.test.ts`, `ProfileSizeInfo.test.tsx`, `UploadProfilePhoto.test.tsx`, `PersonalInfoAddress.test.tsx`, `PersonalInfoAddressModal.test.tsx`, `PersonalInfoCountries.test.tsx`, `LanguageSetting.test.tsx`, `TopBar.test.tsx`; `tests/components/Home/SettingsModal.test.tsx` (also proves the test tab is gone), `Menu.test.tsx`.
 - **Unit — services:** `tests/services/auth.profile.test.ts`, `tests/services/orderClass.test.ts` (address calls), `tests/services/home.test.ts` (notification settings).
 - **E2E:** `tests/e2e/profile.live.spec.ts` PROF-01 to PROF-08; `profile.scripted.spec.ts` SCRIPT-07 to SCRIPT-12; `locale.live.spec.ts` GUEST-50, GUEST-51; `staticPages.live.spec.ts`; `sellerDashboard.live.spec.ts` SD-01.
 - **Expected failures:** no `it.fails` / `test.fail` / `BUG-n` markers in this section. PROF-05 skips when the media store is not configured, so the photo flow can go unchecked in a run.

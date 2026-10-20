@@ -56,8 +56,7 @@ Lines still listed under "Cannot cover" were kept on purpose:
 - **Guards that only the UI protects** (a disabled button, a hidden button, a
   conditional render). The handler must not trust the UI. Many guards also
   narrow a type for TypeScript.
-- **Lines that are tied to an open bug** (BUG-chat-5, BUG-seller-100,
-  BUG-settings-3). Fixing the bug makes the line reachable again.
+- **Lines that are tied to an open bug** (BUG-chat-5, BUG-settings-3). Fixing the bug makes the line reachable again.
 - **Lines behind a switched-off feature or a placeholder** (the wallet
   rollback, `canDelete = false`, the recommended products, `getVideoUrl`).
 - **Lines that only the test runner cannot reach** (bare `require`, React
@@ -117,7 +116,7 @@ Lines still listed under "Cannot cover" were kept on purpose:
 | BUG-products-5 (**fixed**) | products | a pasted question over 200 characters is posted in full |
 | BUG-products-6 (**fixed**) | products | closing the full-size product video leaves the page unscrollable |
 | BUG-seller-400 (**fixed**) | seller | wrong fallback error message in six seller-dashboard service methods |
-| BUG-seller-100 | seller | a filled purchase price is never validated — **blocked**: needs a product decision: is the purchase price required? |
+| BUG-seller-100 (**fixed**) | seller | a filled purchase price is never validated |
 | BUG-seller-701 (**fixed**) | seller | an order item cancel always fails: the path carries a second `/api/v1` and the backend answers 404 |
 | BUG-seller-702 (**fixed**) | seller | an order item with no offer shows a price of 0 |
 | BUG-seller-703 (**fixed**) | seller | a refused Confirm / Packed / Cancel on an order item shows no message |
@@ -689,7 +688,8 @@ Unreachable branches inside a live file (no code path can run them; not deleted 
 - Scenario: prices unlocked, unit price 100, purchase price 150 (or -5).
 - Expected: `purchase_price` error "Unit price must be greater than purchase price" (or "Enter a valid purchase price" for a negative value); also "Discount price must be greater than purchase price" when the discount is not above it.
 - Actual: no error. The block runs only when `purchase_price` is EMPTY (`=== "" || !form.purchase_price`). In that case `pp` is always NaN, so only "Enter a valid purchase price" can fire, and lines 939-943 can never run. A filled purchase price is never checked. The condition looks inverted (compare the locked branch at line 966).
-- Confirming test: tests/components/SellerDashboard/productEdit/helpers.test.ts > "validate — every rule" > "BUG-seller-100: refuses a purchase price above the unit price" (it.fails, seen as expected failure).
+- Fix: the checks now run for every purchase price, not only an empty one. A selling price that already has its own error is not compared, so its message is kept. The purchase price stays required.
+- Confirming test: tests/components/SellerDashboard/productEdit/helpers.test.ts > "validate — every rule" > "BUG-seller-100: refuses a purchase price above the unit price", "BUG-seller-100: refuses a purchase price at or above the discount price" and "accepts a purchase price below the selling price, and still requires one" (all three seen red before the fix, green after).
 
 ### BUG-seller-701 — an order item cancel always fails (404)
 - Source: services/sellerDashboard/index.ts `cancelOrderDetail` — `url: "/api/v1/shop/orders/details/cancel"`.
@@ -732,7 +732,6 @@ Unreachable branches inside a live file (no code path can run them; not deleted 
 - Confirming test: tests/components/SellerDashboard/orders.test.tsx > "when the bottom of the list scrolls into view" > "BUG-seller-705: keeps the first page on screen while the next page loads" (seen red before the fix, green after).
 
 ### Cannot cover
-- components/SellerDashboard/productEdit/helpers.ts:939-942 — unreachable because of BUG-seller-100: inside `if (purchase_price === "")`, `pp` is always NaN, so the `else if` branches never run.
 
 ### Cannot cover (ShopInfo/Stories/Gallery/Excel fork)
 - components/SellerDashboard/ExcelUploadTab.tsx:171 — `if (!selectedCategory) return;` The only caller is the "Download Template" button, and that button has `disabled={!selectedCategory}` (line 362). A disabled button fires no click, so the handler never runs without a category.

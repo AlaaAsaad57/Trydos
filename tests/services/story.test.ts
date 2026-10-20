@@ -404,9 +404,8 @@ describe("StoryService.getStories — paging and failure", () => {
 describe("StoryService upload to the media server", () => {
   const MEDIA = "https://example.com";
 
-  /** Load a fresh copy with a media API key, which the test env leaves empty. */
-  async function loadWithKey(key = "media-key") {
-    vi.stubEnv("NEXT_PUBLIC_MEDIA_API_KEY", key);
+  /** Load a fresh copy of the service. */
+  async function loadFresh() {
     vi.resetModules();
     const mod = await import("services/story");
     return mod.default;
@@ -424,21 +423,25 @@ describe("StoryService upload to the media server", () => {
     vi.unstubAllGlobals();
   });
 
-  it("refuses to upload when the media server is not configured", async () => {
+  it("refuses to upload when no media server address is set", async () => {
+    vi.stubEnv("NEXT_PUBLIC_MEDIA_SERVER_BASE_URL", "");
+    const service = await loadFresh();
     await expect(
-      StoryServiceClass.uploadToMediaServer(new File(["x"], "a.png", { type: "image/png" })),
-      "an upload ran with no media API key",
+      service.uploadToMediaServer(new File(["x"], "a.png", { type: "image/png" })),
+      "an upload ran with no media server address",
     ).rejects.toThrow("Media server upload is not configured");
+    expect(fetchSpy, "an upload was sent with no media server address").not.toHaveBeenCalled();
   });
 
-  it("uploads a video with a story ticket and returns its address and length", async () => {
-    const service = await loadWithKey();
+  it("uploads a video with a story ticket only, no static key, and returns its address and length", async () => {
+    // The media store authorises `/gated/*` by the ticket alone, so the app
+    // sends no `x-api-key` and does not need one set.
+    const service = await loadFresh();
     fetchSpy.mockResolvedValue({ ok: true, json: async () => ({ url: "/v/1.mp4", durationSeconds: 12 }) });
     const out = await service.uploadToMediaServer(new File(["x"], "a.mp4", { type: "video/mp4" }));
     const [url, init] = fetchSpy.mock.calls[0];
     expect(url, "a video did not go to the story upload address").toBe(`${MEDIA}/gated/upload?story=true`);
-    expect(init.headers, "the media server did not get the key and the ticket").toEqual({
-      "x-api-key": "media-key",
+    expect(init.headers, "the media server got something other than the ticket alone").toEqual({
       "X-Upload-Ticket": "ticket-1",
     });
     expect(GetTicket, "the ticket was not asked for a story video").toHaveBeenCalledWith("stories", true, 1);
@@ -446,14 +449,14 @@ describe("StoryService upload to the media server", () => {
   });
 
   it("uploads a picture to the plain address", async () => {
-    const service = await loadWithKey();
+    const service = await loadFresh();
     fetchSpy.mockResolvedValue({ ok: true, json: async () => ({ url: "/i/1.png" }) });
     await service.uploadToMediaServer(new File(["x"], "a.png", { type: "image/png" }));
     expect(fetchSpy.mock.calls[0][0], "a picture went to the video address").toBe(`${MEDIA}/gated/upload`);
   });
 
   it("fails when the media server refuses, answers no JSON, or gives no address", async () => {
-    const service = await loadWithKey();
+    const service = await loadFresh();
     const file = new File(["x"], "a.png", { type: "image/png" });
     fetchSpy
       .mockResolvedValueOnce({ ok: false, json: async () => ({ url: "/x" }) })
@@ -467,7 +470,7 @@ describe("StoryService upload to the media server", () => {
   });
 
   it("adds the uploaded story to the stories backend and closes the upload", async () => {
-    const service = await loadWithKey();
+    const service = await loadFresh();
     const { fetchData: freshFetchData } = await import("utils/fetchData");
     fetchSpy.mockResolvedValue({ ok: true, json: async () => ({ url: "/v/1.mp4", durationSeconds: "9.7" }) });
     (freshFetchData as any).mockResolvedValue({ success: true, data: { id: 44 } });
@@ -491,7 +494,7 @@ describe("StoryService upload to the media server", () => {
   });
 
   it("reports and throws when the stories backend refuses the story, or returns nothing", async () => {
-    const service = await loadWithKey();
+    const service = await loadFresh();
     const { fetchData: freshFetchData } = await import("utils/fetchData");
     const { LogError } = await import("utils/functions");
     fetchSpy.mockResolvedValue({ ok: true, json: async () => ({ url: "/i/1.png" }) });

@@ -380,6 +380,50 @@ describe("Excel section — uploading", () => {
     });
   });
 
+  // L-9 (seller catalog readiness): the tab said "processed successfully" even
+  // when the shop backend still listed the sheet as processing, and the table
+  // did not refresh by itself.
+  it("says the sheet is still being processed when the shop backend lists it so", async () => {
+    uploadExcelFile.mockResolvedValue({ key: "excel/products.xlsx" });
+    processExcel.mockResolvedValue({ success: true });
+    getExcelFiles.mockResolvedValue({
+      success: true,
+      data: { data: [excelRow({ upload_status: "processing" })] },
+    });
+
+    await chooseFileAndUpload();
+
+    expect(
+      await screen.findByText(/still being processed/i),
+      "the shop backend still lists the sheet as processing, but the tab did not say so",
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("File Uploaded And Processed Successfully!"),
+      "the tab said the sheet was processed while the shop backend still lists it as processing",
+    ).not.toBeInTheDocument();
+  });
+
+  it("reloads the table by itself until the shop backend has processed the sheet", async () => {
+    uploadExcelFile.mockResolvedValue({ key: "excel/products.xlsx" });
+    processExcel.mockResolvedValue({ success: true });
+    getExcelFiles.mockResolvedValue({
+      success: true,
+      data: { data: [excelRow({ upload_status: "processing" })] },
+    });
+
+    await chooseFileAndUpload();
+    await screen.findByText(/still being processed/i);
+    getExcelFiles.mockResolvedValue({
+      success: true,
+      data: { data: [excelRow({ upload_status: "completed" })] },
+    });
+
+    expect(
+      await screen.findByText("completed", {}, { timeout: 6000 }),
+      "the table never read the shop backend again while the sheet was processing",
+    ).toBeInTheDocument();
+  }, 10000);
+
   it("names the media server when it is the one that refused", async () => {
     uploadExcelFile.mockRejectedValue(
       new Error("The media server rejected the file."),

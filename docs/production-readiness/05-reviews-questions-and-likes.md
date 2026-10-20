@@ -1,7 +1,7 @@
 # Reviews, questions and likes — Production readiness
 
 **Status:** ✅ Closed — the owner closed this section on 2026-10-20. Nothing is left to do here before launch.
-**In one line:** Reading, writing, editing, deleting, translating and liking all work in code, and a search error leaves a section out instead of breaking the product page. The items still open were accepted by the owner (see "Accepted by the owner").
+**In one line:** Reading, writing, editing, deleting, translating and liking all work in code, and a search error leaves a section out instead of breaking the product page. The items still open were accepted by the owner; they are listed in `IMPORTANT-PRODUCTION-NOTES.md`.
 **Checked:** branch `development`, working tree after commit `6a0265a1`, 2026-10-20 — from the code only.
 
 ## What this section is
@@ -53,12 +53,6 @@ Review writing from the order page belongs to the orders file. Seller answers be
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
 | — | Nothing open. | — | — | — | — |
-
-## ✔️ Accepted by the owner
-The owner accepted these items on 2026-10-20. They do not block launch.
-- **Review photos are not shown on the product page.** The owner can add or change photos in the edit sheet, but `BuyersCommentItem` renders no `comments_images_customer`, so other shoppers never see them.
-- **The footer "comments" count counts questions only.** `GetProductCommentsCount` leaves out everything with an `order_details_id`, so reviews are not counted (`serverRequests/product.tsx`).
-- **The CMT-09 browser test (write, change and remove a review) goes red on and off.** The cause is not pinned (`tests/e2e/orderRating.live.spec.ts:150`). The section was closed with this open: it is a test task, and no fault in the app code is known.
 
 ## 🔒 Must do before launch
 Nothing.

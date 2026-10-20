@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { FIREBASE_SETTINGS_URL } from "utils/endpointConfig";
 import { LogError, translateFunction } from "utils/functions";
 import home from "services/home";
-import NotificationsTest from "components/global/NotificationsTest";
 
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -18,10 +17,6 @@ const SettingsModal = ({ onClose, lang }) => {
   // Local translate helper — every label went through this same call before.
   const t = (key: string) => translateFunction(key, language);
 
-  const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<"notifications" | "preferences">(
-    "notifications",
-  );
   const [profileData, setProfileData] = useState<any>({
     name: "",
     email: "",
@@ -35,18 +30,8 @@ const SettingsModal = ({ onClose, lang }) => {
   const [unsubscribedTopics, setUnsubscribedTopics] = useState<string[]>([]);
   const [SelectValue, setSelectValue] = useState("");
 
-  // Handle mounting and localStorage access
   useEffect(() => {
-    setMounted(true);
     const User = useAppStore.getState().userProfile;
-    // Set initial tab from hash if mounted
-    const hash = window.location.hash.slice(1) as
-      | "notifications"
-      | "preferences";
-    if (["notifications", "preferences"].includes(hash)) {
-      setActiveTab(hash);
-    }
-
     // Set profile data if user is authenticated
     if (User) {
       const userData = User;
@@ -57,29 +42,6 @@ const SettingsModal = ({ onClose, lang }) => {
       });
     }
   }, []);
-
-  // Handle hash changes
-  useEffect(() => {
-    if (!mounted) return;
-
-    const handleHashChange = () => {
-      const hash = window.location.hash.slice(1) as
-        | "notifications"
-        | "preferences";
-      if (["notifications", "preferences"].includes(hash)) {
-        setActiveTab(hash);
-      }
-    };
-
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
-  }, [mounted]);
-
-  const handleTabChange = (tab: "notifications" | "preferences") => {
-    if (!mounted) return;
-    setActiveTab(tab);
-    window.location.hash = tab;
-  };
 
   const InitTopics = async () => {
     setLoading(true);
@@ -290,214 +252,182 @@ const SettingsModal = ({ onClose, lang }) => {
     </button>
   );
 
-  const tabBtn = (tab: "notifications" | "preferences") =>
-    `flex-1 h-[38px] px-2 whitespace-nowrap overflow-hidden text-ellipsis rounded-full text-[13px] transition-all duration-200 ${
-      activeTab === tab
-        ? "bg-white medium shadow-[0_3px_10px_rgba(0,0,0,0.1)]"
-        : "text-[#707070]"
-    }`;
-
   return (
     <div
       dir={isRtl ? "rtl" : "ltr"}
       className="w-full font-sans text-[#3c3c3c]"
     >
       <div className="modal-content w-full bg-white rounded-[15px] shadow-[0_3px_10px_rgba(0,0,0,0.1)] p-4 mt-2">
-        {/* Segmented tabs */}
-        <div className="flex gap-1 bg-[#f2f2f2] rounded-full p-1 mb-1">
-          <button
-            className={tabBtn("notifications")}
-            style={
-              activeTab === "notifications" ? { color: PRIMARY } : undefined
-            }
-            onClick={() => handleTabChange("notifications")}
-          >
-            {t("Notifications Settings")}
-          </button>
-          <button
-            className={tabBtn("preferences")}
-            style={
-              activeTab === "preferences" ? { color: PRIMARY } : undefined
-            }
-            onClick={() => handleTabChange("preferences")}
-          >
-            {t("Notification Test")}
-          </button>
-        </div>
-
         {/* Content */}
         <div className="tab-content">
-          {activeTab === "notifications" && (
-            <div className="notifications-tab">
-              {/* Subscribed topics */}
-              {topics?.length > 0 ? (
-                <>
-                  <SectionLabel data-pw="Notifications-Can-Enabled">
-                    {t("Enabled Notifications Topic:")}
-                  </SectionLabel>
-                  <ul
-                    className="space-y-2 max-h-[240px] overflow-y-auto pr-1"
-                    data-pw="Children-off-Notifications-Can-Enabled"
-                  >
-                    {topics.map((topic, index) => (
-                      <li
-                        key={index}
-                        className="flex justify-between items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[50px]"
-                        data-pw="NotificationsItem-Can-Enabled"
-                      >
-                        <span
-                          className="text-[14px] text-[#3c3c3c]"
-                          data-pw="typeof-subscribing"
-                        >
-                          {formatTopicName(topic)}
-                        </span>
-                        <button
-                          className="rounded-full bg-[#fdecec] text-[#f85555] text-[12px] medium px-3 py-[6px] transition-opacity disabled:opacity-50 disabled:cursor-wait"
-                          data-pw="ButtonToEnabled-NotificationsItem"
-                          disabled={loading}
-                          onClick={() => handleUnsubscribe(topic)}
-                        >
-                          {loading
-                            ? t("Unsubscribing...")
-                            : t("Unsubscribe")}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              ) : (
-                <p
-                  className="text-center text-[#929191] text-[14px] py-6"
-                  data-pw="NoTopics-Subscribe"
+          <div className="notifications-tab">
+            {/* Subscribed topics */}
+            {topics?.length > 0 ? (
+              <>
+                <SectionLabel data-pw="Notifications-Can-Enabled">
+                  {t("Enabled Notifications Topic:")}
+                </SectionLabel>
+                <ul
+                  className="space-y-2 max-h-[240px] overflow-y-auto pr-1"
+                  data-pw="Children-off-Notifications-Can-Enabled"
                 >
-                  {loadingTopics
-                    ? t("Loading Topics...")
-                    : t("No topics subscribed.")}
-                </p>
-              )}
-
-              {/* Unsubscribed topics */}
-              {unsubscribedTopics?.length > 0 && (
-                <div>
-                  <SectionLabel data-pw="Notifications-Can-Disenabled">
-                    {t("Disabled Notifications Topic:")}
-                  </SectionLabel>
-                  <ul
-                    className="space-y-2 max-h-[240px] overflow-y-auto pr-1"
-                    data-pw="Children-off-Notifications-Can-Disenabled"
-                  >
-                    {unsubscribedTopics.map((topic, index) => (
-                      <li
-                        key={index}
-                        className="flex justify-between items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[50px]"
-                        data-pw="NotificationsItem-Can-Disenabled"
+                  {topics.map((topic, index) => (
+                    <li
+                      key={index}
+                      className="flex justify-between items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[50px]"
+                      data-pw="NotificationsItem-Can-Enabled"
+                    >
+                      <span
+                        className="text-[14px] text-[#3c3c3c]"
+                        data-pw="typeof-subscribing"
                       >
-                        <span
-                          className="text-[14px] text-[#3c3c3c]"
-                          data-pw="typeof-unsubscribing"
-                        >
-                          {formatTopicName(topic)}
-                        </span>
-                        <button
-                          className="rounded-full text-[12px] medium px-3 py-[6px] transition-opacity disabled:opacity-50 disabled:cursor-wait"
-                          style={{ backgroundColor: "#efecfc", color: PRIMARY }}
-                          data-pw="ButtonToDisenabled-NotificationsItem"
-                          disabled={loading}
-                          onClick={() => handleSubscribe(topic)}
-                        >
-                          {loading ? t("Subscribing...") : t("Subscribe")}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                        {formatTopicName(topic)}
+                      </span>
+                      <button
+                        className="rounded-full bg-[#fdecec] text-[#f85555] text-[12px] medium px-3 py-[6px] transition-opacity disabled:opacity-50 disabled:cursor-wait"
+                        data-pw="ButtonToEnabled-NotificationsItem"
+                        disabled={loading}
+                        onClick={() => handleUnsubscribe(topic)}
+                      >
+                        {loading
+                          ? t("Unsubscribing...")
+                          : t("Unsubscribe")}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p
+                className="text-center text-[#929191] text-[14px] py-6"
+                data-pw="NoTopics-Subscribe"
+              >
+                {loadingTopics
+                  ? t("Loading Topics...")
+                  : t("No topics subscribed.")}
+              </p>
+            )}
 
-              {/* Notification channels */}
-              <SectionLabel data-pw="notifications-subscription">
-                {t("notifications subscription:")}
-              </SectionLabel>
-              <div className="flex-col w-full space-y-2">
-                <div
-                  className="flex items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[56px] gap-3"
-                  data-pw="notifications-subscription-item"
+            {/* Unsubscribed topics */}
+            {unsubscribedTopics?.length > 0 && (
+              <div>
+                <SectionLabel data-pw="Notifications-Can-Disenabled">
+                  {t("Disabled Notifications Topic:")}
+                </SectionLabel>
+                <ul
+                  className="space-y-2 max-h-[240px] overflow-y-auto pr-1"
+                  data-pw="Children-off-Notifications-Can-Disenabled"
                 >
-                  <img
-                    src="/icons/mail.svg"
-                    className="h-[26px] w-[26px]"
-                    data-pw="mail-icon"
-                  />
-                  <span
-                    className="flex-1 text-[14px] text-[#3c3c3c]"
-                    data-pw="statement-mail"
-                  >
-                    {t("Enable Email Notifications")}
-                  </span>
-                  <Toggle
-                    on={fbSettings?.email === 1}
-                    dataCy="checkbox-mail"
-                    onClick={() => togglePreference("email", "update_email")}
-                  />
-                </div>
+                  {unsubscribedTopics.map((topic, index) => (
+                    <li
+                      key={index}
+                      className="flex justify-between items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[50px]"
+                      data-pw="NotificationsItem-Can-Disenabled"
+                    >
+                      <span
+                        className="text-[14px] text-[#3c3c3c]"
+                        data-pw="typeof-unsubscribing"
+                      >
+                        {formatTopicName(topic)}
+                      </span>
+                      <button
+                        className="rounded-full text-[12px] medium px-3 py-[6px] transition-opacity disabled:opacity-50 disabled:cursor-wait"
+                        style={{ backgroundColor: "#efecfc", color: PRIMARY }}
+                        data-pw="ButtonToDisenabled-NotificationsItem"
+                        disabled={loading}
+                        onClick={() => handleSubscribe(topic)}
+                      >
+                        {loading ? t("Subscribing...") : t("Subscribe")}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-                <div className="flex items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[56px] gap-3">
-                  <img
-                    src="/icons/FireBase.svg"
-                    className="h-[26px] w-[26px]"
-                  />
-                  <span className="flex-1 text-[14px] text-[#3c3c3c]">
-                    {t("Enable FireBase Notifications")}
-                  </span>
-                  <Toggle
-                    on={fbSettings?.firebase === 1}
-                    dataCy="checkbox-firebase"
-                    onClick={() =>
-                      togglePreference("firebase", "update_firebase")
-                    }
-                  />
-                </div>
+            {/* Notification channels */}
+            <SectionLabel data-pw="notifications-subscription">
+              {t("notifications subscription:")}
+            </SectionLabel>
+            <div className="flex-col w-full space-y-2">
+              <div
+                className="flex items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[56px] gap-3"
+                data-pw="notifications-subscription-item"
+              >
+                <img
+                  src="/icons/mail.svg"
+                  className="h-[26px] w-[26px]"
+                  data-pw="mail-icon"
+                />
+                <span
+                  className="flex-1 text-[14px] text-[#3c3c3c]"
+                  data-pw="statement-mail"
+                >
+                  {t("Enable Email Notifications")}
+                </span>
+                <Toggle
+                  on={fbSettings?.email === 1}
+                  dataCy="checkbox-mail"
+                  onClick={() => togglePreference("email", "update_email")}
+                />
+              </div>
 
-                <div className="flex items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[56px] gap-3">
-                  <img
-                    src="/icons/whatsappNotification.svg"
-                    className="h-[26px] w-[26px]"
-                  />
-                  <span className="flex-1 text-[14px] text-[#3c3c3c]">
-                    {t("Enable WhatsApp Notifications")}
-                  </span>
-                  <Toggle
-                    on={fbSettings?.whatsapp === 1}
-                    dataCy="checkbox-whatsapp"
-                    onClick={() =>
-                      togglePreference("whatsapp", "update_whatsapp")
-                    }
-                  />
-                </div>
+              <div className="flex items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[56px] gap-3">
+                <img
+                  src="/icons/FireBase.svg"
+                  className="h-[26px] w-[26px]"
+                />
+                <span className="flex-1 text-[14px] text-[#3c3c3c]">
+                  {t("Enable Push Notifications")}
+                </span>
+                <Toggle
+                  on={fbSettings?.firebase === 1}
+                  dataCy="checkbox-firebase"
+                  onClick={() =>
+                    togglePreference("firebase", "update_firebase")
+                  }
+                />
+              </div>
 
-                <div className="flex items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[56px] gap-3">
-                  <img
-                    src="/icons/CalenderIcon.svg"
-                    className="h-[26px] w-[26px]"
-                  />
-                  <span className="flex-1 text-[14px] text-[#3c3c3c]">
-                    {t("notifications Receiving Preference:")}
-                  </span>
-                  <select
-                    className="rounded-full bg-white border border-[#e6e6e6] text-[13px] text-[#3c3c3c] px-3 py-[6px] outline-none focus:border-[#5b3fe0] disabled:opacity-60 disabled:cursor-wait"
-                    value={SelectValue}
-                    disabled={loading}
-                    onChange={(e) => changeFrequency(e.target.value)}
-                  >
-                    <option value="">{t("Select An Option")}</option>
-                    <option value="daily">{t("daily")}</option>
-                    <option value="weekly">{t("weekly")}</option>
-                    <option value="monthly">{t("monthly")}</option>
-                  </select>
-                </div>
+              <div className="flex items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[56px] gap-3">
+                <img
+                  src="/icons/whatsappNotification.svg"
+                  className="h-[26px] w-[26px]"
+                />
+                <span className="flex-1 text-[14px] text-[#3c3c3c]">
+                  {t("Enable WhatsApp Notifications")}
+                </span>
+                <Toggle
+                  on={fbSettings?.whatsapp === 1}
+                  dataCy="checkbox-whatsapp"
+                  onClick={() =>
+                    togglePreference("whatsapp", "update_whatsapp")
+                  }
+                />
+              </div>
+
+              <div className="flex items-center bg-[#f8f8f8] rounded-[15px] px-4 h-[56px] gap-3">
+                <img
+                  src="/icons/CalenderIcon.svg"
+                  className="h-[26px] w-[26px]"
+                />
+                <span className="flex-1 text-[14px] text-[#3c3c3c]">
+                  {t("notifications Receiving Preference:")}
+                </span>
+                <select
+                  className="rounded-full bg-white border border-[#e6e6e6] text-[13px] text-[#3c3c3c] px-3 py-[6px] outline-none focus:border-[#5b3fe0] disabled:opacity-60 disabled:cursor-wait"
+                  value={SelectValue}
+                  disabled={loading}
+                  onChange={(e) => changeFrequency(e.target.value)}
+                >
+                  <option value="">{t("Select An Option")}</option>
+                  <option value="daily">{t("daily")}</option>
+                  <option value="weekly">{t("weekly")}</option>
+                  <option value="monthly">{t("monthly")}</option>
+                </select>
               </div>
             </div>
-          )}
-          {activeTab === "preferences" && <NotificationsTest />}
+          </div>
         </div>
       </div>
     </div>

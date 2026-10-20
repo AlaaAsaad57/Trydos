@@ -408,12 +408,10 @@ test("SCRIPT-32 the chat backend refuses a message: it is taken back, and the sh
 test("SCRIPT-33 the chat backend refuses a message inside a 200: it is taken back, and the shopper is told", async ({
   browser,
 }) => {
-  // Finding CHAT-APP-1 (docs/testing/E2E_SCENARIOS.md). Red against the app:
-  // `SendMessage` (store/chat/actions.tsx) checks only `response.success`,
-  // which `fetchData` sets for any 2xx, and then finds no `data.id` — so
-  // it neither swaps the message in nor takes it back, and says nothing.
-  // Strict: when the app is fixed this starts passing, and the marker must go.
-  test.fail(true, "CHAT-APP-1: a send refused inside a 200 stays on screen as sending");
+  // Finding CHAT-APP-1 (docs/testing/E2E_SCENARIOS.md), fixed 2026-10-20:
+  // `SendMessage` (store/chat/actions.tsx) now treats `isSuccessful: false`,
+  // or an answer with no `data.id`, as a refusal — the pending copy is taken
+  // back and the shopper is told.
   const words = "probe message refused inside a 200";
   // The chat backend answers some refusals with 200 and isSuccessful: false
   // (measured on PUT /api/v1/users/{id}, 2026-09-27). `fetchData` calls any

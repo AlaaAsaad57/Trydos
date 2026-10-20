@@ -1,12 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
-import auth from "services/auth";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
 import { showErrorMessage } from "components/global/AddToCartMessage";
-import { GetNextRecommendations } from "serverRequests/home";
+import { GetNextRecommendations } from "serverRequests/recommendations";
 import ProductCard from "components/products/ProductCard";
 function RecomendedProducts({ lang, InitialOffset, userId, currency }) {
   const { user } = useAppStore();
@@ -19,12 +18,13 @@ function RecomendedProducts({ lang, InitialOffset, userId, currency }) {
   const loadMore = async () => {
     try {
       setLoadingMore(true);
+      // The shopper is read from the session on the server (A1-8), so no
+      // user id travels with the call.
       let res = await GetNextRecommendations({
         country: country,
         language: language,
         limit: 7,
         offset: JSON.stringify(offset),
-        userId: auth.UserID() ?? user.id,
       });
 
       if (res.items?.length === 0) {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useParams } from "next/navigation";
 import { OrderInterface } from "utils/types/OrderInterface";
 import { LogError, translateFunction } from "utils/functions";
 import Order from "services/order";
@@ -19,6 +20,8 @@ function OrderCancelConfirmationWindow({
   callback: () => Promise<any>;
   cancelReasons?: string[];
 }) {
+  // A3-7: the terms page exists; Product replaces its text later.
+  const { lang } = useParams();
   const [loading, setLoading] = useState(false);
   const [agree, setAgree] = useState(false);
   const ConfirmFunction = async () => {
@@ -91,7 +94,9 @@ function OrderCancelConfirmationWindow({
 
             <a
               target="_blank"
-              href="#"
+              rel="noopener noreferrer"
+              href={`/${lang}/terms-of-service`}
+              onClick={(e) => e.stopPropagation()}
               className="medium text-[14px] text-white underline"
             >
               {translateFunction(`Cancellation Terms.`)}

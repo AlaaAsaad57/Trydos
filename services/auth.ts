@@ -1047,8 +1047,7 @@ class AuthService {
   async uploadToMediaServer(file: File) {
     const MEDIA_SERVER_BASE_URL =
       process.env.NEXT_PUBLIC_MEDIA_SERVER_BASE_URL?.replace(/\/$/, "") ?? "";
-    const MEDIA_API_KEY = process.env.NEXT_PUBLIC_MEDIA_API_KEY ?? "";
-    if (!MEDIA_SERVER_BASE_URL || !MEDIA_API_KEY) {
+    if (!MEDIA_SERVER_BASE_URL) {
       throw new Error("Media server upload is not configured");
     }
     let ticket=await GetTicket("customers/profile",false,1);
@@ -1060,10 +1059,8 @@ class AuthService {
 
     const response = await fetch(uploadUrl, {
       method: "POST",
-      headers: {
-        "x-api-key": MEDIA_API_KEY,
-        "X-Upload-Ticket":ticket
-      },
+      // Ticket only: the media store never reads `x-api-key` under `/gated/*`.
+      headers: { "X-Upload-Ticket": ticket },
 
       body: form,
     });

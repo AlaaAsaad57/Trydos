@@ -70,7 +70,6 @@ The order page opens a separate chat with the delivery worker. The mobile app op
 - **L-1 Chat needs push notifications.** The chat opens only when the browser has granted notifications (`ChatWindowModal.tsx:114`). A browser with no Notification API gets the "not supported" box and no chat. Examples: iPhone Safari when the site is not added to the Home Screen, and many in-app browsers. A shopper who denied notifications gets only a toast.
 - **L-2 Contact sync works only on browsers with the Contact Picker API** (in practice Android Chrome). Other browsers get "Contacts API not supported on this browser" (`ChatContactsUpload.tsx:202`). Adding a contact by hand works everywhere.
 - **L-3 In-chat search limits come from the chat backend.** Results are newest first. Only whole words of 3+ letters match, and Arabic never matches. The app asks for at most 100 matches and has no next page (`ChatSearch.tsx:122`). A failed search looks the same as "no results".
-- **L-4 A new message cannot be found by search for more than 20 minutes.** This is a backend index delay, accepted by the owner on 2026-09-29. An edited message is found at once.
 - **L-5 Calls have fixed limits.** An unanswered call ends after 60 s. Every call ends at 10 min, with a warning at 5 min (`components/callDurationConstants.ts`).
 - **L-6 Every failed outgoing call says "User in Another Call"** (`store/chat/callActions.ts:85`, `:156`). This text shows even for a network or server error. The unit test `callActions.test.ts` expects this text.
 - **L-7 Some actions change the screen first and never check the answer.** Delete message (`store/chat/actions.tsx:195`), delete chat (`:204`) and mute (`:308` + `ChatOptions.tsx:73`) do not undo the change when the backend refuses. The shopper sees success; the old state comes back after a reload.
@@ -121,7 +120,7 @@ The order page opens a separate chat with the delivery worker. The mobile app op
 - The app sends `role_id: 16` to `my_channels` (`services/chat.ts:163`, `store/chat/actions.tsx` `GetMyChannelsPage`). What does it mean, and is it the same in production?
 - When the caller's 60-second timer ends an unanswered call, does the backend push `RefuseCallEvent` to the callee, so the ring stops?
 - Does the mobile app still open `/call_direct` for voice and video calls? Do `end_call` and `refuse_call` accept an access token older than 60 s? (M-3, M-14)
-- `channelSearch`: are Arabic support and a fix for the 20-minute index delay on new messages planned? (L-3, L-4)
+- `channelSearch`: is Arabic support planned? (L-3)
 - Do the media server and the mobile app play voice notes that are WebM or MP4 inside but named `.wav`? (L-8)
 - Live chat events come only through FCM pushes (there is no socket). What delivery delay is expected in production?
 

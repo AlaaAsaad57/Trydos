@@ -112,6 +112,7 @@ describe("SearchVoice", () => {
     const [url, init] = (globalThis.fetch as any).mock.calls[0];
     expect(url, "the voice went to the wrong address").toBe("/api/speech-recognition");
     expect((init.body as FormData).get("language"), "the language was not sent").toBe("en");
+    expect(init.credentials, "voice search must send the session cookie, or the route refuses it").toBe("same-origin");
     expect(track.stop, "the microphone was left on").toHaveBeenCalled();
     expect(speech[0].abort, "the live fallback was not dropped after a good answer").toHaveBeenCalled();
   });

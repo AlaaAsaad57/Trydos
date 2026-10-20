@@ -12,12 +12,13 @@ import { MapElement } from "components/Cart/MapElement";
 import { act, renderWithProviders, screen, userEvent } from "../../render";
 
 const loader = { isLoaded: true };
+const useJsApiLoader = vi.fn((_options?: unknown) => loader);
 const fakeMap = { getZoom: vi.fn(() => 12), panTo: vi.fn(), setCenter: vi.fn() };
 let lastPoint: any = null;
 let clickPoint: any = { latLng: { lat: () => 33.5, lng: () => 36.3 } };
 
 vi.mock("@react-google-maps/api", () => ({
-  useJsApiLoader: () => loader,
+  useJsApiLoader: (options: unknown) => useJsApiLoader(options),
   GoogleMap: ({ children, onLoad, onUnmount, onClick, center }: any) => {
     useEffect(() => {
       onLoad(fakeMap);
@@ -112,6 +113,23 @@ function stubGeolocation(geolocation: any) {
 }
 
 describe("the Google map in the address form", () => {
+  it("loads the Google script with the key from the env setting, not a key in the code", async () => {
+    vi.stubEnv("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY", "env-maps-key");
+    vi.resetModules();
+    const { GOOGLE_MAPS_LOADER_ID } = await import("utils/mapsConfig");
+    const { MapElement: Fresh } = await import("components/Cart/MapElement");
+
+    await renderWithProviders(
+      <Fresh center={{ lat: 33, lng: 36 }} expanded cordinates={[{ lat: "1", lon: "2" }]} setLocation={vi.fn()} />,
+      { store: { addressDetails: { location: { latitude: null, longitude: null } } } },
+    );
+
+    const options = useJsApiLoader.mock.calls.at(-1)?.[0] as any;
+    expect(options?.googleMapsApiKey, "the map did not use the key from the env setting").toBe("env-maps-key");
+    expect(options?.id, "the map does not share the loader id with the seller map").toBe(GOOGLE_MAPS_LOADER_ID);
+    vi.unstubAllEnvs();
+  });
+
   it("centres on the given point once the map has loaded", async () => {
     await drawMap();
     expect(

@@ -120,26 +120,6 @@ export const REQUESTS_DATA = {
     code: 73,
   },
   HIDE_OLD_CART: { reqTitle: "Hide Old Cart", code: 74 },
-  SEND_BOUTIQUE_CREATED: { reqTitle: "send boutique created", code: 75 },
-  SEND_PRODUCT_CART_EXPIRATION: {
-    reqTitle: "send product cart expiration",
-    code: 76,
-  },
-  SEND_PRODUCT_AVAILABILITY: {
-    reqTitle: "send product availability",
-    code: 77,
-  },
-  SEND_PRODUCT_COMMENT: { reqTitle: "send product comment", code: 78 },
-  SEND_PRODUCT_DISCOUNT: { reqTitle: "send product discount", code: 79 },
-  SEND_CATEGORY_CREATED: { reqTitle: "send category created", code: 80 },
-  SEND_PRODUCT_BEFORE_STOCK_OUT: {
-    reqTitle: "send product before stock out",
-    code: 81,
-  },
-  SEND_PRODUCT_WHEN_CHANGE_IN_PRICE: {
-    reqTitle: "send product when change in price",
-    code: 82,
-  },
   EDIT_NOTIFICATION_SETTINGS: {
     reqTitle: "edit notification settings",
     code: 83,
@@ -268,8 +248,6 @@ export const REQUESTS_DATA = {
   GET_CHECKLIST: { reqTitle: "GET_CHECKLIST", code: 161 },
   DEL_CHECKLIST: { reqTitle: "DEL_CHECKLIST", code: 162 },
   ADD_CHECKLIST: { reqTitle: "ADD_CHECKLIST", code: 163 },
-  GET_UPLOADED_IMAGES: { reqTitle: "GET_UPLOADED_IMAGES", code: 164 },
-  DELETE_UPLOADED_IMAGE: { reqTitle: "DELETE_UPLOADED_IMAGE", code: 165 },
   BULK_UPLOAD_IMAGES: { reqTitle: "BULK_UPLOAD_IMAGES", code: 166 },
   GET_SELLER_STORIES: { reqTitle: "GET_SELLER_STORIES", code: 167 },
   SAVE_SELLER_STORY: { reqTitle: "SAVE_SELLER_STORY", code: 168 },

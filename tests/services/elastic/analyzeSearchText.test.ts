@@ -11,10 +11,21 @@
 // replaced. Nothing here reaches the real service.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const io = vi.hoisted(() => ({ colorsAndSizes: vi.fn(), logServerError: vi.fn() }));
+const io = vi.hoisted(() => ({
+  colorsAndSizes: vi.fn(),
+  logServerError: vi.fn(),
+  redisGet: vi.fn(),
+  redisSet: vi.fn(),
+  rateLimit: vi.fn(),
+}));
 
 vi.mock("serverRequests/analyticsUtility", () => ({ GetColorAndSizes: io.colorsAndSizes }));
 vi.mock("utils/serverErrorReporter", () => ({ LogServerError: io.logServerError }));
+vi.mock("serverRequests/radis", () => ({
+  RedisGet: io.redisGet,
+  RedisSet: io.redisSet,
+  fixedWindowRateLimit: io.rateLimit,
+}));
 
 import AnalyzeSearchText from "services/elastic/analyzeSearchText";
 
@@ -32,6 +43,9 @@ beforeEach(() => {
   fetchMock.mockReset();
   vi.stubGlobal("fetch", fetchMock);
   io.colorsAndSizes.mockResolvedValue({ colors: "#ff0000, #0000ff", sizes: "S, M, XL" });
+  io.redisGet.mockResolvedValue(null);
+  io.redisSet.mockResolvedValue(undefined);
+  io.rateLimit.mockResolvedValue({ allowed: true, remaining: 10, ttl: 60 });
   vi.stubEnv("GEMINI_API_KEY", "not-a-real-key");
 });
 
@@ -137,6 +151,56 @@ describe("analysing a search", () => {
       "socket closed",
     );
     expect(result.error, "a non-error failure did not give an error field").toBe("undefined");
+  });
+
+  it("stores a good answer, so the same search is not a second paid call", async () => {
+    fetchMock.mockResolvedValue(aiAnswer('{"name":"dress","color":["#ff0000"]}'));
+
+    await AnalyzeSearchText("Red%20Dress");
+
+    const [key, value, ttl] = io.redisSet.mock.calls[0] ?? [];
+    expect(key, "the answer was not stored under a search-analysis key").toMatch(/^search:analyze:v1:[0-9a-f]{40}$/);
+    expect(key, "the raw search text was written into the Redis key").not.toContain("dress");
+    expect(value, "the stored answer is not the parsed result").toEqual({ name: "dress", color: ["#ff0000"] });
+    expect(ttl, "the stored answer has no lifetime").toBeGreaterThan(0);
+  });
+
+  it("answers from the store without calling the AI, and ignores case and spaces", async () => {
+    io.redisGet.mockResolvedValue({ name: "dress", color: ["#ff0000"] });
+
+    const result = await AnalyzeSearchText("  RED dress ");
+
+    expect(fetchMock, "a stored search still called the AI").not.toHaveBeenCalled();
+    expect(result, "the stored answer was not returned").toMatchObject({ name: "dress", color: ["#ff0000"], cached: true });
+    expect(io.redisGet.mock.calls[0][0], "the key does not fold case and spaces").toMatch(/^search:analyze:v1:[0-9a-f]{40}$/);
+  });
+
+  it("does not store a refusal or an unreadable answer", async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 500, text: async () => "boom" });
+
+    await AnalyzeSearchText("red dress");
+
+    expect(io.redisSet, "a refused analysis was stored").not.toHaveBeenCalled();
+  });
+
+  it("skips the AI when the calls-per-minute budget is spent, so the search runs on the raw text", async () => {
+    io.rateLimit.mockResolvedValue({ allowed: false, remaining: 0, ttl: 20 });
+
+    const result = await AnalyzeSearchText("red dress");
+
+    expect(fetchMock, "the AI was called over the budget").not.toHaveBeenCalled();
+    expect(result.rateLimited, "an over-budget search was not marked as rate limited").toBe(true);
+    expect(result.error, "the over-budget message does not say the search still ran").toContain("raw text");
+    expect(io.rateLimit.mock.calls[0][0], "the budget is not one shared counter").toBe("search:analyze:rl:global");
+  });
+
+  it("skips the AI when the limiter is not available, so a paid call never runs uncapped", async () => {
+    io.rateLimit.mockResolvedValue({ allowed: true, remaining: 10, ttl: 0 });
+
+    const result = await AnalyzeSearchText("red dress");
+
+    expect(fetchMock, "the AI was called with the limiter down").not.toHaveBeenCalled();
+    expect(result.skipped, "a skipped analysis was not marked as skipped").toBe(true);
   });
 
   it("gives up after the time budget so the search is never held", async () => {

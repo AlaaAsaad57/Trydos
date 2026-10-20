@@ -42,9 +42,8 @@
 //     numeric id carries no prefix, so an id alone can never prove the row this
 //     seed is about to change is its own.
 //  2. **`call()` is the only write path**, and it records the method, the URL
-//     and the slug. Never a header and never a body: `NEXT_PUBLIC_MEDIA_API_KEY`
-//     is deliberately left unmasked by `redact()`, and this repository is
-//     public.
+//     and the slug. Never a header and never a body: a header can carry a
+//     session or an upload ticket, and this repository is public.
 //  3. **It never deletes anything.** Not the shop, not the location, not the
 //     product. A run that dies half-way leaves a half-built QA shop, which is
 //     recoverable; a run that deletes leaves nothing to look at.

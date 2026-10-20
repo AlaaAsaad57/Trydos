@@ -1,8 +1,12 @@
+import { translateFunction } from "utils/server";
+import { callScreenLanguage } from "../callLanguage";
+
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
 export const instant = false;
 
-function page() {
+async function page() {
+  const language = await callScreenLanguage();
   return (
     <div className="call-ended-screen">
       <svg
@@ -25,7 +29,7 @@ function page() {
           </g>
         </g>
       </svg>
-      Call Ended.
+      {translateFunction("Call Ended.", language)}
     </div>
   );
 }

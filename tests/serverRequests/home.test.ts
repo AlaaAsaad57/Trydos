@@ -40,7 +40,6 @@ import {
   GetFlashDealProducts,
   GetHomeBoutiques,
   GetNextBoutiques,
-  GetNextRecommendations,
   GetRecommedndedProducts,
 } from "serverRequests/home";
 
@@ -48,36 +47,34 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+// The "Show More" page (GetNextRecommendations) moved to
+// serverRequests/recommendations.ts, where it reads the shopper from the
+// session cookie; it is not part of this module any more.
 describe("the recommended products row", () => {
-  for (const [name, action] of [
-    ["GetNextRecommendations", GetNextRecommendations],
-    ["GetRecommedndedProducts", GetRecommedndedProducts],
-  ] as const) {
-    it(`${name} reads the cursor as numbers and returns product cards`, async () => {
-      io.recommendations.mockResolvedValue({
-        products: [{ product_id: 5, slug: "hat" }],
-        offset: [9, 10],
-      });
-
-      const result: any = await (action as any)({
-        language: "en",
-        country: "sy",
-        offset: "[3,4]",
-        userId: 8,
-        limit: 6,
-      });
-
-      expect(io.recommendations.mock.calls[0][0], "the recommendation request is wrong").toEqual({
-        country: "sy",
-        language: "en",
-        limit: 6,
-        userId: 8,
-        search_after: [3, 4],
-      });
-      expect(result.items.map((p: any) => p.slug), "the product cards are wrong").toEqual(["hat"]);
-      expect(result.offset, "the next cursor is wrong").toEqual([9, 10]);
+  it("GetRecommedndedProducts reads the cursor as numbers and returns product cards", async () => {
+    io.recommendations.mockResolvedValue({
+      products: [{ product_id: 5, slug: "hat" }],
+      offset: [9, 10],
     });
-  }
+
+    const result: any = await GetRecommedndedProducts({
+      language: "en",
+      country: "sy",
+      offset: "[3,4]",
+      userId: 8,
+      limit: 6,
+    });
+
+    expect(io.recommendations.mock.calls[0][0], "the recommendation request is wrong").toEqual({
+      country: "sy",
+      language: "en",
+      limit: 6,
+      userId: 8,
+      search_after: [3, 4],
+    });
+    expect(result.items.map((p: any) => p.slug), "the product cards are wrong").toEqual(["hat"]);
+    expect(result.offset, "the next cursor is wrong").toEqual([9, 10]);
+  });
 });
 
 describe("the boutique row (GetHomeBoutiques)", () => {

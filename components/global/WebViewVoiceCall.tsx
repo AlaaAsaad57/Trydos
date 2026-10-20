@@ -23,7 +23,10 @@ const useClient = createClient(config);
 // Only request microphone, not camera
 const useMicrophoneTrack = createMicrophoneAudioTrack();
 
-const appId = "0af959943ff542df8f2cb1b925ec0cc1";
+import { AGORA_APP_ID } from "utils/agoraConfig";
+// One App ID for every call screen (readiness A2-24, A2-25). This copy used to
+// end in a different character, so a voice call from the mobile app could not join.
+const appId = AGORA_APP_ID;
 
 function WebViewVoiceCall(props) {
   const [IsSpeaker, setIsSpeaker] = useState(false);

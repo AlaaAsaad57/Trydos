@@ -11,27 +11,10 @@ import {
   parseNumberArray,
 } from "utils/server";
 import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
-export async function GetNextRecommendations({
-  language,
-  country,
-  offset,
-  userId,
-  limit,
-}) {
-  let response: any = await GetRecomendationsForUser({
-    country: country,
-    language: language,
-    limit: limit,
-    userId: userId,
-    search_after: parseNumberArray(offset),
-  });
-  let productsData = response.products.map(normalizeListingProduct);
-  let newOffset = response?.offset;
-  return {
-    items: productsData,
-    offset: newOffset,
-  };
-}
+
+// The "Show More" page of the recommendations row lives in
+// `serverRequests/recommendations.ts`: it reads the session cookie, and this
+// module sits inside a `use cache` graph where that read is not allowed.
 
 export async function GetNextBoutiques({
   language,

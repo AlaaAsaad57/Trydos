@@ -665,34 +665,6 @@ describe("the small market calls", () => {
     expect(LogServerError, "a successful old-cart hide was reported").not.toHaveBeenCalled();
   });
 
-  const testSenders = [
-    ["TestNotificationBoutique", { boutique_id: 3 }, "send_boutique_created"],
-    ["TestNotificationProductToOldCart", undefined, "send_product_cart_expiration"],
-    ["TestNotificationProductAvailable", undefined, "send_product_availability"],
-    ["TestNotificationProductComment", undefined, "send_product_comment"],
-    ["TestNotificationProductDiscount", undefined, "send_product_discount"],
-    ["TestNotificationCategoryCreated", undefined, "send_category_created"],
-    ["TestNotificationBeforeStockOut", undefined, "send_product_before_stock_out"],
-    ["TestNotificationChangeInPrice", undefined, "send_product_when_change_in_price"],
-  ] as const;
-
-  for (const [method, args, route] of testSenders) {
-    it(`${method} sends the test notification and logs a refusal`, async () => {
-      vi.mocked(fetchData)
-        .mockResolvedValueOnce({ success: true } as any)
-        .mockResolvedValueOnce({ success: false, message: "refused" } as any);
-
-      await (homeService as any)[method](args);
-      await (homeService as any)[method](args);
-
-      expect(
-        vi.mocked(fetchData).mock.calls[0][0].url,
-        `${method} did not call its own test route`,
-      ).toBe(`/firebase_device_tokens/${route}`);
-      expect(LogError, `${method} did not log the refused test notification`).toHaveBeenCalledTimes(1);
-    });
-  }
-
   it("says whether the notification settings were saved", async () => {
     vi.mocked(fetchData)
       .mockResolvedValueOnce({ success: true } as any)

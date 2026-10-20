@@ -656,6 +656,27 @@ describe("the seller dashboard home", () => {
 });
 
 describe("the seller dashboard side menu", () => {
+  // L-5 (seller catalog readiness): the badge showed the number of products on
+  // the loaded page, not the shop total the core backend reports.
+  it("shows the shop's product total on the Products badge, not the size of one page", async () => {
+    getSellerProducts.mockResolvedValue({
+      success: true,
+      data: {
+        products: [product(1, "First Shirt"), product(2, "Second Shirt")],
+        meta: { total: 37, last_page: 4, current_page: 1 },
+      },
+    });
+    await openDashboard();
+
+    fireEvent.click(byPw("seller-dashboard-menu-btn"));
+    await settle();
+
+    expect(
+      byPw("seller-dashboard-menu-products").textContent,
+      "the Products badge does not show the total of 37 the core backend reported",
+    ).toContain("37");
+  });
+
   const MENU_TABS = [
     "products", "boutiques", "locations", "orders", "carts", "permissions",
     "users", "gallery", "stories", "comments", "excel", "shopInfo",

@@ -197,14 +197,14 @@ export const hasTestAccountPhones = (): boolean =>
 /** The media store. Needed by the cases that upload a profile picture and read
  *  it back.
  *
- *  All three, because the app throws "Media server upload is not configured"
- *  unless the first two are set (`services/auth.ts`), and the picture is read
- *  back through the third. Gating on fewer would make a half-configured
- *  environment **fail** where it should skip. */
+ *  Both, because the app throws "Media server upload is not configured"
+ *  unless the first is set (`services/auth.ts`), and the picture is read
+ *  back through the second. Uploads are authorised by the upload ticket
+ *  alone; there is no static media key any more. Gating on fewer would make a
+ *  half-configured environment **fail** where it should skip. */
 export const hasMedia = (): boolean =>
   allSet(
     "NEXT_PUBLIC_MEDIA_SERVER_BASE_URL",
-    "NEXT_PUBLIC_MEDIA_API_KEY",
     "NEXT_PUBLIC_BASE_MEDIA_URL",
   );
 

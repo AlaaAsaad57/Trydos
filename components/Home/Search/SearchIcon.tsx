@@ -42,7 +42,6 @@ import ActiveSearchFilterBar from "./ActiveSearchFilterBar";
 import NextLink from "components/global/NextLink";
 import { useParams, useRouter } from "next/navigation";
 import { useAppStore } from "store";
-import { showSuccessNotification } from "store/notifications/reducer";
 import Image from "next/image";
 import auth from "services/auth";
 
@@ -179,9 +178,6 @@ function SearchIcon({ language, country }) {
           userId: auth.UserID(),
           // Assuming server action accepts query text
         });
-        if (value?.length > 0 && res.isAnalyzed) {
-          showSuccessNotification(JSON.stringify(res.isAnalyzed));
-        }
         // RACE CONDITION CHECK: Only update if this is the latest request
         if (requestId === latestRequestRef.current) {
           setResults({

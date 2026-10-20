@@ -133,7 +133,7 @@ describe("SearchImage", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url, "the picture went to the wrong address").toBe("/api/image-search");
     expect((init.body as FormData).get("language"), "the language was not sent").toBe("en");
-    expect(init.credentials, "image search must not send cookies").toBe("omit");
+    expect(init.credentials, "image search must send the session cookie, or the route refuses it").toBe("same-origin");
     await waitFor(() => expect(setSearchValue, "the answer did not fill the search box").toHaveBeenCalledWith("black t-shirt"));
     expect(camIcon(), "the spinner stayed after the answer").not.toBeNull();
   });

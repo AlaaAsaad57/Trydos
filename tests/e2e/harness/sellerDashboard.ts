@@ -25,8 +25,8 @@
 // `actions/wishlist.ts` already does.
 //
 // **Nothing here logs a header or a body.** The record each call appends
-// carries the method and the URL only: one header is the session, and
-// `NEXT_PUBLIC_MEDIA_API_KEY` is deliberately left unmasked by `redact()`.
+// carries the method and the URL only: one header is the session, and the
+// other is a single-use upload ticket.
 
 import { envValue } from "./env";
 import { redact } from "./redact";
@@ -257,7 +257,7 @@ const sendThroughProxy = async (
  *  The chain, copied from `SellerDashboardService.uploadShopImage`:
  *
  *    POST /api/ticket            { folder, story, count }  -> a ticket
- *    POST <media>/gated/upload   multipart, x-api-key + X-Upload-Ticket
+ *    POST <media>/gated/upload   multipart, X-Upload-Ticket only
  *                                                          -> { url }
  *
  *  **The backend is then sent the bare filename, not the URL and not the
@@ -265,17 +265,16 @@ const sendThroughProxy = async (
  *  `folder/folder/file` path -- the comment beside `ICON_FOLDER` records that
  *  as something already paid for once.
  *
- *  The API key never reaches the call record: `call()` is not used here, and
- *  the entry pushed below names the folder only. `redact()` deliberately does
- *  NOT mask `NEXT_PUBLIC_MEDIA_API_KEY` -- anything `NEXT_PUBLIC_` is in the
- *  browser bundle already -- so it must not be put anywhere by hand. */
+ *  The ticket never reaches the call record: `call()` is not used here, and
+ *  the entry pushed below names the folder only. The media store authorises
+ *  `/gated/*` by the ticket alone; there is no static media key any more. */
 /** Is this refusal worth asking again about?
  *
  *  **Only a refusal the media store cannot help.** A 5xx is the store being
  *  unwell, a 429 is it asking us to wait, and `0` is an answer that never
  *  arrived. Those pass, and a second attempt is likely to work.
  *
- *  A 4xx does not. A 401 or a 403 means the key or the ticket is wrong, and
+ *  A 4xx does not. A 401 or a 403 means the ticket is wrong, and
  *  asking three times turns an instant, clear failure into a slow one with the
  *  same message. */
 export const worthRetrying = (status: number): boolean =>
@@ -338,7 +337,7 @@ export const uploadShopImage = async (
   // is none of them. Reading it there throws "process is not defined", which
   // the catch below would have reported as "the media store refused the
   // upload" -- a message about a request that was never made.
-  const attempt = async () => await page.evaluate(async ({ folderName, base, key }) => {
+  const attempt = async () => await page.evaluate(async ({ folderName, base }) => {
     const fail = (why: string, status: number) => ({
       ok: false as const,
       why,
@@ -376,7 +375,7 @@ export const uploadShopImage = async (
 
       const response = await fetch(`${base}/gated/upload`, {
         method: "POST",
-        headers: { "x-api-key": key, "X-Upload-Ticket": ticketBody.ticket },
+        headers: { "X-Upload-Ticket": ticketBody.ticket },
         body: form,
       });
       const body = await response.json().catch(() => null);
@@ -399,7 +398,6 @@ export const uploadShopImage = async (
   }, {
     folderName: folder,
     base: envValue("NEXT_PUBLIC_MEDIA_SERVER_BASE_URL").replace(/\/$/, ""),
-    key: envValue("NEXT_PUBLIC_MEDIA_API_KEY"),
   });
 
   let uploaded = await attempt();

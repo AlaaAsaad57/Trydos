@@ -1,20 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { LogServerError } from "utils/serverErrorReporter";
+import { guardPaidCall, PAID_CALL_MESSAGES } from "utils/server/paidRouteGuard";
 
-// Helper function to convert file to generative part
-async function fileToGenerativePart(file: File) {
-  // Convert file to ArrayBuffer then to base64 using Node.js Buffer
+// Every call costs money (Gemini), so the route refuses a caller with no
+// session, a picture over the cap, and more than this many calls per address
+// per window. The checks live in `utils/server/paidRouteGuard.ts`.
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+const RATE_LIMIT = 10;
+const RATE_WINDOW_SECONDS = 60;
+
+// The model is an env value, so Ops can swap it without a redeploy. The old
+// hardcoded `gemini-1.5-flash` was retired by Google on 24 Sep 2025, and from
+// that day every photo search failed. The default is the same model the search
+// text analyser uses (`services/elastic/analyzeSearchText.ts`); it reads
+// pictures too.
+const MODEL = process.env.GEMINI_IMAGE_SEARCH_MODEL || "gemini-2.5-flash-lite";
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+
+// Hard ceiling on the model call. A photo is larger than a search text, so
+// the budget is longer than the analyser's 6 s. Tunable without a redeploy.
+const DEFAULT_TIMEOUT_MS = 15000;
+const timeoutMs = () =>
+  Number(process.env.IMAGE_SEARCH_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS;
+
+// The picture goes to the model inline, as base64, with its MIME type.
+async function fileToInlineData(file: File) {
   const arrayBuffer = await file.arrayBuffer();
-  const base64Data = Buffer.from(arrayBuffer).toString("base64");
-
   return {
     inlineData: {
-      data: base64Data,
       mimeType: file.type,
+      data: Buffer.from(arrayBuffer).toString("base64"),
     },
   };
 }
+
+/** The model refused to answer because of its safety filters. */
+const blockedBySafety = (result: any) =>
+  Boolean(result?.promptFeedback?.blockReason) ||
+  result?.candidates?.[0]?.finishReason === "SAFETY";
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,6 +45,20 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("file") as File;
     const language = formData.get("language") as string;
+
+    const refused = await guardPaidCall(request, {
+      name: "image-search",
+      file,
+      maxBytes: MAX_IMAGE_BYTES,
+      limit: RATE_LIMIT,
+      windowSeconds: RATE_WINDOW_SECONDS,
+    });
+    if (refused) {
+      return NextResponse.json(
+        { error: refused.message, success: false },
+        { status: refused.status, headers: { "Cache-Control": "no-store" } },
+      );
+    }
 
     // Validate required fields
     if (!file || !language) {
@@ -55,14 +92,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Initialize Google Generative AI
-    const genAI = new GoogleGenerativeAI(
-      process.env.GEMINI_API_KEY!,
-    );
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    // Convert file to generative part
-    const fileGenerativePart = await fileToGenerativePart(file);
+    const picture = await fileToInlineData(file);
 
     // Create language-specific prompt
     const basePrompt =
@@ -75,17 +105,83 @@ export async function POST(request: NextRequest) {
           ? `${basePrompt}. If you cannot identify any clear product in the image, respond exactly with "NO_PRODUCT_FOUND". (Please respond in English)`
           : `${basePrompt}. If you cannot identify any clear product in the image, respond exactly with "NO_PRODUCT_FOUND". (Please respond in Turkish)`;
 
-    // Generate content using Google AI
-    const result = await model.generateContent([
-      languagePrompt,
-      fileGenerativePart,
-    ]);
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // The key travels only in the header, never in the URL.
+        "x-goog-api-key": process.env.GEMINI_API_KEY || "",
+      },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: languagePrompt }, picture] }],
+        generationConfig: {
+          // Thinking tokens are billed and add seconds; a five-word label
+          // does not need them.
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(timeoutMs()),
+    });
 
-    const response = await result.response;
-    const text = response.text().trim();
+    if (response.status === 429) {
+      // The Gemini quota, not ours: the shopper may try again in a moment.
+      return NextResponse.json(
+        { error: PAID_CALL_MESSAGES.tooMany, success: false },
+        { status: 429, headers: { "Cache-Control": "no-store" } },
+      );
+    }
+
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => "");
+      const keyRefused =
+        (response.status === 400 || response.status === 403) &&
+        /api key/i.test(bodyText);
+      LogServerError(
+        {
+          error: `Gemini API error: ${response.status} — ${bodyText.slice(0, 200)}`,
+          type: "search image api route",
+          url: request.url,
+        },
+        "/api/image-search",
+      );
+      if (keyRefused) {
+        return NextResponse.json(
+          {
+            error: "API Configuration Error",
+            details: "Google AI API key is missing or invalid",
+          },
+          { status: 500 },
+        );
+      }
+      return NextResponse.json(
+        {
+          error: "Internal server error",
+          details: `The image model answered ${response.status}`,
+        },
+        { status: 500 },
+      );
+    }
+
+    const result: any = await response.json();
+
+    if (blockedBySafety(result)) {
+      return NextResponse.json(
+        {
+          error: "Content Safety Error",
+          details: "The content was flagged by safety filters",
+        },
+        { status: 400 },
+      );
+    }
+
+    const text: string = (
+      result?.candidates?.[0]?.content?.parts?.[0]?.text || ""
+    ).trim();
 
     // Check if no product was found
     if (
+      !text ||
       text === "NO_PRODUCT_FOUND" ||
       text.toLowerCase().includes("no product") ||
       text.toLowerCase().includes("cannot identify") ||
@@ -115,31 +211,11 @@ export async function POST(request: NextRequest) {
       },
       "/api/image-search",
     );
-    // Handle specific Google AI errors
-    if (error.message?.includes("API_KEY")) {
-      return NextResponse.json(
-        {
-          error: "API Configuration Error",
-          details: "Google AI API key is missing or invalid",
-        },
-        { status: 500 },
-      );
-    }
-
-    if (error.message?.includes("SAFETY")) {
-      return NextResponse.json(
-        {
-          error: "Content Safety Error",
-          details: "The content was flagged by safety filters",
-        },
-        { status: 400 },
-      );
-    }
 
     return NextResponse.json(
       {
         error: "Internal server error",
-        details: error.message || "An unexpected error occurred",
+        details: error?.message || "An unexpected error occurred",
       },
       { status: 500 },
     );

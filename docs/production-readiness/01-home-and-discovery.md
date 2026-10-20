@@ -1,7 +1,7 @@
 # Home and discovery — Production readiness
 
 **Status:** 🟡 Ready with conditions
-**In one line:** The home and category pages work end to end, but the index TLS check, an open cache-flush route and a recommendations privacy hole must be fixed before launch.
+**In one line:** The home and category pages work end to end, but the index TLS check and a recommendations privacy hole must be fixed before launch.
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
 
 ## What this section is
@@ -51,8 +51,8 @@ Stories bar: see the stories file. Search overlay (`components/Home/Search/`): s
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
 | M-1 | The Elasticsearch client accepts any TLS certificate (`rejectUnauthorized: false`). | Nothing visible. A machine in the middle can read the index user name, password and data. | `services/elastic/elasticsearch.config.ts:15-17` | Frontend + Ops | **Yes** — security. |
-| M-2 | `GetNextRecommendations` is a public Server Action. It takes `userId` and `limit` from the browser and trusts both. | Nothing visible. Anybody can read another shopper's recommendation list by sending that shopper's id, and can ask for any number of products in one call. | `serverRequests/home.tsx:14-34`, called from `components/Server/RecomendedProducts.tsx:22-28` | Frontend | **Yes** — privacy. Read the id from the `User-Data` cookie on the server and cap `limit`. |
-| M-3 | `/api/revalidate` has no secret, allows any origin (`*`), and clears every cache on a plain GET. The tags it names (`featured-Products-Api`, `flash-deals-Products-Api`, …) are not the tags the home cache uses (`featured-{country}-{lang}-{slug}`, `categories-…`, `currency-…`). | Nothing visible. Anybody can force every cache to refill, again and again, which loads Elasticsearch. | `app/api/revalidate/route.ts:5-33` | Frontend | **Yes** — anybody can empty the cache. Add a secret; align the tags. |
+| M-2 | **Fixed 2026-10-20.** `GetNextRecommendations` took `userId` and `limit` from the browser. Now it lives in `serverRequests/recommendations.ts`, reads the shopper id from the `User-Data` cookie and caps `limit` at 20. | — | `serverRequests/recommendations.ts`, `components/Server/RecomendedProducts.tsx` | Frontend | No — proof: `tests/components/Server/RecomendedProducts.test.tsx`, `tests/cache/noRuntimeReadsInCachedTree.test.ts` |
+| M-3 | **Fixed 2026-10-20.** `/api/revalidate` had no secret, allowed any origin and cleared every cache on a plain GET. The route and its test were deleted; no app code called it. | — | — | Frontend | No — closed |
 | M-4 | If the starting-settings call fails, `getClientData` throws before it loads the customer info and the cart. | No message. The bag and the profile do not load for that visit. | `services/home.ts:55-66` | Frontend | No |
 | M-5 | The name modal is mounted only inside the home view. `setChatOpen` sets `nameModal: true` on any page. | On a listing or product page, tapping chat with no name does nothing. The modal then pops up later, when the shopper next opens the home page. | `components/Home/index.tsx:68`, `store/chat/reducer.ts:385-396` | Frontend | No |
 | M-6 | Saving a name calls market, then chat, then stories, one after the other. If chat or stories refuses, the screen goes back to the old name, but the market backend keeps the new one. | The shopper sees the old name and an error, but the market account already has the new name. | `services/auth.ts:399-445` | Frontend + Backend | No |
@@ -63,8 +63,7 @@ Stories bar: see the stories file. Search overlay (`components/Home/Search/`): s
 
 ## 🔒 Must do before launch
 - [ ] Turn TLS certificate checking back on for Elasticsearch (M-1).
-- [ ] Take the shopper id for "Show More" recommendations from the server-side cookie, and cap `limit` (M-2).
-- [ ] Protect `/api/revalidate` with a secret, and make it clear the tags the home cache really uses (M-3).
+- [x] Take the shopper id for "Show More" recommendations from the server-side cookie, and cap `limit` (M-2). (done 2026-10-20)
 - [ ] Set in production: `ELASTICSEARCH_NODE`, `ELASTICSEARCH_USERNAME`, `ELASTICSEARCH_PASSWORD` (without the node the client quietly points at `http://localhost:9200`), `REDIS_URL`, `REDIS_USERNAME`, `REDIS_PASS`, `PRODUCT_REDIS_TTL_SECONDS`, and the gateway base URL (`GO_BACKEND_URL`, used for the home currency).
 - [ ] Leave `QA_VIEW_SECRET` unset in production, or use a random value of 32+ characters that only QA holds.
 
@@ -92,7 +91,7 @@ Stories bar: see the stories file. Search overlay (`components/Home/Search/`): s
 
 **Not covered by any test:**
 - The product-level country rule in `buildBaseConditions` (no `countries_iso` case in `helpers.test.ts`).
-- The privacy hole in M-2, the open cache route in M-3, and the skipped cart load in M-4.
+- The privacy hole in M-2, and the skipped cart load in M-4.
 - The recommended row when a country has fewer than 2 boutiques (L-3).
 - The name modal on pages other than home (M-5), and the partial name save across three services (M-6).
 - No browser test covers the boutique infinite scroll, the recommendations "Show More", the toasts or the name modal.

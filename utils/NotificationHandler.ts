@@ -62,6 +62,23 @@ const getMessageNotificationPreview = (messageType: string) => {
   }
 };
 
+// The preview for a message that carries no text and no file: one fixed key per
+// message type, never a key built from the type name.
+const sentPreview = (messageType: string) => {
+  switch (messageType) {
+    case "ImageMessage":
+      return translateFunction("Sent an image");
+    case "VideoMessage":
+      return translateFunction("Sent a video");
+    case "VoiceMessage":
+      return translateFunction("Sent a voice message");
+    case "FileMessage":
+      return translateFunction("Sent a file");
+    default:
+      return translateFunction("New message");
+  }
+};
+
 /**
  * Whether a message from an `UpdatingMessageEvent` was deleted for everyone.
  * See `handleUpdatingMessage` for why a message with no status rows counts
@@ -742,7 +759,7 @@ class ForegroundNotificationHandler {
         messagePreview = messagePreview.substring(0, 100) + "...";
       }
     } else if (messageType) {
-      messagePreview = translateFunction(`Sent a ${messageType}`);
+      messagePreview = sentPreview(messageType);
     } else {
       messagePreview = translateFunction("New message");
     }
@@ -768,7 +785,9 @@ class ForegroundNotificationHandler {
         const deepLink = `/${country}-${language}/settings/orders/${orderGroupId}?order_id=${orderId}&chat_id=${chatId}&mid=${messageData?.id}`;
 
         showChatNotification(
-          "Delivery Worker",
+          // The stored channel name stays "Delivery Worker" (a marker shared
+          // with the mobile app); only the shown title is translated.
+          translateFunction("Delivery Worker"),
           displayPreview,
           channel?.id || messageData?.channel_id,
           channel,

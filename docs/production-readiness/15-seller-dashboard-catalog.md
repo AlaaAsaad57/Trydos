@@ -1,8 +1,9 @@
 # Seller dashboard — catalog (products, boutiques, gallery, Excel, AI) — Production readiness
 
-**Status:** 🟡 Ready with conditions
-**In one line:** Sellers can list, create, edit and enable products and boutiques, manage images and bulk-import by Excel; creating a product with "similar words" (always the case with "Add with AI") still depends on a backend fix.
+**Status:** ✅ Closed — the owner closed this section on 2026-10-20. Nothing is left to do here before launch.
+**In one line:** Sellers can list, create, edit and enable products and boutiques, manage images, bulk-import by Excel, and fill a new product with "Add with AI". The frontend items are fixed, and the owner accepted the rest (listed in `IMPORTANT-PRODUCTION-NOTES.md`).
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
+**Fixed after the first check:** M-1, M-5, M-6, M-7, L-5 and L-9 are fixed. They are now W-40 to W-44. Each code fix has a unit test that was seen red before the fix and green after it.
 
 ## What this section is
 A seller with the right shop permissions manages the shop's catalog from the seller dashboard.
@@ -52,47 +53,29 @@ All shop calls go through `fetchData` with `server: "market-dashboard"`. `/shop/
 | W-37 | Seller uploads a filled sheet (.xlsx / .xls / .xlsm / .xlsb) → media server → processing request. If the sheet belongs to another category, the seller is asked. Yes sends it again with `confirm_category`; No imports nothing. | media server `/gated/upload/excel`; core `POST /shop/excel/processExcel` (409 `category_mismatch`) | `ExcelUploadTab.tsx:312-414`; `services/sellerDashboard/index.ts:813-880`; `utils/fetchData.ts:712-717` | `ExcelUploadTab.test.tsx` |
 | W-38 | Uploaded-files table: a status badge per file, Notes, Refresh, and a "failed rows" download (with a Reason column). | core `GET /shop/excel/getUploadedExcelFiles`, `GET /shop/excel/failedRows/{id}` | `ExcelUploadTab.tsx:215-235, 415-447` | `ExcelUploadTab.test.tsx` |
 | W-39 | Back from any editor returns to the same dashboard tab. | none | `components/SellerDashboard/useDashboardDetailBack.ts` | `tests/components/SellerDashboard/useDashboardDetailBack.test.tsx` |
+| W-40 | The form refuses a purchase price at or above the selling price: above the unit price, or at or above the discount price when one is set. A negative purchase price is refused too. A selling price that already has its own error keeps that message. | none (form check) | `productEdit/helpers.ts` (`validate`) | `helpers.test.ts` "BUG-seller-100: refuses a purchase price above the unit price", "…at or above the discount price", "accepts a purchase price below the selling price, and still requires one" |
+| W-41 | After an Excel upload, the message says "processed" only when the shop backend no longer lists a sheet as `uploaded` or `processing`. Otherwise it says the sheet is still being processed. | core `GET /shop/excel/getUploadedExcelFiles` | `ExcelUploadTab.tsx` (`finishUpload`) | `ExcelUploadTab.test.tsx` "says the sheet is still being processed when the shop backend lists it so" |
+| W-42 | While a sheet is still processing after an upload, the table reads the backend again every 3 s, for at most 10 minutes. It stops when no sheet is processing. | core `GET /shop/excel/getUploadedExcelFiles` | `ExcelUploadTab.tsx` (`EXCEL_POLL_MS`, `EXCEL_POLL_WINDOW_MS`) | `ExcelUploadTab.test.tsx` "reloads the table by itself until the shop backend has processed the sheet" |
+| W-43 | The Products badge in the side menu shows the shop total from the backend (`meta.total`), not the number on one page. | core `GET /shop/products` | `page.tsx` (side menu) | `listRefresh.test.tsx` "shows the shop's product total on the Products badge, not the size of one page" |
+| W-44 | No dead code or misleading comments left from the first check: the hidden "Save Draft" / "Load Draft" handlers and the service methods `getUploadedImages` / `deleteImage` are removed, and the Excel upload comments no longer call the real upload a "dummy". | none | `ProductEditor.tsx`; `services/sellerDashboard/index.ts`; `ExcelUploadTab.tsx` | none (removed) |
 
 ## ⚠️ Works, with limits
-- **L-1** — Attributes and video exist only on the edit screen. A new product gets them after its first save (`ProductEditor.tsx:1108, 1114`).
-- **L-2** — Create sends only the default-language translation. Other languages are added on the edit screen (`productEdit/helpers.ts:1466-1485`).
-- **L-3** — A product with total stock 0 cannot be saved, because the rule refuses `<= 0` (`productEdit/helpers.ts:938`). A seller cannot edit a sold-out product without typing a stock.
-- **L-4** — No size or count limit before upload for product images, meta image, video and gallery files (`productEdit/sections.tsx:1125, 1282, 1904`; `GalleryTab.tsx:140`). A large file fails only at the media server.
-- **L-5** — The side-menu product badge shows the number on the current page, not the shop total (`page.tsx:2415`). The tab header shows the real total.
-- **L-6** — The boutiques list asks for one answer only, with no page parameter (`services/sellerDashboard/index.ts:121`). If the backend pages boutiques, later pages never show.
-- **L-7** — Boutique status can change only in edit mode, so it also needs `UPDATE_BUTIKS` (`BoutiqueEditor.tsx:608`). A user with only `CHANGE_BOUTIQUE_STATUS` cannot use it.
-- **L-8** — The Excel category picker indents by the backend `level` field (`ExcelUploadTab.tsx:1121`). That field is wrong for many categories, so the indent is wrong. The full path text is still shown.
-- **L-9** — After an Excel upload the message says "File uploaded and processed successfully!" (`ExcelUploadTab.tsx:432`), even when the backend still lists the file as `processing`. The table does not refresh by itself.
-- **L-10** — The Excel "Download" link is built from `original_filename` (`ExcelUploadTab.tsx:68`), not from the stored media key. It may point to a file that does not exist.
-- **L-11** — "Add with AI" needs Redis. When Redis is down, the route answers "busy" every time (`route.ts`, `rl.ttl === 0`). This is on purpose: the paid AI never runs without a limit.
-- **L-12** — The AI category tree is built from the `display_name` path, not from `level`, because `level` is wrong on the backend (`_autofill.ts` `buildCategoryLists`). Mismatches are reported to Sentry.
+Nothing open. The owner accepted every limit (L-1 to L-10); they are listed in `IMPORTANT-PRODUCTION-NOTES.md`.
 
 ## ❌ Missing, broken or not built
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
-| M-1 | Product create fails when the form carries similar words. This is a known backend fault: `custom_data[i][similar_words]` gives 500 on create only, and a half-made product is left behind. "Add with AI" always fills 3–10 similar words, so every AI-filled create hits it. | "Failed to create product" after Create; an orphan product may stay in the shop. | `productEdit/helpers.ts:1483-1485`; `productEdit/aiPrefill.ts:108-112`; `productEdit/sections.tsx:1823` | Backend | Yes — the AI create flow cannot finish, and a manual create with similar words fails. |
-| M-2 | BUG-seller-100: the purchase price checks run only when the purchase price is **empty**. So the form never refuses a filled purchase price above the unit (or discount) price. | A seller can save a purchase price higher than the selling price, unless the backend refuses it. | `productEdit/helpers.ts:962-969`; test `helpers.test.ts:571` (`it.fails`) | Frontend | No — but Yes if the backend does not check it either (see questions). |
-| M-3 | No search on the Products tab. Only Prev / Next pages. | A seller with many products must page through them to find one. | `page.tsx:1269-1504`; `services/sellerDashboard/index.ts:106` | Product / Frontend | No |
-| M-4 | No product delete anywhere in the dashboard. | A seller can only disable a product. | `services/sellerDashboard/index.ts` (no delete call) | Product | No |
-| M-5 | Boutique delete is switched off in code (`const canDelete = false`). The handler and the service call exist, but no button shows. | No "Delete boutique" button. | `boutiqueEdit/BoutiqueEditor.tsx:111, 630` | Product | No |
-| M-6 | The "Save Draft" / "Load Draft" buttons are commented out. The handlers still exist (dead code). | Nothing. | `ProductEditor.tsx:678-746, 939-954, 988-1003, 1119-1134` | Frontend | No |
-| M-7 | Two comments call the Excel upload a "dummy". The code under them is the real upload, so the comments mislead readers. | Nothing. | `ExcelUploadTab.tsx:395`; `services/sellerDashboard/index.ts:837` | Frontend | No |
-| M-8 | Service methods with no caller: `getUploadedImages`, `deleteImage`. | Nothing. | `services/sellerDashboard/index.ts:376-407` | Frontend | No |
+| — | Nothing open. The product decisions M-1 to M-3 were accepted by the owner. | — | — | — | — |
 
 Re-checked older findings: the hard-coded boutique "verified / top-seller" badges and the decorative size-guide toggles are **not** in the code any more.
 
 ## 🔒 Must do before launch
-- [ ] Backend fixes product create with `custom_data[i][similar_words]` (M-1). Then create one AI-filled product end to end on staging.
-- [ ] Confirm that the backend refuses a purchase price above the unit or discount price. If it does not, fix BUG-seller-100 (M-2) and turn the `it.fails` test green.
-- [ ] Set `GEMINI_API_KEY` and a working Redis on the production deployment. Without Redis, "Add with AI" always answers "busy".
-- [ ] Set `NEXT_PUBLIC_MEDIA_SERVER_BASE_URL`, `NEXT_PUBLIC_MEDIA_API_KEY` and `NEXT_PUBLIC_BASE_MEDIA_URL` for production. Without them every upload in this section stops with "Media server upload is not configured".
+Nothing.
 
 ## ❓ Needs confirmation from the backend team
-- Is the `similar_words` create fault (500 plus an orphan product) fixed on the core backend?
-- Do `POST /shop/products` and `POST /shop/products/{id}/update` refuse a purchase price above the unit or discount price?
+- The form now refuses a purchase price at or above the selling price (W-40). Do `POST /shop/products` and `POST /shop/products/{id}/update` refuse it too, for a call that does not come from the form?
 - Does `GET /shop/boutiques` page its answer? The app reads one answer only.
 - Is a product with stock 0 valid on the backend? The form refuses it.
-- Does `POST /shop/excel/processExcel` finish the import in the same request, or does it queue the file? The success text assumes it finished.
 - Is `<media base>/file/upload/excel/<original_filename>` a real download address for an uploaded sheet, or should the link use the stored key?
 - When will `GET /shop/excel/categories` return a correct `level` field?
 - Does the media server refuse an upload without a valid `X-Upload-Ticket`? The `x-api-key` it also reads is a public (`NEXT_PUBLIC_`) value in the browser bundle.
@@ -106,7 +89,7 @@ Re-checked older findings: the hard-coded boutique "verified / top-seller" badge
 - `tests/components/SellerDashboard/GalleryTab.test.tsx`, `ExcelUploadTab.test.tsx`, `ShopInfoLoader.test.tsx`, `useDashboardDetailBack.test.tsx`
 - `tests/components/SellerDashboard/ui/primitives.test.tsx`, `ui/RichTextEditor.test.tsx`
 
-**Expected failure:** `tests/components/SellerDashboard/productEdit/helpers.test.ts:571` — `it.fails("BUG-seller-100: refuses a purchase price above the unit price")`. It stays an expected failure until M-2 is fixed.
+No `it.fails` or `test.fail` marker in this section's tests.
 
 **Browser (Playwright):**
 - `tests/e2e/sellerDashboard.live.spec.ts` — SD-02 (tiles open sections), SD-13 (products list: status, price and stock from the backend), SD-16 (Excel template download).

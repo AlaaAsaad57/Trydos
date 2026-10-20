@@ -162,11 +162,10 @@ function ChatContactsUpload({
       setLocalPhone("");
       setShowAddForm(false);
     } catch (err) {
+      // A1-12: the contact's name and number must not reach Sentry.
       LogError({
         error: err,
         scenario: "add contact - chat widget",
-        name: manualName.trim(),
-        mobile_phone: fullPhoneString,
       });
       setError("Failed to add contact");
       showErrorNotification(translateFunction("Failed to add contact"));

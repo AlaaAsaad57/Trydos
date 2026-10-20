@@ -255,10 +255,11 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
       formData.append("audio", audioBlob, "recording.webm");
       formData.append("language", language);
 
+      // The route refuses a call with no session cookie, so the cookie goes.
       const response = await fetch("/api/speech-recognition", {
         method: "POST",
         body: formData,
-        credentials: "omit",
+        credentials: "same-origin",
       });
 
       const result = await response.json();

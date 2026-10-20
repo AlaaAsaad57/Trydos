@@ -1,7 +1,7 @@
 # Seller dashboard — operations (shops, access, orders, carts, locations, team, shop info, stories, comments) — Production readiness
 
-**Status:** 🟡 Ready with conditions
-**In one line:** The shop list, guards, permission gating and every operations tab work end to end, and the frontend items found in the first review are fixed.
+**Status:** ✅ Closed — the owner closed this section on 2026-10-20. One browser check (SD-12) is left before launch.
+**In one line:** The shop list, guards, permission gating and every operations tab work end to end. The frontend items from the first review are fixed, and the owner accepted the rest (listed in `IMPORTANT-PRODUCTION-NOTES.md`).
 **Checked:** branch `development`, 2026-10-20 — from the code only. First review at commit `6a0265a1`; re-checked after the fixes in the commit that carries this file.
 
 ## What this section is
@@ -51,23 +51,15 @@ Shop calls use `server: "market-dashboard"` and reach the **core** backend (`/sh
 | W-36 | Access token expires on the dashboard → the call renews the session and tries again. If renewal is refused, the seller sees a "please login again" prompt instead of quietly becoming a guest. | `/api/auth/refresh` → core | `utils/fetchData.ts:247-330` | `tests/utils/fetchData.test.ts`; `tests/services/authRefreshSession.test.ts` |
 
 ## ⚠️ Works, with limits
-- **L-1** — Order item buttons (Confirm, Packed, Cancel) show to anyone with **any** order permission (`orders.tsx`, `OrderDetailScreen`). The backend decides; a refusal shows its reason.
-- **L-2** — Old carts can be searched by the service (`services/sellerDashboard/index.ts:1338-1358`), but the Carts tab has no search box.
-- **L-3** — Comment permissions are cached in Redis for 30 s, and a stale copy is used for up to 1 hour when the core backend is down (`services/elastic/sellerComments.ts:79-81, 186-205`). A removed member can still reply during that time.
-- **L-4** — Only `SUPER_ADMIN` sees "Change Role" and "Delete" in the Users tab. `UPDATE_EMPLOYEES` and `DELETE_EMPLOYEES` are not used.
-- **L-5** — A location cannot be deleted, only deactivated (no backend endpoint; `services/sellerDashboard/index.ts:1148`).
-- **L-6** — The location map uses a public Google Maps key (`utils/mapsConfig`); it must be limited to our domains in the Google console.
-- **L-7** — The order push clean-up for a **removed** member runs on that member's device, the next time they open the shop list or Settings (`utils/shopOrderTopics.ts`, `reconcileShopOrderTopics`). Until then the device still holds the topic. Only the backend can stop it sooner (see the backend question on topic pushes).
+Nothing open. The owner accepted every limit (L-1 to L-6); they are listed in `IMPORTANT-PRODUCTION-NOTES.md`.
 
 ## ❌ Missing, broken or not built
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
-| M-1 | Order-level status change is not available: the control is commented out, so `updateOrderStatus` is never called. | Only per-item Confirm / Packed / Cancel. | `orders.tsx` (`OrderDetailScreen`); `services/sellerDashboard/index.ts:174-191` | Product | No |
-| M-2 | No screen to create or edit roles, although `CREATE_ROLES` / `UPDATE_ROLES` exist. The Permissions tab shows only the user's own permissions. | No roles management. | `page.tsx` (`PERMISSION_GROUPS.ROLES`, `renderPermissions`) | Product | No |
+| — | Nothing open. The product decisions M-1 and M-2 were accepted by the owner. | — | — | — | — |
 
 ## 🔒 Must do before launch
 - [ ] Run e2e SD-12 on staging. It was red on purpose because `PUT /shop/info` refused a shop with no logo (`422 The image field must be a string`). The app now leaves a missing picture out of the body; confirm a shop with no logo can save its contact and address.
-- [ ] Get the backend answers below about the stories backend and the comment writes.
 
 ## ❓ Needs confirmation from the backend team
 - Stories backend: the browser sends `user_id` and `seller_id` in the body of `add-seller-story` and `delete-seller-story`. Does the backend take the user from the token and check that the user is a member of `seller_id` with `CREATE_STORY` / `DELETE_STORY`?

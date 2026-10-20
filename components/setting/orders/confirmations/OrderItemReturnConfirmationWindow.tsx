@@ -33,6 +33,8 @@ function OrderItemReturnConfirmationWindow({
   orderItem: OrderInterface;
 }) {
   const { setOrderOptions, language } = useAppStore();
+  // A3-7: the terms page exists; Product replaces its text later.
+  const { lang } = useParams();
   const ReturnedItems = () => {
     let arr = [];
     if (confirmationData?.item) {
@@ -227,7 +229,9 @@ function OrderItemReturnConfirmationWindow({
             {translateFunction("I Read And Agree To The")}
             <a
               target="_blank"
-              href="#"
+              rel="noopener noreferrer"
+              href={`/${lang}/terms-of-service`}
+              onClick={(e) => e.stopPropagation()}
               className=" medium text-[14px] text-white underline"
             >
               {translateFunction(`Return Terms.`)}

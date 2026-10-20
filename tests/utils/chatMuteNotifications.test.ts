@@ -976,12 +976,17 @@ describe("foreground handler — chat message pushes", () => {
     );
   });
 
-  it("names the message type, or says 'New message', when there is no text", async () => {
+  it("names a known message type, or says 'New message', when there is no text", async () => {
+    // One fixed translation key per known type. The preview used to be built as
+    // `Sent a ${type}`, a key no translation file could hold, so an unknown
+    // type now says "New message" instead of an untranslatable sentence.
     seedSpyStore({ data: [knownChat] });
+    await handle(message({ message_type: { name: "VideoMessage" } }));
     await handle(message({ message_type: { name: "Sticker" } }));
     await handle(message({}));
-    expect(showChatNotification.mock.calls[0]?.[1], "the typed preview is wrong").toBe("Sent a Sticker");
-    expect(showChatNotification.mock.calls[1]?.[1], "the empty preview is wrong").toBe("New message");
+    expect(showChatNotification.mock.calls[0]?.[1], "the video preview is wrong").toBe("Sent a video");
+    expect(showChatNotification.mock.calls[1]?.[1], "an unknown type did not fall back to 'New message'").toBe("New message");
+    expect(showChatNotification.mock.calls[2]?.[1], "the empty preview is wrong").toBe("New message");
   });
 
   it("a ShareProductEvent always says 'Shared a product', and the preview hides when re-auth is needed", async () => {

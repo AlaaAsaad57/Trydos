@@ -1,7 +1,7 @@
 # Sign-in and session — Production readiness
 
 **Status:** 🟡 Ready with conditions
-**In one line:** Phone sign-in, token renewal, expiry and sign-out work end to end, but 5 items must be fixed first: an open route that resets the OTP limiter, a fake QR login, unreadable terms, a credential in the sign-in reply, and the wallet sign-in.
+**In one line:** Phone sign-in, token renewal, expiry and sign-out work end to end, but 4 items must be fixed first: a fake QR login, unreadable terms, a credential in the sign-in reply, and the wallet sign-in.
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
 
 ## What this section is
@@ -64,18 +64,18 @@ Sign-out is the "Logout" item in the avatar menu (`components/Home/Menu.tsx`).
 ## ❌ Missing, broken or not built
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
-| M-1 | `GET /api/clearRedis` has no auth, and it deletes every OTP limiter key (and the product cache). Anyone can reset our limiter between sends, so SMS / WhatsApp abuse has no limit. | Nothing; the cost shows up on the SMS bill | `app/api/clearRedis/route.ts:6,19`; `serverRequests/radis/index.ts:275` | Frontend | Yes — it removes the only OTP abuse guard in our code |
+| M-1 | **Fixed 2026-10-20.** `GET /api/clearRedis` had no auth and deleted every OTP limiter key. The route and its test were deleted; no app code called it. | — | — | Frontend | No — closed |
 | M-2 | QR login is a `localStorage` mock with no backend. "Scan QR Code" is on the first login screen, and a QR icon is on the settings profile card (mobile). Scanning from another phone does nothing. "Approve" closes as if it worked. The desktop QR renews every 60 s for ever. A GA "login success" event fires with no session. | A login method that never logs in | `services/qrLogin/index.ts:3`; `screens/GetStartedScreen.tsx:27`; `FullEnhancedLoginWidget.tsx:511`; `components/setting/profile/index.tsx:73-86` | Backend (endpoints) + Frontend (hide) | Yes — hide both entry points until the backend exists |
-| M-3 | The Terms screen shows "Terms Of Services" in link colour, but it is not a link. The shopper must agree without a way to read the terms. The page `/terms-of-service` exists. | Cannot open the terms before "Agree & Continue" | `screens/TermsScreen.tsx:57-59` | Frontend + Product | Yes — consent to terms the shopper cannot see |
+| M-3 | **Fixed 2026-10-20.** "Terms Of Services" on the Terms screen and on the cart's inline panel now opens `/[locale]/terms-of-service` in a new tab. | — | `screens/TermsScreen.tsx`, `InlineVerifyPanel.tsx` | Frontend | No — `tests/components/Login/Enhanced` green. Product still replaces the page text (file 18 M-1) |
 | M-4 | `/api/auth/login` strips `token` and `refresh_token` from its reply, but not `data.id_token`. That credential signs in to chat, stories, comments and wallet, and it reaches page scripts. `getCurrentUser` already strips `id_token`, so the rule exists. | Nothing visible | `app/api/auth/login/route.ts:459-466` | Frontend | Yes — breaks the "tokens never reach page scripts" rule; one-line fix |
 | M-5 | Wallet sign-in answers 502 on staging. e2e AUTH-01 stays red on purpose. | The shopper is signed in; the wallet asks again later | backend | Backend | Yes, if the wallet ships at launch |
 | M-6 | The wallet sign-in body is built wrongly. `String(InventoryUser.email) ?? ""` sends the text "undefined" or "null" when there is no e-mail. `lastName` takes only the second word of the name. | Possibly the wallet 502 in M-5 | `app/api/auth/login/route.ts:283-285` | Frontend | No — but check it before the backend team works on M-5 |
 | M-7 | `/api/auth/update-user` accepts any field for the 4 profile cookies. Page code can set `phone` or `is_phone_verified` in `User-Data`. That cookie decides whether market calls go to core or to gateway. The backends still check the token. | Nothing | `app/api/auth/update-user/route.ts:48-66` | Frontend | No — limit it to the fields the app writes |
 
 ## 🔒 Must do before launch
-- [ ] Remove `/api/clearRedis`, or put it behind a secret and stop it from deleting `otp:*` keys (M-1).
+- [x] `/api/clearRedis` removed (M-1, done 2026-10-20).
 - [ ] Hide the QR entry points on the login start screen and on the profile card until real endpoints exist (M-2).
-- [ ] Make "Terms Of Services" on the Terms screen open `/[lang]/terms-of-service` (M-3).
+- [x] Make "Terms Of Services" on the Terms screen open `/[lang]/terms-of-service` (M-3). (done 2026-10-20)
 - [ ] Strip `id_token` from the `/api/auth/login` reply (M-4).
 - [ ] Wallet sign-in works on the production wallet backend, or the wallet is held back (M-5; check M-6 first).
 - [ ] Production env: `OTP_TEST_PHONES` empty. `REDIS_URL`, `REDIS_USERNAME`, `REDIS_PASS` set (the limiter fails open without them). `OTP_COOLDOWN_SECONDS`, `OTP_SESSION_MAX`, `OTP_IP_MAX`, `OTP_WINDOW_SECONDS` set to agreed values (code defaults 60 / 2 / 4 / 3600). Every backend URL and `WALLET_PUBLIC_API_KEY` point to production hosts, not staging.
@@ -91,11 +91,11 @@ Sign-out is the "Logout" item in the avatar menu (`components/Home/Menu.tsx`).
 - Comments and wallet: how do they learn the new name after sign-up? The app does not send it to them.
 
 ## 🧪 Tests that cover this section
-- **Unit — routes:** `tests/app/api/auth/{login,refresh,expire,register-device,logout,clear-tokens,update-user,me,wallet-token}/route.test.ts`, `tests/app/api/proxy/`, `tests/app/api/clearRedis/route.test.ts`. The clearRedis test checks the route as it is; nothing checks that it needs auth.
+- **Unit — routes:** `tests/app/api/auth/{login,refresh,expire,register-device,logout,clear-tokens,update-user,me,wallet-token}/route.test.ts`, `tests/app/api/proxy/`.
 - **Unit — services and helpers:** `tests/services/auth.otp.test.ts`, `auth.session.test.ts`, `authRefreshSession.test.ts`, `home.checkLogin.test.ts`, `walletReauthFlag.test.ts`; `tests/utils/fetchData.test.ts`, `otpLocks.test.ts`, `authMe.test.ts`; `tests/utils/server/authRefresh.test.ts`, `tokenManager.test.ts`, `otpAllowlist.test.ts`, `otpIdentity.test.ts`, `otpTelemetry.test.ts`; `tests/serverActions/sendOtp.test.ts`; `tests/serverRequests/radis/index.test.ts`, `HandleAuthedFetch.test.ts`.
 - **Unit — screens:** `tests/components/Login/Enhanced/FullEnhancedLoginWidget.test.tsx`, `usePhoneVerifyFlow.test.tsx`, `VerifyPhoneFlow.test.tsx`, `screens/EnterPinScreen.test.tsx`, `screens/SelectMethodScreen.test.tsx`; `tests/components/Login/SessionExpiredWidget.test.tsx`, `ConfirmMobilePhoneWidget.test.tsx`; `tests/components/Home/AuthSections.test.tsx`, `NavbarClient.test.tsx`, `Menu.test.tsx`.
 - **Unit — QR (mock only):** `tests/services/qrLogin/index.test.ts`, `tests/components/Login/QrApprovalSheet.test.tsx`, `QrScannerModal.test.tsx`, `screens/QrLoginScreen.test.tsx`. They prove the mock, not a real login.
 - **Unit — simulate tools only:** `tests/components/SessionChecker.test.tsx`, `tests/components/Login/SessionTimer.test.tsx`, `tests/utils/sessionManager.test.ts`, `tests/app/api/auth/simulate/route.test.ts`.
 - **E2E:** `tests/e2e/auth.live.spec.ts` AUTH-01, AUTH-02, AUTH-03; `session.live.spec.ts` (guest first visit, guest renewal, guest re-made, AUTH-04); `session-recovery.live.spec.ts` RECOV-01, RECOV-02; `auth.scripted.spec.ts` (6 cases); `profile.scripted.spec.ts` SCRIPT-10, SCRIPT-11; `chat.scripted.spec.ts` SCRIPT-29, SCRIPT-35.
 - **Expected failures:** AUTH-01 is red on purpose (the wallet backend answers 502). There are no `it.fails` / `test.fail` / `BUG-n` markers in this section. `session-recovery.live.spec.ts` skips every case when `TEST_ACCOUNT_PHONE` / `TEST_ACCOUNT_OTP` are not set.
-- **No test today:** `id_token` left out of the login reply; `/api/clearRedis` refusing an anonymous caller; the wallet sign-in body (e-mail and last name); WhatsApp as the send method end to end; sign-out calling a backend revoke.
+- **No test today:** `id_token` left out of the login reply; the wallet sign-in body (e-mail and last name); WhatsApp as the send method end to end; sign-out calling a backend revoke.

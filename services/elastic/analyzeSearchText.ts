@@ -1,4 +1,6 @@
+import crypto from "crypto";
 import { GetColorAndSizes } from "serverRequests/analyticsUtility";
+import { fixedWindowRateLimit, RedisGet, RedisSet } from "serverRequests/radis";
 import { LogServerError } from "utils/serverErrorReporter";
 
 // Gemini variant of AnalyzeSearchText. Return contract: { name?, color?,
@@ -36,6 +38,35 @@ const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL
 const DEFAULT_ANALYZE_TIMEOUT_MS = 6000;
 const analyzeBudgetMs = () =>
   Number(process.env.SEARCH_ANALYZE_TIMEOUT_MS) || DEFAULT_ANALYZE_TIMEOUT_MS;
+
+// Every analysis is a paid call, and the search route is public. Two caps:
+//
+// - A store: the same search (case and spaces folded) is one paid call per
+//   lifetime, not one per shopper. Only a good answer is stored; a refusal or
+//   an unreadable answer is retried next time.
+// - One shared budget of calls per minute. Over it, the search runs on the
+//   raw text, which is what it does on any analysis failure anyway. The
+//   shared limiter FAILS OPEN when Redis is missing (`ttl === 0`); a paid call
+//   must not run uncapped, so that case also skips the AI — the same rule the
+//   paid API routes use.
+//
+// Both are tunable without a redeploy.
+const CACHE_PREFIX = "search:analyze:v1:";
+const DEFAULT_CACHE_SECONDS = 24 * 60 * 60;
+const DEFAULT_MAX_PER_MINUTE = 300;
+const BUDGET_KEY = "search:analyze:rl:global";
+const cacheSeconds = () =>
+  Number(process.env.SEARCH_ANALYZE_CACHE_SECONDS) || DEFAULT_CACHE_SECONDS;
+const maxPerMinute = () =>
+  Number(process.env.SEARCH_ANALYZE_MAX_PER_MINUTE) || DEFAULT_MAX_PER_MINUTE;
+
+// Hashed, so the shopper's words never become a Redis key.
+const cacheKey = (query: string) =>
+  CACHE_PREFIX +
+  crypto
+    .createHash("sha1")
+    .update(query.trim().replace(/\s+/g, " ").toLowerCase())
+    .digest("hex");
 
 // responseMimeType forces JSON, but strip any stray markdown fence and fall
 // back to the first {...} block so a formatting hiccup never crashes search.
@@ -90,6 +121,31 @@ export default async function AnalyzeSearchText(query): Promise<any> {
 async function runAnalysis(query, budgetMs: number): Promise<any> {
   const modifiedQuery = decodeURIComponent(query);
   const start = process.hrtime.bigint();
+
+  const key = cacheKey(modifiedQuery);
+  const cached = await RedisGet(key);
+  if (cached && typeof cached === "object") {
+    return { ...cached, cached: true, model: MODEL };
+  }
+
+  const budget = await fixedWindowRateLimit(BUDGET_KEY, maxPerMinute(), 60);
+  if (budget.ttl === 0) {
+    return {
+      error:
+        "search analysis skipped — the limiter is not available, so the " +
+        "search ran on the raw text",
+      skipped: true,
+    };
+  }
+  if (!budget.allowed) {
+    return {
+      error:
+        "search analysis skipped — the AI budget for this minute is spent, " +
+        "so the search ran on the raw text",
+      rateLimited: true,
+    };
+  }
+
   const data = await GetColorAndSizes();
 
   // Minified input: bare comma lists (no JSON.stringify wrapping) to spend
@@ -162,6 +218,8 @@ QUERY: "${modifiedQuery}"`;
         return true;
       }),
     );
+
+    await RedisSet(key, filtered, cacheSeconds());
 
     const end = process.hrtime.bigint();
     return { ...filtered, analyzeTime: Number(end - start) / 1_000_000, model: MODEL };

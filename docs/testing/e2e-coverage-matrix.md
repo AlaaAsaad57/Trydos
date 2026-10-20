@@ -1163,7 +1163,7 @@ Shopper-to-shopper chat (the QA seller acts as Shopper B): opening it, the list,
 | CHAT-x38 | Message status moves from "sending" to sent | ✅ | chat.live.spec.ts › CHAT-03 | The local id swaps for the saved id. |
 | CHAT-x39 | Read receipt: the other person reads it and the sender sees "read" | ✅ | chat.live.spec.ts › CHAT-04 | `data-status="watched"` after a reload. |
 | CHAT-x40 | Send refused (HTTP error) → message removed, shopper told | ⚠️ | chat.scripted.spec.ts › SCRIPT-32 | Faked 500 only. |
-| CHAT-x41 | Send refused inside a 200 | ⚠️ | chat.scripted.spec.ts › SCRIPT-33 | Strict `test.fail`, bug CHAT-APP-1. |
+| CHAT-x41 | Send refused inside a 200 | ⚠️ | chat.scripted.spec.ts › SCRIPT-33 | Fixed in the app 2026-10-20 (CHAT-APP-1); `test.fail` removed, not yet run on staging. |
 | CHAT-x42 | Scroll to the top loads older messages | ⚠️ | chat.scripted.spec.ts › SCRIPT-41 | Faked only. |
 | CHAT-x43 | Send an image: gallery → crop → preview → send | ❌ | — | unit only: ConversationContainer.test.tsx, ChatImagePreviewBeforeSend.test.tsx |
 | CHAT-x44 | Send a video; a non-media file or an unplayable video is refused | ❌ | — | unit only: tests/components/Chat/chatVideoFormatGate.test.ts |

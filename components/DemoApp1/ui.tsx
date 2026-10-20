@@ -512,6 +512,8 @@ export function ScreenPage({
   scrollTop = BODY_Y,
   glass,
   tabBar = false,
+  scrollBody = false,
+  bodyRef,
   testId,
 }: {
   /** A CSS filter for the page and its head while a glass layer lies over them (the receipt). */
@@ -525,6 +527,15 @@ export function ScreenPage({
   /** Design y where the head ends and the page begins. */
   scrollTop?: number;
   tabBar?: boolean;
+  /**
+   * The body scrolls on its own, under a head that stays put, and the page
+   * is the window's height (the conversation: "the chat container should
+   * be scrollable, not all the screen"). Every other page lets the document
+   * scroll, which is what Safari's glass bar wants — see Demo1Shell.
+   */
+  scrollBody?: boolean;
+  /** The scrolling body, when `scrollBody` (to open it at its end). */
+  bodyRef?: React.Ref<HTMLDivElement>;
   testId?: string;
 }) {
   // The debug page colour (demoDebug.tsx) wins over the design's.
@@ -534,23 +545,29 @@ export function ScreenPage({
     <div
       data-pw={testId}
       className="relative flex flex-col w-full font-quicksand"
-      style={{ background: page, minHeight: "100dvh" }}
+      style={{
+        background: page,
+        minHeight: scrollBody ? undefined : "100dvh",
+        height: scrollBody ? "100dvh" : undefined,
+      }}
     >
       <div
-        className="flex flex-col w-full grow"
+        className={`flex flex-col w-full grow ${scrollBody ? "min-h-0" : ""}`}
         style={{ filter: glass, transition: "filter 0.25s" }}
       >
         {header && (
           <div
             data-pw="demo1-head"
-            className="sticky top-0 z-10 w-full"
+            className={`${scrollBody ? "shrink-0" : "sticky top-0"} z-10 w-full`}
             style={{ paddingTop: SAFE_TOP, background: C.white }}
           >
             {header}
           </div>
         )}
         <div
-          className="flex flex-col w-full grow"
+          ref={bodyRef}
+          data-pw={scrollBody ? "demo1-body" : undefined}
+          className={`flex flex-col w-full grow ${scrollBody ? "min-h-0 overflow-y-auto" : ""}`}
           style={{
             marginTop: header
               ? undefined
@@ -558,6 +575,7 @@ export function ScreenPage({
             minHeight:
               contentHeight > DESIGN_H ? contentHeight - scrollTop : undefined,
             paddingBottom: tabBar ? TAB_ROOM : undefined,
+            overscrollBehavior: scrollBody ? "contain" : undefined,
           }}
         >
           {children}

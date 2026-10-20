@@ -9,6 +9,10 @@ const LogServerError = vi.fn();
 vi.mock("utils/serverErrorReporter", () => ({
   LogServerError: (...a: unknown[]) => LogServerError(...a),
 }));
+const rateLimit = vi.fn();
+vi.mock("serverRequests/radis", () => ({
+  fixedWindowRateLimit: (...a: unknown[]) => rateLimit(...a),
+}));
 
 const BASE = "https://speech.invalid/v2";
 
@@ -20,11 +24,18 @@ const loadRoute = async (key: string | undefined = "speech-key") => {
   return import("app/api/speech-recognition/route");
 };
 
-const request = (fields: { audio?: File; language?: string } = {}) => {
+// Every request carries the session cookie unless a test says otherwise: the
+// route refuses a caller with no session before it spends a paid call.
+const request = (fields: { audio?: File; language?: string; cookie?: string | null } = {}) => {
   const form = new FormData();
   if (fields.audio) form.append("audio", fields.audio);
   if (fields.language) form.append("language", fields.language);
-  return new NextRequest("https://trydos.test/api/speech-recognition", { method: "POST", body: form });
+  const cookie = fields.cookie === undefined ? "MARKET-TOKEN=session" : fields.cookie;
+  return new NextRequest("https://trydos.test/api/speech-recognition", {
+    method: "POST",
+    body: form,
+    headers: cookie ? { cookie } : {},
+  });
 };
 
 const audio = () => new File([new Uint8Array([1, 2])], "a.webm", { type: "audio/webm" });
@@ -50,7 +61,10 @@ const service = (opts: { upload?: Reply; transcript?: Reply; polls?: Reply[] }) 
   return fetch;
 };
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  rateLimit.mockResolvedValue({ allowed: true, remaining: 9, ttl: 60 });
+});
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllEnvs();
@@ -58,6 +72,39 @@ afterEach(() => {
 });
 
 describe("the voice-search route", () => {
+  it("refuses a caller with no session before uploading the audio", async () => {
+    const fetch = service({});
+    const { POST } = await loadRoute();
+
+    const response = await POST(request({ audio: audio(), cookie: null }));
+
+    expect(response.status, "a caller with no session reached the paid service").toBe(401);
+    expect(fetch, "the audio was uploaded for a caller with no session").not.toHaveBeenCalled();
+  });
+
+  it("refuses a caller over the limit before uploading the audio", async () => {
+    rateLimit.mockResolvedValue({ allowed: false, remaining: 0, ttl: 30 });
+    const fetch = service({});
+    const { POST } = await loadRoute();
+
+    const response = await POST(request({ audio: audio() }));
+
+    expect(response.status, "a caller over the limit reached the paid service").toBe(429);
+    expect(rateLimit.mock.calls[0][0], "the limiter key does not name voice search").toMatch(/^paid:speech-recognition:rl:/);
+    expect(fetch, "the audio was uploaded for a caller over the limit").not.toHaveBeenCalled();
+  });
+
+  it("refuses a recording over the size cap before uploading it", async () => {
+    const fetch = service({});
+    const { POST } = await loadRoute();
+    const big = new File([new Uint8Array(4 * 1024 * 1024 + 1)], "big.webm", { type: "audio/webm" });
+
+    const response = await POST(request({ audio: big }));
+
+    expect(response.status, "a recording over the cap reached the paid service").toBe(413);
+    expect(fetch, "an over-size recording was uploaded").not.toHaveBeenCalled();
+  });
+
   it("answers 500 when no transcription key is configured", async () => {
     const { POST } = await loadRoute("");
 

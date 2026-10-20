@@ -57,6 +57,17 @@ const EXCEL_STATUS = {
   FAILED: "failed",
 } as const;
 
+// A sheet the shop backend has not finished yet.
+const isStillProcessing = (f: ExcelFile) =>
+  f.upload_status === EXCEL_STATUS.UPLOADED ||
+  f.upload_status === EXCEL_STATUS.PROCESSING;
+
+// After an upload, the table is read again every EXCEL_POLL_MS while a sheet is
+// still processing — for at most EXCEL_POLL_WINDOW_MS, so a sheet stuck on the
+// backend does not make the tab ask for ever.
+const EXCEL_POLL_MS = 3000;
+const EXCEL_POLL_WINDOW_MS = 10 * 60 * 1000;
+
 const ACCEPTED_EXTENSIONS = ["xlsx", "xls", "xlsm", "xlsb"];
 const ACCEPT_ATTR = ".xlsx,.xls,.xlsm,.xlsb";
 
@@ -136,6 +147,10 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
   const [loading, setLoading] = useState<boolean>(false);
   const [status, setStatus] = useState<{ type: "success" | "error" | "info"; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  // Until when the table keeps reading the backend after an upload (ms epoch).
+  const pollUntilRef = useRef(0);
+  // Counts finished table reads; each one decides whether to read again.
+  const [filesLoads, setFilesLoads] = useState(0);
   // The backend asked whether a sheet made for another category should be
   // imported anyway; holds what is needed to answer it.
   const [pendingMismatch, setPendingMismatch] = useState<{
@@ -246,9 +261,11 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
     }
   }, [sellerId, language]);
 
-  const fetchExcelFiles = useCallback(async () => {
+  // Returns the rows it loaded, or null when the read failed. `quiet` keeps the
+  // table on screen (no loading state) for the reads made while polling.
+  const fetchExcelFiles = useCallback(async (quiet = false): Promise<ExcelFile[] | null> => {
     try {
-      setFilesLoading(true);
+      if (!quiet) setFilesLoading(true);
       setFilesError(null);
       const res = await SellerDashboardService.getExcelFiles(sellerId);
       if (!res?.success) {
@@ -256,7 +273,10 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
       }
       // Response is a Laravel paginator: the rows live in `.data.data`.
       const list: ExcelFile[] = res?.data?.data || res?.data || [];
-      setExcelFiles(Array.isArray(list) ? list : []);
+      const rows = Array.isArray(list) ? list : [];
+      setExcelFiles(rows);
+      setFilesLoads((n) => n + 1);
+      return rows;
     } catch (error: any) {
       LogError({
         scenario: "ExcelUploadTab.fetchExcelFiles",
@@ -265,8 +285,9 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
       setFilesError(
         error?.message || translateFunction("Failed to load uploaded files", language),
       );
+      return null;
     } finally {
-      setFilesLoading(false);
+      if (!quiet) setFilesLoading(false);
     }
   }, [sellerId, language]);
 
@@ -274,6 +295,14 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
     fetchCategories();
     fetchExcelFiles();
   }, [fetchCategories, fetchExcelFiles]);
+
+  // Read the table again while a sheet is still processing after an upload.
+  useEffect(() => {
+    if (!excelFiles.some(isStillProcessing)) return;
+    if (Date.now() > pollUntilRef.current) return;
+    const timer = setTimeout(() => fetchExcelFiles(true), EXCEL_POLL_MS);
+    return () => clearTimeout(timer);
+  }, [filesLoads, excelFiles, fetchExcelFiles]);
 
   // Keep the remembered choice in step with the screen — only once this
   // seller's stored choice has been read.
@@ -392,7 +421,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
     try {
       setLoading(true);
       setStatus(null);
-      // 1) Upload the filled excel to the media server (dummy — user will write).
+      // 1) Upload the filled excel to the media server.
       const uploaded = await SellerDashboardService.uploadExcelFile(file);
       // 2) Hand the resulting url to the backend for processing, with the
       //    category the seller picked so the backend can check the sheet is for it.
@@ -410,7 +439,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
         });
         return;
       }
-      finishUpload(response);
+      await finishUpload(response);
     } catch (error: any) {
       reportUploadError(error, "ExcelUploadTab.handleUpload");
     } finally {
@@ -423,17 +452,21 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
       ? { expectedCategoryId: Number(selectedCategory) || selectedCategory }
       : {};
 
-  const finishUpload = (response: any) => {
+  const finishUpload = async (response: any) => {
     if (!response.success) {
       throw new Error(response?.message);
     }
+    setFile(null);
+    // Refresh the uploaded files table, and say "processed" only when the
+    // backend no longer lists a sheet as processing.
+    pollUntilRef.current = Date.now() + EXCEL_POLL_WINDOW_MS;
+    const rows = await fetchExcelFiles();
     setStatus({
       type: "success",
-      message: translateFunction("File uploaded and processed successfully!", language),
+      message: rows?.some(isStillProcessing)
+        ? translateFunction("File uploaded. It is still being processed; the table below updates by itself.", language)
+        : translateFunction("File uploaded and processed successfully!", language),
     });
-    setFile(null);
-    // Refresh the uploaded files table with the newly processed file.
-    fetchExcelFiles();
   };
 
   const reportUploadError = (error: any, scenario: string) => {
@@ -460,7 +493,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
         ...expectedCategory(),
         confirmCategory: true,
       });
-      finishUpload(response);
+      await finishUpload(response);
     } catch (error: any) {
       reportUploadError(error, "ExcelUploadTab.confirmMismatch");
     } finally {
@@ -777,7 +810,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
             {translateFunction("Uploaded Excel Files", language)}
           </h3>
           <button
-            onClick={fetchExcelFiles}
+            onClick={() => fetchExcelFiles()}
             disabled={filesLoading}
             className="text-[13px] medium text-[#388CFF] hover:opacity-80 disabled:text-[#b8b8b8] flex items-center gap-1.5"
           >
@@ -798,7 +831,7 @@ export default function ExcelUploadTab({ sellerId, language }: ExcelUploadTabPro
           <div className="flex items-center justify-between gap-2 p-3 bg-[#fff1f1] border border-[#ffd9d9] rounded-[12px]">
             <span className="text-[13px] text-[#f85555]">{filesError}</span>
             <button
-              onClick={fetchExcelFiles}
+              onClick={() => fetchExcelFiles()}
               className="text-[13px] medium text-[#f85555] underline shrink-0"
             >
               {translateFunction("Retry", language)}

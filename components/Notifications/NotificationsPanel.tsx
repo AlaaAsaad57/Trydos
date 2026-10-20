@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import { fetchNotifications } from "../../services/notifications";
 import NotificationItem from "./NotificationItem";
-import auth from "services/auth";
 
 import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
@@ -316,94 +315,8 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
 export default NotificationsPanel;
 const NotificationInfo = ({ closeWindow }) => {
   const { lang } = useParams();
-  const [supported, setSupported] = useState(false);
-  const [token, setToken] = useState(null);
-  const [error, setError] = useState(null);
-  const supportedFunction = async () => {
-    const permission =
-      typeof Notification !== "undefined"
-        ? await Notification.requestPermission()
-        : null;
-
-    if (permission !== "granted") {
-      return null;
-    }
-    const { requestFirebaseNotificationPermission } =
-      await import("utils/firebaseInitv1");
-    const { isSupported } = await import("firebase/messaging");
-    isSupported().then((bool) => {
-      setSupported(bool);
-    });
-    requestFirebaseNotificationPermission()
-      .then((Fbtoken) => {
-        setToken(Fbtoken);
-      })
-      .catch((err) => {
-        LogError(err);
-        setError(err);
-      });
-  };
-  useEffect(() => {
-    supportedFunction();
-  }, []);
   return (
     <>
-      <div
-        className="flex-col w-full p-2 text-[#5d5d5d] cursor-copy"
-        onClick={() => {
-          if (
-            typeof window !== "undefined" &&
-            typeof navigator !== "undefined"
-          ) {
-            window.navigator.clipboard.writeText(`
-        user_id:${auth.UserID()},
-        fcm_token:${token},
-        fcm_error:  ${error},
-        notification_permission:${
-          typeof Notification !== "undefined"
-            ? Notification.permission
-            : "not supported"
-        },
-        firebase_supported:${supported},
-        `);
-          }
-        }}
-      >
-        <div className="flex-row w-full justify-between py-2">
-          <span>{translateFunction("Notification Permission:")}</span>
-          <span>
-            {typeof Notification !== "undefined" &&
-            Notification.permission === "granted"
-              ? translateFunction("Enabled")
-              : translateFunction("Not Enabled")}
-          </span>
-        </div>
-        <div className="flex-row w-full justify-between py-2">
-          <span>{translateFunction("FireBase Supported")}</span>
-          <span>
-            {supported
-              ? translateFunction("Supported")
-              : translateFunction("Not Supported")}
-          </span>
-        </div>
-        <div className="flex-row w-full justify-between">
-          <span>{translateFunction("User ID:")}</span>
-          <span>{auth.UserID()}</span>
-        </div>
-        <div className="flex-row w-full justify-between">
-          <span>{translateFunction("FCM Token:")}</span>
-          <span>
-            {token && token?.substring(0, 30)}
-            ...
-          </span>
-        </div>
-        {error?.message && (
-          <div className="flex-row w-full justify-between text-red-500">
-            <span>{translateFunction("FCM Error:")}</span>
-            <span>{error?.message}</span>
-          </div>
-        )}
-      </div>
       <div
         className="felx"
         onClick={() => {

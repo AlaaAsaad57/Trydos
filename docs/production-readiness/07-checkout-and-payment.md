@@ -1,7 +1,7 @@
 # Checkout and payment — Production readiness
 
 **Status:** 🟡 Ready with conditions
-**In one line:** Cash on delivery and the RDB payment work end to end in the code; but every order carries a fake note, every address a fake ZIP, the terms cannot be opened, the map pin is likely broken, and card and crypto are not proven.
+**In one line:** Cash on delivery and the RDB payment work end to end in the code; but every order carries a fake note, the terms cannot be opened, and card and crypto are not proven.
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
 
 ## What this section is
@@ -60,10 +60,9 @@ After a good order the shopper sees the success screen with the order number.
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
 | M-1 | Every cash-on-delivery, card and crypto order sends the fixed text `order_note=order note`. There is no note field in the UI. RDB orders send an empty note. The unit test `tests/services/orderClass.test.ts:116` expects this text. | Sellers and couriers may see "order note" on every order. | `services/order.ts:78` | Frontend | Yes — junk text on every real order. Send an empty note, or build a note field. |
-| M-2 | Every new or edited address is saved with ZIP `123123`, and with "Not Entered" for an empty city, province, town, street or building. The unit test `orderClass.test.ts:510-515` expects these values. | Fake data on labels, invoices and the seller's order screen. | `services/order.ts:270-280, 325-335` | Frontend / Backend | Yes — real addresses hold fake data. |
-| M-3 | The words "policies" and "terms" are plain text, not links. The shopper must agree to pages they cannot open from the checkout. | A tick box that points at nothing. | `components/Cart/PlaceOrderButtons.tsx:201, 219` | Product / Frontend | Yes — legal: consent to unseen terms. |
-| M-4 | The map pin is very likely broken in a real browser. The Maps loader asks for no `geometry` library (`MapElement.tsx:34-39`), but every tap and "my location" call `google.maps.geometry.poly.containsLocation` once the country border has loaded (`:68`). Expected result: the tap throws, no pin is set, and the "my location" spinner never stops. The unit test mocks `google.maps.geometry` (`tests/components/Cart/MapElement.test.tsx:75`), so no test can see this. | Tapping the map does nothing. | `components/Cart/MapElement.tsx:34-39, 66-69` | Frontend | Yes — check on a real phone first. If broken, every new address is saved with no coordinates. The pin is optional, so saving still works. |
-| M-5 | A Google Maps browser key is written in the code, not read from the environment. A second copy is the fallback in `utils/mapsConfig.ts:11-13`. | Nothing visible. Anyone can copy the key from the page. | `components/Cart/MapElement.tsx:36`, `utils/mapsConfig.ts:11-13` | Ops / Frontend | Yes — rotate the key, lock it to the site's domains, and read it only from `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`. |
+| M-3 | **Fixed 2026-10-20.** "policies" and "terms" were plain text. Now they open `/[lang]/privacy-policy` and `/[lang]/terms-of-service` in a new tab, and a tap on a link does not tick the box. | — | `components/Cart/PlaceOrderButtons.tsx` | Frontend | No — `tests/components/Cart/PlaceOrderButtons.test.tsx` green. Product still replaces the page text (file 18 M-1) |
+| M-4 | **Checked 2026-10-20.** The owner tested the map pin on a real phone. | — | `components/Cart/MapElement.tsx` | Frontend | No — closed |
+| M-5 | **Code fixed 2026-10-20:** the key is read from `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` only; the literal and the fallback are gone. The old key is still in git history, so Ops must rotate it, lock it to the site's domains, and set the new value in Vercel. With the value empty the map does not load; the address still saves (the pin is optional). | Nothing visible. | `components/Cart/MapElement.tsx`, `utils/mapsConfig.ts` | Ops | Yes — rotate, restrict and set the value. |
 | M-6 | If reading the customer profile fails at "Confirm & Continue", the code reads `is_phone_verified` of `undefined`. | A red notice "Cannot read properties of undefined (reading 'is_phone_verified')" in English, and the phone panel opens for a shopper who may be verified. | `components/Cart/OrderButton.tsx:190-193, 222-232` | Frontend | No |
 | M-7 | The payment frame accepts a `close-iframe` message from **any** window; it does not check the sender's origin. Also `openPayIframe` is never set back to `false`, so a second try with the same URL does not open the frame. | Rare: the frame can close early; a retry can show no frame. | `components/Cart/ModalIframe.tsx:63, 92`; `store/Cart/reducer.ts:184-188` | Frontend | No |
 | M-8 | Card and crypto have no proof of a real payment gateway. No browser test pays by card or crypto, and the frame shows success when orders exist even if nothing was paid (L-11). | Unknown until tested on staging. | `services/order.ts:96-104`, `components/Cart/ModalIframe.tsx:60-130` | Backend | Yes, if the backend offers `card` or `crypto` at launch. If not, the backend must leave them out of `available_payment_method`. |
@@ -71,16 +70,14 @@ After a good order the shopper sees the success screen with the order number.
 
 ## 🔒 Must do before launch
 - [ ] M-1: stop sending `order_note=order note` (send an empty note or a real one). Update the test at `orderClass.test.ts:116`.
-- [ ] M-2: stop sending ZIP `123123` and "Not Entered"; agree with the backend what an empty field should be. Update `orderClass.test.ts:510-515`.
-- [ ] M-3: make "policies" and "terms" open the real pages.
-- [ ] M-4: test the map pin on a real phone. If it fails, load the `geometry` library, and add a test that does not mock it.
-- [ ] M-5: rotate the Google Maps key, restrict it by domain, and remove the key from the code.
+- [x] M-3: make "policies" and "terms" open the real pages. (done 2026-10-20)
+- [x] M-4: map pin tested on a real phone (done 2026-10-20).
+- [ ] M-5: Ops rotates the Google Maps key, restricts it by domain, and sets `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` in Vercel. (The key is out of the code since 2026-10-20; proof: `tests/utils/mapsConfig.test.ts` and the env case in `tests/components/Cart/MapElement.test.tsx`, seen red first.)
 - [ ] M-8: confirm a real card and crypto gateway on staging, or have the backend hide both methods.
 
 ## ❓ Needs confirmation from the backend team
 - Does `/customer/order/checkout/*` check that `address_id` belongs to this shopper, and that the bag is still available and correctly priced at that moment?
 - Is `order_note` shown to sellers, couriers or on invoices? (M-1)
-- Is `zip` used anywhere (labels, couriers, invoices)? What should the browser send when city, province, town, street or building is empty? (M-2)
 - Are `latitude` and `longitude` required for delivery? Today `null` is sent when the shopper sets no pin.
 - Card and crypto: which provider is behind `/customer/order/checkout/card` and `/crypto`? Does its page allow being shown in a frame, and does it post `close-iframe` when done? Are orders created **before** payment? What does `getOrdersByCartGroupID` answer for an unpaid order? (M-8, L-11)
 - Which countries list `cash_on_delivery` in `available_payment_method`? Staging shows it only for `sy`.
@@ -101,11 +98,11 @@ After a good order the shopper sees the success screen with the order number.
 
 **Expected-failure markers:** none (no `it.fails`, no `test.fail`). `AddAddressForm.test.tsx` and `AddressListContainer.test.tsx` mention BUG-1, BUG-2 and BUG-3; these are green guards for bugs already fixed, not open bugs.
 
-**Tests that expect the wrong behaviour today:** `orderClass.test.ts:116` (the "order note" text, M-1) and `orderClass.test.ts:510-515` (ZIP `123123`, "Not Entered", M-2). `MapElement.test.tsx:75` mocks the `geometry` library, so it cannot catch M-4.
+**Tests that expect the wrong behaviour today:** `orderClass.test.ts:116` (the "order note" text, M-1).
 
 **Important cases with NO test:**
 - RDB payment on the live site: unit tests only. No browser test pays by RDB.
 - Card and crypto against a real gateway: no test at all.
-- The map pin in a real browser: no test.
+- The map pin in a real browser: no automated test. It was checked by hand on a real phone on 2026-10-20.
 - Checkout opened by a guest who then signs in with the code, ending in a placed order: BUY-02 checks the stop only, not the order after the code.
 - Policies and terms content: no test (there is no link to test).

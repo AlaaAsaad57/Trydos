@@ -733,8 +733,8 @@ shopper B. Everything after it in this journey depends on that pair.
 text, image, video, audio, file, shared product, contact. Reply is asserted
 against each type, because "reply to an image" and "reply to a text" are
 different payloads. Uploads go to the media server, so this phase needs
-`NEXT_PUBLIC_MEDIA_SERVER_BASE_URL` and `NEXT_PUBLIC_MEDIA_API_KEY`, and every
-uploaded file is tracked for teardown.
+`NEXT_PUBLIC_MEDIA_SERVER_BASE_URL` (uploads are authorised by the ticket alone),
+and every uploaded file is tracked for teardown.
 
 **Phase 22 is the hard one and the roadmap says so.** Receiving a message is not
 a REST call: chat is realtime through the **Firebase Realtime Database**

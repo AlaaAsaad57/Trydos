@@ -1,7 +1,7 @@
 # Search — Production readiness
 
-**Status:** 🟡 Ready with conditions
-**In one line:** Text search, filters, suggestions, history and popular terms work. Image search calls a retired AI model, and a debug message shows to shoppers on every search of two or more words.
+**Status:** ✅ Closed — no code blocker is left since 2026-10-20. The Ops values under "Must do before launch" are still needed.
+**In one line:** Text search, filters, suggestions, history and popular terms work. Image search runs on a live Gemini model since 2026-10-20. The debug toast on searches of two or more words was removed on 2026-10-20.
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
 
 ## What this section is
@@ -58,25 +58,25 @@ The mobile app uses the same engine through `GET /api/products/searchInCatalog`.
 ## ❌ Missing, broken or not built
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
-| M-1 | The raw AI result shows as a success toast on every search of 2+ words. On AI failure, the error text shows as a "success" toast. | A green toast like `{"name":"shirt","color":["#000000"],"analyzeTime":812,"model":"gemini-2.5-flash-lite"}`, or "AI quota reached — not a bug (Gemini rate limit)" | `components/Home/Search/SearchIcon.tsx:183`. The unit test asserts this as wanted (`SearchIcon.test.tsx:191`). | Frontend | Yes — internal debug data, in English, shown to every shopper |
-| M-2 | Image search uses the model `gemini-1.5-flash`. Google retired Gemini 1.5 Flash on 24 Sep 2025. | Every photo search fails with "Internal server error" | `app/api/image-search/route.ts:62` | Frontend | Yes — the camera button shows in every search; change the model or hide the button |
-| M-3 | `/api/image-search` and `/api/speech-recognition` have no sign-in check, no rate limit and no upload size check in code. Each call costs money (Gemini, AssemblyAI). | Nothing; the risk is cost and abuse | `app/api/image-search/route.ts`, `app/api/speech-recognition/route.ts` | Ops / Frontend | Yes — needs a Vercel Firewall rule or a limiter |
-| M-4 | Popular words have no blocklist. The check is a placeholder (`isBlacklisted = false`). QA and test searches are logged too. | Rude, test or QA words can appear under "Popular Search" for every shopper | `services/elastic/helpers.ts:2891` | Frontend / Product | Yes — public text with no moderation |
-| M-5 | The search log stores IP, user agent and user id, with no retention rule | Nothing visible | `services/elastic/helpers.ts` `logSearchTerm` | Product / Ops | Yes — needs a privacy-policy line and a retention period |
+| M-1 | **Fixed 2026-10-20.** The raw AI result showed as a green success toast on every search of 2+ words. The toast is removed. | — | `components/Home/Search/SearchIcon.tsx` | Frontend | No — closed |
+| M-2 | **Fixed 2026-10-20.** Image search used the retired `gemini-1.5-flash` through the old SDK. Now it calls Gemini over HTTP with the model from `GEMINI_IMAGE_SEARCH_MODEL` (default `gemini-2.5-flash-lite`). | — | `app/api/image-search/route.ts` | Frontend | No — proof: `tests/app/api/image-search/route.test.ts` |
+| M-3 | **Fixed 2026-10-20.** `/api/image-search` and `/api/speech-recognition` now refuse a caller with no session cookie (401), an upload over 4 MB (413), more than 10 calls per address per minute (429), and answer busy (503) when Redis is down, so a paid call never runs uncapped (`utils/server/paidRouteGuard.ts`). The browser sends the cookie (`credentials: "same-origin"`). A Vercel Firewall rule on top is still wise. | — | `app/api/image-search/route.ts`, `app/api/speech-recognition/route.ts` | Frontend | No — closed |
+| M-4 | **Accepted 2026-10-20.** Popular words have no blocklist. The check is a placeholder (`isBlacklisted = false`). QA and test searches are logged too. | Rude, test or QA words can appear under "Popular Search" for every shopper | `services/elastic/helpers.ts:2891` | Frontend / Product | No — accepted by the owner |
+| M-5 | **Accepted 2026-10-20.** The search log stores IP, user agent and user id, with no retention rule | Nothing visible | `services/elastic/helpers.ts` `logSearchTerm` | Product / Ops | No — accepted by the owner |
 | M-6 | Image search asks Gemini for a Turkish answer when the language is Kurdish (`ku`) | Kurdish shoppers get a Turkish search word | `app/api/image-search/route.ts:76` | Frontend | No |
 | M-7 | Image search errors from the route ("No product detected", "Internal server error", "Invalid file type") are not in the translation files | English error text for ar/tr/ku shoppers | `app/api/image-search/route.ts`; shown by `SearchImage.tsx:104` | Frontend | No |
 | M-8 | The image route sends the raw error message to the browser (`details: error.message`). The voice route does the same. | Provider error text in the response | `app/api/image-search/route.ts:142`, `app/api/speech-recognition/route.ts` | Frontend | No |
 | M-9 | "Clear All" in the open Popular Search list only clears the search box, and the box is already empty there | The button does nothing | `SearchIcon.tsx:674` | Frontend | No |
-| M-10 | `limit` on `searchInCatalog` has no upper cap. A caller can ask for thousands of full products, and every text call can run the AI. | Slow answers under abuse | `app/api/products/searchInCatalog/route.ts:69` | Frontend | No — add a cap together with M-3 |
+| M-10 | `limit` on `searchInCatalog` has no upper cap. A caller can ask for thousands of full products. The AI step is now capped: one shared budget of 300 analyses per minute, and a 24-hour store per search text (`services/elastic/analyzeSearchText.ts`, `SEARCH_ANALYZE_MAX_PER_MINUTE`, `SEARCH_ANALYZE_CACHE_SECONDS`). | Slow answers under abuse | `app/api/products/searchInCatalog/route.ts:69` | Frontend | No — add a cap on `limit` |
 | M-11 | Voice polling sends `Authorization: Bearer <key>`. Upload and transcript send the bare key. | If AssemblyAI refuses the Bearer form, every voice search falls back to the browser recogniser | `app/api/speech-recognition/route.ts:127` | Frontend | No — confirm with one live call |
 | M-12 | Image search uses the old SDK `@google/generative-ai` 0.21. The text analyser already calls the REST API directly. | Nothing now | `package.json`, `app/api/image-search/route.ts` | Frontend | No |
 
 ## 🔒 Must do before launch
-- [ ] Remove the debug toast at `SearchIcon.tsx:183`, and change `SearchIcon.test.tsx:191` with it (M-1).
-- [ ] Move image search to a live Gemini model (an env value, like `GEMINI_SEARCH_MODEL`), or hide the camera button (M-2).
-- [ ] Add a rate limit (Vercel Firewall rule or an edge limiter) and a body size limit for `/api/image-search` and `/api/speech-recognition` (M-3).
-- [ ] Add a blocklist, and keep QA traffic out of the search log, before "Popular Search" goes public (M-4).
-- [ ] Decide how long IP and user agent stay in the search log, and add it to the privacy policy (M-5).
+- [x] Debug toast removed from search (M-1, done 2026-10-20). Proof: `SearchIcon.test.tsx` "…shows the products, but never the AI analysis", seen red first.
+- [x] Move image search to a live Gemini model (an env value, like `GEMINI_SEARCH_MODEL`), or hide the camera button (M-2). (done 2026-10-20)
+- [x] Session check, size cap and per-address limit on `/api/image-search` and `/api/speech-recognition` (M-3, done 2026-10-20). Proof: `tests/utils/server/paidRouteGuard.test.ts` and the two route tests, seen red first.
+- [x] M-4: accepted by the owner (2026-10-20). No blocklist; QA searches stay in the log.
+- [x] M-5: accepted by the owner (2026-10-20). The search log keeps IP and user agent with no retention rule.
 - [ ] Set in production: `GEMINI_API_KEY`, `ASSEMBLYAI_API_KEY`, `ASSEMBLYAI_BASE_URL`, and the Elasticsearch connection values. The voice route breaks with no `ASSEMBLYAI_BASE_URL`, because the code checks only the key.
 
 ## ❓ Needs confirmation from the backend team
@@ -88,7 +88,7 @@ The mobile app uses the same engine through `GET /api/products/searchInCatalog`.
 - Unit (Vitest):
   - `tests/components/Home/Search/SearchIcon.test.tsx`, `SearchHistory.test.tsx`, `SearchTrending.test.tsx`, `SearchImage.test.tsx`, `SearchVoice.test.tsx`, `ActiveSearchFilterBar.test.tsx`
   - `tests/components/Home/Search/Results/ProductItem.test.tsx`, `BrandItem.test.tsx`, `CategoryItem.test.tsx`, `BoutiqueItem.test.tsx`
-  - `tests/serverRequests/Search.test.ts`, `tests/services/elastic/analyzeSearchText.test.ts`, `tests/services/search.test.ts`
+  - `tests/serverRequests/Search.test.ts`, `tests/services/elastic/analyzeSearchText.test.ts` (store and shared budget), `tests/services/search.test.ts`, `tests/utils/server/paidRouteGuard.test.ts`
   - `tests/app/api/image-search/route.test.ts`, `tests/app/api/speech-recognition/route.test.ts`, `tests/app/api/products/popular-search/route.test.ts`, `tests/app/api/products/searchInCatalog/route.test.ts`
   - Bug guards (plain `it`, green): BUG-home-2, BUG-home-3, BUG-home-4, BUG-home-7, BUG-home-8. There are no `it.fails` markers in this section.
 - E2E (Playwright, staging): "search finds products" (`tests/e2e/guest.live.spec.ts`; it searches one word, so the AI step never runs); QA-01, QA-02, QA-02b, QA-09 (`tests/e2e/qaLock.live.spec.ts`).
@@ -97,4 +97,3 @@ The mobile app uses the same engine through `GET /api/products/searchInCatalog`.
   - voice search against the real AssemblyAI;
   - the AI step on staging (no e2e search with 2+ words);
   - the content of popular words, and search logging on staging.
-- `SearchIcon.test.tsx:184` asserts the debug toast as correct. It must change with M-1.

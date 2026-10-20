@@ -9,7 +9,6 @@ const EditNotificationSettings = vi.fn();
 vi.mock("services/home", () => ({
   default: { EditNotificationSettings: (...a: any[]) => EditNotificationSettings(...a) },
 }));
-vi.mock("components/global/NotificationsTest", () => ({ default: () => <div data-testid="notifications-test" /> }));
 const LogError = vi.fn();
 vi.mock("utils/functions", async (importOriginal) => ({
   ...(await importOriginal<any>()),
@@ -154,26 +153,23 @@ describe("SettingsModal", () => {
     expect(select().value, "a failed save did not put the frequency back").toBe("daily");
   });
 
-  it("switches to the test tab from a button and from the address hash", async () => {
+  it("never shows the developer Notification Test tab, not even from the #preferences address", async () => {
     fetchData.mockResolvedValue(settings());
     // Plain render: the render helper rewrites the address and would drop the hash.
     window.location.hash = "preferences";
     render(<SettingsModal onClose={() => {}} lang="gb-en" />);
-    expect(screen.getByTestId("notifications-test"), "the #preferences hash did not open the test tab").toBeInTheDocument();
-    fireEvent.click(screen.getByText("Notifications Settings"));
-    expect(window.location.hash, "the tab was not written to the address").toBe("#notifications");
-    expect(screen.queryByTestId("notifications-test"), "the settings tab did not open").toBeNull();
-    fireEvent.click(screen.getByText("Notification Test"));
-    expect(screen.getByTestId("notifications-test"), "the test tab button did not work").toBeInTheDocument();
-    act(() => {
-      window.location.hash = "notifications";
-      window.dispatchEvent(new HashChangeEvent("hashchange"));
-    });
-    expect(screen.queryByTestId("notifications-test"), "a hash change did not switch the tab").toBeNull();
-    act(() => {
-      window.location.hash = "other";
-      window.dispatchEvent(new HashChangeEvent("hashchange"));
-    });
-    expect(screen.queryByTestId("notifications-test"), "an unknown hash changed the tab").toBeNull();
+    expect(screen.queryByText("Notification Test"), "the developer test tab is shown to the shopper").toBeNull();
+    expect(
+      document.querySelector('[data-pw="notifications-subscription"]'),
+      "the #preferences address hid the notification settings",
+    ).not.toBeNull();
+  });
+
+  it("names the push switch by what it does, not by the technology behind it", async () => {
+    fetchData.mockResolvedValue(settings());
+    await renderWithProviders(<SettingsModal onClose={() => {}} lang="gb-en" />);
+    await screen.findByText("new offers");
+    expect(screen.queryByText(/firebase/i), "a label names the push technology").toBeNull();
+    expect(screen.getByText("Enable Push Notifications"), "the push switch has no label").toBeInTheDocument();
   });
 });

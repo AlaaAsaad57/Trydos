@@ -2477,7 +2477,7 @@ function SellerDashBoard() {
                   <DashIcon name="products" size={20} />
                   <span>{translateFunction("Products")}</span>
                   <span className="rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center ms-auto text-[11px] semibold bg-[#5d5d5d]/10 text-[#5d5d5d]">
-                    {loadingSideBar ? <Spinner /> : sellerProducts?.length}
+                    {loadingSideBar ? <Spinner /> : productsMeta?.total ?? sellerProducts?.length}
                   </span>
                   {activeTab === "products" && (
                     <span className="text-[#5d5d5d] shrink-0">
