@@ -11,6 +11,7 @@ import order from "services/order";
 import UploadImageComponent from "components/Orders/UploadImageComponent";
 import Spinner from "components/global/Spinner";
 import Skeleton from "react-loading-skeleton";
+import { getOrderCurrency, OrderCurrency } from "utils/orderCurrency";
 function ReturnOrderItemWrapper({
   item,
   returnDetails,
@@ -18,6 +19,7 @@ function ReturnOrderItemWrapper({
   isRtl,
   backToMain,
   setShouldConfirmReturn,
+  paidCurrency,
 }: {
   item: OrderInterface["details"][number];
   returnDetails: returnDetails;
@@ -25,6 +27,8 @@ function ReturnOrderItemWrapper({
   isRtl: boolean;
   backToMain: () => void;
   setShouldConfirmReturn: (e) => void;
+  // The currency the order was paid with; the refund goes back in it.
+  paidCurrency?: OrderCurrency | null;
 }) {
   const isUpdateOrder = () => {
     return returnDetails?.return_requests_data
@@ -37,6 +41,7 @@ function ReturnOrderItemWrapper({
       ?.order_details?.find((s) => s.detail_id === item?.id);
   };
   const { currency, language } = useAppStore();
+  const paid = getOrderCurrency({ currency: paidCurrency }, currency);
   const [options, setOptions] = useState([]);
   const [selectedOptions, setSelectedOptions] = useState(null);
 
@@ -136,13 +141,13 @@ function ReturnOrderItemWrapper({
                 (selectedOptions?.is_cost_by_system === 0
                   ? selectedOptions.cost
                   : 0),
-              rate: currency?.exchange_rate,
+              rate: paid.rate,
               language: language,
               returnNumber: true,
-              points: currency?.decimal_digits,
+              points: paid.points,
             })}
           </span>
-          <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>
+          <span className="text-[#8D8D8D] mx-[4px]">{paid.symbol}</span>
           {translateFunction("To Your Account")}.
         </p>
         <span className="border-[#C4C2C280] border-b w-full mt-[12px]" />
@@ -231,11 +236,12 @@ function ReturnOrderItemWrapper({
                     {RoundPrice({
                       charged: true,
                       num: option.cost,
-                      rate: currency?.exchange_rate,
+                      rate: paid.rate,
+                      points: paid.points,
                       language: language,
                       returnNumber: true,
                     })}{" "}
-                    {currency.symbol})
+                    {paid.symbol})
                   </span>
                 )}
               </div>

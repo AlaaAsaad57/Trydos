@@ -165,7 +165,9 @@ export const RoundPrice = ({
   return roundPriceRule({
     num,
     rate: rate || saved.currency?.exchange_rate,
-    points: points || saved.currency?.decimal_digits,
+    // `points: 0` is a real value (a currency with no decimals), so only an
+    // absent value falls back to the shop currency.
+    points: points ?? saved.currency?.decimal_digits,
     language: language ?? saved.language,
     returnNumber,
     charged,

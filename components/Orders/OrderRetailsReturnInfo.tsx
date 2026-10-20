@@ -5,23 +5,30 @@ import Timer from "components/Login/Timer";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
+import { OrderCurrency } from "utils/orderCurrency";
 
 function OrderRetailsReturnInfo({
   product,
   return_request_id,
   callback,
   price,
+  paidCurrency,
 }: {
   product: any;
   return_request_id: number;
   callback: () => void;
+  // Already converted by the caller into `paidCurrency` (or the shop currency).
   price: number | string;
+  // The currency the order was paid with; the refund goes back in it.
+  paidCurrency?: OrderCurrency | null;
 }) {
   const [expanded, setExpanded] = useState(true);
   const [loading, setLoading] = useState(false);
   const { language, ActivePacks, currency } = useAppStore();
 
   const currencyCode =
+    paidCurrency?.symbol?.toLowerCase() ||
+    paidCurrency?.code?.toLowerCase() ||
     currency?.symbol?.toLowerCase() ||
     currency?.code?.toLowerCase() ||
     "usd";

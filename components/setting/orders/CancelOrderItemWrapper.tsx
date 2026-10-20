@@ -6,9 +6,22 @@ import {
   translateFunction,
 } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
+import { getOrderCurrency, OrderCurrency } from "utils/orderCurrency";
 
-function CancelOrderItemWrapper({ item, backToMain, cancelOrderItem }) {
+function CancelOrderItemWrapper({
+  item,
+  backToMain,
+  cancelOrderItem,
+  paidCurrency,
+}: {
+  item: any;
+  backToMain: () => void;
+  cancelOrderItem: (e: any) => void;
+  // The currency the order was paid with; the refund goes back in it.
+  paidCurrency?: OrderCurrency | null;
+}) {
   const { currency, language } = useAppStore();
+  const paid = getOrderCurrency({ currency: paidCurrency }, currency);
   const [selectedOptions, setSelectedOptions] = useState([]);
   let options = [
     "I Changed My Mind",
@@ -69,12 +82,13 @@ function CancelOrderItemWrapper({ item, backToMain, cancelOrderItem }) {
             {RoundPrice({
               charged: true,
               num: item.offer_price || item.price,
-              rate: currency?.exchange_rate,
+              rate: paid.rate,
+              points: paid.points,
               language: language,
               returnNumber: true,
             })}
           </span>
-          <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>
+          <span className="text-[#8D8D8D] mx-[4px]">{paid.symbol}</span>
           {translateFunction("To Your Account")}.
         </p>
         <span className="border-[#C4C2C280] border-b w-full mt-[12px]" />

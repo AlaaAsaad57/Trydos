@@ -63,6 +63,23 @@ afterEach(() => {
 });
 
 describe("AiAutofillDialog", () => {
+  it("renders through a portal on document.body at the same layer as the other dashboard modals", async () => {
+    await open();
+    const dialog = document.querySelector('[data-pw="ai-autofill-dialog"]') as HTMLElement;
+    expect(dialog, "the dialog did not render").not.toBeNull();
+    // Rendered inline, the dialog sits inside the scaled dashboard tree, so
+    // `fixed inset-0` covers only that box and the backdrop stops short of the
+    // page edges (as the carts / orders / stories modals once did).
+    expect(
+      dialog.parentElement,
+      "the dialog is rendered inline instead of through a portal on document.body",
+    ).toBe(document.body);
+    expect(
+      dialog.className,
+      "the dialog backdrop does not use the dashboard modal z-index (z-[999999999])",
+    ).toContain("z-[999999999]");
+  });
+
   it("keeps Analyze disabled until a JPEG/PNG/WebP photo is picked, refuses other types, and closing changes nothing (AC-2)", async () => {
     await open();
     expect(analyzeButton().disabled, "Analyze was enabled with no photo").toBe(true);

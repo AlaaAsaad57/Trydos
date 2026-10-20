@@ -3,6 +3,7 @@ import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { RoundPrice, translateFunction } from "utils/functions";
 import { OrderInterface } from "utils/types/OrderInterface";
+import { getOrderCurrency } from "utils/orderCurrency";
 
 function CancelOrderWrapper({
   order,
@@ -16,6 +17,8 @@ function CancelOrderWrapper({
   setShouldConfirmCancel: (e: boolean | string[]) => void;
 }) {
   const { currency, language } = useAppStore();
+  // The refund goes back in the currency the order was paid with.
+  const paid = getOrderCurrency(order, currency);
   let options = [
     "I Changed My Mind",
     "I Fear Quality",
@@ -53,12 +56,13 @@ function CancelOrderWrapper({
             {RoundPrice({
               charged: true,
               num: order.order_amount,
-              rate: currency?.exchange_rate,
+              rate: paid.rate,
+              points: paid.points,
               language: language,
               returnNumber: true,
             })}
           </span>
-          <span className="text-[#8D8D8D] mx-[3px]">{currency?.symbol}</span>
+          <span className="text-[#8D8D8D] mx-[3px]">{paid.symbol}</span>
           {translateFunction("To Your Account")}.
         </p>
         <span className="border-[#C4C2C280] border-b w-full mt-[12px]" />

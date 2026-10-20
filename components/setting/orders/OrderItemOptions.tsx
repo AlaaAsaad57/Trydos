@@ -472,6 +472,7 @@ function OrderItemOptions({
           }}
           item={orderItem}
           returnDetails={returnDetails}
+          paidCurrency={parentOrder?.currency}
         />
       );
     }
@@ -482,6 +483,7 @@ function OrderItemOptions({
             setSelectedScreen("options");
           }}
           item={orderItem}
+          paidCurrency={parentOrder?.currency}
           cancelOrderItem={(e) => {
             setShowConfirmChangeOrder({
               type: "CancelQty",

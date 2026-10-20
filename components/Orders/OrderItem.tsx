@@ -50,6 +50,7 @@ const OrderItem = ({
             items: order.details.length,
             total: order.order_amount,
           }}
+          paidCurrency={order.currency}
         />
       </div>
       <OrderProductSlider products={order?.details} isRtl={isRtl} />

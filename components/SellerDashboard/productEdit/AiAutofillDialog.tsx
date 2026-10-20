@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction, LogError } from "utils/functions";
@@ -131,8 +132,16 @@ export default function AiAutofillDialog({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" data-pw="ai-autofill-dialog">
+  // Portal to <body> like the carts / orders / stories modals: rendered inline,
+  // `fixed` is measured against the scaled dashboard box and the backdrop
+  // stops short of the page edges.
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[999999999] flex items-center justify-center p-4"
+      data-pw="ai-autofill-dialog"
+    >
       <div className="absolute inset-0 bg-black/45" onClick={close} />
       <div
         role="dialog"
@@ -212,6 +221,7 @@ export default function AiAutofillDialog({
           </DashButton>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
