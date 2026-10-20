@@ -1,9 +1,9 @@
 # Stories — Production readiness
 
-**Status:** 🟡 Ready with conditions
+**Status:** ✅ Closed — the owner closed this section on 2026-10-20. No code work is left. The Ops values and the iPhone check under "Must do before launch" are still needed.
 **In one line:** Watching, uploading, recording, deleting and reporting stories work end to end, and no code blocker is left. Before launch, Ops must set the production values and someone must check story video on a real iPhone.
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
-**Fixed after the first check:** M-1, M-2, M-6 and M-8 are fixed, and M-4 was confirmed not to be a bug. They are now W-22 to W-26. Each code fix has a unit test that was seen red before the fix and green after it.
+**Fixed after the first check:** M-1, M-2, M-6 and M-8 and the limits L-2, L-6 and L-8 are fixed, and M-4 was confirmed not to be a bug. They are now W-22 to W-29. Each code fix has a unit test that was seen red before the fix and green after it.
 
 ## What this section is
 - The shopper sees a row of story tiles on the home page (`StoriesBarClient`) and taps one to open a full-screen viewer (a cube carousel).
@@ -40,18 +40,19 @@
 | W-24 | A browser with no `MediaRecorder` → the red timer does not start, and the shopper sees "Not Supported". | none | `CameraStory.tsx` (`handleStartCapture`) | `CameraStory.test.tsx` "does not start the timer on a browser that has no MediaRecorder" |
 | W-25 | The product-page story row shows for a signed-in shopper even when their stories token has expired. Checked on staging on 2026-10-20: `product_stories` answers 200 with no token and with a bad token, so it is a public read and the token does not matter. | Stories `GET /api/v1/stories/product_stories/{id}` | `serverRequests/product.tsx` (`GetProductStoriesData`) | none (checked by hand on staging) |
 | W-26 | No open cache route for stories. `/api/revalidateStories` was removed: it had no auth, allowed any origin, and cleared the `stories` tag, which no cache entry uses. | none | route removed | none (removed) |
+| W-27 | The stories request fails → the bar shows no tiles (only the "+" tile), not an endless skeleton, and no error message. A dead stories service does not stop browsing. | Stories `GET users_stories` | `components/Home/Stories/StoriesBarClient.tsx` | `tests/components/Home/storiesBarClient.test.tsx` "shows an empty bar, not an endless skeleton…" |
+| W-28 | After an upload, the bar keeps the people from the later pages the shopper already loaded, and the shopper's own tile shows the new story. | Stories `GET users_stories?page=1` | `store/homepage/reducer.ts` (`mergeFirstStoriesPage`), `components/Home/Stories/AddStoryWidget.tsx` | `tests/components/Home/addStoryWidget.test.tsx` "keeps the people from later pages on the bar after an upload" |
+| W-29 | The product story row keeps loading while the backend has another page, even when the QA filter made a page short. It stops when the backend has no next page. | Stories `GET product_stories/{id}` | `serverRequests/product.tsx` (`has_more`), `components/Server/product/ProductStoriesWrapper.tsx`, `components/products/ProductStories.tsx` | `tests/components/products/ProductStories.test.tsx`, `tests/serverRequests/product.test.ts` "says whether the backend has another page…" |
 
 ## ⚠️ Works, with limits
 - **L-1 — Guest views are not counted.** A guest has no stories account. So `WatchStory` only greys the ring and sends nothing (`services/story.ts:66-68`). View numbers come from signed-in shoppers only.
-- **L-2 — The bar can stay on its skeleton.** If the stories request throws, the bar keeps the skeleton for ever. There is no retry and no message (`StoriesBarClient.tsx:100-103`). A refused answer gives an empty bar instead. This is on purpose: a dead stories service must not stop browsing.
-- **L-3 — Video plays with sound, and `play()` has no error handler.** `muted={activeId !== id}` is always false, because both values are `String(story.id)` (`StoryViewer.tsx:370`). The `play()` calls at lines 376 and 381 have no `.catch`. If a browser blocks autoplay with sound, the video may stay still while the progress bar runs on. Check this on a real iPhone.
-- **L-4 — Gallery video check may time out on iPhone.** The sheet waits until a hidden `<video>` that never plays reaches `readyState === 4` (`AddStoryWidget.tsx:224-238`), for 10 s at most. iOS Safari often loads no media data before play. In that case the shopper sees "Upload Failed Try Again". This is not proved. It needs a real iPhone test.
-- **L-5 — Any external link is allowed.** The sheet only checks that the link is a URL (`AddStoryWidget.tsx:102-153`). A story can point to any site. The only control is the report button.
-- **L-6 — After an upload the bar keeps page 1 only.** The sheet reads page 1 again and writes it over the whole list (`AddStoryWidget.tsx:297-301, 347-350`). Pages loaded earlier are dropped. The chat "Stories" tab does the same when it opens (`StoriesList.tsx:55-58`).
-- **L-7 — Screen-reader text is English only.** The `aria-label` values "Delete story", "Report story", "Close story viewer" (`StoryHolder.tsx:149, 170, 201`), "Story link" (`StoryViewer.tsx:415`) and `alt="story"` are not translated. Visible text is translated.
-- **L-8 — Product row paging assumes 10 per page.** `ProductStories.tsx:59, 79, 92` stops paging when a page has fewer than 10 groups.
-- **L-9 — `components/Home/UploadVideo.tsx` is only a preview.** It is an 8-line `<video controls>` wrapper with an empty `useEffect`. It uploads nothing. The story camera preview and the chat camera use it.
-- **L-10 — The media upload key is public.** The browser sends `NEXT_PUBLIC_MEDIA_API_KEY` as `x-api-key` (`services/story.ts:15, 103`), so the key is in the bundle. The real gate is the upload ticket from `/api/ticket`. That route needs a market token, and a guest token is enough.
+- **L-2 — Video plays with sound, and `play()` has no error handler.** `muted={activeId !== id}` is always false, because both values are `String(story.id)` (`StoryViewer.tsx:370`). The `play()` calls at lines 376 and 381 have no `.catch`. If a browser blocks autoplay with sound, the video may stay still while the progress bar runs on. Check this on a real iPhone.
+- **L-3 — Gallery video check may time out on iPhone.** The sheet waits until a hidden `<video>` that never plays reaches `readyState === 4` (`AddStoryWidget.tsx:224-238`), for 10 s at most. iOS Safari often loads no media data before play. In that case the shopper sees "Upload Failed Try Again". This is not proved. It needs a real iPhone test.
+- **L-4 — Any external link is allowed.** The sheet only checks that the link is a URL (`AddStoryWidget.tsx:102-153`). A story can point to any site. The only control is the report button.
+- **L-5 — The chat "Stories" tab replaces the list when it opens.** It reads page 1 and writes it over the shared list (`StoriesList.tsx:55-58`), so pages the home bar loaded before are dropped until the bar loads them again.
+- **L-6 — Screen-reader text is English only.** The `aria-label` values "Delete story", "Report story", "Close story viewer" (`StoryHolder.tsx:149, 170, 201`), "Story link" (`StoryViewer.tsx:415`) and `alt="story"` are not translated. Visible text is translated.
+- **L-7 — `components/Home/UploadVideo.tsx` is only a preview.** It is an 8-line `<video controls>` wrapper with an empty `useEffect`. It uploads nothing. The story camera preview and the chat camera use it.
+- **L-8 — The media upload key is public.** The browser sends `NEXT_PUBLIC_MEDIA_API_KEY` as `x-api-key` (`services/story.ts:15, 103`), so the key is in the bundle. The real gate is the upload ticket from `/api/ticket`. That route needs a market token, and a guest token is enough.
 
 ## ❌ Missing, broken or not built
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
@@ -61,7 +62,7 @@
 | M-3 | A shopper cannot see how many people (or who) viewed their own story. Only the seller dashboard shows `viewers_count` | No view count on own stories | `components/SellerDashboard/StoriesTab.tsx:163` (seller only); nothing in `components/Home/Stories/` | Product | No |
 
 ## 🔒 Must do before launch
-- [ ] Test story video on a real iPhone (iOS 17 and iOS 18): record in the app (W-23, MP4 on older Safari), upload from the gallery (L-4), and watch a video story with sound (L-3). Fix or hide what fails.
+- [ ] Test story video on a real iPhone (iOS 17 and iOS 18): record in the app (W-23, MP4 on older Safari), upload from the gallery (L-3), and watch a video story with sound (L-2). Fix or hide what fails.
 - [ ] Ops: in the Vercel production build, `NEXT_PUBLIC_QA_STORY_VIEWER_PHONES` must be empty. The value is inlined into the browser bundle.
 - [ ] Ops: set `STORIES_BACKEND_URL`, `NEXT_PUBLIC_MEDIA_SERVER_BASE_URL` and `NEXT_PUBLIC_MEDIA_API_KEY` for the production build. Without the two media values every upload fails with "Media server upload is not configured" (`services/story.ts:87-89`).
 

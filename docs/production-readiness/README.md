@@ -3,11 +3,13 @@
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20.
 **Source:** the code only. The older files in `docs/` were not used, because they are out of date.
 
+
+Production settings that the owner handles are in [IMPORTANT-PRODUCTION-NOTES.md](IMPORTANT-PRODUCTION-NOTES.md).
 ## The short answer
 
-**We cannot go to production today.** Most of the shop works. We found **565 working cases** across 20 sections. But some items block launch, and they are in four groups:
+**We cannot go to production today.** Most of the shop works. We found **567 working cases** across 20 sections. But some items block launch, and they are in four groups:
 
-1. **There is no production environment yet.** Every backend host is staging. The Elasticsearch index names fall back to the staging names (`_develop`) until the `ELASTIC_*_INDEX` values are set.
+1. **There is no production environment yet.** Every backend host is staging.
 2. **Security holes in the web app.** Some API routes are open to anyone. Session tokens reach logs and Sentry. A few screens show private data.
 3. **Shopper-visible placeholders.** These are the wallet, Bank Cards, virtual try-on, QR login, a developer "Notification Test" tab, the legal pages, and fake order/address data.
 4. **Legal.** The shopper must accept terms they cannot open. There is no real privacy text and no cookie consent.
@@ -20,11 +22,11 @@ None of these is a big rebuild. Most are small fixes, settings, or a product dec
 
 | # | Section | Status | Working cases | Launch blockers | Main blocker |
 |---|---|:-:|:-:|:-:|---|
-| 01 | [Home & discovery](01-home-and-discovery.md) | 🟡 | 22 | 4 | Production index names not set; recommendations Server Action trusts the user id from the browser |
-| 02 | [Search](02-search.md) | 🟡 | 27 | 6 | Every 2+ word search shows a green toast with raw AI JSON; image search uses a retired Gemini model |
-| 03 | [Listing & filters](03-listing-and-filters.md) | 🟡 | 24 | 4 | Price filter hidden while a flag is off; price sort wrong in countries with their own price |
+| 01 | [Home & discovery](01-home-and-discovery.md) | 🟡 | 22 | 3 | Recommendations Server Action trusts the user id from the browser |
+| 02 | [Search](02-search.md) | 🟡 | 27 | 5 | Every 2+ word search shows a green toast with raw AI JSON; image search uses a retired Gemini model |
+| 03 | [Listing & filters](03-listing-and-filters.md) | 🟡 | 24 | 3 | Price filter hidden while a flag is off; price sort wrong in countries with their own price |
 | 04 | [Product page](04-product-page.md) | 🟡 | 31 | 2 | Virtual try-on is fake (waits 3 s, shows the shopper's own photo) |
-| 05 | [Reviews, questions & likes](05-reviews-questions-and-likes.md) | 🟡 | 28 | 2 | Production index names not set; the review write path (CMT-09) has no stable green run |
+| 05 | [Reviews, questions & likes](05-reviews-questions-and-likes.md) | ✅ | 28 | 0 | Closed — the open items were accepted by the owner |
 | 06 | [Cart](06-cart.md) | 🟡 | 32 | 2 | Luck price still sent after the 50 s timer ends |
 | 07 | [Checkout & payment](07-checkout-and-payment.md) | 🟡 | 27 | 6 | Every order sends the note "order note"; every address gets ZIP "123123"; terms cannot be opened |
 | 08 | [Orders & returns](08-orders-and-returns.md) | 🟡 | 29 | 4 | Delivery note lost on address change; fixed refund/fee promises nobody confirmed |
@@ -32,15 +34,15 @@ None of these is a big rebuild. Most are small fixes, settings, or a product dec
 | 10 | [Sign-in & session](10-sign-in-and-session.md) | 🟡 | 28 | 5 | Open `/api/clearRedis` removes all OTP limits; QR login is a mock that shoppers can see |
 | 11 | [Profile & settings](11-profile-and-settings.md) | 🟡 | 26 | 4 | Developer "Notification Test" tab visible to every shopper; legal links go to `#` |
 | 12 | [Chat & calls](12-chat-and-calls.md) | 🟡 | 52 | 9 | Mobile-app call page shows and logs the chat token; no production chat host or Agora project |
-| 13 | [Stories](13-stories.md) | 🟡 | 26 | 0 | No code blocker; Ops values and one real-iPhone video check before launch |
+| 13 | [Stories](13-stories.md) | ✅ | 29 | 0 | Closed — no code work left; Ops values and one real-iPhone video check before launch |
 | 14 | [Notifications](14-notifications.md) | 🟡 | 18 | 5 | Anyone can subscribe to another shop's order pushes; chat needs push permission, so it cannot open in iPhone Safari |
 | 15 | [Seller dashboard — catalog](15-seller-dashboard-catalog.md) | 🟡 | 39 | 1 | Backend 500 on product create with similar words (every "Add with AI" create) |
-| 16 | [Seller dashboard — operations](16-seller-dashboard-operations.md) | 🟡 | 36 | 1 | Index names fall back to staging until `ELASTIC_*_INDEX` is set (Ops, waiting on the backend) |
-| 17 | [Wishlist & compare](17-wishlist-and-compare.md) | 🟡 | 30 | 1 | Guest wishlist may be lost at sign-in (backend to confirm) |
+| 16 | [Seller dashboard — operations](16-seller-dashboard-operations.md) | 🟡 | 36 | 0 | No launch blocker left |
+| 17 | [Wishlist & compare](17-wishlist-and-compare.md) | ✅ | 29 | 0 | Closed — the open item was accepted by the owner |
 | 18 | [Static pages & legal](18-static-pages-and-legal.md) | 🔴 | 17 | 8 | Placeholder legal text; no link to the privacy policy; no cookie consent |
 | 19 | [Languages, regions, SEO & monitoring](19-languages-regions-seo-and-monitoring.md) | 🟡 | 41 | 5 | Site URL and indexing not set; region popup can block the whole site; every GA event is marked debug |
-| 20 | [Security & infrastructure](20-security-and-infrastructure.md) | 🔴 | 25 | 15 | Tokens in logs; open debug routes; no production backend; paid AI APIs with no limit |
-| | **Total** | | **565** | **90** | Some blockers appear in more than one file (for example the index names) |
+| 20 | [Security & infrastructure](20-security-and-infrastructure.md) | 🔴 | 25 | 14 | Tokens in logs; open debug routes; no production backend; paid AI APIs with no limit |
+| | **Total** | | **567** | **82** | Some blockers appear in more than one file |
 
 "Launch blockers" counts the rows marked "Blocks launch = Yes" in each file.
 
@@ -48,7 +50,7 @@ None of these is a big rebuild. Most are small fixes, settings, or a product dec
 
 ### A. Ops and environment
 - [ ] Production backends exist and their URLs are set: core, gateway, chat, stories, comments, wallet, media, Elasticsearch.
-- [ ] Set the ten `ELASTIC_*_INDEX` values to the production index names (listed in `.env.example`); without them `services/elastic/INDEXES.ts` falls back to the `_develop` names. Turn the TLS certificate check back on (`services/elastic/elasticsearch.config.ts:16`).
+- [ ] Turn the Elasticsearch TLS certificate check back on (`services/elastic/elasticsearch.config.ts:16`).
 - [ ] Set `NEXT_PUBLIC_SITE_URL` and `NEXT_PUBLIC_ALLOW_INDEXING=true`. Without the site URL, SEO links point to `trydos.ramaaz.dev`.
 - [ ] Turn off the staging gate (`STAGING_GATE`). Keep `OTP_TEST_PHONES`, `QA_VIEW_SECRET`, `NEXT_PUBLIC_QA_STORY_VIEWER_PHONES` and `REQ_LOG` empty.
 - [ ] Set Redis. Without Redis, the OTP limit lets every send through and "Add with AI" always says "busy".

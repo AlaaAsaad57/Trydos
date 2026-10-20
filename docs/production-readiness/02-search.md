@@ -61,28 +61,26 @@ The mobile app uses the same engine through `GET /api/products/searchInCatalog`.
 | M-1 | The raw AI result shows as a success toast on every search of 2+ words. On AI failure, the error text shows as a "success" toast. | A green toast like `{"name":"shirt","color":["#000000"],"analyzeTime":812,"model":"gemini-2.5-flash-lite"}`, or "AI quota reached — not a bug (Gemini rate limit)" | `components/Home/Search/SearchIcon.tsx:183`. The unit test asserts this as wanted (`SearchIcon.test.tsx:191`). | Frontend | Yes — internal debug data, in English, shown to every shopper |
 | M-2 | Image search uses the model `gemini-1.5-flash`. Google retired Gemini 1.5 Flash on 24 Sep 2025. | Every photo search fails with "Internal server error" | `app/api/image-search/route.ts:62` | Frontend | Yes — the camera button shows in every search; change the model or hide the button |
 | M-3 | `/api/image-search` and `/api/speech-recognition` have no sign-in check, no rate limit and no upload size check in code. Each call costs money (Gemini, AssemblyAI). | Nothing; the risk is cost and abuse | `app/api/image-search/route.ts`, `app/api/speech-recognition/route.ts` | Ops / Frontend | Yes — needs a Vercel Firewall rule or a limiter |
-| M-4 | The Elasticsearch index names fall back to the staging names (`_develop`) when the `ELASTIC_*_INDEX` environment values are not set. They are not set anywhere yet. This includes the catalog and the search log. | Production would read and write the development indexes until the values are set | `services/elastic/INDEXES.ts`, `.env.example` (`ELASTIC_CATALOG_INDEX`, `ELASTIC_SEARCH_LOG_INDEX`) | Ops / Backend | Yes — production needs its own indexes |
-| M-5 | Popular words have no blocklist. The check is a placeholder (`isBlacklisted = false`). QA and test searches are logged too. | Rude, test or QA words can appear under "Popular Search" for every shopper | `services/elastic/helpers.ts:2891` | Frontend / Product | Yes — public text with no moderation |
-| M-6 | The search log stores IP, user agent and user id, with no retention rule | Nothing visible | `services/elastic/helpers.ts` `logSearchTerm` | Product / Ops | Yes — needs a privacy-policy line and a retention period |
-| M-7 | Image search asks Gemini for a Turkish answer when the language is Kurdish (`ku`) | Kurdish shoppers get a Turkish search word | `app/api/image-search/route.ts:76` | Frontend | No |
-| M-8 | Image search errors from the route ("No product detected", "Internal server error", "Invalid file type") are not in the translation files | English error text for ar/tr/ku shoppers | `app/api/image-search/route.ts`; shown by `SearchImage.tsx:104` | Frontend | No |
-| M-9 | The image route sends the raw error message to the browser (`details: error.message`). The voice route does the same. | Provider error text in the response | `app/api/image-search/route.ts:142`, `app/api/speech-recognition/route.ts` | Frontend | No |
-| M-10 | "Clear All" in the open Popular Search list only clears the search box, and the box is already empty there | The button does nothing | `SearchIcon.tsx:674` | Frontend | No |
-| M-11 | `limit` on `searchInCatalog` has no upper cap. A caller can ask for thousands of full products, and every text call can run the AI. | Slow answers under abuse | `app/api/products/searchInCatalog/route.ts:69` | Frontend | No — add a cap together with M-3 |
-| M-12 | Voice polling sends `Authorization: Bearer <key>`. Upload and transcript send the bare key. | If AssemblyAI refuses the Bearer form, every voice search falls back to the browser recogniser | `app/api/speech-recognition/route.ts:127` | Frontend | No — confirm with one live call |
-| M-13 | Image search uses the old SDK `@google/generative-ai` 0.21. The text analyser already calls the REST API directly. | Nothing now | `package.json`, `app/api/image-search/route.ts` | Frontend | No |
+| M-4 | Popular words have no blocklist. The check is a placeholder (`isBlacklisted = false`). QA and test searches are logged too. | Rude, test or QA words can appear under "Popular Search" for every shopper | `services/elastic/helpers.ts:2891` | Frontend / Product | Yes — public text with no moderation |
+| M-5 | The search log stores IP, user agent and user id, with no retention rule | Nothing visible | `services/elastic/helpers.ts` `logSearchTerm` | Product / Ops | Yes — needs a privacy-policy line and a retention period |
+| M-6 | Image search asks Gemini for a Turkish answer when the language is Kurdish (`ku`) | Kurdish shoppers get a Turkish search word | `app/api/image-search/route.ts:76` | Frontend | No |
+| M-7 | Image search errors from the route ("No product detected", "Internal server error", "Invalid file type") are not in the translation files | English error text for ar/tr/ku shoppers | `app/api/image-search/route.ts`; shown by `SearchImage.tsx:104` | Frontend | No |
+| M-8 | The image route sends the raw error message to the browser (`details: error.message`). The voice route does the same. | Provider error text in the response | `app/api/image-search/route.ts:142`, `app/api/speech-recognition/route.ts` | Frontend | No |
+| M-9 | "Clear All" in the open Popular Search list only clears the search box, and the box is already empty there | The button does nothing | `SearchIcon.tsx:674` | Frontend | No |
+| M-10 | `limit` on `searchInCatalog` has no upper cap. A caller can ask for thousands of full products, and every text call can run the AI. | Slow answers under abuse | `app/api/products/searchInCatalog/route.ts:69` | Frontend | No — add a cap together with M-3 |
+| M-11 | Voice polling sends `Authorization: Bearer <key>`. Upload and transcript send the bare key. | If AssemblyAI refuses the Bearer form, every voice search falls back to the browser recogniser | `app/api/speech-recognition/route.ts:127` | Frontend | No — confirm with one live call |
+| M-12 | Image search uses the old SDK `@google/generative-ai` 0.21. The text analyser already calls the REST API directly. | Nothing now | `package.json`, `app/api/image-search/route.ts` | Frontend | No |
 
 ## 🔒 Must do before launch
 - [ ] Remove the debug toast at `SearchIcon.tsx:183`, and change `SearchIcon.test.tsx:191` with it (M-1).
 - [ ] Move image search to a live Gemini model (an env value, like `GEMINI_SEARCH_MODEL`), or hide the camera button (M-2).
 - [ ] Add a rate limit (Vercel Firewall rule or an edge limiter) and a body size limit for `/api/image-search` and `/api/speech-recognition` (M-3).
-- [ ] Set the `ELASTIC_*_INDEX` values in the production environment, and point them at production indexes (M-4).
-- [ ] Add a blocklist, and keep QA traffic out of the search log, before "Popular Search" goes public (M-5).
-- [ ] Decide how long IP and user agent stay in the search log, and add it to the privacy policy (M-6).
+- [ ] Add a blocklist, and keep QA traffic out of the search log, before "Popular Search" goes public (M-4).
+- [ ] Decide how long IP and user agent stay in the search log, and add it to the privacy policy (M-5).
 - [ ] Set in production: `GEMINI_API_KEY`, `ASSEMBLYAI_API_KEY`, `ASSEMBLYAI_BASE_URL`, and the Elasticsearch connection values. The voice route breaks with no `ASSEMBLYAI_BASE_URL`, because the code checks only the key.
 
 ## ❓ Needs confirmation from the backend team
-- Which Elasticsearch cluster and which index names will production use? Who creates the production `search_logs` index?
+- Which Elasticsearch cluster will production use?
 - Does the backend sync product changes into the production catalog index with the same lag as staging (a few seconds)?
 - Who owns the Gemini and AssemblyAI billing accounts, and what are the monthly quotas?
 

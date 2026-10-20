@@ -1,7 +1,7 @@
 # Security and infrastructure — Production readiness
 
 **Status:** 🔴 Not ready
-**In one line:** The `/api/proxy` guards, the cookies and the OTP limiter are solid. But there is no production backend yet, the production index names are not set, and session tokens leak into the gateway error log. Four API routes also let any visitor flush caches or OTP limits.
+**In one line:** The `/api/proxy` guards, the cookies and the OTP limiter are solid. But there is no production backend yet, and session tokens leak into the gateway error log. Four API routes also let any visitor flush caches or OTP limits.
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
 
 ## What this section is
@@ -93,23 +93,22 @@ No app code calls `clearRedis`, `revalidate`, `revalidateStories` or `info`. Som
 | M-3 | `GET /api/clearRedis` has no auth. The check is commented out at line 14. One anonymous GET deletes **all OTP rate-limit keys** and every `product*` cache key. It uses the Redis `KEYS` command, which blocks Redis | Anyone resets the OTP limiter, then sends SMS without limit. Anyone can empty the product cache again and again | `app/api/clearRedis/route.ts:14, 19-28`; `serverRequests/radis/index.ts:97-104, 275-308` | Frontend | Yes |
 | M-4 | `GET /api/revalidate` and `/api/revalidateStories` have no secret and send CORS `*`. `revalidate` purges 6 page paths and 12 cache tags | A loop of GETs keeps every cache cold. Each page view then hits Elasticsearch and the backends: more cost, slower pages | `app/api/revalidate/route.ts:5-32`; `app/api/revalidateStories/route.ts:5-10` | Frontend + Backend (the caller must send the secret) | Yes |
 | M-5 | `GET /api/info?token=` is a debug route. It uses the Firebase admin credential to look up any push token, with no auth | Free use of our Google credential; push token details leak | `app/api/info/route.ts:6-57` | Frontend | Yes (remove) |
-| M-6 | The Elasticsearch index names fall back to the staging names (`_develop`) when the `ELASTIC_*_INDEX` environment values are not set. They are not set anywhere yet. (9 of 10 fallback names end in `_develop`; `shared_products` has no suffix) | Production search, listings, reviews and search logs read and write the staging indexes until the values are set | `services/elastic/INDEXES.ts`, `.env.example` (`ELASTIC_*_INDEX`) | Ops | Yes |
-| M-7 | There is no production backend environment. Every backend host is staging today | Production has nothing to point at | Vercel env (not in code) | Backend / Ops | Yes |
-| M-8 | The Elasticsearch client does not check TLS certificates: `rejectUnauthorized: false` | A man-in-the-middle can read the Elasticsearch user name and password, and change results | `services/elastic/elasticsearch.config.ts:15-17` | Frontend | Yes |
-| M-9 | Every text search calls Gemini (`GEMINI_SEARCH_MODEL`, default `gemini-2.5-flash-lite`). There is no cache and no app-side limit. The public route `searchInCatalog` (CORS `*`) and the search pages both trigger it | A bot sends many searches and the Gemini bill grows without limit | `services/elastic/analyzeSearchText.ts:10`; `services/elastic/elasticSearch.ts:241`; `serverRequests/Search.tsx:156` | Frontend / Ops | Yes (Firewall rule + Gemini budget cap) |
-| M-10 | `image-search` (Gemini) and `speech-recognition` (AssemblyAI) have no auth and no rate limit. Speech can poll AssemblyAI for up to 60 s per call | Anyone can use our paid APIs; long function time costs money | `app/api/image-search/route.ts:19`; `app/api/speech-recognition/route.ts:7, 120` | Frontend / Ops | Yes (Firewall rule) |
-| M-11 | Image search hardcodes the model `gemini-1.5-flash` and uses the old `@google/generative-ai` SDK. That model is likely retired | Image search fails for every shopper | `app/api/image-search/route.ts:62` | Frontend | No (a feature, not security) — confirm |
-| M-12 | Sentry has `sendDefaultPii: true` on server, edge and client. The server config's own comment says events still carry session cookies | Sentry stores HttpOnly session tokens | `sentry.server.config.ts:36-37, 65`; `sentry.edge.config.ts:16`; `instrumentation-client.ts:14` | Frontend | Yes |
-| M-13 | `auth/register-device` creates a new gateway guest on every POST, with no limit | A bot creates guest accounts without end | `app/api/auth/register-device/route.ts:35-60` | Ops | Yes (Firewall rule) |
-| M-14 | `subscribe` and `unsubscribe` accept any FCM token and any topic name, with no auth | Anyone can subscribe or unsubscribe a known device to any topic. The routes also use Firebase quota | `app/api/subscribe/route.ts:5-22`; `app/api/unsubscribe/route.ts:5-22` | Frontend | No (add a limit) |
-| M-15 | OTP verify is a GET with the code in the query (`?verificationId=&otp=`) | OTP codes land in Vercel request logs | `app/api/auth/login/route.ts:112, 123-125` | Frontend | No |
-| M-16 | The Google Maps key is a literal in code, and a second copy is a fallback | The key cannot change per environment, and it stays in git history | `components/Cart/MapElement.tsx:36`; `utils/mapsConfig.ts:11-13` | Frontend | No (rotate, restrict, read from env only) |
-| M-17 | Agora App IDs are hardcoded in 4 files. There are **2 different** values | Calls may go to different Agora projects. There is no per-environment switch | `components/Chat/components/ChatVoiceCall.tsx`, `ChatVideoCall.tsx:30`, `components/global/WebViewVoiceCall.tsx`, `WebViewVideoCall.tsx` | Frontend / Backend | No — confirm |
-| M-18 | Staging values are written in code: the structured-data fallback URL `https://trydos.ramaaz.dev`, and a staging media URL in the push service worker | Wrong canonical URLs in JSON-LD if `NEXT_PUBLIC_SITE_URL` is unset; broken push images | `serverRequests/meta/StructuredData/Constants.ts:4`; `public/firebase-messaging-sw.js:4` | Frontend | Yes (set the env); No (cleanup) |
-| M-19 | The repo has no rollback plan. No file mentions `vercel rollback`, `vercel promote` or Instant Rollback | No agreed way to undo a bad production deploy | — | Ops | Yes |
-| M-20 | Monitoring is not ready for production. The code sets no Sentry `environment` and no `tracesSampleRate`. No alert rules live in the repo. Source-map upload needs `SENTRY_AUTH_TOKEN`, and `.env.example` does not list it | Staging and production errors may mix; no performance data; nobody gets an alert | `sentry.server.config.ts:54-71`; `next.config.ts:287-304` | Ops | Yes |
-| M-21 | CI does not build the app. Tests run only on Friday or by hand, never on a push or PR. `deploy.yml` says its Vercel secrets are "none of which exist yet" | A change that breaks `next build` shows up only at deploy time | `.github/workflows/tests.yml`; `.github/workflows/deploy.yml:49-53` | Ops | No — confirm the secrets |
-| M-22 | Demo and test pages are reachable (see L-18) | Shoppers see unfinished screens | `app/(client)/[lang]/demo/**`, `app/(client)/[lang]/loginDemo`, `app/loginDemo`, `app/(special)/navigation` | Product / Frontend | Product decides |
+| M-6 | There is no production backend environment. Every backend host is staging today | Production has nothing to point at | Vercel env (not in code) | Backend / Ops | Yes |
+| M-7 | The Elasticsearch client does not check TLS certificates: `rejectUnauthorized: false` | A man-in-the-middle can read the Elasticsearch user name and password, and change results | `services/elastic/elasticsearch.config.ts:15-17` | Frontend | Yes |
+| M-8 | Every text search calls Gemini (`GEMINI_SEARCH_MODEL`, default `gemini-2.5-flash-lite`). There is no cache and no app-side limit. The public route `searchInCatalog` (CORS `*`) and the search pages both trigger it | A bot sends many searches and the Gemini bill grows without limit | `services/elastic/analyzeSearchText.ts:10`; `services/elastic/elasticSearch.ts:241`; `serverRequests/Search.tsx:156` | Frontend / Ops | Yes (Firewall rule + Gemini budget cap) |
+| M-9 | `image-search` (Gemini) and `speech-recognition` (AssemblyAI) have no auth and no rate limit. Speech can poll AssemblyAI for up to 60 s per call | Anyone can use our paid APIs; long function time costs money | `app/api/image-search/route.ts:19`; `app/api/speech-recognition/route.ts:7, 120` | Frontend / Ops | Yes (Firewall rule) |
+| M-10 | Image search hardcodes the model `gemini-1.5-flash` and uses the old `@google/generative-ai` SDK. That model is likely retired | Image search fails for every shopper | `app/api/image-search/route.ts:62` | Frontend | No (a feature, not security) — confirm |
+| M-11 | Sentry has `sendDefaultPii: true` on server, edge and client. The server config's own comment says events still carry session cookies | Sentry stores HttpOnly session tokens | `sentry.server.config.ts:36-37, 65`; `sentry.edge.config.ts:16`; `instrumentation-client.ts:14` | Frontend | Yes |
+| M-12 | `auth/register-device` creates a new gateway guest on every POST, with no limit | A bot creates guest accounts without end | `app/api/auth/register-device/route.ts:35-60` | Ops | Yes (Firewall rule) |
+| M-13 | `subscribe` and `unsubscribe` accept any FCM token and any topic name, with no auth | Anyone can subscribe or unsubscribe a known device to any topic. The routes also use Firebase quota | `app/api/subscribe/route.ts:5-22`; `app/api/unsubscribe/route.ts:5-22` | Frontend | No (add a limit) |
+| M-14 | OTP verify is a GET with the code in the query (`?verificationId=&otp=`) | OTP codes land in Vercel request logs | `app/api/auth/login/route.ts:112, 123-125` | Frontend | No |
+| M-15 | The Google Maps key is a literal in code, and a second copy is a fallback | The key cannot change per environment, and it stays in git history | `components/Cart/MapElement.tsx:36`; `utils/mapsConfig.ts:11-13` | Frontend | No (rotate, restrict, read from env only) |
+| M-16 | Agora App IDs are hardcoded in 4 files. There are **2 different** values | Calls may go to different Agora projects. There is no per-environment switch | `components/Chat/components/ChatVoiceCall.tsx`, `ChatVideoCall.tsx:30`, `components/global/WebViewVoiceCall.tsx`, `WebViewVideoCall.tsx` | Frontend / Backend | No — confirm |
+| M-17 | Staging values are written in code: the structured-data fallback URL `https://trydos.ramaaz.dev`, and a staging media URL in the push service worker | Wrong canonical URLs in JSON-LD if `NEXT_PUBLIC_SITE_URL` is unset; broken push images | `serverRequests/meta/StructuredData/Constants.ts:4`; `public/firebase-messaging-sw.js:4` | Frontend | Yes (set the env); No (cleanup) |
+| M-18 | The repo has no rollback plan. No file mentions `vercel rollback`, `vercel promote` or Instant Rollback | No agreed way to undo a bad production deploy | — | Ops | Yes |
+| M-19 | Monitoring is not ready for production. The code sets no Sentry `environment` and no `tracesSampleRate`. No alert rules live in the repo. Source-map upload needs `SENTRY_AUTH_TOKEN`, and `.env.example` does not list it | Staging and production errors may mix; no performance data; nobody gets an alert | `sentry.server.config.ts:54-71`; `next.config.ts:287-304` | Ops | Yes |
+| M-20 | CI does not build the app. Tests run only on Friday or by hand, never on a push or PR. `deploy.yml` says its Vercel secrets are "none of which exist yet" | A change that breaks `next build` shows up only at deploy time | `.github/workflows/tests.yml`; `.github/workflows/deploy.yml:49-53` | Ops | No — confirm the secrets |
+| M-21 | Demo and test pages are reachable (see L-18) | Shoppers see unfinished screens | `app/(client)/[lang]/demo/**`, `app/(client)/[lang]/loginDemo`, `app/loginDemo`, `app/(special)/navigation` | Product / Frontend | Product decides |
 
 ## 🔒 Must do before launch
 
@@ -118,15 +117,14 @@ No app code calls `clearRedis`, `revalidate`, `revalidateStories` or `info`. Som
 - [ ] Stop sending tokens and the cookie snapshot to the error log: `app/api/internal/mobile-error-log/route.ts`, `utils/serverErrorReporter.ts` (M-1).
 - [ ] Add a shared-secret check to `clearRedis` (or delete it), `revalidate` and `revalidateStories`. Drop CORS `*` on them (M-3, M-4).
 - [ ] Delete `app/api/info` (M-5).
-- [ ] Set the ten `ELASTIC_*_INDEX` values in the production environment (M-6).
-- [ ] Turn TLS certificate checks back on for Elasticsearch (M-8).
-- [ ] Set `sendDefaultPii: false`, or remove `cookies` and `Authorization` in `beforeSend`, in all 3 Sentry configs. Set `environment` per deployment (M-12, M-20).
-- [ ] Fix or remove image search (`gemini-1.5-flash`) (M-11).
-- [ ] Cache the search analysis result, or add a limit, so one query is not one paid call (M-9).
-- [ ] Move OTP verify to POST so codes leave the URL (M-15).
-- [ ] Remove the Google Maps literal in `MapElement.tsx` and the fallback in `mapsConfig.ts` (M-16).
+- [ ] Turn TLS certificate checks back on for Elasticsearch (M-7).
+- [ ] Set `sendDefaultPii: false`, or remove `cookies` and `Authorization` in `beforeSend`, in all 3 Sentry configs. Set `environment` per deployment (M-11, M-19).
+- [ ] Fix or remove image search (`gemini-1.5-flash`) (M-10).
+- [ ] Cache the search analysis result, or add a limit, so one query is not one paid call (M-8).
+- [ ] Move OTP verify to POST so codes leave the URL (M-14).
+- [ ] Remove the Google Maps literal in `MapElement.tsx` and the fallback in `mapsConfig.ts` (M-15).
 - [ ] Remove staging, `localhost` and `example.com` hosts from `images.domains` and `serverActions.allowedOrigins`. Add the production hosts (L-11, L-12).
-- [ ] Remove or gate the demo pages if Product decides so (M-22).
+- [ ] Remove or gate the demo pages if Product decides so (M-21).
 - [ ] If the gate must stay on for some time after go-live, change both halves together: `STAGING_GATE` and the matcher (L-1).
 
 **Config / env** (names only)
@@ -150,12 +148,11 @@ No app code calls `clearRedis`, `revalidate`, `revalidateStories` or `info`. Som
 - [ ] Rate limit per IP: `/api/internal/mobile-error-log`, `/api/subscribe`, `/api/unsubscribe`, `/api/proxy`, `/api/ticket`, `/api/products/comments/order_rating`.
 - [ ] Until the code fix lands, block `/api/clearRedis`, `/api/revalidate`, `/api/revalidateStories` and `/api/info`, or allow only a known IP or secret header.
 - [ ] Turn on bot protection. Agree when to use Attack Mode.
-- [ ] Write the rollback steps: Vercel Instant Rollback to the last good production deploy, and who may run it (M-19).
+- [ ] Write the rollback steps: Vercel Instant Rollback to the last good production deploy, and who may run it (M-18).
 - [ ] Set Sentry alert rules (new issue, error spike) and a channel that alerts a person on duty.
 
 **Backend**
-- [ ] Stand up the production backends: core, gateway, chat, stories, comments, wallet, media, Elasticsearch, Redis (M-7).
-- [ ] Create the production Elasticsearch indexes and agree their names with Frontend (M-6).
+- [ ] Stand up the production backends: core, gateway, chat, stories, comments, wallet, media, Elasticsearch, Redis (M-6).
 - [ ] Give the cache-purge caller (`/api/revalidate`) a shared secret to send (M-4).
 - [ ] Delete stored tokens from the gateway error log (`/mobile_error_log/store`), and limit who can read it (M-1).
 
@@ -200,4 +197,4 @@ No app code calls `clearRedis`, `revalidate`, `revalidateStories` or `info`. Som
 - Sentry scrubbing (`stripQaHeader`), and any check that no token reaches Sentry.
 - `reqLogger` credential redaction.
 - No test checks that `clearRedis`, `revalidate`, `revalidateStories`, `info`, `image-search` or `speech-recognition` refuse an anonymous caller. Today they do not refuse one.
-- No test checks that production config has no staging hosts and no `_develop` indexes.
+- No test checks that production config has no staging hosts.

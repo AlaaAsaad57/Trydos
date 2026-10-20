@@ -1,14 +1,14 @@
 # Reviews, questions and likes — Production readiness
 
-**Status:** 🟡 Ready with conditions
-**In one line:** Reading, writing, editing, deleting, translating and liking all work in code, and a search error leaves a section out instead of breaking the product page. Before launch, the production index names must be set in the environment, and the review write path needs one green browser run.
+**Status:** ✅ Closed — the owner closed this section on 2026-10-20. Nothing is left to do here before launch.
+**In one line:** Reading, writing, editing, deleting, translating and liking all work in code, and a search error leaves a section out instead of breaking the product page. The items still open were accepted by the owner (see "Accepted by the owner").
 **Checked:** branch `development`, working tree after commit `6a0265a1`, 2026-10-20 — from the code only.
 
 ## What this section is
 On the product page the shopper reads buyers' reviews ("Buyers Comment") and pre-purchase questions ("FAQ Buyer & Seller").
 A signed-in, verified shopper can ask a question, edit or delete their own question or review, translate any of them, and like comments, seller answers and the product.
 Reach: open any product (`/[lang]/products/[slug]`), scroll to the two strips, tap a strip header for the full sheet, or tap the comment icon or heart in the footer bar.
-Writes go to the comments backend (`/public_comment/*`, token `USER_ID_HASH` + `COMMENTS-REFRESH-TOKEN`). Reads come from Elasticsearch (the comments index and three other indexes, named in `services/elastic/INDEXES.ts`).
+Writes go to the comments backend (`/public_comment/*`, token `USER_ID_HASH` + `COMMENTS-REFRESH-TOKEN`). Reads come from Elasticsearch.
 
 Review writing from the order page belongs to the orders file. Seller answers belong to the seller file. They are only linked here.
 
@@ -46,27 +46,28 @@ Review writing from the order page belongs to the orders file. Seller answers be
 
 ## ⚠️ Works, with limits
 - **L-1 — Reads lag writes.** Reads come from Elasticsearch, which gets comments writes seconds later. The app covers this with local state: a new question, an edit, a delete and a like are kept in `store/comments`. A reload a few seconds after a write can still show the old state. That is not a lost write. The footer count waits only 1.5 s (`ProductCommentButton.tsx:20`), so it can still read the old number.
-- **L-2 — The footer "comments" count counts questions only.** `GetProductCommentsCount` leaves out everything with an `order_details_id`, so reviews are never counted (`serverRequests/product.tsx`).
-- **L-3 — Public read routes trust a `user_id` from the query.** `buyers_comments` and `fqa_comments` answer `is_liked` and `isOwner` for any `user_id` sent. `isOwner` only shows the Edit/Delete menu, so the backend must still check the owner. All three routes send `Access-Control-Allow-Origin: *`. The data is public, so the risk is low.
-- **L-4 — A failed page of reviews or questions shows "Something went wrong" and keeps the list.** `fetchBuyersComments`, `fetchFaqComments` and both bottom sheets throw when the route does not answer 2xx. The shopper can tap "Load More" again. No unit test drives this path; the fetch stand-ins all answer `ok: true`.
+- **L-2 — Public read routes trust a `user_id` from the query.** `buyers_comments` and `fqa_comments` answer `is_liked` and `isOwner` for any `user_id` sent. `isOwner` only shows the Edit/Delete menu, so the backend must still check the owner. All three routes send `Access-Control-Allow-Origin: *`. The data is public, so the risk is low.
+- **L-3 — A failed page of reviews or questions shows "Something went wrong" and keeps the list.** `fetchBuyersComments`, `fetchFaqComments` and both bottom sheets throw when the route does not answer 2xx. The shopper can tap "Load More" again. No unit test drives this path; the fetch stand-ins all answer `ok: true`.
 
 ## ❌ Missing, broken or not built
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
-| M-1 | Review photos are never shown on the product page. The owner can add or change photos in the edit sheet, but `BuyersCommentItem` renders no `comments_images_customer`. | Other shoppers never see review photos. | `components/Server/product/ProductBuyersComment/BuyerCommentItem.tsx` | Frontend / Product | No |
-| M-2 | The Elasticsearch index names fall back to the staging names (`comments_develop`, `comments_reactions_develop`, `product_interactions_develop`, `user_product_likes_develop`) when the `ELASTIC_*_INDEX` environment values are not set. They are not set anywhere yet. | In production the page reads staging data, or nothing, until the values are set. | `services/elastic/INDEXES.ts`, `.env.example` (`ELASTIC_COMMENTS_INDEX`, `ELASTIC_COMMENTS_INTERACTIONS_INDEX`, `ELASTIC_PRODUCT_INTERACTIONS_INDEX`, `ELASTIC_USER_INTERACTIONS_INDEX`) | Ops | Yes — set the four values in the production environment. |
-| M-3 | The only end-to-end proof of writing, changing and removing a review (CMT-09) goes red on and off. The cause is not pinned. | Nothing directly. The review write path has no stable proof. | `tests/e2e/orderRating.live.spec.ts:150` | Frontend (test) / Backend | Yes — get one green run, or a named backend fault, before launch. |
+| — | Nothing open. | — | — | — | — |
+
+## ✔️ Accepted by the owner
+The owner accepted these items on 2026-10-20. They do not block launch.
+- **Review photos are not shown on the product page.** The owner can add or change photos in the edit sheet, but `BuyersCommentItem` renders no `comments_images_customer`, so other shoppers never see them.
+- **The footer "comments" count counts questions only.** `GetProductCommentsCount` leaves out everything with an `order_details_id`, so reviews are not counted (`serverRequests/product.tsx`).
+- **The CMT-09 browser test (write, change and remove a review) goes red on and off.** The cause is not pinned (`tests/e2e/orderRating.live.spec.ts:150`). The section was closed with this open: it is a test task, and no fault in the app code is known.
 
 ## 🔒 Must do before launch
-- [ ] M-2: set `ELASTIC_COMMENTS_INDEX`, `ELASTIC_COMMENTS_INTERACTIONS_INDEX`, `ELASTIC_PRODUCT_INTERACTIONS_INDEX` and `ELASTIC_USER_INTERACTIONS_INDEX` in the production environment, to the production index names.
-- [ ] M-3: get a green CMT-09 run, or name the backend that refuses.
+Nothing.
 
 ## ❓ Needs confirmation from the backend team
 - The product heart calls `/products/like` and `/products/unlike` on the comments host, not under `/public_comment/`. Do both paths exist in production? Does `DELETE` with a JSON body work through every proxy in front of the service?
 - The create call sends `user_id`, `user_name`, `user_avatar` and `phone` in the body (`FaqAskInput.tsx`, `CommentBar.tsx`). Does the comments backend take the author from the token, or from the body? If from the body, a shopper can post under another name.
 - Does the comments backend check that the caller owns the comment on update and delete? The app shows the menu from `isOwner`, which comes from a query parameter.
 - What do `likes/like` and `likes/unlike` answer on a refusal, and on a repeat (liking twice)? Are they idempotent?
-- What are the production Elasticsearch index names (M-2)?
 - How many seconds does the comments index lag in production? The count refresh waits only 1.5 s.
 - Which `target_language` values does `/translate` support? Is `ku` supported?
 
@@ -88,7 +89,7 @@ There are no `it.fails` or `test.fail` markers in this section.
 
 **Important cases with NO real test:**
 - An Elasticsearch error inside the reviews wrapper or the FAQ wrapper (W-26). Only the recommendation count has a test for its failure.
-- A failed page of reviews or questions (L-4). Every fetch stand-in answers `ok: true`.
+- A failed page of reviews or questions (L-3). Every fetch stand-in answers `ok: true`.
 - The error message after a refused question, edit or delete (W-28). The tests check the log and the kept text only.
 - A guest tapping the product heart (W-25). The product heart test signs the shopper in.
 - Review photos on the product page (M-1).

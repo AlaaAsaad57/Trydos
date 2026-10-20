@@ -1,7 +1,7 @@
 # Listing and filters — Production readiness
 
 **Status:** 🟡 Ready with conditions
-**In one line:** Listing, boutique page, filters, sort, search and share all work, but the production index names must be set, the TLS check must be fixed, the price filter in the filter panel needs a flag turned on, and price sorting is wrong for countries with their own price.
+**In one line:** Listing, boutique page, filters, sort, search and share all work, but the TLS check must be fixed, the price filter in the filter panel needs a flag turned on, and price sorting is wrong for countries with their own price.
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
 
 ## What this section is
@@ -56,30 +56,27 @@ Search overlay on the home page: see the search file. Product cards and product 
 ## ❌ Missing, broken or not built
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
-| M-1 | The Elasticsearch index names fall back to the staging names (`_develop`) when the `ELASTIC_*_INDEX` environment values are not set. They are not set anywhere yet. | Production would list staging data until the values are set. | `services/elastic/INDEXES.ts`, `.env.example` (`ELASTIC_CATALOG_INDEX`) | Ops | **Yes** — production must read production data. |
-| M-2 | The Elasticsearch client accepts any TLS certificate (`rejectUnauthorized: false`). | Nothing visible. A machine in the middle can read the index password and data. | `services/elastic/elasticsearch.config.ts:15-17` | Frontend + Ops | **Yes** — security. |
-| M-3 | The filter panel never shows the price section while `LISTING_PRICE_AGG_ENABLED` is off. The panel opens with no `total_size` and no `prices.total` (`FilterWidgetServer.tsx:29-35`). After a chip tap, the count asks for 0 products, so with the flag off the price answer is `null` (`elasticSearch.ts:331`, `:987`). The unit test seeds only the flag-on shape. | No price slider and no price curve in the filter panel. | `components/ListingPage/filterComponents/FiltersWindow/index.tsx:399-401` | Ops (flag) + Frontend | **Yes** — a core filter is missing. Turn the flag on after a staging check, or make the panel work with it off. |
-| M-4 | Price sort uses the root `offered_price`. The card shows the country's own price when one exists (`country_offer_prices`). | In a country with its own prices, "Price: Low to High" shows a wrong order. | `services/elastic/helpers.ts:177-186` | Backend + Frontend | **Yes** — visibly wrong order. Needs a sortable per-country price field, or hide the two price options. |
-| M-5 | A failed page load is never reported. On error `GetProducts` answers an empty page with `offset: undefined` (`serverRequests/listing/index.tsx:117-131`). The grid then reads `undefined.length` (`areArraysEqual`) and throws. The toast and 3-second retry run only for an `undefined` answer, which never comes. | Loading stops with no message, or the skeletons stay after a sort or search. It retries only if the bottom of the list leaves the screen and comes back. | `components/ListingPage/ProductInfiniteScroll.tsx:167-189` | Frontend | No |
-| M-6 | If the filter-panel count fails, `GetFilters` answers `undefined` and the panel sets every list to empty. | All chips vanish and the "Search" button is gone. Only "Reset" stays. No error message. | `serverRequests/listing/index.tsx:58-64`, `components/ListingPage/filterComponents/FiltersWindow/index.tsx:205-212` | Frontend | No |
-| M-7 | A price band whose minimum is 0 is dropped from the address (`prices?.[0] && …`). | The shopper picks 0–50, taps Search, and gets all prices. | `components/ListingPage/filterComponents/FiltersWindow/FiltersButton.tsx:145` | Frontend | No |
-| M-8 | The boutique name never reaches analytics: `boutique?.name` is read twice, the second time on a string. | Nothing visible. Boutique pages are reported as `Filters-Page` in Google Analytics. | `components/Server/ProductListConainer.tsx:59`, `components/Server/ProductList.tsx:128`, `:157` | Frontend | No |
-| M-9 | `GetProducts` is a public Server Action and takes `userId` from the browser. The id is written into the search log. | Nothing visible. Anybody can write search-log rows under another shopper's id. | `serverRequests/listing/index.tsx:66-92`, `services/elastic/elasticSearch.ts:684` | Frontend | No |
-| M-10 | The email share subject falls back to the English text "Check this out". | An untranslated subject when the page has no title. | `components/Listing/ListingShareControl.tsx:81` | Frontend | No |
+| M-1 | The Elasticsearch client accepts any TLS certificate (`rejectUnauthorized: false`). | Nothing visible. A machine in the middle can read the index password and data. | `services/elastic/elasticsearch.config.ts:15-17` | Frontend + Ops | **Yes** — security. |
+| M-2 | The filter panel never shows the price section while `LISTING_PRICE_AGG_ENABLED` is off. The panel opens with no `total_size` and no `prices.total` (`FilterWidgetServer.tsx:29-35`). After a chip tap, the count asks for 0 products, so with the flag off the price answer is `null` (`elasticSearch.ts:331`, `:987`). The unit test seeds only the flag-on shape. | No price slider and no price curve in the filter panel. | `components/ListingPage/filterComponents/FiltersWindow/index.tsx:399-401` | Ops (flag) + Frontend | **Yes** — a core filter is missing. Turn the flag on after a staging check, or make the panel work with it off. |
+| M-3 | Price sort uses the root `offered_price`. The card shows the country's own price when one exists (`country_offer_prices`). | In a country with its own prices, "Price: Low to High" shows a wrong order. | `services/elastic/helpers.ts:177-186` | Backend + Frontend | **Yes** — visibly wrong order. Needs a sortable per-country price field, or hide the two price options. |
+| M-4 | A failed page load is never reported. On error `GetProducts` answers an empty page with `offset: undefined` (`serverRequests/listing/index.tsx:117-131`). The grid then reads `undefined.length` (`areArraysEqual`) and throws. The toast and 3-second retry run only for an `undefined` answer, which never comes. | Loading stops with no message, or the skeletons stay after a sort or search. It retries only if the bottom of the list leaves the screen and comes back. | `components/ListingPage/ProductInfiniteScroll.tsx:167-189` | Frontend | No |
+| M-5 | If the filter-panel count fails, `GetFilters` answers `undefined` and the panel sets every list to empty. | All chips vanish and the "Search" button is gone. Only "Reset" stays. No error message. | `serverRequests/listing/index.tsx:58-64`, `components/ListingPage/filterComponents/FiltersWindow/index.tsx:205-212` | Frontend | No |
+| M-6 | A price band whose minimum is 0 is dropped from the address (`prices?.[0] && …`). | The shopper picks 0–50, taps Search, and gets all prices. | `components/ListingPage/filterComponents/FiltersWindow/FiltersButton.tsx:145` | Frontend | No |
+| M-7 | The boutique name never reaches analytics: `boutique?.name` is read twice, the second time on a string. | Nothing visible. Boutique pages are reported as `Filters-Page` in Google Analytics. | `components/Server/ProductListConainer.tsx:59`, `components/Server/ProductList.tsx:128`, `:157` | Frontend | No |
+| M-8 | `GetProducts` is a public Server Action and takes `userId` from the browser. The id is written into the search log. | Nothing visible. Anybody can write search-log rows under another shopper's id. | `serverRequests/listing/index.tsx:66-92`, `services/elastic/elasticSearch.ts:684` | Frontend | No |
+| M-9 | The email share subject falls back to the English text "Check this out". | An untranslated subject when the page has no title. | `components/Listing/ListingShareControl.tsx:81` | Frontend | No |
 
 ## 🔒 Must do before launch
-- [ ] Set the `ELASTIC_*_INDEX` values in the production environment and create the production indexes (M-1).
-- [ ] Turn TLS certificate checking back on for Elasticsearch (M-2).
-- [ ] Check `LISTING_PRICE_AGG_ENABLED=true` on staging, then turn it on in production — or fix the panel for the flag-off case (M-3).
-- [ ] Fix price sort per country, or hide the two price sort options until the backend gives a sortable country price (M-4).
+- [ ] Turn TLS certificate checking back on for Elasticsearch (M-1).
+- [ ] Check `LISTING_PRICE_AGG_ENABLED=true` on staging, then turn it on in production — or fix the panel for the flag-off case (M-2).
+- [ ] Fix price sort per country, or hide the two price sort options until the backend gives a sortable country price (M-3).
 - [ ] Set in production: `ELASTICSEARCH_NODE`, `ELASTICSEARCH_USERNAME`, `ELASTICSEARCH_PASSWORD` (without the node the client quietly points at `http://localhost:9200`), `REDIS_URL`, `REDIS_USERNAME`, `REDIS_PASS`, `PRODUCT_REDIS_TTL_SECONDS`, `GEMINI_API_KEY`.
 - [ ] Decide on `ELASTIC_LISTING_PIT`. Keep it off unless the Elasticsearch limit for open snapshots has been checked for production traffic.
 - [ ] Leave `QA_VIEW_SECRET` unset in production, or use a random value of 32+ characters that only QA holds.
 
 ## ❓ Needs confirmation from the backend team
-- Can the index carry one sortable price per country (for example the country offer price at the top level)? Without it, price sort cannot be right in countries with their own price (M-4).
+- Can the index carry one sortable price per country (for example the country offer price at the top level)? Without it, price sort cannot be right in countries with their own price (M-3).
 - Do the production indexes have `orders_count`, `created_at`, `custom_products.name.keyword` (nested), `country_offer_prices` and `custom_boutiques.slug.keyword`? The QA rule fails loudly if the last one is missing; the sorts fail quietly.
-- What are the production index names, who creates them, and is the mapping the same as the `_develop` indexes?
 - Are flash-deal `start_date` / `end_date` stored in UTC?
 - If `ELASTIC_LISTING_PIT` is turned on: what is the cluster limit for open snapshots, and is 2 minutes per listing session acceptable?
 
@@ -96,7 +93,7 @@ Search overlay on the home page: see the search file. Product cards and product 
 **Expected-failure markers:** none in these files. GUEST-49 uses `test.skip` when the index answers 200 with no flash deal.
 
 **Not covered by any test:**
-- The filter panel's price section with `LISTING_PRICE_AGG_ENABLED` off (M-3). The unit test seeds only the flag-on data shape.
-- A real failed page load (M-5). The grid test feeds `undefined`; the server test proves the real error answer is an empty page with no offset. No test joins the two.
-- Price sort against country prices (M-4); a 0 minimum price (M-7); the product-level country rule.
+- The filter panel's price section with `LISTING_PRICE_AGG_ENABLED` off (M-2). The unit test seeds only the flag-on data shape.
+- A real failed page load (M-4). The grid test feeds `undefined`; the server test proves the real error answer is an empty page with no offset. No test joins the two.
+- Price sort against country prices (M-3); a 0 minimum price (M-6); the product-level country rule.
 - No browser test covers the boutique page, the filter panel, sort, share, in-listing search or the listing infinite scroll.

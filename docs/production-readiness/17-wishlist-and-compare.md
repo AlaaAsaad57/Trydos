@@ -1,9 +1,9 @@
 # Wishlist and compare — Production readiness
 
-**Status:** 🟡 Ready with conditions
-**In one line:** Saving, listing, paging and removing products work for guests and signed-in shoppers, and compare works end to end. One item still blocks launch: nobody has confirmed what happens to a guest's saved products after sign-in.
+**Status:** ✅ Closed — the owner closed this section on 2026-10-20. Nothing is left to do here before launch.
+**In one line:** Saving, listing, paging and removing products work for guests and signed-in shoppers, and compare works end to end. The one open item was accepted by the owner (see "Accepted by the owner").
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
-**Fixed after the first check:** M-1, M-2, M-5, L-1, L-4, L-6, L-7, L-8 and the RTL labels of L-9. They are now W-22 to W-30. Each code fix has a unit test that was seen red before the fix and green after it.
+**Fixed after the first check:** M-1, M-2, L-1, L-4, L-6, L-7, L-8 and the RTL labels of L-9. They are now W-22 to W-29. Each code fix has a unit test that was seen red before the fix and green after it.
 
 ## What this section is
 **Wishlist ("checklist").** The shopper saves a product from the product page: footer "More" (three dots) → "Add To My Checklist". They see the list at `/[lang]/settings/checklist` (avatar menu → Settings → "My Checklist"), open a product from it, load more, and remove items.
@@ -42,7 +42,6 @@ The checklist is stored on the market backend: a guest reaches the **gateway**, 
 | W-27 | A compare picker does not offer the product that is already in the other column, so the same product cannot fill both columns. | none | `compare.tsx` (`toSelectOptions`) | `compare.test.tsx` "does not offer the product that is already in the other column" |
 | W-28 | Compare shows no currency symbol until the shopper's currency is loaded (no wrong "$"), like the rest of the app. | none | `compare.tsx` (`compareFields`, price rows) | `compare.test.tsx` "…with no symbol when no currency is set" |
 | W-29 | In Arabic and Kurdish the compare row labels sit on the right side, with the column border on the correct side. | none | `compare.tsx` (`text-start`, `border-e`) | none (CSS only) |
-| W-30 | The compare search reads the catalog index named by `ELASTIC_CATALOG_INDEX`, so production can read its own data. With the variable empty it falls back to the staging name. | Elasticsearch catalog | `services/elastic/INDEXES.ts` (`indexName`), `.env.example` | none (config) |
 
 ## ⚠️ Works, with limits
 - **L-1 — The button text never changes.** When the product is saved, the button still says "Add To My Checklist"; only the background turns green (`MoreOptionsSection.tsx:346`, `:497`). There is no "Remove" wording.
@@ -56,19 +55,19 @@ The checklist is stored on the market backend: a guest reaches the **gateway**, 
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
 | M-1 | There is no save button on product cards (listing, home, search). Saving is possible only from the product page "More" panel. | No heart on cards. | no code (searched all `components/`) | Product | No — a product decision. |
-| M-2 | A guest's saved products live on the gateway; a verified shopper's live on the core backend. The frontend has no step that moves or merges them at sign-in. | Unknown until confirmed: a guest who saves products and then signs in may find an empty or different checklist. | `utils/server/tokenManager.ts:176-190` | Backend / Product | Yes, until confirmed — a lost list after sign-in is a visible data loss. |
+
+## ✔️ Accepted by the owner
+The owner accepted this on 2026-10-20. It does not block launch.
+- **A guest's saved products do not survive sign-in.** A guest's checklist is saved on the gateway; a signed-in shopper's checklist is read from the core backend, and nothing moves the list at sign-in. After sign-in the shopper sees the checklist of their signed-in account only.
 
 ## 🔒 Must do before launch
-- [ ] M-2: get the backend team to confirm what happens to a guest's checklist after sign-in, and decide the expected behaviour.
-- [ ] Ops: set `ELASTIC_CATALOG_INDEX` to the production catalog index in the Vercel production environment (shared with every section that reads Elasticsearch — see `README.md`).
+Nothing.
 
 ## ❓ Needs confirmation from the backend team
-- When a guest signs in, does the core backend see the products the guest saved on the gateway? Is the guest id kept as the user id, or are the lists merged, or is the guest list lost?
 - Do the gateway and core `/checklist` endpoints answer the same shape in production (`current_page`, `last_page`, `data[]` with `id`, `name`, `slug`, `image`)? Staging matched on 2026-09-19, per the comment in `services/wishlist.ts`.
 - Does `POST /checklist` refuse a product that is already saved, or accept it again? The app always reads `/exist` first, so a refusal would only show in a race.
 - Do the add and remove answers carry a `message`? If yes, the shopper gets two toasts (L-2).
 - Does `/checklist/product/{id}/exist` answer for a product that is hidden or deleted? And does `GET /checklist` still list such products?
-- What is the production catalog index name (for `ELASTIC_CATALOG_INDEX`)?
 
 ## 🧪 Tests that cover this section
 **Unit (Vitest):**
@@ -86,7 +85,6 @@ The checklist is stored on the market backend: a guest reaches the **gateway**, 
 There are no `it.fails` or `test.fail` markers in this section.
 
 **Important cases with NO test:**
-- The checklist after a guest signs in (M-2).
 - Opening a product from a checklist row (W-8).
 - Removing a saved product from the product page, in the browser suite (unit only).
 - The compare page and its messages in Arabic, Turkish or Kurdish in the browser suite. The unit suite checks only the RTL table direction.

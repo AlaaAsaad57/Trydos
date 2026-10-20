@@ -1,7 +1,7 @@
 # Home and discovery — Production readiness
 
 **Status:** 🟡 Ready with conditions
-**In one line:** The home and category pages work end to end, but the production index names must be set, and the index TLS check, an open cache-flush route and a recommendations privacy hole must be fixed before launch.
+**In one line:** The home and category pages work end to end, but the index TLS check, an open cache-flush route and a recommendations privacy hole must be fixed before launch.
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
 
 ## What this section is
@@ -50,30 +50,28 @@ Stories bar: see the stories file. Search overlay (`components/Home/Search/`): s
 ## ❌ Missing, broken or not built
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
-| M-1 | The Elasticsearch index names fall back to the staging names (`_develop`) when the `ELASTIC_*_INDEX` environment values are not set. They are not set anywhere yet. | Production would read the staging indexes until the values are set. | `services/elastic/INDEXES.ts`, `.env.example` (`ELASTIC_CATALOG_INDEX`, `ELASTIC_RECOMMENDATION_INDEX`, `ELASTIC_RECOMMENDATION_COLD_INDEX`, `ELASTIC_VIEWS_INDEX`) | Ops | **Yes** — production must read production data. |
-| M-2 | The Elasticsearch client accepts any TLS certificate (`rejectUnauthorized: false`). | Nothing visible. A machine in the middle can read the index user name, password and data. | `services/elastic/elasticsearch.config.ts:15-17` | Frontend + Ops | **Yes** — security. |
-| M-3 | `GetNextRecommendations` is a public Server Action. It takes `userId` and `limit` from the browser and trusts both. | Nothing visible. Anybody can read another shopper's recommendation list by sending that shopper's id, and can ask for any number of products in one call. | `serverRequests/home.tsx:14-34`, called from `components/Server/RecomendedProducts.tsx:22-28` | Frontend | **Yes** — privacy. Read the id from the `User-Data` cookie on the server and cap `limit`. |
-| M-4 | `/api/revalidate` has no secret, allows any origin (`*`), and clears every cache on a plain GET. The tags it names (`featured-Products-Api`, `flash-deals-Products-Api`, …) are not the tags the home cache uses (`featured-{country}-{lang}-{slug}`, `categories-…`, `currency-…`). | Nothing visible. Anybody can force every cache to refill, again and again, which loads Elasticsearch. | `app/api/revalidate/route.ts:5-33` | Frontend | **Yes** — anybody can empty the cache. Add a secret; align the tags. |
-| M-5 | If the starting-settings call fails, `getClientData` throws before it loads the customer info and the cart. | No message. The bag and the profile do not load for that visit. | `services/home.ts:55-66` | Frontend | No |
-| M-6 | The name modal is mounted only inside the home view. `setChatOpen` sets `nameModal: true` on any page. | On a listing or product page, tapping chat with no name does nothing. The modal then pops up later, when the shopper next opens the home page. | `components/Home/index.tsx:68`, `store/chat/reducer.ts:385-396` | Frontend | No |
-| M-7 | Saving a name calls market, then chat, then stories, one after the other. If chat or stories refuses, the screen goes back to the old name, but the market backend keeps the new one. | The shopper sees the old name and an error, but the market account already has the new name. | `services/auth.ts:399-445` | Frontend + Backend | No |
-| M-8 | The category bar query has no QA-shop rule, and its product-level country rule checks the wrong field (`categories.status` inside path `countries_iso`). | A category used only by QA products, or only by products blocked in the country, can show as a tab that opens an empty page. | `services/elastic/elasticsearch-reader.service.ts:54-170` (field at `:123`) | Frontend | No |
-| M-9 | The recommendations error toast says "Retrying in 3 seconds", but nothing retries. | A promise that does not happen. | `components/Server/RecomendedProducts.tsx:37-40` | Frontend | No |
-| M-10 | The home view writes a readable (not HttpOnly) cookie `token` from the stories user's `access_token`. The server already strips tokens from that object, so today the cookie holds the text `undefined`. The unit test asserts this write. | Nothing visible. Dead code that would put a token in a readable cookie if a token ever reached the store. | `components/Home/index.tsx:57-62` | Frontend | No |
-| M-11 | Two `aria-label` texts are not translated. | Screen-reader users hear "Scroll categories left/right" in English. | `components/Server/Navbar.tsx:95`, `:138` | Frontend | No |
+| M-1 | The Elasticsearch client accepts any TLS certificate (`rejectUnauthorized: false`). | Nothing visible. A machine in the middle can read the index user name, password and data. | `services/elastic/elasticsearch.config.ts:15-17` | Frontend + Ops | **Yes** — security. |
+| M-2 | `GetNextRecommendations` is a public Server Action. It takes `userId` and `limit` from the browser and trusts both. | Nothing visible. Anybody can read another shopper's recommendation list by sending that shopper's id, and can ask for any number of products in one call. | `serverRequests/home.tsx:14-34`, called from `components/Server/RecomendedProducts.tsx:22-28` | Frontend | **Yes** — privacy. Read the id from the `User-Data` cookie on the server and cap `limit`. |
+| M-3 | `/api/revalidate` has no secret, allows any origin (`*`), and clears every cache on a plain GET. The tags it names (`featured-Products-Api`, `flash-deals-Products-Api`, …) are not the tags the home cache uses (`featured-{country}-{lang}-{slug}`, `categories-…`, `currency-…`). | Nothing visible. Anybody can force every cache to refill, again and again, which loads Elasticsearch. | `app/api/revalidate/route.ts:5-33` | Frontend | **Yes** — anybody can empty the cache. Add a secret; align the tags. |
+| M-4 | If the starting-settings call fails, `getClientData` throws before it loads the customer info and the cart. | No message. The bag and the profile do not load for that visit. | `services/home.ts:55-66` | Frontend | No |
+| M-5 | The name modal is mounted only inside the home view. `setChatOpen` sets `nameModal: true` on any page. | On a listing or product page, tapping chat with no name does nothing. The modal then pops up later, when the shopper next opens the home page. | `components/Home/index.tsx:68`, `store/chat/reducer.ts:385-396` | Frontend | No |
+| M-6 | Saving a name calls market, then chat, then stories, one after the other. If chat or stories refuses, the screen goes back to the old name, but the market backend keeps the new one. | The shopper sees the old name and an error, but the market account already has the new name. | `services/auth.ts:399-445` | Frontend + Backend | No |
+| M-7 | The category bar query has no QA-shop rule, and its product-level country rule checks the wrong field (`categories.status` inside path `countries_iso`). | A category used only by QA products, or only by products blocked in the country, can show as a tab that opens an empty page. | `services/elastic/elasticsearch-reader.service.ts:54-170` (field at `:123`) | Frontend | No |
+| M-8 | The recommendations error toast says "Retrying in 3 seconds", but nothing retries. | A promise that does not happen. | `components/Server/RecomendedProducts.tsx:37-40` | Frontend | No |
+| M-9 | The home view writes a readable (not HttpOnly) cookie `token` from the stories user's `access_token`. The server already strips tokens from that object, so today the cookie holds the text `undefined`. The unit test asserts this write. | Nothing visible. Dead code that would put a token in a readable cookie if a token ever reached the store. | `components/Home/index.tsx:57-62` | Frontend | No |
+| M-10 | Two `aria-label` texts are not translated. | Screen-reader users hear "Scroll categories left/right" in English. | `components/Server/Navbar.tsx:95`, `:138` | Frontend | No |
 
 ## 🔒 Must do before launch
-- [ ] Set the `ELASTIC_*_INDEX` values in the production environment and create the production indexes (M-1).
-- [ ] Turn TLS certificate checking back on for Elasticsearch (M-2).
-- [ ] Take the shopper id for "Show More" recommendations from the server-side cookie, and cap `limit` (M-3).
-- [ ] Protect `/api/revalidate` with a secret, and make it clear the tags the home cache really uses (M-4).
+- [ ] Turn TLS certificate checking back on for Elasticsearch (M-1).
+- [ ] Take the shopper id for "Show More" recommendations from the server-side cookie, and cap `limit` (M-2).
+- [ ] Protect `/api/revalidate` with a secret, and make it clear the tags the home cache really uses (M-3).
 - [ ] Set in production: `ELASTICSEARCH_NODE`, `ELASTICSEARCH_USERNAME`, `ELASTICSEARCH_PASSWORD` (without the node the client quietly points at `http://localhost:9200`), `REDIS_URL`, `REDIS_USERNAME`, `REDIS_PASS`, `PRODUCT_REDIS_TTL_SECONDS`, and the gateway base URL (`GO_BACKEND_URL`, used for the home currency).
 - [ ] Leave `QA_VIEW_SECRET` unset in production, or use a random value of 32+ characters that only QA holds.
 
 ## ❓ Needs confirmation from the backend team
 - Is `/mobile/home/currency` on the gateway the right source for production prices? The home page always reads the gateway; listing pages read core or gateway by shopper. Is the rate always the same on both?
 - Does the gateway still send `starting_setting`, or has it moved to the core spelling `starting-setting`? The app accepts both, so this is only to delete the fallback later.
-- Who fills `recommended_system_*` and `cold_start_recommendations_*`, how often, and what are the production index names?
+- Who fills `recommended_system_*` and `cold_start_recommendations_*`, and how often?
 - Are flash-deal `start_date` / `end_date` stored in UTC? The row works in whole UTC days.
 - Should the category bar follow the category `position` field?
 - Is there one call that updates the name in market, chat and stories together? Today the app calls three services and cannot undo the first one.
@@ -94,7 +92,7 @@ Stories bar: see the stories file. Search overlay (`components/Home/Search/`): s
 
 **Not covered by any test:**
 - The product-level country rule in `buildBaseConditions` (no `countries_iso` case in `helpers.test.ts`).
-- The privacy hole in M-3, the open cache route in M-4, and the skipped cart load in M-5.
+- The privacy hole in M-2, the open cache route in M-3, and the skipped cart load in M-4.
 - The recommended row when a country has fewer than 2 boutiques (L-3).
-- The name modal on pages other than home (M-6), and the partial name save across three services (M-7).
+- The name modal on pages other than home (M-5), and the partial name save across three services (M-6).
 - No browser test covers the boutique infinite scroll, the recommendations "Show More", the toasts or the name modal.

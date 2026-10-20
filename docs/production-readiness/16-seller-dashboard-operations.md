@@ -1,7 +1,7 @@
 # Seller dashboard — operations (shops, access, orders, carts, locations, team, shop info, stories, comments) — Production readiness
 
 **Status:** 🟡 Ready with conditions
-**In one line:** The shop list, guards, permission gating and every operations tab work end to end, and the frontend items found in the first review are fixed; before launch, the production Elasticsearch index names must be set in the environment (Ops, waiting on the backend team).
+**In one line:** The shop list, guards, permission gating and every operations tab work end to end, and the frontend items found in the first review are fixed.
 **Checked:** branch `development`, 2026-10-20 — from the code only. First review at commit `6a0265a1`; re-checked after the fixes in the commit that carries this file.
 
 ## What this section is
@@ -62,12 +62,10 @@ Shop calls use `server: "market-dashboard"` and reach the **core** backend (`/sh
 ## ❌ Missing, broken or not built
 | # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
 |---|---|---|---|---|---|
-| M-1 | The Elasticsearch index names fall back to the staging names (`_develop`) when the `ELASTIC_*_INDEX` environment values are not set. They are not set in the Vercel production environment. The comments tab and the social counts read and **write** these indexes. The cluster has plain-name twins (`comments`, `comments_reactions`, `product_interactions`), but they are months stale: the staging backends write only to the `_develop` names, and the Vercel "production" deployment is still the staging site. So the values cannot be set yet; the production names need the backend team. | In production, sellers would read and reply on staging data until the values are set. | `services/elastic/INDEXES.ts`, `.env.example` (`ELASTIC_COMMENTS_INDEX`, `ELASTIC_PRODUCT_INTERACTIONS_INDEX`, `ELASTIC_COMMENTS_INTERACTIONS_INDEX`) | Ops (waiting on the backend team) | Yes — production would use the staging index. |
-| M-2 | Order-level status change is not available: the control is commented out, so `updateOrderStatus` is never called. | Only per-item Confirm / Packed / Cancel. | `orders.tsx` (`OrderDetailScreen`); `services/sellerDashboard/index.ts:174-191` | Product | No |
-| M-3 | No screen to create or edit roles, although `CREATE_ROLES` / `UPDATE_ROLES` exist. The Permissions tab shows only the user's own permissions. | No roles management. | `page.tsx` (`PERMISSION_GROUPS.ROLES`, `renderPermissions`) | Product | No |
+| M-1 | Order-level status change is not available: the control is commented out, so `updateOrderStatus` is never called. | Only per-item Confirm / Packed / Cancel. | `orders.tsx` (`OrderDetailScreen`); `services/sellerDashboard/index.ts:174-191` | Product | No |
+| M-2 | No screen to create or edit roles, although `CREATE_ROLES` / `UPDATE_ROLES` exist. The Permissions tab shows only the user's own permissions. | No roles management. | `page.tsx` (`PERMISSION_GROUPS.ROLES`, `renderPermissions`) | Product | No |
 
 ## 🔒 Must do before launch
-- [ ] Set the `ELASTIC_*_INDEX` values in the production environment, so production does not read or write the `_develop` indexes (M-1). Blocked until the backend team names the production indexes and a production backend writes to them.
 - [ ] Run e2e SD-12 on staging. It was red on purpose because `PUT /shop/info` refused a shop with no logo (`422 The image field must be a string`). The app now leaves a missing picture out of the body; confirm a shop with no logo can save its contact and address.
 - [ ] Get the backend answers below about the stories backend and the comment writes.
 
