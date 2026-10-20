@@ -2983,6 +2983,7 @@ const translations = {
   "Failed to download the failed rows": "Hatalı satırlar indirilemedi",
   "Add with AI": "Yapay zekâ ile ekle",
   "Upload a product photo and AI will fill in the product details for you.": "Bir ürün fotoğrafı yükleyin, yapay zekâ ürün bilgilerini sizin için doldursun.",
+  "Upload the photo": "Fotoğrafı yükleyin",
   "Choose a photo": "Bir fotoğraf seçin",
   "Product photo": "Ürün fotoğrafı",
   "Analyze with AI": "Yapay zekâ ile analiz et",

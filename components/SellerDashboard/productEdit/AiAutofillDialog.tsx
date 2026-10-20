@@ -13,6 +13,19 @@ const t = (s: string) => translateFunction(s);
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
 const ROUTE = "/api/seller/products/ai-autofill";
 
+// Where the analysis is: nothing running, the photo going to the media server,
+// or the AI route answering. Shown as three stages so the seller knows what
+// the wait after "Analyze" is for.
+type Stage = "idle" | "uploading" | "analyzing";
+type StepState = "done" | "current" | "todo";
+const STEP_LABELS = ["Choose a photo", "Upload the photo", "Analyze with AI"] as const;
+
+function stepStates(hasFile: boolean, stage: Stage): StepState[] {
+  if (!hasFile) return ["current", "todo", "todo"];
+  if (stage === "analyzing") return ["done", "done", "current"];
+  return ["done", "current", "todo"];
+}
+
 // The route answers with these keys; anything else (or a non-JSON answer, such
 // as a platform timeout page) is shown as the generic failure.
 const KNOWN_MESSAGES = new Set([
@@ -46,7 +59,8 @@ export default function AiAutofillDialog({
   const language = productLanguage(local);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [stage, setStage] = useState<Stage>("idle");
+  const busy = stage !== "idle";
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   // A late answer after the dialog closed must not open the form. The request
@@ -90,7 +104,7 @@ export default function AiAutofillDialog({
 
   const analyze = async () => {
     if (!file || busy) return;
-    setBusy(true);
+    setStage("uploading");
     setError(null);
     let navigating = false;
     try {
@@ -105,6 +119,8 @@ export default function AiAutofillDialog({
         return;
       }
 
+      if (closedRef.current) return;
+      setStage("analyzing");
       const res = await fetch(ROUTE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -132,9 +148,11 @@ export default function AiAutofillDialog({
       LogError({ scenario: "AiAutofillDialog.analyze", error: e instanceof Error ? e.message : String(e) });
       if (!closedRef.current) setError(t("AI analysis failed"));
     } finally {
-      if (!navigating && !closedRef.current) setBusy(false);
+      if (!navigating && !closedRef.current) setStage("idle");
     }
   };
+
+  const steps = stepStates(!!file, stage);
 
   // Portal to <body> like the carts / orders / stories modals: rendered inline,
   // `fixed` is measured against the scaled dashboard box and the backdrop
@@ -172,6 +190,43 @@ export default function AiAutofillDialog({
         </div>
 
         <div className="p-5">
+          <ol className="flex items-center gap-2 mb-4">
+            {STEP_LABELS.map((label, i) => {
+              const state = steps[i];
+              const running = state === "current" && busy;
+              return (
+                <li
+                  key={label}
+                  className="flex items-center gap-2 min-w-0 flex-1"
+                  data-pw="ai-autofill-step"
+                  data-state={state}
+                  aria-current={state === "current" ? "step" : undefined}
+                >
+                  <span
+                    className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-[11px] semibold ${
+                      state === "done"
+                        ? "bg-[#5d5d5d] text-white"
+                        : state === "current"
+                          ? "border-2 border-[#5d5d5d] text-[#5d5d5d]"
+                          : "border border-[#d4d4d4] text-[#b0b0b0]"
+                    }`}
+                  >
+                    {state === "done" ? <DashIcon name="check" size={12} strokeWidth={2.4} /> : i + 1}
+                  </span>
+                  <span
+                    className={`text-[12px] truncate ${
+                      state === "todo" ? "text-[#b0b0b0]" : "text-[#3c3c3c] medium"
+                    } ${running ? "animate-pulse" : ""}`}
+                  >
+                    {t(label)}
+                  </span>
+                  {i < STEP_LABELS.length - 1 && (
+                    <span className={`h-px flex-1 min-w-2 ${state === "done" ? "bg-[#5d5d5d]" : "bg-[#e5e5e5]"}`} />
+                  )}
+                </li>
+              );
+            })}
+          </ol>
           <input
             ref={inputRef}
             type="file"
@@ -200,7 +255,7 @@ export default function AiAutofillDialog({
           </button>
           {busy && (
             <p className="text-[12px] text-[#8e8e8e] mt-3 text-center" aria-live="polite">
-              {t("Analyzing photo...")}
+              {stage === "uploading" ? t("Uploading...") : t("Analyzing photo...")}
             </p>
           )}
           {error && (

@@ -43,6 +43,9 @@ const photo = (type = "image/jpeg") => new File([new Uint8Array([1, 2, 3])], "ro
 const fileInput = () => document.querySelector('[data-pw="ai-autofill-file"]') as HTMLInputElement;
 const analyzeButton = () => document.querySelector('[data-pw="ai-autofill-analyze"]') as HTMLButtonElement;
 const pick = (file: File) => fireEvent.change(fileInput(), { target: { files: [file] } });
+// The three stages shown above the photo box, in order: pick, upload, analyze.
+const steps = () =>
+  Array.from(document.querySelectorAll('[data-pw="ai-autofill-step"]')).map((el) => el.getAttribute("data-state"));
 const answer = (status: number, body: unknown) =>
   new Response(typeof body === "string" ? body : JSON.stringify(body), { status });
 
@@ -115,7 +118,8 @@ describe("AiAutofillDialog", () => {
     await waitFor(() => expect(analyzeButton().disabled).toBe(false));
 
     fireEvent.click(analyzeButton());
-    expect(await screen.findByText(shown("Analyzing photo...")), "no loading state while uploading").toBeInTheDocument();
+    expect(await screen.findByText(shown("Uploading...")), "no uploading state while the photo uploads").toBeInTheDocument();
+    expect(steps(), "the stages do not show the upload as the one in progress").toEqual(["done", "current", "todo"]);
     expect(analyzeButton().disabled, "Analyze stayed clickable while uploading").toBe(true);
     expect(svc.bulkUploadImages, "the photo was not uploaded to the product folder").toHaveBeenCalledWith(
       [expect.any(File)],
@@ -133,6 +137,8 @@ describe("AiAutofillDialog", () => {
       language: "en",
     });
     expect(analyzeButton().disabled, "Analyze became clickable while the AI ran").toBe(true);
+    expect(await screen.findByText(shown("Analyzing photo...")), "no analyzing state while the AI runs").toBeInTheDocument();
+    expect(steps(), "the stages do not show the analysis as the one in progress").toEqual(["done", "done", "current"]);
 
     await act(async () => finishAi(answer(200, { success: true, data: SUGGESTION })));
     await waitFor(() =>
@@ -160,6 +166,22 @@ describe("AiAutofillDialog", () => {
     expect(routerSpies.push, "the create form was not opened under the Arabic locale").toHaveBeenCalledWith(
       "/sy-ar/sellerProfile/sellerDashboard/12/products/new",
     );
+  });
+
+  it("shows the three stages — pick, upload, analyze — and moves them as the seller goes, back to upload after a failure", async () => {
+    fetchMock.mockResolvedValue(answer(500, { success: false, message: "AI analysis failed" }));
+    await open();
+    for (const label of ["Choose a photo", "Upload the photo", "Analyze with AI"]) {
+      expect(screen.getAllByText(shown(label)).length, `the "${label}" stage is not shown`).toBeGreaterThan(0);
+    }
+    expect(steps(), "before a photo is picked, picking is not the current stage").toEqual(["current", "todo", "todo"]);
+
+    pick(photo());
+    expect(steps(), "after picking, the upload is not the next stage").toEqual(["done", "current", "todo"]);
+
+    fireEvent.click(analyzeButton());
+    await screen.findByRole("alert");
+    expect(steps(), "after a failure the stages did not go back to the upload step").toEqual(["done", "current", "todo"]);
   });
 
   it("enables Analyze again after a failure", async () => {

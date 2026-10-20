@@ -2950,6 +2950,7 @@ const translations = {
   "Failed to download the failed rows": "تعذّر تنزيل الصفوف الفاشلة",
   "Add with AI": "أضف بالذكاء الاصطناعي",
   "Upload a product photo and AI will fill in the product details for you.": "ارفع صورة للمنتج وسيملأ الذكاء الاصطناعي تفاصيل المنتج نيابةً عنك.",
+  "Upload the photo": "ارفع الصورة",
   "Choose a photo": "اختر صورة",
   "Product photo": "صورة المنتج",
   "Analyze with AI": "حلّل بالذكاء الاصطناعي",

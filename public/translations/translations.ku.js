@@ -3001,6 +3001,7 @@ const translations = {
   "Failed to download the failed rows": "داگرتنی ڕیزە سەرنەکەوتووەکان سەرکەوتوو نەبوو",
   "Add with AI": "زیادکردن بە زیرەکی دەستکرد",
   "Upload a product photo and AI will fill in the product details for you.": "وێنەیەکی بەرهەم باربکە و زیرەکی دەستکرد وردەکارییەکانی بەرهەمەکەت بۆ پڕدەکاتەوە.",
+  "Upload the photo": "وێنەکە باربکە",
   "Choose a photo": "وێنەیەک هەڵبژێرە",
   "Product photo": "وێنەی بەرهەم",
   "Analyze with AI": "شیکردنەوە بە زیرەکی دەستکرد",
