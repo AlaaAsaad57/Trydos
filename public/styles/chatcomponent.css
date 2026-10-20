@@ -912,6 +912,7 @@ html[lang="ar"] .new-chats {
 }
 .message-body {
   z-index: 10;
+  cursor: pointer;
 }
 .replied-message-container.me-to-me .message-body .absolute-avatar {
   position: absolute;
