@@ -167,7 +167,7 @@ export default function ProductOrdersModal({
         nextStatus,
       );
       if (id !== requestId.current) return;
-      if (res && res.isSuccessful === false) {
+      if (!res?.success || res.isSuccessful === false) {
         throw new Error(
           res.message ||
             translateFunction("Failed to load product orders", language),

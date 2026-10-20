@@ -9,7 +9,16 @@ import BackBar from "components/setting/BackBar";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { DashIcon } from "components/SellerDashboard/ui/icons";
-import { Monogram, DashButton, EmptyState } from "components/SellerDashboard/ui";
+import {
+  Monogram,
+  DashButton,
+  EmptyState,
+  ErrorState,
+} from "components/SellerDashboard/ui";
+import {
+  reconcileShopOrderTopics,
+  unsubscribeShopOrderTopics,
+} from "utils/shopOrderTopics";
 
 function Page() {
   const [, setActiveTab] = useState(null);
@@ -25,22 +34,36 @@ function Page() {
   >(null);
   const [leaveProcessing, setLeaveProcessing] = useState<boolean>(false);
   const [leaveError, setLeaveError] = useState<string | null>(null);
+  // A failed list is not an empty list: it gets an error with a retry.
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const getInitialData = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       let res = await SellerDashboardService.getShopes();
       // fetchData returns { success: false } instead of throwing — treat that as
       // a failure so it flows into the catch and gets logged.
       if (!res?.success) {
-        throw new Error(res?.message || "Failed to fetch seller shops");
+        throw new Error(
+          res?.message || translateFunction("Failed to load shops", language),
+        );
       }
-      setShopes(res.data || []);
+      const shops = res.data || [];
+      setShopes(shops);
+      // Shops the user left or was removed from must stop sending order pushes
+      // to this device.
+      void reconcileShopOrderTopics(shops);
     } catch (error) {
       LogError({
         scenario: "sellerProfile.getInitialData",
         error: error instanceof Error ? error.message : String(error),
       });
+      setLoadError(
+        error instanceof Error && error.message
+          ? error.message
+          : translateFunction("Failed to load shops", language),
+      );
     } finally {
       setLoading(false);
     }
@@ -64,6 +87,8 @@ function Page() {
           (s: any) => String(s.seller_id) !== String(leaveConfirmShopId),
         ),
       );
+      // The shop's order pushes must stop on this device.
+      void unsubscribeShopOrderTopics(leaveConfirmShopId);
       setLeaveConfirmShopId(null);
     } catch (error: any) {
       LogError({
@@ -135,6 +160,17 @@ function Page() {
               <div className="h-[44px] mt-5 rounded-[12px] bg-[#f4f4f4]" />
             </div>
           ))}
+        </div>
+      ) : loadError && shopes.length === 0 ? (
+        <div
+          className="bg-white rounded-[15px]"
+          style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
+        >
+          <ErrorState
+            data-pw="seller-shops-error"
+            message={loadError}
+            onRetry={getInitialData}
+          />
         </div>
       ) : shopes.length === 0 ? (
         <div

@@ -35,12 +35,12 @@ None of these is a big rebuild. Most are small fixes, settings, or a product dec
 | 13 | [Stories](13-stories.md) | 🟡 | 26 | 0 | No code blocker; Ops values and one real-iPhone video check before launch |
 | 14 | [Notifications](14-notifications.md) | 🟡 | 18 | 5 | Anyone can subscribe to another shop's order pushes; chat needs push permission, so it cannot open in iPhone Safari |
 | 15 | [Seller dashboard — catalog](15-seller-dashboard-catalog.md) | 🟡 | 39 | 1 | Backend 500 on product create with similar words (every "Add with AI" create) |
-| 16 | [Seller dashboard — operations](16-seller-dashboard-operations.md) | 🟡 | 36 | 2 | A removed member keeps getting the shop's order pushes |
+| 16 | [Seller dashboard — operations](16-seller-dashboard-operations.md) | 🟡 | 36 | 1 | Index names fall back to staging until `ELASTIC_*_INDEX` is set (Ops, waiting on the backend) |
 | 17 | [Wishlist & compare](17-wishlist-and-compare.md) | 🟡 | 30 | 1 | Guest wishlist may be lost at sign-in (backend to confirm) |
 | 18 | [Static pages & legal](18-static-pages-and-legal.md) | 🔴 | 17 | 8 | Placeholder legal text; no link to the privacy policy; no cookie consent |
 | 19 | [Languages, regions, SEO & monitoring](19-languages-regions-seo-and-monitoring.md) | 🟡 | 41 | 5 | Site URL and indexing not set; region popup can block the whole site; every GA event is marked debug |
 | 20 | [Security & infrastructure](20-security-and-infrastructure.md) | 🔴 | 25 | 15 | Tokens in logs; open debug routes; no production backend; paid AI APIs with no limit |
-| | **Total** | | **565** | **91** | Some blockers appear in more than one file (for example the index names) |
+| | **Total** | | **565** | **90** | Some blockers appear in more than one file (for example the index names) |
 
 "Launch blockers" counts the rows marked "Blocks launch = Yes" in each file.
 

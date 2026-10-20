@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import React, { useEffect } from "react";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction, LogError } from "utils/functions";
+import { reconcileShopOrderTopics } from "utils/shopOrderTopics";
 import BecomeSellerModal from "./BecomeSellerModal";
 import GoToSellerDashBoardIcon from "public/icons/goToSeller";
 import { useAppStore } from "store";
@@ -49,6 +50,8 @@ function GoToSellerDashBoard({
 
       // 1. Explicit 204 No Content -> User is authenticated, but confirmed to have no shops/permissions
       if (res?.httpStatus === 204) {
+        // No shops at all: any shop order pushes this device still gets are stale.
+        void reconcileShopOrderTopics([]);
         setViewState("become_seller");
         return;
       }
@@ -65,6 +68,10 @@ function GoToSellerDashBoard({
         : Array.isArray(res?.data?.data)
         ? res.data.data
         : [];
+
+      // Shops the user left or was removed from must stop sending order
+      // pushes to this device.
+      void reconcileShopOrderTopics(shops);
 
       if (shops && shops.length > 0) {
         setViewState("sales");

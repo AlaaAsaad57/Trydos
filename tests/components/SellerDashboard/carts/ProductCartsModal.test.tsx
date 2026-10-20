@@ -69,7 +69,7 @@ describe("Seller Dashboard ProductCartsModal", () => {
     vi.clearAllMocks();
 
     getSellerProductCarts.mockResolvedValue({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: {
         items: [sampleProductCartLine],
         meta: { total: 1, current_page: 1, last_page: 1, per_page: 25 },
@@ -77,7 +77,7 @@ describe("Seller Dashboard ProductCartsModal", () => {
     });
 
     getSellerOldCarts.mockResolvedValue({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: {
         old_carts: [sampleOldCartSummary],
         meta: { total: 3, current_page: 1, last_page: 1, per_page: 25 },
@@ -154,14 +154,14 @@ describe("Seller Dashboard ProductCartsModal", () => {
   it("paginates active product carts correctly when multiple pages exist", async () => {
     const user = userEvent.setup();
     getSellerProductCarts.mockResolvedValueOnce({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: {
         items: [sampleProductCartLine],
         meta: { total: 30, current_page: 1, last_page: 2, per_page: 25 },
       },
     });
     getSellerProductCarts.mockResolvedValueOnce({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: {
         items: [{ ...sampleProductCartLine, id: 88232, name: "Second Page Slip" }],
         meta: { total: 30, current_page: 2, last_page: 2, per_page: 25 },
@@ -307,7 +307,7 @@ describe("Seller Dashboard ProductCartsModal", () => {
 
   it("renders empty state when product has no active carts", async () => {
     getSellerProductCarts.mockResolvedValueOnce({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: { items: [], meta: { total: 0, current_page: 1, last_page: 1 } },
     });
 

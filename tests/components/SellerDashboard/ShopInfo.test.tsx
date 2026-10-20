@@ -113,13 +113,20 @@ describe("Shop info — loading", () => {
     expect(screen.getByText("banner.webp"), "the banner's file name should be shown").toBeInTheDocument();
   });
 
-  it("leaves an empty form when the shop backend refuses", async () => {
-    getShopInfo.mockResolvedValue({ success: false });
+  it("shows the refusal with a retry instead of an empty form when the shop backend refuses", async () => {
+    getShopInfo.mockResolvedValueOnce({ success: false, message: "Shop is closed." });
     await mount();
-    await waitFor(() => expect(nameInput(), "the form should be drawn after the load").toBeTruthy());
-    expect(nameInput().value, "a refused load should leave the name empty").toBe("");
-    expect(screen.getByText("No Banner Yet"), "no banner should be shown").toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^Upload$/ }), "with no logo the button should say Upload").toBeInTheDocument();
+    await waitFor(() =>
+      expect(field("shop-info-load-error"), "a refused load should show an error, not an empty form").toBeTruthy(),
+    );
+    expect(field("shop-info-load-error").textContent, "the error should carry the core backend's own reason").toContain(
+      "Shop is closed.",
+    );
+    expect(nameInput(), "no empty form may be drawn after a refused load").toBeNull();
+
+    await userEvent.click(screen.getByRole("button", { name: /Retry/ }));
+    await waitFor(() => expect(getShopInfo, "Retry should ask the core backend again").toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(nameInput()?.value, "the form should be drawn after the retry succeeds").toBe("Rama Shoes"));
   });
 
   it("reads a flat answer and empty fields", async () => {
@@ -283,7 +290,13 @@ describe("Shop info — saving", () => {
     await mount();
     await waitFor(() => expect(nameInput()?.value).toBe("Rama Shoes"));
     await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
-    await waitFor(() => expect(alertSpy, "a refused save should be reported").toHaveBeenCalledWith("Failed To Update"));
+    await waitFor(() =>
+      expect(field("shop-info-save-error"), "a refused save should be reported in the form").toBeTruthy(),
+    );
+    expect(field("shop-info-save-error").textContent, "the form should show the core backend's own reason").toContain(
+      "Name is taken.",
+    );
+    expect(alertSpy, "a refused save must not use a browser alert").not.toHaveBeenCalled();
     expect(showSuccessMessage, "a refused save must not be confirmed").not.toHaveBeenCalled();
   });
 
@@ -292,11 +305,19 @@ describe("Shop info — saving", () => {
     await mount();
     await waitFor(() => expect(nameInput()?.value).toBe("Rama Shoes"));
     await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
-    await waitFor(() => expect(alertSpy).toHaveBeenCalledTimes(1));
-    await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
     await waitFor(() =>
-      expect(alertSpy, "a thrown save should be reported the same way").toHaveBeenCalledTimes(2),
+      expect(field("shop-info-save-error")?.textContent, "a refusal with no message should show the generic failure").toMatch(
+        /failed to update/i,
+      ),
     );
+    await userEvent.click(screen.getByRole("button", { name: /Save Changes/ }));
+    await waitFor(() => expect(updateShopInfo).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(field("shop-info-save-error")?.textContent, "a thrown save should be reported the same way").toMatch(
+        /failed to update/i,
+      ),
+    );
+    expect(alertSpy, "no save failure may use a browser alert").not.toHaveBeenCalled();
   });
 
   it("sends empty string for image and banner when cleared by the seller", async () => {

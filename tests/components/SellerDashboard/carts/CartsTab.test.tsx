@@ -84,7 +84,7 @@ describe("Seller Dashboard Carts Section — CartsTab", () => {
     vi.clearAllMocks();
 
     getSellerCarts.mockResolvedValue({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: {
         carts: [sampleActiveCart],
         meta: { total: 1, current_page: 1, last_page: 1, per_page: 25 },
@@ -92,7 +92,7 @@ describe("Seller Dashboard Carts Section — CartsTab", () => {
     });
 
     getSellerCartDetails.mockResolvedValue({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: {
         cart_group_id: "1542-aB3dE-1759310000",
         customer: {
@@ -107,7 +107,7 @@ describe("Seller Dashboard Carts Section — CartsTab", () => {
     });
 
     getSellerOldCarts.mockResolvedValue({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: {
         old_carts: [sampleOldCart],
         meta: { total: 5, current_page: 1, last_page: 1, per_page: 25 },
@@ -115,7 +115,7 @@ describe("Seller Dashboard Carts Section — CartsTab", () => {
     });
 
     getSellerOldCartDetails.mockResolvedValue({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: {
         customer: {
           id: 1542,
@@ -127,7 +127,7 @@ describe("Seller Dashboard Carts Section — CartsTab", () => {
     });
 
     getSellerProductCarts.mockResolvedValue({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: {
         items: [
           {
@@ -187,14 +187,14 @@ describe("Seller Dashboard Carts Section — CartsTab", () => {
   it("paginates active carts correctly across multiple pages", async () => {
     const user = userEvent.setup();
     getSellerCarts.mockResolvedValueOnce({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: {
         carts: [sampleActiveCart],
         meta: { total: 50, current_page: 1, last_page: 2, per_page: 25 },
       },
     });
     getSellerCarts.mockResolvedValueOnce({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: {
         carts: [{ ...sampleActiveCart, cart_group_id: "page-2-group-id" }],
         meta: { total: 50, current_page: 2, last_page: 2, per_page: 25 },
@@ -221,14 +221,14 @@ describe("Seller Dashboard Carts Section — CartsTab", () => {
   it("paginates old carts correctly across multiple pages", async () => {
     const user = userEvent.setup();
     getSellerOldCarts.mockResolvedValueOnce({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: {
         old_carts: [sampleOldCart],
         meta: { total: 40, current_page: 1, last_page: 2, per_page: 25 },
       },
     });
     getSellerOldCarts.mockResolvedValueOnce({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: {
         old_carts: [{ ...sampleOldCart, customer_id: 9999 }],
         meta: { total: 40, current_page: 2, last_page: 2, per_page: 25 },
@@ -262,7 +262,7 @@ describe("Seller Dashboard Carts Section — CartsTab", () => {
 
   it("renders empty state when there are no active carts", async () => {
     getSellerCarts.mockResolvedValueOnce({
-      isSuccessful: true,
+      success: true, isSuccessful: true,
       data: { carts: [], meta: { total: 0, current_page: 1, last_page: 1 } },
     });
 

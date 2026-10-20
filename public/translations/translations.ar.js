@@ -2967,6 +2967,18 @@ const translations = {
   "Q": "س",
   "A": "ج",
   "Comment options menu": "قائمة خيارات التعليق",
+  "You don't have permission to view the gallery": "ليس لديك صلاحية لعرض المعرض",
+  "You don't have permission to view stories": "ليس لديك صلاحية لعرض القصص",
+  "You don't have permission to view comments": "ليس لديك صلاحية لعرض التعليقات",
+  "You don't have permission to upload products": "ليس لديك صلاحية لرفع المنتجات",
+  "You don't have permission to view shop info": "ليس لديك صلاحية لعرض معلومات المتجر",
+  "Remove member": "إزالة العضو",
+  "This member will lose access to the shop. Continue?": "سيفقد هذا العضو الوصول إلى المتجر. هل تريد المتابعة؟",
+  "Cancel order item": "إلغاء عنصر الطلب",
+  "This cancels the whole quantity of this item. The buyer will be told. Continue?": "سيتم إلغاء كامل كمية هذا العنصر وسيتم إبلاغ المشتري. هل تريد المتابعة؟",
+  "Comment counts need the comments permission": "تحتاج أعداد التعليقات إلى صلاحية التعليقات",
+  "Failed to load shop info": "فشل تحميل معلومات المتجر",
+  "Failed to load shops": "فشل تحميل المتاجر",
 };
 
 export default translations;

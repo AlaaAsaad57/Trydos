@@ -3000,6 +3000,18 @@ const translations = {
   "Q": "S",
   "A": "C",
   "Comment options menu": "Yorum seçenekleri menüsü",
+  "You don't have permission to view the gallery": "Galeriyi görüntüleme izniniz yok",
+  "You don't have permission to view stories": "Hikayeleri görüntüleme izniniz yok",
+  "You don't have permission to view comments": "Yorumları görüntüleme izniniz yok",
+  "You don't have permission to upload products": "Ürün yükleme izniniz yok",
+  "You don't have permission to view shop info": "Mağaza bilgilerini görüntüleme izniniz yok",
+  "Remove member": "Üyeyi kaldır",
+  "This member will lose access to the shop. Continue?": "Bu üye mağazaya erişimini kaybedecek. Devam edilsin mi?",
+  "Cancel order item": "Sipariş kalemini iptal et",
+  "This cancels the whole quantity of this item. The buyer will be told. Continue?": "Bu, kalemin tüm miktarını iptal eder. Alıcıya bildirilecek. Devam edilsin mi?",
+  "Comment counts need the comments permission": "Yorum sayıları için yorum izni gerekir",
+  "Failed to load shop info": "Mağaza bilgileri yüklenemedi",
+  "Failed to load shops": "Mağazalar yüklenemedi",
 };
 
 export default translations;

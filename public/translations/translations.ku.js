@@ -3018,6 +3018,18 @@ const translations = {
   "Q": "پ",
   "A": "و",
   "Comment options menu": "مێنیوی هەڵبژاردنەکانی سەرنج",
+  "You don't have permission to view the gallery": "تۆ مۆڵەتی بینینی گالێریت نییە",
+  "You don't have permission to view stories": "تۆ مۆڵەتی بینینی چیرۆکەکانت نییە",
+  "You don't have permission to view comments": "تۆ مۆڵەتی بینینی لێدوانەکانت نییە",
+  "You don't have permission to upload products": "تۆ مۆڵەتی بارکردنی بەرهەمەکانت نییە",
+  "You don't have permission to view shop info": "تۆ مۆڵەتی بینینی زانیاری دوکانت نییە",
+  "Remove member": "لابردنی ئەندام",
+  "This member will lose access to the shop. Continue?": "ئەم ئەندامە دەستپێگەیشتنی بۆ دوکان لەدەست دەدات. بەردەوام بیت؟",
+  "Cancel order item": "هەڵوەشاندنەوەی بڕگەی داواکاری",
+  "This cancels the whole quantity of this item. The buyer will be told. Continue?": "ئەمە هەموو بڕی ئەم بڕگەیە هەڵدەوەشێنێتەوە. کڕیار ئاگادار دەکرێتەوە. بەردەوام بیت؟",
+  "Comment counts need the comments permission": "ژمارەی لێدوانەکان پێویستی بە مۆڵەتی لێدوانەکانە",
+  "Failed to load shop info": "بارکردنی زانیاری دوکان سەرکەوتوو نەبوو",
+  "Failed to load shops": "بارکردنی دوکانەکان سەرکەوتوو نەبوو",
 };
 
 export default translations;
