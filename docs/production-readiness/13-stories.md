@@ -1,0 +1,104 @@
+# Stories — Production readiness
+
+**Status:** 🟡 Ready with conditions
+**In one line:** Watching, uploading a photo, deleting and reporting stories work end to end; a phone-number privacy leak and the iPhone video path must be fixed or checked before launch.
+**Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
+
+## What this section is
+- The shopper sees a row of story tiles on the home page (`StoriesBarClient`) and taps one to open a full-screen viewer (a cube carousel).
+- An allowed shopper taps the "+" tile to add a photo or video story, with an optional link.
+- The shopper can delete their own story and report another person's story.
+- Stories that are linked to a product also show on that product's page, and in the "Stories" tab of the chat window. Seller stories in the seller dashboard are in the seller file, not here.
+
+## ✅ Working cases
+| # | Case (user action → result) | Backend | Proof in code | Test |
+|---|---|---|---|---|
+| W-1 | Open the home page → a skeleton shows, then the story tiles of page 1 | stories `GET /api/v1/stories/users_stories?page=1` through `/api/proxy` (the proxy adds the HttpOnly stories token) | `components/Home/Stories/StoriesBarClient.tsx:75-108`, `components/clientWrapper/StoriesWrapper.tsx` | `tests/components/Home/storiesBarClient.test.tsx`, `tests/components/Home/storiesWrapper.test.tsx`; e2e STORY-03 |
+| W-2 | Scroll the bar to the end → the next page loads and is added | stories `users_stories?page=n` | `components/Home/Stories/StoriesPaginationWrapper.tsx:31-85` | `tests/components/Home/Stories/StoriesPaginationWrapper.test.tsx`; e2e SST-03 |
+| W-3 | A tile shows the first story the shopper has not seen; the ring turns grey when all are seen; the shopper's own tile shows their newest story | none (local) | `components/Home/Stories/StoryElement.tsx`, `store/homepage/actions.jsx` (`GetUnviewedStory`) | `tests/components/Home/Stories/Story.test.tsx`, `tests/store/homepageActions.test.ts` |
+| W-4 | Tap a tile → the viewer opens full screen on that author's first unseen story | none | `Story.tsx:16` → `SelectStory` → `components/Home/NavbarClient.tsx:50` → `NewStories.tsx` → `StoryHolder.tsx:28-32` | `tests/components/Home/Stories/NewStories.test.tsx`, `StoryHolder.test.tsx` |
+| W-5 | Watch → a progress bar runs (photo 5 s, video = its length); tap the right or left half → next or previous story; end of an author → next author; after the last author the viewer closes | none | `StoryViewer.tsx:142-186, 329-336`; `store/homepage/reducer.ts:149-183` | `tests/components/Home/Stories/StoryViewer.test.tsx`, `tests/store/homepageReducer.test.ts` |
+| W-6 | Swipe sideways → the cube turns to the next author; swipe down or tap X → the viewer closes | none | `NewStories.tsx:101-153, 195-238`; `StoryHolder.tsx:195-218` | `NewStories.test.tsx`, `StoryHolder.test.tsx` |
+| W-7 | The story pauses while the delete dialog, the report sheet or a sign-in prompt is open, and goes on from the same point | none | `StoryHolder.tsx:262-264`; `StoryViewer.tsx:249-275` | `StoryViewer.test.tsx` (pause cases, BUG-home-6 guard) |
+| W-8 | Watch a story → the ring greys at once for every viewer; a signed-in viewer with a stories account also reports the view, once per story | stories `GET /api/v1/stories/increase_viewers/{storyId}` | `StoryHolder.tsx:59-85`; `services/story.ts:59-85` | `tests/services/story.test.ts`, `StoryHolder.test.tsx` |
+| W-9 | Tap "View More" on a story with a link → the link opens in a new tab (`https://` added when missing) | none | `StoryViewer.tsx:406-436` | `StoryViewer.test.tsx` |
+| W-10 | Tap "View Product" on a product story → the viewer closes and the product page opens | none | `StoryViewer.tsx:437-460` | `StoryViewer.test.tsx`; e2e SST-05, SST-08 |
+| W-11 | Tap "+" → no phone: login opens; no real name: the name form opens; no stories account: the re-auth prompt opens; otherwise the add-story sheet opens. The "+" tile shows only when `is_allowed_to_upload_story` is 1 | none | `components/Home/AddStory.tsx:20-56` | `tests/components/Home/AddStory.test.tsx` |
+| W-12 | Pick a photo from the gallery → crop it → add an optional link → "Share Story" → "Story Uploaded", and the new story is in the bar | `POST /api/ticket` → media server `/gated/ticket`; media server `POST /gated/upload`; stories `POST /api/v1/stories/add_story`; then `users_stories` again (server action) | `components/Home/Stories/AddStoryWidget.tsx:313-361, 384-421, 514-531`; `services/story.ts:86-165`; `utils/UploadUtils.ts`; `app/api/ticket/route.ts` | `tests/components/Home/addStoryWidget.test.tsx` (BUG-1 guard, green), `tests/services/story.test.ts`; e2e STORY-01 |
+| W-13 | Take a photo with the in-app camera (front/back switch) → crop → share | same as W-12 | `components/Home/Stories/CameraStory.tsx:73-78, 269-279`; `AddStoryWidget.tsx:552-562` | `tests/components/Home/Stories/CameraStory.test.tsx` |
+| W-14 | Pick a video (up to 10 MB and 59 s) from the gallery on a desktop or Android browser → it uploads | media server `/gated/upload?story=true`; stories `add_story` with `is_video: 1` and the length | `AddStoryWidget.tsx:205-312`; `services/story.ts:96-98, 139` | `tests/components/Home/addStoryWidget.test.tsx`; e2e none |
+| W-15 | Bad input is refused with a message: an SVG, a file over 10 MB, a video over 59 s, a link that is not a URL | none | `AddStoryWidget.tsx:191-202, 241-251, 384-405, 507-513` | `tests/components/Home/addStoryWidget.test.tsx` |
+| W-16 | Own story → trash icon → confirm → the story leaves the viewer and the bar, "Story deleted successfully."; on a refusal the story stays and the backend's message shows | stories `POST /api/v1/stories/delete_story` | `StoryHolder.tsx:87-132, 235-249`; `services/story.ts:166-190`; `store/homepage/reducer.ts:189-204` | `StoryHolder.test.tsx`; e2e STORY-05 |
+| W-17 | Another person's story → flag icon → pick reasons (6) and/or write details (500 characters) → "Story reported successfully."; on a refusal the sheet stays open with the choices kept | stories `POST /api/v1/stories/report` | `components/Home/Stories/ReportStoryModal.tsx:89-119`; `services/story.ts:191-227` | `tests/components/Home/Stories/ReportStoryModal.test.tsx`; e2e STORY-04 |
+| W-18 | Product page → "Product Story" row (only when the product has stories) → tap → the viewer opens over the product page; more stories load on scroll; the home bar gets its list back on close | stories `GET /api/v1/stories/product_stories/{productId}?page=n` (server side) | `components/Server/product/ProductStoriesWrapper.tsx`; `components/products/ProductStories.tsx`; `serverRequests/product.tsx:548-600` | `tests/components/products/ProductStories.test.tsx`, `tests/components/Server/product/ProductStoriesWrapper.test.tsx`, `tests/serverRequests/product.test.ts` (`GetProductStoriesData`); e2e SST-06 |
+| W-19 | Chat window → "Stories" tab → a list of authors with paging → tap a row → the viewer opens | stories `users_stories` through `/api/proxy` (token renewal works here) | `components/Chat/pages/StoriesList.tsx:28-77` | `tests/components/Chat/pages/StoriesList.test.tsx` |
+| W-20 | A QA story (link host `qa-test.trydos.tech`) never reaches a normal shopper or a guest; only phones listed in `NEXT_PUBLIC_QA_STORY_VIEWER_PHONES` see it. The filter runs in every reader: bar, paging, sign-in, chat tab, product row, server reader | none | `utils/qaStoryFilter.ts`; callers `StoriesBarClient.tsx:70`, `StoriesPaginationWrapper.tsx:63`, `services/story.ts:43`, `StoriesList.tsx:51`, `serverRequests/stories.ts:83`, `serverRequests/product.tsx:596` | `tests/utils/qaStoryFilter.test.ts`, `tests/serverRequests/stories.test.ts`, `tests/services/story.test.ts`; e2e QA-11, STORY-03b, SST-04 |
+| W-21 | A stories call answers 401 → the client renews the stories token, waits 2 s and sends the call again (the normal path, not a bug) | `/api/auth/refresh` → stories | `utils/fetchData.ts` (client path) | `tests/services/authRefreshSession.test.ts` |
+
+## ⚠️ Works, with limits
+- **L-1 — Guest views are not counted.** A guest has no stories account. So `WatchStory` only greys the ring and sends nothing (`services/story.ts:66-68`). View numbers come from signed-in shoppers only.
+- **L-2 — The bar can stay on its skeleton.** If the stories request throws, the bar keeps the skeleton for ever. There is no retry and no message (`StoriesBarClient.tsx:100-103`). A refused answer gives an empty bar instead. This is on purpose: a dead stories service must not stop browsing.
+- **L-3 — Video plays with sound, and `play()` has no error handler.** `muted={activeId !== id}` is always false, because both values are `String(story.id)` (`StoryViewer.tsx:370`). The `play()` calls at lines 376 and 381 have no `.catch`. If a browser blocks autoplay with sound, the video may stay still while the progress bar runs on. Check this on a real iPhone.
+- **L-4 — Gallery video check may time out on iPhone.** The sheet waits until a hidden `<video>` that never plays reaches `readyState === 4` (`AddStoryWidget.tsx:224-238`), for 10 s at most. iOS Safari often loads no media data before play. In that case the shopper sees "Upload Failed Try Again". This is not proved. It needs a real iPhone test.
+- **L-5 — Any external link is allowed.** The sheet only checks that the link is a URL (`AddStoryWidget.tsx:102-153`). A story can point to any site. The only control is the report button.
+- **L-6 — After an upload the bar keeps page 1 only.** The sheet reads page 1 again and writes it over the whole list (`AddStoryWidget.tsx:297-301, 347-350`). Pages loaded earlier are dropped. The chat "Stories" tab does the same when it opens (`StoriesList.tsx:55-58`).
+- **L-7 — Screen-reader text is English only.** The `aria-label` values "Delete story", "Report story", "Close story viewer" (`StoryHolder.tsx:149, 170, 201`), "Story link" (`StoryViewer.tsx:415`) and `alt="story"` are not translated. Visible text is translated.
+- **L-8 — Product row paging assumes 10 per page.** `ProductStories.tsx:59, 79, 92` stops paging when a page has fewer than 10 groups.
+- **L-9 — `components/Home/UploadVideo.tsx` is only a preview.** It is an 8-line `<video controls>` wrapper with an empty `useEffect`. It uploads nothing. The story camera preview and the chat camera use it.
+- **L-10 — The media upload key is public.** The browser sends `NEXT_PUBLIC_MEDIA_API_KEY` as `x-api-key` (`services/story.ts:15, 103`), so the key is in the bundle. The real gate is the upload ticket from `/api/ticket`. That route needs a market token, and a guest token is enough.
+
+## ❌ Missing, broken or not built
+| # | Problem | What the user sees | Where (file:line) | Owner | Blocks launch? |
+|---|---|---|---|---|---|
+| M-1 | The author's phone number is used as the name when the name is empty: `story.name ?? story.mobile_phone ?? "Unknown"` | Another person's phone number on the tile, in the viewer header and in the chat "Stories" tab | `components/Home/Stories/StoryElement.tsx:30, 55`; `services/story.ts:252, 282`; `components/Chat/components/StoryChatRow.js:36` | Frontend + Backend | **Yes** — privacy. Remove the fallback. The public feed should not carry `mobile_phone` at all |
+| M-2 | In-app video recording always asks for `video/webm`. There is no `MediaRecorder.isTypeSupported` check and no MP4 fallback. Safari before 18.4 cannot record WebM, so `new MediaRecorder(...)` throws. The throw comes after the timer and the "recording" state have started | The red timer runs, but no video is made; after stop there is nothing to share | `components/Home/Stories/CameraStory.tsx:84-104, 126-129` | Frontend | No — photo and gallery upload still work. Fix it, or hide the "Video" tab where WebM recording is not supported |
+| M-3 | A WebM story may not play on iPhones even when the recording works. It depends on the media server (see questions) | A black or stuck video for iPhone viewers | `CameraStory.tsx:126-129`; `services/story.ts:96-98` | Backend | No — confirm first |
+| M-4 | Product-page stories are read on the server with the stories cookie and **no token renewal**. An expired token (60 s on staging) gets a 401. `fetchServerData` then returns `data: null`, and the row is hidden | A signed-in shopper often sees no "Product Story" row; a guest sees it | `serverRequests/product.tsx:554-570`; `components/Server/product/ProductStoriesWrapper.tsx:10`; `serverRequests/ServerFetch.tsx:145-151` | Frontend | No — first confirm with the backend that an expired token is refused on this public read |
+| M-5 | View-time analytics are dead. `StoryViewer` has an `onStoryViewTime` callback, but `StoryHolder` never passes it. Six GA click events in the add-story sheet are commented out. The GA `view_story` event sends `item_name: s.product_id` | Nothing (an analytics gap) | `StoryViewer.tsx:51, 129`; `StoryHolder.tsx:258-313`; `AddStoryWidget.tsx:269-272, 473-476, 484-487, 492-495, 526-529, 660-663`; `StoryHolder.tsx:72` | Frontend | No |
+| M-6 | `/api/revalidateStories` has no auth and sends `Access-Control-Allow-Origin: *`. It revalidates the tag `stories`, and no fetch in the app uses that tag, so it does nothing | Nothing | `app/api/revalidateStories/route.ts:10`; same tag in `app/api/revalidate/route.ts:11, 25` | Frontend | No — remove it, or give it a real tag and a secret |
+| M-7 | A shopper cannot see how many people (or who) viewed their own story. Only the seller dashboard shows `viewers_count` | No view count on own stories | `components/SellerDashboard/StoriesTab.tsx:163` (seller only); nothing in `components/Home/Stories/` | Product | No |
+| M-8 | Stale TODO "Integrate with existing camera component". The camera already works through `CameraStory`. The TODO and the commented `// onClose();` are left-over text | Nothing | `components/Home/Stories/AddStoryWidget.tsx:478-480` | Frontend | No |
+
+## 🔒 Must do before launch
+- [ ] M-1: remove the `mobile_phone` fallback in the 3 files, and ask the backend to stop sending `mobile_phone` in the public feed.
+- [ ] Test story video on a real iPhone (iOS 17 and iOS 18): record in the app (M-2), upload from the gallery (L-4), and watch a video story with sound (L-3). Fix or hide what fails.
+- [ ] Ops: in the Vercel production build, `NEXT_PUBLIC_QA_STORY_VIEWER_PHONES` must be empty. The value is inlined into the browser bundle.
+- [ ] Ops: set `STORIES_BACKEND_URL`, `NEXT_PUBLIC_MEDIA_SERVER_BASE_URL` and `NEXT_PUBLIC_MEDIA_API_KEY` for the production build. Without the two media values every upload fails with "Media server upload is not configured" (`services/story.ts:87-89`).
+
+## ❓ Needs confirmation from the backend team
+- Does `users_stories` answer a guest (no token) with the public feed? The home bar and e2e STORY-03b expect this.
+- Does the feed send `mobile_phone` for each author? If yes, please remove it (M-1).
+- Does `POST /api/v1/stories/report` take the reporter from the token? The browser sends `reporter_user_id = userProfile.id`, which is the market user id (`services/story.ts:206`, `ReportStoryModal.tsx:103`).
+- Does `delete_story` check that the caller owns the story?
+- Does `add_story` refuse a user whose `is_allowed_to_upload_story` is 0? The app only hides the "+" tile.
+- Does `increase_viewers` count one view per viewer, or every call?
+- Do stories expire (for example after 24 h) on the backend? The app has no expiry logic.
+- Does the media server convert WebM and MOV uploads (`?story=true`) to a format that iPhones play? Does `?target=snapshot` give a thumbnail for every video type?
+- Does the stories backend refuse an expired token on `product_stories`, which is a public read? (M-4)
+- Is the story `link` checked on the server (allowed hosts, length)?
+- Is `NEXT_PUBLIC_MEDIA_API_KEY` meant to be public, with the upload ticket as the only real gate?
+
+## 🧪 Tests that cover this section
+**Unit (Vitest):**
+- `tests/components/Home/storiesBarClient.test.tsx`, `tests/components/Home/storiesWrapper.test.tsx`
+- `tests/components/Home/AddStory.test.tsx`, `tests/components/Home/addStoryWidget.test.tsx` (holds the `BUG-1` guard "the upload sheet always stops"; it is green, so that bug is fixed)
+- `tests/components/Home/Stories/AddStoryWidgetLazy.test.tsx`, `CameraStory.test.tsx`, `NewStories.test.tsx`, `ReportStoryModal.test.tsx`, `StoriesPaginationWrapper.test.tsx`, `Story.test.tsx`, `StoryHolder.test.tsx`, `StoryViewer.test.tsx`
+- `tests/components/products/ProductStories.test.tsx`, `tests/components/Server/product/ProductStoriesWrapper.test.tsx`, `tests/serverRequests/product.test.ts` (`GetProductStoriesData` block)
+- `tests/components/Chat/pages/StoriesList.test.tsx`
+- `tests/services/story.test.ts`, `tests/serverRequests/stories.test.ts`, `tests/utils/qaStoryFilter.test.ts`
+- `tests/store/homepageReducer.test.ts`, `tests/store/homepageActions.test.ts`
+- `tests/app/api/revalidateStories/route.test.ts`, `tests/harness/storyFinder.test.ts`
+
+**E2E (Playwright, staging):**
+- `tests/e2e/stories.live.spec.ts`: STORY-00a and STORY-00b (the uploader and the reporter sign in), STORY-01 (photo upload), STORY-03 (own story in the feed), STORY-03b (a guest never sees the QA story), STORY-04 (report), STORY-05 (delete).
+- `tests/e2e/sellerStories.live.spec.ts`: SST-01 to SST-09 (seller stories, product button, product row).
+- `tests/e2e/qaLock.live.spec.ts`: QA-11 (a QA story never reaches the feed).
+
+**Markers:** there is no `it.fails` or `test.fail` in these files. `tests/e2e/sellerStories.live.spec.ts:296` still says STORY-03b "passes for the wrong reason" (`BUG-2`). STORY-03b now checks the story tiles (`stories.live.spec.ts:330`), so that comment describes the old version.
+
+**Important cases with NO test:**
+- Video upload end to end (no e2e; unit tests only, with mocks).
+- In-app recording on Safari. `CameraStory.test.tsx:147-162` asserts that the file **is** WebM, so the test locks in M-2.
+- The phone-number fallback (M-1).
+- The product row for a signed-in shopper with an expired stories token (M-4).
+- The view counter on staging (`increase_viewers`), and the chat "Stories" tab, in e2e.
