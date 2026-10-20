@@ -7,6 +7,7 @@ import { GetRecommendationCountForProduct } from "serverRequests/product";
 import { GetRatingCommentsForProduct } from "utils/pagesDataRequests/ProductPageData";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { getCookieServer } from "utils/cookies/server-cookie-manager";
+import { LogServerError } from "utils/serverErrorReporter";
 
 async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
   let product = await globalPromise;
@@ -15,17 +16,31 @@ async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
   let parsedUser = await getCookieServer<{ id: string }>(
     COOKIE_NAMES.USER_DATA,
   );
-  let [buyersComments, recommendation_stats] = await Promise.all([
-    GetRatingCommentsForProduct({
-      product_id: productId,
-      user_id: parsedUser?.id,
-      language,
-      pageSize: 5,
-    }),
-    GetRecommendationCountForProduct({ product_id: productId }),
-  ]);
+  // The reviews are an optional section. A search error here must not reach
+  // the page's error boundary and take the whole product (and Add to cart)
+  // with it: the section is simply left out.
+  let buyersComments, recommendation_stats;
+  try {
+    [buyersComments, recommendation_stats] = await Promise.all([
+      GetRatingCommentsForProduct({
+        product_id: productId,
+        user_id: parsedUser?.id,
+        language,
+        pageSize: 5,
+      }),
+      GetRecommendationCountForProduct({ product_id: productId }),
+    ]);
+  } catch (error) {
+    LogServerError({
+      id: productId,
+      error,
+      scenario:
+        "Error In ProductBuyersCommentsWrapper: the reviews section was left out",
+    });
+    return <></>;
+  }
   const isRtl = language === "ar" || language === "ku";
-  if (buyersComments.buyers_comments.length === 0) return <></>;
+  if (!buyersComments?.buyers_comments?.length) return <></>;
   return (
     <>
       <div className={`w-full flex-col mt-[12px]`}>

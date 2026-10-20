@@ -892,7 +892,10 @@ class HomeService {
       return false;
     }
   }
-  async LikeComment({ comment_id, target_type, product_id }) {
+  // Both answer true only when the comments backend agreed. fetchData never
+  // throws on a refusal; it returns `success: false`, so the caller must read
+  // the answer to roll the heart back.
+  async LikeComment({ comment_id, target_type, product_id }): Promise<boolean> {
     let resp = await fetchData({
       url: LIKE_COMMENT_URL,
       server: "comments",
@@ -901,8 +904,13 @@ class HomeService {
       reqTitle: REQUESTS_DATA.LIKE_FOR_COMMENT,
       noMessage: true,
     });
+    return resp?.success === true;
   }
-  async UnLikeComment({ comment_id, target_type, product_id }) {
+  async UnLikeComment({
+    comment_id,
+    target_type,
+    product_id,
+  }): Promise<boolean> {
     let resp = await fetchData({
       url: UNLIKE_COMMENT_URL,
       server: "comments",
@@ -911,6 +919,7 @@ class HomeService {
       reqTitle: REQUESTS_DATA.LIKE_FOR_COMMENT,
       noMessage: true,
     });
+    return resp?.success === true;
   }
 }
 

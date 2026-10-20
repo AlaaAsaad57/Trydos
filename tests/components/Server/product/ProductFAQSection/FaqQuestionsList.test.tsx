@@ -65,7 +65,7 @@ import { renderWithProviders, screen, userEvent, waitFor } from "../../../../ren
 const five = (from = 1) =>
   Array.from({ length: 5 }, (_, i) => ({ id: from + i, comment: `q${from + i}` }));
 const fetchMock = vi.fn();
-const answer = (data: any) => ({ json: async () => ({ data }) });
+const answer = (data: any) => ({ ok: true, json: async () => ({ data }) });
 const questions = () =>
   Array.from(document.querySelectorAll('[data-pw="question"]')).map((n) => n.textContent);
 
@@ -245,7 +245,7 @@ describe("the FAQ row", () => {
   });
 
   it("treats an empty reload answer as no questions", async () => {
-    fetchMock.mockResolvedValueOnce({ json: async () => ({}) });
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     await renderList({}, { shouldUpdateComment: true });
     await waitFor(() => expect(questions(), "an empty answer means no questions").toEqual([]));
   });

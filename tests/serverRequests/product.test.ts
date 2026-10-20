@@ -1026,18 +1026,24 @@ describe("the product readers when a search source fails", () => {
     ).toContain("getProductViewsQuery (elastic) failed");
   });
 
-  it("answers nothing, and reports it, when the recommendation count fails", async () => {
+  it("answers zero recommendations, and reports it, when the recommendation count fails", async () => {
     esGetAnswers[product_interactions_index] = { _source: {} };
     esGetAnswers[views_index] = { _source: { view_count: 1 } };
     esSearchAnswers[comments_index] = new Error("comments index down");
 
     const { GetProductGeneralData } = await load();
+    const result = await GetProductGeneralData({ id: "1001" });
 
-    expect(await GetProductGeneralData({ id: "1001" }), "a failed read still gave general data").toBeUndefined();
+    expect(result?.product_id, "a failed recommendation count removed the general data").toBe("1001");
+    expect(
+      result?.recommendation_stats?.map((s: any) => s.percentage),
+      "a failed recommendation count should answer zero for both bars",
+    ).toEqual(["0", "0"]);
+    expect(result?.total_buyers, "a failed recommendation count should answer no buyers").toBe(0);
     expect(
       LogServerError.mock.calls.map((call: any[]) => call[0]?.scenario),
-      "the failed general data read was not reported",
-    ).toContain("Error In GetProductGeneralData in serverRequest/product");
+      "the failed recommendation count was not reported",
+    ).toContain("Error In GetRecommendationCountForProduct in serverRequest/product");
   });
 
   it("treats an unreadable profile cookie as not a tester when reading product stories", async () => {

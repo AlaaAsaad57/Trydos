@@ -2997,6 +2997,9 @@ const translations = {
   "The AI service is busy right now. Please try again in a moment.": "Yapay zekâ hizmeti şu anda meşgul. Lütfen birazdan tekrar deneyin.",
   "You do not have permission for this action.": "Bu işlem için yetkiniz yok.",
   "Too many requests. Please try again in a moment.": "Çok fazla istek. Lütfen birazdan tekrar deneyin.",
+  "Q": "S",
+  "A": "C",
+  "Comment options menu": "Yorum seçenekleri menüsü",
 };
 
 export default translations;

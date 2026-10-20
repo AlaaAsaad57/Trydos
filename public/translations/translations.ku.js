@@ -3015,6 +3015,9 @@ const translations = {
   "The AI service is busy right now. Please try again in a moment.": "خزمەتگوزاری زیرەکی دەستکرد ئێستا سەرقاڵە. تکایە کەمێکی تر دووبارە هەوڵبدەرەوە.",
   "You do not have permission for this action.": "مۆڵەتی ئەم کارەت نییە.",
   "Too many requests. Please try again in a moment.": "داواکاری زۆرە. تکایە کەمێکی تر دووبارە هەوڵبدەرەوە.",
+  "Q": "پ",
+  "A": "و",
+  "Comment options menu": "مێنیوی هەڵبژاردنەکانی سەرنج",
 };
 
 export default translations;

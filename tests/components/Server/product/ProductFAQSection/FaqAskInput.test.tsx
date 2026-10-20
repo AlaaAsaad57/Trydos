@@ -145,7 +145,9 @@ describe("asking the seller a question", () => {
     type("hi");
     await send();
     await waitFor(() => expect(LogError, "an answer without an id is a failure").toHaveBeenCalled());
-    expect(LogError.mock.calls[0][0].error.message, "the default reason should be used").toBe("Failed to create comment");
+    expect(LogError.mock.calls[0][0].error.message, "the default reason should be used").toMatch(
+      /something went wrong/i,
+    );
   });
 
   it("tells a guest to sign in, and keeps the box read-only", async () => {

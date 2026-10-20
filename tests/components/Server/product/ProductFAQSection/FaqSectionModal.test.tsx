@@ -45,7 +45,7 @@ import FaqSectionModal from "components/Server/product/ProductFAQSection/FaqSect
 import { renderWithProviders, screen, userEvent, waitFor } from "../../../../render";
 
 const fetchMock = vi.fn();
-const answer = (data: any) => ({ json: async () => ({ data }) });
+const answer = (data: any) => ({ ok: true, json: async () => ({ data }) });
 const questions = () =>
   Array.from(document.querySelectorAll('[data-pw="question"]')).map((n) => n.textContent);
 
@@ -137,7 +137,7 @@ describe("the FAQ sheet", () => {
   });
 
   it("shows questions asked elsewhere this session, once each, and treats an empty answer as none", async () => {
-    fetchMock.mockResolvedValue({ json: async () => ({}) });
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) });
     await renderSheet({}, { appendedFaqIds: { "9": ["n1"] }, language: undefined });
     await waitFor(() => expect(questions(), "the new question should be shown").toEqual(["new n1"]));
     expect(fetchMock.mock.calls[0][1].headers.language, "no language defaults to English").toBe("en");

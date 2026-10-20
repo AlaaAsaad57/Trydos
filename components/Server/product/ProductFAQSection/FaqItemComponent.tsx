@@ -78,7 +78,9 @@ function FaqItemComponent({
                 className="comment-source text-[#1D1D1D] text-[9px] regular"
                 data-pw="Source-Of-Comment"
               >
-                <span className="bold pr-[4px]">Q</span>{" "}
+                <span className="bold pr-[4px]">
+                  {translateFunction("Q", language)}
+                </span>{" "}
                 {convertTextToXFormat(c?.customer?.name)}
               </div>
             </div>
@@ -146,7 +148,9 @@ function FaqItemComponent({
                     className="comment-source text-[#1D1D1D] text-[9px] regular"
                     data-pw="Source-Of-Comment"
                   >
-                    <span className="bold pr-[4px]">A</span>
+                    <span className="bold pr-[4px]">
+                      {translateFunction("A", language)}
+                    </span>
                     {convertTextToXFormat(seller_name)}
                   </div>
                 </div>

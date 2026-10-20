@@ -2964,6 +2964,9 @@ const translations = {
   "The AI service is busy right now. Please try again in a moment.": "خدمة الذكاء الاصطناعي مشغولة الآن. يرجى المحاولة بعد قليل.",
   "You do not have permission for this action.": "ليست لديك صلاحية لهذا الإجراء.",
   "Too many requests. Please try again in a moment.": "طلبات كثيرة جدًا. يرجى المحاولة بعد قليل.",
+  "Q": "س",
+  "A": "ج",
+  "Comment options menu": "قائمة خيارات التعليق",
 };
 
 export default translations;

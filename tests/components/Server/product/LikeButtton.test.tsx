@@ -47,8 +47,8 @@ const renderHeart = (props: Record<string, any> = {}, store: Record<string, any>
 
 describe("the comment like heart", () => {
   beforeEach(() => {
-    LikeComment.mockReset().mockResolvedValue(undefined);
-    UnLikeComment.mockReset().mockResolvedValue(undefined);
+    LikeComment.mockReset().mockResolvedValue(true);
+    UnLikeComment.mockReset().mockResolvedValue(true);
     showErrorNotification.mockReset();
     LogError.mockReset();
   });
@@ -97,7 +97,8 @@ describe("the comment like heart", () => {
   });
 
   it("puts the old state back and reports it when the comments backend refuses", async () => {
-    LikeComment.mockRejectedValue(new Error("refused"));
+    // fetchData never throws on a refusal: the service answers false.
+    LikeComment.mockResolvedValue(false);
     const { patchCommentEntity } = await renderHeart();
     await userEvent.click(heart());
     await waitFor(() => expect(LogError, "the refusal should be reported").toHaveBeenCalled());

@@ -4,6 +4,7 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 import { LogError, translateFunction } from "utils/functions";
+import { showErrorNotification } from "store/notifications/reducer";
 
 import auth from "services/auth";
 import { BuyersCommentItem } from "components/Server/product/ProductBuyersComment/BuyerCommentItem";
@@ -50,6 +51,10 @@ function BuyersCommentModal({
         `/api/products/comments/buyers_comments?${params.toString()}`,
         { headers: { language: language ?? "en" } },
       );
+      if (!res.ok) {
+        // A 500 must not look like "no more items".
+        throw new Error(`loading the buyers comments answered ${res.status}`);
+      }
       const json = await res.json();
       setCommentsData((prev) => [
         ...(prev as any),
@@ -61,6 +66,7 @@ function BuyersCommentModal({
         error: err,
         scenario: "Error In loadMore in BuyersCommentModal",
       });
+      showErrorNotification(translateFunction("Something went wrong"));
     } finally {
       setLoading(false);
     }

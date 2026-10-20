@@ -111,7 +111,10 @@ describe("the rating comment dialogs", () => {
     await result;
     const box = screen.getByRole("textbox");
     fireEvent.keyDown(box, { key: "Enter" });
-    expect(updateAction, "Enter should send the comment").toHaveBeenCalledTimes(1);
+    expect(updateAction, "Enter must not send an unchanged comment").toHaveBeenCalledTimes(0);
+    fireEvent.change(box, { target: { value: "changed words" } });
+    fireEvent.keyDown(box, { key: "Enter" });
+    expect(updateAction, "Enter should send the changed comment").toHaveBeenCalledTimes(1);
     fireEvent.keyDown(box, { key: "a" });
     fireEvent.change(box, { target: { value: "   " } });
     fireEvent.keyDown(box, { key: "Enter" });
