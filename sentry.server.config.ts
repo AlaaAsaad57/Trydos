@@ -18,8 +18,9 @@ const QA_VIEW_HEADER = "x-qa-view";
 
 /** Take the QA-mode header out of anything on its way to Sentry.
  *
- *  `sendDefaultPii: true` above means request headers ride along with server
- *  errors and transactions. The QA header carries `QA_VIEW_SECRET` — the one
+ *  Request headers ride along with server errors and transactions even with
+ *  `sendDefaultPii` off (that setting drops cookies and the IP address, not the
+ *  other headers). The QA header carries `QA_VIEW_SECRET` — the one
  *  value that can unfilter the catalogue — so it must not be stored anywhere
  *  outside the request that sent it.
  *
@@ -32,9 +33,8 @@ const QA_VIEW_HEADER = "x-qa-view";
  *  builder copies an allow-list with no `headers` key, and the serializer walks
  *  `Object.keys()`, which a `Headers` instance has none of.
  *
- *  **Read the limit honestly:** this removes one header from an event that still
- *  carries session cookies, because `sendDefaultPii` is on. It does not make the
- *  Sentry payload clean. */
+ *  **Read the limit honestly:** this removes one header. The session cookies
+ *  stopped reaching Sentry on 2026-10-20, when `sendDefaultPii` went off. */
 const stripQaHeader = <T extends { request?: { headers?: unknown } }>(
   event: T,
 ): T => {
@@ -60,9 +60,18 @@ if (sentryEnabled) {
     // through `Sentry.logger`, the scrub below will not cover it.
     enableLogs: true,
 
-    // Enable sending user PII (Personally Identifiable Information)
+    // Off, so no cookie and no IP address rides along with an event. Every
+    // session token lives in an HttpOnly cookie, and with this on they all
+    // reached Sentry (readiness A1-10).
     // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-    sendDefaultPii: true,
+    sendDefaultPii: false,
+
+    // Keeps staging and production events apart. Set SENTRY_ENVIRONMENT in
+    // Vercel; without it the Vercel deployment type is used.
+    environment:
+      process.env.SENTRY_ENVIRONMENT ||
+      process.env.VERCEL_ENV ||
+      process.env.NODE_ENV,
 
     // Both hooks, because an error event and a transaction are separate
     // payloads and each carries its own copy of the request.

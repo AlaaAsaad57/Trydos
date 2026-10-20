@@ -332,6 +332,13 @@ export default function ConversationScreen() {
 
 const SPACED = { letterSpacing: "0.012em" } as const;
 
+/** The "||" before the time of a message I sent: Bold, `#388CFF`, whatever the words' colour (`– 44`). */
+const Mark = () => (
+  <span className="font-bold" style={{ color: CHAT.callBlue }}>
+    ||{" "}
+  </span>
+);
+
 /** The 4 px dot beside a bubble (the file draws it as a 4 x 4 box with radius 15). */
 function Dot({
   color,
@@ -529,7 +536,7 @@ function Bubble({
             <XdIcon name="replyMarkWhite" style={{ marginRight: 4 }} />
           )}
           <Txt size={9} color={C.white}>
-            {!inn && <span className="font-bold">|| </span>}
+            {!inn && <Mark />}
             {MESSAGE_TIME}
           </Txt>
         </span>
@@ -775,7 +782,9 @@ function VoiceMessage({
             >
               {started ? clock(seconds) : VOICE_LENGTH}
             </Txt>
-            <Stroke color={tint} width={0.4} radius={15} />
+            {/* The file says radius 15 on a 19 px pill: round ends, 9.5. An
+                SVG rect would make 15 x 9.5 elliptical corners of it. */}
+            <Stroke color={tint} width={0.4} radius={9.5} />
           </span>
           <span
             className="absolute right-0 flex items-start"
@@ -785,7 +794,7 @@ function VoiceMessage({
               <XdIcon name="replyMarkPurple" style={{ marginRight: 4 }} />
             )}
             <Txt size={9}>
-              {!inn && <span className="font-bold">|| </span>}
+              {!inn && <Mark />}
               {MESSAGE_TIME}
             </Txt>
           </span>
@@ -855,7 +864,7 @@ function CallCard({
   const look = CARD_TONE[tone];
   const timeText = (
     <>
-      {!inn && <span className="font-bold">|| </span>}
+      {!inn && <Mark />}
       {time}
     </>
   );

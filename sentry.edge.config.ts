@@ -11,7 +11,15 @@ Sentry.init({
   // Enable logs to be sent to Sentry
   enableLogs: true,
 
-  // Enable sending user PII (Personally Identifiable Information)
+  // Off, so no cookie and no IP address rides along with an event. The session
+  // tokens live in HttpOnly cookies, and with this on they reached Sentry
+  // (readiness A1-10).
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-  sendDefaultPii: true,
+  sendDefaultPii: false,
+
+  // Keeps staging and production events apart (see sentry.server.config.ts).
+  environment:
+    process.env.SENTRY_ENVIRONMENT ||
+    process.env.VERCEL_ENV ||
+    process.env.NODE_ENV,
 });

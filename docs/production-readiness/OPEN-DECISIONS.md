@@ -1,7 +1,7 @@
 # Open decisions and work before launch
 
 **Source:** the 20 section files, `BLOCKERS-AND-PLACEHOLDERS.md` and `IMPORTANT-PRODUCTION-NOTES.md`, as on disk on 2026-10-20.
-**Updated 2026-10-20 (evening):** F-1, F-2, F-6, F-7, F-8, F-10, F-11, F-12, F-13, F-14, F-15 and L-2 are fixed in code and removed from this list.
+**Updated 2026-10-20 (evening):** F-1, F-2, F-6, F-7, F-8, F-10, F-11, F-12, F-3, F-4, F-13, F-14, F-15 and L-2 are fixed in code and removed from this list.
 **Scope:** only items that block launch and still need a **decision** or **work**. Not listed: anything fixed, anything the owner accepted, the backend host names (known), and items that repeat each other. Where several rows in the section files are one decision, they are one line here. The ids in brackets point at `BLOCKERS-AND-PLACEHOLDERS.md`. The D / L / F ids here keep their numbers, so a removed id is simply missing.
 
 ---
@@ -39,7 +39,7 @@ Each service below needs a production account, a key in Vercel, and a named owne
 | **AssemblyAI** | Voice search | A production key in `ASSEMBLYAI_API_KEY` **and** `ASSEMBLYAI_BASE_URL` (the route breaks without the second one). A spend cap. A billing owner. | Part C1 |
 | **Agora** | Voice and video calls | A production project (App ID, App Certificate with token auth on). Set the production App ID in `NEXT_PUBLIC_AGORA_APP_ID` (one env value since 2026-10-20; without it the staging project is used). | A2-24, A2-25 |
 | **Firebase (FCM)** | Push notifications | Decide which Firebase project production uses. Set `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`. The web config is hardcoded in two files, so a different project needs a code change. | Part C1, 14 L-10 |
-| **Sentry** | Error reporting | `NEXT_PUBLIC_DSN_SENTRY`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` (build), `SENTRY_ENVIRONMENT`. Alert rules with a person on duty. A `tracesSampleRate`. `sendDefaultPii` must go to false (session cookies reach Sentry today). | A4-6, A1-10 |
+| **Sentry** | Error reporting | `NEXT_PUBLIC_DSN_SENTRY`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` (build), `SENTRY_ENVIRONMENT` and `NEXT_PUBLIC_SENTRY_ENVIRONMENT` (read since 2026-10-20; without them the Vercel deployment type is used). Alert rules with a person on duty. A `tracesSampleRate`. | A4-6, A1-10 |
 | **PostHog** | Session replay and product analytics | `NEXT_PUBLIC_POSTHOG_KEY` for production. Decide whether preview builds get their own key (today every production build sends data). Consent per D-5. | 19 questions, A3-3 |
 | **Google Analytics** | Events | `NEXT_PUBLIC_GA_MEASUREMENT_ID`. Remove `debug_mode: true` from every event, or a "developer traffic" filter drops all real data. | A2-27 |
 | **Vercel** | Hosting | Firewall rules on the open and paid routes (list in `BLOCKERS-AND-PLACEHOLDERS.md` Part C3). Bot protection on. An Instant Rollback plan with a named person. Speed Insights on for the production project. GitHub secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. Keep the install command `yarn install --production=false`. | A4-5, A4-7 |
@@ -55,8 +55,6 @@ Security:
 
 | # | Work | Ids |
 |---|---|---|
-| F-3 | Stop returning `id_token` from `/api/auth/login` to page scripts. | A1-9 |
-| F-4 | Sentry `sendDefaultPii: false` in the three configs (see Sentry above). | A1-10 |
 | F-5 | The mobile-app call page: take the chat token out of the URL, the "DEBUG" button, the error panel and the Sentry log. | A1-11 |
 
 Shopper-visible:

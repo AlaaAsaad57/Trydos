@@ -201,6 +201,20 @@ describe("storing what the verification returned (AC-1)", () => {
     expect(raw).not.toContain(MARKET_REFRESH);
   });
 
+  it("keeps the one-time sign-in credential (id_token) out of the answer", async () => {
+    queueFullSignIn();
+    const { GET } = await loadRoute();
+
+    const response = await GET(makeRequest());
+    const raw = JSON.stringify(await response.json());
+
+    // That credential signs the shopper in to chat, stories, comments and the
+    // wallet on the server. No page script needs it (readiness A1-9).
+    expect(raw, "the sign-in answer carried id_token to the browser").not.toContain(
+      "test-id-token-1234567890",
+    );
+  });
+
   it("keeps no sub-service credential in the answer either", async () => {
     queueFullSignIn();
     const { GET } = await loadRoute();

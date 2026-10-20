@@ -5,7 +5,7 @@
 
 ## The short answer
 
-**About 75 out of 100.**
+**About 77 out of 100.**
 
 The shop works. We checked every part of the site, section by section, and counted **572 working cases** across 20 sections: browsing, search, product pages, cart, checkout, orders, sign-in, profile, chat and calls, stories, notifications, the seller dashboard, wishlist and compare, languages and regions.
 
@@ -13,21 +13,19 @@ What is left is small. It splits into three groups:
 
 | Group | Score | What is left |
 |---|:-:|---|
-| Code | 90 | 5 small fixes, about two days of work |
+| Code | 95 | 3 small fixes, about one day of work |
 | Product decisions | 50 | 9 decisions. Each one is "hide it or finish it". Hiding takes an hour each |
 | Legal text | 40 | The real text for 4 pages, in 4 languages |
 
 ## What is still open
 
-### 1. Code (Frontend, about two days)
+### 1. Code (Frontend, about one day)
 
 | # | Fix |
 |---|---|
-| 1 | Stop returning a sign-in credential to page scripts |
-| 2 | Stop sending session cookies to the error tool (one setting in three config files) |
-| 3 | The mobile-app call page: take the token out of the address and the debug button |
-| 4 | Every order sends the text "order note"; send none, or add a real note field |
-| 5 | The "invite a friend" text: translate it and use the real Play Store id |
+| 1 | The mobile-app call page: take the token out of the address and the debug button |
+| 2 | Every order sends the text "order note"; send none, or add a real note field |
+| 3 | The "invite a friend" text: translate it and use the real Play Store id |
 
 ### 2. Product decisions (9)
 
@@ -53,6 +51,6 @@ The Privacy Policy, Terms of Service, About and Contact pages exist and every li
 
 1. **One meeting with Product** on the 9 decisions. If every item is "hide it", Frontend closes all of them in a day. That alone is worth about 15 points.
 2. **The legal text.** Worth about 10 points, and it does not depend on anyone else.
-3. **The 5 code fixes.** Two days, worth about 5 points.
+3. **The 3 code fixes.** One day, worth about 3 points.
 
 With all three done, the web app itself is at about 100. The remaining work to open the shop is on the backend and server side, which is tracked in the other lists.
