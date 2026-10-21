@@ -48,6 +48,7 @@ import {
   BoutiqueGridSkeleton,
   ListRowsSkeleton,
   InlineSkeleton,
+  DashSkeletonBlock,
 } from "components/skeleton/loaders/SellerDashboardLoader";
 
 type TabType =
@@ -2808,6 +2809,14 @@ function SellerDashBoard() {
               {currentShop?.shop_name || translateFunction("Seller Dashboard")}
             </h1>
             <div className="flex flex-wrap items-center gap-2 mt-1.5">
+              {/* Until the permissions answer, the role is unknown: an empty
+                  list reads as "not admin", so the chip said "Member" and then
+                  changed. */}
+              {!permissionsReady ? (
+                <span aria-hidden="true">
+                  <DashSkeletonBlock className="h-[25px] w-[84px] rounded-full" />
+                </span>
+              ) : (
               <span
                 data-pw="seller-dashboard-role"
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] semibold ${
@@ -2827,6 +2836,7 @@ function SellerDashBoard() {
                     currentRole ||
                     translateFunction("Member")}
               </span>
+              )}
               <span className="text-[12px] text-[#8e8e8e]">
                 {translateFunction("Seller ID:")}{" "}
                 <span data-pw="seller-dashboard-seller-id" className="medium text-[#505050]">

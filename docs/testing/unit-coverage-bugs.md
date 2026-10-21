@@ -122,6 +122,8 @@ Lines still listed under "Cannot cover" were kept on purpose:
 | BUG-seller-703 (**fixed**) | seller | a refused Confirm / Packed / Cancel on an order item shows no message |
 | BUG-seller-704 (**fixed**) | seller | the Orders tab filter names and card status stay in English in ar / tr / ku |
 | BUG-seller-705 (**fixed**) | seller | loading the next page of orders replaces the list with placeholders |
+| BUG-seller-706 (**fixed**) | seller | the Orders tab says "No orders found" before the orders backend answers |
+| BUG-seller-707 (**fixed**) | seller | the dashboard header says "Member" before the permissions answer |
 | BUG-server-1 (**fixed**) | server | recommendations "Show More" spins forever after one failed load |
 | BUG-server-2 (**fixed**) | server | the listing grid keeps retrying a failed load after it has left the page |
 | BUG-server-3 (**fixed**) | server | the filter window drops the re-ask for a chip tapped while a re-ask is running |
@@ -730,6 +732,22 @@ Unreachable branches inside a live file (no code path can run them; not deleted 
 - Actual: page 1 disappears until page 2 answers. The page gets shorter, so the seller loses their place.
 - Fix: a separate `loadingMore` flag for page 2+. The list stays, one placeholder card goes under it, and the filter tabs stay locked until the page answers.
 - Confirming test: tests/components/SellerDashboard/orders.test.tsx > "when the bottom of the list scrolls into view" > "BUG-seller-705: keeps the first page on screen while the next page loads" (seen red before the fix, green after).
+
+### BUG-seller-706 — the Orders tab says "No orders found" before the orders backend answers
+- Source: components/SellerDashboard/orders.tsx `RenderOrders` — `ordersLoading` started `false`, and `getSellerOrders` starts in a `useEffect`, which runs after the first paint.
+- Scenario: the seller opens the Orders tab.
+- Expected: placeholder cards until the orders backend answers.
+- Actual: the first paint shows "No orders found" (the store list is empty), then the placeholders, then the orders.
+- Fix: `ordersLoading` starts `true`. The section mounts only to load the list, and the `finally` of `getSellerOrders` sets it back to `false`.
+- Confirming test: tests/components/SellerDashboard/orders.test.tsx > "Orders section — the list" > "BUG-seller-706: never says there are no orders before the orders backend answers" (seen red before the fix, green after).
+
+### BUG-seller-707 — the dashboard header says "Member" before the permissions answer
+- Source: app/(client)/[lang]/sellerProfile/sellerDashboard/[sellerId]/page.tsx — the header role chip (`data-pw="seller-dashboard-role"`) did not wait for `permissionsReady`.
+- Scenario: the seller opens the dashboard by URL, so the shop list is empty and the permissions call is still out.
+- Expected: no role until the permissions answer.
+- Actual: `sellerPermissions` is empty, so `isAdmin` is false and the role is unknown. The chip says "Member", also for an admin, then changes.
+- Fix: while `!permissionsReady`, the header draws a skeleton pill in place of the chip.
+- Confirming test: tests/app/sellerProfile/sellerDashboard/permissionsTab.test.tsx > "the Permissions tab role banner, on an arrival by URL" > "BUG-seller-707: says no role in the header while the permissions call is still out" (seen red before the fix, green after).
 
 ### Cannot cover
 
