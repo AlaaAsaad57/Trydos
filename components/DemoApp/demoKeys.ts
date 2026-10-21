@@ -307,6 +307,22 @@ export const DEMO_KEYS = [
   "Camera",
   "Play",
   "Pause",
+  "Type a message",
+  "TODAY",
+  "Copied",
+  "Muted",
+  "Unmuted",
+  "Deleted",
+  "Slide to cancel",
+  "Attach",
+  "You",
+  "Forward to",
+  "Hold to record",
+  "Photo",
+  "Forwarded",
+  "edited",
+  "Send",
+  "Archived",
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];
