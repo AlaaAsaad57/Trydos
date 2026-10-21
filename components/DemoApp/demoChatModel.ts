@@ -92,11 +92,16 @@ export type ChatMessage =
   | NoteMessage
   | DayMessage;
 
-/** A message that can be swiped, held and answered. */
+/** A message that can be sent, swiped, answered and forwarded. */
 export type Openable = TextMessage | PhotoMessage | VoiceMessage;
 
 export const isOpenable = (m: ChatMessage): m is Openable =>
   m.kind === "text" || m.kind === "photo" || m.kind === "voice";
+
+/** A message that can be held for its menu: everything but a day pill. */
+export type Holdable = Openable | CallMessage | NoteMessage;
+
+export const isHoldable = (m: ChatMessage): m is Holdable => m.kind !== "day";
 
 /** A message I sent, whose status can move on. */
 export const isOwn = (m: ChatMessage): m is Openable =>

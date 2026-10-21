@@ -128,9 +128,13 @@ function Edge({ color, radius }: { color: string; radius: string }) {
   );
 }
 
-/** The open message grows a little out of its own side, on a soft spring. */
-export const liftOf = (open: boolean, inn: boolean) => ({
-  animate: { scale: open ? 1.04 : 1 },
+/**
+ * The held message stays exactly as it is: WhatsApp on the iPhone lifts it
+ * above the dimmed chat without growing it (the video of 2026-10-21). The
+ * hook is kept so a lift can be tried again in one place.
+ */
+export const liftOf = (_open: boolean, inn: boolean) => ({
+  animate: { scale: 1 },
   transition: { type: "spring" as const, stiffness: 420, damping: 26 },
   style: { transformOrigin: inn ? "left center" : "right center" },
 });
@@ -686,6 +690,10 @@ const CARD_TONE = {
     sub: C.ink,
   },
 };
+
+/** What a call card says, for a quote or the clipboard. */
+export const callWords = (m: CallMessage, t: (key: DemoKey) => string) =>
+  t(CARD_TONE[m.tone].title);
 
 /**
  * A call card (`– 44`, y 1277 .. 1549): 50 tall with the bubble's corners,

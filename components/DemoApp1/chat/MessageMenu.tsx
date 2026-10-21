@@ -2,7 +2,7 @@
 
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { motion } from "framer-motion";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import { CHAT, MENU_ACTIONS } from "../../DemoApp/demoChat";
@@ -22,7 +22,7 @@ const MENU_ICONS: { icon: XdIconName; name: (typeof MENU_ACTIONS)[number] }[] =
 export type MenuName = (typeof MENU_ACTIONS)[number] | "Forward";
 
 /** The blur behind an open menu, in px, and how long it takes to come and go, in s. */
-export const MENU_BLUR = 6;
+export const MENU_BLUR = 4;
 export const MENU_FADE = 0.22;
 
 /**
@@ -42,28 +42,29 @@ export const MENU_FADE = 0.22;
  * file's x 106 .. 331); the Forward bar sits 12 px above them, 18.5 px to the
  * right of their centre, as drawn.
  *
- * It opens the way WhatsApp's does on the iPhone: it springs out of the
- * held message's own corner, small and faint to full size, a beat after the
- * message lifts. Closing runs the same way back.
+ * It opens the way WhatsApp's does on the iPhone (the video of
+ * 2026-10-21): the moment the hold lands it grows out of its own top corner
+ * on the message's side, small and faint to full size in about 0.2 s, with
+ * no delay. Closing runs the same way back. The chat does not scroll for
+ * it: a menu that would not fit moves its message instead (see
+ * ConversationScreen).
  */
 export default function MessageMenu({
   side,
   canEdit,
+  canForward = true,
   onPick,
   t,
 }: {
   side: Side;
   /** Only a text I sent can be edited; the pencil is dimmed otherwise. */
   canEdit: boolean;
+  /** A call card or a note is not forwarded; the bar is dimmed then. */
+  canForward?: boolean;
   onPick: (name: MenuName) => void;
   t: (key: DemoKey) => string;
 }) {
   const [tip, setTip] = useState<MenuName>("Replay");
-  const box = useRef<HTMLDivElement>(null);
-  // A menu that opens under the screen's end scrolls up into view.
-  useEffect(() => {
-    box.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, []);
   /** The centre of each item's icon, from the action row's left edge (x 106 in the file). */
   const centreOf = (name: MenuName) => {
     if (name === "Replay") return 123.5 - 106;
@@ -74,6 +75,7 @@ export default function MessageMenu({
   const pick = (name: MenuName) => (e: React.MouseEvent) => {
     e.stopPropagation();
     if (name === "Edit" && !canEdit) return;
+    if (name === "Forward" && !canForward) return;
     setTip(name);
     onPick(name);
   };
@@ -88,20 +90,13 @@ export default function MessageMenu({
   } as const;
   return (
     <motion.div
-      ref={box}
       data-pw="demo-chat-menu"
       className="absolute z-20"
       // Out of the message's own corner, as on the iPhone.
-      initial={{ opacity: 0, scale: 0.35, y: -18 }}
+      initial={{ opacity: 0, scale: 0.3, y: -14 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.5, y: -10, transition: { duration: 0.16, ease: "easeIn" } }}
-      transition={{
-        type: "spring",
-        stiffness: 520,
-        damping: 34,
-        mass: 0.9,
-        delay: 0.04,
-      }}
+      exit={{ opacity: 0, scale: 0.5, y: -10, transition: { duration: 0.14, ease: "easeIn" } }}
+      transition={{ type: "spring", stiffness: 620, damping: 40, mass: 0.8 }}
       style={{
         top: "100%",
         // The Forward bar 12 px under the message, the boxes 12 px under it,
@@ -120,10 +115,12 @@ export default function MessageMenu({
           type="button"
           data-pw="demo-chat-menu-forward"
           aria-label={t("Forward")}
+          aria-disabled={!canForward}
           onClick={pick("Forward")}
           onPointerEnter={name("Forward")}
           className="absolute flex items-start cursor-pointer active:opacity-80"
           style={{
+            opacity: canForward ? 1 : 0.35,
             left: 131 - 106,
             top: -(40 + 12),
             width: 212,

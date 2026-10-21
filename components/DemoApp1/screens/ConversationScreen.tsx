@@ -9,7 +9,7 @@ import {
   isOpenable,
   previewOf,
   type ChatMessage,
-  type Openable,
+  type Holdable,
 } from "../../DemoApp/demoChatModel";
 import { useDemoChat } from "../../DemoApp/demoChatState";
 import { useDemoNav } from "../Demo1Shell";
@@ -22,7 +22,7 @@ import MessageMenu, {
   MENU_FADE,
   type MenuName,
 } from "../chat/MessageMenu";
-import MessageRow from "../chat/MessageRow";
+import MessageRow, { DIM_BLUR } from "../chat/MessageRow";
 import {
   Bubble,
   CallCard,
@@ -34,6 +34,7 @@ import {
   SmallPhoto,
   TypingBubble,
   VoiceMessage,
+  callWords,
 } from "../chat/messages";
 import Toast, { useToast } from "../chat/Toast";
 
@@ -55,13 +56,16 @@ import Toast, { useToast } from "../chat/Toast";
  * follows it, with the composer under the body (../chat/Composer.tsx) — the
  * file draws no composer, so that one is built from the boards' own parts.
  *
- * The gestures are WhatsApp's on the iPhone (../chat/MessageRow.tsx): pull a
- * message right to answer it; hold it to lift it, blur everything else and
- * pop its menu (../chat/MessageMenu.tsx). The menu's actions work on the
- * state: reply, forward (a sheet picks the chat), copy, delete, edit.
- * Category and re-remind say "Soon available". The body scrolls on its own
- * under the head, opens at its end, the newest message, and holds still
- * while a menu is open.
+ * The gestures are WhatsApp's on the iPhone (../chat/MessageRow.tsx, from
+ * the video of 2026-10-21): pull a message right to answer it; hold it to
+ * lift it over the dimmed chat and pop its menu (../chat/MessageMenu.tsx).
+ * Every message but a day pill has the menu — text, photo, voice, call
+ * cards, the note. Its actions work on the state: reply, forward (a sheet
+ * picks the chat), copy, delete, edit; Forward is dimmed on a call card or
+ * a note, Edit on anything but my own text. Category and re-remind say
+ * "Soon available". The body scrolls on its own under the head, opens at
+ * its end, the newest message, and holds still while a menu is open; a
+ * menu that would not fit moves its message instead of scrolling.
  */
 export default function ConversationScreen() {
   const { t, navigate, back } = useDemoNav();
@@ -71,6 +75,8 @@ export default function ConversationScreen() {
   const [menu, setMenu] = useState<string | null>(null);
   // The message above the blur: it stays up until the blur has faded out.
   const [lifted, setLifted] = useState<string | null>(null);
+  // How far the held message is moved so it and its menu are on the screen.
+  const [shift, setShift] = useState(0);
   const [context, setContext] = useState<ComposerContext | null>(null);
   const [forwarding, setForwarding] = useState<string | null>(null);
   const [toast, showToast] = useToast();
@@ -122,25 +128,52 @@ export default function ConversationScreen() {
     else el.style.removeProperty("overflow-y");
   }, [menu]);
 
+  // A menu that would run under the screen's end (or a message held while
+  // it is half above the head) moves the message, as WhatsApp does: the
+  // chat itself stays where it is. Measured once the menu is on the page,
+  // from the layout boxes (the menu's own pop-in transform is left out).
+  useLayoutEffect(() => {
+    const el = body.current;
+    if (!menu || !el) {
+      setShift(0);
+      return;
+    }
+    const row = el.querySelector<HTMLElement>(`[data-pw="demo-chat-message-${menu}"]`);
+    const box = row?.querySelector<HTMLElement>('[data-pw="demo-chat-menu"]');
+    if (!row || !box) return;
+    const page = el.getBoundingClientRect();
+    const top = row.getBoundingClientRect().top;
+    const menuBottom = top + box.offsetTop + box.offsetHeight;
+    let move = 0;
+    if (menuBottom > page.bottom - 8) move = page.bottom - 8 - menuBottom;
+    // The message itself must stay in view too.
+    if (top + move < page.top + 8) move = page.top + 8 - top;
+    setShift(Math.round(move));
+  }, [menu]);
+
   const close = () => setMenu(null);
 
   /** What a message says when it is quoted or previewed. */
-  const wordsOf = (m: Openable) =>
-    previewOf(m, { photo: t("Photo"), voice: t("voice message") });
+  const wordsOf = (m: Holdable) =>
+    m.kind === "call"
+      ? callWords(m, t)
+      : m.kind === "note"
+        ? m.text
+        : previewOf(m, { photo: t("Photo"), voice: t("voice message") });
 
-  const act = (name: MenuName, m: Openable) => {
+  const act = (name: MenuName, m: Holdable) => {
     close();
     switch (name) {
       case "Replay":
         setContext({
           kind: "reply",
           id: m.id,
-          name: m.side === "out" ? t("You") : CONTACT.name,
+          name: m.kind !== "note" && m.side === "out" ? t("You") : CONTACT.name,
           text: wordsOf(m),
         });
         return;
       case "Forward":
-        setForwarding(m.id);
+        if (isOpenable(m)) setForwarding(m.id);
         return;
       case "copy":
         void navigator.clipboard?.writeText(wordsOf(m)).catch(() => {});
@@ -259,13 +292,14 @@ export default function ConversationScreen() {
   );
 
   /** The menu of a message, when it is this message's. */
-  const menuOf = (m: Openable) => (
+  const menuOf = (m: Holdable) => (
     <AnimatePresence>
       {menu === m.id && (
         <MessageMenu
           key="menu"
-          side={m.side}
+          side={m.kind === "note" ? "in" : m.side}
           canEdit={m.kind === "text" && m.side === "out"}
+          canForward={isOpenable(m)}
           onPick={(name) => act(name, m)}
           t={t}
         />
@@ -273,10 +307,30 @@ export default function ConversationScreen() {
     </AnimatePresence>
   );
 
-  const open = (m: Openable) => {
+  const open = (m: Holdable) => {
     setMenu(m.id);
     setLifted(m.id);
   };
+
+  /** Blurs a block that is not the held message while a menu is open (the rows do it themselves). */
+  const dimStyle = (id: string): React.CSSProperties => ({
+    filter: menu && menu !== id ? `blur(${DIM_BLUR}px)` : "blur(0px)",
+    transition: `filter ${MENU_FADE}s ease-out`,
+  });
+
+  /** The row every message but a day pill sits in: it holds the gestures and the menu. */
+  const rowProps = (m: Holdable, gap: number) => ({
+    id: m.id,
+    side: m.kind === "note" ? ("in" as const) : m.side,
+    gap,
+    lifted: lifted === m.id,
+    shift: menu === m.id ? shift : 0,
+    dimmed: !!menu && menu !== m.id,
+    fresh: !atStart.current?.has(m.id),
+    onReply: () => act("Replay", m),
+    onHold: () => open(m),
+    menu: menuOf(m),
+  });
 
   /** The quoted message's time, for the quote above a reply. */
   const timeOf = (id: string, fallback: string) =>
@@ -290,7 +344,7 @@ export default function ConversationScreen() {
           key={m.id}
           layout="position"
           className="flex w-full shrink-0 justify-center"
-          style={{ marginTop: gap }}
+          style={{ marginTop: gap, ...dimStyle(m.id) }}
           initial={atStart.current?.has(m.id) ? false : { opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
         >
@@ -299,30 +353,23 @@ export default function ConversationScreen() {
       );
     if (m.kind === "note")
       return (
-        <motion.div key={m.id} layout="position" className="w-full shrink-0" style={{ marginTop: gap }}>
+        <MessageRow key={m.id} {...rowProps(m, gap)} wide>
           <Note text={m.text} />
-        </motion.div>
+        </MessageRow>
       );
     if (m.kind === "call")
       return (
-        <motion.div key={m.id} layout="position" className="w-full shrink-0" style={{ marginTop: gap }}>
+        <MessageRow key={m.id} {...rowProps(m, gap)} wide>
           <CallCard message={m} t={t} />
-        </motion.div>
+        </MessageRow>
       );
     const inn = m.side === "in";
     const isOpen = menu === m.id;
     const row = (
       <MessageRow
         key={m.id}
-        id={m.id}
-        side={m.side}
-        gap={m.kind === "text" && m.replyTo ? 0 : gap}
-        lifted={lifted === m.id}
-        fresh={!atStart.current?.has(m.id)}
+        {...rowProps(m, m.kind === "text" && m.replyTo ? 0 : gap)}
         wide={m.kind === "voice"}
-        onReply={() => act("Replay", m)}
-        onHold={() => open(m)}
-        menu={menuOf(m)}
       >
         {m.kind === "voice" ? (
           <VoiceMessage
@@ -370,7 +417,7 @@ export default function ConversationScreen() {
           key={`${m.id}-quote`}
           layout="position"
           className="w-full shrink-0"
-          style={{ marginTop: gap }}
+          style={{ marginTop: gap, ...dimStyle(m.id) }}
           initial={atStart.current?.has(m.id) ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, transition: { duration: 0.15 } }}
@@ -409,9 +456,11 @@ export default function ConversationScreen() {
       bottom={bottom}
     >
       <div className="relative flex flex-col w-full">
-        {/* Blurs the conversation under the open menu and closes it on a
-          click: over the whole body, so it scrolls with it. The lifted
-          message and its menu sit above it. */}
+        {/* The grey wash over the conversation while a menu is open; a
+          click on it closes the menu. Over the whole body, so it scrolls
+          with it; the lifted message and its menu sit above it. The blur
+          is on the rows themselves (dimStyle, MessageRow `dimmed`): a
+          backdrop-filter here reaches none of them in Chromium. */}
         <AnimatePresence onExitComplete={() => setLifted(null)}>
           {menu && (
             <motion.div
@@ -423,7 +472,8 @@ export default function ConversationScreen() {
               exit={{ opacity: 0 }}
               transition={{ duration: MENU_FADE, ease: "easeOut" }}
               style={{
-                background: "rgba(0,0,0,0.08)",
+                // The grey wash of the video, with a light blur.
+                background: "rgba(0,0,0,0.12)",
                 backdropFilter: `blur(${MENU_BLUR}px)`,
                 WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
               }}
@@ -434,7 +484,7 @@ export default function ConversationScreen() {
 
         <div
           className="flex items-start w-full shrink-0"
-          style={{ marginTop: 4 }}
+          style={{ marginTop: 4, ...dimStyle("") }}
         >
           <Dot color={C.purple} ml={4} mt={10} />
           <SmallPhoto src={CHAT_PHOTOS.contact} ml={2} line={1} />
@@ -449,7 +499,7 @@ export default function ConversationScreen() {
               key="typing"
               layout="position"
               className="w-full shrink-0"
-              style={{ marginTop: 12, transformOrigin: "left bottom" }}
+              style={{ marginTop: 12, transformOrigin: "left bottom", ...dimStyle("") }}
               initial={{ opacity: 0, scale: 0.7 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.7, transition: { duration: 0.15 } }}

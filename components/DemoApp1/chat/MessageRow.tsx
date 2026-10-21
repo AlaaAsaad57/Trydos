@@ -18,6 +18,9 @@ export const REPLY_PULL = 56;
 /** How long a finger must rest on a message, in ms, to open its menu. */
 export const HOLD_MS = 420;
 
+/** The blur on the other messages while a menu is open, in px. */
+export const DIM_BLUR = 3;
+
 /**
  * One message's row, with the two gestures WhatsApp gives a message on the
  * iPhone:
@@ -32,7 +35,12 @@ export const HOLD_MS = 420;
  *
  * `gap` is the room above the row; `lifted` keeps the row above the blur
  * while its menu is open or fading; `fresh` pops a message that was just
- * sent or received out of its own side.
+ * sent or received out of its own side. `shift` moves the row up (or down)
+ * while its menu is open, so the message and the menu are both on the
+ * screen: WhatsApp moves the held message rather than scrolling the chat.
+ * `dimmed` blurs the row while another message's menu is open: the body's
+ * backdrop-filter does not reach the rows in Chromium, a filter on each
+ * row does.
  */
 export default function MessageRow({
   id,
@@ -41,6 +49,8 @@ export default function MessageRow({
   lifted = false,
   fresh = false,
   wide = false,
+  shift = 0,
+  dimmed = false,
   canReply = true,
   onReply,
   onHold,
@@ -54,6 +64,10 @@ export default function MessageRow({
   fresh?: boolean;
   /** The message takes the whole width (a voice message draws its own rows). */
   wide?: boolean;
+  /** How far the row is moved, in px, while its menu is open. */
+  shift?: number;
+  /** Another message's menu is open: this row is blurred under the wash. */
+  dimmed?: boolean;
   canReply?: boolean;
   onReply?: () => void;
   onHold?: () => void;
@@ -121,7 +135,12 @@ export default function MessageRow({
         transformOrigin: inn ? "left bottom" : "right bottom",
       }}
       initial={fresh ? { opacity: 0, scale: 0.7, y: 16 } : false}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
+      animate={{
+        opacity: 1,
+        scale: 1,
+        y: shift,
+        filter: dimmed ? `blur(${DIM_BLUR}px)` : "blur(0px)",
+      }}
       exit={{ opacity: 0, scale: 0.6, transition: { duration: 0.18 } }}
       transition={{ type: "spring", stiffness: 480, damping: 32, mass: 0.9 }}
     >

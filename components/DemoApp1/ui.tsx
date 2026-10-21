@@ -571,7 +571,7 @@ export function ScreenPage({
         <div
           ref={bodyRef}
           data-pw={scrollBody ? "demo1-body" : undefined}
-          className={`flex flex-col w-full grow ${scrollBody ? "min-h-0 overflow-y-auto" : ""}`}
+          className={`flex flex-col w-full grow ${scrollBody ? "min-h-0 overflow-y-auto overflow-x-clip" : ""}`}
           style={{
             marginTop: header
               ? undefined
