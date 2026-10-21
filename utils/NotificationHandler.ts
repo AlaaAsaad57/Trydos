@@ -21,6 +21,7 @@ import auth from "services/auth";
 import {
   MARKET_NOTIFICATION_RECEIVED_EVENT,
   OPEN_DELIVERY_CHAT_EVENT,
+  REFRESH_ORDER_DETAILS_EVENT,
 } from "./notificationEvents";
 
 // --- Interfaces ---
@@ -129,6 +130,17 @@ class ForegroundNotificationHandler {
               order_id: message.order_id,
               chat_id: message.chat_id,
             },
+          }),
+        );
+      }
+    } else if (message.type === "REFRESH_ORDER_DETAILS") {
+      // Sent by the service worker when it focused a tab already open on the
+      // order an order-status card is about. Only that order's page reloads, so
+      // this must not touch the app-wide `shouldUpdateOrders` counter.
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent(REFRESH_ORDER_DETAILS_EVENT, {
+            detail: { order_group_id: message.order_group_id },
           }),
         );
       }

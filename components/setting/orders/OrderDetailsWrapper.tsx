@@ -43,7 +43,10 @@ import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import OrderChatIcon from "components/settings/OrderChatIcon";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-import { OPEN_DELIVERY_CHAT_EVENT } from "utils/notificationEvents";
+import {
+  OPEN_DELIVERY_CHAT_EVENT,
+  REFRESH_ORDER_DETAILS_EVENT,
+} from "utils/notificationEvents";
 import auth from "services/auth";
 import OrderOptionsMenu from "./OrderOptionsMenu";
 import OrderItemOptions from "./OrderItemOptions";
@@ -426,6 +429,20 @@ function OrderDetailsWrapper({
     window.addEventListener(OPEN_DELIVERY_CHAT_EVENT, handler);
     return () => window.removeEventListener(OPEN_DELIVERY_CHAT_EVENT, handler);
   }, [orderData, returnData, order_id, order_group_id]);
+
+  // When the service worker focuses this already-open tab for an order-status
+  // notification about this order group, load the order again so the new
+  // status shows.
+  useEffect(() => {
+    const handler = (e) => {
+      const detail = e?.detail || {};
+      if (String(detail.order_group_id) !== String(order_group_id)) return;
+      getOrderDetails();
+    };
+    window.addEventListener(REFRESH_ORDER_DETAILS_EVENT, handler);
+    return () =>
+      window.removeEventListener(REFRESH_ORDER_DETAILS_EVENT, handler);
+  }, [order_group_id, order_id, order_chat_id]);
   const ShowChats = () => {
     if (shouldShowChatIcon(ActivePack) && ActivePack?.order_status) {
       let arr = [];
