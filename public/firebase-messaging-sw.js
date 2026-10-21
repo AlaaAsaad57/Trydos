@@ -465,6 +465,11 @@ messaging.onBackgroundMessage(async function (payload) {
               }`,
               localePrefix,
             ),
+            // Markers consumed by the notificationclick handler to reuse a tab
+            // already open on this order's page and ask it to load the order
+            // again, instead of opening a second tab.
+            refreshOrderTab: true,
+            order_group_id: JSON.parse(payload.data.body).order_group_id,
           }, // The URL which we are going to use later
         };
         showMarketNotification(
@@ -699,10 +704,12 @@ messaging.onBackgroundMessage(async function (payload) {
   }
 });
 
-// Reuse an already-open tab that is on this order's detail page and ask it to
-// open the delivery-worker chat in place (no reload). Falls back to opening a
-// new tab when no matching tab exists.
-async function focusOrOpenOrderTab(notificationData, targetUrl) {
+// Reuse an already-open tab that is on this order's detail page, focus it and
+// post it `message` — OPEN_DELIVERY_CHAT for a delivery-worker chat (open the
+// chat in place, no reload), REFRESH_ORDER_DETAILS for an order-status card
+// (load the order again). Falls back to opening a new tab when no matching tab
+// exists, or when the tab cannot be focused or messaged.
+async function focusOrOpenOrderTab(notificationData, targetUrl, message) {
   const baseUrl = self.location.origin;
   const groupId = notificationData.order_group_id;
   try {
@@ -725,12 +732,7 @@ async function focusOrOpenOrderTab(notificationData, targetUrl) {
       if ("focus" in match) {
         await match.focus();
       }
-      match.postMessage({
-        type: "OPEN_DELIVERY_CHAT",
-        order_group_id: notificationData.order_group_id,
-        order_id: notificationData.order_id,
-        chat_id: notificationData.chat_id,
-      });
+      match.postMessage(message);
       return;
     }
   } catch (e) {
@@ -751,9 +753,26 @@ self.addEventListener("notificationclick", function (event) {
   if (!notificationData.callType) {
     if (notificationData.reuseTab) {
       // Delivery-worker chat: reuse an open order tab, else open a new one.
-      event.waitUntil(focusOrOpenOrderTab(notificationData, targetUrl));
+      event.waitUntil(
+        focusOrOpenOrderTab(notificationData, targetUrl, {
+          type: "OPEN_DELIVERY_CHAT",
+          order_group_id: notificationData.order_group_id,
+          order_id: notificationData.order_id,
+          chat_id: notificationData.chat_id,
+        }),
+      );
+    } else if (notificationData.refreshOrderTab) {
+      // Order status changed: reuse the open order tab and load it again,
+      // else open a new one.
+      event.waitUntil(
+        focusOrOpenOrderTab(notificationData, targetUrl, {
+          type: "REFRESH_ORDER_DETAILS",
+          order_group_id: notificationData.order_group_id,
+        }),
+      );
     } else {
-      clients.openWindow(targetUrl); // Android needs explicit close.
+      // Keep the worker alive until the new tab has been requested.
+      event.waitUntil(clients.openWindow(targetUrl)); // Android needs explicit close.
     }
   }
   switch (event.action) {
