@@ -12,7 +12,7 @@ created_at: 2026-10-21
 updated_at: 2026-10-21
 links:
   clickup: ""
-  github: ""
+  github: "https://github.com/AlaaAsaad57/Trydos/pull/144"
 ---
 
 # Ticket Record — order-notification-reuse-tab
