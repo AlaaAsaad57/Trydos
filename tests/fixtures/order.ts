@@ -60,6 +60,8 @@ export function buildOrderLine(overrides: Partial<OrderLine> = {}): OrderLine {
     comments: null,
     is_reported: false,
     allow_return_in_days: 1,
+    return_days_limit: 1,
+    can_return_product: false,
     is_hidden: false,
     ...overrides,
   };

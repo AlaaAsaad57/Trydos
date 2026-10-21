@@ -124,9 +124,16 @@ export interface OrderInterface {
     odoo_order_id: number;
     comments: any;
     is_reported?: boolean;
-    // Days allowed to return this product after delivery. 1 => "24 Hours",
-    // >1 => "<n> Days". Display only — never gates whether return is allowed.
+    // Old return-days field, kept by the backend for old app versions. It is 0
+    // when the product has no category. The return row reads
+    // `return_days_limit` instead.
     allow_return_in_days?: number | string;
+    // Days after delivery this line can be returned: the deepest category's
+    // days, or the store setting when there is no category.
+    return_days_limit?: number;
+    // True when this line can be added to a return request now. False for a
+    // line already in a return request (that line follows edit_return_request).
+    can_return_product?: boolean;
     // Whether this individual product line was hidden (CO-22 item-level hide).
     // Present on the getHiddenOrders response so the Hidden-Orders view can dim
     // the specific tile and offer a per-product restore.
