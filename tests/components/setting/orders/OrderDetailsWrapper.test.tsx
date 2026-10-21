@@ -126,7 +126,10 @@ vi.mock("components/settings/cards/OrderItemsList", () => ({
 }));
 
 import OrderDetailsWrapper from "components/setting/orders/OrderDetailsWrapper";
-import { OPEN_DELIVERY_CHAT_EVENT } from "utils/notificationEvents";
+import {
+  OPEN_DELIVERY_CHAT_EVENT,
+  REFRESH_ORDER_DETAILS_EVENT,
+} from "utils/notificationEvents";
 import { buildOrder, buildOrderLine } from "../../../fixtures/order";
 import { routerSpies } from "../../../mocks/nextNavigation";
 import { renderWithProviders, screen, userEvent, waitFor, fireEvent } from "../../../render";
@@ -847,6 +850,64 @@ describe("the delivery chat", () => {
       );
     },
   );
+});
+
+// The service worker sends this when the shopper clicks an order-status
+// notification and this tab is already open on that order: the tab must load
+// the order again, so it shows the status the notification is about.
+describe("a refresh request from the service worker", () => {
+  it("reloads the order and shows the new status when the service worker asks this tab to refresh", async () => {
+    orderService.getOrderDetails
+      .mockResolvedValueOnce([buildOrder()])
+      .mockResolvedValueOnce([
+        buildOrder({ order_group_status: { value: "shipped", label: "Shipped" } }),
+      ]);
+    await renderPage();
+    await screen.findByTestId("order-items-list");
+
+    await act(async () => {
+      window.dispatchEvent(
+        new CustomEvent(REFRESH_ORDER_DETAILS_EVENT, {
+          detail: { order_group_id: "test-order-group" },
+        }),
+      );
+    });
+
+    await waitFor(() =>
+      expect(
+        orderService.getOrderDetails,
+        "the refresh request did not load the order again",
+      ).toHaveBeenCalledTimes(2),
+    );
+    expect(
+      orderService.getOrderDetails.mock.calls[1]?.[0],
+      "the refresh loaded a different order group than the one on screen",
+    ).toBe("test-order-group");
+    expect(
+      await screen.findByText("Shipped"),
+      "after the refresh the page still does not show the new status",
+    ).toBeInTheDocument();
+  });
+
+  it("ignores a refresh request for another order group", async () => {
+    orderService.getOrderDetails.mockResolvedValue([buildOrder()]);
+    await renderPage();
+    await screen.findByTestId("order-items-list");
+
+    await act(async () => {
+      window.dispatchEvent(
+        new CustomEvent(REFRESH_ORDER_DETAILS_EVENT, {
+          detail: { order_group_id: "other-group" },
+        }),
+      );
+      window.dispatchEvent(new CustomEvent(REFRESH_ORDER_DETAILS_EVENT));
+    });
+
+    expect(
+      orderService.getOrderDetails,
+      "the page reloaded for a refresh request about another order group",
+    ).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("a delivered order", () => {
