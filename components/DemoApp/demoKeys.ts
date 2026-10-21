@@ -306,6 +306,7 @@ export const DEMO_KEYS = [
   "Microphone",
   "Camera",
   "Play",
+  "Pause",
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];

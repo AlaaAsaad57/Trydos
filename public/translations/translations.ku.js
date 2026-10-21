@@ -1889,6 +1889,7 @@ const translations = {
   "Discount Price": "نرخی داشکاندن",
   "Download": "داگرتن",
   "Play": "لێدان",
+  "Pause": "وەستاندن",
   "This video format is not supported. Send an MP4 video instead.": "ئەم جۆرە ڤیدیۆیە پاڵپشتی ناکرێت. لەبری ئەوە ڤیدیۆیەکی MP4 بنێرە.",
   "This video cannot play here. Tap to download it.": "ئەم ڤیدیۆیە لێرە لێنادرێت. دەستی لێبدە بۆ داگرتنی.",
   "Drop images here": "وێنەکان لێرە دابنێ",

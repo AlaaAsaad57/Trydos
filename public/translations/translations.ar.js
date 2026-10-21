@@ -1857,6 +1857,7 @@ const translations = {
   "Discount Price": "سعر الخصم",
   "Download": "تنزيل",
   "Play": "تشغيل",
+  "Pause": "إيقاف مؤقت",
   "This video format is not supported. Send an MP4 video instead.": "صيغة الفيديو هذه غير مدعومة. أرسل فيديو بصيغة MP4 بدلاً من ذلك.",
   "This video cannot play here. Tap to download it.": "لا يمكن تشغيل هذا الفيديو هنا. اضغط لتنزيله.",
   "Drop images here": "أفلت الصور هنا",

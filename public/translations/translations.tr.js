@@ -1864,6 +1864,7 @@ const translations = {
   "Discount Price": "İndirimli Fiyat",
   "Download": "İndir",
   "Play": "Oynat",
+  "Pause": "Duraklat",
   "This video format is not supported. Send an MP4 video instead.": "Bu video biçimi desteklenmiyor. Bunun yerine MP4 formatında bir video gönderin.",
   "This video cannot play here. Tap to download it.": "Bu video burada oynatılamıyor. İndirmek için dokunun.",
   "Drop images here": "Görselleri buraya bırakın",
