@@ -14,7 +14,7 @@ What is left is small. It splits into three groups:
 | Group | Score | What is left |
 |---|:-:|---|
 | Code | 95 | 3 small fixes, about one day of work |
-| Product decisions | 50 | 9 decisions. Each one is "hide it or finish it". Hiding takes an hour each |
+| Product decisions | 50 | 10 decisions. Each one is "hide it or finish it". Hiding takes an hour each |
 | Legal text | 40 | The real text for 4 pages, in 4 languages |
 
 ## What is still open
@@ -27,7 +27,7 @@ What is left is small. It splits into three groups:
 | 2 | Every order sends the text "order note"; send none, or add a real note field |
 | 3 | The "invite a friend" text: translate it and use the real Play Store id |
 
-### 2. Product decisions (9)
+### 2. Product decisions (10)
 
 Each item below is live in the app today but not finished. The decision is **hide it** (one hour each) or **finish it** (days to weeks).
 
@@ -42,6 +42,7 @@ Each item below is live in the app today but not finished. The decision is **hid
 | 7 | Card and crypto at launch: offered or not | Both show at checkout; no real payment was ever tested |
 | 8 | Play Store id for the invite text | The invite points at a placeholder id |
 | 9 | Demo and test pages: remove or hide | Design demos and tester pages can be opened by anyone |
+| 10 | "Only This Piece" tag: remove it, or show it only when one piece is left | Every photo of every product says "Only This Piece", even when many are in stock |
 
 ### 3. Legal text (Product writes)
 
@@ -49,7 +50,7 @@ The Privacy Policy, Terms of Service, About and Contact pages exist and every li
 
 ## What moves the number fastest
 
-1. **One meeting with Product** on the 9 decisions. If every item is "hide it", Frontend closes all of them in a day. That alone is worth about 15 points.
+1. **One meeting with Product** on the 10 decisions. If every item is "hide it", Frontend closes all of them in a day. That alone is worth about 15 points.
 2. **The legal text.** Worth about 10 points, and it does not depend on anyone else.
 3. **The 3 code fixes.** One day, worth about 3 points.
 

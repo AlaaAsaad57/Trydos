@@ -3,12 +3,19 @@
 A list of test cases for **Stories**. No coding needed. Follow the steps and
 compare what you see with the **Expected** line.
 
-Stories appear in three places:
+**Checked against the code:** branch `development`, 2026-10-20.
+
+Stories appear in four places:
 
 1. **Home stories bar** — the row of story cards on the home page and on
    category pages.
 2. **Product stories** — the "Product Story" row on a product page.
-3. **Seller shop stories** — the **Stories** tab inside the Seller Dashboard.
+3. **Chat window → Stories tab** — a list of people with stories inside the
+   chat window.
+4. **Seller shop stories** — the **Stories** tab inside the Seller Dashboard.
+
+Places 1, 2 and 3 open the **same full-screen viewer**. Test the viewer once
+(section 3) and then only check that each place opens it.
 
 ---
 
@@ -20,7 +27,7 @@ Read these first. Most cases below check one of these rules.
 
 - The **"+"** card in the home stories bar appears **only** when the account
   profile is marked as allowed to upload stories. The app only reads that flag.
-  The rule that decides who gets it lives in the backend — **ask the team**
+  The rule that decides who gets it lives in the backend — **only customers which had at leaast one deleivered order**
   which accounts get it.
 - In the Seller Dashboard, the **Stories** tab and its buttons follow three
   permissions:
@@ -30,12 +37,17 @@ Read these first. Most cases below check one of these rules.
 
 **Media rules (same in the home flow and the seller shop flow)**
 
-- Max file size: **10 MB**.
-- Video max length: **1 minute**.
+- Max file size: **10 MB**. Message: **"File size should not exceed 10 MB"**.
+- Video max length: **1 minute**. Message: **"1 minutes video only"**.
+  - Home flow: a video of **60 seconds or more** is refused.
+  - Seller flow: a video of **more than 60 seconds** is refused.
 - The file picker offers only: **jpg, jpeg, png, gif, mp4, mov, 3gp, avi**.
-- **SVG images are refused.**
+- **SVG images are refused** with **"SVG Images Not Allowed"**.
 - Every photo goes through a **Crop Image** screen before it can be shared.
   Videos do not.
+- The in-app camera records in the format the browser supports: **WebM** where
+  the browser can, otherwise **MP4** (Safari before 18.4). A browser that cannot
+  record at all shows **"Not Supported"**.
 
 **Link rules**
 
@@ -44,16 +56,22 @@ Read these first. Most cases below check one of these rules.
 - A link with no dot in it (for example `example`) is refused with the message
   **"Please enter a valid URL (e.g., example.com or www.example.com)"**.
 - While the link is wrong, the **Share Story** button stays disabled.
+- Any website is allowed. The app does not check where the link goes.
 
 **Viewing rules**
 
 - Each photo shows for **5 seconds**. A video shows for its own length.
 - A person with **no stories** never appears in the bar.
-- Story views are counted **only when you are signed in**. As a guest, opening a
-  story does not raise the view count.
+- A person with **no name** is shown as **"Unknown"** (translated). The phone
+  number is **never** shown as a name — if you see one, report it.
+- Story views are counted **only when you are signed in**, and **once per
+  story**. As a guest, opening a story does not raise the view count.
 - The **report** flag appears only when you are signed in, and only on **other
   people's** stories.
 - The **delete** (bin) icon appears only on **your own** stories.
+- If the stories service is down, the bar shows **no cards** (only the "+" card
+  for an allowed account). There is no error message, and the rest of the page
+  keeps working.
 
 ---
 
@@ -71,9 +89,8 @@ Read these first. Most cases below check one of these rules.
 ### HS-3 — Card contents
 1. Look at any story card.
 2. **Expected:** a picture, the person's name at the bottom, and a small round
-   avatar at the top corner. If the person has no name, the phone number is
-   shown; if there is neither, it shows **"Unknown"**.
-.
+   avatar at the top corner. If the person has no name, the card shows
+   **"Unknown"**. A phone number must **never** appear as the name.
 
 ### HS-4 — The ring changes after you watch
 1. Open a person with one story, watch it, and close the viewer.
@@ -82,6 +99,7 @@ Read these first. Most cases below check one of these rules.
 ### HS-5 — The card picture
 1. Open one story of a person who has several, then close the viewer.
 2. **Expected:** the card now shows the first story you have **not** seen.
+   Your **own** card always shows your **newest** story.
 
 ### HS-6 — More people load while scrolling
 1. Scroll the bar sideways to the end.
@@ -96,9 +114,10 @@ Read these first. Most cases below check one of these rules.
 1. Switch the language to Arabic (or Kurdish).
 2. **Expected:** the bar starts from the **right** side and scrolls to the left.
 
+
 ---
 
-## 3. Story viewer (home and product pages)
+## 3. Story viewer (home, product page and chat Stories tab)
 
 ### SV-1 — Open a story
 1. Tap any story card.
@@ -108,12 +127,15 @@ Read these first. Most cases below check one of these rules.
 
 ### SV-2 — The story time label
 1. Open a story added today, then one added earlier.
-2. **Expected:** today shows **"Today | 14:03"**, the day before shows
-   **"Yesterday | 14:03"**, and an older one shows **"05/03/2025 | 14:03"**.
+2. **Expected:** today shows **"Today | 14:03:27"** (hours, minutes and
+   seconds), the day before shows **"Yesterday | 14:03:27"**, and an older one
+   shows **"05/03/2025 | 14:03:27"**. The words **Today** and **Yesterday** are
+   translated.
 
 ### SV-3 — Which story opens first
 1. Tap **another person's** card.
-2. **Expected:** it starts from their **first** story.
+2. **Expected:** it starts from their **first story you have not seen**. If you
+   have seen them all, it starts from their first story.
 3. Tap **your own** card.
 4. **Expected:** it starts from your **newest** story.
 
@@ -131,17 +153,16 @@ Read these first. Most cases below check one of these rules.
 3. Open a video story.
 4. **Expected:** the video plays by itself and moves on when it finishes.
 
-
 ### SV-6 — Move between people
 1. Open a story and swipe **left** or **right**.
 2. **Expected:** the screen turns like a cube and the next (or previous)
-   person's stories open.
+   person's stories open, starting at **their** first unseen story (not at the
+   position of the person before).
 
 ### SV-7 — End of the last person
 1. Keep tapping the right half until the last story of the **last** person
    finishes.
 2. **Expected:** the viewer closes and you are back on the page.
-
 
 ### SV-8 — Close by swiping down
 1. Open a story and pull it **down** with your finger (or mouse).
@@ -190,6 +211,13 @@ Read these first. Most cases below check one of these rules.
    one).
 2. **Expected:** the loading circle stays and the story does not move on.
    Report what you see.
+
+### SV-17 — A view is counted once
+1. Signed in, open another person's story and watch it. Tap back to it with
+   the left half and watch it again.
+2. Ask the team (or the shop owner, in the Seller Dashboard) for the viewers
+   count of that story before and after.
+3. **Expected:** the count went up by **1**, not by 2.
 
 ---
 
@@ -254,13 +282,15 @@ Read these first. Most cases below check one of these rules.
 ### AS-11 — Other file types
 1. Open the file picker and look at the file types it offers.
 2. **Expected:** only jpg, jpeg, png, gif, mp4, mov, 3gp and avi can be chosen.
+3. If your device lets you force an **SVG** file through, pick one.
+4. **Expected:** the message **"SVG Images Not Allowed"** and nothing is added.
 
-### AS-12 — Video longer than one minute
-1. Pick a video that is longer than 1 minute.
+### AS-12 — Video of one minute or longer
+1. Pick a video that is **60 seconds or longer**.
 2. **Expected:** the video shows in the preview.
 3. Tap **Share Story**.
-4. **Expected:** the message **"1 minutes video only"** appears and the video is
-   **not** uploaded.
+4. **Expected:** the message **"1 minutes video only"** appears, the preview is
+   cleared, and the video is **not** uploaded.
 
 ### AS-13 — Share a short video
 1. Pick a video shorter than 1 minute and tap **Share Story**.
@@ -283,10 +313,11 @@ Read these first. Most cases below check one of these rules.
    `https://example.com`.
 
 ### AS-16 — Upload fails
-1. Turn the network off , then tap
-   **Share Story**.
+1. Turn the network off, then tap **Share Story**.
 2. **Expected:** the message **"Upload Failed Try Again"** appears, the Add
    Story screen stays open with your photo, and no story is added.
+3. If you see **"Error Uploading Story"** instead, report it with the exact
+   steps — that message means an unexpected error, not a network error.
 
 ### AS-17 — Take a photo with the camera
 1. In the Add Story screen tap **Take Photo**.
@@ -306,11 +337,16 @@ Read these first. Most cases below check one of these rules.
 5. Tap the blue share button.
 6. **Expected:** the camera closes and the video is in the Add Story preview.
    There is no crop screen for video.
+7. Tap **Share Story**.
+8. **Expected:** **"Story Uploaded"**, and the video story plays in the viewer.
+   Do this on **Chrome**, on **Safari 18.4 or newer**, and on an **older
+   Safari** (before 18.4). The older Safari records MP4, the others WebM. The
+   story must play in all three.
 
 ### AS-19 — Recording stops by itself
 1. Start recording and do not stop.
-2. **Expected:** the recording stops on its own at 1 minute and the preview
-   opens.
+2. **Expected:** the recording stops on its own at **59 seconds** and the
+   preview opens.
 
 ### AS-20 — Flip the camera
 1. In the camera screen tap the flip button on the left.
@@ -339,6 +375,19 @@ Read these first. Most cases below check one of these rules.
 2. **Expected:** the screen closes, nothing is uploaded, and when you open it
    again the preview and the link field are empty.
 
+### AS-25 — The bar keeps the people you already loaded
+1. Scroll the bar to the end until a second page of people has loaded (HS-6).
+   Note the name of a person from the end of the bar.
+2. Add a story (AS-8).
+3. **Expected:** after the bar reloads, your new story is in your card **and**
+   the person you noted is still in the bar. Nobody disappears.
+
+### AS-26 — Browser that cannot record video
+1. On a browser with no video recording (ask the team which one to use), open
+   the camera, go to **Video** and tap the red button.
+2. **Expected:** the message **"Not Supported"**. The red timer does **not**
+   start.
+
 ---
 
 ## 5. Delete your own story
@@ -355,7 +404,8 @@ Read these first. Most cases below check one of these rules.
    delete this story?"** with **Cancel** and **Confirm**. The story behind it
    stops and is hidden.
 3. Tap **Cancel**.
-4. **Expected:** the box closes and the story starts playing again.
+4. **Expected:** the box closes and the story starts playing again from the
+   same point.
 
 ### DL-3 — Delete one story out of several
 1. Open your own account which has 2 or more stories.
@@ -372,8 +422,9 @@ Read these first. Most cases below check one of these rules.
 
 ### DL-5 — Delete fails
 1. Ask the team to test with the stories service failing, then delete a story.
-2. **Expected:** an error message appears (for example **"Failed to delete
-   story."**) and the story stays. There is no success message.
+2. **Expected:** an error message appears (the backend's own message, or
+   **"Failed to delete story."**) and the story stays. There is no success
+   message.
 
 ---
 
@@ -457,10 +508,16 @@ Read these first. Most cases below check one of these rules.
 1. Tap a card in the **Product Story** row.
 2. **Expected:** the same full screen viewer opens. Tapping, swiping, closing,
    delete and report all work as in sections 3, 5 and 6.
+3. Close the viewer.
+4. **Expected:** you are back on the product page, and the home stories bar
+   (go back to the home page) still shows its own list.
 
 ### PS-4 — More product stories load
-1. Open a product that has more than 10 stories and scroll the row to the end.
-2. **Expected:** a loading circle shows and more cards are added.
+1. Open a product that has more than one page of stories (ask the team for
+   one) and scroll the row to the end.
+2. **Expected:** a loading circle shows and more cards are added. Repeat until
+   no more are added. The loading circle must **not** show when the product
+   has only one page.
 
 ### PS-5 — A product story with a link and a product
 1. Open a product story that carries both.
@@ -471,9 +528,65 @@ Read these first. Most cases below check one of these rules.
 1. Switch to Arabic (or Kurdish) and open the same product.
 2. **Expected:** the story row starts from the **right**.
 
+### PS-7 — Signed in for a long time
+1. Sign in, open a product with stories, wait **2 minutes** on the page, then
+   open another product with stories.
+2. **Expected:** the **Product Story** row is still there. (The row is a public
+   read; an expired token must not hide it.)
+
 ---
 
-## 8. Seller shop stories (Seller Dashboard → Stories tab)
+## 8. Chat window → Stories tab
+
+Open the chat window (the chat button in the app). It has three tabs: **Chats**,
+**Calls** and **Stories**. You must be signed in to use the chat window.
+
+### CS-1 — The tab loads
+1. Tap the **Stories** tab.
+2. **Expected:** five grey placeholder rows show first, then a list of people:
+   a small round picture and the person's name on each row.
+
+### CS-2 — The ring colour
+1. Look at the rows.
+2. **Expected:** a person with a story you did not watch has a **green** ring
+   round the picture; a person whose stories you have all seen has a **grey**
+   ring.
+
+### CS-3 — The row picture
+1. Compare a row with the same person's card in the home bar.
+2. **Expected:** the row shows the same story: your own row your **newest**
+   story, another person's row the first story you have **not** seen.
+
+### CS-4 — Open a story from the tab
+1. Tap a row.
+2. **Expected:** the same full screen viewer opens (section 3), starting at the
+   same story as from the home bar (SV-3).
+
+### CS-5 — More people load while scrolling
+1. Scroll the list down to the end.
+2. **Expected:** a small loading circle shows and more people are added. Repeat
+   until no more are added.
+
+### CS-6 — Name and "Unknown"
+1. Find a person with no name (ask the team for one).
+2. **Expected:** the row shows **"Unknown"**, never a phone number.
+
+### CS-7 — Signed in for a long time
+1. Open the Stories tab, wait **2 minutes**, then scroll to load more people.
+2. **Expected:** more people load as normal. The list does not go empty and
+   nobody disappears.
+
+### CS-8 — The tab reloads the list
+1. Scroll the home bar to the end so that a second page of people is loaded
+   (HS-6). Note a person from the end.
+2. Open the chat window and the **Stories** tab, then close the chat window.
+3. **Expected (known limit, see section 10):** the home bar may now show only
+   the first page; the person you noted comes back once you scroll the bar to
+   the end again. Report it only if the person never comes back.
+
+---
+
+## 9. Seller shop stories (Seller Dashboard → Stories tab)
 
 ### SS-1 — Who sees the tab
 1. Sign in with a user who has **no** `READ_STORY` permission for the shop and
@@ -485,8 +598,9 @@ Read these first. Most cases below check one of these rules.
 
 ### SS-2 — Open the tab
 1. Tap **Stories**.
-2. **Expected:** **"Loading stories..."** shows, then a grid of story cards. The
-   total number sits in a small round badge next to the title **Stories**.
+2. **Expected:** six grey placeholder tiles show, then a grid of story cards.
+   The total number sits in a small round badge next to the title **Stories**.
+   The address bar now ends with `?tab=stories`.
 
 ### SS-3 — What a card shows
 1. Look at any card.
@@ -510,8 +624,9 @@ Read these first. Most cases below check one of these rules.
 
 ### SS-6 — Loading fails
 1. Ask the team to test with the stories service failing.
-2. **Expected:** an error box with a **retry** button. Tapping retry loads the
-   same page again.
+2. **Expected:** an error box with the backend's message (or **"Failed to load
+   stories"**) and a **retry** button. Tapping retry loads the same page again.
+   The empty-shop text (SS-5) must **not** show in this case.
 
 ### SS-7 — Open one story
 1. Tap a story card.
@@ -521,7 +636,6 @@ Read these first. Most cases below check one of these rules.
 3. Tap the **X**, then open one again and tap outside the picture.
 4. **Expected:** it closes both times.
 
-
 ### SS-8 — Paging
 1. Open a shop with more than one page of stories.
 2. **Expected:** **Previous** and **Next** buttons with **"Page 1 of 3"**
@@ -529,6 +643,8 @@ Read these first. Most cases below check one of these rules.
 3. Tap **Next**, then **Previous**.
 4. **Expected:** the grid changes each time. **Previous** is disabled on page 1
    and **Next** is disabled on the last page.
+5. Open a shop with one page of stories.
+6. **Expected:** no paging buttons at all.
 
 ### SS-9 — The Add Story button follows the permission
 1. Sign in with a user who has `READ_STORY` but **not** `CREATE_STORY`.
@@ -579,8 +695,8 @@ Read these first. Most cases below check one of these rules.
 
 ### SS-17 — Link a product
 1. Tap **Link to Product**.
-2. **Expected:** a **Select Product** window opens. It shows **"Loading
-   products..."** first, then the shop's products.
+2. **Expected:** a **Select Product** window opens. It shows a loading state
+   first, then the shop's products.
 3. Scroll down and tap **Load more** if it is there.
 4. **Expected:** more products are added.
 5. Tap a product.
@@ -598,6 +714,9 @@ Read these first. Most cases below check one of these rules.
 1. Share a story with a linked product.
 2. **Expected:** the new card in the grid shows the product slug in green under
    the picture, and the story viewer shows **"Linked to product"** with it.
+3. Open the home page.
+4. **Expected:** the shop's story is in the home bar, and in the viewer it has
+   a **View Product** button that opens that product (SV-11).
 
 ### SS-20 — Upload fails
 1. Turn the network off (or ask the team to break the upload) and tap **Share
@@ -627,23 +746,67 @@ Read these first. Most cases below check one of these rules.
 
 ### SS-24 — Delete fails
 1. Ask the team to test with the stories service failing.
-2. **Expected:** an error message appears and the card stays in the grid.
+2. **Expected:** an error message appears (the backend's message, or **"Failed
+   to delete story"**) and the card stays in the grid.
+
+### SS-25 — Direct link to the tab
+1. Open the Stories tab, copy the address (it ends with `?tab=stories`), open a
+   new browser tab and paste it.
+2. **Expected:** the Seller Dashboard opens **on the Stories tab** straight
+   away, not on the dashboard home.
+3. Change `stories` in the address to a wrong word (for example `storiez`).
+4. **Expected:** the dashboard home opens, with no error.
+
+### SS-26 — Arabic and Kurdish direction
+1. Switch to Arabic (or Kurdish) and open the Stories tab.
+2. **Expected:** the tab is laid out right-to-left: the title and badge sit on
+   the right and the **Add Story** button on the left.
+3. Open **Add Story**, then **Link to Product**, then (with `DELETE_STORY`) the
+   **Delete** box on a card.
+4. **Expected:** all three windows are laid out right-to-left too.
 
 ---
 
-## 9. Language check (do this for every screen above)
+## 10. Known limits — do not report these as new bugs
+
+The team already knows these. Note them in your report only if they look
+**worse** than described here.
+
+- **Guest views are not counted.** A guest has no stories account, so watching
+  as a guest only greys the ring.
+- **A shopper cannot see the view count of their own story.** Only the Seller
+  Dashboard shows a viewers count.
+- **Video sound on iPhone.** A video story plays **with sound**. If the browser
+  blocks autoplay with sound, the video may stay still while the top bar runs
+  on. **This still needs a check on a real iPhone** (iOS 17 and iOS 18). If you
+  have one, test SV-5 and AS-13 on it and report the result either way.
+- **Picking a video from the gallery on iPhone** may end with **"Upload Failed
+  Try Again"** after about 10 seconds, because the browser gives the app no
+  video data to check the length. Also needs a real iPhone check — report what
+  you see.
+- **The chat Stories tab reloads the shared list** (CS-8). People from the
+  later pages of the home bar come back when you scroll the bar again.
+- **Screen-reader labels are English only** (the hidden names of the X, bin and
+  flag buttons). They are not part of the language check in section 11.
+- **Any link is allowed** on a story. The only control is the report button.
+
+---
+
+## 11. Language check (do this for every screen above)
 
 1. Switch the app language to **Arabic**, **Turkish** and **Kurdish**.
 2. **Expected:** every button, title, message and placeholder in the stories
-   screens is translated. Report any English word left on screen.
+   screens is translated, including **"Unknown"**, **"Today"**, **"Yesterday"**
+   and **"Not Supported"**. Report any English word left on screen.
 
 ---
 
-## 10. What to write in a bug report
+## 12. What to write in a bug report
 
 - Which case number failed (for example **AS-14**).
 - The account you used and whether it is a seller.
 - The language and the country you had selected.
-- The device and the browser.
+- The device, the browser and its version (for video cases, say whether Safari
+  is older or newer than 18.4).
 - What you expected and what happened.
 - A screenshot or a screen recording, and the exact message text if one showed.

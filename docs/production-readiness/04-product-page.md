@@ -1,7 +1,7 @@
 # Product page — Production readiness
 
 **Status:** 🟡 Ready with conditions
-**In one line:** The product page shows and sells the product correctly. The virtual try-on is fake (it waits 3 s and shows the shopper's own photo), and SEO links fall back to the dev domain when one env value is missing.
+**In one line:** The product page shows and sells the product correctly. The virtual try-on is fake (it waits 3 s and shows the shopper's own photo), every photo shows a fixed "Only This Piece" tag, and SEO links fall back to the dev domain when one env value is missing.
 **Checked:** branch `development`, commit `6a0265a1`, 2026-10-20 — from the code only.
 
 ## What this section is
@@ -72,9 +72,11 @@ Buyer comments, ratings and the FAQ also sit on this page. They are covered in t
 | M-9 | Bad JSON in `label_names` throws during render | The page shows the error screen | `components/Server/product/ProductFeaturesWrapper.tsx:10` | Frontend | No |
 | M-10 | Like and unlike send `user_id` from the browser in the body | Nothing visible; risk if the backend trusts this field | `ProductLikeButton.tsx:50`, `:87` | Backend | No — confirm (see questions) |
 | M-11 | `/api/related-products/[id]` has no cap on `limit` and allows any origin | Slow answers under abuse | `app/api/related-products/[id]/route.ts:70` | Frontend | No |
+| M-12 | Every product photo shows the tag "Only This Piece" (with a small dot), on every product, with no condition. The code never checks the stock or any product field. | "Only This Piece" on top of each photo, also on products with many pieces in stock. The shopper reads it as "this is the last one". | `components/products/ProductImageIndicator.tsx:12`; shown for every slide by `ProductPhotoSliderWrapper.tsx:300` | Product / Frontend | Yes — a false stock claim on every product; remove it, or show it only when the stock is 1 |
 
 ## 🔒 Must do before launch
 - [ ] Hide the virtual try-on button, or connect a real try-on service (M-1).
+- [ ] Remove the "Only This Piece" tag, or show it only when the stock is 1 (M-12). **Product decides.**
 - [x] M-2: the staging fallback is gone (2026-10-20). Still set `NEXT_PUBLIC_ALLOW_INDEXING=true` on the real domain only.
 - [ ] Get the backend's answer on the luck window and the like `user_id` (questions below). If the backend trusts the client, this becomes a blocker.
 
@@ -103,3 +105,4 @@ Buyer comments, ratings and the FAQ also sit on this page. They are covered in t
   - SEO metadata and JSON-LD on the built page;
   - the share sheet and the "notify me" topics on staging.
 - `TryOnModal.test.tsx:82` asserts the 3 s fake wait as correct behaviour. It has to change with M-1.
+- `tests/components/products/ProductImageIndicator.test.tsx` only checks that the tag is translated. It has to change with M-12.

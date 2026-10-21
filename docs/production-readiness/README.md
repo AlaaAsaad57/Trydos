@@ -28,7 +28,7 @@ None of these is a big rebuild. Most are small fixes, settings, or a product dec
 | 01 | [Home & discovery](01-home-and-discovery.md) | 🟡 | 22 | 1 | Elasticsearch client accepts any TLS certificate (needs the production cluster's certificate) |
 | 02 | [Search](02-search.md) | ✅ | 27 | 0 | Closed — image search runs on a live Gemini model since 2026-10-20; Ops values before launch |
 | 03 | [Listing & filters](03-listing-and-filters.md) | 🟡 | 24 | 2 | Price sort wrong in countries with their own price |
-| 04 | [Product page](04-product-page.md) | 🟡 | 31 | 1 | Virtual try-on is fake (waits 3 s, shows the shopper's own photo) |
+| 04 | [Product page](04-product-page.md) | 🟡 | 31 | 2 | Virtual try-on is fake (waits 3 s, shows the shopper's own photo); every photo shows a fixed "Only This Piece" tag |
 | 05 | [Reviews, questions & likes](05-reviews-questions-and-likes.md) | ✅ | 28 | 0 | Closed — accepted items are in `IMPORTANT-PRODUCTION-NOTES.md` |
 | 06 | [Cart](06-cart.md) | 🟡 | 32 | 1 | Backend must confirm it limits the luck price per shopper and does not trust `is_luck` from the browser |
 | 07 | [Checkout & payment](07-checkout-and-payment.md) | 🟡 | 27 | 3 | Every order sends the note "order note"; no proof of a real card or crypto gateway |
@@ -45,7 +45,7 @@ None of these is a big rebuild. Most are small fixes, settings, or a product dec
 | 18 | [Static pages & legal](18-static-pages-and-legal.md) | 🔴 | 17 | 4 | Placeholder legal text; no cookie consent; no support channel decision (the links are wired since 2026-10-20) |
 | 19 | [Languages, regions, SEO & monitoring](19-languages-regions-seo-and-monitoring.md) | 🟡 | 41 | 2 | Indexing not set; consent banner decision |
 | 20 | [Security & infrastructure](20-security-and-infrastructure.md) | 🔴 | 25 | 4 | No production backend; index TLS check off; no rollback plan or alerts |
-| | **Total** | | **572** | **38** | Some blockers appear in more than one file |
+| | **Total** | | **572** | **39** | Some blockers appear in more than one file |
 
 "Launch blockers" counts the rows marked "Blocks launch = Yes" in each file.
 
@@ -77,6 +77,7 @@ None of these is a big rebuild. Most are small fixes, settings, or a product dec
 - [x] JSON "success" toast removed from search (2026-10-20).
 - [x] Image search: move off `gemini-1.5-flash` (retired). (done 2026-10-20)
 - [ ] Hide or finish: wallet sheet, Bank Cards page, virtual try-on, QR login. **Product decides.**
+- [ ] The "Only This Piece" tag on every product photo: remove it, or show it only when the stock is 1 (`components/products/ProductImageIndicator.tsx`). **Product decides.**
 - [x] Developer "Notification Test" tab and the push debug block removed (2026-10-20).
 - [ ] Stop the fake note on real orders: `order_note=order note` (`services/order.ts`).
 - [x] Map pin checked on a real phone (2026-10-20).
