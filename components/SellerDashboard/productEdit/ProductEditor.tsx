@@ -62,7 +62,7 @@ import {
   SectionProps,
 } from "./sections";
 import { FormSkeleton } from "components/skeleton/loaders/SellerDashboardLoader";
-import { applyAiSuggestion, clearAiPrefill, peekAiPrefill } from "./aiPrefill";
+import { applyAiSuggestion, clearAiPrefill, peekAiPrefill, type AiPrefill } from "./aiPrefill";
 
 const t = (s: string) => translateFunction(s);
 
@@ -84,13 +84,15 @@ export default function ProductEditor({
 }) {
   const router = useRouter();
   const isCreate = mode === "create";
-  // "Add with AI" hand-off: read once into state (StrictMode-safe), then
-  // cleared so a later manual "Add Product" opens empty.
-  const [aiPrefill] = useState(() => (isCreate ? peekAiPrefill(sellerId) : null));
+  // "Add with AI" hand-off: taken on EVERY visit, not once at mount. With
+  // `cacheComponents`, Next keeps this page in <Activity> and shows the same
+  // editor again on the next push, so its state survives and only its effects
+  // re-run. The load effect peeks the hand-off into the ref; `load` clears it
+  // when done, so a later manual "Add Product" opens empty. The ref keeps it
+  // for a Retry on the same visit.
+  const aiPrefillRef = useRef<AiPrefill | null>(null);
+  const [aiPrefill, setAiPrefillState] = useState<AiPrefill | null>(null);
   const aiAnnounced = useRef(false);
-  useEffect(() => {
-    if (isCreate) clearAiPrefill(sellerId);
-  }, []);
   const { sellerProducts, sellerPermissions, setSellerPermissions } =
     useSellerProfile();
   const language = (local || "").includes("-") ? (local || "").split("-")[1] : (local || "");
@@ -228,13 +230,16 @@ export default function ProductEditor({
     setDenied(false);
     try {
       if (isCreate) {
+        const prefill = aiPrefillRef.current;
         const res = await SellerDashboardService.getProductCreateForm(sellerId);
         // Create lookups sit flat under `data`; the edit endpoint nests them
         // under `data.lookups`. Same datasets, different nesting.
         const lk = withSellerProductIds(res.data || {}, res.data);
         const empty = emptyProductForm();
         // AI values count as unsaved changes: `initial` stays the empty form.
-        const built = aiPrefill ? applyAiSuggestion(empty, aiPrefill) : empty;
+        const built = prefill ? applyAiSuggestion(empty, prefill) : empty;
+        aiAnnounced.current = false;
+        setAiPrefillState(prefill);
         baseLookups.current = lk;
         catCache.current = new Map();
         setLookups(lk);
@@ -271,11 +276,15 @@ export default function ProductEditor({
       if (/permission|forbidden|403/i.test(msg)) setDenied(true);
       else setLoadError(msg || t("Failed to load product"));
     } finally {
+      // Cleared only after the await, so StrictMode's second effect run still
+      // finds the hand-off; the ref keeps it for a Retry.
+      if (isCreate) clearAiPrefill(sellerId);
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (isCreate) aiPrefillRef.current = peekAiPrefill(sellerId);
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sellerId, productId]);
