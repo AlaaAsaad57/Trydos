@@ -20,9 +20,6 @@ export const REPLY_PULL = 56;
 /** How long a finger must rest on a message, in ms, to open its menu. */
 export const HOLD_MS = 420;
 
-/** The blur on the other messages while a menu is open, in px. */
-export const DIM_BLUR = 3;
-
 /** How long the light on a message reached from its quote lasts, in s. */
 export const FLASH_S = 1.6;
 
@@ -43,9 +40,9 @@ export const FLASH_S = 1.6;
  * sent or received out of its own side. `shift` moves the row up (or down)
  * while its menu is open, so the message and the menu are both on the
  * screen: WhatsApp moves the held message rather than scrolling the chat.
- * `dimmed` blurs the row while another message's menu is open: the body's
- * backdrop-filter does not reach the rows in Chromium, a filter on each
- * row does. `flash` lights the row up across the chat's width and fades it,
+ * `layoutKey` is what the row's place depends on (the chat's messages):
+ * framer measures every row again only when it changes, not on each render
+ * (a menu opening re-renders every row). `flash` lights the row up across the chat's width and fades it,
  * as WhatsApp marks the message a tapped quote jumps to; each new number
  * runs the light again, 0 runs none.
  */
@@ -57,7 +54,7 @@ export default function MessageRow({
   fresh = false,
   wide = false,
   shift = 0,
-  dimmed = false,
+  layoutKey,
   faded = false,
   marked = false,
   flash = 0,
@@ -76,8 +73,8 @@ export default function MessageRow({
   wide?: boolean;
   /** How far the row is moved, in px, while its menu is open. */
   shift?: number;
-  /** Another message's menu is open: this row is blurred under the wash. */
-  dimmed?: boolean;
+  /** Framer measures the row's place again only when this changes (see above). */
+  layoutKey?: unknown;
   /** A search is on and this message is not a match: the row goes pale. */
   faded?: boolean;
   /** The search's current match: a blue bar on the row's edge, as the list marks its open row. */
@@ -178,6 +175,7 @@ export default function MessageRow({
   return (
     <motion.div
       layout="position"
+      layoutDependency={layoutKey}
       data-pw={`demo-chat-message-${id}`}
       className={`relative flex items-start w-full shrink-0 ${inn ? "" : "justify-end"} ${lifted ? "z-20" : ""}`}
       style={{
@@ -189,7 +187,6 @@ export default function MessageRow({
         opacity: faded ? 0.35 : 1,
         scale: 1,
         y: shift,
-        filter: dimmed ? `blur(${DIM_BLUR}px)` : "blur(0px)",
       }}
       exit={{ opacity: 0, scale: 0.6, transition: { duration: 0.18 } }}
       transition={{ type: "spring", stiffness: 480, damping: 32, mass: 0.9 }}

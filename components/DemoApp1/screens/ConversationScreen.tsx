@@ -27,14 +27,17 @@ import Composer, { type ComposerContext } from "../chat/Composer";
 import ForwardSheet from "../chat/ForwardSheet";
 import MessageMenu, {
   MENU_BLUR,
+  MenuVeil,
   MENU_FADE,
   MENU_GAP,
   MENU_H,
+  menuHeight,
   REACTION_BAR_H,
   REACTION_GAP,
+  ReactionWarmup,
   type MenuName,
 } from "../chat/MessageMenu";
-import MessageRow, { DIM_BLUR } from "../chat/MessageRow";
+import MessageRow from "../chat/MessageRow";
 import {
   Bubble,
   CallCard,
@@ -84,6 +87,11 @@ import Toast, { useToast } from "../chat/Toast";
  * its end, the newest message, and holds still while a menu is open; a
  * menu that would not fit moves its message instead of scrolling.
  */
+/** Only a text I sent can be edited. */
+const canEditOf = (m: Holdable) => m.kind === "text" && m.side === "out";
+/** A call card or a note is not forwarded. */
+const canForwardOf = (m: Holdable) => isOpenable(m);
+
 export default function ConversationScreen() {
   const { t, navigate, back, locale } = useDemoNav();
   const {
@@ -167,41 +175,56 @@ export default function ConversationScreen() {
     // Only when the end of the chat changes.
   }, [lastId, typingNow]);
 
-  // The chat holds still while a menu is open, as on the iPhone. With
-  // `important`: the site's Tailwind utilities are `!important`, and the
-  // body's `overflow-y-auto` would win over a plain inline style.
+  // The chat holds still while a menu is open, as on the iPhone: the finger
+  // and the wheel are stopped. Not by switching the body to
+  // `overflow: hidden`: on the iPhone that takes the chat's scroll layer
+  // down and builds it again, so the whole chat is drawn again on the frame
+  // the menu opens and again when it closes, and the menu stuttered.
+  // `passive: false`: a passive listener cannot stop the scroll.
   useEffect(() => {
     const el = body.current;
-    if (!el) return;
-    if (menu) el.style.setProperty("overflow-y", "hidden", "important");
-    else el.style.removeProperty("overflow-y");
+    if (!el || !menu) return;
+    const hold = (e: Event) => {
+      if (e.cancelable) e.preventDefault();
+    };
+    el.addEventListener("touchmove", hold, { passive: false });
+    el.addEventListener("wheel", hold, { passive: false });
+    return () => {
+      el.removeEventListener("touchmove", hold);
+      el.removeEventListener("wheel", hold);
+    };
   }, [menu]);
 
-  // A menu that would run under the screen's end (or a message held while
-  // it is half above the head) moves the message, as WhatsApp does: the
-  // chat itself stays where it is. Measured once the menu is on the page,
-  // from the layout boxes (the menu's own pop-in transform is left out).
-  useLayoutEffect(() => {
+  /**
+   * How far a message moves while its menu is open. A menu that would run
+   * under the screen's end (or a message held while it is half above the
+   * head) moves the message, as WhatsApp does: the chat itself stays where
+   * it is. Worked out before the menu opens, from the row's box and the
+   * menu's known height, so the menu opens in one render: measuring the
+   * menu once it was on the page set the shift in a second render of the
+   * whole chat, on the same frame, and the menu stuttered.
+   */
+  const shiftFor = (m: Holdable) => {
     const el = body.current;
-    if (!menu || !el) {
-      setShift(0);
-      return;
-    }
-    const row = el.querySelector<HTMLElement>(`[data-pw="demo-chat-message-${menu}"]`);
-    const box = row?.querySelector<HTMLElement>('[data-pw="demo-chat-menu"]');
-    if (!row || !box) return;
+    const row = el?.querySelector<HTMLElement>(`[data-pw="demo-chat-message-${m.id}"]`);
+    if (!el || !row) return 0;
     const page = el.getBoundingClientRect();
-    const top = row.getBoundingClientRect().top;
-    const menuBottom = top + box.offsetTop + box.offsetHeight;
+    const box = row.getBoundingClientRect();
+    // The menu hangs MENU_GAP under the row (`top: 100%`).
+    const menuBottom =
+      box.bottom + MENU_GAP + menuHeight(canEditOf(m), canForwardOf(m));
     let move = 0;
     if (menuBottom > page.bottom - 8) move = page.bottom - 8 - menuBottom;
     // The emoji bar over the message must stay in view too.
-    const barTop = top - REACTION_GAP - REACTION_BAR_H;
+    const barTop = box.top - REACTION_GAP - REACTION_BAR_H;
     if (barTop + move < page.top + 8) move = page.top + 8 - barTop;
-    setShift(Math.round(move));
-  }, [menu]);
+    return Math.round(move);
+  };
 
-  const close = () => setMenu(null);
+  const close = () => {
+    setMenu(null);
+    setShift(0);
+  };
 
   /**
    * A tap on a quote: the chat scrolls the quoted message to its middle, and
@@ -423,12 +446,10 @@ export default function ConversationScreen() {
         height: 50,
         background: C.white,
         boxShadow: "0 0 3px rgba(0,0,0,0.1)",
-        filter: menu ? `blur(${MENU_BLUR}px)` : "blur(0px)",
-        transition: `filter ${MENU_FADE}s ease-out`,
       }}
     >
       {/* The head blurs with the page; a click on it closes the menu. */}
-      {menu && <div className="absolute inset-0 z-10" onClick={close} />}
+      <MenuVeil on={!!menu} onClick={close} testId="demo-chat-head-veil" />
       <button
         type="button"
         data-pw="demo-back"
@@ -527,8 +548,8 @@ export default function ConversationScreen() {
         <MessageMenu
           key="menu"
           side={m.kind === "note" ? "in" : m.side}
-          canEdit={m.kind === "text" && m.side === "out"}
-          canForward={isOpenable(m)}
+          canEdit={canEditOf(m)}
+          canForward={canForwardOf(m)}
           reaction={m.reaction}
           onPick={(name) => act(name, m)}
           onReact={(emoji) => {
@@ -546,15 +567,10 @@ export default function ConversationScreen() {
   );
 
   const open = (m: Holdable) => {
+    setShift(shiftFor(m));
     setMenu(m.id);
     setLifted(m.id);
   };
-
-  /** Blurs a block that is not the held message while a menu is open (the rows do it themselves). */
-  const dimStyle = (id: string): React.CSSProperties => ({
-    filter: menu && menu !== id ? `blur(${DIM_BLUR}px)` : "blur(0px)",
-    transition: `filter ${MENU_FADE}s ease-out`,
-  });
 
   /** The row every message but a day pill sits in: it holds the gestures and the menu. */
   const rowProps = (m: Holdable, gap: number) => ({
@@ -563,7 +579,7 @@ export default function ConversationScreen() {
     gap,
     lifted: lifted === m.id,
     shift: menu === m.id ? shift : 0,
-    dimmed: !!menu && menu !== m.id,
+    layoutKey: messages,
     faded: searching && query.trim() !== "" && !matches.includes(m.id),
     marked: current === m.id,
     flash: flash?.id === m.id ? flash.n : 0,
@@ -609,8 +625,9 @@ export default function ConversationScreen() {
         <motion.div
           key={m.id}
           layout="position"
+          layoutDependency={messages}
           className="flex w-full shrink-0 justify-center"
-          style={{ marginTop: gap, ...dimStyle(m.id) }}
+          style={{ marginTop: gap }}
           initial={atStart.current?.has(m.id) ? false : { opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
         >
@@ -715,8 +732,9 @@ export default function ConversationScreen() {
         <motion.div
           key={`${m.id}-quote`}
           layout="position"
+          layoutDependency={messages}
           className="w-full shrink-0"
-          style={{ marginTop: gap, ...dimStyle(m.id) }}
+          style={{ marginTop: gap }}
           initial={atStart.current?.has(m.id) ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, transition: { duration: 0.15 } }}
@@ -800,7 +818,7 @@ export default function ConversationScreen() {
         onSendFile={(file) => sendFile(chat.id, file)}
         onSendLocation={(point) => sendLocation(chat.id, point)}
         onToast={showToast}
-        blur={menu ? MENU_BLUR : 0}
+        veiled={!!menu}
         t={t}
       />
       )}
@@ -817,11 +835,13 @@ export default function ConversationScreen() {
       bottom={bottom}
     >
       <div className="relative flex flex-col w-full">
-        {/* The grey wash over the conversation while a menu is open; a
-          click on it closes the menu. Over the whole body, so it scrolls
-          with it; the lifted message and its menu sit above it. The blur
-          is on the rows themselves (dimStyle, MessageRow `dimmed`): a
-          backdrop-filter here reaches none of them in Chromium. */}
+        <ReactionWarmup />
+        {/* The grey wash and the blur over the conversation while a menu
+          is open; a click on it closes the menu. Over the whole body, so
+          it scrolls with it; the lifted message and its menu sit above it.
+          One backdrop-filter layer that only fades: a blur that grows on
+          every row is drawn again on every frame, and the menu stuttered
+          on the iPhone. */}
         <AnimatePresence onExitComplete={() => setLifted(null)}>
           {menu && (
             <motion.div
@@ -845,7 +865,7 @@ export default function ConversationScreen() {
 
         <div
           className="flex items-start w-full shrink-0"
-          style={{ marginTop: 4, ...dimStyle("") }}
+          style={{ marginTop: 4 }}
         >
           <Dot color={C.purple} ml={4} mt={10} />
           <SmallPhoto src={contact.photo} initials={contact.initials} ml={2} line={1} />
@@ -859,8 +879,9 @@ export default function ConversationScreen() {
             <motion.div
               key="typing"
               layout="position"
+              layoutDependency={messages}
               className="w-full shrink-0"
-              style={{ marginTop: 12, transformOrigin: "left bottom", ...dimStyle("") }}
+              style={{ marginTop: 12, transformOrigin: "left bottom" }}
               initial={{ opacity: 0, scale: 0.7 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.7, transition: { duration: 0.15 } }}

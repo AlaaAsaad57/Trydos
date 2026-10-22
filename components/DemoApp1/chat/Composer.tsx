@@ -18,6 +18,7 @@ import {
   SendIcon,
 } from "./chatIcons";
 import { clock } from "./messages";
+import { MenuVeil } from "./MessageMenu";
 
 /**
  * The composer at the end of a conversation. The XD file draws none, so
@@ -96,7 +97,7 @@ export default function Composer({
   onSendFile,
   onSendLocation,
   onToast,
-  blur,
+  veiled,
   t,
 }: {
   context: ComposerContext | null;
@@ -109,8 +110,8 @@ export default function Composer({
   onSendFile: (file: { src: string; name: string; bytes: number; mime?: string }) => void;
   onSendLocation: (point: { lat: number; lng: number; accuracy?: number }) => void;
   onToast: (text: string) => void;
-  /** The blur the page has while a message menu is open. */
-  blur: number;
+  /** A message menu is open: the composer is blurred with the page. */
+  veiled: boolean;
   t: (key: DemoKey) => string;
 }) {
   const [text, setText] = useState("");
@@ -267,10 +268,9 @@ export default function Composer({
         background: C.white,
         boxShadow: "0 0 3px rgba(0,0,0,0.1)",
         paddingBottom: SAFE_BOTTOM,
-        filter: blur ? `blur(${blur}px)` : "blur(0px)",
-        transition: "filter 0.22s ease-out",
       }}
     >
+      <MenuVeil on={veiled} testId="demo-chat-composer-veil" />
       <input
         ref={gallery}
         type="file"

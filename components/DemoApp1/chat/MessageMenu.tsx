@@ -1,7 +1,7 @@
 "use client";
 
 import type { DemoKey } from "../../DemoApp/demoKeys";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import React from "react";
 import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
 import { CHAT, MENU_ACTIONS } from "../../DemoApp/demoChat";
@@ -15,8 +15,68 @@ export type MenuName = (typeof MENU_ACTIONS)[number] | "Forward";
 export const MENU_BLUR = 4;
 export const MENU_FADE = 0.22;
 
+/**
+ * The blur over one part of the screen while a menu is open (the head, the
+ * composer): one backdrop-filter layer that only fades in and out. Never a
+ * `filter` that grows on each block: on the iPhone a blur that changes its
+ * size is drawn again on every frame for every block, and the menu stuttered.
+ * `onClick` makes the layer take the taps (a tap on the head closes the
+ * menu); without it a tap goes through, as before.
+ */
+export function MenuVeil({
+  on,
+  onClick,
+  testId,
+}: {
+  on: boolean;
+  onClick?: () => void;
+  testId?: string;
+}) {
+  return (
+    <AnimatePresence>
+      {on && (
+        <motion.div
+          key="veil"
+          data-pw={testId}
+          className="absolute inset-0 z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: MENU_FADE, ease: "easeOut" }}
+          style={{
+            backdropFilter: `blur(${MENU_BLUR}px)`,
+            WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
+            pointerEvents: onClick ? undefined : "none",
+          }}
+          onClick={onClick}
+        />
+      )}
+    </AnimatePresence>
+  );
+}
+
 /** The emojis of the bar over the held message, in the bar's order. */
 export const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🙏", "😘"] as const;
+
+/**
+ * The bar's emojis, drawn once when the chat opens and never seen. The
+ * first time a page lays out these emojis the browser has to find and load
+ * the emoji font, and that layout fell on the frame the first menu opened:
+ * measured at about 60 ms on a desktop, so the first menu stuttered.
+ * Drawn here, that work is done before any finger holds a message.
+ */
+export function ReactionWarmup() {
+  return (
+    <span
+      aria-hidden="true"
+      data-pw="demo-chat-reactions-warmup"
+      className="absolute left-0 top-0 whitespace-nowrap pointer-events-none select-none"
+      style={{ fontSize: 27, lineHeight: 1, opacity: 0 }}
+    >
+      {REACTIONS.join("")}
+    </span>
+  );
+}
 
 /** The bar's height (and its radius twice over), the gap under it to the message, in px. */
 export const REACTION_BAR_H = 44;
@@ -52,6 +112,10 @@ const ROWS: { name: MenuName; icon: XdIconName }[] = [
 
 /** The menu's full height, for the room the chat leaves under its last message. */
 export const MENU_H = MENU_ROW_H * (ROWS.length + 1) + MENU_BAND;
+
+/** The menu's height for a message: Forward and Edit go when it cannot take them (as the menu draws it). */
+export const menuHeight = (canEdit: boolean, canForward: boolean) =>
+  MENU_H - (canEdit ? 0 : MENU_ROW_H) - (canForward ? 0 : MENU_ROW_H);
 
 /**
  * An icon of the XD file in a colour of our own: the file's SVG as a mask
