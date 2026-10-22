@@ -1296,5 +1296,51 @@ describe("foreground handler — service worker messages", () => {
     window.removeEventListener(OPEN_DELIVERY_CHAT_EVENT, onOpen);
     delete (navigator as any).serviceWorker;
   });
+
+  // The worker sends this after it focused a tab already open on the order
+  // the clicked status card is about. Only that order's page may react: the
+  // app-wide `shouldUpdateOrders` counter must stay where it is, because the
+  // settings page, the orders list and the seller dashboard all watch it.
+  it("forwards an order refresh request to the order page, and nothing else", async () => {
+    let listener: ((event: any) => void) | undefined;
+    Object.defineProperty(navigator, "serviceWorker", {
+      value: {
+        addEventListener: (_type: string, fn: any) => {
+          listener = fn;
+        },
+      },
+      configurable: true,
+    });
+    vi.resetModules();
+    const { foregroundNotificationHandler } = await import(
+      "utils/NotificationHandler"
+    );
+    const { REFRESH_ORDER_DETAILS_EVENT } = await import("utils/notificationEvents");
+    const { useAppStore: freshStore } = await import("store");
+    const handleSpy = vi
+      .spyOn(foregroundNotificationHandler, "handleNotification")
+      .mockResolvedValue(undefined);
+    const refreshed = vi.fn();
+    const onRefresh = (e: any) => refreshed(e.detail);
+    window.addEventListener(REFRESH_ORDER_DETAILS_EVENT, onRefresh);
+
+    expect(listener, "no service-worker message listener was added").toBeDefined();
+    listener!({ data: { type: "REFRESH_ORDER_DETAILS", order_group_id: 12 } });
+
+    expect(
+      refreshed,
+      "the worker's refresh request for order 12 did not reach the order page",
+    ).toHaveBeenCalledWith({ order_group_id: 12 });
+    expect(
+      handleSpy,
+      "the refresh request was handled as a push, which raises toasts and counters",
+    ).not.toHaveBeenCalled();
+    expect(
+      freshStore.getState().shouldUpdateOrders,
+      "the refresh request raised the app-wide orders counter, so other screens reload too",
+    ).toBe(0);
+    window.removeEventListener(REFRESH_ORDER_DETAILS_EVENT, onRefresh);
+    delete (navigator as any).serviceWorker;
+  });
 });
 

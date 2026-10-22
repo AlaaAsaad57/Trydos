@@ -208,6 +208,33 @@ describe("Orders section — the list", () => {
     ).toBeInTheDocument();
   });
 
+  // BUG-seller-706 (fixed): `ordersLoading` started false and the fetch starts
+  // in an effect, which runs after the first paint. So the first paint said
+  // "No orders found" for a shop that has orders.
+  it("BUG-seller-706: never says there are no orders before the orders backend answers", async () => {
+    // The first paint is replaced before the test can look at the screen. A
+    // node that was drawn and then taken away still holds its text, so the
+    // removed nodes show what the seller saw for that moment.
+    const drawn: string[] = [];
+    const watcher = new MutationObserver((records) => {
+      for (const r of records) {
+        r.addedNodes.forEach((n) => drawn.push(n.textContent ?? ""));
+        r.removedNodes.forEach((n) => drawn.push(n.textContent ?? ""));
+      }
+    });
+    watcher.observe(document.body, { childList: true, subtree: true });
+    getSellerOrders.mockReturnValue(new Promise(() => {}));
+
+    await mount();
+    await Promise.resolve();
+    watcher.disconnect();
+
+    expect(
+      drawn.find((text) => text.includes("No Orders Found")) ?? null,
+      "the list said 'No Orders Found' while the orders call was still out",
+    ).toBeNull();
+  });
+
   it("shows the shop backend's own reason for refusing", async () => {
     getSellerOrders.mockResolvedValue({
       success: false,

@@ -514,6 +514,7 @@ export function ScreenPage({
   tabBar = false,
   scrollBody = false,
   bodyRef,
+  bottom,
   testId,
 }: {
   /** A CSS filter for the page and its head while a glass layer lies over them (the receipt). */
@@ -536,11 +537,14 @@ export function ScreenPage({
   scrollBody?: boolean;
   /** The scrolling body, when `scrollBody` (to open it at its end). */
   bodyRef?: React.Ref<HTMLDivElement>;
+  /** What stands under the body of a `scrollBody` page (the chat's composer). */
+  bottom?: React.ReactNode;
   testId?: string;
 }) {
   // The debug page colour (demoDebug.tsx) wins over the design's.
   const page = useDemoDebug().color ?? bg;
   usePageColor(page);
+  const visual = useVisualHeight(scrollBody);
   return (
     <div
       data-pw={testId}
@@ -548,7 +552,7 @@ export function ScreenPage({
       style={{
         background: page,
         minHeight: scrollBody ? undefined : "100dvh",
-        height: scrollBody ? "100dvh" : undefined,
+        height: scrollBody ? visual ?? "100dvh" : undefined,
       }}
     >
       <div
@@ -567,7 +571,7 @@ export function ScreenPage({
         <div
           ref={bodyRef}
           data-pw={scrollBody ? "demo1-body" : undefined}
-          className={`flex flex-col w-full grow ${scrollBody ? "min-h-0 overflow-y-auto" : ""}`}
+          className={`flex flex-col w-full grow ${scrollBody ? "min-h-0 overflow-y-auto overflow-x-clip" : ""}`}
           style={{
             marginTop: header
               ? undefined
@@ -580,10 +584,40 @@ export function ScreenPage({
         >
           {children}
         </div>
+        {bottom}
       </div>
       {footer && <PageFooter>{footer}</PageFooter>}
     </div>
   );
+}
+
+/**
+ * The height a `scrollBody` page takes while the phone's keyboard is up:
+ * the visual viewport's. On the iPhone the keyboard shrinks only the visual
+ * viewport, so a page that is `100dvh` tall keeps its bottom (the chat's
+ * composer) under the keys; this follows the keyboard instead. Undefined
+ * (so `100dvh`) with no keyboard, and on a page the document scrolls.
+ */
+function useVisualHeight(on: boolean): number | undefined {
+  const [height, setHeight] = React.useState<number | undefined>(undefined);
+  React.useEffect(() => {
+    const vv = typeof window !== "undefined" ? window.visualViewport : null;
+    if (!on || !vv) return;
+    const read = () => {
+      const shrunk = window.innerHeight - vv.height > 100;
+      setHeight(shrunk ? Math.round(vv.height) : undefined);
+      // iOS scrolls the page to show the field; the page is the screen here.
+      if (shrunk && window.scrollY) window.scrollTo(0, 0);
+    };
+    read();
+    vv.addEventListener("resize", read);
+    vv.addEventListener("scroll", read);
+    return () => {
+      vv.removeEventListener("resize", read);
+      vv.removeEventListener("scroll", read);
+    };
+  }, [on]);
+  return height;
 }
 
 /**

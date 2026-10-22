@@ -1908,7 +1908,10 @@ const RenderOrders = ({
   activeTab: string;
   setActiveTab:(s:any)=>void
 }) => {
-  const [ordersLoading, setOrdersLoading] = useState<boolean>(false);
+  // Starts true: this section mounts only to load the list, and the fetch
+  // starts in an effect, after the first paint. Starting false painted
+  // "No orders found" before the orders backend had answered.
+  const [ordersLoading, setOrdersLoading] = useState<boolean>(true);
   const [ordersError, setOrdersError] = useState<string | null>(null);
   const [orderStatusOptions, setOrderStatusOptions] = useState<string[]>([]);
   const [selectedOrderStatuses, setSelectedOrderStatuses] = useState<

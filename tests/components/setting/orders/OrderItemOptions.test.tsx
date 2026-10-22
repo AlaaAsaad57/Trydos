@@ -161,31 +161,95 @@ describe("which actions are offered", () => {
   });
 
   it("a delivered, returnable line offers return with a 24-hour window, and report", async () => {
-    await setup({ parentOrder: delivered({ can_return_order: true, can_change_variant: true }) });
-    expect(screen.getByText("Return This Product"), "return was not offered on a delivered line").toBeInTheDocument();
-    expect(screen.getByText("24 Hours"), "a one-day return window did not read 24 Hours").toBeInTheDocument();
+    // The line decides (can_return_product), not the order (can_return_order),
+    // and the window comes from return_days_limit, not allow_return_in_days.
+    await setup({
+      parentOrder: delivered({ can_return_order: false, can_change_variant: true }),
+      orderItem: buildOrderLine({ can_return_product: true, return_days_limit: 1, allow_return_in_days: 0 }),
+    });
+    expect(screen.getByText("Return This Product"), "return was not offered on a line the backend marks returnable").toBeInTheDocument();
+    expect(screen.getByText("24 Hours"), "a one-day return_days_limit did not read 24 Hours").toBeInTheDocument();
     expect(screen.getByText("Report This Product"), "report was not offered on a delivered order").toBeInTheDocument();
     expect(screen.queryByText("Change Product Request"), "change was offered on a delivered order").not.toBeInTheDocument();
   });
 
   it("a longer return window reads in days, and a reported line says so", async () => {
     await setup({
-      parentOrder: delivered({ can_return_order: true }),
-      orderItem: buildOrderLine({ allow_return_in_days: 7, is_reported: true }),
+      parentOrder: delivered(),
+      orderItem: buildOrderLine({ can_return_product: true, return_days_limit: 30, allow_return_in_days: 7, is_reported: true }),
       isRtl: true,
     });
-    expect(screen.getByText("7 Days"), "a seven-day return window did not read 7 Days").toBeInTheDocument();
+    expect(screen.getByText("30 Days"), "a 30-day return_days_limit did not read 30 Days").toBeInTheDocument();
+    expect(screen.queryByText("7 Days"), "the window was read from the old allow_return_in_days").not.toBeInTheDocument();
     expect(screen.getByText("We Received Your Report"), "a reported line did not say the report arrived").toBeInTheDocument();
   });
 
+  it("the window reads return_days_limit, not allow_return_in_days", async () => {
+    // A product with no category: the old field is 0, the new one falls back to
+    // the store setting.
+    await setup({
+      parentOrder: delivered(),
+      orderItem: buildOrderLine({ can_return_product: true, return_days_limit: 14, allow_return_in_days: 0 }),
+    });
+    expect(screen.getByText("14 Days"), "a 14-day return_days_limit did not read 14 Days").toBeInTheDocument();
+    expect(screen.queryByText("0 Days"), "the window read the old field's 0").not.toBeInTheDocument();
+  });
+
+  it("a line whose return days have ended offers no return, even when the order can still return", async () => {
+    await setup({
+      parentOrder: delivered({ can_return_order: true }),
+      orderItem: buildOrderLine({ can_return_product: false }),
+    });
+    expect(
+      screen.queryByText("Return This Product"),
+      "return was offered on a line the backend marks not returnable, because another line keeps the order returnable",
+    ).not.toBeInTheDocument();
+  });
+
+  it("a line without can_return_product offers no return — no fallback to can_return_order", async () => {
+    await setup({
+      parentOrder: delivered({ can_return_order: true }),
+      orderItem: buildOrderLine({ can_return_product: undefined }),
+    });
+    expect(
+      screen.queryByText("Return This Product"),
+      "return was offered on a line with no can_return_product (the app fell back to can_return_order)",
+    ).not.toBeInTheDocument();
+  });
+
+  it.each([0, null, undefined])(
+    "a returnable line with no usable window (%s) offers return without the window sentence",
+    async (days) => {
+      await setup({
+        parentOrder: delivered({ can_return_order: true }),
+        orderItem: buildOrderLine({ can_return_product: true, return_days_limit: days as any, allow_return_in_days: days as any }),
+      });
+      expect(screen.getByText("Return This Product"), `return was not offered when return_days_limit is ${days}`).toBeInTheDocument();
+      expect(
+        screen.queryByText(/Return This Product In/),
+        `the window sentence was shown when return_days_limit is ${days}`,
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/^(0|NaN) Days$/),
+        `a broken window text was shown when return_days_limit is ${days}`,
+      ).not.toBeInTheDocument();
+    },
+  );
+
   it("a delivered line with qty 0 offers no return", async () => {
-    await setup({ parentOrder: delivered({ can_return_order: true }), orderItem: buildOrderLine({ qty: 0 }) });
+    await setup({ parentOrder: delivered(), orderItem: buildOrderLine({ qty: 0, can_return_product: true }) });
     expect(screen.queryByText("Return This Product"), "return was offered on a cancelled line").not.toBeInTheDocument();
+  });
+
+  it("an order that is not delivered offers no return, even for a returnable line", async () => {
+    await setup({ parentOrder: buildOrder(), orderItem: buildOrderLine({ can_return_product: true }) });
+    expect(screen.queryByText("Return This Product"), "return was offered on an order not delivered").not.toBeInTheDocument();
   });
 
   it("a locked return request stops a new product being added", async () => {
     await setup({
       parentOrder: delivered({ can_return_order: true, order_has_return_request: true, edit_return_request: false }),
+      orderItem: buildOrderLine({ can_return_product: true }),
     });
     expect(screen.queryByText("Return This Product"), "a product could be added to a locked return").not.toBeInTheDocument();
   });
@@ -194,8 +258,11 @@ describe("which actions are offered", () => {
     [true, true],
     [false, false],
   ])("a product already in the return is offered an update only while the return is editable (%s)", async (editable, shown) => {
+    // The backend sends can_return_product: false for a line already in a
+    // return request, so only edit_return_request decides here.
     await setup({
-      parentOrder: delivered({ edit_return_request: editable }),
+      parentOrder: delivered({ edit_return_request: editable, can_return_order: true }),
+      orderItem: buildOrderLine({ can_return_product: false }),
       returnDetails: {
         return_requests_data: [{ order_id: 1, order_details: [{ detail_id: 1, already_return: true }] }],
       } as any,
@@ -261,7 +328,7 @@ describe("starting a return", () => {
     orderService.getReturnRequestDetails.mockResolvedValue({ order_details: [{ detail_id: 1 }] });
     let finishUpdate: () => void = () => {};
     const update = vi.fn(() => new Promise<void>((r) => (finishUpdate = r)));
-    const { props } = await setup({ parentOrder: delivered({ can_return_order: true }), update });
+    const { props } = await setup({ parentOrder: delivered(), orderItem: buildOrderLine({ can_return_product: true }), update });
     const user = userEvent.setup();
     await user.click(screen.getByText("Return This Product"));
     expect(screen.getByText("Initializing Return"), "no progress was shown while the return starts").toBeInTheDocument();
@@ -282,7 +349,7 @@ describe("starting a return", () => {
   it("says the product cannot be returned when the request does not include it", async () => {
     orderService.CreateReturnRequest.mockResolvedValue(50);
     orderService.getReturnRequestDetails.mockResolvedValue({ order_details: [{ detail_id: 99 }] });
-    await setup({ parentOrder: delivered({ can_return_order: true }) });
+    await setup({ parentOrder: delivered(), orderItem: buildOrderLine({ can_return_product: true }) });
     await userEvent.setup().click(screen.getByText("Return This Product"));
     await waitFor(() =>
       expect(showErrorNotification, "the shopper was not told the product cannot be returned").toHaveBeenCalledWith(
@@ -294,7 +361,7 @@ describe("starting a return", () => {
 
   it("jumps straight to the return screen for a pack that already has a request, and logs a failed create", async () => {
     orderService.CreateReturnRequest.mockResolvedValue(null);
-    await setup({ parentOrder: delivered({ can_return_order: true, return_request_id: 50 } as any) });
+    await setup({ parentOrder: delivered({ return_request_id: 50 } as any), orderItem: buildOrderLine({ can_return_product: true }) });
     await userEvent.setup().click(screen.getByText("Return This Product"));
     expect(screen.getByTestId("return-screen"), "a pack with a request did not open the return screen").toBeInTheDocument();
     await waitFor(() =>

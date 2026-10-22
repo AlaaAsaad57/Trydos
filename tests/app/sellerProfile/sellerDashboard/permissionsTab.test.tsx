@@ -190,6 +190,21 @@ describe("the Permissions tab role banner, on an arrival by URL", () => {
     ).toBeNull();
   });
 
+  // BUG-seller-707 (fixed): the header role chip did not wait for the
+  // permissions. While the call was still out, `sellerPermissions` was empty,
+  // so the chip said "Member" — to an admin as well — and then changed.
+  it("BUG-seller-707: says no role in the header while the permissions call is still out", async () => {
+    getSellerPermissions.mockReturnValue(new Promise(() => {}));
+
+    await arriveOnPermissionsTab();
+
+    const chip = document.querySelector('[data-pw="seller-dashboard-role"]');
+    expect(
+      chip?.textContent ?? null,
+      "the header chip named a role before the permissions call answered; it guesses 'Member' and changes when the answer arrives",
+    ).toBeNull();
+  });
+
   it("shows the Super Admin banner without waiting for a role name", async () => {
     // No shop_role in the answer: a Super Admin's banner does not need one.
     getSellerPermissions.mockResolvedValue(permissionsPayload(["SUPER_ADMIN"]));

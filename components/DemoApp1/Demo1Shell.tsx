@@ -22,6 +22,7 @@ import {
 } from "framer-motion";
 import DemoDeviceInfoModal from "NewLoginDesign/DemoDeviceInfoModal";
 import { DemoDataProvider, useDemoData } from "../DemoApp/DemoData";
+import { DemoChatProvider } from "../DemoApp/demoChatState";
 import { DebugButtons } from "../DemoApp/demoDebug";
 import type { DemoDictionary, DemoKey } from "../DemoApp/demoKeys";
 import {
@@ -240,62 +241,64 @@ function Demo1ShellInner({
 
   return (
     <NavCtx.Provider value={{ shown, navigate, back, locale, t }}>
-      <div
-        data-pw="demo1-app"
-        className="relative w-full mx-auto font-quicksand"
-        // `clip` and not `hidden`: it cuts the screen sliding in at the
-        // column's edges without making the column a scroll box, so the
-        // document still scrolls and the sticky headers still stick.
-        style={{ maxWidth: PAGE_MAX, minHeight: "100dvh", overflowX: "clip" }}
-      >
-        <AnimatePresence initial={false} custom={leave}>
-          <ScreenFrame key={key} id={key} leave={leave}>
-            {shown ? <Demo1ScreenView screen={shown} /> : children}
-          </ScreenFrame>
-        </AnimatePresence>
-      </div>
+      <DemoChatProvider t={t}>
+        <div
+          data-pw="demo1-app"
+          className="relative w-full mx-auto font-quicksand"
+          // `clip` and not `hidden`: it cuts the screen sliding in at the
+          // column's edges without making the column a scroll box, so the
+          // document still scrolls and the sticky headers still stick.
+          style={{ maxWidth: PAGE_MAX, minHeight: "100dvh", overflowX: "clip" }}
+        >
+          <AnimatePresence initial={false} custom={leave}>
+            <ScreenFrame key={key} id={key} leave={leave}>
+              {shown ? <Demo1ScreenView screen={shown} /> : children}
+            </ScreenFrame>
+          </AnimatePresence>
+        </div>
 
-      <Demo1BottomNav
-        active={shown && isTabRoot(shown) ? tabOf(shown) : null}
-        visible={showBar}
-        photo={profile.photo}
-        verified={profile.emailVerified}
-        resetKey={key}
-        onSelect={(tab) => navigate(tab)}
-        t={t}
-      />
+        <Demo1BottomNav
+          active={shown && isTabRoot(shown) ? tabOf(shown) : null}
+          visible={showBar}
+          photo={profile.photo}
+          verified={profile.emailVerified}
+          resetKey={key}
+          onSelect={(tab) => navigate(tab)}
+          t={t}
+        />
 
-      {/* The demo's own switches, as on the old scaled demo: the right edge, mid-height. */}
-      <div
-        data-pw="demo-controls"
-        className="fixed right-2 top-1/2 -translate-y-1/2 z-[999999999999] flex flex-col items-end gap-2 font-quicksand select-none"
-      >
-        <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 text-gray-800 flex items-center gap-1.5 backdrop-blur-sm cursor-pointer">
-          <input
-            type="checkbox"
-            checked={hideMenu}
-            onChange={(e) => setHideMenu(e.target.checked)}
-            className="accent-[#402CDD] cursor-pointer"
-          />
-          <span>{t("Hide menu")}</span>
-        </label>
-        {!hideMenu && (
-          <button
-            type="button"
-            aria-label={t("Device and browser info")}
-            onClick={() => setDeviceInfo(true)}
-            className="w-7 h-7 text-xs font-bold rounded-full bg-white/90 shadow border border-gray-200 text-[#402CDD] cursor-pointer"
-          >
-            i
-          </button>
-        )}
-        {!hideMenu && <DebugButtons t={t} />}
-      </div>
-      <DemoKeyboard locale={locale} t={t} />
-      <DemoDeviceInfoModal
-        open={deviceInfo}
-        onClose={() => setDeviceInfo(false)}
-      />
+        {/* The demo's own switches, as on the old scaled demo: the right edge, mid-height. */}
+        <div
+          data-pw="demo-controls"
+          className="fixed right-2 top-1/2 -translate-y-1/2 z-[999999999999] flex flex-col items-end gap-2 font-quicksand select-none"
+        >
+          <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 text-gray-800 flex items-center gap-1.5 backdrop-blur-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={hideMenu}
+              onChange={(e) => setHideMenu(e.target.checked)}
+              className="accent-[#402CDD] cursor-pointer"
+            />
+            <span>{t("Hide menu")}</span>
+          </label>
+          {!hideMenu && (
+            <button
+              type="button"
+              aria-label={t("Device and browser info")}
+              onClick={() => setDeviceInfo(true)}
+              className="w-7 h-7 text-xs font-bold rounded-full bg-white/90 shadow border border-gray-200 text-[#402CDD] cursor-pointer"
+            >
+              i
+            </button>
+          )}
+          {!hideMenu && <DebugButtons t={t} />}
+        </div>
+        <DemoKeyboard locale={locale} t={t} />
+        <DemoDeviceInfoModal
+          open={deviceInfo}
+          onClose={() => setDeviceInfo(false)}
+        />
+      </DemoChatProvider>
     </NavCtx.Provider>
   );
 }

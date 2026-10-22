@@ -1,27 +1,31 @@
 "use client";
 
 import type { DemoKey } from "../../DemoApp/demoKeys";
-import React, { useRef, useState } from "react";
-import { animate, motion, useMotionValue } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
+import { AnimatePresence, animate, motion, useMotionValue } from "framer-motion";
 import { TRAVEL } from "components/NavigationDemo/BottomNav";
 import XdIcon from "../../DemoApp/XdIcon";
 import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
 import {
-  CALL_ROWS,
   CHAT,
   CHAT_COUNTS,
   CHAT_PHOTOS,
-  CHAT_ROWS,
   CHAT_ROW_TIME,
   CONTACT,
   PREVIEW,
   PREVIEW_SHORT,
   type CallKind,
-  type ChatRow,
 } from "../../DemoApp/demoChat";
+import {
+  CALL_ROWS,
+  orderedChats,
+  type ChatThread,
+} from "../../DemoApp/demoChatModel";
+import { useDemoChat } from "../../DemoApp/demoChatState";
 import { useDemoNav } from "../Demo1Shell";
-import { C, fill, lineBox, paraTop, textTop } from "../demo1Layout";
-import { Icon, ScreenPage, Stroke, Txt } from "../ui";
+import { C, TAB_BAR, fill, lineBox, paraTop, textTop } from "../demo1Layout";
+import { Icon, ScreenPage, Stroke, Txt, useScrollLock } from "../ui";
+import Toast, { useToast } from "../chat/Toast";
 
 /**
  * Chat — XD `Home Page – 41` (the Chats tab), `– 42` (a row swiped left and
@@ -39,17 +43,22 @@ import { Icon, ScreenPage, Stroke, Txt } from "../ui";
  *     before its icon, on baseline 135.
  *
  * Chats: rows 430 x 100 from y 152, 2 px apart, white with a 0.3 `#D3D3D3`
- * line; the first row has a 0.5 `#4A31E7` line and a 4 px purple bar at its
- * left edge. The photo is 66 x 76 at (12, 12 in the row), radius 15 (a purple
- * 1 px line on the first row); the name 14 Medium at x 90 on baseline 26; the
- * time 11 Medium `#8D8D8D` ending 13 px before the right edge on baseline 23;
- * the preview 12 Regular, 17 px lines, 295 wide from x 90, first baseline
+ * line; the open chat's row has a 0.5 `#4A31E7` line and a 4 px purple bar
+ * at its left edge. The photo is 66 x 76 at (12, 12 in the row), radius 15 (a
+ * purple 1 px line on that row); the name 14 Medium at x 90 on baseline 26;
+ * the time 11 Medium `#8D8D8D` ending 13 px before the right edge on baseline
+ * 23; the preview 12 Regular, 17 px lines, 295 wide from x 90, first baseline
  * 46, two lines at most. Each row then draws one more thing — see ChatRowFace.
  *
  * A row swiped left shows Mute, Delete and Archive (71 x 100 each, 2 px
  * apart, flush right: the row moves 219); swiped right it shows Unread and
  * Pin at x 2 and 75 (the row moves 148). The cell's icon is 25 x 25 at 20
- * from the top; its word 12 Regular on baseline 77, centred.
+ * from the top; its word 12 Regular on baseline 77, centred. One row is open
+ * at a time: swiping another closes it, and while one is open the list holds
+ * still and a tap anywhere closes it. The cells act on the chat state
+ * (demoChatModel.ts): a pinned chat moves to the top with the pin mark, an
+ * archived or deleted one leaves the list, Unread toggles the count, Mute
+ * marks the row.
  *
  * Calls: rows 430 x 90 `#FCFCFC` from y 152, the photo 66 x 66, the name 16
  * Medium on baseline 36 (30 on the row that has a second line), and the
@@ -57,9 +66,63 @@ import { Icon, ScreenPage, Stroke, Txt } from "../ui";
  */
 export default function ChatListScreen() {
   const { t, navigate } = useDemoNav();
+  const { state, dispatch } = useDemoChat();
   const [tab, setTab] = useState<"chats" | "calls">("chats");
   const [query, setQuery] = useState("");
-  const [pinned, setPinned] = useState<string | null>(null);
+  /** The row whose action cells show, if any. */
+  const [openRow, setOpenRow] = useState<string | null>(null);
+  const [toast, showToast] = useToast();
+
+  /** A row is being dragged, and when the last drag ended: the click a mouse fires after a drag is not a tap. */
+  const drag = useRef({ on: false, endedAt: 0 });
+
+  // An open row holds the list still; a tap anywhere closes it.
+  useScrollLock(openRow !== null);
+  useEffect(() => {
+    if (!openRow) return;
+    const close = () => {
+      if (drag.current.on || Date.now() - drag.current.endedAt < 300) return;
+      setOpenRow(null);
+    };
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [openRow]);
+
+  const needle = query.trim().toLowerCase();
+  const rows = orderedChats(state.chats).filter(
+    (chat) =>
+      !needle ||
+      CONTACT.name.toLowerCase().includes(needle) ||
+      (chat.preview ?? PREVIEW).toLowerCase().includes(needle),
+  );
+
+  const act = (chat: ChatThread, label: DemoKey) => {
+    switch (label) {
+      case "Pin":
+        dispatch({ type: "pin", chat: chat.id });
+        return;
+      case "Unread":
+        dispatch({ type: "unread", chat: chat.id });
+        return;
+      case "Mute":
+        dispatch({ type: "mute", chat: chat.id });
+        showToast(t(chat.muted ? "Unmuted" : "Muted"));
+        return;
+      case "Archive":
+        dispatch({ type: "archive", chat: chat.id });
+        showToast(t("Archived"));
+        return;
+      case "Delete":
+        dispatch({ type: "deleteChat", chat: chat.id });
+        showToast(t("Deleted"));
+        return;
+    }
+  };
+
+  const openChat = (chat: ChatThread) => {
+    dispatch({ type: "open", chat: chat.id });
+    navigate("chat/conversation");
+  };
 
   const header = (
     <header
@@ -143,28 +206,53 @@ export default function ChatListScreen() {
 
   return (
     <ScreenPage testId="demo-chat" header={header} tabBar>
-      {tab === "chats"
-        ? CHAT_ROWS.map((row) => (
-            <SwipeRow
-              key={row.id}
-              id={row.id}
-              onOpen={() => navigate("chat/conversation")}
-              onPin={() => setPinned(row.id)}
-              t={t}
+      {tab === "chats" ? (
+        <AnimatePresence initial={false}>
+          {rows.map((chat) => (
+            <motion.div
+              key={chat.id}
+              layout
+              className="w-full shrink-0 overflow-hidden"
+              exit={{ height: 0, opacity: 0, transition: { duration: 0.22 } }}
+              transition={TRAVEL}
             >
-              <ChatRowFace row={row} pinned={pinned === row.id} t={t} />
-            </SwipeRow>
-          ))
-        : CALL_ROWS.map((row) => (
-            <CallRowFace
-              key={row.id}
-              id={row.id}
-              kind={row.kind}
-              minutes={row.minutes}
-              onOpen={() => navigate("chat/call")}
-              t={t}
-            />
+              <SwipeRow
+                id={chat.id}
+                active={openRow === chat.id}
+                onActivate={() => {
+                  drag.current.on = true;
+                  setOpenRow(chat.id);
+                }}
+                onRelease={() => {
+                  drag.current = { on: false, endedAt: Date.now() };
+                }}
+                onRest={() => setOpenRow((now) => (now === chat.id ? null : now))}
+                onOpen={() => openChat(chat)}
+                onAct={(label) => act(chat, label)}
+                t={t}
+              >
+                <ChatRowFace
+                  row={chat}
+                  selected={state.active === chat.id}
+                  t={t}
+                />
+              </SwipeRow>
+            </motion.div>
           ))}
+        </AnimatePresence>
+      ) : (
+        CALL_ROWS.map((row) => (
+          <CallRowFace
+            key={row.id}
+            id={row.id}
+            kind={row.kind}
+            minutes={row.minutes}
+            onOpen={() => navigate("chat/call")}
+            t={t}
+          />
+        ))
+      )}
+      <Toast text={toast} bottom={TAB_BAR.height + 24} fixed />
     </ScreenPage>
   );
 }
@@ -248,24 +336,40 @@ const LEFT_ACTIONS: { icon: XdIconName; label: DemoKey }[] = [
 const CELL_W = 71;
 const CELL_GAP = 2;
 /** How far the row moves to show all of its right actions (3 cells) or left actions (2 cells). */
-const OPEN_LEFT = -(RIGHT_ACTIONS.length * (CELL_W + CELL_GAP));
-const OPEN_RIGHT = LEFT_ACTIONS.length * (CELL_W + CELL_GAP) + CELL_GAP;
+export const OPEN_LEFT = -(RIGHT_ACTIONS.length * (CELL_W + CELL_GAP));
+export const OPEN_RIGHT = LEFT_ACTIONS.length * (CELL_W + CELL_GAP) + CELL_GAP;
 
 /**
  * A chat row that slides sideways over its action cells (`Home Page – 42`).
  * Drag it, and it snaps open past half way; a tap on an open row closes it,
  * a tap on a closed row opens the conversation.
+ *
+ * The list owns which row is open: a row says when it starts to move
+ * (`onActivate`), when the finger lets go (`onRelease`) and when it rests
+ * closed again (`onRest`), and a row that is no longer the `active` one
+ * slides shut on its own.
  */
 function SwipeRow({
   id,
+  active,
+  onActivate,
+  onRelease,
+  onRest,
   onOpen,
-  onPin,
+  onAct,
   t,
   children,
 }: {
   id: string;
+  active: boolean;
+  /** The row started to move under a finger. */
+  onActivate: () => void;
+  /** The finger let go of the row. */
+  onRelease: () => void;
+  /** The row rests closed again. */
+  onRest: () => void;
   onOpen: () => void;
-  onPin: () => void;
+  onAct: (label: DemoKey) => void;
   t: (key: DemoKey) => string;
   children: React.ReactNode;
 }) {
@@ -276,19 +380,37 @@ function SwipeRow({
 
   const snapTo = (target: number) => {
     animate(x, target, TRAVEL);
-    setOpen(target === 0 ? null : target < 0 ? "left" : "right");
+    const side = target === 0 ? null : target < 0 ? "left" : "right";
+    setOpen(side);
+    if (side === null) onRest();
   };
 
-  const act = (label: DemoKey) => {
-    if (label === "Pin") onPin();
+  // Another row took the stage, or a tap closed every row: this one shuts.
+  useEffect(() => {
+    if (!active && (open || x.get() !== 0)) {
+      animate(x, 0, TRAVEL);
+      setOpen(null);
+    }
+    // `open` and `x` are read, not followed.
+  }, [active]);
+
+  const act = (label: DemoKey) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAct(label);
     snapTo(0);
   };
 
   return (
     <div
       data-pw={`demo-chat-row-${id}`}
+      data-open={open ?? undefined}
+      data-active={active ? "true" : undefined}
       className="relative w-full shrink-0 overflow-hidden"
       style={{ height: 100, marginTop: 2 }}
+      onClick={(e) => {
+        // A click on an open row is the row's own business (it closes itself).
+        if (open) e.stopPropagation();
+      }}
     >
       <div
         className="absolute top-0 right-0 flex"
@@ -296,7 +418,7 @@ function SwipeRow({
         aria-hidden={open !== "left"}
       >
         {RIGHT_ACTIONS.map((a) => (
-          <ActionCell key={a.label} {...a} onClick={() => act(a.label)} t={t} />
+          <ActionCell key={a.label} {...a} onClick={act(a.label)} t={t} />
         ))}
       </div>
       <div
@@ -305,12 +427,13 @@ function SwipeRow({
         aria-hidden={open !== "right"}
       >
         {LEFT_ACTIONS.map((a) => (
-          <ActionCell key={a.label} {...a} onClick={() => act(a.label)} t={t} />
+          <ActionCell key={a.label} {...a} onClick={act(a.label)} t={t} />
         ))}
       </div>
       <motion.div
         data-pw={`demo-chat-row-face-${id}`}
         drag="x"
+        dragDirectionLock
         dragConstraints={{ left: OPEN_LEFT, right: OPEN_RIGHT }}
         dragElastic={0.08}
         dragMomentum={false}
@@ -320,8 +443,10 @@ function SwipeRow({
         }}
         onDragStart={() => {
           dragged.current = true;
+          onActivate();
         }}
         onDragEnd={() => {
+          onRelease();
           const at = x.get();
           if (at < OPEN_LEFT / 2) snapTo(OPEN_LEFT);
           else if (at > OPEN_RIGHT / 2) snapTo(OPEN_RIGHT);
@@ -351,7 +476,7 @@ function ActionCell({
 }: {
   icon: XdIconName;
   label: DemoKey;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
   t: (key: DemoKey) => string;
 }) {
   return (
@@ -415,18 +540,34 @@ function Photo({
 }
 
 /** The 11 Medium time at the right of a row, on baseline 23: `mt` from the row it sits in. */
-function RowTime({ right, mt = 0 }: { right: number; mt?: number }) {
+function RowTime({
+  right,
+  mt = 0,
+  time = CHAT_ROW_TIME,
+  muted = false,
+  t,
+}: {
+  right: number;
+  mt?: number;
+  time?: string;
+  /** A muted chat shows the small mute mark before its time. */
+  muted?: boolean;
+  t: (key: DemoKey) => string;
+}) {
   return (
-    <Txt
-      size={11}
-      weight="medium"
-      color={C.grey}
-      className="ml-auto"
-      mt={mt}
-      style={{ marginRight: right }}
-    >
-      {CHAT_ROW_TIME}
-    </Txt>
+    <span className="flex items-start ml-auto shrink-0" style={{ marginTop: mt, marginRight: right }}>
+      {muted && (
+        <XdIcon
+          name="swipeMute"
+          size={12}
+          aria-label={t("Mute")}
+          style={{ marginTop: 1, marginRight: 4, opacity: 0.55 }}
+        />
+      )}
+      <Txt size={11} weight="medium" color={C.grey}>
+        {time}
+      </Txt>
+    </span>
   );
 }
 
@@ -460,18 +601,24 @@ function SendLine({
  *   - the third: the ink mark 14 x 14 at (90, 74) and "Typing…" 11 `#388CFF`
  *     at x 108, baseline 85 — "Typing" Regular, the dots Bold;
  *   - the fourth: "Send Photo" with its 15 px mark at (90, 36) and, from
- *     x 227, Send Voice / Video / File / Location 19 px apart from y 12;
+ *     x 227, Send Voice / Video / File / Location 19 px apart from y 12 —
+ *     until the chat has a message of its own to preview;
  *   - the last three: the preview starts with a Bold `|` (sent, the preview
- *     grey), `||` (delivered) or a blue `||` (read).
+ *     grey), `||` (delivered) or a blue `||` (read);
  *   - a pinned row (`– 42`, after Pin) shows the pin 10 x 14 at (406, 74).
+ *
+ * The row reads all of it from its chat: the preview and time of the last
+ * message once there is one, the ticks of the last message I sent, the
+ * unread count, and whether the contact is typing.
  */
 function ChatRowFace({
   row,
-  pinned,
+  selected,
   t,
 }: {
-  row: ChatRow;
-  pinned: boolean;
+  row: ChatThread;
+  /** The chat opened last: the purple line and bar. */
+  selected: boolean;
   t: (key: DemoKey) => string;
 }) {
   const nameTop = textTop(26, 14);
@@ -480,12 +627,16 @@ function ChatRowFace({
   // 2 px above and below, so the box starts 1 px above a plain 12 px line.
   const previewTop = paraTop(46, 12, 17);
   const previewBottom = previewTop + 2 * 17;
+  const typing = row.typing || row.typingNow;
+  const time = row.time ?? CHAT_ROW_TIME;
+  const preview =
+    row.preview ?? (row.initials ? PREVIEW_SHORT : PREVIEW);
   return (
     <div
       className="relative flex items-start w-full h-full"
       style={{ background: C.white }}
     >
-      {row.selected && (
+      {selected && (
         <span
           aria-hidden="true"
           className="absolute left-0 top-0 h-full"
@@ -497,11 +648,11 @@ function ChatRowFace({
           w={66}
           h={76}
           initials={row.initials}
-          line={row.selected ? C.purple : undefined}
+          line={selected ? C.purple : undefined}
         />
       </div>
 
-      {row.attachments ? (
+      {row.attachments && row.preview === undefined ? (
         <div
           className="flex items-start min-w-0 grow"
           style={{ marginLeft: 12, marginTop: 12 }}
@@ -529,7 +680,7 @@ function ChatRowFace({
               t={t}
             />
           </div>
-          <RowTime right={13} />
+          <RowTime right={13} time={time} muted={row.muted} t={t} />
         </div>
       ) : (
         <div
@@ -540,9 +691,10 @@ function ChatRowFace({
             <Txt size={14} weight="medium">
               {CONTACT.name}
             </Txt>
-            <RowTime right={13} />
+            <RowTime right={13} time={time} muted={row.muted} t={t} />
           </div>
           <p
+            data-pw="demo-chat-row-preview"
             className="font-normal"
             style={{
               marginTop: previewTop - nameBottom,
@@ -563,22 +715,24 @@ function ChatRowFace({
                 {row.mark === "sent" ? "|" : "||"}
               </span>
             )}
-            {row.mark ? ` ${PREVIEW}` : row.initials ? PREVIEW_SHORT : PREVIEW}
+            {row.mark ? ` ${preview}` : preview}
           </p>
-          {row.unread && (
+          {row.unread > 0 && (
             <span
+              data-pw="demo-chat-row-unread-count"
               className="flex items-start ml-auto shrink-0"
               style={{ marginTop: 73 - previewBottom, marginRight: 12 }}
             >
               {/* "1" on baseline 84 → box top 73, level with the mark. */}
               <Txt size={11} weight="medium" color={CHAT.unreadCount}>
-                {row.unread}
+                {String(row.unread)}
               </Txt>
               <XdIcon name="chatUnreadMark" style={{ marginLeft: 2 }} />
             </span>
           )}
-          {row.typing && (
+          {typing && (
             <span
+              data-pw="demo-chat-row-typing-mark"
               className="flex items-start shrink-0"
               style={{ marginTop: 74 - previewBottom }}
             >
@@ -592,7 +746,7 @@ function ChatRowFace({
         </div>
       )}
 
-      {pinned && (
+      {row.pinned && (
         <XdIcon
           name="chatPinned"
           className="absolute"
@@ -600,8 +754,8 @@ function ChatRowFace({
         />
       )}
       <Stroke
-        color={row.selected ? C.purple : C.line}
-        width={row.selected ? 0.5 : 0.3}
+        color={selected ? C.purple : C.line}
+        width={selected ? 0.5 : 0.3}
       />
     </div>
   );
@@ -663,7 +817,7 @@ function CallRowFace({
           <Txt size={16} weight="medium">
             {CONTACT.name}
           </Txt>
-          <RowTime right={12} mt={textTop(23, 11) - nameTop} />
+          <RowTime right={12} mt={textTop(23, 11) - nameTop} t={t} />
         </div>
         <div
           className="flex items-start"

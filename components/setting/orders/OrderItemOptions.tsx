@@ -67,13 +67,15 @@ function OrderItemOptions({
   // group (single-order group). When siblings remain we stay on the details
   // page and let the refetch re-select a surviving pack (setActivePack).
   const shouldLeaveAfterHide = isLastProductInOrder && !hasOtherPacksInGroup;
-  // Return window from the item's `allow_return_in_days` (string|number).
-  // 1 => "24 Hours", anything greater => "<n> Days". Display only — never gates.
-  const allowReturnInDays = Number(orderItem?.allow_return_in_days);
+  // Return window from the line's `return_days_limit`. 1 => "24 Hours",
+  // anything greater => "<n> Days". Display only — never gates. A value that is
+  // not a whole number above 0 hides the window sentence ("0 Days" / "NaN Days").
+  const returnDaysLimit = Number(orderItem?.return_days_limit);
+  const hasReturnWindow = Number.isInteger(returnDaysLimit) && returnDaysLimit > 0;
   const returnWindowText =
-    allowReturnInDays === 1
+    returnDaysLimit === 1
       ? `24 ${translateFunction("Hours")}`
-      : `${allowReturnInDays} ${translateFunction("Days")}`;
+      : `${returnDaysLimit} ${translateFunction("Days")}`;
   const handleHideProduct = async () => {
     try {
       setHiding(true);
@@ -134,11 +136,14 @@ function OrderItemOptions({
     // Adding a not-yet-returned product. Each order has a single return
     // request; if one already exists and is locked (e.g. already confirmed /
     // return_to_location), no more products can be added to it even though this
-    // product itself is still returnable (can_return_order stays true).
+    // product itself is still returnable.
     if (parentOrder?.order_has_return_request && !parentOrder?.edit_return_request) {
       return false;
     }
-    return parentOrder.can_return_order;
+    // The backend decides per line (within its own return days). The order's
+    // can_return_order only says that at least one line can still be returned,
+    // and a line without the field gets no return option.
+    return orderItem?.can_return_product === true;
   };
   const initializeReturn = async () => {
     if (parentOrder.return_request_id) {
@@ -327,17 +332,19 @@ function OrderItemOptions({
                           )
                         : translateFunction("Return This Product")}
                     </span>
-                    <p
-                      className={`regular text-[12px] text-[#8D8D8D] ${
-                        isRtl ? "pr-2 " : " "
-                      }`}
-                    >
-                      {translateFunction("Return This Product In")}
-                      <span className="bold text-[12px] text-[#8D8D8D]  mx-[2px]">
-                        {returnWindowText}
-                      </span>
-                      {translateFunction("And Back Your Money")}
-                    </p>
+                    {hasReturnWindow && (
+                      <p
+                        className={`regular text-[12px] text-[#8D8D8D] ${
+                          isRtl ? "pr-2 " : " "
+                        }`}
+                      >
+                        {translateFunction("Return This Product In")}
+                        <span className="bold text-[12px] text-[#8D8D8D]  mx-[2px]">
+                          {returnWindowText}
+                        </span>
+                        {translateFunction("And Back Your Money")}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
