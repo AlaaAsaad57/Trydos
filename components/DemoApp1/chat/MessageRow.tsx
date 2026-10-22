@@ -11,6 +11,7 @@ import XdIcon from "../../DemoApp/XdIcon";
 import { CHAT } from "../../DemoApp/demoChat";
 import type { Side } from "../../DemoApp/demoChatModel";
 import { C } from "../demo1Layout";
+import { useHorizontalSwipe } from "./useHorizontalSwipe";
 
 /** How far the message must be pulled to the right, in px, to answer it. */
 export const REPLY_PULL = 56;
@@ -85,6 +86,13 @@ export default function MessageRow({
   const hold = useRef<ReturnType<typeof setTimeout> | null>(null);
   const start = useRef<{ x: number; y: number } | null>(null);
   const ticked = useRef(false);
+  /**
+   * The message was past REPLY_PULL under the finger. Read on every move,
+   * not on release: framer runs `onDragEnd` a frame after the finger lifts,
+   * when the spring back has already begun, and `x` there is short of the
+   * mark for a pull that was just past it.
+   */
+  const pulled = useRef(false);
 
   // The reply mark: it rides out with the message for 44 px, then stays
   // while the message goes on; it fades and grows with the pull.
@@ -107,8 +115,13 @@ export default function MessageRow({
     start.current = null;
   };
 
+  // The swipe reads the touch itself (see useHorizontalSwipe): Safari and
+  // framer both read a thumb's arc as up-down, and the chat scrolled instead.
+  const swipe = useHorizontalSwipe(canReply);
+
   const press = {
     onPointerDown: (e: React.PointerEvent) => {
+      swipe.handlers.onPointerDown(e);
       if (!onHold || e.button !== 0) return;
       cancelHold();
       start.current = { x: e.clientX, y: e.clientY };
@@ -120,12 +133,19 @@ export default function MessageRow({
       }, HOLD_MS);
     },
     onPointerMove: (e: React.PointerEvent) => {
+      swipe.handlers.onPointerMove(e);
       const s = start.current;
       if (!s) return;
       if (Math.hypot(e.clientX - s.x, e.clientY - s.y) > 8) cancelHold();
     },
-    onPointerUp: cancelHold,
-    onPointerCancel: cancelHold,
+    onPointerUp: () => {
+      swipe.handlers.onPointerUp();
+      cancelHold();
+    },
+    onPointerCancel: () => {
+      swipe.handlers.onPointerCancel();
+      cancelHold();
+    },
     onPointerLeave: cancelHold,
     // The phone's own copy / look-up menu must not come up on the hold.
     onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
@@ -160,18 +180,27 @@ export default function MessageRow({
       )}
       <motion.div
         {...press}
+        ref={swipe.ref}
         data-pw="demo-chat-swipe"
         className={`relative flex items-start w-full shrink-0 ${inn ? "" : "justify-end"}`}
         drag={canReply ? "x" : false}
-        dragDirectionLock
+        dragListener={false}
+        dragControls={swipe.controls}
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={{ left: 0, right: 0.75 }}
         dragSnapToOrigin
         dragTransition={{ bounceStiffness: 520, bounceDamping: 34 }}
         dragMomentum={false}
-        onDragStart={cancelHold}
+        onDragStart={() => {
+          cancelHold();
+          pulled.current = false;
+        }}
+        onDrag={() => {
+          pulled.current = x.get() >= REPLY_PULL;
+        }}
         onDragEnd={() => {
-          if (x.get() >= REPLY_PULL) onReply?.();
+          if (pulled.current) onReply?.();
+          pulled.current = false;
         }}
         style={{ x, touchAction: "pan-y" }}
       >

@@ -213,7 +213,7 @@ const holdPage = (e: Event) => {
  * block whenever a sheet was open, whatever the sheet drew there. The touch
  * and the wheel are stopped instead, and the document stays one that scrolls.
  */
-export function useScrollLock(on: boolean) {
+function useScrollLock(on: boolean) {
   React.useEffect(() => {
     if (!on) return;
     const html = document.documentElement;

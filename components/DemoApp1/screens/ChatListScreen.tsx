@@ -39,10 +39,11 @@ import {
   paraTop,
   textTop,
 } from "../demo1Layout";
-import { Icon, ScreenPage, Stroke, Txt, useScrollLock } from "../ui";
+import { Icon, ScreenPage, Stroke, Txt } from "../ui";
 import { PlusIcon } from "../chat/chatIcons";
 import NewChatSheet from "../chat/NewChatSheet";
 import Toast, { useToast } from "../chat/Toast";
+import { useHorizontalSwipe } from "../chat/useHorizontalSwipe";
 
 /**
  * Chat — XD `Home Page – 41` (the Chats tab), `– 42` (a row swiped left and
@@ -98,16 +99,21 @@ export default function ChatListScreen() {
   /** A row is being dragged, and when the last drag ended: the click a mouse fires after a drag is not a tap. */
   const drag = useRef({ on: false, endedAt: 0 });
 
-  // An open row holds the list still; a tap anywhere closes it.
-  useScrollLock(openRow !== null);
+  // A tap anywhere closes an open row, and so does a scroll of the list: the
+  // list is not held still, an up-down finger scrolls it as always.
   useEffect(() => {
     if (!openRow) return;
     const close = () => {
       if (drag.current.on || Date.now() - drag.current.endedAt < 300) return;
       setOpenRow(null);
     };
+    const scrolled = () => setOpenRow(null);
     document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
+    window.addEventListener("scroll", scrolled, { passive: true });
+    return () => {
+      document.removeEventListener("click", close);
+      window.removeEventListener("scroll", scrolled);
+    };
   }, [openRow]);
 
   const needle = query.trim().toLowerCase();
@@ -508,6 +514,9 @@ function SwipeRow({
   const [open, setOpen] = useState<"left" | "right" | null>(null);
   /** True from the start of a drag until the next press: a swipe is never a tap. */
   const dragged = useRef(false);
+  // The swipe reads the touch itself (see useHorizontalSwipe): Safari and
+  // framer both read a thumb's arc as up-down, and the list scrolled instead.
+  const swipe = useHorizontalSwipe();
 
   const snapTo = (target: number) => {
     animate(x, target, TRAVEL);
@@ -562,15 +571,19 @@ function SwipeRow({
         ))}
       </div>
       <motion.div
+        {...swipe.handlers}
+        ref={swipe.ref}
         data-pw={`demo-chat-row-face-${id}`}
         drag="x"
-        dragDirectionLock
+        dragListener={false}
+        dragControls={swipe.controls}
         dragConstraints={{ left: OPEN_LEFT, right: OPEN_RIGHT }}
         dragElastic={0.08}
         dragMomentum={false}
         style={{ x, touchAction: "pan-y" }}
-        onPointerDown={() => {
+        onPointerDown={(e) => {
           dragged.current = false;
+          swipe.handlers.onPointerDown(e);
         }}
         onDragStart={() => {
           dragged.current = true;
