@@ -48,6 +48,7 @@ import { attemptAuth, requireSignedInShopper } from "./actions/auth";
 import {
   CHAT_BROWSER_CHANNEL,
   CHAT_ENDPOINT,
+  addTag,
   cancelReminder,
   channelWithPhone,
   deleteChat,
@@ -526,7 +527,7 @@ test.describe("the chat journey, in order", () => {
 
     await test.step("the chat backend adds the 'important' tag, and the message shows the tag mark", async () => {
       await reopenConversation(page, "Shopper B");
-      const outcome = await toggleTag(page, { messageId: id, tag: "important" });
+      const outcome = await addTag(page, { messageId: id, tag: "important" });
       requireChatAccepted(outcome, "adding the 'important' tag");
       expect(
         outcome.data?.action,

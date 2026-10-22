@@ -250,8 +250,9 @@ export const attemptCancelOrder = async (
   }
 
   // The confirmation has its own terms tick, and the button does nothing until
-  // it is ticked — no error, no request.
-  await orders.cancelAgree(page).click();
+  // it is ticked — no error, no request. The tick box is pressed, not the row:
+  // the row also holds the terms link, which opens a tab and ticks nothing.
+  await orders.agreeTick(orders.cancelAgree(page)).click();
   await confirm.click();
 
   // The window closes itself once the cancel has been answered **and** the order
@@ -393,8 +394,9 @@ export const attemptChangeAddress = async (
   if (!result.confirmationShown) return result;
 
   // The confirmation has its own terms tick; the button does nothing until it
-  // is ticked — no error, no request.
-  await orders.changeAddressAgree(page).click();
+  // is ticked — no error, no request. The tick box is pressed, not the row: the
+  // middle of the row is on the terms link, which opens a tab and ticks nothing.
+  await orders.agreeTick(orders.changeAddressAgree(page)).click();
 
   const answered = watchCommentCall(page, {
     endpoint,

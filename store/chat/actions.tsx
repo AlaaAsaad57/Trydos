@@ -458,7 +458,8 @@ export const GetChatDetails = async (id) => {
 /** A tag is free text: up to 30 characters, any language or emoji. */
 export type MessageTag = string;
 
-/** The suggested tags the picker offers first; users may add any other. */
+/** The suggested tags: the "Tagged messages" filter always offers them. The
+ *  tag picker does not — it lists only tags the chat's messages use. */
 export const MESSAGE_TAGS: MessageTag[] = [
   "urgent",
   "important",

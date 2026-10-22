@@ -601,7 +601,38 @@ export const editMessage = async (
   return await saved;
 };
 
-/** Toggle one tag on a message, then close the tag window. */
+/** Add a tag to a message by typing it, then close the tag window.
+ *
+ *  Typed, not pressed: the picker draws a row only for a tag that a loaded
+ *  message of the chat already uses, so a tag new to the chat has no row. */
+export const addTag = async (
+  page: Page,
+  options: {
+    messageId: string | number;
+    tag: "urgent" | "important" | "todo" | "done";
+  },
+): Promise<ChatCallOutcome> => {
+  const row = await openMessageMenu(page, options);
+  await chat.menuTag(row).click();
+  await expect(
+    chat.tagPicker(page),
+    "pressing Tag did not open the tag window",
+  ).toBeVisible();
+
+  await chat.tagInput(page).fill(options.tag);
+  const tagged = watchChatCall(page, {
+    endpoint: CHAT_ENDPOINT.tags(options.messageId),
+    method: "POST",
+  });
+  await chat.tagAdd(page).click();
+  const outcome = await tagged;
+  await page.keyboard.press("Escape");
+  await expect(chat.tagPicker(page)).toHaveCount(0);
+  return outcome;
+};
+
+/** Press one tag's row on a message, then close the tag window. The row is
+ *  there only when a loaded message uses the tag — see `addTag`. */
 export const toggleTag = async (
   page: Page,
   options: {

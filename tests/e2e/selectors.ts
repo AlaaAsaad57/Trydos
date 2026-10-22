@@ -723,6 +723,10 @@ export const orders = {
     page.getByTestId("change-address-agree"),
   changeAddressConfirm: (page: Page): Locator =>
     page.getByTestId("change-address-confirm"),
+  /** The tick box inside a terms row (`cancelAgree`, `changeAddressAgree`).
+   *  The row also holds the terms link, which stops the click, so a click on
+   *  the row's middle can land on the link and tick nothing. */
+  agreeTick: (row: Locator): Locator => row.locator("svg").first(),
   /** The delivery address card on the order page, and the recipient on it. */
   addressCard: (page: Page): Locator => page.getByTestId("order-address-card"),
   addressRecipient: (page: Page): Locator =>
@@ -1624,8 +1628,13 @@ export const chat = {
   editInput: (page: Page): Locator => page.locator("#message-edit-input"),
   editSave: (page: Page): Locator => page.getByTestId("MESSAGE-EDIT-SAVE"),
   tagPicker: (page: Page): Locator => page.getByTestId("MESSAGE-TAG-PICKER"),
+  /** One tag's row. The picker has no fixed list: a row is drawn only for a
+   *  tag that a loaded message of the chat already uses. */
   tag: (page: Page, tag: "urgent" | "important" | "todo" | "done"): Locator =>
     page.getByTestId(`MESSAGE-TAG-${tag}`),
+  /** The text box and Add button that put any tag on the message. */
+  tagInput: (page: Page): Locator => page.getByTestId("MESSAGE-TAG-INPUT"),
+  tagAdd: (page: Page): Locator => page.getByTestId("MESSAGE-TAG-ADD"),
   reminderPicker: (page: Page): Locator =>
     page.getByTestId("MESSAGE-REMINDER-PICKER"),
   reminderPreset: (

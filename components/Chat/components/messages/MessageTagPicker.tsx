@@ -13,8 +13,8 @@ import {
 } from "./messageExtras";
 
 /**
- * Put a tag on a message, or take mine off. The list shows the suggested tags
- * and the tags already on the message, and the input adds any new free-text
+ * Put a tag on a message, or take mine off. The list shows the tags the chat's
+ * loaded messages use (there is no fixed list), and the input adds any new free-text
  * tag (up to 30 characters). Each row toggles one tag and the dialog stays
  * open, so several tags can change in one visit. A tick marks my tags.
  */
