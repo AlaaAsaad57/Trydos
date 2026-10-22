@@ -1328,9 +1328,18 @@ export function DayPill({ label }: { label: string }) {
  * A quoted message above a reply (`– 44`, y 1631): a 297 x 43 purple bubble
  * from x 121 whose inside, from 3 px in, is `#EFEBFF`; the quoted words 13
  * Regular `#8D8D8D` at 9 px in; the reply mark and the time at the right.
- * The purple dot sits at x 114, before it.
+ * The purple dot sits at x 114, before it. A tap on the bubble (`onOpen`)
+ * goes to the quoted message, as WhatsApp does.
  */
-export function Quote({ text, time }: { text: string; time: string }) {
+export function Quote({
+  text,
+  time,
+  onOpen,
+}: {
+  text: string;
+  time: string;
+  onOpen?: () => void;
+}) {
   return (
     <div
       data-pw="demo-chat-quote"
@@ -1338,7 +1347,20 @@ export function Quote({ text, time }: { text: string; time: string }) {
     >
       <Dot color={C.purple} />
       <div
-        className="shrink-0"
+        role={onOpen ? "button" : undefined}
+        tabIndex={onOpen ? 0 : undefined}
+        onClick={onOpen}
+        onKeyDown={
+          onOpen
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onOpen();
+                }
+              }
+            : undefined
+        }
+        className={`shrink-0 ${onOpen ? "cursor-pointer active:opacity-70" : ""}`}
         style={{
           marginLeft: 3,
           marginRight: 12,

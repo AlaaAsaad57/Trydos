@@ -128,6 +128,8 @@ export default function ConversationScreen() {
     }
   }, [search]);
   const body = useRef<HTMLDivElement>(null);
+  /** The message a tapped quote went to, lit up; `n` counts the taps so a second one lights it again. */
+  const [flash, setFlash] = useState<{ id: string; n: number } | null>(null);
   /** The messages on the page when it opened: only later ones pop in. */
   const atStart = useRef<Set<string> | null>(null);
   if (atStart.current === null)
@@ -200,6 +202,39 @@ export default function ConversationScreen() {
   }, [menu]);
 
   const close = () => setMenu(null);
+
+  /**
+   * A tap on a quote: the chat scrolls the quoted message to its middle, and
+   * once the scroll stops the message lights up and fades, as on WhatsApp.
+   * Only the chat's own body scrolls, never the page under it. Nothing
+   * happens when the quoted message is gone.
+   */
+  const jumpTo = (id: string) => {
+    const el = body.current;
+    const row = el?.querySelector<HTMLElement>(`[data-pw="demo-chat-message-${id}"]`);
+    if (!el || !row) return;
+    const page = el.getBoundingClientRect();
+    const box = row.getBoundingClientRect();
+    const middle = box.top - page.top + el.scrollTop - (el.clientHeight - box.height) / 2;
+    const top = Math.max(0, Math.min(Math.round(middle), el.scrollHeight - el.clientHeight));
+    const light = () => setFlash((f) => ({ id, n: (f?.n ?? 0) + 1 }));
+    if (Math.abs(top - el.scrollTop) < 2) {
+      light();
+      return;
+    }
+    // The light waits for the scroll to stop: no scroll event for 120 ms.
+    let quiet: ReturnType<typeof setTimeout> | undefined;
+    const settle = () => {
+      clearTimeout(quiet);
+      quiet = setTimeout(() => {
+        el.removeEventListener("scroll", settle);
+        light();
+      }, 120);
+    };
+    el.addEventListener("scroll", settle, { passive: true });
+    settle();
+    el.scrollTo({ top, behavior: "smooth" });
+  };
 
   // The matches of the search, and the current one scrolled into the middle.
   const matches = searching ? searchMessages(chat, query) : [];
@@ -531,6 +566,7 @@ export default function ConversationScreen() {
     dimmed: !!menu && menu !== m.id,
     faded: searching && query.trim() !== "" && !matches.includes(m.id),
     marked: current === m.id,
+    flash: flash?.id === m.id ? flash.n : 0,
     fresh: !atStart.current?.has(m.id),
     onReply: () => act("Replay", m),
     onHold: () => open(m),
@@ -685,7 +721,11 @@ export default function ConversationScreen() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, transition: { duration: 0.15 } }}
         >
-          <Quote text={m.replyTo.text} time={timeOf(m.replyTo.id, m.time)} />
+          <Quote
+            text={m.replyTo.text}
+            time={timeOf(m.replyTo.id, m.time)}
+            onOpen={() => jumpTo(m.replyTo!.id)}
+          />
         </motion.div>,
         row,
       ];

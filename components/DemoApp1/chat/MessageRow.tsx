@@ -1,12 +1,13 @@
 "use client";
 
 import {
+  animate,
   motion,
   useMotionValue,
   useMotionValueEvent,
   useTransform,
 } from "framer-motion";
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import { CHAT } from "../../DemoApp/demoChat";
 import type { Side } from "../../DemoApp/demoChatModel";
@@ -21,6 +22,9 @@ export const HOLD_MS = 420;
 
 /** The blur on the other messages while a menu is open, in px. */
 export const DIM_BLUR = 3;
+
+/** How long the light on a message reached from its quote lasts, in s. */
+export const FLASH_S = 1.6;
 
 /**
  * One message's row, with the two gestures WhatsApp gives a message on the
@@ -41,7 +45,9 @@ export const DIM_BLUR = 3;
  * screen: WhatsApp moves the held message rather than scrolling the chat.
  * `dimmed` blurs the row while another message's menu is open: the body's
  * backdrop-filter does not reach the rows in Chromium, a filter on each
- * row does.
+ * row does. `flash` lights the row up across the chat's width and fades it,
+ * as WhatsApp marks the message a tapped quote jumps to; each new number
+ * runs the light again, 0 runs none.
  */
 export default function MessageRow({
   id,
@@ -54,6 +60,7 @@ export default function MessageRow({
   dimmed = false,
   faded = false,
   marked = false,
+  flash = 0,
   canReply = true,
   onReply,
   onHold,
@@ -75,6 +82,8 @@ export default function MessageRow({
   faded?: boolean;
   /** The search's current match: a blue bar on the row's edge, as the list marks its open row. */
   marked?: boolean;
+  /** A new number lights the row up and fades it (a tapped quote jumped here); 0 for none. */
+  flash?: number;
   canReply?: boolean;
   onReply?: () => void;
   onHold?: () => void;
@@ -86,6 +95,21 @@ export default function MessageRow({
   const hold = useRef<ReturnType<typeof setTimeout> | null>(null);
   const start = useRef<{ x: number; y: number } | null>(null);
   const ticked = useRef(false);
+
+  // The light a tapped quote sends here. Run from here, not as the span's
+  // mount animation: the conversation's list is an AnimatePresence with
+  // `initial={false}`, and framer hands that to every motion box mounted
+  // under it later, so a mount animation would start at its last keyframe.
+  const light = useMotionValue(0);
+  useEffect(() => {
+    if (!flash) return;
+    const run = animate(light, [0, 0.16, 0.16, 0], {
+      duration: FLASH_S,
+      times: [0, 0.1, 0.55, 1],
+      ease: "easeOut",
+    });
+    return () => run.stop();
+  }, [flash]);
   /**
    * The message was past REPLY_PULL under the finger. Read on every move,
    * not on release: framer runs `onDragEnd` a frame after the finger lifts,
@@ -170,6 +194,14 @@ export default function MessageRow({
       exit={{ opacity: 0, scale: 0.6, transition: { duration: 0.18 } }}
       transition={{ type: "spring", stiffness: 480, damping: 32, mass: 0.9 }}
     >
+      {flash > 0 && (
+        <motion.span
+          aria-hidden="true"
+          data-pw="demo-chat-flash"
+          className="absolute left-0 right-0 pointer-events-none"
+          style={{ top: -3, bottom: -3, background: C.purple, opacity: light }}
+        />
+      )}
       {marked && (
         <span
           aria-hidden="true"
