@@ -3085,6 +3085,11 @@ const translations = {
   "Sent a video": "ڤیدیۆیەکی نارد",
   "Sent a voice message": "پەیامێکی دەنگی نارد",
   "Sent a file": "فایلێکی نارد",
+  "Finding your location…": "شوێنەکەت دەدۆزرێتەوە…",
+  "Location unavailable": "شوێن بەردەست نییە",
+  "Open in Maps": "کردنەوە لە نەخشە",
+  "New chat": "چاتی نوێ",
+  "New contact": "پەیوەندی نوێ",
 };
 
 export default translations;

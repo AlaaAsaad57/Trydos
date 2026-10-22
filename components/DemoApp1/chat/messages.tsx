@@ -11,13 +11,18 @@ import React, { useEffect, useRef, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import { BUBBLE_RADIUS, CHAT, VOICE_SRC } from "../../DemoApp/demoChat";
-import type {
-  CallMessage,
-  Side,
-  Status,
+import {
+  fileSize,
+  type CallMessage,
+  type FileMessage as FileMessageData,
+  type LocationMessage as LocationMessageData,
+  type Side,
+  type Status,
 } from "../../DemoApp/demoChatModel";
+import { coordsLabel, mapsUrl, tileUrl, tilesFor } from "../../DemoApp/demoMap";
 import { C, fill, lineBox, textTop } from "../demo1Layout";
 import { Stroke, Txt } from "../ui";
+import { FileIcon, OpenIcon, PinIcon } from "./chatIcons";
 
 /**
  * The messages of a conversation, as `Home Page – 44` draws them. Every
@@ -91,23 +96,38 @@ export function Dot({
 /** A 25 x 25 photo, radius 12, with the white line the file draws round it. */
 export function SmallPhoto({
   src,
+  initials,
   ml,
   line,
 }: {
-  src: string;
+  src?: string;
+  /** The grey box with these letters, for a contact with no picture. */
+  initials?: string;
   ml: number | "auto";
   line: number;
 }) {
   return (
     <span
-      className="relative block shrink-0 overflow-hidden"
-      style={{ marginLeft: ml, width: 25, height: 25, borderRadius: 12 }}
+      className="relative flex flex-col shrink-0 overflow-hidden"
+      style={{
+        marginLeft: ml,
+        width: 25,
+        height: 25,
+        borderRadius: 12,
+        background: src ? undefined : C.field,
+      }}
     >
-      <img
-        src={src}
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover"
-      />
+      {src ? (
+        <img
+          src={src}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      ) : (
+        <Txt center size={9} weight="medium" mt={textTop(16, 9)}>
+          {initials}
+        </Txt>
+      )}
       <Stroke color={C.white} width={line} radius={12} />
     </span>
   );
@@ -303,8 +323,429 @@ const WAVES_W = 5 * 51.72;
 export const clock = (sec: number) =>
   `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
 
-/** The voice message playing now, so starting one stops the other. */
-let playingNow: HTMLAudioElement | null = null;
+/** The voice or video message playing now, so starting one stops the other. */
+let playingNow: HTMLMediaElement | null = null;
+
+/** My ticks and the time in the dark pill at a picture's bottom right, as the sent photo has it. */
+function PictureTime({ time, status }: { time: string; status?: Status }) {
+  return (
+    <span
+      className="absolute flex items-start pointer-events-none"
+      style={{
+        right: 14,
+        bottom: 8,
+        padding: "1px 6px",
+        borderRadius: 8,
+        background: "rgba(0,0,0,0.35)",
+      }}
+    >
+      <Txt size={9} color={C.white}>
+        <Mark status={status} />
+        {time}
+      </Txt>
+    </span>
+  );
+}
+
+/**
+ * A tap on a message that also answers the row's hold and pull: the tap
+ * counts only when the finger neither rested long enough for the menu nor
+ * moved far enough to pull. The row's own handlers still see the pointer.
+ */
+function useTap(onTap: () => void) {
+  const down = useRef<{ at: number; x: number; y: number } | null>(null);
+  return {
+    onPointerDown: (e: React.PointerEvent) => {
+      down.current = { at: Date.now(), x: e.clientX, y: e.clientY };
+    },
+    onClick: (e: React.MouseEvent) => {
+      const d = down.current;
+      down.current = null;
+      const held = d ? Date.now() - d.at : 0;
+      const moved = d ? Math.hypot(e.clientX - d.x, e.clientY - d.y) : 0;
+      if (held >= 400 || moved > 8) {
+        e.preventDefault();
+        return;
+      }
+      onTap();
+    },
+  };
+}
+
+/**
+ * A video message: a 300 x 225 frame with the bubble's corners and a 1 px
+ * line in the sender's colour, like the photo. In its middle a white disc
+ * with the voice message's play mark; the length "00:12" in a dark pill at
+ * the bottom left, and on one I sent the ticks and the time at the bottom
+ * right, as on a sent photo. A tap plays it in place (one voice or video at
+ * a time); a tap on the playing video pauses it, and the disc comes back.
+ */
+export function VideoMessage({
+  side,
+  src,
+  seconds,
+  time,
+  status,
+  open = false,
+  t,
+}: {
+  side: Side;
+  src: string;
+  seconds: number;
+  time: string;
+  status?: Status;
+  open?: boolean;
+  t: (key: DemoKey) => string;
+}) {
+  const inn = side === "in";
+  const lift = liftOf(open, inn);
+  const video = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const [length, setLength] = useState(seconds);
+
+  useEffect(() => {
+    const v = video.current;
+    if (!v) return;
+    const onStop = () => {
+      setPlaying(false);
+      if (playingNow === v) playingNow = null;
+    };
+    // The length comes from the file itself when the sender gave none.
+    const onMeta = () => {
+      if (Number.isFinite(v.duration) && v.duration > 0) setLength(v.duration);
+    };
+    v.addEventListener("pause", onStop);
+    v.addEventListener("ended", onStop);
+    v.addEventListener("loadedmetadata", onMeta);
+    if (v.readyState >= 1) onMeta();
+    return () => {
+      v.removeEventListener("pause", onStop);
+      v.removeEventListener("ended", onStop);
+      v.removeEventListener("loadedmetadata", onMeta);
+      v.pause();
+      if (playingNow === v) playingNow = null;
+    };
+  }, []);
+
+  const toggle = () => {
+    const v = video.current;
+    if (!v) return;
+    if (!v.paused) {
+      v.pause();
+      return;
+    }
+    if (playingNow && playingNow !== v) playingNow.pause();
+    playingNow = v;
+    setPlaying(true);
+    void v.play().catch(() => setPlaying(false));
+  };
+  const tap = useTap(toggle);
+
+  return (
+    <motion.div
+      animate={lift.animate}
+      transition={lift.transition}
+      data-pw={`demo-chat-video-${side}`}
+      data-playing={playing}
+      className="relative shrink min-w-0 overflow-hidden select-none cursor-pointer"
+      style={{
+        ...lift.style,
+        marginLeft: inn ? 3 : undefined,
+        marginRight: inn ? undefined : 3,
+        width: 300,
+        aspectRatio: "4 / 3",
+        background: C.ink,
+        borderRadius: inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out,
+        WebkitTouchCallout: "none",
+      }}
+      {...tap}
+    >
+      <video
+        ref={video}
+        src={src}
+        playsInline
+        preload="metadata"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      <Edge color={inn ? C.purple : CHAT.sent} radius={inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out} />
+      <AnimatePresence initial={false}>
+        {!playing && (
+          <motion.span
+            key="play"
+            data-pw={`demo-chat-video-play-${side}`}
+            aria-label={t("Play")}
+            role="img"
+            className="absolute flex items-center justify-center"
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            style={{
+              left: "50%",
+              top: "50%",
+              width: 56,
+              height: 56,
+              marginLeft: -28,
+              marginTop: -28,
+              borderRadius: 28,
+              background: C.white,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+            }}
+          >
+            <XdIcon name={inn ? "playPurple" : "playMagenta"} style={{ marginLeft: 3 }} />
+          </motion.span>
+        )}
+      </AnimatePresence>
+      <span
+        data-pw="demo-chat-video-length"
+        className="absolute flex items-start pointer-events-none"
+        style={{
+          left: 14,
+          bottom: 8,
+          padding: "1px 6px",
+          borderRadius: 8,
+          background: "rgba(0,0,0,0.35)",
+        }}
+      >
+        <Txt size={9} color={C.white}>
+          {clock(length)}
+        </Txt>
+      </span>
+      {!inn && <PictureTime time={time} status={status} />}
+    </motion.div>
+  );
+}
+
+/** "PDF" from "report.pdf", or the type's last part ("pdf") when the name has none. */
+const fileKind = (m: FileMessageData) => {
+  const dot = m.name.lastIndexOf(".");
+  const ext = dot > 0 ? m.name.slice(dot + 1) : m.mime?.split("/")[1] ?? "";
+  return ext.slice(0, 5).toUpperCase();
+};
+
+/**
+ * A file message: the call card's shape (50 tall, the bubble's corners, the
+ * grey card) with the paper mark in the 40 x 42 box, the file's name 13
+ * Medium on one line, and under it its size and kind, 11 Regular, with the
+ * time (and my ticks) at the far end. A tap downloads the file.
+ */
+export function FileMessage({
+  message: m,
+  open = false,
+  t,
+}: {
+  message: FileMessageData;
+  open?: boolean;
+  t: (key: DemoKey) => string;
+}) {
+  const inn = m.side === "in";
+  const tint = inn ? C.purple : CHAT.sent;
+  const lift = liftOf(open, inn);
+  const kind = fileKind(m);
+  // The download is the browser's own; the guard only keeps a hold or a pull from starting it.
+  const tap = useTap(() => {});
+  const box = (
+    <span
+      className="flex items-center justify-center shrink-0"
+      style={{
+        width: 40,
+        height: 42,
+        borderRadius: inn ? BUBBLE_RADIUS.iconBoxIn : BUBBLE_RADIUS.iconBoxOut,
+        background: inn ? CHAT.incomingIconBox : CHAT.outgoingIconBox,
+      }}
+    >
+      <FileIcon color={tint} />
+    </span>
+  );
+  const column = (
+    <span
+      className="flex flex-col grow min-w-0"
+      style={{
+        marginLeft: inn ? 8 : 4,
+        marginRight: inn ? 4 : 8,
+        marginTop: textTop(21, 13) - 4,
+      }}
+    >
+      <Txt
+        size={13}
+        weight="medium"
+        className="overflow-hidden whitespace-nowrap"
+        style={{ textOverflow: "ellipsis", ...SPACED }}
+      >
+        {m.name}
+      </Txt>
+      <span
+        className="flex items-start"
+        style={{ marginTop: textTop(39, 11) - (textTop(21, 13) + lineBox(13)) }}
+      >
+        <Txt size={11} color={C.inkSoft} className="grow whitespace-nowrap" style={SPACED}>
+          {kind ? `${fileSize(m.bytes)} · ${kind}` : fileSize(m.bytes)}
+        </Txt>
+        <Txt size={9} ml={10} mt={textTop(40, 9) - textTop(39, 11)} className="whitespace-nowrap">
+          {!inn && <Mark status={m.status} />}
+          {m.time}
+        </Txt>
+      </span>
+    </span>
+  );
+  return (
+    <motion.a
+      href={m.src}
+      download={m.name}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${t("Download")}: ${m.name}`}
+      data-pw={`demo-chat-file-${m.side}`}
+      animate={lift.animate}
+      transition={lift.transition}
+      className="flex items-start shrink min-w-0 select-none cursor-pointer active:opacity-70"
+      style={{
+        ...lift.style,
+        marginLeft: inn ? 3 : undefined,
+        marginRight: inn ? undefined : 3,
+        width: 260,
+        height: 50,
+        padding: inn ? "4px 9px 0 4px" : "4px 4px 0 9px",
+        borderRadius: inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out,
+        background: CHAT.callCard,
+        WebkitTouchCallout: "none",
+      }}
+      {...tap}
+    >
+      {inn ? box : column}
+      {inn ? column : box}
+    </motion.a>
+  );
+}
+
+/** The map's window in a location message. */
+const MAP_W = 300;
+const MAP_H = 160;
+
+/** Metres one map px covers at the message's zoom, at this latitude. */
+const metresPerPx = (lat: number) =>
+  (156543.03 * Math.cos((lat * Math.PI) / 180)) / 2 ** 16;
+
+/**
+ * A location message: a 300 x 160 window of the map, centred on the point,
+ * with the pin in the sender's colour standing on it (and, when the device
+ * said how close the fix is, a soft ring of that size round it); under the
+ * map the card's grey strip with "Location" 13 Medium, the point's numbers
+ * 11 Regular, the time (and my ticks) and "Open in Maps". The bubble's
+ * corners and a 1 px line in the sender's colour round all of it. A tap
+ * opens the point in the phone's maps app.
+ */
+export function LocationMessage({
+  message: m,
+  open = false,
+  t,
+}: {
+  message: LocationMessageData;
+  open?: boolean;
+  t: (key: DemoKey) => string;
+}) {
+  const inn = m.side === "in";
+  const tint = inn ? C.purple : CHAT.sent;
+  const lift = liftOf(open, inn);
+  const tiles = tilesFor(m.lat, m.lng, MAP_W, MAP_H);
+  const ring =
+    m.accuracy && m.accuracy > 15
+      ? Math.min(70, m.accuracy / metresPerPx(m.lat))
+      : 0;
+  const tap = useTap(() => {
+    window.open(mapsUrl(m.lat, m.lng), "_blank", "noopener,noreferrer");
+  });
+  return (
+    <motion.div
+      animate={lift.animate}
+      transition={lift.transition}
+      data-pw={`demo-chat-location-${m.side}`}
+      role="link"
+      aria-label={`${t("Open in Maps")}: ${coordsLabel(m.lat, m.lng)}`}
+      className="relative flex flex-col shrink min-w-0 overflow-hidden select-none cursor-pointer"
+      style={{
+        ...lift.style,
+        marginLeft: inn ? 3 : undefined,
+        marginRight: inn ? undefined : 3,
+        width: MAP_W,
+        borderRadius: inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out,
+        background: CHAT.callCard,
+        WebkitTouchCallout: "none",
+      }}
+      {...tap}
+    >
+      <span
+        className="relative block w-full overflow-hidden"
+        style={{ height: MAP_H, background: "#EAE6E0" }}
+      >
+        {tiles.map((tile) => (
+          <img
+            key={`${tile.x}-${tile.y}`}
+            src={tileUrl(tile)}
+            alt=""
+            draggable={false}
+            loading="lazy"
+            className="absolute pointer-events-none"
+            style={{ left: tile.left, top: tile.top, width: 256, height: 256 }}
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        ))}
+        {ring > 0 && (
+          <span
+            aria-hidden="true"
+            className="absolute pointer-events-none"
+            style={{
+              left: "50%",
+              top: "50%",
+              width: ring * 2,
+              height: ring * 2,
+              marginLeft: -ring,
+              marginTop: -ring,
+              borderRadius: "50%",
+              background: `${tint}22`,
+              border: `1px solid ${tint}66`,
+            }}
+          />
+        )}
+        {/* The pin's tip stands on the point. */}
+        <span
+          className="absolute pointer-events-none"
+          style={{ left: "50%", top: "50%", marginLeft: -17, marginTop: -34 }}
+        >
+          <PinIcon size={34} color={tint} />
+        </span>
+      </span>
+      <span
+        className="flex items-start w-full"
+        style={{ padding: `${textTop(21, 13) - 4}px 12px 8px 12px` }}
+      >
+        <span className="flex flex-col grow min-w-0">
+          <Txt size={13} weight="medium" style={SPACED}>
+            {t("Location")}
+          </Txt>
+          <Txt size={11} color={C.inkSoft} className="whitespace-nowrap" style={SPACED}>
+            {coordsLabel(m.lat, m.lng)}
+          </Txt>
+        </span>
+        <span className="flex flex-col items-end shrink-0" style={{ marginLeft: 10 }}>
+          <Txt size={9} className="whitespace-nowrap">
+            {!inn && <Mark status={m.status} />}
+            {m.time}
+          </Txt>
+          <span className="flex items-center" style={{ marginTop: 3 }}>
+            <OpenIcon color={tint} />
+            <Txt size={11} weight="medium" color={tint} ml={3} className="whitespace-nowrap">
+              {t("Open in Maps")}
+            </Txt>
+          </span>
+        </span>
+      </span>
+      <Edge color={tint} radius={inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out} />
+    </motion.div>
+  );
+}
 
 /** The pause mark: two round bars in the play mark's 30 x 30 box (the file draws only the play mark). */
 function PauseMark({ color }: { color: string }) {

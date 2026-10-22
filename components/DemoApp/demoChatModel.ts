@@ -1,6 +1,9 @@
 import {
+  CALLER,
   CALL_ROWS as DESIGN_CALL_ROWS,
+  CHAT_PHOTOS,
   CHAT_ROWS,
+  CONTACT,
   MESSAGES,
   MESSAGE_TIME,
   type CallKind,
@@ -66,6 +69,37 @@ export type VoiceMessage = Base & {
   status?: Status;
 };
 
+export type VideoMessage = Base & {
+  kind: "video";
+  side: Side;
+  src: string;
+  /** How long the video is, in seconds; 0 while it is not known. */
+  seconds: number;
+  status?: Status;
+};
+
+export type FileMessage = Base & {
+  kind: "file";
+  side: Side;
+  src: string;
+  name: string;
+  /** The file's size, in bytes. */
+  bytes: number;
+  /** The MIME type ("application/pdf"), when the browser knows it. */
+  mime?: string;
+  status?: Status;
+};
+
+export type LocationMessage = Base & {
+  kind: "location";
+  side: Side;
+  lat: number;
+  lng: number;
+  /** How close the fix is, in metres, when the device says. */
+  accuracy?: number;
+  status?: Status;
+};
+
 export type CallMessage = Base & {
   kind: "call";
   side: Side;
@@ -88,15 +122,42 @@ export type ChatMessage =
   | TextMessage
   | PhotoMessage
   | VoiceMessage
+  | VideoMessage
+  | FileMessage
+  | LocationMessage
   | CallMessage
   | NoteMessage
   | DayMessage;
 
 /** A message that can be sent, swiped, answered and forwarded. */
-export type Openable = TextMessage | PhotoMessage | VoiceMessage;
+export type Openable =
+  | TextMessage
+  | PhotoMessage
+  | VoiceMessage
+  | VideoMessage
+  | FileMessage
+  | LocationMessage;
+
+const OPENABLE_KINDS: ReadonlySet<ChatMessage["kind"]> = new Set([
+  "text",
+  "photo",
+  "voice",
+  "video",
+  "file",
+  "location",
+]);
 
 export const isOpenable = (m: ChatMessage): m is Openable =>
-  m.kind === "text" || m.kind === "photo" || m.kind === "voice";
+  OPENABLE_KINDS.has(m.kind);
+
+/** The words a row or a quote uses for a message that is not text. */
+export type PreviewWords = {
+  photo: string;
+  voice: string;
+  video: string;
+  file: string;
+  location: string;
+};
 
 /** A message that can be held for its menu: everything but a day pill. */
 export type Holdable = Openable | CallMessage | NoteMessage;
@@ -107,8 +168,32 @@ export const isHoldable = (m: ChatMessage): m is Holdable => m.kind !== "day";
 export const isOwn = (m: ChatMessage): m is Openable =>
   isOpenable(m) && m.side === "out";
 
+/** Someone the shopper can chat with. */
+export type Contact = {
+  id: string;
+  name: string;
+  phone: string;
+  /** The contact's picture; none shows the grey box with the initials. */
+  photo?: string;
+  initials: string;
+};
+
+/** "MW" from "Marie Winter": the first letter of the first two words. */
+export const initialsOf = (name: string) =>
+  name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+
+/** The id of the file's contact, Marie Winter, whose chats the seed draws. */
+export const SEED_CONTACT = "marie";
+
 export type ChatThread = {
   id: string;
+  /** Who the chat is with (a `Contact` id). */
+  contact: string;
   /** The grey box with the initials instead of the photo (row 2 of `– 41`). */
   initials?: boolean;
   /** Unread messages; the row shows the count and the open-letter mark. */
@@ -123,6 +208,10 @@ export type ChatThread = {
   mark?: DeliveryMark;
   pinned?: boolean;
   muted?: boolean;
+  /** The contact is blocked (`– 45`: Block / UnBlock). */
+  blocked?: boolean;
+  /** The contact may not call me (`– 45`: Enable Call / Desible Call). */
+  callsDisabled?: boolean;
   /** The preview and time the row shows once the chat moved on from the file's sample. */
   preview?: string;
   time?: string;
@@ -133,6 +222,8 @@ export type ChatThread = {
 
 export type ChatState = {
   chats: ChatThread[];
+  /** Everyone the shopper can start a chat with. */
+  contacts: Contact[];
   /** The chat opened last: its row carries the purple line and bar. */
   active: string;
   /** The chat whose conversation is on the screen now, if any. */
@@ -177,12 +268,43 @@ export function seedMessages(): ChatMessage[] {
   ];
 }
 
+/** The people the file draws: the chats' contact and the caller of `Call – 3`. */
+export function seedContacts(): Contact[] {
+  return [
+    {
+      id: SEED_CONTACT,
+      name: CONTACT.name,
+      phone: CONTACT.phone,
+      photo: CHAT_PHOTOS.contact,
+      initials: CONTACT.initials,
+    },
+    {
+      id: "grant",
+      name: CALLER.name,
+      phone: CALLER.phone,
+      photo: CHAT_PHOTOS.caller,
+      initials: initialsOf(CALLER.name),
+    },
+  ];
+}
+
+/** The contact a chat is with; the file's contact when the id is unknown. */
+export function contactOf(state: ChatState, chat: ChatThread): Contact {
+  return (
+    state.contacts.find((c) => c.id === chat.contact) ??
+    state.contacts.find((c) => c.id === SEED_CONTACT) ??
+    seedContacts()[0]
+  );
+}
+
 /** The seven rows of `Home Page – 41`, each with the file's conversation. */
 export function seedState(): ChatState {
   const n = CHAT_ROWS.length;
   return {
+    contacts: seedContacts(),
     chats: CHAT_ROWS.map((row, i) => ({
       id: row.id,
+      contact: SEED_CONTACT,
       initials: row.initials,
       unread: row.unread ? Number(row.unread) : 0,
       typing: row.typing,
@@ -223,8 +345,18 @@ export type ChatAction =
   | { type: "pin"; chat: string }
   | { type: "unread"; chat: string }
   | { type: "mute"; chat: string }
+  | { type: "block"; chat: string }
+  | { type: "calls"; chat: string }
   | { type: "archive"; chat: string }
-  | { type: "deleteChat"; chat: string };
+  | { type: "deleteChat"; chat: string }
+  | { type: "addContact"; contact: Contact }
+  | {
+      /** Opens the chat with a contact: the one there is, or a new empty one. */
+      type: "newChat";
+      contact: string;
+      /** The new chat's own id and time, when one is made. */
+      as: { id: string; time: string };
+    };
 
 /** The rows in the order the list shows them: pinned first, then the newest. */
 export function orderedChats(chats: ChatThread[]): ChatThread[] {
@@ -235,10 +367,29 @@ export function orderedChats(chats: ChatThread[]): ChatThread[] {
 }
 
 /** What a row shows of a message. */
-export function previewOf(m: Openable, words: { photo: string; voice: string }) {
+export function previewOf(m: Openable, words: PreviewWords) {
   if (m.kind === "text") return m.text;
-  if (m.kind === "photo") return words.photo;
-  return words.voice;
+  if (m.kind === "file") return `${words.file}: ${m.name}`;
+  return words[m.kind];
+}
+
+/** The English words used when the screens give none (tests, the seed). */
+export const PLAIN_WORDS: PreviewWords = {
+  photo: "Photo",
+  voice: "voice message",
+  video: "Video",
+  file: "File",
+  location: "Location",
+};
+
+/** A size in bytes as "812 KB" / "2.4 MB", the way a file card shows it. */
+export function fileSize(bytes: number): string {
+  if (bytes < 1024) return `${Math.max(0, Math.round(bytes))} B`;
+  const kb = bytes / 1024;
+  if (kb < 1024) return `${Math.round(kb)} KB`;
+  const mb = kb / 1024;
+  if (mb < 1024) return `${mb < 10 ? mb.toFixed(1) : Math.round(mb)} MB`;
+  return `${(mb / 1024).toFixed(1)} GB`;
 }
 
 const update = (
@@ -287,7 +438,7 @@ const lastOpenable = (chat: ChatThread) =>
 export function reduceChat(
   state: ChatState,
   action: ChatAction,
-  words: { photo: string; voice: string } = { photo: "Photo", voice: "voice message" },
+  words: PreviewWords = PLAIN_WORDS,
 ): ChatState {
   const preview = (m: Openable) => previewOf(m, words);
   switch (action.type) {
@@ -412,6 +563,48 @@ export function reduceChat(
       }));
     case "mute":
       return update(state, action.chat, (chat) => ({ ...chat, muted: !chat.muted }));
+    case "block":
+      return update(state, action.chat, (chat) => ({ ...chat, blocked: !chat.blocked }));
+    case "calls":
+      return update(state, action.chat, (chat) => ({
+        ...chat,
+        callsDisabled: !chat.callsDisabled,
+      }));
+    case "addContact": {
+      const { contact } = action;
+      const phone = contact.phone.replace(/\s+/g, "");
+      if (
+        !contact.name.trim() ||
+        !phone ||
+        state.contacts.some(
+          (c) => c.id === contact.id || c.phone.replace(/\s+/g, "") === phone,
+        )
+      )
+        return state;
+      return { ...state, contacts: [...state.contacts, contact] };
+    }
+    case "newChat": {
+      if (!state.contacts.some((c) => c.id === action.contact)) return state;
+      const there = orderedChats(state.chats).find((c) => c.contact === action.contact);
+      if (there) return reduceChat(state, { type: "open", chat: there.id }, words);
+      const tick = state.tick + 1;
+      const chat: ChatThread = {
+        id: action.as.id,
+        contact: action.contact,
+        unread: 0,
+        preview: "",
+        time: action.as.time,
+        lastAt: tick,
+        messages: [],
+      };
+      return {
+        ...state,
+        chats: [...state.chats, chat],
+        active: chat.id,
+        viewing: chat.id,
+        tick,
+      };
+    }
     case "archive":
     case "deleteChat": {
       if (!state.chats.some((c) => c.id === action.chat)) return state;

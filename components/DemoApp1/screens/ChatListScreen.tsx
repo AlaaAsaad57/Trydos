@@ -18,13 +18,27 @@ import {
 } from "../../DemoApp/demoChat";
 import {
   CALL_ROWS,
+  contactOf,
   orderedChats,
   type ChatThread,
+  type Contact,
 } from "../../DemoApp/demoChatModel";
 import { useDemoChat } from "../../DemoApp/demoChatState";
 import { useDemoNav } from "../Demo1Shell";
-import { C, TAB_BAR, fill, lineBox, paraTop, textTop } from "../demo1Layout";
+import {
+  C,
+  COLUMN_W,
+  EDGE_ANCHOR,
+  SAFE_BOTTOM,
+  TAB_BAR,
+  fill,
+  lineBox,
+  paraTop,
+  textTop,
+} from "../demo1Layout";
 import { Icon, ScreenPage, Stroke, Txt, useScrollLock } from "../ui";
+import { PlusIcon } from "../chat/chatIcons";
+import NewChatSheet from "../chat/NewChatSheet";
 import Toast, { useToast } from "../chat/Toast";
 
 /**
@@ -66,9 +80,11 @@ import Toast, { useToast } from "../chat/Toast";
  */
 export default function ChatListScreen() {
   const { t, navigate } = useDemoNav();
-  const { state, dispatch } = useDemoChat();
+  const { state, dispatch, newChat, addContact } = useDemoChat();
   const [tab, setTab] = useState<"chats" | "calls">("chats");
   const [query, setQuery] = useState("");
+  /** The "New chat" sheet is up. */
+  const [starting, setStarting] = useState(false);
   /** The row whose action cells show, if any. */
   const [openRow, setOpenRow] = useState<string | null>(null);
   const [toast, showToast] = useToast();
@@ -92,9 +108,16 @@ export default function ChatListScreen() {
   const rows = orderedChats(state.chats).filter(
     (chat) =>
       !needle ||
-      CONTACT.name.toLowerCase().includes(needle) ||
+      contactOf(state, chat).name.toLowerCase().includes(needle) ||
       (chat.preview ?? PREVIEW).toLowerCase().includes(needle),
   );
+
+  /** Opens the chat with a contact — the one there is, or a new one — and goes to it. */
+  const startChat = (contact: string) => {
+    setStarting(false);
+    newChat(contact);
+    navigate("chat/conversation");
+  };
 
   const act = (chat: ChatThread, label: DemoKey) => {
     switch (label) {
@@ -233,6 +256,7 @@ export default function ChatListScreen() {
               >
                 <ChatRowFace
                   row={chat}
+                  contact={contactOf(state, chat)}
                   selected={state.active === chat.id}
                   t={t}
                 />
@@ -253,6 +277,60 @@ export default function ChatListScreen() {
         ))
       )}
       <Toast text={toast} bottom={TAB_BAR.height + 24} fixed />
+
+      {/* The round purple button that starts a chat: 52 px, 20 px from the
+          right edge, 16 px over the tab bar. It hangs on a 0 x 0 anchor at
+          the bottom of the window, as the toast and the tab bar do (see
+          EDGE_ANCHOR). Only on the Chats tab. */}
+      <AnimatePresence>
+        {tab === "chats" && (
+          <div
+            key="new-chat"
+            style={{
+              ...EDGE_ANCHOR,
+              top: undefined,
+              bottom: `calc(${15 + TAB_BAR.height + 16}px + ${SAFE_BOTTOM})`,
+              zIndex: 30,
+            }}
+          >
+            <motion.button
+              type="button"
+              data-pw="demo-chat-new"
+              aria-label={t("New chat")}
+              onClick={(e) => {
+                e.stopPropagation();
+                setStarting(true);
+              }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0, transition: { duration: 0.15 } }}
+              transition={{ type: "spring", stiffness: 420, damping: 26 }}
+              whileTap={{ scale: 0.9 }}
+              className="absolute flex items-center justify-center cursor-pointer"
+              style={{
+                bottom: 0,
+                right: `calc(20px - ${COLUMN_W} / 2)`,
+                width: 52,
+                height: 52,
+                borderRadius: 26,
+                background: C.purple,
+                boxShadow: "0 4px 12px rgba(74,49,231,0.35)",
+              }}
+            >
+              <PlusIcon color={C.white} size={26} />
+            </motion.button>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <NewChatSheet
+        open={starting}
+        contacts={state.contacts}
+        onPick={startChat}
+        onAdd={(name, phone) => startChat(addContact(name, phone))}
+        onClose={() => setStarting(false)}
+        t={t}
+      />
     </ScreenPage>
   );
 }
@@ -505,12 +583,15 @@ function Photo({
   w,
   h,
   line,
+  src = CHAT_PHOTOS.contact,
   initials,
 }: {
   w: number;
   h: number;
   line?: string;
-  initials?: boolean;
+  src?: string;
+  /** The grey box with these letters instead of the picture. */
+  initials?: string;
 }) {
   return (
     <div
@@ -525,11 +606,11 @@ function Photo({
       {initials ? (
         // "MW" 14 Medium on baseline 43 of the 76 box, centred.
         <Txt center size={14} weight="medium" mt={textTop(43, 14)}>
-          {CONTACT.initials}
+          {initials}
         </Txt>
       ) : (
         <img
-          src={CHAT_PHOTOS.contact}
+          src={src}
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -613,10 +694,12 @@ function SendLine({
  */
 function ChatRowFace({
   row,
+  contact,
   selected,
   t,
 }: {
   row: ChatThread;
+  contact: Contact;
   /** The chat opened last: the purple line and bar. */
   selected: boolean;
   t: (key: DemoKey) => string;
@@ -647,7 +730,8 @@ function ChatRowFace({
         <Photo
           w={66}
           h={76}
-          initials={row.initials}
+          src={contact.photo}
+          initials={row.initials || !contact.photo ? contact.initials : undefined}
           line={selected ? C.purple : undefined}
         />
       </div>
@@ -660,7 +744,7 @@ function ChatRowFace({
           {/* The left column is 137 wide: from x 90 to the icons at 227. */}
           <div className="flex flex-col shrink-0" style={{ width: 227 - 90 }}>
             <Txt size={14} weight="medium">
-              {CONTACT.name}
+              {contact.name}
             </Txt>
             <SendLine
               icon="chatSendPhoto"
@@ -688,8 +772,8 @@ function ChatRowFace({
           style={{ marginLeft: 12, marginTop: nameTop }}
         >
           <div className="flex items-start w-full">
-            <Txt size={14} weight="medium">
-              {CONTACT.name}
+            <Txt size={14} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
+              {contact.name}
             </Txt>
             <RowTime right={13} time={time} muted={row.muted} t={t} />
           </div>

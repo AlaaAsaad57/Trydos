@@ -10,12 +10,15 @@ import React, {
 import type { DemoKey } from "./demoKeys";
 import {
   clockNow,
+  initialsOf,
   newId,
+  orderedChats,
   reduceChat,
   seedState,
   type ChatAction,
   type ChatState,
   type Openable,
+  type PreviewWords,
 } from "./demoChatModel";
 
 /**
@@ -51,7 +54,14 @@ type DemoChat = {
   sendText: (chat: string, text: string, replyTo?: { id: string; text: string }) => void;
   sendPhoto: (chat: string, src: string) => void;
   sendVoice: (chat: string, seconds: number) => void;
+  sendVideo: (chat: string, src: string, seconds: number) => void;
+  sendFile: (chat: string, file: { src: string; name: string; bytes: number; mime?: string }) => void;
+  sendLocation: (chat: string, point: { lat: number; lng: number; accuracy?: number }) => void;
   forward: (from: string, id: string, to: string) => void;
+  /** Opens the chat with a contact (a new one when there is none) and says which. */
+  newChat: (contact: string) => string;
+  /** Adds a contact and says its id. */
+  addContact: (name: string, phone: string) => string;
 };
 
 const Ctx = createContext<DemoChat | null>(null);
@@ -63,7 +73,13 @@ export function DemoChatProvider({
   children: React.ReactNode;
   t: (key: DemoKey) => string;
 }) {
-  const words = { photo: t("Photo"), voice: t("voice message") };
+  const words: PreviewWords = {
+    photo: t("Photo"),
+    voice: t("voice message"),
+    video: t("Video"),
+    file: t("File"),
+    location: t("Location"),
+  };
   const [state, rawDispatch] = useReducer(
     (s: ChatState, a: ChatAction) => reduceChat(s, a, words),
     undefined,
@@ -130,6 +146,12 @@ export function DemoChatProvider({
       deliver(chat, { kind: "photo", id: newId(), side: "out", src, time: clockNow() }),
     sendVoice: (chat, seconds) =>
       deliver(chat, { kind: "voice", id: newId(), side: "out", seconds, time: clockNow() }),
+    sendVideo: (chat, src, seconds) =>
+      deliver(chat, { kind: "video", id: newId(), side: "out", src, seconds, time: clockNow() }),
+    sendFile: (chat, file) =>
+      deliver(chat, { kind: "file", id: newId(), side: "out", ...file, time: clockNow() }),
+    sendLocation: (chat, point) =>
+      deliver(chat, { kind: "location", id: newId(), side: "out", ...point, time: clockNow() }),
     forward: (from, id, to) => {
       const as = { id: newId(), time: clockNow() };
       dispatch({ type: "forward", from, id, to, as });
@@ -139,6 +161,24 @@ export function DemoChatProvider({
       later(MOCK_TIMING.read, () =>
         dispatch({ type: "status", chat: to, id: as.id, status: "read" }),
       );
+    },
+    newChat: (contact) => {
+      const there = orderedChats(state.chats).find((c) => c.contact === contact);
+      const as = { id: newId(), time: clockNow() };
+      dispatch({ type: "newChat", contact, as });
+      return there?.id ?? as.id;
+    },
+    addContact: (name, phone) => {
+      // A number that is already in the list is that contact.
+      const digits = phone.replace(/\s+/g, "");
+      const there = state.contacts.find((c) => c.phone.replace(/\s+/g, "") === digits);
+      if (there) return there.id;
+      const id = newId();
+      dispatch({
+        type: "addContact",
+        contact: { id, name: name.trim(), phone: phone.trim(), initials: initialsOf(name) },
+      });
+      return id;
     },
   };
 

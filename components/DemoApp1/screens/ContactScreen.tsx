@@ -2,10 +2,12 @@
 
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import React from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
-import { CHAT, CHAT_PHOTOS, CONTACT } from "../../DemoApp/demoChat";
+import { CHAT } from "../../DemoApp/demoChat";
+import { contactOf } from "../../DemoApp/demoChatModel";
+import { useDemoChat } from "../../DemoApp/demoChatState";
 import { useDemoNav } from "../Demo1Shell";
 import {
   C,
@@ -38,13 +40,29 @@ import { ScreenPage, Stroke, Txt } from "../ui";
  *     baseline 814 with 25 px icons at y 768; UnBlock under Block, its grey
  *     icon at y 829 and its word on baseline 875.
  *
- * The file stacks both states of the call switch and of block / unblock;
- * the demo draws them as the file does.
+ * The file stacks both states of the call switch and of block / unblock.
+ * The screen shows one of each, read from the chat (demoChatModel.ts:
+ * `callsDisabled`, `blocked`), in the place of the file's first line: the
+ * switch reads "Desible Call" while the contact may call and "Enable Call"
+ * once they may not; Block is the red mark until the contact is blocked,
+ * then the grey mark and "UnBlock". A tap flips each one.
  */
 export default function ContactScreen() {
   const { t, navigate, back } = useDemoNav();
+  const { state, dispatch } = useDemoChat();
+  const chat = state.chats.find((c) => c.id === state.active) ?? state.chats[0];
+  const contact = contactOf(state, chat);
+  const callsOff = !!chat?.callsDisabled;
+  const blocked = !!chat?.blocked;
   const actionsTop = 358;
   const labelTop = textTop(405, 13);
+  /** A short fade and lift as a word or a mark gives way to its other state. */
+  const flip = {
+    initial: { opacity: 0, y: 4 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -4 },
+    transition: { duration: 0.16, ease: "easeOut" as const },
+  };
   return (
     <ScreenPage testId="demo-contact" scrollTop={STATUS_BAR}>
       <button
@@ -60,26 +78,33 @@ export default function ContactScreen() {
 
       <div
         data-pw="demo-contact-photo"
-        className="relative shrink-0 self-center overflow-hidden"
+        className="relative flex flex-col shrink-0 self-center overflow-hidden"
         style={{
           marginTop: 102 - (63.5 + 23),
           width: 131,
           height: 150,
           borderRadius: 30,
+          background: contact.photo ? undefined : C.field,
         }}
       >
-        <img
-          src={CHAT_PHOTOS.contact}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        {contact.photo ? (
+          <img
+            src={contact.photo}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <Txt center size={28} weight="medium" mt={textTop(85, 28)}>
+            {contact.initials}
+          </Txt>
+        )}
         <Stroke color={C.purple} width={1} radius={30} />
       </div>
       <Txt center size={16} weight="medium" mt={textTop(280, 16) - 252}>
-        {CONTACT.name}
+        {contact.name}
       </Txt>
       <Txt center size={16} mt={textTop(304, 16) - textBottom(280, 16)}>
-        {CONTACT.phone}
+        {contact.phone}
       </Txt>
 
       <div
@@ -99,13 +124,23 @@ export default function ContactScreen() {
       <Row icon="rowGallery" label="Save To Gallery" value="ALWAYS" mt={2} t={t} />
       <Row icon="rowGallery" label="Notification" value="ALWAYS" mt={2} t={t} />
 
-      {/* Two SF Pro Rounded 12 lines, 17 px apart, ending 22 px before the right edge. */}
+      {/* The file's two SF Pro Rounded 12 lines, 17 px apart, ending 22 px
+          before the right edge: the switch takes the first line, the second
+          stays empty so the blocks under it keep their place. */}
       <div
         className="flex flex-col items-end shrink-0"
-        style={{ marginTop: sfTop(670, 12, 17) - 642, marginRight: 430 - 408 }}
+        style={{ marginTop: sfTop(670, 12, 17) - 642, marginRight: 430 - 408, height: 34 }}
       >
-        <SfLine label="Enable Call" testId="demo-contact-enable-call" t={t} />
-        <SfLine label="Desible Call" testId="demo-contact-disable-call" t={t} />
+        <AnimatePresence initial={false} mode="wait">
+          <motion.div key={callsOff ? "enable" : "disable"} {...flip} className="shrink-0">
+            <SfLine
+              label={callsOff ? "Enable Call" : "Desible Call"}
+              testId={callsOff ? "demo-contact-enable-call" : "demo-contact-disable-call"}
+              onClick={() => chat && dispatch({ type: "calls", chat: chat.id })}
+              t={t}
+            />
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       <div
@@ -121,18 +156,24 @@ export default function ContactScreen() {
           iconLeft={79 - 61}
           t={t}
         />
+        {/* Block in the file's place; UnBlock (the grey mark) takes the same
+            place once the contact is blocked — the file draws it lower only
+            to show both. */}
         <div className="flex flex-col items-center shrink-0" style={{ marginLeft: 238 - 125, width: 268 - 238 }}>
-          <BottomAction icon="blockRed" label="Block" color={C.red} ml={0} width={30} iconLeft={2} t={t} />
-          <BottomAction
-            icon="blockGrey"
-            label="UnBlock"
-            color={C.red}
-            ml={0}
-            width={30}
-            iconLeft={2}
-            mt={829 - (sfTop(814, 12, 17) + 17)}
-            t={t}
-          />
+          <AnimatePresence initial={false} mode="wait">
+            <motion.div key={blocked ? "unblock" : "block"} {...flip} className="flex shrink-0">
+              <BottomAction
+                icon={blocked ? "blockGrey" : "blockRed"}
+                label={blocked ? "UnBlock" : "Block"}
+                color={C.red}
+                ml={0}
+                width={30}
+                iconLeft={2}
+                onClick={() => chat && dispatch({ type: "block", chat: chat.id })}
+                t={t}
+              />
+            </motion.div>
+          </AnimatePresence>
         </div>
         <SfLine
           label="Share"
@@ -230,18 +271,21 @@ function SfLine({
   color = C.ink,
   testId,
   style,
+  onClick,
   t,
 }: {
   label: DemoKey;
   color?: string;
   testId: string;
   style?: React.CSSProperties;
+  onClick?: () => void;
   t: (key: DemoKey) => string;
 }) {
   return (
     <button
       type="button"
       data-pw={testId}
+      onClick={onClick}
       className="block shrink-0 whitespace-nowrap cursor-pointer active:opacity-60"
       style={{
         fontFamily: SF_ROUNDED,
@@ -266,6 +310,7 @@ function BottomAction({
   width,
   iconLeft,
   mt = 0,
+  onClick,
   t,
 }: {
   icon: XdIconName;
@@ -275,12 +320,14 @@ function BottomAction({
   width: number;
   iconLeft: number;
   mt?: number;
+  onClick?: () => void;
   t: (key: DemoKey) => string;
 }) {
   return (
     <button
       type="button"
       data-pw={`demo-contact-${label.toLowerCase().replace(/[^a-z]+/g, "-")}`}
+      onClick={onClick}
       className="flex flex-col shrink-0 cursor-pointer active:opacity-60"
       style={{ marginLeft: ml, marginTop: mt, width }}
     >

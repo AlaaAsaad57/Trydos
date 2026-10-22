@@ -72,6 +72,47 @@ export function RecordDot({ color }: { color: string }) {
   );
 }
 
+/** The sheet of paper on a file message's card, in the call cards' 18 px box. */
+export function FileIcon({ size = 18, color }: { size?: number; color: string }) {
+  return (
+    <svg {...line(size, color, 1.6)}>
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" />
+      <path d="M14 3v5h5M9 13h6M9 17h6" />
+    </svg>
+  );
+}
+
+/** The pin over the map of a location message. */
+export function PinIcon({ size = 30, color }: { size?: number; color: string }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="block shrink-0 pointer-events-none"
+    >
+      <path
+        d="M12 2.5a7 7 0 0 0-7 7c0 5.1 6.2 11.3 6.5 11.6a.7.7 0 0 0 1 0C12.8 20.8 19 14.6 19 9.5a7 7 0 0 0-7-7Z"
+        fill={color}
+        stroke="#FFFFFF"
+        strokeWidth={1.4}
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="9.5" r="2.6" fill="#FFFFFF" />
+    </svg>
+  );
+}
+
+/** The arrow out of a box: "Open in Maps". */
+export function OpenIcon({ size = 14, color }: { size?: number; color: string }) {
+  return (
+    <svg {...line(size, color, 1.8)}>
+      <path d="M14 4h6v6M20 4l-9 9M19 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 18.5v-11A1.5 1.5 0 0 1 6.5 6H11" />
+    </svg>
+  );
+}
+
 /** The small "‹" before "Slide to cancel". */
 export function ChevronLeftIcon({ size = 14, color }: { size?: number; color: string }) {
   return (

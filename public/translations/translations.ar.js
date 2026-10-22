@@ -3034,6 +3034,11 @@ const translations = {
   "Sent a video": "أرسل فيديو",
   "Sent a voice message": "أرسل رسالة صوتية",
   "Sent a file": "أرسل ملفًا",
+  "Finding your location…": "جارٍ تحديد موقعك…",
+  "Location unavailable": "الموقع غير متاح",
+  "Open in Maps": "فتح في الخرائط",
+  "New chat": "دردشة جديدة",
+  "New contact": "جهة اتصال جديدة",
 };
 
 export default translations;

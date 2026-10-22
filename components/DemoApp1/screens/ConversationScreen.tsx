@@ -5,6 +5,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import { CHAT, CHAT_COUNTS, CHAT_PHOTOS, CONTACT } from "../../DemoApp/demoChat";
 import {
+  contactOf,
   gapAbove,
   isOpenable,
   previewOf,
@@ -28,11 +29,14 @@ import {
   CallCard,
   DayPill,
   Dot,
+  FileMessage,
+  LocationMessage,
   Note,
   PhotoMessage,
   Quote,
   SmallPhoto,
   TypingBubble,
+  VideoMessage,
   VoiceMessage,
   callWords,
 } from "../chat/messages";
@@ -59,8 +63,8 @@ import Toast, { useToast } from "../chat/Toast";
  * The gestures are WhatsApp's on the iPhone (../chat/MessageRow.tsx, from
  * the video of 2026-10-21): pull a message right to answer it; hold it to
  * lift it over the dimmed chat and pop its menu (../chat/MessageMenu.tsx).
- * Every message but a day pill has the menu — text, photo, voice, call
- * cards, the note. Its actions work on the state: reply, forward (a sheet
+ * Every message but a day pill has the menu — text, photo, voice, video,
+ * file, location, call cards, the note. Its actions work on the state: reply, forward (a sheet
  * picks the chat), copy, delete, edit; Forward is dimmed on a call card or
  * a note, Edit on anything but my own text. Category and re-remind say
  * "Soon available". The body scrolls on its own under the head, opens at
@@ -69,9 +73,20 @@ import Toast, { useToast } from "../chat/Toast";
  */
 export default function ConversationScreen() {
   const { t, navigate, back } = useDemoNav();
-  const { state, dispatch, sendText, sendPhoto, sendVoice, forward } = useDemoChat();
+  const {
+    state,
+    dispatch,
+    sendText,
+    sendPhoto,
+    sendVoice,
+    sendVideo,
+    sendFile,
+    sendLocation,
+    forward,
+  } = useDemoChat();
   const chatId = state.viewing ?? state.active;
   const chat = state.chats.find((c) => c.id === chatId) ?? state.chats[0];
+  const contact = contactOf(state, chat);
   const [menu, setMenu] = useState<string | null>(null);
   // The message above the blur: it stays up until the blur has faded out.
   const [lifted, setLifted] = useState<string | null>(null);
@@ -159,7 +174,13 @@ export default function ConversationScreen() {
       ? callWords(m, t)
       : m.kind === "note"
         ? m.text
-        : previewOf(m, { photo: t("Photo"), voice: t("voice message") });
+        : previewOf(m, {
+            photo: t("Photo"),
+            voice: t("voice message"),
+            video: t("Video"),
+            file: t("File"),
+            location: t("Location"),
+          });
 
   const act = (name: MenuName, m: Holdable) => {
     close();
@@ -168,7 +189,7 @@ export default function ConversationScreen() {
         setContext({
           kind: "reply",
           id: m.id,
-          name: m.kind !== "note" && m.side === "out" ? t("You") : CONTACT.name,
+          name: m.kind !== "note" && m.side === "out" ? t("You") : contact.name,
           text: wordsOf(m),
         });
         return;
@@ -254,18 +275,37 @@ export default function ConversationScreen() {
         className="flex items-start shrink-0 min-w-0 cursor-pointer active:opacity-60 text-left"
       >
         <span
-          className="relative block shrink-0 overflow-hidden"
-          style={{ marginTop: 6, width: 38, height: 38, borderRadius: 12 }}
+          className="relative flex flex-col shrink-0 overflow-hidden"
+          style={{
+            marginTop: 6,
+            width: 38,
+            height: 38,
+            borderRadius: 12,
+            background: contact.photo ? undefined : C.field,
+          }}
         >
-          <img
-            src={CHAT_PHOTOS.contact}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+          {contact.photo ? (
+            <img
+              src={contact.photo}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <Txt center size={12} weight="medium" mt={textTop(24, 12)}>
+              {contact.initials}
+            </Txt>
+          )}
           <Stroke color={C.white} width={1} radius={12} />
         </span>
-        <Txt size={16} weight="medium" ml={12} mt={textTop(81 - 50, 16)}>
-          {CONTACT.name}
+        <Txt
+          size={16}
+          weight="medium"
+          ml={12}
+          mt={textTop(81 - 50, 16)}
+          className="overflow-hidden whitespace-nowrap"
+          style={{ textOverflow: "ellipsis" }}
+        >
+          {contact.name}
         </Txt>
       </button>
       <button
@@ -365,6 +405,53 @@ export default function ConversationScreen() {
       );
     const inn = m.side === "in";
     const isOpen = menu === m.id;
+    /** The block between the dots: a bubble, a picture, a player or a card. */
+    const block = () => {
+      switch (m.kind) {
+        case "text":
+          return (
+            <Bubble
+              side={m.side}
+              text={m.text}
+              time={m.time}
+              status={m.status}
+              replied={m.repliedTo}
+              edited={m.edited}
+              forwarded={m.forwarded}
+              open={isOpen}
+              t={t}
+            />
+          );
+        case "photo":
+          return (
+            <PhotoMessage
+              side={m.side}
+              src={m.src}
+              time={m.time}
+              status={m.status}
+              open={isOpen}
+            />
+          );
+        case "video":
+          return (
+            <VideoMessage
+              side={m.side}
+              src={m.src}
+              seconds={m.seconds}
+              time={m.time}
+              status={m.status}
+              open={isOpen}
+              t={t}
+            />
+          );
+        case "file":
+          return <FileMessage message={m} open={isOpen} t={t} />;
+        case "location":
+          return <LocationMessage message={m} open={isOpen} t={t} />;
+        default:
+          return null;
+      }
+    };
     const row = (
       <MessageRow
         key={m.id}
@@ -383,27 +470,7 @@ export default function ConversationScreen() {
         ) : (
           <>
             {inn && <Dot color={C.purple} ml={5} />}
-            {m.kind === "text" ? (
-              <Bubble
-                side={m.side}
-                text={m.text}
-                time={m.time}
-                status={m.status}
-                replied={m.repliedTo}
-                edited={m.edited}
-                forwarded={m.forwarded}
-                open={isOpen}
-                t={t}
-              />
-            ) : (
-              <PhotoMessage
-                side={m.side}
-                src={m.src}
-                time={m.time}
-                status={m.status}
-                open={isOpen}
-              />
-            )}
+            {block()}
             {!inn && <Dot color={CHAT.sentDot} mr={5} />}
           </>
         )}
@@ -439,6 +506,9 @@ export default function ConversationScreen() {
         onSend={send}
         onSendPhoto={(src) => sendPhoto(chat.id, src)}
         onSendVoice={(seconds) => sendVoice(chat.id, seconds)}
+        onSendVideo={(src, seconds) => sendVideo(chat.id, src, seconds)}
+        onSendFile={(file) => sendFile(chat.id, file)}
+        onSendLocation={(point) => sendLocation(chat.id, point)}
         onToast={showToast}
         blur={menu ? MENU_BLUR : 0}
         t={t}
@@ -487,7 +557,7 @@ export default function ConversationScreen() {
           style={{ marginTop: 4, ...dimStyle("") }}
         >
           <Dot color={C.purple} ml={4} mt={10} />
-          <SmallPhoto src={CHAT_PHOTOS.contact} ml={2} line={1} />
+          <SmallPhoto src={contact.photo} initials={contact.initials} ml={2} line={1} />
           <SmallPhoto src={CHAT_PHOTOS.me} ml="auto" line={0.5} />
           <Dot color={CHAT.sent} ml={2} mr={4} mt={10} />
         </div>
@@ -515,6 +585,7 @@ export default function ConversationScreen() {
       <ForwardSheet
         open={forwarding !== null}
         chats={state.chats}
+        contacts={state.contacts}
         except={chat.id}
         onPick={(to) => {
           if (forwarding) forward(chat.id, forwarding, to);

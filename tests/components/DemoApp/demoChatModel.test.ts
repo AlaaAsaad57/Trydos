@@ -1,13 +1,21 @@
 import { describe, expect, it } from "vitest";
 import {
+  SEED_CONTACT,
+  contactOf,
+  fileSize,
   gapAbove,
+  initialsOf,
   isOpenable,
   orderedChats,
+  previewOf,
   reduceChat,
   seedState,
   type ChatState,
+  type FileMessage,
+  type LocationMessage,
   type Openable,
   type TextMessage,
+  type VideoMessage,
 } from "components/DemoApp/demoChatModel";
 import { MESSAGES } from "components/DemoApp/demoChat";
 
@@ -173,6 +181,134 @@ describe("demo chat state — the message menu", () => {
     expect(copy.kind === "text" && copy.forwarded, "the copy is not marked Forwarded").toBe(true);
     expect(copy.kind === "text" && copy.side, "the copy is not on my side").toBe("out");
     expect(chatOf(state, "unread").messages.some((m) => m.id === "in2"), "forwarding removed the original").toBe(true);
+  });
+});
+
+describe("demo chat state — video, file and location messages", () => {
+  const video: VideoMessage = { kind: "video", id: "v1", side: "out", src: "blob:v", seconds: 12, time: "10:00" };
+  const file: FileMessage = { kind: "file", id: "f1", side: "out", src: "blob:f", name: "report.pdf", bytes: 2_516_582, mime: "application/pdf", time: "10:00" };
+  const location: LocationMessage = { kind: "location", id: "l1", side: "out", lat: 33.5138, lng: 36.2765, accuracy: 20, time: "10:00" };
+  const words = { photo: "Photo", voice: "voice message", video: "Video", file: "File", location: "Location" };
+
+  it("the three kinds can be sent, answered and forwarded like a photo", () => {
+    for (const m of [video, file, location])
+      expect(isOpenable(m), `a ${m.kind} message is not openable`).toBe(true);
+  });
+
+  it("a sent video, file or location gets one tick and the row previews it by its kind", () => {
+    let state = reduceChat(seedState(), { type: "send", chat: "sent", message: video }, words);
+    expect((lastOf(state, "sent") as Openable).status, "the sent video has no tick").toBe("sent");
+    expect(chatOf(state, "sent").preview, "the row does not say Video").toBe("Video");
+    state = reduceChat(state, { type: "send", chat: "sent", message: file }, words);
+    expect(chatOf(state, "sent").preview, "the row does not name the file").toBe("File: report.pdf");
+    state = reduceChat(state, { type: "send", chat: "sent", message: location }, words);
+    expect(chatOf(state, "sent").preview, "the row does not say Location").toBe("Location");
+  });
+
+  it("forwarding a location copies its point into the other chat, on my side", () => {
+    let state = reduceChat(seedState(), { type: "send", chat: "sent", message: location }, words);
+    state = reduceChat(state, { type: "forward", from: "sent", id: "l1", to: "read", as: { id: "l2", time: "11:00" } }, words);
+    const copy = lastOf(state, "read");
+    expect(copy.kind === "location" && copy.lat, "the copy lost the latitude").toBe(33.5138);
+    expect(copy.kind === "location" && copy.lng, "the copy lost the longitude").toBe(36.2765);
+    expect(copy.kind === "location" && copy.side, "the copy is not on my side").toBe("out");
+    expect(copy.kind === "location" && copy.status, "the copy has no fresh tick").toBe("sent");
+  });
+
+  it("a received file is previewed with its name, and a video that came in is not mine", () => {
+    const state = reduceChat(seedState(), { type: "receive", chat: "sent", message: { ...file, side: "in" } }, words);
+    expect(chatOf(state, "sent").preview, "the row does not name the received file").toBe("File: report.pdf");
+    expect(chatOf(state, "sent").mark, "the row shows my ticks on a file that came in").toBeUndefined();
+    expect(previewOf({ ...video, side: "in" }, words), "a video that came in is not previewed as Video").toBe("Video");
+  });
+
+  it("prints a file's size the way the card shows it", () => {
+    expect(fileSize(512), "bytes are not printed as B").toBe("512 B");
+    expect(fileSize(812 * 1024), "kilobytes are not rounded to KB").toBe("812 KB");
+    expect(fileSize(2_516_582), "megabytes under 10 lose their decimal").toBe("2.4 MB");
+    expect(fileSize(48 * 1024 * 1024), "megabytes over 10 are not whole").toBe("48 MB");
+  });
+});
+
+describe("demo chat state — the contact's switches", () => {
+  it("Block flips the contact to blocked and back", () => {
+    let state = reduceChat(seedState(), { type: "block", chat: "unread" });
+    expect(chatOf(state, "unread").blocked, "Block did not block the contact").toBe(true);
+    expect(chatOf(state, "sent").blocked, "Block reached another chat").toBeFalsy();
+    state = reduceChat(state, { type: "block", chat: "unread" });
+    expect(chatOf(state, "unread").blocked, "UnBlock did not unblock the contact").toBe(false);
+  });
+
+  it("the call switch flips calls off and on again", () => {
+    let state = reduceChat(seedState(), { type: "calls", chat: "unread" });
+    expect(chatOf(state, "unread").callsDisabled, "Desible Call did not turn calls off").toBe(true);
+    state = reduceChat(state, { type: "calls", chat: "unread" });
+    expect(chatOf(state, "unread").callsDisabled, "Enable Call did not turn calls on").toBe(false);
+  });
+
+  it("a switch on a chat that is not there changes nothing", () => {
+    const state = seedState();
+    expect(reduceChat(state, { type: "block", chat: "nobody" }), "Block on a missing chat changed the state").toStrictEqual(state);
+    expect(reduceChat(state, { type: "calls", chat: "nobody" }), "the call switch on a missing chat changed the state").toStrictEqual(state);
+  });
+});
+
+describe("demo chat state — contacts and new chats", () => {
+  const sara = { id: "sara", name: "Sara Haddad", phone: "+963 944 000 111", initials: initialsOf("Sara Haddad") };
+
+  it("opens with the file's contact and the caller, and every seeded chat is with the contact", () => {
+    const state = seedState();
+    expect(state.contacts.map((c) => c.id), "the seed does not list the file's two people").toEqual([SEED_CONTACT, "grant"]);
+    for (const chat of state.chats)
+      expect(contactOf(state, chat).id, `chat "${chat.id}" is not with the file's contact`).toBe(SEED_CONTACT);
+  });
+
+  it("makes initials from the first two words", () => {
+    expect(initialsOf("Sara Haddad"), "two words did not give two letters").toBe("SH");
+    expect(initialsOf("  madonna "), "one word did not give one letter, upper-case").toBe("M");
+    expect(initialsOf("Ali Hassan Khan"), "a third word leaked into the initials").toBe("AH");
+  });
+
+  it("adds a contact once: the same phone a second time changes nothing", () => {
+    let state = reduceChat(seedState(), { type: "addContact", contact: sara });
+    expect(state.contacts.some((c) => c.id === "sara"), "the contact was not added").toBe(true);
+    const again = reduceChat(state, { type: "addContact", contact: { ...sara, id: "sara2", phone: "+963944000111" } });
+    expect(again.contacts.map((c) => c.id), "the same phone was added a second time").toEqual(state.contacts.map((c) => c.id));
+    state = reduceChat(state, { type: "addContact", contact: { ...sara, id: "blank", name: "  ", phone: "+1" } });
+    expect(state.contacts.some((c) => c.id === "blank"), "a contact with no name was added").toBe(false);
+  });
+
+  it("a new chat with a new contact is an empty chat at the top, open on the screen", () => {
+    let state = reduceChat(seedState(), { type: "addContact", contact: sara });
+    state = reduceChat(state, { type: "newChat", contact: "sara", as: { id: "c-sara", time: "09:00" } });
+    const chat = chatOf(state, "c-sara");
+    expect(chat.contact, "the new chat is not with the new contact").toBe("sara");
+    expect(chat.messages, "the new chat is not empty").toEqual([]);
+    expect(chat.preview, "the new chat's row would show the file's sample preview").toBe("");
+    expect(orderedChats(state.chats)[0].id, "the new chat is not first in the list").toBe("c-sara");
+    expect(state.active, "the new chat is not the active row").toBe("c-sara");
+    expect(state.viewing, "the new chat is not the one on the screen").toBe("c-sara");
+  });
+
+  it("a new chat with someone who already has one opens that chat instead of making another", () => {
+    const before = seedState();
+    const state = reduceChat(before, { type: "newChat", contact: SEED_CONTACT, as: { id: "extra", time: "09:00" } });
+    expect(state.chats.map((c) => c.id), "a second chat was made for the same contact").toEqual(before.chats.map((c) => c.id));
+    expect(state.viewing, "the contact's chat was not opened").toBe(orderedChats(before.chats)[0].id);
+  });
+
+  it("a new chat with an unknown contact changes nothing", () => {
+    const state = seedState();
+    expect(reduceChat(state, { type: "newChat", contact: "nobody", as: { id: "x", time: "09:00" } }), "an unknown contact got a chat").toStrictEqual(state);
+  });
+
+  it("the first message in a new chat gets its TODAY pill and fills the row", () => {
+    let state = reduceChat(seedState(), { type: "addContact", contact: sara });
+    state = reduceChat(state, { type: "newChat", contact: "sara", as: { id: "c-sara", time: "09:00" } });
+    state = reduceChat(state, { type: "send", chat: "c-sara", message: text("m1", "out", "Hi Sara") });
+    const { messages } = chatOf(state, "c-sara");
+    expect(messages[0].kind === "day" && messages[0].label, "the first message has no TODAY pill before it").toBe("TODAY");
+    expect(chatOf(state, "c-sara").preview, "the row does not preview the first message").toBe("Hi Sara");
   });
 });
 

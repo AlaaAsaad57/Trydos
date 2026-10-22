@@ -3067,6 +3067,11 @@ const translations = {
   "Sent a video": "Bir video gönderdi",
   "Sent a voice message": "Bir sesli mesaj gönderdi",
   "Sent a file": "Bir dosya gönderdi",
+  "Finding your location…": "Konumunuz bulunuyor…",
+  "Location unavailable": "Konum kullanılamıyor",
+  "Open in Maps": "Haritalarda Aç",
+  "New chat": "Yeni sohbet",
+  "New contact": "Yeni kişi",
 };
 
 export default translations;

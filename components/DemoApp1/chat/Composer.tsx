@@ -34,7 +34,9 @@ import { clock } from "./messages";
  *     bar — purple outside, `#EFEBFF` inside — with the name, the words and
  *     a close mark;
  *   - the plus opens the "Send …" list of `– 41`'s fourth row, with its own
- *     icons, in the menu's `#FAFAFA` box.
+ *     icons, in the menu's `#FAFAFA` box: a photo, a video or any file from
+ *     the phone (sent as the picture, the player or the file card), and the
+ *     shopper's own place, asked of the phone and sent as a map.
  *
  * A voice message is recorded WhatsApp's way: hold the microphone, the field
  * turns into a beating red dot and a clock with "‹ Slide to cancel"; let go
@@ -54,15 +56,35 @@ export const MIN_RECORD_MS = 600;
 /** How far left the finger slides, in px, to cancel a recording. */
 export const CANCEL_SLIDE = 90;
 
-const ATTACH: { icon: XdIconName; label: DemoKey; action: "photo" | "voice" | "soon" }[] = [
+type AttachAction = "photo" | "voice" | "video" | "file" | "location";
+
+const ATTACH: { icon: XdIconName; label: DemoKey; action: AttachAction }[] = [
   { icon: "chatSendPhoto", label: "Send Photo", action: "photo" },
   { icon: "chatSendVoice", label: "Send Voice", action: "voice" },
-  { icon: "chatSendVideo", label: "Send Video", action: "soon" },
-  { icon: "chatSendFile", label: "Send File", action: "soon" },
-  { icon: "chatSendLocation", label: "Send Location", action: "soon" },
+  { icon: "chatSendVideo", label: "Send Video", action: "video" },
+  { icon: "chatSendFile", label: "Send File", action: "file" },
+  { icon: "chatSendLocation", label: "Send Location", action: "location" },
 ];
 
 const SWAP = { type: "spring", stiffness: 520, damping: 30 } as const;
+
+/** How long the phone gets to find the shopper's place, in ms. */
+export const LOCATE_TIMEOUT_MS = 12000;
+
+/** A video's length in seconds, read from its own data; 0 when the browser cannot say. */
+const videoLength = (src: string) =>
+  new Promise<number>((resolve) => {
+    const v = document.createElement("video");
+    v.preload = "metadata";
+    const done = (n: number) => {
+      v.removeAttribute("src");
+      resolve(n);
+    };
+    v.onloadedmetadata = () =>
+      done(Number.isFinite(v.duration) ? Math.round(v.duration) : 0);
+    v.onerror = () => done(0);
+    v.src = src;
+  });
 
 export default function Composer({
   context,
@@ -70,6 +92,9 @@ export default function Composer({
   onSend,
   onSendPhoto,
   onSendVoice,
+  onSendVideo,
+  onSendFile,
+  onSendLocation,
   onToast,
   blur,
   t,
@@ -80,6 +105,9 @@ export default function Composer({
   onSend: (text: string) => void;
   onSendPhoto: (src: string) => void;
   onSendVoice: (seconds: number) => void;
+  onSendVideo: (src: string, seconds: number) => void;
+  onSendFile: (file: { src: string; name: string; bytes: number; mime?: string }) => void;
+  onSendLocation: (point: { lat: number; lng: number; accuracy?: number }) => void;
   onToast: (text: string) => void;
   /** The blur the page has while a message menu is open. */
   blur: number;
@@ -92,6 +120,10 @@ export default function Composer({
   const field = useRef<HTMLTextAreaElement>(null);
   const gallery = useRef<HTMLInputElement>(null);
   const camera = useRef<HTMLInputElement>(null);
+  const videos = useRef<HTMLInputElement>(null);
+  const files = useRef<HTMLInputElement>(null);
+  /** A location is being looked up: a second tap must not start another. */
+  const locating = useRef(false);
   const startX = useRef(0);
 
   // An edit starts with the message's words in the field.
@@ -142,11 +174,59 @@ export default function Composer({
     onSendPhoto(URL.createObjectURL(file));
   };
 
-  const attachAction = (action: (typeof ATTACH)[number]["action"]) => {
+  const pickVideo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const src = URL.createObjectURL(file);
+    onSendVideo(src, await videoLength(src));
+  };
+
+  const pickAnyFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    onSendFile({
+      src: URL.createObjectURL(file),
+      name: file.name,
+      bytes: file.size,
+      mime: file.type || undefined,
+    });
+  };
+
+  /** Asks the phone where the shopper is, and sends the point as a location message. */
+  const sendLocation = () => {
+    if (locating.current) return;
+    if (!navigator.geolocation) {
+      onToast(t("Location unavailable"));
+      return;
+    }
+    locating.current = true;
+    onToast(t("Finding your location…"));
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        locating.current = false;
+        onSendLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: Number.isFinite(pos.coords.accuracy) ? Math.round(pos.coords.accuracy) : undefined,
+        });
+      },
+      () => {
+        locating.current = false;
+        onToast(t("Location unavailable"));
+      },
+      { enableHighAccuracy: true, timeout: LOCATE_TIMEOUT_MS, maximumAge: 60000 },
+    );
+  };
+
+  const attachAction = (action: AttachAction) => {
     setAttach(false);
     if (action === "photo") gallery.current?.click();
     else if (action === "voice") onToast(t("Hold to record"));
-    else onToast(t("Soon available"));
+    else if (action === "video") videos.current?.click();
+    else if (action === "file") files.current?.click();
+    else sendLocation();
   };
 
   /** The microphone: held, it records; let go, it sends; slid left, it stops. */
@@ -207,6 +287,21 @@ export default function Composer({
         hidden
         aria-label={t("Take Photo")}
         onChange={pickFile}
+      />
+      <input
+        ref={videos}
+        type="file"
+        accept="video/*"
+        hidden
+        aria-label={t("Send Video")}
+        onChange={pickVideo}
+      />
+      <input
+        ref={files}
+        type="file"
+        hidden
+        aria-label={t("Send File")}
+        onChange={pickAnyFile}
       />
 
       {/* What the message answers, or the words being edited. */}
@@ -321,7 +416,7 @@ export default function Composer({
                   <button
                     key={a.label}
                     type="button"
-                    data-pw={`demo-chat-attach-${a.action === "soon" ? a.label.toLowerCase().replace(/\s+/g, "-") : a.action}`}
+                    data-pw={`demo-chat-attach-${a.action}`}
                     onClick={() => attachAction(a.action)}
                     className="flex items-center shrink-0 cursor-pointer text-left active:opacity-60"
                     style={{ height: 40, padding: "0 14px" }}

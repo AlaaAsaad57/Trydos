@@ -3,8 +3,13 @@
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { motion } from "framer-motion";
 import React from "react";
-import { CHAT_PHOTOS, CONTACT, PREVIEW } from "../../DemoApp/demoChat";
-import { orderedChats, type ChatThread } from "../../DemoApp/demoChatModel";
+import { PREVIEW } from "../../DemoApp/demoChat";
+import {
+  orderedChats,
+  seedContacts,
+  type ChatThread,
+  type Contact,
+} from "../../DemoApp/demoChatModel";
 import { C, ROW, fill, textTop } from "../demo1Layout";
 import { Sheet, Stroke, Txt, Under } from "../ui";
 
@@ -18,6 +23,7 @@ import { Sheet, Stroke, Txt, Under } from "../ui";
 export default function ForwardSheet({
   open,
   chats,
+  contacts,
   except,
   onPick,
   onClose,
@@ -25,6 +31,7 @@ export default function ForwardSheet({
 }: {
   open: boolean;
   chats: ChatThread[];
+  contacts: Contact[];
   /** The chat the message is in: it is not offered. */
   except: string;
   onPick: (chat: string) => void;
@@ -32,13 +39,18 @@ export default function ForwardSheet({
   t: (key: DemoKey) => string;
 }) {
   const rows = orderedChats(chats).filter((c) => c.id !== except);
+  const who = (chat: ChatThread) =>
+    contacts.find((c) => c.id === chat.contact) ?? seedContacts()[0];
   return (
     <Sheet open={open} onClose={onClose} y={360} testId="demo-forward-sheet">
       <Txt center size={16} weight="medium" mt={textTop(30, 16) - 8}>
         {t("Forward to")}
       </Txt>
       <Under testId="demo-forward-list">
-        {rows.map((chat, i) => (
+        {rows.map((chat, i) => {
+          const contact = who(chat);
+          const initials = chat.initials || !contact.photo;
+          return (
           <motion.button
             key={chat.id}
             type="button"
@@ -62,16 +74,16 @@ export default function ForwardSheet({
                 width: 44,
                 height: 44,
                 borderRadius: 15,
-                background: chat.initials ? C.field : undefined,
+                background: initials ? C.field : undefined,
               }}
             >
-              {chat.initials ? (
+              {initials ? (
                 <Txt center size={12} weight="medium" mt={textTop(27, 12)}>
-                  {CONTACT.initials}
+                  {contact.initials}
                 </Txt>
               ) : (
                 <img
-                  src={CHAT_PHOTOS.contact}
+                  src={contact.photo}
                   alt=""
                   className="absolute inset-0 w-full h-full object-cover"
                 />
@@ -79,8 +91,8 @@ export default function ForwardSheet({
               <Stroke color={C.line} width={0.3} radius={15} />
             </span>
             <span className="flex flex-col min-w-0 grow" style={{ marginLeft: 12, marginRight: 12 }}>
-              <Txt size={14} weight="medium">
-                {CONTACT.name}
+              <Txt size={14} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
+                {contact.name}
               </Txt>
               <Txt
                 size={12}
@@ -92,7 +104,8 @@ export default function ForwardSheet({
               </Txt>
             </span>
           </motion.button>
-        ))}
+          );
+        })}
       </Under>
     </Sheet>
   );

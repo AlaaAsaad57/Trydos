@@ -323,6 +323,16 @@ export const DEMO_KEYS = [
   "edited",
   "Send",
   "Archived",
+  "File",
+  "Location",
+  "Download",
+  "Finding your location…",
+  "Location unavailable",
+  "Open in Maps",
+  "New chat",
+  "New contact",
+  "Phone Number",
+  "Enter phone number",
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];
