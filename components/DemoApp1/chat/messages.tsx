@@ -1433,6 +1433,37 @@ export function FlagsLine({
 }
 
 /**
+ * The emoji the shopper put on a message, the way WhatsApp shows it: a small
+ * white pill on the message's side, riding up over the bubble's bottom edge.
+ */
+export function ReactionChip({ side, emoji }: { side: Side; emoji: string }) {
+  const inn = side === "in";
+  return (
+    <motion.span
+      data-pw="demo-chat-reaction"
+      className="relative z-10 flex items-center justify-center shrink-0 select-none"
+      style={{
+        height: 22,
+        padding: "0 7px",
+        marginTop: -9,
+        marginLeft: inn ? 16 : undefined,
+        marginRight: inn ? undefined : 16,
+        borderRadius: 11,
+        background: C.white,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.18), 0 0 0 0.5px rgba(0,0,0,0.05)",
+        fontSize: 13,
+        lineHeight: 1,
+      }}
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      transition={{ type: "spring", stiffness: 520, damping: 18 }}
+    >
+      {emoji}
+    </motion.span>
+  );
+}
+
+/**
  * The contact is typing: an incoming bubble with three white dots that rise
  * one after the other (the real chat's TypingIndicator, in the bubble's own
  * colours).

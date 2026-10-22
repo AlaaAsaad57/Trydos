@@ -43,6 +43,8 @@ type Base = {
   category?: string;
   /** When the shopper asked to be reminded of it, in ms since the epoch (the menu's re-remind). */
   reminderAt?: number;
+  /** The emoji the shopper put on the message, from the bar over the held message. */
+  reaction?: string;
 };
 
 /** A tag a message can carry: the menu's Category. */
@@ -377,6 +379,8 @@ export type ChatAction =
   | { type: "category"; chat: string; id: string; category: string | null }
   /** Sets a reminder on a message (ms since the epoch), or clears it with `null`. */
   | { type: "remind"; chat: string; id: string; at: number | null }
+  /** Put an emoji on a message; the emoji it already carries takes it off. */
+  | { type: "react"; chat: string; id: string; emoji: string }
   | { type: "addContact"; contact: Contact }
   | {
       /** Opens the chat with a contact: the one there is, or a new empty one. */
@@ -722,6 +726,15 @@ export function reduceChat(
         messages: chat.messages.map((m) =>
           m.id === action.id && m.kind !== "day"
             ? { ...m, reminderAt: action.at ?? undefined }
+            : m,
+        ),
+      }));
+    case "react":
+      return update(state, action.chat, (chat) => ({
+        ...chat,
+        messages: chat.messages.map((m) =>
+          m.id === action.id && m.kind !== "day"
+            ? { ...m, reaction: m.reaction === action.emoji ? undefined : action.emoji }
             : m,
         ),
       }));

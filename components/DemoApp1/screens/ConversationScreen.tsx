@@ -28,6 +28,10 @@ import ForwardSheet from "../chat/ForwardSheet";
 import MessageMenu, {
   MENU_BLUR,
   MENU_FADE,
+  MENU_GAP,
+  MENU_H,
+  REACTION_BAR_H,
+  REACTION_GAP,
   type MenuName,
 } from "../chat/MessageMenu";
 import MessageRow, { DIM_BLUR } from "../chat/MessageRow";
@@ -38,6 +42,7 @@ import {
   Dot,
   FileMessage,
   FlagsLine,
+  ReactionChip,
   LocationMessage,
   Note,
   PhotoMessage,
@@ -188,8 +193,9 @@ export default function ConversationScreen() {
     const menuBottom = top + box.offsetTop + box.offsetHeight;
     let move = 0;
     if (menuBottom > page.bottom - 8) move = page.bottom - 8 - menuBottom;
-    // The message itself must stay in view too.
-    if (top + move < page.top + 8) move = page.top + 8 - top;
+    // The emoji bar over the message must stay in view too.
+    const barTop = top - REACTION_GAP - REACTION_BAR_H;
+    if (barTop + move < page.top + 8) move = page.top + 8 - barTop;
     setShift(Math.round(move));
   }, [menu]);
 
@@ -488,7 +494,16 @@ export default function ConversationScreen() {
           side={m.kind === "note" ? "in" : m.side}
           canEdit={m.kind === "text" && m.side === "out"}
           canForward={isOpenable(m)}
+          reaction={m.reaction}
           onPick={(name) => act(name, m)}
+          onReact={(emoji) => {
+            close();
+            dispatch({ type: "react", chat: chat.id, id: m.id, emoji });
+          }}
+          onMore={() => {
+            close();
+            showToast(t("Soon available"));
+          }}
           t={t}
         />
       )}
@@ -532,7 +547,7 @@ export default function ConversationScreen() {
       ? state.categories.find((c) => c.id === m.category)
       : undefined;
     const reminder = m.reminderAt !== undefined ? reminderLabel(m.reminderAt, locale) : undefined;
-    if (!category && !reminder) return node;
+    if (!category && !reminder && !m.reaction) return node;
     const inn = m.kind === "note" || m.side === "in";
     return (
       <div className={`flex flex-col min-w-0 max-w-full ${wide ? "w-full" : ""} ${inn ? "items-start" : "items-end"}`}>
@@ -542,6 +557,7 @@ export default function ConversationScreen() {
           reminder={reminder}
         />
         {wide ? node : <div className="flex items-start min-w-0 max-w-full">{node}</div>}
+        {m.reaction && <ReactionChip side={inn ? "in" : "out"} emoji={m.reaction} />}
       </div>
     );
   };
@@ -813,8 +829,8 @@ export default function ConversationScreen() {
             </motion.div>
           )}
         </AnimatePresence>
-        {/* Room for the last message's menu (64 + 40 + 5 + 22 under the bubble). */}
-        <div className="shrink-0" style={{ height: 172 }} />
+        {/* Room for the last message's menu under its bubble. */}
+        <div className="shrink-0" style={{ height: MENU_GAP + MENU_H + 8 }} />
       </div>
 
       <ForwardSheet
