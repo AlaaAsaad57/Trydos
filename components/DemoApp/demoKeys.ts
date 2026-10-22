@@ -333,6 +333,22 @@ export const DEMO_KEYS = [
   "New contact",
   "Phone Number",
   "Enter phone number",
+  "Search messages",
+  "{n} of {m}",
+  "No results",
+  "Remind me",
+  "Reminder",
+  "In 1 hour",
+  "Tomorrow",
+  "Next week",
+  "None",
+  "Payment",
+  "Shipping",
+  "Question",
+  "Important",
+  "Unarchive",
+  "Previous",
+  "Next",
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];

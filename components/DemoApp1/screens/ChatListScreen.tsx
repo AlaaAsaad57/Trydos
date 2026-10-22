@@ -18,11 +18,14 @@ import {
 } from "../../DemoApp/demoChat";
 import {
   CALL_ROWS,
+  archivedChats,
   contactOf,
   orderedChats,
+  searchableText,
   type ChatThread,
   type Contact,
 } from "../../DemoApp/demoChatModel";
+import ArchivedSheet from "../chat/ArchivedSheet";
 import { useDemoChat } from "../../DemoApp/demoChatState";
 import { useDemoNav } from "../Demo1Shell";
 import {
@@ -80,11 +83,14 @@ import Toast, { useToast } from "../chat/Toast";
  */
 export default function ChatListScreen() {
   const { t, navigate } = useDemoNav();
-  const { state, dispatch, newChat, addContact } = useDemoChat();
+  const { state, dispatch, newChat, addContact, notice } = useDemoChat();
   const [tab, setTab] = useState<"chats" | "calls">("chats");
   const [query, setQuery] = useState("");
   /** The "New chat" sheet is up. */
   const [starting, setStarting] = useState(false);
+  /** The "Archived" sheet is up. */
+  const [showArchived, setShowArchived] = useState(false);
+  const archived = archivedChats(state.chats);
   /** The row whose action cells show, if any. */
   const [openRow, setOpenRow] = useState<string | null>(null);
   const [toast, showToast] = useToast();
@@ -105,11 +111,14 @@ export default function ChatListScreen() {
   }, [openRow]);
 
   const needle = query.trim().toLowerCase();
+  // The field finds a chat by the contact's name, by what the row shows, or
+  // by the words of any message in it.
   const rows = orderedChats(state.chats).filter(
     (chat) =>
       !needle ||
       contactOf(state, chat).name.toLowerCase().includes(needle) ||
-      (chat.preview ?? PREVIEW).toLowerCase().includes(needle),
+      (chat.preview ?? PREVIEW).toLowerCase().includes(needle) ||
+      chat.messages.some((m) => searchableText(m).toLowerCase().includes(needle)),
   );
 
   /** Opens the chat with a contact — the one there is, or a new one — and goes to it. */
@@ -231,6 +240,34 @@ export default function ChatListScreen() {
     <ScreenPage testId="demo-chat" header={header} tabBar>
       {tab === "chats" ? (
         <AnimatePresence initial={false}>
+          {/* The archived chats' row, over the list while there are any: the
+              swipe cell's archive mark where the photo column is, "Archived"
+              14 Medium at x 90, the count 14 grey at the right. A tap opens
+              the archived sheet. */}
+          {archived.length > 0 && !needle && (
+            <motion.button
+              key="archived"
+              type="button"
+              data-pw="demo-chat-archived-row"
+              layout
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 50, opacity: 1 }}
+              exit={{ height: 0, opacity: 0, transition: { duration: 0.22 } }}
+              transition={TRAVEL}
+              whileTap={{ scale: 0.985 }}
+              onClick={() => setShowArchived(true)}
+              className="flex items-center w-full shrink-0 overflow-hidden cursor-pointer text-left"
+              style={{ marginTop: 2, background: C.page }}
+            >
+              <XdIcon name="swipeArchive" style={{ marginLeft: 12 + (66 - 25) / 2 }} />
+              <Txt size={14} weight="medium" ml={90 - (12 + (66 - 25) / 2 + 25)}>
+                {t("Archived")}
+              </Txt>
+              <Txt size={14} color={C.grey} className="ml-auto" style={{ marginRight: 13 }}>
+                {String(archived.length)}
+              </Txt>
+            </motion.button>
+          )}
           {rows.map((chat) => (
             <motion.div
               key={chat.id}
@@ -276,7 +313,7 @@ export default function ChatListScreen() {
           />
         ))
       )}
-      <Toast text={toast} bottom={TAB_BAR.height + 24} fixed />
+      <Toast text={notice ?? toast} bottom={TAB_BAR.height + 24} fixed />
 
       {/* The round purple button that starts a chat: 52 px, 20 px from the
           right edge, 16 px over the tab bar. It hangs on a 0 x 0 anchor at
@@ -329,6 +366,22 @@ export default function ChatListScreen() {
         onPick={startChat}
         onAdd={(name, phone) => startChat(addContact(name, phone))}
         onClose={() => setStarting(false)}
+        t={t}
+      />
+      <ArchivedSheet
+        open={showArchived}
+        chats={state.chats}
+        contacts={state.contacts}
+        onOpen={(id) => {
+          setShowArchived(false);
+          dispatch({ type: "open", chat: id });
+          navigate("chat/conversation");
+        }}
+        onUnarchive={(id) => {
+          dispatch({ type: "unarchive", chat: id });
+          if (archived.length <= 1) setShowArchived(false);
+        }}
+        onClose={() => setShowArchived(false)}
         t={t}
       />
     </ScreenPage>

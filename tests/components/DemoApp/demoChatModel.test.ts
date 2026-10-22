@@ -1,14 +1,20 @@
 import { describe, expect, it } from "vitest";
 import {
   SEED_CONTACT,
+  archivedChats,
   contactOf,
   fileSize,
   gapAbove,
   initialsOf,
   isOpenable,
   orderedChats,
+  pendingReminders,
   previewOf,
   reduceChat,
+  reminderLabel,
+  reminderOptions,
+  searchMessages,
+  searchableText,
   seedState,
   type ChatState,
   type FileMessage,
@@ -312,6 +318,95 @@ describe("demo chat state — contacts and new chats", () => {
   });
 });
 
+describe("demo chat state — the archived list", () => {
+  it("Unarchive puts the chat back in the list where its time says", () => {
+    let state = reduceChat(seedState(), { type: "archive", chat: "sent" });
+    state = reduceChat(state, { type: "unarchive", chat: "sent" });
+    expect(orderedChats(state.chats).map((c) => c.id), "the chat did not come back to its place").toEqual(
+      ["unread", "initials", "typing", "attachments", "sent", "delivered", "read"],
+    );
+    expect(archivedChats(state.chats), "the chat is still in the archived list").toEqual([]);
+  });
+
+  it("a message that comes in brings an archived chat back; one I send does not", () => {
+    let state = reduceChat(seedState(), { type: "archive", chat: "sent" });
+    state = reduceChat(state, { type: "send", chat: "sent", message: text("m1", "out") });
+    expect(chatOf(state, "sent").archived, "a message I sent unarchived the chat").toBe(true);
+    state = reduceChat(state, { type: "receive", chat: "sent", message: text("r1", "in") });
+    expect(chatOf(state, "sent").archived, "a message that came in did not unarchive the chat").toBe(false);
+    expect(orderedChats(state.chats)[0].id, "the chat that got the message is not first").toBe("sent");
+  });
+
+  it("a new chat with a contact whose chat is archived brings that chat back and opens it", () => {
+    const seeded = seedState();
+    let state = seeded;
+    for (const c of seeded.chats) state = reduceChat(state, { type: "archive", chat: c.id });
+    state = reduceChat(state, { type: "newChat", contact: SEED_CONTACT, as: { id: "extra", time: "09:00" } });
+    expect(state.chats.some((c) => c.id === "extra"), "a new chat was made although an archived one existed").toBe(false);
+    expect(state.viewing, "no chat was opened").not.toBeNull();
+    expect(chatOf(state, state.viewing!).archived, "the opened chat is still archived").toBe(false);
+  });
+});
+
+describe("demo chat state — category and reminder flags", () => {
+  it("tags a message with a known category, swaps it, and takes it off with null", () => {
+    let state = reduceChat(seedState(), { type: "category", chat: "unread", id: "in1", category: "orders" });
+    const tagged = () => chatOf(state, "unread").messages.find((m) => m.id === "in1")!;
+    expect(tagged().category, "the message did not get the Orders tag").toBe("orders");
+    state = reduceChat(state, { type: "category", chat: "unread", id: "in1", category: "important" });
+    expect(tagged().category, "the tag did not change to Important").toBe("important");
+    state = reduceChat(state, { type: "category", chat: "unread", id: "in1", category: null });
+    expect(tagged().category, "None did not take the tag off").toBeUndefined();
+  });
+
+  it("refuses a category that is not in the list", () => {
+    const state = seedState();
+    expect(reduceChat(state, { type: "category", chat: "unread", id: "in1", category: "nope" }), "an unknown category was put on the message").toStrictEqual(state);
+  });
+
+  it("sets a reminder on a message, lists it soonest first, and clears it with null", () => {
+    let state = reduceChat(seedState(), { type: "remind", chat: "unread", id: "in2", at: 2000 });
+    state = reduceChat(state, { type: "remind", chat: "sent", id: "in1", at: 1000 });
+    expect(pendingReminders(state).map((r) => `${r.chat}/${r.id}`), "the reminders are not soonest first").toEqual(["sent/in1", "unread/in2"]);
+    state = reduceChat(state, { type: "remind", chat: "sent", id: "in1", at: null });
+    expect(pendingReminders(state).map((r) => r.id), "clearing the reminder did not take it out of the list").toEqual(["in2"]);
+    const m = chatOf(state, "sent").messages.find((x) => x.id === "in1")!;
+    expect(m.reminderAt, "the cleared message still carries a reminder time").toBeUndefined();
+  });
+
+  it("offers in an hour, tomorrow at 9 and a week on at 9", () => {
+    const now = new Date(2026, 9, 22, 14, 30);
+    const [hour, tomorrow, week] = reminderOptions(now);
+    expect(hour.at - now.getTime(), "In 1 hour is not 60 minutes on").toBe(60 * 60 * 1000);
+    expect(new Date(tomorrow.at).getHours(), "Tomorrow is not at 9").toBe(9);
+    expect(new Date(tomorrow.at).getDate(), "Tomorrow is not the next day").toBe(23);
+    expect(new Date(week.at).getDate(), "Next week is not seven days on").toBe(29);
+  });
+
+  it("prints a reminder today as a time and another day with its date", () => {
+    const now = new Date(2026, 9, 22, 14, 30);
+    expect(reminderLabel(new Date(2026, 9, 22, 16, 5).getTime(), "sy-en", now), "a reminder today is not just the time").toBe("16:05");
+    expect(reminderLabel(new Date(2026, 9, 23, 9, 0).getTime(), "sy-en", now), "a reminder tomorrow has no date").toBe("23 Oct 09:00");
+  });
+});
+
+describe("demo chat state — message search", () => {
+  it("finds the messages whose words hold the query, in the chat's order, and nothing for an empty query", () => {
+    const chat = chatOf(seedState(), "unread");
+    expect(searchMessages(chat, "spoke"), "the note's words were not found").toEqual(["note"]);
+    expect(searchMessages(chat, "HELLO").length > 1, "the search is case-sensitive or missed the Hello bubbles").toBe(true);
+    expect(searchMessages(chat, "   "), "an empty query found something").toEqual([]);
+    expect(searchMessages(chat, "zzz-nothing"), "a query with no match found something").toEqual([]);
+  });
+
+  it("searches a file by its name and nothing of a photo", () => {
+    const file: FileMessage = { kind: "file", id: "f1", side: "in", src: "blob:f", name: "invoice-march.pdf", bytes: 10, time: "10:00" };
+    const state = reduceChat(seedState(), { type: "receive", chat: "sent", message: file });
+    expect(searchMessages(chatOf(state, "sent"), "invoice"), "the file was not found by its name").toEqual(["f1"]);
+    expect(searchableText({ kind: "photo", id: "p", side: "in", src: "x", time: "10:00" }), "a photo has words to search").toBe("");
+  });
+});
+
 describe("demo chat state — the swipe cells", () => {
   it("pins a chat to the top of the list and unpins it again", () => {
     let state = reduceChat(seedState(), { type: "pin", chat: "read" });
@@ -329,7 +424,8 @@ describe("demo chat state — the swipe cells", () => {
     state = reduceChat(state, { type: "mute", chat: "sent" });
     expect(chatOf(state, "sent").muted, "Mute did not mute the chat").toBe(true);
     state = reduceChat(state, { type: "archive", chat: "sent" });
-    expect(state.chats.some((c) => c.id === "sent"), "the archived chat is still in the list").toBe(false);
+    expect(orderedChats(state.chats).some((c) => c.id === "sent"), "the archived chat is still in the list").toBe(false);
+    expect(archivedChats(state.chats).map((c) => c.id), "the archived chat is not in the archived list").toEqual(["sent"]);
     state = reduceChat(state, { type: "deleteChat", chat: "unread" });
     expect(state.chats.some((c) => c.id === "unread"), "the deleted chat is still in the list").toBe(false);
     expect(state.active, "deleting the open chat left no other chat open").toBe("initials");

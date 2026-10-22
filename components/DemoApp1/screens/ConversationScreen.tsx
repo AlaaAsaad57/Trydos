@@ -1,5 +1,6 @@
 "use client";
 
+import type { DemoKey } from "../../DemoApp/demoKeys";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
@@ -9,13 +10,19 @@ import {
   gapAbove,
   isOpenable,
   previewOf,
+  reminderLabel,
+  searchMessages,
   type ChatMessage,
   type Holdable,
 } from "../../DemoApp/demoChatModel";
+import { XD_ICON_SIZE } from "../../DemoApp/xdIcons";
+import CategorySheet from "../chat/CategorySheet";
+import ReminderSheet from "../chat/ReminderSheet";
+import { ChevronDownIcon, ChevronUpIcon, CloseIcon } from "../chat/chatIcons";
 import { useDemoChat } from "../../DemoApp/demoChatState";
 import { useDemoNav } from "../Demo1Shell";
-import { C, SF_ROUNDED, sfTop, textTop } from "../demo1Layout";
-import { ScreenPage, Stroke, Txt } from "../ui";
+import { C, SAFE_BOTTOM, SF_ROUNDED, sfTop, textTop } from "../demo1Layout";
+import { Icon, ScreenPage, Stroke, Txt } from "../ui";
 import Composer, { type ComposerContext } from "../chat/Composer";
 import ForwardSheet from "../chat/ForwardSheet";
 import MessageMenu, {
@@ -30,6 +37,7 @@ import {
   DayPill,
   Dot,
   FileMessage,
+  FlagsLine,
   LocationMessage,
   Note,
   PhotoMessage,
@@ -72,7 +80,7 @@ import Toast, { useToast } from "../chat/Toast";
  * menu that would not fit moves its message instead of scrolling.
  */
 export default function ConversationScreen() {
-  const { t, navigate, back } = useDemoNav();
+  const { t, navigate, back, locale } = useDemoNav();
   const {
     state,
     dispatch,
@@ -83,6 +91,9 @@ export default function ConversationScreen() {
     sendFile,
     sendLocation,
     forward,
+    notice,
+    search,
+    setSearch,
   } = useDemoChat();
   const chatId = state.viewing ?? state.active;
   const chat = state.chats.find((c) => c.id === chatId) ?? state.chats[0];
@@ -95,6 +106,22 @@ export default function ConversationScreen() {
   const [context, setContext] = useState<ComposerContext | null>(null);
   const [forwarding, setForwarding] = useState<string | null>(null);
   const [toast, showToast] = useToast();
+  /** The message whose Category sheet is up, and the one whose Remind me sheet is up. */
+  const [tagging, setTagging] = useState<Holdable | null>(null);
+  const [reminding, setReminding] = useState<Holdable | null>(null);
+  // The message search: the field in the head, the up / down bar at the
+  // bottom. It opens on its own when the contact screen's Search sent us.
+  const [searching, setSearching] = useState(search);
+  const [query, setQuery] = useState("");
+  /** Which match is the current one. */
+  const [hit, setHit] = useState(0);
+  const searchField = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (search) {
+      setSearching(true);
+      setSearch(false);
+    }
+  }, [search]);
   const body = useRef<HTMLDivElement>(null);
   /** The messages on the page when it opened: only later ones pop in. */
   const atStart = useRef<Set<string> | null>(null);
@@ -168,6 +195,34 @@ export default function ConversationScreen() {
 
   const close = () => setMenu(null);
 
+  // The matches of the search, and the current one scrolled into the middle.
+  const matches = searching ? searchMessages(chat, query) : [];
+  const current = matches.length ? matches[Math.min(hit, matches.length - 1)] : null;
+  useEffect(() => {
+    if (!current) return;
+    body.current
+      ?.querySelector(`[data-pw="demo-chat-message-${current}"]`)
+      ?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [current]);
+  useEffect(() => {
+    if (searching) searchField.current?.focus();
+  }, [searching]);
+  const openSearch = () => {
+    setQuery("");
+    setHit(0);
+    setSearching(true);
+  };
+  const closeSearch = () => {
+    setSearching(false);
+    setQuery("");
+    setHit(0);
+  };
+  /** The next match up (-1) or down (+1); a step past the end goes round. */
+  const step = (by: 1 | -1) => {
+    if (!matches.length) return;
+    setHit((h) => (Math.min(h, matches.length - 1) + by + matches.length) % matches.length);
+  };
+
   /** What a message says when it is quoted or previewed. */
   const wordsOf = (m: Holdable) =>
     m.kind === "call"
@@ -208,6 +263,12 @@ export default function ConversationScreen() {
         if (m.kind === "text" && m.side === "out")
           setContext({ kind: "edit", id: m.id, text: m.text });
         return;
+      case "Category":
+        setTagging(m);
+        return;
+      case "re-remind":
+        setReminding(m);
+        return;
       default:
         showToast(t("Soon available"));
     }
@@ -229,7 +290,92 @@ export default function ConversationScreen() {
     .filter((c) => c.id !== chat?.id)
     .reduce((n, c) => n + c.unread, 0);
 
-  const header = (
+  /**
+   * The head while the search is up: the purple chevron closes it, and the
+   * list's search field (38 tall, radius 12, `#F8F8F8`, the glass) takes the
+   * rest, with a close mark in it once there are words.
+   */
+  const searchHeader = (
+    <header
+      data-pw="demo-chat-search-head"
+      className="relative w-full flex items-start"
+      style={{ height: 50, background: C.white, boxShadow: "0 0 3px rgba(0,0,0,0.1)" }}
+    >
+      <button
+        type="button"
+        data-pw="demo-chat-search-close"
+        aria-label={t("Close")}
+        onClick={closeSearch}
+        className="flex shrink-0 cursor-pointer active:opacity-60"
+        style={{ marginLeft: 18.5, marginTop: 13.5 }}
+      >
+        <XdIcon name="chatBackPurple" />
+      </button>
+      <div
+        className="flex items-start grow min-w-0"
+        style={{
+          marginLeft: 40 - (18.5 + 8),
+          marginRight: 12,
+          marginTop: 6,
+          height: 38,
+          borderRadius: 12,
+          background: C.field,
+        }}
+      >
+        <Icon name="searchGlass" ml={9.5} mt={9.5} />
+        <input
+          ref={searchField}
+          data-pw="demo-chat-search-input"
+          type="search"
+          enterKeyHint="search"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setHit(0);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              step(e.shiftKey ? -1 : 1);
+            }
+            if (e.key === "Escape") closeSearch();
+          }}
+          placeholder={t("Search messages")}
+          aria-label={t("Search messages")}
+          className="block bg-transparent outline-none font-normal placeholder:text-[#8D8D8D]"
+          style={{
+            marginLeft: 40 - (9.5 + XD_ICON_SIZE.searchGlass.w),
+            marginTop: 7,
+            flex: "1 1 0",
+            minWidth: 0,
+            height: 24,
+            fontSize: 14,
+            color: C.ink,
+            padding: 0,
+            border: 0,
+          }}
+        />
+        {query && (
+          <button
+            type="button"
+            data-pw="demo-chat-search-clear"
+            aria-label={t("Close")}
+            onClick={() => {
+              setQuery("");
+              setHit(0);
+              searchField.current?.focus();
+            }}
+            className="flex items-center justify-center shrink-0 cursor-pointer active:opacity-60"
+            style={{ width: 38, height: 38 }}
+          >
+            <CloseIcon color={C.grey} />
+          </button>
+        )}
+      </div>
+    </header>
+  );
+
+  const chatHeader = (
     <header
       className="relative w-full flex items-start"
       style={{
@@ -331,6 +477,8 @@ export default function ConversationScreen() {
     </header>
   );
 
+  const header = searching ? searchHeader : chatHeader;
+
   /** The menu of a message, when it is this message's. */
   const menuOf = (m: Holdable) => (
     <AnimatePresence>
@@ -366,11 +514,37 @@ export default function ConversationScreen() {
     lifted: lifted === m.id,
     shift: menu === m.id ? shift : 0,
     dimmed: !!menu && menu !== m.id,
+    faded: searching && query.trim() !== "" && !matches.includes(m.id),
+    marked: current === m.id,
     fresh: !atStart.current?.has(m.id),
     onReply: () => act("Replay", m),
     onHold: () => open(m),
     menu: menuOf(m),
   });
+
+  /**
+   * The flags over a message (its category, its reminder), when it has any:
+   * the block goes into a column with the flags line over it, on its side.
+   * A message with none keeps the row as it was.
+   */
+  const withFlags = (m: Holdable, wide: boolean, node: React.ReactNode) => {
+    const category = m.category
+      ? state.categories.find((c) => c.id === m.category)
+      : undefined;
+    const reminder = m.reminderAt !== undefined ? reminderLabel(m.reminderAt, locale) : undefined;
+    if (!category && !reminder) return node;
+    const inn = m.kind === "note" || m.side === "in";
+    return (
+      <div className={`flex flex-col min-w-0 max-w-full ${wide ? "w-full" : ""} ${inn ? "items-start" : "items-end"}`}>
+        <FlagsLine
+          side={inn ? "in" : "out"}
+          category={category && { ...category, name: t(category.name as DemoKey) }}
+          reminder={reminder}
+        />
+        {wide ? node : <div className="flex items-start min-w-0 max-w-full">{node}</div>}
+      </div>
+    );
+  };
 
   /** The quoted message's time, for the quote above a reply. */
   const timeOf = (id: string, fallback: string) =>
@@ -394,13 +568,13 @@ export default function ConversationScreen() {
     if (m.kind === "note")
       return (
         <MessageRow key={m.id} {...rowProps(m, gap)} wide>
-          <Note text={m.text} />
+          {withFlags(m, true, <Note text={m.text} />)}
         </MessageRow>
       );
     if (m.kind === "call")
       return (
         <MessageRow key={m.id} {...rowProps(m, gap)} wide>
-          <CallCard message={m} t={t} />
+          {withFlags(m, true, <CallCard message={m} t={t} />)}
         </MessageRow>
       );
     const inn = m.side === "in";
@@ -458,22 +632,28 @@ export default function ConversationScreen() {
         {...rowProps(m, m.kind === "text" && m.replyTo ? 0 : gap)}
         wide={m.kind === "voice"}
       >
-        {m.kind === "voice" ? (
-          <VoiceMessage
-            side={m.side}
-            seconds={m.seconds}
-            time={m.time}
-            status={m.status}
-            open={isOpen}
-            t={t}
-          />
-        ) : (
-          <>
-            {inn && <Dot color={C.purple} ml={5} />}
-            {block()}
-            {!inn && <Dot color={CHAT.sentDot} mr={5} />}
-          </>
-        )}
+        {m.kind === "voice"
+          ? withFlags(
+              m,
+              true,
+              <VoiceMessage
+                side={m.side}
+                seconds={m.seconds}
+                time={m.time}
+                status={m.status}
+                open={isOpen}
+                t={t}
+              />,
+            )
+          : withFlags(
+              m,
+              false,
+              <>
+                {inn && <Dot color={C.purple} ml={5} />}
+                {block()}
+                {!inn && <Dot color={CHAT.sentDot} mr={5} />}
+              </>,
+            )}
       </MessageRow>
     );
     // The quote above a reply is its own row, so the list's presence
@@ -496,10 +676,64 @@ export default function ConversationScreen() {
     return row;
   };
 
+  /** The search's bar in the composer's place: up, down and "n of m". */
+  const searchBar = (
+    <div
+      data-pw="demo-chat-search-bar"
+      className="flex items-center w-full shrink-0"
+      style={{
+        height: 54,
+        padding: "0 12px",
+        paddingBottom: SAFE_BOTTOM,
+        background: C.white,
+        boxShadow: "0 0 3px rgba(0,0,0,0.1)",
+      }}
+    >
+      <button
+        type="button"
+        data-pw="demo-chat-search-up"
+        aria-label={t("Previous")}
+        onClick={() => step(-1)}
+        disabled={!matches.length}
+        className="flex items-center justify-center shrink-0 cursor-pointer active:opacity-60 disabled:opacity-30"
+        style={{ width: 38, height: 38 }}
+      >
+        <ChevronUpIcon color={C.purple} />
+      </button>
+      <button
+        type="button"
+        data-pw="demo-chat-search-down"
+        aria-label={t("Next")}
+        onClick={() => step(1)}
+        disabled={!matches.length}
+        className="flex items-center justify-center shrink-0 cursor-pointer active:opacity-60 disabled:opacity-30"
+        style={{ width: 38, height: 38 }}
+      >
+        <ChevronDownIcon color={C.purple} />
+      </button>
+      <Txt
+        size={13}
+        weight="medium"
+        color={matches.length ? C.ink : C.grey}
+        className="ml-auto"
+        data-pw="demo-chat-search-count"
+      >
+        {!query.trim()
+          ? ""
+          : matches.length
+            ? t("{n} of {m}")
+                .replace("{n}", String(Math.min(hit, matches.length - 1) + 1))
+                .replace("{m}", String(matches.length))
+            : t("No results")}
+      </Txt>
+    </div>
+  );
+
   const bottom = (
     <div className="relative shrink-0 w-full">
       {/* Above the composer, whatever its height is. */}
-      <Toast text={toast} bottom="calc(100% + 12px)" />
+      <Toast text={notice ?? toast} bottom="calc(100% + 12px)" />
+      {searching ? searchBar : (
       <Composer
         context={context}
         onCancelContext={() => setContext(null)}
@@ -513,6 +747,7 @@ export default function ConversationScreen() {
         blur={menu ? MENU_BLUR : 0}
         t={t}
       />
+      )}
     </div>
   );
 
@@ -593,6 +828,29 @@ export default function ConversationScreen() {
           showToast(t("Forwarded"));
         }}
         onClose={() => setForwarding(null)}
+        t={t}
+      />
+      <CategorySheet
+        open={tagging !== null}
+        categories={state.categories}
+        chosen={tagging?.category}
+        onPick={(category) => {
+          if (tagging) dispatch({ type: "category", chat: chat.id, id: tagging.id, category });
+          setTagging(null);
+        }}
+        onClose={() => setTagging(null)}
+        t={t}
+      />
+      <ReminderSheet
+        open={reminding !== null}
+        current={reminding?.reminderAt}
+        locale={locale}
+        onPick={(at) => {
+          if (reminding) dispatch({ type: "remind", chat: chat.id, id: reminding.id, at });
+          setReminding(null);
+          if (at !== null) showToast(t("Reminder"));
+        }}
+        onClose={() => setReminding(null)}
         t={t}
       />
     </ScreenPage>

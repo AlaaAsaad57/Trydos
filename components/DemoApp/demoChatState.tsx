@@ -6,14 +6,19 @@ import React, {
   useEffect,
   useReducer,
   useRef,
+  useState,
 } from "react";
 import type { DemoKey } from "./demoKeys";
 import {
   clockNow,
   initialsOf,
+  isOpenable,
   newId,
   orderedChats,
+  pendingReminders,
+  previewOf,
   reduceChat,
+  searchableText,
   seedState,
   type ChatAction,
   type ChatState,
@@ -62,7 +67,18 @@ type DemoChat = {
   newChat: (contact: string) => string;
   /** Adds a contact and says its id. */
   addContact: (name: string, phone: string) => string;
+  /** A word for the shopper from the chat itself (a reminder that came due), shown by whatever screen is up. */
+  notice: string | null;
+  /** The conversation opens with its message search up (the contact screen's Search). */
+  search: boolean;
+  setSearch: (on: boolean) => void;
 };
+
+/** How long a notice stays, in ms. */
+export const NOTICE_MS = 3200;
+
+/** The longest a timer may wait, in ms (a longer one fires at once in browsers). */
+const MAX_TIMER = 2 ** 31 - 1;
 
 const Ctx = createContext<DemoChat | null>(null);
 
@@ -87,6 +103,41 @@ export function DemoChatProvider({
   );
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
   const replies = useRef(0);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [search, setSearch] = useState(false);
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /** Shows a notice for a moment. */
+  const say = (text: string) => {
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    setNotice(text);
+    noticeTimer.current = setTimeout(() => setNotice(null), NOTICE_MS);
+  };
+  useEffect(
+    () => () => {
+      if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    },
+    [],
+  );
+
+  // The soonest reminder gets a timer; when it comes due the message loses
+  // its reminder and the shopper is told. Rebuilt whenever a reminder is
+  // set or cleared. The real chat service would send this as a push.
+  const due = pendingReminders(state);
+  const dueKey = due.map((r) => `${r.chat}/${r.id}@${r.at}`).join("|");
+  useEffect(() => {
+    const next = due[0];
+    if (!next) return;
+    const chat = state.chats.find((c) => c.id === next.chat);
+    const message = chat?.messages.find((m) => m.id === next.id);
+    const timer = setTimeout(() => {
+      rawDispatch({ type: "remind", chat: next.chat, id: next.id, at: null });
+      const text = message ? searchableText(message) || (isOpenable(message) ? previewOf(message, words) : "") : "";
+      say(text ? `${t("Reminder")}: ${text}` : t("Reminder"));
+    }, Math.min(MAX_TIMER, Math.max(0, next.at - Date.now())));
+    return () => clearTimeout(timer);
+    // Only when the set of reminders changes.
+  }, [dueKey]);
 
   // Timers from a message that was sent must not fire after the demo closes.
   useEffect(
@@ -180,6 +231,9 @@ export function DemoChatProvider({
       });
       return id;
     },
+    notice,
+    search,
+    setSearch,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

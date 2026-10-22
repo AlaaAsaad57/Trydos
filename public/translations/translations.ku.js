@@ -3090,6 +3090,15 @@ const translations = {
   "Open in Maps": "کردنەوە لە نەخشە",
   "New chat": "چاتی نوێ",
   "New contact": "پەیوەندی نوێ",
+  "Search messages": "گەڕان لە نامەکان",
+  "{n} of {m}": "{n} لە {m}",
+  "No results": "هیچ ئەنجامێک نییە",
+  "Reminder": "بیرخەرەوە",
+  "Tomorrow": "سبەینێ",
+  "Next week": "هەفتەی داهاتوو",
+  "Payment": "پارەدان",
+  "Shipping": "گەیاندن",
+  "Question": "پرسیار",
 };
 
 export default translations;

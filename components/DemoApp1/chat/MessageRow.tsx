@@ -51,6 +51,8 @@ export default function MessageRow({
   wide = false,
   shift = 0,
   dimmed = false,
+  faded = false,
+  marked = false,
   canReply = true,
   onReply,
   onHold,
@@ -68,6 +70,10 @@ export default function MessageRow({
   shift?: number;
   /** Another message's menu is open: this row is blurred under the wash. */
   dimmed?: boolean;
+  /** A search is on and this message is not a match: the row goes pale. */
+  faded?: boolean;
+  /** The search's current match: a blue bar on the row's edge, as the list marks its open row. */
+  marked?: boolean;
   canReply?: boolean;
   onReply?: () => void;
   onHold?: () => void;
@@ -136,7 +142,7 @@ export default function MessageRow({
       }}
       initial={fresh ? { opacity: 0, scale: 0.7, y: 16 } : false}
       animate={{
-        opacity: 1,
+        opacity: faded ? 0.35 : 1,
         scale: 1,
         y: shift,
         filter: dimmed ? `blur(${DIM_BLUR}px)` : "blur(0px)",
@@ -144,6 +150,14 @@ export default function MessageRow({
       exit={{ opacity: 0, scale: 0.6, transition: { duration: 0.18 } }}
       transition={{ type: "spring", stiffness: 480, damping: 32, mass: 0.9 }}
     >
+      {marked && (
+        <span
+          aria-hidden="true"
+          data-pw="demo-chat-search-mark"
+          className="absolute top-0 h-full"
+          style={{ [inn ? "left" : "right"]: 0, width: 4, background: C.blue }}
+        />
+      )}
       <motion.div
         {...press}
         data-pw="demo-chat-swipe"

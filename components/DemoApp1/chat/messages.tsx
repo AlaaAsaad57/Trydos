@@ -14,6 +14,7 @@ import { BUBBLE_RADIUS, CHAT, VOICE_SRC } from "../../DemoApp/demoChat";
 import {
   fileSize,
   type CallMessage,
+  type Category,
   type FileMessage as FileMessageData,
   type LocationMessage as LocationMessageData,
   type Side,
@@ -1377,6 +1378,57 @@ export function Quote({ text, time }: { text: string; time: string }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * The flags over a message: its category as a pill in the category's colour
+ * (white 9 Medium words), and its reminder as a grey pill with the menu's
+ * bell mark and the time. A 16 px line on the message's side, 3 px over it;
+ * nothing when the message carries neither.
+ */
+export function FlagsLine({
+  side,
+  category,
+  reminder,
+}: {
+  side: Side;
+  category?: Category;
+  /** The reminder's time as the flag prints it. */
+  reminder?: string;
+}) {
+  if (!category && !reminder) return null;
+  const inn = side === "in";
+  return (
+    <span
+      data-pw="demo-chat-flags"
+      className={`flex items-center shrink-0 ${inn ? "" : "justify-end"}`}
+      style={{ height: 16, marginBottom: 3, marginLeft: inn ? 12 : undefined, marginRight: inn ? undefined : 12, gap: 4 }}
+    >
+      {category && (
+        <span
+          data-pw="demo-chat-flag-category"
+          className="flex items-center"
+          style={{ height: 16, padding: "0 7px", borderRadius: 8, background: category.color }}
+        >
+          <Txt size={9} weight="medium" color={C.white} className="whitespace-nowrap">
+            {category.name}
+          </Txt>
+        </span>
+      )}
+      {reminder && (
+        <span
+          data-pw="demo-chat-flag-reminder"
+          className="flex items-center"
+          style={{ height: 16, padding: "0 7px 0 5px", borderRadius: 8, background: CHAT.callCard, gap: 3 }}
+        >
+          <XdIcon name="menuRemind" size={10} />
+          <Txt size={9} weight="medium" className="whitespace-nowrap">
+            {reminder}
+          </Txt>
+        </span>
+      )}
+    </span>
   );
 }
 

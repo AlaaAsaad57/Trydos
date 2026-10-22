@@ -49,7 +49,7 @@ import { ScreenPage, Stroke, Txt } from "../ui";
  */
 export default function ContactScreen() {
   const { t, navigate, back } = useDemoNav();
-  const { state, dispatch } = useDemoChat();
+  const { state, dispatch, setSearch } = useDemoChat();
   const chat = state.chats.find((c) => c.id === state.active) ?? state.chats[0];
   const contact = contactOf(state, chat);
   const callsOff = !!chat?.callsDisabled;
@@ -117,7 +117,17 @@ export default function ContactScreen() {
       >
         <Action icon="chatHeaderCall" label="Call" onClick={() => navigate("chat/call")} labelTop={labelTop - actionsTop} t={t} />
         <Action icon="chatHeaderVideo" label="Video" onClick={() => navigate("chat/call")} labelTop={labelTop - actionsTop} t={t} />
-        <Action icon="contactSearch" label="Search" labelTop={labelTop - actionsTop} t={t} />
+        <Action
+          icon="contactSearch"
+          label="Search"
+          onClick={() => {
+            // The conversation opens with its message search up.
+            setSearch(true);
+            back();
+          }}
+          labelTop={labelTop - actionsTop}
+          t={t}
+        />
       </div>
 
       <Row icon="rowMedia" label="Media & Files" mt={458 - (labelTop + lineBox(13))} t={t} />

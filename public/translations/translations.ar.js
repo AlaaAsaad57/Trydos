@@ -3039,6 +3039,15 @@ const translations = {
   "Open in Maps": "فتح في الخرائط",
   "New chat": "دردشة جديدة",
   "New contact": "جهة اتصال جديدة",
+  "Search messages": "البحث في الرسائل",
+  "{n} of {m}": "{n} من {m}",
+  "No results": "لا توجد نتائج",
+  "Reminder": "تذكير",
+  "Tomorrow": "غدًا",
+  "Next week": "الأسبوع القادم",
+  "Payment": "الدفع",
+  "Shipping": "الشحن",
+  "Question": "سؤال",
 };
 
 export default translations;

@@ -3072,6 +3072,15 @@ const translations = {
   "Open in Maps": "Haritalarda Aç",
   "New chat": "Yeni sohbet",
   "New contact": "Yeni kişi",
+  "Search messages": "Mesajlarda ara",
+  "{n} of {m}": "{n} / {m}",
+  "No results": "Sonuç yok",
+  "Reminder": "Hatırlatıcı",
+  "Tomorrow": "Yarın",
+  "Next week": "Gelecek hafta",
+  "Payment": "Ödeme",
+  "Shipping": "Kargo",
+  "Question": "Soru",
 };
 
 export default translations;

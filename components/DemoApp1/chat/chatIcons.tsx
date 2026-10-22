@@ -113,6 +113,42 @@ export function OpenIcon({ size = 14, color }: { size?: number; color: string })
   );
 }
 
+/** The check beside the chosen category. */
+export function CheckIcon({ size = 18, color }: { size?: number; color: string }) {
+  return (
+    <svg {...line(size, color, 2.2)}>
+      <path d="m5 12.5 4.5 4.5L19 7.5" />
+    </svg>
+  );
+}
+
+/** The box with the arrow out of it: Unarchive. */
+export function UnarchiveIcon({ size = 20, color }: { size?: number; color: string }) {
+  return (
+    <svg {...line(size, color)}>
+      <path d="M4 8h16v10.5A1.5 1.5 0 0 1 18.5 20h-13A1.5 1.5 0 0 1 4 18.5V8ZM3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5V8H3V5.5Z" />
+      <path d="M12 17v-6M9 13.5l3-3 3 3" />
+    </svg>
+  );
+}
+
+/** The "‹" and "›" of the search's up / down. */
+export function ChevronUpIcon({ size = 20, color }: { size?: number; color: string }) {
+  return (
+    <svg {...line(size, color, 2)}>
+      <path d="m6 14.5 6-6 6 6" />
+    </svg>
+  );
+}
+
+export function ChevronDownIcon({ size = 20, color }: { size?: number; color: string }) {
+  return (
+    <svg {...line(size, color, 2)}>
+      <path d="m6 9.5 6 6 6-6" />
+    </svg>
+  );
+}
+
 /** The small "‹" before "Slide to cancel". */
 export function ChevronLeftIcon({ size = 14, color }: { size?: number; color: string }) {
   return (

@@ -39,7 +39,25 @@ type Base = {
    * `gapAbove`.
    */
   gap?: number;
+  /** The tag the shopper put on the message (a `Category` id), from the menu's Category. */
+  category?: string;
+  /** When the shopper asked to be reminded of it, in ms since the epoch (the menu's re-remind). */
+  reminderAt?: number;
 };
+
+/** A tag a message can carry: the menu's Category. */
+export type Category = { id: string; name: string; color: string };
+
+/** The tags the demo offers; the real list comes from the chat service. */
+export function seedCategories(): Category[] {
+  return [
+    { id: "orders", name: "Orders", color: "#4A31E7" },
+    { id: "payment", name: "Payment", color: "#00DD80" },
+    { id: "shipping", name: "Shipping", color: "#388CFF" },
+    { id: "question", name: "Question", color: "#F4780E" },
+    { id: "important", name: "Important", color: "#FF0508" },
+  ];
+}
 
 export type TextMessage = Base & {
   kind: "text";
@@ -208,6 +226,8 @@ export type ChatThread = {
   mark?: DeliveryMark;
   pinned?: boolean;
   muted?: boolean;
+  /** Put away by the swipe cell Archive: out of the list, in the archived sheet. */
+  archived?: boolean;
   /** The contact is blocked (`– 45`: Block / UnBlock). */
   blocked?: boolean;
   /** The contact may not call me (`– 45`: Enable Call / Desible Call). */
@@ -224,6 +244,8 @@ export type ChatState = {
   chats: ChatThread[];
   /** Everyone the shopper can start a chat with. */
   contacts: Contact[];
+  /** The tags a message can carry. */
+  categories: Category[];
   /** The chat opened last: its row carries the purple line and bar. */
   active: string;
   /** The chat whose conversation is on the screen now, if any. */
@@ -302,6 +324,7 @@ export function seedState(): ChatState {
   const n = CHAT_ROWS.length;
   return {
     contacts: seedContacts(),
+    categories: seedCategories(),
     chats: CHAT_ROWS.map((row, i) => ({
       id: row.id,
       contact: SEED_CONTACT,
@@ -348,7 +371,12 @@ export type ChatAction =
   | { type: "block"; chat: string }
   | { type: "calls"; chat: string }
   | { type: "archive"; chat: string }
+  | { type: "unarchive"; chat: string }
   | { type: "deleteChat"; chat: string }
+  /** Tags a message, or takes its tag off with `null`. */
+  | { type: "category"; chat: string; id: string; category: string | null }
+  /** Sets a reminder on a message (ms since the epoch), or clears it with `null`. */
+  | { type: "remind"; chat: string; id: string; at: number | null }
   | { type: "addContact"; contact: Contact }
   | {
       /** Opens the chat with a contact: the one there is, or a new empty one. */
@@ -358,12 +386,53 @@ export type ChatAction =
       as: { id: string; time: string };
     };
 
-/** The rows in the order the list shows them: pinned first, then the newest. */
+/** Newest first, the pinned ones before the rest. */
+const byPlace = (a: ChatThread, b: ChatThread) => {
+  if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
+  return b.lastAt - a.lastAt;
+};
+
+/** The rows in the order the list shows them: pinned first, then the newest. The archived ones are not in it. */
 export function orderedChats(chats: ChatThread[]): ChatThread[] {
-  return [...chats].sort((a, b) => {
-    if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
-    return b.lastAt - a.lastAt;
-  });
+  return chats.filter((c) => !c.archived).sort(byPlace);
+}
+
+/** The archived chats, newest first. */
+export function archivedChats(chats: ChatThread[]): ChatThread[] {
+  return chats.filter((c) => c.archived).sort(byPlace);
+}
+
+/** The words of a message that a search can find. */
+export function searchableText(m: ChatMessage): string {
+  switch (m.kind) {
+    case "text":
+    case "note":
+      return m.text;
+    case "file":
+      return m.name;
+    default:
+      return "";
+  }
+}
+
+/** The ids of the messages whose words hold `query`, in the chat's order; none for an empty query. */
+export function searchMessages(chat: ChatThread, query: string): string[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return [];
+  return chat.messages
+    .filter((m) => searchableText(m).toLowerCase().includes(needle))
+    .map((m) => m.id);
+}
+
+/** The messages of a chat that carry a reminder, soonest first. */
+export function pendingReminders(state: ChatState): { chat: string; id: string; at: number }[] {
+  return state.chats
+    .flatMap((c) =>
+      c.messages
+        .filter((m) => m.reminderAt !== undefined)
+        .map((m) => ({ chat: c.id, id: m.id, at: m.reminderAt as number })),
+    )
+    .sort((a, b) => a.at - b.at);
 }
 
 /** What a row shows of a message. */
@@ -417,6 +486,8 @@ function bump(
       time: message.time,
       mark: message.side === "out" ? message.status ?? "sent" : undefined,
       typingNow: false,
+      // A message that comes in brings an archived chat back to the list.
+      archived: message.side === "in" ? false : chat.archived,
       // A message that comes in while the chat is not on the screen is unread.
       unread:
         message.side === "in" && state.viewing !== id
@@ -585,8 +656,15 @@ export function reduceChat(
     }
     case "newChat": {
       if (!state.contacts.some((c) => c.id === action.contact)) return state;
-      const there = orderedChats(state.chats).find((c) => c.contact === action.contact);
-      if (there) return reduceChat(state, { type: "open", chat: there.id }, words);
+      const there =
+        orderedChats(state.chats).find((c) => c.contact === action.contact) ??
+        archivedChats(state.chats).find((c) => c.contact === action.contact);
+      if (there)
+        return reduceChat(
+          reduceChat(state, { type: "unarchive", chat: there.id }, words),
+          { type: "open", chat: there.id },
+          words,
+        );
       const tick = state.tick + 1;
       const chat: ChatThread = {
         id: action.as.id,
@@ -608,7 +686,11 @@ export function reduceChat(
     case "archive":
     case "deleteChat": {
       if (!state.chats.some((c) => c.id === action.chat)) return state;
-      const chats = state.chats.filter((c) => c.id !== action.chat);
+      // An archived chat stays, out of the list; a deleted one goes.
+      const chats =
+        action.type === "archive"
+          ? state.chats.map((c) => (c.id === action.chat ? { ...c, archived: true } : c))
+          : state.chats.filter((c) => c.id !== action.chat);
       const active =
         state.active === action.chat
           ? orderedChats(chats)[0]?.id ?? state.active
@@ -620,6 +702,29 @@ export function reduceChat(
         viewing: state.viewing === action.chat ? null : state.viewing,
       };
     }
+    case "unarchive":
+      return update(state, action.chat, (chat) => ({ ...chat, archived: false }));
+    case "category": {
+      if (action.category !== null && !state.categories.some((c) => c.id === action.category))
+        return state;
+      return update(state, action.chat, (chat) => ({
+        ...chat,
+        messages: chat.messages.map((m) =>
+          m.id === action.id && m.kind !== "day"
+            ? { ...m, category: action.category ?? undefined }
+            : m,
+        ),
+      }));
+    }
+    case "remind":
+      return update(state, action.chat, (chat) => ({
+        ...chat,
+        messages: chat.messages.map((m) =>
+          m.id === action.id && m.kind !== "day"
+            ? { ...m, reminderAt: action.at ?? undefined }
+            : m,
+        ),
+      }));
   }
 }
 
@@ -651,6 +756,38 @@ export function gapAbove(messages: ChatMessage[], i: number): number {
 /** Now, as "12:56". */
 export const clockNow = (d = new Date()) =>
   `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+
+/** The times the reminder sheet offers, from `now`: in an hour, tomorrow at 9, a week on at 9. */
+export function reminderOptions(now = new Date()): { key: "In 1 hour" | "Tomorrow" | "Next week"; at: number }[] {
+  const at9 = (daysOn: number) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() + daysOn);
+    d.setHours(9, 0, 0, 0);
+    return d.getTime();
+  };
+  return [
+    { key: "In 1 hour", at: now.getTime() + 60 * 60 * 1000 },
+    { key: "Tomorrow", at: at9(1) },
+    { key: "Next week", at: at9(7) },
+  ];
+}
+
+/** A reminder's time as the flag prints it: "14:30" today, "23 Oct 09:00" on another day. */
+export function reminderLabel(at: number, locale = "en", now = new Date()): string {
+  const d = new Date(at);
+  const time = clockNow(d);
+  if (d.toDateString() === now.toDateString()) return time;
+  // The day before the month, as the app's English (gb) writes it.
+  const lang = locale.split("-").pop() || "en";
+  const tag = lang === "en" ? "en-GB" : lang;
+  let day: string;
+  try {
+    day = d.toLocaleDateString(tag, { day: "numeric", month: "short" });
+  } catch {
+    day = d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  }
+  return `${day} ${time}`;
+}
 
 let counter = 0;
 /** An id no other message has. */
