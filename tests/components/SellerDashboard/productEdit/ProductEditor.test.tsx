@@ -1298,6 +1298,72 @@ describe("ProductEditor — Add with AI hand-off", () => {
     expect(toast.showSuccessMessage, "a manual Add Product showed the AI message").not.toHaveBeenCalledWith(aiMessage());
   });
 
+  // With `cacheComponents`, Next keeps a visited page inside React <Activity>
+  // and shows the SAME editor again on the next push to …/products/new. Its
+  // state survives; only its effects run again. These cases hide and show one
+  // editor the same way.
+  let setActivity: (mode: "visible" | "hidden") => void = () => {};
+  function ActivityHost({ children }: { children: React.ReactNode }) {
+    const [mode, setMode] = React.useState<"visible" | "hidden">("visible");
+    useEffect(() => {
+      setActivity = setMode;
+    }, []);
+    return <React.Activity mode={mode}>{children}</React.Activity>;
+  }
+  async function renderKeptEditor() {
+    await renderWithProviders(
+      <SellerProfileProvider>
+        <Seeded perms={ALL} products={[]}>
+          <ActivityHost>
+            <ProductEditor sellerId={SELLER_ID} local="sy-en" mode="create" />
+          </ActivityHost>
+        </Seeded>
+      </SellerProfileProvider>,
+      { store: { dashboardShopInfo: shopInfo } },
+    );
+    await settle();
+  }
+  async function showAgain() {
+    act(() => setActivity("hidden"));
+    await settle();
+    return async () => {
+      act(() => setActivity("visible"));
+      await settle();
+    };
+  }
+
+  it("an AI hand-off fills the create form that Next shows again after an earlier visit", async () => {
+    await renderKeptEditor();
+    expect(h.props.form.name, "the first, manual visit did not open an empty form").toBe("");
+
+    const show = await showAgain();
+    setAiPrefill(SELLER_ID, AI_PREFILL);
+    await show();
+
+    expect(h.props.form.name, "the kept editor ignored the new AI hand-off: Name is empty").toBe("White Silk Robe");
+    expect(h.props.form.category_id, "the kept editor ignored the AI category").toEqual([1]);
+    expect(formState().images, "the kept editor did not add the AI photo").toEqual(["a1b2c3.jpg@blob:ai-photo"]);
+    await waitFor(() =>
+      expect(
+        toast.showSuccessMessage,
+        "the kept editor did not show the check-the-values message",
+      ).toHaveBeenCalledWith(aiMessage()),
+    );
+  });
+
+  it("a manual Add Product into the kept editor after an AI fill opens the empty form", async () => {
+    setAiPrefill(SELLER_ID, AI_PREFILL);
+    await renderKeptEditor();
+    expect(h.props.form.name, "the AI visit did not fill Name").toBe("White Silk Robe");
+
+    const show = await showAgain();
+    await show();
+
+    expect(h.props.form.name, "the kept editor put the old AI title back").toBe("");
+    expect(h.props.form.category_id, "the kept editor put the old AI category back").toEqual([]);
+    expect(formState().images, "the kept editor put the old AI photo back").toEqual([]);
+  });
+
   it("an AI-filled form creates nothing until the seller saves (AC-17)", async () => {
     setAiPrefill(SELLER_ID, AI_PREFILL);
     svc.addProduct.mockResolvedValue({ success: true, data: { product_id: 55 } });
