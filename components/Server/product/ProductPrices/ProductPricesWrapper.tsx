@@ -121,16 +121,16 @@ function ProductPricesWrapper({
             role="tooltip"
             data-pw="price-info-tooltip"
             dir={isRtl ? "rtl" : "ltr"}
-            className={`absolute bottom-full mb-[8px] ${
+            className={`price-tooltip-animated absolute bottom-full mb-[8px] ${
               isRtl ? "right-[-12px]" : "left-[-12px]"
             } z-99999999999999 w-max max-w-[240px]`}
           >
-            <div className="relative flex items-center gap-[8px] rounded-[12px] bg-[#1D1D1D] px-[10px] py-[7px] text-[#FFFFFF] shadow-[0_6px_20px_rgba(0,0,0,0.18)] border border-white/10">
-              <span className="flex h-[16px] w-[16px] shrink-0 items-center justify-center rounded-full bg-[#FF6200]/20 text-[#FF6200]">
+            <div className="relative flex items-center gap-[8px] rounded-[12px] bg-white px-[10px] py-[7px] text-[#1D1D1D] shadow-[0_4px_16px_rgba(0,0,0,0.08)] border border-[#EBEBEB]">
+              <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[#FFF3E8] text-[#FF6200]">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="10"
-                  height="10"
+                  width="11"
+                  height="11"
                   viewBox="0 0 12 12"
                   fill="none"
                 >
@@ -139,18 +139,18 @@ function ProductPricesWrapper({
                     cy="6"
                     r="5"
                     stroke="currentColor"
-                    strokeWidth="1.3"
+                    strokeWidth="1.2"
                   />
                   <path
                     d="M6 3.5V6.3M6 8.3H6.005"
                     stroke="currentColor"
-                    strokeWidth="1.4"
+                    strokeWidth="1.3"
                     strokeLinecap="round"
                   />
                 </svg>
               </span>
 
-              <span className="regular text-[11px] leading-[15px] text-[#FFFFFF] select-none">
+              <span className="regular text-[11px] leading-[15px] text-[#2B2B2B] select-none">
                 {tooltipMessage}
               </span>
 
@@ -162,7 +162,7 @@ function ProductPricesWrapper({
                 }}
                 aria-label={closeLabel}
                 data-pw="price-info-tooltip-close"
-                className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors cursor-pointer"
+                className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[#F4F4F4] text-[#8D8D8D] hover:bg-[#E8E8E8] hover:text-[#1D1D1D] active:scale-95 transition-all cursor-pointer"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -183,7 +183,7 @@ function ProductPricesWrapper({
               <span
                 className={`pointer-events-none absolute -bottom-[4px] ${
                   isRtl ? "right-[13px]" : "left-[13px]"
-                } h-[8px] w-[8px] rotate-45 bg-[#1D1D1D] border-r border-b border-white/10`}
+                } h-[8px] w-[8px] rotate-45 bg-white border-r border-b border-[#EBEBEB]`}
               />
             </div>
           </div>

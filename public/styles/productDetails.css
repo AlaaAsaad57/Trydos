@@ -407,3 +407,19 @@ img.flying-img {
   color: #fefefe;
   font-family: var(--Quicksand-Regular);
 }
+
+
+@keyframes tooltipFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(5px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.price-tooltip-animated {
+  animation: tooltipFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
