@@ -18,6 +18,7 @@ class CartService {
     is_luck = false,
     type,
     offer_price,
+    showed_price = null,
   }) {
     const { addProductToCart } = useAppStore.getState();
     const imageVar = image?.split("/")[image?.split("/").length - 1];
@@ -28,6 +29,9 @@ class CartService {
       quantity: qty,
       product_variation_id: product_variation_id ?? null,
       is_luck,
+      ...(showed_price !== undefined && showed_price !== null
+        ? { showed_price: Number(showed_price) }
+        : {}),
     };
 
 
@@ -70,6 +74,7 @@ class CartService {
           quantity: 1,
           type,
           offer_price,
+          showed_price,
         });
         return true;
       }

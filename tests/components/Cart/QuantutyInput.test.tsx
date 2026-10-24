@@ -1293,3 +1293,88 @@ describe("the link around a cart row", () => {
     ).toBe("/sy-en?");
   });
 });
+
+
+describe("price change tooltip in cart item card", () => {
+  const baseProduct = {
+    id: "cart-row-1",
+    product_id: 101,
+    name: "Classic T-Shirt",
+    price: 15,
+    offer_price: 15,
+    quantity: 1,
+    available_quantity: 10,
+  };
+
+  async function renderRow(productOverrides: any, language: "en" | "ar" = "en") {
+    return renderWithProviders(
+      <QuantutyInput
+        value={productOverrides.quantity ?? 1}
+        setValue={() => {}}
+        max={10}
+        deleteFunction={() => {}}
+        id={baseProduct.id}
+        disabled={false}
+        updateData={() => {}}
+        product={{ ...baseProduct, ...productOverrides }}
+      />,
+      {
+        country: "sy",
+        language,
+        params: { lang: `sy-${language}` },
+        path: `/sy-${language}/cart`,
+        store: {
+          currency: { symbol: "$", exchange_rate: 1, decimal_digits: 2 },
+        },
+      },
+    );
+  }
+
+  it("does not show tooltip when showed_price is undefined", async () => {
+    await renderRow({ showed_price: undefined });
+    expect(screen.queryByRole("tooltip")).toBeNull();
+  });
+
+  it("does not show tooltip when showed_price is null (does not treat as 0)", async () => {
+    await renderRow({ showed_price: null });
+    expect(screen.queryByRole("tooltip")).toBeNull();
+  });
+
+  it("does not show tooltip when showed_price is equal to current price", async () => {
+    await renderRow({ showed_price: 15, price: 15, offer_price: 15 });
+    expect(screen.queryByRole("tooltip")).toBeNull();
+  });
+
+  it("shows tooltip when showed_price differs from current price", async () => {
+    await renderRow({ showed_price: 10, price: 15, offer_price: 15 });
+    const tooltip = screen.getByRole("tooltip");
+    expect(tooltip).toBeInTheDocument();
+    expect(tooltip).toHaveTextContent("Price Changed From 10 $ To 15 $");
+  });
+
+  it("shows tooltip with offer price comparison when item has discount", async () => {
+    await renderRow({ showed_price: 10, price: 20, offer_price: 12 });
+    const tooltip = screen.getByRole("tooltip");
+    expect(tooltip).toBeInTheDocument();
+    expect(tooltip).toHaveTextContent("Price Changed From 10 $ To 12 $");
+  });
+
+  it("dismisses the tooltip when close button is clicked", async () => {
+    await renderRow({ showed_price: 10, price: 15, offer_price: 15 });
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+
+    const closeBtn = screen.getByRole("button", { name: /close/i });
+    await userEvent.click(closeBtn);
+
+    expect(screen.queryByRole("tooltip")).toBeNull();
+  });
+
+  it("renders in Arabic with RTL orientation", async () => {
+    await renderRow({ showed_price: 10, price: 15, offer_price: 15 }, "ar");
+    const tooltip = screen.getByRole("tooltip");
+    expect(tooltip).toBeInTheDocument();
+    expect(tooltip).toHaveAttribute("dir", "rtl");
+    expect(tooltip).toHaveTextContent("10 $");
+    expect(tooltip).toHaveTextContent("15 $");
+  });
+});

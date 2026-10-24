@@ -34,6 +34,7 @@ import EmptyCart from "./EmptyCart";
 import { isSamePage } from "utils/navigationsUtils";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import NotifyWhenAvailableModal from "./NotifyWhenAvailableModal";
+import CartPriceChangeTooltip from "./CartPriceChangeTooltip";
 
 function CartContainer({ close, toOrders }) {
   const {
@@ -493,6 +494,7 @@ export const QuantutyInput = ({
   const [loading, setLoading] = useState(false);
   // Open only when the core backend refuses a raise — see `updateQuantity`.
   const [askAboutNotify, setAskAboutNotify] = useState(false);
+  const [showPriceChangeTooltip, setShowPriceChangeTooltip] = useState(true);
   useEffect(() => {
     if (parseInt(value) === inputValue) return;
     setInputValue(parseInt(value));
@@ -561,6 +563,39 @@ export const QuantutyInput = ({
     }),
   );
   const currencyLabel = currency?.symbol ?? (currency as any)?.sumbol ?? "";
+
+  const rawShowedPrice = (product as any)?.showed_price;
+  const hasShowedPrice =
+    rawShowedPrice !== null &&
+    rawShowedPrice !== undefined &&
+    rawShowedPrice !== "" &&
+    !isNaN(Number(rawShowedPrice));
+  const showedPriceNum = hasShowedPrice ? Number(rawShowedPrice) : null;
+  const isPriceChanged =
+    hasShowedPrice &&
+    showedPriceNum !== null &&
+    Math.abs(showedPriceNum - currentUnitPrice) >= 0.001;
+
+  const convertedFromPrice = String(
+    RoundPrice({
+      charged: true,
+      num: showedPriceNum ?? 0,
+      rate: currency?.exchange_rate,
+      points: currency?.decimal_digits,
+      language: languageVariable,
+    }),
+  );
+  const convertedToPrice = String(
+    RoundPrice({
+      charged: true,
+      num: currentUnitPrice,
+      rate: currency?.exchange_rate,
+      points: currency?.decimal_digits,
+      language: languageVariable,
+    }),
+  );
+  const fromPriceFormatted = `${convertedFromPrice} ${currencyLabel}`.trim();
+  const toPriceFormatted = `${convertedToPrice} ${currencyLabel}`.trim();
   // Shrink the price only when it's both on a very small screen AND the
   // displayed price (old + new + currency) is long enough to crowd the row.
   const priceStringLength = (
@@ -893,7 +928,16 @@ export const QuantutyInput = ({
         )}
       </div>
 
-      <div className="flex-col min-w-0">
+      <div className="flex-col min-w-0 relative">
+        {isPriceChanged && showPriceChangeTooltip && (
+          <CartPriceChangeTooltip
+            fromPrice={fromPriceFormatted}
+            toPrice={toPriceFormatted}
+            language={languageVariable}
+            isRtl={isRtl}
+            onClose={() => setShowPriceChangeTooltip(false)}
+          />
+        )}
         <div className={``} data-pw="oldNew-price-container">
           <div className="product-info-price" data-pw="oldNew-price-container2">
             {hasDiscount ? (

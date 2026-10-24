@@ -39,6 +39,7 @@ export interface CartItemInterface {
   discount_price: number;
   price: number;
   offer_price: number;
+  showed_price?: number | null;
   tax: number;
   slug: string;
   name: string;

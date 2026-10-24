@@ -47,6 +47,38 @@ describe("CartService", () => {
       expect(useAppStore.getState().localCart, "store should contain newly added item").toHaveLength(1);
     });
 
+    it("posts showed_price to /cart/add and updates store localCart", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: { status: 1, id_cart: "cart-item-100" },
+      });
+
+      const success = await cartService.AddToCart({
+        product_id: 102,
+        color: "Blue",
+        choice_1: "L",
+        qty: 1,
+        image: "https://example.com/blue.jpg",
+        type: "variant-2",
+        offer_price: 60,
+        showed_price: 60,
+      });
+
+      expect(success).toBe(true);
+      expect(fetchData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: "/cart/add",
+          method: "POST",
+          body: expect.stringContaining('"showed_price":60'),
+        }),
+      );
+      expect(useAppStore.getState().localCart[0]).toMatchObject({
+        id: 102,
+        item_id: "cart-item-100",
+        showed_price: 60,
+      });
+    });
+
     it("returns false and logs error on API failure", async () => {
       vi.mocked(fetchData).mockResolvedValueOnce({
         success: false,

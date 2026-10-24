@@ -8,6 +8,7 @@ import { getCart, LogError, translateFunction } from "utils/functions";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { isLuckActive } from "utils/luck";
+import { resolveShowedPrice } from "utils/cart/pricing";
 import { DetectScreen } from "utils/tinyUtils";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 
@@ -276,6 +277,11 @@ function AddToCartButton({
         // A2-14: read the luck flag when the shopper taps, not when the sheet
         // opened. After the timer ends the redeemed cookie turns it off.
         const luckNow = isLuckActive(product, id);
+        const showedPrice = resolveShowedPrice({
+          product,
+          selectedVariant,
+          isLuck: luckNow,
+        });
         let val = await cart.AddToCart({
           product_id: id,
           product_variation_id: productVariationId,
@@ -301,6 +307,7 @@ function AddToCartButton({
           offer_price: luckNow
             ? selectedVariant?.luck_price
             : selectedVariant?.offer_price,
+          showed_price: showedPrice,
         });
         if (luckNow) useAppStore.getState().expireLuck(id);
 

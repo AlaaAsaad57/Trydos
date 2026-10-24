@@ -425,6 +425,7 @@ const useCartStore = (set, get) => ({
           }`,
           type: s?.product_variation_id,
           offer_price: s.offer_price,
+          showed_price: s.showed_price,
           product_variation_id: s.product_variation_id,
         })),
       ],

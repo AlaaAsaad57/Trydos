@@ -148,6 +148,7 @@ function OldCartContainer() {
         qty: parseInt(product.quantity) || 1,
         image: product.image,
         offer_price: product.offer_price,
+        showed_price: product.offer_price ?? product.price,
         type: product.product_variation_id,
       });
       if (!succeeded) return;

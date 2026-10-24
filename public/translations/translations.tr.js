@@ -1,4 +1,5 @@
 const translations = {
+  "Price changed from {from} to {to}": "Fiyat {from} yerine {to} olarak değişti",
   "Typing...": "Yazıyor...",
   "Employees": "Çalışanlar",
   "Roles": "Roller",
