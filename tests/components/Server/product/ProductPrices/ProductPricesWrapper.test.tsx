@@ -18,7 +18,7 @@ vi.mock("components/Cart/AddToCart/PropertiesMarquee", () => ({
 
 import ProductPricesWrapper from "components/Server/product/ProductPrices/ProductPricesWrapper";
 
-import { renderWithProviders } from "../../../../render";
+import { fireEvent, renderWithProviders, screen } from "../../../../render";
 
 const currency = { symbol: "$", exchange_rate: 2, decimal_digits: 0 };
 
@@ -68,5 +68,27 @@ describe("the product footer prices", () => {
       <ProductPricesWrapper qtyPricePromise={{ id: 1, price: 10, offer_price: 8 }} currencyPromise={currency} language="en" isRtl={false} />,
     );
     expect(seen.row.currencySymbol, "the price must be shown with the currency symbol").toBe("$");
+  });
+
+  it("shows the price-change tooltip on open, closes it with the X button, and reopens it from the info icon", async () => {
+    await renderWithProviders(
+      <ProductPricesWrapper qtyPricePromise={{ id: 1, price: 10, offer_price: 8 }} currencyPromise={currency} language="en" isRtl={false} />,
+    );
+    expect(
+      screen.getByRole("tooltip").textContent,
+      "the price-change tooltip should appear when the product page opens",
+    ).toContain("Prices May Change At Any Moment");
+
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(
+      screen.queryByRole("tooltip"),
+      "clicking the X button should close the price-change tooltip",
+    ).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Prices May Change At Any Moment" }));
+    expect(
+      screen.getByRole("tooltip").textContent,
+      "clicking the info icon should reopen the price-change tooltip",
+    ).toContain("Prices May Change At Any Moment");
   });
 });

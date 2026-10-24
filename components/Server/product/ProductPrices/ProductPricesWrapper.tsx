@@ -1,7 +1,8 @@
-
+"use client";
+import { useState } from "react";
 import PricesRowClientLogic from "./PricesRowClientLogic"; // We'll create this
 import PropertiesMarquee from "components/Cart/AddToCart/PropertiesMarquee";
-import { RoundPrice } from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 
 function ProductPricesWrapper({
   qtyPricePromise,
@@ -9,6 +10,8 @@ function ProductPricesWrapper({
   language,
   isRtl,
 }) {
+  const [showPriceTooltip, setShowPriceTooltip] = useState(true);
+
   // Static Data Preparation
   const baseData = {
     price: qtyPricePromise?.price,
@@ -41,9 +44,15 @@ function ProductPricesWrapper({
     points: baseData.points,
   });
 
+  const tooltipMessage = translateFunction(
+    "Prices may change at any moment",
+    language,
+  );
+  const closeLabel = translateFunction("Close", language);
+
   return (
     <div
-      className={`flex h-[40px] w-full relative items-end pb-[8px] overflow-hidden ${isRtl ? "flex-row-reverse pr-[20px]" : "flex-row pl-[20px]"
+      className={`flex h-[40px] w-full relative items-end pb-[8px] overflow-visible ${isRtl ? "flex-row-reverse pr-[20px]" : "flex-row pl-[20px]"
         }`}
     >
       {/* 10% Client Logic: Only this component interacts with cookies */}
@@ -60,41 +69,126 @@ function ProductPricesWrapper({
         }}
       />
 
-      {/* Static Info Icon & Marquee (Server Side) */}
-      <span className="flex ml-[3px] pb-[8px]">
-        <svg
-          id="Group_10807"
-          data-name="Group 10807"
-          xmlns="http://www.w3.org/2000/svg"
-          width="11"
-          height="11"
+      {/* Info Icon, Price Change Tooltip & Marquee */}
+      <div
+        className={`relative flex items-center mb-[8px] ${
+          isRtl ? "mr-[3px]" : "ml-[3px]"
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => setShowPriceTooltip((prev) => !prev)}
+          aria-label={tooltipMessage}
+          data-pw="price-info-icon"
+          className="flex items-center justify-center cursor-pointer focus:outline-none"
         >
-          <g id="Group_10756" data-name="Group 10756" transform="translate(0)">
-            <path
-              id="Subtraction_1"
-              data-name="Subtraction 1"
-              d="M.24,8.833A.236.236,0,0,1,.1,8.783.266.266,0,0,1,.01,8.506L.618,6.5A4.393,4.393,0,0,1,0,4.249,4.175,4.175,0,0,1,4.086,0,4.174,4.174,0,0,1,8.171,4.249,4.175,4.175,0,0,1,4.086,8.5a3.979,3.979,0,0,1-2.292-.728L.375,8.79A.219.219,0,0,1,.24,8.833ZM4.048,6.4a.523.523,0,1,0,.515.524A.512.512,0,0,0,4.048,6.4Zm.106-4.171a.806.806,0,0,1,.874.807c0,.4-.168.641-.641.938a1.314,1.314,0,0,0-.749,1.181v.093c0,.293.157.475.409.475.234,0,.369-.149.391-.43.019-.408.166-.613.655-.913a1.544,1.544,0,0,0-.9-2.9,1.647,1.647,0,0,0-1.611.9,1.087,1.087,0,0,0-.106.474.354.354,0,0,0,.379.4c.205,0,.319-.1.394-.341A.871.871,0,0,1,4.154,2.229Z"
-              transform="translate(0 2.167)"
-              fill="#5d5c5d"
-            />
-            <path
-              id="Path_21380"
-              data-name="Path 21380"
-              d="M10.048,8.863a.237.237,0,0,1-.144.05.217.217,0,0,1-.135-.043L8.35,7.853l-.016.01A4.871,4.871,0,0,0,8.7,6a4.665,4.665,0,0,0-4.566-4.75,4.331,4.331,0,0,0-1,.117A3.966,3.966,0,0,1,6.059.079a4.175,4.175,0,0,1,4.086,4.25,4.38,4.38,0,0,1-.618,2.25l.609,2.007a.263.263,0,0,1-.087.277Z"
-              transform="translate(-0.051 0.42)"
-              fill="#5d5c5d"
-            />
-            <rect
-              id="Rectangle_4714"
-              data-name="Rectangle 4714"
-              width="10.575"
-              height="11"
-              transform="translate(0.425)"
-              fill="none"
-            />
-          </g>
-        </svg>
-      </span>
+          <svg
+            id="Group_10807"
+            data-name="Group 10807"
+            xmlns="http://www.w3.org/2000/svg"
+            width="11"
+            height="11"
+          >
+            <g id="Group_10756" data-name="Group 10756" transform="translate(0)">
+              <path
+                id="Subtraction_1"
+                data-name="Subtraction 1"
+                d="M.24,8.833A.236.236,0,0,1,.1,8.783.266.266,0,0,1,.01,8.506L.618,6.5A4.393,4.393,0,0,1,0,4.249,4.175,4.175,0,0,1,4.086,0,4.174,4.174,0,0,1,8.171,4.249,4.175,4.175,0,0,1,4.086,8.5a3.979,3.979,0,0,1-2.292-.728L.375,8.79A.219.219,0,0,1,.24,8.833ZM4.048,6.4a.523.523,0,1,0,.515.524A.512.512,0,0,0,4.048,6.4Zm.106-4.171a.806.806,0,0,1,.874.807c0,.4-.168.641-.641.938a1.314,1.314,0,0,0-.749,1.181v.093c0,.293.157.475.409.475.234,0,.369-.149.391-.43.019-.408.166-.613.655-.913a1.544,1.544,0,0,0-.9-2.9,1.647,1.647,0,0,0-1.611.9,1.087,1.087,0,0,0-.106.474.354.354,0,0,0,.379.4c.205,0,.319-.1.394-.341A.871.871,0,0,1,4.154,2.229Z"
+                transform="translate(0 2.167)"
+                fill="#5d5c5d"
+              />
+              <path
+                id="Path_21380"
+                data-name="Path 21380"
+                d="M10.048,8.863a.237.237,0,0,1-.144.05.217.217,0,0,1-.135-.043L8.35,7.853l-.016.01A4.871,4.871,0,0,0,8.7,6a4.665,4.665,0,0,0-4.566-4.75,4.331,4.331,0,0,0-1,.117A3.966,3.966,0,0,1,6.059.079a4.175,4.175,0,0,1,4.086,4.25,4.38,4.38,0,0,1-.618,2.25l.609,2.007a.263.263,0,0,1-.087.277Z"
+                transform="translate(-0.051 0.42)"
+                fill="#5d5c5d"
+              />
+              <rect
+                id="Rectangle_4714"
+                data-name="Rectangle 4714"
+                width="10.575"
+                height="11"
+                transform="translate(0.425)"
+                fill="none"
+              />
+            </g>
+          </svg>
+        </button>
+
+        {showPriceTooltip && (
+          <div
+            role="tooltip"
+            data-pw="price-info-tooltip"
+            dir={isRtl ? "rtl" : "ltr"}
+            className={`absolute bottom-full mb-[8px] ${
+              isRtl ? "right-[-12px]" : "left-[-12px]"
+            } z-99999999999999 w-max max-w-[240px]`}
+          >
+            <div className="relative flex items-center gap-[8px] rounded-[12px] bg-[#1D1D1D] px-[10px] py-[7px] text-[#FFFFFF] shadow-[0_6px_20px_rgba(0,0,0,0.18)] border border-white/10">
+              <span className="flex h-[16px] w-[16px] shrink-0 items-center justify-center rounded-full bg-[#FF6200]/20 text-[#FF6200]">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="10"
+                  height="10"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                >
+                  <circle
+                    cx="6"
+                    cy="6"
+                    r="5"
+                    stroke="currentColor"
+                    strokeWidth="1.3"
+                  />
+                  <path
+                    d="M6 3.5V6.3M6 8.3H6.005"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+
+              <span className="regular text-[11px] leading-[15px] text-[#FFFFFF] select-none">
+                {tooltipMessage}
+              </span>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPriceTooltip(false);
+                }}
+                aria-label={closeLabel}
+                data-pw="price-info-tooltip-close"
+                className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition-colors cursor-pointer"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="8"
+                  height="8"
+                  viewBox="0 0 8 8"
+                  fill="none"
+                >
+                  <path
+                    d="M1.5 1.5L6.5 6.5M6.5 1.5L1.5 6.5"
+                    stroke="currentColor"
+                    strokeWidth="1.3"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+
+              <span
+                className={`pointer-events-none absolute -bottom-[4px] ${
+                  isRtl ? "right-[13px]" : "left-[13px]"
+                } h-[8px] w-[8px] rotate-45 bg-[#1D1D1D] border-r border-b border-white/10`}
+              />
+            </div>
+          </div>
+        )}
+      </div>
 
       <PropertiesMarquee
         languageVariable={language}

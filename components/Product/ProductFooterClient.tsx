@@ -44,7 +44,7 @@ const ProductFooterClient = ({
     >
       <ProductVideosWrapper globalPromise={GlobalData} language={language} />
 
-      <div className="product-info-container p-0 h-[40px] overflow-hidden">
+      <div className="product-info-container p-0 h-[40px] overflow-visible">
         <ProductPricesWrapper
           isRtl={isRtl}
           language={language}

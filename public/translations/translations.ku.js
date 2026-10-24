@@ -3099,6 +3099,7 @@ const translations = {
   "Payment": "پارەدان",
   "Shipping": "گەیاندن",
   "Question": "پرسیار",
+  "Prices may change at any moment": "نرخەکان لە هەر ساتێکدا لەوانەیە بگۆڕێن",
 };
 
 export default translations;

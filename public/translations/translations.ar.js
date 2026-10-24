@@ -3048,6 +3048,7 @@ const translations = {
   "Payment": "الدفع",
   "Shipping": "الشحن",
   "Question": "سؤال",
+  "Prices may change at any moment": "قد تتغير الأسعار في أي لحظة",
 };
 
 export default translations;

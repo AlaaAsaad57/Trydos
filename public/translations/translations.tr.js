@@ -3081,6 +3081,7 @@ const translations = {
   "Payment": "Ödeme",
   "Shipping": "Kargo",
   "Question": "Soru",
+  "Prices may change at any moment": "Fiyatlar her an değişebilir",
 };
 
 export default translations;
