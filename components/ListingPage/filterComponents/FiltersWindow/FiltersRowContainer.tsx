@@ -1,4 +1,5 @@
 "use client";
+import InfoTooltip from "components/global/InfoTooltip";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Spinner from "components/global/Spinner";
 import { translateFunction } from "utils/functions";
@@ -45,7 +46,9 @@ const FilterRowTop = ({ term, loading }) => {
     <div className={`filter-label flex-row justify-start align-center m-0`}>
       <img src="/icons/ActiveCategoryIcon.svg" />
       <div className="filter-label-text">{translateFunction(term)}</div>
-      <img src="/icons/FilterInfoIcon.svg" className="filter-info-icon" />
+      <InfoTooltip message={translateFunction("Filter products by this category or attribute.")}>
+        <img src="/icons/FilterInfoIcon.svg" className="filter-info-icon" />
+      </InfoTooltip>
       {loading && (
         <span className="ml-2">
           <Spinner />

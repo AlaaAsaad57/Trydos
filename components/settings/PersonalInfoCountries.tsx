@@ -1,4 +1,5 @@
 "use client";
+import InfoTooltip from "components/global/InfoTooltip";
 import { useEffect, useState } from "react";
 
 import { translateFunction } from "utils/functions";
@@ -300,10 +301,15 @@ function PersonalInfoCountries({
             <span className="ml-[6px] medium text-[#404040] text-[12px]">
               {translateFunction("Available Countries")}
             </span>
-            <img
-              src="/icons/AddressInfo.svg"
-              className="ml-[19px] cursor-pointer"
-            />
+            <InfoTooltip
+              message={translateFunction("Select your country to view local products, shipping, and currency.")}
+              isRtl={isRtl}
+            >
+              <img
+                src="/icons/AddressInfo.svg"
+                className="ml-[19px] cursor-pointer"
+              />
+            </InfoTooltip>
           </div>
           <div
             className={`flex flex-col w-full ${

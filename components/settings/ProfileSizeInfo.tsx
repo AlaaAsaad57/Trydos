@@ -1,4 +1,5 @@
 "use client";
+import InfoTooltip from "components/global/InfoTooltip";
 import { useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import auth from "services/auth";
@@ -355,11 +356,16 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
           >
             {translateFunction("Your Size Info")}
           </div>
-          <img
-            src="/icons/AddressInfo.svg"
-            className="ml-[12px] cursor-pointer"
-            data-pw="Address-info-icon"
-          />
+          <InfoTooltip
+            message={translateFunction("Set your body measurements and sizes for tailored recommendations.")}
+            isRtl={isRtl}
+            dataPw="Address-info-icon"
+          >
+            <img
+              src="/icons/AddressInfo.svg"
+              className="ml-[12px] cursor-pointer"
+            />
+          </InfoTooltip>
         </div>
         <div
           className="flex-col name-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"

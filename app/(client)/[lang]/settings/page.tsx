@@ -64,19 +64,22 @@ async function page() {
     {
       name: "Terms & Conditions",
       Icon: `/icons/TermsIcon.svg`,
-      href: `/${lang}/terms-of-service`,
+      href: `/${lang}/privacy-policy#terms-of-service`,
+      target: "_blank",
     },
     {
       // A3-4 / A3-8: the privacy page exists; Product replaces its text later.
       name: "Legal Information",
       Icon: `/icons/LegalInfoIcon.svg`,
-      href: `/${lang}/privacy-policy`,
+      href: `/${lang}/privacy-policy#privacy-policy`,
+      target: "_blank",
     },
-    // {
-    //   name: "Contact Us",
-    //   Icon: `/icons/ContactInfoIcon.svg`,
-    //   href: `/${lang}/contact`,
-    // },
+    {
+      name: "Contact Us",
+      Icon: `/icons/ContactInfoIcon.svg`,
+      href: `/${lang}/contact`,
+      target: "_blank",
+    },
     {
       // A3-8: the about page exists; Product replaces its text later.
       name: "About Us",
@@ -218,11 +221,12 @@ async function page() {
 
 export default page;
 
-const SettingOption = ({ name, Icon, href, isRtl, language }: any) => {
+const SettingOption = ({ name, Icon, href, isRtl, language, target }: any) => {
   return (
     <NextLink
       isFromSetting={true}
       href={href}
+      target={target}
       className={`w-full flex-row cursor-pointer mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center ${
         isRtl ? "flex-row-reverse" : " "
       }`}

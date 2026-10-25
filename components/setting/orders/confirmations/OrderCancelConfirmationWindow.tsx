@@ -95,7 +95,7 @@ function OrderCancelConfirmationWindow({
             <a
               target="_blank"
               rel="noopener noreferrer"
-              href={`/${lang}/terms-of-service`}
+              href={`/${lang}/privacy-policy#cancellation-terms`}
               onClick={(e) => e.stopPropagation()}
               className="medium text-[14px] text-white underline"
             >

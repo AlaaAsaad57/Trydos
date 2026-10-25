@@ -20,7 +20,7 @@ export default function TermsScreen({ onAgree, onLater, lang = 'en' }: TermsScre
     // the language only, so the locale comes from the route. The login demo
     // has no locale in its route; there the language alone is used.
     const { lang: locale } = useParams<{ lang?: string }>() ?? {};
-    const termsHref = `/${typeof locale === 'string' && locale ? locale : lang}/terms-of-service`;
+    const termsHref = `/${typeof locale === 'string' && locale ? locale : lang}/privacy-policy#terms-of-service`;
 
     return (
         <div className="w-full bg-white flex flex-col font-quicksand">

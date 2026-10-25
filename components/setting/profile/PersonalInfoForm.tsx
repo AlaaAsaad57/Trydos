@@ -1,4 +1,5 @@
 "use client";
+import InfoTooltip from "components/global/InfoTooltip";
 import { useEffect, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import { isGuestName } from "utils/tinyUtils";
@@ -434,10 +435,15 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
           >
             {translateFunction("Full Name", language)}
           </div>
-          <img
-            src="/icons/AddressInfo.svg"
-            className="ml-[12px] cursor-pointer w-[15px] h-[15px]"
-          />
+          <InfoTooltip
+            message={translateFunction("Enter your legal full name as shown on official identity documents.", language)}
+            isRtl={isRtl}
+          >
+            <img
+              src="/icons/AddressInfo.svg"
+              className="ml-[12px] cursor-pointer w-[15px] h-[15px]"
+            />
+          </InfoTooltip>
         </div>
         <div
           className="flex-col name-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"

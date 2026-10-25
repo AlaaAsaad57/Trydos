@@ -5,17 +5,50 @@ import { getRobotsConfig, translateFunction } from "utils/server";
 
 const TITLE = "Privacy Policy";
 const DESCRIPTION =
-  "Read the TryDos Privacy Policy: what information we collect, how we use it, and the choices you have over your data.";
+  "Read the TryDos Privacy Policy: terms, cancellation, return, address changes, and information about your data.";
 const INTRO =
-  "Your privacy matters to us. This policy explains what information TryDos collects, how we use it, and the choices you have.";
+  "Your privacy matters to us. Below are the terms, policies and conditions governing your use of TryDos.";
+
 const SECTIONS = [
   {
-    heading: "Information We Collect",
-    body: "We collect the details you provide when you create an account or place an order, along with basic device and usage data needed to operate and secure the service.",
+    id: "why-we-know-you",
+    heading: "Why We Know You",
+    body: "",
   },
   {
-    heading: "How We Use Your Data",
-    body: "Your data is used to process orders, personalise your experience, prevent fraud and improve TryDos. We never sell your personal information.",
+    id: "cancellation-terms",
+    heading: "Terms Of Cancellation",
+    body: "",
+  },
+  {
+    id: "return-terms",
+    heading: "Terms Of Return",
+    body: "",
+  },
+  {
+    id: "change-address-terms",
+    heading: "Terms Of Change Address",
+    body: "",
+  },
+  {
+    id: "change-color-terms",
+    heading: "The Change Color Terms",
+    body: "",
+  },
+  {
+    id: "change-size-terms",
+    heading: "The Change Size Terms",
+    body: "",
+  },
+  {
+    id: "terms-of-service",
+    heading: "Terms Of Services",
+    body: "",
+  },
+  {
+    id: "privacy-policy",
+    heading: "Privacy Policy",
+    body: "",
   },
 ];
 

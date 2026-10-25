@@ -1,3 +1,4 @@
+import InfoTooltip from "components/global/InfoTooltip";
 import { useEffect, useRef, useState } from "react";
 import {
   getCart,
@@ -278,13 +279,17 @@ function OrderButton({ close, toOrders }) {
               data-pw="containerOf-questionMark"
               className="flex-row w-full justify-center"
             >
-              <svg
-                data-pw="questionMark"
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
+              <InfoTooltip
+                message={translateFunction("Order summary showing items, shipping costs, and discounts")}
+                isRtl={isRtl}
               >
+                <svg
+                  data-pw="questionMark"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                >
                 <g
                   id="Group_13008"
                   data-name="Group 13008"
@@ -320,6 +325,7 @@ function OrderButton({ close, toOrders }) {
                   </g>
                 </g>
               </svg>
+              </InfoTooltip>
             </div>
             <OrderMarquee shippingCost={total_shipping_cost} />
             {expanded && (

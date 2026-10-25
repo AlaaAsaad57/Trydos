@@ -1,4 +1,5 @@
 "use client";
+import InfoTooltip from "components/global/InfoTooltip";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAppStore } from "store";
@@ -427,10 +428,14 @@ const FiltersWindowUI = ({
                 <div className="filter-label-text">
                   {translateFunction("Filter By Prices")}
                 </div>
-                <img
-                  src="/icons/FilterInfoIcon.svg"
-                  className="filter-info-icon"
-                />
+                <InfoTooltip
+                  message={translateFunction("Set minimum and maximum price range to filter available products.")}
+                >
+                  <img
+                    src="/icons/FilterInfoIcon.svg"
+                    className="filter-info-icon"
+                  />
+                </InfoTooltip>
                 {loading && (
                   <span className="ml-2">
                     <Spinner />

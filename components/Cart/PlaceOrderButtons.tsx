@@ -195,7 +195,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
                   their text later. The click stays on the link, so it does
                   not also tick the box. */}
               <a
-                href={`/${lang}/privacy-policy`}
+                href={`/${lang}/privacy-policy#privacy-policy`}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
@@ -217,7 +217,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
                 {translateFunction("and")}
               </span>
               <a
-                href={`/${lang}/terms-of-service`}
+                href={`/${lang}/privacy-policy#terms-of-service`}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}

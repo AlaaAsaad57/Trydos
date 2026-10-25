@@ -1,7 +1,7 @@
 import BackBar from "components/setting/BackBar";
 import { translateFunction } from "utils/server";
 
-type Section = { heading: string; body: string };
+type Section = { heading: string; body?: string; id?: string };
 
 /**
  * Shared server-rendered layout for the static "trust" pages (About, Privacy,
@@ -52,16 +52,30 @@ export default function StaticPage({
             {t(intro)}
           </p>
         )}
-        {sections.map((section) => (
-          <section key={section.heading} className="flex-col flex gap-[6px]">
-            <h2 className="text-[#1D1D1D] text-[17px] medium">
-              {t(section.heading)}
-            </h2>
-            <p className="text-[#5A5A5A] text-[15px] regular leading-[1.8] whitespace-pre-line">
-              {t(section.body)}
-            </p>
-          </section>
-        ))}
+        {sections.map((section) => {
+          const sectionId =
+            section.id ||
+            section.heading
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/(^-|-$)/g, "");
+          return (
+            <section
+              key={section.heading}
+              id={sectionId}
+              className="flex-col flex gap-[6px] scroll-mt-20"
+            >
+              <h2 className="text-[#1D1D1D] text-[17px] medium">
+                {t(section.heading)}
+              </h2>
+              {Boolean(section.body) && (
+                <p className="text-[#5A5A5A] text-[15px] regular leading-[1.8] whitespace-pre-line">
+                  {t(section.body!)}
+                </p>
+              )}
+            </section>
+          );
+        })}
       </article>
     </div>
   );

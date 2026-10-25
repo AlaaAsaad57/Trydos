@@ -1,4 +1,5 @@
 "use client";
+import InfoTooltip from "components/global/InfoTooltip";
 
 import Image from 'next/image';
 import FlexibleSpace from 'scaling/FlexibleSpace';
@@ -61,15 +62,19 @@ export default function NotFoundScreen({
             <p className="text-xd-12 font-semibold text-[#1D1D1D]">
               +{phone}
             </p>
-            <div className="w-xd-15 h-xd-15 ml-2 shrink-0">
-              <Image
-                src="/assets/icons/auth/warn-info.svg"
-                alt="info"
-                width={15}
-                height={15}
-                className="object-contain"
-              />
-            </div>
+            <InfoTooltip
+              message={translate("No account found with this phone number. Please check the digits or sign up.")}
+            >
+              <div className="w-xd-15 h-xd-15 ml-2 shrink-0">
+                <Image
+                  src="/assets/icons/auth/warn-info.svg"
+                  alt="info"
+                  width={15}
+                  height={15}
+                  className="object-contain"
+                />
+              </div>
+            </InfoTooltip>
           </div>
         </div>
         <FlexibleSpace size={85} share={0} />

@@ -52,7 +52,7 @@ export default function InlineVerifyPanel({
     // A3-5: the terms page exists; Product replaces its text later. `lang` is
     // the language only, so the locale comes from the route.
     const { lang: locale } = useParams<{ lang?: string }>() ?? {};
-    const termsHref = `/${typeof locale === 'string' && locale ? locale : lang}/terms-of-service`;
+    const termsHref = `/${typeof locale === 'string' && locale ? locale : lang}/privacy-policy#terms-of-service`;
 
     const {
         step,

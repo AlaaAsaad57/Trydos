@@ -136,17 +136,33 @@ describe("sending a code", () => {
   it("still starts the cooldown when the send is refused with one, and reports the refusal (AC-3)", async () => {
     (sendOtp.sendOtpAction as any).mockResolvedValue({
       success: false,
-      message: "Too many requests",
+      message: "Please wait 300 seconds before trying again",
       lockSeconds: 300,
     });
     const onError = vi.fn();
 
-    await expect(auth.SendOtp(PHONE, 0, onError)).rejects.toThrow("Too many requests");
+    await expect(auth.SendOtp(PHONE, 0, onError)).rejects.toThrow("Please wait 300 seconds before trying again");
 
     expect(otpLocks.lockNumber).toHaveBeenCalledWith(PHONE, 300);
     expect(otpLocks.recordSessionNumber).not.toHaveBeenCalled();
-    expect(store.useAppStore.getState().wrongNumber).toBe("Too many requests");
+    expect(store.useAppStore.getState().wrongNumber).toBe("Please wait 300 seconds before trying again");
     expect(onError).toHaveBeenCalled();
+  });
+
+  it("shows our translated message, not the backend's wording, when the backend refuses without a wait message", async () => {
+    (sendOtp.sendOtpAction as any).mockResolvedValue({
+      success: false,
+      message: "failed to store the OTP",
+      lockSeconds: 60,
+    });
+
+    await expect(auth.SendOtp(PHONE, 0, vi.fn())).rejects.toThrow(
+      "Failed to send verification code",
+    );
+
+    expect(store.useAppStore.getState().wrongNumber).toBe(
+      "Failed to send verification code",
+    );
   });
 
   it("reports, calls the caller's error hook and raises when the send never reaches the server — and starts no cooldown (AC-4)", async () => {

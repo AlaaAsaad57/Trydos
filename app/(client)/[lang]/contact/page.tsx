@@ -11,11 +11,11 @@ const INTRO =
 const SECTIONS = [
   {
     heading: "Customer Support",
-    body: "For help with orders, returns or your account, contact our support team through the app or by email at support@trydos.com.",
+    body: "",
   },
   {
     heading: "Business & Boutiques",
-    body: "Interested in selling on TryDos? Get in touch and our team will guide you through joining as a boutique.",
+    body: "",
   },
 ];
 

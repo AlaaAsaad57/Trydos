@@ -1,4 +1,5 @@
 "use client";
+import InfoTooltip from "components/global/InfoTooltip";
 import { translateFunction } from "utils/functions";
 import { useState } from "react";
 import Image from "next/image";
@@ -193,13 +194,21 @@ function UserNavTopSection({
             </span>
           </div>
           <div className="nav-question-item">
-            <img
-              src="/icons/questionIcon.svg"
-              width={15}
-              height={15}
-              alt="info icon"
-            />
-            <span
+            <InfoTooltip
+              message={translate("We ask for your details to personalize your experience and secure your orders", language)}
+              isRtl={isRtl}
+            >
+              <img
+                src="/icons/questionIcon.svg"
+                width={15}
+                height={15}
+                alt="info icon"
+              />
+            </InfoTooltip>
+            <a
+              href={`/${lang || languageVariable}/privacy-policy#why-we-know-you`}
+              target="_blank"
+              rel="noopener noreferrer"
               className={`${language + "-light"}`}
               style={{
                 display: "flex",
@@ -213,7 +222,7 @@ function UserNavTopSection({
                 `${loginOpen ? "Can We Know You ?" : "Why We Know You ?"}`,
                 language,
               )}
-            </span>
+            </a>
           </div>
         </>
       )}

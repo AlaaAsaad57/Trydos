@@ -1,4 +1,5 @@
 "use client";
+import InfoTooltip from "components/global/InfoTooltip";
 import { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import { DeleteModalComponent } from "components/Cart/OrdersPage";
@@ -141,10 +142,15 @@ function PersonalInfoAddress({ countries, isRtl, local }) {
                 {orderLoading ? (
                   <Spinner />
                 ) : (
-                  <img
-                    src="/icons/AddressInfo.svg"
-                    className="ml-[19px] cursor-pointer"
-                  />
+                  <InfoTooltip
+                    message={translateFunction("Manage your saved delivery addresses for quick checkout.")}
+                    isRtl={isRtl}
+                  >
+                    <img
+                      src="/icons/AddressInfo.svg"
+                      className="ml-[19px] cursor-pointer"
+                    />
+                  </InfoTooltip>
                 )}
               </div>
               {addressLists.length === 0 ? (

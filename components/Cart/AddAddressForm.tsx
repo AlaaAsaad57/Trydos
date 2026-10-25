@@ -1,4 +1,5 @@
 "use client";
+import InfoTooltip from "components/global/InfoTooltip";
 import { getLocalizedCountryName } from "utils/countryData";
 import { useEffect, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
@@ -226,11 +227,15 @@ const AddressSection = ({ setOpenSelect }) => {
         >
           {translateFunction("Address Info")}
         </div>
-        <img
-          src="/icons/AddressInfo.svg"
-          className="ml-[12px] cursor-pointer"
-          data-pw="address-info-icon"
-        />
+        <InfoTooltip
+          message={translateFunction("Enter your delivery address details for accurate and fast shipping.")}
+          dataPw="address-info-icon"
+        >
+          <img
+            src="/icons/AddressInfo.svg"
+            className="ml-[12px] cursor-pointer"
+          />
+        </InfoTooltip>
       </div>
       <CountryLabel />
       <SelectRegion
@@ -421,11 +426,15 @@ const ContactInfo = ({ userName = null }) => {
         >
           {translateFunction("Contact Info")}
         </div>
-        <img
-          src="/icons/AddressInfo.svg"
-          className="ml-[12px] cursor-pointer"
-          data-pw="Address-info-icon"
-        />
+        <InfoTooltip
+          message={translateFunction("Provide contact details so delivery agents can reach you when your order arrives.")}
+          dataPw="Address-info-icon"
+        >
+          <img
+            src="/icons/AddressInfo.svg"
+            className="ml-[12px] cursor-pointer"
+          />
+        </InfoTooltip>
       </div>
       {userName !== null && userName !== undefined && (
         <div

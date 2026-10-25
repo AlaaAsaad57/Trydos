@@ -92,6 +92,8 @@ class AuthService {
     errorCallback: Function,
   ) {
     let msg = "";
+    // The message actually shown to the user (translated / rate-limit text).
+    let shownMsg = "";
     const { setVerificationId, setWrongNumber } = useAppStore.getState();
     try {
       // Routed through a Server Action (serverActions/sendOtp): the OTP endpoint
@@ -124,7 +126,18 @@ class AuthService {
       if (response.lockSeconds) {
         lockNumber(mobilePhone, response.lockSeconds);
       }
-      const refusal = msg || translateFunction("Failed to send verification code");
+      // Backend wording (e.g. "failed to store the OTP") is English-only, so it
+      // is replaced with our own translated message. Only a "wait" (rate-limit)
+      // message passes through as-is, and our own phone validation message is
+      // translated.
+      const refusal = /wait/i.test(msg)
+        ? msg
+        : translateFunction(
+            msg === "Invalid Phone Number"
+              ? msg
+              : "Failed to send verification code",
+          );
+      shownMsg = refusal;
       setWrongNumber(refusal);
       throw new Error(refusal);
     } catch (e) {
@@ -136,7 +149,7 @@ class AuthService {
       // Keep whatever reason we already have. `msg` is still the empty string
       // when the action threw before replying, and overwriting with it left the
       // screen with no reason at all.
-      setWrongNumber(msg || translateFunction("Failed to send verification code"));
+      setWrongNumber(shownMsg || translateFunction("Failed to send verification code"));
 
       throw e;
     }

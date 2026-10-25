@@ -8,6 +8,7 @@ import { GAevent } from "utils/gtag";
 
 export interface INextLinkProps {
   href: string;
+  target?: string;
   ariaLabel?: string;
   data?: any;
   exportparts?: string;
@@ -25,6 +26,7 @@ export interface INextLinkProps {
 export default function NextLink({
   sameHref,
   href,
+  target,
   className,
   children,
   ariaLabel,
@@ -50,6 +52,7 @@ export default function NextLink({
         style={style}
         prefetch={"auto"}
         href={href}
+        target={target}
         // Only when the caller asked for one. An aria-label REPLACES the link's
         // own content in its accessible name, so an empty or default label
         // would leave a link that reads "Blue Shirt, £80, Nike" announced as
@@ -129,6 +132,7 @@ export default function NextLink({
       suppressHydrationWarning
       className={className}
       style={style}
+      target={target}
       data-pw={props["data-pw"] ?? ""}
       // Only when the caller passes one — the category bar puts the slug here,
       // and the browser tests find an entry by it. Left undefined, React draws

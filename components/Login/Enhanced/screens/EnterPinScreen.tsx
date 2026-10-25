@@ -1,4 +1,5 @@
-'use client';
+"use client";
+import InfoTooltip from "components/global/InfoTooltip";
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
@@ -212,15 +213,19 @@ export default function EnterPinScreen({
                                         {translate("Didn't You Receive A Code?")}
                                     </span>
                                 )}
-                                <div className="w-xd-15 h-xd-15 shrink-0">
-                                    <Image
-                                        src="/assets/icons/auth/info.svg"
-                                        alt="info"
-                                        width={15}
-                                        height={15}
-                                        className="object-contain text-[#C3C3C3]"
-                                    />
-                                </div>
+                                <InfoTooltip
+                                    message={translate("SMS delivery can take up to a minute. Check your network or request a new code.")}
+                                >
+                                    <div className="w-xd-15 h-xd-15 shrink-0">
+                                        <Image
+                                            src="/assets/icons/auth/info.svg"
+                                            alt="info"
+                                            width={15}
+                                            height={15}
+                                            className="object-contain text-[#C3C3C3]"
+                                        />
+                                    </div>
+                                </InfoTooltip>
                             </div>
                             {canAskAgain && (
                                 <div className="flex items-center pt-xd-8 gap-xd-5">

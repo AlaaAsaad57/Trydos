@@ -1,4 +1,5 @@
 "use client";
+import InfoTooltip from "components/global/InfoTooltip";
 import { useState } from "react";
 import { translateFunction } from "utils/functions";
 import { FlagIcon } from "utils/tinyUtils";
@@ -236,10 +237,15 @@ function LanguageSetting({
               <span className="ml-[6px] medium text-[#404040] text-[12px]">
                 {translateFunction("Languages")}
               </span>
-              <img
-                src="/icons/AddressInfo.svg"
-                className="ml-[19px] cursor-pointer"
-              />
+              <InfoTooltip
+                message={translateFunction("Select your preferred language for the application interface.")}
+                isRtl={isRtl}
+              >
+                <img
+                  src="/icons/AddressInfo.svg"
+                  className="ml-[19px] cursor-pointer"
+                />
+              </InfoTooltip>
             </div>
             <div
               className={`flex flex-col w-full ${
