@@ -21,12 +21,13 @@ import ReminderSheet from "../chat/ReminderSheet";
 import { ChevronDownIcon, ChevronUpIcon, CloseIcon } from "../chat/chatIcons";
 import { useDemoChat } from "../../DemoApp/demoChatState";
 import { useDemoNav } from "../Demo1Shell";
-import { C, SAFE_BOTTOM, SF_ROUNDED, sfTop, textTop } from "../demo1Layout";
-import { Icon, ScreenPage, Stroke, Txt } from "../ui";
+import { C, SAFE_BOTTOM, SAFE_TOP, SF_ROUNDED, sfTop, textTop } from "../demo1Layout";
+import { Icon, ScreenPage, Stroke, Txt, useTopTint } from "../ui";
 import Composer, { type ComposerContext } from "../chat/Composer";
 import ForwardSheet from "../chat/ForwardSheet";
 import MessageMenu, {
-  MENU_BLUR,
+  MENU_DIM,
+  MENU_DIM_TINT,
   MenuVeil,
   MENU_FADE,
   MENU_GAP,
@@ -87,6 +88,9 @@ import Toast, { useToast } from "../chat/Toast";
  * its end, the newest message, and holds still while a menu is open; a
  * menu that would not fit moves its message instead of scrolling.
  */
+/** While a menu is open, a finger dragged this far (px), or a wheel turned this far (px), closes it. */
+const DRAG_CLOSE = 24;
+const WHEEL_CLOSE = 60;
 /** Only a text I sent can be edited. */
 const canEditOf = (m: Holdable) => m.kind === "text" && m.side === "out";
 /** A call card or a note is not forwarded. */
@@ -112,6 +116,9 @@ export default function ConversationScreen() {
   const chat = state.chats.find((c) => c.id === chatId) ?? state.chats[0];
   const contact = contactOf(state, chat);
   const [menu, setMenu] = useState<string | null>(null);
+
+  // Safari's top area goes as dark as the head under the wash while a menu is open.
+  useTopTint(MENU_DIM_TINT, !!menu);
   // The message above the blur: it stays up until the blur has faded out.
   const [lifted, setLifted] = useState<string | null>(null);
   // How far the held message is moved so it and its menu are on the screen.
@@ -181,15 +188,41 @@ export default function ConversationScreen() {
   // down and builds it again, so the whole chat is drawn again on the frame
   // the menu opens and again when it closes, and the menu stuttered.
   // `passive: false`: a passive listener cannot stop the scroll.
+  // A small push on the chat changes nothing, but a real scroll (a finger
+  // dragged past DRAG_CLOSE px, or a wheel turned past WHEEL_CLOSE px in one
+  // go) closes the menu, as on WhatsApp.
   useEffect(() => {
     const el = body.current;
     if (!el || !menu) return;
+    const shut = () => {
+      setMenu(null);
+      setShift(0);
+    };
+    let startY = 0;
+    let wheeled = 0;
+    let wheelAt = 0;
+    const down = (e: TouchEvent) => {
+      startY = e.touches[0]?.clientY ?? 0;
+    };
     const hold = (e: Event) => {
       if (e.cancelable) e.preventDefault();
+      if (e.type === "touchmove") {
+        const y = (e as TouchEvent).touches[0]?.clientY ?? startY;
+        if (Math.abs(y - startY) > DRAG_CLOSE) shut();
+      } else {
+        // The turns of one scroll add up; a pause of 250 ms starts afresh.
+        const now = Date.now();
+        wheeled = now - wheelAt > 250 ? 0 : wheeled;
+        wheelAt = now;
+        wheeled += Math.abs((e as WheelEvent).deltaY);
+        if (wheeled > WHEEL_CLOSE) shut();
+      }
     };
+    el.addEventListener("touchstart", down, { passive: true });
     el.addEventListener("touchmove", hold, { passive: false });
     el.addEventListener("wheel", hold, { passive: false });
     return () => {
+      el.removeEventListener("touchstart", down);
       el.removeEventListener("touchmove", hold);
       el.removeEventListener("wheel", hold);
     };
@@ -448,8 +481,13 @@ export default function ConversationScreen() {
         boxShadow: "0 0 3px rgba(0,0,0,0.1)",
       }}
     >
-      {/* The head blurs with the page; a click on it closes the menu. */}
-      <MenuVeil on={!!menu} onClick={close} testId="demo-chat-head-veil" />
+      {/* The head goes dark with the page, up over the status bar; a click on it closes the menu. */}
+      <MenuVeil
+        on={!!menu}
+        onClick={close}
+        testId="demo-chat-head-veil"
+        top={`calc(0px - ${SAFE_TOP})`}
+      />
       <button
         type="button"
         data-pw="demo-back"
@@ -836,12 +874,10 @@ export default function ConversationScreen() {
     >
       <div className="relative flex flex-col w-full">
         <ReactionWarmup />
-        {/* The grey wash and the blur over the conversation while a menu
-          is open; a click on it closes the menu. Over the whole body, so
-          it scrolls with it; the lifted message and its menu sit above it.
-          One backdrop-filter layer that only fades: a blur that grows on
-          every row is drawn again on every frame, and the menu stuttered
-          on the iPhone. */}
+        {/* The dark wash over the conversation while a menu is open (no
+          blur, as in WhatsApp; the head and the composer carry the same
+          wash); a click on it closes the menu. Over the whole body, so it
+          scrolls with it; the lifted message and its menu sit above it. */}
         <AnimatePresence onExitComplete={() => setLifted(null)}>
           {menu && (
             <motion.div
@@ -853,10 +889,7 @@ export default function ConversationScreen() {
               exit={{ opacity: 0 }}
               transition={{ duration: MENU_FADE, ease: "easeOut" }}
               style={{
-                // The grey wash of the video, with a light blur.
-                background: "rgba(0,0,0,0.12)",
-                backdropFilter: `blur(${MENU_BLUR}px)`,
-                WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
+                background: MENU_DIM,
               }}
               onClick={close}
             />

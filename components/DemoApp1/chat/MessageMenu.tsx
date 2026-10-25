@@ -6,31 +6,39 @@ import React from "react";
 import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
 import { CHAT, MENU_ACTIONS } from "../../DemoApp/demoChat";
 import type { Side } from "../../DemoApp/demoChatModel";
+import { TAB_BAR } from "../../DemoApp/demoLayout";
 import { C } from "../demo1Layout";
 import { Txt } from "../ui";
 
 export type MenuName = (typeof MENU_ACTIONS)[number] | "Forward";
 
-/** The blur behind an open menu, in px, and how long it takes to come and go, in s. */
-export const MENU_BLUR = 4;
+/**
+ * What lies over the screen behind an open menu, and how long it takes to come
+ * and go, in s. WhatsApp does not blur the chat; it only makes the whole
+ * screen darker. `MENU_DIM` is the wash; `MENU_DIM_TINT` is the colour that
+ * wash gives the white head, for Safari's top area to show.
+ */
+export const MENU_DIM = "rgba(0,0,0,0.3)";
+export const MENU_DIM_TINT = "rgb(179, 179, 179)";
 export const MENU_FADE = 0.22;
 
 /**
- * The blur over one part of the screen while a menu is open (the head, the
- * composer): one backdrop-filter layer that only fades in and out. Never a
- * `filter` that grows on each block: on the iPhone a blur that changes its
- * size is drawn again on every frame for every block, and the menu stuttered.
+ * The dark wash over one part of the screen while a menu is open (the head,
+ * the composer): one plain layer that only fades in and out, no blur.
  * `onClick` makes the layer take the taps (a tap on the head closes the
- * menu); without it a tap goes through, as before.
+ * menu); without it a tap goes through, as before. `top` lets it reach above
+ * its box (up over the phone's status bar).
  */
 export function MenuVeil({
   on,
   onClick,
   testId,
+  top = 0,
 }: {
   on: boolean;
   onClick?: () => void;
   testId?: string;
+  top?: number | string;
 }) {
   return (
     <AnimatePresence>
@@ -38,14 +46,14 @@ export function MenuVeil({
         <motion.div
           key="veil"
           data-pw={testId}
-          className="absolute inset-0 z-10"
+          className="absolute inset-x-0 bottom-0 z-10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: MENU_FADE, ease: "easeOut" }}
           style={{
-            backdropFilter: `blur(${MENU_BLUR}px)`,
-            WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
+            top,
+            background: MENU_DIM,
             pointerEvents: onClick ? undefined : "none",
           }}
           onClick={onClick}
@@ -79,23 +87,36 @@ export function ReactionWarmup() {
 }
 
 /** The bar's height (and its radius twice over), the gap under it to the message, in px. */
-export const REACTION_BAR_H = 44;
+export const REACTION_BAR_H = 48;
 export const REACTION_GAP = 10;
 /** The gap between the message and the menu under it, in px. */
 export const MENU_GAP = 11;
 /** The menu's width and one row's height, in px. */
 export const MENU_W = 220;
 export const MENU_ROW_H = 38;
-/** The thick band between the actions and Delete, in px. */
-const MENU_BAND = 8;
+/** The menu's space above the first row and under the last, in px. */
+const MENU_PAD = 8;
+/** The space that holds the hairline between the actions and Delete, in px. */
+const MENU_SEP = 16;
+/** The menu's corner radius, in px (WhatsApp's rounded card). */
+const MENU_RADIUS = 26;
+/** The bar's and the menu's frosted fill, over the glass of the tab bar. */
+const BAR_FILL = "rgba(246,245,243,0.72)";
+const MENU_FILL = "rgba(240,238,235,0.78)";
 /** From the row's edge to the bubble's edge: the dot (5 + 4) and the bubble's own 3. */
 const EDGE = 12;
 
-/** One emoji's cell in the bar, the "+" button's size, the bar's side padding, in px. */
-const CELL = 36;
-const PLUS = 25;
-const PAD = 7;
-export const REACTION_BAR_W = PAD + CELL * REACTIONS.length + 4 + PLUS + PAD;
+/**
+ * One emoji's cell in the bar, the "+" button's size, the room before the first
+ * emoji, the room after the last cell, and the "+" button's distance from the
+ * bar's end, in px. The "+" lies over the last emoji's edge, as in WhatsApp.
+ */
+const CELL = 38;
+const PLUS = 30;
+const LEAD = 4;
+const TAIL = 21;
+const PLUS_INSET = 7;
+export const REACTION_BAR_W = LEAD + CELL * REACTIONS.length + TAIL;
 
 /** How much later each emoji pops in than the one before it, in s. */
 const STAGGER = 0.028;
@@ -111,7 +132,7 @@ const ROWS: { name: MenuName; icon: XdIconName }[] = [
 ];
 
 /** The menu's full height, for the room the chat leaves under its last message. */
-export const MENU_H = MENU_ROW_H * (ROWS.length + 1) + MENU_BAND;
+export const MENU_H = MENU_PAD * 2 + MENU_ROW_H * (ROWS.length + 1) + MENU_SEP;
 
 /** The menu's height for a message: Forward and Edit go when it cannot take them (as the menu draws it). */
 export const menuHeight = (canEdit: boolean, canForward: boolean) =>
@@ -146,17 +167,19 @@ function InkIcon({ name, color, size }: { name: XdIconName; color: string; size:
 /**
  * What a held message gets, the way WhatsApp on the iPhone gives it (the
  * video of 2026-10-22): the emoji bar over the message and the menu under
- * it, both on the message's own side, with the rest of the chat blurred.
+ * it, both on the message's own side, with the whole screen darker.
  *
- *  - **The bar**: 44 tall, a full pill, white, with the seven emojis 36 px
- *    apart and a grey "+" circle (25) at its right end, on both sides. Its
+ *  - **The bar**: 48 tall, a full pill, frosted (the tab bar's glass), with
+ *    the seven emojis 38 px apart and a light "+" disc (30) over the last
+ *    emoji's edge at its right end, on both sides. Its
  *    edge on the message's side is the bubble's edge; it starts as a 44 px
  *    circle on that edge and grows across in about 0.18 s, and each emoji
  *    pops in with a small bounce, about 0.03 s after the one before, from
  *    the bubble's side outwards (so a sent message sees the "+" first).
- *  - **The menu**: 220 wide, radius 14, frosted white, 38 px rows with the
- *    icon at the row's start and the name after it, hairlines between the
- *    rows, and Delete in red after a thick band. It grows out of its own
+ *  - **The menu**: 220 wide, radius 26, frosted (the tab bar's glass), 8 px
+ *    of room above and under, 38 px rows with the icon at the row's start and
+ *    the name after it, no lines between the rows, and Delete in red after an
+ *    inset hairline. It grows out of its own
  *    top corner on the message's side, small and faint to full in about
  *    0.15 s, with no delay.
  *  - **Closing** runs both back the same way in about 0.16 s.
@@ -199,7 +222,7 @@ export default function MessageMenu({
   const stop = (e: React.PointerEvent) => e.stopPropagation();
   const edge = inn ? { left: EDGE } : { right: EDGE };
 
-  const row = (name: MenuName, icon: XdIconName, color: string, first: boolean) => (
+  const row = (name: MenuName, icon: XdIconName, color: string) => (
     <button
       key={name}
       type="button"
@@ -208,11 +231,10 @@ export default function MessageMenu({
         e.stopPropagation();
         onPick(name);
       }}
-      className="flex items-center w-full cursor-pointer active:bg-black/5"
+      className="flex items-center w-full shrink-0 cursor-pointer active:bg-black/5"
       style={{
         height: MENU_ROW_H,
         paddingLeft: 23,
-        borderTop: first ? undefined : "0.5px solid rgba(60,60,67,0.1)",
       }}
     >
       <span className="flex items-center justify-center shrink-0" style={{ width: 18 }}>
@@ -236,8 +258,11 @@ export default function MessageMenu({
           ...edge,
           height: REACTION_BAR_H,
           borderRadius: REACTION_BAR_H / 2,
-          background: "rgba(255,255,255,0.96)",
-          boxShadow: "0 4px 16px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.04)",
+          background: BAR_FILL,
+          // The same glass as the tab bar (blur 30, brightness +15%).
+          backdropFilter: TAB_BAR.glass,
+          WebkitBackdropFilter: TAB_BAR.glass,
+          boxShadow: "0 6px 24px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.04)",
           transformOrigin: inn ? "left center" : "right center",
           // The emojis keep their places, in one order on both sides; the
           // pill opens over them like a window, from the bubble's side.
@@ -253,8 +278,8 @@ export default function MessageMenu({
         onPointerDown={stop}
       >
         <span
-          className="flex items-center shrink-0"
-          style={{ width: REACTION_BAR_W, paddingLeft: PAD, paddingRight: PAD }}
+          className="relative flex items-center shrink-0"
+          style={{ width: REACTION_BAR_W, paddingLeft: LEAD, height: "100%" }}
         >
           {REACTIONS.map((emoji, i) => (
             <motion.button
@@ -300,13 +325,16 @@ export default function MessageMenu({
             e.stopPropagation();
             onMore();
           }}
-          className="relative flex items-center justify-center shrink-0 cursor-pointer active:opacity-60"
+          className="absolute flex items-center justify-center cursor-pointer active:opacity-60"
           style={{
             width: PLUS,
             height: PLUS,
             borderRadius: PLUS / 2,
-            background: "#E8E8E8",
-            marginLeft: 4,
+            // A light, frosted disc that lies over the last emoji's edge.
+            background: "rgba(255,255,255,0.72)",
+            boxShadow: "0 0 0 0.5px rgba(0,0,0,0.05)",
+            right: PLUS_INSET,
+            top: (REACTION_BAR_H - PLUS) / 2,
           }}
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -317,8 +345,8 @@ export default function MessageMenu({
             delay: 0.03 + (inn ? REACTIONS.length : 0) * STAGGER,
           }}
         >
-          <span aria-hidden="true" className="absolute" style={{ width: 11, height: 1.5, background: C.inkSoft }} />
-          <span aria-hidden="true" className="absolute" style={{ width: 1.5, height: 11, background: C.inkSoft }} />
+          <span aria-hidden="true" className="absolute" style={{ width: 13, height: 1.5, borderRadius: 1, background: C.ink }} />
+          <span aria-hidden="true" className="absolute" style={{ width: 1.5, height: 13, borderRadius: 1, background: C.ink }} />
         </motion.button>
         </span>
       </motion.div>
@@ -332,11 +360,14 @@ export default function MessageMenu({
           marginTop: MENU_GAP,
           ...edge,
           width: MENU_W,
-          borderRadius: 14,
-          background: "rgba(250,250,250,0.9)",
-          backdropFilter: "blur(24px) saturate(1.4)",
-          WebkitBackdropFilter: "blur(24px) saturate(1.4)",
-          boxShadow: "0 6px 24px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.05)",
+          borderRadius: MENU_RADIUS,
+          paddingTop: MENU_PAD,
+          paddingBottom: MENU_PAD,
+          background: MENU_FILL,
+          // The same glass as the tab bar (blur 30, brightness +15%).
+          backdropFilter: TAB_BAR.glass,
+          WebkitBackdropFilter: TAB_BAR.glass,
+          boxShadow: "0 8px 30px rgba(0,0,0,0.16), 0 0 0 0.5px rgba(0,0,0,0.05)",
           transformOrigin: inn ? "left top" : "right top",
         }}
         initial={{ scale: 0.25, opacity: 0 }}
@@ -348,9 +379,16 @@ export default function MessageMenu({
         }}
         onPointerDown={stop}
       >
-        {rows.map((r, i) => row(r.name, r.icon, C.ink, i === 0))}
-        <span aria-hidden="true" className="block w-full shrink-0" style={{ height: MENU_BAND, background: "rgba(60,60,67,0.1)" }} />
-        {row("Delete", "menuDelete", CHAT.red, true)}
+        {rows.map((r) => row(r.name, r.icon, C.ink))}
+        {/* The inset hairline before Delete, as before WhatsApp's "More...". */}
+        <span
+          aria-hidden="true"
+          className="flex items-center w-full shrink-0"
+          style={{ height: MENU_SEP, paddingLeft: 22, paddingRight: 22 }}
+        >
+          <span className="block w-full" style={{ height: 0.5, background: "rgba(60,60,67,0.29)" }} />
+        </span>
+        {row("Delete", "menuDelete", CHAT.red)}
       </motion.div>
     </>
   );

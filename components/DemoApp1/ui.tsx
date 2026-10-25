@@ -244,6 +244,20 @@ function useScrollLock(on: boolean) {
  */
 const DEMO1_TINT: TintHome = { host: () => document.body, rest: null };
 
+/**
+ * Shows `color` in Safari's top area while `on` is true, with no layer: for a
+ * screen that darkens itself (the chat while a message menu is open). Only on
+ * a touch device: the strip is as wide as the window, so on a desktop it showed
+ * as a grey band across the top, beside the phone column.
+ */
+export function useTopTint(color: string, on: boolean) {
+  const touch = useIsTouchDevice();
+  React.useEffect(() => {
+    if (!on || !touch) return;
+    return holdTopTint(color, DEMO1_TINT);
+  }, [color, on, touch]);
+}
+
 /** True once the page runs in the browser, so a portal has a <body> to go to. */
 function useMounted() {
   const [mounted, setMounted] = React.useState(false);
