@@ -23,17 +23,23 @@ export type MenuName = (typeof MENU_ACTIONS)[number] | "Forward";
 export const MENU_DIM = "rgba(0,0,0,0.3)";
 export const MENU_BLUR = 5;
 export const MENU_DIM_TINT = "rgb(179, 179, 179)";
-export const MENU_FADE = 0.15;
+export const MENU_FADE = 0.22;
 
 /**
- * The speed of the menu, from the video of WhatsApp on the iPhone (60 fps):
- * the bar and the menu are open in about 0.17 s, with no bounce, the emojis
- * pop in one after the other within about 0.3 s, and both close in about
- * 0.12 s. `MENU_EASE` is the fast-out curve of the bar and the menu.
+ * Natural spring curves matching iOS / WhatsApp fluid menu transitions:
+ * swift responsive expansion that decelerates smoothly into place.
  */
-const MENU_EASE = [0.22, 1, 0.36, 1] as const;
-const OPEN_S = 0.17;
-const CLOSE_S = 0.12;
+const SPRING_OPEN = {
+  type: "spring",
+  stiffness: 380,
+  damping: 26,
+  mass: 0.7,
+} as const;
+
+const CLOSE_TRANSITION = {
+  duration: 0.15,
+  ease: [0.36, 0, 0.66, 0] as const,
+};
 
 /**
  * The dark, lightly blurred wash over one part of the screen while a menu is
@@ -292,6 +298,7 @@ export default function MessageMenu({
           bottom: "100%",
           marginBottom: REACTION_GAP,
           ...edge,
+          width: REACTION_BAR_W,
           height: REACTION_BAR_H,
           borderRadius: REACTION_BAR_H / 2,
           background: BAR_FILL,
@@ -299,17 +306,16 @@ export default function MessageMenu({
           backdropFilter: TAB_BAR.glass,
           WebkitBackdropFilter: TAB_BAR.glass,
           boxShadow: "0 6px 24px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.04)",
-          transformOrigin: inn ? "left center" : "right center",
-          // The emojis keep their places, in one order on both sides; the
-          // pill opens over them like a window, from the bubble's side.
+          transformOrigin: inn ? "left bottom" : "right bottom",
+          willChange: "transform, opacity",
           justifyContent: inn ? "flex-start" : "flex-end",
         }}
-        initial={{ width: REACTION_BAR_H, opacity: 0 }}
-        animate={{ width: REACTION_BAR_W, opacity: 1 }}
-        exit={{ scale: 0.5, opacity: 0, transition: { duration: CLOSE_S, ease: "easeIn" } }}
+        initial={{ scale: 0.35, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.35, opacity: 0, transition: CLOSE_TRANSITION }}
         transition={{
-          width: { duration: OPEN_S, ease: MENU_EASE },
-          opacity: { duration: 0.06 },
+          scale: SPRING_OPEN,
+          opacity: { duration: 0.15, ease: "easeOut" },
         }}
         onPointerDown={stop}
       >
@@ -343,16 +349,16 @@ export default function MessageMenu({
                 background: reaction === emoji ? "rgba(0,0,0,0.08)" : undefined,
                 opacity: picked === emoji ? 0 : 1,
               }}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
+              initial={{ scale: 0.3, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               transition={{
                 type: "spring",
-                stiffness: 650,
+                stiffness: 420,
                 damping: 24,
                 mass: 0.6,
                 // From the bubble's side outwards: the "+" end goes last on
                 // the left, first on the right.
-                delay: popDelay(inn ? i : REACTIONS.length - i),
+                delay: 0.02 + (inn ? i : REACTIONS.length - 1 - i) * 0.022,
               }}
               whileTap={{ scale: 1.25 }}
             >
@@ -384,14 +390,14 @@ export default function MessageMenu({
             right: PLUS_INSET,
             top: (REACTION_BAR_H - PLUS) / 2,
           }}
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
+          initial={{ scale: 0.3, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
           transition={{
             type: "spring",
-            stiffness: 650,
-            damping: 26,
+            stiffness: 420,
+            damping: 24,
             mass: 0.6,
-            delay: popDelay(inn ? REACTIONS.length : 0),
+            delay: 0.02 + (inn ? REACTIONS.length : 0) * 0.022,
           }}
         >
           <span aria-hidden="true" className="absolute" style={{ width: 13, height: 1.5, borderRadius: 1, background: C.ink }} />
@@ -418,13 +424,15 @@ export default function MessageMenu({
           WebkitBackdropFilter: TAB_BAR.glass,
           boxShadow: "0 8px 30px rgba(0,0,0,0.16), 0 0 0 0.5px rgba(0,0,0,0.05)",
           transformOrigin: inn ? "left top" : "right top",
+          willChange: "transform, opacity",
         }}
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.5, opacity: 0, transition: { duration: CLOSE_S, ease: "easeIn" } }}
+        initial={{ scale: 0.45, opacity: 0, y: -6 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.45, opacity: 0, y: -6, transition: CLOSE_TRANSITION }}
         transition={{
-          scale: { duration: OPEN_S, ease: MENU_EASE },
-          opacity: { duration: 0.1 },
+          scale: SPRING_OPEN,
+          y: SPRING_OPEN,
+          opacity: { duration: 0.15, ease: "easeOut" },
         }}
         onPointerDown={stop}
       >

@@ -885,26 +885,6 @@ export default function ConversationScreen() {
           backdrop-filter layer that only fades: a blur that grows on every
           row is drawn again on every frame, and the menu stuttered on the
           iPhone. */}
-        <AnimatePresence onExitComplete={() => setLifted(null)}>
-          {menu && (
-            <motion.div
-              key="backdrop"
-              data-pw="demo-chat-menu-backdrop"
-              className="absolute inset-0 z-10"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: MENU_FADE, ease: "easeOut" }}
-              style={{
-                background: MENU_DIM,
-                backdropFilter: `blur(${MENU_BLUR}px)`,
-                WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
-              }}
-              onClick={close}
-            />
-          )}
-        </AnimatePresence>
-
         <div
           className="flex items-start w-full shrink-0"
           style={{ marginTop: 4 }}
@@ -930,6 +910,31 @@ export default function ConversationScreen() {
             >
               <TypingBubble />
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* The dark, blurred wash over the conversation while a menu is open
+          (the head and the composer carry the same wash); a click on it closes
+          the menu. Placed after the messages in the DOM so that all other
+          messages are blurred and dimmed underneath it. The lifted message has
+          z-20, so it and its menu remain sharp and clear on top of this layer. */}
+        <AnimatePresence onExitComplete={() => setLifted(null)}>
+          {menu && (
+            <motion.div
+              key="backdrop"
+              data-pw="demo-chat-menu-backdrop"
+              className="absolute inset-0 z-10"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: MENU_FADE, ease: "easeOut" }}
+              style={{
+                background: MENU_DIM,
+                backdropFilter: `blur(${MENU_BLUR}px)`,
+                WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
+              }}
+              onClick={close}
+            />
           )}
         </AnimatePresence>
         {/* Room for the last message's menu under its bubble. */}
