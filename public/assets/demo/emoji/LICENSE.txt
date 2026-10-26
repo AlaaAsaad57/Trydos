@@ -1,0 +1,3 @@
+Animated emoji (Lottie) from Google's Noto Emoji Animation: https://googlefonts.github.io/noto-emoji-animation/
+Licensed under Creative Commons Attribution 4.0 (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/
+Files are named by the emoji's Unicode code point (2764_fe0f = red heart).

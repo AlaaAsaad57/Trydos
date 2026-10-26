@@ -26,6 +26,7 @@ import { Icon, ScreenPage, Stroke, Txt, useTopTint } from "../ui";
 import Composer, { type ComposerContext } from "../chat/Composer";
 import ForwardSheet from "../chat/ForwardSheet";
 import MessageMenu, {
+  MENU_BLUR,
   MENU_DIM,
   MENU_DIM_TINT,
   MenuVeil,
@@ -58,6 +59,7 @@ import {
   callWords,
 } from "../chat/messages";
 import Toast, { useToast } from "../chat/Toast";
+import { launchReaction } from "../chat/reactionFly";
 
 /**
  * A conversation — XD `Home Page – 44` (430 x 2871; the page is `#FCFCFC`).
@@ -590,7 +592,9 @@ export default function ConversationScreen() {
           canForward={canForwardOf(m)}
           reaction={m.reaction}
           onPick={(name) => act(name, m)}
-          onReact={(emoji) => {
+          onReact={(emoji, from) => {
+            // A new emoji flies from the bar to its chip on the message.
+            if (m.reaction !== emoji) launchReaction({ id: m.id, emoji, ...from });
             close();
             dispatch({ type: "react", chat: chat.id, id: m.id, emoji });
           }}
@@ -647,7 +651,7 @@ export default function ConversationScreen() {
           reminder={reminder}
         />
         {wide ? node : <div className="flex items-start min-w-0 max-w-full">{node}</div>}
-        {m.reaction && <ReactionChip side={inn ? "in" : "out"} emoji={m.reaction} />}
+        {m.reaction && <ReactionChip id={m.id} side={inn ? "in" : "out"} emoji={m.reaction} />}
       </div>
     );
   };
@@ -874,10 +878,13 @@ export default function ConversationScreen() {
     >
       <div className="relative flex flex-col w-full">
         <ReactionWarmup />
-        {/* The dark wash over the conversation while a menu is open (no
-          blur, as in WhatsApp; the head and the composer carry the same
-          wash); a click on it closes the menu. Over the whole body, so it
-          scrolls with it; the lifted message and its menu sit above it. */}
+        {/* The dark, lightly blurred wash over the conversation while a menu
+          is open (the head and the composer carry the same wash); a click
+          on it closes the menu. Over the whole body, so it scrolls with
+          it; the lifted message and its menu sit above it. One
+          backdrop-filter layer that only fades: a blur that grows on every
+          row is drawn again on every frame, and the menu stuttered on the
+          iPhone. */}
         <AnimatePresence onExitComplete={() => setLifted(null)}>
           {menu && (
             <motion.div
@@ -890,6 +897,8 @@ export default function ConversationScreen() {
               transition={{ duration: MENU_FADE, ease: "easeOut" }}
               style={{
                 background: MENU_DIM,
+                backdropFilter: `blur(${MENU_BLUR}px)`,
+                WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
               }}
               onClick={close}
             />

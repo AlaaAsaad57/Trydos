@@ -18,7 +18,7 @@ import { useHorizontalSwipe } from "./useHorizontalSwipe";
 export const REPLY_PULL = 56;
 
 /** How long a finger must rest on a message, in ms, to open its menu. */
-export const HOLD_MS = 420;
+export const HOLD_MS = 360;
 
 /** How long the light on a message reached from its quote lasts, in s. */
 export const FLASH_S = 1.6;

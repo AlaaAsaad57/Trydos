@@ -3,11 +3,12 @@
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import {
   AnimatePresence,
+  animate,
   motion,
   useMotionValue,
   useTransform,
 } from "framer-motion";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import { BUBBLE_RADIUS, CHAT, VOICE_SRC } from "../../DemoApp/demoChat";
@@ -24,6 +25,8 @@ import { coordsLabel, mapsUrl, tileUrl, tilesFor } from "../../DemoApp/demoMap";
 import { C, fill, lineBox, textTop } from "../demo1Layout";
 import { Stroke, Txt } from "../ui";
 import { FileIcon, OpenIcon, PinIcon } from "./chatIcons";
+import AnimatedEmoji from "./AnimatedEmoji";
+import { dropReactionFly, peekReactionFly } from "./reactionFly";
 
 /**
  * The messages of a conversation, as `Home Page – 44` draws them. Every
@@ -1454,14 +1457,64 @@ export function FlagsLine({
   );
 }
 
+/** The chip's emoji, in px, and how big the picked one is in the bar to start with. */
+const CHIP_EMOJI = 16;
+
 /**
  * The emoji the shopper put on a message, the way WhatsApp shows it: a small
  * white pill on the message's side, riding up over the bubble's bottom edge.
+ *
+ * When the emoji was just picked in the bar (see reactionFly.ts) it comes in
+ * from there, as on WhatsApp on the iPhone: it starts as big as in the bar, at
+ * the bar's emoji's place, and flies to its own place while the message settles
+ * back, the pill fading in around it as it lands. Then the emoji plays its
+ * animation once, as Telegram's reactions do. A chip that was there already
+ * (the chat was opened with it, or its emoji came another way) only pops in.
  */
-export function ReactionChip({ side, emoji }: { side: Side; emoji: string }) {
+export function ReactionChip({ side, emoji, id }: { side: Side; emoji: string; id?: string }) {
   const inn = side === "in";
+  const box = useRef<HTMLSpanElement>(null);
+  // Read in the first draw (and read-only, see peekReactionFly).
+  const [fly] = useState(() => (id ? peekReactionFly(id, emoji) : null));
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const scale = useMotionValue(fly ? fly.size / CHIP_EMOJI : 0);
+  const pill = useMotionValue(fly ? 0 : 1);
+  const [played, setPlayed] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!fly || !el) {
+      const pop = animate(scale, 1, { type: "spring", stiffness: 520, damping: 18 });
+      return () => pop.stop();
+    }
+    // Where the chip is on the screen, less what it is moved by now (React may
+    // run this twice in development): the offset that puts it on the bar's emoji.
+    const at = el.getBoundingClientRect();
+    const dx = fly.x - (at.left + at.width / 2 - x.get());
+    const dy = fly.y - (at.top + at.height / 2 - y.get());
+    dropReactionFly();
+    x.set(dx);
+    y.set(dy);
+    scale.set(fly.size / CHIP_EMOJI);
+    pill.set(0);
+    const fall = { type: "spring", stiffness: 340, damping: 30, mass: 0.8 } as const;
+    const runs = [
+      animate(x, 0, fall),
+      animate(y, 0, fall),
+      animate(scale, 1, { type: "spring", stiffness: 320, damping: 22, mass: 0.8 }),
+      animate(pill, 1, { duration: 0.14, delay: 0.14, ease: "easeOut" }),
+    ];
+    const land = setTimeout(() => setPlayed(1), 220);
+    return () => {
+      runs.forEach((run) => run.stop());
+      clearTimeout(land);
+    };
+  }, []);
+
   return (
     <motion.span
+      ref={box}
       data-pw="demo-chat-reaction"
       className="relative z-10 flex items-center justify-center shrink-0 select-none"
       style={{
@@ -1470,21 +1523,27 @@ export function ReactionChip({ side, emoji }: { side: Side; emoji: string }) {
         marginTop: -9,
         marginLeft: inn ? 16 : undefined,
         marginRight: inn ? undefined : 16,
-        borderRadius: 11,
-        background: C.white,
-        boxShadow: "0 1px 3px rgba(0,0,0,0.18), 0 0 0 0.5px rgba(0,0,0,0.05)",
-        fontSize: 13,
-        lineHeight: 1,
+        x,
+        y,
+        scale,
       }}
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      transition={{ type: "spring", stiffness: 520, damping: 18 }}
     >
-      {emoji}
+      <motion.span
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{
+          borderRadius: 11,
+          background: C.white,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.18), 0 0 0 0.5px rgba(0,0,0,0.05)",
+          opacity: pill,
+        }}
+      />
+      <span className="relative flex" aria-label={emoji}>
+        <AnimatedEmoji emoji={emoji} size={CHIP_EMOJI} play={played} />
+      </span>
     </motion.span>
   );
 }
-
 /**
  * The contact is typing: an incoming bubble with three white dots that rise
  * one after the other (the real chat's TypingIndicator, in the bubble's own
