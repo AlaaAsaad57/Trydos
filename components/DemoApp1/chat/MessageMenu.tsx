@@ -1,7 +1,7 @@
 "use client";
 
 import type { DemoKey } from "../../DemoApp/demoKeys";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import React, { useState } from "react";
 import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
 import { CHAT, MENU_ACTIONS } from "../../DemoApp/demoChat";
@@ -44,50 +44,6 @@ const CLOSE_TRANSITION = {
   ease: [0.36, 0, 0.66, 0] as const,
 };
 
-/**
- * The dark, lightly blurred wash over one part of the screen while a menu is
- * open (the head, the composer): one backdrop-filter layer promoted to its own
- * GPU compositor layer that only fades opacity in and out.
- * `onClick` makes the layer take the taps (a tap on the head closes the
- * menu); without it a tap goes through, as before. `top` lets it reach above
- * its box (up over the phone's status bar).
- */
-export function MenuVeil({
-  on,
-  onClick,
-  testId,
-  top = 0,
-}: {
-  on: boolean;
-  onClick?: () => void;
-  testId?: string;
-  top?: number | string;
-}) {
-  return (
-    <AnimatePresence>
-      {on && (
-        <motion.div
-          key="veil"
-          data-pw={testId}
-          className="absolute inset-x-0 bottom-0 z-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: MENU_FADE, ease: "easeOut" }}
-          style={{
-            top,
-            background: MENU_DIM,
-            backdropFilter: `blur(${MENU_BLUR}px)`,
-            WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
-            pointerEvents: onClick ? undefined : "none",
-          }}
-          onClick={onClick}
-        />
-      )}
-    </AnimatePresence>
-  );
-}
-
 /** The emojis of the bar over the held message, in the bar's order. */
 export const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🙏", "😘"] as const;
 
@@ -115,9 +71,9 @@ export function ReactionWarmup() {
 
 /** The bar's height (and its radius twice over), the gap under it to the message, in px. */
 export const REACTION_BAR_H = 48;
-export const REACTION_GAP = 10;
+export const REACTION_GAP = 12;
 /** The gap between the message and the menu under it, in px. */
-export const MENU_GAP = 11;
+export const MENU_GAP = 12;
 /** The menu's width and one row's height, in px. */
 export const MENU_W = 220;
 export const MENU_ROW_H = 38;
@@ -130,8 +86,12 @@ const MENU_RADIUS = 26;
 /** The bar's and the menu's frosted fill, over the glass of the tab bar. */
 const BAR_FILL = "rgba(246,245,243,0.72)";
 const MENU_FILL = "rgba(240,238,235,0.78)";
-/** From the row's edge to the bubble's edge: the dot (5 + 4) and the bubble's own 3. */
-const EDGE = 12;
+/**
+ * From the row's edge to the bubble's edge: the dot (5 + 4) and the bubble's
+ * own 3. A held message grows from this line (see MessageRow), so the bar and
+ * the menu stay on the bubble's edge.
+ */
+export const EDGE = 12;
 
 /**
  * One emoji's cell in the bar, the "+" button's size, the room before the first
@@ -146,8 +106,10 @@ const PLUS_INSET = 7;
 export const REACTION_BAR_W = LEAD + CELL * REACTIONS.length + TAIL;
 
 /** How much later each emoji pops in than the one before it, and the first one's delay, in s. */
-const STAGGER = 0.022;
-const POP_DELAY = 0.04;
+const STAGGER = 0.018;
+const POP_DELAY = 0.015;
+/** How long after its pop starts an emoji plays its animation, in s. */
+const PLAY_AFTER = 0.065;
 /** The animated emoji's size in the bar, in px. */
 const EMOJI = 31;
 
@@ -206,9 +168,9 @@ function InkIcon({ name, color, size }: { name: XdIconName; color: string; size:
  *    the seven emojis 38 px apart and a light "+" disc (30) over the last
  *    emoji's edge at its right end, on both sides. Its
  *    edge on the message's side is the bubble's edge; it starts as a round
- *    disc on that edge and grows across in about 0.17 s (the video of
- *    2026-10-25: see MENU_EASE), and each emoji pops in with a slight
- *    bounce, about 0.02 s after the one before, from the bubble's side
+ *    disc on that edge and grows across in 0.21 s (the video of
+ *    2026-10-25: see OPEN_TRANSITION), and each emoji pops in with a slight
+ *    bounce, 0.018 s after the one before (STAGGER), from the bubble's side
  *    outwards (so a sent message sees the "+" first). Each emoji is an
  *    animated emoji (AnimatedEmoji.tsx) that plays once as it pops in.
  *  - **The menu**: 220 wide, radius 26, frosted (the tab bar's glass), 8 px
@@ -216,8 +178,8 @@ function InkIcon({ name, color, size }: { name: XdIconName; color: string; size:
  *    the name after it, no lines between the rows, and Delete in red after an
  *    inset hairline. It grows out of its own
  *    top corner on the message's side, half size and faint to full in
- *    about 0.17 s, with no delay.
- *  - **Closing** shrinks and fades both in about 0.12 s.
+ *    0.21 s, with no delay.
+ *  - **Closing** shrinks and fades both in 0.14 s (CLOSE_TRANSITION).
  *
  * The actions are ours, not WhatsApp's: Reply, Forward, Copy, Edit,
  * Category, Remind me, Delete. Edit shows only on a text I sent; Forward
@@ -360,7 +322,7 @@ export default function MessageMenu({
                   ease: EMOJI_POP_EASE,
                   // From the bubble's side outwards: the "+" end goes last on
                   // the left, first on the right.
-                  delay: 0.015 + order * 0.018,
+                  delay: popDelay(order),
                 }}
                 whileTap={{ scale: 1.25 }}
               >
@@ -369,7 +331,7 @@ export default function MessageMenu({
                   emoji={emoji}
                   size={EMOJI}
                   play={1}
-                  delay={popDelay(inn ? i : REACTIONS.length - i) + 0.04}
+                  delay={popDelay(order) + PLAY_AFTER}
                 />
               </motion.button>
             );
@@ -399,7 +361,7 @@ export default function MessageMenu({
             transition={{
               duration: 0.19,
               ease: EMOJI_POP_EASE,
-              delay: 0.015 + (inn ? REACTIONS.length : 0) * 0.018,
+              delay: popDelay(inn ? REACTIONS.length : 0),
             }}
           >
             <span aria-hidden="true" className="absolute" style={{ width: 13, height: 1.5, borderRadius: 1, background: C.ink }} />

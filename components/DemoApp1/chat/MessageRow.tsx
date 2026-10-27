@@ -7,11 +7,12 @@ import {
   useMotionValueEvent,
   useTransform,
 } from "framer-motion";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import { CHAT } from "../../DemoApp/demoChat";
 import type { Side } from "../../DemoApp/demoChatModel";
 import { C } from "../demo1Layout";
+import { EDGE } from "./MessageMenu";
 import { useHorizontalSwipe } from "./useHorizontalSwipe";
 
 /** How far the message must be pulled to the right, in px, to answer it. */
@@ -22,6 +23,15 @@ export const HOLD_MS = 360;
 
 /** How long the light on a message reached from its quote lasts, in s. */
 export const FLASH_S = 1.6;
+
+/**
+ * How much a held message grows: up to HELD_SCALE, and never more than
+ * HELD_GROW px taller in all. It grows from its middle, so half of that goes
+ * into the 12 px gap to the bar and half into the gap to the menu. A plain
+ * scale took 3.5% of the height from each gap: a tall photo touched both.
+ */
+const HELD_SCALE = 1.07;
+const HELD_GROW = 6;
 
 /**
  * One message's row, with the two gestures WhatsApp gives a message on the
@@ -69,7 +79,7 @@ export default function MessageRow({
   side: Side;
   gap: number;
   lifted?: boolean;
-  /** Its menu is open (not fading): the row grows a little, as WhatsApp's does. */
+  /** Its menu is open (not fading): the message grows a little, as WhatsApp's does. */
   held?: boolean;
   fresh?: boolean;
   /** The message takes the whole width (a voice message draws its own rows). */
@@ -110,6 +120,24 @@ export default function MessageRow({
     });
     return () => run.stop();
   }, [flash]);
+
+  // The held message grows (see HELD_SCALE). Its height is read here, when
+  // the hold starts, not in render: a tall message grows by less.
+  const bubble = useRef<HTMLDivElement>(null);
+  const grow = useMotionValue(1);
+  useLayoutEffect(() => {
+    const h = bubble.current?.offsetHeight ?? 0;
+    const to = held && h > 0 ? Math.min(HELD_SCALE, 1 + HELD_GROW / h) : 1;
+    if (grow.get() === to) return;
+    const run = animate(
+      grow,
+      to,
+      held
+        ? { duration: 0.21, ease: [0.16, 1, 0.3, 1] }
+        : { duration: 0.18, ease: [0.32, 0.72, 0, 1] },
+    );
+    return () => run.stop();
+  }, [held]);
   /**
    * The message was past REPLY_PULL under the finger. Read on every move,
    * not on release: framer runs `onDragEnd` a frame after the finger lifts,
@@ -247,19 +275,15 @@ export default function MessageRow({
             is as wide as its message, up to the file's widest bubble (the
             row less 86 px) plus the dot's 12 px; the message wraps inside it. */}
         <motion.div
+          ref={bubble}
           className={`relative flex items-start min-w-0 ${inn ? "" : "justify-end"}`}
-          animate={{
-            scale: held ? 1.06 : 1,
-            x: held ? (inn ? 8 : -8) : 0,
-          }}
-          transition={{
-            duration: held ? 0.21 : 0.18,
-            ease: held ? [0.16, 1, 0.3, 1] : [0.32, 0.72, 0, 1],
-          }}
           style={{
             width: wide ? "100%" : undefined,
             maxWidth: wide ? "100%" : "calc(100% - 74px)",
-            transformOrigin: inn ? "left center" : "right center",
+            scale: grow,
+            // It grows from the bubble's own edge (EDGE in from the row's), where
+            // the bar and the menu start: the three stay on one line.
+            transformOrigin: inn ? `${EDGE}px 50%` : `calc(100% - ${EDGE}px) 50%`,
           }}
         >
           {canReply && (

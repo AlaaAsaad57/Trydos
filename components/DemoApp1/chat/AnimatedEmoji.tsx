@@ -243,8 +243,7 @@ const loadFile = (code: string) => {
 async function build(code: string): Promise<Item> {
   const [lottie, text] = await Promise.all([loadPlayer(), loadFile(code)]);
   const box = document.createElement("span");
-  box.style.cssText =
-    "position:absolute;inset:0;display:block;transform:translateZ(0);backface-visibility:hidden";
+  box.style.cssText = "position:absolute;inset:0;display:block";
   const anim = lottie.loadAnimation({
     container: box,
     renderer: "svg",

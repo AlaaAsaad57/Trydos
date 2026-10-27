@@ -910,7 +910,6 @@ export default function ConversationScreen() {
           onSendFile={(file) => sendFile(chat.id, file)}
           onSendLocation={(point) => sendLocation(chat.id, point)}
           onToast={showToast}
-          veiled={false}
           t={t}
         />
         )}
