@@ -51,6 +51,7 @@ export default function MessageRow({
   side,
   gap,
   lifted = false,
+  held = false,
   fresh = false,
   wide = false,
   shift = 0,
@@ -68,6 +69,8 @@ export default function MessageRow({
   side: Side;
   gap: number;
   lifted?: boolean;
+  /** Its menu is open (not fading): the row grows a little, as WhatsApp's does. */
+  held?: boolean;
   fresh?: boolean;
   /** The message takes the whole width (a voice message draws its own rows). */
   wide?: boolean;
@@ -186,7 +189,7 @@ export default function MessageRow({
       initial={fresh ? { opacity: 0, scale: 0.7, y: 16 } : false}
       animate={{
         opacity: faded ? 0.35 : 1,
-        scale: 1,
+        scale: held ? 1.04 : 1,
         y: shift,
       }}
       exit={{ opacity: 0, scale: 0.6, transition: { duration: 0.18 } }}
@@ -196,6 +199,9 @@ export default function MessageRow({
         damping: 32,
         mass: 0.9,
         y: { duration: 0.21, ease: [0.16, 1, 0.3, 1] },
+        scale: held
+          ? { duration: 0.21, ease: [0.16, 1, 0.3, 1] }
+          : { duration: 0.18, ease: [0.32, 0.72, 0, 1] },
       }}
     >
       {flash > 0 && (

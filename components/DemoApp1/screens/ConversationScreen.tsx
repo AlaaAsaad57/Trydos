@@ -22,13 +22,14 @@ import ReactionSheet from "../chat/ReactionSheet";
 import { ChevronDownIcon, ChevronUpIcon, CloseIcon } from "../chat/chatIcons";
 import { useDemoChat } from "../../DemoApp/demoChatState";
 import { useDemoNav } from "../Demo1Shell";
-import { C, SAFE_BOTTOM, SAFE_TOP, SF_ROUNDED, sfTop, textTop } from "../demo1Layout";
-import { Icon, ScreenPage, Stroke, Txt } from "../ui";
+import { C, SAFE_BOTTOM, SAFE_TOP, SF_ROUNDED, UNDER_BAR, WINDOW_COVER, sfTop, textTop } from "../demo1Layout";
+import { Icon, Layer, ScreenPage, Stroke, Txt } from "../ui";
 import Composer, { type ComposerContext } from "../chat/Composer";
 import ForwardSheet from "../chat/ForwardSheet";
 import MessageMenu, {
   MENU_BLUR,
   MENU_DIM,
+  MENU_DIM_TINT,
   MENU_FADE,
   MENU_GAP,
   MENU_H,
@@ -96,6 +97,12 @@ const WHEEL_CLOSE = 60;
 const canEditOf = (m: Holdable) => m.kind === "text" && m.side === "out";
 /** A call card or a note is not forwarded. */
 const canForwardOf = (m: Holdable) => isOpenable(m);
+
+/** Safari on the iPhone/iPad: the only browser that tints its top area from the page. */
+const IOS =
+  typeof navigator !== "undefined" &&
+  (/iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
 
 export default function ConversationScreen() {
   const { t, navigate, back, locale } = useDemoNav();
@@ -613,6 +620,7 @@ export default function ConversationScreen() {
     side: m.kind === "note" ? ("in" as const) : m.side,
     gap,
     lifted: lifted === m.id,
+    held: menu === m.id,
     shift: menu === m.id ? shift : 0,
     layoutKey: messages,
     faded: searching && query.trim() !== "" && !matches.includes(m.id),
@@ -859,6 +867,34 @@ export default function ConversationScreen() {
           />
         )}
       </AnimatePresence>
+      {/* The same wash under Safari's bottom bar, past the screen's end (a
+          sheet in the wallet does the same: see UNDER_BAR). Kept mounted while
+          the menu fades, then it goes with the row's lift. */}
+      {lifted && (
+        <Layer
+          z={1}
+          testId="demo-chat-menu-backdrop-bar"
+          tint={menu && IOS ? MENU_DIM_TINT : undefined}
+        >
+          <motion.div
+            aria-hidden="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: menu ? 1 : 0 }}
+            transition={{ duration: MENU_FADE, ease: "easeOut" }}
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: WINDOW_COVER.left,
+              width: WINDOW_COVER.width,
+              height: UNDER_BAR,
+              pointerEvents: "none",
+              background: MENU_DIM,
+              backdropFilter: `blur(${MENU_BLUR}px)`,
+              WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
+            }}
+          />
+        </Layer>
+      )}
       <div className="relative shrink-0 w-full">
         {/* Above the composer, whatever its height is. */}
         <Toast text={notice ?? toast} bottom="calc(100% + 12px)" />
