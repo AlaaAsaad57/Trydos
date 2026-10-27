@@ -23,30 +23,31 @@ export type MenuName = (typeof MENU_ACTIONS)[number] | "Forward";
 export const MENU_DIM = "rgba(0,0,0,0.3)";
 export const MENU_BLUR = 5;
 export const MENU_DIM_TINT = "rgb(179, 179, 179)";
-export const MENU_FADE = 0.22;
+export const MENU_FADE = 0.18;
 
 /**
- * Natural spring curves matching iOS / WhatsApp fluid menu transitions:
- * swift responsive expansion that decelerates smoothly into place.
+ * Unified iOS fluid deceleration curve (`cubic-bezier(0.16, 1, 0.3, 1)`):
+ * swift, responsive expansion out of the bubble corner that settles cleanly
+ * without multi-spring oscillation jitter or sub-pixel blur shimmer.
  */
-const SPRING_OPEN = {
-  type: "spring",
-  stiffness: 380,
-  damping: 26,
-  mass: 0.7,
+export const IOS_OPEN_EASE = [0.16, 1, 0.3, 1] as const;
+
+const OPEN_TRANSITION = {
+  duration: 0.21,
+  ease: IOS_OPEN_EASE,
 } as const;
 
+const EMOJI_POP_EASE = [0.22, 1.12, 0.36, 1] as const;
+
 const CLOSE_TRANSITION = {
-  duration: 0.15,
+  duration: 0.14,
   ease: [0.36, 0, 0.66, 0] as const,
 };
 
 /**
  * The dark, lightly blurred wash over one part of the screen while a menu is
- * open (the head, the composer): one backdrop-filter layer that only fades in
- * and out. Never a `filter` that grows on each block: on the iPhone a blur that
- * changes its size is drawn again on every frame for every block, and the
- * menu stuttered.
+ * open (the head, the composer): one backdrop-filter layer promoted to its own
+ * GPU compositor layer that only fades opacity in and out.
  * `onClick` makes the layer take the taps (a tap on the head closes the
  * menu); without it a tap goes through, as before. `top` lets it reach above
  * its box (up over the phone's status bar).
@@ -78,6 +79,11 @@ export function MenuVeil({
             background: MENU_DIM,
             backdropFilter: `blur(${MENU_BLUR}px)`,
             WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
+            willChange: "opacity",
+            transform: "translateZ(0)",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            contain: "layout paint",
             pointerEvents: onClick ? undefined : "none",
           }}
           onClick={onClick}
@@ -308,14 +314,18 @@ export default function MessageMenu({
           boxShadow: "0 6px 24px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.04)",
           transformOrigin: inn ? "left bottom" : "right bottom",
           willChange: "transform, opacity",
+          transform: "translateZ(0)",
+          backfaceVisibility: "hidden",
+          WebkitBackfaceVisibility: "hidden",
+          contain: "layout paint",
           justifyContent: inn ? "flex-start" : "flex-end",
         }}
-        initial={{ scale: 0.35, opacity: 0 }}
+        initial={{ scale: 0.42, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.35, opacity: 0, transition: CLOSE_TRANSITION }}
+        exit={{ scale: 0.42, opacity: 0, transition: CLOSE_TRANSITION }}
         transition={{
-          scale: SPRING_OPEN,
-          opacity: { duration: 0.15, ease: "easeOut" },
+          scale: OPEN_TRANSITION,
+          opacity: { duration: 0.13, ease: "easeOut" },
         }}
         onPointerDown={stop}
       >
@@ -323,86 +333,91 @@ export default function MessageMenu({
           className="relative flex items-center shrink-0"
           style={{ width: REACTION_BAR_W, paddingLeft: LEAD, height: "100%" }}
         >
-          {REACTIONS.map((emoji, i) => (
-            <motion.button
-              key={emoji}
-              type="button"
-              data-pw={`demo-chat-react-${i}`}
-              aria-label={emoji}
-              aria-pressed={reaction === emoji}
-              onClick={(e) => {
-                e.stopPropagation();
-                const box = e.currentTarget.getBoundingClientRect();
-                // Taking the same emoji off needs no flight.
-                if (reaction !== emoji) setPicked(emoji);
-                onReact(emoji, {
-                  x: box.left + box.width / 2,
-                  y: box.top + box.height / 2,
-                  size: EMOJI,
-                });
-              }}
-              className="flex items-center justify-center shrink-0 cursor-pointer select-none"
-              style={{
-                width: CELL,
-                height: CELL,
-                borderRadius: CELL / 2,
-                background: reaction === emoji ? "rgba(0,0,0,0.08)" : undefined,
-                opacity: picked === emoji ? 0 : 1,
-              }}
-              initial={{ scale: 0.3, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{
-                type: "spring",
-                stiffness: 420,
-                damping: 24,
-                mass: 0.6,
-                // From the bubble's side outwards: the "+" end goes last on
-                // the left, first on the right.
-                delay: 0.02 + (inn ? i : REACTIONS.length - 1 - i) * 0.022,
-              }}
-              whileTap={{ scale: 1.25 }}
-            >
-              {/* Each emoji plays its own animation once, as it pops in. */}
-              <AnimatedEmoji
-                emoji={emoji}
-                size={EMOJI}
-                play={1}
-                delay={popDelay(inn ? i : REACTIONS.length - i) + 0.05}
-              />
-            </motion.button>
-          ))}
+          {REACTIONS.map((emoji, i) => {
+            const order = inn ? i : REACTIONS.length - 1 - i;
+            return (
+              <motion.button
+                key={emoji}
+                type="button"
+                data-pw={`demo-chat-react-${i}`}
+                aria-label={emoji}
+                aria-pressed={reaction === emoji}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const box = e.currentTarget.getBoundingClientRect();
+                  // Taking the same emoji off needs no flight.
+                  if (reaction !== emoji) setPicked(emoji);
+                  onReact(emoji, {
+                    x: box.left + box.width / 2,
+                    y: box.top + box.height / 2,
+                    size: EMOJI,
+                  });
+                }}
+                className="flex items-center justify-center shrink-0 cursor-pointer select-none"
+                style={{
+                  width: CELL,
+                  height: CELL,
+                  borderRadius: CELL / 2,
+                  background: reaction === emoji ? "rgba(0,0,0,0.08)" : undefined,
+                  opacity: picked === emoji ? 0 : 1,
+                  willChange: "transform, opacity",
+                  transform: "translateZ(0)",
+                  backfaceVisibility: "hidden",
+                }}
+                initial={{ scale: 0.4, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{
+                  duration: 0.19,
+                  ease: EMOJI_POP_EASE,
+                  // From the bubble's side outwards: the "+" end goes last on
+                  // the left, first on the right.
+                  delay: 0.015 + order * 0.018,
+                }}
+                whileTap={{ scale: 1.25 }}
+              >
+                {/* Each emoji plays its own animation once, as it pops in. */}
+                <AnimatedEmoji
+                  emoji={emoji}
+                  size={EMOJI}
+                  play={1}
+                  delay={popDelay(inn ? i : REACTIONS.length - i) + 0.04}
+                />
+              </motion.button>
+            );
+          })}
           <motion.button
-          type="button"
-          data-pw="demo-chat-react-more"
-          aria-label="More reactions"
-          onClick={(e) => {
-            e.stopPropagation();
-            onMore();
-          }}
-          className="absolute flex items-center justify-center cursor-pointer active:opacity-60"
-          style={{
-            width: PLUS,
-            height: PLUS,
-            borderRadius: PLUS / 2,
-            // A light, frosted disc that lies over the last emoji's edge.
-            background: "rgba(255,255,255,0.72)",
-            boxShadow: "0 0 0 0.5px rgba(0,0,0,0.05)",
-            right: PLUS_INSET,
-            top: (REACTION_BAR_H - PLUS) / 2,
-          }}
-          initial={{ scale: 0.3, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{
-            type: "spring",
-            stiffness: 420,
-            damping: 24,
-            mass: 0.6,
-            delay: 0.02 + (inn ? REACTIONS.length : 0) * 0.022,
-          }}
-        >
-          <span aria-hidden="true" className="absolute" style={{ width: 13, height: 1.5, borderRadius: 1, background: C.ink }} />
-          <span aria-hidden="true" className="absolute" style={{ width: 1.5, height: 13, borderRadius: 1, background: C.ink }} />
-        </motion.button>
+            type="button"
+            data-pw="demo-chat-react-more"
+            aria-label="More reactions"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMore();
+            }}
+            className="absolute flex items-center justify-center cursor-pointer active:opacity-60"
+            style={{
+              width: PLUS,
+              height: PLUS,
+              borderRadius: PLUS / 2,
+              // A light, frosted disc that lies over the last emoji's edge.
+              background: "rgba(255,255,255,0.72)",
+              boxShadow: "0 0 0 0.5px rgba(0,0,0,0.05)",
+              right: PLUS_INSET,
+              top: (REACTION_BAR_H - PLUS) / 2,
+              willChange: "transform, opacity",
+              transform: "translateZ(0)",
+              backfaceVisibility: "hidden",
+            }}
+            initial={{ scale: 0.4, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{
+              duration: 0.19,
+              ease: EMOJI_POP_EASE,
+              delay: 0.015 + (inn ? REACTIONS.length : 0) * 0.018,
+            }}
+          >
+            <span aria-hidden="true" className="absolute" style={{ width: 13, height: 1.5, borderRadius: 1, background: C.ink }} />
+            <span aria-hidden="true" className="absolute" style={{ width: 1.5, height: 13, borderRadius: 1, background: C.ink }} />
+          </motion.button>
         </span>
       </motion.div>
 
@@ -425,14 +440,18 @@ export default function MessageMenu({
           boxShadow: "0 8px 30px rgba(0,0,0,0.16), 0 0 0 0.5px rgba(0,0,0,0.05)",
           transformOrigin: inn ? "left top" : "right top",
           willChange: "transform, opacity",
+          transform: "translateZ(0)",
+          backfaceVisibility: "hidden",
+          WebkitBackfaceVisibility: "hidden",
+          contain: "layout paint",
         }}
-        initial={{ scale: 0.45, opacity: 0, y: -6 }}
+        initial={{ scale: 0.48, opacity: 0, y: -4 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.45, opacity: 0, y: -6, transition: CLOSE_TRANSITION }}
+        exit={{ scale: 0.48, opacity: 0, y: -4, transition: CLOSE_TRANSITION }}
         transition={{
-          scale: SPRING_OPEN,
-          y: SPRING_OPEN,
-          opacity: { duration: 0.15, ease: "easeOut" },
+          scale: OPEN_TRANSITION,
+          y: OPEN_TRANSITION,
+          opacity: { duration: 0.13, ease: "easeOut" },
         }}
         onPointerDown={stop}
       >

@@ -181,6 +181,9 @@ export default function MessageRow({
       style={{
         marginTop: gap,
         transformOrigin: inn ? "left bottom" : "right bottom",
+        willChange: lifted ? "transform" : undefined,
+        transform: lifted ? "translateZ(0)" : undefined,
+        backfaceVisibility: lifted ? "hidden" : undefined,
       }}
       initial={fresh ? { opacity: 0, scale: 0.7, y: 16 } : false}
       animate={{
@@ -189,7 +192,13 @@ export default function MessageRow({
         y: shift,
       }}
       exit={{ opacity: 0, scale: 0.6, transition: { duration: 0.18 } }}
-      transition={{ type: "spring", stiffness: 480, damping: 32, mass: 0.9 }}
+      transition={{
+        type: "spring",
+        stiffness: 480,
+        damping: 32,
+        mass: 0.9,
+        y: { duration: 0.21, ease: [0.16, 1, 0.3, 1] },
+      }}
     >
       {flash > 0 && (
         <motion.span

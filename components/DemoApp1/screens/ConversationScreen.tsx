@@ -935,6 +935,11 @@ export default function ConversationScreen() {
                 background: MENU_DIM,
                 backdropFilter: `blur(${MENU_BLUR}px)`,
                 WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
+                willChange: "opacity",
+                transform: "translateZ(0)",
+                backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
+                contain: "layout paint",
               }}
               onClick={close}
             />

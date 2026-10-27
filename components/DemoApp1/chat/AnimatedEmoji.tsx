@@ -1,7 +1,7 @@
 "use client";
 
 import type { AnimationItem } from "lottie-web";
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 
 /**
  * The reaction emojis as animated emojis, the way Telegram shows its own:
@@ -214,8 +214,9 @@ type Item = { code: string; box: HTMLSpanElement; anim: AnimationItem };
 
 let player: Promise<Lottie> | null = null;
 const files = new Map<string, Promise<string>>();
-/** The built animations nobody shows right now, one per emoji. */
-const idle = new Map<string, Item>();
+/** The built animations nobody shows right now, pooled per emoji code. */
+const MAX_POOL = 3;
+const idle = new Map<string, Item[]>();
 
 const loadPlayer = () => (player ??= import("lottie-web").then((m) => m.default));
 const loadFile = (code: string) => {
@@ -242,7 +243,8 @@ const loadFile = (code: string) => {
 async function build(code: string): Promise<Item> {
   const [lottie, text] = await Promise.all([loadPlayer(), loadFile(code)]);
   const box = document.createElement("span");
-  box.style.cssText = "position:absolute;inset:0;display:block";
+  box.style.cssText =
+    "position:absolute;inset:0;display:block;transform:translateZ(0);backface-visibility:hidden";
   const anim = lottie.loadAnimation({
     container: box,
     renderer: "svg",
@@ -257,99 +259,178 @@ async function build(code: string): Promise<Item> {
 
 /** An animation that is ready now, or null (then `build` it). Built ones are not built again. */
 const takeIdle = (code: string): Item | null => {
-  const item = idle.get(code);
-  if (!item) return null;
-  idle.delete(code);
+  const list = idle.get(code);
+  if (!list || list.length === 0) return null;
+  const item = list.pop()!;
+  if (list.length === 0) idle.delete(code);
   return item;
 };
 
 /**
  * An emoji leaves the screen: it rests on its first frame and waits for the
- * next one that wants it. The second one of a kind is not kept.
+ * next one that wants it, up to MAX_POOL instances per code.
  */
 function giveBack(item: Item) {
   item.anim.goToAndStop(0, true);
   item.box.remove();
-  if (idle.has(item.code)) item.anim.destroy();
-  else idle.set(item.code, item);
+  const list = idle.get(item.code);
+  if (!list) {
+    idle.set(item.code, [item]);
+  } else if (list.length < MAX_POOL) {
+    list.push(item);
+  } else {
+    item.anim.destroy();
+  }
 }
 
 /**
  * Builds the player and emojis ahead of time, one after the other so no frame
- * carries the whole bill. By default preloads the primary reaction bar emojis.
+ * carries the whole bill. Pre-warms 2 instances per primary reaction so both
+ * message chips and the quick reaction bar always have warm instances ready.
  */
 export function preloadAnimatedEmojis(emojis: readonly string[] = PRIMARY_REACTIONS) {
   if (!canAnimate()) return;
-  emojis.forEach((emoji, i) => {
+  let step = 0;
+  for (const emoji of emojis) {
     const code = emojiToCode(emoji);
-    if (!code) return;
-    setTimeout(() => {
-      if (idle.has(code)) return;
-      build(code)
-        .then((item) => {
-          if (idle.has(code)) item.anim.destroy();
-          else idle.set(code, item);
-        })
-        .catch(() => {});
-    }, 150 + i * 120);
-  });
+    if (!code) continue;
+    const copies = emojis === PRIMARY_REACTIONS ? 2 : 1;
+    for (let c = 0; c < copies; c++) {
+      const wait = 80 + step * 55;
+      step++;
+      setTimeout(() => {
+        const list = idle.get(code);
+        if (list && list.length >= copies) return;
+        build(code)
+          .then((item) => giveBack(item))
+          .catch(() => {});
+      }, wait);
+    }
+  }
 }
 
 /**
  * One animated emoji. `play` is a counter: every new value (above 0) runs the
  * animation once from the start, after `delay` seconds. 0 leaves it resting.
+ * `lazy` defers building until the element is within the scroll viewport.
  */
 export default function AnimatedEmoji({
   emoji,
   size,
   play = 0,
   delay = 0,
+  lazy = false,
 }: {
   emoji: string;
   size: number;
   play?: number;
   delay?: number;
+  lazy?: boolean;
 }) {
+  const root = useRef<HTMLSpanElement>(null);
   const holder = useRef<HTMLSpanElement>(null);
+  const fallback = useRef<HTMLSpanElement>(null);
   const item = useRef<Item | null>(null);
-  const [ready, setReady] = useState(false);
+  const playTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const playRef = useRef({ play, delay });
+  playRef.current = { play, delay };
   const code = emojiToCode(emoji);
 
-  // A layout effect: an emoji that is ready goes on in the first frame, with no
-  // glimpse of the phone's own one first.
+  const triggerPlay = (p: number, d: number) => {
+    if (playTimer.current) {
+      clearTimeout(playTimer.current);
+      playTimer.current = null;
+    }
+    if (!p || !item.current) return;
+    playTimer.current = setTimeout(() => {
+      item.current?.anim.goToAndPlay(0, true);
+    }, d * 1000);
+  };
+
+  // A layout effect: an emoji that is ready goes on in the first frame via direct
+  // DOM opacity updates (zero extra React re-renders during menu opening).
   useLayoutEffect(() => {
     const el = holder.current;
-    if (!code || !el || !canAnimate()) return;
+    const fb = fallback.current;
+    const container = root.current;
+    if (!code || !el || !fb || !canAnimate()) return;
     let dead = false;
+    let obs: IntersectionObserver | null = null;
+    let deferTimer: ReturnType<typeof setTimeout> | null = null;
+
     const show = (it: Item) => {
       item.current = it;
       el.appendChild(it.box);
-      setReady(true);
+      el.style.opacity = "1";
+      fb.style.opacity = "0";
+      if (playRef.current.play > 0) {
+        triggerPlay(playRef.current.play, playRef.current.delay);
+      }
     };
-    const now = takeIdle(code);
-    if (now) show(now);
-    else
-      build(code)
-        .then((it) => {
-          if (dead) giveBack(it);
-          else show(it);
-        })
-        .catch(() => {});
+
+    const loadNow = () => {
+      if (dead || item.current) return;
+      const now = takeIdle(code);
+      if (now) {
+        show(now);
+      } else {
+        build(code)
+          .then((it) => {
+            if (dead) giveBack(it);
+            else show(it);
+          })
+          .catch(() => {});
+      }
+    };
+
+    const warm = takeIdle(code);
+    if (warm) {
+      show(warm);
+    } else if (lazy && typeof IntersectionObserver !== "undefined" && container) {
+      obs = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((e) => e.isIntersecting)) {
+            obs?.disconnect();
+            obs = null;
+            deferTimer = setTimeout(loadNow, 16);
+          }
+        },
+        { rootMargin: "40px" },
+      );
+      obs.observe(container);
+    } else {
+      loadNow();
+    }
+
     return () => {
       dead = true;
+      obs?.disconnect();
+      if (deferTimer) clearTimeout(deferTimer);
+      if (playTimer.current) {
+        clearTimeout(playTimer.current);
+        playTimer.current = null;
+      }
       if (item.current) giveBack(item.current);
       item.current = null;
-      setReady(false);
+      el.style.opacity = "0";
+      fb.style.opacity = "1";
     };
-  }, [code]);
+  }, [code, lazy]);
+
   useEffect(() => {
-    if (!play || !ready) return;
-    const run = setTimeout(() => item.current?.anim.goToAndPlay(0, true), delay * 1000);
-    return () => clearTimeout(run);
-  }, [play, ready, delay]);
+    if (!play || !item.current) return;
+    triggerPlay(play, delay);
+    return () => {
+      if (playTimer.current) {
+        clearTimeout(playTimer.current);
+        playTimer.current = null;
+      }
+    };
+  }, [play, delay]);
 
   return (
     <span
+      ref={root}
       aria-hidden="true"
       className="relative flex items-center justify-center shrink-0"
       style={{ width: size, height: size }}
@@ -357,11 +438,12 @@ export default function AnimatedEmoji({
       <span
         ref={holder}
         className="absolute inset-0 block"
-        style={{ opacity: ready ? 1 : 0 }}
+        style={{ opacity: 0 }}
       />
       <span
+        ref={fallback}
         className="block select-none"
-        style={{ fontSize: size * 0.9, lineHeight: 1, opacity: ready ? 0 : 1 }}
+        style={{ fontSize: size * 0.9, lineHeight: 1, opacity: 1 }}
       >
         {emoji}
       </span>

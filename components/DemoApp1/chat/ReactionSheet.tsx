@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import React, { useMemo, useState } from "react";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { C } from "../demo1Layout";
@@ -191,6 +190,11 @@ export default function ReactionSheet({
 }) {
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<CategoryId>("all");
+  const [entered, setEntered] = useState(false);
+
+  React.useEffect(() => {
+    if (!open) setEntered(false);
+  }, [open]);
 
   const recentList = useMemo(() => Array.from(PRIMARY_REACTIONS), []);
   const popularList = useMemo(() => Array.from(POPULAR_REACTIONS), []);
@@ -233,7 +237,13 @@ export default function ReactionSheet({
   }, [query, activeTab, allEmojisList, recentList, popularList]);
 
   return (
-    <Sheet open={open} onClose={onClose} y={340} testId="demo-reaction-sheet">
+    <Sheet
+      open={open}
+      onClose={onClose}
+      onEntered={() => setEntered(true)}
+      y={340}
+      testId="demo-reaction-sheet"
+    >
       <div className="flex flex-col w-full px-4 pt-1 pb-6 overflow-hidden">
         {/* Header Title */}
         <Txt center size={16} weight="medium" mt={4} className="mb-2.5">
@@ -320,11 +330,10 @@ export default function ReactionSheet({
           {filteredEmojis.map((emoji) => {
             const isChosen = currentReaction === emoji;
             return (
-              <motion.button
+              <button
                 key={emoji}
                 type="button"
                 data-pw={`demo-reaction-item-${emoji}`}
-                whileTap={{ scale: 1.25 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   const rect = e.currentTarget.getBoundingClientRect();
@@ -334,14 +343,24 @@ export default function ReactionSheet({
                     size: 30,
                   });
                 }}
-                className="relative flex items-center justify-center w-12 h-12 rounded-full cursor-pointer select-none transition-colors active:bg-black/5"
+                className="relative flex items-center justify-center w-12 h-12 rounded-full cursor-pointer select-none transition-transform duration-100 active:scale-125 active:bg-black/5"
                 style={{
                   background: isChosen ? "rgba(0, 0, 0, 0.09)" : undefined,
                   boxShadow: isChosen ? "0 0 0 1px rgba(0, 0, 0, 0.08)" : undefined,
                 }}
               >
-                <AnimatedEmoji emoji={emoji} size={30} />
-              </motion.button>
+                {entered ? (
+                  <AnimatedEmoji emoji={emoji} size={30} lazy />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="block select-none"
+                    style={{ fontSize: 27, lineHeight: 1 }}
+                  >
+                    {emoji}
+                  </span>
+                )}
+              </button>
             );
           })}
 
