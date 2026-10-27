@@ -189,7 +189,7 @@ export default function MessageRow({
       initial={fresh ? { opacity: 0, scale: 0.7, y: 16 } : false}
       animate={{
         opacity: faded ? 0.35 : 1,
-        scale: held ? 1.04 : 1,
+        scale: 1,
         y: shift,
       }}
       exit={{ opacity: 0, scale: 0.6, transition: { duration: 0.18 } }}
@@ -199,9 +199,6 @@ export default function MessageRow({
         damping: 32,
         mass: 0.9,
         y: { duration: 0.21, ease: [0.16, 1, 0.3, 1] },
-        scale: held
-          ? { duration: 0.21, ease: [0.16, 1, 0.3, 1] }
-          : { duration: 0.18, ease: [0.32, 0.72, 0, 1] },
       }}
     >
       {flash > 0 && (
@@ -249,9 +246,21 @@ export default function MessageRow({
         {/* The message and its dot, with the reply mark behind them. The box
             is as wide as its message, up to the file's widest bubble (the
             row less 86 px) plus the dot's 12 px; the message wraps inside it. */}
-        <div
+        <motion.div
           className={`relative flex items-start min-w-0 ${inn ? "" : "justify-end"}`}
-          style={{ width: wide ? "100%" : undefined, maxWidth: wide ? "100%" : "calc(100% - 74px)" }}
+          animate={{
+            scale: held ? 1.06 : 1,
+            x: held ? (inn ? 8 : -8) : 0,
+          }}
+          transition={{
+            duration: held ? 0.21 : 0.18,
+            ease: held ? [0.16, 1, 0.3, 1] : [0.32, 0.72, 0, 1],
+          }}
+          style={{
+            width: wide ? "100%" : undefined,
+            maxWidth: wide ? "100%" : "calc(100% - 74px)",
+            transformOrigin: inn ? "left center" : "right center",
+          }}
         >
           {canReply && (
             <motion.span
@@ -284,7 +293,7 @@ export default function MessageRow({
             </motion.span>
           )}
           {children}
-        </div>
+        </motion.div>
       </motion.div>
       {menu}
     </motion.div>
