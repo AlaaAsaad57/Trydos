@@ -874,6 +874,7 @@ export default function ConversationScreen() {
         <Layer
           z={1}
           testId="demo-chat-menu-backdrop-bar"
+          className="pointer-events-none"
           tint={menu && IOS ? MENU_DIM_TINT : undefined}
         >
           <motion.div
