@@ -18,6 +18,7 @@ import {
 import { XD_ICON_SIZE } from "../../DemoApp/xdIcons";
 import CategorySheet from "../chat/CategorySheet";
 import ReminderSheet from "../chat/ReminderSheet";
+import ReactionSheet from "../chat/ReactionSheet";
 import { ChevronDownIcon, ChevronUpIcon, CloseIcon } from "../chat/chatIcons";
 import { useDemoChat } from "../../DemoApp/demoChatState";
 import { useDemoNav } from "../Demo1Shell";
@@ -131,6 +132,8 @@ export default function ConversationScreen() {
   /** The message whose Category sheet is up, and the one whose Remind me sheet is up. */
   const [tagging, setTagging] = useState<Holdable | null>(null);
   const [reminding, setReminding] = useState<Holdable | null>(null);
+  /** The message whose expanded reactions sheet is up (opened by "+" button). */
+  const [reactingMore, setReactingMore] = useState<Holdable | null>(null);
   // The message search: the field in the head, the up / down bar at the
   // bottom. It opens on its own when the contact screen's Search sent us.
   const [searching, setSearching] = useState(search);
@@ -600,7 +603,7 @@ export default function ConversationScreen() {
           }}
           onMore={() => {
             close();
-            showToast(t("Soon available"));
+            setReactingMore(m);
           }}
           t={t}
         />
@@ -975,6 +978,21 @@ export default function ConversationScreen() {
           if (at !== null) showToast(t("Reminder"));
         }}
         onClose={() => setReminding(null)}
+        t={t}
+      />
+      <ReactionSheet
+        open={reactingMore !== null}
+        currentReaction={reactingMore?.reaction}
+        onPick={(emoji, from) => {
+          if (reactingMore) {
+            if (reactingMore.reaction !== emoji) {
+              launchReaction({ id: reactingMore.id, emoji, ...from });
+            }
+            dispatch({ type: "react", chat: chat.id, id: reactingMore.id, emoji });
+          }
+          setReactingMore(null);
+        }}
+        onClose={() => setReactingMore(null)}
         t={t}
       />
     </ScreenPage>
