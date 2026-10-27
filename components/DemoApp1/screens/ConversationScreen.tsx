@@ -23,14 +23,12 @@ import { ChevronDownIcon, ChevronUpIcon, CloseIcon } from "../chat/chatIcons";
 import { useDemoChat } from "../../DemoApp/demoChatState";
 import { useDemoNav } from "../Demo1Shell";
 import { C, SAFE_BOTTOM, SAFE_TOP, SF_ROUNDED, sfTop, textTop } from "../demo1Layout";
-import { Icon, ScreenPage, Stroke, Txt, useTopTint } from "../ui";
+import { Icon, ScreenPage, Stroke, Txt } from "../ui";
 import Composer, { type ComposerContext } from "../chat/Composer";
 import ForwardSheet from "../chat/ForwardSheet";
 import MessageMenu, {
   MENU_BLUR,
   MENU_DIM,
-  MENU_DIM_TINT,
-  MenuVeil,
   MENU_FADE,
   MENU_GAP,
   MENU_H,
@@ -120,8 +118,6 @@ export default function ConversationScreen() {
   const contact = contactOf(state, chat);
   const [menu, setMenu] = useState<string | null>(null);
 
-  // Safari's top area goes as dark as the head under the wash while a menu is open.
-  useTopTint(MENU_DIM_TINT, !!menu);
   // The message above the blur: it stays up until the blur has faded out.
   const [lifted, setLifted] = useState<string | null>(null);
   // How far the held message is moved so it and its menu are on the screen.
@@ -483,16 +479,10 @@ export default function ConversationScreen() {
       style={{
         height: 50,
         background: C.white,
-        boxShadow: "0 0 3px rgba(0,0,0,0.1)",
+        boxShadow: menu ? "none" : "0 0 3px rgba(0,0,0,0.1)",
       }}
     >
-      {/* The head goes dark with the page, up over the status bar; a click on it closes the menu. */}
-      <MenuVeil
-        on={!!menu}
-        onClick={close}
-        testId="demo-chat-head-veil"
-        top={`calc(0px - ${SAFE_TOP})`}
-      />
+      {/* The full-screen backdrop in `bottom` covers the header too. */}
       <button
         type="button"
         data-pw="demo-back"
@@ -849,25 +839,46 @@ export default function ConversationScreen() {
   );
 
   const bottom = (
-    <div className="relative shrink-0 w-full">
-      {/* Above the composer, whatever its height is. */}
-      <Toast text={notice ?? toast} bottom="calc(100% + 12px)" />
-      {searching ? searchBar : (
-      <Composer
-        context={context}
-        onCancelContext={() => setContext(null)}
-        onSend={send}
-        onSendPhoto={(src) => sendPhoto(chat.id, src)}
-        onSendVoice={(seconds) => sendVoice(chat.id, seconds)}
-        onSendVideo={(src, seconds) => sendVideo(chat.id, src, seconds)}
-        onSendFile={(file) => sendFile(chat.id, file)}
-        onSendLocation={(point) => sendLocation(chat.id, point)}
-        onToast={showToast}
-        veiled={!!menu}
-        t={t}
-      />
-      )}
-    </div>
+    <>
+      <AnimatePresence onExitComplete={() => setLifted(null)}>
+        {menu && (
+          <motion.div
+            key="backdrop"
+            data-pw="demo-chat-menu-backdrop"
+            className="absolute inset-0 z-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: MENU_FADE, ease: "easeOut" }}
+            style={{
+              background: MENU_DIM,
+              backdropFilter: `blur(${MENU_BLUR}px)`,
+              WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
+            }}
+            onClick={close}
+          />
+        )}
+      </AnimatePresence>
+      <div className="relative shrink-0 w-full">
+        {/* Above the composer, whatever its height is. */}
+        <Toast text={notice ?? toast} bottom="calc(100% + 12px)" />
+        {searching ? searchBar : (
+        <Composer
+          context={context}
+          onCancelContext={() => setContext(null)}
+          onSend={send}
+          onSendPhoto={(src) => sendPhoto(chat.id, src)}
+          onSendVoice={(seconds) => sendVoice(chat.id, seconds)}
+          onSendVideo={(src, seconds) => sendVideo(chat.id, src, seconds)}
+          onSendFile={(file) => sendFile(chat.id, file)}
+          onSendLocation={(point) => sendLocation(chat.id, point)}
+          onToast={showToast}
+          veiled={false}
+          t={t}
+        />
+        )}
+      </div>
+    </>
   );
 
   return (
@@ -881,13 +892,6 @@ export default function ConversationScreen() {
     >
       <div className="relative flex flex-col w-full">
         <ReactionWarmup />
-        {/* The dark, lightly blurred wash over the conversation while a menu
-          is open (the head and the composer carry the same wash); a click
-          on it closes the menu. Over the whole body, so it scrolls with
-          it; the lifted message and its menu sit above it. One
-          backdrop-filter layer that only fades: a blur that grows on every
-          row is drawn again on every frame, and the menu stuttered on the
-          iPhone. */}
         <div
           className="flex items-start w-full shrink-0"
           style={{ marginTop: 4 }}
@@ -916,35 +920,6 @@ export default function ConversationScreen() {
           )}
         </AnimatePresence>
 
-        {/* The dark, blurred wash over the conversation while a menu is open
-          (the head and the composer carry the same wash); a click on it closes
-          the menu. Placed after the messages in the DOM so that all other
-          messages are blurred and dimmed underneath it. The lifted message has
-          z-20, so it and its menu remain sharp and clear on top of this layer. */}
-        <AnimatePresence onExitComplete={() => setLifted(null)}>
-          {menu && (
-            <motion.div
-              key="backdrop"
-              data-pw="demo-chat-menu-backdrop"
-              className="absolute inset-0 z-10"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: MENU_FADE, ease: "easeOut" }}
-              style={{
-                background: MENU_DIM,
-                backdropFilter: `blur(${MENU_BLUR}px)`,
-                WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
-                willChange: "opacity",
-                transform: "translateZ(0)",
-                backfaceVisibility: "hidden",
-                WebkitBackfaceVisibility: "hidden",
-                contain: "layout paint",
-              }}
-              onClick={close}
-            />
-          )}
-        </AnimatePresence>
         {/* Room for the last message's menu under its bubble. */}
         <div className="shrink-0" style={{ height: MENU_GAP + MENU_H + 8 }} />
       </div>

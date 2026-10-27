@@ -79,11 +79,6 @@ export function MenuVeil({
             background: MENU_DIM,
             backdropFilter: `blur(${MENU_BLUR}px)`,
             WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
-            willChange: "opacity",
-            transform: "translateZ(0)",
-            backfaceVisibility: "hidden",
-            WebkitBackfaceVisibility: "hidden",
-            contain: "layout paint",
             pointerEvents: onClick ? undefined : "none",
           }}
           onClick={onClick}
@@ -314,10 +309,6 @@ export default function MessageMenu({
           boxShadow: "0 6px 24px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.04)",
           transformOrigin: inn ? "left bottom" : "right bottom",
           willChange: "transform, opacity",
-          transform: "translateZ(0)",
-          backfaceVisibility: "hidden",
-          WebkitBackfaceVisibility: "hidden",
-          contain: "layout paint",
           justifyContent: inn ? "flex-start" : "flex-end",
         }}
         initial={{ scale: 0.42, opacity: 0 }}
@@ -361,8 +352,6 @@ export default function MessageMenu({
                   background: reaction === emoji ? "rgba(0,0,0,0.08)" : undefined,
                   opacity: picked === emoji ? 0 : 1,
                   willChange: "transform, opacity",
-                  transform: "translateZ(0)",
-                  backfaceVisibility: "hidden",
                 }}
                 initial={{ scale: 0.4, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -404,8 +393,6 @@ export default function MessageMenu({
               right: PLUS_INSET,
               top: (REACTION_BAR_H - PLUS) / 2,
               willChange: "transform, opacity",
-              transform: "translateZ(0)",
-              backfaceVisibility: "hidden",
             }}
             initial={{ scale: 0.4, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -440,10 +427,6 @@ export default function MessageMenu({
           boxShadow: "0 8px 30px rgba(0,0,0,0.16), 0 0 0 0.5px rgba(0,0,0,0.05)",
           transformOrigin: inn ? "left top" : "right top",
           willChange: "transform, opacity",
-          transform: "translateZ(0)",
-          backfaceVisibility: "hidden",
-          WebkitBackfaceVisibility: "hidden",
-          contain: "layout paint",
         }}
         initial={{ scale: 0.48, opacity: 0, y: -4 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}

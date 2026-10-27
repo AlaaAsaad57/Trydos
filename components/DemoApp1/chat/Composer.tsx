@@ -266,7 +266,7 @@ export default function Composer({
       className="relative w-full shrink-0 flex flex-col"
       style={{
         background: C.white,
-        boxShadow: "0 0 3px rgba(0,0,0,0.1)",
+        boxShadow: veiled ? "none" : "0 0 3px rgba(0,0,0,0.1)",
         paddingBottom: SAFE_BOTTOM,
       }}
     >

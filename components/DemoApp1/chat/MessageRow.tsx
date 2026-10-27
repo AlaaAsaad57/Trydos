@@ -182,8 +182,6 @@ export default function MessageRow({
         marginTop: gap,
         transformOrigin: inn ? "left bottom" : "right bottom",
         willChange: lifted ? "transform" : undefined,
-        transform: lifted ? "translateZ(0)" : undefined,
-        backfaceVisibility: lifted ? "hidden" : undefined,
       }}
       initial={fresh ? { opacity: 0, scale: 0.7, y: 16 } : false}
       animate={{
