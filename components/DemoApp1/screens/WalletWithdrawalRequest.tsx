@@ -15,7 +15,7 @@ import {
   textBottom,
   top,
 } from "../demo1Layout";
-import { Box, Icon, Layer, Txt, Under, fromCentre } from "../ui";
+import { Box, Icon, Layer, Ltr, Txt, Under, fromCentre } from "../ui";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import {
@@ -97,8 +97,11 @@ export function RequestCode({
           data-pw="demo-wallet-code-request"
           style={{ whiteSpace: "pre" }}
         >
-          <span className="font-bold">{request.amount}</span>
-          {` ${balance.code} ${t("Withdrawal Request")}`}
+          <Ltr>
+            <span className="font-bold">{request.amount}</span>
+            {` ${balance.code}`}
+          </Ltr>
+          {` ${t("Withdrawal Request")}`}
         </Txt>
         <Txt
           size={30}
@@ -120,7 +123,7 @@ export function RequestCode({
 
         <div
           className="flex items-start shrink-0"
-          style={{ marginLeft: 40, marginTop: 366 - textBottom(354, 16) }}
+          style={{ marginInlineStart: 40, marginTop: 366 - textBottom(354, 16) }}
         >
           <Txt size={12}>
             {t("We have sent a verification code to the number")}
@@ -129,16 +132,18 @@ export function RequestCode({
         </div>
         <div
           className="flex items-start shrink-0"
-          style={{ marginLeft: 40, marginTop: 389 - (366 + 15) }}
+          style={{ marginInlineStart: 40, marginTop: 389 - (366 + 15) }}
         >
-          <Txt size={12}>{WALLET_REQUEST.codeSentTo}</Txt>
+          <Txt size={12}>
+            <Ltr>{WALLET_REQUEST.codeSentTo}</Ltr>
+          </Txt>
           <button
             type="button"
             data-pw="demo-wallet-code-resend"
             disabled={left > 0}
             onClick={() => setLeft(CODE_SECONDS)}
             className="shrink-0"
-            style={{ marginLeft: 6 }}
+            style={{ marginInlineStart: 6 }}
           >
             <Txt size={12} color={C.hint} style={{ whiteSpace: "pre" }}>
               {t("resend after")}
@@ -151,7 +156,7 @@ export function RequestCode({
         </div>
         <div
           className="flex items-start shrink-0"
-          style={{ marginLeft: 40, marginTop: 412 - (389 + 15) }}
+          style={{ marginInlineStart: 40, marginTop: 412 - (389 + 15) }}
         >
           <Txt size={11} color={C.hint}>
             {t("Your privacy is completely safe")}
@@ -164,7 +169,7 @@ export function RequestCode({
         <div
           className="shrink-0"
           style={{
-            marginLeft: fromCentre(20, 430),
+            marginInlineStart: fromCentre(20, 430),
             marginTop: 502 - (412 + 14),
           }}
         >
@@ -244,7 +249,7 @@ export function RequestReady({
         <Icon
           name="qrRequest"
           mt={215 - HEAD_END}
-          style={{ marginLeft: fromCentre(65, 430) }}
+          style={{ marginInlineStart: fromCentre(65, 430) }}
         />
         <Txt center size={16} weight="medium" mt={gapTo(215 + 301, 544, 16)}>
           {t("Withdrawal Request")}
@@ -261,7 +266,7 @@ export function RequestReady({
           // row keeps the file's slots and stays centred as in the file.
           style={{
             marginTop: 855 - (765 + 55),
-            marginLeft: fromCentre(ACTIONS[0].x, 430),
+            marginInlineStart: fromCentre(ACTIONS[0].x, 430),
             paddingBottom: 930 - 895,
           }}
         >
@@ -288,8 +293,8 @@ export function RequestReady({
                   name={action.icon}
                   style={
                     action.off > 0
-                      ? { marginLeft: action.off * 2 }
-                      : { marginRight: -action.off * 2 }
+                      ? { marginInlineStart: action.off * 2 }
+                      : { marginInlineEnd: -action.off * 2 }
                   }
                 />
                 <Txt size={11} mt={gapTo(855 + 20, 892, 11)}>
@@ -341,7 +346,7 @@ export function RequestPicture({
       <Icon
         name="qrRequestBig"
         mt={167 - textBottom(132, 24)}
-        style={{ marginLeft: fromCentre(40, 430) }}
+        style={{ marginInlineStart: fromCentre(40, 430) }}
       />
       {/* The file starts the line at x 139.5: half a px right of centre. */}
       <Txt
@@ -372,7 +377,7 @@ export function RequestPicture({
         style={{
           height: undefined,
           minHeight: 90,
-          paddingLeft: 12,
+          paddingInlineStart: 12,
           paddingBottom: 895 - (paraTop(848, 11, 16) + 3 * 16),
           marginBottom: 930 - 895,
         }}
@@ -508,11 +513,13 @@ function Cells({
       )}
       <div
         className="flex shrink-0"
-        style={{ marginTop: 4, marginLeft: 20, width: fill(20) }}
+        style={{ marginTop: 4, marginInlineStart: 20, width: fill(20) }}
       >
         <Cell half label={t("amount")} testId="amount">
-          <span className="font-medium">{`${request.amount} `}</span>
-          {balance.code}
+          <Ltr>
+            <span className="font-medium">{`${request.amount} `}</span>
+            {balance.code}
+          </Ltr>
         </Cell>
         <Cell
           half
@@ -521,15 +528,15 @@ function Cells({
           testId="reference"
           medium
         >
-          {WALLET_REQUEST.reference}
+          <Ltr>{WALLET_REQUEST.reference}</Ltr>
         </Cell>
       </div>
       <div
         className="flex shrink-0"
-        style={{ marginTop: 4, marginLeft: 20, width: fill(20) }}
+        style={{ marginTop: 4, marginInlineStart: 20, width: fill(20) }}
       >
         <Cell half label={t("Date & time")} testId="date">
-          {WALLET_REQUEST.date}
+          <Ltr>{WALLET_REQUEST.date}</Ltr>
         </Cell>
         <Cell half ml={4} label={t("type")} testId="type">
           {t("Withdrawal Request")}

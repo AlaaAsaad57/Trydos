@@ -35,6 +35,7 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | A-23 | QR sheet until G-1 | **Decided on 2026-10-28.** The QR sheet opens as designed. It shows a fixed QR that holds the plain text "Trydos" (it opens nothing when scanned). "Soon available" shows in the sheet's existing message box over the middle of the QR (the box the declined state uses), with no "Show a new code" link. The localStorage mock (`services/qrLogin`) is not called. |
 | A-24 | Login page SEO | **Decided on 2026-10-28.** `/[lang]/login` has `robots: noindex` and is in no sitemap. |
 | A-25 | No deploy before the end | **Decided on 2026-10-28** (given to the Stage 3 session). Nothing on `ui-migrations` or `ui-migrations-shell` is deployed until all stages are done (after Stage 8). A half-built state between stages is OK on the branches. |
+| A-28 | Stage 5a early, in a third worktree | **Decided on 2026-10-28.** Stage 5 is split. Part 5a (RTL of the six wallet screens, their values, their tests) needs no shell, so it is built now, at the same time as Stages 2 and 3, in `../trydos-wallet` on the branch `ui-migrations-wallet`, cut from `ui-migrations`. The A-18 rules apply to it too. Part 5b (the wallet path in the shell, the old `settings/wallet` page, e2e) waits until Stage 3 is merged. 5a does not touch `WalletLinkCard`, so the A-6 reason for 4 before 5 does not apply to it. Merge order: after Stage 2 and Stage 3. |
 | D-1 | Merge | Once, at the end (after Stage 8). Every stage stays on `ui-migrations`. |
 | D-2 | Desktop | The 500 px centred column is OK on desktop. No desktop design work. |
 | D-3 | RTL | Mirror everything for `ar` / `ku`: layout, slide direction, tab order, margins. |
@@ -486,6 +487,28 @@ ClientIdScreen line 52). The downloaded ID card PNG draws name and phone as LTR 
 WalletReceipt, WalletWithdrawalRequest. **Data today:** all from `components/DemoApp/demoWallet.ts`.
 **Live:** `app/(client)/[lang]/settings/wallet/page.tsx` → `components/settings/WalletTransactions.tsx`;
 card `components/setting/WalletLinkCard.tsx` (its sheet says "Under Development").
+
+### Build steps
+- **5a — Done (A-28).** RTL of the six wallet screens, with no change in `en`:
+  - Every margin and padding is set from the start side (`marginInlineStart`, `ms-auto`, …), not by left or right.
+  - The card slider runs from the start side (A-15): on `ar` / `ku` the next card waits on the left, and a slide to
+    the right brings it in (`cardsRest`, `slideTo` in `WalletScreen.tsx`).
+  - Values that read left to right in every language (phones, amounts with their code, dates, ids, references) sit in
+    their own run (`Ltr` in `components/DemoApp1/ui.tsx`, a `bdi dir="ltr"`). Before, `ar` showed
+    "+90 552 800 2000" as "2000 800 552 90+" and "-1010 SYP" as "SYP 1010-". An entry's note is the shopper's own
+    words, so it gets a plain `bdi` (its own direction). The authorized recipient's phone field types left to right
+    and starts on the right on `ar` / `ku`.
+  - Icons: the cash-in and cash-out arrows point up and down, so they stay as drawn. The share icon (a paper plane)
+    stays as drawn too (decided on 2026-10-28). The header's back arrow was mirrored in Stage 1.
+  - i18n: no new key. The English `lines` in the sheets are used only while the text is the file's own English
+    (`FileLines`), so other languages get the `t()` words.
+  - Test: `tests/components/DemoApp1/screens/wallet.rtl.test.tsx` (24 cases). 22 were seen red on the old code: the
+    physical sides in the page and in each file, the slider on `ar`, and the values on each screen. The 2 `en` slider
+    cases are guards and were green before and after.
+  - Checked in a browser at 440 x 802: `/sy-ar/demo/settings/wallet` and `/sy-en/...`, the balance screen, a grown
+    card, the slide, Cash In, Cash Out, Wallet Info and the receipt. The `en` page is the same, pixel for pixel.
+- **5b.** After Stage 3 is merged: turn the wallet screen on in the shell's path table (S3-2), replace the old
+  `settings/wallet` page, keep the events below, and add the new e2e cases (see "Tests").
 
 ### Data: the mock stays (A-17)
 No wallet backend works yet. So Stage 5 keeps `components/DemoApp/demoWallet.ts` and the design exactly as on
