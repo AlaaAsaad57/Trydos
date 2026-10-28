@@ -9,13 +9,14 @@
 //
 // The cart and checkout screens are stand-ins: each has its own test, and both
 // reach the core backend on mount.
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import CartPage, { noteSitePage } from "components/Cart/CartPage";
+import CartPage from "components/Cart/CartPage";
+import { noteSitePage } from "components/Cart/cartPath";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 
 import { act, renderWithProviders, screen, userEvent } from "../../render";
-import { routerSpies } from "../../mocks/nextNavigation";
+import { routerSpies, setRoute } from "../../mocks/nextNavigation";
 
 const GAevent = vi.hoisted(() => vi.fn());
 vi.mock("utils/gtag", () => ({ GAevent }));
@@ -195,5 +196,84 @@ describe("closing the cart leaves the page", () => {
     });
     expect(routerSpies.back, "the page went back while a product link was moving").not.toHaveBeenCalled();
     expect(routerSpies.replace, "the page moved home while a product link was moving").not.toHaveBeenCalled();
+  });
+});
+
+describe("the cart page acts only on its own path", () => {
+  // A product link from the cart opens the product overlay
+  // (@modal/(.)products/[productId]). The cart page is the `children` slot,
+  // so it stays mounted, only hidden, while the path is /sy-en/products/x.
+  const goTo = (pathname: string) => setRoute({ pathname });
+
+  it("after the product overlay closes, the cart's back arrow still leaves", async () => {
+    noteSitePage("/sy-en/products/x");
+    const { store, rerender } = await openCartPage();
+    // The product link: it marks the move, then closes the cart.
+    await act(async () => {
+      store.getState().setIsNavigating({ is_product: true });
+      store.getState().enableCart(false);
+    });
+    goTo("/sy-en/products/x");
+    rerender(<CartPage />);
+    // The move lands; the loader flag is cleared. Then back closes the overlay.
+    await act(async () => {
+      store.getState().setIsNavigating(null);
+    });
+    goTo("/sy-en/cart");
+    rerender(<CartPage />);
+    expect(store.getState().cart_enable, "back on the cart page did not open the cart again").toBe(true);
+    await act(async () => {
+      store.getState().enableCart(false);
+    });
+    expect(routerSpies.back, "the cart's back arrow did nothing after the product overlay closed").toHaveBeenCalled();
+  });
+
+  it("while it is hidden under the product overlay, it holds the flag false so the cart tab still moves", async () => {
+    // A link that does not close the cart can open the overlay too. A flag
+    // left true would make the next enableCart(true) change nothing, and
+    // CartProvider would not move to the cart page.
+    const { store, rerender } = await openCartPage();
+    goTo("/sy-en/products/x");
+    rerender(<CartPage />);
+    expect(store.getState().cart_enable, "the hidden cart page kept cart_enable true under the overlay").toBe(false);
+  });
+
+  it("while it is hidden under the product overlay, an open and close of the flag does not move", async () => {
+    // The cart tab over the overlay: CartProvider sees /products/x, pushes the
+    // cart page and puts the flag back to false at once.
+    noteSitePage("/sy-en/products/x");
+    const { store, rerender } = await openCartPage();
+    goTo("/sy-en/products/x");
+    rerender(<CartPage />);
+    await act(async () => {
+      store.getState().enableCart(true);
+      store.getState().enableCart(false);
+    });
+    expect(routerSpies.back, "the hidden cart page went back while the product overlay was open").not.toHaveBeenCalled();
+    expect(routerSpies.replace, "the hidden cart page moved home while the product overlay was open").not.toHaveBeenCalled();
+  });
+});
+
+describe("the cart page box fills the screen from its own top", () => {
+  // The old sticky top nav sits above the box until Task 9. The box must end
+  // at the bottom of the screen, so the checkout bar (fixed inside the slide
+  // layer, placed from the box bottom) sits above the new bar.
+  const realRect = HTMLElement.prototype.getBoundingClientRect;
+  afterEach(() => {
+    HTMLElement.prototype.getBoundingClientRect = realRect;
+  });
+
+  it("takes the height from its top to the bottom of the screen", async () => {
+    HTMLElement.prototype.getBoundingClientRect = function (this: HTMLElement) {
+      const rect = realRect.call(this);
+      if (this.dataset?.pw === "cart-page") return { ...rect.toJSON?.(), top: 98, y: 98 } as DOMRect;
+      return rect;
+    };
+    await openCartPage();
+    const root = document.querySelector<HTMLElement>('[data-pw="cart-page"]')!;
+    expect(root.style.height, "the cart page box does not end at the bottom of the screen").toBe(
+      "calc(100dvh - 98px)",
+    );
+    expect(root.className.split(/\s+/), "the box still has a full-screen height class").not.toContain("h-screen");
   });
 });

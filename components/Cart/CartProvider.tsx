@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import home from "services/home";
 
 import ModalIframe from "./ModalIframe";
-import { isCartPath, noteSitePage } from "./CartPage";
+import { isCartPath, noteSitePage } from "./cartPath";
 import { tabHref } from "components/DemoApp1/appRoutes";
 import { useAppStore } from "store";
 import {
@@ -170,10 +170,13 @@ const CartProvider = ({ language, country }) => {
   }, [enable]);
 
   // The cart page reads this when it closes: back when a page of this site is
-  // behind it, else home.
+  // behind it, else home. A page with ?cart is not noted: it is replaced by
+  // the cart page above, so it never stays in the history (a push notice
+  // opens a fresh tab on /[lang]?cart=true).
   useEffect(() => {
+    if (hasCartParam) return;
     noteSitePage(pathname);
-  }, [pathname]);
+  }, [pathname, hasCartParam]);
 
   useEffect(() => {
     let couponUrlVar = searchParams.get("coupon");

@@ -361,9 +361,9 @@ describe("opening the cart goes to the cart page", () => {
 describe("the cart page knows whether a page of this site is behind it", () => {
   // The host notes each page it sees. The cart page reads that note when it
   // closes: back when a page of this site is behind it, else home.
-  async function closeCartPageAfter(path: string) {
+  async function closeCartPageAfter(path: string, search = "") {
     sessionStorage.clear();
-    const first = await mountProvider({ path });
+    const first = await mountProvider({ path, search });
     first.unmount();
     const page = await renderWithProviders(<CartPage />, { country: "sy", path: "/cart" });
     await act(async () => {
@@ -374,6 +374,17 @@ describe("the cart page knows whether a page of this site is behind it", () => {
   it("after a product page, closing the cart page goes back", async () => {
     await closeCartPageAfter("/products/x");
     expect(routerSpies.back, "after a product page, closing the cart page did not go back").toHaveBeenCalled();
+  });
+
+  it("a push notice in a fresh tab (/sy-en?cart=true) does not count the home page behind the cart", async () => {
+    // The service worker opens the home path with ?cart=true
+    // (public/firebase-messaging-sw.js). The host sends it on to /sy-en/cart
+    // with a replace, so the tab has one history entry: back goes nowhere.
+    await closeCartPageAfter("/", "cart=true");
+    expect(routerSpies.replace, "a cart page opened from a push notice did not close to home").toHaveBeenCalledWith(
+      "/sy-en",
+    );
+    expect(routerSpies.back, "a cart page opened from a push notice went back into an empty history").not.toHaveBeenCalled();
   });
 
   it("when the tab opened straight on the cart page, closing goes home", async () => {
