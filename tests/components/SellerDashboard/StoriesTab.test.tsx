@@ -232,6 +232,112 @@ describe("Stories section — loading the list", () => {
   });
 });
 
+/** The shape staging really sends (seen 2026-10-29): a Laravel paginator.
+ *  `total`, `current_page` and `last_page` sit on `data` itself; there is no
+ *  `meta`. */
+const paginatorAnswer = (stories: unknown[], total: number) => ({
+  success: true,
+  data: {
+    data: stories,
+    current_page: 1,
+    last_page: Math.max(1, Math.ceil(total / 20)),
+    per_page: 20,
+    total,
+    next_page_url: total > 20 ? "https://stories.example/?page=2" : null,
+  },
+});
+
+/** The text next to the "Stories" title. The count lives on the dashboard
+ *  home tile and in the side menu, not here. */
+const headerText = () =>
+  screen.getByRole("heading", { name: "Stories" }).parentElement?.textContent ?? "";
+
+describe("Stories section — the story total", () => {
+  it("shows no count next to the Stories title (the dashboard home and side menu show it)", async () => {
+    getSellerStories.mockResolvedValue(paginatorAnswer([story()], 6));
+    await mount();
+    await screen.findByAltText("Story thumbnail");
+    expect(
+      headerText(),
+      "the Stories header shows a count; the count belongs on the dashboard home tile and the side menu",
+    ).toBe("Stories");
+  });
+
+  it("reads the total from the paginator the stories server sends, which has no meta", async () => {
+    getSellerStories.mockResolvedValue(paginatorAnswer([story()], 45));
+    await mount();
+    await screen.findByAltText("Story thumbnail");
+    expect(
+      screen.getByText(/of 3/i),
+      "the pager does not show 'of 3', so last_page on data (no meta) was not read",
+    ).toBeInTheDocument();
+  });
+
+  it("hands the total to the page, so the side-menu badge can show it", async () => {
+    getSellerStories.mockResolvedValue(paginatorAnswer([story()], 6));
+    const onTotalChange = vi.fn();
+    await renderWithProviders(
+      <StoriesTab sellerId={SELLER_ID} userId={USER_ID} onTotalChange={onTotalChange} />,
+      { path: `/sellerProfile/sellerDashboard/${SELLER_ID}` },
+    );
+    await screen.findByAltText("Story thumbnail");
+    expect(
+      onTotalChange,
+      "the Stories tab loaded total: 6 from the stories server but did not pass it to the page",
+    ).toHaveBeenLastCalledWith(6);
+  });
+
+  it("lowers the count by one after a delete, for the page", async () => {
+    getSellerStories.mockResolvedValue(paginatorAnswer([story()], 6));
+    deleteSellerStory.mockResolvedValue({ success: true });
+    const onTotalChange = vi.fn();
+    await renderWithProviders(
+      <StoriesTab
+        sellerId={SELLER_ID}
+        userId={USER_ID}
+        canDelete={true}
+        onTotalChange={onTotalChange}
+      />,
+      { path: `/sellerProfile/sellerDashboard/${SELLER_ID}` },
+    );
+    await screen.findByAltText("Story thumbnail");
+    await userEvent.click(screen.getByRole("button", { name: /Delete/ }));
+    await screen.findByText("Delete Story");
+    await userEvent.click(screen.getAllByRole("button", { name: /Delete/ }).at(-1)!);
+
+    await waitFor(() =>
+      expect(
+        onTotalChange,
+        "after the stories server deleted a story, the page was not told the new total (5)",
+      ).toHaveBeenLastCalledWith(5),
+    );
+    expect(
+      getSellerStories.mock.calls.length,
+      "a delete should lower the count without asking the stories server for the list again",
+    ).toBe(1);
+  });
+
+  it("does not lower the count when the stories server refuses the delete", async () => {
+    getSellerStories.mockResolvedValue(paginatorAnswer([story()], 6));
+    deleteSellerStory.mockResolvedValue({ success: false, message: "Refused." });
+    const onTotalChange = vi.fn();
+    await renderWithProviders(
+      <StoriesTab sellerId={SELLER_ID} userId={USER_ID} canDelete={true} onTotalChange={onTotalChange} />,
+      { path: `/sellerProfile/sellerDashboard/${SELLER_ID}` },
+    );
+    await screen.findByAltText("Story thumbnail");
+    await userEvent.click(screen.getByRole("button", { name: /Delete/ }));
+    await screen.findByText("Delete Story");
+    await userEvent.click(screen.getAllByRole("button", { name: /Delete/ }).at(-1)!);
+    await waitFor(() => expect(notificationMessages()).toContain("Refused."));
+
+    expect(
+      onTotalChange,
+      "a delete the stories server refused still changed the total sent to the page",
+    ).toHaveBeenLastCalledWith(6);
+  });
+});
+
 describe("Stories section — more pages", () => {
   it("shows no page controls for a single page", async () => {
     await mount();

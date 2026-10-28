@@ -204,3 +204,74 @@ describe("CallItem — deleting a row", () => {
     expect(Delete, "the bin did not delete the call").toHaveBeenCalled();
   });
 });
+
+// BUG-C-74. In Arabic and Kurdish the chats tab mirrors its rows (ChatItem:
+// `flex-row-reverse` on the row and `dir-rtl` on the name block, keyed on the
+// store `language`). The calls tab has to do the same: the photo on the right,
+// the name and the call type next to it and right-aligned, the date and the
+// delete bin on the left. English and Turkish stay left to right.
+describe("CallItem — right-to-left languages", () => {
+  async function renderIn(language: "en" | "ar" | "tr" | "ku") {
+    const r = await renderWithProviders(
+      <CallItem
+        photo="customers/profile/test.jpg"
+        name="Alaa Test123"
+        date="15/09"
+        duration={65}
+        Delete={() => {}}
+        type={{ type: "VoiceCall", sender: THEM, duration: 65 }}
+      />,
+      { language, store: { userChat: { id: ME } } },
+    );
+    const q = (sel: string) =>
+      r.container.querySelector(sel) as HTMLElement | null;
+    return {
+      row: q(".call-conversation-item"),
+      info: q(".call-info"),
+      date: q(".call-date"),
+      bin: q(".options-icon"),
+    };
+  }
+
+  for (const language of ["ar", "ku"] as const) {
+    it(`mirrors the call row in ${language}, the same way the chats tab does`, async () => {
+      const { row, info, date, bin } = await renderIn(language);
+
+      expect(
+        row?.className,
+        `in ${language} the call row did not reverse, so the photo stayed on the left (class "${row?.className}")`,
+      ).toContain("flex-row-reverse");
+      expect(
+        info?.className,
+        `in ${language} the name and call type were not set right to left (class "${info?.className}")`,
+      ).toContain("dir-rtl");
+      expect(
+        date?.className,
+        `in ${language} the date did not move to the left side (class "${date?.className}")`,
+      ).toContain("left-[25px]");
+      expect(
+        bin?.className,
+        `in ${language} the delete bin did not move to the left side (class "${bin?.className}")`,
+      ).toContain("left-[10px]");
+    });
+  }
+
+  for (const language of ["en", "tr"] as const) {
+    it(`keeps the call row left to right in ${language}`, async () => {
+      const { row, info, date } = await renderIn(language);
+
+      expect(
+        row?.className,
+        `in ${language} the call row was reversed, but ${language} reads left to right`,
+      ).not.toContain("flex-row-reverse");
+      expect(
+        info?.className,
+        `in ${language} the name and call type were set right to left`,
+      ).not.toContain("dir-rtl");
+      expect(
+        date?.className,
+        `in ${language} the date moved to the left side`,
+      ).not.toContain("left-[25px]");
+    });
+  }
+});

@@ -232,6 +232,13 @@ describe("the Out Of Bag list", () => {
       product_variation_id: 7,
       qty: 2,
     });
+    // The showed_price contract: the price of ONE piece the row shows (10),
+    // never the line total (10 x 2). Saved items carry no showed_price, so the
+    // row's own offer price is what the shopper saw.
+    expect(
+      cartService.AddToCart.mock.calls[0][0].showed_price,
+      "'Add Again?' did not send the price of one piece the row shows (10) as showed_price",
+    ).toBe(10);
     await waitFor(() =>
       expect(reads.getCart, "the bag was not read again").toHaveBeenCalled(),
     );

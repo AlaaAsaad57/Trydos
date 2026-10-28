@@ -786,8 +786,15 @@ function ConversationContainer({
     if (!active?.id || !active?.messages?.[0]) return;
     prevScrollHeightRef.current = scrollContainerRef.current?.scrollHeight || 0;
     isFetchingOlderRef.current = true;
-    getPage(active?.id, active?.messages?.[0]?.id);
+    const page = getPage(active?.id, active?.messages?.[0]?.id);
     setMessagesPage(active?.messages?.[0]?.id);
+    // Open the lock once the page is done, loaded or failed. It used to be
+    // opened in the scroll effect below, and that effect is commented out. The
+    // chat window keeps this container mounted while it is open, so no chat
+    // could load a second page of older messages after the first one.
+    Promise.resolve(page).finally(() => {
+      isFetchingOlderRef.current = false;
+    });
   }, [active, getPage, setMessagesPage]);
 
   /* --------------------- Scroll effect for list ------------------------ */
@@ -1095,9 +1102,18 @@ function ConversationContainer({
             height: "calc(100% - 101px)",
           }}
         >
+          {/* One loader per chat (`key`). The loader hears from the browser
+              only when the top of the chat comes into view or leaves it. A
+              chat opened straight from another one (the new-chats column on
+              desktop, a toast) used to keep the old loader, so a new chat
+              whose top was already on screen never loaded older messages. */}
           {!(typeof active?.id === "string" && active?.id?.includes("ch")) &&
             active?.id && (
-              <Observable loading={loading} getNext={fetchOlderMessages} />
+              <Observable
+                key={active.id}
+                loading={loading}
+                getNext={fetchOlderMessages}
+              />
             )}
 
           {sortedMessages?.map((mes: Message, i: number) => (

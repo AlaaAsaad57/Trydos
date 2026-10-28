@@ -7,13 +7,14 @@ import {
   motion,
   useDragControls,
   useIsPresent,
+  type MotionValue,
 } from "framer-motion";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
 import XdIcon from "../DemoApp/XdIcon";
 import { XD_ICON_SIZE, type XdIconName } from "../DemoApp/xdIcons";
 import type { DemoKey } from "../DemoApp/demoKeys";
 import { Box, Icon, Txt, type Weight } from "../DemoApp/ui";
-import { holdTopTint, type TintHome } from "../DemoApp/topTint";
+import { followTopTint, holdTopTint, type TintHome } from "../DemoApp/topTint";
 import {
   BANNER,
   BODY_Y,
@@ -259,6 +260,28 @@ export function useTopTint(color: string, on: boolean) {
     if (!on || !touch) return;
     return holdTopTint(color, DEMO1_TINT);
   }, [color, on, touch]);
+}
+
+/**
+ * Shows `color` in Safari's top area while the caller is mounted, as strong
+ * as `amount` (0 to 1) on every frame: for a wash that fades in script (the
+ * chat's), so the top fades with the page and not after it. Nothing when
+ * `color` is undefined.
+ */
+export function useFollowTopTint(
+  color: string | undefined,
+  amount: MotionValue<number>,
+) {
+  React.useEffect(() => {
+    if (!color) return;
+    const top = followTopTint(color, DEMO1_TINT);
+    top.set(amount.get());
+    const stop = amount.on("change", top.set);
+    return () => {
+      stop();
+      top.release();
+    };
+  }, [color, amount]);
 }
 
 /** True once the page runs in the browser, so a portal has a <body> to go to. */

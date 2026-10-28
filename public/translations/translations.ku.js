@@ -3134,6 +3134,7 @@ const translations = {
   "Smart, Fast & Rewarding": "زیرەک، خێرا و بەسوود",
   "Invest, earn points, and enjoy seamless one-touch checkout with total safety.": "وەبەرهێنان بکە، خاڵ کۆبکەرەوە، و بە یەک دەستلێدان و بە سەلامەتی تەواو بە ئاسانی پارە بدە.",
   "Welcome !": "بەخێربێیت !",
+  "This is your own number": "ئەمە ژمارەی خۆتە",
 };
 
 export default translations;

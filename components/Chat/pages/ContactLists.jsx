@@ -15,7 +15,16 @@ import { useRef, useState } from "react";
 import ChatContactsUpload from "../components/ChatContactsUpload";
 
 function ContactLists(props) {
-  const { data: chats, language, contacts } = useAppStore();
+  const { data: chats, language, contacts: savedContacts, userChat } =
+    useAppStore();
+  // The shopper's own number saved as a contact is not drawn. The shopper is a
+  // member of every chat, so that row matched the first chat in the list and
+  // showed as a second copy of that chat's partner.
+  const contacts = (savedContacts ?? []).filter(
+    (contact) =>
+      !userChat?.id ||
+      parseInt(contact?.contact_user?.id) !== parseInt(userChat.id)
+  );
 
   // The contacts the last import found already saved. They are drawn first and
   // flash once. `run` changes on every import, so the flash plays again.

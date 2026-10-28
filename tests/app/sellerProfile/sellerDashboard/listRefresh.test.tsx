@@ -33,6 +33,7 @@ const GetProductsSocial = vi.fn();
 const getSellerCarts = vi
   .fn()
   .mockResolvedValue({ success: true, isSuccessful: true, data: { carts: [], meta: { total: 0 } } });
+const getSellerStories = vi.fn();
 const getSellerOldCarts = vi
   .fn()
   .mockResolvedValue({ success: true, isSuccessful: true, data: { old_carts: [], meta: { total: 0 } } });
@@ -43,6 +44,7 @@ vi.mock("services/sellerDashboard", () => ({
     getSellerBoutiques: (...a: unknown[]) => getSellerBoutiques(...a),
     getSellerCarts: (...a: unknown[]) => getSellerCarts(...a),
     getSellerOldCarts: (...a: unknown[]) => getSellerOldCarts(...a),
+    getSellerStories: (...a: unknown[]) => getSellerStories(...a),
     getSellerPermissions: (...a: unknown[]) => getSellerPermissions(...a),
     getRoles: (...a: unknown[]) => getRoles(...a),
     getUsers: (...a: unknown[]) => getUsers(...a),
@@ -72,7 +74,13 @@ vi.mock("services/auth", () => ({ default: { UserID: () => 1 } }));
 // The tabs this file never opens. They pull in maps, image cropping and the
 // media server, none of which this behaviour depends on.
 vi.mock("components/SellerDashboard/GalleryTab", () => ({ default: () => null }));
-vi.mock("components/SellerDashboard/StoriesTab", () => ({ default: () => null }));
+// The Stories tab stand-in exposes the total hand-off as a button, so a test can
+// play "the tab loaded 4 stories" without the real tab and its stories server.
+vi.mock("components/SellerDashboard/StoriesTab", () => ({
+  default: ({ onTotalChange }: { onTotalChange?: (total: number) => void }) => (
+    <button data-pw="stories-stub-total" onClick={() => onTotalChange?.(4)} />
+  ),
+}));
 vi.mock("components/SellerDashboard/CommentsTab", () => ({ default: () => null }));
 vi.mock("components/SellerDashboard/ExcelUploadTab", () => ({ default: () => null }));
 vi.mock("components/SellerDashboard/locations/LocationsTab", () => ({ default: () => null }));
@@ -205,6 +213,8 @@ beforeEach(() => {
   getSellerProducts.mockResolvedValue(productsPayload([]));
   getSellerBoutiques.mockResolvedValue(boutiquesPayload([]));
   GetProductsSocial.mockResolvedValue({ success: true, data: {} });
+  // The real shape: a Laravel paginator, `total` on `data`, no `meta`.
+  getSellerStories.mockResolvedValue({ success: true, data: { data: [], total: 0 } });
 });
 
 /* --------------------------------- tests ---------------------------------- */
@@ -591,6 +601,63 @@ describe("the seller dashboard home", () => {
     );
   });
 
+  it("shows the stories total on the Stories tile, without opening the side menu", async () => {
+    getSellerStories.mockResolvedValue({
+      success: true,
+      data: { data: [{ id: "s1" }], total: 6, current_page: 1, last_page: 6, per_page: 1 },
+    });
+    await openAs(["READ_STORY"]);
+
+    expect(
+      getSellerStories,
+      "the home did not ask the stories server for this shop's story count with perPage=1",
+    ).toHaveBeenCalledWith(SELLER_ID, 1, 1, 1);
+    expect(
+      byPw("seller-dashboard-tile-stories-count")?.textContent,
+      "the Stories tile on the home does not show the total of 6 the stories server reported",
+    ).toBe("6");
+  });
+
+  it("asks the stories server once for the home tile and the side menu together", async () => {
+    getSellerStories.mockResolvedValue({ success: true, data: { data: [], total: 3 } });
+    await openAs(["READ_STORY"]);
+
+    fireEvent.click(byPw("seller-dashboard-menu-btn"));
+    await settle();
+
+    expect(
+      getSellerStories.mock.calls.length,
+      "opening the side menu asked the stories server for the count again after the home tile had it",
+    ).toBe(1);
+    expect(
+      byPw("seller-dashboard-menu-stories-count").textContent,
+      "the side-menu Stories badge does not show the total of 3 the home tile loaded",
+    ).toBe("3");
+  });
+
+  it("shows a dash on the Stories tile, not 0, when the stories server refused the count", async () => {
+    getSellerStories.mockResolvedValue({ success: false, message: "stories are down" });
+    await openAs(["READ_STORY"]);
+
+    expect(
+      byPw("seller-dashboard-tile-stories-count")?.textContent,
+      "a refused stories count was drawn on the home tile as a number; an unknown count must read as a dash",
+    ).toBe("—");
+  });
+
+  it("never asks the stories server for the home count without READ_STORY", async () => {
+    await openAs(["READ_CARTS", "READ_ORDERS"]);
+
+    expect(
+      getSellerStories,
+      "the home asked the stories server for a count although the seller has no READ_STORY",
+    ).not.toHaveBeenCalled();
+    expect(
+      byPw("seller-dashboard-tile-stories-count"),
+      "a Stories count was drawn on the home for a seller without READ_STORY",
+    ).toBeNull();
+  });
+
   it("leaves to the shop list when back is pressed on the home", async () => {
     await openAs(["SUPER_ADMIN"]);
 
@@ -819,6 +886,77 @@ describe("the seller dashboard side menu", () => {
     const cartsMenuItem = byPw("seller-dashboard-menu-carts");
     expect(cartsMenuItem).toBeInTheDocument();
     expect(cartsMenuItem).toHaveTextContent("42");
+  });
+
+  it("shows the stories total on the Stories badge, asking the stories server for one row", async () => {
+    getSellerStories.mockResolvedValue({
+      success: true,
+      data: { data: [{ id: "s1" }], total: 6, current_page: 1, last_page: 6, per_page: 1 },
+    });
+    await openAs(["READ_STORY"]);
+
+    fireEvent.click(byPw("seller-dashboard-menu-btn"));
+    await settle();
+
+    expect(
+      getSellerStories,
+      "opening the menu did not ask the stories server for this shop's stories with perPage=1",
+    ).toHaveBeenCalledWith(SELLER_ID, 1, 1, 1);
+    expect(
+      byPw("seller-dashboard-menu-stories-count").textContent,
+      "the Stories badge does not show the total of 6 the stories server reported",
+    ).toBe("6");
+  });
+
+  it("never asks the stories server for the count without READ_STORY", async () => {
+    await openAs(["READ_CARTS", "READ_ORDERS"]);
+
+    fireEvent.click(byPw("seller-dashboard-menu-btn"));
+    await settle();
+
+    expect(
+      getSellerStories,
+      "the side menu asked the stories server for a count although the seller has no READ_STORY",
+    ).not.toHaveBeenCalled();
+    expect(
+      byPw("seller-dashboard-menu-stories-count"),
+      "a Stories badge was drawn for a seller without READ_STORY",
+    ).toBeNull();
+  });
+
+  it("shows a dash, not 0, when the stories server refused the count", async () => {
+    getSellerStories.mockResolvedValue({ success: false, message: "stories are down" });
+    await openAs(["READ_STORY"]);
+
+    fireEvent.click(byPw("seller-dashboard-menu-btn"));
+    await settle();
+
+    expect(
+      byPw("seller-dashboard-menu-stories-count").textContent,
+      "a refused stories count was drawn as a number; an unknown count must read as a dash",
+    ).toBe("—");
+    expect(LogError, "the refused stories count was not logged").toHaveBeenCalledWith({
+      scenario: "SellerDashboard.getStoriesCount",
+      error: "stories are down",
+    });
+  });
+
+  it("reuses the total the Stories tab reported, and follows its changes", async () => {
+    await openAs(["READ_STORY"], "stories");
+
+    // The tab reports its total (on load, and again after an upload or delete).
+    fireEvent.click(byPw("stories-stub-total"));
+    fireEvent.click(byPw("seller-dashboard-menu-btn"));
+    await settle();
+
+    expect(
+      getSellerStories,
+      "the side menu asked the stories server again although the Stories tab had already reported the total",
+    ).not.toHaveBeenCalled();
+    expect(
+      byPw("seller-dashboard-menu-stories-count").textContent,
+      "the Stories badge does not show the total of 4 the Stories tab reported",
+    ).toBe("4");
   });
 });
 

@@ -1,6 +1,9 @@
 # UI migration plan — demo UI becomes the real app
 
-**Status:** Stage 0 (decisions) and Stage 1 (foundation) done on 2026-10-28. Next: Stage 2 (login).
+**Status:** Stages 0 (decisions), 1 (foundation) and 2 (login) done on 2026-10-28. Stage 3 (shell) is built in
+parallel on `ui-migrations-shell` (A-18). Next here: Stage 4, after Stage 3 is merged.
+**Paused on 2026-10-29:** Stage 3 Task 9 is pushed on `ui-migrations-shell` (`b2d23e37`), not merged yet. The
+resume list is in that branch's plan, Stage 3, "Where Stage 3 stopped (2026-10-29) — continue here".
 **Still open:** D-24 ("Web" / "lock" switches: designer / product), D-30 (place levels: backend). Neither
 blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no wallet backend works yet.
 **Written:** 2026-10-28, from a read-only scan of the code.
@@ -360,6 +363,13 @@ shared blocks place nothing by the physical left or right), the RTL cases in
 - **2e — Done.** Cleanup (D-6), each file proved unused by grep first: `FullEnhancedLoginWidget.tsx`,
   `InlineVerifyPanel.tsx`, the 12 old screens in `components/Login/Enhanced/screens/`, and their 5 test files.
   `services/qrLogin` stays: the phone-side QR scanner (`QrScannerModal`, `QrApprovalSheet`) still uses it.
+- **E2e result (2026-10-28, staging):** `auth.scripted` 6/6 passed on the new login page. `auth.live`: AUTH-02 (the
+  session survives a reload) and AUTH-03 (sign out) passed; AUTH-01 is red only on the wallet part ("the wallet
+  sign-in did not land"), the known wallet `502` that stays red on purpose. Every other backend of the sign-in
+  landed. The other specs that sign in through the UI (shopper, profile, chat, comments, stories, wishlist,
+  session recovery) use the same helpers and were not run here.
+- **For the team:** a native speaker reviews the new login strings; the designer checks the screens with no XD
+  board (session expired A-26, checkout verify A-27, the name-first sign-in A-22).
 
 ### Logic to move into the new screens (all exists in the live widget)
 

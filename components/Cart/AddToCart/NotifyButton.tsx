@@ -4,6 +4,8 @@ import { RemoveIconHolder } from "./Button";
 import cart from "services/cart";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { isLuckActive } from "utils/luck";
+import { resolveShowedPrice } from "utils/cart/pricing";
 
 function NotifyButton({
   isNotified,
@@ -50,6 +52,13 @@ function NotifyButton({
           cart_id: isVariantInCart({ exact: true })?.item_id,
           qty: isVariantInCart({ exact: true })?.quantity - 1,
           isFromAddWidget: true,
+          // The price of ONE piece the sheet shows (PricesRow).
+          showed_price: resolveShowedPrice({
+            product,
+            selectedVariant,
+            cartItem: isVariantInCart({ exact: true }),
+            isLuck: isLuckActive(product, id),
+          }),
         });
 
         if (response === false) {

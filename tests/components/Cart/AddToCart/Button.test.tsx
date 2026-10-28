@@ -287,6 +287,34 @@ describe("adding to the bag from the add-to-cart button", () => {
     expect(UpdateCart.mock.calls[0][0].cart_id, "the variant row was not found by its variation id").toBe("cart-1");
   });
 
+  // The showed_price contract: /cart/update carries the price of ONE piece the
+  // sheet shows, and the core backend saves it in place of the old value.
+  it("sends the price of one piece the sheet shows when adding one more", async () => {
+    UpdateCart.mockResolvedValue(true);
+    await renderButton(
+      { selectedVariant: { offer_price: 80, price: 100 } },
+      { localCart: [{ id: 101, item_id: "cart-1", quantity: 2 }] },
+    );
+    await tapAdd();
+    expect(
+      UpdateCart.mock.calls[0]?.[0]?.showed_price,
+      "adding one more from the sheet did not send the shown price of one piece (offer price 80) to /cart/update",
+    ).toBe(80);
+  });
+
+  it("sends the luck line's own price when adding one more to a luck line", async () => {
+    UpdateCart.mockResolvedValue(true);
+    await renderButton(
+      { selectedVariant: { offer_price: 80, price: 100 } },
+      { localCart: [{ id: 101, item_id: "cart-1", quantity: 2, is_luck: true, offer_price: 35 }] },
+    );
+    await tapAdd();
+    expect(
+      UpdateCart.mock.calls[0]?.[0]?.showed_price,
+      "the sheet shows a luck line's own offer price (35), and adding one more sent another price to /cart/update",
+    ).toBe(35);
+  });
+
   it("logs when the core backend refuses one more", async () => {
     UpdateCart.mockResolvedValue(false);
     const { updateQuantity } = await renderButton({}, { localCart: [{ id: 101, item_id: "cart-1", quantity: 2 }] });
@@ -377,6 +405,19 @@ describe("taking one out of the bag when more than one is in it", () => {
     expect(UpdateCart.mock.calls[0][0], "the bag row was not lowered by one").toMatchObject({ cart_id: "cart-1", qty: 2 });
     expect(updateQuantity, "the stock was not counted back up").toHaveBeenCalledWith(true, 7, "decrease");
     expect(AddToCart, "tapping the minus also added the item").not.toHaveBeenCalled();
+  });
+
+  it("sends the price of one piece the sheet shows when lowering the row", async () => {
+    UpdateCart.mockResolvedValue(true);
+    await renderButton(
+      { selectedVariant: { offer_price: 80, price: 100 } },
+      { localCart: [{ id: 101, item_id: "cart-1", quantity: 3 }] },
+    );
+    await tapMinus();
+    expect(
+      UpdateCart.mock.calls[0]?.[0]?.showed_price,
+      "lowering the row from the sheet did not send the shown price of one piece (offer price 80) to /cart/update",
+    ).toBe(80);
   });
 
   it("logs when the core backend refuses to lower the row", async () => {
