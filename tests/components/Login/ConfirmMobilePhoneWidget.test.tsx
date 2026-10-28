@@ -59,6 +59,15 @@ const openChat = ChatConroller as unknown as ReturnType<typeof vi.fn>;
 const ACCOUNT_PHONE = "963991234567";
 const EXPIRED_PHONE = "963997654321";
 
+/**
+ * The number as the method step shows it. The new screens (A-19 in
+ * UI-MIGRATION-PLAN.md) print it in groups ("+963 991 234 567"), so the check
+ * reads the digits, not the spacing.
+ */
+const dialled = (number: string) => (_text: string, el: Element | null) =>
+  el?.getAttribute("data-pw") === "method-phone" &&
+  (el.textContent ?? "").replace(/\s/g, "") === number;
+
 let location: LocationStub;
 let fetched: ReturnType<typeof vi.fn>;
 
@@ -97,7 +106,7 @@ describe("which number the shopper is asked to confirm", () => {
     });
 
     expect(
-      screen.getByText(`+${ACCOUNT_PHONE}`),
+      screen.getByText(dialled(`+${ACCOUNT_PHONE}`)),
       "the account's own number must be the one offered — asking a signed-in " +
         "shopper to type it again is a step for nothing",
     ).toBeInTheDocument();
@@ -146,7 +155,7 @@ describe("which number the shopper is asked to confirm", () => {
     });
 
     expect(
-      screen.getByText(`+${EXPIRED_PHONE}`),
+      screen.getByText(dialled(`+${EXPIRED_PHONE}`)),
       "the shopper is signing back into the account they just lost — making " +
         "them retype the number is the app forgetting who they were",
     ).toBeInTheDocument();
@@ -232,7 +241,7 @@ describe("when the shopper finishes verifying", () => {
     sendOtp.mockResolvedValue(undefined);
     const rendered = await renderWidget(store);
 
-    await rendered.user.click(screen.getByRole("button", { name: /Send SMS/ }));
+    await rendered.user.click(screen.getByRole("button", { name: /Send SMS/i }));
     await screen.findByText("Enter Verification Code Sent To Your SMS");
     const field = document.querySelector<HTMLInputElement>(
       '[data-pw="input-otp-field"]',

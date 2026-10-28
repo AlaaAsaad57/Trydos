@@ -57,14 +57,14 @@ export default function NewSuccessScreen({
 
             <h2
                 className="absolute text-xd-30 font-bold text-[#1D1D1D]"
-                style={{ top: XD.head.title, left: XD.textLeft }}
+                style={{ top: XD.head.title, insetInlineStart: XD.textLeft }}
             >
                 {isLogin ? translate('Welcome !') : translate('Sign up successfully !')}
             </h2>
 
             <p
                 className="absolute text-xd-16 font-medium text-[#1D1D1D]"
-                style={{ top: XD.head.line2, left: XD.textLeft }}
+                style={{ top: XD.head.line2, insetInlineStart: XD.textLeft }}
             >
                 {isLogin ? name || '' : translate('Last step and enjoy our services')}
             </p>
@@ -72,7 +72,7 @@ export default function NewSuccessScreen({
             {isLogin && (
                 <p
                     className="absolute text-xd-12 font-normal text-[#1D1D1D]"
-                    style={{ top: XD.head.line3, left: XD.textLeft }}
+                    style={{ top: XD.head.line3, insetInlineStart: XD.textLeft }}
                 >
                     {translate('Enjoy with our services')}
                 </p>

@@ -374,51 +374,98 @@ const SIGN_OUT_SETTLE_MS = 30_000;
  *  credential and trying again before it gives up. */
 const CART_ANSWER_MS = 30_000;
 
-/** Open the login widget from the nav bar and wait for the first screen.
+/** How long the Quick Preview may take to offer its buttons. They come up
+ *  when its column lifts, a few seconds after the page opens. */
+const QUICK_PREVIEW_MS = 15_000;
+
+/** How long the login page may take to go back after its ending. It shows
+ *  the ending for 2.5 seconds, then goes back to `?next=` in the client. */
+const LOGIN_LEAVES_MS = 15_000;
+
+/** Open the login from the nav bar and get to its Get Started screen.
  *
- *  Two questions, asked separately, for the same reason `openAccountMenu` asks
- *  two: "did the widget open" and "is it on the first screen" are different
- *  faults with different causes, and one check could only ever report the
- *  second. `BUY-01` failed as `join-statement ... element(s) not found`, which
- *  names a marker rather than a fault.
+ *  The login is a page now, /[lang]/login (D-11 in UI-MIGRATION-PLAN.md), and
+ *  it opens on the Quick Preview. So three questions, asked separately, because
+ *  each is a different fault: did the login page open, did the Quick Preview
+ *  let the visitor through, and is the visitor on Get Started.
  *
  *  The press is repeated up to three times because the nav control is
  *  server-rendered, so a press landing before React attaches does nothing at
- *  all. It is **never** repeated while the widget is already open: the widget
- *  covers the nav control it was opened from, so a second press is swallowed
- *  and Playwright reports a click timeout instead. */
+ *  all. It is **never** repeated once the login page is up: the page covers the
+ *  nav control, so a second press is swallowed and Playwright reports a click
+ *  timeout instead. */
 export const openLoginWidget = async (page: Page): Promise<void> => {
   const button = auth.loginButton(page);
   await expect(button).toBeVisible();
 
-  let screen = await currentAuthScreen(page);
-  for (let attempt = 0; attempt < 3 && screen === "closed"; attempt += 1) {
+  const loginPage = auth.loginPage(page);
+  let open = await loginPage.isVisible().catch(() => false);
+  for (let attempt = 0; attempt < 3 && !open; attempt += 1) {
     await button.click();
-    await auth
-      .getStartedTitle(page)
+    open = await loginPage
       .waitFor({ state: "visible", timeout: AUTH_SCREEN_MS })
-      .catch(() => undefined);
-    screen = await currentAuthScreen(page);
+      .then(() => true)
+      .catch(() => false);
   }
+  expect(
+    open,
+    "the login control was pressed three times and the login page (/[lang]/login) never opened",
+  ).toBe(true);
+  expect(
+    new URL(page.url()).pathname,
+    "the login opened, but not as the /[lang]/login page",
+  ).toMatch(/^\/[^/]+\/login\/?$/);
 
-  // First question. `"closed"` is `currentAuthScreen`'s own answer for "none of
-  // the widget's screens are in the page", so this is the app's reading, not a
-  // guess about one marker.
+  await passQuickPreview(page);
+
+  // `null` means a screen this suite does not recognise — worth saying, because
+  // it is what a page that kept an earlier flow armed looks like.
+  const screen = await currentAuthScreen(page);
   expect(
     screen,
-    "the login control was pressed three times and the widget never opened, " +
-      "so no screen of it is in the page",
-  ).not.toBe("closed");
-
-  // Second question, and its own message. `null` means the widget is open on a
-  // screen this suite does not recognise — worth saying, because it is what a
-  // page that kept an earlier flow armed looks like.
-  expect(
-    screen,
-    `the login widget opened on the "${screen ?? "unrecognised"}" screen ` +
-      "instead of the first one, so the visitor was not asked to sign up or " +
-      "log in",
+    `the login page opened on the "${screen ?? "unrecognised"}" screen ` +
+      "instead of Get Started, so the visitor was not asked to sign up or log in",
   ).toBe("get-started");
+};
+
+/** Through the Quick Preview: "Next" until its last slide, then "Get Started". */
+const passQuickPreview = async (page: Page): Promise<void> => {
+  const next = auth.quickPreviewNext(page);
+  const getStarted = auth.quickPreviewGetStarted(page);
+  await expect(
+    next.or(getStarted),
+    "the login page's Quick Preview never offered its Next or Get Started button",
+  ).toBeVisible({ timeout: QUICK_PREVIEW_MS });
+
+  // Three slides: at most two presses of Next before Get Started shows.
+  for (let press = 0; press < 3 && !(await getStarted.isVisible().catch(() => false)); press += 1) {
+    await next.click();
+  }
+  await expect(
+    getStarted,
+    "the Quick Preview's last slide never offered Get Started",
+  ).toBeVisible({ timeout: AUTH_SCREEN_MS });
+  await getStarted.click();
+  await expect(
+    auth.getStartedTitle(page),
+    "Get Started on the Quick Preview did not open the Get Started screen",
+  ).toBeVisible({ timeout: AUTH_SCREEN_MS });
+};
+
+/** After a sign-in ending, the login page goes back to the page in `?next=`.
+ *  A case that clicks on its own page next must wait for that, or the press
+ *  lands on the login page. */
+const waitForLoginToLeave = async (page: Page): Promise<void> => {
+  if (!(await auth.loginPage(page).isVisible().catch(() => false))) return;
+  const left = await auth
+    .loginPage(page)
+    .waitFor({ state: "hidden", timeout: LOGIN_LEAVES_MS })
+    .then(() => true)
+    .catch(() => false);
+  expect(
+    left,
+    "the login page showed its ending but never went back to the page the shopper came from",
+  ).toBe(true);
 };
 
 /** Choose sign-up or login on the first screen. */
@@ -652,15 +699,15 @@ export const currentAuthScreen = async (
     if (await locator.isVisible().catch(() => false)) return name;
   }
 
-  // The widget closes on success; if none of the screens are visible, treat it
-  // as closed rather than unknown.
-  const widgetOpen = await auth
-    .getStartedTitle(page)
-    .locator("..")
-    .locator("..")
+  // The login leaves on success; if no screen of it is on stage any more, it
+  // is closed. A screen that is on stage but not in the list above (the Quick
+  // Preview, the session-expired prompt) is "unknown", not closed.
+  const onStage = await auth
+    .anyAuthStep(page)
+    .first()
     .isVisible()
-    .catch(() => true);
-  return widgetOpen ? null : "closed";
+    .catch(() => false);
+  return onStage ? null : "closed";
 };
 
 /** Wait for the widget to land on a specific screen. */
@@ -725,7 +772,7 @@ export const attemptAuth = async (
   // of a second apart, and that is not the same question.** On the PIN screen
   // nothing changes for the whole verify round trip — and for a full second
   // after it, because `handleVerifyPin`
-  // (`components/Login/Enhanced/FullEnhancedLoginWidget.tsx:342`) moves the
+  // (now `NewLoginDesign/NewLoginWidget.tsx`, the same 1-second wait) moves the
   // shopper on inside a `setTimeout(…, 1000)`. So two matching reads meant
   // "the sign-in is still travelling", and the helper returned `enter-pin`
   // exactly when the sign-in was slow, which is the one case it exists to wait
@@ -765,7 +812,11 @@ export const attemptAuth = async (
     }
 
     if (await reachedFinishedScreen(page)) {
-      return { screen: (await currentAuthScreen(page)) ?? "closed", error: null };
+      const screen = (await currentAuthScreen(page)) ?? "closed";
+      // "Welcome back" goes on to the page in ?next= by itself; the other
+      // finished screens wait for the shopper.
+      if (screen === "welcome") await waitForLoginToLeave(page);
+      return { screen, error: null };
     }
 
     // The app, not the widget -- but asked on its own slower clock. Reading the
@@ -775,7 +826,9 @@ export const attemptAuth = async (
     if (Date.now() >= nextAppRead) {
       nextAppRead = Date.now() + APP_READ_EVERY_MS;
       if ((await signedInSession(page)).phoneVerified) {
-        return { screen: (await currentAuthScreen(page)) ?? "closed", error: null };
+        const screen = (await currentAuthScreen(page)) ?? "closed";
+        if (screen === "welcome") await waitForLoginToLeave(page);
+        return { screen, error: null };
       }
     }
 

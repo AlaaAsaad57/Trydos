@@ -640,8 +640,8 @@ test("BUY-02 a visitor with no verified phone is stopped before any order exists
     await openCart(page);
 
     // Pressing Confirm & Continue as a visitor with no verified phone opens the
-    // verify panel in place (`components/cart/OrderButton.tsx`) instead of
-    // moving on. This is the gate that keeps a guest out of checkout.
+    // verify full screen over the cart (`components/Cart/OrderButton.tsx`, A-27)
+    // instead of moving on. This is the gate that keeps a guest out of checkout.
     const reached = await goToCheckout(page);
     expect(
       reached.reached,

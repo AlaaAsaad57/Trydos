@@ -28,6 +28,18 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | A-16 | Real data | One hook per area (for example `useProfileData`). The hook reads `useAppStore` and calls the existing services. Screens get only plain values from it. Shipping code does not import the mock files (`DemoData.tsx`, `demoWallet.ts`, `demoChat*.ts`). A-8 still applies. Exception: the wallet keeps `demoWallet.ts` (A-17). |
 | A-17 | Wallet keeps its mock | **Decided on 2026-10-28.** No wallet backend works yet (on staging the wallet backend answers `502` on sign-in, AUTH-01). So the wallet keeps its mock data (`components/DemoApp/demoWallet.ts`) and its design exactly as on `/demo`. This is an exception to A-8 and A-16. Stage 5 moves the wallet screens into the app with their mock data, and wires no wallet data. When the wallet backend works, a later step replaces the mock with real data: `BACKEND-REQUESTS.md` W-1..W-9, D-34, and the "Money safety" list in Stage 5. **Known effect:** shoppers see the mock balances and history, and the mock actions end in success (for example, any 6-digit withdrawal code passes). This replaces D-32, D-32b and D-34 for now. |
 | A-18 | Stages 2 and 3 at the same time | **Decided on 2026-10-28.** Stage 2 (login) is built in the main folder on `ui-migrations`. Stage 3 (shell) is built at the same time by a second session, in its own git worktree (`../trydos-shell`) on the branch `ui-migrations-shell`, cut from `ui-migrations`. Rules: (1) a session never edits files in the other's folder; (2) Stage 3 deletes no old top-nav file (`AuthNavSection.tsx`, `UserNavTopSection.tsx`) until Stage 2 is merged, because Stage 2 changes the login buttons there; (3) new translation keys go only at the end of `translations.{ar,tr,ku}.js`; (4) each session edits only its own stage's section of this plan, plus its own row in this table; (5) merge order: Stage 2 into `ui-migrations` first, then `ui-migrations-shell` takes those changes and merges into `ui-migrations`. D-1 still holds: `ui-migrations` reaches `development` once, at the end. |
+| A-19 | Verify flows stay on the page | **Decided on 2026-10-28.** The phone re-verify (`ConfirmMobilePhoneWidget`), the session-expired prompt (`SessionExpiredWidget`), `VerifyPhoneFlow` (personal info, `VerifyUser`) and checkout's `InlineVerifyPanel` are built from the new login screens as an **overlay on the current page**, as today. They do not go to `/[lang]/login`, because the page waits for their result: the seller request is sent again (`BecomeSellerModal.tsx` lines 630-651), a parked chat / stories / comments / wallet 401 is sent again (`utils/fetchData.ts` lines 431-454), the story or the chat opens (`ConfirmMobilePhoneWidget.tsx` lines 102-107), and checkout goes on (`OrderButton.tsx` lines 643-666). |
+| A-20 | Way back from `/[lang]/login` | **Decided on 2026-10-28.** "Later", the close button and the end of the flow all go back to the page the shopper left (the return path). With no return path (a direct visit), they go to the home page `/[lang]`. |
+| A-21 | Edits kept across the login | **Dropped on 2026-10-28.** It was based on a wrong finding. In personal info and photo upload, any click by a guest on the form opens the login (`onClickCapture={handleFormClick}`, `PersonalInfoForm.tsx` line 270, `UploadProfilePhoto.tsx` line 198). So a guest cannot type or pick a photo before the login, and there are no edits to keep. Only keyboard-only entry (Tab + type) could leave edits; that case is accepted as lost. Nothing is built. |
+| A-22 | Sign-in with no name | **Decided on 2026-10-28.** A sign-in to an account that still has no real name (`hasRealName` false) goes verify → name → "Welcome back", the same order as the new sign-up (D-13). Today it is verify → "Welcome back" → name. |
+| A-23 | QR sheet until G-1 | **Decided on 2026-10-28.** The QR sheet opens as designed. It shows a fixed QR that holds the plain text "Trydos" (it opens nothing when scanned). "Soon available" shows in the sheet's existing message box over the middle of the QR (the box the declined state uses), with no "Show a new code" link. The localStorage mock (`services/qrLogin`) is not called. |
+| A-24 | Login page SEO | **Decided on 2026-10-28.** `/[lang]/login` has `robots: noindex` and is in no sitemap. |
+| A-25 | No deploy before the end | **Decided on 2026-10-28** (given to the Stage 3 session). Nothing on `ui-migrations` or `ui-migrations-shell` is deployed until all stages are done (after Stage 8). A half-built state between stages is OK on the branches. |
+| A-26 | Session-expired screen | **Decided on 2026-10-28.** No XD board exists (D-14: the designer must check it). It is built like the new "already registered !" screen (`NewAlreadyExistScreen`), with its colours (the light blue page `#F4F8FF`, the purple logo): logo at the top, the bold title "Your session has expired", one line of text, and two wide buttons "Login" and "Continue as Guest". The buttons keep today's actions (`SessionExpiredWidget.tsx`). |
+| A-27 | Checkout verify | **Decided on 2026-10-28.** Checkout's verify (today the small `InlineVerifyPanel` inside the order button) becomes a full-screen overlay over the cart, built from the new screens. Its steps stay as today: a shopper with no number on file gets Get Started ("I have already account" / "New customer") → terms for a new customer → phone → method → code; a shopper whose account has a number starts at the method step. No name step and no welcome screen. After the verify the order goes on, as today (`OrderButton.tsx` lines 643-666). |
+| A-28 | Checkout QR | **Decided on 2026-10-28.** The checkout's Get Started screen keeps its QR button (A-7: no part of the design is hidden). A tap opens the QR sheet with "Soon available" (A-23), with the same two events the login page sends (`login_start` method `qr`, `screen_view` QR screen). |
+| A-29 | Login icons and brand | **Decided on 2026-10-28.** The 15 icon `alt` texts of the login screens are empty (`alt=""`): each icon sits in a button that already has a translated label, or next to text that says the same. The brand name "Trydos" in the terms line is translated with the key that already exists (`Trydos`). |
+| A-30 | Number boxes in RTL | **Decided on 2026-10-28.** On `ar` / `ku` pages the phone box (`RdbPhoneInput`) and the code boxes (`RdbPinInputs`) stay left to right, as the drawn keyboard does: flag and number on the left, the send arrow on the right, the first code digit in the left box. Every number the screens show stays left to right too, so its groups never come out in reverse order. The text around them mirrors. |
 | D-1 | Merge | Once, at the end (after Stage 8). Every stage stays on `ui-migrations`. |
 | D-2 | Desktop | The 500 px centred column is OK on desktop. No desktop design work. |
 | D-3 | RTL | Mirror everything for `ar` / `ku`: layout, slide direction, tab order, margins. |
@@ -303,6 +315,52 @@ shared blocks place nothing by the physical left or right), the RTL cases in
 **New:** `NewLoginDesign/NewLoginWidget.tsx` and its screens (route `app/(client)/[lang]/loginDemo/page.tsx`).
 **Live:** `components/Login/Enhanced/FullEnhancedLoginWidget.tsx` (overlay, `components/Home/AuthSections.tsx` line 24).
 
+### Build steps
+- **2a — Done.** The page `app/(client)/[lang]/login/page.tsx` (noindex, A-24) shows `NewLoginWidget` with the
+  real flow, moved from the live widget: send code, verify, the 3-wrong-codes lock (`attemptsLocked` added to
+  `NewEnterPinScreen`), resend, name (`UpdateName`), the analytics events, `router.refresh()` and the story
+  rail after sign-in. Order: D-13 and A-22. The way back is `utils/loginPath.ts` (`?next=`, only a path on this
+  site, A-20). The mocks are gone: no filled-in phone, no "any 6 digits pass", no QR mock (A-23). The old
+  "Later pushes `/en`" fault is gone too: "Later" now goes back to `?next=` or `/[lang]`.
+  Tests: `tests/utils/loginPath.test.ts`, `tests/components/NewLoginWidget.test.tsx`, the login page case in
+  `tests/app/smallRoutes.test.tsx`. Each was seen red against the old code or a broken check.
+- **2b — Done.** The 13 openers go to `/[lang]/login?next=<page>`. One change in `components/Home/AuthSections.tsx`:
+  when `loginOpen` turns on, it clears the flag (which also frees the scroll lock) and pushes
+  `loginHref(lang, <this page>)`. On the login page itself it goes nowhere. The old overlay is no longer mounted.
+  Test: `tests/components/Home/AuthSections.test.tsx` (2 new cases, seen red on the old code). (A-21 was dropped:
+  there are no edits to keep.)
+- **2c — Done.** The verify overlays on the new screens (A-19):
+  - `NewLoginDesign/AuthStage.tsx`: the stage (slide + the one logo) taken out of `NewLoginWidget`, so the login
+    page and every overlay draw the new screens the same way.
+  - `VerifyPhoneFlow` shows `NewEnterPhoneScreen`, `NewSelectMethodScreen`, `NewEnterPinScreen` on that stage.
+    This covers the phone re-verify (`ConfirmMobilePhoneWidget`), personal info and `VerifyUser`. Their waiting
+    logic is unchanged.
+  - Session expired (A-26): `NewLoginDesign/NewSessionExpiredScreen.tsx`, in the already-registered layout and
+    colours ("Login" wide button, "Continue as Guest" blue link). `AuthOverlay` takes an `outerBg` for its colour.
+  - Checkout (A-27): the order button opens `VerifyPhoneFlow withIntro` full screen (`AuthOverlay`) instead of the
+    small `InlineVerifyPanel`. Get Started → terms for a new customer → phone → method → code → the order goes on.
+    The analytics source stays `InlineVerifyPanel` (D-10). Its Get Started keeps the QR button (A-28).
+  - Tests: the new-design and intro cases in `VerifyPhoneFlow.test.tsx`, the new-design case in
+    `SessionExpiredWidget.test.tsx`, the overlay checks in `OrderButton.test.tsx`; each seen red on the old code.
+    `ConfirmMobilePhoneWidget.test.tsx` and `VerifyPhoneFlow.test.tsx` now read the new screens' text (the
+    "Send Sms" label, the grouped number). `tests/setup.ts` supplies a no-op `ResizeObserver`, as it supplies
+    `matchMedia`, because the logo layer measures with one.
+  - Not used any more (goes in 2e): `InlineVerifyPanel.tsx`, `screens/SessionExpiredScreen.tsx`.
+- **2d — Done.**
+  - RTL: the login screens place everything from the start side (73 positions in 11 files). The centred QR
+    canvas, the symmetric pill padding and the `authLayout.ts` numbers stay physical, and so does the logo. The
+    name screen's continue arrow is mirrored (A-14). The phone and code boxes and every shown number stay left
+    to right (A-30).
+  - i18n (A-29): the 15 icon alts are empty; "Trydos" uses the existing key.
+  - e2e: `tests/e2e/selectors.ts` reads the new login (`loginPage`, the Quick Preview buttons, `anyAuthStep`,
+    `getStartedTitle` = `get-started`, `verifyPanel` = any screen of the login stage). `tests/e2e/actions/auth.ts`:
+    `openLoginWidget` checks that /[lang]/login opened and goes through the Quick Preview; `currentAuthScreen`
+    tells "closed" by the login stage; `attemptAuth` waits for the login page to go back after "Welcome back".
+  - Tests: `tests/components/NewLoginScreensRtl.test.tsx` (16 cases, all seen red on the old screens).
+- **2e — Done.** Cleanup (D-6), each file proved unused by grep first: `FullEnhancedLoginWidget.tsx`,
+  `InlineVerifyPanel.tsx`, the 12 old screens in `components/Login/Enhanced/screens/`, and their 5 test files.
+  `services/qrLogin` stays: the phone-side QR scanner (`QrScannerModal`, `QrApprovalSheet`) still uses it.
+
 ### Logic to move into the new screens (all exists in the live widget)
 
 - Send OTP: `AuthService.SendOtp` → `serverActions/sendOtp.ts` (Redis `otpRateLimit`, core `/auth/phone/send_otp`), then `lockNumber` / `recordSessionNumber`.
@@ -316,9 +374,21 @@ shared blocks place nothing by the physical left or right), the RTL cases in
 - Remove the mocks: phone pre-filled `905528002000`, any 6 digits pass, `loading` / `error` never set, QR `services/qrLogin` localStorage mock.
 
 ### All 13 places that open the login (each must navigate to `/[lang]/login` with a return path, D-11)
-`UserNavTopSection.tsx`, `AuthNavSection.tsx`, `AddStory.tsx`, `LikeButtton.tsx`, `ProductLikeButton.tsx`,
-`setting/orders/index.tsx`, `setting/profile/index.tsx`, `PersonalInfoForm.tsx` (2), `VerifyUser.tsx`,
-`WalletLinkCard.tsx`, `UploadProfilePhoto.tsx` (2). Plus every `setShouldAuthinticated(...)` caller.
+These call `setLoginOpen(true)`, which mounts `FullEnhancedLoginWidget` (`components/Home/AuthSections.tsx` line 24):
+`UserNavTopSection.tsx` line 38, `AuthNavSection.tsx` line 71, `AddStory.tsx` line 34, `LikeButtton.tsx` line 39,
+`ProductLikeButton.tsx` line 155, `setting/orders/index.tsx` line 52, `setting/profile/index.tsx` line 30,
+`PersonalInfoForm.tsx` lines 244 and 266, `VerifyUser.tsx` line 48, `WalletLinkCard.tsx` line 81,
+`UploadProfilePhoto.tsx` lines 136 and 198. After sign-in none of them goes on with the action today (a like is
+not applied; the shopper taps again), so a page with a way back keeps their behaviour. Personal info and photo
+upload lose nothing: a guest's first click on those forms already opens the login (A-21, dropped).
+
+All 13 set the one store flag `loginOpen`, and only `components/Home/AuthSections.tsx` acts on it. So step 2b
+changes that one place: it sends the shopper to `loginHref(lang, <this page>)` and clears the flag. The callers
+and their tests stay as they are.
+
+**Not these:** `setShouldAuthinticated(...)` does not open the full login. It opens the phone re-verify
+(`ConfirmMobilePhoneWidget`) or the session-expired prompt (`SessionExpiredWidget`), mounted in
+`components/Home/NavbarClient.tsx` lines 43-49. Those stay on the page as an overlay (A-19).
 
 ### RTL (A-13, A-14)
 The login's root and the QR sheet already have `dir`, and the slide is mirrored (Stage 1). The screens'
@@ -697,3 +767,7 @@ input searches nothing (line 145), Voice and Scan have no action (lines 214, 222
    `docs/qr-login-backend-requirements.md` names the backend language.
 5. **`/[lang]/loginDemo` has no `noindex`**, but `/demo` has one.
 6. **`app/loginDemo/page.tsx` redirects to `/gb-en/loginDemo`**, which opens the region modal.
+7. **The brand name has duplicate keys with different spellings.** In all three translation files `Trydos` and
+   `TryDos` are each written twice, without quotes (for example `translations.ar.js` lines 1139, 1213, 1219,
+   1263). In Arabic `TryDos` is once ترايدوس and once تريدوس; the last one wins, so the first is dead. Found
+   while adding the terms line's key in Stage 2 (A-29); nothing was changed.

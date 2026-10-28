@@ -43,6 +43,15 @@ import {
 const sendOtp = AuthService.SendOtp as unknown as ReturnType<typeof vi.fn>;
 
 const PHONE = "963991234567";
+
+/**
+ * The number as the method step shows it. The new screens (A-19 in
+ * UI-MIGRATION-PLAN.md) print it in groups ("+963 991 234 567"), so the check
+ * reads the digits, not the spacing.
+ */
+const dialled = (number: string) => (_text: string, el: Element | null) =>
+  el?.getAttribute("data-pw") === "method-phone" &&
+  (el.textContent ?? "").replace(/\s/g, "") === number;
 const VERIFICATION_ID = "verification-id-from-the-send";
 
 type FlowProps = Partial<React.ComponentProps<typeof VerifyPhoneFlow>>;
@@ -91,6 +100,72 @@ beforeEach(() => {
 afterEach(() => {
   resetDevice();
   vi.clearAllMocks();
+});
+
+// A-19 in UI-MIGRATION-PLAN.md: the verify overlays are built from the new
+// login screens, on the same stage as the login page.
+describe("the new design", () => {
+  it("shows the number step on the new login stage, with a place for the one logo", async () => {
+    await renderFlow();
+
+    expect(
+      document.querySelector('[data-auth-step="enter-phone"]'),
+      "the number step is not on the new login stage (AuthStage)",
+    ).not.toBeNull();
+    expect(
+      document.querySelector("[data-auth-logo-slot]"),
+      "the number step keeps no place for the logo, so it is not the new design's screen",
+    ).not.toBeNull();
+  });
+});
+
+// A-27 in UI-MIGRATION-PLAN.md: checkout's verify asks a shopper with no number
+// who they are first, as the old cart panel did, on the new screens.
+describe("checkout's first steps (withIntro)", () => {
+  const pw = (id: string) => document.querySelector<HTMLElement>(`[data-pw="${id}"]`);
+  const stepOnShow = (id: string) =>
+    waitFor(() => expect(document.querySelector(`[data-auth-step="${id}"]`), `the ${id} step is not on show`).not.toBeNull());
+
+  it("an existing customer goes from Get Started straight to the number", async () => {
+    const { user } = await renderFlow({ withIntro: true });
+    await stepOnShow("get-started");
+    await user.click(pw("have-account-button")!);
+    await stepOnShow("enter-phone");
+    expect(document.querySelector('[data-auth-step="terms"]'), "an existing customer was shown the terms").toBeNull();
+  });
+
+  it("a new customer accepts the terms first, then gives the number", async () => {
+    const { user } = await renderFlow({ withIntro: true });
+    await stepOnShow("get-started");
+    await user.click(pw("create-account")!);
+    await stepOnShow("terms");
+    await user.click(pw("agree-continue")!);
+    await stepOnShow("enter-phone");
+  });
+
+  it("\"Later\" on Get Started leaves the verify", async () => {
+    const { user, onClose } = await renderFlow({ withIntro: true });
+    await stepOnShow("get-started");
+    await user.click(pw("take-look")!);
+    expect(onClose, "\"Later\" did not leave the checkout verify").toHaveBeenCalledTimes(1);
+  });
+
+  it("Get Started keeps its QR button, which opens the sheet with \"Soon available\"", async () => {
+    const { user } = await renderFlow({ withIntro: true });
+    await stepOnShow("get-started");
+    const qr = pw("scan-qr-code");
+    expect(qr, "the checkout Get Started has no QR button").not.toBeNull();
+    await user.click(qr!);
+    await waitFor(() =>
+      expect(pw("qr-soon-available")?.textContent, "the QR sheet did not open with \"Soon available\"").toContain("Soon Available"),
+    );
+  });
+
+  it("a shopper whose account owns its number skips Get Started and opens on the method step", async () => {
+    await renderFlow({ withIntro: true, initialPhone: PHONE, phoneLocked: true });
+    await stepOnShow("select-method");
+    expect(document.querySelector('[data-auth-step="get-started"]'), "a known number was asked who they are").toBeNull();
+  });
 });
 
 describe("a shopper confirming a number they typed", () => {
@@ -144,7 +219,7 @@ describe("a shopper confirming a number they typed", () => {
     await user.click(screen.getByRole("button", { name: "Send Phone Number" }));
 
     expect(
-      await screen.findByText(`+${PHONE}`),
+      await screen.findByText(dialled(`+${PHONE}`)),
       "the shopper must see which number the code is going to before they " +
         "send it, or a typo costs a full cooldown to find",
     ).toBeInTheDocument();
@@ -155,7 +230,7 @@ describe("a shopper confirming a number they typed", () => {
 
     await user.type(phoneField(), PHONE);
     await user.click(screen.getByRole("button", { name: "Send Phone Number" }));
-    await user.click(await screen.findByRole("button", { name: /Send SMS/ }));
+    await user.click(await screen.findByRole("button", { name: /Send SMS/i }));
     await screen.findByText(/Enter Verification Code Sent To Your/);
     await user.click(await screen.findByRole("button", { name: "Change Number" }));
 
@@ -193,7 +268,7 @@ describe("a shopper confirming a number the account already owns", () => {
         "how the code arrives",
     ).toBeInTheDocument();
     expect(
-      screen.getByText(`+${PHONE}`),
+      screen.getByText(dialled(`+${PHONE}`)),
       "the stored number must be shown as bare digits behind one plus, not " +
         "as the '++963…' a raw stored value would print",
     ).toBeInTheDocument();
@@ -212,7 +287,7 @@ describe("a shopper confirming a number the account already owns", () => {
   it("offers no way to swap the number from the code step either", async () => {
     const { user } = await renderFlow({ initialPhone: PHONE, phoneLocked: true });
 
-    await user.click(screen.getByRole("button", { name: /Send SMS/ }));
+    await user.click(screen.getByRole("button", { name: /Send SMS/i }));
     await screen.findByText(/Enter Verification Code Sent To Your/);
 
     expect(
@@ -249,7 +324,7 @@ describe("choosing how the code arrives", () => {
       phoneLocked: true,
     });
 
-    await user.click(screen.getByRole("button", { name: /Send SMS/ }));
+    await user.click(screen.getByRole("button", { name: /Send SMS/i }));
 
     expect(
       sendOtp,
@@ -268,7 +343,7 @@ describe("choosing how the code arrives", () => {
       phoneLocked: true,
     });
 
-    await user.click(screen.getByRole("button", { name: /Send SMS/ }));
+    await user.click(screen.getByRole("button", { name: /Send SMS/i }));
 
     expect(
       await screen.findByRole("alert"),
@@ -292,7 +367,7 @@ describe("choosing how the code arrives", () => {
         "tapping a button that will be refused",
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Send SMS/ }),
+      screen.getByRole("button", { name: /Send SMS/i }),
       "the SMS button must be unusable while the cooldown runs",
     ).toBeDisabled();
     expect(
@@ -313,7 +388,7 @@ describe("choosing how the code arrives", () => {
         "why, not shown an empty countdown",
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Send SMS/ }),
+      screen.getByRole("button", { name: /Send SMS/i }),
       "the cap must stop the send, not only describe it",
     ).toBeDisabled();
   });
@@ -337,7 +412,7 @@ describe("entering the code", () => {
       phoneLocked: true,
       ...props,
     });
-    await flow.user.click(screen.getByRole("button", { name: /Send SMS/ }));
+    await flow.user.click(screen.getByRole("button", { name: /Send SMS/i }));
     await screen.findByText("Enter Verification Code Sent To Your SMS");
     return flow;
   }
@@ -475,7 +550,7 @@ describe("a shopper whose send left no cooldown behind", () => {
       onSuccess,
     });
 
-    await user.click(screen.getByRole("button", { name: /Send SMS/ }));
+    await user.click(screen.getByRole("button", { name: /Send SMS/i }));
     await screen.findByText("Enter Verification Code Sent To Your SMS");
 
     expect(
@@ -532,9 +607,13 @@ describe("closing the flow", () => {
       phoneLocked: true,
     });
 
-    await user.click(screen.getByRole("button", { name: /Send SMS/ }));
+    await user.click(screen.getByRole("button", { name: /Send SMS/i }));
     await screen.findByText("Enter Verification Code Sent To Your SMS");
-    await user.click(screen.getByRole("button", { name: "Close" }));
+    // The method screen is still on stage while it slides out, with its own
+    // Close button, so the press goes to the one on the code step.
+    const codeStep = document.querySelector<HTMLElement>('[data-auth-step="enter-pin"]');
+    expect(codeStep, "the code step is not on the stage").not.toBeNull();
+    await user.click(within(codeStep!).getByRole("button", { name: "Close" }));
 
     expect(
       onClose,
@@ -582,7 +661,7 @@ describe("in a right-to-left language", () => {
       }),
     );
 
-    const shown = await screen.findByText(`+${PHONE}`);
+    const shown = await screen.findByText(dialled(`+${PHONE}`));
     expect(
       within(shown).queryByText(/[٠-٩]/),
       "the dialled number must stay in Western digits — an Arabic-digit " +
@@ -608,7 +687,7 @@ describe("the three-try cap on this surface", () => {
       phoneLocked: true,
       ...props,
     });
-    await flow.user.click(screen.getByRole("button", { name: /Send SMS/ }));
+    await flow.user.click(screen.getByRole("button", { name: /Send SMS/i }));
     await screen.findByText("Enter Verification Code Sent To Your SMS");
     return flow;
   }

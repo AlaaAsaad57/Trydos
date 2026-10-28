@@ -62,7 +62,7 @@ export default function NewEnterPhoneScreen({
                     className="absolute flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
                     style={{
                         top: controlTop(XD.control.closeTop),
-                        right: XD.control.right,
+                        insetInlineEnd: XD.control.right,
                         width: XD.control.closeSize,
                         height: XD.control.closeSize,
                         transition: 'top 0.25s ease-out',
@@ -71,7 +71,7 @@ export default function NewEnterPhoneScreen({
                 >
                     <Image
                         src="/assets/icons/auth/close.svg"
-                        alt="close"
+                        alt=""
                         width={XD.control.closeSize}
                         height={XD.control.closeSize}
                         className="object-contain"
@@ -85,14 +85,14 @@ export default function NewEnterPhoneScreen({
 
             <h2
                 className="absolute text-xd-30 font-bold text-[#1D1D1D]"
-                style={{ top: XD.head.title, left: XD.textLeft }}
+                style={{ top: XD.head.title, insetInlineStart: XD.textLeft }}
             >
                 {translate(authHeadingKey(authType))}
             </h2>
 
             <p
                 className="absolute text-xd-16 font-normal text-[#1D1D1D]"
-                style={{ top: XD.head.line2, left: XD.textLeft }}
+                style={{ top: XD.head.line2, insetInlineStart: XD.textLeft }}
             >
                 {translate('Enter your phone number registered with us')}
             </p>
@@ -101,7 +101,7 @@ export default function NewEnterPhoneScreen({
                 className="absolute flex items-center"
                 style={{
                     top: XD.head.line3,
-                    left: XD.textLeft,
+                    insetInlineStart: XD.textLeft,
                     gap: XD_LINE3_ICON_GAP.phone,
                 }}
             >
@@ -111,7 +111,7 @@ export default function NewEnterPhoneScreen({
                 <div className="w-xd-15 h-xd-15 shrink-0">
                     <Image
                         src="/assets/icons/auth/sim.svg"
-                        alt="sim"
+                        alt=""
                         width={15}
                         height={15}
                         className="object-contain"
@@ -121,7 +121,7 @@ export default function NewEnterPhoneScreen({
 
             <div
                 className="absolute flex items-center"
-                style={{ top: XD.head.line4, left: XD.textLeft, gap: 10.5 }}
+                style={{ top: XD.head.line4, insetInlineStart: XD.textLeft, gap: 10.5 }}
             >
                 <span className="text-xd-11 font-normal text-[#4A31E7]">
                     {translate('Your privacy is completely safe')}
@@ -143,7 +143,7 @@ export default function NewEnterPhoneScreen({
                 className="absolute"
                 style={{
                     top: XD.box.top,
-                    left: XD.box.left,
+                    insetInlineStart: XD.box.left,
                     width: XD.box.width,
                     height: XD.box.height,
                 }}
@@ -163,7 +163,7 @@ export default function NewEnterPhoneScreen({
                 <div
                     data-pw="otp-cooldown"
                     className="absolute w-full text-xd-12 font-medium text-[#FF5F61] text-center"
-                    style={{ top: XD.box.top + XD.box.height + 10, left: 0 }}
+                    style={{ top: XD.box.top + XD.box.height + 10, insetInlineStart: 0 }}
                 >
                     <span>{translate('Wait')} </span>
                     <span className="font-bold">
@@ -178,7 +178,7 @@ export default function NewEnterPhoneScreen({
                         data-pw="phone-error"
                         role="alert"
                         className="absolute px-xd-20 w-full text-xd-12 font-medium text-[#FF5F61] text-center"
-                        style={{ top: XD.box.top + XD.box.height + 10, left: 0 }}
+                        style={{ top: XD.box.top + XD.box.height + 10, insetInlineStart: 0 }}
                     >
                         {error}
                     </div>

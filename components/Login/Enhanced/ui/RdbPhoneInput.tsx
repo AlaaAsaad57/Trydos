@@ -209,7 +209,9 @@ export default function RdbPhoneInput({
     }, [digits, onChange]);
 
     return (
-        <div className="flex flex-col w-full items-center">
+        // The box is a number box: it stays left to right on an Arabic or
+        // Kurdish page, as the drawn keyboard does (A-30 in UI-MIGRATION-PLAN.md).
+        <div dir="ltr" className="flex flex-col w-full items-center">
             {/*
               * The 390 x 60 input box.
               *

@@ -52,9 +52,20 @@ const getUser = vi.fn();
 vi.mock("services/auth", () => ({
   default: { getUser: (...args: any[]) => getUser(...args) },
 }));
-vi.mock("components/Login/Enhanced/InlineVerifyPanel", () => ({
-  default: ({ onClose, onSuccess, phoneLocked }: any) => (
-    <div data-testid="inline-verify" data-locked={String(Boolean(phoneLocked))}>
+// Checkout's verify is the new verify flow, full screen over the cart (A-27 in
+// UI-MIGRATION-PLAN.md). The overlay is a plain box here, so the test can see
+// that the flow sits in it and not inside the Confirm button.
+vi.mock("components/Login/Enhanced/AuthOverlay", () => ({
+  default: ({ children }: any) => <div data-testid="verify-overlay">{children}</div>,
+}));
+vi.mock("components/Login/Enhanced/VerifyPhoneFlow", () => ({
+  default: ({ onClose, onSuccess, phoneLocked, withIntro, source }: any) => (
+    <div
+      data-testid="inline-verify"
+      data-locked={String(Boolean(phoneLocked))}
+      data-intro={String(Boolean(withIntro))}
+      data-source={source}
+    >
       <button onClick={onClose}>verify-close</button>
       <button onClick={onSuccess}>verify-success</button>
     </div>
@@ -356,6 +367,19 @@ describe("the Confirm & Continue button", () => {
     await userEvent.click(mustFind("Confirm-Order-Button"));
     const panel = await screen.findByTestId("inline-verify");
     expect(panel.getAttribute("data-locked"), "no known phone means the field is open").toBe("false");
+    expect(
+      panel.closest('[data-testid="verify-overlay"]'),
+      "the phone check is not full screen over the cart (A-27)",
+    ).not.toBeNull();
+    expect(
+      mustFind("Confirm-Order-Button").contains(panel),
+      "the phone check still opens inside the Confirm button, as the old small panel did",
+    ).toBe(false);
+    expect(panel.getAttribute("data-intro"), "a shopper with no number does not get Get Started and the terms first").toBe("true");
+    expect(
+      panel.getAttribute("data-source"),
+      "the checkout verify changed its analytics source name (D-10 keeps the old one)",
+    ).toBe("InlineVerifyPanel");
     await userEvent.click(screen.getByText("verify-close"));
     expect(screen.queryByTestId("inline-verify"), "closing must hide the phone check").toBeNull();
   });

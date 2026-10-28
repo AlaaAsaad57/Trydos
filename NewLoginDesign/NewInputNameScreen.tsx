@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import XdDashedBorder from 'components/Login/Enhanced/ui/XdDashedBorder';
 import { translateFunction } from 'utils/functions';
+import { mirrorFor, usePageDir } from 'components/DemoApp1/rtl';
 import AuthLogoSlot from './AuthLogoSlot';
 import { XD } from './authLayout';
 
@@ -30,6 +31,7 @@ export default function NewInputNameScreen({
     const name = propName !== undefined ? propName : internalName;
     const setName = propSetName || setInternalName;
     const translate = (key: string) => translateFunction(key, lang);
+    const pageDir = usePageDir();
 
     /**
      * Focus the field on arrival, without letting the browser scroll to it.
@@ -63,21 +65,21 @@ export default function NewInputNameScreen({
 
             <h2
                 className="absolute text-xd-30 font-bold text-[#1D1D1D]"
-                style={{ top: XD.head.title, left: XD.textLeft }}
+                style={{ top: XD.head.title, insetInlineStart: XD.textLeft }}
             >
                 {translate('enter your name !')}
             </h2>
 
             <p
                 className="absolute text-xd-16 font-medium text-[#1D1D1D]"
-                style={{ top: XD.head.line2, left: XD.textLeft }}
+                style={{ top: XD.head.line2, insetInlineStart: XD.textLeft }}
             >
                 {translate('Last step and enjoy our services')}
             </p>
 
             <p
                 className="absolute text-xd-12 font-normal text-[#1D1D1D]"
-                style={{ top: XD.head.line3, left: XD.textLeft }}
+                style={{ top: XD.head.line3, insetInlineStart: XD.textLeft }}
             >
                 {translate('ensure greater security and protect your funds')}
             </p>
@@ -86,7 +88,7 @@ export default function NewInputNameScreen({
                 className="absolute rounded-xd-20 bg-white"
                 style={{
                     top: XD.box.top,
-                    left: XD.box.left,
+                    insetInlineStart: XD.box.left,
                     width: XD.box.width,
                     height: XD.box.height,
                 }}
@@ -109,9 +111,9 @@ export default function NewInputNameScreen({
                     data-pw="input-user-name-field"
                     className="absolute bg-transparent outline-none text-xd-16 font-normal text-[#1D1D1D] placeholder:text-[#C3C3C3] caret-[#1D1D1D] [caret-shape:underscore]"
                     style={{
-                        left: FIELD_INSET,
+                        insetInlineStart: FIELD_INSET,
                         top: 20,
-                        right: FIELD_INSET + 25,
+                        insetInlineEnd: FIELD_INSET + 25,
                         lineHeight: 1.25,
                     }}
                 />
@@ -121,16 +123,18 @@ export default function NewInputNameScreen({
                         data-pw="submit-user-name"
                         disabled={!!loading}
                         className="absolute flex items-center justify-center disabled:opacity-50 cursor-pointer"
-                        style={{ right: FIELD_INSET, top: 20, width: 20, height: 20 }}
+                        style={{ insetInlineEnd: FIELD_INSET, top: 20, width: 20, height: 20 }}
                         aria-label={translate('Continue')}
                     >
                         <Image
                             src="/assets/icons/auth/arrow-right.svg"
-                            alt="continue"
+                            alt=""
                             width={20}
                             height={20}
                             className="object-contain"
-                            style={{ width: 20, height: 20 }}
+                            // It points forward, so it points the other way on a
+                            // right-to-left page (A-14).
+                            style={{ width: 20, height: 20, ...mirrorFor(pageDir) }}
                         />
                     </button>
                 )}

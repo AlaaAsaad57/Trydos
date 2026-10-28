@@ -3,6 +3,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import Page from 'scaling/Page';
+import { OUTER_BG } from 'scaling/scale.config';
 // The `xd-*` utilities and the `#app-outer` / `#master-canvas` rules the scaled
 // canvas relies on live here. Imported so an overlay works even on a page that
 // never loaded the login widget.
@@ -11,7 +12,7 @@ import 'public/styles/rdb-auth.css';
 /**
  * Fullscreen host for an auth surface.
  *
- * The layout matches `FullEnhancedLoginWidget` exactly: one opaque
+ * The layout matches the login page (`NewLoginWidget`) exactly: one opaque
  * `fixed inset-0` layer that owns the whole viewport, with the 430px design
  * canvas scaled to fit inside it. The canvas is only 430 design-px wide, so on
  * a wide screen there is space left and right of it — that space is painted the
@@ -19,9 +20,9 @@ import 'public/styles/rdb-auth.css';
  * full page instead of a centred widget.
  *
  * Do not put a dimming backdrop behind this and let the page show through the
- * side space: every screen this hosts (`EnterPhoneScreen`, `EnterPinScreen`,
- * `SessionExpiredScreen`, …) is drawn as a full-page `w-full h-full bg-white`
- * design, and a see-through outer turns it back into a floating column.
+ * side space: every screen this hosts (`NewEnterPhoneScreen`, `NewEnterPinScreen`,
+ * `NewSessionExpiredScreen`, …) is drawn as a full-page design, and a
+ * see-through outer turns it back into a floating column.
  *
  * `#app-outer` gets its own white background from `rdb-auth.css`, so no
  * `outerBg` key is passed here — the default is already the right colour.
@@ -42,18 +43,27 @@ import 'public/styles/rdb-auth.css';
 export default function AuthOverlay({
     children,
     zIndex = 9999999999999,
+    outerBg,
 }: {
     children: React.ReactNode;
     zIndex?: number;
+    /**
+     * The colour of the whole layer, also the space beside the canvas, for a
+     * screen that is not white (the session-expired screen, A-26). The same
+     * keys the login page passes to `Page`. White when left out.
+     */
+    outerBg?: keyof typeof OUTER_BG;
 }) {
     if (typeof document === 'undefined') return null;
 
     return createPortal(
         <div
             className="fixed inset-0 w-full h-dvh overflow-hidden bg-white font-quicksand"
-            style={{ zIndex }}
+            style={{ zIndex, backgroundColor: outerBg ? OUTER_BG[outerBg] : undefined }}
         >
-            <Page variant="scaled">{children}</Page>
+            <Page variant="scaled" outerBg={outerBg}>
+                {children}
+            </Page>
         </div>,
         document.body,
     );

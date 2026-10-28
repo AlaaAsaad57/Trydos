@@ -30,24 +30,24 @@ export default function NewTermsScreen({ onAgree, onLater, lang = 'en' }: NewTer
                 className="absolute text-xd-14 font-normal text-[#1D1D1D] text-center"
                 style={{
                     top: fromBottom(XD.terms.body),
-                    left: XD.box.left,
+                    insetInlineStart: XD.box.left,
                     width: XD.box.width,
                     lineHeight: XD.terms.bodyLineHeight,
                 }}
             >
-                {translate('To Create new account Tap “agree & Continue” to accept')} Trydos{' '}
+                {translate('To Create new account Tap “agree & Continue” to accept')} {translate('Trydos')}{' '}
                 {translate('Terms of services')}
             </p>
 
             <Image
                 src="/assets/icons/auth/terms.svg"
-                alt="terms"
+                alt=""
                 width={XD.terms.icon.size}
                 height={XD.terms.icon.size}
                 className="absolute object-contain"
                 style={{
                     top: fromBottom(XD.terms.icon.top),
-                    left: XD.terms.icon.left,
+                    insetInlineStart: XD.terms.icon.left,
                     width: XD.terms.icon.size,
                     height: XD.terms.icon.size,
                 }}
@@ -55,7 +55,7 @@ export default function NewTermsScreen({ onAgree, onLater, lang = 'en' }: NewTer
 
             <span
                 className="absolute w-full text-center text-xd-14 font-normal text-[#388CFF]"
-                style={{ top: fromBottom(XD.terms.linkLine), left: 0 }}
+                style={{ top: fromBottom(XD.terms.linkLine), insetInlineStart: 0 }}
             >
                 {translate('Terms of services')}
             </span>
@@ -72,7 +72,7 @@ export default function NewTermsScreen({ onAgree, onLater, lang = 'en' }: NewTer
                 className="absolute rounded-xd-20 bg-[#FAFAFA] text-[#3C3C3C] text-xd-16 font-normal cursor-pointer transition-all active:scale-[0.98]"
                 style={{
                     top: fromBottom(XD.cta.primary),
-                    left: XD.box.left,
+                    insetInlineStart: XD.box.left,
                     width: XD.box.width,
                     height: XD.box.height,
                 }}
@@ -83,7 +83,7 @@ export default function NewTermsScreen({ onAgree, onLater, lang = 'en' }: NewTer
                     radius={XD.box.radius}
                     color="#5D5C5D"
                 />
-                <span className="absolute w-full text-center" style={{ top: 20, left: 0 }}>
+                <span className="absolute w-full text-center" style={{ top: 20, insetInlineStart: 0 }}>
                     {translate('agree & continue')}
                 </span>
             </button>
@@ -93,7 +93,7 @@ export default function NewTermsScreen({ onAgree, onLater, lang = 'en' }: NewTer
                     onClick={onLater}
                     data-pw="take-look"
                     className="absolute w-full text-center text-xd-14 font-normal text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
-                    style={{ top: fromBottom(XD.cta.link), left: 0 }}
+                    style={{ top: fromBottom(XD.cta.link), insetInlineStart: 0 }}
                 >
                     {translate('Later, take a look at the app')}
                 </button>

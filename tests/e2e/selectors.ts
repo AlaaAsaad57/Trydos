@@ -220,12 +220,22 @@ export const prompt = {
     page.getByTestId("input-phone-number-field"),
 };
 
-/** The phone-verification widget (`components/Login/Enhanced`). */
+/** The login: the page /[lang]/login and the verify overlays, both built from
+ *  the new login screens (`NewLoginDesign/`, Stage 2 of UI-MIGRATION-PLAN.md). */
 export const auth = {
-  /** Button that opens the widget from the nav bar. */
+  /** Button that opens the login from the nav bar. It now goes to /[lang]/login. */
   loginButton: (page: Page): Locator => page.getByTestId("login-icon"),
-  /** The initial screen: "Sign Up!" or "Login!". */
-  getStartedTitle: (page: Page): Locator => page.getByTestId("join-statement"),
+  /** The login page itself (`NewLoginWidget`). Gone again once the login leaves. */
+  loginPage: (page: Page): Locator => page.getByTestId("new-login-widget"),
+  /** The Quick Preview, the login page's first screen: "Next" on its first
+   *  slides, "Get Started" on the last one. */
+  quickPreviewNext: (page: Page): Locator => page.getByTestId("quick-preview-next"),
+  quickPreviewGetStarted: (page: Page): Locator =>
+    page.getByTestId("quick-preview-get-started"),
+  /** Any screen of the new login on stage (the page or an overlay). */
+  anyAuthStep: (page: Page): Locator => page.locator("[data-auth-step]"),
+  /** The Get Started screen's title (". Get Started ."). */
+  getStartedTitle: (page: Page): Locator => page.getByTestId("get-started"),
   signUpButton: (page: Page): Locator => page.getByTestId("create-account"),
   loginButtonOnScreen: (page: Page): Locator =>
     page.getByTestId("have-account-button"),
@@ -238,7 +248,7 @@ export const auth = {
    *
    *  Use this, not `screenTitle`, to tell whether the method screen is up. It
    *  is the one element the screen draws in **both** cases — `screenTitle` is
-   *  the **Edit** button, which `SelectMethodScreen` omits whenever the account
+   *  the **Edit** button, which `NewSelectMethodScreen` omits whenever the account
    *  already owns the number, so on that locked screen it finds nothing. */
   methodPhone: (page: Page): Locator => page.getByTestId("method-phone"),
   /** The **Edit** control beside that number, present only when the number can
@@ -585,17 +595,18 @@ export const cart = {
    *  where it landed. */
   confirmOrder: (page: Page): Locator =>
     page.getByTestId("Confirm-Order-Button"),
-  /** The verify panel that opens **inside** that button for a visitor with no
-   *  verified phone (`components/Login/Enhanced/InlineVerifyPanel.tsx`).
+  /** The verify that opens **full screen over the cart** for a visitor with no
+   *  verified phone (A-27 in UI-MIGRATION-PLAN.md: `VerifyPhoneFlow withIntro`
+   *  in `components/Cart/OrderButton.tsx`).
    *
-   *  Its close control, because that is the one part every screen of the panel
-   *  draws — the rest changes with which step the visitor is on. Finding it is
-   *  how "the phone gate held" is told apart from "the button did nothing",
-   *  which look identical from the outside.
+   *  Any screen of the new login stage, because which one is up depends on the
+   *  visitor: Get Started for a visitor with no number, the method step for an
+   *  account that owns one. Finding it is how "the phone gate held" is told
+   *  apart from "the button did nothing", which look identical from the outside.
    *
-   *  Showing the panel costs no one-time code: it opens on the phone entry, and
-   *  a code is only sent once a number is submitted. */
-  verifyPanel: (page: Page): Locator => page.getByTestId("inline-close"),
+   *  Showing it costs no one-time code: a code is only sent once a method is
+   *  chosen. */
+  verifyPanel: (page: Page): Locator => page.locator("[data-auth-step]").first(),
 };
 
 /** The checkout screen: address, payment method, terms, and placing the order.
