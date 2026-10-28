@@ -55,6 +55,12 @@ The new wallet design has much more than the wallet backend gives today. Today t
 (country currency) from the wallet backend, and the history from core. **The design is the contract:** the
 wallet ships with every screen of the design, and the backend is asked to give what the design shows.
 
+**Status on 2026-10-28: no wallet backend works yet.** On staging the wallet backend answers `502` on
+sign-in (AUTH-01). So the app's wallet keeps its mock data and its design for now (A-17 in
+`UI-MIGRATION-PLAN.md`), and the app reads no wallet data. Each item below replaces part of that mock once
+the wallet backend works. Until then, the balances, the history and the results of every wallet action that
+shoppers see are mock values.
+
 | # | Screen | What we need | Today | Depends on |
 |---|---|---|---|---|
 | W-1 | Wallet | **All balances at once**, one per currency (the design shows USD and SYP cards). | One balance, for the country currency only (`/wallets/my/balances/{currencyId}`). | D-32 |
@@ -67,8 +73,8 @@ wallet ships with every screen of the design, and the backend is asked to give w
 | W-8 | Cash out | **Withdrawal:** cash withdrawal, withdrawal request with a WhatsApp OTP, authorized recipient (phone + full name), reference, "withdraw to my rdb", list of branches. Each submit must take an **idempotency key**. | No endpoint. | D-32 |
 | W-9 | Wallet info | **Client wallet QR** content and the "request" action. | No endpoint. | D-32 |
 
-Please also answer: which balance is the truth, the wallet backend balance or `wallet_balance` from core
-`/customer/wallet/list`? (D-34)
+Please also answer, once the wallet backend works: which balance is the truth, the wallet backend balance
+or `wallet_balance` from core `/customer/wallet/list`? (D-34, parked until then)
 
 ## Chat backend
 

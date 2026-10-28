@@ -1,8 +1,8 @@
 # UI migration plan — demo UI becomes the real app
 
 **Status:** Stage 0 (decisions) and Stage 1 (foundation) done on 2026-10-28. Next: Stage 2 (login).
-**Still open:** D-24 ("Web" / "lock" switches: designer / product), D-30 (place levels: backend),
-D-34 (which wallet balance is the truth: backend). None of them blocks Stage 1.
+**Still open:** D-24 ("Web" / "lock" switches: designer / product), D-30 (place levels: backend). Neither
+blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no wallet backend works yet.
 **Written:** 2026-10-28, from a read-only scan of the code.
 **Branch:** `ui-migrations`, cut from `development` on 2026-10-28.
 
@@ -17,7 +17,7 @@ D-34 (which wallet balance is the truth: backend). None of them blocks Stage 1.
 | A-5 | Process | We do not use the `wf` workflow. One stage = one session. Claude asks; it never decides. |
 | A-6 | Stage order | Two lanes after Stage 1 (changed on 2026-10-28). Stage 1 finishes first. Then lane A runs 3 → 4 → 5 → 7 and lane B runs 2 → 6, at the same time. Stage 8 starts when both lanes are done. See "Lanes" under "Stages". |
 | A-7 | Design is complete | **Never remove or hide any part of the demo design.** Every screen, sheet, button and row ships. |
-| A-8 | No backend yet | The screen opens as designed. Fields with a real source show real data. Fields with no source show empty or a placeholder. The final action (submit, request, send) shows "Soon available". **No mock data and no fake success reach production** (no fake balances, no "any 6 digits pass"). This replaces D-5. |
+| A-8 | No backend yet | The screen opens as designed. Fields with a real source show real data. Fields with no source show empty or a placeholder. The final action (submit, request, send) shows "Soon available". **No mock data and no fake success reach production** (no fake balances, no "any 6 digits pass"). This replaces D-5. **One exception: the wallet (A-17).** |
 | A-9 | New design first | The new design has priority. Claude does not change, add or keep anything you did not ask for. When an old feature has no place in the design and no answer from you, Claude asks. |
 | A-10 | Reduced motion | Respected in production. Login logo: still. Screen slides, sheets, menus, tab pill: movement is instant, fades stay (`MotionConfig reducedMotion="user"` on the new-UI roots). Bottom bar: no press pulse; the scroll shrink stays because it follows the finger. Note: a machine with "reduce motion" on (this dev machine) shows no animation. |
 | A-11 | Kurdish keyboard | The drawn keyboard starts on Arabic letters on `ku` pages, as on `ar` pages. |
@@ -25,7 +25,8 @@ D-34 (which wallet balance is the truth: backend). None of them blocks Stage 1.
 | A-13 | RTL switch | `dir="rtl"` is on now for the whole new UI on `ar` / `ku` pages: the shell's page column, the login's root and every portal (tab bar, sheet layer, QR sheet). Not on `<html>`, so the old pages do not flip. Until a stage converts its screens, the Arabic screens of that stage look half-mirrored on the branch (flex rows flip, fixed positions do not). Nothing reaches production before Stage 8. |
 | A-14 | Pointing icons | Icons that point a way (back arrows) are mirrored on `ar` / `ku` (`mirrorFor` in `components/DemoApp1/rtl.ts`). Icons that point no way (logo, clock, help) stay as drawn. Each stage mirrors the arrows of its own screens. |
 | A-15 | Swipes | Swipe gestures work the other way on `ar` / `ku`. Each stage mirrors the swipes of its own screens (Stages 4–6). |
-| A-16 | Real data | One hook per area (for example `useProfileData`). The hook reads `useAppStore` and calls the existing services. Screens get only plain values from it. Shipping code does not import the mock files (`DemoData.tsx`, `demoWallet.ts`, `demoChat*.ts`). A-8 still applies. |
+| A-16 | Real data | One hook per area (for example `useProfileData`). The hook reads `useAppStore` and calls the existing services. Screens get only plain values from it. Shipping code does not import the mock files (`DemoData.tsx`, `demoWallet.ts`, `demoChat*.ts`). A-8 still applies. Exception: the wallet keeps `demoWallet.ts` (A-17). |
+| A-17 | Wallet keeps its mock | **Decided on 2026-10-28.** No wallet backend works yet (on staging the wallet backend answers `502` on sign-in, AUTH-01). So the wallet keeps its mock data (`components/DemoApp/demoWallet.ts`) and its design exactly as on `/demo`. This is an exception to A-8 and A-16. Stage 5 moves the wallet screens into the app with their mock data, and wires no wallet data. When the wallet backend works, a later step replaces the mock with real data: `BACKEND-REQUESTS.md` W-1..W-9, D-34, and the "Money safety" list in Stage 5. **Known effect:** shoppers see the mock balances and history, and the mock actions end in success (for example, any 6-digit withdrawal code passes). This replaces D-32, D-32b and D-34 for now. |
 | D-1 | Merge | Once, at the end (after Stage 8). Every stage stays on `ui-migrations`. |
 | D-2 | Desktop | The 500 px centred column is OK on desktop. No desktop design work. |
 | D-3 | RTL | Mirror everything for `ar` / `ku`: layout, slide direction, tab order, margins. |
@@ -56,10 +57,10 @@ D-34 (which wallet balance is the truth: backend). None of them blocks Stage 1.
 | D-29 | Address | The design's map card becomes a real map (old `Map` component) that sets `latitude` / `longitude`. Contact name and phone come from the profile. The default address is the backend `is_default` flag, used as it is. The new UI adds no control to change it (A-9). Known risk: when no address has `is_default: 1`, checkout shows no address, and the shopper picks one from the list in checkout (as today). |
 | D-30 | Place levels | Waits for the backend (C-9, S-1). |
 | D-31 | Client info | A-8 applies: real values from `/customer/info` where they exist (C-6), empty where not. "Verified" never shows for a guest. |
-| D-32 | Wallet ships | Stage 5 does not wait for the wallet backend. A-8 applies: real balance and real history where they exist, every other screen as designed with empty fields and "Soon available" on the action. |
-| D-32b | USD + SYP cards | Both cards ship as designed. The backend must follow the design (W-1). Until W-1 ships, A-8: the country-currency card shows the real balance, the other card is empty. |
+| D-32 | Wallet ships | **Replaced by A-17 for now.** Stage 5 does not wait for the wallet backend. Was: A-8 applies, real balance and real history where they exist, every other screen as designed with empty fields and "Soon available" on the action. |
+| D-32b | USD + SYP cards | Both cards ship as designed. The backend must follow the design (W-1). **For now A-17:** both cards show the mock balances. Was: the country-currency card shows the real balance, the other card is empty. |
 | D-33 | Old wallet extras | The design wins. Load more, row → order link, loading / error + retry / empty states and the inflow / outflow label are dropped. Known effect: the history shows only the rows of the first request (10 today), and the screen shows nothing while it loads or when the call fails. |
-| D-34 | Which balance | Waits for the backend. |
+| D-34 | Which balance | Parked by A-17: no wallet backend works yet. Answer it when the wallet backend works. |
 | D-35 | Checkout pay-with-wallet | Keeps the old UI (A-4). |
 | D-36a | Chat rules kept | Paging (list + messages), 25 MB cap + video format check, notification-permission and phone-verify gates, blocked chat hides the composer. |
 | D-36b | Old chat features with no design | **Kept**, built in a style taken from the new design: delete for everyone, share product message, stories row, contacts upload, reminders list, tagged-messages view, media gallery, deleted-message placeholder, upload progress, image preview. The designer must check each one, because no XD board exists for them. |
@@ -195,7 +196,7 @@ Who answers: **You**, **Designer** (D), **Product** (P), **Backend** (B).
 | D-30 | Address place picker has 4 levels (Province / District / Town / Street). The backend has `province`, `city`, `town`, `street`, `building`. How do they map? | P, B |
 | D-31 | Client info shows "Active", "Personal", "Verified" as fixed text (it shows "Verified" even for a guest). Where do these come from? | P, B |
 
-### Wallet (Stage 5) — answered on 2026-10-28, except D-34 (backend)
+### Wallet (Stage 5) — answered on 2026-10-28; D-32, D-32b and D-34 changed by A-17 (the wallet keeps its mock)
 
 | # | Question | Who |
 |---|---|---|
@@ -447,13 +448,17 @@ WalletReceipt, WalletWithdrawalRequest. **Data today:** all from `components/Dem
 **Live:** `app/(client)/[lang]/settings/wallet/page.tsx` → `components/settings/WalletTransactions.tsx`;
 card `components/setting/WalletLinkCard.tsx` (its sheet says "Under Development").
 
-### What can be wired today
+### Data: the mock stays (A-17)
+No wallet backend works yet. So Stage 5 keeps `components/DemoApp/demoWallet.ts` and the design exactly as on
+`/demo`, and wires no wallet data. Stage 5 moves the screens into the app (paths, shell, RTL, i18n, tests).
+
+When the wallet backend works, a later step wires these (listed here so nothing is lost):
 - Balance: `GetWalletBalanceToShow` (`services/order.ts` line 157) → wallet backend. It gives **one** balance,
   in the country currency.
 - History: core `/customer/wallet/list` (`services/order.ts` line 174), 10 rows per page.
-- Everything else waits for the backend (`BACKEND-REQUESTS.md` W-1..W-9) and D-32.
+- Everything else: `BACKEND-REQUESTS.md` W-1..W-9, and the answer to D-34.
 
-### Money safety — must be fixed before any real submit
+### Money safety — must be fixed before any real submit (when the mock is replaced)
 - Amount parse is `parseFloat(text.replace(",", "."))` (`WalletCashOutSheet.tsx` line 84,
   `WalletCashInSheet.tsx` line 130). It accepts "1.2.3", has no decimal limit and no max length.
 - The fee uses float math (`amount × 1.1`).
