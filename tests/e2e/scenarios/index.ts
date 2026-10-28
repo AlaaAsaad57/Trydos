@@ -651,3 +651,54 @@ export const sellerWithPermissions = (
     },
   },
 });
+
+// ---------------------------------------------------------------------------
+// A plain guest moving between pages (`shell.scripted.spec.ts`)
+//
+// Those cases fake nothing they judge. They fake the four calls a fresh guest
+// makes on boot that need a market credential, so the guard is left to catch
+// only what a page itself writes.
+//
+// **Why these four, measured from the traces of the first runs.** The browser
+// registers its own guest (`registerDevice`). Faked, that call creates nobody,
+// so the browser holds no market credential, and the three reads below answer
+// 401. Each 401 starts the app's renewal: `/api/auth/refresh`, then
+// `/api/auth/expire`. Closed mode refuses both, and the case would end red
+// for a reason that has nothing to do with the bar.
+// ---------------------------------------------------------------------------
+
+/** The boot answers a plain guest needs to run closed. */
+export const guestBoot = {
+  // The browser's own guest registration, answered with **no `user`**, the
+  // same as in `checkoutWorks`: nothing is created on the gateway.
+  [ENDPOINTS.registerDevice]: {
+    status: 200,
+    body: { isSuccessful: true, success: true, data: {} },
+  },
+  // Who the visitor is, answered as the backend answers for a guest:
+  // `phone: "0"` is the guest mark every screen reads (`openChatFromTab`,
+  // `UserNavTopSection`, the settings screens).
+  [ENDPOINTS.customerInfo]: {
+    status: 200,
+    body: {
+      isSuccessful: true,
+      success: true,
+      data: {
+        customer_info: {
+          id: 999_002,
+          name: "guest",
+          phone: "0",
+          is_phone_verified: 0,
+          is_approve_policies: 0,
+        },
+      },
+    },
+  },
+  // The bag, and the bag left from an earlier visit: both empty, as for a
+  // fresh guest.
+  [ENDPOINTS.cart]: { status: 200, body: emptyBag },
+  [ENDPOINTS.oldCart]: {
+    status: 200,
+    body: { isSuccessful: true, success: true, data: { oldCart: [] } },
+  },
+} satisfies MockMap;

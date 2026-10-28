@@ -25,12 +25,13 @@ import {
   nav,
   product,
   profile,
+  shell,
 } from "../selectors";
 import { throughProxyInPage } from "../harness/orderCleanup";
 import { redact } from "../harness/redact";
 import { gotoQaProduct } from "./qaProduct";
 import { signedInSession } from "./auth";
-import { chooseRegionIfAsked, waitForPopupHistorySettled } from "./nav";
+import { chooseRegionIfAsked } from "./nav";
 
 /** How long a cart change has to come back from staging.
  *
@@ -60,57 +61,77 @@ export const bagLineCount = async (page: Page): Promise<number> => {
   return Number.isNaN(number) ? 0 : number;
 };
 
-/** Open the cart drawer and wait until it has finished reading the bag.
+/** The cart page's path: the part after the locale is `cart`. */
+const CART_PATH = /^\/[a-z]{2}-[a-z]{2}\/cart\/?$/;
+
+/** Is the page on the cart page right now? */
+const onCartPage = (page: Page): boolean =>
+  CART_PATH.test(new URL(page.url()).pathname);
+
+/** Open the cart and wait until it has finished reading the bag.
+ *
+ *  The cart is a page now, `/[lang]/cart`, and the shopper opens it with the
+ *  Cart tab of the bottom bar (`components/DemoApp1/AppShell.tsx`). So this
+ *  presses that tab, waits for the cart page's address, and then waits for the
+ *  bag to be read.
  *
  *  Returns how many lines are in it. Zero is a real answer — an empty bag — so
  *  the caller decides whether that is a failure. */
 export const openCart = async (page: Page): Promise<{ lines: number }> => {
-  const button = nav.cartButton(page);
-  await expect(button, "the navigation bar has no cart control").toBeVisible();
+  const tab = shell.tab(page, "cart");
+  await expect(
+    tab,
+    "the bottom bar has no Cart tab, so the cart cannot be opened the way a shopper opens it",
+  ).toBeVisible();
 
   // Pressed more than once, on purpose, and this is not covering up flakiness.
   //
-  // The navigation bar is server-rendered, so the control is on screen and
-  // clickable well before React has attached its handler. A single press is a
-  // race against hydration that this suite loses often enough to matter — and it
-  // loses it *silently*: the click succeeds, nothing happens, and the failure
-  // 45 seconds later says the cart never opened.
+  // **Hydration is no longer the reason.** The old top-nav control was drawn on
+  // the server and could be pressed before React attached its handler. The
+  // bar is drawn only after the shell has mounted in the browser, so its tab
+  // always has a handler.
   //
-  // Opening the cart is idempotent (`enableCart(true)`), so pressing again costs
-  // nothing. The loop still ends in a real assertion, so a cart that genuinely
-  // never opens is still a failure.
+  // **A toast still is.** Adding to the bag pops a success toast, and the toast
+  // can be drawn over the bar — Playwright then refuses the click with "subtree
+  // intercepts pointer events" and waits out the full action timeout. A live
+  // run once failed exactly that way, on a toast that had already gone by the
+  // time the message was written. So each press has its own short budget, and
+  // a press that cannot land is one wasted attempt: the next one lands after
+  // the toast has cleared.
   //
-  // **Each press has its own short budget, and a press that cannot land is
-  // caught.** Adding to the bag pops a success toast, and the toast is drawn
-  // over the navigation — Playwright then refuses the click with "subtree
-  // intercepts pointer events" and waits out the full action timeout. Before
-  // this, that timeout escaped the loop and ended the whole action, so a case
-  // failed on a toast that had already gone by the time the message was
-  // written. A live run failed exactly that way. Now a blocked press is one
-  // wasted attempt, and the next one lands after the toast has cleared.
-  const drawer = cart.drawer(page);
+  // Pressing again costs nothing: the tab only asks for the cart
+  // (`enableCart(true)`), and asking twice opens one cart page. The loop still
+  // ends in a real assertion, so a cart that never opens is still a failure.
   for (let press = 0; press < 3; press += 1) {
-    const landed = await button
+    if (onCartPage(page)) break;
+    const landed = await tab
       .click({ timeout: 10_000 })
       .then(() => true)
       .catch(() => false);
     if (!landed) continue;
 
-    const opened = await drawer
-      .waitFor({ state: "visible", timeout: 15_000 })
+    const arrived = await page
+      .waitForURL((url) => CART_PATH.test(url.pathname), { timeout: 15_000 })
       .then(() => true)
       .catch(() => false);
-    if (opened) break;
+    if (arrived) break;
   }
 
   await expect(
-    drawer,
-    "pressing the cart control did not open the cart",
+    page,
+    "pressing the Cart tab did not open the cart page /[lang]/cart",
+  ).toHaveURL((url) => CART_PATH.test(url.pathname), {
+    timeout: CART_ANSWER_MS,
+  });
+
+  await expect(
+    cart.drawer(page),
+    "the address is the cart page, but the page drew no cart",
   ).toBeVisible({ timeout: CART_ANSWER_MS });
 
-  // The drawer opens before the cart read comes back, so the lines appear a
+  // The cart is drawn before the cart read comes back, so the lines appear a
   // moment later. Wait for the read to settle rather than counting an empty
-  // drawer and calling the bag empty.
+  // cart and calling the bag empty.
   await cart
     .lines(page)
     .first()
@@ -120,20 +141,31 @@ export const openCart = async (page: Page): Promise<{ lines: number }> => {
   return { lines: await cart.lines(page).count() };
 };
 
-/** Close the cart drawer with the control a shopper presses. */
+/** Close the cart with the control a shopper presses.
+ *
+ *  The cart is a page now, so closing it means leaving `/[lang]/cart`: the
+ *  page goes back to the page before it, or home when this tab has none
+ *  (`CartPage` in `components/Cart/CartPage.tsx`).
+ *
+ *  **No popup history wait any more.** The old drawer pushed a `?cart=true`
+ *  history entry and gave it back a moment after it closed, and a `page.goto`
+ *  in that gap was cancelled. The cart page pushes no such entry. What a later
+ *  navigation must not cut is the move off the cart page itself, so this waits
+ *  until the address has left it. */
 export const closeCart = async (page: Page): Promise<void> => {
   await page.getByTestId("CartBackIcon").click();
-  await expect(
-    cart.drawer(page),
-    "the cart's own back arrow did not close it",
-  ).toBeHidden({ timeout: CART_ANSWER_MS });
 
-  // The drawer leaves the screen before the cart gives its history entry back,
-  // and a navigation started in that gap is cancelled. See
-  // `waitForPopupHistorySettled` for the whole story — in short, this is what
-  // stops the next `page.goto` failing with `net::ERR_ABORTED` on an address
-  // that is fine.
-  await waitForPopupHistorySettled(page, { popup: "cart" });
+  await expect(
+    page,
+    "the cart's own back arrow did not leave the cart page /[lang]/cart",
+  ).not.toHaveURL((url) => CART_PATH.test(url.pathname), {
+    timeout: CART_ANSWER_MS,
+  });
+
+  await expect(
+    cart.page(page),
+    "the address left the cart page, but the cart is still drawn",
+  ).toBeHidden({ timeout: CART_ANSWER_MS });
 };
 
 /** Take every line out of the bag, and prove it is empty.
@@ -314,6 +346,65 @@ const quoteCartAnswer = (body: string): string => {
   }
 };
 
+/** Press Buy on the product page this page is showing, and wait until the
+ *  add-to-bag sheet is open and has read the product.
+ *
+ *  Adds nothing: "Buy" only opens the sheet. Ends with the sheet ready, so the
+ *  caller's next press on it is not swallowed. */
+export const openAddToBagSheet = async (page: Page): Promise<void> => {
+  const buy = product.addToCart(page);
+  await expect(
+    buy,
+    "the product page drew no Buy control, so nothing here can add to a bag",
+  ).toBeVisible();
+
+  // A Buy control can be on screen and still not take a tap: something fixed
+  // can be drawn over it. Without this, that case fails as a bare click
+  // timeout that names nothing. A trial press waits like a real one (a toast
+  // that passes is waited out), and when it cannot land, the message names
+  // what a tap at the control's centre hits instead.
+  const pressable = await buy
+    .click({ trial: true, timeout: 10_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!pressable) {
+    const covering = await buy.evaluate((control) => {
+      const box = control.getBoundingClientRect();
+      const hit = document.elementFromPoint(
+        box.left + box.width / 2,
+        box.top + box.height / 2,
+      );
+      if (!hit || control.contains(hit)) return "nothing that can be named";
+      const named = hit.closest("[data-pw]")?.getAttribute("data-pw");
+      return `<${hit.tagName.toLowerCase()}> inside data-pw="${named ?? "none"}"`;
+    });
+    expect(
+      pressable,
+      `the product page's Buy control is on screen but cannot take a tap: ` +
+        `a tap at its centre hits ${covering}`,
+    ).toBe(true);
+  }
+  await buy.click();
+
+  // The card is drawn on every state of the sheet — sold out or not — so it is
+  // what "the sheet opened" is read from. The Add To Bag button is not: on a
+  // sold-out variant it does not exist at all.
+  await expect(
+    addToCartSheet.card(page),
+    "pressing Buy did not open the add-to-bag sheet",
+  ).toBeVisible({ timeout: CART_ANSWER_MS });
+
+  // Nothing after this may happen while the sheet is still reading the
+  // product. The button ignores a press in that window without a word, and the
+  // read overwrites the chosen colour and size when it lands. Waiting here is
+  // what makes the caller's next step mean what it says.
+  await expect(
+    addToCartSheet.sheet(page),
+    "the add-to-bag sheet never finished reading the product, so every press on " +
+      "it is ignored — the product read did not come back from the core backend",
+  ).toHaveAttribute("data-loading", "false", { timeout: CART_ANSWER_MS });
+};
+
 /** Try to put the product this page is showing into the bag.
  *
  *  **Not every product in a real shop can be bought**, and that was found the
@@ -350,30 +441,7 @@ export const addOpenProductToBag = async (
 
   const cartCall = watchCartAdd(page);
 
-  const buy = product.addToCart(page);
-  await expect(
-    buy,
-    "the product page drew no Buy control, so nothing here can add to a bag",
-  ).toBeVisible();
-  await buy.click();
-
-  // The card is drawn on every state of the sheet — sold out or not — so it is
-  // what "the sheet opened" is read from. The Add To Bag button is not: on a
-  // sold-out variant it does not exist at all.
-  await expect(
-    addToCartSheet.card(page),
-    "pressing Buy did not open the add-to-bag sheet",
-  ).toBeVisible({ timeout: CART_ANSWER_MS });
-
-  // Nothing below may happen while the sheet is still reading the product.
-  // The button ignores a press in that window without a word, and the read
-  // overwrites the chosen colour and size when it lands. Waiting here is what
-  // makes the rest of this function mean what it says.
-  await expect(
-    addToCartSheet.sheet(page),
-    "the add-to-bag sheet never finished reading the product, so every press on " +
-      "it is ignored — the product read did not come back from the core backend",
-  ).toHaveAttribute("data-loading", "false", { timeout: CART_ANSWER_MS });
+  await openAddToBagSheet(page);
 
   const addToBag = addToCartSheet.addToBag(page);
   const colours = addToCartSheet.colour(page);

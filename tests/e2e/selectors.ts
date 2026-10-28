@@ -32,6 +32,31 @@ export const nav = {
   cartCount: (page: Page): Locator => page.getByTestId("cart-item-counts"),
 };
 
+/** The five tabs of the new bottom bar (`components/DemoApp1/AppShell.tsx`). */
+export type ShellTab = "home" | "search" | "cart" | "chat" | "settings";
+
+/** The new bottom bar on every page (Stage 3, `Demo1BottomNav.tsx`).
+ *
+ *  **The bar is not inside `data-pw="app-shell"`.** That wrapper is
+ *  `display: contents` and the bar is portaled to `<body>`, so the wrapper
+ *  holds nothing a test can see. `bar` is the portaled `<nav>` itself.
+ *
+ *  **Judge "the bar is on screen" by a tab, never by `bar`.** The `<nav>` is a
+ *  fixed anchor with no width (the Safari note in `Demo1BottomNav.tsx`), and
+ *  Playwright calls a box with no width hidden. `bar` is for "is this element
+ *  inside the bar" questions.
+ *
+ *  The bar is drawn only after the shell has mounted in the browser, so a tab
+ *  on screen already has its handler: there is no hydration race on a tab.
+ *
+ *  The lit tab carries `aria-current="page"`. The tab ids are the app's own
+ *  (`DemoTab`), so the Profile tab is `settings`. */
+export const shell = {
+  bar: (page: Page): Locator => page.getByTestId("demo-tab-bar"),
+  tab: (page: Page, tab: ShellTab): Locator =>
+    page.getByTestId(`demo-tab-${tab}`),
+};
+
 /** The "Select Your Region" popup (`utils/PopupCountry.tsx`).
  *
  *  It appears whenever the app could not work out the country — which is always
@@ -468,10 +493,17 @@ export const addToCartSheet = {
 };
 
 export const cart = {
-  /** The cart itself, opened by the nav cart icon. Not `bag-viewer` — that one
+  /** The cart itself, on the cart page the Cart tab opens. Not `bag-viewer` — that one
    *  lives in `ShippingAddressContainer` and only exists once you are far enough
    *  into checkout to be choosing an address. */
   drawer: (page: Page): Locator => page.getByTestId("cartPage-container"),
+  /** The cart page's own box (`CartSteps` in `components/Cart/CartPage.tsx`).
+   *
+   *  The cart is the page `/[lang]/cart` now, not a drawer. `drawer` above is
+   *  still the cart inside that page, and the loading skeleton carries the same
+   *  marker. This one is drawn only by the page, so it says "this is the cart
+   *  page" and nothing else. */
+  page: (page: Page): Locator => page.getByTestId("cart-page"),
   header: (page: Page): Locator =>
     page.getByTestId("cartPage-header-container"),
   /** One line in the cart drawer (`components/cart/index.tsx`).

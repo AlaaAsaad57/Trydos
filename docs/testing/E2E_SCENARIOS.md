@@ -1,6 +1,6 @@
 # E2E scenarios
 
-Every case the browser suite runs — **165** of them today. Add a row whenever a
+Every case the browser suite runs — **172** of them today. Add a row whenever a
 case is added, and keep the count above in step.
 
 | Section | Cases | Signs in? | Writes to staging? |
@@ -22,6 +22,7 @@ case is added, and keep the count above in step.
 | Seller dashboard and seller stories, added cases | SD-13, SD-16, SST-09 | no — the QA seed's seller jar | no — reads, a template download, and a story form closed with Cancel |
 | **The chat** | CHAT-01 to CHAT-16 | CHAT-01 does, for Shopper A — one real code; Shopper B opens the seed's jar | **yes — real messages between the two test accounts, a tag, a reminder, a block and a deleted chat. Everything but the messages in B's copy of the chat is put back** |
 | Scripted chat branches | SCRIPT-27 to SCRIPT-43 | **no — the chat shopper is faked** | no — nothing but a guest registration per case |
+| The new bottom bar | SHELL-01 to SHELL-07 | no — a faked guest | no — the guest registration and the bag reads are faked |
 
 Design: `docs/testing/E2E_TEST_DESIGN.md`. How to run: `tests/e2e/README.md`.
 
@@ -706,6 +707,24 @@ database is one shared project with no staging copy.
 | SCRIPT-41 | Reaching the top of a chat | `chat.scripted.spec.ts:770` | The page before the oldest loaded message is asked for, and it appears |
 | SCRIPT-42 | The Reminders folder | `chat.scripted.spec.ts:823` | It lists the reminded message, and pressing it opens the chat with that message on screen |
 | SCRIPT-43 | The chat backend refuses an edit | `chat.scripted.spec.ts:872` | The old text stays, and the shopper is told |
+
+## The new bottom bar
+
+Stage 3: the bar from `/demo` on every page of the real app
+(`components/DemoApp1/AppShell.tsx`). Every case is a guest, and every case
+runs closed. Only the boot calls that need a market credential are faked
+(`guestBoot` in `tests/e2e/scenarios/index.ts`); the pages, the bar, the router
+and the browser history are real. Every address is under `/sy-en`.
+
+| ID | Case | Spec | What it proves |
+|----|------|------|----------------|
+| SHELL-01 | Home -> Profile -> Home | `shell.scripted.spec.ts:173` | Each tab opens its page (`/sy-en/settings`, then `/sy-en`), and the right tab is lit on each — and only that one |
+| SHELL-02 | Browser back from the settings page | `shell.scripted.spec.ts:216` | Back returns to `/sy-en`, with Home lit |
+| SHELL-03 | A deep link to the cart page, then a reload | `shell.scripted.spec.ts:257` | Both keep `/sy-en/cart`, draw the cart page, and light Cart |
+| SHELL-04 | A product from home, and back | `shell.scripted.spec.ts:305` | The bar shows on the product with no tab lit; back lights Home; `history.scrollRestoration` is still the browser's (`auto`) |
+| SHELL-05 | An old `?cart=true` address | `shell.scripted.spec.ts:361` | It moves to `/sy-en/cart` with no `cart` key left, with Cart lit |
+| SHELL-06 | The add-to-cart sheet covers the bar | `shell.scripted.spec.ts:397` | A tap at the centre of the Cart tab lands in the open sheet, not the bar. **Expected to fail, strict, BUG-shell-1:** the product page footer (`.product-details-footer`, `position: fixed; bottom: 0` in `public/styles/productDetails.css`) sits under the bar, so Buy cannot be tapped and the sheet is never reached |
+| SHELL-07 | A guest presses Chat | `shell.scripted.spec.ts:498` | The sign-in widget opens, and the chat window does not |
 
 ## Findings from the chat cases
 
