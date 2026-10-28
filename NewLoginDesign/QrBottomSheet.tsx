@@ -1,32 +1,29 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import CustomQRCode from 'components/Login/Enhanced/ui/CustomQRCode';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import { DESIGN_H, DESIGN_W } from 'scaling/scale.config';
 import { XD } from './authLayout';
-import { createQrSession, getQrStatus, QrStatusResult } from 'services/qrLogin';
 import { translateFunction } from 'utils/functions';
 import { usePageDir } from 'components/DemoApp1/rtl';
 
 interface QrBottomSheetProps {
     isOpen: boolean;
     onClose: () => void;
-    onApproved?: (sessionToken: string) => void;
     lang?: string;
 }
 
-type QrStatus = 'loading' | 'pending' | 'scanned' | 'rejected' | 'error';
-
-interface QrSession {
-    linkId: string;
-    qrToken: string;
-    expiresAt: number;
-}
-
-const DEFAULT_MOCK_QR = 'trydos://auth/login?session=trydos_secure_qr_session_app_login';
+/**
+ * QR login has no backend yet (G-1 in BACKEND-REQUESTS.md). Until it ships the
+ * sheet opens as designed with a fixed code that holds plain text, so a camera
+ * that scans it opens nothing, and "Soon available" sits in the sheet's message
+ * box over the code (A-23 in UI-MIGRATION-PLAN.md). The localStorage mock in
+ * `services/qrLogin` is not called from here.
+ */
+const PLACEHOLDER_QR = 'Trydos';
 
 /**
  * The sheet, from `Registration - 1`.
@@ -85,93 +82,22 @@ const SCALED_CANVAS: React.CSSProperties = {
 export default function QrBottomSheet({
     isOpen,
     onClose,
-    onApproved,
     lang = 'en',
 }: QrBottomSheetProps) {
     const translate = (key: string) => translateFunction(key, lang);
     const pageDir = usePageDir();
 
     const [mounted, setMounted] = useState(false);
-    const [status, setStatus] = useState<QrStatus>('pending');
-    const [session, setSession] = useState<QrSession | null>(null);
-    const [qrToken, setQrToken] = useState<string>(DEFAULT_MOCK_QR);
-    const completedRef = useRef(false);
 
     useEffect(() => {
         setMounted(true);
     }, []);
-
-    // ── Create / regenerate a QR session ──────────────────────────────────────
-    const startSession = useCallback(async () => {
-        setStatus('loading');
-        completedRef.current = false;
-        try {
-            const data = await createQrSession();
-            if (data?.requestId && data?.qrPayload) {
-                setSession({
-                    linkId: data.requestId,
-                    qrToken: data.qrPayload,
-                    expiresAt: data.expiresAt,
-                });
-                setQrToken(data.qrPayload);
-                setStatus('pending');
-            } else {
-                setQrToken(DEFAULT_MOCK_QR);
-                setStatus('pending');
-            }
-        } catch {
-            setQrToken(DEFAULT_MOCK_QR);
-            setStatus('pending');
-        }
-    }, []);
-
-    useEffect(() => {
-        if (isOpen) {
-            startSession();
-        }
-    }, [isOpen, startSession]);
-
-    // ── Realtime updates / polling for QR status ──────────────────────────────
-    useEffect(() => {
-        if (!isOpen) return;
-        if (status !== 'pending' && status !== 'scanned') return;
-        if (!session?.linkId) return;
-
-        const interval = setInterval(async () => {
-            try {
-                const res: QrStatusResult = await getQrStatus(session.linkId);
-                if (res.status === 'expired') {
-                    startSession();
-                    return;
-                }
-                if (res.status === 'scanned' && status !== 'scanned') {
-                    setStatus('scanned');
-                } else if (res.status === 'approved') {
-                    if (completedRef.current) return;
-                    completedRef.current = true;
-                    onApproved?.(session.linkId);
-                } else if (res.status === 'denied') {
-                    setStatus('rejected');
-                }
-            } catch {
-                // polling retry
-            }
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [isOpen, status, session, startSession, onApproved]);
 
     const handleDragEnd = (_: any, info: PanInfo) => {
         if (info.offset.y > 80 || info.velocity.y > 300) {
             onClose();
         }
     };
-
-    const showRetry = status === 'rejected' || status === 'error';
-    const retryMessage =
-        status === 'rejected'
-            ? translate('Login was declined on your phone')
-            : translate('Something went wrong');
 
     if (!mounted) return null;
 
@@ -254,57 +180,22 @@ export default function QrBottomSheet({
                                         height: XD.qrSheet.code.size,
                                     }}
                                 >
-                                    {qrToken && (
-                                        <div
-                                            className={`transition-opacity duration-300 ${
-                                                status === 'scanned' ? 'opacity-30' : 'opacity-100'
-                                            }`}
-                                        >
-                                            <CustomQRCode
-                                                value={qrToken}
-                                                size={XD.qrSheet.code.size}
-                                                bg="#FFFFFF"
-                                            />
-                                        </div>
-                                    )}
+                                    <CustomQRCode
+                                        value={PLACEHOLDER_QR}
+                                        size={XD.qrSheet.code.size}
+                                        bg="#FFFFFF"
+                                    />
 
-                                    {status === 'loading' && (
-                                        <span className="w-8 h-8 rounded-full border-3 border-[#388CFF] border-t-transparent animate-spin absolute" />
-                                    )}
-
-                                    {/* Laser scan line */}
-                                    {status === 'scanned' && (
-                                        <motion.div
-                                            className="absolute left-0 right-0 pointer-events-none z-20"
-                                            style={{
-                                                height: '3px',
-                                                background:
-                                                    'linear-gradient(90deg, transparent 0%, rgba(56,140,255,0.95) 50%, transparent 100%)',
-                                                boxShadow: '0 0 14px 3px rgba(56,140,255,0.6)',
-                                            }}
-                                            animate={{ top: ['0%', '100%', '0%'] }}
-                                            transition={{
-                                                duration: 2.4,
-                                                repeat: Infinity,
-                                                ease: 'easeInOut',
-                                            }}
-                                        />
-                                    )}
-
-                                    {showRetry && (
-                                        <button
-                                            onClick={startSession}
-                                            data-pw="qr-show-new-code"
-                                            className="flex flex-col items-center gap-xd-12 px-xd-24 text-center cursor-pointer absolute bg-white/95 p-4 rounded-xd-16"
-                                        >
-                                            <p className="text-xd-14 font-medium text-[#1D1D1D] leading-[1.4]">
-                                                {retryMessage}
-                                            </p>
-                                            <span className="text-xd-13 text-[#388CFF] underline font-medium">
-                                                {translate('Show a new code')}
-                                            </span>
-                                        </button>
-                                    )}
+                                    {/* The sheet's message box (the one the declined
+                                        state used), with no "Show a new code" link. */}
+                                    <div
+                                        data-pw="qr-soon-available"
+                                        className="flex flex-col items-center gap-xd-12 px-xd-24 text-center absolute bg-white/95 p-4 rounded-xd-16"
+                                    >
+                                        <p className="text-xd-14 font-medium text-[#1D1D1D] leading-[1.4]">
+                                            {translate('Soon available')}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 

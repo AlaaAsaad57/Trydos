@@ -1,11 +1,27 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import Page from 'scaling/Page';
 import { usePageDir } from 'components/DemoApp1/rtl';
 import 'public/styles/rdb-auth.css';
+import { useAppStore } from 'store';
+import AuthService from 'services/auth';
+import { fetchStoriesForUser } from 'serverRequests';
+import { LogError, translateFunction } from 'utils/functions';
+import { GAevent } from 'utils/gtag';
+import {
+    GA_AUTH_SCREEN,
+    GA_BUTTONS_NAMES,
+    GA_EVENT_NAMES,
+    GA_EXCEPTIONS_DESCRIPTIONS,
+} from 'utils/GAEvents';
+import { getNumberLockRemaining, isSessionCapReached } from 'utils/otpLocks';
+import { LOGIN_RETURN_PARAM, safeReturnPath } from 'utils/loginPath';
+// The cap's size lives with the shared verify flow, so every copy of the
+// counter agrees on the number.
+import { MAX_VERIFY_ATTEMPTS } from 'components/Login/Enhanced/usePhoneVerifyFlow';
 import { LogoAnimationProvider } from './LogoAnimationContext';
 import AuthLogoLayer from './AuthLogoLayer';
 import { DEFAULT_LOGO_CONFIG } from './logoScreenConfig';
@@ -82,8 +98,43 @@ const STEP_LOGO_SLOT: Record<AuthStep, LogoSlotId> = {
     'qr-login': 'get-started',
 };
 
+// Screen names reported to analytics, as the live widget reports them. The
+// Quick Preview has none, as the live splash had none.
+const SCREEN_NAMES: Partial<Record<AuthStep, string>> = {
+    'get-started': GA_AUTH_SCREEN.SELECT_AUTHINTCTION_METHOD_SCREEN,
+    terms: GA_AUTH_SCREEN.AGREE_TERMS_SCREEN,
+    'enter-phone': GA_AUTH_SCREEN.PHONE_NUMBER_INPUT_SCREEN,
+    'select-method': GA_AUTH_SCREEN.OTP_RECEIVING_METHOD_SCREEN,
+    'enter-pin': GA_AUTH_SCREEN.OTP_INPUT_SCREEN,
+    'already-registered': GA_AUTH_SCREEN.USER_ALREADY_EXISTS_SCREEN,
+    'not-registered': GA_AUTH_SCREEN.USER_NOT_FOUND_SCREEN,
+    'login-success': GA_AUTH_SCREEN.WELCOME_SCREEN,
+    'signup-success': GA_AUTH_SCREEN.WELCOME_SCREEN,
+    'input-name': GA_AUTH_SCREEN.USER_NAME_INPUT_SCREEN,
+    'qr-login': GA_AUTH_SCREEN.QR_LOGIN_SCREEN,
+};
+
+// Steps the shopper reaches only AFTER the code was accepted. Leaving from one
+// of these is not an abandoned login, so it is not reported as a cancel.
+const AUTHENTICATED_STEPS: AuthStep[] = [
+    'login-success',
+    'signup-success',
+    'input-name',
+    'already-registered',
+];
+
+// The backend name is 1 character for placeholder accounts; the live widget
+// uses the same `> 1` test to decide whether an account still owes a name.
+const hasRealName = (name?: string | null) =>
+    typeof name === 'string' && name.trim().length > 1;
+
 interface NewLoginWidgetProps {
     initialStep?: AuthStep;
+    /**
+     * Called instead of leaving the page, when a host embeds the widget. On the
+     * login page (`/[lang]/login`) there is none, and the widget goes back to
+     * the page in `?next=` (A-20 in UI-MIGRATION-PLAN.md).
+     */
     onFinish?: () => void;
 }
 
@@ -93,20 +144,42 @@ export default function NewLoginWidget({
 }: NewLoginWidgetProps) {
     const { lang } = useParams();
     const router = useRouter();
-    const langCode = typeof lang === 'string' ? lang.split('-')[1] || 'en' : 'en';
+    const langSegment = typeof lang === 'string' ? lang : 'sy-en';
+    const [country] = langSegment.split('-');
+    const langCode = langSegment.split('-')[1] || 'en';
+    const translate = (key: string) => translateFunction(key, langCode);
     const pageDir = usePageDir();
     /** The side a next screen comes in from: the right, or the left on a right-to-left page. */
     const side = pageDir === 'rtl' ? -1 : 1;
+    const { verficationID, language, setStoryData } = useAppStore();
 
     const [step, setStep] = useState<AuthStep>(initialStep);
     const [direction, setDirection] = useState<number>(1);
     const [authType, setAuthType] = useState<'signIn' | 'signUp'>('signUp');
-    const [phone, setPhone] = useState<string>('905528002000');
+    const [phone, setPhone] = useState<string>('');
     const [name, setName] = useState<string>('');
-    const [method, setMethod] = useState<'sms' | 'whatsapp' | ''>('whatsapp');
+    const [method, setMethod] = useState<'sms' | 'whatsapp' | ''>('');
     const [pin, setPin] = useState<string>('');
-    const [loading, setLoading] = useState<string>('');
-    const [error, setError] = useState<string | undefined>(undefined);
+    const [isValidPin, setIsValidPin] = useState<'valid' | 'notvalid' | ''>('');
+    const [loading, setLoading] = useState<
+        'send-phone' | 'send-pin' | 'resend-pin' | 'verify-pin' | ''
+    >('');
+    const [savingName, setSavingName] = useState(false);
+    const [error, setError] = useState<string>('');
+    // Wrong codes since the last code arrived; the boxes lock at
+    // MAX_VERIFY_ATTEMPTS. State, not a ref: the boxes and the "tries left"
+    // line are drawn from it.
+    const [wrongCodes, setWrongCodes] = useState(0);
+    // Every check, the good one included, for the analytics `attempts` field.
+    // Not the cap's counter: keep the two apart, as the live widget does.
+    const attemptsRef = useRef(0);
+    // The boxes can report a finished code twice in one tick, and each extra
+    // check spends a try on the server.
+    const verifyingRef = useRef(false);
+
+    // `mission_name` / `context` in the analytics: "login" or "signup".
+    const mission = authType === 'signIn' ? 'login' : 'signup';
+    const methodLabel = method === 'whatsapp' ? 'whatsapp' : 'sms';
 
     /** One entry per logo in the flow: the design's picks (DEFAULT_LOGO_CONFIG). */
     const logoConfig = DEFAULT_LOGO_CONFIG;
@@ -122,10 +195,329 @@ export default function NewLoginWidget({
 
     const goTo = (nextStep: AuthStep, dir: number = 1) => {
         setDirection(dir);
+        setError('');
         setStep(nextStep);
         // Walking back to the Quick Preview restarts its 8 second timer, so the
         // badge has to go back to its first job as well.
         if (nextStep === 'quick-preview') setPreviewExpanded(false);
+    };
+
+    // One screen_view per step, as the live widget sends.
+    useEffect(() => {
+        const screenName = SCREEN_NAMES[step];
+        if (!screenName) return;
+        GAevent({
+            action: GA_EVENT_NAMES.SCREEN_VIEW,
+            params: { screen_name: screenName, screen_path: window.location.pathname },
+        });
+    }, [step]);
+
+    /**
+     * Leaves the login: back to the page in `?next=`, or the home page when
+     * there is none (A-20). A host that embeds the widget gets `onFinish`.
+     */
+    const leave = () => {
+        if (onFinish) {
+            onFinish();
+            return;
+        }
+        const next = new URLSearchParams(window.location.search).get(LOGIN_RETURN_PARAM);
+        router.replace(safeReturnPath(next, langSegment));
+    };
+
+    /** Leaving before the code was accepted = an abandoned login or sign-up. */
+    const handleClose = () => {
+        if (!AUTHENTICATED_STEPS.includes(step)) {
+            GAevent({
+                action:
+                    authType === 'signIn'
+                        ? GA_EVENT_NAMES.CANCEL_LOGIN
+                        : GA_EVENT_NAMES.CANCEL_SIGNUP,
+                params: { context: mission, button_name: GA_BUTTONS_NAMES.CLOSE_LOGIN },
+            });
+        }
+        leave();
+    };
+
+    /** The "Later, take a look" links: a chosen skip, not a close. */
+    const handleLater = () => {
+        GAevent({
+            action: GA_EVENT_NAMES.LATER_TAKE_LOOK_CLICKED,
+            params: {
+                screen_name: SCREEN_NAMES[step] || '',
+                screen_path: window.location.pathname,
+                button_name: GA_BUTTONS_NAMES.LATER_TAKE_LOOK_BUTTON,
+            },
+        });
+        leave();
+    };
+
+    /**
+     * A failed request carries a backend message (already in the shopper's
+     * language) or nothing useful: fall back to a translated line rather than
+     * "undefined" or an internal string.
+     */
+    const errorText = (e: unknown, fallbackKey = 'Something went wrong') => {
+        const message = e instanceof Error ? e.message : '';
+        const useful = message && message !== 'Wrong Code' && message !== 'user not found';
+        return useful ? message : translate(fallbackKey);
+    };
+
+    /**
+     * The words for a failed send. A send the limiter blocked has already armed
+     * the cooldown (`utils/otpLocks`), and the screens draw a live countdown from
+     * it, so the server's fixed "Please wait N seconds" is dropped.
+     */
+    const sendErrorText = (e: unknown) => (getNumberLockRemaining(phone) > 0 ? '' : errorText(e));
+
+    /**
+     * Brings back what was drawn for the guest: `router.refresh()` drops the
+     * router's cached pages, so the page in `?next=` is fetched again with the
+     * new session, and the story rail gets the shopper's stories.
+     */
+    const refreshAfterAuth = async () => {
+        try {
+            router.refresh();
+            const storiesData = await fetchStoriesForUser(language, country, 1);
+            if (storiesData?.data) setStoryData(storiesData.data);
+        } catch (e) {
+            LogError({ error: e, scenario: 'Error refreshing stories after auth in NewLoginWidget' });
+        }
+    };
+
+    const handleSendPhone = (enteredPhone: string) => {
+        if (!enteredPhone || loading) return;
+        setPhone(enteredPhone);
+        GAevent({
+            action: GA_EVENT_NAMES.CONFIRM_PHONE_NUMBER,
+            params: {
+                input_valid: true,
+                mission_name: mission,
+                button_name: GA_BUTTONS_NAMES.CONFIRM_PHONE_NUMBER_BUTTON,
+            },
+        });
+        setLoading('send-phone');
+        setTimeout(() => {
+            setLoading('');
+            goTo('select-method', 1);
+        }, 300);
+    };
+
+    const handleSelectMethod = async (selectedMethod: 'sms' | 'whatsapp') => {
+        if (loading) return;
+        // The screen draws its own cooldown / cap message, so a silent return
+        // still leaves the shopper with an explanation on screen.
+        if (getNumberLockRemaining(phone) > 0 || isSessionCapReached(phone)) return;
+
+        setMethod(selectedMethod);
+        setError('');
+        setLoading('send-pin');
+        GAevent({
+            action: GA_EVENT_NAMES.SEND_OTP,
+            params: {
+                method: selectedMethod,
+                mission_name: mission,
+                button_name:
+                    selectedMethod === 'whatsapp'
+                        ? GA_BUTTONS_NAMES.CHOOSE_WHATSAPP_BUTTON
+                        : GA_BUTTONS_NAMES.CHOOSE_SMS_BUTTON,
+            },
+        });
+
+        try {
+            // Throws on any failure (our own rate limiter included), so what
+            // follows runs only when a code really went out.
+            await AuthService.SendOtp(phone, selectedMethod === 'whatsapp' ? 1 : 0, () => {});
+            attemptsRef.current = 0;
+            setWrongCodes(0);
+            setPin('');
+            setIsValidPin('');
+            setLoading('');
+            goTo('enter-pin', 1);
+        } catch (e) {
+            setLoading('');
+            setError(sendErrorText(e));
+            GAevent({
+                action: GA_EVENT_NAMES.EXCEPTION,
+                params: {
+                    description: GA_EXCEPTIONS_DESCRIPTIONS.OTP_SEND_FAILED,
+                    context: mission,
+                    mission_name: mission,
+                },
+            });
+            LogError({ error: e, scenario: 'Error in handleSelectMethod in NewLoginWidget' });
+        }
+    };
+
+    const handleVerifyPin = async (inputPin: string) => {
+        if (loading || verifyingRef.current) return;
+        verifyingRef.current = true;
+        attemptsRef.current += 1;
+        const attempts = attemptsRef.current;
+        setError('');
+        setLoading('verify-pin');
+
+        try {
+            const [alreadyExists, userName] = await AuthService.VerifyOtp(inputPin, verficationID);
+            setIsValidPin('valid');
+            if (hasRealName(userName)) setName(userName);
+
+            GAevent({
+                action: GA_EVENT_NAMES.VERIFY_OTP,
+                params: {
+                    method: methodLabel,
+                    mission_name: mission,
+                    button_name: 'N/A',
+                    status: 'success',
+                    attempts,
+                },
+            });
+            GAevent({
+                action: authType === 'signIn' ? GA_EVENT_NAMES.LOGIN : GA_EVENT_NAMES.SIGN_UP,
+                params: { method_otp: 'phone', success: true },
+            });
+
+            refreshAfterAuth();
+
+            setTimeout(() => {
+                setLoading('');
+                if (authType === 'signUp') {
+                    // An account that already has a name is a real "you are
+                    // already registered"; one with no name still owes the name.
+                    if (alreadyExists && hasRealName(userName)) goTo('already-registered', 1);
+                    else goTo('input-name', 1);
+                } else if (!alreadyExists) {
+                    goTo('not-registered', 1);
+                } else if (!hasRealName(userName)) {
+                    // A-22: the name first, then "Welcome back".
+                    goTo('input-name', 1);
+                } else {
+                    goTo('login-success', 1);
+                }
+            }, 1000);
+        } catch (e) {
+            setLoading('');
+            GAevent({
+                action: GA_EVENT_NAMES.VERIFY_OTP,
+                params: {
+                    method: methodLabel,
+                    mission_name: mission,
+                    button_name: 'N/A',
+                    status: 'failed',
+                    attempts,
+                },
+            });
+            GAevent({
+                action: authType === 'signIn' ? GA_EVENT_NAMES.LOGIN : GA_EVENT_NAMES.SIGN_UP,
+                params: { method_otp: 'phone', success: false },
+            });
+            GAevent({
+                action: GA_EVENT_NAMES.EXCEPTION,
+                params: {
+                    description: GA_EXCEPTIONS_DESCRIPTIONS.OTP_INCORRECT,
+                    context: mission,
+                    mission_name: mission,
+                },
+            });
+            LogError({ error: e, scenario: 'Error in handleVerifyPin in NewLoginWidget' });
+
+            // The number has no account: its own screen, not a wrong-code retry.
+            if (e instanceof Error && e.message === 'user not found') {
+                setIsValidPin('');
+                setPin('');
+                goTo('not-registered', 1);
+                return;
+            }
+
+            const isWrongCode =
+                !(e as { isServerError?: boolean })?.isServerError &&
+                e instanceof Error &&
+                (e.message === 'Wrong Code' || e.message.toLowerCase().includes('wrong code'));
+
+            if (isWrongCode) {
+                const next = wrongCodes + 1;
+                setWrongCodes(next);
+                setIsValidPin('notvalid');
+                setError(
+                    next >= MAX_VERIFY_ATTEMPTS
+                        ? translate('Too many wrong codes. Ask for a new code.')
+                        : `${translate('Please Enter The Correct Code Sent To Your Phone')} — ${translate('Tries left')}: ${MAX_VERIFY_ATTEMPTS - next}`,
+                );
+                setTimeout(() => {
+                    setIsValidPin('');
+                    setPin('');
+                }, 1500);
+            } else {
+                // A server, network or timeout error: clear the boxes, spend no
+                // try, and show what went wrong.
+                setIsValidPin('');
+                setPin('');
+                setError(errorText(e));
+            }
+        } finally {
+            // Free again once the request has settled, so a retry is not blocked.
+            verifyingRef.current = false;
+        }
+    };
+
+    const handleResendOtp = async () => {
+        if (!phone || !method || loading) return;
+        if (getNumberLockRemaining(phone) > 0) return;
+
+        setError('');
+        setLoading('resend-pin');
+        GAevent({
+            action: GA_EVENT_NAMES.RESEND_OTP,
+            params: {
+                method: methodLabel,
+                attempts: attemptsRef.current,
+                mission_name: mission,
+                button_name: GA_BUTTONS_NAMES.RESEND_OTP_BUTTON,
+            },
+        });
+
+        try {
+            await AuthService.SendOtp(phone, method === 'whatsapp' ? 1 : 0, () => {});
+            attemptsRef.current = 0;
+            setWrongCodes(0);
+            setPin('');
+            setIsValidPin('');
+            setLoading('');
+        } catch (e) {
+            setLoading('');
+            setError(sendErrorText(e));
+            GAevent({
+                action: GA_EVENT_NAMES.EXCEPTION,
+                params: {
+                    description: GA_EXCEPTIONS_DESCRIPTIONS.OTP_SEND_FAILED,
+                    context: mission,
+                    mission_name: mission,
+                },
+            });
+            LogError({ error: e, scenario: 'Error in handleResendOtp in NewLoginWidget' });
+        }
+    };
+
+    const handleNameSubmit = async (enteredName: string) => {
+        if (savingName) return;
+        setName(enteredName);
+        setSavingName(true);
+        GAevent({
+            action: GA_EVENT_NAMES.CREATE_ACCOUNT_CONTINUE,
+            params: {
+                method_otp: 'phone',
+                name_entered: true,
+                button_name: GA_BUTTONS_NAMES.CONFIRM_NAME_BUTTON,
+            },
+        });
+        try {
+            await AuthService.UpdateName(enteredName);
+        } catch (e) {
+            // The account exists either way; the shopper is not trapped here.
+            LogError({ error: e, scenario: 'Error in handleNameSubmit in NewLoginWidget' });
+        }
+        setSavingName(false);
+        goTo(authType === 'signUp' ? 'signup-success' : 'login-success', 1);
     };
 
     const handleBack = () => {
@@ -136,8 +528,7 @@ export default function NewLoginWidget({
         else if (step === 'get-started') goTo('quick-preview', -1);
         else if (step === 'qr-login') goTo('get-started', -1);
         else if (step === 'already-registered' || step === 'not-registered') goTo('enter-phone', -1);
-        else if (step === 'input-name') goTo('enter-pin', -1);
-        else if (onFinish) onFinish();
+        else handleClose();
     };
 
     // Full viewport background color matching live scaling system
@@ -250,18 +641,47 @@ export default function NewLoginWidget({
                             {step === 'get-started' && (
                                 <NewGetStartedScreen
                                     onExistingAccount={() => {
+                                        GAevent({
+                                            action: GA_EVENT_NAMES.LOGIN_START,
+                                            params: {
+                                                method_otp: 'phone',
+                                                button_name: GA_BUTTONS_NAMES.I_HAVE_ALREADY_ACCOUNT_BUTTON,
+                                            },
+                                        });
                                         setAuthType('signIn');
                                         goTo('enter-phone', 1);
                                     }}
                                     onNewCustomer={() => {
+                                        GAevent({
+                                            action: GA_EVENT_NAMES.SIGNUP_START,
+                                            params: {
+                                                method_otp: 'phone',
+                                                button_name: GA_BUTTONS_NAMES.CREATE_NEW_ACCOUNT_BUTTON,
+                                            },
+                                        });
                                         setAuthType('signUp');
                                         goTo('terms', 1);
                                     }}
-                                    onLater={() => {
-                                        if (onFinish) onFinish();
-                                        else router.push(`/${langCode}`);
+                                    onLater={handleLater}
+                                    onScanQr={() => {
+                                        GAevent({
+                                            action: GA_EVENT_NAMES.LOGIN_START,
+                                            params: {
+                                                method_otp: 'qr',
+                                                button_name: GA_BUTTONS_NAMES.LOGIN_METHOD_QR_BUTTON,
+                                            },
+                                        });
+                                        // The QR is a sheet here, not a step, so its
+                                        // screen_view is sent when it opens.
+                                        GAevent({
+                                            action: GA_EVENT_NAMES.SCREEN_VIEW,
+                                            params: {
+                                                screen_name: GA_AUTH_SCREEN.QR_LOGIN_SCREEN,
+                                                screen_path: window.location.pathname,
+                                            },
+                                        });
+                                        setIsQrOpen(true);
                                     }}
-                                    onScanQr={() => setIsQrOpen(true)}
                                     lang={langCode}
                                 />
                             )}
@@ -281,10 +701,7 @@ export default function NewLoginWidget({
                                     authType={authType}
                                     phone={phone}
                                     setPhone={setPhone}
-                                    onSubmit={(enteredPhone) => {
-                                        setPhone(enteredPhone);
-                                        goTo('select-method', 1);
-                                    }}
+                                    onSubmit={handleSendPhone}
                                     loading={loading === 'send-phone'}
                                     error={error}
                                     lang={langCode}
@@ -297,10 +714,7 @@ export default function NewLoginWidget({
                                 <NewSelectMethodScreen
                                     phone={phone}
                                     method={method}
-                                    setMethod={(m) => {
-                                        setMethod(m as 'sms' | 'whatsapp');
-                                        goTo('enter-pin', 1);
-                                    }}
+                                    setMethod={handleSelectMethod}
                                     changeNumber={() => goTo('enter-phone', -1)}
                                     loading={loading === 'send-pin'}
                                     error={error}
@@ -318,17 +732,18 @@ export default function NewLoginWidget({
                                     pin={pin}
                                     authType={authType}
                                     setPin={setPin}
-                                    onSubmit={() => {
-                                        if (authType === 'signUp') {
-                                            goTo('input-name', 1);
-                                        } else {
-                                            goTo('login-success', 1);
-                                        }
-                                    }}
-                                    onResend={() => {}}
+                                    onSubmit={handleVerifyPin}
+                                    onResend={handleResendOtp}
+                                    onTimerExpired={() =>
+                                        GAevent({
+                                            action: GA_EVENT_NAMES.TIMER_EXPIRED,
+                                            params: { method: methodLabel, mission_name: mission },
+                                        })
+                                    }
                                     changeMethod={() => goTo('select-method', -1)}
                                     changeNumber={() => goTo('enter-phone', -1)}
-                                    isValidPin={pin.length === 6 ? 'valid' : ''}
+                                    isValidPin={isValidPin}
+                                    attemptsLocked={wrongCodes >= MAX_VERIFY_ATTEMPTS}
                                     loading={loading}
                                     error={error}
                                     lang={langCode}
@@ -344,7 +759,9 @@ export default function NewLoginWidget({
                                         setAuthType('signUp');
                                         goTo('input-name', 1);
                                     }}
-                                    onCancel={() => goTo('get-started', -1)}
+                                    // "Cancel & take a look at the app": the code was
+                                    // already accepted, so the shopper leaves signed in.
+                                    onCancel={handleLater}
                                     onClose={handleBack}
                                     lang={langCode}
                                 />
@@ -354,11 +771,13 @@ export default function NewLoginWidget({
                             {step === 'already-registered' && (
                                 <NewAlreadyExistScreen
                                     phone={phone}
+                                    // The code was already accepted, so this account is
+                                    // signed in: just finish.
                                     onLogIn={() => {
                                         setAuthType('signIn');
                                         goTo('login-success', 1);
                                     }}
-                                    onCancel={() => goTo('get-started', -1)}
+                                    onCancel={handleLater}
                                     onClose={handleBack}
                                     lang={langCode}
                                 />
@@ -369,7 +788,8 @@ export default function NewLoginWidget({
                                 <NewInputNameScreen
                                     name={name}
                                     setName={setName}
-                                    onSubmit={() => goTo('signup-success', 1)}
+                                    onSubmit={handleNameSubmit}
+                                    loading={savingName}
                                     lang={langCode}
                                 />
                             )}
@@ -379,12 +799,9 @@ export default function NewLoginWidget({
                                 <NewSuccessScreen
                                     variant={step === 'login-success' ? 'login' : 'signup'}
                                     name={name}
-                                    // The demo stops here. A host that embeds
-                                    // the widget still gets its onFinish; on its
-                                    // own the screen simply stays put, instead of
-                                    // walking off to the home page two and a half
-                                    // seconds after you arrive on it.
-                                    onDone={onFinish}
+                                    // The end of the flow: back to the page the
+                                    // shopper left (A-20).
+                                    onDone={leave}
                                     delayMs={2500}
                                     lang={langCode}
                                 />
@@ -416,10 +833,6 @@ export default function NewLoginWidget({
                     <QrBottomSheet
                         isOpen={isQrOpen}
                         onClose={() => setIsQrOpen(false)}
-                        onApproved={(token) => {
-                            setIsQrOpen(false);
-                            goTo('login-success', 1);
-                        }}
                         lang={langCode}
                     />
                 </div>

@@ -28,6 +28,13 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | A-16 | Real data | One hook per area (for example `useProfileData`). The hook reads `useAppStore` and calls the existing services. Screens get only plain values from it. Shipping code does not import the mock files (`DemoData.tsx`, `demoWallet.ts`, `demoChat*.ts`). A-8 still applies. Exception: the wallet keeps `demoWallet.ts` (A-17). |
 | A-17 | Wallet keeps its mock | **Decided on 2026-10-28.** No wallet backend works yet (on staging the wallet backend answers `502` on sign-in, AUTH-01). So the wallet keeps its mock data (`components/DemoApp/demoWallet.ts`) and its design exactly as on `/demo`. This is an exception to A-8 and A-16. Stage 5 moves the wallet screens into the app with their mock data, and wires no wallet data. When the wallet backend works, a later step replaces the mock with real data: `BACKEND-REQUESTS.md` W-1..W-9, D-34, and the "Money safety" list in Stage 5. **Known effect:** shoppers see the mock balances and history, and the mock actions end in success (for example, any 6-digit withdrawal code passes). This replaces D-32, D-32b and D-34 for now. |
 | A-18 | Stages 2 and 3 at the same time | **Decided on 2026-10-28.** Stage 2 (login) is built in the main folder on `ui-migrations`. Stage 3 (shell) is built at the same time by a second session, in its own git worktree (`../trydos-shell`) on the branch `ui-migrations-shell`, cut from `ui-migrations`. Rules: (1) a session never edits files in the other's folder; (2) Stage 3 deletes no old top-nav file (`AuthNavSection.tsx`, `UserNavTopSection.tsx`) until Stage 2 is merged, because Stage 2 changes the login buttons there; (3) new translation keys go only at the end of `translations.{ar,tr,ku}.js`; (4) each session edits only its own stage's section of this plan, plus its own row in this table; (5) merge order: Stage 2 into `ui-migrations` first, then `ui-migrations-shell` takes those changes and merges into `ui-migrations`. D-1 still holds: `ui-migrations` reaches `development` once, at the end. |
+| A-19 | Verify flows stay on the page | **Decided on 2026-10-28.** The phone re-verify (`ConfirmMobilePhoneWidget`), the session-expired prompt (`SessionExpiredWidget`), `VerifyPhoneFlow` (personal info, `VerifyUser`) and checkout's `InlineVerifyPanel` are built from the new login screens as an **overlay on the current page**, as today. They do not go to `/[lang]/login`, because the page waits for their result: the seller request is sent again (`BecomeSellerModal.tsx` lines 630-651), a parked chat / stories / comments / wallet 401 is sent again (`utils/fetchData.ts` lines 431-454), the story or the chat opens (`ConfirmMobilePhoneWidget.tsx` lines 102-107), and checkout goes on (`OrderButton.tsx` lines 643-666). |
+| A-20 | Way back from `/[lang]/login` | **Decided on 2026-10-28.** "Later", the close button and the end of the flow all go back to the page the shopper left (the return path). With no return path (a direct visit), they go to the home page `/[lang]`. |
+| A-21 | Edits kept across the login | **Decided on 2026-10-28.** Personal info and photo upload: before a guest goes to `/[lang]/login`, the page saves the typed edits in `sessionStorage` and puts them back after the return. A chosen photo cannot be kept this way (a `File` is not stored), so the shopper picks it again. |
+| A-22 | Sign-in with no name | **Decided on 2026-10-28.** A sign-in to an account that still has no real name (`hasRealName` false) goes verify → name → "Welcome back", the same order as the new sign-up (D-13). Today it is verify → "Welcome back" → name. |
+| A-23 | QR sheet until G-1 | **Decided on 2026-10-28.** The QR sheet opens as designed. It shows a fixed QR that holds the plain text "Trydos" (it opens nothing when scanned). "Soon available" shows in the sheet's existing message box over the middle of the QR (the box the declined state uses), with no "Show a new code" link. The localStorage mock (`services/qrLogin`) is not called. |
+| A-24 | Login page SEO | **Decided on 2026-10-28.** `/[lang]/login` has `robots: noindex` and is in no sitemap. |
+| A-25 | No deploy before the end | **Decided on 2026-10-28** (given to the Stage 3 session). Nothing on `ui-migrations` or `ui-migrations-shell` is deployed until all stages are done (after Stage 8). A half-built state between stages is OK on the branches. |
 | D-1 | Merge | Once, at the end (after Stage 8). Every stage stays on `ui-migrations`. |
 | D-2 | Desktop | The 500 px centred column is OK on desktop. No desktop design work. |
 | D-3 | RTL | Mirror everything for `ar` / `ku`: layout, slide direction, tab order, margins. |
@@ -303,6 +310,19 @@ shared blocks place nothing by the physical left or right), the RTL cases in
 **New:** `NewLoginDesign/NewLoginWidget.tsx` and its screens (route `app/(client)/[lang]/loginDemo/page.tsx`).
 **Live:** `components/Login/Enhanced/FullEnhancedLoginWidget.tsx` (overlay, `components/Home/AuthSections.tsx` line 24).
 
+### Build steps
+- **2a — Done.** The page `app/(client)/[lang]/login/page.tsx` (noindex, A-24) shows `NewLoginWidget` with the
+  real flow, moved from the live widget: send code, verify, the 3-wrong-codes lock (`attemptsLocked` added to
+  `NewEnterPinScreen`), resend, name (`UpdateName`), the analytics events, `router.refresh()` and the story
+  rail after sign-in. Order: D-13 and A-22. The way back is `utils/loginPath.ts` (`?next=`, only a path on this
+  site, A-20). The mocks are gone: no filled-in phone, no "any 6 digits pass", no QR mock (A-23). The old
+  "Later pushes `/en`" fault is gone too: "Later" now goes back to `?next=` or `/[lang]`.
+  Tests: `tests/utils/loginPath.test.ts`, `tests/components/NewLoginWidget.test.tsx`, the login page case in
+  `tests/app/smallRoutes.test.tsx`. Each was seen red against the old code or a broken check.
+- **2b.** The 13 openers go to `/[lang]/login?next=<page>`; personal info and photo upload keep their edits (A-21).
+- **2c.** The verify overlays on the new screens (A-19).
+- **2d.** RTL of the login screens, i18n (alts, "Trydos"), e2e helpers and specs.
+
 ### Logic to move into the new screens (all exists in the live widget)
 
 - Send OTP: `AuthService.SendOtp` → `serverActions/sendOtp.ts` (Redis `otpRateLimit`, core `/auth/phone/send_otp`), then `lockNumber` / `recordSessionNumber`.
@@ -316,9 +336,17 @@ shared blocks place nothing by the physical left or right), the RTL cases in
 - Remove the mocks: phone pre-filled `905528002000`, any 6 digits pass, `loading` / `error` never set, QR `services/qrLogin` localStorage mock.
 
 ### All 13 places that open the login (each must navigate to `/[lang]/login` with a return path, D-11)
-`UserNavTopSection.tsx`, `AuthNavSection.tsx`, `AddStory.tsx`, `LikeButtton.tsx`, `ProductLikeButton.tsx`,
-`setting/orders/index.tsx`, `setting/profile/index.tsx`, `PersonalInfoForm.tsx` (2), `VerifyUser.tsx`,
-`WalletLinkCard.tsx`, `UploadProfilePhoto.tsx` (2). Plus every `setShouldAuthinticated(...)` caller.
+These call `setLoginOpen(true)`, which mounts `FullEnhancedLoginWidget` (`components/Home/AuthSections.tsx` line 24):
+`UserNavTopSection.tsx` line 38, `AuthNavSection.tsx` line 71, `AddStory.tsx` line 34, `LikeButtton.tsx` line 39,
+`ProductLikeButton.tsx` line 155, `setting/orders/index.tsx` line 52, `setting/profile/index.tsx` line 30,
+`PersonalInfoForm.tsx` lines 244 and 266, `VerifyUser.tsx` line 48, `WalletLinkCard.tsx` line 81,
+`UploadProfilePhoto.tsx` lines 136 and 198. After sign-in none of them goes on with the action today (a like is
+not applied; the shopper taps again), so a page with a way back keeps their behaviour. Personal info and photo
+upload keep the typed edits (A-21).
+
+**Not these:** `setShouldAuthinticated(...)` does not open the full login. It opens the phone re-verify
+(`ConfirmMobilePhoneWidget`) or the session-expired prompt (`SessionExpiredWidget`), mounted in
+`components/Home/NavbarClient.tsx` lines 43-49. Those stay on the page as an overlay (A-19).
 
 ### RTL (A-13, A-14)
 The login's root and the QR sheet already have `dir`, and the slide is mirrored (Stage 1). The screens'

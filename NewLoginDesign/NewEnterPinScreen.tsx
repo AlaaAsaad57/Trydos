@@ -23,6 +23,12 @@ interface NewEnterPinScreenProps {
     onResend?: () => void;
     loading?: string;
     isValidPin?: 'valid' | 'notvalid' | '';
+    /**
+     * The tries ran out — three wrong codes since the last one arrived. Kills the
+     * boxes exactly the way a spent code does. The words come through `error`,
+     * not from here, so the expired line still wins when both are true.
+     */
+    attemptsLocked?: boolean;
     timerSeconds?: number;
     /** Message from a failed verify, already translated by the caller. */
     error?: string;
@@ -55,6 +61,7 @@ export default function NewEnterPinScreen({
     onResend,
     loading = '',
     isValidPin = '',
+    attemptsLocked = false,
     timerSeconds = 120,
     error,
     onTimerExpired,
@@ -287,9 +294,18 @@ export default function NewEnterPinScreen({
                     value={pin}
                     onChange={setPin}
                     onComplete={handlePinComplete}
-                    disabled={loading === 'verify-pin' || isValidPin === 'valid' || codeExpired}
+                    // `isExpired` is not decoration next to `disabled`: it is the
+                    // only thing that closes the on-screen keypad (RdbPinInputs
+                    // gates the keypad on it). A lock that set `disabled` alone
+                    // would strand an open keypad over dead boxes.
+                    disabled={
+                        loading === 'verify-pin' ||
+                        isValidPin === 'valid' ||
+                        codeExpired ||
+                        attemptsLocked
+                    }
                     isValidPin={isValidPin}
-                    isExpired={codeExpired}
+                    isExpired={codeExpired || attemptsLocked}
                 />
             </div>
 
