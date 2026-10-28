@@ -61,12 +61,16 @@ const SLOT_INSET = fileCentre(0) - TAB_BAR.x - SLOT_W / 2;
 /** The bar keeps 22 px to both edges of the page column. */
 const BAR_W = `calc(${COLUMN_W} - ${2 * TAB_BAR.x}px)`;
 
+/** A count as the tab shows it: 0 stays 0, and 100 or more is 99+. */
+const countText = (n: number) => (n > 99 ? "99+" : String(n));
+
 export default function Demo1BottomNav({
   active,
   visible,
   photo,
   verified,
   resetKey,
+  counts,
   onSelect,
   t,
 }: {
@@ -76,6 +80,8 @@ export default function Demo1BottomNav({
   verified: boolean;
   /** The screen on show. A new screen starts at its top, so the bar goes back to full size. */
   resetKey: string;
+  /** The numbers on the cart and chat tabs. */
+  counts: { cart: number; chat: number };
   onSelect: (tab: DemoTab) => void;
   t: (key: DemoKey) => string;
 }) {
@@ -286,6 +292,7 @@ export default function Demo1BottomNav({
                           tab={id}
                           on={on}
                           count={slot.count}
+                          text={countText(counts[id as "cart" | "chat"])}
                           size={slot.active.size}
                         />
                       )}

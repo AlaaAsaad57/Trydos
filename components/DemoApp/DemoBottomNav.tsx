@@ -67,7 +67,6 @@ type Box = { x: number; y: number; size: number };
  * baseline in the tab's 34 px box. The active count sits 1 px lower.
  */
 type Count = {
-  text: string;
   x: number;
   idle: { baseline: number; color: string };
   active: { baseline: number; color: string };
@@ -132,7 +131,6 @@ export const SLOTS: Slot[] = [
     active: grown(CART),
     activeIcon: "navCartActiveCount",
     count: {
-      text: "3",
       x: 17,
       idle: { baseline: 26, color: PURPLE },
       active: { baseline: 27, color: PURPLE },
@@ -146,7 +144,6 @@ export const SLOTS: Slot[] = [
     active: grown(CHAT),
     activeIcon: "navChatActiveCount",
     count: {
-      text: "11",
       x: 20,
       idle: { baseline: 26, color: PURPLE },
       active: { baseline: 27, color: "#FFFFFF" },
@@ -237,11 +234,14 @@ export function TabCount({
   tab,
   on,
   count,
+  text,
   size,
 }: {
   tab: DemoTab;
   on: boolean;
   count: Count;
+  /** What the count says, already shortened (`99+`). */
+  text: string;
   /** The active icon's size, the box this count is drawn in. */
   size: number;
 }) {
@@ -273,7 +273,7 @@ export function TabCount({
               transition: SWAP,
             }}
           >
-            {count.text}
+            {text}
           </span>
         );
       })}

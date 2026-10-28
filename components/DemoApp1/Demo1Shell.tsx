@@ -276,6 +276,7 @@ function Demo1ShellInner({
           photo={profile.photo}
           verified={profile.emailVerified}
           resetKey={key}
+          counts={{ cart: 3, chat: 11 }}
           onSelect={(tab) => navigate(tab)}
           t={t}
         />
