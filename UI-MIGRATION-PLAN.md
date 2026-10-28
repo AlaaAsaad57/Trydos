@@ -455,6 +455,24 @@ turned-on table and the real paths. New e2e cases: tab moves, back, deep link + 
 shell and back, cart tab, `?cart=true` link, checkout on `/[lang]/cart` (BUY-*), the product page add-to-cart
 bar above the nav, no nav on `/[lang]/login`, the lit tab per area.
 
+### Home LCP (Task 8)
+
+Method: production build (`pnpm build`, `pnpm start`) of both sides, run at the same time. Before is commit
+`fd6b10f4` (port 3200). After is `ui-migrations-shell` at `b9c66a08` (port 3201). Chromium, 440 x 802, a fresh
+context per run, `/sy-en`, last `largest-contentful-paint` entry read after `load` plus 3 s. One warm-up per
+server, then 5 runs each, alternating before and after. Date: 2026-10-28.
+
+| Side | Median | Max | The 5 values (ms, in run order) |
+|---|---|---|---|
+| Before | 4420 ms | 5712 ms | 5712, 484, 4420, 4780, 4248 |
+| After | 4488 ms | 10764 ms | 4780, 10764, 4488, 4348, 1632 |
+
+- The median is 68 ms slower after the shell. That is under the 100 ms limit.
+- The LCP element is the same on both sides in all 10 runs: the `img.product-media-redeem-show` product image
+  (200 x 290) from the media host. The shell did not change the LCP element.
+- The spread is large on both sides (484 to 10764 ms). It comes from the staging media host, not from the shell.
+  Treat the 68 ms as noise, not as a measured cost.
+
 ---
 
 ## Stage 4 — profile / settings
