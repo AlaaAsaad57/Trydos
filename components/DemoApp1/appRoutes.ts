@@ -12,6 +12,11 @@ export function tabHref(
 const afterLocale = (pathname: string): string[] =>
   pathname.split("/").filter(Boolean).slice(1);
 
+// The home page: the path has only the locale part (`/sy-en`).
+export function isHomePath(pathname: string): boolean {
+  return afterLocale(pathname).length === 0;
+}
+
 // Which tab is lit. An open chat or search wins over the path.
 // A page that belongs to no tab lights nothing.
 export function litTab(

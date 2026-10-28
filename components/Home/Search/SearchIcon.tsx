@@ -40,14 +40,11 @@ const SearchImage = dynamic(() => import("./SearchImage"), {
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import ActiveSearchFilterBar from "./ActiveSearchFilterBar";
 import NextLink from "components/global/NextLink";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import { isHomePath } from "components/DemoApp1/appRoutes";
 import { useAppStore } from "store";
 import Image from "next/image";
 import auth from "services/auth";
-
-// The last `openSearchRequest` value that opened the search. Kept outside the
-// component because SearchIcon unmounts when the shopper leaves the home page.
-let handledSearchRequest = 0;
 
 function SearchIcon({ language, country }) {
   const { setIsNavigating, setEnableSearch } = useAppStore();
@@ -114,21 +111,23 @@ function SearchIcon({ language, country }) {
   }, [searchEnabled]);
 
   // The bottom bar's Search tab asks for the search to open by raising
-  // `openSearchRequest` in the store. The tab goes to the home page first, so a
-  // request can come before this component mounts: a value not handled yet
-  // opens it. A value already handled does not open it again when the shopper
-  // comes back to the home page later.
+  // `openSearchRequest` in the store. Only the home page's SearchIcon takes a
+  // request; the category pages render SearchIcon too, and ignore it. The tab
+  // goes to the home page first, so a request can come before this component
+  // mounts: a value above `handledSearchRequest` opens it, and marks it handled.
+  const pathname = usePathname();
   const openSearchRequest = useAppStore((s) => s.openSearchRequest);
+  const handledSearchRequest = useAppStore((s) => s.handledSearchRequest);
   useEffect(() => {
-    if (openSearchRequest <= 0 || openSearchRequest === handledSearchRequest)
+    if (!isHomePath(pathname) || openSearchRequest <= handledSearchRequest)
       return;
-    handledSearchRequest = openSearchRequest;
+    useAppStore.getState().setHandledSearchRequest(openSearchRequest);
     // The same open as a tap on the search box (the click handler below).
     if (!searchEnabled) {
       DisableScroll();
       setSearchEnabled(true);
     }
-  }, [openSearchRequest]);
+  }, [openSearchRequest, handledSearchRequest, pathname]);
 
   // --- Initial Data Load (Trending & History) ---
   useEffect(() => {

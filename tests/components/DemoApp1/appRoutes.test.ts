@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  isHomePath,
   litTab,
   shellStepsAside,
   tabHref,
@@ -81,6 +82,18 @@ describe("shellStepsAside", () => {
       expect(shellStepsAside(path), `the shell should stay on ${path}`).toBe(
         false,
       );
+    },
+  );
+});
+
+describe("isHomePath", () => {
+  it.each(["/sy-en", "/sy-ar/"])("%s is the home page", (path) => {
+    expect(isHomePath(path), `${path} has only the locale part, so it is the home page`).toBe(true);
+  });
+  it.each(["/sy-en/cart", "/sy-en/categories/x", "/sy-en/products/x"])(
+    "%s is not the home page",
+    (path) => {
+      expect(isHomePath(path), `${path} has more than the locale part, so it is not the home page`).toBe(false);
     },
   );
 });

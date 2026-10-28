@@ -7,7 +7,7 @@ import type { DemoTab } from "../DemoApp/demoRoutes";
 import type { DemoDictionary, DemoKey } from "../DemoApp/demoKeys";
 import Demo1BottomNav from "./Demo1BottomNav";
 import { TAB_ROOM } from "./demo1Layout";
-import { litTab, shellStepsAside, tabHref } from "./appRoutes";
+import { isHomePath, litTab, shellStepsAside, tabHref } from "./appRoutes";
 import { openChatFromTab } from "./openChatFromTab";
 import { usePageDir } from "./rtl";
 import { useShellData } from "./useShellData";
@@ -76,17 +76,29 @@ export default function AppShell({
     };
   }, [showBar]);
 
+  // A Search request waits for the home page. When the shopper lands on a
+  // page that is not home instead, the request is dropped, so it cannot open
+  // search on a later, unrelated visit to the home page. This runs only when
+  // the path changes, so a request made on /cart survives its own push home.
+  useEffect(() => {
+    if (isHomePath(pathname)) return;
+    const { openSearchRequest, handledSearchRequest, setHandledSearchRequest } =
+      useAppStore.getState();
+    if (openSearchRequest > handledSearchRequest)
+      setHandledSearchRequest(openSearchRequest);
+  }, [pathname]);
+
   const onSelect = (tab: DemoTab) => {
     switch (tab) {
       case "home":
         router.push(tabHref(locale, "home"));
         return;
       case "search":
-        // SearchIcon lives on the home page only, so go there first. The
-        // request is a counter in the store, so it still opens SearchIcon
-        // when it mounts after the navigation.
-        if (litTab(pathname, { chat: false, search: false }) !== "home")
-          router.push(tabHref(locale, "home"));
+        // The tab opens the old search on the home page (S3-5). Only the home
+        // page's SearchIcon takes the request, so go there first when the
+        // shopper is on another page. The request is a counter in the store,
+        // so the home SearchIcon still sees it when it mounts after the push.
+        if (!isHomePath(pathname)) router.push(tabHref(locale, "home"));
         useAppStore.getState().requestOpenSearch();
         return;
       case "cart":

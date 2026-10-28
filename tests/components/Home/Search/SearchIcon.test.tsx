@@ -558,11 +558,29 @@ describe("SearchIcon", () => {
     });
     await settle();
     expect(input().disabled, "the request 11 did not open the search box").toBe(false);
+    expect(
+      first.store.getState().handledSearchRequest,
+      "the search box did not mark the request 11 as handled in the store",
+    ).toBe(11);
     first.unmount();
     await renderWithProviders(<SearchIcon language="en" country="sy" />, {
-      store: { ...store(), openSearchRequest: 11 },
+      store: { ...store(), openSearchRequest: 11, handledSearchRequest: 11 },
     });
     await settle();
     expect(input().disabled, "an old, handled search request opened the search box again on a new mount").toBe(true);
+  });
+
+  it("ignores a search request on a page that is not the home page", async () => {
+    const { store: live } = await renderWithProviders(<SearchIcon language="en" country="sy" />, {
+      store: { ...store(), openSearchRequest: 4 },
+      path: "/categories/x",
+    });
+    await settle();
+    expect(input().disabled, "the search box on a category page opened on a request for the home page").toBe(true);
+    expect(scroll.DisableScroll, "the search box on a category page locked the page scroll").not.toHaveBeenCalled();
+    expect(
+      live.getState().handledSearchRequest,
+      "the search box on a category page took the home page's request",
+    ).toBe(0);
   });
 });
