@@ -412,6 +412,14 @@ describe("DemoKeyboard — the page's own keyboard on a touch device", () => {
     expect(input("email").value, "the email keys did not type").toBe("a@");
   });
 
+  it("starts with Arabic letters on a Kurdish page too (Kurdish is written in Arabic letters)", () => {
+    render(<Page locale="sy-ku" />);
+    focus("name");
+    expect(keyboard()!.getAttribute("data-language"), "a Kurdish page did not start with Arabic letters").toBe(
+      "ar",
+    );
+  });
+
   it("shows the number pad for an amount, and the field's own filter still decides", () => {
     render(<Page />);
     focus("amount");

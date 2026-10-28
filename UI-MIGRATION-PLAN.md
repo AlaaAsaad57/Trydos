@@ -20,6 +20,9 @@ uncommitted chat changes (`components/DemoApp1/chat/MessageMenu.tsx`, `MessageRo
 | A-7 | Design is complete | **Never remove or hide any part of the demo design.** Every screen, sheet, button and row ships. |
 | A-8 | No backend yet | The screen opens as designed. Fields with a real source show real data. Fields with no source show empty or a placeholder. The final action (submit, request, send) shows "Soon available". **No mock data and no fake success reach production** (no fake balances, no "any 6 digits pass"). This replaces D-5. |
 | A-9 | New design first | The new design has priority. Claude does not change, add or keep anything you did not ask for. When an old feature has no place in the design and no answer from you, Claude asks. |
+| A-10 | Reduced motion | Respected in production. Login logo: still. Screen slides, sheets, menus, tab pill: movement is instant, fades stay (`MotionConfig reducedMotion="user"` on the new-UI roots). Bottom bar: no press pulse; the scroll shrink stays because it follows the finger. Note: a machine with "reduce motion" on (this dev machine) shows no animation. |
+| A-11 | Kurdish keyboard | The drawn keyboard starts on Arabic letters on `ku` pages, as on `ar` pages. |
+| A-12 | Quick Preview gaps | Fixed at 0 / 0 (as the client approved them on `/loginDemo`), not the screen defaults 35 / 56. |
 | D-1 | Merge | Once, at the end (after Stage 8). Every stage stays on `ui-migrations`. |
 | D-2 | Desktop | The 500 px centred column is OK on desktop. No desktop design work. |
 | D-3 | RTL | Mirror everything for `ar` / `ku`: layout, slide direction, tab order, margins. |

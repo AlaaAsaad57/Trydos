@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import Page from 'scaling/Page';
 import 'public/styles/rdb-auth.css';
 import { LogoAnimationProvider } from './LogoAnimationContext';
@@ -154,22 +154,12 @@ export default function NewLoginWidget({
     const activeSlot = logoConfig[logoSlotId];
 
     return (
-        <LogoAnimationProvider
-            /**
-             * Only a fallback now. Every logo on screen is handed its own
-             * pattern and its own loop length by its slot config, so nothing
-             * reads the provider's animation any more.
-             */
-            /**
-             * Always on here, and only here. Windows and macOS both have a
-             * setting that turns animation off system wide, and a good number
-             * of machines have it on. The product respects it. This demo exists
-             * to be looked at, and it cannot do that job if the machine it is
-             * opened on shows a still logo — a picker that shows nothing is not
-             * a picker.
-             */
-            ignoreReducedMotion
-        >
+        // A shopper who turned motion off gets a still logo and screens that do
+        // not slide (decided in Stage 1 of UI-MIGRATION-PLAN.md). The provider's
+        // own animation is only a fallback: each logo gets its pattern from its
+        // slot config.
+        <MotionConfig reducedMotion="user">
+        <LogoAnimationProvider>
             <main
                 data-pw="new-login-widget"
                 className="fixed inset-0 z-[99999999999] w-full h-dvh overflow-hidden font-quicksand transition-colors duration-300"
@@ -431,5 +421,6 @@ export default function NewLoginWidget({
             </Page>
         </main>
         </LogoAnimationProvider>
+        </MotionConfig>
     );
 }

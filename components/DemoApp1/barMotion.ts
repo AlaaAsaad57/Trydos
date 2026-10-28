@@ -5,6 +5,7 @@ import {
   animate,
   type MotionValue,
   useMotionValue,
+  useReducedMotion,
   useSpring,
   useTransform,
 } from "framer-motion";
@@ -102,9 +103,10 @@ const TOP_HOLD = 8;
 const GLIDE = { stiffness: 300, damping: 30, mass: 0.85 } as const;
 
 /*
-  ON prefers-reduced-motion
-  The bar ignores it today, as the old demo did. What a reduced-motion visitor
-  gets in the real app is an open decision (UI-MIGRATION-PLAN.md).
+  ON prefers-reduced-motion (decided in Stage 1 of UI-MIGRATION-PLAN.md)
+  The scroll scale stays: it follows the finger, it does not move on its own.
+  The press pulse goes (useBarPulse). The indicator jumps instead of sliding,
+  because the new UI's roots set MotionConfig reducedMotion="user".
 */
 
 /**
@@ -286,8 +288,12 @@ export function useScrollScale(
  *
  * The pulse multiplies the scroll scale rather than replacing it, so a touch
  * during a scroll does not snap the bar back to full size.
+ *
+ * With reduced motion on there is no pulse: it is movement the shopper did not
+ * ask for.
  */
 export function useBarPulse(scrollScale: MotionValue<number>) {
+  const reduced = useReducedMotion();
   const pulse = useMotionValue(1);
   const scale = useTransform(
     [scrollScale, pulse],
@@ -296,6 +302,7 @@ export function useBarPulse(scrollScale: MotionValue<number>) {
 
   const lastPulse = useRef(0);
   const firePulse = () => {
+    if (reduced) return;
     const now = performance.now();
     if (now - lastPulse.current < PULSE_GAP_MS) return;
     lastPulse.current = now;

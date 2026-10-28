@@ -16,13 +16,15 @@ const rafQueue = vi.hoisted(() => {
   return q;
 });
 
-import { BAR_SCROLL, useScrollScale } from "components/DemoApp1/barMotion";
+import { BAR_SCROLL, useBarPulse, useScrollScale } from "components/DemoApp1/barMotion";
 
 // One animation-frame queue shared by the bar's scroll loop and framer-motion,
 // driven by hand so the test decides when time passes. framer-motion takes a
 // frame's time from performance.now(), not from the time handed to the frame
 // (motion-dom's frame loop), so performance.now() follows the same clock.
-let clock = 0;
+// It starts past 0: the bar drops a press within 260 ms of the last one, and
+// the last one starts at 0.
+let clock = 1000;
 vi.spyOn(performance, "now").mockImplementation(() => clock);
 const runFrames = (count: number, stepMs = 16) => {
   for (let i = 0; i < count; i++) {
@@ -69,5 +71,27 @@ describe("useScrollScale (the bottom bar's scroll scale)", () => {
     scrollTo(0);
     runFrames(80);
     expect(scale!.get(), "the bar did not return to full size at the top").toBeCloseTo(1, 2);
+  });
+
+  it("a press pulses the bar when reduced motion is off", () => {
+    let bar: { scale: MotionValue<number>; firePulse: () => void } | null = null;
+    function Pressed() {
+      const pulse = useBarPulse(
+        useScrollScale(BAR_SCROLL.minScale, BAR_SCROLL.distance, BAR_SCROLL.speedEffect),
+      );
+      useEffect(() => {
+        bar = pulse;
+      }, [pulse]);
+      return null;
+    }
+    scrollTo(0);
+    render(<Pressed />);
+    let largest = bar!.scale.get();
+    act(() => bar!.firePulse());
+    for (let i = 0; i < 40; i++) {
+      runFrames(1);
+      largest = Math.max(largest, bar!.scale.get());
+    }
+    expect(largest, "a press did not pulse the bar").toBeGreaterThan(1.02);
   });
 });

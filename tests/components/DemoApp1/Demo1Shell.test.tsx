@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useContext } from "react";
+import { MotionConfigContext } from "framer-motion";
 import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -18,7 +19,6 @@ vi.mock("next/navigation", () => ({
   useRouter: () => router,
   useParams: () => ({ lang: "sy-en" }),
 }));
-// The device modal is the login's, tested with it.
 
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
 import { Sheet } from "components/DemoApp1/ui";
@@ -847,5 +847,27 @@ describe("Demo1 layers — a sheet holds the page still", () => {
       !fireEvent.wheel(part!, { deltaY: -120 }),
       "the wheel back up from the end of the sheet's rows was stopped, so the rows do not scroll back",
     ).toBe(false);
+  });
+});
+
+describe("Demo1Shell — reduced motion", () => {
+  it("tells framer-motion to follow the shopper's reduced-motion setting", () => {
+    // A path under /demo that is no screen: the shell shows the route's own page.
+    url.pathname = "/sy-en/demo/not-a-screen";
+    url.search = "";
+    let seen: string | undefined;
+    function Probe() {
+      seen = useContext(MotionConfigContext).reducedMotion;
+      return null;
+    }
+    render(
+      <Demo1Shell dictionary={{}}>
+        <Probe />
+      </Demo1Shell>,
+    );
+    expect(
+      seen,
+      "the new UI does not set MotionConfig reducedMotion=\"user\", so slides and sheets still move for a shopper who turned motion off",
+    ).toBe("user");
   });
 });

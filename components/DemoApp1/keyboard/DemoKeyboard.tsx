@@ -321,8 +321,9 @@ export default function DemoKeyboard({
   const on = touch && DEMO_KEYBOARD;
 
   const [field, setField] = useState<TextField | null>(null);
+  // Kurdish (ku) is written in Arabic letters, so it starts on them too.
   const [language, setLanguage] = useState<Language>(
-    locale.split("-")[1] === "ar" ? "ar" : "en",
+    ["ar", "ku"].includes(locale.split("-")[1]) ? "ar" : "en",
   );
   const [page, setPage] = useState<Page>("letters");
   const [shift, setShift] = useState<Shift>("off");

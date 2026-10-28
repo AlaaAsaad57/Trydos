@@ -17,6 +17,7 @@ import {
 import {
   AnimatePresence,
   motion,
+  MotionConfig,
   useIsPresent,
   usePresenceData,
 } from "framer-motion";
@@ -104,9 +105,13 @@ export default function Demo1Shell({
   dictionary: DemoDictionary;
 }) {
   return (
-    <DemoDataProvider>
-      <Demo1ShellInner dictionary={dictionary}>{children}</Demo1ShellInner>
-    </DemoDataProvider>
+    // A shopper who turned motion off gets no slides: framer-motion makes every
+    // move instant and keeps the fades (decided in Stage 1 of UI-MIGRATION-PLAN.md).
+    <MotionConfig reducedMotion="user">
+      <DemoDataProvider>
+        <Demo1ShellInner dictionary={dictionary}>{children}</Demo1ShellInner>
+      </DemoDataProvider>
+    </MotionConfig>
   );
 }
 
