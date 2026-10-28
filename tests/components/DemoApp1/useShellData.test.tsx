@@ -119,4 +119,16 @@ describe("useShellData", () => {
       "an empty store.userProfile.image should give photo null",
     ).toBeNull();
   });
+
+  it("unreadChats is 0 when store.userChat is null, even with a new message in store.data", () => {
+    useAppStore.setState({
+      userChat: null,
+      data: [{ id: 10, messages: [newMessage] }],
+    } as any);
+    const { result } = renderHook(() => useShellData());
+    expect(
+      result.current.unreadChats,
+      "no chat account in store.userChat, so there should be no unread chats",
+    ).toBe(0);
+  });
 });
