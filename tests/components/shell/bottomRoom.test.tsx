@@ -7,6 +7,7 @@
 //
 // jsdom has no layout, so each case reads the offset the component wrote
 // (its class or its inline style) and checks that it uses the variable.
+import { readFileSync } from "node:fs";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -281,6 +282,17 @@ describe("old bottom bars sit above the new bar", () => {
     expect(
       (marked("notification-container") as HTMLElement).style.bottom,
       "the notifications skeleton has no room in its bottom offset",
+    ).toContain(ROOM);
+  });
+
+  it("the product page footer in productDetails.css adds the room to its bottom", () => {
+    // The footer is plain CSS, so the real file is read, not a render.
+    const css = readFileSync("public/styles/productDetails.css", "utf8");
+    const rule = /\.product-details-footer\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    const bottom = /(?:^|[;\s])bottom\s*:\s*([^;]+)/.exec(rule)?.[1]?.trim() ?? "(no bottom)";
+    expect(
+      bottom,
+      `public/styles/productDetails.css: the product page footer (.product-details-footer) has bottom: ${bottom}, no --app-bar-room`,
     ).toContain(ROOM);
   });
 });
