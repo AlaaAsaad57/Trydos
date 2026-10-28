@@ -225,6 +225,13 @@ function AddToCartButton({
           qty: (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
           isFromAddWidget: true,
           is_luck: luckNow,
+          // The price of ONE piece the sheet shows (PricesRow).
+          showed_price: resolveShowedPrice({
+            product,
+            selectedVariant,
+            cartItem: isVariantInCart({ exact: false }),
+            isLuck: luckNow,
+          }),
         });
         if (response === false) {
           throw "error";
@@ -369,6 +376,13 @@ function AddToCartButton({
           cart_id: isVariantInCart({ exact: true })?.item_id,
           qty: isVariantInCart({ exact: true })?.quantity - 1,
           isFromAddWidget: true,
+          // The price of ONE piece the sheet shows (PricesRow).
+          showed_price: resolveShowedPrice({
+            product,
+            selectedVariant,
+            cartItem: isVariantInCart({ exact: true }),
+            isLuck: isLuckActive(product, id),
+          }),
         });
 
         if (response === false) {

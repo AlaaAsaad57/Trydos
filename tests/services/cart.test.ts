@@ -918,5 +918,93 @@ describe("CartService", () => {
       ).not.toHaveBeenCalled();
     });
   });
+  // The showed_price contract (core and gateway): an optional number, 0 or
+  // more, for ONE piece. A value that is not a finite number of 0 or more must
+  // be left out of the body. The core backend answers 403 for a bad value, and
+  // that 403 stops the shopper adding to the bag at all.
+  describe("showed_price — what reaches the cart body", () => {
+    const sentBody = () => {
+      const call = vi.mocked(fetchData).mock.calls[0]?.[0] as any;
+      return JSON.parse(call?.body ?? "{}");
+    };
+    const addWith = (showed_price: any) => {
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: { status: 1, id_cart: "row-7" },
+      });
+      return cartService.AddToCart({
+        product_id: 7,
+        color: "Red",
+        choice_1: "M",
+        qty: 1,
+        image: "a.jpg",
+        type: "v-7",
+        offer_price: 17,
+        showed_price,
+      });
+    };
+
+    it.each([
+      ["an empty string", ""],
+      ["a negative number", -1],
+      ["text that is not a number", "abc"],
+      ["NaN", Number.NaN],
+      ["Infinity", Number.POSITIVE_INFINITY],
+    ])("leaves showed_price out of /cart/add when it is %s", async (_label, value) => {
+      await addWith(value);
+      expect(
+        Object.prototype.hasOwnProperty.call(sentBody(), "showed_price"),
+        `/cart/add got showed_price ${JSON.stringify(sentBody().showed_price)} for ${JSON.stringify(String(value))}; a bad value must be left out (the core backend answers 403, or a 0 claims a free item)`,
+      ).toBe(false);
+    });
+
+    it("sends 0 to /cart/add when the shopper was shown 0", async () => {
+      await addWith(0);
+      expect(sentBody().showed_price, "a shown price of 0 is valid and must reach /cart/add").toBe(0);
+    });
+
+    it("sends a numeric string to /cart/add as a number", async () => {
+      await addWith("12.5");
+      expect(sentBody().showed_price, "showed_price must be a JSON number, not a string").toBe(12.5);
+    });
+
+    it("keeps a bad showed_price out of the stored cart row", async () => {
+      await addWith("");
+      expect(
+        useAppStore.getState().localCart[0]?.showed_price ?? null,
+        "the store kept a showed_price that was never sent",
+      ).toBeNull();
+    });
+
+    it("sends showed_price to /cart/update with the new quantity", async () => {
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: { status: 1, qty: 2 },
+      });
+      await cartService.UpdateCart({ cart_id: 88123, qty: 2, showed_price: 119.99 } as any);
+      expect(sentBody(), "/cart/update did not carry the shown price of one piece").toEqual({
+        key: 88123,
+        quantity: 2,
+        showed_price: 119.99,
+      });
+    });
+
+    it.each([
+      ["missing", undefined],
+      ["null", null],
+      ["an empty string", ""],
+      ["a negative number", -5],
+    ])("leaves showed_price out of /cart/update when it is %s", async (_label, value) => {
+      vi.mocked(fetchData).mockResolvedValueOnce({
+        success: true,
+        data: { status: 1, qty: 2 },
+      });
+      await cartService.UpdateCart({ cart_id: 88123, qty: 2, showed_price: value } as any);
+      expect(
+        Object.prototype.hasOwnProperty.call(sentBody(), "showed_price"),
+        `/cart/update got showed_price ${JSON.stringify(sentBody().showed_price)}; a missing or bad value must be left out so the saved one stays`,
+      ).toBe(false);
+    });
+  });
 });
 

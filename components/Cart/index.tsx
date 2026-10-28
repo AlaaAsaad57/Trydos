@@ -514,6 +514,9 @@ export const QuantutyInput = ({
     const succeeded = await cartService.UpdateCart({
       cart_id: id,
       qty: quantity,
+      // The price of ONE piece this row shows while the shopper changes the
+      // quantity. The core backend saves it in place of the old value.
+      showed_price: currentUnitPrice,
       // The core backend answered and said no — it has no more to give. That is
       // not a failed request, so there is no error to show; offer the shopper
       // the thing they actually want instead, which is to be told when it is

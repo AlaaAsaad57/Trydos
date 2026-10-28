@@ -5,6 +5,7 @@ import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
 import { readRdbLock } from "./rdbPayment";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
+import { toShowedPrice } from "utils/cart/pricing";
 
 class CartService {
   async AddToCart({
@@ -22,6 +23,10 @@ class CartService {
   }) {
     const { addProductToCart } = useAppStore.getState();
     const imageVar = image?.split("/")[image?.split("/").length - 1];
+    // The price of ONE piece the shopper was shown. A value that is not a
+    // number of 0 or more is left out: the core backend refuses it with a 403,
+    // and that refusal would stop the add.
+    const showedPrice = toShowedPrice(showed_price);
     let details = {
       product_id: product_id,
       id: product_id,
@@ -29,9 +34,7 @@ class CartService {
       quantity: qty,
       product_variation_id: product_variation_id ?? null,
       is_luck,
-      ...(showed_price !== undefined && showed_price !== null
-        ? { showed_price: Number(showed_price) }
-        : {}),
+      ...(showedPrice !== null ? { showed_price: showedPrice } : {}),
     };
 
 
@@ -74,7 +77,7 @@ class CartService {
           quantity: 1,
           type,
           offer_price,
-          showed_price,
+          showed_price: showedPrice,
         });
         return true;
       }
@@ -96,19 +99,25 @@ class CartService {
    *  on stock, not a failed request, and the cart row offers to notify the
    *  shopper for it. Every other failure — a refused request, a thrown error —
    *  leaves `onRefused` alone, so a network fault is never blamed on the
-   *  product. */
+   *  product.
+   *
+   *  `showed_price` is the price of ONE piece the shopper sees while changing
+   *  the quantity. When the core backend takes the new quantity it replaces the
+   *  saved value. A missing or bad value is left out, so the saved one stays. */
   async UpdateCart({
     cart_id,
     qty,
     isFromAddWidget = false,
     is_luck = false,
     onRefused = null,
+    showed_price = null,
   }: {
     cart_id: any;
     qty: any;
     isFromAddWidget?: boolean;
     is_luck?: boolean;
     onRefused?: ((refusal: { status: any; qty: any }) => void) | null;
+    showed_price?: number | string | null;
   }) {
     const { updateProductQuantityInCart } = useAppStore.getState();
 
@@ -119,6 +128,9 @@ class CartService {
         body: JSON.stringify({
           key: cart_id,
           quantity: qty,
+          ...(toShowedPrice(showed_price) !== null
+            ? { showed_price: toShowedPrice(showed_price) }
+            : {}),
         }),
         reqTitle: isFromAddWidget
           ? REQUESTS_DATA.ADD_TO_CART_WIDGET

@@ -167,8 +167,8 @@ describe("lowering a quantity above one from the out-of-stock widget", () => {
 
     expect(
       UpdateCart.mock.calls[0]?.[0],
-      "minus must lower the picked variant's row (cart-2) from 2 to 1",
-    ).toEqual({ cart_id: "cart-2", qty: 1, isFromAddWidget: true });
+      "minus must lower the picked variant's row (cart-2) from 2 to 1, and send the price of one piece the sheet shows (offer price 80) as showed_price",
+    ).toEqual({ cart_id: "cart-2", qty: 1, isFromAddWidget: true, showed_price: 80 });
     await waitFor(() =>
       expect(
         updateQuantity,
