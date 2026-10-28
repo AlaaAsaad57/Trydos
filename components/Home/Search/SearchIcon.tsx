@@ -913,7 +913,7 @@ const SearchContainer = ({
           </div>
         )}
       </div>
-      <div className="w-full max-w-[1200px] z-50 px-[25px] fixed bottom-[40px] left-0 right-0 mx-auto flex flex-col">
+      <div className="w-full max-w-[1200px] z-50 px-[25px] fixed bottom-[calc(40px+var(--app-bar-room,0px))] left-0 right-0 mx-auto flex flex-col">
         <ActiveSearchFilterBar
           appliedFilters={applied_filter}
           reset={() => {

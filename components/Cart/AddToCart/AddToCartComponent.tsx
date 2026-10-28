@@ -840,7 +840,7 @@ function AddToCartComponent({ product, slug, color }) {
         style={{
           border: "1px solid rgb(255,98.0.0.5)",
         }}
-        className=" flex pb-[18px] flex-col w-full min-h-[136px] rounded-t-[30px] gap-[8px] h-auto fixed bottom-0 bg-[#FFFFFF] shadow-[0px_-3px_20px_rgb(0,0,0,0.1)] z-50"
+        className=" flex pb-[18px] flex-col w-full min-h-[136px] rounded-t-[30px] gap-[8px] h-auto fixed bottom-[var(--app-bar-room,0px)] bg-[#FFFFFF] shadow-[0px_-3px_20px_rgb(0,0,0,0.1)] z-50"
       >
         <PricesRow
           is_luck={ProductData.is_luck}

@@ -155,7 +155,7 @@ const NotificationsPanel = ({ onClose, closeWindow }) => {
         position: "fixed",
         top: 10,
         right: 0,
-        bottom: 0,
+        bottom: "var(--app-bar-room, 0px)",
         maxWidth: "400px",
         width: "100%",
         maxHeight: "600px",

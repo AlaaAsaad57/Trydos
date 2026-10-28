@@ -261,7 +261,7 @@ function OrderButton({ close, toOrders }) {
           borderTopLeftRadius: "30px",
           borderTopRightRadius: "30px",
           boxShadow: "0px -3px 20px #0000001a",
-          bottom: "calc(env(safe-area-inset-bottom) + 40px)",
+          bottom: "calc(env(safe-area-inset-bottom) + 40px + var(--app-bar-room, 0px))",
         }}
         className="order-bottom-button flex-col z-[99999999999999999] fixed  left-0 bg-white min-h-[100px] w-full"
       >

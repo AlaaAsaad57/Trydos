@@ -125,7 +125,7 @@ function RatingOrderItem({
             onClick={handleCloseModal}
           />
           <div
-            className="fixed bottom-0  h-[65vh] left-0 right-0 mx-auto transform  z-[999999999] w-full max-w-full "
+            className="fixed bottom-[var(--app-bar-room,0px)]  h-[65vh] left-0 right-0 mx-auto transform  z-[999999999] w-full max-w-full "
             aria-modal="true"
             role="dialog"
             tabIndex={-1}
