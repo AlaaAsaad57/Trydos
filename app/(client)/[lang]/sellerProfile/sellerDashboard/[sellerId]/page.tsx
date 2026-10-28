@@ -272,6 +272,9 @@ function SellerDashBoard() {
   const [rolesForChangeLoading, setRolesForChangeLoading] =
     useState<boolean>(true);
   const [activeCartsCount, setActiveCartsCount] = useState<number | null>(null);
+  // `null` means "not known yet" (not loaded, or the load failed). The badge
+  // shows a dash for that, never 0.
+  const [storiesCount, setStoriesCount] = useState<number | null>(null);
   // "Delete" removes a member from the shop, so it asks first.
   const [deleteUserTarget, setDeleteUserTarget] = useState<any>(null);
   const [deleteUserLoading, setDeleteUserLoading] = useState<boolean>(false);
@@ -654,6 +657,35 @@ function SellerDashBoard() {
     } catch (error: any) {
       LogError({
         scenario: "SellerDashboard.getActiveCartsCount",
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return false;
+    }
+  };
+
+  // The side-menu Stories badge. Asks the stories server for one row only
+  // (perPage=1) and reads the paginator's `total`. Never asks without READ_STORY.
+  const getStoriesCount = async (): Promise<boolean> => {
+    if (!canViewStories) return false;
+    try {
+      const res = await SellerDashboardService.getSellerStories(
+        sellerId,
+        currentUserId,
+        1,
+        1,
+      );
+      if (!res?.success) {
+        throw new Error(res?.message || translateFunction("Failed to load stories"));
+      }
+      // Staging sends `total` on `data` (a Laravel paginator); `meta` is kept
+      // for the shape StoriesTab also accepts.
+      const total = res.data?.meta?.total ?? res.data?.total;
+      if (typeof total !== "number") return false;
+      setStoriesCount(total);
+      return true;
+    } catch (error: any) {
+      LogError({
+        scenario: "SellerDashboard.getStoriesCount",
         error: error instanceof Error ? error.message : String(error),
       });
       return false;
@@ -1154,6 +1186,28 @@ function SellerDashBoard() {
     [sellerId],
   );
 
+  // Same idea for stories: StoriesTab reports the total it loaded (and the new
+  // one after an upload or a delete). The side menu then reuses it and does not
+  // ask the stories server again.
+  const handleStoriesCount = useCallback(
+    (count: number) => {
+      setStoriesCount(count);
+      fetchedThisMount.current.set(
+        `${sellerId}:stories-count`,
+        Promise.resolve(true),
+      );
+    },
+    [sellerId],
+  );
+
+  // The home Stories tile shows the count too, so it is loaded when the home
+  // screen opens, not only when the side menu opens. `fetchOnce` shares the
+  // call with the side menu.
+  useEffect(() => {
+    if (activeTab !== "none" || !permissionsReady || !canViewStories) return;
+    void fetchOnce(`${sellerId}:stories-count`, () => getStoriesCount());
+  }, [activeTab, permissionsReady, canViewStories, sellerId]);
+
   useEffect(() => {
     if (
       activeTab === "permissions" &&
@@ -1181,9 +1235,9 @@ function SellerDashBoard() {
       // that is never coming.
       //
       // The results are unused, but the calls are not: they fill
-      // `sellerProducts` / `sellerBoutiques` / `activeCartsCount`, which the side-menu count badges
-      // below read.
-      const [, , , ShopesRes] = await Promise.all([
+      // `sellerProducts` / `sellerBoutiques` / `activeCartsCount` /
+      // `storiesCount`, which the side-menu count badges below read.
+      const [, , , , ShopesRes] = await Promise.all([
         canViewProducts
           ? fetchOnce(`${sellerId}:products`, () => getSellerProducts())
           : Promise.resolve(false),
@@ -1192,6 +1246,9 @@ function SellerDashBoard() {
           : Promise.resolve(false),
         canViewCarts
           ? fetchOnce(`${sellerId}:carts-count`, () => getActiveCartsCount())
+          : Promise.resolve(false),
+        canViewStories
+          ? fetchOnce(`${sellerId}:stories-count`, () => getStoriesCount())
           : Promise.resolve(false),
         fetchOnce(`${sellerId}:shopes`, async () => {
           const res = await SellerDashboardService.getShopes(true);
@@ -2264,6 +2321,8 @@ function SellerDashBoard() {
     label: string;
     desc: string;
     show: boolean;
+    /** A count badge on the tile. `null` = not known yet (shows a dash). */
+    count?: number | null;
   }[] = [
     {
       tab: "products",
@@ -2313,6 +2372,7 @@ function SellerDashBoard() {
       label: translateFunction("Stories"),
       desc: translateFunction("Share photo & video stories"),
       show: canViewStories,
+      count: storiesCount,
     },
     {
       tab: "excel",
@@ -2385,6 +2445,16 @@ function SellerDashBoard() {
                 </p>
                 <p className="text-[12px] text-[#8e8e8e] truncate">{t.desc}</p>
               </div>
+              {t.count !== undefined && (
+                // A dash until the count is known: "not loaded" is not 0.
+                <span
+                  data-pw={`seller-dashboard-tile-${t.tab}-count`}
+                  data-value={t.count == null ? "" : String(t.count)}
+                  className="rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center shrink-0 text-[11px] semibold bg-[#5d5d5d]/10 text-[#5d5d5d]"
+                >
+                  {t.count ?? "—"}
+                </span>
+              )}
               <span className="shrink-0 text-[#c4c2c2] group-hover:text-[#5d5d5d] transition-colors">
                 <DashIcon
                   name={isRtl ? "chevronLeft" : "chevronRight"}
@@ -2680,8 +2750,16 @@ function SellerDashBoard() {
                 >
                   <DashIcon name="stories" size={20} />
                   <span>{translateFunction("Stories")}</span>
+                  {/* A dash until the count is known: "not loaded" is not 0. */}
+                  <span
+                    data-pw="seller-dashboard-menu-stories-count"
+                    data-value={storiesCount == null ? "" : String(storiesCount)}
+                    className="rounded-full min-w-[22px] h-[22px] px-1.5 flex items-center justify-center ms-auto text-[11px] semibold bg-[#5d5d5d]/10 text-[#5d5d5d]"
+                  >
+                    {loadingSideBar ? <Spinner /> : storiesCount ?? "—"}
+                  </span>
                   {activeTab === "stories" && (
-                    <span className="ms-auto text-[#5d5d5d]">
+                    <span className="text-[#5d5d5d] shrink-0">
                       <DashIcon name="check" size={16} />
                     </span>
                   )}
@@ -2906,6 +2984,7 @@ function SellerDashBoard() {
               canDelete={canDeleteStory}
               language={language}
               isRtl={isRtl}
+              onTotalChange={handleStoriesCount}
             />,
             translateFunction("You don't have permission to view stories"),
           )}

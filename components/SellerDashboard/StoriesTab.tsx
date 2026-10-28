@@ -899,6 +899,7 @@ export default function StoriesTab({
   canDelete = false,
   language,
   isRtl,
+  onTotalChange,
 }: {
   sellerId: string;
   userId: number | string;
@@ -906,6 +907,9 @@ export default function StoriesTab({
   canDelete?: boolean;
   language?: string;
   isRtl?: boolean;
+  /** Called with the shop's story total each time it is known or changes
+   *  (load, upload, delete). The page shows it on the side-menu badge. */
+  onTotalChange?: (total: number) => void;
 }) {
   const isRtlResolved = isRtl ?? (language === "ar" || language === "ku");
   const [stories, setStories] = useState<SellerStory[]>([]);
@@ -946,8 +950,20 @@ export default function StoriesTab({
           : list;
         setStories(flat);
         // Pagination: prefer `meta`, fall back to a `next_page_url` flag.
-        const metaObj = payload.meta ?? null;
+        // Staging sends a Laravel paginator with no `meta`: `total`,
+        // `current_page` and `last_page` sit on `data` itself. Without this
+        // the pager and the count sent to the page never showed.
+        const metaObj: PaginationMeta | null =
+          payload.meta ??
+          (typeof payload.total === "number"
+            ? {
+                current_page: payload.current_page,
+                last_page: payload.last_page,
+                total: payload.total,
+              }
+            : null);
         setMeta(metaObj);
+        if (typeof metaObj?.total === "number") onTotalChange?.(metaObj.total);
         setHasMore(
           metaObj
             ? metaObj.current_page < metaObj.last_page
@@ -966,7 +982,7 @@ export default function StoriesTab({
         setLoading(false);
       }
     },
-    [sellerId, userId],
+    [sellerId, userId, onTotalChange],
   );
 
   useEffect(() => {
@@ -988,6 +1004,13 @@ export default function StoriesTab({
       setStories((prev) =>
         prev.filter((s) => s.id !== deletingStory.id),
       );
+      // The list is not asked again after a delete, so the count is lowered
+      // here. Otherwise the dashboard badges keep the old number.
+      if (meta) {
+        const total = Math.max(0, meta.total - 1);
+        setMeta({ ...meta, total });
+        onTotalChange?.(total);
+      }
       setDeletingStory(null);
     } catch (e: any) {
       LogError({
@@ -1025,11 +1048,6 @@ export default function StoriesTab({
           <h2 className="text-[16px] semibold text-[#3c3c3c] truncate">
             {translateFunction("Stories")}
           </h2>
-          {meta && (
-            <span className="shrink-0 min-w-[22px] h-[22px] px-1.5 flex items-center justify-center rounded-full bg-[#5d5d5d]/10 text-[#5d5d5d] text-[11px] semibold">
-              {meta.total}
-            </span>
-          )}
         </div>
         {canCreate && (
           <DashButton
