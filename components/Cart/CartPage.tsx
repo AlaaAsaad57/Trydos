@@ -134,7 +134,8 @@ export default function CartPage() {
   const onCart = isCartPath(pathname);
   const open = useAppStore((s) => s.cart_enable);
   // True once the flag was true while the page is on screen, so the false
-  // before the mount effect runs is not read as a close.
+  // before the mount effect runs is not read as a close. A hidden page keeps
+  // its refs, so the cleanup below also puts it back to false.
   const wasOpen = useRef(false);
 
   useEffect(() => {
@@ -146,6 +147,9 @@ export default function CartPage() {
       // The page is going. The flag follows it, and the reaction below is
       // already gone, so this does not leave a second time.
       useAppStore.getState().enableCart(false);
+      // It runs on hide too, not only on unmount. Without the reset, showing
+      // the page again reads the old true as a close and the page leaves.
+      wasOpen.current = false;
     };
   }, []);
 

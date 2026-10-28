@@ -9,6 +9,7 @@
 //
 // The cart and checkout screens are stand-ins: each has its own test, and both
 // reach the core backend on mount.
+import { Activity } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import CartPage from "components/Cart/CartPage";
@@ -251,6 +252,43 @@ describe("the cart page acts only on its own path", () => {
     });
     expect(routerSpies.back, "the hidden cart page went back while the product overlay was open").not.toHaveBeenCalled();
     expect(routerSpies.replace, "the hidden cart page moved home while the product overlay was open").not.toHaveBeenCalled();
+  });
+});
+
+describe("the cart page kept hidden and shown again (BUG-shell-2)", () => {
+  // The app keeps a page the shopper left mounted but hidden (React Activity).
+  // Hiding runs the effect cleanups. Showing runs all effects again. The ref
+  // that says "the cart was open" must not live through the hide.
+  it("coming back to the cart page does not make it leave again", async () => {
+    noteSitePage("/sy-en/products/x");
+    const { store, rerender } = await renderWithProviders(
+      <Activity mode="visible">
+        <CartPage />
+      </Activity>,
+      { country: "sy", path: "/cart", store: { total_cash: 30, cart: CART } },
+    );
+    expect(store.getState().cart_enable, "the first visit did not open the cart").toBe(true);
+    // The shopper taps the Home tab: the page is hidden, not unmounted.
+    setRoute({ pathname: "/sy-en" });
+    rerender(
+      <Activity mode="hidden">
+        <CartPage />
+      </Activity>,
+    );
+    // The shopper taps the Cart tab: the same page is shown again.
+    setRoute({ pathname: "/sy-en/cart" });
+    rerender(
+      <Activity mode="visible">
+        <CartPage />
+      </Activity>,
+    );
+    await act(async () => {});
+    expect(routerSpies.back, "coming back to the cart page made it leave again (router.back)").not.toHaveBeenCalled();
+    expect(
+      routerSpies.replace,
+      "coming back to the cart page made it leave again (router.replace to home)",
+    ).not.toHaveBeenCalled();
+    expect(store.getState().cart_enable, "coming back to the cart page did not open the cart again").toBe(true);
   });
 });
 

@@ -117,7 +117,7 @@ export const openCart = async (page: Page): Promise<{ lines: number }> => {
   //
   // **Not "Home, then Cart".** That was tried first, and in BUY-03's teardown
   // the cart page then went back to the home page on its own (seen in the
-  // run's video). The cause is not confirmed yet.
+  // run's video). The cause was BUG-shell-2, fixed in CartPage.tsx.
   if (onCartPage(page) && !(await cart.drawer(page).isVisible())) {
     if (await checkout.backToBag(page).isVisible()) {
       const back = await returnToBag(page);
