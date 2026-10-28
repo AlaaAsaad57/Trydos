@@ -42,9 +42,6 @@ vi.mock("components/global/NextLink", () => ({
 }));
 
 // ---- Add to cart sheet ------------------------------------------------------
-vi.mock("components/global/BottomSheet", () => ({
-  default: (props: any) => <div>{props.children}</div>,
-}));
 const { stub } = vi.hoisted(() => ({
   stub: (name: string): any => ({ default: () => <div data-testid={name} /> }),
 }));
@@ -143,7 +140,7 @@ afterEach(() => {
 });
 
 describe("old bottom bars sit above the new bar", () => {
-  it("the add-to-cart sheet adds the room to its bottom offset", async () => {
+  it("the add-to-cart sheet takes no room, because BottomSheet covers the bar", async () => {
     const product = { id: 7, slug: "shirt", name: "Shirt", available_quantity: 50, packed_after_ordering: 0 };
     await renderWithProviders(<AddToCartComponent product={product} slug="shirt" />, {
       country: "sy",
@@ -151,7 +148,11 @@ describe("old bottom bars sit above the new bar", () => {
     });
     await act(async () => {});
     const bar = screen.getByTestId("PricesRow").parentElement;
-    expect(placement(bar), "the add-to-cart sheet ignores --app-bar-room").toContain(ROOM);
+    expect(bar, "the add-to-cart bottom row was not drawn inside the real BottomSheet").toBeTruthy();
+    expect(
+      placement(bar),
+      "the add-to-cart sheet sits inside BottomSheet, which covers the bar, so it takes no room",
+    ).not.toContain(ROOM);
   });
 
   it("the filter window button row adds the room to its bottom offset", async () => {
@@ -167,7 +168,7 @@ describe("old bottom bars sit above the new bar", () => {
       />,
       { path: "/filters", store: { filterEnabled: true } },
     );
-    expect(placement(marked("searchResult")), "the filter button row ignores --app-bar-room").toContain(ROOM);
+    expect(placement(marked("searchResult")), "the filter button row has no room in its bottom offset").toMatch(/bottom-\[calc\(50px\+var\(--app-bar-room,0px\)\)\]/);
   });
 
   it("the old chat window leaves the room at the bottom of its height", async () => {
@@ -175,7 +176,7 @@ describe("old bottom bars sit above the new bar", () => {
     await renderWithProviders(<Chat close={vi.fn()} open callInProgress={false} />, {
       store: { NotificationPremission: true, main: "chat", activeChat: { id: 7 }, data: [] },
     });
-    expect(placement(marked("chat-window")), "the old chat window ignores --app-bar-room").toContain(ROOM);
+    expect(placement(marked("chat-window")), "the old chat window height does not leave the room").toMatch(/xs:h-\[calc\(100vh-var\(--app-bar-room,0px\)\)\]/);
   });
 
   it("the search filter bar adds the room to its bottom offset", async () => {
@@ -189,7 +190,7 @@ describe("old bottom bars sit above the new bar", () => {
         await vi.advanceTimersByTimeAsync(1600);
       });
       const bar = screen.getByTestId("filter-bar").parentElement;
-      expect(placement(bar), "the search filter bar ignores --app-bar-room").toContain(ROOM);
+      expect(placement(bar), "the search filter bar has no room in its bottom offset").toMatch(/bottom-\[calc\(40px\+var\(--app-bar-room,0px\)\)\]/);
     } finally {
       vi.useRealTimers();
     }
@@ -211,7 +212,7 @@ describe("old bottom bars sit above the new bar", () => {
         setLoading={vi.fn()}
       />,
     );
-    expect(placement(screen.getByRole("dialog")), "the rating sheet ignores --app-bar-room").toContain(ROOM);
+    expect(placement(screen.getByRole("dialog")), "the rating sheet has no room in its bottom offset").toMatch(/bottom-\[var\(--app-bar-room,0px\)\]/);
   });
 
   it("the camera buttons of the photo picker add the room to their bottom offset", async () => {
@@ -238,7 +239,7 @@ describe("old bottom bars sit above the new bar", () => {
     fireEvent.click(screen.getByText("Camera"));
     const camera = await screen.findByTestId("webcam");
     const buttons = camera.parentElement?.querySelector(".fixed");
-    expect(placement(buttons), "the camera buttons ignore --app-bar-room").toContain(ROOM);
+    expect(placement(buttons), "the camera buttons have no room in their bottom offset").toMatch(/bottom-\[calc\(20px\+var\(--app-bar-room,0px\)\)\]/);
   });
 
   it("the cart order button row adds the room to its bottom offset", async () => {
@@ -259,18 +260,27 @@ describe("old bottom bars sit above the new bar", () => {
         cartShippingSuccess: null,
       },
     });
-    expect(placement(marked("order-bottom-button")), "the cart order button row ignores --app-bar-room").toContain(ROOM);
+    const bottom = (marked("order-bottom-button") as HTMLElement).style.bottom;
+    expect(bottom, "the cart order button row lost its 40px offset").toContain("40px");
+    expect(bottom, "the cart order button row has no room in its bottom offset").toContain(ROOM);
+    expect(bottom.split(ROOM).length - 1, "the cart order button row adds the room more than once").toBe(1);
   });
 
   it("the notifications panel stops above the bar", async () => {
     await renderWithProviders(<NotificationsPanel onClose={vi.fn()} closeWindow={vi.fn()} />, { country: "sy" });
     await waitFor(() =>
-      expect(placement(marked("notification-container")), "the notifications panel ignores --app-bar-room").toContain(ROOM),
+      expect(
+        (marked("notification-container") as HTMLElement).style.bottom,
+        "the notifications panel has no room in its bottom offset",
+      ).toContain(ROOM),
     );
   });
 
   it("the notifications loading panel stops above the bar", async () => {
     await renderWithProviders(<NotificationSkeleton />);
-    expect(placement(marked("notification-container")), "the notifications skeleton ignores --app-bar-room").toContain(ROOM);
+    expect(
+      (marked("notification-container") as HTMLElement).style.bottom,
+      "the notifications skeleton has no room in its bottom offset",
+    ).toContain(ROOM);
   });
 });
