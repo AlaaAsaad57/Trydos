@@ -142,7 +142,7 @@ afterEach(() => {
 describe("old bottom bars sit above the new bar", () => {
   it("the add-to-cart sheet takes no room, because BottomSheet covers the bar", async () => {
     const product = { id: 7, slug: "shirt", name: "Shirt", available_quantity: 50, packed_after_ordering: 0 };
-    await renderWithProviders(<AddToCartComponent product={product} slug="shirt" />, {
+    await renderWithProviders(<AddToCartComponent product={product} slug="shirt" color={undefined as any} />, {
       country: "sy",
       store: { localCart: [], currency: { code: "USD" }, selected_product_for_add_to_cart: null },
     });
