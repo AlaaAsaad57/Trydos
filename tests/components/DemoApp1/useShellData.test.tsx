@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { useAppStore } from "store";
 import { useShellData } from "components/DemoApp1/useShellData";
 
@@ -85,5 +85,38 @@ describe("useShellData", () => {
       result.current.phoneVerified,
       "a valid phone in store.userProfile should make phoneVerified true",
     ).toBe(true);
+  });
+
+  it("unreadChats follows store.userChat when the chat sign-in ends after store.data", () => {
+    useAppStore.setState({
+      userChat: null,
+      data: [{ id: 10, messages: [newMessage] }],
+    } as any);
+    const { result } = renderHook(() => useShellData());
+    act(() => {
+      useAppStore.setState({ userChat: { id: 1 } } as any);
+    });
+    expect(
+      result.current.unreadChats,
+      "unreadChats should become 1 once store.userChat is set, with store.data unchanged",
+    ).toBe(1);
+  });
+
+  it("phoneVerified uses store.user.phone when store.userProfile is null", () => {
+    useAppStore.setState({ userProfile: null, user: { phone: "+963944123456" } } as any);
+    const { result } = renderHook(() => useShellData());
+    expect(
+      result.current.phoneVerified,
+      "store.user.phone should be used when store.userProfile is null",
+    ).toBe(true);
+  });
+
+  it("photo is null for a guest with an empty store.userProfile.image", () => {
+    useAppStore.setState({ userProfile: { image: "" } } as any);
+    const { result } = renderHook(() => useShellData());
+    expect(
+      result.current.photo,
+      "an empty store.userProfile.image should give photo null",
+    ).toBeNull();
   });
 });

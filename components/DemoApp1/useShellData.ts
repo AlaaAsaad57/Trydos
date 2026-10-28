@@ -17,6 +17,9 @@ export const useShellData = (): {
   const chats = useAppStore((s) => s.data);
   const userProfile = useAppStore((s) => s.userProfile);
   const user = useAppStore((s) => s.user);
+  // getNew reads userChat from the store without subscribing. Subscribe here
+  // so the count is worked out again when the chat sign-in ends.
+  useAppStore((s) => s.userChat);
 
   // Same rule as VerifyUser.tsx. `is_phone_verified` is not used because
   // register-guest resets it to 0.
