@@ -868,4 +868,4 @@ No open launch blockers.
 |---|---|---|---|
 | A1-7 | The Elasticsearch client accepts any TLS certificate. Same item as section 01. | Frontend + Ops | `services/elastic/elasticsearch.config.ts:15-17` |
 | A4-9 | The old Google Maps key is in git history. Rotate it, restrict it by HTTP referrer, and set `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` in Vercel. Same item as section 07. | Ops | `utils/mapsConfig.ts` |
-| 20 M-21 | Demo and test pages can be opened by anyone: `/demo`, `/loginDemo`, `/navigation`, and the tester tools `app/api/auth/simulate` and `app/simulateUser`. **Product decides:** remove them or hide them. | Product + Frontend | `app/(client)/[lang]/demo/**`, `app/loginDemo`, `app/(special)/navigation` |
+| 20 M-21 | Demo and test pages can be opened by anyone: `/demo`, `/loginDemo`, and the tester tools `app/api/auth/simulate` and `app/simulateUser`. **Product decides:** remove them or hide them. | Product + Frontend | `app/(client)/[lang]/demo/**`, `app/loginDemo` |

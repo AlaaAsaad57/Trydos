@@ -120,14 +120,3 @@ export const DEFAULT_LOGO_CONFIG: Record<LogoSlotId, LogoSlotConfig> = {
     // other inner screens.
     success: HAND_OFF,
 };
-
-export type LogoConfig = Record<LogoSlotId, LogoSlotConfig>;
-
-/** A copy nothing else holds a reference into, so a draft cannot leak edits. */
-export const cloneLogoConfig = (config: LogoConfig): LogoConfig =>
-    Object.fromEntries(
-        Object.entries(config).map(([id, slot]) => [
-            id,
-            { ...slot, steps: slot.steps.map((step) => ({ ...step })) },
-        ]),
-    ) as LogoConfig;

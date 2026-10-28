@@ -20,10 +20,8 @@ import {
   useIsPresent,
   usePresenceData,
 } from "framer-motion";
-import DemoDeviceInfoModal from "NewLoginDesign/DemoDeviceInfoModal";
 import { DemoDataProvider, useDemoData } from "../DemoApp/DemoData";
 import { DemoChatProvider } from "../DemoApp/demoChatState";
-import { DebugButtons } from "../DemoApp/demoDebug";
 import type { DemoDictionary, DemoKey } from "../DemoApp/demoKeys";
 import {
   direction,
@@ -136,8 +134,6 @@ function Demo1ShellInner({
   const trail = useRef<DemoScreen[]>([urlScreen ?? "home"]);
   /** The scroll each screen had when it was left. */
   const scrolls = useRef(new Map<string, number>());
-  const [hideMenu, setHideMenu] = useState(false);
-  const [deviceInfo, setDeviceInfo] = useState(false);
 
   const key = shown ?? `page:${pathname}`;
   const showBar = shown !== null && isTabRoot(shown);
@@ -267,37 +263,7 @@ function Demo1ShellInner({
           t={t}
         />
 
-        {/* The demo's own switches, as on the old scaled demo: the right edge, mid-height. */}
-        <div
-          data-pw="demo-controls"
-          className="fixed right-2 top-1/2 -translate-y-1/2 z-[999999999999] flex flex-col items-end gap-2 font-quicksand select-none"
-        >
-          <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 text-gray-800 flex items-center gap-1.5 backdrop-blur-sm cursor-pointer">
-            <input
-              type="checkbox"
-              checked={hideMenu}
-              onChange={(e) => setHideMenu(e.target.checked)}
-              className="accent-[#402CDD] cursor-pointer"
-            />
-            <span>{t("Hide menu")}</span>
-          </label>
-          {!hideMenu && (
-            <button
-              type="button"
-              aria-label={t("Device and browser info")}
-              onClick={() => setDeviceInfo(true)}
-              className="w-7 h-7 text-xs font-bold rounded-full bg-white/90 shadow border border-gray-200 text-[#402CDD] cursor-pointer"
-            >
-              i
-            </button>
-          )}
-          {!hideMenu && <DebugButtons t={t} />}
-        </div>
         <DemoKeyboard locale={locale} t={t} />
-        <DemoDeviceInfoModal
-          open={deviceInfo}
-          onClose={() => setDeviceInfo(false)}
-        />
       </DemoChatProvider>
     </NavCtx.Provider>
   );

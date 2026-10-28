@@ -80,7 +80,7 @@ The debug routes `clearRedis`, `revalidate` and `info` were deleted on 2026-10-2
 - **L-15** Image URL helpers branch on the text `media_server` in the host (`utils/functions.tsx:122`, `utils/tinyUtils.tsx:329`, `utils/server/helpers.ts:18, 33, 85`). `helpers.ts:71` rewrites `media_server.ramaaz.dev` to `media.ramaaz.dev`. A production media host with another name changes how image URLs are built.
 - **L-16** `LISTING_PRICE_AGG_DEBUG` has no effect in production. The code checks it together with `NODE_ENV !== "production"`, and the debug block is commented out (`services/elastic/elasticSearch.ts:161-163, 466`). `NEXT_PUBLIC_IS_STORE_LAST_JSON` is read by `_isStoreLastJson()`, but nothing calls that function. Both settings are harmless.
 - **L-17** No code reads two settings that `.env.example` lists: `WALLET_SECRET_KEY` and `FIREBASE_SERVER_KEY`.
-- **L-18** Demo and test pages are live in every build: `/[lang]/demo/**` (11 pages, `noindex`), `/[lang]/loginDemo`, `/loginDemo` (redirects to `/gb-en/loginDemo`), and `/navigation` (`app/(special)/navigation`). They call no backend (checked `NewLoginDesign/` and `components/NavigationDemo/`). But shoppers can open them. `/loginDemo` and `/navigation` have no `noindex`.
+- **L-18** Demo and test pages are live in every build: `/[lang]/demo/**` (11 pages, `noindex`), `/[lang]/loginDemo`, and `/loginDemo` (redirects to `/gb-en/loginDemo`). They call no backend (checked `NewLoginDesign/`). But shoppers can open them. `/loginDemo` has no `noindex`. (`/navigation` was deleted in Stage 1 of `UI-MIGRATION-PLAN.md`.)
 
 ## ❌ Missing, broken or not built
 | # | Problem | Risk (what can happen) | Where (file:line) | Owner | Blocks launch? |

@@ -41,7 +41,7 @@ type Base = {
   gap?: number;
   /** The tag the shopper put on the message (a `Category` id), from the menu's Category. */
   category?: string;
-  /** When the shopper asked to be reminded of it, in ms since the epoch (the menu's re-remind). */
+  /** When the shopper asked to be reminded of it, in ms since the epoch (the menu's Remind me). */
   reminderAt?: number;
   /** The emoji the shopper put on the message, from the bar over the held message. */
   reaction?: string;
@@ -232,7 +232,7 @@ export type ChatThread = {
   archived?: boolean;
   /** The contact is blocked (`– 45`: Block / UnBlock). */
   blocked?: boolean;
-  /** The contact may not call me (`– 45`: Enable Call / Desible Call). */
+  /** The contact may not call me (`– 45`: Enable Call / Disable Call). */
   callsDisabled?: boolean;
   /** The preview and time the row shows once the chat moved on from the file's sample. */
   preview?: string;

@@ -33,7 +33,7 @@ import { ScreenPage, Stroke } from "../ui";
  *   - the name SF Pro Rounded 20 `#D3D3D3` on baseline 427 and the number
  *     SF Pro Rounded Light 14 `#8D8D8D` on 450, centred under the photo;
  *   - the call's state: a 25 px phone at y 511 and its words on baseline
- *     559 — grey "Calling …", then blue "Rining …" (the file's spelling), then
+ *     559 — grey "Calling …", then blue "Ringing …" (the file says "Rining", fixed by D-7), then
  *     green with the timer "03:44". The file stacks the three; the demo shows
  *     them one after the other.
  *   - at the bottom (y 825): the microphone at x 50, the red phone at 203
@@ -62,7 +62,7 @@ export default function CallScreen() {
 
   const STATE: Record<typeof state, { icon: XdIconName; text: string }> = {
     calling: { icon: "callPhoneGrey", text: t("Calling …") },
-    ringing: { icon: "callPhoneBlue", text: t("Rining …") },
+    ringing: { icon: "callPhoneBlue", text: t("Ringing …") },
     live: { icon: "callPhoneGreen", text: clock(seconds) },
   };
 

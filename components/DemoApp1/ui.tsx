@@ -14,7 +14,6 @@ import { XD_ICON_SIZE, type XdIconName } from "../DemoApp/xdIcons";
 import type { DemoKey } from "../DemoApp/demoKeys";
 import { Box, Icon, Txt, type Weight } from "../DemoApp/ui";
 import { holdTopTint, type TintHome } from "../DemoApp/topTint";
-import { useDemoDebug } from "../DemoApp/demoDebug";
 import {
   BANNER,
   BODY_Y,
@@ -555,8 +554,7 @@ export function ScreenPage({
   bottom?: React.ReactNode;
   testId?: string;
 }) {
-  // The debug page colour (demoDebug.tsx) wins over the design's.
-  const page = useDemoDebug().color ?? bg;
+  const page = bg;
   usePageColor(page);
   const visual = useVisualHeight(scrollBody);
   return (
@@ -1093,8 +1091,7 @@ export function Sheet({
   const touch = useIsTouchDevice();
   const grip = useDragControls();
   const rest = lower;
-  // The debug page colour (demoDebug.tsx) paints the sheet too.
-  const paper = useDemoDebug().color ?? C.white;
+  const paper = C.white;
   return (
     <AnimatePresence>
       {open && (

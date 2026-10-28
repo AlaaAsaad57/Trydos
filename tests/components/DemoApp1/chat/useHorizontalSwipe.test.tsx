@@ -16,7 +16,6 @@ vi.mock("next/navigation", () => ({
   useRouter: () => router,
   useParams: () => ({ lang: "sy-en" }),
 }));
-vi.mock("NewLoginDesign/DemoDeviceInfoModal", () => ({ default: () => null }));
 
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
 import MessageRow, { REPLY_PULL } from "components/DemoApp1/chat/MessageRow";

@@ -241,9 +241,8 @@ This section asks whether each storefront page opens and shows its content: home
 #### Internal pages
 | # | Page / case / sub-task | Status | E2E test (file › ID or test name) | Notes |
 |---|---|---|---|---|
-| VIEW-I3 | `(special)/navigation` | ❌ | — | unit only: tests/app/special/routes.test.tsx |
 
-**Summary:** 82 rows: ✅ 29 / ⚠️ 13 / ❌ 40.
+**Summary:** 81 rows: ✅ 29 / ⚠️ 13 / ❌ 39.
 
 **Top gaps:**
 1. **VIEW-E1 / VIEW-E3** — no e2e opens the 404 page or the route error boundary. A broken page can look green: one Elasticsearch throw blanks the page.

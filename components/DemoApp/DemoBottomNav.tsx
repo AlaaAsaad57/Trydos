@@ -11,7 +11,7 @@ import type { DemoKey } from "./demoKeys";
 
 /**
  * The tab bar of the new design (`Home Page` artboard), with the motion of the
- * bottom bar built for /navigation (components/NavigationDemo/BottomNav.tsx):
+ * bottom bar first built for the /navigation demo (now in components/DemoApp1/barMotion.ts):
  *
  *   - scroll down and the bar scales down into its own centre, scroll up and it
  *     scales back — the same `useScrollScale`, listening to whatever screen

@@ -146,12 +146,12 @@ export const MESSAGES = {
 
 /** The names in the long-press menu, in the file's order (`– 44`, bottom). */
 export const MENU_ACTIONS = [
-  "Replay",
+  "Reply",
   "copy",
   "Category",
   "Delete",
   "Edit",
-  "re-remind",
+  "Remind me",
 ] as const;
 
 /** The timer the file shows once the call is live (`Call – 1`), in seconds. */

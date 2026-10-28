@@ -136,7 +136,7 @@ These are rows marked "Blocks launch = No", plus items from the "Works, with lim
 | 15 M-7 | Service methods with no caller: `getUploadedImages`, `deleteImage`. | `services/sellerDashboard/index.ts:376-407` |
 | 17 M-1 | No save-to-wishlist button on product cards. Only the product page "More" panel. | — |
 | 18 M-9 | There is no site footer, so no second place for legal links on desktop. | `app/(client)/[lang]/layout.tsx` |
-| 20 M-21 | Demo and test pages are reachable: `/demo`, `/loginDemo`, `/navigation`, and the tester tools `app/api/auth/simulate` and `app/simulateUser` (known, tester-only; remove or gate before production). | `app/(client)/[lang]/demo/**`, `app/loginDemo`, `app/(special)/navigation` |
+| 20 M-21 | Demo and test pages are reachable: `/demo`, `/loginDemo`, and the tester tools `app/api/auth/simulate` and `app/simulateUser` (known, tester-only; remove or gate before production). | `app/(client)/[lang]/demo/**`, `app/loginDemo` |
 
 ### B2. Placeholder values, hardcoded values and stale comments
 

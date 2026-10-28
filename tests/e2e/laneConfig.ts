@@ -93,7 +93,6 @@ export const SOLO_LANE = [
   "checkout.scripted.spec.ts",
   "guest.live.spec.ts",
   "locale.live.spec.ts",
-  "login-design-parity.scripted.spec.ts",
   "session.live.spec.ts",
   "staticPages.live.spec.ts",
   // Compare writes nothing anywhere — its whole state is two cookies.

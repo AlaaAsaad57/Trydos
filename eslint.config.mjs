@@ -29,6 +29,7 @@ const eslintConfig = [
       "services/**/*.{ts,tsx}",
       "utils/**/*.{ts,tsx}",
       "store/**/*.{ts,tsx}",
+      "NewLoginDesign/**/*.{ts,tsx}",
     ],
     plugins: { i18next, local },
     rules: {

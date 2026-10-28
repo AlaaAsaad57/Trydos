@@ -71,7 +71,7 @@ None of these is a big rebuild. Most are small fixes, settings, or a product dec
 - [x] `/api/subscribe` and `/api/unsubscribe` need auth. Shop order topic names are easy to guess. (done 2026-10-20)
 - [x] `GetNextRecommendations` (public Server Action) must not trust the user id from the browser. (done 2026-10-20)
 - [ ] Rotate the Google Maps key, restrict it by domain, and set `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` in Vercel. (The key is out of the code since 2026-10-20.)
-- [ ] Remove or gate the tester tools `app/api/auth/simulate` and `app/simulateUser`, and the demo pages (`/demo`, `/loginDemo`, `/navigation`).
+- [ ] Remove or gate the tester tools `app/api/auth/simulate` and `app/simulateUser`, and the demo pages (`/demo`, `/loginDemo`).
 
 ### C. Shopper-visible problems (Frontend, unless noted)
 - [x] JSON "success" toast removed from search (2026-10-20).

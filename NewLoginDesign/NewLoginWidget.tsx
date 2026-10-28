@@ -1,16 +1,14 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import Page from 'scaling/Page';
 import 'public/styles/rdb-auth.css';
 import { LogoAnimationProvider } from './LogoAnimationContext';
 import AuthLogoLayer from './AuthLogoLayer';
-import LogoAnimationModal from './LogoAnimationModal';
-import DemoDeviceInfoModal from './DemoDeviceInfoModal';
-import { DEFAULT_LOGO_CONFIG, cloneLogoConfig } from './logoScreenConfig';
-import type { LogoConfig, LogoSlotId } from './logoScreenConfig';
+import { DEFAULT_LOGO_CONFIG } from './logoScreenConfig';
+import type { LogoSlotId } from './logoScreenConfig';
 
 // New Screens in NewLoginDesign
 import QuickPreviewScreen, { QUICK_PREVIEW_MAX_DEFICIT } from './QuickPreviewScreen';
@@ -83,45 +81,6 @@ const STEP_LOGO_SLOT: Record<AuthStep, LogoSlotId> = {
     'qr-login': 'get-started',
 };
 
-/**
- * Where the client's picks are kept between visits.
- *
- * The demo exists so a client can sit with it and compare, which takes more
- * than one sitting. Losing every choice on a refresh is what made the old
- * single picker tiring to use.
- */
-const STORAGE_KEY = 'trydos.logoDemoConfig';
-
-/**
- * Read the saved picks, filling in anything the file does not carry.
- *
- * Merging per slot rather than trusting the stored object is what stops an old
- * save, written before a slot existed, from leaving that slot undefined and
- * taking the screen down with it.
- */
-function readStoredConfig(): LogoConfig {
-    const fresh = cloneLogoConfig(DEFAULT_LOGO_CONFIG);
-    try {
-        const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (!raw) return fresh;
-        const saved = JSON.parse(raw) as Partial<LogoConfig>;
-        for (const key of Object.keys(fresh) as LogoSlotId[]) {
-            const slot = saved[key];
-            if (slot && Array.isArray(slot.steps) && slot.steps.length > 0) {
-                fresh[key] = {
-                    steps: slot.steps.map((step) => ({ ...step })),
-                    loop: Boolean(slot.loop),
-                    animateWord: slot.animateWord,
-                };
-            }
-        }
-        return fresh;
-    } catch {
-        // Nothing readable there. The defaults are always a working answer.
-        return fresh;
-    }
-}
-
 interface NewLoginWidgetProps {
     initialStep?: AuthStep;
     onFinish?: () => void;
@@ -145,49 +104,14 @@ export default function NewLoginWidget({
     const [loading, setLoading] = useState<string>('');
     const [error, setError] = useState<string | undefined>(undefined);
 
-    const [showStepBar, setShowStepBar] = useState<boolean>(false);
-    const [isAnimModalOpen, setIsAnimModalOpen] = useState<boolean>(false);
-    /** One entry per logo in the flow. The modal writes it. */
-    const [logoConfig, setLogoConfig] = useState<LogoConfig>(DEFAULT_LOGO_CONFIG);
+    /** One entry per logo in the flow: the design's picks (DEFAULT_LOGO_CONFIG). */
+    const logoConfig = DEFAULT_LOGO_CONFIG;
     /**
      * true once the Quick Preview column has lifted, so the badge there can
      * change job without the screen having to know about logo config at all.
      */
     const [previewExpanded, setPreviewExpanded] = useState<boolean>(false);
     const [isQrOpen, setIsQrOpen] = useState<boolean>(false);
-    /** Folds the demo bar down to its checkbox, so a screenshot shows the design alone. */
-    const [hideMenu, setHideMenu] = useState<boolean>(false);
-    /**
-     * The floor for the gap under the Quick Preview button on a short page.
-     * The client tries values here; the screen's own default is what ships.
-     */
-    const [belowButtonMin, setBelowButtonMin] = useState<number>(0);
-    /**
-     * The gap over the Quick Preview pill. 56 in the design; the client can
-     * try other values here, and the card gives up whatever this adds.
-     */
-    const [abovePill, setAbovePill] = useState<number>(0);
-    /** The device and window numbers, for a bug report from a phone we cannot see. */
-    const [isDeviceInfoOpen, setIsDeviceInfoOpen] = useState<boolean>(false);
-
-    /**
-     * Saved picks are read after mount, never during render. The server has no
-     * localStorage, so reading it in render would give the two passes different
-     * markup and React would throw the whole tree away.
-     */
-    useEffect(() => {
-        setLogoConfig(readStoredConfig());
-    }, []);
-
-    const applyLogoConfig = (next: LogoConfig) => {
-        setLogoConfig(next);
-        setIsAnimModalOpen(false);
-        try {
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-        } catch {
-            // Private mode, or a full quota. The picks still apply for now.
-        }
-    };
 
     /** The box the screens slide inside. `AuthLogoLayer` measures against it. */
     const stageRef = useRef<HTMLDivElement>(null);
@@ -228,7 +152,6 @@ export default function NewLoginWidget({
             ? 'quick-preview-badge-expanded'
             : STEP_LOGO_SLOT[step];
     const activeSlot = logoConfig[logoSlotId];
-    const activeStepCount = activeSlot.steps.length;
 
     return (
         <LogoAnimationProvider
@@ -252,173 +175,6 @@ export default function NewLoginWidget({
                 className="fixed inset-0 z-[99999999999] w-full h-dvh overflow-hidden font-quicksand transition-colors duration-300"
                 style={{ backgroundColor: getScreenBg() }}
             >
-                {/*
-                  * Floating demo control bar: the flow steps, the logo motion
-                  * picker and how long one loop of it runs.
-                  *
-                  * It sits over the widget and belongs to the demo route, not
-                  * to the design. Nothing here changes a screen's own layout.
-                  */}
-                <div className="fixed top-3 left-3 z-[999999999999] flex flex-col gap-1.5 items-start font-quicksand select-none">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        {/* 0. Hide the menu. Only this checkbox stays, so it can be turned back on. */}
-                        <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 flex items-center gap-1.5 backdrop-blur-sm cursor-pointer">
-                            <input
-                                type="checkbox"
-                                data-pw="demo-hide-menu"
-                                checked={hideMenu}
-                                onChange={(event) => {
-                                    setHideMenu(event.target.checked);
-                                    setShowStepBar(false);
-                                }}
-                                className="accent-[#402CDD] cursor-pointer"
-                            />
-                            <span>Hide menu</span>
-                        </label>
-
-                        {!hideMenu && (
-                            <>
-                                {/* 1. Flow Steps Toggle Button */}
-                                <button
-                                    data-pw="demo-flow-steps"
-                                    onClick={() => setShowStepBar((prev) => !prev)}
-                                    className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer"
-                                >
-                                    <span className="w-2 h-2 rounded-full bg-[#402CDD]" />
-                                    <span>{showStepBar ? 'Hide Steps' : 'Flow Steps'}</span>
-                                </button>
-
-                                {/* 2. Per-screen logo animation modal */}
-                                <button
-                                    onClick={() => {
-                                        setIsAnimModalOpen(true);
-                                        setShowStepBar(false);
-                                    }}
-                                    className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-gray-800 transition-all flex items-center gap-1.5 backdrop-blur-sm cursor-pointer"
-                                >
-                                    <span className="text-[#402CDD] font-bold">Anim:</span>
-                                    <span>
-                                        {activeSlot.steps
-                                            .map((item) => `${item.animation} ${item.seconds}s`)
-                                            .join(' → ')}
-                                    </span>
-                                    <span className="text-gray-500">
-                                        {activeSlot.loop ? 'loop' : 'once'}
-                                        {activeStepCount > 1 ? ` · ${activeStepCount} steps` : ''}
-                                    </span>
-                                </button>
-
-                                {/* 3. The floor for the gap under the Quick Preview button. Above 35
-                                    (the design's own gap) it also lifts the button on a full page. */}
-                                <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 text-gray-800 flex items-center gap-1.5 backdrop-blur-sm">
-                                    <span className="text-[#402CDD] font-bold">Gap min:</span>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        step={1}
-                                        data-pw="demo-below-button-min"
-                                        value={belowButtonMin}
-                                        onChange={(event) => {
-                                            const next = Number(event.target.value);
-                                            if (Number.isFinite(next)) setBelowButtonMin(Math.max(0, next));
-                                        }}
-                                        className="w-12 px-1 rounded border border-gray-300 bg-white text-gray-800 text-xs"
-                                    />
-                                    <span className="text-gray-500">px</span>
-                                </label>
-
-                                {/* 4. The gap over the Quick Preview pill (56 in the design). */}
-                                <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 text-gray-800 flex items-center gap-1.5 backdrop-blur-sm">
-                                    <span className="text-[#402CDD] font-bold">Top gap:</span>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        step={1}
-                                        data-pw="demo-above-pill"
-                                        value={abovePill}
-                                        onChange={(event) => {
-                                            const next = Number(event.target.value);
-                                            if (Number.isFinite(next)) setAbovePill(Math.max(0, next));
-                                        }}
-                                        className="w-12 px-1 rounded border border-gray-300 bg-white text-gray-800 text-xs"
-                                    />
-                                    <span className="text-gray-500">px</span>
-                                </label>
-
-                                {/* 5. The device and browser numbers behind the layout. */}
-                                <button
-                                    data-pw="demo-device-info"
-                                    aria-label="Device and browser info"
-                                    title="Device and browser info"
-                                    onClick={() => {
-                                        setIsDeviceInfoOpen(true);
-                                        setShowStepBar(false);
-                                    }}
-                                    className="w-7 h-7 text-xs font-bold rounded-full bg-white/90 shadow border border-gray-200 hover:bg-white text-[#402CDD] transition-all backdrop-blur-sm cursor-pointer"
-                                >
-                                    i
-                                </button>
-                            </>
-                        )}
-                    </div>
-
-                    {/* Step Navigator Strip */}
-                    {!hideMenu && showStepBar && (
-                        /* Wraps rather than scrolls. A scrolling strip hides
-                           half the steps on a narrow window, and the parity
-                           browser test cannot click a step it cannot see. */
-                        <div className="flex flex-wrap items-center gap-1 bg-black/85 backdrop-blur-md p-1.5 rounded-2xl text-white text-xs max-w-[92vw] shadow-lg animate-fade-in">
-                            {[
-                                { id: 'quick-preview', label: 'Preview' },
-                                { id: 'get-started', label: 'Get Started' },
-                                { id: 'terms', label: 'Terms' },
-                                { id: 'enter-phone', label: 'Phone' },
-                                { id: 'select-method', label: 'method' },
-                                { id: 'enter-pin', label: 'OTP/PIN' },
-                                { id: 'not-registered', label: 'Not Found' },
-                                { id: 'already-registered', label: 'Exist' },
-                                { id: 'input-name', label: 'Name' },
-                                { id: 'signup-success', label: 'Success' },
-                            ].map((item) => (
-                                <button
-                                    key={item.id}
-                                    data-pw={`demo-step-${item.id}`}
-                                    onClick={() => goTo(item.id as AuthStep, 1)}
-                                    className={`px-2 py-1 rounded-full text-[11px] whitespace-nowrap transition-all cursor-pointer ${
-                                        step === item.id
-                                            ? 'bg-[#402CDD] font-bold text-white shadow'
-                                            : 'text-gray-300 hover:bg-white/10'
-                                    }`}
-                                >
-                                    {item.label}
-                                </button>
-                            ))}
-                            <button
-                                data-pw="demo-step-qr-sheet"
-                                onClick={() => setIsQrOpen(true)}
-                                className="px-2 py-1 rounded-full text-[11px] whitespace-nowrap text-gray-300 hover:bg-white/10 cursor-pointer"
-                            >
-                                QR BottomSheet
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-            {/*
-              * The picker. It belongs to the demo route, like the bar above,
-              * and it is drawn outside <Page> so the scaled canvas cannot
-              * shrink it or clip it.
-              */}
-            <DemoDeviceInfoModal open={isDeviceInfoOpen} onClose={() => setIsDeviceInfoOpen(false)} />
-
-            <LogoAnimationModal
-                open={isAnimModalOpen}
-                config={logoConfig}
-                currentSlot={logoSlotId}
-                onApply={applyLogoConfig}
-                onClose={() => setIsAnimModalOpen(false)}
-            />
-
             <Page
                 variant="scaled"
                 maxDeficit={step === 'quick-preview' ? QUICK_PREVIEW_MAX_DEFICIT : undefined}
@@ -488,8 +244,10 @@ export default function NewLoginWidget({
                                     onExpand={() => setPreviewExpanded(true)}
                                     wordmarkSlot={logoConfig['quick-preview-wordmark']}
                                     lang={langCode}
-                                    belowButtonMin={belowButtonMin}
-                                    abovePill={abovePill}
+                                    // Fixed at 0: this is how the client approved the screen on /loginDemo
+                                    // (the screen's own defaults would be 35 and 56). Decided in Stage 1.
+                                    belowButtonMin={0}
+                                    abovePill={0}
                                 />
                             )}
 

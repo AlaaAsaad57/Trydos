@@ -247,7 +247,7 @@ describe("demo chat state — the contact's switches", () => {
 
   it("the call switch flips calls off and on again", () => {
     let state = reduceChat(seedState(), { type: "calls", chat: "unread" });
-    expect(chatOf(state, "unread").callsDisabled, "Desible Call did not turn calls off").toBe(true);
+    expect(chatOf(state, "unread").callsDisabled, "Disable Call did not turn calls off").toBe(true);
     state = reduceChat(state, { type: "calls", chat: "unread" });
     expect(chatOf(state, "unread").callsDisabled, "Enable Call did not turn calls on").toBe(false);
   });

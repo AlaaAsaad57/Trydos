@@ -34,7 +34,7 @@ import { ScreenPage, Stroke, Txt } from "../ui";
  *   - three 406 x 60 rows (`#FCFCFC`, radius 15) from y 458, 2 px apart: an
  *     18 px icon at x 24, the words 14 Regular at x 54 on baseline 35, and
  *     "ALWAYS" ending 6 px before the row's right edge;
- *   - "Enable Call" and "Desible Call" (the file's spelling), SF Pro Rounded
+ *   - "Enable Call" and "Disable Call" (the file says "Desible", fixed by D-7), SF Pro Rounded
  *     12 on baselines 670 and 686, ending at x 408;
  *   - Delete Chat (x 79), Block (x 240) and Share, SF Pro Rounded 12 on
  *     baseline 814 with 25 px icons at y 768; UnBlock under Block, its grey
@@ -43,7 +43,7 @@ import { ScreenPage, Stroke, Txt } from "../ui";
  * The file stacks both states of the call switch and of block / unblock.
  * The screen shows one of each, read from the chat (demoChatModel.ts:
  * `callsDisabled`, `blocked`), in the place of the file's first line: the
- * switch reads "Desible Call" while the contact may call and "Enable Call"
+ * switch reads "Disable Call" while the contact may call and "Enable Call"
  * once they may not; Block is the red mark until the contact is blocked,
  * then the grey mark and "UnBlock". A tap flips each one.
  */
@@ -144,7 +144,7 @@ export default function ContactScreen() {
         <AnimatePresence initial={false} mode="wait">
           <motion.div key={callsOff ? "enable" : "disable"} {...flip} className="shrink-0">
             <SfLine
-              label={callsOff ? "Enable Call" : "Desible Call"}
+              label={callsOff ? "Enable Call" : "Disable Call"}
               testId={callsOff ? "demo-contact-enable-call" : "demo-contact-disable-call"}
               onClick={() => chat && dispatch({ type: "calls", chat: chat.id })}
               t={t}

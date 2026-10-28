@@ -9,7 +9,7 @@ import { Txt } from "../ui";
 import PickSheet, { PickBox, PickRow } from "./PickSheet";
 
 /**
- * "Remind me": the sheet the menu's re-remind opens. Three rows — in an
+ * "Remind me": the sheet the menu's Remind me row opens. Three rows — in an
  * hour, tomorrow at 9, next week at 9 — with the menu's own bell mark in
  * the row's box and the time the row means, 12 Regular grey, under its
  * words. When the message already carries a reminder, a last row in red

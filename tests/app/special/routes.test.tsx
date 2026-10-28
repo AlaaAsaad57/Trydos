@@ -1,5 +1,5 @@
 // The (special) routes: the call screens (callInProg, call_direct, endCall),
-// the bottom-navigation demo, and their own layouts and error boundaries.
+// and their own layouts and error boundaries.
 // Each carries its own <html>, because there is no root app/layout.tsx.
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -13,7 +13,6 @@ vi.mock("utils/functions", () => ({
 }));
 vi.mock("services/auth", () => ({ default: { UserID: () => spies.UserID() } }));
 vi.mock("components/global/WebviewCall", () => ({ default: () => <div data-testid="webview-call" /> }));
-vi.mock("components/NavigationDemo/NavigationDemo", () => ({ default: () => <div data-testid="navigation-demo" /> }));
 
 import CallInProgError from "app/(special)/callInProg/error";
 import CallInProgLayout, { metadata as callInProgMeta } from "app/(special)/callInProg/layout";
@@ -24,8 +23,6 @@ import CallDirectPage from "app/(special)/call_direct/page";
 import EndCallError from "app/(special)/endCall/error";
 import EndCallLayout, { metadata as endCallMeta } from "app/(special)/endCall/layout";
 import EndCallPage from "app/(special)/endCall/page";
-import NavigationLayout, { metadata as navigationMeta } from "app/(special)/navigation/layout";
-import NavigationPage from "app/(special)/navigation/page";
 
 let hrefSet: string | undefined;
 
@@ -93,19 +90,12 @@ describe("the call screens", () => {
 
     expect(await screen.findByTestId("webview-call"), "the web call screen was not loaded").toBeInTheDocument();
   });
-
-  it("shows the navigation demo", () => {
-    render(<NavigationPage />);
-
-    expect(screen.getByTestId("navigation-demo"), "the navigation demo is missing").toBeInTheDocument();
-  });
 });
 
 describe.each([
   ["callInProg", CallInProgLayout],
   ["call_direct", CallDirectLayout],
   ["endCall", EndCallLayout],
-  ["navigation", NavigationLayout],
 ] as const)("the %s layout", (name, Layout) => {
   it("wraps the page in its own html and body", () => {
     const tree: any = Layout({ children: "child" });
@@ -118,9 +108,8 @@ describe.each([
 });
 
 describe("the special layouts' titles", () => {
-  it("names the call screens and the demo", () => {
+  it("names the call screens", () => {
     expect(callInProgMeta.title, "the call-in-progress layout lost its title").toBe("TryDos");
     expect(endCallMeta.title, "the call-ended layout lost its title").toBe("TryDos");
-    expect(navigationMeta.title, "the navigation demo lost its title").toContain("Bottom Navigation Demo");
   });
 });

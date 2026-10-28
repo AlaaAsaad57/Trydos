@@ -8,7 +8,7 @@ import { useDemoNav } from "../Demo1Shell";
 import { C, fill } from "../demo1Layout";
 import { Icon, ScreenPage, Stroke } from "../ui";
 import { XD_ICON_SIZE } from "../../DemoApp/xdIcons";
-import { TRAVEL } from "components/NavigationDemo/BottomNav";
+import { TRAVEL } from "../barMotion";
 
 /**
  * Search — XD `Home Page – 1`. The file only has this first state; there is no

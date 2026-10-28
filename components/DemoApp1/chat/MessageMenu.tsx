@@ -115,12 +115,12 @@ const EMOJI = 31;
 
 /** The rows of the menu, in order; Forward and Edit go when the message cannot take them. */
 const ROWS: { name: MenuName; icon: XdIconName }[] = [
-  { name: "Replay", icon: "menuReply" },
+  { name: "Reply", icon: "menuReply" },
   { name: "Forward", icon: "forwardMark" },
   { name: "copy", icon: "menuCopy" },
   { name: "Edit", icon: "menuEdit" },
   { name: "Category", icon: "menuCategory" },
-  { name: "re-remind", icon: "menuRemind" },
+  { name: "Remind me", icon: "menuRemind" },
 ];
 
 /** When the emoji in place `k` of the bar (counted from the bubble's side) pops in, in s. */

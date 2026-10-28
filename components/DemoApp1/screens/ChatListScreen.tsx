@@ -3,7 +3,7 @@
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, animate, motion, useMotionValue } from "framer-motion";
-import { TRAVEL } from "components/NavigationDemo/BottomNav";
+import { TRAVEL } from "../barMotion";
 import XdIcon from "../../DemoApp/XdIcon";
 import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
 import {

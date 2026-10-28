@@ -75,8 +75,7 @@ test.describe("static trust pages", () => {
     // attaches to it; a press that lands in that window does nothing at all and
     // the address never changes. On an idle machine hydration always won that
     // race, which is why this only began failing when the solo lane started
-    // running two workers against one server. Same fault and same fix as the
-    // demo step bar in `login-design-parity.scripted.spec.ts`.
+    // running two workers against one server.
     //
     // The assertion below still decides the case on its own: three presses that
     // all do nothing fail it exactly as one used to.

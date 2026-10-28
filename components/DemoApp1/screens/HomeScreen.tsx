@@ -7,7 +7,7 @@ import XdIcon from "../../DemoApp/XdIcon";
 import { useDemoNav } from "../Demo1Shell";
 import { C } from "../demo1Layout";
 import { ScreenPage, Stroke } from "../ui";
-import { TRAVEL } from "components/NavigationDemo/BottomNav";
+import { TRAVEL } from "../barMotion";
 
 /**
  * Home — XD `Home Page`.

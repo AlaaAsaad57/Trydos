@@ -4,7 +4,6 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
-import { useDemoDebug } from "../../DemoApp/demoDebug";
 import { DEMO_KEYBOARD, NATIVE_TEXT_KEYBOARD } from "../../DemoApp/demoKeyboard";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import {
@@ -245,8 +244,6 @@ const STYLE = `
   .dkb {
 ${DARK}  }
 }
-.dkb[data-theme="dark"] {
-${DARK}}
 .dkb-row { display: flex; height: var(--dkb-row); }
 .dkb-cell {
   position: relative;
@@ -321,7 +318,6 @@ export default function DemoKeyboard({
   t: (key: DemoKey) => string;
 }) {
   const touch = useIsTouchDevice();
-  const { darkKeyboard } = useDemoDebug();
   const on = touch && DEMO_KEYBOARD;
 
   const [field, setField] = useState<TextField | null>(null);
@@ -701,8 +697,6 @@ export default function DemoKeyboard({
               data-kind={kind}
               data-language={pad ? undefined : letters}
               data-page={pad ? "pad" : page}
-              // "app": the phone's theme. "dark": the debug switch.
-              data-theme={darkKeyboard ? "dark" : "app"}
               className="dkb"
               style={{
                 position: "absolute",

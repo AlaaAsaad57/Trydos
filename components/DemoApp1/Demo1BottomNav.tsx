@@ -4,12 +4,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, useTransform } from "framer-motion";
 import {
-  DEFAULT_NAV_THEME,
+  BAR_SCROLL,
   PRESS,
   TRAVEL,
   useBarPulse,
   useScrollScale,
-} from "components/NavigationDemo/BottomNav";
+} from "./barMotion";
 import XdIcon from "../DemoApp/XdIcon";
 import {
   GrowBox,
@@ -79,14 +79,14 @@ export default function Demo1BottomNav({
   t: (key: DemoKey) => string;
 }) {
   const scrollScale = useScrollScale(
-    DEFAULT_NAV_THEME.minScale,
-    DEFAULT_NAV_THEME.distance,
-    DEFAULT_NAV_THEME.speedEffect,
+    BAR_SCROLL.minScale,
+    BAR_SCROLL.distance,
+    BAR_SCROLL.speedEffect,
     { scope: "window", resetKey },
   );
   const drop = useTransform(
     scrollScale,
-    (s) => ((1 - s) / (1 - DEFAULT_NAV_THEME.minScale)) * TAB_BAR.drop,
+    (s) => ((1 - s) / (1 - BAR_SCROLL.minScale)) * TAB_BAR.drop,
   );
   const { scale, firePulse } = useBarPulse(scrollScale);
 

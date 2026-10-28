@@ -85,7 +85,7 @@ import { launchReaction } from "../chat/reactionFly";
  * Every message but a day pill has the menu — text, photo, voice, video,
  * file, location, call cards, the note. Its actions work on the state: reply, forward (a sheet
  * picks the chat), copy, delete, edit; Forward is dimmed on a call card or
- * a note, Edit on anything but my own text. Category and re-remind say
+ * a note, Edit on anything but my own text. Category and Remind me say
  * "Soon available". The body scrolls on its own under the head, opens at
  * its end, the newest message, and holds still while a menu is open; a
  * menu that would not fit moves its message instead of scrolling.
@@ -345,7 +345,7 @@ export default function ConversationScreen() {
   const act = (name: MenuName, m: Holdable) => {
     close();
     switch (name) {
-      case "Replay":
+      case "Reply":
         setContext({
           kind: "reply",
           id: m.id,
@@ -371,7 +371,7 @@ export default function ConversationScreen() {
       case "Category":
         setTagging(m);
         return;
-      case "re-remind":
+      case "Remind me":
         setReminding(m);
         return;
       default:
@@ -627,7 +627,7 @@ export default function ConversationScreen() {
     marked: current === m.id,
     flash: flash?.id === m.id ? flash.n : 0,
     fresh: !atStart.current?.has(m.id),
-    onReply: () => act("Replay", m),
+    onReply: () => act("Reply", m),
     onHold: () => open(m),
     menu: menuOf(m),
   });
