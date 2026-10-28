@@ -30,7 +30,7 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | A-18 | Stages 2 and 3 at the same time | **Decided on 2026-10-28.** Stage 2 (login) is built in the main folder on `ui-migrations`. Stage 3 (shell) is built at the same time by a second session, in its own git worktree (`../trydos-shell`) on the branch `ui-migrations-shell`, cut from `ui-migrations`. Rules: (1) a session never edits files in the other's folder; (2) Stage 3 deletes no old top-nav file (`AuthNavSection.tsx`, `UserNavTopSection.tsx`) until Stage 2 is merged, because Stage 2 changes the login buttons there; (3) new translation keys go only at the end of `translations.{ar,tr,ku}.js`; (4) each session edits only its own stage's section of this plan, plus its own row in this table; (5) merge order: Stage 2 into `ui-migrations` first, then `ui-migrations-shell` takes those changes and merges into `ui-migrations`. D-1 still holds: `ui-migrations` reaches `development` once, at the end. |
 | A-19 | Verify flows stay on the page | **Decided on 2026-10-28.** The phone re-verify (`ConfirmMobilePhoneWidget`), the session-expired prompt (`SessionExpiredWidget`), `VerifyPhoneFlow` (personal info, `VerifyUser`) and checkout's `InlineVerifyPanel` are built from the new login screens as an **overlay on the current page**, as today. They do not go to `/[lang]/login`, because the page waits for their result: the seller request is sent again (`BecomeSellerModal.tsx` lines 630-651), a parked chat / stories / comments / wallet 401 is sent again (`utils/fetchData.ts` lines 431-454), the story or the chat opens (`ConfirmMobilePhoneWidget.tsx` lines 102-107), and checkout goes on (`OrderButton.tsx` lines 643-666). |
 | A-20 | Way back from `/[lang]/login` | **Decided on 2026-10-28.** "Later", the close button and the end of the flow all go back to the page the shopper left (the return path). With no return path (a direct visit), they go to the home page `/[lang]`. |
-| A-21 | Edits kept across the login | **Decided on 2026-10-28.** Personal info and photo upload: before a guest goes to `/[lang]/login`, the page saves the typed edits in `sessionStorage` and puts them back after the return. A chosen photo cannot be kept this way (a `File` is not stored), so the shopper picks it again. |
+| A-21 | Edits kept across the login | **Dropped on 2026-10-28.** It was based on a wrong finding. In personal info and photo upload, any click by a guest on the form opens the login (`onClickCapture={handleFormClick}`, `PersonalInfoForm.tsx` line 270, `UploadProfilePhoto.tsx` line 198). So a guest cannot type or pick a photo before the login, and there are no edits to keep. Only keyboard-only entry (Tab + type) could leave edits; that case is accepted as lost. Nothing is built. |
 | A-22 | Sign-in with no name | **Decided on 2026-10-28.** A sign-in to an account that still has no real name (`hasRealName` false) goes verify → name → "Welcome back", the same order as the new sign-up (D-13). Today it is verify → "Welcome back" → name. |
 | A-23 | QR sheet until G-1 | **Decided on 2026-10-28.** The QR sheet opens as designed. It shows a fixed QR that holds the plain text "Trydos" (it opens nothing when scanned). "Soon available" shows in the sheet's existing message box over the middle of the QR (the box the declined state uses), with no "Show a new code" link. The localStorage mock (`services/qrLogin`) is not called. |
 | A-24 | Login page SEO | **Decided on 2026-10-28.** `/[lang]/login` has `robots: noindex` and is in no sitemap. |
@@ -319,9 +319,15 @@ shared blocks place nothing by the physical left or right), the RTL cases in
   "Later pushes `/en`" fault is gone too: "Later" now goes back to `?next=` or `/[lang]`.
   Tests: `tests/utils/loginPath.test.ts`, `tests/components/NewLoginWidget.test.tsx`, the login page case in
   `tests/app/smallRoutes.test.tsx`. Each was seen red against the old code or a broken check.
-- **2b.** The 13 openers go to `/[lang]/login?next=<page>`; personal info and photo upload keep their edits (A-21).
+- **2b — Done.** The 13 openers go to `/[lang]/login?next=<page>`. One change in `components/Home/AuthSections.tsx`:
+  when `loginOpen` turns on, it clears the flag (which also frees the scroll lock) and pushes
+  `loginHref(lang, <this page>)`. On the login page itself it goes nowhere. The old overlay is no longer mounted.
+  Test: `tests/components/Home/AuthSections.test.tsx` (2 new cases, seen red on the old code). (A-21 was dropped:
+  there are no edits to keep.)
 - **2c.** The verify overlays on the new screens (A-19).
 - **2d.** RTL of the login screens, i18n (alts, "Trydos"), e2e helpers and specs.
+- **2e.** Cleanup (D-6): delete the old login files nothing uses any more, each proved unused by grep first:
+  `FullEnhancedLoginWidget.tsx` (not mounted since 2b) and its test, and the old screens only it used.
 
 ### Logic to move into the new screens (all exists in the live widget)
 
@@ -342,7 +348,11 @@ These call `setLoginOpen(true)`, which mounts `FullEnhancedLoginWidget` (`compon
 `PersonalInfoForm.tsx` lines 244 and 266, `VerifyUser.tsx` line 48, `WalletLinkCard.tsx` line 81,
 `UploadProfilePhoto.tsx` lines 136 and 198. After sign-in none of them goes on with the action today (a like is
 not applied; the shopper taps again), so a page with a way back keeps their behaviour. Personal info and photo
-upload keep the typed edits (A-21).
+upload lose nothing: a guest's first click on those forms already opens the login (A-21, dropped).
+
+All 13 set the one store flag `loginOpen`, and only `components/Home/AuthSections.tsx` acts on it. So step 2b
+changes that one place: it sends the shopper to `loginHref(lang, <this page>)` and clears the flag. The callers
+and their tests stay as they are.
 
 **Not these:** `setShouldAuthinticated(...)` does not open the full login. It opens the phone re-verify
 (`ConfirmMobilePhoneWidget`) or the session-expired prompt (`SessionExpiredWidget`), mounted in
