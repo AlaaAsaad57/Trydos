@@ -155,6 +155,24 @@ describe("ChatContactsUpload — syncing from the phone", () => {
     ).toContain("963937288307");
   });
 
+  // A tester saved his own number as a contact (chat contact 1247383, user 675).
+  // The phone book holds the shopper's own number in local form.
+  it("BUG-chat-self-contact: does not import the shopper's own number from the phone book", async () => {
+    await mount([], { userChat: { mobile_phone: "963944000001" } });
+    const contacts = await syncPicked([
+      { name: ["Me"], tel: ["0944 000 001"] },
+      { name: ["Alaa"], tel: ["0937288307"] },
+    ]);
+    expect(
+      contacts.map((c: any) => c.mobile_phone),
+      "the shopper's own number (0944 000 001 = 963944000001) was uploaded as a contact",
+    ).not.toContain("963944000001");
+    expect(
+      contacts.map((c: any) => c.mobile_phone),
+      "skipping the own number also dropped another picked contact",
+    ).toContain("963937288307");
+  });
+
   it("does nothing when no contact was picked", async () => {
     setContactsApi({ select: vi.fn(async () => []) });
     await mount();
@@ -263,6 +281,29 @@ describe("ChatContactsUpload — adding one by hand", () => {
       fireEvent.click(f.confirm);
     });
     expect(h.fetchData, "a saved contact with no name was sent to the chat backend again").not.toHaveBeenCalled();
+  });
+
+  // A tester saved his own number as a contact (chat contact 1247383, user 675).
+  // The chat backend keeps his phone as "963944000001"; he typed it with the
+  // local 0, so a raw string compare would not see it.
+  it.each([
+    ["the chat profile, in the backend's form", { userChat: { mobile_phone: "963944000001" } }],
+    ["the market profile, with a + and spaces", { user: { phone: "+963 944 000 001" } }],
+  ])("BUG-chat-self-contact: refuses the shopper's own number (own phone from %s)", async (_, store) => {
+    const f = await openForm([], store);
+    fireEvent.change(f.name, { target: { value: "Me" } });
+    fireEvent.change(f.phone, { target: { value: "0944000001" } });
+    expect(
+      screen.queryByText("This Is Your Own Number") !== null,
+      "no warning said the typed number is the shopper's own",
+    ).toBe(true);
+    expect(f.confirm, "the shopper's own number could be added as a contact").toBeDisabled();
+    expect(f.phone.className, "the phone field was not marked red for the own number").toContain("border-red-400");
+    await act(async () => {
+      f.confirm.disabled = false;
+      fireEvent.click(f.confirm);
+    });
+    expect(h.fetchData, "the shopper's own number was sent to the chat backend as a contact").not.toHaveBeenCalled();
   });
 
   it("warns about a saved number typed with the local 0", async () => {

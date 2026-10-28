@@ -3119,6 +3119,7 @@ const translations = {
   "SMS delivery can take up to a minute. Check your network or request a new code.": "گەیشتنی پەیامی کورت ڕەنگە تا یەک خولەک بخایەنێت. پشکنینی هێڵ بکە یان داوای کۆدێکی نوێ بکە.",
   "This phone number is already registered. Please sign in to continue.": "ئەم ژمارە مۆبایلە پێشتر تۆمارکراوە. تکایە بچۆ ژوورەوە بۆ بەردەوامبوون.",
   "No account found with this phone number. Please check the digits or sign up.": "هیچ هەژمارێک بەم ژمارە مۆبایلە نەدۆزرایەوە. تکایە پشکنین بۆ ژمارەکان بکە یان خۆت تۆمار بکە.",
+  "This is your own number": "ئەمە ژمارەی خۆتە",
 };
 
 export default translations;

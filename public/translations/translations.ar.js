@@ -3068,6 +3068,7 @@ const translations = {
   "SMS delivery can take up to a minute. Check your network or request a new code.": "قد يستغرق وصول رسالة الرمز حتى دقيقة. تحقق من الشبكة أو اطلب رمزاً جديداً.",
   "This phone number is already registered. Please sign in to continue.": "رقم الهاتف هذا مسجل بالفعل. يرجى تسجيل الدخول للمتابعة.",
   "No account found with this phone number. Please check the digits or sign up.": "لم يتم العثور على حساب بهذا الرقم. يرجى التحقق من الأرقام أو إنشاء حساب جديد.",
+  "This is your own number": "هذا رقمك الخاص",
 };
 
 export default translations;
