@@ -28,20 +28,6 @@ const showLocationText = (location) => {
   return str;
 };
 
-const openCart = (val) => {
-  document.documentElement.scrollTop = 0;
-  if (val) {
-    document.querySelector(".site-container").classList.add("scale-95");
-    DisableScroll();
-    return val;
-  } else {
-    document.querySelector(".cart-provider")?.classList.add("slideDown-cart");
-    document.querySelector(".site-container")?.classList.remove("scale-95");
-    EnableScroll();
-    return val;
-  }
-};
-
 export type OrderDataState = {
   data: any;
   payment: any[];
@@ -466,10 +452,13 @@ const useCartStore = (set, get) => ({
     }),
   setCartLoading: (loading) => set({ cart_loading: loading }),
 
-  enableCart: (enable) => {
-    openCart(enable);
-    return set({ cart_enable: enable });
-  },
+  // The cart is a page now (/[lang]/cart, Stage 3 S3-7), not a drawer over
+  // the page. So this only sets the flag: CartProvider turns it into a move
+  // to the cart page, and the cart page leaves when it goes false. The drawer
+  // used to shrink the page behind it, lock its scroll and scroll it to the
+  // top; on a page that would shrink the cart page itself and lose the scroll
+  // the browser brings back on "back".
+  enableCart: (enable) => set({ cart_enable: enable }),
 
   getProductDetailsForCart: (product) =>
     set((state) => {

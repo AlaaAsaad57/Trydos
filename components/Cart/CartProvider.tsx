@@ -1,20 +1,17 @@
 "use client";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import home from "services/home";
 
 import ModalIframe from "./ModalIframe";
-import { SlideWidget } from "components/global/SlideNavigation";
-import dynamic from "next/dynamic";
-const CartContainer = dynamic(() => import("."), {
-  ssr: false,
-  loading: () => <CartSkeleton />,
-});
-const OrdersPage = dynamic(() => import("./OrdersPage"), {
-  ssr: false,
-  loading: () => <OrdersPageSkeleton />,
-});
+import { isCartPath, noteSitePage } from "./CartPage";
+import { tabHref } from "components/DemoApp1/appRoutes";
 import { useAppStore } from "store";
 import {
   DetectScreen,
@@ -23,16 +20,12 @@ import {
   getReferralSource,
 } from "utils/tinyUtils";
 import AddToCartComponent from "./AddToCart/AddToCartComponent";
-import { GA_GLOBAL_SCREEN, GA_EVENT_NAMES } from "utils/GAEvents";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 import { GAevent } from "utils/gtag";
-import { ORDER_EVENTS, startOrderAttempt, trackOrder } from "utils/orderFunnel";
 import auth from "services/auth";
 import { getCookie } from "utils/cookies/cookie-manager";
-import SearchParamUpdater from "components/global/ParamsUpdater";
 import { markBackClosing, takeSelfConsume } from "utils/popupHistory";
-import CartSkeleton from "components/skeleton/CartSkeleton";
-import OrdersPageSkeleton from "components/skeleton/OrdersPageSkeleton";
 
 const CartProvider = ({ language, country }) => {
   // Per-field selectors: this component is mounted on every page and the boot
@@ -61,13 +54,10 @@ const CartProvider = ({ language, country }) => {
 
   const pathname = usePathname();
   const router = useRouter();
+  const params = useParams();
+  const locale = typeof params?.lang === "string" ? params.lang : "sy-en";
   // @ts-ignore
   const searchParams = useSearchParams();
-
-  const enableCartAction = (s) => {
-    disableAddToCartOption();
-    enableCart(s);
-  };
   useEffect(() => {
     setTimeout(() => {
       if (
@@ -89,9 +79,10 @@ const CartProvider = ({ language, country }) => {
       if (takeSelfConsume()) return;
 
       const storeState = useAppStore.getState();
+      // The cart is not in this list: it is a page now (/[lang]/cart), and a
+      // back-press leaves it as it leaves any page.
       const isAnyPopupOpen =
         storeState.loginOpen ||
-        storeState.cart_enable ||
         Boolean(storeState.selectedStory) ||
         Boolean(storeState.addStoryEnable) ||
         storeState.chatVar ||
@@ -112,7 +103,6 @@ const CartProvider = ({ language, country }) => {
         // history.back() — is traversed.
         const params = new URLSearchParams(window.location.search);
         const popupKeys = [
-          "cart",
           "login",
           "modal",
           "story",
@@ -159,10 +149,33 @@ const CartProvider = ({ language, country }) => {
     };
   }, []);
 
+  // The cart is a page now (Stage 3, S3-7). An old `?cart` link (a push
+  // notice, an old bookmark) goes there, with any value.
+  const hasCartParam = searchParams.has("cart");
   useEffect(() => {
-    if (searchParams.get("cart")) {
-      enableCartAction(true);
-    }
+    if (!hasCartParam) return;
+    disableAddToCartOption();
+    router.replace(tabHref(locale, "cart"));
+  }, [hasCartParam]);
+
+  // Every caller still opens the cart with enableCart(true). On any page but
+  // the cart page, that is a move to the cart page. The flag is put back at
+  // once: the cart page sets it again when it is on screen, and a move that
+  // is cut short must not leave it stuck, or the next open would change
+  // nothing and go nowhere.
+  useEffect(() => {
+    if (!enable || isCartPath(pathname)) return;
+    router.push(tabHref(locale, "cart"));
+    enableCart(false);
+  }, [enable]);
+
+  // The cart page reads this when it closes: back when a page of this site is
+  // behind it, else home.
+  useEffect(() => {
+    noteSitePage(pathname);
+  }, [pathname]);
+
+  useEffect(() => {
     let couponUrlVar = searchParams.get("coupon");
     let selectedUrlVar = searchParams.get("selected");
     setTimeout(() => {
@@ -213,7 +226,6 @@ const CartProvider = ({ language, country }) => {
   const Search_Params = useSearchParams();
   return (
     <>
-      {enable ? <StepSlider enableCart={(e) => enableCartAction(e)} /> : <></>}
       {selected_product_for_add_to_cart && (
         <AddToCartComponent
           color={
@@ -246,61 +258,3 @@ const CartProvider = ({ language, country }) => {
   );
 };
 export default CartProvider;
-const StepSlider = ({ enableCart }) => {
-  const [step, setStep] = useState(0);
-
-  const handleToOrders = () => {
-    // Click-handler-only reads — no subscription needed.
-    const { cart, total_cash } = useAppStore.getState();
-    GAevent({
-      action: GA_EVENT_NAMES.SCREEN_VIEW,
-      params: {
-        screen_name: GA_GLOBAL_SCREEN.CHECKOUT_SCREEN,
-        screen_path: window.location.pathname,
-      },
-    });
-    GAevent({
-      action: GA_EVENT_NAMES.BEGIN_CHECKOUT,
-      params: {
-        value: total_cash,
-        items: cart.map((item) => ({
-          item_id: item.product_id,
-          item_name: item.name,
-          price: item.offer_price,
-          quantity: item.quantity,
-          item_variant: item.variant ?? "N/A",
-        })),
-      },
-    });
-    // Funnel anchor: mint the attempt id BEFORE the begin_checkout event so it
-    // carries the correlation id, then every later step shares it.
-    startOrderAttempt();
-    trackOrder(ORDER_EVENTS.BEGIN_CHECKOUT, {
-      value: total_cash,
-      item_count: cart.length,
-    });
-    setStep(1);
-  };
-
-  const handleBackToCart = () => {
-    setStep(0);
-  };
-
-  const handleClose = () => {
-    enableCart(false);
-  };
-
-  return (
-    <div className="w-full h-screen fixed z-9999999999 cart-provider bg-[#fafafa]">
-      <SearchParamUpdater searchKey="cart" searchValue={"true"} />
-      <SlideWidget step={step} duration={400}>
-        <div className="w-full h-full cart-widget">
-          <CartContainer toOrders={handleToOrders} close={handleClose} />
-        </div>
-        <div className="w-full h-full cart-widget">
-          <OrdersPage setStep={handleBackToCart} close={handleClose} />
-        </div>
-      </SlideWidget>
-    </div>
-  );
-};

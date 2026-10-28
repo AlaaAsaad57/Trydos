@@ -471,6 +471,22 @@ describe("naming the screen for analytics (DetectScreen)", () => {
     expect(DetectScreen()).toBe(GA_GLOBAL_SCREEN.CART_SCREEN);
   });
 
+  it("names the basket on the cart page /[lang]/cart", () => {
+    // The cart is a page now (Stage 3, S3-7), so the path says "cart" and
+    // there is no ?cart in the address.
+    go("/sy-en/cart");
+    expect(DetectScreen(), "the cart page was not named as the cart screen").toBe(
+      GA_GLOBAL_SCREEN.CART_SCREEN,
+    );
+  });
+
+  it("does not name a page whose path only starts with 'cart' as the basket", () => {
+    go("/sy-en/cartoons");
+    expect(DetectScreen(), "a path that is not the cart page was named as the cart").toBe(
+      GA_GLOBAL_SCREEN.HOME_SCREEN,
+    );
+  });
+
   it("names the product screen", () => {
     go("/en/products/a-dress");
     expect(DetectScreen()).toBe(GA_GLOBAL_SCREEN.PRODUCT_SCREEN);

@@ -448,6 +448,10 @@ export const DetectScreen = () => {
   if (searchParams.get("cart") === "true") {
     return GA_GLOBAL_SCREEN.CART_SCREEN;
   }
+  // The cart page /[lang]/cart (Stage 3): the part after the locale is "cart".
+  if (pathname.split("/").filter(Boolean)[1] === "cart") {
+    return GA_GLOBAL_SCREEN.CART_SCREEN;
+  }
   if (pathname?.includes("/products")) {
     return GA_GLOBAL_SCREEN.PRODUCT_SCREEN;
   } else if (pathname.includes("tags_names")) {

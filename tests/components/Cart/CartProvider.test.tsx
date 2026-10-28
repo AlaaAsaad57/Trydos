@@ -2,14 +2,20 @@
 //
 // It is mounted once on every page. On mount it loads the client data and the
 // currency, listens for the back button on popup history entries, and reads
-// three query keys: `cart`, `coupon` and `selected`. It also draws the cart
-// slider, the add-to-cart sheet and the external payment frame when the store
-// asks for them.
+// three query keys: `cart`, `coupon` and `selected`. It draws the add-to-cart
+// sheet and the external payment frame when the store asks for them.
+//
+// The cart is a page now (/[lang]/cart, Stage 3 S3-7). This host no longer
+// draws a cart drawer. It turns `enableCart(true)` on any other page into a
+// move to the cart page, sends `?cart` links there too, and notes each page of
+// this site it sees, so the cart page knows where its close can go back to.
 //
 // Every child it draws is replaced by a stand-in that shows what it was given:
-// each has its own test, and several reach the core backend on mount.
+// each has its own test, and several reach the core backend on mount. The cart
+// and checkout stand-ins are for the cart page, which two cases draw.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import CartPage from "components/Cart/CartPage";
 import CartProvider from "components/Cart/CartProvider";
 import { useAppStore } from "store";
 
@@ -155,10 +161,16 @@ describe("the cart host on mount", () => {
     },
   );
 
-  it("opens the cart when the address has ?cart", async () => {
-    const { store } = await mountProvider({ search: "cart=true" });
-    expect(store.getState().cart_enable, "?cart did not open the cart").toBe(true);
-    expect(await screen.findByTestId("cart-page"), "the cart page was not drawn").toBeInTheDocument();
+  it("sends a ?cart=true link to the cart page", async () => {
+    await mountProvider({ search: "cart=true" });
+    expect(routerSpies.replace, "/sy-en?cart=true did not go to the cart page").toHaveBeenCalledWith("/sy-en/cart");
+  });
+
+  it("sends ?cart with any value to the cart page", async () => {
+    await mountProvider({ path: "/products/x", search: "cart=" });
+    expect(routerSpies.replace, "?cart with an empty value did not go to the cart page").toHaveBeenCalledWith(
+      "/sy-en/cart",
+    );
   });
 
   it("keeps a coupon from the address, reports it, and takes it out of the address", async () => {
@@ -222,7 +234,7 @@ describe("the back button over a popup", () => {
 
   it("closes every popup and strips the popup keys from the live address", async () => {
     const { store } = await mountProvider({ store: { cart_enable: true } });
-    window.history.pushState({}, "", "/sy-en/settings?cart=true&modal=1&story=2&search=x&keep=1");
+    window.history.pushState({}, "", "/sy-en/settings?modal=1&story=2&search=x&keep=1");
     await popState({ isPopup: true });
     expect(popup.markBackClosing, "the back-press was not marked as a popup close").toHaveBeenCalled();
     expect(routerSpies.push, "the popup keys were not stripped from the live address").toHaveBeenCalledWith(
@@ -239,7 +251,7 @@ describe("the back button over a popup", () => {
 
   it("goes to the bare path when only popup keys were in the address", async () => {
     await mountProvider();
-    window.history.pushState({}, "", "/sy-en/settings?cart=true");
+    window.history.pushState({}, "", "/sy-en/settings?modal=1");
     await popState({ isPopup: true });
     expect(routerSpies.push, "a popup-only address kept a '?'").toHaveBeenCalledWith("/sy-en/settings", {
       shallow: true,
@@ -266,6 +278,27 @@ describe("the back button over a popup", () => {
     });
   });
 
+  it("a back-press that lands on the cart page leaves the cart page open (Review Focus 3)", async () => {
+    // The cart is a page, not a popup. A back-press that lands on /sy-en/cart
+    // must not close it: closing it makes the page leave a second time, and
+    // stripping keys pushes a second history entry.
+    const { store } = await mountProvider({ path: "/cart", store: { cart_enable: true } });
+    await popState({});
+    expect(routerSpies.push, "a back-press on the cart page pushed a new history entry").not.toHaveBeenCalled();
+    expect(store.getState().cart_enable, "a back-press on the cart page closed the cart page").toBe(true);
+    expect(popup.markBackClosing, "a back-press on the cart page was handled as closing a popup").not.toHaveBeenCalled();
+  });
+
+  it("does not strip ?cart from the address as a popup key", async () => {
+    await mountProvider({ store: { loginOpen: true } });
+    window.history.pushState({}, "", "/sy-en/settings?cart=true&login=true");
+    await popState({});
+    expect(routerSpies.push, "?cart was stripped as if the cart were a popup").toHaveBeenCalledWith(
+      "/sy-en/settings?cart=true",
+      { shallow: true },
+    );
+  });
+
   it("stops listening once it is unmounted", async () => {
     const { unmount } = await mountProvider();
     unmount();
@@ -274,40 +307,81 @@ describe("the back button over a popup", () => {
   });
 });
 
-describe("the cart slider", () => {
-  it("moves on to checkout, reports it, and comes back to the cart", async () => {
-    await mountProvider({
-      store: {
-        cart_enable: true,
-        total_cash: 30,
-        cart: [
-          { product_id: 1, name: "Shirt", offer_price: 10, quantity: 1, variant: "M" },
-          { product_id: 2, name: "Hat", offer_price: 20, quantity: 1 },
-        ],
-      },
+describe("opening the cart goes to the cart page", () => {
+  it("enableCart(true) on a product page pushes /sy-en/cart and draws no drawer", async () => {
+    const { store } = await mountProvider({ path: "/products/x" });
+    await act(async () => {
+      store.getState().enableCart(true);
     });
-    await userEvent.click(await screen.findByText("to-orders"));
-    expect(screen.getByTestId("slider").dataset.step, "the slider did not move to checkout").toBe("1");
-    const checkout = GAevent.mock.calls.find((c) => c[0].params?.items)?.[0];
-    expect(
-      checkout?.params.items.map((i: any) => i.item_variant),
-      "begin_checkout did not carry each item's variant",
-    ).toEqual(["M", "N/A"]);
-    expect(funnel.startOrderAttempt, "no order attempt was started").toHaveBeenCalled();
-    expect(funnel.trackOrder.mock.calls[0]?.[1], "the funnel did not get the value and count").toEqual({
-      value: 30,
-      item_count: 2,
-    });
-
-    await userEvent.click(await screen.findByText("back-to-cart"));
-    expect(screen.getByTestId("slider").dataset.step, "the slider did not come back to the cart").toBe("0");
+    expect(routerSpies.push, "opening the cart on a product page did not go to the cart page").toHaveBeenCalledWith(
+      "/sy-en/cart",
+    );
+    expect(document.querySelector(".cart-provider"), "the old cart drawer was drawn").toBeNull();
+    expect(screen.queryByTestId("cart-page"), "the cart was drawn over the product page").toBeNull();
   });
 
-  it("closes the cart from inside the cart page", async () => {
-    const { store } = await mountProvider({ store: { cart_enable: true } });
-    await userEvent.click(await screen.findByText("close-cart"));
-    expect(store.getState().cart_enable, "closing from the cart page left the cart open").toBe(false);
-    expect(screen.queryByTestId("slider"), "the slider stayed on screen").toBeNull();
+  it("a second open still moves when the first move did not land", async () => {
+    // A move can be cut short (the shopper taps another tab at once). The open
+    // request must not stay stuck, or the cart tab stops working.
+    const { store } = await mountProvider({ path: "/products/x" });
+    await act(async () => {
+      store.getState().enableCart(true);
+    });
+    routerSpies.push.mockClear();
+    await act(async () => {
+      store.getState().enableCart(true);
+    });
+    expect(routerSpies.push, "the second open did not go to the cart page").toHaveBeenCalledWith("/sy-en/cart");
+  });
+
+  it("enableCart(true) on the cart page itself pushes nothing", async () => {
+    const { store } = await mountProvider({ path: "/cart" });
+    await act(async () => {
+      store.getState().enableCart(true);
+    });
+    expect(routerSpies.push, "opening the cart on the cart page pushed a second entry").not.toHaveBeenCalled();
+  });
+
+  it("opening the cart does not shrink or lock the page it leaves", async () => {
+    // The drawer used to shrink the page behind it and lock its scroll. There
+    // is no drawer now, so the page must stay as it is.
+    document.documentElement.style.overflow = "";
+    const { store } = await mountProvider({ path: "/products/x" });
+    await act(async () => {
+      store.getState().enableCart(true);
+    });
+    expect(
+      document.querySelector(".site-container")!.classList.contains("scale-95"),
+      "opening the cart shrank the page (scale-95)",
+    ).toBe(false);
+    expect(document.documentElement.style.overflow, "opening the cart locked the page scroll").not.toBe("hidden");
+  });
+});
+
+describe("the cart page knows whether a page of this site is behind it", () => {
+  // The host notes each page it sees. The cart page reads that note when it
+  // closes: back when a page of this site is behind it, else home.
+  async function closeCartPageAfter(path: string) {
+    sessionStorage.clear();
+    const first = await mountProvider({ path });
+    first.unmount();
+    const page = await renderWithProviders(<CartPage />, { country: "sy", path: "/cart" });
+    await act(async () => {
+      page.store.getState().enableCart(false);
+    });
+  }
+
+  it("after a product page, closing the cart page goes back", async () => {
+    await closeCartPageAfter("/products/x");
+    expect(routerSpies.back, "after a product page, closing the cart page did not go back").toHaveBeenCalled();
+  });
+
+  it("when the tab opened straight on the cart page, closing goes home", async () => {
+    await closeCartPageAfter("/cart");
+    expect(routerSpies.replace, "a cart page opened straight from a link did not close to home").toHaveBeenCalledWith(
+      "/sy-en",
+    );
+    expect(routerSpies.back, "a cart page opened straight from a link went back out of the site").not.toHaveBeenCalled();
   });
 });
 
