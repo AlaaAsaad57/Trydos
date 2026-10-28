@@ -2806,6 +2806,8 @@ const translations = {
   "No messages with this tag": "Bu etikete sahip mesaj yok",
   "Failed to edit the message": "Mesaj düzenlenemedi",
   "Failed to update the tag": "Etiket güncellenemedi",
+  "Search a tag": "Bir etiket ara",
+  "New tag": "Yeni etiket",
   "Failed to set the reminder": "Hatırlatma ayarlanamadı",
   "Failed to cancel the reminder": "Hatırlatma iptal edilemedi",
   "Failed to archive the chat": "Sohbet arşivlenemedi",

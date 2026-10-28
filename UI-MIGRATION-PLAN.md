@@ -244,15 +244,15 @@ Steps (**Done** = built and committed on `ui-migrations`):
    - Left for the stages: about 430 physical styles and about 300 motion `x` values in the screens. Each
      stage converts its own screens, mirrors its arrows (A-14) and its swipes (A-15).
 3. **Done (nothing to build).** English case: D-4 keeps Title Case.
-4. Add `NewLoginDesign/**` to the i18n lint globs (`eslint.config.mjs` lines 26-31). Then add the missing
+4. **Done.** Add `NewLoginDesign/**` to the i18n lint globs (`eslint.config.mjs` lines 26-31). Then add the missing
    keys to `ar` / `tr` / `ku`.
-5. Remove the demo-only parts from the shipping path:
+5. **Done.** Remove the demo-only parts from the shipping path:
    - `demo-controls` panel, `DebugButtons`, `DemoDeviceInfoModal` (`Demo1Shell.tsx` lines 270-300)
    - `useDemoDebug()` colour changes (`ui.tsx` lines 559 and 1097, `DemoKeyboard.tsx` line 324)
    - the demo step bar and logo config bar in `NewLoginWidget.tsx` (lines 262-405)
    - the `robots: noindex`, `userScalable: false` and `HIDE_SITE_CHROME` settings of `demo/layout.tsx`
      must not carry over to real pages by accident.
-6. Remove the dependencies on demo folders: `components/NavigationDemo/BottomNav` (`TRAVEL`,
+6. **Done.** Remove the dependencies on demo folders: `components/NavigationDemo/BottomNav` (`TRAVEL`,
    `useScrollScale`) and `NewLoginDesign/DemoDeviceInfoModal`.
 7. **Done (agreed, A-16).** The pattern for real data in the new screens. Each stage follows it for its own area:
    - One hook per area, for example `useProfileData`, `useWalletData`, `useChatData`. The hook reads
@@ -266,7 +266,7 @@ Steps (**Done** = built and committed on `ui-migrations`):
      stage a grep shows that no shipping file imports them. A mock file is deleted when nothing imports it (D-6).
    - Each hook has unit tests for its mapping, with one check per field. The backend is named when a field
      comes from one.
-8. Wording fixes (D-7): fix the "Man" and "Home" translations, the double `Man` key in `ku`, and rename the
+8. **Done.** Wording fixes (D-7): fix the "Man" and "Home" translations, the double `Man` key in `ku`, and rename the
    typo keys ("Rining", "Desible Call", "Replay", "re-remind") in all three files and in `demoKeys.ts`.
 9. **Done (a code read; a check on a real phone is still needed).** `DemoKeyboard` ships (D-9). Checked
    for a screen reader, for a password manager on number fields, and for `ar` / `ku`. No screen reader and

@@ -2773,6 +2773,8 @@ const translations = {
   "No messages with this tag": "لا توجد رسائل بهذا الوسم",
   "Failed to edit the message": "تعذّر تعديل الرسالة",
   "Failed to update the tag": "تعذّر تحديث الوسم",
+  "Search a tag": "ابحث عن وسم",
+  "New tag": "وسم جديد",
   "Failed to set the reminder": "تعذّر ضبط التذكير",
   "Failed to cancel the reminder": "تعذّر إلغاء التذكير",
   "Failed to archive the chat": "تعذّرت أرشفة المحادثة",

@@ -2823,6 +2823,8 @@ const translations = {
   "No messages with this tag": "هیچ پەیامێک بەم تاگە نییە",
   "Failed to edit the message": "نەتوانرا پەیامەکە دەستکاری بکرێت",
   "Failed to update the tag": "نەتوانرا تاگەکە نوێ بکرێتەوە",
+  "Search a tag": "گەڕان بۆ تاگێک",
+  "New tag": "تاگی نوێ",
   "Failed to set the reminder": "نەتوانرا بیرخستنەوەکە دابنرێت",
   "Failed to cancel the reminder": "نەتوانرا بیرخستنەوەکە هەڵبوەشێنرێتەوە",
   "Failed to archive the chat": "نەتوانرا گفتوگۆکە ئەرشیف بکرێت",
