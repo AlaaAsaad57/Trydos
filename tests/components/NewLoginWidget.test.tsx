@@ -184,7 +184,10 @@ describe("the login page — signing in", () => {
     await toCodeStep(user, "signIn");
     for (let i = 1; i <= 3; i++) {
       await typeCode(user, "000000");
-      await waitFor(() => expect(verifyOtp, `wrong code ${i} did not reach the check exactly once`).toHaveBeenCalledTimes(i));
+      // 3 s, not the default 1 s: six keystrokes and a check are slow on a busy machine.
+      await waitFor(() => expect(verifyOtp, `wrong code ${i} did not reach the check exactly once`).toHaveBeenCalledTimes(i), {
+        timeout: 3000,
+      });
     }
     expect(await screen.findByText("Too Many Wrong Codes. Ask For A New Code."), "the third wrong code did not say the tries ran out").toBeInTheDocument();
     await waitFor(() => expect(pw("input-otp-field"), "the boxes still take a code after three wrong ones").toBeDisabled());

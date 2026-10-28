@@ -35,7 +35,7 @@ export default function NewGetStartedScreen({
             onClick={onClick}
             data-pw={testId}
             className="absolute rounded-xd-20 bg-[#FCFCFC] text-[#5D5C5D] text-xd-16 font-normal cursor-pointer transition-all active:scale-[0.98]"
-            style={{ top, left: XD.box.left, width: XD.box.width, height: XD.box.height }}
+            style={{ top, insetInlineStart: XD.box.left, width: XD.box.width, height: XD.box.height }}
         >
             <XdDashedBorder
                 width={XD.box.width}
@@ -43,7 +43,7 @@ export default function NewGetStartedScreen({
                 radius={XD.box.radius}
                 color="#5D5C5D"
             />
-            <span className="absolute w-full text-center" style={{ top: 20, left: 0 }}>
+            <span className="absolute w-full text-center" style={{ top: 20, insetInlineStart: 0 }}>
                 {translate(label)}
             </span>
         </button>
@@ -58,7 +58,7 @@ export default function NewGetStartedScreen({
                     className="absolute flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
                     style={{
                         top: XD.control.top,
-                        right: XD.control.right,
+                        insetInlineEnd: XD.control.right,
                         width: XD.control.qrSize,
                         height: XD.control.qrSize,
                     }}
@@ -66,7 +66,7 @@ export default function NewGetStartedScreen({
                 >
                     <Image
                         src="/assets/icons/auth/qrlogin.svg"
-                        alt="scan qr"
+                        alt=""
                         width={XD.control.qrSize}
                         height={XD.control.qrSize}
                         className="object-contain"
@@ -85,7 +85,7 @@ export default function NewGetStartedScreen({
             <h2
                 data-pw="get-started"
                 className="absolute w-full text-center text-xd-30 font-bold text-[#1D1D1D]"
-                style={{ top: fromBottom(XD.getStarted.title), left: 0 }}
+                style={{ top: fromBottom(XD.getStarted.title), insetInlineStart: 0 }}
             >
                 {translate('. Get Started .')}
             </h2>
@@ -98,7 +98,7 @@ export default function NewGetStartedScreen({
                     onClick={onLater}
                     data-pw="take-look"
                     className="absolute w-full text-center text-xd-14 font-normal text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
-                    style={{ top: fromBottom(XD.cta.link), left: 0 }}
+                    style={{ top: fromBottom(XD.cta.link), insetInlineStart: 0 }}
                 >
                     {translate('Later, take a look at the app')}
                 </button>

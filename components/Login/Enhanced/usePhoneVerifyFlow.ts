@@ -14,8 +14,8 @@ export type PhoneVerifyStep = 'enter-phone' | 'select-method' | 'enter-pin';
 /**
  * Wrong codes allowed per code sent, after which the boxes go dead until a new
  * code arrives. Fixed in the build on purpose — no env var, no remote setting.
- * `FullEnhancedLoginWidget` imports this rather than keeping its own 3, so the
- * two copies of the counter can never disagree about the number.
+ * The login page (`NewLoginWidget`) imports this rather than keeping its own
+ * 3, so the two copies of the counter can never disagree about the number.
  */
 export const MAX_VERIFY_ATTEMPTS = 3;
 
@@ -23,7 +23,7 @@ type Method = 'sms' | 'whatsapp' | '';
 
 // 'send-phone' is never set (the phone step has nothing to await) but stays in
 // the union so hosts that compare against it — VerifyPhoneFlow passes
-// `loading === 'send-phone'` straight through to EnterPhoneScreen — keep
+// `loading === 'send-phone'` straight through to NewEnterPhoneScreen — keep
 // type-checking against a literal that is actually part of this type.
 type LoadingState = '' | 'send-phone' | 'send-pin' | 'resend-pin' | 'verify-pin';
 
@@ -42,8 +42,8 @@ export interface UsePhoneVerifyFlowOptions {
      * client-side cooldown/cap guard. Omit when the host already renders its
      * own cooldown/cap message (VerifyPhoneFlow's select-method screen reads
      * the phone value itself) — the block then stays silent, matching that
-     * screen's existing behaviour. A host with no such screen (InlineVerifyPanel)
-     * supplies this to surface a visible error instead.
+     * screen's existing behaviour. A host with no such screen supplies this to
+     * surface a visible error instead.
      */
     blockedMessage?: (secondsRemaining: number) => string;
     /**
@@ -94,11 +94,9 @@ export interface UsePhoneVerifyFlowResult {
 /**
  * Layout-independent phone verify flow: state plus the send/verify/resend
  * calls against `AuthService` and the client-side OTP guard
- * (`utils/otpLocks`). Shared by `VerifyPhoneFlow` (the fullscreen Enhanced
- * screens, animated with framer-motion) and `InlineVerifyPanel` (the cart's
- * ~200px footer panel, built from the `ui/` primitives) — the two differ only
- * in JSX/layout, animation direction, and how a blocked send is surfaced, all
- * of which stay with the caller.
+ * (`utils/otpLocks`). Used by `VerifyPhoneFlow` (the new login screens, full
+ * screen); the JSX, the layout, the animation and how a blocked send is
+ * surfaced stay with the caller.
  */
 export function usePhoneVerifyFlow({
     initialPhone,
@@ -141,7 +139,7 @@ export function usePhoneVerifyFlow({
     // has re-rendered, and each extra submit burns a server-side attempt.
     const verifyingRef = useRef(false);
     // Verify attempts made since the last successful send — read inside the
-    // resend's GA payload the way `FullEnhancedLoginWidget` does with its own
+    // resend's GA payload the way the login page (`NewLoginWidget`) does with its own
     // `attemptsRef`. A ref (not state) because it's read inside an async
     // callback and must reflect the count as of the request, not of render.
     //
@@ -199,7 +197,7 @@ export function usePhoneVerifyFlow({
         setMethod(selected);
         setError('');
         setLoading('send-pin');
-        // Mirrors FullEnhancedLoginWidget's handleSelectMethod: fired on send
+        // Mirrors NewLoginWidget's handleSelectMethod: fired on send
         // intent (before the server result), attributed to this hook's host
         // via `source` since this flow has no login/signup mission of its own.
         GAevent({
@@ -237,7 +235,7 @@ export function usePhoneVerifyFlow({
 
         setError('');
         setLoading('resend-pin');
-        // Mirrors FullEnhancedLoginWidget's handleResendOtp.
+        // Mirrors NewLoginWidget's handleResendOtp.
         GAevent({
             action: GA_EVENT_NAMES.RESEND_OTP,
             params: {

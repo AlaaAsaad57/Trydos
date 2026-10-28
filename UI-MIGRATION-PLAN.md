@@ -38,6 +38,8 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | A-26 | Session-expired screen | **Decided on 2026-10-28.** No XD board exists (D-14: the designer must check it). It is built like the new "already registered !" screen (`NewAlreadyExistScreen`), with its colours (the light blue page `#F4F8FF`, the purple logo): logo at the top, the bold title "Your session has expired", one line of text, and two wide buttons "Login" and "Continue as Guest". The buttons keep today's actions (`SessionExpiredWidget.tsx`). |
 | A-27 | Checkout verify | **Decided on 2026-10-28.** Checkout's verify (today the small `InlineVerifyPanel` inside the order button) becomes a full-screen overlay over the cart, built from the new screens. Its steps stay as today: a shopper with no number on file gets Get Started ("I have already account" / "New customer") → terms for a new customer → phone → method → code; a shopper whose account has a number starts at the method step. No name step and no welcome screen. After the verify the order goes on, as today (`OrderButton.tsx` lines 643-666). |
 | A-28 | Checkout QR | **Decided on 2026-10-28.** The checkout's Get Started screen keeps its QR button (A-7: no part of the design is hidden). A tap opens the QR sheet with "Soon available" (A-23), with the same two events the login page sends (`login_start` method `qr`, `screen_view` QR screen). |
+| A-29 | Login icons and brand | **Decided on 2026-10-28.** The 15 icon `alt` texts of the login screens are empty (`alt=""`): each icon sits in a button that already has a translated label, or next to text that says the same. The brand name "Trydos" in the terms line is translated with the key that already exists (`Trydos`). |
+| A-30 | Number boxes in RTL | **Decided on 2026-10-28.** On `ar` / `ku` pages the phone box (`RdbPhoneInput`) and the code boxes (`RdbPinInputs`) stay left to right, as the drawn keyboard does: flag and number on the left, the send arrow on the right, the first code digit in the left box. Every number the screens show stays left to right too, so its groups never come out in reverse order. The text around them mirrors. |
 | D-1 | Merge | Once, at the end (after Stage 8). Every stage stays on `ui-migrations`. |
 | D-2 | Desktop | The 500 px centred column is OK on desktop. No desktop design work. |
 | D-3 | RTL | Mirror everything for `ar` / `ku`: layout, slide direction, tab order, margins. |
@@ -344,9 +346,20 @@ shared blocks place nothing by the physical left or right), the RTL cases in
     "Send Sms" label, the grouped number). `tests/setup.ts` supplies a no-op `ResizeObserver`, as it supplies
     `matchMedia`, because the logo layer measures with one.
   - Not used any more (goes in 2e): `InlineVerifyPanel.tsx`, `screens/SessionExpiredScreen.tsx`.
-- **2d.** RTL of the login screens, i18n (alts, "Trydos"), e2e helpers and specs.
-- **2e.** Cleanup (D-6): delete the old login files nothing uses any more, each proved unused by grep first:
-  `FullEnhancedLoginWidget.tsx` (not mounted since 2b) and its test, and the old screens only it used.
+- **2d — Done.**
+  - RTL: the login screens place everything from the start side (73 positions in 11 files). The centred QR
+    canvas, the symmetric pill padding and the `authLayout.ts` numbers stay physical, and so does the logo. The
+    name screen's continue arrow is mirrored (A-14). The phone and code boxes and every shown number stay left
+    to right (A-30).
+  - i18n (A-29): the 15 icon alts are empty; "Trydos" uses the existing key.
+  - e2e: `tests/e2e/selectors.ts` reads the new login (`loginPage`, the Quick Preview buttons, `anyAuthStep`,
+    `getStartedTitle` = `get-started`, `verifyPanel` = any screen of the login stage). `tests/e2e/actions/auth.ts`:
+    `openLoginWidget` checks that /[lang]/login opened and goes through the Quick Preview; `currentAuthScreen`
+    tells "closed" by the login stage; `attemptAuth` waits for the login page to go back after "Welcome back".
+  - Tests: `tests/components/NewLoginScreensRtl.test.tsx` (16 cases, all seen red on the old screens).
+- **2e — Done.** Cleanup (D-6), each file proved unused by grep first: `FullEnhancedLoginWidget.tsx`,
+  `InlineVerifyPanel.tsx`, the 12 old screens in `components/Login/Enhanced/screens/`, and their 5 test files.
+  `services/qrLogin` stays: the phone-side QR scanner (`QrScannerModal`, `QrApprovalSheet`) still uses it.
 
 ### Logic to move into the new screens (all exists in the live widget)
 
@@ -666,3 +679,7 @@ input searches nothing (line 145), Voice and Scan have no action (lines 214, 222
    `docs/qr-login-backend-requirements.md` names the backend language.
 5. **`/[lang]/loginDemo` has no `noindex`**, but `/demo` has one.
 6. **`app/loginDemo/page.tsx` redirects to `/gb-en/loginDemo`**, which opens the region modal.
+7. **The brand name has duplicate keys with different spellings.** In all three translation files `Trydos` and
+   `TryDos` are each written twice, without quotes (for example `translations.ar.js` lines 1139, 1213, 1219,
+   1263). In Arabic `TryDos` is once ترايدوس and once تريدوس; the last one wins, so the first is dead. Found
+   while adding the terms line's key in Stage 2 (A-29); nothing was changed.

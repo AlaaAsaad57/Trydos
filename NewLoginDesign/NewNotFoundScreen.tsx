@@ -39,7 +39,7 @@ export default function NewNotFoundScreen({
                     className="absolute flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
                     style={{
                         top: controlTop(XD.control.closeTop),
-                        right: XD.control.right,
+                        insetInlineEnd: XD.control.right,
                         width: XD.control.closeSize,
                         height: XD.control.closeSize,
                         transition: 'top 0.25s ease-out',
@@ -48,7 +48,7 @@ export default function NewNotFoundScreen({
                 >
                     <Image
                         src="/assets/icons/auth/close.svg"
-                        alt="close"
+                        alt=""
                         width={XD.control.closeSize}
                         height={XD.control.closeSize}
                         className="object-contain"
@@ -60,27 +60,27 @@ export default function NewNotFoundScreen({
 
             <h2
                 className="absolute text-xd-30 font-bold text-[#1D1D1D]"
-                style={{ top: XD.head.title, left: XD.textLeft }}
+                style={{ top: XD.head.title, insetInlineStart: XD.textLeft }}
             >
                 {translate('not registered !')}
             </h2>
 
             <p
                 className="absolute text-xd-16 font-medium text-[#1D1D1D]"
-                style={{ top: XD.head.line2, left: XD.textLeft }}
+                style={{ top: XD.head.line2, insetInlineStart: XD.textLeft }}
             >
                 {translate('Sorry, this number is not registered with us !')}
             </p>
 
             <div
                 className="absolute flex items-center"
-                style={{ top: XD.head.line3, left: XD.textLeft, gap: XD_PHONE_ICON_GAP }}
+                style={{ top: XD.head.line3, insetInlineStart: XD.textLeft, gap: XD_PHONE_ICON_GAP }}
             >
-                <span className="text-xd-12 font-normal text-[#1D1D1D]">+{formatPhoneDigits(phone)}</span>
+                <span dir="ltr" className="text-xd-12 font-normal text-[#1D1D1D]">+{formatPhoneDigits(phone)}</span>
                 <div className="w-xd-15 h-xd-15 shrink-0">
                     <Image
                         src="/assets/icons/auth/warn-info.svg"
-                        alt="info"
+                        alt=""
                         width={15}
                         height={15}
                         className="object-contain"
@@ -97,7 +97,7 @@ export default function NewNotFoundScreen({
                 className="absolute rounded-xd-20 bg-[#FAFAFA] text-[#1D1D1D] text-xd-16 font-normal transition-all active:scale-[0.98] cursor-pointer"
                 style={{
                     top: fromBottom(XD.cta.primary),
-                    left: XD.box.left,
+                    insetInlineStart: XD.box.left,
                     width: XD.box.width,
                     height: XD.box.height,
                     letterSpacing: XD_WIDE_LABEL_TRACKING,
@@ -109,7 +109,7 @@ export default function NewNotFoundScreen({
                     radius={XD.box.radius}
                     color="#707070"
                 />
-                <span className="absolute w-full text-center" style={{ top: 20, left: 0 }}>
+                <span className="absolute w-full text-center" style={{ top: 20, insetInlineStart: 0 }}>
                     {translate('Create new account & Continue')}
                 </span>
             </button>
@@ -118,7 +118,7 @@ export default function NewNotFoundScreen({
                 onClick={onCancel}
                 data-pw="cancel-take-look"
                 className="absolute w-full text-center text-xd-14 font-normal text-[#4D84FF] transition-colors hover:opacity-70 cursor-pointer"
-                style={{ top: fromBottom(XD.cta.link), left: 0, letterSpacing: XD_WIDE_LABEL_TRACKING }}
+                style={{ top: fromBottom(XD.cta.link), insetInlineStart: 0, letterSpacing: XD_WIDE_LABEL_TRACKING }}
             >
                 {translate('Cancel & take a look at the app')}
             </button>

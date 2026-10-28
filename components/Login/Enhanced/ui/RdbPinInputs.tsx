@@ -183,6 +183,9 @@ export default function RdbPinInputs({
         <>
             <div
                 ref={inputRef}
+                // The code boxes stay left to right on an Arabic or Kurdish page:
+                // the first digit goes in the left box (A-30 in UI-MIGRATION-PLAN.md).
+                dir="ltr"
                 // While the app's keypad is up, the scaled canvas keeps this row above it.
                 data-keyboard-anchor={showCustomKeypad && keypadOpen ? '' : undefined}
                 className="flex flex-col items-center cursor-pointer"

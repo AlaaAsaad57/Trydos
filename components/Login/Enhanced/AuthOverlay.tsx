@@ -12,7 +12,7 @@ import 'public/styles/rdb-auth.css';
 /**
  * Fullscreen host for an auth surface.
  *
- * The layout matches `FullEnhancedLoginWidget` exactly: one opaque
+ * The layout matches the login page (`NewLoginWidget`) exactly: one opaque
  * `fixed inset-0` layer that owns the whole viewport, with the 430px design
  * canvas scaled to fit inside it. The canvas is only 430 design-px wide, so on
  * a wide screen there is space left and right of it — that space is painted the
@@ -20,9 +20,9 @@ import 'public/styles/rdb-auth.css';
  * full page instead of a centred widget.
  *
  * Do not put a dimming backdrop behind this and let the page show through the
- * side space: every screen this hosts (`EnterPhoneScreen`, `EnterPinScreen`,
- * `SessionExpiredScreen`, …) is drawn as a full-page `w-full h-full bg-white`
- * design, and a see-through outer turns it back into a floating column.
+ * side space: every screen this hosts (`NewEnterPhoneScreen`, `NewEnterPinScreen`,
+ * `NewSessionExpiredScreen`, …) is drawn as a full-page design, and a
+ * see-through outer turns it back into a floating column.
  *
  * `#app-outer` gets its own white background from `rdb-auth.css`, so no
  * `outerBg` key is passed here — the default is already the right colour.

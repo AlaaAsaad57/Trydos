@@ -161,7 +161,7 @@ export default function NewEnterPinScreen({
                     className="absolute flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
                     style={{
                         top: controlTop(XD.control.closeTop),
-                        right: XD.control.right,
+                        insetInlineEnd: XD.control.right,
                         width: XD.control.closeSize,
                         height: XD.control.closeSize,
                         transition: 'top 0.25s ease-out',
@@ -170,7 +170,7 @@ export default function NewEnterPinScreen({
                 >
                     <Image
                         src="/assets/icons/auth/close.svg"
-                        alt="close"
+                        alt=""
                         width={XD.control.closeSize}
                         height={XD.control.closeSize}
                         className="object-contain"
@@ -182,14 +182,14 @@ export default function NewEnterPinScreen({
 
             <h2
                 className="absolute text-xd-30 font-bold text-[#1D1D1D]"
-                style={{ top: XD.head.title, left: XD.textLeft }}
+                style={{ top: XD.head.title, insetInlineStart: XD.textLeft }}
             >
                 {translate(authHeadingKey(authType))}
             </h2>
 
             <p
                 className="absolute text-xd-16 font-medium text-[#1D1D1D]"
-                style={{ top: XD.head.line2, left: XD.textLeft }}
+                style={{ top: XD.head.line2, insetInlineStart: XD.textLeft }}
             >
                 {`${translate('enter verification code sent to your')} ${methodLabel}`}
             </p>
@@ -198,7 +198,7 @@ export default function NewEnterPinScreen({
                 className="absolute flex items-center"
                 style={{
                     top: XD.head.line3,
-                    left: XD.textLeft,
+                    insetInlineStart: XD.textLeft,
                     gap: XD_LINE3_ICON_GAP.code,
                 }}
             >
@@ -208,7 +208,7 @@ export default function NewEnterPinScreen({
                 <div className="w-xd-15 h-xd-15 shrink-0">
                     <Image
                         src="/assets/icons/auth/sim.svg"
-                        alt="sim"
+                        alt=""
                         width={15}
                         height={15}
                         className="object-contain"
@@ -220,13 +220,14 @@ export default function NewEnterPinScreen({
                 fixed x, not a gap, because the number length changes by country. */}
             <span
                 className="absolute text-xd-12 font-normal text-[#1D1D1D]"
-                style={{ top: XD.head.line4, left: XD.textLeft }}
+                style={{ top: XD.head.line4, insetInlineStart: XD.textLeft }}
             >
-                +{formatPhoneDigits(phone ?? '')}
+                {/* Inside, not on the span: the span is placed from the page's start side. */}
+                <span dir="ltr">+{formatPhoneDigits(phone ?? '')}</span>
             </span>
             <div
                 className="absolute flex items-center"
-                style={{ top: XD.head.line4, left: HINT_LEFT, gap: 11.6 }}
+                style={{ top: XD.head.line4, insetInlineStart: HINT_LEFT, gap: 11.6 }}
             >
                 <span className="text-xd-12 font-normal text-[#C3C3C3]">
                     {canAskAgain
@@ -236,7 +237,7 @@ export default function NewEnterPinScreen({
                 <div className="w-xd-15 h-xd-15 shrink-0">
                     <Image
                         src="/assets/icons/auth/info.svg"
-                        alt="info"
+                        alt=""
                         width={15}
                         height={15}
                         className="object-contain"
@@ -247,7 +248,7 @@ export default function NewEnterPinScreen({
             {canAskAgain && (
                 <div
                     className="absolute flex items-center"
-                    style={{ top: XD.head.line4WithRow, left: XD.textLeft, gap: 5 }}
+                    style={{ top: XD.head.line4WithRow, insetInlineStart: XD.textLeft, gap: 5 }}
                 >
                     {resendLink(handleResend, 'resend code', 'resend-code')}
                     {changeNumber && (
@@ -271,7 +272,7 @@ export default function NewEnterPinScreen({
 
             <div
                 className="absolute flex items-center"
-                style={{ top: privacyTop, left: XD.textLeft, gap: 10.5 }}
+                style={{ top: privacyTop, insetInlineStart: XD.textLeft, gap: 10.5 }}
             >
                 <span className="text-xd-11 font-normal text-[#4A31E7]">
                     {translate('Your privacy is completely safe')}
@@ -289,7 +290,7 @@ export default function NewEnterPinScreen({
                 </div>
             </div>
 
-            <div className="absolute" style={{ top: otpTop, left: XD.box.left }}>
+            <div className="absolute" style={{ top: otpTop, insetInlineStart: XD.box.left }}>
                 <RdbPinInputs
                     value={pin}
                     onChange={setPin}
@@ -312,7 +313,7 @@ export default function NewEnterPinScreen({
             {codeExpired && (
                 <p
                     className="absolute w-full text-xd-11 font-medium text-[#1D1D1D] text-center"
-                    style={{ top: XD.otpMessageTop, left: 0 }}
+                    style={{ top: XD.otpMessageTop, insetInlineStart: 0 }}
                 >
                     {translate('The code sent has expired')}
                 </p>
@@ -322,7 +323,7 @@ export default function NewEnterPinScreen({
                     data-pw="verify-otp-error"
                     role="alert"
                     className="absolute w-full px-xd-20 text-xd-11 font-medium text-[#FF5F61] text-center"
-                    style={{ top: XD.otpMessageTop, left: 0 }}
+                    style={{ top: XD.otpMessageTop, insetInlineStart: 0 }}
                 >
                     {error}
                 </p>

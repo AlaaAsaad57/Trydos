@@ -160,7 +160,7 @@ export default function QrBottomSheet({
                             <div
                                 className="absolute"
                                 style={{
-                                    left: XD.qrSheet.handle.left,
+                                    insetInlineStart: XD.qrSheet.handle.left,
                                     top: XD.qrSheet.handle.top - XD.qrSheet.top,
                                     width: XD.qrSheet.handle.width,
                                     height: XD.qrSheet.handle.height,
@@ -174,7 +174,7 @@ export default function QrBottomSheet({
                                 <div
                                     className="absolute flex items-center justify-center"
                                     style={{
-                                        left: XD.qrSheet.code.left,
+                                        insetInlineStart: XD.qrSheet.code.left,
                                         top: XD.qrSheet.code.top - XD.qrSheet.top,
                                         width: XD.qrSheet.code.size,
                                         height: XD.qrSheet.code.size,
