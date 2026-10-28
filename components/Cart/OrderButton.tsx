@@ -7,7 +7,8 @@ import {
   translateFunction,
 } from "utils/functions";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
-import InlineVerifyPanel from "components/Login/Enhanced/InlineVerifyPanel";
+import AuthOverlay from "components/Login/Enhanced/AuthOverlay";
+import VerifyPhoneFlow from "components/Login/Enhanced/VerifyPhoneFlow";
 import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
 import OrderMarquee from "./OrderMarquee";
@@ -605,9 +606,7 @@ function OrderButton({ close, toOrders }) {
           }}
         >
           <div
-            className={`cursor-pointer  flex-col w-full  ${
-              option ? "h-[200px]" : "bg-[#3C3C3C] h-[70px]"
-            } rounded-[20px] text-center justify-center items-center`}
+            className={`cursor-pointer  flex-col w-full bg-[#3C3C3C] h-[70px] rounded-[20px] text-center justify-center items-center`}
             data-pw="Confirm-Order-Button"
             style={{
               boxShadow:
@@ -638,34 +637,6 @@ function OrderButton({ close, toOrders }) {
             )}
             {!loading && (
               <>
-                {option ? (
-                  <>
-                    <InlineVerifyPanel
-                      initialPhone={
-                        userData?.phone !== null &&
-                        // @ts-ignore — phone is typed loosely across the store
-                        userData?.phone !== 0 &&
-                        userData?.phone !== "0"
-                          ? userData?.phone
-                          : null
-                      }
-                      phoneLocked={
-                        userData?.phone !== null &&
-                        // @ts-ignore
-                        userData?.phone !== 0 &&
-                        userData?.phone !== "0"
-                      }
-                      onClose={() => {
-                        setOption(false);
-                      }}
-                      onSuccess={() => {
-                        setOption(false);
-                        GoToOrders(true);
-                      }}
-                      lang={languageVariable}
-                    />
-                  </>
-                ) : (
                   <>
                     {" "}
                     {cart.length === 0 ? (
@@ -710,12 +681,47 @@ function OrderButton({ close, toOrders }) {
                       </>
                     )}
                   </>
-                )}
               </>
             )}
           </div>
         </div>
       </div>
+      {/* Checkout's verify (A-27 in UI-MIGRATION-PLAN.md): the new screens,
+          full screen over the cart, and the order goes on after it. Outside
+          the Confirm button, so its taps never reach the button's onClick. */}
+      {option && (
+        <AuthOverlay>
+          <VerifyPhoneFlow
+            withIntro
+            source="InlineVerifyPanel"
+            initialPhone={
+              userData?.phone !== null &&
+              // @ts-ignore — phone is typed loosely across the store
+              userData?.phone !== 0 &&
+              userData?.phone !== "0"
+                ? userData?.phone
+                : null
+            }
+            phoneLocked={
+              userData?.phone !== null &&
+              // @ts-ignore
+              userData?.phone !== 0 &&
+              userData?.phone !== "0"
+            }
+            verify={(code, verificationId) =>
+              auth.VerifyOtp(code, verificationId)
+            }
+            onClose={() => {
+              setOption(false);
+            }}
+            onSuccess={() => {
+              setOption(false);
+              GoToOrders(true);
+            }}
+            lang={languageVariable}
+          />
+        </AuthOverlay>
+      )}
     </>
   );
 }

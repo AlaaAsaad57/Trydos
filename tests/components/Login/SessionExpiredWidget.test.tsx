@@ -135,6 +135,27 @@ describe("choosing to carry on as a guest", () => {
   });
 });
 
+// A-26 in UI-MIGRATION-PLAN.md: built like the new "already registered !"
+// screen, with its colours, on the new login stage.
+describe("the new design", () => {
+  it("is the already-registered layout: light blue page, logo place, Login button and guest link", async () => {
+    await renderWithProviders(<SessionExpiredWidget />);
+
+    const page = document.querySelector<HTMLElement>('[data-pw="session-expired"]');
+    expect(page, "the prompt is not the new session-expired screen").not.toBeNull();
+    expect(page!.style.backgroundColor, "the prompt is not on the already-registered light blue").toBe("rgb(244, 248, 255)");
+    expect(page!.querySelector("[data-auth-logo-slot]"), "the prompt keeps no place for the one logo").not.toBeNull();
+    expect(
+      document.querySelector('[data-auth-step="session-expired"]'),
+      "the prompt is not on the new login stage (AuthStage)",
+    ).not.toBeNull();
+    expect(
+      document.querySelector('[data-pw="session-expired-guest"]')?.className,
+      "\"Continue as Guest\" is not the blue link of the already-registered screen",
+    ).toContain("text-[#4D84FF]");
+  });
+});
+
 describe("what the prompt says", () => {
   it("tells the shopper why they are being asked", async () => {
     await renderWithProviders(<SessionExpiredWidget />);

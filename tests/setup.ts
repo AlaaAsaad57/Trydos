@@ -11,6 +11,7 @@
 //      tests never see each other's markup.
 //   4. The fake network starts, is reset between tests, and stops at the end.
 //   5. `window.matchMedia` is supplied, because jsdom does not have it.
+//   6. `ResizeObserver` is supplied, because jsdom does not have it either.
 //
 // Nothing here is specific to one feature. Keep it that way: a helper that only
 // some tests want belongs in tests/mocks/, tests/msw/ or tests/render.tsx, not in
@@ -79,6 +80,20 @@ if (typeof window !== "undefined" && !window.matchMedia) {
     addListener: () => {},
     removeListener: () => {},
   })) as typeof window.matchMedia;
+}
+
+// jsdom has no `ResizeObserver` either. Every browser the app supports has it,
+// and the new login stage measures its logo slot with one (NewLoginDesign/
+// AuthLogoLayer.tsx), so every page that can open a verify overlay reaches it.
+// Without it the render throws a ReferenceError that names nothing the test is
+// about. jsdom lays nothing out and never resizes, so the stand-in never fires:
+// a test that needs a resize drives it itself, in that file.
+if (typeof globalThis.ResizeObserver === "undefined") {
+  globalThis.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
 }
 
 beforeAll(() => {

@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import Page from 'scaling/Page';
 import { usePageDir } from 'components/DemoApp1/rtl';
 import 'public/styles/rdb-auth.css';
@@ -22,8 +21,7 @@ import { LOGIN_RETURN_PARAM, safeReturnPath } from 'utils/loginPath';
 // The cap's size lives with the shared verify flow, so every copy of the
 // counter agrees on the number.
 import { MAX_VERIFY_ATTEMPTS } from 'components/Login/Enhanced/usePhoneVerifyFlow';
-import { LogoAnimationProvider } from './LogoAnimationContext';
-import AuthLogoLayer from './AuthLogoLayer';
+import AuthStage, { LOGO_PURPLE } from './AuthStage';
 import { DEFAULT_LOGO_CONFIG } from './logoScreenConfig';
 import type { LogoSlotId } from './logoScreenConfig';
 
@@ -54,7 +52,6 @@ export type AuthStep =
     | 'signup-success'
     | 'qr-login';
 
-const transition = { duration: 0.35, ease: [0.4, 0, 0.2, 1] as const };
 
 /**
  * The badge mark's colour, per step.
@@ -63,7 +60,6 @@ const transition = { duration: 0.35, ease: [0.4, 0, 0.2, 1] as const };
  * otherwise. The three outcome screens each have their own, and each one
  * matches the background that screen paints.
  */
-const LOGO_PURPLE = { dot: 'purple', ring: '#402CDD' };
 const STEP_LOGO_COLOR: Partial<Record<AuthStep, { dot: string; ring: string }>> = {
     // XD recolours the ring and the two eye dots on their own. On "not
     // registered" only the dots turn amber — the ring stays the flow purple.
@@ -149,8 +145,6 @@ export default function NewLoginWidget({
     const langCode = langSegment.split('-')[1] || 'en';
     const translate = (key: string) => translateFunction(key, langCode);
     const pageDir = usePageDir();
-    /** The side a next screen comes in from: the right, or the left on a right-to-left page. */
-    const side = pageDir === 'rtl' ? -1 : 1;
     const { verficationID, language, setStoryData } = useAppStore();
 
     const [step, setStep] = useState<AuthStep>(initialStep);
@@ -190,8 +184,6 @@ export default function NewLoginWidget({
     const [previewExpanded, setPreviewExpanded] = useState<boolean>(false);
     const [isQrOpen, setIsQrOpen] = useState<boolean>(false);
 
-    /** The box the screens slide inside. `AuthLogoLayer` measures against it. */
-    const stageRef = useRef<HTMLDivElement>(null);
 
     const goTo = (nextStep: AuthStep, dir: number = 1) => {
         setDirection(dir);
@@ -549,18 +541,12 @@ export default function NewLoginWidget({
     const activeSlot = logoConfig[logoSlotId];
 
     return (
-        // A shopper who turned motion off gets a still logo and screens that do
-        // not slide (decided in Stage 1 of UI-MIGRATION-PLAN.md). The provider's
-        // own animation is only a fallback: each logo gets its pattern from its
-        // slot config.
-        <MotionConfig reducedMotion="user">
-        <LogoAnimationProvider>
-            <main
-                data-pw="new-login-widget"
-                dir={pageDir}
-                className="fixed inset-0 z-[99999999999] w-full h-dvh overflow-hidden font-quicksand transition-colors duration-300"
-                style={{ backgroundColor: getScreenBg() }}
-            >
+        <main
+            data-pw="new-login-widget"
+            dir={pageDir}
+            className="fixed inset-0 z-[99999999999] w-full h-dvh overflow-hidden font-quicksand transition-colors duration-300"
+            style={{ backgroundColor: getScreenBg() }}
+        >
             <Page
                 variant="scaled"
                 maxDeficit={step === 'quick-preview' ? QUICK_PREVIEW_MAX_DEFICIT : undefined}
@@ -578,51 +564,22 @@ export default function NewLoginWidget({
                                 : undefined
                 }
             >
-                <div
-                    ref={stageRef}
-                    /**
-                     * Never let the stage scroll, and put it back if it does.
-                     *
-                     * `overflow: hidden` stops the *user* scrolling. It does not
-                     * stop the browser: the box is still a scroll container, and
-                     * anything that focuses an element inside a screen that is
-                     * still slid off to the right makes the browser scroll this
-                     * box to reveal it. Every child then shifts sideways —
-                     * including the logo, which belongs to the frame and not to
-                     * any screen, so it flew in from the left edge.
-                     *
-                     * The two things that did it now focus with `preventScroll`,
-                     * which is the real fix. This stays as the guard, because the
-                     * next focusable thing added to any screen would otherwise
-                     * bring the fault straight back, and it would look like a
-                     * logo bug rather than a focus one.
-                     */
-                    onScroll={(event) => {
-                        event.currentTarget.scrollLeft = 0;
-                        event.currentTarget.scrollTop = 0;
-                    }}
-                    className="w-full h-full relative overflow-hidden"
+                <AuthStage
+                    step={step}
+                    direction={direction}
+                    live={step === 'quick-preview'}
+                    dotColor={logoColor.dot}
+                    ringColor={logoColor.ring}
+                    slot={activeSlot}
+                    overlay={
+                        // QR Bottom Sheet Modal (slides up over GetStarted)
+                        <QrBottomSheet
+                            isOpen={isQrOpen}
+                            onClose={() => setIsQrOpen(false)}
+                            lang={langCode}
+                        />
+                    }
                 >
-                    {/*
-                      * Both screens are on stage at once — no `mode="wait"`.
-                      * The old screen has to stay until the new one has laid
-                      * out, because that is what lets `AuthLogoLayer` measure
-                      * the incoming logo slot and start the mark travelling on
-                      * the same frame the content starts sliding. It also makes
-                      * the slide read as one pager instead of two moves with a
-                      * blank gap between them.
-                      */}
-                    <AnimatePresence initial={false} custom={direction}>
-                        <motion.div
-                            key={step}
-                            data-auth-step={step}
-                            custom={direction}
-                            initial={{ x: direction * side > 0 ? '100%' : '-100%', opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: direction * side > 0 ? '-100%' : '100%', opacity: 0 }}
-                            transition={transition}
-                            className="absolute inset-0 w-full h-full"
-                        >
                             {/* 1. Quick Preview Screen */}
                             {step === 'quick-preview' && (
                                 <QuickPreviewScreen
@@ -806,39 +763,8 @@ export default function NewLoginWidget({
                                     lang={langCode}
                                 />
                             )}
-                        </motion.div>
-                    </AnimatePresence>
-
-                    {/*
-                      * The one badge mark, above every screen and outside the
-                      * slider. It moves twice in the whole flow and is still
-                      * for the rest of it — see AUTH_LOGO_STOP in AuthLogoSlot.
-                      *
-                      * `live` is the Quick Preview only. That screen lifts its
-                      * whole column off the bottom edge and the mark rides up
-                      * with it, so the mark has to be locked to the slot frame
-                      * by frame there. Everywhere else the slot is still, and
-                      * the mark springs to it.
-                      */}
-                    <AuthLogoLayer
-                        stageRef={stageRef}
-                        step={step}
-                        live={step === 'quick-preview'}
-                        dotColor={logoColor.dot}
-                        ringColor={logoColor.ring}
-                        slot={activeSlot}
-                    />
-
-                    {/* QR Bottom Sheet Modal (slides up over GetStarted) */}
-                    <QrBottomSheet
-                        isOpen={isQrOpen}
-                        onClose={() => setIsQrOpen(false)}
-                        lang={langCode}
-                    />
-                </div>
+                </AuthStage>
             </Page>
         </main>
-        </LogoAnimationProvider>
-        </MotionConfig>
     );
 }

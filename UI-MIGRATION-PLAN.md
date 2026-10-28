@@ -35,6 +35,9 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | A-23 | QR sheet until G-1 | **Decided on 2026-10-28.** The QR sheet opens as designed. It shows a fixed QR that holds the plain text "Trydos" (it opens nothing when scanned). "Soon available" shows in the sheet's existing message box over the middle of the QR (the box the declined state uses), with no "Show a new code" link. The localStorage mock (`services/qrLogin`) is not called. |
 | A-24 | Login page SEO | **Decided on 2026-10-28.** `/[lang]/login` has `robots: noindex` and is in no sitemap. |
 | A-25 | No deploy before the end | **Decided on 2026-10-28** (given to the Stage 3 session). Nothing on `ui-migrations` or `ui-migrations-shell` is deployed until all stages are done (after Stage 8). A half-built state between stages is OK on the branches. |
+| A-26 | Session-expired screen | **Decided on 2026-10-28.** No XD board exists (D-14: the designer must check it). It is built like the new "already registered !" screen (`NewAlreadyExistScreen`), with its colours (the light blue page `#F4F8FF`, the purple logo): logo at the top, the bold title "Your session has expired", one line of text, and two wide buttons "Login" and "Continue as Guest". The buttons keep today's actions (`SessionExpiredWidget.tsx`). |
+| A-27 | Checkout verify | **Decided on 2026-10-28.** Checkout's verify (today the small `InlineVerifyPanel` inside the order button) becomes a full-screen overlay over the cart, built from the new screens. Its steps stay as today: a shopper with no number on file gets Get Started ("I have already account" / "New customer") → terms for a new customer → phone → method → code; a shopper whose account has a number starts at the method step. No name step and no welcome screen. After the verify the order goes on, as today (`OrderButton.tsx` lines 643-666). |
+| A-28 | Checkout QR | **Decided on 2026-10-28.** The checkout's Get Started screen keeps its QR button (A-7: no part of the design is hidden). A tap opens the QR sheet with "Soon available" (A-23), with the same two events the login page sends (`login_start` method `qr`, `screen_view` QR screen). |
 | D-1 | Merge | Once, at the end (after Stage 8). Every stage stays on `ui-migrations`. |
 | D-2 | Desktop | The 500 px centred column is OK on desktop. No desktop design work. |
 | D-3 | RTL | Mirror everything for `ar` / `ku`: layout, slide direction, tab order, margins. |
@@ -324,7 +327,23 @@ shared blocks place nothing by the physical left or right), the RTL cases in
   `loginHref(lang, <this page>)`. On the login page itself it goes nowhere. The old overlay is no longer mounted.
   Test: `tests/components/Home/AuthSections.test.tsx` (2 new cases, seen red on the old code). (A-21 was dropped:
   there are no edits to keep.)
-- **2c.** The verify overlays on the new screens (A-19).
+- **2c — Done.** The verify overlays on the new screens (A-19):
+  - `NewLoginDesign/AuthStage.tsx`: the stage (slide + the one logo) taken out of `NewLoginWidget`, so the login
+    page and every overlay draw the new screens the same way.
+  - `VerifyPhoneFlow` shows `NewEnterPhoneScreen`, `NewSelectMethodScreen`, `NewEnterPinScreen` on that stage.
+    This covers the phone re-verify (`ConfirmMobilePhoneWidget`), personal info and `VerifyUser`. Their waiting
+    logic is unchanged.
+  - Session expired (A-26): `NewLoginDesign/NewSessionExpiredScreen.tsx`, in the already-registered layout and
+    colours ("Login" wide button, "Continue as Guest" blue link). `AuthOverlay` takes an `outerBg` for its colour.
+  - Checkout (A-27): the order button opens `VerifyPhoneFlow withIntro` full screen (`AuthOverlay`) instead of the
+    small `InlineVerifyPanel`. Get Started → terms for a new customer → phone → method → code → the order goes on.
+    The analytics source stays `InlineVerifyPanel` (D-10). Its Get Started keeps the QR button (A-28).
+  - Tests: the new-design and intro cases in `VerifyPhoneFlow.test.tsx`, the new-design case in
+    `SessionExpiredWidget.test.tsx`, the overlay checks in `OrderButton.test.tsx`; each seen red on the old code.
+    `ConfirmMobilePhoneWidget.test.tsx` and `VerifyPhoneFlow.test.tsx` now read the new screens' text (the
+    "Send Sms" label, the grouped number). `tests/setup.ts` supplies a no-op `ResizeObserver`, as it supplies
+    `matchMedia`, because the logo layer measures with one.
+  - Not used any more (goes in 2e): `InlineVerifyPanel.tsx`, `screens/SessionExpiredScreen.tsx`.
 - **2d.** RTL of the login screens, i18n (alts, "Trydos"), e2e helpers and specs.
 - **2e.** Cleanup (D-6): delete the old login files nothing uses any more, each proved unused by grep first:
   `FullEnhancedLoginWidget.tsx` (not mounted since 2b) and its test, and the old screens only it used.

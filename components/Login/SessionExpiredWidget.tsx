@@ -3,7 +3,10 @@
 import { useCallback } from 'react';
 import { useAppStore } from 'store';
 import AuthOverlay from './Enhanced/AuthOverlay';
-import SessionExpiredScreen from './Enhanced/screens/SessionExpiredScreen';
+// The new design (A-26 in UI-MIGRATION-PLAN.md).
+import AuthStage, { LOGO_PURPLE } from 'NewLoginDesign/AuthStage';
+import { DEFAULT_LOGO_CONFIG } from 'NewLoginDesign/logoScreenConfig';
+import NewSessionExpiredScreen from 'NewLoginDesign/NewSessionExpiredScreen';
 
 /**
  * Session-expired prompt for a previously verified shopper whose refresh
@@ -48,12 +51,21 @@ function SessionExpiredWidget() {
     }, [setReAuthResult, setShouldAuthinticated, isSeller]);
 
     return (
-        <AuthOverlay>
-            <SessionExpiredScreen
-                onLogin={handleLogin}
-                onContinueAsGuest={handleContinueAsGuest}
-                lang={language}
-            />
+        <AuthOverlay outerBg="already-registered">
+            {/* Built like the "already registered !" screen, so its logo too. */}
+            <AuthStage
+                step="session-expired"
+                direction={1}
+                slot={DEFAULT_LOGO_CONFIG['already-registered']}
+                dotColor={LOGO_PURPLE.dot}
+                ringColor={LOGO_PURPLE.ring}
+            >
+                <NewSessionExpiredScreen
+                    onLogin={handleLogin}
+                    onContinueAsGuest={handleContinueAsGuest}
+                    lang={language}
+                />
+            </AuthStage>
         </AuthOverlay>
     );
 }
