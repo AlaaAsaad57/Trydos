@@ -6,6 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // The URL the fake router reports. A test changes it and re-renders, which is
 // what Next does when a navigation lands or the browser goes back.
 const url = vi.hoisted(() => ({ pathname: "/sy-en/demo", search: "" }));
+// The locale segment the page is on; the right-to-left cases set `sy-ar`.
+const page = vi.hoisted(() => ({ lang: "sy-en" }));
 const router = vi.hoisted(() => ({
   push: vi.fn(),
   replace: vi.fn(),
@@ -17,7 +19,7 @@ vi.mock("next/navigation", () => ({
   usePathname: () => url.pathname,
   useSearchParams: () => new URLSearchParams(url.search),
   useRouter: () => router,
-  useParams: () => ({ lang: "sy-en" }),
+  useParams: () => ({ lang: page.lang }),
 }));
 
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
@@ -66,7 +68,7 @@ const readableAtTheBottom = () =>
 
 /** Opens the shell on a screen's URL. */
 const openOn = (screen: (typeof DEMO_SCREENS)[number]) => {
-  const [path, query = ""] = hrefFor("sy-en", screen).split("?");
+  const [path, query = ""] = hrefFor(page.lang, screen).split("?");
   url.pathname = path;
   url.search = query;
   return render(<Demo1Shell dictionary={{}}>{null}</Demo1Shell>);
@@ -86,6 +88,7 @@ let scrollY = 0;
 const scrollTo = vi.fn();
 
 beforeEach(() => {
+  page.lang = "sy-en";
   url.pathname = "/sy-en/demo";
   url.search = "";
   router.push.mockClear();
@@ -869,5 +872,91 @@ describe("Demo1Shell — reduced motion", () => {
       seen,
       "the new UI does not set MotionConfig reducedMotion=\"user\", so slides and sheets still move for a shopper who turned motion off",
     ).toBe("user");
+  });
+});
+
+describe("Demo1Shell — right to left on Arabic and Kurdish pages (D-3)", () => {
+  /** Where a screen that is coming in starts: framer-motion draws its first frame inline. */
+  const startOf = (container: HTMLElement, screen: string) =>
+    container.querySelector<HTMLElement>(`[data-demo-screen="${screen}"]`)?.style
+      .transform;
+
+  it.each([
+    ["sy-ar", "rtl"],
+    ["iq-ku", "rtl"],
+    ["sy-en", "ltr"],
+  ])("on %s the page column, the tab bar and an open sheet are %s", (lang, dir) => {
+    page.lang = lang;
+    const { container } = openOn("home");
+    expect(
+      container.querySelector('[data-pw="demo1-app"]')?.getAttribute("dir"),
+      `the page column on ${lang} is not ${dir}`,
+    ).toBe(dir);
+    expect(
+      document.body.querySelector('[data-pw="demo-tab-bar"]')?.getAttribute("dir"),
+      `the tab bar on ${lang} (on <body>, outside the page column) is not ${dir}`,
+    ).toBe(dir);
+    render(
+      <Sheet open onClose={() => {}} y={400} testId="rtl-sheet">
+        <span>a</span>
+      </Sheet>,
+    );
+    expect(
+      document.body
+        .querySelector('[data-pw="rtl-sheet"]')
+        ?.closest("[dir]")
+        ?.getAttribute("dir"),
+      `an open sheet on ${lang} (on <body>, outside the page column) is not ${dir}`,
+    ).toBe(dir);
+  });
+
+  it("an English page: a deeper screen comes in from the right", () => {
+    const { container } = openOn("home");
+    pressTab("search");
+    expect(
+      startOf(container, "search"),
+      "on an English page search did not start off the right edge",
+    ).toBe("translateX(100%)");
+  });
+
+  it("an Arabic page: a deeper screen comes in from the left", () => {
+    page.lang = "sy-ar";
+    const { container } = openOn("home");
+    pressTab("search");
+    expect(
+      startOf(container, "search"),
+      "on an Arabic page search did not start off the left edge, so the slide is not mirrored",
+    ).toBe("translateX(-100%)");
+  });
+
+  it("an Arabic page: the tabs are placed from the bar's start, so Home is on the right", () => {
+    page.lang = "sy-ar";
+    openOn("home");
+    const home = document.body.querySelector<HTMLElement>('[data-pw="demo-tab-home"]');
+    expect(home, "the tab bar has no Home tab").not.toBeNull();
+    expect(
+      home!.style.left,
+      "the Home tab is placed from the bar's left edge, so it stays on the left on a right-to-left page",
+    ).toBe("");
+    expect(
+      home!.style.insetInlineStart,
+      "the Home tab is not placed from the bar's start edge",
+    ).toContain("calc(");
+  });
+
+  it.each([
+    ["sy-ar", "scaleX(-1)"],
+    ["sy-en", ""],
+  ])("on %s the header's back arrow is drawn as %s", (lang, transform) => {
+    page.lang = lang;
+    const { container } = openOn("settings/profile/address");
+    const back = container.querySelector('[data-pw="demo-back"] img');
+    expect(back, "the address list has no back arrow in its header").not.toBeNull();
+    expect(
+      (back as HTMLElement).style.transform,
+      transform
+        ? `the back arrow on ${lang} still points left`
+        : `the back arrow on ${lang} is turned`,
+    ).toBe(transform);
   });
 });

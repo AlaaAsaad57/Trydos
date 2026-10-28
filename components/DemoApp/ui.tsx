@@ -31,12 +31,15 @@ const WEIGHT_CLASS: Record<Weight, string> = {
   bold: "font-bold",
 };
 
-/** Moves a centred block `nudge` px right (or left) by padding one side. */
+/**
+ * Moves a centred block `nudge` px right (or left) by padding one side. The
+ * side is logical, so on a right-to-left page the nudge is mirrored too.
+ */
 const offCentre = (nudge: number): React.CSSProperties =>
   nudge > 0
-    ? { paddingLeft: nudge * 2 }
+    ? { paddingInlineStart: nudge * 2 }
     : nudge < 0
-      ? { paddingRight: -nudge * 2 }
+      ? { paddingInlineEnd: -nudge * 2 }
       : {};
 
 /**
@@ -137,7 +140,7 @@ export function Txt({
   nudge?: number;
   /** Margin above, in design px. */
   mt?: number;
-  /** Margin on the left, in design px. */
+  /** Margin on the start side (the left, or the right on a right-to-left page), in design px. */
   ml?: number;
   width?: number;
   className?: string;
@@ -154,7 +157,7 @@ export function Txt({
         lineHeight: `${lineBox(size)}px`,
         color,
         marginTop: mt,
-        marginLeft: ml,
+        marginInlineStart: ml,
         width,
         ...(center
           ? { alignSelf: "stretch", textAlign: "center", ...offCentre(nudge) }
@@ -209,7 +212,7 @@ export function Box({
         width: w,
         height: h,
         marginTop: mt,
-        marginLeft: ml,
+        marginInlineStart: ml,
         background: fill,
         borderRadius: radius,
         ...style,
@@ -249,7 +252,7 @@ export function Icon({
       name={name}
       size={size}
       className="shrink-0"
-      style={{ marginTop: mt, marginLeft: ml, ...style }}
+      style={{ marginTop: mt, marginInlineStart: ml, ...style }}
     />
   );
 }

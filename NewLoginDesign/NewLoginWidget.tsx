@@ -4,6 +4,7 @@ import React, { useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import Page from 'scaling/Page';
+import { usePageDir } from 'components/DemoApp1/rtl';
 import 'public/styles/rdb-auth.css';
 import { LogoAnimationProvider } from './LogoAnimationContext';
 import AuthLogoLayer from './AuthLogoLayer';
@@ -93,6 +94,9 @@ export default function NewLoginWidget({
     const { lang } = useParams();
     const router = useRouter();
     const langCode = typeof lang === 'string' ? lang.split('-')[1] || 'en' : 'en';
+    const pageDir = usePageDir();
+    /** The side a next screen comes in from: the right, or the left on a right-to-left page. */
+    const side = pageDir === 'rtl' ? -1 : 1;
 
     const [step, setStep] = useState<AuthStep>(initialStep);
     const [direction, setDirection] = useState<number>(1);
@@ -162,6 +166,7 @@ export default function NewLoginWidget({
         <LogoAnimationProvider>
             <main
                 data-pw="new-login-widget"
+                dir={pageDir}
                 className="fixed inset-0 z-[99999999999] w-full h-dvh overflow-hidden font-quicksand transition-colors duration-300"
                 style={{ backgroundColor: getScreenBg() }}
             >
@@ -221,9 +226,9 @@ export default function NewLoginWidget({
                             key={step}
                             data-auth-step={step}
                             custom={direction}
-                            initial={{ x: direction > 0 ? '100%' : '-100%', opacity: 0 }}
+                            initial={{ x: direction * side > 0 ? '100%' : '-100%', opacity: 0 }}
                             animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: direction > 0 ? '-100%' : '100%', opacity: 0 }}
+                            exit={{ x: direction * side > 0 ? '-100%' : '100%', opacity: 0 }}
                             transition={transition}
                             className="absolute inset-0 w-full h-full"
                         >

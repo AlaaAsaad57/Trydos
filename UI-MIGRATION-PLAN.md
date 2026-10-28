@@ -1,11 +1,10 @@
 # UI migration plan — demo UI becomes the real app
 
-**Status:** Stage 0 (decisions) done on 2026-10-28. Nothing is built yet. Next: Stage 1.
+**Status:** Stage 0 (decisions) and Stage 1 (foundation) done on 2026-10-28. Next: Stage 2 (login).
 **Still open:** D-24 ("Web" / "lock" switches: designer / product), D-30 (place levels: backend),
 D-34 (which wallet balance is the truth: backend). None of them blocks Stage 1.
 **Written:** 2026-10-28, from a read-only scan of the code.
-**Branch:** `ui-migrations`, cut from `development`. It is not created yet. It will be created after the
-uncommitted chat changes (`components/DemoApp1/chat/MessageMenu.tsx`, `MessageRow.tsx`, and others) are pushed.
+**Branch:** `ui-migrations`, cut from `development` on 2026-10-28.
 
 ## Agreed so far
 
@@ -16,13 +15,17 @@ uncommitted chat changes (`components/DemoApp1/chat/MessageMenu.tsx`, `MessageRo
 | A-3 | Tests | `/demo` and `/loginDemo` screens are now in test scope (unit + e2e). |
 | A-4 | Pages with no new design | They keep the old UI and must keep working. |
 | A-5 | Process | We do not use the `wf` workflow. One stage = one session. Claude asks; it never decides. |
-| A-6 | Stage order | Confirmed as written in "Stages" (0 → 8). |
+| A-6 | Stage order | Two lanes after Stage 1 (changed on 2026-10-28). Stage 1 finishes first. Then lane A runs 3 → 4 → 5 → 7 and lane B runs 2 → 6, at the same time. Stage 8 starts when both lanes are done. See "Lanes" under "Stages". |
 | A-7 | Design is complete | **Never remove or hide any part of the demo design.** Every screen, sheet, button and row ships. |
 | A-8 | No backend yet | The screen opens as designed. Fields with a real source show real data. Fields with no source show empty or a placeholder. The final action (submit, request, send) shows "Soon available". **No mock data and no fake success reach production** (no fake balances, no "any 6 digits pass"). This replaces D-5. |
 | A-9 | New design first | The new design has priority. Claude does not change, add or keep anything you did not ask for. When an old feature has no place in the design and no answer from you, Claude asks. |
 | A-10 | Reduced motion | Respected in production. Login logo: still. Screen slides, sheets, menus, tab pill: movement is instant, fades stay (`MotionConfig reducedMotion="user"` on the new-UI roots). Bottom bar: no press pulse; the scroll shrink stays because it follows the finger. Note: a machine with "reduce motion" on (this dev machine) shows no animation. |
 | A-11 | Kurdish keyboard | The drawn keyboard starts on Arabic letters on `ku` pages, as on `ar` pages. |
 | A-12 | Quick Preview gaps | Fixed at 0 / 0 (as the client approved them on `/loginDemo`), not the screen defaults 35 / 56. |
+| A-13 | RTL switch | `dir="rtl"` is on now for the whole new UI on `ar` / `ku` pages: the shell's page column, the login's root and every portal (tab bar, sheet layer, QR sheet). Not on `<html>`, so the old pages do not flip. Until a stage converts its screens, the Arabic screens of that stage look half-mirrored on the branch (flex rows flip, fixed positions do not). Nothing reaches production before Stage 8. |
+| A-14 | Pointing icons | Icons that point a way (back arrows) are mirrored on `ar` / `ku` (`mirrorFor` in `components/DemoApp1/rtl.ts`). Icons that point no way (logo, clock, help) stay as drawn. Each stage mirrors the arrows of its own screens. |
+| A-15 | Swipes | Swipe gestures work the other way on `ar` / `ku`. Each stage mirrors the swipes of its own screens (Stages 4–6). |
+| A-16 | Real data | One hook per area (for example `useProfileData`). The hook reads `useAppStore` and calls the existing services. Screens get only plain values from it. Shipping code does not import the mock files (`DemoData.tsx`, `demoWallet.ts`, `demoChat*.ts`). A-8 still applies. |
 | D-1 | Merge | Once, at the end (after Stage 8). Every stage stays on `ui-migrations`. |
 | D-2 | Desktop | The 500 px centred column is OK on desktop. No desktop design work. |
 | D-3 | RTL | Mirror everything for `ar` / `ku`: layout, slide direction, tab order, margins. |
@@ -116,6 +119,25 @@ Each stage ends with: `pnpm lint`, `pnpm lint:i18n-parity`, typecheck, `pnpm tes
 that stage, a check against the XD boards in `ar` and `en` at 440 x 802, and your review. Nothing is
 committed or merged without your OK.
 
+### Lanes (A-6)
+
+| Lane | Stages | Why |
+|---|---|---|
+| A | 3 → 4 → 5 → 7 | Profile, wallet and home need the shell and the real routes from Stage 3. Stages 4 and 5 do not overlap, because both change `WalletLinkCard` and the wallet balance on the profile. Stage 7 has the highest risk, so it comes last. |
+| B | 2 → 6 | Login is independent of the shell. Chat uses its own files (`components/DemoApp1/chat/*`, `store/chat/*`, `services/chat.ts`), and it is the biggest stage. |
+
+Rules for the two lanes:
+- Neither lane starts before Stage 1 is done. Stage 1's RTL base and data pattern (steps 2 and 7) are the
+  base of every later stage.
+- Each lane works in its own folder (`git worktree`) on its own branch, cut from `ui-migrations` and merged
+  back into `ui-migrations`. Two sessions never share one folder. D-1 does not change: only `ui-migrations`
+  merges into `development`, once.
+- E2E runs one at a time. `test-e2e.yml` uses one global `live-suite` group, and both lanes use the same
+  shopper account. A lane waits for the other lane's run to finish.
+- Shared files will conflict on merge: the three `translations.*.js` files, `components/DemoApp/demoKeys.ts`,
+  `tests/e2e/selectors.ts`, `components/DemoApp1/ui.tsx` and this plan. Merge a lane back into
+  `ui-migrations` after each stage, not at the end of the lane.
+
 ---
 
 ## Stage 0 — open decisions (answer before Stage 1)
@@ -207,12 +229,20 @@ Who answers: **You**, **Designer** (D), **Product** (P), **Backend** (B).
 
 **Goal:** shared base work that every later stage needs. No screen changes its look in `en`.
 
-Steps:
-1. Create `ui-migrations` from a clean `development` (after your push).
-2. RTL base (after D-3): a direction helper for the demo `ui.tsx` primitives, the slide direction in
-   `Demo1Shell.tsx` (line 94), and the tab slot `left` in `Demo1BottomNav.tsx` (line 238). Turning on
-   `<html dir>` changes every old page too, so that change needs its own check of the old pages.
-3. English case (after D-4).
+Steps (**Done** = built and committed on `ui-migrations`):
+1. **Done.** Create `ui-migrations` from a clean `development` (after your push).
+2. **Done.** RTL base (D-3, A-13, A-14):
+   - `components/DemoApp1/rtl.ts`: `isRtlLocale`, `usePageDir()` (reads the locale segment), `mirrorFor()`.
+   - `dir` on the shell's page column, the tab bar, the sheet layer (`Layer` in `ui.tsx`), the login's root
+     and the QR sheet. The drawn keyboard keeps `dir="ltr"`, as the iPhone keyboard does.
+   - The slide is mirrored in the shell and in the login: a deeper screen comes in from the left.
+   - The tab slots are placed from the bar's start, so Home is on the right. Each icon keeps its drawing.
+   - The shared blocks place everything from the start side: `Txt`, `Box`, `Icon` (`components/DemoApp/ui.tsx`)
+     and `FileLines`, `ScreenHeader`, `InfoBanner`, `MenuRow`, `WhyCard` (`components/DemoApp1/ui.tsx`).
+     In `en` the logical properties give the same result as before. The header's back arrow is mirrored.
+   - Left for the stages: about 430 physical styles and about 300 motion `x` values in the screens. Each
+     stage converts its own screens, mirrors its arrows (A-14) and its swipes (A-15).
+3. **Done (nothing to build).** English case: D-4 keeps Title Case.
 4. Add `NewLoginDesign/**` to the i18n lint globs (`eslint.config.mjs` lines 26-31). Then add the missing
    keys to `ar` / `tr` / `ku`.
 5. Remove the demo-only parts from the shipping path:
@@ -223,14 +253,46 @@ Steps:
      must not carry over to real pages by accident.
 6. Remove the dependencies on demo folders: `components/NavigationDemo/BottomNav` (`TRAVEL`,
    `useScrollScale`) and `NewLoginDesign/DemoDeviceInfoModal`.
-7. Agree on one pattern for real data in the new screens: the screen reads the store / service, and the mock
-   files (`DemoData.tsx`, `demoWallet.ts`, `demoChat*.ts`) stop being imported by shipping code.
+7. **Done (agreed, A-16).** The pattern for real data in the new screens. Each stage follows it for its own area:
+   - One hook per area, for example `useProfileData`, `useWalletData`, `useChatData`. The hook reads
+     `useAppStore` and calls the existing services (`services/*.ts`, which call `fetchData`). A screen never
+     calls `fetchData` or a service itself.
+   - The hook gives the screen plain values in the shape the screen already draws. So the screen's drawing
+     does not change when its data becomes real.
+   - Where no backend exists, the hook gives an empty value, and the screen's final action shows
+     "Soon available" (A-8). No mock value and no fake success.
+   - Shipping code does not import `DemoData.tsx`, `demoWallet.ts` or `demoChat*.ts`. At the end of each
+     stage a grep shows that no shipping file imports them. A mock file is deleted when nothing imports it (D-6).
+   - Each hook has unit tests for its mapping, with one check per field. The backend is named when a field
+     comes from one.
 8. Wording fixes (D-7): fix the "Man" and "Home" translations, the double `Man` key in `ku`, and rename the
    typo keys ("Rining", "Desible Call", "Replay", "re-remind") in all three files and in `demoKeys.ts`.
-9. `DemoKeyboard` ships (D-9). Check it with a screen reader, with a password manager on number fields,
-   and in `ar` / `ku` (it already has Arabic layouts).
+9. **Done (a code read; a check on a real phone is still needed).** `DemoKeyboard` ships (D-9). Checked
+   for a screen reader, for a password manager on number fields, and for `ar` / `ku`. No screen reader and
+   no password manager can run on this dev machine, so these are findings from the code
+   (`components/DemoApp1/keyboard/DemoKeyboard.tsx`). Each one needs a check with VoiceOver on an iPhone:
+   - **K-1 (screen reader).** A key types only on `pointerdown` (`press()`, line 551). A key has no
+     `onClick`. An assistive tool that activates a button with a click alone (Switch Control, some screen
+     readers, Enter / Space on a paired keyboard) may type nothing.
+   - **K-2 (screen reader).** Every key has `tabIndex={-1}`, and the panel has no `role` and no name. A
+     screen-reader user must find the keys by swiping, with no "keyboard" landmark. The letter keys say
+     their letter; the action keys have an `aria-label` (Shift, Delete, Numbers, ...).
+   - **K-3 (autofill).** A number field gets `inputmode="none"` (`adopt()`, line 109). iOS then shows no
+     QuickType bar, so a saved phone number or a one-time code from Messages is not offered. Today no
+     password or one-time-code field is typed by this keyboard: the login uses its own `NumericKeypad`,
+     and the wallet fields set `autoComplete="off"`. The phone fields of the cash-out sheet and the new-chat
+     sheet lose the contact's phone suggestion.
+   - **K-4 (`ar` / `ku`).** With `NATIVE_TEXT_KEYBOARD = true` (`components/DemoApp/demoKeyboard.ts`) the
+     drawn keyboard shows only on number fields, so its letter layouts are not used. If letters are turned
+     on later: the Arabic layout (`layouts.ts` line 53) has none of the Kurdish letters (ڕ ۆ ێ ڵ ە ڤ پ چ ژ گ).
+   - **K-5 (leftover) — fixed in Stage 1.** A dead check for the removed demo controls
+     (`closest('[data-pw="demo-controls"]')`) and the comment about the removed dark-keyboard debug
+     switch are gone from `DemoKeyboard.tsx`.
 
-Tests: unit tests for the RTL helper and the direction of slides. Update `tests/components/DemoApp1/Demo1Shell.test.tsx`.
+Tests: `tests/components/DemoApp1/rtl.test.tsx` (the helper), `tests/components/DemoApp1/ui.test.tsx` (the
+shared blocks place nothing by the physical left or right), the RTL cases in
+`tests/components/DemoApp1/Demo1Shell.test.tsx` (`dir`, the slide side, the tab order, the back arrow) and in
+`tests/components/NewLoginWidgetReducedMotion.test.tsx` (the login's `dir`, its slide, the QR sheet).
 
 ---
 
@@ -255,6 +317,11 @@ Tests: unit tests for the RTL helper and the direction of slides. Update `tests/
 `UserNavTopSection.tsx`, `AuthNavSection.tsx`, `AddStory.tsx`, `LikeButtton.tsx`, `ProductLikeButton.tsx`,
 `setting/orders/index.tsx`, `setting/profile/index.tsx`, `PersonalInfoForm.tsx` (2), `VerifyUser.tsx`,
 `WalletLinkCard.tsx`, `UploadProfilePhoto.tsx` (2). Plus every `setShouldAuthinticated(...)` caller.
+
+### RTL (A-13, A-14)
+The login's root and the QR sheet already have `dir`, and the slide is mirrored (Stage 1). The screens'
+own positions are still physical: for example the QR sheet's handle and code (`QrBottomSheet.tsx` lines 233
+and 247) and the XD positions in `authLayout.ts`. Convert them, and mirror the back arrows of the login screens.
 
 ### Shared code — do not break
 `components/Login/Enhanced/ui/*`, `authHeadings.ts`, `scaling/Page` (only one `<Page variant="scaled">`
@@ -281,7 +348,7 @@ Missing in all three files: `. Get Started .`, `Get Started`, `Welcome !`, 3 sli
   `session-recovery.live` RECOV-01/02, `shopper.live` BUY-01..07 + ORD-01, `profile.live` PROF-01..08,
   `chat.live` CHAT-01..16, `comments.live` CMT-01..11, `orderRating.live` CMT-09, `wishlist-signed-in.live`
   WISH-06, `stories.live` STORY-00..05, `profile.scripted` SCRIPT-07..12, `auth.scripted`,
-  `harness/qaSeed.ts` line 417, `login-design-parity.scripted` (it targets `/loginDemo` today).
+  `harness/qaSeed.ts` line 417. (`login-design-parity.scripted` was deleted in Stage 1.)
 - **Unit:** `tests/components/Login/Enhanced/*`, `tests/components/Login/*`, `tests/components/Home/AuthSections.test.tsx`,
   `tests/components/Cart/OrderButton.test.tsx`. The service tests (`auth.otp`, `api/auth/login/route`,
   `sendOtp`, `otpLocks`) stay valid.
@@ -342,6 +409,10 @@ a static map picture and a static QR picture.
 `UpdateProfile` sends to stories, chat and market, then writes `User-Data` through `/api/auth/update-user`.
 The new screens must keep this order and PROF-02 / PROF-08 behaviour.
 
+### RTL (A-13, A-14, A-15)
+Convert the physical styles of the screens above. Mirror the profile drag (`ProfileScreen.tsx` line 436,
+`drag="x"` and its `velocity.x` rule on line 447).
+
 ### Shared code — do not break
 Checkout uses the same address code (`AddAddressForm`, `Map`, `SelectRegion`, the `order.ts` address calls,
 `store/Cart` address state, the `is_default` rule). Checkout also needs phone verification (`VerifyUser`).
@@ -389,6 +460,10 @@ card `components/setting/WalletLinkCard.tsx` (its sheet says "Under Development"
 - The withdrawal OTP accepts any 6 digits (`WalletWithdrawalRequest.tsx` line 64).
 - No double-submit guard and no idempotency key (`CreateBankDeposit` takes one but nothing calls it).
 - No number format: no `Intl`, no `decimal_digits`.
+
+### RTL (A-13, A-15)
+Convert the physical styles of the wallet screens. Mirror the card swipe (`WalletScreen.tsx` line 193,
+`offset.x` / `velocity.x`).
 
 ### Shared code — do not break
 `NumericKeypad` and `RdbPinInputs` (from `components/Login/Enhanced/ui`), `GetWallet` (shared with checkout
@@ -440,6 +515,13 @@ reminder timer.
 - Lottie emoji load from `fonts.gstatic.com`, map tiles from `tile.openstreetmap.org`. A stricter CSP
   later would break them.
 - Known old faults: CHAT-APP-2 (3-pin limit never applies), CHAT-APP-3, CHAT-APP-4.
+
+### RTL (A-13, A-14, A-15)
+Convert the physical styles of the chat screens. Mirror the back arrows (`chatBackPurple` in
+`ConversationScreen.tsx` lines 417 and 501, `contactBackBlue` in `ContactScreen.tsx` line 76, `callBackGrey`
+in `CallScreen.tsx` line 135). Mirror the swipes: the row swipe (`ChatListScreen.tsx` line 577), the
+message swipe (`chat/useHorizontalSwipe.ts`) and the slide-to-cancel of the voice note (`chat/Composer.tsx`
+line 242, which allows only a move to the left today).
 
 ### Events to keep
 `chat_opened`, `chat_message_sent` (`conversation_id`, `message_type`, `is_order_chat`, `is_reply`),

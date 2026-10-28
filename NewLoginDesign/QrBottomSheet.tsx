@@ -9,6 +9,7 @@ import { DESIGN_H, DESIGN_W } from 'scaling/scale.config';
 import { XD } from './authLayout';
 import { createQrSession, getQrStatus, QrStatusResult } from 'services/qrLogin';
 import { translateFunction } from 'utils/functions';
+import { usePageDir } from 'components/DemoApp1/rtl';
 
 interface QrBottomSheetProps {
     isOpen: boolean;
@@ -88,6 +89,7 @@ export default function QrBottomSheet({
     lang = 'en',
 }: QrBottomSheetProps) {
     const translate = (key: string) => translateFunction(key, lang);
+    const pageDir = usePageDir();
 
     const [mounted, setMounted] = useState(false);
     const [status, setStatus] = useState<QrStatus>('pending');
@@ -177,6 +179,8 @@ export default function QrBottomSheet({
         <AnimatePresence>
             {isOpen && (
                 <div
+                    // On <body>, outside the login's root, so it sets its own direction.
+                    dir={pageDir}
                     className="fixed inset-x-0 z-[99999999999] overflow-hidden font-quicksand flex flex-col justify-end items-center"
                     /* The sheet slides up from the bottom of the CANVAS, not the
                        bottom of the window. On a tall screen the canvas stops at

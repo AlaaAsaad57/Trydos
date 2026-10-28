@@ -43,6 +43,7 @@ import {
   columnBox,
 } from "./demo1Layout";
 import DemoKeyboard from "./keyboard/DemoKeyboard";
+import { usePageDir } from "./rtl";
 
 /**
  * The shell of the fluid demo at /[lang]/demo.
@@ -90,10 +91,18 @@ export function useDemoNav(): DemoNav {
 /** What a screen that slides out needs: the way it goes, and the scroll it had. */
 type Leave = { dir: 1 | -1; scrollY: number };
 
+/**
+ * A slide, as framer-motion gets it: the way the walk goes (`dir`, 1 = deeper)
+ * and the side "deeper" comes in from (`side`, 1 = the right). On a
+ * right-to-left page the side is mirrored: a deeper screen comes in from the
+ * left, and going back slides it out to the left.
+ */
+type Slide = Leave & { side: 1 | -1 };
+
 const slide = {
-  enter: ({ dir }: Leave) => ({ x: dir > 0 ? "100%" : "-100%", opacity: 0 }),
+  enter: ({ dir, side }: Slide) => ({ x: `${dir * side * 100}%`, opacity: 0 }),
   center: { x: 0, opacity: 1 },
-  exit: ({ dir }: Leave) => ({ x: dir > 0 ? "-100%" : "100%", opacity: 0 }),
+  exit: ({ dir, side }: Slide) => ({ x: `${-dir * side * 100}%`, opacity: 0 }),
 };
 
 export default function Demo1Shell({
@@ -128,6 +137,7 @@ function Demo1ShellInner({
   const params = useParams();
   const locale = typeof params.lang === "string" ? params.lang : "sy-en";
   const t = (key: DemoKey) => dictionary[key] ?? key;
+  const pageDir = usePageDir();
   const { profile } = useDemoData();
 
   const urlScreen = screenFromUrl(pathname, searchParams.toString());
@@ -142,6 +152,7 @@ function Demo1ShellInner({
 
   const key = shown ?? `page:${pathname}`;
   const showBar = shown !== null && isTabRoot(shown);
+  const move: Slide = { ...leave, side: pageDir === "rtl" ? -1 : 1 };
 
   // The shell keeps each screen's scroll itself, so the browser must not
   // put one back on its own when the URL changes.
@@ -245,14 +256,15 @@ function Demo1ShellInner({
       <DemoChatProvider t={t}>
         <div
           data-pw="demo1-app"
+          dir={pageDir}
           className="relative w-full mx-auto font-quicksand"
           // `clip` and not `hidden`: it cuts the screen sliding in at the
           // column's edges without making the column a scroll box, so the
           // document still scrolls and the sticky headers still stick.
           style={{ maxWidth: PAGE_MAX, minHeight: "100dvh", overflowX: "clip" }}
         >
-          <AnimatePresence initial={false} custom={leave}>
-            <ScreenFrame key={key} id={key} leave={leave}>
+          <AnimatePresence initial={false} custom={move}>
+            <ScreenFrame key={key} id={key} move={move}>
               {shown ? <Demo1ScreenView screen={shown} /> : children}
             </ScreenFrame>
           </AnimatePresence>
@@ -286,16 +298,16 @@ function Demo1ShellInner({
  */
 function ScreenFrame({
   id,
-  leave,
+  move,
   children,
 }: {
   id: string;
-  leave: Leave;
+  move: Slide;
   children: React.ReactNode;
 }) {
   const present = useIsPresent();
   // The scroll it had when it was left; given to the frame by AnimatePresence.
-  const leaving = usePresenceData() as Leave | undefined;
+  const leaving = usePresenceData() as Slide | undefined;
   const frame = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -308,7 +320,7 @@ function ScreenFrame({
       <motion.div
         ref={frame}
         data-demo-screen={id}
-        custom={leave}
+        custom={move}
         variants={slide}
         initial="enter"
         animate="center"

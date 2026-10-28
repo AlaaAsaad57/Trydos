@@ -28,6 +28,7 @@ import {
   SCREEN_TRANSITION,
   TAB_BAR,
 } from "./demo1Layout";
+import { usePageDir } from "./rtl";
 
 /**
  * The tab bar of the fluid demo: the old scaled demo bar (DemoBottomNav) — the same
@@ -89,6 +90,7 @@ export default function Demo1BottomNav({
     (s) => ((1 - s) / (1 - BAR_SCROLL.minScale)) * TAB_BAR.drop,
   );
   const { scale, firePulse } = useBarPulse(scrollScale);
+  const pageDir = usePageDir();
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -160,6 +162,8 @@ export default function Demo1BottomNav({
     <motion.nav
       aria-label={t("Main")}
       data-pw="demo-tab-bar"
+      // On <body>, outside the shell's root, so it sets its own direction.
+      dir={pageDir}
       className="fixed z-[2147482000]"
       initial={false}
       animate={
@@ -235,7 +239,10 @@ export default function Demo1BottomNav({
                 }}
                 className="absolute top-0 h-full cursor-pointer"
                 style={{
-                  left: `calc(${SLOT_INSET}px + (100% - ${2 * SLOT_INSET}px) * ${index / all.length})`,
+                  // From the bar's start: on a right-to-left page Home is on
+                  // the right and the tabs run to the left. The icon keeps its
+                  // own drawing in its slot (decided in Stage 1, D-3).
+                  insetInlineStart: `calc(${SLOT_INSET}px + (100% - ${2 * SLOT_INSET}px) * ${index / all.length})`,
                   width: `calc((100% - ${2 * SLOT_INSET}px) / ${all.length})`,
                 }}
               >

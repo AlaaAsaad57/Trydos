@@ -36,6 +36,7 @@ import {
   paraTop,
   top,
 } from "./demo1Layout";
+import { mirrorFor, usePageDir } from "./rtl";
 
 /**
  * The building blocks of the fluid demo (/demo).
@@ -102,12 +103,15 @@ const WEIGHT_CLASS: Record<Weight, string> = {
   bold: "font-bold",
 };
 
-/** Moves a centred block `nudge` px right (or left) by padding one side. */
+/**
+ * Moves a centred block `nudge` px right (or left) by padding one side. The
+ * side is logical, so on a right-to-left page the nudge is mirrored too.
+ */
 const offCentre = (nudge: number): React.CSSProperties =>
   nudge > 0
-    ? { paddingLeft: nudge * 2 }
+    ? { paddingInlineStart: nudge * 2 }
     : nudge < 0
-      ? { paddingRight: -nudge * 2 }
+      ? { paddingInlineEnd: -nudge * 2 }
       : {};
 
 /**
@@ -311,6 +315,7 @@ export function Layer({
   style?: React.CSSProperties;
 }) {
   const mounted = useMounted();
+  const pageDir = usePageDir();
   useScrollLock(true);
   // Inside AnimatePresence a closing layer stays mounted while it fades;
   // the top follows the start of the fade, with the page under it.
@@ -359,6 +364,8 @@ export function Layer({
       )}
       <div
         ref={anchor}
+        // On <body>, outside the shell's root, so it sets its own direction.
+        dir={pageDir}
         style={{
           ...EDGE_ANCHOR,
           position: "absolute",
@@ -384,8 +391,9 @@ export function Layer({
  *
  * When `text` is the file's own words (English), the file's own line breaks
  * are kept. A centred line is centred on the box, which is fluid; a left line
- * keeps its x from the box's left edge. Any other text (another language)
- * wraps as a normal paragraph.
+ * keeps its x from the box's start edge (the left, or the right on a
+ * right-to-left page). Any other text (another language) wraps as a normal
+ * paragraph.
  *
  * The box is fluid, so on a phone narrower than the file it can be narrower
  * than the file's longest line. The paragraph measures its widest line once,
@@ -444,7 +452,9 @@ export function FileLines({
           ...spans.map(
             (span) =>
               span.scrollWidth +
-              (centred ? 0 : Number.parseFloat(span.style.marginLeft) || 0),
+              (centred
+                ? 0
+                : Number.parseFloat(span.style.marginInlineStart) || 0),
           ),
         );
       }
@@ -458,7 +468,7 @@ export function FileLines({
   const own = ownWords && fits;
   const style: React.CSSProperties = {
     marginTop: mt,
-    marginLeft: ml,
+    marginInlineStart: ml,
     width,
     fontFamily: family,
     fontSize: size,
@@ -488,7 +498,7 @@ export function FileLines({
           key={i}
           className={`block shrink-0 whitespace-pre ${centred ? "text-center" : ""}`}
           style={{
-            marginLeft: centred ? undefined : line.x - left,
+            marginInlineStart: centred ? undefined : line.x - left,
             minHeight: lineHeight,
           }}
         >
@@ -676,6 +686,7 @@ export function ScreenHeader({
   nudge?: number;
   t: (key: DemoKey) => string;
 }) {
+  const pageDir = usePageDir();
   return (
     <header
       className="relative w-full font-quicksand grid items-center shrink-0"
@@ -696,12 +707,13 @@ export function ScreenHeader({
           style={{
             gridColumn: 1,
             gridRow: 1,
-            marginLeft: 7.5,
+            marginInlineStart: 7.5,
             width: 44,
             height: HEADER.height,
           }}
         >
-          <XdIcon name="back" />
+          {/* It points back, so it points the other way on a right-to-left page. */}
+          <XdIcon name="back" style={mirrorFor(pageDir)} />
         </button>
       )}
       {title && (
@@ -738,8 +750,8 @@ export function ScreenHeader({
               name={icon}
               className="shrink-0"
               style={{
-                marginLeft: 4,
-                marginRight: -(4 + XD_ICON_SIZE[icon].w),
+                marginInlineStart: 4,
+                marginInlineEnd: -(4 + XD_ICON_SIZE[icon].w),
               }}
             />
           )}
@@ -760,7 +772,7 @@ export function ScreenHeader({
             style={{
               gridColumn: 3,
               gridRow: 1,
-              marginRight: 20,
+              marginInlineEnd: 20,
               fontSize: 16,
               lineHeight: `${lineBox(16)}px`,
               color: C.ink,
@@ -796,7 +808,7 @@ export function InfoBanner({
         className="shrink-0 font-normal"
         style={{
           marginTop: paraTop(119, 11, 16) - BANNER.y,
-          marginLeft: 48 - 11.5 - XD_ICON_SIZE[icon].w,
+          marginInlineStart: 48 - 11.5 - XD_ICON_SIZE[icon].w,
           width: fill(48, 12),
           fontSize: 11,
           lineHeight: "16px",
@@ -999,10 +1011,10 @@ export function MenuRow({
       data-pw={testId}
       onClick={onClick}
       whileTap={{ scale: 0.985 }}
-      className="flex items-center shrink-0 cursor-pointer text-left"
+      className="flex items-center shrink-0 cursor-pointer text-start"
       style={{
         marginTop: mt,
-        marginLeft: ROW.x,
+        marginInlineStart: ROW.x,
         width: fill(ROW.x),
         height: 60,
         borderRadius: ROW.radius,
@@ -1308,10 +1320,10 @@ export function WhyCard({
           type="button"
           aria-label={t("Close")}
           onClick={onClose}
-          className="shrink-0 ml-auto cursor-pointer"
+          className="shrink-0 ms-auto cursor-pointer"
           style={{
             marginTop: 4,
-            marginRight: 4,
+            marginInlineEnd: 4,
             marginBottom: -8,
             width: 30,
             height: 30,
@@ -1325,7 +1337,7 @@ export function WhyCard({
         className="shrink-0 font-normal"
         style={{
           marginTop: paraTop(43, 11, 16) - 26,
-          marginLeft: 24,
+          marginInlineStart: 24,
           width: fill(24, 12),
           fontSize: 11,
           lineHeight: "16px",
@@ -1343,22 +1355,26 @@ export function WhyCard({
         style={{
           marginTop: "auto",
           marginBottom: 12,
-          marginLeft: 12,
+          marginInlineStart: 12,
           width: fill(12),
           height: 38,
           borderRadius: 15,
           background: C.field,
           // The file's 134.5 px from the left of a 366 px button, kept as the
           // same distance from the button's centre. A padding's % is of the
-          // card (24 px wider than the button), not of the button.
-          padding: `12px 0 0 calc(50% - ${12 + 366 / 2 - 134.5}px)`,
+          // card (24 px wider than the button), not of the button. From the
+          // start side, so it is mirrored on a right-to-left page.
+          paddingTop: 12,
+          paddingBottom: 0,
+          paddingInlineStart: `calc(50% - ${12 + 366 / 2 - 134.5}px)`,
+          paddingInlineEnd: 0,
         }}
       >
         <XdIcon name="help" className="shrink-0" />
         <span
           className="font-medium"
           style={{
-            marginLeft: 4.5,
+            marginInlineStart: 4.5,
             fontSize: 11,
             color: C.ink,
             lineHeight: "14px",

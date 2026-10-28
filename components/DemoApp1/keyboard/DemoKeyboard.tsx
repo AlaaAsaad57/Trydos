@@ -160,10 +160,7 @@ const TOP = 16;
  */
 const BAR_SIDE = 34;
 
-/**
- * The dark keyboard's colours. The phone's dark theme uses them, and so does
- * the debug switch that shows the dark keyboard on a light phone.
- */
+/** The dark keyboard's colours, used by the phone's dark theme. */
 const DARK = `
     --dkb-panel: linear-gradient(180deg, rgba(34, 36, 42, 0.52), rgba(18, 19, 23, 0.58));
     --dkb-rim: linear-gradient(165deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.08) 28%, rgba(255, 255, 255, 0.02) 62%, rgba(255, 255, 255, 0.22));
@@ -423,9 +420,6 @@ export default function DemoKeyboard({
     const onClick = (e: MouseEvent) => {
       const target = e.target as Element | null;
       if (!target || panel.current?.contains(target)) return;
-      // The demo's own switches: the tester changes the keyboard's theme
-      // or the page's colour with the keyboard up.
-      if (target.closest('[data-pw="demo-controls"]')) return;
       setTimeout(() => {
         if (document.activeElement !== field) return;
         // The tap was on the field, or on the small box drawn round it.
