@@ -1,0 +1,520 @@
+# UI migration plan — demo UI becomes the real app
+
+**Status:** Stage 0 (decisions) done on 2026-10-28. Nothing is built yet. Next: Stage 1.
+**Still open:** D-24 ("Web" / "lock" switches: designer / product), D-30 (place levels: backend),
+D-34 (which wallet balance is the truth: backend). None of them blocks Stage 1.
+**Written:** 2026-10-28, from a read-only scan of the code.
+**Branch:** `ui-migrations`, cut from `development`. It is not created yet. It will be created after the
+uncommitted chat changes (`components/DemoApp1/chat/MessageMenu.tsx`, `MessageRow.tsx`, and others) are pushed.
+
+## Agreed so far
+
+| # | Decision | Answer |
+|---|---|---|
+| A-1 | Branch | One long-lived branch `ui-migrations` from `development`. |
+| A-2 | Switch method | Hard replace. No feature flag. |
+| A-3 | Tests | `/demo` and `/loginDemo` screens are now in test scope (unit + e2e). |
+| A-4 | Pages with no new design | They keep the old UI and must keep working. |
+| A-5 | Process | We do not use the `wf` workflow. One stage = one session. Claude asks; it never decides. |
+| A-6 | Stage order | Confirmed as written in "Stages" (0 → 8). |
+| A-7 | Design is complete | **Never remove or hide any part of the demo design.** Every screen, sheet, button and row ships. |
+| A-8 | No backend yet | The screen opens as designed. Fields with a real source show real data. Fields with no source show empty or a placeholder. The final action (submit, request, send) shows "Soon available". **No mock data and no fake success reach production** (no fake balances, no "any 6 digits pass"). This replaces D-5. |
+| A-9 | New design first | The new design has priority. Claude does not change, add or keep anything you did not ask for. When an old feature has no place in the design and no answer from you, Claude asks. |
+| D-1 | Merge | Once, at the end (after Stage 8). Every stage stays on `ui-migrations`. |
+| D-2 | Desktop | The 500 px centred column is OK on desktop. No desktop design work. |
+| D-3 | RTL | Mirror everything for `ar` / `ku`: layout, slide direction, tab order, margins. |
+| D-4 | English case | Keep Title Case for all English, new screens included. |
+| D-5 | No backend yet | Replaced by A-8. |
+| D-6 | Old components | Delete an old component in the same stage, only when nothing else uses it (checked with `pnpm knip` and grep). |
+| D-7 | Wording | Fix all: "Man" / "Home" translations, the double `Man` in `ku`, and the XD typos ("Rining", "Desible Call", "Replay", "re-remind"). |
+| D-8 | `/demo`, `/loginDemo` | Delete them (404). No protected path changes. |
+| D-9 | `DemoKeyboard` | Ship it. It needs an a11y and password-manager check in Stage 1. |
+| D-10 | Analytics | Old event names and properties only. No new events. |
+| D-11 | Login form | A full page at `/[lang]/login` (for example `/sy-en/login`). The 13 places that open the login navigate to it. After sign-in the user goes back to the page they left. The return path is passed in the URL, and only same-site paths are accepted (no open redirect). |
+| D-12 | Quick-preview | Shows on every login open. |
+| D-13 | Sign-up order | verify → name → success (as in the new design). |
+| D-14 | Flows with no XD board | Session expired, inline phone verify at checkout, phone re-verify (`ConfirmMobilePhoneWidget`) are built from the new login screens. The designer must check them. (Phone change in profile is not needed, see D-26.) |
+| D-15 | Name check | The name must match the wallet (rdb) KYC name. Backend item C-10. |
+| D-16 | QR login | Button and sheet stay (A-7). Until G-1 ships, the sheet follows A-8. The localStorage mock (`services/qrLogin`) does not ship. |
+| D-17 | Paths | New screens take the old paths: `/settings`, `/settings/profile`, `/settings/profile/address`, `/settings/wallet`, … They replace the old pages at those paths. Old-only pages (for example `/settings/orders`) stay old UI. |
+| D-18 | Cart | A new page `/[lang]/cart` inside the new shell, bottom nav visible. It shows the old cart content (old design), because no XD board exists for the cart items. `?cart=true` links (push notifications, `NotificationHandler.ts` line 509) go to this page. |
+| D-19 | Notifications | Behind the profile's "Settings" row. That row opens a settings screen, and notifications (old UI) are one entry there. |
+| D-20 | Old pages | The new bottom nav shows on every page, old pages included. The old top nav is removed. |
+| D-21 | Badges | Answered by A-8: real cart count and real unread chat count. |
+| D-22 | Old profile features | **Into the new Settings screen (old UI inside):** country + language switch; become a seller + seller dashboard / sales link; My checklist + preferences. **Dropped:** Contact us row, Bank cards row, QR-scanner sign-in on the profile card (A-9). **Logout:** the profile's logout row does a real logout (`/api/auth/logout`, `posthogReset`). **Phone verification:** the "Verify now" promo card starts it (new login screens, D-14). |
+| D-23 | Profile rows | Terms → `/terms-of-service`, Legal → `/privacy-policy`, About → `/about` (old pages). Settings → the Settings screen (D-19). Language row → the language switch. Login history → A-8 (backend C-5). Logout → real logout (D-22). |
+| D-24 | "Web" / "lock" switches | **Still open.** Until answered they follow A-8: shown, no effect. |
+| D-25 | "Get trydos Business" | Opens become-a-seller. |
+| D-26 / D-27 | Phone in profile | Request only, as in the design ("Change my Phone Number Request", backend C-4, A-8 until then). The old instant phone edit and the alternative phone are dropped. So the "phone change in profile" flow in D-14 is not needed. |
+| D-28 | Body save | Same pattern as the new Personal info screen (Edit / Cancel, then save). The designer must check it, because the Body board has no such button. Old limits stay: height 110–250 cm, weight 40–180 kg. The foot limit is set with backend item C-1. |
+| D-29 | Address | The design's map card becomes a real map (old `Map` component) that sets `latitude` / `longitude`. Contact name and phone come from the profile. The default address is the backend `is_default` flag, used as it is. The new UI adds no control to change it (A-9). Known risk: when no address has `is_default: 1`, checkout shows no address, and the shopper picks one from the list in checkout (as today). |
+| D-30 | Place levels | Waits for the backend (C-9, S-1). |
+| D-31 | Client info | A-8 applies: real values from `/customer/info` where they exist (C-6), empty where not. "Verified" never shows for a guest. |
+| D-32 | Wallet ships | Stage 5 does not wait for the wallet backend. A-8 applies: real balance and real history where they exist, every other screen as designed with empty fields and "Soon available" on the action. |
+| D-32b | USD + SYP cards | Both cards ship as designed. The backend must follow the design (W-1). Until W-1 ships, A-8: the country-currency card shows the real balance, the other card is empty. |
+| D-33 | Old wallet extras | The design wins. Load more, row → order link, loading / error + retry / empty states and the inflow / outflow label are dropped. Known effect: the history shows only the rows of the first request (10 today), and the screen shows nothing while it loads or when the call fails. |
+| D-34 | Which balance | Waits for the backend. |
+| D-35 | Checkout pay-with-wallet | Keeps the old UI (A-4). |
+| D-36a | Chat rules kept | Paging (list + messages), 25 MB cap + video format check, notification-permission and phone-verify gates, blocked chat hides the composer. |
+| D-36b | Old chat features with no design | **Kept**, built in a style taken from the new design: delete for everyone, share product message, stories row, contacts upload, reminders list, tagged-messages view, media gallery, deleted-message placeholder, upload progress, image preview. The designer must check each one, because no XD board exists for them. |
+| D-36c | Order chat | The order page (old UI) opens the new conversation screen for that order. The old `ChatWidget` goes. |
+| D-37 | Labels | The 5 design labels (Orders, Payment, Shipping, Question, Important), one per message. "One per message" is done in the app (remove the old label, then add the new one). `CHAT_API_CHANGES.md` line 62 says the backend accepts only its fixed list (`urgent`, `important`, `todo`, `done`), so backend item CH-3 asks it to accept the design labels. Until confirmed, A-8 applies to the labels the backend refuses. |
+| D-38 | Contact page items | A-8 (shown, "Soon available" where no backend). |
+| D-39 | Add person to call | A-8 (backend CH-6). |
+| D-40 | Reminder times | As in the design: 1 h / tomorrow / next week. Works today. |
+| D-41 | Home body | The old home sections (featured, flash deals, boutiques, recommended, stories bar; old design) sit under the new top bar, with the new bottom nav. Cache (`cacheLife("homepage")` and its tags) stays as it is. |
+| D-42 | SEO | Keep all SEO: metadata (`GetHomeMetaData`), structured data, sitemaps, `robots.ts`. The old home sections give the product links. An `h1` must stay on the home page. |
+| D-43 | Home chips | The chips are the real main categories from Elasticsearch (as today's `MainCategoriesNavbar`). A tap opens the category page (old listing UI). |
+| D-44 | Search | All old search logic inside the new search UI: history, trending, suggestions, results (old result design under the new input), filters, Gemini analyzer, `logSearchTerm`. Voice = old voice search. Scan = old image search. "For you" chips follow A-8 (backend S-2). |
+
+## The main facts the scan found
+
+1. **Every new screen is mock data.** No file in `components/DemoApp1`, `components/DemoApp` or
+   `NewLoginDesign/` calls a service, the store or `fetchData`. The route `page.tsx` files under
+   `app/(client)/[lang]/demo/**` return `null`. So each stage means wiring real data into the new screens,
+   not moving screens.
+2. **The new UI has no RTL.** There is no `dir` and no `isRtl` anywhere in the demo. Every position is a
+   physical `marginLeft` / `left` / `x: ±100%`. The root `<html dir>` is commented out
+   (`app/(client)/[lang]/layout.tsx` line 161). Arabic and Kurdish will show in LTR.
+3. **The new UI is mobile-only.** `PAGE_MAX = 500` (`components/DemoApp1/demo1Layout.ts` line 46). No
+   `lg` / `md` / `lg2` class is used. A desktop user sees a 500 px column.
+4. **English is forced to Title Case.** `translateFunction` (`utils/functions.tsx` line 84) title-cases
+   every English key, so XD sentence-case text does not show in `en`.
+5. **Translations.** All 335 `DEMO_KEYS` exist in `ar` / `tr` / `ku`. But about 15 login strings in
+   `NewLoginDesign/` are missing, and the i18n lint (`eslint.config.mjs` lines 26-31) does not check
+   `NewLoginDesign/`. About 50 other strings are hardcoded (listed per stage below).
+6. **Many old features have no place in the new design** (for example logout, country switch, become a
+   seller, address map pin, delete-for-everyone in chat). Each one is a question in "Open decisions". Nothing
+   is dropped without your answer.
+7. **Many new features have no backend.** They are listed in `BACKEND-REQUESTS.md`.
+8. **The new home is empty.** It has 5 fixed category chips and no body. The live home has featured,
+   flash deals, boutiques, recommended and the stories bar. A straight replace removes the content that
+   Google indexes.
+9. **No e2e spec uses the new UI.** The new screens already have `data-pw` attributes (`demo-*`). The login
+   screens reuse almost all live login `data-pw` names.
+
+## Stages (proposed order)
+
+The order puts the work that does not depend on other work first, and the riskiest work last.
+
+| Stage | Session | What | Why this place |
+|---|---|---|---|
+| 0 | 1 | Answer the open decisions (you + designer + product) | Every later stage needs these answers. |
+| 1 | 1 | Foundation: branch, RTL base, Title Case, lint, demo-only parts removed | Every screen needs these. Doing them once avoids 5 copies. |
+| 2 | 1–2 | Login | It is independent of the shell, and every signed-in flow needs it. The new screens already reuse the live UI parts. |
+| 3 | 1–2 | Shell, bottom nav, real routes, links to old pages | Profile, wallet and chat live inside the shell. |
+| 4 | 1–2 | Profile / settings | It uses endpoints that already work. |
+| 5 | 1–2 | Wallet | It has the most backend gaps. |
+| 6 | 2–3 | Chat | It is the biggest stage (77 old files, real-time, calls). |
+| 7 | 1–2 | Home + search | Highest risk: SEO, Elasticsearch, cache, every visitor. |
+| 8 | 1 | Full regression, designer sign-off, merge | Last check before `development`. |
+
+Each stage ends with: `pnpm lint`, `pnpm lint:i18n-parity`, typecheck, `pnpm test:run`, the e2e specs of
+that stage, a check against the XD boards in `ar` and `en` at 440 x 802, and your review. Nothing is
+committed or merged without your OK.
+
+---
+
+## Stage 0 — open decisions (answer before Stage 1)
+
+Who answers: **You**, **Designer** (D), **Product** (P), **Backend** (B).
+
+### For all stages — answered on 2026-10-28 (see "Agreed so far")
+
+| # | Question | Who |
+|---|---|---|
+| D-1 | Merge `ui-migrations` into `development` once at the end, or after each stage? | You |
+| D-2 | Desktop: does the XD file have desktop boards? If not, is a 500 px centred column OK on desktop? | D, P |
+| D-3 | RTL: does the XD file have Arabic boards? Is the whole layout mirrored (slides, tab order, margins)? | D |
+| D-4 | English case: keep Title Case for all English, or show the XD sentence case on the new screens? | D |
+| D-5 | A feature with no backend yet: hide it, show "Soon available", or block the stage until the backend ships? | P |
+| D-6 | Old components that the new UI replaces: delete them, or keep them for now? Some are shared (see each stage). | You |
+| D-7 | Wording in translations: "Man" is translated as "male" (`ذكر`), "Home" as "my home" (`منزلي`), and `ku` has `Man` twice. XD typos copied as keys: "Rining", "Desible Call", "Replay", "re-remind". Fix them? | D |
+| D-8 | `/demo` and `/loginDemo` after the migration: redirect them (this changes `next.config.ts` or `proxy.ts`, both protected paths) or delete them? | You |
+| D-9 | `DemoKeyboard` (a page-drawn iOS keyboard for number fields, `components/DemoApp1/keyboard/*`): ship it in production, or use the device keyboard? | D, P |
+| D-10 | Analytics: the new screens fire no events. Keep the old event names on the new screens? Add new events (for example reactions, reminders)? | P |
+
+### Login (Stage 2) — answered on 2026-10-28 (see "Agreed so far")
+
+| # | Question | Who |
+|---|---|---|
+| D-11 | The live login is an overlay opened from 13 places. The new one is a full page. Keep it as an overlay? | D, You |
+| D-12 | Does the quick-preview (3 slides, 8 s) show on every open, or only on the first visit? | D, P |
+| D-13 | Sign-up order: live is verify → success → name. New is verify → name → success. Which one? | P |
+| D-14 | No new design exists for: session-expired screen, inline phone verify at checkout, phone re-verify (`ConfirmMobilePhoneWidget`), phone change in profile. Keep the old screens for these? | D |
+| D-15 | "Enter your Name exact id" / "protect your funds": must the name match an ID document? Today the backend takes any string. | P |
+| D-16 | QR login: there is no backend yet. Hide the QR button until it exists? | P |
+
+### Shell and navigation (Stage 3) — answered on 2026-10-28 (see "Agreed so far")
+
+| # | Question | Who |
+|---|---|---|
+| D-17 | URLs: do the new screens live at the old paths (`/settings/profile`, `/settings/wallet`, …)? Old `/settings/orders` and others stay old UI at the same path prefix. | You |
+| D-18 | Cart tab: open the old cart drawer (`?cart=true`), or go to an old cart page? The new design has no cart screen. | D |
+| D-19 | The live top nav has login, cart, chat, avatar and notifications. The new design has a bottom nav only. Where do notifications go? | D |
+| D-20 | How does a user go from the new shell to old pages (product, listing, orders, …) and come back? Does the bottom nav show on old pages? | D |
+| D-21 | Bottom nav badges are fixed at 3 (cart) and 11 (chat). Use the real cart count and unread chat count? | D |
+
+### Profile / settings (Stage 4) — answered on 2026-10-28, except D-24 (open) and D-30 (backend)
+
+| # | Question | Who |
+|---|---|---|
+| D-22 | The old UI has these; the new design has no place for them. For each: add to the new design, or drop? Logout · country switch · language switch · become a seller · seller dashboard / sales link · My checklist · Contact us · Bank cards row · QR-scanner sign-in on the profile card · phone verification (`VerifyUser`, checkout needs it) | D, P |
+| D-23 | Profile rows with no action today: Settings, Terms, Legal, About, Login history, the language row, logout. What does each open? | D |
+| D-24 | The "Web" and "lock" switches on the profile: what do they do? | D, P |
+| D-25 | "Get trydos Business" card: what does it open? | P |
+| D-26 | Change phone: live changes it at once with an OTP. The design says "Change my Phone Number Request". Which flow? | P |
+| D-27 | Personal info: the old form has alternative phone and phone edit. The new one has neither. Drop them? | D, P |
+| D-28 | Body: no save button and no checks in the design. Old ranges are tall 110–250, weight 40–180. Foot placeholder says "000 KG". | D |
+| D-29 | Address: checkout needs `latitude` / `longitude`, contact name, phone, and a default address (`is_default`). The new form has a static map picture and no default mark. How do we keep these? | D, P |
+| D-30 | Address place picker has 4 levels (Province / District / Town / Street). The backend has `province`, `city`, `town`, `street`, `building`. How do they map? | P, B |
+| D-31 | Client info shows "Active", "Personal", "Verified" as fixed text (it shows "Verified" even for a guest). Where do these come from? | P, B |
+
+### Wallet (Stage 5) — answered on 2026-10-28, except D-34 (backend)
+
+| # | Question | Who |
+|---|---|---|
+| D-32 | Almost every wallet action has no backend (see `BACKEND-REQUESTS.md` W-1..W-9). Is Stage 5 blocked until the wallet backend is ready, or do we ship with real balance + history and hide the rest? | P |
+| D-33 | The old wallet has paging ("Load More"), a link from a row to its order, inflow/outflow labels, loading / error + Retry / empty states. Keep them? Does the XD file have boards for these states? | D |
+| D-34 | Which balance is the truth: the wallet backend balance or `wallet_balance` from the core list? Today they can differ (see "Found on the way"). | B |
+| D-35 | Checkout pay-with-wallet (`RdbPaymentModal`) has no new design. Keep the old one? | D |
+
+### Chat (Stage 6) — answered on 2026-10-28 (see "Agreed so far")
+
+| # | Question | Who |
+|---|---|---|
+| D-36 | The old chat has these; the new design lacks them. For each: add or drop? Delete for everyone · share product message · stories row · contacts upload · reminders list · tagged-messages view · media gallery · deleted-message placeholder · upload progress / cancel / 25 MB cap · image preview before send · notification-permission gate · phone-verify gate · blocked chat with no input · order chat widget (on the order page) · webview calls | D, P |
+| D-37 | Categories: the design has 5 fixed coloured tags (Orders, Payment, Shipping, Question, Important), one per message. The backend has 4 tags (`urgent`, `important`, `todo`, `done`), several per message. Map the design to the backend tags, or ask the backend for a new list? | P, B |
+| D-38 | Contact page items with no action: Delete chat, Share, Media & Files, Save to gallery, Notification. What do they do? | D |
+| D-39 | Calls: "add person to a call" has no backend. Hide it? | P |
+| D-40 | Reminder times: design has 1 h / tomorrow / next week. Old has 20 min / 1 h / 3 h / tomorrow. Which list? | D |
+
+### Home and search (Stage 7) — answered on 2026-10-28 (see "Agreed so far")
+
+| # | Question | Who |
+|---|---|---|
+| D-41 | What is in the home body? Live has featured, flash deals, boutiques, recommended, stories bar, banners and coupon handling. The new home has none of them. | D, P |
+| D-42 | SEO: the new home has no text, no `h1` and no product links. How do we keep what Google indexes today? | P |
+| D-43 | Home chips "Man / Women / Children / Home / Electronic": real categories from Elasticsearch, or gender/age filters? | P |
+| D-44 | Search: keep history, trending, suggestions, results, filters, voice search, image search? The design shows a "For you" chip row and Voice / Scan buttons. What is "Scan"? | D, P |
+
+---
+
+## Stage 1 — foundation
+
+**Goal:** shared base work that every later stage needs. No screen changes its look in `en`.
+
+Steps:
+1. Create `ui-migrations` from a clean `development` (after your push).
+2. RTL base (after D-3): a direction helper for the demo `ui.tsx` primitives, the slide direction in
+   `Demo1Shell.tsx` (line 94), and the tab slot `left` in `Demo1BottomNav.tsx` (line 238). Turning on
+   `<html dir>` changes every old page too, so that change needs its own check of the old pages.
+3. English case (after D-4).
+4. Add `NewLoginDesign/**` to the i18n lint globs (`eslint.config.mjs` lines 26-31). Then add the missing
+   keys to `ar` / `tr` / `ku`.
+5. Remove the demo-only parts from the shipping path:
+   - `demo-controls` panel, `DebugButtons`, `DemoDeviceInfoModal` (`Demo1Shell.tsx` lines 270-300)
+   - `useDemoDebug()` colour changes (`ui.tsx` lines 559 and 1097, `DemoKeyboard.tsx` line 324)
+   - the demo step bar and logo config bar in `NewLoginWidget.tsx` (lines 262-405)
+   - the `robots: noindex`, `userScalable: false` and `HIDE_SITE_CHROME` settings of `demo/layout.tsx`
+     must not carry over to real pages by accident.
+6. Remove the dependencies on demo folders: `components/NavigationDemo/BottomNav` (`TRAVEL`,
+   `useScrollScale`) and `NewLoginDesign/DemoDeviceInfoModal`.
+7. Agree on one pattern for real data in the new screens: the screen reads the store / service, and the mock
+   files (`DemoData.tsx`, `demoWallet.ts`, `demoChat*.ts`) stop being imported by shipping code.
+8. Wording fixes (D-7): fix the "Man" and "Home" translations, the double `Man` key in `ku`, and rename the
+   typo keys ("Rining", "Desible Call", "Replay", "re-remind") in all three files and in `demoKeys.ts`.
+9. `DemoKeyboard` ships (D-9). Check it with a screen reader, with a password manager on number fields,
+   and in `ar` / `ku` (it already has Arabic layouts).
+
+Tests: unit tests for the RTL helper and the direction of slides. Update `tests/components/DemoApp1/Demo1Shell.test.tsx`.
+
+---
+
+## Stage 2 — login
+
+**New:** `NewLoginDesign/NewLoginWidget.tsx` and its screens (route `app/(client)/[lang]/loginDemo/page.tsx`).
+**Live:** `components/Login/Enhanced/FullEnhancedLoginWidget.tsx` (overlay, `components/Home/AuthSections.tsx` line 24).
+
+### Logic to move into the new screens (all exists in the live widget)
+
+- Send OTP: `AuthService.SendOtp` → `serverActions/sendOtp.ts` (Redis `otpRateLimit`, core `/auth/phone/send_otp`), then `lockNumber` / `recordSessionNumber`.
+- Verify: `AuthService.VerifyOtp` → `/api/auth/login` (core `verify_otp_from_guest`, then chat, stories, comments, wallet sign-ins). Log the `is_failed` list.
+- After verify: `checkWallet`, `loginSuccess*`, `setReAuthResult`, `setShouldAuthinticated(false)`, `posthogIdentify`, notification permission, `getClientData`, `router.refresh()`, `fetchStoriesForUser`.
+- Wrong-code counter (`MAX_VERIFY_ATTEMPTS = 3`), `attemptsLocked`, "Tries left", 5xx handled apart from a wrong code, the "user not found" route, rate-limit text.
+- Resend (today `onResend={() => {}}`).
+- Name: `AuthService.UpdateName` (market + chat + stories, with rollback). `hasRealName` logic.
+- `?login=true` back-button handling (`SearchParamUpdater`), the `loginOpen` gate.
+- "Later" goes to `/` + lang. Today it pushes `/en`, not `/sy-en` (`NewLoginWidget.tsx` lines 507-510).
+- Remove the mocks: phone pre-filled `905528002000`, any 6 digits pass, `loading` / `error` never set, QR `services/qrLogin` localStorage mock.
+
+### All 13 places that open the login (each must navigate to `/[lang]/login` with a return path, D-11)
+`UserNavTopSection.tsx`, `AuthNavSection.tsx`, `AddStory.tsx`, `LikeButtton.tsx`, `ProductLikeButton.tsx`,
+`setting/orders/index.tsx`, `setting/profile/index.tsx`, `PersonalInfoForm.tsx` (2), `VerifyUser.tsx`,
+`WalletLinkCard.tsx`, `UploadProfilePhoto.tsx` (2). Plus every `setShouldAuthinticated(...)` caller.
+
+### Shared code — do not break
+`components/Login/Enhanced/ui/*`, `authHeadings.ts`, `scaling/Page` (only one `<Page variant="scaled">`
+may be mounted), `public/styles/rdb-auth.css`. They are shared by the new login, the live widget,
+`VerifyPhoneFlow`, `InlineVerifyPanel` (checkout) and `AuthOverlay`. Do not delete `Enhanced/screens/*`
+before D-14 is answered.
+
+### Events to keep (`docs/posthog-events.md` lines 93-110)
+`screen_view` per step, `login_start`, `sign_up_start`, `confirm_phone_number`, `send_otp`, `resend_otp`,
+`verify_otp`, `login`, `sign_up`, `exception` (OTP_SEND_FAILED / OTP_INCORRECT), `timer_expired`,
+`cancel_login`, `cancel_signup`, `later_take_look_clicked`, `create_account_continue`, `terms_services`,
+`custom_user_mapping` + `SetGAUser`, `posthogIdentify`, `verify_otp_failed`, `verify_flow_opened`,
+`verify_completed_returned_to_checkout`, `otp_send_attempt`.
+
+### i18n
+Missing in all three files: `. Get Started .`, `Get Started`, `Welcome !`, 3 slide titles, 3 slide texts,
+6 flip labels. Hardcoded: about 14 `alt` values, `Trydos` (`NewTermsScreen`). Country names in
+`RdbPhoneInput.tsx` (lines 20-58) are English only (live has the same problem).
+
+### Tests to update
+- **e2e helpers:** `tests/e2e/actions/auth.ts` (`openLoginWidget`, `currentAuthScreen`, `attemptAuth`). The
+  new UI has no `join-statement`, and it opens on quick-preview.
+- **e2e specs that sign in through the UI:** `auth.live` AUTH-01..03, `session.live` AUTH-04,
+  `session-recovery.live` RECOV-01/02, `shopper.live` BUY-01..07 + ORD-01, `profile.live` PROF-01..08,
+  `chat.live` CHAT-01..16, `comments.live` CMT-01..11, `orderRating.live` CMT-09, `wishlist-signed-in.live`
+  WISH-06, `stories.live` STORY-00..05, `profile.scripted` SCRIPT-07..12, `auth.scripted`,
+  `harness/qaSeed.ts` line 417, `login-design-parity.scripted` (it targets `/loginDemo` today).
+- **Unit:** `tests/components/Login/Enhanced/*`, `tests/components/Login/*`, `tests/components/Home/AuthSections.test.tsx`,
+  `tests/components/Cart/OrderButton.test.tsx`. The service tests (`auth.otp`, `api/auth/login/route`,
+  `sendOtp`, `otpLocks`) stay valid.
+
+---
+
+## Stage 3 — shell, navigation, routes
+
+**New:** `components/DemoApp1/Demo1Shell.tsx`, `Demo1ScreenView.tsx`, `Demo1BottomNav.tsx`, `demo1Layout.ts`,
+`ui.tsx`, `components/DemoApp/demoRoutes.ts`, `topTint.ts`, `app/(client)/[lang]/demo/layout.tsx`.
+
+Work:
+1. Routes (after D-17): `screenFromUrl` (`demoRoutes.ts` line 61) looks for the `demo` segment, and
+   `hrefFor` (line 77) always builds `/${lang}/demo...`. Both change.
+2. Route clash: new `settings/profile`, `settings/profile/address`, `settings/wallet` clash with 14 old pages
+   under `app/(client)/[lang]/settings/`. `settings/orders` stays old UI.
+3. Cart tab (after D-18): the demo writes `?cart` with an empty value. The old drawer opens only on
+   `?cart=true` (`CartProvider.tsx` line 163, push links `/?cart=true` in `NotificationHandler.ts` line 509).
+4. Links to old pages and back (after D-20). The `@modal/(.)products/[productId]` and `(.)filters` intercepted
+   routes open over `.main-content`. The bottom nav is portaled to `<body>` (z-index `2147482000`) and the tint
+   strip uses `2147483647`. Both may stay on top of old pages.
+5. **Must be measured, not assumed:** Next 16 keeps a left route hidden in the DOM. The CSS rule
+   `body:has([data-pw="demo1-app"])` (`demo1Layout.ts` line 156) may then still hide the old navbar on old pages.
+6. Shell state (`trail`, `DemoDataProvider`, `DemoChatProvider`) is lost if the shell remounts.
+7. Bundle: `Demo1ScreenView.tsx` imports all 17 screens at once. Use `next/dynamic` with shape-matched
+   skeletons (`components/Server/Skeleton.tsx`), never `null`.
+8. The first HTML is a white Suspense fallback (`demo/layout.tsx` lines 47-51). Measure LCP against the live home.
+9. `DetectScreen()` (`utils/tinyUtils.tsx` line 442) has no mapping for the new screens, so every event says
+   `HOME_SCREEN`. Add the mappings.
+10. `/demo`, `/loginDemo` (after D-8). Note: `app/loginDemo/page.tsx` redirects to `/gb-en/loginDemo`, which
+    opens the region modal.
+
+Tests: `tests/components/DemoApp1/Demo1Shell.test.tsx` (it hardcodes `/demo?search`),
+`tests/components/DemoApp/demoRoutes.test.ts`, `tests/app/demo/layout.test.tsx`. New e2e cases: tab moves,
+back, deep link + reload, old page from the shell and back, cart tab.
+
+---
+
+## Stage 4 — profile / settings
+
+**New:** `components/DemoApp1/screens/` ProfileScreen, ProfileMenuScreen, PhotoScreen, ClientIdScreen,
+ClientInfoScreen, PersonalInfoScreen, BodyScreen, AddressListScreen, AddressFormScreen.
+**Data today:** all from `DEMO_PROFILE` (`components/DemoApp/DemoData.tsx` lines 51-67), `demoPlaces.ts`,
+a static map picture and a static QR picture.
+
+### Live code to link
+
+| New screen | Live code | Service / endpoint |
+|---|---|---|
+| Profile | `components/setting/profile/index.tsx`, `GoToSellerDashBoard`, `setting/orders`, `WalletLinkCard` | orders count, wallet balance |
+| Personal info | `components/setting/profile/PersonalInfoForm.tsx` | `auth.UpdateProfile` (`services/auth.ts` line 689) |
+| Body | `components/settings/ProfileSizeInfo.tsx` | `auth.UpdateProfile` |
+| Photo | `components/settings/UploadProfilePhoto.tsx` | `uploadToMediaServer` (ticket + `/gated/upload`) → `UpdateProfile({image})` |
+| Address list / form | `PersonalInfoAddress.tsx`, `PersonalInfoAddressModal.tsx`, `components/Cart/AddAddressForm.tsx`, `Map`, `SelectRegion` | `services/order.ts`: list, add, update, delete, set default, provinces |
+| Client ID / info | none (new) | QR can use the installed `qrcode` package |
+| Logout | `components/Home/Menu.tsx` | `/api/auth/logout` |
+
+`UpdateProfile` sends to stories, chat and market, then writes `User-Data` through `/api/auth/update-user`.
+The new screens must keep this order and PROF-02 / PROF-08 behaviour.
+
+### Shared code — do not break
+Checkout uses the same address code (`AddAddressForm`, `Map`, `SelectRegion`, the `order.ts` address calls,
+`store/Cart` address state, the `is_default` rule). Checkout also needs phone verification (`VerifyUser`).
+
+### Mocks to remove
+Fake 1.6 s upload (`PhotoScreen.tsx` line 45), any 6-digit e-mail code passes (`PersonalInfoScreen.tsx`
+lines 331-334), 4 fixed countries, the fixed place tree, mock orders count and wallet "120 USD".
+
+### Events to keep
+`address_saved`, `address_save_failed`, `address_deleted`, `posthogReset` on logout.
+
+### i18n
+Hardcoded: `"USD"` (`ProfileScreen.tsx` line 314), share title `"Trydos"` (ProfileScreen line 122,
+ClientIdScreen line 52). The downloaded ID card PNG draws name and phone as LTR canvas text.
+
+### Tests to update
+- **e2e:** `profile.live` PROF-01..08, `profile.scripted` SCRIPT-06..12, `shopper.live` BUY-01 / BUY-03 /
+  ORD-01 (address), `orderRating.live` CMT-09, `locale.live` GUEST-50/51 (country and language buttons).
+  Helpers: `tests/e2e/actions/profile.ts`, `tests/e2e/actions/cart.ts` (about lines 1576-1710). Selectors:
+  `tests/e2e/selectors.ts` lines 284-400.
+- **Unit:** `tests/app/settings/pages.test.tsx`, `tests/components/setting/profile/*`, `tests/components/settings/*`
+  (PersonalInfoAddress, Modal, ProfileSizeInfo, UploadProfilePhoto), `BackBar`, `LanguageSetting`,
+  `PersonalInfoCountries`, `GoToSellerDashBoard`, `BecomeSellerModal`, `WalletLinkCard`. `auth.profile.test.ts`
+  and `AddAddressForm.test.tsx` stay valid if the services are reused.
+
+---
+
+## Stage 5 — wallet
+
+**New:** `components/DemoApp1/screens/` WalletScreen, WalletCashInSheet, WalletCashOutSheet, WalletInfoSheet,
+WalletReceipt, WalletWithdrawalRequest. **Data today:** all from `components/DemoApp/demoWallet.ts`.
+**Live:** `app/(client)/[lang]/settings/wallet/page.tsx` → `components/settings/WalletTransactions.tsx`;
+card `components/setting/WalletLinkCard.tsx` (its sheet says "Under Development").
+
+### What can be wired today
+- Balance: `GetWalletBalanceToShow` (`services/order.ts` line 157) → wallet backend. It gives **one** balance,
+  in the country currency.
+- History: core `/customer/wallet/list` (`services/order.ts` line 174), 10 rows per page.
+- Everything else waits for the backend (`BACKEND-REQUESTS.md` W-1..W-9) and D-32.
+
+### Money safety — must be fixed before any real submit
+- Amount parse is `parseFloat(text.replace(",", "."))` (`WalletCashOutSheet.tsx` line 84,
+  `WalletCashInSheet.tsx` line 130). It accepts "1.2.3", has no decimal limit and no max length.
+- The fee uses float math (`amount × 1.1`).
+- The withdrawal OTP accepts any 6 digits (`WalletWithdrawalRequest.tsx` line 64).
+- No double-submit guard and no idempotency key (`CreateBankDeposit` takes one but nothing calls it).
+- No number format: no `Intl`, no `decimal_digits`.
+
+### Shared code — do not break
+`NumericKeypad` and `RdbPinInputs` (from `components/Login/Enhanced/ui`), `GetWallet` (shared with checkout
+`PaymentMethod`), `rdbLock` in `store/Cart`, checkout pay-with-wallet (`services/rdbPayment.ts`,
+`RdbPaymentModal.tsx`, `RdbPaymentLockedSheet.tsx`).
+
+### Events to keep
+`wallet_modal_opened`, `wallet_balance_refreshed`, GA `ADD_PAYMENT` (`GA_PAYMENTS.WALLET`), all `rdb_*`
+events (checkout).
+
+### i18n
+All 107 wallet keys exist. About 25 raw strings are mock data (names, dates, "0,00 ", "USDT Tron TRC 20").
+They go away with real data.
+
+### Tests
+Unit: `WalletLinkCard`, `WalletTransactions`, `services/wallet/index`, `walletReauthFlag`,
+`api/auth/wallet-token/route`, `fetchData` wallet 401 cases. Checkout tests (`rdbPayment`, `RdbPaymentModal`,
+`RdbPaymentLockedSheet`) must stay green. E2E: there is no wallet journey today. AUTH-01 stays red on
+purpose (wallet backend 502). New e2e cases for the wallet are needed.
+
+---
+
+## Stage 6 — chat
+
+**New:** `components/DemoApp1/screens/` ChatListScreen, ConversationScreen, ContactScreen, CallScreen;
+`components/DemoApp1/chat/*`. **Data today:** `components/DemoApp/demoChat.ts`, `demoChatModel.ts`,
+`demoChatState.tsx` (one `useReducer`; timers fake the ticks, typing and replies).
+**Live:** `ChatModal` overlay (`components/Home/AuthSections.tsx` line 12), 77 files in `components/Chat/`,
+`store/chat/*` (reducer 1572 lines), `services/chat.ts`, calls in `store/chat/callActions.ts` + Agora,
+real time by FCM data messages (`utils/NotificationHandler.ts` lines 193-246).
+
+### What the chat backend already has (wire these)
+List (`my_channels`, with `pinned_channels`, `archived`), messages, send, edit, delete (`delete_for_all`),
+tags, reminders, archive, unread, watched / received, jump to message, contacts, user search,
+`channelSearch`, calls + Agora token, forward (`is_forward: 1`). See `CHAT_API_CHANGES.md`.
+
+### Mocks to remove
+Fixed rows and counts, fake ticks / typing / replies (`MOCK_TIMING`, `MOCK_REPLIES`), local blob
+attachments (nothing uploads), voice that records no audio, fake call states and timer (no Agora), local
+reminder timer.
+
+### Must be handled (the demo does not model it)
+- FCM events arrive out of order. `pinned_channels` comes as a separate array. Search answers newest first.
+- `channelSearch`: whole words of 3+ letters only, and Arabic never matches (backend limits).
+- Chat answers can be `200` with `isSuccessful: false`. Check `isSuccessful`.
+- 401 is normal (60-second token). Chat exchanges the token, waits 2 s, then retries.
+- Performance: the conversation renders every message (`ConversationScreen.tsx` line 942) and the list
+  renders every row. Paging is needed. Each `MessageRow` creates framer-motion values.
+- Lottie emoji load from `fonts.gstatic.com`, map tiles from `tile.openstreetmap.org`. A stricter CSP
+  later would break them.
+- Known old faults: CHAT-APP-2 (3-pin limit never applies), CHAT-APP-3, CHAT-APP-4.
+
+### Events to keep
+`chat_opened`, `chat_message_sent` (`conversation_id`, `message_type`, `is_order_chat`, `is_reply`),
+`chat_product_shared`, GA `SCREEN_VIEW` `CHAT_SCREEN`.
+
+### i18n
+Hardcoded (about 14): `ReactionSheet.tsx` tab labels (lines 44-49), "Reactions" (line 250), "Search emoji"
+(line 278), "No emoji found" (line 369), emoji keyword search is English only; `MessageMenu.tsx` aria-labels
+(lines 296, 342); size units B / KB / MB / GB (`demoChatModel.ts` lines 459-466); file extension label
+(`messages.tsx` line 527). `CategorySheet.tsx` line 41 casts backend names to `DemoKey`.
+
+### Tests to update
+- **e2e:** `chat.live` CHAT-01..16, `chat.scripted` SCRIPT-27..43, `actions/chat.ts`, `scenarios/chat.ts`,
+  `selectors.ts` lines 1483-1660. The new UI has 92 `demo-*` `data-pw` names.
+- **Unit:** 51 files in `tests/components/Chat/**`, `tests/store/chat/*`, `tests/store/chatSendMessage.test.ts`,
+  `tests/services/chat.test.ts`, `tests/utils/chatMuteNotifications.test.ts`. Demo unit tests:
+  `demoChatModel.test.ts` (40 cases), `useHorizontalSwipe.test.tsx`.
+
+---
+
+## Stage 7 — home and search
+
+**New:** `components/DemoApp1/screens/HomeScreen.tsx`, `SearchScreen.tsx`.
+**Live:** `app/(client)/[lang]/page.tsx` → `CategoryHomeView` (also used by `/categories/[slug]`, so it stays),
+`components/Home/Search/SearchIcon.tsx` (1021 lines).
+
+### Live parts to keep or replace (after D-41..D-44)
+- Home: metadata (`GetHomeMetaData`), structured data, featured row, flash deals, boutiques, recommended,
+  stories bar, `?coupon=` handling.
+- Cache: `"use cache"` + `cacheLife("homepage")`, tags `categories-/featured-/flash-/boutiques-{country}-{language}`.
+  Read `docs/homepage-cache-phase-2*.md` first.
+- Search: history (localStorage `search-history`), trending (`/api/products/popular-search`), suggestions,
+  results (products, brands, categories, boutiques), Gemini analyzer, `logSearchTerm`, voice, image search,
+  filters (`/${lang}/filters...`).
+- SEO: `robots.ts`, sitemaps (`sitemap-home`, `-search`, `-products`, `-boutiques`, `-static`).
+
+### Mocks to remove
+Fixed chips (`HomeScreen.tsx` line 31, `SearchScreen.tsx` line 161), empty home body (line 127), the search
+input searches nothing (line 145), Voice and Scan have no action (lines 214, 222).
+
+### Events to keep
+`search` (`search_keyword`, `search_item_select`), `screen_view_event`, `view_story`, `view_item_list`,
+`apply_filter`, `recommended`, `button_clicked`, `coupon_viewed`.
+
+### Tests to update
+- **e2e:** `nav.logo` (`NavLogo`) is checked by `gotoHome` (45 calls in 14 files) and `gotoAbout` (40 calls in
+  16 files), so almost every case passes through it. Also `searchFor` (`searchIcon_mainPage`,
+  `#search-element`, `product-result-link`), `category-Link`, GUEST-42/47/48/49, STORY-*, the guest cart
+  drawer (`cart_icon_button`).
+- **Unit:** `tests/app/layout.test.tsx`, `tests/components/Home/*` (CategoryHomeView, NavbarClient, AuthNav*,
+  Logo, Menu, Init, stories*), `Home/Search/*`, `Server/MainCategories`, `cache/*`, `serverRequests/meta/home`,
+  `serverRequests/Search`.
+
+---
+
+## Stage 8 — regression, sign-off, merge
+
+1. Run every suite: `pnpm lint`, `pnpm lint:i18n-parity`, typecheck, `pnpm test:run`, `pnpm e2e:health`, then
+   the full browser suite (`gh workflow run E2E --ref ui-migrations`, one run at a time).
+2. Check every old page that keeps the old UI: product, listing, filters, cart, checkout, orders, seller
+   pages, seller dashboard, compare, flash deals, featured, about, terms, privacy, contact.
+3. Designer pass on every new screen in `en` and `ar`, at 440 x 802 and on desktop.
+4. Check `docs/posthog-events.md` against the events in code.
+5. Merge into `development` (after D-1), only with your OK.
+
+---
+
+## Found on the way — not part of this work (each needs its own ticket)
+
+1. **Two wallet balances can differ.** `order.GetWallet()` returns `response.data`, which has no `data`, so
+   the wallet page shows `wallet_balance` from the core list, while the settings card shows the wallet
+   backend balance. Seen in code only; not confirmed by a test.
+2. **`/api/auth/wallet-token` sends the raw wallet token to the browser.** It was for the RDB widget, which is
+   now commented out.
+3. **`CLAUDE.md` security note is out of date.** The `rdb` Git dependency (with the token in its URL) is no
+   longer in `package.json` (commit `091fdaae`). The old token should still be rotated, because it is in git
+   history.
+4. **Naming rule:** `services/qrLogin/index.ts` line 4 says "Go endpoints", and the title of
+   `docs/qr-login-backend-requirements.md` names the backend language.
+5. **`/[lang]/loginDemo` has no `noindex`**, but `/demo` has one.
+6. **`app/loginDemo/page.tsx` redirects to `/gb-en/loginDemo`**, which opens the region modal.
