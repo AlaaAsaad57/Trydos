@@ -22,7 +22,6 @@ import {
   addToCartSheet,
   cart,
   checkout,
-  nav,
   product,
   profile,
   shell,
@@ -55,7 +54,7 @@ const CHECKOUT_MS = 60_000;
  *  variant that is already in the bag raises its quantity and leaves this
  *  number alone, which is why the journeys below start from an empty bag. */
 export const bagLineCount = async (page: Page): Promise<number> => {
-  const badge = nav.cartCount(page);
+  const badge = shell.count(page, "cart");
   if ((await badge.count()) === 0) return 0;
   const text = (await badge.first().textContent())?.trim() ?? "";
   const number = Number.parseInt(text, 10);
@@ -2615,7 +2614,7 @@ export const arriveWithCouponLink = async (
     waitUntil: "domcontentloaded",
   });
   await chooseRegionIfAsked(page);
-  await expect(nav.logo(page), "the home page did not render").toBeVisible();
+  await expect(shell.tab(page, "home"), "the home page did not render").toBeVisible();
 
   await expect
     .poll(

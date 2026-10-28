@@ -22,7 +22,7 @@ case is added, and keep the count above in step.
 | Seller dashboard and seller stories, added cases | SD-13, SD-16, SST-09 | no — the QA seed's seller jar | no — reads, a template download, and a story form closed with Cancel |
 | **The chat** | CHAT-01 to CHAT-16 | CHAT-01 does, for Shopper A — one real code; Shopper B opens the seed's jar | **yes — real messages between the two test accounts, a tag, a reminder, a block and a deleted chat. Everything but the messages in B's copy of the chat is put back** |
 | Scripted chat branches | SCRIPT-27 to SCRIPT-43 | **no — the chat shopper is faked** | no — nothing but a guest registration per case |
-| The new bottom bar | SHELL-01 to SHELL-07 | no — a faked guest | no — the guest registration and the bag reads are faked |
+| The new bottom bar | SHELL-01 to SHELL-08 | no — a faked guest | no — the guest registration and the bag reads are faked |
 
 Design: `docs/testing/E2E_TEST_DESIGN.md`. How to run: `tests/e2e/README.md`.
 
@@ -718,13 +718,14 @@ and the browser history are real. Every address is under `/sy-en`.
 
 | ID | Case | Spec | What it proves |
 |----|------|------|----------------|
-| SHELL-01 | Home -> Profile -> Home | `shell.scripted.spec.ts:181` | Each tab opens its page (`/sy-en/settings`, then `/sy-en`), and the right tab is lit on each — and only that one |
-| SHELL-02 | Browser back from the settings page | `shell.scripted.spec.ts:224` | Back returns to `/sy-en`, with Home lit |
-| SHELL-03 | A deep link to the cart page, then a reload | `shell.scripted.spec.ts:265` | Both keep `/sy-en/cart`, draw the cart page, and light Cart |
-| SHELL-04 | A product from home, and back | `shell.scripted.spec.ts:313` | The bar shows on the product with no tab lit; back lights Home; `history.scrollRestoration` is still the browser's (`auto`); the home page comes back within 150 px of where the shopper left it |
-| SHELL-05 | An old `?cart=true` address | `shell.scripted.spec.ts:395` | It moves to `/sy-en/cart` with no `cart` key left, with Cart lit |
-| SHELL-06 | The add-to-cart sheet covers the bar | `shell.scripted.spec.ts:431` | A tap at the centre of the Cart tab lands in the open sheet, not the bar. It found BUG-shell-1 on its first run (the product page footer sat under the bar, so Buy could not be tapped), fixed in `83f7f09d` |
-| SHELL-07 | A guest presses Chat | `shell.scripted.spec.ts:518` | The sign-in widget opens, and the chat window does not |
+| SHELL-01 | Home -> Profile -> Home | `shell.scripted.spec.ts:182` | Each tab opens its page (`/sy-en/settings`, then `/sy-en`), and the right tab is lit on each — and only that one |
+| SHELL-02 | Browser back from the settings page | `shell.scripted.spec.ts:225` | Back returns to `/sy-en`, with Home lit |
+| SHELL-03 | A deep link to the cart page, then a reload | `shell.scripted.spec.ts:266` | Both keep `/sy-en/cart`, draw the cart page, and light Cart |
+| SHELL-04 | A product from home, and back | `shell.scripted.spec.ts:314` | The bar shows on the product with no tab lit; back lights Home; `history.scrollRestoration` is still the browser's (`auto`); the home page comes back within 150 px of where the shopper left it |
+| SHELL-05 | An old `?cart=true` address | `shell.scripted.spec.ts:396` | It moves to `/sy-en/cart` with no `cart` key left, with Cart lit |
+| SHELL-06 | The add-to-cart sheet covers the bar | `shell.scripted.spec.ts:432` | A tap at the centre of the Cart tab lands in the open sheet, not the bar. It found BUG-shell-1 on its first run (the product page footer sat under the bar, so Buy could not be tapped), fixed in `83f7f09d` |
+| SHELL-07 | A guest presses Chat | `shell.scripted.spec.ts:519` | The login page `/sy-en/login` opens with the home page as its way back (`?next=`), and the chat window does not |
+| SHELL-08 | The login page | `shell.scripted.spec.ts:555` | None of the five tabs of the bottom bar is on `/sy-en/login` |
 
 ## Findings from the chat cases
 

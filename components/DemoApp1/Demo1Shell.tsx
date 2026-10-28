@@ -56,9 +56,6 @@ import { usePageDir } from "./rtl";
  *    the iPhone draw the page under its glass bar and take its colours from
  *    the page, the way shop sites look in it.
  *  - The page is a centred column, at most PAGE_MAX wide.
- *  - The site's own navbar from the [lang] layout is hidden while the demo is
- *    on show (HIDE_SITE_CHROME, served by the route's layout, so it is hidden
- *    on the first paint too).
  *
  * Navigation is the old scaled demo shell's:
  * the screen changes on the tap, and the URL follows behind it.

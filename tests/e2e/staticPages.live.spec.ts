@@ -8,7 +8,7 @@
 
 import { expect, test } from "./fixtures";
 import { gotoStaticPage } from "./actions/nav";
-import { nav, staticPage } from "./selectors";
+import { shell, staticPage } from "./selectors";
 
 test.describe("static trust pages", () => {
   test("the about page renders its title and back bar", async ({ page }) => {
@@ -18,7 +18,7 @@ test.describe("static trust pages", () => {
     // this is the exact copy the page should show.
     expect(title, "a different page loaded").toBe("About TryDos");
     await expect(staticPage.backButton(page)).toBeVisible();
-    await expect(nav.logo(page)).toBeVisible();
+    await expect(shell.tab(page, "home")).toBeVisible();
   });
 
   test("the contact page renders without errors", async ({ page }) => {

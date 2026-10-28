@@ -1,4 +1,4 @@
-// SHELL-01 to SHELL-07 — the new bottom bar on the real pages (Stage 3).
+// SHELL-01 to SHELL-08 — the new bottom bar on the real pages (Stage 3).
 //
 //   SHELL-01  Home -> Profile -> Home: each tab opens its page and is the one lit
 //   SHELL-02  browser back from the settings page returns home, with Home lit
@@ -10,6 +10,7 @@
 //   SHELL-05  an old `?cart=true` address lands on the cart page
 //   SHELL-06  the add-to-cart sheet covers the bar
 //   SHELL-07  a guest's Chat tab opens the sign-in, not the chat
+//   SHELL-08  the login page draws no bottom bar
 //
 // `components/DemoApp1/AppShell.tsx` draws the bar on every page and
 // `appRoutes.ts` decides which tab is lit. Their unit tests prove the parts.
@@ -529,9 +530,14 @@ test("SHELL-07 a guest's Chat tab opens the sign-in, not the chat", async ({
     await test.step("the Chat tab asks the guest to sign in", async () => {
       await shell.tab(page, "chat").click();
       await expect(
-        auth.getStartedTitle(page),
-        "pressing the Chat tab as a guest did not open the sign-in widget",
+        auth.loginPage(page),
+        "pressing the Chat tab as a guest did not open the login page (/[lang]/login)",
       ).toBeVisible({ timeout: 30_000 });
+      const url = new URL(page.url());
+      expect(
+        `${url.pathname}?next=${url.searchParams.get("next")}`,
+        "the login page opened, but not with the home page as the way back",
+      ).toBe(`/${SHOP}/login?next=${HOME_PATH}`);
     });
 
     await test.step("the chat did not open for the guest", async () => {
@@ -540,6 +546,32 @@ test("SHELL-07 a guest's Chat tab opens the sign-in, not the chat", async ({
         "pressing the Chat tab as a guest opened the chat window, but a guest has no chat",
       ).toBeHidden();
     });
+  } finally {
+    expectNothingRefused(guard);
+    await context.close();
+  }
+});
+
+test("SHELL-08 the login page draws no bottom bar", async ({ browser }) => {
+  const { context, page, guard } = await openGuest(browser);
+
+  try {
+    await test.step("the shopper opens the login page", async () => {
+      await openAt(page, `/${SHOP}/login`);
+      await expect(
+        auth.loginPage(page),
+        "the login page (/[lang]/login) did not draw its widget, so the bar cannot be judged",
+      ).toBeVisible({ timeout: 30_000 });
+    });
+
+    for (const tab of ALL_TABS) {
+      await test.step(`the ${TAB_NAME[tab]} tab is not on the login page`, async () => {
+        await expect(
+          shell.tab(page, tab),
+          `the login page drew the ${TAB_NAME[tab]} tab of the bottom bar, but the login page has its own screens and no bar`,
+        ).toBeHidden();
+      });
+    }
   } finally {
     expectNothingRefused(guard);
     await context.close();

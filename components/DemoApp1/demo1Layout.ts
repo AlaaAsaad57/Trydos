@@ -147,11 +147,3 @@ export const top = (y: number) => `calc(${y - STATUS_BAR}px + ${SAFE_TOP})`;
 
 /** Room the tab bar takes at the bottom of a tab screen, so its last row is not under the bar. */
 export const TAB_ROOM = `calc(${TAB_BAR.height + 15}px + ${SAFE_BOTTOM})`;
-
-/**
- * Hides the site's own chrome (the [lang] layout's navbar) while the demo is
- * on the page. A CSS rule, served with the route's html, so the navbar is not
- * drawn even once before the demo starts.
- */
-export const HIDE_SITE_CHROME =
-  'body:has([data-pw="demo1-app"]) .home-navbar { display: none !important; }';

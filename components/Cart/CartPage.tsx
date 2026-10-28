@@ -78,8 +78,8 @@ export function CartSteps({ layout }: { layout: "page" }) {
     enableCart(false);
   };
 
-  // The box runs from its own top to the bottom of the screen. Until Task 9
-  // the old sticky top nav sits above it; after that the box starts at 0. The
+  // The box runs from its own top to the bottom of the screen. The
+  // old top nav is gone, so the box starts at 0. The
   // checkout bar (OrderButton) is `fixed`, but the slide layer's translate
   // makes the layer its containing block, so it is placed from the box
   // bottom. OrderButton already adds --app-bar-room, so the box must end at

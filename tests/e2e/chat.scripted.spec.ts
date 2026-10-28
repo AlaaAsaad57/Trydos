@@ -6,7 +6,7 @@
 //   SCRIPT-28  the browser has not been asked yet: the app asks first
 //   SCRIPT-29  a verified shopper with no chat account is sent to verify
 //              the phone, not into the chat
-//   SCRIPT-30  the nav icon counts the chats with unread messages
+//   SCRIPT-30  the Chat tab counts the chats with unread messages
 //   SCRIPT-31  the list: pinned first, then newest; archived chats left out
 //   SCRIPT-32  the chat backend refuses a message: it is taken back, and
 //              the shopper is told
@@ -84,7 +84,7 @@ import {
   type Person,
   textMessage,
 } from "./scenarios/chat";
-import { auth, chat } from "./selectors";
+import { auth, chat, shell } from "./selectors";
 
 test.use({ channel: CHAT_BROWSER_CHANNEL });
 
@@ -186,7 +186,7 @@ test("SCRIPT-27 the browser refuses notifications: the chat stays shut, and the 
   );
   try {
     await test.step("pressing the chat icon tells the shopper, and opens nothing", async () => {
-      await chat.navIconAny(page).first().click();
+      await shell.tab(page, "chat").click();
       await shownMessages(page, "the chat refused to open because notifications are blocked");
       await expect(
         chat.window(page),
@@ -209,7 +209,7 @@ test("SCRIPT-28 the browser has not been asked yet: the app asks first", async (
   );
   try {
     await test.step("pressing the chat icon shows the 'allow notifications' window, not the chat", async () => {
-      await chat.navIconAny(page).first().click();
+      await shell.tab(page, "chat").click();
       await expect(
         chat.notificationPermissionWidget(page),
         "the browser has not been asked about notifications, but the app did not ask before the chat",
@@ -243,7 +243,7 @@ test("SCRIPT-29 a verified shopper with no chat account is sent to verify the ph
     });
 
     await test.step("pressing the chat icon opens the phone check, not the chat", async () => {
-      await chat.navIconAny(page).first().click();
+      await shell.tab(page, "chat").click();
       await expect(
         auth.whatsappMethod(page).or(auth.smsMethod(page)).first(),
         "a shopper with no chat account pressed the chat icon, but the phone check did not open",
@@ -263,7 +263,7 @@ test("SCRIPT-29 a verified shopper with no chat account is sent to verify the ph
 // SCRIPT-30 .. SCRIPT-31 — the chat list
 // ---------------------------------------------------------------------------
 
-test("SCRIPT-30 the nav icon counts the chats with unread messages", async ({
+test("SCRIPT-30 the Chat tab counts the chats with unread messages", async ({
   browser,
 }) => {
   const unread = (id: number, person: Person, messages: number) =>
@@ -285,11 +285,11 @@ test("SCRIPT-30 the nav icon counts the chats with unread messages", async ({
     chatShopper({ channels: [unread(CHAT.rana, PEOPLE.rana, 2), unread(CHAT.sami, PEOPLE.sami, 1), readOnly] }),
   );
   try {
-    await test.step("the nav icon shows 2 — the two chats with unread messages, not the three unread messages", async () => {
+    await test.step("the Chat tab shows 2 — the two chats with unread messages, not the three unread messages", async () => {
       await expect(
-        chat.navIconUnread(page),
-        "two chats have unread messages, but the nav icon shows no unread count",
-      ).toHaveAttribute("data-count", "2");
+        shell.count(page, "chat").first(),
+        "two chats have unread messages, but the Chat tab of the bottom bar does not show 2",
+      ).toHaveText("2");
     });
 
     await test.step("each row shows its own unread count, and the read chat shows none", async () => {

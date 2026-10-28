@@ -5,13 +5,16 @@ import { LogError, translateFunction } from "utils/functions";
 import { ChatConroller } from "utils/tinyUtils";
 import home from "services/home";
 import { showErrorNotification } from "store/notifications/reducer";
+import { loginHref } from "utils/loginPath";
 
-// A copy of openChatAction in components/Home/AuthNavSection.tsx, until Task 9 deletes that file.
-//
-// The Chat tab of the bottom bar opens the chat with the same gates as the old
-// top nav: a chat account opens the chat (after the notification check), a
-// shopper with a phone on record is asked to confirm it, and a guest signs in.
-export async function openChatFromTab(): Promise<void> {
+// The Chat tab of the bottom bar opens the chat with these gates: a chat
+// account opens the chat (after the notification check), a shopper with a
+// phone on record is asked to confirm it, and a guest goes to the login page
+// with this page as the way back.
+export async function openChatFromTab(
+  lang: string,
+  push: (href: string) => void,
+): Promise<void> {
   const state = useAppStore.getState();
   try {
     const userChatCookie: any = state.userChat;
@@ -43,7 +46,8 @@ export async function openChatFromTab(): Promise<void> {
       if (userDataCookie && userDataCookie?.phone !== "0") {
         state.setShouldAuthinticated("open chat");
       } else {
-        state.setLoginOpen(true);
+        const { pathname, search, hash } = window.location;
+        push(loginHref(lang, `${pathname}${search}${hash}`));
       }
     }
   } catch (error) {

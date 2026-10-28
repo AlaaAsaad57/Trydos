@@ -452,6 +452,7 @@ added on `ui-migrations` by the Stage 2 session and arrives here when Stage 2 is
 | S3-8 | Login page | No bottom nav on `/[lang]/login` (Stage 2): the shell steps aside there, as on `/loginDemo`. The session-expired and phone re-verify overlays (A-19) open above the nav, on any page. |
 | S3-9 | What the top-nav removal removes | The whole `.home-navbar` strip, on every page: the logo link and `AuthNavContainer` (cart icon, chat icon, Verify button, avatar side menu). Until Stage 4 moves them into the new Settings screen (D-19, D-22), logout, notifications and the seller links are reached only through the old `/settings` page. That gap is OK on the branch (A-25). The chat icon's gates (`openChatAction`: notification permission, phone verify) move to the chat tab. |
 | S3-10 | Lit tab | By area: `/[lang]` → Home; `/[lang]/cart` → Cart; `/[lang]/settings/*` → Profile; old chat overlay open → Chat; the old search open → Search. Any other old page (product, listing, filters, about, …) → no tab lit. The designer must check it, because the XD file has no such state. |
+| S3-11 | Logout until Stage 4 | **Decided on 2026-10-29.** S3-9 was wrong about logout: the old `/settings` page has no logout. The only logout was in the account menu (`components/Home/Menu.tsx`), opened by the avatar in the old top nav. Task 9 removes both. So the new profile screen's "logout" row now does the real logout (`components/DemoApp1/logoutFromProfile.ts`), but that screen is turned on only in Stage 4. **Known effect on the branch until Stage 4:** no shopper can log out, and the Notifications and Compare entries of the old menu are gone too. AUTH-03 and the 2 other cases that sign out (`signOutAndSettle` in `profile.live`, `shopper.live`) fail on purpose with a message that names this gap. |
 
 ### What each tab opens after Stage 3
 
@@ -544,6 +545,48 @@ server, then 5 runs each, alternating before and after. Date: 2026-10-28.
   so the likely cause is that host, but this run does not prove it.
 - With this spread, 5 runs per side cannot show a 100 ms change either way. So the 100 ms check is not proved
   yet: it needs more runs, or a run with the media host's answers held still.
+
+### The old top nav goes (Task 9, S3-4, S3-9, S3-11)
+
+- Stage 2 merged in first (`30a3e11c`).
+- The `.home-navbar` strip is gone from `app/(client)/[lang]/layout.tsx`: the logo link and `AuthNavContainer`.
+  `--listing-navbar-h` is now `0px`, and the listing's pin stack is 50 px (only its own top bar).
+- Deleted, each with no caller left (D-6, checked by grep): `AuthNavContainer`, `AuthNavSkeleton`,
+  `AuthNavSection`, `UserNavTopSection`, `UserAvatar`, `Menu`, `ChatNotification` (all in `components/Home/`),
+  `hooks/useUserData.tsx`, and their tests. `HIDE_SITE_CHROME` is gone, because there is no navbar to hide.
+- **Kept with no caller:** the notifications panel (`components/Notifications/*`, `NotificationSkeleton`). Its only
+  caller was the old menu. Stage 4 puts notifications behind the Settings screen (D-19) and reuses it.
+- The Chat tab sends a guest to `/[lang]/login?next=<this page>` (A-20), not to the old login flag.
+- The new profile's "logout" row does the real logout (S3-11). A guest's tap does nothing.
+- e2e: `gotoHome` and `gotoAbout` wait for the Home tab instead of `NavLogo`. The cart and chat helpers press
+  the bar's tabs, and read the bar's counts. SHELL-07 checks the login page and its way back. SHELL-08: the login
+  page draws no bar.
+- Tests seen red on the old code, green after: "the layout draws no .home-navbar" (`tests/app/layout.test.tsx`),
+  "Chat as a guest (phone "0") opens the sign-in" (`AppShell.test.tsx`), and the signed-in logout case in
+  `tests/components/DemoApp1/profileLogout.test.tsx`. The 2 guest cases in that file are guards (green before
+  and after).
+- `pnpm knip` cannot run: `knip` is in `package.json` scripts but not installed (`'knip' is not recognized`).
+  The unused files were found by grep instead.
+
+### Where Stage 3 stopped (2026-10-29) — continue here
+
+Task 9 is committed and pushed on `ui-migrations-shell`. Before the commit: `pnpm lint:i18n-parity` passed, `pnpm lint`
+had 0 errors (no warning in a Task 9 file), `next typegen` + `tsc` passed. **The full unit suite did not finish**
+(stopped by the owner to switch work). Left, in this order:
+0. Run `pnpm test:run` and fix only faults from Task 9 (remember: one random flaky failure is common; prove it alone).
+1. Shell e2e spec on this machine: `pnpm e2e:build`, then `pnpm test:e2e:scripted -- --grep SHELL` (SHELL-01..08).
+   SHELL-07 and SHELL-08 are new or changed in Task 9 and have not run yet.
+2. The full browser suite once: `gh workflow run E2E --ref ui-migrations-shell` (one run at a time). Expected red
+   on purpose: AUTH-01 (wallet `502`), and AUTH-03 plus the sign-out cases of `profile.live` and `shopper.live`
+   (S3-11, the logout gap until Stage 4). Any other red case must name its cause.
+3. The XD check of the bottom bar in `ar` and `en` at 440 x 802 (open `/sy-ar` and `/sy-en`, never `gb-*`).
+4. Optional: the home LCP check with more runs (Task 8 could not prove the 100 ms limit).
+5. The owner's review of Stage 3, then merge `ui-migrations-shell` into `ui-migrations` (A-18 rule 5). Then
+   bring `ui-migrations-wallet` up to date and renumber its A-28 row (A-28 is "Checkout QR" on `ui-migrations`).
+6. Next stage on lane A: Stage 4 (profile). It also takes the 3 items moved from Stage 3 (the path table with the
+   on/off switch, drawing a new screen inside `AppShell`, `next/dynamic` for the 17 screens), turns on the new
+   profile with its logout row (S3-11), puts notifications behind Settings (D-19), and rebuilds the e2e sign-out
+   helper (`openAccountMenu` in `tests/e2e/actions/auth.ts`) on the new logout row.
 
 ---
 

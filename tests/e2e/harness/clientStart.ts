@@ -132,8 +132,8 @@ export const watchTheClientStarting = (context: BrowserContext): void => {
     // the app recovers a refused credential by registering a fresh guest, and
     // the retried read then answers `200` with the *guest*. `updateUserInfo`
     // (`store/auth/reducer.tsx`) assigns rather than merges, so the shopper's
-    // phone is gone from the store — and `shouldShowLogout`
-    // (`components/Home/Menu.tsx`) hides sign-out for exactly that.
+    // phone is gone from the store — and the logout rule (no phone, or "0",
+    // `components/DemoApp1/logoutFromProfile.ts`) refuses sign-out for exactly that.
     //
     // From outside, "the shop answered 200 and the menu is still wrong" and
     // "the shop handed back a guest, and the menu is right" are the same line.

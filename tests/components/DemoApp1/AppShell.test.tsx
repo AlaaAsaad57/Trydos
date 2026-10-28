@@ -259,9 +259,14 @@ describe("AppShell — the new bottom bar on every page", () => {
 
   it("Chat as a guest (phone \"0\") opens the sign-in", async () => {
     useAppStore.setState({ userProfile: { phone: "0" }, userChat: null } as any);
+    window.history.pushState({}, "", "/sy-en/products/x");
     openOn("/sy-en/products/x");
     await act(async () => pressTab("chat"));
-    expect(setLoginOpen, "the Chat tab did not open the sign-in for a guest").toHaveBeenCalledWith(true);
+    expect(
+      router.push,
+      "the Chat tab did not send a guest to the login page with this page as the way back",
+    ).toHaveBeenCalledWith("/sy-en/login?next=%2Fsy-en%2Fproducts%2Fx");
+    expect(setLoginOpen, "the Chat tab set the old login flag instead of going to the login page").not.toHaveBeenCalled();
     expect(setShouldAuthinticated, "the Chat tab asked a guest to confirm a phone").not.toHaveBeenCalled();
   });
 

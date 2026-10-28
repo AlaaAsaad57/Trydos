@@ -14,8 +14,6 @@ import { isSupportedLocaleSegment } from "utils/locale";
 import CartProvider from "components/Cart/CartProvider";
 import RdbPaymentLockedSheet from "components/Cart/RdbPaymentLockedSheet";
 import Init from "components/Home/Init";
-import AuthNavContainer from "components/Home/AuthNavContainer";
-import AuthNavSkeleton from "components/Home/AuthNavSkeleton";
 import NavbarClient from "components/Home/NavbarClient";
 import AppShell from "components/DemoApp1/AppShell";
 import { translateFunction } from "utils/server";
@@ -214,27 +212,6 @@ export default async function RootLayout({ children, modal }) {
         />
         <SpeedInsights />
         <div className="site-container items-center">
-          <div className="home-navbar z-999999996 duration-1000 max-w-[1365px] min-h-[98px]  px-[20px] pt-[52px] bg-white flex-row items-start w-full justify-start">
-            <a href={`/`} aria-label="TryDos Home" data-pw="NavLogo">
-              <div className="logo-container" data-pw="storeLogo">
-                <img
-                  fetchPriority="high"
-                  alt="TryDos Logo"
-                  width={130}
-                  height={36}
-                  loading="eager"
-                  src="/icons/Logo.svg"
-                />
-              </div>
-            </a>
-            {/* Four cookie reads, so this is request-bound. Wrapped so the
-                rest of the document can be prerendered and this streams in
-                behind it (D-9). Without the boundary the whole route is
-                dynamic and nothing else on the page can be cached. */}
-            <Suspense fallback={<AuthNavSkeleton />}>
-              <AuthNavContainer />
-            </Suspense>
-          </div>
           <OverlayVisibilityProvider>
             <NavigationLoaderGate>
               <MainContent>{children}</MainContent>

@@ -33,7 +33,7 @@ import {
 
 import { redact } from "../harness/redact";
 import { waitForRenewalSettled } from "../harness/renewalGate";
-import { chat } from "../selectors";
+import { chat, shell } from "../selectors";
 
 /** The chat service's wire name on `/api/proxy`.
  *
@@ -282,9 +282,9 @@ export const channelWithPhone = (
 /** Wait until the app knows its chat user.
  *
  *  **Why this exists.** The nav chat icon reads `userChat` from the store at
- *  the moment of the click (`AuthNavSection.tsx`). The nav itself can already
- *  be drawn from the server's cookies while the store is still empty, and a
- *  click in that gap opens the phone-verify widget instead of the chat.
+ *  the moment of the click (`components/DemoApp1/openChatFromTab.ts`). A click
+ *  before the store holds the chat user opens the phone-verify widget (or the
+ *  login page) instead of the chat.
  *
  *  Five seconds after the starting settings load, the app asks the chat
  *  backend for the chat list — and only when the store holds a chat user
@@ -349,11 +349,11 @@ const attemptOpenChat = async (
     // Not the Archived folder's call, which asks the same endpoint.
     sentMatches: isMainListRequest,
   });
-  await chat.navIconAny(page).first().click();
+  await shell.tab(page, "chat").click();
 
   await expect(
     chat.window(page),
-    "the chat window did not open from the nav chat icon",
+    "the chat window did not open from the Chat tab of the bottom bar",
   ).toBeVisible();
   await expect(
     chat.notificationGate(page),

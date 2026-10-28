@@ -20,7 +20,7 @@ import {
   searchFor,
 } from "./actions/nav";
 import { openCart } from "./actions/cart";
-import { cart, listing, nav } from "./selectors";
+import { cart, listing, shell } from "./selectors";
 
 test.describe("a guest browsing the storefront", () => {
   test("the root path redirects to a country-and-language path", async ({
@@ -53,7 +53,7 @@ test.describe("a guest browsing the storefront", () => {
 
     await gotoHome(page);
 
-    await expect(nav.cartButton(page)).toBeVisible();
+    await expect(shell.tab(page, "cart")).toBeVisible();
     expect(crashes, "the page threw while rendering").toEqual([]);
   });
 

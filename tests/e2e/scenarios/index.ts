@@ -677,7 +677,7 @@ export const guestBoot = {
   },
   // Who the visitor is, answered as the backend answers for a guest:
   // `phone: "0"` is the guest mark every screen reads (`openChatFromTab`,
-  // `UserNavTopSection`, the settings screens).
+  // `logoutFromProfile`, the settings screens).
   [ENDPOINTS.customerInfo]: {
     status: 200,
     body: {

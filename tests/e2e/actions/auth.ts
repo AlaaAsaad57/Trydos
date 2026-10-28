@@ -16,7 +16,7 @@ import {
   type Response,
 } from "@playwright/test";
 
-import { auth, nav, prompt } from "../selectors";
+import { auth, prompt, shell } from "../selectors";
 
 import { arriveAsGuest } from "./locale";
 import { howTheClientStarted } from "../harness/clientStart";
@@ -382,21 +382,26 @@ const QUICK_PREVIEW_MS = 15_000;
  *  the ending for 2.5 seconds, then goes back to `?next=` in the client. */
 const LOGIN_LEAVES_MS = 15_000;
 
-/** Open the login from the nav bar and get to its Get Started screen.
+/** Open the login from the bottom bar and get to its Get Started screen.
  *
  *  The login is a page now, /[lang]/login (D-11 in UI-MIGRATION-PLAN.md), and
  *  it opens on the Quick Preview. So three questions, asked separately, because
  *  each is a different fault: did the login page open, did the Quick Preview
  *  let the visitor through, and is the visitor on Get Started.
  *
- *  The press is repeated up to three times because the nav control is
- *  server-rendered, so a press landing before React attaches does nothing at
- *  all. It is **never** repeated once the login page is up: the page covers the
- *  nav control, so a second press is swallowed and Playwright reports a click
+ *  A guest opens the login with the Chat tab of the bottom bar: the tab sends
+ *  a guest to /[lang]/login with this page as the way back
+ *  (`components/DemoApp1/openChatFromTab.ts`). The press is repeated up to
+ *  three times in case one lands while the page is still changing. It is
+ *  **never** repeated once the login page is up: the login page draws no bar,
+ *  so a second press would find no tab and Playwright would report a click
  *  timeout instead. */
 export const openLoginWidget = async (page: Page): Promise<void> => {
-  const button = auth.loginButton(page);
-  await expect(button).toBeVisible();
+  const button = shell.tab(page, "chat");
+  await expect(
+    button,
+    "the bottom bar has no Chat tab, so a guest cannot reach the login page the way a shopper does",
+  ).toBeVisible();
 
   const loginPage = auth.loginPage(page);
   let open = await loginPage.isVisible().catch(() => false);
@@ -409,7 +414,7 @@ export const openLoginWidget = async (page: Page): Promise<void> => {
   }
   expect(
     open,
-    "the login control was pressed three times and the login page (/[lang]/login) never opened",
+    "the Chat tab was pressed three times and the login page (/[lang]/login) never opened",
   ).toBe(true);
   expect(
     new URL(page.url()).pathname,
@@ -1116,7 +1121,7 @@ export const openCartAndProveBackendAnswered = async (
   page.on("response", collect);
 
   try {
-    const button = nav.cartButton(page);
+    const button = shell.tab(page, "cart");
     await expect(button).toBeVisible();
     await button.click();
 
@@ -1359,7 +1364,16 @@ const whySignOutIsMissing = async (page: Page): Promise<string> => {
  *  usable phone. */
 export const openAccountMenu = async (page: Page): Promise<void> => {
   const trigger = auth.accountMenuTrigger(page);
-  await expect(trigger).toHaveCount(1);
+  // The account menu lived in the old top nav, which Stage 3 (Task 9) removed.
+  // Its sign-out comes back as the logout row of the new profile screen, which
+  // Stage 4 turns on (UI-MIGRATION-PLAN.md, S3-9). Until then every case that
+  // signs out stops here, and says why.
+  await expect(
+    trigger,
+    "there is no account menu to sign out from: the old top nav that held it was removed in " +
+      "Stage 3 (Task 9), and the new profile screen with its logout row is turned on only in " +
+      "Stage 4. This is a known gap on the ui-migrations branch, not a sign-in fault",
+  ).toHaveCount(1);
 
   const signOut = auth.signOutItem(page);
   const anyItem = auth.accountMenuAnyItem(page);

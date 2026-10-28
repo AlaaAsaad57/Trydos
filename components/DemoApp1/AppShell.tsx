@@ -105,7 +105,7 @@ export default function AppShell({
         useAppStore.getState().enableCart(true);
         return;
       case "chat":
-        void openChatFromTab();
+        void openChatFromTab(locale, router.push);
         return;
       case "settings":
         router.push(tabHref(locale, "settings"));

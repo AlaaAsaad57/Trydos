@@ -293,7 +293,7 @@ describe("the cart page kept hidden and shown again (BUG-shell-2)", () => {
 });
 
 describe("the cart page box fills the screen from its own top", () => {
-  // The old sticky top nav sits above the box until Task 9. The box must end
+  // The box may start below the top of the page. It must end
   // at the bottom of the screen, so the checkout bar (fixed inside the slide
   // layer, placed from the box bottom) sits above the new bar.
   const realRect = HTMLElement.prototype.getBoundingClientRect;

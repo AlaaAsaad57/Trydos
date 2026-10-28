@@ -3,12 +3,7 @@
 @config '../../tailwind.config.js';
 
 :root {
-  --listing-navbar-h: 98px;
-}
-
-.home-navbar {
-  position: sticky;
-  top: 0;
+  --listing-navbar-h: 0px;
 }
 
 /*

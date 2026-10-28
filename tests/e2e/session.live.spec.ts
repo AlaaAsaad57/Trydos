@@ -55,7 +55,7 @@ import {
   snapshotCredentials,
   spoilCredentials,
 } from "./harness/session";
-import { nav, prompt } from "./selectors";
+import { prompt, shell } from "./selectors";
 import { toServiceToken } from "utils/serviceTokens";
 
 // Every wait inside the measured window, named so the sum can be checked.
@@ -82,7 +82,7 @@ const openCartAndSettle = async (
   recorder: any,
   spoiled: any,
 ) => {
-  const button = nav.cartButton(page);
+  const button = shell.tab(page, "cart");
   await expect(button).toBeVisible({ timeout: CART_OPEN_MS });
   await button.click({ timeout: CART_OPEN_MS });
   await recorder.waitFor(RENEWAL, RECOVERY_MS);

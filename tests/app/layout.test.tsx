@@ -36,8 +36,6 @@ for (const path of [
   "components/Cart/CartProvider",
   "components/Cart/RdbPaymentLockedSheet",
   "components/Home/Init",
-  "components/Home/AuthNavContainer",
-  "components/Home/AuthNavSkeleton",
   "components/Home/NavbarClient",
   "components/global/NavigationLoaderSafetyNet",
   "components/PathTracker",
@@ -174,6 +172,21 @@ describe("the locale root layout and the new bottom bar", () => {
         Main: "ar:Main",
       },
     ]);
+  });
+
+  it("the layout draws no .home-navbar", async () => {
+    const { default: RootLayout } = await loadLayout();
+
+    const tree: any = await RootLayout({ children: null, modal: null });
+
+    expect(
+      find(tree, (n) => typeof n.props?.className === "string" && n.props.className.includes("home-navbar")),
+      "the layout still draws the old top nav strip (.home-navbar)",
+    ).toBeUndefined();
+    expect(
+      find(tree, (n) => n.props?.["data-pw"] === "NavLogo"),
+      "the layout still draws the old top nav logo link",
+    ).toBeUndefined();
   });
 
   it("does not put the page inside a Suspense", async () => {
