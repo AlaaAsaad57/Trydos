@@ -470,8 +470,10 @@ server, then 5 runs each, alternating before and after. Date: 2026-10-28.
 - The median is 68 ms slower after the shell. That is under the 100 ms limit.
 - The LCP element is the same on both sides in all 10 runs: the `img.product-media-redeem-show` product image
   (200 x 290) from the media host. The shell did not change the LCP element.
-- The spread is large on both sides (484 to 10764 ms). It comes from the staging media host, not from the shell.
-  Treat the 68 ms as noise, not as a measured cost.
+- The spread is large on both sides (484 to 10764 ms). The LCP element is an image from the staging media host,
+  so the likely cause is that host, but this run does not prove it.
+- With this spread, 5 runs per side cannot show a 100 ms change either way. So the 100 ms check is not proved
+  yet: it needs more runs, or a run with the media host's answers held still.
 
 ---
 
