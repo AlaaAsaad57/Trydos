@@ -17,6 +17,8 @@ import Init from "components/Home/Init";
 import AuthNavContainer from "components/Home/AuthNavContainer";
 import AuthNavSkeleton from "components/Home/AuthNavSkeleton";
 import NavbarClient from "components/Home/NavbarClient";
+import AppShell from "components/DemoApp1/AppShell";
+import { translateFunction } from "utils/server";
 import NavigationLoaderSafetyNet from "components/global/NavigationLoaderSafetyNet";
 import Organaization from "serverRequests/meta/StructuredData/Organaization";
 import Website from "serverRequests/meta/StructuredData/Website";
@@ -254,6 +256,19 @@ export default async function RootLayout({ children, modal }) {
         </Suspense>
 
         <NavbarClient />
+        {/* The new bottom bar (Stage 3). Next to the page, not around it, so
+            the page keeps its DOM and its server render. Its words are looked
+            up here on the server, so only these six strings reach the page. */}
+        <AppShell
+          dictionary={{
+            Home: translateFunction("Home", language),
+            Search: translateFunction("Search", language),
+            Cart: translateFunction("Cart", language),
+            Chat: translateFunction("Chat", language),
+            Profile: translateFunction("Profile", language),
+            Main: translateFunction("Main", language),
+          }}
+        />
         <Suspense fallback={null}>
           <CartProvider language={language} country={country} />
         </Suspense>

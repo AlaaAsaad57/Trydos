@@ -11,6 +11,10 @@ const spies = vi.hoisted(() => ({
   lang: { current: "sy-en" },
   GetHomeMetaData: vi.fn(),
   LogServerError: vi.fn(),
+  // The new bottom bar; a named stand-in so the tree can be searched for it.
+  AppShell: function AppShell() {
+    return null;
+  },
 }));
 
 vi.mock("next/root-params", () => ({ lang: async () => spies.lang.current }));
@@ -44,6 +48,7 @@ for (const path of [
 ]) {
   vi.doMock(path, () => ({ default: () => null }));
 }
+vi.mock("components/DemoApp1/AppShell", () => ({ default: spies.AppShell }));
 vi.mock("components/ModalRoute/OverlayVisibility", () => ({
   OverlayVisibilityProvider: () => null,
   MainContent: () => null,
@@ -64,6 +69,28 @@ const find = (node: any, match: (n: any) => boolean): any => {
   }
   if (match(node)) return node;
   return find(node.props?.children, match);
+};
+
+/** Every element in a tree that matches. */
+const findAll = (node: any, match: (n: any) => boolean): any[] => {
+  if (!node || typeof node !== "object") return [];
+  if (Array.isArray(node)) return node.flatMap((child) => findAll(child, match));
+  return [...(match(node) ? [node] : []), ...findAll(node.props?.children, match)];
+};
+
+/** The elements from the root down to the first one that matches, or undefined. */
+const pathTo = (node: any, match: (n: any) => boolean): any[] | undefined => {
+  if (!node || typeof node !== "object") return undefined;
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const hit = pathTo(child, match);
+      if (hit) return hit;
+    }
+    return undefined;
+  }
+  if (match(node)) return [node];
+  const below = pathTo(node.props?.children, match);
+  return below ? [node, ...below] : undefined;
 };
 
 // The first import of the layout pulls a large module graph; under a busy
@@ -123,6 +150,45 @@ describe("the locale root layout", () => {
     expect(find(tree, (n) => n.type === "body").props.className, `${lang} is not marked right-to-left`).toContain(
       "text-rtl",
     );
+  });
+});
+
+describe("the locale root layout and the new bottom bar", () => {
+  it("mounts AppShell once, with the six bar words looked up in the page language", async () => {
+    spies.lang.current = "sy-ar";
+    const { default: RootLayout } = await loadLayout();
+
+    const tree: any = await RootLayout({ children: null, modal: null });
+
+    const shells = findAll(tree, (n) => n.type === spies.AppShell);
+    expect(
+      shells.map((n) => n.props.dictionary),
+      "the layout does not mount exactly one AppShell with the six bar words in Arabic",
+    ).toEqual([
+      {
+        Home: "ar:Home",
+        Search: "ar:Search",
+        Cart: "ar:Cart",
+        Chat: "ar:Chat",
+        Profile: "ar:Profile",
+        Main: "ar:Main",
+      },
+    ]);
+  });
+
+  it("does not put the page inside a Suspense", async () => {
+    const { Suspense } = await import("react");
+    const { default: RootLayout } = await loadLayout();
+    const pageChild = <p data-testid="page-child" />;
+
+    const tree: any = await RootLayout({ children: pageChild, modal: null });
+
+    const path = pathTo(tree, (n) => n === pageChild);
+    expect(path, "the page's children are not in the layout tree").toBeDefined();
+    expect(
+      path!.some((n) => n.type === Suspense),
+      "the page's children are inside a Suspense, so the old pages no longer render on the server first",
+    ).toBe(false);
   });
 });
 

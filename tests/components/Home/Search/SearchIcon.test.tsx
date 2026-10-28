@@ -531,4 +531,38 @@ describe("SearchIcon", () => {
     await settle();
     expect(screen.queryByText("Boots"), "a related category that is already applied must not be offered again").toBeNull();
   });
+
+  // The bottom bar's Search tab asks the store to open search (openSearchRequest).
+  // The tab may go to the home page first, so the request can come before this
+  // component mounts.
+  it("opens on a search request made before it mounted", async () => {
+    const s = { ...store(), openSearchRequest: 7 };
+    await renderWithProviders(<SearchIcon language="en" country="sy" />, { store: s });
+    await settle();
+    expect(input().disabled, "a search request made before the mount did not open the search box").toBe(false);
+    expect(s.setEnableSearch, "the store was not told search is open after the request").toHaveBeenCalledWith(true);
+    expect(scroll.DisableScroll, "the page kept scrolling under the overlay opened by the request").toHaveBeenCalled();
+  });
+
+  it("opens on a new search request while it is on show", async () => {
+    const { store: live } = await renderWithProviders(<SearchIcon language="en" country="sy" />, { store: store() });
+    expect(input().disabled, "the search box opened with no request").toBe(true);
+    await act(async () => live.getState().requestOpenSearch());
+    await settle();
+    expect(input().disabled, "a new search request did not open the search box").toBe(false);
+  });
+
+  it("does not open again on a request it already handled, when it mounts again", async () => {
+    const first = await renderWithProviders(<SearchIcon language="en" country="sy" />, {
+      store: { ...store(), openSearchRequest: 11 },
+    });
+    await settle();
+    expect(input().disabled, "the request 11 did not open the search box").toBe(false);
+    first.unmount();
+    await renderWithProviders(<SearchIcon language="en" country="sy" />, {
+      store: { ...store(), openSearchRequest: 11 },
+    });
+    await settle();
+    expect(input().disabled, "an old, handled search request opened the search box again on a new mount").toBe(true);
+  });
 });

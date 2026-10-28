@@ -45,6 +45,10 @@ import { useAppStore } from "store";
 import Image from "next/image";
 import auth from "services/auth";
 
+// The last `openSearchRequest` value that opened the search. Kept outside the
+// component because SearchIcon unmounts when the shopper leaves the home page.
+let handledSearchRequest = 0;
+
 function SearchIcon({ language, country }) {
   const { setIsNavigating, setEnableSearch } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
@@ -108,6 +112,23 @@ function SearchIcon({ language, country }) {
   useEffect(() => {
     setEnableSearch(searchEnabled);
   }, [searchEnabled]);
+
+  // The bottom bar's Search tab asks for the search to open by raising
+  // `openSearchRequest` in the store. The tab goes to the home page first, so a
+  // request can come before this component mounts: a value not handled yet
+  // opens it. A value already handled does not open it again when the shopper
+  // comes back to the home page later.
+  const openSearchRequest = useAppStore((s) => s.openSearchRequest);
+  useEffect(() => {
+    if (openSearchRequest <= 0 || openSearchRequest === handledSearchRequest)
+      return;
+    handledSearchRequest = openSearchRequest;
+    // The same open as a tap on the search box (the click handler below).
+    if (!searchEnabled) {
+      DisableScroll();
+      setSearchEnabled(true);
+    }
+  }, [openSearchRequest]);
 
   // --- Initial Data Load (Trending & History) ---
   useEffect(() => {

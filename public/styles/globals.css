@@ -461,6 +461,12 @@ body {
   overflow-x: clip;
 }
 
+/* The page body keeps its last row above the new bottom bar. AppShell sets
+   --app-bar-room on <html> only while the bar shows. */
+.main-content {
+  padding-bottom: var(--app-bar-room, 0px);
+}
+
 input[type="search"]::-webkit-search-cancel-button {
   display: none;
 }
