@@ -29,6 +29,7 @@ import {
 } from "../selectors";
 import { throughProxyInPage } from "../harness/orderCleanup";
 import { redact } from "../harness/redact";
+import { waitForRenewalSettled } from "../harness/renewalGate";
 import { gotoQaProduct } from "./qaProduct";
 import { signedInSession } from "./auth";
 import { chooseRegionIfAsked } from "./nav";
@@ -102,6 +103,34 @@ export const openCart = async (page: Page): Promise<{ lines: number }> => {
   // Pressing again costs nothing: the tab only asks for the cart
   // (`enableCart(true)`), and asking twice opens one cart page. The loop still
   // ends in a real assertion, so a cart that never opens is still a failure.
+  // **Already on the cart page, but not on the cart.** The cart and the
+  // checkout are slides of one page, and only one is mounted at a time. A case
+  // that ends at the checkout, or in the address form inside it, leaves the
+  // page there, and the Cart tab does not move the slide: it only asks for the
+  // cart, which is already open. Seen in BUY-03's teardown on the first live
+  // run on the cart page: "the address is the cart page, but the page drew no
+  // cart".
+  //
+  // From the checkout, the shopper goes back with the checkout's own back
+  // control. From anywhere deeper (the address form), the page is loaded
+  // again, which starts it on its first slide.
+  //
+  // **Not "Home, then Cart".** That was tried first, and in BUY-03's teardown
+  // the cart page then went back to the home page on its own (seen in the
+  // run's video). The cause is not confirmed yet.
+  if (onCartPage(page) && !(await cart.drawer(page).isVisible())) {
+    if (await checkout.backToBag(page).isVisible()) {
+      const back = await returnToBag(page);
+      expect(
+        back.reached,
+        "the cart page was on its checkout, and the checkout's back control did not return to the bag",
+      ).toBe(true);
+    } else {
+      await waitForRenewalSettled(page);
+      await page.reload({ waitUntil: "domcontentloaded" });
+    }
+  }
+
   for (let press = 0; press < 3; press += 1) {
     if (onCartPage(page)) break;
     const landed = await tab

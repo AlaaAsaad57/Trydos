@@ -5,7 +5,8 @@
 //   SHELL-03  a deep link to the cart page, and a reload of it, keep the cart
 //             page with Cart lit
 //   SHELL-04  a product from home and back: no tab lit on the product, Home lit
-//             after back, and the browser keeps its own scroll restore
+//             after back, the browser keeps its own scroll restore, and the
+//             home page comes back where it was
 //   SHELL-05  an old `?cart=true` address lands on the cart page
 //   SHELL-06  the add-to-cart sheet covers the bar
 //   SHELL-07  a guest's Chat tab opens the sign-in, not the chat
@@ -49,7 +50,14 @@
 import { expect, test } from "./fixtures";
 import { openAddToBagSheet } from "./actions/cart";
 import { closeUnnamedCalls, mockBackend } from "./actions/mock";
-import { gotoFirstProduct, readScrollRestoration, seedLocale } from "./actions/nav";
+import {
+  gotoFirstProduct,
+  openProductFromLastBoutique,
+  readScrollPosition,
+  readScrollRestoration,
+  scrollHomeToLastBoutique,
+  seedLocale,
+} from "./actions/nav";
 import { newLiveContext } from "./harness/liveSession";
 import { openPage } from "./harness/pageOpen";
 import { waitForRenewalSettled } from "./harness/renewalGate";
@@ -302,7 +310,7 @@ test("SHELL-03 a deep link to the cart page, and a reload, keep the cart page wi
   }
 });
 
-test("SHELL-04 a product from home and back: no tab lit on it, Home lit after, the browser's own scroll restore", async ({
+test("SHELL-04 a product from home and back: no tab lit on it, Home lit after, the home page back where it was", async ({
   browser,
 }) => {
   test.setTimeout(3 * 60 * 1000);
@@ -314,10 +322,22 @@ test("SHELL-04 a product from home and back: no tab lit on it, Home lit after, t
       await expectBar(page, "the home page");
     });
 
+    // Down the page first, so "back where it was" means something: at the top
+    // it would pass whatever the app did. One round of the boutique list is
+    // enough for that and keeps the case short; GUEST-42 walks the whole list.
+    let parked = 0;
+    await test.step("the shopper scrolls down the home page", async () => {
+      const reached = await scrollHomeToLastBoutique(page, { maxRounds: 1 });
+      parked = reached.scrollY;
+      expect(
+        parked,
+        `the home page only scrolled ${parked}px, which is too little for coming back to mean anything`,
+      ).toBeGreaterThan(400);
+    });
+
     await test.step("a product opens from the home page", async () => {
-      // `gotoFirstProduct` names its own faults: no card, no product address,
-      // or a product the shop sent with no name.
-      await gotoFirstProduct(page);
+      // Names its own faults: no product tile, no product address, no title.
+      await openProductFromLastBoutique(page);
     });
 
     await test.step("the bar is on the product page and no tab is lit", async () => {
@@ -351,6 +371,20 @@ test("SHELL-04 a product from home and back: no tab lit on it, Home lit after, t
             "back, so the browser no longer puts the page back where it was",
         })
         .toBe("auto");
+    });
+
+    await test.step("the home page is back where the shopper left it", async () => {
+      // Polled: the place is put back after the page is shown again, a later
+      // frame than the address change. Same 150 px allowance as GUEST-42.
+      await expect
+        .poll(async () => await readScrollPosition(page), { timeout: 15_000 })
+        .toBeGreaterThan(parked - 150)
+        .catch(() => undefined);
+      const returned = await readScrollPosition(page);
+      expect(
+        Math.abs(returned - parked),
+        `the home page came back at ${returned}px after being left at ${parked}px`,
+      ).toBeLessThanOrEqual(150);
     });
   } finally {
     expectNothingRefused(guard);
@@ -395,20 +429,6 @@ test("SHELL-05 an old ?cart=true address lands on the cart page", async ({
 });
 
 test("SHELL-06 the add-to-cart sheet covers the bar", async ({ browser }) => {
-  // BUG-shell-1, found by this case on its first run (2026-10-28). The product
-  // page's own footer (`.product-details-footer` in
-  // `public/styles/productDetails.css`: `position: fixed; bottom: 0`) does not
-  // make room for the bar, so the bar is drawn over it and a tap on Buy lands
-  // on the Cart tab. Task 5 raised every Tailwind `fixed bottom` bar; this one
-  // is set in a CSS file, so its search missed it. The case fails at "Buy opens
-  // the add-to-cart sheet", and the sheet itself is not reached yet.
-  //
-  // Strict: when the footer is fixed this case passes, Playwright reports that
-  // as a failure, and the fix must remove this line.
-  test.fail(
-    true,
-    "BUG-shell-1: the product page footer sits under the bottom bar, so Buy cannot be tapped",
-  );
   test.setTimeout(3 * 60 * 1000);
   const { context, page, guard } = await openGuest(browser);
 

@@ -718,13 +718,13 @@ and the browser history are real. Every address is under `/sy-en`.
 
 | ID | Case | Spec | What it proves |
 |----|------|------|----------------|
-| SHELL-01 | Home -> Profile -> Home | `shell.scripted.spec.ts:173` | Each tab opens its page (`/sy-en/settings`, then `/sy-en`), and the right tab is lit on each — and only that one |
-| SHELL-02 | Browser back from the settings page | `shell.scripted.spec.ts:216` | Back returns to `/sy-en`, with Home lit |
-| SHELL-03 | A deep link to the cart page, then a reload | `shell.scripted.spec.ts:257` | Both keep `/sy-en/cart`, draw the cart page, and light Cart |
-| SHELL-04 | A product from home, and back | `shell.scripted.spec.ts:305` | The bar shows on the product with no tab lit; back lights Home; `history.scrollRestoration` is still the browser's (`auto`) |
-| SHELL-05 | An old `?cart=true` address | `shell.scripted.spec.ts:361` | It moves to `/sy-en/cart` with no `cart` key left, with Cart lit |
-| SHELL-06 | The add-to-cart sheet covers the bar | `shell.scripted.spec.ts:397` | A tap at the centre of the Cart tab lands in the open sheet, not the bar. **Expected to fail, strict, BUG-shell-1:** the product page footer (`.product-details-footer`, `position: fixed; bottom: 0` in `public/styles/productDetails.css`) sits under the bar, so Buy cannot be tapped and the sheet is never reached |
-| SHELL-07 | A guest presses Chat | `shell.scripted.spec.ts:498` | The sign-in widget opens, and the chat window does not |
+| SHELL-01 | Home -> Profile -> Home | `shell.scripted.spec.ts:181` | Each tab opens its page (`/sy-en/settings`, then `/sy-en`), and the right tab is lit on each — and only that one |
+| SHELL-02 | Browser back from the settings page | `shell.scripted.spec.ts:224` | Back returns to `/sy-en`, with Home lit |
+| SHELL-03 | A deep link to the cart page, then a reload | `shell.scripted.spec.ts:265` | Both keep `/sy-en/cart`, draw the cart page, and light Cart |
+| SHELL-04 | A product from home, and back | `shell.scripted.spec.ts:313` | The bar shows on the product with no tab lit; back lights Home; `history.scrollRestoration` is still the browser's (`auto`); the home page comes back within 150 px of where the shopper left it |
+| SHELL-05 | An old `?cart=true` address | `shell.scripted.spec.ts:395` | It moves to `/sy-en/cart` with no `cart` key left, with Cart lit |
+| SHELL-06 | The add-to-cart sheet covers the bar | `shell.scripted.spec.ts:431` | A tap at the centre of the Cart tab lands in the open sheet, not the bar. It found BUG-shell-1 on its first run (the product page footer sat under the bar, so Buy could not be tapped), fixed in `83f7f09d` |
+| SHELL-07 | A guest presses Chat | `shell.scripted.spec.ts:518` | The sign-in widget opens, and the chat window does not |
 
 ## Findings from the chat cases
 
