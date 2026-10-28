@@ -32,10 +32,16 @@ import { contactRowName } from "components/Chat/chatsFunctions";
  * - Among picks for one new number, the longest name wins.
  * - A new number is sent in its full form, and every number of a picked
  *   contact is imported, not only the first.
+ * - The shopper's own number (`ownPhone`, full form) is never imported.
  *
  * `alreadySaved` holds the saved number of every pick that was saved before.
  */
-const mergeContacts = (saved: any[], picked: any[], region: PhoneRegion) => {
+const mergeContacts = (
+  saved: any[],
+  picked: any[],
+  region: PhoneRegion,
+  ownPhone: string,
+) => {
   const byPhone = new Map<string, { name: string; mobile_phone: string }>();
   // Numbers whose name came from the phone book, not from a saved contact.
   const namedByPick = new Set<string>();
@@ -57,7 +63,7 @@ const mergeContacts = (saved: any[], picked: any[], region: PhoneRegion) => {
     const tels = Array.isArray(c.tel) ? c.tel : [c.tel];
     tels.forEach((tel: string) => {
       const key = canonicalPhone(tel, region);
-      if (!key) return;
+      if (!key || key === ownPhone) return;
       const entry = byPhone.get(key);
       if (entry && savedKeys.has(key)) alreadySaved.add(entry.mobile_phone);
       if (!entry) {
@@ -98,6 +104,8 @@ function ChatContactsUpload({
     country,
   } = useAppStore();
   const region = phoneRegion(userChat?.mobile_phone ?? user?.phone, country);
+  // The shopper's own number, full form. Nobody saves themselves as a contact.
+  const ownPhone = canonicalPhone(userChat?.mobile_phone || user?.phone, region);
   const [isUploading, setIsUploading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [error, setError] = useState<string>("");
@@ -120,6 +128,7 @@ function ChatContactsUpload({
 
   // Combine for validation
   const fullPhoneString = phoneWithDialCode(dialCode, localPhone);
+  const isOwnPhone = !!ownPhone && fullPhoneString === ownPhone;
   const savedContact = existingNormalizedMap.get(fullPhoneString);
   // The row the contact list draws for that person, and the name it shows.
   const conflictingRow = savedContact
@@ -137,7 +146,7 @@ function ChatContactsUpload({
   }, [conflictingRow, showAddForm]);
 
   const handleAddContact = async () => {
-    if (!manualName || !localPhone || conflictingRow) return;
+    if (!manualName || !localPhone || conflictingRow || isOwnPhone) return;
 
     try {
       setError("");
@@ -219,6 +228,7 @@ function ChatContactsUpload({
         ContactsData,
         rawContacts,
         region,
+        ownPhone,
       );
 
       await uploadToServer(finalPayload);
@@ -304,10 +314,15 @@ function ChatContactsUpload({
                 phoneNumber={localPhone}
                 onDialChange={setDialCode}
                 onPhoneChange={(val) => setLocalPhone(sanitizePhone(val))}
-                hasConflict={!!conflictingRow}
+                hasConflict={!!conflictingRow || isOwnPhone}
               />
 
-              {conflictingRow && (
+              {isOwnPhone && (
+                <p className="text-xs mt-1 text-red-600">
+                  {translateFunction("This is your own number")}
+                </p>
+              )}
+              {!isOwnPhone && conflictingRow && (
                 <div className="flex items-center gap-1 mt-1 text-red-600">
                   <p className="text-xs">
                     {translateFunction("Already saved as")} <strong>{conflictingName}</strong>
@@ -321,6 +336,7 @@ function ChatContactsUpload({
               disabled={
                 isUploading ||
                 !!conflictingRow ||
+                isOwnPhone ||
                 !manualName ||
                 !localPhone ||
                 localPhone.length < 6

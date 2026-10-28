@@ -331,3 +331,19 @@ describe("the contacts tab — how the matched row's frame looks", () => {
     expect(css, `the frame's animation "${name}" has no @keyframes`).toContain(`@keyframes ${name}`);
   });
 });
+
+describe("the contacts tab — the shopper's own number saved as a contact", () => {
+  // A tester saved their own number (chat backend row 1247383: user_id 675,
+  // contact_user_id 675). The shopper is a member of every chat, so that row
+  // matched the first chat in the list and was drawn as that chat's partner:
+  // "@@@Sam@@@" showed twice.
+  const me = { id: 70, contact_user_id: String(ME), contact_user: { id: ME }, name: "ظظ", mobile_phone: "0944000001" };
+
+  it("does not draw the shopper's own contact row as a copy of another chat", async () => {
+    const rows = await rowsOf("contacts", "", [me, bilal]);
+    expect(
+      rows,
+      `the own-number contact was drawn as another row; the tab drew ${JSON.stringify(rows)} instead of Bilal's chat once`,
+    ).toEqual(["chat:40"]);
+  });
+});

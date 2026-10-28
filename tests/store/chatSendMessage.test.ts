@@ -303,6 +303,32 @@ describe("chat actions — calls to the chat backend", () => {
     await expect(getMessagesBetweenTwoMessages({ first: 1, second: 2, channel_id: 3 }), "a refused range did not throw to the caller").rejects.toThrow("no range");
   });
 
+  // BUG: the conversation lowers `fetch` before it asks for a page
+  // (`setMessagesPage`), and the loader asks again only while `fetch` is true.
+  // Only a page that loaded (`setPageData`) or going back to the chat list
+  // raised it again. So one failed page — a refused session renewal, a chat
+  // backend error, a dropped connection — left older messages switched off.
+  it("getPage lets the next scroll try again after a page fails to load", async () => {
+    const { useAppStore } = await import("store");
+    const { getPage } = await import("store/chat/actions");
+
+    useAppStore.setState({ fetch: false, setPageData: vi.fn() } as any);
+    fetchData.mockResolvedValueOnce({ success: false, httpStatus: 502, message: "Bad Gateway" });
+    await getPage(3, 10);
+    expect(
+      useAppStore.getState().fetch,
+      "the chat backend refused a page of older messages, and the chat never asked for older messages again",
+    ).toBe(true);
+
+    useAppStore.setState({ fetch: false } as any);
+    fetchData.mockRejectedValueOnce(new TypeError("fetch failed"));
+    await getPage(3, 10);
+    expect(
+      useAppStore.getState().fetch,
+      "the request for a page of older messages never reached the chat backend, and the chat never asked for older messages again",
+    ).toBe(true);
+  });
+
   it("SearchContact searches only with text and stores the results", async () => {
     const { useAppStore } = await import("store");
     const setChatSearchResults = vi.fn();

@@ -24,6 +24,7 @@ const h = vi.hoisted(() => ({
   track: vi.fn(),
   upload: vi.fn(),
   permission: { granted: true },
+  pagerMountedFor: [] as Array<string | null | undefined>,
   dbQueue: Promise.resolve() as Promise<unknown>,
   // Kept from before any test fakes the clock, so the queue below keeps moving.
   realSetTimeout: globalThis.setTimeout.bind(globalThis),
@@ -48,7 +49,21 @@ vi.mock("components/Chat/components/Recorder", () => stub("Recorder"));
 vi.mock("components/Chat/components/ChatHeader", () => stub("ChatHeader"));
 vi.mock("components/Chat/components/ReplyMessage", () => stub("ReplyMessage"));
 vi.mock("components/Chat/components/ChatInfo", () => stub("ChatInfo"));
-vi.mock("components/Chat/components/ChatHistoryElement", () => stub("Observable"));
+// The older-messages loader. It also notes which chat was open each time it was
+// mounted: the real one watches the top of the chat with an
+// IntersectionObserver, and that observer reports only a change. A loader that
+// stays mounted when another chat opens never reports the new chat's top.
+vi.mock("components/Chat/components/ChatHistoryElement", () => ({
+  default: (p: any) => {
+    h.props.Observable = p;
+    React.useEffect(() => {
+      h.pagerMountedFor.push(
+        document.querySelector('[data-pw="chat-conversation"]')?.getAttribute("data-chat-id"),
+      );
+    }, []);
+    return <div data-testid="Observable" />;
+  },
+}));
 vi.mock("components/Chat/components/CameraComponent", () => stub("Camera"));
 vi.mock("components/Chat/components/ChatSearch", () => stub("ChatSearch"));
 vi.mock("components/Chat/components/ChatImagePreviewBeforeSend", () => stub("ImagePreview"));
@@ -248,6 +263,7 @@ function cancelButtonOn(mid: string) {
 
 beforeEach(() => {
   h.props = {};
+  h.pagerMountedFor = [];
   h.dbQueue = Promise.resolve();
   [h.sendMessageApi, h.getPage, h.getBetween, h.getChatDetails, h.makeVideoCall, h.makeVoiceCall, h.showError, h.logError, h.track, h.upload, h.fb.push, h.fb.set, h.fb.ref].forEach((f) => f.mockClear());
   h.upload.mockResolvedValue({ path: "/up/file", name: "file.bin" });
@@ -348,6 +364,51 @@ describe("ConversationContainer — the message list", () => {
     expect(h.getPage, "older messages were not asked for once").toHaveBeenCalledTimes(1);
     expect(h.getPage, "the page was not asked from the oldest message").toHaveBeenCalledWith(7, 10);
     expect(spies.setMessagesPage, "the paging id was not stored").toHaveBeenCalledWith(10);
+  });
+
+  // BUG: the "in flight" lock was set and never cleared (its reset sat in an
+  // effect that was commented out). The chat window keeps this container
+  // mounted while it is open, so after one page of older messages no chat
+  // could load another one until the chat window was closed.
+  it("loads the next page, and another chat's first page, once a page has landed", async () => {
+    const { store } = await mount({ chat: chatWith([msg(10), msg(11)]) });
+    await act(async () => {
+      h.props.Observable.getNext();
+    });
+    expect(h.getPage, "the first page of older messages was not asked for").toHaveBeenCalledWith(7, 10);
+
+    // The page landed: message 5 is now the oldest one held.
+    const paged = chatWith([msg(5, { created_at: "2030-01-15T05:00:00" }), msg(10), msg(11)]);
+    act(() => store.setState({ activeChat: paged, data: [paged] } as any));
+    await act(async () => {
+      h.props.Observable.getNext();
+    });
+    expect(h.getPage, "after one page had landed, the next page of the same chat was never asked for").toHaveBeenCalledWith(7, 5);
+
+    // Another chat opens in the same chat window.
+    const other = chatWith([msg(30), msg(31)], { id: 8 });
+    act(() => store.setState({ activeChat: other, data: [paged, other] } as any));
+    await act(async () => {
+      h.props.Observable.getNext();
+    });
+    expect(h.getPage, "after a page had landed in one chat, another chat never asked for its older messages").toHaveBeenCalledWith(8, 30);
+  });
+
+  // BUG: the loader only hears from the browser when the top of the chat comes
+  // into view or leaves it. On desktop a chat can open straight from another
+  // one (the new-chats column beside the chat window, a toast). The loader
+  // stayed mounted, so when the top of the new chat was already on screen — a
+  // short first page on a tall desktop window — nothing was ever reported, and
+  // the new chat never loaded its older messages.
+  it("gives a chat opened straight from another chat its own loader", async () => {
+    const { store } = await mount({ chat: chatWith([msg(10)]) });
+    expect(h.pagerMountedFor, "chat 7 got no loader").toContain("7");
+    const other = chatWith([msg(30)], { id: 8 });
+    act(() => store.setState({ activeChat: other, data: [other] } as any));
+    expect(
+      h.pagerMountedFor,
+      "chat 8 opened straight from chat 7 kept chat 7's loader, so the browser never reports chat 8's top and it never loads older messages",
+    ).toContain("8");
   });
 
   it("does not page a chat with no messages, nor a draft chat", async () => {

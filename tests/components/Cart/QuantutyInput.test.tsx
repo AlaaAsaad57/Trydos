@@ -296,6 +296,41 @@ describe("changing the quantity of a cart row", () => {
       "pressing minus on a row of 2 asked the core backend for the wrong quantity",
     ).toMatchObject({ cart_id: cartRow.id, qty: 1 });
   });
+
+  // The showed_price contract: /cart/update carries the price of ONE piece the
+  // shopper sees on the row, and the core backend replaces the saved value.
+  it("plus sends the price of one piece the row shows (the offer price)", async () => {
+    await openTheCartRowAt(2);
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0]?.showed_price,
+      "pressing plus did not send the row's shown price of one piece (offer price 80) to /cart/update",
+    ).toBe(80);
+  });
+
+  it("minus sends the price of one piece the row shows (the offer price)", async () => {
+    await openTheCartRowAt(2);
+
+    await userEvent.click(mustFind("MinusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0]?.showed_price,
+      "pressing minus did not send the row's shown price of one piece (offer price 80) to /cart/update",
+    ).toBe(80);
+  });
+
+  it("plus on a luck row sends the luck price the row shows", async () => {
+    await openTheCartRowAt(2, () => {}, { product: { is_luck: true, luck_price: 35 } });
+
+    await userEvent.click(mustFind("PlusIcon_CartPage"));
+
+    expect(
+      UpdateCart.mock.calls[0]?.[0]?.showed_price,
+      "a luck row shows its luck price (35), and pressing plus sent another price to /cart/update",
+    ).toBe(35);
+  });
 });
 
 describe("which controls a cart row draws", () => {

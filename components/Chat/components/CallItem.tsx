@@ -3,7 +3,12 @@ import { getCallDirection, getCallType } from "../chatsFunctions";
 import { getUserChat } from "utils/functions";
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
+import { useAppStore } from "store";
 function CallItem({ photo, name, date, type, Delete, duration }) {
+  // Arabic and Kurdish read right to left. The row mirrors the same way as a
+  // chat row (ChatItem): photo on the right, date and bin on the left.
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
   const calculate = (duration) => {
     // Ensure duration is a positive number
     const totalSeconds = Math.max(0, Math.floor(duration));
@@ -25,8 +30,15 @@ function CallItem({ photo, name, date, type, Delete, duration }) {
     type.duration,
   );
   return (
-    <div className={`call-conversation-item ${direction} call-item-row`}>
-      <span className="options-icon" onClick={() => Delete()}>
+    <div
+      className={`call-conversation-item ${direction} call-item-row ${
+        isRtl ? "flex-row-reverse" : ""
+      }`}
+    >
+      <span
+        className={`options-icon ${isRtl ? "left-[10px] right-[initial]" : ""}`}
+        onClick={() => Delete()}
+      >
         <img src="/icons/chat/delete.svg" className="w-[15px] h-[15px]" />
       </span>
       <Image
@@ -36,7 +48,9 @@ function CallItem({ photo, name, date, type, Delete, duration }) {
         alt="user-photo"
         src={photo ? GetImageUrl(photo) : ProfilePicture.src}
       />
-      <div className="call-info chat-info">
+      <div
+        className={`call-info chat-info ${isRtl ? "mr-[20px] dir-rtl" : ""}`}
+      >
         <div className="call-name chat-name">{name}</div>
         <div className="call-type">
           {getCallType(type)}
@@ -48,7 +62,11 @@ function CallItem({ photo, name, date, type, Delete, duration }) {
           )}
         </div>
       </div>
-      <div className="chat-date call-date">
+      <div
+        className={`chat-date call-date ${
+          isRtl ? "left-[25px] right-[initial]" : ""
+        }`}
+      >
         <div className="date-clock">{date}</div>
       </div>
     </div>

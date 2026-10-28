@@ -3084,6 +3084,7 @@ const translations = {
   "Smart, Fast & Rewarding": "ذكي وسريع ومُجزٍ",
   "Invest, earn points, and enjoy seamless one-touch checkout with total safety.": "استثمر، واكسب النقاط، واستمتع بدفع سلس بلمسة واحدة وبأمان تام.",
   "Welcome !": "أهلاً بك !",
+  "This is your own number": "هذا رقمك الخاص",
 };
 
 export default translations;

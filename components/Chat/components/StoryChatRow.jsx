@@ -1,10 +1,15 @@
 import pngErr from "public/images/error.png";
 import Image from "next/image";
 import StoryServiceClass from "services/story";
+import { useAppStore } from "store";
 function StoryChatRow({ story, index, viewedStory, stories, select }) {
+  // Arabic and Kurdish read right to left. The row mirrors the same way as a
+  // chat row (ChatItem): story circle on the right, name on its left.
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div
-      className="call-conversation-item"
+      className={`call-conversation-item ${isRtl ? "flex-row-reverse" : ""}`}
       style={{ cursor: "pointer" }}
       onClick={() => select(StoryServiceClass.configureStory(story))}
     >
@@ -32,7 +37,10 @@ function StoryChatRow({ story, index, viewedStory, stories, select }) {
           viewedStory.full_video_path
         )}
       />
-      <div className="story-name text-[#1d1d1d]" style={{ marginLeft: "5px" }}>
+      <div
+        className={`story-name text-[#1d1d1d] ${isRtl ? "dir-rtl" : ""}`}
+        style={isRtl ? { marginRight: "5px" } : { marginLeft: "5px" }}
+      >
         {StoryServiceClass.authorName(story)}
       </div>
     </div>

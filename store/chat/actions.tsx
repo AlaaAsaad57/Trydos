@@ -263,6 +263,13 @@ export async function getPage(channel, mid) {
     }
     setPageData({ mes: response.data, ch: channel_id });
   } catch (error) {
+    // The conversation set `fetch` to false before it asked for this page
+    // (`setMessagesPage`), and its loader asks again only while `fetch` is
+    // true. Only `setPageData` and going back to the chat list set it back.
+    // So one failed page switched older messages off for this chat, and for
+    // any chat opened from it directly. Set it back here, so the next scroll
+    // to the top tries again.
+    useAppStore.setState({ fetch: true });
     LogError({
       scenario: "Error in getMessagesBetweenMessage in  chat/actions",
       error: error instanceof Error ? error.message : String(error),

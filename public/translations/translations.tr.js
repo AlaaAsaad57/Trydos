@@ -3117,6 +3117,7 @@ const translations = {
   "Smart, Fast & Rewarding": "Akıllı, Hızlı ve Kazandıran",
   "Invest, earn points, and enjoy seamless one-touch checkout with total safety.": "Yatırım yap, puan kazan ve tek dokunuşla sorunsuz ödemenin keyfini tam güvenlikle çıkar.",
   "Welcome !": "Hoş geldin !",
+  "This is your own number": "Bu sizin kendi numaranız",
 };
 
 export default translations;
