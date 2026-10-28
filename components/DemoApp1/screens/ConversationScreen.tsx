@@ -1,7 +1,7 @@
 "use client";
 
 import type { DemoKey } from "../../DemoApp/demoKeys";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, animate, motion, useMotionValue, type MotionValue } from "framer-motion";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import { CHAT, CHAT_COUNTS, CHAT_PHOTOS, CONTACT } from "../../DemoApp/demoChat";
@@ -23,7 +23,7 @@ import { ChevronDownIcon, ChevronUpIcon, CloseIcon } from "../chat/chatIcons";
 import { useDemoChat } from "../../DemoApp/demoChatState";
 import { useDemoNav } from "../Demo1Shell";
 import { C, SAFE_BOTTOM, SAFE_TOP, SF_ROUNDED, UNDER_BAR, WINDOW_COVER, sfTop, textTop } from "../demo1Layout";
-import { Icon, Layer, ScreenPage, Stroke, Txt } from "../ui";
+import { Icon, Layer, ScreenPage, Stroke, Txt, useFollowTopTint } from "../ui";
 import Composer, { type ComposerContext } from "../chat/Composer";
 import ForwardSheet from "../chat/ForwardSheet";
 import MessageMenu, {
@@ -104,6 +104,32 @@ const IOS =
   (/iPhone|iPad|iPod/.test(navigator.userAgent) ||
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
 
+/**
+ * Fades the wash to `on`. Safari's top area takes the wash's grey on the
+ * iPhone (MENU_DIM_TINT), as dark as the wash on every frame.
+ */
+function WashFade({
+  dim,
+  on,
+  onGone,
+}: {
+  dim: MotionValue<number>;
+  on: boolean;
+  /** Runs once the wash has faded out. */
+  onGone: () => void;
+}) {
+  useFollowTopTint(IOS ? MENU_DIM_TINT : undefined, dim);
+  useEffect(() => {
+    const fade = animate(dim, on ? 1 : 0, {
+      duration: MENU_FADE,
+      ease: "easeOut",
+      onComplete: on ? undefined : onGone,
+    });
+    return () => fade.stop();
+  }, [on, dim]);
+  return null;
+}
+
 export default function ConversationScreen() {
   const { t, navigate, back, locale } = useDemoNav();
   const {
@@ -127,6 +153,12 @@ export default function ConversationScreen() {
 
   // The message above the blur: it stays up until the blur has faded out.
   const [lifted, setLifted] = useState<string | null>(null);
+  // How dark the wash is, 0 to 1. The wash over the page, the wash under
+  // Safari's bar and Safari's top area all follow this one value, so they
+  // fade as one piece (WashFade runs the fade). Each with a fade of its own,
+  // the part under the bar and the top showed fully dark at once while the
+  // page was still fading in.
+  const dim = useMotionValue(0);
   // How far the held message is moved so it and its menu are on the screen.
   const [shift, setShift] = useState(0);
   const [context, setContext] = useState<ComposerContext | null>(null);
@@ -848,25 +880,19 @@ export default function ConversationScreen() {
 
   const bottom = (
     <>
-      <AnimatePresence onExitComplete={() => setLifted(null)}>
-        {menu && (
-          <motion.div
-            key="backdrop"
-            data-pw="demo-chat-menu-backdrop"
-            className="absolute inset-0 z-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: MENU_FADE, ease: "easeOut" }}
-            style={{
-              background: MENU_DIM,
-              backdropFilter: `blur(${MENU_BLUR}px)`,
-              WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
-            }}
-            onClick={close}
-          />
-        )}
-      </AnimatePresence>
+      {lifted && (
+        <motion.div
+          data-pw="demo-chat-menu-backdrop"
+          className="absolute inset-0 z-10"
+          style={{
+            opacity: dim,
+            background: MENU_DIM,
+            backdropFilter: `blur(${MENU_BLUR}px)`,
+            WebkitBackdropFilter: `blur(${MENU_BLUR}px)`,
+          }}
+          onClick={close}
+        />
+      )}
       {/* The same wash under Safari's bottom bar, past the screen's end (a
           sheet in the wallet does the same: see UNDER_BAR). Kept mounted while
           the menu fades, then it goes with the row's lift. */}
@@ -875,14 +901,13 @@ export default function ConversationScreen() {
           z={1}
           testId="demo-chat-menu-backdrop-bar"
           className="pointer-events-none"
-          tint={menu && IOS ? MENU_DIM_TINT : undefined}
         >
+          {/* The message goes back under the wash once the wash is gone. */}
+          <WashFade dim={dim} on={!!menu} onGone={() => setLifted(null)} />
           <motion.div
             aria-hidden="true"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: menu ? 1 : 0 }}
-            transition={{ duration: MENU_FADE, ease: "easeOut" }}
             style={{
+              opacity: dim,
               position: "absolute",
               top: "100%",
               left: WINDOW_COVER.left,

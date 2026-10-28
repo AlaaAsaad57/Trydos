@@ -36,8 +36,15 @@ export type TintHome = {
   rest: string | null;
 };
 
-/** The colours of the open layers; the last one opened is on top. */
-const held: { color: string }[] = [];
+/**
+ * The colours of the open layers; the last one opened is on top. `null`
+ * hides the strip. `follow`: the colour follows a fade run in script, so the
+ * strip has no fade of its own while it is on top (see followTopTint).
+ */
+const held: { color: string | null; follow?: boolean }[] = [];
+
+/** The same 0.25 s as the backdrops, so the bar fades with the page. */
+const FADE = "background-color 0.25s ease, visibility 0.25s";
 
 function paint(home: TintHome) {
   const host = home.host();
@@ -60,13 +67,14 @@ function paint(home: TintHome) {
       zIndex: "2147483647",
       visibility: "hidden",
       backgroundColor: "transparent",
-      // The same 0.25 s as the backdrops, so the bar fades with the page.
       // `visibility` stays visible for the whole fade, both ways.
-      transition: "background-color 0.25s ease, visibility 0.25s",
+      transition: FADE,
     } satisfies Partial<CSSStyleDeclaration>);
     host.appendChild(strip);
   }
-  const color = held.at(-1)?.color ?? home.rest;
+  const top = held.at(-1);
+  strip.style.transition = top?.follow ? "none" : FADE;
+  const color = top ? top.color : home.rest;
   if (color) {
     strip.style.visibility = "visible";
     strip.style.backgroundColor = color;
@@ -88,5 +96,31 @@ export function holdTopTint(color: string, home: TintHome): () => void {
     const at = held.indexOf(entry);
     if (at !== -1) held.splice(at, 1);
     paint(home);
+  };
+}
+
+/**
+ * The top for a layer whose page fades in script (the chat's wash, a framer
+ * motion value). A CSS fade starts on the next frame the browser draws, and
+ * the frame a menu opens on is a slow one, so the top came in late, as a
+ * piece of its own. Here the strip has no fade of its own: call `set` on
+ * every frame of the page's fade with how far it is (0 to 1), and `release`
+ * when the layer closes. `color` is an `rgb(r, g, b)` colour.
+ */
+export function followTopTint(color: string, home: TintHome) {
+  const [r, g, b] = (color.match(/[\d.]+/g) ?? []).map(Number);
+  const entry: (typeof held)[number] = { color: null, follow: true };
+  held.push(entry);
+  paint(home);
+  return {
+    set(amount: number) {
+      entry.color = amount > 0 ? `rgba(${r}, ${g}, ${b}, ${amount})` : null;
+      if (held.at(-1) === entry) paint(home);
+    },
+    release() {
+      const at = held.indexOf(entry);
+      if (at !== -1) held.splice(at, 1);
+      paint(home);
+    },
   };
 }
