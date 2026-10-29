@@ -536,6 +536,21 @@ describe("Stories section — the link on a new story", () => {
       "a story does not need a link, so an empty field is not an error",
     ).not.toBeInTheDocument();
   });
+
+  it("refuses a correct link over 200 characters and says it is too long, not invalid", async () => {
+    // "https://shop.example.com/" is 25 characters; the rest pads to the length.
+    const linkOf = (length: number) => `https://shop.example.com/${"a".repeat(length - 25)}`;
+    const field = await openUploadAndGetLinkField();
+    fireEvent.change(field, { target: { value: linkOf(201) } });
+    expect((field as HTMLInputElement).value, "the link field cut a long link without saying so").toBe(linkOf(201));
+    expect(screen.queryByText(/too long/i), "a 201-character link was not called too long").toBeInTheDocument();
+    expect(
+      screen.queryByText("Please Enter A Valid URL (e.g., example.com Or www.example.com)"),
+      "a correct but long link was called invalid",
+    ).not.toBeInTheDocument();
+    fireEvent.change(field, { target: { value: linkOf(200) } });
+    expect(screen.queryByText(/too long/i), "a 200-character link was called too long").not.toBeInTheDocument();
+  });
 });
 
 describe("Stories section — the permission gates", () => {

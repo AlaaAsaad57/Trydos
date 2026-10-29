@@ -439,6 +439,29 @@ describe("AddStoryWidget — choosing, previewing and uploading", () => {
     expect(shareButton()!.disabled, "a full http link was refused").toBe(false);
   });
 
+  it("refuses a correct link over 200 characters and says it is too long, not invalid", async () => {
+    // "https://shop.example.com/" is 25 characters; the rest pads to the length.
+    const linkOf = (length: number) => `https://shop.example.com/${"a".repeat(length - 25)}`;
+    render(<AddStoryWidget />);
+    await pickImage();
+    fireEvent.change(linkInput(), { target: { value: linkOf(201) } });
+    expect(linkInput().value, "the link field cut a long link without saying so").toBe(linkOf(201));
+    expect(screen.queryByText(/too long/i), "a 201-character link was not called too long").toBeInTheDocument();
+    expect(
+      screen.queryByText("Please enter a valid URL (e.g., example.com or www.example.com)"),
+      "a correct but long link was called invalid",
+    ).toBeNull();
+    expect(shareButton()!.disabled, "Share stayed on with a 201-character link").toBe(true);
+    fireEvent.change(linkInput(), { target: { value: linkOf(200) } });
+    expect(screen.queryByText(/too long/i), "a 200-character link was called too long").toBeNull();
+    expect(shareButton()!.disabled, "a 200-character link was refused").toBe(false);
+    fireEvent.change(linkInput(), { target: { value: `https://a b.com/${"a".repeat(200)}` } });
+    expect(
+      screen.getByText("Please enter a valid URL (e.g., example.com or www.example.com)"),
+      "a link that is both bad and long was not called invalid",
+    ).toBeInTheDocument();
+  });
+
   it("opens the gallery picker from its option", async () => {
     render(<AddStoryWidget />);
     const input = document.querySelector<HTMLInputElement>("#stories-input-holder")!;

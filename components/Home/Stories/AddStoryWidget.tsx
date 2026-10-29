@@ -114,6 +114,8 @@ const isValidUrl = (urlString: string) => {
   }
 };
 
+const MAX_LINK_LENGTH = 200;
+
 // New: Validate link for host and coupon
 const validateLink = (urlString: string) => {
   if (!urlString) return { valid: true, error: "" };
@@ -140,6 +142,14 @@ const validateLink = (urlString: string) => {
     }
 
     const parsed = new URL(url);
+
+    // Counted with the https:// we add, because that is the link we send.
+    if (url.length > MAX_LINK_LENGTH) {
+      return {
+        valid: false,
+        error: translateFunction("This link is too long (max 200 characters)"),
+      };
+    }
 
     return { valid: true, error: "" };
   } catch {
@@ -513,8 +523,9 @@ export default function AddStoryWidget() {
   };
 
   const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Always sanitize the value before setting state
-    const sanitized = pollinateInput(e.target.value);
+    // Always sanitize the value before setting state. Not cut to a length:
+    // validateLink tells the shopper when the link is too long.
+    const sanitized = pollinateInput(e.target.value, Infinity);
     setLink(sanitized);
     const { valid, error } = validateLink(sanitized);
     setLinkError(error);
@@ -662,7 +673,7 @@ export default function AddStoryWidget() {
                   onChange={handleLinkChange}
                   onBlur={() => {
                     // On blur, re-sanitize and update state in case of paste or autofill
-                    const sanitized = pollinateInput(link);
+                    const sanitized = pollinateInput(link, Infinity);
                     if (link !== sanitized) setLink(sanitized);
                     if (sanitized?.length > 0) {
                       // Sendevent({

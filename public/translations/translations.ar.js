@@ -303,6 +303,7 @@ const translations = {
   "are allowed.": "مسموح بها.",
   "Please enter a valid URL (e.g., example.com or www.example.com)":
     "الرجاء إدخال عنوان URL صالح (مثال: example.com أو www.example.com)",
+  "This link is too long (max 200 characters)": "هذا الرابط طويل جداً (200 حرف كحد أقصى)",
   "Only links from": "فقط الروابط من",
   "Yes, I Agree": "نعم، أوافق",
   "We Will Ignore The First Size And Send Your Order With The New Size.":

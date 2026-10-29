@@ -62,6 +62,7 @@ interface LinkedProduct {
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_VIDEO_DURATION_SECONDS = 60;
+const MAX_LINK_LENGTH = 200;
 
 const validateLink = (url: string): { valid: boolean; error: string } => {
   if (!url) return { valid: true, error: "" };
@@ -72,6 +73,13 @@ const validateLink = (url: string): { valid: boolean; error: string } => {
         : `https://${url}`;
     if (normalized.split(".").length < 2) throw new Error();
     new URL(normalized);
+    // Counted with the https:// we add, because that is the link we send.
+    if (normalized.length > MAX_LINK_LENGTH) {
+      return {
+        valid: false,
+        error: translateFunction("This link is too long (max 200 characters)"),
+      };
+    }
     return { valid: true, error: "" };
   } catch {
     return {
@@ -470,7 +478,8 @@ function UploadStoryModal({
   };
 
   const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const sanitized = pollinateInput(e.target.value);
+    // Not cut to a length: validateLink tells the seller when it is too long.
+    const sanitized = pollinateInput(e.target.value, Infinity);
     setLink(sanitized);
     setLinkError(validateLink(sanitized).error);
   };
@@ -649,7 +658,7 @@ function UploadStoryModal({
                       value={link}
                       onChange={handleLinkChange}
                       onBlur={() => {
-                        const sanitized = pollinateInput(link);
+                        const sanitized = pollinateInput(link, Infinity);
                         if (link !== sanitized) setLink(sanitized);
                       }}
                       placeholder={translateFunction("Add link...")}

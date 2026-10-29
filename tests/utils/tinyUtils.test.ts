@@ -412,6 +412,11 @@ describe("cleaning typed input (pollinateInput)", () => {
     expect(pollinateInput("a".repeat(200))).toHaveLength(90);
   });
 
+  it("cuts at the length the caller gives, and not at all for Infinity", () => {
+    expect(pollinateInput("a".repeat(200), 150)).toHaveLength(150);
+    expect(pollinateInput("a".repeat(300), Infinity)).toHaveLength(300);
+  });
+
   it("leaves ordinary words alone", () => {
     expect(pollinateInput("blue summer dress")).toBe("blue summer dress");
   });
