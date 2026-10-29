@@ -16,9 +16,8 @@
 export const DEMO_KEYS = [
   "Hide menu",
   "Device and browser info",
-  "Change page colour",
-  "Show test pictures",
-  "Dark keyboard",
+  "Top bar colour",
+  "Reset top bar colour",
   "Main",
   "Home",
   "Search",

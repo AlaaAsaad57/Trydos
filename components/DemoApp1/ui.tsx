@@ -15,7 +15,6 @@ import { XD_ICON_SIZE, type XdIconName } from "../DemoApp/xdIcons";
 import type { DemoKey } from "../DemoApp/demoKeys";
 import { Box, Icon, Txt, type Weight } from "../DemoApp/ui";
 import { followTopTint, holdTopTint, type TintHome } from "../DemoApp/topTint";
-import { useDemoDebug } from "../DemoApp/demoDebug";
 import {
   BANNER,
   BODY_Y,
@@ -578,16 +577,14 @@ export function ScreenPage({
   bottom?: React.ReactNode;
   testId?: string;
 }) {
-  // The debug page colour (demoDebug.tsx) wins over the design's.
-  const page = useDemoDebug().color ?? bg;
-  usePageColor(page);
+  usePageColor(bg);
   const visual = useVisualHeight(scrollBody);
   return (
     <div
       data-pw={testId}
       className="relative flex flex-col w-full font-quicksand"
       style={{
-        background: page,
+        background: bg,
         minHeight: scrollBody ? undefined : "100dvh",
         height: scrollBody ? visual ?? "100dvh" : undefined,
       }}
@@ -1116,8 +1113,6 @@ export function Sheet({
   const touch = useIsTouchDevice();
   const grip = useDragControls();
   const rest = lower;
-  // The debug page colour (demoDebug.tsx) paints the sheet too.
-  const paper = useDemoDebug().color ?? C.white;
   return (
     <AnimatePresence>
       {open && (
@@ -1152,7 +1147,7 @@ export function Sheet({
                   ? { top: top(y) }
                   : { height: DESIGN_H - y + UNDER_BAR }),
                 bottom: -UNDER_BAR,
-                background: paper,
+                background: C.white,
                 borderRadius: `${radius}px ${radius}px 0 0`,
               }}
               initial={{ y: "100%" }}

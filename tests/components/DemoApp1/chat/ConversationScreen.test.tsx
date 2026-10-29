@@ -1,6 +1,6 @@
 import React from "react";
-import { act, fireEvent, render, waitFor } from "@testing-library/react";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { MotionGlobalConfig, frameData } from "framer-motion";
 
 // The chat reads the iPhone from the user agent once, when it loads: Safari's
@@ -22,6 +22,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("NewLoginDesign/DemoDeviceInfoModal", () => ({ default: () => null }));
 
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
+import { resetDemoDebug } from "components/DemoApp/demoDebug";
 
 // jsdom has no ResizeObserver and no Element.scrollTo; the chat opens at its
 // end with scrollTo, and nothing here changes size.
@@ -98,6 +99,9 @@ async function holdAndWatch(done: (page: number) => boolean) {
   return frames;
 }
 
+/** Takes the shell off the page, so the next render is the only one. The debug state stays. */
+const cleanupShell = () => cleanup();
+
 const near = (a: number, b: number) => Math.abs(a - b) < 0.01;
 
 describe("ConversationScreen — the wash behind a held message is one piece", () => {
@@ -122,6 +126,44 @@ describe("ConversationScreen — the wash behind a held message is one piece", (
     expect(
       top()?.style.backgroundColor,
       "Safari's top area did not end on the wash's grey",
+    ).toMatch(/^rgba?\(179, 179, 179(, 1)?\)$/);
+  });
+});
+
+describe("ConversationScreen — the debug colour picker sets Safari's top area", () => {
+  afterEach(() => resetDemoDebug());
+
+  it("a colour picked in the debug menu is the colour Safari's top area ends on", async () => {
+    render(<Demo1Shell dictionary={{}}>{null}</Demo1Shell>);
+    const picker = document.querySelector<HTMLInputElement>('[data-pw="demo-debug-top-tint"]');
+    expect(picker, "the debug menu shows no colour picker for the top bar").not.toBeNull();
+    fireEvent.input(picker!, { target: { value: "#204060" } });
+    fireEvent.change(picker!, { target: { value: "#204060" } });
+    cleanupShell();
+    await holdAndWatch((p) => p === 1);
+    expect(
+      top()?.style.backgroundColor,
+      "Safari's top area did not end on the colour picked in the debug menu",
+    ).toMatch(/^rgba?\(32, 64, 96(, 1)?\)$/);
+  });
+
+  it("the reset button gives the top area the wash's own grey back", async () => {
+    render(<Demo1Shell dictionary={{}}>{null}</Demo1Shell>);
+    const picker = document.querySelector<HTMLInputElement>('[data-pw="demo-debug-top-tint"]');
+    expect(picker, "the debug menu shows no colour picker for the top bar").not.toBeNull();
+    fireEvent.change(picker!, { target: { value: "#204060" } });
+    const reset = document.querySelector<HTMLButtonElement>('[data-pw="demo-debug-top-tint-reset"]');
+    expect(reset, "a picked top colour shows no reset button").not.toBeNull();
+    fireEvent.click(reset!);
+    expect(
+      document.querySelector('[data-pw="demo-debug-top-tint-reset"]'),
+      "the reset button stayed after the colour was reset",
+    ).toBeNull();
+    cleanupShell();
+    await holdAndWatch((p) => p === 1);
+    expect(
+      top()?.style.backgroundColor,
+      "Safari's top area did not go back to the wash's grey after the reset",
     ).toMatch(/^rgba?\(179, 179, 179(, 1)?\)$/);
   });
 });

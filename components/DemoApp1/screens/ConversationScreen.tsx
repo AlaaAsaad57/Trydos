@@ -21,6 +21,7 @@ import ReminderSheet from "../chat/ReminderSheet";
 import ReactionSheet from "../chat/ReactionSheet";
 import { ChevronDownIcon, ChevronUpIcon, CloseIcon } from "../chat/chatIcons";
 import { useDemoChat } from "../../DemoApp/demoChatState";
+import { rgbOf, useDemoDebug } from "../../DemoApp/demoDebug";
 import { useDemoNav } from "../Demo1Shell";
 import { C, SAFE_BOTTOM, SAFE_TOP, SF_ROUNDED, UNDER_BAR, WINDOW_COVER, sfTop, textTop } from "../demo1Layout";
 import { Icon, Layer, ScreenPage, Stroke, Txt, useFollowTopTint } from "../ui";
@@ -106,7 +107,8 @@ const IOS =
 
 /**
  * Fades the wash to `on`. Safari's top area takes the wash's grey on the
- * iPhone (MENU_DIM_TINT), as dark as the wash on every frame.
+ * iPhone (MENU_DIM_TINT), as dark as the wash on every frame. The debug
+ * colour picker (demoDebug.tsx) can set another colour for it.
  */
 function WashFade({
   dim,
@@ -118,7 +120,8 @@ function WashFade({
   /** Runs once the wash has faded out. */
   onGone: () => void;
 }) {
-  useFollowTopTint(IOS ? MENU_DIM_TINT : undefined, dim);
+  const { topTint } = useDemoDebug();
+  useFollowTopTint(IOS ? (topTint ? rgbOf(topTint) : MENU_DIM_TINT) : undefined, dim);
   useEffect(() => {
     const fade = animate(dim, on ? 1 : 0, {
       duration: MENU_FADE,
