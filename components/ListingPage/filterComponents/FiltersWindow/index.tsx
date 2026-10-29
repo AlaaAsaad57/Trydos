@@ -443,7 +443,7 @@ const FiltersWindowUI = ({
                 )}
               </div>
               <div className="price-min-max flex-row z-20">
-                {priceRange?.length && priceRange?.[0] >= 0 && (
+                {priceRange?.length > 0 && priceRange?.[0] >= 0 && (
                   <div className="price-min">
                     {translateFunction("Min")}{" "}
                     {RoundPrice({

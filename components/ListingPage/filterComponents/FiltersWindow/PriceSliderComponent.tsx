@@ -42,7 +42,9 @@ export function PriceSliderComponent({
   const getPercent = (value: number) => {
     const range = cleanMax - cleanMin;
     if (range === 0) return 0;
-    return ((value - cleanMin) / range) * 100;
+    // Clamp: after a re-fetch the chosen band can be wider than the new bounds,
+    // and a label past the ruler makes the whole filter panel scroll sideways.
+    return Math.min(100, Math.max(0, ((value - cleanMin) / range) * 100));
   };
 
   useEffect(() => {

@@ -120,4 +120,39 @@ describe("ChatInfo — the layout on a phone", () => {
     expect(gap, "the media counts have no gap, so each number touches its icon").toBeDefined();
     expect(parseFloat(gap!), `the media counts' gap is "${gap}", so each number touches its icon`).toBeGreaterThan(0);
   });
+
+  // On a phone the chat screen keeps its bottom 50 px free, because the
+  // browser's bottom bar covers that strip (public/styles/ChatWindow.css,
+  // the 780 px block). The drawer is absolute and covers the whole screen,
+  // that strip too. With no padding of its own, a full scroll left the last
+  // row (Delete Chat / Block) inside the strip, under the browser bar.
+  it("on a phone, scrolls the last row clear of the strip the browser bar covers", () => {
+    const phoneCss = readFileSync(path.resolve(process.cwd(), "public/styles/ChatWindow.css"), "utf8").replace(
+      /\/\*[\s\S]*?\*\//g,
+      "",
+    );
+    const start = phoneCss.indexOf("@media screen and (max-width: 780px)");
+    expect(start, "ChatWindow.css has no 780 px phone block").toBeGreaterThan(-1);
+    let depth = 0;
+    let end = phoneCss.indexOf("{", start);
+    do {
+      if (phoneCss[end] === "{") depth++;
+      if (phoneCss[end] === "}") depth--;
+      end++;
+    } while (depth > 0);
+    const phone = phoneCss.slice(phoneCss.indexOf("{", start) + 1, end - 1);
+    const phoneRule = (selector: string) =>
+      phone
+        .split("}")
+        .map((chunk) => chunk.split("{"))
+        .find(([sel]) => sel.trim() === selector)?.[1] ?? "";
+
+    const strip = parseFloat(value(phoneRule(".chat-screen"), "padding-bottom") ?? "");
+    expect(strip, "the phone block no longer gives .chat-screen a bottom padding to compare with").toBeGreaterThan(0);
+    const room = value(phoneRule(".chat-user-info-container"), "padding-bottom");
+    expect(
+      parseFloat(room ?? "0"),
+      `the drawer's bottom padding on a phone is "${room ?? "none"}", not more than the ${strip}px the browser bar covers, so the last row stays under the bar`,
+    ).toBeGreaterThan(strip);
+  });
 });

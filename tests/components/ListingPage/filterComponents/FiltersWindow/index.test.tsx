@@ -448,6 +448,16 @@ describe("the filter window", () => {
   });
 
   describe("the price section", () => {
+    it("shows no stray text above the slider when no band is chosen", async () => {
+      await renderWindow();
+
+      const minMaxRow = document.querySelector(".price-min-max");
+      expect(
+        minMaxRow?.textContent,
+        `with no band chosen the Min / Max line has nothing to say — got "${minMaxRow?.textContent}" (a bare "0" is the length of the empty band, printed by React)`,
+      ).toBe("");
+    });
+
     it("clears only the price band when its cross is tapped", async () => {
       await renderWindow({ initialFilters: { prices: [10, 50], brands: ["nike"] } });
 

@@ -1059,6 +1059,36 @@ svg.redwave g g path {
   padding-left: 24px !important;
 }
 
+/* A swipe moves a sent bubble 18px right and shows its dates (about 41px
+   wide, 8px from the bubble) on its left. Under 400px a 340px bubble leaves
+   too little room there, so the dates were cut, or the bubble was pushed past
+   the right edge. Here the bubble keeps 60px free on its left: 20px of list
+   padding, then the dates. The player inside shrinks with the bubble. */
+@media screen and (max-width: 399px) {
+  .audio-body {
+    width: calc(100vw - 60px);
+  }
+
+  .audio-body .audio-message {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .audio-body .player-cont {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+  }
+
+  .audio-body .player-line {
+    width: 100%;
+  }
+
+  .audio-body .wave-absolute {
+    right: 0px;
+  }
+}
+
 .center-align {
   justify-content: center;
   margin-top: 25px;
@@ -1389,6 +1419,13 @@ svg.redwave g g path {
 @media screen and (max-width: 780px) {
   .chat-screen {
     padding-bottom: 50px;
+  }
+
+  /* The contact panel is absolute, so it covers the 50px above as well.
+     It keeps that strip free too, plus room under the last row, so a full
+     scroll brings Delete Chat and Block above the browser bar. */
+  .chat-user-info-container {
+    padding-bottom: 100px;
   }
 
   .reply-message-container {

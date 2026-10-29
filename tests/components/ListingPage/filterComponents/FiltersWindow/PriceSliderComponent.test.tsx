@@ -257,6 +257,36 @@ describe("the price slider in the filter window", () => {
     });
   });
 
+  describe("a chosen band wider than the new bounds", () => {
+    // After a price change the facet re-fetches and the bounds can come back
+    // narrower than the band that is still chosen. The price label above each
+    // handle is placed by a share of the range; a share over 100% puts the
+    // (hidden) label far past the ruler, and the whole filter panel scrolls
+    // sideways.
+    const labelFor = (text: string) =>
+      Array.from(document.querySelectorAll("div")).find(
+        (el) => el.textContent === text && el.children.length === 0,
+      ) as HTMLElement | undefined;
+
+    it("keeps the upper price label at the right end of the ruler", async () => {
+      await renderSlider({ min: 0, max: 100, initialMin: 0, initialMax: 190 });
+
+      expect(
+        labelFor("190$")?.style.left,
+        `the upper label must stop at the end of the ruler — got left: ${labelFor("190$")?.style.left}, which pushes the panel wider than the screen`,
+      ).toBe("100%");
+    });
+
+    it("keeps the lower price label at the left end of the ruler", async () => {
+      await renderSlider({ min: 50, max: 100, initialMin: 10, initialMax: 100 });
+
+      expect(
+        labelFor("10$")?.style.left,
+        `the lower label must stop at the start of the ruler — got left: ${labelFor("10$")?.style.left}, which pushes the panel past the screen edge in RTL`,
+      ).toBe("0%");
+    });
+  });
+
   describe("a listing whose products are all one price", () => {
     it("draws without dividing by an empty range", async () => {
       await renderSlider({ min: 40, max: 40, initialMin: 40, initialMax: 40 });
