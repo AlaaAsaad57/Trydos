@@ -582,9 +582,31 @@ describe("chat slice — chat settings", () => {
     const before = s.get().data;
     s.get().pinChat({ id: 99, value: true });
     expect(s.get().data, "pinning an unknown chat changed the list").toBe(before);
-    const full = makeStore({ data: [channel(1)], pinnedChats: [1, 2, 3] });
-    full.get().pinChat({ id: 1, value: true });
+  });
+
+  // CHAT-APP-2: the limit used to count `pinnedChats`, which nothing fills, so
+  // a fourth pin always went through. The pins live on my membership row.
+  const pinnedByMe = (id: number) =>
+    channel(id, { channel_members: [{ user_id: ME, mute: 0, pin: 1 }, { user_id: THEM, mute: 0, pin: 0 }] });
+
+  it("pinChat refuses a fourth pin with a toast, counting the pins on my rows", () => {
+    const full = makeStore({ data: [pinnedByMe(1), pinnedByMe(2), pinnedByMe(3), channel(4)], pinnedChats: [] });
+    full.get().pinChat({ id: 4, value: true });
+    expect(
+      full.get().data.find((c: any) => c.id === 4).channel_members[0].pin,
+      "a fourth chat was pinned while three were already pinned",
+    ).toBe(0);
     expect(showError, "the shopper was not told only 3 chats can be pinned").toHaveBeenCalledWith("only 3 pinned chats allowed");
+  });
+
+  it("pinChat still unpins a chat when three are pinned", () => {
+    const full = makeStore({ data: [pinnedByMe(1), pinnedByMe(2), pinnedByMe(3)], pinnedChats: [] });
+    full.get().pinChat({ id: 2, value: false });
+    expect(
+      full.get().data.find((c: any) => c.id === 2).channel_members[0].pin,
+      "the pin limit also blocked an unpin",
+    ).toBe(0);
+    expect(showError, "an unpin showed the pin-limit toast").not.toHaveBeenCalled();
   });
 
   it("updateChannelBlockStatus flags the member in the list, the active chat and new chats", () => {

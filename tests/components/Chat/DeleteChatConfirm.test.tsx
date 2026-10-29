@@ -521,6 +521,61 @@ describe("ChatOptions — the other swipe tiles", () => {
     });
   }
 
+  // CHAT-APP-2: only 3 chats may be pinned. With 3 pinned, the Pin tile on a
+  // fourth chat is disabled, and a tap only says why — nothing reaches the
+  // chat backend. Pins are read from my own membership row in the chat list.
+  describe("with three chats already pinned", () => {
+    const ME = 1;
+    const pinnedChat = (id: number) => ({ id, channel_members: [{ user_id: ME, pin: 1 }, { user_id: 2, pin: 0 }] });
+    async function renderFull(pinned: boolean) {
+      const pinChat = vi.fn();
+      const rendered = await renderWithProviders(
+        <ChatOptions id={pinned ? 31 : DOOMED_CHAT} unread={false} pinned={pinned} muted={false} member_id={5} closeRow={vi.fn()} />,
+        {
+          store: {
+            userChat: { id: ME },
+            data: [pinnedChat(31), pinnedChat(32), pinnedChat(33), { id: DOOMED_CHAT, channel_members: [{ user_id: ME, pin: 0 }] }],
+            pinChat,
+          },
+        },
+      );
+      const pinTile = rendered.container.querySelector(".chat-option.chat-2") as HTMLElement;
+      return { ...rendered, pinChat, pinTile };
+    }
+
+    beforeEach(() => {
+      vi.mocked(chatActions.PinnChat).mockClear();
+      info.showError.mockClear();
+    });
+
+    it("disables Pin on a fourth chat", async () => {
+      const { pinTile } = await renderFull(false);
+      expect(
+        pinTile.getAttribute("aria-disabled"),
+        "the Pin tile on a fourth chat is not marked disabled while three chats are pinned",
+      ).toBe("true");
+      expect(pinTile.className, "the disabled Pin tile is not dimmed").toContain("opacity-40");
+    });
+
+    it("tells the shopper only 3 chats can be pinned, and sends nothing to the chat backend", async () => {
+      const { pinTile, pinChat } = await renderFull(false);
+      await userEvent.click(pinTile);
+      expect(chatActions.PinnChat, "a fourth pin was sent to the chat backend").not.toHaveBeenCalled();
+      expect(pinChat, "a fourth pin was stored").not.toHaveBeenCalled();
+      expect(
+        info.showError,
+        "the shopper was not told that only 3 chats can be pinned",
+      ).toHaveBeenCalledWith(expect.stringMatching(/^only 3 pinned chats allowed$/i));
+    });
+
+    it("still lets the shopper unpin one of the three", async () => {
+      const { pinTile } = await renderFull(true);
+      expect(pinTile.getAttribute("aria-disabled"), "Unpin was disabled by the pin limit").not.toBe("true");
+      await userEvent.click(pinTile);
+      expect(chatActions.PinnChat, "the unpin was not sent to the chat backend").toHaveBeenCalledWith({ id: 31, value: false, member_id: 5 });
+    });
+  });
+
   it("works without a row to close", async () => {
     const rendered = await renderWithProviders(
       <ChatOptions id={1} unread={false} pinned={false} muted={false} member_id={5} closeRow={undefined as any} />,
@@ -630,6 +685,19 @@ describe("ChatInfo — the rest of the info panel", () => {
     ).toBeNull();
     await userEvent.click(screen.getByText("Media & Files"));
     expect(document.querySelector(".chat-user-files-container"), "the media view did not replace the panel").toBeNull();
+  });
+
+  // The whole "Media & Files" card shows a pointer cursor
+  // (public/styles/chatcomponent.css, .chat-user-files-container), so a tap
+  // anywhere on it must open the media view — the gallery icon and the empty
+  // space too, not only the text block in the middle.
+  it("opens the media view from a tap anywhere on the Media & Files card", async () => {
+    await renderPanel({ message_counts: { image_messages_count: 0, video_messages_count: 0, file_messages_count: 0 } });
+    await userEvent.click(document.querySelector(".chat-user-files-icon") as HTMLElement);
+    expect(
+      document.querySelector(".chat-user-files-container"),
+      "a tap on the gallery icon of the Media & Files card did nothing; only the text block opens the media view",
+    ).toBeNull();
   });
 
   it("slides out and closes on the back arrow", async () => {

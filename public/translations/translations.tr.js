@@ -2304,7 +2304,6 @@ const translations = {
   "Edt": "Düzenle",
   "Link copied to clipboard!": "Bağlantı panoya kopyalandı!",
   "Telegram": "Telegram",
-  "Invite copied. Paste it in Telegram.": "Davet kopyalandı. Telegram'a yapıştırın.",
   "Pick a Telegram chat instead": "Bunun yerine bir Telegram sohbeti seçin",
   "Failed to Upload file": "Dosya yüklenemedi",
 

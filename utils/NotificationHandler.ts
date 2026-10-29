@@ -641,8 +641,7 @@ class ForegroundNotificationHandler {
     // in another one, which is why the service worker reads it back as
     // `parsed.payload.payload` (public/firebase-messaging-sw.js). Reading
     // `payloadData.channelId` therefore found nothing, so every call fell back
-    // to the stand-in — and the stand-in has `mute: 0` written into both of its
-    // member rows, so a muted chat rang.
+    // to the stand-in below instead of the chat from the list.
     const callChannelId =
       data.message?.channel?.id ??
       payloadData?.payload?.channelId ??

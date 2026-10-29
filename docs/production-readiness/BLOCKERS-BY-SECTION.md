@@ -587,7 +587,7 @@ No open launch blockers.
 | W-7 | The shopper changes country or language → the device's push topics move to the new pair, and the saved settings come back |
 | W-8 | The network comes back and the token changed → the new token is registered again and every tracked topic is subscribed again |
 | W-9 | Site open, an order or product push arrives → a toast with a link: order status → order page; order placed → order page, the cart is read again; product availability / discount / comment / price change / stock → product page; boutique or category created → filtered listing; cart expiration → cart |
-| W-10 | Site open, a chat message or call push arrives → a chat toast (one per channel) or the call screen; muted chats stay silent |
+| W-10 | Site open, a chat message or call push arrives → a chat toast (one per channel) or the call screen; a muted chat shows no message toast, but a call still rings |
 | W-11 | Site closed or in the background → a system notification for market types, chat messages and calls; one card per product and per order (tags); a tap opens the right page in the shopper's locale |
 | W-12 | Any part of the app shows a success, error or chat toast → it shows on top, closes by itself (10 s default) or by its X |
 | W-13 | Menu → "Notifications" → the panel loads page 1, loads more on scroll, says "No more notifications" at the end, and reloads when a new market push arrives; a tap on an item opens the boutique, product, category or order |

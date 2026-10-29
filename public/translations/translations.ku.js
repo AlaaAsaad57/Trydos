@@ -1470,7 +1470,6 @@ const translations = {
   "Add User": "Kullanıcı ekle",
   "Add User to Shop": "Mağazaya kullanıcı ekle",
   "User added successfully!": "Kullanıcı başarıyla eklendi",
-  Delete: "Sil",
   "Leave Shop": "Mağazadan ayrıl",
   "Search roles...": "Rol ara...",
   "No roles found": "Rol bulunamadı",
@@ -2337,7 +2336,6 @@ const translations = {
   "Edt": "دەستکاری",
   "Link copied to clipboard!": "بەستەرەکە کۆپی کرا!",
   "Telegram": "تێلێگرام",
-  "Invite copied. Paste it in Telegram.": "بانگەوازەکە کۆپی کرا. لە تێلێگرام دایبنێ.",
   "Pick a Telegram chat instead": "لە جیاتی ئەوە گفتوگۆیەکی تێلێگرام هەڵبژێرە",
   "Failed to Upload file": "بارکردنی فایلەکە سەرکەوتوو نەبوو",
 

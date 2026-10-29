@@ -128,7 +128,6 @@ These are rows marked "Blocks launch = No", plus items from the "Works, with lim
 | 11 M-5 | The "Sales" card shows "0 Action" for every seller. The number is hardcoded. | `components/settings/GoToSellerDashBoard.tsx:188` |
 | 11 L-3 | No "set as default" in the settings address list. The call is commented out. | `PersonalInfoAddress.tsx:172` |
 | 11 L-17, 17 L-5, 18 M-8 | "Contact Us" and "Compare" are commented out of the settings list. The `/contact` page cannot be reached from the app. | `settings/page.tsx:74-78, 84-88` |
-| 12 M-10 | The 3-pin chat limit never applies. Nothing fills `state.pinnedChats` (CHAT-APP-2, `test.fail` in SCRIPT-37). | `store/chat/reducer.ts:1202`, `ChatOptions.tsx:58` |
 | 12 M-13 | The "messages by tag" view is switched off with `{false && …}`. | `components/Chat/components/ChatInfo.tsx:323` |
 | 13 M-2 | Story view-time analytics are dead: `onStoryViewTime` is never passed, and six GA events are commented out. | `StoryViewer.tsx:51, 129`, `StoryHolder.tsx:258-313`, `AddStoryWidget.tsx` |
 | 13 M-3 | A shopper cannot see who viewed their own story. | `components/Home/Stories/` |

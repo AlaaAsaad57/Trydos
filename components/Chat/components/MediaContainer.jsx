@@ -38,7 +38,7 @@ function MediaContainer({ id, mediaFiles }) {
       </div>
       <div className="media-tab-container gap-y-[5px]">
         {media === "ImageMessage" &&
-          mediaFiles?.image_messages.map((image, index) => (
+          mediaFiles?.image_messages?.map((image, index) => (
             <a
               href={image.message_files[0]?.file_path}
               target="_blank"
@@ -54,7 +54,7 @@ function MediaContainer({ id, mediaFiles }) {
             </a>
           ))}
         {media === "VideoMessage" &&
-          mediaFiles?.video_messages.map((image, index) => (
+          mediaFiles?.video_messages?.map((image, index) => (
             <a
               key={index}
               href={image.message_files[0]?.file_path}
@@ -70,7 +70,7 @@ function MediaContainer({ id, mediaFiles }) {
             </a>
           ))}
         {media === "FileMessage" &&
-          mediaFiles?.file_messages.map((image, index) => (
+          mediaFiles?.file_messages?.map((image, index) => (
             <a
               key={index}
               href={image.message_files[0]?.file_path}

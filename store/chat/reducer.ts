@@ -203,6 +203,25 @@ const isDue = (reminder: any): boolean =>
   !!reminder?.remind_at &&
   new Date(reminder.remind_at).getTime() <= Date.now();
 
+/** The chat backend allows only this many pinned chats per user. */
+export const MAX_PINNED_CHATS = 3;
+
+/**
+ * True when the user already has the most pinned chats allowed. A pin lives on
+ * the user's own row in `channel_members` (`pin: 1`), so the count reads the
+ * chat list. `pinnedChats` is never filled, so it cannot be used for this.
+ */
+export const isPinLimitReached = (chats: any[] = []): boolean => {
+  const me = getUserChat()?.id;
+  const pinned = chats.filter(
+    (chat: any) =>
+      parseInt(
+        chat?.channel_members?.find((mem: any) => mem.user_id === me)?.pin,
+      ) === 1,
+  );
+  return pinned.length >= MAX_PINNED_CHATS;
+};
+
 /**
  * Fresh messages from the chat backend, with the due reminders the store
  * already holds put back on the messages the backend sent without one.
@@ -1199,7 +1218,8 @@ export const useChatStore = (set: any, get: any) => ({
 
   pinChat: (payload: any) => {
     const state = get();
-    if (state.pinnedChats.length < 3) {
+    // An unpin is always allowed; only a new pin counts against the limit.
+    if (!payload.value || !isPinLimitReached(state.data)) {
       const userId = getUserChat()?.id;
       // Move pinned chat to top? Original logic just replaced it in place in array,
       // but usually pinned chats float. Keeping original logic of just updating prop + shuffling array

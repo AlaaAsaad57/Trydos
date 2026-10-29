@@ -6,10 +6,12 @@
 // reads it back the same way (components/Chat/pages/ChatLists.jsx).
 //
 // The push payload never carries the flag, so everything that reacts to a push
-// has to read it from the chat the store already holds. Two places do:
+// has to read it from the chat the store already holds:
 //
 //   - utils/NotificationHandler.ts — the new-message toast
-//   - components/Chat/components/CallComponent.jsx — the ringing sound
+//
+// Mute silences messages only. A call rings even in a muted chat
+// (components/Chat/components/CallComponent.jsx).
 //
 // Ids arrive as numbers from the store and as strings from the push, so both
 // sides are compared as text. `mute` arrives as 1 or "1" for the same reason.

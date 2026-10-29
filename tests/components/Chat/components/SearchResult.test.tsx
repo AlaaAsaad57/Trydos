@@ -5,16 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "../../../render";
 
-const h = vi.hoisted(() => ({ logError: null as any, notify: null as any }));
+const h = vi.hoisted(() => ({ logError: null as any }));
 
 vi.mock("utils/functions", async (importOriginal) => ({
   ...(await importOriginal<any>()),
   LogError: (...a: any[]) => h.logError(...a),
-}));
-
-vi.mock("store/notifications/reducer", async (importOriginal) => ({
-  ...(await importOriginal<any>()),
-  showSuccessNotification: (...a: any[]) => h.notify(...a),
 }));
 
 import SearchResult from "components/Chat/components/SearchResult";
@@ -37,7 +32,6 @@ const originalUA = navigator.userAgent;
 
 beforeEach(() => {
   h.logError = vi.fn();
-  h.notify = vi.fn();
   window.open = vi.fn() as any;
   window.alert = vi.fn();
 });
@@ -165,19 +159,24 @@ describe("SearchResult — inviting someone", () => {
       });
     };
 
-    it("opens the contact's own chat and copies the invite for pasting", async () => {
+    // Telegram fills the chat's text box from the link's `text` parameter
+    // (core.telegram.org/api/links, "Phone number links"). Without it the
+    // chat opened with an empty text box.
+    it("opens the contact's own chat with the invite already in the text box", async () => {
       await mount({ item: { ...ITEM, mobile_phone: "+963937288307" } });
       await tapTelegram();
-      expect((window.open as any).mock.calls[0]?.[0], "Telegram was not opened at the contact's chat").toBe("https://t.me/+963937288307");
-      expect(writeText.mock.calls[0]?.[0], "the invite was not copied, so the Telegram chat opens empty").toContain("Join us at");
-      expect(h.notify.mock.calls[0]?.[0], "the shopper was not told to paste the invite").toMatch(/invite copied\. paste it in telegram\./i);
+      const url = new URL((window.open as any).mock.calls[0]?.[0] ?? "about:blank");
+      expect(`${url.origin}${url.pathname}`, "Telegram was not opened at the contact's chat").toBe("https://t.me/+963937288307");
+      expect(url.searchParams.get("text"), "the Telegram chat opened with an empty text box: the link carried no invite").toContain("Join us at");
+      expect(writeText, "the invite was copied, but the link fills it in itself").not.toHaveBeenCalled();
       expect(screen.queryByText("Choose how to send the invitation"), "the invite window stayed open").toBeNull();
     });
 
     it("reads a local phone-book number in the region of the shopper's own phone", async () => {
       await mount({ item: { ...ITEM, mobile_phone: "0937 288 307" } }, "en", { userChat: { id: ME, mobile_phone: "963944123456" } });
       await tapTelegram();
-      expect((window.open as any).mock.calls[0]?.[0], "a local Syrian number was not turned into the full +963 number").toBe("https://t.me/+963937288307");
+      const url = new URL((window.open as any).mock.calls[0]?.[0] ?? "about:blank");
+      expect(`${url.origin}${url.pathname}`, "a local Syrian number was not turned into the full +963 number").toBe("https://t.me/+963937288307");
     });
 
     it("still offers Telegram's share page, for a contact the number link cannot reach", async () => {
@@ -188,15 +187,6 @@ describe("SearchResult — inviting someone", () => {
       expect(url, "the fallback did not open Telegram's share page").toMatch(/^https:\/\/t\.me\/share\/url\?url=/);
       expect(new URL(url).searchParams.get("text"), "the share page did not get the invite text").toContain("Join us at");
       expect(writeText, "the share page copied the invite, but it fills the text in itself").not.toHaveBeenCalled();
-    });
-
-    it("logs a copy that fails, and says nothing about pasting", async () => {
-      writeText.mockRejectedValueOnce(new Error("denied"));
-      await mount({ item: { ...ITEM, mobile_phone: "+963937288307" } });
-      await tapTelegram();
-      expect((window.open as any).mock.calls[0]?.[0], "a failed copy stopped Telegram from opening").toBe("https://t.me/+963937288307");
-      expect(h.logError.mock.calls[0]?.[0]?.scenario, "a failed copy was not logged").toBe("chat SearchResult: copy Telegram invite failed");
-      expect(h.notify, "the shopper was told to paste an invite that was never copied").not.toHaveBeenCalled();
     });
   });
 

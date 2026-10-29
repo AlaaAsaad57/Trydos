@@ -250,14 +250,14 @@ function ChatInfo({
               <span>{translateFunction("Search")}</span>
             </div>
           </div>
-          <div className="chat-user-files-container">
+          <div
+            className="chat-user-files-container"
+            onClick={() => setMedia(true)}
+          >
             <div className="chat-user-files-icon">
               <img src="/icons/chat/InfoGallery.svg" />
             </div>
-            <div
-              className="chat-user-files-info"
-              onClick={() => setMedia(true)}
-            >
+            <div className="chat-user-files-info">
               <div className=".chat-user-files-info-text text-[#8d8d8d]">
                 {translateFunction("Media & Files")}
               </div>

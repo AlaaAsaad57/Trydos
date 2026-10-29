@@ -571,13 +571,12 @@ test("SCRIPT-36 a blocked chat has no input, only the 'cannot send' line", async
 test("SCRIPT-37 a fourth pin is refused before it reaches the chat backend", async ({
   browser,
 }) => {
-  // Finding CHAT-APP-2 (docs/testing/E2E_SCENARIOS.md). Red against the app:
-  // the limit is checked against `state.pinnedChats` (store/chat/reducer.ts
-  // `pinChat`), which nothing ever fills — so the check always passes. And
-  // `ChatOptions` calls `PinnChat` (the backend call) before the reducer,
-  // so the pin goes out whatever the check says.
-  // Strict: when the app is fixed this starts passing, and the marker must go.
-  test.fail(true, "CHAT-APP-2: the three-pin limit never applies");
+  // Finding CHAT-APP-2 (docs/testing/E2E_SCENARIOS.md), fixed. The limit now
+  // counts the pins on my own `channel_members` rows (`isPinLimitReached` in
+  // store/chat/reducer.ts), and `ChatOptions` disables Pin on a fourth chat
+  // before `PinnChat` is called. Proved in the unit suite:
+  // tests/components/Chat/DeleteChatConfirm.test.tsx > "with three chats
+  // already pinned", and tests/store/chat/reducer.test.ts.
   const pinnedWith = (id: number, person: Person) =>
     channel({
       id,

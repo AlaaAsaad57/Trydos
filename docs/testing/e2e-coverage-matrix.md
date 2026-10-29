@@ -1148,7 +1148,7 @@ Shopper-to-shopper chat (the QA seller acts as Shopper B): opening it, the list,
 | CHAT-x23 | Calls tab (call log) | ❌ | — | unit only: tests/components/Chat/CallList.test.tsx |
 | CHAT-x24 | Stories tab in the chat (paging, "No more stories") | ❌ | — | unit only: tests/components/Chat/pages/StoriesList.test.tsx |
 | CHAT-x25 | Pin and unpin a chat from the row | ✅ | chat.live.spec.ts › CHAT-11 | Saved, and still there after a reload. |
-| CHAT-x26 | A fourth pin is refused (3-pin limit) | ⚠️ | chat.scripted.spec.ts › SCRIPT-37 | Strict `test.fail`, bug CHAT-APP-2. Faked only. |
+| CHAT-x26 | A fourth pin is refused (3-pin limit) | ✅ | chat.scripted.spec.ts › SCRIPT-37 | CHAT-APP-2 fixed 2026-10-29; marker removed. Faked only. |
 | CHAT-x27 | Mute and unmute a chat | ✅ | chat.live.spec.ts › CHAT-12 | Checks the backend flag after a reload. The row's mute icon is not checked. |
 | CHAT-x28 | A muted chat raises no notification | ❌ | — | unit only: tests/utils/chatMuteNotifications.test.ts |
 | CHAT-x29 | Mark a chat unread, then read | ✅ | chat.live.spec.ts › CHAT-13 | |

@@ -7,7 +7,6 @@ import { useState } from "react";
 import { LogError } from "utils/functions";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { canonicalPhone, phoneRegion } from "components/Chat/contactPhone";
-import { showSuccessNotification } from "store/notifications/reducer";
 
 function SearchResult({
   key,
@@ -124,25 +123,16 @@ function SearchResult({
     setShowInviteModal(false);
   };
 
-  // Opens the contact's own Telegram chat. The t.me/+<number> link cannot
-  // fill in the text, so the invite goes to the clipboard first. The copy
-  // starts before the new tab opens: the clipboard refuses a write once this
-  // page has lost focus. Without a real number, the share page is used.
-  const handleTelegram = async () => {
+  // Opens the contact's own Telegram chat with the invite in the text box:
+  // Telegram fills the box from the link's `text` (core.telegram.org/api/links,
+  // "Phone number links"). Without a real number, the share page is used.
+  const handleTelegram = () => {
     if (!telegramPhone) return handleTelegramShare();
-    const copied = navigator.clipboard?.writeText(telegramText());
-    window.open(`https://t.me/+${telegramPhone}`, "_blank");
+    window.open(
+      `https://t.me/+${telegramPhone}?text=${encodeURIComponent(telegramText())}`,
+      "_blank",
+    );
     setShowInviteModal(false);
-    // No clipboard outside a secure page (https or localhost).
-    if (!copied) return;
-    try {
-      await copied;
-      showSuccessNotification(
-        translateFunction("Invite copied. Paste it in Telegram."),
-      );
-    } catch (err) {
-      LogError({ scenario: "chat SearchResult: copy Telegram invite failed", error: err });
-    }
   };
 
   const isRtl = language === "ar" || language === "ku";
