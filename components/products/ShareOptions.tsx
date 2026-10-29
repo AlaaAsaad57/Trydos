@@ -21,6 +21,7 @@ import { REQUESTS_DATA } from "utils/Requests";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
+import { contactRowName } from "components/Chat/chatsFunctions";
 
 function ShareOptions({ product }: any) {
   const {
@@ -353,6 +354,7 @@ const shareViaEmail = (e) => {
           <ShareAvatar
             key={i}
             contact={key}
+            name={contactRowName(key, data)}
             disable={shareLoading}
             active={selectedContactsForShare?.some(
               (s) => s === key.contact_user_id,

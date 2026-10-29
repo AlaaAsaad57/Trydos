@@ -1,7 +1,7 @@
 import Image from "next/image";
 import profilePng from "public/images/profileNo.png";
 
-function ShareAvatar({ active, setActive, contact, disable }: any) {
+function ShareAvatar({ active, setActive, contact, name, disable }: any) {
   const normializePhoto = (path) => {
     if (path?.includes(process.env.NEXT_PUBLIC_BASE_MEDIA_URL)) {
       return path;
@@ -29,9 +29,8 @@ function ShareAvatar({ active, setActive, contact, disable }: any) {
           }
         />
       </div>
-      <div className="share-name">
-        {contact?.name ?? contact?.contact_user?.name ?? contact?.mobile_phone}
-      </div>
+      {/* The name the chat's contacts tab shows (contactRowName). */}
+      <div className="share-name">{name}</div>
       <div className="selected-share">
         <svg
           xmlns="http://www.w3.org/2000/svg"
