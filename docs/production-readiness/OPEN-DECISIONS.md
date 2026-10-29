@@ -17,7 +17,6 @@
 | D-5 | **Cookie consent, per launch country.** Decide the launch countries. Turkey (KVKK) needs a consent step before analytics start. | GA, PostHog and Speed Insights start on every page with no consent. | A3-3 |
 | D-6 | **Support channels.** Is `support@trydos.com` live, and who answers? Phone, chat, or e-mail only? | The contact page shows the address as plain text, and nothing in the app links to it. | A3-9 |
 | D-8 | **Card and crypto at launch: offered or not?** If yes, name the provider and test one real payment. | No proof of a real gateway. No test pays by card or crypto. | A5-3 |
-| D-10 | **Play Store id for the invite text.** | The invite points at `your.app.id`. | A2-19 |
 | D-12 | **Demo and mock pages: remove them, or gate them, before production.** The settings demo `/[lang]/demo` (11 pages: settings, photo, client-id, wallet, profile, personal-info, client-info, body, address, new address), the login demo `/[lang]/loginDemo` and `/loginDemo` (the unwired `NewLoginDesign/` screens), the navigation demo `/navigation` (`components/NavigationDemo/`), and the tester tools `/simulateUser` and `POST /api/auth/simulate`. | All are live in every build. They call no backend, but any shopper can open them. `/loginDemo` and `/navigation` have no `noindex`. The simulate route sets session cookies from the request body with no gate. | 20 L-18, 20 M-21, Part B |
 
 ## 2. Legal text to write (Product writes)
@@ -62,7 +61,7 @@ Shopper-visible:
 | # | Work | Ids |
 |---|---|---|
 | F-9 | A real order note field, or send no note. Every order sends the text `order note` today. | A2-11 |
-| F-16 | The invite text: real Play Store id (D-10) and translated text. | A2-19 |
+| F-16 | The invite text: translated text. | A2-19 |
 
 ## 5. Backend answers that still decide a blocker
 

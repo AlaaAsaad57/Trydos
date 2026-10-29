@@ -32,7 +32,7 @@ Every row in a section file marked "Blocks launch = Yes". The section files coun
 | A2-11 | Every cash, card and crypto order sends the fixed text `order_note=order note`. There is no note field. | `services/order.ts:78` (test `orderClass.test.ts:116` asserts it) | 07 M-1 |
 | A2-16 | Fixed promises nobody confirmed: "refund within 12 hours", "no fees", "cancel in 3 hours", "collection within 1 day", and a 3-hour countdown that restarts on every page load. | `OrderCancelConfirmationWindow.tsx:64, 67`, `CancelOrderItemConfirmationWindow.tsx:66, 69`, `OrderItemReturnConfirmationWindow.tsx:199`, `OrderItemOptions.tsx:285`, `OrderRetailsReturnInfo.tsx:59, 251, 253` | 08 M-4 |
 | A2-17 | Refund text says "Back to your wallet", but the wallet is not usable. | `OrderDetailsWrapper.tsx:1374`, `OrderRetailsReturnInfo.tsx:71` | 08 M-5, 09 M-8 |
-| A2-19 | The invite text points to a placeholder Play Store id (`your.app.id`), and the text is hardcoded English (BUG-chat-8, `it.fails` in `SearchResult.test.tsx:146`). | `components/Chat/components/SearchResult.tsx:62, 81, 93, 103` | 12 M-8 |
+| A2-19 | The invite text is hardcoded English. (The Play Store link is fixed 2026-10-29: `NEXT_PUBLIC_PLAY_STORE_URL`, BUG-chat-8.) | `components/Chat/components/SearchResult.tsx` | 12 M-8 |
 | A2-23 | Price sort uses the root `offered_price`, but the card shows the country price. In a country with its own prices the order is wrong. Needs a backend field. | `services/elastic/helpers.ts:177-186` | 03 M-3 |
 
 ### A3. Legal and content (Product writes, Frontend links)

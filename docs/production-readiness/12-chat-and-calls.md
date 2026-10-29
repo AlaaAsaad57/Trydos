@@ -93,7 +93,7 @@ The order page opens a separate chat with the delivery worker. The mobile app op
 | M-5 | CHAT-APP-1: a send refused inside a 200 (`isSuccessful: false`) is neither swapped in nor taken back | The message stays as "sending" for ever, with no error | `store/chat/actions.tsx:132` (`if (response?.data?.id)` with no `else`) | Frontend | Yes — the shopper thinks a refused message is on its way |
 | M-6 | The mobile-app call end pages are hardcoded English, with no translation key | "Call Answered from another Account" and "Call Ended." in English for every language | `app/(special)/callInProg/page.jsx:32`, `app/(special)/endCall/page.jsx:28` | Frontend | Yes — repo rule: every visible string is translated |
 | M-7 | Other untranslated chat strings: "Recording..." and "Sending file..." have no keys and show raw to the receiver; "Delivery Worker" is not wrapped; "User" and "User-<id>" fallbacks; "Failed to upload file"; the dynamic key `Sent a ${messageType}` | English text inside an Arabic, Turkish or Kurdish chat | `ConversationContainer.tsx:910`, `:1231`, `:1267`; `OrderDetailsWrapper.tsx:317`, `:342`, `:346`; `NotificationHandler.ts:585`, `:587`, `:771`, `:745`; `chatsFunctions.tsx:50`, `:658`, `:703`; `ChatHeader.tsx:179` | Frontend | Yes — repo rule: every visible string is translated |
-| M-8 | The invite text points to a placeholder Play Store id (`your.app.id`), and the text is hardcoded English (BUG-chat-8) | A friend invited from the contacts list gets a dead store link | `components/Chat/components/SearchResult.tsx:62`, `:81`, `:93`, `:103` | Frontend + Product | Yes — real people outside the app receive a broken link |
+| M-8 | The invite text is hardcoded English. **The Play Store link is fixed 2026-10-29** (BUG-chat-8): it comes from `NEXT_PUBLIC_PLAY_STORE_URL`, and the invite has no store line when that value is empty. | An Arabic, Turkish or Kurdish friend gets an English invite | `components/Chat/components/SearchResult.tsx` (`handleInviteClick`, `handleCopy`, `handleWhatsApp`, `telegramText`) | Frontend | No |
 | M-9 | When adding a contact by hand fails, the app sends the contact's name and phone number to Sentry | Nothing on screen; personal data is stored in Sentry | `components/Chat/components/ChatContactsUpload.tsx:165-170` | Frontend | Yes — privacy: phone numbers must not reach logs |
 | M-10 | CHAT-APP-2: the 3-pin limit never applies. Nothing fills `state.pinnedChats`, and `PinnChat` goes to the backend before the check | Any number of chats can be pinned | `store/chat/reducer.ts`, `components/Chat/components/ChatOptions.tsx` | Frontend | **Fixed 2026-10-29** — with 3 pinned, Pin is disabled on the other chats and a tap shows the translated toast |
 | M-11 | CHAT-APP-3: when Firebase cannot get a push token, the app sets the notification flag to false | An open chat turns into "Please Enable Notification to use Chat", although permission is granted | `utils/firebaseInitv1.tsx:163` | Frontend | No — only devices where FCM fails, but those users lose chat |
@@ -108,7 +108,8 @@ The order page opens a separate chat with the delivery worker. The mobile app op
 - [ ] Fix the Agora App ID in `WebViewVoiceCall.tsx`, and read the App ID from config for each environment (M-3, M-4).
 - [ ] Take back a message refused inside a 200 and tell the shopper. Then remove `test.fail` from SCRIPT-33 (M-5).
 - [ ] Translate the call end pages and the other chat strings in M-6 and M-7 (add the keys to `ar`, `tr` and `ku`).
-- [ ] Replace the `your.app.id` invite link with the real store links, and translate the invite text. Then remove `it.fails` from BUG-chat-8 (M-8).
+- [x] Replace the `your.app.id` invite link with the real Play Store link (M-8, done 2026-10-29). Set `NEXT_PUBLIC_PLAY_STORE_URL` on every deployment.
+- [ ] Translate the invite text (M-8).
 - [ ] Remove the name and phone number from the contact-save error log (M-9).
 
 ## ❓ Needs confirmation from the backend team
@@ -134,7 +135,7 @@ The order page opens a separate chat with the delivery worker. The mobile app op
 - `tests/components/Home/AuthNavSection.test.tsx`, `tests/components/Home/ChatNotification.test.tsx`, `tests/components/products/ShareButton.test.tsx`, `tests/components/setting/orders/OrderDetailsWrapper.test.tsx`, `tests/components/settings/OrderChatIcon.test.tsx`, `tests/app/special/routes.test.tsx` (the call end pages render)
 
 **Expected-failure markers:**
-- `tests/components/Chat/components/SearchResult.test.tsx:146` — `it.fails` **BUG-chat-8** (placeholder invite link, M-8).
+- `tests/components/Chat/components/SearchResult.test.tsx` — **BUG-chat-8** (Play Store link from the env, M-8). Fixed 2026-10-29; now a normal passing test.
 - `tests/e2e/chat.scripted.spec.ts:416` — `test.fail` **CHAT-APP-1** in SCRIPT-33 (send refused inside a 200, M-5).
 
 **Browser (Playwright):**

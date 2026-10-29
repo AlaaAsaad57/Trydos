@@ -85,7 +85,7 @@ Lines still listed under "Cannot cover" were kept on purpose:
 | BUG-chat-5 (**fixed**) | chat | an unanswered voice or video call never ends by itself |
 | BUG-chat-6 (**fixed**) | chat | a contact the chat backend refused is shown as saved |
 | BUG-chat-7 (**fixed**) | chat | a failed contact save or sync error is never shown |
-| BUG-chat-8 | chat | the chat invite links to a placeholder Play Store id — **blocked**: needs the real Play Store app id |
+| BUG-chat-8 (**fixed**) | chat | the chat invite links to a placeholder Play Store id |
 | BUG-chat-9 | chat | the "Edit message" save button does nothing — **blocked**: the repo has no edit-message endpoint, service or store action; the backend must provide one |
 | BUG-chat-10 (**fixed**) | chat | clearing the text closes the edit box |
 | BUG-chat-11 (**fixed**) | chat | tapping a shared product never opens its menu |
@@ -320,7 +320,8 @@ Lines still listed under "Cannot cover" were kept on purpose:
 - Scenario: search a contact who is not on the app, press Invite, and send it by share sheet, WhatsApp, Telegram or Copy.
 - Expected: the link opens the real app page.
 - Actual: the link opens a Play Store page for an app that does not exist.
-- Confirming test: `tests/components/Chat/components/SearchResult.test.tsx` → "BUG-chat-8: the invite links to the real app, not a placeholder store id" (`it.fails`; seen failing: "the invite still points at the Play Store placeholder id 'your.app.id'").
+- Confirming test: `tests/components/Chat/components/SearchResult.test.tsx` → "BUG-chat-8: the invite links to the real app" (`it.fails`; seen failing: "the invite still points at the Play Store placeholder id 'your.app.id'").
+- **Fixed 2026-10-29.** The link now comes from `NEXT_PUBLIC_PLAY_STORE_URL` (`getTheApp()` in `SearchResult.tsx`). An empty value leaves the store line out. Proof: the two cases under "BUG-chat-8: the invite links to the real app" — "puts the Play Store link from the env in every invite" and "leaves out the store line when the env has no Play Store link". Both were seen red before the fix and green after. The English invite text is still open (production-readiness 12 M-8).
 
 ### BUG-chat-9 — the "Edit message" save button does nothing
 - Source: `components/Chat/components/OptionsMenu.tsx:181-201`.

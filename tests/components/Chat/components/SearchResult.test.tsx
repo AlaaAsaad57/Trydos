@@ -184,14 +184,42 @@ describe("SearchResult — inviting someone", () => {
     });
   });
 
-  it.fails("BUG-chat-8: the invite links to the real app, not a placeholder store id", async () => {
-    const writeText = vi.fn(async (..._a: any[]) => {});
-    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
-    await mount();
-    act(() => fireEvent.click(screen.getByText("Invite")));
-    await act(async () => {
-      fireEvent.click(screen.getByText("Copy Invite"));
+  // The Play Store link comes from NEXT_PUBLIC_PLAY_STORE_URL. It was the
+  // placeholder `id=your.app.id`, a page for an app that does not exist.
+  describe("BUG-chat-8: the invite links to the real app", () => {
+    const STORE = "https://play.google.com/store/apps/details?id=com.trydos.www";
+    afterEach(() => vi.unstubAllEnvs());
+
+    it("puts the Play Store link from the env in every invite", async () => {
+      vi.stubEnv("NEXT_PUBLIC_PLAY_STORE_URL", STORE);
+      const writeText = vi.fn(async (..._a: any[]) => {});
+      Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+      await mount({ item: { ...ITEM, mobile_phone: "+963937288307" } });
+      const open = () => act(() => fireEvent.click(screen.getByText("Invite")));
+      open();
+      await act(async () => {
+        fireEvent.click(screen.getByText("Copy Invite"));
+      });
+      expect(writeText.mock.calls[0]?.[0], "the copied invite does not link to the real Play Store page").toContain(`Get the app: ${STORE}`);
+      open();
+      fireEvent.click(screen.getByText("WhatsApp"));
+      expect(new URL((window.open as any).mock.calls[0][0]).searchParams.get("text"), "the WhatsApp invite does not link to the real Play Store page").toContain(`Get the app: ${STORE}`);
+      open();
+      fireEvent.click(screen.getByText("Telegram"));
+      expect(new URL((window.open as any).mock.calls[1][0]).searchParams.get("text"), "the Telegram invite does not link to the real Play Store page").toContain(`Get the app: ${STORE}`);
     });
-    expect(writeText.mock.calls[0]?.[0], "the invite still points at the Play Store placeholder id 'your.app.id'").not.toContain("your.app.id");
+
+    it("leaves out the store line when the env has no Play Store link", async () => {
+      vi.stubEnv("NEXT_PUBLIC_PLAY_STORE_URL", "");
+      const writeText = vi.fn(async (..._a: any[]) => {});
+      Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+      await mount();
+      act(() => fireEvent.click(screen.getByText("Invite")));
+      await act(async () => {
+        fireEvent.click(screen.getByText("Copy Invite"));
+      });
+      expect(writeText.mock.calls[0]?.[0], "the invite text was not copied").toContain("Join us at");
+      expect(writeText.mock.calls[0]?.[0], "the invite carries a store line with no real link behind it").not.toContain("Get the app");
+    });
   });
 });

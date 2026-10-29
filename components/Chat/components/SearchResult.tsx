@@ -8,6 +8,13 @@ import { LogError } from "utils/functions";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { canonicalPhone, phoneRegion } from "components/Chat/contactPhone";
 
+// The invite's Play Store line, from NEXT_PUBLIC_PLAY_STORE_URL. Without the
+// env value the invite has no store line, not a dead link.
+const getTheApp = () => {
+  const url = process.env.NEXT_PUBLIC_PLAY_STORE_URL;
+  return url ? ` \n Get the app: ${url}` : "";
+};
+
 function SearchResult({
   key,
   photo,
@@ -71,7 +78,7 @@ function SearchResult({
   };
 
   const handleInviteClick = async () => {
-    const text = `Hey! Join us at ${window.location.origin} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
+    const text = `Hey! Join us at ${window.location.origin}${getTheApp()}`;
 
     // On mobile, use native share API
     if (isMobileDevice() && navigator.share) {
@@ -90,7 +97,7 @@ function SearchResult({
   };
 
   const handleCopy = async () => {
-    const text = `Hey! Join us at ${window.location.origin} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
+    const text = `Hey! Join us at ${window.location.origin}${getTheApp()}`;
     try {
       await navigator.clipboard.writeText(text);
       // Optional: Show a success message
@@ -102,7 +109,7 @@ function SearchResult({
   };
 
   const handleWhatsApp = () => {
-    const text = `Hey! Join us at ${window.location.origin} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
+    const text = `Hey! Join us at ${window.location.origin}${getTheApp()}`;
     const encodedText = encodeURIComponent(text);
     window.open(
       `https://wa.me/${item.mobile_phone}?text=${encodedText}`,
@@ -112,7 +119,7 @@ function SearchResult({
   };
 
   const telegramText = () =>
-    `Hey! ${SenderName} Join us at ${window.location.origin} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
+    `Hey! ${SenderName} Join us at ${window.location.origin}${getTheApp()}`;
 
   // Telegram's share page, for a contact with no real number: the shopper
   // picks the chat and the text is filled in.
