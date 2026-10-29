@@ -250,13 +250,13 @@ export async function getPage(channel, mid) {
     let channel_id = channel;
 
     let response = await fetchData({
-      url: `/api/v1/messages/messages_of_channel/${channel_id}?message_id=${mid}&limit=10`,
+      url: `/api/v1/messages/messages_of_channel/${channel_id}`,
+      // The chat backend reads these from the body only. In the URL it ignores
+      // them and answers with the newest messages, not the ones before `mid`.
+      body: JSON.stringify({ message_id: mid, limit: 10 }),
       reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
       method: "POST",
       server: "chat",
-
-      // ###EDIT###
-      // body: {},
     });
     if (!response.success) {
       throw new Error(response.message);
