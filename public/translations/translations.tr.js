@@ -1400,6 +1400,7 @@ const translations = {
   "last Seen ": "Son görülme",
   "Outgoing Voice Call": "Giden sesli arama",
   "Outgoing Video Call": "Giden görüntülü arama",
+  "Deleted Call": "Silinmiş arama",
   "Incoming Voice Call": "Gelen sesli arama",
   "Incoming Video Call": "Gelen görüntülü arama",
   "Missed Voice Call At": "Cevapsız sesli arama saat",

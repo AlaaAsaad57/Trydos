@@ -1451,6 +1451,7 @@ const translations = {
   "last Seen ": "دوایین بینراو",
   "Outgoing Voice Call": "پەیوەندی دەنگی دەرچوو",
   "Outgoing Video Call": "پەیوەندی ڤیدیۆیی دەرچوو",
+  "Deleted Call": "پەیوەندیی سڕاوە",
   "Incoming Voice Call": "پەیوەندی دەنگی دەرچوو",
   "Incoming Video Call": "پەیوەندی ڤیدیۆیی دەرچوو",
   "Missed Voice Call At": "پەیوەندی دەنگی لەدەستچوو لە کاتژمێر",

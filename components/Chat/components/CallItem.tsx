@@ -4,7 +4,13 @@ import { getUserChat } from "utils/functions";
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 import { useAppStore } from "store";
-function CallItem({ photo, name, date, type, Delete, duration }) {
+import { translateFunction } from "utils/functions";
+/**
+ * One row of the call log. `deleted` is a call this user deleted: the chat
+ * backend keeps it in the log (auth_message_status.is_deleted 1), so the row
+ * says "Deleted Call" in place of the direction, with no length and no bin.
+ */
+function CallItem({ photo, name, date, type, Delete, duration, deleted = false }) {
   // Arabic and Kurdish read right to left. The row mirrors the same way as a
   // chat row (ChatItem): photo on the right, date and bin on the left.
   const { language } = useAppStore();
@@ -31,16 +37,18 @@ function CallItem({ photo, name, date, type, Delete, duration }) {
   );
   return (
     <div
-      className={`call-conversation-item ${direction} call-item-row ${
-        isRtl ? "flex-row-reverse" : ""
-      }`}
+      className={`call-conversation-item ${
+        deleted ? "deleted-call" : direction
+      } call-item-row ${isRtl ? "flex-row-reverse" : ""}`}
     >
-      <span
-        className={`options-icon ${isRtl ? "left-[10px] right-[initial]" : ""}`}
-        onClick={() => Delete()}
-      >
-        <img src="/icons/chat/delete.svg" className="w-[15px] h-[15px]" />
-      </span>
+      {!deleted && (
+        <span
+          className={`options-icon ${isRtl ? "left-[10px] right-[initial]" : ""}`}
+          onClick={() => Delete()}
+        >
+          <img src="/icons/chat/delete.svg" className="w-[15px] h-[15px]" />
+        </span>
+      )}
       <Image
         loading="eager"
         width={55}
@@ -53,9 +61,11 @@ function CallItem({ photo, name, date, type, Delete, duration }) {
       >
         <div className="call-name chat-name">{name}</div>
         <div className="call-type">
-          {getCallType(type)}
+          {deleted
+            ? translateFunction("Deleted Call", language)
+            : getCallType(type)}
 
-          {duration > 0 && (
+          {!deleted && duration > 0 && (
             <div className="mx-[4px] text-[11px] text-[#5e5e5e] regular h-full items-end flex">
               {calculate(duration)}
             </div>

@@ -289,10 +289,20 @@ describe("chat slice — calls", () => {
     expect(s.get().call, "no payload did not clear the call").toBeNull();
   });
 
-  it("deleteCall removes the call by id", () => {
-    const s = makeStore({ calls: [{ id: 1 }, { id: 2 }] });
+  // A call deleted for yourself stays in the call log as a deleted call, the
+  // way the chat backend keeps sending it (auth_message_status.is_deleted 1).
+  it("deleteCall keeps the call and marks it deleted, by id", () => {
+    const s = makeStore({
+      calls: [
+        { id: "1", auth_message_status: { is_deleted: 0, is_watched: true } },
+        { id: 2, auth_message_status: { is_deleted: 0 } },
+      ],
+    });
     s.get().deleteCall(1);
-    expect(s.get().calls, "the call was not removed").toEqual([{ id: 2 }]);
+    expect(s.get().calls, "the deleted call left the log, or the other call changed").toEqual([
+      { id: "1", auth_message_status: { is_deleted: 1, is_watched: true } },
+      { id: 2, auth_message_status: { is_deleted: 0 } },
+    ]);
   });
 });
 

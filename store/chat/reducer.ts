@@ -1581,10 +1581,20 @@ export const useChatStore = (set: any, get: any) => ({
     }
   },
 
-  deleteCall: (payload: number) =>
+  // The call stays in the log as a deleted call, the way the chat backend keeps
+  // sending it after a delete (auth_message_status.is_deleted 1).
+  deleteCall: (payload: number | string) =>
     set((state: ChatState) => ({
-      calls: state.calls.filter(
-        (call) => parseInt(call.id) !== parseInt(payload.toString()),
+      calls: state.calls.map((call) =>
+        areIdsEqual(call.id, payload)
+          ? {
+              ...call,
+              auth_message_status: {
+                ...(call.auth_message_status || {}),
+                is_deleted: 1,
+              },
+            }
+          : call,
       ),
     })),
 

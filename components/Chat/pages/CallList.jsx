@@ -5,7 +5,7 @@ import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
 import { DeleteMessageApi } from "store/chat/actions";
 import { useAppStore } from "store";
-import chat from "services/chat";
+import chat, { CALLS_PAGE_SIZE } from "services/chat";
 import Skeleton from "react-loading-skeleton";
 
 function CallList() {
@@ -18,6 +18,9 @@ function CallList() {
     data: chats,
   } = useAppStore();
   const [loading, setLoading] = useState(true);
+  // False once there is nothing older to load. Without it, the end of the log
+  // asked again on every scroll and got the same calls back each time.
+  const [hasOlder, setHasOlder] = useState(true);
   const init = async () => {
     setLoading(true);
     await chat.getCalls();
@@ -70,6 +73,15 @@ function CallList() {
 
     return oldestCall.id;
   };
+  // A short page is the last one. A page with no call we do not already hold
+  // means the chat backend has nothing older either.
+  const loadOlder = async () => {
+    const known = new Set(calls.map((c) => String(c.id)));
+    const page = await chat.getCalls(getOldestCallId(calls));
+    if (!Array.isArray(page)) return;
+    const fresh = page.filter((c) => !known.has(String(c.id)));
+    if (page.length < CALLS_PAGE_SIZE || fresh.length === 0) setHasOlder(false);
+  };
   // The chat a call belongs to, with its members. The call record may carry
   // its channel without the members, so the chat from the list fills in.
   const chatOf = (call) =>
@@ -96,17 +108,15 @@ function CallList() {
               duration: call.duration_in_seconds,
             }}
             date={showDate(call.created_at)}
+            deleted={Number(call.auth_message_status?.is_deleted) === 1}
           />
         ))}
-      {!call_loading && (
+      {!call_loading && hasOlder && (
         <InView
           className="inview-calls"
           as="div"
-          onChange={(inView, entry) => {
-            if (inView && !call_loading) {
-              const oldestId = getOldestCallId(calls);
-              chat.getCalls(oldestId);
-            }
+          onChange={(inView) => {
+            if (inView && !call_loading) loadOlder();
           }}
         >
           <span

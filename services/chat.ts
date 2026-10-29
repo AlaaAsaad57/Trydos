@@ -15,6 +15,9 @@ import UPDATED_API_DATA from "migration.staging";
 import { LogServerError } from "utils/serverErrorReporter";
 import { trackPosthog, CHAT_EVENTS } from "utils/posthogEvents";
 
+/** How many calls one page of the call log asks for. */
+export const CALLS_PAGE_SIZE = 20;
+
 class ChatService {
   private hasNewIncomingMessage(
     messages: any[] = [],
@@ -260,13 +263,19 @@ class ChatService {
       });
     }
   }
-  async getCalls(id?: number) {
+  /**
+   * One page of the call log: the newest calls, or the ones before call `id`.
+   * Returns the page, or null when the chat backend refuses.
+   */
+  async getCalls(id?: number | string) {
     const { setCallLoadingState, setCalls } = useAppStore.getState();
     try {
       setCallLoadingState(true);
+      // The chat backend reads these from the query string only. In the body
+      // it ignores them and answers with the newest calls every time.
+      const query = `limit=${CALLS_PAGE_SIZE}${id ? `&last_message_id=${id}` : ""}`;
       let response = await fetchData({
-        url: "/api/v1/channels/my_calls",
-        body: JSON.stringify({ limit: "20", last_message_id: id }),
+        url: `/api/v1/channels/my_calls?${query}`,
         method: "POST",
         reqTitle: REQUESTS_DATA.GET_CALLS,
         server: "chat",
@@ -276,12 +285,14 @@ class ChatService {
       }
       setCalls(response.data);
       setCallLoadingState(false);
+      return response.data;
     } catch (err) {
       LogServerError({
         error: err,
         scenario: "Error In getCalls in services/chat",
       });
       setCallLoadingState(false);
+      return null;
     }
   }
 }
