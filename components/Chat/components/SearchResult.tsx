@@ -5,6 +5,9 @@ import { GetImageUrl } from "utils/tinyUtils";
 import { translateFunction } from "utils/functions";
 import { useState } from "react";
 import { LogError } from "utils/functions";
+import { isValidPhoneNumber } from "libphonenumber-js";
+import { canonicalPhone, phoneRegion } from "components/Chat/contactPhone";
+import { showSuccessNotification } from "store/notifications/reducer";
 
 function SearchResult({
   key,
@@ -14,8 +17,18 @@ function SearchResult({
   handleClickChat,
   item,
 }) {
-  const { setMain, language } = useAppStore();
+  const { setMain, language, userChat, user, country } = useAppStore();
   const [showInviteModal, setShowInviteModal] = useState(false);
+
+  // The contact's full number, for the Telegram chat link. A phone book keeps
+  // local numbers ("0937288307"), so read them in the region of the shopper's
+  // own phone. Empty when the number is not a real one.
+  const fullPhone = canonicalPhone(
+    item?.mobile_phone,
+    phoneRegion(userChat?.mobile_phone ?? user?.phone, country),
+  );
+  const telegramPhone =
+    fullPhone && isValidPhoneNumber(`+${fullPhone}`) ? fullPhone : "";
 
   const handleClick = () => {
     if (isUser) {
@@ -99,14 +112,37 @@ function SearchResult({
     setShowInviteModal(false);
   };
 
-  const handleTelegram = () => {
-    const text = `Hey! ${SenderName} Join us at ${window.location.origin} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
-    const encodedText = encodeURIComponent(text);
+  const telegramText = () =>
+    `Hey! ${SenderName} Join us at ${window.location.origin} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
+
+  // Telegram's share page: the shopper picks the chat and the text is filled in.
+  const handleTelegramShare = () => {
     window.open(
-      `https://t.me/share/url?url=${window.location.origin}&text=${encodedText}`,
+      `https://t.me/share/url?url=${encodeURIComponent(window.location.origin)}&text=${encodeURIComponent(telegramText())}`,
       "_blank",
     );
     setShowInviteModal(false);
+  };
+
+  // Opens the contact's own Telegram chat. The t.me/+<number> link cannot
+  // fill in the text, so the invite goes to the clipboard first. The copy
+  // starts before the new tab opens: the clipboard refuses a write once this
+  // page has lost focus. Without a real number, the share page is used.
+  const handleTelegram = async () => {
+    if (!telegramPhone) return handleTelegramShare();
+    const copied = navigator.clipboard?.writeText(telegramText());
+    window.open(`https://t.me/+${telegramPhone}`, "_blank");
+    setShowInviteModal(false);
+    // No clipboard outside a secure page (https or localhost).
+    if (!copied) return;
+    try {
+      await copied;
+      showSuccessNotification(
+        translateFunction("Invite copied. Paste it in Telegram."),
+      );
+    } catch (err) {
+      LogError({ scenario: "chat SearchResult: copy Telegram invite failed", error: err });
+    }
   };
 
   const isRtl = language === "ar" || language === "ku";
@@ -206,6 +242,17 @@ function SearchResult({
                 </svg>
                 {translateFunction("Telegram")}
               </button>
+
+              {/* The number link fails when the contact is not on Telegram or
+                  hides their number; the share page still works then. */}
+              {telegramPhone && (
+                <button
+                  onClick={handleTelegramShare}
+                  className="w-full text-center text-sm text-sky-600 hover:underline"
+                >
+                  {translateFunction("Pick a Telegram chat instead")}
+                </button>
+              )}
 
               <button
                 onClick={handleCopy}

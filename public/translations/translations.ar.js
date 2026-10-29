@@ -2297,6 +2297,8 @@ const translations = {
   "Edt": "تعديل",
   "Link copied to clipboard!": "تم نسخ الرابط!",
   "Telegram": "تيليجرام",
+  "Invite copied. Paste it in Telegram.": "تم نسخ الدعوة. الصقها في تيليجرام.",
+  "Pick a Telegram chat instead": "اختر محادثة أخرى في تيليجرام",
   "Failed to Upload file": "فشل رفع الملف",
 
   "Cancel upload": "إلغاء الرفع",
