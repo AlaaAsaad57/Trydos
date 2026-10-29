@@ -61,7 +61,6 @@ Shopper-visible:
 | # | Work | Ids |
 |---|---|---|
 | F-9 | A real order note field, or send no note. Every order sends the text `order note` today. | A2-11 |
-| F-16 | The invite text: translated text. | A2-19 |
 
 ## 5. Backend answers that still decide a blocker
 

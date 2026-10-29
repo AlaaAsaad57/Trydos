@@ -1377,6 +1377,10 @@ const translations = {
   "Video as مكالمة فيديو": "Görüntülü arama",
   Call: "Ara",
   "Copy Invite": " Davetiyeyi Kopyala",
+  "Hey! Join us at {link}": "Merhaba! Bize katıl: {link}",
+  "Hey {name}! Join us at {link}": "Merhaba {name}! Bize katıl: {link}",
+  "Get the app: {link}": "Uygulamayı indir: {link}",
+  "Join {name} on Trydos": "Trydos'ta {name} ile buluş",
   "Choose how to send the invitation":
     " Davetiyeyi nasıl göndereceğinizi seçin",
   "Shared a product": " Bir ürün paylaştı",

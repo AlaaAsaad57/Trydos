@@ -530,7 +530,7 @@ No open launch blockers.
 | Id | Blocker | Owner | Where |
 |---|---|---|---|
 | A1-11 | The mobile-app call page leaks the chat token. The token sits in the URL. A "DEBUG" button copies it and shows it in an `alert`. The error panel prints it, and `LogError` sends it to Sentry. Remove the debug button and the panel, stop sending the token to Sentry, and move the token out of the URL (or agree a short-lived call-only token with the backend and mobile teams). | Frontend + Mobile | `components/global/WebviewCall.tsx:150, 190, 249, 312-336` |
-| A2-19 | The invite text is hardcoded English; Frontend translates the text. The Play Store link is fixed 2026-10-29 (`NEXT_PUBLIC_PLAY_STORE_URL`, BUG-chat-8). | Frontend | `components/Chat/components/SearchResult.tsx` |
+| A2-19 | **Fixed 2026-10-29.** The invite has the real Play Store link (`NEXT_PUBLIC_PLAY_STORE_URL`, BUG-chat-8) and is translated. | Frontend | `components/Chat/components/SearchResult.tsx` |
 
 ## 13. Stories
 

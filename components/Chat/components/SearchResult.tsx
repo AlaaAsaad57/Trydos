@@ -12,8 +12,15 @@ import { canonicalPhone, phoneRegion } from "components/Chat/contactPhone";
 // env value the invite has no store line, not a dead link.
 const getTheApp = () => {
   const url = process.env.NEXT_PUBLIC_PLAY_STORE_URL;
-  return url ? ` \n Get the app: ${url}` : "";
+  return url
+    ? ` \n ${translateFunction("Get the app: {link}").replace("{link}", () => url)}`
+    : "";
 };
+
+// The invite in the app language. The link and the name go in after the
+// translation, as functions, so a "$" in a name is kept as it is.
+const inviteText = () =>
+  `${translateFunction("Hey! Join us at {link}").replace("{link}", () => window.location.origin)}${getTheApp()}`;
 
 function SearchResult({
   key,
@@ -78,13 +85,16 @@ function SearchResult({
   };
 
   const handleInviteClick = async () => {
-    const text = `Hey! Join us at ${window.location.origin}${getTheApp()}`;
+    const text = inviteText();
 
     // On mobile, use native share API
     if (isMobileDevice() && navigator.share) {
       try {
         await navigator.share({
-          title: `Join ${SenderName} on Trydos`,
+          title: translateFunction("Join {name} on Trydos").replace(
+            "{name}",
+            () => SenderName,
+          ),
           text: text,
         });
       } catch (err) {
@@ -97,7 +107,7 @@ function SearchResult({
   };
 
   const handleCopy = async () => {
-    const text = `Hey! Join us at ${window.location.origin}${getTheApp()}`;
+    const text = inviteText();
     try {
       await navigator.clipboard.writeText(text);
       // Optional: Show a success message
@@ -109,7 +119,7 @@ function SearchResult({
   };
 
   const handleWhatsApp = () => {
-    const text = `Hey! Join us at ${window.location.origin}${getTheApp()}`;
+    const text = inviteText();
     const encodedText = encodeURIComponent(text);
     window.open(
       `https://wa.me/${item.mobile_phone}?text=${encodedText}`,
@@ -119,7 +129,9 @@ function SearchResult({
   };
 
   const telegramText = () =>
-    `Hey! ${SenderName} Join us at ${window.location.origin}${getTheApp()}`;
+    `${translateFunction("Hey {name}! Join us at {link}")
+      .replace("{name}", () => SenderName)
+      .replace("{link}", () => window.location.origin)}${getTheApp()}`;
 
   // Telegram's share page, for a contact with no real number: the shopper
   // picks the chat and the text is filled in.

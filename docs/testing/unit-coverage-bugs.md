@@ -321,7 +321,7 @@ Lines still listed under "Cannot cover" were kept on purpose:
 - Expected: the link opens the real app page.
 - Actual: the link opens a Play Store page for an app that does not exist.
 - Confirming test: `tests/components/Chat/components/SearchResult.test.tsx` → "BUG-chat-8: the invite links to the real app" (`it.fails`; seen failing: "the invite still points at the Play Store placeholder id 'your.app.id'").
-- **Fixed 2026-10-29.** The link now comes from `NEXT_PUBLIC_PLAY_STORE_URL` (`getTheApp()` in `SearchResult.tsx`). An empty value leaves the store line out. Proof: the two cases under "BUG-chat-8: the invite links to the real app" — "puts the Play Store link from the env in every invite" and "leaves out the store line when the env has no Play Store link". Both were seen red before the fix and green after. The English invite text is still open (production-readiness 12 M-8).
+- **Fixed 2026-10-29.** The link now comes from `NEXT_PUBLIC_PLAY_STORE_URL` (`getTheApp()` in `SearchResult.tsx`). An empty value leaves the store line out. Proof: the two cases under "BUG-chat-8: the invite links to the real app" — "puts the Play Store link from the env in every invite" and "leaves out the store line when the env has no Play Store link". Both were seen red before the fix and green after. The English-only invite text is fixed too (same day): "the invite is in the app language", seen red first.
 
 ### BUG-chat-9 — the "Edit message" save button does nothing
 - Source: `components/Chat/components/OptionsMenu.tsx:181-201`.

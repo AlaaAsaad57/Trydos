@@ -1712,8 +1712,6 @@ them. They are listed so you know that what you see is not new.
    text messages, where editing should not be offered at all.
 4. **Reminder and the category icon do nothing.** Both are in the message menu
    with no action behind them.
-5. **The invite text is English only.** It does not change with the app
-   language. (The Play Store link in it is the real app page now.)
 
 ---
 
