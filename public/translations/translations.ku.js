@@ -1,5 +1,7 @@
 const translations = {
   "Price changed from {from} to {to}": "نرخ لە {from} گۆڕدرا بۆ {to}",
+  "Price Changed": "نرخ گۆڕا",
+  "Show Price Change": "گۆڕانی نرخ پیشان بدە",
   "Typing...": "دەنووسێت...",
   "Employees": "کارمەندان",
   "Roles": "ڕۆڵەکان",

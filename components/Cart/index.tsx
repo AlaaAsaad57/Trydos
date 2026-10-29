@@ -35,6 +35,7 @@ import { isSamePage } from "utils/navigationsUtils";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import NotifyWhenAvailableModal from "./NotifyWhenAvailableModal";
 import CartPriceChangeTooltip from "./CartPriceChangeTooltip";
+import { showedPriceChange } from "utils/cart/pricing";
 
 function CartContainer({ close, toOrders }) {
   const {
@@ -494,7 +495,8 @@ export const QuantutyInput = ({
   const [loading, setLoading] = useState(false);
   // Open only when the core backend refuses a raise — see `updateQuantity`.
   const [askAboutNotify, setAskAboutNotify] = useState(false);
-  const [showPriceChangeTooltip, setShowPriceChangeTooltip] = useState(true);
+  // Closed until the shopper taps the warning icon next to the price.
+  const [showPriceChangeTooltip, setShowPriceChangeTooltip] = useState(false);
   useEffect(() => {
     if (parseInt(value) === inputValue) return;
     setInputValue(parseInt(value));
@@ -567,22 +569,15 @@ export const QuantutyInput = ({
   );
   const currencyLabel = currency?.symbol ?? (currency as any)?.sumbol ?? "";
 
-  const rawShowedPrice = (product as any)?.showed_price;
-  const hasShowedPrice =
-    rawShowedPrice !== null &&
-    rawShowedPrice !== undefined &&
-    rawShowedPrice !== "" &&
-    !isNaN(Number(rawShowedPrice));
-  const showedPriceNum = hasShowedPrice ? Number(rawShowedPrice) : null;
-  const isPriceChanged =
-    hasShowedPrice &&
-    showedPriceNum !== null &&
-    Math.abs(showedPriceNum - currentUnitPrice) >= 0.001;
+  // The price the shopper was shown (`showed_price`) against the price this
+  // row costs now. The same check the add-to-cart button runs after an add.
+  const priceChange = showedPriceChange(product);
+  const isPriceChanged = priceChange !== null;
 
   const convertedFromPrice = String(
     RoundPrice({
       charged: true,
-      num: showedPriceNum ?? 0,
+      num: priceChange?.from ?? 0,
       rate: currency?.exchange_rate,
       points: currency?.decimal_digits,
       language: languageVariable,
@@ -941,7 +936,46 @@ export const QuantutyInput = ({
             onClose={() => setShowPriceChangeTooltip(false)}
           />
         )}
-        <div className={``} data-pw="oldNew-price-container">
+        <div
+          className="flex-row items-center gap-[4px]"
+          data-pw="oldNew-price-container"
+        >
+          {isPriceChanged && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPriceChangeTooltip((open) => !open);
+              }}
+              aria-label={translate("Show Price Change")}
+              aria-expanded={showPriceChangeTooltip}
+              data-pw="price-change-icon"
+              className="flex h-[16px] w-[16px] shrink-0 items-center justify-center rounded-full bg-[#FFF3E8] text-[#FF6200] cursor-pointer"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="6"
+                  cy="6"
+                  r="5"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                />
+                <path
+                  d="M6 3.5V6.3M6 8.3H6.005"
+                  stroke="currentColor"
+                  strokeWidth="1.3"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          )}
           <div className="product-info-price" data-pw="oldNew-price-container2">
             {hasDiscount ? (
               <>

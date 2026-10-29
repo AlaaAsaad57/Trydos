@@ -428,3 +428,156 @@ describe("taking one out of the bag when more than one is in it", () => {
     expect(updateQuantity, "the stock was not reloaded after a refused lower").toHaveBeenCalledWith(false);
   });
 });
+
+// After an add, the button reads the bag again (`/cart/cart_shipping`). When the
+// line it just added or raised costs a different price than the one the sheet
+// showed (`showed_price`), the shopper is asked: keep it (Continue) or take the
+// line out (Remove).
+describe("asking the shopper when the price changed while adding", () => {
+  const money = { symbol: "$", exchange_rate: 1, decimal_digits: 2 };
+
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    AddToCart.mockReset();
+    UpdateCart.mockReset();
+    RemoveFromCart.mockReset();
+    trackOrder.mockClear();
+    vi.mocked(getCart).mockReset();
+    vi.mocked(getCart).mockResolvedValue({ cart: [] } as any);
+    useNotificationStore.setState({ notifications: [] });
+    return () => vi.useRealTimers();
+  });
+
+  /** The real AddToCart puts the new line, with its cart id, into the store. */
+  const addAs = (itemId: string) =>
+    AddToCart.mockImplementation(async () => {
+      const { useAppStore } = await import("store");
+      useAppStore.getState().addProductToCart({ id: 101, item_id: itemId, quantity: 1 });
+      return true;
+    });
+
+  /** The bag `/cart/cart_shipping` answers with after the add. */
+  const bagAfterAdd = (...lines: any[]) =>
+    vi.mocked(getCart).mockResolvedValueOnce({ cart: lines } as any);
+
+  const dialog = () => screen.queryByRole("dialog", { name: "Price Changed" });
+
+  it("asks when the new line costs a different price than the sheet showed", async () => {
+    addAs("cart-7");
+    bagAfterAdd({ id: "cart-7", product_id: 101, price: 100, offer_price: 90, showed_price: 80, quantity: 1 });
+    await renderButton({}, { currency: money });
+
+    await tapAdd();
+
+    expect(dialog(), "the bag line cart-7 costs 90 now but the sheet showed 80, and the shopper was not asked").toBeInTheDocument();
+    expect(dialog(), "the question did not say the old and the new price").toHaveTextContent("Price Changed From 80 $ To 90 $");
+    expect(screen.getByRole("button", { name: "Continue" }), "the question had no Continue button").toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remove" }), "the question had no Remove button").toBeInTheDocument();
+  });
+
+  it("does not ask when the new line costs what the sheet showed", async () => {
+    addAs("cart-7");
+    bagAfterAdd({ id: "cart-7", product_id: 101, price: 100, offer_price: 80, showed_price: 80, quantity: 1 });
+    await renderButton({}, { currency: money });
+
+    await tapAdd();
+
+    expect(AddToCart, "the add never reached the cart service").toHaveBeenCalled();
+    expect(dialog(), "the price did not change (80 both times) and the shopper was asked anyway").toBeNull();
+  });
+
+  it("does not ask about another line whose price changed", async () => {
+    addAs("cart-7");
+    bagAfterAdd(
+      { id: "cart-7", product_id: 101, price: 100, offer_price: 80, showed_price: 80, quantity: 1 },
+      { id: "cart-3", product_id: 202, price: 50, offer_price: 50, showed_price: 40, quantity: 1 },
+    );
+    await renderButton({}, { currency: money });
+
+    await tapAdd();
+
+    expect(dialog(), "only line cart-3 changed price, and the add of cart-7 asked about it").toBeNull();
+  });
+
+  it("asks when one more is added to a line whose price changed", async () => {
+    UpdateCart.mockResolvedValue(true);
+    bagAfterAdd({ id: "cart-1", product_id: 101, price: 100, offer_price: 95, showed_price: 80, quantity: 3 });
+    await renderButton({}, { currency: money, localCart: [{ id: 101, item_id: "cart-1", quantity: 2 }] });
+
+    await tapAdd();
+
+    expect(UpdateCart, "adding one more never reached the cart service").toHaveBeenCalled();
+    expect(dialog(), "line cart-1 costs 95 now but the sheet showed 80, and the shopper was not asked").toHaveTextContent(
+      "Price Changed From 80 $ To 95 $",
+    );
+  });
+
+  it("reads the product prices again when the price changed", async () => {
+    addAs("cart-7");
+    bagAfterAdd({ id: "cart-7", product_id: 101, price: 100, offer_price: 90, showed_price: 80, quantity: 1 });
+    const refreshPricing = vi.fn().mockResolvedValue(undefined);
+    await renderButton({ refreshPricing }, { currency: money });
+
+    await tapAdd();
+
+    expect(refreshPricing, "line cart-7 costs 90 now, and the sheet kept showing the old price 80 (prices were not read again)").toHaveBeenCalled();
+  });
+
+  it("does not read the product prices again when the price did not change", async () => {
+    addAs("cart-7");
+    bagAfterAdd({ id: "cart-7", product_id: 101, price: 100, offer_price: 80, showed_price: 80, quantity: 1 });
+    const refreshPricing = vi.fn().mockResolvedValue(undefined);
+    await renderButton({ refreshPricing }, { currency: money });
+
+    await tapAdd();
+
+    expect(AddToCart, "the add never reached the cart service").toHaveBeenCalled();
+    expect(refreshPricing, "the price did not change (80 both times) and the prices were read again anyway").not.toHaveBeenCalled();
+  });
+
+  it("Continue closes the question and keeps the line", async () => {
+    addAs("cart-7");
+    bagAfterAdd({ id: "cart-7", product_id: 101, price: 100, offer_price: 90, showed_price: 80, quantity: 1 });
+    await renderButton({}, { currency: money });
+    await tapAdd();
+
+    await userEvent.click(screen.getByRole("button", { name: "Continue" }));
+
+    expect(dialog(), "Continue did not close the question").toBeNull();
+    expect(RemoveFromCart, "Continue took the line out of the bag").not.toHaveBeenCalled();
+  });
+
+  it("Remove takes the line out of the bag and closes the question", async () => {
+    addAs("cart-7");
+    bagAfterAdd({ id: "cart-7", product_id: 101, price: 100, offer_price: 90, showed_price: 80, quantity: 1 });
+    RemoveFromCart.mockResolvedValue(true);
+    const { updateQuantity } = await renderButton({}, { currency: money });
+    await tapAdd();
+    vi.mocked(getCart).mockClear();
+
+    await userEvent.click(screen.getByRole("button", { name: "Remove" }));
+
+    expect(RemoveFromCart.mock.calls[0]?.[0]?.cart_item?.item_id, "Remove did not ask the core backend to remove line cart-7").toBe("cart-7");
+    expect(dialog(), "the line was removed and the question stayed open").toBeNull();
+    expect(getCart, "the bag was not read again after the removal").toHaveBeenCalled();
+    expect(updateQuantity, "the stock was not reloaded after the removal").toHaveBeenCalledWith(false);
+    expect(trackOrder.mock.calls.map(([e]: any) => e), "the order funnel was not told the line was removed").toContain("cart_item_removed");
+  });
+
+  it("keeps the question open when the core backend refuses the removal", async () => {
+    addAs("cart-7");
+    bagAfterAdd({ id: "cart-7", product_id: 101, price: 100, offer_price: 90, showed_price: 80, quantity: 1 });
+    RemoveFromCart.mockResolvedValue(false);
+    await renderButton({}, { currency: money });
+    await tapAdd();
+
+    await userEvent.click(screen.getByRole("button", { name: "Remove" }));
+
+    expect(RemoveFromCart, "Remove never reached the cart service").toHaveBeenCalled();
+    expect(dialog(), "the core backend kept line cart-7, and the question closed as if it was removed").toBeInTheDocument();
+    expect(
+      useNotificationStore.getState().notifications.length > 0,
+      "the core backend refused the removal and the shopper was not told",
+    ).toBe(true);
+  });
+});

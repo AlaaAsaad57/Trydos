@@ -565,6 +565,18 @@ describe("changing the quantity from the button", () => {
     expect(seen.SizeSelect.sizeQty("S"), "the reloaded stock was not used").toBe(1);
   });
 
+  // The button calls `refreshPricing` when the bag line it just added costs a
+  // different price than the sheet showed. Collect-after-order products read
+  // their prices again too: the price is not tied to stock.
+  it("reads the prices again from the core backend when the button asks", async () => {
+    fetchData.mockResolvedValue({ data: { is_luck: false, offer_price: 90, variations: [] } });
+    await renderSheet({ id: 1, slug: "a", offer_price: 80, packed_after_ordering: 1 });
+    expect(typeof seen.Button.refreshPricing, "the sheet gave the button no way to read the prices again").toBe("function");
+    await act(() => seen.Button.refreshPricing());
+    expect(fetchData.mock.calls[0]?.[0]?.url, "reading the prices again asked the wrong address").toBe("/web/product/qtyPriceDetails/a?need_decode=true");
+    expect(seen.Button.product.offer_price, "the sheet kept the old price (80) after the prices were read again").toBe(90);
+  });
+
   it("does nothing for a collect-after-order product", async () => {
     await renderSheet({ id: 1, slug: "a", variation, packed_after_ordering: 1 });
     await act(() => seen.Button.updateQuantity(true, 11, "add"));

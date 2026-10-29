@@ -1365,49 +1365,71 @@ describe("price change tooltip in cart item card", () => {
     );
   }
 
-  it("does not show tooltip when showed_price is undefined", async () => {
+  // The tooltip stays closed until the shopper taps the warning icon next to
+  // the price. The icon shows only on a row whose price changed.
+  const warningIcon = () => screen.queryByRole("button", { name: "Show Price Change" });
+  const tapWarningIcon = async () => {
+    const icon = warningIcon();
+    expect(icon, "a row whose price changed showed no warning icon next to the price").not.toBeNull();
+    await userEvent.click(icon!);
+  };
+
+  it("shows no icon and no tooltip when showed_price is undefined", async () => {
     await renderRow({ showed_price: undefined });
-    expect(screen.queryByRole("tooltip")).toBeNull();
+    expect(warningIcon(), "a row with no showed_price showed the price-change icon").toBeNull();
+    expect(screen.queryByRole("tooltip"), "a row with no showed_price showed the price-change tooltip").toBeNull();
   });
 
-  it("does not show tooltip when showed_price is null (does not treat as 0)", async () => {
+  it("shows no icon when showed_price is null (does not treat as 0)", async () => {
     await renderRow({ showed_price: null });
-    expect(screen.queryByRole("tooltip")).toBeNull();
+    expect(warningIcon(), "showed_price null was read as a price of 0").toBeNull();
   });
 
-  it("does not show tooltip when showed_price is equal to current price", async () => {
+  it("shows no icon when showed_price is equal to current price", async () => {
     await renderRow({ showed_price: 15, price: 15, offer_price: 15 });
-    expect(screen.queryByRole("tooltip")).toBeNull();
+    expect(warningIcon(), "the price did not change (15 both times) and the icon showed").toBeNull();
   });
 
-  it("shows tooltip when showed_price differs from current price", async () => {
+  it("keeps the tooltip closed until the warning icon is tapped", async () => {
     await renderRow({ showed_price: 10, price: 15, offer_price: 15 });
-    const tooltip = screen.getByRole("tooltip");
-    expect(tooltip).toBeInTheDocument();
-    expect(tooltip).toHaveTextContent("Price Changed From 10 $ To 15 $");
+    expect(warningIcon(), "the price changed from 10 to 15 and no warning icon showed").toBeInTheDocument();
+    expect(screen.queryByRole("tooltip"), "the tooltip opened by itself, before the icon was tapped").toBeNull();
   });
 
-  it("shows tooltip with offer price comparison when item has discount", async () => {
+  it("shows the tooltip when the warning icon is tapped", async () => {
+    await renderRow({ showed_price: 10, price: 15, offer_price: 15 });
+    await tapWarningIcon();
+    expect(screen.getByRole("tooltip"), "tapping the icon did not show the old and the new price").toHaveTextContent(
+      "Price Changed From 10 $ To 15 $",
+    );
+  });
+
+  it("shows the offer price as the new price when the item has a discount", async () => {
     await renderRow({ showed_price: 10, price: 20, offer_price: 12 });
-    const tooltip = screen.getByRole("tooltip");
-    expect(tooltip).toBeInTheDocument();
-    expect(tooltip).toHaveTextContent("Price Changed From 10 $ To 12 $");
+    await tapWarningIcon();
+    expect(screen.getByRole("tooltip"), "the new price was not the offer price (12)").toHaveTextContent(
+      "Price Changed From 10 $ To 12 $",
+    );
   });
 
-  it("dismisses the tooltip when close button is clicked", async () => {
+  it("closes the tooltip with its close button and with a second tap on the icon", async () => {
     await renderRow({ showed_price: 10, price: 15, offer_price: 15 });
-    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+    await tapWarningIcon();
+    await userEvent.click(screen.getByRole("button", { name: /close/i }));
+    expect(screen.queryByRole("tooltip"), "the close button did not close the tooltip").toBeNull();
+    expect(warningIcon(), "closing the tooltip also hid the warning icon").toBeInTheDocument();
 
-    const closeBtn = screen.getByRole("button", { name: /close/i });
-    await userEvent.click(closeBtn);
-
-    expect(screen.queryByRole("tooltip")).toBeNull();
+    await tapWarningIcon();
+    await tapWarningIcon();
+    expect(screen.queryByRole("tooltip"), "a second tap on the icon did not close the tooltip").toBeNull();
   });
 
   it("renders in Arabic with RTL orientation", async () => {
     await renderRow({ showed_price: 10, price: 15, offer_price: 15 }, "ar");
+    const icon = screen.queryByRole("button", { name: "عرض تغيّر السعر" });
+    expect(icon, "the Arabic row showed no translated price-change icon").not.toBeNull();
+    await userEvent.click(icon!);
     const tooltip = screen.getByRole("tooltip");
-    expect(tooltip).toBeInTheDocument();
     expect(tooltip).toHaveAttribute("dir", "rtl");
     expect(tooltip).toHaveTextContent("10 $");
     expect(tooltip).toHaveTextContent("15 $");
