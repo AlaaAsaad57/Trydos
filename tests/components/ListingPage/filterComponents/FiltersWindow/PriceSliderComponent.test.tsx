@@ -231,6 +231,32 @@ describe("the price slider in the filter window", () => {
     });
   });
 
+  describe("the price curve behind the handles", () => {
+    it("draws the curve on the ruler itself, so it lines up with the handles", async () => {
+      await renderWithProviders(
+        <PriceSliderComponent
+          min={0}
+          max={100}
+          initialMin={0}
+          initialMax={100}
+          points={2}
+          symbol="$"
+          roundPrice={(value: number) => value}
+          chart={<svg data-testid="price-curve" />}
+        />,
+        { path: "/filters" },
+      );
+
+      const ruler = minHandle().parentElement;
+      const curve = document.querySelector('[data-testid="price-curve"]');
+
+      expect(
+        ruler?.contains(curve),
+        "the curve must live inside the ruler box — drawn anywhere else it has its own width and offset, and a price on the curve does not sit under the handle for that price",
+      ).toBe(true);
+    });
+  });
+
   describe("a listing whose products are all one price", () => {
     it("draws without dividing by an empty range", async () => {
       await renderSlider({ min: 40, max: 40, initialMin: 40, initialMax: 40 });

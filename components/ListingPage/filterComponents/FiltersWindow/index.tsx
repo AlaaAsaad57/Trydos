@@ -499,23 +499,26 @@ const FiltersWindowUI = ({
                   onChange={(min, max) => {
                     if (!loading) setPriceRange([min, max]);
                   }}
-                />
-              </div>
-
-              {showChart && (
-                <SmoothPolygon
-                  data={
-                    (FiltersNodes?.prices?.histogram?.length
-                      ? FiltersNodes?.prices?.histogram
-                      : FiltersNodes?.prices?.priceRanges
-                    )?.map((s) => ({
-                      count: s.count ?? s.products_count,
-                      mon: s.min_price,
-                      max: s.max_price,
-                    })) || []
+                  chart={
+                    showChart && (
+                      <SmoothPolygon
+                        min={FiltersNodes?.prices?.min_price ?? priceRange?.[0]}
+                        max={FiltersNodes?.prices?.max_price ?? priceRange?.[1]}
+                        data={
+                          (FiltersNodes?.prices?.histogram?.length
+                            ? FiltersNodes?.prices?.histogram
+                            : FiltersNodes?.prices?.priceRanges
+                          )?.map((s) => ({
+                            count: s.count ?? s.products_count,
+                            mon: s.min_price,
+                            max: s.max_price,
+                          })) || []
+                        }
+                      />
+                    )
                   }
                 />
-              )}
+              </div>
             </div>
           </>
         )}
