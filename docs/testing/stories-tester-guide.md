@@ -424,21 +424,20 @@ Read these first. Most cases below check one of these rules.
 ### AS-19 — No microphone
 1. On a device with no microphone, or with the microphone permission refused,
    tap **Take Photo**.
-2. **Expected (problem P-4):** the camera does **not** open, because the app
-   asks for camera **and** microphone together. The first tap shows no message.
-   The second tap shows **"Please enable camera permissions to use camera
-   features"**.
+2. **Expected:** the camera does **not** open, because the app asks for camera
+   **and** microphone together. The first tap already shows **"Please enable
+   camera permissions to use camera features"**.
 3. The red banner **"Microphone not detected or permission denied"** shows only
    if the microphone is removed **after** the camera has opened once in the
    same page visit.
 
 ### AS-20 — Camera permission blocked
 1. Block the camera permission in the browser, then tap **Take Photo**.
-2. **Expected (problem P-4):** the camera does not open and **no message**
-   shows on the first tap.
+2. **Expected:** the camera does not open. On this first tap, the message
+   **"Please enable camera permissions to use camera features"** appears, and
+   the **Take Photo** button is greyed out.
 3. Tap **Take Photo** again.
-4. **Expected:** the message **"Please enable camera permissions to use camera
-   features"** appears, and the **Take Photo** button is greyed out.
+4. **Expected:** the same message appears again, and the camera stays closed.
 
 ### AS-21 — Discard from the camera
 1. Take a photo, then tap the back arrow (top left) or the X (bottom right).

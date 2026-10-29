@@ -457,18 +457,28 @@ export default function AddStoryWidget() {
     setAddStory(null);
     setStoriesRefreshing(false);
   };
+  const showCameraPermissionError = () =>
+    showErrorNotification(
+      translateFunction(
+        "Please enable camera permissions to use camera features",
+      ),
+    );
+
   const handleCameraClick = async () => {
     if (cameraPermissions === "revoked") {
       checkCameraPermissions();
-      showErrorNotification(
-        translateFunction(
-          "Please enable camera permissions to use camera features",
-        ),
-      );
+      showCameraPermissionError();
       return;
     }
     if (cameraPermissions === "asked") {
-      await checkCameraPermissions();
+      // A blocked camera makes the check throw. Without this catch the tap
+      // ended there: no camera and no message on the first tap.
+      try {
+        await checkCameraPermissions();
+      } catch {
+        showCameraPermissionError();
+        return;
+      }
     }
     // Sendevent({
     //   event: GA_EVENT_NAMES.CLICK,

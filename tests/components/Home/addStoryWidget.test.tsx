@@ -461,6 +461,27 @@ describe("AddStoryWidget — choosing, previewing and uploading", () => {
     expect(screen.queryByTestId("fake-camera"), "the camera opened without permission").toBeNull();
   });
 
+  // The browser has the camera blocked, and this is the first tap of the page
+  // visit. The permission check throws (see tests/store/index.test.ts), and the
+  // tap used to end on that throw: no message, no camera, nothing to say why.
+  it("tells the shopper to enable the camera on the first tap when the browser blocks it", async () => {
+    const checkCameraPermissions = vi.fn(async () => {
+      useAppStore.setState({ cameraPermissions: "revoked" } as any);
+      throw new Error("");
+    });
+    useAppStore.setState({ cameraPermissions: "asked", checkCameraPermissions } as any);
+    render(<AddStoryWidget />);
+    await act(async () => {
+      fireEvent.click(screen.getByText("Take Photo"));
+    });
+    expect(checkCameraPermissions, "the permission was not asked").toHaveBeenCalled();
+    expect(
+      showErrorNotification,
+      "the first tap on a blocked camera did not tell the shopper to enable it",
+    ).toHaveBeenCalledWith("Please enable camera permissions to use camera features");
+    expect(screen.queryByTestId("fake-camera"), "the camera opened with the permission blocked").toBeNull();
+  });
+
   it("asks once when permission was never given, then opens the camera, whose photo goes to the crop step", async () => {
     const checkCameraPermissions = vi.fn(async () => {});
     useAppStore.setState({ cameraPermissions: "asked", checkCameraPermissions } as any);
