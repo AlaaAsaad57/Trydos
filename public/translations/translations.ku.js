@@ -2336,7 +2336,6 @@ const translations = {
   "Edt": "دەستکاری",
   "Link copied to clipboard!": "بەستەرەکە کۆپی کرا!",
   "Telegram": "تێلێگرام",
-  "Pick a Telegram chat instead": "لە جیاتی ئەوە گفتوگۆیەکی تێلێگرام هەڵبژێرە",
   "Failed to Upload file": "بارکردنی فایلەکە سەرکەوتوو نەبوو",
 
   "Cancel upload": "پاشگەزبوونەوە لە بارکردن",

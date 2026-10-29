@@ -120,9 +120,10 @@ describe("SearchResult — inviting someone", () => {
     open();
     fireEvent.click(screen.getByText("Telegram"));
     // "+10000000000" is not a real number, so Telegram's share page is used.
-    expect((window.open as any).mock.calls[1][0], "Telegram's share page was not opened for a contact with no real number").toMatch(/^https:\/\/t\.me\/share\/url\?url=/);
+    const share = (window.open as any).mock.calls[1][0];
+    expect(share, "Telegram's share page was not opened for a contact with no real number").toMatch(/^https:\/\/t\.me\/share\/url\?url=/);
+    expect(new URL(share).searchParams.get("text"), "Telegram's share page did not get the invite text").toContain("Join us at");
     open();
-    expect(screen.queryByText(/pick a telegram chat instead/i),"the share fallback was offered when the Telegram button is already the share page").toBeNull();
     fireEvent.click(screen.getByText("×"));
     expect(screen.queryByText("Choose how to send the invitation"), "the close button did not close the window").toBeNull();
   });
@@ -164,6 +165,9 @@ describe("SearchResult — inviting someone", () => {
     // chat opened with an empty text box.
     it("opens the contact's own chat with the invite already in the text box", async () => {
       await mount({ item: { ...ITEM, mobile_phone: "+963937288307" } });
+      act(() => fireEvent.click(screen.getByText("Invite")));
+      expect(screen.queryByText(/pick a telegram chat instead/i), "the removed 'Pick a Telegram chat instead' link is shown again").toBeNull();
+      fireEvent.click(screen.getByText("×"));
       await tapTelegram();
       const url = new URL((window.open as any).mock.calls[0]?.[0] ?? "about:blank");
       expect(`${url.origin}${url.pathname}`, "Telegram was not opened at the contact's chat").toBe("https://t.me/+963937288307");
@@ -177,16 +181,6 @@ describe("SearchResult — inviting someone", () => {
       await tapTelegram();
       const url = new URL((window.open as any).mock.calls[0]?.[0] ?? "about:blank");
       expect(`${url.origin}${url.pathname}`, "a local Syrian number was not turned into the full +963 number").toBe("https://t.me/+963937288307");
-    });
-
-    it("still offers Telegram's share page, for a contact the number link cannot reach", async () => {
-      await mount({ item: { ...ITEM, mobile_phone: "+963937288307" } });
-      act(() => fireEvent.click(screen.getByText("Invite")));
-      fireEvent.click(screen.getByText(/pick a telegram chat instead/i));
-      const url = (window.open as any).mock.calls[0]?.[0] ?? "";
-      expect(url, "the fallback did not open Telegram's share page").toMatch(/^https:\/\/t\.me\/share\/url\?url=/);
-      expect(new URL(url).searchParams.get("text"), "the share page did not get the invite text").toContain("Join us at");
-      expect(writeText, "the share page copied the invite, but it fills the text in itself").not.toHaveBeenCalled();
     });
   });
 

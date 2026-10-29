@@ -114,7 +114,8 @@ function SearchResult({
   const telegramText = () =>
     `Hey! ${SenderName} Join us at ${window.location.origin} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
 
-  // Telegram's share page: the shopper picks the chat and the text is filled in.
+  // Telegram's share page, for a contact with no real number: the shopper
+  // picks the chat and the text is filled in.
   const handleTelegramShare = () => {
     window.open(
       `https://t.me/share/url?url=${encodeURIComponent(window.location.origin)}&text=${encodeURIComponent(telegramText())}`,
@@ -232,17 +233,6 @@ function SearchResult({
                 </svg>
                 {translateFunction("Telegram")}
               </button>
-
-              {/* The number link fails when the contact is not on Telegram or
-                  hides their number; the share page still works then. */}
-              {telegramPhone && (
-                <button
-                  onClick={handleTelegramShare}
-                  className="w-full text-center text-sm text-sky-600 hover:underline"
-                >
-                  {translateFunction("Pick a Telegram chat instead")}
-                </button>
-              )}
 
               <button
                 onClick={handleCopy}
