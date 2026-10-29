@@ -1244,6 +1244,15 @@ svg.redwave g g path {
   white-space: pre-line;
 }
 
+/* The same room for the swipe dates as the voice bubble (see .audio-body).
+   Under 418px a long sent text filled the row, so the dates were cut, or the
+   bubble was pushed past the right edge. It now keeps 60px free on its left. */
+@media screen and (max-width: 417px) {
+  .self-align .message-body.text-body {
+    max-width: calc(100vw - 60px);
+  }
+}
+
 .self-align .absolute-avatar {
   right: -17px;
   left: initial !important;
