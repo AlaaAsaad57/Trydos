@@ -1060,6 +1060,11 @@ html[lang="ar"] .new-chats {
   background-color: #f7f7f7;
   overflow-y: scroll;
 }
+/* Each part keeps its own height. Without this, a short phone squashes the
+   parts to fit (the image strip fell to 6px) and there is nothing to scroll. */
+.chat-user-info-container > * {
+  flex-shrink: 0;
+}
 .arrow-icon {
   position: absolute;
   z-index: 20px;
@@ -1176,6 +1181,7 @@ html[lang="ar"] .new-chats {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  gap: 5px;
   color: #8d8d8d;
   cursor: pointer;
   font-family: var(--SF-Pro-Rounded-Light);

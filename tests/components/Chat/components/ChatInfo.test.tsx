@@ -4,6 +4,9 @@
 // The mobile app names a chat after `channel_name` and shows the other
 // person's own picture. The drawer must show the same name and picture as the
 // chat list and the header.
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -72,5 +75,49 @@ describe("ChatInfo — the chat's name and picture", () => {
       document.querySelector(".chat-info-user-avatar .text-avatar")?.textContent,
       "the initials did not come from the chat's channel_name",
     ).toBe("SN");
+  });
+});
+
+// How the drawer is laid out lives in public/styles/chatcomponent.css. jsdom
+// does not do layout, so these cases read the rules themselves.
+describe("ChatInfo — the layout on a phone", () => {
+  // Comments removed, so a comment above a rule is not read as its selector.
+  const css = readFileSync(path.resolve(process.cwd(), "public/styles/chatcomponent.css"), "utf8").replace(
+    /\/\*[\s\S]*?\*\//g,
+    "",
+  );
+  /** The declarations of the rule whose selector is exactly `selector`. */
+  const rule = (selector: string) =>
+    css
+      .split("}")
+      .map((chunk) => chunk.split("{"))
+      .find(([sel]) => sel.trim() === selector)?.[1] ?? "";
+  /** One declaration's value in a rule, or undefined. */
+  const value = (block: string, prop: string) =>
+    block
+      .split(";")
+      .map((d) => d.split(":"))
+      .find(([name]) => name.trim() === prop)
+      ?.slice(1)
+      .join(":")
+      .trim();
+
+  // The drawer is a flex column. Its parts may shrink by default, so on a
+  // short phone (568 px tall) the column squashed them to fit: the image strip
+  // fell from 200 px to 6 px and nothing overflowed, so there was nothing to
+  // scroll.
+  it("keeps every part at its own height, so a short screen scrolls", () => {
+    expect(
+      value(rule(".chat-user-info-container > *"), "flex-shrink"),
+      "the drawer's parts can shrink, so a short phone squashes them instead of scrolling",
+    ).toBe("0");
+  });
+
+  // The icons are <img>, so the old `svg { margin-right }` rule never applied
+  // and each number touched its icon.
+  it("puts space between each media icon and its count", () => {
+    const gap = value(rule(".chat-user-files-info-content-item"), "gap");
+    expect(gap, "the media counts have no gap, so each number touches its icon").toBeDefined();
+    expect(parseFloat(gap!), `the media counts' gap is "${gap}", so each number touches its icon`).toBeGreaterThan(0);
   });
 });
