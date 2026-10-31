@@ -3080,6 +3080,13 @@ const translations = {
   "This phone number is already registered. Please sign in to continue.": "رقم الهاتف هذا مسجل بالفعل. يرجى تسجيل الدخول للمتابعة.",
   "No account found with this phone number. Please check the digits or sign up.": "لم يتم العثور على حساب بهذا الرقم. يرجى التحقق من الأرقام أو إنشاء حساب جديد.",
   "This is your own number": "هذا رقمك الخاص",
+  "Trydos Stories": "قصص ترايدوس",
+  "Brand Stores": "متاجر العلامات التجارية",
+  "Stores": "المتاجر",
+  "Turkish Brands": "العلامات التركية",
+  "Watch. Shop. Share. See It. Tag It !": "شاهد. تسوّق. شارك. اكتشف. وسّم !",
+  "All {name} Collection Now !": "مجموعة كل {name} الآن !",
+  "Shop {brand} Collection Now !": "تسوّق مجموعة {brand} الآن !",
 };
 
 export default translations;

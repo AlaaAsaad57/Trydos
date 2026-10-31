@@ -3113,6 +3113,13 @@ const translations = {
   "This phone number is already registered. Please sign in to continue.": "Bu telefon numarası zaten kayıtlı. Devam etmek için lütfen giriş yapın.",
   "No account found with this phone number. Please check the digits or sign up.": "Bu telefon numarasına ait bir hesap bulunamadı. Lütfen numarayı kontrol edin veya kaydolun.",
   "This is your own number": "Bu sizin kendi numaranız",
+  "Trydos Stories": "Trydos Hikayeleri",
+  "Brand Stores": "Marka Mağazaları",
+  "Stores": "Mağazalar",
+  "Turkish Brands": "Türk Markaları",
+  "Watch. Shop. Share. See It. Tag It !": "İzle. Alışveriş Yap. Paylaş. Gör. Etiketle !",
+  "All {name} Collection Now !": "Tüm {name} Koleksiyonu Şimdi !",
+  "Shop {brand} Collection Now !": "{brand} Koleksiyonunu Şimdi Keşfet !",
 };
 
 export default translations;

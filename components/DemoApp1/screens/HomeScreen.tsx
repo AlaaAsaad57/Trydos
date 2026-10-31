@@ -8,15 +8,17 @@ import { useDemoNav } from "../Demo1Shell";
 import { C } from "../demo1Layout";
 import { ScreenPage, Stroke } from "../ui";
 import { TRAVEL } from "components/NavigationDemo/BottomNav";
+import HomeSections from "./HomeSections";
 
 /**
- * Home — XD `Home Page`.
+ * Home — XD `Home Page` (the header) and `Home Page – 2` (the page under it,
+ * in ./HomeSections.tsx).
  *
  * A white 50 px header (shadow 0 0 3, black at 10%) over a `#FCFCFC` page.
  * On the left the categories mark (21 x 21 at 15.5, 64.5), then the category
  * chips: 32 tall at y 59, 12 px of padding, 13 px text. The picked chip is
  * `#F8F7FF` with a 0.3 `#707070` line and Medium text; the rest are bare
- * Regular text. The page under it is empty in the file.
+ * Regular text.
  *
  * The chips are a row that scrolls sideways, starting at x 60. Each chip is a
  * slot as wide as the file's step to the next chip (the words start at x 72,
@@ -124,7 +126,7 @@ export default function HomeScreen() {
 
   return (
     <ScreenPage testId="demo-home" bg={C.page} header={header} tabBar>
-      {null}
+      <HomeSections t={t} />
     </ScreenPage>
   );
 }

@@ -194,6 +194,10 @@ export const XD_ICON_SIZE = {
   camOn: { w: 34, h: 25 },
   camOff: { w: 34, h: 25 },
   endCall: { w: 25, h: 25 },
+  // The three section marks of `Home Page – 2` (the stories, the brand stores, the stores).
+  filmRoll: { w: 20, h: 20 },
+  qualityAssurance: { w: 20, h: 20 },
+  highQuality: { w: 20, h: 20 },
 } as const;
 
 export type XdIconName = keyof typeof XD_ICON_SIZE;

@@ -3130,6 +3130,13 @@ const translations = {
   "This phone number is already registered. Please sign in to continue.": "ئەم ژمارە مۆبایلە پێشتر تۆمارکراوە. تکایە بچۆ ژوورەوە بۆ بەردەوامبوون.",
   "No account found with this phone number. Please check the digits or sign up.": "هیچ هەژمارێک بەم ژمارە مۆبایلە نەدۆزرایەوە. تکایە پشکنین بۆ ژمارەکان بکە یان خۆت تۆمار بکە.",
   "This is your own number": "ئەمە ژمارەی خۆتە",
+  "Trydos Stories": "چیرۆکەکانی ترایدۆس",
+  "Brand Stores": "فرۆشگاکانی براند",
+  "Stores": "فرۆشگاکان",
+  "Turkish Brands": "براندە تورکییەکان",
+  "Watch. Shop. Share. See It. Tag It !": "سەیر بکە. بکڕە. بڵاو بکەرەوە. ببینە. نیشانە بکە !",
+  "All {name} Collection Now !": "کۆمەڵەی هەموو {name} ئێستا !",
+  "Shop {brand} Collection Now !": "ئێستا کۆمەڵەی {brand} بکڕە !",
 };
 
 export default translations;
