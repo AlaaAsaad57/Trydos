@@ -1197,6 +1197,9 @@ const translations = {
   "Please enter a valid URL (e.g., example.com or www.example.com)":
     "تکایە URL دروست بنووسە (نمونە example.com یان www.example.com)",
   "This link is too long (max 200 characters)": "ئەم بەستەرە زۆر درێژە (زۆرترین 200 پیت)",
+  "A valid link, like example.com": "بەستەرێکی دروست، وەک example.com",
+  "200 characters or fewer": "200 پیت یان کەمتر",
+  "Passed": "سەرکەوتوو بوو",
   "Only links from": "تەنها بەستەرەکان لە",
   "Yes, I Agree": "بەڵێ، ڕازی‌م",
   "We Will Ignore The First Size And Send Your Order With The New Size.":

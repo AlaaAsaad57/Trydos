@@ -304,6 +304,9 @@ const translations = {
   "Please enter a valid URL (e.g., example.com or www.example.com)":
     "الرجاء إدخال عنوان URL صالح (مثال: example.com أو www.example.com)",
   "This link is too long (max 200 characters)": "هذا الرابط طويل جداً (200 حرف كحد أقصى)",
+  "A valid link, like example.com": "رابط صحيح، مثل example.com",
+  "200 characters or fewer": "200 حرف أو أقل",
+  "Passed": "ناجح",
   "Only links from": "فقط الروابط من",
   "Yes, I Agree": "نعم، أوافق",
   "We Will Ignore The First Size And Send Your Order With The New Size.":

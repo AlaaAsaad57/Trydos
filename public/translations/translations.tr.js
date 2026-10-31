@@ -1195,6 +1195,9 @@ const translations = {
   "Please enter a valid URL (e.g., example.com or www.example.com)":
     "Lütfen geçerli bir URL girin (örn. example.com veya www.example.com)",
   "This link is too long (max 200 characters)": "Bu bağlantı çok uzun (en fazla 200 karakter)",
+  "A valid link, like example.com": "Geçerli bir bağlantı, örneğin example.com",
+  "200 characters or fewer": "En fazla 200 karakter",
+  "Passed": "Geçti",
   "Only links from": "Yalnızca şu kaynaktan gelen bağlantılar",
   "Trydos — Flash Deals, Boutique Finds & Featured Products":
     "Trydos — Flaş Fırsatlar, Butik Keşifler ve Öne Çıkan Ürünler",

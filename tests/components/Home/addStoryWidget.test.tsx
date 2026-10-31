@@ -422,44 +422,59 @@ describe("AddStoryWidget — choosing, previewing and uploading", () => {
     expect(screen.queryByTestId("fake-crop-save"), "the crop step did not close").toBeNull();
   });
 
+  /** "pass" / "fail" of one rule under the link field, or null when no rule is shown. */
+  const linkRule = (rule: "url" | "length") =>
+    document.querySelector(`[data-pw="story-link-check-${rule}"]`)?.getAttribute("data-state") ?? null;
+
+  it("shows no rules while the link is empty, because the link is optional", async () => {
+    render(<AddStoryWidget />);
+    await pickImage();
+    expect(linkRule("url"), "the link rules showed before anything was typed").toBeNull();
+    fireEvent.change(linkInput(), { target: { value: "x" } });
+    fireEvent.change(linkInput(), { target: { value: "" } });
+    expect(linkRule("url"), "the link rules stayed after the link was cleared").toBeNull();
+    expect(shareButton()!.disabled, "Share stayed off after the link was cleared").toBe(false);
+  });
+
   it("checks the link as it is typed and blocks Share on a bad one", async () => {
     render(<AddStoryWidget />);
     await pickImage();
     fireEvent.change(linkInput(), { target: { value: "localhost" } });
-    expect(
-      screen.getByText("Please enter a valid URL (e.g., example.com or www.example.com)"),
-      "a link with no dot was accepted",
-    ).toBeInTheDocument();
+    expect(linkRule("url"), "a link with no dot passed the link rule").toBe("fail");
+    expect(linkRule("length"), "a short bad link failed the length rule").toBe("pass");
     expect(shareButton()!.disabled, "Share stayed on with a bad link").toBe(true);
     fireEvent.change(linkInput(), { target: { value: "https://a b.com" } });
+    expect(linkRule("url"), "a host with a space passed the link rule").toBe("fail");
     expect(shareButton()!.disabled, "Share stayed on with a link that is not a URL").toBe(true);
-    fireEvent.change(linkInput(), { target: { value: "" } });
-    expect(shareButton()!.disabled, "Share stayed off after the link was cleared").toBe(false);
     fireEvent.change(linkInput(), { target: { value: "http://ok.example.com" } });
+    expect(linkRule("url"), "a full http link failed the link rule").toBe("pass");
+    expect(linkRule("length"), "a short link failed the length rule").toBe("pass");
     expect(shareButton()!.disabled, "a full http link was refused").toBe(false);
   });
 
-  it("refuses a correct link over 200 characters and says it is too long, not invalid", async () => {
+  it("marks a correct link over 200 characters as too long only, and shows the count", async () => {
     // "https://shop.example.com/" is 25 characters; the rest pads to the length.
     const linkOf = (length: number) => `https://shop.example.com/${"a".repeat(length - 25)}`;
     render(<AddStoryWidget />);
     await pickImage();
     fireEvent.change(linkInput(), { target: { value: linkOf(201) } });
     expect(linkInput().value, "the link field cut a long link without saying so").toBe(linkOf(201));
-    expect(screen.queryByText(/too long/i), "a 201-character link was not called too long").toBeInTheDocument();
-    expect(
-      screen.queryByText("Please enter a valid URL (e.g., example.com or www.example.com)"),
-      "a correct but long link was called invalid",
-    ).toBeNull();
+    expect(linkRule("length"), "a 201-character link passed the length rule").toBe("fail");
+    expect(linkRule("url"), "a correct but long link failed the link rule").toBe("pass");
+    expect(screen.getByText("201/200"), "the shopper was not shown how long the link is").toBeInTheDocument();
     expect(shareButton()!.disabled, "Share stayed on with a 201-character link").toBe(true);
     fireEvent.change(linkInput(), { target: { value: linkOf(200) } });
-    expect(screen.queryByText(/too long/i), "a 200-character link was called too long").toBeNull();
+    expect(linkRule("length"), "a 200-character link failed the length rule").toBe("pass");
     expect(shareButton()!.disabled, "a 200-character link was refused").toBe(false);
+  });
+
+  it("marks a link that is both bad and too long as failing both rules", async () => {
+    render(<AddStoryWidget />);
+    await pickImage();
     fireEvent.change(linkInput(), { target: { value: `https://a b.com/${"a".repeat(200)}` } });
-    expect(
-      screen.getByText("Please enter a valid URL (e.g., example.com or www.example.com)"),
-      "a link that is both bad and long was not called invalid",
-    ).toBeInTheDocument();
+    expect(linkRule("url"), "a bad long link passed the link rule").toBe("fail");
+    expect(linkRule("length"), "a bad long link hid that it is also too long").toBe("fail");
+    expect(shareButton()!.disabled, "Share stayed on with a bad long link").toBe(true);
   });
 
   it("opens the gallery picker from its option", async () => {

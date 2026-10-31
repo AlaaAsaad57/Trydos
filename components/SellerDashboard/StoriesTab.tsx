@@ -12,6 +12,8 @@ import {
   showSuccessNotification,
 } from "store/notifications/reducer";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
+import StoryLinkChecks from "components/global/StoryLinkChecks";
+import { checkStoryLink } from "utils/storyLink";
 import { DashIcon } from "components/SellerDashboard/ui/icons";
 import {
   DashButton,
@@ -62,39 +64,6 @@ interface LinkedProduct {
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_VIDEO_DURATION_SECONDS = 60;
-const MAX_LINK_LENGTH = 200;
-
-const validateLink = (url: string): { valid: boolean; error: string } => {
-  if (!url) return { valid: true, error: "" };
-  try {
-    const normalized =
-      url.startsWith("http://") || url.startsWith("https://")
-        ? url
-        : `https://${url}`;
-    if (normalized.split(".").length < 2) throw new Error();
-    new URL(normalized);
-    // Counted with the https:// we add, because that is the link we send.
-    if (normalized.length > MAX_LINK_LENGTH) {
-      return {
-        valid: false,
-        error: translateFunction("This link is too long (max 200 characters)"),
-      };
-    }
-    return { valid: true, error: "" };
-  } catch {
-    return {
-      valid: false,
-      error: translateFunction(
-        "Please enter a valid URL (e.g., example.com or www.example.com)",
-      ),
-    };
-  }
-};
-
-const normalizeLink = (url: string) =>
-  url && !url.startsWith("http://") && !url.startsWith("https://")
-    ? `https://${url}`
-    : url || null;
 
 // ─── StoryViewerModal ─────────────────────────────────────────────────────────
 
@@ -411,7 +380,7 @@ function UploadStoryModal({
   const [imageToEdit, setImageToEdit] = useState<File | null>(null);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [link, setLink] = useState("");
-  const [linkError, setLinkError] = useState("");
+  const linkCheck = checkStoryLink(link);
   const [linkedProduct, setLinkedProduct] = useState<LinkedProduct | null>(null);
   const [showProductPicker, setShowProductPicker] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -478,19 +447,13 @@ function UploadStoryModal({
   };
 
   const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Not cut to a length: validateLink tells the seller when it is too long.
-    const sanitized = pollinateInput(e.target.value, Infinity);
-    setLink(sanitized);
-    setLinkError(validateLink(sanitized).error);
+    // Not cut to a length: the link rules tell the seller when it is too long.
+    setLink(pollinateInput(e.target.value, Infinity));
   };
 
   const handleShareStory = async () => {
     if (!selectedFile) return;
-    const { valid, error } = validateLink(link);
-    if (!valid) {
-      setLinkError(error);
-      return;
-    }
+    if (!linkCheck.valid) return;
     try {
       setUploading(true);
  
@@ -504,7 +467,7 @@ function UploadStoryModal({
         {
           file_path: filePath,
           is_video: isVideo ? 1 : 0,
-          link: normalizeLink(link),
+          link: linkCheck.link || null,
           product_id: linkedProduct?.id ?? null,
           product_slug: linkedProduct?.slug ?? null,
           video_duration_in_seconds: durationSeconds ?? null,
@@ -662,22 +625,20 @@ function UploadStoryModal({
                         if (link !== sanitized) setLink(sanitized);
                       }}
                       placeholder={translateFunction("Add link...")}
+                      aria-invalid={!linkCheck.valid}
+                      aria-describedby="seller-story-link-checks"
                       className={`${dashInputClass} pl-10 ${
-                        linkError
-                          ? "border-[#f85555] focus:border-[#f85555]"
-                          : ""
+                        linkCheck.valid
+                          ? ""
+                          : "border-[#f85555] focus:border-[#f85555]"
                       }`}
                     />
                   </div>
-                  {linkError && (
-                    <p
-                      data-pw="seller-story-link-error"
-                      className="text-[12px] text-[#f85555] mt-1 flex items-center gap-1"
-                    >
-                      <DashIcon name="alert" size={13} />
-                      {linkError}
-                    </p>
-                  )}
+                  <StoryLinkChecks
+                    id="seller-story-link-checks"
+                    check={linkCheck}
+                    refusalPw="seller-story-link-error"
+                  />
                 </div>
 
                 {/* Product picker */}
@@ -760,7 +721,7 @@ function UploadStoryModal({
               icon="check"
               onClick={handleShareStory}
               loading={uploading}
-              disabled={!preview || !!linkError}
+              disabled={!preview || !linkCheck.valid}
             >
               {translateFunction("Share Story")}
             </DashButton>

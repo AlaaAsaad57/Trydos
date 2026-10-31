@@ -18,6 +18,8 @@ import Spinner from "components/global/Spinner";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 import { fetchStoriesForUser } from "serverRequests";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
+import StoryLinkChecks from "components/global/StoryLinkChecks";
+import { checkStoryLink } from "utils/storyLink";
 
 // Icons
 const CameraIcon = () => (
@@ -99,69 +101,6 @@ const PlaceholderIcon = () => (
   </svg>
 );
 
-const isValidUrl = (urlString: string) => {
-  if (!urlString) return true;
-  try {
-    // Add https:// if no protocol is specified
-    const url =
-      urlString.startsWith("http://") || urlString.startsWith("https://")
-        ? urlString
-        : `https://${urlString}`;
-    new URL(url);
-    return true;
-  } catch (e) {
-    return false;
-  }
-};
-
-const MAX_LINK_LENGTH = 200;
-
-// New: Validate link for host and coupon
-const validateLink = (urlString: string) => {
-  if (!urlString) return { valid: true, error: "" };
-  if (!isValidUrl(urlString)) {
-    return {
-      valid: false,
-      error: translateFunction(
-        "Please enter a valid URL (e.g., example.com or www.example.com)",
-      ),
-    };
-  }
-  try {
-    const url =
-      urlString.startsWith("http://") || urlString.startsWith("https://")
-        ? urlString
-        : `https://${urlString}`;
-    if (url?.split(".")?.length < 2) {
-      return {
-        valid: false,
-        error: translateFunction(
-          "Please enter a valid URL (e.g., example.com or www.example.com)",
-        ),
-      };
-    }
-
-    const parsed = new URL(url);
-
-    // Counted with the https:// we add, because that is the link we send.
-    if (url.length > MAX_LINK_LENGTH) {
-      return {
-        valid: false,
-        error: translateFunction("This link is too long (max 200 characters)"),
-      };
-    }
-
-    return { valid: true, error: "" };
-  } catch {
-    return {
-      valid: false,
-      error: translateFunction(
-        "Please enter a valid URL (e.g., example.com or www.example.com)",
-      ),
-    };
-  }
-};
-
 export default function AddStoryWidget() {
   useEffect(() => {
     getUserStories();
@@ -173,7 +112,7 @@ export default function AddStoryWidget() {
   const [imageToEdit, setImageToEdit] = useState<File | null>(null);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [link, setLink] = useState("");
-  const [linkError, setLinkError] = useState("");
+  const linkCheck = checkStoryLink(link);
   const {
     setOpenCamera,
     OpenCamera,
@@ -458,7 +397,6 @@ export default function AddStoryWidget() {
     setFile(null);
     setUpload(-1);
     setLink("");
-    setLinkError(null);
     setOpenCamera(false);
     setShowImageEditor(false);
     setImageToEdit(null);
@@ -524,29 +462,17 @@ export default function AddStoryWidget() {
 
   const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Always sanitize the value before setting state. Not cut to a length:
-    // validateLink tells the shopper when the link is too long.
-    const sanitized = pollinateInput(e.target.value, Infinity);
-    setLink(sanitized);
-    const { valid, error } = validateLink(sanitized);
-    setLinkError(error);
+    // the link rules tell the shopper when the link is too long.
+    setLink(pollinateInput(e.target.value, Infinity));
   };
 
   const handleShareStory = () => {
-    const { valid, error } = validateLink(link);
-    if (!valid) {
-      setLinkError(error);
-      return;
-    }
-    // Add https:// if no protocol is specified
-    const finalLink =
-      link && !link.startsWith("http://") && !link.startsWith("https://")
-        ? `https://${link}`
-        : link;
+    if (!linkCheck.valid) return;
     // Sendevent({
     //   event: GA_EVENT_NAMES.CLICK,
     //   value: GA_CLICK_EVENT_VALUES.CONFIRM_UPLOAD_STORY_BUTTON,
     // });
-    selectMedia({ imageFile: selectedFile, link: finalLink });
+    selectMedia({ imageFile: selectedFile, link: linkCheck.link });
   };
 
   useEffect(() => {
@@ -683,13 +609,13 @@ export default function AddStoryWidget() {
                     }
                   }}
                   placeholder={translateFunction("Add link...")}
-                  className={`w-full outline-hidden ${
-                    linkError ? "border-b border-red-500" : ""
+                  aria-invalid={!linkCheck.valid}
+                  aria-describedby="story-link-checks"
+                  className={`w-full outline-hidden border-b transition-colors ${
+                    linkCheck.valid ? "border-transparent" : "border-[#f85555]"
                   }`}
                 />
-                {linkError && (
-                  <p className="text-red-500 text-sm mt-1">{linkError}</p>
-                )}
+                <StoryLinkChecks id="story-link-checks" check={linkCheck} />
               </div>
             </div>
 
@@ -698,7 +624,7 @@ export default function AddStoryWidget() {
                 onClick={handleShareStory}
                 data-pw="share-story-button"
                 className="w-full bg-blue-500 text-white flex justify-center items-center py-2 rounded-lg hover:bg-blue-600 mt-auto disabled:bg-blue-200"
-                disabled={!!linkError || (link && !isValidUrl(link)) || loading}
+                disabled={!linkCheck.valid || loading}
               >
                 {loading ? <Spinner /> : translateFunction("Share Story")}
               </button>
