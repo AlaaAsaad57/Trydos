@@ -1,6 +1,5 @@
 import { useParams } from "next/navigation";
 
-import { SearchContact } from "store/chat/actions";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { pollinateInput } from "@/utils/tinyUtils";
@@ -12,13 +11,9 @@ function ChatListSearch(props) {
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  let filterTimeout;
+  // Contacts are already in the store; the results filter them locally.
   const SearchContacts = (query) => {
     props.setSearch(query);
-    clearTimeout(filterTimeout);
-    filterTimeout = setTimeout(() => {
-      SearchContact(query);
-    }, 500);
   };
 
   return (
