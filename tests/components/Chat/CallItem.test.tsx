@@ -275,3 +275,50 @@ describe("CallItem — right-to-left languages", () => {
     });
   }
 });
+
+// A shopper deletes a call to hide who they talked to and when. The row still
+// has to read as a call row: a grey tile with a crossed-out phone where the
+// picture was, "Deleted Call", and a line that says why nothing else shows.
+describe("CallItem — a deleted call", () => {
+  async function renderDeleted(language: "en" | "ar" | "tr" | "ku" = "en") {
+    const r = await renderWithProviders(<CallItem deleted />, {
+      language,
+      store: { userChat: { id: ME } },
+    });
+    return {
+      row: r.container.querySelector(".call-conversation-item") as HTMLElement | null,
+      tile: r.container.querySelector(".deleted-call-icon") as HTMLElement | null,
+      info: r.container.querySelector(".call-info") as HTMLElement | null,
+    };
+  }
+
+  it("says it was deleted and that the call details are hidden", async () => {
+    await renderDeleted();
+    expect(screen.queryByText("Deleted Call"), "the row did not say the call was deleted").toBeInTheDocument();
+    expect(
+      screen.queryByText("Call Details Are Hidden"),
+      "the row did not say why it shows no name, picture or date",
+    ).toBeInTheDocument();
+  });
+
+  it("puts a crossed-out phone tile where the picture was, and no picture", async () => {
+    const { row, tile } = await renderDeleted();
+    expect(tile, "the deleted call has no tile in the picture's place, so the row does not line up").not.toBeNull();
+    expect(tile!.querySelector("svg"), "the tile in the picture's place has no phone icon").not.toBeNull();
+    expect(row!.querySelector("img"), "the deleted call shows a picture").toBeNull();
+  });
+
+  for (const language of ["ar", "ku"] as const) {
+    it(`mirrors the deleted call row in ${language}`, async () => {
+      const { row, info } = await renderDeleted(language);
+      expect(
+        row?.className,
+        `in ${language} the deleted call row did not reverse, so the tile stayed on the left (class "${row?.className}")`,
+      ).toContain("flex-row-reverse");
+      expect(
+        info?.className,
+        `in ${language} the deleted call text was not set right to left (class "${info?.className}")`,
+      ).toContain("dir-rtl");
+    });
+  }
+});

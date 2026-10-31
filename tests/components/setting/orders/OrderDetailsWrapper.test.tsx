@@ -31,6 +31,12 @@ vi.mock("utils/orderFunnel", () => ({
   trackOrderMgmt,
 }));
 
+const showErrorNotification = vi.hoisted(() => vi.fn());
+vi.mock("store/notifications/reducer", async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return { ...actual, showErrorNotification };
+});
+
 const logError = vi.hoisted(() => vi.fn());
 vi.mock("utils/functions", async (importOriginal) => {
   const actual: any = await importOriginal();
@@ -736,6 +742,36 @@ describe("the delivery chat", () => {
     await waitFor(() => expect(fetchDataMock).toHaveBeenCalledTimes(2));
     expect(logError, "an aborted chat request was logged as an error").not.toHaveBeenCalled();
     expect(spies.openChat, "a failed chat request opened a chat").not.toHaveBeenCalled();
+  });
+
+  it("tells the shopper when the chat backend refuses inside a 200 (isSuccessful: false)", async () => {
+    orderService.getOrderDetails.mockResolvedValue([outForDelivery()]);
+    // fetchData calls any 2xx a success, so the refusal arrives with
+    // `success: true`. Only `isSuccessful` says what happened.
+    fetchDataMock.mockResolvedValueOnce({
+      success: true,
+      isSuccessful: false,
+      hasContent: false,
+      code: 404,
+      message: "Recipient user not found",
+      data: false,
+    });
+    const { spies } = await renderPage();
+    await screen.findByTestId("order-items-list");
+    await userEvent.setup().click(screen.getByTestId("order-chat-icon"));
+
+    // translateFunction title-cases English, so the case is not checked.
+    await waitFor(() =>
+      expect(
+        showErrorNotification,
+        "the shopper saw no error when the chat backend refused to find the delivery worker",
+      ).toHaveBeenCalledWith(expect.stringMatching(/^could not open the chat$/i)),
+    );
+    expect(
+      fetchDataMock.mock.calls[0][0].noMessage,
+      "fetchData may show the backend's English text as a success toast beside the error",
+    ).toBe(true);
+    expect(spies.openChat, "a refused chat request opened a chat").not.toHaveBeenCalled();
   });
 
   it("opens the chat on load when the address names an out-for-delivery pack", async () => {

@@ -1452,6 +1452,7 @@ const translations = {
   "Outgoing Voice Call": "پەیوەندی دەنگی دەرچوو",
   "Outgoing Video Call": "پەیوەندی ڤیدیۆیی دەرچوو",
   "Deleted Call": "پەیوەندیی سڕاوە",
+  "Call details are hidden": "وردەکارییەکانی پەیوەندییەکە شاراوەن",
   "Incoming Voice Call": "پەیوەندی دەنگی دەرچوو",
   "Incoming Video Call": "پەیوەندی ڤیدیۆیی دەرچوو",
   "Missed Voice Call At": "پەیوەندی دەنگی لەدەستچوو لە کاتژمێر",

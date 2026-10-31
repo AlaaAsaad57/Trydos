@@ -1401,6 +1401,7 @@ const translations = {
   "Outgoing Voice Call": "Giden sesli arama",
   "Outgoing Video Call": "Giden görüntülü arama",
   "Deleted Call": "Silinmiş arama",
+  "Call details are hidden": "Arama ayrıntıları gizli",
   "Incoming Voice Call": "Gelen sesli arama",
   "Incoming Video Call": "Gelen görüntülü arama",
   "Missed Voice Call At": "Cevapsız sesli arama saat",

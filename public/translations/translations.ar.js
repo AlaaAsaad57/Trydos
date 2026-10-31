@@ -1409,6 +1409,7 @@ const translations = {
   "Outgoing Voice Call": "مكالمة صوتية صادرة",
   "Outgoing Video Call": "مكالمة فيديو صادرة",
   "Deleted Call": "مكالمة محذوفة",
+  "Call details are hidden": "تفاصيل المكالمة مخفية",
   "Incoming Voice Call": "مكالمة صوتية واردة",
   "Incoming Video Call": "مكالمة فيديو واردة",
   "Missed Voice Call At": "مكالمة صوتية فائتة عند",
