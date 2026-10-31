@@ -51,7 +51,11 @@ const analyzeBudgetMs = () =>
 //   paid API routes use.
 //
 // Both are tunable without a redeploy.
-const CACHE_PREFIX = "search:analyze:v1:";
+//
+// v2: answers stored before the size check below can hold a size that is not
+// in ALLOWED_SIZES, and such a size empties the search. The new prefix stops
+// those answers being read; they expire on their own within a day.
+const CACHE_PREFIX = "search:analyze:v2:";
 const DEFAULT_CACHE_SECONDS = 24 * 60 * 60;
 const DEFAULT_MAX_PER_MINUTE = 300;
 const BUDGET_KEY = "search:analyze:rl:global";
@@ -218,6 +222,25 @@ QUERY: "${modifiedQuery}"`;
         return true;
       }),
     );
+
+    // The model can invent a size that is not in ALLOWED_SIZES: "علبة بنسلين
+    // 100 ملجم" came back with size "100ml". `GetSearchData` turns the size
+    // into a `must` filter, so a size no product has empties the whole search.
+    // Keep only sizes from the list, in the list's own spelling.
+    if (filtered.size != null) {
+      const allowedSizes = new Map(
+        sizes
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .map((s) => [s.toLowerCase(), s] as const),
+      );
+      const kept = (Array.isArray(filtered.size) ? filtered.size : [filtered.size])
+        .map((s) => allowedSizes.get(String(s).trim().toLowerCase()))
+        .filter(Boolean);
+      if (kept.length) filtered.size = kept;
+      else delete filtered.size;
+    }
 
     await RedisSet(key, filtered, cacheSeconds());
 

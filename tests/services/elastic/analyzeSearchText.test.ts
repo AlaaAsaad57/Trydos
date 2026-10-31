@@ -159,7 +159,7 @@ describe("analysing a search", () => {
     await AnalyzeSearchText("Red%20Dress");
 
     const [key, value, ttl] = io.redisSet.mock.calls[0] ?? [];
-    expect(key, "the answer was not stored under a search-analysis key").toMatch(/^search:analyze:v1:[0-9a-f]{40}$/);
+    expect(key, "the answer was not stored under a search-analysis key").toMatch(/^search:analyze:v2:[0-9a-f]{40}$/);
     expect(key, "the raw search text was written into the Redis key").not.toContain("dress");
     expect(value, "the stored answer is not the parsed result").toEqual({ name: "dress", color: ["#ff0000"] });
     expect(ttl, "the stored answer has no lifetime").toBeGreaterThan(0);
@@ -172,7 +172,7 @@ describe("analysing a search", () => {
 
     expect(fetchMock, "a stored search still called the AI").not.toHaveBeenCalled();
     expect(result, "the stored answer was not returned").toMatchObject({ name: "dress", color: ["#ff0000"], cached: true });
-    expect(io.redisGet.mock.calls[0][0], "the key does not fold case and spaces").toMatch(/^search:analyze:v1:[0-9a-f]{40}$/);
+    expect(io.redisGet.mock.calls[0][0], "the key does not fold case and spaces").toMatch(/^search:analyze:v2:[0-9a-f]{40}$/);
   });
 
   it("does not store a refusal or an unreadable answer", async () => {
