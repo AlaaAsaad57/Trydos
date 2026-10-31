@@ -30,7 +30,7 @@ const CONTENT = {
 };
 const activeChat = { id: 7, channel_members: [{ user_id: ME, user: { name: "Me" } }] };
 
-async function mount(extra: Record<string, any> = {}, chat: any = activeChat, store: Record<string, any> = {}) {
+async function mount(extra: Record<string, any> = {}, chat: any = activeChat, store: Record<string, any> = {}, path = "/") {
   const p = {
     setOpen: vi.fn(),
     setDelete: vi.fn(),
@@ -53,6 +53,7 @@ async function mount(extra: Record<string, any> = {}, chat: any = activeChat, st
   };
   const spies = { setForwardMessage: vi.fn(), setReplyMessage: vi.fn() };
   await renderWithProviders(<ProductMessage {...(p as any)} />, {
+    path,
     store: { userChat: { id: ME }, activeChat: chat, ...spies, ...store },
   });
   return { p, spies, menu: h.menus.at(-1) };
@@ -126,6 +127,14 @@ describe("ProductMessage", () => {
     await mount({}, activeChat, { chatVar: true });
     fireEvent.click(screen.getByText("View Product"));
     expect(useAppStore.getState().chatVar, "the side chat panel closed on a desktop").toBe(true);
+  });
+
+  // The shopper is already on this product's page, so there is nowhere to go.
+  // The link must close the chat so the page behind it shows — on any screen.
+  it("on the product's own page, 'View Product' closes the chat on a desktop", async () => {
+    await mount({}, activeChat, { chatVar: true }, "/products/red-shoe");
+    fireEvent.click(screen.getByText("View Product"));
+    expect(useAppStore.getState().chatVar, "the chat stayed open over the product page the shopper is already on").toBe(false);
   });
 
   it("BUG-chat-11: tapping a shared product opens its menu", async () => {

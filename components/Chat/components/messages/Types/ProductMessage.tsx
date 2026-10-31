@@ -7,7 +7,6 @@ import {
 } from "utils/functions";
 import ChatPhoto from "../../ChatPhoto";
 import NextLink from "components/global/NextLink";
-import { isSamePage } from "utils/navigationsUtils";
 import { ChatConroller, GetImageUrl } from "utils/tinyUtils";
 import {
   copyText,
@@ -16,7 +15,7 @@ import {
   getMessageTime,
 } from "store/chat/chatUtils";
 import OptionsMenu from "../../OptionsMenu";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import MessageMarks from "../MessageMarks";
 
 function ProductMessage({
@@ -53,6 +52,15 @@ function ProductMessage({
     );
   }, [activeChat, user]);
   const { lang } = useParams();
+  const pathname = usePathname();
+  const productSlug = JSON.parse(
+    !Array.isArray(message_content) && message_content.content,
+  )[0].product_slug;
+  const productHref = `/${lang}/products/${productSlug}`;
+  // Read from the route, not from window, so the button updates when the
+  // shopper moves to another page while the chat stays open.
+  const onProductPage =
+    pathname === productHref || pathname === encodeURI(productHref);
   return (
     <div
       onMouseLeave={() => {
@@ -90,33 +98,22 @@ function ProductMessage({
             className="py-2 px-4 text-center flex justify-center light text-[12px] text-[#1d1d1d] bg-slate-50 rounded-md"
             data={{
               is_product: true,
-              slug: JSON.parse(
-                !Array.isArray(message_content) && message_content.content,
-              )[0].product_slug,
-              href: `/${lang}/products/${
-                JSON.parse(
-                  !Array.isArray(message_content) && message_content.content,
-                )[0].product_slug
-              }`,
+              slug: productSlug,
+              href: productHref,
             }}
-            href={`/${lang}/products/${
-              JSON.parse(
-                !Array.isArray(message_content) && message_content.content,
-              )[0].product_slug
-            }`}
+            href={productHref}
             // On a phone the chat covers the whole screen and lives in the
             // layout, so it stays open over the product page. Close it there.
+            // On the product's own page there is nowhere to go, so close it on
+            // any screen and show the page behind it.
             onClick={() => {
-              if (window.matchMedia("(max-width: 480px)").matches)
+              if (
+                onProductPage ||
+                window.matchMedia("(max-width: 480px)").matches
+              )
                 ChatConroller(false);
             }}
-            sameHref={isSamePage(
-              `/${lang}/products/${
-                JSON.parse(
-                  !Array.isArray(message_content) && message_content.content,
-                )[0].product_slug
-              }`,
-            )}
+            sameHref={onProductPage}
           >
             {translateFunction("View Product")}
           </NextLink>
