@@ -12,7 +12,27 @@ import { translateFunction } from "utils/functions";
  * call to hide who they talked to and when, so the row shows no name, picture,
  * date, length, direction or bin.
  */
-function CallItem({ photo, name, date, type, Delete, duration, deleted = false }) {
+// A deleted row is rendered with `deleted` alone (CallList.jsx), so every
+// other prop is optional.
+type CallItemProps = {
+  photo?: any;
+  name?: any;
+  date?: any;
+  type?: any;
+  Delete?: any;
+  duration?: any;
+  deleted?: boolean;
+};
+
+function CallItem({
+  photo,
+  name,
+  date,
+  type,
+  Delete,
+  duration,
+  deleted = false,
+}: CallItemProps) {
   // Arabic and Kurdish read right to left. The row mirrors the same way as a
   // chat row (ChatItem): photo on the right, date and bin on the left.
   const { language } = useAppStore();
