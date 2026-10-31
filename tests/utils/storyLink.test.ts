@@ -63,4 +63,62 @@ describe("checkStoryLink", () => {
     expect(checkStoryLink("http://ok.example.com").link, "an http link was changed").toBe("http://ok.example.com");
     expect(checkStoryLink("https://ok.example.com").link, "an https link was changed").toBe("https://ok.example.com");
   });
+
+  it("does not add a second https:// to a link typed with a capital HTTPS://", () => {
+    const check = checkStoryLink("HTTPS://example.com");
+    expect(check.link, "a capital HTTPS:// link got a second https:// in front").toBe("HTTPS://example.com");
+    expect(check.valid, "a capital HTTPS:// link was refused").toBe(true);
+  });
+
+  it("drops spaces before and after the link, so the sent link has none", () => {
+    const check = checkStoryLink("  example.com  ");
+    expect(check.link, "the sent link kept the spaces around it").toBe("https://example.com");
+    expect(check.valid, "a link with spaces around it was refused").toBe(true);
+    expect(checkStoryLink("   ").empty, "a field of only spaces was not seen as empty").toBe(true);
+  });
+
+  // Each one was accepted before: the browser's URL parser takes all of them,
+  // but none is a shop link a shopper can open.
+  it.each([
+    ["example.", "a host that ends in a dot with no ending after it"],
+    ["example.com.", "a host that ends in a dot"],
+    [".com", "a host that is only an ending"],
+    ["example..com", "a host with an empty part"],
+    ["-shop.com", "a host part that starts with a dash"],
+    ["shop-.com", "a host part that ends with a dash"],
+    ["sh_op.com", "a host with an underscore"],
+    ["example.c", "an ending of one letter"],
+    ["example.c0m", "an ending with a digit"],
+    ["1.2", "a number, read as an IP address"],
+    ["192.168.1.1", "an IP address"],
+    ["https://[::1]/x.y", "an IPv6 address"],
+    [`${"a".repeat(64)}.com`, "a host part over 63 characters"],
+    ["http:/example.com", "http: with one slash"],
+    ["https:/example.com", "https: with one slash"],
+    ["ftp://example.com", "a scheme other than http or https"],
+    ["mailto:a@b.com", "an email link"],
+    ["trydos.com@evil.com", "a link with a user name before the host"],
+    ["user:pw@example.com", "a link with a user name and password"],
+    ["example.com/a b", "a link with a space inside"],
+    ["example.com/a\tb", "a link with a tab inside"],
+  ])('fails the link rule for "%s" (%s)', (bad, what) => {
+    const check = checkStoryLink(bad);
+    expect(check.isUrl, `${what} was called a link: "${bad}"`).toBe(false);
+    expect(check.valid, `${what} was accepted: "${bad}"`).toBe(false);
+  });
+
+  it.each([
+    ["example.com"],
+    ["www.example.com/path?q=1"],
+    ["shop.example.co.uk/sale"],
+    ["https://example.com:8080/x"],
+    ["http://ok.example.com"],
+    ["مثال.com"],
+    ["xn--mgbh0fb.com"],
+    ["shop.example"],
+  ])('still accepts the correct link "%s"', (good) => {
+    const check = checkStoryLink(good);
+    expect(check.isUrl, `a correct link was called not a link: "${good}"`).toBe(true);
+    expect(check.valid, `a correct link was refused: "${good}"`).toBe(true);
+  });
 });

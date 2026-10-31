@@ -521,6 +521,18 @@ describe("Stories section — the link on a new story", () => {
     expect(refusalShown(), "a single word was not marked as refused").toBe(true);
   });
 
+  it("keeps a link's query, #part and %-codes as typed, and drops only < and >", async () => {
+    const field = (await openUploadAndGetLinkField()) as HTMLInputElement;
+    const typed = "shop.example.com/p/%D8%A7(1)?a=1&b=2,3*#top";
+    fireEvent.change(field, { target: { value: typed } });
+    fireEvent.blur(field);
+    expect(field.value, "the link field removed characters a link needs").toBe(typed);
+    expect(linkRule("url"), "a link with a query and a #part failed the link rule").toBe("pass");
+    fireEvent.change(field, { target: { value: "shop.example.com/<b>" } });
+    fireEvent.blur(field);
+    expect(field.value, "the link field kept < or >").toBe("shop.example.com/b");
+  });
+
   it("treats an empty link as fine, because the link is optional", async () => {
     const field = await openUploadAndGetLinkField();
     await userEvent.type(field, "x");

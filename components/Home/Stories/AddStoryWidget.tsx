@@ -13,13 +13,13 @@ import {
 import { getUserStories, LogError, translateFunction } from "utils/functions";
 import { trackPosthog, STORY_EVENTS } from "utils/posthogEvents";
 import StoryServiceClass from "services/story";
-import { DisableScroll, EnableScroll, pollinateInput } from "@/utils/tinyUtils";
+import { DisableScroll, EnableScroll } from "@/utils/tinyUtils";
 import Spinner from "components/global/Spinner";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 import { fetchStoriesForUser } from "serverRequests";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
 import StoryLinkChecks from "components/global/StoryLinkChecks";
-import { checkStoryLink } from "utils/storyLink";
+import { checkStoryLink, cleanStoryLink } from "utils/storyLink";
 
 // Icons
 const CameraIcon = () => (
@@ -463,7 +463,7 @@ export default function AddStoryWidget() {
   const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Always sanitize the value before setting state. Not cut to a length:
     // the link rules tell the shopper when the link is too long.
-    setLink(pollinateInput(e.target.value, Infinity));
+    setLink(cleanStoryLink(e.target.value));
   };
 
   const handleShareStory = () => {
@@ -599,7 +599,7 @@ export default function AddStoryWidget() {
                   onChange={handleLinkChange}
                   onBlur={() => {
                     // On blur, re-sanitize and update state in case of paste or autofill
-                    const sanitized = pollinateInput(link, Infinity);
+                    const sanitized = cleanStoryLink(link);
                     if (link !== sanitized) setLink(sanitized);
                     if (sanitized?.length > 0) {
                       // Sendevent({

@@ -276,6 +276,25 @@ describe("AddStoryWidget — choosing, previewing and uploading", () => {
     expect((useAppStore.getState() as any).addStoryEnable, "the sheet did not close after the upload").toBeFalsy();
   });
 
+  it("sends a link with a query, a #part and %-codes as typed, and drops only < and >", async () => {
+    upload.mockResolvedValue({});
+    render(<AddStoryWidget />);
+    await pickImage();
+    const typed = "shop.example.com/p/%D8%A7(1)?a=1&b=2,3*#top";
+    fireEvent.change(linkInput(), { target: { value: typed } });
+    fireEvent.blur(linkInput());
+    expect(linkInput().value, "the link field removed characters a link needs").toBe(typed);
+    fireEvent.change(linkInput(), { target: { value: "shop.example.com/<b>" } });
+    fireEvent.blur(linkInput());
+    expect(linkInput().value, "the link field kept < or >").toBe("shop.example.com/b");
+    fireEvent.change(linkInput(), { target: { value: typed } });
+    await act(async () => {
+      fireEvent.click(shareButton()!);
+    });
+    await waitFor(() => expect(upload, "the stories media upload was never called").toHaveBeenCalled());
+    expect(upload.mock.calls[0][4], "the link sent to the stories backend lost characters").toBe(`https://${typed}`);
+  });
+
   // L-6 (stories readiness): after an upload the sheet re-read page 1 and wrote
   // it over the whole list, so people from the pages loaded before vanished.
   it("keeps the people from later pages on the bar after an upload", async () => {

@@ -6,14 +6,13 @@ import Image from "next/image";
 import Spinner from "components/global/Spinner";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction, LogError } from "utils/functions";
-import { pollinateInput } from "@/utils/tinyUtils";
 import {
   showErrorNotification,
   showSuccessNotification,
 } from "store/notifications/reducer";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
 import StoryLinkChecks from "components/global/StoryLinkChecks";
-import { checkStoryLink } from "utils/storyLink";
+import { checkStoryLink, cleanStoryLink } from "utils/storyLink";
 import { DashIcon } from "components/SellerDashboard/ui/icons";
 import {
   DashButton,
@@ -448,7 +447,7 @@ function UploadStoryModal({
 
   const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Not cut to a length: the link rules tell the seller when it is too long.
-    setLink(pollinateInput(e.target.value, Infinity));
+    setLink(cleanStoryLink(e.target.value));
   };
 
   const handleShareStory = async () => {
@@ -621,7 +620,7 @@ function UploadStoryModal({
                       value={link}
                       onChange={handleLinkChange}
                       onBlur={() => {
-                        const sanitized = pollinateInput(link, Infinity);
+                        const sanitized = cleanStoryLink(link);
                         if (link !== sanitized) setLink(sanitized);
                       }}
                       placeholder={translateFunction("Add link...")}
