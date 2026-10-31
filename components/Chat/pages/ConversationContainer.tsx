@@ -32,6 +32,7 @@ import {
   SendMessage,
 } from "store/chat/actions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
+import { sortMessages } from "store/chat/messageOrder";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { translateFunction, getUserChat, LogError } from "utils/functions";
 import { getDb } from "utils/firebaseInitv1";
@@ -784,10 +785,14 @@ function ConversationContainer({
   const fetchOlderMessages = useCallback(() => {
     if (isFetchingOlderRef.current) return;
     if (!active?.id || !active?.messages?.[0]) return;
+    // The page holds the messages before this one, so it must be the oldest
+    // one held. `messages[0]` is the oldest only while the store keeps them in
+    // order; when it did not, the app asked for messages it already showed.
+    const oldestId = sortMessages(active.messages)[0]?.id;
     prevScrollHeightRef.current = scrollContainerRef.current?.scrollHeight || 0;
     isFetchingOlderRef.current = true;
-    const page = getPage(active?.id, active?.messages?.[0]?.id);
-    setMessagesPage(active?.messages?.[0]?.id);
+    const page = getPage(active?.id, oldestId);
+    setMessagesPage(oldestId);
     // Open the lock once the page is done, loaded or failed. It used to be
     // opened in the scroll effect below, and that effect is commented out. The
     // chat window keeps this container mounted while it is open, so no chat
@@ -873,10 +878,7 @@ function ConversationContainer({
     return false;
   };
   const [showMenu, setShowMenu] = useState(false);
-  const sortedMessages = [...(activeChat?.messages || [])].sort((a, b) => {
-    // Use .getTime() to get the numeric Unix timestamp
-    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-  });
+  const sortedMessages = sortMessages(activeChat?.messages);
 
   const firstMessageIdRef = useRef<string | null>(null);
 

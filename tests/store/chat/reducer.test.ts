@@ -560,6 +560,72 @@ describe("chat slice — loading chats and pages", () => {
     expect(s.get().mid, "an empty page did not stop paging").toBeNull();
   });
 
+  // BUG: setChats turned the backend's list round with `reverse()`, which
+  // changes the answer itself. Two chat-list calls that run at the same time
+  // share one answer (`fetchData` gives both callers the same `data`), so the
+  // second call turned it back to newest first.
+  it("setChats keeps messages oldest first when one answer is stored twice", () => {
+    const s = makeStore({ data: [] });
+    const answer = [
+      channel(1, {
+        messages: [
+          msg("3", { created_at: "2030-01-15T10:03:00" }),
+          msg("2", { created_at: "2030-01-15T10:02:00" }),
+          msg("1", { created_at: "2030-01-15T10:01:00" }),
+        ],
+      }),
+    ];
+    s.get().setChats(answer, []);
+    s.get().setChats(answer, []);
+    expect(
+      s.get().data[0].messages.map((m: any) => m.id),
+      "after the same chat-list answer was stored twice, the messages were not oldest first",
+    ).toEqual(["1", "2", "3"]);
+  });
+
+  // The chat backend orders by `created_at` only, so messages sent in the same
+  // second come in any order (measured on chat 539, 2026-10-31).
+  it("setChats orders messages sent in the same second by id", () => {
+    const s = makeStore({ data: [] });
+    s.get().setChats(
+      [
+        channel(1, {
+          messages: [
+            msg("341061", { created_at: "2026-10-31T06:45:47.000Z" }),
+            msg("341059", { created_at: "2026-10-31T06:45:46.000Z" }),
+            msg("341060", { created_at: "2026-10-31T06:45:46.000Z" }),
+            msg("341057", { created_at: "2026-10-31T06:45:45.000Z" }),
+            msg("341058", { created_at: "2026-10-31T06:45:45.000Z" }),
+          ],
+        }),
+      ],
+      [],
+    );
+    expect(
+      s.get().data[0].messages.map((m: any) => m.id),
+      "messages sent in the same second were not ordered by id",
+    ).toEqual(["341057", "341058", "341059", "341060", "341061"]);
+  });
+
+  it("setPageData keeps the messages oldest first after an older page", () => {
+    const held = channel(1, {
+      messages: [
+        msg("10", { created_at: "2030-01-15T10:10:00" }),
+        msg("11", { created_at: "2030-01-15T10:11:00" }),
+      ],
+    });
+    const s = makeStore({ data: [held], activeChat: held });
+    // The chat backend sends a page newest first.
+    s.get().setPageData({
+      ch: 1,
+      mes: [msg("9", { created_at: "2030-01-15T10:09:00" }), msg("8", { created_at: "2030-01-15T10:08:00" })],
+    });
+    expect(
+      s.get().data[0].messages.map((m: any) => m.id),
+      "after an older page the chat's messages were not oldest first",
+    ).toEqual(["8", "9", "10", "11"]);
+  });
+
   it("setPageData for an unlisted chat updates the active chat only", () => {
     const s = makeStore({ data: [], activeChat: channel(5), mid: 3 });
     s.get().setPageData({ ch: 5, mes: [{ id: "o" }] });

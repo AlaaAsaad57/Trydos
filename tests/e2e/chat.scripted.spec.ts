@@ -800,10 +800,12 @@ test("SCRIPT-41 reaching the top of a chat loads the older messages", async ({ b
       await chat.olderMessagesLoader(page).scrollIntoViewIfNeeded();
       const request = await asked.catch(() => null);
       expect(request, "scrolling to the top did not ask for older messages").not.toBeNull();
+      // In the body: the chat backend ignores `message_id` in the URL and
+      // answers with the newest messages (`store/chat/actions.tsx` getPage).
       expect(
-        decodeURI(request!.headers()["x-proxy-url"] ?? ""),
-        "the older page was asked for from the wrong message",
-      ).toContain(`message_id=${oldestLoaded}`);
+        String(request!.postDataJSON()?.message_id),
+        "the older page was not asked for from the oldest loaded message",
+      ).toBe(String(oldestLoaded));
     });
     await test.step("the older messages appear", async () => {
       await expect(

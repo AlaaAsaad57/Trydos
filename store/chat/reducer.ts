@@ -3,6 +3,7 @@ import { Recive, watchChannel as watchChannelAction } from "./actions";
 import { getMediaReducer } from "./actions";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { Channel, MyReminder } from "utils/types/chat";
+import { sortMessages } from "./messageOrder";
 
 // --- Types ---
 interface ChatState {
@@ -1072,14 +1073,17 @@ export const useChatStore = (set: any, get: any) => ({
     // The messages the store holds for a chat, to keep their due reminders.
     const held = (id: any) =>
       state.data.find((c: any) => areIdsEqual(c.id, id))?.messages;
+    // Sorted copies. `reverse()` used to turn the answer itself round, and two
+    // chat-list calls that run at the same time share one answer, so the
+    // second call turned the messages back to newest first.
     const processedPayload = payload.map((a) => ({
       ...a,
-      messages: keepDueReminders(a.messages.reverse(), held(a.id)),
+      messages: keepDueReminders(sortMessages(a.messages), held(a.id)),
       marked_unread: seedMarkedUnread(a),
     }));
     const processedParam = param.map((p) => ({
       ...p,
-      messages: keepDueReminders(p.messages.reverse(), held(p.id)),
+      messages: keepDueReminders(sortMessages(p.messages), held(p.id)),
       marked_unread: seedMarkedUnread(p),
     }));
 
@@ -1165,8 +1169,8 @@ export const useChatStore = (set: any, get: any) => ({
     const mergeMessages = (oldMsgs: any[], newMsgs: any[]) => {
       const existingIds = new Set(oldMsgs.map((m) => String(m.id)));
       const toAdd = newMsgs.filter((m) => !existingIds.has(String(m.id)));
-      // Prepend new messages (pagination logic usually goes upwards)
-      return [...toAdd, ...oldMsgs];
+      // The backend sends a page newest first; the chat keeps oldest first.
+      return sortMessages([...toAdd, ...oldMsgs]);
     };
 
     // Case: Channel not in data list
