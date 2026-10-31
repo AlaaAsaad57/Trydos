@@ -22,6 +22,7 @@ vi.mock("store/chat/chatUtils", async (importOriginal) => ({
 
 import ProductMessage from "components/Chat/components/messages/Types/ProductMessage";
 import ChatMessage from "components/Chat/components/ChatMessage";
+import { useAppStore } from "store";
 
 const ME = 1;
 const CONTENT = {
@@ -29,7 +30,7 @@ const CONTENT = {
 };
 const activeChat = { id: 7, channel_members: [{ user_id: ME, user: { name: "Me" } }] };
 
-async function mount(extra: Record<string, any> = {}, chat: any = activeChat) {
+async function mount(extra: Record<string, any> = {}, chat: any = activeChat, store: Record<string, any> = {}) {
   const p = {
     setOpen: vi.fn(),
     setDelete: vi.fn(),
@@ -52,7 +53,7 @@ async function mount(extra: Record<string, any> = {}, chat: any = activeChat) {
   };
   const spies = { setForwardMessage: vi.fn(), setReplyMessage: vi.fn() };
   await renderWithProviders(<ProductMessage {...(p as any)} />, {
-    store: { userChat: { id: ME }, activeChat: chat, ...spies },
+    store: { userChat: { id: ME }, activeChat: chat, ...spies, ...store },
   });
   return { p, spies, menu: h.menus.at(-1) };
 }
@@ -96,6 +97,35 @@ describe("ProductMessage", () => {
     expect(h.deleteMessage, "the product was not deleted").toHaveBeenCalledWith(7, 5, false);
     menu.setDelete(true);
     expect(p.setDelete, "the delete box was not opened").toHaveBeenCalledWith(true);
+  });
+
+  // On a phone the chat covers the whole screen, and it lives in the layout, so
+  // it stays open after the link changes the page. The shopper sees nothing
+  // happen. The link must close the chat on a phone.
+  it("on a phone, 'View Product' closes the chat so the product page shows", async () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      media: query,
+      matches: query === "(max-width: 480px)",
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+      addListener: () => {},
+      removeListener: () => {},
+    }));
+    try {
+      await mount({}, activeChat, { chatVar: true });
+      fireEvent.click(screen.getByText("View Product"));
+      expect(useAppStore.getState().chatVar, "the chat stayed open over the product page on a phone").toBe(false);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("on a desktop, 'View Product' leaves the chat panel open", async () => {
+    await mount({}, activeChat, { chatVar: true });
+    fireEvent.click(screen.getByText("View Product"));
+    expect(useAppStore.getState().chatVar, "the side chat panel closed on a desktop").toBe(true);
   });
 
   it("BUG-chat-11: tapping a shared product opens its menu", async () => {

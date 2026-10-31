@@ -8,7 +8,7 @@ import {
 import ChatPhoto from "../../ChatPhoto";
 import NextLink from "components/global/NextLink";
 import { isSamePage } from "utils/navigationsUtils";
-import { GetImageUrl } from "utils/tinyUtils";
+import { ChatConroller, GetImageUrl } from "utils/tinyUtils";
 import {
   copyText,
   DeleteMessage,
@@ -104,6 +104,12 @@ function ProductMessage({
                 !Array.isArray(message_content) && message_content.content,
               )[0].product_slug
             }`}
+            // On a phone the chat covers the whole screen and lives in the
+            // layout, so it stays open over the product page. Close it there.
+            onClick={() => {
+              if (window.matchMedia("(max-width: 480px)").matches)
+                ChatConroller(false);
+            }}
             sameHref={isSamePage(
               `/${lang}/products/${
                 JSON.parse(
