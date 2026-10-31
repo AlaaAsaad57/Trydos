@@ -4,7 +4,7 @@
 // tab ever renders. If the skeleton throws, nobody ever sees the call log —
 // not a wrong label, no list at all.
 import { describe, expect, it, vi } from "vitest";
-import { act, fireEvent, screen } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import React from "react";
 
 // The list asks the chat backend for calls as soon as it mounts. This test is
@@ -127,9 +127,8 @@ describe("CallList — deleted calls", () => {
       },
     });
 
-    const deleted = (await screen.findAllByText("Bilal Shop"))
-      .map((name) => name.closest(".call-conversation-item")!)
-      .find((row) => row.textContent?.includes("Deleted Call"));
+    await screen.findByText("Outgoing Voice Call");
+    const deleted = rowOf("Deleted Call");
     expect(deleted, "a call with auth_message_status.is_deleted 1 was not shown as a deleted call").toBeTruthy();
     expect(
       deleted!.textContent,
@@ -137,6 +136,38 @@ describe("CallList — deleted calls", () => {
     ).not.toContain("Outgoing Voice Call");
     expect(deleted!.querySelector(".options-icon"), "the deleted call still offers its delete bin").toBeNull();
     expect(rowOf("Outgoing Voice Call"), "the call that is not deleted lost its normal label").not.toBeNull();
+  });
+
+  // A shopper deletes a call to hide who they talked to and when. The row stays
+  // (the chat backend always sends it back), so the row itself must not say it.
+  it("a deleted call shows no name, no picture and no date", async () => {
+    await renderWithProviders(<CallList />, {
+      store: {
+        userChat: { id: 657 },
+        calls: [
+          call(900, "2026-09-26T10:00:00.000Z", {
+            channel: { id: 40, channel_name: "Bilal Shop", photo_path: "/channel.png" },
+            auth_message_status: { is_deleted: 1 },
+          }),
+        ],
+        data: [
+          {
+            id: 40,
+            channel_name: "Bilal Shop",
+            messages: [],
+            channel_members: [
+              { user_id: 657, user: { name: "Me", photo_path: "/me.png" } },
+              { user_id: 672, user: { name: "bilal seller id 8", photo_path: "/bilal.png" } },
+            ],
+          },
+        ],
+      },
+    });
+
+    const row = (await screen.findByText("Deleted Call")).closest(".call-conversation-item")!;
+    expect(row.textContent, "the deleted call still shows who the call was with").not.toContain("Bilal Shop");
+    expect(row.querySelector("img"), "the deleted call still shows a picture of who the call was with").toBeNull();
+    expect(row.querySelector(".date-clock"), "the deleted call still shows when the call took place").toBeNull();
   });
 
   it("the bin marks the call deleted and keeps it in the log", async () => {
@@ -204,5 +235,98 @@ describe("CallList — loading older calls", () => {
     await act(async () => io.onChange!(true));
 
     expect(screen.queryByTestId("older-calls"), "after the last, short page the list still asks for older calls").toBeNull();
+  });
+});
+
+// The chat backend always sends deleted calls back in my_calls. A page can be
+// all deleted calls, and then the shopper sees a screen of "Deleted Call" rows
+// and nothing else. The list goes on to the next page before it stops loading.
+describe("CallList — pages that hold only deleted calls", () => {
+  const deletedPage = (from: number) =>
+    Array.from({ length: 20 }, (_, i) =>
+      call(from - i, new Date(Date.UTC(2026, 8, 20, 0, 0, 0) + (from - i) * 1000).toISOString(), {
+        auth_message_status: { is_deleted: 1 },
+      }),
+    );
+  const livePage = (from: number) =>
+    Array.from({ length: 20 }, (_, i) => call(from - i, new Date(Date.UTC(2026, 8, 20, 0, 0, 0) + (from - i) * 1000).toISOString()));
+
+  /** A promise the test resolves by hand, to look at the list while a page is on its way. */
+  const deferred = <T,>() => {
+    let resolve!: (v: T) => void;
+    const promise = new Promise<T>((r) => (resolve = r));
+    return { promise, resolve };
+  };
+
+  /** Stands in for chat.getCalls: puts the page in the store, as the real one does. */
+  const answer = (pages: Record<string, any[] | Promise<any[]>>) =>
+    vi.mocked(chat.getCalls).mockImplementation(async (id?: number | string) => {
+      const page = await pages[String(id ?? "first")];
+      useAppStore.getState().setCalls(page);
+      return page as any;
+    });
+
+  it("when the newest page is all deleted calls, it loads the older page before it stops loading", async () => {
+    const older = deferred<any[]>();
+    answer({ first: deletedPage(500), "481": older.promise });
+    vi.mocked(chat.getCalls).mockClear();
+
+    await renderWithProviders(<CallList />, { store: { userChat: { id: 657 } } });
+
+    await waitFor(() =>
+      expect(
+        vi.mocked(chat.getCalls),
+        "a newest page of only deleted calls did not make the list ask for the calls before it",
+      ).toHaveBeenCalledWith("481"),
+    );
+    expect(
+      screen.queryByText("Deleted Call"),
+      "the list stopped loading and showed the deleted calls before the older page came back",
+    ).toBeNull();
+
+    await act(async () => older.resolve([call(300, "2026-01-01T00:00:00.000Z")]));
+
+    expect(await screen.findByText("Outgoing Voice Call"), "the live call from the older page is not in the log").toBeInTheDocument();
+  });
+
+  it("when an older page is all deleted calls, it asks for the next one too", async () => {
+    const next = deferred<any[]>();
+    answer({ first: livePage(500), "481": deletedPage(480), "461": next.promise });
+
+    await renderWithProviders(<CallList />, { store: { userChat: { id: 657 } } });
+    await screen.findByTestId("older-calls");
+    vi.mocked(chat.getCalls).mockClear();
+
+    await act(async () => io.onChange!(true));
+
+    expect(
+      vi.mocked(chat.getCalls),
+      "an older page of only deleted calls did not make the list ask for the page after it",
+    ).toHaveBeenCalledWith("461");
+    expect(
+      screen.queryByTestId("older-calls"),
+      "the 'load older calls' trigger came back while the list was still paging, so a scroll would ask twice",
+    ).toBeNull();
+
+    await act(async () => next.resolve([call(300, "2026-01-01T00:00:00.000Z")]));
+
+    expect(
+      vi.mocked(chat.getCalls),
+      "the list asked for more pages after it had found a live call",
+    ).not.toHaveBeenCalledWith("300");
+  });
+
+  it("stops when there is nothing older, even if every call is deleted", async () => {
+    answer({ first: deletedPage(500), "481": deletedPage(480).slice(0, 5) });
+    vi.mocked(chat.getCalls).mockClear();
+
+    await renderWithProviders(<CallList />, { store: { userChat: { id: 657 } } });
+
+    expect((await screen.findAllByText("Deleted Call")).length > 0, "the log never showed the deleted calls").toBe(true);
+    expect(
+      vi.mocked(chat.getCalls),
+      "the list went on asking after the short page, which is the last one",
+    ).not.toHaveBeenCalledWith("476");
+    expect(screen.queryByTestId("older-calls"), "after the last page the list still asks for older calls").toBeNull();
   });
 });

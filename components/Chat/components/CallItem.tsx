@@ -8,13 +8,26 @@ import { translateFunction } from "utils/functions";
 /**
  * One row of the call log. `deleted` is a call this user deleted: the chat
  * backend keeps it in the log (auth_message_status.is_deleted 1), so the row
- * says "Deleted Call" in place of the direction, with no length and no bin.
+ * says "Deleted Call" and nothing else. A shopper deletes a call to hide who
+ * they talked to and when, so the row shows no name, picture, date, length,
+ * direction or bin.
  */
 function CallItem({ photo, name, date, type, Delete, duration, deleted = false }) {
   // Arabic and Kurdish read right to left. The row mirrors the same way as a
   // chat row (ChatItem): photo on the right, date and bin on the left.
   const { language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
+  if (deleted) {
+    return (
+      <div className="call-conversation-item deleted-call call-item-row">
+        <div className={`call-info chat-info ${isRtl ? "dir-rtl" : ""}`}>
+          <div className="call-type">
+            {translateFunction("Deleted Call", language)}
+          </div>
+        </div>
+      </div>
+    );
+  }
   const calculate = (duration) => {
     // Ensure duration is a positive number
     const totalSeconds = Math.max(0, Math.floor(duration));
@@ -37,18 +50,16 @@ function CallItem({ photo, name, date, type, Delete, duration, deleted = false }
   );
   return (
     <div
-      className={`call-conversation-item ${
-        deleted ? "deleted-call" : direction
-      } call-item-row ${isRtl ? "flex-row-reverse" : ""}`}
+      className={`call-conversation-item ${direction} call-item-row ${
+        isRtl ? "flex-row-reverse" : ""
+      }`}
     >
-      {!deleted && (
-        <span
-          className={`options-icon ${isRtl ? "left-[10px] right-[initial]" : ""}`}
-          onClick={() => Delete()}
-        >
-          <img src="/icons/chat/delete.svg" className="w-[15px] h-[15px]" />
-        </span>
-      )}
+      <span
+        className={`options-icon ${isRtl ? "left-[10px] right-[initial]" : ""}`}
+        onClick={() => Delete()}
+      >
+        <img src="/icons/chat/delete.svg" className="w-[15px] h-[15px]" />
+      </span>
       <Image
         loading="eager"
         width={55}
@@ -61,11 +72,9 @@ function CallItem({ photo, name, date, type, Delete, duration, deleted = false }
       >
         <div className="call-name chat-name">{name}</div>
         <div className="call-type">
-          {deleted
-            ? translateFunction("Deleted Call", language)
-            : getCallType(type)}
+          {getCallType(type)}
 
-          {!deleted && duration > 0 && (
+          {duration > 0 && (
             <div className="mx-[4px] text-[11px] text-[#5e5e5e] regular h-full items-end flex">
               {calculate(duration)}
             </div>
