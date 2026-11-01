@@ -7,6 +7,15 @@ import { downloadFile } from "components/Chat/downloadFile";
 // A tap on a photo or a video opens the same full-screen viewer the chat uses
 // (`onOpenImage` / `onOpenVideo`). A tap on a file saves it on the user's
 // machine, the same as the file bubble in the chat.
+//
+// Both callbacks are optional. The component calls them with `?.`.
+/**
+ * @param {object} props
+ * @param {any} props.id
+ * @param {any} props.mediaFiles
+ * @param {(filePath: string) => void} [props.onOpenImage]
+ * @param {(filePath: string) => void} [props.onOpenVideo]
+ */
 function MediaContainer({ id, mediaFiles, onOpenImage, onOpenVideo }) {
   const [media, setMedia] = useState("ImageMessage");
   useEffect(() => {
