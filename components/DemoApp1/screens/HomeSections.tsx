@@ -12,6 +12,11 @@ import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { DemoKey } from "../../DemoApp/demoKeys";
+import {
+  storeBySlug,
+  type DemoStore,
+  type StoreLogo,
+} from "../../DemoApp/demoStores";
 import { C, lineBox, textTop } from "../demo1Layout";
 import { Stroke } from "../ui";
 
@@ -38,6 +43,18 @@ import { Stroke } from "../ui";
  */
 
 type T = (key: DemoKey) => string;
+
+/**
+ * How a card opens its store: the store page's URL (a real link, so search
+ * engines and "open in new tab" can follow it), and what a tap does instead
+ * (the shell opens the page at once, growing it out of `card`).
+ */
+export type OpenStore = {
+  href: (slug: string) => string;
+  open: (slug: string, card: Element) => void;
+  /** Starts loading the store page's first pictures (on hover or touch). */
+  warm?: () => void;
+};
 
 const BLUE = "#386EFF";
 const RING = "#FFAB62";
@@ -315,15 +332,7 @@ function Stories() {
   );
 }
 
-type Logo = {
-  src: string;
-  w: number;
-  h: number;
-  /** Design px under the card's top. */
-  top: number;
-  /** Design px from the card's left; omitted, the logo is centred on the card. */
-  left?: number;
-};
+type Logo = StoreLogo;
 
 /**
  * One card: white, a 0.3 `#8D8D8D` line, 140 tall; the awning at its top
@@ -337,8 +346,13 @@ type Logo = {
  * Turkish one, or any line on a phone under about 345 px) wraps upwards from
  * the file's baseline, into the free space under the logo, so it never runs
  * into the next card.
+ *
+ * With `slug` and `openStore` the card is a link to the store's page. The
+ * store page draws the same card as its banner (`Home Page – 47`), with
+ * `capitalize` (the file writes its line with a capital on every word there)
+ * and `nameMark` (a store with no logo in the file shows its name instead).
  */
-function BrandCard({
+export function BrandCard({
   t,
   brand,
   shown = brand,
@@ -346,6 +360,11 @@ function BrandCard({
   centreAt,
   style,
   snap = false,
+  slug,
+  openStore,
+  capitalize = false,
+  nameMark = false,
+  testId,
 }: {
   t: T;
   brand: string;
@@ -356,18 +375,84 @@ function BrandCard({
   centreAt?: number;
   style?: React.CSSProperties;
   snap?: boolean;
+  slug?: string;
+  openStore?: OpenStore;
+  capitalize?: boolean;
+  nameMark?: boolean;
+  testId?: string;
 }) {
   const at = centreAt === undefined ? "50%" : `${centreAt}px`;
+  const box: React.CSSProperties = {
+    display: "block",
+    height: 140,
+    scrollSnapAlign: snap ? "start" : undefined,
+    ...style,
+  };
+  const pw = testId ?? `demo-brand-${brand}`;
+  const contents = (
+    <BrandCardContents
+      t={t}
+      brand={brand}
+      shown={shown}
+      logo={logo}
+      centreAt={centreAt}
+      at={at}
+      capitalize={capitalize}
+      nameMark={nameMark}
+    />
+  );
+  if (slug && openStore) {
+    return (
+      <a
+        href={openStore.href(slug)}
+        data-pw={pw}
+        className="relative shrink-0 bg-white cursor-pointer select-none [-webkit-tap-highlight-color:transparent] active:brightness-[0.97]"
+        style={box}
+        draggable={false}
+        onPointerEnter={openStore.warm}
+        onPointerDown={openStore.warm}
+        onClick={(e) => {
+          // A plain click opens the page in the app, at once. A click with a
+          // modifier (new tab, new window) is left to the browser.
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)
+            return;
+          e.preventDefault();
+          openStore.open(slug, e.currentTarget);
+        }}
+      >
+        {contents}
+      </a>
+    );
+  }
   return (
-    <div
-      data-pw={`demo-brand-${brand}`}
-      className="relative shrink-0 bg-white"
-      style={{
-        height: 140,
-        scrollSnapAlign: snap ? "start" : undefined,
-        ...style,
-      }}
-    >
+    <div data-pw={pw} className="relative shrink-0 bg-white" style={box}>
+      {contents}
+    </div>
+  );
+}
+
+/** What a BrandCard draws inside its box. */
+function BrandCardContents({
+  t,
+  brand,
+  shown,
+  logo,
+  centreAt,
+  at,
+  capitalize,
+  nameMark,
+}: {
+  t: T;
+  brand: string;
+  shown: string;
+  logo?: Logo;
+  centreAt?: number;
+  at: string;
+  capitalize: boolean;
+  nameMark: boolean;
+}) {
+  return (
+    <>
       {/* The card's line is the first thing the file draws; the awning, logo and words lie over it. */}
       <Stroke color={C.grey} width={0.3} />
       <img
@@ -394,8 +479,24 @@ function BrandCard({
           }}
         />
       )}
+      {!logo && nameMark && (
+        // No logo in the file: the name, in the logo's 20 px band (y 65 – 85).
+        <span
+          className="absolute font-medium whitespace-nowrap"
+          style={{
+            top: 65,
+            left: at,
+            transform: "translateX(-50%)",
+            fontSize: 16,
+            lineHeight: "20px",
+            color: C.ink,
+          }}
+        >
+          {brand}
+        </span>
+      )}
       <span
-        className="absolute font-normal text-center"
+        className={`absolute font-normal text-center ${capitalize ? "capitalize" : ""}`}
         style={{
           left: at,
           // The file's words sit 1 px right of the card's middle (measured on
@@ -421,24 +522,18 @@ function BrandCard({
           boldBang={false}
         />
       </span>
-    </div>
+    </>
   );
 }
 
-const BRANDS: { name: string; logo: Logo }[] = [
-  {
-    name: "Zara",
-    logo: { src: "/assets/demo/home/brands/zara.svg", w: 47.55, h: 20, top: 65, left: 85.22 },
-  },
-  {
-    name: "Mango",
-    logo: { src: "/assets/demo/home/brands/mango.svg", w: 124.36, h: 20.22, top: 64.95, left: 46.51 },
-  },
-  {
-    name: "Vakko",
-    logo: { src: "/assets/demo/home/brands/vakko.svg", w: 110.15, h: 20, top: 65, left: 54 },
-  },
-];
+const store = (slug: string): DemoStore => {
+  const found = storeBySlug(slug);
+  if (!found) throw new Error(`demoStores.ts has no store "${slug}"`);
+  return found;
+};
+
+/** The brand stores on each carousel page, with the logos placed as the file places them. */
+const BRANDS: DemoStore[] = ["zara", "mango", "vakko"].map(store);
 
 /** The carousel's pages: the file draws two and a pager of three, each page the same three brands. */
 const PAGES = 3;
@@ -519,7 +614,7 @@ const SLIDE_IN_VIEW = 0.9;
  * Windows turns that on when "Animation effects" is off, and the hint then
  * never showed.
  */
-function useSlider() {
+export function useSlider() {
   // One plugin for the life of the slider (a lazy state, not read from a ref
   // during render).
   const [autoplay] = useState(() =>
@@ -650,10 +745,12 @@ function BrandCarousel({
   t,
   viewportRef,
   nudge,
+  openStore,
 }: {
   t: T;
   viewportRef: (node: HTMLElement | null) => void;
   nudge: MotionValue<number>;
+  openStore?: OpenStore;
 }) {
   return (
     <div className="relative shrink-0" style={{ marginTop: 8, height: 424 }}>
@@ -684,6 +781,8 @@ function BrandCarousel({
                     logo={b.logo}
                     centreAt={109}
                     style={{ width: "100%" }}
+                    slug={b.slug}
+                    openStore={openStore}
                   />
                 ))}
               </motion.div>
@@ -734,24 +833,18 @@ function Pager({ page, onPick }: { page: number; onPick: (page: number) => void 
 }
 
 /**
- * The store grid, down each column: name and logo (the last two columns have
- * none in the file). `shown` is the name as the card's line writes it in the
- * file, where it differs from the brand's own spelling.
+ * The store grid, down each column, by slug (demoStores.ts holds each
+ * store's name, logo and the name as the card's line writes it). The last
+ * two columns have no logo in the file, even for a store that has one.
  */
-const STORES: { name: string; shown?: string; logo?: Logo }[][] = [
-  [
-    { name: "Ebebek", logo: { src: "/assets/demo/home/brands/ebebek.svg", w: 77.43, h: 20, top: 65 } },
-    { name: "Boyner", shown: "boyner", logo: { src: "/assets/demo/home/brands/boyner.svg", w: 140, h: 19.5, top: 65.25 } },
-    { name: "Sephora", shown: "sephora", logo: { src: "/assets/demo/home/brands/sephora.svg", w: 140, h: 18.14, top: 65.93 } },
-  ],
-  [
-    { name: "Gratis", shown: "gratis", logo: { src: "/assets/demo/home/brands/gratis.png", w: 90, h: 50, top: 50 } },
-    { name: "Beymen", shown: "beymen", logo: { src: "/assets/demo/home/brands/beymen.svg", w: 140, h: 17.5, top: 66.25 } },
-    { name: "Rossmann", shown: "rossmann", logo: { src: "/assets/demo/home/brands/rossmann.svg", w: 140, h: 19.31, top: 65.35 } },
-  ],
-  [{ name: "Vakko" }, { name: "Koton", shown: "koton" }, { name: "Zara" }],
-  [{ name: "Stradivarius", shown: "stradivarius" }, { name: "Bershka" }, { name: "Koton", shown: "koton" }],
-];
+const STORES: { store: DemoStore; logo: boolean }[][] = [
+  [["ebebek", true], ["boyner", true], ["sephora", true]],
+  [["gratis", true], ["beymen", true], ["rossmann", true]],
+  [["vakko", false], ["koton", false], ["zara", false]],
+  [["stradivarius", false], ["bershka", false], ["koton", false]],
+].map((column) =>
+  column.map(([slug, logo]) => ({ store: store(slug as string), logo: logo as boolean })),
+);
 
 /**
  * The store grid: two 208 columns show, 2 apart, and the next column shows
@@ -763,10 +856,12 @@ function StoreGrid({
   t,
   viewportRef,
   nudge,
+  openStore,
 }: {
   t: T;
   viewportRef: (node: HTMLElement | null) => void;
   nudge: MotionValue<number>;
+  openStore?: OpenStore;
 }) {
   return (
     <div className="relative shrink-0" style={{ marginTop: 8, height: 424 }}>
@@ -788,14 +883,17 @@ function StoreGrid({
                 className="flex flex-col h-full"
                 style={{ gap: GAP, x: nudge }}
               >
-                {column.map((s, r) => (
+                {column.map(({ store: s, logo }, r) => (
                   <BrandCard
                     key={`${c}-${r}`}
                     t={t}
                     brand={s.name}
                     shown={s.shown}
-                    logo={s.logo}
+                    // The grid centres every logo (the brand carousel's x is not used here).
+                    logo={logo && s.logo ? { ...s.logo, left: undefined } : undefined}
                     style={{ width: "100%" }}
+                    slug={s.slug}
+                    openStore={openStore}
                   />
                 ))}
               </motion.div>
@@ -816,7 +914,14 @@ function StoreGrid({
  * The body of Home. `Home Page – 2` is the only home artboard whose page
  * is not empty; the category chips in the header do not change it.
  */
-export default function HomeSections({ t }: { t: T }) {
+export default function HomeSections({
+  t,
+  openStore,
+}: {
+  t: T;
+  /** How a brand or store card opens its store's page. Without it the cards are not links. */
+  openStore?: OpenStore;
+}) {
   const brands = useSlider();
   const stores = useSlider();
   return (
@@ -849,6 +954,7 @@ export default function HomeSections({ t }: { t: T }) {
         t={t}
         viewportRef={brands.viewportRef}
         nudge={brands.nudge}
+        openStore={openStore}
       />
       <Pager page={brands.page} onPick={brands.pick} />
 
@@ -869,6 +975,7 @@ export default function HomeSections({ t }: { t: T }) {
         t={t}
         viewportRef={stores.viewportRef}
         nudge={stores.nudge}
+        openStore={openStore}
       />
     </div>
   );

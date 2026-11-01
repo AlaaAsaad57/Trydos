@@ -198,6 +198,16 @@ export const XD_ICON_SIZE = {
   filmRoll: { w: 20, h: 20 },
   qualityAssurance: { w: 20, h: 20 },
   highQuality: { w: 20, h: 20 },
+  // The store page, `Home Page – 47`: the header icons (20 x 20 boxes), the
+  // add buttons (18 x 18) and the marks in the badges (11 x 11).
+  listSearch: { w: 20, h: 20 },
+  listSort: { w: 20, h: 20 },
+  listFilter: { w: 20, h: 20 },
+  listSend: { w: 20, h: 20 },
+  listAddPurple: { w: 18, h: 18 },
+  listAddDark: { w: 18, h: 18 },
+  listBag: { w: 11, h: 11 },
+  listFlash: { w: 11, h: 11 },
 } as const;
 
 export type XdIconName = keyof typeof XD_ICON_SIZE;

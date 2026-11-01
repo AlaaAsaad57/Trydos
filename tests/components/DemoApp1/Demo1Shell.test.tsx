@@ -24,7 +24,11 @@ vi.mock("NewLoginDesign/DemoDeviceInfoModal", () => ({ default: () => null }));
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
 import { Sheet } from "components/DemoApp1/ui";
 import { UNDER_BAR } from "components/DemoApp1/demo1Layout";
-import { DEMO_SCREENS, hrefFor } from "components/DemoApp/demoRoutes";
+import {
+  DEMO_SCREENS,
+  hrefFor,
+  type DemoScreen,
+} from "components/DemoApp/demoRoutes";
 
 /** Every screen on stage — the one leaving and the one coming in while a slide runs. */
 const onStage = (container: HTMLElement) =>
@@ -66,7 +70,7 @@ const readableAtTheBottom = () =>
     .filter((name) => !NOT_AT_THE_BOTTOM.includes(name));
 
 /** Opens the shell on a screen's URL. */
-const openOn = (screen: (typeof DEMO_SCREENS)[number]) => {
+const openOn = (screen: DemoScreen) => {
   const [path, query = ""] = hrefFor("sy-en", screen).split("?");
   url.pathname = path;
   url.search = query;
@@ -81,6 +85,23 @@ if (!("ResizeObserver" in globalThis)) {
     unobserve() {}
     disconnect() {}
   } as unknown as typeof ResizeObserver;
+}
+
+// jsdom has no IntersectionObserver either. Home's two sliders (Embla, and
+// their hint) watch themselves with one; nothing scrolls here, so it never
+// fires. Without it every test that opens Home threw on mount.
+if (!("IntersectionObserver" in globalThis)) {
+  globalThis.IntersectionObserver = class {
+    readonly root = null;
+    readonly rootMargin = "";
+    readonly thresholds = [];
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return [];
+    }
+  } as unknown as typeof IntersectionObserver;
 }
 
 let scrollY = 0;
@@ -229,6 +250,407 @@ describe("Demo1Shell — navigation, with URLs under /demo", () => {
       scrollTo,
       "home did not open where it was left (300 px down)",
     ).toHaveBeenLastCalledWith(0, 300);
+  });
+});
+
+describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
+  /** The tapped card's box, and the page column's, as the browser would measure them. */
+  const CARD = { top: 300, bottom: 440, left: 0, right: 418 };
+  const measureLikeABrowser = () =>
+    vi
+      .spyOn(Element.prototype, "getBoundingClientRect")
+      .mockImplementation(function (this: Element) {
+        const isCard = (this.getAttribute("data-pw") ?? "").startsWith(
+          "demo-brand-",
+        );
+        const box = isCard ? CARD : { top: 0, bottom: 932, left: 0, right: 430 };
+        return {
+          ...box,
+          x: box.left,
+          y: box.top,
+          width: box.right - box.left,
+          height: box.bottom - box.top,
+          toJSON() {},
+        } as DOMRect;
+      });
+
+  const zaraCard = () =>
+    document.body.querySelector<HTMLAnchorElement>(
+      '[data-pw="demo-home-brand-page-0"] [data-pw="demo-brand-Zara"]',
+    );
+
+  const frameOf = (container: HTMLElement, screen: string) =>
+    container.querySelector<HTMLElement>(`[data-demo-screen="${screen}"]`);
+
+  it("makes every Home store card a real link to its page, for search engines and new tabs", () => {
+    openOn("home");
+    expect(zaraCard(), "Home has no Zara card in the brand carousel").not.toBeNull();
+    expect(
+      zaraCard()!.tagName,
+      "the Zara card is not a link, so a search engine cannot reach the store page",
+    ).toBe("A");
+    expect(
+      zaraCard()!.getAttribute("href"),
+      "the Zara card does not link to /sy-en/demo/store/zara",
+    ).toBe("/sy-en/demo/store/zara");
+    const koton = document.body.querySelector(
+      '[data-pw="demo-home-store-grid"] [data-pw="demo-brand-Koton"]',
+    );
+    expect(
+      koton?.getAttribute("href"),
+      "a store card with no logo (Koton) does not link to its page",
+    ).toBe("/sy-en/demo/store/koton");
+  });
+
+  it("opens the store on the tap and moves the URL to /demo/store/zara with no server call", () => {
+    const pushState = vi.spyOn(window.history, "pushState");
+    try {
+      const { container } = openOn("home");
+      fireEvent.click(zaraCard()!);
+      expect(
+        onStage(container),
+        "the store page did not come on stage on the same render as the tap",
+      ).toContain("store/zara");
+      expect(
+        pushState,
+        "the URL was not moved to the store page's path",
+      ).toHaveBeenCalledWith(null, "", "/sy-en/demo/store/zara");
+      expect(
+        router.push,
+        "the store was opened with the router; its server answer lands in the middle of the grow and stops it",
+      ).not.toHaveBeenCalled();
+    } finally {
+      pushState.mockRestore();
+    }
+  });
+
+  it("grows the page out of the tapped card, over Home, and shrinks it back into the card", () => {
+    const measure = measureLikeABrowser();
+    const { container, rerender } = openOn("home");
+    fireEvent.click(zaraCard()!);
+
+    const entering = frameOf(container, "store/zara");
+    expect(entering, "the store page is not on stage after the tap").not.toBeNull();
+    expect(
+      entering!.style.clipPath,
+      `the store page does not start cut to the card's box (top 300, bottom 440); clip: "${entering!.style.clipPath}"`,
+    ).toBe("inset(300px 12px calc(100% - 440px) 0px)");
+    expect(
+      entering!.parentElement!.style.zIndex,
+      "the growing store page does not lie over Home",
+    ).toBe("1");
+
+    // The router lands on the store's path.
+    url.pathname = "/sy-en/demo/store/zara";
+    rerender(<Demo1Shell dictionary={{}}>{null}</Demo1Shell>);
+
+    const back = vi.spyOn(window.history, "back").mockImplementation(() => {});
+    fireEvent.click(
+      container.querySelector('[data-pw="demo-listing-back"]')!,
+    );
+    expect(onStage(container), "back did not bring Home on stage").toContain(
+      "home",
+    );
+    expect(back, "back did not go through the browser's history").toHaveBeenCalled();
+    const leaving = frameOf(container, "store/zara");
+    expect(
+      leaving,
+      "the store page was removed at once instead of shrinking into its card",
+    ).not.toBeNull();
+    expect(
+      leaving!.parentElement!.style.zIndex,
+      "the store page shrinking into its card is under Home, so it cannot be seen",
+    ).toBe("1");
+    back.mockRestore();
+    measure.mockRestore();
+  });
+
+  it("slides the store in like any screen when there is no card to grow from", () => {
+    const { container } = openOn("home");
+    // jsdom measures every box as 0 x 0: there is no card box to grow from.
+    fireEvent.click(zaraCard()!);
+    const entering = frameOf(container, "store/zara");
+    expect(
+      entering!.style.clipPath,
+      "the store page was cut to a card box that could not be measured",
+    ).toBe("");
+    expect(
+      entering!.parentElement!.style.zIndex,
+      "a store page that slides in was put over the leaving screen",
+    ).toBe("");
+  });
+
+  it("draws the file's page for the store the URL names", () => {
+    const { container } = openOn("store/zara");
+    const page = container.querySelector('[data-pw="demo-listing"]');
+    expect(page, "/demo/store/zara did not draw the store page").not.toBeNull();
+    expect(
+      container.querySelector("h1 img")?.getAttribute("alt"),
+      "the page's <h1> is not the store's logo named Zara",
+    ).toBe("Zara");
+    const banner = container.querySelector('[data-pw="demo-listing-banner"]');
+    expect(
+      banner?.textContent,
+      "the banner does not read \"Shop Zara collection now !\"",
+    ).toContain("Shop Zara collection now !");
+    expect(
+      banner?.querySelector("span.capitalize"),
+      "the banner's line is not drawn with a capital on every word, as the file draws it",
+    ).not.toBeNull();
+    for (const name of [
+      "T-Shirt",
+      "Shoes",
+      "Mont",
+      "Craf",
+      "Jacket",
+      "Shirt",
+      "Pajama",
+      "Jeans",
+      "Blouse",
+    ]) {
+      expect(
+        container.querySelector(
+          `[data-pw="demo-listing-category-${name}"]`,
+        )?.textContent,
+        `the category tile "${name}" is missing or has no name`,
+      ).toBe(name);
+    }
+    const badges: Record<string, [string, string]> = {
+      "shirt-1": ["bag", "1 item M in your bag"],
+      "pajama-1": ["best", "! Best price last 3 days!"],
+      "shirt-2": ["flash", "Flash Deal | 1d | 12:23:19"],
+      "pajama-2": ["best", "! Best price last 3 days!"],
+    };
+    for (const [id, [kind, words]] of Object.entries(badges)) {
+      const card = container.querySelector(
+        `[data-pw="demo-listing-product-${id}"]`,
+      );
+      expect(card, `the product card ${id} is missing`).not.toBeNull();
+      expect(
+        card!.querySelector("h2")?.textContent,
+        `the product card ${id} does not show the name "Women . Pajama . Pantaloon"`,
+      ).toBe("Women . Pajama . Pantaloon");
+      expect(
+        card!.querySelector('[data-pw="demo-listing-price"]')?.textContent,
+        `the product card ${id} does not show the price "90 USD"`,
+      ).toBe("90 USD");
+      expect(
+        card!.querySelector(`[data-pw="demo-listing-badge-${kind}"]`)
+          ?.textContent,
+        `the product card ${id} does not show its ${kind} badge "${words}"`,
+      ).toBe(words);
+    }
+  });
+
+  it("makes the category row a slider like the ones on Home, which leaves the page free to scroll", () => {
+    const { container } = openOn("store/zara");
+    const row = container.querySelector<HTMLElement>(
+      '[data-pw="demo-listing-categories"]',
+    );
+    expect(row, "the store page has no category row").not.toBeNull();
+    expect(
+      row!.style.touchAction,
+      "the category row takes the up-and-down touch too, so the page cannot scroll over it",
+    ).toBe("pan-y pinch-zoom");
+    expect(
+      row!.className,
+      "the category row scrolls with the browser's own scroll, not with the Home slider (a mouse cannot drag it)",
+    ).not.toMatch(/overflow-x-auto/);
+  });
+
+  it("moves each category tile whole during the slider's hint, with its frame, and leaves no white gap", () => {
+    const { container } = openOn("store/zara");
+    const tile = container.querySelector<HTMLElement>(
+      '[data-pw="demo-listing-category-T-Shirt"]',
+    );
+    expect(tile, "the store page has no T-Shirt tile").not.toBeNull();
+    // The hint moves what is inside each slide (see useSlider). A slide that
+    // cuts off its own insides shows a white gap where the photo moved away.
+    expect(
+      tile!.className,
+      "the tile cuts off its own photo, so the hint leaves a white gap at the right of every tile",
+    ).not.toMatch(/overflow-hidden/);
+    const moving = tile!.firstElementChild as HTMLElement | null;
+    expect(
+      moving?.querySelector("img"),
+      "the tile's photo is not inside the part that the hint moves",
+    ).not.toBeNull();
+    expect(
+      moving?.className,
+      "the moving part of the tile does not cut its photo to the tile's box",
+    ).toMatch(/overflow-hidden/);
+    expect(
+      tile!.lastElementChild,
+      "the tile's frame line stays in place while the photo moves (it must move with the photo)",
+    ).toBe(moving);
+  });
+
+  it("puts the back mark at the file's half-pixel place with a transform, not with layout", () => {
+    const { container } = openOn("store/zara");
+    const back = container.querySelector<HTMLElement>('[data-pw="demo-listing-back"]');
+    expect(back, "the store page has no back button").not.toBeNull();
+    // The file puts the mark's box at (14.5, 64.5). Chromium draws an image
+    // box at a half-pixel layout place on the next whole pixel, so the mark
+    // showed 0.5 px right of and under the file. The box sits on whole pixels,
+    // and a transform (never snapped) moves it the last 0.5 px.
+    expect(
+      back!.style.padding,
+      "the back mark's box is placed at a half pixel, so the browser draws it 0.5 px off",
+    ).toBe("14px 0px 0px 14px");
+    expect(
+      back!.querySelector("img")?.style.transform,
+      "the back mark is not moved the last 0.5 px to the file's (14.5, 64.5)",
+    ).toBe("translate(0.5px, 0.5px)");
+  });
+
+  it("keeps the store's search mark inactive for now", () => {
+    const { container } = openOn("store/zara");
+    const search = container.querySelector('[data-pw="demo-listing-search"]');
+    expect(search, "the store page has no search mark").not.toBeNull();
+    fireEvent.click(search!);
+    expect(
+      onStage(container),
+      "a tap on the store's search mark left the store page",
+    ).toEqual(["store/zara"]);
+    expect(router.push, "a tap on the store's search mark moved the URL").not.toHaveBeenCalled();
+  });
+
+  it("on a tap, draws the cards the screen shows first and the rest of the first page after the grow", () => {
+    vi.useFakeTimers();
+    try {
+      const { container } = openOn("store/zara");
+      const fifth = () =>
+        container.querySelector('[data-pw="demo-listing-product-shirt-front-1"]');
+      expect(
+        container.querySelector('[data-pw="demo-listing-product-pajama-2"]'),
+        "the fourth card (second row) is not drawn on the tap",
+      ).not.toBeNull();
+      expect(
+        fifth(),
+        "the fifth card is drawn on the tap; it is under the screen and makes the tap's work longer",
+      ).toBeNull();
+      act(() => {
+        vi.advanceTimersByTime(600);
+      });
+      expect(fifth(), "the rest of the first page did not come in after the grow").not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("loads the next page when the end of the list comes near: grey cards first, then 12 more, and a last line at the end", () => {
+    // An IntersectionObserver that the test fires by hand.
+    const watchers: IntersectionObserverCallback[] = [];
+    const Before = globalThis.IntersectionObserver;
+    globalThis.IntersectionObserver = class {
+      readonly root = null;
+      readonly rootMargin = "";
+      readonly thresholds = [];
+      constructor(private readonly cb: IntersectionObserverCallback) {
+        watchers.push(cb);
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {
+        const at = watchers.indexOf(this.cb);
+        if (at >= 0) watchers.splice(at, 1);
+      }
+      takeRecords() {
+        return [];
+      }
+    } as unknown as typeof IntersectionObserver;
+    vi.useFakeTimers();
+    try {
+      const { container } = openOn("store/zara");
+      const card = (id: string) =>
+        container.querySelector(`[data-pw="demo-listing-product-${id}"]`);
+      // The rest of the first page comes in after the grow.
+      act(() => {
+        vi.advanceTimersByTime(600);
+      });
+      expect(card("pajama-2"), "the first page lost the file's fourth card").not.toBeNull();
+      expect(
+        card("blouse-14"),
+        "a card of the second page is on the page before the person scrolled",
+      ).toBeNull();
+      const nearTheEnd = () =>
+        act(() => {
+          for (const cb of [...watchers])
+            cb(
+              [{ isIntersecting: true } as IntersectionObserverEntry],
+              {} as IntersectionObserver,
+            );
+        });
+      nearTheEnd();
+      expect(
+        container.querySelector('[data-pw="demo-listing-skeleton"]'),
+        "no grey cards show while the next page loads",
+      ).not.toBeNull();
+      expect(
+        container.querySelector('[data-pw="demo-listing-products"]')?.getAttribute("aria-busy"),
+        "the list does not tell screen readers that it is loading",
+      ).toBe("true");
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(
+        container.querySelector('[data-pw="demo-listing-skeleton"]'),
+        "the grey cards stay after the next page came in",
+      ).toBeNull();
+      expect(card("blouse-14"), "the second page did not come in after the wait").not.toBeNull();
+      expect(
+        container.querySelector('[data-pw="demo-listing-end"]'),
+        "the page says there are no more products after the second of three pages",
+      ).toBeNull();
+      nearTheEnd();
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(card("dress-32"), "the third page did not come in").not.toBeNull();
+      expect(
+        container.querySelector('[data-pw="demo-listing-end"]')?.textContent,
+        "after the last page, the page does not say that there are no more products",
+      ).toBe("You have seen all products");
+    } finally {
+      vi.useRealTimers();
+      globalThis.IntersectionObserver = Before;
+    }
+  });
+
+  it("shows the tab bar on the store page, with Home as the active tab", () => {
+    openOn("store/zara");
+    const bar = document.body.querySelector<HTMLElement>(
+      '[data-pw="demo-tab-bar"]',
+    );
+    expect(bar, "the store page has no tab bar").not.toBeNull();
+    expect(
+      bar!.style.pointerEvents,
+      "the tab bar is hidden or cannot be tapped on the store page",
+    ).not.toBe("none");
+    expect(
+      bar!.querySelector('[data-pw="demo-tab-home"]')?.getAttribute("aria-current"),
+      "the Home tab is not the active tab on a store page",
+    ).toBe("page");
+  });
+
+  it("keeps the store page a fluid page that the document scrolls", () => {
+    const { container } = openOn("store/zara");
+    const own = [...container.querySelectorAll<HTMLElement>("*")].filter(
+      (el) =>
+        /\boverflow-y-(auto|scroll)\b/.test(el.className.toString()) ||
+        ["auto", "scroll"].includes(el.style.overflowY),
+    );
+    expect(
+      own.map((el) => el.getAttribute("data-pw") ?? el.tagName),
+      "the store page scrolls a box of its own, so Safari's glass bar shows nothing under it",
+    ).toEqual([]);
+    const fixed = [...container.querySelectorAll<HTMLElement>("*")].filter(
+      (el) => ["430px", "214px"].includes(el.style.width),
+    );
+    expect(
+      fixed.map((el) => `${el.getAttribute("data-pw") ?? el.tagName} ${el.style.width}`),
+      "the store page has boxes with the artboard's fixed width; they overflow a narrow phone",
+    ).toEqual([]);
   });
 });
 

@@ -61,6 +61,24 @@ export const TAB_BAR_MIN_SCALE = TAB_BAR_MIN.height / TAB_BAR.height;
 /** The widest the page grows. Past it (a tablet, a laptop) it is a centred column. */
 export const PAGE_MAX = 500;
 
+/**
+ * A store's page growing out of the tapped card (see Demo1Shell, "A store's
+ * page"). Material 3 gives a container transform 450 – 500 ms and its
+ * "emphasized" curve: a quick start that slows into place. The demo takes the
+ * short end, 450 ms, so the page feels light, and the curve's standard form
+ * (0.2, 0, 0, 1), which has no overshoot.
+ */
+export const STORE_GROW = {
+  duration: 0.45,
+  ease: [0.2, 0, 0, 1] as const,
+};
+
+/** The page shrinking back into its card: a little quicker, as leaving should be. */
+export const STORE_SHRINK = {
+  duration: 0.38,
+  ease: [0.2, 0, 0, 1] as const,
+};
+
 /** The device's own top inset. 0 in a browser tab, the notch in a home-screen app. */
 export const SAFE_TOP = "env(safe-area-inset-top, 0px)";
 
