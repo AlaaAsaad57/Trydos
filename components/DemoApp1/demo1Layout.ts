@@ -42,6 +42,22 @@ export {
 
 import { DESIGN_W, STATUS_BAR, TAB_BAR } from "../DemoApp/demoLayout";
 
+/**
+ * The size of the tab bar when the page has scrolled down: the size of
+ * Safari 26's own small address pill on the iPhone, so the two bars match.
+ *
+ * Measured on an iPhone screenshot (2.14 px per CSS px): the pill is
+ * 306 x 66 px, so 143 x 31 CSS px. The pill is narrower for its height than
+ * the tab bar (386 x 58), so one scale cannot give both numbers. The bar
+ * scales by the height (31 / 58), and its box also gets narrower, so the
+ * scaled bar is 143 wide. The icons keep their shape.
+ * (The shared NavigationDemo bar keeps its own 0.72.)
+ */
+export const TAB_BAR_MIN = { width: 143, height: 31 } as const;
+
+/** The smallest scale of the tab bar: the height ratio (31 / 58). */
+export const TAB_BAR_MIN_SCALE = TAB_BAR_MIN.height / TAB_BAR.height;
+
 /** The widest the page grows. Past it (a tablet, a laptop) it is a centred column. */
 export const PAGE_MAX = 500;
 

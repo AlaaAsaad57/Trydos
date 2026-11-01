@@ -3116,10 +3116,10 @@ const translations = {
   "Trydos Stories": "Trydos Hikayeleri",
   "Brand Stores": "Marka Mağazaları",
   "Stores": "Mağazalar",
-  "Turkish Brands": "Türk Markaları",
-  "Watch. Shop. Share. See It. Tag It !": "İzle. Alışveriş Yap. Paylaş. Gör. Etiketle !",
-  "All {name} Collection Now !": "Tüm {name} Koleksiyonu Şimdi !",
-  "Shop {brand} Collection Now !": "{brand} Koleksiyonunu Şimdi Keşfet !",
+  "Turkish brands": "Türk markaları",
+  "Watch. Shop. Share. See it. Tag It !": "İzle. Alışveriş Yap. Paylaş. Gör. Etiketle !",
+  "all {name} collection now !": "Tüm {name} koleksiyonu şimdi !",
+  "Shop {brand} collection now !": "{brand} koleksiyonunu şimdi keşfet !",
 };
 
 export default translations;

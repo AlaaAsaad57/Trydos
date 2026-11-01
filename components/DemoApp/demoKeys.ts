@@ -32,10 +32,10 @@ export const DEMO_KEYS = [
   "Trydos Stories",
   "Brand Stores",
   "Stores",
-  "Turkish Brands",
-  "Watch. Shop. Share. See It. Tag It !",
-  "All {name} Collection Now !",
-  "Shop {brand} Collection Now !",
+  "Turkish brands",
+  "Watch. Shop. Share. See it. Tag It !",
+  "all {name} collection now !",
+  "Shop {brand} collection now !",
   "Search anything…",
   "Voice search",
   "Scan",
@@ -358,5 +358,21 @@ export const DEMO_KEYS = [
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];
+
+/**
+ * Keys whose English is shown exactly as written, not with a capital on every
+ * word.
+ *
+ * The site's English rule (`titleCaseWords` in utils/titleCase.ts) puts a
+ * capital on every word. The file draws these lines in `Home Page – 2` in
+ * sentence case ("all Turkish brands collection now !"), so the /demo layout
+ * skips that rule for them. Other languages are not touched.
+ */
+export const KEEP_CASE: ReadonlySet<DemoKey> = new Set<DemoKey>([
+  "Turkish brands",
+  "Watch. Shop. Share. See it. Tag It !",
+  "all {name} collection now !",
+  "Shop {brand} collection now !",
+]);
 
 export type DemoDictionary = Partial<Record<DemoKey, string>>;

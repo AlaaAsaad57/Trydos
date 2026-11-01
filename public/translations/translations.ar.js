@@ -3083,10 +3083,10 @@ const translations = {
   "Trydos Stories": "قصص ترايدوس",
   "Brand Stores": "متاجر العلامات التجارية",
   "Stores": "المتاجر",
-  "Turkish Brands": "العلامات التركية",
-  "Watch. Shop. Share. See It. Tag It !": "شاهد. تسوّق. شارك. اكتشف. وسّم !",
-  "All {name} Collection Now !": "مجموعة كل {name} الآن !",
-  "Shop {brand} Collection Now !": "تسوّق مجموعة {brand} الآن !",
+  "Turkish brands": "العلامات التركية",
+  "Watch. Shop. Share. See it. Tag It !": "شاهد. تسوّق. شارك. اكتشف. وسّم !",
+  "all {name} collection now !": "مجموعة كل {name} الآن !",
+  "Shop {brand} collection now !": "تسوّق مجموعة {brand} الآن !",
 };
 
 export default translations;

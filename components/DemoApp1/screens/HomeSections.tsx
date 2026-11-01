@@ -1,6 +1,15 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
+import {
+  animate,
+  motion,
+  useMotionValue,
+  type AnimationPlaybackControls,
+  type MotionValue,
+} from "framer-motion";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { C, lineBox, textTop } from "../demo1Layout";
@@ -33,18 +42,23 @@ type T = (key: DemoKey) => string;
 const BLUE = "#386EFF";
 const RING = "#FFAB62";
 
-/** What the three blocks differ in: the tab and pill colour, the mark. */
+/**
+ * What the three blocks differ in: the tab and pill colour, the mark, and the
+ * pill's width in the file (100, 91, 51). The width is a minimum, so a longer
+ * word in another language still fits.
+ */
 const TONE = {
-  stories: { color: C.ink, icon: "filmRoll" },
-  brands: { color: C.purple, icon: "qualityAssurance" },
-  stores: { color: BLUE, icon: "highQuality" },
+  stories: { color: C.ink, icon: "filmRoll", pill: 100 },
+  brands: { color: C.purple, icon: "qualityAssurance", pill: 91 },
+  stores: { color: BLUE, icon: "highQuality", pill: 51 },
 } as const;
 
 /**
  * A line of words with its parts in the file's weights: the named part
- * (`{name}` / `{brand}` in the translated text) is Medium and a closing `!`
- * is Bold; the rest is Regular. The key is looked up by the caller, so a
- * translation can put the named part anywhere in its sentence.
+ * (`{name}` / `{brand}` in the translated text) is Medium, and the rest is
+ * Regular. A closing `!` is Bold in the block lines, and Regular on the cards
+ * (`boldBang={false}`), as the file draws them. The key is looked up by the
+ * caller, so a translation can put the named part anywhere in its sentence.
  *
  * The line is a `<bdi>`: it takes its direction from its own first letter.
  * The page stays left to right in every language (as the file draws it), so
@@ -55,17 +69,19 @@ function Sentence({
   text,
   token,
   named,
+  boldBang = true,
 }: {
   text: string;
   token?: string;
   named?: string;
+  boldBang?: boolean;
 }) {
   const [head, tail] =
     token && named && text.includes(token)
       ? (text.split(token) as [string, string])
       : [text, ""];
   const closing = (part: string) =>
-    part.endsWith("!") ? (
+    boldBang && part.endsWith("!") ? (
       <>
         {part.slice(0, -1)}
         <span className="font-bold">!</span>
@@ -89,12 +105,13 @@ function Sentence({
 }
 
 /**
- * The top of a block: the tab on the left edge (10 x 20, round on the right),
- * the mark at x 16 and the title pill at x 40, 18 px under the tab's top; and
- * the line under them, 13 px, whose first baseline is 4 px under the pill.
- * The pill hugs its word (6 px each side, 20 tall; the word's baseline is 15
- * under the pill's top). The line keeps 16 px free on the right too, and
- * wraps there on a phone too narrow for it.
+ * The top of a block: the tab on the left edge (10 x 20, radius 20 on the
+ * right, so the right end is a half circle), the mark at x 16 and the title
+ * pill at x 40, 18 px under the tab's top; and the line under them, 13 px,
+ * whose first baseline is 4 px under the pill. The pill is the file's width
+ * at least (6 px before the word, 20 tall; the word's baseline is 15 under
+ * the pill's top). The line keeps 16 px free on the right too, and wraps
+ * there on a phone too narrow for it.
  */
 function BlockHead({
   tone,
@@ -123,7 +140,7 @@ function BlockHead({
             width: 10,
             height: 20,
             background: tone.color,
-            borderRadius: "0 5px 5px 0",
+            borderRadius: "0 20px 20px 0",
           }}
         />
         <div className="absolute" style={{ left: 16, top: 18 }}>
@@ -135,6 +152,7 @@ function BlockHead({
             left: 40,
             top: 18,
             height: 20,
+            minWidth: tone.pill,
             padding: "2px 6px 0",
             borderRadius: 6,
             background: tone.color,
@@ -309,7 +327,7 @@ type Logo = {
 
 /**
  * One card: white, a 0.3 `#8D8D8D` line, 140 tall; the awning at its top
- * (154 x 35), the logo under it, and "Shop <brand> Collection Now !" at 11
+ * (154 x 35), the logo under it, and "Shop <brand> collection now !" at 11
  * with its baseline 129 under the card's top.
  *
  * The brand-store cards are 418 wide, but the file builds their contents
@@ -323,6 +341,7 @@ type Logo = {
 function BrandCard({
   t,
   brand,
+  shown = brand,
   logo,
   centreAt,
   style,
@@ -330,6 +349,8 @@ function BrandCard({
 }: {
   t: T;
   brand: string;
+  /** The brand as the card's line writes it in the file (some are lower case). */
+  shown?: string;
   logo?: Logo;
   /** Design px from the card's left where the contents centre; omitted, the card's middle. */
   centreAt?: number;
@@ -394,9 +415,10 @@ function BrandCard({
         }}
       >
         <Sentence
-          text={t("Shop {brand} Collection Now !")}
+          text={t("Shop {brand} collection now !")}
           token="{brand}"
-          named={brand}
+          named={shown}
+          boldBang={false}
         />
       </span>
     </div>
@@ -425,61 +447,234 @@ const PAGES = 3;
 const GAP = 2;
 
 /**
+ * The motion of the two sliders (the brand carousel and the store grid).
+ * The numbers follow common UI/UX guidance:
+ *
+ *  - SLIDE_DELAY_MS: 5 s on a slide before the auto slide. NN/g and WCAG
+ *    2.2.2 (Pause, Stop, Hide) ask that content that moves by itself gives
+ *    people enough time to read it. 5 s is the usual lowest value for that.
+ *  - SLIDE_DURATION: Embla's own default speed (25). A slide takes about
+ *    400 ms, inside Material Design's 300 – 500 ms for a large move.
+ *  - The hint, from Material Design 3's motion tokens:
+ *    - HINT_WAIT_MS: the slider must stay in view for 500 ms first, so the
+ *      hint does not run while the page is still scrolling past it.
+ *    - out in 400 ms with "emphasized decelerate" (fast start, soft stop),
+ *    - a 250 ms rest, so the eye can see the next slide,
+ *    - back in 450 ms with the "standard" easing.
+ *    - HINT_SHARE: the slider moves 30 % of its width. Peek hints on shop
+ *      sites move 20 – 35 %. A smaller move is not seen.
+ */
+const SLIDE_DELAY_MS = 5000;
+const SLIDE_DURATION = 25;
+const HINT_WAIT_MS = 500;
+const HINT_SHARE = 0.3;
+const HINT_OUT = 0.4;
+const HINT_REST = 0.25;
+const HINT_BACK = 0.45;
+const EASE_EMPHASIZED_DECELERATE = [0.05, 0.7, 0.1, 1] as const;
+const EASE_STANDARD = [0.2, 0, 0, 1] as const;
+
+/**
+ * The part of the window where a slider counts as "in view": the window
+ * without the sticky header at the top and the tab bar at the bottom, because
+ * both lie over the page.
+ */
+const VIEW_MARGIN = "-60px 0px -80px 0px";
+
+/** A slider is in view when at least this share of it is in that part of the window. */
+const IN_VIEW = 0.9;
+
+/**
+ * One slider: Embla (the slider the shop's home page already uses, see
+ * components/Home/OfferWidgets/BoutiqueElement.tsx) and its Autoplay plugin.
+ *
+ *  1. The hint. When the slider is in view (IN_VIEW of it, for HINT_WAIT_MS),
+ *     what is inside each slide moves HINT_SHARE of the slider's width to the
+ *     left and comes back, so the next slide shows for a moment. It runs once.
+ *     - If the slider leaves the view before or during the hint, the hint
+ *       stops, the slides go back, and the hint runs the next time the
+ *       slider is in view.
+ *     - If the person touches the slider first, the hint never runs: the
+ *       person already knows it is a slider.
+ *     - The hint moves the insides of the slides (a transform), not Embla's
+ *       track, so the two never fight.
+ *  2. The auto slide. While the slider is in view, it goes to the next slide
+ *     after SLIDE_DELAY_MS. From the last slide it slides back to the first
+ *     one (Autoplay does that because `loop` is off). A swipe or a pager tap
+ *     starts the wait again. Nothing moves while a finger is on the slider,
+ *     while it is out of view, or while the browser tab is hidden.
+ *
+ * Both also run when the system asks for less motion (prefers-reduced-motion).
+ * Windows turns that on when "Animation effects" is off, and the hint then
+ * never showed.
+ */
+function useSlider() {
+  // One plugin for the life of the slider (a lazy state, not read from a ref
+  // during render).
+  const [autoplay] = useState(() =>
+    Autoplay({
+      delay: SLIDE_DELAY_MS,
+      playOnInit: false,
+      stopOnInteraction: false,
+      stopOnMouseEnter: false,
+      stopOnFocusIn: false,
+    }),
+  );
+  const [viewportRef, api] = useEmblaCarousel(
+    {
+      align: "start",
+      loop: false,
+      containScroll: "trimSnaps",
+      duration: SLIDE_DURATION,
+    },
+    [autoplay],
+  );
+  const [page, setPage] = useState(0);
+  const nudge = useMotionValue(0);
+
+  // The pager follows the slide Embla is on.
+  useEffect(() => {
+    if (!api) return;
+    const onSelect = () => setPage(api.selectedScrollSnap());
+    onSelect();
+    api.on("select", onSelect).on("reInit", onSelect);
+    return () => {
+      api.off("select", onSelect).off("reInit", onSelect);
+    };
+  }, [api]);
+
+  // The hint and the auto slide run only while the slider is in view.
+  useEffect(() => {
+    if (!api) return;
+    const plugin = autoplay;
+    let done = false;
+    let wait: ReturnType<typeof setTimeout> | undefined;
+    let hint: AnimationPlaybackControls | null = null;
+
+    /** Ends a waiting or running hint, and puts the slides back. */
+    const cancel = () => {
+      clearTimeout(wait);
+      wait = undefined;
+      if (!hint) return;
+      hint.stop();
+      hint = null;
+      animate(nudge, 0, { duration: 0.2, ease: EASE_STANDARD });
+    };
+
+    const runHint = () => {
+      const far = -Math.round(api.rootNode().clientWidth * HINT_SHARE);
+      const total = HINT_OUT + HINT_REST + HINT_BACK;
+      const run = animate(nudge, [0, far, far, 0], {
+        duration: total,
+        times: [0, HINT_OUT / total, (HINT_OUT + HINT_REST) / total, 1],
+        ease: [EASE_EMPHASIZED_DECELERATE, "linear", EASE_STANDARD],
+      });
+      hint = run;
+      run.then(() => {
+        // Only a hint that ran to its end counts (cancel() clears `hint`).
+        if (hint !== run) return;
+        hint = null;
+        done = true;
+      });
+    };
+
+    // A touch first: no hint. A touch during the hint: it ends.
+    const onGrab = () => {
+      done = true;
+      cancel();
+    };
+    api.on("pointerDown", onGrab);
+
+    const watch = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.intersectionRatio < IN_VIEW) {
+          plugin.stop();
+          cancel();
+          return;
+        }
+        plugin.play();
+        if (done || wait || hint) return;
+        wait = setTimeout(() => {
+          wait = undefined;
+          runHint();
+        }, HINT_WAIT_MS);
+      },
+      { rootMargin: VIEW_MARGIN, threshold: [0, 0.5, IN_VIEW, 1] },
+    );
+    watch.observe(api.rootNode());
+
+    return () => {
+      watch.disconnect();
+      api.off("pointerDown", onGrab);
+      plugin.stop();
+      clearTimeout(wait);
+      hint?.stop();
+    };
+  }, [api, nudge, autoplay]);
+
+  const pick = (i: number) => {
+    if (!api) return;
+    api.scrollTo(i);
+    // A pager tap starts the wait again.
+    autoplay.reset();
+  };
+
+  return { viewportRef, page, pick, nudge };
+}
+
+/**
  * The brand-store carousel: pages of three stacked cards (418 x 140, 2 apart),
  * the next page 2 px beyond the first, so 10 px of it shows at the right edge.
  * The purple bar down the left edge (4 x 424) stays put while the cards slide.
+ *
+ * The pages will later hold images instead of cards. A page is a plain box of
+ * the page's full size, so an image can take its place; the hint, the auto
+ * slide and the pager do not depend on what a page holds.
  */
 function BrandCarousel({
   t,
-  rowRef,
-  onPage,
+  viewportRef,
+  nudge,
 }: {
   t: T;
-  rowRef: React.RefObject<HTMLDivElement | null>;
-  onPage: (page: number) => void;
+  viewportRef: (node: HTMLElement | null) => void;
+  nudge: MotionValue<number>;
 }) {
   return (
     <div className="relative shrink-0" style={{ marginTop: 8, height: 424 }}>
       <div
-        ref={rowRef}
+        ref={viewportRef}
         data-pw="demo-home-brand-carousel"
-        className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden"
-        style={{
-          gap: GAP,
-          height: 424,
-          scrollSnapType: "x mandatory",
-          scrollbarWidth: "none",
-        }}
-        onScroll={(e) => {
-          const el = e.currentTarget;
-          const step = el.firstElementChild
-            ? (el.firstElementChild as HTMLElement).offsetWidth + GAP
-            : 1;
-          onPage(Math.round(el.scrollLeft / step));
-        }}
+        className="overflow-hidden"
+        // The page still scrolls up and down over the carousel.
+        style={{ height: 424, touchAction: "pan-y pinch-zoom" }}
       >
-        {Array.from({ length: PAGES }, (_, page) => (
-          <div
-            key={page}
-            className="flex flex-col shrink-0"
-            style={{
-              gap: GAP,
-              width: "calc(100% - 12px)",
-              scrollSnapAlign: "start",
-            }}
-          >
-            {BRANDS.map((b) => (
-              <BrandCard
-                key={b.name}
-                t={t}
-                brand={b.name}
-                logo={b.logo}
-                centreAt={109}
-                style={{ width: "100%" }}
-              />
-            ))}
-          </div>
-        ))}
+        <div className="flex h-full" style={{ gap: GAP }}>
+          {Array.from({ length: PAGES }, (_, page) => (
+            <div
+              key={page}
+              data-pw={`demo-home-brand-page-${page}`}
+              className="shrink-0 min-w-0"
+              style={{ width: "calc(100% - 12px)" }}
+            >
+              <motion.div
+                className="flex flex-col h-full"
+                style={{ gap: GAP, x: nudge }}
+              >
+                {BRANDS.map((b) => (
+                  <BrandCard
+                    key={b.name}
+                    t={t}
+                    brand={b.name}
+                    logo={b.logo}
+                    centreAt={109}
+                    style={{ width: "100%" }}
+                  />
+                ))}
+              </motion.div>
+            </div>
+          ))}
+        </div>
       </div>
       <span
         aria-hidden="true"
@@ -523,51 +718,75 @@ function Pager({ page, onPick }: { page: number; onPick: (page: number) => void 
   );
 }
 
-/** The store grid, down each column: name and logo (the last two columns have none in the file). */
-const STORES: { name: string; logo?: Logo }[][] = [
+/**
+ * The store grid, down each column: name and logo (the last two columns have
+ * none in the file). `shown` is the name as the card's line writes it in the
+ * file, where it differs from the brand's own spelling.
+ */
+const STORES: { name: string; shown?: string; logo?: Logo }[][] = [
   [
     { name: "Ebebek", logo: { src: "/assets/demo/home/brands/ebebek.svg", w: 77.43, h: 20, top: 65 } },
-    { name: "Boyner", logo: { src: "/assets/demo/home/brands/boyner.svg", w: 140, h: 19.5, top: 65.25 } },
-    { name: "Sephora", logo: { src: "/assets/demo/home/brands/sephora.svg", w: 140, h: 18.14, top: 65.93 } },
+    { name: "Boyner", shown: "boyner", logo: { src: "/assets/demo/home/brands/boyner.svg", w: 140, h: 19.5, top: 65.25 } },
+    { name: "Sephora", shown: "sephora", logo: { src: "/assets/demo/home/brands/sephora.svg", w: 140, h: 18.14, top: 65.93 } },
   ],
   [
-    { name: "Gratis", logo: { src: "/assets/demo/home/brands/gratis.png", w: 90, h: 50, top: 50 } },
-    { name: "Beymen", logo: { src: "/assets/demo/home/brands/beymen.svg", w: 140, h: 17.5, top: 66.25 } },
-    { name: "Rossmann", logo: { src: "/assets/demo/home/brands/rossmann.svg", w: 140, h: 19.31, top: 65.35 } },
+    { name: "Gratis", shown: "gratis", logo: { src: "/assets/demo/home/brands/gratis.png", w: 90, h: 50, top: 50 } },
+    { name: "Beymen", shown: "beymen", logo: { src: "/assets/demo/home/brands/beymen.svg", w: 140, h: 17.5, top: 66.25 } },
+    { name: "Rossmann", shown: "rossmann", logo: { src: "/assets/demo/home/brands/rossmann.svg", w: 140, h: 19.31, top: 65.35 } },
   ],
-  [{ name: "Vakko" }, { name: "Koton" }, { name: "Zara" }],
-  [{ name: "Stradivarius" }, { name: "Bershka" }, { name: "Koton" }],
+  [{ name: "Vakko" }, { name: "Koton", shown: "koton" }, { name: "Zara" }],
+  [{ name: "Stradivarius", shown: "stradivarius" }, { name: "Bershka" }, { name: "Koton", shown: "koton" }],
 ];
 
 /**
  * The store grid: two 208 columns show, 2 apart, and the next column shows
  * 10 px at the right edge. The blue bar down the left edge stays put.
+ * It is a slider like the brand carousel (see useSlider): each column is a
+ * slide, and the hint and the auto slide move it one column at a time.
  */
-function StoreGrid({ t }: { t: T }) {
+function StoreGrid({
+  t,
+  viewportRef,
+  nudge,
+}: {
+  t: T;
+  viewportRef: (node: HTMLElement | null) => void;
+  nudge: MotionValue<number>;
+}) {
   return (
     <div className="relative shrink-0" style={{ marginTop: 8, height: 424 }}>
       <div
+        ref={viewportRef}
         data-pw="demo-home-store-grid"
-        className="flex overflow-x-auto [&::-webkit-scrollbar]:hidden"
-        style={{ gap: GAP, height: 424, scrollbarWidth: "none" }}
+        className="overflow-hidden"
+        // The page still scrolls up and down over the grid.
+        style={{ height: 424, touchAction: "pan-y pinch-zoom" }}
       >
-        {STORES.map((column, c) => (
-          <div
-            key={c}
-            className="flex flex-col shrink-0"
-            style={{ gap: GAP, width: `calc((100% - ${12 + GAP}px) / 2)` }}
-          >
-            {column.map((s, r) => (
-              <BrandCard
-                key={`${c}-${r}`}
-                t={t}
-                brand={s.name}
-                logo={s.logo}
-                style={{ width: "100%" }}
-              />
-            ))}
-          </div>
-        ))}
+        <div className="flex h-full" style={{ gap: GAP }}>
+          {STORES.map((column, c) => (
+            <div
+              key={c}
+              className="shrink-0 min-w-0"
+              style={{ width: `calc((100% - ${12 + GAP}px) / 2)` }}
+            >
+              <motion.div
+                className="flex flex-col h-full"
+                style={{ gap: GAP, x: nudge }}
+              >
+                {column.map((s, r) => (
+                  <BrandCard
+                    key={`${c}-${r}`}
+                    t={t}
+                    brand={s.name}
+                    shown={s.shown}
+                    logo={s.logo}
+                    style={{ width: "100%" }}
+                  />
+                ))}
+              </motion.div>
+            </div>
+          ))}
+        </div>
       </div>
       <span
         aria-hidden="true"
@@ -583,14 +802,8 @@ function StoreGrid({ t }: { t: T }) {
  * is not empty; the category chips in the header do not change it.
  */
 export default function HomeSections({ t }: { t: T }) {
-  const [page, setPage] = useState(0);
-  const rowRef = useRef<HTMLDivElement>(null);
-  const pick = (i: number) => {
-    const row = rowRef.current;
-    const first = row?.firstElementChild as HTMLElement | undefined;
-    if (row && first)
-      row.scrollTo({ left: i * (first.offsetWidth + GAP), behavior: "smooth" });
-  };
+  const brands = useSlider();
+  const stores = useSlider();
   return (
     <div
       data-pw="demo-home-sections"
@@ -601,7 +814,7 @@ export default function HomeSections({ t }: { t: T }) {
         mt={8}
         tone={TONE.stories}
         title={t("Trydos Stories")}
-        line={<Sentence text={t("Watch. Shop. Share. See It. Tag It !")} />}
+        line={<Sentence text={t("Watch. Shop. Share. See it. Tag It !")} />}
       />
       <Stories />
 
@@ -611,14 +824,18 @@ export default function HomeSections({ t }: { t: T }) {
         title={t("Brand Stores")}
         line={
           <Sentence
-            text={t("All {name} Collection Now !")}
+            text={t("all {name} collection now !")}
             token="{name}"
-            named={t("Turkish Brands")}
+            named={t("Turkish brands")}
           />
         }
       />
-      <BrandCarousel t={t} rowRef={rowRef} onPage={setPage} />
-      <Pager page={page} onPick={pick} />
+      <BrandCarousel
+        t={t}
+        viewportRef={brands.viewportRef}
+        nudge={brands.nudge}
+      />
+      <Pager page={brands.page} onPick={brands.pick} />
 
       {/* The stores' tab is at y 859, beside the pager (y 859 – 867). */}
       <BlockHead
@@ -627,13 +844,17 @@ export default function HomeSections({ t }: { t: T }) {
         title={t("Stores")}
         line={
           <Sentence
-            text={t("All {name} Collection Now !")}
+            text={t("all {name} collection now !")}
             token="{name}"
             named={t("Stores")}
           />
         }
       />
-      <StoreGrid t={t} />
+      <StoreGrid
+        t={t}
+        viewportRef={stores.viewportRef}
+        nudge={stores.nudge}
+      />
     </div>
   );
 }

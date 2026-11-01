@@ -3133,10 +3133,10 @@ const translations = {
   "Trydos Stories": "چیرۆکەکانی ترایدۆس",
   "Brand Stores": "فرۆشگاکانی براند",
   "Stores": "فرۆشگاکان",
-  "Turkish Brands": "براندە تورکییەکان",
-  "Watch. Shop. Share. See It. Tag It !": "سەیر بکە. بکڕە. بڵاو بکەرەوە. ببینە. نیشانە بکە !",
-  "All {name} Collection Now !": "کۆمەڵەی هەموو {name} ئێستا !",
-  "Shop {brand} Collection Now !": "ئێستا کۆمەڵەی {brand} بکڕە !",
+  "Turkish brands": "براندە تورکییەکان",
+  "Watch. Shop. Share. See it. Tag It !": "سەیر بکە. بکڕە. بڵاو بکەرەوە. ببینە. نیشانە بکە !",
+  "all {name} collection now !": "کۆمەڵەی هەموو {name} ئێستا !",
+  "Shop {brand} collection now !": "ئێستا کۆمەڵەی {brand} بکڕە !",
 };
 
 export default translations;
