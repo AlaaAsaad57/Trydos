@@ -1,4 +1,3 @@
-import { useSyncExternalStore } from "react";
 import { downloadFile } from "components/Chat/downloadFile";
 
 // Saves incoming chat media on the user's machine by itself, like the
@@ -113,7 +112,7 @@ function remember(filePath: string) {
 }
 
 // WHICH FILES ARE BLURRED RIGHT NOW. Only the MISSED flow blurs. A component
-// asks `useIsAutoSaving(url)` and draws the blur while the answer is true.
+// asks `useIsAutoSaving(url)` (components/Chat/useIsAutoSaving.ts) and draws the blur while the answer is true.
 const saving = new Set<string>();
 const listeners = new Set<() => void>();
 
@@ -124,7 +123,8 @@ function setSaving(filePath: string, on: boolean) {
   listeners.forEach((listener) => listener());
 }
 
-function subscribe(listener: () => void) {
+/** Calls `listener` each time a file starts or stops saving. Returns the unsubscribe. */
+export function subscribeToAutoSaving(listener: () => void) {
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
@@ -134,14 +134,6 @@ function subscribe(listener: () => void) {
 /** True while this file is waiting for, or going through, its automatic save. */
 export function isAutoSaving(filePath: string): boolean {
   return saving.has(filePath);
-}
-
-export function useIsAutoSaving(filePath?: string): boolean {
-  return useSyncExternalStore(
-    subscribe,
-    () => !!filePath && saving.has(filePath),
-    () => false,
-  );
 }
 
 // One save at a time, in arrival order.

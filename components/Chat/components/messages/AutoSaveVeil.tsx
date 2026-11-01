@@ -1,4 +1,4 @@
-import { useIsAutoSaving } from "components/Chat/autoDownload";
+import { useIsAutoSaving } from "components/Chat/useIsAutoSaving";
 import { translateFunction } from "utils/functions";
 
 // The blur drawn over a photo or video while the chat saves it by itself
