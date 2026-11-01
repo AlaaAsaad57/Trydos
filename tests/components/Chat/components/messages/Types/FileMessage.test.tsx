@@ -63,7 +63,7 @@ describe("FileMessage", () => {
   it("links to the file for download and opens the menu on a tap", async () => {
     const { p } = await mount({ is_forward: 1 });
     const link = document.querySelector("a.file-msg") as HTMLAnchorElement;
-    expect(link.getAttribute("href"), "the download link was wrong").toBe("https://example.com/f.pdf");
+    expect(link.getAttribute("href"), "the download link was wrong").toBe("https://example.com/f.pdf?download=1");
     expect(link.hasAttribute("download"), "the link did not ask for a download").toBe(true);
     expect(document.querySelector('img[src="/icons/chat/down.svg"]'), "a sent file showed no download arrow").not.toBeNull();
     expect(document.querySelector(".forwarded-message-icon"), "the forward mark was not shown").not.toBeNull();

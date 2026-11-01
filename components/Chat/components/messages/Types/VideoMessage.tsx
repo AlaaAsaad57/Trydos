@@ -5,6 +5,7 @@ import { DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chat
 import OptionsMenu from "../../OptionsMenu";
 import React from "react";
 import { toDownloadUrl } from "components/Chat/videoSupport";
+import { downloadFile } from "components/Chat/downloadFile";
 import MessageMarks from "../MessageMarks";
 import CancelUploadButton from "../CancelUploadButton";
 function VideoMessage({
@@ -115,10 +116,13 @@ function VideoMessage({
           <a
             href={toDownloadUrl(filePath)}
             download
-            target="_blank"
             rel="noreferrer"
             className="play-vid-icon"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              downloadFile(filePath);
+            }}
             title={translateFunction(
               "This video cannot play here. Tap to download it.",
             )}

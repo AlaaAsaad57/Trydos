@@ -15,7 +15,8 @@ import React from "react";
 
 import { renderWithProviders, screen, userEvent } from "../../../render";
 
-const media = vi.hoisted(() => ({ getMedia: vi.fn() }));
+const media = vi.hoisted(() => ({ getMedia: vi.fn(), downloadFile: vi.fn() }));
+vi.mock("components/Chat/downloadFile", () => ({ downloadFile: (...a: any[]) => media.downloadFile(...a) }));
 vi.mock("store/chat/actions", () => ({ getMedia: (...a: any[]) => media.getMedia(...a) }));
 
 import MediaContainer from "components/Chat/components/MediaContainer";
@@ -41,5 +42,38 @@ describe("MediaContainer — a tab whose list has not arrived yet", () => {
       media.getMedia,
       `opening the ${tab} tab did not ask the chat backend for its list`,
     ).toHaveBeenCalledWith(7, `${tab}Message`);
+  });
+});
+
+describe("MediaContainer — a tap on an item", () => {
+  const lists = {
+    ...detailsOnly,
+    video_messages: [{ message_files: [{ file_path: "https://example.com/v.mp4" }] }],
+    file_messages: [{ message_files: [{ file_path: "https://example.com/f.pdf" }] }],
+  };
+
+  it("a photo opens the viewer instead of a new tab", async () => {
+    const onOpenImage = vi.fn();
+    await renderWithProviders(<MediaContainer id={7} mediaFiles={lists} onOpenImage={onOpenImage} />);
+    const link = document.querySelector('[data-pw="media-image"]') as HTMLAnchorElement;
+    expect(link.hasAttribute("target"), "the photo link still opens a new tab").toBe(false);
+    await userEvent.click(link);
+    expect(onOpenImage, "a tap on a photo did not open the viewer with that photo").toHaveBeenCalledWith("https://example.com/i.png");
+  });
+
+  it("a video opens the viewer", async () => {
+    const onOpenVideo = vi.fn();
+    await renderWithProviders(<MediaContainer id={7} mediaFiles={lists} onOpenVideo={onOpenVideo} />);
+    await userEvent.click(screen.getByText("Video"));
+    await userEvent.click(document.querySelector('[data-pw="media-video"]')!);
+    expect(onOpenVideo, "a tap on a video did not open the viewer with that video").toHaveBeenCalledWith("https://example.com/v.mp4");
+  });
+
+  it("a file downloads on the user's machine", async () => {
+    media.downloadFile.mockClear();
+    await renderWithProviders(<MediaContainer id={7} mediaFiles={lists} />);
+    await userEvent.click(screen.getByText("File"));
+    await userEvent.click(document.querySelector('[data-pw="media-file"]')!);
+    expect(media.downloadFile, "a tap on a file did not download it").toHaveBeenCalledWith("https://example.com/f.pdf");
   });
 });

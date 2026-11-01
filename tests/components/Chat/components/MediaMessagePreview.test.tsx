@@ -5,6 +5,9 @@ import { describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "../../../render";
 
+const dl = vi.hoisted(() => ({ downloadFile: vi.fn() }));
+vi.mock("components/Chat/downloadFile", () => ({ downloadFile: (...a: any[]) => dl.downloadFile(...a) }));
+
 import MediaMessagePreview from "components/Chat/components/MediaMessagePreview";
 
 async function mount(media: { imgs?: string | null; vid?: string | null }) {
@@ -43,6 +46,16 @@ describe("MediaMessagePreview", () => {
     expect(setImgs, "a tap on the video or the download closed the viewer").not.toHaveBeenCalled();
     fireEvent.click(screen.getByLabelText("Close"));
     expect(setImgs, "the close button did not close the viewer").toHaveBeenCalledWith(null);
+  });
+
+  it("the Download button saves the file instead of opening a tab", async () => {
+    dl.downloadFile.mockClear();
+    const { setImgs } = await mount({ imgs: "https://example.com/p.png" });
+    const link = screen.getByLabelText("Download");
+    expect(link.hasAttribute("target"), "the download link still opens a new tab").toBe(false);
+    fireEvent.click(link);
+    expect(dl.downloadFile, "the Download button did not download the photo").toHaveBeenCalledWith("https://example.com/p.png");
+    expect(setImgs, "the Download button closed the viewer").not.toHaveBeenCalled();
   });
 
   it("closes on Escape only", async () => {

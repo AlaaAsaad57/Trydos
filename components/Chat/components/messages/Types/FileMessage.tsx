@@ -11,6 +11,8 @@ import OptionsMenu from "../../OptionsMenu";
 import Spinner from "components/global/Spinner";
 import MessageMarks, { countMarks, marksMinWidth } from "../MessageMarks";
 import CancelUploadButton from "../CancelUploadButton";
+import { downloadFile } from "components/Chat/downloadFile";
+import { toDownloadUrl } from "components/Chat/videoSupport";
 
 function FileMessage({
   setOpen,
@@ -100,10 +102,15 @@ function FileMessage({
         )}
         {message_files && message_files[0]?.file_path && (
           <a
-            target="_blank"
-            href={message_files[0]?.file_path}
+            href={toDownloadUrl(message_files[0]?.file_path)}
             download
             className="replay-msg file-msg"
+            // Saves the file on the user's machine instead of opening a tab.
+            // The href is the fallback if the script is blocked.
+            onClick={(e) => {
+              e.preventDefault();
+              if (!mid) downloadFile(message_files[0]?.file_path);
+            }}
           >
             <img
               alt="user-img"

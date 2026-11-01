@@ -16,6 +16,7 @@ import {
 } from "@/store/notifications/reducer";
 
 import MediaContainer from "./MediaContainer";
+import MediaMessagePreview from "./MediaMessagePreview";
 import TaggedMessages from "./TaggedMessages";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
@@ -62,6 +63,10 @@ function ChatInfo({
     }
   };
   const [showMedia, setMedia] = useState(false);
+  // The viewer for a photo or video tapped in this drawer. It is the same
+  // widget the chat uses, with the Download and Close buttons.
+  const [previewImg, setPreviewImg] = useState<string | null>(null);
+  const [previewVid, setPreviewVid] = useState<string | null>(null);
 
   useEffect(() => {
     if (ref.current) ref.current.style.display = "flex";
@@ -302,7 +307,14 @@ function ChatInfo({
           >
             {activeChat?.message_counts?.image_messages?.map(
               (image, index) => (
-                <div className="slider-gallery-item" key={index}>
+                <div
+                  className="slider-gallery-item cursor-pointer"
+                  key={index}
+                  data-pw="chat-info-gallery-image"
+                  onClick={() =>
+                    setPreviewImg(image.message_files[0]?.file_path ?? null)
+                  }
+                >
                   {/* A native image drag would stop the mouse drag of the row. */}
                   <Image
                     className="max-h-[140px]"
@@ -368,6 +380,16 @@ function ChatInfo({
         <MediaContainer
           mediaFiles={activeChat?.message_counts}
           id={activeChat?.id}
+          onOpenImage={setPreviewImg}
+          onOpenVideo={setPreviewVid}
+        />
+      )}
+      {(previewImg || previewVid) && (
+        <MediaMessagePreview
+          imgs={previewImg}
+          vid={previewVid}
+          setImgs={setPreviewImg}
+          setVid={setPreviewVid}
         />
       )}
       {confirmDelete &&
