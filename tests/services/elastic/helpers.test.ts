@@ -1676,13 +1676,27 @@ describe("writing a search to the search log (logSearchTerm)", () => {
     io.logServerError.mockReset();
   });
 
-  it("does not log a search that is too short or found nothing", async () => {
+  it("does not log a search that is too short", async () => {
     const client = { search: vi.fn(), index: vi.fn() };
 
     await logSearchTerm({ searchText: " ab ", userData: null, productsCount: 3, client });
-    await logSearchTerm({ searchText: "dress", userData: null, productsCount: 0, client });
 
     expect(client.search, "a short or empty search was still looked up in the log").not.toHaveBeenCalled();
+  });
+
+  it("logs a search that found no products, with a count of 0", async () => {
+    io.headers.mockResolvedValue(headerBag({}));
+    const client = {
+      search: vi.fn(async () => ({ hits: { hits: [] } })),
+      index: vi.fn(async () => ({})),
+    };
+
+    await logSearchTerm({ searchText: "dress", userData: null, productsCount: 0, client });
+
+    expect(
+      (client.index.mock.calls[0] as any)?.[0]?.body,
+      "a search with no products was not written to the search log",
+    ).toMatchObject({ search_term: "dress", products_count: 0, results_count: 0 });
   });
 
   it("logs a new search with the shopper's address and browser from the request", async () => {
@@ -1717,6 +1731,7 @@ describe("writing a search to the search log (logSearchTerm)", () => {
       ip: "10.0.0.1",
       user_agent: "Browser/1",
       products_count: 4,
+      results_count: 4,
     });
     expect(
       written.body.timestamp,

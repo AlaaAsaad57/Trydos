@@ -2884,8 +2884,8 @@ export async function logSearchTerm({
 }) {
   // 1. Basic Cleaning & Validation
   const cleanText = searchText.trim().toLowerCase();
-  // Mimicking the PHP logic: > 2 chars and not empty
-  if (!cleanText || cleanText.length <= 2 || productsCount === 0) return;
+  // Log every search of 3+ characters, even when it found no products.
+  if (!cleanText || cleanText.length <= 2) return;
 
   // 2. Blacklist Check (Placeholder for your logic)
   const isBlacklisted = false; // Replace with your Blacklist service call
@@ -2955,6 +2955,7 @@ export async function logSearchTerm({
           ip,
           user_agent: userAgent,
           products_count: productsCount,
+          results_count: productsCount,
           timestamp: formattedDate,
         },
       });

@@ -290,7 +290,7 @@ describe("the search results panel (GetSearchData)", () => {
     expect(io.logSearchTerm, "a search with no text was logged").not.toHaveBeenCalled();
   });
 
-  it("does not log a text search that found nothing, and answers empty lists", async () => {
+  it("logs a text search that found nothing, and answers empty lists", async () => {
     // What the search backend sends for no match: the aggregations are there,
     // with no buckets in them.
     io.search.mockResolvedValue({
@@ -315,7 +315,10 @@ describe("the search results panel (GetSearchData)", () => {
       userId: 1,
     });
 
-    expect(io.logSearchTerm, "a search that found nothing was logged").not.toHaveBeenCalled();
+    expect(
+      io.logSearchTerm,
+      "a search that found nothing was not logged with a count of 0",
+    ).toHaveBeenCalledWith(expect.objectContaining({ searchText: "zzz", productsCount: 0 }));
     expect(
       [result.total_size, result.products, result.categories, result.brands, result.related_categories],
       "a search that found nothing did not answer empty lists",
