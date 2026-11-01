@@ -1375,6 +1375,7 @@ const translations = {
   "Are you sure you want to delete this chat?": "Bu sohbeti silmek istediğinizden emin misiniz?",
   "Save To Gallery": "Galeride kaydet",
   Never: "Asla",
+  Always: "Her zaman",
   "Media & Files": "Medya ve dosyalar",
   Search: "Ara",
   "Video as مكالمة فيديو": "Görüntülü arama",

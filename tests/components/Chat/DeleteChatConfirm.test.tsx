@@ -680,9 +680,24 @@ describe("ChatInfo — the rest of the info panel", () => {
       "the image strip is not in the shared horizontal scroll row, so a mouse cannot drag it",
     ).not.toBeNull();
     expect(
-      screen.queryByText("Save To Gallery"),
-      "the 'Save To Gallery' row is back, but a web page cannot save to the phone gallery",
-    ).toBeNull();
+      screen.getByText("Save To Gallery"),
+      "the 'Save To Gallery' row is missing from the chat info",
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector('[data-pw="chat-info-auto-download-value"]')?.textContent,
+      "the 'Save To Gallery' row did not start on Never",
+    ).toBe("Never");
+    await userEvent.click(document.querySelector('[data-pw="chat-info-auto-download"]') as HTMLElement);
+    await userEvent.click(document.querySelector('[data-pw="chat-info-auto-download-always"]') as HTMLElement);
+    expect(
+      document.querySelector('[data-pw="chat-info-auto-download-value"]')?.textContent,
+      "picking Always did not change the value shown in the row",
+    ).toBe("Always");
+    expect(
+      localStorage.getItem("chat-auto-download"),
+      "picking Always was not saved for the next visit",
+    ).toBe("always");
+    localStorage.removeItem("chat-auto-download");
     await userEvent.click(screen.getByText("Media & Files"));
     expect(document.querySelector(".chat-user-files-container"), "the media view did not replace the panel").toBeNull();
   });

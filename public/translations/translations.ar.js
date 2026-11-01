@@ -1391,6 +1391,7 @@ const translations = {
   "Are you sure you want to delete this chat?": "هل أنت متأكد أنك تريد حذف هذه المحادثة؟",
   "Save To Gallery": "حفظ في المعرض",
   Never: "أبداً",
+  Always: "دائماً",
   "Media & Files": "الوسائط والملفات",
   Search: "بحث",
   "Video as مكالمة فيديو": "مكالمة فيديو",

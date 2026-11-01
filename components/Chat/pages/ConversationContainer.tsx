@@ -33,6 +33,7 @@ import {
 } from "store/chat/actions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
 import { sortMessages } from "store/chat/messageOrder";
+import { autoSaveMissedMedia } from "components/Chat/autoDownload";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { translateFunction, getUserChat, LogError } from "utils/functions";
 import { getDb } from "utils/firebaseInitv1";
@@ -505,6 +506,18 @@ function ConversationContainer({
   useEffect(() => {
     setSearch("");
   }, [activeChat]);
+
+  // Photos and videos that came while the page was closed: when "Always" is
+  // chosen, save the ones newer than the last visit (at most 10). They show
+  // blurred until the save ends. Messages load in steps, so this runs again as
+  // they arrive; the file list in autoDownload.ts stops any repeat.
+  useEffect(() => {
+    autoSaveMissedMedia(
+      activeChat?.id,
+      activeChat?.messages,
+      (getUserChat() as any)?.id,
+    );
+  }, [activeChat?.id, activeChat?.messages]);
 
   // A quote, a tagged message or a reminder asked for a message that was not
   // loaded. Scroll to it once it is in the chat.

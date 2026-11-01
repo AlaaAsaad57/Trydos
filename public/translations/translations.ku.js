@@ -1434,6 +1434,7 @@ const translations = {
   "You cannot send messages or calls to this user":
     "ناتوانیت بۆ ئەم بەکارهێنەرە پەیام یان پەیوەندی بفرێیت",
   Never: "هەرگیز",
+  Always: "هەمیشە",
   "Media & Files": "میدیا و پەڕگەکان",
   Search: "گەڕان",
   "Video as مكالمة فيديو": "پەیوەندی ڤیدیۆیی",

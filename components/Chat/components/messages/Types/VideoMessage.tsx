@@ -8,6 +8,7 @@ import { toDownloadUrl } from "components/Chat/videoSupport";
 import { downloadFile } from "components/Chat/downloadFile";
 import MessageMarks from "../MessageMarks";
 import CancelUploadButton from "../CancelUploadButton";
+import AutoSaveVeil from "../AutoSaveVeil";
 function VideoMessage({
   setOpen,
   setDelete,
@@ -157,6 +158,7 @@ function VideoMessage({
           preload="metadata"
           onError={() => setCannotPlay(true)}
         />
+        <AutoSaveVeil filePath={filePath} />
 
         {is_from_sender ? (
           <div className="message-date">
