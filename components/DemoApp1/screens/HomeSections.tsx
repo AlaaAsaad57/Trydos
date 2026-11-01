@@ -489,7 +489,7 @@ const EASE_STANDARD = [0.2, 0, 0, 1] as const;
 const VIEW_MARGIN = "-60px 0px -80px 0px";
 
 /** The hint starts when at least this share of the slider is in that part of the window. */
-const HINT_IN_VIEW = 0.74;
+const HINT_IN_VIEW = 0.5;
 
 /** The auto slide runs while at least this share of the slider is in that part of the window. */
 const SLIDE_IN_VIEW = 0.9;
@@ -613,7 +613,7 @@ function useSlider() {
       },
       {
         rootMargin: VIEW_MARGIN,
-        threshold: [0, 0.5, HINT_IN_VIEW, SLIDE_IN_VIEW, 1],
+        threshold: [0, HINT_IN_VIEW, SLIDE_IN_VIEW, 1],
       },
     );
     watch.observe(api.rootNode());
