@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import HomeSections from "components/DemoApp1/screens/HomeSections";
@@ -14,6 +14,67 @@ class ObserverStub {
 }
 vi.stubGlobal("IntersectionObserver", ObserverStub);
 vi.stubGlobal("ResizeObserver", ObserverStub);
+
+// jsdom has no layout, so a real Embla finds no slides and no pages. The page
+// only asks Embla two things: "which slide are you on?" (the pager follows it)
+// and "go to slide i" (a pager tap). This stand-in answers both, so the tests
+// check what the page does with the answers. One stand-in is made for each
+// slider, in the order the page makes them: the brand carousel, then the store
+// grid.
+const embla = vi.hoisted(() => {
+  type Handler = () => void;
+  type FakeApi = {
+    snap: number;
+    handlers: Record<string, Handler[]>;
+    scrollTo: (i: number) => void;
+    selectedScrollSnap: () => number;
+    rootNode: () => HTMLElement;
+    on: (event: string, fn: Handler) => FakeApi;
+    off: (event: string, fn: Handler) => FakeApi;
+    emit: (event: string) => void;
+  };
+  const apis: FakeApi[] = [];
+  const make = (): FakeApi => {
+    const api: FakeApi = {
+      snap: 0,
+      handlers: {},
+      scrollTo(i) {
+        api.snap = i;
+        api.emit("select");
+      },
+      selectedScrollSnap: () => api.snap,
+      rootNode: () => document.createElement("div"),
+      on(event, fn) {
+        (api.handlers[event] ??= []).push(fn);
+        return api;
+      },
+      off(event, fn) {
+        api.handlers[event] = (api.handlers[event] ?? []).filter((f) => f !== fn);
+        return api;
+      },
+      emit(event) {
+        (api.handlers[event] ?? []).forEach((fn) => fn());
+      },
+    };
+    apis.push(api);
+    return api;
+  };
+  return { apis, make };
+});
+
+vi.mock("embla-carousel-react", async () => {
+  const { useState } = await import("react");
+  return {
+    default: () => {
+      const [api] = useState(() => embla.make());
+      return [() => {}, api];
+    },
+  };
+});
+
+vi.mock("embla-carousel-autoplay", () => ({
+  default: () => ({ play() {}, stop() {}, reset() {} }),
+}));
 
 /*
   The page under the Home header (XD `Home Page – 2`): the stories row, the
@@ -59,7 +120,16 @@ describe("Home page sections", () => {
     ).toBeInTheDocument();
   });
 
-  it("draws the named part of a card line Medium and the closing ! Bold", () => {
+  it("draws the closing ! of a block line Bold", () => {
+    page(ENGLISH);
+    const head = screen.getByText("Turkish Brands", { selector: "span.font-medium" });
+    expect(
+      head.closest("bdi")?.querySelector("span.font-bold")?.textContent,
+      "the closing ! of the brand-stores line is not Bold",
+    ).toBe("!");
+  });
+
+  it("draws the named part of a card line Medium and its closing ! Regular", () => {
     page(ENGLISH);
     const zara = document.querySelector('[data-pw="demo-brand-Zara"]')!;
     const label = within(zara as HTMLElement).getByText("Zara", {
@@ -68,10 +138,11 @@ describe("Home page sections", () => {
     expect(label.textContent, "the brand name is not the Medium part").toBe(
       "Zara",
     );
-    const bold = zara.querySelector("span.font-bold");
-    expect(bold?.textContent, "the closing ! of the card line is not Bold").toBe(
-      "!",
-    );
+    // The file draws the closing ! Regular on a card and Bold in a block line.
+    expect(
+      zara.querySelector("span.font-bold"),
+      "the closing ! of a card line is Bold, but the file draws it Regular",
+    ).toBeNull();
     expect(
       zara.textContent,
       "the card line does not read 'Shop Zara Collection Now !'",
@@ -155,14 +226,12 @@ describe("Home page sections", () => {
 
   it("has three carousel pages of three brands, and a pager of three", () => {
     page(ENGLISH);
-    const row = document.querySelector(
-      '[data-pw="demo-home-brand-carousel"]',
-    )!;
-    expect(row.children.length, "the carousel does not have three pages").toBe(
-      3,
+    const pages = document.querySelectorAll(
+      '[data-pw^="demo-home-brand-page-"]',
     );
+    expect(pages.length, "the carousel does not have three pages").toBe(3);
     expect(
-      row.children[0].querySelectorAll('[data-pw^="demo-brand-"]').length,
+      pages[0].querySelectorAll('[data-pw^="demo-brand-"]').length,
       "a carousel page does not hold three brand cards",
     ).toBe(3);
     for (const i of [0, 1, 2]) {
@@ -173,15 +242,10 @@ describe("Home page sections", () => {
     }
   });
 
-  it("moves the pager's pill with the carousel's scroll", () => {
+  it("moves the pager's pill when the carousel changes page, and a tap on a dot goes to that page", () => {
+    embla.apis.length = 0;
     page(ENGLISH);
-    const row = document.querySelector(
-      '[data-pw="demo-home-brand-carousel"]',
-    ) as HTMLElement;
-    // jsdom has no layout: give a page the width the file gives it.
-    Object.defineProperty(row.firstElementChild!, "offsetWidth", {
-      value: 418,
-    });
+    const brandCarousel = embla.apis[0];
     const dot = (i: number) =>
       document.querySelector(
         `[data-pw="demo-home-pager-${i}"]`,
@@ -190,23 +254,40 @@ describe("Home page sections", () => {
       dot(0).getAttribute("aria-current"),
       "the first page is not the one on show at the start",
     ).toBe("true");
-    row.scrollLeft = 840; // two pages and the gaps: 2 * (418 + 2)
-    fireEvent.scroll(row);
+
+    // The carousel moves by itself (a swipe or the auto slide).
+    act(() => {
+      brandCarousel.snap = 2;
+      brandCarousel.emit("select");
+    });
     expect(
       dot(2).getAttribute("aria-current"),
-      "scrolling the carousel to its third page did not move the pager",
+      "the carousel moved to its third page but the pager did not follow",
     ).toBe("true");
     expect(
       dot(0).getAttribute("aria-current"),
-      "the pager still shows the first page after the carousel scrolled away",
+      "the pager still shows the first page after the carousel moved away",
     ).toBe("false");
+
+    // A tap on a dot.
+    fireEvent.click(dot(1));
+    expect(
+      brandCarousel.snap,
+      "a tap on the second dot did not send the carousel to its second page",
+    ).toBe(1);
+    expect(
+      dot(1).getAttribute("aria-current"),
+      "the pager did not show the page it was tapped to",
+    ).toBe("true");
   });
 
   it("has four store columns of three; only the first two have logos", () => {
     page(ENGLISH);
     const grid = document.querySelector('[data-pw="demo-home-store-grid"]')!;
+    // grid > the sliding track > one slide for each column > its stack of cards
+    const columns = Array.from(grid.firstElementChild!.children);
     expect(
-      Array.from(grid.children).map((c) => c.children.length),
+      columns.map((c) => c.firstElementChild!.children.length),
       "a store column does not hold three cards",
     ).toEqual([3, 3, 3, 3]);
     for (const brand of ["Ebebek", "Boyner", "Sephora", "Gratis", "Beymen", "Rossmann"]) {
@@ -218,7 +299,7 @@ describe("Home page sections", () => {
     // `Home Page – 2` names these cards but draws no logo on them.
     for (const column of [2, 3]) {
       expect(
-        grid.children[column].querySelectorAll("img[alt]:not([alt=''])").length,
+        columns[column].querySelectorAll("img[alt]:not([alt=''])").length,
         `store column ${column + 1} draws a logo the file does not`,
       ).toBe(0);
     }
