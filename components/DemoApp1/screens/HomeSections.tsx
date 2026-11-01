@@ -488,24 +488,28 @@ const EASE_STANDARD = [0.2, 0, 0, 1] as const;
  */
 const VIEW_MARGIN = "-60px 0px -80px 0px";
 
-/** A slider is in view when at least this share of it is in that part of the window. */
-const IN_VIEW = 0.9;
+/** The hint starts when at least this share of the slider is in that part of the window. */
+const HINT_IN_VIEW = 0.74;
+
+/** The auto slide runs while at least this share of the slider is in that part of the window. */
+const SLIDE_IN_VIEW = 0.9;
 
 /**
  * One slider: Embla (the slider the shop's home page already uses, see
  * components/Home/OfferWidgets/BoutiqueElement.tsx) and its Autoplay plugin.
  *
- *  1. The hint. When the slider is in view (IN_VIEW of it, for HINT_WAIT_MS),
- *     what is inside each slide moves HINT_SHARE of the slider's width to the
- *     left and comes back, so the next slide shows for a moment. It runs once.
- *     - If the slider leaves the view before or during the hint, the hint
- *       stops, the slides go back, and the hint runs the next time the
- *       slider is in view.
+ *  1. The hint. When the slider is in view (HINT_IN_VIEW of it, for
+ *     HINT_WAIT_MS), what is inside each slide moves HINT_SHARE of the
+ *     slider's width to the left and comes back, so the next slide shows for
+ *     a moment. It runs once.
+ *     - If less than HINT_IN_VIEW of the slider is in view before or during
+ *       the hint, the hint stops, the slides go back, and the hint runs the
+ *       next time the slider is in view.
  *     - If the person touches the slider first, the hint never runs: the
  *       person already knows it is a slider.
  *     - The hint moves the insides of the slides (a transform), not Embla's
  *       track, so the two never fight.
- *  2. The auto slide. While the slider is in view, it goes to the next slide
+ *  2. The auto slide. While SLIDE_IN_VIEW of the slider is in view, it goes to the next slide
  *     after SLIDE_DELAY_MS. From the last slide it slides back to the first
  *     one (Autoplay does that because `loop` is off). A swipe or a pager tap
  *     starts the wait again. Nothing moves while a finger is on the slider,
@@ -594,19 +598,23 @@ function useSlider() {
 
     const watch = new IntersectionObserver(
       ([entry]) => {
-        if (entry.intersectionRatio < IN_VIEW) {
-          plugin.stop();
+        const shown = entry.intersectionRatio;
+        if (shown >= SLIDE_IN_VIEW) plugin.play();
+        else plugin.stop();
+        if (shown < HINT_IN_VIEW) {
           cancel();
           return;
         }
-        plugin.play();
         if (done || wait || hint) return;
         wait = setTimeout(() => {
           wait = undefined;
           runHint();
         }, HINT_WAIT_MS);
       },
-      { rootMargin: VIEW_MARGIN, threshold: [0, 0.5, IN_VIEW, 1] },
+      {
+        rootMargin: VIEW_MARGIN,
+        threshold: [0, 0.5, HINT_IN_VIEW, SLIDE_IN_VIEW, 1],
+      },
     );
     watch.observe(api.rootNode());
 
