@@ -1,9 +1,19 @@
 import React from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import HomeSections from "components/DemoApp1/screens/HomeSections";
 import type { DemoKey } from "components/DemoApp/demoKeys";
+
+// jsdom has no IntersectionObserver or ResizeObserver; the carousel (embla)
+// asks for both.
+class ObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+vi.stubGlobal("IntersectionObserver", ObserverStub);
+vi.stubGlobal("ResizeObserver", ObserverStub);
 
 /*
   The page under the Home header (XD `Home Page – 2`): the stories row, the
@@ -19,16 +29,16 @@ const ENGLISH: Partial<Record<DemoKey, string>> = {
   "Trydos Stories": "Trydos Stories",
   "Brand Stores": "Brand Stores",
   Stores: "Stores",
-  "Turkish Brands": "Turkish Brands",
-  "Watch. Shop. Share. See It. Tag It !": "Watch. Shop. Share. See It. Tag It !",
-  "All {name} Collection Now !": "All {name} Collection Now !",
-  "Shop {brand} Collection Now !": "Shop {brand} Collection Now !",
+  "Turkish brands": "Turkish Brands",
+  "Watch. Shop. Share. See it. Tag It !": "Watch. Shop. Share. See It. Tag It !",
+  "all {name} collection now !": "All {name} Collection Now !",
+  "Shop {brand} collection now !": "Shop {brand} Collection Now !",
 };
 
 /** A sentence whose named part sits in the middle, as in the Arabic table. */
 const MIDDLE: Partial<Record<DemoKey, string>> = {
   ...ENGLISH,
-  "Shop {brand} Collection Now !": "A {brand} B !",
+  "Shop {brand} collection now !": "A {brand} B !",
 };
 
 const page = (table: Partial<Record<DemoKey, string>>) =>
