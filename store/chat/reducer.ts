@@ -284,11 +284,15 @@ const updateDataAndActiveChat = (
 /**
  * Calculates the 'watched_at' or 'received_at' date logic.
  * Original code subtracted 3 hours (3*60*60*1000).
+ *
+ * Returns an ISO string. It must not be `toLocaleString()`: that follows the
+ * user's language (Arabic-Indic digits in ar/ku), `new Date()` cannot read it
+ * back, and the message dates showed "NaN:NaN".
  */
 const getAdjustedDateString = (originalDate?: string): string => {
   if (originalDate) return originalDate;
   // 3 hours offset as per original code
-  return new Date(new Date().getTime() - 10800000).toLocaleString().toString();
+  return new Date(new Date().getTime() - 10800000).toISOString();
 };
 
 /**

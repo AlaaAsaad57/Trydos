@@ -29,6 +29,7 @@ vi.mock("@/store/notifications/reducer", () => ({
 }));
 
 import { useChatStore } from "store/chat/reducer";
+import { getMessageTime } from "store/chat/chatUtils";
 
 /** A stand-in store: `set` merges like zustand does, `get` reads it back. */
 function makeStore(initial: Record<string, any> = {}) {
@@ -389,6 +390,31 @@ describe("chat slice — message flow", () => {
     expect(b.message_status[0].watched_at, "an existing watched time was replaced").toBe("kept");
     expect(c.message_status[1].is_watched, "a call message was marked watched").toBe(false);
     expect(s.get().newChats.map((x: any) => x.id), "the watched chat stayed in new chats").toEqual(["2"]);
+  });
+
+  // Bug: the time was stored with toLocaleString(), which follows the user's
+  // language. In ar/ku it uses Arabic-Indic digits, and `new Date(...)` cannot
+  // read that, so the swipe dates showed "NaN:NaN" for Received and Read.
+  it("watchChannelEvent and receiveChannelEvent store times that getMessageTime can show, in any language", () => {
+    const localeSpy = vi
+      .spyOn(Date.prototype, "toLocaleString")
+      .mockReturnValue("١٥‏/١‏/٢٠٣٠، ٥:٠٦:٠٠ م");
+    try {
+      const s = makeStore({ data: [channel(1)] });
+      s.get().watchChannelEvent(1);
+      s.get().receiveChannelEvent(1);
+      const other = s.get().data[0].messages[0].message_status[1];
+      expect(
+        getMessageTime(other.watched_at, false),
+        `the Read time shows as "${getMessageTime(other.watched_at, false)}" (stored: ${other.watched_at})`,
+      ).toMatch(/^\d{2}:\d{2}$/);
+      expect(
+        getMessageTime(other.received_at, false),
+        `the Received time shows as "${getMessageTime(other.received_at, false)}" (stored: ${other.received_at})`,
+      ).toMatch(/^\d{2}:\d{2}$/);
+    } finally {
+      localeSpy.mockRestore();
+    }
   });
 
   it("watchChannel tells the chat backend, and marks my statuses watched", () => {
