@@ -9,6 +9,58 @@ import {
   tabOf,
 } from "components/DemoApp/demoRoutes";
 
+describe("demo routes — a store's page", () => {
+  it("reads /demo/store/<slug> for a store the demo knows, and nothing else", () => {
+    expect(
+      screenFromUrl("/sy-en/demo/store/zara", ""),
+      "/demo/store/zara is not Zara's store page",
+    ).toBe("store/zara");
+    expect(
+      screenFromUrl("/sy-ar/demo/store/koton", ""),
+      "/demo/store/koton (a store with no logo) is not Koton's store page",
+    ).toBe("store/koton");
+    expect(
+      screenFromUrl("/sy-en/demo/store/nope", ""),
+      "a store slug that demoStores.ts does not know was taken for a store page",
+    ).toBeNull();
+    expect(
+      screenFromUrl("/sy-en/demo/store", ""),
+      "/demo/store with no slug was taken for a store page",
+    ).toBeNull();
+    expect(
+      screenFromUrl("/sy-en/demo/store/zara/extra", ""),
+      "a path under a store page was taken for the store page",
+    ).toBeNull();
+  });
+
+  it("writes a store's page as a real path, so it can be linked to and indexed", () => {
+    expect(
+      hrefFor("sy-en", "store/zara"),
+      "the store page must be a real path under /demo/store",
+    ).toBe("/sy-en/demo/store/zara");
+    expect(
+      sameRoute("home", "store/zara"),
+      "home → a store changes the path, so it needs the router",
+    ).toBe(false);
+  });
+
+  it("opens a store over Home, forward, and leaves it back to Home", () => {
+    expect(direction("home", "store/zara"), "opening a store did not go forward").toBe(1);
+    expect(direction("store/zara", "home"), "leaving a store did not go back").toBe(-1);
+    expect(
+      isTabRoot("store/zara"),
+      "a store page is not a tab's first screen (the shell still shows the tab bar on it)",
+    ).toBe(false);
+    expect(tabOf("store/zara"), "a store page does not belong to the Home tab").toBe(
+      "home",
+    );
+    expect(
+      parentOf("store/zara"),
+      "back from a store page with no history does not go to Home",
+    ).toBe("home");
+  });
+});
+
 describe("demo routes — which screen a URL shows", () => {
   it("reads the home route and its search-param screens", () => {
     expect(

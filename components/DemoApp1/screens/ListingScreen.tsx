@@ -1,0 +1,615 @@
+"use client";
+
+import React, {
+  startTransition,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import { motion, useReducedMotion, type MotionValue } from "framer-motion";
+import XdIcon from "../../DemoApp/XdIcon";
+import {
+  LISTING_CATEGORIES,
+  LISTING_FIRST_IMAGES,
+  LISTING_PAGES,
+  listingPage,
+  storeBySlug,
+  type DemoProduct,
+  type DemoStore,
+  type ProductBadge,
+} from "../../DemoApp/demoStores";
+import { useDemoNav } from "../Demo1Shell";
+import { C, STORE_GROW, lineBox, textTop } from "../demo1Layout";
+import { ScreenPage, Stroke } from "../ui";
+import { BrandCard, useSlider } from "./HomeSections";
+import ListingColorSheet, { COLOR_GLASS } from "./ListingColorSheet";
+import {
+  AddButton,
+  BADGE,
+  CardLogo,
+  ColorPhotos,
+  FOOTER_H,
+  GAP,
+  PHOTO,
+  PhotoGlow,
+  PricePill,
+  ProductName,
+  StoreMark,
+  SwatchPicker,
+  Weighted,
+  type T,
+} from "./ListingParts";
+
+/**
+ * A store's page — XD `Home Page – 47` (430 x 1779), opened from a brand or
+ * store card on Home at /[lang]/demo/store/<slug>.
+ *
+ * Top to bottom, in design px (y on the artboard):
+ *
+ *  - The header, y 50 – 100: white, no line under it. The back mark at
+ *    (15, 65), the store's logo at (36, 68), 15 tall, and four 20 x 20 marks
+ *    at x 250, 300, 350 and 400 (search, sort, filter, share), y 65.
+ *  - The banner, y 100 – 240: the same card as a brand store on Home (the
+ *    awning, the logo, "Shop Zara Collection Now !"), full width.
+ *  - The categories, y 242 – 382: 100 x 140 photos, 2 apart, in a slider
+ *    that works like the sliders on Home (useSlider: swipe or mouse drag, a
+ *    one-time hint, and an auto slide). A dark fade covers the bottom 70 px,
+ *    and the name sits on it, 13 Regular white, baseline 131 under the
+ *    tile's top.
+ *  - The products, from y 384: two columns of 214 x 397 cards, 2 apart. Each
+ *    card is the photo (214 x 311) with its colour dots on its bottom edge,
+ *    and an 86 px footer: the store's logo, the name, a badge, the price and
+ *    the add button.
+ *  - Colours. The dots are a swiper (SwatchPicker): a swipe along them shows
+ *    the next colour, and the photo changes to it. A colour can have more
+ *    than one photo; a swipe on the photo shows the next one (ColorPhotos).
+ *    A tap on the dots opens the colour sheet, `Home Page – 54`
+ *    (ListingColorSheet).
+ *  - More pages: the first 12 cards come in the HTML. When the end of the
+ *    list comes near, the page shows two rows of grey cards for a moment (a
+ *    "skeleton", as a real request would) and then adds the next 12. After
+ *    the last page, one line says that there are no more products.
+ *
+ * Widths follow the screen: the banner and the grid fill it, a card is half
+ * of it less the gap, and the photo keeps the file's shape (214 : 311). So on
+ * a 430 px phone every box is the file's own number. The heights of the text
+ * rows keep the file's numbers on every phone.
+ *
+ * The status bar is left out (the phone draws its own). The file draws no
+ * tab bar on this page, but the page shows it, with Home as the active tab,
+ * so the person can reach the other tabs from a store. The search, sort,
+ * filter and share marks do nothing yet.
+ *
+ * For search engines the page is real HTML from the server: the logo is the
+ * page's <h1>, every product is an <article> with an <h2> name and a price,
+ * and the photos carry the product's name. The route's page adds the title,
+ * the description and the JSON-LD (app/(client)/[lang]/demo/store/[store]).
+ */
+
+/** The file's height for this board; the page is at least this tall. */
+const BOARD_H = 1779;
+
+/** Design y where the header ends and the page begins. */
+const HEADER_BOTTOM = 100;
+
+let warmed = false;
+
+/**
+ * Starts loading the first pictures of a store's page, so they are already
+ * there when it opens. Home calls it when a finger or the mouse is on a card,
+ * a moment before the tap. It runs once.
+ */
+export function warmListing() {
+  if (warmed || typeof window === "undefined") return;
+  warmed = true;
+  for (const src of LISTING_FIRST_IMAGES) {
+    const img = new Image();
+    img.decoding = "async";
+    img.src = src;
+  }
+}
+
+/**
+ * One header mark: the 20 x 20 icon at the file's place, in a 50 x 50 target
+ * round it (the padding is taken back with a negative margin, so the icons
+ * stay 30 px apart as in the file).
+ */
+function HeaderMark({
+  icon,
+  label,
+  testId,
+}: {
+  icon: "listSearch" | "listSort" | "listFilter" | "listSend";
+  label: string;
+  testId: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      data-pw={testId}
+      className="relative shrink-0 cursor-pointer active:opacity-60 [-webkit-tap-highlight-color:transparent]"
+      style={{ width: 50, height: 50, padding: 15, margin: -15 }}
+    >
+      <XdIcon name={icon} />
+    </button>
+  );
+}
+
+function Header({ store, t }: { store: DemoStore; t: T }) {
+  const { back } = useDemoNav();
+  return (
+    <header
+      className="relative w-full"
+      style={{ height: HEADER_BOTTOM - 50, background: C.white }}
+    >
+      {/* The back mark's box is 12 x 21 at (14.5, 64.5); the target is the header's height. */}
+      <button
+        type="button"
+        aria-label={t("Back")}
+        data-pw="demo-listing-back"
+        onClick={back}
+        // `flex items-start`: a button centres its content up and down, which
+        // put the mark 7 px under the file's y.
+        className="absolute flex items-start cursor-pointer active:opacity-60 [-webkit-tap-highlight-color:transparent]"
+        // The box sits on whole pixels and a transform moves the mark the last
+        // 0.5 px. Chromium draws an image box at a half-pixel layout place on
+        // the next whole pixel, so `padding: 14.5px` showed the mark at
+        // (15, 65); a transform is not snapped (measured at 2x and 8x).
+        style={{ left: 0, top: 0, width: 34, height: 50, padding: "14px 0 0 14px" }}
+      >
+        <XdIcon name="back" style={{ transform: "translate(0.5px, 0.5px)" }} />
+      </button>
+      {/* The store's logo: the page's title for search engines and screen readers. */}
+      <h1 className="absolute m-0" style={{ left: 36, top: 68 - 50 }}>
+        <StoreMark store={store} h={15} maxW={100} eager />
+      </h1>
+      <div
+        className="absolute flex items-center"
+        style={{ right: 10, top: 65 - 50, gap: 30 }}
+      >
+        {/* Not active yet: the store's own search is a later screen. */}
+        <HeaderMark icon="listSearch" label={t("Search")} testId="demo-listing-search" />
+        <HeaderMark icon="listSort" label={t("Sort")} testId="demo-listing-sort" />
+        <HeaderMark icon="listFilter" label={t("Filter")} testId="demo-listing-filter" />
+        <HeaderMark icon="listSend" label={t("Share")} testId="demo-listing-share" />
+      </div>
+    </header>
+  );
+}
+
+/** The fade over the bottom half of a category tile (y 312 – 382 in the file). */
+const TILE_FADE =
+  "linear-gradient(180deg, rgba(0,0,0,0) 13.884%, rgba(0,0,0,0.502) 83.605%)";
+
+/**
+ * The category row: a slider with the same behaviour as the sliders on Home
+ * (see useSlider in HomeSections): Embla moves the row, so a finger and a
+ * mouse can both drag it; it shows a one-time hint, and it moves on by
+ * itself while it is in view. Each tile is a slide.
+ */
+function Categories({
+  t,
+  viewportRef,
+  nudge,
+}: {
+  t: T;
+  viewportRef: (node: HTMLElement | null) => void;
+  nudge: MotionValue<number>;
+}) {
+  // The 2 px gap above the row is on the <div>: a site-wide list rule takes
+  // the margin off a <ul>, even an inline one (measured: 0 px in Chromium).
+  return (
+    <div
+      ref={viewportRef}
+      data-pw="demo-listing-categories"
+      className="shrink-0 w-full overflow-hidden"
+      // The page still scrolls up and down over the row.
+      style={{ marginTop: GAP, height: 140, touchAction: "pan-y pinch-zoom" }}
+    >
+      <ul className="flex h-full m-0 p-0 list-none" style={{ gap: GAP }}>
+        {LISTING_CATEGORIES.map((c) => (
+          <li
+            key={c.key}
+            data-pw={`demo-listing-category-${c.key}`}
+            className="relative shrink-0"
+            style={{ width: 100, height: 140 }}
+          >
+            {/* The hint moves this part, so the photo, its name and its
+                frame move together, as one card. If the <li> cut off its own
+                insides, each tile would show a white gap during the hint. */}
+            <motion.div className="relative w-full h-full overflow-hidden" style={{ x: nudge }}>
+              <img
+                src={c.image}
+                alt=""
+                width={100}
+                height={140}
+                draggable={false}
+                decoding="async"
+                className="block w-full h-full object-cover select-none"
+              />
+              <span
+                aria-hidden="true"
+                className="absolute left-0 right-0"
+                style={{ top: 70, height: 70, background: TILE_FADE }}
+              />
+              <span
+                className="absolute left-0 right-0 text-center font-normal whitespace-nowrap"
+                style={{
+                  top: textTop(131, 13),
+                  fontSize: 13,
+                  lineHeight: `${lineBox(13)}px`,
+                  color: c.color,
+                }}
+              >
+                {t(c.key)}
+              </span>
+              <Stroke color={C.grey} width={0.3} />
+            </motion.div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** The 15 px pill under a product's name, 9 px words; its mark (if any) 6 px in. */
+function Badge({ badge, t }: { badge: ProductBadge; t: T }) {
+  const look = BADGE[badge.kind];
+  let words: React.ReactNode;
+  if (badge.kind === "bag") {
+    words = (
+      <Weighted
+        text={t("{count} item {size} in your bag")}
+        values={{ count: String(badge.count), size: badge.size }}
+        bold={["count", "size"]}
+      />
+    );
+  } else if (badge.kind === "best") {
+    words = (
+      <>
+        {/* The file draws the space after "price" in Bold too. */}
+        <span className="font-bold">{t("! Best price")} </span>
+        <Weighted
+          text={t("last {days} days!")}
+          values={{ days: String(badge.days) }}
+          medium={["days"]}
+        />
+      </>
+    );
+  } else {
+    words = (
+      <>
+        <span className="font-bold">{t("Flash Deal")} | </span>
+        {t("{n}d").replace("{n}", String(badge.days))} | {badge.time}
+      </>
+    );
+  }
+  return (
+    <p
+      data-pw={`demo-listing-badge-${badge.kind}`}
+      className="absolute m-0 font-normal whitespace-nowrap"
+      style={{
+        left: 12,
+        top: 738 - 384 - PHOTO.h,
+        height: 15,
+        minWidth: look.minW,
+        paddingLeft: look.textAt,
+        paddingRight: 6,
+        paddingTop: 2,
+        borderRadius: look.radius,
+        background: look.bg,
+        color: look.ink,
+        fontSize: 9,
+        lineHeight: `${lineBox(9)}px`,
+      }}
+    >
+      {badge.kind === "bag" && (
+        <XdIcon name="listBag" className="absolute" style={{ left: 6, top: 2 }} />
+      )}
+      {badge.kind === "flash" && (
+        <XdIcon name="listFlash" className="absolute" style={{ left: 6, top: 2 }} />
+      )}
+      {words}
+    </p>
+  );
+}
+
+/** How a card that a later page adds comes in: it fades in and rises 12 px. */
+const APPEAR = { duration: 0.32, ease: [0.2, 0, 0, 1] } as const;
+
+/** What a card hands the page when its colour dots are tapped. */
+export type OpenColors = (
+  product: DemoProduct,
+  /** Shows a colour on the card (the sheet calls it when a colour is tapped). */
+  pick: (index: number) => void,
+) => void;
+
+/** Starts loading the first photo of every colour of a product, once. */
+const warmedColors = new Set<string>();
+function warmColors(product: DemoProduct) {
+  if (warmedColors.has(product.id)) return;
+  warmedColors.add(product.id);
+  for (const color of product.colors) {
+    const img = new Image();
+    img.decoding = "async";
+    img.src = color.images[0];
+  }
+}
+
+function ProductCard({
+  product,
+  store,
+  index,
+  appear,
+  onOpenColors,
+  t,
+}: {
+  product: DemoProduct;
+  store: DemoStore;
+  index: number;
+  /** Set on a card a later page adds: its place in that page, for a small delay. */
+  appear?: number;
+  onOpenColors: OpenColors;
+  t: T;
+}) {
+  const [colorIndex, setColorIndex] = useState(product.selected);
+  const color = product.colors[colorIndex];
+  const name = product.name.map((part) => t(part)).join(" . ");
+  // The first row is what the page opens on: load it first.
+  const first = index < 2;
+  return (
+    <motion.article
+      data-pw={`demo-listing-product-${product.id}`}
+      data-color={colorIndex}
+      className="relative flex flex-col min-w-0 bg-white"
+      // The cards in the HTML are there at once; only added cards move.
+      initial={appear === undefined ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      // Two cards share a row; the right one comes 50 ms after the left one.
+      transition={{ ...APPEAR, delay: ((appear ?? 0) % 2) * 0.05 }}
+    >
+      {/* The card's line is drawn first; the photo lies over its top. */}
+      <Stroke color="#D3D3D3" width={0.3} />
+      <div className="relative w-full" style={{ aspectRatio: `${PHOTO.w} / ${PHOTO.h}` }}>
+        {/* A new colour is a new slider, on its first photo. */}
+        <ColorPhotos
+          key={colorIndex}
+          color={color}
+          alt={`${store.name} ${name}`}
+          eager={first}
+        />
+        <PhotoGlow />
+        <Stroke color={product.line} width={0.5} />
+        <SwatchPicker
+          colors={product.colors}
+          selected={colorIndex}
+          onSelect={setColorIndex}
+          onOpen={() => onOpenColors(product, setColorIndex)}
+          onTouch={() => warmColors(product)}
+          t={t}
+        />
+      </div>
+
+      <div className="relative w-full shrink-0" style={{ height: FOOTER_H }}>
+        <CardLogo store={store} />
+        <ProductName product={product} t={t} />
+        <Badge badge={product.badge} t={t} />
+        <PricePill product={product} t={t} />
+        <AddButton product={product} t={t} />
+      </div>
+    </motion.article>
+  );
+}
+
+/** A grey card of the same size, shown while the next page "loads". */
+function SkeletonCard() {
+  const bar = "rounded-[4px] bg-[#EFEFEF]";
+  return (
+    <div
+      aria-hidden="true"
+      data-pw="demo-listing-skeleton"
+      className="relative flex flex-col min-w-0 bg-white animate-pulse motion-reduce:animate-none"
+    >
+      <Stroke color="#D3D3D3" width={0.3} />
+      <div
+        className="w-full bg-[#F4F4F4]"
+        style={{ aspectRatio: `${PHOTO.w} / ${PHOTO.h}` }}
+      />
+      <div className="relative w-full shrink-0" style={{ height: FOOTER_H }}>
+        <span className={`absolute ${bar}`} style={{ left: 12, top: 8, width: 40, height: 11 }} />
+        <span className={`absolute ${bar}`} style={{ left: 12, top: 26, width: "60%", height: 11 }} />
+        <span className={`absolute ${bar}`} style={{ left: 12, top: 43, width: 100, height: 15 }} />
+        <span className={`absolute ${bar}`} style={{ left: 12, top: 62, width: 50, height: 18 }} />
+      </div>
+    </div>
+  );
+}
+
+/** How long a "next page" takes, as a quick real request would. */
+const PAGE_LOAD_MS = 900;
+
+/** How far under the screen the end of the list may be when the next page starts to load. */
+const LOAD_AHEAD = "0px 0px 800px 0px";
+
+/**
+ * Paging, as a shop app does it: when the end of the list comes within
+ * LOAD_AHEAD of the screen, the next page "loads" for PAGE_LOAD_MS. Its
+ * photos start to download at once, so they are mostly there when the
+ * cards come in. If the end is still near after that, the next page loads
+ * too. Nothing loads after the last page.
+ */
+function usePages(enabled: boolean) {
+  const [pages, setPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const end = useRef<HTMLDivElement>(null);
+  const done = pages >= LISTING_PAGES;
+
+  useEffect(() => {
+    const node = end.current;
+    if (!enabled || !node || done || loading) return;
+    const watch = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setLoading(true);
+      },
+      { rootMargin: LOAD_AHEAD },
+    );
+    watch.observe(node);
+    return () => watch.disconnect();
+  }, [enabled, done, loading]);
+
+  useEffect(() => {
+    if (!loading) return;
+    for (const product of listingPage(pages + 1)) {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = product.image;
+    }
+    const wait = setTimeout(() => {
+      setPages((n) => n + 1);
+      setLoading(false);
+    }, PAGE_LOAD_MS);
+    return () => clearTimeout(wait);
+  }, [loading, pages]);
+
+  return { pages, loading, done, end };
+}
+
+/** The cards drawn on the tap: two rows, more than a phone's screen shows under the banner. */
+const FIRST_CARDS = 4;
+
+/** When the rest of the first page comes in after a tap: just after the grow ends. */
+const SETTLE_MS = STORE_GROW.duration * 1000 + 100;
+
+const subscribeToNothing = () => () => {};
+
+/**
+ * True when the page is built in the browser after a tap, false when it
+ * is built from the server's HTML (on the server, and while React hydrates
+ * that HTML). React reads the third function in the second case.
+ */
+const useBuiltOnTap = () =>
+  useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false,
+  );
+
+/**
+ * Whether to draw the whole first page.
+ *
+ * React builds a new screen in one block of work in the tap's event, and
+ * the grow can only start after it. The trace of a tap (iPhone 13 profile,
+ * CPU 4x slower) showed that block at 1.4 s with 12 cards; most of it was
+ * the cards under the screen's edge. So on a tap the page draws only
+ * FIRST_CARDS, and the rest after the grow, as a low-priority update. From
+ * the server, all 12 are in the HTML, for search engines.
+ */
+function useSettled() {
+  const builtOnTap = useBuiltOnTap();
+  const [settled, setSettled] = useState(!builtOnTap);
+  useEffect(() => {
+    if (settled) return;
+    const wait = setTimeout(() => startTransition(() => setSettled(true)), SETTLE_MS);
+    return () => clearTimeout(wait);
+  }, [settled]);
+  return settled;
+}
+
+export default function ListingScreen({ slug }: { slug: string }) {
+  const { t } = useDemoNav();
+  const categories = useSlider();
+  const settled = useSettled();
+  // The next page loads only once the whole first page is there.
+  const { pages, loading, done, end } = usePages(settled);
+  const calm = useReducedMotion();
+  // The colour sheet: the product it shows stays while the sheet slides out.
+  const [colors, setColors] = useState<{
+    product: DemoProduct;
+    pick: (index: number) => void;
+  } | null>(null);
+  const [colorsOpen, setColorsOpen] = useState(false);
+  const store = storeBySlug(slug);
+  if (!store) return null;
+  const openColors: OpenColors = (product, pick) => {
+    setColors({ product, pick });
+    setColorsOpen(true);
+  };
+  const shown = Array.from({ length: pages }, (_, p) =>
+    p === 0 && !settled ? listingPage(1).slice(0, FIRST_CARDS) : listingPage(p + 1),
+  );
+  return (
+    <ScreenPage
+      testId="demo-listing"
+      bg={C.white}
+      header={<Header store={store} t={t} />}
+      scrollTop={HEADER_BOTTOM}
+      contentHeight={BOARD_H}
+      // The tab bar shows on this page too; the last cards keep room above it.
+      tabBar
+      // The colour sheet blurs the page behind it (`Home Page – 54`).
+      glass={colorsOpen ? COLOR_GLASS : undefined}
+    >
+      <BrandCard
+        t={t}
+        brand={store.name}
+        shown={store.shown}
+        logo={store.logo}
+        centreAt={109}
+        capitalize
+        nameMark
+        testId="demo-listing-banner"
+        style={{ width: "100%" }}
+      />
+      <Categories t={t} viewportRef={categories.viewportRef} nudge={categories.nudge} />
+      <section
+        aria-label={store.name}
+        aria-busy={loading}
+        data-pw="demo-listing-products"
+        className="grid w-full"
+        style={{ gridTemplateColumns: "1fr 1fr", gap: GAP, marginTop: GAP }}
+      >
+        {shown.map((page, p) =>
+          page.map((product, i) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              store={store}
+              index={p * page.length + i}
+              // Cards of the first page are in the HTML; later ones come in.
+              appear={p === 0 || calm ? undefined : i}
+              onOpenColors={openColors}
+              t={t}
+            />
+          )),
+        )}
+        {loading &&
+          Array.from({ length: 4 }, (_, i) => <SkeletonCard key={`skeleton-${i}`} />)}
+      </section>
+      {/* What the list is doing, for screen readers. */}
+      <p role="status" className="sr-only">
+        {loading ? t("Loading more products") : ""}
+      </p>
+      <div ref={end} aria-hidden="true" style={{ height: 1 }} />
+      {done && (
+        <p
+          data-pw="demo-listing-end"
+          className="m-0 text-center font-normal"
+          style={{ padding: "24px 16px 40px", fontSize: 11, color: "#8C8C8C" }}
+        >
+          {t("You have seen all products")}
+        </p>
+      )}
+      {colors && (
+        <ListingColorSheet
+          open={colorsOpen}
+          onClose={() => setColorsOpen(false)}
+          product={colors.product}
+          store={store}
+          onPick={colors.pick}
+        />
+      )}
+    </ScreenPage>
+  );
+}

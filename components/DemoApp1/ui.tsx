@@ -122,6 +122,9 @@ export const fromCentre = (x: number, w: number) =>
 /** `#1D1D1D` at 90% over the white page: what a dimmed page looks like. */
 export const DIMMED = "rgb(52, 52, 52)";
 
+/** `#1D1D1D` at 50% over the white page: the page under a glass layer. */
+export const GLASS_DIMMED = "rgb(142, 142, 142)";
+
 /**
  * Paints the document in the page's colour while this screen is on show.
  *
@@ -1086,6 +1089,10 @@ function useScreenHeight(watch = true) {
  *
  * `y`, `lower`, `fit` and `outline` mean what they mean in the old scaled demo, with the
  * screen in place of the canvas.
+ *
+ * `glass`: the page is covered with `#1D1D1D` at 50% only, over the file's
+ * background blur (a product's colour sheet, `Home Page – 54`). The blur
+ * itself is the page's own filter (`ScreenPage glass`), as for the receipt.
  */
 export function Sheet({
   open,
@@ -1098,10 +1105,22 @@ export function Sheet({
   children,
   testId,
   onEntered,
+  glass = false,
+  shadow,
+  handleBar = 0,
 }: {
   open: boolean;
   onClose: () => void;
   fit?: boolean;
+  glass?: boolean;
+  /**
+   * For a `fit` sheet: the height of a white band at the sheet's top that
+   * holds the handle and does not scroll. The content scrolls under it, so
+   * the handle stays in place. 0: the handle scrolls with the content.
+   */
+  handleBar?: number;
+  /** A box-shadow for the sheet (the file's drop shadow on its top edge). */
+  shadow?: string;
   onEntered?: () => void;
   y: number;
   lower?: number;
@@ -1113,10 +1132,23 @@ export function Sheet({
   const touch = useIsTouchDevice();
   const grip = useDragControls();
   const rest = lower;
+  const band = fit ? handleBar : 0;
+  const handle = (
+    <div
+      data-pw="demo-sheet-handle"
+      className="shrink-0 self-center"
+      style={{
+        marginTop: SHEET.handle.top - 1,
+        width: SHEET.handle.width,
+        height: SHEET.handle.height,
+        background: "#C4C2C2",
+      }}
+    />
+  );
   return (
     <AnimatePresence>
       {open && (
-        <Layer key="sheet" testId={testId} tint={DIMMED}>
+        <Layer key="sheet" testId={testId} tint={glass ? GLASS_DIMMED : DIMMED}>
           <div data-no-keyboard-lift="" className="absolute inset-0">
             {touch && (
               <style>{`
@@ -1128,7 +1160,7 @@ export function Sheet({
             )}
             <motion.div
               data-pw="demo-sheet-backdrop"
-              style={{ ...WINDOW_COVER, background: C.backdrop }}
+              style={{ ...WINDOW_COVER, background: glass ? C.backdropGlass : C.backdrop }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -1137,7 +1169,7 @@ export function Sheet({
             />
             <motion.div
               data-pw="demo-sheet-panel"
-              className="absolute left-0 w-full overflow-hidden"
+              className="absolute left-0 w-full overflow-hidden flex flex-col"
               style={{
                 // A picker keeps its height and rests on the bottom; a tall
                 // sheet keeps its top, so the dimmed page shows above it.
@@ -1149,6 +1181,7 @@ export function Sheet({
                 bottom: -UNDER_BAR,
                 background: C.white,
                 borderRadius: `${radius}px ${radius}px 0 0`,
+                boxShadow: shadow,
               }}
               initial={{ y: "100%" }}
               animate={{ y: rest }}
@@ -1177,8 +1210,17 @@ export function Sheet({
                   onPointerDown={(e) => grip.start(e)}
                 />
               )}
+              {band > 0 && (
+                <div
+                  data-pw="demo-sheet-handle-bar"
+                  className="flex flex-col w-full shrink-0"
+                  style={{ height: band }}
+                >
+                  {handle}
+                </div>
+              )}
               <div
-                className={`flex flex-col w-full h-full ${fit ? "overflow-y-auto overflow-x-hidden overscroll-contain" : ""}`}
+                className={`flex flex-col w-full ${band > 0 ? "flex-1 min-h-0" : "h-full"} ${fit ? "overflow-y-auto overflow-x-hidden overscroll-contain" : ""}`}
                 style={{
                   // A `fit` sheet scrolls, and its steps run on under
                   // Safari's bar; it keeps room for the part of a lowered
@@ -1189,15 +1231,7 @@ export function Sheet({
                 }}
                 onClick={(e) => focusTappedField(e, touch)}
               >
-                <div
-                  className="shrink-0 self-center"
-                  style={{
-                    marginTop: SHEET.handle.top - 1,
-                    width: SHEET.handle.width,
-                    height: SHEET.handle.height,
-                    background: "#C4C2C2",
-                  }}
-                />
+                {band === 0 && handle}
                 {children}
               </div>
               {outline && (

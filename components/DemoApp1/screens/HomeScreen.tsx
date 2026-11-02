@@ -8,7 +8,10 @@ import { useDemoNav } from "../Demo1Shell";
 import { C } from "../demo1Layout";
 import { ScreenPage, Stroke } from "../ui";
 import { TRAVEL } from "components/NavigationDemo/BottomNav";
+import { hrefFor } from "../../DemoApp/demoRoutes";
+import { storeScreen } from "../../DemoApp/demoStores";
 import HomeSections from "./HomeSections";
+import { warmListing } from "./ListingScreen";
 
 /**
  * Home — XD `Home Page` (the header) and `Home Page – 2` (the page under it,
@@ -36,7 +39,7 @@ const CATEGORIES = ["Man", "Women", "Children", "Home", "Electronic"] as const;
 const SLOTS = [56, 76, 79, 65, undefined] as const;
 
 export default function HomeScreen() {
-  const { t, navigate } = useDemoNav();
+  const { t, navigate, locale } = useDemoNav();
   const [picked, setPicked] = useState<(typeof CATEGORIES)[number]>(
     CATEGORIES[0],
   );
@@ -126,7 +129,14 @@ export default function HomeScreen() {
 
   return (
     <ScreenPage testId="demo-home" bg={C.page} header={header} tabBar>
-      <HomeSections t={t} />
+      <HomeSections
+        t={t}
+        openStore={{
+          href: (slug) => hrefFor(locale, storeScreen(slug)),
+          open: (slug, card) => navigate(storeScreen(slug), 1, card),
+          warm: warmListing,
+        }}
+      />
     </ScreenPage>
   );
 }

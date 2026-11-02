@@ -355,6 +355,41 @@ export const DEMO_KEYS = [
   "Unarchive",
   "Previous",
   "Next",
+  // The store page (`Home Page – 47`).
+  "T-Shirt",
+  "Shoes",
+  "Mont",
+  "Craf",
+  "Pajama",
+  "Pantaloon",
+  "{count} item {size} in your bag",
+  "! Best price",
+  "last {days} days!",
+  "Flash Deal",
+  "{n}d",
+  "USD",
+  "Sort",
+  "Filter",
+  "Add to cart",
+  "Shirt",
+  "Jeans",
+  "Blouse",
+  "Jacket",
+  "Dress",
+  "Loading more products",
+  "You have seen all products",
+  // The colour sheet of a product (`Home Page – 54`).
+  "Colors",
+  "blue",
+  "Pink",
+  "White",
+  "Indigo",
+  "Stripe",
+  "Mix",
+  "Yellow",
+  "Black",
+  "Floral",
+  "Grey",
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];
@@ -367,12 +402,22 @@ export type DemoKey = (typeof DEMO_KEYS)[number];
  * capital on every word. The file draws these lines in `Home Page – 2` in
  * sentence case ("all Turkish brands collection now !"), so the /demo layout
  * skips that rule for them. Other languages are not touched.
+ *
+ * `Home Page – 47` draws the badge "! Best price last 3 days!" in sentence
+ * case too. It sets the bag badge ("1 Item M In Your Bag") and "Shop Zara
+ * Collection Now !" to title case, so those two are not on this list. (The
+ * store page adds the banner's capitals with CSS, see ListingScreen.)
  */
 export const KEEP_CASE: ReadonlySet<DemoKey> = new Set<DemoKey>([
   "Turkish brands",
   "Watch. Shop. Share. See it. Tag It !",
   "all {name} collection now !",
   "Shop {brand} collection now !",
+  "! Best price",
+  "last {days} days!",
+  "You have seen all products",
+  // `Home Page – 54` writes this colour in lower case ("… Pantaloon . blue").
+  "blue",
 ]);
 
 export type DemoDictionary = Partial<Record<DemoKey, string>>;
