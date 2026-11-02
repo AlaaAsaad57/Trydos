@@ -47,6 +47,7 @@ import {
   STORE_GROW,
   STORE_SHRINK,
   columnBox,
+  sliderMove,
 } from "./demo1Layout";
 import DemoKeyboard from "./keyboard/DemoKeyboard";
 
@@ -77,7 +78,11 @@ import DemoKeyboard from "./keyboard/DemoKeyboard";
  *
  * A store's page: the card grows into the page
  * --------------------------------------------
- * A store opened from a card on Home does not slide. The tapped card grows
+ * (From Home, a store's page now slides instead — see "Home and a store's
+ * page" below. The grow below is kept for a page opened from a card on any
+ * other screen.)
+ *
+ * A store opened from a card does not slide. The tapped card grows
  * into the store's page, and "back" shrinks the page into the same card.
  * This is Material Design's "container transform", the motion it gives to a
  * card that opens its own page; shop apps (the App Store's cards, Farfetch,
@@ -93,6 +98,13 @@ import DemoKeyboard from "./keyboard/DemoKeyboard";
  *  - With "reduce motion" on, the page only fades in and out.
  *  - Opened any other way (a link, the browser's forward), the page slides in
  *    like any other screen, because there is no card to grow from.
+ *
+ * Home and a store's page: one slide
+ * ----------------------------------
+ * Between Home and a store's page (both ways) the two screens move together
+ * a full screen width, the way a Home slider moves one slide, with the same
+ * speed and curve (sliderMove in demo1Layout.ts). Neither screen fades. With
+ * "reduce motion" on, the page only fades in and out.
  */
 
 /**
@@ -133,24 +145,32 @@ export function useDemoNav(): DemoNav {
 /**
  * What a change of screen needs: the way it goes and the scroll the old
  * screen had. `grow` and `shrink` are set for a store's page that grows out
- * of a card or shrinks back into it; `fade` replaces both when the system
- * asks for less motion.
+ * of a card or shrinks back into it; `swipe` for a move between Home and a
+ * store's page; `fade` replaces all three when the system asks for less
+ * motion.
  */
 type Leave = {
   dir: 1 | -1;
   scrollY: number;
   grow?: Origin;
   shrink?: Origin;
+  swipe?: boolean;
   fade?: boolean;
 };
+
+/** True for a move between Home and a store's page, either way: it moves as one Home slide. */
+const slidesLikeHome = (from: DemoScreen | null, to: DemoScreen | null) =>
+  (from === "home" && to !== null && isStoreScreen(to)) ||
+  (to === "home" && from !== null && isStoreScreen(from));
 
 /** The clip of a page cut to a card's box. `bottom` is the room under the box. */
 const cutTo = (o: Origin, bottom: string) =>
   `inset(${o.top}px ${o.right}px ${bottom} ${o.left}px)`;
 
 const slide: Variants = {
-  enter: ({ dir, grow, shrink, fade }: Leave) => {
+  enter: ({ dir, grow, shrink, swipe, fade }: Leave) => {
     if (fade) return { x: 0, opacity: 0 };
+    if (swipe) return { x: dir > 0 ? "100%" : "-100%", opacity: 1 };
     // The page in the document is as tall as all of it, so the room under
     // the card is counted from the page's end: 100% less the card's bottom.
     if (grow)
@@ -159,8 +179,10 @@ const slide: Variants = {
     if (shrink) return { x: 0, opacity: 1 };
     return { x: dir > 0 ? "100%" : "-100%", opacity: 0 };
   },
-  center: ({ grow }: Leave) =>
-    grow
+  center: ({ dir, grow, swipe }: Leave) =>
+    swipe
+      ? sliderMove(dir, false)
+      : grow
       ? {
           x: 0,
           opacity: 1,
@@ -174,8 +196,9 @@ const slide: Variants = {
           },
         }
       : { x: 0, opacity: 1 },
-  exit: ({ dir, grow, shrink, fade }: Leave) => {
+  exit: ({ dir, grow, shrink, swipe, fade }: Leave) => {
     if (fade) return { x: 0, opacity: 0 };
+    if (swipe) return sliderMove(dir, true);
     // The screen under a growing page: it stays, and goes once it is covered.
     if (grow)
       return {
@@ -296,7 +319,10 @@ function Demo1ShellInner({
     const next: Leave = { dir: d, scrollY: y };
     const opening = to !== null && isStoreScreen(to) && d > 0;
     const closing = shown !== null && isStoreScreen(shown) && d < 0;
-    if (opening && grow) {
+    if (slidesLikeHome(shown, to)) {
+      if (reduceMotion) next.fade = true;
+      else next.swipe = true;
+    } else if (opening && grow) {
       if (reduceMotion) next.fade = true;
       else next.grow = grow;
     } else if (closing) {
@@ -377,7 +403,9 @@ function Demo1ShellInner({
 
   const navigate = (to: DemoScreen, d?: 1 | -1, from?: Element | null) => {
     if (to === shown) return;
-    const grow = isStoreScreen(to) ? originOf(from) : undefined;
+    // Home and a store's page slide as one Home slide; nothing grows there.
+    const grow =
+      isStoreScreen(to) && !slidesLikeHome(shown, to) ? originOf(from) : undefined;
     if (grow) origins.current.set(to, { rect: grow, from: shown });
     else origins.current.delete(to);
     trail.current.push(to);

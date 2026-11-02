@@ -160,7 +160,13 @@ export type DemoProduct = {
   image: string;
   /** The photo's 0.5 px line. */
   line: string;
+  /** The first label under the name (the one the XD file draws). */
   badge: ProductBadge;
+  /**
+   * More labels after `badge`. With any, the card's labels take turns: they
+   * slide from right to left, as on the shop's own product cards.
+   */
+  labels?: readonly ProductBadge[];
   /** The add button: purple when the product is in the bag. */
   addColor: "purple" | "dark";
   /** The product's colours, in the order of their dots, left to right. */
@@ -299,6 +305,7 @@ const FILE_PRODUCTS: readonly DemoProduct[] = [
     ...withImage(FILE_SHIRT),
     line: "#4A31E7",
     badge: { kind: "bag", count: 1, size: "M" },
+    labels: [{ kind: "best", days: 3 }],
     addColor: "purple",
     price: 90,
     currency: "USD",
@@ -317,6 +324,7 @@ const FILE_PRODUCTS: readonly DemoProduct[] = [
     ...withImage(FILE_SHIRT),
     line: "#EB945E",
     badge: { kind: "flash", days: 1, time: "12:23:19" },
+    labels: [{ kind: "best", days: 3 }],
     addColor: "dark",
     price: 90,
     currency: "USD",
@@ -381,6 +389,14 @@ const MORE_BADGES: readonly ProductBadge[] = [
   { kind: "flash", days: 1, time: "19:02:47" },
 ];
 
+/**
+ * The labels a card shows after its first one. A card in the bag or with a
+ * flash deal also has the best-price label, so its labels take turns; a card
+ * with only the best price has one label, which stays still.
+ */
+const moreLabels = (badge: ProductBadge): readonly ProductBadge[] | undefined =>
+  badge.kind === "best" ? undefined : [{ kind: "best", days: badge.kind === "flash" ? 5 : 3 }];
+
 const MORE_PRICES = [65, 120, 45, 90, 75, 140, 55, 110, 80];
 
 /** How many cards the page shows at first, and how many each "next page" adds. */
@@ -406,6 +422,7 @@ export const LISTING_PRODUCTS: readonly DemoProduct[] = [
       // In the file, a card in the bag has a purple line; a flash deal, orange.
       line: inBag ? "#4A31E7" : badge.kind === "flash" ? "#EB945E" : "#D3D3D3",
       badge,
+      labels: moreLabels(badge),
       addColor: inBag ? "purple" : "dark",
       price: MORE_PRICES[i % MORE_PRICES.length],
       currency: "USD",

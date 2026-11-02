@@ -13,6 +13,7 @@ import {
   ColorPhotos,
   FOOTER_H,
   GAP,
+  LabelTurns,
   PHOTO,
   PhotoDots,
   PhotoGlow,
@@ -110,7 +111,7 @@ function BestWords({ days, t }: { days: number; t: T }) {
  * 365 on the card. The file draws the best-price one; the bag and flash ones
  * keep their mark in front of the words, as on the store page.
  */
-function PlainBadge({ badge, t }: { badge: ProductBadge; t: T }) {
+function PlainBadge({ badge, t, copy = false }: { badge: ProductBadge; t: T; copy?: boolean }) {
   const look = BADGE[badge.kind];
   let words: React.ReactNode;
   if (badge.kind === "best") {
@@ -134,11 +135,10 @@ function PlainBadge({ badge, t }: { badge: ProductBadge; t: T }) {
   const mark = badge.kind === "bag" ? "listBag" : badge.kind === "flash" ? "listFlash" : null;
   return (
     <p
-      data-pw={`demo-color-badge-${badge.kind}`}
-      className="absolute m-0 flex items-center font-normal whitespace-nowrap"
+      data-pw={copy ? undefined : `demo-color-badge-${badge.kind}`}
+      className="relative m-0 flex items-center font-normal whitespace-nowrap"
       style={{
-        left: 12,
-        top: textTop(365, 9) - PHOTO.h,
+        height: lineBox(9),
         fontSize: 9,
         lineHeight: `${lineBox(9)}px`,
         color: look.ink,
@@ -204,7 +204,14 @@ function ColorCard({
         />
         <CardLogo store={store} />
         <ProductName product={product} color={color} t={t} />
-        <PlainBadge badge={product.badge} t={t} />
+        {/* The labels take turns, as on the store page's card (LabelTurns). */}
+        <LabelTurns
+          badges={[product.badge, ...(product.labels ?? [])]}
+          top={textTop(365, 9) - PHOTO.h}
+          height={lineBox(9)}
+          testId="demo-color-labels"
+          render={(badge, copy) => <PlainBadge badge={badge} t={t} copy={copy} />}
+        />
         <PricePill product={product} t={t} />
         <AddButton product={product} t={t} />
       </div>

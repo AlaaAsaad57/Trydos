@@ -8,6 +8,7 @@ import {
   placeSwatches,
   type DemoProduct,
   type DemoStore,
+  type ProductBadge,
   type ProductColor,
 } from "../../DemoApp/demoStores";
 import { C, lineBox, textTop } from "../demo1Layout";
@@ -209,6 +210,88 @@ export function AddButton({ product, t }: { product: DemoProduct; t: T }) {
     >
       <XdIcon name={product.addColor === "purple" ? "listAddPurple" : "listAddDark"} />
     </button>
+  );
+}
+
+/**
+ * How long one label stays in view, and how long the move to the next takes.
+ * The same steps as the shop's own product cards (ProductLabelsAnimated): 2 s
+ * a label, 80 % of it still and 20 % (0.4 s) moving, with its soft in-out
+ * curve. The shop's card moves its labels up; here they move from right to left.
+ */
+const LABEL_STEP_S = 2;
+const LABEL_STILL = 0.8;
+const LABEL_EASE = "cubic-bezier(0.45, 0, 0.55, 1)";
+
+/** The CSS of the labels' slide for `n` labels (one copy of the CSS for each count). */
+function labelsCss(n: number) {
+  const step = 100 / n;
+  const stops = Array.from({ length: n }, (_, i) => {
+    const at = `translateX(-${i * 100}%)`;
+    return `${(i * step).toFixed(3)}% { transform: ${at}; } ${(i * step + step * LABEL_STILL).toFixed(3)}% { transform: ${at}; }`;
+  }).join(" ");
+  return `@keyframes demo-labels-${n} { ${stops} 100% { transform: translateX(-${n * 100}%); } }
+.demo-labels-${n} { animation: demo-labels-${n} ${n * LABEL_STEP_S}s ${LABEL_EASE} infinite; }
+@media (prefers-reduced-motion: reduce) { .demo-labels-${n} { animation: none; } }`;
+}
+
+/**
+ * A card's labels under its name (a flash deal is one of them), in a row
+ * `height` px tall at `top` in the footer, 12 px in from both sides. The
+ * store page's cards and the colour sheet's cards both use it; `render`
+ * draws one label in the card's own style (`copy` is set on the loop's copy).
+ *
+ * One label sits still. With more, they take turns, as on the shop's product
+ * cards: each one rests, then the row moves one place from right to left and
+ * the next one comes in from the right. After the last one, a copy of the
+ * first comes in, and the row jumps back to its start without a visible
+ * change, so the turns go round with no end.
+ *
+ * Only CSS moves the row (no script on each frame), as a page can show many
+ * cards. With "reduce motion" on, the first label stays.
+ */
+export function LabelTurns({
+  badges,
+  top,
+  height,
+  testId,
+  render,
+}: {
+  badges: readonly ProductBadge[];
+  top: number;
+  height: number;
+  testId: string;
+  render: (badge: ProductBadge, copy: boolean) => React.ReactNode;
+}) {
+  const n = badges.length;
+  return (
+    <div
+      data-pw={testId}
+      data-count={n}
+      className="absolute overflow-hidden"
+      style={{ left: 12, right: 12, top, height }}
+    >
+      {n < 2 ? (
+        render(badges[0], false)
+      ) : (
+        <>
+          <style>{labelsCss(n)}</style>
+          <div className={`flex h-full demo-labels-${n}`}>
+            {[...badges, badges[0]].map((badge, i) => (
+              <div
+                key={i}
+                className="shrink-0 h-full"
+                style={{ flex: "0 0 100%" }}
+                // The copy of the first label is only there for the loop.
+                aria-hidden={i === n || undefined}
+              >
+                {render(badge, i === n)}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 

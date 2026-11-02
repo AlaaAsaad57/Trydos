@@ -31,6 +31,7 @@ import {
   ColorPhotos,
   FOOTER_H,
   GAP,
+  LabelTurns,
   PHOTO,
   PhotoGlow,
   PricePill,
@@ -255,7 +256,7 @@ function Categories({
 }
 
 /** The 15 px pill under a product's name, 9 px words; its mark (if any) 6 px in. */
-function Badge({ badge, t }: { badge: ProductBadge; t: T }) {
+function Badge({ badge, t, copy = false }: { badge: ProductBadge; t: T; copy?: boolean }) {
   const look = BADGE[badge.kind];
   let words: React.ReactNode;
   if (badge.kind === "bag") {
@@ -288,11 +289,9 @@ function Badge({ badge, t }: { badge: ProductBadge; t: T }) {
   }
   return (
     <p
-      data-pw={`demo-listing-badge-${badge.kind}`}
-      className="absolute m-0 font-normal whitespace-nowrap"
+      data-pw={copy ? undefined : `demo-listing-badge-${badge.kind}`}
+      className="relative block w-fit m-0 font-normal whitespace-nowrap"
       style={{
-        left: 12,
-        top: 738 - 384 - PHOTO.h,
         height: 15,
         minWidth: look.minW,
         paddingLeft: look.textAt,
@@ -313,6 +312,22 @@ function Badge({ badge, t }: { badge: ProductBadge; t: T }) {
       )}
       {words}
     </p>
+  );
+}
+
+/** The top of the labels' row in the footer: y 738 on the file, under the photo. */
+const LABELS_TOP = 738 - 384 - PHOTO.h;
+
+/** The card's labels: 15 px pills that take turns (LabelTurns). */
+function Labels({ badges, t }: { badges: readonly ProductBadge[]; t: T }) {
+  return (
+    <LabelTurns
+      badges={badges}
+      top={LABELS_TOP}
+      height={15}
+      testId="demo-listing-labels"
+      render={(badge, copy) => <Badge badge={badge} t={t} copy={copy} />}
+    />
   );
 }
 
@@ -395,7 +410,7 @@ function ProductCard({
       <div className="relative w-full shrink-0" style={{ height: FOOTER_H }}>
         <CardLogo store={store} />
         <ProductName product={product} t={t} />
-        <Badge badge={product.badge} t={t} />
+        <Labels badges={[product.badge, ...(product.labels ?? [])]} t={t} />
         <PricePill product={product} t={t} />
         <AddButton product={product} t={t} />
       </div>
@@ -548,6 +563,8 @@ export default function ListingScreen({ slug }: { slug: string }) {
       contentHeight={BOARD_H}
       // The tab bar shows on this page too; the last cards keep room above it.
       tabBar
+      // A long list: the header leaves on a scroll down and comes back on any scroll up.
+      hideHeadOnScroll
       // The colour sheet blurs the page behind it (`Home Page – 54`).
       glass={colorsOpen ? COLOR_GLASS : undefined}
     >
