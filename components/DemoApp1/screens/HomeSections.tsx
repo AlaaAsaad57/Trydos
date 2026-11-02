@@ -19,6 +19,16 @@ import {
 } from "../../DemoApp/demoStores";
 import { C, lineBox, textTop } from "../demo1Layout";
 import { Stroke } from "../ui";
+import {
+  EASE_SOFT,
+  EASE_STANDARD,
+  HINT_BACK,
+  HINT_IN_VIEW,
+  HINT_OUT,
+  HINT_REST,
+  HINT_SHARE,
+  HINT_WAIT_MS,
+} from "./useRowHint";
 
 /**
  * The page under the Home header — XD `Home Page – 2`.
@@ -550,31 +560,12 @@ const GAP = 2;
  *    people enough time to read it. 5 s is the usual lowest value for that.
  *  - SLIDE_DURATION: Embla's own default speed (25). A slide takes about
  *    400 ms, inside Material Design's 300 – 500 ms for a large move.
- *  - The hint is a calm pull, not a jump:
- *    - HINT_WAIT_MS: the slider must stay in view for 500 ms first, so the
- *      hint does not run while the page is still scrolling past it.
- *    - out in 550 ms (Material 3 "long3") and back in 600 ms ("long4"). Both
- *      use the soft in-out curve (EASE_SOFT): the move starts slowly, speeds
- *      up and stops softly, like a finger pulling the slide.
- *      "Emphasized decelerate" was tried first. It is made for things that
- *      enter the screen, so it starts at full speed: measured in Chromium,
- *      the content moved 58 px in the first frame (45 % of the move).
- *    - a 350 ms rest ("medium3"), so the eye can read the next slide.
- *    - HINT_SHARE: the slider moves 25 % of its width (about 108 px on a
- *      430 px phone). That shows about 85 px of the next card's awning. The
- *      first 10 px are already there as the peek.
+ *  - The hint: see useRowHint.ts, which holds its numbers for Home and
+ *    the product page. On Home it shows about 85 px of the next card's
+ *    awning; the first 10 px are already there as the peek.
  */
 const SLIDE_DELAY_MS = 5000;
 const SLIDE_DURATION = 25;
-const HINT_WAIT_MS = 500;
-const HINT_SHARE = 0.25;
-const HINT_OUT = 0.55;
-const HINT_REST = 0.35;
-const HINT_BACK = 0.6;
-/** Material 2's "standard" curve: slow start, slow stop. */
-const EASE_SOFT = [0.4, 0, 0.2, 1] as const;
-/** Material 3's "standard" curve, for the quick put-back when a touch ends the hint. */
-const EASE_STANDARD = [0.2, 0, 0, 1] as const;
 
 /**
  * The part of the window where a slider counts as "in view": the window
@@ -582,9 +573,6 @@ const EASE_STANDARD = [0.2, 0, 0, 1] as const;
  * both lie over the page.
  */
 const VIEW_MARGIN = "-60px 0px -80px 0px";
-
-/** The hint starts when at least this share of the slider is in that part of the window. */
-const HINT_IN_VIEW = 0.5;
 
 /** The auto slide runs while at least this share of the slider is in that part of the window. */
 const SLIDE_IN_VIEW = 0.9;

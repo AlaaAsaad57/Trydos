@@ -28,6 +28,7 @@ import { C, fill, lineBox, paraTop, textTop } from "../demo1Layout";
 import { ScreenPage, Stroke } from "../ui";
 import { PhotoGlow, StoreMark, Weighted, type T } from "./ListingParts";
 import { useSettled } from "./useSettled";
+import { ROW_HINT_CLASS, useRowHint } from "./useRowHint";
 
 /**
  * A product's page — XD `Home Page – 49` (430 x 2383), opened from a product
@@ -86,9 +87,12 @@ const DATE_GREY = C.grey;
 const LINE_11 = { fontSize: 11, lineHeight: `${lineBox(11)}px` } as const;
 const LINE_9 = { fontSize: 9, lineHeight: `${lineBox(9)}px` } as const;
 
-/** A sideways row with no scroll bar, that the page still scrolls up and down over. */
-const ROW_SCROLL =
-  "flex w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+/**
+ * A sideways row with no scroll bar, that the page still scrolls up and down
+ * over. Each row shows the slider hint once (useRowHint), so a person sees
+ * that it scrolls.
+ */
+const ROW_SCROLL = `flex w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${ROW_HINT_CLASS}`;
 
 /**
  * The marks of a translated line: `<b>` Bold, `<m>` Medium, `<a>` the blue of
@@ -265,11 +269,13 @@ function Gallery({
   t: T;
 }) {
   const { w, h } = GALLERY_PHOTO;
+  const hint = useRowHint<HTMLUListElement>();
   return (
     <div className="relative w-full shrink-0" style={{ marginTop: 102 - HEADER_BOTTOM, height: h }}>
       {/* A new colour is a new row, at its first photo. */}
       <ul
         key={photos.join()}
+        ref={hint}
         data-pw="demo-product-gallery"
         aria-label={t("Photos")}
         className={`${ROW_SCROLL} h-full p-0 list-none`}
@@ -422,8 +428,10 @@ function SideRow({
   testId?: string;
   children: React.ReactNode;
 }) {
+  const hint = useRowHint<HTMLUListElement>();
   return (
     <ul
+      ref={hint}
       aria-label={label}
       data-pw={testId}
       className={`${ROW_SCROLL} shrink-0 list-none`}
@@ -452,8 +460,10 @@ function RowMark({ ml, icon }: { ml: number; icon: XdIconName }) {
  * gaps are its own: 6 px after a mark, and 7, 5, 4 and 12 px before the bars.
  */
 function RatingRow({ t }: { t: T }) {
+  const hint = useRowHint<HTMLDivElement>();
   return (
     <div
+      ref={hint}
       data-pw="demo-product-rating"
       className={`${ROW_SCROLL} shrink-0 items-start`}
       style={{ marginTop: 671 - 659, height: 14, padding: "0 14px", overscrollBehaviorX: "contain" }}
@@ -495,6 +505,7 @@ function Colors({
   onPick: (index: number) => void;
   t: T;
 }) {
+  const hint = useRowHint<HTMLUListElement>();
   return (
     <>
       <div className="flex items-start shrink-0" style={{ marginTop: 761 - 749, paddingLeft: 14 }}>
@@ -504,6 +515,7 @@ function Colors({
         <HelpMark left={137 - 132} t={t} />
       </div>
       <ul
+        ref={hint}
         data-pw="demo-product-colors"
         aria-label={t("Colors")}
         className={`${ROW_SCROLL} shrink-0 list-none`}
@@ -982,7 +994,14 @@ function ChatButton({ t }: { t: T }) {
       }}
     >
       <XdIcon name="productChat" />
-      {t("Need help ? Start Chat about this product !")}
+      {/* The file centres the icon and the words on the button: the words run
+          from x 116 to 336 (220 px). The browser draws them 218 px wide (XD
+          measures Quicksand a little wider), so a centred row would sit 1 px
+          to the right. The file's width is the minimum; a longer language
+          still centres. */}
+      <span className="block text-start" style={{ minWidth: 220 }}>
+        {t("Need help ? Start Chat about this product !")}
+      </span>
     </button>
   );
 }
@@ -1006,6 +1025,9 @@ export default function ProductScreen({ slug, id }: { slug: string; id: string }
       header={<Header store={store} t={t} />}
       scrollTop={HEADER_BOTTOM}
       contentHeight={BOARD_H}
+      // A long page: the header leaves on a scroll down and comes back on any
+      // scroll up, as on the store page.
+      hideHeadOnScroll
     >
       <article className="flex flex-col w-full">
         <Gallery photos={photos} alt={`${store.name} ${name.join(" . ")}`} t={t} />
