@@ -360,9 +360,9 @@ function ChatInfo({
                 openMessage={openMessage}
               />
             )}
-          <div className="chat-user-gallery-container mt-3">
+          <div className="w-full shrink-0">
             <div
-              className="relative flex h-[75px] w-full cursor-pointer items-center rounded-[20px] bg-[#f4f4f4] ps-[15px] pe-5"
+              className="chat-user-gallery-container"
               data-pw="chat-info-auto-download"
               role="button"
               aria-expanded={autoSaveOpen}
@@ -379,7 +379,7 @@ function ChatInfo({
                 <img src="/icons/chat/InfoGallery.svg" />
               </div>
               <div className="chat-user-files-info" style={{ height: "auto" }}>
-                <div className="text-[16px] text-[#8d8d8d]">
+                <div className="chat-user-files-info-text text-[#8d8d8d]">
                   {translateFunction("Save To Gallery")}
                 </div>
               </div>
