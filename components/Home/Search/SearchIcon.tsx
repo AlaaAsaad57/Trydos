@@ -9,6 +9,7 @@ import {
   translateFunction,
 } from "utils/functions";
 import search from "services/search";
+import { showErrorNotification } from "store/notifications/reducer";
 import {
   buildParamsFromFilters,
   DisableScroll,
@@ -180,6 +181,16 @@ function SearchIcon({ language, country }) {
         });
         // RACE CONDITION CHECK: Only update if this is the latest request
         if (requestId === latestRequestRef.current) {
+          // The color/size analysis runs only on a search with 2+ words. When it
+          // fails, GetSearchData sends its error back as a string and searches
+          // the raw words. Tell the shopper, but never show the raw error text.
+          if (typeof res?.isAnalyzed === "string") {
+            showErrorNotification(
+              translateFunction(
+                "We could not read the color and size from your search. Showing results for your words.",
+              ),
+            );
+          }
           setResults({
             boutiques: res.boutiques || [],
             brands: res.brands || [],
@@ -667,7 +678,6 @@ const SearchContainer = ({
             />
           )}
           <SearchTrending
-            clearAll={() => setValue("")}
             setValue={setValue}
             trending={trending}
           />

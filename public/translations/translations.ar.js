@@ -684,6 +684,7 @@ const translations = {
   "Search History": "سجل البحث",
   "Popular Search": "البحث الشائع",
   "Clear All": "مسح الكل",
+  "We could not read the color and size from your search. Showing results for your words.": "لم نتمكن من معرفة اللون والمقاس من بحثك. نعرض النتائج لكلماتك.",
 
   pending: "قيد الانتظار",
   ready_to_shipping: "قيد التحضير للشحن",

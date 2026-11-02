@@ -669,6 +669,7 @@ const translations = {
   "Search History": "مێژووی گەڕان",
   "Popular Search": "گەڕانی گشتی",
   "Clear All": "هەموو بسڕەوە",
+  "We could not read the color and size from your search. Showing results for your words.": "نەمانتوانی ڕەنگ و قەبارە لە گەڕانەکەت بخوێنینەوە. ئەنجامەکان بۆ وشەکانت پیشان دەدەین.",
   pending: "چاوەڕوانە",
   ready_to_shipping: "ئامادە بۆ نێردن",
   out_for_delivery: "لە ڕێگەی گەیاندنەوەدا",

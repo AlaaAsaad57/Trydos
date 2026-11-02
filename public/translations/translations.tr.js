@@ -661,6 +661,7 @@ const translations = {
   "No Results Found": "Sonuç bulunamadı",
   Reset: "Sıfırla",
   "Clear All": "Tümünü Temizle",
+  "We could not read the color and size from your search. Showing results for your words.": "Aramanızdan renk ve beden okunamadı. Sözcükleriniz için sonuçlar gösteriliyor.",
   pending: "Bekliyor",
   "Find Products": "Ürünleri Bul",
   "Find Brands": "Markaları Bul",
