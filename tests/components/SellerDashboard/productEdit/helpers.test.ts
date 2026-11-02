@@ -545,6 +545,19 @@ describe("validate — every rule", () => {
     expect(validate(validForm({ current_stock: "-3" })).current_stock, "a negative stock was accepted").toBe("Enter a valid stock");
   });
 
+  it("refuses a unit price of 0", () => {
+    expect(validate(validForm({ unit_price: "0" })).unit_price, "a unit price of 0 was accepted").toBe(
+      "Unit price must be greater than 0",
+    );
+  });
+
+  it("refuses a variant price of 0 even when the price column is filled with zeros", () => {
+    const e = validate(
+      validForm({ colors: [red], colorImages: { "#F00": ["a.jpg"] }, variations: { Red: fullRow({ price: "0.00" }) } }),
+    );
+    expect(e.variation_price_Red, "a variant price of 0.00 was accepted").toBe("Variant price must be greater than 0");
+  });
+
   it("refuses a bad discount price and one not below the unit price", () => {
     expect(validate(validForm({ discount_price: "-1" })).discount_price, "a negative discount was accepted").toBe("Enter a valid discount price");
     expect(validate(validForm({ discount_price: "100", purchase_price: "10" })).discount_price, "a discount equal to the unit price was accepted").toBe(
@@ -618,6 +631,7 @@ describe("validate — every rule", () => {
       ["a missing row", undefined, "Every variant needs a quantity"],
       ["a negative quantity", fullRow({ qty: "-1" }), "Variant quantity cannot be negative"],
       ["a negative price", fullRow({ price: "-1" }), "Variant price cannot be negative"],
+      ["a zero price", fullRow({ price: "0" }), "Variant price must be greater than 0"],
       ["a negative discount", fullRow({ discount: "-1" }), "Variant discount price cannot be negative"],
       ["a discount not below the price", fullRow({ price: "10", discount: "10" }), "Unit price must be greater than discount price"],
       ["a negative luck price", fullRow({ luck: "-1" }), "Variant luck price cannot be negative"],
@@ -644,6 +658,43 @@ describe("validate — every rule", () => {
       expect(e.variation_sku_Red, "the first duplicate SKU row was not marked").toBe("SKU must be unique within the product");
       expect(e.variation_sku_Blue, "the second duplicate SKU row was not marked").toBe("SKU must be unique within the product");
       expect(e.variations, "the table-level duplicate message is missing").toBe("Variation SKUs must be unique within the product");
+    });
+
+    it("marks the exact price cell of every bad row, not only the first", () => {
+      const e = validate(
+        validForm({
+          colors: [red, blue],
+          colorImages: { "#F00": ["a.jpg"], "#00F": ["a.jpg"] },
+          variations: {
+            Red: fullRow({ price: "10", discount: "10", sku: "r" }),
+            Blue: fullRow({ price: "10", discount: "8", luck: "9", sku: "b" }),
+          },
+        }),
+      );
+      expect(e.variation_price_Red, "the Red price cell was not marked when price equals discount").toBe(
+        "Unit price must be greater than discount price",
+      );
+      expect(e.variation_discount_Red, "the Red discount cell was not marked when price equals discount").toBe(
+        "Unit price must be greater than discount price",
+      );
+      expect(e.variation_luck_Blue, "the Blue luck cell was not marked when luck is above discount").toBe(
+        "Variant luck price cannot be greater than discount price",
+      );
+      expect(e.variation_price_Blue, "the valid Blue price cell was marked").toBeUndefined();
+      expect(e.variations, "the table message must stay the first row's problem").toBe(
+        "Unit price must be greater than discount price",
+      );
+    });
+
+    it.each([
+      ["price", "Variant price cannot be negative", fullRow({ price: "-1" })],
+      ["discount", "Variant discount price cannot be negative", fullRow({ discount: "-1" })],
+      ["price", "Variant price must be greater than 0", fullRow({ price: "0" })],
+      ["luck", "Variant luck price cannot be negative", fullRow({ luck: "-1" })],
+      ["luck", "Variant luck price cannot be greater than unit price", fullRow({ luck: "200" })],
+    ])("marks the %s cell: %s", (field, message, row) => {
+      const e = validate(validForm({ colors: [red], colorImages: { "#F00": ["a.jpg"] }, variations: { Red: row } }));
+      expect(e[`variation_${field}_Red`], `the ${field} cell was not marked`).toBe(message);
     });
   });
 
