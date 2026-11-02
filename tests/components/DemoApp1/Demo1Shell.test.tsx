@@ -522,16 +522,111 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     ).toBe("translate(0.5px, 0.5px)");
   });
 
-  it("keeps the store's search mark inactive for now", () => {
-    const { container } = openOn("store/zara");
-    const search = container.querySelector('[data-pw="demo-listing-search"]');
-    expect(search, "the store page has no search mark").not.toBeNull();
-    fireEvent.click(search!);
-    expect(
-      onStage(container),
-      "a tap on the store's search mark left the store page",
-    ).toEqual(["store/zara"]);
-    expect(router.push, "a tap on the store's search mark moved the URL").not.toHaveBeenCalled();
+  describe("the store's search field", () => {
+    const parts = (container: HTMLElement) => ({
+      mark: container.querySelector<HTMLElement>('[data-pw="demo-listing-search"]'),
+      field: container.querySelector<HTMLElement>('[data-pw="demo-listing-search-field"]'),
+      input: container.querySelector<HTMLInputElement>('[data-pw="demo-listing-search-input"]'),
+      sort: container.querySelector<HTMLElement>('[data-pw="demo-listing-sort"]'),
+      share: container.querySelector<HTMLElement>('[data-pw="demo-listing-share"]'),
+    });
+
+    it("opens in the header on a tap of the search mark: the field takes the focus, and the other marks step aside", () => {
+      const { container } = openOn("store/zara");
+      const { mark, field, input, sort, share } = parts(container);
+      expect(mark, "the store page has no search mark").not.toBeNull();
+      expect(field, "the store page has no search field in its header").not.toBeNull();
+      expect(field!.dataset.open, "the search field is open before the tap").toBeUndefined();
+      expect(field!.style.visibility, "the closed search field can be seen").toBe("hidden");
+
+      fireEvent.click(mark!);
+
+      expect(field!.dataset.open, "a tap on the search mark did not open the field").toBe("true");
+      expect(field!.style.visibility, "the open search field is still hidden").toBe("visible");
+      expect(
+        field!.style.clipPath,
+        "the open field is still cut to the search mark's box (it must grow to its full size)",
+      ).toBe("inset(0px 0px 0px 0px round 12px)");
+      expect(
+        document.activeElement,
+        "the field did not take the focus in the tap (iOS then shows no keyboard)",
+      ).toBe(input);
+      expect(
+        [field!.style.left, field!.style.right],
+        "the open search field does not fill the top bar, 10 px from each edge",
+      ).toEqual(["10px", "10px"]);
+      const back = container.querySelector<HTMLElement>('[data-pw="demo-listing-back"]');
+      expect(back!.style.opacity, "the back mark still shows under the open search field").toBe("0");
+      expect(back!.hasAttribute("inert"), "the hidden back mark can still be tapped or reached with the keys").toBe(true);
+      expect(
+        container.querySelector<HTMLElement>("header h1")?.style.opacity,
+        "the store's logo still shows under the open search field",
+      ).toBe("0");
+      expect(sort!.style.opacity, "the sort mark still shows while the search field is open").toBe("0");
+      expect(share!.style.opacity, "the share mark still shows while the search field is open").toBe("0");
+      expect(
+        sort!.closest("[inert]"),
+        "the hidden sort mark can still be reached with the keys while the field is open",
+      ).not.toBeNull();
+      expect(onStage(container), "a tap on the search mark left the store page").toEqual(["store/zara"]);
+      expect(router.push, "a tap on the search mark moved the URL").not.toHaveBeenCalled();
+    });
+
+    it("closes on a scroll of the page, and the header is as it was", () => {
+      vi.useFakeTimers();
+      try {
+        const { container } = openOn("store/zara");
+        const { mark, field, input, sort } = parts(container);
+        fireEvent.click(mark!);
+        fireEvent.change(input!, { target: { value: "shirt" } });
+
+        // While the keyboard comes up, a page move (iOS) does not close it.
+        scrollY = 60;
+        fireEvent.scroll(window);
+        expect(
+          field!.dataset.open,
+          "the field closed on the page move that comes with the keyboard",
+        ).toBe("true");
+        act(() => {
+          vi.advanceTimersByTime(500);
+        });
+
+        // A small shake of the finger does not close it.
+        scrollY = 70;
+        fireEvent.scroll(window);
+        expect(field!.dataset.open, "a 10 px move of the page closed the field").toBe("true");
+
+        scrollY = 160;
+        fireEvent.scroll(window);
+        expect(field!.dataset.open, "a 100 px scroll of the page did not close the field").toBeUndefined();
+        expect(input!.value, "the words stayed in the field after it closed").toBe("");
+        expect(
+          document.activeElement,
+          "the field kept the focus after the scroll closed it (the keyboard stays up)",
+        ).not.toBe(input);
+        expect(sort!.style.opacity, "the sort mark did not come back after the field closed").toBe("1");
+        expect(sort!.closest("[inert]"), "the sort mark cannot be reached after the field closed").toBeNull();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("closes on its close mark and on Escape, and gives the focus back to the search mark", () => {
+      const { container } = openOn("store/zara");
+      const { mark, field, input } = parts(container);
+      const close = container.querySelector<HTMLElement>('[data-pw="demo-listing-search-close"]');
+      expect(close, "the search field has no close mark").not.toBeNull();
+
+      fireEvent.click(mark!);
+      fireEvent.click(close!);
+      expect(field!.dataset.open, "the close mark did not close the search field").toBeUndefined();
+      expect(document.activeElement, "the focus did not go back to the search mark after the close mark").toBe(mark);
+
+      fireEvent.click(mark!);
+      fireEvent.keyDown(input!, { key: "Escape" });
+      expect(field!.dataset.open, "Escape did not close the search field").toBeUndefined();
+      expect(document.activeElement, "the focus did not go back to the search mark after Escape").toBe(mark);
+    });
   });
 
   it("on a tap, draws the cards the screen shows first and the rest of the first page after the grow", () => {
