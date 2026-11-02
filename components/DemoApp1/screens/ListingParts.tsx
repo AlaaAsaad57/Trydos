@@ -217,38 +217,73 @@ export function AddButton({ product, t }: { product: DemoProduct; t: T }) {
  * How long one label stays in view, and how long the move to the next takes.
  * The same steps as the shop's own product cards (ProductLabelsAnimated): 2 s
  * a label, 80 % of it still and 20 % (0.4 s) moving, with its soft in-out
- * curve. The shop's card moves its labels up; here they move from right to left.
+ * curve. The shop's card moves its labels up; here they turn over like a card.
  */
 const LABEL_STEP_S = 2;
 const LABEL_STILL = 0.8;
 const LABEL_EASE = "cubic-bezier(0.45, 0, 0.55, 1)";
 
-/** The CSS of the labels' slide for `n` labels (one copy of the CSS for each count). */
+/** How far the eye is from the labels (CSS `perspective`), so the turn has depth. */
+const LABEL_PERSPECTIVE_PX = 120;
+
+/**
+ * The CSS of the labels' flip for `n` labels (one copy of the CSS for each
+ * count). Every label runs the same keyframes over one full round
+ * (`n` × 2 s); each label starts at its own point in the round (see
+ * flipDelay). One label's round, as a share of the round:
+ *
+ *  1. 0 → 80 % of its turn: it faces the viewer (rotateX 0).
+ *  2. To the end of its turn: it turns away, top edge going back, to
+ *     rotateX(-180deg). Its back is hidden, so it is gone.
+ *  3. It waits hidden. Then it jumps to rotateX(180deg). The jump uses
+ *     `step-end`, so it never passes through 0; both ends are hidden.
+ *  4. In the last 20 % of the round it turns from 180deg to 0, at the same
+ *     time as the label before it turns from 0 to -180deg. The two labels
+ *     are the two sides of one card that turns over.
+ */
 function labelsCss(n: number) {
-  const step = 100 / n;
-  const stops = Array.from({ length: n }, (_, i) => {
-    const at = `translateX(-${i * 100}%)`;
-    return `${(i * step).toFixed(3)}% { transform: ${at}; } ${(i * step + step * LABEL_STILL).toFixed(3)}% { transform: ${at}; }`;
-  }).join(" ");
-  return `@keyframes demo-labels-${n} { ${stops} 100% { transform: translateX(-${n * 100}%); } }
-.demo-labels-${n} { animation: demo-labels-${n} ${n * LABEL_STEP_S}s ${LABEL_EASE} infinite; }
-@media (prefers-reduced-motion: reduce) { .demo-labels-${n} { animation: none; } }`;
+  const turn = 100 / n;
+  const still = (turn * LABEL_STILL).toFixed(3);
+  const out = turn.toFixed(3);
+  const back = (100 - turn * (1 - LABEL_STILL)).toFixed(3);
+  return `@keyframes demo-flip-${n} {
+  0% { transform: rotateX(0deg); }
+  ${still}% { transform: rotateX(0deg); }
+  ${out}% { transform: rotateX(-180deg); animation-timing-function: step-end; }
+  ${back}% { transform: rotateX(180deg); animation-timing-function: ${LABEL_EASE}; }
+  100% { transform: rotateX(0deg); }
+}
+.demo-flip-${n} { animation: demo-flip-${n} ${n * LABEL_STEP_S}s ${LABEL_EASE} infinite both; }
+@media (prefers-reduced-motion: reduce) {
+  .demo-flip-${n} { animation: none; }
+  .demo-flip-${n}:not(:first-child) { display: none; }
+}`;
+}
+
+/**
+ * Where label `i` of `n` starts in the round: label 0 at the start (facing
+ * the viewer), label 1 one turn before its own turn, and so on. A negative
+ * delay starts the animation part-way, so every label is in place on the
+ * first frame.
+ */
+function flipDelay(i: number, n: number) {
+  return `-${((n - i) % n) * LABEL_STEP_S}s`;
 }
 
 /**
  * A card's labels under its name (a flash deal is one of them), in a row
  * `height` px tall at `top` in the footer, 12 px in from both sides. The
  * store page's cards and the colour sheet's cards both use it; `render`
- * draws one label in the card's own style (`copy` is set on the loop's copy).
+ * draws one label in the card's own style.
  *
  * One label sits still. With more, they take turns, as on the shop's product
- * cards: each one rests, then the row moves one place from right to left and
- * the next one comes in from the right. After the last one, a copy of the
- * first comes in, and the row jumps back to its start without a visible
- * change, so the turns go round with no end.
+ * cards: each one rests, then turns over like a card (around its middle line,
+ * top edge going back), and the next label is on the card's other side.
+ * After the last one, the first comes back, so the turns go round with no end.
  *
- * Only CSS moves the row (no script on each frame), as a page can show many
- * cards. With "reduce motion" on, the first label stays.
+ * All labels lie on top of each other. Only CSS turns them (no script on
+ * each frame), as a page can show many cards. With "reduce motion" on, the
+ * first label stays and the others are not shown.
  */
 export function LabelTurns({
   badges,
@@ -261,36 +296,45 @@ export function LabelTurns({
   top: number;
   height: number;
   testId: string;
-  render: (badge: ProductBadge, copy: boolean) => React.ReactNode;
+  render: (badge: ProductBadge) => React.ReactNode;
 }) {
   const n = badges.length;
+  if (n < 2) {
+    return (
+      <div
+        data-pw={testId}
+        data-count={n}
+        className="absolute overflow-hidden"
+        style={{ left: 12, right: 12, top, height }}
+      >
+        {render(badges[0])}
+      </div>
+    );
+  }
   return (
     <div
       data-pw={testId}
       data-count={n}
-      className="absolute overflow-hidden"
-      style={{ left: 12, right: 12, top, height }}
+      className="absolute"
+      style={{ left: 12, right: 12, top, height, perspective: LABEL_PERSPECTIVE_PX }}
     >
-      {n < 2 ? (
-        render(badges[0], false)
-      ) : (
-        <>
-          <style>{labelsCss(n)}</style>
-          <div className={`flex h-full demo-labels-${n}`}>
-            {[...badges, badges[0]].map((badge, i) => (
-              <div
-                key={i}
-                className="shrink-0 h-full"
-                style={{ flex: "0 0 100%" }}
-                // The copy of the first label is only there for the loop.
-                aria-hidden={i === n || undefined}
-              >
-                {render(badge, i === n)}
-              </div>
-            ))}
+      <style>{labelsCss(n)}</style>
+      <div className={`relative h-full demo-labels-${n}`}>
+        {badges.map((badge, i) => (
+          <div
+            key={i}
+            className={`absolute inset-0 overflow-hidden demo-flip-${n}`}
+            style={{
+              animationDelay: flipDelay(i, n),
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+              transformOrigin: "50% 50%",
+            }}
+          >
+            {render(badge)}
           </div>
-        </>
-      )}
+        ))}
+      </div>
     </div>
   );
 }

@@ -256,7 +256,7 @@ function Categories({
 }
 
 /** The 15 px pill under a product's name, 9 px words; its mark (if any) 6 px in. */
-function Badge({ badge, t, copy = false }: { badge: ProductBadge; t: T; copy?: boolean }) {
+function Badge({ badge, t }: { badge: ProductBadge; t: T }) {
   const look = BADGE[badge.kind];
   let words: React.ReactNode;
   if (badge.kind === "bag") {
@@ -289,7 +289,7 @@ function Badge({ badge, t, copy = false }: { badge: ProductBadge; t: T; copy?: b
   }
   return (
     <p
-      data-pw={copy ? undefined : `demo-listing-badge-${badge.kind}`}
+      data-pw={`demo-listing-badge-${badge.kind}`}
       className="relative block w-fit m-0 font-normal whitespace-nowrap"
       style={{
         height: 15,
@@ -326,7 +326,7 @@ function Labels({ badges, t }: { badges: readonly ProductBadge[]; t: T }) {
       top={LABELS_TOP}
       height={15}
       testId="demo-listing-labels"
-      render={(badge, copy) => <Badge badge={badge} t={t} copy={copy} />}
+      render={(badge) => <Badge badge={badge} t={t} />}
     />
   );
 }

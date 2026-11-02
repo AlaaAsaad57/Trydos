@@ -676,7 +676,7 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     }
   });
 
-  it("slides a card's labels from right to left when it has more than one, and keeps a single label still", () => {
+  it("flips a card's labels over like a card when it has more than one, and keeps a single label still", () => {
     const { container } = openOn("store/zara");
     const labelsOf = (id: string) =>
       container.querySelector<HTMLElement>(
@@ -688,8 +688,12 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     expect(track, "the flash deal card's two labels do not take turns").not.toBeNull();
     expect(
       flash!.querySelector("style")?.textContent,
-      "the labels do not move sideways (translateX), from right to left",
-    ).toContain("translateX(-100%)");
+      "the labels do not turn over like a card (rotateX to -180deg)",
+    ).toContain("rotateX(-180deg)");
+    expect(
+      flash!.style.perspective,
+      "the labels' row has no perspective, so the flip looks flat",
+    ).not.toBe("");
     const slots = [...track!.children] as HTMLElement[];
     expect(
       slots[0]?.textContent,
@@ -700,9 +704,13 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
       "the best-price label does not come after the flash deal",
     ).toBe("! Best price last 3 days!");
     expect(
-      slots[2]?.getAttribute("aria-hidden"),
-      "the copy of the first label (for the loop) is read out by screen readers",
-    ).toBe("true");
+      slots[1]?.style.backfaceVisibility,
+      "the label waiting to come in shows its back during the flip",
+    ).toBe("hidden");
+    expect(
+      slots[1]?.style.animationDelay,
+      "the second label does not start one turn (2 s) behind the first",
+    ).toBe("-2s");
     expect(
       labelsOf("shirt-1")?.querySelector(".demo-labels-2"),
       "the card in the bag (shirt-1) does not turn between its bag and best-price labels",
@@ -715,7 +723,7 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     ).toBeNull();
   });
 
-  it("slides the labels on the colour sheet's cards too, the same way as on the store page", () => {
+  it("flips the labels on the colour sheet's cards too, the same way as on the store page", () => {
     const { container } = openOn("store/zara");
     const dots = container.querySelector(
       '[data-pw="demo-listing-product-shirt-2"] [data-pw="demo-listing-colors"]',
@@ -739,9 +747,9 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
       "the best-price label does not come after the flash deal on the colour sheet's card",
     ).toBe("! Best price last 3 days!");
     expect(
-      slots[2]?.getAttribute("aria-hidden"),
-      "the colour sheet reads the loop's copy of the first label out to screen readers",
-    ).toBe("true");
+      labels!.querySelector("style")?.textContent,
+      "the colour sheet's labels do not turn over like a card (rotateX to -180deg)",
+    ).toContain("rotateX(-180deg)");
   });
 
   it("shows the tab bar on the store page, with Home as the active tab", () => {
