@@ -79,6 +79,56 @@ export const STORE_SHRINK = {
   ease: [0.2, 0, 0, 1] as const,
 };
 
+/**
+ * The move of a slide in the Home sliders, as a list of points from 0 to 1,
+ * one for each frame at 60 frames a second.
+ *
+ * Embla (the sliders on Home, `duration: 25`) does not use a CSS curve. On
+ * each 1/60 s step it adds (target - place) / 25 to the speed, keeps 0.68 of
+ * the speed (Embla's friction), and moves by it. This runs the same steps,
+ * so a page that slides with these points moves exactly like a Home slide.
+ * The list stops when the slide is 0.2 % from its end (under 1 px on a phone);
+ * Embla's last frames move less than that.
+ */
+function sliderCurve(): number[] {
+  const points = [0];
+  let place = 0;
+  let speed = 0;
+  while (1 - place > 0.002 && points.length < 120) {
+    speed += (1 - place) / 25;
+    speed *= 0.68;
+    place += speed;
+    points.push(place);
+  }
+  points[points.length - 1] = 1;
+  return points;
+}
+
+const SLIDER_POINTS = sliderCurve();
+
+/**
+ * Home ↔ a store's page: both screens move a full screen width together, as
+ * one Home slide moves, with the Home slider's own speed (see sliderCurve).
+ * `dir` 1 moves the screens to the left (a new page comes from the right).
+ * `leaving` is the screen that goes out; the other one comes in.
+ */
+export function sliderMove(dir: 1 | -1, leaving: boolean) {
+  const from = leaving ? 0 : dir * 100;
+  const to = leaving ? -dir * 100 : 0;
+  return {
+    x: SLIDER_POINTS.map((p) => `${from + (to - from) * p}%`),
+    opacity: 1,
+    transition: {
+      x: {
+        duration: (SLIDER_POINTS.length - 1) / 60,
+        ease: "linear" as const,
+        times: SLIDER_POINTS.map((_, i) => i / (SLIDER_POINTS.length - 1)),
+      },
+      opacity: { duration: 0 },
+    },
+  };
+}
+
 /** The device's own top inset. 0 in a browser tab, the notch in a home-screen app. */
 export const SAFE_TOP = "env(safe-area-inset-top, 0px)";
 

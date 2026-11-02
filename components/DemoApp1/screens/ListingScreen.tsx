@@ -1,29 +1,27 @@
 "use client";
 
-import React, {
-  startTransition,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion, type MotionValue } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
+import { hrefFor } from "../../DemoApp/demoRoutes";
+import { openProductInColor, productFirstImages } from "../../DemoApp/demoProduct";
 import {
   LISTING_CATEGORIES,
   LISTING_FIRST_IMAGES,
   LISTING_PAGES,
   listingPage,
+  productScreen,
   storeBySlug,
   type DemoProduct,
   type DemoStore,
   type ProductBadge,
 } from "../../DemoApp/demoStores";
 import { useDemoNav } from "../Demo1Shell";
-import { C, STORE_GROW, lineBox, textTop } from "../demo1Layout";
+import { C, lineBox, textTop } from "../demo1Layout";
 import { ScreenPage, Stroke } from "../ui";
 import { BrandCard, useSlider } from "./HomeSections";
 import ListingColorSheet, { COLOR_GLASS } from "./ListingColorSheet";
+import { useSettled } from "./useSettled";
 import {
   AddButton,
   BADGE,
@@ -31,6 +29,7 @@ import {
   ColorPhotos,
   FOOTER_H,
   GAP,
+  LabelTurns,
   PHOTO,
   PhotoGlow,
   PricePill,
@@ -255,7 +254,7 @@ function Categories({
 }
 
 /** The 15 px pill under a product's name, 9 px words; its mark (if any) 6 px in. */
-function Badge({ badge, t }: { badge: ProductBadge; t: T }) {
+function Badge({ badge, t, copy = false }: { badge: ProductBadge; t: T; copy?: boolean }) {
   const look = BADGE[badge.kind];
   let words: React.ReactNode;
   if (badge.kind === "bag") {
@@ -288,11 +287,9 @@ function Badge({ badge, t }: { badge: ProductBadge; t: T }) {
   }
   return (
     <p
-      data-pw={`demo-listing-badge-${badge.kind}`}
-      className="absolute m-0 font-normal whitespace-nowrap"
+      data-pw={copy ? undefined : `demo-listing-badge-${badge.kind}`}
+      className="relative block w-fit m-0 font-normal whitespace-nowrap"
       style={{
-        left: 12,
-        top: 738 - 384 - PHOTO.h,
         height: 15,
         minWidth: look.minW,
         paddingLeft: look.textAt,
@@ -316,6 +313,22 @@ function Badge({ badge, t }: { badge: ProductBadge; t: T }) {
   );
 }
 
+/** The top of the labels' row in the footer: y 738 on the file, under the photo. */
+const LABELS_TOP = 738 - 384 - PHOTO.h;
+
+/** The card's labels: 15 px pills that take turns (LabelTurns). */
+function Labels({ badges, t }: { badges: readonly ProductBadge[]; t: T }) {
+  return (
+    <LabelTurns
+      badges={badges}
+      top={LABELS_TOP}
+      height={15}
+      testId="demo-listing-labels"
+      render={(badge, copy) => <Badge badge={badge} t={t} copy={copy} />}
+    />
+  );
+}
+
 /** How a card that a later page adds comes in: it fades in and rises 12 px. */
 const APPEAR = { duration: 0.32, ease: [0.2, 0, 0, 1] } as const;
 
@@ -325,6 +338,19 @@ export type OpenColors = (
   /** Shows a colour on the card (the sheet calls it when a colour is tapped). */
   pick: (index: number) => void,
 ) => void;
+
+/** Starts loading the first photos of a product's page, once per colour. */
+const warmedProducts = new Set<string>();
+function warmProduct(product: DemoProduct, colorIndex: number) {
+  const key = `${product.id}:${colorIndex}`;
+  if (warmedProducts.has(key)) return;
+  warmedProducts.add(key);
+  for (const src of productFirstImages(product, colorIndex)) {
+    const img = new Image();
+    img.decoding = "async";
+    img.src = src;
+  }
+}
 
 /** Starts loading the first photo of every colour of a product, once. */
 const warmedColors = new Set<string>();
@@ -354,16 +380,36 @@ function ProductCard({
   onOpenColors: OpenColors;
   t: T;
 }) {
+  const { navigate, locale } = useDemoNav();
   const [colorIndex, setColorIndex] = useState(product.selected);
   const color = product.colors[colorIndex];
   const name = product.name.map((part) => t(part)).join(" . ");
   // The first row is what the page opens on: load it first.
   const first = index < 2;
+  const page = productScreen(store.slug, product.id);
+  /**
+   * A tap on the card opens the product's page, and the card grows into it
+   * (Demo1Shell). The colour dots and the add button keep their own taps, and
+   * a swipe on the photos is not a tap (the slider stops that click). A click
+   * with a modifier on the name's link is left to the browser (a new tab).
+   */
+  const open = (e: React.MouseEvent<HTMLElement>) => {
+    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)
+      return;
+    if ((e.target as Element).closest("button")) return;
+    e.preventDefault();
+    openProductInColor(product.id, colorIndex);
+    navigate(page, 1, e.currentTarget);
+  };
+  /** Starts loading the page's first photos while the finger is down, before the tap ends. */
+  const warm = () => warmProduct(product, colorIndex);
   return (
     <motion.article
       data-pw={`demo-listing-product-${product.id}`}
       data-color={colorIndex}
-      className="relative flex flex-col min-w-0 bg-white"
+      className="relative flex flex-col min-w-0 bg-white cursor-pointer [-webkit-tap-highlight-color:transparent]"
+      onClick={open}
+      onPointerDown={warm}
       // The cards in the HTML are there at once; only added cards move.
       initial={appear === undefined ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -394,8 +440,8 @@ function ProductCard({
 
       <div className="relative w-full shrink-0" style={{ height: FOOTER_H }}>
         <CardLogo store={store} />
-        <ProductName product={product} t={t} />
-        <Badge badge={product.badge} t={t} />
+        <ProductName product={product} href={hrefFor(locale, page)} t={t} />
+        <Labels badges={[product.badge, ...(product.labels ?? [])]} t={t} />
         <PricePill product={product} t={t} />
         <AddButton product={product} t={t} />
       </div>
@@ -479,44 +525,6 @@ function usePages(enabled: boolean) {
 /** The cards drawn on the tap: two rows, more than a phone's screen shows under the banner. */
 const FIRST_CARDS = 4;
 
-/** When the rest of the first page comes in after a tap: just after the grow ends. */
-const SETTLE_MS = STORE_GROW.duration * 1000 + 100;
-
-const subscribeToNothing = () => () => {};
-
-/**
- * True when the page is built in the browser after a tap, false when it
- * is built from the server's HTML (on the server, and while React hydrates
- * that HTML). React reads the third function in the second case.
- */
-const useBuiltOnTap = () =>
-  useSyncExternalStore(
-    subscribeToNothing,
-    () => true,
-    () => false,
-  );
-
-/**
- * Whether to draw the whole first page.
- *
- * React builds a new screen in one block of work in the tap's event, and
- * the grow can only start after it. The trace of a tap (iPhone 13 profile,
- * CPU 4x slower) showed that block at 1.4 s with 12 cards; most of it was
- * the cards under the screen's edge. So on a tap the page draws only
- * FIRST_CARDS, and the rest after the grow, as a low-priority update. From
- * the server, all 12 are in the HTML, for search engines.
- */
-function useSettled() {
-  const builtOnTap = useBuiltOnTap();
-  const [settled, setSettled] = useState(!builtOnTap);
-  useEffect(() => {
-    if (settled) return;
-    const wait = setTimeout(() => startTransition(() => setSettled(true)), SETTLE_MS);
-    return () => clearTimeout(wait);
-  }, [settled]);
-  return settled;
-}
-
 export default function ListingScreen({ slug }: { slug: string }) {
   const { t } = useDemoNav();
   const categories = useSlider();
@@ -548,6 +556,8 @@ export default function ListingScreen({ slug }: { slug: string }) {
       contentHeight={BOARD_H}
       // The tab bar shows on this page too; the last cards keep room above it.
       tabBar
+      // A long list: the header leaves on a scroll down and comes back on any scroll up.
+      hideHeadOnScroll
       // The colour sheet blurs the page behind it (`Home Page – 54`).
       glass={colorsOpen ? COLOR_GLASS : undefined}
     >

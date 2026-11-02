@@ -1,4 +1,74 @@
 /**
+ * The words of the product page, `Home Page – 49`. The marks in a key (<b>,
+ * <m>, <a>, <c>) set the weight and the blue of a part of the line, and every
+ * translation keeps them (see Rich in ProductScreen). All of them keep the
+ * file's case in English (KEEP_CASE).
+ */
+const PRODUCT_PAGE_KEYS = [
+  "Price alert",
+  "Stock alert",
+  "More options",
+  "Close video",
+  "Photos",
+  "Help",
+  "Verified store",
+  "Add to favourites",
+  "pajama",
+  "Denim blue",
+  "Stay cool and chic in this airy women’s summer top, featuring a comfortable fit and fresh seasonal prints",
+  "<b>{count} </b>buyer Rate",
+  "<m>recommend it by</m> {count} buyer",
+  "made in turkey",
+  "<b>Trend </b>color<b> !</b>",
+  "<b>Best sell </b>last week<b> !</b>",
+  "<b>Fast Packing </b>& today shipping If buy before <m>{time}</m> today",
+  "<b>in {hours} hours</b> shipping If buy in <m>{minutes} minute</m>",
+  "<m>just {days} days</m> In your hands",
+  "<b>2.jun</b> in lebanon",
+  "Available <b>{count}</b> Color",
+  "Product information",
+  "pattern<m> | Fit Slim</m>",
+  "Suitable occasions<m> | Birthday</m> <b>.</b> <m>Casual</m> <b>.</b> <m>Business</m>",
+  "material <m>|</m> <m>polyester</m> <m>97%</m> <b>.</b> <m>elastane</m> <m>3%</m>",
+  "Shipping & Delivery",
+  "Monday <m>2.jun </m>| <m>3</m> work days in your hands in <m>Lebanon</m>",
+  "Shipping is completely free without any extras",
+  "Delivery guarantee",
+  "get a <c>25% Cash refund</c> to your wallet of the product price if shipping is delayed",
+  "Return is completely free without any extras or conditions",
+  "Return guarantee",
+  "Within <m>3 days</m> after receiving the product, you can return it without conditions or reasons with complete ease and \n<a>get the amount back </a>to your wallet",
+  "purchase protection",
+  "by Buyers",
+  "comment . Video . Photo . May help you !",
+  "comment",
+  "<m>AI</m> analysis & summary of all reviews",
+  "18 feb",
+  "Medium | Bule",
+  "Amazing product I buy it and I saw it is good quality regarding price Amazing product I buy it and I saw it is good quality regardin",
+  "Good quality | Ture size",
+  "recommend it",
+  "buyers recommend product",
+  "<b>{count} </b>buyer",
+  "don’t recommend it",
+  "buyers reviews on product sizing",
+  "Product FAQ Buyer & Seller",
+  "<b>Q</b> {name}",
+  "<b>a</b> {name}",
+  "{n} minute answered",
+  "Need help ? Start Chat about this product !",
+  "Good Quality",
+  "Expected Shipping & delivery Date",
+  "Free Shipping",
+  "Free Return",
+  "Secure Privacy",
+  "Safe & Easy Payment",
+  "True",
+  "Small",
+  "Large",
+] as const;
+
+/**
  * Every string the demo shows, by its English key.
  *
  * Why a list: the demo shell is a client component that is also rendered on
@@ -390,6 +460,8 @@ export const DEMO_KEYS = [
   "Black",
   "Floral",
   "Grey",
+  // The product page (`Home Page – 49`).
+  ...PRODUCT_PAGE_KEYS,
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];
@@ -418,6 +490,10 @@ export const KEEP_CASE: ReadonlySet<DemoKey> = new Set<DemoKey>([
   "You have seen all products",
   // `Home Page – 54` writes this colour in lower case ("… Pantaloon . blue").
   "blue",
+  // `Home Page – 49`, the product page, writes its lines as they are: most
+  // in sentence case, some with a capital in the middle ("If buy", "In your
+  // hands"). None of them get a capital on every word.
+  ...PRODUCT_PAGE_KEYS,
 ]);
 
 export type DemoDictionary = Partial<Record<DemoKey, string>>;

@@ -541,6 +541,9 @@ export function FileLines({
  * from the bottom of the screen, as in the old scaled demo.
  *
  * `tabBar` keeps room for the tab bar under the last block of a tab screen.
+ *
+ * `hideHeadOnScroll` hides the head while the page scrolls down and brings it
+ * back on any scroll up (see useHideOnScroll).
  */
 export function ScreenPage({
   header,
@@ -554,8 +557,11 @@ export function ScreenPage({
   scrollBody = false,
   bodyRef,
   bottom,
+  hideHeadOnScroll = false,
   testId,
 }: {
+  /** Hide the head while the page scrolls down; show it again on any scroll up. */
+  hideHeadOnScroll?: boolean;
   /** A CSS filter for the page and its head while a glass layer lies over them (the receipt). */
   glass?: string;
   header?: React.ReactNode;
@@ -582,6 +588,8 @@ export function ScreenPage({
 }) {
   usePageColor(bg);
   const visual = useVisualHeight(scrollBody);
+  const head = React.useRef<HTMLDivElement>(null);
+  const [headHidden, showHead] = useHideOnScroll(hideHeadOnScroll && !scrollBody, head);
   return (
     <div
       data-pw={testId}
@@ -598,9 +606,18 @@ export function ScreenPage({
       >
         {header && (
           <div
+            ref={head}
             data-pw="demo1-head"
+            data-hidden={headHidden || undefined}
             className={`${scrollBody ? "shrink-0" : "sticky top-0"} z-10 w-full`}
-            style={{ paddingTop: SAFE_TOP, background: C.white }}
+            style={{
+              paddingTop: SAFE_TOP,
+              background: C.white,
+              transform: headHidden ? "translateY(-100%)" : "translateY(0)",
+              transition: headHidden ? HEAD_HIDE : HEAD_SHOW,
+            }}
+            // A key that moves the focus into a hidden head shows it.
+            onFocusCapture={showHead}
           >
             {header}
           </div>
@@ -626,6 +643,64 @@ export function ScreenPage({
       {footer && <PageFooter>{footer}</PageFooter>}
     </div>
   );
+}
+
+/**
+ * How the head leaves and comes back (Material 3): it leaves with the
+ * "emphasized accelerate" curve in 200 ms, a quick exit that gets out of the
+ * way, and comes back with "emphasized decelerate" in 300 ms, so it lands
+ * softly.
+ */
+const HEAD_HIDE = "transform 0.2s cubic-bezier(0.3, 0, 0.8, 0.15)";
+const HEAD_SHOW = "transform 0.3s cubic-bezier(0.05, 0.7, 0.1, 1)";
+
+/**
+ * Hides a sticky head while the document scrolls down, and shows it again on
+ * any scroll up, however short. Shop apps do this on a long list: the list
+ * gets the whole screen, and the head is one small move away.
+ *
+ *  - The head stays while the page is still within the head's own height of
+ *    its top, so it never leaves an empty band at the top.
+ *  - The bounce past either end of the page (iOS) is not a scroll: a bounce
+ *    at the bottom moves up for a moment and would show the head.
+ *  - A move under 1 px is not counted (scroll values have fractions).
+ *  - A screen that is sliding out keeps its head as it was: the new screen's
+ *    scroll belongs to the new screen.
+ *
+ * Returns whether the head is hidden, and a function that shows it.
+ */
+function useHideOnScroll(
+  on: boolean,
+  head: React.RefObject<HTMLDivElement | null>,
+): [boolean, () => void] {
+  const [hidden, setHidden] = React.useState(false);
+  const present = useIsPresent();
+  React.useEffect(() => {
+    if (!on || !present) return;
+    let last = window.scrollY;
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      const y = window.scrollY;
+      const end = document.documentElement.scrollHeight - window.innerHeight;
+      if (y < 0 || y > end) return;
+      const dy = y - last;
+      if (Math.abs(dy) < 1) return;
+      last = y;
+      const room = head.current?.offsetHeight ?? 0;
+      if (y <= room || dy < 0) setHidden(false);
+      else setHidden(true);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(read);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, [on, present, head]);
+  return [on && hidden, () => setHidden(false)];
 }
 
 /**

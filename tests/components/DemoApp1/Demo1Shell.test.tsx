@@ -324,7 +324,8 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     }
   });
 
-  it("grows the page out of the tapped card, over Home, and shrinks it back into the card", () => {
+  it("slides the store page in as one Home slide, with no fade and no grow, and slides Home back on back", async () => {
+    // A card box the browser could measure: the page still must not grow from it.
     const measure = measureLikeABrowser();
     const { container, rerender } = openOn("home");
     fireEvent.click(zaraCard()!);
@@ -333,39 +334,57 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     expect(entering, "the store page is not on stage after the tap").not.toBeNull();
     expect(
       entering!.style.clipPath,
-      `the store page does not start cut to the card's box (top 300, bottom 440); clip: "${entering!.style.clipPath}"`,
-    ).toBe("inset(300px 12px calc(100% - 440px) 0px)");
+      `the store page was cut to the card's box (it grows); clip: "${entering!.style.clipPath}"`,
+    ).toBe("");
     expect(
-      entering!.parentElement!.style.zIndex,
-      "the growing store page does not lie over Home",
+      entering!.style.opacity,
+      "the store page fades in; a Home slide does not fade",
     ).toBe("1");
+    expect(
+      entering!.style.transform,
+      `the store page does not start one screen width to the right; transform: "${entering!.style.transform}"`,
+    ).toMatch(/translateX\(100%\)/);
+    expect(
+      onStage(container),
+      "Home left the stage at once; it must slide out beside the store page",
+    ).toContain("home");
 
     // The router lands on the store's path.
     url.pathname = "/sy-en/demo/store/zara";
     rerender(<Demo1Shell dictionary={{}}>{null}</Demo1Shell>);
+    // The slide ends, and Home leaves the stage.
+    await waitFor(
+      () =>
+        expect(onStage(container), "Home is still on stage after the slide ended").toEqual([
+          "store/zara",
+        ]),
+      { timeout: 3000 },
+    );
 
     const back = vi.spyOn(window.history, "back").mockImplementation(() => {});
-    fireEvent.click(
-      container.querySelector('[data-pw="demo-listing-back"]')!,
-    );
-    expect(onStage(container), "back did not bring Home on stage").toContain(
-      "home",
-    );
+    fireEvent.click(container.querySelector('[data-pw="demo-listing-back"]')!);
+    expect(onStage(container), "back did not bring Home on stage").toContain("home");
     expect(back, "back did not go through the browser's history").toHaveBeenCalled();
-    const leaving = frameOf(container, "store/zara");
+    const home = frameOf(container, "home");
     expect(
-      leaving,
-      "the store page was removed at once instead of shrinking into its card",
-    ).not.toBeNull();
+      home!.style.transform,
+      `Home does not come back from one screen width to the left; transform: "${home!.style.transform}"`,
+    ).toMatch(/translateX\(-100%\)/);
+    expect(
+      home!.style.opacity,
+      "Home fades in on back; a Home slide does not fade",
+    ).toBe("1");
+    const leaving = frameOf(container, "store/zara");
+    expect(leaving, "the store page was removed at once instead of sliding out").not.toBeNull();
     expect(
       leaving!.parentElement!.style.zIndex,
-      "the store page shrinking into its card is under Home, so it cannot be seen",
-    ).toBe("1");
+      "the store page is put over Home on back, as if it shrank into its card",
+    ).toBe("");
     back.mockRestore();
     measure.mockRestore();
   });
 
-  it("slides the store in like any screen when there is no card to grow from", () => {
+  it("puts nothing over the leaving screen when there is no card box either", () => {
     const { container } = openOn("home");
     // jsdom measures every box as 0 x 0: there is no card box to grow from.
     fireEvent.click(zaraCard()!);
@@ -615,6 +634,114 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
       vi.useRealTimers();
       globalThis.IntersectionObserver = Before;
     }
+  });
+
+  it("hides the store page's header on a scroll down and shows it again on any scroll up", async () => {
+    const tall = Object.getOwnPropertyDescriptor(Element.prototype, "scrollHeight");
+    Object.defineProperty(document.documentElement, "scrollHeight", {
+      configurable: true,
+      get: () => 5000,
+    });
+    try {
+      const { container } = openOn("store/zara");
+      const head = container.querySelector<HTMLElement>('[data-pw="demo1-head"]');
+      expect(head, "the store page has no header").not.toBeNull();
+      const scrollTo = async (y: number) => {
+        scrollY = y;
+        fireEvent.scroll(window);
+        // The page reads the scroll on the next frame.
+        await act(() => new Promise((done) => requestAnimationFrame(() => done(null))));
+      };
+      await scrollTo(400);
+      expect(
+        head!.style.transform,
+        "the header stays on screen after a scroll down of 400 px",
+      ).toBe("translateY(-100%)");
+      await scrollTo(398);
+      expect(
+        head!.style.transform,
+        "the header does not come back after a short scroll up of 2 px",
+      ).toBe("translateY(0)");
+      await scrollTo(800);
+      expect(head!.style.transform, "the header does not hide again on the next scroll down").toBe(
+        "translateY(-100%)",
+      );
+      expect(
+        head!.style.transition,
+        "the header jumps away instead of moving out",
+      ).toContain("transform");
+    } finally {
+      if (tall) Object.defineProperty(document.documentElement, "scrollHeight", tall);
+      else delete (document.documentElement as unknown as Record<string, unknown>).scrollHeight;
+    }
+  });
+
+  it("slides a card's labels from right to left when it has more than one, and keeps a single label still", () => {
+    const { container } = openOn("store/zara");
+    const labelsOf = (id: string) =>
+      container.querySelector<HTMLElement>(
+        `[data-pw="demo-listing-product-${id}"] [data-pw="demo-listing-labels"]`,
+      );
+    const flash = labelsOf("shirt-2");
+    expect(flash, "the flash deal card (shirt-2) has no labels row").not.toBeNull();
+    const track = flash!.querySelector<HTMLElement>(".demo-labels-2");
+    expect(track, "the flash deal card's two labels do not take turns").not.toBeNull();
+    expect(
+      flash!.querySelector("style")?.textContent,
+      "the labels do not move sideways (translateX), from right to left",
+    ).toContain("translateX(-100%)");
+    const slots = [...track!.children] as HTMLElement[];
+    expect(
+      slots[0]?.textContent,
+      "the flash deal is not the first label on its card",
+    ).toBe("Flash Deal | 1d | 12:23:19");
+    expect(
+      slots[1]?.textContent,
+      "the best-price label does not come after the flash deal",
+    ).toBe("! Best price last 3 days!");
+    expect(
+      slots[2]?.getAttribute("aria-hidden"),
+      "the copy of the first label (for the loop) is read out by screen readers",
+    ).toBe("true");
+    expect(
+      labelsOf("shirt-1")?.querySelector(".demo-labels-2"),
+      "the card in the bag (shirt-1) does not turn between its bag and best-price labels",
+    ).not.toBeNull();
+    const single = labelsOf("pajama-1");
+    expect(single, "the best-price card (pajama-1) has no labels row").not.toBeNull();
+    expect(
+      single!.querySelector("[class*='demo-labels-']"),
+      "a card with one label moves it",
+    ).toBeNull();
+  });
+
+  it("slides the labels on the colour sheet's cards too, the same way as on the store page", () => {
+    const { container } = openOn("store/zara");
+    const dots = container.querySelector(
+      '[data-pw="demo-listing-product-shirt-2"] [data-pw="demo-listing-colors"]',
+    );
+    expect(dots, "the flash deal card (shirt-2) has no colour dots to open the sheet").not.toBeNull();
+    fireEvent.click(dots!);
+    // The sheet may be drawn on <body>, outside the page.
+    const labels = document.body.querySelector<HTMLElement>(
+      '[data-pw="demo-color-card-0"] [data-pw="demo-color-labels"]',
+    );
+    expect(labels, "the colour sheet's first card has no labels row").not.toBeNull();
+    const track = labels!.querySelector<HTMLElement>(".demo-labels-2");
+    expect(track, "the colour sheet's card does not turn between its two labels").not.toBeNull();
+    const slots = [...track!.children] as HTMLElement[];
+    expect(
+      slots[0]?.textContent,
+      "the flash deal is not the first label on the colour sheet's card",
+    ).toBe("Flash Deal | 1d | 12:23:19");
+    expect(
+      slots[1]?.textContent,
+      "the best-price label does not come after the flash deal on the colour sheet's card",
+    ).toBe("! Best price last 3 days!");
+    expect(
+      slots[2]?.getAttribute("aria-hidden"),
+      "the colour sheet reads the loop's copy of the first label out to screen readers",
+    ).toBe("true");
   });
 
   it("shows the tab bar on the store page, with Home as the active tab", () => {
