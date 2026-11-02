@@ -19,6 +19,7 @@ import {
   BANNER,
   BODY_Y,
   C,
+  COLUMN_W,
   CTA,
   DESIGN_H,
   EDGE_ANCHOR,
@@ -605,21 +606,38 @@ export function ScreenPage({
         style={{ filter: glass, transition: "filter 0.25s" }}
       >
         {header && (
+          // The sticky box is 0 px wide; the white head inside it overflows
+          // to the column's full width. Safari 26 on the iPhone looks for a
+          // fixed or sticky box 90 % as wide as the screen at its top edge,
+          // and fills its top bar with that box's solid colour. A full-width
+          // sticky head made the top bar plain white, also after the head
+          // slid away on the store page (Safari keeps the last box it found
+          // while that box is on the page). A 0 px box is too small, so Safari
+          // finds nothing and draws the page under its glass bar, the way a
+          // shop site shows. The same trick as EDGE_ANCHOR in demo1Layout.ts.
+          // A `scrollBody` page does not scroll the document, so its head
+          // stays a normal full-width block.
           <div
-            ref={head}
-            data-pw="demo1-head"
-            data-hidden={headHidden || undefined}
-            className={`${scrollBody ? "shrink-0" : "sticky top-0"} z-10 w-full`}
-            style={{
-              paddingTop: SAFE_TOP,
-              background: C.white,
-              transform: headHidden ? "translateY(-100%)" : "translateY(0)",
-              transition: headHidden ? HEAD_HIDE : HEAD_SHOW,
-            }}
-            // A key that moves the focus into a hidden head shows it.
-            onFocusCapture={showHead}
+            data-pw="demo1-head-anchor"
+            className={`${scrollBody ? "shrink-0 w-full" : "sticky top-0"} z-10`}
+            style={scrollBody ? undefined : { width: 0 }}
           >
-            {header}
+            <div
+              ref={head}
+              data-pw="demo1-head"
+              data-hidden={headHidden || undefined}
+              style={{
+                width: scrollBody ? "100%" : COLUMN_W,
+                paddingTop: SAFE_TOP,
+                background: C.white,
+                transform: headHidden ? "translateY(-100%)" : "translateY(0)",
+                transition: headHidden ? HEAD_HIDE : HEAD_SHOW,
+              }}
+              // A key that moves the focus into a hidden head shows it.
+              onFocusCapture={showHead}
+            >
+              {header}
+            </div>
           </div>
         )}
         <div

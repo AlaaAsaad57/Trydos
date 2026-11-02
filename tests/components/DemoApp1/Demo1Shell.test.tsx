@@ -731,6 +731,29 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     }
   });
 
+  it("keeps the sticky box at the top 0 px wide, so Safari 26 draws the page under its top bar", () => {
+    // Safari 26 on the iPhone fills its top bar with the colour of the first
+    // fixed or sticky box at the top edge that is 90 % as wide as the screen.
+    // A full-width white sticky head made the top bar plain white.
+    for (const screen of ["home", "store/zara"] as const) {
+      const { container, unmount } = openOn(screen);
+      const head = container.querySelector<HTMLElement>('[data-pw="demo1-head"]');
+      expect(head, `the "${screen}" screen has no header`).not.toBeNull();
+      let box: HTMLElement | null = head;
+      while (box && !/\bsticky\b/.test(box.className)) box = box.parentElement;
+      expect(box, `the header of the "${screen}" screen is not inside a sticky box`).not.toBeNull();
+      expect(
+        box!.style.width,
+        `the sticky box of the header on the "${screen}" screen is not 0 px wide, so Safari paints its top bar in the header's solid colour`,
+      ).toBe("0px");
+      expect(
+        head!.style.width,
+        `the header on the "${screen}" screen does not take the page column's full width`,
+      ).toBe("min(100vw, 500px)");
+      unmount();
+    }
+  });
+
   it("hides the store page's header on a scroll down and shows it again on any scroll up", async () => {
     const tall = Object.getOwnPropertyDescriptor(Element.prototype, "scrollHeight");
     Object.defineProperty(document.documentElement, "scrollHeight", {
