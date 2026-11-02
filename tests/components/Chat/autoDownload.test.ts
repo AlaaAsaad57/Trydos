@@ -305,3 +305,104 @@ describe("the blur while a missed file is saved", () => {
     await flush();
   });
 });
+
+// ---------------------------------------------------------------------------
+// LIMITS: the feature must stay safe for busy chats, many tabs and slow saves.
+// ---------------------------------------------------------------------------
+
+describe("limits for heavy use", () => {
+  beforeEach(() => setAutoDownloadMode("always"));
+
+  afterEach(() => {
+    // Remove the fake "Data Saver" connection, if a test set one.
+    delete (navigator as any).connection;
+  });
+
+  it("does not queue a whole burst of live files (busy group chat)", async () => {
+    for (let i = 0; i < 30; i++) {
+      autoSaveIncomingMedia(message("ImageMessage", `https://m.example.com/burst${i}.jpg`), ME);
+    }
+    await flush();
+
+    const saved = downloadFile.mock.calls.map((call) => call[0]);
+    expect(saved, "the first photo of the burst was not saved").toContain("https://m.example.com/burst0.jpg");
+    expect(
+      saved,
+      "the 30th photo of a burst was saved, so the live save queue has no limit",
+    ).not.toContain("https://m.example.com/burst29.jpg");
+  });
+
+  it("accepts new live files again once the queue has emptied", async () => {
+    for (let i = 0; i < 30; i++) {
+      autoSaveIncomingMedia(message("ImageMessage", `https://m.example.com/burst${i}.jpg`), ME);
+    }
+    await flush();
+    autoSaveIncomingMedia(message("ImageMessage", "https://m.example.com/after.jpg"), ME);
+    await flush();
+    expect(
+      downloadFile.mock.calls.map((call) => call[0]),
+      "a photo that came after the burst ended was not saved",
+    ).toContain("https://m.example.com/after.jpg");
+  });
+
+  it("does not save a file that another open tab already saved", async () => {
+    // This tab reads its file list once, for an unrelated photo.
+    autoSaveIncomingMedia(message("ImageMessage", "https://m.example.com/first.jpg"), ME);
+    await flush();
+    downloadFile.mockClear();
+
+    // Another tab of the app saves a photo and writes it to the shared list.
+    const list = JSON.parse(localStorage.getItem("chat-auto-downloaded") || "[]");
+    list.push("https://m.example.com/other-tab.jpg");
+    localStorage.setItem("chat-auto-downloaded", JSON.stringify(list));
+
+    // The same push now reaches this tab too.
+    autoSaveIncomingMedia(message("ImageMessage", "https://m.example.com/other-tab.jpg"), ME);
+    await flush();
+    expect(
+      downloadFile,
+      "this tab saved a photo that another open tab had already saved",
+    ).not.toHaveBeenCalled();
+  });
+
+  it("keeps saving after one save hangs", async () => {
+    downloadFile.mockImplementationOnce(() => new Promise<void>(() => {}));
+    autoSaveIncomingMedia(message("ImageMessage", "https://m.example.com/hangs.jpg"), ME);
+    autoSaveIncomingMedia(message("ImageMessage", "https://m.example.com/next.jpg"), ME);
+
+    await vi.advanceTimersByTimeAsync(5 * 60_000);
+    expect(
+      downloadFile.mock.calls.map((call) => call[0]),
+      "one save that never ended stopped every later save",
+    ).toContain("https://m.example.com/next.jpg");
+  });
+
+  it("waits longer before the next save when the browser saves by link", async () => {
+    // "link" = the fetch failed and the browser saves the file by itself.
+    downloadFile.mockImplementationOnce(async () => "link" as any);
+    autoSaveIncomingMedia(message("ImageMessage", "https://m.example.com/by-link.jpg"), ME);
+    autoSaveIncomingMedia(message("ImageMessage", "https://m.example.com/second.jpg"), ME);
+
+    await vi.advanceTimersByTimeAsync(600);
+    expect(
+      downloadFile.mock.calls.map((call) => call[0]),
+      "the next save started before the browser had time to start the link download",
+    ).not.toContain("https://m.example.com/second.jpg");
+
+    await flush();
+    expect(
+      downloadFile.mock.calls.map((call) => call[0]),
+      "the save after a link download never started",
+    ).toContain("https://m.example.com/second.jpg");
+  });
+
+  it("saves nothing while the browser asks to save data (Data Saver)", async () => {
+    Object.defineProperty(navigator, "connection", {
+      value: { saveData: true },
+      configurable: true,
+    });
+    autoSaveIncomingMedia(message("VideoMessage", "https://m.example.com/big.mp4"), ME);
+    await flush();
+    expect(downloadFile, "a video was saved while Data Saver is on").not.toHaveBeenCalled();
+  });
+});
