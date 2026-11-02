@@ -590,7 +590,7 @@ export function ScreenPage({
   usePageColor(bg);
   const visual = useVisualHeight(scrollBody);
   const head = React.useRef<HTMLDivElement>(null);
-  const [headHidden, showHead] = useHideOnScroll(hideHeadOnScroll && !scrollBody, head);
+  const showHead = useHideOnScroll(hideHeadOnScroll && !scrollBody, head);
   return (
     <div
       data-pw={testId}
@@ -625,17 +625,32 @@ export function ScreenPage({
             <div
               ref={head}
               data-pw="demo1-head"
-              data-hidden={headHidden || undefined}
+              className="relative"
+              // `transform`, `opacity` and `transition` are not here:
+              // useHideOnScroll sets them on every frame of a scroll.
               style={{
                 width: scrollBody ? "100%" : COLUMN_W,
                 paddingTop: SAFE_TOP,
                 background: C.white,
-                transform: headHidden ? "translateY(-100%)" : "translateY(0)",
-                transition: headHidden ? HEAD_HIDE : HEAD_SHOW,
               }}
               // A key that moves the focus into a hidden head shows it.
               onFocusCapture={showHead}
             >
+              {/* A white strip from the head's top edge up under Safari's
+                  bar. Safari 26 draws the page under its bar, so without
+                  the strip the photos that scrolled past showed in a band
+                  above the white head. A child of the head, so it moves and
+                  fades with the head: when the head slides away, the page
+                  shows under the bar, the way a shop site does. Above the
+                  top of the window, so no other browser shows it. */}
+              {!scrollBody && (
+                <div
+                  aria-hidden
+                  data-pw="demo1-head-strip"
+                  className="absolute left-0 w-full pointer-events-none"
+                  style={{ bottom: "100%", height: UNDER_BAR, background: C.white }}
+                />
+              )}
               {header}
             </div>
           </div>
@@ -669,14 +684,60 @@ export function ScreenPage({
  * way, and comes back with "emphasized decelerate" in 300 ms, so it lands
  * softly.
  */
-const HEAD_HIDE = "transform 0.2s cubic-bezier(0.3, 0, 0.8, 0.15)";
-const HEAD_SHOW = "transform 0.3s cubic-bezier(0.05, 0.7, 0.1, 1)";
+const HEAD_HIDE = [
+  "transform 0.2s cubic-bezier(0.3, 0, 0.8, 0.15)",
+  "opacity 0.2s cubic-bezier(0.3, 0, 0.8, 0.15)",
+].join(", ");
+const HEAD_SHOW = [
+  "transform 0.3s cubic-bezier(0.05, 0.7, 0.1, 1)",
+  "opacity 0.3s cubic-bezier(0.05, 0.7, 0.1, 1)",
+].join(", ");
+/**
+ * While the finger moves, each frame's new place gets a short linear move.
+ * Scroll events come in steps of different sizes; this joins the steps into
+ * one smooth line, as the spring does for the tab bar.
+ */
+const HEAD_FOLLOW = "transform 0.1s linear, opacity 0.1s linear";
+
+/** The scroll (px) that takes the head from fully shown to fully hidden. */
+const HEAD_TRAVEL = 140;
+/** How far into the travel (0..1) the fade and the slide start. */
+const HEAD_FADE_FROM = 0.15;
+const HEAD_SLIDE_FROM = 0.4;
+/** A scroll that stops for this long (ms) has stopped. */
+const HEAD_SETTLE_MS = 140;
 
 /**
- * Hides a sticky head while the document scrolls down, and shows it again on
- * any scroll up, however short. Shop apps do this on a long list: the list
- * gets the whole screen, and the head is one small move away.
+ * How the head looks at `t` of its travel (0 shown, 1 hidden). First it only
+ * fades. Then it slides up while it fades out, and both end at 1 together.
+ */
+function headLook(t: number): { opacity: number; slide: number } {
+  const part = (from: number) => Math.min(1, Math.max(0, (t - from) / (1 - from)));
+  const round = (n: number) => Math.round(n * 1000) / 1000;
+  return { opacity: round(1 - part(HEAD_FADE_FROM)), slide: round(part(HEAD_SLIDE_FROM)) };
+}
+
+function paintHead(el: HTMLElement, t: number, transition: string) {
+  const { opacity, slide } = headLook(t);
+  el.style.transition = transition;
+  el.style.opacity = String(opacity);
+  el.style.transform = slide ? `translateY(-${Math.round(slide * 10000) / 100}%)` : "translateY(0)";
+  if (t === 1) el.dataset.hidden = "true";
+  else delete el.dataset.hidden;
+}
+
+/**
+ * Hides a sticky head step by step while the document scrolls down, and
+ * brings it back the same way on a scroll up, like the tab bar's shrink. Shop
+ * apps do this on a long list: the list gets the whole screen, and the head
+ * is one small move away.
  *
+ *  - The head follows the scroll: HEAD_TRAVEL px of scroll take it all the
+ *    way out (see headLook for the fade and the slide), and the same scroll
+ *    up brings it back.
+ *  - When the scroll stops halfway, the head finishes the move in the
+ *    direction of the last scroll. So any scroll up, however short, shows the
+ *    whole head once the finger stops, and the head never stays half faded.
  *  - The head stays while the page is still within the head's own height of
  *    its top, so it never leaves an empty band at the top.
  *  - The bounce past either end of the page (iOS) is not a scroll: a bounce
@@ -685,18 +746,24 @@ const HEAD_SHOW = "transform 0.3s cubic-bezier(0.05, 0.7, 0.1, 1)";
  *  - A screen that is sliding out keeps its head as it was: the new screen's
  *    scroll belongs to the new screen.
  *
- * Returns whether the head is hidden, and a function that shows it.
+ * The styles are set on the element, not through React state, so a scroll
+ * does not render the page again on every frame.
+ *
+ * Returns a function that shows the head.
  */
 function useHideOnScroll(
   on: boolean,
   head: React.RefObject<HTMLDivElement | null>,
-): [boolean, () => void] {
-  const [hidden, setHidden] = React.useState(false);
+): () => void {
+  const travelled = React.useRef(0);
   const present = useIsPresent();
   React.useEffect(() => {
-    if (!on || !present) return;
+    const el = head.current;
+    if (!on || !present || !el) return;
     let last = window.scrollY;
+    let down = false;
     let frame = 0;
+    let settle: ReturnType<typeof setTimeout> | undefined;
     const read = () => {
       frame = 0;
       const y = window.scrollY;
@@ -704,10 +771,24 @@ function useHideOnScroll(
       if (y < 0 || y > end) return;
       const dy = y - last;
       if (Math.abs(dy) < 1) return;
+      // On the way down, only the scroll past the head's own height counts.
+      const moved = dy > 0 ? Math.max(0, y - Math.max(last, el.offsetHeight)) : dy;
       last = y;
-      const room = head.current?.offsetHeight ?? 0;
-      if (y <= room || dy < 0) setHidden(false);
-      else setHidden(true);
+      down = dy > 0;
+      const t = Math.min(1, Math.max(0, travelled.current + moved / HEAD_TRAVEL));
+      if (t !== travelled.current) {
+        travelled.current = t;
+        paintHead(el, t, HEAD_FOLLOW);
+      }
+      clearTimeout(settle);
+      settle = setTimeout(() => {
+        const now = travelled.current;
+        // Before the fade starts the head looks fully shown: a short scroll
+        // that stops there must not send the whole head away.
+        if (now <= HEAD_FADE_FROM || now === 1) return;
+        travelled.current = down ? 1 : 0;
+        paintHead(el, travelled.current, down ? HEAD_HIDE : HEAD_SHOW);
+      }, HEAD_SETTLE_MS);
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(read);
@@ -716,9 +797,15 @@ function useHideOnScroll(
     return () => {
       window.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(frame);
+      clearTimeout(settle);
     };
   }, [on, present, head]);
-  return [on && hidden, () => setHidden(false)];
+  return () => {
+    const el = head.current;
+    if (!el || travelled.current === 0) return;
+    travelled.current = 0;
+    paintHead(el, 0, HEAD_SHOW);
+  };
 }
 
 /**

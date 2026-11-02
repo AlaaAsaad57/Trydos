@@ -754,7 +754,27 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     }
   });
 
-  it("hides the store page's header on a scroll down and shows it again on any scroll up", async () => {
+  it("puts a white strip above the header, under Safari's top bar, that moves with the header", () => {
+    // Safari 26 draws the page under its top bar. Without the strip, the
+    // photos that scrolled past showed in a band above the white header.
+    for (const screen of ["home", "store/zara"] as const) {
+      const { container, unmount } = openOn(screen);
+      const head = container.querySelector<HTMLElement>('[data-pw="demo1-head"]');
+      expect(head, `the "${screen}" screen has no header`).not.toBeNull();
+      const strip = head!.querySelector<HTMLElement>('[data-pw="demo1-head-strip"]');
+      expect(strip, `the header of the "${screen}" screen has no white strip above it`).not.toBeNull();
+      expect(
+        strip!.parentElement,
+        `the strip on the "${screen}" screen is not a direct child of the header, so it does not move and fade with it`,
+      ).toBe(head);
+      expect(strip!.style.bottom, `the strip on the "${screen}" screen does not start at the header's top edge`).toBe("100%");
+      expect(strip!.style.height, `the strip on the "${screen}" screen does not reach under Safari's whole top bar`).toBe(`${UNDER_BAR}px`);
+      expect(strip!.style.background, `the strip on the "${screen}" screen is not white like the header`).toBe(head!.style.background);
+      unmount();
+    }
+  });
+
+  it("fades and slides the store page's header out step by step on a scroll down, and brings it back on a scroll up", async () => {
     const tall = Object.getOwnPropertyDescriptor(Element.prototype, "scrollHeight");
     Object.defineProperty(document.documentElement, "scrollHeight", {
       configurable: true,
@@ -775,19 +795,40 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
         head!.style.transform,
         "the header stays on screen after a scroll down of 400 px",
       ).toBe("translateY(-100%)");
+      expect(head!.style.opacity, "the header is not faded out after a scroll down of 400 px").toBe("0");
       await scrollTo(398);
       expect(
         head!.style.transform,
-        "the header does not come back after a short scroll up of 2 px",
-      ).toBe("translateY(0)");
-      await scrollTo(800);
-      expect(head!.style.transform, "the header does not hide again on the next scroll down").toBe(
+        "the header jumps back at once on a short scroll up of 2 px, instead of following the scroll",
+      ).not.toBe("translateY(0)");
+      await waitFor(() =>
+        expect(
+          head!.style.transform,
+          "the header does not come back once a short scroll up of 2 px stops",
+        ).toBe("translateY(0)"),
+      );
+      expect(head!.style.opacity, "the header comes back but stays faded").toBe("1");
+      await scrollTo(470);
+      const half = Number(head!.style.opacity);
+      expect(
+        half > 0 && half < 1,
+        `the header is not half faded in the middle of a scroll down (opacity ${head!.style.opacity})`,
+      ).toBe(true);
+      expect(
+        head!.style.transform,
+        "the header is not part of the way up in the middle of a scroll down",
+      ).toMatch(/^translateY\(-\d+(\.\d+)?%\)$/);
+      expect(head!.style.transform, "the header is already all the way up in the middle of a scroll down").not.toBe(
         "translateY(-100%)",
       );
-      expect(
-        head!.style.transition,
-        "the header jumps away instead of moving out",
-      ).toContain("transform");
+      await waitFor(() =>
+        expect(
+          head!.style.transform,
+          "the header stops halfway when a scroll down stops, instead of finishing the move out",
+        ).toBe("translateY(-100%)"),
+      );
+      expect(head!.style.transition, "the header jumps out instead of moving out").toContain("transform");
+      expect(head!.style.transition, "the header's fade jumps instead of moving with the slide").toContain("opacity");
     } finally {
       if (tall) Object.defineProperty(document.documentElement, "scrollHeight", tall);
       else delete (document.documentElement as unknown as Record<string, unknown>).scrollHeight;
