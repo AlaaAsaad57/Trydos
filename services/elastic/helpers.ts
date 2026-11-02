@@ -2954,6 +2954,7 @@ export async function logSearchTerm({
           user_id: userId,
           ip,
           user_agent: userAgent,
+          "user-agent": userAgent,
           products_count: productsCount,
           results_count: productsCount,
           timestamp: formattedDate,
