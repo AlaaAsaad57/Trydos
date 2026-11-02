@@ -754,85 +754,153 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     }
   });
 
-  it("puts a white strip above the header, under Safari's top bar, that moves with the header", () => {
-    // Safari 26 draws the page under its top bar. Without the strip, the
-    // photos that scrolled past showed in a band above the white header.
-    for (const screen of ["home", "store/zara"] as const) {
-      const { container, unmount } = openOn(screen);
-      const head = container.querySelector<HTMLElement>('[data-pw="demo1-head"]');
-      expect(head, `the "${screen}" screen has no header`).not.toBeNull();
-      const strip = head!.querySelector<HTMLElement>('[data-pw="demo1-head-strip"]');
-      expect(strip, `the header of the "${screen}" screen has no white strip above it`).not.toBeNull();
-      expect(
-        strip!.parentElement,
-        `the strip on the "${screen}" screen is not a direct child of the header, so it does not move and fade with it`,
-      ).toBe(head);
-      expect(strip!.style.bottom, `the strip on the "${screen}" screen does not start at the header's top edge`).toBe("100%");
-      expect(strip!.style.height, `the strip on the "${screen}" screen does not reach under Safari's whole top bar`).toBe(`${UNDER_BAR}px`);
-      expect(strip!.style.background, `the strip on the "${screen}" screen is not white like the header`).toBe(head!.style.background);
-      unmount();
-    }
-  });
-
-  it("fades and slides the store page's header out step by step on a scroll down, and brings it back on a scroll up", async () => {
+  /**
+   * Runs `body` on a phone-width window: the top strip is only put on a touch
+   * device (on a desktop it showed as a band across the whole window).
+   */
+  const onAPhone = async (body: () => Promise<void> | void) => {
+    const wide = Object.getOwnPropertyDescriptor(window, "innerWidth");
     const tall = Object.getOwnPropertyDescriptor(Element.prototype, "scrollHeight");
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 390 });
     Object.defineProperty(document.documentElement, "scrollHeight", {
       configurable: true,
       get: () => 5000,
     });
     try {
+      await body();
+    } finally {
+      if (wide) Object.defineProperty(window, "innerWidth", wide);
+      if (tall) Object.defineProperty(document.documentElement, "scrollHeight", tall);
+      else delete (document.documentElement as unknown as Record<string, unknown>).scrollHeight;
+    }
+  };
+  const topStrip = () =>
+    document.body.querySelector<HTMLElement>('[data-pw="demo-top-tint"]');
+  const WHITE = /^rgba?\(255, 255, 255(, 1)?\)$/;
+
+  it("paints Safari's top bar white while a screen's header is shown, so no page shows above the header", async () => {
+    // Seen on the iPhone: Safari 26 draws the page under its top bar, and
+    // the header starts under that bar, so photos showed in a band above the
+    // white header. A box above the top of the page is cut off by Safari, so
+    // the demo's own top strip (topTint.ts) carries the header's white.
+    await onAPhone(async () => {
+      for (const screen of ["home", "store/zara"] as const) {
+        const { unmount } = openOn(screen);
+        await waitFor(() =>
+          expect(topStrip(), `the "${screen}" screen put no strip at the top for Safari to read`).not.toBeNull(),
+        );
+        expect(
+          topStrip()!.style.visibility,
+          `the top strip is hidden while the header of the "${screen}" screen is shown`,
+        ).toBe("visible");
+        expect(
+          topStrip()!.style.backgroundColor,
+          `the top strip is not the white of the header on the "${screen}" screen`,
+        ).toMatch(WHITE);
+        unmount();
+        expect(
+          topStrip()!.style.visibility,
+          `the top strip stays white after the "${screen}" screen is closed`,
+        ).toBe("hidden");
+      }
+    });
+  });
+
+  it("hides and shows the store page's header the way the Facebook app on the iPhone does", async () => {
+    // Measured frame by frame in a screen recording of the Facebook app
+    // (60 fps): the bar moves out 1:1 with a scroll down and fades between
+    // 10 px and 30 px; it comes back after a short scroll up, on a timer of
+    // its own (a fade in and an 8 px slide down), whatever the scroll speed.
+    await onAPhone(async () => {
       const { container } = openOn("store/zara");
       const head = container.querySelector<HTMLElement>('[data-pw="demo1-head"]');
       expect(head, "the store page has no header").not.toBeNull();
+      Object.defineProperty(head!, "offsetHeight", { configurable: true, value: 50 });
       const scrollTo = async (y: number) => {
         scrollY = y;
         fireEvent.scroll(window);
         // The page reads the scroll on the next frame.
         await act(() => new Promise((done) => requestAnimationFrame(() => done(null))));
       };
-      await scrollTo(400);
-      expect(
-        head!.style.transform,
-        "the header stays on screen after a scroll down of 400 px",
-      ).toBe("translateY(-100%)");
-      expect(head!.style.opacity, "the header is not faded out after a scroll down of 400 px").toBe("0");
-      await scrollTo(398);
-      expect(
-        head!.style.transform,
-        "the header jumps back at once on a short scroll up of 2 px, instead of following the scroll",
-      ).not.toBe("translateY(0)");
-      await waitFor(() =>
-        expect(
-          head!.style.transform,
-          "the header does not come back once a short scroll up of 2 px stops",
-        ).toBe("translateY(0)"),
+      const finger = (down: boolean) => fireEvent(document, new Event(down ? "touchstart" : "touchend"));
+      const seen: number[] = [];
+      new MutationObserver(() => seen.push(Number(head!.style.opacity))).observe(head!, {
+        attributes: true,
+        attributeFilter: ["style"],
+      });
+
+      finger(true);
+      await scrollTo(5);
+      expect(head!.style.transform, "the header did not move up 5 px with a scroll down of 5 px").toBe(
+        "translateY(-5px)",
       );
-      expect(head!.style.opacity, "the header comes back but stays faded").toBe("1");
-      await scrollTo(470);
-      const half = Number(head!.style.opacity);
+      expect(head!.style.opacity, "the header faded before 10 px of scroll").toBe("1");
+      await scrollTo(20);
+      expect(head!.style.transform, "the header did not move up 20 px with a scroll down of 20 px").toBe(
+        "translateY(-20px)",
+      );
+      expect(head!.style.opacity, "the header is not half faded at 20 px, halfway from 10 px to 30 px").toBe("0.5");
       expect(
-        half > 0 && half < 1,
-        `the header is not half faded in the middle of a scroll down (opacity ${head!.style.opacity})`,
+        topStrip()!.style.backgroundColor,
+        "Safari's top bar did not fade with the header",
+      ).toBe("rgba(255, 255, 255, 0.5)");
+      await scrollTo(400);
+      expect(head!.style.transform, "the header is not out after a long scroll down").toBe("translateY(-100%)");
+      expect(
+        topStrip()!.style.visibility,
+        "Safari's top bar stays white after the header left, so the page does not show under it",
+      ).toBe("hidden");
+
+      await scrollTo(370);
+      await scrollTo(380);
+      await scrollTo(340);
+      expect(
+        head!.style.transform,
+        "the header came back before a scroll up of 50 px (30 px, then 40 px after a scroll down)",
+      ).toBe("translateY(-100%)");
+      seen.length = 0;
+      await scrollTo(320);
+      await waitFor(() =>
+        expect(head!.style.transform, "the header did not come back after a scroll up of 60 px").toBe(
+          "translateY(0)",
+        ),
+      );
+      expect(head!.style.opacity, "the header came back but stays faded").toBe("1");
+      expect(
+        seen.some((o) => o > 0 && o < 1),
+        `the header jumped back instead of fading in (opacities seen: ${seen.join(", ")})`,
       ).toBe(true);
       expect(
-        head!.style.transform,
-        "the header is not part of the way up in the middle of a scroll down",
-      ).toMatch(/^translateY\(-\d+(\.\d+)?%\)$/);
-      expect(head!.style.transform, "the header is already all the way up in the middle of a scroll down").not.toBe(
-        "translateY(-100%)",
+        topStrip()!.style.backgroundColor,
+        "Safari's top bar did not turn white again with the header",
+      ).toMatch(WHITE);
+
+      await scrollTo(332);
+      expect(head!.style.transform, "the header did not move up 12 px with a scroll down of 12 px").toBe(
+        "translateY(-12px)",
       );
+      await new Promise((done) => setTimeout(done, 300));
+      expect(head!.style.transform, "the header snapped while the finger was still on the screen").toBe(
+        "translateY(-12px)",
+      );
+      finger(false);
       await waitFor(() =>
         expect(
           head!.style.transform,
-          "the header stops halfway when a scroll down stops, instead of finishing the move out",
+          "a header 12 px out (under half of 30 px) did not snap back in when the finger lifted",
+        ).toBe("translateY(0)"),
+      );
+      finger(true);
+      await scrollTo(357);
+      expect(head!.style.opacity, "the header is not mostly faded 25 px into a scroll down").toBe("0.25");
+      finger(false);
+      await waitFor(() =>
+        expect(
+          head!.style.transform,
+          "a header 25 px out (over half of 30 px) did not snap out when the finger lifted",
         ).toBe("translateY(-100%)"),
       );
-      expect(head!.style.transition, "the header jumps out instead of moving out").toContain("transform");
-      expect(head!.style.transition, "the header's fade jumps instead of moving with the slide").toContain("opacity");
-    } finally {
-      if (tall) Object.defineProperty(document.documentElement, "scrollHeight", tall);
-      else delete (document.documentElement as unknown as Record<string, unknown>).scrollHeight;
-    }
+    });
   });
 
   it("flips a card's labels over like a card when it has more than one, and keeps a single label still", () => {
