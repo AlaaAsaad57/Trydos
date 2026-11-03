@@ -608,8 +608,16 @@ const SLIDE_IN_VIEW = 0.9;
  * stuck: a long, fast swipe still moved one tile. With `free` (Embla's
  * `dragFree`), the row keeps the swipe's speed, slows down, and stops where it
  * stops, as a native list does. The mouse drag on a PC works the same way.
+ *
+ * `hint: false` turns off the hint, and `autoSlide: false` the auto slide,
+ * for a row that should only move when the person moves it (the product
+ * page's photos, reviews and questions).
  */
-export function useSlider({ free = false }: { free?: boolean } = {}) {
+export function useSlider({
+  free = false,
+  hint: withHint = true,
+  autoSlide = true,
+}: { free?: boolean; hint?: boolean; autoSlide?: boolean } = {}) {
   // One plugin for the life of the slider (a lazy state, not read from a ref
   // during render).
   const [autoplay] = useState(() =>
@@ -649,7 +657,8 @@ export function useSlider({ free = false }: { free?: boolean } = {}) {
   useEffect(() => {
     if (!api) return;
     const plugin = autoplay;
-    let done = false;
+    // A slider with no hint counts as one whose hint already ran.
+    let done = !withHint;
     let wait: ReturnType<typeof setTimeout> | undefined;
     let hint: AnimationPlaybackControls | null = null;
 
@@ -690,7 +699,7 @@ export function useSlider({ free = false }: { free?: boolean } = {}) {
     const watch = new IntersectionObserver(
       ([entry]) => {
         const shown = entry.intersectionRatio;
-        if (shown >= SLIDE_IN_VIEW) plugin.play();
+        if (autoSlide && shown >= SLIDE_IN_VIEW) plugin.play();
         else plugin.stop();
         if (shown < HINT_IN_VIEW) {
           cancel();
@@ -716,7 +725,7 @@ export function useSlider({ free = false }: { free?: boolean } = {}) {
       clearTimeout(wait);
       hint?.stop();
     };
-  }, [api, nudge, autoplay]);
+  }, [api, nudge, autoplay, withHint, autoSlide]);
 
   const pick = (i: number) => {
     if (!api) return;

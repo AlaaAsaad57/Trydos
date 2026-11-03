@@ -2005,55 +2005,7 @@ describe("Demo1 product page — likes and the rows of cards (XD `Home Page – 
     expect(first.getAttribute("aria-pressed"), "a second tap did not take the review's like back").toBe("false");
   });
 
-  it("makes the reviews and the questions rows stop on a card, 14 px from the edge, so no card is left cut in half", async () => {
-    const { container } = await openProduct();
-    for (const name of ["reviews", "questions"]) {
-      const row = container.querySelector<HTMLElement>(`[data-pw="demo-product-${name}"]`)!;
-      expect(row.style.scrollSnapType, `the ${name} row does not snap to its cards`).toBe("x mandatory");
-      expect(row.style.scrollPaddingInline, `the ${name} row does not stop its cards 14 px from the edge`).toBe("14px");
-      expect(row.className, `the ${name} row's cards have no snap point at their start`).toContain("[&>*]:[scroll-snap-align:start]");
-    }
-  });
-
-  it("lets a mouse drag the reviews row to the next card, and a drag does not like a card", async () => {
-    const { container } = await openProduct();
-    const row = container.querySelector<HTMLElement>('[data-pw="demo-product-reviews"]')!;
-    // jsdom does no layout: two cards, 386 wide and 4 apart, in a 430 px row with 14 px padding.
-    Object.defineProperty(row, "clientWidth", { configurable: true, value: 430 });
-    Object.defineProperty(row, "scrollWidth", { configurable: true, value: 804 });
-    [...row.children].forEach((card, i) =>
-      Object.defineProperty(card, "offsetLeft", { configurable: true, value: 14 + i * 390 }),
-    );
-    row.style.paddingLeft = "14px";
-    row.setPointerCapture = vi.fn();
-    row.hasPointerCapture = vi.fn(() => true);
-    row.releasePointerCapture = vi.fn();
-    const slide = vi.fn();
-    row.scrollTo = slide as unknown as typeof row.scrollTo;
-    const like = row.querySelector('[data-pw="demo-product-card-like"]')!;
-
-    const mouse = { pointerType: "mouse", pointerId: 1, button: 0 };
-    fireEvent.pointerDown(like, { ...mouse, clientX: 300 });
-    for (let x = 290; x >= 100; x -= 10) fireEvent.pointerMove(like, { ...mouse, clientX: x });
-    expect(row.scrollLeft, "the reviews row did not follow the mouse: 200 px left should scroll it 200 px").toBe(200);
-    expect(row.style.scrollSnapType, "the row's snap stays on during the drag and pulls the row back").toBe("none");
-    fireEvent.pointerUp(like, { ...mouse, clientX: 100 });
-    fireEvent.click(like);
-
-    expect(slide, "the row did not slide to a card when the mouse let go").toHaveBeenCalled();
-    expect(slide.mock.calls.at(-1)?.[0], "the row did not slide to the second card (374 px, the end of the row)").toEqual({
-      left: 374,
-      behavior: "smooth",
-    });
-    expect(like.getAttribute("aria-pressed"), "the click after a drag liked the card under the mouse").toBe("false");
-    fireEvent(row, new Event("scrollend"));
-    expect(row.style.scrollSnapType, "the row's snap did not come back after the slide").toBe("x mandatory");
-
-    fireEvent.click(like);
-    expect(like.getAttribute("aria-pressed"), "a mouse click with no drag did not like the card").toBe("true");
-  });
-
-  it("gives the label rows and the reviews and questions rows no slider hint, and keeps it on the photos and the colours", async () => {
+  it("gives the label rows and the reviews and questions rows no slider hint, and keeps it on the colours", async () => {
     const { container } = await openProduct();
     const HINT = "--row-hint";
     for (const name of ["rating", "trust", "badges", "shipping-pills", "reviews", "questions"]) {
@@ -2061,40 +2013,24 @@ describe("Demo1 product page — likes and the rows of cards (XD `Home Page – 
       expect(row, `the product page has no ${name} row`).not.toBeNull();
       expect(row!.className, `the ${name} row still moves its items for the slider hint`).not.toContain(HINT);
     }
-    for (const name of ["gallery", "colors"]) {
-      const row = container.querySelector<HTMLElement>(`[data-pw="demo-product-${name}"]`);
-      expect(row?.className, `the ${name} row lost its slider hint`).toContain(HINT);
-    }
+    expect(
+      container.querySelector<HTMLElement>('[data-pw="demo-product-colors"]')?.className,
+      "the colours row lost its slider hint",
+    ).toContain(HINT);
   });
 
-  it("lets a mouse drag the photo gallery to the next photo on a PC", async () => {
+  it("makes the photo gallery and the reviews and questions rows the same slider as the store's category row", async () => {
     const { container } = await openProduct();
-    const row = container.querySelector<HTMLElement>('[data-pw="demo-product-gallery"]')!;
-    expect(row, "the product page has no photo gallery").not.toBeNull();
-    // jsdom does no layout: photos 300 wide and 2 apart, in a 430 px row.
-    const photos = [...row.children];
-    expect(photos.length, "the gallery needs at least 3 photos for this test").toBeGreaterThan(2);
-    Object.defineProperty(row, "clientWidth", { configurable: true, value: 430 });
-    Object.defineProperty(row, "scrollWidth", { configurable: true, value: photos.length * 302 - 2 });
-    photos.forEach((photo, i) => Object.defineProperty(photo, "offsetLeft", { configurable: true, value: i * 302 }));
-    row.setPointerCapture = vi.fn();
-    row.hasPointerCapture = vi.fn(() => true);
-    row.releasePointerCapture = vi.fn();
-    const slide = vi.fn();
-    row.scrollTo = slide as unknown as typeof row.scrollTo;
-    const photo = photos[0];
-
-    const mouse = { pointerType: "mouse", pointerId: 1, button: 0 };
-    fireEvent.pointerDown(photo, { ...mouse, clientX: 300 });
-    for (let x = 290; x >= 100; x -= 10) fireEvent.pointerMove(photo, { ...mouse, clientX: x });
-    expect(row.scrollLeft, "the gallery did not follow the mouse: 200 px left should scroll it 200 px").toBe(200);
-    // jsdom sends the moves within microseconds, which reads as a very fast
-    // flick. The mouse rests first, so the release has no speed left.
-    await new Promise((done) => setTimeout(done, 100));
-    fireEvent.pointerUp(photo, { ...mouse, clientX: 100 });
-    expect(slide.mock.calls.at(-1)?.[0], "the gallery did not slide to the second photo (302 px)").toEqual({
-      left: 302,
-      behavior: "smooth",
-    });
+    for (const name of ["gallery", "reviews", "questions"]) {
+      const row = container.querySelector<HTMLElement>(`[data-pw="demo-product-${name}"]`);
+      expect(row, `the product page has no ${name} row`).not.toBeNull();
+      const options = sliderOptions.get(row!);
+      expect(options, `the ${name} row is not moved by the slider (Embla), as the store's category row is`).toBeDefined();
+      expect(options!.dragFree, `the ${name} row stops on each item; it should scroll freely like the category row`).toBe(true);
+      expect(
+        row!.style.touchAction,
+        `the ${name} row takes the up-and-down touch too, so the page cannot scroll over it`,
+      ).toBe("pan-y pinch-zoom");
+    }
   });
 });

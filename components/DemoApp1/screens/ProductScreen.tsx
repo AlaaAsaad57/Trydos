@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import type { DemoKey } from "../../DemoApp/demoKeys";
@@ -29,7 +30,7 @@ import { ScreenPage, Stroke } from "../ui";
 import { PhotoGlow, StoreMark, Weighted, type T } from "./ListingParts";
 import { useSettled } from "./useSettled";
 import { ROW_HINT_CLASS, useRowHint } from "./useRowHint";
-import { useDragScroll } from "./useDragScroll";
+import { useSlider } from "./HomeSections";
 import { LikeHeart, useLike } from "./LikeHeart";
 
 /**
@@ -279,57 +280,58 @@ function Gallery({
   t: T;
 }) {
   const { w, h } = GALLERY_PHOTO;
-  const hint = useRowHint<HTMLUListElement>();
-  // A mouse drags the photos on a PC, as a finger does on a phone.
-  const drag = useDragScroll<HTMLUListElement>();
+  // The same slider as the store page's category row: a finger and a mouse
+  // both drag it, and a swipe scrolls freely. It shows the one-time hint, but
+  // never slides by itself.
+  const { viewportRef, nudge, pick } = useSlider({ free: true, autoSlide: false });
+  const colour = photos.join();
+  // A new colour starts at its first photo. Embla sees the new photos itself.
+  useEffect(() => {
+    pick(0);
+  }, [colour]);
   return (
     <div className="relative w-full shrink-0" style={{ marginTop: 102 - HEADER_BOTTOM, height: h }}>
-      {/* A new colour is a new row, at its first photo. */}
-      <ul
-        key={photos.join()}
-        ref={(el) => {
-          hint(el);
-          drag(el);
-        }}
+      <div
+        ref={viewportRef}
         data-pw="demo-product-gallery"
-        aria-label={t("Photos")}
-        // `relative`: the drag measures each photo from the row (useDragScroll).
-        className={`${HINT_ROW_SCROLL} relative h-full p-0 list-none [@media(pointer:fine)]:cursor-grab`}
-        style={{ gap: 2, scrollSnapType: "x mandatory", overscrollBehaviorX: "contain" }}
+        className={`h-full overflow-hidden ${GRAB}`}
+        // The page still scrolls up and down over the photos.
+        style={{ touchAction: "pan-y pinch-zoom" }}
       >
-        {photos.map((src, i) => {
-          const last = i === photos.length - 1;
-          return (
-            <li
-              key={src}
-              className="relative shrink-0 overflow-hidden"
-              style={{
-                width: w,
-                height: h,
-                scrollSnapAlign: "start",
-                borderRadius: last ? "0 15px 15px 0" : undefined,
-              }}
-            >
-              <img
-                src={src}
-                srcSet={gallerySrcSet(src)}
-                sizes={`${w}px`}
-                // The other photos show the same product; one name is enough.
-                alt={i === 0 ? alt : ""}
-                width={w}
-                height={h}
-                draggable={false}
-                loading={i < 2 ? "eager" : "lazy"}
-                fetchPriority={i === 0 ? "high" : undefined}
-                decoding="async"
-                className="block w-full h-full object-cover select-none"
-              />
-              <PhotoGlow />
-              {last ? <LastPhotoLine /> : <Stroke color={C.line} width={0.3} />}
-            </li>
-          );
-        })}
-      </ul>
+        <ul aria-label={t("Photos")} className="flex h-full m-0 p-0 list-none" style={{ gap: 2 }}>
+          {photos.map((src, i) => {
+            const last = i === photos.length - 1;
+            return (
+              <li key={src} className="relative shrink-0" style={{ width: w, height: h }}>
+                {/* The hint moves this part, so the photo, its glow and its
+                    line move together. The <li> does not cut off its insides,
+                    or each photo would show a white gap during the hint. */}
+                <motion.div
+                  className="relative w-full h-full overflow-hidden"
+                  style={{ x: nudge, borderRadius: last ? "0 15px 15px 0" : undefined }}
+                >
+                  <img
+                    src={src}
+                    srcSet={gallerySrcSet(src)}
+                    sizes={`${w}px`}
+                    // The other photos show the same product; one name is enough.
+                    alt={i === 0 ? alt : ""}
+                    width={w}
+                    height={h}
+                    draggable={false}
+                    loading={i < 2 ? "eager" : "lazy"}
+                    fetchPriority={i === 0 ? "high" : undefined}
+                    decoding="async"
+                    className="block w-full h-full object-cover select-none"
+                  />
+                  <PhotoGlow />
+                  {last ? <LastPhotoLine /> : <Stroke color={C.line} width={0.3} />}
+                </motion.div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
       <VideoCard poster={videoPosterOf(photos)} t={t} />
     </div>
   );
@@ -428,12 +430,7 @@ function Pill({
 
 /**
  * A row that scrolls sideways: the file's first item at x `left`, the same
- * room at the end.
- *
- * A row of `cards` (the reviews and the questions) also stops on a card: a
- * swipe never leaves a card cut in half at the left edge (CSS snap, each card
- * at `left` px from the edge). And a mouse can drag it (useDragScroll), since
- * on a PC the row has no scroll bar and the wheel scrolls the page.
+ * room at the end. The browser's own scroll moves it.
  */
 function SideRow({
   left,
@@ -442,7 +439,6 @@ function SideRow({
   h,
   label,
   testId,
-  cards = false,
   children,
 }: {
   left: number;
@@ -451,27 +447,65 @@ function SideRow({
   h: number;
   label?: string;
   testId?: string;
-  cards?: boolean;
   children: React.ReactNode;
 }) {
-  const drag = useDragScroll<HTMLUListElement>();
   return (
     <ul
-      ref={cards ? drag : undefined}
       aria-label={label}
       data-pw={testId}
-      className={`${ROW_SCROLL} shrink-0 list-none ${cards ? "relative [&>*]:[scroll-snap-align:start] [@media(pointer:fine)]:cursor-grab" : ""}`}
-      style={{
-        marginTop: mt,
-        height: h,
-        gap,
-        padding: `0 ${left}px`,
-        overscrollBehaviorX: "contain",
-        ...(cards ? { scrollSnapType: "x mandatory", scrollPaddingInline: left } : null),
-      }}
+      className={`${ROW_SCROLL} shrink-0 list-none`}
+      style={{ marginTop: mt, height: h, gap, padding: `0 ${left}px`, overscrollBehaviorX: "contain" }}
     >
       {children}
     </ul>
+  );
+}
+
+/** A grab hand on a PC, where a mouse drags the row. A finger shows no cursor. */
+const GRAB = "[@media(pointer:fine)]:cursor-grab [@media(pointer:fine)]:active:cursor-grabbing";
+
+/**
+ * The row of review or question cards: the same slider as the store page's
+ * category row (useSlider, Embla). A finger and a mouse both drag it, a swipe
+ * scrolls freely, and a drag never likes a card (Embla drops the click after
+ * a drag). No hint and no auto slide: the row moves only when the person
+ * moves it.
+ *
+ * The first card is `left` px in (the list's left padding). Embla reads the
+ * room at the end from the last card's right margin, not from the list's
+ * right padding, so the last card has the margin.
+ */
+function CardRow({
+  left,
+  gap,
+  mt,
+  h,
+  testId,
+  children,
+}: {
+  left: number;
+  gap: number;
+  mt: number;
+  h: number;
+  testId: string;
+  children: React.ReactNode;
+}) {
+  const { viewportRef } = useSlider({ free: true, hint: false, autoSlide: false });
+  return (
+    <div
+      ref={viewportRef}
+      data-pw={testId}
+      className={`shrink-0 w-full overflow-hidden ${GRAB}`}
+      // The page still scrolls up and down over the row.
+      style={{ marginTop: mt, height: h, touchAction: "pan-y pinch-zoom" }}
+    >
+      <ul
+        className="flex h-full m-0 list-none [&>*:last-child]:[margin-right:var(--row-end)]"
+        style={{ gap, padding: `0 0 0 ${left}px`, "--row-end": `${left}px` } as React.CSSProperties}
+      >
+        {children}
+      </ul>
+    </div>
   );
 }
 
@@ -922,10 +956,10 @@ function Reviews({ t }: { t: T }) {
           );
         })}
       </div>
-      <SideRow left={14} gap={4} mt={1461 - 1447} h={111} testId="demo-product-reviews" cards>
+      <CardRow left={14} gap={4} mt={1461 - 1447} h={111} testId="demo-product-reviews">
         <ReviewCard ai t={t} />
         <ReviewCard ai={false} t={t} />
-      </SideRow>
+      </CardRow>
     </section>
   );
 }
@@ -1006,10 +1040,10 @@ function Questions({ store, t }: { store: DemoStore; t: T }) {
         </Chip>
         <HelpMark left={190 - 185} t={t} />
       </div>
-      <SideRow left={14} gap={4} mt={1771 - 1763} h={222} testId="demo-product-questions" cards>
+      <CardRow left={14} gap={4} mt={1771 - 1763} h={222} testId="demo-product-questions">
         <QuestionCard store={store} t={t} />
         <QuestionCard store={store} t={t} />
-      </SideRow>
+      </CardRow>
     </section>
   );
 }
