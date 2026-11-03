@@ -806,100 +806,183 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     });
   });
 
-  it("hides and shows the store page's header the way the Facebook app on the iPhone does", async () => {
-    // Measured frame by frame in a screen recording of the Facebook app
-    // (60 fps): the bar moves out 1:1 with a scroll down and fades between
-    // 10 px and 30 px; it comes back after a short scroll up, on a timer of
-    // its own (a fade in and an 8 px slide down), whatever the scroll speed.
-    await onAPhone(async () => {
-      const { container } = openOn("store/zara");
-      const head = container.querySelector<HTMLElement>('[data-pw="demo1-head"]');
-      expect(head, "the store page has no header").not.toBeNull();
-      Object.defineProperty(head!, "offsetHeight", { configurable: true, value: 50 });
-      const scrollTo = async (y: number) => {
-        scrollY = y;
-        fireEvent.scroll(window);
-        // The page reads the scroll on the next frame.
-        await act(() => new Promise((done) => requestAnimationFrame(() => done(null))));
-      };
-      const finger = (down: boolean) => fireEvent(document, new Event(down ? "touchstart" : "touchend"));
-      const seen: number[] = [];
-      new MutationObserver(() => seen.push(Number(head!.style.opacity))).observe(head!, {
+  /**
+   * Opens the store page on a phone, with a clock the test moves: each scroll
+   * step is one frame (about 17 ms) later than the one before.
+   */
+  const onTheStorePage = async (
+    body: (page: {
+      container: HTMLElement;
+      head: HTMLElement;
+      /** Scrolls the window to `y` one frame later, and waits for the page to read it. */
+      scrollTo: (y: number) => Promise<void>;
+      finger: (down: boolean) => void;
+    }) => Promise<void>,
+  ) => {
+    let clock = 1000;
+    const now = vi.spyOn(performance, "now").mockImplementation(() => clock);
+    try {
+      await onAPhone(async () => {
+        const { container } = openOn("store/zara");
+        const head = container.querySelector<HTMLElement>('[data-pw="demo1-head"]');
+        expect(head, "the store page has no header").not.toBeNull();
+        Object.defineProperty(head!, "offsetHeight", { configurable: true, value: 50 });
+        await body({
+          container,
+          head: head!,
+          scrollTo: async (y) => {
+            clock += 17;
+            scrollY = y;
+            fireEvent.scroll(window);
+            // The page reads the scroll on the next frame.
+            await act(() => new Promise((done) => requestAnimationFrame(() => done(null))));
+          },
+          finger: (down) => fireEvent(document, new Event(down ? "touchstart" : "touchend")),
+        });
+      });
+    } finally {
+      now.mockRestore();
+    }
+  };
+
+  it("lets the page itself carry the store page's header out on a scroll down, so the header cannot shake", async () => {
+    // Seen on the iPhone: the header shook while it moved out. A script set
+    // its place on each frame, but Safari scrolls the page on a thread of its
+    // own, so the place a script sets is always a frame behind the page. Now
+    // the header's sticky box ends where the scroll down began, and Safari
+    // itself carries the header out, 1:1 with the page, the way the Facebook
+    // app does (measured in its recording: out 1:1, faded from 10 px to 30 px).
+    await onTheStorePage(async ({ container, head, scrollTo, finger }) => {
+      const strip: string[] = [];
+      new MutationObserver(() => strip.push(topStrip()!.style.backgroundColor)).observe(topStrip()!, {
         attributes: true,
         attributeFilter: ["style"],
       });
+      const before = head.style.transform;
 
       finger(true);
       await scrollTo(5);
-      expect(head!.style.transform, "the header did not move up 5 px with a scroll down of 5 px").toBe(
-        "translateY(-5px)",
-      );
-      expect(head!.style.opacity, "the header faded before 10 px of scroll").toBe("1");
+      expect(
+        head.style.transform,
+        "a script moved the header on a 5 px scroll down; a move set by script is a frame behind Safari's own scroll, so the header shakes",
+      ).toBe(before);
+      const limit = container.querySelector<HTMLElement>('[data-pw="demo1-head-limit"]');
+      expect(
+        limit?.style.height,
+        "the header's sticky box does not end where the scroll down began (0 px), so the page does not carry the header out",
+      ).toBe("0px");
+      expect(head.style.opacity, "the header faded before 10 px of scroll").toBe("1");
+
       await scrollTo(20);
-      expect(head!.style.transform, "the header did not move up 20 px with a scroll down of 20 px").toBe(
-        "translateY(-20px)",
-      );
-      expect(head!.style.opacity, "the header is not half faded at 20 px, halfway from 10 px to 30 px").toBe("0.5");
+      expect(head.style.transform, "a script moved the header on a 20 px scroll down").toBe(before);
+      expect(head.style.opacity, "the header is not half faded at 20 px, halfway from 10 px to 30 px").toBe("0.5");
       expect(
         topStrip()!.style.backgroundColor,
-        "Safari's top bar did not fade with the header",
-      ).toBe("rgba(255, 255, 255, 0.5)");
-      await scrollTo(400);
-      expect(head!.style.transform, "the header is not out after a long scroll down").toBe("translateY(-100%)");
+        "Safari's top bar is no longer white while the header is still half shown",
+      ).toMatch(WHITE);
+
+      await scrollTo(25);
+      expect(head.style.opacity, "the header is not mostly faded 25 px into a scroll down").toBe("0.25");
       expect(
         topStrip()!.style.visibility,
-        "Safari's top bar stays white after the header left, so the page does not show under it",
+        "Safari's top bar stays white while the header is mostly faded out",
       ).toBe("hidden");
+      expect(
+        strip.filter((color) => /rgba\(255, 255, 255, 0\.\d+\)/.test(color)),
+        "Safari's top bar was given a part-white colour on a frame of the fade, so Safari changes its bar on every frame",
+      ).toEqual([]);
 
-      await scrollTo(370);
-      await scrollTo(380);
-      await scrollTo(340);
+      await scrollTo(400);
+      expect(head.dataset.hidden, "the header is not out after a long scroll down").toBe("true");
+      expect(head.style.transform, "the hidden header is still in the screen").toBe("translateY(-100%)");
+    });
+  });
+
+  it("brings the store page's header back on a fast scroll up only, as the Facebook app does", async () => {
+    // Measured in the Facebook app's recording: a slow scroll up (3 to 10 px a
+    // frame, 250 to 300 px long) leaves the bar out; it comes back once the
+    // page moved up about 120 px within 100 ms, with a fade in (120 ms) and a
+    // short slide down (170 ms).
+    await onTheStorePage(async ({ container, head, scrollTo }) => {
+      await scrollTo(2000);
+      expect(head.dataset.hidden, "the header is not out after a long scroll down").toBe("true");
+
+      let y = 2000;
+      for (let i = 0; i < 50; i += 1) await scrollTo((y -= 6));
       expect(
-        head!.style.transform,
-        "the header came back before a scroll up of 50 px (30 px, then 40 px after a scroll down)",
-      ).toBe("translateY(-100%)");
-      seen.length = 0;
-      await scrollTo(320);
-      await waitFor(() =>
-        expect(head!.style.transform, "the header did not come back after a scroll up of 60 px").toBe(
-          "translateY(0)",
-        ),
+        head.dataset.hidden,
+        "a slow scroll up of 300 px (6 px a frame) brought the header back; the Facebook app keeps it out",
+      ).toBe("true");
+
+      await scrollTo((y -= 40));
+      await scrollTo((y -= 40));
+      expect(head.dataset.hidden, "the header came back on 80 px of a fast scroll up, before 120 px").toBe("true");
+      await scrollTo((y -= 40));
+      expect(head.dataset.hidden, "a fast scroll up (40 px a frame) did not bring the header back").toBeUndefined();
+      expect(head.style.transform, "the header did not slide back into the screen").toBe("translateY(0)");
+      expect(head.style.opacity, "the header came back but stays faded").toBe("1");
+      expect(head.style.transition, "the header jumped back instead of fading in over 120 ms").toContain(
+        "opacity 120ms",
       );
-      expect(head!.style.opacity, "the header came back but stays faded").toBe("1");
+      expect(head.style.transition, "the header jumped back instead of sliding down over 170 ms").toContain(
+        "transform 170ms",
+      );
       expect(
-        seen.some((o) => o > 0 && o < 1),
-        `the header jumped back instead of fading in (opacities seen: ${seen.join(", ")})`,
-      ).toBe(true);
+        container.querySelector<HTMLElement>('[data-pw="demo1-head-limit"]')?.style.height,
+        `the header's sticky box does not reach the place it came back at (${y} px), so the page carries it out again`,
+      ).toBe(`${y}px`);
       expect(
         topStrip()!.style.backgroundColor,
         "Safari's top bar did not turn white again with the header",
       ).toMatch(WHITE);
+    });
+  });
 
-      await scrollTo(332);
-      expect(head!.style.transform, "the header did not move up 12 px with a scroll down of 12 px").toBe(
-        "translateY(-12px)",
-      );
-      await new Promise((done) => setTimeout(done, 300));
-      expect(head!.style.transform, "the header snapped while the finger was still on the screen").toBe(
-        "translateY(-12px)",
-      );
-      finger(false);
-      await waitFor(() =>
-        expect(
-          head!.style.transform,
-          "a header 12 px out (under half of 30 px) did not snap back in when the finger lifted",
-        ).toBe("translateY(0)"),
-      );
+  it("brings the store page's header back near the top of the page at any speed", async () => {
+    await onTheStorePage(async ({ head, scrollTo }) => {
+      await scrollTo(400);
+      expect(head.dataset.hidden, "the header is not out after a long scroll down").toBe("true");
+      let y = 400;
+      while (y > 50) await scrollTo((y -= 6));
+      expect(
+        head.dataset.hidden,
+        "a slow scroll up to the header's height from the top of the page left the header out",
+      ).toBeUndefined();
+    });
+  });
+
+  it("moves a part-way header to the nearer end when the finger lifts, not before", async () => {
+    // Our own rule (the recording has no stop part-way): under half of 30 px
+    // it comes back, over half it goes out.
+    await onTheStorePage(async ({ container, head, scrollTo, finger }) => {
+      const limit = () =>
+        container.querySelector<HTMLElement>('[data-pw="demo1-head-limit"]')?.style.height;
       finger(true);
-      await scrollTo(357);
-      expect(head!.style.opacity, "the header is not mostly faded 25 px into a scroll down").toBe("0.25");
+      await scrollTo(12);
+      await new Promise((done) => setTimeout(done, 300));
+      expect(head.style.opacity, "the header snapped while the finger was still on the screen").toBe("0.9");
+      expect(limit(), "the header's sticky box moved while the finger was still on the screen").toBe("0px");
       finger(false);
       await waitFor(() =>
         expect(
-          head!.style.transform,
-          "a header 25 px out (over half of 30 px) did not snap out when the finger lifted",
+          limit(),
+          "a header 12 px out (under half of 30 px) did not go back to the top of the screen when the finger lifted",
+        ).toBe("12px"),
+      );
+      expect(head.style.opacity, "a header that snapped back in stays faded").toBe("1");
+      expect(head.style.transform, "a header that snapped back in is not at the top").toBe("translateY(0)");
+
+      finger(true);
+      await scrollTo(37);
+      expect(head.style.opacity, "the header is not mostly faded 25 px into a scroll down").toBe("0.25");
+      finger(false);
+      await waitFor(() =>
+        expect(
+          head.style.transform,
+          "a header 25 px out (over half of 30 px) did not go out when the finger lifted",
         ).toBe("translateY(-100%)"),
       );
+      expect(head.dataset.hidden, "a header that went out is not marked hidden").toBe("true");
     });
   });
 
