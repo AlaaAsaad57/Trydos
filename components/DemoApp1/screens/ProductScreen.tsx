@@ -1025,8 +1025,8 @@ export default function ProductScreen({ slug, id }: { slug: string; id: string }
       header={<Header store={store} t={t} />}
       scrollTop={HEADER_BOTTOM}
       contentHeight={BOARD_H}
-      // A long page: the header leaves on a scroll down and comes back on any
-      // scroll up, as on the store page.
+      // A long page: the header leaves on a scroll down and comes back on a
+      // fast scroll up, the same code as the store page (useHeadOnScroll).
       hideHeadOnScroll
     >
       <article className="flex flex-col w-full">

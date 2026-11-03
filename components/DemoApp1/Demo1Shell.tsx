@@ -31,6 +31,7 @@ import {
   direction,
   hrefFor,
   isTabRoot,
+  isProductScreen,
   isStoreScreen,
   opensFromCard,
   parentOf,
@@ -77,11 +78,11 @@ import DemoKeyboard from "./keyboard/DemoKeyboard";
  * screen) and keeps the scroll it had, so nothing jumps while it leaves. Each
  * screen's scroll is kept, so "back" opens the last one where it was left.
  *
- * A product's page: the card grows into the page
- * ----------------------------------------------
+ * A page opened from a card: the card grows into the page
+ * --------------------------------------------------------
  * (A store's page used to open this way from Home; it now slides — see
- * "Home and a store's page" below. The rest of this part names it "store",
- * and holds for a product's page from its card.)
+ * "Home, a store's page and a product's page" below. The rest of this part
+ * names it "store", and holds for a product's page from its card.)
  *
  * A page opened from a card does not slide. The tapped card grows
  * into the store's page, and "back" shrinks the page into the same card.
@@ -100,14 +101,17 @@ import DemoKeyboard from "./keyboard/DemoKeyboard";
  *  - Opened any other way (a link, the browser's forward), the page slides in
  *    like any other screen, because there is no card to grow from.
  *
- * A product's page opens the same way from its card on a store's page, and
- * shrinks back into that card (`opensFromCard` in demoRoutes.ts).
+ * (A product's page used to open this way from its card on a store's page
+ * too; it now slides, the same as a store's page from Home. The grow is
+ * kept for a store's or a product's page opened from a card on any other
+ * screen: `opensFromCard` in demoRoutes.ts.)
  *
- * Home and a store's page: one slide
- * ----------------------------------
- * Between Home and a store's page (both ways) the two screens move together
- * a full screen width, the way a Home slider moves one slide, with the same
- * speed and curve (sliderMove in demo1Layout.ts). Neither screen fades. With
+ * Home, a store's page and a product's page: one slide
+ * ----------------------------------------------------
+ * Between Home and a store's page, and between a store's page and a
+ * product's page on it (both ways), the two screens move together a full
+ * screen width, the way a Home slider moves one slide, with the same speed
+ * and curve (sliderMove in demo1Layout.ts). Neither screen fades. With
  * "reduce motion" on, the page only fades in and out.
  */
 
@@ -149,9 +153,9 @@ export function useDemoNav(): DemoNav {
 /**
  * What a change of screen needs: the way it goes and the scroll the old
  * screen had. `grow` and `shrink` are set for a store's page that grows out
- * of a card or shrinks back into it; `swipe` for a move between Home and a
- * store's page; `fade` replaces all three when the system asks for less
- * motion.
+ * of a card or shrinks back into it; `swipe` for a move that goes as one
+ * Home slide (slidesLikeHome); `fade` replaces all three when the system
+ * asks for less motion.
  */
 type Leave = {
   dir: 1 | -1;
@@ -162,10 +166,23 @@ type Leave = {
   fade?: boolean;
 };
 
-/** True for a move between Home and a store's page, either way: it moves as one Home slide. */
+/** True for a move between Home and a store's page, either way. */
+const homeAndStore = (a: DemoScreen | null, b: DemoScreen | null) =>
+  a === "home" && b !== null && isStoreScreen(b);
+
+/** True for a move between a store's page and one of its products' pages, either way. */
+const storeAndProduct = (a: DemoScreen | null, b: DemoScreen | null) =>
+  a !== null && b !== null && isStoreScreen(a) && isProductScreen(b) && b.startsWith(`${a}/`);
+
+/**
+ * True for a move that goes as one Home slide, either way: Home and a
+ * store's page, and a store's page and a product's page on it.
+ */
 const slidesLikeHome = (from: DemoScreen | null, to: DemoScreen | null) =>
-  (from === "home" && to !== null && isStoreScreen(to)) ||
-  (to === "home" && from !== null && isStoreScreen(from));
+  homeAndStore(from, to) ||
+  homeAndStore(to, from) ||
+  storeAndProduct(from, to) ||
+  storeAndProduct(to, from);
 
 /** The clip of a page cut to a card's box. `bottom` is the room under the box. */
 const cutTo = (o: Origin, bottom: string) =>
@@ -409,7 +426,8 @@ function Demo1ShellInner({
 
   const navigate = (to: DemoScreen, d?: 1 | -1, from?: Element | null) => {
     if (to === shown) return;
-    // Home and a store's page slide as one Home slide; nothing grows there.
+    // Home, a store's page and a product's page slide as one Home slide;
+    // nothing grows there.
     const grow =
       opensFromCard(to) && !slidesLikeHome(shown, to) ? originOf(from) : undefined;
     if (grow) origins.current.set(to, { rect: grow, from: shown });

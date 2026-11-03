@@ -384,6 +384,82 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     measure.mockRestore();
   });
 
+  it("slides a product's page in from the store page as one Home slide, the same as the store page, and slides the store page back on back", async () => {
+    // A product card box the browser could measure: the page still must not
+    // grow from it. The move must be the one between Home and a store's page.
+    const measure = vi
+      .spyOn(Element.prototype, "getBoundingClientRect")
+      .mockImplementation(function (this: Element) {
+        const isCard = (this.getAttribute("data-pw") ?? "").startsWith("demo-listing-product-");
+        const box = isCard ? CARD : { top: 0, bottom: 932, left: 0, right: 430 };
+        return {
+          ...box,
+          x: box.left,
+          y: box.top,
+          width: box.right - box.left,
+          height: box.bottom - box.top,
+          toJSON() {},
+        } as DOMRect;
+      });
+    try {
+      const { container, rerender } = openOn("store/zara");
+      const card = container.querySelector<HTMLElement>('[data-pw="demo-listing-product-shirt-1"]');
+      expect(card, "the store page has no shirt-1 card to open").not.toBeNull();
+      fireEvent.click(card!);
+
+      const entering = frameOf(container, "store/zara/shirt-1");
+      expect(entering, "the product page is not on stage after the tap on its card").not.toBeNull();
+      expect(
+        entering!.style.clipPath,
+        `the product page was cut to the card's box (it grows); clip: "${entering!.style.clipPath}"`,
+      ).toBe("");
+      expect(entering!.style.opacity, "the product page fades in; a Home slide does not fade").toBe("1");
+      expect(
+        entering!.style.transform,
+        `the product page does not start one screen width to the right; transform: "${entering!.style.transform}"`,
+      ).toMatch(/translateX\(100%\)/);
+      expect(
+        onStage(container),
+        "the store page left the stage at once; it must slide out beside the product page",
+      ).toContain("store/zara");
+      expect(
+        frameOf(container, "store/zara")!.parentElement!.style.zIndex,
+        "the store page is kept under the product page, as if the product page grew over it",
+      ).toBe("");
+
+      // The router lands on the product's path.
+      url.pathname = "/sy-en/demo/store/zara/shirt-1";
+      rerender(<Demo1Shell dictionary={{}}>{null}</Demo1Shell>);
+      await waitFor(
+        () =>
+          expect(onStage(container), "the store page is still on stage after the slide ended").toEqual([
+            "store/zara/shirt-1",
+          ]),
+        { timeout: 3000 },
+      );
+
+      const back = vi.spyOn(window.history, "back").mockImplementation(() => {});
+      fireEvent.click(container.querySelector('[data-pw="demo-product-back"]')!);
+      expect(onStage(container), "back did not bring the store page on stage").toContain("store/zara");
+      expect(back, "back did not go through the browser's history").toHaveBeenCalled();
+      const store = frameOf(container, "store/zara");
+      expect(
+        store!.style.transform,
+        `the store page does not come back from one screen width to the left; transform: "${store!.style.transform}"`,
+      ).toMatch(/translateX\(-100%\)/);
+      expect(store!.style.opacity, "the store page fades in on back; a Home slide does not fade").toBe("1");
+      const leaving = frameOf(container, "store/zara/shirt-1");
+      expect(leaving, "the product page was removed at once instead of sliding out").not.toBeNull();
+      expect(
+        leaving!.parentElement!.style.zIndex,
+        "the product page is put over the store page on back, as if it shrank into its card",
+      ).toBe("");
+      back.mockRestore();
+    } finally {
+      measure.mockRestore();
+    }
+  });
+
   it("puts nothing over the leaving screen when there is no card box either", () => {
     const { container } = openOn("home");
     // jsdom measures every box as 0 x 0: there is no card box to grow from.
@@ -818,14 +894,15 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
       scrollTo: (y: number) => Promise<void>;
       finger: (down: boolean) => void;
     }) => Promise<void>,
+    screen: DemoScreen = "store/zara",
   ) => {
     let clock = 1000;
     const now = vi.spyOn(performance, "now").mockImplementation(() => clock);
     try {
       await onAPhone(async () => {
-        const { container } = openOn("store/zara");
+        const { container } = openOn(screen);
         const head = container.querySelector<HTMLElement>('[data-pw="demo1-head"]');
-        expect(head, "the store page has no header").not.toBeNull();
+        expect(head, `the "${screen}" page has no header`).not.toBeNull();
         Object.defineProperty(head!, "offsetHeight", { configurable: true, value: 50 });
         await body({
           container,
@@ -936,6 +1013,34 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
         "Safari's top bar did not turn white again with the header",
       ).toMatch(WHITE);
     });
+  });
+
+  it("runs the product page's header the same way as the store page's: carried out by the page, back on a fast scroll up only", async () => {
+    await onTheStorePage(async ({ container, head, scrollTo }) => {
+      const before = head.style.transform;
+      await scrollTo(5);
+      expect(
+        head.style.transform,
+        "a script moved the product page's header on a 5 px scroll down, so it shakes",
+      ).toBe(before);
+      expect(
+        container.querySelector<HTMLElement>('[data-pw="demo1-head-limit"]')?.style.height,
+        "the product page's header has no sticky box that ends where the scroll down began",
+      ).toBe("0px");
+      await scrollTo(2000);
+      expect(head.dataset.hidden, "the product page's header is not out after a long scroll down").toBe("true");
+      let y = 2000;
+      for (let i = 0; i < 50; i += 1) await scrollTo((y -= 6));
+      expect(
+        head.dataset.hidden,
+        "a slow scroll up of 300 px brought the product page's header back; the store page's stays out",
+      ).toBe("true");
+      for (let i = 0; i < 3; i += 1) await scrollTo((y -= 40));
+      expect(
+        head.dataset.hidden,
+        "a fast scroll up (40 px a frame) did not bring the product page's header back",
+      ).toBeUndefined();
+    }, "store/zara/shirt-1");
   });
 
   it("brings the store page's header back near the top of the page at any speed", async () => {

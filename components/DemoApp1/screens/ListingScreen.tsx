@@ -682,8 +682,8 @@ function ProductCard({
   const first = index < 2;
   const page = productScreen(store.slug, product.id);
   /**
-   * A tap on the card opens the product's page, and the card grows into it
-   * (Demo1Shell). The colour dots and the add button keep their own taps, and
+   * A tap on the card opens the product's page, which slides in as one Home
+   * slide, the same as a store's page from Home (Demo1Shell). The colour dots and the add button keep their own taps, and
    * a swipe on the photos is not a tap (the slider stops that click). A click
    * with a modifier on the name's link is left to the browser (a new tab).
    */
