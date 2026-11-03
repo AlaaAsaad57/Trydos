@@ -21,6 +21,29 @@ vi.mock("next/navigation", () => ({
 // The device modal is the login's, tested with it.
 vi.mock("NewLoginDesign/DemoDeviceInfoModal", () => ({ default: () => null }));
 
+// The real slider (Embla) still runs. This wrapper only notes which options
+// each slider was made with, by the box it moves, so a test can ask how a row
+// on the page behaves under a swipe (jsdom cannot swipe).
+const sliderOptions = vi.hoisted(() => new WeakMap<Element, Record<string, unknown>>());
+vi.mock("embla-carousel-react", async (importOriginal) => {
+  const real = (await importOriginal<typeof import("embla-carousel-react")>()).default;
+  const { useCallback, useRef } = await import("react");
+  const useNotedSlider = (...args: Parameters<typeof real>) => {
+    const [ref, api] = real(...args);
+    const options = useRef<Record<string, unknown>>({});
+    options.current = (args[0] ?? {}) as Record<string, unknown>;
+    const noted = useCallback(
+      (node: HTMLElement | null) => {
+        if (node) sliderOptions.set(node, options.current);
+        ref(node);
+      },
+      [ref],
+    );
+    return [noted, api];
+  };
+  return { default: useNotedSlider };
+});
+
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
 import { Sheet } from "components/DemoApp1/ui";
 import { UNDER_BAR } from "components/DemoApp1/demo1Layout";
@@ -551,6 +574,28 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
       row!.className,
       "the category row scrolls with the browser's own scroll, not with the Home slider (a mouse cannot drag it)",
     ).not.toMatch(/overflow-x-auto/);
+  });
+
+  it("lets a swipe on the category row go as far as the finger throws it, not one tile at a time", () => {
+    const { container } = openOn("store/zara");
+    const row = container.querySelector<HTMLElement>('[data-pw="demo-listing-categories"]');
+    expect(row, "the store page has no category row").not.toBeNull();
+    const options = sliderOptions.get(row!);
+    expect(options, "the category row is not moved by the slider (Embla)").toBeDefined();
+    expect(
+      options!.dragFree,
+      "the category row stops on the next tile after every swipe; it should keep the swipe's speed and stop where it slows down (free scroll)",
+    ).toBe(true);
+  });
+
+  it("keeps the product photos on the store page one photo per swipe", () => {
+    const { container } = openOn("store/zara");
+    const photos = container.querySelector<HTMLElement>('[data-pw="demo-listing-photos"]');
+    expect(photos, "no product card on the store page has a photo slider").not.toBeNull();
+    expect(
+      sliderOptions.get(photos!)?.dragFree,
+      "a product's photos scroll freely; a swipe should show exactly the next photo",
+    ).not.toBe(true);
   });
 
   it("moves each category tile whole during the slider's hint, with its frame, and leaves no white gap", () => {

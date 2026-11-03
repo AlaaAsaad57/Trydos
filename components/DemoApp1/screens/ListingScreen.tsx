@@ -56,7 +56,7 @@ import {
  *    awning, the logo, "Shop Zara Collection Now !"), full width.
  *  - The categories, y 242 – 382: 100 x 140 photos, 2 apart, in a slider
  *    that works like the sliders on Home (useSlider: swipe or mouse drag, a
- *    one-time hint, and an auto slide). A dark fade covers the bottom 70 px,
+ *    one-time hint, and an auto slide), but a swipe scrolls freely. A dark fade covers the bottom 70 px,
  *    and the name sits on it, 13 Regular white, baseline 131 under the
  *    tile's top.
  *  - The products, from y 384: two columns of 214 x 397 cards, 2 apart. Each
@@ -480,7 +480,8 @@ const TILE_FADE =
  * The category row: a slider with the same behaviour as the sliders on Home
  * (see useSlider in HomeSections): Embla moves the row, so a finger and a
  * mouse can both drag it; it shows a one-time hint, and it moves on by
- * itself while it is in view. Each tile is a slide.
+ * itself while it is in view. Each tile is a slide. Unlike Home's sliders,
+ * the row scrolls freely: a swipe does not stop on the next tile.
  */
 function Categories({
   t,
@@ -821,7 +822,8 @@ const FIRST_CARDS = 4;
 
 export default function ListingScreen({ slug }: { slug: string }) {
   const { t } = useDemoNav();
-  const categories = useSlider();
+  // Free: a swipe goes as far as the finger throws it, not one tile.
+  const categories = useSlider({ free: true });
   const settled = useSettled();
   // The next page loads only once the whole first page is there.
   const { pages, loading, done, end } = usePages(settled);

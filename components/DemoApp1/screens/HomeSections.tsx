@@ -601,8 +601,15 @@ const SLIDE_IN_VIEW = 0.9;
  * Both also run when the system asks for less motion (prefers-reduced-motion).
  * Windows turns that on when "Animation effects" is off, and the hint then
  * never showed.
+ *
+ * `free` is for a row of small tiles, like the store page's categories. By
+ * default a swipe stops on the next slide, which is right for a slider of
+ * pages (one card fills the screen). On a row of many small tiles that felt
+ * stuck: a long, fast swipe still moved one tile. With `free` (Embla's
+ * `dragFree`), the row keeps the swipe's speed, slows down, and stops where it
+ * stops, as a native list does. The mouse drag on a PC works the same way.
  */
-export function useSlider() {
+export function useSlider({ free = false }: { free?: boolean } = {}) {
   // One plugin for the life of the slider (a lazy state, not read from a ref
   // during render).
   const [autoplay] = useState(() =>
@@ -620,6 +627,7 @@ export function useSlider() {
       loop: false,
       containScroll: "trimSnaps",
       duration: SLIDE_DURATION,
+      dragFree: free,
     },
     [autoplay],
   );
