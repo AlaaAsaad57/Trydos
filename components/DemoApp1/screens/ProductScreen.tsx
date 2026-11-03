@@ -29,6 +29,8 @@ import { ScreenPage, Stroke } from "../ui";
 import { PhotoGlow, StoreMark, Weighted, type T } from "./ListingParts";
 import { useSettled } from "./useSettled";
 import { ROW_HINT_CLASS, useRowHint } from "./useRowHint";
+import { useDragScroll } from "./useDragScroll";
+import { LikeHeart, useLike } from "./LikeHeart";
 
 /**
  * A product's page — XD `Home Page – 49` (430 x 2383), opened from a product
@@ -410,7 +412,15 @@ function Pill({
   );
 }
 
-/** A row that scrolls sideways: the file's first item at x `left`, the same room at the end. */
+/**
+ * A row that scrolls sideways: the file's first item at x `left`, the same
+ * room at the end.
+ *
+ * A row of `cards` (the reviews and the questions) also stops on a card: a
+ * swipe never leaves a card cut in half at the left edge (CSS snap, each card
+ * at `left` px from the edge). And a mouse can drag it (useDragScroll), since
+ * on a PC the row has no scroll bar and the wheel scrolls the page.
+ */
 function SideRow({
   left,
   gap,
@@ -418,6 +428,7 @@ function SideRow({
   h,
   label,
   testId,
+  cards = false,
   children,
 }: {
   left: number;
@@ -426,16 +437,28 @@ function SideRow({
   h: number;
   label?: string;
   testId?: string;
+  cards?: boolean;
   children: React.ReactNode;
 }) {
   const hint = useRowHint<HTMLUListElement>();
+  const drag = useDragScroll<HTMLUListElement>();
   return (
     <ul
-      ref={hint}
+      ref={(el) => {
+        hint(el);
+        if (cards) drag(el);
+      }}
       aria-label={label}
       data-pw={testId}
-      className={`${ROW_SCROLL} shrink-0 list-none`}
-      style={{ marginTop: mt, height: h, gap, padding: `0 ${left}px`, overscrollBehaviorX: "contain" }}
+      className={`${ROW_SCROLL} shrink-0 list-none ${cards ? "relative [&>*]:[scroll-snap-align:start] [@media(pointer:fine)]:cursor-grab" : ""}`}
+      style={{
+        marginTop: mt,
+        height: h,
+        gap,
+        padding: `0 ${left}px`,
+        overscrollBehaviorX: "contain",
+        ...(cards ? { scrollSnapType: "x mandatory", scrollPaddingInline: left } : null),
+      }}
     >
       {children}
     </ul>
@@ -724,15 +747,27 @@ function Shipping({ t }: { t: T }) {
   );
 }
 
-/** A review's footer, 92 px under the card's top: the likes, then the stars and the votes. */
-function Likes({ top }: { top: number }) {
+/**
+ * A card's likes, `top` px under the card's top: the 11 px heart at x 8 and
+ * the count at x 25. A tap likes the card (LikeHeart). The button reaches
+ * 10 px over and under the heart and 8 px past the count, so a finger finds
+ * it; it stays clear of the stars at x 123.
+ */
+function Likes({ top, t }: { top: number; t: T }) {
+  const like = useLike();
   return (
-    <>
-      <XdIcon name="productLove" className="absolute" style={{ left: 8, top }} />
-      <span className="absolute font-normal" style={{ left: 25, top, ...LINE_9, color: INK }}>
-        {PRODUCT_STATS.likes}
-      </span>
-    </>
+    <button
+      type="button"
+      aria-label={t("Like")}
+      aria-pressed={like.liked}
+      data-pw="demo-product-card-like"
+      onClick={like.toggle}
+      className="absolute flex items-start cursor-pointer font-normal [-webkit-tap-highlight-color:transparent]"
+      style={{ left: 0, top: top - 10, padding: "10px 8px 10px 8px", color: INK, ...LINE_9 }}
+    >
+      <LikeHeart liked={like.liked} burst={like.burst} outline="productLove" filled="productLoveFilled" size={11} />
+      <span style={{ marginLeft: 25 - 8 - 11 }}>{PRODUCT_STATS.likes}</span>
+    </button>
   );
 }
 
@@ -793,7 +828,7 @@ function ReviewCard({ ai, t }: { ai: boolean; t: T }) {
         name={ai ? <Rich text={t("<m>AI</m> analysis & summary of all reviews")} /> : <span className="font-medium">{REVIEWER}</span>}
         t={t}
       />
-      <Likes top={92} />
+      <Likes top={92} t={t} />
       <span role="img" aria-label={`${PRODUCT_STATS.stars}/5`} className="absolute" style={{ left: 136.75 - 14, top: 91.75 }}>
         <XdIcon name="productStarsSmall" />
       </span>
@@ -815,11 +850,11 @@ function QuestionCard({ store, t }: { store: DemoStore; t: T }) {
     <li className="relative shrink-0" style={{ width: 386, height: 222, borderRadius: 15, background: "#FCFCFC" }}>
       <Avatar top={8} />
       <CardText top={8} name={<Rich text={t("<b>Q</b> {name}")} values={{ name: REVIEWER }} />} t={t} />
-      <Likes top={92} />
+      <Likes top={92} t={t} />
       <span aria-hidden="true" className="absolute" style={{ left: 8.5, top: 111 - 0.25, width: 372, height: 0.5, background: C.line }} />
       <Avatar top={119} />
       <CardText top={119} name={<Rich text={t("<b>a</b> {name}")} values={{ name: store.name }} />} t={t} />
-      <Likes top={203} />
+      <Likes top={203} t={t} />
       {/* At x 296 in the file, 11 px from the card's edge: held by its end, as the date. */}
       <span className="absolute font-normal whitespace-nowrap" style={{ right: 11, top: 203, ...LINE_9, color: DATE_GREY }}>
         {t("{n} minute answered").replace("{n}", "13")}
@@ -879,7 +914,7 @@ function Reviews({ t }: { t: T }) {
           );
         })}
       </div>
-      <SideRow left={14} gap={4} mt={1461 - 1447} h={111} testId="demo-product-reviews">
+      <SideRow left={14} gap={4} mt={1461 - 1447} h={111} testId="demo-product-reviews" cards>
         <ReviewCard ai t={t} />
         <ReviewCard ai={false} t={t} />
       </SideRow>
@@ -963,7 +998,7 @@ function Questions({ store, t }: { store: DemoStore; t: T }) {
         </Chip>
         <HelpMark left={190 - 185} t={t} />
       </div>
-      <SideRow left={14} gap={4} mt={1771 - 1763} h={222} testId="demo-product-questions">
+      <SideRow left={14} gap={4} mt={1771 - 1763} h={222} testId="demo-product-questions" cards>
         <QuestionCard store={store} t={t} />
         <QuestionCard store={store} t={t} />
       </SideRow>
@@ -1129,27 +1164,20 @@ export default function ProductScreen({ slug, id }: { slug: string; id: string }
   );
 }
 
-/** The heart at (400, 603), 16 x 16, in a 44 px target. A tap keeps the product (it beats once). */
+/** The heart at (400, 603), 16 x 16, in a 44 px target. A tap keeps the product, with the like pop (LikeHeart). */
 function LikeButton({ t }: { t: T }) {
-  const [liked, setLiked] = useState(false);
+  const like = useLike();
   return (
     <button
       type="button"
       aria-label={t("Add to favourites")}
-      aria-pressed={liked}
+      aria-pressed={like.liked}
       data-pw="demo-product-like"
-      onClick={() => setLiked((on) => !on)}
+      onClick={like.toggle}
       className="absolute cursor-pointer [-webkit-tap-highlight-color:transparent]"
       style={{ right: 14 - 14, top: -14, width: 44, height: 44, padding: 14 }}
     >
-      <XdIcon
-        name="productHeart"
-        style={{
-          transform: liked ? "scale(1.12)" : "none",
-          transition: "transform 0.18s cubic-bezier(0.2, 0, 0, 1)",
-          filter: liked ? "drop-shadow(0 0 0.5px #1D1D1D)" : undefined,
-        }}
-      />
+      <LikeHeart liked={like.liked} burst={like.burst} outline="productHeart" filled="productHeartFilled" size={16} />
     </button>
   );
 }

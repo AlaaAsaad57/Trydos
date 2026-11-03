@@ -3132,6 +3132,7 @@ const translations = {
   "Help": "مساعدة",
   "Verified store": "متجر موثّق",
   "Add to favourites": "أضف إلى المفضلة",
+  "Like": "إعجاب",
   "pajama": "بيجامة",
   "Denim blue": "أزرق جينز",
   "Stay cool and chic in this airy women’s summer top, featuring a comfortable fit and fresh seasonal prints": "ابقَ منتعشًا وأنيقًا مع هذا القميص الصيفي النسائي الخفيف، بقصّة مريحة ونقوش موسمية منعشة",

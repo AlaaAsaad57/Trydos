@@ -1876,3 +1876,112 @@ describe("Demo1 layers — a sheet holds the page still", () => {
     ).toBe(false);
   });
 });
+
+describe("Demo1 product page — likes and the rows of cards (XD `Home Page – 49`)", () => {
+  /** Opens the product page and waits for the part under the first view (reviews, questions). */
+  const openProduct = async () => {
+    const view = openOn("store/zara/shirt-1");
+    await waitFor(
+      () =>
+        expect(
+          view.container.querySelector('[data-pw="demo-product-reviews"]'),
+          "the product page drew no reviews row after the grow",
+        ).not.toBeNull(),
+      { timeout: 3000 },
+    );
+    return view;
+  };
+
+  const filledOf = (button: Element) => button.querySelector<HTMLElement>('[data-pw="demo-like-filled"]');
+  const burstOf = (button: Element) => button.querySelector('[data-pw="demo-like-burst"]');
+
+  it("likes the product on a tap of the heart, with the pop and the burst, and takes the like back on a second tap", async () => {
+    const { container } = await openProduct();
+    const heart = container.querySelector('[data-pw="demo-product-like"]');
+    expect(heart, "the product page has no heart button").not.toBeNull();
+    expect(heart!.getAttribute("aria-pressed"), "the product's heart starts liked").toBe("false");
+    expect(burstOf(heart!), "the product's heart plays the burst before any tap").toBeNull();
+
+    fireEvent.click(heart!);
+    expect(heart!.getAttribute("aria-pressed"), "a tap on the product's heart did not like the product").toBe("true");
+    expect(filledOf(heart!)?.style.animation, "the liked product heart does not pop (demo-like-pop)").toContain("demo-like-pop");
+    expect(burstOf(heart!), "the liked product heart plays no ring and dots").not.toBeNull();
+
+    fireEvent.click(heart!);
+    expect(heart!.getAttribute("aria-pressed"), "a second tap did not take the product's like back").toBe("false");
+    expect(filledOf(heart!)?.style.transform, "the filled heart does not shrink away when the like is taken back").toBe("scale(0)");
+    expect(burstOf(heart!), "taking the like back plays the burst again").toBeNull();
+  });
+
+  it("likes one review or question card on a tap of its heart, and leaves the other cards as they were", async () => {
+    const { container } = await openProduct();
+    const likes = [...container.querySelectorAll('[data-pw="demo-product-card-like"]')];
+    const first = likes[0];
+    expect(first, "the reviews have no like button on their cards").toBeDefined();
+    expect(first.closest('[data-pw="demo-product-reviews"]'), "the first card like is not in the reviews row").not.toBeNull();
+    expect(
+      container.querySelector('[data-pw="demo-product-questions"] [data-pw="demo-product-card-like"]'),
+      "the question cards have no like button",
+    ).not.toBeNull();
+    expect(first.getAttribute("aria-label"), 'the card like has no "Like" label').toBe("Like");
+
+    fireEvent.click(first);
+    expect(first.getAttribute("aria-pressed"), "a tap on a review's heart did not like the review").toBe("true");
+    expect(filledOf(first)?.style.animation, "the liked review heart does not pop (demo-like-pop)").toContain("demo-like-pop");
+    expect(
+      likes.slice(1).filter((like) => like.getAttribute("aria-pressed") === "true"),
+      "a tap on the first review's heart also liked other cards",
+    ).toEqual([]);
+
+    fireEvent.click(first);
+    expect(first.getAttribute("aria-pressed"), "a second tap did not take the review's like back").toBe("false");
+  });
+
+  it("makes the reviews and the questions rows stop on a card, 14 px from the edge, so no card is left cut in half", async () => {
+    const { container } = await openProduct();
+    for (const name of ["reviews", "questions"]) {
+      const row = container.querySelector<HTMLElement>(`[data-pw="demo-product-${name}"]`)!;
+      expect(row.style.scrollSnapType, `the ${name} row does not snap to its cards`).toBe("x mandatory");
+      expect(row.style.scrollPaddingInline, `the ${name} row does not stop its cards 14 px from the edge`).toBe("14px");
+      expect(row.className, `the ${name} row's cards have no snap point at their start`).toContain("[&>*]:[scroll-snap-align:start]");
+    }
+  });
+
+  it("lets a mouse drag the reviews row to the next card, and a drag does not like a card", async () => {
+    const { container } = await openProduct();
+    const row = container.querySelector<HTMLElement>('[data-pw="demo-product-reviews"]')!;
+    // jsdom does no layout: two cards, 386 wide and 4 apart, in a 430 px row with 14 px padding.
+    Object.defineProperty(row, "clientWidth", { configurable: true, value: 430 });
+    Object.defineProperty(row, "scrollWidth", { configurable: true, value: 804 });
+    [...row.children].forEach((card, i) =>
+      Object.defineProperty(card, "offsetLeft", { configurable: true, value: 14 + i * 390 }),
+    );
+    row.style.paddingLeft = "14px";
+    row.setPointerCapture = vi.fn();
+    row.hasPointerCapture = vi.fn(() => true);
+    row.releasePointerCapture = vi.fn();
+    const slide = vi.fn();
+    row.scrollTo = slide as unknown as typeof row.scrollTo;
+    const like = row.querySelector('[data-pw="demo-product-card-like"]')!;
+
+    const mouse = { pointerType: "mouse", pointerId: 1, button: 0 };
+    fireEvent.pointerDown(like, { ...mouse, clientX: 300 });
+    for (let x = 290; x >= 100; x -= 10) fireEvent.pointerMove(like, { ...mouse, clientX: x });
+    expect(row.scrollLeft, "the reviews row did not follow the mouse: 200 px left should scroll it 200 px").toBe(200);
+    expect(row.style.scrollSnapType, "the row's snap stays on during the drag and pulls the row back").toBe("none");
+    fireEvent.pointerUp(like, { ...mouse, clientX: 100 });
+    fireEvent.click(like);
+
+    expect(slide, "the row did not slide to a card when the mouse let go").toHaveBeenCalled();
+    expect(slide.mock.calls.at(-1)?.[0], "the row did not slide to the second card (374 px, the end of the row)").toEqual({
+      left: 374,
+      behavior: "smooth",
+    });
+    expect(like.getAttribute("aria-pressed"), "the click after a drag liked the card under the mouse").toBe("false");
+    fireEvent(row, new Event("scrollend"));
+    expect(row.style.scrollSnapType, "the row's snap did not come back after the slide").toBe("x mandatory");
+
+    fireEvent.click(like);
+    expect(like.getAttribute("aria-pressed"), "a mouse click with no drag did not like the card").toBe("true");
+  });
+});

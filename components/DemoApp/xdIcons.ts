@@ -219,6 +219,9 @@ export const XD_ICON_SIZE = {
   productFilm: { w: 18, h: 18 },
   productVerified: { w: 15, h: 15 },
   productHeart: { w: 16, h: 16 },
+  // The liked state: the heart's outer line only, filled. The XD file has no
+  // liked heart, so this one is made from productHeart (and productLove below).
+  productHeartFilled: { w: 16, h: 16 },
   productStars: { w: 86.5, h: 14.5 },
   productEye: { w: 14, h: 14 },
   productBadge: { w: 14, h: 14 },
@@ -249,6 +252,7 @@ export const XD_ICON_SIZE = {
   productPhoto: { w: 14, h: 14 },
   productAi: { w: 14, h: 14 },
   productLove: { w: 11, h: 11 },
+  productLoveFilled: { w: 11, h: 11 },
   productStarsSmall: { w: 67.5, h: 11.5 },
   productPeopleSmall: { w: 11, h: 11 },
   productPeopleDark: { w: 14, h: 14 },

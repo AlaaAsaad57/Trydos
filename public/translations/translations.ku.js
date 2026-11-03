@@ -3182,6 +3182,7 @@ const translations = {
   "Help": "یارمەتی",
   "Verified store": "فرۆشگای پشتڕاستکراو",
   "Add to favourites": "زیادکردن بۆ دڵخوازەکان",
+  "Like": "بەدڵبوون",
   "pajama": "پیژامە",
   "Denim blue": "شینی جینز",
   "Stay cool and chic in this airy women’s summer top, featuring a comfortable fit and fresh seasonal prints": "بەم کراسە هاوینە سووکەی ئافرەتان فێنک و شیک بمێنەوە، بە بڕینێکی ئاسوودە و نەخشی وەرزیی تازە",

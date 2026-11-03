@@ -13,6 +13,7 @@ const PRODUCT_PAGE_KEYS = [
   "Help",
   "Verified store",
   "Add to favourites",
+  "Like",
   "pajama",
   "Denim blue",
   "Stay cool and chic in this airy women’s summer top, featuring a comfortable fit and fresh seasonal prints",

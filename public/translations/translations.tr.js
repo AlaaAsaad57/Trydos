@@ -3165,6 +3165,7 @@ const translations = {
   "Help": "Yardım",
   "Verified store": "Doğrulanmış mağaza",
   "Add to favourites": "Favorilere ekle",
+  "Like": "Beğen",
   "pajama": "pijama",
   "Denim blue": "Kot mavisi",
   "Stay cool and chic in this airy women’s summer top, featuring a comfortable fit and fresh seasonal prints": "Rahat kesimi ve ferah sezon desenleriyle bu havadar kadın yaz üstüyle serin ve şık kalın",
