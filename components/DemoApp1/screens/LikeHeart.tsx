@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
-import { C } from "../demo1Layout";
 
 /**
  * A heart that a tap likes, with the "pop" most apps use (Instagram, X):
@@ -16,14 +15,26 @@ import { C } from "../demo1Layout";
  *     outline in 150 ms, with no ring and no dots.
  *
  * The XD file has no liked heart, so the filled heart is the outline heart's
- * outer line, filled in the same dark (#1D1D1D). The outline heart stays
- * under it the whole time, so the heart's size never changes.
+ * outer line, filled in the like red of social apps (LIKE_RED, Instagram's
+ * #FF3040). The ring and the dots are the same red. The dark outline heart
+ * stays in place, so the heart's size never changes. It fades out once the
+ * red heart has grown over it (OUTLINE_FADE), so no dark edge shows around
+ * the red one. On a second tap it comes back at once.
  *
  * CSS keyframes, not JavaScript: the animation starts in the same frame as
  * the tap, and the server HTML (outline only) is the same as the first
  * render in the browser. React puts the <style> in the head once, however
  * many hearts the page has (`href` + `precedence`).
  */
+
+/** The red of a liked heart, its ring and its dots (Instagram's like red). */
+export const LIKE_RED = "#FF3040";
+
+/**
+ * The outline fades in 0.1 s, 0.2 s after the tap. By then the pop has grown
+ * the red heart past full size (45 % of 0.45 s), so it covers the outline.
+ */
+const OUTLINE_FADE = "opacity 0.1s linear 0.2s";
 
 /** The six dots of the burst: one every 60°, the first one straight up. */
 const DOTS = [0, 60, 120, 180, 240, 300];
@@ -54,7 +65,7 @@ function Burst({ size }: { size: number }) {
         className="absolute inset-0 rounded-full"
         // The rest opacity is inline, not the class: this repo's Tailwind
         // classes are !important, and an !important opacity stops the animation's.
-        style={{ border: `1px solid ${C.ink}`, opacity: 0, animation: "demo-like-ring 0.4s ease-out" }}
+        style={{ border: `1px solid ${LIKE_RED}`, opacity: 0, animation: "demo-like-ring 0.4s ease-out" }}
       />
       {DOTS.map((deg) => {
         const rad = (deg * Math.PI) / 180;
@@ -68,7 +79,7 @@ function Burst({ size }: { size: number }) {
                 top: (size - dot) / 2,
                 width: dot,
                 height: dot,
-                background: C.ink,
+                background: LIKE_RED,
                 opacity: 0,
                 "--dot-x": `${(Math.sin(rad) * far).toFixed(2)}px`,
                 "--dot-y": `${(-Math.cos(rad) * far).toFixed(2)}px`,
@@ -102,7 +113,13 @@ export function LikeHeart({
       <style href="demo-like-heart" precedence="default">
         {KEYFRAMES}
       </style>
-      <XdIcon name={outline} />
+      <span
+        data-pw="demo-like-outline"
+        className="block"
+        style={liked ? { opacity: 0, transition: OUTLINE_FADE } : { opacity: 1 }}
+      >
+        <XdIcon name={outline} />
+      </span>
       <span
         data-pw="demo-like-filled"
         data-on={liked}

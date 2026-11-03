@@ -1958,6 +1958,29 @@ describe("Demo1 product page — likes and the rows of cards (XD `Home Page – 
     expect(burstOf(heart!), "taking the like back plays the burst again").toBeNull();
   });
 
+  it("draws a liked heart in the like red of social apps (#FF3040), not in the dark ink", async () => {
+    const { readFileSync } = await import("node:fs");
+    for (const file of ["productHeartFilled", "productLoveFilled"]) {
+      const svg = readFileSync(`public/assets/demo/xd/${file}.svg`, "utf8");
+      expect(svg, `the liked heart ${file}.svg is not filled red (rgb(255,48,64))`).toContain('fill="rgb(255,48,64)"');
+      expect(svg, `the liked heart ${file}.svg still has the dark fill (rgb(29,29,29))`).not.toContain("rgb(29,29,29)");
+    }
+
+    const { container } = await openProduct();
+    const heart = container.querySelector('[data-pw="demo-product-like"]')!;
+    fireEvent.click(heart);
+    const burst = burstOf(heart)!;
+    const ring = burst.firstElementChild as HTMLElement;
+    expect(ring.style.border, "the ring of a like is not red").toContain("rgb(255, 48, 64)");
+    const dots = [...burst.children].slice(1) as HTMLElement[];
+    expect(
+      dots.filter((dot) => !dot.style.background.includes("rgb(255, 48, 64)")).map((dot) => dot.style.background),
+      "some dots of a like are not red",
+    ).toEqual([]);
+    const outline = heart.querySelector<HTMLElement>('[data-pw="demo-like-outline"]');
+    expect(outline?.style.opacity, "the dark outline still shows around the red liked heart").toBe("0");
+  });
+
   it("likes one review or question card on a tap of its heart, and leaves the other cards as they were", async () => {
     const { container } = await openProduct();
     const likes = [...container.querySelectorAll('[data-pw="demo-product-card-like"]')];
@@ -2028,5 +2051,50 @@ describe("Demo1 product page — likes and the rows of cards (XD `Home Page – 
 
     fireEvent.click(like);
     expect(like.getAttribute("aria-pressed"), "a mouse click with no drag did not like the card").toBe("true");
+  });
+
+  it("gives the label rows and the reviews and questions rows no slider hint, and keeps it on the photos and the colours", async () => {
+    const { container } = await openProduct();
+    const HINT = "--row-hint";
+    for (const name of ["rating", "trust", "badges", "shipping-pills", "reviews", "questions"]) {
+      const row = container.querySelector<HTMLElement>(`[data-pw="demo-product-${name}"]`);
+      expect(row, `the product page has no ${name} row`).not.toBeNull();
+      expect(row!.className, `the ${name} row still moves its items for the slider hint`).not.toContain(HINT);
+    }
+    for (const name of ["gallery", "colors"]) {
+      const row = container.querySelector<HTMLElement>(`[data-pw="demo-product-${name}"]`);
+      expect(row?.className, `the ${name} row lost its slider hint`).toContain(HINT);
+    }
+  });
+
+  it("lets a mouse drag the photo gallery to the next photo on a PC", async () => {
+    const { container } = await openProduct();
+    const row = container.querySelector<HTMLElement>('[data-pw="demo-product-gallery"]')!;
+    expect(row, "the product page has no photo gallery").not.toBeNull();
+    // jsdom does no layout: photos 300 wide and 2 apart, in a 430 px row.
+    const photos = [...row.children];
+    expect(photos.length, "the gallery needs at least 3 photos for this test").toBeGreaterThan(2);
+    Object.defineProperty(row, "clientWidth", { configurable: true, value: 430 });
+    Object.defineProperty(row, "scrollWidth", { configurable: true, value: photos.length * 302 - 2 });
+    photos.forEach((photo, i) => Object.defineProperty(photo, "offsetLeft", { configurable: true, value: i * 302 }));
+    row.setPointerCapture = vi.fn();
+    row.hasPointerCapture = vi.fn(() => true);
+    row.releasePointerCapture = vi.fn();
+    const slide = vi.fn();
+    row.scrollTo = slide as unknown as typeof row.scrollTo;
+    const photo = photos[0];
+
+    const mouse = { pointerType: "mouse", pointerId: 1, button: 0 };
+    fireEvent.pointerDown(photo, { ...mouse, clientX: 300 });
+    for (let x = 290; x >= 100; x -= 10) fireEvent.pointerMove(photo, { ...mouse, clientX: x });
+    expect(row.scrollLeft, "the gallery did not follow the mouse: 200 px left should scroll it 200 px").toBe(200);
+    // jsdom sends the moves within microseconds, which reads as a very fast
+    // flick. The mouse rests first, so the release has no speed left.
+    await new Promise((done) => setTimeout(done, 100));
+    fireEvent.pointerUp(photo, { ...mouse, clientX: 100 });
+    expect(slide.mock.calls.at(-1)?.[0], "the gallery did not slide to the second photo (302 px)").toEqual({
+      left: 302,
+      behavior: "smooth",
+    });
   });
 });

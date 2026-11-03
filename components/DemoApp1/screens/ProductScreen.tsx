@@ -91,10 +91,18 @@ const LINE_9 = { fontSize: 9, lineHeight: `${lineBox(9)}px` } as const;
 
 /**
  * A sideways row with no scroll bar, that the page still scrolls up and down
- * over. Each row shows the slider hint once (useRowHint), so a person sees
- * that it scrolls.
+ * over.
  */
-const ROW_SCROLL = `flex w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${ROW_HINT_CLASS}`;
+const ROW_SCROLL = "flex w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+
+/**
+ * A row that also shows the slider hint once (useRowHint), so a person sees
+ * that it scrolls: only the photos and the colours. The label rows and the
+ * reviews and questions rows have no hint: on one page, eight rows that each
+ * moved by themselves were too much, and their cut-off last item already
+ * shows that they scroll.
+ */
+const HINT_ROW_SCROLL = `${ROW_SCROLL} ${ROW_HINT_CLASS}`;
 
 /**
  * The marks of a translated line: `<b>` Bold, `<m>` Medium, `<a>` the blue of
@@ -272,15 +280,21 @@ function Gallery({
 }) {
   const { w, h } = GALLERY_PHOTO;
   const hint = useRowHint<HTMLUListElement>();
+  // A mouse drags the photos on a PC, as a finger does on a phone.
+  const drag = useDragScroll<HTMLUListElement>();
   return (
     <div className="relative w-full shrink-0" style={{ marginTop: 102 - HEADER_BOTTOM, height: h }}>
       {/* A new colour is a new row, at its first photo. */}
       <ul
         key={photos.join()}
-        ref={hint}
+        ref={(el) => {
+          hint(el);
+          drag(el);
+        }}
         data-pw="demo-product-gallery"
         aria-label={t("Photos")}
-        className={`${ROW_SCROLL} h-full p-0 list-none`}
+        // `relative`: the drag measures each photo from the row (useDragScroll).
+        className={`${HINT_ROW_SCROLL} relative h-full p-0 list-none [@media(pointer:fine)]:cursor-grab`}
         style={{ gap: 2, scrollSnapType: "x mandatory", overscrollBehaviorX: "contain" }}
       >
         {photos.map((src, i) => {
@@ -440,14 +454,10 @@ function SideRow({
   cards?: boolean;
   children: React.ReactNode;
 }) {
-  const hint = useRowHint<HTMLUListElement>();
   const drag = useDragScroll<HTMLUListElement>();
   return (
     <ul
-      ref={(el) => {
-        hint(el);
-        if (cards) drag(el);
-      }}
+      ref={cards ? drag : undefined}
       aria-label={label}
       data-pw={testId}
       className={`${ROW_SCROLL} shrink-0 list-none ${cards ? "relative [&>*]:[scroll-snap-align:start] [@media(pointer:fine)]:cursor-grab" : ""}`}
@@ -483,10 +493,8 @@ function RowMark({ ml, icon }: { ml: number; icon: XdIconName }) {
  * gaps are its own: 6 px after a mark, and 7, 5, 4 and 12 px before the bars.
  */
 function RatingRow({ t }: { t: T }) {
-  const hint = useRowHint<HTMLDivElement>();
   return (
     <div
-      ref={hint}
       data-pw="demo-product-rating"
       className={`${ROW_SCROLL} shrink-0 items-start`}
       style={{ marginTop: 671 - 659, height: 14, padding: "0 14px", overscrollBehaviorX: "contain" }}
@@ -541,7 +549,7 @@ function Colors({
         ref={hint}
         data-pw="demo-product-colors"
         aria-label={t("Colors")}
-        className={`${ROW_SCROLL} shrink-0 list-none`}
+        className={`${HINT_ROW_SCROLL} shrink-0 list-none`}
         style={{ marginTop: 789 - 783, height: 98, gap: 2, padding: "0 14px 0 40px" }}
       >
         {product.colors.map((color, i) => {
