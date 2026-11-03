@@ -1,10 +1,5 @@
 # Search - notes for testing
 
-Quick notes on how search works, so you know what to try. The code is in
-`services/elastic/helpers.ts` (the query), `services/elastic/analyzeSearchText.ts`
-(the color/size analyzer) and `serverRequests/Search.tsx` (the search box).
-
-## What we search in
 
 The text you type is matched against these fields, in English and Arabic:
 
@@ -125,7 +120,6 @@ Products that must not show
 Filters with text
 - pick a category, then type text -> only products from that category show
 - pick a brand, then type text -> only that brand
-- set a price range, then type text -> all prices are inside the range
 - tap a brand in the results -> it becomes a filter and results update
 - Reset -> text and filters are cleared
 

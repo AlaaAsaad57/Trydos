@@ -15,6 +15,16 @@ import { toDownloadUrl } from "components/Chat/videoSupport";
 //      click a hidden link to `?download=1`. The server then answers with
 //      `Content-Disposition: attachment`, so the browser saves the file and the
 //      page stays where it is. No `target`, so no new tab.
+//
+// BIG FILES. Step 1 holds the whole file in memory. A 300 MB video can crash a
+// phone's tab. So when the server says the file is bigger than MAX_BLOB_BYTES,
+// we stop the fetch and use step 2 at once. The browser then writes the file
+// straight to disk.
+
+const MAX_BLOB_BYTES = 50 * 1024 * 1024;
+
+/** How the file was saved: from a blob, by the server's link, or not at all. */
+export type DownloadResult = "blob" | "link" | "none";
 
 /** The file name at the end of the URL path, or a safe default. */
 export function fileNameFromUrl(url: string): string {
@@ -40,21 +50,38 @@ function clickHiddenLink(href: string, fileName: string) {
   link.remove();
 }
 
+/** The size the server gave in `Content-Length`, or null when it gave none. */
+function contentLength(response: Response): number | null {
+  const value = Number(response.headers?.get?.("content-length"));
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
 /**
- * Download one attachment. Never throws: a failed fetch falls back to the
- * server's `?download=1` link.
+ * Download one attachment. Never throws: a failed fetch, or a file that is too
+ * big to hold in memory, falls back to the server's `?download=1` link.
  */
-export async function downloadFile(url: string, fileName?: string) {
-  if (!url || typeof document === "undefined") return;
+export async function downloadFile(
+  url: string,
+  fileName?: string,
+): Promise<DownloadResult> {
+  if (!url || typeof document === "undefined") return "none";
   const name = fileName || fileNameFromUrl(url);
   try {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`download failed: ${response.status}`);
+    const size = contentLength(response);
+    if (size != null && size > MAX_BLOB_BYTES) {
+      // Stop reading the body, so the big file never comes into memory.
+      response.body?.cancel().catch(() => {});
+      throw new Error("file too big for a blob");
+    }
     const blobUrl = URL.createObjectURL(await response.blob());
     clickHiddenLink(blobUrl, name);
     // The browser has started reading the blob by the next task.
     setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    return "blob";
   } catch {
     clickHiddenLink(toDownloadUrl(url), name);
+    return "link";
   }
 }

@@ -1,4 +1,4 @@
-import { downloadFile } from "components/Chat/downloadFile";
+import { downloadFile, type DownloadResult } from "components/Chat/downloadFile";
 
 // Saves incoming chat media on the user's machine by itself, like the
 // auto-download in WhatsApp.
@@ -14,7 +14,9 @@ import { downloadFile } from "components/Chat/downloadFile";
 //          saved, and each photo or video shows blurred until its save ends.
 //     Old history is never saved. See "MISSED MEDIA" below.
 //   - Photos, videos and files. Voice messages are not saved.
-//   - The same file is never saved twice. See "THE LEDGER" below.
+//   - The same file is never saved twice, even across open tabs. See "THE
+//     LEDGER" below.
+//   - Limits for heavy use. See "LIMITS" below.
 //
 // WHY THE SETTING LIVES IN localStorage. The save goes to this browser's
 // Downloads folder, so the choice belongs to this browser, not to the account.
@@ -41,6 +43,21 @@ const MISSED_LIMIT = 10;
 // A photo or video is never blurred for longer than this, even if its save
 // hangs. The blur must never hide the media for good.
 const BLUR_MAX_MS = 20_000;
+
+// LIMITS. These keep the feature safe in a busy group chat, on a slow network
+// and on a phone.
+//   - MAX_QUEUED: at most this many files wait to be saved. A burst beyond it is
+//     dropped (not saved), so memory and the Downloads folder cannot fill up.
+//     New files are accepted again once the queue has room.
+//   - SAVE_TIMEOUT_MS: one save that never ends must not stop every later save.
+//     After this time the queue moves on. The slow save may still finish.
+//   - LINK_GAP_MS: when the save goes by the server's link, the browser starts
+//     the download by itself, a little later. So we wait longer before the next
+//     save. This keeps saves one at a time and avoids Chrome's "download
+//     multiple files?" prompt.
+const MAX_QUEUED = 20;
+const SAVE_TIMEOUT_MS = 60_000;
+const LINK_GAP_MS = 2_000;
 
 const AUTO_SAVE_TYPES = new Set(["ImageMessage", "VideoMessage", "FileMessage"]);
 
@@ -77,6 +94,15 @@ export function isAutoDownloadOn(): boolean {
   return getAutoDownloadMode() === "always";
 }
 
+/**
+ * False while the browser asks pages to save data (Chrome "Data Saver" or
+ * "Lite mode"). Then nothing is saved by itself.
+ */
+function networkAllowsAutoSave(): boolean {
+  if (typeof navigator === "undefined") return true;
+  return (navigator as any).connection?.saveData !== true;
+}
+
 // THE LEDGER. The key of a file is its URL, not the message id. So the same
 // file is saved once even when:
 //   - the push for one message arrives twice (foreground push and service
@@ -84,18 +110,39 @@ export function isAutoDownloadOn(): boolean {
 //   - the message is forwarded to another chat (same stored file),
 //   - the user reloads the page,
 //   - a live save and a missed save both find the same message.
+//   - another open tab of the app already saved it.
 // A file is written to the ledger BEFORE its download starts. The second push
 // then finds it at once and does nothing.
+//
+// WHY THE LIST IS READ AGAIN EACH TIME. All tabs share one localStorage list.
+// A tab that kept its own copy would never see what other tabs saved later,
+// and would save the same file again. So each check reads the stored text. It
+// is parsed only when the text changed. The copy in memory still holds files
+// that could not be written (blocked storage), so this tab never repeats them.
 let ledger: string[] | null = null;
+let ledgerText: string | null = null;
+
+function parseLedger(text: string | null): string[] {
+  try {
+    const parsed = JSON.parse(text || "[]");
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+}
 
 function loadLedger(): string[] {
-  if (ledger) return ledger;
-  try {
-    const parsed = JSON.parse(readStorage(LEDGER_KEY) || "[]");
-    ledger = Array.isArray(parsed) ? parsed.map(String) : [];
-  } catch {
-    ledger = [];
+  const text = readStorage(LEDGER_KEY);
+  if (ledger && text === ledgerText) return ledger;
+
+  const stored = parseLedger(text);
+  // Keep the files only this tab knows about (a write that failed).
+  const extra = (ledger ?? []).filter((filePath) => !stored.includes(filePath));
+  ledger = [...stored, ...extra];
+  if (ledger.length > LEDGER_LIMIT) {
+    ledger.splice(0, ledger.length - LEDGER_LIMIT);
   }
+  ledgerText = text;
   return ledger;
 }
 
@@ -108,7 +155,10 @@ function remember(filePath: string) {
   const list = loadLedger();
   list.push(filePath);
   if (list.length > LEDGER_LIMIT) list.splice(0, list.length - LEDGER_LIMIT);
-  writeStorage(LEDGER_KEY, JSON.stringify(list));
+  const text = JSON.stringify(list);
+  writeStorage(LEDGER_KEY, text);
+  // Our own write: no need to parse it again on the next check.
+  if (readStorage(LEDGER_KEY) === text) ledgerText = text;
 }
 
 // WHICH FILES ARE BLURRED RIGHT NOW. Only the MISSED flow blurs. A component
@@ -138,24 +188,47 @@ export function isAutoSaving(filePath: string): boolean {
 
 // One save at a time, in arrival order.
 let queue: Promise<void> = Promise.resolve();
+// Files waiting in the queue, or being saved now.
+let queued = 0;
+
+function wait(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
+
+/** The save, but never longer than SAVE_TIMEOUT_MS. Never rejects. */
+function saveWithTimeout(filePath: string): Promise<DownloadResult | "timeout"> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve("timeout"), SAVE_TIMEOUT_MS);
+    Promise.resolve()
+      .then(() => downloadFile(filePath))
+      .then(
+        (result) => resolve(result ?? "blob"),
+        () => resolve("none"),
+      )
+      .finally(() => clearTimeout(timer));
+  });
+}
 
 function enqueue(filePath: string, blur: boolean) {
+  queued += 1;
   let timer: ReturnType<typeof setTimeout> | undefined;
   if (blur) {
     setSaving(filePath, true);
     timer = setTimeout(() => setSaving(filePath, false), BLUR_MAX_MS);
   }
   queue = queue
-    .then(() => downloadFile(filePath))
-    .catch(() => {})
-    .then(() => {
-      // The save ended (well or badly). Show the media clearly again.
+    .then(() => saveWithTimeout(filePath))
+    .then(async (result) => {
+      // The save ended (well, badly, or too slowly). Show the media clearly.
       if (blur) {
         clearTimeout(timer);
         setSaving(filePath, false);
       }
+      await wait(result === "link" ? LINK_GAP_MS : GAP_MS);
     })
-    .then(() => new Promise<void>((resolve) => setTimeout(resolve, GAP_MS)));
+    .finally(() => {
+      queued -= 1;
+    });
 }
 
 /**
@@ -198,11 +271,16 @@ export function autoSaveIncomingMedia(
   currentUserId: string | number | null | undefined,
 ): string[] {
   if (typeof window === "undefined" || !isAutoDownloadOn()) return [];
+  if (!networkAllowsAutoSave()) return [];
 
-  const started = newFilesOf(message, currentUserId);
-  for (const filePath of started) {
+  const started: string[] = [];
+  for (const filePath of newFilesOf(message, currentUserId)) {
+    // A full queue drops the file. It is not remembered, so the user can still
+    // save it by hand.
+    if (queued >= MAX_QUEUED) break;
     remember(filePath);
     enqueue(filePath, false);
+    started.push(filePath);
   }
   return started;
 }
@@ -283,6 +361,7 @@ export function autoSaveMissedMedia(
 
   const since = lookedSince.get(key) as number;
   if (!on || since < 0) return [];
+  if (!networkAllowsAutoSave()) return [];
 
   const budget = MISSED_LIMIT - (missedSaved.get(key) ?? 0);
   if (budget <= 0) return [];
@@ -301,20 +380,24 @@ export function autoSaveMissedMedia(
     }
   }
 
-  // Save in the order the files were sent.
-  picked.reverse();
-  for (const filePath of picked) {
+  // Keep the newest ones when the queue has room for only some of them. Then
+  // save in the order the files were sent.
+  const room = Math.max(0, MAX_QUEUED - queued);
+  const started = picked.slice(0, room).reverse();
+  for (const filePath of started) {
     remember(filePath);
     enqueue(filePath, true);
   }
-  missedSaved.set(key, (missedSaved.get(key) ?? 0) + picked.length);
-  return picked;
+  missedSaved.set(key, (missedSaved.get(key) ?? 0) + started.length);
+  return started;
 }
 
 /** Test helper: forget everything held in memory. */
 export function resetAutoDownloadMemory() {
   ledger = null;
+  ledgerText = null;
   queue = Promise.resolve();
+  queued = 0;
   lookedSince.clear();
   missedSaved.clear();
   saving.clear();

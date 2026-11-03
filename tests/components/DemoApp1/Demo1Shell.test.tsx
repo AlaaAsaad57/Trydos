@@ -522,16 +522,111 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     ).toBe("translate(0.5px, 0.5px)");
   });
 
-  it("keeps the store's search mark inactive for now", () => {
-    const { container } = openOn("store/zara");
-    const search = container.querySelector('[data-pw="demo-listing-search"]');
-    expect(search, "the store page has no search mark").not.toBeNull();
-    fireEvent.click(search!);
-    expect(
-      onStage(container),
-      "a tap on the store's search mark left the store page",
-    ).toEqual(["store/zara"]);
-    expect(router.push, "a tap on the store's search mark moved the URL").not.toHaveBeenCalled();
+  describe("the store's search field", () => {
+    const parts = (container: HTMLElement) => ({
+      mark: container.querySelector<HTMLElement>('[data-pw="demo-listing-search"]'),
+      field: container.querySelector<HTMLElement>('[data-pw="demo-listing-search-field"]'),
+      input: container.querySelector<HTMLInputElement>('[data-pw="demo-listing-search-input"]'),
+      sort: container.querySelector<HTMLElement>('[data-pw="demo-listing-sort"]'),
+      share: container.querySelector<HTMLElement>('[data-pw="demo-listing-share"]'),
+    });
+
+    it("opens in the header on a tap of the search mark: the field takes the focus, and the other marks step aside", () => {
+      const { container } = openOn("store/zara");
+      const { mark, field, input, sort, share } = parts(container);
+      expect(mark, "the store page has no search mark").not.toBeNull();
+      expect(field, "the store page has no search field in its header").not.toBeNull();
+      expect(field!.dataset.open, "the search field is open before the tap").toBeUndefined();
+      expect(field!.style.visibility, "the closed search field can be seen").toBe("hidden");
+
+      fireEvent.click(mark!);
+
+      expect(field!.dataset.open, "a tap on the search mark did not open the field").toBe("true");
+      expect(field!.style.visibility, "the open search field is still hidden").toBe("visible");
+      expect(
+        field!.style.clipPath,
+        "the open field is still cut to the search mark's box (it must grow to its full size)",
+      ).toBe("inset(0px 0px 0px 0px round 12px)");
+      expect(
+        document.activeElement,
+        "the field did not take the focus in the tap (iOS then shows no keyboard)",
+      ).toBe(input);
+      expect(
+        [field!.style.left, field!.style.right],
+        "the open search field does not fill the top bar, 10 px from each edge",
+      ).toEqual(["10px", "10px"]);
+      const back = container.querySelector<HTMLElement>('[data-pw="demo-listing-back"]');
+      expect(back!.style.opacity, "the back mark still shows under the open search field").toBe("0");
+      expect(back!.hasAttribute("inert"), "the hidden back mark can still be tapped or reached with the keys").toBe(true);
+      expect(
+        container.querySelector<HTMLElement>("header h1")?.style.opacity,
+        "the store's logo still shows under the open search field",
+      ).toBe("0");
+      expect(sort!.style.opacity, "the sort mark still shows while the search field is open").toBe("0");
+      expect(share!.style.opacity, "the share mark still shows while the search field is open").toBe("0");
+      expect(
+        sort!.closest("[inert]"),
+        "the hidden sort mark can still be reached with the keys while the field is open",
+      ).not.toBeNull();
+      expect(onStage(container), "a tap on the search mark left the store page").toEqual(["store/zara"]);
+      expect(router.push, "a tap on the search mark moved the URL").not.toHaveBeenCalled();
+    });
+
+    it("closes on a scroll of the page, and the header is as it was", () => {
+      vi.useFakeTimers();
+      try {
+        const { container } = openOn("store/zara");
+        const { mark, field, input, sort } = parts(container);
+        fireEvent.click(mark!);
+        fireEvent.change(input!, { target: { value: "shirt" } });
+
+        // While the keyboard comes up, a page move (iOS) does not close it.
+        scrollY = 60;
+        fireEvent.scroll(window);
+        expect(
+          field!.dataset.open,
+          "the field closed on the page move that comes with the keyboard",
+        ).toBe("true");
+        act(() => {
+          vi.advanceTimersByTime(500);
+        });
+
+        // A small shake of the finger does not close it.
+        scrollY = 70;
+        fireEvent.scroll(window);
+        expect(field!.dataset.open, "a 10 px move of the page closed the field").toBe("true");
+
+        scrollY = 160;
+        fireEvent.scroll(window);
+        expect(field!.dataset.open, "a 100 px scroll of the page did not close the field").toBeUndefined();
+        expect(input!.value, "the words stayed in the field after it closed").toBe("");
+        expect(
+          document.activeElement,
+          "the field kept the focus after the scroll closed it (the keyboard stays up)",
+        ).not.toBe(input);
+        expect(sort!.style.opacity, "the sort mark did not come back after the field closed").toBe("1");
+        expect(sort!.closest("[inert]"), "the sort mark cannot be reached after the field closed").toBeNull();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("closes on its close mark and on Escape, and gives the focus back to the search mark", () => {
+      const { container } = openOn("store/zara");
+      const { mark, field, input } = parts(container);
+      const close = container.querySelector<HTMLElement>('[data-pw="demo-listing-search-close"]');
+      expect(close, "the search field has no close mark").not.toBeNull();
+
+      fireEvent.click(mark!);
+      fireEvent.click(close!);
+      expect(field!.dataset.open, "the close mark did not close the search field").toBeUndefined();
+      expect(document.activeElement, "the focus did not go back to the search mark after the close mark").toBe(mark);
+
+      fireEvent.click(mark!);
+      fireEvent.keyDown(input!, { key: "Escape" });
+      expect(field!.dataset.open, "Escape did not close the search field").toBeUndefined();
+      expect(document.activeElement, "the focus did not go back to the search mark after Escape").toBe(mark);
+    });
   });
 
   it("on a tap, draws the cards the screen shows first and the rest of the first page after the grow", () => {
@@ -636,47 +731,262 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     }
   });
 
-  it("hides the store page's header on a scroll down and shows it again on any scroll up", async () => {
+  it("keeps the sticky box at the top 0 px wide, so Safari 26 draws the page under its top bar", () => {
+    // Safari 26 on the iPhone fills its top bar with the colour of the first
+    // fixed or sticky box at the top edge that is 90 % as wide as the screen.
+    // A full-width white sticky head made the top bar plain white.
+    for (const screen of ["home", "store/zara"] as const) {
+      const { container, unmount } = openOn(screen);
+      const head = container.querySelector<HTMLElement>('[data-pw="demo1-head"]');
+      expect(head, `the "${screen}" screen has no header`).not.toBeNull();
+      let box: HTMLElement | null = head;
+      while (box && !/\bsticky\b/.test(box.className)) box = box.parentElement;
+      expect(box, `the header of the "${screen}" screen is not inside a sticky box`).not.toBeNull();
+      expect(
+        box!.style.width,
+        `the sticky box of the header on the "${screen}" screen is not 0 px wide, so Safari paints its top bar in the header's solid colour`,
+      ).toBe("0px");
+      expect(
+        head!.style.width,
+        `the header on the "${screen}" screen does not take the page column's full width`,
+      ).toBe("min(100vw, 500px)");
+      unmount();
+    }
+  });
+
+  /**
+   * Runs `body` on a phone-width window: the top strip is only put on a touch
+   * device (on a desktop it showed as a band across the whole window).
+   */
+  const onAPhone = async (body: () => Promise<void> | void) => {
+    const wide = Object.getOwnPropertyDescriptor(window, "innerWidth");
     const tall = Object.getOwnPropertyDescriptor(Element.prototype, "scrollHeight");
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 390 });
     Object.defineProperty(document.documentElement, "scrollHeight", {
       configurable: true,
       get: () => 5000,
     });
     try {
-      const { container } = openOn("store/zara");
-      const head = container.querySelector<HTMLElement>('[data-pw="demo1-head"]');
-      expect(head, "the store page has no header").not.toBeNull();
-      const scrollTo = async (y: number) => {
-        scrollY = y;
-        fireEvent.scroll(window);
-        // The page reads the scroll on the next frame.
-        await act(() => new Promise((done) => requestAnimationFrame(() => done(null))));
-      };
-      await scrollTo(400);
-      expect(
-        head!.style.transform,
-        "the header stays on screen after a scroll down of 400 px",
-      ).toBe("translateY(-100%)");
-      await scrollTo(398);
-      expect(
-        head!.style.transform,
-        "the header does not come back after a short scroll up of 2 px",
-      ).toBe("translateY(0)");
-      await scrollTo(800);
-      expect(head!.style.transform, "the header does not hide again on the next scroll down").toBe(
-        "translateY(-100%)",
-      );
-      expect(
-        head!.style.transition,
-        "the header jumps away instead of moving out",
-      ).toContain("transform");
+      await body();
     } finally {
+      if (wide) Object.defineProperty(window, "innerWidth", wide);
       if (tall) Object.defineProperty(document.documentElement, "scrollHeight", tall);
       else delete (document.documentElement as unknown as Record<string, unknown>).scrollHeight;
     }
+  };
+  const topStrip = () =>
+    document.body.querySelector<HTMLElement>('[data-pw="demo-top-tint"]');
+  const WHITE = /^rgba?\(255, 255, 255(, 1)?\)$/;
+
+  it("paints Safari's top bar white while a screen's header is shown, so no page shows above the header", async () => {
+    // Seen on the iPhone: Safari 26 draws the page under its top bar, and
+    // the header starts under that bar, so photos showed in a band above the
+    // white header. A box above the top of the page is cut off by Safari, so
+    // the demo's own top strip (topTint.ts) carries the header's white.
+    await onAPhone(async () => {
+      for (const screen of ["home", "store/zara"] as const) {
+        const { unmount } = openOn(screen);
+        await waitFor(() =>
+          expect(topStrip(), `the "${screen}" screen put no strip at the top for Safari to read`).not.toBeNull(),
+        );
+        expect(
+          topStrip()!.style.visibility,
+          `the top strip is hidden while the header of the "${screen}" screen is shown`,
+        ).toBe("visible");
+        expect(
+          topStrip()!.style.backgroundColor,
+          `the top strip is not the white of the header on the "${screen}" screen`,
+        ).toMatch(WHITE);
+        unmount();
+        expect(
+          topStrip()!.style.visibility,
+          `the top strip stays white after the "${screen}" screen is closed`,
+        ).toBe("hidden");
+      }
+    });
   });
 
-  it("slides a card's labels from right to left when it has more than one, and keeps a single label still", () => {
+  /**
+   * Opens the store page on a phone, with a clock the test moves: each scroll
+   * step is one frame (about 17 ms) later than the one before.
+   */
+  const onTheStorePage = async (
+    body: (page: {
+      container: HTMLElement;
+      head: HTMLElement;
+      /** Scrolls the window to `y` one frame later, and waits for the page to read it. */
+      scrollTo: (y: number) => Promise<void>;
+      finger: (down: boolean) => void;
+    }) => Promise<void>,
+  ) => {
+    let clock = 1000;
+    const now = vi.spyOn(performance, "now").mockImplementation(() => clock);
+    try {
+      await onAPhone(async () => {
+        const { container } = openOn("store/zara");
+        const head = container.querySelector<HTMLElement>('[data-pw="demo1-head"]');
+        expect(head, "the store page has no header").not.toBeNull();
+        Object.defineProperty(head!, "offsetHeight", { configurable: true, value: 50 });
+        await body({
+          container,
+          head: head!,
+          scrollTo: async (y) => {
+            clock += 17;
+            scrollY = y;
+            fireEvent.scroll(window);
+            // The page reads the scroll on the next frame.
+            await act(() => new Promise((done) => requestAnimationFrame(() => done(null))));
+          },
+          finger: (down) => fireEvent(document, new Event(down ? "touchstart" : "touchend")),
+        });
+      });
+    } finally {
+      now.mockRestore();
+    }
+  };
+
+  it("lets the page itself carry the store page's header out on a scroll down, so the header cannot shake", async () => {
+    // Seen on the iPhone: the header shook while it moved out. A script set
+    // its place on each frame, but Safari scrolls the page on a thread of its
+    // own, so the place a script sets is always a frame behind the page. Now
+    // the header's sticky box ends where the scroll down began, and Safari
+    // itself carries the header out, 1:1 with the page, the way the Facebook
+    // app does (measured in its recording: out 1:1, faded from 10 px to 30 px).
+    await onTheStorePage(async ({ container, head, scrollTo, finger }) => {
+      const strip: string[] = [];
+      new MutationObserver(() => strip.push(topStrip()!.style.backgroundColor)).observe(topStrip()!, {
+        attributes: true,
+        attributeFilter: ["style"],
+      });
+      const before = head.style.transform;
+
+      finger(true);
+      await scrollTo(5);
+      expect(
+        head.style.transform,
+        "a script moved the header on a 5 px scroll down; a move set by script is a frame behind Safari's own scroll, so the header shakes",
+      ).toBe(before);
+      const limit = container.querySelector<HTMLElement>('[data-pw="demo1-head-limit"]');
+      expect(
+        limit?.style.height,
+        "the header's sticky box does not end where the scroll down began (0 px), so the page does not carry the header out",
+      ).toBe("0px");
+      expect(head.style.opacity, "the header faded before 10 px of scroll").toBe("1");
+
+      await scrollTo(20);
+      expect(head.style.transform, "a script moved the header on a 20 px scroll down").toBe(before);
+      expect(head.style.opacity, "the header is not half faded at 20 px, halfway from 10 px to 30 px").toBe("0.5");
+      expect(
+        topStrip()!.style.backgroundColor,
+        "Safari's top bar is no longer white while the header is still half shown",
+      ).toMatch(WHITE);
+
+      await scrollTo(25);
+      expect(head.style.opacity, "the header is not mostly faded 25 px into a scroll down").toBe("0.25");
+      expect(
+        topStrip()!.style.visibility,
+        "Safari's top bar stays white while the header is mostly faded out",
+      ).toBe("hidden");
+      expect(
+        strip.filter((color) => /rgba\(255, 255, 255, 0\.\d+\)/.test(color)),
+        "Safari's top bar was given a part-white colour on a frame of the fade, so Safari changes its bar on every frame",
+      ).toEqual([]);
+
+      await scrollTo(400);
+      expect(head.dataset.hidden, "the header is not out after a long scroll down").toBe("true");
+      expect(head.style.transform, "the hidden header is still in the screen").toBe("translateY(-100%)");
+    });
+  });
+
+  it("brings the store page's header back on a fast scroll up only, as the Facebook app does", async () => {
+    // Measured in the Facebook app's recording: a slow scroll up (3 to 10 px a
+    // frame, 250 to 300 px long) leaves the bar out; it comes back once the
+    // page moved up about 120 px within 100 ms, with a fade in (120 ms) and a
+    // short slide down (170 ms).
+    await onTheStorePage(async ({ container, head, scrollTo }) => {
+      await scrollTo(2000);
+      expect(head.dataset.hidden, "the header is not out after a long scroll down").toBe("true");
+
+      let y = 2000;
+      for (let i = 0; i < 50; i += 1) await scrollTo((y -= 6));
+      expect(
+        head.dataset.hidden,
+        "a slow scroll up of 300 px (6 px a frame) brought the header back; the Facebook app keeps it out",
+      ).toBe("true");
+
+      await scrollTo((y -= 40));
+      await scrollTo((y -= 40));
+      expect(head.dataset.hidden, "the header came back on 80 px of a fast scroll up, before 120 px").toBe("true");
+      await scrollTo((y -= 40));
+      expect(head.dataset.hidden, "a fast scroll up (40 px a frame) did not bring the header back").toBeUndefined();
+      expect(head.style.transform, "the header did not slide back into the screen").toBe("translateY(0)");
+      expect(head.style.opacity, "the header came back but stays faded").toBe("1");
+      expect(head.style.transition, "the header jumped back instead of fading in over 120 ms").toContain(
+        "opacity 120ms",
+      );
+      expect(head.style.transition, "the header jumped back instead of sliding down over 170 ms").toContain(
+        "transform 170ms",
+      );
+      expect(
+        container.querySelector<HTMLElement>('[data-pw="demo1-head-limit"]')?.style.height,
+        `the header's sticky box does not reach the place it came back at (${y} px), so the page carries it out again`,
+      ).toBe(`${y}px`);
+      expect(
+        topStrip()!.style.backgroundColor,
+        "Safari's top bar did not turn white again with the header",
+      ).toMatch(WHITE);
+    });
+  });
+
+  it("brings the store page's header back near the top of the page at any speed", async () => {
+    await onTheStorePage(async ({ head, scrollTo }) => {
+      await scrollTo(400);
+      expect(head.dataset.hidden, "the header is not out after a long scroll down").toBe("true");
+      let y = 400;
+      while (y > 50) await scrollTo((y -= 6));
+      expect(
+        head.dataset.hidden,
+        "a slow scroll up to the header's height from the top of the page left the header out",
+      ).toBeUndefined();
+    });
+  });
+
+  it("moves a part-way header to the nearer end when the finger lifts, not before", async () => {
+    // Our own rule (the recording has no stop part-way): under half of 30 px
+    // it comes back, over half it goes out.
+    await onTheStorePage(async ({ container, head, scrollTo, finger }) => {
+      const limit = () =>
+        container.querySelector<HTMLElement>('[data-pw="demo1-head-limit"]')?.style.height;
+      finger(true);
+      await scrollTo(12);
+      await new Promise((done) => setTimeout(done, 300));
+      expect(head.style.opacity, "the header snapped while the finger was still on the screen").toBe("0.9");
+      expect(limit(), "the header's sticky box moved while the finger was still on the screen").toBe("0px");
+      finger(false);
+      await waitFor(() =>
+        expect(
+          limit(),
+          "a header 12 px out (under half of 30 px) did not go back to the top of the screen when the finger lifted",
+        ).toBe("12px"),
+      );
+      expect(head.style.opacity, "a header that snapped back in stays faded").toBe("1");
+      expect(head.style.transform, "a header that snapped back in is not at the top").toBe("translateY(0)");
+
+      finger(true);
+      await scrollTo(37);
+      expect(head.style.opacity, "the header is not mostly faded 25 px into a scroll down").toBe("0.25");
+      finger(false);
+      await waitFor(() =>
+        expect(
+          head.style.transform,
+          "a header 25 px out (over half of 30 px) did not go out when the finger lifted",
+        ).toBe("translateY(-100%)"),
+      );
+      expect(head.dataset.hidden, "a header that went out is not marked hidden").toBe("true");
+    });
+  });
+
+  it("flips a card's labels over like a card when it has more than one, and keeps a single label still", () => {
     const { container } = openOn("store/zara");
     const labelsOf = (id: string) =>
       container.querySelector<HTMLElement>(
@@ -688,8 +998,12 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     expect(track, "the flash deal card's two labels do not take turns").not.toBeNull();
     expect(
       flash!.querySelector("style")?.textContent,
-      "the labels do not move sideways (translateX), from right to left",
-    ).toContain("translateX(-100%)");
+      "the labels do not turn over like a card (rotateX to -180deg)",
+    ).toContain("rotateX(-180deg)");
+    expect(
+      flash!.style.perspective,
+      "the labels' row has no perspective, so the flip looks flat",
+    ).not.toBe("");
     const slots = [...track!.children] as HTMLElement[];
     expect(
       slots[0]?.textContent,
@@ -700,9 +1014,13 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
       "the best-price label does not come after the flash deal",
     ).toBe("! Best price last 3 days!");
     expect(
-      slots[2]?.getAttribute("aria-hidden"),
-      "the copy of the first label (for the loop) is read out by screen readers",
-    ).toBe("true");
+      slots[1]?.style.backfaceVisibility,
+      "the label waiting to come in shows its back during the flip",
+    ).toBe("hidden");
+    expect(
+      slots[1]?.style.animationDelay,
+      "the second label does not start one turn (2 s) behind the first",
+    ).toBe("-2s");
     expect(
       labelsOf("shirt-1")?.querySelector(".demo-labels-2"),
       "the card in the bag (shirt-1) does not turn between its bag and best-price labels",
@@ -715,7 +1033,7 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     ).toBeNull();
   });
 
-  it("slides the labels on the colour sheet's cards too, the same way as on the store page", () => {
+  it("flips the labels on the colour sheet's cards too, the same way as on the store page", () => {
     const { container } = openOn("store/zara");
     const dots = container.querySelector(
       '[data-pw="demo-listing-product-shirt-2"] [data-pw="demo-listing-colors"]',
@@ -739,9 +1057,9 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
       "the best-price label does not come after the flash deal on the colour sheet's card",
     ).toBe("! Best price last 3 days!");
     expect(
-      slots[2]?.getAttribute("aria-hidden"),
-      "the colour sheet reads the loop's copy of the first label out to screen readers",
-    ).toBe("true");
+      labels!.querySelector("style")?.textContent,
+      "the colour sheet's labels do not turn over like a card (rotateX to -180deg)",
+    ).toContain("rotateX(-180deg)");
   });
 
   it("shows the tab bar on the store page, with Home as the active tab", () => {

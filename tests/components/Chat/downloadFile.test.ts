@@ -52,6 +52,30 @@ describe("downloadFile", () => {
     );
   });
 
+  it("lets the browser save a very big file by link, without reading it into memory", async () => {
+    const clicked = spyOnClicks();
+    const blob = vi.fn(async () => new Blob(["x"]));
+    const cancel = vi.fn(async () => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        headers: new Headers({ "content-length": String(300 * 1024 * 1024) }),
+        body: { cancel },
+        blob,
+      }),
+    );
+
+    const how = await downloadFile("https://m.example.com/chat/file/big.mp4");
+
+    expect(blob, "a 300 MB video was read into memory as a blob").not.toHaveBeenCalled();
+    expect(cancel, "the fetch of the big video was not stopped").toHaveBeenCalled();
+    expect(clicked[0]?.href, "the big video was not saved by the server's attachment link").toBe(
+      "https://m.example.com/chat/file/big.mp4?download=1",
+    );
+    expect(how, "the helper did not say it saved the big file by link").toBe("link");
+  });
+
   it("does nothing for an empty url", async () => {
     const clicked = spyOnClicks();
     await downloadFile("");

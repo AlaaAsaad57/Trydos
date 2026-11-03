@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { motion, useReducedMotion, type MotionValue } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
+import { XD_ICON_SIZE } from "../../DemoApp/xdIcons";
+import { CloseIcon } from "../chat/chatIcons";
 import { hrefFor } from "../../DemoApp/demoRoutes";
 import { openProductInColor, productFirstImages } from "../../DemoApp/demoProduct";
 import {
@@ -18,7 +21,7 @@ import {
 } from "../../DemoApp/demoStores";
 import { useDemoNav } from "../Demo1Shell";
 import { C, lineBox, textTop } from "../demo1Layout";
-import { ScreenPage, Stroke } from "../ui";
+import { Icon, ScreenPage, Stroke } from "../ui";
 import { BrandCard, useSlider } from "./HomeSections";
 import ListingColorSheet, { COLOR_GLASS } from "./ListingColorSheet";
 import { useSettled } from "./useSettled";
@@ -77,8 +80,9 @@ import {
  *
  * The status bar is left out (the phone draws its own). The file draws no
  * tab bar on this page, but the page shows it, with Home as the active tab,
- * so the person can reach the other tabs from a store. The search, sort,
- * filter and share marks do nothing yet.
+ * so the person can reach the other tabs from a store. The search mark opens
+ * a search field in the header (StoreSearchField). The sort, filter and
+ * share marks do nothing yet.
  *
  * For search engines the page is real HTML from the server: the logo is the
  * page's <h1>, every product is an <article> with an <h2> name and a price,
@@ -118,26 +122,271 @@ function HeaderMark({
   icon,
   label,
   testId,
+  onClick,
+  buttonRef,
+  style,
+  expanded,
 }: {
   icon: "listSearch" | "listSort" | "listFilter" | "listSend";
   label: string;
   testId: string;
+  onClick?: () => void;
+  buttonRef?: React.Ref<HTMLButtonElement>;
+  /** How the mark leaves while the search field is open (SEARCH_* below). */
+  style?: React.CSSProperties;
+  expanded?: boolean;
 }) {
   return (
     <button
+      ref={buttonRef}
       type="button"
       aria-label={label}
+      aria-expanded={expanded}
       data-pw={testId}
-      className="relative shrink-0 cursor-pointer active:opacity-60 [-webkit-tap-highlight-color:transparent]"
-      style={{ width: 50, height: 50, padding: 15, margin: -15 }}
+      onClick={onClick}
+      className="relative shrink-0 cursor-pointer active:opacity-60 [-webkit-tap-highlight-color:transparent] motion-reduce:transition-none"
+      style={{ width: 50, height: 50, padding: 15, margin: -15, ...style }}
     >
       <XdIcon name={icon} />
     </button>
   );
 }
 
+/**
+ * The store's search field, as shop apps do it (Zara, H&M, ASOS): a tap on
+ * the search mark grows a field out of the mark until it fills the whole
+ * top bar, SEARCH_EDGE px from each edge. Everything else in the bar steps
+ * aside.
+ *
+ *  - Open, in 400 ms: the field grows from the search mark's 20 x 20 circle
+ *    to the full bar (a clip-path, so no layout runs per frame), with
+ *    Material 3's "emphasized decelerate" curve: fast at first, soft at the
+ *    end. The back mark and the logo fade and move 8 px left; sort, filter
+ *    and share fade and move 8 px right, one after the other, 30 ms apart.
+ *    The glass, the words and the close mark come in after the grow has
+ *    started (SEARCH_INSIDE_DELAY_S), so they never show squeezed.
+ *  - Close, in about 400 ms: the inside fades out first. Then the field
+ *    shrinks back into the search mark's circle with the "standard" curve,
+ *    the circle fades into the mark, and the other parts come back.
+ *  - The field closes on a scroll of the page (SEARCH_CLOSE_PX), on the
+ *    close mark, and on Escape. The page then is as it was: the words go,
+ *    and the phone's keyboard goes down.
+ *  - The field takes the focus in the tap itself. iOS opens the keyboard
+ *    only for a focus inside the tap's event, so the field is on the page
+ *    (but hidden) before the tap, and React draws it open at once
+ *    (flushSync) before the focus.
+ *  - "Reduce motion": no moves, the field is just there.
+ *
+ * There is no results design yet, as on the search screen: the field takes
+ * text, and the search key puts the keyboard down.
+ */
+/** The field's distance from each edge of the screen: it fills the top bar. */
+const SEARCH_EDGE = 10;
+
+/** The search mark's box, as distances from the field's right edge (the marks end 10 px from the screen's edge). */
+const SEARCH_MARK_RIGHT = 3 * 20 + 3 * 30;
+const SEARCH_MARK_LEFT = SEARCH_MARK_RIGHT + 20;
+
+/** The field's shape when closed (the search mark's box, round) and when open. */
+const SEARCH_CLIP_SHUT = `inset(9px ${SEARCH_MARK_RIGHT}px 9px calc(100% - ${SEARCH_MARK_LEFT}px) round 10px)`;
+const SEARCH_CLIP_OPEN = "inset(0px 0px 0px 0px round 12px)";
+
+/** Material 3 "emphasized decelerate" (open) and "standard" (close). */
+const SEARCH_OPEN_EASE = "cubic-bezier(0.05, 0.7, 0.1, 1)";
+const SEARCH_SHUT_EASE = "cubic-bezier(0.2, 0, 0, 1)";
+
+/** How long the grow and the shrink take, in seconds. */
+const SEARCH_OPEN_S = 0.4;
+const SEARCH_SHUT_S = 0.3;
+
+/** When the field's inside comes in after the grow starts, and how long it fades out before the shrink. */
+const SEARCH_INSIDE_DELAY_S = 0.12;
+const SEARCH_INSIDE_OUT_S = 0.1;
+
+/** How far the page must scroll to close the field. Smaller moves are a shaky finger. */
+const SEARCH_CLOSE_PX = 24;
+
+/**
+ * How long after the open a scroll does not close the field. The keyboard
+ * comes up then, and iOS may move the page to show the field; that is not
+ * the shopper's scroll.
+ */
+const SEARCH_SETTLE_MS = 450;
+
+/**
+ * The style of a part of the bar that steps aside while the field is open.
+ * `side` is the way it moves (-1 left, 1 right). `order` is how far it is
+ * from the search mark: the near ones leave first and come back last.
+ */
+function asideStyle(
+  open: boolean,
+  side: -1 | 1,
+  order: number,
+): React.CSSProperties {
+  const leave = order * 0.03;
+  const back = SEARCH_INSIDE_OUT_S + SEARCH_SHUT_S * 0.5 + (2 - order) * 0.03;
+  return {
+    opacity: open ? 0 : 1,
+    transform: open ? `translateX(${side * 8}px)` : "translateX(0)",
+    pointerEvents: open ? "none" : undefined,
+    transition: open
+      ? `opacity 0.15s ease-out ${leave}s, transform 0.25s ${SEARCH_OPEN_EASE} ${leave}s`
+      : `opacity 0.2s ease-in ${back}s, transform 0.3s ${SEARCH_OPEN_EASE} ${back}s`,
+  };
+}
+
+/**
+ * Whether the store's search field is open, and the ways to open and close
+ * it. The field closes when the page scrolls more than SEARCH_CLOSE_PX,
+ * counted from where the page was when the keyboard settled.
+ */
+function useStoreSearch() {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const field = useRef<HTMLInputElement>(null);
+  const mark = useRef<HTMLButtonElement>(null);
+
+  const show = () => {
+    flushSync(() => setOpen(true));
+    field.current?.focus({ preventScroll: true });
+  };
+  const hide = (refocus: boolean) => {
+    field.current?.blur();
+    setOpen(false);
+    setQuery("");
+    // From the keys or the close mark, the focus goes back to the search
+    // mark. Not after a scroll: the shopper's eyes are on the list.
+    if (refocus) mark.current?.focus({ preventScroll: true });
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    let from = window.scrollY;
+    let settled = false;
+    const wait = setTimeout(() => {
+      settled = true;
+      from = window.scrollY;
+    }, SEARCH_SETTLE_MS);
+    const onScroll = () => {
+      if (!settled) {
+        from = window.scrollY;
+        return;
+      }
+      if (Math.abs(window.scrollY - from) > SEARCH_CLOSE_PX) {
+        field.current?.blur();
+        setOpen(false);
+        setQuery("");
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      clearTimeout(wait);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [open]);
+
+  return { open, query, setQuery, field, mark, show, hide };
+}
+
+function StoreSearchField({
+  search,
+  t,
+}: {
+  search: ReturnType<typeof useStoreSearch>;
+  t: T;
+}) {
+  const { open, query, setQuery, field, hide } = search;
+  return (
+    <form
+      role="search"
+      data-pw="demo-listing-search-field"
+      data-open={open || undefined}
+      aria-hidden={!open}
+      inert={!open}
+      onSubmit={(e) => {
+        e.preventDefault();
+        // No results design yet: the search key puts the keyboard down.
+        field.current?.blur();
+      }}
+      className="absolute motion-reduce:transition-none"
+      style={{
+        left: SEARCH_EDGE,
+        right: SEARCH_EDGE,
+        top: 6,
+        height: 38,
+        borderRadius: 12,
+        background: C.field,
+        clipPath: open ? SEARCH_CLIP_OPEN : SEARCH_CLIP_SHUT,
+        opacity: open ? 1 : 0,
+        // Hidden only after the close has run, so the close can be seen.
+        visibility: open ? "visible" : "hidden",
+        transition: open
+          ? `clip-path ${SEARCH_OPEN_S}s ${SEARCH_OPEN_EASE}, opacity 0.1s linear, visibility 0s`
+          : // The inside fades first, then the field shrinks into the mark,
+            // and the last circle fades as the mark comes back.
+            `clip-path ${SEARCH_SHUT_S}s ${SEARCH_SHUT_EASE} ${SEARCH_INSIDE_OUT_S}s, ` +
+            `opacity 0.12s linear ${SEARCH_INSIDE_OUT_S + SEARCH_SHUT_S - 0.08}s, ` +
+            `visibility 0s linear ${SEARCH_INSIDE_OUT_S + SEARCH_SHUT_S + 0.04}s`,
+      }}
+    >
+      <div
+        className="flex items-center w-full h-full motion-reduce:transition-none"
+        style={{
+          opacity: open ? 1 : 0,
+          transform: open ? "translateX(0)" : "translateX(12px)",
+          transition: open
+            ? `opacity 0.2s linear ${SEARCH_INSIDE_DELAY_S}s, transform ${SEARCH_OPEN_S}s ${SEARCH_OPEN_EASE} ${SEARCH_INSIDE_DELAY_S}s`
+            : `opacity ${SEARCH_INSIDE_OUT_S}s linear, transform ${SEARCH_INSIDE_OUT_S}s linear`,
+        }}
+      >
+        <Icon name="searchGlass" ml={9.5} />
+        <input
+          ref={field}
+          data-pw="demo-listing-search-input"
+          type="search"
+          enterKeyHint="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.preventDefault();
+              hide(true);
+            }
+          }}
+          placeholder={t("Search...")}
+          aria-label={t("Search")}
+          className="block bg-transparent outline-none font-normal placeholder:text-[#8D8D8D] [&::-webkit-search-cancel-button]:hidden"
+          style={{
+            marginLeft: 40 - (9.5 + XD_ICON_SIZE.searchGlass.w),
+            flex: "1 1 0",
+            minWidth: 0,
+            height: 24,
+            // 16 px: iOS zooms the page into a field with smaller text.
+            fontSize: 16,
+            color: C.ink,
+            padding: 0,
+            border: 0,
+          }}
+        />
+        <button
+          type="button"
+          data-pw="demo-listing-search-close"
+          aria-label={t("Close")}
+          onClick={() => hide(true)}
+          className="flex items-center justify-center shrink-0 cursor-pointer active:opacity-60 [-webkit-tap-highlight-color:transparent]"
+          style={{ width: 38, height: 38 }}
+        >
+          <CloseIcon color={C.grey} />
+        </button>
+      </div>
+    </form>
+  );
+}
+
 function Header({ store, t }: { store: DemoStore; t: T }) {
   const { back } = useDemoNav();
+  const search = useStoreSearch();
+  const { open } = search;
   return (
     <header
       className="relative w-full"
@@ -151,29 +400,74 @@ function Header({ store, t }: { store: DemoStore; t: T }) {
         onClick={back}
         // `flex items-start`: a button centres its content up and down, which
         // put the mark 7 px under the file's y.
-        className="absolute flex items-start cursor-pointer active:opacity-60 [-webkit-tap-highlight-color:transparent]"
+        inert={open}
+        className="absolute flex items-start cursor-pointer active:opacity-60 [-webkit-tap-highlight-color:transparent] motion-reduce:transition-none"
         // The box sits on whole pixels and a transform moves the mark the last
         // 0.5 px. Chromium draws an image box at a half-pixel layout place on
         // the next whole pixel, so `padding: 14.5px` showed the mark at
         // (15, 65); a transform is not snapped (measured at 2x and 8x).
-        style={{ left: 0, top: 0, width: 34, height: 50, padding: "14px 0 0 14px" }}
+        style={{
+          left: 0,
+          top: 0,
+          width: 34,
+          height: 50,
+          padding: "14px 0 0 14px",
+          // It steps aside while the search field fills the bar.
+          ...asideStyle(open, -1, 2),
+        }}
       >
         <XdIcon name="back" style={{ transform: "translate(0.5px, 0.5px)" }} />
       </button>
       {/* The store's logo: the page's title for search engines and screen readers. */}
-      <h1 className="absolute m-0" style={{ left: 36, top: 68 - 50 }}>
+      <h1
+        className="absolute m-0 motion-reduce:transition-none"
+        style={{ left: 36, top: 68 - 50, ...asideStyle(open, -1, 1) }}
+      >
         <StoreMark store={store} h={15} maxW={100} eager />
       </h1>
       <div
         className="absolute flex items-center"
         style={{ right: 10, top: 65 - 50, gap: 30 }}
       >
-        {/* Not active yet: the store's own search is a later screen. */}
-        <HeaderMark icon="listSearch" label={t("Search")} testId="demo-listing-search" />
-        <HeaderMark icon="listSort" label={t("Sort")} testId="demo-listing-sort" />
-        <HeaderMark icon="listFilter" label={t("Filter")} testId="demo-listing-filter" />
-        <HeaderMark icon="listSend" label={t("Share")} testId="demo-listing-share" />
+        {/* The search mark opens the field (StoreSearchField); it hides under the field's grow. */}
+        <HeaderMark
+          icon="listSearch"
+          label={t("Search")}
+          testId="demo-listing-search"
+          buttonRef={search.mark}
+          onClick={search.show}
+          expanded={open}
+          style={{
+            opacity: open ? 0 : 1,
+            // Back only as the field's last circle fades into it.
+            transition: open
+              ? "opacity 0.1s linear"
+              : `opacity 0.15s linear ${SEARCH_INSIDE_OUT_S + SEARCH_SHUT_S - 0.1}s`,
+          }}
+        />
+        {/* The other marks step aside while the field is open. */}
+        <div className="contents" inert={open} aria-hidden={open || undefined}>
+          <HeaderMark
+            icon="listSort"
+            label={t("Sort")}
+            testId="demo-listing-sort"
+            style={asideStyle(open, 1, 0)}
+          />
+          <HeaderMark
+            icon="listFilter"
+            label={t("Filter")}
+            testId="demo-listing-filter"
+            style={asideStyle(open, 1, 1)}
+          />
+          <HeaderMark
+            icon="listSend"
+            label={t("Share")}
+            testId="demo-listing-share"
+            style={asideStyle(open, 1, 2)}
+          />
+        </div>
       </div>
+      <StoreSearchField search={search} t={t} />
     </header>
   );
 }
@@ -254,7 +548,7 @@ function Categories({
 }
 
 /** The 15 px pill under a product's name, 9 px words; its mark (if any) 6 px in. */
-function Badge({ badge, t, copy = false }: { badge: ProductBadge; t: T; copy?: boolean }) {
+function Badge({ badge, t }: { badge: ProductBadge; t: T }) {
   const look = BADGE[badge.kind];
   let words: React.ReactNode;
   if (badge.kind === "bag") {
@@ -287,7 +581,7 @@ function Badge({ badge, t, copy = false }: { badge: ProductBadge; t: T; copy?: b
   }
   return (
     <p
-      data-pw={copy ? undefined : `demo-listing-badge-${badge.kind}`}
+      data-pw={`demo-listing-badge-${badge.kind}`}
       className="relative block w-fit m-0 font-normal whitespace-nowrap"
       style={{
         height: 15,
@@ -324,7 +618,7 @@ function Labels({ badges, t }: { badges: readonly ProductBadge[]; t: T }) {
       top={LABELS_TOP}
       height={15}
       testId="demo-listing-labels"
-      render={(badge, copy) => <Badge badge={badge} t={t} copy={copy} />}
+      render={(badge) => <Badge badge={badge} t={t} />}
     />
   );
 }

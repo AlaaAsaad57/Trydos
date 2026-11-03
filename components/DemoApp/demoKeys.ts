@@ -410,6 +410,8 @@ export const DEMO_KEYS = [
   "Phone Number",
   "Enter phone number",
   "Search messages",
+  // The store page's search field.
+  "Search...",
   "{n} of {m}",
   "No results",
   "Remind me",
