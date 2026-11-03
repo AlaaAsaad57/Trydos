@@ -789,7 +789,9 @@ function useHeadOnScroll(
   React.useEffect(() => {
     const el = head.current;
     if (!on || !present || !el) return;
-    const top = touch ? followTopTint(HEAD_TOP, DEMO1_TINT) : null;
+    // `blend`: the strip lies over the head's own white, and must not hide
+    // what the head draws in its top 12 px (Home's picked chip).
+    const top = touch ? followTopTint(HEAD_TOP, DEMO1_TINT, { blend: true }) : null;
     let white: boolean | null = null;
     /** Safari's top bar: white while the head is more than half shown. */
     const tint = (opacity: number) => {

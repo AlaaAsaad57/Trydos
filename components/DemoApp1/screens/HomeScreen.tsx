@@ -128,7 +128,15 @@ export default function HomeScreen() {
   );
 
   return (
-    <ScreenPage testId="demo-home" bg={C.page} header={header} tabBar>
+    <ScreenPage
+      testId="demo-home"
+      bg={C.page}
+      header={header}
+      tabBar
+      // The header leaves on a scroll down and comes back on a fast scroll
+      // up, the same code as the store page (useHeadOnScroll).
+      hideHeadOnScroll
+    >
       <HomeSections
         t={t}
         openStore={{

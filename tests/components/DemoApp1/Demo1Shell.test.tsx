@@ -1043,6 +1043,56 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     }, "store/zara/shirt-1");
   });
 
+  it("runs Home's header the same way as the store page's: carried out by the page, back on a fast scroll up only", async () => {
+    await onTheStorePage(async ({ container, head, scrollTo }) => {
+      const before = head.style.transform;
+      await scrollTo(5);
+      expect(head.style.transform, "a script moved Home's header on a 5 px scroll down, so it shakes").toBe(before);
+      expect(
+        container.querySelector<HTMLElement>('[data-pw="demo1-head-limit"]')?.style.height,
+        "Home's header has no sticky box that ends where the scroll down began, so the page does not carry it out",
+      ).toBe("0px");
+      await scrollTo(2000);
+      expect(head.dataset.hidden, "Home's header is not out after a long scroll down").toBe("true");
+      let y = 2000;
+      for (let i = 0; i < 50; i += 1) await scrollTo((y -= 6));
+      expect(
+        head.dataset.hidden,
+        "a slow scroll up of 300 px brought Home's header back; the store page's stays out",
+      ).toBe("true");
+      for (let i = 0; i < 3; i += 1) await scrollTo((y -= 40));
+      expect(head.dataset.hidden, "a fast scroll up (40 px a frame) did not bring Home's header back").toBeUndefined();
+    }, "home");
+  });
+
+  it("shows the header through Safari's white top strip, so the strip does not cut off the top of Home's picked chip", async () => {
+    // Seen on a phone: the strip (12 px, on top of everything) covered the
+    // top 3 px of Home's picked chip, which starts 9 px from the top. White
+    // multiplied by a colour is that colour, so the strip cannot be seen
+    // over the header, and its own colour, which Safari reads, stays white.
+    await onAPhone(async () => {
+      for (const screen of ["home", "store/zara"] as const) {
+        const { unmount } = openOn(screen);
+        await waitFor(() =>
+          expect(topStrip(), `the "${screen}" screen put no strip at the top for Safari to read`).not.toBeNull(),
+        );
+        expect(
+          topStrip()!.style.mixBlendMode,
+          `the white top strip lies over the "${screen}" screen's header as a plain white band, so it hides what the header draws in its top 12 px`,
+        ).toBe("multiply");
+        expect(
+          topStrip()!.style.backgroundColor,
+          `the top strip is not plain white on the "${screen}" screen, so Safari does not paint its bar white`,
+        ).toMatch(WHITE);
+        unmount();
+        expect(
+          topStrip()!.style.mixBlendMode,
+          `the top strip keeps the header's blend after the "${screen}" screen closed`,
+        ).toBe("");
+      }
+    });
+  });
+
   it("brings the store page's header back near the top of the page at any speed", async () => {
     await onTheStorePage(async ({ head, scrollTo }) => {
       await scrollTo(400);
@@ -1284,6 +1334,10 @@ describe("Demo1 layers — Safari's top bar follows an open sheet", () => {
       strip()!.style.backgroundColor,
       "the top strip is not the dimmed page's grey",
     ).toBe("rgb(52, 52, 52)");
+    expect(
+      strip()!.style.mixBlendMode,
+      "the sheet's grey strip blends with the page under it, so its grey is not the grey Safari's bar shows",
+    ).toBe("");
 
     rerender(
       <Sheet open={false} onClose={() => {}} y={400} testId="sheet">
