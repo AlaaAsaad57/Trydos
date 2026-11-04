@@ -3,9 +3,14 @@
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
-import { useDemoNav } from "../Demo1Shell";
-import { useDemoData, type DemoAddress } from "../../DemoApp/DemoData";
-import { countryOf } from "../../DemoApp/demoPlaces";
+import { useAppStore } from "store";
+import order from "services/order";
+import { getLocalizedCountryName } from "utils/countryData";
+import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
+import { useDemoNav } from "../screenNav";
+import { usePageDir } from "../rtl";
+import { useProfileData, type ProfileAddress } from "../useProfileData";
+import { PlaceParts } from "../placeParts";
 import { C, WINDOW_COVER, fill, gapTo, textBottom, top } from "../demo1Layout";
 import {
   DIMMED,
@@ -37,22 +42,43 @@ import {
  * (190, 380), "Delete below address ?", the card again drawn in white lines,
  * a white X top right, and a white "Sure, Delete" button.
  *
+ * Real data (Stage 4): the shopper's saved addresses (services/order, the
+ * same list checkout uses). Edit opens the form on the address, the way the
+ * old list did (`startUpdateAddress`); "Add" opens it empty. "Sure, Delete"
+ * does what checkout's delete does: `address_deleted`, the delete call, and
+ * the address out of the store. The default address is the backend's
+ * `is_default`, used as it is; the screen adds no control for it (D-29).
+ *
  * On /demo the cards keep 12 px to both edges of the screen (fluid, 406 on a
  * 430 px phone), and the edit and delete marks keep their distance to the
- * card's right edge. The card and the button are pinned to the bottom of
+ * card's end edge. The card and the button are pinned to the bottom of
  * the screen in the page's footer. The delete question is a layer on <body>
  * over the whole screen (`Layer`).
  */
 export default function AddressListScreen() {
   const { t, back, navigate } = useDemoNav();
-  const { profile, update } = useDemoData();
+  const profile = useProfileData();
+  // A card comes in from the end side and goes out to the start side.
+  const side = usePageDir() === "rtl" ? -1 : 1;
   const [showWhy, setShowWhy] = useState(true);
-  const [deleting, setDeleting] = useState<DemoAddress | null>(null);
+  const [deleting, setDeleting] = useState<ProfileAddress | null>(null);
   const list = profile.addresses;
+  // "Empty" only once the list has answered: before that it is not known yet.
+  const empty = profile.addressesLoaded && list.length === 0;
 
-  const open = (id: string | null) => {
-    update({ editingAddress: id });
+  /** Opens the form: on an address to edit it, or empty for a new one. */
+  const open = (address: ProfileAddress | null) => {
+    const store = useAppStore.getState();
+    if (address) store.startUpdateAddress(address.raw);
+    else store.initAddressForm();
     navigate("settings/profile/address/new");
+  };
+
+  /** The same steps as checkout's delete (OrdersPage). */
+  const remove = (address: ProfileAddress) => {
+    trackOrder(ORDER_EVENTS.ADDRESS_DELETED, { address_id: address.id });
+    void order.DeleteAddressList({ address: address.id });
+    useAppStore.getState().deleteAddress(address.id);
   };
 
   return (
@@ -73,7 +99,7 @@ export default function AddressListScreen() {
           {/* 700 .. 824 in the file, 12 above the button. The delete
               question below is a layer on <body>; it only lives here. */}
           <AnimatePresence>
-            {list.length === 0 && showWhy && (
+            {empty && showWhy && (
               <WhyCard
                 key="why"
                 bottom={108}
@@ -92,7 +118,7 @@ export default function AddressListScreen() {
             address={deleting}
             onClose={() => setDeleting(null)}
             onDelete={() => {
-              update({ addresses: list.filter((a) => a.id !== deleting?.id) });
+              if (deleting) remove(deleting);
               setDeleting(null);
             }}
           />
@@ -106,13 +132,13 @@ export default function AddressListScreen() {
           <motion.div
             key={address.id}
             layout
-            initial={{ opacity: 0, x: 30 }}
+            initial={{ opacity: 0, x: 30 * side }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -60, transition: { duration: 0.25 } }}
+            exit={{ opacity: 0, x: -60 * side, transition: { duration: 0.25 } }}
             className="flex items-start shrink-0"
             style={{
               marginTop: i === 0 ? 12 : 4,
-              marginLeft: 12,
+              marginInlineStart: 12,
               width: fill(12),
               height: 79,
               borderRadius: 15,
@@ -123,17 +149,17 @@ export default function AddressListScreen() {
             <AddressLines address={address} color={C.ink} />
             {/* The marks at (356, 172) and (383, 172), each in a 31 px target
                 4 px down. The lines run under them to 12 px from the card's
-                right edge (394 of 406), so the targets step back over the
-                lines' end. The delete target ends 4 px from the right edge
+                end edge (394 of 406), so the targets step back over the
+                lines' end. The delete target ends 4 px from the end edge
                 on every screen width. */}
             <button
               type="button"
               aria-label={t("Edit")}
-              onClick={() => open(address.id)}
+              onClick={() => open(address)}
               className="shrink-0 cursor-pointer active:opacity-60"
               style={{
                 marginTop: 4,
-                marginLeft: 344 - 394,
+                marginInlineStart: 344 - 394,
                 width: 31,
                 height: 31,
                 padding: 8,
@@ -149,7 +175,7 @@ export default function AddressListScreen() {
               className="shrink-0 cursor-pointer active:opacity-60"
               style={{
                 marginTop: 4,
-                marginLeft: 371 - (344 + 31),
+                marginInlineStart: 371 - (344 + 31),
                 width: 31,
                 height: 31,
                 padding: 8,
@@ -162,7 +188,7 @@ export default function AddressListScreen() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {list.length === 0 && (
+        {empty && (
           <motion.div
             key="empty"
             className="flex flex-col shrink-0"
@@ -208,25 +234,31 @@ export default function AddressListScreen() {
  * Title with its map mark, the area line and the detail line — the card and
  * the delete question share it. In the card: the title row (15 tall) 12 px
  * down, the lines on baselines +45 and +64, all 12 px in and 12 px from the
- * card's right edge (382 wide in a 406 card).
+ * card's end edge (382 wide in a 406 card).
  */
 export function AddressLines({
   address,
   color,
   mark = true,
 }: {
-  address: DemoAddress;
+  address: ProfileAddress;
   color: string;
   mark?: boolean;
 }) {
-  const { t } = useDemoNav();
-  const country = t(countryOf(address.country).name);
-  // Street and town Regular, the rest Medium — "Cendere | Ayazağa | Sariyer | İstanbul | Turkiye".
-  const [street, town, district, province] = address.area;
+  const { locale } = useDemoNav();
+  // The country in the page's language; the backend's name when it has no code.
+  const country =
+    (address.countryIso &&
+      getLocalizedCountryName(address.countryIso, locale.split("-")[1])) ||
+    address.country;
+  // Street and town Regular, the rest Medium — "Cendere | Ayazağa | Sariyer |
+  // İstanbul | Turkiye". Only the parts the address has are written.
+  const regular = address.area.slice(0, 2);
+  const medium = [...address.area.slice(2), country].filter(Boolean);
   return (
     <div
       className="flex flex-col shrink-0"
-      style={{ marginLeft: 12, width: fill(12) }}
+      style={{ marginInlineStart: 12, width: fill(12) }}
     >
       <span
         className="flex items-center shrink-0"
@@ -247,8 +279,15 @@ export function AddressLines({
         className="truncate"
         style={{ width: "100%" }}
       >
-        {`${street} | ${town} | `}
-        <span className="font-medium">{`${district} | ${province} | ${country}`}</span>
+        {regular.length > 0 && (
+          <>
+            <PlaceParts parts={regular} />
+            {" | "}
+          </>
+        )}
+        <span className="font-medium">
+          <PlaceParts parts={medium} />
+        </span>
       </Txt>
       <Txt
         mt={gapTo(textBottom(45, 12), 64, 12)}
@@ -277,7 +316,7 @@ function DeleteQuestion({
   onClose,
   onDelete,
 }: {
-  address: DemoAddress | null;
+  address: ProfileAddress | null;
   onClose: () => void;
   onDelete: () => void;
 }) {
@@ -309,7 +348,7 @@ function DeleteQuestion({
               className="shrink-0 self-end cursor-pointer"
               style={{
                 marginTop: 59.7 - 10 - 50,
-                marginRight: 430 - (384.5 - 10 + 36),
+                marginInlineEnd: 430 - (384.5 - 10 + 36),
                 width: 36,
                 height: 36,
                 padding: 10,
@@ -335,7 +374,7 @@ function DeleteQuestion({
                 className="relative flex shrink-0"
                 style={{
                   marginTop: 472 - textBottom(456, 14),
-                  marginLeft: 12,
+                  marginInlineStart: 12,
                   width: fill(12),
                   height: 79,
                   borderRadius: 15,

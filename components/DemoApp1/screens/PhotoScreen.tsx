@@ -4,8 +4,12 @@ import type { DemoKey } from "../../DemoApp/demoKeys";
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
-import { useDemoNav } from "../Demo1Shell";
-import { useDemoData } from "../../DemoApp/DemoData";
+import { useAppStore } from "store";
+import auth from "services/auth";
+import { LogError } from "utils/functions";
+import { useDemoNav } from "../screenNav";
+import { useProfileData } from "../useProfileData";
+import Toast, { useToast } from "../chat/Toast";
 import { C, fill, lineBox, top } from "../demo1Layout";
 import {
   Layer,
@@ -31,8 +35,12 @@ import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
  *                     and "Add & save";
  *   `Home Page – 15`  saved: the photo with Choose, Take Photo and Remove.
  *
- * Nothing is uploaded: the design is waiting for approval, so the "upload" is
- * a short wait and the photo stays in this browser (an object URL).
+ * Real upload (Stage 4), the old photo form's two steps: the picked file goes
+ * to the media server (auth.UpdateProfileImage) while the uploading state
+ * shows, and "Add & save" puts its path on the profile (auth.UpdateProfile).
+ * "Remove" saves no photo (`image: null`). The design has no crop step, so
+ * the file goes as picked. A refused upload says "File upload failed." and
+ * goes back.
  *
  * On /demo the box keeps the file's 40 px to both edges of the screen and
  * the file's 350 px height, so it is a square on a 430 px screen only. The
@@ -41,23 +49,39 @@ import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
 
 type Stage = "empty" | "picking" | "uploading" | "preview" | "saved";
 
-/** How long the demo "upload" takes, so the uploading state can be seen. */
-const UPLOAD_MS = 1600;
-
 export default function PhotoScreen() {
   const { t, back } = useDemoNav();
-  const { profile, update } = useDemoData();
+  const profile = useProfileData();
+  const [toast, showToast] = useToast();
   const [stage, setStage] = useState<Stage>(profile.photo ? "saved" : "empty");
   const [draft, setDraft] = useState<string | null>(null);
+  /** The media server's path of the uploaded draft. */
+  const [draftPath, setDraftPath] = useState<string | null>(null);
+  /** Counts the picks, so the answer of an older upload is dropped. */
+  const pick = useRef(0);
+
+  // The profile can arrive after the screen opens.
+  useEffect(() => {
+    if (stage === "empty" || stage === "saved")
+      setStage(profile.photo ? "saved" : "empty");
+  }, [profile.photo]);
+
+  /** Saves a path on the profile; null removes the photo. */
+  const savePhoto = async (path: string | null) => {
+    try {
+      await auth.UpdateProfile(
+        { image: path },
+        useAppStore.getState().userProfile,
+      );
+      return true;
+    } catch (error) {
+      LogError({ error, scenario: "PhotoScreen save" });
+      return false;
+    }
+  };
   const [showWhy, setShowWhy] = useState(true);
   const chooseRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (stage !== "uploading") return;
-    const timer = setTimeout(() => setStage("preview"), UPLOAD_MS);
-    return () => clearTimeout(timer);
-  }, [stage]);
 
   const open = (input: HTMLInputElement | null) => {
     if (!input) return;
@@ -73,7 +97,24 @@ export default function PhotoScreen() {
       return;
     }
     setDraft(URL.createObjectURL(file));
+    setDraftPath(null);
     setStage("uploading");
+    const mine = ++pick.current;
+    auth
+      .UpdateProfileImage(file)
+      .then((res) => {
+        if (mine !== pick.current) return;
+        if (!res?.sub_path) throw new Error("Profile picture upload was refused");
+        setDraftPath(res.sub_path);
+        setStage("preview");
+      })
+      .catch((error) => {
+        if (mine !== pick.current) return;
+        LogError({ error, scenario: "PhotoScreen upload" });
+        showToast(t("File upload failed."));
+        setDraft(null);
+        setStage(profile.photo ? "saved" : "empty");
+      });
   };
 
   // The picker was closed without a photo. React has no prop for the input's
@@ -89,7 +130,9 @@ export default function PhotoScreen() {
   }, [profile.photo]);
 
   const cancel = () => {
+    pick.current++;
     setDraft(null);
+    setDraftPath(null);
     setStage(profile.photo ? "saved" : "empty");
   };
 
@@ -110,8 +153,7 @@ export default function PhotoScreen() {
       icon: "remove",
       label: "Remove",
       onClick: () => {
-        update({ photo: null });
-        setStage("empty");
+        void savePhoto(null).then((ok) => ok && setStage("empty"));
       },
     });
 
@@ -146,11 +188,16 @@ export default function PhotoScreen() {
             label={t("Add & save")}
             visible={stage === "preview"}
             onClick={() => {
-              update({ photo: draft });
-              setDraft(null);
-              setStage("saved");
+              if (!draftPath) return;
+              void savePhoto(draftPath).then((ok) => {
+                if (!ok) return;
+                setDraft(null);
+                setDraftPath(null);
+                setStage("saved");
+              });
             }}
           />
+          <Toast text={toast} bottom={140} fixed />
         </>
       }
     >
@@ -206,7 +253,7 @@ export default function PhotoScreen() {
         className="relative shrink-0 overflow-hidden"
         style={{
           marginTop: 120 - 100,
-          marginLeft: 40,
+          marginInlineStart: 40,
           width: fill(40),
           height: 350,
           borderRadius: 30,
@@ -260,7 +307,7 @@ export default function PhotoScreen() {
                   distance from the box's centre. */}
               <XdIcon
                 name="avatarBig"
-                style={{ marginLeft: fromCentre(64.68, 350), marginTop: 42.45 }}
+                style={{ marginInlineStart: fromCentre(64.68, 350), marginTop: 42.45 }}
               />
             </motion.div>
           )}
@@ -285,7 +332,7 @@ export default function PhotoScreen() {
           <span
             className="font-normal"
             style={{
-              marginLeft: 6,
+              marginInlineStart: 6,
               fontSize: 14,
               lineHeight: `${lineBox(14)}px`,
               color: C.hint,
@@ -306,7 +353,7 @@ export default function PhotoScreen() {
           style={{
             marginTop: 490 - 470,
             gap: 28,
-            paddingRight: stage === "saved" ? 2 : 8,
+            paddingInlineEnd: stage === "saved" ? 2 : 8,
           }}
         >
           {actions.map((action) => (
@@ -319,7 +366,7 @@ export default function PhotoScreen() {
               className="relative flex flex-col items-center cursor-pointer"
               style={{
                 width: 60,
-                marginLeft: action.icon === "remove" ? 1 : undefined,
+                marginInlineStart: action.icon === "remove" ? 1 : undefined,
               }}
             >
               <XdIcon name={action.icon} className="shrink-0" />

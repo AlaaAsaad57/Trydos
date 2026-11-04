@@ -175,8 +175,10 @@ const CACHED_MODULES = [
 const CACHED_READER_CALLERS = [
   "components/ServerWrapper/FeaturedProduct.tsx",
   "components/ServerWrapper/FlashDealsProduct.tsx",
-  "components/ServerWrapper/BoutiquesListWrapper.tsx",
-  "components/Server/MainCategories/index.tsx",
+  // The new home (Stage 7): reads the categories and the boutiques. Its
+  // RequestTime part awaits connection(), which waits for the request but
+  // reads nothing from it.
+  "components/DemoApp1/screens/AppHomeView.tsx",
 ];
 
 // Every read the walk can reach from a cached module, with the reason it is

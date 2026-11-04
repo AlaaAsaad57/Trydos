@@ -50,6 +50,7 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | A-33 | Product parts with no design | **Decided on 2026-11-04.** The product page shows the design only. A live part with no place in the design is not shown, but its code is **kept, not deleted** — an exception to D-6, because the design may get a place for it later. Which live part maps to which design block is listed in Stage 7c. The size choice and the "add to cart" bar wait for D-45. |
 | A-34 | E2E until the end | **Decided on 2026-11-04.** Stages ignore the browser (e2e) suite completely: no stage runs it, fixes it, updates it or adds to it, and a red e2e case blocks no stage and no merge. Every "e2e" line in a stage's "Tests to update" waits for Stage 8, which edits the suite once, for the whole new UI. The unit suite, lint, parity, typecheck and the XD check still run at the end of each stage. Replaces A-3 for e2e only. |
 | A-35 | Three sessions at the same time | **Decided on 2026-11-04.** The owner is short on time and wants the plan done before the D-45 design comes. Three Claude sessions work at the same time, one per lane, each in its own folder: lane A (4 → 5), lane B (6), lane C (7 → 7b → 7c). See "Lanes". Replaces the two-lane order of A-6. |
+| A-36 | Stage 5a early, in a third worktree | **Decided on 2026-10-28.** Stage 5 is split. Part 5a (RTL of the six wallet screens, their values, their tests) needs no shell, so it is built now, at the same time as Stages 2 and 3, in `../trydos-wallet` on the branch `ui-migrations-wallet`, cut from `ui-migrations`. The A-18 rules apply to it too. Part 5b (the wallet path in the shell, the old `settings/wallet` page, e2e) waits until Stage 3 is merged. 5a does not touch `WalletLinkCard`, so the A-6 reason for 4 before 5 does not apply to it. Merge order: after Stage 2 and Stage 3. Was row A-28 on its own branch; renumbered when it was merged into `ui-migrations` on 2026-11-05. |
 | D-1 | Merge | Once, at the end (after Stage 8). Every stage stays on `ui-migrations`. |
 | D-2 | Desktop | The 500 px centred column is OK on desktop. No desktop design work. |
 | D-3 | RTL | Mirror everything for `ar` / `ku`: layout, slide direction, tab order, margins. |
@@ -151,7 +152,7 @@ committed or merged without your OK. **Since 2026-11-04 (A-34): no e2e in any st
 
 | Lane | Folder / branch | Stages | Why |
 |---|---|---|---|
-| A | `trydos` / `ui-migrations` | 3 (done) → 4 → 5 | Profile and wallet need the shell. Stages 4 and 5 do not overlap, because both change `WalletLinkCard` and the wallet balance on the profile. Stage 5 also takes the old wallet branch `ui-migrations-wallet` (5a; renumber its A-28 row). |
+| A | `trydos` / `ui-migrations` | 3 (done) → 4 → 5 | Profile and wallet need the shell. Stages 4 and 5 do not overlap, because both change `WalletLinkCard` and the wallet balance on the profile. Stage 5 also takes the old wallet branch `ui-migrations-wallet` (5a, merged on 2026-11-05 as row A-36). |
 | B | `../trydos-chat` / `ui-migrations-chat` | 2 (done) → 6 | Chat uses its own files (`components/DemoApp1/chat/*`, `store/chat/*`, `services/chat.ts`), and it is the biggest stage. |
 | C | `../trydos-shop` / `ui-migrations-shop` | 7 → 7b → 7c | Home, store page and product page follow the shopper's path: home → store → product (A-31). They share Elasticsearch, cache and SEO work. 7c's buy part waits for D-45. |
 
@@ -675,6 +676,70 @@ The 3 items moved from Stage 3: the path table with its on/off switch, drawing a
   not in the mount, because the store may not hold the profile yet on the first render.
 - Known limit: back from a new screen to an old page with the browser's own back button may open the old page
   at the top, not where it was left (the mount turns the browser's scroll restore off while a new screen shows).
+- Merged into `ui-migrations` as `7d281d7e` (owner's OK, 2026-11-04). CI unit suite run 41844213629: only the 3
+  known chat search tests are red (from `development` commit `2f42f4e7`). Lane B was told.
+
+### Where Stage 4 stands (2026-11-04) — the profile screens
+
+**Stage 4 is done.** The owner accepted it on 2026-11-04. Commit `6115a68c` is on `ui-migrations` (lane A works on
+`ui-migrations` itself, so there is no separate merge).
+
+What was built:
+- `useProfileData` (A-16): one hook for the profile area. Real values from the store (`userProfile`, the address
+  list), the orders count (`fetchOrdersCount`), the wallet USD from `demoWallet.ts` (S4-5). It reads an address row
+  nested (`region_details`, `contact_info`, as checkout does) or flat.
+- The 10 profile rows in `appScreenPaths.ts`; each path's `page.tsx` renders nothing and sends a guest to the login
+  on the server (`serverRequests/settings/screenPage.ts`, S4-4). The old Bank Cards page is gone (D-22).
+- Profile tab: real card, the verify card hidden when verified (S4-6), "Get trydos Business" opens the old
+  become-a-seller form (D-25), Orders opens the old orders page, the menu rows open the old pages (D-23), Login
+  history says "Soon available", the Web / lock switches have no effect (D-24, A-8).
+- Client info: id, phone and "Verified" are real; status, type and "client since" stay empty (no source, D-31);
+  the two request buttons say "Soon available". Client ID: real id, name and phone; the QR is still the drawn one.
+- Personal info: name and gender save with `auth.UpdateProfile` (only changed fields); a new e-mail opens the
+  code sheet, which ends in "Soon available" and saves no e-mail (S4-8).
+- Body: Edit / Cancel / "Add & save" (D-28), limits 110–250 cm and 40–180 kg; the foot size is not saved (C-1).
+- Photo: the picked file uploads (`UpdateProfileImage`), "Add & save" saves its path, "Remove" saves none.
+- Address list: real list; delete = `address_deleted` + the delete call + the store, as checkout; edit opens the
+  form through `startUpdateAddress`. Address form: the store's `addressDetails`; the live map (D-29); the URL's
+  country only; the live provinces and address search (S4-7); the contact is the shopper's (D-29); save with
+  `AddAddressList` / `UpdateAddressList` (`address_saved` / `address_save_failed` fire there).
+- Settings screen (S4-2, S4-3): rows for Notifications (old panel), Notification Settings, My Checklist, Country,
+  Language, and the old seller card under them.
+- RTL: the physical left / right styles of these screens are logical now; the promo swipe and the address cards'
+  slide are mirrored (A-15); numbers stay left to right (A-30).
+- Deleted, no caller left (D-6): the old profile card and `VerifyUser`, `PersonalInfoForm`, `ProfileSizeInfo`,
+  `UploadProfilePhoto`, `PersonalInfoAddress` and its modal, the old orders card, `WalletLinkCard`,
+  `RouterRefresh`, and their tests.
+- Tests: `tests/components/DemoApp1/profileScreens.test.tsx` (23 cases); `tests/app/settings/pages.test.tsx` checks
+  the guest guard of the 10 pages. Its first run found a real bug: the list rows are nested, not flat.
+
+Claude's calls in this part (check them): the old seller card sits as it is under the Settings rows; the address
+map's own marker replaces the drawn pin, and the purple pill closes the map again; the photo goes up as picked (the
+design has no crop step); an address save with no name on the profile says "Enter Your Name !"; the client ID QR
+stays the drawn one, because what a real code should hold is not decided.
+
+XD check (2026-11-04), signed in as the QA test shopper (Shopper A, 3 OTP sends), at 440 x 802: all 9 screens draw
+on their paths in `en` and `ar`, right to left in Arabic, with the real data. Found and fixed:
+- Arabic address lines showed the Latin place names in reverse order (bidi). Each name is now its own `<bdi>`
+  (`components/DemoApp1/placeParts.tsx`). Not checked again in the browser (it needs another OTP send).
+- The address list showed "Your address list is empty" before the list answered, and Orders showed "0 action"
+  before the count. Both now wait for their answer (tests seen red, then green).
+- On a cold dev server the Arabic screens showed empty fields for more than 2.5 s; with a longer wait they show the
+  data. The store fills from `/api/auth/me` on start, so this is the slow first compile, not a gap in the app.
+Seen, not changed: a hydration warning on Body and Personal info, because the drawn keyboard marks the number
+fields (`inputMode="none"`) before the lazy screen hydrates (the same keyboard as `/demo`); SVG attribute warnings
+from old components; the wallet backend's 503 (A-17).
+
+**Owner's order (2026-11-04): no new unit tests and no local test runs from now on.** A broken existing test is
+listed here, not fixed now; the full unit suite runs in CI. Tests already written stay.
+
+Full unit suite in CI (run 41874241742 on `6115a68c`): 667 of 669 test files pass. The 2 red files hold the 3
+chat search tests that are red on `development` too, since `2f42f4e7` (`ChatListSearch` "filters the list at
+once…", `ChatLists` "shows the existing chat…" and "still offers a new chat…"). Stage 4 adds no new failure.
+Lint, i18n parity and typecheck passed in the same run.
+
+Left for later: the Arabic address line fix (`placeParts.tsx`) is not checked in the browser yet. The Stage 5 XD
+check looks at it.
 
 ### Live code to link
 
@@ -728,6 +793,72 @@ ClientIdScreen line 52). The downloaded ID card PNG draws name and phone as LTR 
 WalletReceipt, WalletWithdrawalRequest. **Data today:** all from `components/DemoApp/demoWallet.ts`.
 **Live:** `app/(client)/[lang]/settings/wallet/page.tsx` → `components/settings/WalletTransactions.tsx`;
 card `components/setting/WalletLinkCard.tsx` (its sheet says "Under Development").
+
+### Build steps
+- **5a — Done (A-36).** RTL of the six wallet screens, with no change in `en`:
+  - Every margin and padding is set from the start side (`marginInlineStart`, `ms-auto`, …), not by left or right.
+  - The card slider runs from the start side (A-15): on `ar` / `ku` the next card waits on the left, and a slide to
+    the right brings it in (`cardsRest`, `slideTo` in `WalletScreen.tsx`).
+  - Values that read left to right in every language (phones, amounts with their code, dates, ids, references) sit in
+    their own run (`Ltr` in `components/DemoApp1/ui.tsx`, a `bdi dir="ltr"`). Before, `ar` showed
+    "+90 552 800 2000" as "2000 800 552 90+" and "-1010 SYP" as "SYP 1010-". An entry's note is the shopper's own
+    words, so it gets a plain `bdi` (its own direction). The authorized recipient's phone field types left to right
+    and starts on the right on `ar` / `ku`.
+  - Icons: the cash-in and cash-out arrows point up and down, so they stay as drawn. The share icon (a paper plane)
+    stays as drawn too (decided on 2026-10-28). The header's back arrow was mirrored in Stage 1.
+  - i18n: no new key. The English `lines` in the sheets are used only while the text is the file's own English
+    (`FileLines`), so other languages get the `t()` words.
+  - Test: `tests/components/DemoApp1/screens/wallet.rtl.test.tsx` (24 cases). 22 were seen red on the old code: the
+    physical sides in the page and in each file, the slider on `ar`, and the values on each screen. The 2 `en` slider
+    cases are guards and were green before and after.
+  - Checked in a browser at 440 x 802: `/sy-ar/demo/settings/wallet` and `/sy-en/...`, the balance screen, a grown
+    card, the slide, Cash In, Cash Out, Wallet Info and the receipt. The `en` page is the same, pixel for pixel.
+- **5a merged** into `ui-migrations` on 2026-11-05 as `4623efe1` (owner's OK). Only the plan clashed (row A-28 →
+  A-36).
+- **5b — built on 2026-11-05, not committed yet (owner's review first).**
+  - Path: `settings/wallet` has a row in `appScreenPaths.ts`, so the screen mount draws `WalletScreen` there. The
+    page renders nothing and sends a guest to the login (`signedInScreenPage`, S4-4). The profile's wallet card
+    (S4-5) now opens the new screen.
+  - Deleted, no caller left (D-6): the old page body `components/settings/WalletTransactions.tsx` and its test.
+    Kept: `GetWalletTransactions` and `GetWalletBalanceToShow` in `services/order.ts`, because the later step that
+    replaces the mock uses them (see "Data"). Both have no caller now. The old translation keys stay.
+  - Events: nothing to move. `wallet_modal_opened`, `wallet_balance_refreshed` and GA `ADD_PAYMENT` fire in
+    checkout only (`PlaceOrderButtons.tsx`, `PaymentMethod.tsx`), and checkout keeps its old UI (D-35).
+  - English case (D-4, owner's answer 2026-11-05: the wallet screens only; the Stage 4 profile screens still show
+    every word with a capital). The six screens use `useDemoCase()`. Title style: headers, tabs, buttons, field
+    labels, receipt labels, note titles, card names, statuses. Sentence style (`body`): the paragraphs, the safety
+    rules and their notes, the warnings ("Your balance is insufficient", "Only the named person …"), the phone
+    placeholder, the cash-in summary lines, the code-sent lines, "Thank you | We are pleased to serve you". The
+    `FileLines` lines of the 12 sentence-style paragraphs are written in sentence style too; each was checked
+    against `sentenceStyle()`, so the file's line breaks stay in English.
+  - Claude's calls (check them): the rule follows `demoCase.ts` as written, so the history row "Cash in request"
+    shows "Cash in Request" (a short preposition stays small in the middle), and the card name keeps the XD
+    spelling "Amerikan Dollars" (mock data, A-17).
+  - Tests: `tests/app/settings/pages.test.tsx` checks the wallet page's guest guard with the other new screens. No
+    new test (owner's order, 2026-11-04). No test reads the English wallet words; the RTL test runs in `ar`.
+  - Checks on 2026-11-05: `next typegen` + `tsc` 0 errors, `eslint` on the changed files 0, i18n parity OK.
+  - Committed as `79e8f6d5` on 2026-11-05 and pushed (the owner asked to go on and close the stage).
+  - Full unit suite in CI (run 41918852219 on `79e8f6d5`): 659 of 661 test files pass. The 2 red files hold the 3
+    known chat search tests (`ChatListSearch`, `ChatLists`), red on `development` since `2f42f4e7`. Stage 5 adds
+    no new failure. Lint, i18n parity and typecheck passed in the same run.
+  - XD check on 2026-11-05, signed in as Shopper A, at 440 x 802, on `/sy-en/settings/wallet` and
+    `/sy-ar/settings/wallet`: the balance screen, a grown card, Cash In, Cash Out and Wallet Info draw in both
+    languages, right to left in Arabic, with no page error. The English paragraphs keep the file's line breaks.
+    Back from the wallet goes to the profile. The Stage 4 Arabic address line (`placeParts.tsx`) is right too.
+    Not opened in the browser: the steps inside Cash In and Cash Out (forms, code, receipt).
+  - The browser check found 2 real bugs, both fixed:
+    1. **A guest saw every new screen (Stage 4 mount, against S4-4).** On a screen path `AppScreens` did not render
+       `children`, so the page's redirect reached the document but never ran in the browser. A guest stayed on
+       `/settings/wallet` and saw the wallet. The mount now keeps the page in the tree, in a `hidden` box. Seen in
+       the browser after the fix: a guest on `settings`, `settings/profile` and `settings/wallet` goes to
+       `/login?next=<path>`. Two cases in `AppScreens.test.tsx` now expect the page hidden, not absent.
+    2. **A tap on a balance card crashed the wallet.** `WalletInfoSheet` read `useDemoData`, and only `/demo` has
+       that provider, so the screen went blank with "useDemoData must be used inside DemoDataProvider". The sheet now
+       reads `useProfileData` (A-16: shipping code does not import `DemoData.tsx`). So Wallet Info shows the
+       shopper's real name, id and phone; the other sheets keep their mock values (A-17). On `/demo` these 3 fields
+       are empty now, as on the Stage 4 screens. `wallet.rtl.test.tsx` gives the sheet a stub shopper.
+    No test was seen red first for these 2 fixes (owner's order of 2026-11-04: no new tests, no local test runs).
+  - Left: the CI unit suite on the final commit and the owner's review. E2E waits for Stage 8 (A-34).
 
 ### Data: the mock stays (A-17)
 No wallet backend works yet. So Stage 5 keeps `components/DemoApp/demoWallet.ts` and the design exactly as on
@@ -992,6 +1123,102 @@ Left:
 **New:** `components/DemoApp1/screens/HomeScreen.tsx`, `SearchScreen.tsx`.
 **Live:** `app/(client)/[lang]/page.tsx` → `CategoryHomeView` (also used by `/categories/[slug]`, so it stays),
 `components/Home/Search/SearchIcon.tsx` (1021 lines).
+**Built in:** `../trydos-shop`, branch `ui-migrations-shop` (lane C, A-35).
+
+### Decided for Stage 7 (2026-11-04)
+
+| # | Decision | Answer |
+|---|---|---|
+| S7-1 | Home body | **Changes D-41.** Since 2026-11-02 the new home has its own body (XD `Home Page – 2`, `HomeSections.tsx`): stories row, "Brand Stores" carousel, "Stores" grid. The home shows **only this new body**, with real data. Featured, flash deals and recommended are not shown; their code is kept (as A-33). Known effect: the home page has fewer product links for search engines (D-42); the boutique cards still link to the boutique pages. |
+| S7-2 | How home and search turn on | Each is its own page, not a screen drawn by `AppShell` (lane A builds that in Stage 4). `app/(client)/[lang]/page.tsx` renders the new header and body itself (server render kept, D-42). A new route `app/(client)/[lang]/search/page.tsx` renders the new search. `AppShell` changes only the Search tab: it goes to `/[lang]/search` and is lit there. |
+| S7-3 | Brand Stores vs Stores | The live boutiques have no "brand store" field. Rule: boutiques in their backend order (`boutique_position`); the first 9 fill the Brand Stores carousel (3 pages of 3), the rest fill the Stores grid. A backend "brand store" flag can replace the rule later. |
+| S7-4 | Category page | **Changes D-43.** `/[lang]/categories/<slug>` shows the new home too: the same header with that chip picked, and the new body for that category (the boutiques reader already filters by category). This does not clash with A-32: `/categories/<slug>` is a home page, not a listing, so Stage 7b does not move it to the store page design. Stage 7b moves only the listings (`/filters/...`, search results, `/flashDeals/...`, `/featured/...`). |
+| S7-5 | Add story | The live "add story" tile has no place in `Home Page – 2`. It stays: an "add story" card first in the new stories row, drawn in the style of the new story cards. It opens the old `AddStoryWidget`, as today. The designer must check it (no XD board). |
+| S7-7 | Store count | The first read takes 21 boutiques (9 for the carousel, 12 for the grid's 4 columns of 3). When the shopper slides the grid near its end, the next boutiques load into new columns, with the same reader and paging as the old home. Every boutique stays reachable from home. |
+| S7-8 | Picked chip on home | On `/[lang]` no chip is picked. On `/categories/<slug>` that category's chip is picked and moves to the front, as the old category bar does. |
+| S7-9 | Story card style | Every card uses the file's card 2: radius 20, shadow `0 3px 3px` black at 20%, no line. |
+| S7-10 | Seen ring | Orange ring (as the file) = the person has a story not seen yet. Grey ring `#D3D3D3` = all seen, the live bar's meaning. The designer must check the grey. |
+| S7-11 | Store logo | "Respect the design always": the boutique's `icon` sits in the file's logo band, 20 px high at top 65, centred under the awning, its width taken from the picture (a square icon shows at 20 x 20). A boutique with no icon shows its name in that band (the card's name mark). |
+| S7-6 | Search chips | The row shows only the "For you" chip, picked, with no effect (A-8, backend S-2). The five "Empty" chips of the file are placeholders and are not drawn until the backend gives real chip names. |
+| S7-12 | The home's `h1` (D-42) | Owner's answer on 2026-11-04: **a hidden `h1`**. `AppHomeView` writes one `h1` with the `sr-only` class: screen readers and search engines read it, nobody sees it. On `/[lang]` it is the existing key `Trydos` ("تريدوس" in Arabic); on a category page it is the category's name. No new translation key. |
+
+### Progress (lane C)
+
+1. **Done (not committed):** real data for the home. `components/DemoApp1/homeData.ts` (boutiques → cards, S7-3
+   split, chips), `useHomeData.ts` (`useHomeStories`, `useHomeGrid`), `getCachedBoutiques` takes a `limit`.
+2. **Done (not committed):** the new home on `/[lang]` and `/[lang]/categories/<slug>`: `AppHomeView` (server,
+   cached reads) → `AppHome` (client). `HomeSections` draws the data it is given (no mock import); `/demo` passes
+   the file's own data from `HomeScreen`. The header is its own file (`HomeHeader.tsx`). "Add story" card:
+   `addStory.ts` (the live tile's rules). `CategoryHomeView` has no caller now (step 6 decides, D-6).
+   - The new home has no request-time part, so Next stopped on the Redis metadata ("uncached data in
+     `generateMetadata()`"). Fixed with an empty `connection()` part in a Suspense (`RequestTime`): the page
+     behaves as before. Test seen red, then green: "keeps one request-time part, so the metadata may read
+     Redis" (`tests/components/DemoApp1/AppHomeView.test.tsx`).
+   - The live home had **no `h1`**, though D-42 says one "must stay". Closed by S7-12 (a hidden `h1`).
+3. **Done (not committed):** the search page `/[lang]/search` (`app/(client)/[lang]/search/page.tsx` →
+   `AppSearch`). The old search is split, unchanged: state and logic in `components/Home/Search/useSearch.ts`,
+   results body in `SearchResults.tsx`; `SearchIcon` keeps only its overlay (its 85 old tests pass). The header
+   is `SearchHeader.tsx`, shared with `/demo`. Voice and Scan are the old voice and image search with the design's
+   marks (new optional `icon` / `label` props). Only "For you" (S7-6). `noindex` and `instant = false`, as the
+   cart page. `DetectScreen` names `/[lang]/search` `SEARCH_SCREEN` (an old name; the overlay reported the home
+   screen). Tests seen red, then green: the two `DetectScreen` search cases (`tests/utils/tinyUtils.test.ts`).
+   - Found and fixed: on `/sy-ar/search` the results body made a hydration error (its client `translateFunction`
+     answers English on the server). It is now drawn only in the browser, with a skeleton in the HTML. Test seen
+     red, then green: "draws the results body only in the browser…" (`tests/components/DemoApp1/AppSearch.test.tsx`).
+4. **Done (not committed):** the Search tab goes to `/[lang]/search` from every page and is lit there. Tests seen red,
+   then green: the 3 search cases of `AppShell.test.tsx` and "lights search on the search page"
+   (`appRoutes.test.ts`). The store's `openSearchRequest` mechanism has no sender now (step 6 removes it).
+5. **Done (not committed):** RTL of the home and search screens (A-13, A-15). Every x is from the start edge
+   (`insetInlineStart`, `marginInlineStart`, logical corner radii); a card's contents centre in a box from the start
+   edge instead of `left` + `translateX(-50%)`; both sliders run right to left in `ar` / `ku` (Embla `direction`),
+   so a swipe works the other way, and the hint moves the other way too. Checked in the browser at 440 x 802.
+6. **Done (not committed):** old code removal (D-6, owner's OK on 2026-11-04: "delete all listed"). Deleted, each with
+   no caller left: `CategoryHomeView`, the old stories bar (`StoriesBarClient`, `AddStory`, `StoriesWrapper`,
+   `StoryElement`, `Story`, `StoryCard`, `StoryAvatar`, `StoriesSkeleton`), the old category bar (`MainCategories`,
+   `Server/Navbar`, `CategoryNavMobile`, `MobileNavigation` skeleton), the old search box (`SearchIcon`, the store's
+   `openSearchRequest` / `handledSearchRequest`), the old boutiques section (`BoutiquesListWrapper`,
+   `OfferListServer`, `InfinteScroll`, `BoutiqueWrapper`, `BoutiqueElement`, `OfferList` skeleton,
+   `GetNextBoutiques`), `HomeLoader` and its `is_home` branch, and their tests. Kept (S7-1): featured, flash deals,
+   recommended. `FullHomeLoader` is redrawn in the new home's shape. The package `embla-carousel-auto-height` may have
+   no user left (only `BoutiqueElement` used it); `package.json` is not changed.
+7. **Done (2026-11-04):** the hidden `h1` (S7-12). Seen in the browser: "Trydos" on `/sy-en`, "تريدوس" on `/sy-ar`,
+   "WOMEN" on `/sy-en/categories/women-7`. No new test (owner's order, see below).
+8. **Done (2026-11-04):** the XD check at 440 x 802. `/sy-en` against `/sy-en/demo`: the same header, stories row,
+   "Brand Stores" block and cards; the differences are data only (staging story photos, small square boutique icons
+   in the 20 px logo band as S7-11 says, no chip picked as S7-8 says). `/sy-ar` mirrors all of it. `/sy-en/search`
+   and `/sy-ar/search`: the header matches the file and mirrors.
+   - Found and fixed: on `/sy-ar/search` the old results body read left to right. It mirrors itself by hand
+     (`isRtl` → `flex-row-reverse`), and inside the new page's `dir="rtl"` it was mirrored twice. `AppSearch` now
+     gives it its own `dir="ltr"` box, so it looks as it did on the old pages. Seen right in the browser after the
+     fix. No red-first test (owner's order).
+   - Not changed (old code, as before Stage 7): the search "Reset" button has a fixed 64 px width (`w-16`), so the
+     Arabic "إعادة تعيين" breaks into 2 lines.
+9. **Done (2026-11-04):** committed (`7ffb46e2`), pushed, and the full unit suite run in CI
+   ([run 41877993877](https://github.com/AlaaAsaad57/Trydos/actions/runs/41877993877)). Parity, lint and the type
+   check pass. Unit: 665 files pass, 2 fail, with 3 tests, none from Stage 7 (Stage 7 changes no chat file). All
+   three come from commit `2f42f4e7` on `development`:
+   - `tests/components/Chat/pages/ChatLists.test.tsx`: the 2 known cases (see Stage 8).
+   - `tests/components/Chat/components/ChatListSearch.test.tsx`: "filters the list at once and searches contacts
+     after half a second". `2f42f4e7` removed the `SearchContact` call from `ChatListSearch.tsx`, so the test waits
+     for a call that no longer exists. The test is out of date, not the app. For lane B (chat) or Stage 8.
+   - The `compare.test.tsx` case seen red in the stopped local run passes in CI (a random failure).
+10. Left: the owner's review, then the merge into `ui-migrations` (owner's answer on 2026-11-04: stop after CI for
+   the review).
+
+### Where Stage 7 stopped (2026-11-04)
+
+- **Owner's order, 2026-11-04 (relayed by session trydos-4f, confirmed by the owner in this lane the same day):** no new unit tests and no local test runs for the
+  rest of Stage 7 and for Stages 7b and 7c (the laptop is low on memory). A broken existing test is only listed
+  here; the full unit suite runs later in CI. Tests already written stay.
+- Before that order: `next typegen` + `tsc` clean; `pnpm lint` 0 errors (no warning in a Stage 7 file);
+  `pnpm lint:i18n-parity` OK (2813 keys); the unit tests of every changed file passed.
+- A wide local run (most of `tests/`) was stopped by that order part way. Red before it stopped, none in a Stage 7
+  file:
+  - `tests/components/Chat/pages/ChatLists.test.tsx`: "shows the existing chat, not a new one, when only the contact
+    name matches" and "still offers a new chat for a contact who has no chat yet" (known: commit `2f42f4e7` on
+    `development`, see Stage 8).
+  - `tests/components/global/compare.test.tsx`: "loads both products named in the address and puts them side by
+    side" (not looked at; the compare page is not touched by Stage 7; may be the suite's usual random failure).
 
 ### Live parts to keep or replace (after D-41..D-44)
 - Home: metadata (`GetHomeMetaData`), structured data, featured row, flash deals, boutiques, recommended,
@@ -1159,3 +1386,11 @@ and after D-45: `change_size`, `add_to_cart`.
    `TryDos` are each written twice, without quotes (for example `translations.ar.js` lines 1139, 1213, 1219,
    1263). In Arabic `TryDos` is once ترايدوس and once تريدوس; the last one wins, so the first is dead. Found
    while adding the terms line's key in Stage 2 (A-29); nothing was changed.
+8. **The category page breaks a Next rule on every load.** `/[lang]/categories/<slug>` awaits `params` outside a
+   Suspense, and the dev server reports "Next.js encountered runtime data during prerendering or a navigation".
+   Seen on 2026-11-04 with the old view too (`CategoryHomeView`), so Stage 7 did not cause it. Found in Stage 7
+   (lane C); nothing was changed.
+9. **One boutique on staging has a doubled icon path.** Its `icon` already holds a media path, so the address
+   comes out as `.../boutiques/icon//image/upload/boutiques/boutiques/icon/...` and answers `404`. The live store
+   page builds the address the same way (`BoutiqueMiniLogo`, `GetImageUrl(boutique.icon)`), so it is the data,
+   not the new home. Found in Stage 7 (lane C); nothing was changed.

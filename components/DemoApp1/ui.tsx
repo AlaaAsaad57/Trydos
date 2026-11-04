@@ -124,6 +124,17 @@ const offCentre = (nudge: number): React.CSSProperties =>
 export const fromCentre = (x: number, w: number) =>
   `calc(50% + ${x - w / 2}px)`;
 
+/**
+ * A value that reads left to right in every language: a phone, an amount with
+ * its code, a date, an id. Its digits and signs have no direction of their
+ * own, so on a right-to-left page the browser orders them by the page
+ * ("+90 552 800 2000" shows as "2000 800 552 90+"). `bdi` keeps the value in
+ * its own run, and the words around it keep their places too.
+ */
+export function Ltr({ children }: { children: React.ReactNode }) {
+  return <bdi dir="ltr">{children}</bdi>;
+}
+
 /** `#1D1D1D` at 90% over the white page: what a dimmed page looks like. */
 export const DIMMED = "rgb(52, 52, 52)";
 

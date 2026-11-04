@@ -3,11 +3,17 @@
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { animate, motion, useMotionValue } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useAppStore } from "store";
+// The old become-a-seller form (D-25): "Get trydos Business" opens it.
+import BecomeSellerModal from "components/settings/BecomeSellerModal";
 import XdIcon from "../../DemoApp/XdIcon";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoNav } from "../screenNav";
 import { logoutFromProfile } from "../logoutFromProfile";
-import { useDemoData } from "../../DemoApp/DemoData";
-import { C, DESIGN_W, fill, gapTo, lineBox, textBottom } from "../demo1Layout";
+import { useProfileData } from "../useProfileData";
+import { usePageDir } from "../rtl";
+import Toast, { useToast } from "../chat/Toast";
+import { C, DESIGN_W, TAB_BAR, fill, gapTo, lineBox, textBottom } from "../demo1Layout";
 import { Box, Icon, MenuRow, ScreenPage, Stroke, Txt } from "../ui";
 import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
 
@@ -116,13 +122,45 @@ const SWITCHES = [
 
 export default function ProfileScreen() {
   const { t, navigate, locale } = useDemoNav();
-  const { profile } = useDemoData();
-  const address = profile.addresses[0];
+  const router = useRouter();
+  const profile = useProfileData();
+  const address = profile.defaultAddress;
+  const [toast, showToast] = useToast();
+  const [sellerFormOpen, setSellerFormOpen] = useState(false);
+  // A verified shopper does not see "Unverified account" (S4-6).
+  const promos = PROMOS.filter(
+    (promo) => !(promo.icon === "verifiedDark" && profile.phoneVerified),
+  );
 
   const shareApp = () => {
-    const data = { title: "Trydos", url: window.location.origin };
+    const data = { title: t("Trydos"), url: window.location.origin };
     if (navigator.share) navigator.share(data).catch(() => {});
     else navigator.clipboard?.writeText(data.url).catch(() => {});
+  };
+
+  /** The old pages behind the menu rows (D-23). */
+  const openPage = (path: string) => router.push(`/${locale}/${path}`);
+
+  const onMenu = (icon: XdIconName) => {
+    switch (icon) {
+      case "menuSettings":
+        return navigate("settings/preferences");
+      case "menuTerms":
+        return openPage("terms-of-service");
+      case "menuLegal":
+        return openPage("privacy-policy");
+      case "menuAbout":
+        return openPage("about");
+      case "menuShare":
+        return shareApp();
+      case "menuLanguage":
+        return openPage("settings/languages");
+      case "menuHistory":
+        // No backend yet (C-5): A-8.
+        return showToast(t("Soon available"));
+      case "menuLogout":
+        return void logoutFromProfile(locale);
+    }
   };
 
   return (
@@ -133,7 +171,8 @@ export default function ProfileScreen() {
       tabBar
     >
       {/* 69.5 .. 113.5: the wordmark (43 tall) and the two 44 px switches.
-          The switches keep the file's 23.51 px to the right edge. */}
+          The switches keep the file's 23.51 px to the end edge. They have no
+          effect until D-24 is answered (A-8). */}
       <div className="flex items-start shrink-0" style={{ marginTop: 19.5 }}>
         <Icon name="wordmark" ml={23.49} />
         {SWITCHES.map((item, i) => (
@@ -141,10 +180,11 @@ export default function ProfileScreen() {
             key={item.label}
             type="button"
             whileTap={{ scale: 0.92 }}
-            className="flex flex-col shrink-0 cursor-pointer text-left"
+            className="flex flex-col shrink-0 cursor-pointer text-start"
             style={{
-              marginLeft: i === 0 ? "auto" : item.x - (SWITCHES[0].x + 26),
-              marginRight:
+              marginInlineStart:
+                i === 0 ? "auto" : item.x - (SWITCHES[0].x + 26),
+              marginInlineEnd:
                 i === SWITCHES.length - 1 ? DESIGN_W - (item.x + 26) : 0,
               width: 26,
               height: 44,
@@ -193,9 +233,13 @@ export default function ProfileScreen() {
           >
             <XdIcon name="qrBig" size={50} />
           </button>
-          {/* The id on baseline 207, the name on 229. */}
+          {/* The id on baseline 207, the name on 229. A number stays left to
+              right on an Arabic page (A-30). */}
           <Txt mt={gapTo(124 + 62, 207, 13)} size={13}>
-            <span className="font-bold">{profile.clientId}</span> {t("ID")}
+            <bdi dir="ltr" className="font-bold">
+              {profile.clientId}
+            </bdi>{" "}
+            {t("ID")}
           </Txt>
           <Txt
             mt={gapTo(textBottom(207, 13), 229, 13)}
@@ -217,7 +261,7 @@ export default function ProfileScreen() {
             >
               <Icon name="phone" />
               <Txt ml={6} size={11}>
-                {profile.phone}
+                <bdi dir="ltr">{profile.phone}</bdi>
               </Txt>
             </span>
             <Icon name="mapSmall" />
@@ -228,13 +272,13 @@ export default function ProfileScreen() {
               className="min-w-0 overflow-hidden text-ellipsis"
               style={{ flexShrink: 1 }}
             >
-              {address ? address.title : t("Enter Address !")}
+              {address?.title || t("Enter Address !")}
             </Txt>
           </div>
         </div>
 
         {/* The photo box, 116 x 115 at (290, 136): 12 down, 12 in from the
-            card's right edge. It opens the photo screen. */}
+            card's end edge. It opens the photo screen. */}
         <motion.button
           type="button"
           data-pw="demo-profile-photo"
@@ -245,7 +289,7 @@ export default function ProfileScreen() {
           }}
           // Clipped only round a photo: with none, the dark strip (230 .. 252 in
           // the file) must show its own round corners 1 px below the box.
-          className={`relative flex flex-col shrink-0 ml-auto cursor-pointer ${profile.photo ? "overflow-hidden" : ""}`}
+          className={`relative flex flex-col shrink-0 ms-auto cursor-pointer ${profile.photo ? "overflow-hidden" : ""}`}
           // 116 x 115 in the file, not a square; the dark strip at 230 ends 1 below it.
           style={{
             width: 116,
@@ -286,12 +330,16 @@ export default function ProfileScreen() {
         </motion.button>
       </Box>
 
-      {/* The three cards of the file's horizontal scroll group, as a slider. */}
+      {/* The cards of the file's horizontal scroll group, as a slider. */}
       <PromoSlider
+        promos={promos}
         onOpen={(promo) => {
           if (promo.icon === "size") navigate("settings/profile/body");
+          // Starts the phone verification on the page (D-22, A-19).
           else if (promo.icon === "verifiedDark")
-            navigate("settings/profile/personal-info");
+            useAppStore.getState().setShouldAuthinticated(true);
+          // "Get trydos Business" opens become-a-seller (D-25).
+          else setSellerFormOpen(true);
         }}
         t={t}
       />
@@ -300,19 +348,32 @@ export default function ProfileScreen() {
           the row, which keeps 12 px to both edges. */}
       <div
         className="flex shrink-0"
-        style={{ marginTop: 4, marginLeft: 12, width: fill(12), gap: 4 }}
+        style={{
+          marginTop: 4,
+          marginInlineStart: 12,
+          width: fill(12),
+          gap: 4,
+        }}
       >
         {(
           [
             {
               icon: "orders",
               title: "Orders",
-              value: `${profile.orderActions} ${t("action")}`,
+              // Blank until the count is known, so no false "0" shows first.
+              value:
+                profile.ordersCount === null
+                  ? ""
+                  : `${profile.ordersCount} ${t("action")}`,
+              // The orders keep the old page (D-17).
+              open: () => openPage("settings/orders"),
             },
             {
               icon: "wallet",
               title: "Trydos Wallet",
-              value: `${profile.walletUsd} USD`,
+              // The wallet keeps its mock (A-17, S4-5).
+              value: `${profile.walletUsd} ${t("USD")}`,
+              open: () => navigate("settings/wallet"),
             },
           ] as const
         ).map((card) => (
@@ -320,13 +381,9 @@ export default function ProfileScreen() {
             key={card.title}
             type="button"
             data-pw={`demo-profile-${card.icon}`}
-            onClick={
-              card.icon === "wallet"
-                ? () => navigate("settings/wallet")
-                : undefined
-            }
+            onClick={card.open}
             whileTap={{ scale: 0.98 }}
-            className="flex flex-col cursor-pointer text-left"
+            className="flex flex-col cursor-pointer text-start"
             style={{
               flex: "1 1 0",
               minWidth: 0,
@@ -361,15 +418,14 @@ export default function ProfileScreen() {
           }
           textX={54}
           testId={`demo-menu-${i}`}
-          onClick={
-            row.icon === "menuShare"
-              ? shareApp
-              : row.icon === "menuLogout"
-                ? () => void logoutFromProfile(locale)
-                : undefined
-          }
+          onClick={() => onMenu(row.icon)}
         />
       ))}
+
+      <Toast text={toast} bottom={TAB_BAR.height + 24} fixed />
+      {sellerFormOpen && (
+        <BecomeSellerModal onClose={() => setSellerFormOpen(false)} />
+      )}
     </ScreenPage>
   );
 }
@@ -383,7 +439,11 @@ const PROMO_GAP = 4;
  * the right edge.
  *
  * The shopper moves it by hand: swipe, and it snaps to the nearest card. The
- * design will later show one card at a time; three are shown for the demo.
+ * design will later show one card at a time; all cards are shown for now.
+ * "Unverified account" is left out for a verified shopper (S4-6).
+ *
+ * On a right-to-left page the cards run from the right, the next one peeks
+ * in at the left edge, and the swipe goes the other way (A-15).
  *
  * In a card: the 14 px mark at (12, 12), the title 11 Medium from x 32 on
  * baseline 23, the help mark (15 px) at (379.5, 11.5), the text on baseline
@@ -394,12 +454,18 @@ const PROMO_GAP = 4;
  * swipe is a card and the gap, read from the slider's width.
  */
 function PromoSlider({
+  promos,
   onOpen,
   t,
 }: {
+  promos: Promo[];
   onOpen: (promo: Promo) => void;
   t: (key: DemoKey) => string;
 }) {
+  // 1 on a left-to-right page; -1 on a right-to-left one, where the track
+  // moves the other way.
+  const side = usePageDir() === "rtl" ? -1 : 1;
+  const last = promos.length - 1;
   const [index, setIndex] = useState(0);
   const dragged = useRef(false);
   const x = useMotionValue(0);
@@ -420,13 +486,13 @@ function PromoSlider({
   // Runs again when the screen changes width, so the card on show moves to
   // its new place.
   useEffect(() => {
-    const controls = animate(x, -index * step, {
+    const controls = animate(x, -side * index * step, {
       type: "spring",
       stiffness: 260,
       damping: 32,
     });
     return () => controls.stop();
-  }, [index, step, x]);
+  }, [index, step, x, side]);
 
   return (
     <div
@@ -441,7 +507,11 @@ function PromoSlider({
         // as the slider. The first card's margin gives the 12 px instead.
         style={{ gap: PROMO_GAP, x, touchAction: "pan-y" }}
         drag="x"
-        dragConstraints={{ left: -(PROMOS.length - 1) * step, right: 0 }}
+        dragConstraints={
+          side > 0
+            ? { left: -last * step, right: 0 }
+            : { left: 0, right: last * step }
+        }
         dragElastic={0.15}
         dragMomentum={false}
         onDragStart={() => {
@@ -449,30 +519,27 @@ function PromoSlider({
         }}
         onDragEnd={(_, info) => {
           // Where the swipe left the track, pushed half a card on by a flick.
-          const moved = -x.get() / step;
-          const flick =
-            info.velocity.x < -400 ? 0.5 : info.velocity.x > 400 ? -0.5 : 0;
-          const next = Math.min(
-            PROMOS.length - 1,
-            Math.max(0, Math.round(moved + flick)),
-          );
+          const moved = (-side * x.get()) / step;
+          const ahead = -side * info.velocity.x;
+          const flick = ahead > 400 ? 0.5 : ahead < -400 ? -0.5 : 0;
+          const next = Math.min(last, Math.max(0, Math.round(moved + flick)));
           setIndex(next);
           // The same frame's click must not open the card.
           setTimeout(() => (dragged.current = false), 0);
           // The spring runs even when the index did not change.
-          animate(x, -next * step, {
+          animate(x, -side * next * step, {
             type: "spring",
             stiffness: 260,
             damping: 32,
           });
         }}
       >
-        {PROMOS.map((promo, i) => (
+        {promos.map((promo, i) => (
           <div
             key={promo.title}
             className="flex flex-col shrink-0"
             style={{
-              marginLeft: i === 0 ? 12 : 0,
+              marginInlineStart: i === 0 ? 12 : 0,
               width: fill(12),
               height: 108,
               borderRadius: 15,
@@ -482,7 +549,7 @@ function PromoSlider({
           >
             <div
               className="flex items-start shrink-0"
-              style={{ paddingLeft: 12 }}
+              style={{ paddingInlineStart: 12 }}
             >
               {promo.icon && <Icon name={promo.icon} />}
               <Txt
@@ -494,13 +561,13 @@ function PromoSlider({
               </Txt>
               {/* 0.5 px higher than the title and 1 px taller: the negative
                   margins keep the row the title's 14 px. It keeps the file's
-                  11.5 px to the card's right edge. */}
+                  11.5 px to the card's end edge. */}
               <Icon
                 name="helpGrey"
                 mt={-0.5}
                 style={{
-                  marginLeft: "auto",
-                  marginRight: 406 - 394.5,
+                  marginInlineStart: "auto",
+                  marginInlineEnd: 406 - 394.5,
                   marginBottom: -0.5,
                 }}
               />
@@ -523,16 +590,16 @@ function PromoSlider({
               className="flex items-center shrink-0 cursor-pointer"
               style={{
                 marginTop: 58 - textBottom(43, 11),
-                marginLeft: promo.buttonX,
+                marginInlineStart: promo.buttonX,
                 width: fill(promo.buttonX, 406 - promo.buttonX - 382),
                 height: 38,
                 borderRadius: 15,
                 background: promo.button,
-                paddingLeft: `calc((100% - 24px) / 2 - ${382 / 2 - promo.contentX}px)`,
+                paddingInlineStart: `calc((100% - 24px) / 2 - ${382 / 2 - promo.contentX}px)`,
               }}
             >
               {promo.buttonIcon && (
-                <XdIcon name={promo.buttonIcon} style={{ marginRight: 6 }} />
+                <XdIcon name={promo.buttonIcon} style={{ marginInlineEnd: 6 }} />
               )}
               <span
                 className="font-medium"

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   isHomePath,
+  isSearchPath,
   litTab,
   shellStepsAside,
   tabHref,
@@ -16,6 +17,11 @@ describe("tabHref", () => {
   });
   it("builds the home path with no suffix", () => {
     expect(tabHref("sy-en", "home"), "home tab path is wrong").toBe("/sy-en");
+  });
+  it("builds the search path (Stage 7, S7-2)", () => {
+    expect(tabHref("sy-ar", "search"), "search tab path is wrong").toBe(
+      "/sy-ar/search",
+    );
   });
   it("builds the settings path", () => {
     expect(tabHref("sy-en", "settings"), "settings tab path is wrong").toBe(
@@ -40,6 +46,11 @@ describe("litTab", () => {
       litTab("/sy-en/settings/orders/12", none),
       "a page below settings should light settings",
     ).toBe("settings");
+  });
+  it("lights search on the search page", () => {
+    expect(litTab("/sy-en/search", none), "the search page should light search").toBe(
+      "search",
+    );
   });
   it("lights nothing on a product page", () => {
     expect(
@@ -71,6 +82,21 @@ describe("litTab", () => {
       litTab("/sy-en", { chat: false, search: true }),
       "open search should light search",
     ).toBe("search");
+  });
+});
+
+describe("isSearchPath", () => {
+  it("is true for the search page", () => {
+    expect(isSearchPath("/sy-en/search"), "/sy-en/search is the search page").toBe(true);
+  });
+  it("is false for a page below search", () => {
+    expect(isSearchPath("/sy-en/search/x"), "/sy-en/search/x is not the search page").toBe(false);
+  });
+  it("is false for a path that only starts with search", () => {
+    expect(isSearchPath("/sy-en/searches"), "/sy-en/searches is not the search page").toBe(false);
+  });
+  it("is false for the home page", () => {
+    expect(isSearchPath("/sy-en"), "the home page is not the search page").toBe(false);
   });
 });
 

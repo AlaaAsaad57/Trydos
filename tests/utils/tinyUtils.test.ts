@@ -485,6 +485,22 @@ describe("naming the screen for analytics (DetectScreen)", () => {
     );
   });
 
+  it("names the search screen on the search page /[lang]/search", () => {
+    // The search is a page now (Stage 7, S7-2): the path after the locale is
+    // "search". The old search over the home page reported the home screen.
+    go("/sy-en/search");
+    expect(DetectScreen(), "the search page was not named as the search screen").toBe(
+      GA_GLOBAL_SCREEN.SEARCH_SCREEN,
+    );
+  });
+
+  it("does not name a page whose path only starts with 'search' as the search", () => {
+    go("/sy-en/searches");
+    expect(DetectScreen(), "a path that is not the search page was named as the search").toBe(
+      GA_GLOBAL_SCREEN.HOME_SCREEN,
+    );
+  });
+
   it("does not name a page whose path only starts with 'cart' as the basket", () => {
     go("/sy-en/cartoons");
     expect(DetectScreen(), "a path that is not the cart page was named as the cart").toBe(

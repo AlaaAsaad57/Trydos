@@ -2,8 +2,15 @@ import React from "react";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import HomeSections from "components/DemoApp1/screens/HomeSections";
+import HomeSections, {
+  AddStoryCard,
+  BrandCard,
+  bandLogo,
+  type HomeCard,
+  type HomeStoryCard,
+} from "components/DemoApp1/screens/HomeSections";
 import type { DemoKey } from "components/DemoApp/demoKeys";
+import { setRoute } from "../../mocks/nextNavigation";
 
 // jsdom has no IntersectionObserver or ResizeObserver; the carousel (embla)
 // asks for both.
@@ -25,9 +32,12 @@ const embla = vi.hoisted(() => {
   type Handler = () => void;
   type FakeApi = {
     snap: number;
+    /** How many slides the slider has (Embla's snap list). */
+    snaps: number;
     handlers: Record<string, Handler[]>;
     scrollTo: (i: number) => void;
     selectedScrollSnap: () => number;
+    scrollSnapList: () => number[];
     rootNode: () => HTMLElement;
     on: (event: string, fn: Handler) => FakeApi;
     off: (event: string, fn: Handler) => FakeApi;
@@ -37,12 +47,14 @@ const embla = vi.hoisted(() => {
   const make = (): FakeApi => {
     const api: FakeApi = {
       snap: 0,
+      snaps: 3,
       handlers: {},
       scrollTo(i) {
         api.snap = i;
         api.emit("select");
       },
       selectedScrollSnap: () => api.snap,
+      scrollSnapList: () => Array.from({ length: api.snaps }, (_, i) => i),
       rootNode: () => document.createElement("div"),
       on(event, fn) {
         (api.handlers[event] ??= []).push(fn);
@@ -59,14 +71,17 @@ const embla = vi.hoisted(() => {
     apis.push(api);
     return api;
   };
-  return { apis, make };
+  /** The options each slider gave Embla, in the order the page made them. */
+  const options: any[] = [];
+  return { apis, make, options };
 });
 
 vi.mock("embla-carousel-react", async () => {
   const { useState } = await import("react");
   return {
-    default: () => {
+    default: (options: any) => {
       const [api] = useState(() => embla.make());
+      embla.options.push(options);
       return [() => {}, api];
     },
   };
@@ -78,7 +93,8 @@ vi.mock("embla-carousel-autoplay", () => ({
 
 /*
   The page under the Home header (XD `Home Page – 2`): the stories row, the
-  brand-store carousel with its pager, and the store grid.
+  brand-store carousel with its pager, and the store grid. It draws the data
+  it is given: real data on the app (Stage 7), the file's own on /demo.
 
   The words come from the translation tables, so the named part of a sentence
   ("Turkish Brands", "Zara") is not at a fixed place: Arabic puts it in the
@@ -102,8 +118,55 @@ const MIDDLE: Partial<Record<DemoKey, string>> = {
   "Shop {brand} collection now !": "A {brand} B !",
 };
 
-const page = (table: Partial<Record<DemoKey, string>>) =>
-  render(<HomeSections t={(key) => table[key] ?? key} />);
+const logo = (slug: string) => ({ src: `/logos/${slug}.svg`, w: 100, h: 20, top: 65 });
+const brand = (name: string, withLogo = true): HomeCard => ({
+  slug: name.toLowerCase(),
+  name,
+  logo: withLogo ? logo(name.toLowerCase()) : undefined,
+});
+
+/** Nine brand stores: three carousel pages. */
+const BRANDS = ["Zara", "Mango", "Vakko", "Lcw", "Defacto", "Koton", "Mavi", "Colins", "Ipekyol"].map(
+  (n) => brand(n),
+);
+
+/** Six stores: two grid columns. Gratis has no logo. */
+const STORES = [
+  brand("Ebebek"),
+  brand("Boyner"),
+  brand("Sephora"),
+  brand("Gratis", false),
+  brand("Beymen"),
+  brand("Rossmann"),
+];
+
+const story = (id: string, seen = false): HomeStoryCard => ({
+  id,
+  name: `Person ${id}`,
+  cover: `/covers/${id}.jpg`,
+  avatar: `/people/${id}.jpg`,
+  seen,
+});
+
+const STORIES = [story("1"), story("2", true)];
+
+type Props = Partial<React.ComponentProps<typeof HomeSections>>;
+
+const page = (table: Partial<Record<DemoKey, string>>, props: Props = {}) =>
+  render(
+    <HomeSections
+      t={(key) => table[key] ?? key}
+      stories={STORIES}
+      brands={BRANDS}
+      stores={STORES}
+      {...props}
+    />,
+  );
+
+const slugsIn = (root: Element) =>
+  Array.from(root.querySelectorAll('[data-pw^="demo-brand-"]')).map((c) =>
+    c.getAttribute("data-pw")!.replace("demo-brand-", ""),
+  );
 
 describe("Home page sections", () => {
   it("shows the three blocks with their titles and lines", () => {
@@ -181,11 +244,11 @@ describe("Home page sections", () => {
   it("gives each translated line its own text direction, so Arabic reads in order", () => {
     page(MIDDLE);
     const zara = document.querySelector('[data-pw="demo-brand-Zara"]')!;
-    const brand = within(zara as HTMLElement).getByText("Zara", {
+    const name = within(zara as HTMLElement).getByText("Zara", {
       selector: "span.font-medium",
     });
     expect(
-      brand.closest("bdi")?.textContent,
+      name.closest("bdi")?.textContent,
       "the card line is not isolated in a <bdi>, so an Arabic line with a Latin brand name comes out in the wrong order",
     ).toBe("A Zara B !");
     const head = screen.getByText("Turkish Brands", { selector: "span.font-medium" });
@@ -194,11 +257,33 @@ describe("Home page sections", () => {
       "the brand-stores line is not isolated in a <bdi>, so an Arabic line comes out in the wrong order",
     ).toBe("All Turkish Brands Collection Now !");
   });
+});
+
+describe("Home stories row", () => {
+  it("draws one card for each person it is given, with the person's name", () => {
+    page(ENGLISH);
+    for (const name of ["Person 1", "Person 2"]) {
+      expect(
+        document.querySelector(`[data-pw="demo-story-${name}"]`),
+        `the story card "${name}" is missing`,
+      ).not.toBeNull();
+    }
+  });
+
+  it("shows the story's own picture on its card", () => {
+    page(ENGLISH);
+    const cover = document.querySelector(
+      '[data-pw="demo-story-Person 1"] div img',
+    ) as HTMLImageElement | null;
+    expect(cover?.getAttribute("src"), "the card does not show its story's picture").toBe(
+      "/covers/1.jpg",
+    );
+  });
 
   it("crops the ring photo by its box, as the file does (offsetY 0.125)", () => {
     page(ENGLISH);
     const ring = document.querySelector(
-      '[data-pw="demo-story-Jon Plus"] span img',
+      '[data-pw="demo-story-Person 1"] [data-pw="demo-story-ring"] img',
     ) as HTMLImageElement | null;
     expect(ring, "the first story card has no ring photo").not.toBeNull();
     // public/styles/globals.css sets `img { object-position: center !important }`
@@ -214,32 +299,132 @@ describe("Home page sections", () => {
     ).toEqual(["28px", "42px", "-3.5px"]);
   });
 
-  it("draws the four stories, each with its own name", () => {
-    page(ENGLISH);
-    for (const name of ["Jon Plus", "Eda Love", "Ella", "Secret"]) {
-      expect(
-        document.querySelector(`[data-pw="demo-story-${name}"]`),
-        `the story card "${name}" is missing`,
-      ).not.toBeNull();
-    }
+  it("shows the person's photo in the ring, and the default picture when there is none", () => {
+    page(ENGLISH, { stories: [story("1"), { ...story("3"), avatar: null }] });
+    const ringPhoto = (name: string) =>
+      document
+        .querySelector(`[data-pw="demo-story-${name}"] [data-pw="demo-story-ring"] img`)
+        ?.getAttribute("src");
+    expect(ringPhoto("Person 1"), "the ring does not show the person's photo").toBe(
+      "/people/1.jpg",
+    );
+    expect(
+      ringPhoto("Person 3"),
+      "a person with no photo must show the default picture, as the live bar does",
+    ).toBe("/images/profileNo.png");
   });
 
-  it("has three carousel pages of three brands, and a pager of three", () => {
+  it("draws an orange ring for a person with a story not seen yet (S7-10)", () => {
     page(ENGLISH);
-    const pages = document.querySelectorAll(
-      '[data-pw^="demo-home-brand-page-"]',
+    const ring = document.querySelector(
+      '[data-pw="demo-story-Person 1"] [data-pw="demo-story-ring"]',
+    ) as HTMLElement;
+    expect(ring.style.background, "an unseen person's ring is not the file's orange").toBe(
+      "rgb(255, 171, 98)",
     );
-    expect(pages.length, "the carousel does not have three pages").toBe(3);
+  });
+
+  it("draws a grey ring for a person whose stories are all seen (S7-10)", () => {
+    page(ENGLISH);
+    const ring = document.querySelector(
+      '[data-pw="demo-story-Person 2"] [data-pw="demo-story-ring"]',
+    ) as HTMLElement;
+    expect(ring.style.background, "a person with every story seen must have the grey ring").toBe(
+      "rgb(211, 211, 211)",
+    );
+  });
+
+  it("gives every card the file's card 2 style (S7-9)", () => {
+    page(ENGLISH);
+    const box = document.querySelector('[data-pw="demo-story-Person 2"] > div') as HTMLElement;
     expect(
-      pages[0].querySelectorAll('[data-pw^="demo-brand-"]').length,
-      "a carousel page does not hold three brand cards",
-    ).toBe(3);
-    for (const i of [0, 1, 2]) {
-      expect(
-        document.querySelector(`[data-pw="demo-home-pager-${i}"]`),
-        `pager dot ${i + 1} is missing`,
-      ).not.toBeNull();
-    }
+      [box.style.borderRadius, box.style.boxShadow],
+      "a story card is not radius 20 with the 0 3 3 black-at-20% shadow",
+    ).toEqual(["20px", "0 3px 3px rgba(0,0,0,0.2)"]);
+  });
+
+  it("opens the tapped person's stories", () => {
+    const openStory = vi.fn();
+    page(ENGLISH, { openStory });
+    fireEvent.click(document.querySelector('[data-pw="demo-story-Person 2"]')!);
+    expect(openStory, "a tap on person 2's card must open person 2's stories").toHaveBeenCalledWith(
+      "2",
+    );
+  });
+
+  it("shows grey cards and no person while the stories load", () => {
+    page(ENGLISH, { stories: null });
+    expect(
+      document.querySelector('[data-pw="demo-story-skeleton"]'),
+      "while the stories load the row must show its grey cards",
+    ).not.toBeNull();
+    expect(
+      document.querySelector('[data-pw^="demo-story-Person"]'),
+      "no person's card may show before the stories arrive",
+    ).toBeNull();
+  });
+
+  it("draws the add-story card before the first person (S7-5)", () => {
+    page(ENGLISH, {
+      addStory: <AddStoryCard label="Add Story" busy={false} onAdd={() => {}} />,
+    });
+    const row = document.querySelector('[data-pw="demo-home-stories"]')!;
+    expect(
+      row.firstElementChild?.getAttribute("data-pw"),
+      "the add-story card must be the first card of the row",
+    ).toBe("Add-Story-Button");
+  });
+
+  it("draws the next-page loader after the last person", () => {
+    page(ENGLISH, { storiesTail: <span data-pw="stories-more" /> });
+    const row = document.querySelector('[data-pw="demo-home-stories"]')!;
+    expect(
+      row.lastElementChild?.getAttribute("data-pw"),
+      "the next page's loader must come after the last card",
+    ).toBe("stories-more");
+  });
+});
+
+describe("AddStoryCard (S7-5)", () => {
+  it("calls its action on a tap", () => {
+    const onAdd = vi.fn();
+    render(<AddStoryCard label="Add Story" busy={false} onAdd={onAdd} />);
+    fireEvent.click(screen.getByRole("button", { name: "Add Story" }));
+    expect(onAdd, "a tap on the add-story card did not start adding a story").toHaveBeenCalled();
+  });
+
+  it("shows a spinner instead of the plus while a story uploads", () => {
+    render(<AddStoryCard label="Add Story" busy onAdd={() => {}} />);
+    expect(
+      document.querySelector('[data-pw="add-story-spinner"]'),
+      "the card shows no spinner while a new story uploads",
+    ).not.toBeNull();
+  });
+});
+
+describe("Home brand carousel", () => {
+  it("puts the brands on pages of three, in order", () => {
+    page(ENGLISH);
+    const pageSlugs = [0, 1, 2].map((i) =>
+      slugsIn(document.querySelector(`[data-pw="demo-home-brand-page-${i}"]`)!),
+    );
+    expect(pageSlugs, "the carousel pages do not hold the brands three by three, in order").toEqual([
+      ["Zara", "Mango", "Vakko"],
+      ["Lcw", "Defacto", "Koton"],
+      ["Mavi", "Colins", "Ipekyol"],
+    ]);
+  });
+
+  it("has a pager dot for each page and no more", () => {
+    page(ENGLISH, { brands: BRANDS.slice(0, 4) });
+    expect(
+      document.querySelector('[data-pw="demo-home-pager-1"]'),
+      "4 brands make 2 pages, so the second dot must be there",
+    ).not.toBeNull();
+    expect(
+      document.querySelector('[data-pw="demo-home-pager-2"]'),
+      "4 brands make 2 pages, so there must be no third dot",
+    ).toBeNull();
   });
 
   it("moves the pager's pill when the carousel changes page, and a tap on a dot goes to that page", () => {
@@ -280,28 +465,143 @@ describe("Home page sections", () => {
       "the pager did not show the page it was tapped to",
     ).toBe("true");
   });
+});
 
-  it("has four store columns of three; only the first two have logos", () => {
+describe("Home store grid", () => {
+  it("fills the columns from the top, three to a column, in order", () => {
+    page(ENGLISH);
+    const columnSlugs = [0, 1].map((i) =>
+      slugsIn(document.querySelector(`[data-pw="demo-home-store-column-${i}"]`)!),
+    );
+    expect(columnSlugs, "the grid columns do not hold the stores three by three, in order").toEqual([
+      ["Ebebek", "Boyner", "Sephora"],
+      ["Gratis", "Beymen", "Rossmann"],
+    ]);
+  });
+
+  it("draws the logo of a store that has one", () => {
     page(ENGLISH);
     const grid = document.querySelector('[data-pw="demo-home-store-grid"]')!;
-    // grid > the sliding track > one slide for each column > its stack of cards
-    const columns = Array.from(grid.firstElementChild!.children);
     expect(
-      columns.map((c) => c.firstElementChild!.children.length),
-      "a store column does not hold three cards",
-    ).toEqual([3, 3, 3, 3]);
-    for (const brand of ["Ebebek", "Boyner", "Sephora", "Gratis", "Beymen", "Rossmann"]) {
+      within(grid as HTMLElement).queryByAltText("Ebebek"),
+      "the logo of Ebebek is missing from the store grid",
+    ).not.toBeNull();
+  });
+
+  it("draws no logo for a store that has none", () => {
+    page(ENGLISH);
+    expect(
+      within(
+        document.querySelector('[data-pw="demo-brand-Gratis"]') as HTMLElement,
+      ).queryByAltText("Gratis"),
+      "Gratis has no logo, but the card draws one",
+    ).toBeNull();
+  });
+
+  it("shows the name in the logo band for a store with no logo, when asked (S7-11)", () => {
+    page(ENGLISH, { nameMark: true });
+    const gratis = document.querySelector('[data-pw="demo-brand-Gratis"]') as HTMLElement;
+    expect(
+      gratis.querySelector("span.font-medium.whitespace-nowrap")?.textContent,
+      "a store with no logo must show its name in the logo band",
+    ).toBe("Gratis");
+  });
+
+  it("asks for more stores when the grid reaches its last columns (S7-7)", () => {
+    embla.apis.length = 0;
+    const onStoresEnd = vi.fn();
+    page(ENGLISH, { onStoresEnd });
+    const grid = embla.apis[1];
+    onStoresEnd.mockClear();
+    act(() => {
+      grid.snaps = 6;
+      grid.snap = 3;
+      grid.emit("select");
+    });
+    expect(onStoresEnd, "column 4 of 6 is not near the end, so no read may start").not.toHaveBeenCalled();
+    act(() => {
+      grid.snap = 4;
+      grid.emit("select");
+    });
+    expect(onStoresEnd, "column 5 of 6 is near the end, so the next stores must be asked for").toHaveBeenCalled();
+  });
+});
+
+describe("BrandCard logo (S7-11)", () => {
+  it("draws a boutique icon in the file's logo band: 20 high, its own width, inside the card", () => {
+    render(
+      <BrandCard t={(k) => k} brand="Shop" logo={bandLogo("/icons/shop.png")} />,
+    );
+    const img = screen.getByAltText("Shop") as HTMLImageElement;
+    expect(
+      [img.style.top, img.style.height, img.style.width, img.style.maxWidth],
+      "the icon is not in the band at top 65, 20 high, with its own width and kept inside the card",
+    ).toEqual(["65px", "20px", "auto", "calc(100% - 16px)"]);
+  });
+
+  it("keeps the file's own box for a /demo logo", () => {
+    render(<BrandCard t={(k) => k} brand="Zara" logo={logo("zara")} />);
+    const img = screen.getByAltText("Zara") as HTMLImageElement;
+    expect(
+      [img.getAttribute("width"), img.style.width],
+      "a /demo logo must keep the file's width and no auto width",
+    ).toEqual(["100", ""]);
+  });
+});
+
+describe("Home body in Arabic and Kurdish (A-13, A-15)", () => {
+  const arabic = () => setRoute({ params: { lang: "sy-ar" }, pathname: "/sy-ar" });
+
+  it("runs both sliders from the right on an Arabic page, so a swipe works the other way", () => {
+    arabic();
+    embla.options.length = 0;
+    page(ENGLISH);
+    expect(
+      embla.options.slice(0, 2).map((o) => o.direction),
+      "the brand carousel and the store grid must both run right to left in Arabic",
+    ).toEqual(["rtl", "rtl"]);
+  });
+
+  it("runs both sliders from the left on an English page", () => {
+    embla.options.length = 0;
+    page(ENGLISH);
+    expect(
+      embla.options.slice(0, 2).map((o) => o.direction),
+      "the brand carousel and the store grid must run left to right in English",
+    ).toEqual(["ltr", "ltr"]);
+  });
+
+  it("places the purple and blue bars on the start edge, not the physical left", () => {
+    page(ENGLISH);
+    for (const id of ["demo-home-brand-carousel", "demo-home-store-grid"]) {
+      const bar = document.querySelector(`[data-pw="${id}"]`)!.nextElementSibling as HTMLElement;
       expect(
-        within(grid as HTMLElement).queryByAltText(brand),
-        `the logo of ${brand} is missing from the store grid`,
-      ).not.toBeNull();
+        [bar.style.left, bar.style.insetInlineStart],
+        `the bar beside ${id} must sit on the start edge (inset-inline-start 0), not left 0`,
+      ).toEqual(["", "0px"]);
     }
-    // `Home Page – 2` names these cards but draws no logo on them.
-    for (const column of [2, 3]) {
-      expect(
-        columns[column].querySelectorAll("img[alt]:not([alt=''])").length,
-        `store column ${column + 1} draws a logo the file does not`,
-      ).toBe(0);
-    }
+  });
+
+  it("centres a card's contents from the start edge, with no left/translate that stays put in Arabic", () => {
+    page(ENGLISH);
+    const zara = document.querySelector('[data-pw="demo-brand-Zara"]')!;
+    const column = zara.querySelector('[data-pw="brand-card-column"]') as HTMLElement;
+    expect(
+      [column.style.insetInlineStart, column.style.width],
+      "a carousel card's contents must centre in a 218 px box from the start edge (x 109)",
+    ).toEqual(["0px", "218px"]);
+    expect(
+      zara.innerHTML.includes("translateX"),
+      "a card part is still moved by translateX, which does not mirror in Arabic",
+    ).toBe(false);
+  });
+
+  it("places the block tabs, marks and title pills from the start edge", () => {
+    page(ENGLISH);
+    const pill = screen.getByText("Brand Stores", { selector: "span.absolute" }) as HTMLElement;
+    expect(
+      [pill.style.left, pill.style.insetInlineStart],
+      "the title pill must sit 40 px from the start edge, not 40 px from the left",
+    ).toEqual(["", "40px"]);
   });
 });

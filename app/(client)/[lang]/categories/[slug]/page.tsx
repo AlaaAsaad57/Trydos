@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { lang as langParam } from "next/root-params";
-import CategoryHomeView from "components/Home/CategoryHomeView";
+import AppHomeView from "components/DemoApp1/screens/AppHomeView";
 import { GetHomeMetaData, isValidCategorySlug } from "serverRequests/meta/home";
 import { LogServerError } from "utils/serverErrorReporter";
 
@@ -30,5 +30,5 @@ export async function generateMetadata({ params }) {
 export default async function CategoryPage({ params }) {
   const { slug } = await params;
   if (!isValidCategorySlug(slug)) notFound();
-  return <CategoryHomeView slug={slug} />;
+  return <AppHomeView slug={slug} />;
 }

@@ -4,25 +4,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 const productCard = vi.fn();
-const boutiqueWrapper = vi.fn();
-const infiniteScroll = vi.fn();
 
 vi.mock("components/products/ProductCard", () => ({
   default: (props: any) => {
     productCard(props);
     return <div data-pw="card" />;
-  },
-}));
-vi.mock("components/ServerWrapper/BoutiqueWrapper", () => ({
-  default: (props: any) => {
-    boutiqueWrapper(props);
-    return <div data-pw="boutique">{props.boutique.slug}</div>;
-  },
-}));
-vi.mock("components/global/InfinteScroll", () => ({
-  default: (props: any) => {
-    infiniteScroll(props);
-    return null;
   },
 }));
 vi.mock("utils/server", () => ({ translateFunction: (key: string) => key }));

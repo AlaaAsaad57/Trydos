@@ -475,6 +475,20 @@ export const DEMO_KEYS = [
   "Grey",
   // The product page (`Home Page – 49`).
   ...PRODUCT_PAGE_KEYS,
+  // The Settings screen (Stage 4, S4-2). The keys exist in all three files.
+  "Notifications",
+  "Notification Settings",
+  "My Checklist",
+  "Language",
+  // The profile's share title (A-29: the brand's existing key).
+  "Trydos",
+  // Body measurements: the old size form's limits (D-28).
+  "Height is required",
+  "Height must be between 110 and 250 cm",
+  "Weight is required",
+  "Weight must be between 40 and 180 kg",
+  // The photo screen: the old photo form's refusal text.
+  "File upload failed.",
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];

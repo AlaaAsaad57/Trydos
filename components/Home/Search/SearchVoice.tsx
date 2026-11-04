@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, type ReactNode } from "react";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";
@@ -14,7 +14,20 @@ const WEB_SPEECH_LANG: Record<string, string> = {
   tr: "tr-TR",
 };
 
-function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
+/**
+ * The voice search. `icon` and `label` are for the new search page
+ * (/[lang]/search, Stage 7, D-44): its Voice mark replaces the old mic
+ * picture, in a button with that label. The logic does not change.
+ */
+function SearchVoice({
+  setSearchValue,
+  icon,
+  label,
+}: {
+  setSearchValue: Function;
+  icon?: ReactNode;
+  label?: string;
+}) {
   const { language } = useAppStore();
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -336,14 +349,29 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
               </div>
             ) : (
               <div className="relative">
-                <img
-                  src="/icons/SearchMicIcon.svg"
-                  data-pw="searchVoiceIcon"
-                  onClick={handleOnRecord}
-                  className={`${
-                    isRecording ? "listening-icon-mic" : "ggg"
-                  } cursor-pointer relative z-10`}
-                />
+                {icon ? (
+                  <button
+                    type="button"
+                    data-pw="searchVoiceIcon"
+                    aria-label={label}
+                    aria-pressed={isRecording}
+                    onClick={handleOnRecord}
+                    className={`${
+                      isRecording ? "listening-icon-mic" : ""
+                    } block cursor-pointer relative z-10 active:opacity-60`}
+                  >
+                    {icon}
+                  </button>
+                ) : (
+                  <img
+                    src="/icons/SearchMicIcon.svg"
+                    data-pw="searchVoiceIcon"
+                    onClick={handleOnRecord}
+                    className={`${
+                      isRecording ? "listening-icon-mic" : "ggg"
+                    } cursor-pointer relative z-10`}
+                  />
+                )}
 
                 {/* Circular Progress Bar */}
                 {isRecording && (
@@ -401,16 +429,32 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
           </div>
         ) : (
           <div className="relative">
-            <img
-              src="/icons/SearchMicIcon.svg"
-              data-pw="searchVoiceIcon"
-              onClick={() => {
-                showErrorNotification(
-                  translateFunction("Browser does not support this feature"),
-                );
-              }}
-              className={`opacity-50 cursor-pointer`}
-            />
+            {icon ? (
+              <button
+                type="button"
+                data-pw="searchVoiceIcon"
+                aria-label={label}
+                onClick={() => {
+                  showErrorNotification(
+                    translateFunction("Browser does not support this feature"),
+                  );
+                }}
+                className="block opacity-50 cursor-pointer"
+              >
+                {icon}
+              </button>
+            ) : (
+              <img
+                src="/icons/SearchMicIcon.svg"
+                data-pw="searchVoiceIcon"
+                onClick={() => {
+                  showErrorNotification(
+                    translateFunction("Browser does not support this feature"),
+                  );
+                }}
+                className={`opacity-50 cursor-pointer`}
+              />
+            )}
           </div>
         )}
       </div>
