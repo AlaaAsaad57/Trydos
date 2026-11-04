@@ -879,6 +879,7 @@ as they are (`orders`, `payment`, `shipping`, `question`, `important`). CH-3 nee
 | S6-2 | Add contact | The new contact sheet gets the old form's country code picker (flag + code, default +963); the number is saved with `phoneWithDialCode`. Changes the design (A-9): the designer checks it. |
 | S6-3 | Order | The chat paths are on from now (the mount came early); the old ChatModal and old files go at the end (step 11). |
 | S6-4 | Chat URL | One chat's screens carry `?id=<chat id>`: `/[lang]/chat/conversation?id=12`, also `/chat/contact` and `/chat/call`. |
+| S6-6 | Stories row in the chat (D-36b) | **Dropped (owner, 2026-11-05).** The chat has no stories row; stories stay on the home page. |
 | S6-5 | Provider place | `ChatDataProvider` sits around the screen frame in lane A's `AppScreens.tsx`, on only for a chat screen. Lane A was told. |
 
 ### Where Stage 6 stopped (2026-11-04) — waiting for the CI run and the owner's review
@@ -938,8 +939,7 @@ Unit tests that may now fail (not run, owner's order; the CI run will say):
 - Coverage lost with the removed tests: `mergeContacts` (now in `contactsSync.ts`).
 
 Left:
-- The stories row (D-36b) is not built. The story viewer belongs to the home page (Stage 7), and the chat
-  copy repeats the home stories bar. Owner to decide: build it, or drop it.
+- (The stories row was dropped by the owner: S6-6.)
 - The real chat checked in a browser by a signed-in shopper (calls, push links, order chat, gates).
 - Step 13 in CI: `gh workflow run Tests --ref ui-migrations-chat` needs the branch pushed (owner's OK).
 - Then the owner's review, then the merge into `ui-migrations` (owner's OK). The e2e cases wait for Stage 8
