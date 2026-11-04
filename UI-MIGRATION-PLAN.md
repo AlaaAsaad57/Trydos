@@ -869,8 +869,17 @@ Hardcoded (about 14): `ReactionSheet.tsx` tab labels (lines 44-49), "Reactions" 
      fix. No red-first test (owner's order).
    - Not changed (old code, as before Stage 7): the search "Reset" button has a fixed 64 px width (`w-16`), so the
      Arabic "إعادة تعيين" breaks into 2 lines.
-9. Left: the full unit suite in CI (`gh workflow run Tests --ref ui-migrations-shop`), then the owner's review and
-   the merge into `ui-migrations` (owner's answer on 2026-11-04: stop after CI for the review).
+9. **Done (2026-11-04):** committed (`7ffb46e2`), pushed, and the full unit suite run in CI
+   ([run 41877993877](https://github.com/AlaaAsaad57/Trydos/actions/runs/41877993877)). Parity, lint and the type
+   check pass. Unit: 665 files pass, 2 fail, with 3 tests, none from Stage 7 (Stage 7 changes no chat file). All
+   three come from commit `2f42f4e7` on `development`:
+   - `tests/components/Chat/pages/ChatLists.test.tsx`: the 2 known cases (see Stage 8).
+   - `tests/components/Chat/components/ChatListSearch.test.tsx`: "filters the list at once and searches contacts
+     after half a second". `2f42f4e7` removed the `SearchContact` call from `ChatListSearch.tsx`, so the test waits
+     for a call that no longer exists. The test is out of date, not the app. For lane B (chat) or Stage 8.
+   - The `compare.test.tsx` case seen red in the stopped local run passes in CI (a random failure).
+10. Left: the owner's review, then the merge into `ui-migrations` (owner's answer on 2026-11-04: stop after CI for
+   the review).
 
 ### Where Stage 7 stopped (2026-11-04)
 
