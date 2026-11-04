@@ -675,6 +675,61 @@ The 3 items moved from Stage 3: the path table with its on/off switch, drawing a
   not in the mount, because the store may not hold the profile yet on the first render.
 - Known limit: back from a new screen to an old page with the browser's own back button may open the old page
   at the top, not where it was left (the mount turns the browser's scroll restore off while a new screen shows).
+- Merged into `ui-migrations` as `7d281d7e` (owner's OK, 2026-11-04). CI unit suite run 41844213629: only the 3
+  known chat search tests are red (from `development` commit `2f42f4e7`). Lane B was told.
+
+### Where Stage 4 stands (2026-11-04) — the profile screens
+
+Built, not committed yet:
+- `useProfileData` (A-16): one hook for the profile area. Real values from the store (`userProfile`, the address
+  list), the orders count (`fetchOrdersCount`), the wallet USD from `demoWallet.ts` (S4-5). It reads an address row
+  nested (`region_details`, `contact_info`, as checkout does) or flat.
+- The 10 profile rows in `appScreenPaths.ts`; each path's `page.tsx` renders nothing and sends a guest to the login
+  on the server (`serverRequests/settings/screenPage.ts`, S4-4). The old Bank Cards page is gone (D-22).
+- Profile tab: real card, the verify card hidden when verified (S4-6), "Get trydos Business" opens the old
+  become-a-seller form (D-25), Orders opens the old orders page, the menu rows open the old pages (D-23), Login
+  history says "Soon available", the Web / lock switches have no effect (D-24, A-8).
+- Client info: id, phone and "Verified" are real; status, type and "client since" stay empty (no source, D-31);
+  the two request buttons say "Soon available". Client ID: real id, name and phone; the QR is still the drawn one.
+- Personal info: name and gender save with `auth.UpdateProfile` (only changed fields); a new e-mail opens the
+  code sheet, which ends in "Soon available" and saves no e-mail (S4-8).
+- Body: Edit / Cancel / "Add & save" (D-28), limits 110–250 cm and 40–180 kg; the foot size is not saved (C-1).
+- Photo: the picked file uploads (`UpdateProfileImage`), "Add & save" saves its path, "Remove" saves none.
+- Address list: real list; delete = `address_deleted` + the delete call + the store, as checkout; edit opens the
+  form through `startUpdateAddress`. Address form: the store's `addressDetails`; the live map (D-29); the URL's
+  country only; the live provinces and address search (S4-7); the contact is the shopper's (D-29); save with
+  `AddAddressList` / `UpdateAddressList` (`address_saved` / `address_save_failed` fire there).
+- Settings screen (S4-2, S4-3): rows for Notifications (old panel), Notification Settings, My Checklist, Country,
+  Language, and the old seller card under them.
+- RTL: the physical left / right styles of these screens are logical now; the promo swipe and the address cards'
+  slide are mirrored (A-15); numbers stay left to right (A-30).
+- Deleted, no caller left (D-6): the old profile card and `VerifyUser`, `PersonalInfoForm`, `ProfileSizeInfo`,
+  `UploadProfilePhoto`, `PersonalInfoAddress` and its modal, the old orders card, `WalletLinkCard`,
+  `RouterRefresh`, and their tests.
+- Tests: `tests/components/DemoApp1/profileScreens.test.tsx` (21 cases); `tests/app/settings/pages.test.tsx` checks
+  the guest guard of the 10 pages. Its first run found a real bug: the list rows are nested, not flat.
+
+Claude's calls in this part (check them): the old seller card sits as it is under the Settings rows; the address
+map's own marker replaces the drawn pin, and the purple pill closes the map again; the photo goes up as picked (the
+design has no crop step); an address save with no name on the profile says "Enter Your Name !"; the client ID QR
+stays the drawn one, because what a real code should hold is not decided.
+
+XD check (2026-11-04), signed in as the QA test shopper (Shopper A, 3 OTP sends), at 440 x 802: all 9 screens draw
+on their paths in `en` and `ar`, right to left in Arabic, with the real data. Found and fixed:
+- Arabic address lines showed the Latin place names in reverse order (bidi). Each name is now its own `<bdi>`
+  (`components/DemoApp1/placeParts.tsx`). Not checked again in the browser (it needs another OTP send).
+- The address list showed "Your address list is empty" before the list answered, and Orders showed "0 action"
+  before the count. Both now wait for their answer (tests seen red, then green).
+- On a cold dev server the Arabic screens showed empty fields for more than 2.5 s; with a longer wait they show the
+  data. The store fills from `/api/auth/me` on start, so this is the slow first compile, not a gap in the app.
+Seen, not changed: a hydration warning on Body and Personal info, because the drawn keyboard marks the number
+fields (`inputMode="none"`) before the lazy screen hydrates (the same keyboard as `/demo`); SVG attribute warnings
+from old components; the wallet backend's 503 (A-17).
+
+**Owner's order (2026-11-04): no new unit tests and no local test runs from now on.** A broken existing test is
+listed here, not fixed now; the full unit suite runs in CI. Tests already written stay.
+
+Left: the full unit suite in CI, the owner's review, then the commit.
 
 ### Live code to link
 

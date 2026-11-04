@@ -20,7 +20,19 @@ import type { DemoScreen, DemoStaticScreen } from "../DemoApp/demoRoutes";
  */
 export type AppScreenRow = { path: string; screen: DemoStaticScreen };
 
-export const APP_SCREENS: readonly AppScreenRow[] = [];
+export const APP_SCREENS: readonly AppScreenRow[] = [
+  // Profile (Stage 4). Old paths where an old page existed (S4-1).
+  { path: "settings", screen: "settings" },
+  { path: "settings/profile", screen: "settings/profile" },
+  { path: "settings/profile/info", screen: "settings/profile/personal-info" },
+  { path: "settings/profile/size", screen: "settings/profile/body" },
+  { path: "settings/profile/picture", screen: "settings/photo" },
+  { path: "settings/profile/address", screen: "settings/profile/address" },
+  { path: "settings/profile/address/new", screen: "settings/profile/address/new" },
+  { path: "settings/profile/client-info", screen: "settings/profile/client-info" },
+  { path: "settings/client-id", screen: "settings/client-id" },
+  { path: "settings/preferences", screen: "settings/preferences" },
+];
 
 /** The path without the locale part, without slashes at the ends. */
 const afterLocale = (pathname: string): string =>

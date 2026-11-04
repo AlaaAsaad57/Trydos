@@ -51,6 +51,9 @@ export const APP_SCREEN_VIEWS: Partial<
   "settings/profile/address/new": dynamic(() => import("./screens/AddressFormScreen"), {
     loading: () => <ScreenSkeleton />,
   }),
+  "settings/preferences": dynamic(() => import("./screens/SettingsScreen"), {
+    loading: () => <ScreenSkeleton />,
+  }),
   // Wallet (Stage 5).
   "settings/wallet": dynamic(() => import("./screens/WalletScreen"), {
     loading: () => <ScreenSkeleton />,

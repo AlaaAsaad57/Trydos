@@ -3,8 +3,9 @@
 import React from "react";
 import { motion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
-import { useDemoNav } from "../Demo1Shell";
-import { useDemoData } from "../../DemoApp/DemoData";
+import { useDemoNav } from "../screenNav";
+import { useProfileData } from "../useProfileData";
+import Toast, { useToast } from "../chat/Toast";
 import { C, SAFE_BOTTOM, fill, lineBox } from "../demo1Layout";
 import { Box, ScreenHeader, ScreenPage, Stroke, Txt } from "../ui";
 
@@ -24,7 +25,12 @@ const HALF = "calc((100% - 4px) / 2)";
  *
  * At the bottom, two 406 x 56 request buttons (0.5 `#C3C3C3` line, text 14
  * Medium, centred), pinned to the bottom of the page like the login's buttons.
- * No service takes these requests yet.
+ * No service takes these requests yet: they say "Soon available" (A-8,
+ * backend C-4).
+ *
+ * Real values (D-31, A-8): the id, the phone, and "Verified" for a shopper
+ * whose phone is on record. Status, type and "client since" have no source in
+ * the profile yet, so those cards stay empty.
  *
  * On /demo the widths are fluid: every card and button keeps 12 px to both
  * edges of the screen, and the two cards of a pair share the width with the
@@ -32,13 +38,20 @@ const HALF = "calc((100% - 4px) / 2)";
  */
 export default function ClientInfoScreen() {
   const { t, back, navigate } = useDemoNav();
-  const { profile } = useDemoData();
+  const profile = useProfileData();
+  const [toast, showToast] = useToast();
 
-  const since = (
-    <>
-      <span className="font-medium">{profile.clientSince}</span> {t("days")}
-    </>
-  );
+  const since =
+    profile.clientSince === null ? (
+      ""
+    ) : (
+      <>
+        <bdi dir="ltr" className="font-medium">
+          {profile.clientSince}
+        </bdi>{" "}
+        {t("days")}
+      </>
+    );
 
   return (
     <ScreenPage
@@ -72,6 +85,7 @@ export default function ClientInfoScreen() {
               key={label}
               type="button"
               whileTap={{ scale: 0.98 }}
+              onClick={() => showToast(t("Soon available"))}
               className="relative shrink-0 cursor-pointer font-medium"
               style={{
                 marginTop: i === 0 ? 0 : 8,
@@ -82,8 +96,8 @@ export default function ClientInfoScreen() {
                 fontSize: 14,
                 lineHeight: `${lineBox(14)}px`,
                 color: C.ink,
-                // The file puts both words 1 px (and 1.33 px) right of centre.
-                paddingLeft: i === 0 ? 2.67 : 2,
+                // The file puts both words 1 px (and 1.33 px) past the centre.
+                paddingInlineStart: i === 0 ? 2.67 : 2,
               }}
             >
               {t(label)}
@@ -108,7 +122,7 @@ export default function ClientInfoScreen() {
             {t("client ID")}
           </Txt>
           <Txt size={14} weight="medium" mt={6}>
-            {profile.clientId}
+            <bdi dir="ltr">{profile.clientId}</bdi>
           </Txt>
         </div>
         <button
@@ -116,8 +130,8 @@ export default function ClientInfoScreen() {
           aria-label={t("client ID")}
           data-pw="demo-client-info-qr"
           onClick={() => navigate("settings/client-id")}
-          // 39 x 39 at (367, 120): 8 down, 12 in from the right.
-          className="shrink-0 ml-auto cursor-pointer active:opacity-70"
+          // 39 x 39 at (367, 120): 8 down, 12 in from the end edge.
+          className="shrink-0 ms-auto cursor-pointer active:opacity-70"
           style={{ width: 39, height: 39 }}
         >
           <XdIcon name="qrBig" size={39} />
@@ -127,9 +141,9 @@ export default function ClientInfoScreen() {
       {/* Two cards in a row share the row's width, 4 px apart. */}
       <div
         className="flex shrink-0"
-        style={{ marginTop: 4, marginLeft: 12, width: fill(12) }}
+        style={{ marginTop: 4, marginInlineStart: 12, width: fill(12) }}
       >
-        <InfoCard w={HALF} label={t("client Status")} value={t("Active")} />
+        <InfoCard w={HALF} label={t("client Status")} value="" />
         <InfoCard
           ml={4}
           w={HALF}
@@ -140,14 +154,14 @@ export default function ClientInfoScreen() {
       </div>
       <div
         className="flex shrink-0"
-        style={{ marginTop: 4, marginLeft: 12, width: fill(12) }}
+        style={{ marginTop: 4, marginInlineStart: 12, width: fill(12) }}
       >
-        <InfoCard w={HALF} label={t("client type")} value={t("Personal")} />
+        <InfoCard w={HALF} label={t("client type")} value="" />
         <InfoCard
           ml={4}
           w={HALF}
           label={t("client Verified")}
-          value={t("Verified")}
+          value={profile.phoneVerified ? t("Verified") : ""}
         />
       </div>
       <InfoCard
@@ -155,9 +169,11 @@ export default function ClientInfoScreen() {
         ml={12}
         w={fill(12)}
         label={t("client Phone Number")}
-        value={profile.phone}
+        value={<bdi dir="ltr">{profile.phone}</bdi>}
         line
       />
+      {/* Over the two request buttons. */}
+      <Toast text={toast} bottom={36 + 56 * 2 + 8 + 24} fixed />
     </ScreenPage>
   );
 }

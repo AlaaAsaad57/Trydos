@@ -4,8 +4,9 @@ import type { DemoKey } from "../../DemoApp/demoKeys";
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
-import { useDemoNav } from "../Demo1Shell";
-import { useDemoData } from "../../DemoApp/DemoData";
+import { useDemoNav } from "../screenNav";
+import { useProfileData } from "../useProfileData";
+import { usePageDir } from "../rtl";
 import {
   C,
   SAFE_BOTTOM,
@@ -25,14 +26,14 @@ import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
  * (24, 507) — name with the blue verified badge, phone — and copy / download /
  * share at the bottom.
  *
- * The QR is the one drawn in the file. There is no service behind the id yet,
- * so a real code would point nowhere; it is swapped for a generated one when
- * the client id comes from the backend.
+ * The id, name and phone are the shopper's (useProfileData). The QR is still
+ * the one drawn in the file: what a real code should hold is not decided yet.
  *
  * "download" saves `Home Page – 82` as a PNG: the 300 x 300 QR at (65, 245),
  * and the id, name and phone from y 615 — all drawn on a canvas in the
  * browser, nothing is sent anywhere. The picture keeps the file's 430 x 932
- * size on every screen.
+ * size on every screen. On a right-to-left page its text is drawn from the
+ * right edge.
  *
  * On /demo the two cards keep the file's 24 px to both edges of the screen,
  * and the three actions are a group centred on the screen at the bottom.
@@ -40,7 +41,8 @@ import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
 
 export default function ClientIdScreen() {
   const { t, back } = useDemoNav();
-  const { profile } = useDemoData();
+  const profile = useProfileData();
+  const rtl = usePageDir() === "rtl";
   const name = profile.name || t("Enter Your Name !");
 
   const copy = () => {
@@ -49,7 +51,7 @@ export default function ClientIdScreen() {
 
   const share = () => {
     const data = {
-      title: "Trydos",
+      title: t("Trydos"),
       text: `${t("client ID")}: ${profile.clientId}`,
     };
     if (navigator.share) navigator.share(data).catch(() => {});
@@ -57,7 +59,7 @@ export default function ClientIdScreen() {
   };
 
   const download = async () => {
-    const png = await drawCard(profile.clientId, name, profile.phone, t("ID"));
+    const png = await drawCard(profile.clientId, name, profile.phone, t("ID"), rtl);
     const link = document.createElement("a");
     link.href = png;
     link.download = `trydos-${profile.clientId}.png`;
@@ -102,10 +104,10 @@ export default function ClientIdScreen() {
       }
       footer={
         // Pinned to the bottom like the login's buttons. The 2 px of padding
-        // on the right put the group's centre 1 px left of the middle.
+        // at the end put the group's centre 1 px before the middle.
         <div
           className="absolute inset-x-0 flex justify-center"
-          style={{ bottom: `calc(32px + ${SAFE_BOTTOM})`, paddingRight: 2 }}
+          style={{ bottom: `calc(32px + ${SAFE_BOTTOM})`, paddingInlineEnd: 2 }}
         >
           {actions.map((action, i) => (
             <motion.button
@@ -116,7 +118,7 @@ export default function ClientIdScreen() {
               onClick={action.onClick}
               className="flex flex-col shrink-0 cursor-pointer"
               style={{
-                marginLeft: i === 0 ? 0 : 30,
+                marginInlineStart: i === 0 ? 0 : 30,
                 width: 60,
                 height: 50,
               }}
@@ -152,7 +154,10 @@ export default function ClientIdScreen() {
     >
       <Icon name="qrBig" mt={120 - 100} style={{ alignSelf: "center" }} />
       <Txt center mt={gapTo(370, 394, 16)} size={16}>
-        <span className="font-medium">{profile.clientId}</span> {t("ID")}
+        <bdi dir="ltr" className="font-medium">
+          {profile.clientId}
+        </bdi>{" "}
+        {t("ID")}
       </Txt>
 
       <Box
@@ -180,7 +185,7 @@ export default function ClientIdScreen() {
             {profile.name && (
               <XdIcon
                 name="verifiedBadge"
-                style={{ marginLeft: 3, marginTop: -2 }}
+                style={{ marginInlineStart: 3, marginTop: -2 }}
               />
             )}
           </span>
@@ -200,7 +205,7 @@ export default function ClientIdScreen() {
           {t("client Phone Number")}
         </Txt>
         <Txt mt={6} size={14} weight="medium">
-          {profile.phone}
+          <bdi dir="ltr">{profile.phone}</bdi>
         </Txt>
       </Box>
     </ScreenPage>
@@ -213,6 +218,7 @@ async function drawCard(
   name: string,
   phone: string,
   idWord: string,
+  rtl = false,
 ): Promise<string> {
   const scale = 3;
   const canvas = document.createElement("canvas");
@@ -236,13 +242,20 @@ async function drawCard(
     root.getPropertyValue(name).trim() || "Quicksand, sans-serif";
   const regular = face("--Quicksand-Regular");
   ctx.fillStyle = "#1D1D1D";
+  // On a right-to-left page the lines start at the right edge, 64 in, as the
+  // page does. The id and the phone stay left to right (A-30).
+  const start = rtl ? 430 - 64 : 64;
+  ctx.textAlign = rtl ? "right" : "left";
+  // The id first, then the word after it, as on the screen.
   ctx.font = `700 13px ${face("--Quicksand-Bold")}`;
-  ctx.fillText(clientId, 64, 628);
+  ctx.fillText(clientId, start, 628);
   const idWidth = ctx.measureText(`${clientId} `).width;
   ctx.font = `400 13px ${regular}`;
-  ctx.fillText(idWord, 64 + idWidth, 628);
-  ctx.fillText(name, 64, 650);
+  ctx.fillText(idWord, rtl ? start - idWidth : start + idWidth, 628);
+  ctx.direction = rtl ? "rtl" : "ltr";
+  ctx.fillText(name, start, 650);
+  ctx.direction = "ltr";
   ctx.font = `400 11px ${regular}`;
-  ctx.fillText(phone, 64, 670);
+  ctx.fillText(phone, start, 670);
   return canvas.toDataURL("image/png");
 }

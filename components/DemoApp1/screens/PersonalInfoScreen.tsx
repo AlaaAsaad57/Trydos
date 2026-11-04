@@ -6,8 +6,16 @@ import { motion } from "framer-motion";
 import RdbPinInputs from "components/Login/Enhanced/ui/RdbPinInputs";
 import XdIcon from "../../DemoApp/XdIcon";
 import { DEMO_KEYBOARD } from "../../DemoApp/demoKeyboard";
-import { useDemoNav } from "../Demo1Shell";
-import { useDemoData, type DemoGender } from "../../DemoApp/DemoData";
+import { useAppStore } from "store";
+import auth from "services/auth";
+import { LogError } from "utils/functions";
+import { useDemoNav } from "../screenNav";
+import Toast, { useToast } from "../chat/Toast";
+import {
+  GENDER_TO_BACKEND,
+  useProfileData,
+  type ProfileGender,
+} from "../useProfileData";
 import { C, DESIGN_W, gapTo, lineBox, textBottom } from "../demo1Layout";
 import {
   Field,
@@ -38,6 +46,12 @@ import {
  * `#505050` on baseline +20, value 14 on +43. Gender is three words at x 68,
  * 186 and 326 — the picked one Medium `#1D1D1D`, the others Regular `#C3C3C3`.
  *
+ * Real data (Stage 4): the fields start from the shopper's profile, and "Add
+ * & save" sends the changed name and gender with auth.UpdateProfile, as the
+ * old form did (stories, chat and market, then the User-Data cookie). A
+ * changed e-mail opens the code sheet; the backend has no e-mail code yet, so
+ * its end says "Soon available" and the e-mail is not saved (S4-8, A-8).
+ *
  * On /demo the banner and the fields keep 12 px to both edges of the screen
  * (fluid, 406 on a 430 px phone). The gender words keep their x from the
  * left: they are words, not a block that stretches.
@@ -49,7 +63,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * step to the next word, with 12 px of padding round its word, so every word
  * lands on the file's x whatever width the browser gives it.
  */
-const GENDERS: { id: DemoGender; label: DemoKey; slot?: number }[] = [
+const GENDERS: { id: ProfileGender; label: DemoKey; slot?: number }[] = [
   { id: "man", label: "Man", slot: 186 - 68 },
   { id: "women", label: "Women", slot: 326 - 186 },
   { id: "other", label: "Other" },
@@ -57,37 +71,64 @@ const GENDERS: { id: DemoGender; label: DemoKey; slot?: number }[] = [
 
 export default function PersonalInfoScreen() {
   const { t, back } = useDemoNav();
-  const { profile, update } = useDemoData();
+  const profile = useProfileData();
+  const [toast, showToast] = useToast();
   // The screen opens to read (`Home Page – 92`); "Edit" makes the form editable.
   const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [name, setName] = useState(profile.name);
   const [email, setEmail] = useState(profile.email);
-  const [verified, setVerified] = useState(
-    profile.emailVerified ? profile.email : "",
-  );
-  const [gender, setGender] = useState<DemoGender>(profile.gender);
+  // The e-mail on record counts as checked: only a new one needs a code.
+  const verified = profile.email;
+  const [gender, setGender] = useState<ProfileGender | null>(profile.gender);
   const [codeFor, setCodeFor] = useState<string | null>(null);
 
-  const dirty =
-    name !== profile.name ||
-    email !== profile.email ||
-    gender !== profile.gender;
-  const canSave = editing && dirty && name.trim() !== "";
+  // The profile can arrive after the screen opens (the store fills from the
+  // cookie and /customer/info). While the shopper is not editing, the fields
+  // follow it.
+  useEffect(() => {
+    if (editing) return;
+    setName(profile.name);
+    setEmail(profile.email);
+    setGender(profile.gender);
+  }, [profile.name, profile.email, profile.gender, editing]);
 
-  const save = (checkedEmail: string) => {
-    update({
-      name: name.trim(),
-      email,
-      emailVerified: email !== "" && checkedEmail === email,
-      gender,
-    });
-    setEditing(false);
+  const emailChanged = email !== profile.email;
+  const dirty =
+    name !== profile.name || emailChanged || gender !== profile.gender;
+  const canSave =
+    editing &&
+    dirty &&
+    !saving &&
+    name.trim() !== "" &&
+    (!emailChanged || email === "" || EMAIL.test(email));
+
+  /** Sends the changed name and gender. The e-mail is not sent (S4-8). */
+  const save = async () => {
+    const changed: Record<string, unknown> = {};
+    if (name.trim() !== profile.name) changed.name = name.trim();
+    if (gender && gender !== profile.gender)
+      changed.gender = GENDER_TO_BACKEND[gender];
+    if (!Object.keys(changed).length) {
+      setEditing(false);
+      return;
+    }
+    setSaving(true);
+    try {
+      await auth.UpdateProfile(changed, useAppStore.getState().userProfile);
+      setEditing(false);
+    } catch (error) {
+      // The request layer already showed the refusal. Keep what the shopper
+      // typed, so they can correct it (as the old form did).
+      LogError({ error, scenario: "PersonalInfoScreen save" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const reset = () => {
     setName(profile.name);
     setEmail(profile.email);
-    setVerified(profile.emailVerified ? profile.email : "");
     setGender(profile.gender);
     setEditing(false);
   };
@@ -113,22 +154,27 @@ export default function PersonalInfoScreen() {
             testId="demo-personal-save"
             label={t("Add & save")}
             visible={canSave}
-            // A new email is checked first: "Add & save" opens the code
-            // sheet (`Home Page – 90`), and a right code saves the form.
+            // "Add & save" sends the name and gender. A new e-mail then
+            // opens the code sheet (`Home Page – 90`).
             onClick={() => {
+              void save();
               if (EMAIL.test(email) && verified !== email) setCodeFor(email);
-              else save(verified);
             }}
           />
           <EmailCodeSheet
             email={codeFor}
-            onClose={() => setCodeFor(null)}
-            onVerified={(address) => {
-              setVerified(address);
+            onClose={() => {
               setCodeFor(null);
-              save(address);
+              setEmail(profile.email);
+            }}
+            onDone={() => {
+              // No e-mail codes on the backend yet (S4-8, A-8).
+              setCodeFor(null);
+              setEmail(profile.email);
+              showToast(t("Soon available"));
             }}
           />
+          <Toast text={toast} bottom={140} fixed />
         </>
       }
     >
@@ -162,7 +208,7 @@ export default function PersonalInfoScreen() {
         {/* The first word at x 68: the row starts 12 before it, under the label. */}
         <div
           className="flex shrink-0 min-w-0"
-          style={{ marginLeft: 68 - 12 - 12 - 12 }}
+          style={{ marginInlineStart: 68 - 12 - 12 - 12 }}
         >
           {GENDERS.map((g) => {
             const on = g.id === gender;
@@ -178,7 +224,7 @@ export default function PersonalInfoScreen() {
                 // word: on a phone narrower than 430 px the field is narrower,
                 // and the three words must still fit in it. On a 430 px phone
                 // nothing shrinks, so every word is on the file's x.
-                className={`text-left whitespace-nowrap ${editing ? "cursor-pointer" : ""} ${on ? "font-medium" : "font-normal"}`}
+                className={`text-start whitespace-nowrap ${editing ? "cursor-pointer" : ""} ${on ? "font-medium" : "font-normal"}`}
                 style={{
                   width: g.slot,
                   padding: "6px 12px",
@@ -211,16 +257,17 @@ const CODE_SECONDS = 120;
  * at y 502 — the login's own boxes (RdbPinInputs), so the two flows cannot
  * drift apart. All 40 px in, the boxes 20.
  *
- * No email is sent. Any six digits verify the address.
+ * No e-mail is sent: the backend has no e-mail code yet. The six digits end
+ * in "Soon available" (S4-8, A-8); no code passes.
  */
 function EmailCodeSheet({
   email,
   onClose,
-  onVerified,
+  onDone,
 }: {
   email: string | null;
   onClose: () => void;
-  onVerified: (email: string) => void;
+  onDone: () => void;
 }) {
   const { t } = useDemoNav();
   const [pin, setPin] = useState("");
@@ -270,32 +317,32 @@ function EmailCodeSheet({
       <div
         className="flex items-center shrink-0"
         style={{
-          marginLeft: 40,
+          marginInlineStart: 40,
           marginTop: 366 - textBottom(354, 16),
           height: 15,
           fontSize: 12,
         }}
       >
-        <span className="font-medium" style={{ color: C.ink }}>
+        <bdi dir="ltr" className="font-medium" style={{ color: C.ink }}>
           {email}
-        </span>
+        </bdi>
         <button
           type="button"
           disabled={left > 0}
           onClick={() => setLeft(CODE_SECONDS)}
           className="font-normal"
-          style={{ marginLeft: 5, color: C.hint }}
+          style={{ marginInlineStart: 5, color: C.hint }}
         >
           {t("resend after")} -{" "}
           <span className="font-medium" style={{ color: C.blue }}>
             {clock}
           </span>
         </button>
-        <XdIcon name="otpHelp" style={{ marginLeft: 3.5 }} />
+        <XdIcon name="otpHelp" style={{ marginInlineStart: 3.5 }} />
       </div>
       <div
         className="flex items-center shrink-0"
-        style={{ marginLeft: 40, marginTop: 389 - (366 + 15), height: 14 }}
+        style={{ marginInlineStart: 40, marginTop: 389 - (366 + 15), height: 14 }}
       >
         <span
           className="font-normal"
@@ -307,7 +354,7 @@ function EmailCodeSheet({
         >
           {t("Your privacy is completely safe")}
         </span>
-        <XdIcon name="shield" style={{ marginLeft: 6 }} />
+        <XdIcon name="shield" style={{ marginInlineStart: 6 }} />
       </div>
       {/* The login's boxes are a fixed 390 px block (six 60 px boxes). The
           file centres it, 20 px from each edge, so it stays centred on the
@@ -315,7 +362,8 @@ function EmailCodeSheet({
       <motion.div
         className="shrink-0"
         style={{
-          marginLeft: fromCentre(20, DESIGN_W),
+          // The same value from either side: the block is centred.
+          marginInlineStart: fromCentre(20, DESIGN_W),
           marginTop: 502 - (389 + 14),
         }}
       >
@@ -330,7 +378,7 @@ function EmailCodeSheet({
           disabled={valid === "valid"}
           onComplete={() => {
             setValid("valid");
-            setTimeout(() => email && onVerified(email), 600);
+            setTimeout(onDone, 600);
           }}
         />
       </motion.div>

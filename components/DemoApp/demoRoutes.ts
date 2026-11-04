@@ -40,6 +40,8 @@ export const DEMO_SCREENS = [
   "settings/profile/address",
   "settings/profile/address/new",
   "settings/wallet",
+  // The Settings screen behind the profile's "Settings" row (Stage 4, S4-2).
+  "settings/preferences",
 ] as const;
 
 /** A screen with a fixed key. */

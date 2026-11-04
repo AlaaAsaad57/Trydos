@@ -2,7 +2,7 @@
 
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import React from "react";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoNav } from "../screenNav";
 import type { DemoScreen } from "../../DemoApp/demoRoutes";
 import { MenuRow, ScreenHeader, ScreenPage } from "../ui";
 import type { XdIconName } from "../../DemoApp/xdIcons";
