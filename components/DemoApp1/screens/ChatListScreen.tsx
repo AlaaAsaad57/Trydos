@@ -18,6 +18,8 @@ import {
   type Contact,
 } from "../chat/chatModel";
 import ArchivedSheet from "../chat/ArchivedSheet";
+import { RemindersSheet } from "../chat/ExtraSheets";
+import { translateFunction } from "utils/functions";
 import { useChat } from "../chat/chatContext";
 import PageEdge from "../chat/PageEdge";
 import { useDemoNav } from "../screenNav";
@@ -76,8 +78,11 @@ import { useHorizontalSwipe } from "../chat/useHorizontalSwipe";
  * call's state under it — see CallRowFace.
  */
 export default function ChatListScreen() {
-  const { t, navigate } = useDemoNav();
-  const { state, dispatch, newChat, addContact, notice, paging } = useChat();
+  const { t, navigate, locale } = useDemoNav();
+  const { state, dispatch, newChat, addContact, notice, paging, extras } = useChat();
+  /** The reminders sheet is up (the real chat only). */
+  const [showReminders, setShowReminders] = useState(false);
+  const reminders = extras?.reminders ?? [];
   const [tab, setTab] = useState<"chats" | "calls">("chats");
   const [query, setQuery] = useState("");
   /** The "New chat" sheet is up. */
@@ -268,6 +273,32 @@ export default function ChatListScreen() {
               </Txt>
             </motion.button>
           )}
+          {/* My reminders, under the archived row while there are any (D-36b,
+              no XD board): the same row, with the remind mark. */}
+          {reminders.length > 0 && !needle && (
+            <motion.button
+              key="reminders"
+              type="button"
+              data-pw="demo-chat-reminders-row"
+              layout
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 50, opacity: 1 }}
+              exit={{ height: 0, opacity: 0, transition: { duration: 0.22 } }}
+              transition={TRAVEL}
+              whileTap={{ scale: 0.985 }}
+              onClick={() => setShowReminders(true)}
+              className="flex items-center w-full shrink-0 overflow-hidden cursor-pointer text-start"
+              style={{ marginTop: 2, background: C.page }}
+            >
+              <XdIcon name="menuRemind" style={{ marginInlineStart: 12 + (66 - 25) / 2 }} />
+              <Txt size={14} weight="medium" ml={90 - (12 + (66 - 25) / 2 + 25)}>
+                {translateFunction("Reminders")}
+              </Txt>
+              <Txt size={14} color={C.grey} className="ms-auto" style={{ marginInlineEnd: 13 }}>
+                {String(reminders.length)}
+              </Txt>
+            </motion.button>
+          )}
           {rows.map((chat) => (
             <motion.div
               key={chat.id}
@@ -382,9 +413,25 @@ export default function ChatListScreen() {
           if (contact) startChat(contact);
           else setStarting(false);
         }}
+        onSync={extras?.syncContacts}
         onClose={() => setStarting(false)}
         t={t}
       />
+      {extras && (
+        <RemindersSheet
+          open={showReminders}
+          reminders={reminders}
+          locale={locale}
+          onOpen={(r) => {
+            setShowReminders(false);
+            void extras.openMessage(r.chat, r.message).then((ok) => {
+              if (ok) navigate("chat/conversation");
+            });
+          }}
+          onCancel={(r) => extras.cancelReminder(r)}
+          onClose={() => setShowReminders(false)}
+        />
+      )}
       <ArchivedSheet
         open={showArchived}
         chats={state.chats}

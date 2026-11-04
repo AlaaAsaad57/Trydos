@@ -47,6 +47,40 @@ export type ChatApi = {
   paging?: ChatPaging;
   /** Starts a real call (a video call when `video`); the `/demo` preview has none and opens its mock call. */
   call?: (chat: string, video: boolean) => void;
+  /** Old features with no XD board (D-36b), in the real chat only. */
+  extras?: ChatExtras;
+};
+
+/** One of my reminders, as the reminders sheet lists it. */
+export type ChatReminder = {
+  id: string;
+  /** The chat the message is in, when the backend says. */
+  chat: string | null;
+  message: string;
+  /** The message's words, or its kind ("Photo"). */
+  text: string;
+  /** Who sent the message. */
+  who: string;
+  /** When the reminder comes, in ms. */
+  at: number;
+};
+
+/** A message with a label, as the "Media & Files" sheet lists it. */
+export type TaggedLine = { id: string; text: string; time: string };
+
+export type ChatExtras = {
+  /** My reminders that have not come yet, soonest first. */
+  reminders: readonly ChatReminder[];
+  /** Opens the chat at a message (loading both first); false when the chat is nowhere. */
+  openMessage: (chat: string | null, message: string) => Promise<boolean>;
+  cancelReminder: (reminder: ChatReminder) => void;
+  /** The message the conversation should scroll to and flash, once it is loaded. */
+  jump: string | null;
+  setJump: (message: string | null) => void;
+  /** This chat's messages with a label, from the chat backend; null when that failed. */
+  tagged: (chat: string, label: string) => Promise<TaggedLine[] | null>;
+  /** Saves contacts picked from the phone; only where the browser can read them. */
+  syncContacts?: () => Promise<void>;
 };
 
 export type ChatPaging = {

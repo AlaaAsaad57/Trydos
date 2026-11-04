@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import { allCountries } from "country-telephone-data";
 import { phoneWithDialCode } from "components/Chat/contactPhone";
 import { useAppStore } from "store";
+import { translateFunction } from "utils/functions";
 import { getLocalizedCountryName } from "utils/countryData";
 import type { Contact } from "./chatModel";
 import { C, CTA, ROW, fill, lineBox, textTop } from "../demo1Layout";
@@ -41,6 +42,7 @@ export default function NewChatSheet({
   contacts,
   onPick,
   onAdd,
+  onSync,
   onClose,
   t,
 }: {
@@ -50,10 +52,16 @@ export default function NewChatSheet({
   onPick: (contact: string) => void;
   /** The form was saved: add the contact (full number, with its country code) and open the chat with them. */
   onAdd: (name: string, phone: string) => void;
+  /**
+   * The real chat only, where the browser can read the phone's contacts:
+   * "Get from your contacts" saves the picked ones (D-36b, no XD board).
+   */
+  onSync?: () => Promise<void>;
   onClose: () => void;
   t: (key: DemoKey) => string;
 }) {
   const [adding, setAdding] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [dial, setDial] = useState(DEFAULT_DIAL);
@@ -215,6 +223,26 @@ export default function NewChatSheet({
                   {t("New contact")}
                 </Txt>
               </Row>
+              {onSync && (
+                <Row
+                  testId="demo-new-chat-sync"
+                  onClick={() => {
+                    if (syncing) return;
+                    setSyncing(true);
+                    void onSync().finally(() => setSyncing(false));
+                  }}
+                >
+                  <span
+                    className="flex items-center justify-center shrink-0"
+                    style={{ marginLeft: 8, width: 44, height: 44, borderRadius: 15, background: C.purpleTint }}
+                  >
+                    <PlusIcon color={C.purple} size={22} />
+                  </span>
+                  <Txt size={14} weight="medium" color={C.purple} ml={12}>
+                    {translateFunction(syncing ? "Syncing..." : "Get from your contacts")}
+                  </Txt>
+                </Row>
+              )}
               {contacts.map((contact) => (
                 <Row
                   key={contact.id}

@@ -5,12 +5,14 @@ import { findChat } from "components/Chat/findChat";
 import { openChatFromList } from "components/Chat/openChatFromList";
 import chatService from "services/chat";
 import { useAppStore } from "store";
-import { GetArchivedChats, GetMyReminders } from "store/chat/actions";
+import { CancelMessageReminder, GetArchivedChats, GetMyReminders, GetTaggedMessages } from "store/chat/actions";
+import { openMessageInChat } from "components/Chat/openMessageInChat";
+import { canPickContacts, syncPhoneContacts } from "components/Chat/contactsSync";
 import { translateFunction } from "utils/functions";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { CHAT_EVENTS, trackPosthog } from "utils/posthogEvents";
-import { ChatContext, NOTICE_MS, type ChatApi, type ChatPaging } from "./chatContext";
+import { ChatContext, NOTICE_MS, type ChatApi, type ChatExtras, type ChatPaging } from "./chatContext";
 import { findChannel, runChatAction } from "./chatActions";
 import { CHAT_ID_PARAM, chatIdFrom, isChatScreen, isOneChatScreen } from "./chatPaths";
 import {
@@ -24,7 +26,7 @@ import {
   sendVideoFile,
   sendVoiceNote,
 } from "./chatSend";
-import { toChatState, type MapWords } from "./chatMapper";
+import { toChatState, toMessages, wordsOf, type MapWords } from "./chatMapper";
 import { loadMoreChats, loadOlderMessages, type PageResult } from "./chatPaging";
 import { startCall } from "./chatCalls";
 import type { ChatAction } from "./chatModel";
@@ -73,6 +75,8 @@ export function ChatDataProvider({
   const open = useAppStore((s) => s.activeChat);
   const book = useAppStore((s) => s.contacts);
   const calls = useAppStore((s) => s.calls);
+  const reminders = useAppStore((s) => s.reminders);
+  const jump = useAppStore((s) => s.jumpToMessageId);
   const userChat = useAppStore((s) => s.userChat);
   const chatsLoading = useAppStore((s) => s.chat_loading);
   const liveCallId = useAppStore((s) => s.MessageActiveCall);
@@ -285,6 +289,48 @@ export function ChatDataProvider({
     },
   };
 
+  /** A reminder's message, when it is not text: its kind, as a row says it. */
+  const KIND_WORDS: Record<string, string> = {
+    ImageMessage: words.photo,
+    VideoMessage: words.video,
+    VoiceMessage: words.voice,
+    FileMessage: words.file,
+    ShareProduct: words.product,
+  };
+  const extras: ChatExtras = {
+    reminders: (reminders ?? [])
+      .map((r) => ({
+        id: String(r.id),
+        chat: r.message?.channel_id != null ? String(r.message.channel_id) : null,
+        message: String(r.message_id),
+        text: r.message?.content || KIND_WORDS[r.message?.message_type ?? ""] || "",
+        who: r.message?.sender_user?.name ?? "",
+        at: new Date(r.remind_at).getTime(),
+      }))
+      .sort((a, b) => a.at - b.at),
+    openMessage: async (chat, message) => {
+      // Loads the chat and the messages up to this one, and marks it for the jump.
+      const ok = await openMessageInChat(chat, message);
+      if (ok && chat) {
+        setActive(chat);
+        setPending(null);
+      }
+      return ok;
+    },
+    cancelReminder: (r) => void CancelMessageReminder(r.chat ?? "", r.message, r.id),
+    jump,
+    setJump: (message) => useAppStore.getState().setJumpToMessage(message),
+    ...(canPickContacts() ? { syncContacts: syncPhoneContacts } : {}),
+    tagged: async (chat, label) => {
+      const found = await GetTaggedMessages(chat, label);
+      if (!found) return null;
+      return toMessages(found, ctx).flatMap((m) => {
+        const raw = found.find((f) => String(f.id) === m.id);
+        return m.kind === "day" || !raw ? [] : [{ id: m.id, text: wordsOf(raw, words), time: m.time }];
+      });
+    },
+  };
+
   const value: ChatApi = {
     state,
     dispatch,
@@ -310,6 +356,7 @@ export function ChatDataProvider({
     setSearch,
     paging,
     call: (chat, video) => void startCall(chat, video),
+    extras,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

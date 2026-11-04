@@ -165,6 +165,7 @@ function Conversation() {
     setSearch,
     paging,
     call,
+    extras,
   } = useChat();
   // ConversationScreen draws this only when there is a chat.
   const chat = chatOnScreen(state)!;
@@ -357,6 +358,15 @@ function Conversation() {
    * Only the chat's own body scrolls, never the page under it. Nothing
    * happens when the quoted message is gone.
    */
+  // A message picked elsewhere (a reminder, the "Media & Files" sheet):
+  // scroll to it once it is drawn, then forget it.
+  const jumpTarget = extras?.jump ?? null;
+  useEffect(() => {
+    if (!jumpTarget || !messages.some((m) => m.id === jumpTarget)) return;
+    jumpTo(jumpTarget);
+    extras?.setJump(null);
+  }, [jumpTarget, messages.length]);
+
   const jumpTo = (id: string) => {
     const el = body.current;
     const row = el?.querySelector<HTMLElement>(`[data-pw="demo-chat-message-${id}"]`);

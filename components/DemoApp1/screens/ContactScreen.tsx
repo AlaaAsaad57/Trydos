@@ -1,7 +1,7 @@
 "use client";
 
 import type { DemoKey } from "../../DemoApp/demoKeys";
-import React from "react";
+import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
@@ -9,7 +9,10 @@ import { CHAT } from "../chat/chatTheme";
 import { chatOnScreen, contactOf } from "../chat/chatModel";
 import ChatWaiting from "../chat/ChatWaiting";
 import { useChat } from "../chat/chatContext";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoNav } from "../screenNav";
+import { MediaSheet } from "../chat/ExtraSheets";
+import Toast, { useToast } from "../chat/Toast";
+import { translateFunction } from "utils/functions";
 import {
   C,
   ROW,
@@ -57,7 +60,11 @@ export default function ContactScreen() {
 
 function Contact() {
   const { t, navigate, back } = useDemoNav();
-  const { state, dispatch, setSearch, call } = useChat();
+  const { state, dispatch, setSearch, call, extras } = useChat();
+  const [media, setMedia] = useState(false);
+  const [toast, showToast] = useToast();
+  /** No chat backend for it yet (A-8, D-38). */
+  const soon = () => showToast(translateFunction("Soon available"));
   // ContactScreen draws this only when there is a chat.
   const chat = chatOnScreen(state)!;
   const contact = contactOf(state, chat);
@@ -139,9 +146,9 @@ function Contact() {
         />
       </div>
 
-      <Row icon="rowMedia" label="Media & Files" mt={458 - (labelTop + lineBox(13))} t={t} />
-      <Row icon="rowGallery" label="Save To Gallery" value="ALWAYS" mt={2} t={t} />
-      <Row icon="rowGallery" label="Notification" value="ALWAYS" mt={2} t={t} />
+      <Row icon="rowMedia" label="Media & Files" mt={458 - (labelTop + lineBox(13))} onClick={() => setMedia(true)} t={t} />
+      <Row icon="rowGallery" label="Save To Gallery" value="ALWAYS" mt={2} onClick={soon} t={t} />
+      <Row icon="rowGallery" label="Notification" value="ALWAYS" mt={2} onClick={soon} t={t} />
 
       {/* The file's two SF Pro Rounded 12 lines, 17 px apart, ending 22 px
           before the right edge: the switch takes the first line, the second
@@ -173,6 +180,11 @@ function Contact() {
           ml={61}
           width={125 - 61}
           iconLeft={79 - 61}
+          onClick={() => {
+            if (!chat) return;
+            dispatch({ type: "deleteChat", chat: chat.id });
+            navigate("chat", -1);
+          }}
           t={t}
         />
         {/* Block in the file's place; UnBlock (the grey mark) takes the same
@@ -198,9 +210,25 @@ function Contact() {
           label="Share"
           testId="demo-contact-share"
           style={{ marginLeft: 339 - 268, marginTop: sfTop(814, 12, 17) - 768 }}
+          onClick={soon}
           t={t}
         />
       </div>
+      <MediaSheet
+        open={media}
+        messages={chat.messages}
+        categories={state.categories}
+        tagged={extras && ((label) => extras.tagged(chat.id, label))}
+        onPick={(id) => {
+          // The conversation scrolls to the message and flashes it.
+          setMedia(false);
+          extras?.setJump(id);
+          back();
+        }}
+        onClose={() => setMedia(false)}
+        t={t}
+      />
+      <Toast text={toast} bottom={40} fixed />
       <div className="shrink-0" style={{ height: 60 }} />
     </ScreenPage>
   );
@@ -248,17 +276,20 @@ function Row({
   label,
   value,
   mt,
+  onClick,
   t,
 }: {
   icon: XdIconName;
   label: DemoKey;
   value?: DemoKey;
   mt: number;
+  onClick?: () => void;
   t: (key: DemoKey) => string;
 }) {
   return (
     <motion.button
       type="button"
+      onClick={onClick}
       data-pw={`demo-contact-row-${label.toLowerCase().replace(/[^a-z]+/g, "-")}`}
       whileTap={{ scale: 0.985 }}
       className="flex items-start shrink-0 cursor-pointer text-left"
