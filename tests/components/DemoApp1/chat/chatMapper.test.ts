@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   statusOf,
+  toBookContact,
+  toChatState,
   toContact,
   toMessage,
   toMessages,
@@ -447,5 +449,87 @@ describe("chat mapper — the contact", () => {
       ctx,
     );
     expect(contact.photo, "a contact with no photo got one").toBeUndefined();
+  });
+});
+
+describe("chat mapper — the whole state", () => {
+  const local = { active: null, viewing: null };
+
+  it("the open chat wins over its copy in the list, because it holds the older pages", () => {
+    const listCopy = channel({ id: "1", messages: [msg({ text: "newest only" })] });
+    const open = channel({ id: "1", messages: [msg({ text: "older page", created_at: "2026-11-04T08:00:00" }), msg({ text: "newest only" })] });
+    const state = toChatState({ chats: [listCopy], archived: [], open, book: [] }, ctx, local);
+    const texts = state.chats[0].messages.flatMap((m) => (m.kind === "text" ? [m.text] : []));
+    expect(texts, "the open chat's older page is missing from the conversation").toEqual(["older page", "newest only"]);
+  });
+
+  it("keeps the main and the archived chats, each once", () => {
+    const state = toChatState(
+      { chats: [channel({ id: "1" }), channel({ id: "2" })], archived: [channel({ id: "3", is_archived: 1 }), channel({ id: "2" })], open: null, book: [] },
+      ctx,
+      local,
+    );
+    expect(state.chats.map((c) => c.id), "a chat is missing or listed twice").toEqual(["1", "2", "3"]);
+    expect(state.chats.find((c) => c.id === "3")?.archived, "the archived chat is not archived").toBe(true);
+  });
+
+  it("an open new chat that is in no list yet is there, so its conversation can be drawn", () => {
+    const state = toChatState({ chats: [channel({ id: "1" })], archived: [], open: channel({ id: "ch-9" }), book: [] }, ctx, local);
+    expect(state.chats.map((c) => c.id), "the open new chat ch-9 is missing from the state").toEqual(["1", "ch-9"]);
+  });
+
+  it("contacts are the chats' people (with the chat's name), then the book's Trydos users, never me", () => {
+    const state = toChatState(
+      {
+        chats: [channel({ id: "1", channel_name: "Shop Owner" })],
+        archived: [],
+        open: null,
+        book: [
+          { id: 1, name: "Saved Peer", contact_user: { id: PEER, name: "Peer Name" } },
+          { id: 2, name: "Friend", mobile_phone: "+3000", contact_user: { id: 11, name: "", mobile_phone: "+3000" } },
+          { id: 3, name: "Not on Trydos", mobile_phone: "+4000", contact_user: null },
+          { id: 4, name: "Me", contact_user: { id: ME, name: "Me" } },
+        ],
+      },
+      ctx,
+      local,
+    );
+    const contacts = state.contacts.map((c) => `${c.id}:${c.name}`);
+    expect(contacts, "the contacts are not the chat's person (by the chat's name) then the book's other Trydos user").toEqual([
+      `${PEER}:Shop Owner`,
+      "11:Friend",
+    ]);
+  });
+
+  it("the active row is the one opened last, else the top of the list", () => {
+    const chats = [channel({ id: "1", updated_at: "2026-11-01T09:00:00" }), channel({ id: "2", updated_at: "2026-11-03T09:00:00" })];
+    expect(toChatState({ chats, archived: [], open: null, book: [] }, ctx, local).active, "with none opened, the top row is not active").toBe("2");
+    expect(
+      toChatState({ chats, archived: [], open: null, book: [] }, ctx, { active: "1", viewing: "1" }).active,
+      "the chat opened last is not active",
+    ).toBe("1");
+  });
+
+  it("offers the design's 5 labels", () => {
+    const state = toChatState({ chats: [], archived: [], open: null, book: [] }, ctx, local);
+    expect(state.categories.map((c) => c.id), "the labels are not the design's 5").toEqual([
+      "orders",
+      "payment",
+      "shipping",
+      "question",
+      "important",
+    ]);
+  });
+});
+
+describe("chat mapper — a phone-book contact", () => {
+  it("is the Trydos user, by their name, else the saved name, else the phone", () => {
+    expect(toBookContact({ name: "Saved", contact_user: { id: 5, name: "Real" } })?.name, "the user's own name is not used").toBe("Real");
+    expect(toBookContact({ name: "Saved", contact_user: { id: 5, name: "" } })?.name, "the saved name is not the fallback").toBe("Saved");
+    expect(toBookContact({ name: null, mobile_phone: "+5", contact_user: { id: 5 } })?.name, "the phone is not the last fallback").toBe("+5");
+  });
+
+  it("is nobody when the person is not on Trydos", () => {
+    expect(toBookContact({ name: "Outside", mobile_phone: "+6" }), "a non-user became a chat contact").toBeNull();
   });
 });

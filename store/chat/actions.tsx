@@ -827,3 +827,36 @@ export async function GetTaggedMessages(
     return null;
   }
 }
+
+/**
+ * Block or unblock the other person of a chat, then show it in the store.
+ * The same calls as the old contact panel (components/Chat/components/ChatInfo.tsx):
+ * a failure is logged and shows no message of its own. Answers `true` when
+ * the chat backend agreed.
+ */
+export async function SetUserBlocked(
+  channelId: string | number,
+  userId: string | number,
+  blocked: boolean,
+): Promise<boolean> {
+  try {
+    const response = await fetchData({
+      url: `/api/v1/users/${blocked ? "block" : "unblock"}/${userId}`,
+      server: "chat",
+      method: "POST",
+      reqTitle: blocked ? REQUESTS_DATA.BLOCK_USER : REQUESTS_DATA.UNBLOCK_USER,
+      body: "",
+    });
+    if (response?.success === false) {
+      throw new Error(response?.message || `${blocked ? "Block" : "Unblock"} request failed`);
+    }
+    useAppStore.getState().updateChannelBlockStatus({ channelId, userId, isBlocked: blocked });
+    return true;
+  } catch (error) {
+    LogError({
+      scenario: `Error in SetUserBlocked (${blocked ? "block" : "unblock"}) in chat/actions`,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}

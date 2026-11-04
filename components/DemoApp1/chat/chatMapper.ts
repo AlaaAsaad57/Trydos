@@ -7,8 +7,10 @@ import {
   clockNow,
   dayPill,
   initialsOf,
+  orderedChats,
   previewOf,
   type ChatMessage,
+  type ChatState,
   type ChatThread,
   type Contact,
   type DeliveryMark,
@@ -326,5 +328,91 @@ export function toThread(chat: Channel, ctx: MapContext): ChatThread {
     time: last ? (ctx.rowTime ?? showDate)(last.created_at) : "",
     lastAt: last ? timeOf(last.created_at) : timeOf(chat.updated_at) || 0,
     messages: toMessages(sorted, ctx),
+  };
+}
+
+/** A contact from `GET /api/v1/users/my_contacts`, as the store keeps it. */
+export type BookContact = {
+  id?: number | string;
+  name?: string | null;
+  mobile_phone?: string | null;
+  contact_user?: {
+    id: number | string;
+    name?: string | null;
+    mobile_phone?: string | null;
+    photo_path?: string | null;
+  } | null;
+};
+
+/**
+ * A phone-book contact as the screens' contact, or null when the person is
+ * not a Trydos user (no `contact_user`): there is no one to chat with.
+ */
+export function toBookContact(c: BookContact): Contact | null {
+  const user = c.contact_user;
+  if (!user?.id) return null;
+  const name = user.name || c.name || c.mobile_phone || "";
+  return {
+    id: String(user.id),
+    name,
+    phone: user.mobile_phone || c.mobile_phone || "",
+    ...(user.photo_path ? { photo: GetImageUrl(user.photo_path) } : {}),
+    initials: initialsOf(name),
+  };
+}
+
+/** What the chat store holds that the screens need. */
+export type ChatSource = {
+  /** The main list (`data`). */
+  chats: Channel[];
+  /** The archived list (`archivedChats`). */
+  archived: Channel[];
+  /** The open chat, with the message pages loaded so far (`activeChat`). */
+  open: Channel | null;
+  /** The phone-book contacts (`contacts`). */
+  book: BookContact[];
+};
+
+/**
+ * The screens' whole chat state from the store. The open chat wins over its
+ * copy in the lists, because it holds the older message pages, and a new
+ * chat that is in no list yet is there too. Contacts are
+ * the people of the chats first (a chat's name wins), then the phone-book
+ * contacts who are Trydos users, never me.
+ */
+export function toChatState(
+  source: ChatSource,
+  ctx: MapContext,
+  local: { active: string | null; viewing: string | null },
+): ChatState {
+  const byId = new Map<string, Channel>();
+  for (const chat of [...source.chats, ...source.archived]) {
+    if (chat?.id != null && !byId.has(String(chat.id))) byId.set(String(chat.id), chat);
+  }
+  // The open chat is always in: a new chat (`ch-<user id>`) lives only there
+  // until its first message is sent.
+  if (source.open?.id != null) byId.set(String(source.open.id), source.open);
+  const channels = [...byId.values()];
+  const chats = channels.map((chat) => toThread(chat, ctx));
+
+  const contacts = new Map<string, Contact>();
+  for (const chat of channels) {
+    const contact = toContact(chat, ctx);
+    if (!contacts.has(contact.id)) contacts.set(contact.id, contact);
+  }
+  for (const entry of source.book) {
+    const contact = toBookContact(entry);
+    if (contact && contact.id !== String(ctx.myId) && !contacts.has(contact.id)) {
+      contacts.set(contact.id, contact);
+    }
+  }
+
+  return {
+    chats,
+    contacts: [...contacts.values()],
+    categories: CHAT_LABELS.map((c) => ({ ...c })),
+    active: local.active ?? orderedChats(chats)[0]?.id ?? "",
+    viewing: local.viewing,
+    tick: 0,
   };
 }
