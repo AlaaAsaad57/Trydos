@@ -5,6 +5,22 @@ import { GetImageUrl } from "utils/tinyUtils";
 import { translateFunction } from "utils/functions";
 import { useState } from "react";
 import { LogError } from "utils/functions";
+import { isValidPhoneNumber } from "libphonenumber-js";
+import { canonicalPhone, phoneRegion } from "components/Chat/contactPhone";
+
+// The invite's Play Store line, from NEXT_PUBLIC_PLAY_STORE_URL. Without the
+// env value the invite has no store line, not a dead link.
+const getTheApp = () => {
+  const url = process.env.NEXT_PUBLIC_PLAY_STORE_URL;
+  return url
+    ? ` \n ${translateFunction("Get the app: {link}").replace("{link}", () => url)}`
+    : "";
+};
+
+// The invite in the app language. The link and the name go in after the
+// translation, as functions, so a "$" in a name is kept as it is.
+const inviteText = () =>
+  `${translateFunction("Hey! Join us at {link}").replace("{link}", () => window.location.origin)}${getTheApp()}`;
 
 function SearchResult({
   key,
@@ -14,8 +30,18 @@ function SearchResult({
   handleClickChat,
   item,
 }) {
-  const { setMain, language } = useAppStore();
+  const { setMain, language, userChat, user, country } = useAppStore();
   const [showInviteModal, setShowInviteModal] = useState(false);
+
+  // The contact's full number, for the Telegram chat link. A phone book keeps
+  // local numbers ("0937288307"), so read them in the region of the shopper's
+  // own phone. Empty when the number is not a real one.
+  const fullPhone = canonicalPhone(
+    item?.mobile_phone,
+    phoneRegion(userChat?.mobile_phone ?? user?.phone, country),
+  );
+  const telegramPhone =
+    fullPhone && isValidPhoneNumber(`+${fullPhone}`) ? fullPhone : "";
 
   const handleClick = () => {
     if (isUser) {
@@ -59,13 +85,16 @@ function SearchResult({
   };
 
   const handleInviteClick = async () => {
-    const text = `Hey! Join us at ${window.location.origin} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
+    const text = inviteText();
 
     // On mobile, use native share API
     if (isMobileDevice() && navigator.share) {
       try {
         await navigator.share({
-          title: `Join ${SenderName} on Trydos`,
+          title: translateFunction("Join {name} on Trydos").replace(
+            "{name}",
+            () => SenderName,
+          ),
           text: text,
         });
       } catch (err) {
@@ -78,7 +107,7 @@ function SearchResult({
   };
 
   const handleCopy = async () => {
-    const text = `Hey! Join us at ${window.location.origin} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
+    const text = inviteText();
     try {
       await navigator.clipboard.writeText(text);
       // Optional: Show a success message
@@ -90,7 +119,7 @@ function SearchResult({
   };
 
   const handleWhatsApp = () => {
-    const text = `Hey! Join us at ${window.location.origin} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
+    const text = inviteText();
     const encodedText = encodeURIComponent(text);
     window.open(
       `https://wa.me/${item.mobile_phone}?text=${encodedText}`,
@@ -99,11 +128,28 @@ function SearchResult({
     setShowInviteModal(false);
   };
 
-  const handleTelegram = () => {
-    const text = `Hey! ${SenderName} Join us at ${window.location.origin} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
-    const encodedText = encodeURIComponent(text);
+  const telegramText = () =>
+    `${translateFunction("Hey {name}! Join us at {link}")
+      .replace("{name}", () => SenderName)
+      .replace("{link}", () => window.location.origin)}${getTheApp()}`;
+
+  // Telegram's share page, for a contact with no real number: the shopper
+  // picks the chat and the text is filled in.
+  const handleTelegramShare = () => {
     window.open(
-      `https://t.me/share/url?url=${window.location.origin}&text=${encodedText}`,
+      `https://t.me/share/url?url=${encodeURIComponent(window.location.origin)}&text=${encodeURIComponent(telegramText())}`,
+      "_blank",
+    );
+    setShowInviteModal(false);
+  };
+
+  // Opens the contact's own Telegram chat with the invite in the text box:
+  // Telegram fills the box from the link's `text` (core.telegram.org/api/links,
+  // "Phone number links"). Without a real number, the share page is used.
+  const handleTelegram = () => {
+    if (!telegramPhone) return handleTelegramShare();
+    window.open(
+      `https://t.me/+${telegramPhone}?text=${encodeURIComponent(telegramText())}`,
       "_blank",
     );
     setShowInviteModal(false);

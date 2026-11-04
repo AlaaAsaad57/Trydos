@@ -950,6 +950,8 @@ export function validate(
   if (!pricesLocked) {
     if (form.unit_price === "" || isNaN(up) || up < 0)
       e.unit_price = tx("Enter a valid unit price");
+    else if (up === 0)
+      e.unit_price = tx("Unit price must be greater than 0");
 
     if (form.discount_price !== "") {
       if (isNaN(dp) || dp < 0) {
@@ -1039,58 +1041,66 @@ export function validate(
   const activeCombos = combos(form);
   const skuMap = new Map<string, string[]>();
 
+  // Every row is checked, so every bad cell is marked. The table-level message
+  // keeps the first problem found, in row order, as before.
+  const rowError = (message: string) => {
+    if (!e.variations) e.variations = message;
+  };
+  // A money problem marks its own cell(s) as `variation_<field>_<comboKey>`,
+  // the same shape as `variation_sku_<comboKey>`.
+  const cellError = (key: string, fields: (keyof VariantRow)[], message: string) => {
+    for (const f of fields) e[`variation_${f}_${key}`] = message;
+    rowError(message);
+  };
+
   for (const c of activeCombos) {
     const r = form.variations[c.key];
     if (!r || r.qty === "" || isNaN(num(r.qty))) {
-      e.variations = tx("Every variant needs a quantity");
-      break;
+      rowError(tx("Every variant needs a quantity"));
+      if (!r) continue;
+    } else if (num(r.qty) < 0) {
+      rowError(tx("Variant quantity cannot be negative"));
     }
-    if (num(r.qty) < 0) {
-      e.variations = tx("Variant quantity cannot be negative");
-      break;
-    }
+
+    // At most one money problem per row, in the same order as before.
+    const rowPrice = r.price !== "" ? r.price : form.unit_price;
     if (r.price !== "" && (isNaN(num(r.price)) || num(r.price) < 0)) {
-      e.variations = tx("Variant price cannot be negative");
-      break;
+      cellError(c.key, ["price"], tx("Variant price cannot be negative"));
+    } else if (!pricesLocked && r.price !== "" && num(r.price) === 0) {
+      // A product is never sold for free. An empty row price is not checked here:
+      // it falls back to the product unit price, which has its own "> 0" rule.
+      cellError(c.key, ["price"], tx("Variant price must be greater than 0"));
+    } else if (r.discount !== "" && (isNaN(num(r.discount)) || num(r.discount) < 0)) {
+      cellError(c.key, ["discount"], tx("Variant discount price cannot be negative"));
+    } else if (!pricesLocked && r.price !== "" && r.discount !== "" && num(r.price) <= num(r.discount)) {
+      cellError(c.key, ["price", "discount"], tx("Unit price must be greater than discount price"));
+    } else if (r.luck !== "" && (isNaN(num(r.luck)) || num(r.luck) < 0)) {
+      cellError(c.key, ["luck"], tx("Variant luck price cannot be negative"));
+    } else if (!pricesLocked && r.luck !== "" && r.discount !== "" && num(r.luck) > num(r.discount)) {
+      // Same rule as the product-level luck price, applied to the row the
+      // shopper actually buys.
+      cellError(c.key, ["luck"], tx("Variant luck price cannot be greater than discount price"));
+    } else if (
+      // An empty row price is sent as the product unit price (buildUpdateFormData),
+      // so that is what it is compared with. An empty row discount is sent as "0"
+      // (no discount), so the product discount is not used as a stand-in here.
+      !pricesLocked &&
+      r.luck !== "" &&
+      r.discount === "" &&
+      rowPrice !== "" &&
+      !isNaN(num(rowPrice)) &&
+      num(r.luck) > num(rowPrice)
+    ) {
+      cellError(c.key, ["luck"], tx("Variant luck price cannot be greater than unit price"));
     }
-    if (r.discount !== "" && (isNaN(num(r.discount)) || num(r.discount) < 0)) {
-      e.variations = tx("Variant discount price cannot be negative");
-      break;
-    }
-    if (!pricesLocked && r.price !== "" && r.discount !== "" && !isNaN(num(r.price)) && !isNaN(num(r.discount))) {
-      if (num(r.price) <= num(r.discount)) {
-        e.variations = tx("Unit price must be greater than discount price");
-        break;
-      }
-    }
-    if (r.luck !== "" && (isNaN(num(r.luck)) || num(r.luck) < 0)) {
-      e.variations = tx("Variant luck price cannot be negative");
-      break;
-    }
-    // Same rule as the product-level luck price, applied to the row the shopper
-    // actually buys. An empty row price is sent as the product unit price
-    // (buildUpdateFormData), so that is what it is compared with; an empty row
-    // discount is sent as "0" — no discount — so the product discount is not
-    // used as a stand-in here.
-    if (!pricesLocked && r.luck !== "" && !isNaN(num(r.luck))) {
-      const rowPrice = r.price !== "" ? r.price : form.unit_price;
-      if (r.discount !== "" && !isNaN(num(r.discount)) && num(r.luck) > num(r.discount)) {
-        e.variations = tx("Variant luck price cannot be greater than discount price");
-        break;
-      }
-      if (r.discount === "" && rowPrice !== "" && !isNaN(num(rowPrice)) && num(r.luck) > num(rowPrice)) {
-        e.variations = tx("Variant luck price cannot be greater than unit price");
-        break;
-      }
-    }
+
     if (!r.location_id) {
-      e.variations = tx("Every variant needs a location");
-      break;
+      rowError(tx("Every variant needs a location"));
     }
     const cleanSku = (r.sku || "").trim();
     if (!cleanSku) {
-      e.variations = tx("Every variant needs an SKU");
-      break;
+      rowError(tx("Every variant needs an SKU"));
+      continue;
     }
     const keyLower = cleanSku.toLowerCase();
     if (!skuMap.has(keyLower)) {

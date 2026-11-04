@@ -1,17 +1,17 @@
-// The incoming-call bar must not ring for a muted chat.
+// The incoming-call bar rings for every chat, muted or not.
+//
+// Mute in a chat silences new-message notifications only (the toast in
+// utils/NotificationHandler.ts and the push in public/firebase-messaging-sw.js).
+// A call is not a message: the person calling is waiting now, so the ring must
+// play even when the chat is muted.
 //
 // The bar is the only thing in the app that plays a sound: it renders
 // `<audio loop autoPlay src="/default.mp3">`, which starts ringing the moment
 // the element is on the page. There is no play/pause switch to check — the
 // element being there IS the ring. So the test asks whether the element exists.
 //
-// Mute is per member. The bar already holds the whole chat in
-// `callerChannel`, so it can read the signed-in user's own `mute` row without
-// any extra data from the push. See store/chat/reducer.ts -> setIncomingCall.
-//
-// The bar itself still has to appear. A muted chat is silent, not blocked: the
-// caller's name must still be on screen so the user can answer. Each test
-// checks that too, so "no ring" can never be satisfied by rendering nothing.
+// Each test also checks that the caller's name is on screen, so "rings" can
+// never be satisfied by a bar that did not render at all.
 import { describe, expect, it } from "vitest";
 import React from "react";
 
@@ -53,7 +53,7 @@ async function renderIncomingCall(mute: 0 | 1) {
 }
 
 describe("the incoming call bar and a muted chat", () => {
-  it("plays no ring when the chat is muted", async () => {
+  it("still plays the ring when the chat is muted", async () => {
     const { container } = await renderIncomingCall(1);
 
     expect(
@@ -62,11 +62,11 @@ describe("the incoming call bar and a muted chat", () => {
     ).toBeInTheDocument();
     expect(
       container.querySelector("audio"),
-      `the chat is muted for user ${ME} yet the ringing audio element is on the page, so /default.mp3 plays on loop`,
-    ).toBeNull();
+      `the chat is muted for user ${ME} and the call is silent, but mute must silence messages only, never a call`,
+    ).not.toBeNull();
   });
 
-  it("still plays the ring when the chat is not muted", async () => {
+  it("plays the ring when the chat is not muted", async () => {
     const { container } = await renderIncomingCall(0);
 
     expect(
@@ -75,7 +75,7 @@ describe("the incoming call bar and a muted chat", () => {
     ).toBeInTheDocument();
     expect(
       container.querySelector("audio"),
-      "an unmuted chat has no ringing audio element, so the mute check is silencing every call",
+      "an unmuted chat has no ringing audio element, so no call rings at all",
     ).not.toBeNull();
   });
 });

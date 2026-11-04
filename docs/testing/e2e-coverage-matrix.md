@@ -276,7 +276,7 @@ Scope: the nav search overlay (typing, autocomplete, history, popular words, ima
 | SRCH-x18 | Popular searches row from `/api/products/popular-search` (top 10) | ❌ | — | Unit only: SearchTrending.test.tsx, popular-search/route.test.ts, services/search.test.ts |
 | SRCH-x19 | Tap a popular word to fill the box; full list with counts; its "Clear All" empties the word | ❌ | — | Unit only: SearchTrending.test.tsx |
 | SRCH-x20 | Popular-search failure (500 / ES down): the overlay still opens, the error is logged | ❌ | — | Unit only: SearchIcon.test.tsx, popular-search/route.test.ts |
-| SRCH-x21 | The search word is logged (`logSearchTerm`) only when it found products | ❌ | — | Unit only: tests/serverRequests/Search.test.ts |
+| SRCH-x21 | The search word is logged (`logSearchTerm`), even when it found no products | ❌ | — | Unit only: tests/serverRequests/Search.test.ts |
 | SRCH-x22 | Enter submits to `/filters?search=<word>`, with the chosen chips in the path | ❌ | — | Unit only: SearchIcon.test.tsx. The app uses `?search=`, not `?query=`. |
 | SRCH-x23 | "Search" button with the "Total Products" count opens results and closes the overlay | ❌ | — | Unit only: SearchIcon.test.tsx |
 | SRCH-x24 | Search button shows a spinner while loading | ❌ | — | Unit only: SearchIcon.test.tsx |
@@ -1147,7 +1147,7 @@ Shopper-to-shopper chat (the QA seller acts as Shopper B): opening it, the list,
 | CHAT-x23 | Calls tab (call log) | ❌ | — | unit only: tests/components/Chat/CallList.test.tsx |
 | CHAT-x24 | Stories tab in the chat (paging, "No more stories") | ❌ | — | unit only: tests/components/Chat/pages/StoriesList.test.tsx |
 | CHAT-x25 | Pin and unpin a chat from the row | ✅ | chat.live.spec.ts › CHAT-11 | Saved, and still there after a reload. |
-| CHAT-x26 | A fourth pin is refused (3-pin limit) | ⚠️ | chat.scripted.spec.ts › SCRIPT-37 | Strict `test.fail`, bug CHAT-APP-2. Faked only. |
+| CHAT-x26 | A fourth pin is refused (3-pin limit) | ✅ | chat.scripted.spec.ts › SCRIPT-37 | CHAT-APP-2 fixed 2026-10-29; marker removed. Faked only. |
 | CHAT-x27 | Mute and unmute a chat | ✅ | chat.live.spec.ts › CHAT-12 | Checks the backend flag after a reload. The row's mute icon is not checked. |
 | CHAT-x28 | A muted chat raises no notification | ❌ | — | unit only: tests/utils/chatMuteNotifications.test.ts |
 | CHAT-x29 | Mark a chat unread, then read | ✅ | chat.live.spec.ts › CHAT-13 | |

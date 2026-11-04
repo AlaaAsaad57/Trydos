@@ -20,6 +20,8 @@ import {
   MotionConfig,
   useIsPresent,
   usePresenceData,
+  useReducedMotion,
+  type Variants,
 } from "framer-motion";
 import { DemoDataProvider, useDemoData } from "../DemoApp/DemoData";
 import { DemoChatProvider } from "../DemoApp/demoChatState";
@@ -28,6 +30,9 @@ import {
   direction,
   hrefFor,
   isTabRoot,
+  isProductScreen,
+  isStoreScreen,
+  opensFromCard,
   parentOf,
   sameRoute,
   screenFromUrl,
@@ -40,7 +45,10 @@ import {
   EDGE_ANCHOR,
   PAGE_MAX,
   SCREEN_TRANSITION,
+  STORE_GROW,
+  STORE_SHRINK,
   columnBox,
+  sliderMove,
 } from "./demo1Layout";
 import DemoKeyboard from "./keyboard/DemoKeyboard";
 import { usePageDir } from "./rtl";
@@ -66,11 +74,65 @@ import { usePageDir } from "./rtl";
  * out where it was: it is taken out of the document (`fixed`, the size of the
  * screen) and keeps the scroll it had, so nothing jumps while it leaves. Each
  * screen's scroll is kept, so "back" opens the last one where it was left.
+ *
+ * A page opened from a card: the card grows into the page
+ * --------------------------------------------------------
+ * (A store's page used to open this way from Home; it now slides — see
+ * "Home, a store's page and a product's page" below. The rest of this part
+ * names it "store", and holds for a product's page from its card.)
+ *
+ * A page opened from a card does not slide. The tapped card grows
+ * into the store's page, and "back" shrinks the page into the same card.
+ * This is Material Design's "container transform", the motion it gives to a
+ * card that opens its own page; shop apps (the App Store's cards, Farfetch,
+ * Zara) open a product or a store the same way. The eye follows the card it
+ * tapped, so the new page needs no explaining, and Home never moves.
+ *
+ *  - The page is cut to the card's box (a `clip-path`) and the cut opens to
+ *    the whole screen. Only the clip and the opacity animate, so the browser
+ *    does not lay out the page again on each frame.
+ *  - The new page fades in over the first part of the move, so the card's own
+ *    picture under it turns into the page instead of jumping.
+ *  - Home stays where it was under the page, and goes away after it is covered.
+ *  - With "reduce motion" on, the page only fades in and out.
+ *  - Opened any other way (a link, the browser's forward), the page slides in
+ *    like any other screen, because there is no card to grow from.
+ *
+ * (A product's page used to open this way from its card on a store's page
+ * too; it now slides, the same as a store's page from Home. The grow is
+ * kept for a store's or a product's page opened from a card on any other
+ * screen: `opensFromCard` in demoRoutes.ts.)
+ *
+ * Home, a store's page and a product's page: one slide
+ * ----------------------------------------------------
+ * Between Home and a store's page, and between a store's page and a
+ * product's page on it (both ways), the two screens move together a full
+ * screen width, the way a Home slider moves one slide, with the same speed
+ * and curve (sliderMove in demo1Layout.ts). Neither screen fades. With
+ * "reduce motion" on, the page only fades in and out.
  */
+
+/**
+ * The card a store's page grows from: its box in px, from the page column's
+ * left edge and the window's top, when it was tapped. `vh` is the window's
+ * height then. Back to the same screen, the page shrinks into the same box:
+ * that screen opens at the same scroll, so the card is in the same place.
+ */
+export type Origin = {
+  top: number;
+  left: number;
+  right: number;
+  bottom: number;
+  vh: number;
+};
 
 type DemoNav = {
   shown: DemoScreen | null;
-  navigate: (to: DemoScreen, dir?: 1 | -1) => void;
+  /**
+   * Opens a screen. `from` is the element that was tapped; a store's page
+   * grows out of it (see "A store's page" above).
+   */
+  navigate: (to: DemoScreen, dir?: 1 | -1, from?: Element | null) => void;
   back: () => void;
   /** The locale segment, e.g. `sy-en`. */
   locale: string;
@@ -85,8 +147,21 @@ export function useDemoNav(): DemoNav {
   return value;
 }
 
-/** What a screen that slides out needs: the way it goes, and the scroll it had. */
-type Leave = { dir: 1 | -1; scrollY: number };
+/**
+ * What a change of screen needs: the way it goes and the scroll the old
+ * screen had. `grow` and `shrink` are set for a store's page that grows out
+ * of a card or shrinks back into it; `swipe` for a move that goes as one
+ * Home slide (slidesLikeHome); `fade` replaces all three when the system
+ * asks for less motion.
+ */
+type Leave = {
+  dir: 1 | -1;
+  scrollY: number;
+  grow?: Origin;
+  shrink?: Origin;
+  swipe?: boolean;
+  fade?: boolean;
+};
 
 /**
  * A slide, as framer-motion gets it: the way the walk goes (`dir`, 1 = deeper)
@@ -96,10 +171,84 @@ type Leave = { dir: 1 | -1; scrollY: number };
  */
 type Slide = Leave & { side: 1 | -1 };
 
-const slide = {
-  enter: ({ dir, side }: Slide) => ({ x: `${dir * side * 100}%`, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: ({ dir, side }: Slide) => ({ x: `${-dir * side * 100}%`, opacity: 0 }),
+/** True for a move between Home and a store's page, either way. */
+const homeAndStore = (a: DemoScreen | null, b: DemoScreen | null) =>
+  a === "home" && b !== null && isStoreScreen(b);
+
+/** True for a move between a store's page and one of its products' pages, either way. */
+const storeAndProduct = (a: DemoScreen | null, b: DemoScreen | null) =>
+  a !== null && b !== null && isStoreScreen(a) && isProductScreen(b) && b.startsWith(`${a}/`);
+
+/**
+ * True for a move that goes as one Home slide, either way: Home and a
+ * store's page, and a store's page and a product's page on it.
+ */
+const slidesLikeHome = (from: DemoScreen | null, to: DemoScreen | null) =>
+  homeAndStore(from, to) ||
+  homeAndStore(to, from) ||
+  storeAndProduct(from, to) ||
+  storeAndProduct(to, from);
+
+/** The clip of a page cut to a card's box. `bottom` is the room under the box. */
+const cutTo = (o: Origin, bottom: string) =>
+  `inset(${o.top}px ${o.right}px ${bottom} ${o.left}px)`;
+
+const slide: Variants = {
+  enter: ({ dir, side, grow, shrink, swipe, fade }: Slide) => {
+    if (fade) return { x: 0, opacity: 0 };
+    if (swipe) return { x: `${dir * side * 100}%`, opacity: 1 };
+    // The page in the document is as tall as all of it, so the room under
+    // the card is counted from the page's end: 100% less the card's bottom.
+    if (grow)
+      return { x: 0, opacity: 0, clipPath: cutTo(grow, `calc(100% - ${grow.bottom}px)`) };
+    // Back from a store: the screen under it is already in place.
+    if (shrink) return { x: 0, opacity: 1 };
+    return { x: `${dir * side * 100}%`, opacity: 0 };
+  },
+  center: ({ dir, side, grow, swipe }: Slide) =>
+    swipe
+      ? sliderMove((dir * side) as 1 | -1, false)
+      : grow
+      ? {
+          x: 0,
+          opacity: 1,
+          // Open to the window's box (the same shape of value as the cut, so
+          // it animates), then take the clip away.
+          clipPath: `inset(0px 0px calc(100% - ${grow.vh}px) 0px)`,
+          transitionEnd: { clipPath: "none" },
+          transition: {
+            clipPath: STORE_GROW,
+            opacity: { duration: STORE_GROW.duration * 0.4, ease: "linear" },
+          },
+        }
+      : { x: 0, opacity: 1 },
+  exit: ({ dir, side, grow, shrink, swipe, fade }: Slide) => {
+    if (fade) return { x: 0, opacity: 0 };
+    if (swipe) return sliderMove((dir * side) as 1 | -1, true);
+    // The screen under a growing page: it stays, and goes once it is covered.
+    if (grow)
+      return {
+        x: 0,
+        opacity: 0,
+        transition: { duration: 0.15, delay: STORE_GROW.duration - 0.15 },
+      };
+    // The store's page leaving: it is a box the window's size now, so the
+    // room under the card is the window's height less the card's bottom.
+    if (shrink)
+      return {
+        x: 0,
+        clipPath: [
+          "inset(0px 0px 0px 0px)",
+          cutTo(shrink, `${Math.max(0, shrink.vh - shrink.bottom)}px`),
+        ],
+        opacity: [1, 1, 0],
+        transition: {
+          clipPath: STORE_SHRINK,
+          opacity: { duration: STORE_SHRINK.duration, times: [0, 0.6, 1] },
+        },
+      };
+    return { x: `${-dir * side * 100}%`, opacity: 0 };
+  },
 };
 
 export default function Demo1Shell({
@@ -146,9 +295,20 @@ function Demo1ShellInner({
   const trail = useRef<DemoScreen[]>([urlScreen ?? "home"]);
   /** The scroll each screen had when it was left. */
   const scrolls = useRef(new Map<string, number>());
+  /** For each store's page opened from a card: the card's box, and the screen it was on. */
+  const origins = useRef(
+    new Map<string, { rect: Origin; from: DemoScreen | null }>(),
+  );
+  const column = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
 
   const key = shown ?? `page:${pathname}`;
-  const showBar = shown !== null && isTabRoot(shown);
+  // The tab bar shows on the tab screens, and on a store's page too (it
+  // belongs to the Home tab, so Home is the active tab there). A product's
+  // page has no tab bar: XD `Home Page – 49` draws none, and the bar slides
+  // away as the product opens.
+  const barScreen = shown !== null && (isTabRoot(shown) || isStoreScreen(shown));
+  const showBar = barScreen;
   const move: Slide = { ...leave, side: pageDir === "rtl" ? -1 : 1 };
 
   // The shell keeps each screen's scroll itself, so the browser must not
@@ -181,12 +341,48 @@ function Demo1ShellInner({
     window.scrollTo(0, y);
   }, [key]);
 
-  /** Starts a slide: remembers where the screen on show was left. */
-  const leaveTo = (to: DemoScreen | null, d: 1 | -1) => {
+  /**
+   * Starts a change of screen: remembers where the screen on show was left,
+   * and picks the motion. `grow` is the card a store's page opens from.
+   */
+  const leaveTo = (to: DemoScreen | null, d: 1 | -1, grow?: Origin) => {
     const y = window.scrollY;
     scrolls.current.set(key, y);
-    setLeave({ dir: d, scrollY: y });
+    const next: Leave = { dir: d, scrollY: y };
+    const opening = opensFromCard(to) && d > 0;
+    const closing = opensFromCard(shown) && d < 0;
+    if (slidesLikeHome(shown, to)) {
+      if (reduceMotion) next.fade = true;
+      else next.swipe = true;
+    } else if (opening && grow) {
+      if (reduceMotion) next.fade = true;
+      else next.grow = grow;
+    } else if (closing) {
+      // Shrink only into the card it grew from, on the screen it was on.
+      const origin = shown ? origins.current.get(shown) : undefined;
+      if (origin && origin.from === to) {
+        if (reduceMotion) next.fade = true;
+        else next.shrink = origin.rect;
+      }
+    }
+    setLeave(next);
     setShown(to);
+  };
+
+  /** The box of a tapped element, as an Origin, or undefined if it cannot be read. */
+  const originOf = (el: Element | null | undefined): Origin | undefined => {
+    const page = column.current;
+    if (!el || !page) return undefined;
+    const box = el.getBoundingClientRect();
+    const col = page.getBoundingClientRect();
+    if (!box.width || !box.height) return undefined;
+    return {
+      top: Math.max(0, box.top),
+      left: Math.max(0, box.left - col.left),
+      right: Math.max(0, col.right - box.right),
+      bottom: Math.max(0, box.bottom),
+      vh: window.innerHeight,
+    };
   };
 
   // The URL moved without us: the browser's back or forward, or a plain link.
@@ -209,12 +405,25 @@ function Demo1ShellInner({
     // Only the URL decides here; `shown` is read, not followed.
   }, [urlScreen]);
 
-  const go = (to: DemoScreen, d: 1 | -1, how: "push" | "replace") => {
+  const go = (
+    to: DemoScreen,
+    d: 1 | -1,
+    how: "push" | "replace",
+    grow?: Origin,
+  ) => {
     const from = shown;
-    leaveTo(to, d);
+    leaveTo(to, d, grow);
     const href = hrefFor(locale, to);
-    if (from && sameRoute(from, to)) {
-      // Search params only: no server call. Next keeps useSearchParams in step.
+    // A store's page also needs no server call: the shell draws it, and its
+    // route's page holds only tags for search engines, which read the URL
+    // straight from the server. A router.push here asked the server anyway,
+    // and its answer landed in the middle of the grow: one task of 0.6 to
+    // 1.5 s (4x slower CPU, dev build) that froze the motion after 100 ms.
+    // Next keeps usePathname in step with pushState, so the shell's URL
+    // effect sees the same screen and does nothing. The browser's back then
+    // gives Next its own entry for Home, which it restores from memory.
+    if (from && (sameRoute(from, to) || (how === "push" && opensFromCard(to)))) {
+      // Search params only, or a store or a product: no server call.
       if (how === "push") window.history.pushState(null, "", href);
       else window.history.replaceState(null, "", href);
     } else {
@@ -224,10 +433,16 @@ function Demo1ShellInner({
     }
   };
 
-  const navigate = (to: DemoScreen, d?: 1 | -1) => {
+  const navigate = (to: DemoScreen, d?: 1 | -1, from?: Element | null) => {
     if (to === shown) return;
+    // Home, a store's page and a product's page slide as one Home slide;
+    // nothing grows there.
+    const grow =
+      opensFromCard(to) && !slidesLikeHome(shown, to) ? originOf(from) : undefined;
+    if (grow) origins.current.set(to, { rect: grow, from: shown });
+    else origins.current.delete(to);
     trail.current.push(to);
-    go(to, d ?? (shown ? direction(shown, to) : 1), "push");
+    go(to, d ?? (shown ? direction(shown, to) : 1), "push", grow);
   };
 
   const back = () => {
@@ -252,6 +467,7 @@ function Demo1ShellInner({
     <NavCtx.Provider value={{ shown, navigate, back, locale, t }}>
       <DemoChatProvider t={t}>
         <div
+          ref={column}
           data-pw="demo1-app"
           dir={pageDir}
           className="relative w-full mx-auto font-quicksand"
@@ -266,9 +482,13 @@ function Demo1ShellInner({
             </ScreenFrame>
           </AnimatePresence>
         </div>
+        {/* A screen the shell draws itself still gets its route's page: a
+            store's page puts its JSON-LD there (see demo/store/[store]/page.tsx).
+            The other pages render nothing. */}
+        {shown !== null && children}
 
         <Demo1BottomNav
-          active={shown && isTabRoot(shown) ? tabOf(shown) : null}
+          active={shown && barScreen ? tabOf(shown) : null}
           visible={showBar}
           photo={profile.photo}
           verified={profile.emailVerified}
@@ -313,8 +533,17 @@ function ScreenFrame({
       frame.current.scrollTop = leaving?.scrollY ?? 0;
   }, [present, leaving]);
 
+  // A store's page lies over the screen under it, both while it grows in and
+  // while it shrinks out.
+  const onTop = present ? !!move.grow : !!leaving?.shrink;
+
   return (
-    <div style={present ? { position: "relative", width: "100%" } : EDGE_ANCHOR}>
+    <div
+      style={{
+        ...(present ? { position: "relative", width: "100%" } : EDGE_ANCHOR),
+        zIndex: onTop ? 1 : undefined,
+      }}
+    >
       <motion.div
         ref={frame}
         data-demo-screen={id}

@@ -930,6 +930,7 @@ function AddToCartComponent({ product, slug, color }) {
             }}
             loading={requestLoading}
             setLoading={setRequestLoading}
+            refreshPricing={updateQuantityRemotley}
             selectedVariant={getSelectedVariantQty()}
             colorChanged={colorChangedRef.current}
             sizeChanged={sizeChangedRef.current}

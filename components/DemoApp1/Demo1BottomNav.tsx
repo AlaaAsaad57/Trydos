@@ -27,6 +27,8 @@ import {
   SAFE_BOTTOM,
   SCREEN_TRANSITION,
   TAB_BAR,
+  TAB_BAR_MIN,
+  TAB_BAR_MIN_SCALE,
 } from "./demo1Layout";
 import { usePageDir } from "./rtl";
 
@@ -86,16 +88,23 @@ export default function Demo1BottomNav({
   t: (key: DemoKey) => string;
 }) {
   const scrollScale = useScrollScale(
-    BAR_SCROLL.minScale,
+    TAB_BAR_MIN_SCALE,
     BAR_SCROLL.distance,
     BAR_SCROLL.speedEffect,
     { scope: "window", resetKey },
   );
   const drop = useTransform(
     scrollScale,
-    (s) => ((1 - s) / (1 - BAR_SCROLL.minScale)) * TAB_BAR.drop,
+    (s) => ((1 - s) / (1 - TAB_BAR_MIN_SCALE)) * TAB_BAR.drop,
   );
   const { scale, firePulse } = useBarPulse(scrollScale);
+  // The box's width before the scale. On screen (after the scale) the bar
+  // goes from its full width to TAB_BAR_MIN.width as it shrinks, so at the
+  // floor it is Safari's pill both ways (see TAB_BAR_MIN).
+  const boxWidth = useTransform(scrollScale, (s) => {
+    const done = (1 - s) / (1 - TAB_BAR_MIN_SCALE);
+    return `calc(${BAR_W} * ${(1 - done) / s} + ${(TAB_BAR_MIN.width * done) / s}px)`;
+  });
   const pageDir = usePageDir();
 
   const [mounted, setMounted] = useState(false);
@@ -195,8 +204,9 @@ export default function Demo1BottomNav({
         data-pw="demo-tab-box"
         className="absolute top-0 h-full"
         style={{
-          left: `calc(${BAR_W} / -2)`,
-          width: BAR_W,
+          left: 0,
+          width: boxWidth,
+          x: "-50%",
           transformOrigin: "center center",
           y: drop,
           scale,

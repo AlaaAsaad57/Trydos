@@ -29,6 +29,7 @@ vi.mock("@/store/notifications/reducer", () => ({
 }));
 
 import { useChatStore } from "store/chat/reducer";
+import { getMessageTime } from "store/chat/chatUtils";
 
 /** A stand-in store: `set` merges like zustand does, `get` reads it back. */
 function makeStore(initial: Record<string, any> = {}) {
@@ -289,10 +290,20 @@ describe("chat slice — calls", () => {
     expect(s.get().call, "no payload did not clear the call").toBeNull();
   });
 
-  it("deleteCall removes the call by id", () => {
-    const s = makeStore({ calls: [{ id: 1 }, { id: 2 }] });
+  // A call deleted for yourself stays in the call log as a deleted call, the
+  // way the chat backend keeps sending it (auth_message_status.is_deleted 1).
+  it("deleteCall keeps the call and marks it deleted, by id", () => {
+    const s = makeStore({
+      calls: [
+        { id: "1", auth_message_status: { is_deleted: 0, is_watched: true } },
+        { id: 2, auth_message_status: { is_deleted: 0 } },
+      ],
+    });
     s.get().deleteCall(1);
-    expect(s.get().calls, "the call was not removed").toEqual([{ id: 2 }]);
+    expect(s.get().calls, "the deleted call left the log, or the other call changed").toEqual([
+      { id: "1", auth_message_status: { is_deleted: 1, is_watched: true } },
+      { id: 2, auth_message_status: { is_deleted: 0 } },
+    ]);
   });
 });
 
@@ -379,6 +390,31 @@ describe("chat slice — message flow", () => {
     expect(b.message_status[0].watched_at, "an existing watched time was replaced").toBe("kept");
     expect(c.message_status[1].is_watched, "a call message was marked watched").toBe(false);
     expect(s.get().newChats.map((x: any) => x.id), "the watched chat stayed in new chats").toEqual(["2"]);
+  });
+
+  // Bug: the time was stored with toLocaleString(), which follows the user's
+  // language. In ar/ku it uses Arabic-Indic digits, and `new Date(...)` cannot
+  // read that, so the swipe dates showed "NaN:NaN" for Received and Read.
+  it("watchChannelEvent and receiveChannelEvent store times that getMessageTime can show, in any language", () => {
+    const localeSpy = vi
+      .spyOn(Date.prototype, "toLocaleString")
+      .mockReturnValue("١٥‏/١‏/٢٠٣٠، ٥:٠٦:٠٠ م");
+    try {
+      const s = makeStore({ data: [channel(1)] });
+      s.get().watchChannelEvent(1);
+      s.get().receiveChannelEvent(1);
+      const other = s.get().data[0].messages[0].message_status[1];
+      expect(
+        getMessageTime(other.watched_at, false),
+        `the Read time shows as "${getMessageTime(other.watched_at, false)}" (stored: ${other.watched_at})`,
+      ).toMatch(/^\d{2}:\d{2}$/);
+      expect(
+        getMessageTime(other.received_at, false),
+        `the Received time shows as "${getMessageTime(other.received_at, false)}" (stored: ${other.received_at})`,
+      ).toMatch(/^\d{2}:\d{2}$/);
+    } finally {
+      localeSpy.mockRestore();
+    }
   });
 
   it("watchChannel tells the chat backend, and marks my statuses watched", () => {
@@ -550,6 +586,72 @@ describe("chat slice — loading chats and pages", () => {
     expect(s.get().mid, "an empty page did not stop paging").toBeNull();
   });
 
+  // BUG: setChats turned the backend's list round with `reverse()`, which
+  // changes the answer itself. Two chat-list calls that run at the same time
+  // share one answer (`fetchData` gives both callers the same `data`), so the
+  // second call turned it back to newest first.
+  it("setChats keeps messages oldest first when one answer is stored twice", () => {
+    const s = makeStore({ data: [] });
+    const answer = [
+      channel(1, {
+        messages: [
+          msg("3", { created_at: "2030-01-15T10:03:00" }),
+          msg("2", { created_at: "2030-01-15T10:02:00" }),
+          msg("1", { created_at: "2030-01-15T10:01:00" }),
+        ],
+      }),
+    ];
+    s.get().setChats(answer, []);
+    s.get().setChats(answer, []);
+    expect(
+      s.get().data[0].messages.map((m: any) => m.id),
+      "after the same chat-list answer was stored twice, the messages were not oldest first",
+    ).toEqual(["1", "2", "3"]);
+  });
+
+  // The chat backend orders by `created_at` only, so messages sent in the same
+  // second come in any order (measured on chat 539, 2026-10-31).
+  it("setChats orders messages sent in the same second by id", () => {
+    const s = makeStore({ data: [] });
+    s.get().setChats(
+      [
+        channel(1, {
+          messages: [
+            msg("341061", { created_at: "2026-10-31T06:45:47.000Z" }),
+            msg("341059", { created_at: "2026-10-31T06:45:46.000Z" }),
+            msg("341060", { created_at: "2026-10-31T06:45:46.000Z" }),
+            msg("341057", { created_at: "2026-10-31T06:45:45.000Z" }),
+            msg("341058", { created_at: "2026-10-31T06:45:45.000Z" }),
+          ],
+        }),
+      ],
+      [],
+    );
+    expect(
+      s.get().data[0].messages.map((m: any) => m.id),
+      "messages sent in the same second were not ordered by id",
+    ).toEqual(["341057", "341058", "341059", "341060", "341061"]);
+  });
+
+  it("setPageData keeps the messages oldest first after an older page", () => {
+    const held = channel(1, {
+      messages: [
+        msg("10", { created_at: "2030-01-15T10:10:00" }),
+        msg("11", { created_at: "2030-01-15T10:11:00" }),
+      ],
+    });
+    const s = makeStore({ data: [held], activeChat: held });
+    // The chat backend sends a page newest first.
+    s.get().setPageData({
+      ch: 1,
+      mes: [msg("9", { created_at: "2030-01-15T10:09:00" }), msg("8", { created_at: "2030-01-15T10:08:00" })],
+    });
+    expect(
+      s.get().data[0].messages.map((m: any) => m.id),
+      "after an older page the chat's messages were not oldest first",
+    ).toEqual(["8", "9", "10", "11"]);
+  });
+
   it("setPageData for an unlisted chat updates the active chat only", () => {
     const s = makeStore({ data: [], activeChat: channel(5), mid: 3 });
     s.get().setPageData({ ch: 5, mes: [{ id: "o" }] });
@@ -582,9 +684,31 @@ describe("chat slice — chat settings", () => {
     const before = s.get().data;
     s.get().pinChat({ id: 99, value: true });
     expect(s.get().data, "pinning an unknown chat changed the list").toBe(before);
-    const full = makeStore({ data: [channel(1)], pinnedChats: [1, 2, 3] });
-    full.get().pinChat({ id: 1, value: true });
+  });
+
+  // CHAT-APP-2: the limit used to count `pinnedChats`, which nothing fills, so
+  // a fourth pin always went through. The pins live on my membership row.
+  const pinnedByMe = (id: number) =>
+    channel(id, { channel_members: [{ user_id: ME, mute: 0, pin: 1 }, { user_id: THEM, mute: 0, pin: 0 }] });
+
+  it("pinChat refuses a fourth pin with a toast, counting the pins on my rows", () => {
+    const full = makeStore({ data: [pinnedByMe(1), pinnedByMe(2), pinnedByMe(3), channel(4)], pinnedChats: [] });
+    full.get().pinChat({ id: 4, value: true });
+    expect(
+      full.get().data.find((c: any) => c.id === 4).channel_members[0].pin,
+      "a fourth chat was pinned while three were already pinned",
+    ).toBe(0);
     expect(showError, "the shopper was not told only 3 chats can be pinned").toHaveBeenCalledWith("only 3 pinned chats allowed");
+  });
+
+  it("pinChat still unpins a chat when three are pinned", () => {
+    const full = makeStore({ data: [pinnedByMe(1), pinnedByMe(2), pinnedByMe(3)], pinnedChats: [] });
+    full.get().pinChat({ id: 2, value: false });
+    expect(
+      full.get().data.find((c: any) => c.id === 2).channel_members[0].pin,
+      "the pin limit also blocked an unpin",
+    ).toBe(0);
+    expect(showError, "an unpin showed the pin-limit toast").not.toHaveBeenCalled();
   });
 
   it("updateChannelBlockStatus flags the member in the list, the active chat and new chats", () => {

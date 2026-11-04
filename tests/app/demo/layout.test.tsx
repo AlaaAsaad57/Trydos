@@ -35,6 +35,21 @@ describe("demo layout", () => {
     ).toBe("Items You Add To Your Cart Will Show Here");
   });
 
+  it("draws the store page's badges in the case the file draws them", async () => {
+    const english = await dictionaryFor("sy-en");
+    // `Home Page – 47` sets the bag badge's text to title case, so the file
+    // shows "1 Item M In Your Bag".
+    expect(
+      english["{count} item {size} in your bag"],
+      "the bag badge is not drawn with a capital on every word, as the file draws it",
+    ).toBe("{count} Item {size} In Your Bag");
+    // The "best price" badge has no case setting in the file: it stays as written.
+    expect(
+      english["last {days} days!"],
+      "the best-price badge lost the file's sentence case",
+    ).toBe("last {days} days!");
+  });
+
   it("hands the shell the Arabic from the translation table", async () => {
     const arabic = await dictionaryFor("sy-ar");
     expect(

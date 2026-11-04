@@ -4,6 +4,33 @@ const SWIPED_EVENT = "chat-message-swiped";
 const CLOSE_ALL_EVENT = "chat-message-close-all";
 const SNAP_OFFSET = 18; // Slight nudge to right when locked open
 const LOCK_THRESHOLD = 20; // Distance swiped to right to trigger lock
+const EDGE_GAP = 4; // Space kept between the dates and the edge that clips them
+
+/**
+ * How far right the bubble must rest so its dates fit inside the box that
+ * clips them (the chat list), at any screen width.
+ *
+ * A wide bubble (a voice message is 340px) on a narrow phone has less room on
+ * its left than the dates need, so the fixed nudge left them cut off.
+ * Returns SNAP_OFFSET when there is room, or when nothing is laid out.
+ */
+function offsetToShowDates(
+  content: HTMLElement | null,
+  dates: HTMLElement | null,
+  currentOffset: number,
+): number {
+  if (!content || !dates) return SNAP_OFFSET;
+  const datesBox = dates.getBoundingClientRect();
+  if (!datesBox.width) return SNAP_OFFSET;
+  let clip: HTMLElement | null = content.parentElement;
+  while (clip && getComputedStyle(clip).overflowX === "visible") {
+    clip = clip.parentElement;
+  }
+  const edge = (clip ? clip.getBoundingClientRect().left : 0) + EDGE_GAP;
+  // The boxes include the current drag, so take it off to get the rest place.
+  const datesRestLeft = datesBox.left - currentOffset;
+  return Math.max(SNAP_OFFSET, Math.ceil(edge - datesRestLeft));
+}
 
 interface UseMessageSwipeOptions {
   id: string | number;
@@ -26,6 +53,7 @@ export function useMessageSwipe({
   const startXRef = useRef(0);
   const startYRef = useRef(0);
   const currentOffsetRef = useRef(0);
+  const openOffsetRef = useRef(SNAP_OFFSET);
   const isSwipingRef = useRef(false);
   const isVerticalRef = useRef(false);
 
@@ -48,7 +76,12 @@ export function useMessageSwipe({
   }, []);
 
   const open = useCallback(() => {
-    applyVisuals(SNAP_OFFSET, true);
+    openOffsetRef.current = offsetToShowDates(
+      contentRef.current,
+      datesRef.current,
+      currentOffsetRef.current,
+    );
+    applyVisuals(openOffsetRef.current, true);
     if (datesRef.current) {
       datesRef.current.style.opacity = "1";
       datesRef.current.style.pointerEvents = "auto";
@@ -175,9 +208,10 @@ export function useMessageSwipe({
           applyVisuals(target, false);
         } else {
           // When open: allow dragging left (deltaX < 0) to close
-          let target = SNAP_OFFSET + deltaX;
+          const max = Math.max(35, openOffsetRef.current);
+          let target = openOffsetRef.current + deltaX;
           if (target < 0) target = 0;
-          if (target > 35) target = 35;
+          if (target > max) target = max;
           applyVisuals(target, false);
         }
       }

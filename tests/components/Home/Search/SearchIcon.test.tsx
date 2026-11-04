@@ -16,9 +16,11 @@ vi.mock("services/search", () => ({ default: { getTrendingSearch: () => getTrend
 vi.mock("services/auth", () => ({ default: { UserID: () => "u-1" } }));
 
 const showSuccessNotification = vi.fn();
+const showErrorNotification = vi.fn();
 vi.mock("store/notifications/reducer", async (importOriginal) => ({
   ...(await importOriginal<any>()),
   showSuccessNotification: (...a: any[]) => showSuccessNotification(...a),
+  showErrorNotification: (...a: any[]) => showErrorNotification(...a),
 }));
 const LogError = vi.fn();
 vi.mock("utils/functions", async (importOriginal) => ({
@@ -54,10 +56,9 @@ vi.mock("components/Home/Search/SearchHistory", () => ({
   ),
 }));
 vi.mock("components/Home/Search/SearchTrending", () => ({
-  default: ({ trending, setValue, clearAll }: any) => (
+  default: ({ trending, setValue }: any) => (
     <div data-testid="trending" data-count={trending.length}>
       <button onClick={() => setValue("trend word")}>trend pick</button>
-      <button onClick={clearAll}>trend clear</button>
     </div>
   ),
 }));
@@ -145,6 +146,7 @@ describe("SearchIcon", () => {
     GetSearchSuggestion.mockReset().mockResolvedValue({ suggestion: "" });
     getTrendingSearch.mockReset().mockResolvedValue({ popular_search_terms: [{ term: "shoes" }] });
     showSuccessNotification.mockReset();
+    showErrorNotification.mockReset();
     LogError.mockReset();
     scroll.DisableScroll.mockReset();
     scroll.EnableScroll.mockReset();
@@ -194,6 +196,34 @@ describe("SearchIcon", () => {
     );
     fireEvent.click(screen.getByText("product Red shoe"));
     expect((st.getState() as any).setEnableSearch, "picking a product did not close search").toBeTruthy();
+  });
+
+  it("shows a toast when the color and size analysis fails, and the search still shows products", async () => {
+    // GetSearchData (core/gateway catalog read) sends the analyser error back as a string.
+    GetSearchData.mockResolvedValue({
+      products: [{ product_id: 2, name: "Black shirt" }],
+      total_size: 1,
+      isAnalyzed: "search analysis gave up after 6000ms",
+    });
+    await renderWithProviders(<SearchIcon language="en" country="sy" />, { store: store() });
+    await open();
+    await type("black shirt");
+    expect(showErrorNotification, "no toast told the shopper that the color and size analysis failed").toHaveBeenCalledWith(
+      // translateFunction shows English keys in Title Case.
+      "We Could Not Read The Color And Size From Your Search. Showing Results For Your Words.",
+    );
+    expect(screen.getByText("product Black shirt"), "the products did not show after the analysis failed").toBeInTheDocument();
+  });
+
+  it("shows no analysis toast when the analysis works or does not run", async () => {
+    GetSearchData.mockResolvedValue({ products: [], total_size: 0, isAnalyzed: { name: "shirt", color: ["#000000"] } });
+    await renderWithProviders(<SearchIcon language="en" country="sy" />, { store: store() });
+    await open();
+    await type("black shirt");
+    expect(showErrorNotification, "a working analysis showed a failure toast").not.toHaveBeenCalled();
+    GetSearchData.mockResolvedValue({ products: [], total_size: 0, isAnalyzed: false });
+    await type("shirt");
+    expect(showErrorNotification, "a one-word search (no analysis) showed a failure toast").not.toHaveBeenCalled();
   });
 
   it("keeps only the newest search result when an older one lands later, and logs only the newest failure", async () => {
@@ -443,8 +473,6 @@ describe("SearchIcon", () => {
     await open();
     fireEvent.click(screen.getByText("history delete"));
     expect(JSON.parse(localStorage.getItem("search-history")!), "the deleted word stayed in storage").toEqual([]);
-    fireEvent.click(screen.getByText("trend clear"));
-    expect(input().value, "clearing trending put something in the box").toBe("");
     fireEvent.click(screen.getAllByText("media empty")[0]);
     expect(input().value, "an empty media answer changed the box").toBe("");
     fireEvent.click(screen.getAllByText("media value")[0]);

@@ -19,6 +19,7 @@ import {
   BANNER,
   BODY_Y,
   C,
+  COLUMN_W,
   CTA,
   DESIGN_H,
   EDGE_ANCHOR,
@@ -125,6 +126,9 @@ export const fromCentre = (x: number, w: number) =>
 
 /** `#1D1D1D` at 90% over the white page: what a dimmed page looks like. */
 export const DIMMED = "rgb(52, 52, 52)";
+
+/** `#1D1D1D` at 50% over the white page: the page under a glass layer. */
+export const GLASS_DIMMED = "rgb(142, 142, 142)";
 
 /**
  * Paints the document in the page's colour while this screen is on show.
@@ -548,6 +552,9 @@ export function FileLines({
  * from the bottom of the screen, as in the old scaled demo.
  *
  * `tabBar` keeps room for the tab bar under the last block of a tab screen.
+ *
+ * `hideHeadOnScroll` hides the head while the page scrolls down and brings it
+ * back the same way on a scroll up (see useHeadOnScroll).
  */
 export function ScreenPage({
   header,
@@ -561,8 +568,11 @@ export function ScreenPage({
   scrollBody = false,
   bodyRef,
   bottom,
+  hideHeadOnScroll = false,
   testId,
 }: {
+  /** Hide the head while the page scrolls down; show it again on any scroll up. */
+  hideHeadOnScroll?: boolean;
   /** A CSS filter for the page and its head while a glass layer lies over them (the receipt). */
   glass?: string;
   header?: React.ReactNode;
@@ -587,15 +597,62 @@ export function ScreenPage({
   bottom?: React.ReactNode;
   testId?: string;
 }) {
-  const page = bg;
-  usePageColor(page);
+  usePageColor(bg);
   const visual = useVisualHeight(scrollBody);
+  const head = React.useRef<HTMLDivElement>(null);
+  /** The block that ends the head's sticky box (see useHeadOnScroll). */
+  const limit = React.useRef<HTMLDivElement>(null);
+  const carried = Boolean(header) && hideHeadOnScroll && !scrollBody;
+  const showHead = useHeadOnScroll(
+    Boolean(header) && !scrollBody,
+    hideHeadOnScroll && !scrollBody,
+    head,
+    limit,
+  );
+  const anchor = header && (
+    // The sticky box is 0 px wide; the white head inside it overflows
+    // to the column's full width. Safari 26 on the iPhone looks for a
+    // fixed or sticky box 90 % as wide as the screen at its top edge,
+    // and fills its top bar with that box's solid colour. A full-width
+    // sticky head made the top bar plain white, also after the head
+    // slid away on the store page (Safari keeps the last box it found
+    // while that box is on the page). A 0 px box is too small, so Safari
+    // finds nothing and draws the page under its glass bar, the way a
+    // shop site shows. The same trick as EDGE_ANCHOR in demo1Layout.ts.
+    // While the head is shown, the demo's top strip gives Safari's bar
+    // the head's white instead (see useHeadOnScroll), so no page shows
+    // in a band above the head.
+    // A `scrollBody` page does not scroll the document, so its head
+    // stays a normal full-width block.
+    <div
+      data-pw="demo1-head-anchor"
+      className={`${scrollBody ? "shrink-0 w-full" : "sticky top-0"} z-10`}
+      style={scrollBody ? undefined : { width: 0 }}
+    >
+      <div
+        ref={head}
+        data-pw="demo1-head"
+        className="relative"
+        // `transform`, `opacity` and `transition` are not here:
+        // useHeadOnScroll sets them.
+        style={{
+          width: scrollBody ? "100%" : COLUMN_W,
+          paddingTop: SAFE_TOP,
+          background: C.white,
+        }}
+        // A key that moves the focus into a hidden head shows it.
+        onFocusCapture={showHead}
+      >
+        {header}
+      </div>
+    </div>
+  );
   return (
     <div
       data-pw={testId}
       className="relative flex flex-col w-full font-quicksand"
       style={{
-        background: page,
+        background: bg,
         minHeight: scrollBody ? undefined : "100dvh",
         height: scrollBody ? visual ?? "100dvh" : undefined,
       }}
@@ -604,14 +661,18 @@ export function ScreenPage({
         className={`flex flex-col w-full grow ${scrollBody ? "min-h-0" : ""}`}
         style={{ filter: glass, transition: "filter 0.25s" }}
       >
-        {header && (
-          <div
-            data-pw="demo1-head"
-            className={`${scrollBody ? "shrink-0" : "sticky top-0"} z-10 w-full`}
-            style={{ paddingTop: SAFE_TOP, background: C.white }}
-          >
-            {header}
+        {carried ? (
+          // The head's sticky box lives in this block, and the empty block
+          // under it (`limit`) sets where the block ends: the page carries
+          // the head out once it scrolls past that end. The negative margin
+          // takes the empty block's height back, so the page under the head
+          // does not move. useHeadOnScroll sets both heights.
+          <div data-pw="demo1-head-track" className="shrink-0">
+            {anchor}
+            <div ref={limit} data-pw="demo1-head-limit" aria-hidden="true" />
           </div>
+        ) : (
+          anchor
         )}
         <div
           ref={bodyRef}
@@ -634,6 +695,278 @@ export function ScreenPage({
       {footer && <PageFooter>{footer}</PageFooter>}
     </div>
   );
+}
+
+/**
+ * How the head hides and comes back. The values are measured frame by frame
+ * in a screen recording of the Facebook app on the iPhone (60 fps):
+ *
+ *  - Hide: from the first frame of a scroll down, the bar moves up 1:1 with
+ *    the page. It stays fully shown for the first 10 px, fades out between
+ *    10 px and 30 px, and is gone at 30 px.
+ *  - Show: only on a fast scroll up. The bar comes back once the page has
+ *    moved up about 120 px within 100 ms (seen 4 times: after 120 to 155 px
+ *    at 20 to 70 px a frame). A slow scroll up leaves it out (seen twice:
+ *    250 and 300 px at 3 to 10 px a frame). It then fades in over about
+ *    120 ms and slides down the last 8 px over about 170 ms, both with an
+ *    ease-out curve.
+ *  - Safari's top bar (the status area) turns white and see-through at once,
+ *    on one frame, while the bar fades.
+ *
+ * Not in the recording, so these are our own rules: near the top of the page
+ * a scroll up at any speed brings the bar back, and a bar that is partly out
+ * when the finger lifts and the scroll stops goes to the nearer end in 170 ms.
+ */
+const HEAD_HIDE_PX = 30;
+const HEAD_FADE_FROM_PX = 10;
+/** The head comes back when the page moves up this far (px) within HEAD_FLICK_MS. */
+const HEAD_SHOW_FLICK_PX = 120;
+const HEAD_FLICK_MS = 100;
+const HEAD_SHOW_MS = 170;
+const HEAD_FADE_IN_MS = 120;
+const HEAD_SHOW_SLIDE_PX = 8;
+/** A scroll that has not moved for this long (ms) has stopped (momentum too). */
+const HEAD_STOP_MS = 120;
+/** Safari's top bar takes the head's white while the head is shown. */
+const HEAD_TOP = "rgb(255, 255, 255)";
+/** The ease-out curve 1 - (1 - p)³, for a CSS transition. */
+const EASE_OUT = "cubic-bezier(0.33, 1, 0.68, 1)";
+
+const round = (n: number, places: number) => Math.round(n * 10 ** places) / 10 ** places;
+const moveUp = (px: number) => (px > 0 ? `translateY(-${round(px, 2)}px)` : "translateY(0)");
+
+/** The head's opacity when it has moved `moved` px out on a scroll down. */
+const fadeAt = (moved: number) =>
+  round(
+    Math.min(1, Math.max(0, 1 - (moved - HEAD_FADE_FROM_PX) / (HEAD_HIDE_PX - HEAD_FADE_FROM_PX))),
+    3,
+  );
+
+/**
+ * Runs a page's sticky head on a scroll (see HEAD_HIDE_PX), and gives
+ * Safari's top bar the head's white while the head is shown.
+ *
+ * Safari's top bar. Safari 26 draws the page under its top bar, and the head
+ * starts under that bar. So while the head was shown, the photos that had
+ * scrolled past showed in a band above the white head. A white box above
+ * the head does not help: Safari cuts off what lies above the top of the
+ * page. So the demo's own top strip (components/DemoApp/topTint.ts), which
+ * Safari reads, takes the head's white while the head is more than half
+ * shown. When the head is out, the strip is hidden and Safari draws the page
+ * under its glass bar, the way a shop site does. Only on a touch device: on a
+ * desktop the strip is a band across the whole window.
+ * The strip changes only when the head crosses half shown, not on each frame
+ * of the fade: Safari reads its bar again on every change of the strip.
+ *
+ * How the head moves out. Safari scrolls the page on a thread of its own, and
+ * moves a sticky box there too. A place set by script on each frame is always
+ * a frame behind that scroll, so a head moved by script shook. So no script
+ * moves the head while it goes out. The head's sticky box sits in a block
+ * that ends at the scroll point where the hide begins (`limit`, see
+ * ScreenPage): past that point Safari itself carries the head out with the
+ * page, 1:1, on its own thread. A scroll up while the head is partly out
+ * brings it back the same way. Only the fade is set by script, and a fade a
+ * frame late cannot be seen. The block's end changes only when a hide begins,
+ * when the head comes back and when the scroll stops, not on each frame.
+ *
+ * Hiding (`hide`):
+ *  - Near the top of the page (within the head's height) a scroll up always
+ *    brings the head back.
+ *  - A partly hidden head goes to the nearer end only when the finger is off
+ *    the screen.
+ *  - The bounce past either end of the page (iOS) is not a scroll: a bounce
+ *    at the bottom moves up for a moment and would show the head.
+ *  - A move under 1 px is not counted (scroll values have fractions).
+ *  - A screen that is sliding out keeps its head as it was: the new screen's
+ *    scroll belongs to the new screen.
+ *
+ * The styles are set on the element, not through React state, so a scroll
+ * does not render the page again on every frame.
+ *
+ * Returns a function that shows the head.
+ */
+function useHeadOnScroll(
+  on: boolean,
+  hide: boolean,
+  head: React.RefObject<HTMLDivElement | null>,
+  limit: React.RefObject<HTMLDivElement | null>,
+): () => void {
+  const touch = useIsTouchDevice();
+  const present = useIsPresent();
+  /** Brings the head back; set by the effect below. */
+  const show = React.useRef<() => void>(() => {});
+
+  React.useEffect(() => {
+    const el = head.current;
+    if (!on || !present || !el) return;
+    // `blend`: the strip lies over the head's own white, and must not hide
+    // what the head draws in its top 12 px (Home's picked chip).
+    const top = touch ? followTopTint(HEAD_TOP, DEMO1_TINT, { blend: true }) : null;
+    let white: boolean | null = null;
+    /** Safari's top bar: white while the head is more than half shown. */
+    const tint = (opacity: number) => {
+      const shown = opacity >= 0.5;
+      if (shown === white) return;
+      white = shown;
+      top?.set(shown ? 1 : 0);
+    };
+    const spacer = limit.current;
+    const track = spacer?.parentElement;
+    if (!hide || !spacer || !track) {
+      tint(1);
+      return () => {
+        top?.release();
+      };
+    }
+
+    const paint = (transform: string, opacity: number, transition = "none") => {
+      el.style.transition = transition;
+      el.style.transform = transform;
+      el.style.opacity = String(opacity);
+      if (opacity === 0) el.dataset.hidden = "true";
+      else delete el.dataset.hidden;
+      tint(opacity);
+    };
+    /** The block's top in the document (it does not move while the page scrolls). */
+    const trackTop = () => {
+      let y = 0;
+      for (let n: HTMLElement | null = track; n; n = n.offsetParent as HTMLElement | null)
+        y += n.offsetTop;
+      return y;
+    };
+    /** The scroll y past which the page carries the head out. */
+    let from = 0;
+    const carryFrom = (y: number) => {
+      from = Math.max(0, y);
+      const px = round(Math.max(0, from - trackTop()), 2);
+      spacer.style.height = `${px}px`;
+      track.style.marginBottom = `${-px}px`;
+    };
+    /** How far (px) the page has carried the head out at scroll `y`. */
+    const out = (y: number) => Math.max(0, y - from);
+    let hidden = false;
+    /** The `out` the fade was last drawn for. */
+    let drawn = 0;
+    let ease: ReturnType<typeof setTimeout> | undefined;
+    /**
+     * Puts the head at the top of the screen at scroll `y`, drawn as
+     * `transform` and `opacity` first, and lets it move to fully shown with
+     * a CSS transition (it runs on Safari's own thread).
+     */
+    const comeIn = (y: number, transform: string, opacity: number) => {
+      clearTimeout(ease);
+      hidden = false;
+      drawn = 0;
+      carryFrom(y);
+      paint(transform, opacity);
+      // The browser takes the values above as the start of the transition.
+      void el.getBoundingClientRect();
+      paint(
+        "translateY(0)",
+        1,
+        `opacity ${HEAD_FADE_IN_MS}ms ${EASE_OUT}, transform ${HEAD_SHOW_MS}ms ${EASE_OUT}`,
+      );
+      ease = setTimeout(() => {
+        el.style.transition = "none";
+      }, HEAD_SHOW_MS);
+    };
+    /** Hides the head: at once, or with a fade of HEAD_SHOW_MS. */
+    const goOut = (fade: boolean) => {
+      clearTimeout(ease);
+      hidden = true;
+      if (!fade) return paint("translateY(-100%)", 0);
+      paint(el.style.transform, 0, `opacity ${HEAD_SHOW_MS}ms ${EASE_OUT}`);
+      ease = setTimeout(() => paint("translateY(-100%)", 0), HEAD_SHOW_MS);
+    };
+    show.current = () => {
+      const y = window.scrollY;
+      const m = out(y);
+      if (hidden) comeIn(y, moveUp(HEAD_SHOW_SLIDE_PX), 0);
+      else if (m > 0) comeIn(y, moveUp(m), fadeAt(m));
+    };
+
+    let last = window.scrollY;
+    carryFrom(last);
+    paint("translateY(0)", 1);
+    /** Recent scroll places: the first one is the latest that is HEAD_FLICK_MS old. */
+    const seen = [{ t: performance.now(), y: last }];
+    let frame = 0;
+    let stop: ReturnType<typeof setTimeout> | undefined;
+    let fingers = 0;
+    /** When the scroll stops: moves a part-way head to the nearer end. */
+    const rest = () => {
+      clearTimeout(stop);
+      stop = setTimeout(() => {
+        if (hidden) return;
+        const y = window.scrollY;
+        const m = out(y);
+        // The head is at the top: the next scroll down carries it out from
+        // its first pixel.
+        if (m <= 0) {
+          if (y !== from) carryFrom(y);
+          return;
+        }
+        if (fingers > 0) return;
+        if (m < HEAD_HIDE_PX / 2) comeIn(y, moveUp(m), fadeAt(m));
+        else goOut(true);
+      }, HEAD_STOP_MS);
+    };
+    const read = () => {
+      frame = 0;
+      const y = window.scrollY;
+      const end = document.documentElement.scrollHeight - window.innerHeight;
+      if (y < 0 || y > end) return;
+      const t = performance.now();
+      seen.push({ t, y });
+      while (seen.length > 1 && seen[1].t <= t - HEAD_FLICK_MS) seen.shift();
+      const dy = y - last;
+      if (Math.abs(dy) < 1) return;
+      const before = last;
+      last = y;
+      rest();
+      if (hidden) {
+        const flick = seen[0].y - y >= HEAD_SHOW_FLICK_PX;
+        if (dy < 0 && (flick || y <= el.offsetHeight))
+          comeIn(y, moveUp(HEAD_SHOW_SLIDE_PX), 0);
+        return;
+      }
+      // The head was at the top of the screen: the page carries it out from
+      // the place this scroll down began.
+      if (dy > 0 && before < from) carryFrom(before);
+      const m = out(y);
+      if (m >= HEAD_HIDE_PX) goOut(false);
+      else if (m !== drawn) {
+        drawn = m;
+        clearTimeout(ease);
+        paint("translateY(0)", fadeAt(m));
+      }
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(read);
+    };
+    const onDown = () => {
+      fingers += 1;
+    };
+    const onUp = () => {
+      fingers = 0;
+      rest();
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("touchstart", onDown, { passive: true });
+    document.addEventListener("touchend", onUp);
+    document.addEventListener("touchcancel", onUp);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("touchstart", onDown);
+      document.removeEventListener("touchend", onUp);
+      document.removeEventListener("touchcancel", onUp);
+      cancelAnimationFrame(frame);
+      clearTimeout(stop);
+      clearTimeout(ease);
+      top?.release();
+    };
+  }, [on, hide, present, touch, head, limit]);
+  return () => show.current();
 }
 
 /**
@@ -1099,6 +1432,10 @@ function useScreenHeight(watch = true) {
  *
  * `y`, `lower`, `fit` and `outline` mean what they mean in the old scaled demo, with the
  * screen in place of the canvas.
+ *
+ * `glass`: the page is covered with `#1D1D1D` at 50% only, over the file's
+ * background blur (a product's colour sheet, `Home Page – 54`). The blur
+ * itself is the page's own filter (`ScreenPage glass`), as for the receipt.
  */
 export function Sheet({
   open,
@@ -1111,10 +1448,22 @@ export function Sheet({
   children,
   testId,
   onEntered,
+  glass = false,
+  shadow,
+  handleBar = 0,
 }: {
   open: boolean;
   onClose: () => void;
   fit?: boolean;
+  glass?: boolean;
+  /**
+   * For a `fit` sheet: the height of a white band at the sheet's top that
+   * holds the handle and does not scroll. The content scrolls under it, so
+   * the handle stays in place. 0: the handle scrolls with the content.
+   */
+  handleBar?: number;
+  /** A box-shadow for the sheet (the file's drop shadow on its top edge). */
+  shadow?: string;
   onEntered?: () => void;
   y: number;
   lower?: number;
@@ -1126,11 +1475,23 @@ export function Sheet({
   const touch = useIsTouchDevice();
   const grip = useDragControls();
   const rest = lower;
-  const paper = C.white;
+  const band = fit ? handleBar : 0;
+  const handle = (
+    <div
+      data-pw="demo-sheet-handle"
+      className="shrink-0 self-center"
+      style={{
+        marginTop: SHEET.handle.top - 1,
+        width: SHEET.handle.width,
+        height: SHEET.handle.height,
+        background: "#C4C2C2",
+      }}
+    />
+  );
   return (
     <AnimatePresence>
       {open && (
-        <Layer key="sheet" testId={testId} tint={DIMMED}>
+        <Layer key="sheet" testId={testId} tint={glass ? GLASS_DIMMED : DIMMED}>
           <div data-no-keyboard-lift="" className="absolute inset-0">
             {touch && (
               <style>{`
@@ -1142,7 +1503,7 @@ export function Sheet({
             )}
             <motion.div
               data-pw="demo-sheet-backdrop"
-              style={{ ...WINDOW_COVER, background: C.backdrop }}
+              style={{ ...WINDOW_COVER, background: glass ? C.backdropGlass : C.backdrop }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -1151,7 +1512,7 @@ export function Sheet({
             />
             <motion.div
               data-pw="demo-sheet-panel"
-              className="absolute left-0 w-full overflow-hidden"
+              className="absolute left-0 w-full overflow-hidden flex flex-col"
               style={{
                 // A picker keeps its height and rests on the bottom; a tall
                 // sheet keeps its top, so the dimmed page shows above it.
@@ -1161,8 +1522,9 @@ export function Sheet({
                   ? { top: top(y) }
                   : { height: DESIGN_H - y + UNDER_BAR }),
                 bottom: -UNDER_BAR,
-                background: paper,
+                background: C.white,
                 borderRadius: `${radius}px ${radius}px 0 0`,
+                boxShadow: shadow,
               }}
               initial={{ y: "100%" }}
               animate={{ y: rest }}
@@ -1191,8 +1553,17 @@ export function Sheet({
                   onPointerDown={(e) => grip.start(e)}
                 />
               )}
+              {band > 0 && (
+                <div
+                  data-pw="demo-sheet-handle-bar"
+                  className="flex flex-col w-full shrink-0"
+                  style={{ height: band }}
+                >
+                  {handle}
+                </div>
+              )}
               <div
-                className={`flex flex-col w-full h-full ${fit ? "overflow-y-auto overflow-x-hidden overscroll-contain" : ""}`}
+                className={`flex flex-col w-full ${band > 0 ? "flex-1 min-h-0" : "h-full"} ${fit ? "overflow-y-auto overflow-x-hidden overscroll-contain" : ""}`}
                 style={{
                   // A `fit` sheet scrolls, and its steps run on under
                   // Safari's bar; it keeps room for the part of a lowered
@@ -1203,15 +1574,7 @@ export function Sheet({
                 }}
                 onClick={(e) => focusTappedField(e, touch)}
               >
-                <div
-                  className="shrink-0 self-center"
-                  style={{
-                    marginTop: SHEET.handle.top - 1,
-                    width: SHEET.handle.width,
-                    height: SHEET.handle.height,
-                    background: "#C4C2C2",
-                  }}
-                />
+                {band === 0 && handle}
                 {children}
               </div>
               {outline && (

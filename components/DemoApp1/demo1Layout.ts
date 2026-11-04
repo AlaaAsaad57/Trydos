@@ -42,8 +42,92 @@ export {
 
 import { DESIGN_W, STATUS_BAR, TAB_BAR } from "../DemoApp/demoLayout";
 
+/**
+ * The size of the tab bar when the page has scrolled down: the size of
+ * Safari 26's own small address pill on the iPhone, so the two bars match.
+ *
+ * Measured on an iPhone screenshot (2.14 px per CSS px): the pill is
+ * 306 x 66 px, so 143 x 31 CSS px. The pill is narrower for its height than
+ * the tab bar (386 x 58), so one scale cannot give both numbers. The bar
+ * scales by the height (31 / 58), and its box also gets narrower, so the
+ * scaled bar is 143 wide. The icons keep their shape.
+ * (`BAR_SCROLL.minScale` in barMotion.ts keeps the old 0.72; this bar uses this scale instead.)
+ */
+export const TAB_BAR_MIN = { width: 143, height: 31 } as const;
+
+/** The smallest scale of the tab bar: the height ratio (31 / 58). */
+export const TAB_BAR_MIN_SCALE = TAB_BAR_MIN.height / TAB_BAR.height;
+
 /** The widest the page grows. Past it (a tablet, a laptop) it is a centred column. */
 export const PAGE_MAX = 500;
+
+/**
+ * A store's page growing out of the tapped card (see Demo1Shell, "A store's
+ * page"). Material 3 gives a container transform 450 – 500 ms and its
+ * "emphasized" curve: a quick start that slows into place. The demo takes the
+ * short end, 450 ms, so the page feels light, and the curve's standard form
+ * (0.2, 0, 0, 1), which has no overshoot.
+ */
+export const STORE_GROW = {
+  duration: 0.45,
+  ease: [0.2, 0, 0, 1] as const,
+};
+
+/** The page shrinking back into its card: a little quicker, as leaving should be. */
+export const STORE_SHRINK = {
+  duration: 0.38,
+  ease: [0.2, 0, 0, 1] as const,
+};
+
+/**
+ * The move of a slide in the Home sliders, as a list of points from 0 to 1,
+ * one for each frame at 60 frames a second.
+ *
+ * Embla (the sliders on Home, `duration: 25`) does not use a CSS curve. On
+ * each 1/60 s step it adds (target - place) / 25 to the speed, keeps 0.68 of
+ * the speed (Embla's friction), and moves by it. This runs the same steps,
+ * so a page that slides with these points moves exactly like a Home slide.
+ * The list stops when the slide is 0.2 % from its end (under 1 px on a phone);
+ * Embla's last frames move less than that.
+ */
+function sliderCurve(): number[] {
+  const points = [0];
+  let place = 0;
+  let speed = 0;
+  while (1 - place > 0.002 && points.length < 120) {
+    speed += (1 - place) / 25;
+    speed *= 0.68;
+    place += speed;
+    points.push(place);
+  }
+  points[points.length - 1] = 1;
+  return points;
+}
+
+const SLIDER_POINTS = sliderCurve();
+
+/**
+ * Home ↔ a store's page: both screens move a full screen width together, as
+ * one Home slide moves, with the Home slider's own speed (see sliderCurve).
+ * `dir` 1 moves the screens to the left (a new page comes from the right).
+ * `leaving` is the screen that goes out; the other one comes in.
+ */
+export function sliderMove(dir: 1 | -1, leaving: boolean) {
+  const from = leaving ? 0 : dir * 100;
+  const to = leaving ? -dir * 100 : 0;
+  return {
+    x: SLIDER_POINTS.map((p) => `${from + (to - from) * p}%`),
+    opacity: 1,
+    transition: {
+      x: {
+        duration: (SLIDER_POINTS.length - 1) / 60,
+        ease: "linear" as const,
+        times: SLIDER_POINTS.map((_, i) => i / (SLIDER_POINTS.length - 1)),
+      },
+      opacity: { duration: 0 },
+    },
+  };
+}
 
 /** The device's own top inset. 0 in a browser tab, the notch in a home-screen app. */
 export const SAFE_TOP = "env(safe-area-inset-top, 0px)";

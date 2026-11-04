@@ -42,6 +42,7 @@ import { shouldShowReturnedQty } from "./returnedQty";
 import { ORDER_MGMT_EVENTS, trackOrderMgmt } from "utils/orderFunnel";
 import OrderChatIcon from "components/settings/OrderChatIcon";
 import { fetchData } from "utils/fetchData";
+import { showErrorNotification } from "store/notifications/reducer";
 import { REQUESTS_DATA } from "utils/Requests";
 import {
   OPEN_DELIVERY_CHAT_EVENT,
@@ -295,14 +296,20 @@ function OrderDetailsWrapper({
         reqTitle: REQUESTS_DATA.GET_CHAT_WITH_DELEIVERY,
         method: "POST",
         server: "chat",
+        // The backend's text is English and, on a refusal inside a 200, would
+        // show as a success toast. The catch below shows our own error.
+        noMessage: true,
         body: JSON.stringify({
           original_user_id: auth.UserID(),
           order_id: order_id,
           ...(is_return ? { parent_order_id: parent_order_id } : {}),
         }),
       });
+      // The chat backend can refuse inside a 200 (`isSuccessful: false`, e.g.
+      // "Recipient user not found"). fetchData calls any 2xx a success.
       if (
         !response.success ||
+        response?.isSuccessful === false ||
         (!response?.data?.channel && !response.data?.recipient)
       ) {
         throw new Error(response.message);
@@ -366,6 +373,7 @@ function OrderDetailsWrapper({
       if (error.name === "AbortError") {
         return;
       }
+      showErrorNotification(translateFunction("Could not open the chat"));
       LogError({
         error: error,
         scenario: "Error In getChatWithShipping in OrderDetailsWrapper",

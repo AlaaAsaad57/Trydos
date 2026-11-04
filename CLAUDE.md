@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Long rules live in `docs/claude/`. Read the file named in each "Read" line when your task matches it.
+
 ## Project
 
 Trydos — a multilingual e-commerce / live-shopping storefront. Next.js 16 (App Router) + React 19 + TypeScript + Zustand 5 + TailwindCSS 4, deployed on Vercel against two separate backends: the **core** backend (`BACKEND_URL`) and the **gateway** (`GO_BACKEND_URL` — pending rename, see "Stack-agnostic naming").
@@ -29,7 +31,7 @@ pnpm e2e:health     # is staging answering? run this before blaming a test
 pnpm lint:i18n-parity   # ar/tr/ku translation keys are in step
 ```
 
-Two suites exist: the **unit** suite (`tests/`, Vitest) and the **browser** suite (`tests/e2e/`, Playwright, run against staging). In CI, neither suite runs on a push or a pull request. Both run every **Friday** on `main` (unit at 02:10 UTC in `tests.yml`: parity, lint, typecheck, unit; browser at 02:30 UTC in `test-e2e.yml`), or by hand with `gh workflow run Tests` / `gh workflow run E2E --ref <branch>`. Deploying is by hand too (`gh workflow run Deploy`). Do not add tests outside these two, and do not add a test for code that has no caller. Anything you do add must follow the rule below.
+Two suites exist: the **unit** suite (`tests/`, Vitest) and the **browser** suite (`tests/e2e/`, Playwright, run against staging). In CI, neither suite runs on a push or a pull request. Both run every **Friday** on `main` (unit at 02:10 UTC in `tests.yml`: parity, lint, typecheck, unit; browser at 02:30 UTC in `test-e2e.yml`), or by hand with `gh workflow run Tests` / `gh workflow run E2E --ref <branch>`. Deploying is by hand too (`gh workflow run Deploy`). Do not add tests outside these two, and do not add a test for code that has no caller. Anything you do add must follow the testing rules below.
 
 ## Opening the app by hand — always use the `sy-en` locale
 
@@ -52,68 +54,19 @@ Next.js 16 renames `middleware.ts` → **`proxy.ts`**. This single file runs on 
 - Sitemaps are generated dynamically (`app/sitemap-*.xml`, `robots.ts`).
 
 ### Data fetching — three distinct paths (do not mix)
-1. **Server components / server actions → `serverRequests/HandleAuthedFetch.ts`**. Reads `MARKET-TOKEN` (one cookie for guest AND signed-in). Its 401 handling is in "Sessions and tokens" below. Cookie writes no-op during pure render (allowed only in Server Actions / Route Handlers). Wraps `fetchServerData` (`serverRequests/ServerFetch.tsx`).
+1. **Server components / server actions → `serverRequests/HandleAuthedFetch.ts`**. Reads `MARKET-TOKEN` (one cookie for guest AND signed-in). Its 401 handling is in the sessions file below. Cookie writes no-op during pure render (allowed only in Server Actions / Route Handlers). Wraps `fetchServerData` (`serverRequests/ServerFetch.tsx`).
 2. **Client-side (services, handlers) → `utils/fetchData.ts`** with the `{ url, method, body, server, reqTitle }` shape.
 3. **Bare `fetch`** only for internal API routes you control (e.g. `/api/auth/update-user`), where token injection isn't needed.
 
 Endpoint path constants live in `utils/endpointConfig.tsx`.
 
-### Sessions and tokens — read before you judge any 401
-
-**Lifetimes (staging, all services).** Access token: **60 seconds**. Refresh
-token: **2 days**, **single-use** — every exchange rotates the pair, and the old
-refresh token is dead the moment the backend answers. So any signed-in page
-older than a minute meets a 401 on its next call. That is normal.
-
-**One pair per service.** A 401 on one never means another is broken.
-
-| Service | Cookies | On a 401 |
-|---|---|---|
-| market (core / gateway) | `MARKET-TOKEN` + `COOKIE_NAMES.MARKET_REFRESH_TOKEN` | exchange, then retry at once |
-| chat | `CHAT-TOKEN` + its refresh cookie | exchange, wait 2 s, retry |
-| stories | `STORIES-TOKEN` + its refresh cookie | exchange, wait 2 s, retry |
-| comments | `USER_ID_HASH` + `COMMENTS-REFRESH-TOKEN` | exchange, wait 2 s, retry |
-| wallet | `WALLET-TOKEN` (no refresh) | `need_auth` prompt |
-
-`STALE_TOKENS_FOR` in `utils/fetchData.ts` keys the cleanup per service.
-
-**The client path (`utils/fetchData.ts` → `services/auth.ts` `RefreshSession`).**
-1. The call answers **401** (first attempt only, `authAttempt === 0`).
-2. The client posts `/api/auth/refresh` `{url, server}`. The route exchanges on
-   the server (`utils/server/authRefresh.ts`) — verified user → core, guest →
-   gateway — and sets the new pair **on its own response** (`Set-Cookie`).
-3. The same call is sent again. **That answer is the real one.**
-4. Parallel 401s share one exchange. A 401 from a call sent **before** the
-   last rotation retries with the stored pair and exchanges nothing
-   (`sentAt`, commit `aa6cc51b`).
-
-**When the market exchange is refused**, the retry gets 401 again →
-`ExpiredUser` → `/api/auth/expire` (one last exchange) → `register-guest`.
-**The shopper becomes a new guest, and every sub-service cookie is deleted.** A
-verified shopper also gets the "please sign in again" prompt. Chat, stories and
-comments fall through to the `need_auth` prompt instead.
-
-**The server path (`HandleAuthedFetch`).** On a market 401 it exchanges
-(`refreshMarketSession`, single-flight per refresh token) and retries. On a
-refused exchange it returns the 401 — it does **not** make a guest. It
-registers a guest only when there is **no** refresh cookie and the user is not
-verified.
-
-**The new pair is lost if the page leaves mid-exchange.** A `page.goto`, a
-reload or a closed tab cancels the `/api/auth/refresh` answer. The backend has
-already spent the old refresh token, the jar still holds it, and the next
-exchange is refused → guest. `tests/e2e/harness/renewalGate.ts` exists for this.
-
-**In practice:**
-- Never treat the first 401 as a refused write. Judge the **first answer that is
-  not a 401**, and say so when only 401s came (`watchCommentCall` in
-  `tests/e2e/actions/productComments.ts`).
-- A 401 in a log is not a bug. Read what followed it: `refresh-token 200` + a
-  good retry is the normal path; `refresh-token 401` + `register-guest` is a
-  lost session.
+### Sessions and tokens — summary
+- Access token lives **60 seconds**. Refresh token lives **2 days** and is **single-use** (every exchange rotates the pair). So a 401 on a signed-in page older than a minute is normal.
+- Each service has its own cookie pair (market, chat, stories, comments). A 401 on one never means another is broken. Wallet has no refresh.
+- Never treat the first 401 as a failure. Judge the **first answer that is not a 401**. `refresh-token 401` + `register-guest` is a lost session.
 - `/api/proxy` sets `x-market-backend: gateway|core` — read it, never guess.
-- A retry adds one round trip (plus 2 s for chat/stories/comments). That is not a
-  slow backend.
+
+**Read `docs/claude/sessions-and-tokens.md` before you judge any 401, or touch `utils/fetchData.ts`, `services/auth.ts` or `HandleAuthedFetch`.**
 
 ### State — single combined Zustand store (`store/index.ts`)
 All slices (`auth`, `Cart`, `chat`, `Details`, `homepage`, `listing`, `search`, `notifications`) live in `store/<domain>/reducer.ts` and are spread into one `useAppStore`. Devtools middleware is applied **only** in development — do not add it elsewhere. In non-React / service code use `useAppStore.getState()`; never call the hook in a Server Component.
@@ -125,7 +78,7 @@ Domain modules (`auth.ts`, `cart.ts`, `chat.ts`, `search.ts`, `order(s).ts`, `el
 Rate limiting and abuse/DDoS protection run at the platform edge via **Vercel Firewall** (rules configured in the Vercel dashboard), before functions are invoked. There is no in-code rate-limiter wrapper. If a specific endpoint needs business-logic limits (auth, OTP, checkout), use an edge-compatible limiter such as Upstash `@upstash/ratelimit` — never `ioredis` in middleware (it can't run on the Edge runtime).
 
 ### Auth & tokens
-JWTs live **only** in HttpOnly cookies — the pairs in "Sessions and tokens" above, plus `User-Data` (profile JSON). `DEVICE-TOKEN` is legacy: never read or set it (it survives only in logout-cleanup lists). Read server-side via `utils/cookies/cookie-manager` / `next/headers`. Never put tokens in localStorage or expose them to client components.
+JWTs live **only** in HttpOnly cookies — the service pairs above, plus `User-Data` (profile JSON). `DEVICE-TOKEN` is legacy: never read or set it (it survives only in logout-cleanup lists). Read server-side via `utils/cookies/cookie-manager` / `next/headers`. Never put tokens in localStorage or expose them to client components.
 
 ### Error reporting & analytics
 `LogError` / `LogServerError` route to **Sentry** (config in `sentry.*.config.ts`, `instrumentation*.ts`). Analytics via `utils/gtag.ts` (Google Analytics) and PostHog (`utils/posthog.ts`) for session replay + product analytics.
@@ -144,222 +97,56 @@ lost write. Reviews: `GetRatingCommentsForProduct` skips `status: "deleted"`.
 ## Conventions
 
 - **Path aliases** (`tsconfig.json`): `@/*`, `services/*`, `components/*`, `styles/*`, `assets/*` all resolve from repo root. Bare imports like `utils/...`, `store`, `serverRequests/...` work because `"*": ["./*"]` is mapped.
-
 - **TailwindCSS uses custom max-width breakpoints** (inverted): `xs`/`sm` = max 480px, `md` = max 768px, `lg2` = max 912px, `lg` = min 769px. Use these, not raw pixels. Default font is `font-sans` (Quicksand).
 - **React Compiler is enabled** (`reactCompiler: true`) — don't add manual `useMemo`/`useCallback` without a profiled reason.
 - `next/image` domains are allowlisted in `next.config.ts` (`images.domains`); add new media hosts there.
 
-## Testing — MANDATORY: a failure must say exactly what broke
+## Testing — a failure must say exactly what broke
 
-**A test exists to tell you *what* is broken, not *that* something is broken.**
-Read the failure alone, with no code open and no re-run: it must name the step
-that failed, and — when that step called a backend — which backend. If it does
-not, the test is not finished, however green it is today.
+A test tells you *what* broke, not *that* something broke. Rules in short:
 
-This is the single most valuable property a test here can have, because these
-flows are long. Placing an order is a dozen steps across several backends. So
-is signing in. `expect(result).toBeTruthy()` in the middle of one of those turns
-a five-second answer into an afternoon of bisecting by hand.
+- **Every assertion has a message** that says what should be true, in plain words. Put the status code or id in it when it helps. Never put a token, one-time code or phone number in it.
+- **One assertion per step** that can fail on its own. Name the backend whenever a step calls one (core, gateway, chat, stories, comments, wallet, media, search).
+- **A partial success is a failure.** Check each part, and check the content, not only that something exists.
+- **Never assert on a count.** Assert the thing you mean, by name.
+- **Long browser flows use `test.step()`.** Copy `tests/e2e/profile.live.spec.ts`.
+- **A red test is not a bug report.** Confirm the bug in the app code first. Only then touch app code.
+- **Every bug fix needs a test you saw red first, then green.** Say which test, and that you saw it red, in the commit and the reply. Keep the test in `tests/`. Prefer the unit suite.
+- **Adding a step or backend to a flow adds its own check** in the same change.
 
-### The rules
-
-1. **Every assertion carries a message.** Both suites support it — Vitest and
-   Playwright take a message as the second argument to `expect`. The message
-   says what was supposed to be true, in plain words, from the point of view of
-   somebody who did not write the test.
-
-   ```ts
-   ✗ expect(order).toBeTruthy()
-   ✗ expect(res.status).toBe(200)
-   ✓ expect(order.id, "placing the order returned no order id").toBeTruthy()
-   ✓ expect(res.status, `the payment backend refused the charge (${res.status})`).toBe(200)
-   ```
-
-2. **One assertion per step, and one step per thing that can fail
-   independently.** If a flow has ten steps that can each break on their own, it
-   needs ten checks. Never collapse them into one assertion at the end — that
-   assertion can only ever say "the flow did not work".
-
-3. **Name the backend whenever a step crosses one.** This app talks to several:
-   the storefront core, the gateway, chat, stories, comments, wallet, media,
-   search. "Sign-in failed" is not a finding; "the wallet sign-in did not land"
-   is. Where the app already labels the failure itself — the sign-in route
-   collects per-service failures under an `endpoint` label (`CHAT`, `STORIES`,
-   `COMMENTS`, `WALLET`) and returns them as `is_failed` — **quote what the app
-   said** rather than inferring it from what is missing, so the test, the log
-   and Sentry all name the same thing.
-
-4. **A partial success is a failure.** Several of these flows answer `200` with
-   part of the work done, on purpose — a dead wallet must not stop a shopper
-   browsing. That is correct product behaviour and it is exactly why the test
-   has to look at each part: there is no error for it to notice.
-
-5. **Never assert on a count.** `toHaveLength(13)` tells you a number changed,
-   not which one is missing, and it breaks the day a step is added. Assert the
-   thing you mean, by name.
-
-6. **Check the content, not only that something is there.** A cookie, a record
-   or a response that exists but carries no usable payload is a failure. Never
-   assert a name is present and stop.
-
-7. **Put the actual value in the message when it helps.** A status code, an id,
-   the backend's own error string. Never put a token, a one-time code, a phone
-   number or any other credential in it — those must not reach output or any
-   kept artifact.
-
-8. **Long browser flows use `test.step()`** so the report names the step that
-   failed rather than a line number. `tests/e2e/profile.live.spec.ts` is the
-   model — including the nested per-backend form, `` await test.step(`the
-   ${leg} backend took the change`, …) ``, which is what makes a fan-out failure
-   name the backend that refused. Copy that file.
-
-9. **Adding a step or a backend to a flow means adding its own check** in the
-   same change.
-
-### A red test is not a bug report — confirm, fix, then prove
-
-**MANDATORY on every test ticket.** A test going red means *something* is wrong.
-It does not tell you *what*, and it does not tell you the app is at fault. Most
-red tests are wrong tests. So never change application code because a test asked
-you to. Follow these four steps in order, every time:
-
-1. **Confirm it is a real bug.** Read the application code and prove the fault is
-   there. A red test on its own is not proof — the test may look at the wrong
-   moment, read the wrong value, or assert something the app was never meant to
-   do. Say out loud what the app does wrong and where.
-2. **Only then may you touch application code.** Before step 1 is done,
-   application code is off limits and the fix is in the test. This is the gate:
-   confirmation first, code second, never the other way round.
-3. **Fix the smallest thing** that removes the fault.
-4. **Prove it with a test that failed before the fix and passes after.** If the
-   test passes both before and after, it never covered the bug — go back to
-   step 1. Say which test, and that you saw it red first.
-
-If step 1 says the app is fine, the test was wrong. Fix the test and record what
-it was actually doing, so the next reader does not chase the same ghost.
-
-**A test that cannot prove what it claims is not finished.** Never ship a check
-that reports "pass" for a case it cannot see, and never park one as "known
-weak" — that is the silent pass this whole section exists to prevent. If the
-right signal is hard to find, keep looking, or say plainly that the criterion is
-not covered yet. Do not let a green tick stand in for it.
-
-### Every bug is confirmed by a test before it is fixed — no exceptions
-
-**MANDATORY, repository-wide.** The four steps above are written for a test that
-went red. They apply to a bug found **any** other way too: while reading code,
-from a Sentry report, from a shopper's complaint, from a review comment, or
-because you noticed it in passing. How the bug was found changes nothing.
-
-So, for every fix to application code:
-
-1. **Write a test that fails because of the bug**, before the fix. The test must
-   go red for the bug itself — not for a missing mock, a wrong URL or a typo in
-   the test. Run it and **see it red**.
-2. **Then fix the smallest thing** that removes the fault.
-3. **Run the same test again and see it green.** If it was green before the fix,
-   it never covered the bug: it is the wrong test, and the bug is not confirmed.
-   Go back to step 1.
-4. **Say all three out loud** in the commit, the ticket and the reply: which
-   test, that it was seen red, and that it is green after. "It should be fixed"
-   is not a result.
-
-**Keep the test.** The red-first run confirms the bug; the test that stays in
-the suite is what stops it coming back. If the confirming test is throwaway —
-a script, a one-off `console.log`, a temporary route — then the fix is not
-proved yet, and a real test in `tests/` still has to be written and has to fail
-against the old code. Prove that by reverting the fix, running it, and putting
-the fix back.
-
-**Which suite.** Put the test where the bug lives: the unit suite (`tests/`) for
-anything that can be reproduced without a backend, and the browser suite
-(`tests/e2e/`) only when it genuinely cannot. Prefer the unit suite — it runs in about
-five minutes with no backend, so a fix proved there is checked on every run;
-the browser suite needs staging up, so a fix proved only there goes unchecked
-whenever staging is down.
-
-**The two allowed exceptions, both narrow.**
-
-- **A backend is at fault.** Then there is nothing in this repository to fix.
-  The test stays red and names the backend — see the rule above.
-- **A regression guard for a fix that is already proved.** Adding a cheaper test
-  for a bug some other test already proved is welcome, and it is expected to be
-  green from the moment it is written. Say which test did the proving.
-
-Anything else — a fix with no test, a test written after the fix and never seen
-red, a "too hard to reproduce" — is an unconfirmed fix. Report it as one.
-
-### Scope
-
-Applies to **both** suites — unit (`tests/`, Vitest) and browser (`tests/e2e/`,
-Playwright) — and to every multi-step flow: order placing, checkout and payment,
-sign-in and sign-out, cart changes, media upload, seller dashboard actions.
-
-It binds **every test you write or change from now on**. Existing tests are
-brought up to it as they are touched — there is no sweep, and a bare assertion
-you happen to read is not a ticket. Most unit-suite assertions still carry no
-message; that is the gap this rule closes over time.
-
-One allowance, not a loophole: in a small unit test whose **name already says
-precisely what failed**, the name is the message and a second one adds nothing.
-The requirement is that *the failure identifies the step* — not that the words
-sit in any particular place. The moment a test covers more than one step or more
-than one backend, that allowance is gone.
-
-### Browser suite — causes we have already met
-
-Check these **before** you suspect the app. Each one has turned a green app red.
-
-| Symptom in the run | Real cause | What the test must do |
-|---|---|---|
-| Shopper becomes a guest mid-journey; later calls say `Token is missing` | The test navigated while `/api/auth/refresh` was in flight; the new pair never landed | `waitForRenewalSettled(page)` before any `goto` / reload on a signed-in page (`harness/renewalGate.ts`) |
-| A write "did not land", but a later read shows it did not happen either | The test moved on after clicking Save; the write got a 401 and its retry was cancelled | Wait for the write's first non-401 answer before the next step (`watchCommentCall`, `addAddress`) |
-| A deleted / edited item is still shown after one reload | Elasticsearch had not caught up yet | Bounded reloads: 6 × 10 s, none after 60 s (`checkpoint`); read at `load`, not `domcontentloaded` |
-| "Not shown" passes too easily | The section had not streamed in yet | Wait for `load` or for the section itself before asserting absence |
-| Checkout shows no address | Addresses exist, but none has `is_default: 1` | Pick one from the list, as a shopper does |
-| No cash-on-delivery offered | COD exists only in `sy`; the live suite defaults to `iq` | Seed `sy` for any paying case |
-| Every journey fails on the nav logo | Staging Elasticsearch is down; one ES throw blanks the page | `pnpm e2e:health` first |
-| `ERR_ABORTED` on a `page.goto` | A popup (cart / login / stories) that just closed cancelled it | `waitForPopupHistorySettled` |
-| A dispatched E2E run shows `cancelled` without starting | `test-e2e.yml` uses one global `live-suite` group; GitHub keeps only one run waiting, so a third run drops the one already waiting | Start one run at a time, and wait for it |
-| **AUTH-01** red | The wallet backend answers `502` on sign-in | Stays red on purpose — a backend fault |
-
-The shopper account is shared by every case. A killed run can leave its data
-behind (probe addresses, a moved default address). Name the leftover in the
-message; never assume the account is clean.
+**Read `docs/claude/testing-rules.md` before you write or change a test, or fix a bug.** For a red browser test, also read `docs/claude/e2e-known-causes.md` before you suspect the app.
 
 ## Internationalization — MANDATORY for every user-visible string
 
-**Any word or sentence a user can see is translatable. Before you write or edit UI copy, translate it — never ship a hardcoded string.** This applies to JSX text, `placeholder` / `aria-label` / `title` / `alt`, button labels, validation and error messages, toast/dialog copy, confirm-diff labels — and to copy built in helper/`.ts` files (e.g. `validate()`, diff builders), not just `.tsx`.
+**Any word or sentence a user can see is translatable. Never ship a hardcoded string.** This covers JSX text, `placeholder` / `aria-label` / `title` / `alt`, button labels, validation and error messages, toast/dialog copy, and copy built in helper/`.ts` files (e.g. `validate()`, diff builders), not just `.tsx`.
 
-The app has **4 languages**: `en` is the source (the English string *is* the key — no file), and `ar` / `tr` / `ku` are looked up in the three files under `public/translations/translations.<lang>.js`. Resolve copy through `translateFunction(key)` (client) / the `utils/server` variant (server components — see the async-cache rule) rather than a raw literal.
+The app has **4 languages**: `en` is the source (the English string *is* the key — no file), and `ar` / `tr` / `ku` are looked up in `public/translations/translations.<lang>.js`. Use `translateFunction(key)` (client) / the `utils/server` variant (server components — see the async-cache rule).
 
-**Workflow before adding/editing any user-visible text:**
-1. **Check** whether the exact English key already exists in **all three** `translations.{ar,tr,ku}.js` files (`grep -F '"<exact string>":'`).
-2. **If it exists**, reuse it — wrap the string in `translateFunction(...)` / `t(...)`. Do **not** invent a synonym or restyle the wording to something new.
-3. **If it is missing**, first **add the key to every one of the three files** (with a correct `ar`, `tr`, `ku` translation), *then* use it in code. Never use a key that isn't in the files.
+**Before adding or editing any user-visible text:**
+1. **Check** whether the exact English key exists in **all three** files (`grep -F '"<exact string>":'`).
+2. **If it exists**, reuse it. Do **not** invent a synonym.
+3. **If it is missing**, add the key to **all three** files (correct `ar`, `tr`, `ku`), *then* use it in code.
 
 **Rules:**
-- **Never miss a string.** Every hardcoded word/sentence must be traced and wrapped — placeholders, alts, and helper-file messages included.
-- **Never deduplicate keys.** Each distinct English string is its own key with one entry per file; don't merge distinct strings under a shared key, and don't drop an existing key to avoid a near-duplicate. A repeated word still gets wrapped at every call site.
-- **Interpolation:** translate the static sentence and interpolate the dynamic value — e.g. `` `${t("Missing")}: ${name}` `` — never build a key by string concatenation.
-- Keep the three files **key-parallel**: a key added to one must be added to the other two in the same edit.
+- **Never miss a string.** Trace every hardcoded word, including placeholders, alts and helper-file messages.
+- **Never deduplicate keys.** Each distinct English string is its own key, one entry per file.
+- **Interpolation:** translate the static sentence and interpolate the value — `` `${t("Missing")}: ${name}` `` — never build a key by concatenation.
+- Keep the three files **key-parallel** in the same edit.
 
 ## Stack-agnostic naming — never encode the backing technology
 
-**Never name or store anything after the technology that happens to implement it.** No `go`, `laravel`, `nest`, `next`, `django`, `rails`, `symfony`, `express`, … in any name or persisted value. Name things after the **role they play in the product**, not the stack behind them — a service that gets rewritten in another language must not force a rename (or, worse, keep a name that now lies).
-
-Applies to: env vars, identifiers (constants, functions, types, object keys), cookie/storage keys, file and directory names, ticket/branch names, HTTP header and query names, API request/response fields, telemetry and log payloads, and error messages.
+**Never name or store anything after the technology that implements it.** No `go`, `laravel`, `nest`, `next`, `django`, `rails`, `symfony`, `express`, … Name things after the **role they play in the product**. This covers env vars, identifiers, cookie/storage keys, file and directory names, ticket/branch names, HTTP header and query names, API fields, telemetry/log payloads and error messages.
 
 ```
 ✗ GO_BACKEND_URL, GO_APIS, isFromGoApi, isLaravelVerify, { backend: "laravel" }
 ✓ GATEWAY_BACKEND_URL, GATEWAY_APIS, isGatewayApi, isCoreVerify, { backend: "core" }
 ```
 
-Two backends serve this app; refer to them by role — the **gateway** (guest/allow-listed traffic) and the **core** backend (`BACKEND_URL`, verified-user traffic). Use those words in code, comments, docs, and tickets.
+Two backends serve this app: the **gateway** (guest/allow-listed traffic) and the **core** backend (`BACKEND_URL`, verified-user traffic). Use those words in code, comments, docs and tickets.
 
-**Exempt** (framework-mandated, not our choice): imports from `next/*`, the `NEXT_PUBLIC_` env prefix Next.js requires, config files a tool dictates by name (`next.config.ts`), and dependency names in `package.json`. Everything we control is in scope.
+**Exempt** (framework-mandated): imports from `next/*`, the `NEXT_PUBLIC_` env prefix, config files a tool names (`next.config.ts`), and dependency names in `package.json`.
 
-**Why it is also a security rule:** advertising the server stack to the browser hands an attacker a free head start on which CVEs to try. Nothing that reaches the client — response bodies, headers, error text, bundle identifiers, public env values — may name the backend technology.
+**Security rule too:** nothing that reaches the client (response bodies, headers, error text, bundle identifiers, public env values) may name the backend technology.
 
 ## Security note
 
@@ -369,20 +156,14 @@ Two backends serve this app; refer to them by role — the **gateway** (guest/al
 
 - **`app/api/auth/simulate/route.ts`** — an unauthenticated `POST` that sets `MARKET-TOKEN`, `User-Data`, the chat/stories/wallet tokens and `USER_ID_HASH` from the request body. It has no environment gate, and `proxy.ts`'s matcher excludes `/api`, so nothing gates it in code. **This is known.** It exists for testers only and is slated for removal. Do **not** open a ticket for it, do **not** raise it as a review finding, and do **not** build anything that depends on it — set auth cookies through the browser's own cookie store instead.
 
-<!-- wf governance text: v3.4.0 -->
+<!-- wf governance text: v3.4.0 (full text moved to docs/claude/workflow-governance.md) -->
 
-# CLAUDE.md — Engineering Workflows v3
+# Engineering Workflows v3 — project profile
 
 Governance contract for any AI agent (and human) working in this repository.
-This file is authoritative. When in doubt, stop and ask the Workflow Owner.
+When in doubt, stop and ask the Workflow Owner.
 
----
-
-## Project profile — fill this in per repository
-
-> Everything **below** the `---` after this section is the shared governance
-> text. Copy it unchanged. Only this block changes per project. When the plugin
-> ships a new governance version, re-copy the shared text and keep this block.
+**Read `docs/claude/workflow-governance.md` before you work on any `_specs/<ticket>/` item or any `/wf:*` stage.** It holds the stages, hard stops, forbidden actions, review gates and small-change rules. Do not edit it; it is a copy of the `wf` plugin text.
 
 **Mission.** This repository hosts the Trydos storefront — a multilingual
 e-commerce / live-shopping web app (Next.js App Router, two backends: the
@@ -416,178 +197,7 @@ approved `plan.md` lists them:
   error reporting wiring
 - `.github/workflows/**` — CI configuration
 
----
-
-## Workflow types and stages
-
-Pick the workflow type by what changes when the work is finished: a source file
-→ `development`; your understanding of something that already exists → `study`;
-a decision about a direction → `research`. A work item never changes type, and a
-study never quietly becomes an implementation.
-
-**`development`** — the stages this repository uses for a change:
-
-1. `intake` — capture and qualify the request.
-2. `research` — read-only investigation of the repo and impact.
-3. `spec` — define what "done" means (criteria + test cases).
-4. `plan` — decide the approach and concrete steps.
-5. `review` — review spec/plan, with the comprehension gate, before any code.
-6. `implement` — apply the change per the approved plan.
-7. `verify` — validate the change and review runtime impact.
-
-**Tests are declared, written, and run — in that order.** `plan.md` maps every
-`AC-n` to the test file and case that proves it, or says `none — <reason>`;
-`/implement` writes exactly those and no others; `/verify` runs them through the
-profile named in `.claude/project-config.yaml` and records the exit code per
-`AC-n`. A declared test that never ran is a **failed** verification, not a passed
-one — saying it passes is not evidence (PL-13 / IM-11 / VF-11, ADR-026). A test
-the approved plan never named is still scope creep at `implement` (IM-4): declare
-it first, or revise the plan.
-
-**Look for the test before you write one** (PL-14, ADR-027). Each row of
-`plan.md > Tests` records what already covers that `AC-n` and one disposition:
-`existing` (already proven — write nothing), `extend` (the unit has a test file,
-the case is missing — **add it to that file**), or `new`. **A second, parallel
-test file for a unit that already has one is a defect.** `extend` and `new` both
-put the file under files to change, an existing file included.
-
-**A test that proves existing behaviour wrong is a finding, not a fix** (IM-12 /
-VF-12, ADR-027). Record it as `BUG-n` in `implement.md > Findings` and carry it
-into `verify.md > Findings` — scenario, confirming test, where it lives, expected
-vs actual — and **open a separate ticket for it**. The scope line is the *file*:
-wrong behaviour inside `plan.md > Files to change` is yours to fix here; anywhere
-else it is a finding. Keep the confirming test in the suite under the runner's
-**strict** expected-failure marker with the `BUG-n` id, so the suite stays green
-and the fix ticket cannot land without correcting the test.
-
-**`study`** — `intake → scope → analyze → explain → assess` (read-only; no branch,
-no PR). **`research`** — `intake → frame → evidence → evaluate → recommend →
-assess → decide` (evaluates options; records a human decision).
-
-Each stage produces an artifact under `_specs/<ticket>/` in this repository, from
-the templates in the `wf` plugin. The authoritative stage list and the legal
-moves between stages live in the plugin's `workflows/<type>/workflow.yaml`, and the
-plugin's `rules/lifecycle-protocol.md` says how to move — `_specs/<ticket>/ticket.md`
-records the position in `workflow.current_stage` and is written only by the step
-that records an outcome, never by hand. Since v3 nothing *refuses* a bad
-transition; the state history is what makes one visible afterwards.
-`/wf:next <ticket>` runs whatever stage is due.
-
-## Hard stop conditions
-
-Stop immediately and request Workflow Owner direction if any of these occur:
-
-- A change would touch this repository's **protected runtime paths** (listed in
-  **Project profile** above) outside an explicitly approved implement stage.
-- The request requires deleting or rewriting existing workflow artifacts.
-- Acceptance criteria are missing, ambiguous, or untestable.
-- A test is needed that the approved `plan.md > Tests` does not declare (revise
-  the plan — do not write it and do not skip it).
-- A test proves existing behaviour wrong **inside** a file this plan changes, and
-  fixing it would grow the change (record it and block — IM-10 — do not improvise).
-- A stage's entry criteria are not met (e.g. implementing before plan approval).
-- Scope grows beyond what the approved spec/plan describes.
-
-## Language
-
-**Everything written to this repository is in English.** Workflow artifacts,
-comprehension questions and their options, review findings, ADRs, commit
-messages, and PR text — regardless of the language the request or conversation
-used. The conversation may be in any language; the artifacts never are.
-
-**Write that English plainly.** The reader's first language is Arabic, so keep
-the wording simple: short sentences, common words, no idioms, no rare or
-academic vocabulary. This is about *vocabulary only* — the reader is a senior
-engineer. Never simplify the technical content, the depth, or the reasoning, and
-keep standard technical terms as they are (`scrape`, `cardinality`, `rollback`,
-`AC-n`, …). Simple words, full engineering substance.
-
-## Forbidden actions
-
-- Do **not** write any artifact, comprehension question, or PR/commit text in a
-  language other than English (see **Language** above).
-- Do **not** create workflow commands unless a phase explicitly authorizes it.
-- Do **not** implement tickets during research, spec, plan, or review stages.
-- Do **not** modify the **protected runtime paths** (see **Project profile**) as
-  part of workflow/governance work.
-- Do **not** delete `_specs/`, `.claude/project-config.yaml` (this project's half
-  of the config), or `.claude/settings.json` (which enables the `wf` plugin).
-- Do **not** hand-edit `ticket.md > workflow.current_stage`, `status`, or its
-  state history outside the step that records an outcome. Since v3 no runtime
-  refuses a bad transition (ADR-023), so this rule is the whole of the protection:
-  editing those fields directly leaves a ticket whose state and history disagree,
-  and nothing will tell you.
-- Do **not** edit the shared governance text below **Project profile** in this
-  copy. It is a copy. Change the master in the `wf` plugin
-  (`templates/CLAUDE.md`), bump the plugin version, then re-copy.
-- Do **not** skip stages or record a gate decision without completing the
-  **comprehension check**. The single owner runs their own `/review` and
-  `/verify` (self-review is expected; ADR-009) — there is no separate-reviewer
-  requirement; the comprehension gate (CG-1..CG-8) is the control against
-  rubber-stamping.
-
-## Review gate requirements
-
-- The gates `/review` and `/verify` are run per ticket by the **owner** themselves
-  (self-review; ADR-009). Gate integrity comes from the **comprehension check**
-  (the owner answers questions generated from the artifact), not a second person.
-  They do **not** require an Engineering Manager.
-- The `review` stage is a **mandatory gate**: no `implement` may begin until the
-  owner accepts the `spec` and `plan` at `/review` (with the comprehension check
-  completed).
-- The owner signs off again at `verify` (comprehension check) before a ticket is
-  considered done.
-- Review decisions are recorded as `CHANGES_REQUESTED` / `REJECTED` / `APPROVED`
-  against the relevant stage.
-- At `/review`, an **advisory** AI panel (senior / security / performance,
-  read-only) reviews the plan and records findings for the owner (ADR-010). It
-  **informs** the decision — it never blocks or makes it; the comprehension gate
-  remains the control.
-- The comprehension check asks **between 3 and 5 questions** — a floor and a
-  ceiling (ADR-012, ADR-022). Every gate includes **≥1 question on the
-  integration / cross-flow axis** (what the change touches outside itself, which
-  other flow shares that code or config), sourced from the plan's required
-  **Integration surface** section; and `/review` adds **one question per `major`
-  panel finding**, up to the ceiling. A finding may still be dismissed — only
-  after it is understood.
-- **A question that can be answered without reading the artifact is not a gate**
-  (ADR-025). Every option names something that **exists in this project** — a real
-  file, component, `AC-n`, flow, decision — never an invented one; the wrong options
-  are the right fact slightly bent; the question asks what **is** the case
-  here, never what is correct in general; and at least half the questions require
-  joining **two** places in the artifacts rather than reading one sentence. Before
-  the owner sees them, the questions go — **alone, with no artifacts attached** —
-  to a falsifier agent, and any question it can answer from general knowledge is
-  thrown out. The four options also share a **shape** — comparable length, same
-  form, none uniquely explaining *why* — because an option that stands out by
-  construction is pickable with the artifact closed (ADR-028).
-- **A gate that cannot be built is administered short, never skipped** (ADR-028).
-  When too few questions survive falsification, the gate asks the ones the
-  falsifier got **wrong** — even a single question, below the usual floor — records
-  how short it was and why in `degraded:`, and that line goes to the team channel
-  with a warning icon. Only a set the falsifier answered entirely correctly stops
-  the gate outright, and stopping still records no decision.
-- **The gate decision is the owner's, and the framework never suggests one**
-  (RV-2, ADR-029). At `/review` you are offered exactly `APPROVED`,
-  `CHANGES_REQUESTED`, `REJECTED` — no fourth option, none marked recommended,
-  and nothing chosen on your behalf. "Review it again" is not a decision: a plan
-  that needs work is `CHANGES_REQUESTED`, which returns it to `/wf:plan`, the only
-  stage allowed to rewrite a plan. If you are ever offered an extra option or a
-  recommendation at a gate, that is a defect — report it.
-- **A gate never edits what it reviews** (RV-11 / VF-7). `/review` writes only
-  `review.md`, `comprehension.md` and `ticket.md`; `/verify` only `verify.md`,
-  `comprehension.md` and `ticket.md`. A stage that rewrites its own evidence and
-  then passes it has reviewed its own work.
-- The **Workflow Owner** owns governance (workflow evolution, governance
-  decisions, escalations, cross-project issues), not per-ticket sign-off. Escalate
-  to the Workflow Owner only when a hard-stop or governance question arises.
-
-## Small-change philosophy
-
-- Prefer the smallest change that satisfies the acceptance criteria.
-- One ticket = one focused outcome; split anything larger.
-- Bias toward read-only investigation first; touch code last and minimally.
-- Every change must be reversible and individually verifiable.
+**Hard stops (short list).** Stop and ask the Workflow Owner if: a change touches a protected path outside an approved `implement` stage; acceptance criteria are missing or untestable; a test is needed that `plan.md > Tests` does not declare; scope grows past the approved spec/plan; or a stage's entry criteria are not met. Everything written to this repo is plain English. The full list is in the governance file.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

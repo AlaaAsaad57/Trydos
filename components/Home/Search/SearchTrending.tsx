@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { translateFunction } from "utils/functions";
-function SearchTrending({ trending, clearAll, setValue }) {
+function SearchTrending({ trending, setValue }) {
   const [openMenu, setOpen] = useState(false);
   const { lang } = useParams();
   // @ts-ignore
@@ -49,16 +49,6 @@ function SearchTrending({ trending, clearAll, setValue }) {
             </div>
           ))}
         </div>
-      )}
-      {openMenu && (
-        <span
-          className="clear-options-button"
-          onClick={(e) => {
-            clearAll();
-          }}
-        >
-          {translateFunction("Clear All")}
-        </span>
       )}
       {openMenu && (
         <div className="flex-col search-filter-menu">

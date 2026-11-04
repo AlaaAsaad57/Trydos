@@ -15,7 +15,14 @@ import {
   showErrorNotification,
 } from "@/store/notifications/reducer";
 
+import {
+  AUTO_DOWNLOAD_MODES,
+  getAutoDownloadMode,
+  setAutoDownloadMode,
+  type AutoDownloadMode,
+} from "components/Chat/autoDownload";
 import MediaContainer from "./MediaContainer";
+import MediaMessagePreview from "./MediaMessagePreview";
 import TaggedMessages from "./TaggedMessages";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
@@ -61,7 +68,23 @@ function ChatInfo({
       showErrorNotification(translateFunction("Number copy failed"));
     }
   };
+  // The setting is read after mount, because the server render has no
+  // localStorage.
+  const [autoSave, setAutoSave] = useState<AutoDownloadMode>("never");
+  const [autoSaveOpen, setAutoSaveOpen] = useState(false);
+  useEffect(() => {
+    setAutoSave(getAutoDownloadMode());
+  }, []);
+  const chooseAutoSave = (mode: AutoDownloadMode) => {
+    setAutoDownloadMode(mode);
+    setAutoSave(mode);
+    setAutoSaveOpen(false);
+  };
   const [showMedia, setMedia] = useState(false);
+  // The viewer for a photo or video tapped in this drawer. It is the same
+  // widget the chat uses, with the Download and Close buttons.
+  const [previewImg, setPreviewImg] = useState<string | null>(null);
+  const [previewVid, setPreviewVid] = useState<string | null>(null);
 
   useEffect(() => {
     if (ref.current) ref.current.style.display = "flex";
@@ -250,14 +273,14 @@ function ChatInfo({
               <span>{translateFunction("Search")}</span>
             </div>
           </div>
-          <div className="chat-user-files-container">
+          <div
+            className="chat-user-files-container"
+            onClick={() => setMedia(true)}
+          >
             <div className="chat-user-files-icon">
               <img src="/icons/chat/InfoGallery.svg" />
             </div>
-            <div
-              className="chat-user-files-info"
-              onClick={() => setMedia(true)}
-            >
+            <div className="chat-user-files-info">
               <div className=".chat-user-files-info-text text-[#8d8d8d]">
                 {translateFunction("Media & Files")}
               </div>
@@ -302,7 +325,14 @@ function ChatInfo({
           >
             {activeChat?.message_counts?.image_messages?.map(
               (image, index) => (
-                <div className="slider-gallery-item" key={index}>
+                <div
+                  className="slider-gallery-item cursor-pointer"
+                  key={index}
+                  data-pw="chat-info-gallery-image"
+                  onClick={() =>
+                    setPreviewImg(image.message_files[0]?.file_path ?? null)
+                  }
+                >
                   {/* A native image drag would stop the mouse drag of the row. */}
                   <Image
                     className="max-h-[140px]"
@@ -330,6 +360,68 @@ function ChatInfo({
                 openMessage={openMessage}
               />
             )}
+          <div className="w-full shrink-0">
+            <div
+              className="chat-user-gallery-container"
+              data-pw="chat-info-auto-download"
+              role="button"
+              aria-expanded={autoSaveOpen}
+              tabIndex={0}
+              onClick={() => setAutoSaveOpen((open) => !open)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setAutoSaveOpen((open) => !open);
+                }
+              }}
+            >
+              <div className="chat-user-files-icon">
+                <img src="/icons/chat/InfoGallery.svg" />
+              </div>
+              <div className="chat-user-files-info" style={{ height: "auto" }}>
+                <div className="chat-user-files-info-text text-[#8d8d8d]">
+                  {translateFunction("Save To Gallery")}
+                </div>
+              </div>
+              <div className="chat-user-info-arrow gallery-option">
+                <span data-pw="chat-info-auto-download-value">
+                  {translateFunction(autoSave === "always" ? "Always" : "Never")}
+                </span>{" "}
+                <img
+                  src="/icons/chat/arrowRight.svg"
+                  className="w-[3px] h-[13px] ms-2 rtl:rotate-180"
+                />
+              </div>
+            </div>
+            {autoSaveOpen && (
+              <div
+                className="mt-1 overflow-hidden rounded-[20px] bg-[#f4f4f4]"
+                role="radiogroup"
+                aria-label={translateFunction("Save To Gallery")}
+              >
+                {AUTO_DOWNLOAD_MODES.map((mode) => (
+                  <div
+                    key={mode}
+                    role="radio"
+                    aria-checked={autoSave === mode}
+                    tabIndex={0}
+                    data-pw={`chat-info-auto-download-${mode}`}
+                    className="flex cursor-pointer items-center justify-between px-5 py-3 text-[14px] text-[#5d5c5d]"
+                    onClick={() => chooseAutoSave(mode)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        chooseAutoSave(mode);
+                      }
+                    }}
+                  >
+                    <span>{translateFunction(mode === "always" ? "Always" : "Never")}</span>
+                    {autoSave === mode && <span aria-hidden>✓</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="chat-user-options">
             <div
               className="chat-user-option delete-option"
@@ -368,6 +460,16 @@ function ChatInfo({
         <MediaContainer
           mediaFiles={activeChat?.message_counts}
           id={activeChat?.id}
+          onOpenImage={setPreviewImg}
+          onOpenVideo={setPreviewVid}
+        />
+      )}
+      {(previewImg || previewVid) && (
+        <MediaMessagePreview
+          imgs={previewImg}
+          vid={previewVid}
+          setImgs={setPreviewImg}
+          setVid={setPreviewVid}
         />
       )}
       {confirmDelete &&

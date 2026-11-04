@@ -98,6 +98,32 @@ describe("the price curve behind the slider", () => {
     ).toBeGreaterThan(25);
   });
 
+  it("puts each band at its own price on the slider's scale", async () => {
+    giveTheBoxAWidth(400);
+    await renderWithProviders(
+      <SmoothPolygon
+        min={0}
+        max={40}
+        data={[
+          { mon: 0, max: 10, count: 1 },
+          { mon: 10, max: 40, count: 9 },
+        ]}
+      />,
+      { path: "/filters" },
+    );
+
+    // Every curve segment ends on a band point: "C<cp1> <cp2> <x>,<y>".
+    const bandXs = Array.from(
+      (theCurve()?.getAttribute("d") ?? "").matchAll(/C\S+ \S+ ([\d.]+),/g),
+      (m) => Number(m[1]),
+    );
+
+    expect(
+      bandXs,
+      `the band centred on 25 must sit at 25/40 of the 400px ruler (x=250), right under the handle for that price — got band x values ${bandXs.join(", ")}`,
+    ).toContain(250);
+  });
+
   it("draws nothing at all when there are no bands", async () => {
     giveTheBoxAWidth(400);
     await renderWithProviders(<SmoothPolygon data={[]} />, {

@@ -1,7 +1,13 @@
 "use client";
 
 import React from "react";
-import type { DemoScreen } from "../DemoApp/demoRoutes";
+import {
+  isProductScreen,
+  isStoreScreen,
+  productIdOf,
+  storeSlugOf,
+  type DemoScreen,
+} from "../DemoApp/demoRoutes";
 import HomeScreen from "./screens/HomeScreen";
 import SearchScreen from "./screens/SearchScreen";
 import EmptyTabScreen from "./screens/EmptyTabScreen";
@@ -19,9 +25,15 @@ import ChatListScreen from "./screens/ChatListScreen";
 import ConversationScreen from "./screens/ConversationScreen";
 import ContactScreen from "./screens/ContactScreen";
 import CallScreen from "./screens/CallScreen";
+import ListingScreen from "./screens/ListingScreen";
+import ProductScreen from "./screens/ProductScreen";
 
 /** Which component draws which screen of /demo. XD artboard names are in each file. */
 export default function Demo1ScreenView({ screen }: { screen: DemoScreen }) {
+  if (isStoreScreen(screen))
+    return <ListingScreen slug={storeSlugOf(screen)} />;
+  if (isProductScreen(screen))
+    return <ProductScreen slug={storeSlugOf(screen)} id={productIdOf(screen)} />;
   switch (screen) {
     case "home":
       return <HomeScreen />;

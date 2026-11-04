@@ -9,6 +9,112 @@ import {
   tabOf,
 } from "components/DemoApp/demoRoutes";
 
+describe("demo routes — a store's page", () => {
+  it("reads /demo/store/<slug> for a store the demo knows, and nothing else", () => {
+    expect(
+      screenFromUrl("/sy-en/demo/store/zara", ""),
+      "/demo/store/zara is not Zara's store page",
+    ).toBe("store/zara");
+    expect(
+      screenFromUrl("/sy-ar/demo/store/koton", ""),
+      "/demo/store/koton (a store with no logo) is not Koton's store page",
+    ).toBe("store/koton");
+    expect(
+      screenFromUrl("/sy-en/demo/store/nope", ""),
+      "a store slug that demoStores.ts does not know was taken for a store page",
+    ).toBeNull();
+    expect(
+      screenFromUrl("/sy-en/demo/store", ""),
+      "/demo/store with no slug was taken for a store page",
+    ).toBeNull();
+    expect(
+      screenFromUrl("/sy-en/demo/store/zara/extra", ""),
+      "a path under a store page was taken for the store page",
+    ).toBeNull();
+  });
+
+  it("writes a store's page as a real path, so it can be linked to and indexed", () => {
+    expect(
+      hrefFor("sy-en", "store/zara"),
+      "the store page must be a real path under /demo/store",
+    ).toBe("/sy-en/demo/store/zara");
+    expect(
+      sameRoute("home", "store/zara"),
+      "home → a store changes the path, so it needs the router",
+    ).toBe(false);
+  });
+
+  it("opens a store over Home, forward, and leaves it back to Home", () => {
+    expect(direction("home", "store/zara"), "opening a store did not go forward").toBe(1);
+    expect(direction("store/zara", "home"), "leaving a store did not go back").toBe(-1);
+    expect(
+      isTabRoot("store/zara"),
+      "a store page is not a tab's first screen (the shell still shows the tab bar on it)",
+    ).toBe(false);
+    expect(tabOf("store/zara"), "a store page does not belong to the Home tab").toBe(
+      "home",
+    );
+    expect(
+      parentOf("store/zara"),
+      "back from a store page with no history does not go to Home",
+    ).toBe("home");
+  });
+});
+
+describe("demo routes — a product's page", () => {
+  it("reads /demo/store/<slug>/<id> for a store and a product the demo knows, and nothing else", () => {
+    expect(
+      screenFromUrl("/sy-en/demo/store/zara/shirt-1", ""),
+      "/demo/store/zara/shirt-1 is not the page of Zara's product shirt-1",
+    ).toBe("store/zara/shirt-1");
+    expect(
+      screenFromUrl("/sy-en/demo/store/zara/no-such-product", ""),
+      "a product id that demoStores.ts does not know was taken for a product page",
+    ).toBeNull();
+    expect(
+      screenFromUrl("/sy-en/demo/store/nope/shirt-1", ""),
+      "a product under a store that demoStores.ts does not know was taken for a product page",
+    ).toBeNull();
+    expect(
+      screenFromUrl("/sy-en/demo/store/zara/shirt-1/more", ""),
+      "a path under a product page was taken for the product page",
+    ).toBeNull();
+  });
+
+  it("writes a product's page as a real path, so it can be linked to and indexed", () => {
+    expect(
+      hrefFor("sy-en", "store/zara/shirt-1"),
+      "the product page must be a real path under its store's page",
+    ).toBe("/sy-en/demo/store/zara/shirt-1");
+    expect(
+      sameRoute("store/zara", "store/zara/shirt-1"),
+      "a store → its product changes the path, so it needs the router",
+    ).toBe(false);
+  });
+
+  it("opens a product over its store, forward, and goes back to the store", () => {
+    expect(
+      direction("store/zara", "store/zara/shirt-1"),
+      "opening a product from its store did not go forward",
+    ).toBe(1);
+    expect(
+      direction("store/zara/shirt-1", "store/zara"),
+      "leaving a product for its store did not go back",
+    ).toBe(-1);
+    expect(
+      direction("store/zara/shirt-1", "home"),
+      "leaving a product for Home did not go back",
+    ).toBe(-1);
+    expect(tabOf("store/zara/shirt-1"), "a product page does not belong to the Home tab").toBe(
+      "home",
+    );
+    expect(
+      parentOf("store/zara/shirt-1"),
+      "back from a product page with no history does not go to its store",
+    ).toBe("store/zara");
+  });
+});
+
 describe("demo routes — which screen a URL shows", () => {
   it("reads the home route and its search-param screens", () => {
     expect(

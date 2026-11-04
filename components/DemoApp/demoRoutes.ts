@@ -10,11 +10,17 @@
  *  - The settings and profile pages are real paths under `/demo/settings`,
  *    and the screens inside the chat tab (a conversation, a contact, a call)
  *    are real paths under `/demo/chat`. They can be linked to and reloaded.
+ *  - A store's page is a real path, `/demo/store/<slug>` (see demoStores.ts).
+ *    Search engines can reach it, and it has its own title and JSON-LD.
+ *  - A product's page is a real path under its store,
+ *    `/demo/store/<slug>/<product id>`. It has its own title and JSON-LD too.
  *
  * The demo shell draws the screen from this table, not from the page file of
  * the route, so a tap slides the next screen in on the same frame and the URL
  * catches up behind it. See Demo1Shell for why.
  */
+
+import { productById, storeBySlug } from "./demoStores";
 
 export const DEMO_SCREENS = [
   "home",
@@ -36,7 +42,16 @@ export const DEMO_SCREENS = [
   "settings/wallet",
 ] as const;
 
-export type DemoScreen = (typeof DEMO_SCREENS)[number];
+/** A screen with a fixed key. */
+export type DemoStaticScreen = (typeof DEMO_SCREENS)[number];
+
+/** A store's page: `store/<slug>`, one for each store in demoStores.ts. */
+export type DemoStoreScreen = `store/${string}`;
+
+/** A product's page: `store/<slug>/<product id>`, for a store and a product in demoStores.ts. */
+export type DemoProductScreen = `store/${string}/${string}`;
+
+export type DemoScreen = DemoStaticScreen | DemoStoreScreen | DemoProductScreen;
 
 /** The tab bar, left to right. `settings` is the profile tab. */
 export const DEMO_TABS = [
@@ -52,7 +67,43 @@ export type DemoTab = (typeof DEMO_TABS)[number];
 const OVERLAYS: DemoScreen[] = ["search", "cart", "chat"];
 
 const isScreen = (key: string): key is DemoScreen =>
-  (DEMO_SCREENS as readonly string[]).includes(key);
+  (DEMO_SCREENS as readonly string[]).includes(key) ||
+  isStoreScreen(key) ||
+  isProductScreen(key);
+
+/** True for a store's page: `store/<slug>`, with a slug that demoStores.ts knows. */
+export function isStoreScreen(key: string): key is DemoStoreScreen {
+  const [head, slug, ...rest] = key.split("/");
+  return head === "store" && !!slug && !rest.length && !!storeBySlug(slug);
+}
+
+/** The slug of a store's page, or of the store a product's page is under. */
+export const storeSlugOf = (key: DemoStoreScreen | DemoProductScreen) =>
+  key.split("/")[1];
+
+/** True for a product's page: `store/<slug>/<id>`, with a store and a product that demoStores.ts knows. */
+export function isProductScreen(key: string): key is DemoProductScreen {
+  const [head, slug, id, ...rest] = key.split("/");
+  return (
+    head === "store" &&
+    !!slug &&
+    !!id &&
+    !rest.length &&
+    !!storeBySlug(slug) &&
+    !!productById(id)
+  );
+}
+
+/** The product id of a product's page. */
+export const productIdOf = (key: DemoProductScreen) => key.split("/")[2];
+
+/**
+ * True for a screen that a card opens: a store's page (from a card on Home)
+ * and a product's page (from a card on a store's page). The card grows into
+ * the page, and the page shrinks back into it (see Demo1Shell).
+ */
+export const opensFromCard = (key: DemoScreen | null): boolean =>
+  key !== null && (isStoreScreen(key) || isProductScreen(key));
 
 /**
  * Which screen a URL shows, or null for a path under /demo that is not a
@@ -87,8 +138,9 @@ export const sameRoute = (a: DemoScreen, b: DemoScreen) =>
   (a === "home" || OVERLAYS.includes(a)) &&
   (b === "home" || OVERLAYS.includes(b));
 
-/** The tab a screen belongs to. */
-export const tabOf = (key: DemoScreen): DemoTab => key.split("/")[0] as DemoTab;
+/** The tab a screen belongs to. A store's page and a product's page are opened from Home. */
+export const tabOf = (key: DemoScreen): DemoTab =>
+  opensFromCard(key) ? "home" : (key.split("/")[0] as DemoTab);
 
 /** The screens that show the tab bar. */
 export const isTabRoot = (key: DemoScreen) =>
@@ -113,6 +165,11 @@ export function parentOf(key: DemoScreen): DemoScreen {
  * right is forward, and any other move inside a tab is forward.
  */
 export function direction(from: DemoScreen, to: DemoScreen): 1 | -1 {
+  // A store's page (and a product's page) opens on top of the screen it was
+  // opened from, like a deeper screen, so leaving it is going back. Between a
+  // store and one of its products, the path decides (the product is deeper).
+  if (opensFromCard(to) && !opensFromCard(from)) return 1;
+  if (opensFromCard(from) && !opensFromCard(to)) return -1;
   if (to.startsWith(`${from}/`)) return 1;
   if (from.startsWith(`${to}/`)) return -1;
   const a = DEMO_TABS.indexOf(tabOf(from));

@@ -6,6 +6,7 @@ import { DeleteMessage, getMessageStatus, getMessageTime } from "store/chat/chat
 import OptionsMenu from "../../OptionsMenu";
 import MessageMarks from "../MessageMarks";
 import CancelUploadButton from "../CancelUploadButton";
+import AutoSaveVeil from "../AutoSaveVeil";
 
 function ImageMessage({
   setOpen,
@@ -108,6 +109,7 @@ function ImageMessage({
           className="message-img"
           src={message_files?.[0]?.file_path}
         />
+        <AutoSaveVeil filePath={message_files?.[0]?.file_path} />
 
         {is_from_sender ? (
           <div className="message-date">

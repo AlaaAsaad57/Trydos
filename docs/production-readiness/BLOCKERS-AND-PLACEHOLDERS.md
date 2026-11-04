@@ -32,7 +32,7 @@ Every row in a section file marked "Blocks launch = Yes". The section files coun
 | A2-11 | Every cash, card and crypto order sends the fixed text `order_note=order note`. There is no note field. | `services/order.ts:78` (test `orderClass.test.ts:116` asserts it) | 07 M-1 |
 | A2-16 | Fixed promises nobody confirmed: "refund within 12 hours", "no fees", "cancel in 3 hours", "collection within 1 day", and a 3-hour countdown that restarts on every page load. | `OrderCancelConfirmationWindow.tsx:64, 67`, `CancelOrderItemConfirmationWindow.tsx:66, 69`, `OrderItemReturnConfirmationWindow.tsx:199`, `OrderItemOptions.tsx:285`, `OrderRetailsReturnInfo.tsx:59, 251, 253` | 08 M-4 |
 | A2-17 | Refund text says "Back to your wallet", but the wallet is not usable. | `OrderDetailsWrapper.tsx:1374`, `OrderRetailsReturnInfo.tsx:71` | 08 M-5, 09 M-8 |
-| A2-19 | The invite text points to a placeholder Play Store id (`your.app.id`), and the text is hardcoded English (BUG-chat-8, `it.fails` in `SearchResult.test.tsx:146`). | `components/Chat/components/SearchResult.tsx:62, 81, 93, 103` | 12 M-8 |
+| A2-19 | **Fixed 2026-10-29.** The invite has the real Play Store link (`NEXT_PUBLIC_PLAY_STORE_URL`, BUG-chat-8) and is translated. | `components/Chat/components/SearchResult.tsx` | 12 M-8 |
 | A2-23 | Price sort uses the root `offered_price`, but the card shows the country price. In a country with its own prices the order is wrong. Needs a backend field. | `services/elastic/helpers.ts:177-186` | 03 M-3 |
 
 ### A3. Legal and content (Product writes, Frontend links)
@@ -128,7 +128,6 @@ These are rows marked "Blocks launch = No", plus items from the "Works, with lim
 | 11 M-5 | The "Sales" card shows "0 Action" for every seller. The number is hardcoded. | `components/settings/GoToSellerDashBoard.tsx:188` |
 | 11 L-3 | No "set as default" in the settings address list. The call is commented out. | `PersonalInfoAddress.tsx:172` |
 | 11 L-17, 17 L-5, 18 M-8 | "Contact Us" and "Compare" are commented out of the settings list. The `/contact` page cannot be reached from the app. | `settings/page.tsx:74-78, 84-88` |
-| 12 M-10 | The 3-pin chat limit never applies. Nothing fills `state.pinnedChats` (CHAT-APP-2, `test.fail` in SCRIPT-37). | `store/chat/reducer.ts:1202`, `ChatOptions.tsx:58` |
 | 12 M-13 | The "messages by tag" view is switched off with `{false && …}`. | `components/Chat/components/ChatInfo.tsx:323` |
 | 13 M-2 | Story view-time analytics are dead: `onStoryViewTime` is never passed, and six GA events are commented out. | `StoryViewer.tsx:51, 129`, `StoryHolder.tsx:258-313`, `AddStoryWidget.tsx` |
 | 13 M-3 | A shopper cannot see who viewed their own story. | `components/Home/Stories/` |

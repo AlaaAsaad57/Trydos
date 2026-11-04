@@ -492,49 +492,75 @@ describe("Stories section — the link on a new story", () => {
     return (await screen.findAllByRole("textbox"))[0];
   }
 
+  /** "pass" / "fail" of one rule under the link field, or null when no rule is shown. */
+  const linkRule = (rule: "url" | "length") =>
+    document.querySelector(`[data-pw="story-link-check-${rule}"]`)?.getAttribute("data-state") ?? null;
+  /** The refusal the live suite looks for (`seller-story-link-error`). */
+  const refusalShown = () => !!document.querySelector('[data-pw="seller-story-link-error"]');
+
   it("accepts a bare domain, which is how sellers usually type one", async () => {
     const field = await openUploadAndGetLinkField();
     await userEvent.type(field, "example.com");
-    expect(
-      screen.queryByText(
-        "Please Enter A Valid URL (e.g., example.com Or www.example.com)",
-      ),
-      "example.com is a link a seller may reasonably type",
-    ).not.toBeInTheDocument();
+    expect(linkRule("url"), "example.com is a link a seller may reasonably type").toBe("pass");
+    expect(linkRule("length"), "example.com failed the length rule").toBe("pass");
+    expect(refusalShown(), "example.com was marked as refused").toBe(false);
   });
 
   it("accepts a full address", async () => {
     const field = await openUploadAndGetLinkField();
     await userEvent.type(field, "https://shop.example.com/sale");
-    expect(
-      screen.queryByText(
-        "Please Enter A Valid URL (e.g., example.com Or www.example.com)",
-      ),
-      "a full https address should be accepted",
-    ).not.toBeInTheDocument();
+    expect(linkRule("url"), "a full https address should pass the link rule").toBe("pass");
+    expect(refusalShown(), "a full https address was marked as refused").toBe(false);
   });
 
   it("refuses a word with no dot in it", async () => {
     const field = await openUploadAndGetLinkField();
     await userEvent.type(field, "notalink");
-    expect(
-      await screen.findByText(
-        "Please Enter A Valid URL (e.g., example.com Or www.example.com)",
-      ),
-      "a single word is not an address and the seller should be told while typing",
-    ).toBeInTheDocument();
+    expect(linkRule("url"), "a single word is not an address and the seller should be told while typing").toBe("fail");
+    expect(linkRule("length"), "a short bad link failed the length rule").toBe("pass");
+    expect(refusalShown(), "a single word was not marked as refused").toBe(true);
+  });
+
+  it("keeps a link's query, #part and %-codes as typed, and drops only < and >", async () => {
+    const field = (await openUploadAndGetLinkField()) as HTMLInputElement;
+    const typed = "shop.example.com/p/%D8%A7(1)?a=1&b=2,3*#top";
+    fireEvent.change(field, { target: { value: typed } });
+    fireEvent.blur(field);
+    expect(field.value, "the link field removed characters a link needs").toBe(typed);
+    expect(linkRule("url"), "a link with a query and a #part failed the link rule").toBe("pass");
+    fireEvent.change(field, { target: { value: "shop.example.com/<b>" } });
+    fireEvent.blur(field);
+    expect(field.value, "the link field kept < or >").toBe("shop.example.com/b");
   });
 
   it("treats an empty link as fine, because the link is optional", async () => {
     const field = await openUploadAndGetLinkField();
     await userEvent.type(field, "x");
     await userEvent.clear(field);
-    expect(
-      screen.queryByText(
-        "Please Enter A Valid URL (e.g., example.com Or www.example.com)",
-      ),
-      "a story does not need a link, so an empty field is not an error",
-    ).not.toBeInTheDocument();
+    expect(linkRule("url"), "the link rules stayed after the link was cleared").toBeNull();
+    expect(refusalShown(), "a story does not need a link, so an empty field is not an error").toBe(false);
+  });
+
+  it("marks a correct link over 200 characters as too long only, and shows the count", async () => {
+    // "https://shop.example.com/" is 25 characters; the rest pads to the length.
+    const linkOf = (length: number) => `https://shop.example.com/${"a".repeat(length - 25)}`;
+    const field = await openUploadAndGetLinkField();
+    fireEvent.change(field, { target: { value: linkOf(201) } });
+    expect((field as HTMLInputElement).value, "the link field cut a long link without saying so").toBe(linkOf(201));
+    expect(linkRule("length"), "a 201-character link passed the length rule").toBe("fail");
+    expect(linkRule("url"), "a correct but long link failed the link rule").toBe("pass");
+    expect(screen.getByText("201/200"), "the seller was not shown how long the link is").toBeInTheDocument();
+    fireEvent.change(field, { target: { value: linkOf(200) } });
+    expect(linkRule("length"), "a 200-character link failed the length rule").toBe("pass");
+    expect(refusalShown(), "a 200-character link was marked as refused").toBe(false);
+  });
+
+  it("marks a link that is both bad and too long as failing both rules", async () => {
+    const field = await openUploadAndGetLinkField();
+    fireEvent.change(field, { target: { value: `https://a b.com/${"a".repeat(200)}` } });
+    expect(linkRule("url"), "a bad long link passed the link rule").toBe("fail");
+    expect(linkRule("length"), "a bad long link hid that it is also too long").toBe("fail");
+    expect(refusalShown(), "a bad long link was not marked as refused").toBe(true);
   });
 });
 

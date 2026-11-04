@@ -4,6 +4,8 @@ import { ConfirmModal } from "components/global/ConfirmModal";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { isPinLimitReached } from "store/chat/reducer";
+import { showErrorNotification } from "@/store/notifications/reducer";
 
 import {
   ArchiveChannel,
@@ -22,7 +24,7 @@ function ChatOptions({
   member_id,
   closeRow,
 }) {
-  const { language, watchChannel, pinChat, muteChat, deleteChat } =
+  const { language, watchChannel, pinChat, muteChat, deleteChat, data } =
     useAppStore();
   const [confirmDelete, setConfirmDelete] = useState(false);
   let { lang } = useParams();
@@ -31,6 +33,9 @@ function ChatOptions({
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
+  // Only 3 chats may be pinned. With 3 pinned, Pin is disabled on the others
+  // and a tap only says why. Unpin always works.
+  const pinDisabled = !pinned && isPinLimitReached(data);
   return (
     // Arabic mirrors the tiles: Unread first from the right, as in the mobile
     // app. "ltr" is set too, so a right-to-left page never flips English.
@@ -52,9 +57,16 @@ function ChatOptions({
         </div>
       </div>
       <div
-        className="chat-option chat-2"
+        className={`chat-option chat-2${pinDisabled ? " opacity-40" : ""}`}
         data-pw="CHAT-PIN-OPTION"
+        aria-disabled={pinDisabled}
         onClick={() => {
+          if (pinDisabled) {
+            showErrorNotification(
+              translate("only 3 pinned chats allowed", language),
+            );
+            return;
+          }
           PinnChat({ id: id, value: !pinned, member_id: member_id });
           pinChat({ id: id, value: !pinned, member_id: member_id });
           closeRow?.();

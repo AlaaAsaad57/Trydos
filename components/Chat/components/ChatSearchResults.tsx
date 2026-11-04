@@ -62,12 +62,15 @@ function ChatSearchResults({
   /** Called after a row opens its chat, e.g. to close the contacts panel. */
   onOpened?: () => void;
 }) {
-  const { data: allChats, chatSearchResults, activeChat } = useAppStore();
+  const { data: allChats, contacts: savedContacts, activeChat } = useAppStore();
   const me = getUserChat()?.id;
   const { chats, contacts } = searchChatList({
     search,
     chats: allChats ?? [],
-    contacts: chatSearchResults ?? [],
+    // Saved contacts are already in the store; no server search needed.
+    contacts: (savedContacts ?? []).filter(
+      (c: any) => !me || parseInt(c?.contact_user?.id) !== parseInt(me),
+    ),
     meId: me,
   });
 

@@ -1,4 +1,75 @@
 /**
+ * The words of the product page, `Home Page – 49`. The marks in a key (<b>,
+ * <m>, <a>, <c>) set the weight and the blue of a part of the line, and every
+ * translation keeps them (see Rich in ProductScreen). In English the page
+ * writes them in Apple's title or sentence style (components/DemoApp1/demoCase.ts).
+ */
+const PRODUCT_PAGE_KEYS = [
+  "Price alert",
+  "Stock alert",
+  "More options",
+  "Close video",
+  "Photos",
+  "Help",
+  "Verified store",
+  "Add to favourites",
+  "Like",
+  "pajama",
+  "Denim blue",
+  "Stay cool and chic in this airy women’s summer top, featuring a comfortable fit and fresh seasonal prints",
+  "<b>{count} </b>buyer Rate",
+  "<m>recommend it by</m> {count} buyer",
+  "made in turkey",
+  "<b>Trend </b>color<b> !</b>",
+  "<b>Best sell </b>last week<b> !</b>",
+  "<b>Fast Packing </b>& today shipping If buy before <m>{time}</m> today",
+  "<b>in {hours} hours</b> shipping If buy in <m>{minutes} minute</m>",
+  "<m>just {days} days</m> In your hands",
+  "<b>2.jun</b> in lebanon",
+  "Available <b>{count}</b> Color",
+  "Product information",
+  "pattern<m> | Fit Slim</m>",
+  "Suitable occasions<m> | Birthday</m> <b>.</b> <m>Casual</m> <b>.</b> <m>Business</m>",
+  "material <m>|</m> <m>polyester</m> <m>97%</m> <b>.</b> <m>elastane</m> <m>3%</m>",
+  "Shipping & Delivery",
+  "Monday <m>2.jun </m>| <m>3</m> work days in your hands in <m>Lebanon</m>",
+  "Shipping is completely free without any extras",
+  "Delivery guarantee",
+  "get a <c>25% Cash refund</c> to your wallet of the product price if shipping is delayed",
+  "Return is completely free without any extras or conditions",
+  "Return guarantee",
+  "Within <m>3 days</m> after receiving the product, you can return it without conditions or reasons with complete ease and \n<a>get the amount back </a>to your wallet",
+  "purchase protection",
+  "by Buyers",
+  "comment . Video . Photo . May help you !",
+  "comment",
+  "<m>AI</m> analysis & summary of all reviews",
+  "18 feb",
+  "Medium | Bule",
+  "Amazing product I buy it and I saw it is good quality regarding price Amazing product I buy it and I saw it is good quality regardin",
+  "Good quality | Ture size",
+  "recommend it",
+  "buyers recommend product",
+  "<b>{count} </b>buyer",
+  "don’t recommend it",
+  "buyers reviews on product sizing",
+  "Product FAQ Buyer & Seller",
+  "<b>Q</b> {name}",
+  "<b>a</b> {name}",
+  "{n} minute answered",
+  "Need help ? Start Chat about this product !",
+  "Good Quality",
+  "Expected Shipping & delivery Date",
+  "Free Shipping",
+  "Free Return",
+  "Secure Privacy",
+  "Safe & Easy Payment",
+  "True",
+  "Small",
+  "Large",
+] as const;
+
+/**
  * Every string the demo shows, by its English key.
  *
  * Why a list: the demo shell is a client component that is also rendered on
@@ -25,6 +96,13 @@ export const DEMO_KEYS = [
   "Women",
   "Children",
   "Electronic",
+  "Trydos Stories",
+  "Brand Stores",
+  "Stores",
+  "Turkish brands",
+  "Watch. Shop. Share. See it. Tag It !",
+  "all {name} collection now !",
+  "Shop {brand} collection now !",
   "Search anything…",
   "Voice search",
   "Scan",
@@ -328,6 +406,8 @@ export const DEMO_KEYS = [
   "Phone Number",
   "Enter phone number",
   "Search messages",
+  // The store page's search field.
+  "Search...",
   "{n} of {m}",
   "No results",
   "Remind me",
@@ -343,8 +423,78 @@ export const DEMO_KEYS = [
   "Unarchive",
   "Previous",
   "Next",
+  // The store page (`Home Page – 47`).
+  "T-Shirt",
+  "Shoes",
+  "Mont",
+  "Craf",
+  "Pajama",
+  "Pantaloon",
+  "{count} item {size} in your bag",
+  "! Best price",
+  "last {days} days!",
+  "Flash Deal",
+  "{n}d",
+  "USD",
+  "Sort",
+  "Filter",
+  "Add to cart",
+  "Shirt",
+  "Jeans",
+  "Blouse",
+  "Jacket",
+  "Dress",
+  "Loading more products",
+  "You have seen all products",
+  // The colour sheet of a product (`Home Page – 54`).
+  "Colors",
+  "blue",
+  "Pink",
+  "White",
+  "Indigo",
+  "Stripe",
+  "Mix",
+  "Yellow",
+  "Black",
+  "Floral",
+  "Grey",
+  // The product page (`Home Page – 49`).
+  ...PRODUCT_PAGE_KEYS,
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];
+
+/**
+ * Keys whose English is shown exactly as written, not with a capital on every
+ * word.
+ *
+ * Home, a store's page (with its colour sheet) and a product's page do not
+ * read the English of this dictionary: they write the key in Apple's title or
+ * sentence style themselves (components/DemoApp1/demoCase.ts). This list is
+ * for the other screens that show these keys.
+ *
+ * The site's English rule (`titleCaseWords` in utils/titleCase.ts) puts a
+ * capital on every word. The file draws these lines in `Home Page – 2` in
+ * sentence case ("all Turkish brands collection now !"), so the /demo layout
+ * skips that rule for them. Other languages are not touched.
+ *
+ * `Home Page – 47` draws the badge "! Best price last 3 days!" in sentence
+ * case too. It sets the bag badge ("1 Item M In Your Bag") and "Shop Zara
+ * Collection Now !" to title case, so those two are not on this list. (The
+ * store page adds the banner's capitals with CSS, see ListingScreen.)
+ */
+export const KEEP_CASE: ReadonlySet<DemoKey> = new Set<DemoKey>([
+  "Turkish brands",
+  "Watch. Shop. Share. See it. Tag It !",
+  "all {name} collection now !",
+  "Shop {brand} collection now !",
+  "! Best price",
+  "last {days} days!",
+  "You have seen all products",
+  // `Home Page – 54` writes this colour in lower case ("… Pantaloon . blue").
+  "blue",
+  // `Home Page – 49`, the product page (see demoCase.ts).
+  ...PRODUCT_PAGE_KEYS,
+]);
 
 export type DemoDictionary = Partial<Record<DemoKey, string>>;
