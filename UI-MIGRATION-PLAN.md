@@ -882,7 +882,7 @@ as they are (`orders`, `payment`, `shipping`, `question`, `important`). CH-3 nee
 | S6-6 | Stories row in the chat (D-36b) | **Dropped (owner, 2026-11-05).** The chat has no stories row; stories stay on the home page. |
 | S6-5 | Provider place | `ChatDataProvider` sits around the screen frame in lane A's `AppScreens.tsx`, on only for a chat screen. Lane A was told. |
 
-### Where Stage 6 stopped (2026-11-05) — branch reviewed and fixed; waiting for CI and the owner's review
+### Where Stage 6 stopped (2026-11-05) — CI green; waiting for the owner's hand test and review
 
 Steps 1 to 11 and the local end checks are done and committed on `ui-migrations-chat` (pushed with the
 owner's OK).
@@ -972,13 +972,16 @@ faults only show there. All found by reading the code; none is proved in a brows
 - A photo, video, voice note or file sent during a reply lost its quote. All four now carry `replyTo`.
 
 Small points left as they are: a failed Agora join goes back with no word to the shopper, and the call page's
-buttons do nothing for the moment its chunk loads.
+buttons do nothing for the moment its chunk loads. The review did not read the `Composer`, `NewChatSheet` and
+`MessageMenu` diffs line by line.
+
+CI run 3 (`41923950106`, on `621624ad`): parity, lint, typegen, tsc and the unit tests all passed; 638 test
+files passed, none failed. No unit test covers the review's fixes (owner's order: no new tests).
 
 Left:
 - (The stories row was dropped by the owner: S6-6.)
 - The real chat checked in a browser by a signed-in shopper (calls, row taps and URLs, the Calls tab, push
   links, order chat, gates).
-- CI run 3, on the review fixes.
 - Then the owner's review, then the merge into `ui-migrations` (owner's OK). The e2e cases wait for Stage 8
   (A-34).
 
