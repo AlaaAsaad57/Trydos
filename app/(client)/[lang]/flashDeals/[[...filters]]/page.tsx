@@ -1,23 +1,9 @@
 import { lang as langParam } from "next/root-params";
-import { Suspense } from "react";
-import NextLink from "components/global/NextLink";
-import ListingSkeleton from "components/skeleton/listing";
-import "styles/listing-components.css";
-import { fetchCurrency } from "serverRequests";
-import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
-import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
-import { LogServerError } from "utils/serverErrorReporter";
-import { parseFiltersFromParams, translateFunction } from "utils/server";
-import { generateMetadataForListing } from "serverRequests/meta/listing";
 import { permanentRedirect } from "next/navigation";
+import { LogServerError } from "utils/serverErrorReporter";
+import { generateMetadataForListing } from "serverRequests/meta/listing";
 import { buildSearchRedirectTarget } from "utils/listing/searchPathRedirect";
-
-import FilterWidgetServer from "components/Server/FilterWidgetServer";
-import ListingSearchContainer from "components/Server/ListingSearchContainer";
-import FilterListContainer from "components/Server/FilterListContainer";
-import ProductListConainer from "components/Server/ProductListConainer";
-import ListingBarActions from "components/Server/ListingBarActions";
-import ListingBarOptions from "components/Listing/ListingBarOptions";
+import FiltersPageContent from "components/Listing/FiltersPageContent";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
 // See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
@@ -48,30 +34,12 @@ export async function generateMetadata({ params, searchParams }) {
   }
 }
 
-async function getCurrency(country, language) {
-  try {
-    let cachedCurrency = await getCurrencyFromCache(country);
-
-    if (typeof cachedCurrency === "string") {
-      return { ...JSON.parse(cachedCurrency), redis: true };
-    }
-    if (cachedCurrency?.exchange_rate) {
-      return { ...cachedCurrency, redis: true };
-    } else {
-      let currencyData = await fetchCurrency(language, country);
-      let currency = { ...currencyData.data };
-      StoreCurrency(country, currency);
-      return { ...currency, redis: false };
-    }
-  } catch (error) {
-    LogServerError(
-      { error, type: "get currency error", country, language },
-      `/${country}-${language}/flashDeals`,
-    );
-  }
-}
+/**
+ * The flash deals listing (Stage 7b, A-32): the store page design, with the flash-deal
+ * products (FiltersPageContent, kind "flashDeals").
+ */
 export default async function Page({ params, searchParams }) {
-  let Params = await params;
+  const Params = await params;
   const lang = await langParam();
   const sp = (await searchParams) ?? {};
 
@@ -83,152 +51,14 @@ export default async function Page({ params, searchParams }) {
   );
   if (legacy) permanentRedirect(legacy);
 
-  try {
-    const sort = typeof sp.sort === "string" ? sp.sort : undefined;
-    const search = typeof sp.search === "string" ? sp.search : undefined;
-    let parsedFilters = parseFiltersFromParams(Params.filters || []);
-    const [country, language] = lang.split("-");
-    let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
-    const effectiveSearch =
-      (search && search.length > 0
-        ? search
-        : parsedFilters.search_text?.[0]) ?? "";
-
-    if (parsedFilters.prices) {
-      parsedFilters = {
-        ...parsedFilters,
-        // Price cards encode the range as one dash token ("min-max"), but once a
-        // numeric [min,max] array round-trips through buildParamsFromFilters (any
-        // other filter click) it re-encodes comma-joined ("min,max") and re-parses
-        // into two elements. Accept BOTH delimiters and keep every bound so the
-        // range never collapses to [min,min] → empty results.
-        prices: parsedFilters.prices
-          .flatMap((s) => String(s).split("-"))
-          .map((d) => Number(d))
-          .filter((d) => !isNaN(d)),
-      };
-    }
-
-    let [filtersData, currency] = [
-      getProductsAndFiltersFromElastic({
-        country,
-        language_code: language,
-        filters: {
-          ...parsedFilters,
-          // priceRange:parsedFilters.prices?.map((s)=>s.split('-').map((d)=>Number(d))),
-          featured: false,
-          flashdeal: true,
-          search_text: effectiveSearch || undefined,
-        },
-        limit: 10,
-        sort,
-      }),
-      getCurrency(country, language),
-    ];
-
-    const isRtl = language === "ar" || language === "ku";
-
-    return (
-      <>
-        <Suspense fallback={<></>} key={`FilterWidget ${lang}`}>
-          <FilterWidgetServer
-            currencyPromise={currency}
-            language={language}
-            isFeatured={false}
-            isFlashDeal={true}
-            country={country}
-            parsedFilters={{
-              ...parsedFilters,
-              featured: false,
-              flashdeal: true,
-            }}
-            filtersPromise={filtersData}
-            serverSearch={effectiveSearch}
-          />
-        </Suspense>
-        <div
-          data-pw="filter_listing_bar"
-          className={`filter-listing-bar z-99999999 ${
-            isRtl ? "flex-row-reverse flex" : "flex-row flex"
-          } align-center w-full left-0 right-0 mx-auto h-[50px] pl-[15px] pr-[20px] max-w-[1365px] justify-between bg-white z-10`}
-        >
-          <NextLink
-            data-pw="BackIcon_boutique"
-            ignoreConditionCase={true}
-            data={{
-              is_full_home: true,
-            }}
-            href={`/${lang}`}
-            ariaLabel={translateFunction("Back to Home", language)}
-            className="back-icon"
-          >
-            <img
-              src="/icons/backIcon.svg"
-              data-pw="back_icon_boutique_page"
-              className={`${isRtl && "rotate-180"}`}
-            />
-          </NextLink>
-          <ListingBarOptions serverSearch={effectiveSearch} isRtl={isRtl}>
-            <Suspense fallback={<></>}>
-              <ListingSearchContainer
-                country={country}
-                language={language}
-                flashdeal={true}
-                filtersPromise={filtersData}
-                parsedFilters={parsedFilters}
-                serverSearch={effectiveSearch}
-              />
-            </Suspense>
-            <ListingBarActions
-              filtersPromise={filtersData}
-              language={language}
-              isRtl={isRtl}
-            />
-          </ListingBarOptions>
-        </div>
-
-        <div
-          data-pw="boutique_header"
-          className={`boutique-header ${"flex-col"} align-center`}
-        >
-          <Suspense
-            fallback={<ListingSkeleton justFilters />}
-            key={`FilterList ${lang}`}
-          >
-            <FilterListContainer
-              filtersPromis={filtersData}
-              currencyPromise={currency}
-              Params={Params}
-              parsedFilters={parsedFilters}
-              serverSearch={effectiveSearch}
-              isFlashDeals={true}
-            />
-          </Suspense>
-        </div>
-        <Suspense
-          fallback={<ListingSkeleton forProducts={true} />}
-          key={`ProductList ${lang} ${sort ?? "relevance"}`}
-        >
-          <ProductListConainer
-            isFlashDeals={true}
-            isFeatured={false}
-            Params={Params}
-            boutiquePromise={() => {}}
-            currencyPromise={currency}
-            filtersDataPromise={filtersData}
-            parsedFilters={parsedFilters}
-            language={language}
-            sort={sort}
-            serverSearch={effectiveSearch}
-          />
-        </Suspense>
-      </>
-    );
-  } catch (error) {
-    LogServerError(
-      { error, filters: Params.filters },
-      `/${lang}/flashDeals`,
-    );
-    throw error instanceof Error ? error : new Error(String(error));
-  }
+  const sort = typeof sp.sort === "string" ? sp.sort : undefined;
+  const search = typeof sp.search === "string" ? sp.search : undefined;
+  return (
+    <FiltersPageContent
+      params={{ lang, filters: Params.filters }}
+      sort={sort}
+      search={search}
+      kind="flashDeals"
+    />
+  );
 }

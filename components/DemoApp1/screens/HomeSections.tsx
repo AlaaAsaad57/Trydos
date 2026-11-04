@@ -891,6 +891,13 @@ export function useSlider({
     const watch = new IntersectionObserver(
       ([entry]) => {
         const shown = entry.intersectionRatio;
+        // A row that fits on the screen (one stop, as a store page with two
+        // category tiles) does not move: no auto slide and no hint. Embla's
+        // autoplay does not start on such a row, and play() on it threw.
+        if (api.scrollSnapList().length <= 1) {
+          cancel();
+          return;
+        }
         if (autoSlide && shown >= SLIDE_IN_VIEW) plugin.play();
         else plugin.stop();
         if (shown < HINT_IN_VIEW) {

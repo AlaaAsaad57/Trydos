@@ -430,50 +430,9 @@ export const LISTING_PRODUCTS: readonly DemoProduct[] = [
   }),
 ];
 
-/** One colour dot, placed: which colour, its diameter, and its centre in px from the card's middle. */
-export type PlacedSwatch = { index: number; d: number; dx: number; on: boolean };
-
-/**
- * The dots by their distance from the colour on show (0 is that colour): the
- * diameter, and how far the centre is from it. Read from `Home Page – 47`'s
- * pajama, which draws all seven: 22 in the middle, then 20, 18 and 12 on each
- * side, at 11, 21 and 30 px. A colour further away has no dot.
- */
-export const SWATCH_RING: readonly { d: number; x: number }[] = [
-  { d: 22, x: 0 },
-  { d: 20, x: 11 },
-  { d: 18, x: 21 },
-  { d: 12, x: 30 },
-];
-
-/**
- * Where the colour dots go when colour `selected` of `count` is on show.
- *
- * The dots form a row round the colour on show, by SWATCH_RING, and the row
- * as a whole is centred on the card. This gives both rows the file draws:
- *  - the pajama (7 colours, the 4th on show): 12, 18, 20, 22, 20, 18, 12 at
- *    -30, -21, -11, 0, 11, 21, 30;
- *  - the shirt (2 colours, the 1st on show): 22 at -5 and 20 at 6.
- * The list is in drawing order: the further a dot, the earlier, so a nearer
- * dot lies over it, and the colour on show lies over all.
- */
-export function placeSwatches(count: number, selected: number): PlacedSwatch[] {
-  const far = SWATCH_RING.length - 1;
-  const placed: PlacedSwatch[] = [];
-  for (let index = 0; index < count; index += 1) {
-    const step = index - selected;
-    const away = Math.abs(step);
-    if (away > far) continue;
-    const ring = SWATCH_RING[away];
-    placed.push({ index, d: ring.d, dx: Math.sign(step) * ring.x, on: step === 0 });
-  }
-  const left = Math.min(...placed.map((s) => s.dx - s.d / 2));
-  const right = Math.max(...placed.map((s) => s.dx + s.d / 2));
-  const shift = -(left + right) / 2;
-  return placed
-    .map((s) => ({ ...s, dx: s.dx + shift }))
-    .sort((a, b) => Math.abs(b.index - selected) - Math.abs(a.index - selected) || b.index - a.index);
-}
+// The dots' layout moved to the store page's data file (shipping code must
+// not import this mock file, A-16). Kept here under the same names for /demo.
+export { placeSwatches, SWATCH_RING, type PlacedSwatch } from "../DemoApp1/listingData";
 
 /** The cards of page `page` (1 is the first). */
 export const listingPage = (page: number) =>

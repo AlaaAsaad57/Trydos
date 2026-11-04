@@ -2,8 +2,7 @@
 
 import React, { useLayoutEffect, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
-import type { DemoProduct, DemoStore, ProductBadge, ProductColor } from "../../DemoApp/demoStores";
-import { useDemoCase } from "../demoCase";
+import type { CardColor, CardLabel, StoreCard } from "../listingData";
 import { DESIGN_H, UNDER_BAR, lineBox, textTop } from "../demo1Layout";
 import { Sheet, Stroke, useCanvasEnd } from "../ui";
 import {
@@ -14,12 +13,12 @@ import {
   FOOTER_H,
   GAP,
   LabelTurns,
+  LabelWords,
   PHOTO,
   PhotoDots,
   PhotoGlow,
   PricePill,
   ProductName,
-  Weighted,
   type T,
 } from "./ListingParts";
 
@@ -111,28 +110,20 @@ function BestWords({ days, t }: { days: number; t: T }) {
  * 365 on the card. The file draws the best-price one; the bag and flash ones
  * keep their mark in front of the words, as on the store page.
  */
-function PlainBadge({ badge, t }: { badge: ProductBadge; t: T }) {
+function PlainBadge({ badge, t }: { badge: CardLabel; t: T }) {
   const look = BADGE[badge.kind];
-  let words: React.ReactNode;
-  if (badge.kind === "best") {
-    words = <BestWords days={badge.days} t={t} />;
-  } else if (badge.kind === "bag") {
-    words = (
-      <Weighted
-        text={t("{count} item {size} in your bag")}
-        values={{ count: String(badge.count), size: badge.size }}
-        bold={["count", "size"]}
-      />
+  const words =
+    badge.kind === "best" ? (
+      <BestWords days={badge.days} t={t} />
+    ) : (
+      <LabelWords label={badge} t={t} />
     );
-  } else {
-    words = (
-      <>
-        <span className="font-bold">{t("Flash Deal")} | </span>
-        {t("{n}d").replace("{n}", String(badge.days))} | {badge.time}
-      </>
-    );
-  }
-  const mark = badge.kind === "bag" ? "listBag" : badge.kind === "flash" ? "listFlash" : null;
+  const mark =
+    badge.kind === "bag"
+      ? "listBag"
+      : badge.kind === "flash"
+        ? "listFlash"
+        : null;
   return (
     <p
       data-pw={`demo-color-badge-${badge.kind}`}
@@ -153,21 +144,23 @@ function PlainBadge({ badge, t }: { badge: ProductBadge; t: T }) {
 
 function ColorCard({
   product,
-  store,
   color,
   index,
   onPick,
+  onAdd,
   t,
 }: {
-  product: DemoProduct;
-  store: DemoStore;
-  color: ProductColor;
+  product: StoreCard;
+  color: CardColor;
   index: number;
   onPick: (index: number) => void;
+  onAdd?: () => void;
   t: T;
 }) {
   const [photo, setPhoto] = useState(0);
-  const name = [...product.name, color.name].map((word) => t(word)).join(" . ");
+  const name = [...product.name, ...(color.name ? [color.name] : [])].join(
+    " . ",
+  );
   return (
     <article
       data-pw={`demo-color-card-${index}`}
@@ -190,7 +183,12 @@ function ColorCard({
           onPick(index);
         }}
       >
-        <ColorPhotos color={color} alt={`${store.name} ${name}`} eager onIndex={setPhoto} />
+        <ColorPhotos
+          color={color}
+          alt={`${product.mark.name} ${name}`.trim()}
+          eager
+          onIndex={setPhoto}
+        />
         <PhotoGlow />
         <Stroke color={product.line} width={0.5} />
       </div>
@@ -202,18 +200,18 @@ function ColorCard({
             .replace("{n}", String(photo + 1))
             .replace("{m}", String(color.images.length))}`}
         />
-        <CardLogo store={store} />
-        <ProductName product={product} color={color} t={t} />
+        <CardLogo mark={product.mark} />
+        <ProductName product={product} color={color} />
         {/* The labels take turns, as on the store page's card (LabelTurns). */}
         <LabelTurns
-          badges={[product.badge, ...(product.labels ?? [])]}
+          badges={product.labels}
           top={textTop(365, 9) - PHOTO.h}
           height={lineBox(9)}
           testId="demo-color-labels"
           render={(badge) => <PlainBadge badge={badge} t={t} />}
         />
-        <PricePill product={product} t={t} />
-        <AddButton product={product} t={t} />
+        <PricePill product={product} />
+        <AddButton product={product} t={t} onAdd={onAdd} />
       </div>
     </article>
   );
@@ -223,18 +221,20 @@ export default function ListingColorSheet({
   open,
   onClose,
   product,
-  store,
   onPick,
+  onAdd,
+  t,
 }: {
   open: boolean;
   onClose: () => void;
-  product: DemoProduct;
-  store: DemoStore;
+  product: StoreCard;
   /** A colour was tapped: show it on the card. The sheet closes after. */
   onPick: (index: number) => void;
+  /** The add button's tap (S7b-1). */
+  onAdd?: () => void;
+  /** The page's words: labels in Apple's title style (demoCase). */
+  t: T;
 }) {
-  // Labels in Apple's title style (demoCase).
-  const { t } = useDemoCase();
   /** Where the screen ends (design y). */
   const end = useCanvasEnd(open);
   // The grid as a state, not a ref: the sheet's layer puts it on the page one
@@ -243,7 +243,9 @@ export default function ListingColorSheet({
   // The cards' height follows the screen's width; it is measured before the
   // sheet is drawn. Until then, the file's 397 px a row.
   const rows = Math.ceil(product.colors.length / 2);
-  const [cardsH, setCardsH] = useState(rows * (PHOTO.h + FOOTER_H) + (rows - 1) * GAP);
+  const [cardsH, setCardsH] = useState(
+    rows * (PHOTO.h + FOOTER_H) + (rows - 1) * GAP,
+  );
   useLayoutEffect(() => {
     if (!grid) return;
     const read = () => setCardsH(grid.getBoundingClientRect().height);
@@ -281,8 +283,8 @@ export default function ListingColorSheet({
           <ColorCard
             key={i}
             product={product}
-            store={store}
             color={color}
+            onAdd={onAdd}
             index={i}
             onPick={(index) => {
               onPick(index);
@@ -293,8 +295,11 @@ export default function ListingColorSheet({
         ))}
       </section>
       {/* The file's white under the cards, and the part under Safari's bar. */}
-      <div aria-hidden="true" className="shrink-0" style={{ height: UNDER_CARDS + UNDER_BAR }} />
+      <div
+        aria-hidden="true"
+        className="shrink-0"
+        style={{ height: UNDER_CARDS + UNDER_BAR }}
+      />
     </Sheet>
   );
 }
-

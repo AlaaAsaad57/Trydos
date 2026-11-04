@@ -6,11 +6,11 @@ import XdIcon from "../../DemoApp/XdIcon";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import {
   placeSwatches,
-  type DemoProduct,
-  type DemoStore,
-  type ProductBadge,
-  type ProductColor,
-} from "../../DemoApp/demoStores";
+  type CardColor,
+  type CardLabel,
+  type ListingMark,
+  type StoreCard,
+} from "../listingData";
 import { C, lineBox, textTop } from "../demo1Layout";
 
 /**
@@ -31,14 +31,18 @@ export const GAP = 2;
 /** A design y on the card (0 is the photo's top) as a top in the footer. */
 const inFooter = (y: number) => y - PHOTO.h;
 
-/** A logo drawn `h` px tall and at most `maxW` wide, or the store's name where the file has no logo. */
+/**
+ * A logo drawn `h` px tall and at most `maxW` wide, or the name where there
+ * is no logo. A live logo has no known shape: it is drawn `h` tall, as wide
+ * as its picture, and at most `maxW` (the home cards do the same, S7-11).
+ */
 export function StoreMark({
   store,
   h,
   maxW,
   eager = false,
 }: {
-  store: DemoStore;
+  store: ListingMark;
   h: number;
   maxW: number;
   eager?: boolean;
@@ -46,11 +50,30 @@ export function StoreMark({
   if (!store.logo) {
     return (
       <span
-        className="block font-medium whitespace-nowrap"
-        style={{ fontSize: h, lineHeight: `${h}px`, color: C.ink }}
+        className="block font-medium whitespace-nowrap overflow-hidden text-ellipsis"
+        style={{
+          fontSize: h,
+          lineHeight: `${h}px`,
+          color: C.ink,
+          maxWidth: maxW,
+        }}
       >
         {store.name}
       </span>
+    );
+  }
+  if (!store.logo.w || !store.logo.h) {
+    return (
+      <img
+        src={store.logo.src}
+        alt={store.name}
+        height={h}
+        draggable={false}
+        loading={eager ? "eager" : "lazy"}
+        decoding="async"
+        className="block select-none object-contain"
+        style={{ height: h, width: "auto", maxWidth: maxW }}
+      />
     );
   }
   const ratio = store.logo.w / store.logo.h;
@@ -91,7 +114,8 @@ export function Weighted({
     <>
       {parts.map((part, i) => {
         const name = part.startsWith("{") ? part.slice(1, -1) : null;
-        if (!name || !(name in values)) return <React.Fragment key={i}>{part}</React.Fragment>;
+        if (!name || !(name in values))
+          return <React.Fragment key={i}>{part}</React.Fragment>;
         const weight = bold.includes(name)
           ? "font-bold"
           : medium.includes(name)
@@ -109,8 +133,16 @@ export function Weighted({
 
 /** The colours of a badge: its pill, its words, where the words start, and the pill's width in the file. */
 export const BADGE = {
-  bag: { bg: "#F4F4FF", ink: "#4A31E7", textAt: 23, minW: 114, radius: "7.05px / 6px" },
+  bag: {
+    bg: "#F4F4FF",
+    ink: "#4A31E7",
+    textAt: 23,
+    minW: 114,
+    radius: "7.05px / 6px",
+  },
   best: { bg: "#EFF6FF", ink: "#388CFF", textAt: 6, minW: 109, radius: 6 },
+  // A backend label (S7b-3): the best-price pill's blue, as wide as its words.
+  text: { bg: "#EFF6FF", ink: "#388CFF", textAt: 6, minW: 0, radius: 6 },
   flash: { bg: "#FFF6F0", ink: "#FF6201", textAt: 19, minW: 124, radius: 6 },
 } as const;
 
@@ -123,15 +155,13 @@ export function ProductName({
   product,
   color,
   href,
-  t,
 }: {
-  product: DemoProduct;
-  color?: ProductColor;
+  product: StoreCard;
+  color?: CardColor;
   /** The product's page: the name is a real link to it, for search engines and the keyboard. */
   href?: string;
-  t: T;
 }) {
-  const words: DemoKey[] = [...product.name, ...(color ? [color.name] : [])];
+  const words = [...product.name, ...(color?.name ? [color.name] : [])];
   const name = words.map((word, i) => (
     <React.Fragment key={`${word}-${i}`}>
       {i > 0 && (
@@ -140,15 +170,15 @@ export function ProductName({
           <span className="font-medium">.</span>{" "}
         </>
       )}
-      {t(word)}
+      {word}
     </React.Fragment>
   ));
   return (
     <h2
       className="absolute m-0 font-normal whitespace-nowrap overflow-hidden text-ellipsis"
       style={{
-        left: 12,
-        right: 12,
+        insetInlineStart: 12,
+        insetInlineEnd: 12,
         top: textTop(inFooter(347), 11),
         fontSize: 11,
         lineHeight: `${lineBox(11)}px`,
@@ -166,23 +196,26 @@ export function ProductName({
   );
 }
 
-/** The store's logo, 11 tall, 8 px under the photo (y 319 on the card). */
-export function CardLogo({ store }: { store: DemoStore }) {
+/** The card's mark (the brand's logo, S7b-8), 11 tall, 8 px under the photo (y 319 on the card). */
+export function CardLogo({ mark }: { mark: ListingMark }) {
   return (
-    <div className="absolute" style={{ left: 12, top: inFooter(319) }}>
-      <StoreMark store={store} h={11} maxW={100} />
+    <div
+      className="absolute"
+      style={{ insetInlineStart: 12, top: inFooter(319) }}
+    >
+      <StoreMark store={mark} h={11} maxW={100} />
     </div>
   );
 }
 
 /** The price: an 18 px pill at y 373 on the card, "90" Bold and "USD" Regular. */
-export function PricePill({ product, t }: { product: DemoProduct; t: T }) {
+export function PricePill({ product }: { product: StoreCard }) {
   return (
     <p
       data-pw="demo-listing-price"
       className="absolute m-0 font-normal whitespace-nowrap"
       style={{
-        left: 12,
+        insetInlineStart: 12,
         top: inFooter(373),
         height: 18,
         minWidth: 50,
@@ -197,28 +230,38 @@ export function PricePill({ product, t }: { product: DemoProduct; t: T }) {
       <data value={product.price} className="font-bold">
         {product.price}
       </data>{" "}
-      {t(product.currency)}
+      {product.currency}
     </p>
   );
 }
 
 /** The add button: the 18 px mark 12 px from the card's right edge, at y 373, in a 44 px target. */
-export function AddButton({ product, t }: { product: DemoProduct; t: T }) {
+export function AddButton({
+  product,
+  t,
+  onAdd,
+}: {
+  product: StoreCard;
+  t: T;
+  /** The tap. Until D-45 the real pages show "Soon available" (S7b-1). */
+  onAdd?: () => void;
+}) {
   return (
     <button
       type="button"
       aria-label={t("Add to cart")}
       data-pw="demo-listing-add"
+      onClick={onAdd}
       className="absolute cursor-pointer active:opacity-60 [-webkit-tap-highlight-color:transparent]"
       style={{
-        right: 12 - 13,
+        insetInlineEnd: 12 - 13,
         top: inFooter(373) - 13,
         width: 44,
         height: 44,
         padding: 13,
       }}
     >
-      <XdIcon name={product.addColor === "purple" ? "listAddPurple" : "listAddDark"} />
+      <XdIcon name={product.inBag ? "listAddPurple" : "listAddDark"} />
     </button>
   );
 }
@@ -302,20 +345,22 @@ export function LabelTurns({
   testId,
   render,
 }: {
-  badges: readonly ProductBadge[];
+  badges: readonly CardLabel[];
   top: number;
   height: number;
   testId: string;
-  render: (badge: ProductBadge) => React.ReactNode;
+  render: (badge: CardLabel) => React.ReactNode;
 }) {
   const n = badges.length;
+  // A live product can have no label at all: an empty row.
+  if (n === 0) return null;
   if (n < 2) {
     return (
       <div
         data-pw={testId}
         data-count={n}
         className="absolute overflow-hidden"
-        style={{ left: 12, right: 12, top, height }}
+        style={{ insetInlineStart: 12, insetInlineEnd: 12, top, height }}
       >
         {render(badges[0])}
       </div>
@@ -326,7 +371,13 @@ export function LabelTurns({
       data-pw={testId}
       data-count={n}
       className="absolute"
-      style={{ left: 12, right: 12, top, height, perspective: LABEL_PERSPECTIVE_PX }}
+      style={{
+        insetInlineStart: 12,
+        insetInlineEnd: 12,
+        top,
+        height,
+        perspective: LABEL_PERSPECTIVE_PX,
+      }}
     >
       <style>{labelsCss(n)}</style>
       <div className={`relative h-full demo-labels-${n}`}>
@@ -364,7 +415,15 @@ export function PhotoGlow() {
 const SLIDE_DURATION = 25;
 
 /** The photo of a colour with one photo: a plain image, with no slider. */
-function OnePhoto({ src, alt, eager }: { src: string; alt: string; eager: boolean }) {
+function OnePhoto({
+  src,
+  alt,
+  eager,
+}: {
+  src: string;
+  alt: string;
+  eager: boolean;
+}) {
   return (
     <img
       src={src}
@@ -398,14 +457,15 @@ function OnePhoto({ src, alt, eager }: { src: string; alt: string; eager: boolea
  * or it has focus; their photos start to load then, before the swipe ends.
  */
 export function ColorPhotos(props: {
-  color: ProductColor;
+  color: CardColor;
   alt: string;
   /** Load the first photo at once (the cards the page opens on). */
   eager?: boolean;
   onIndex?: (index: number) => void;
 }) {
   const { color, alt, eager = false } = props;
-  if (color.images.length < 2) return <OnePhoto src={color.images[0]} alt={alt} eager={eager} />;
+  if (color.images.length < 2)
+    return <OnePhoto src={color.images[0]} alt={alt} eager={eager} />;
   return <SlidingPhotos {...props} eager={eager} />;
 }
 
@@ -415,7 +475,7 @@ function SlidingPhotos({
   eager,
   onIndex,
 }: {
-  color: ProductColor;
+  color: CardColor;
   alt: string;
   eager: boolean;
   onIndex?: (index: number) => void;
@@ -467,7 +527,12 @@ function SlidingPhotos({
               style={{ flex: "0 0 100%" }}
             />
           ) : (
-            <span key={src} aria-hidden="true" className="block h-full bg-[#F4F4F4]" style={{ flex: "0 0 100%" }} />
+            <span
+              key={src}
+              aria-hidden="true"
+              className="block h-full bg-[#F4F4F4]"
+              style={{ flex: "0 0 100%" }}
+            />
           ),
         )}
       </div>
@@ -569,7 +634,7 @@ export function SwatchPicker({
   onTouch,
   t,
 }: {
-  colors: readonly ProductColor[];
+  colors: readonly CardColor[];
   selected: number;
   onSelect: (index: number) => void;
   onOpen: () => void;
@@ -577,7 +642,9 @@ export function SwatchPicker({
   onTouch?: () => void;
   t: T;
 }) {
-  const drag = useRef<{ x: number; start: number; moved: boolean } | null>(null);
+  const drag = useRef<{ x: number; start: number; moved: boolean } | null>(
+    null,
+  );
   /** Set when a drag ends, so the click that follows it does not open the sheet. */
   const dragged = useRef(false);
   const last = colors.length - 1;
@@ -638,7 +705,11 @@ export function SwatchPicker({
       <button
         type="button"
         data-pw="demo-listing-colors"
-        aria-label={`${t("Colors")}: ${t(colors[selected].name)}`}
+        aria-label={
+          colors[selected].name
+            ? `${t("Colors")}: ${colors[selected].name}`
+            : t("Colors")
+        }
         aria-haspopup="dialog"
         className="absolute cursor-pointer [-webkit-tap-highlight-color:transparent]"
         style={{
@@ -688,4 +759,128 @@ export function SwatchPicker({
       />
     </>
   );
+}
+
+/** What is left of a flash deal: whole days, and the rest as hh:mm:ss. */
+export type FlashLeft = { days: number; time: string };
+
+const two = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * The time left on a flash deal that ends on the date `ends` (S7b-11). The
+ * deal runs to 23:59:59 of that day, in the shopper's time, as the live
+ * flash-deal banner counts it (`resolveCardPrice`). Null once it is over.
+ */
+export function flashLeft(ends: string, now: number): FlashLeft | null {
+  const end = new Date(ends);
+  if (Number.isNaN(end.getTime())) return null;
+  end.setHours(23, 59, 59, 999);
+  const ms = end.getTime() - now;
+  if (ms <= 0) return null;
+  const s = Math.floor(ms / 1000);
+  const days = Math.floor(s / 86400);
+  const rest = s % 86400;
+  return {
+    days,
+    time: `${two(Math.floor(rest / 3600))}:${two(Math.floor((rest % 3600) / 60))}:${two(rest % 60)}`,
+  };
+}
+
+/**
+ * A live flash-deal countdown (S7b-11). It ticks once a second while it is
+ * on the screen and the tab is in view, as the live banner does. The
+ * server's HTML has no time in it (the server's clock is not the
+ * shopper's), so the time shows from the first tick in the browser.
+ */
+function useFlashLeft(ends: string, node: React.RefObject<HTMLElement | null>) {
+  const [left, setLeft] = useState<FlashLeft | null | undefined>(undefined);
+  useEffect(() => {
+    const el = node.current;
+    let timer: ReturnType<typeof setInterval> | null = null;
+    let seen = false;
+    const read = () => setLeft(flashLeft(ends, Date.now()));
+    const sync = () => {
+      const run = seen && document.visibilityState === "visible";
+      if (run && !timer) {
+        read();
+        timer = setInterval(read, 1000);
+      } else if (!run && timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+    read();
+    const watch =
+      el && typeof IntersectionObserver !== "undefined"
+        ? new IntersectionObserver(([entry]) => {
+            seen = entry.isIntersecting;
+            sync();
+          })
+        : null;
+    if (watch && el) watch.observe(el);
+    else seen = true;
+    sync();
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      watch?.disconnect();
+      if (timer) clearInterval(timer);
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [ends, node]);
+  return left;
+}
+
+/** The flash label's words: "Flash Deal | 2d | 12:23:19". */
+function FlashWords({
+  label,
+  t,
+}: {
+  label: Extract<CardLabel, { kind: "flash" }>;
+  t: T;
+}) {
+  const node = useRef<HTMLSpanElement>(null);
+  const live = useFlashLeft("ends" in label ? label.ends : "", node);
+  const left: FlashLeft | null | undefined =
+    "ends" in label ? live : { days: label.days, time: label.time };
+  return (
+    <span ref={node}>
+      <span className="font-bold">{t("Flash Deal")} | </span>
+      {left && (
+        <>
+          {t("{n}d").replace("{n}", String(left.days))} | {left.time}
+        </>
+      )}
+    </span>
+  );
+}
+
+/**
+ * The words of a label, in the file's weights. Shared by the store page's
+ * pills and the colour sheet's plain labels.
+ */
+export function LabelWords({ label, t }: { label: CardLabel; t: T }) {
+  if (label.kind === "bag") {
+    return (
+      <Weighted
+        text={t("{count} item {size} in your bag")}
+        values={{ count: String(label.count), size: label.size }}
+        bold={["count", "size"]}
+      />
+    );
+  }
+  if (label.kind === "best") {
+    return (
+      <>
+        {/* The file draws the space after "price" in Bold too. */}
+        <span className="font-bold">{t("! Best price")} </span>
+        <Weighted
+          text={t("last {days} days!")}
+          values={{ days: String(label.days) }}
+          medium={["days"]}
+        />
+      </>
+    );
+  }
+  if (label.kind === "flash") return <FlashWords label={label} t={t} />;
+  return <>{label.text}</>;
 }

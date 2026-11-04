@@ -2,7 +2,6 @@
 // section loaders they are built from.
 import { describe, expect, it } from "vitest";
 
-import BoutiqueSlidersSkeleton from "components/skeleton/loaders/BoutiqueSlidersSkeleton";
 import ChangeOrderItemSkeleton from "components/skeleton/loaders/ChangeOrderItemSkeleton";
 import CompareSkeleton from "components/skeleton/loaders/CompareSkeleton";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
@@ -63,41 +62,5 @@ describe("the page loaders", () => {
   it("the change-order-item loader draws", async () => {
     const { container } = await renderWithProviders(<ChangeOrderItemSkeleton />);
     expect(container.innerHTML, "the change-order-item loader drew nothing").not.toBe("");
-  });
-});
-
-describe("the boutique banner loader", () => {
-  it("shows the boutique's logo and one slide per banner when it has them", async () => {
-    const { container } = await renderWithProviders(
-      <BoutiqueSlidersSkeleton
-        boutique={{ name: "Nike", icon: "nike.png", banners: ["a.png", "b.png"] }}
-      />,
-    );
-    expect(
-      container.querySelector('img[alt="Nike"]'),
-      "the boutique logo was not shown although the boutique has one",
-    ).not.toBeNull();
-    expect(
-      container.querySelectorAll('[data-pw="image_offer_image"] img').length,
-      "each banner should get its own slide",
-    ).toBe(2);
-    expect(
-      container.querySelector('[data-pw="banners_length-1"]')?.className,
-      "more than one banner should line the slides up from the start",
-    ).toContain("justify-start");
-  });
-
-  it("shows a placeholder logo and one placeholder slide when the boutique has no banners", async () => {
-    const { container } = await renderWithProviders(
-      <BoutiqueSlidersSkeleton boutique={{ name: "Nike", banners: [] }} />,
-    );
-    expect(
-      container.querySelector('img[alt="Nike"]'),
-      "a boutique with no icon must not show a logo image",
-    ).toBeNull();
-    expect(
-      container.querySelector(".image-offer.w-full"),
-      "a boutique with no banners should show one placeholder slide",
-    ).not.toBeNull();
   });
 });

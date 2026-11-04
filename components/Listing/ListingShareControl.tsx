@@ -33,12 +33,27 @@ import { showSuccessNotification } from "@/store/notifications/reducer";
  * Each target is fire-and-forget; the only thing shared is the page URL. The
  * visual grid reuses `styles/share-options.css` so it matches the product widget.
  */
+/**
+ * The store page's header mark (Stage 7b): when given, the control's button
+ * is this mark, with this look, in place of the old icon. The sheet it opens
+ * is the old one (A-4).
+ */
+export type ListingTrigger = {
+  icon: React.ReactNode;
+  label: string;
+  testId: string;
+  className: string;
+  style: React.CSSProperties;
+};
+
 export default function ListingShareControl({
   language,
   isRtl = false,
+  trigger,
 }: {
   language: string;
   isRtl?: boolean;
+  trigger?: ListingTrigger;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -119,18 +134,28 @@ export default function ListingShareControl({
     <>
       <button
         type="button"
-        data-pw="share_ortion"
-        className="filter-option relative flex items-center justify-center border-0 bg-transparent p-0"
+        data-pw={trigger?.testId ?? "share_ortion"}
+        className={
+          trigger?.className ??
+          "filter-option relative flex items-center justify-center border-0 bg-transparent p-0"
+        }
+        style={trigger?.style}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
-        aria-label={t("Share this page")}
+        aria-label={trigger?.label ?? t("Share this page")}
         onClick={() => setIsOpen(true)}
       >
-        <img src="/icons/shareIcon.svg" data-pw="share_ortion_svg" alt="" />
+        {trigger?.icon ?? (
+          <img src="/icons/shareIcon.svg" data-pw="share_ortion_svg" alt="" />
+        )}
       </button>
 
       {isOpen && (
-        <BottomSheet isOpen={isOpen} onClose={() => setIsOpen(false)} height={60}>
+        <BottomSheet
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          height={60}
+        >
           <div
             dir={isRtl ? "rtl" : "ltr"}
             role="dialog"
