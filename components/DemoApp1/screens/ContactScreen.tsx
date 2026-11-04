@@ -7,7 +7,7 @@ import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import { CHAT } from "../chat/chatTheme";
 import { contactOf } from "../chat/chatModel";
-import { useDemoChat } from "../../DemoApp/demoChatState";
+import { useChat } from "../chat/chatContext";
 import { useDemoNav } from "../Demo1Shell";
 import {
   C,
@@ -49,7 +49,7 @@ import { ScreenPage, Stroke, Txt } from "../ui";
  */
 export default function ContactScreen() {
   const { t, navigate, back } = useDemoNav();
-  const { state, dispatch, setSearch } = useDemoChat();
+  const { state, dispatch, setSearch } = useChat();
   const chat = state.chats.find((c) => c.id === state.active) ?? state.chats[0];
   const contact = contactOf(state, chat);
   const callsOff = !!chat?.callsDisabled;

@@ -1,14 +1,13 @@
 "use client";
 
 import React, {
-  createContext,
-  useContext,
   useEffect,
   useReducer,
   useRef,
   useState,
 } from "react";
 import type { DemoKey } from "./demoKeys";
+import { ChatContext, NOTICE_MS, type ChatApi } from "../DemoApp1/chat/chatContext";
 import { reduceChat, seedState } from "./demoChatModel";
 import {
   clockNow,
@@ -51,35 +50,9 @@ export const MOCK_REPLIES = [
   "Thank you !",
 ] as const;
 
-type DemoChat = {
-  state: ChatState;
-  dispatch: (action: ChatAction) => void;
-  /** Sends a text I typed, answering `replyTo` when given. */
-  sendText: (chat: string, text: string, replyTo?: { id: string; text: string }) => void;
-  sendPhoto: (chat: string, src: string) => void;
-  sendVoice: (chat: string, seconds: number) => void;
-  sendVideo: (chat: string, src: string, seconds: number) => void;
-  sendFile: (chat: string, file: { src: string; name: string; bytes: number; mime?: string }) => void;
-  sendLocation: (chat: string, point: { lat: number; lng: number; accuracy?: number }) => void;
-  forward: (from: string, id: string, to: string) => void;
-  /** Opens the chat with a contact (a new one when there is none) and says which. */
-  newChat: (contact: string) => string;
-  /** Adds a contact and says its id. */
-  addContact: (name: string, phone: string) => string;
-  /** A word for the shopper from the chat itself (a reminder that came due), shown by whatever screen is up. */
-  notice: string | null;
-  /** The conversation opens with its message search up (the contact screen's Search). */
-  search: boolean;
-  setSearch: (on: boolean) => void;
-};
-
-/** How long a notice stays, in ms. */
-export const NOTICE_MS = 3200;
 
 /** The longest a timer may wait, in ms (a longer one fires at once in browsers). */
 const MAX_TIMER = 2 ** 31 - 1;
-
-const Ctx = createContext<DemoChat | null>(null);
 
 export function DemoChatProvider({
   children,
@@ -180,7 +153,7 @@ export function DemoChatProvider({
     });
   };
 
-  const value: DemoChat = {
+  const value: ChatApi = {
     state,
     dispatch,
     sendText: (chat, text, replyTo) =>
@@ -235,11 +208,5 @@ export function DemoChatProvider({
     setSearch,
   };
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
-}
-
-export function useDemoChat(): DemoChat {
-  const value = useContext(Ctx);
-  if (!value) throw new Error("useDemoChat must be used inside DemoChatProvider");
-  return value;
+  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 }

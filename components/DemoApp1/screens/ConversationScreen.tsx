@@ -21,7 +21,7 @@ import CategorySheet from "../chat/CategorySheet";
 import ReminderSheet from "../chat/ReminderSheet";
 import ReactionSheet from "../chat/ReactionSheet";
 import { ChevronDownIcon, ChevronUpIcon, CloseIcon } from "../chat/chatIcons";
-import { useDemoChat } from "../../DemoApp/demoChatState";
+import { useChat } from "../chat/chatContext";
 import { useDemoNav } from "../Demo1Shell";
 import { C, SAFE_BOTTOM, SAFE_TOP, SF_ROUNDED, UNDER_BAR, WINDOW_COVER, sfTop, textTop } from "../demo1Layout";
 import { Icon, Layer, ScreenPage, Stroke, Txt, useFollowTopTint } from "../ui";
@@ -146,7 +146,7 @@ export default function ConversationScreen() {
     notice,
     search,
     setSearch,
-  } = useDemoChat();
+  } = useChat();
   const chatId = state.viewing ?? state.active;
   const chat = state.chats.find((c) => c.id === chatId) ?? state.chats[0];
   const contact = contactOf(state, chat);

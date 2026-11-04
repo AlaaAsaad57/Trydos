@@ -26,7 +26,7 @@ import {
   type Contact,
 } from "../chat/chatModel";
 import ArchivedSheet from "../chat/ArchivedSheet";
-import { useDemoChat } from "../../DemoApp/demoChatState";
+import { useChat } from "../chat/chatContext";
 import { useDemoNav } from "../Demo1Shell";
 import {
   C,
@@ -84,7 +84,7 @@ import { useHorizontalSwipe } from "../chat/useHorizontalSwipe";
  */
 export default function ChatListScreen() {
   const { t, navigate } = useDemoNav();
-  const { state, dispatch, newChat, addContact, notice } = useDemoChat();
+  const { state, dispatch, newChat, addContact, notice } = useChat();
   const [tab, setTab] = useState<"chats" | "calls">("chats");
   const [query, setQuery] = useState("");
   /** The "New chat" sheet is up. */
