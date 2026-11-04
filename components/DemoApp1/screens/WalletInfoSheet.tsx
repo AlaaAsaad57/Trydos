@@ -13,7 +13,16 @@ import {
   lineBox,
   textBottom,
 } from "../demo1Layout";
-import { Box, Icon, Sheet, Txt, Under, fromCentre, useCanvasEnd } from "../ui";
+import {
+  Box,
+  Icon,
+  Ltr,
+  Sheet,
+  Txt,
+  Under,
+  fromCentre,
+  useCanvasEnd,
+} from "../ui";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import {
@@ -115,7 +124,7 @@ export default function WalletInfoSheet({
           weight="bold"
           mt={gapTo(TOP + 24 + lineBox(24), 180, 24)}
         >
-          {profile.clientId}
+          <Ltr>{profile.clientId}</Ltr>
         </Txt>
 
         <Under
@@ -127,7 +136,7 @@ export default function WalletInfoSheet({
           <Icon
             name="qrWallet"
             mt={210.32 - textBottom(180, 24)}
-            style={{ marginLeft: fromCentre(39.93, 430) }}
+            style={{ marginInlineStart: fromCentre(39.93, 430) }}
           />
 
           {/* The dots at (205, 573) and (217, 573): 20 wide together, centred. */}
@@ -165,7 +174,7 @@ export default function WalletInfoSheet({
             testId="demo-wallet-info-id"
             medium
           >
-            {profile.clientId}
+            <Ltr>{profile.clientId}</Ltr>
           </InfoField>
           <InfoField
             mt={757 - (698 + 55)}
@@ -173,7 +182,7 @@ export default function WalletInfoSheet({
             testId="demo-wallet-info-phone"
             medium
           >
-            {profile.phone}
+            <Ltr>{profile.phone}</Ltr>
           </InfoField>
 
           <div
@@ -182,7 +191,7 @@ export default function WalletInfoSheet({
             // row keeps the file's slots and stays centred as in the file.
             style={{
               marginTop: 855 - (757 + 55),
-              marginLeft: fromCentre(ACTIONS[0].x, 430),
+              marginInlineStart: fromCentre(ACTIONS[0].x, 430),
               paddingBottom: 930 - 895,
             }}
           >
@@ -209,8 +218,8 @@ export default function WalletInfoSheet({
                     name={action.icon}
                     style={
                       action.off > 0
-                        ? { marginLeft: action.off * 2 }
-                        : { marginRight: -action.off * 2 }
+                        ? { marginInlineStart: action.off * 2 }
+                        : { marginInlineEnd: -action.off * 2 }
                     }
                   />
                   <Txt size={11} mt={gapTo(855 + 20, 892, 11)}>
@@ -273,7 +282,7 @@ export function InfoField({
         </Txt>
       </div>
       {mark && (
-        <Icon name="eyeGrey" mt={20 - 8} style={{ marginLeft: "auto" }} />
+        <Icon name="eyeGrey" mt={20 - 8} style={{ marginInlineStart: "auto" }} />
       )}
     </Box>
   );

@@ -24,6 +24,7 @@ import {
   Box,
   FileLines,
   Icon,
+  Ltr,
   Sheet,
   Stroke,
   Txt,
@@ -422,9 +423,9 @@ function Ways({
               key={way.id}
               className="flex flex-col shrink-0"
               style={{
-                marginLeft: i === 0 ? 20 : 8,
+                marginInlineStart: i === 0 ? 20 : 8,
                 // The row ends 20 px after the last tile, as it starts.
-                marginRight: i === WALLET_CASH_IN_WAYS.length - 1 ? 20 : 0,
+                marginInlineEnd: i === WALLET_CASH_IN_WAYS.length - 1 ? 20 : 0,
               }}
             >
               <motion.button
@@ -630,7 +631,7 @@ function Actions({
       className="flex items-start shrink-0"
       style={{
         marginTop: mt,
-        marginLeft: fromCentre(actions[0].x, DESIGN_W),
+        marginInlineStart: fromCentre(actions[0].x, DESIGN_W),
         paddingBottom: BOARD_END - 895,
       }}
     >
@@ -655,8 +656,8 @@ function Actions({
               name={action.icon}
               style={
                 action.off > 0
-                  ? { marginLeft: action.off * 2 }
-                  : { marginRight: -action.off * 2 }
+                  ? { marginInlineStart: action.off * 2 }
+                  : { marginInlineEnd: -action.off * 2 }
               }
             />
             <Txt size={11} mt={gapTo(855 + 20, 892, 11)}>
@@ -708,8 +709,10 @@ function ClientFields({
       </InfoField>
       <InfoField mt={4} label={t("Trydos client ID")} testId={`${testId}-id`}>
         {/* The number ends at x 81, the currency starts at 91. */}
-        <span className="font-medium">{WALLET_CASH_IN.clientId}</span>
-        <span style={{ marginLeft: 91 - 81 }}>
+        <span className="font-medium">
+          <Ltr>{WALLET_CASH_IN.clientId}</Ltr>
+        </span>
+        <span style={{ marginInlineStart: 91 - 81 }}>
           {t(WALLET_BANK_ACCOUNT.currency[balance.currency])}
         </span>
       </InfoField>
@@ -719,7 +722,7 @@ function ClientFields({
         testId={`${testId}-phone`}
         medium
       >
-        {WALLET_CASH_IN.phone}
+        <Ltr>{WALLET_CASH_IN.phone}</Ltr>
       </InfoField>
     </>
   );
@@ -770,7 +773,7 @@ function Rdb({
       {/* The two tabs share the row, 20 px from both edges of the screen. */}
       <div
         className="flex shrink-0"
-        style={{ marginTop: 213 - HEAD_END, marginLeft: 20, width: fill(20) }}
+        style={{ marginTop: 213 - HEAD_END, marginInlineStart: 20, width: fill(20) }}
       >
         <Tab
           chosen={!fromBank}
@@ -811,8 +814,10 @@ function Rdb({
               testId="demo-wallet-cash-in-bank-id"
             >
               {/* The number ends at x 81, the currency starts at 91. */}
-              <span className="font-medium">{WALLET_BANK_ACCOUNT.id}</span>
-              <span style={{ marginLeft: 91 - 81 }}>
+              <span className="font-medium">
+                <Ltr>{WALLET_BANK_ACCOUNT.id}</Ltr>
+              </span>
+              <span style={{ marginInlineStart: 91 - 81 }}>
                 {t(WALLET_BANK_ACCOUNT.currency[balance.currency])}
               </span>
             </Recipient>
@@ -822,13 +827,15 @@ function Rdb({
               testId="demo-wallet-cash-in-bank-phone"
             >
               {/* "+" Bold at x 32, the number from x 44. */}
-              <span
-                className="font-bold inline-block"
-                style={{ minWidth: 44 - 32 }}
-              >
-                +
-              </span>
-              {WALLET_RECIPIENT.phone}
+              <Ltr>
+                <span
+                  className="font-bold inline-block"
+                  style={{ minWidth: 44 - 32 }}
+                >
+                  +
+                </span>
+                {WALLET_RECIPIENT.phone}
+              </Ltr>
             </Recipient>
             <Recipient
               mt={4}
@@ -868,7 +875,7 @@ function Rdb({
             <Icon
               name="qrCashIn"
               mt={260.41 - (213 + 28)}
-              style={{ marginLeft: fromCentre(65, DESIGN_W) }}
+              style={{ marginInlineStart: fromCentre(65, DESIGN_W) }}
             />
             {/* The dots at (205, 573) and (217, 573): 20 wide together, centred. */}
             <div
@@ -913,7 +920,7 @@ function DepositPicture({ balance }: { balance: WalletBalance }) {
       <Icon
         name="qrCashInBig"
         mt={167.42 - textBottom(132, 24)}
-        style={{ marginLeft: fromCentre(39.99, DESIGN_W) }}
+        style={{ marginInlineStart: fromCentre(39.99, DESIGN_W) }}
       />
       <DepositLine mt={gapTo(167.42 + 350.37, 546, 16)} balance={balance} />
       <ClientFields
@@ -966,7 +973,7 @@ function Note({
       style={{
         height: undefined,
         minHeight: 90,
-        paddingLeft: 12,
+        paddingInlineStart: 12,
         paddingBottom: 895 - (paraTop(848, 11, 16) + 3 * 16),
         marginBottom: BOARD_END - 895,
       }}
@@ -984,7 +991,7 @@ function NoteTitle({ children }: { children: React.ReactNode }) {
       size={11}
       weight="medium"
       mt={gapTo(805, 828, 11)}
-      style={narrow ? { whiteSpace: "normal", marginRight: 12 } : undefined}
+      style={narrow ? { whiteSpace: "normal", marginInlineEnd: 12 } : undefined}
     >
       {children}
     </Txt>
@@ -1276,7 +1283,7 @@ function Crypto({
       {/* The two tabs share the row, 20 px from both edges of the screen. */}
       <div
         className="flex shrink-0"
-        style={{ marginTop: 213 - HEAD_END, marginLeft: 20, width: fill(20) }}
+        style={{ marginTop: 213 - HEAD_END, marginInlineStart: 20, width: fill(20) }}
       >
         <Tab
           chosen
@@ -1331,7 +1338,7 @@ function Crypto({
                 mt={gapTo(477, 496, 11)}
                 style={
                   narrow
-                    ? { ...wrap(narrow), paddingLeft: 9, paddingRight: 9 }
+                    ? { ...wrap(narrow), paddingInlineStart: 9, paddingInlineEnd: 9 }
                     : wrap(narrow)
                 }
               >
@@ -1378,8 +1385,8 @@ function Crypto({
                 style={{
                   height: undefined,
                   minHeight: 58,
-                  paddingLeft: 12,
-                  paddingRight: 12,
+                  paddingInlineStart: 12,
+                  paddingInlineEnd: 12,
                   paddingBottom: 519 + 58 - textBottom(562, 11),
                 }}
               >
@@ -1601,7 +1608,7 @@ function Safe({
       <Icon
         name="shieldSafe"
         mt={288.91 - (RULES_TOP + 13)}
-        style={{ marginLeft: fromCentre(197.98, DESIGN_W) }}
+        style={{ marginInlineStart: fromCentre(197.98, DESIGN_W) }}
       />
       {/* The file starts the title at x 126: 1.5 px right of centre. */}
       <Txt
@@ -1629,8 +1636,8 @@ function Safe({
                 className="flex items-start shrink-0"
                 style={{
                   marginTop: i === 0 ? first - textBottom(354, 14) : 4,
-                  marginLeft: 20,
-                  marginRight: right,
+                  marginInlineStart: 20,
+                  marginInlineEnd: right,
                 }}
               >
                 {/* The dot's top is 2 px under the line's top (378 against 376). */}
@@ -1643,7 +1650,7 @@ function Safe({
                   style={{
                     ...SF_LINE,
                     color: C.ink,
-                    marginLeft: (i === 0 ? 40 : 42) - (20 + 14),
+                    marginInlineStart: (i === 0 ? 40 : 42) - (20 + 14),
                   }}
                 >
                   {t(item.rule)}
@@ -1654,7 +1661,7 @@ function Safe({
                   <div
                     key={`${note.text}-${n}`}
                     className="flex items-start shrink-0"
-                    style={{ marginTop: 4, marginLeft: i === 0 ? 40 : 42 }}
+                    style={{ marginTop: 4, marginInlineStart: i === 0 ? 40 : 42 }}
                   >
                     {/* The dot's top is 4 px under the line's top (402 against 398). */}
                     <div className="shrink-0" style={{ marginTop: 4 }}>
@@ -1695,7 +1702,7 @@ function Safe({
             whileTap={{ scale: 0.98 }}
             className="relative flex flex-col shrink-0 cursor-pointer"
             style={{
-              marginLeft: 30,
+              marginInlineStart: 30,
               width: fill(30),
               height: 60,
               borderRadius: 20,
@@ -1738,7 +1745,7 @@ function NetworkTag({ mt }: { mt: number }) {
       w={193}
       h={28}
       mt={mt}
-      style={{ marginLeft: fromCentre(119, DESIGN_W) }}
+      style={{ marginInlineStart: fromCentre(119, DESIGN_W) }}
       radius={8}
       fill={C.yellow}
       data-pw="demo-wallet-cash-in-network"
@@ -1767,7 +1774,7 @@ function DepositRow({ mt, amount }: { mt: number; amount: string }) {
   return (
     <div
       className="flex items-start shrink-0"
-      style={{ marginTop: mt, marginLeft: fromCentre(136, DESIGN_W) }}
+      style={{ marginTop: mt, marginInlineStart: fromCentre(136, DESIGN_W) }}
     >
       <Icon name="usdtMark" />
       <Txt
@@ -1802,8 +1809,8 @@ function ScanRow({ mt }: { mt: number }) {
       className="flex items-start shrink-0"
       style={{
         marginTop: mt,
-        marginLeft: narrow ? 20 : fromCentre(34.56, DESIGN_W),
-        marginRight: narrow ? 20 : undefined,
+        marginInlineStart: narrow ? 20 : fromCentre(34.56, DESIGN_W),
+        marginInlineEnd: narrow ? 20 : undefined,
       }}
     >
       <Icon name="scanPhone" />
@@ -1861,7 +1868,7 @@ function Expiry({ mt, first }: { mt: number; first: number }) {
         className="flex items-start shrink-0"
         style={{
           marginTop: rowY - (paraY + 36),
-          marginLeft: fromCentre(128.59, DESIGN_W),
+          marginInlineStart: fromCentre(128.59, DESIGN_W),
         }}
       >
         {/* The clock's top is 2 px under the line's top. */}
@@ -1871,7 +1878,7 @@ function Expiry({ mt, first }: { mt: number; first: number }) {
           style={{
             ...SF_LINE,
             color: C.expiry,
-            marginLeft: 147 - (128.59 + 12.81),
+            marginInlineStart: 147 - (128.59 + 12.81),
           }}
         >
           <Slots
@@ -1927,7 +1934,7 @@ function CryptoCode({
         <Icon
           name="qrCashIn"
           mt={260.41 - (213 + 28)}
-          style={{ marginLeft: fromCentre(65, DESIGN_W) }}
+          style={{ marginInlineStart: fromCentre(65, DESIGN_W) }}
         />
         <DepositRow mt={573 - (260.41 + 300.12)} amount={amount} />
         <ScanRow mt={639 - (573 + 20)} />
@@ -1936,7 +1943,7 @@ function CryptoCode({
           className="flex items-start shrink-0"
           style={{
             marginTop: 666 - (639 + 15),
-            marginLeft: fromCentre(137.64, DESIGN_W),
+            marginInlineStart: fromCentre(137.64, DESIGN_W),
           }}
         >
           <Icon name="timerBlue" />
@@ -1978,7 +1985,7 @@ function CryptoCode({
               whileTap={{ scale: 0.94 }}
               className="shrink-0 cursor-pointer overflow-hidden"
               style={{
-                marginLeft: i === 0 ? 0 : 30,
+                marginInlineStart: i === 0 ? 0 : 30,
                 width: 30,
                 height: 30,
                 borderRadius: 5,
@@ -2033,7 +2040,7 @@ function CryptoPicture({ amount }: { amount: string }) {
       <Icon
         name="qrCashInBig"
         mt={212.42 - (165 + 28)}
-        style={{ marginLeft: fromCentre(39.99, DESIGN_W) }}
+        style={{ marginInlineStart: fromCentre(39.99, DESIGN_W) }}
       />
       <DepositRow mt={575 - (212.42 + 350.37)} amount={amount} />
       <ScanRow mt={636 - (575 + 20)} />

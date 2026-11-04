@@ -22,12 +22,14 @@ import {
   Box,
   FileLines,
   Icon,
+  Ltr,
   Sheet,
   Stroke,
   Txt,
   Under,
   useCanvasEnd,
 } from "../ui";
+import { usePageDir } from "../rtl";
 import { useKeypadRoom } from "../useKeypadRoom";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import {
@@ -115,12 +117,15 @@ export function Brand({
   );
 }
 
-/** Moves a block `nudge` px right (or left) of its place by padding one side. */
+/**
+ * Moves a block `nudge` px right (or left) of its place by padding one side.
+ * The side is logical, so on a right-to-left page the nudge is mirrored too.
+ */
 const offCentre = (nudge = 0): React.CSSProperties =>
   nudge > 0
-    ? { paddingLeft: nudge * 2 }
+    ? { paddingInlineStart: nudge * 2 }
     : nudge < 0
-      ? { paddingRight: -nudge * 2 }
+      ? { paddingInlineEnd: -nudge * 2 }
       : {};
 
 /**
@@ -350,7 +355,7 @@ function Ways({ mark, onPick }: { mark: XdIconName; onPick: () => void }) {
           className="flex shrink-0"
           style={{
             marginTop: 562 - (366 + 188),
-            marginLeft: 20,
+            marginInlineStart: 20,
             width: fill(20),
           }}
         >
@@ -362,7 +367,7 @@ function Ways({ mark, onPick }: { mark: XdIconName; onPick: () => void }) {
               data-pw={`demo-wallet-way-${provider.id}`}
               whileTap={{ scale: 0.97 }}
               className="cursor-pointer"
-              style={{ flex: "1 1 0", minWidth: 0, marginLeft: provider.gap }}
+              style={{ flex: "1 1 0", minWidth: 0, marginInlineStart: provider.gap }}
             >
               <Box
                 w="100%"
@@ -485,7 +490,7 @@ export function BrandCard({
       onClick={onClick}
       whileTap={{ scale: 0.985 }}
       className="shrink-0 cursor-pointer"
-      style={{ marginTop: mt, marginLeft: 20, width: fill(20) }}
+      style={{ marginTop: mt, marginInlineStart: 20, width: fill(20) }}
     >
       <Box
         w="100%"
@@ -504,7 +509,7 @@ export function BrandCard({
           fill={C.purpleTint}
           className="self-end"
           style={{
-            marginRight: 410 - (310 + 94),
+            marginInlineEnd: 410 - (310 + 94),
             minWidth: 94,
             padding: "0 8px",
           }}
@@ -557,7 +562,7 @@ export function InfoButton({
       className="flex flex-col shrink-0 cursor-pointer"
       style={{
         marginTop: mt,
-        marginLeft: 32 - 20,
+        marginInlineStart: 32 - 20,
         width: fill(12),
         height: 38,
         borderRadius: 15,
@@ -662,6 +667,7 @@ function Form({
   /** "Withdrawal Request": on to the code (`Home Page – 101`). */
   onRequest: () => void;
 }) {
+  const pageDir = usePageDir();
   const { t } = useDemoNav();
   const top = TOP.form;
   const [active, setActive] = useState<InUse>(null);
@@ -832,7 +838,7 @@ function Form({
         className="flex shrink-0"
         style={{
           marginTop: 213 - textBottom(180, 24),
-          marginLeft: 20,
+          marginInlineStart: 20,
           width: fill(20),
         }}
       >
@@ -876,8 +882,10 @@ function Form({
             testId="demo-wallet-bank-id"
           >
             {/* The number ends at x 81, the currency starts at 91. */}
-            <span className="font-medium">{WALLET_BANK_ACCOUNT.id}</span>
-            <span style={{ marginLeft: 91 - 81 }}>
+            <span className="font-medium">
+              <Ltr>{WALLET_BANK_ACCOUNT.id}</Ltr>
+            </span>
+            <span style={{ marginInlineStart: 91 - 81 }}>
               {t(WALLET_BANK_ACCOUNT.currency[balance.currency])}
             </span>
           </Recipient>
@@ -897,13 +905,15 @@ function Form({
           testId="demo-wallet-recipient-phone"
         >
           {/* "+" Bold at x 32, the number from x 44. */}
-          <span
-            className="font-bold inline-block"
-            style={{ minWidth: 44 - 32 }}
-          >
-            +
-          </span>
-          {WALLET_RECIPIENT.phone}
+          <Ltr>
+            <span
+              className="font-bold inline-block"
+              style={{ minWidth: 44 - 32 }}
+            >
+              +
+            </span>
+            {WALLET_RECIPIENT.phone}
+          </Ltr>
         </Recipient>
         <Recipient
           mt={4}
@@ -978,6 +988,9 @@ function Form({
                     readOnly={keyed}
                     tabIndex={keyed ? -1 : undefined}
                     value={authorized.phone}
+                    // A phone reads left to right in every language; on a
+                    // right-to-left page it still starts on the right.
+                    dir="ltr"
                     aria-label={t("Authorized recipient phone number")}
                     onChange={(e) => {
                       const phone = e.target.value.replace(/[^0-9+ ]/g, "");
@@ -994,6 +1007,7 @@ function Form({
                       color: C.ink,
                       padding: 0,
                       border: 0,
+                      textAlign: pageDir === "rtl" ? "right" : undefined,
                     }}
                   />
                 </div>
@@ -1103,12 +1117,14 @@ function Form({
                 <Txt
                   size={12}
                   color={C.placeholder}
-                  className="ml-auto"
+                  className="ms-auto"
                   style={{ width: 398 - 291, whiteSpace: "pre" }}
                 >
                   {`${t("Available")} `}
-                  <span className="font-medium">{balance.amount}</span>
-                  {` ${balance.code}`}
+                  <Ltr>
+                    <span className="font-medium">{balance.amount}</span>
+                    {` ${balance.code}`}
+                  </Ltr>
                 </Txt>
               </>
             ) : saved ? (
@@ -1154,7 +1170,7 @@ function Form({
                 }}
               >
                 <span className="font-medium invisible">{amount}</span>
-                <span style={{ marginLeft: 5 }}>{balance.code}</span>
+                <span style={{ marginInlineStart: 5 }}>{balance.code}</span>
               </span>
             )}
             <input
@@ -1352,7 +1368,7 @@ function Scan({
           className="flex flex-col items-center"
         >
           {/* The file puts the mark half a px left of the box's centre. */}
-          <Icon name="scanCode" mt={500 - 213} style={{ marginRight: 1 }} />
+          <Icon name="scanCode" mt={500 - 213} style={{ marginInlineEnd: 1 }} />
           {/* And the line 1 px right of it. */}
           <Txt
             center
@@ -1382,8 +1398,10 @@ function Scan({
           data-pw="demo-wallet-scan-amount"
           style={{ whiteSpace: "pre" }}
         >
-          <span className="font-medium">{`${amount} `}</span>
-          {balance.code}
+          <Ltr>
+            <span className="font-medium">{`${amount} `}</span>
+            {balance.code}
+          </Ltr>
         </Txt>
 
         <FileLines
@@ -1496,7 +1514,7 @@ export function SheetButton({
       className="relative flex flex-col shrink-0 cursor-pointer"
       style={{
         marginTop: mt,
-        marginLeft: 20,
+        marginInlineStart: 20,
         width: fill(20),
         height: 60,
         borderRadius: 20,
@@ -1545,7 +1563,7 @@ function RecipientButton({
       className="flex flex-col shrink-0 cursor-pointer"
       style={{
         marginTop: mt,
-        marginLeft: ml,
+        marginInlineStart: ml,
         width: fill(ml, DESIGN_W - ml - 356),
         height: 30,
         borderRadius: 12,
@@ -1684,7 +1702,7 @@ export function Tab({
       aria-pressed={chosen}
       onClick={onClick}
       className="cursor-pointer"
-      style={{ flex: "1 1 0", minWidth: 0, marginLeft: ml }}
+      style={{ flex: "1 1 0", minWidth: 0, marginInlineStart: ml }}
     >
       <Box
         w="100%"
@@ -1758,7 +1776,7 @@ export function Recipient({
         <Icon
           name="eyeGreySmall"
           mt={324 - (304 + 8)}
-          style={{ marginLeft: "auto" }}
+          style={{ marginInlineStart: "auto" }}
         />
       )}
     </Box>

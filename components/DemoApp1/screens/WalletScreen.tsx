@@ -4,7 +4,8 @@ import React, { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useDemoNav } from "../Demo1Shell";
 import { C, DESIGN_W, fill, gapTo, textBottom } from "../demo1Layout";
-import { Box, Icon, ScreenHeader, ScreenPage, Txt } from "../ui";
+import { Box, Icon, Ltr, ScreenHeader, ScreenPage, Txt } from "../ui";
+import { type PageDir, usePageDir } from "../rtl";
 import {
   WALLET_BALANCES,
   entriesFor,
@@ -81,6 +82,33 @@ function useColumnWidth(ref: React.RefObject<HTMLDivElement | null>) {
 /** A slide this far, or this fast, goes to the next card. */
 const SLIDE = { far: 60, fast: 400 };
 
+/**
+ * The way a later card waits, on the x axis: to the right (1) on a
+ * left-to-right page, to the left (-1) on a right-to-left one, where the
+ * cards run from the right.
+ */
+const later = (dir: PageDir) => (dir === "rtl" ? -1 : 1);
+
+/** Where the row of cards rests, so the grown card (`grown`) is on show. */
+export const cardsRest = (grown: number | null, column: number, dir: PageDir) =>
+  grown === null ? 0 : -later(dir) * grown * column;
+
+/**
+ * The card a slide of the grown card `grown` ends on. A slide towards the end
+ * side (to the left in `en`, to the right in `ar`) brings the next card in.
+ */
+export function slideTo(grown: number, offsetX: number, velocityX: number, dir: PageDir) {
+  const offset = later(dir) * offsetX;
+  const velocity = later(dir) * velocityX;
+  const next =
+    offset < -SLIDE.far || velocity < -SLIDE.fast
+      ? grown + 1
+      : offset > SLIDE.far || velocity > SLIDE.fast
+        ? grown - 1
+        : grown;
+  return Math.min(WALLET_BALANCES.length - 1, Math.max(0, next));
+}
+
 /** XD's drop shadow (0, 3, blur 3, black 16%) and inner shadow (0, 3, blur 3, white 50%). */
 const CARD_SHADOW =
   "0 3px 3px rgba(0, 0, 0, 0.16), inset 0 3px 3px rgba(255, 255, 255, 0.502)";
@@ -105,7 +133,8 @@ export default function WalletScreen() {
   const balance = grown === null ? null : WALLET_BALANCES[grown];
   const currency = balance?.currency ?? null;
   const entries = entriesFor(currency);
-  const rest = grown === null ? 0 : -grown * column;
+  const pageDir = usePageDir();
+  const rest = cardsRest(grown, column, pageDir);
 
   return (
     <ScreenPage
@@ -149,7 +178,7 @@ export default function WalletScreen() {
           a slot that wide, so a longer line in another language pushes it. */}
       <div
         className="flex items-start shrink-0"
-        style={{ marginTop: gapTo(100, 123, 11), marginLeft: 24 }}
+        style={{ marginTop: gapTo(100, 123, 11), marginInlineStart: 24 }}
       >
         <Txt
           size={11}
@@ -169,7 +198,7 @@ export default function WalletScreen() {
       <div
         ref={row}
         className="flex w-full shrink-0"
-        style={{ marginTop: 138 - textBottom(123, 11), paddingLeft: EDGE }}
+        style={{ marginTop: 138 - textBottom(123, 11), paddingInlineStart: EDGE }}
       >
         <motion.div
           data-pw="demo-wallet-cards"
@@ -189,13 +218,7 @@ export default function WalletScreen() {
               sliding.current = false;
             }, 50);
             if (grown === null) return;
-            const next =
-              move.offset.x < -SLIDE.far || move.velocity.x < -SLIDE.fast
-                ? grown + 1
-                : move.offset.x > SLIDE.far || move.velocity.x > SLIDE.fast
-                  ? grown - 1
-                  : grown;
-            setGrown(Math.min(WALLET_BALANCES.length - 1, Math.max(0, next)));
+            setGrown(slideTo(grown, move.offset.x, move.velocity.x, pageDir));
           }}
         >
           {WALLET_BALANCES.map((card, i) => (
@@ -327,7 +350,7 @@ function BalanceCard({
         padding: "12px 12px 0",
       }}
       initial={false}
-      animate={{ width, marginLeft: ml }}
+      animate={{ width, marginInlineStart: ml }}
       transition={GROW}
     >
       <div className="flex flex-col shrink-0">
@@ -350,7 +373,7 @@ function BalanceCard({
             color={C.white}
             style={{ minWidth: 84 - 24, textShadow: AMOUNT_SHADOW }}
           >
-            {balance.amount}
+            <Ltr>{balance.amount}</Ltr>
           </Txt>
           <Txt
             size={9}
@@ -366,7 +389,7 @@ function BalanceCard({
       {wide && (
         <motion.div
           className="flex flex-col shrink-0"
-          style={{ width: 406 - 302, marginLeft: "auto" }}
+          style={{ width: 406 - 302, marginInlineStart: "auto" }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ ...GROW, delay: 0.15 }}
@@ -484,12 +507,12 @@ function EntryRow({
       }}
       className={`flex items-start ${onOpen ? "cursor-pointer" : ""}`}
     >
-      <div className="flex flex-col shrink-0" style={{ marginLeft: 12 }}>
+      <div className="flex flex-col shrink-0" style={{ marginInlineStart: 12 }}>
         <Icon name={entry.icon} mt={8} />
         <Icon name={entry.arrow} mt={28 - (8 + 16)} ml={1} />
       </div>
 
-      <div className="flex flex-col shrink-0" style={{ marginLeft: 48 - 40 }}>
+      <div className="flex flex-col shrink-0" style={{ marginInlineStart: 48 - 40 }}>
         <Txt size={13} weight="medium" color={ink} mt={gapTo(0, 21, 13)}>
           {t(entry.title)}
         </Txt>
@@ -499,14 +522,18 @@ function EntryRow({
           mt={gapTo(textBottom(21, 13), 39, 11)}
           style={{ whiteSpace: "pre" }}
         >
-          <span className="font-light">{entry.date}</span>
-          {` | ${entry.note}`}
+          <span className="font-light">
+            <Ltr>{entry.date}</Ltr>
+          </span>
+          {" | "}
+          {/* The note is the shopper's own words: `bdi` gives it its own direction. */}
+          <bdi>{entry.note}</bdi>
         </Txt>
       </div>
 
       <div
-        className="flex flex-col items-end shrink-0 ml-auto"
-        style={{ marginRight: 12 }}
+        className="flex flex-col items-end shrink-0 ms-auto"
+        style={{ marginInlineEnd: 12 }}
       >
         <Txt
           size={13}
@@ -515,11 +542,13 @@ function EntryRow({
           mt={gapTo(0, 21, 13)}
           style={{ whiteSpace: "pre" }}
         >
-          <span className={entry.latest ? "font-bold" : "font-medium"}>
-            {entry.amount}
-          </span>
-          <span className="font-bold"> </span>
-          {entry.unit}
+          <Ltr>
+            <span className={entry.latest ? "font-bold" : "font-medium"}>
+              {entry.amount}
+            </span>
+            <span className="font-bold"> </span>
+            {entry.unit}
+          </Ltr>
         </Txt>
         {entry.status && (
           // The file starts the status at a fixed x and lets it run to 406.
@@ -532,9 +561,12 @@ function EntryRow({
             {t(entry.status)}
             {entry.due && (
               <>
-                {` ${entry.due.time} | `}
-                <span className="font-normal">{entry.due.day}</span>
-                {` ${entry.due.month}`}
+                {" "}
+                <Ltr>
+                  {`${entry.due.time} | `}
+                  <span className="font-normal">{entry.due.day}</span>
+                  {` ${entry.due.month}`}
+                </Ltr>
               </>
             )}
           </Txt>
