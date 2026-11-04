@@ -247,7 +247,7 @@ export default function ReactionSheet({
       <div className="flex flex-col w-full px-4 pt-1 pb-6 overflow-hidden">
         {/* Header Title */}
         <Txt center size={16} weight="medium" mt={4} className="mb-2.5">
-          {t("Search") === "Search" ? "Reactions" : t("Search")}
+          {t("Reactions")}
         </Txt>
 
         {/* Search Bar */}
@@ -275,7 +275,7 @@ export default function ReactionSheet({
             data-pw="demo-reaction-search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search emoji"
+            placeholder={t("Search emoji")}
             className="w-full h-9 ps- pe- text-[14px] rounded-xl outline-none transition-colors"
             style={{
               background: "rgba(118, 118, 128, 0.12)",
@@ -311,7 +311,7 @@ export default function ReactionSheet({
                     color: active ? C.white : C.grey,
                   }}
                 >
-                  {cat.label}
+                  {t(cat.label)}
                 </button>
               );
             })}
@@ -366,7 +366,7 @@ export default function ReactionSheet({
 
           {filteredEmojis.length === 0 && (
             <div className="col-span-6 py-12 text-center text-neutral-400 text-[14px]">
-              No emoji found
+              {t("No emoji found")}
             </div>
           )}
         </div>

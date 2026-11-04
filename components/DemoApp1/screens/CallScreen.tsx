@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { CALLER, CALL_TIMER_START, CHAT_PHOTOS } from "../../DemoApp/demoChat";
 import CallFace, { type CallPerson, type CallPhase } from "../chat/CallFace";
 import { useDemoNav } from "../screenNav";
+import { useDemoCase } from "../demoCase";
 
 const FIRST: CallPerson = { ...CALLER, photo: CHAT_PHOTOS.caller, initials: "" };
 const SECOND: CallPerson = { ...CALLER, photo: CHAT_PHOTOS.secondCaller, initials: "" };
@@ -14,7 +15,8 @@ const SECOND: CallPerson = { ...CALLER, photo: CHAT_PHOTOS.secondCaller, initial
  * same page with a real call (LiveCallScreen).
  */
 export default function CallScreen() {
-  const { t, back } = useDemoNav();
+  const { back } = useDemoNav();
+  const { t } = useDemoCase();
   const [second, setSecond] = useState(false);
   const [mic, setMic] = useState(true);
   const [camera, setCamera] = useState(true);

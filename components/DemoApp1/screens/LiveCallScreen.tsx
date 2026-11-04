@@ -7,6 +7,7 @@ import CallFace, { type CallPerson } from "../chat/CallFace";
 import { useChat } from "../chat/chatContext";
 import { chatOnScreen, contactOf } from "../chat/chatModel";
 import { useDemoNav } from "../screenNav";
+import { useDemoCase } from "../demoCase";
 
 /**
  * The call page of the real app (`/[lang]/chat/call?id=<chat id>`). Stage 6,
@@ -58,7 +59,7 @@ export default function LiveCallScreen() {
 
 /** The call page before the call runs: "Calling …", the switches doing nothing. */
 function Dialling() {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   const person = usePerson();
   const none = () => {};
   return (

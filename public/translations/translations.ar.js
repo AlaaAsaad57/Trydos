@@ -3198,6 +3198,15 @@ const translations = {
   "Delete for everyone": "حذف للجميع",
   "Allow Notifications": "السماح بالإشعارات",
   "Confirm your phone number to use Chat": "أكّد رقم هاتفك لاستخدام المحادثة",
+  "All": "الكل",
+  "Recent": "الأخيرة",
+  "Popular": "الشائعة",
+  "Smileys": "الوجوه",
+  "Gestures": "الإيماءات",
+  "Search emoji": "ابحث عن رمز تعبيري",
+  "No emoji found": "لم يتم العثور على رموز تعبيرية",
+  "More reactions": "المزيد من التفاعلات",
+  "Orders": "الطلبات",
 };
 
 export default translations;

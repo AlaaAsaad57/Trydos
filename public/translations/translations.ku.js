@@ -3247,6 +3247,15 @@ const translations = {
   "Delete for everyone": "سڕینەوە بۆ هەمووان",
   "Allow Notifications": "ڕێگەدان بە ئاگادارکردنەوەکان",
   "Confirm your phone number to use Chat": "ژمارەی مۆبایلەکەت پشتڕاست بکەرەوە بۆ بەکارهێنانی چات",
+  "All": "هەموو",
+  "Recent": "دوایین",
+  "Popular": "بەناوبانگ",
+  "Smileys": "ڕووخسارەکان",
+  "Gestures": "ئاماژەکان",
+  "Search emoji": "گەڕان بۆ ئیمۆجی",
+  "No emoji found": "هیچ ئیمۆجییەک نەدۆزرایەوە",
+  "More reactions": "کاردانەوەی زیاتر",
+  "Orders": "داواکارییەکان",
 };
 
 export default translations;

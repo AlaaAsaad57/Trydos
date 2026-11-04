@@ -27,7 +27,8 @@ import ReminderSheet from "../chat/ReminderSheet";
 import ReactionSheet from "../chat/ReactionSheet";
 import { ChevronDownIcon, ChevronUpIcon, CloseIcon } from "../chat/chatIcons";
 import { useChat } from "../chat/chatContext";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoNav } from "../screenNav";
+import { useDemoCase } from "../demoCase";
 import { C, SAFE_BOTTOM, SAFE_TOP, SF_ROUNDED, UNDER_BAR, WINDOW_COVER, sfTop, textTop } from "../demo1Layout";
 import { Icon, Layer, ScreenPage, Sheet, Stroke, Txt, useFollowTopTint } from "../ui";
 import Composer, { type ComposerContext } from "../chat/Composer";
@@ -152,7 +153,8 @@ export default function ConversationScreen() {
 }
 
 function Conversation() {
-  const { t, navigate, back, locale } = useDemoNav();
+  const { navigate, back, locale } = useDemoNav();
+  const { t } = useDemoCase();
   const dir = usePageDir();
   const {
     state,

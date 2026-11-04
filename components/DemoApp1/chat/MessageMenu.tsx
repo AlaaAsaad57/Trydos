@@ -348,7 +348,7 @@ export default function MessageMenu({
           <motion.button
             type="button"
             data-pw="demo-chat-react-more"
-            aria-label="More reactions"
+            aria-label={t("More reactions")}
             onClick={(e) => {
               e.stopPropagation();
               onMore();

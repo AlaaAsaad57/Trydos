@@ -12,6 +12,7 @@ import ChatGate from "../chat/ChatGate";
 import { mirrorFor, usePageDir } from "../rtl";
 import { useChat } from "../chat/chatContext";
 import { useDemoNav } from "../screenNav";
+import { useDemoCase } from "../demoCase";
 import { MediaSheet } from "../chat/ExtraSheets";
 import Toast, { useToast } from "../chat/Toast";
 import { translateFunction } from "utils/functions";
@@ -62,7 +63,8 @@ export default function ContactScreen() {
 }
 
 function Contact() {
-  const { t, navigate, back } = useDemoNav();
+  const { navigate, back } = useDemoNav();
+  const { t } = useDemoCase();
   const dir = usePageDir();
   const { state, dispatch, setSearch, call, extras } = useChat();
   const [media, setMedia] = useState(false);

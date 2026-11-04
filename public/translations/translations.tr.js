@@ -3231,6 +3231,15 @@ const translations = {
   "Delete for everyone": "Herkesten sil",
   "Allow Notifications": "Bildirimlere izin ver",
   "Confirm your phone number to use Chat": "Sohbeti kullanmak için telefon numaranı doğrula",
+  "All": "Tümü",
+  "Recent": "Son kullanılanlar",
+  "Popular": "Popüler",
+  "Smileys": "Yüz ifadeleri",
+  "Gestures": "Hareketler",
+  "Search emoji": "Emoji ara",
+  "No emoji found": "Emoji bulunamadı",
+  "More reactions": "Daha fazla tepki",
+  "Orders": "Siparişler",
 };
 
 export default translations;

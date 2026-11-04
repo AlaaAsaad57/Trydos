@@ -6,6 +6,7 @@ import { CALL_END_DURATION_MINUTES, CALL_WARNING_MESSAGE_MINUTES } from "compone
 import { translateFunction } from "utils/functions";
 import { SAFE_BOTTOM } from "../demo1Layout";
 import { useDemoNav } from "../screenNav";
+import { useDemoCase } from "../demoCase";
 import CallFace, { type CallPerson } from "./CallFace";
 import Toast, { useToast } from "./Toast";
 import { useLiveCall } from "./useLiveCall";
@@ -32,7 +33,7 @@ export default function LiveCall({
   channel: string;
   person: CallPerson;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   const [toast, showToast] = useToast();
   const call = useLiveCall({ token, video, channel });
   const soon = () => showToast(translateFunction("Soon available"));

@@ -25,6 +25,7 @@ import { translateFunction } from "utils/functions";
 import { useChat } from "../chat/chatContext";
 import PageEdge from "../chat/PageEdge";
 import { useDemoNav } from "../screenNav";
+import { useDemoCase } from "../demoCase";
 import {
   C,
   COLUMN_W,
@@ -86,7 +87,9 @@ export default function ChatListScreen() {
 }
 
 function ChatList() {
-  const { t, navigate, locale } = useDemoNav();
+  const { navigate, locale } = useDemoNav();
+
+  const { t } = useDemoCase();
   const { state, dispatch, newChat, addContact, notice, paging, extras } = useChat();
   /** The reminders sheet is up (the real chat only). */
   const [showReminders, setShowReminders] = useState(false);
