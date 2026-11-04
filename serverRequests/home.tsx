@@ -1,6 +1,5 @@
 "use server";
 
-import BoutiqueWrapper from "components/ServerWrapper/BoutiqueWrapper";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import {
   getProductsAndFiltersFromElastic,
@@ -15,32 +14,6 @@ import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
 // The "Show More" page of the recommendations row lives in
 // `serverRequests/recommendations.ts`: it reads the session cookie, and this
 // module sits inside a `use cache` graph where that read is not allowed.
-
-export async function GetNextBoutiques({
-  language,
-  country,
-  category,
-  offset,
-}) {
-  let response = await GetHomeBoutiques({
-    language,
-    category: category,
-    country,
-    offset: offset,
-  });
-  let newOffset = response.data.offset;
-  let items = response.data.boutiques.map((boutique) => (
-    <BoutiqueWrapper
-      key={boutique?.slug}
-      lang={`${country}-${language}`}
-      boutique={boutique}
-    />
-  ));
-  return {
-    boutiques: items,
-    offset: newOffset,
-  };
-}
 
 export async function GetHomeBoutiques({
   language,

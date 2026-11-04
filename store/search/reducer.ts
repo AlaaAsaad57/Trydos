@@ -27,10 +27,6 @@ interface SearchState {
   totalProducts: number | null;
   searchResults: SearchResults;
   enable_search: boolean;
-  /** Goes up by one each time the bottom bar's Search tab asks SearchIcon to open. */
-  openSearchRequest: number;
-  /** The last openSearchRequest that was taken by the home SearchIcon, or dropped by AppShell. */
-  handledSearchRequest: number;
   searchFilters: SearchFilter;
   loading_search: boolean;
   partialLoading: boolean;
@@ -54,8 +50,6 @@ const initialState: SearchState = {
     prices_ranges: [],
   },
   enable_search: false,
-  openSearchRequest: 0,
-  handledSearchRequest: 0,
   searchFilters: {
     categories: [],
     brands: [],
@@ -237,13 +231,6 @@ export const useSearchStore = (set, get) => ({
             totalProducts: null,
           }
     ),
-
-  // A counter, not an event: SearchIcon may mount after the request (the tab
-  // goes to the home page first), and it still sees the new value then.
-  requestOpenSearch: () =>
-    set((state) => ({ openSearchRequest: state.openSearchRequest + 1 })),
-  setHandledSearchRequest: (handledSearchRequest: number) =>
-    set({ handledSearchRequest }),
 
   resetSearchFilter: () =>
     set((state) => ({

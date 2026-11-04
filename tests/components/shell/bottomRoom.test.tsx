@@ -123,7 +123,7 @@ vi.mock("firebase/messaging", () => ({ isSupported: async () => false }));
 import AddToCartComponent from "components/Cart/AddToCart/AddToCartComponent";
 import OrderButton from "components/Cart/OrderButton";
 import Chat from "components/Chat/ChatWindowModal";
-import SearchIcon from "components/Home/Search/SearchIcon";
+import { SearchContainer } from "components/Home/Search/SearchResults";
 import FiltersButton from "components/ListingPage/filterComponents/FiltersWindow/FiltersButton";
 import NotificationsPanel from "components/Notifications/NotificationsPanel";
 import RatingOrderItem from "components/Orders/RatingOrderItem";
@@ -205,20 +205,39 @@ describe("old bottom bars sit above the new bar", () => {
   });
 
   it("the search filter bar adds the room to its bottom offset", async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    try {
-      await renderWithProviders(<SearchIcon language="en" country="sy" />, {
-        store: { setIsNavigating: vi.fn(), setEnableSearch: vi.fn() },
-      });
-      await act(async () => fireEvent.click(document.querySelector('[data-pw="searchIcon_mainPage"]')!));
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(1600);
-      });
-      const bar = screen.getByTestId("filter-bar").parentElement;
-      expect(placement(bar), "the search filter bar has no room in its bottom offset").toMatch(/bottom-\[calc\(40px\+var\(--app-bar-room,0px\)\)\]/);
-    } finally {
-      vi.useRealTimers();
-    }
+    // The search's results body (SearchResults, on /[lang]/search since Stage 7)
+    // holds the filter bar and the "Search" button row at the bottom.
+    await renderWithProviders(
+      <SearchContainer
+        inPage
+        value=""
+        setValue={vi.fn()}
+        loading={false}
+        products={[]}
+        brands={[]}
+        categories={[]}
+        boutiques={[]}
+        related_categories={[]}
+        trending={[]}
+        searchHistoryItems={[]}
+        setSearchHistory={vi.fn()}
+        isRtl={false}
+        language="en"
+        onClickSearchHistory={vi.fn()}
+        EnableSearch={vi.fn()}
+        hasMore={{ brands: false, categories: false, boutiques: false }}
+        loadMoreBrands={vi.fn()}
+        loadMoreCategories={vi.fn()}
+        loadMoreBoutiques={vi.fn()}
+        setAppliedFilters={vi.fn()}
+        applied_filter={{ categories: [], brands: [], boutiques: [] }}
+        setOffsets={vi.fn()}
+        total_size={0}
+        setSearchEnable={vi.fn()}
+      />,
+    );
+    const bar = screen.getByTestId("filter-bar").parentElement;
+    expect(placement(bar), "the search filter bar has no room in its bottom offset").toMatch(/bottom-\[calc\(40px\+var\(--app-bar-room,0px\)\)\]/);
   });
 
   it("the rating sheet on the orders page adds the room to its bottom offset", async () => {

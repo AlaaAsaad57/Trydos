@@ -42,7 +42,7 @@ for (const path of [
   "components/ModalRoute/ModalSlot",
   "components/global/NavigationLoaderGate",
   "components/global/DeferredLayoutClients",
-  "components/Home/CategoryHomeView",
+  "components/DemoApp1/screens/AppHomeView",
 ]) {
   vi.doMock(path, () => ({ default: () => null }));
 }

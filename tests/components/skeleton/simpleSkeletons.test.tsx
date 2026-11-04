@@ -7,8 +7,6 @@ import { render } from "@testing-library/react";
 
 import AddStorySkeleton from "components/skeleton/AddStorySkeleton";
 import IconSkeleton from "components/skeleton/IconSkeleton";
-import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
-import OfferListSkeleton from "components/skeleton/OfferList";
 import ShareSectionSkeleton from "components/skeleton/ShareSectionSkeleton";
 import StoryViewerSkeleton from "components/skeleton/StoryViewerSkeleton";
 import NotificationSkeleton from "components/skeleton/NotificationSkeleton";
@@ -29,22 +27,6 @@ describe("the small loading placeholders", () => {
     expect(icon().style.width, "the default icon size should be 24px").toBe("24px");
     rerender(<IconSkeleton size={40} />);
     expect(icon().style.height, "a 40px icon placeholder should be 40px tall").toBe("40px");
-  });
-
-  it("the category bar placeholder draws a row of category links", () => {
-    const { container } = render(<MobileNavigationSkeleton />);
-    expect(
-      container.querySelectorAll('[data-pw="category-Link"]').length,
-      "the category bar placeholder drew no category links",
-    ).toBeGreaterThan(0);
-  });
-
-  it("the offer list placeholder draws inside the boutiques list", () => {
-    const { container } = render(<OfferListSkeleton />);
-    expect(
-      container.querySelector('[data-pw="boutiques"]')?.children.length,
-      "the offer list placeholder drew no offer cards",
-    ).toBeGreaterThan(0);
   });
 
   it("the share placeholder draws share tiles", () => {

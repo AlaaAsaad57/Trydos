@@ -1,5 +1,5 @@
 import { lang as langParam } from "next/root-params";
-import CategoryHomeView from "components/Home/CategoryHomeView";
+import AppHomeView from "components/DemoApp1/screens/AppHomeView";
 import { GetHomeMetaData } from "serverRequests/meta/home";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -59,5 +59,5 @@ export async function generateMetadata() {
 // app/(client)/[lang]/error.tsx is that boundary. Re-throwing from a Server
 // Component only stopped React streaming the parts that had already rendered.
 export default async function HomePage() {
-  return <CategoryHomeView slug={null} />;
+  return <AppHomeView slug={null} />;
 }

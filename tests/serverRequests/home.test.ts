@@ -24,7 +24,6 @@ vi.mock("services/elastic/elasticsearch-reader.service", () => ({
     getBoutiques = io.getBoutiques;
   },
 }));
-vi.mock("components/ServerWrapper/BoutiqueWrapper", () => ({ default: () => null }));
 // The barrel pulls in every translation table. The two helpers used here are
 // the real ones from the pure helpers file.
 vi.mock("utils/server", async () => {
@@ -39,7 +38,6 @@ import {
   GetFeaturedProducts,
   GetFlashDealProducts,
   GetHomeBoutiques,
-  GetNextBoutiques,
   GetRecommedndedProducts,
 } from "serverRequests/home";
 
@@ -122,28 +120,6 @@ describe("the boutique row (GetHomeBoutiques)", () => {
       searchAfter: undefined,
     });
     expect(io.getBoutiques.mock.calls[0][0].searchAfter, "a missing cursor was not null").toBeNull();
-  });
-});
-
-describe("the next boutique page (GetNextBoutiques)", () => {
-  it("returns one boutique card per shop, in the page's locale, and the next cursor", async () => {
-    io.getBoutiques.mockResolvedValue({ boutiques: [{ slug: "shop-a" }, { slug: "shop-b" }], searchAfter: [2, 9] });
-
-    const result: any = await GetNextBoutiques({
-      language: "ar",
-      country: "iq",
-      category: null,
-      offset: "[1,4]",
-    });
-
-    expect(
-      result.boutiques.map((card: any) => [card.key, card.props.lang, card.props.boutique.slug]),
-      "the boutique cards are wrong",
-    ).toEqual([
-      ["shop-a", "iq-ar", "shop-a"],
-      ["shop-b", "iq-ar", "shop-b"],
-    ]);
-    expect(result.offset, "the next cursor is wrong").toEqual([2, 9]);
   });
 });
 

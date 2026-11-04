@@ -142,11 +142,16 @@ export async function getCachedFlashDeals(
  *
  * The offset travels with the boutiques: the infinite scroll asks for the next
  * page with it, so a cached section without one can never grow.
+ *
+ * `limit` is part of the cache key (every argument is), so the new home's
+ * first read of 21 (UI-MIGRATION-PLAN.md S7-7) is its own entry. Both entries
+ * share the tag, so one revalidation clears both.
  */
 export async function getCachedBoutiques(
   country: string,
   language: string,
   categorySlug: string | null,
+  limit = 10,
 ): Promise<{ boutiques: any[]; offset: any }> {
   "use cache";
   cacheLife("homepage");
@@ -156,6 +161,7 @@ export async function getCachedBoutiques(
     language,
     country,
     category: categoryFilter(categorySlug) ?? null,
+    limit,
   });
   return {
     boutiques: response?.data?.boutiques ?? [],

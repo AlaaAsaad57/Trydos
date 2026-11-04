@@ -8,26 +8,32 @@ import CompareSkeleton from "components/skeleton/loaders/CompareSkeleton";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import FilterLoader from "components/skeleton/loaders/FilterLoader";
 import FullHomeLoader from "components/skeleton/loaders/FullHomeLoader";
-import HomeLoader from "components/skeleton/loaders/HomeLoader";
 import OrderDetailsSkeleton from "components/skeleton/loaders/OrderDetailsSkeleton";
 
 import { renderWithProviders } from "../../../render";
 
 describe("the page loaders", () => {
-  it("the home loader draws the featured rows and the offer list", async () => {
-    const { container } = await renderWithProviders(<HomeLoader />);
+  it("the full home loader draws the new home's header (Stage 7)", async () => {
+    const { container } = await renderWithProviders(<FullHomeLoader />);
     expect(
-      container.querySelector('[data-pw="boutiques"]'),
-      "the home loader lost its offer list placeholder",
+      container.querySelector('[data-pw="home-loader-header"]'),
+      "the full home loader lost the new home's header placeholder",
     ).not.toBeNull();
   });
 
-  it("the full home loader also draws the category bar", async () => {
+  it("the full home loader draws the stories row as four 121 x 170 cards", async () => {
     const { container } = await renderWithProviders(<FullHomeLoader />);
+    const card = container.querySelector('[data-pw="home-loader-stories"] .skeleton-base') as HTMLElement;
     expect(
-      container.querySelector('[data-pw="categoryNavBar"]'),
-      "the full home loader lost its category bar placeholder",
-    ).not.toBeNull();
+      [card?.style.width, card?.style.height],
+      "the stories placeholder is not the new home's 121 x 170 story card",
+    ).toEqual(["121px", "170px"]);
+  });
+
+  it("the full home loader draws the Brand Stores cards, 140 px tall", async () => {
+    const { container } = await renderWithProviders(<FullHomeLoader />);
+    const card = container.querySelector('[data-pw="home-loader-cards"] .skeleton-base') as HTMLElement;
+    expect(card?.style.height, "the brand card placeholder is not 140 px tall").toBe("140px");
   });
 
   it("the listing loader draws for a boutique and for a search", async () => {

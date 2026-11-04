@@ -73,6 +73,17 @@ describe("SearchImage", () => {
     expect(fileInputs()[0].onblur!(new FocusEvent("blur")), "the picker's blur handler should do nothing").toBeUndefined();
   });
 
+  it("with an icon (the search page), draws it in a labelled button that opens the menu", async () => {
+    await renderWithProviders(
+      <SearchImage setSearchValue={() => {}} icon={<span data-pw="scan-mark" />} label="Scan" />,
+    );
+    const button = screen.getByRole("button", { name: "Scan" });
+    expect(button.querySelector('[data-pw="scan-mark"]'), "the scan button does not draw the given mark").not.toBeNull();
+    expect(camIcon(), "the old camera picture still shows next to the mark").toBeNull();
+    fireEvent.click(button);
+    expect(screen.getByLabelText("Choose File From Device"), "a tap on the scan button did not open the image search menu").toBeInTheDocument();
+  });
+
   it("on desktop: the camera option opens the camera, and a shot goes to the crop step", async () => {
     await renderWithProviders(<SearchImage setSearchValue={() => {}} />);
     fireEvent.click(camIcon());
