@@ -20,6 +20,7 @@ import {
   type ProductBadge,
 } from "../../DemoApp/demoStores";
 import { useDemoNav } from "../Demo1Shell";
+import { useDemoCase } from "../demoCase";
 import { C, lineBox, textTop } from "../demo1Layout";
 import { Icon, ScreenPage, Stroke } from "../ui";
 import { BrandCard, useSlider } from "./HomeSections";
@@ -821,7 +822,8 @@ function usePages(enabled: boolean) {
 const FIRST_CARDS = 4;
 
 export default function ListingScreen({ slug }: { slug: string }) {
-  const { t } = useDemoNav();
+  // Labels in Apple's title style, messages in sentence style (demoCase).
+  const { t, body } = useDemoCase();
   // Free: a swipe goes as far as the finger throws it, not one tile.
   const categories = useSlider({ free: true });
   const settled = useSettled();
@@ -895,7 +897,7 @@ export default function ListingScreen({ slug }: { slug: string }) {
       </section>
       {/* What the list is doing, for screen readers. */}
       <p role="status" className="sr-only">
-        {loading ? t("Loading more products") : ""}
+        {loading ? body("Loading more products") : ""}
       </p>
       <div ref={end} aria-hidden="true" style={{ height: 1 }} />
       {done && (
@@ -904,7 +906,7 @@ export default function ListingScreen({ slug }: { slug: string }) {
           className="m-0 text-center font-normal"
           style={{ padding: "24px 16px 40px", fontSize: 11, color: "#8C8C8C" }}
         >
-          {t("You have seen all products")}
+          {body("You have seen all products")}
         </p>
       )}
       {colors && (

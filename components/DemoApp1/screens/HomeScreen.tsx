@@ -11,6 +11,7 @@ import { TRAVEL } from "components/NavigationDemo/BottomNav";
 import { hrefFor } from "../../DemoApp/demoRoutes";
 import { storeScreen } from "../../DemoApp/demoStores";
 import HomeSections from "./HomeSections";
+import { useDemoCase } from "../demoCase";
 import { warmListing } from "./ListingScreen";
 
 /**
@@ -39,7 +40,9 @@ const CATEGORIES = ["Man", "Women", "Children", "Home", "Electronic"] as const;
 const SLOTS = [56, 76, 79, 65, undefined] as const;
 
 export default function HomeScreen() {
-  const { t, navigate, locale } = useDemoNav();
+  const { navigate, locale } = useDemoNav();
+  // Titles and labels in Apple's title style (demoCase).
+  const { t } = useDemoCase();
   const [picked, setPicked] = useState<(typeof CATEGORIES)[number]>(
     CATEGORIES[0],
   );

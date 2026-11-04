@@ -1,8 +1,8 @@
 /**
  * The words of the product page, `Home Page – 49`. The marks in a key (<b>,
  * <m>, <a>, <c>) set the weight and the blue of a part of the line, and every
- * translation keeps them (see Rich in ProductScreen). All of them keep the
- * file's case in English (KEEP_CASE).
+ * translation keeps them (see Rich in ProductScreen). In English the page
+ * writes them in Apple's title or sentence style (components/DemoApp1/demoCase.ts).
  */
 const PRODUCT_PAGE_KEYS = [
   "Price alert",
@@ -473,6 +473,11 @@ export type DemoKey = (typeof DEMO_KEYS)[number];
  * Keys whose English is shown exactly as written, not with a capital on every
  * word.
  *
+ * Home, a store's page (with its colour sheet) and a product's page do not
+ * read the English of this dictionary: they write the key in Apple's title or
+ * sentence style themselves (components/DemoApp1/demoCase.ts). This list is
+ * for the other screens that show these keys.
+ *
  * The site's English rule (`titleCaseWords` in utils/titleCase.ts) puts a
  * capital on every word. The file draws these lines in `Home Page – 2` in
  * sentence case ("all Turkish brands collection now !"), so the /demo layout
@@ -493,9 +498,7 @@ export const KEEP_CASE: ReadonlySet<DemoKey> = new Set<DemoKey>([
   "You have seen all products",
   // `Home Page – 54` writes this colour in lower case ("… Pantaloon . blue").
   "blue",
-  // `Home Page – 49`, the product page, writes its lines as they are: most
-  // in sentence case, some with a capital in the middle ("If buy", "In your
-  // hands"). None of them get a capital on every word.
+  // `Home Page – 49`, the product page (see demoCase.ts).
   ...PRODUCT_PAGE_KEYS,
 ]);
 

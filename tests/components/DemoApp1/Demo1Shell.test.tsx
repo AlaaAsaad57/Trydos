@@ -509,8 +509,8 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     const banner = container.querySelector('[data-pw="demo-listing-banner"]');
     expect(
       banner?.textContent,
-      "the banner does not read \"Shop Zara collection now !\"",
-    ).toContain("Shop Zara collection now !");
+      "the banner does not read \"Shop Zara Collection Now !\"",
+    ).toContain("Shop Zara Collection Now !");
     expect(
       banner?.querySelector("span.capitalize"),
       "the banner's line is not drawn with a capital on every word, as the file draws it",
@@ -534,10 +534,10 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
       ).toBe(name);
     }
     const badges: Record<string, [string, string]> = {
-      "shirt-1": ["bag", "1 item M in your bag"],
-      "pajama-1": ["best", "! Best price last 3 days!"],
+      "shirt-1": ["bag", "1 Item M in Your Bag"],
+      "pajama-1": ["best", "! Best Price Last 3 Days!"],
       "shirt-2": ["flash", "Flash Deal | 1d | 12:23:19"],
-      "pajama-2": ["best", "! Best price last 3 days!"],
+      "pajama-2": ["best", "! Best Price Last 3 Days!"],
     };
     for (const [id, [kind, words]] of Object.entries(badges)) {
       const card = container.querySelector(
@@ -1212,7 +1212,7 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     expect(
       slots[1]?.textContent,
       "the best-price label does not come after the flash deal",
-    ).toBe("! Best price last 3 days!");
+    ).toBe("! Best Price Last 3 Days!");
     expect(
       slots[1]?.style.backfaceVisibility,
       "the label waiting to come in shows its back during the flip",
@@ -1255,7 +1255,7 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     expect(
       slots[1]?.textContent,
       "the best-price label does not come after the flash deal on the colour sheet's card",
-    ).toBe("! Best price last 3 days!");
+    ).toBe("! Best Price Last 3 Days!");
     expect(
       labels!.querySelector("style")?.textContent,
       "the colour sheet's labels do not turn over like a card (rotateX to -180deg)",
@@ -2031,6 +2031,62 @@ describe("Demo1 product page — likes and the rows of cards (XD `Home Page – 
         row!.style.touchAction,
         `the ${name} row takes the up-and-down touch too, so the page cannot scroll over it`,
       ).toBe("pan-y pinch-zoom");
+    }
+  });
+
+  it("writes Home's titles and store lines in Apple's title style, with each brand's name capitalised", () => {
+    const { container } = openOn("home");
+    const text = container.textContent ?? "";
+    for (const words of [
+      "Watch. Shop. Share. See It. Tag It !",
+      "All Turkish Brands Collection Now !",
+      "All Stores Collection Now !",
+      "Shop Zara Collection Now !",
+      "Shop Boyner Collection Now !",
+      "Shop Stradivarius Collection Now !",
+    ]) {
+      expect(text, `Home does not show "${words}"`).toContain(words);
+    }
+  });
+
+  it("writes the product page in Apple's title style, and its body text in sentence style", async () => {
+    const { container } = await openProduct();
+    const page = container.querySelector('[data-pw="demo-product"]');
+    expect(page, "the product page is not on screen").not.toBeNull();
+    const text = page!.textContent ?? "";
+    // Labels: a capital on every word but the small ones in the middle
+    // (in, by, of, a); names keep theirs (Turkey, Lebanon, Jun, Feb).
+    for (const words of [
+      "Made in Turkey",
+      "Recommend It by",
+      "Buyer Rate",
+      "! Best Price",
+      "Last 3 Days!",
+      "Just 3 Days in Your Hands",
+      "In 6 Hours Shipping If Buy in 30 Minute",
+      "2.Jun in Lebanon",
+      "Pattern | Fit Slim",
+      "Material | Polyester 97%",
+      "Expected Shipping & Delivery Date",
+      "AI Analysis & Summary of All Reviews",
+      "Comment . Video . Photo . May Help You !",
+      "Buyers Reviews on Product Sizing",
+      "Don’t Recommend It",
+      "A Zara",
+      "18 Feb",
+      "13 Minute Answered",
+      "Need Help ? Start Chat About This Product !",
+    ]) {
+      expect(text, `the product page does not show the label "${words}" in title style`).toContain(words);
+    }
+    // Body text: a capital only at the start of a sentence.
+    for (const words of [
+      "Stay cool and chic in this airy women’s summer top",
+      "Get a 25% cash refund to your wallet",
+      "Shipping is completely free without any extras",
+      "with complete ease and \nget the amount back to your wallet",
+    ]) {
+      expect(text, `the product page does not show the body text "${words}" in sentence style`).toContain(words);
     }
   });
 });

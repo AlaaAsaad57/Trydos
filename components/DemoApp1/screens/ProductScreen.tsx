@@ -25,6 +25,7 @@ import {
   type DemoStore,
 } from "../../DemoApp/demoStores";
 import { useDemoNav } from "../Demo1Shell";
+import { useDemoCase } from "../demoCase";
 import { C, fill, lineBox, paraTop, textTop } from "../demo1Layout";
 import { ScreenPage, Stroke } from "../ui";
 import { PhotoGlow, StoreMark, Weighted, type T } from "./ListingParts";
@@ -683,6 +684,7 @@ function Guarantee({
 }
 
 function Shipping({ t }: { t: T }) {
+  const { body } = useDemoCase();
   return (
     <section aria-label={t("Shipping & Delivery")} className="flex flex-col shrink-0">
       <div className="flex items-start" style={{ marginTop: 1015 - 995, paddingLeft: 14 }}>
@@ -726,7 +728,7 @@ function Shipping({ t }: { t: T }) {
           textMt={1117 - 1111}
           textLine={lineBox(11)}
         >
-          {t("Shipping is completely free without any extras")}
+          {body("Shipping is completely free without any extras")}
         </Guarantee>
         <Guarantee
           mt={paraTop(1150, 11, 16) - 1131}
@@ -737,7 +739,7 @@ function Shipping({ t }: { t: T }) {
           textMt={paraTop(1170, 11, 16) - (paraTop(1150, 11, 16) + 16)}
           textLine={16}
         >
-          <Rich text={t("get a <c>25% Cash refund</c> to your wallet of the product price if shipping is delayed")} />
+          <Rich text={body("get a <c>25% Cash refund</c> to your wallet of the product price if shipping is delayed")} />
         </Guarantee>
         <Guarantee
           mt={1201 - (paraTop(1170, 11, 16) + 32)}
@@ -748,7 +750,7 @@ function Shipping({ t }: { t: T }) {
           textMt={1221 - 1215}
           textLine={lineBox(11)}
         >
-          {t("Return is completely free without any extras or conditions")}
+          {body("Return is completely free without any extras or conditions")}
         </Guarantee>
         <Guarantee
           mt={paraTop(1254, 11, 16) - 1235}
@@ -760,7 +762,7 @@ function Shipping({ t }: { t: T }) {
           textLine={16}
         >
           <Rich
-            text={t(
+            text={body(
               "Within <m>3 days</m> after receiving the product, you can return it without conditions or reasons with complete ease and \n<a>get the amount back </a>to your wallet",
             )}
           />
@@ -824,6 +826,7 @@ function CardText({
   name: React.ReactNode;
   t: T;
 }) {
+  const { body } = useDemoCase();
   return (
     <>
       <span className="absolute font-normal whitespace-nowrap" style={{ left: 28, top, ...LINE_11, color: INK }}>
@@ -841,7 +844,7 @@ function CardText({
         className="absolute font-normal"
         style={{ left: 8, top: top + paraTop(1522, 11, 16) - 1469, width: 369, fontSize: 11, lineHeight: "16px", color: INK }}
       >
-        {t("Amazing product I buy it and I saw it is good quality regarding price Amazing product I buy it and I saw it is good quality regardin")}
+        {body("Amazing product I buy it and I saw it is good quality regarding price Amazing product I buy it and I saw it is good quality regardin")}
       </p>
     </>
   );
@@ -1072,19 +1075,17 @@ function ChatButton({ t }: { t: T }) {
     >
       <XdIcon name="productChat" />
       {/* The file centres the icon and the words on the button: the words run
-          from x 116 to 336 (220 px). The browser draws them 218 px wide (XD
-          measures Quicksand a little wider), so a centred row would sit 1 px
-          to the right. The file's width is the minimum; a longer language
-          still centres. */}
-      <span className="block text-start" style={{ minWidth: 220 }}>
-        {t("Need help ? Start Chat about this product !")}
-      </span>
+          from x 116 to 336 (220 px). With a capital on every word the browser
+          draws them 221 px wide in WebKit and 223 in Chrome, so the centred
+          row starts at most 1.5 px left of the file's. */}
+      <span className="block">{t("Need help ? Start Chat about this product !")}</span>
     </button>
   );
 }
 
 export default function ProductScreen({ slug, id }: { slug: string; id: string }) {
-  const { t } = useDemoNav();
+  // Labels in Apple's title style, body text in sentence style (demoCase).
+  const { t, body } = useDemoCase();
   const settled = useSettled();
   const product = productById(id);
   const store = storeBySlug(slug);
@@ -1137,7 +1138,7 @@ export default function ProductScreen({ slug, id }: { slug: string; id: string }
           // where the file does.
           style={{ marginTop: paraTop(636, 11, 18) - 619, marginLeft: 14, width: fill(14, 30), fontSize: 11, lineHeight: "18px", color: INK }}
         >
-          {t("Stay cool and chic in this airy women’s summer top, featuring a comfortable fit and fresh seasonal prints")}
+          {body("Stay cool and chic in this airy women’s summer top, featuring a comfortable fit and fresh seasonal prints")}
         </p>
 
         <RatingRow t={t} />

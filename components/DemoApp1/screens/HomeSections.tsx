@@ -19,6 +19,7 @@ import {
 } from "../../DemoApp/demoStores";
 import { C, lineBox, textTop } from "../demo1Layout";
 import { Stroke } from "../ui";
+import { nameStyle } from "../demoCase";
 import {
   EASE_SOFT,
   EASE_STANDARD,
@@ -528,7 +529,9 @@ function BrandCardContents({
         <Sentence
           text={t("Shop {brand} collection now !")}
           token="{brand}"
-          named={shown}
+          // A brand is a name in every language: "boyner" in the data shows
+          // as "Boyner" (demoCase).
+          named={nameStyle(shown)}
           boldBang={false}
         />
       </span>

@@ -3,7 +3,7 @@
 import React, { useLayoutEffect, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { DemoProduct, DemoStore, ProductBadge, ProductColor } from "../../DemoApp/demoStores";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoCase } from "../demoCase";
 import { DESIGN_H, UNDER_BAR, lineBox, textTop } from "../demo1Layout";
 import { Sheet, Stroke, useCanvasEnd } from "../ui";
 import {
@@ -233,7 +233,8 @@ export default function ListingColorSheet({
   /** A colour was tapped: show it on the card. The sheet closes after. */
   onPick: (index: number) => void;
 }) {
-  const { t } = useDemoNav();
+  // Labels in Apple's title style (demoCase).
+  const { t } = useDemoCase();
   /** Where the screen ends (design y). */
   const end = useCanvasEnd(open);
   // The grid as a state, not a ref: the sheet's layer puts it on the page one
