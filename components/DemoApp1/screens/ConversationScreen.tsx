@@ -17,6 +17,8 @@ import {
   type Holdable,
 } from "../chat/chatModel";
 import ChatWaiting from "../chat/ChatWaiting";
+import { translateFunction } from "utils/functions";
+import ChatGate from "../chat/ChatGate";
 import PageEdge from "../chat/PageEdge";
 import { XD_ICON_SIZE } from "../../DemoApp/xdIcons";
 import CategorySheet from "../chat/CategorySheet";
@@ -142,7 +144,8 @@ function WashFade({
  * chatOnScreen) and draws the conversation, and opens it, only then.
  */
 export default function ConversationScreen() {
-  const { state } = useChat();
+  const { state, gate } = useChat();
+  if (gate) return <ChatGate kind={gate.kind} onOpen={gate.open} />;
   if (!chatOnScreen(state)) return <ChatWaiting />;
   return <Conversation />;
 }
@@ -1023,7 +1026,19 @@ function Conversation() {
       <div className="relative shrink-0 w-full">
         {/* Above the composer, whatever its height is. */}
         <Toast text={notice ?? toast} bottom="calc(100% + 12px)" />
-        {searching ? searchBar : (
+        {searching ? searchBar : chat.blockedEitherWay ? (
+          // One of us blocked the other: no one can send (D-36a). The XD
+          // file has no such state; the composer's white strip says so.
+          <div
+            data-pw="demo-chat-blocked"
+            className="flex items-center justify-center w-full"
+            style={{ minHeight: 60, paddingBottom: SAFE_BOTTOM, paddingInline: 20, background: C.white, boxShadow: "0 0 3px rgba(0,0,0,0.1)" }}
+          >
+            <Txt center size={13} color={C.grey}>
+              {translateFunction("You cannot send messages or calls to this user")}
+            </Txt>
+          </div>
+        ) : (
         <Composer
           context={context}
           onCancelContext={() => setContext(null)}

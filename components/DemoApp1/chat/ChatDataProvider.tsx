@@ -4,6 +4,7 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { findChat } from "components/Chat/findChat";
 import { openChatFromList } from "components/Chat/openChatFromList";
 import chatService from "services/chat";
+import home from "services/home";
 import { useAppStore } from "store";
 import { CancelMessageReminder, GetArchivedChats, GetMyReminders, GetTaggedMessages } from "store/chat/actions";
 import { openMessageInChat } from "components/Chat/openMessageInChat";
@@ -76,6 +77,8 @@ export function ChatDataProvider({
   const book = useAppStore((s) => s.contacts);
   const calls = useAppStore((s) => s.calls);
   const reminders = useAppStore((s) => s.reminders);
+  /** A phone on record (the profile); "0" is the guest's. */
+  const profilePhone = useAppStore((s) => (s as { userProfile?: { phone?: string } | null }).userProfile?.phone);
   const jump = useAppStore((s) => s.jumpToMessageId);
   const userChat = useAppStore((s) => s.userChat);
   const chatsLoading = useAppStore((s) => s.chat_loading);
@@ -110,6 +113,55 @@ export function ChatDataProvider({
   const pageLoading = useRef({ chats: false, older: null as string | null });
 
   const myId = userChat?.id;
+
+  // The notification permission, read again when the shopper comes back to
+  // the tab or the browser says it changed. "granted" until it is read, so
+  // a shopper who allowed it sees no gate flash by.
+  const [permission, setPermission] = useState<string>("granted");
+  const readPermission = () =>
+    setPermission(typeof Notification === "undefined" ? "unsupported" : Notification.permission);
+  useEffect(() => {
+    if (!enabled) return;
+    readPermission();
+    window.addEventListener("focus", readPermission);
+    let status: PermissionStatus | null = null;
+    navigator.permissions
+      ?.query({ name: "notifications" as PermissionName })
+      .then((s) => {
+        status = s;
+        s.onchange = readPermission;
+      })
+      .catch(() => {});
+    return () => {
+      window.removeEventListener("focus", readPermission);
+      if (status) status.onchange = null;
+    };
+  }, [enabled]);
+
+  /**
+   * The old chat's gates (D-36a). A shopper with a phone but no chat account
+   * confirms the phone (the login's phone check; the chat account comes with
+   * it). The chat opens only with notifications allowed, as the old chat
+   * window did (ChatWindowModal.tsx). A guest never gets here: the page
+   * sends them to the login (chatGuestGate.ts).
+   */
+  const gate: ChatApi["gate"] = !enabled
+    ? null
+    : !myId
+      ? profilePhone && profilePhone !== "0"
+        ? { kind: "phone", open: () => useAppStore.getState().setShouldAuthinticated("open chat") }
+        : null
+      : permission !== "granted"
+        ? {
+            kind: "notifications",
+            open: () => {
+              void home
+                .AllowNotifications()
+                .catch(() => {})
+                .finally(readPermission);
+            },
+          }
+        : null;
   useEffect(() => {
     if (!enabled || !myId) return;
     chatService.getChats(false);
@@ -357,6 +409,7 @@ export function ChatDataProvider({
     paging,
     call: (chat, video) => void startCall(chat, video),
     extras,
+    gate,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

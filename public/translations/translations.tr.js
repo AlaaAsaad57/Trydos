@@ -3229,6 +3229,8 @@ const translations = {
   "Incoming Video Call !": "Gelen Görüntülü Arama !",
   "Outgoing Video Call !": "Giden Görüntülü Arama !",
   "Delete for everyone": "Herkesten sil",
+  "Allow Notifications": "Bildirimlere izin ver",
+  "Confirm your phone number to use Chat": "Sohbeti kullanmak için telefon numaranı doğrula",
 };
 
 export default translations;

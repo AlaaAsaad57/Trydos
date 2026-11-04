@@ -1,5 +1,6 @@
 "use client";
 
+import type { ChatGateKind } from "./ChatGate";
 import { createContext, useContext } from "react";
 import type { ChatAction, ChatState } from "./chatModel";
 
@@ -49,6 +50,8 @@ export type ChatApi = {
   call?: (chat: string, video: boolean) => void;
   /** Old features with no XD board (D-36b), in the real chat only. */
   extras?: ChatExtras;
+  /** A closed gate (D-36a): the chat screens show ChatGate instead. The real chat only. */
+  gate?: { kind: ChatGateKind; open: () => void } | null;
 };
 
 /** One of my reminders, as the reminders sheet lists it. */

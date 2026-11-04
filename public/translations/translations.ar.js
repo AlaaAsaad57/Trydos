@@ -3196,6 +3196,8 @@ const translations = {
   "Incoming Video Call !": "مكالمة فيديو واردة !",
   "Outgoing Video Call !": "مكالمة فيديو صادرة !",
   "Delete for everyone": "حذف للجميع",
+  "Allow Notifications": "السماح بالإشعارات",
+  "Confirm your phone number to use Chat": "أكّد رقم هاتفك لاستخدام المحادثة",
 };
 
 export default translations;

@@ -3245,6 +3245,8 @@ const translations = {
   "Incoming Video Call !": "پەیوەندی ڤیدیۆیی هاتوو !",
   "Outgoing Video Call !": "پەیوەندی ڤیدیۆیی دەرچوو !",
   "Delete for everyone": "سڕینەوە بۆ هەمووان",
+  "Allow Notifications": "ڕێگەدان بە ئاگادارکردنەوەکان",
+  "Confirm your phone number to use Chat": "ژمارەی مۆبایلەکەت پشتڕاست بکەرەوە بۆ بەکارهێنانی چات",
 };
 
 export default translations;

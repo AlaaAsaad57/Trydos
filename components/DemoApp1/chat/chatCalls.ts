@@ -1,7 +1,8 @@
 import { getChatName, getChatPeer, getChatPhoto } from "components/Chat/chatsFunctions";
 import { useAppStore } from "store";
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
-import { LogError } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
+import { showErrorNotification } from "store/notifications/reducer";
 import { findChannel } from "./chatActions";
 
 /**
@@ -20,6 +21,11 @@ export async function startCall(chatId: string, video: boolean): Promise<void> {
   if (callLoading || isCallIncoming || call) return;
   const chat = findChannel(chatId);
   if (!chat) return;
+  // One of us blocked the other: no calls, as the old chat header said.
+  if (chat.channel_members?.some((m) => m.is_blocked === 1)) {
+    showErrorNotification(translateFunction("You cannot send messages or calls to this user"));
+    return;
+  }
   const peer = getChatPeer(chat);
   const privatePayload = chat.order_chat_participant_id
     ? { order_chat_participant_id: chat.order_chat_participant_id, receiver_user_id: peer?.user_id, is_private: true }

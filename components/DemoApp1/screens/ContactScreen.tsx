@@ -8,6 +8,7 @@ import type { XdIconName } from "../../DemoApp/xdIcons";
 import { CHAT } from "../chat/chatTheme";
 import { chatOnScreen, contactOf } from "../chat/chatModel";
 import ChatWaiting from "../chat/ChatWaiting";
+import ChatGate from "../chat/ChatGate";
 import { useChat } from "../chat/chatContext";
 import { useDemoNav } from "../screenNav";
 import { MediaSheet } from "../chat/ExtraSheets";
@@ -53,7 +54,8 @@ import { ScreenPage, Stroke, Txt } from "../ui";
  */
 /** The contact screen, once its chat is there (see ConversationScreen). */
 export default function ContactScreen() {
-  const { state } = useChat();
+  const { state, gate } = useChat();
+  if (gate) return <ChatGate kind={gate.kind} onOpen={gate.open} />;
   if (!chatOnScreen(state)) return <ChatWaiting />;
   return <Contact />;
 }

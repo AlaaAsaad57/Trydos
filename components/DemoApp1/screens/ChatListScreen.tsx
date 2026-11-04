@@ -18,6 +18,7 @@ import {
   type Contact,
 } from "../chat/chatModel";
 import ArchivedSheet from "../chat/ArchivedSheet";
+import ChatGate from "../chat/ChatGate";
 import { RemindersSheet } from "../chat/ExtraSheets";
 import { translateFunction } from "utils/functions";
 import { useChat } from "../chat/chatContext";
@@ -78,6 +79,12 @@ import { useHorizontalSwipe } from "../chat/useHorizontalSwipe";
  * call's state under it — see CallRowFace.
  */
 export default function ChatListScreen() {
+  const { gate } = useChat();
+  if (gate) return <ChatGate kind={gate.kind} onOpen={gate.open} />;
+  return <ChatList />;
+}
+
+function ChatList() {
   const { t, navigate, locale } = useDemoNav();
   const { state, dispatch, newChat, addContact, notice, paging, extras } = useChat();
   /** The reminders sheet is up (the real chat only). */
