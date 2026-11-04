@@ -82,9 +82,6 @@ vi.mock("components/global/AddToCartMessage", () => ({
 }));
 
 // ---- Chat, orders, notifications --------------------------------------------
-vi.mock("components/Chat/pages/ChatWindow", () => stub("ChatWindow"));
-vi.mock("components/Chat/pages/ConversationContainer", () => stub("Conversation"));
-vi.mock("components/Chat/components/NewChatsSide", () => stub("NewChatsSide"));
 vi.mock("components/settings/cards/RatingStars", () => stub("stars"));
 vi.mock("react-webcam", () => ({
   default: forwardRef((props: any, ref) => {
@@ -122,7 +119,6 @@ vi.mock("firebase/messaging", () => ({ isSupported: async () => false }));
 
 import AddToCartComponent from "components/Cart/AddToCart/AddToCartComponent";
 import OrderButton from "components/Cart/OrderButton";
-import Chat from "components/Chat/ChatWindowModal";
 import SearchIcon from "components/Home/Search/SearchIcon";
 import FiltersButton from "components/ListingPage/filterComponents/FiltersWindow/FiltersButton";
 import NotificationsPanel from "components/Notifications/NotificationsPanel";
@@ -194,14 +190,6 @@ describe("old bottom bars sit above the new bar", () => {
       { path: "/filters", store: { filterEnabled: true } },
     );
     expect(placement(marked("searchResult")), "the filter button row has no room in its bottom offset").toMatch(/bottom-\[calc\(50px\+var\(--app-bar-room,0px\)\)\]/);
-  });
-
-  it("the old chat window leaves the room at the bottom of its height", async () => {
-    vi.stubGlobal("Notification", { permission: "granted" });
-    await renderWithProviders(<Chat close={vi.fn()} open callInProgress={false} />, {
-      store: { NotificationPremission: true, main: "chat", activeChat: { id: 7 }, data: [] },
-    });
-    expect(placement(marked("chat-window")), "the old chat window height does not leave the room").toMatch(/xs:h-\[calc\(100vh-var\(--app-bar-room,0px\)\)\]/);
   });
 
   it("the search filter bar adds the room to its bottom offset", async () => {

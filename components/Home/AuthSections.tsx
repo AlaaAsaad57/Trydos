@@ -1,19 +1,12 @@
 import { useEffect } from "react";
-import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
-import LandingPage from "./LandingPage";
 import { useAppStore } from "store";
 import { loginHref } from "utils/loginPath";
 import { chatHref } from "components/DemoApp1/chat/chatPaths";
 
-const ChatModal = dynamic(() => import("components/Chat/ChatModal"), {
-  loading: () => <LandingPage afterLoad={true} />,
-});
-
 function AuthSections() {
   const loginOpen = useAppStore((s) => s.loginOpen);
   const setLoginOpen = useAppStore((s) => s.setLoginOpen);
-  const chatOpen = useAppStore((s) => s.chatVar);
   // The chat of the call the store holds (started here or answered).
   const callChat = useAppStore((s) => (s.call ? s.activeChat?.id : null));
   const router = useRouter();
@@ -45,7 +38,7 @@ function AuthSections() {
     router.push(href);
   }, [callChat]);
 
-  return <>{chatOpen && <ChatModal />}</>;
+  return null;
 }
 
 export default AuthSections;
