@@ -882,7 +882,7 @@ as they are (`orders`, `payment`, `shipping`, `question`, `important`). CH-3 nee
 | S6-6 | Stories row in the chat (D-36b) | **Dropped (owner, 2026-11-05).** The chat has no stories row; stories stay on the home page. |
 | S6-5 | Provider place | `ChatDataProvider` sits around the screen frame in lane A's `AppScreens.tsx`, on only for a chat screen. Lane A was told. |
 
-### Where Stage 6 stopped (2026-11-05) — waiting for the second CI run and the owner's review
+### Where Stage 6 stopped (2026-11-05) — CI done; waiting for the owner's review
 
 Steps 1 to 11 and the local end checks are done and committed on `ui-migrations-chat` (pushed with the
 owner's OK).
@@ -945,12 +945,20 @@ CI run 1 (`41912147345`, 2026-11-05): parity, lint, typegen and tsc passed; unit
     opens the new conversation.
   - `tests/utils/imageFallback.test.ts` — "keeps the handler on the local country flag … (AC-4)": reads
     `components/Chat/components/ChatContactsUpload.tsx`, removed in step 11 (no caller).
+  - `tests/utils/imageFallback.test.ts` — "no longer handles its own image failure:
+    components/Chat/components/SearchResult.tsx (AC-10)": reads `SearchResult.tsx`, removed after run 1.
 - Coverage lost with the removed tests: `mergeContacts` (now in `contactsSync.ts`).
+- CI run 2 (`41915429680`): parity, lint, typegen and tsc passed; unit tests 4 files failed, 634 passed.
+  The 3 load failures are gone. Red: the 4 broken tests above, and
+  `tests/components/Login/Enhanced/ui/RdbPhoneInput.test.tsx` — "on a phone > closes the keypad on a tap
+  outside …". This branch does not touch the login keypad, and run 1 passed the same test.
+- CI run 2, attempt 2 (the failed job re-run): `RdbPhoneInput` passed, so it was the known
+  one-random-failure flake. Unit tests 3 files failed, 635 passed (7788 tests passed, 4 failed). The only red
+  tests are the 4 broken tests listed above.
 
 Left:
 - (The stories row was dropped by the owner: S6-6.)
 - The real chat checked in a browser by a signed-in shopper (calls, push links, order chat, gates).
-- Step 13 in CI: run 2 after the fix above; only the 3 broken tests above should stay red.
 - Then the owner's review, then the merge into `ui-migrations` (owner's OK). The e2e cases wait for Stage 8
   (A-34).
 
