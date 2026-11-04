@@ -277,7 +277,7 @@ export default function NewChatSheet({
                       {contact.name}
                     </Txt>
                     <Txt size={12} color={C.grey}>
-                      {contact.phone}
+                      <bdi dir="ltr">{contact.phone}</bdi>
                     </Txt>
                   </span>
                 </Row>

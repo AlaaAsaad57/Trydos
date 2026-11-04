@@ -126,7 +126,8 @@ function Contact() {
         {contact.name}
       </Txt>
       <Txt center size={16} mt={textTop(304, 16) - textBottom(280, 16)}>
-        {contact.phone}
+        {/* A phone number reads left to right on every page. */}
+        <bdi dir="ltr">{contact.phone}</bdi>
       </Txt>
 
       <div
