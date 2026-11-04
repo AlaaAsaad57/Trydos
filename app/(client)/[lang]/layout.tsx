@@ -59,23 +59,23 @@ export const viewport = {
   userScalable: false,
   viewportFit: "cover",
 };
-// All five faces come from ONE variable Quicksand file (wght 300–700) — the same
-// font binary the rdb app uses. The previous five static per-weight woff2 files
-// rendered noticeably softer at dpr:1; the variable build carries the hinting
-// (gasp/fvar/gvar) that keeps stems crisp. Because every declaration shares the
-// same src, the browser downloads the file once and instances it per weight.
+// The five Quicksand faces, one static woff2 file per weight. Each weight gets
+// its own CSS variable so existing CSS (font-family: var(--Quicksand-*)) keeps
+// working unchanged. Next.js injects these variables onto <html> via the
+// className applied below.
 //
-// Each weight still gets its own CSS variable so existing CSS
-// (font-family: var(--Quicksand-*)) keeps working unchanged.
-// Next.js injects these variables onto <html> via the className applied below.
+// Not the variable file (public/fonts/quicksand-variable.ttf): its default
+// weight is 300, and a browser that does not apply the weight to a variable
+// font draws every face as Light. Playwright's WebKit did exactly that:
+// Regular, Medium and Bold all drew the same thin strokes. The static files
+// draw each weight in Chromium and WebKit (tests/styles/quicksandFaces.test.ts).
 //
 // `weight` is REQUIRED on every one of these. Without it next/font emits an
 // @font-face with no font-weight descriptor, which CSS defaults to 400 — so a
 // `font-weight: 700` on any of these families finds no matching face and the
-// browser fakes bold by smearing the outlines. Synthetic bold renders soft and
-// blurry. Declaring the real weight pins the variable axis and gives an exact match.
+// browser fakes bold by smearing the outlines.
 const quicksand_regular = localFont({
-  src: "../../../public/fonts/quicksand-variable.ttf",
+  src: "../../../public/fonts/Quicksand-Regular.woff2",
   variable: "--Quicksand-Regular",
   weight: "400",
   style: "normal",
@@ -84,7 +84,7 @@ const quicksand_regular = localFont({
   fallback: ["system-ui", "arial"],
 });
 const quicksand_light = localFont({
-  src: "../../../public/fonts/quicksand-variable.ttf",
+  src: "../../../public/fonts/Quicksand-Light.woff2",
   variable: "--Quicksand-Light",
   weight: "300",
   style: "normal",
@@ -93,7 +93,7 @@ const quicksand_light = localFont({
   fallback: ["system-ui", "arial"],
 });
 const quicksand_bold = localFont({
-  src: "../../../public/fonts/quicksand-variable.ttf",
+  src: "../../../public/fonts/Quicksand-Bold.woff2",
   variable: "--Quicksand-Bold",
   weight: "700",
   style: "normal",
@@ -102,7 +102,7 @@ const quicksand_bold = localFont({
   fallback: ["system-ui", "arial"],
 });
 const quicksand_medium = localFont({
-  src: "../../../public/fonts/quicksand-variable.ttf",
+  src: "../../../public/fonts/Quicksand-Medium.woff2",
   variable: "--Quicksand-Medium",
   weight: "500",
   style: "normal",
@@ -111,7 +111,7 @@ const quicksand_medium = localFont({
   fallback: ["system-ui", "arial"],
 });
 const quicksand_semibold = localFont({
-  src: "../../../public/fonts/quicksand-variable.ttf",
+  src: "../../../public/fonts/Quicksand-SemiBold.woff2",
   variable: "--Quicksand-SemiBold",
   weight: "600",
   style: "normal",
