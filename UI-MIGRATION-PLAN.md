@@ -881,40 +881,69 @@ as they are (`orders`, `payment`, `shipping`, `question`, `important`). CH-3 nee
 | S6-4 | Chat URL | One chat's screens carry `?id=<chat id>`: `/[lang]/chat/conversation?id=12`, also `/chat/contact` and `/chat/call`. |
 | S6-5 | Provider place | `ChatDataProvider` sits around the screen frame in lane A's `AppScreens.tsx`, on only for a chat screen. Lane A was told. |
 
-### Where Stage 6 stopped (2026-11-04) — continue here
+### Where Stage 6 stopped (2026-11-04) — waiting for the CI run and the owner's review
 
-Done and committed on `ui-migrations-chat` (local, not pushed): steps 1, 2, 3 (3a context, 3b provider and
-actions, 3c sending), the paths turned on (part of step 11), and step 4 (paging). `ui-migrations` merged in at
-`7d281d7e` (lane A's mount).
+Steps 1 to 11 and the local end checks are done and committed on `ui-migrations-chat` (local, not pushed).
+`ui-migrations` was merged in at `7d281d7e` (lane A's mount). Commits after step 4: `8af1ce69` (5),
+`4c2da8a6` + `dc2f2204` (6), `9ac0883c` (7), `56d5c263` (8), `3b4e54df` (9), `c59ef5d9` (10, 11),
+`c41bd69b` (11, removals), `bfb1807b` (fix from the XD check).
 
-- Owner's order (2026-11-04): no new unit tests and no local test runs. Step 12 is skipped for now, and bug
-  fixes skip the "red first" test. The tests already written stay. The full unit suite runs later in CI.
-- Step 4 (`chatPaging.ts`, `PageEdge.tsx`): the list's next page (`getChats` from `nextCursor`) and older
-  messages (`getPage`) load near the edge; the list rows use `content-visibility: auto`. The message rows do
-  not: the conversation opens at its end by `scrollHeight`, and guessed heights would move that end.
-- A reload of one chat's URL waits for that chat (`chatOnScreen`, `ChatWaiting`). A chat outside the loaded
-  pages is found by walking them (`components/Chat/findChat.ts`); a `ch-<user id>` URL opens the chat with
-  that contact again; a chat that is nowhere says "Could not open the chat" and goes back to the list.
+- Owner's order (2026-11-04): no new unit tests and no local test runs. Step 12 is skipped, and bug fixes
+  skip the "red first" test. The tests already written stay. The full unit suite runs in CI.
+- Step 4: the list's next page and older messages load near the edge (`chatPaging.ts`, `PageEdge.tsx`).
+  Message rows have no `content-visibility`: the conversation opens at its end by `scrollHeight`.
+- A reload of one chat's URL waits for that chat (`chatOnScreen`, `ChatWaiting`); a chat outside the loaded
+  pages is found by `findChat`; a chat that is nowhere says "Could not open the chat".
+- Step 5, calls: the buttons call `makeVoiceCall` / `makeVideoCall` (`chatCalls.ts`). When the store holds a
+  call, `AuthSections` opens `/[lang]/chat/call?id=` from any page (the old `CallContainer` layer is gone).
+  `LiveCallScreen` + `useLiveCall` run Agora with the old steps (60 s no answer, 10 min limit, `end_call` +
+  `refuse_call`). Leaving the call page ends the call. `CallFace` is the XD drawing for the real call and
+  the `/demo` mock call (`CallScreen`, now `/demo` only). The Calls tab shows `my_calls`.
+- A-16: the chat screens import no mock file. `/demo` gets its sample values from its own seed.
+- Step 6 (D-36b, no XD board, the designer checks each): delete for everyone, product card, deleted
+  placeholder, upload cancel ring, photo preview sheet, reminders row + sheet, "Media & Files" sheet with
+  the label chips (tagged messages), "Get from your contacts" (`components/Chat/contactsSync.ts`). The
+  contact page's dead buttons work now (Delete Chat; Save To Gallery, Notification, Share say "Soon
+  available").
+- Step 7 (D-36a): the phone-confirm page and the notification page (`ChatGate`) on every way into the
+  chat; a blocked chat shows a strip in place of the composer and refuses calls.
+- Step 8: start / end styles, `corners()` for bubble radii, mirrored arrows and swipes; the voice player
+  stays left to right.
+- Step 9: the reaction sheet's words translated; the chat screens use `useDemoCase()`. `demoCase.ts` and
+  `ConversationScreen` read `useDemoNav` from `screenNav`, not the `/demo` shell.
+- Steps 10-11: the old events are kept (`is_order_chat` was always false; fixed). The order page opens the
+  order's chat in the new conversation (D-36c); order-chat messages carry `order_chat_participant_id`.
+  A chat push opens its conversation. `DetectScreen` names `/chat` `CHAT_SCREEN`. In-app pop-ups do not
+  show on the chat pages. `ChatModal`, `ChatWidget` and 63 more old files with no caller are removed,
+  with their 45 unit tests (D-6). Found by an import-graph walk (knip is not installed in this worktree).
+- Step 13, done here: lint (0 errors), i18n parity, `next typegen` + `tsc` clean. XD check at 440 x 802 in
+  en and ar on `/demo` (list, conversation, contact, call): no page errors; Arabic mirrors right. It found
+  one fault (phone number backwards in ar), fixed in `bfb1807b`. The real chat needs a signed-in shopper,
+  so it was not checked in a browser.
 
-- Code: `components/DemoApp1/chat/` — `chatModel.ts`, `chatTheme.ts`, `chatMapper.ts`, `chatContext.tsx`,
-  `chatActions.ts`, `chatSend.ts`, `chatPaths.ts`, `ChatDataProvider.tsx`; pages in `app/(client)/[lang]/chat/`.
-- Found on the way (fixed in the mapper): pin and mute live on my own member row (`pin`, `mute`), not on the
-  chat; the row's unread is counted from the messages (old rule), not `total_unread_message_count`; "blocked"
-  (I blocked them) and "blocked either way" (hides the composer) are two things.
-- The 3 chat search unit tests (`ChatListSearch`, `ChatLists`) are red from `2f42f4e7` on `development`, not
-  from this stage.
+Lane files touched (tell the lanes at merge): `components/Home/AuthSections.tsx` (call page, no
+`ChatModal`), `components/DemoApp1/AppScreenView.tsx` (`chat/call` → `LiveCallScreen`),
+`components/DemoApp1/demoCase.ts` (import from `screenNav`), `components/setting/orders/OrderDetailsWrapper.tsx`,
+`utils/tinyUtils.tsx` (`DetectScreen`), `utils/NotificationHandler.ts`, `public/firebase-messaging-sw.js`,
+`components/DemoApp/demoKeys.ts` (chat words).
 
-Left, in this order:
-5. Calls: `CallScreen` wired to `store/chat/callActions.ts` and Agora.
-6. D-36b features in the new style, and the product / deleted bubbles (they draw nothing today); "delete for
-   everyone"; upload progress and cancel on the bubble; image preview before send.
-7. Gates: a blocked chat hides the composer (`blockedEitherWay`); the chat page for a shopper with no chat
-   account (the client asks to confirm the phone).
-8. RTL. 9. i18n + case (`useDemoCase()`). 10. Events: check `chat_message_sent` / `chat_product_shared`.
-11. The rest: order chat (D-36c), FCM push links, `DetectScreen` for `/chat`, remove `ChatModal`, `ChatWidget`
-    and the old files with no caller (D-6). Also: `ConversationScreen` still imports `CHAT_COUNTS`,
-    `CHAT_PHOTOS` and `CONTACT` from the mock `DemoApp/demoChat.ts` (A-16), and the calls tab still shows the
-    mock `CALL_ROWS`. 12. Unit tests (skipped, owner's order). 13. End checks.
+Unit tests that may now fail (not run, owner's order; the CI run will say):
+- `tests/components/Home/AuthSections.test.tsx` — "shows the chat and call loaders when each is open"
+  (both loaders are gone); its mocks name removed files.
+- `tests/components/setting/orders/OrderDetailsWrapper.test.tsx` — mocks the removed `ChatWidget`.
+- `tests/public/firebaseMessagingSw*.test.ts` — if a case expects `BASE_ORIGIN` as a chat push's link.
+- `tests/components/DemoApp/demoChatModel.test.ts`, `tests/components/DemoApp1/chat/*` — the seed now sets
+  each row's preview and time, and `ChatState` has `calls`, `counts`, `me`.
+- The 3 chat search tests red since `2f42f4e7` were removed with their components.
+- Coverage lost with the removed tests: `mergeContacts` (now in `contactsSync.ts`).
+
+Left:
+- The stories row (D-36b) is not built. The story viewer belongs to the home page (Stage 7), and the chat
+  copy repeats the home stories bar. Owner to decide: build it, or drop it.
+- The real chat checked in a browser by a signed-in shopper (calls, push links, order chat, gates).
+- Step 13 in CI: `gh workflow run Tests --ref ui-migrations-chat` needs the branch pushed (owner's OK).
+- Then the owner's review, then the merge into `ui-migrations` (owner's OK). The e2e cases wait for Stage 8
+  (A-34).
 
 ---
 
