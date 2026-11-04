@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useAppStore } from "store";
-import type { DemoTab } from "../DemoApp/demoRoutes";
+import { isTabRoot, type DemoTab } from "../DemoApp/demoRoutes";
+import { appScreenFromPath } from "./appScreenPaths";
 import type { DemoDictionary, DemoKey } from "../DemoApp/demoKeys";
 import Demo1BottomNav from "./Demo1BottomNav";
 import { TAB_ROOM } from "./demo1Layout";
@@ -64,17 +65,22 @@ export default function AppShell({
       call ||
       openPayIframe,
   );
-  const showBar = !stepsAside && !covered;
+  // A new screen (appScreenPaths.ts) follows its design: the bar shows on a tab
+  // screen only, and the screen keeps its own room for it (ScreenPage `tabBar`).
+  const screen = appScreenFromPath(pathname);
+  const showBar =
+    !stepsAside && !covered && (screen === null || isTabRoot(screen));
+  const pageRoom = showBar && screen === null;
 
-  // The room the bar takes, for the page's bottom padding. Only while it shows.
+  // The room the bar takes, for an old page's bottom padding. Only while it shows.
   useEffect(() => {
-    if (!showBar) return;
+    if (!pageRoom) return;
     const root = document.documentElement.style;
     root.setProperty("--app-bar-room", TAB_ROOM);
     return () => {
       root.removeProperty("--app-bar-room");
     };
-  }, [showBar]);
+  }, [pageRoom]);
 
   // A Search request waits for the home page. When the shopper lands on a
   // page that is not home instead, the request is dropped, so it cannot open
