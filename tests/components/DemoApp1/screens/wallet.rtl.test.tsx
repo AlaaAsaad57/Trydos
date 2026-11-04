@@ -15,7 +15,8 @@ const page = vi.hoisted(() => ({ lang: "sy-ar" }));
 vi.mock("next/navigation", () => ({ useParams: () => ({ lang: page.lang }) }));
 
 // The screens read the shell's words and its back step; nothing else of it.
-vi.mock("components/DemoApp1/Demo1Shell", () => ({
+// Some read them through Demo1Shell, and demoCase.ts straight from screenNav.
+const nav = vi.hoisted(() => ({
   useDemoNav: () => ({
     shown: null,
     navigate: () => {},
@@ -24,6 +25,8 @@ vi.mock("components/DemoApp1/Demo1Shell", () => ({
     t: (key: string) => key,
   }),
 }));
+vi.mock("components/DemoApp1/Demo1Shell", () => nav);
+vi.mock("components/DemoApp1/screenNav", () => nav);
 
 // The shopper Wallet Info shows (the sheet reads useProfileData, A-16).
 const client = vi.hoisted(() => ({
