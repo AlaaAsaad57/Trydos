@@ -63,7 +63,7 @@ function OrderOptionsMenu({
   const renderScreen = () => {
     if (selectedScreen === "options") {
       return (
-        <div className="flex-col max-h-[calc(100vh-100px)] items-center overflow-auto w-full pt-[14px] px-[24px] z-999999999 pb-[27px] absolute bottom-0  left-0 rounded-t-[30px] bg-white">
+        <div className="flex-col max-h-[calc(100vh-100px)] items-center overflow-auto w-full pt-[14px] px-[24px] z-999999999 pb-[27px] absolute bottom-[var(--app-bar-room,0px)]  left-0 rounded-t-[30px] bg-white">
           <span className="w-[40px] h-[4px] bg-[#C4C2C2] rounded-[2px]"></span>
           <div className="flex-col  items-center w-full justify-center flex-1">
             <OrderItemBanner
@@ -206,7 +206,7 @@ function OrderOptionsMenu({
     }
     if (selectedScreen === "cancelOrder") {
       return (
-        <div className="flex-col max-h-[calc(100vh-100px)] items-center overflow-auto w-full pt-[14px] px-[24px] z-999999999 pb-[27px] absolute bottom-0  left-0 rounded-t-[30px] bg-white">
+        <div className="flex-col max-h-[calc(100vh-100px)] items-center overflow-auto w-full pt-[14px] px-[24px] z-999999999 pb-[27px] absolute bottom-[var(--app-bar-room,0px)]  left-0 rounded-t-[30px] bg-white">
           <span className="w-[40px] h-[4px] bg-[#C4C2C2] rounded-[2px]"></span>
           <div className="flex-col  items-center w-full justify-center flex-1">
             <OrderItemBanner

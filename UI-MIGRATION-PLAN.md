@@ -582,7 +582,17 @@ server, then 5 runs each, alternating before and after. Date: 2026-10-28.
 
 Task 9 is committed and pushed on `ui-migrations-shell`. Before the commit: `pnpm lint:i18n-parity` passed, `pnpm lint`
 had 0 errors (no warning in a Task 9 file), `next typegen` + `tsc` passed. **The full unit suite did not finish**
-(stopped by the owner to switch work). Left, in this order:
+(stopped by the owner to switch work).
+
+**Done on 2026-11-04:** step 0 in CI (run 41824786791: only the 3 chat search tests fail, red on `development` too,
+from its commit `2f42f4e7`); step 3 passed (bar only, against `/demo`: every tab box the same in `en` and `ar`;
+only the counts differ, real 0 against the mock 3 / 11). Steps 1 and 2 ran once in CI (E2E run 41824914664:
+SHELL-01..08 green) before the owner's rule A-34 (no e2e in any stage; Stage 8 does it); the red cases and their
+causes are listed in Stage 8 on `ui-migrations`. Found by that run and fixed: the new bar covered the order menu
+sheets (`OrdersOptionsMenu`, `OrderOptionsMenu`, `OrderItemOptions`), so they now add `--app-bar-room`
+(test: `tests/components/shell/bottomRoom.test.tsx`, 4 cases, seen red before the fix). Left: step 5.
+
+Left, in this order (steps 1, 2 and 4 are dropped: A-34 and the owner's time limit):
 0. Run `pnpm test:run` and fix only faults from Task 9 (remember: one random flaky failure is common; prove it alone).
 1. Shell e2e spec on this machine: `pnpm e2e:build`, then `pnpm test:e2e:scripted -- --grep SHELL` (SHELL-01..08).
    SHELL-07 and SHELL-08 are new or changed in Task 9 and have not run yet.
@@ -595,8 +605,8 @@ had 0 errors (no warning in a Task 9 file), `next typegen` + `tsc` passed. **The
    bring `ui-migrations-wallet` up to date and renumber its A-28 row (A-28 is "Checkout QR" on `ui-migrations`).
 6. Next stage on lane A: Stage 4 (profile). It also takes the 3 items moved from Stage 3 (the path table with the
    on/off switch, drawing a new screen inside `AppShell`, `next/dynamic` for the 17 screens), turns on the new
-   profile with its logout row (S3-11), puts notifications behind Settings (D-19), and rebuilds the e2e sign-out
-   helper (`openAccountMenu` in `tests/e2e/actions/auth.ts`) on the new logout row.
+   profile with its logout row (S3-11), and puts notifications behind Settings (D-19). The e2e sign-out helper
+   (`openAccountMenu` in `tests/e2e/actions/auth.ts`) waits for Stage 8 (A-34).
 
 ---
 

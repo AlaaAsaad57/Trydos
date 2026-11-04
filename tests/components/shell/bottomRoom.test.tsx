@@ -109,6 +109,14 @@ vi.mock("services/notifications", () => ({
   }),
 }));
 vi.mock("components/Notifications/NotificationItem", () => stub("NotificationItem"));
+// ---- Order menus (a sheet in a portal on the orders pages) -----------------
+vi.mock("components/setting/orders/OrderItemBanner", () => stub("OrderItemBanner"));
+vi.mock("components/setting/orders/CancelOrderWrapper", () => stub("CancelOrderWrapper"));
+vi.mock("components/setting/orders/CancelOrderItemWrapper", () => stub("CancelOrderItemWrapper"));
+vi.mock("components/setting/orders/ReturnOrderItemWrapper", () => stub("ReturnOrderItemWrapper"));
+vi.mock("components/setting/orders/ReportOrderItemWrapper", () => stub("ReportOrderItemWrapper"));
+vi.mock("components/Orders/ChangeAddressWidget", () => stub("ChangeAddressWidget"));
+vi.mock("components/Orders/ChangeOrderItem", () => stub("ChangeOrderItem"));
 vi.mock("utils/firebaseInitv1", () => ({ requestFirebaseNotificationPermission: vi.fn() }));
 vi.mock("firebase/messaging", () => ({ isSupported: async () => false }));
 
@@ -121,6 +129,9 @@ import NotificationsPanel from "components/Notifications/NotificationsPanel";
 import RatingOrderItem from "components/Orders/RatingOrderItem";
 import UploadImageComponent from "components/Orders/UploadImageComponent";
 import NotificationSkeleton from "components/skeleton/NotificationSkeleton";
+import OrderItemOptions from "components/setting/orders/OrderItemOptions";
+import OrderOptionsMenu from "components/setting/orders/OrderOptionsMenu";
+import OrdersOptionsMenu from "components/setting/orders/OrdersOptionsMenu";
 
 const ROOM = "var(--app-bar-room";
 
@@ -129,6 +140,19 @@ const placement = (el: Element | null | undefined) =>
   el ? `${el.getAttribute("class") ?? ""} | ${el.getAttribute("style") ?? ""}` : "(element not found)";
 
 const marked = (pw: string) => document.querySelector(`[data-pw="${pw}"]`);
+
+/** The white sheet of an order menu: the box with the round top corners that holds `inner`. */
+const sheetAround = (inner: Element | null) => inner?.closest(".rounded-t-\\[30px\\]");
+
+/** An order the menus can draw: it can be cancelled, its address cannot change. */
+const ORDER: any = {
+  id: 7,
+  order_group_id: 70,
+  order_status: { value: "pending", label: "Pending" },
+  can_update_address: false,
+  can_cancele_order: true,
+  details: [],
+};
 
 beforeEach(() => {
   // What AppShell does while the bar shows.
@@ -283,6 +307,58 @@ describe("old bottom bars sit above the new bar", () => {
       (marked("notification-container") as HTMLElement).style.bottom,
       "the notifications skeleton has no room in its bottom offset",
     ).toContain(ROOM);
+  });
+
+  // BUY-01 and ORD-01 (E2E run 41824914664, 2026-11-04): the new bar took the
+  // taps on "cancel order" and "open hidden orders", because these sheets sat
+  // at bottom 0 under the bar.
+  it("the orders list menu sheet adds the room to its bottom offset", async () => {
+    await renderWithProviders(
+      <OrdersOptionsMenu isRtl={false} language="en" close={vi.fn()} onOpenHidden={vi.fn()} />,
+    );
+    expect(
+      placement(sheetAround(marked("open-hidden-orders"))),
+      "the orders list menu (open hidden orders) has no room in its bottom offset",
+    ).toMatch(/bottom-\[var\(--app-bar-room,0px\)\]/);
+  });
+
+  it("the order menu sheet adds the room to its bottom offset", async () => {
+    await renderWithProviders(<OrderOptionsMenu order={ORDER} close={vi.fn()} isRtl={false} />);
+    expect(
+      placement(sheetAround(marked("cancel-order-option"))),
+      "the order menu (cancel order, hide order) has no room in its bottom offset",
+    ).toMatch(/bottom-\[var\(--app-bar-room,0px\)\]/);
+  });
+
+  it("the order menu's cancel sheet adds the room to its bottom offset", async () => {
+    await renderWithProviders(<OrderOptionsMenu order={ORDER} close={vi.fn()} isRtl={false} />);
+    fireEvent.click(marked("cancel-order-option")!);
+    expect(
+      placement(sheetAround(await screen.findByTestId("CancelOrderWrapper"))),
+      "the order menu's cancel sheet has no room in its bottom offset",
+    ).toMatch(/bottom-\[var\(--app-bar-room,0px\)\]/);
+  });
+
+  it("the order item menu sheet adds the room to its bottom offset", async () => {
+    await renderWithProviders(
+      <OrderItemOptions
+        orderItem={{ id: 1, product_id: 5, can_cancele: true, can_return: false } as any}
+        parentOrder={ORDER}
+        isRtl={false}
+        update={vi.fn()}
+        close={vi.fn()}
+        returnDetails={{} as any}
+        setActivePack={vi.fn()}
+        shouldShowConfirmReturn={false}
+        setShouldConfirmReturn={vi.fn()}
+        orderData={[ORDER]}
+      />,
+    );
+    const scrim = document.querySelector(".min-h-screen.opacity-40");
+    expect(
+      placement(scrim?.nextElementSibling),
+      "the order item menu (cancel, return, report a product) has no room in its bottom offset",
+    ).toMatch(/bottom-\[var\(--app-bar-room,0px\)\]/);
   });
 
   it("the product page footer in productDetails.css adds the room to its bottom", () => {
