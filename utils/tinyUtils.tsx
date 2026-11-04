@@ -454,6 +454,10 @@ export const DetectScreen = () => {
   if (isCartPath(pathname)) {
     return GA_GLOBAL_SCREEN.CART_SCREEN;
   }
+  // The chat pages /[lang]/chat/... (Stage 6): the part after the locale is "chat".
+  if (pathname.split("/")[2] === "chat") {
+    return GA_GLOBAL_SCREEN.CHAT_SCREEN;
+  }
   // The search page /[lang]/search (Stage 7). The old search, over the home
   // page, reported the home screen.
   if (isSearchPath(pathname)) {

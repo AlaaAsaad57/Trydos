@@ -3,7 +3,7 @@
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import React from "react";
 import XdIcon from "../../DemoApp/XdIcon";
-import { reminderLabel, reminderOptions } from "../../DemoApp/demoChatModel";
+import { reminderLabel, reminderOptions } from "./chatModel";
 import { C } from "../demo1Layout";
 import { Txt } from "../ui";
 import PickSheet, { PickBox, PickRow } from "./PickSheet";
@@ -44,7 +44,7 @@ export default function ReminderSheet({
           <PickBox background={C.purpleTint}>
             <XdIcon name="menuRemind" size={18} />
           </PickBox>
-          <span className="flex flex-col min-w-0 grow" style={{ marginLeft: 12 }}>
+          <span className="flex flex-col min-w-0 grow" style={{ marginInlineStart: 12 }}>
             <Txt size={14} weight="medium">
               {t(o.key)}
             </Txt>
@@ -59,7 +59,7 @@ export default function ReminderSheet({
           <PickBox background="#FFE6E5">
             <XdIcon name="menuRemind" size={18} />
           </PickBox>
-          <span className="flex flex-col min-w-0 grow" style={{ marginLeft: 12 }}>
+          <span className="flex flex-col min-w-0 grow" style={{ marginInlineStart: 12 }}>
             <Txt size={14} weight="medium" color={C.red}>
               {t("Remove")}
             </Txt>

@@ -3224,6 +3224,22 @@ const translations = {
   "<b>a</b> {name}": "<b>C</b> {name}",
   "{n} minute answered": "{n} dakikada yanıtlandı",
   "Need help ? Start Chat about this product !": "Yardım mı lazım ? Bu ürün hakkında sohbet başlat !",
+  "Country code": "Ülke kodu",
+  "Missed Video Call !": "Cevapsız Görüntülü Arama !",
+  "Incoming Video Call !": "Gelen Görüntülü Arama !",
+  "Outgoing Video Call !": "Giden Görüntülü Arama !",
+  "Delete for everyone": "Herkesten sil",
+  "Allow Notifications": "Bildirimlere izin ver",
+  "Confirm your phone number to use Chat": "Sohbeti kullanmak için telefon numaranı doğrula",
+  "All": "Tümü",
+  "Recent": "Son kullanılanlar",
+  "Popular": "Popüler",
+  "Smileys": "Yüz ifadeleri",
+  "Gestures": "Hareketler",
+  "Search emoji": "Emoji ara",
+  "No emoji found": "Emoji bulunamadı",
+  "More reactions": "Daha fazla tepki",
+  "Orders": "Siparişler",
 };
 
 export default translations;

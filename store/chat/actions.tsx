@@ -827,3 +827,64 @@ export async function GetTaggedMessages(
     return null;
   }
 }
+
+/**
+ * Block or unblock the other person of a chat, then show it in the store.
+ * The same calls as the old contact panel (components/Chat/components/ChatInfo.tsx):
+ * a failure is logged and shows no message of its own. Answers `true` when
+ * the chat backend agreed.
+ */
+export async function SetUserBlocked(
+  channelId: string | number,
+  userId: string | number,
+  blocked: boolean,
+): Promise<boolean> {
+  try {
+    const response = await fetchData({
+      url: `/api/v1/users/${blocked ? "block" : "unblock"}/${userId}`,
+      server: "chat",
+      method: "POST",
+      reqTitle: blocked ? REQUESTS_DATA.BLOCK_USER : REQUESTS_DATA.UNBLOCK_USER,
+      body: "",
+    });
+    if (response?.success === false) {
+      throw new Error(response?.message || `${blocked ? "Block" : "Unblock"} request failed`);
+    }
+    useAppStore.getState().updateChannelBlockStatus({ channelId, userId, isBlocked: blocked });
+    return true;
+  } catch (error) {
+    LogError({
+      scenario: `Error in SetUserBlocked (${blocked ? "block" : "unblock"}) in chat/actions`,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}
+
+/**
+ * Save one contact by hand: a name and a full phone number with its country
+ * code (`phoneWithDialCode`). The same call as the old form
+ * (components/Chat/components/ChatContactsUpload.tsx), but the answer is read:
+ * a refusal shows "Failed to add contact" and answers `false`. The contact's
+ * name and number never reach the error log.
+ */
+export async function SaveContact(name: string, mobilePhone: string): Promise<boolean> {
+  try {
+    const response = await fetchData({
+      url: "/api/v1/users/save_contact_v2",
+      server: "chat",
+      method: "POST",
+      body: JSON.stringify({ name, mobile_phone: mobilePhone }),
+      reqTitle: { reqTitle: "ADD_CONTACTS", code: 999 },
+    });
+    if (!response?.success) throw new Error("the chat backend refused the contact");
+    return true;
+  } catch (error) {
+    LogError({
+      scenario: "Error in SaveContact in chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    showErrorNotification(translateFunction("Failed to add contact"));
+    return false;
+  }
+}

@@ -743,7 +743,13 @@ class ForegroundNotificationHandler {
     resolve: any,
     payload: any,
   ) {
-    const { activeChat, chatVar, country, language } = state;
+    const { activeChat, country, language } = state;
+    // "The chat is open": the old chat window, or (Stage 6) a page of the new
+    // chat screens, /[lang]/chat/... The chat shows its new messages itself,
+    // so no pop-up comes, as with the old window.
+    const chatVar =
+      state.chatVar ||
+      (typeof window !== "undefined" && window.location.pathname.split("/")[2] === "chat");
     const currentUser = getUserChat();
     const messageData = data.message;
     const senderUser = messageData?.sender_user;

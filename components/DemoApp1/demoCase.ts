@@ -1,7 +1,7 @@
 "use client";
 
 import type { DemoKey } from "../DemoApp/demoKeys";
-import { useDemoNav } from "./Demo1Shell";
+import { useDemoNav } from "./screenNav";
 
 /**
  * Capital letters for the English words of Home, a store's page (with its

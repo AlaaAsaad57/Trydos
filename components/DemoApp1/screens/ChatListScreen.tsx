@@ -6,28 +6,26 @@ import { AnimatePresence, animate, motion, useMotionValue } from "framer-motion"
 import { TRAVEL } from "../barMotion";
 import XdIcon from "../../DemoApp/XdIcon";
 import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
+import { CHAT } from "../chat/chatTheme";
 import {
-  CHAT,
-  CHAT_COUNTS,
-  CHAT_PHOTOS,
-  CHAT_ROW_TIME,
-  CONTACT,
-  PREVIEW,
-  PREVIEW_SHORT,
-  type CallKind,
-} from "../../DemoApp/demoChat";
-import {
-  CALL_ROWS,
   archivedChats,
   contactOf,
   orderedChats,
   searchableText,
+  type CallKind,
+  type CallRow,
   type ChatThread,
   type Contact,
-} from "../../DemoApp/demoChatModel";
+} from "../chat/chatModel";
 import ArchivedSheet from "../chat/ArchivedSheet";
-import { useDemoChat } from "../../DemoApp/demoChatState";
-import { useDemoNav } from "../Demo1Shell";
+import ChatGate from "../chat/ChatGate";
+import { usePageDir } from "../rtl";
+import { RemindersSheet } from "../chat/ExtraSheets";
+import { translateFunction } from "utils/functions";
+import { useChat } from "../chat/chatContext";
+import PageEdge from "../chat/PageEdge";
+import { useDemoNav } from "../screenNav";
+import { useDemoCase } from "../demoCase";
 import {
   C,
   COLUMN_W,
@@ -83,8 +81,19 @@ import { useHorizontalSwipe } from "../chat/useHorizontalSwipe";
  * call's state under it — see CallRowFace.
  */
 export default function ChatListScreen() {
-  const { t, navigate } = useDemoNav();
-  const { state, dispatch, newChat, addContact, notice } = useDemoChat();
+  const { gate } = useChat();
+  if (gate) return <ChatGate kind={gate.kind} onOpen={gate.open} />;
+  return <ChatList />;
+}
+
+function ChatList() {
+  const { navigate, locale } = useDemoNav();
+
+  const { t } = useDemoCase();
+  const { state, dispatch, newChat, addContact, notice, paging, extras } = useChat();
+  /** The reminders sheet is up (the real chat only). */
+  const [showReminders, setShowReminders] = useState(false);
+  const reminders = extras?.reminders ?? [];
   const [tab, setTab] = useState<"chats" | "calls">("chats");
   const [query, setQuery] = useState("");
   /** The "New chat" sheet is up. */
@@ -123,7 +132,7 @@ export default function ChatListScreen() {
     (chat) =>
       !needle ||
       contactOf(state, chat).name.toLowerCase().includes(needle) ||
-      (chat.preview ?? PREVIEW).toLowerCase().includes(needle) ||
+      (chat.preview ?? "").toLowerCase().includes(needle) ||
       chat.messages.some((m) => searchableText(m).toLowerCase().includes(needle)),
   );
 
@@ -174,7 +183,7 @@ export default function ChatListScreen() {
         <div
           className="flex items-start shrink-0"
           style={{
-            marginLeft: 12,
+            marginInlineStart: 12,
             marginTop: 6,
             width: fill(12),
             height: 38,
@@ -194,9 +203,9 @@ export default function ChatListScreen() {
             className="block bg-transparent outline-none font-normal placeholder:text-[#8D8D8D]"
             // Text left 52 on the artboard; baseline 80 → box top 66 at 14 px.
             style={{
-              marginLeft: 40 - (9.5 + XD_ICON_SIZE.searchGlass.w),
+              marginInlineStart: 40 - (9.5 + XD_ICON_SIZE.searchGlass.w),
               marginTop: 7,
-              marginRight: 12,
+              marginInlineEnd: 12,
               flex: "1 1 0",
               minWidth: 0,
               height: 24,
@@ -218,7 +227,7 @@ export default function ChatListScreen() {
           <TabButton
             testId="demo-chat-tab-chats"
             icon="chatTabChats"
-            count={CHAT_COUNTS.chats}
+            count={state.counts.chats}
             label="Chats"
             labelGap={7}
             left={0}
@@ -229,7 +238,7 @@ export default function ChatListScreen() {
           <TabButton
             testId="demo-chat-tab-calls"
             icon="chatTabCalls"
-            count={CHAT_COUNTS.calls}
+            count={state.counts.calls}
             label="Calls"
             labelGap={6}
             left={265 - 129}
@@ -245,6 +254,7 @@ export default function ChatListScreen() {
   return (
     <ScreenPage testId="demo-chat" header={header} tabBar>
       {tab === "chats" ? (
+        <>
         <AnimatePresence initial={false}>
           {/* The archived chats' row, over the list while there are any: the
               swipe cell's archive mark where the photo column is, "Archived"
@@ -262,15 +272,41 @@ export default function ChatListScreen() {
               transition={TRAVEL}
               whileTap={{ scale: 0.985 }}
               onClick={() => setShowArchived(true)}
-              className="flex items-center w-full shrink-0 overflow-hidden cursor-pointer text-left"
+              className="flex items-center w-full shrink-0 overflow-hidden cursor-pointer text-start"
               style={{ marginTop: 2, background: C.page }}
             >
-              <XdIcon name="swipeArchive" style={{ marginLeft: 12 + (66 - 25) / 2 }} />
+              <XdIcon name="swipeArchive" style={{ marginInlineStart: 12 + (66 - 25) / 2 }} />
               <Txt size={14} weight="medium" ml={90 - (12 + (66 - 25) / 2 + 25)}>
                 {t("Archived")}
               </Txt>
-              <Txt size={14} color={C.grey} className="ml-auto" style={{ marginRight: 13 }}>
+              <Txt size={14} color={C.grey} className="ms-auto" style={{ marginInlineEnd: 13 }}>
                 {String(archived.length)}
+              </Txt>
+            </motion.button>
+          )}
+          {/* My reminders, under the archived row while there are any (D-36b,
+              no XD board): the same row, with the remind mark. */}
+          {reminders.length > 0 && !needle && (
+            <motion.button
+              key="reminders"
+              type="button"
+              data-pw="demo-chat-reminders-row"
+              layout
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 50, opacity: 1 }}
+              exit={{ height: 0, opacity: 0, transition: { duration: 0.22 } }}
+              transition={TRAVEL}
+              whileTap={{ scale: 0.985 }}
+              onClick={() => setShowReminders(true)}
+              className="flex items-center w-full shrink-0 overflow-hidden cursor-pointer text-start"
+              style={{ marginTop: 2, background: C.page }}
+            >
+              <XdIcon name="menuRemind" style={{ marginInlineStart: 12 + (66 - 25) / 2 }} />
+              <Txt size={14} weight="medium" ml={90 - (12 + (66 - 25) / 2 + 25)}>
+                {translateFunction("Reminders")}
+              </Txt>
+              <Txt size={14} color={C.grey} className="ms-auto" style={{ marginInlineEnd: 13 }}>
+                {String(reminders.length)}
               </Txt>
             </motion.button>
           )}
@@ -279,6 +315,9 @@ export default function ChatListScreen() {
               key={chat.id}
               layout
               className="w-full shrink-0 overflow-hidden"
+              // The browser draws only the rows near the screen; a row off it
+              // keeps its last height (step 4).
+              style={{ contentVisibility: "auto", containIntrinsicSize: "auto 92px" }}
               exit={{ height: 0, opacity: 0, transition: { duration: 0.22 } }}
               transition={TRAVEL}
             >
@@ -307,14 +346,23 @@ export default function ChatListScreen() {
             </motion.div>
           ))}
         </AnimatePresence>
+        {/* The next page of chats, near the end of the list (the real chat only). */}
+        {paging?.moreChats && !needle && (
+          <PageEdge onReach={paging.loadMoreChats} count={rows.length} testId="demo-chat-more" />
+        )}
+        </>
       ) : (
-        CALL_ROWS.map((row) => (
+        state.calls.map((row) => (
           <CallRowFace
             key={row.id}
-            id={row.id}
-            kind={row.kind}
-            minutes={row.minutes}
-            onOpen={() => navigate("chat/call")}
+            row={row}
+            contact={state.contacts.find((c) => c.id === row.contact) ?? { id: row.contact, name: "", phone: "", initials: "" }}
+            // A real call opens its chat; the `/demo` rows open the mock call.
+            onOpen={() => {
+              if (!row.chat) return navigate("chat/call");
+              dispatch({ type: "open", chat: row.chat });
+              navigate("chat/conversation");
+            }}
             t={t}
           />
         ))
@@ -352,7 +400,7 @@ export default function ChatListScreen() {
               className="absolute flex items-center justify-center cursor-pointer"
               style={{
                 bottom: 0,
-                right: `calc(20px - ${COLUMN_W} / 2)`,
+                insetInlineEnd: `calc(20px - ${COLUMN_W} / 2)`,
                 width: 52,
                 height: 52,
                 borderRadius: 26,
@@ -370,10 +418,31 @@ export default function ChatListScreen() {
         open={starting}
         contacts={state.contacts}
         onPick={startChat}
-        onAdd={(name, phone) => startChat(addContact(name, phone))}
+        onAdd={async (name, phone) => {
+          const contact = await addContact(name, phone);
+          // Saved, but not on Trydos (or the save failed): no chat to open.
+          if (contact) startChat(contact);
+          else setStarting(false);
+        }}
+        onSync={extras?.syncContacts}
         onClose={() => setStarting(false)}
         t={t}
       />
+      {extras && (
+        <RemindersSheet
+          open={showReminders}
+          reminders={reminders}
+          locale={locale}
+          onOpen={(r) => {
+            setShowReminders(false);
+            void extras.openMessage(r.chat, r.message).then((ok) => {
+              if (ok) navigate("chat/conversation");
+            });
+          }}
+          onCancel={(r) => extras.cancelReminder(r)}
+          onClose={() => setShowReminders(false)}
+        />
+      )}
       <ArchivedSheet
         open={showArchived}
         chats={state.chats}
@@ -428,7 +497,7 @@ function TabButton({
       onClick={onClick}
       className="absolute flex items-start cursor-pointer"
       // The strip starts at design y 100; the icons sit at 113.
-      style={{ left, top: 13, height: 25 }}
+      style={{ insetInlineStart: left, top: 13, height: 25 }}
     >
       {on && (
         <Txt
@@ -437,7 +506,7 @@ function TabButton({
           className="absolute"
           // Baseline 135 → box top 123, 10 under the icon's top.
           style={{
-            right: `calc(100% + ${labelGap}px)`,
+            insetInlineEnd: `calc(100% + ${labelGap}px)`,
             top: textTop(135, 12) - 113,
             letterSpacing: "0.02em",
           }}
@@ -511,6 +580,9 @@ function SwipeRow({
   children: React.ReactNode;
 }) {
   const x = useMotionValue(0);
+  // Right to left (A-15): the row slides the other way. `open` and the snap
+  // points are read along the line of text ("left" = towards its start).
+  const sign = usePageDir() === "rtl" ? -1 : 1;
   const [open, setOpen] = useState<"left" | "right" | null>(null);
   /** True from the start of a drag until the next press: a swipe is never a tap. */
   const dragged = useRef(false);
@@ -519,7 +591,7 @@ function SwipeRow({
   const swipe = useHorizontalSwipe();
 
   const snapTo = (target: number) => {
-    animate(x, target, TRAVEL);
+    animate(x, sign * target, TRAVEL);
     const side = target === 0 ? null : target < 0 ? "left" : "right";
     setOpen(side);
     if (side === null) onRest();
@@ -553,7 +625,7 @@ function SwipeRow({
       }}
     >
       <div
-        className="absolute top-0 right-0 flex"
+        className="absolute top-0 end-0 flex"
         style={{ height: 100, gap: CELL_GAP }}
         aria-hidden={open !== "left"}
       >
@@ -562,8 +634,8 @@ function SwipeRow({
         ))}
       </div>
       <div
-        className="absolute top-0 left-0 flex"
-        style={{ height: 100, marginLeft: CELL_GAP, gap: CELL_GAP }}
+        className="absolute top-0 start-0 flex"
+        style={{ height: 100, marginInlineStart: CELL_GAP, gap: CELL_GAP }}
         aria-hidden={open !== "right"}
       >
         {LEFT_ACTIONS.map((a) => (
@@ -577,7 +649,7 @@ function SwipeRow({
         drag="x"
         dragListener={false}
         dragControls={swipe.controls}
-        dragConstraints={{ left: OPEN_LEFT, right: OPEN_RIGHT }}
+        dragConstraints={sign > 0 ? { left: OPEN_LEFT, right: OPEN_RIGHT } : { left: -OPEN_RIGHT, right: -OPEN_LEFT }}
         dragElastic={0.08}
         dragMomentum={false}
         style={{ x, touchAction: "pan-y" }}
@@ -591,7 +663,7 @@ function SwipeRow({
         }}
         onDragEnd={() => {
           onRelease();
-          const at = x.get();
+          const at = sign * x.get();
           if (at < OPEN_LEFT / 2) snapTo(OPEN_LEFT);
           else if (at > OPEN_RIGHT / 2) snapTo(OPEN_RIGHT);
           else snapTo(0);
@@ -649,7 +721,7 @@ function Photo({
   w,
   h,
   line,
-  src = CHAT_PHOTOS.contact,
+  src,
   initials,
 }: {
   w: number;
@@ -666,10 +738,10 @@ function Photo({
         width: w,
         height: h,
         borderRadius: 15,
-        background: initials ? C.field : undefined,
+        background: initials || !src ? C.field : undefined,
       }}
     >
-      {initials ? (
+      {initials || !src ? (
         // "MW" 14 Medium on baseline 43 of the 76 box, centred.
         <Txt center size={14} weight="medium" mt={textTop(43, 14)}>
           {initials}
@@ -690,7 +762,7 @@ function Photo({
 function RowTime({
   right,
   mt = 0,
-  time = CHAT_ROW_TIME,
+  time = "",
   muted = false,
   t,
 }: {
@@ -702,13 +774,13 @@ function RowTime({
   t: (key: DemoKey) => string;
 }) {
   return (
-    <span className="flex items-start ml-auto shrink-0" style={{ marginTop: mt, marginRight: right }}>
+    <span className="flex items-start ms-auto shrink-0" style={{ marginTop: mt, marginInlineEnd: right }}>
       {muted && (
         <XdIcon
           name="swipeMute"
           size={12}
           aria-label={t("Mute")}
-          style={{ marginTop: 1, marginRight: 4, opacity: 0.55 }}
+          style={{ marginTop: 1, marginInlineEnd: 4, opacity: 0.55 }}
         />
       )}
       <Txt size={11} weight="medium" color={C.grey}>
@@ -777,9 +849,8 @@ function ChatRowFace({
   const previewTop = paraTop(46, 12, 17);
   const previewBottom = previewTop + 2 * 17;
   const typing = row.typing || row.typingNow;
-  const time = row.time ?? CHAT_ROW_TIME;
-  const preview =
-    row.preview ?? (row.initials ? PREVIEW_SHORT : PREVIEW);
+  const time = row.time ?? "";
+  const preview = row.preview ?? "";
   return (
     <div
       className="relative flex items-start w-full h-full"
@@ -788,11 +859,11 @@ function ChatRowFace({
       {selected && (
         <span
           aria-hidden="true"
-          className="absolute left-0 top-0 h-full"
+          className="absolute start-0 top-0 h-full"
           style={{ width: 4, background: C.purple }}
         />
       )}
-      <div className="shrink-0" style={{ marginLeft: 12, marginTop: 12 }}>
+      <div className="shrink-0" style={{ marginInlineStart: 12, marginTop: 12 }}>
         <Photo
           w={66}
           h={76}
@@ -805,7 +876,7 @@ function ChatRowFace({
       {row.attachments && row.preview === undefined ? (
         <div
           className="flex items-start min-w-0 grow"
-          style={{ marginLeft: 12, marginTop: 12 }}
+          style={{ marginInlineStart: 12, marginTop: 12 }}
         >
           {/* The left column is 137 wide: from x 90 to the icons at 227. */}
           <div className="flex flex-col shrink-0" style={{ width: 227 - 90 }}>
@@ -835,7 +906,7 @@ function ChatRowFace({
       ) : (
         <div
           className="flex flex-col min-w-0 grow"
-          style={{ marginLeft: 12, marginTop: nameTop }}
+          style={{ marginInlineStart: 12, marginTop: nameTop }}
         >
           <div className="flex items-start w-full">
             <Txt size={14} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
@@ -848,7 +919,7 @@ function ChatRowFace({
             className="font-normal"
             style={{
               marginTop: previewTop - nameBottom,
-              marginRight: 45,
+              marginInlineEnd: 45,
               fontSize: 12,
               lineHeight: "17px",
               color: row.mark === "sent" ? C.grey : C.ink,
@@ -870,14 +941,14 @@ function ChatRowFace({
           {row.unread > 0 && (
             <span
               data-pw="demo-chat-row-unread-count"
-              className="flex items-start ml-auto shrink-0"
-              style={{ marginTop: 73 - previewBottom, marginRight: 12 }}
+              className="flex items-start ms-auto shrink-0"
+              style={{ marginTop: 73 - previewBottom, marginInlineEnd: 12 }}
             >
               {/* "1" on baseline 84 → box top 73, level with the mark. */}
               <Txt size={11} weight="medium" color={CHAT.unreadCount}>
                 {String(row.unread)}
               </Txt>
-              <XdIcon name="chatUnreadMark" style={{ marginLeft: 2 }} />
+              <XdIcon name="chatUnreadMark" style={{ marginInlineStart: 2 }} />
             </span>
           )}
           {typing && (
@@ -900,7 +971,7 @@ function ChatRowFace({
         <XdIcon
           name="chatPinned"
           className="absolute"
-          style={{ right: 430 - 416, top: 74 }}
+          style={{ insetInlineEnd: 430 - 416, top: 74 }}
         />
       )}
       <Stroke
@@ -922,6 +993,16 @@ const CALL_STATE: Record<
   incoming: { icon: "callIncoming", label: "Incoming Voice Call !", size: 12, color: C.ink, iconTop: 40, baseline: 52, x: 111 },
   // The violet phone 18 x 18 at (90, 52); the words 14 Regular, baseline 66, x 114.
   noAnswer: { icon: "callOutgoing", label: "No Answer", size: 14, color: C.ink, iconTop: 52, baseline: 66, x: 114 },
+  // An answered call I made has no board: drawn as an incoming call, with the violet phone (D-36b).
+  outgoing: { icon: "callOutgoing", label: "Outgoing Voice Call !", size: 12, color: C.ink, iconTop: 40, baseline: 52, x: 111 },
+};
+
+/** The words of a video call's row; "No Answer" stays. */
+const VIDEO_LABEL: Record<CallKind, DemoKey> = {
+  missed: "Missed Video Call !",
+  incoming: "Incoming Video Call !",
+  noAnswer: "No Answer",
+  outgoing: "Outgoing Video Call !",
 };
 
 /**
@@ -931,19 +1012,19 @@ const CALL_STATE: Record<
  * incoming call.
  */
 function CallRowFace({
-  id,
-  kind,
-  minutes,
+  row,
+  contact,
   onOpen,
   t,
 }: {
-  id: string;
-  kind: CallKind;
-  minutes?: string;
+  row: CallRow;
+  contact: Contact;
   onOpen: () => void;
   t: (key: DemoKey) => string;
 }) {
+  const { id, kind, minutes } = row;
   const state = CALL_STATE[kind];
+  const label = row.video ? VIDEO_LABEL[kind] : state.label;
   // The file lifts the name of the row with a second line to baseline 30.
   const nameTop = textTop(minutes ? 30 : 36, 16);
   const nameBottom = nameTop + lineBox(16);
@@ -953,21 +1034,21 @@ function CallRowFace({
       type="button"
       data-pw={`demo-call-row-${id}`}
       onClick={onOpen}
-      className="relative flex items-start w-full shrink-0 cursor-pointer text-left"
+      className="relative flex items-start w-full shrink-0 cursor-pointer text-start"
       style={{ height: 90, marginTop: 2, background: C.page }}
     >
-      <div className="shrink-0" style={{ marginLeft: 12, marginTop: 12 }}>
-        <Photo w={66} h={66} />
+      <div className="shrink-0" style={{ marginInlineStart: 12, marginTop: 12 }}>
+        <Photo w={66} h={66} src={contact.photo} initials={contact.photo ? undefined : contact.initials} />
       </div>
       <div
         className="flex flex-col min-w-0 grow"
-        style={{ marginLeft: 12, marginTop: nameTop }}
+        style={{ marginInlineStart: 12, marginTop: nameTop }}
       >
         <div className="flex items-start w-full">
-          <Txt size={16} weight="medium">
-            {CONTACT.name}
+          <Txt size={16} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
+            {contact.name}
           </Txt>
-          <RowTime right={12} mt={textTop(23, 11) - nameTop} t={t} />
+          <RowTime right={12} mt={textTop(23, 11) - nameTop} time={row.time} t={t} />
         </div>
         <div
           className="flex items-start"
@@ -985,7 +1066,7 @@ function CallRowFace({
               mt={stateTop - Math.min(state.iconTop, stateTop)}
               style={{ letterSpacing: "0.012em" }}
             >
-              {t(state.label)}
+              {t(label)}
             </Txt>
             {minutes && (
               <Txt

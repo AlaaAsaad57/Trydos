@@ -30,6 +30,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import BottomSheet from "components/global/BottomSheet";
 import { fireEvent, renderWithProviders, screen } from "tests/render";
 import NotificationsContainer from "components/global/NotificationsContainer";
+import { routerSpies } from "tests/mocks/nextNavigation";
 import {
   showChatNotification,
   showErrorNotification,
@@ -44,12 +45,11 @@ vi.mock("components/Chat/components/CallComponent", () => ({
   default: () => null,
 }));
 
-// Opening a chat from a message asks the chat backend to watch the channel.
-// That call is replaced so no socket or request is made.
-const chatSpies = vi.hoisted(() => ({ watchChannel: vi.fn() }));
-vi.mock("store/chat/actions", async (importOriginal) => ({
-  ...(await importOriginal<any>()),
-  watchChannel: chatSpies.watchChannel,
+// Opening a chat from a message uses the chat lists' own open (it marks the
+// chat watched on the chat backend). It is replaced so no request is made.
+const chatSpies = vi.hoisted(() => ({ openChatFromList: vi.fn() }));
+vi.mock("components/Chat/openChatFromList", () => ({
+  openChatFromList: chatSpies.openChatFromList,
 }));
 
 // next/link only follows a click inside a mounted App Router. The stand-in
@@ -167,7 +167,8 @@ describe("what the shopper can do with a message", () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    chatSpies.watchChannel.mockClear();
+    chatSpies.openChatFromList.mockClear();
+    routerSpies.push.mockClear();
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -250,48 +251,33 @@ describe("what the shopper can do with a message", () => {
     ).toBeInTheDocument();
   });
 
-  it("opens the chat once the chat list is on the page", async () => {
+  it("opens the chat with the sender on the new conversation screen (Stage 6)", async () => {
     const channel = { id: "11", name: "Sara" };
     const store = chatStore([channel]);
     await renderWithProviders(<NotificationsContainer />, { store });
     act(() => showChatNotification("Sara", "Hi", "11"));
 
     fireEvent.click(screen.getByRole("button", { name: "Open chat with Sara" }));
-    expect(store.setChatOpen, "the chat widget must open first").toHaveBeenCalledWith(true);
-
-    act(() => {
-      vi.advanceTimersByTime(150);
-    });
-    expect(store.openChat, "the chat must wait until the chat list exists").not.toHaveBeenCalled();
-
-    const list = document.createElement("div");
-    list.className = "chat-lists-class";
-    document.body.appendChild(list);
-    act(() => {
-      vi.advanceTimersByTime(100);
-    });
-    list.remove();
-
-    expect(chatSpies.watchChannel, "the chat backend must be asked to watch the channel").toHaveBeenCalledWith("11");
-    expect(store.openChat, "the chat with the sender must open").toHaveBeenCalledWith(channel);
-    expect(store.setMain, "the chat view must be shown").toHaveBeenCalledWith("chat");
+    expect(chatSpies.openChatFromList, "the chat with the sender was not opened").toHaveBeenCalledWith(channel);
+    expect(routerSpies.push, "the new conversation screen of chat 11 was not shown").toHaveBeenCalledWith(
+      "/gb-en/chat/conversation?id=11",
+    );
+    expect(store.setChatOpen, "the old chat overlay was opened").not.toHaveBeenCalled();
   });
 
-  it("opens the channel the message carries when the store does not know it, and gives up waiting after 5 seconds", async () => {
+  it("opens the channel the message carries when the store does not know it", async () => {
     const channel = { id: "20" };
     const store = chatStore([{ id: "99" }]);
     await renderWithProviders(<NotificationsContainer />, { store });
     act(() => showChatNotification("Omar", "Hey", "20", channel));
 
     fireEvent.keyDown(screen.getByRole("button", { name: "Open chat with Omar" }), { key: "Enter" });
-    expect(store.setChatOpen, "Enter must open the chat like a click").toHaveBeenCalledWith(true);
-
-    act(() => {
-      vi.advanceTimersByTime(50 + 500 * 100);
-    });
-    expect(store.openChat, "after 5 seconds the chat must open anyway").toHaveBeenCalledWith(channel);
-    expect(store.setMain, "after 5 seconds the chat view must be shown anyway").toHaveBeenCalledWith("chat");
-    expect(chatSpies.watchChannel, "with no chat list there is nothing to watch yet").not.toHaveBeenCalled();
+    expect(chatSpies.openChatFromList, "Enter did not open the channel the message carries").toHaveBeenCalledWith(
+      channel,
+    );
+    expect(routerSpies.push, "Enter did not show the conversation of chat 20").toHaveBeenCalledWith(
+      "/gb-en/chat/conversation?id=20",
+    );
   });
 
   it("opens with the space key, ignores other keys, and does nothing when the channel is unknown", async () => {

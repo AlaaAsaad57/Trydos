@@ -3,13 +3,7 @@
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { motion } from "framer-motion";
 import React from "react";
-import { PREVIEW } from "../../DemoApp/demoChat";
-import {
-  archivedChats,
-  seedContacts,
-  type ChatThread,
-  type Contact,
-} from "../../DemoApp/demoChatModel";
+import { archivedChats, type ChatThread, type Contact } from "./chatModel";
 import { C } from "../demo1Layout";
 import { Stroke, Txt } from "../ui";
 import { UnarchiveIcon } from "./chatIcons";
@@ -41,7 +35,7 @@ export default function ArchivedSheet({
 }) {
   const rows = archivedChats(chats);
   const who = (chat: ChatThread) =>
-    contacts.find((c) => c.id === chat.contact) ?? seedContacts()[0];
+    contacts.find((c) => c.id === chat.contact) ?? { id: chat.contact, name: "", phone: "", initials: "" };
   return (
     <PickSheet open={open} title={t("Archived")} testId="demo-archived-sheet" y={300} onClose={onClose}>
       {rows.length === 0 && (
@@ -64,12 +58,12 @@ export default function ArchivedSheet({
               )}
               <Stroke color={C.line} width={0.3} radius={15} />
             </PickBox>
-            <span className="flex flex-col min-w-0 grow" style={{ marginLeft: 12, marginRight: 8 }}>
+            <span className="flex flex-col min-w-0 grow" style={{ marginInlineStart: 12, marginInlineEnd: 8 }}>
               <Txt size={14} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
                 {contact.name}
               </Txt>
               <Txt size={12} color={C.grey} className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
-                {chat.preview ?? PREVIEW}
+                {chat.preview ?? ""}
               </Txt>
             </span>
             <motion.span
@@ -82,7 +76,7 @@ export default function ArchivedSheet({
                 onUnarchive(chat.id);
               }}
               className="flex items-center justify-center shrink-0 cursor-pointer"
-              style={{ marginRight: 8, width: 44, height: 44, borderRadius: 15, background: C.purpleTint }}
+              style={{ marginInlineEnd: 8, width: 44, height: 44, borderRadius: 15, background: C.purpleTint }}
             >
               <UnarchiveIcon color={C.purple} />
             </motion.span>

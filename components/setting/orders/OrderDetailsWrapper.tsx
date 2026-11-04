@@ -1,5 +1,5 @@
 "use client";
-import ChatWidget from "components/Chat/ChatWidget";
+import { chatHref } from "components/DemoApp1/chat/chatPaths";
 import { useEffect, useRef, useState, useTransition } from "react";
 import BackBar from "../BackBar";
 import OrderDetailsSkeleton from "components/skeleton/loaders/OrderDetailsSkeleton";
@@ -66,8 +66,6 @@ function OrderDetailsWrapper({
   const [, language] = local.split("-");
   // State
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatInfo, setChatInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   // Set when the order group can't be resolved — a failed request (null) or an
   // empty `data: []` (e.g. opening the details URL with an invalid/foreign
@@ -247,11 +245,6 @@ function OrderDetailsWrapper({
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleClear = () => {
-    // This replaces the URL with just the path, effectively deleting params
-    router.replace(pathname);
-  };
-
   // Hiding an order — or hiding the last product, which empties the order —
   // removes it from the list, so we leave the details page for the orders list
   // rather than re-fetching a now-hidden/empty order. We deliberately do NOT bump
@@ -314,7 +307,6 @@ function OrderDetailsWrapper({
       ) {
         throw new Error(response.message);
       }
-      DisableScroll();
       if (response.data.channel) {
         let chat = {
           ...response.data.channel,
@@ -334,7 +326,6 @@ function OrderDetailsWrapper({
                 new Date(b.created_at).getTime(),
             ) || [],
         };
-        setChatInfo(chat);
         openChat(chat);
         setIsNavigating(false);
       } else {
@@ -361,13 +352,18 @@ function OrderDetailsWrapper({
           messages: [],
         };
 
-        setChatInfo(chat);
         openChat(chat);
         setIsNavigating(false);
       }
-      setIsChatOpen(true);
       setIsGettingChat(false);
-      handleClear();
+      // The address's chat query goes now, by hand: the push below would
+      // cancel a router.replace on its way, and back from the conversation
+      // would then open the chat again.
+      window.history.replaceState(null, "", pathname);
+      // The order's chat opens in the new conversation screen (D-36c); the
+      // store holds it (openChat above), and the way back is this order.
+      const opened = useAppStore.getState().activeChat?.id;
+      if (opened != null) router.push(chatHref(local, "chat/conversation", String(opened)));
     } catch (error) {
       // Don't handle error if it's an abort error
       if (error.name === "AbortError") {
@@ -541,14 +537,6 @@ const isNotDraft=()=>{
           </>,
           document.body,
         )}
-      {chatInfo && (
-        <ChatWidget
-          isOpen={isChatOpen}
-          onClose={() => {
-            setIsChatOpen(false);
-          }}
-        />
-      )}
       {showOrderOptions && (
         <OrderOptionsMenu
           update={async () => await getOrderDetails()}

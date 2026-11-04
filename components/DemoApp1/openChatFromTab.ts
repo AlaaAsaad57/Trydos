@@ -2,15 +2,16 @@
 
 import { useAppStore } from "store";
 import { LogError, translateFunction } from "utils/functions";
-import { ChatConroller } from "utils/tinyUtils";
 import home from "services/home";
 import { showErrorNotification } from "store/notifications/reducer";
 import { loginHref } from "utils/loginPath";
+import { chatHref } from "./chat/chatPaths";
 
 // The Chat tab of the bottom bar opens the chat with these gates: a chat
 // account opens the chat (after the notification check), a shopper with a
 // phone on record is asked to confirm it, and a guest goes to the login page
-// with this page as the way back.
+// with this page as the way back. Since Stage 6 the chat is the new chat
+// screen at /[lang]/chat, not the old overlay.
 export async function openChatFromTab(
   lang: string,
   push: (href: string) => void,
@@ -35,13 +36,11 @@ export async function openChatFromTab(
         return;
       }
       if (num === 1) {
-        state.setChatOpen(true);
-        ChatConroller(true);
-        state.setMain("main");
+        push(chatHref(lang));
         await home.AllowNotifications();
+        return;
       }
-      state.setChatOpen(true);
-      ChatConroller(true);
+      push(chatHref(lang));
     } else {
       if (userDataCookie && userDataCookie?.phone !== "0") {
         state.setShouldAuthinticated("open chat");

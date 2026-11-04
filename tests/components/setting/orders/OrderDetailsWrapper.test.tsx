@@ -47,14 +47,6 @@ vi.mock("components/skeleton/loaders/OrderDetailsSkeleton", () => ({
   default: () => <div data-testid="order-details-skeleton" />,
 }));
 
-vi.mock("components/Chat/ChatWidget", () => ({
-  default: ({ isOpen, onClose }: any) => (
-    <div data-testid="chat-widget" data-open={String(isOpen)}>
-      <button onClick={onClose}>close chat</button>
-    </div>
-  ),
-}));
-
 vi.mock("components/settings/OrderChatIcon", () => ({
   default: ({ getChatWithShipping, id }: any) => (
     <button data-testid="order-chat-icon" data-id={String(id)} onClick={getChatWithShipping}>
@@ -632,60 +624,6 @@ describe("the expanded view", () => {
 describe("the delivery chat", () => {
   const outForDelivery = () =>
     buildOrder({ order_status: { value: "out_for_delivery", label: "Out" } });
-
-  it("offers the chat for a pack out for delivery and opens an existing channel with the worker renamed", async () => {
-    orderService.getOrderDetails.mockResolvedValue([outForDelivery()]);
-    fetchDataMock.mockResolvedValue({
-      success: true,
-      data: {
-        chat_participant: { id: 77 },
-        channel: {
-          id: "c1",
-          channel_members: [
-            { user_id: 5, user: { name: "Me" } },
-            { user_id: 8, user: { name: "Real Name", phone: "x" } },
-          ],
-          messages: [
-            { id: "late", created_at: "2030-01-02" },
-            { id: "early", created_at: "2030-01-01" },
-          ],
-        },
-      },
-    });
-    const { spies } = await renderPage();
-    await screen.findByTestId("order-items-list");
-
-    await userEvent.setup().click(screen.getByTestId("order-chat-icon"));
-
-    await waitFor(() =>
-      expect(spies.openChat, "the delivery chat was not opened").toHaveBeenCalled(),
-    );
-    const chat = spies.openChat.mock.calls[0][0];
-    expect(
-      chat.channel_members[1].user.name,
-      "the delivery worker is not shown under the neutral name",
-    ).toBe("Delivery Worker");
-    expect(chat.channel_members[0].user.name, "the shopper's own name was replaced").toBe("Me");
-    expect(
-      chat.messages.map((m: any) => m.id),
-      "the chat messages are not sorted oldest first",
-    ).toEqual(["early", "late"]);
-    expect(
-      spies.showNotificationIndicator,
-      "the notification dot for this order was not cleared, or another order's dot was dropped",
-    ).toHaveBeenCalledWith([{ order_id: 999, order_group_id: "other-group" }]);
-    expect(
-      screen.getByTestId("chat-widget").dataset.open,
-      "the chat widget is not open",
-    ).toBe("true");
-    expect(routerSpies.replace, "the chat query was not cleared from the address").toHaveBeenCalled();
-
-    await userEvent.setup().click(screen.getByText("close chat"));
-    expect(
-      screen.getByTestId("chat-widget").dataset.open,
-      "closing the chat did not close it",
-    ).toBe("false");
-  });
 
   it("builds a new chat when the worker has no channel yet, and handles a channel with no messages", async () => {
     orderService.getOrderDetails.mockResolvedValue([outForDelivery()]);

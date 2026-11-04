@@ -2,15 +2,20 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { useNotificationStore } from "@/store/notifications/reducer";
 import { GetImageUrl } from "utils/tinyUtils";
 import Image from "next/image";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { getTwoLetters } from "components/Chat/chatsFunctions";
-import { watchChannel } from "store/chat/actions";
+import { openChatFromList } from "components/Chat/openChatFromList";
+import { chatHref } from "components/DemoApp1/chat/chatPaths";
 import CallComponent from "components/Chat/components/CallComponent";
 const NotificationsContainer = () => {
+  const router = useRouter();
+  const params = useParams();
+  const locale = typeof params?.lang === "string" ? params.lang : "sy-en";
   const { notifications, removeNotification } = useNotificationStore();
   const [dismissingIds, setDismissingIds] = useState<Set<string>>(new Set());
   // Only these two need to be reactive; the chat fields/actions are read
@@ -78,9 +83,6 @@ const NotificationsContainer = () => {
   const handleChatNotificationClick = (notification: any) => {
     const {
       data: chatData,
-      openChat,
-      setChatOpen,
-      setMain,
       setIsNavigating,
       setOrderLoading,
     } = useAppStore.getState();
@@ -100,35 +102,10 @@ const NotificationsContainer = () => {
         ) || notification.chatData.channel;
 
       if (channel) {
-        // Open chat widget first
-        setChatOpen(true);
-
-        // Wait for chat-lists-class to exist, then open the specific chat
-        let attempts = 0;
-        const maxAttempts = 500; // Maximsum 5 seconds (50 * 100ms)
-
-        const checkForChatList = () => {
-          const chatListElement = document.querySelector(".chat-lists-class");
-          if (chatListElement) {
-            watchChannel(channel?.id);
-            // Chat list is ready, now open the specific chat
-            openChat(channel);
-            setMain("chat");
-          } else {
-            attempts++;
-            if (attempts < maxAttempts) {
-              // Keep checking until the element exists
-              setTimeout(checkForChatList, 100);
-            } else {
-              // Fallback: try to open chat anyway after timeout
-              openChat(channel);
-              setMain("chat");
-            }
-          }
-        };
-
-        // Start checking after a small delay to allow the chat widget to start rendering
-        setTimeout(checkForChatList, 50);
+        // Stage 6: open the chat (watched, as a tap on its row) and show it on
+        // the new conversation screen, with its id in the URL.
+        openChatFromList(channel);
+        router.push(chatHref(locale, "chat/conversation", String(channel.id)));
       }
     }
   };

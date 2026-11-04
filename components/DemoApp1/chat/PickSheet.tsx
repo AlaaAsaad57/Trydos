@@ -56,10 +56,10 @@ export function PickRow({
       data-pw={testId}
       whileTap={{ scale: 0.985 }}
       onClick={onClick}
-      className="flex items-center shrink-0 cursor-pointer text-left"
+      className="flex items-center shrink-0 cursor-pointer text-start"
       style={{
         marginTop: first ? 16 : 2,
-        marginLeft: ROW.x,
+        marginInlineStart: ROW.x,
         width: fill(ROW.x),
         height: 60,
         borderRadius: ROW.radius,
@@ -82,7 +82,7 @@ export function PickBox({
   return (
     <span
       className="relative flex items-center justify-center shrink-0 overflow-hidden"
-      style={{ marginLeft: 8, width: 44, height: 44, borderRadius: 15, background }}
+      style={{ marginInlineStart: 8, width: 44, height: 44, borderRadius: 15, background }}
     >
       {children}
     </span>
