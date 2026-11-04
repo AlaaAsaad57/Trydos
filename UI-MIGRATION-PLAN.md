@@ -871,6 +871,42 @@ calls (CH-4), add a person to a call (CH-6).
 (`store/chat/actions.tsx` line 465: a tag is free text, up to 30 characters). So the 5 design labels are sent
 as they are (`orders`, `payment`, `shipping`, `question`, `important`). CH-3 needs no backend work.
 
+### Decided for Stage 6 (2026-11-04)
+
+| # | Decision | Answer |
+|---|---|---|
+| S6-1 | Day pill for older days | "TODAY", "YESTERDAY", else the date ("23 Oct"; "23 Oct 2025" in another year) in the page's language. The designer checks it. |
+| S6-2 | Add contact | The new contact sheet gets the old form's country code picker (flag + code, default +963); the number is saved with `phoneWithDialCode`. Changes the design (A-9): the designer checks it. |
+| S6-3 | Order | The chat paths are on from now (the mount came early); the old ChatModal and old files go at the end (step 11). |
+| S6-4 | Chat URL | One chat's screens carry `?id=<chat id>`: `/[lang]/chat/conversation?id=12`, also `/chat/contact` and `/chat/call`. |
+| S6-5 | Provider place | `ChatDataProvider` sits around the screen frame in lane A's `AppScreens.tsx`, on only for a chat screen. Lane A was told. |
+
+### Where Stage 6 stopped (2026-11-04) — continue here
+
+Done and committed on `ui-migrations-chat` (local, not pushed): steps 1, 2, 3 (3a context, 3b provider and
+actions, 3c sending), and the paths turned on (part of step 11). `ui-migrations` merged in at `7d281d7e` (lane A's
+mount).
+
+- Code: `components/DemoApp1/chat/` — `chatModel.ts`, `chatTheme.ts`, `chatMapper.ts`, `chatContext.tsx`,
+  `chatActions.ts`, `chatSend.ts`, `chatPaths.ts`, `ChatDataProvider.tsx`; pages in `app/(client)/[lang]/chat/`.
+- Found on the way (fixed in the mapper): pin and mute live on my own member row (`pin`, `mute`), not on the
+  chat; the row's unread is counted from the messages (old rule), not `total_unread_message_count`; "blocked"
+  (I blocked them) and "blocked either way" (hides the composer) are two things.
+- The 3 chat search unit tests (`ChatListSearch`, `ChatLists`) are red from `2f42f4e7` on `development`, not
+  from this stage.
+
+Left, in this order:
+4. Paging: list (`GetMyChannelsPage`) and messages (`getPage`); draw only the rows on screen. A chat from
+   `?id=` that is not in the loaded list is found by walking the pages.
+5. Calls: `CallScreen` wired to `store/chat/callActions.ts` and Agora.
+6. D-36b features in the new style, and the product / deleted bubbles (they draw nothing today); "delete for
+   everyone"; upload progress and cancel on the bubble; image preview before send.
+7. Gates: a blocked chat hides the composer (`blockedEitherWay`); the chat page for a shopper with no chat
+   account (the client asks to confirm the phone).
+8. RTL. 9. i18n + case (`useDemoCase()`). 10. Events: check `chat_message_sent` / `chat_product_shared`.
+11. The rest: order chat (D-36c), FCM push links, `DetectScreen` for `/chat`, remove `ChatModal`, `ChatWidget`
+    and the old files with no caller (D-6). 12. Unit tests. 13. End checks.
+
 ---
 
 ## Stage 7 — home and search
