@@ -680,7 +680,10 @@ The 3 items moved from Stage 3: the path table with its on/off switch, drawing a
 
 ### Where Stage 4 stands (2026-11-04) — the profile screens
 
-Built, not committed yet:
+**Stage 4 is done.** The owner accepted it on 2026-11-04. Commit `6115a68c` is on `ui-migrations` (lane A works on
+`ui-migrations` itself, so there is no separate merge).
+
+What was built:
 - `useProfileData` (A-16): one hook for the profile area. Real values from the store (`userProfile`, the address
   list), the orders count (`fetchOrdersCount`), the wallet USD from `demoWallet.ts` (S4-5). It reads an address row
   nested (`region_details`, `contact_info`, as checkout does) or flat.
@@ -706,7 +709,7 @@ Built, not committed yet:
 - Deleted, no caller left (D-6): the old profile card and `VerifyUser`, `PersonalInfoForm`, `ProfileSizeInfo`,
   `UploadProfilePhoto`, `PersonalInfoAddress` and its modal, the old orders card, `WalletLinkCard`,
   `RouterRefresh`, and their tests.
-- Tests: `tests/components/DemoApp1/profileScreens.test.tsx` (21 cases); `tests/app/settings/pages.test.tsx` checks
+- Tests: `tests/components/DemoApp1/profileScreens.test.tsx` (23 cases); `tests/app/settings/pages.test.tsx` checks
   the guest guard of the 10 pages. Its first run found a real bug: the list rows are nested, not flat.
 
 Claude's calls in this part (check them): the old seller card sits as it is under the Settings rows; the address
@@ -729,7 +732,13 @@ from old components; the wallet backend's 503 (A-17).
 **Owner's order (2026-11-04): no new unit tests and no local test runs from now on.** A broken existing test is
 listed here, not fixed now; the full unit suite runs in CI. Tests already written stay.
 
-Left: the full unit suite in CI, the owner's review, then the commit.
+Full unit suite in CI (run 41874241742 on `6115a68c`): 667 of 669 test files pass. The 2 red files hold the 3
+chat search tests that are red on `development` too, since `2f42f4e7` (`ChatListSearch` "filters the list at
+once…", `ChatLists` "shows the existing chat…" and "still offers a new chat…"). Stage 4 adds no new failure.
+Lint, i18n parity and typecheck passed in the same run.
+
+Left for later: the Arabic address line fix (`placeParts.tsx`) is not checked in the browser yet. The Stage 5 XD
+check looks at it.
 
 ### Live code to link
 
