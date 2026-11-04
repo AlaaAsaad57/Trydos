@@ -884,8 +884,17 @@ as they are (`orders`, `payment`, `shipping`, `question`, `important`). CH-3 nee
 ### Where Stage 6 stopped (2026-11-04) — continue here
 
 Done and committed on `ui-migrations-chat` (local, not pushed): steps 1, 2, 3 (3a context, 3b provider and
-actions, 3c sending), and the paths turned on (part of step 11). `ui-migrations` merged in at `7d281d7e` (lane A's
-mount).
+actions, 3c sending), the paths turned on (part of step 11), and step 4 (paging). `ui-migrations` merged in at
+`7d281d7e` (lane A's mount).
+
+- Owner's order (2026-11-04): no new unit tests and no local test runs. Step 12 is skipped for now, and bug
+  fixes skip the "red first" test. The tests already written stay. The full unit suite runs later in CI.
+- Step 4 (`chatPaging.ts`, `PageEdge.tsx`): the list's next page (`getChats` from `nextCursor`) and older
+  messages (`getPage`) load near the edge; the list rows use `content-visibility: auto`. The message rows do
+  not: the conversation opens at its end by `scrollHeight`, and guessed heights would move that end.
+- A reload of one chat's URL waits for that chat (`chatOnScreen`, `ChatWaiting`). A chat outside the loaded
+  pages is found by walking them (`components/Chat/findChat.ts`); a `ch-<user id>` URL opens the chat with
+  that contact again; a chat that is nowhere says "Could not open the chat" and goes back to the list.
 
 - Code: `components/DemoApp1/chat/` — `chatModel.ts`, `chatTheme.ts`, `chatMapper.ts`, `chatContext.tsx`,
   `chatActions.ts`, `chatSend.ts`, `chatPaths.ts`, `ChatDataProvider.tsx`; pages in `app/(client)/[lang]/chat/`.
@@ -896,8 +905,6 @@ mount).
   from this stage.
 
 Left, in this order:
-4. Paging: list (`GetMyChannelsPage`) and messages (`getPage`); draw only the rows on screen. A chat from
-   `?id=` that is not in the loaded list is found by walking the pages.
 5. Calls: `CallScreen` wired to `store/chat/callActions.ts` and Agora.
 6. D-36b features in the new style, and the product / deleted bubbles (they draw nothing today); "delete for
    everyone"; upload progress and cancel on the bubble; image preview before send.
@@ -905,7 +912,9 @@ Left, in this order:
    account (the client asks to confirm the phone).
 8. RTL. 9. i18n + case (`useDemoCase()`). 10. Events: check `chat_message_sent` / `chat_product_shared`.
 11. The rest: order chat (D-36c), FCM push links, `DetectScreen` for `/chat`, remove `ChatModal`, `ChatWidget`
-    and the old files with no caller (D-6). 12. Unit tests. 13. End checks.
+    and the old files with no caller (D-6). Also: `ConversationScreen` still imports `CHAT_COUNTS`,
+    `CHAT_PHOTOS` and `CONTACT` from the mock `DemoApp/demoChat.ts` (A-16), and the calls tab still shows the
+    mock `CALL_ROWS`. 12. Unit tests (skipped, owner's order). 13. End checks.
 
 ---
 
