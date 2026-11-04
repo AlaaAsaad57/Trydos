@@ -858,7 +858,9 @@ card `components/setting/WalletLinkCard.tsx` (its sheet says "Under Development"
        shopper's real name, id and phone; the other sheets keep their mock values (A-17). On `/demo` these 3 fields
        are empty now, as on the Stage 4 screens. `wallet.rtl.test.tsx` gives the sheet a stub shopper.
     No test was seen red first for these 2 fixes (owner's order of 2026-11-04: no new tests, no local test runs).
-  - Left: the CI unit suite on the final commit and the owner's review. E2E waits for Stage 8 (A-34).
+  - Full unit suite in CI on the final code (run 41926657473 on `b123e521`): 659 of 661 test files pass. The 2 red
+    files hold the same 3 known chat search tests. Lint, i18n parity and typecheck passed in the same run.
+  - Left: the owner's review. E2E waits for Stage 8 (A-34).
 
 ### Data: the mock stays (A-17)
 No wallet backend works yet. So Stage 5 keeps `components/DemoApp/demoWallet.ts` and the design exactly as on
