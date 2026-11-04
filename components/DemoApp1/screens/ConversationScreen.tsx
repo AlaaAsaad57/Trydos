@@ -18,6 +18,7 @@ import {
   type Holdable,
 } from "../chat/chatModel";
 import ChatWaiting from "../chat/ChatWaiting";
+import PageEdge from "../chat/PageEdge";
 import { XD_ICON_SIZE } from "../../DemoApp/xdIcons";
 import CategorySheet from "../chat/CategorySheet";
 import ReminderSheet from "../chat/ReminderSheet";
@@ -160,6 +161,7 @@ function Conversation() {
     notice,
     search,
     setSearch,
+    paging,
   } = useChat();
   // ConversationScreen draws this only when there is a chat.
   const chat = chatOnScreen(state)!;
@@ -223,6 +225,26 @@ function Conversation() {
   // came in when the end of the chat was already in view.
   const messages = chat?.messages ?? [];
   const lastId = messages[messages.length - 1]?.id;
+
+  // Older messages (step 4) come in above the ones on the page. They do not
+  // pop in as new ones do, and the messages on the screen stay where they
+  // are: the scroll moves down by the height the new ones take.
+  const firstKnown = messages.findIndex((m) => atStart.current?.has(m.id));
+  const older = new Set(firstKnown > 0 ? messages.slice(0, firstKnown).map((m) => m.id) : []);
+  const settled = (id: string) => !!atStart.current?.has(id) || older.has(id);
+  const firstId = messages[0]?.id;
+  const above = useRef({ firstId, lastId, height: 0 });
+  useLayoutEffect(() => {
+    const el = body.current;
+    if (!el) return;
+    // This moves the scroll itself, so the browser must not move it too
+    // (Chrome's scroll anchoring; Safari has none).
+    el.style.overflowAnchor = "none";
+    const was = above.current;
+    if (was.firstId && firstId !== was.firstId && lastId === was.lastId)
+      el.scrollTop += el.scrollHeight - was.height;
+    above.current = { firstId, lastId, height: el.scrollHeight };
+  });
   const typingNow = !!chat?.typingNow;
   useEffect(() => {
     const el = body.current;
@@ -675,7 +697,7 @@ function Conversation() {
     faded: searching && query.trim() !== "" && !matches.includes(m.id),
     marked: current === m.id,
     flash: flash?.id === m.id ? flash.n : 0,
-    fresh: !atStart.current?.has(m.id),
+    fresh: !settled(m.id),
     onReply: () => act("Reply", m),
     onHold: () => open(m),
     menu: menuOf(m),
@@ -720,7 +742,7 @@ function Conversation() {
           layoutDependency={messages}
           className="flex w-full shrink-0 justify-center"
           style={{ marginTop: gap }}
-          initial={atStart.current?.has(m.id) ? false : { opacity: 0, scale: 0.8 }}
+          initial={settled(m.id) ? false : { opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
         >
           <DayPill label={m.label ? t(m.label) : m.date} />
@@ -830,7 +852,7 @@ function Conversation() {
           layoutDependency={messages}
           className="w-full shrink-0"
           style={{ marginTop: gap }}
-          initial={atStart.current?.has(m.id) ? false : { opacity: 0, y: 12 }}
+          initial={settled(m.id) ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, transition: { duration: 0.15 } }}
         >
@@ -974,6 +996,15 @@ function Conversation() {
     >
       <div className="relative flex flex-col w-full">
         <ReactionWarmup />
+        {/* Older messages, near the top of the chat (the real chat only). */}
+        {paging?.moreOlder(chat.id) && (
+          <PageEdge
+            onReach={() => paging.loadOlder(chat.id)}
+            count={messages.length}
+            root={body}
+            testId="demo-chat-older"
+          />
+        )}
         <div
           className="flex items-start w-full shrink-0"
           style={{ marginTop: 4 }}

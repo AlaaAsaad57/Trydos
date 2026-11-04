@@ -27,6 +27,7 @@ import {
 } from "../chat/chatModel";
 import ArchivedSheet from "../chat/ArchivedSheet";
 import { useChat } from "../chat/chatContext";
+import PageEdge from "../chat/PageEdge";
 import { useDemoNav } from "../Demo1Shell";
 import {
   C,
@@ -84,7 +85,7 @@ import { useHorizontalSwipe } from "../chat/useHorizontalSwipe";
  */
 export default function ChatListScreen() {
   const { t, navigate } = useDemoNav();
-  const { state, dispatch, newChat, addContact, notice } = useChat();
+  const { state, dispatch, newChat, addContact, notice, paging } = useChat();
   const [tab, setTab] = useState<"chats" | "calls">("chats");
   const [query, setQuery] = useState("");
   /** The "New chat" sheet is up. */
@@ -245,6 +246,7 @@ export default function ChatListScreen() {
   return (
     <ScreenPage testId="demo-chat" header={header} tabBar>
       {tab === "chats" ? (
+        <>
         <AnimatePresence initial={false}>
           {/* The archived chats' row, over the list while there are any: the
               swipe cell's archive mark where the photo column is, "Archived"
@@ -279,6 +281,9 @@ export default function ChatListScreen() {
               key={chat.id}
               layout
               className="w-full shrink-0 overflow-hidden"
+              // The browser draws only the rows near the screen; a row off it
+              // keeps its last height (step 4).
+              style={{ contentVisibility: "auto", containIntrinsicSize: "auto 92px" }}
               exit={{ height: 0, opacity: 0, transition: { duration: 0.22 } }}
               transition={TRAVEL}
             >
@@ -307,6 +312,11 @@ export default function ChatListScreen() {
             </motion.div>
           ))}
         </AnimatePresence>
+        {/* The next page of chats, near the end of the list (the real chat only). */}
+        {paging?.moreChats && !needle && (
+          <PageEdge onReach={paging.loadMoreChats} count={rows.length} testId="demo-chat-more" />
+        )}
+        </>
       ) : (
         CALL_ROWS.map((row) => (
           <CallRowFace

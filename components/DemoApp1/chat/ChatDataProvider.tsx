@@ -10,7 +10,7 @@ import { translateFunction } from "utils/functions";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { CHAT_EVENTS, trackPosthog } from "utils/posthogEvents";
-import { ChatContext, NOTICE_MS, type ChatApi } from "./chatContext";
+import { ChatContext, NOTICE_MS, type ChatApi, type ChatPaging } from "./chatContext";
 import { findChannel, runChatAction } from "./chatActions";
 import { CHAT_ID_PARAM, chatIdFrom, isChatScreen, isOneChatScreen } from "./chatPaths";
 import {
@@ -25,6 +25,7 @@ import {
   sendVoiceNote,
 } from "./chatSend";
 import { toChatState, type MapWords } from "./chatMapper";
+import { loadMoreChats, loadOlderMessages, type PageResult } from "./chatPaging";
 import type { ChatAction } from "./chatModel";
 import { NavCtx } from "../screenNav";
 
@@ -96,6 +97,11 @@ export function ChatDataProvider({
   /** The chat whose pages are being walked, so one walk runs at a time. */
   const walking = useRef<string | null>(null);
   const nav = useContext(NavCtx);
+  /** The chat list reached its end, and the chats whose messages did. */
+  const [chatsDone, setChatsDone] = useState(false);
+  const [olderDone, setOlderDone] = useState<readonly string[]>([]);
+  /** A page on its way, so a second one is not asked for meanwhile. */
+  const pageLoading = useRef({ chats: false, older: null as string | null });
 
   const myId = userChat?.id;
   useEffect(() => {
@@ -247,6 +253,36 @@ export function ChatDataProvider({
     if (oneChat) writeId(id);
   };
 
+  // A page at a time (step 4). The list asks for its next page near its end,
+  // the conversation for older messages near its top.
+  const paging: ChatPaging = {
+    // The first page holds 10 chats; fewer means there is no other page.
+    moreChats: enabled && !chatsDone && (data?.length ?? 0) >= 10,
+    loadMoreChats: () => {
+      if (pageLoading.current.chats || chatsDone) return;
+      pageLoading.current.chats = true;
+      void loadMoreChats()
+        .then((result: PageResult) => {
+          if (result === "done") setChatsDone(true);
+        })
+        .finally(() => {
+          pageLoading.current.chats = false;
+        });
+    },
+    moreOlder: (chat) => enabled && !chat.startsWith("ch-") && !olderDone.includes(chat),
+    loadOlder: (chat) => {
+      if (pageLoading.current.older || olderDone.includes(chat)) return;
+      pageLoading.current.older = chat;
+      void loadOlderMessages(chat)
+        .then((result: PageResult) => {
+          if (result === "done") setOlderDone((done) => [...done, chat]);
+        })
+        .finally(() => {
+          pageLoading.current.older = null;
+        });
+    },
+  };
+
   const value: ChatApi = {
     state,
     dispatch,
@@ -270,6 +306,7 @@ export function ChatDataProvider({
     notice,
     search,
     setSearch,
+    paging,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

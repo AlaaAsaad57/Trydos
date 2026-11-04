@@ -40,6 +40,22 @@ export type ChatApi = {
   /** The conversation opens with its message search up (the contact screen's Search). */
   search: boolean;
   setSearch: (on: boolean) => void;
+  /**
+   * Loading the chats and the messages a page at a time (the real chat
+   * only; the /demo mock holds all of its chats and messages).
+   */
+  paging?: ChatPaging;
+};
+
+export type ChatPaging = {
+  /** The chat backend may hold more chats than the list has loaded. */
+  moreChats: boolean;
+  /** Loads the list's next page of chats. */
+  loadMoreChats: () => void;
+  /** This chat may hold older messages than the ones loaded. */
+  moreOlder: (chat: string) => boolean;
+  /** Loads the page of messages before the oldest loaded one. */
+  loadOlder: (chat: string) => void;
 };
 
 /** How long a notice stays, in ms. */

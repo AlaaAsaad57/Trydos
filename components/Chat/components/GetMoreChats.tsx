@@ -13,7 +13,7 @@ import { getUserChat, LogError } from "utils/functions";
  * the cursor drags it past every chat still waiting to load — measured on the
  * test account, that lost a chat in the middle of the list.
  */
-const isPinned = (chat, userId) =>
+export const isPinned = (chat, userId) =>
   parseInt(
     chat?.channel_members?.find((m) => parseInt(m?.user_id) === userId)?.pin,
   ) === 1;
