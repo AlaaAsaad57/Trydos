@@ -44,10 +44,10 @@ const COUNTRY_LIST_MS = 22_000;
 import {
   home,
   listing,
-  nav,
   product,
   region,
   search,
+  shell,
   staticPage,
 } from "../selectors";
 
@@ -266,7 +266,7 @@ export const gotoHome = async (page: Page): Promise<void> => {
   await waitForRenewalSettled(page);
   await openPage(page, "/");
   await chooseRegionIfAsked(page);
-  await expect(nav.logo(page)).toBeVisible();
+  await expect(shell.tab(page, "home")).toBeVisible();
 };
 
 /** The country the suite shops in unless a case asks for another one.
@@ -390,7 +390,7 @@ export const gotoAbout = async (
   await waitForRenewalSettled(page);
   await page.goto("/about", { waitUntil: "domcontentloaded" });
   await chooseRegionIfAsked(page);
-  await expect(nav.logo(page)).toBeVisible();
+  await expect(shell.tab(page, "home")).toBeVisible();
 };
 
 /** Type a term into the storefront search and wait for results.

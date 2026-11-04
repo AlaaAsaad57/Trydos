@@ -1377,26 +1377,24 @@ describe("expireLuck & errRemoveFromCart in cart store", () => {
   });
 
   describe("enableCart", () => {
-    it("opening the cart scales the page down and closing it slides the cart away", () => {
-      document.body.innerHTML =
-        '<div class="site-container"></div><div class="cart-provider"></div>';
+    // The cart is a page now (/[lang]/cart, Stage 3 S3-7), not a drawer over
+    // the page. So the flag is all that changes: the page is not shrunk, its
+    // scroll is not locked, and it is not scrolled to the top.
+    it("opening and closing the cart only sets the flag and leaves the page alone", () => {
+      document.body.innerHTML = '<div class="site-container"></div>';
+      document.documentElement.style.overflow = "";
+      document.documentElement.scrollTop = 120;
       (useAppStore.getState() as any).enableCart(true);
       expect((useAppStore.getState() as any).cart_enable, "the cart should be open").toBe(true);
       expect(
         document.querySelector(".site-container")!.classList.contains("scale-95"),
-        "opening should scale the page down",
-      ).toBe(true);
+        "opening the cart shrank the page (scale-95)",
+      ).toBe(false);
+      expect(document.documentElement.style.overflow, "opening the cart locked the page scroll").toBe("");
+      expect(document.documentElement.scrollTop, "opening the cart scrolled the page to the top").toBe(120);
 
       (useAppStore.getState() as any).enableCart(false);
       expect((useAppStore.getState() as any).cart_enable, "the cart should be closed").toBe(false);
-      expect(
-        document.querySelector(".site-container")!.classList.contains("scale-95"),
-        "closing should restore the page size",
-      ).toBe(false);
-      expect(
-        document.querySelector(".cart-provider")!.classList.contains("slideDown-cart"),
-        "closing should slide the cart down",
-      ).toBe(true);
       document.body.innerHTML = "";
     });
   });

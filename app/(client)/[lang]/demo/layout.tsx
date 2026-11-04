@@ -1,7 +1,6 @@
 import React, { Suspense } from "react";
 import { lang as langParam } from "next/root-params";
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
-import { HIDE_SITE_CHROME } from "components/DemoApp1/demo1Layout";
 import {
   DEMO_KEYS,
   KEEP_CASE,
@@ -52,7 +51,6 @@ export default async function Demo1Layout({
 
   return (
     <>
-      <style>{HIDE_SITE_CHROME}</style>
       <Suspense
         fallback={
           <div data-pw="demo1-app" className="w-full min-h-dvh bg-white" />

@@ -561,7 +561,7 @@ function OrderItemOptions({
           close();
         }}
       />
-      <div className="flex-col max-h-[calc(100vh-100px)] items-center overflow-auto w-full pt-[14px] px-[24px] z-999999999 pb-[27px] absolute bottom-0  left-0 rounded-t-[30px] bg-white">
+      <div className="flex-col max-h-[calc(100vh-100px)] items-center overflow-auto w-full pt-[14px] px-[24px] z-999999999 pb-[27px] absolute bottom-[var(--app-bar-room,0px)]  left-0 rounded-t-[30px] bg-white">
         {renderScreen()}
       </div>
 

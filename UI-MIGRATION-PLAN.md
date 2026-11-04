@@ -1,14 +1,12 @@
 # UI migration plan — demo UI becomes the real app
 
-**Status:** Stages 0 (decisions), 1 (foundation) and 2 (login) done on 2026-10-28. Stage 3 (shell) is built in
-parallel on `ui-migrations-shell` (A-18). Next here: Stage 4, after Stage 3 is merged.
-**Paused on 2026-10-29:** Stage 3 Task 9 is pushed on `ui-migrations-shell` (`b2d23e37`), not merged yet. The
-resume list is in that branch's plan, Stage 3, "Where Stage 3 stopped (2026-10-29) — continue here".
-**Added on 2026-11-04:** the new store page and product page join lane A as Stages 7b and 7c (A-31..A-33).
+**Status:** Stages 0 (decisions), 1 (foundation) and 2 (login) done on 2026-10-28. Stage 3 (shell) done and
+merged into `ui-migrations` on 2026-11-04 (owner's OK). Next: lane A Stage 4 here, lane B Stage 6, lane C Stage 7.
+**Added on 2026-11-04:** the new store page and product page join the plan as Stages 7b and 7c (A-31..A-33).
 D-45 (the "add to cart" bar) waits for the designer. D-46 (banner with no boutique): no banner for now.
 **Three lanes from 2026-11-04 (A-35):** A = 4 → 5 here, B = 6 in `../trydos-chat`, C = 7 → 7b → 7c in
 `../trydos-shop`. No e2e in any stage (A-34).
-**Still open:** D-24 ("Web" / "lock" switches: designer / product), D-30 (place levels: backend). Neither
+**Still open:** D-24 ("Web" / "lock" switches: answer delayed by the owner), D-30 (place levels: backend). Neither
 blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no wallet backend works yet.
 **Written:** 2026-10-28, from a read-only scan of the code.
 **Branch:** `ui-migrations`, cut from `development` on 2026-10-28.
@@ -466,33 +464,174 @@ Missing in all three files: `. Get Started .`, `Get Started`, `Welcome !`, 3 sli
 
 ## Stage 3 — shell, navigation, routes
 
-**New:** `components/DemoApp1/Demo1Shell.tsx`, `Demo1ScreenView.tsx`, `Demo1BottomNav.tsx`, `demo1Layout.ts`,
-`ui.tsx`, `components/DemoApp/demoRoutes.ts`, `topTint.ts`, `app/(client)/[lang]/demo/layout.tsx`.
+**Built in:** the worktree `../trydos-shell`, branch `ui-migrations-shell` (A-18).
 
-Work:
-1. Routes (after D-17): `screenFromUrl` (`demoRoutes.ts` line 61) looks for the `demo` segment, and
-   `hrefFor` (line 77) always builds `/${lang}/demo...`. Both change.
-2. Route clash: new `settings/profile`, `settings/profile/address`, `settings/wallet` clash with 14 old pages
-   under `app/(client)/[lang]/settings/`. `settings/orders` stays old UI.
-3. Cart tab (after D-18): the demo writes `?cart` with an empty value. The old drawer opens only on
-   `?cart=true` (`CartProvider.tsx` line 163, push links `/?cart=true` in `NotificationHandler.ts` line 509).
-4. Links to old pages and back (after D-20). The `@modal/(.)products/[productId]` and `(.)filters` intercepted
-   routes open over `.main-content`. The bottom nav is portaled to `<body>` (z-index `2147482000`) and the tint
-   strip uses `2147483647`. Both may stay on top of old pages.
-5. **Must be measured, not assumed:** Next 16 keeps a left route hidden in the DOM. The CSS rule
-   `body:has([data-pw="demo1-app"])` (`demo1Layout.ts` line 156) may then still hide the old navbar on old pages.
-6. Shell state (`trail`, `DemoDataProvider`, `DemoChatProvider`) is lost if the shell remounts.
+**No deploy before the end (A-25, decided on 2026-10-28).** Nothing is deployed until all stages are done.
+So a half-built state between stages is OK on `ui-migrations` and `ui-migrations-shell`. The A-25 row is
+added on `ui-migrations` by the Stage 2 session and arrives here when Stage 2 is merged.
+
+**New:** `components/DemoApp1/Demo1Shell.tsx`, `Demo1ScreenView.tsx`, `Demo1BottomNav.tsx`, `demo1Layout.ts`,
+`ui.tsx`, `components/DemoApp/demoRoutes.ts`, `components/DemoApp/topTint.ts`, `app/(client)/[lang]/demo/layout.tsx`.
+
+### Decided for Stage 3 (2026-10-28)
+
+| # | Decision | Answer |
+|---|---|---|
+| S3-1 | Where the shell mounts | Around every page. The shell moves into the `[lang]` layout. On a URL that is a new screen it draws that screen; on any other URL it shows the old page, with the new bottom nav. The shell state stays alive across all pages (item 6). |
+| S3-2 | Which screens move in Stage 3 | Each stage moves its own. Stage 3 builds the routing for every path, but a new screen is turned on only by its own stage: profile in 4, wallet in 5, chat in 6, home and search in 7. Stage 3 turns on only the new `/[lang]/cart` page (D-18). Until then a tab opens the old page. Old pages and their e2e cases keep working between stages. |
+| S3-3 | URL style | Real paths: `/[lang]/search`, `/[lang]/cart`, `/[lang]/chat` (and `/[lang]/chat/conversation`, `/contact`, `/call`). No `?search` / `?cart` / `?chat` overlays. `?cart=true` links (`NotificationHandler.ts` line 509) go to `/[lang]/cart`. |
+| S3-4 | Old top nav | It stays until Stage 2 is merged into `ui-migrations`. The last step of Stage 3 takes the Stage 2 changes, then removes the old top nav (A-18 rules 2 and 5). |
+| S3-5 | Search and chat tabs before Stages 6 and 7 | They open the old features. Chat tab: the old `ChatModal` overlay (store flag `chatVar`, mounted by `NavbarClient`, not by the top nav); a guest goes to the login first, as today (after Stage 2: `/[lang]/login?next=<path>`, A-20). Search tab: the home page `/[lang]`, with the old search (`SearchIcon`, `CategoryHomeView.tsx` line 96) opened. |
+| S3-6 | Pages with their own bottom bar | The new bottom nav shows on them too (D-20, no exception). The page's own bar moves up and sits on top of the nav. Known: the product page's add-to-cart bar (`AddToCartComponent.tsx` line 843). The build lists every other one it finds. |
+| S3-7 | Cart | Everything on `/[lang]/cart`. Every cart opener goes to the page: the cart tab, `?cart=true`, `ProductCartHeader.tsx` line 21, `NotificationItem.tsx` line 123. The old cart and its checkout steps (cart → `OrdersPage` → payment iframe or RDB modal) run on that page. The cart drawer goes. The checkout events (D-10) fire from the same components as today. |
+| S3-8 | Login page | No bottom nav on `/[lang]/login` (Stage 2): the shell steps aside there, as on `/loginDemo`. The session-expired and phone re-verify overlays (A-19) open above the nav, on any page. |
+| S3-9 | What the top-nav removal removes | The whole `.home-navbar` strip, on every page: the logo link and `AuthNavContainer` (cart icon, chat icon, Verify button, avatar side menu). Until Stage 4 moves them into the new Settings screen (D-19, D-22), logout, notifications and the seller links are reached only through the old `/settings` page. That gap is OK on the branch (A-25). The chat icon's gates (`openChatAction`: notification permission, phone verify) move to the chat tab. |
+| S3-10 | Lit tab | By area: `/[lang]` → Home; `/[lang]/cart` → Cart; `/[lang]/settings/*` → Profile; old chat overlay open → Chat; the old search open → Search. Any other old page (product, listing, filters, about, …) → no tab lit. The designer must check it, because the XD file has no such state. |
+| S3-11 | Logout until Stage 4 | **Decided on 2026-10-29.** S3-9 was wrong about logout: the old `/settings` page has no logout. The only logout was in the account menu (`components/Home/Menu.tsx`), opened by the avatar in the old top nav. Task 9 removes both. So the new profile screen's "logout" row now does the real logout (`components/DemoApp1/logoutFromProfile.ts`), but that screen is turned on only in Stage 4. **Known effect on the branch until Stage 4:** no shopper can log out, and the Notifications and Compare entries of the old menu are gone too. AUTH-03 and the 2 other cases that sign out (`signOutAndSettle` in `profile.live`, `shopper.live`) fail on purpose with a message that names this gap. |
+
+### What each tab opens after Stage 3
+
+| Tab | Opens |
+|---|---|
+| Home | the old home page `/[lang]` |
+| Search | `/[lang]` with the old search open (S3-5). No URL of its own until Stage 7. |
+| Cart | the new page `/[lang]/cart`, with the old cart and its checkout (D-18, S3-7) |
+| Chat | the old `ChatModal` overlay (S3-5). No URL of its own until Stage 6. |
+| Profile | the old `/settings` page |
+
+### Rules for the build (Claude's calls, from A-4 and D-42 — check them)
+
+- **Old pages behave as today.** The shell adds only the bottom nav and room under the page, so the nav does
+  not cover the page's last row. Old pages keep the browser's own scroll restore (no
+  `history.scrollRestoration = "manual"`), keep `overflow-x: clip` on `<html>`, and do not slide. The slide runs
+  only between two new screens. A move between a new screen and an old page does not slide.
+- **Old pages still render on the server.** The shell must not put the old page inside a Suspense boundary
+  that renders only in the browser, or the home page loses its SEO content (D-42). Real paths (S3-3) mean the
+  shell needs no `useSearchParams`, which is what forces such a boundary.
+- **The drawn keyboard works only inside new screens.** Today `DemoKeyboard` takes every number field in
+  `document.body` on a touch device (`DemoKeyboard.tsx` lines 341-370). Around every page it would take
+  checkout, the address forms and the seller dashboard too. So it is limited to fields inside a new screen,
+  and old pages keep the phone's own keyboard (A-4).
+- **Search and chat have no URL before their stage.** Before Stages 7 and 6 the tabs open the old features
+  with no URL of their own, as the old icons do today; a reload closes them, as today. `/[lang]/search` and
+  `/[lang]/chat` are created by Stages 7 and 6, so the tabs never link to a path that does not exist yet.
+  `SearchIcon` keeps its open state in local `useState`, so the search tab needs a new way to open it.
+- **The profile tab's orange ring means "phone not verified"** (`is_phone_verified`), because the
+  "Verify now" card starts the phone verification (D-22). A guest gets no ring (D-31).
+- **One shell only.** `/demo` and `/loginDemo` stay as the preview until the last screen moves in (D-8 is done
+  then). On those paths the new shell steps aside, so the preview never gets a second shell and a second bar.
+- **The bar uses real data (A-16, D-21).** One hook (`useShellData`) gives the bar the real cart count, the
+  real unread chat count, the real photo and the real verified state. The fixed counts (3 / 11) and the mock
+  profile go from the bar.
+- **The site navbar rule changes.** `HIDE_SITE_CHROME` (`demo1Layout.ts` line 156) hides `.home-navbar`
+  whenever `[data-pw="demo1-app"]` is on the page. With the shell around every page, that would hide the old
+  top nav everywhere, before S3-4 allows it. Until S3-4 the rule applies only while a new screen is on show.
+- **Analytics (D-10).** `DetectScreen()` (`utils/tinyUtils.tsx` line 442) maps `/[lang]/cart` to
+  `CART_SCREEN`, as `?cart=true` does today. Each later stage adds the mappings for its own screens. Old
+  event names only.
+
+### Work
+
+1. Routes: `screenFromUrl` (`demoRoutes.ts` line 61) and `hrefFor` (line 77) drop the `demo` segment and use
+   the real paths (S3-3). A table says which screens are turned on (S3-2). While a screen is off, its path
+   shows the old page. A path with no old page (`/search`, `/chat`) is not created until its stage.
+2. Route clash: the 14 old pages under `app/(client)/[lang]/settings/` stay. A later stage replaces an old page
+   when it turns its screen on. `settings/orders` stays old UI.
+3. The shell moves into `app/(client)/[lang]/layout.tsx` (S3-1), following the build rules above.
+4. Cart page `/[lang]/cart` (D-18, S3-7) with the old cart and its checkout. Every cart opener goes there,
+   and the drawer goes. Back and `popstate` on the page (`SearchParamUpdater`, `CartProvider`) work as a page.
+5. Bottom nav on every page (D-20, S3-6), with the room under each page and the old bottom bars moved up.
+   The `@modal/(.)products/[productId]` and `(.)filters` intercepted routes open over `.main-content`. The
+   bottom nav is portaled to `<body>` (z-index `2147482000`) and the tint strip uses `2147483647`. Check that
+   a modal route, the cart drawer, the login overlay and the chat overlay are not covered by the nav.
+6. **Measure, do not assume:** Next 16 keeps a left route hidden in the DOM. Check that no rule keyed on a new
+   screen still acts on an old page after the shopper leaves the screen.
 7. Bundle: `Demo1ScreenView.tsx` imports all 17 screens at once. Use `next/dynamic` with shape-matched
    skeletons (`components/Server/Skeleton.tsx`), never `null`.
-8. The first HTML is a white Suspense fallback (`demo/layout.tsx` lines 47-51). Measure LCP against the live home.
-9. `DetectScreen()` (`utils/tinyUtils.tsx` line 442) has no mapping for the new screens, so every event says
-   `HOME_SCREEN`. Add the mappings.
-10. `/demo`, `/loginDemo` (after D-8). Note: `app/loginDemo/page.tsx` redirects to `/gb-en/loginDemo`, which
-    opens the region modal.
+8. Measure LCP of the home page against the live home, before and after the shell moves in.
+9. `DetectScreen()` mapping for `/[lang]/cart`. The lit tab by area (S3-10). The shell steps aside on
+   `/[lang]/login` (S3-8). The drawn keyboard limited to new screens.
+10. Last step (S3-4, S3-9): merge the Stage 2 changes in, then remove the old top nav strip and its now-unused
+    files (D-6: only when `pnpm knip` and grep show nothing else uses them). The chat tab takes over
+    `openChatAction`'s gates.
 
 Tests: `tests/components/DemoApp1/Demo1Shell.test.tsx` (it hardcodes `/demo?search`),
-`tests/components/DemoApp/demoRoutes.test.ts`, `tests/app/demo/layout.test.tsx`. New e2e cases: tab moves,
-back, deep link + reload, old page from the shell and back, cart tab.
+`tests/components/DemoApp/demoRoutes.test.ts`, `tests/app/demo/layout.test.tsx`. New unit cases for the
+turned-on table and the real paths. New e2e cases: tab moves, back, deep link + reload, old page from the
+shell and back, cart tab, `?cart=true` link, checkout on `/[lang]/cart` (BUY-*), the product page add-to-cart
+bar above the nav, no nav on `/[lang]/login`, the lit tab per area.
+
+### Home LCP (Task 8)
+
+Method: production build (`pnpm build`, `pnpm start`) of both sides, run at the same time. Before is commit
+`fd6b10f4` (port 3200). After is `ui-migrations-shell` at `b9c66a08` (port 3201). Chromium, 440 x 802, a fresh
+context per run, `/sy-en`, last `largest-contentful-paint` entry read after `load` plus 3 s. One warm-up per
+server, then 5 runs each, alternating before and after. Date: 2026-10-28.
+
+| Side | Median | Max | The 5 values (ms, in run order) |
+|---|---|---|---|
+| Before | 4420 ms | 5712 ms | 5712, 484, 4420, 4780, 4248 |
+| After | 4488 ms | 10764 ms | 4780, 10764, 4488, 4348, 1632 |
+
+- The median is 68 ms slower after the shell. That is under the 100 ms limit.
+- The LCP element is the same on both sides in all 10 runs: the `img.product-media-redeem-show` product image
+  (200 x 290) from the media host. The shell did not change the LCP element.
+- The spread is large on both sides (484 to 10764 ms). The LCP element is an image from the staging media host,
+  so the likely cause is that host, but this run does not prove it.
+- With this spread, 5 runs per side cannot show a 100 ms change either way. So the 100 ms check is not proved
+  yet: it needs more runs, or a run with the media host's answers held still.
+
+### The old top nav goes (Task 9, S3-4, S3-9, S3-11)
+
+- Stage 2 merged in first (`30a3e11c`).
+- The `.home-navbar` strip is gone from `app/(client)/[lang]/layout.tsx`: the logo link and `AuthNavContainer`.
+  `--listing-navbar-h` is now `0px`, and the listing's pin stack is 50 px (only its own top bar).
+- Deleted, each with no caller left (D-6, checked by grep): `AuthNavContainer`, `AuthNavSkeleton`,
+  `AuthNavSection`, `UserNavTopSection`, `UserAvatar`, `Menu`, `ChatNotification` (all in `components/Home/`),
+  `hooks/useUserData.tsx`, and their tests. `HIDE_SITE_CHROME` is gone, because there is no navbar to hide.
+- **Kept with no caller:** the notifications panel (`components/Notifications/*`, `NotificationSkeleton`). Its only
+  caller was the old menu. Stage 4 puts notifications behind the Settings screen (D-19) and reuses it.
+- The Chat tab sends a guest to `/[lang]/login?next=<this page>` (A-20), not to the old login flag.
+- The new profile's "logout" row does the real logout (S3-11). A guest's tap does nothing.
+- e2e: `gotoHome` and `gotoAbout` wait for the Home tab instead of `NavLogo`. The cart and chat helpers press
+  the bar's tabs, and read the bar's counts. SHELL-07 checks the login page and its way back. SHELL-08: the login
+  page draws no bar.
+- Tests seen red on the old code, green after: "the layout draws no .home-navbar" (`tests/app/layout.test.tsx`),
+  "Chat as a guest (phone "0") opens the sign-in" (`AppShell.test.tsx`), and the signed-in logout case in
+  `tests/components/DemoApp1/profileLogout.test.tsx`. The 2 guest cases in that file are guards (green before
+  and after).
+- `pnpm knip` cannot run: `knip` is in `package.json` scripts but not installed (`'knip' is not recognized`).
+  The unused files were found by grep instead.
+
+### Where Stage 3 stopped (2026-10-29) — continue here
+
+Task 9 is committed and pushed on `ui-migrations-shell`. Before the commit: `pnpm lint:i18n-parity` passed, `pnpm lint`
+had 0 errors (no warning in a Task 9 file), `next typegen` + `tsc` passed. **The full unit suite did not finish**
+(stopped by the owner to switch work).
+
+**Done on 2026-11-04:** step 0 in CI (run 41824786791: only the 3 chat search tests fail, red on `development` too,
+from its commit `2f42f4e7`); step 3 passed (bar only, against `/demo`: every tab box the same in `en` and `ar`;
+only the counts differ, real 0 against the mock 3 / 11). Steps 1 and 2 ran once in CI (E2E run 41824914664:
+SHELL-01..08 green) before the owner's rule A-34 (no e2e in any stage; Stage 8 does it); the red cases and their
+causes are listed in Stage 8 on `ui-migrations`. Found by that run and fixed: the new bar covered the order menu
+sheets (`OrdersOptionsMenu`, `OrderOptionsMenu`, `OrderItemOptions`), so they now add `--app-bar-room`
+(test: `tests/components/shell/bottomRoom.test.tsx`, 4 cases, seen red before the fix). Left: step 5.
+
+Left, in this order (steps 1, 2 and 4 are dropped: A-34 and the owner's time limit):
+0. Run `pnpm test:run` and fix only faults from Task 9 (remember: one random flaky failure is common; prove it alone).
+1. Shell e2e spec on this machine: `pnpm e2e:build`, then `pnpm test:e2e:scripted -- --grep SHELL` (SHELL-01..08).
+   SHELL-07 and SHELL-08 are new or changed in Task 9 and have not run yet.
+2. The full browser suite once: `gh workflow run E2E --ref ui-migrations-shell` (one run at a time). Expected red
+   on purpose: AUTH-01 (wallet `502`), and AUTH-03 plus the sign-out cases of `profile.live` and `shopper.live`
+   (S3-11, the logout gap until Stage 4). Any other red case must name its cause.
+3. The XD check of the bottom bar in `ar` and `en` at 440 x 802 (open `/sy-ar` and `/sy-en`, never `gb-*`).
+4. Optional: the home LCP check with more runs (Task 8 could not prove the 100 ms limit).
+5. The owner's review of Stage 3, then merge `ui-migrations-shell` into `ui-migrations` (A-18 rule 5). Then
+   bring `ui-migrations-wallet` up to date and renumber its A-28 row (A-28 is "Checkout QR" on `ui-migrations`).
+6. Next stage on lane A: Stage 4 (profile). It also takes the 3 items moved from Stage 3 (the path table with the
+   on/off switch, drawing a new screen inside `AppShell`, `next/dynamic` for the 17 screens), turns on the new
+   profile with its logout row (S3-11), and puts notifications behind Settings (D-19). The e2e sign-out helper
+   (`openAccountMenu` in `tests/e2e/actions/auth.ts`) waits for Stage 8 (A-34).
 
 ---
 

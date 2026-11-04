@@ -109,6 +109,9 @@ export const SOLO_LANE = [
   // chat's shared Firebase database. One throwaway guest per case, as in
   // `checkout.scripted.spec.ts`.
   "chat.scripted.spec.ts",
+  // The new bottom bar on the real pages. One throwaway guest per case, and
+  // every case runs closed: it only moves between pages and writes nothing.
+  "shell.scripted.spec.ts",
 ];
 
 /** How many workers a lane may use.

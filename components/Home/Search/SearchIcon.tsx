@@ -41,7 +41,8 @@ const SearchImage = dynamic(() => import("./SearchImage"), {
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import ActiveSearchFilterBar from "./ActiveSearchFilterBar";
 import NextLink from "components/global/NextLink";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import { isHomePath } from "components/DemoApp1/appRoutes";
 import { useAppStore } from "store";
 import Image from "next/image";
 import auth from "services/auth";
@@ -109,6 +110,25 @@ function SearchIcon({ language, country }) {
   useEffect(() => {
     setEnableSearch(searchEnabled);
   }, [searchEnabled]);
+
+  // The bottom bar's Search tab asks for the search to open by raising
+  // `openSearchRequest` in the store. Only the home page's SearchIcon takes a
+  // request; the category pages render SearchIcon too, and ignore it. The tab
+  // goes to the home page first, so a request can come before this component
+  // mounts: a value above `handledSearchRequest` opens it, and marks it handled.
+  const pathname = usePathname();
+  const openSearchRequest = useAppStore((s) => s.openSearchRequest);
+  const handledSearchRequest = useAppStore((s) => s.handledSearchRequest);
+  useEffect(() => {
+    if (!isHomePath(pathname) || openSearchRequest <= handledSearchRequest)
+      return;
+    useAppStore.getState().setHandledSearchRequest(openSearchRequest);
+    // The same open as a tap on the search box (the click handler below).
+    if (!searchEnabled) {
+      DisableScroll();
+      setSearchEnabled(true);
+    }
+  }, [openSearchRequest, handledSearchRequest, pathname]);
 
   // --- Initial Data Load (Trending & History) ---
   useEffect(() => {
@@ -903,7 +923,7 @@ const SearchContainer = ({
           </div>
         )}
       </div>
-      <div className="w-full max-w-[1200px] z-50 px-[25px] fixed bottom-[40px] left-0 right-0 mx-auto flex flex-col">
+      <div className="w-full max-w-[1200px] z-50 px-[25px] fixed bottom-[calc(40px+var(--app-bar-room,0px))] left-0 right-0 mx-auto flex flex-col">
         <ActiveSearchFilterBar
           appliedFilters={applied_filter}
           reset={() => {

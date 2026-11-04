@@ -53,7 +53,7 @@ function Chat(props) {
       ></div>
       <div
         data-pw="chat-window"
-        className={`app ${language}-app xs:right-0 xs:left-auto xs:top-0 xs:z-9999999999999 xs:h-screen`}
+        className={`app ${language}-app xs:right-0 xs:left-auto xs:top-0 xs:z-9999999999999 xs:h-[calc(100vh-var(--app-bar-room,0px))]`}
       >
         <textarea id="text-copy"></textarea>
         {typeof Notification !== "undefined" &&

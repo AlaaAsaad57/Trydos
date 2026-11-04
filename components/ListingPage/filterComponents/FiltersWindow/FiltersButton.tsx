@@ -18,7 +18,7 @@ function FiltersButton({
   const { lang } = useParams();
   return (
     <div
-      className=" fixed gap-[5px] bg-white px-[10px] z-99999999 mx-auto left-0 right-0 bottom-[50px] flex-row w-full mt-3 items-end"
+      className=" fixed gap-[5px] bg-white px-[10px] z-99999999 mx-auto left-0 right-0 bottom-[calc(50px+var(--app-bar-room,0px))] flex-row w-full mt-3 items-end"
       data-pw="searchResult"
     >
       {isChanged &&

@@ -24,7 +24,8 @@ const COUNT = {
 
 describe("Tab count", () => {
   it("names the Bold font family itself, because no wrapper maps font-bold to it", () => {
-    render(<TabCount tab="chat" on={false} count={COUNT} size={34} />);
+    // Since Stage 3 the bar passes the real count as `text` (already shortened).
+    render(<TabCount tab="chat" on={false} count={COUNT} text="11" size={34} />);
     const numbers = document.querySelectorAll<HTMLElement>(
       '[data-pw="demo-tab-chat-count"]',
     );

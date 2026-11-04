@@ -5,6 +5,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { animate, motion, useMotionValue } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import { useDemoNav } from "../Demo1Shell";
+import { logoutFromProfile } from "../logoutFromProfile";
 import { useDemoData } from "../../DemoApp/DemoData";
 import { C, DESIGN_W, fill, gapTo, lineBox, textBottom } from "../demo1Layout";
 import { Box, Icon, MenuRow, ScreenPage, Stroke, Txt } from "../ui";
@@ -360,7 +361,13 @@ export default function ProfileScreen() {
           }
           textX={54}
           testId={`demo-menu-${i}`}
-          onClick={row.icon === "menuShare" ? shareApp : undefined}
+          onClick={
+            row.icon === "menuShare"
+              ? shareApp
+              : row.icon === "menuLogout"
+                ? () => void logoutFromProfile(locale)
+                : undefined
+          }
         />
       ))}
     </ScreenPage>

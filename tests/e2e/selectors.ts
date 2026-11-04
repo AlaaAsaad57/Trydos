@@ -26,10 +26,34 @@ import type { Locator, Page } from "@playwright/test";
 // a run ends up on is therefore not ours to decide. Navigate to `/` and let the
 // app choose; read the prefix off `page.url()` if a later action needs it.
 
-export const nav = {
-  logo: (page: Page): Locator => page.getByTestId("NavLogo"),
-  cartButton: (page: Page): Locator => page.getByTestId("cart_icon_button"),
-  cartCount: (page: Page): Locator => page.getByTestId("cart-item-counts"),
+/** The five tabs of the new bottom bar (`components/DemoApp1/AppShell.tsx`). */
+export type ShellTab = "home" | "search" | "cart" | "chat" | "settings";
+
+/** The new bottom bar on every page (Stage 3, `Demo1BottomNav.tsx`).
+ *
+ *  **The bar is not inside `data-pw="app-shell"`.** That wrapper is
+ *  `display: contents` and the bar is portaled to `<body>`, so the wrapper
+ *  holds nothing a test can see. `bar` is the portaled `<nav>` itself.
+ *
+ *  **Judge "the bar is on screen" by a tab, never by `bar`.** The `<nav>` is a
+ *  fixed anchor with no width (the Safari note in `Demo1BottomNav.tsx`), and
+ *  Playwright calls a box with no width hidden. `bar` is for "is this element
+ *  inside the bar" questions.
+ *
+ *  The bar is drawn only after the shell has mounted in the browser, so a tab
+ *  on screen already has its handler: there is no hydration race on a tab.
+ *
+ *  The lit tab carries `aria-current="page"`. The tab ids are the app's own
+ *  (`DemoTab`), so the Profile tab is `settings`. */
+export const shell = {
+  bar: (page: Page): Locator => page.getByTestId("demo-tab-bar"),
+  tab: (page: Page, tab: ShellTab): Locator =>
+    page.getByTestId(`demo-tab-${tab}`),
+  /** The number drawn on the Cart or Chat tab. The tab draws it twice (one
+   *  copy for the lit state, one for the idle state), so take `.first()`.
+   *  The bar caps it at "99+", so it is exact up to 99. */
+  count: (page: Page, tab: "cart" | "chat"): Locator =>
+    page.getByTestId(`demo-tab-${tab}-count`),
 };
 
 /** The "Select Your Region" popup (`utils/PopupCountry.tsx`).
@@ -198,8 +222,6 @@ export const prompt = {
 /** The login: the page /[lang]/login and the verify overlays, both built from
  *  the new login screens (`NewLoginDesign/`, Stage 2 of UI-MIGRATION-PLAN.md). */
 export const auth = {
-  /** Button that opens the login from the nav bar. It now goes to /[lang]/login. */
-  loginButton: (page: Page): Locator => page.getByTestId("login-icon"),
   /** The login page itself (`NewLoginWidget`). Gone again once the login leaves. */
   loginPage: (page: Page): Locator => page.getByTestId("new-login-widget"),
   /** The Quick Preview, the login page's first screen: "Next" on its first
@@ -244,15 +266,12 @@ export const auth = {
     page.getByTestId("not registered"),
   Terms: (page: Page): Locator => page.getByTestId("agree-continue"),
   AlreadyRegistered:(page:Page):Locator =>page.getByTestId("registered"),
-  /** The nav control that opens the account menu.
+  /** The nav control that opened the account menu.
    *
-   *  `components/Home/UserAvatar.tsx` puts this marker on **both** of its
-   *  branches — with a picture and without — so a signed-in shopper always has
-   *  it. `components/Home/UserNavTopSection.tsx` puts the same marker on the
-   *  branch it renders for a visitor who is **not** signed in. The two are
-   *  mutually exclusive, so exactly one is ever in the page, but the marker on
-   *  its own says nothing about whether anybody is signed in. Never read it as
-   *  a sign-in signal. */
+   *  **Gone since Stage 3, Task 9:** it lived in the old top nav
+   *  (`UserAvatar.tsx`, `UserNavTopSection.tsx`, both deleted). Sign-out comes
+   *  back as the new profile screen's logout row in Stage 4, which replaces
+   *  this selector. Until then `openAccountMenu` fails on it and names the gap. */
   accountMenuTrigger: (page: Page): Locator =>
     page.getByTestId("avatar-options"),
   /** The sign-out item inside the account menu (`components/Home/Menu.tsx`).
@@ -478,10 +497,17 @@ export const addToCartSheet = {
 };
 
 export const cart = {
-  /** The cart itself, opened by the nav cart icon. Not `bag-viewer` — that one
+  /** The cart itself, on the cart page the Cart tab opens. Not `bag-viewer` — that one
    *  lives in `ShippingAddressContainer` and only exists once you are far enough
    *  into checkout to be choosing an address. */
   drawer: (page: Page): Locator => page.getByTestId("cartPage-container"),
+  /** The cart page's own box (`CartSteps` in `components/Cart/CartPage.tsx`).
+   *
+   *  The cart is the page `/[lang]/cart` now, not a drawer. `drawer` above is
+   *  still the cart inside that page, and the loading skeleton carries the same
+   *  marker. This one is drawn only by the page, so it says "this is the cart
+   *  page" and nothing else. */
+  page: (page: Page): Locator => page.getByTestId("cart-page"),
   header: (page: Page): Locator =>
     page.getByTestId("cartPage-header-container"),
   /** One line in the cart drawer (`components/cart/index.tsx`).
@@ -1510,14 +1536,6 @@ export const storyActions = {
 // ---------------------------------------------------------------------------
 
 export const chat = {
-  /** The nav icon when no chat has an unread message. */
-  navIcon: (page: Page): Locator => page.getByTestId("Chat-Icon"),
-  /** The nav icon when some chats have unread messages. `data-count` is the
-   *  number of such chats. */
-  navIconUnread: (page: Page): Locator => page.getByTestId("Chat-Icon-Unread"),
-  /** Whichever of the two the nav is drawing. */
-  navIconAny: (page: Page): Locator =>
-    page.locator('[data-pw="Chat-Icon"], [data-pw="Chat-Icon-Unread"]'),
   /** The popup that asks the shopper to allow notifications. */
   notificationPermissionWidget: (page: Page): Locator =>
     page.getByTestId("notification-permission-widget"),

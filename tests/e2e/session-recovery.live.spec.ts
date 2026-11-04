@@ -84,7 +84,7 @@ import {
 } from "./harness/session";
 import { envValue, hasShopperA } from "./harness/env";
 import { redact } from "./harness/redact";
-import { nav, prompt } from "./selectors";
+import { prompt, shell } from "./selectors";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import type { Page } from "@playwright/test";
 
@@ -201,7 +201,7 @@ test("RECOV-01 a signed-in shopper survives a credential refused mid-action", as
     // what tells "search is down" apart from "the recovery is broken".
     await gotoHome(page);
     await expect(
-      nav.cartButton(page),
+      shell.tab(page, "cart"),
       "the home page never rendered its cart control — the SEARCH backend is the usual cause, not the recovery under test. Run `pnpm e2e:health` before reading this as a failure",
     ).toBeVisible({ timeout: HOME_READY_MS });
 
@@ -320,7 +320,7 @@ test("RECOV-02 a signed-in shopper whose renewal is also refused is told, and ke
   await test.step("both the working credential and the means to renew are refused", async () => {
     await gotoHome(page);
     await expect(
-      nav.cartButton(page),
+      shell.tab(page, "cart"),
       "the home page never rendered its cart control — the SEARCH backend is the usual cause. Run `pnpm e2e:health` before reading this as a failure",
     ).toBeVisible({ timeout: HOME_READY_MS });
 
@@ -328,7 +328,7 @@ test("RECOV-02 a signed-in shopper whose renewal is also refused is told, and ke
   });
 
   await test.step("an action is started, and the shopper is asked to sign in again", async () => {
-    await nav.cartButton(page).click();
+    await shell.tab(page, "cart").click();
     await expect(
       prompt.sessionExpired(page),
       "both credentials were refused, but the app never showed the verified shopper the \"please sign in again\" prompt",

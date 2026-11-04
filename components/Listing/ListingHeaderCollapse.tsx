@@ -15,10 +15,11 @@ interface ListingHeaderCollapseProps {
   isRtl?: boolean;
 }
 
-// Pin stack height = navbar (--listing-navbar-h, 98px) + top-bar (50px).
+// Pin stack height = top-bar (50px). The old top nav (98px) is gone, so
+// --listing-navbar-h is 0.
 // The banner collapses once its top scrolls under the pinned bar, and
 // re-expands only when it returns near the top (the sentinel re-enters).
-const PIN_STACK_PX = 148;
+const PIN_STACK_PX = 50;
 
 export default function ListingHeaderCollapse({
   filterBar,

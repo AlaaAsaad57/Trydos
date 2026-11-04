@@ -233,7 +233,7 @@ const UploadImageComponent = ({
                 src={capturedImage}
               />
             </div>
-            <div className="fixed bottom-[20px] left-0 right-0 flex items-center justify-around px-[20px]">
+            <div className="fixed bottom-[calc(20px+var(--app-bar-room,0px))] left-0 right-0 flex items-center justify-around px-[20px]">
               <button
                 className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
                 onClick={() => setCapturedImage(null)}
@@ -305,7 +305,7 @@ const UploadImageComponent = ({
               }}
               className="w-full h-full object-contain"
             />
-            <div className="fixed bottom-[20px] left-0 right-0 flex items-center justify-around px-[20px]">
+            <div className="fixed bottom-[calc(20px+var(--app-bar-room,0px))] left-0 right-0 flex items-center justify-around px-[20px]">
               <button
                 className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
                 onClick={closeCamera}

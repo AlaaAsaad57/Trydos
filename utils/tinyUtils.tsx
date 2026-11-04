@@ -2,6 +2,7 @@ import { useAppStore } from "store";
 import { LogError, translateFunction } from "./functions";
 import { posthogReset } from "./posthog";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
+import { isCartPath } from "components/Cart/cartPath";
 import { fetchData, abortInFlightForLogout } from "./fetchData";
 import Image from "next/image";
 import { REQUESTS_DATA } from "./Requests";
@@ -446,6 +447,10 @@ export const DetectScreen = () => {
     return GA_GLOBAL_SCREEN.SETTINGS_SCREEN;
   }
   if (searchParams.get("cart") === "true") {
+    return GA_GLOBAL_SCREEN.CART_SCREEN;
+  }
+  // The cart page /[lang]/cart (Stage 3): the part after the locale is "cart".
+  if (isCartPath(pathname)) {
     return GA_GLOBAL_SCREEN.CART_SCREEN;
   }
   if (pathname?.includes("/products")) {

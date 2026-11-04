@@ -3,12 +3,7 @@
 @config '../../tailwind.config.js';
 
 :root {
-  --listing-navbar-h: 98px;
-}
-
-.home-navbar {
-  position: sticky;
-  top: 0;
+  --listing-navbar-h: 0px;
 }
 
 /*
@@ -459,6 +454,12 @@ body {
   justify-content: space-around;
   height: 100%;
   overflow-x: clip;
+}
+
+/* The page body keeps its last row above the new bottom bar. AppShell sets
+   --app-bar-room on <html> only while the bar shows. */
+.main-content {
+  padding-bottom: var(--app-bar-room, 0px);
 }
 
 input[type="search"]::-webkit-search-cancel-button {

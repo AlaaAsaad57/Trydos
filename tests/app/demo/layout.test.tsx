@@ -11,16 +11,13 @@ import Demo1Shell from "components/DemoApp1/Demo1Shell";
 /** The word list the layout hands to the demo shell. */
 const dictionaryFor = async (lang: string) => {
   root.lang = lang;
-  // The layout gives a fragment: the style that hides the site's navbar, then
-  // the Suspense boundary round the shell.
+  // The layout gives a fragment with the Suspense boundary round the shell.
   const tree = (await Demo1Layout({ children: null })) as React.ReactElement<{
     children: React.ReactElement<{
       children: React.ReactElement<{ dictionary: Record<string, string> }>;
-    }>[];
+    }>;
   }>;
-  const shell = tree.props.children
-    .map((child) => child?.props?.children)
-    .find((child) => child?.type === Demo1Shell);
+  const shell = tree.props.children.props.children;
   expect(shell, "the layout does not render the demo shell").toBeDefined();
   return shell!.props.dictionary;
 };
