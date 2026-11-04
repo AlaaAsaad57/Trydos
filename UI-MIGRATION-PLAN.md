@@ -882,7 +882,7 @@ as they are (`orders`, `payment`, `shipping`, `question`, `important`). CH-3 nee
 | S6-6 | Stories row in the chat (D-36b) | **Dropped (owner, 2026-11-05).** The chat has no stories row; stories stay on the home page. |
 | S6-5 | Provider place | `ChatDataProvider` sits around the screen frame in lane A's `AppScreens.tsx`, on only for a chat screen. Lane A was told. |
 
-### Where Stage 6 stopped (2026-11-05) — CI done; waiting for the owner's review
+### Where Stage 6 stopped (2026-11-05) — branch reviewed and fixed; waiting for CI and the owner's review
 
 Steps 1 to 11 and the local end checks are done and committed on `ui-migrations-chat` (pushed with the
 owner's OK).
@@ -937,7 +937,7 @@ CI run 1 (`41912147345`, 2026-11-05): parity, lint, typegen and tsc passed; unit
   `.js` file; Vitest cannot parse it). Fixed: the import reads `components/Chat/openChatFromList`. After the
   fix, 7 more old files had no caller (`chatSearch.ts`, `ChatItem`, `ChatOptions`, `ChatSearchResults`,
   `LastMessageBody`, `SearchResult`, `TypingIndicator.js`); removed with their 4 unit tests (D-6).
-- Broken tests, kept as they are (owner's order: no test changes in this stage):
+- Broken tests, removed on the owner's order in `167145e3` (their code is gone):
   - `tests/components/Home/AuthSections.test.tsx` — "shows the chat and call loaders when each is open":
     both loaders are gone on purpose (step 5, step 11).
   - `tests/components/setting/orders/OrderDetailsWrapper.test.tsx` — "the delivery chat > offers the chat
@@ -947,18 +947,38 @@ CI run 1 (`41912147345`, 2026-11-05): parity, lint, typegen and tsc passed; unit
     `components/Chat/components/ChatContactsUpload.tsx`, removed in step 11 (no caller).
   - `tests/utils/imageFallback.test.ts` — "no longer handles its own image failure:
     components/Chat/components/SearchResult.tsx (AC-10)": reads `SearchResult.tsx`, removed after run 1.
-- Coverage lost with the removed tests: `mergeContacts` (now in `contactsSync.ts`).
+- Coverage lost with the removed tests: `mergeContacts` (now in `contactsSync.ts`); on the order page, the
+  worker's neutral name, the messages' order and the cleared notification dot of the delivery chat.
 - CI run 2 (`41915429680`): parity, lint, typegen and tsc passed; unit tests 4 files failed, 634 passed.
   The 3 load failures are gone. Red: the 4 broken tests above, and
   `tests/components/Login/Enhanced/ui/RdbPhoneInput.test.tsx` — "on a phone > closes the keypad on a tap
   outside …". This branch does not touch the login keypad, and run 1 passed the same test.
 - CI run 2, attempt 2 (the failed job re-run): `RdbPhoneInput` passed, so it was the known
   one-random-failure flake. Unit tests 3 files failed, 635 passed (7788 tests passed, 4 failed). The only red
-  tests are the 4 broken tests listed above.
+  tests were the 4 broken tests listed above.
+
+Branch review (2026-11-05, owner's request). The real provider's flows had never run in a browser, and these
+faults only show there. All found by reading the code; none is proved in a browser yet:
+- A call ended itself: the conversation's "leave" cleared `activeChat` when its slide ended, so the call page
+  lost its channel and hung up. The provider now ignores "leave"; `closeChat` closes the chat when the shopper
+  leaves the screens of one chat. The contact page of a chat in no list showed the first chat for the same reason.
+- `writeId` could cancel a navigation (the router treats `history.replaceState` as one): a tap on a row lost its
+  push, and a call started in a new chat could lose the call page. It now waits for the URL of one chat and stays
+  out of a call. The contact page's URL now gets the id too, so its reload opens the right chat.
+- A Calls tab row whose chat is not loaded opened the first chat in the list. The screen now waits while `seek`
+  looks for the chat, or says "Could not open the chat".
+- Order page: the push cancelled the `router.replace` that clears the chat query, so back from the conversation
+  opened the chat again. The query now goes with `history.replaceState` before the push.
+- A photo, video, voice note or file sent during a reply lost its quote. All four now carry `replyTo`.
+
+Small points left as they are: a failed Agora join goes back with no word to the shopper, and the call page's
+buttons do nothing for the moment its chunk loads.
 
 Left:
 - (The stories row was dropped by the owner: S6-6.)
-- The real chat checked in a browser by a signed-in shopper (calls, push links, order chat, gates).
+- The real chat checked in a browser by a signed-in shopper (calls, row taps and URLs, the Calls tab, push
+  links, order chat, gates).
+- CI run 3, on the review fixes.
 - Then the owner's review, then the merge into `ui-migrations` (owner's OK). The e2e cases wait for Stage 8
   (A-34).
 

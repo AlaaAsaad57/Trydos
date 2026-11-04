@@ -16,14 +16,14 @@ export type ChatApi = {
   dispatch: (action: ChatAction) => void;
   /** Sends a text I typed, answering `replyTo` when given. */
   sendText: (chat: string, text: string, replyTo?: { id: string; text: string }) => void;
-  /** Sends a picked or taken photo. */
-  sendPhoto: (chat: string, file: File) => void;
+  /** Sends a picked or taken photo, answering `replyTo` when given (as the three below). */
+  sendPhoto: (chat: string, file: File, replyTo?: { id: string }) => void;
   /** Sends a recorded voice note and how long it is, in seconds. */
-  sendVoice: (chat: string, audio: Blob, seconds: number) => void;
+  sendVoice: (chat: string, audio: Blob, seconds: number, replyTo?: { id: string }) => void;
   /** Sends a picked video and how long it is, in seconds (0 when not known). */
-  sendVideo: (chat: string, file: File, seconds: number) => void;
+  sendVideo: (chat: string, file: File, seconds: number, replyTo?: { id: string }) => void;
   /** Sends any picked file. */
-  sendFile: (chat: string, file: File) => void;
+  sendFile: (chat: string, file: File, replyTo?: { id: string }) => void;
   sendLocation: (chat: string, point: { lat: number; lng: number; accuracy?: number }) => void;
   forward: (from: string, id: string, to: string) => void;
   /** Opens the chat with a contact (a new one when there is none) and says which. */

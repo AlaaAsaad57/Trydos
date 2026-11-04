@@ -187,7 +187,7 @@ function Conversation() {
     setPhoto(null);
   };
   const sendPicked = () => {
-    if (photo) sendPhoto(chat.id, photo.file);
+    if (photo) sendPhoto(chat.id, photo.file, answering());
     dropPhoto();
   };
 
@@ -202,6 +202,12 @@ function Conversation() {
   // How far the held message is moved so it and its menu are on the screen.
   const [shift, setShift] = useState(0);
   const [context, setContext] = useState<ComposerContext | null>(null);
+  /** A file sent while a reply is up answers that message, as a text does. */
+  const answering = () => {
+    if (context?.kind !== "reply") return undefined;
+    setContext(null);
+    return { id: context.id };
+  };
   const [forwarding, setForwarding] = useState<string | null>(null);
   const [toast, showToast] = useToast();
   /** The message whose Category sheet is up, and the one whose Remind me sheet is up. */
@@ -1048,9 +1054,9 @@ function Conversation() {
           onCancelContext={() => setContext(null)}
           onSend={send}
           onSendPhoto={(file) => setPhoto({ file, url: URL.createObjectURL(file) })}
-          onSendVoice={(audio, seconds) => sendVoice(chat.id, audio, seconds)}
-          onSendVideo={(file, seconds) => sendVideo(chat.id, file, seconds)}
-          onSendFile={(file) => sendFile(chat.id, file)}
+          onSendVoice={(audio, seconds) => sendVoice(chat.id, audio, seconds, answering())}
+          onSendVideo={(file, seconds) => sendVideo(chat.id, file, seconds, answering())}
+          onSendFile={(file) => sendFile(chat.id, file, answering())}
           onSendLocation={(point) => sendLocation(chat.id, point)}
           onTyping={() => typing(chat.id)}
           onToast={showToast}

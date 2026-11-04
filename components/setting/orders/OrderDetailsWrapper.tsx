@@ -245,11 +245,6 @@ function OrderDetailsWrapper({
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleClear = () => {
-    // This replaces the URL with just the path, effectively deleting params
-    router.replace(pathname);
-  };
-
   // Hiding an order — or hiding the last product, which empties the order —
   // removes it from the list, so we leave the details page for the orders list
   // rather than re-fetching a now-hidden/empty order. We deliberately do NOT bump
@@ -361,7 +356,10 @@ function OrderDetailsWrapper({
         setIsNavigating(false);
       }
       setIsGettingChat(false);
-      handleClear();
+      // The address's chat query goes now, by hand: the push below would
+      // cancel a router.replace on its way, and back from the conversation
+      // would then open the chat again.
+      window.history.replaceState(null, "", pathname);
       // The order's chat opens in the new conversation screen (D-36c); the
       // store holds it (openChat above), and the way back is this order.
       const opened = useAppStore.getState().activeChat?.id;

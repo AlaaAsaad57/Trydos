@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useContext, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { findChat } from "components/Chat/findChat";
 import { openChatFromList } from "components/Chat/openChatFromList";
 import chatService from "services/chat";
@@ -31,6 +32,8 @@ import { toChatState, toMessages, wordsOf, type MapWords } from "./chatMapper";
 import { loadMoreChats, loadOlderMessages, type PageResult } from "./chatPaging";
 import { startCall } from "./chatCalls";
 import type { ChatAction } from "./chatModel";
+import { appScreenFromPath } from "../appScreenPaths";
+import { SCREEN_TRANSITION } from "../demo1Layout";
 import { NavCtx } from "../screenNav";
 
 /**
@@ -57,6 +60,10 @@ import { NavCtx } from "../screenNav";
  * (chatOnScreen). A chat outside the loaded pages is found on the chat
  * backend's pages (findChat); a new chat (`ch-<user id>`) is opened again with
  * its contact. A chat that is nowhere sends the shopper back to the list.
+ *
+ * The open chat stays open across the screens of one chat: the conversation
+ * going to the contact or the call page is not a "leave". It closes when the
+ * shopper leaves those screens (closeChat).
  */
 export function ChatDataProvider({
   children,
@@ -71,6 +78,7 @@ export function ChatDataProvider({
 }) {
   const enabled = isChatScreen(screen);
   const oneChat = isOneChatScreen(screen);
+  const pathname = usePathname();
   const data = useAppStore((s) => s.data);
   const archived = useAppStore((s) => s.archivedChats);
   const open = useAppStore((s) => s.activeChat);
@@ -177,8 +185,17 @@ export function ChatDataProvider({
     trackPosthog(CHAT_EVENTS.CHAT_OPENED);
   }, [enabled, myId]);
 
-  /** Puts a chat's id in the URL of the screen on show, with no new history entry. */
+  /**
+   * Puts a chat's id in the URL of the screen on show, with no new history
+   * entry. The router treats `history.replaceState` as a navigation, and a
+   * navigation cancels one that is on its way. So this waits for the URL of
+   * one chat (a tap on a row draws the conversation before its URL lands; the
+   * "Follow" effect writes the id then), and it stays out of a call: the call
+   * page's URL already names the chat, and its push may be on its way.
+   */
   const writeId = (id: string) => {
+    if (!isOneChatScreen(appScreenFromPath(window.location.pathname))) return;
+    if (useAppStore.getState().call || chatIdFrom(window.location.search) === id) return;
     const url = new URL(window.location.href);
     url.searchParams.set(CHAT_ID_PARAM, id);
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
@@ -210,6 +227,11 @@ export function ChatDataProvider({
       if (opened !== id) writeId(opened);
       return;
     }
+    seek(id);
+  };
+  /** Looks for a chat outside the loaded pages, and opens it. */
+  const seek = (id: string) => {
+    if (walking.current === id) return;
     walking.current = id;
     void findChat(id).then((chat) => {
       walking.current = null;
@@ -239,8 +261,23 @@ export function ChatDataProvider({
   useEffect(() => {
     if (pendingRef.current && pendingRef.current === openId) setPending(null);
     if (!oneChat || !openId || pendingRef.current) return;
-    if (chatIdFrom(window.location.search) !== openId) writeId(openId);
-  }, [oneChat, openId]);
+    writeId(openId);
+  }, [oneChat, openId, pathname]);
+
+  /** Closes the open chat, unless a call runs in it. */
+  const closeChat = () => {
+    const { activeChat, call, openChat } = useAppStore.getState();
+    if (activeChat && !call) openChat(null);
+  };
+  // Off the screens of one chat the open chat closes, once the old screen has
+  // slid out (it still draws the chat until then). A new open cancels this.
+  useEffect(() => {
+    if (oneChat) return;
+    const timer = setTimeout(closeChat, SCREEN_TRANSITION.duration * 1000);
+    return () => clearTimeout(timer);
+  }, [oneChat]);
+  // The mount goes away when the shopper goes to an old page.
+  useEffect(() => closeChat, []);
 
   const viewing = pending ?? (oneChat ? openId : null);
 
@@ -292,11 +329,19 @@ export function ChatDataProvider({
   };
 
   const dispatch = (action: ChatAction) => {
+    // The conversation says "leave" when it goes, also on its way to the
+    // contact or the call page, where the chat must stay open (a call ends
+    // when its chat closes). closeChat does the real leaving.
+    if (action.type === "leave") return;
     if (action.type === "open") {
       setActive(action.chat);
-      setPending(null);
+      // A chat outside the loaded pages (a row of the Calls tab): the screen
+      // waits for it, and never shows another chat in its place.
+      const loaded = !!findChannel(action.chat);
+      setPending(loaded ? null : action.chat);
       // Switch: another chat opened on a screen of one chat takes the URL now.
       if (oneChat) writeId(action.chat);
+      if (!loaded) return seek(action.chat);
     } else if (action.type === "archive" && viewing === action.chat) {
       // The archived chat leaves the screen, as on /demo. (A delete closes it in the store.)
       useAppStore.getState().openChat(null);
@@ -387,9 +432,9 @@ export function ChatDataProvider({
     state,
     dispatch,
     sendText: sendTextMessage,
-    sendPhoto: (chat, file) => void sendMediaMessage(chat, file, "ImageMessage"),
-    sendVoice: (chat, audio) => sendVoiceNote(chat, audio),
-    sendVideo: (chat, file) => sendVideoFile(chat, file),
+    sendPhoto: (chat, file, replyTo) => void sendMediaMessage(chat, file, "ImageMessage", replyTo),
+    sendVoice: (chat, audio, _seconds, replyTo) => sendVoiceNote(chat, audio, replyTo),
+    sendVideo: (chat, file, _seconds, replyTo) => sendVideoFile(chat, file, replyTo),
     sendFile: sendAnyFile,
     // No chat backend for a location message yet (CH-2, A-8).
     sendLocation: () => say(t("Soon available")),
