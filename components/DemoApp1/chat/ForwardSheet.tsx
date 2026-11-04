@@ -3,8 +3,6 @@
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { motion } from "framer-motion";
 import React from "react";
-import { PREVIEW } from "../../DemoApp/demoChat";
-import { seedContacts } from "../../DemoApp/demoChatModel";
 import { orderedChats, type ChatThread, type Contact } from "./chatModel";
 import { C, ROW, fill, textTop } from "../demo1Layout";
 import { Sheet, Stroke, Txt, Under } from "../ui";
@@ -36,7 +34,7 @@ export default function ForwardSheet({
 }) {
   const rows = orderedChats(chats).filter((c) => c.id !== except);
   const who = (chat: ChatThread) =>
-    contacts.find((c) => c.id === chat.contact) ?? seedContacts()[0];
+    contacts.find((c) => c.id === chat.contact) ?? { id: chat.contact, name: "", phone: "", initials: "" };
   return (
     <Sheet open={open} onClose={onClose} y={360} testId="demo-forward-sheet">
       <Txt center size={16} weight="medium" mt={textTop(30, 16) - 8}>
@@ -96,7 +94,7 @@ export default function ForwardSheet({
                 className="overflow-hidden"
                 style={{ textOverflow: "ellipsis" }}
               >
-                {chat.preview ?? PREVIEW}
+                {chat.preview ?? ""}
               </Txt>
             </span>
           </motion.button>

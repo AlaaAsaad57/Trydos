@@ -4,7 +4,6 @@ import type { DemoKey } from "../../DemoApp/demoKeys";
 import { AnimatePresence, animate, motion, useMotionValue, type MotionValue } from "framer-motion";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
-import { CHAT_COUNTS, CHAT_PHOTOS, CONTACT } from "../../DemoApp/demoChat";
 import { CHAT } from "../chat/chatTheme";
 import {
   chatOnScreen,
@@ -162,6 +161,7 @@ function Conversation() {
     search,
     setSearch,
     paging,
+    call,
   } = useChat();
   // ConversationScreen draws this only when there is a chat.
   const chat = chatOnScreen(state)!;
@@ -585,7 +585,7 @@ function Conversation() {
           color: C.purple,
         }}
       >
-        {others > 0 ? String(others) : CHAT_COUNTS.unread}
+        {others > 0 ? String(others) : state.counts.unread}
       </span>
       <button
         type="button"
@@ -631,7 +631,7 @@ function Conversation() {
         type="button"
         data-pw="demo-chat-video-call"
         aria-label={t("Video")}
-        onClick={() => navigate("chat/call")}
+        onClick={() => (call ? call(chat.id, true) : navigate("chat/call"))}
         className="flex shrink-0 ml-auto cursor-pointer active:opacity-60"
         style={{ marginTop: 12 }}
       >
@@ -641,7 +641,7 @@ function Conversation() {
         type="button"
         data-pw="demo-chat-voice-call"
         aria-label={t("Call")}
-        onClick={() => navigate("chat/call")}
+        onClick={() => (call ? call(chat.id, false) : navigate("chat/call"))}
         className="flex shrink-0 cursor-pointer active:opacity-60"
         style={{ marginLeft: 379 - 349, marginRight: 430 - 405, marginTop: 12 }}
       >
@@ -824,6 +824,7 @@ function Conversation() {
               true,
               <VoiceMessage
                 side={m.side}
+                src={m.src}
                 seconds={m.seconds}
                 time={m.time}
                 status={m.status}
@@ -1011,7 +1012,7 @@ function Conversation() {
         >
           <Dot color={C.purple} ml={4} mt={10} />
           <SmallPhoto src={contact.photo} initials={contact.initials} ml={2} line={1} />
-          <SmallPhoto src={CHAT_PHOTOS.me} ml="auto" line={0.5} />
+          <SmallPhoto src={state.me.photo} initials={state.me.initials} ml="auto" line={0.5} />
           <Dot color={CHAT.sent} ml={2} mr={4} mt={10} />
         </div>
 

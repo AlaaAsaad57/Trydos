@@ -3192,6 +3192,9 @@ const translations = {
   "{n} minute answered": "تمت الإجابة خلال {n} دقيقة",
   "Need help ? Start Chat about this product !": "تحتاج مساعدة ؟ ابدأ محادثة حول هذا المنتج !",
   "Country code": "رمز الدولة",
+  "Missed Video Call !": "مكالمة فيديو فائتة !",
+  "Incoming Video Call !": "مكالمة فيديو واردة !",
+  "Outgoing Video Call !": "مكالمة فيديو صادرة !",
 };
 
 export default translations;

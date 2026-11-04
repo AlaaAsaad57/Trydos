@@ -45,6 +45,8 @@ export type ChatApi = {
    * only; the /demo mock holds all of its chats and messages).
    */
   paging?: ChatPaging;
+  /** Starts a real call (a video call when `video`); the `/demo` preview has none and opens its mock call. */
+  call?: (chat: string, video: boolean) => void;
 };
 
 export type ChatPaging = {

@@ -23,8 +23,27 @@ export type CallTone = "missed" | "incoming" | "outgoing";
  */
 export type DeliveryMark = "sent" | "delivered" | "read";
 
-/** A row of the Calls tab (`Home Page – 43`). */
-export type CallKind = "missed" | "incoming" | "noAnswer";
+/**
+ * A row of the Calls tab (`Home Page – 43`). The file draws a missed call, an
+ * incoming call and "No Answer" (a call I made). An answered call I made has
+ * no board: it is drawn like "No Answer" with its own words (D-36b).
+ */
+export type CallKind = "missed" | "incoming" | "noAnswer" | "outgoing";
+
+/** One call in the Calls tab, newest first. */
+export type CallRow = {
+  id: string;
+  kind: CallKind;
+  /** A video call; a voice call when not set. */
+  video?: boolean;
+  /** How long the call ran ("16"), for "16 Min". */
+  minutes?: string;
+  /** Who the call was with (a `Contact` id). */
+  contact: string;
+  time: string;
+  /** The chat the call belongs to, which a tap opens. */
+  chat?: string;
+};
 
 type Base = {
   id: string;
@@ -268,6 +287,16 @@ export type ChatThread = {
 
 export type ChatState = {
   chats: ChatThread[];
+  /** The Calls tab. */
+  calls: CallRow[];
+  /** The numbers on the Chats and Calls tabs; empty shows none. */
+  /**
+   * The numbers on the Chats and Calls tabs, and the conversation's back
+   * number when no other chat is unread; empty shows none.
+   */
+  counts: { chats: string; calls: string; unread: string };
+  /** The shopper: the small photo at the start of the conversation. */
+  me: { photo?: string; initials: string };
   /** Everyone the shopper can start a chat with. */
   contacts: Contact[];
   /** The tags a message can carry. */

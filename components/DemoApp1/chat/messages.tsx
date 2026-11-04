@@ -11,7 +11,6 @@ import {
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
-import { VOICE_SRC } from "../../DemoApp/demoChat";
 import { BUBBLE_RADIUS, CHAT } from "./chatTheme";
 import {
   fileSize,
@@ -771,8 +770,8 @@ function PauseMark({ color }: { color: string }) {
  * length "01:20" in a 38 x 19 pill (0.4 px line, radius 15) under it; and the
  * time 9 Regular at the waves' right end, 36 down.
  *
- * The play mark plays a dummy sound (VOICE_SRC) from its start, for as many
- * seconds as the message is long: the waves take the sender's colour up to
+ * The play mark plays the message's sound (`src`; `/demo` gives a sample) from
+ * its start, for as many seconds as the message is long: the waves take the sender's colour up to
  * the playhead, which moves with the sound, and the pill counts the time
  * played. While it plays, the play mark is a pause mark. A tap or a drag on
  * the waves moves the playhead, so any part can be heard. At rest it is as
@@ -781,6 +780,7 @@ function PauseMark({ color }: { color: string }) {
  */
 export function VoiceMessage({
   side,
+  src,
   seconds: total,
   time,
   status,
@@ -788,6 +788,8 @@ export function VoiceMessage({
   t,
 }: {
   side: Side;
+  /** Where the sound is. */
+  src?: string;
   seconds: number;
   time: string;
   status?: Status;
@@ -988,7 +990,7 @@ export function VoiceMessage({
         className={`flex items-start w-full shrink-0 ${inn ? "" : "justify-end"}`}
         style={{ marginTop: 18, height: 57 }}
       >
-        <audio ref={audio} src={VOICE_SRC} preload="none" />
+        <audio ref={audio} src={src || undefined} preload="none" />
         <button
           type="button"
           data-pw={`demo-chat-voice-play-${side}`}
@@ -1115,6 +1117,7 @@ const CARD_TONE = {
   missed: {
     icon: "callMissed" as XdIconName,
     title: "Missed Voice Call !" as DemoKey,
+    videoTitle: "Missed Video Call !" as DemoKey,
     card: CHAT.missedCard,
     box: CHAT.missedIconBox,
     ink: CHAT.red,
@@ -1123,6 +1126,7 @@ const CARD_TONE = {
   incoming: {
     icon: "callIncoming" as XdIconName,
     title: "Incoming Voice Call !" as DemoKey,
+    videoTitle: "Incoming Video Call !" as DemoKey,
     card: CHAT.callCard,
     box: CHAT.incomingIconBox,
     ink: C.ink,
@@ -1131,6 +1135,7 @@ const CARD_TONE = {
   outgoing: {
     icon: "callOutgoing" as XdIconName,
     title: "Outgoing Voice Call !" as DemoKey,
+    videoTitle: "Outgoing Video Call !" as DemoKey,
     card: CHAT.callCard,
     box: CHAT.outgoingIconBox,
     ink: C.ink,
@@ -1138,9 +1143,9 @@ const CARD_TONE = {
   },
 };
 
-/** What a call card says, for a quote or the clipboard. */
+/** What a call card says, for a quote or the clipboard. The file words a voice call; a video call says so. */
 export const callWords = (m: CallMessage, t: (key: DemoKey) => string) =>
-  t(CARD_TONE[m.tone].title);
+  t(m.video ? CARD_TONE[m.tone].videoTitle : CARD_TONE[m.tone].title);
 
 /**
  * A call card (`– 44`, y 1277 .. 1549): 50 tall with the bubble's corners,
@@ -1211,7 +1216,7 @@ export function CallCard({
           ml={inn ? 0 : 4}
           style={SPACED}
         >
-          {t(look.title)}
+          {callWords(m, t)}
         </Txt>
         {inn && (
           <Txt size={9} className="invisible" style={timeStyle}>

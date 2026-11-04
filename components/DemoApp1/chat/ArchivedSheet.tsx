@@ -3,8 +3,6 @@
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { motion } from "framer-motion";
 import React from "react";
-import { PREVIEW } from "../../DemoApp/demoChat";
-import { seedContacts } from "../../DemoApp/demoChatModel";
 import { archivedChats, type ChatThread, type Contact } from "./chatModel";
 import { C } from "../demo1Layout";
 import { Stroke, Txt } from "../ui";
@@ -37,7 +35,7 @@ export default function ArchivedSheet({
 }) {
   const rows = archivedChats(chats);
   const who = (chat: ChatThread) =>
-    contacts.find((c) => c.id === chat.contact) ?? seedContacts()[0];
+    contacts.find((c) => c.id === chat.contact) ?? { id: chat.contact, name: "", phone: "", initials: "" };
   return (
     <PickSheet open={open} title={t("Archived")} testId="demo-archived-sheet" y={300} onClose={onClose}>
       {rows.length === 0 && (
@@ -65,7 +63,7 @@ export default function ArchivedSheet({
                 {contact.name}
               </Txt>
               <Txt size={12} color={C.grey} className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
-                {chat.preview ?? PREVIEW}
+                {chat.preview ?? ""}
               </Txt>
             </span>
             <motion.span

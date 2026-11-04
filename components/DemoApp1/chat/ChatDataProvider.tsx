@@ -26,6 +26,7 @@ import {
 } from "./chatSend";
 import { toChatState, type MapWords } from "./chatMapper";
 import { loadMoreChats, loadOlderMessages, type PageResult } from "./chatPaging";
+import { startCall } from "./chatCalls";
 import type { ChatAction } from "./chatModel";
 import { NavCtx } from "../screenNav";
 
@@ -71,6 +72,7 @@ export function ChatDataProvider({
   const archived = useAppStore((s) => s.archivedChats);
   const open = useAppStore((s) => s.activeChat);
   const book = useAppStore((s) => s.contacts);
+  const calls = useAppStore((s) => s.calls);
   const userChat = useAppStore((s) => s.userChat);
   const chatsLoading = useAppStore((s) => s.chat_loading);
   const liveCallId = useAppStore((s) => s.MessageActiveCall);
@@ -217,7 +219,7 @@ export function ChatDataProvider({
   // Off a chat screen the chat is not mapped at all.
   const state = toChatState(
     enabled
-      ? { chats: data ?? [], archived: archived ?? [], open, book: book ?? [] }
+      ? { chats: data ?? [], archived: archived ?? [], open, book: book ?? [], calls: calls ?? [], me: userChat }
       : { chats: [], archived: [], open: null, book: [] },
     ctx,
     { active, viewing },
@@ -307,6 +309,7 @@ export function ChatDataProvider({
     search,
     setSearch,
     paging,
+    call: (chat, video) => void startCall(chat, video),
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

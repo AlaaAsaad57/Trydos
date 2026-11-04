@@ -9,6 +9,7 @@ import {
   initialsOf,
   orderedChats,
   previewOf,
+  type CallRow,
   type ChatMessage,
   type ChatState,
   type ChatThread,
@@ -371,7 +372,52 @@ export type ChatSource = {
   open: Channel | null;
   /** The phone-book contacts (`contacts`). */
   book: BookContact[];
+  /** The call log (`calls`, from `/api/v1/channels/my_calls`). */
+  calls?: CallRecord[];
+  /** The shopper (`userChat`). */
+  me?: { name?: string | null; photo_path?: string | null } | null;
 };
+
+/** A call in the call log: a call message, with its chat when the backend sends it. */
+export type CallRecord = Message & { channel?: Channel | null };
+
+/**
+ * One call of the log as a Calls tab row, or null for a call the shopper
+ * deleted (`auth_message_status.is_deleted`: they hid who and when). The
+ * direction is the old row's (`getCallDirection`): a call I made shows "No
+ * Answer" when it never ran. The chat is the call's own when it comes with
+ * its members, else the list's copy (the old CallList rule).
+ */
+export function toCallRow(call: CallRecord, chats: Channel[], ctx: MapContext): { row: CallRow; chat: Channel } | null {
+  if (isDeleted(call)) return null;
+  const listed = chats.find((c) => sameId(c.id, call.channel_id));
+  const chat: Channel =
+    (call.channel?.channel_members ? call.channel : listed) ?? call.channel ?? ({ id: call.channel_id } as Channel);
+  const seconds = Number(call.duration_in_seconds) || 0;
+  const direction = getCallDirection(call.sender_user_id, ctx.myId, seconds);
+  const kind = direction === "outgoing" ? (seconds > 0 ? "outgoing" : "noAnswer") : direction;
+  return {
+    chat,
+    row: {
+      id: String(call.id),
+      kind,
+      ...(call.message_type?.name === "VideoCall" ? { video: true } : {}),
+      ...(seconds > 0 ? { minutes: String(Math.max(1, Math.round(seconds / 60))) } : {}),
+      contact: toContact(chat, ctx).id,
+      time: (ctx.rowTime ?? showDate)(call.created_at),
+      chat: String(chat.id),
+    },
+  };
+}
+
+/** A missed call I have not seen yet: it counts on the Calls tab. */
+const isNewMissed = (call: CallRecord, myId: string | number) =>
+  !isDeleted(call) &&
+  getCallDirection(call.sender_user_id, myId, call.duration_in_seconds) === "missed" &&
+  call.message_status?.find((s) => sameId(s.user_id, myId))?.is_watched === false;
+
+/** A count for a tab: empty for none. */
+const countOf = (n: number) => (n > 0 ? String(n) : "");
 
 /**
  * The screens' whole chat state from the store. The open chat wins over its
@@ -400,6 +446,14 @@ export function toChatState(
     const contact = toContact(chat, ctx);
     if (!contacts.has(contact.id)) contacts.set(contact.id, contact);
   }
+  const calls = [...(source.calls ?? [])]
+    .sort((a, b) => timeOf(b.created_at) - timeOf(a.created_at))
+    .map((call) => toCallRow(call, channels, ctx))
+    .filter((c): c is NonNullable<typeof c> => c !== null);
+  for (const { chat } of calls) {
+    const contact = toContact(chat, ctx);
+    if (!contacts.has(contact.id)) contacts.set(contact.id, contact);
+  }
   for (const entry of source.book) {
     const contact = toBookContact(entry);
     if (contact && contact.id !== String(ctx.myId) && !contacts.has(contact.id)) {
@@ -407,8 +461,19 @@ export function toChatState(
     }
   }
 
+  const myName = source.me?.name ?? "";
   return {
     chats,
+    calls: calls.map((c) => c.row),
+    counts: {
+      chats: countOf(chats.filter((c) => !c.archived && c.unread > 0).length),
+      calls: countOf((source.calls ?? []).filter((c) => isNewMissed(c, ctx.myId)).length),
+      unread: "",
+    },
+    me: {
+      ...(source.me?.photo_path ? { photo: GetImageUrl(source.me.photo_path) } : {}),
+      initials: initialsOf(myName),
+    },
     contacts: [...contacts.values()],
     categories: CHAT_LABELS.map((c) => ({ ...c })),
     active: local.active ?? orderedChats(chats)[0]?.id ?? "",

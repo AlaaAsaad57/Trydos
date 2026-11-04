@@ -1,11 +1,15 @@
 import {
   CALLER,
   CALL_ROWS as DESIGN_CALL_ROWS,
+  CHAT_COUNTS,
   CHAT_PHOTOS,
   CHAT_ROWS,
+  CHAT_ROW_TIME,
   CONTACT,
   MESSAGES,
   MESSAGE_TIME,
+  PREVIEW,
+  PREVIEW_SHORT,
 } from "./demoChat";
 import {
   CHAT_LABELS,
@@ -16,7 +20,7 @@ import {
   archivedChats,
   previewOf,
   PLAIN_WORDS,
-  type CallKind,
+  type CallRow,
   type Category,
   type ChatAction,
   type ChatMessage,
@@ -48,8 +52,12 @@ export function seedCategories(): Category[] {
 /** The id of the file's contact, Marie Winter, whose chats the seed draws. */
 export const SEED_CONTACT = "marie";
 
-export type CallRow = { id: string; kind: CallKind; minutes?: string };
-export const CALL_ROWS: CallRow[] = DESIGN_CALL_ROWS;
+/** The four rows of `Home Page – 43`, with the file's contact and time. */
+export const CALL_ROWS: CallRow[] = DESIGN_CALL_ROWS.map((row) => ({
+  ...row,
+  contact: SEED_CONTACT,
+  time: CHAT_ROW_TIME,
+}));
 
 /** The conversation of `Home Page – 44`, in the file's order, with its gaps. */
 export function seedMessages(): ChatMessage[] {
@@ -118,9 +126,15 @@ export function seedState(): ChatState {
       typing: row.typing,
       attachments: row.attachments,
       mark: row.mark,
+      // The row with the "Send …" list has no preview.
+      ...(row.attachments ? {} : { preview: row.initials ? PREVIEW_SHORT : PREVIEW }),
+      time: CHAT_ROW_TIME,
       lastAt: n - i,
       messages: seedMessages(),
     })),
+    calls: CALL_ROWS,
+    counts: { ...CHAT_COUNTS },
+    me: { photo: CHAT_PHOTOS.me, initials: "" },
     active: CHAT_ROWS.find((row) => row.selected)?.id ?? CHAT_ROWS[0].id,
     viewing: null,
     tick: n,

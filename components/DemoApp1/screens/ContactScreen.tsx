@@ -57,7 +57,7 @@ export default function ContactScreen() {
 
 function Contact() {
   const { t, navigate, back } = useDemoNav();
-  const { state, dispatch, setSearch } = useChat();
+  const { state, dispatch, setSearch, call } = useChat();
   // ContactScreen draws this only when there is a chat.
   const chat = chatOnScreen(state)!;
   const contact = contactOf(state, chat);
@@ -124,8 +124,8 @@ function Contact() {
           marginTop: actionsTop - textBottom(304, 16),
         }}
       >
-        <Action icon="chatHeaderCall" label="Call" onClick={() => navigate("chat/call")} labelTop={labelTop - actionsTop} t={t} />
-        <Action icon="chatHeaderVideo" label="Video" onClick={() => navigate("chat/call")} labelTop={labelTop - actionsTop} t={t} />
+        <Action icon="chatHeaderCall" label="Call" onClick={() => (call ? call(chat.id, false) : navigate("chat/call"))} labelTop={labelTop - actionsTop} t={t} />
+        <Action icon="chatHeaderVideo" label="Video" onClick={() => (call ? call(chat.id, true) : navigate("chat/call"))} labelTop={labelTop - actionsTop} t={t} />
         <Action
           icon="contactSearch"
           label="Search"

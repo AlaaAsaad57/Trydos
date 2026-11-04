@@ -6,15 +6,6 @@ import { AnimatePresence, animate, motion, useMotionValue } from "framer-motion"
 import { TRAVEL } from "../barMotion";
 import XdIcon from "../../DemoApp/XdIcon";
 import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
-import {
-  CHAT_COUNTS,
-  CHAT_PHOTOS,
-  CHAT_ROW_TIME,
-  CONTACT,
-  PREVIEW,
-  PREVIEW_SHORT,
-} from "../../DemoApp/demoChat";
-import { CALL_ROWS } from "../../DemoApp/demoChatModel";
 import { CHAT } from "../chat/chatTheme";
 import {
   archivedChats,
@@ -22,13 +13,14 @@ import {
   orderedChats,
   searchableText,
   type CallKind,
+  type CallRow,
   type ChatThread,
   type Contact,
 } from "../chat/chatModel";
 import ArchivedSheet from "../chat/ArchivedSheet";
 import { useChat } from "../chat/chatContext";
 import PageEdge from "../chat/PageEdge";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoNav } from "../screenNav";
 import {
   C,
   COLUMN_W,
@@ -124,7 +116,7 @@ export default function ChatListScreen() {
     (chat) =>
       !needle ||
       contactOf(state, chat).name.toLowerCase().includes(needle) ||
-      (chat.preview ?? PREVIEW).toLowerCase().includes(needle) ||
+      (chat.preview ?? "").toLowerCase().includes(needle) ||
       chat.messages.some((m) => searchableText(m).toLowerCase().includes(needle)),
   );
 
@@ -219,7 +211,7 @@ export default function ChatListScreen() {
           <TabButton
             testId="demo-chat-tab-chats"
             icon="chatTabChats"
-            count={CHAT_COUNTS.chats}
+            count={state.counts.chats}
             label="Chats"
             labelGap={7}
             left={0}
@@ -230,7 +222,7 @@ export default function ChatListScreen() {
           <TabButton
             testId="demo-chat-tab-calls"
             icon="chatTabCalls"
-            count={CHAT_COUNTS.calls}
+            count={state.counts.calls}
             label="Calls"
             labelGap={6}
             left={265 - 129}
@@ -318,13 +310,17 @@ export default function ChatListScreen() {
         )}
         </>
       ) : (
-        CALL_ROWS.map((row) => (
+        state.calls.map((row) => (
           <CallRowFace
             key={row.id}
-            id={row.id}
-            kind={row.kind}
-            minutes={row.minutes}
-            onOpen={() => navigate("chat/call")}
+            row={row}
+            contact={state.contacts.find((c) => c.id === row.contact) ?? { id: row.contact, name: "", phone: "", initials: "" }}
+            // A real call opens its chat; the `/demo` rows open the mock call.
+            onOpen={() => {
+              if (!row.chat) return navigate("chat/call");
+              dispatch({ type: "open", chat: row.chat });
+              navigate("chat/conversation");
+            }}
             t={t}
           />
         ))
@@ -664,7 +660,7 @@ function Photo({
   w,
   h,
   line,
-  src = CHAT_PHOTOS.contact,
+  src,
   initials,
 }: {
   w: number;
@@ -681,10 +677,10 @@ function Photo({
         width: w,
         height: h,
         borderRadius: 15,
-        background: initials ? C.field : undefined,
+        background: initials || !src ? C.field : undefined,
       }}
     >
-      {initials ? (
+      {initials || !src ? (
         // "MW" 14 Medium on baseline 43 of the 76 box, centred.
         <Txt center size={14} weight="medium" mt={textTop(43, 14)}>
           {initials}
@@ -705,7 +701,7 @@ function Photo({
 function RowTime({
   right,
   mt = 0,
-  time = CHAT_ROW_TIME,
+  time = "",
   muted = false,
   t,
 }: {
@@ -792,9 +788,8 @@ function ChatRowFace({
   const previewTop = paraTop(46, 12, 17);
   const previewBottom = previewTop + 2 * 17;
   const typing = row.typing || row.typingNow;
-  const time = row.time ?? CHAT_ROW_TIME;
-  const preview =
-    row.preview ?? (row.initials ? PREVIEW_SHORT : PREVIEW);
+  const time = row.time ?? "";
+  const preview = row.preview ?? "";
   return (
     <div
       className="relative flex items-start w-full h-full"
@@ -937,6 +932,16 @@ const CALL_STATE: Record<
   incoming: { icon: "callIncoming", label: "Incoming Voice Call !", size: 12, color: C.ink, iconTop: 40, baseline: 52, x: 111 },
   // The violet phone 18 x 18 at (90, 52); the words 14 Regular, baseline 66, x 114.
   noAnswer: { icon: "callOutgoing", label: "No Answer", size: 14, color: C.ink, iconTop: 52, baseline: 66, x: 114 },
+  // An answered call I made has no board: drawn as an incoming call, with the violet phone (D-36b).
+  outgoing: { icon: "callOutgoing", label: "Outgoing Voice Call !", size: 12, color: C.ink, iconTop: 40, baseline: 52, x: 111 },
+};
+
+/** The words of a video call's row; "No Answer" stays. */
+const VIDEO_LABEL: Record<CallKind, DemoKey> = {
+  missed: "Missed Video Call !",
+  incoming: "Incoming Video Call !",
+  noAnswer: "No Answer",
+  outgoing: "Outgoing Video Call !",
 };
 
 /**
@@ -946,19 +951,19 @@ const CALL_STATE: Record<
  * incoming call.
  */
 function CallRowFace({
-  id,
-  kind,
-  minutes,
+  row,
+  contact,
   onOpen,
   t,
 }: {
-  id: string;
-  kind: CallKind;
-  minutes?: string;
+  row: CallRow;
+  contact: Contact;
   onOpen: () => void;
   t: (key: DemoKey) => string;
 }) {
+  const { id, kind, minutes } = row;
   const state = CALL_STATE[kind];
+  const label = row.video ? VIDEO_LABEL[kind] : state.label;
   // The file lifts the name of the row with a second line to baseline 30.
   const nameTop = textTop(minutes ? 30 : 36, 16);
   const nameBottom = nameTop + lineBox(16);
@@ -972,17 +977,17 @@ function CallRowFace({
       style={{ height: 90, marginTop: 2, background: C.page }}
     >
       <div className="shrink-0" style={{ marginLeft: 12, marginTop: 12 }}>
-        <Photo w={66} h={66} />
+        <Photo w={66} h={66} src={contact.photo} initials={contact.photo ? undefined : contact.initials} />
       </div>
       <div
         className="flex flex-col min-w-0 grow"
         style={{ marginLeft: 12, marginTop: nameTop }}
       >
         <div className="flex items-start w-full">
-          <Txt size={16} weight="medium">
-            {CONTACT.name}
+          <Txt size={16} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
+            {contact.name}
           </Txt>
-          <RowTime right={12} mt={textTop(23, 11) - nameTop} t={t} />
+          <RowTime right={12} mt={textTop(23, 11) - nameTop} time={row.time} t={t} />
         </div>
         <div
           className="flex items-start"
@@ -1000,7 +1005,7 @@ function CallRowFace({
               mt={stateTop - Math.min(state.iconTop, stateTop)}
               style={{ letterSpacing: "0.012em" }}
             >
-              {t(state.label)}
+              {t(label)}
             </Txt>
             {minutes && (
               <Txt

@@ -3225,6 +3225,9 @@ const translations = {
   "{n} minute answered": "{n} dakikada yanıtlandı",
   "Need help ? Start Chat about this product !": "Yardım mı lazım ? Bu ürün hakkında sohbet başlat !",
   "Country code": "Ülke kodu",
+  "Missed Video Call !": "Cevapsız Görüntülü Arama !",
+  "Incoming Video Call !": "Gelen Görüntülü Arama !",
+  "Outgoing Video Call !": "Giden Görüntülü Arama !",
 };
 
 export default translations;

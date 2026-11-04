@@ -4,13 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import LandingPage from "./LandingPage";
 import { useAppStore } from "store";
 import { loginHref } from "utils/loginPath";
+import { chatHref } from "components/DemoApp1/chat/chatPaths";
 
-const CallContainer = dynamic(
-  () => import("components/Chat/pages/CallContainer"),
-  {
-    loading: () => <LandingPage afterLoad={true} />,
-  }
-);
 const ChatModal = dynamic(() => import("components/Chat/ChatModal"), {
   loading: () => <LandingPage afterLoad={true} />,
 });
@@ -19,7 +14,8 @@ function AuthSections() {
   const loginOpen = useAppStore((s) => s.loginOpen);
   const setLoginOpen = useAppStore((s) => s.setLoginOpen);
   const chatOpen = useAppStore((s) => s.chatVar);
-  const call = useAppStore((s) => s.call);
+  // The chat of the call the store holds (started here or answered).
+  const callChat = useAppStore((s) => (s.call ? s.activeChat?.id : null));
   const router = useRouter();
   const { lang } = useParams();
 
@@ -37,12 +33,19 @@ function AuthSections() {
     router.push(loginHref(segment, `${pathname}${search}${hash}`));
   }, [loginOpen]);
 
-  return (
-    <>
-      {chatOpen && <ChatModal />}
-      {call && <CallContainer />}
-    </>
-  );
+  // A call opens the chat's call page (Stage 6, step 5), from any page: the
+  // call the shopper started, or the one they answered. The page goes back
+  // when the call ends.
+  useEffect(() => {
+    if (callChat == null) return;
+    const segment = typeof lang === "string" ? lang : "sy-en";
+    const href = chatHref(segment, "chat/call", String(callChat));
+    const { pathname, search } = window.location;
+    if (`${pathname}${search}` === href) return;
+    router.push(href);
+  }, [callChat]);
+
+  return <>{chatOpen && <ChatModal />}</>;
 }
 
 export default AuthSections;

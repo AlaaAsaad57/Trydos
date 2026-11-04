@@ -3241,6 +3241,9 @@ const translations = {
   "{n} minute answered": "لە {n} خولەکدا وەڵام درایەوە",
   "Need help ? Start Chat about this product !": "یارمەتیت پێویستە ؟ دەست بە گفتوگۆ بکە دەربارەی ئەم بەرهەمە !",
   "Country code": "کۆدی وڵات",
+  "Missed Video Call !": "پەیوەندی ڤیدیۆیی لەدەستچوو !",
+  "Incoming Video Call !": "پەیوەندی ڤیدیۆیی هاتوو !",
+  "Outgoing Video Call !": "پەیوەندی ڤیدیۆیی دەرچوو !",
 };
 
 export default translations;
