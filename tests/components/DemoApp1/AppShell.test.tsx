@@ -26,20 +26,10 @@ const home = vi.hoisted(() => ({
 }));
 vi.mock("services/home", () => ({ default: home }));
 
-// The old search box (SearchIcon) reads the market backend when it opens. The
-// search cases only check whether it opens, so its reads answer empty.
-vi.mock("serverRequests/Search", () => ({
-  GetSearchData: vi.fn(async () => ({ brands: [], categories: [], boutiques: [], products: [], total_size: 0 })),
-  GetSearchSuggestion: vi.fn(async () => ({ suggestion: "" })),
-}));
-vi.mock("services/search", () => ({
-  default: { getTrendingSearch: vi.fn(async () => ({ popular_search_terms: [] })) },
-}));
 vi.mock("next/dynamic", () => ({ default: () => () => null }));
 
 import { useAppStore } from "store";
 import AppShell from "components/DemoApp1/AppShell";
-import SearchIcon from "components/Home/Search/SearchIcon";
 import { TAB_ROOM } from "components/DemoApp1/demo1Layout";
 
 const dictionary = {
@@ -89,32 +79,6 @@ const barRoom = () =>
 /** Every inline style name the document root carries. */
 const htmlStyleNames = () => [...document.documentElement.style];
 
-/**
- * A page next to the shell. The home page and the category pages render the
- * old search box (CategoryHomeView renders SearchIcon); other pages do not.
- * `which` is the page's key: a new key is a new page, so a new SearchIcon.
- */
-const hasSearchBox = (pathname: string) =>
-  pathname.split("/").filter(Boolean).length === 1 || pathname.includes("/categories/");
-const pageAt = (pathname: string, which = pathname) => (
-  <>
-    <main>{hasSearchBox(pathname) && <SearchIcon key={which} language="en" country="sy" />}</main>
-    <AppShell dictionary={dictionary} />
-  </>
-);
-const openWithSearchOn = (pathname: string) => {
-  url.pathname = pathname;
-  page.lang = pathname.split("/")[1];
-  return render(pageAt(pathname));
-};
-/** The navigation landed: the router reports the new path and the new page renders. */
-const landOn = (rerender: (ui: React.ReactElement) => void, pathname: string) => {
-  url.pathname = pathname;
-  rerender(pageAt(pathname));
-};
-const searchBoxOpen = () =>
-  document.querySelector<HTMLInputElement>('[data-pw="inputField"]')?.disabled === false;
-const pageScrollLocked = () => document.documentElement.style.overflow === "hidden";
 
 const enableCart = vi.fn();
 const setLoginOpen = vi.fn();
@@ -141,8 +105,6 @@ beforeEach(() => {
     openPayIframe: false,
     chatVar: false,
     enable_search: false,
-    openSearchRequest: 0,
-    handledSearchRequest: 0,
     enableCart,
     setLoginOpen,
     setShouldAuthinticated,
@@ -208,47 +170,25 @@ describe("AppShell — the new bottom bar on every page", () => {
     expect(enableCart, "the Cart tab did not call enableCart(true)").toHaveBeenCalledWith(true);
   });
 
-  it("Search off the home page goes home and asks the store to open search", () => {
+  it("Search goes to the search page /sy-en/search (Stage 7, S7-2)", () => {
     openOn("/sy-en/cart");
     pressTab("search");
-    expect(router.push, "the Search tab did not go to the home page /sy-en first").toHaveBeenCalledWith("/sy-en");
-    expect(
-      useAppStore.getState().openSearchRequest,
-      "the Search tab did not bump openSearchRequest from 0 to 1",
-    ).toBe(1);
-  });
-
-  it("Search on a category page goes home, and the category page's search box ignores the request", async () => {
-    const { rerender } = openWithSearchOn("/sy-en/categories/x");
-    await act(async () => pressTab("search"));
-    expect(router.push, "the Search tab on a category page did not go to the home page /sy-en").toHaveBeenCalledWith(
-      "/sy-en",
+    expect(router.push, "the Search tab did not go to the search page /sy-en/search").toHaveBeenCalledWith(
+      "/sy-en/search",
     );
-    expect(searchBoxOpen(), "the category page's search box opened, but search belongs to the home page").toBe(false);
-    expect(pageScrollLocked(), "the category page's search box locked the page scroll (overflow hidden)").toBe(false);
-
-    await act(async () => landOn(rerender, "/sy-en"));
-    expect(searchBoxOpen(), "the home page's search box did not open after the Search tab's navigation").toBe(true);
   });
 
-  it("Search on the home page does not navigate and opens the home search box", async () => {
-    openWithSearchOn("/sy-en");
-    await act(async () => pressTab("search"));
-    expect(router.push, "the Search tab on the home page navigated, but it is already there").not.toHaveBeenCalled();
-    expect(searchBoxOpen(), "the Search tab on the home page did not open the search box").toBe(true);
+  it("Search on the home page goes to the search page too, not to a search over the home", () => {
+    openOn("/sy-en");
+    pressTab("search");
+    expect(router.push, "the Search tab on the home page did not go to /sy-en/search").toHaveBeenCalledWith(
+      "/sy-en/search",
+    );
   });
 
-  it("drops a search request when the shopper goes to a page that is not home before home loads", async () => {
-    const { rerender } = openWithSearchOn("/sy-en/cart");
-    await act(async () => pressTab("search"));
-    expect(router.push, "the Search tab on /sy-en/cart did not go to the home page").toHaveBeenCalledWith("/sy-en");
-
-    // The shopper went to a product before the home page loaded.
-    await act(async () => landOn(rerender, "/sy-en/products/x"));
-    // Later the shopper opens the home page on their own.
-    await act(async () => landOn(rerender, "/sy-en"));
-    expect(searchBoxOpen(), "an old Search request opened search on a later visit to the home page").toBe(false);
-    expect(pageScrollLocked(), "an old Search request locked the home page scroll").toBe(false);
+  it("lights Search on the search page", () => {
+    openOn("/sy-en/search");
+    expect(litTabName(), "the Search tab is not lit on /sy-en/search").toBe("demo-tab-search");
   });
 
   it("lights Search while the search is open", () => {

@@ -303,6 +303,22 @@ describe("getCachedBoutiques", () => {
     ).toBe('["shoes"]');
   });
 
+  it("asks the search engine for the number of boutiques it is given, and 10 by default", async () => {
+    GetHomeBoutiques.mockResolvedValue({ data: {} });
+    const { getCachedBoutiques } = await import("serverRequests/cached/home");
+    await getCachedBoutiques("sy", "en", null, 21);
+    await getCachedBoutiques("sy", "en", null);
+
+    expect(
+      GetHomeBoutiques.mock.calls[0][0].limit,
+      "the new home's first read of 21 boutiques (9 brand stores + 12 grid cards) did not reach the search engine",
+    ).toBe(21);
+    expect(
+      GetHomeBoutiques.mock.calls[1][0].limit,
+      "a read with no limit no longer asks for 10 boutiques, the old home's page size",
+    ).toBe(10);
+  });
+
   it("returns an empty section rather than throwing when the search engine answers nothing", async () => {
     GetHomeBoutiques.mockResolvedValue({ data: {} });
     const { getCachedBoutiques } = await import("serverRequests/cached/home");

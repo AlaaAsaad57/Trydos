@@ -287,7 +287,8 @@ describe("every live reader applies the QA story filter", () => {
   const READERS = [
     "services/story.ts",
     "serverRequests/stories.ts",
-    "components/Home/Stories/StoriesBarClient.tsx",
+    // The new home's stories row (Stage 7) replaced the old StoriesBarClient.
+    "components/DemoApp1/useHomeData.ts",
     "components/Home/Stories/StoriesPaginationWrapper.tsx",
   ];
 

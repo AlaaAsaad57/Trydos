@@ -3,6 +3,7 @@ import { LogError, translateFunction } from "./functions";
 import { posthogReset } from "./posthog";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { isCartPath } from "components/Cart/cartPath";
+import { isSearchPath } from "components/DemoApp1/appRoutes";
 import { fetchData, abortInFlightForLogout } from "./fetchData";
 import Image from "next/image";
 import { REQUESTS_DATA } from "./Requests";
@@ -452,6 +453,11 @@ export const DetectScreen = () => {
   // The cart page /[lang]/cart (Stage 3): the part after the locale is "cart".
   if (isCartPath(pathname)) {
     return GA_GLOBAL_SCREEN.CART_SCREEN;
+  }
+  // The search page /[lang]/search (Stage 7). The old search, over the home
+  // page, reported the home screen.
+  if (isSearchPath(pathname)) {
+    return GA_GLOBAL_SCREEN.SEARCH_SCREEN;
   }
   if (pathname?.includes("/products")) {
     return GA_GLOBAL_SCREEN.PRODUCT_SCREEN;

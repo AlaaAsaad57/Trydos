@@ -12,9 +12,9 @@ vi.mock("serverRequests/meta/home", () => ({
   isValidCategorySlug: (slug: string) => /^[a-z-]+$/.test(slug),
 }));
 vi.mock("utils/serverErrorReporter", () => ({ LogServerError: (...a: unknown[]) => spies.LogServerError(...a) }));
-vi.mock("components/Home/CategoryHomeView", () => ({ default: () => null }));
+vi.mock("components/DemoApp1/screens/AppHomeView", () => ({ default: () => null }));
 
-import CategoryHomeView from "components/Home/CategoryHomeView";
+import AppHomeView from "components/DemoApp1/screens/AppHomeView";
 import CategoryPage, { generateMetadata } from "app/(client)/[lang]/categories/[slug]/page";
 
 const args = (slug: string) => ({ params: Promise.resolve({ slug }) });
@@ -53,7 +53,7 @@ describe("the category page", () => {
   it("renders the category view for a valid slug", async () => {
     const tree: any = await CategoryPage(args("shoes"));
 
-    expect(tree.type, "the page did not render the category view").toBe(CategoryHomeView);
+    expect(tree.type, "the page did not render the new home view (S7-4)").toBe(AppHomeView);
     expect(tree.props.slug, "the category view got the wrong slug").toBe("shoes");
   });
 

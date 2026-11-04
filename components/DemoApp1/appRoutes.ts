@@ -1,9 +1,9 @@
 import type { DemoTab } from "components/DemoApp/demoRoutes";
 
-// Paths of the three tabs that are real pages.
+// Paths of the tabs that are real pages (search since Stage 7, S7-2).
 export function tabHref(
   locale: string,
-  tab: "home" | "cart" | "settings",
+  tab: "home" | "search" | "cart" | "settings",
 ): string {
   return tab === "home" ? `/${locale}` : `/${locale}/${tab}`;
 }
@@ -17,6 +17,12 @@ export function isHomePath(pathname: string): boolean {
   return afterLocale(pathname).length === 0;
 }
 
+// The search page (Stage 7, S7-2): `/sy-en/search`.
+export function isSearchPath(pathname: string): boolean {
+  const parts = afterLocale(pathname);
+  return parts.length === 1 && parts[0] === "search";
+}
+
 // Which tab is lit. An open chat or search wins over the path.
 // A page that belongs to no tab lights nothing.
 export function litTab(
@@ -27,6 +33,7 @@ export function litTab(
   if (open.search) return "search";
   const [first] = afterLocale(pathname);
   if (first === undefined) return "home";
+  if (first === "search") return "search";
   if (first === "cart") return "cart";
   if (first === "settings") return "settings";
   return null;

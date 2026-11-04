@@ -888,6 +888,102 @@ Hardcoded (about 14): `ReactionSheet.tsx` tab labels (lines 44-49), "Reactions" 
 **New:** `components/DemoApp1/screens/HomeScreen.tsx`, `SearchScreen.tsx`.
 **Live:** `app/(client)/[lang]/page.tsx` → `CategoryHomeView` (also used by `/categories/[slug]`, so it stays),
 `components/Home/Search/SearchIcon.tsx` (1021 lines).
+**Built in:** `../trydos-shop`, branch `ui-migrations-shop` (lane C, A-35).
+
+### Decided for Stage 7 (2026-11-04)
+
+| # | Decision | Answer |
+|---|---|---|
+| S7-1 | Home body | **Changes D-41.** Since 2026-11-02 the new home has its own body (XD `Home Page – 2`, `HomeSections.tsx`): stories row, "Brand Stores" carousel, "Stores" grid. The home shows **only this new body**, with real data. Featured, flash deals and recommended are not shown; their code is kept (as A-33). Known effect: the home page has fewer product links for search engines (D-42); the boutique cards still link to the boutique pages. |
+| S7-2 | How home and search turn on | Each is its own page, not a screen drawn by `AppShell` (lane A builds that in Stage 4). `app/(client)/[lang]/page.tsx` renders the new header and body itself (server render kept, D-42). A new route `app/(client)/[lang]/search/page.tsx` renders the new search. `AppShell` changes only the Search tab: it goes to `/[lang]/search` and is lit there. |
+| S7-3 | Brand Stores vs Stores | The live boutiques have no "brand store" field. Rule: boutiques in their backend order (`boutique_position`); the first 9 fill the Brand Stores carousel (3 pages of 3), the rest fill the Stores grid. A backend "brand store" flag can replace the rule later. |
+| S7-4 | Category page | **Changes D-43.** `/[lang]/categories/<slug>` shows the new home too: the same header with that chip picked, and the new body for that category (the boutiques reader already filters by category). This does not clash with A-32: `/categories/<slug>` is a home page, not a listing, so Stage 7b does not move it to the store page design. Stage 7b moves only the listings (`/filters/...`, search results, `/flashDeals/...`, `/featured/...`). |
+| S7-5 | Add story | The live "add story" tile has no place in `Home Page – 2`. It stays: an "add story" card first in the new stories row, drawn in the style of the new story cards. It opens the old `AddStoryWidget`, as today. The designer must check it (no XD board). |
+| S7-7 | Store count | The first read takes 21 boutiques (9 for the carousel, 12 for the grid's 4 columns of 3). When the shopper slides the grid near its end, the next boutiques load into new columns, with the same reader and paging as the old home. Every boutique stays reachable from home. |
+| S7-8 | Picked chip on home | On `/[lang]` no chip is picked. On `/categories/<slug>` that category's chip is picked and moves to the front, as the old category bar does. |
+| S7-9 | Story card style | Every card uses the file's card 2: radius 20, shadow `0 3px 3px` black at 20%, no line. |
+| S7-10 | Seen ring | Orange ring (as the file) = the person has a story not seen yet. Grey ring `#D3D3D3` = all seen, the live bar's meaning. The designer must check the grey. |
+| S7-11 | Store logo | "Respect the design always": the boutique's `icon` sits in the file's logo band, 20 px high at top 65, centred under the awning, its width taken from the picture (a square icon shows at 20 x 20). A boutique with no icon shows its name in that band (the card's name mark). |
+| S7-6 | Search chips | The row shows only the "For you" chip, picked, with no effect (A-8, backend S-2). The five "Empty" chips of the file are placeholders and are not drawn until the backend gives real chip names. |
+| S7-12 | The home's `h1` (D-42) | Owner's answer on 2026-11-04: **a hidden `h1`**. `AppHomeView` writes one `h1` with the `sr-only` class: screen readers and search engines read it, nobody sees it. On `/[lang]` it is the existing key `Trydos` ("تريدوس" in Arabic); on a category page it is the category's name. No new translation key. |
+
+### Progress (lane C)
+
+1. **Done (not committed):** real data for the home. `components/DemoApp1/homeData.ts` (boutiques → cards, S7-3
+   split, chips), `useHomeData.ts` (`useHomeStories`, `useHomeGrid`), `getCachedBoutiques` takes a `limit`.
+2. **Done (not committed):** the new home on `/[lang]` and `/[lang]/categories/<slug>`: `AppHomeView` (server,
+   cached reads) → `AppHome` (client). `HomeSections` draws the data it is given (no mock import); `/demo` passes
+   the file's own data from `HomeScreen`. The header is its own file (`HomeHeader.tsx`). "Add story" card:
+   `addStory.ts` (the live tile's rules). `CategoryHomeView` has no caller now (step 6 decides, D-6).
+   - The new home has no request-time part, so Next stopped on the Redis metadata ("uncached data in
+     `generateMetadata()`"). Fixed with an empty `connection()` part in a Suspense (`RequestTime`): the page
+     behaves as before. Test seen red, then green: "keeps one request-time part, so the metadata may read
+     Redis" (`tests/components/DemoApp1/AppHomeView.test.tsx`).
+   - The live home had **no `h1`**, though D-42 says one "must stay". Closed by S7-12 (a hidden `h1`).
+3. **Done (not committed):** the search page `/[lang]/search` (`app/(client)/[lang]/search/page.tsx` →
+   `AppSearch`). The old search is split, unchanged: state and logic in `components/Home/Search/useSearch.ts`,
+   results body in `SearchResults.tsx`; `SearchIcon` keeps only its overlay (its 85 old tests pass). The header
+   is `SearchHeader.tsx`, shared with `/demo`. Voice and Scan are the old voice and image search with the design's
+   marks (new optional `icon` / `label` props). Only "For you" (S7-6). `noindex` and `instant = false`, as the
+   cart page. `DetectScreen` names `/[lang]/search` `SEARCH_SCREEN` (an old name; the overlay reported the home
+   screen). Tests seen red, then green: the two `DetectScreen` search cases (`tests/utils/tinyUtils.test.ts`).
+   - Found and fixed: on `/sy-ar/search` the results body made a hydration error (its client `translateFunction`
+     answers English on the server). It is now drawn only in the browser, with a skeleton in the HTML. Test seen
+     red, then green: "draws the results body only in the browser…" (`tests/components/DemoApp1/AppSearch.test.tsx`).
+4. **Done (not committed):** the Search tab goes to `/[lang]/search` from every page and is lit there. Tests seen red,
+   then green: the 3 search cases of `AppShell.test.tsx` and "lights search on the search page"
+   (`appRoutes.test.ts`). The store's `openSearchRequest` mechanism has no sender now (step 6 removes it).
+5. **Done (not committed):** RTL of the home and search screens (A-13, A-15). Every x is from the start edge
+   (`insetInlineStart`, `marginInlineStart`, logical corner radii); a card's contents centre in a box from the start
+   edge instead of `left` + `translateX(-50%)`; both sliders run right to left in `ar` / `ku` (Embla `direction`),
+   so a swipe works the other way, and the hint moves the other way too. Checked in the browser at 440 x 802.
+6. **Done (not committed):** old code removal (D-6, owner's OK on 2026-11-04: "delete all listed"). Deleted, each with
+   no caller left: `CategoryHomeView`, the old stories bar (`StoriesBarClient`, `AddStory`, `StoriesWrapper`,
+   `StoryElement`, `Story`, `StoryCard`, `StoryAvatar`, `StoriesSkeleton`), the old category bar (`MainCategories`,
+   `Server/Navbar`, `CategoryNavMobile`, `MobileNavigation` skeleton), the old search box (`SearchIcon`, the store's
+   `openSearchRequest` / `handledSearchRequest`), the old boutiques section (`BoutiquesListWrapper`,
+   `OfferListServer`, `InfinteScroll`, `BoutiqueWrapper`, `BoutiqueElement`, `OfferList` skeleton,
+   `GetNextBoutiques`), `HomeLoader` and its `is_home` branch, and their tests. Kept (S7-1): featured, flash deals,
+   recommended. `FullHomeLoader` is redrawn in the new home's shape. The package `embla-carousel-auto-height` may have
+   no user left (only `BoutiqueElement` used it); `package.json` is not changed.
+7. **Done (2026-11-04):** the hidden `h1` (S7-12). Seen in the browser: "Trydos" on `/sy-en`, "تريدوس" on `/sy-ar`,
+   "WOMEN" on `/sy-en/categories/women-7`. No new test (owner's order, see below).
+8. **Done (2026-11-04):** the XD check at 440 x 802. `/sy-en` against `/sy-en/demo`: the same header, stories row,
+   "Brand Stores" block and cards; the differences are data only (staging story photos, small square boutique icons
+   in the 20 px logo band as S7-11 says, no chip picked as S7-8 says). `/sy-ar` mirrors all of it. `/sy-en/search`
+   and `/sy-ar/search`: the header matches the file and mirrors.
+   - Found and fixed: on `/sy-ar/search` the old results body read left to right. It mirrors itself by hand
+     (`isRtl` → `flex-row-reverse`), and inside the new page's `dir="rtl"` it was mirrored twice. `AppSearch` now
+     gives it its own `dir="ltr"` box, so it looks as it did on the old pages. Seen right in the browser after the
+     fix. No red-first test (owner's order).
+   - Not changed (old code, as before Stage 7): the search "Reset" button has a fixed 64 px width (`w-16`), so the
+     Arabic "إعادة تعيين" breaks into 2 lines.
+9. **Done (2026-11-04):** committed (`7ffb46e2`), pushed, and the full unit suite run in CI
+   ([run 41877993877](https://github.com/AlaaAsaad57/Trydos/actions/runs/41877993877)). Parity, lint and the type
+   check pass. Unit: 665 files pass, 2 fail, with 3 tests, none from Stage 7 (Stage 7 changes no chat file). All
+   three come from commit `2f42f4e7` on `development`:
+   - `tests/components/Chat/pages/ChatLists.test.tsx`: the 2 known cases (see Stage 8).
+   - `tests/components/Chat/components/ChatListSearch.test.tsx`: "filters the list at once and searches contacts
+     after half a second". `2f42f4e7` removed the `SearchContact` call from `ChatListSearch.tsx`, so the test waits
+     for a call that no longer exists. The test is out of date, not the app. For lane B (chat) or Stage 8.
+   - The `compare.test.tsx` case seen red in the stopped local run passes in CI (a random failure).
+10. Left: the owner's review, then the merge into `ui-migrations` (owner's answer on 2026-11-04: stop after CI for
+   the review).
+
+### Where Stage 7 stopped (2026-11-04)
+
+- **Owner's order, 2026-11-04 (relayed by session trydos-4f, confirmed by the owner in this lane the same day):** no new unit tests and no local test runs for the
+  rest of Stage 7 and for Stages 7b and 7c (the laptop is low on memory). A broken existing test is only listed
+  here; the full unit suite runs later in CI. Tests already written stay.
+- Before that order: `next typegen` + `tsc` clean; `pnpm lint` 0 errors (no warning in a Stage 7 file);
+  `pnpm lint:i18n-parity` OK (2813 keys); the unit tests of every changed file passed.
+- A wide local run (most of `tests/`) was stopped by that order part way. Red before it stopped, none in a Stage 7
+  file:
+  - `tests/components/Chat/pages/ChatLists.test.tsx`: "shows the existing chat, not a new one, when only the contact
+    name matches" and "still offers a new chat for a contact who has no chat yet" (known: commit `2f42f4e7` on
+    `development`, see Stage 8).
+  - `tests/components/global/compare.test.tsx`: "loads both products named in the address and puts them side by
+    side" (not looked at; the compare page is not touched by Stage 7; may be the suite's usual random failure).
 
 ### Live parts to keep or replace (after D-41..D-44)
 - Home: metadata (`GetHomeMetaData`), structured data, featured row, flash deals, boutiques, recommended,
@@ -1055,3 +1151,11 @@ and after D-45: `change_size`, `add_to_cart`.
    `TryDos` are each written twice, without quotes (for example `translations.ar.js` lines 1139, 1213, 1219,
    1263). In Arabic `TryDos` is once ترايدوس and once تريدوس; the last one wins, so the first is dead. Found
    while adding the terms line's key in Stage 2 (A-29); nothing was changed.
+8. **The category page breaks a Next rule on every load.** `/[lang]/categories/<slug>` awaits `params` outside a
+   Suspense, and the dev server reports "Next.js encountered runtime data during prerendering or a navigation".
+   Seen on 2026-11-04 with the old view too (`CategoryHomeView`), so Stage 7 did not cause it. Found in Stage 7
+   (lane C); nothing was changed.
+9. **One boutique on staging has a doubled icon path.** Its `icon` already holds a media path, so the address
+   comes out as `.../boutiques/icon//image/upload/boutiques/boutiques/icon/...` and answers `404`. The live store
+   page builds the address the same way (`BoutiqueMiniLogo`, `GetImageUrl(boutique.icon)`), so it is the data,
+   not the new home. Found in Stage 7 (lane C); nothing was changed.

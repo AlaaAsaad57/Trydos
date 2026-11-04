@@ -5,7 +5,6 @@ import SellerDashboardLoader from "components/skeleton/loaders/SellerDashboardLo
 import CompareSkeleton from "components/skeleton/loaders/CompareSkeleton";
 import FilterLoader from "components/skeleton/loaders/FilterLoader";
 import FullHomeLoader from "components/skeleton/loaders/FullHomeLoader";
-import HomeLoader from "components/skeleton/loaders/HomeLoader";
 import ProductLoader from "components/skeleton/loaders/ProductLoader";
 import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 
@@ -16,7 +15,6 @@ import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
  */
 export default function InFlowPageLoader({ nav }: { nav: any }) {
   if (!nav) return null;
-  if (nav.is_home) return <HomeLoader />;
   if (nav.is_boutique) return <BoutiqueLoader boutique={nav} />;
   if (nav.is_product) return <ProductLoader product={nav} />;
   if (nav.is_filter) return <FilterLoader isForSearch boutique={nav} />;

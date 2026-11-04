@@ -2,15 +2,17 @@
 
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import React, { useState } from "react";
-import { motion } from "framer-motion";
-import XdIcon from "../../DemoApp/XdIcon";
 import { useDemoNav } from "../Demo1Shell";
 import { C } from "../demo1Layout";
-import { ScreenPage, Stroke } from "../ui";
-import { TRAVEL } from "../barMotion";
+import { ScreenPage } from "../ui";
 import { hrefFor } from "../../DemoApp/demoRoutes";
-import { storeScreen } from "../../DemoApp/demoStores";
-import HomeSections from "./HomeSections";
+import { HomeHeader } from "./HomeHeader";
+import {
+  storeBySlug,
+  storeScreen,
+  type DemoStore,
+} from "../../DemoApp/demoStores";
+import HomeSections, { type HomeCard, type HomeStoryCard } from "./HomeSections";
 import { useDemoCase } from "../demoCase";
 import { warmListing } from "./ListingScreen";
 
@@ -39,95 +41,70 @@ const CATEGORIES = ["Man", "Women", "Children", "Home", "Electronic"] as const;
 /** Slot widths: the file's distance from one chip's left edge to the next. */
 const SLOTS = [56, 76, 79, 65, undefined] as const;
 
+/*
+  The /demo body's data: the file's own stores and pictures (XD `Home Page – 2`).
+  The app gives HomeSections real data instead (Stage 7, A-16).
+*/
+const demoStore = (slug: string): DemoStore => {
+  const found = storeBySlug(slug);
+  if (!found) throw new Error(`demoStores.ts has no store "${slug}"`);
+  return found;
+};
+
+const card = (s: DemoStore, withLogo = true): HomeCard => ({
+  slug: s.slug,
+  name: s.name,
+  shown: s.shown,
+  logo: withLogo ? s.logo : undefined,
+});
+
+/** The file draws three carousel pages, each with the same three brands. */
+const DEMO_BRANDS: HomeCard[] = Array.from({ length: 3 }, () =>
+  ["zara", "mango", "vakko"].map((slug) => card(demoStore(slug))),
+).flat();
+
+/** The store grid, down each column. The last two columns have no logo in the file. */
+const DEMO_STORES: HomeCard[] = [
+  [["ebebek", true], ["boyner", true], ["sephora", true]],
+  [["gratis", true], ["beymen", true], ["rossmann", true]],
+  [["vakko", false], ["koton", false], ["zara", false]],
+  [["stradivarius", false], ["bershka", false], ["koton", false]],
+].flatMap((column) =>
+  column.map(([slug, logo]) => card(demoStore(slug as string), logo as boolean)),
+);
+
+/** The file's four story cards. */
+const DEMO_STORIES: HomeStoryCard[] = [
+  ["Jon Plus", "story-jon.jpg"],
+  ["Eda Love", "story-eda.jpg"],
+  ["Ella", "story-ella.jpg"],
+  ["Secret", "story-secret.jpg"],
+].map(([name, photo]) => ({
+  id: name,
+  name,
+  cover: `/assets/demo/home/${photo}`,
+  avatar: "/assets/demo/home/story-jon.jpg",
+  seen: false,
+}));
+
 export default function HomeScreen() {
   const { navigate, locale } = useDemoNav();
   // Titles and labels in Apple's title style (demoCase).
   const { t } = useDemoCase();
-  const [picked, setPicked] = useState<(typeof CATEGORIES)[number]>(
-    CATEGORIES[0],
-  );
+  const [picked, setPicked] = useState<string>(CATEGORIES[0]);
 
   const header = (
-    <header
-      className="relative w-full flex items-start"
-      style={{
-        height: 50,
-        background: C.white,
-        boxShadow: "0 0 3px rgba(0,0,0,0.1)",
-      }}
-    >
-      {/* The mark at (15.5, 64.5), in a 37 px target 8 px round it. */}
-      <button
-        type="button"
-        aria-label={t("Search")}
-        data-pw="demo-home-search"
-        onClick={() => navigate("search")}
-        className="shrink-0 cursor-pointer active:opacity-60"
-        style={{
-          marginLeft: 15.5 - 8,
-          marginTop: 14.5 - 8,
-          width: 37,
-          height: 37,
-          padding: 8,
-        }}
-      >
-        <XdIcon name="homeLogo" />
-      </button>
-
-      <div
-        className="flex flex-1 min-w-0 items-center overflow-x-auto"
-        // The row scrolls sideways, and a scroll box clips at its edges. It
-        // starts 2 px early (x 58) and 2 px higher (y 57), with the same
-        // padding inside, so the picked chip's 0.3 line sits inside the box
-        // instead of on its edge, where it was cut off.
-        style={{
-          marginLeft: 58 - (15.5 - 8 + 37),
-          marginTop: 7,
-          height: 36,
-          padding: "2px 11px 2px 2px",
-          scrollbarWidth: "none",
-        }}
-      >
-        {CATEGORIES.map((name, i) => {
-          const on = name === picked;
-          return (
-            <button
-              key={name}
-              type="button"
-              data-pw={`demo-category-${name}`}
-              aria-pressed={on}
-              onClick={() => setPicked(name)}
-              className={`relative shrink-0 cursor-pointer whitespace-nowrap text-left ${on ? "font-medium" : "font-normal"}`}
-              style={{
-                height: 32,
-                minWidth: SLOTS[i],
-                paddingRight: 4,
-                fontSize: 13,
-                color: C.ink,
-                lineHeight: "32px",
-              }}
-            >
-              <span
-                className="relative inline-block"
-                style={{ height: 32, padding: "0 12px" }}
-              >
-                {on && (
-                  <motion.span
-                    layoutId="demo-home-chip"
-                    transition={TRAVEL}
-                    className="absolute inset-0"
-                    style={{ borderRadius: 12, background: "#F8F7FF" }}
-                  >
-                    <Stroke color="#707070" width={0.3} radius={12} />
-                  </motion.span>
-                )}
-                <span className="relative">{t(name)}</span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </header>
+    <HomeHeader
+      searchLabel={t("Search")}
+      onSearch={() => navigate("search")}
+      chips={CATEGORIES.map((name, i) => ({
+        key: name,
+        label: t(name),
+        picked: name === picked,
+        slot: SLOTS[i],
+      }))}
+      onPick={setPicked}
+    />
   );
 
   return (
@@ -142,6 +119,9 @@ export default function HomeScreen() {
     >
       <HomeSections
         t={t}
+        stories={DEMO_STORIES}
+        brands={DEMO_BRANDS}
+        stores={DEMO_STORES}
         openStore={{
           href: (slug) => hrefFor(locale, storeScreen(slug)),
           open: (slug, card) => navigate(storeScreen(slug), 1, card),

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
@@ -50,7 +50,20 @@ const getDeviceCategory = () => {
   return "desktop";
 };
 
-function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
+/**
+ * The image search. `icon` and `label` are for the new search page
+ * (/[lang]/search, Stage 7, D-44): its Scan mark replaces the old camera
+ * picture, in a button with that label. The logic does not change.
+ */
+function SearchImage({
+  setSearchValue,
+  icon,
+  label,
+}: {
+  setSearchValue: Function;
+  icon?: ReactNode;
+  label?: string;
+}) {
   const { language } = useAppStore();
 
   let { lang } = useParams();
@@ -226,7 +239,18 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
           <Spinner />
         ) : (
           <>
-            <img src="/icons/SearchCamIcon.svg" onClick={OpenMenu} />
+            {icon ? (
+              <button
+                type="button"
+                aria-label={label}
+                onClick={OpenMenu}
+                className="block cursor-pointer active:opacity-60"
+              >
+                {icon}
+              </button>
+            ) : (
+              <img src="/icons/SearchCamIcon.svg" onClick={OpenMenu} />
+            )}
             {isDesktop && showMenu && (
               <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                 <div className="py-1">

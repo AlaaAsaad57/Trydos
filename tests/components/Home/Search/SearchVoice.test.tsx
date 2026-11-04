@@ -90,6 +90,19 @@ describe("SearchVoice", () => {
     expect(showErrorNotification, "an unsupported browser was not reported").toHaveBeenCalledWith("Browser Does Not Support This Feature");
   });
 
+  it("with an icon (the search page), draws it in a labelled button that records", async () => {
+    await renderWithProviders(
+      <SearchVoice setSearchValue={() => {}} icon={<span data-pw="voice-mark" />} label="Voice Search" />,
+    );
+    const button = micIcon();
+    expect(button.tagName, "the voice mark is not a button").toBe("BUTTON");
+    expect(button.getAttribute("aria-label"), "the voice button has no label").toBe("Voice Search");
+    expect(button.querySelector('[data-pw="voice-mark"]'), "the voice button does not draw the given mark").not.toBeNull();
+    expect(document.querySelector('img[src="/icons/SearchMicIcon.svg"]'), "the old mic picture still shows next to the mark").toBeNull();
+    await tap();
+    expect(recorders.length, "a tap on the voice button did not start the recording").toBeGreaterThan(0);
+  });
+
   it("tells the shopper when the microphone is refused", async () => {
     mic(true);
     await renderWithProviders(<SearchVoice setSearchValue={() => {}} />);
