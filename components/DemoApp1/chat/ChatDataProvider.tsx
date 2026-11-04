@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { findChat } from "components/Chat/findChat";
+import { openChatFromList } from "components/Chat/openChatFromList";
 import chatService from "services/chat";
 import { useAppStore } from "store";
 import { GetArchivedChats, GetMyReminders } from "store/chat/actions";
@@ -24,6 +26,7 @@ import {
 } from "./chatSend";
 import { toChatState, type MapWords } from "./chatMapper";
 import type { ChatAction } from "./chatModel";
+import { NavCtx } from "../screenNav";
 
 /**
  * The real chat for the new chat screens. Stage 6, step 3b.
@@ -42,7 +45,13 @@ import type { ChatAction } from "./chatModel";
  *
  * The chat on screen is the store's open chat (`activeChat`, set by the old
  * open), and the URL carries its id (`?id=`, chatPaths.ts): a URL with an id
- * opens that chat, and a screen of one chat with no id in its URL gets one.
+ * opens that chat, and the URL follows the open chat.
+ *
+ * A reload of one chat's URL comes up before its chat is loaded. Until it is
+ * open, the URL's chat is the chat on screen, so the screens wait for it
+ * (chatOnScreen). A chat outside the loaded pages is found on the chat
+ * backend's pages (findChat); a new chat (`ch-<user id>`) is opened again with
+ * its contact. A chat that is nowhere sends the shopper back to the list.
  */
 export function ChatDataProvider({
   children,
@@ -62,6 +71,7 @@ export function ChatDataProvider({
   const open = useAppStore((s) => s.activeChat);
   const book = useAppStore((s) => s.contacts);
   const userChat = useAppStore((s) => s.userChat);
+  const chatsLoading = useAppStore((s) => s.chat_loading);
   const liveCallId = useAppStore((s) => s.MessageActiveCall);
   const calling = useAppStore((s) => s.isCallIncoming || !!s.callInProgress);
   // Read so a language change draws the words again.
@@ -71,6 +81,21 @@ export function ChatDataProvider({
   const [notice, setNotice] = useState<string | null>(null);
   const [search, setSearch] = useState(false);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /**
+   * The URL's chat while it is not open yet: the screens wait for it. A ref
+   * for the effects (they run in one pass) and state for the screens. It
+   * stays after a chat that is nowhere, so the screen going away never shows
+   * another chat in its place; the next open clears it.
+   */
+  const pendingRef = useRef<string | null>(null);
+  const [pending, setPendingState] = useState<string | null>(null);
+  const setPending = (id: string | null) => {
+    pendingRef.current = id;
+    setPendingState(id);
+  };
+  /** The chat whose pages are being walked, so one walk runs at a time. */
+  const walking = useRef<string | null>(null);
+  const nav = useContext(NavCtx);
 
   const myId = userChat?.id;
   useEffect(() => {
@@ -100,26 +125,60 @@ export function ChatDataProvider({
   const openFromUrl = () => {
     const id = chatIdFrom(window.location.search);
     if (!id || String(useAppStore.getState().activeChat?.id ?? "") === id) return;
-    if (!findChannel(id)) return;
-    setActive(id);
-    void runChatAction({ type: "open", chat: id }, { say });
+    if (pendingRef.current !== id) setPending(id);
+    if (findChannel(id)) {
+      setActive(id);
+      void runChatAction({ type: "open", chat: id }, { say });
+      return;
+    }
+    // Not loaded. Look only once the first page of chats is in.
+    if (useAppStore.getState().chat_loading || walking.current === id) return;
+    if (id.startsWith("ch-")) {
+      // A new chat: open the chat with its contact again (a real one when
+      // the first message made it, else a new empty one).
+      const contact = freshContact(id.slice(3));
+      // The contact may be in the contact book, which loads on its own.
+      if (!contact && !(useAppStore.getState().contacts ?? []).length) return;
+      if (!contact) return lost(id);
+      const opened = openChatWith(contact);
+      setActive(opened);
+      setPending(opened);
+      if (opened !== id) writeId(opened);
+      return;
+    }
+    walking.current = id;
+    void findChat(id).then((chat) => {
+      walking.current = null;
+      if (pendingRef.current !== id) return;
+      if (!chat) return lost(id);
+      setActive(id);
+      openChatFromList(chat);
+    });
   };
   useEffect(() => {
     if (!oneChat) return;
     openFromUrl();
     window.addEventListener("popstate", openFromUrl);
     return () => window.removeEventListener("popstate", openFromUrl);
-  }, [oneChat, data, archived]);
+  }, [oneChat, data, archived, book, chatsLoading]);
 
-  // Fill: a screen of one chat whose URL has no id gets the open chat's id
-  // (a tap on a row opens the chat, then the screen's URL comes with none).
+  /** The URL's chat is nowhere: say so, and go back to the list. */
+  const lost = (id: string) => {
+    say(t("Could not open the chat"));
+    if (pendingRef.current === id) nav?.navigate("chat", -1);
+  };
+
+  // Follow: the URL names the open chat. A tap on a row opens the chat and
+  // the screen's URL comes with no id; a new chat gets its real id with its
+  // first message. Not while the URL's own chat is on its way.
   const openId = open?.id != null ? String(open.id) : null;
   useEffect(() => {
-    if (!oneChat || !openId || chatIdFrom(window.location.search)) return;
-    writeId(openId);
+    if (pendingRef.current && pendingRef.current === openId) setPending(null);
+    if (!oneChat || !openId || pendingRef.current) return;
+    if (chatIdFrom(window.location.search) !== openId) writeId(openId);
   }, [oneChat, openId]);
 
-  const viewing = oneChat ? openId : null;
+  const viewing = pending ?? (oneChat ? openId : null);
 
   useEffect(
     () => () => {
@@ -171,6 +230,7 @@ export function ChatDataProvider({
   const dispatch = (action: ChatAction) => {
     if (action.type === "open") {
       setActive(action.chat);
+      setPending(null);
       // Switch: another chat opened on a screen of one chat takes the URL now.
       if (oneChat) writeId(action.chat);
     } else if (action.type === "archive" && viewing === action.chat) {
@@ -183,6 +243,7 @@ export function ChatDataProvider({
   /** A chat opened by `newChat`: the row to mark, and the URL on a screen of one chat. */
   const show = (id: string) => {
     setActive(id);
+    setPending(null);
     if (oneChat) writeId(id);
   };
 

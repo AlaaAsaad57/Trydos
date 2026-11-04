@@ -7,6 +7,7 @@ import XdIcon from "../../DemoApp/XdIcon";
 import { CHAT_COUNTS, CHAT_PHOTOS, CONTACT } from "../../DemoApp/demoChat";
 import { CHAT } from "../chat/chatTheme";
 import {
+  chatOnScreen,
   contactOf,
   gapAbove,
   isOpenable,
@@ -16,6 +17,7 @@ import {
   type ChatMessage,
   type Holdable,
 } from "../chat/chatModel";
+import ChatWaiting from "../chat/ChatWaiting";
 import { XD_ICON_SIZE } from "../../DemoApp/xdIcons";
 import CategorySheet from "../chat/CategorySheet";
 import ReminderSheet from "../chat/ReminderSheet";
@@ -131,7 +133,18 @@ function WashFade({
   return null;
 }
 
+/**
+ * The conversation, once its chat is there. A reload of one chat's URL
+ * comes up before the chat is loaded: the page waits for that chat (see
+ * chatOnScreen) and draws the conversation, and opens it, only then.
+ */
 export default function ConversationScreen() {
+  const { state } = useChat();
+  if (!chatOnScreen(state)) return <ChatWaiting />;
+  return <Conversation />;
+}
+
+function Conversation() {
   const { t, navigate, back, locale } = useDemoNav();
   const {
     state,
@@ -148,8 +161,8 @@ export default function ConversationScreen() {
     search,
     setSearch,
   } = useChat();
-  const chatId = state.viewing ?? state.active;
-  const chat = state.chats.find((c) => c.id === chatId) ?? state.chats[0];
+  // ConversationScreen draws this only when there is a chat.
+  const chat = chatOnScreen(state)!;
   const contact = contactOf(state, chat);
   const [menu, setMenu] = useState<string | null>(null);
 

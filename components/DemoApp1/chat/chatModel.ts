@@ -341,8 +341,21 @@ export function contactOf(state: ChatState, chat: ChatThread): Contact {
   );
 }
 
+/**
+ * The chat a screen of one chat shows: the one on screen, else the marked
+ * row, else the first chat. When a chat is on screen by id (`viewing`, the
+ * chat a URL names) but is not loaded yet, there is none: the screen waits
+ * for that chat and never shows another one in its place.
+ */
+export function chatOnScreen(state: ChatState): ChatThread | undefined {
+  const id = state.viewing ?? state.active;
+  const chat = state.chats.find((c) => c.id === id);
+  if (chat || state.viewing) return chat;
+  return state.chats[0];
+}
+
 /** Newest first, the pinned ones before the rest. */
-const byPlace = (a: ChatThread, b: ChatThread) => {
+const byPlace =(a: ChatThread, b: ChatThread) => {
   if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1;
   return b.lastAt - a.lastAt;
 };

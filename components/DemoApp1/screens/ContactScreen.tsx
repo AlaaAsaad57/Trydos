@@ -6,7 +6,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import { CHAT } from "../chat/chatTheme";
-import { contactOf } from "../chat/chatModel";
+import { chatOnScreen, contactOf } from "../chat/chatModel";
+import ChatWaiting from "../chat/ChatWaiting";
 import { useChat } from "../chat/chatContext";
 import { useDemoNav } from "../Demo1Shell";
 import {
@@ -47,10 +48,18 @@ import { ScreenPage, Stroke, Txt } from "../ui";
  * once they may not; Block is the red mark until the contact is blocked,
  * then the grey mark and "UnBlock". A tap flips each one.
  */
+/** The contact screen, once its chat is there (see ConversationScreen). */
 export default function ContactScreen() {
+  const { state } = useChat();
+  if (!chatOnScreen(state)) return <ChatWaiting />;
+  return <Contact />;
+}
+
+function Contact() {
   const { t, navigate, back } = useDemoNav();
   const { state, dispatch, setSearch } = useChat();
-  const chat = state.chats.find((c) => c.id === state.active) ?? state.chats[0];
+  // ContactScreen draws this only when there is a chat.
+  const chat = chatOnScreen(state)!;
   const contact = contactOf(state, chat);
   const callsOff = !!chat?.callsDisabled;
   const blocked = !!chat?.blocked;

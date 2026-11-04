@@ -21,7 +21,12 @@ const loads = vi.hoisted(() => ({
   sendTextMessage: vi.fn(),
   openChatWith: vi.fn(() => "ch-11"),
   saveContact: vi.fn(async () => "11"),
+  findChat: vi.fn(async (_id: string) => null as unknown),
+  openChatFromList: vi.fn(),
+  navigate: vi.fn(),
 }));
+vi.mock("components/Chat/findChat", () => ({ findChat: loads.findChat }));
+vi.mock("components/Chat/openChatFromList", () => ({ openChatFromList: loads.openChatFromList }));
 vi.mock("services/chat", () => ({
   default: { getChats: loads.getChats, getContacts: loads.getContacts, getCalls: loads.getCalls },
 }));
@@ -55,6 +60,7 @@ import { ChatDataProvider } from "components/DemoApp1/chat/ChatDataProvider";
 import { useChat, type ChatApi } from "components/DemoApp1/chat/chatContext";
 import { useAppStore } from "store";
 import { GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import { NavCtx, type DemoNav } from "components/DemoApp1/screenNav";
 
 const ME = 7;
 const PEER = 9;
@@ -97,10 +103,13 @@ async function mount(
   store: Record<string, unknown>,
   url?: { path: string; search?: string },
 ) {
+  const nav = { shown: screen, navigate: loads.navigate, back: vi.fn(), locale: "sy-en", t: (k: string) => k } as DemoNav;
   return renderWithProviders(
-    <ChatDataProvider locale="sy-en" screen={screen}>
-      <Probe onApi={keep} />
-    </ChatDataProvider>,
+    <NavCtx.Provider value={nav}>
+      <ChatDataProvider locale="sy-en" screen={screen}>
+        <Probe onApi={keep} />
+      </ChatDataProvider>
+    </NavCtx.Provider>,
     { store, country: "sy", ...(url ?? { path: screen ? `/${screen}` : "/" }) },
   );
 }
@@ -286,5 +295,95 @@ describe("the real chat provider — sending", () => {
     });
     expect(loads.openChatWith, "a chat was opened with an unknown contact").not.toHaveBeenCalled();
     expect(id, "an unknown contact gave a chat id").toBe("");
+  });
+});
+
+describe("the real chat provider — a reload of one chat's URL", () => {
+  it("while the URL's chat is not loaded, it is the chat on screen, so the screens wait for it", async () => {
+    await mount(
+      "chat/conversation",
+      { userChat: { id: ME }, data: [chat("1", "Hi")], chat_loading: true },
+      { path: "/chat/conversation", search: "?id=2" },
+    );
+    expect(api?.state.viewing, "the screens were not told to wait for chat 2 from the URL").toBe("2");
+    expect(urlId(), "the URL lost chat 2's id while it loads").toBe("2");
+  });
+
+  it("a URL chat outside the loaded pages is found on the chat backend's pages, then opened", async () => {
+    loads.findChat.mockResolvedValueOnce(chat("12", "Far down"));
+    await mount(
+      "chat/conversation",
+      { userChat: { id: ME }, data: [chat("1", "Hi")], chat_loading: false },
+      { path: "/chat/conversation", search: "?id=12" },
+    );
+    await act(async () => {});
+    expect(loads.findChat, "the chat pages were not walked for chat 12").toHaveBeenCalledWith("12");
+    expect(loads.openChatFromList, "chat 12 from the chat pages was not opened").toHaveBeenCalledWith(
+      expect.objectContaining({ id: "12" }),
+    );
+  });
+
+  it("does not walk the chat pages before the first page of chats is in", async () => {
+    await mount(
+      "chat/conversation",
+      { userChat: { id: ME }, data: [], chat_loading: true },
+      { path: "/chat/conversation", search: "?id=12" },
+    );
+    await act(async () => {});
+    expect(loads.findChat, "the chat pages were walked while the first page was still loading").not.toHaveBeenCalled();
+  });
+
+  it("a URL chat no page holds: 'Could not open the chat', and back to the list", async () => {
+    loads.findChat.mockResolvedValueOnce(null);
+    await mount(
+      "chat/conversation",
+      { userChat: { id: ME }, data: [chat("1", "Hi")], chat_loading: false },
+      { path: "/chat/conversation", search: "?id=404" },
+    );
+    await act(async () => {});
+    expect(api?.notice?.toLowerCase(), "the shopper was not told the chat could not be opened").toBe(
+      "could not open the chat",
+    );
+    expect(loads.navigate, "the screen did not go back to the chat list").toHaveBeenCalledWith("chat", -1);
+    expect(api?.state.viewing, "the screens stopped waiting and could show another chat").toBe("404");
+  });
+
+  it("a new chat's URL (ch-9) opens the chat with that contact again", async () => {
+    await mount(
+      "chat/conversation",
+      { userChat: { id: ME }, data: [chat("1", "Hi")], chat_loading: false },
+      { path: "/chat/conversation", search: "?id=ch-9" },
+    );
+    expect(loads.openChatWith, "the chat with contact 9 was not opened from the new chat's URL").toHaveBeenCalledWith(
+      expect.objectContaining({ id: "9" }),
+    );
+    expect(loads.findChat, "the chat pages were walked for a new chat's id").not.toHaveBeenCalled();
+  });
+
+  it("a new chat's URL waits for the contact book, then opens the chat with that contact", async () => {
+    await mount(
+      "chat/conversation",
+      { userChat: { id: ME }, data: [], contacts: [], chat_loading: false },
+      { path: "/chat/conversation", search: "?id=ch-30" },
+    );
+    expect(loads.navigate, "the new chat was given up before the contact book loaded").not.toHaveBeenCalled();
+    act(() => {
+      useAppStore.setState({ contacts: [{ id: 1, name: "Sam", contact_user: { id: 30, name: "Sam" } }] });
+    });
+    expect(loads.openChatWith, "the chat with contact 30 was not opened once the contact book loaded").toHaveBeenCalledWith(
+      expect.objectContaining({ id: "30" }),
+    );
+  });
+
+  it("follow: when the open chat changes by itself (a new chat got its real id), the URL follows", async () => {
+    await mount(
+      "chat/conversation",
+      { userChat: { id: ME }, data: [chat("1", "Hi")], activeChat: chat("1", "Hi") },
+      { path: "/chat/conversation", search: "?id=1" },
+    );
+    act(() => {
+      useAppStore.setState({ activeChat: chat("5", "First message") });
+    });
+    expect(urlId(), "the URL still names chat 1 after chat 5 took its place").toBe("5");
   });
 });
