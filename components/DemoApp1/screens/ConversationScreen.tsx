@@ -143,6 +143,7 @@ export default function ConversationScreen() {
     sendFile,
     sendLocation,
     forward,
+    typing,
     notice,
     search,
     setSearch,
@@ -935,11 +936,12 @@ export default function ConversationScreen() {
           context={context}
           onCancelContext={() => setContext(null)}
           onSend={send}
-          onSendPhoto={(src) => sendPhoto(chat.id, src)}
-          onSendVoice={(seconds) => sendVoice(chat.id, seconds)}
-          onSendVideo={(src, seconds) => sendVideo(chat.id, src, seconds)}
+          onSendPhoto={(file) => sendPhoto(chat.id, file)}
+          onSendVoice={(audio, seconds) => sendVoice(chat.id, audio, seconds)}
+          onSendVideo={(file, seconds) => sendVideo(chat.id, file, seconds)}
           onSendFile={(file) => sendFile(chat.id, file)}
           onSendLocation={(point) => sendLocation(chat.id, point)}
+          onTyping={() => typing(chat.id)}
           onToast={showToast}
           t={t}
         />

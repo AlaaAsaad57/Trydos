@@ -40,8 +40,9 @@ import { clock } from "./messages";
  *
  * A voice message is recorded WhatsApp's way: hold the microphone, the field
  * turns into a beating red dot and a clock with "‹ Slide to cancel"; let go
- * to send, slide left to cancel. No sound is kept — the message gets the
- * seconds held and plays the demo's dummy sound.
+ * to send, slide left to cancel. The microphone records while it is held
+ * (`MediaRecorder`, as the old chat). With no microphone, or no permission,
+ * it says "No available Microphone" and sends nothing.
  */
 
 export const COMPOSER_H = 54;
@@ -95,6 +96,7 @@ export default function Composer({
   onSendVideo,
   onSendFile,
   onSendLocation,
+  onTyping,
   onToast,
   t,
 }: {
@@ -102,11 +104,14 @@ export default function Composer({
   onCancelContext: () => void;
   /** The words typed; the edit's new words when a message is edited. */
   onSend: (text: string) => void;
-  onSendPhoto: (src: string) => void;
-  onSendVoice: (seconds: number) => void;
-  onSendVideo: (src: string, seconds: number) => void;
-  onSendFile: (file: { src: string; name: string; bytes: number; mime?: string }) => void;
+  onSendPhoto: (file: File) => void;
+  /** A recorded voice note and the seconds it was held. */
+  onSendVoice: (audio: Blob, seconds: number) => void;
+  onSendVideo: (file: File, seconds: number) => void;
+  onSendFile: (file: File) => void;
   onSendLocation: (point: { lat: number; lng: number; accuracy?: number }) => void;
+  /** The shopper typed in the field. */
+  onTyping?: () => void;
   onToast: (text: string) => void;
   t: (key: DemoKey) => string;
 }) {
@@ -122,6 +127,10 @@ export default function Composer({
   /** A location is being looked up: a second tap must not start another. */
   const locating = useRef(false);
   const startX = useRef(0);
+  /** The recording under way: the recorder once the microphone answers, and what it heard. */
+  const take = useRef<{ recorder: MediaRecorder | null; chunks: Blob[]; done: boolean; send: number | null } | null>(
+    null,
+  );
 
   // An edit starts with the message's words in the field.
   useEffect(() => {
@@ -168,7 +177,7 @@ export default function Composer({
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    onSendPhoto(URL.createObjectURL(file));
+    onSendPhoto(file);
   };
 
   const pickVideo = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,20 +185,68 @@ export default function Composer({
     e.target.value = "";
     if (!file) return;
     const src = URL.createObjectURL(file);
-    onSendVideo(src, await videoLength(src));
+    const seconds = await videoLength(src);
+    URL.revokeObjectURL(src);
+    onSendVideo(file, seconds);
   };
 
   const pickAnyFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    onSendFile({
-      src: URL.createObjectURL(file),
-      name: file.name,
-      bytes: file.size,
-      mime: file.type || undefined,
-    });
+    onSendFile(file);
   };
+
+  /** Starts the microphone for a new recording. */
+  const startRecorder = () => {
+    const current = { recorder: null as MediaRecorder | null, chunks: [] as Blob[], done: false, send: null as number | null };
+    take.current = current;
+    const failed = () => {
+      if (take.current === current) take.current = null;
+      setRecording(null);
+      onToast(t("No available Microphone"));
+    };
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      failed();
+      return;
+    }
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        const stopTracks = () => stream.getTracks().forEach((track) => track.stop());
+        // Let go (or cancelled) while the phone was still asking: record nothing.
+        if (current.done) {
+          stopTracks();
+          return;
+        }
+        const recorder = new MediaRecorder(stream);
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) current.chunks.push(e.data);
+        };
+        recorder.onstop = () => {
+          stopTracks();
+          // The same sound type as the old chat's recorder.
+          if (current.send !== null && current.chunks.length > 0)
+            onSendVoice(new Blob(current.chunks, { type: "audio/wav" }), current.send);
+        };
+        current.recorder = recorder;
+        recorder.start();
+      })
+      .catch(failed);
+  };
+
+  /** Ends the recording: sends it after `seconds`, or drops it with null. */
+  const stopRecorder = (seconds: number | null) => {
+    const current = take.current;
+    take.current = null;
+    if (!current) return;
+    current.done = true;
+    current.send = seconds;
+    if (current.recorder && current.recorder.state !== "inactive") current.recorder.stop();
+  };
+
+  // A recording must not keep the microphone after the composer goes.
+  useEffect(() => () => stopRecorder(null), []);
 
   /** Asks the phone where the shopper is, and sends the point as a location message. */
   const sendLocation = () => {
@@ -236,12 +293,14 @@ export default function Composer({
       const since = Date.now();
       setRecording({ since, slide: 0 });
       setNow(since);
+      startRecorder();
     },
     onPointerMove: (e: React.PointerEvent<HTMLButtonElement>) => {
       if (!recording) return;
       const slide = Math.min(0, e.clientX - startX.current);
       if (slide <= -CANCEL_SLIDE) {
         setRecording(null);
+        stopRecorder(null);
         return;
       }
       setRecording({ since: recording.since, slide });
@@ -250,10 +309,15 @@ export default function Composer({
       if (!recording) return;
       const held = Date.now() - recording.since;
       setRecording(null);
-      if (held < MIN_RECORD_MS) onToast(t("Hold to record"));
-      else onSendVoice(Math.max(1, Math.round(held / 1000)));
+      if (held < MIN_RECORD_MS) {
+        stopRecorder(null);
+        onToast(t("Hold to record"));
+      } else stopRecorder(Math.max(1, Math.round(held / 1000)));
     },
-    onPointerCancel: () => setRecording(null),
+    onPointerCancel: () => {
+      setRecording(null);
+      stopRecorder(null);
+    },
   };
 
   return (
@@ -463,7 +527,10 @@ export default function Composer({
                 data-pw="demo-chat-input"
                 rows={1}
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  onTyping?.();
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();

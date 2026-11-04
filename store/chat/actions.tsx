@@ -860,3 +860,31 @@ export async function SetUserBlocked(
     return false;
   }
 }
+
+/**
+ * Save one contact by hand: a name and a full phone number with its country
+ * code (`phoneWithDialCode`). The same call as the old form
+ * (components/Chat/components/ChatContactsUpload.tsx), but the answer is read:
+ * a refusal shows "Failed to add contact" and answers `false`. The contact's
+ * name and number never reach the error log.
+ */
+export async function SaveContact(name: string, mobilePhone: string): Promise<boolean> {
+  try {
+    const response = await fetchData({
+      url: "/api/v1/users/save_contact_v2",
+      server: "chat",
+      method: "POST",
+      body: JSON.stringify({ name, mobile_phone: mobilePhone }),
+      reqTitle: { reqTitle: "ADD_CONTACTS", code: 999 },
+    });
+    if (!response?.success) throw new Error("the chat backend refused the contact");
+    return true;
+  } catch (error) {
+    LogError({
+      scenario: "Error in SaveContact in chat/actions",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    showErrorNotification(translateFunction("Failed to add contact"));
+    return false;
+  }
+}

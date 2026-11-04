@@ -370,7 +370,12 @@ export default function ChatListScreen() {
         open={starting}
         contacts={state.contacts}
         onPick={startChat}
-        onAdd={(name, phone) => startChat(addContact(name, phone))}
+        onAdd={async (name, phone) => {
+          const contact = await addContact(name, phone);
+          // Saved, but not on Trydos (or the save failed): no chat to open.
+          if (contact) startChat(contact);
+          else setStarting(false);
+        }}
         onClose={() => setStarting(false)}
         t={t}
       />

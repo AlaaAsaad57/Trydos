@@ -3240,6 +3240,7 @@ const translations = {
   "<b>a</b> {name}": "<b>و</b> {name}",
   "{n} minute answered": "لە {n} خولەکدا وەڵام درایەوە",
   "Need help ? Start Chat about this product !": "یارمەتیت پێویستە ؟ دەست بە گفتوگۆ بکە دەربارەی ئەم بەرهەمە !",
+  "Country code": "کۆدی وڵات",
 };
 
 export default translations;

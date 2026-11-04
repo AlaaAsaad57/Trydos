@@ -3224,6 +3224,7 @@ const translations = {
   "<b>a</b> {name}": "<b>C</b> {name}",
   "{n} minute answered": "{n} dakikada yanıtlandı",
   "Need help ? Start Chat about this product !": "Yardım mı lazım ? Bu ürün hakkında sohbet başlat !",
+  "Country code": "Ülke kodu",
 };
 
 export default translations;

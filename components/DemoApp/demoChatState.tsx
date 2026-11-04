@@ -165,14 +165,32 @@ export function DemoChatProvider({
         time: clockNow(),
         replyTo,
       }),
-    sendPhoto: (chat, src) =>
-      deliver(chat, { kind: "photo", id: newId(), side: "out", src, time: clockNow() }),
-    sendVoice: (chat, seconds) =>
+    // The demo shows a picked file from the device itself: nothing uploads.
+    sendPhoto: (chat, file) =>
+      deliver(chat, { kind: "photo", id: newId(), side: "out", src: URL.createObjectURL(file), time: clockNow() }),
+    // The demo plays a sample sound, so the recording is not kept.
+    sendVoice: (chat, _audio, seconds) =>
       deliver(chat, { kind: "voice", id: newId(), side: "out", seconds, time: clockNow() }),
-    sendVideo: (chat, src, seconds) =>
-      deliver(chat, { kind: "video", id: newId(), side: "out", src, seconds, time: clockNow() }),
+    sendVideo: (chat, file, seconds) =>
+      deliver(chat, {
+        kind: "video",
+        id: newId(),
+        side: "out",
+        src: URL.createObjectURL(file),
+        seconds,
+        time: clockNow(),
+      }),
     sendFile: (chat, file) =>
-      deliver(chat, { kind: "file", id: newId(), side: "out", ...file, time: clockNow() }),
+      deliver(chat, {
+        kind: "file",
+        id: newId(),
+        side: "out",
+        src: URL.createObjectURL(file),
+        name: file.name,
+        bytes: file.size,
+        mime: file.type || undefined,
+        time: clockNow(),
+      }),
     sendLocation: (chat, point) =>
       deliver(chat, { kind: "location", id: newId(), side: "out", ...point, time: clockNow() }),
     forward: (from, id, to) => {
@@ -191,7 +209,7 @@ export function DemoChatProvider({
       dispatch({ type: "newChat", contact, as });
       return there?.id ?? as.id;
     },
-    addContact: (name, phone) => {
+    addContact: async (name, phone) => {
       // A number that is already in the list is that contact.
       const digits = phone.replace(/\s+/g, "");
       const there = state.contacts.find((c) => c.phone.replace(/\s+/g, "") === digits);
@@ -203,6 +221,8 @@ export function DemoChatProvider({
       });
       return id;
     },
+    // No one on the other side of the demo sees typing.
+    typing: () => {},
     notice,
     search,
     setSearch,

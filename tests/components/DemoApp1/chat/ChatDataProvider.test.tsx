@@ -14,6 +14,9 @@ const loads = vi.hoisted(() => ({
   GetArchivedChats: vi.fn(),
   GetMyReminders: vi.fn(),
   runChatAction: vi.fn(async () => undefined),
+  sendTextMessage: vi.fn(),
+  openChatWith: vi.fn(() => "ch-11"),
+  saveContact: vi.fn(async () => "11"),
 }));
 vi.mock("services/chat", () => ({
   default: { getChats: loads.getChats, getContacts: loads.getContacts, getCalls: loads.getCalls },
@@ -24,6 +27,17 @@ vi.mock("store/chat/actions", async (importOriginal) => ({
   GetMyReminders: loads.GetMyReminders,
 }));
 vi.mock("components/DemoApp1/chat/chatActions", () => ({ runChatAction: loads.runChatAction }));
+vi.mock("components/DemoApp1/chat/chatSend", () => ({
+  sendTextMessage: loads.sendTextMessage,
+  openChatWith: loads.openChatWith,
+  saveContact: loads.saveContact,
+  forwardTo: vi.fn(),
+  sendAnyFile: vi.fn(),
+  sendMediaMessage: vi.fn(),
+  sendTyping: vi.fn(),
+  sendVideoFile: vi.fn(),
+  sendVoiceNote: vi.fn(),
+}));
 
 import { ChatDataProvider } from "components/DemoApp1/chat/ChatDataProvider";
 import { useChat, type ChatApi } from "components/DemoApp1/chat/chatContext";
@@ -142,16 +156,69 @@ describe("the real chat provider", () => {
     expect(api?.state.viewing, "the archived chat stayed on screen").toBeNull();
   });
 
-  it("sending says 'Soon available' until step 3c, and sends nothing", async () => {
+  it("a text goes to the real send, with its reply", async () => {
     await renderWithProviders(
       <ChatDataProvider locale="sy-en">
         <Probe onApi={keep} />
       </ChatDataProvider>,
       { store: { userChat: { id: ME }, data: [chat("1", "Hi")] } },
     );
-    act(() => api?.sendText("1", "Hello"));
+    act(() => api?.sendText("1", "Hello", { id: "100", text: "Hi" }));
+    expect(loads.sendTextMessage, "the text did not reach the real send with its reply").toHaveBeenCalledWith(
+      "1",
+      "Hello",
+      { id: "100", text: "Hi" },
+    );
+  });
+
+  it("a location says 'Soon available' (no chat backend yet, CH-2) and sends nothing", async () => {
+    await renderWithProviders(
+      <ChatDataProvider locale="sy-en">
+        <Probe onApi={keep} />
+      </ChatDataProvider>,
+      { store: { userChat: { id: ME }, data: [chat("1", "Hi")] } },
+    );
+    act(() => api?.sendLocation("1", { lat: 1, lng: 2 }));
     // translateFunction writes English in title case; step 9 sets the case rule (D-4).
-    expect(api?.notice, "sending a text did not say 'Soon available'").toMatch(/^soon available$/i);
-    expect(loads.runChatAction, "sending a text reached the real chat").not.toHaveBeenCalled();
+    expect(api?.notice, "a location did not say 'Soon available'").toMatch(/^soon available$/i);
+  });
+
+  it("a new chat with a contact opens the chat with the store's contact and puts it on screen", async () => {
+    await renderWithProviders(
+      <ChatDataProvider locale="sy-en">
+        <Probe onApi={keep} />
+      </ChatDataProvider>,
+      {
+        store: {
+          userChat: { id: ME },
+          data: [],
+          contacts: [{ id: 1, name: "Friend", contact_user: { id: 11, name: "Friend" } }],
+        },
+      },
+    );
+    let id = "";
+    act(() => {
+      id = api?.newChat("11") ?? "";
+    });
+    expect(loads.openChatWith, "the new chat was not opened with the contact from the store").toHaveBeenCalledWith(
+      expect.objectContaining({ id: "11", name: "Friend" }),
+    );
+    expect(id, "the new chat's id was not given back").toBe("ch-11");
+    expect(api?.state.viewing, "the new chat is not on screen").toBe("ch-11");
+  });
+
+  it("a new chat with someone who is not a contact opens nothing", async () => {
+    await renderWithProviders(
+      <ChatDataProvider locale="sy-en">
+        <Probe onApi={keep} />
+      </ChatDataProvider>,
+      { store: { userChat: { id: ME }, data: [], contacts: [] } },
+    );
+    let id = "x";
+    act(() => {
+      id = api?.newChat("404") ?? "x";
+    });
+    expect(loads.openChatWith, "a chat was opened with an unknown contact").not.toHaveBeenCalled();
+    expect(id, "an unknown contact gave a chat id").toBe("");
   });
 });

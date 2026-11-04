@@ -7,6 +7,17 @@ import { GetArchivedChats, GetMyReminders } from "store/chat/actions";
 import { translateFunction } from "utils/functions";
 import { ChatContext, NOTICE_MS, type ChatApi } from "./chatContext";
 import { runChatAction } from "./chatActions";
+import {
+  forwardTo,
+  openChatWith,
+  saveContact,
+  sendAnyFile,
+  sendMediaMessage,
+  sendTextMessage,
+  sendTyping,
+  sendVideoFile,
+  sendVoiceNote,
+} from "./chatSend";
 import { toChatState, type MapWords } from "./chatMapper";
 import type { ChatAction } from "./chatModel";
 
@@ -84,11 +95,22 @@ export function ChatDataProvider({
     videoCall: t("Video Call"),
   };
 
+  const ctx = { myId: myId ?? "", words, locale, liveCallId: calling ? liveCallId : null };
   const state = toChatState(
     { chats: data ?? [], archived: archived ?? [], open, book: book ?? [] },
-    { myId: myId ?? "", words, locale, liveCallId: calling ? liveCallId : null },
+    ctx,
     { active, viewing },
   );
+
+  /** The contacts as the store holds them now (a contact saved a moment ago is in). */
+  const freshContact = (id: string) => {
+    const now = useAppStore.getState();
+    return toChatState(
+      { chats: now.data ?? [], archived: now.archivedChats ?? [], open: now.activeChat, book: now.contacts ?? [] },
+      ctx,
+      { active, viewing },
+    ).contacts.find((c) => c.id === id);
+  };
 
   const dispatch = (action: ChatAction) => {
     if (action.type === "open") {
@@ -102,28 +124,32 @@ export function ChatDataProvider({
     void runChatAction(action, { say });
   };
 
-  /** Sending comes in step 3c. Until then it says so, and nothing is sent. */
-  const notYet = () => say(t("Soon available"));
+  /** Opens a chat and puts it on screen, as a tap on its row does. */
+  const show = (id: string) => {
+    setActive(id);
+    setViewing(id);
+  };
 
   const value: ChatApi = {
     state,
     dispatch,
-    sendText: notYet,
-    sendPhoto: notYet,
-    sendVoice: notYet,
-    sendVideo: notYet,
-    sendFile: notYet,
+    sendText: sendTextMessage,
+    sendPhoto: (chat, file) => void sendMediaMessage(chat, file, "ImageMessage"),
+    sendVoice: (chat, audio) => sendVoiceNote(chat, audio),
+    sendVideo: (chat, file) => sendVideoFile(chat, file),
+    sendFile: sendAnyFile,
     // No chat backend for a location message yet (CH-2, A-8).
-    sendLocation: notYet,
-    forward: notYet,
-    newChat: () => {
-      notYet();
-      return "";
+    sendLocation: () => say(t("Soon available")),
+    forward: forwardTo,
+    newChat: (id) => {
+      const contact = freshContact(id);
+      if (!contact) return "";
+      const chat = openChatWith(contact);
+      show(chat);
+      return chat;
     },
-    addContact: () => {
-      notYet();
-      return "";
-    },
+    addContact: saveContact,
+    typing: (chat) => void sendTyping(chat),
     notice,
     search,
     setSearch,

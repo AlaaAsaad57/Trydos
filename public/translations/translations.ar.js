@@ -3191,6 +3191,7 @@ const translations = {
   "<b>a</b> {name}": "<b>ج</b> {name}",
   "{n} minute answered": "تمت الإجابة خلال {n} دقيقة",
   "Need help ? Start Chat about this product !": "تحتاج مساعدة ؟ ابدأ محادثة حول هذا المنتج !",
+  "Country code": "رمز الدولة",
 };
 
 export default translations;

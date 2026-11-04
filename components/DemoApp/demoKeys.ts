@@ -400,6 +400,8 @@ export const DEMO_KEYS = [
   "Download",
   "Finding your location…",
   "Location unavailable",
+  "No available Microphone",
+  "Country code",
   "Open in Maps",
   "New chat",
   "New contact",

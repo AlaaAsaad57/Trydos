@@ -3,6 +3,10 @@
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
+import { allCountries } from "country-telephone-data";
+import { phoneWithDialCode } from "components/Chat/contactPhone";
+import { useAppStore } from "store";
+import { getLocalizedCountryName } from "utils/countryData";
 import type { Contact } from "./chatModel";
 import { C, CTA, ROW, fill, lineBox, textTop } from "../demo1Layout";
 import { Field, FieldInput, Sheet, Stroke, Txt, Under } from "../ui";
@@ -23,7 +27,15 @@ import { PlusIcon } from "./chatIcons";
  * `FieldInput`): the name and the phone number, with the wide purple
  * "Add & save" button of the forms under them, and "Cancel" at the top
  * right to come back to the list. The button waits until both are filled.
+ *
+ * The phone field starts with the old form's country code picker
+ * (ChatContactsUpload.tsx; the owner's choice, 2026-11-04): the flag and the
+ * code, with the phone's own country list on a tap. The number is sent with
+ * its code (`phoneWithDialCode`). It stays left to right on every page (A-30).
  */
+
+/** The old form's default code: Syria. */
+const DEFAULT_DIAL = "+963";
 export default function NewChatSheet({
   open,
   contacts,
@@ -36,7 +48,7 @@ export default function NewChatSheet({
   contacts: Contact[];
   /** A contact was tapped: open the chat with them. */
   onPick: (contact: string) => void;
-  /** The form was saved: add the contact and open the chat with them. */
+  /** The form was saved: add the contact (full number, with its country code) and open the chat with them. */
   onAdd: (name: string, phone: string) => void;
   onClose: () => void;
   t: (key: DemoKey) => string;
@@ -44,6 +56,9 @@ export default function NewChatSheet({
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [dial, setDial] = useState(DEFAULT_DIAL);
+  const language = useAppStore((s) => s.language);
+  const country = allCountries.find((c) => `+${c.dialCode}` === dial);
 
   // The sheet opens on the list every time, with an empty form behind it.
   useEffect(() => {
@@ -51,12 +66,14 @@ export default function NewChatSheet({
     setAdding(false);
     setName("");
     setPhone("");
+    setDial(DEFAULT_DIAL);
   }, [open]);
 
-  const canSave = name.trim() !== "" && phone.trim() !== "";
+  const fullPhone = phoneWithDialCode(dial, phone);
+  const canSave = name.trim() !== "" && fullPhone !== "";
   const save = () => {
     if (!canSave) return;
-    onAdd(name, phone);
+    onAdd(name, fullPhone);
   };
 
   return (
@@ -111,15 +128,43 @@ export default function NewChatSheet({
                 />
               </Field>
               <Field mt={4} label={t("Phone Number")} editing>
-                <FieldInput
-                  testId="demo-new-contact-phone"
-                  value={phone}
-                  placeholder={t("Enter phone number")}
-                  onChange={setPhone}
-                  editing
-                  type="tel"
-                  inputMode="tel"
-                />
+                <span dir="ltr" className="flex w-full items-center" style={{ gap: 8 }}>
+                  <span className="relative flex shrink-0 items-center" style={{ gap: 4, marginTop: 3, height: 23 }}>
+                    {country && (
+                      <img
+                        src={`/icons/flag/${country.iso2}.svg`}
+                        alt=""
+                        className="object-cover"
+                        style={{ width: 20, height: 12, borderRadius: 2 }}
+                        onError={(e) => (e.currentTarget.style.display = "none")}
+                      />
+                    )}
+                    <span style={{ fontSize: 14, color: C.ink }}>{dial}</span>
+                    {/* The phone's own list, over the code: a tap opens it. */}
+                    <select
+                      data-pw="demo-new-contact-dial"
+                      aria-label={t("Country code")}
+                      value={dial}
+                      onChange={(e) => setDial(e.target.value)}
+                      className="absolute inset-0 cursor-pointer opacity-0"
+                    >
+                      {allCountries.map((c) => (
+                        <option key={`${c.iso2}-${c.dialCode}`} value={`+${c.dialCode}`}>
+                          +{c.dialCode} ({getLocalizedCountryName(c.iso2, language)})
+                        </option>
+                      ))}
+                    </select>
+                  </span>
+                  <FieldInput
+                    testId="demo-new-contact-phone"
+                    value={phone}
+                    placeholder={t("Enter phone number")}
+                    onChange={setPhone}
+                    editing
+                    type="tel"
+                    inputMode="tel"
+                  />
+                </span>
               </Field>
               {/* The forms' wide button, in the flow of the sheet. */}
               <motion.button
