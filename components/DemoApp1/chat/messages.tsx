@@ -584,7 +584,8 @@ export function FileMessage({
         style={{ marginTop: textTop(39, 11) - (textTop(21, 13) + lineBox(13)) }}
       >
         <Txt size={11} color={C.inkSoft} className="grow whitespace-nowrap" style={SPACED}>
-          {kind ? `${fileSize(m.bytes)} · ${kind}` : fileSize(m.bytes)}
+          {/* The chat backend sends no size (A-8: the size is left out). */}
+          {[m.bytes === undefined ? null : fileSize(m.bytes), kind].filter(Boolean).join(" · ")}
         </Txt>
         <Txt size={9} ml={10} mt={textTop(40, 9) - textTop(39, 11)} className="whitespace-nowrap">
           {!inn && <Mark status={m.status} />}

@@ -833,9 +833,9 @@ Part 2 — after lane A's mount is merged:
 **With no backend, A-8 applies ("Soon available"):** reactions (CH-1), location message (CH-2), disable
 calls (CH-4), add a person to a call (CH-6).
 
-**To check before step 3 builds the labels (D-37, CH-3).** `store/chat/actions.tsx` line 465 says a tag is free
-text, up to 30 characters. The plan and CH-3 still say the backend takes only `urgent`, `important`, `todo`
-and `done`. If the code is right, the 5 design labels may already work.
+**Labels (D-37, CH-3) — answered by the owner on 2026-11-04.** The chat backend accepts any label text
+(`store/chat/actions.tsx` line 465: a tag is free text, up to 30 characters). So the 5 design labels are sent
+as they are (`orders`, `payment`, `shipping`, `question`, `important`). CH-3 needs no backend work.
 
 ---
 

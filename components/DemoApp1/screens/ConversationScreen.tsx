@@ -367,7 +367,9 @@ export default function ConversationScreen() {
       ? callWords(m, t)
       : m.kind === "note"
         ? m.text
-        : previewOf(m, {
+        : m.kind === "product"
+          ? m.name
+          : previewOf(m, {
             photo: t("Photo"),
             voice: t("voice message"),
             video: t("Video"),
@@ -707,7 +709,7 @@ export default function ConversationScreen() {
           initial={atStart.current?.has(m.id) ? false : { opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <DayPill label={t(m.label)} />
+          <DayPill label={m.label ? t(m.label) : m.date} />
         </motion.div>
       );
     if (m.kind === "note")
@@ -722,6 +724,9 @@ export default function ConversationScreen() {
           {withFlags(m, true, <CallCard message={m} t={t} />)}
         </MessageRow>
       );
+    // A shared product and a deleted message come only from the real chat.
+    // Stage 6 step 6 draws them (D-36b); until then they show nothing.
+    if (m.kind === "product" || m.kind === "deleted") return null;
     const inn = m.side === "in";
     const isOpen = menu === m.id;
     /** The block between the dots: a bubble, a picture, a player or a card. */

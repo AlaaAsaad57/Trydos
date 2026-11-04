@@ -41,6 +41,10 @@ type Base = {
   reminderAt?: number;
   /** The emoji the shopper put on the message, from the bar over the held message. */
   reaction?: string;
+  /** A message I sent that the chat backend has not stored yet (sending or uploading). */
+  pending?: boolean;
+  /** The message was forwarded from another chat. */
+  forwarded?: boolean;
 };
 
 /** A tag a message can carry: the menu's Category. */
@@ -65,7 +69,6 @@ export type TextMessage = Base & {
   /** Another message answered this one (the white reply mark before its time). */
   repliedTo?: boolean;
   edited?: boolean;
-  forwarded?: boolean;
 };
 
 export type PhotoMessage = Base & {
@@ -80,6 +83,8 @@ export type VoiceMessage = Base & {
   side: Side;
   /** How long the sound is, in seconds. */
   seconds: number;
+  /** Where the sound is; none on `/demo`, which plays a sample sound. */
+  src?: string;
   status?: Status;
 };
 
@@ -97,8 +102,8 @@ export type FileMessage = Base & {
   side: Side;
   src: string;
   name: string;
-  /** The file's size, in bytes. */
-  bytes: number;
+  /** The file's size, in bytes, when it is known (the chat backend does not send it). */
+  bytes?: number;
   /** The MIME type ("application/pdf"), when the browser knows it. */
   mime?: string;
   status?: Status;
@@ -121,16 +126,39 @@ export type CallMessage = Base & {
   /** The card's width in the file (its words are set in XD's own metrics). */
   width: number;
   sub: "callBack" | "minutes" | "noAnswer";
+  /** A video call; a voice call when not set. */
+  video?: boolean;
   minutes?: string;
   /** "12:56 | 3 Ring" after the time. */
   rings?: string;
 };
 
+/** A product shared into the chat (D-36b: kept, no XD board). */
+export type ProductMessage = Base & {
+  kind: "product";
+  side: Side;
+  name: string;
+  /** The product's picture, as a full URL. */
+  image: string;
+  /** The product page's slug: `/[lang]/products/<slug>`. */
+  slug: string;
+  status?: Status;
+};
+
+/** The "this message was deleted" placeholder (D-36b: kept, no XD board). */
+export type DeletedMessage = Base & { kind: "deleted"; side: Side };
+
 /** The pale red note under a missed call (`– 44`). */
 export type NoteMessage = Base & { kind: "note"; text: string };
 
-/** The "YESTERDAY" / "TODAY" pill between two days. */
-export type DayMessage = Base & { kind: "day"; label: "YESTERDAY" | "TODAY" };
+/**
+ * The pill between two days: "TODAY", "YESTERDAY" (the design's two), or the
+ * date of an older day, already written in the page's language.
+ */
+export type DayMessage = Base & { kind: "day" } & (
+    | { label: "YESTERDAY" | "TODAY"; date?: undefined }
+    | { label?: undefined; date: string }
+  );
 
 export type ChatMessage =
   | TextMessage
@@ -140,6 +168,8 @@ export type ChatMessage =
   | FileMessage
   | LocationMessage
   | CallMessage
+  | ProductMessage
+  | DeletedMessage
   | NoteMessage
   | DayMessage;
 
@@ -173,10 +203,11 @@ export type PreviewWords = {
   location: string;
 };
 
-/** A message that can be held for its menu: everything but a day pill. */
-export type Holdable = Openable | CallMessage | NoteMessage;
+/** A message that can be held for its menu: everything but a day pill and a deleted message. */
+export type Holdable = Openable | CallMessage | ProductMessage | NoteMessage;
 
-export const isHoldable = (m: ChatMessage): m is Holdable => m.kind !== "day";
+export const isHoldable = (m: ChatMessage): m is Holdable =>
+  m.kind !== "day" && m.kind !== "deleted";
 
 /** A message I sent, whose status can move on. */
 export const isOwn = (m: ChatMessage): m is Openable =>
@@ -221,8 +252,10 @@ export type ChatThread = {
   muted?: boolean;
   /** Put away by the swipe cell Archive: out of the list, in the archived sheet. */
   archived?: boolean;
-  /** The contact is blocked (`– 45`: Block / UnBlock). */
+  /** I blocked the contact (`– 45`: Block / UnBlock). */
   blocked?: boolean;
+  /** One of us blocked the other: no one can send, so the composer is hidden (D-36a). */
+  blockedEitherWay?: boolean;
   /** The contact may not call me (`– 45`: Enable Call / Disable Call). */
   callsDisabled?: boolean;
   /** The preview and time the row shows once the chat moved on from the file's sample. */
@@ -436,6 +469,32 @@ export function reminderLabel(at: number, locale = "en", now = new Date()): stri
     day = d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   }
   return `${day} ${time}`;
+}
+
+/**
+ * The day pill for a message sent at `at`: "TODAY", "YESTERDAY", or the date
+ * of an older day ("23 Oct"; "23 Oct 2025" in another year), in the page's
+ * language. Decided by the owner on 2026-11-04.
+ */
+export function dayPill(
+  at: number,
+  locale = "en",
+  now = new Date(),
+): { label: "YESTERDAY" | "TODAY" } | { date: string } {
+  const d = new Date(at);
+  if (d.toDateString() === now.toDateString()) return { label: "TODAY" };
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (d.toDateString() === yesterday.toDateString()) return { label: "YESTERDAY" };
+  const lang = locale.split("-").pop() || "en";
+  const tag = lang === "en" ? "en-GB" : lang;
+  const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
+  if (d.getFullYear() !== now.getFullYear()) options.year = "numeric";
+  try {
+    return { date: d.toLocaleDateString(tag, options) };
+  } catch {
+    return { date: d.toLocaleDateString("en-GB", options) };
+  }
 }
 
 let counter = 0;
