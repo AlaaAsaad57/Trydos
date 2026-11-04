@@ -43,6 +43,13 @@ const pendingStatus = (receiverId: unknown, senderId: unknown) => [
   { is_received: 0, is_watched: false, user_id: receiverId },
 ];
 
+/**
+ * An order's chat with its delivery worker (D-36c) carries its participant
+ * id, and every message to it says so, as the old order chat widget did
+ * (`isPrivate` in ConversationContainer.tsx).
+ */
+const orderChatOf = (chat: Channel) => chat.order_chat_participant_id ?? undefined;
+
 /** A new chat (`ch-<user id>`) has no channel on the chat backend yet. */
 const isNewChat = (chat: Channel) => typeof chat.id === "string" && chat.id.includes("ch");
 
@@ -61,7 +68,7 @@ function putSendingCopy(chat: Channel, message: Record<string, unknown>) {
     isNew: isNewChat(chat) ? chat.id : false,
     act: chat,
     message,
-    isPrivate: undefined,
+    isPrivate: orderChatOf(chat),
   });
 }
 
@@ -69,7 +76,7 @@ const track = (chat: Channel, type: string, isReply: boolean) =>
   trackPosthog(CHAT_EVENTS.CHAT_MESSAGE_SENT, {
     conversation_id: chat.id,
     message_type: type,
-    is_order_chat: false,
+    is_order_chat: !!orderChatOf(chat),
     is_reply: isReply,
   });
 
@@ -111,6 +118,7 @@ export function sendTextMessage(chatId: string, text: string, replyTo?: { id: st
         mid,
       },
       false,
+      orderChatOf(chat),
     );
     track(chat, "TextMessage", !!parent);
   } catch (error) {
@@ -169,6 +177,7 @@ export async function sendMediaMessage(
         mid,
       },
       type === "VoiceMessage" && isNewChat(chat) ? chat.id : false,
+      orderChatOf(chat),
     );
     track(chat, type, !!parent);
   } catch (error) {

@@ -528,7 +528,10 @@ messaging.onBackgroundMessage(async function (payload) {
         body: "New message",
         ...(chatId ? { tag: `chat-${chatId}`, renotify: true } : {}),
         data: {
-          url: BASE_ORIGIN,
+          // The chat's conversation (Stage 6: the new chat screens).
+          url: chatId
+            ? buildUrl(`chat/conversation?id=${encodeURIComponent(chatId)}`, localePrefix)
+            : BASE_ORIGIN,
         },
       });
     } else if (payload.data.type === "message") {
@@ -541,6 +544,8 @@ messaging.onBackgroundMessage(async function (payload) {
       // Derive a stable tag per chat/conversation so that notifications
       // for the same chat are updated instead of stacking as separate cards.
       let messageTag = null;
+      // The chat the message is in: a tap opens its conversation.
+      let chatLink = null;
       try {
         const parsed = JSON.parse(payload.data.data);
         const message = parsed?.message || {};
@@ -554,6 +559,7 @@ messaging.onBackgroundMessage(async function (payload) {
           message.channel.id;
         const senderId = senderUser.id || message.sender_user_id;
         if (chatId) {
+          chatLink = buildUrl(`chat/conversation?id=${encodeURIComponent(chatId)}`, localePrefix);
           messageTag = `chat-${chatId}`;
         } else if (senderId) {
           messageTag = `chat-from-${senderId}`;
@@ -668,6 +674,11 @@ messaging.onBackgroundMessage(async function (payload) {
             url: BASE_ORIGIN,
           },
         };
+      }
+      // Stage 6: a chat message opens its conversation on the new chat screens,
+      // not the home page. An order's chat keeps its own link (the order page).
+      if (chatLink && !notificationOptions.data?.reuseTab) {
+        notificationOptions.data = { ...(notificationOptions.data || {}), url: chatLink };
       }
       if (notificationOptions.body) {
         if (messageTag) {
