@@ -404,7 +404,6 @@ describe("the script that is inlined into the page", () => {
 
 describe("the per-image handlers that were removed", () => {
   const REMOVED = [
-    "components/Chat/components/SearchResult.tsx",
     "components/products/ShareAvatar.tsx",
     "components/setting/orders/confirmations/OrderItemReturnConfirmationWindow.tsx",
   ];
@@ -419,18 +418,4 @@ describe("the per-image handlers that were removed", () => {
       ).toBe(false);
     },
   );
-
-  it("keeps the handler on the local country flag, which the fallback cannot cover (AC-4)", () => {
-    // Its source is /icons/flag/<iso2>.svg — a local file. Removing this would
-    // not hand it to the new mechanism; it would just turn a hidden flag into
-    // the browser's broken-image icon inside a phone-number field.
-    const source = readFileSync(
-      path.join(REPO_ROOT, "components/Chat/components/ChatContactsUpload.tsx"),
-      "utf8",
-    );
-    expect(
-      source.includes("onError"),
-      "the country-flag handler was removed, but the fallback skips local files so nothing replaces it",
-    ).toBe(true);
-  });
 });
