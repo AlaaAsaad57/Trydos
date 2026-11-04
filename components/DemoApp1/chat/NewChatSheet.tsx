@@ -103,7 +103,7 @@ export default function NewChatSheet({
               transition={{ duration: 0.2 }}
               className="absolute font-light cursor-pointer active:opacity-60"
               style={{
-                right: 20,
+                insetInlineEnd: 20,
                 top: textTop(30, 16) - 8,
                 fontSize: 16,
                 lineHeight: `${lineBox(16)}px`,
@@ -185,7 +185,7 @@ export default function NewChatSheet({
                 className="shrink-0 font-normal cursor-pointer"
                 style={{
                   marginTop: 24,
-                  marginLeft: CTA.x,
+                  marginInlineStart: CTA.x,
                   width: fill(CTA.x),
                   height: CTA.height,
                   borderRadius: CTA.radius,
@@ -210,7 +210,7 @@ export default function NewChatSheet({
                 <span
                   className="flex items-center justify-center shrink-0"
                   style={{
-                    marginLeft: 8,
+                    marginInlineStart: 8,
                     width: 44,
                     height: 44,
                     borderRadius: 15,
@@ -234,7 +234,7 @@ export default function NewChatSheet({
                 >
                   <span
                     className="flex items-center justify-center shrink-0"
-                    style={{ marginLeft: 8, width: 44, height: 44, borderRadius: 15, background: C.purpleTint }}
+                    style={{ marginInlineStart: 8, width: 44, height: 44, borderRadius: 15, background: C.purpleTint }}
                   >
                     <PlusIcon color={C.purple} size={22} />
                   </span>
@@ -252,7 +252,7 @@ export default function NewChatSheet({
                   <span
                     className="relative block shrink-0 overflow-hidden flex-col"
                     style={{
-                      marginLeft: 8,
+                      marginInlineStart: 8,
                       width: 44,
                       height: 44,
                       borderRadius: 15,
@@ -272,7 +272,7 @@ export default function NewChatSheet({
                     )}
                     <Stroke color={C.line} width={0.3} radius={15} />
                   </span>
-                  <span className="flex flex-col min-w-0 grow" style={{ marginLeft: 12, marginRight: 12 }}>
+                  <span className="flex flex-col min-w-0 grow" style={{ marginInlineStart: 12, marginInlineEnd: 12 }}>
                     <Txt size={14} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
                       {contact.name}
                     </Txt>
@@ -308,10 +308,10 @@ function Row({
       data-pw={testId}
       whileTap={{ scale: 0.985 }}
       onClick={onClick}
-      className="flex items-center shrink-0 cursor-pointer text-left"
+      className="flex items-center shrink-0 cursor-pointer text-start"
       style={{
         marginTop: first ? 16 : 2,
-        marginLeft: ROW.x,
+        marginInlineStart: ROW.x,
         width: fill(ROW.x),
         height: 60,
         borderRadius: ROW.radius,

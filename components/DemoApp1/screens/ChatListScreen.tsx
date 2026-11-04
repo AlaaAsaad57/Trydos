@@ -19,6 +19,7 @@ import {
 } from "../chat/chatModel";
 import ArchivedSheet from "../chat/ArchivedSheet";
 import ChatGate from "../chat/ChatGate";
+import { usePageDir } from "../rtl";
 import { RemindersSheet } from "../chat/ExtraSheets";
 import { translateFunction } from "utils/functions";
 import { useChat } from "../chat/chatContext";
@@ -179,7 +180,7 @@ function ChatList() {
         <div
           className="flex items-start shrink-0"
           style={{
-            marginLeft: 12,
+            marginInlineStart: 12,
             marginTop: 6,
             width: fill(12),
             height: 38,
@@ -199,9 +200,9 @@ function ChatList() {
             className="block bg-transparent outline-none font-normal placeholder:text-[#8D8D8D]"
             // Text left 52 on the artboard; baseline 80 → box top 66 at 14 px.
             style={{
-              marginLeft: 40 - (9.5 + XD_ICON_SIZE.searchGlass.w),
+              marginInlineStart: 40 - (9.5 + XD_ICON_SIZE.searchGlass.w),
               marginTop: 7,
-              marginRight: 12,
+              marginInlineEnd: 12,
               flex: "1 1 0",
               minWidth: 0,
               height: 24,
@@ -268,14 +269,14 @@ function ChatList() {
               transition={TRAVEL}
               whileTap={{ scale: 0.985 }}
               onClick={() => setShowArchived(true)}
-              className="flex items-center w-full shrink-0 overflow-hidden cursor-pointer text-left"
+              className="flex items-center w-full shrink-0 overflow-hidden cursor-pointer text-start"
               style={{ marginTop: 2, background: C.page }}
             >
-              <XdIcon name="swipeArchive" style={{ marginLeft: 12 + (66 - 25) / 2 }} />
+              <XdIcon name="swipeArchive" style={{ marginInlineStart: 12 + (66 - 25) / 2 }} />
               <Txt size={14} weight="medium" ml={90 - (12 + (66 - 25) / 2 + 25)}>
                 {t("Archived")}
               </Txt>
-              <Txt size={14} color={C.grey} className="ml-auto" style={{ marginRight: 13 }}>
+              <Txt size={14} color={C.grey} className="ms-auto" style={{ marginInlineEnd: 13 }}>
                 {String(archived.length)}
               </Txt>
             </motion.button>
@@ -396,7 +397,7 @@ function ChatList() {
               className="absolute flex items-center justify-center cursor-pointer"
               style={{
                 bottom: 0,
-                right: `calc(20px - ${COLUMN_W} / 2)`,
+                insetInlineEnd: `calc(20px - ${COLUMN_W} / 2)`,
                 width: 52,
                 height: 52,
                 borderRadius: 26,
@@ -493,7 +494,7 @@ function TabButton({
       onClick={onClick}
       className="absolute flex items-start cursor-pointer"
       // The strip starts at design y 100; the icons sit at 113.
-      style={{ left, top: 13, height: 25 }}
+      style={{ insetInlineStart: left, top: 13, height: 25 }}
     >
       {on && (
         <Txt
@@ -502,7 +503,7 @@ function TabButton({
           className="absolute"
           // Baseline 135 → box top 123, 10 under the icon's top.
           style={{
-            right: `calc(100% + ${labelGap}px)`,
+            insetInlineEnd: `calc(100% + ${labelGap}px)`,
             top: textTop(135, 12) - 113,
             letterSpacing: "0.02em",
           }}
@@ -576,6 +577,9 @@ function SwipeRow({
   children: React.ReactNode;
 }) {
   const x = useMotionValue(0);
+  // Right to left (A-15): the row slides the other way. `open` and the snap
+  // points are read along the line of text ("left" = towards its start).
+  const sign = usePageDir() === "rtl" ? -1 : 1;
   const [open, setOpen] = useState<"left" | "right" | null>(null);
   /** True from the start of a drag until the next press: a swipe is never a tap. */
   const dragged = useRef(false);
@@ -584,7 +588,7 @@ function SwipeRow({
   const swipe = useHorizontalSwipe();
 
   const snapTo = (target: number) => {
-    animate(x, target, TRAVEL);
+    animate(x, sign * target, TRAVEL);
     const side = target === 0 ? null : target < 0 ? "left" : "right";
     setOpen(side);
     if (side === null) onRest();
@@ -618,7 +622,7 @@ function SwipeRow({
       }}
     >
       <div
-        className="absolute top-0 right-0 flex"
+        className="absolute top-0 end-0 flex"
         style={{ height: 100, gap: CELL_GAP }}
         aria-hidden={open !== "left"}
       >
@@ -627,8 +631,8 @@ function SwipeRow({
         ))}
       </div>
       <div
-        className="absolute top-0 left-0 flex"
-        style={{ height: 100, marginLeft: CELL_GAP, gap: CELL_GAP }}
+        className="absolute top-0 start-0 flex"
+        style={{ height: 100, marginInlineStart: CELL_GAP, gap: CELL_GAP }}
         aria-hidden={open !== "right"}
       >
         {LEFT_ACTIONS.map((a) => (
@@ -642,7 +646,7 @@ function SwipeRow({
         drag="x"
         dragListener={false}
         dragControls={swipe.controls}
-        dragConstraints={{ left: OPEN_LEFT, right: OPEN_RIGHT }}
+        dragConstraints={sign > 0 ? { left: OPEN_LEFT, right: OPEN_RIGHT } : { left: -OPEN_RIGHT, right: -OPEN_LEFT }}
         dragElastic={0.08}
         dragMomentum={false}
         style={{ x, touchAction: "pan-y" }}
@@ -656,7 +660,7 @@ function SwipeRow({
         }}
         onDragEnd={() => {
           onRelease();
-          const at = x.get();
+          const at = sign * x.get();
           if (at < OPEN_LEFT / 2) snapTo(OPEN_LEFT);
           else if (at > OPEN_RIGHT / 2) snapTo(OPEN_RIGHT);
           else snapTo(0);
@@ -767,13 +771,13 @@ function RowTime({
   t: (key: DemoKey) => string;
 }) {
   return (
-    <span className="flex items-start ml-auto shrink-0" style={{ marginTop: mt, marginRight: right }}>
+    <span className="flex items-start ms-auto shrink-0" style={{ marginTop: mt, marginInlineEnd: right }}>
       {muted && (
         <XdIcon
           name="swipeMute"
           size={12}
           aria-label={t("Mute")}
-          style={{ marginTop: 1, marginRight: 4, opacity: 0.55 }}
+          style={{ marginTop: 1, marginInlineEnd: 4, opacity: 0.55 }}
         />
       )}
       <Txt size={11} weight="medium" color={C.grey}>
@@ -852,11 +856,11 @@ function ChatRowFace({
       {selected && (
         <span
           aria-hidden="true"
-          className="absolute left-0 top-0 h-full"
+          className="absolute start-0 top-0 h-full"
           style={{ width: 4, background: C.purple }}
         />
       )}
-      <div className="shrink-0" style={{ marginLeft: 12, marginTop: 12 }}>
+      <div className="shrink-0" style={{ marginInlineStart: 12, marginTop: 12 }}>
         <Photo
           w={66}
           h={76}
@@ -869,7 +873,7 @@ function ChatRowFace({
       {row.attachments && row.preview === undefined ? (
         <div
           className="flex items-start min-w-0 grow"
-          style={{ marginLeft: 12, marginTop: 12 }}
+          style={{ marginInlineStart: 12, marginTop: 12 }}
         >
           {/* The left column is 137 wide: from x 90 to the icons at 227. */}
           <div className="flex flex-col shrink-0" style={{ width: 227 - 90 }}>
@@ -899,7 +903,7 @@ function ChatRowFace({
       ) : (
         <div
           className="flex flex-col min-w-0 grow"
-          style={{ marginLeft: 12, marginTop: nameTop }}
+          style={{ marginInlineStart: 12, marginTop: nameTop }}
         >
           <div className="flex items-start w-full">
             <Txt size={14} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
@@ -912,7 +916,7 @@ function ChatRowFace({
             className="font-normal"
             style={{
               marginTop: previewTop - nameBottom,
-              marginRight: 45,
+              marginInlineEnd: 45,
               fontSize: 12,
               lineHeight: "17px",
               color: row.mark === "sent" ? C.grey : C.ink,
@@ -934,14 +938,14 @@ function ChatRowFace({
           {row.unread > 0 && (
             <span
               data-pw="demo-chat-row-unread-count"
-              className="flex items-start ml-auto shrink-0"
-              style={{ marginTop: 73 - previewBottom, marginRight: 12 }}
+              className="flex items-start ms-auto shrink-0"
+              style={{ marginTop: 73 - previewBottom, marginInlineEnd: 12 }}
             >
               {/* "1" on baseline 84 → box top 73, level with the mark. */}
               <Txt size={11} weight="medium" color={CHAT.unreadCount}>
                 {String(row.unread)}
               </Txt>
-              <XdIcon name="chatUnreadMark" style={{ marginLeft: 2 }} />
+              <XdIcon name="chatUnreadMark" style={{ marginInlineStart: 2 }} />
             </span>
           )}
           {typing && (
@@ -964,7 +968,7 @@ function ChatRowFace({
         <XdIcon
           name="chatPinned"
           className="absolute"
-          style={{ right: 430 - 416, top: 74 }}
+          style={{ insetInlineEnd: 430 - 416, top: 74 }}
         />
       )}
       <Stroke
@@ -1027,15 +1031,15 @@ function CallRowFace({
       type="button"
       data-pw={`demo-call-row-${id}`}
       onClick={onOpen}
-      className="relative flex items-start w-full shrink-0 cursor-pointer text-left"
+      className="relative flex items-start w-full shrink-0 cursor-pointer text-start"
       style={{ height: 90, marginTop: 2, background: C.page }}
     >
-      <div className="shrink-0" style={{ marginLeft: 12, marginTop: 12 }}>
+      <div className="shrink-0" style={{ marginInlineStart: 12, marginTop: 12 }}>
         <Photo w={66} h={66} src={contact.photo} initials={contact.photo ? undefined : contact.initials} />
       </div>
       <div
         className="flex flex-col min-w-0 grow"
-        style={{ marginLeft: 12, marginTop: nameTop }}
+        style={{ marginInlineStart: 12, marginTop: nameTop }}
       >
         <div className="flex items-start w-full">
           <Txt size={16} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>

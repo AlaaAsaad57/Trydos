@@ -14,6 +14,7 @@ import type { Side } from "./chatModel";
 import { C } from "../demo1Layout";
 import { EDGE } from "./MessageMenu";
 import { useHorizontalSwipe } from "./useHorizontalSwipe";
+import { usePageDir } from "../rtl";
 
 /** How far the message must be pulled to the right, in px, to answer it. */
 export const REPLY_PULL = 56;
@@ -148,14 +149,19 @@ export default function MessageRow({
 
   // The reply mark: it rides out with the message for 44 px, then stays
   // while the message goes on; it fades and grows with the pull.
-  const markX = useTransform(x, (v) => Math.min(v, 44) - v);
-  const markOpacity = useTransform(x, [0, 30], [0, 1]);
-  const markScale = useTransform(x, [0, REPLY_PULL], [0.5, 1]);
-  const armed = useTransform(x, (v) => (v >= REPLY_PULL ? 1 : 0));
+  // Right to left (A-15): the message is pulled the other way, to the left.
+  const rtl = usePageDir() === "rtl";
+  const sign = rtl ? -1 : 1;
+  /** How far the message is pulled towards a reply, whatever the page direction. */
+  const pull = useTransform(x, (v) => sign * v);
+  const markX = useTransform(pull, (v) => sign * (Math.min(v, 44) - v));
+  const markOpacity = useTransform(pull, [0, 30], [0, 1]);
+  const markScale = useTransform(pull, [0, REPLY_PULL], [0.5, 1]);
+  const armed = useTransform(pull, (v) => (v >= REPLY_PULL ? 1 : 0));
   const idle = useTransform(armed, (a) => 1 - a);
 
   // A short tick the moment the pull is far enough (Android; iOS ignores it).
-  useMotionValueEvent(x, "change", (v) => {
+  useMotionValueEvent(pull, "change", (v) => {
     const over = v >= REPLY_PULL;
     if (over && !ticked.current) navigator.vibrate?.(8);
     ticked.current = over;
@@ -211,7 +217,7 @@ export default function MessageRow({
       className={`relative flex items-start w-full shrink-0 ${inn ? "" : "justify-end"} ${lifted ? "z-20" : ""}`}
       style={{
         marginTop: gap,
-        transformOrigin: inn ? "left bottom" : "right bottom",
+        transformOrigin: inn !== rtl ? "left bottom" : "right bottom",
         willChange: lifted ? "transform" : undefined,
       }}
       initial={fresh ? { opacity: 0, scale: 0.7, y: 16 } : false}
@@ -242,7 +248,7 @@ export default function MessageRow({
           aria-hidden="true"
           data-pw="demo-chat-search-mark"
           className="absolute top-0 h-full"
-          style={{ [inn ? "left" : "right"]: 0, width: 4, background: C.blue }}
+          style={{ [inn ? "insetInlineStart" : "insetInlineEnd"]: 0, width: 4, background: C.blue }}
         />
       )}
       <motion.div
@@ -254,7 +260,7 @@ export default function MessageRow({
         dragListener={false}
         dragControls={swipe.controls}
         dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={{ left: 0, right: 0.75 }}
+        dragElastic={rtl ? { left: 0.75, right: 0 } : { left: 0, right: 0.75 }}
         dragSnapToOrigin
         dragTransition={{ bounceStiffness: 520, bounceDamping: 34 }}
         dragMomentum={false}
@@ -263,7 +269,7 @@ export default function MessageRow({
           pulled.current = false;
         }}
         onDrag={() => {
-          pulled.current = x.get() >= REPLY_PULL;
+          pulled.current = pull.get() >= REPLY_PULL;
         }}
         onDragEnd={() => {
           if (pulled.current) onReply?.();
@@ -283,7 +289,7 @@ export default function MessageRow({
             scale: grow,
             // It grows from the bubble's own edge (EDGE in from the row's), where
             // the bar and the menu start: the three stay on one line.
-            transformOrigin: inn ? `${EDGE}px 50%` : `calc(100% - ${EDGE}px) 50%`,
+            transformOrigin: inn !== rtl ? `${EDGE}px 50%` : `calc(100% - ${EDGE}px) 50%`,
           }}
         >
           {canReply && (
@@ -292,7 +298,7 @@ export default function MessageRow({
               data-pw="demo-chat-reply-mark"
               className="absolute flex items-center justify-center pointer-events-none"
               style={{
-                left: -36,
+                insetInlineStart: -36,
                 top: "50%",
                 marginTop: -15,
                 width: 30,

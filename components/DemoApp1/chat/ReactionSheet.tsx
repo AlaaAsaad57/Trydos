@@ -254,7 +254,7 @@ export default function ReactionSheet({
         <div className="relative flex items-center w-full mb-3 shrink-0">
           <span
             aria-hidden="true"
-            className="absolute left-3.5 flex items-center justify-center text-neutral-400 pointer-events-none"
+            className="absolute start-3.5 flex items-center justify-center text-neutral-400 pointer-events-none"
           >
             <svg
               width="16"
@@ -276,7 +276,7 @@ export default function ReactionSheet({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search emoji"
-            className="w-full h-9 pl-9 pr-8 text-[14px] rounded-xl outline-none transition-colors"
+            className="w-full h-9 ps- pe- text-[14px] rounded-xl outline-none transition-colors"
             style={{
               background: "rgba(118, 118, 128, 0.12)",
               color: C.ink,
@@ -286,7 +286,7 @@ export default function ReactionSheet({
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="absolute right-2.5 flex items-center justify-center w-5 h-5 rounded-full bg-neutral-300 active:opacity-70 text-white"
+              className="absolute end-2.5 flex items-center justify-center w-5 h-5 rounded-full bg-neutral-300 active:opacity-70 text-white"
             >
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                 <path d="M18 6 6 18M6 6l12 12" />
@@ -321,7 +321,7 @@ export default function ReactionSheet({
         {/* Emojis Grid Container */}
         <div
           data-pw="demo-reaction-grid"
-          className="grid grid-cols-6 gap-y-2 place-items-center w-full overflow-y-auto pr-1"
+          className="grid grid-cols-6 gap-y-2 place-items-center w-full overflow-y-auto pe-"
           style={{
             maxHeight: 380,
             WebkitOverflowScrolling: "touch",

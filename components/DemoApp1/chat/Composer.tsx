@@ -8,6 +8,7 @@ import type { XdIconName } from "../../DemoApp/xdIcons";
 import { CHAT } from "./chatTheme";
 import { C, SAFE_BOTTOM, lineBox } from "../demo1Layout";
 import { Txt } from "../ui";
+import { mirrorFor, usePageDir } from "../rtl";
 import {
   CameraIcon,
   ChevronLeftIcon,
@@ -115,6 +116,9 @@ export default function Composer({
   onToast: (text: string) => void;
   t: (key: DemoKey) => string;
 }) {
+  // Right to left (A-13, A-15): the slide to cancel goes right, the chevron points right.
+  const dir = usePageDir();
+  const sign = dir === "rtl" ? -1 : 1;
   const [text, setText] = useState("");
   const [attach, setAttach] = useState(false);
   const [recording, setRecording] = useState<{ since: number; slide: number } | null>(null);
@@ -297,7 +301,7 @@ export default function Composer({
     },
     onPointerMove: (e: React.PointerEvent<HTMLButtonElement>) => {
       if (!recording) return;
-      const slide = Math.min(0, e.clientX - startX.current);
+      const slide = Math.min(0, sign * (e.clientX - startX.current));
       if (slide <= -CANCEL_SLIDE) {
         setRecording(null);
         stopRecorder(null);
@@ -380,17 +384,17 @@ export default function Composer({
               style={{
                 margin: "8px 12px 0",
                 height: 46,
-                paddingLeft: 3,
+                paddingInlineStart: 3,
                 borderRadius: 12,
                 background: C.purple,
               }}
             >
               <div
                 className="flex items-center grow min-w-0"
-                style={{ borderRadius: 12, background: CHAT.quote, paddingLeft: 10 }}
+                style={{ borderRadius: 12, background: CHAT.quote, paddingInlineStart: 10 }}
               >
                 {context.kind === "edit" && (
-                  <XdIcon name="menuEdit" style={{ marginRight: 8 }} />
+                  <XdIcon name="menuEdit" style={{ marginInlineEnd: 8 }} />
                 )}
                 <span className="flex flex-col min-w-0 grow">
                   <Txt size={12} weight="medium" color={C.purple}>
@@ -458,7 +462,7 @@ export default function Composer({
                 exit={{ opacity: 0, scale: 0.6, y: 6, transition: { duration: 0.15 } }}
                 transition={{ type: "spring", stiffness: 520, damping: 32 }}
                 style={{
-                  left: 0,
+                  insetInlineStart: 0,
                   bottom: "100%",
                   marginBottom: 6,
                   width: 170,
@@ -466,7 +470,7 @@ export default function Composer({
                   borderRadius: 12,
                   background: CHAT.menu,
                   boxShadow: "0 2px 5px rgba(0,0,0,0.16)",
-                  transformOrigin: "left bottom",
+                  transformOrigin: dir === "rtl" ? "right bottom" : "left bottom",
                   zIndex: 30,
                 }}
                 onClick={(e) => e.stopPropagation()}
@@ -477,7 +481,7 @@ export default function Composer({
                     type="button"
                     data-pw={`demo-chat-attach-${a.action}`}
                     onClick={() => attachAction(a.action)}
-                    className="flex items-center shrink-0 cursor-pointer text-left active:opacity-60"
+                    className="flex items-center shrink-0 cursor-pointer text-start active:opacity-60"
                     style={{ height: 40, padding: "0 14px" }}
                   >
                     <XdIcon name={a.icon} />
@@ -499,7 +503,7 @@ export default function Composer({
             <motion.div
               data-pw="demo-chat-recording"
               className="flex items-center w-full"
-              style={{ height: 38, padding: "0 12px", x: recording.slide }}
+              style={{ height: 38, padding: "0 12px", x: sign * recording.slide }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
@@ -513,8 +517,10 @@ export default function Composer({
               <Txt size={14} ml={8} data-pw="demo-chat-recording-clock">
                 {clock(Math.max(0, (now - recording.since) / 1000))}
               </Txt>
-              <span className="flex items-center ml-auto" style={{ opacity: 1 + recording.slide / CANCEL_SLIDE }}>
-                <ChevronLeftIcon color={C.grey} />
+              <span className="flex items-center ms-auto" style={{ opacity: 1 + recording.slide / CANCEL_SLIDE }}>
+                <span className="flex" style={mirrorFor(dir)}>
+                  <ChevronLeftIcon color={C.grey} />
+                </span>
                 <Txt size={13} color={C.grey} ml={2}>
                   {t("Slide to cancel")}
                 </Txt>
@@ -543,7 +549,7 @@ export default function Composer({
                 className="block grow min-w-0 bg-transparent outline-none resize-none font-normal placeholder:text-[#8D8D8D]"
                 style={{
                   padding: "10px 0 10px 12px",
-                  marginRight: canSend ? 12 : 40,
+                  marginInlineEnd: canSend ? 12 : 40,
                   fontSize: 14,
                   lineHeight: `${lineBox(14)}px`,
                   color: C.ink,
@@ -566,7 +572,7 @@ export default function Composer({
                     transition={{ duration: 0.15 }}
                     whileTap={{ scale: 0.9 }}
                     className="absolute flex items-center justify-center cursor-pointer"
-                    style={{ right: 4, bottom: 0, width: 36, height: 38 }}
+                    style={{ insetInlineEnd: 4, bottom: 0, width: 36, height: 38 }}
                   >
                     <CameraIcon color={C.purple} />
                   </motion.button>

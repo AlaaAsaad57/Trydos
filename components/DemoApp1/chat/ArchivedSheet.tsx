@@ -58,7 +58,7 @@ export default function ArchivedSheet({
               )}
               <Stroke color={C.line} width={0.3} radius={15} />
             </PickBox>
-            <span className="flex flex-col min-w-0 grow" style={{ marginLeft: 12, marginRight: 8 }}>
+            <span className="flex flex-col min-w-0 grow" style={{ marginInlineStart: 12, marginInlineEnd: 8 }}>
               <Txt size={14} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
                 {contact.name}
               </Txt>
@@ -76,7 +76,7 @@ export default function ArchivedSheet({
                 onUnarchive(chat.id);
               }}
               className="flex items-center justify-center shrink-0 cursor-pointer"
-              style={{ marginRight: 8, width: 44, height: 44, borderRadius: 15, background: C.purpleTint }}
+              style={{ marginInlineEnd: 8, width: 44, height: 44, borderRadius: 15, background: C.purpleTint }}
             >
               <UnarchiveIcon color={C.purple} />
             </motion.span>

@@ -49,6 +49,21 @@ export const BUBBLE_RADIUS = {
   iconBoxOut: "30px 2px 30px 2px",
 } as const;
 
+/**
+ * A four-corner radius ("2px 50px 2px 30px": top-left, top-right,
+ * bottom-right, bottom-left) as start / end corners, so a bubble's sharp
+ * corner follows its side on a right-to-left page (A-13).
+ */
+export function corners(radius: string) {
+  const [a, b = a, c = a, d = b] = radius.trim().split(/\s+/);
+  return {
+    borderStartStartRadius: a,
+    borderStartEndRadius: b,
+    borderEndEndRadius: c,
+    borderEndStartRadius: d,
+  };
+}
+
 /** The names in the long-press menu, in the file's order (`– 44`, bottom). */
 export const MENU_ACTIONS = [
   "Reply",

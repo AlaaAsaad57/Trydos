@@ -41,7 +41,7 @@ export default function CategorySheet({
             {t(c.name as DemoKey)}
           </Txt>
           {chosen === c.id && (
-            <span data-pw="demo-category-chosen" className="flex shrink-0" style={{ marginRight: 16 }}>
+            <span data-pw="demo-category-chosen" className="flex shrink-0" style={{ marginInlineEnd: 16 }}>
               <CheckIcon color={c.color} />
             </span>
           )}

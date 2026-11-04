@@ -10,6 +10,7 @@ import { TAB_BAR } from "../../DemoApp/demoLayout";
 import { C } from "../demo1Layout";
 import { Txt } from "../ui";
 import AnimatedEmoji, { preloadAnimatedEmojis } from "./AnimatedEmoji";
+import { usePageDir } from "../rtl";
 
 export type MenuName = (typeof MENU_ACTIONS)[number] | "Forward" | "Delete for everyone";
 
@@ -231,7 +232,9 @@ export default function MessageMenu({
     (r) => (r.name !== "Edit" || canEdit) && (r.name !== "Forward" || canForward),
   );
   const stop = (e: React.PointerEvent) => e.stopPropagation();
-  const edge = inn ? { left: EDGE } : { right: EDGE };
+  const edge = inn ? { insetInlineStart: EDGE } : { insetInlineEnd: EDGE };
+  // The side the bar and the menu grow from, on the screen (A-13).
+  const fromLeft = inn !== (usePageDir() === "rtl");
 
   const row = (name: MenuName, icon: XdIconName, color: string) => (
     <button
@@ -245,7 +248,7 @@ export default function MessageMenu({
       className="flex items-center w-full shrink-0 cursor-pointer active:bg-black/5"
       style={{
         height: MENU_ROW_H,
-        paddingLeft: 23,
+        paddingInlineStart: 23,
       }}
     >
       <span className="flex items-center justify-center shrink-0" style={{ width: 18 }}>
@@ -275,7 +278,7 @@ export default function MessageMenu({
           backdropFilter: TAB_BAR.glass,
           WebkitBackdropFilter: TAB_BAR.glass,
           boxShadow: "0 6px 24px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.04)",
-          transformOrigin: inn ? "left bottom" : "right bottom",
+          transformOrigin: fromLeft ? "left bottom" : "right bottom",
           willChange: "transform, opacity",
           justifyContent: inn ? "flex-start" : "flex-end",
         }}
@@ -290,7 +293,7 @@ export default function MessageMenu({
       >
         <span
           className="relative flex items-center shrink-0"
-          style={{ width: REACTION_BAR_W, paddingLeft: LEAD, height: "100%" }}
+          style={{ width: REACTION_BAR_W, paddingInlineStart: LEAD, height: "100%" }}
         >
           {REACTIONS.map((emoji, i) => {
             const order = inn ? i : REACTIONS.length - 1 - i;
@@ -358,7 +361,7 @@ export default function MessageMenu({
               // A light, frosted disc that lies over the last emoji's edge.
               background: "rgba(255,255,255,0.72)",
               boxShadow: "0 0 0 0.5px rgba(0,0,0,0.05)",
-              right: PLUS_INSET,
+              insetInlineEnd: PLUS_INSET,
               top: (REACTION_BAR_H - PLUS) / 2,
               willChange: "transform, opacity",
             }}
@@ -393,7 +396,7 @@ export default function MessageMenu({
           backdropFilter: TAB_BAR.glass,
           WebkitBackdropFilter: TAB_BAR.glass,
           boxShadow: "0 8px 30px rgba(0,0,0,0.16), 0 0 0 0.5px rgba(0,0,0,0.05)",
-          transformOrigin: inn ? "left top" : "right top",
+          transformOrigin: fromLeft ? "left top" : "right top",
           willChange: "transform, opacity",
         }}
         initial={{ scale: 0.48, opacity: 0, y: -4 }}
@@ -411,7 +414,7 @@ export default function MessageMenu({
         <span
           aria-hidden="true"
           className="flex items-center w-full shrink-0"
-          style={{ height: MENU_SEP, paddingLeft: 22, paddingRight: 22 }}
+          style={{ height: MENU_SEP, paddingInlineStart: 22, paddingInlineEnd: 22 }}
         >
           <span className="block w-full" style={{ height: 0.5, background: "rgba(60,60,67,0.29)" }} />
         </span>

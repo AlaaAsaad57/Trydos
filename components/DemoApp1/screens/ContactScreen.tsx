@@ -9,6 +9,7 @@ import { CHAT } from "../chat/chatTheme";
 import { chatOnScreen, contactOf } from "../chat/chatModel";
 import ChatWaiting from "../chat/ChatWaiting";
 import ChatGate from "../chat/ChatGate";
+import { mirrorFor, usePageDir } from "../rtl";
 import { useChat } from "../chat/chatContext";
 import { useDemoNav } from "../screenNav";
 import { MediaSheet } from "../chat/ExtraSheets";
@@ -62,6 +63,7 @@ export default function ContactScreen() {
 
 function Contact() {
   const { t, navigate, back } = useDemoNav();
+  const dir = usePageDir();
   const { state, dispatch, setSearch, call, extras } = useChat();
   const [media, setMedia] = useState(false);
   const [toast, showToast] = useToast();
@@ -89,9 +91,9 @@ function Contact() {
         aria-label={t("Back")}
         onClick={back}
         className="flex self-start shrink-0 cursor-pointer active:opacity-60"
-        style={{ marginLeft: 18.5, marginTop: 63.5 - 50 }}
+        style={{ marginInlineStart: 18.5, marginTop: 63.5 - 50 }}
       >
-        <XdIcon name="contactBackBlue" />
+        <XdIcon name="contactBackBlue" style={mirrorFor(dir)} />
       </button>
 
       <div
@@ -128,7 +130,7 @@ function Contact() {
       <div
         className="flex items-start shrink-0"
         style={{
-          marginLeft: 16.5,
+          marginInlineStart: 16.5,
           width: fill(16.5, 14.5),
           marginTop: actionsTop - textBottom(304, 16),
         }}
@@ -157,7 +159,7 @@ function Contact() {
           stays empty so the blocks under it keep their place. */}
       <div
         className="flex flex-col items-end shrink-0"
-        style={{ marginTop: sfTop(670, 12, 17) - 642, marginRight: 430 - 408, height: 34 }}
+        style={{ marginTop: sfTop(670, 12, 17) - 642, marginInlineEnd: 430 - 408, height: 34 }}
       >
         <AnimatePresence initial={false} mode="wait">
           <motion.div key={callsOff ? "enable" : "disable"} {...flip} className="shrink-0">
@@ -192,7 +194,7 @@ function Contact() {
         {/* Block in the file's place; UnBlock (the grey mark) takes the same
             place once the contact is blocked — the file draws it lower only
             to show both. */}
-        <div className="flex flex-col items-center shrink-0" style={{ marginLeft: 238 - 125, width: 268 - 238 }}>
+        <div className="flex flex-col items-center shrink-0" style={{ marginInlineStart: 238 - 125, width: 268 - 238 }}>
           <AnimatePresence initial={false} mode="wait">
             <motion.div key={blocked ? "unblock" : "block"} {...flip} className="flex shrink-0">
               <BottomAction
@@ -211,7 +213,7 @@ function Contact() {
         <SfLine
           label="Share"
           testId="demo-contact-share"
-          style={{ marginLeft: 339 - 268, marginTop: sfTop(814, 12, 17) - 768 }}
+          style={{ marginInlineStart: 339 - 268, marginTop: sfTop(814, 12, 17) - 768 }}
           onClick={soon}
           t={t}
         />
@@ -294,22 +296,22 @@ function Row({
       onClick={onClick}
       data-pw={`demo-contact-row-${label.toLowerCase().replace(/[^a-z]+/g, "-")}`}
       whileTap={{ scale: 0.985 }}
-      className="flex items-start shrink-0 cursor-pointer text-left"
+      className="flex items-start shrink-0 cursor-pointer text-start"
       style={{
         marginTop: mt,
-        marginLeft: ROW.x,
+        marginInlineStart: ROW.x,
         width: fill(ROW.x),
         height: 60,
         borderRadius: ROW.radius,
         background: C.card,
       }}
     >
-      <XdIcon name={icon} style={{ marginLeft: 12, marginTop: 21 }} />
+      <XdIcon name={icon} style={{ marginInlineStart: 12, marginTop: 21 }} />
       <Txt size={14} ml={54 - 24 - 18} mt={textTop(35, 14)}>
         {t(label)}
       </Txt>
       {value && (
-        <Txt size={14} className="ml-auto" mt={textTop(35, 14)} style={{ marginRight: 6 }}>
+        <Txt size={14} className="ms-auto" mt={textTop(35, 14)} style={{ marginInlineEnd: 6 }}>
           {t(value)}
         </Txt>
       )}
@@ -381,9 +383,9 @@ function BottomAction({
       data-pw={`demo-contact-${label.toLowerCase().replace(/[^a-z]+/g, "-")}`}
       onClick={onClick}
       className="flex flex-col shrink-0 cursor-pointer active:opacity-60"
-      style={{ marginLeft: ml, marginTop: mt, width }}
+      style={{ marginInlineStart: ml, marginTop: mt, width }}
     >
-      <XdIcon name={icon} style={{ marginLeft: iconLeft }} />
+      <XdIcon name={icon} style={{ marginInlineStart: iconLeft }} />
       <span
         className="block text-center whitespace-nowrap"
         style={{

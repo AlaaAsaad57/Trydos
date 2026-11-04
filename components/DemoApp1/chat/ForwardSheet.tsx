@@ -51,10 +51,10 @@ export default function ForwardSheet({
             data-pw={`demo-forward-row-${chat.id}`}
             whileTap={{ scale: 0.985 }}
             onClick={() => onPick(chat.id)}
-            className="flex items-center shrink-0 cursor-pointer text-left"
+            className="flex items-center shrink-0 cursor-pointer text-start"
             style={{
               marginTop: i === 0 ? 16 : 2,
-              marginLeft: ROW.x,
+              marginInlineStart: ROW.x,
               width: fill(ROW.x),
               height: 60,
               borderRadius: ROW.radius,
@@ -64,7 +64,7 @@ export default function ForwardSheet({
             <span
               className="relative block shrink-0 overflow-hidden flex-col"
               style={{
-                marginLeft: 8,
+                marginInlineStart: 8,
                 width: 44,
                 height: 44,
                 borderRadius: 15,
@@ -84,7 +84,7 @@ export default function ForwardSheet({
               )}
               <Stroke color={C.line} width={0.3} radius={15} />
             </span>
-            <span className="flex flex-col min-w-0 grow" style={{ marginLeft: 12, marginRight: 12 }}>
+            <span className="flex flex-col min-w-0 grow" style={{ marginInlineStart: 12, marginInlineEnd: 12 }}>
               <Txt size={14} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
                 {contact.name}
               </Txt>

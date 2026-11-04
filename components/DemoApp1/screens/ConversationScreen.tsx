@@ -19,6 +19,7 @@ import {
 import ChatWaiting from "../chat/ChatWaiting";
 import { translateFunction } from "utils/functions";
 import ChatGate from "../chat/ChatGate";
+import { mirrorFor, usePageDir } from "../rtl";
 import PageEdge from "../chat/PageEdge";
 import { XD_ICON_SIZE } from "../../DemoApp/xdIcons";
 import CategorySheet from "../chat/CategorySheet";
@@ -152,6 +153,7 @@ export default function ConversationScreen() {
 
 function Conversation() {
   const { t, navigate, back, locale } = useDemoNav();
+  const dir = usePageDir();
   const {
     state,
     dispatch,
@@ -515,15 +517,15 @@ function Conversation() {
         aria-label={t("Close")}
         onClick={closeSearch}
         className="flex shrink-0 cursor-pointer active:opacity-60"
-        style={{ marginLeft: 18.5, marginTop: 13.5 }}
+        style={{ marginInlineStart: 18.5, marginTop: 13.5 }}
       >
-        <XdIcon name="chatBackPurple" />
+        <XdIcon name="chatBackPurple" style={mirrorFor(dir)} />
       </button>
       <div
         className="flex items-start grow min-w-0"
         style={{
-          marginLeft: 40 - (18.5 + 8),
-          marginRight: 12,
+          marginInlineStart: 40 - (18.5 + 8),
+          marginInlineEnd: 12,
           marginTop: 6,
           height: 38,
           borderRadius: 12,
@@ -552,7 +554,7 @@ function Conversation() {
           aria-label={t("Search messages")}
           className="block bg-transparent outline-none font-normal placeholder:text-[#8D8D8D]"
           style={{
-            marginLeft: 40 - (9.5 + XD_ICON_SIZE.searchGlass.w),
+            marginInlineStart: 40 - (9.5 + XD_ICON_SIZE.searchGlass.w),
             marginTop: 7,
             flex: "1 1 0",
             minWidth: 0,
@@ -599,16 +601,16 @@ function Conversation() {
         aria-label={t("Back")}
         onClick={back}
         className="flex shrink-0 cursor-pointer active:opacity-60"
-        style={{ marginLeft: 18.5, marginTop: 13.5 }}
+        style={{ marginInlineStart: 18.5, marginTop: 13.5 }}
       >
-        <XdIcon name="chatBackPurple" />
+        <XdIcon name="chatBackPurple" style={mirrorFor(dir)} />
       </button>
       {/* "2" from x 40 to the photo at 62; SF Pro Rounded 18 on baseline 81. */}
       <span
         data-pw="demo-chat-unread-count"
         className="block shrink-0"
         style={{
-          marginLeft: 40 - (18.5 + 11),
+          marginInlineStart: 40 - (18.5 + 11),
           marginTop: sfTop(81 - 50, 18, 22),
           width: 62 - 40,
           fontFamily: SF_ROUNDED,
@@ -623,7 +625,7 @@ function Conversation() {
         type="button"
         data-pw="demo-chat-open-contact"
         onClick={() => navigate("chat/contact")}
-        className="flex items-start shrink-0 min-w-0 cursor-pointer active:opacity-60 text-left"
+        className="flex items-start shrink-0 min-w-0 cursor-pointer active:opacity-60 text-start"
       >
         <span
           className="relative flex flex-col shrink-0 overflow-hidden"
@@ -664,7 +666,7 @@ function Conversation() {
         data-pw="demo-chat-video-call"
         aria-label={t("Video")}
         onClick={() => (call ? call(chat.id, true) : navigate("chat/call"))}
-        className="flex shrink-0 ml-auto cursor-pointer active:opacity-60"
+        className="flex shrink-0 ms-auto cursor-pointer active:opacity-60"
         style={{ marginTop: 12 }}
       >
         <XdIcon name="chatHeaderVideo" />
@@ -675,7 +677,7 @@ function Conversation() {
         aria-label={t("Call")}
         onClick={() => (call ? call(chat.id, false) : navigate("chat/call"))}
         className="flex shrink-0 cursor-pointer active:opacity-60"
-        style={{ marginLeft: 379 - 349, marginRight: 430 - 405, marginTop: 12 }}
+        style={{ marginInlineStart: 379 - 349, marginInlineEnd: 430 - 405, marginTop: 12 }}
       >
         <XdIcon name="chatHeaderCall" />
       </button>
@@ -966,7 +968,7 @@ function Conversation() {
         size={13}
         weight="medium"
         color={matches.length ? C.ink : C.grey}
-        className="ml-auto"
+        className="ms-auto"
         data-pw="demo-chat-search-count"
       >
         {!query.trim()
