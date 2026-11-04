@@ -3,7 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useDemoCase } from "../demoCase";
-import { useDemoData } from "../../DemoApp/DemoData";
+import { useProfileData } from "../useProfileData";
 import {
   C,
   SHEET,
@@ -27,7 +27,6 @@ import type { XdIconName } from "../../DemoApp/xdIcons";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import {
   WALLET_BRAND,
-  WALLET_RECIPIENT,
   type WalletBalance,
 } from "../../DemoApp/demoWallet";
 import { SheetTitle } from "./WalletCashOutSheet";
@@ -83,17 +82,17 @@ export default function WalletInfoSheet({
   balance: WalletBalance;
 }) {
   const { t } = useDemoCase();
-  const { profile } = useDemoData();
+  // The shopper's own name, id and phone (A-16). The rest of the wallet stays
+  // mock (A-17).
+  const { name, clientId, phone } = useProfileData();
   /** Where the screen ends (design y). */
   const end = useCanvasEnd(open);
-  // The file shows a client with a name; a new demo client has none yet.
-  const name = profile.name || WALLET_RECIPIENT.name;
 
   const act = (id: (typeof ACTIONS)[number]["id"]) => {
     if (id === "copy")
-      navigator.clipboard?.writeText(profile.clientId).catch(() => {});
+      navigator.clipboard?.writeText(clientId).catch(() => {});
     if (id === "share" && navigator.share)
-      navigator.share({ text: profile.clientId }).catch(() => {});
+      navigator.share({ text: clientId }).catch(() => {});
   };
 
   return (
@@ -124,7 +123,7 @@ export default function WalletInfoSheet({
           weight="bold"
           mt={gapTo(TOP + 24 + lineBox(24), 180, 24)}
         >
-          <Ltr>{profile.clientId}</Ltr>
+          <Ltr>{clientId}</Ltr>
         </Txt>
 
         <Under
@@ -174,7 +173,7 @@ export default function WalletInfoSheet({
             testId="demo-wallet-info-id"
             medium
           >
-            <Ltr>{profile.clientId}</Ltr>
+            <Ltr>{clientId}</Ltr>
           </InfoField>
           <InfoField
             mt={757 - (698 + 55)}
@@ -182,7 +181,7 @@ export default function WalletInfoSheet({
             testId="demo-wallet-info-phone"
             medium
           >
-            <Ltr>{profile.phone}</Ltr>
+            <Ltr>{phone}</Ltr>
           </InfoField>
 
           <div

@@ -837,9 +837,28 @@ card `components/setting/WalletLinkCard.tsx` (its sheet says "Under Development"
   - Tests: `tests/app/settings/pages.test.tsx` checks the wallet page's guest guard with the other new screens. No
     new test (owner's order, 2026-11-04). No test reads the English wallet words; the RTL test runs in `ar`.
   - Checks on 2026-11-05: `next typegen` + `tsc` 0 errors, `eslint` on the changed files 0, i18n parity OK.
-  - **Left:** the XD check in `en` and `ar` at 440 x 802 on `/sy-en/settings/wallet` and `/sy-ar/settings/wallet`
-    (needs a signed-in shopper and a free dev server), with the Stage 4 Arabic address line (`placeParts.tsx`);
-    the full unit suite in CI; the owner's review; then the commit. E2E waits for Stage 8 (A-34).
+  - Committed as `79e8f6d5` on 2026-11-05 and pushed (the owner asked to go on and close the stage).
+  - Full unit suite in CI (run 41918852219 on `79e8f6d5`): 659 of 661 test files pass. The 2 red files hold the 3
+    known chat search tests (`ChatListSearch`, `ChatLists`), red on `development` since `2f42f4e7`. Stage 5 adds
+    no new failure. Lint, i18n parity and typecheck passed in the same run.
+  - XD check on 2026-11-05, signed in as Shopper A, at 440 x 802, on `/sy-en/settings/wallet` and
+    `/sy-ar/settings/wallet`: the balance screen, a grown card, Cash In, Cash Out and Wallet Info draw in both
+    languages, right to left in Arabic, with no page error. The English paragraphs keep the file's line breaks.
+    Back from the wallet goes to the profile. The Stage 4 Arabic address line (`placeParts.tsx`) is right too.
+    Not opened in the browser: the steps inside Cash In and Cash Out (forms, code, receipt).
+  - The browser check found 2 real bugs, both fixed:
+    1. **A guest saw every new screen (Stage 4 mount, against S4-4).** On a screen path `AppScreens` did not render
+       `children`, so the page's redirect reached the document but never ran in the browser. A guest stayed on
+       `/settings/wallet` and saw the wallet. The mount now keeps the page in the tree, in a `hidden` box. Seen in
+       the browser after the fix: a guest on `settings`, `settings/profile` and `settings/wallet` goes to
+       `/login?next=<path>`. Two cases in `AppScreens.test.tsx` now expect the page hidden, not absent.
+    2. **A tap on a balance card crashed the wallet.** `WalletInfoSheet` read `useDemoData`, and only `/demo` has
+       that provider, so the screen went blank with "useDemoData must be used inside DemoDataProvider". The sheet now
+       reads `useProfileData` (A-16: shipping code does not import `DemoData.tsx`). So Wallet Info shows the
+       shopper's real name, id and phone; the other sheets keep their mock values (A-17). On `/demo` these 3 fields
+       are empty now, as on the Stage 4 screens. `wallet.rtl.test.tsx` gives the sheet a stub shopper.
+    No test was seen red first for these 2 fixes (owner's order of 2026-11-04: no new tests, no local test runs).
+  - Left: the CI unit suite on the final commit and the owner's review. E2E waits for Stage 8 (A-34).
 
 ### Data: the mock stays (A-17)
 No wallet backend works yet. So Stage 5 keeps `components/DemoApp/demoWallet.ts` and the design exactly as on

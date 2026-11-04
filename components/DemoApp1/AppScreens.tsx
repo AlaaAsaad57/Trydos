@@ -28,8 +28,9 @@ import { NavCtx } from "./screenNav";
  * The screen mount of the real app (UI-MIGRATION-PLAN.md, "The screen mount";
  * S3-1). The [lang] layout puts it around the page.
  *
- *  - On a path with a row in appScreenPaths.ts it draws that new screen, and not
- *    the route's page (that page renders nothing).
+ *  - On a path with a row in appScreenPaths.ts it draws that new screen. The
+ *    route's page stays in the tree, hidden: it renders nothing, but its
+ *    redirect for a guest needs it.
  *  - On any other path it shows the old page, untouched: same DOM, same
  *    server render, the browser's own scroll restore.
  *
@@ -213,6 +214,11 @@ function AppScreensInner({
         </AnimatePresence>
       </div>
       <DemoKeyboard locale={locale} t={t} />
+      {/* The route's page renders nothing here, but it must stay in the tree:
+          its redirect (a guest to the login, S4-4) reaches the browser only
+          when the page is rendered. Hidden, so the settings template's box
+          takes no room. */}
+      <div hidden>{children}</div>
     </NavCtx.Provider>
   );
 }

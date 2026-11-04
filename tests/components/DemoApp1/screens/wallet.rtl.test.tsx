@@ -25,6 +25,14 @@ vi.mock("components/DemoApp1/Demo1Shell", () => ({
   }),
 }));
 
+// The shopper Wallet Info shows (the sheet reads useProfileData, A-16).
+const client = vi.hoisted(() => ({
+  name: "Sara",
+  clientId: "1012-3456",
+  phone: "+90 552 800 2000",
+}));
+vi.mock("components/DemoApp1/useProfileData", () => ({ useProfileData: () => client }));
+
 // jsdom has no ResizeObserver; the cards' row and FileLines measure with one.
 if (!("ResizeObserver" in globalThis)) {
   globalThis.ResizeObserver = class {
@@ -34,7 +42,6 @@ if (!("ResizeObserver" in globalThis)) {
   } as unknown as typeof ResizeObserver;
 }
 
-import { DEMO_PROFILE, DemoDataProvider } from "components/DemoApp/DemoData";
 import {
   WALLET_BALANCES,
   WALLET_BANK_ACCOUNT,
@@ -77,7 +84,7 @@ const physicalSides = (root: ParentNode) =>
 
 const usd = WALLET_BALANCES[0];
 const noop = () => {};
-const inData = (ui: React.ReactElement) => render(<DemoDataProvider>{ui}</DemoDataProvider>);
+const inData = (ui: React.ReactElement) => render(ui);
 
 describe("the wallet screens on an Arabic page — placed from the start side, so they mirror", () => {
   it.each<[string, () => React.ReactElement]>([
@@ -234,8 +241,8 @@ describe("the wallet's values on an Arabic page — each one reads left to right
 
   it("Wallet Info: the client's id and phone", () => {
     inData(<WalletInfoSheet open onClose={noop} balance={usd} />);
-    expectLtr("the client's phone", DEMO_PROFILE.phone);
-    expectLtr("the client's id", DEMO_PROFILE.clientId);
+    expectLtr("the client's phone", client.phone);
+    expectLtr("the client's id", client.clientId);
   });
 
   it("the receipt: its number, date, reference, amount with code, and receiver", () => {

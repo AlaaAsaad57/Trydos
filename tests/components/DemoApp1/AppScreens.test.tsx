@@ -108,9 +108,9 @@ describe("the screen mount", () => {
       "/settings/profile should draw the profile menu screen",
     ).not.toBeNull();
     expect(
-      screen.queryByTestId("old-page"),
-      "the route's page should not show under a new screen",
-    ).toBeNull();
+      screen.queryByTestId("old-page")?.closest("[hidden]"),
+      "the route's page should stay in the tree, hidden, so its guest redirect runs (S4-4)",
+    ).not.toBeNull();
     expect(
       screen.queryByText("الملف الشخصي"),
       "the screen should get its words from the layout's dictionary",
@@ -185,8 +185,8 @@ describe("the screen mount", () => {
       ).not.toBeNull(),
     );
     expect(
-      screen.queryByTestId("old-page"),
-      "the old page should be gone under the profile tab",
-    ).toBeNull();
+      screen.queryByTestId("old-page")?.closest("[hidden]"),
+      "the page should be hidden under the profile tab",
+    ).not.toBeNull();
   });
 });
