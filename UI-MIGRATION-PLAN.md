@@ -642,6 +642,40 @@ ClientInfoScreen, PersonalInfoScreen, BodyScreen, AddressListScreen, AddressForm
 **Data today:** all from `DEMO_PROFILE` (`components/DemoApp/DemoData.tsx` lines 51-67), `demoPlaces.ts`,
 a static map picture and a static QR picture.
 
+### Decided for Stage 4 (2026-11-04)
+
+| # | Decision | Answer |
+|---|---|---|
+| S4-1 | Paths | The new screens take the old paths where an old page exists (D-17): Personal info = `/settings/profile/info`, Body = `/settings/profile/size`, Photo = `/settings/profile/picture`. Screens with no old page keep the demo names: `/settings/client-id`, `/settings/profile/client-info`, `/settings/profile/address/new`. |
+| S4-2 | Settings screen (D-19, D-22) | A new-style row list, built like the Profile menu (XD `Home Page – 16`): the new header "Settings" and 60 px rows. Rows: Notifications (old panel), notification topics (old `prefferences` form), My Checklist, Country, Language, Become a seller / Seller dashboard. Each row opens the old page or panel. Row icons come from the old settings page. The designer must check it (no XD board). |
+| S4-3 | Settings screen path | `/settings/preferences` (new). The old `/settings/prefferences` stays as the topics page, so the notifications panel's link keeps working. |
+| S4-4 | Guest | A guest never sees the profile screens: the Profile tab and every new `/settings/*` screen send a guest to `/[lang]/login?next=<path>`. |
+| S4-5 | Wallet card on the profile | Shows the USD balance from `demoWallet.ts`, so it matches the wallet screen (A-17). Until Stage 5 the tap opens the old `/settings/wallet` page. |
+| S4-6 | "Unverified account" card | Hidden for a shopper whose phone is verified (only the size and business cards show). An exception to A-7, because its text would be false. |
+| S4-7 | Address sheets until D-30 | The Country sheet lists only the URL's country (as live). The place sheet lists the backend places (`GetProvinces`) with the design's search; a picked row fills province / city / town / street. |
+| S4-8 | E-mail | A-8: the e-mail code sheet opens as designed, and "Verify" shows "Soon available". A changed e-mail is not saved until the backend has e-mail codes. Name and gender save as normal. |
+| S4-9 | Words of the new screens | The `[lang]` layout sends the dictionary of all new-UI keys with every page (as `/demo` does). Measured on 2026-11-04: 370 keys, Arabic 20 KB (7 KB gzip). It grows as other stages add keys. |
+
+### The screen mount (built first, for lanes A and B)
+
+The 3 items moved from Stage 3: the path table with its on/off switch, drawing a new screen inside the app, and
+`next/dynamic` for the screens.
+
+- `components/DemoApp1/appScreenPaths.ts`: **one row per path** that a new screen owns (`path` after the locale →
+  screen key). A path with no row shows its old page. A lane turns a screen on by adding its row, and by making
+  that path's `page.tsx` render nothing (the mount draws the screen, not the page).
+- `components/DemoApp1/AppScreens.tsx`: wraps the page in the `[lang]` layout. On a path with a row it draws the
+  screen; on any other path it shows the old page. Screens slide only between two new screens (Stage 3 rules).
+- `AppScreenView.tsx` loads each screen with `next/dynamic` and a shape-matched skeleton (`ScreenSkeleton.tsx`), so
+  a page loads only the screen it shows. A new row needs an entry there too (a test checks it). `/demo` keeps
+  `Demo1ScreenView.tsx`, which loads all screens at once (its tests draw a screen on the first render).
+- Claude's calls (check them): on a new screen the bottom bar shows only on a tab screen (Profile), as in the
+  design; inner screens have none. The drawn keyboard is mounted only while a new screen shows. The guest
+  check (S4-4) is in each screen's `page.tsx` on the server (it reads the `User-Data` cookie and redirects),
+  not in the mount, because the store may not hold the profile yet on the first render.
+- Known limit: back from a new screen to an old page with the browser's own back button may open the old page
+  at the top, not where it was left (the mount turns the browser's scroll restore off while a new screen shows).
+
 ### Live code to link
 
 | New screen | Live code | Service / endpoint |

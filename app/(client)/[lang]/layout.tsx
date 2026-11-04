@@ -16,6 +16,12 @@ import RdbPaymentLockedSheet from "components/Cart/RdbPaymentLockedSheet";
 import Init from "components/Home/Init";
 import NavbarClient from "components/Home/NavbarClient";
 import AppShell from "components/DemoApp1/AppShell";
+import AppScreens from "components/DemoApp1/AppScreens";
+import {
+  DEMO_KEYS,
+  KEEP_CASE,
+  type DemoDictionary,
+} from "components/DemoApp/demoKeys";
 import { translateFunction } from "utils/server";
 import NavigationLoaderSafetyNet from "components/global/NavigationLoaderSafetyNet";
 import Organaization from "serverRequests/meta/StructuredData/Organaization";
@@ -146,6 +152,18 @@ export default async function RootLayout({ children, modal }) {
   if (!isSupportedLocaleSegment(lang)) notFound();
 
   const [country, language] = lang.split("-");
+  // The words of the new screens, for the screen mount (S4-9 in
+  // UI-MIGRATION-PLAN.md). The layout cannot know the path, so every page
+  // gets them: 370 keys, Arabic 20 KB (7 KB gzip) on 2026-11-04. Built as the
+  // /demo layout builds them: English keeps the design's case for KEEP_CASE.
+  const screenWords: DemoDictionary = Object.fromEntries(
+    DEMO_KEYS.map((key) => [
+      key,
+      language === "en" && KEEP_CASE.has(key)
+        ? key
+        : translateFunction(key, language),
+    ]),
+  );
   return (
     <html
       className={[
@@ -214,7 +232,11 @@ export default async function RootLayout({ children, modal }) {
         <div className="site-container items-center">
           <OverlayVisibilityProvider>
             <NavigationLoaderGate>
-              <MainContent>{children}</MainContent>
+              <MainContent>
+                {/* Draws a new screen on its path, the old page anywhere
+                    else (see components/DemoApp1/appScreenPaths.ts). */}
+                <AppScreens dictionary={screenWords}>{children}</AppScreens>
+              </MainContent>
               <ModalSlot>{modal}</ModalSlot>
             </NavigationLoaderGate>
           </OverlayVisibilityProvider>
