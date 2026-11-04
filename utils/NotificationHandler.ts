@@ -16,6 +16,7 @@ import { watchChannel as watchChannelAction } from "store/chat/actions";
 
 import { REQUESTS_DATA } from "./Requests";
 import { isChannelMutedForMe } from "./chatMute";
+import { autoSaveIncomingMedia } from "components/Chat/autoDownload";
 
 import auth from "services/auth";
 import {
@@ -641,8 +642,7 @@ class ForegroundNotificationHandler {
     // in another one, which is why the service worker reads it back as
     // `parsed.payload.payload` (public/firebase-messaging-sw.js). Reading
     // `payloadData.channelId` therefore found nothing, so every call fell back
-    // to the stand-in — and the stand-in has `mute: 0` written into both of its
-    // member rows, so a muted chat rang.
+    // to the stand-in below instead of the chat from the list.
     const callChannelId =
       data.message?.channel?.id ??
       payloadData?.payload?.channelId ??
@@ -775,6 +775,13 @@ class ForegroundNotificationHandler {
     } else {
       messagePreview = translateFunction("New message");
     }
+
+    // Save the photo, video or file on the user's machine when they chose
+    // "Always" in the chat info ("Save To Gallery"). It skips the user's own
+    // messages and any file it already saved. This is the only live-message
+    // entry point. Media that came while the page was closed is handled by
+    // `autoSaveMissedMedia` when the chat opens.
+    autoSaveIncomingMedia(messageData, currentUser?.id);
 
     // Override for ShareProduct event type specific logic
     if (eventType === "ShareProductEvent") {

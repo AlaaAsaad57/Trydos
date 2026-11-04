@@ -236,6 +236,31 @@ html[lang="ar"] .chat-window-search-holder img {
 .call-conversation-item:hover .options-icon {
   display: flex;
 }
+/* A deleted call (CallItem): a grey tile where the picture was, and grey text.
+   It shows no name, picture or date. */
+.deleted-call-icon {
+  width: 55px;
+  height: 55px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background-color: #f0f0f0;
+  color: #a5a5a5;
+}
+.deleted-call-icon svg {
+  width: 22px;
+  height: 22px;
+}
+.deleted-call .call-name {
+  color: #8e8e8e;
+}
+.deleted-call .call-type {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #a5a5a5;
+}
 .call-conversation-item img {
   width: 55px;
   height: 55px;
@@ -1060,6 +1085,11 @@ html[lang="ar"] .new-chats {
   background-color: #f7f7f7;
   overflow-y: scroll;
 }
+/* Each part keeps its own height. Without this, a short phone squashes the
+   parts to fit (the image strip fell to 6px) and there is nothing to scroll. */
+.chat-user-info-container > * {
+  flex-shrink: 0;
+}
 .arrow-icon {
   position: absolute;
   z-index: 20px;
@@ -1176,6 +1206,7 @@ html[lang="ar"] .new-chats {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  gap: 5px;
   color: #8d8d8d;
   cursor: pointer;
   font-family: var(--SF-Pro-Rounded-Light);
@@ -1193,6 +1224,32 @@ html[lang="ar"] .new-chats {
   align-items: center;
   letter-spacing: 0.01em;
   justify-content: center;
+}
+.gallery-option span {
+  color: #5d5c5d;
+  margin-right: 36px;
+  font-size: 16px;
+  font-family: var(--SF-Pro-Rounded-Light);
+}
+
+.chat-user-gallery-container {
+  margin-top: 10px;
+  cursor: pointer;
+  width: 100%;
+  background-color: #f4f4f4;
+  height: 50px;
+  padding-left: 15px;
+  flex-shrink: 0;
+  display: flex;
+  border-radius: 20px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+}
+.chat-user-gallery-container .chat-user-info-arrow {
+  top: 0;
+  bottom: 0;
 }
 .chat-user-options {
   width: 100%;

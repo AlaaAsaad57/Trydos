@@ -965,6 +965,25 @@ describe("VariantsSection", () => {
     expect(latest.variations.Blue.sku, "typing a SKU must reach the form").toBe("other");
   });
 
+  it("shows a variant price error under the exact cell with a red border", async () => {
+    await mount(
+      VariantsSection,
+      {
+        colors: [{ code: "#FF0000", name: "Red" }],
+        variations: {
+          Red: { price: "5", discount: "8", luck: "", qty: "1", sku: "a", barcode: "", location_id: "1" },
+        },
+      },
+      { errors: { variation_price_Red: "Price too low here" } },
+    );
+    const msg = screen.getByText("Price too low here");
+    const cell = msg.closest("td") as HTMLElement;
+    expect(cell, "the price message must sit inside a table cell").toBeTruthy();
+    const input = within(cell).getByRole("spinbutton");
+    expect((input as HTMLInputElement).value, "the message must sit under the price cell").toBe("5");
+    expect(input.className, "the price cell must get a red border").toContain("border-[#f85555]");
+  });
+
   it("removes a color with its image list, removes a size, and assigns images to a color", async () => {
     await mount(VariantsSection, {
       images: IMGS,

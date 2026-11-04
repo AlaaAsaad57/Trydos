@@ -14,18 +14,17 @@ describe("SearchTrending", () => {
   it("shows the popular words in a row and fills the search box on a tap", async () => {
     const setValue = vi.fn();
     const { container } = await renderWithProviders(
-      <SearchTrending trending={trending} clearAll={() => {}} setValue={setValue} />,
+      <SearchTrending trending={trending} setValue={setValue} />,
     );
     expect(container.querySelector(".search-filter-options"), "the closed row of popular words is missing").not.toBeNull();
     fireEvent.click(screen.getByText("bags"));
     expect(setValue, "tapping a popular word did not fill the search box").toHaveBeenCalledWith("bags");
   });
 
-  it("opens the full list with counts, fills on tap, and clears all", async () => {
+  it("opens the full list with counts, and fills on tap, with no Clear All button", async () => {
     const setValue = vi.fn();
-    const clearAll = vi.fn();
     const { container } = await renderWithProviders(
-      <SearchTrending trending={trending} clearAll={clearAll} setValue={setValue} />,
+      <SearchTrending trending={trending} setValue={setValue} />,
       { language: "ar" },
     );
     expect(container.firstElementChild!.className, "an Arabic list must be reversed").toContain("flex-row-reverse");
@@ -35,7 +34,6 @@ describe("SearchTrending", () => {
     expect(menu.textContent, "the list does not show how often each word was searched").toContain("12");
     fireEvent.click(menu.querySelector('[data-pw="search-trending-option"]')!);
     expect(setValue, "tapping a word in the full list did not fill the search box").toHaveBeenCalledWith("shoes");
-    fireEvent.click(container.querySelector(".clear-options-button")!);
-    expect(clearAll, "Clear All did nothing").toHaveBeenCalled();
+    expect(container.querySelector(".clear-options-button"), "the open trending list must not show a Clear All button").toBeNull();
   });
 });

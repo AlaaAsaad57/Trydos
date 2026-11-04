@@ -46,7 +46,7 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | D-1 | Merge | Once, at the end (after Stage 8). Every stage stays on `ui-migrations`. |
 | D-2 | Desktop | The 500 px centred column is OK on desktop. No desktop design work. |
 | D-3 | RTL | Mirror everything for `ar` / `ku`: layout, slide direction, tab order, margins. |
-| D-4 | English case | Keep Title Case for all English, new screens included. |
+| D-4 | English case | **Changed on 2026-11-04.** The new UI uses Apple's capital rules for English (`components/DemoApp1/demoCase.ts`): title style for titles, labels, buttons, chips, tabs and badges (every word capitalised except a / an / the, and / but / or / nor, and prepositions of four letters or fewer in the middle of a phrase); sentence style for body text; names (brands, countries, months, "I") always capitalised; other languages unchanged. Home, the store page, its colour sheet and the product page have it now (taken from `development`). Each later stage switches its own screens (`useDemoCase()` instead of `useDemoNav().t`). Was: Title Case for all English, new screens included. |
 | D-5 | No backend yet | Replaced by A-8. |
 | D-6 | Old components | Delete an old component in the same stage, only when nothing else uses it (checked with `pnpm knip` and grep). |
 | D-7 | Wording | Fix all: "Man" / "Home" translations, the double `Man` in `ku`, and the XD typos ("Rining", "Desible Call", "Replay", "re-remind"). |

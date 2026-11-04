@@ -1,5 +1,7 @@
 import Spinner from "components/global/Spinner";
+import PriceChangedModal from "components/Cart/PriceChangedModal";
 import Image from "next/image";
+import { useState } from "react";
 import auth from "services/auth";
 import cart from "services/cart";
 import { useAppStore } from "store";
@@ -8,7 +10,7 @@ import { getCart, LogError, translateFunction } from "utils/functions";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { isLuckActive } from "utils/luck";
-import { resolveShowedPrice } from "utils/cart/pricing";
+import { resolveShowedPrice, showedPriceChange } from "utils/cart/pricing";
 import { DetectScreen } from "utils/tinyUtils";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
 
@@ -28,8 +30,69 @@ function AddToCartButton({
   initialLoading,
   colorChanged,
   sizeChanged,
-}) {
+  // Reads the product's prices and stock again (`qtyPriceDetails`), so the
+  // sheet shows the price the bag line costs now.
+  refreshPricing = null,
+}: any) {
   const { localCart, currency } = useAppStore();
+  // The bag line whose price changed while the shopper was adding it, and the
+  // two prices. Set only from the bag read that follows an add.
+  const [priceChange, setPriceChange] = useState<{
+    itemId: any;
+    from: number;
+    to: number;
+  } | null>(null);
+  const [removingChanged, setRemovingChanged] = useState(false);
+  /** Look in the bag the add read back for the line the add touched. When its
+   *  price is not the one the sheet showed (`showed_price`), ask the shopper. */
+  const askIfPriceChanged = async (bag: any, itemId: any) => {
+    if (itemId === undefined || itemId === null) return;
+    const line = bag?.cart?.find((s) => s?.id === itemId);
+    const change = line ? showedPriceChange(line) : null;
+    if (!change) return;
+    setPriceChange({ itemId, ...change });
+    // The sheet still shows the old price. Read the prices again.
+    try {
+      await refreshPricing?.();
+    } catch (error) {
+      LogError({
+        error,
+        scenario: "reading prices again after a price change - add to cart widget",
+        slug: product?.slug,
+      });
+    }
+  };
+  const removeChangedLine = async () => {
+    if (!priceChange || removingChanged) return;
+    setRemovingChanged(true);
+    const cartItem = useAppStore
+      .getState()
+      .localCart.find((s) => s.item_id === priceChange.itemId);
+    const removed = await cart.RemoveFromCart({
+      cart_item: cartItem ?? { item_id: priceChange.itemId },
+      isFromAddWidget: true,
+    });
+    setRemovingChanged(false);
+    if (removed === false) {
+      showErrorNotification(translateFunction("Something went wrong"));
+      return;
+    }
+    trackOrder(ORDER_EVENTS.CART_ITEM_REMOVED, {
+      product_id: product?.id ?? id,
+      item_name: product?.name,
+      variant: cartItem?.product_variation_id,
+      qty: cartItem?.quantity,
+      unit_price: priceChange.to,
+      reason: "price_changed",
+      source: DetectScreen(),
+    });
+    setPriceChange(null);
+    await getCart({
+      callback: () => {},
+    });
+    // The whole line left, not one piece, so read the stock again.
+    await updateQuantity(false);
+  };
   // Enriched add-to-cart context for PostHog: which variant the user picked,
   // whether they changed color/size, the deal type, and the source surface
   // (home / product / search-filter / boutique — via DetectScreen).
@@ -220,6 +283,7 @@ function AddToCartButton({
         // A2-14: read the luck flag when the shopper taps, not when the sheet
         // opened. After the timer ends the redeemed cookie turns it off.
         const luckNow = isLuckActive(product, id);
+        const raisedItemId = isVariantInCart({ exact: false })?.item_id;
         let response = await cart.UpdateCart({
           cart_id: isVariantInCart({ exact: false })?.item_id,
           qty: (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
@@ -236,9 +300,10 @@ function AddToCartButton({
         if (response === false) {
           throw "error";
         }
-        await getCart({
+        const bag = await getCart({
           callback: () => {},
         });
+        await askIfPriceChanged(bag, raisedItemId);
         GAevent({
           action: GA_EVENT_NAMES.ADD_TO_CART,
           params: {
@@ -319,6 +384,11 @@ function AddToCartButton({
         if (luckNow) useAppStore.getState().expireLuck(id);
 
         if (val) {
+          // AddToCart puts the new line, with the cart id the core backend
+          // gave it, at the end of the bag.
+          const addedItemId = useAppStore
+            .getState()
+            .localCart.findLast((s) => s.id === id)?.item_id;
           GAevent({
             action: GA_EVENT_NAMES.ADD_TO_CART,
             params: {
@@ -347,9 +417,10 @@ function AddToCartButton({
           trackOrder(ORDER_EVENTS.ADD_TO_CART, addToCartProps(1, productVariationId));
           animateText("Added To Your Bag");
           await updateQuantity(true, productVariationId, "add");
-          await getCart({
+          const bag = await getCart({
             callback: () => {},
           });
+          await askIfPriceChanged(bag, addedItemId);
         } else {
           throw new Error("error");
         }
@@ -459,6 +530,15 @@ function AddToCartButton({
   };
   return (
     <div className="w-full  px-[20px] flex overflow-hidden">
+      {priceChange && (
+        <PriceChangedModal
+          from={priceChange.from}
+          to={priceChange.to}
+          removing={removingChanged}
+          onContinue={() => setPriceChange(null)}
+          onRemove={removeChangedLine}
+        />
+      )}
       <div
         onClick={(e) => {
           if ((e.target as any).closest(".minuse-qty-icon")) return false;

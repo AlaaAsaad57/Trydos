@@ -196,6 +196,34 @@ describe("useMessageSwipe", () => {
     expect(hook.result.current.isOpen, "a capture error stopped the close").toBe(false);
   });
 
+  // A voice message is 340px wide. On a 375px phone the chat list clips at its
+  // own left edge, and the bubble starts only 10px right of it. The dates
+  // (45px, 8px left of the bubble) need 53px there, so the fixed 18px nudge
+  // left them cut off. jsdom has no layout, so the boxes are given here; each
+  // follows the bubble's translateX.
+  it("on a narrow screen, opens far enough that the dates sit inside the chat list", () => {
+    const { hook, content, dates, swipe } = setup();
+    const list = document.createElement("div");
+    list.style.overflowX = "hidden";
+    document.body.append(list);
+    list.append(content);
+    content.append(dates);
+    const shift = () => parseFloat(content.style.transform.replace("translateX(", "")) || 0;
+    const box = (left: number, width: number) => ({ left, right: left + width, width }) as DOMRect;
+    list.getBoundingClientRect = () => box(0, 375);
+    content.getBoundingClientRect = () => box(10 + shift(), 340);
+    dates.getBoundingClientRect = () => box(10 + shift() - 8 - 45, 45);
+
+    swipe(60);
+
+    expect(hook.result.current.isOpen, "the bubble did not lock open").toBe(true);
+    const datesLeft = dates.getBoundingClientRect().left;
+    expect(
+      datesLeft,
+      `the dates start at x=${datesLeft}, left of the chat list's edge at x=0, so the list cuts them off (${content.style.transform})`,
+    ).toBeGreaterThanOrEqual(0);
+  });
+
   it("works with no bubble element attached", () => {
     const hook = renderHook(() => useMessageSwipe({ id: 3 }));
     act(() => hook.result.current.open());

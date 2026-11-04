@@ -3,6 +3,7 @@ import { Recive, watchChannel as watchChannelAction } from "./actions";
 import { getMediaReducer } from "./actions";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { Channel, MyReminder } from "utils/types/chat";
+import { sortMessages } from "./messageOrder";
 
 // --- Types ---
 interface ChatState {
@@ -203,6 +204,25 @@ const isDue = (reminder: any): boolean =>
   !!reminder?.remind_at &&
   new Date(reminder.remind_at).getTime() <= Date.now();
 
+/** The chat backend allows only this many pinned chats per user. */
+export const MAX_PINNED_CHATS = 3;
+
+/**
+ * True when the user already has the most pinned chats allowed. A pin lives on
+ * the user's own row in `channel_members` (`pin: 1`), so the count reads the
+ * chat list. `pinnedChats` is never filled, so it cannot be used for this.
+ */
+export const isPinLimitReached = (chats: any[] = []): boolean => {
+  const me = getUserChat()?.id;
+  const pinned = chats.filter(
+    (chat: any) =>
+      parseInt(
+        chat?.channel_members?.find((mem: any) => mem.user_id === me)?.pin,
+      ) === 1,
+  );
+  return pinned.length >= MAX_PINNED_CHATS;
+};
+
 /**
  * Fresh messages from the chat backend, with the due reminders the store
  * already holds put back on the messages the backend sent without one.
@@ -264,11 +284,15 @@ const updateDataAndActiveChat = (
 /**
  * Calculates the 'watched_at' or 'received_at' date logic.
  * Original code subtracted 3 hours (3*60*60*1000).
+ *
+ * Returns an ISO string. It must not be `toLocaleString()`: that follows the
+ * user's language (Arabic-Indic digits in ar/ku), `new Date()` cannot read it
+ * back, and the message dates showed "NaN:NaN".
  */
 const getAdjustedDateString = (originalDate?: string): string => {
   if (originalDate) return originalDate;
   // 3 hours offset as per original code
-  return new Date(new Date().getTime() - 10800000).toLocaleString().toString();
+  return new Date(new Date().getTime() - 10800000).toISOString();
 };
 
 /**
@@ -1053,14 +1077,17 @@ export const useChatStore = (set: any, get: any) => ({
     // The messages the store holds for a chat, to keep their due reminders.
     const held = (id: any) =>
       state.data.find((c: any) => areIdsEqual(c.id, id))?.messages;
+    // Sorted copies. `reverse()` used to turn the answer itself round, and two
+    // chat-list calls that run at the same time share one answer, so the
+    // second call turned the messages back to newest first.
     const processedPayload = payload.map((a) => ({
       ...a,
-      messages: keepDueReminders(a.messages.reverse(), held(a.id)),
+      messages: keepDueReminders(sortMessages(a.messages), held(a.id)),
       marked_unread: seedMarkedUnread(a),
     }));
     const processedParam = param.map((p) => ({
       ...p,
-      messages: keepDueReminders(p.messages.reverse(), held(p.id)),
+      messages: keepDueReminders(sortMessages(p.messages), held(p.id)),
       marked_unread: seedMarkedUnread(p),
     }));
 
@@ -1146,8 +1173,8 @@ export const useChatStore = (set: any, get: any) => ({
     const mergeMessages = (oldMsgs: any[], newMsgs: any[]) => {
       const existingIds = new Set(oldMsgs.map((m) => String(m.id)));
       const toAdd = newMsgs.filter((m) => !existingIds.has(String(m.id)));
-      // Prepend new messages (pagination logic usually goes upwards)
-      return [...toAdd, ...oldMsgs];
+      // The backend sends a page newest first; the chat keeps oldest first.
+      return sortMessages([...toAdd, ...oldMsgs]);
     };
 
     // Case: Channel not in data list
@@ -1199,7 +1226,8 @@ export const useChatStore = (set: any, get: any) => ({
 
   pinChat: (payload: any) => {
     const state = get();
-    if (state.pinnedChats.length < 3) {
+    // An unpin is always allowed; only a new pin counts against the limit.
+    if (!payload.value || !isPinLimitReached(state.data)) {
       const userId = getUserChat()?.id;
       // Move pinned chat to top? Original logic just replaced it in place in array,
       // but usually pinned chats float. Keeping original logic of just updating prop + shuffling array
@@ -1561,10 +1589,20 @@ export const useChatStore = (set: any, get: any) => ({
     }
   },
 
-  deleteCall: (payload: number) =>
+  // The call stays in the log as a deleted call, the way the chat backend keeps
+  // sending it after a delete (auth_message_status.is_deleted 1).
+  deleteCall: (payload: number | string) =>
     set((state: ChatState) => ({
-      calls: state.calls.filter(
-        (call) => parseInt(call.id) !== parseInt(payload.toString()),
+      calls: state.calls.map((call) =>
+        areIdsEqual(call.id, payload)
+          ? {
+              ...call,
+              auth_message_status: {
+                ...(call.auth_message_status || {}),
+                is_deleted: 1,
+              },
+            }
+          : call,
       ),
     })),
 

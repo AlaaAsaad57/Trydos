@@ -158,10 +158,16 @@ describe("sending a chat message — the answer the chat backend gives", () => {
 
     await SendMessage({ cid: "ch-8", mid: "m1" }, "ch-8");
 
+    const history = fetchData.mock.calls.map(([p]) => p).find((p) => p.url.includes("messages_of_channel"));
+    expect(history?.url, "the earlier messages of the chat the backend used were not asked for").toBe(
+      "/api/v1/messages/messages_of_channel/40",
+    );
+    // The chat backend reads the cursor and the limit from the body only; in
+    // the URL it ignores them and answers with the newest messages.
     expect(
-      fetchData.mock.calls.map(([p]) => p.url),
-      "the earlier messages of the chat the backend used were not asked for",
-    ).toContain("/api/v1/messages/messages_of_channel/40?message_id=77&limit=10");
+      history?.body ? JSON.parse(history.body) : undefined,
+      "the earlier messages were not asked as older than the new message (message_id and limit belong in the body)",
+    ).toEqual({ message_id: 77, limit: 10 });
   });
 
   it("a first message into a loaded chat asks for no earlier messages", async () => {
@@ -291,7 +297,13 @@ describe("chat actions — calls to the chat backend", () => {
     const { getPage, getMessagesBetweenTwoMessages } = await import("store/chat/actions");
     fetchData.mockResolvedValue({ success: true, data: [{ id: 1 }] });
     await getPage(3, 10);
-    expect(fetchData.mock.calls[0][0].url, "the page address was wrong").toBe("/api/v1/messages/messages_of_channel/3?message_id=10&limit=10");
+    expect(fetchData.mock.calls[0][0].url, "the page address was wrong").toBe("/api/v1/messages/messages_of_channel/3");
+    // The chat backend ignores message_id and limit in the URL, so a page asked
+    // that way came back as the newest messages, not the ones before message 10.
+    expect(
+      fetchData.mock.calls[0][0].body ? JSON.parse(fetchData.mock.calls[0][0].body) : undefined,
+      "the page did not ask for the messages older than message 10 (message_id and limit belong in the body)",
+    ).toEqual({ message_id: 10, limit: 10 });
     expect(setPageData, "the page was not stored").toHaveBeenCalledWith({ mes: [{ id: 1 }], ch: 3 });
     await getMessagesBetweenTwoMessages({ first: 1, second: 2, channel_id: 3 });
     expect(JSON.parse(fetchData.mock.calls[1][0].body), "the range body was wrong").toEqual({ channel_id: 3, first_message_id: 1, second_message_id: 2 });

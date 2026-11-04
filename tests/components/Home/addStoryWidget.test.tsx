@@ -276,6 +276,25 @@ describe("AddStoryWidget — choosing, previewing and uploading", () => {
     expect((useAppStore.getState() as any).addStoryEnable, "the sheet did not close after the upload").toBeFalsy();
   });
 
+  it("sends a link with a query, a #part and %-codes as typed, and drops only < and >", async () => {
+    upload.mockResolvedValue({});
+    render(<AddStoryWidget />);
+    await pickImage();
+    const typed = "shop.example.com/p/%D8%A7(1)?a=1&b=2,3*#top";
+    fireEvent.change(linkInput(), { target: { value: typed } });
+    fireEvent.blur(linkInput());
+    expect(linkInput().value, "the link field removed characters a link needs").toBe(typed);
+    fireEvent.change(linkInput(), { target: { value: "shop.example.com/<b>" } });
+    fireEvent.blur(linkInput());
+    expect(linkInput().value, "the link field kept < or >").toBe("shop.example.com/b");
+    fireEvent.change(linkInput(), { target: { value: typed } });
+    await act(async () => {
+      fireEvent.click(shareButton()!);
+    });
+    await waitFor(() => expect(upload, "the stories media upload was never called").toHaveBeenCalled());
+    expect(upload.mock.calls[0][4], "the link sent to the stories backend lost characters").toBe(`https://${typed}`);
+  });
+
   // L-6 (stories readiness): after an upload the sheet re-read page 1 and wrote
   // it over the whole list, so people from the pages loaded before vanished.
   it("keeps the people from later pages on the bar after an upload", async () => {
@@ -422,21 +441,59 @@ describe("AddStoryWidget — choosing, previewing and uploading", () => {
     expect(screen.queryByTestId("fake-crop-save"), "the crop step did not close").toBeNull();
   });
 
+  /** "pass" / "fail" of one rule under the link field, or null when no rule is shown. */
+  const linkRule = (rule: "url" | "length") =>
+    document.querySelector(`[data-pw="story-link-check-${rule}"]`)?.getAttribute("data-state") ?? null;
+
+  it("shows no rules while the link is empty, because the link is optional", async () => {
+    render(<AddStoryWidget />);
+    await pickImage();
+    expect(linkRule("url"), "the link rules showed before anything was typed").toBeNull();
+    fireEvent.change(linkInput(), { target: { value: "x" } });
+    fireEvent.change(linkInput(), { target: { value: "" } });
+    expect(linkRule("url"), "the link rules stayed after the link was cleared").toBeNull();
+    expect(shareButton()!.disabled, "Share stayed off after the link was cleared").toBe(false);
+  });
+
   it("checks the link as it is typed and blocks Share on a bad one", async () => {
     render(<AddStoryWidget />);
     await pickImage();
     fireEvent.change(linkInput(), { target: { value: "localhost" } });
-    expect(
-      screen.getByText("Please enter a valid URL (e.g., example.com or www.example.com)"),
-      "a link with no dot was accepted",
-    ).toBeInTheDocument();
+    expect(linkRule("url"), "a link with no dot passed the link rule").toBe("fail");
+    expect(linkRule("length"), "a short bad link failed the length rule").toBe("pass");
     expect(shareButton()!.disabled, "Share stayed on with a bad link").toBe(true);
     fireEvent.change(linkInput(), { target: { value: "https://a b.com" } });
+    expect(linkRule("url"), "a host with a space passed the link rule").toBe("fail");
     expect(shareButton()!.disabled, "Share stayed on with a link that is not a URL").toBe(true);
-    fireEvent.change(linkInput(), { target: { value: "" } });
-    expect(shareButton()!.disabled, "Share stayed off after the link was cleared").toBe(false);
     fireEvent.change(linkInput(), { target: { value: "http://ok.example.com" } });
+    expect(linkRule("url"), "a full http link failed the link rule").toBe("pass");
+    expect(linkRule("length"), "a short link failed the length rule").toBe("pass");
     expect(shareButton()!.disabled, "a full http link was refused").toBe(false);
+  });
+
+  it("marks a correct link over 200 characters as too long only, and shows the count", async () => {
+    // "https://shop.example.com/" is 25 characters; the rest pads to the length.
+    const linkOf = (length: number) => `https://shop.example.com/${"a".repeat(length - 25)}`;
+    render(<AddStoryWidget />);
+    await pickImage();
+    fireEvent.change(linkInput(), { target: { value: linkOf(201) } });
+    expect(linkInput().value, "the link field cut a long link without saying so").toBe(linkOf(201));
+    expect(linkRule("length"), "a 201-character link passed the length rule").toBe("fail");
+    expect(linkRule("url"), "a correct but long link failed the link rule").toBe("pass");
+    expect(screen.getByText("201/200"), "the shopper was not shown how long the link is").toBeInTheDocument();
+    expect(shareButton()!.disabled, "Share stayed on with a 201-character link").toBe(true);
+    fireEvent.change(linkInput(), { target: { value: linkOf(200) } });
+    expect(linkRule("length"), "a 200-character link failed the length rule").toBe("pass");
+    expect(shareButton()!.disabled, "a 200-character link was refused").toBe(false);
+  });
+
+  it("marks a link that is both bad and too long as failing both rules", async () => {
+    render(<AddStoryWidget />);
+    await pickImage();
+    fireEvent.change(linkInput(), { target: { value: `https://a b.com/${"a".repeat(200)}` } });
+    expect(linkRule("url"), "a bad long link passed the link rule").toBe("fail");
+    expect(linkRule("length"), "a bad long link hid that it is also too long").toBe("fail");
+    expect(shareButton()!.disabled, "Share stayed on with a bad long link").toBe(true);
   });
 
   it("opens the gallery picker from its option", async () => {
@@ -459,6 +516,27 @@ describe("AddStoryWidget — choosing, previewing and uploading", () => {
       "Please enable camera permissions to use camera features",
     );
     expect(screen.queryByTestId("fake-camera"), "the camera opened without permission").toBeNull();
+  });
+
+  // The browser has the camera blocked, and this is the first tap of the page
+  // visit. The permission check throws (see tests/store/index.test.ts), and the
+  // tap used to end on that throw: no message, no camera, nothing to say why.
+  it("tells the shopper to enable the camera on the first tap when the browser blocks it", async () => {
+    const checkCameraPermissions = vi.fn(async () => {
+      useAppStore.setState({ cameraPermissions: "revoked" } as any);
+      throw new Error("");
+    });
+    useAppStore.setState({ cameraPermissions: "asked", checkCameraPermissions } as any);
+    render(<AddStoryWidget />);
+    await act(async () => {
+      fireEvent.click(screen.getByText("Take Photo"));
+    });
+    expect(checkCameraPermissions, "the permission was not asked").toHaveBeenCalled();
+    expect(
+      showErrorNotification,
+      "the first tap on a blocked camera did not tell the shopper to enable it",
+    ).toHaveBeenCalledWith("Please enable camera permissions to use camera features");
+    expect(screen.queryByTestId("fake-camera"), "the camera opened with the permission blocked").toBeNull();
   });
 
   it("asks once when permission was never given, then opens the camera, whose photo goes to the crop step", async () => {

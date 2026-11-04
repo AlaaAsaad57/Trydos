@@ -366,6 +366,38 @@ describe("ConversationContainer — the message list", () => {
     expect(spies.setMessagesPage, "the paging id was not stored").toHaveBeenCalledWith(10);
   });
 
+  // BUG: the page was asked for from `messages[0]`, which is the oldest message
+  // only while the store holds them oldest first. Chat 539 held them newest
+  // first, so the app asked for the messages before its NEWEST one, got back
+  // five it already showed, and the loader never fired again.
+  it("asks for older messages from the oldest message, whatever order the store holds", async () => {
+    await mount({
+      chat: chatWith([
+        msg(12, { created_at: "2030-01-15T10:02:00" }),
+        msg(11, { created_at: "2030-01-15T10:01:00" }),
+        msg(10, { created_at: "2030-01-15T10:00:00" }),
+      ]),
+    });
+    act(() => h.props.Observable.getNext());
+    expect(h.getPage, "the page was asked from a message that is not the oldest one held").toHaveBeenCalledWith(7, 10);
+  });
+
+  it("asks from the smallest id among messages sent in the same second", async () => {
+    await mount({ chat: chatWith([msg(11), msg(9), msg(10)]) });
+    act(() => h.props.Observable.getNext());
+    expect(h.getPage, "the page was not asked from the smallest id of the same-second messages").toHaveBeenCalledWith(7, 9);
+  });
+
+  it("shows messages sent in the same second in id order", async () => {
+    await mount({ chat: chatWith([msg(11), msg(9), msg(10)]) });
+    const ids = screen.getAllByTestId("message").map((el) => el.id);
+    expect(ids, "messages sent in the same second were not shown in id order").toEqual([
+      "main-container-9",
+      "main-container-10",
+      "main-container-11",
+    ]);
+  });
+
   // BUG: the "in flight" lock was set and never cleared (its reset sat in an
   // effect that was commented out). The chat window keeps this container
   // mounted while it is open, so after one page of older messages no chat

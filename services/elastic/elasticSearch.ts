@@ -678,8 +678,7 @@ export async function getProductsAndFiltersFromElastic(
     if (
       filters?.search_text &&
       filters.search_text.trim().length > 0 &&
-      total_size !== undefined &&
-      total_size > 0
+      total_size !== undefined
     ) {
       logSearchTerm({
         searchText: filters.search_text,

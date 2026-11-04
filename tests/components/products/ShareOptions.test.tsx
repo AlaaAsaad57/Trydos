@@ -193,12 +193,14 @@ describe("ShareOptions", () => {
   it("lists chat contacts once each, never the shopper, and toggles them", async () => {
     const me = { id: 1 };
     const contacts = [
-      { id: 10, contact_user_id: "2", name: "Rana (contact)", contact_user: { photo_path: "/p.jpg" } },
+      { id: 10, contact_user_id: "2", name: "Rana (contact)", contact_user: { id: 2, photo_path: "/p.jpg" } },
       { id: 11, contact_user_id: null, name: "No account" },
       { id: 12, contact_user_id: "1", name: "Myself" },
+      // A saved contact with no chat yet.
+      { id: 13, contact_user_id: "5", name: "Sam", contact_user: { id: 5, name: "Sami" } },
     ];
     const data = [
-      // The same person as contact 2: the contact list wins.
+      // The same person as contact 2: one row only.
       { channel_members: [{ user_id: 1 }, { user_id: 2, user: { id: 2, name: "Rana (chat)" } }] },
       // A chat-only person, with no saved contact.
       {
@@ -207,8 +209,9 @@ describe("ShareOptions", () => {
           { user_id: 3, user: { id: 3, name: "Omar", mobile_phone: "x", photo_path: "https://example.com/o.jpg" } },
         ],
       },
-      // A chat person who is a saved contact under another name.
+      // A chat with its own name, with a person saved under another name.
       {
+        channel_name: "Layla L.",
         channel_members: [
           { user_id: 1 },
           { user_id: 4, user: { id: 4, name: "L", contact_user: { id: 40, name: "Layla" } } },
@@ -227,10 +230,12 @@ describe("ShareOptions", () => {
         shareLoading: false,
       },
     });
-    expect(screen.getByText("Rana (contact)"), "the saved contact is missing").toBeInTheDocument();
-    expect(screen.queryByText("Rana (chat)"), "a person showed twice").not.toBeInTheDocument();
+    // The names follow the chat's contacts tab (contactRowName).
+    expect(screen.getByText("Rana (chat)"), "a contact with a chat does not show the chat's name").toBeInTheDocument();
+    expect(screen.queryByText("Rana (contact)"), "a person showed twice, or under the saved name").not.toBeInTheDocument();
     expect(screen.getByText("Omar"), "the chat-only person is missing").toBeInTheDocument();
-    expect(screen.getByText("Layla"), "the contact name of a chat person is not used").toBeInTheDocument();
+    expect(screen.getByText("Layla L."), "the chat's own name is not used").toBeInTheDocument();
+    expect(screen.getByText("Sami"), "a contact with no chat does not show the user's own name").toBeInTheDocument();
     expect(screen.queryByText("Myself"), "the shopper was offered to themself").not.toBeInTheDocument();
     expect(screen.queryByText("No account"), "a contact without an account was offered").not.toBeInTheDocument();
 

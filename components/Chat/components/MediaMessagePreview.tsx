@@ -4,6 +4,7 @@ import Image from "next/image";
 import React from "react";
 import { createPortal } from "react-dom";
 
+import { downloadFile } from "components/Chat/downloadFile";
 import { toDownloadUrl } from "components/Chat/videoSupport";
 import { translateFunction } from "utils/functions";
 
@@ -116,11 +117,16 @@ function MediaMessagePreview({
         <a
           href={toDownloadUrl(source)}
           download
-          target="_blank"
           rel="noreferrer"
-          // Without this the click bubbles to the backdrop and the viewer shuts
-          // in the same moment the download starts.
-          onClick={(event) => event.stopPropagation()}
+          // The click saves the file on the user's machine (no new tab). The
+          // href stays as the fallback for a browser that blocks the script.
+          // `stopPropagation`: without it the click bubbles to the backdrop and
+          // the viewer shuts in the same moment the download starts.
+          onClick={(event) => {
+            event.stopPropagation();
+            event.preventDefault();
+            downloadFile(source);
+          }}
           title={translateFunction("Download")}
           aria-label={translateFunction("Download")}
           className={TOOLBAR_BUTTON}

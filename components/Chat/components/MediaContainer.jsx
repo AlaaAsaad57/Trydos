@@ -3,7 +3,20 @@ import { getMedia } from "../../../store/chat/actions";
 import { translateFunction } from "utils/functions";
 import filePng from "../../../public/images/filePng.png";
 import Image from "next/image";
-function MediaContainer({ id, mediaFiles }) {
+import { downloadFile } from "components/Chat/downloadFile";
+// A tap on a photo or a video opens the same full-screen viewer the chat uses
+// (`onOpenImage` / `onOpenVideo`). A tap on a file saves it on the user's
+// machine, the same as the file bubble in the chat.
+//
+// Both callbacks are optional. The component calls them with `?.`.
+/**
+ * @param {object} props
+ * @param {any} props.id
+ * @param {any} props.mediaFiles
+ * @param {(filePath: string) => void} [props.onOpenImage]
+ * @param {(filePath: string) => void} [props.onOpenVideo]
+ */
+function MediaContainer({ id, mediaFiles, onOpenImage, onOpenVideo }) {
   const [media, setMedia] = useState("ImageMessage");
   useEffect(() => {
     getMedia(id, media);
@@ -38,11 +51,15 @@ function MediaContainer({ id, mediaFiles }) {
       </div>
       <div className="media-tab-container gap-y-[5px]">
         {media === "ImageMessage" &&
-          mediaFiles?.image_messages.map((image, index) => (
+          mediaFiles?.image_messages?.map((image, index) => (
             <a
               href={image.message_files[0]?.file_path}
-              target="_blank"
               key={index}
+              data-pw="media-image"
+              onClick={(e) => {
+                e.preventDefault();
+                onOpenImage?.(image.message_files[0]?.file_path);
+              }}
             >
               <Image
                 className="max-h-full"
@@ -54,11 +71,15 @@ function MediaContainer({ id, mediaFiles }) {
             </a>
           ))}
         {media === "VideoMessage" &&
-          mediaFiles?.video_messages.map((image, index) => (
+          mediaFiles?.video_messages?.map((image, index) => (
             <a
               key={index}
               href={image.message_files[0]?.file_path}
-              target="_blank"
+              data-pw="media-video"
+              onClick={(e) => {
+                e.preventDefault();
+                onOpenVideo?.(image.message_files[0]?.file_path);
+              }}
             >
               <video
                 className="max-h-full"
@@ -70,11 +91,16 @@ function MediaContainer({ id, mediaFiles }) {
             </a>
           ))}
         {media === "FileMessage" &&
-          mediaFiles?.file_messages.map((image, index) => (
+          mediaFiles?.file_messages?.map((image, index) => (
             <a
               key={index}
               href={image.message_files[0]?.file_path}
-              target="_blank"
+              download
+              data-pw="media-file"
+              onClick={(e) => {
+                e.preventDefault();
+                downloadFile(image.message_files[0]?.file_path);
+              }}
             >
               <Image
                 className="max-h-full"

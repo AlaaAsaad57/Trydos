@@ -460,11 +460,11 @@ export const DetectScreen = () => {
     return GA_GLOBAL_SCREEN.HOME_SCREEN;
   }
 };
-export const pollinateInput = (value: string): string => {
+export const pollinateInput = (value: string, maxLength = 90): string => {
   if (typeof value !== "string") return "";
   let input = value.replace(/[<>,#$%^&*()]/g, "");
-  if (input.length > 90) {
-    input = input.slice(0, 90);
+  if (input.length > maxLength) {
+    input = input.slice(0, maxLength);
   }
   return input;
 };

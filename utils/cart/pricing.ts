@@ -73,3 +73,37 @@ export function resolveShowedPrice({
 
   return null;
 }
+
+/**
+ * The price of ONE piece a bag line costs now, as the cart row shows it
+ * (components/Cart/index.tsx > QuantutyInput): the luck price on a luck line,
+ * else the offer price when it differs from the normal price, else the normal
+ * price.
+ */
+export function cartLineUnitPrice(line: any): number {
+  const luckPrice = line?.luck_price;
+  const effectiveOfferPrice =
+    line?.is_luck && typeof luckPrice === "number"
+      ? luckPrice
+      : line?.offer_price;
+  const hasDiscount =
+    typeof effectiveOfferPrice === "number" &&
+    effectiveOfferPrice >= 0 &&
+    line?.price !== effectiveOfferPrice;
+  return hasDiscount ? effectiveOfferPrice : line?.price;
+}
+
+/**
+ * The change between the price the shopper was shown (`showed_price`) and the
+ * price the bag line costs now. Answers null when the line has no
+ * `showed_price` or the two prices are the same.
+ */
+export function showedPriceChange(
+  line: any,
+): { from: number; to: number } | null {
+  const from = toShowedPrice(line?.showed_price);
+  if (from === null) return null;
+  const to = Number(cartLineUnitPrice(line));
+  if (!Number.isFinite(to)) return null;
+  return Math.abs(from - to) >= 0.001 ? { from, to } : null;
+}

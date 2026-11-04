@@ -18,12 +18,12 @@ import { getChatName, getChatPhoto } from "components/Chat/chatsFunctions";
 const ME = 1;
 const ITEM = { name: "Other Person", mobile_phone: "+10000000000", photo_path: "/p.png", contact_user_id: 9 };
 
-async function mount(extra: Record<string, any> = {}, language: any = "en") {
+async function mount(extra: Record<string, any> = {}, language: any = "en", store: Record<string, any> = {}) {
   const handleClickChat = vi.fn();
   const setMain = vi.fn();
   await renderWithProviders(
     <SearchResult key="k" photo={null} SenderName="Other Person" isUser={false} handleClickChat={handleClickChat} item={ITEM} {...extra} />,
-    { language, store: { setMain, userChat: { id: ME } } },
+    { language, store: { setMain, userChat: { id: ME }, ...store } },
   );
   return { handleClickChat, setMain };
 }
@@ -103,7 +103,7 @@ describe("SearchResult — inviting someone", () => {
     await act(async () => {
       fireEvent.click(screen.getByText("Invite"));
     });
-    expect(share.mock.calls[0]?.[0]?.title, "the share sheet was not opened with the invite").toBe("Join Other Person on Trydos");
+    expect(share.mock.calls[0]?.[0]?.title, "the share sheet was not opened with the invite").toBe("Join Other Person On Trydos");
     share.mockRejectedValueOnce(new Error("cancelled"));
     await act(async () => {
       fireEvent.click(screen.getByText("Invite"));
@@ -119,7 +119,10 @@ describe("SearchResult — inviting someone", () => {
     expect((window.open as any).mock.calls[0][0], "WhatsApp was not opened to the contact").toMatch(/^https:\/\/wa\.me\/\+10000000000\?text=/);
     open();
     fireEvent.click(screen.getByText("Telegram"));
-    expect((window.open as any).mock.calls[1][0], "Telegram was not opened").toMatch(/^https:\/\/t\.me\/share\/url\?url=/);
+    // "+10000000000" is not a real number, so Telegram's share page is used.
+    const share = (window.open as any).mock.calls[1][0];
+    expect(share, "Telegram's share page was not opened for a contact with no real number").toMatch(/^https:\/\/t\.me\/share\/url\?url=/);
+    expect(new URL(share).searchParams.get("text"), "Telegram's share page did not get the invite text").toContain("Join Us At");
     open();
     fireEvent.click(screen.getByText("×"));
     expect(screen.queryByText("Choose how to send the invitation"), "the close button did not close the window").toBeNull();
@@ -133,7 +136,7 @@ describe("SearchResult — inviting someone", () => {
     await act(async () => {
       fireEvent.click(screen.getByText("Copy Invite"));
     });
-    expect(writeText.mock.calls[0]?.[0], "the invite text was not copied").toContain("Join us at");
+    expect(writeText.mock.calls[0]?.[0], "the invite text was not copied").toContain("Join Us At");
     expect(window.alert, "the copy was not confirmed").toHaveBeenCalledWith("Link Copied To Clipboard!");
     writeText.mockRejectedValueOnce(new Error("denied"));
     act(() => fireEvent.click(screen.getByText("Invite")));
@@ -143,14 +146,124 @@ describe("SearchResult — inviting someone", () => {
     expect(h.logError.mock.calls[0]?.[0]?.scenario, "a failed copy was not logged").toBe("chat SearchResult: copy to clipboard failed");
   });
 
-  it.fails("BUG-chat-8: the invite links to the real app, not a placeholder store id", async () => {
-    const writeText = vi.fn(async (..._a: any[]) => {});
-    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
-    await mount();
-    act(() => fireEvent.click(screen.getByText("Invite")));
-    await act(async () => {
-      fireEvent.click(screen.getByText("Copy Invite"));
+  describe("Telegram, for a contact with a real number", () => {
+    let writeText: ReturnType<typeof vi.fn>;
+    beforeEach(() => {
+      writeText = vi.fn(async (..._a: any[]) => {});
+      Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
     });
-    expect(writeText.mock.calls[0]?.[0], "the invite still points at the Play Store placeholder id 'your.app.id'").not.toContain("your.app.id");
+
+    const tapTelegram = async () => {
+      act(() => fireEvent.click(screen.getByText("Invite")));
+      await act(async () => {
+        fireEvent.click(screen.getByText("Telegram"));
+      });
+    };
+
+    // Telegram fills the chat's text box from the link's `text` parameter
+    // (core.telegram.org/api/links, "Phone number links"). Without it the
+    // chat opened with an empty text box.
+    it("opens the contact's own chat with the invite already in the text box", async () => {
+      await mount({ item: { ...ITEM, mobile_phone: "+963937288307" } });
+      act(() => fireEvent.click(screen.getByText("Invite")));
+      expect(screen.queryByText(/pick a telegram chat instead/i), "the removed 'Pick a Telegram chat instead' link is shown again").toBeNull();
+      fireEvent.click(screen.getByText("×"));
+      await tapTelegram();
+      const url = new URL((window.open as any).mock.calls[0]?.[0] ?? "about:blank");
+      expect(`${url.origin}${url.pathname}`, "Telegram was not opened at the contact's chat").toBe("https://t.me/+963937288307");
+      expect(url.searchParams.get("text"), "the Telegram chat opened with an empty text box: the link carried no invite").toContain("Join Us At");
+      expect(writeText, "the invite was copied, but the link fills it in itself").not.toHaveBeenCalled();
+      expect(screen.queryByText("Choose how to send the invitation"), "the invite window stayed open").toBeNull();
+    });
+
+    it("reads a local phone-book number in the region of the shopper's own phone", async () => {
+      await mount({ item: { ...ITEM, mobile_phone: "0937 288 307" } }, "en", { userChat: { id: ME, mobile_phone: "963944123456" } });
+      await tapTelegram();
+      const url = new URL((window.open as any).mock.calls[0]?.[0] ?? "about:blank");
+      expect(`${url.origin}${url.pathname}`, "a local Syrian number was not turned into the full +963 number").toBe("https://t.me/+963937288307");
+    });
+  });
+
+  // The invite goes to a friend who reads the shopper's language. Every path
+  // sent the same English sentence, whatever the app language was.
+  describe("the invite is in the app language", () => {
+    const STORE = "https://play.google.com/store/apps/details?id=com.trydos.www";
+    afterEach(() => vi.unstubAllEnvs());
+
+    it("copies, WhatsApps and Telegrams the invite in Arabic", async () => {
+      vi.stubEnv("NEXT_PUBLIC_PLAY_STORE_URL", STORE);
+      const writeText = vi.fn(async (..._a: any[]) => {});
+      Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+      await mount({ item: { ...ITEM, mobile_phone: "+963937288307" } }, "ar");
+      const open = () => act(() => fireEvent.click(screen.getByText("دعوة")));
+      const invite = `مرحباً! انضم إلينا على ${window.location.origin} \n حمّل التطبيق: ${STORE}`;
+      open();
+      await act(async () => {
+        fireEvent.click(screen.getByText("نسخ الدعوة"));
+      });
+      expect(writeText.mock.calls[0]?.[0], "the copied invite is not in Arabic").toBe(invite);
+      open();
+      fireEvent.click(screen.getByText("واتساب"));
+      expect(new URL((window.open as any).mock.calls[0][0]).searchParams.get("text"), "the WhatsApp invite is not in Arabic").toBe(invite);
+      open();
+      fireEvent.click(screen.getByText("تيليجرام"));
+      expect(new URL((window.open as any).mock.calls[1][0]).searchParams.get("text"), "the Telegram invite is not in Arabic").toBe(
+        `مرحباً Other Person! انضم إلينا على ${window.location.origin} \n حمّل التطبيق: ${STORE}`,
+      );
+    });
+
+    it("opens the phone's share sheet with an Arabic invite", async () => {
+      vi.stubEnv("NEXT_PUBLIC_PLAY_STORE_URL", STORE);
+      const share = vi.fn(async (..._a: any[]) => {});
+      Object.defineProperty(navigator, "userAgent", { value: "Mozilla/5.0 (iPhone)", configurable: true });
+      Object.defineProperty(navigator, "share", { value: share, configurable: true });
+      await mount({}, "ar");
+      await act(async () => {
+        fireEvent.click(screen.getByText("دعوة"));
+      });
+      expect(share.mock.calls[0]?.[0]?.title, "the share sheet title is not in Arabic").toBe("انضم إلى Other Person على تريدوس");
+      expect(share.mock.calls[0]?.[0]?.text, "the share sheet invite is not in Arabic").toBe(
+        `مرحباً! انضم إلينا على ${window.location.origin} \n حمّل التطبيق: ${STORE}`,
+      );
+    });
+  });
+
+  // The Play Store link comes from NEXT_PUBLIC_PLAY_STORE_URL. It was the
+  // placeholder `id=your.app.id`, a page for an app that does not exist.
+  describe("BUG-chat-8: the invite links to the real app", () => {
+    const STORE = "https://play.google.com/store/apps/details?id=com.trydos.www";
+    afterEach(() => vi.unstubAllEnvs());
+
+    it("puts the Play Store link from the env in every invite", async () => {
+      vi.stubEnv("NEXT_PUBLIC_PLAY_STORE_URL", STORE);
+      const writeText = vi.fn(async (..._a: any[]) => {});
+      Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+      await mount({ item: { ...ITEM, mobile_phone: "+963937288307" } });
+      const open = () => act(() => fireEvent.click(screen.getByText("Invite")));
+      open();
+      await act(async () => {
+        fireEvent.click(screen.getByText("Copy Invite"));
+      });
+      expect(writeText.mock.calls[0]?.[0], "the copied invite does not link to the real Play Store page").toContain(`Get The App: ${STORE}`);
+      open();
+      fireEvent.click(screen.getByText("WhatsApp"));
+      expect(new URL((window.open as any).mock.calls[0][0]).searchParams.get("text"), "the WhatsApp invite does not link to the real Play Store page").toContain(`Get The App: ${STORE}`);
+      open();
+      fireEvent.click(screen.getByText("Telegram"));
+      expect(new URL((window.open as any).mock.calls[1][0]).searchParams.get("text"), "the Telegram invite does not link to the real Play Store page").toContain(`Get The App: ${STORE}`);
+    });
+
+    it("leaves out the store line when the env has no Play Store link", async () => {
+      vi.stubEnv("NEXT_PUBLIC_PLAY_STORE_URL", "");
+      const writeText = vi.fn(async (..._a: any[]) => {});
+      Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+      await mount();
+      act(() => fireEvent.click(screen.getByText("Invite")));
+      await act(async () => {
+        fireEvent.click(screen.getByText("Copy Invite"));
+      });
+      expect(writeText.mock.calls[0]?.[0], "the invite text was not copied").toContain("Join Us At");
+      expect(writeText.mock.calls[0]?.[0], "the invite carries a store line with no real link behind it").not.toContain("Get The App");
+    });
   });
 });

@@ -1540,9 +1540,11 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
 
                     const cell = (field: keyof VariantRow, w: string, type = "number") => {
                       const isSku = field === "sku";
-                      const hasErr = isSku && skuErrMsg;
                       const isMoney =
                         field === "price" || field === "discount" || field === "luck";
+                      // Money cells show the error `validate()` wrote for this exact cell.
+                      const errMsg = isSku ? skuErrMsg : isMoney ? errors[`variation_${field}_${c.key}`] : null;
+                      const hasErr = Boolean(errMsg);
                       // Money cells get the shop-currency overlay (compact, narrow cells).
                       const suffix = currency && isMoney ? currency : "";
                       // The three money columns are not rendered at all for an
@@ -1563,8 +1565,12 @@ export function VariantsSection({ form, patch, errors, lookups, disabled, curren
                             onChange={(val) => setVariant(c.key, field, val)}
                           />
                           {hasErr && (
-                            <span className="text-[11px] text-[#f85555] block mt-0.5 leading-tight whitespace-nowrap">
-                              {skuErrMsg}
+                            <span
+                              className={`text-[11px] text-[#f85555] block mt-0.5 leading-tight ${
+                                isMoney ? `${w} whitespace-normal` : "whitespace-nowrap"
+                              }`}
+                            >
+                              {errMsg}
                             </span>
                           )}
                         </td>

@@ -541,9 +541,9 @@ describe("recording the search term", () => {
     ).toBe(12);
   });
 
-  it("AC-17 a term that found nothing is not recorded", async () => {
-    // The total is PRESENT and zero. A missing total would also skip the
-    // recorder, and this case would then pass for the wrong reason.
+  it("AC-17 a term that found nothing is still recorded, with a count of 0", async () => {
+    // The total is PRESENT and zero. A missing total would skip the recorder,
+    // and this case would then fail for the wrong reason.
     answers.listing = facetReply([], 0);
     answers.children = childrenReply();
     const { getProductsAndFiltersFromElastic } = await load();
@@ -553,10 +553,15 @@ describe("recording the search term", () => {
       filters: { search_text: "shirt" },
     });
 
+    const recorded = logSearchTerm.mock.calls[0]?.[0] as any;
     expect(
-      logSearchTerm,
-      "a search that found nothing was still recorded as a search term",
-    ).not.toHaveBeenCalled();
+      recorded?.searchText,
+      "a search that found nothing was not recorded as a search term",
+    ).toBe("shirt");
+    expect(
+      recorded?.productsCount,
+      "the recorded search did not carry a count of 0",
+    ).toBe(0);
   });
 });
 

@@ -241,19 +241,39 @@ describe("getContacts", () => {
 });
 
 describe("getCalls", () => {
-  it("stores the call log page", async () => {
+  // The chat backend reads `limit` and `last_message_id` for my_calls from the
+  // query string only. In the body it ignores them and answers with the newest
+  // 20 calls every time, so the log never went past its first page. Measured
+  // on staging 2026-10-29: the body `{ last_message_id: 339500 }` gave the
+  // newest 20 again; `?limit=5&last_message_id=339500` gave the 5 calls
+  // before 339500.
+  it("asks for the calls before the given one in the query string, and stores them", async () => {
     const s = seed();
     fetchData.mockResolvedValue({ success: true, data: [{ id: 1 }] });
-    await chat.getCalls(5);
-    expect(JSON.parse(fetchData.mock.calls[0][0].body), "the page request was wrong").toEqual({ limit: "20", last_message_id: 5 });
+    const page = await chat.getCalls(5);
+    expect(
+      fetchData.mock.calls[0][0].url,
+      "the page request did not put limit and last_message_id in the query string, so the chat backend sends the first page again",
+    ).toBe("/api/v1/channels/my_calls?limit=20&last_message_id=5");
     expect(s.setCalls, "the calls were not stored").toHaveBeenCalledWith([{ id: 1 }]);
+    expect(page, "getCalls did not hand back the page it got, so the list cannot tell when to stop").toEqual([{ id: 1 }]);
+  });
+
+  it("asks for the first page with no cursor", async () => {
+    seed();
+    fetchData.mockResolvedValue({ success: true, data: [] });
+    await chat.getCalls();
+    expect(fetchData.mock.calls[0][0].url, "the first page request carried a cursor").toBe(
+      "/api/v1/channels/my_calls?limit=20",
+    );
   });
 
   it("logs a refused call log", async () => {
     seed();
     fetchData.mockResolvedValue({ success: false, message: "x" });
-    await chat.getCalls();
+    const page = await chat.getCalls();
     expect(logServerError.mock.calls[0]?.[0]?.scenario, "a refused call log was not logged").toBe("Error In getCalls in services/chat");
+    expect(page, "a refused call log did not hand back null").toBeNull();
   });
 
   it("BUG-chat-1: loading the call log raises the call-log flag, not the 'placing a call' flag", async () => {

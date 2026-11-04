@@ -40,8 +40,10 @@ export type TintHome = {
  * The colours of the open layers; the last one opened is on top. `null`
  * hides the strip. `follow`: the colour follows a fade run in script, so the
  * strip has no fade of its own while it is on top (see followTopTint).
+ * `blend`: the strip is drawn with `mix-blend-mode: multiply` while it is on
+ * top (see followTopTint).
  */
-const held: { color: string | null; follow?: boolean }[] = [];
+const held: { color: string | null; follow?: boolean; blend?: boolean }[] = [];
 
 /** The same 0.25 s as the backdrops, so the bar fades with the page. */
 const FADE = "background-color 0.25s ease, visibility 0.25s";
@@ -74,6 +76,7 @@ function paint(home: TintHome) {
   }
   const top = held.at(-1);
   strip.style.transition = top?.follow ? "none" : FADE;
+  strip.style.mixBlendMode = top?.blend ? "multiply" : "";
   const color = top ? top.color : home.rest;
   if (color) {
     strip.style.visibility = "visible";
@@ -106,10 +109,17 @@ export function holdTopTint(color: string, home: TintHome): () => void {
  * piece of its own. Here the strip has no fade of its own: call `set` on
  * every frame of the page's fade with how far it is (0 to 1), and `release`
  * when the layer closes. `color` is an `rgb(r, g, b)` colour.
+ *
+ * `blend`: for a strip that lies over a page's own header of the same
+ * colour. The strip is on top of everything, so it covered what the header
+ * draws in its top 12 px (on Home, the top of the picked chip). With
+ * `multiply`, white over a colour shows that colour, so the strip cannot be
+ * seen over the header. Its own colour, which Safari reads, does not change.
+ * Only for white: another colour would tint the header.
  */
-export function followTopTint(color: string, home: TintHome) {
+export function followTopTint(color: string, home: TintHome, { blend = false } = {}) {
   const [r, g, b] = (color.match(/[\d.]+/g) ?? []).map(Number);
-  const entry: (typeof held)[number] = { color: null, follow: true };
+  const entry: (typeof held)[number] = { color: null, follow: true, blend };
   held.push(entry);
   paint(home);
   return {

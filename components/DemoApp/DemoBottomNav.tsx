@@ -266,6 +266,9 @@ export function TabCount({
             style={{
               left: count.x,
               top: textTop(baseline, COUNT_SIZE),
+              // The tab bar is outside `.font-quicksand`, so `font-bold` alone
+              // would draw weight 700 on the Regular family (a thin number).
+              fontFamily: "var(--Quicksand-Bold)",
               fontSize: COUNT_SIZE,
               lineHeight: `${lineBox(COUNT_SIZE)}px`,
               color,

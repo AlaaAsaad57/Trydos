@@ -2,7 +2,11 @@ import React, { Suspense } from "react";
 import { lang as langParam } from "next/root-params";
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
 import { HIDE_SITE_CHROME } from "components/DemoApp1/demo1Layout";
-import { DEMO_KEYS, type DemoDictionary } from "components/DemoApp/demoKeys";
+import {
+  DEMO_KEYS,
+  KEEP_CASE,
+  type DemoDictionary,
+} from "components/DemoApp/demoKeys";
 import { translateFunction } from "utils/server";
 
 /*
@@ -37,7 +41,13 @@ export default async function Demo1Layout({
 }) {
   const language = (await langParam()).split("-")[1] || "en";
   const dictionary: DemoDictionary = Object.fromEntries(
-    DEMO_KEYS.map((key) => [key, translateFunction(key, language)]),
+    DEMO_KEYS.map((key) => [
+      key,
+      // English keeps the file's own case for these lines (see KEEP_CASE).
+      language === "en" && KEEP_CASE.has(key)
+        ? key
+        : translateFunction(key, language),
+    ]),
   );
 
   return (

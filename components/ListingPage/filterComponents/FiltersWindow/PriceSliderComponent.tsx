@@ -10,6 +10,8 @@ type PriceSliderProps = {
   roundPrice: (e: number) => number | string;
   symbol: string;
   points: number;
+  // Drawn inside the ruler box, so it has the ruler's exact width and position.
+  chart?: React.ReactNode;
 };
 
 function toFixedUp(decimalDigits: number, number: number) {
@@ -26,6 +28,7 @@ export function PriceSliderComponent({
   roundPrice,
   symbol,
   points = 2,
+  chart,
 }: PriceSliderProps) {
   // Use toFixedUp to clean the precision issues immediately
   const cleanMin = Number(toFixedUp(points, min));
@@ -39,7 +42,9 @@ export function PriceSliderComponent({
   const getPercent = (value: number) => {
     const range = cleanMax - cleanMin;
     if (range === 0) return 0;
-    return ((value - cleanMin) / range) * 100;
+    // Clamp: after a re-fetch the chosen band can be wider than the new bounds,
+    // and a label past the ruler makes the whole filter panel scroll sideways.
+    return Math.min(100, Math.max(0, ((value - cleanMin) / range) * 100));
   };
 
   useEffect(() => {
@@ -79,6 +84,8 @@ export function PriceSliderComponent({
   return (
     <div className="w-full px-4 pt-12 pb-8">
       <div className="relative h-[2px] bg-[#5D5C5D] rounded-sm">
+        {chart}
+
         {/* Sliding Labels */}
         <div
           className="absolute bottom-[50px] text-xs font-medium text-white bg-[#FF5F61] px-2 py-1 rounded-sm transition-opacity duration-200 pointer-events-none"

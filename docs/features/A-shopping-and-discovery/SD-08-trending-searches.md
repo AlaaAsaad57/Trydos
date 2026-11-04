@@ -28,7 +28,7 @@ popular queries.
 
 - **Collapsed view:** a single horizontal row of trending terms.
 - **Expanded view:** tapping the trending icon opens a list showing each term **with its
-  search count** and a "Clear All" action.
+  search count**.
 - **Tapping a term** puts it into the search box, which then runs a normal search (SD-07).
 - **Where the terms come from:** the app calls `GET /api/products/popular-search`, which
   returns the **top 10** popular terms (term + count) computed from logged searches in the
