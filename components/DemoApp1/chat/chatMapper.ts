@@ -94,6 +94,24 @@ const isDeleted = (m: Message) => m.auth_message_status?.is_deleted === 1;
 const isCall = (m: Message) =>
   m.message_type?.name === "VoiceCall" || m.message_type?.name === "VideoCall";
 
+/**
+ * The unread count of a row, by the old row's rule (`unreadCount` / `isNew`
+ * in components/Chat/chatsFunctions.tsx): messages from the other person that
+ * I have not watched, not calls, not deleted for all. A chat I marked unread
+ * by hand counts at least 1. The backend's `total_unread_message_count` is not
+ * used, as in the old row.
+ */
+export function unreadOf(chat: Channel, myId: string | number): number {
+  const unwatched = (chat.messages ?? []).filter(
+    (m) =>
+      !isCall(m) &&
+      !sameId(m.sender_user_id, myId) &&
+      m.message_status?.find((s) => sameId(s.user_id, myId))?.is_watched === false &&
+      m.auth_message_status?.delete_for_all === false,
+  );
+  return Math.max(unwatched.length, chat.marked_unread ? 1 : 0);
+}
+
 /** The ticks of a message I sent, from the other member's status. */
 export function statusOf(m: Message, myId: string | number): Status {
   const theirs = m.message_status?.find((s) => !sameId(s.user_id, myId));
@@ -269,7 +287,8 @@ export function toMessages(messages: Message[] | null | undefined, ctx: MapConte
 export function toContact(chat: Channel, ctx: MapContext): Contact {
   const peer = peerOf(chat, ctx.myId);
   const name = (ctx.chatName ?? getChatName)(chat) ?? "";
-  const photo = peer?.user?.photo_path ?? chat.photo_path;
+  // The other member's photo only, as the old row (`getChatPhoto`).
+  const photo = peer?.user?.photo_path;
   return {
     id: String(peer?.user_id ?? `chat-${chat.id}`),
     name,
@@ -295,7 +314,7 @@ export function toThread(chat: Channel, ctx: MapContext): ChatThread {
   return {
     id: String(chat.id),
     contact: toContact(chat, ctx).id,
-    unread: Math.max(chat.total_unread_message_count ?? 0, chat.marked_unread ? 1 : 0),
+    unread: unreadOf(chat, ctx.myId),
     ...(typeof typing === "string" && typing && typing !== "null" ? { typingNow: true } : {}),
     ...(mark ? { mark } : {}),
     ...(Number(mine?.pin) === 1 ? { pinned: true } : {}),

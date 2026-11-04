@@ -348,8 +348,23 @@ describe("chat mapper — the chat row", () => {
     expect(thread.muted, "the chat's or the other member's mute muted my chat").toBeUndefined();
   });
 
-  it("counts unread messages, and a chat I marked unread shows at least one", () => {
-    expect(toThread(channel({ total_unread_message_count: 4 }), ctx).unread, "the unread count was lost").toBe(4);
+  it("counts unread as the old row does: their messages I have not watched, no calls, none deleted for all", () => {
+    const mine = (s: { watched?: boolean }) => [status(ME, s), status(PEER)];
+    const notDeleted = { ...status(ME), delete_for_all: false };
+    const messages = [
+      msg({ text: "unread 1", message_status: mine({}), auth_message_status: notDeleted }),
+      msg({ text: "unread 2", message_status: mine({}), auth_message_status: notDeleted }),
+      msg({ text: "watched", message_status: mine({ watched: true }), auth_message_status: notDeleted }),
+      msg({ type: "VoiceCall", message_status: mine({}), auth_message_status: notDeleted }),
+      msg({ text: "deleted for all", message_status: mine({}), auth_message_status: { ...notDeleted, delete_for_all: true } }),
+      msg({ sender_user_id: ME, text: "mine", message_status: mine({}), auth_message_status: notDeleted }),
+    ];
+    // The backend counter says 9: the row must not use it, as the old row does not.
+    const thread = toThread(channel({ messages, total_unread_message_count: 9 }), ctx);
+    expect(thread.unread, "the row's unread is not the 2 unwatched texts from the other person").toBe(2);
+  });
+
+  it("a chat I marked unread shows one unread when no message is unread", () => {
     expect(toThread(channel({ marked_unread: true }), ctx).unread, "a chat I marked unread shows no unread").toBe(1);
   });
 
@@ -413,6 +428,17 @@ describe("chat mapper — the contact", () => {
     expect(contact.phone, "the contact lost the other member's phone").toBe("+2000");
     expect(contact.photo, "the contact lost the other member's photo").toBe("https://media.example/peer.jpg");
     expect(contact.initials, "the initials are not from the name").toBe("SO");
+  });
+
+  it("takes only the other member's photo, never the chat's own photo_path (as the old row)", () => {
+    const contact = toContact(
+      channel({
+        photo_path: "https://media.example/chat.jpg",
+        channel_members: [member(ME), member(PEER, { user: { ...member(PEER).user, photo_path: null } })],
+      }),
+      ctx,
+    );
+    expect(contact.photo, "the contact took the chat's photo_path instead of the other member's photo").toBeUndefined();
   });
 
   it("a contact with no photo has none, so the screen draws the initials", () => {
