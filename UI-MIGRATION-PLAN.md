@@ -5,7 +5,9 @@ parallel on `ui-migrations-shell` (A-18). Next here: Stage 4, after Stage 3 is m
 **Paused on 2026-10-29:** Stage 3 Task 9 is pushed on `ui-migrations-shell` (`b2d23e37`), not merged yet. The
 resume list is in that branch's plan, Stage 3, "Where Stage 3 stopped (2026-10-29) — continue here".
 **Added on 2026-11-04:** the new store page and product page join lane A as Stages 7b and 7c (A-31..A-33).
-D-45 (the "add to cart" bar) waits for the designer.
+D-45 (the "add to cart" bar) waits for the designer. D-46 (banner with no boutique): no banner for now.
+**Three lanes from 2026-11-04 (A-35):** A = 4 → 5 here, B = 6 in `../trydos-chat`, C = 7 → 7b → 7c in
+`../trydos-shop`. No e2e in any stage (A-34).
 **Still open:** D-24 ("Web" / "lock" switches: designer / product), D-30 (place levels: backend). Neither
 blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no wallet backend works yet.
 **Written:** 2026-10-28, from a read-only scan of the code.
@@ -48,6 +50,8 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | A-31 | Store and product pages | **Decided on 2026-11-04.** The store page (XD `Home Page – 47`, its colour sheet `– 54`) and the product page (`– 49`) were built on `development` from 2026-11-02 to 2026-11-04 and reached this branch with merge `0315f822`. They replace the old listing and product pages. They join lane A after Stage 7: **Stage 7b** = store page, **Stage 7c** = product page. Home opens a store and a store opens a product, so the order follows the shopper's path. |
 | A-32 | Store design for every listing | **Decided on 2026-11-04.** Every product listing uses the store page design: the boutique pages (`/filters/boutiques/<slug>`, with their `/categories/<slug>` sub-path), every other `/filters/...` page (category, brand and filter results), search results, `/flashDeals/...` and `/featured/...`. |
 | A-33 | Product parts with no design | **Decided on 2026-11-04.** The product page shows the design only. A live part with no place in the design is not shown, but its code is **kept, not deleted** — an exception to D-6, because the design may get a place for it later. Which live part maps to which design block is listed in Stage 7c. The size choice and the "add to cart" bar wait for D-45. |
+| A-34 | E2E until the end | **Decided on 2026-11-04.** Stages ignore the browser (e2e) suite completely: no stage runs it, fixes it, updates it or adds to it, and a red e2e case blocks no stage and no merge. Every "e2e" line in a stage's "Tests to update" waits for Stage 8, which edits the suite once, for the whole new UI. The unit suite, lint, parity, typecheck and the XD check still run at the end of each stage. Replaces A-3 for e2e only. |
+| A-35 | Three sessions at the same time | **Decided on 2026-11-04.** The owner is short on time and wants the plan done before the D-45 design comes. Three Claude sessions work at the same time, one per lane, each in its own folder: lane A (4 → 5), lane B (6), lane C (7 → 7b → 7c). See "Lanes". Replaces the two-lane order of A-6. |
 | D-1 | Merge | Once, at the end (after Stage 8). Every stage stays on `ui-migrations`. |
 | D-2 | Desktop | The 500 px centred column is OK on desktop. No desktop design work. |
 | D-3 | RTL | Mirror everything for `ar` / `ku`: layout, slide direction, tab order, margins. |
@@ -71,7 +75,7 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | D-21 | Badges | Answered by A-8: real cart count and real unread chat count. |
 | D-22 | Old profile features | **Into the new Settings screen (old UI inside):** country + language switch; become a seller + seller dashboard / sales link; My checklist + preferences. **Dropped:** Contact us row, Bank cards row, QR-scanner sign-in on the profile card (A-9). **Logout:** the profile's logout row does a real logout (`/api/auth/logout`, `posthogReset`). **Phone verification:** the "Verify now" promo card starts it (new login screens, D-14). |
 | D-23 | Profile rows | Terms → `/terms-of-service`, Legal → `/privacy-policy`, About → `/about` (old pages). Settings → the Settings screen (D-19). Language row → the language switch. Login history → A-8 (backend C-5). Logout → real logout (D-22). |
-| D-24 | "Web" / "lock" switches | **Still open.** Until answered they follow A-8: shown, no effect. |
+| D-24 | "Web" / "lock" switches | **Still open; the owner delays the answer (2026-11-04).** Until answered they follow A-8: shown, no effect. Stage 4 does not wait for it. |
 | D-25 | "Get trydos Business" | Opens become-a-seller. |
 | D-26 / D-27 | Phone in profile | Request only, as in the design ("Change my Phone Number Request", backend C-4, A-8 until then). The old instant phone edit and the alternative phone are dropped. So the "phone change in profile" flow in D-14 is not needed. |
 | D-28 | Body save | Same pattern as the new Personal info screen (Edit / Cancel, then save). The designer must check it, because the Body board has no such button. Old limits stay: height 110–250 cm, weight 40–180 kg. The foot limit is set with backend item C-1. |
@@ -95,6 +99,7 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | D-43 | Home chips | The chips are the real main categories from Elasticsearch (as today's `MainCategoriesNavbar`). A tap opens the category page (old listing UI). |
 | D-44 | Search | All old search logic inside the new search UI: history, trending, suggestions, results (old result design under the new input), filters, Gemini analyzer, `logSearchTerm`. Voice = old voice search. Scan = old image search. "For you" chips follow A-8 (backend S-2). |
 | D-45 | "Add to cart" bar | **Open (designer), 2026-11-04.** The product page design (`– 49`) has no size choice and no "add to cart" button. The owner said the designer will send an "add to cart" bar design. Stage 7c builds the buy part from that design when it comes, and does not plan it before. Note: the old listing and result design named in D-43 and D-44 is only until Stage 7b, which moves every listing to the store page design (A-32). |
+| D-46 | Store page banner on a listing with no boutique | **Open, 2026-11-04.** Category, brand, filter and search result pages have no boutique to show in the store page's banner. Until the owner answers: **no banner** on those pages. |
 
 ## The main facts the scan found
 
@@ -142,26 +147,40 @@ The order puts the work that does not depend on other work first, and the riskie
 
 Each stage ends with: `pnpm lint`, `pnpm lint:i18n-parity`, typecheck, `pnpm test:run`, the e2e specs of
 that stage, a check against the XD boards in `ar` and `en` at 440 x 802, and your review. Nothing is
-committed or merged without your OK.
+committed or merged without your OK. **Since 2026-11-04 (A-34): no e2e in any stage; Stage 8 does it all.**
 
-### Lanes (A-6)
+### Lanes (A-6, changed to three lanes on 2026-11-04 by A-35)
 
-| Lane | Stages | Why |
-|---|---|---|
-| A | 3 → 4 → 5 → 7 → 7b → 7c | Profile, wallet and home need the shell and the real routes from Stage 3. Stages 4 and 5 do not overlap, because both change `WalletLinkCard` and the wallet balance on the profile. Stage 7 has the highest risk, so it comes after them. Stages 7b and 7c (A-31) follow the shopper's path from home: home → store → product. |
-| B | 2 → 6 | Login is independent of the shell. Chat uses its own files (`components/DemoApp1/chat/*`, `store/chat/*`, `services/chat.ts`), and it is the biggest stage. |
+| Lane | Folder / branch | Stages | Why |
+|---|---|---|---|
+| A | `trydos` / `ui-migrations` | 3 (done) → 4 → 5 | Profile and wallet need the shell. Stages 4 and 5 do not overlap, because both change `WalletLinkCard` and the wallet balance on the profile. Stage 5 also takes the old wallet branch `ui-migrations-wallet` (5a; renumber its A-28 row). |
+| B | `../trydos-chat` / `ui-migrations-chat` | 2 (done) → 6 | Chat uses its own files (`components/DemoApp1/chat/*`, `store/chat/*`, `services/chat.ts`), and it is the biggest stage. |
+| C | `../trydos-shop` / `ui-migrations-shop` | 7 → 7b → 7c | Home, store page and product page follow the shopper's path: home → store → product (A-31). They share Elasticsearch, cache and SEO work. 7c's buy part waits for D-45. |
 
-Rules for the two lanes:
-- Neither lane starts before Stage 1 is done. Stage 1's RTL base and data pattern (steps 2 and 7) are the
-  base of every later stage.
-- Each lane works in its own folder (`git worktree`) on its own branch, cut from `ui-migrations` and merged
-  back into `ui-migrations`. Two sessions never share one folder. D-1 does not change: only `ui-migrations`
-  merges into `development`, once.
-- E2E runs one at a time. `test-e2e.yml` uses one global `live-suite` group, and both lanes use the same
-  shopper account. A lane waits for the other lane's run to finish.
-- Shared files will conflict on merge: the three `translations.*.js` files, `components/DemoApp/demoKeys.ts`,
-  `tests/e2e/selectors.ts`, `components/DemoApp1/ui.tsx` and this plan. Merge a lane back into
-  `ui-migrations` after each stage, not at the end of the lane.
+Stage 8 starts when all three lanes are done.
+
+Rules for the lanes:
+- One Claude session per lane, in the lane's own folder. A session never edits files in another lane's folder.
+- Each lane's branch is cut from `ui-migrations` and merged back into `ui-migrations` **after each stage**, not
+  at the end of the lane. Before a stage starts, the lane merges `ui-migrations` in, to take the other lanes'
+  finished stages. D-1 does not change: only `ui-migrations` merges into `development`, once.
+- No e2e in any lane (A-34).
+- Only one `next dev` at a time on this machine (7.6 GB of memory). A lane that needs the dev server for an XD
+  check waits until no other lane runs one. The full unit suite runs in CI (`gh workflow run Tests --ref
+  <branch>`), not on this machine.
+- Shared files will conflict on merge: the three `translations.*.js` files (new keys only at the end of the
+  file), `components/DemoApp/demoKeys.ts`, `components/DemoApp1/ui.tsx`, `components/DemoApp1/demoCase.ts`
+  and this plan. Each session edits only its own stages' sections of this plan, plus new rows at the end of
+  "Agreed so far" and the decision tables.
+
+### Start of a lane session (copy this to the new session)
+
+1. Read `CLAUDE.md`, then this plan: "Agreed so far", "Lanes", and the sections of your stages.
+2. Work only in your lane's folder. Run `git merge ui-migrations` first.
+3. One stage = one session (A-5). Claude asks; it never decides. No e2e (A-34).
+4. Before the stage's last commit: `pnpm lint`, `pnpm lint:i18n-parity`, `next typegen` + `tsc`, the unit tests
+   of the changed files, the XD check in `en` and `ar` at 440 x 802 (`/sy-en`, `/sy-ar`); then the full unit
+   suite in CI. Then the owner's review, then merge into `ui-migrations`.
 
 ---
 
@@ -684,7 +703,7 @@ also `/flashDeals/[[...filters]]`, `/featured/[[...filters]]` and the search res
 |---|---|
 | Header: back, store logo | `FilterListingBackButton`, `BoutiqueMiniLogo`, `BoutiqueLogoCollapse`, `ListingHeaderCollapse` |
 | Header marks: search, sort, filter, share | `ListingSearchContainer`, `ListingSortControl`, `FilterWidgetServer` + `FilterListContainer` (old filter UI, A-4), `ListingShareControl` |
-| Banner ("Shop … Collection Now !") | The boutique of the page; on a page with no boutique (category, filter, search): ask the owner at stage start |
+| Banner ("Shop … Collection Now !") | The boutique of the page; on a page with no boutique (category, brand, filter, search): no banner until D-46 is answered |
 | Category slider | `ListingBoutiqueSlider` (the boutique's categories) |
 | Product cards, colour picker, colour sheet | `ProductListConainer` (Elasticsearch `getProductsAndFiltersFromElastic`, paging), card colours (`colorImageGroups`) |
 | Card add button | Follows D-45 (the "add to cart" bar), not before |
@@ -770,6 +789,17 @@ and after D-45: `change_size`, `add_to_cart`.
 
 1. Run every suite: `pnpm lint`, `pnpm lint:i18n-parity`, typecheck, `pnpm test:run`, `pnpm e2e:health`, then
    the full browser suite (`gh workflow run E2E --ref ui-migrations`, one run at a time).
+   **The e2e work of every stage happens here (A-34):** update the specs, helpers and `selectors.ts` for the
+   new UI (each stage's "Tests to update → e2e" list), then make the suite green. Known red on 2026-11-04
+   (run 41824914664, `ui-migrations-shell` at `df14944b`), with what is known:
+   - AUTH-01: the wallet backend answers `502` (A-17).
+   - AUTH-03, PROF-08, BUY-05: no logout until Stage 4 (S3-11).
+   - CHAT-02: commit `2f42f4e7` on `development` (2026-10-31) removed the contact search call from
+     `ChatListSearch.tsx`, so a phone search never reaches the chat backend. The same change turns 3 chat unit
+     tests red (`ChatListSearch`, `ChatLists`). Ask the owner if the removal was meant.
+   - BUY-03: a fresh checkout still shows the old address title after an edit. Cause not found yet (passed on
+     `main` 2026-10-30; the cart moved to `/[lang]/cart` in Stage 3).
+   - BUY-01, ORD-01: the new bar covered the order menu sheets. Fixed in Stage 3 (bar room on the sheets).
 2. Check every old page that keeps the old UI: cart, checkout, orders, seller pages, seller dashboard,
    compare, about, terms, privacy, contact. (Product, listing, filters, flash deals and featured moved to the
    new design in Stages 7b and 7c.)
