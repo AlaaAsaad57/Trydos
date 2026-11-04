@@ -5,8 +5,8 @@ import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
-import { CHAT } from "../../DemoApp/demoChat";
-import { contactOf } from "../../DemoApp/demoChatModel";
+import { CHAT } from "../chat/chatTheme";
+import { contactOf } from "../chat/chatModel";
 import { useDemoChat } from "../../DemoApp/demoChatState";
 import { useDemoNav } from "../Demo1Shell";
 import {

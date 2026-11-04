@@ -4,12 +4,8 @@ import type { DemoKey } from "../../DemoApp/demoKeys";
 import { motion } from "framer-motion";
 import React from "react";
 import { PREVIEW } from "../../DemoApp/demoChat";
-import {
-  archivedChats,
-  seedContacts,
-  type ChatThread,
-  type Contact,
-} from "../../DemoApp/demoChatModel";
+import { seedContacts } from "../../DemoApp/demoChatModel";
+import { archivedChats, type ChatThread, type Contact } from "./chatModel";
 import { C } from "../demo1Layout";
 import { Stroke, Txt } from "../ui";
 import { UnarchiveIcon } from "./chatIcons";

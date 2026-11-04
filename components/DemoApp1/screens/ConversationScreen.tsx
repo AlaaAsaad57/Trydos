@@ -4,7 +4,8 @@ import type { DemoKey } from "../../DemoApp/demoKeys";
 import { AnimatePresence, animate, motion, useMotionValue, type MotionValue } from "framer-motion";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
-import { CHAT, CHAT_COUNTS, CHAT_PHOTOS, CONTACT } from "../../DemoApp/demoChat";
+import { CHAT_COUNTS, CHAT_PHOTOS, CONTACT } from "../../DemoApp/demoChat";
+import { CHAT } from "../chat/chatTheme";
 import {
   contactOf,
   gapAbove,
@@ -14,7 +15,7 @@ import {
   searchMessages,
   type ChatMessage,
   type Holdable,
-} from "../../DemoApp/demoChatModel";
+} from "../chat/chatModel";
 import { XD_ICON_SIZE } from "../../DemoApp/xdIcons";
 import CategorySheet from "../chat/CategorySheet";
 import ReminderSheet from "../chat/ReminderSheet";

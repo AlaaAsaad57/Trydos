@@ -4,12 +4,8 @@ import type { DemoKey } from "../../DemoApp/demoKeys";
 import React, { useEffect, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
-import {
-  CALLER,
-  CALL_TIMER_START,
-  CHAT,
-  CHAT_PHOTOS,
-} from "../../DemoApp/demoChat";
+import { CALLER, CALL_TIMER_START, CHAT_PHOTOS } from "../../DemoApp/demoChat";
+import { CHAT } from "../chat/chatTheme";
 import { useDemoNav } from "../Demo1Shell";
 import {
   C,

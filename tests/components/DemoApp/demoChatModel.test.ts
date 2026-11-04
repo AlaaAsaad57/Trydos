@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { SEED_CONTACT, reduceChat, seedState } from "components/DemoApp/demoChatModel";
 import {
-  SEED_CONTACT,
   archivedChats,
   contactOf,
   fileSize,
@@ -10,19 +10,17 @@ import {
   orderedChats,
   pendingReminders,
   previewOf,
-  reduceChat,
   reminderLabel,
   reminderOptions,
   searchMessages,
   searchableText,
-  seedState,
   type ChatState,
   type FileMessage,
   type LocationMessage,
   type Openable,
   type TextMessage,
   type VideoMessage,
-} from "components/DemoApp/demoChatModel";
+} from "components/DemoApp1/chat/chatModel";
 import { MESSAGES } from "components/DemoApp/demoChat";
 
 // The chat demo keeps one state for the list and the conversation

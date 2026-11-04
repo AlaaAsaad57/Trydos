@@ -9,8 +9,8 @@ import {
 } from "framer-motion";
 import React, { useEffect, useLayoutEffect, useRef } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
-import { CHAT } from "../../DemoApp/demoChat";
-import type { Side } from "../../DemoApp/demoChatModel";
+import { CHAT } from "./chatTheme";
+import type { Side } from "./chatModel";
 import { C } from "../demo1Layout";
 import { EDGE } from "./MessageMenu";
 import { useHorizontalSwipe } from "./useHorizontalSwipe";

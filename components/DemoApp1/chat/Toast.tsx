@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
-import { CHAT } from "../../DemoApp/demoChat";
+import { CHAT } from "./chatTheme";
 import { C, EDGE_ANCHOR, SAFE_BOTTOM, SF_ROUNDED } from "../demo1Layout";
 
 /** How long a toast stays, in ms. */

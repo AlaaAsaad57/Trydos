@@ -792,6 +792,51 @@ Hardcoded (about 14): `ReactionSheet.tsx` tab labels (lines 44-49), "Reactions" 
   `tests/services/chat.test.ts`, `tests/utils/chatMuteNotifications.test.ts`. Demo unit tests:
   `demoChatModel.test.ts` (40 cases), `useHorizontalSwipe.test.tsx`.
 
+### Work (agreed with the owner on 2026-11-04, lane B)
+
+**The shell mount comes from lane A.** Stage 4 builds the path table with the on/off switch, drawing a new
+screen inside `AppShell`, and `next/dynamic` for the screens (Stage 3, "Where Stage 3 stopped", item 6).
+Lane B does not build its own mount. Part 1 needs no mount. Part 2 starts after lane A merges the mount into
+`ui-migrations`. Lane A was told on 2026-11-04.
+
+**How the screens get real data.** The screens read one state through `useDemoChat()`
+(`components/DemoApp/demoChatState.tsx`). A real provider with the same shape replaces it, so the screens
+change little (A-16).
+
+Part 1 — needs no mount:
+1. Split the model. The types and pure helpers move from `demoChatModel.ts` to a shipping file
+   (`components/DemoApp1/chat/chatModel.ts`), and the colours to `chat/chatTheme.ts`. The mock seed stays in
+   `components/DemoApp/` for `/demo` only (A-16, D-8).
+2. Mapper: pure functions from the live `Channel` / `Message` (`utils/types/chat/index.ts`) to the screen's
+   `ChatThread` / `ChatMessage`. Covers text, image, video, voice, file, call, shared product and the
+   deleted placeholder (D-36b), ticks, reply quote, forwarded, edited, tag, reminder, day pills, and pinned,
+   muted, archived, blocked and unread. Unit tested.
+3. Real provider `useChatData()`, with the same API as `useDemoChat()`, calling the live actions. It covers
+   send with upload, cancel, the 25 MB cap and the video check; edit; delete and delete for everyone;
+   forward; pin with the 3-pin limit; mute; archive; unread; block; delete chat; one tag per message (D-37);
+   reminders (D-40); new chat; `channelSearch`; and typing. It checks `isSuccessful` on every answer.
+4. Paging for the list and the messages. The conversation draws only the rows on screen.
+5. Calls: `CallScreen` wired to `store/chat/callActions.ts` and Agora.
+6. Old features with no design (D-36b), each in the new style: share product, stories row, contacts upload,
+   reminders list, tagged messages, media gallery, upload progress and image preview.
+7. Gates: notification permission and phone verify. A blocked chat hides the composer.
+8. RTL: logical styles, the 3 back arrows and the 3 swipes mirrored.
+9. i18n (the 14 hardcoded strings) and the case rule (`useDemoCase()`, D-4).
+10. Events: `chat_opened`, `chat_message_sent`, `chat_product_shared`, GA `CHAT_SCREEN`.
+
+Part 2 — after lane A's mount is merged:
+11. Turn on `/[lang]/chat`, `/chat/conversation`, `/chat/contact` and `/chat/call`. The chat tab, the FCM
+    links and the order page (D-36c) go there. `ChatModal`, `ChatWidget` and old files with no caller go (D-6).
+12. Update the chat unit tests. The e2e cases wait for Stage 8 (A-34).
+13. End checks: lint, parity, `next typegen` + `tsc`, the XD check in `en` + `ar` at 440 x 802, the unit suite in CI.
+
+**With no backend, A-8 applies ("Soon available"):** reactions (CH-1), location message (CH-2), disable
+calls (CH-4), add a person to a call (CH-6).
+
+**To check before step 3 builds the labels (D-37, CH-3).** `store/chat/actions.tsx` line 465 says a tag is free
+text, up to 30 characters. The plan and CH-3 still say the backend takes only `urgent`, `important`, `todo`
+and `done`. If the code is right, the 5 design labels may already work.
+
 ---
 
 ## Stage 7 — home and search

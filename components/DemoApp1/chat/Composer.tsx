@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
-import { CHAT } from "../../DemoApp/demoChat";
+import { CHAT } from "./chatTheme";
 import { C, SAFE_BOTTOM, lineBox } from "../demo1Layout";
 import { Txt } from "../ui";
 import {

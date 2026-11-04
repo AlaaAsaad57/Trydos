@@ -3,7 +3,7 @@
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import React from "react";
 import XdIcon from "../../DemoApp/XdIcon";
-import { reminderLabel, reminderOptions } from "../../DemoApp/demoChatModel";
+import { reminderLabel, reminderOptions } from "./chatModel";
 import { C } from "../demo1Layout";
 import { Txt } from "../ui";
 import PickSheet, { PickBox, PickRow } from "./PickSheet";

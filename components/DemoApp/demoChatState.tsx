@@ -9,6 +9,7 @@ import React, {
   useState,
 } from "react";
 import type { DemoKey } from "./demoKeys";
+import { reduceChat, seedState } from "./demoChatModel";
 import {
   clockNow,
   initialsOf,
@@ -17,14 +18,12 @@ import {
   orderedChats,
   pendingReminders,
   previewOf,
-  reduceChat,
   searchableText,
-  seedState,
   type ChatAction,
   type ChatState,
   type Openable,
   type PreviewWords,
-} from "./demoChatModel";
+} from "../DemoApp1/chat/chatModel";
 
 /**
  * The chat the demo shows, as React state.

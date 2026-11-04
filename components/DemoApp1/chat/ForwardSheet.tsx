@@ -4,12 +4,8 @@ import type { DemoKey } from "../../DemoApp/demoKeys";
 import { motion } from "framer-motion";
 import React from "react";
 import { PREVIEW } from "../../DemoApp/demoChat";
-import {
-  orderedChats,
-  seedContacts,
-  type ChatThread,
-  type Contact,
-} from "../../DemoApp/demoChatModel";
+import { seedContacts } from "../../DemoApp/demoChatModel";
+import { orderedChats, type ChatThread, type Contact } from "./chatModel";
 import { C, ROW, fill, textTop } from "../demo1Layout";
 import { Sheet, Stroke, Txt, Under } from "../ui";
 

@@ -11,7 +11,8 @@ import {
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
-import { BUBBLE_RADIUS, CHAT, VOICE_SRC } from "../../DemoApp/demoChat";
+import { VOICE_SRC } from "../../DemoApp/demoChat";
+import { BUBBLE_RADIUS, CHAT } from "./chatTheme";
 import {
   fileSize,
   type CallMessage,
@@ -20,7 +21,7 @@ import {
   type LocationMessage as LocationMessageData,
   type Side,
   type Status,
-} from "../../DemoApp/demoChatModel";
+} from "./chatModel";
 import { coordsLabel, mapsUrl, tileUrl, tilesFor } from "../../DemoApp/demoMap";
 import { C, fill, lineBox, textTop } from "../demo1Layout";
 import { Stroke, Txt } from "../ui";

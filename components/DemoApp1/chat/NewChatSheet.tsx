@@ -3,7 +3,7 @@
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
-import type { Contact } from "../../DemoApp/demoChatModel";
+import type { Contact } from "./chatModel";
 import { C, CTA, ROW, fill, lineBox, textTop } from "../demo1Layout";
 import { Field, FieldInput, Sheet, Stroke, Txt, Under } from "../ui";
 import { PlusIcon } from "./chatIcons";

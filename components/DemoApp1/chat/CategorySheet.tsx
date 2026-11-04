@@ -2,7 +2,7 @@
 
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import React from "react";
-import type { Category } from "../../DemoApp/demoChatModel";
+import type { Category } from "./chatModel";
 import { C } from "../demo1Layout";
 import { Txt } from "../ui";
 import { CheckIcon } from "./chatIcons";

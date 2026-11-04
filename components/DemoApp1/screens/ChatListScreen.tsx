@@ -7,24 +7,24 @@ import { TRAVEL } from "../barMotion";
 import XdIcon from "../../DemoApp/XdIcon";
 import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
 import {
-  CHAT,
   CHAT_COUNTS,
   CHAT_PHOTOS,
   CHAT_ROW_TIME,
   CONTACT,
   PREVIEW,
   PREVIEW_SHORT,
-  type CallKind,
 } from "../../DemoApp/demoChat";
+import { CALL_ROWS } from "../../DemoApp/demoChatModel";
+import { CHAT } from "../chat/chatTheme";
 import {
-  CALL_ROWS,
   archivedChats,
   contactOf,
   orderedChats,
   searchableText,
+  type CallKind,
   type ChatThread,
   type Contact,
-} from "../../DemoApp/demoChatModel";
+} from "../chat/chatModel";
 import ArchivedSheet from "../chat/ArchivedSheet";
 import { useDemoChat } from "../../DemoApp/demoChatState";
 import { useDemoNav } from "../Demo1Shell";
