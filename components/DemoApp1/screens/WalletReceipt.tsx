@@ -2,9 +2,9 @@
 
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoCase } from "../demoCase";
 import { C, WINDOW_COVER, fill, gapTo, lineBox, textBottom, top } from "../demo1Layout";
-import { Box, Icon, Layer, Txt, fromCentre } from "../ui";
+import { Box, Icon, Layer, Ltr, Txt, fromCentre } from "../ui";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import { WALLET_RECEIPT } from "../../DemoApp/demoWallet";
 
@@ -39,7 +39,7 @@ export default function WalletReceipt({
   open: boolean;
   onClose: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   const receipt = WALLET_RECEIPT;
   return (
     <AnimatePresence>
@@ -79,7 +79,7 @@ export default function WalletReceipt({
               className="flex flex-col shrink-0"
               style={{
                 marginTop: 149 - 50,
-                marginLeft: 12,
+                marginInlineStart: 12,
                 width: fill(12),
                 height: 568,
                 borderRadius: 50,
@@ -111,7 +111,7 @@ export default function WalletReceipt({
               <Icon
                 name="receiptQr"
                 mt={277 - textBottom(255, 40)}
-                style={{ marginLeft: fromCentre(180 - 12, 406) }}
+                style={{ marginInlineStart: fromCentre(180 - 12, 406) }}
               />
               <Txt
                 center
@@ -120,7 +120,7 @@ export default function WalletReceipt({
                 weight="medium"
                 mt={gapTo(277 + 69.72, 367, 16)}
               >
-                {receipt.number}
+                <Ltr>{receipt.number}</Ltr>
               </Txt>
 
               {/* Each row keeps 12 px to the card's edges. The cells share the
@@ -129,24 +129,26 @@ export default function WalletReceipt({
                 className="flex shrink-0"
                 style={{
                   marginTop: 383 - textBottom(367, 16),
-                  marginLeft: 12,
+                  marginInlineStart: 12,
                   width: fill(12),
                 }}
               >
                 <Cell w={124} label={t("Date & time")} testId="date">
-                  {receipt.date}
+                  <Ltr>{receipt.date}</Ltr>
                 </Cell>
                 <Cell w={124} ml={4} label={t("reference")} testId="reference">
-                  {receipt.reference}
+                  <Ltr>{receipt.reference}</Ltr>
                 </Cell>
                 <Cell w={126} ml={4} label={t("amount")} testId="amount">
-                  <span className="font-medium">{receipt.amount}</span>
-                  {` ${receipt.code}`}
+                  <Ltr>
+                    <span className="font-medium">{receipt.amount}</span>
+                    {` ${receipt.code}`}
+                  </Ltr>
                 </Cell>
               </div>
               <div
                 className="flex shrink-0"
-                style={{ marginTop: 4, marginLeft: 12, width: fill(12) }}
+                style={{ marginTop: 4, marginInlineStart: 12, width: fill(12) }}
               >
                 <Cell
                   w={252}
@@ -168,7 +170,7 @@ export default function WalletReceipt({
               </div>
               <div
                 className="flex shrink-0"
-                style={{ marginTop: 4, marginLeft: 12, width: fill(12) }}
+                style={{ marginTop: 4, marginInlineStart: 12, width: fill(12) }}
               >
                 <Cell w={382} label={t("Sender")} testId="sender">
                   {receipt.sender}
@@ -176,10 +178,11 @@ export default function WalletReceipt({
               </div>
               <div
                 className="flex shrink-0"
-                style={{ marginTop: 4, marginLeft: 12, width: fill(12) }}
+                style={{ marginTop: 4, marginInlineStart: 12, width: fill(12) }}
               >
                 <Cell w={382} label={t("Receiver")} testId="receiver">
-                  {`${receipt.receiver} ${t("wallet")} ${receipt.code}`}
+                  <Ltr>{receipt.receiver}</Ltr>
+                  {` ${t("wallet")} ${receipt.code}`}
                 </Cell>
               </div>
 
@@ -196,7 +199,7 @@ export default function WalletReceipt({
                 className="flex items-start shrink-0"
                 style={{
                   marginTop: 664 - (625 + 25),
-                  marginLeft: fromCentre(145 - 12, 406),
+                  marginInlineStart: fromCentre(145 - 12, 406),
                 }}
               >
                 {/* The slot runs from one label's start to the next: 252 - 145. */}
@@ -260,7 +263,7 @@ function Cell({
       fill={C.card}
       data-pw={`demo-wallet-receipt-${testId}`}
       className="flex flex-col"
-      style={{ flex: `${w} 1 0px`, minWidth: 0, paddingLeft: 12 }}
+      style={{ flex: `${w} 1 0px`, minWidth: 0, paddingInlineStart: 12 }}
     >
       <div className="flex items-start shrink-0" style={{ marginTop: 8 }}>
         <Txt size={11} color={C.grey}>
@@ -269,7 +272,7 @@ function Cell({
         {marks && (
           <div
             className="flex items-start shrink-0"
-            style={{ marginLeft: "auto", marginRight: 12 }}
+            style={{ marginInlineStart: "auto", marginInlineEnd: 12 }}
           >
             {marks.map((mark, i) => (
               <Icon key={mark} name={mark} ml={i === 0 ? 0 : 4} />
@@ -312,7 +315,7 @@ function Action({
     >
       <Icon
         name={icon}
-        style={off > 0 ? { marginLeft: off * 2 } : { marginRight: -off * 2 }}
+        style={off > 0 ? { marginInlineStart: off * 2 } : { marginInlineEnd: -off * 2 }}
       />
       <Txt size={11} mt={gapTo(664 + 20, 701, 11)}>
         {label}

@@ -1,14 +1,14 @@
 "use client";
 
 import React, {
-  createContext,
-  useContext,
   useEffect,
   useReducer,
   useRef,
   useState,
 } from "react";
 import type { DemoKey } from "./demoKeys";
+import { ChatContext, NOTICE_MS, type ChatApi } from "../DemoApp1/chat/chatContext";
+import { reduceChat, seedState } from "./demoChatModel";
 import {
   clockNow,
   initialsOf,
@@ -17,14 +17,12 @@ import {
   orderedChats,
   pendingReminders,
   previewOf,
-  reduceChat,
   searchableText,
-  seedState,
   type ChatAction,
   type ChatState,
   type Openable,
   type PreviewWords,
-} from "./demoChatModel";
+} from "../DemoApp1/chat/chatModel";
 
 /**
  * The chat the demo shows, as React state.
@@ -52,35 +50,9 @@ export const MOCK_REPLIES = [
   "Thank you !",
 ] as const;
 
-type DemoChat = {
-  state: ChatState;
-  dispatch: (action: ChatAction) => void;
-  /** Sends a text I typed, answering `replyTo` when given. */
-  sendText: (chat: string, text: string, replyTo?: { id: string; text: string }) => void;
-  sendPhoto: (chat: string, src: string) => void;
-  sendVoice: (chat: string, seconds: number) => void;
-  sendVideo: (chat: string, src: string, seconds: number) => void;
-  sendFile: (chat: string, file: { src: string; name: string; bytes: number; mime?: string }) => void;
-  sendLocation: (chat: string, point: { lat: number; lng: number; accuracy?: number }) => void;
-  forward: (from: string, id: string, to: string) => void;
-  /** Opens the chat with a contact (a new one when there is none) and says which. */
-  newChat: (contact: string) => string;
-  /** Adds a contact and says its id. */
-  addContact: (name: string, phone: string) => string;
-  /** A word for the shopper from the chat itself (a reminder that came due), shown by whatever screen is up. */
-  notice: string | null;
-  /** The conversation opens with its message search up (the contact screen's Search). */
-  search: boolean;
-  setSearch: (on: boolean) => void;
-};
-
-/** How long a notice stays, in ms. */
-export const NOTICE_MS = 3200;
 
 /** The longest a timer may wait, in ms (a longer one fires at once in browsers). */
 const MAX_TIMER = 2 ** 31 - 1;
-
-const Ctx = createContext<DemoChat | null>(null);
 
 export function DemoChatProvider({
   children,
@@ -181,7 +153,7 @@ export function DemoChatProvider({
     });
   };
 
-  const value: DemoChat = {
+  const value: ChatApi = {
     state,
     dispatch,
     sendText: (chat, text, replyTo) =>
@@ -193,14 +165,32 @@ export function DemoChatProvider({
         time: clockNow(),
         replyTo,
       }),
-    sendPhoto: (chat, src) =>
-      deliver(chat, { kind: "photo", id: newId(), side: "out", src, time: clockNow() }),
-    sendVoice: (chat, seconds) =>
+    // The demo shows a picked file from the device itself: nothing uploads.
+    sendPhoto: (chat, file) =>
+      deliver(chat, { kind: "photo", id: newId(), side: "out", src: URL.createObjectURL(file), time: clockNow() }),
+    // The demo plays a sample sound, so the recording is not kept.
+    sendVoice: (chat, _audio, seconds) =>
       deliver(chat, { kind: "voice", id: newId(), side: "out", seconds, time: clockNow() }),
-    sendVideo: (chat, src, seconds) =>
-      deliver(chat, { kind: "video", id: newId(), side: "out", src, seconds, time: clockNow() }),
+    sendVideo: (chat, file, seconds) =>
+      deliver(chat, {
+        kind: "video",
+        id: newId(),
+        side: "out",
+        src: URL.createObjectURL(file),
+        seconds,
+        time: clockNow(),
+      }),
     sendFile: (chat, file) =>
-      deliver(chat, { kind: "file", id: newId(), side: "out", ...file, time: clockNow() }),
+      deliver(chat, {
+        kind: "file",
+        id: newId(),
+        side: "out",
+        src: URL.createObjectURL(file),
+        name: file.name,
+        bytes: file.size,
+        mime: file.type || undefined,
+        time: clockNow(),
+      }),
     sendLocation: (chat, point) =>
       deliver(chat, { kind: "location", id: newId(), side: "out", ...point, time: clockNow() }),
     forward: (from, id, to) => {
@@ -219,7 +209,7 @@ export function DemoChatProvider({
       dispatch({ type: "newChat", contact, as });
       return there?.id ?? as.id;
     },
-    addContact: (name, phone) => {
+    addContact: async (name, phone) => {
       // A number that is already in the list is that contact.
       const digits = phone.replace(/\s+/g, "");
       const there = state.contacts.find((c) => c.phone.replace(/\s+/g, "") === digits);
@@ -231,16 +221,12 @@ export function DemoChatProvider({
       });
       return id;
     },
+    // No one on the other side of the demo sees typing.
+    typing: () => {},
     notice,
     search,
     setSearch,
   };
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
-}
-
-export function useDemoChat(): DemoChat {
-  const value = useContext(Ctx);
-  if (!value) throw new Error("useDemoChat must be used inside DemoChatProvider");
-  return value;
+  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 }

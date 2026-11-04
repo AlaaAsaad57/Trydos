@@ -5,9 +5,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
-import { CHAT } from "../../DemoApp/demoChat";
+import { CHAT } from "./chatTheme";
 import { C, SAFE_BOTTOM, lineBox } from "../demo1Layout";
 import { Txt } from "../ui";
+import { mirrorFor, usePageDir } from "../rtl";
 import {
   CameraIcon,
   ChevronLeftIcon,
@@ -40,8 +41,9 @@ import { clock } from "./messages";
  *
  * A voice message is recorded WhatsApp's way: hold the microphone, the field
  * turns into a beating red dot and a clock with "‹ Slide to cancel"; let go
- * to send, slide left to cancel. No sound is kept — the message gets the
- * seconds held and plays the demo's dummy sound.
+ * to send, slide left to cancel. The microphone records while it is held
+ * (`MediaRecorder`, as the old chat). With no microphone, or no permission,
+ * it says "No available Microphone" and sends nothing.
  */
 
 export const COMPOSER_H = 54;
@@ -95,6 +97,7 @@ export default function Composer({
   onSendVideo,
   onSendFile,
   onSendLocation,
+  onTyping,
   onToast,
   t,
 }: {
@@ -102,14 +105,20 @@ export default function Composer({
   onCancelContext: () => void;
   /** The words typed; the edit's new words when a message is edited. */
   onSend: (text: string) => void;
-  onSendPhoto: (src: string) => void;
-  onSendVoice: (seconds: number) => void;
-  onSendVideo: (src: string, seconds: number) => void;
-  onSendFile: (file: { src: string; name: string; bytes: number; mime?: string }) => void;
+  onSendPhoto: (file: File) => void;
+  /** A recorded voice note and the seconds it was held. */
+  onSendVoice: (audio: Blob, seconds: number) => void;
+  onSendVideo: (file: File, seconds: number) => void;
+  onSendFile: (file: File) => void;
   onSendLocation: (point: { lat: number; lng: number; accuracy?: number }) => void;
+  /** The shopper typed in the field. */
+  onTyping?: () => void;
   onToast: (text: string) => void;
   t: (key: DemoKey) => string;
 }) {
+  // Right to left (A-13, A-15): the slide to cancel goes right, the chevron points right.
+  const dir = usePageDir();
+  const sign = dir === "rtl" ? -1 : 1;
   const [text, setText] = useState("");
   const [attach, setAttach] = useState(false);
   const [recording, setRecording] = useState<{ since: number; slide: number } | null>(null);
@@ -122,6 +131,10 @@ export default function Composer({
   /** A location is being looked up: a second tap must not start another. */
   const locating = useRef(false);
   const startX = useRef(0);
+  /** The recording under way: the recorder once the microphone answers, and what it heard. */
+  const take = useRef<{ recorder: MediaRecorder | null; chunks: Blob[]; done: boolean; send: number | null } | null>(
+    null,
+  );
 
   // An edit starts with the message's words in the field.
   useEffect(() => {
@@ -168,7 +181,7 @@ export default function Composer({
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    onSendPhoto(URL.createObjectURL(file));
+    onSendPhoto(file);
   };
 
   const pickVideo = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,20 +189,68 @@ export default function Composer({
     e.target.value = "";
     if (!file) return;
     const src = URL.createObjectURL(file);
-    onSendVideo(src, await videoLength(src));
+    const seconds = await videoLength(src);
+    URL.revokeObjectURL(src);
+    onSendVideo(file, seconds);
   };
 
   const pickAnyFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    onSendFile({
-      src: URL.createObjectURL(file),
-      name: file.name,
-      bytes: file.size,
-      mime: file.type || undefined,
-    });
+    onSendFile(file);
   };
+
+  /** Starts the microphone for a new recording. */
+  const startRecorder = () => {
+    const current = { recorder: null as MediaRecorder | null, chunks: [] as Blob[], done: false, send: null as number | null };
+    take.current = current;
+    const failed = () => {
+      if (take.current === current) take.current = null;
+      setRecording(null);
+      onToast(t("No available Microphone"));
+    };
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      failed();
+      return;
+    }
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        const stopTracks = () => stream.getTracks().forEach((track) => track.stop());
+        // Let go (or cancelled) while the phone was still asking: record nothing.
+        if (current.done) {
+          stopTracks();
+          return;
+        }
+        const recorder = new MediaRecorder(stream);
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) current.chunks.push(e.data);
+        };
+        recorder.onstop = () => {
+          stopTracks();
+          // The same sound type as the old chat's recorder.
+          if (current.send !== null && current.chunks.length > 0)
+            onSendVoice(new Blob(current.chunks, { type: "audio/wav" }), current.send);
+        };
+        current.recorder = recorder;
+        recorder.start();
+      })
+      .catch(failed);
+  };
+
+  /** Ends the recording: sends it after `seconds`, or drops it with null. */
+  const stopRecorder = (seconds: number | null) => {
+    const current = take.current;
+    take.current = null;
+    if (!current) return;
+    current.done = true;
+    current.send = seconds;
+    if (current.recorder && current.recorder.state !== "inactive") current.recorder.stop();
+  };
+
+  // A recording must not keep the microphone after the composer goes.
+  useEffect(() => () => stopRecorder(null), []);
 
   /** Asks the phone where the shopper is, and sends the point as a location message. */
   const sendLocation = () => {
@@ -236,12 +297,14 @@ export default function Composer({
       const since = Date.now();
       setRecording({ since, slide: 0 });
       setNow(since);
+      startRecorder();
     },
     onPointerMove: (e: React.PointerEvent<HTMLButtonElement>) => {
       if (!recording) return;
-      const slide = Math.min(0, e.clientX - startX.current);
+      const slide = Math.min(0, sign * (e.clientX - startX.current));
       if (slide <= -CANCEL_SLIDE) {
         setRecording(null);
+        stopRecorder(null);
         return;
       }
       setRecording({ since: recording.since, slide });
@@ -250,10 +313,15 @@ export default function Composer({
       if (!recording) return;
       const held = Date.now() - recording.since;
       setRecording(null);
-      if (held < MIN_RECORD_MS) onToast(t("Hold to record"));
-      else onSendVoice(Math.max(1, Math.round(held / 1000)));
+      if (held < MIN_RECORD_MS) {
+        stopRecorder(null);
+        onToast(t("Hold to record"));
+      } else stopRecorder(Math.max(1, Math.round(held / 1000)));
     },
-    onPointerCancel: () => setRecording(null),
+    onPointerCancel: () => {
+      setRecording(null);
+      stopRecorder(null);
+    },
   };
 
   return (
@@ -316,17 +384,17 @@ export default function Composer({
               style={{
                 margin: "8px 12px 0",
                 height: 46,
-                paddingLeft: 3,
+                paddingInlineStart: 3,
                 borderRadius: 12,
                 background: C.purple,
               }}
             >
               <div
                 className="flex items-center grow min-w-0"
-                style={{ borderRadius: 12, background: CHAT.quote, paddingLeft: 10 }}
+                style={{ borderRadius: 12, background: CHAT.quote, paddingInlineStart: 10 }}
               >
                 {context.kind === "edit" && (
-                  <XdIcon name="menuEdit" style={{ marginRight: 8 }} />
+                  <XdIcon name="menuEdit" style={{ marginInlineEnd: 8 }} />
                 )}
                 <span className="flex flex-col min-w-0 grow">
                   <Txt size={12} weight="medium" color={C.purple}>
@@ -394,7 +462,7 @@ export default function Composer({
                 exit={{ opacity: 0, scale: 0.6, y: 6, transition: { duration: 0.15 } }}
                 transition={{ type: "spring", stiffness: 520, damping: 32 }}
                 style={{
-                  left: 0,
+                  insetInlineStart: 0,
                   bottom: "100%",
                   marginBottom: 6,
                   width: 170,
@@ -402,7 +470,7 @@ export default function Composer({
                   borderRadius: 12,
                   background: CHAT.menu,
                   boxShadow: "0 2px 5px rgba(0,0,0,0.16)",
-                  transformOrigin: "left bottom",
+                  transformOrigin: dir === "rtl" ? "right bottom" : "left bottom",
                   zIndex: 30,
                 }}
                 onClick={(e) => e.stopPropagation()}
@@ -413,7 +481,7 @@ export default function Composer({
                     type="button"
                     data-pw={`demo-chat-attach-${a.action}`}
                     onClick={() => attachAction(a.action)}
-                    className="flex items-center shrink-0 cursor-pointer text-left active:opacity-60"
+                    className="flex items-center shrink-0 cursor-pointer text-start active:opacity-60"
                     style={{ height: 40, padding: "0 14px" }}
                   >
                     <XdIcon name={a.icon} />
@@ -435,7 +503,7 @@ export default function Composer({
             <motion.div
               data-pw="demo-chat-recording"
               className="flex items-center w-full"
-              style={{ height: 38, padding: "0 12px", x: recording.slide }}
+              style={{ height: 38, padding: "0 12px", x: sign * recording.slide }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
@@ -449,8 +517,10 @@ export default function Composer({
               <Txt size={14} ml={8} data-pw="demo-chat-recording-clock">
                 {clock(Math.max(0, (now - recording.since) / 1000))}
               </Txt>
-              <span className="flex items-center ml-auto" style={{ opacity: 1 + recording.slide / CANCEL_SLIDE }}>
-                <ChevronLeftIcon color={C.grey} />
+              <span className="flex items-center ms-auto" style={{ opacity: 1 + recording.slide / CANCEL_SLIDE }}>
+                <span className="flex" style={mirrorFor(dir)}>
+                  <ChevronLeftIcon color={C.grey} />
+                </span>
                 <Txt size={13} color={C.grey} ml={2}>
                   {t("Slide to cancel")}
                 </Txt>
@@ -463,7 +533,10 @@ export default function Composer({
                 data-pw="demo-chat-input"
                 rows={1}
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  onTyping?.();
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
@@ -476,7 +549,7 @@ export default function Composer({
                 className="block grow min-w-0 bg-transparent outline-none resize-none font-normal placeholder:text-[#8D8D8D]"
                 style={{
                   padding: "10px 0 10px 12px",
-                  marginRight: canSend ? 12 : 40,
+                  marginInlineEnd: canSend ? 12 : 40,
                   fontSize: 14,
                   lineHeight: `${lineBox(14)}px`,
                   color: C.ink,
@@ -499,7 +572,7 @@ export default function Composer({
                     transition={{ duration: 0.15 }}
                     whileTap={{ scale: 0.9 }}
                     className="absolute flex items-center justify-center cursor-pointer"
-                    style={{ right: 4, bottom: 0, width: 36, height: 38 }}
+                    style={{ insetInlineEnd: 4, bottom: 0, width: 36, height: 38 }}
                   >
                     <CameraIcon color={C.purple} />
                   </motion.button>

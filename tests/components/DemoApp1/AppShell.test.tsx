@@ -221,6 +221,22 @@ describe("AppShell — the new bottom bar on every page", () => {
     expect(setLoginOpen, "the Chat tab opened the sign-in for a shopper with a phone").not.toHaveBeenCalled();
   });
 
+  it("Chat with a chat account and notifications allowed goes to the new chat screen (Stage 6)", async () => {
+    useAppStore.setState({ userProfile: { phone: "0999000111" }, userChat: { id: 7 } } as any);
+    home.getNotificationPermissionStatus.mockReturnValue(2);
+    openOn("/sy-en/products/x");
+    await act(async () => pressTab("chat"));
+    expect(router.push, "the Chat tab did not go to the new chat screen /sy-en/chat").toHaveBeenCalledWith("/sy-en/chat");
+  });
+
+  it("Chat with notifications not asked yet opens the notification question, not the chat", async () => {
+    useAppStore.setState({ userProfile: { phone: "0999000111" }, userChat: { id: 7 } } as any);
+    home.getNotificationPermissionStatus.mockReturnValue(-1);
+    openOn("/sy-en/products/x");
+    await act(async () => pressTab("chat"));
+    expect(router.push, "the Chat tab skipped the notification question").not.toHaveBeenCalledWith("/sy-en/chat");
+  });
+
   it("hides the bar and drops --app-bar-room while the sign-in covers the screen", () => {
     useAppStore.setState({ loginOpen: true } as any);
     openOn("/sy-en/products/x");

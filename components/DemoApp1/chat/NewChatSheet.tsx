@@ -3,7 +3,12 @@
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
-import type { Contact } from "../../DemoApp/demoChatModel";
+import { allCountries } from "country-telephone-data";
+import { phoneWithDialCode } from "components/Chat/contactPhone";
+import { useAppStore } from "store";
+import { translateFunction } from "utils/functions";
+import { getLocalizedCountryName } from "utils/countryData";
+import type { Contact } from "./chatModel";
 import { C, CTA, ROW, fill, lineBox, textTop } from "../demo1Layout";
 import { Field, FieldInput, Sheet, Stroke, Txt, Under } from "../ui";
 import { PlusIcon } from "./chatIcons";
@@ -23,12 +28,21 @@ import { PlusIcon } from "./chatIcons";
  * `FieldInput`): the name and the phone number, with the wide purple
  * "Add & save" button of the forms under them, and "Cancel" at the top
  * right to come back to the list. The button waits until both are filled.
+ *
+ * The phone field starts with the old form's country code picker
+ * (ChatContactsUpload.tsx; the owner's choice, 2026-11-04): the flag and the
+ * code, with the phone's own country list on a tap. The number is sent with
+ * its code (`phoneWithDialCode`). It stays left to right on every page (A-30).
  */
+
+/** The old form's default code: Syria. */
+const DEFAULT_DIAL = "+963";
 export default function NewChatSheet({
   open,
   contacts,
   onPick,
   onAdd,
+  onSync,
   onClose,
   t,
 }: {
@@ -36,14 +50,23 @@ export default function NewChatSheet({
   contacts: Contact[];
   /** A contact was tapped: open the chat with them. */
   onPick: (contact: string) => void;
-  /** The form was saved: add the contact and open the chat with them. */
+  /** The form was saved: add the contact (full number, with its country code) and open the chat with them. */
   onAdd: (name: string, phone: string) => void;
+  /**
+   * The real chat only, where the browser can read the phone's contacts:
+   * "Get from your contacts" saves the picked ones (D-36b, no XD board).
+   */
+  onSync?: () => Promise<void>;
   onClose: () => void;
   t: (key: DemoKey) => string;
 }) {
   const [adding, setAdding] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [dial, setDial] = useState(DEFAULT_DIAL);
+  const language = useAppStore((s) => s.language);
+  const country = allCountries.find((c) => `+${c.dialCode}` === dial);
 
   // The sheet opens on the list every time, with an empty form behind it.
   useEffect(() => {
@@ -51,12 +74,14 @@ export default function NewChatSheet({
     setAdding(false);
     setName("");
     setPhone("");
+    setDial(DEFAULT_DIAL);
   }, [open]);
 
-  const canSave = name.trim() !== "" && phone.trim() !== "";
+  const fullPhone = phoneWithDialCode(dial, phone);
+  const canSave = name.trim() !== "" && fullPhone !== "";
   const save = () => {
     if (!canSave) return;
-    onAdd(name, phone);
+    onAdd(name, fullPhone);
   };
 
   return (
@@ -78,7 +103,7 @@ export default function NewChatSheet({
               transition={{ duration: 0.2 }}
               className="absolute font-light cursor-pointer active:opacity-60"
               style={{
-                right: 20,
+                insetInlineEnd: 20,
                 top: textTop(30, 16) - 8,
                 fontSize: 16,
                 lineHeight: `${lineBox(16)}px`,
@@ -111,15 +136,43 @@ export default function NewChatSheet({
                 />
               </Field>
               <Field mt={4} label={t("Phone Number")} editing>
-                <FieldInput
-                  testId="demo-new-contact-phone"
-                  value={phone}
-                  placeholder={t("Enter phone number")}
-                  onChange={setPhone}
-                  editing
-                  type="tel"
-                  inputMode="tel"
-                />
+                <span dir="ltr" className="flex w-full items-center" style={{ gap: 8 }}>
+                  <span className="relative flex shrink-0 items-center" style={{ gap: 4, marginTop: 3, height: 23 }}>
+                    {country && (
+                      <img
+                        src={`/icons/flag/${country.iso2}.svg`}
+                        alt=""
+                        className="object-cover"
+                        style={{ width: 20, height: 12, borderRadius: 2 }}
+                        onError={(e) => (e.currentTarget.style.display = "none")}
+                      />
+                    )}
+                    <span style={{ fontSize: 14, color: C.ink }}>{dial}</span>
+                    {/* The phone's own list, over the code: a tap opens it. */}
+                    <select
+                      data-pw="demo-new-contact-dial"
+                      aria-label={t("Country code")}
+                      value={dial}
+                      onChange={(e) => setDial(e.target.value)}
+                      className="absolute inset-0 cursor-pointer opacity-0"
+                    >
+                      {allCountries.map((c) => (
+                        <option key={`${c.iso2}-${c.dialCode}`} value={`+${c.dialCode}`}>
+                          +{c.dialCode} ({getLocalizedCountryName(c.iso2, language)})
+                        </option>
+                      ))}
+                    </select>
+                  </span>
+                  <FieldInput
+                    testId="demo-new-contact-phone"
+                    value={phone}
+                    placeholder={t("Enter phone number")}
+                    onChange={setPhone}
+                    editing
+                    type="tel"
+                    inputMode="tel"
+                  />
+                </span>
               </Field>
               {/* The forms' wide button, in the flow of the sheet. */}
               <motion.button
@@ -132,7 +185,7 @@ export default function NewChatSheet({
                 className="shrink-0 font-normal cursor-pointer"
                 style={{
                   marginTop: 24,
-                  marginLeft: CTA.x,
+                  marginInlineStart: CTA.x,
                   width: fill(CTA.x),
                   height: CTA.height,
                   borderRadius: CTA.radius,
@@ -157,7 +210,7 @@ export default function NewChatSheet({
                 <span
                   className="flex items-center justify-center shrink-0"
                   style={{
-                    marginLeft: 8,
+                    marginInlineStart: 8,
                     width: 44,
                     height: 44,
                     borderRadius: 15,
@@ -170,6 +223,26 @@ export default function NewChatSheet({
                   {t("New contact")}
                 </Txt>
               </Row>
+              {onSync && (
+                <Row
+                  testId="demo-new-chat-sync"
+                  onClick={() => {
+                    if (syncing) return;
+                    setSyncing(true);
+                    void onSync().finally(() => setSyncing(false));
+                  }}
+                >
+                  <span
+                    className="flex items-center justify-center shrink-0"
+                    style={{ marginInlineStart: 8, width: 44, height: 44, borderRadius: 15, background: C.purpleTint }}
+                  >
+                    <PlusIcon color={C.purple} size={22} />
+                  </span>
+                  <Txt size={14} weight="medium" color={C.purple} ml={12}>
+                    {translateFunction(syncing ? "Syncing..." : "Get from your contacts")}
+                  </Txt>
+                </Row>
+              )}
               {contacts.map((contact) => (
                 <Row
                   key={contact.id}
@@ -179,7 +252,7 @@ export default function NewChatSheet({
                   <span
                     className="relative block shrink-0 overflow-hidden flex-col"
                     style={{
-                      marginLeft: 8,
+                      marginInlineStart: 8,
                       width: 44,
                       height: 44,
                       borderRadius: 15,
@@ -199,12 +272,12 @@ export default function NewChatSheet({
                     )}
                     <Stroke color={C.line} width={0.3} radius={15} />
                   </span>
-                  <span className="flex flex-col min-w-0 grow" style={{ marginLeft: 12, marginRight: 12 }}>
+                  <span className="flex flex-col min-w-0 grow" style={{ marginInlineStart: 12, marginInlineEnd: 12 }}>
                     <Txt size={14} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
                       {contact.name}
                     </Txt>
                     <Txt size={12} color={C.grey}>
-                      {contact.phone}
+                      <bdi dir="ltr">{contact.phone}</bdi>
                     </Txt>
                   </span>
                 </Row>
@@ -235,10 +308,10 @@ function Row({
       data-pw={testId}
       whileTap={{ scale: 0.985 }}
       onClick={onClick}
-      className="flex items-center shrink-0 cursor-pointer text-left"
+      className="flex items-center shrink-0 cursor-pointer text-start"
       style={{
         marginTop: first ? 16 : 2,
-        marginLeft: ROW.x,
+        marginInlineStart: ROW.x,
         width: fill(ROW.x),
         height: 60,
         borderRadius: ROW.radius,

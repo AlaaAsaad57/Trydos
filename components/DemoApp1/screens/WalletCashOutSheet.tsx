@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NumericKeypad } from "components/Login/Enhanced/ui/NumericKeypad";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoCase } from "../demoCase";
 import { NATIVE_WALLET_KEYBOARD } from "../../DemoApp/demoKeyboard";
 import {
   C,
@@ -22,12 +22,14 @@ import {
   Box,
   FileLines,
   Icon,
+  Ltr,
   Sheet,
   Stroke,
   Txt,
   Under,
   useCanvasEnd,
 } from "../ui";
+import { usePageDir } from "../rtl";
 import { useKeypadRoom } from "../useKeypadRoom";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import {
@@ -115,12 +117,15 @@ export function Brand({
   );
 }
 
-/** Moves a block `nudge` px right (or left) of its place by padding one side. */
+/**
+ * Moves a block `nudge` px right (or left) of its place by padding one side.
+ * The side is logical, so on a right-to-left page the nudge is mirrored too.
+ */
 const offCentre = (nudge = 0): React.CSSProperties =>
   nudge > 0
-    ? { paddingLeft: nudge * 2 }
+    ? { paddingInlineStart: nudge * 2 }
     : nudge < 0
-      ? { paddingRight: -nudge * 2 }
+      ? { paddingInlineEnd: -nudge * 2 }
       : {};
 
 /**
@@ -166,7 +171,7 @@ export function SheetTitle({
 }
 
 function Title({ top, mark }: { top: number; mark: XdIconName }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <SheetTitle top={top} icon="cashOutBig" mark={mark} label={t("Cash Out")} />
   );
@@ -315,22 +320,22 @@ export default function WalletCashOutSheet({
  * The lines of the cards and the tiles sit ON the edge (XD's centre stroke).
  */
 function Ways({ mark, onPick }: { mark: XdIconName; onPick: () => void }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const top = TOP.ways;
   return (
     <>
       <Title top={top} mark={mark} />
       <Under testId="demo-wallet-cash-out-ways-under">
         <FileLines
-          text={t(
+          text={body(
             "You can withdraw your money through the following options easily and securely.",
           )}
           lines={[
             {
               x: 40.13,
-              text: "You Can Withdraw Your Money Through The Following ",
+              text: "You can withdraw your money through the following ",
             },
-            { x: 124.5, text: "Options Easily And Securely." },
+            { x: 124.5, text: "options easily and securely." },
           ]}
           left={32}
           ml={32}
@@ -350,7 +355,7 @@ function Ways({ mark, onPick }: { mark: XdIconName; onPick: () => void }) {
           className="flex shrink-0"
           style={{
             marginTop: 562 - (366 + 188),
-            marginLeft: 20,
+            marginInlineStart: 20,
             width: fill(20),
           }}
         >
@@ -362,7 +367,7 @@ function Ways({ mark, onPick }: { mark: XdIconName; onPick: () => void }) {
               data-pw={`demo-wallet-way-${provider.id}`}
               whileTap={{ scale: 0.97 }}
               className="cursor-pointer"
-              style={{ flex: "1 1 0", minWidth: 0, marginLeft: provider.gap }}
+              style={{ flex: "1 1 0", minWidth: 0, marginInlineStart: provider.gap }}
             >
               <Box
                 w="100%"
@@ -418,19 +423,19 @@ function Ways({ mark, onPick }: { mark: XdIconName; onPick: () => void }) {
             mt={gapTo(707, 730, 11)}
           />
           <FileLines
-            text={t(
+            text={body(
               "You can withdraw your funds with complete ease through one of our Trydos & RDB centers. You can also withdraw your funds to your personal account on RDB.",
             )}
             lines={[
               {
                 x: 33.01,
-                text: "You Can Withdraw Your Funds With Complete Ease Through One Of Our ",
+                text: "You can withdraw your funds with complete ease through one of our ",
               },
               {
                 x: 48.52,
-                text: "Trydos & RDB Centers. You Can Also Withdraw Your Funds To Your ",
+                text: "Trydos & RDB centers. You can also withdraw your funds to your ",
               },
-              { x: 149.17, text: "Personal Account On RDB." },
+              { x: 149.17, text: "personal account on RDB." },
             ]}
             left={32}
             ml={32 - 20}
@@ -477,7 +482,7 @@ export function BrandCard({
   mt: number;
   onClick: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <motion.button
       type="button"
@@ -485,7 +490,7 @@ export function BrandCard({
       onClick={onClick}
       whileTap={{ scale: 0.985 }}
       className="shrink-0 cursor-pointer"
-      style={{ marginTop: mt, marginLeft: 20, width: fill(20) }}
+      style={{ marginTop: mt, marginInlineStart: 20, width: fill(20) }}
     >
       <Box
         w="100%"
@@ -504,7 +509,7 @@ export function BrandCard({
           fill={C.purpleTint}
           className="self-end"
           style={{
-            marginRight: 410 - (310 + 94),
+            marginInlineEnd: 410 - (310 + 94),
             minWidth: 94,
             padding: "0 8px",
           }}
@@ -557,7 +562,7 @@ export function InfoButton({
       className="flex flex-col shrink-0 cursor-pointer"
       style={{
         marginTop: mt,
-        marginLeft: 32 - 20,
+        marginInlineStart: 32 - 20,
         width: fill(12),
         height: 38,
         borderRadius: 15,
@@ -662,7 +667,8 @@ function Form({
   /** "Withdrawal Request": on to the code (`Home Page – 101`). */
   onRequest: () => void;
 }) {
-  const { t } = useDemoNav();
+  const pageDir = usePageDir();
+  const { t, body } = useDemoCase();
   const top = TOP.form;
   const [active, setActive] = useState<InUse>(null);
   /** The chosen tab: cash from a center, or to the client's own account. */
@@ -832,7 +838,7 @@ function Form({
         className="flex shrink-0"
         style={{
           marginTop: 213 - textBottom(180, 24),
-          marginLeft: 20,
+          marginInlineStart: 20,
           width: fill(20),
         }}
       >
@@ -876,8 +882,10 @@ function Form({
             testId="demo-wallet-bank-id"
           >
             {/* The number ends at x 81, the currency starts at 91. */}
-            <span className="font-medium">{WALLET_BANK_ACCOUNT.id}</span>
-            <span style={{ marginLeft: 91 - 81 }}>
+            <span className="font-medium">
+              <Ltr>{WALLET_BANK_ACCOUNT.id}</Ltr>
+            </span>
+            <span style={{ marginInlineStart: 91 - 81 }}>
               {t(WALLET_BANK_ACCOUNT.currency[balance.currency])}
             </span>
           </Recipient>
@@ -897,13 +905,15 @@ function Form({
           testId="demo-wallet-recipient-phone"
         >
           {/* "+" Bold at x 32, the number from x 44. */}
-          <span
-            className="font-bold inline-block"
-            style={{ minWidth: 44 - 32 }}
-          >
-            +
-          </span>
-          {WALLET_RECIPIENT.phone}
+          <Ltr>
+            <span
+              className="font-bold inline-block"
+              style={{ minWidth: 44 - 32 }}
+            >
+              +
+            </span>
+            {WALLET_RECIPIENT.phone}
+          </Ltr>
         </Recipient>
         <Recipient
           mt={4}
@@ -965,7 +975,7 @@ function Form({
                         color: C.placeholder,
                       }}
                     >
-                      {t("Enter recipient Phone number")}
+                      {body("Enter recipient Phone number")}
                     </span>
                   )}
                   <input
@@ -978,6 +988,9 @@ function Form({
                     readOnly={keyed}
                     tabIndex={keyed ? -1 : undefined}
                     value={authorized.phone}
+                    // A phone reads left to right in every language; on a
+                    // right-to-left page it still starts on the right.
+                    dir="ltr"
                     aria-label={t("Authorized recipient phone number")}
                     onChange={(e) => {
                       const phone = e.target.value.replace(/[^0-9+ ]/g, "");
@@ -994,6 +1007,7 @@ function Form({
                       color: C.ink,
                       padding: 0,
                       border: 0,
+                      textAlign: pageDir === "rtl" ? "right" : undefined,
                     }}
                   />
                 </div>
@@ -1103,12 +1117,14 @@ function Form({
                 <Txt
                   size={12}
                   color={C.placeholder}
-                  className="ml-auto"
+                  className="ms-auto"
                   style={{ width: 398 - 291, whiteSpace: "pre" }}
                 >
                   {`${t("Available")} `}
-                  <span className="font-medium">{balance.amount}</span>
-                  {` ${balance.code}`}
+                  <Ltr>
+                    <span className="font-medium">{balance.amount}</span>
+                    {` ${balance.code}`}
+                  </Ltr>
                 </Txt>
               </>
             ) : saved ? (
@@ -1154,7 +1170,7 @@ function Form({
                 }}
               >
                 <span className="font-medium invisible">{amount}</span>
-                <span style={{ marginLeft: 5 }}>{balance.code}</span>
+                <span style={{ marginInlineStart: 5 }}>{balance.code}</span>
               </span>
             )}
             <input
@@ -1200,7 +1216,7 @@ function Form({
               className="flex flex-col"
             >
               <Txt center size={11} mt={gapTo(532, 551, 11)}>
-                {t("Your Balance is insufficient")}
+                {body("Your Balance is insufficient")}
               </Txt>
             </Box>
           )}
@@ -1221,7 +1237,7 @@ function Form({
             className="flex flex-col"
           >
             <Txt center nudge={-5} size={11} mt={gapTo(574, 593, 11)}>
-              {t("Only the named person may receive the amount !")}
+              {body("Only the named person may receive the amount !")}
             </Txt>
           </Box>
         )}
@@ -1323,15 +1339,15 @@ function Scan({
   amount: string;
   onBack: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const top = TOP.scan;
-  const [lead, tail = ""] = t(
+  const [lead, tail = ""] = body(
     "Please read the code in front of you at the {brand} center, then receive the amount from the employee.",
   ).split("{brand}");
-  const stay = t(
+  const stay = body(
     "Do not leave the page or the center until you have confirmed that the transaction is complete.",
   );
-  const thanks = t("Thank you.");
+  const thanks = body("Thank you.");
   return (
     <>
       <Title top={top} mark={balance.mark} />
@@ -1352,7 +1368,7 @@ function Scan({
           className="flex flex-col items-center"
         >
           {/* The file puts the mark half a px left of the box's centre. */}
-          <Icon name="scanCode" mt={500 - 213} style={{ marginRight: 1 }} />
+          <Icon name="scanCode" mt={500 - 213} style={{ marginInlineEnd: 1 }} />
           {/* And the line 1 px right of it. */}
           <Txt
             center
@@ -1361,7 +1377,7 @@ function Scan({
             color={C.card}
             mt={gapTo(500 + 25, 548, 11)}
           >
-            {t("Read the code on the opposite side to take action")}
+            {body("Read the code on the opposite side to take action")}
           </Txt>
         </Box>
 
@@ -1382,8 +1398,10 @@ function Scan({
           data-pw="demo-wallet-scan-amount"
           style={{ whiteSpace: "pre" }}
         >
-          <span className="font-medium">{`${amount} `}</span>
-          {balance.code}
+          <Ltr>
+            <span className="font-medium">{`${amount} `}</span>
+            {balance.code}
+          </Ltr>
         </Txt>
 
         <FileLines
@@ -1391,10 +1409,10 @@ function Scan({
           lines={[
             {
               x: 42.29,
-              text: "Please Read The Code In Front Of You At The trydos | rdb ",
+              text: "Please read the code in front of you at the trydos | rdb ",
               node: (
                 <>
-                  {"Please Read The Code In Front Of You At The "}
+                  {"Please read the code in front of you at the "}
                   <span className="font-bold">{WALLET_BRAND.start}</span>
                   {WALLET_BRAND.rest}
                   <span className="font-bold">{WALLET_BRAND.bank}</span>
@@ -1403,18 +1421,18 @@ function Scan({
             },
             {
               x: 50.33,
-              text: "Center, Then Receive The Amount From The Employee. ",
+              text: "center, then receive the amount from the employee. ",
             },
             { x: 0, text: "" },
             {
               x: 54.84,
-              text: "Do Not Leave The Page Or The Center Until You Have ",
+              text: "Do not leave the page or the center until you have ",
             },
-            { x: 79.81, text: "Confirmed That The Transaction Is Complete." },
+            { x: 79.81, text: "confirmed that the transaction is complete." },
             {
               x: 181.34,
-              text: "Thank You.",
-              node: <span className="font-medium">Thank You.</span>,
+              text: "Thank you.",
+              node: <span className="font-medium">Thank you.</span>,
             },
           ]}
           left={32}
@@ -1496,7 +1514,7 @@ export function SheetButton({
       className="relative flex flex-col shrink-0 cursor-pointer"
       style={{
         marginTop: mt,
-        marginLeft: 20,
+        marginInlineStart: 20,
         width: fill(20),
         height: 60,
         borderRadius: 20,
@@ -1535,7 +1553,7 @@ function RecipientButton({
   onClick: () => void;
   testId: string;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <motion.button
       type="button"
@@ -1545,7 +1563,7 @@ function RecipientButton({
       className="flex flex-col shrink-0 cursor-pointer"
       style={{
         marginTop: mt,
-        marginLeft: ml,
+        marginInlineStart: ml,
         width: fill(ml, DESIGN_W - ml - 356),
         height: 30,
         borderRadius: 12,
@@ -1571,7 +1589,7 @@ function RecipientButton({
 
 /** The label of a filled field: the field's name in grey, "Edit" in blue. */
 function EditLabel({ field }: { field: string }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   const [before, after = ""] = t("Edit {field}").split("{field}");
   return (
     <Txt size={12} color={C.grey} as="label" style={{ whiteSpace: "pre" }}>
@@ -1612,7 +1630,7 @@ function Entry({
   children: React.ReactNode;
   testId: string;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   const saved = filled && !active;
   return (
     <Box
@@ -1684,7 +1702,7 @@ export function Tab({
       aria-pressed={chosen}
       onClick={onClick}
       className="cursor-pointer"
-      style={{ flex: "1 1 0", minWidth: 0, marginLeft: ml }}
+      style={{ flex: "1 1 0", minWidth: 0, marginInlineStart: ml }}
     >
       <Box
         w="100%"
@@ -1758,7 +1776,7 @@ export function Recipient({
         <Icon
           name="eyeGreySmall"
           mt={324 - (304 + 8)}
-          style={{ marginLeft: "auto" }}
+          style={{ marginInlineStart: "auto" }}
         />
       )}
     </Box>

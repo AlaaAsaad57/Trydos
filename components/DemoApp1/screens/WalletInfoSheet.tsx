@@ -2,8 +2,8 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { useDemoNav } from "../Demo1Shell";
-import { useDemoData } from "../../DemoApp/DemoData";
+import { useDemoCase } from "../demoCase";
+import { useProfileData } from "../useProfileData";
 import {
   C,
   SHEET,
@@ -13,12 +13,20 @@ import {
   lineBox,
   textBottom,
 } from "../demo1Layout";
-import { Box, Icon, Sheet, Txt, Under, fromCentre, useCanvasEnd } from "../ui";
+import {
+  Box,
+  Icon,
+  Ltr,
+  Sheet,
+  Txt,
+  Under,
+  fromCentre,
+  useCanvasEnd,
+} from "../ui";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import {
   WALLET_BRAND,
-  WALLET_RECIPIENT,
   type WalletBalance,
 } from "../../DemoApp/demoWallet";
 import { SheetTitle } from "./WalletCashOutSheet";
@@ -73,18 +81,18 @@ export default function WalletInfoSheet({
   /** The balance the code is for. */
   balance: WalletBalance;
 }) {
-  const { t } = useDemoNav();
-  const { profile } = useDemoData();
+  const { t } = useDemoCase();
+  // The shopper's own name, id and phone (A-16). The rest of the wallet stays
+  // mock (A-17).
+  const { name, clientId, phone } = useProfileData();
   /** Where the screen ends (design y). */
   const end = useCanvasEnd(open);
-  // The file shows a client with a name; a new demo client has none yet.
-  const name = profile.name || WALLET_RECIPIENT.name;
 
   const act = (id: (typeof ACTIONS)[number]["id"]) => {
     if (id === "copy")
-      navigator.clipboard?.writeText(profile.clientId).catch(() => {});
+      navigator.clipboard?.writeText(clientId).catch(() => {});
     if (id === "share" && navigator.share)
-      navigator.share({ text: profile.clientId }).catch(() => {});
+      navigator.share({ text: clientId }).catch(() => {});
   };
 
   return (
@@ -115,7 +123,7 @@ export default function WalletInfoSheet({
           weight="bold"
           mt={gapTo(TOP + 24 + lineBox(24), 180, 24)}
         >
-          {profile.clientId}
+          <Ltr>{clientId}</Ltr>
         </Txt>
 
         <Under
@@ -127,7 +135,7 @@ export default function WalletInfoSheet({
           <Icon
             name="qrWallet"
             mt={210.32 - textBottom(180, 24)}
-            style={{ marginLeft: fromCentre(39.93, 430) }}
+            style={{ marginInlineStart: fromCentre(39.93, 430) }}
           />
 
           {/* The dots at (205, 573) and (217, 573): 20 wide together, centred. */}
@@ -165,7 +173,7 @@ export default function WalletInfoSheet({
             testId="demo-wallet-info-id"
             medium
           >
-            {profile.clientId}
+            <Ltr>{clientId}</Ltr>
           </InfoField>
           <InfoField
             mt={757 - (698 + 55)}
@@ -173,7 +181,7 @@ export default function WalletInfoSheet({
             testId="demo-wallet-info-phone"
             medium
           >
-            {profile.phone}
+            <Ltr>{phone}</Ltr>
           </InfoField>
 
           <div
@@ -182,7 +190,7 @@ export default function WalletInfoSheet({
             // row keeps the file's slots and stays centred as in the file.
             style={{
               marginTop: 855 - (757 + 55),
-              marginLeft: fromCentre(ACTIONS[0].x, 430),
+              marginInlineStart: fromCentre(ACTIONS[0].x, 430),
               paddingBottom: 930 - 895,
             }}
           >
@@ -209,8 +217,8 @@ export default function WalletInfoSheet({
                     name={action.icon}
                     style={
                       action.off > 0
-                        ? { marginLeft: action.off * 2 }
-                        : { marginRight: -action.off * 2 }
+                        ? { marginInlineStart: action.off * 2 }
+                        : { marginInlineEnd: -action.off * 2 }
                     }
                   />
                   <Txt size={11} mt={gapTo(855 + 20, 892, 11)}>
@@ -273,7 +281,7 @@ export function InfoField({
         </Txt>
       </div>
       {mark && (
-        <Icon name="eyeGrey" mt={20 - 8} style={{ marginLeft: "auto" }} />
+        <Icon name="eyeGrey" mt={20 - 8} style={{ marginInlineStart: "auto" }} />
       )}
     </Box>
   );

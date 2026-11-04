@@ -4,8 +4,9 @@ import type { DemoKey } from "../../DemoApp/demoKeys";
 import { AnimatePresence, animate, motion, useMotionValue, type MotionValue } from "framer-motion";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
-import { CHAT, CHAT_COUNTS, CHAT_PHOTOS, CONTACT } from "../../DemoApp/demoChat";
+import { CHAT } from "../chat/chatTheme";
 import {
+  chatOnScreen,
   contactOf,
   gapAbove,
   isOpenable,
@@ -14,16 +15,22 @@ import {
   searchMessages,
   type ChatMessage,
   type Holdable,
-} from "../../DemoApp/demoChatModel";
+} from "../chat/chatModel";
+import ChatWaiting from "../chat/ChatWaiting";
+import { translateFunction } from "utils/functions";
+import ChatGate from "../chat/ChatGate";
+import { mirrorFor, usePageDir } from "../rtl";
+import PageEdge from "../chat/PageEdge";
 import { XD_ICON_SIZE } from "../../DemoApp/xdIcons";
 import CategorySheet from "../chat/CategorySheet";
 import ReminderSheet from "../chat/ReminderSheet";
 import ReactionSheet from "../chat/ReactionSheet";
 import { ChevronDownIcon, ChevronUpIcon, CloseIcon } from "../chat/chatIcons";
-import { useDemoChat } from "../../DemoApp/demoChatState";
-import { useDemoNav } from "../Demo1Shell";
+import { useChat } from "../chat/chatContext";
+import { useDemoNav } from "../screenNav";
+import { useDemoCase } from "../demoCase";
 import { C, SAFE_BOTTOM, SAFE_TOP, SF_ROUNDED, UNDER_BAR, WINDOW_COVER, sfTop, textTop } from "../demo1Layout";
-import { Icon, Layer, ScreenPage, Stroke, Txt, useFollowTopTint } from "../ui";
+import { Icon, Layer, ScreenPage, Sheet, Stroke, Txt, useFollowTopTint } from "../ui";
 import Composer, { type ComposerContext } from "../chat/Composer";
 import ForwardSheet from "../chat/ForwardSheet";
 import MessageMenu, {
@@ -43,6 +50,9 @@ import MessageRow from "../chat/MessageRow";
 import {
   Bubble,
   CallCard,
+  DeletedBubble,
+  ProductCard,
+  UploadCancel,
   DayPill,
   Dot,
   FileMessage,
@@ -130,8 +140,22 @@ function WashFade({
   return null;
 }
 
+/**
+ * The conversation, once its chat is there. A reload of one chat's URL
+ * comes up before the chat is loaded: the page waits for that chat (see
+ * chatOnScreen) and draws the conversation, and opens it, only then.
+ */
 export default function ConversationScreen() {
-  const { t, navigate, back, locale } = useDemoNav();
+  const { state, gate } = useChat();
+  if (gate) return <ChatGate kind={gate.kind} onOpen={gate.open} />;
+  if (!chatOnScreen(state)) return <ChatWaiting />;
+  return <Conversation />;
+}
+
+function Conversation() {
+  const { navigate, back, locale } = useDemoNav();
+  const { t } = useDemoCase();
+  const dir = usePageDir();
   const {
     state,
     dispatch,
@@ -142,14 +166,30 @@ export default function ConversationScreen() {
     sendFile,
     sendLocation,
     forward,
+    typing,
     notice,
     search,
     setSearch,
-  } = useDemoChat();
-  const chatId = state.viewing ?? state.active;
-  const chat = state.chats.find((c) => c.id === chatId) ?? state.chats[0];
+    paging,
+    call,
+    extras,
+  } = useChat();
+  // ConversationScreen draws this only when there is a chat.
+  const chat = chatOnScreen(state)!;
   const contact = contactOf(state, chat);
+  /** The real chat (the `/demo` preview starts no calls): it can delete for everyone. */
+  const canDeleteForAllOf = (m: Holdable) => !!call && m.kind !== "note" && m.kind !== "call" && m.side === "out";
   const [menu, setMenu] = useState<string | null>(null);
+  /** A picked photo, shown before it is sent (D-36b, no XD board). */
+  const [photo, setPhoto] = useState<{ file: File; url: string } | null>(null);
+  const dropPhoto = () => {
+    if (photo) URL.revokeObjectURL(photo.url);
+    setPhoto(null);
+  };
+  const sendPicked = () => {
+    if (photo) sendPhoto(chat.id, photo.file, answering());
+    dropPhoto();
+  };
 
   // The message above the blur: it stays up until the blur has faded out.
   const [lifted, setLifted] = useState<string | null>(null);
@@ -162,6 +202,12 @@ export default function ConversationScreen() {
   // How far the held message is moved so it and its menu are on the screen.
   const [shift, setShift] = useState(0);
   const [context, setContext] = useState<ComposerContext | null>(null);
+  /** A file sent while a reply is up answers that message, as a text does. */
+  const answering = () => {
+    if (context?.kind !== "reply") return undefined;
+    setContext(null);
+    return { id: context.id };
+  };
   const [forwarding, setForwarding] = useState<string | null>(null);
   const [toast, showToast] = useToast();
   /** The message whose Category sheet is up, and the one whose Remind me sheet is up. */
@@ -208,6 +254,26 @@ export default function ConversationScreen() {
   // came in when the end of the chat was already in view.
   const messages = chat?.messages ?? [];
   const lastId = messages[messages.length - 1]?.id;
+
+  // Older messages (step 4) come in above the ones on the page. They do not
+  // pop in as new ones do, and the messages on the screen stay where they
+  // are: the scroll moves down by the height the new ones take.
+  const firstKnown = messages.findIndex((m) => atStart.current?.has(m.id));
+  const older = new Set(firstKnown > 0 ? messages.slice(0, firstKnown).map((m) => m.id) : []);
+  const settled = (id: string) => !!atStart.current?.has(id) || older.has(id);
+  const firstId = messages[0]?.id;
+  const above = useRef({ firstId, lastId, height: 0 });
+  useLayoutEffect(() => {
+    const el = body.current;
+    if (!el) return;
+    // This moves the scroll itself, so the browser must not move it too
+    // (Chrome's scroll anchoring; Safari has none).
+    el.style.overflowAnchor = "none";
+    const was = above.current;
+    if (was.firstId && firstId !== was.firstId && lastId === was.lastId)
+      el.scrollTop += el.scrollHeight - was.height;
+    above.current = { firstId, lastId, height: el.scrollHeight };
+  });
   const typingNow = !!chat?.typingNow;
   useEffect(() => {
     const el = body.current;
@@ -285,7 +351,7 @@ export default function ConversationScreen() {
     const box = row.getBoundingClientRect();
     // The menu hangs MENU_GAP under the row (`top: 100%`).
     const menuBottom =
-      box.bottom + MENU_GAP + menuHeight(canEditOf(m), canForwardOf(m));
+      box.bottom + MENU_GAP + menuHeight(canEditOf(m), canForwardOf(m), canDeleteForAllOf(m));
     let move = 0;
     if (menuBottom > page.bottom - 8) move = page.bottom - 8 - menuBottom;
     // The emoji bar over the message must stay in view too.
@@ -305,6 +371,15 @@ export default function ConversationScreen() {
    * Only the chat's own body scrolls, never the page under it. Nothing
    * happens when the quoted message is gone.
    */
+  // A message picked elsewhere (a reminder, the "Media & Files" sheet):
+  // scroll to it once it is drawn, then forget it.
+  const jumpTarget = extras?.jump ?? null;
+  useEffect(() => {
+    if (!jumpTarget || !messages.some((m) => m.id === jumpTarget)) return;
+    jumpTo(jumpTarget);
+    extras?.setJump(null);
+  }, [jumpTarget, messages.length]);
+
   const jumpTo = (id: string) => {
     const el = body.current;
     const row = el?.querySelector<HTMLElement>(`[data-pw="demo-chat-message-${id}"]`);
@@ -366,7 +441,9 @@ export default function ConversationScreen() {
       ? callWords(m, t)
       : m.kind === "note"
         ? m.text
-        : previewOf(m, {
+        : m.kind === "product"
+          ? m.name
+          : previewOf(m, {
             photo: t("Photo"),
             voice: t("voice message"),
             video: t("Video"),
@@ -394,6 +471,10 @@ export default function ConversationScreen() {
         return;
       case "Delete":
         dispatch({ type: "deleteMessage", chat: chat.id, id: m.id });
+        showToast(t("Deleted"));
+        return;
+      case "Delete for everyone":
+        dispatch({ type: "deleteMessage", chat: chat.id, id: m.id, forAll: true });
         showToast(t("Deleted"));
         return;
       case "Edit":
@@ -444,15 +525,15 @@ export default function ConversationScreen() {
         aria-label={t("Close")}
         onClick={closeSearch}
         className="flex shrink-0 cursor-pointer active:opacity-60"
-        style={{ marginLeft: 18.5, marginTop: 13.5 }}
+        style={{ marginInlineStart: 18.5, marginTop: 13.5 }}
       >
-        <XdIcon name="chatBackPurple" />
+        <XdIcon name="chatBackPurple" style={mirrorFor(dir)} />
       </button>
       <div
         className="flex items-start grow min-w-0"
         style={{
-          marginLeft: 40 - (18.5 + 8),
-          marginRight: 12,
+          marginInlineStart: 40 - (18.5 + 8),
+          marginInlineEnd: 12,
           marginTop: 6,
           height: 38,
           borderRadius: 12,
@@ -481,7 +562,7 @@ export default function ConversationScreen() {
           aria-label={t("Search messages")}
           className="block bg-transparent outline-none font-normal placeholder:text-[#8D8D8D]"
           style={{
-            marginLeft: 40 - (9.5 + XD_ICON_SIZE.searchGlass.w),
+            marginInlineStart: 40 - (9.5 + XD_ICON_SIZE.searchGlass.w),
             marginTop: 7,
             flex: "1 1 0",
             minWidth: 0,
@@ -528,16 +609,16 @@ export default function ConversationScreen() {
         aria-label={t("Back")}
         onClick={back}
         className="flex shrink-0 cursor-pointer active:opacity-60"
-        style={{ marginLeft: 18.5, marginTop: 13.5 }}
+        style={{ marginInlineStart: 18.5, marginTop: 13.5 }}
       >
-        <XdIcon name="chatBackPurple" />
+        <XdIcon name="chatBackPurple" style={mirrorFor(dir)} />
       </button>
       {/* "2" from x 40 to the photo at 62; SF Pro Rounded 18 on baseline 81. */}
       <span
         data-pw="demo-chat-unread-count"
         className="block shrink-0"
         style={{
-          marginLeft: 40 - (18.5 + 11),
+          marginInlineStart: 40 - (18.5 + 11),
           marginTop: sfTop(81 - 50, 18, 22),
           width: 62 - 40,
           fontFamily: SF_ROUNDED,
@@ -546,13 +627,13 @@ export default function ConversationScreen() {
           color: C.purple,
         }}
       >
-        {others > 0 ? String(others) : CHAT_COUNTS.unread}
+        {others > 0 ? String(others) : state.counts.unread}
       </span>
       <button
         type="button"
         data-pw="demo-chat-open-contact"
         onClick={() => navigate("chat/contact")}
-        className="flex items-start shrink-0 min-w-0 cursor-pointer active:opacity-60 text-left"
+        className="flex items-start shrink-0 min-w-0 cursor-pointer active:opacity-60 text-start"
       >
         <span
           className="relative flex flex-col shrink-0 overflow-hidden"
@@ -592,8 +673,8 @@ export default function ConversationScreen() {
         type="button"
         data-pw="demo-chat-video-call"
         aria-label={t("Video")}
-        onClick={() => navigate("chat/call")}
-        className="flex shrink-0 ml-auto cursor-pointer active:opacity-60"
+        onClick={() => (call ? call(chat.id, true) : navigate("chat/call"))}
+        className="flex shrink-0 ms-auto cursor-pointer active:opacity-60"
         style={{ marginTop: 12 }}
       >
         <XdIcon name="chatHeaderVideo" />
@@ -602,9 +683,9 @@ export default function ConversationScreen() {
         type="button"
         data-pw="demo-chat-voice-call"
         aria-label={t("Call")}
-        onClick={() => navigate("chat/call")}
+        onClick={() => (call ? call(chat.id, false) : navigate("chat/call"))}
         className="flex shrink-0 cursor-pointer active:opacity-60"
-        style={{ marginLeft: 379 - 349, marginRight: 430 - 405, marginTop: 12 }}
+        style={{ marginInlineStart: 379 - 349, marginInlineEnd: 430 - 405, marginTop: 12 }}
       >
         <XdIcon name="chatHeaderCall" />
       </button>
@@ -622,6 +703,7 @@ export default function ConversationScreen() {
           side={m.kind === "note" ? "in" : m.side}
           canEdit={canEditOf(m)}
           canForward={canForwardOf(m)}
+          canDeleteForAll={canDeleteForAllOf(m)}
           reaction={m.reaction}
           onPick={(name) => act(name, m)}
           onReact={(emoji, from) => {
@@ -658,7 +740,7 @@ export default function ConversationScreen() {
     faded: searching && query.trim() !== "" && !matches.includes(m.id),
     marked: current === m.id,
     flash: flash?.id === m.id ? flash.n : 0,
-    fresh: !atStart.current?.has(m.id),
+    fresh: !settled(m.id),
     onReply: () => act("Reply", m),
     onHold: () => open(m),
     menu: menuOf(m),
@@ -703,10 +785,10 @@ export default function ConversationScreen() {
           layoutDependency={messages}
           className="flex w-full shrink-0 justify-center"
           style={{ marginTop: gap }}
-          initial={atStart.current?.has(m.id) ? false : { opacity: 0, scale: 0.8 }}
+          initial={settled(m.id) ? false : { opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <DayPill label={t(m.label)} />
+          <DayPill label={m.label ? t(m.label) : m.date} />
         </motion.div>
       );
     if (m.kind === "note")
@@ -720,6 +802,22 @@ export default function ConversationScreen() {
         <MessageRow key={m.id} {...rowProps(m, gap)} wide>
           {withFlags(m, true, <CallCard message={m} t={t} />)}
         </MessageRow>
+      );
+    // A deleted message (the real chat only): a placeholder with no menu (D-36b).
+    if (m.kind === "deleted")
+      return (
+        <motion.div
+          key={m.id}
+          data-pw={`demo-chat-message-${m.id}`}
+          layout="position"
+          layoutDependency={messages}
+          className={`flex w-full shrink-0 ${m.side === "in" ? "justify-start" : "justify-end"}`}
+          style={{ marginTop: gap, paddingInline: 4 }}
+          initial={settled(m.id) ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <DeletedBubble side={m.side} time={m.time} />
+        </motion.div>
       );
     const inn = m.side === "in";
     const isOpen = menu === m.id;
@@ -766,6 +864,8 @@ export default function ConversationScreen() {
           return <FileMessage message={m} open={isOpen} t={t} />;
         case "location":
           return <LocationMessage message={m} open={isOpen} t={t} />;
+        case "product":
+          return <ProductCard message={m} open={isOpen} locale={locale} />;
         default:
           return null;
       }
@@ -780,21 +880,33 @@ export default function ConversationScreen() {
           ? withFlags(
               m,
               true,
-              <VoiceMessage
-                side={m.side}
-                seconds={m.seconds}
-                time={m.time}
-                status={m.status}
-                open={isOpen}
-                t={t}
-              />,
+              <span className="relative flex w-full">
+                <VoiceMessage
+                  side={m.side}
+                  src={m.src}
+                  seconds={m.seconds}
+                  time={m.time}
+                  status={m.status}
+                  open={isOpen}
+                  t={t}
+                />
+                {!inn && <UploadCancel id={m.id} />}
+              </span>,
             )
           : withFlags(
               m,
               false,
               <>
                 {inn && <Dot color={C.purple} ml={5} />}
-                {block()}
+                {inn ? (
+                  block()
+                ) : (
+                  // A file still going up: the spinning ring with its cancel (D-36b).
+                  <span className="relative flex shrink min-w-0">
+                    {block()}
+                    <UploadCancel id={m.id} />
+                  </span>
+                )}
                 {!inn && <Dot color={CHAT.sentDot} mr={5} />}
               </>,
             )}
@@ -810,7 +922,7 @@ export default function ConversationScreen() {
           layoutDependency={messages}
           className="w-full shrink-0"
           style={{ marginTop: gap }}
-          initial={atStart.current?.has(m.id) ? false : { opacity: 0, y: 12 }}
+          initial={settled(m.id) ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, transition: { duration: 0.15 } }}
         >
@@ -864,7 +976,7 @@ export default function ConversationScreen() {
         size={13}
         weight="medium"
         color={matches.length ? C.ink : C.grey}
-        className="ml-auto"
+        className="ms-auto"
         data-pw="demo-chat-search-count"
       >
         {!query.trim()
@@ -924,16 +1036,29 @@ export default function ConversationScreen() {
       <div className="relative shrink-0 w-full">
         {/* Above the composer, whatever its height is. */}
         <Toast text={notice ?? toast} bottom="calc(100% + 12px)" />
-        {searching ? searchBar : (
+        {searching ? searchBar : chat.blockedEitherWay ? (
+          // One of us blocked the other: no one can send (D-36a). The XD
+          // file has no such state; the composer's white strip says so.
+          <div
+            data-pw="demo-chat-blocked"
+            className="flex items-center justify-center w-full"
+            style={{ minHeight: 60, paddingBottom: SAFE_BOTTOM, paddingInline: 20, background: C.white, boxShadow: "0 0 3px rgba(0,0,0,0.1)" }}
+          >
+            <Txt center size={13} color={C.grey}>
+              {translateFunction("You cannot send messages or calls to this user")}
+            </Txt>
+          </div>
+        ) : (
         <Composer
           context={context}
           onCancelContext={() => setContext(null)}
           onSend={send}
-          onSendPhoto={(src) => sendPhoto(chat.id, src)}
-          onSendVoice={(seconds) => sendVoice(chat.id, seconds)}
-          onSendVideo={(src, seconds) => sendVideo(chat.id, src, seconds)}
-          onSendFile={(file) => sendFile(chat.id, file)}
+          onSendPhoto={(file) => setPhoto({ file, url: URL.createObjectURL(file) })}
+          onSendVoice={(audio, seconds) => sendVoice(chat.id, audio, seconds, answering())}
+          onSendVideo={(file, seconds) => sendVideo(chat.id, file, seconds, answering())}
+          onSendFile={(file) => sendFile(chat.id, file, answering())}
           onSendLocation={(point) => sendLocation(chat.id, point)}
+          onTyping={() => typing(chat.id)}
           onToast={showToast}
           t={t}
         />
@@ -953,13 +1078,22 @@ export default function ConversationScreen() {
     >
       <div className="relative flex flex-col w-full">
         <ReactionWarmup />
+        {/* Older messages, near the top of the chat (the real chat only). */}
+        {paging?.moreOlder(chat.id) && (
+          <PageEdge
+            onReach={() => paging.loadOlder(chat.id)}
+            count={messages.length}
+            root={body}
+            testId="demo-chat-older"
+          />
+        )}
         <div
           className="flex items-start w-full shrink-0"
           style={{ marginTop: 4 }}
         >
           <Dot color={C.purple} ml={4} mt={10} />
           <SmallPhoto src={contact.photo} initials={contact.initials} ml={2} line={1} />
-          <SmallPhoto src={CHAT_PHOTOS.me} ml="auto" line={0.5} />
+          <SmallPhoto src={state.me.photo} initials={state.me.initials} ml="auto" line={0.5} />
           <Dot color={CHAT.sent} ml={2} mr={4} mt={10} />
         </div>
 
@@ -985,6 +1119,43 @@ export default function ConversationScreen() {
         <div className="shrink-0" style={{ height: MENU_GAP + MENU_H + 8 }} />
       </div>
 
+      {/* The picked photo before it goes: Cancel or Send. */}
+      <Sheet open={photo !== null} onClose={dropPhoto} y={140} fit testId="demo-chat-photo-preview">
+        {photo && (
+          <div className="flex flex-col items-center w-full" style={{ padding: "24px 20px 32px" }}>
+            <img
+              src={photo.url}
+              alt=""
+              className="block max-w-full object-contain"
+              style={{ maxHeight: 460, borderRadius: 12 }}
+            />
+            <div className="flex w-full" style={{ marginTop: 20, gap: 12 }}>
+              <button
+                type="button"
+                data-pw="demo-chat-photo-cancel"
+                onClick={dropPhoto}
+                className="grow cursor-pointer active:opacity-60"
+                style={{ height: 44, borderRadius: 12, background: C.field }}
+              >
+                <Txt center size={15} weight="medium">
+                  {t("Cancel")}
+                </Txt>
+              </button>
+              <button
+                type="button"
+                data-pw="demo-chat-photo-send"
+                onClick={sendPicked}
+                className="grow cursor-pointer active:opacity-60"
+                style={{ height: 44, borderRadius: 12, background: C.purple }}
+              >
+                <Txt center size={15} weight="medium" color={C.white}>
+                  {t("Send")}
+                </Txt>
+              </button>
+            </div>
+          </div>
+        )}
+      </Sheet>
       <ForwardSheet
         open={forwarding !== null}
         chats={state.chats}

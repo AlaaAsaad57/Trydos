@@ -68,7 +68,7 @@ export const APP_SCREEN_VIEWS: Partial<
   "chat/contact": dynamic(() => import("./screens/ContactScreen"), {
     loading: () => <ScreenSkeleton />,
   }),
-  "chat/call": dynamic(() => import("./screens/CallScreen"), {
+  "chat/call": dynamic(() => import("./screens/LiveCallScreen"), {
     loading: () => <ScreenSkeleton />,
   }),
 };

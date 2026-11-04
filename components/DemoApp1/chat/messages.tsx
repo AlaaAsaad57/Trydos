@@ -11,19 +11,22 @@ import {
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
-import { BUBBLE_RADIUS, CHAT, VOICE_SRC } from "../../DemoApp/demoChat";
+import { BUBBLE_RADIUS, CHAT, corners } from "./chatTheme";
 import {
   fileSize,
   type CallMessage,
   type Category,
   type FileMessage as FileMessageData,
   type LocationMessage as LocationMessageData,
+  type ProductMessage as ProductMessageData,
   type Side,
   type Status,
-} from "../../DemoApp/demoChatModel";
+} from "./chatModel";
 import { coordsLabel, mapsUrl, tileUrl, tilesFor } from "../../DemoApp/demoMap";
 import { C, fill, lineBox, textTop } from "../demo1Layout";
 import { Stroke, Txt } from "../ui";
+import { translateFunction } from "utils/functions";
+import { cancelUpload, useUploadRunning } from "components/Chat/uploadCancel";
 import { FileIcon, OpenIcon, PinIcon } from "./chatIcons";
 import AnimatedEmoji from "./AnimatedEmoji";
 import { dropReactionFly, peekReactionFly } from "./reactionFly";
@@ -85,8 +88,8 @@ export function Dot({
       aria-hidden="true"
       className="block shrink-0"
       style={{
-        marginLeft: ml,
-        marginRight: mr,
+        marginInlineStart: ml,
+        marginInlineEnd: mr,
         marginTop: mt,
         width: size,
         height: size,
@@ -114,7 +117,7 @@ export function SmallPhoto({
     <span
       className="relative flex flex-col shrink-0 overflow-hidden"
       style={{
-        marginLeft: ml,
+        marginInlineStart: ml,
         width: 25,
         height: 25,
         borderRadius: 12,
@@ -147,7 +150,7 @@ function Edge({ color, radius }: { color: string; radius: string }) {
     <span
       aria-hidden="true"
       className="absolute inset-0 pointer-events-none"
-      style={{ border: `1px solid ${color}`, borderRadius: radius }}
+      style={{ border: `1px solid ${color}`, ...corners(radius) }}
     />
   );
 }
@@ -196,11 +199,11 @@ export function Bubble({
       className="flex flex-col shrink min-w-0 select-none"
       style={{
         ...lift.style,
-        marginLeft: inn ? 3 : undefined,
-        marginRight: inn ? undefined : 3,
+        marginInlineStart: inn ? 3 : undefined,
+        marginInlineEnd: inn ? undefined : 3,
         // The widest bubble is the row less 86 px: the row (MessageRow) holds that limit.
         padding: inn ? "7px 12px 8px 12px" : "7px 12px 8px 13px",
-        borderRadius: inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out,
+        ...corners(inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out),
         background: inn ? C.purple : CHAT.sent,
         WebkitTouchCallout: "none",
       }}
@@ -210,7 +213,7 @@ export function Bubble({
           size={9}
           color={C.white}
           className="italic"
-          style={{ opacity: 0.8, marginBottom: 2, marginLeft: inn ? 0 : 30 }}
+          style={{ opacity: 0.8, marginBottom: 2, marginInlineStart: inn ? 0 : 30 }}
         >
           {t("Forwarded")}
         </Txt>
@@ -228,9 +231,9 @@ export function Bubble({
           color: C.white,
           whiteSpace: "pre-wrap",
           overflowWrap: "anywhere",
-          paddingRight: inn ? (replied ? 37 : 22) : 0,
-          paddingLeft: inn ? 0 : 30,
-          marginRight: inn ? 0 : -3,
+          paddingInlineEnd: inn ? (replied ? 37 : 22) : 0,
+          paddingInlineStart: inn ? 0 : 30,
+          marginInlineEnd: inn ? 0 : -3,
           ...(inn ? SPACED : {}),
         }}
       >
@@ -241,7 +244,7 @@ export function Bubble({
         style={{ marginTop: -1 }}
       >
         {inn && replied && (
-          <XdIcon name="replyMarkWhite" style={{ marginRight: 4 }} />
+          <XdIcon name="replyMarkWhite" style={{ marginInlineEnd: 4 }} />
         )}
         <Txt size={9} color={C.white}>
           {!inn && <Mark status={status} />}
@@ -284,11 +287,11 @@ export function PhotoMessage({
       className="relative shrink min-w-0 overflow-hidden select-none"
       style={{
         ...lift.style,
-        marginLeft: inn ? 3 : undefined,
-        marginRight: inn ? undefined : 3,
+        marginInlineStart: inn ? 3 : undefined,
+        marginInlineEnd: inn ? undefined : 3,
         width: 300,
         aspectRatio: "1 / 1",
-        borderRadius: inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out,
+        ...corners(inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out),
         WebkitTouchCallout: "none",
       }}
     >
@@ -303,7 +306,7 @@ export function PhotoMessage({
         <span
           className="absolute flex items-start"
           style={{
-            right: 14,
+            insetInlineEnd: 14,
             bottom: 8,
             padding: "1px 6px",
             borderRadius: 8,
@@ -336,7 +339,7 @@ function PictureTime({ time, status }: { time: string; status?: Status }) {
     <span
       className="absolute flex items-start pointer-events-none"
       style={{
-        right: 14,
+        insetInlineEnd: 14,
         bottom: 8,
         padding: "1px 6px",
         borderRadius: 8,
@@ -454,12 +457,12 @@ export function VideoMessage({
       className="relative shrink min-w-0 overflow-hidden select-none cursor-pointer"
       style={{
         ...lift.style,
-        marginLeft: inn ? 3 : undefined,
-        marginRight: inn ? undefined : 3,
+        marginInlineStart: inn ? 3 : undefined,
+        marginInlineEnd: inn ? undefined : 3,
         width: 300,
         aspectRatio: "4 / 3",
         background: C.ink,
-        borderRadius: inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out,
+        ...corners(inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out),
         WebkitTouchCallout: "none",
       }}
       {...tap}
@@ -485,11 +488,11 @@ export function VideoMessage({
             exit={{ opacity: 0, scale: 0.6 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
             style={{
-              left: "50%",
+              insetInlineStart: "50%",
               top: "50%",
               width: 56,
               height: 56,
-              marginLeft: -28,
+              marginInlineStart: -28,
               marginTop: -28,
               borderRadius: 28,
               background: C.white,
@@ -504,7 +507,7 @@ export function VideoMessage({
         data-pw="demo-chat-video-length"
         className="absolute flex items-start pointer-events-none"
         style={{
-          left: 14,
+          insetInlineStart: 14,
           bottom: 8,
           padding: "1px 6px",
           borderRadius: 8,
@@ -554,7 +557,7 @@ export function FileMessage({
       style={{
         width: 40,
         height: 42,
-        borderRadius: inn ? BUBBLE_RADIUS.iconBoxIn : BUBBLE_RADIUS.iconBoxOut,
+        ...corners(inn ? BUBBLE_RADIUS.iconBoxIn : BUBBLE_RADIUS.iconBoxOut),
         background: inn ? CHAT.incomingIconBox : CHAT.outgoingIconBox,
       }}
     >
@@ -565,8 +568,8 @@ export function FileMessage({
     <span
       className="flex flex-col grow min-w-0"
       style={{
-        marginLeft: inn ? 8 : 4,
-        marginRight: inn ? 4 : 8,
+        marginInlineStart: inn ? 8 : 4,
+        marginInlineEnd: inn ? 4 : 8,
         marginTop: textTop(21, 13) - 4,
       }}
     >
@@ -583,7 +586,8 @@ export function FileMessage({
         style={{ marginTop: textTop(39, 11) - (textTop(21, 13) + lineBox(13)) }}
       >
         <Txt size={11} color={C.inkSoft} className="grow whitespace-nowrap" style={SPACED}>
-          {kind ? `${fileSize(m.bytes)} · ${kind}` : fileSize(m.bytes)}
+          {/* The chat backend sends no size (A-8: the size is left out). */}
+          {[m.bytes === undefined ? null : fileSize(m.bytes), kind].filter(Boolean).join(" · ")}
         </Txt>
         <Txt size={9} ml={10} mt={textTop(40, 9) - textTop(39, 11)} className="whitespace-nowrap">
           {!inn && <Mark status={m.status} />}
@@ -605,12 +609,12 @@ export function FileMessage({
       className="flex items-start shrink min-w-0 select-none cursor-pointer active:opacity-70"
       style={{
         ...lift.style,
-        marginLeft: inn ? 3 : undefined,
-        marginRight: inn ? undefined : 3,
+        marginInlineStart: inn ? 3 : undefined,
+        marginInlineEnd: inn ? undefined : 3,
         width: 260,
         height: 50,
         padding: inn ? "4px 9px 0 4px" : "4px 4px 0 9px",
-        borderRadius: inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out,
+        ...corners(inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out),
         background: CHAT.callCard,
         WebkitTouchCallout: "none",
       }}
@@ -669,10 +673,10 @@ export function LocationMessage({
       className="relative flex flex-col shrink min-w-0 overflow-hidden select-none cursor-pointer"
       style={{
         ...lift.style,
-        marginLeft: inn ? 3 : undefined,
-        marginRight: inn ? undefined : 3,
+        marginInlineStart: inn ? 3 : undefined,
+        marginInlineEnd: inn ? undefined : 3,
         width: MAP_W,
-        borderRadius: inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out,
+        ...corners(inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out),
         background: CHAT.callCard,
         WebkitTouchCallout: "none",
       }}
@@ -701,11 +705,11 @@ export function LocationMessage({
             aria-hidden="true"
             className="absolute pointer-events-none"
             style={{
-              left: "50%",
+              insetInlineStart: "50%",
               top: "50%",
               width: ring * 2,
               height: ring * 2,
-              marginLeft: -ring,
+              marginInlineStart: -ring,
               marginTop: -ring,
               borderRadius: "50%",
               background: `${tint}22`,
@@ -716,7 +720,7 @@ export function LocationMessage({
         {/* The pin's tip stands on the point. */}
         <span
           className="absolute pointer-events-none"
-          style={{ left: "50%", top: "50%", marginLeft: -17, marginTop: -34 }}
+          style={{ insetInlineStart: "50%", top: "50%", marginInlineStart: -17, marginTop: -34 }}
         >
           <PinIcon size={34} color={tint} />
         </span>
@@ -733,7 +737,7 @@ export function LocationMessage({
             {coordsLabel(m.lat, m.lng)}
           </Txt>
         </span>
-        <span className="flex flex-col items-end shrink-0" style={{ marginLeft: 10 }}>
+        <span className="flex flex-col items-end shrink-0" style={{ marginInlineStart: 10 }}>
           <Txt size={9} className="whitespace-nowrap">
             {!inn && <Mark status={m.status} />}
             {m.time}
@@ -748,6 +752,153 @@ export function LocationMessage({
       </span>
       <Edge color={tint} radius={inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out} />
     </motion.div>
+  );
+}
+
+/**
+ * A shared product (the real chat only; D-36b, no XD board). The location
+ * card's frame: the product's picture 300 x 200 over its name, the word
+ * "Product" and "View Product" in the sender's colour. A tap opens the
+ * product page, as the old product message did.
+ */
+export function ProductCard({
+  message: m,
+  open = false,
+  locale,
+}: {
+  message: ProductMessageData;
+  open?: boolean;
+  /** The page's locale segment ("sy-en"), for the product page's path. */
+  locale: string;
+}) {
+  const inn = m.side === "in";
+  const tint = inn ? C.purple : CHAT.sent;
+  const lift = liftOf(open, inn);
+  const href = m.slug ? `/${locale}/products/${encodeURIComponent(m.slug)}` : null;
+  const tap = useTap(() => {
+    if (href) window.location.assign(href);
+  });
+  return (
+    <motion.div
+      animate={lift.animate}
+      transition={lift.transition}
+      data-pw={`demo-chat-product-${m.side}`}
+      role="link"
+      aria-label={`${translateFunction("View Product")}: ${m.name}`}
+      className="relative flex flex-col shrink min-w-0 overflow-hidden select-none cursor-pointer"
+      style={{
+        ...lift.style,
+        marginInlineStart: inn ? 3 : undefined,
+        marginInlineEnd: inn ? undefined : 3,
+        width: MAP_W,
+        ...corners(inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out),
+        background: CHAT.callCard,
+        WebkitTouchCallout: "none",
+      }}
+      {...tap}
+    >
+      <span className="relative block w-full overflow-hidden" style={{ height: 200, background: C.field }}>
+        {m.image && (
+          <img
+            src={m.image}
+            alt=""
+            draggable={false}
+            loading="lazy"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          />
+        )}
+      </span>
+      <span className="flex items-start w-full" style={{ padding: `${textTop(21, 13) - 4}px 12px 8px 12px` }}>
+        <span className="flex flex-col grow min-w-0">
+          <Txt size={13} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ ...SPACED, textOverflow: "ellipsis" }}>
+            {m.name}
+          </Txt>
+          <Txt size={11} color={C.inkSoft} style={SPACED}>
+            {translateFunction("Product")}
+          </Txt>
+        </span>
+        <span className="flex flex-col items-end shrink-0" style={{ marginInlineStart: 10 }}>
+          <Txt size={9} className="whitespace-nowrap">
+            {!inn && <Mark status={m.status} />}
+            {m.time}
+          </Txt>
+          {href && (
+            <span className="flex items-center" style={{ marginTop: 3 }}>
+              <OpenIcon color={tint} />
+              <Txt size={11} weight="medium" color={tint} ml={3} className="whitespace-nowrap">
+                {translateFunction("View Product")}
+              </Txt>
+            </span>
+          )}
+        </span>
+      </span>
+      <Edge color={tint} radius={inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out} />
+    </motion.div>
+  );
+}
+
+/**
+ * Over a message I send while its file still goes up (D-36b, no XD board):
+ * a dark round button with a turning ring, and an X that stops the upload
+ * and takes the message away (components/Chat/uploadCancel.ts). The chat
+ * backend reports no progress, so the ring only turns. Nothing shows once
+ * the upload ended.
+ */
+export function UploadCancel({ id }: { id: string }) {
+  const running = useUploadRunning(id);
+  if (!running) return null;
+  return (
+    <button
+      type="button"
+      data-pw={`demo-chat-upload-cancel-${id}`}
+      aria-label={translateFunction("Cancel")}
+      onClick={(e) => {
+        e.stopPropagation();
+        cancelUpload(id);
+      }}
+      onPointerDown={(e) => e.stopPropagation()}
+      className="absolute z-10 flex items-center justify-center cursor-pointer active:opacity-60"
+      style={{ top: "50%", insetInlineStart: "50%", width: 44, height: 44, marginInlineStart: -22, marginTop: -22, borderRadius: 22, background: "rgba(0,0,0,0.45)" }}
+    >
+      <motion.span
+        aria-hidden="true"
+        className="absolute"
+        style={{ inset: 3, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: C.white }}
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+      />
+      <span aria-hidden="true" className="absolute" style={{ width: 16, height: 2, borderRadius: 1, background: C.white, transform: "rotate(45deg)" }} />
+      <span aria-hidden="true" className="absolute" style={{ width: 16, height: 2, borderRadius: 1, background: C.white, transform: "rotate(-45deg)" }} />
+    </button>
+  );
+}
+
+/**
+ * The place of a deleted message (the real chat only; D-36b, no XD board):
+ * a pale bubble with the bubble's corners and "this message was deleted" in
+ * grey italics, and its time.
+ */
+export function DeletedBubble({ side, time }: { side: Side; time: string }) {
+  const inn = side === "in";
+  return (
+    <span
+      data-pw={`demo-chat-deleted-${side}`}
+      className="flex items-end shrink min-w-0"
+      style={{
+        padding: "7px 12px 8px 12px",
+        ...corners(inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out),
+        background: C.field,
+        marginInlineStart: inn ? 3 : undefined,
+        marginInlineEnd: inn ? undefined : 3,
+      }}
+    >
+      <Txt size={13} color={C.grey} style={{ ...SPACED, fontStyle: "italic" }}>
+        {translateFunction("this message was deleted")}
+      </Txt>
+      <Txt size={9} color={C.grey} ml={8} className="whitespace-nowrap">
+        {time}
+      </Txt>
+    </span>
   );
 }
 
@@ -769,8 +920,8 @@ function PauseMark({ color }: { color: string }) {
  * length "01:20" in a 38 x 19 pill (0.4 px line, radius 15) under it; and the
  * time 9 Regular at the waves' right end, 36 down.
  *
- * The play mark plays a dummy sound (VOICE_SRC) from its start, for as many
- * seconds as the message is long: the waves take the sender's colour up to
+ * The play mark plays the message's sound (`src`; `/demo` gives a sample) from
+ * its start, for as many seconds as the message is long: the waves take the sender's colour up to
  * the playhead, which moves with the sound, and the pill counts the time
  * played. While it plays, the play mark is a pause mark. A tap or a drag on
  * the waves moves the playhead, so any part can be heard. At rest it is as
@@ -779,6 +930,7 @@ function PauseMark({ color }: { color: string }) {
  */
 export function VoiceMessage({
   side,
+  src,
   seconds: total,
   time,
   status,
@@ -786,6 +938,8 @@ export function VoiceMessage({
   t,
 }: {
   side: Side;
+  /** Where the sound is. */
+  src?: string;
   seconds: number;
   time: string;
   status?: Status;
@@ -967,7 +1121,7 @@ export function VoiceMessage({
         {inn ? (
           <>
             <Dot color={C.purple} ml={5} />
-            <XdIcon name="voiceMarkPurple" style={{ marginLeft: 3 }} />
+            <XdIcon name="voiceMarkPurple" style={{ marginInlineStart: 3 }} />
             <Txt size={13} color={label} ml={4} style={SPACED}>
               {t("voice message")}
             </Txt>
@@ -977,16 +1131,19 @@ export function VoiceMessage({
             <Txt size={13} color={label} style={SPACED}>
               {t("voice message")}
             </Txt>
-            <XdIcon name="voiceMarkMagenta" style={{ marginLeft: 4 }} />
+            <XdIcon name="voiceMarkMagenta" style={{ marginInlineStart: 4 }} />
             <Dot color={CHAT.sentDot} ml={3} mr={5} />
           </>
         )}
       </div>
+      {/* The play mark and the waves run left to right on every page: time
+          goes that way on a player, and the playhead is placed from the left. */}
       <div
+        dir="ltr"
         className={`flex items-start w-full shrink-0 ${inn ? "" : "justify-end"}`}
         style={{ marginTop: 18, height: 57 }}
       >
-        <audio ref={audio} src={VOICE_SRC} preload="none" />
+        <audio ref={audio} src={src || undefined} preload="none" />
         <button
           type="button"
           data-pw={`demo-chat-voice-play-${side}`}
@@ -995,7 +1152,7 @@ export function VoiceMessage({
           onClick={toggle}
           onPointerDown={(e) => e.stopPropagation()}
           className="relative flex shrink-0 cursor-pointer active:opacity-60"
-          style={{ marginLeft: inn ? 12 : undefined, width: 30, height: 30 }}
+          style={{ marginInlineStart: inn ? 12 : undefined, width: 30, height: 30 }}
         >
           {/* The marks swap with a quick turn and grow. */}
           <AnimatePresence initial={false}>
@@ -1027,8 +1184,8 @@ export function VoiceMessage({
           aria-valuetext={shown}
           className="relative flex items-start shrink-0 select-none cursor-pointer"
           style={{
-            marginLeft: 12,
-            marginRight: inn ? undefined : 12,
+            marginInlineStart: 12,
+            marginInlineEnd: inn ? undefined : 12,
             width: WAVES_W,
             height: 57,
             // A sideways drag moves the playhead; an up-down one still scrolls the chat.
@@ -1096,7 +1253,7 @@ export function VoiceMessage({
             style={{ top: 36 }}
           >
             {inn && (
-              <XdIcon name="replyMarkPurple" style={{ marginRight: 4 }} />
+              <XdIcon name="replyMarkPurple" style={{ marginInlineEnd: 4 }} />
             )}
             <Txt size={9}>
               {!inn && <Mark status={status} />}
@@ -1113,6 +1270,7 @@ const CARD_TONE = {
   missed: {
     icon: "callMissed" as XdIconName,
     title: "Missed Voice Call !" as DemoKey,
+    videoTitle: "Missed Video Call !" as DemoKey,
     card: CHAT.missedCard,
     box: CHAT.missedIconBox,
     ink: CHAT.red,
@@ -1121,6 +1279,7 @@ const CARD_TONE = {
   incoming: {
     icon: "callIncoming" as XdIconName,
     title: "Incoming Voice Call !" as DemoKey,
+    videoTitle: "Incoming Video Call !" as DemoKey,
     card: CHAT.callCard,
     box: CHAT.incomingIconBox,
     ink: C.ink,
@@ -1129,6 +1288,7 @@ const CARD_TONE = {
   outgoing: {
     icon: "callOutgoing" as XdIconName,
     title: "Outgoing Voice Call !" as DemoKey,
+    videoTitle: "Outgoing Video Call !" as DemoKey,
     card: CHAT.callCard,
     box: CHAT.outgoingIconBox,
     ink: C.ink,
@@ -1136,9 +1296,9 @@ const CARD_TONE = {
   },
 };
 
-/** What a call card says, for a quote or the clipboard. */
+/** What a call card says, for a quote or the clipboard. The file words a voice call; a video call says so. */
 export const callWords = (m: CallMessage, t: (key: DemoKey) => string) =>
-  t(CARD_TONE[m.tone].title);
+  t(m.video ? CARD_TONE[m.tone].videoTitle : CARD_TONE[m.tone].title);
 
 /**
  * A call card (`– 44`, y 1277 .. 1549): 50 tall with the bubble's corners,
@@ -1180,7 +1340,7 @@ export function CallCard({
       style={{
         width: 40,
         height: 42,
-        borderRadius: inn ? BUBBLE_RADIUS.iconBoxIn : BUBBLE_RADIUS.iconBoxOut,
+        ...corners(inn ? BUBBLE_RADIUS.iconBoxIn : BUBBLE_RADIUS.iconBoxOut),
         background: look.box,
       }}
     >
@@ -1191,8 +1351,8 @@ export function CallCard({
     <div
       className="flex flex-col grow min-w-0"
       style={{
-        marginLeft: inn ? 4 : undefined,
-        marginRight: inn ? undefined : 4,
+        marginInlineStart: inn ? 4 : undefined,
+        marginInlineEnd: inn ? undefined : 4,
         marginTop: textTop(21, 13) - 4,
       }}
     >
@@ -1209,7 +1369,7 @@ export function CallCard({
           ml={inn ? 0 : 4}
           style={SPACED}
         >
-          {t(look.title)}
+          {callWords(m, t)}
         </Txt>
         {inn && (
           <Txt size={9} className="invisible" style={timeStyle}>
@@ -1262,13 +1422,13 @@ export function CallCard({
       <div
         className="flex items-start shrink-0 whitespace-nowrap"
         style={{
-          marginLeft: inn ? 3 : undefined,
-          marginRight: inn ? undefined : 3,
+          marginInlineStart: inn ? 3 : undefined,
+          marginInlineEnd: inn ? undefined : 3,
           width: m.width,
           maxWidth: "calc(100% - 20px)",
           height: 50,
           padding: inn ? "4px 9px 0 4px" : "4px 4px 0 9px",
-          borderRadius: inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out,
+          ...corners(inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out),
           background: look.card,
         }}
       >
@@ -1288,9 +1448,9 @@ export function Note({ text }: { text: string }) {
         data-pw="demo-chat-note"
         className="shrink-0"
         style={{
-          marginLeft: 60,
+          marginInlineStart: 60,
           padding: "8px 12px 8px 12px",
-          borderRadius: BUBBLE_RADIUS.in,
+          ...corners(BUBBLE_RADIUS.in),
           background: CHAT.missedCard,
         }}
       >
@@ -1307,7 +1467,7 @@ export function DayPill({ label }: { label: string }) {
       data-pw="demo-chat-day"
       className="flex flex-col shrink-0 self-center"
       style={{
-        marginLeft: -20,
+        marginInlineStart: -20,
         minWidth: 74,
         height: 22,
         padding: "0 10px",
@@ -1365,18 +1525,18 @@ export function Quote({
         }
         className={`shrink-0 ${onOpen ? "cursor-pointer active:opacity-70" : ""}`}
         style={{
-          marginLeft: 3,
-          marginRight: 12,
+          marginInlineStart: 3,
+          marginInlineEnd: 12,
           width: fill(121, 12),
           height: 43,
-          paddingLeft: 3,
-          borderRadius: BUBBLE_RADIUS.in,
+          paddingInlineStart: 3,
+          ...corners(BUBBLE_RADIUS.in),
           background: C.purple,
         }}
       >
         <div
           className="flex flex-col w-full h-full overflow-hidden"
-          style={{ borderRadius: BUBBLE_RADIUS.in, background: CHAT.quote }}
+          style={{ ...corners(BUBBLE_RADIUS.in), background: CHAT.quote }}
         >
           <Txt
             size={13}
@@ -1384,17 +1544,17 @@ export function Quote({
             ml={9}
             mt={textTop(21, 13)}
             className="overflow-hidden"
-            style={{ marginRight: 12, textOverflow: "ellipsis", ...SPACED }}
+            style={{ marginInlineEnd: 12, textOverflow: "ellipsis", ...SPACED }}
           >
             {text}
           </Txt>
           <span
             className="flex items-start self-end"
-            style={{ marginRight: 12 }}
+            style={{ marginInlineEnd: 12 }}
           >
             <XdIcon
               name="replyQuoteMark"
-              style={{ marginTop: 1, marginRight: 2 }}
+              style={{ marginTop: 1, marginInlineEnd: 2 }}
             />
             <Txt size={9} color={C.grey}>
               {time}
@@ -1428,7 +1588,7 @@ export function FlagsLine({
     <span
       data-pw="demo-chat-flags"
       className={`flex items-center shrink-0 ${inn ? "" : "justify-end"}`}
-      style={{ height: 16, marginBottom: 3, marginLeft: inn ? 12 : undefined, marginRight: inn ? undefined : 12, gap: 4 }}
+      style={{ height: 16, marginBottom: 3, marginInlineStart: inn ? 12 : undefined, marginInlineEnd: inn ? undefined : 12, gap: 4 }}
     >
       {category && (
         <span
@@ -1521,8 +1681,8 @@ export function ReactionChip({ side, emoji, id }: { side: Side; emoji: string; i
         height: 22,
         padding: "0 7px",
         marginTop: -9,
-        marginLeft: inn ? 16 : undefined,
-        marginRight: inn ? undefined : 16,
+        marginInlineStart: inn ? 16 : undefined,
+        marginInlineEnd: inn ? undefined : 16,
         x,
         y,
         scale,
@@ -1559,11 +1719,11 @@ export function TypingBubble() {
       <div
         className="flex items-center"
         style={{
-          marginLeft: 3,
+          marginInlineStart: 3,
           height: 34,
           padding: "0 14px",
           gap: 4,
-          borderRadius: BUBBLE_RADIUS.in,
+          ...corners(BUBBLE_RADIUS.in),
           background: C.purple,
         }}
       >

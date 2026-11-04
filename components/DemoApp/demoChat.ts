@@ -1,53 +1,13 @@
+import type { CallKind, DeliveryMark } from "../DemoApp1/chat/chatModel";
+
 /**
- * The chat screens' colours and sample content, read out of the XD file
+ * The chat screens' sample content, read out of the XD file
  * (`Home Page – 41` .. `– 45`, `Chat home / Call – 1` and `– 3`).
  *
- * Nothing here talks to a backend: the design is a sample conversation with
- * one contact, and the demo shows exactly what the file draws.
+ * Mock data for `/demo` only: shipping code never imports this file (A-16).
+ * The design's colours and menu names are in
+ * components/DemoApp1/chat/chatTheme.ts.
  */
-
-/** The colours the chat boards use, by the job they do. */
-export const CHAT = {
-  /** The bubble of a message I sent (`– 44`), and the dot beside it. */
-  sent: "#8D00E5",
-  sentDot: "#883BF2",
-  /** The unread count on a chat row ("1", `– 41`). */
-  unreadCount: "#7756E9",
-  /** The blue "||" of a read message (`– 41`, last row). */
-  read: "#007CFF",
-  /** "Typing…" (`– 41`). */
-  typing: "#388CFF",
-  /** A missed call (`– 43`, `– 44`). */
-  red: "#FF0508",
-  /** The missed-call card and the box round its icon (`– 44`). */
-  missedCard: "#FFF6F5",
-  missedIconBox: "#FFE6E5",
-  /** The other call cards, and the boxes round their icons. */
-  callCard: "#F4F4F4",
-  incomingIconBox: "#EFEBFF",
-  outgoingIconBox: "#F8EDFF",
-  /** The quoted message inside a reply (`– 44`). */
-  quote: "#EFEBFF",
-  /** The long-press menu boxes and the tooltip under them (`– 44`). */
-  menu: "#FAFAFA",
-  tooltip: "#404040",
-  /** The call screen's page (`Chat home / Call – 1`). */
-  callPage: "#000000",
-  callName: "#D3D3D3",
-  callBlue: "#388CFF",
-  callGreen: "#38FF9C",
-  /** The grey "Delete Chat" and the grey unblock mark (`– 45`). */
-  greyText: "#5D5C5D",
-} as const;
-
-/** The radius of a bubble that comes in (left) and of one I sent (right). */
-export const BUBBLE_RADIUS = {
-  in: "2px 50px 2px 30px",
-  out: "50px 2px 30px 2px",
-  /** The box round a call card's icon, left and right. */
-  iconBoxIn: "2px 30px 2px 30px",
-  iconBoxOut: "30px 2px 30px 2px",
-} as const;
 
 /** The pictures the file uses, copied out of it as they are. */
 export const CHAT_PHOTOS = {
@@ -84,12 +44,6 @@ export const PREVIEW =
 export const PREVIEW_SHORT =
   "When I let go of what I am, I become what I might be.When I let go of what I am, I become what I";
 
-/**
- * The delivery mark before a preview: `|` sent, `||` delivered, a blue `||`
- * read (`– 41`, the last three rows). A `sent` preview is grey.
- */
-export type DeliveryMark = "sent" | "delivered" | "read";
-
 export type ChatRow = {
   id: string;
   /** The grey box with the initials instead of the photo (row 2). */
@@ -113,8 +67,6 @@ export const CHAT_ROWS: ChatRow[] = [
   { id: "delivered", mark: "delivered" },
   { id: "read", mark: "read" },
 ];
-
-export type CallKind = "missed" | "incoming" | "noAnswer";
 
 /** The four rows of `Home Page – 43`. */
 export const CALL_ROWS: { id: string; kind: CallKind; minutes?: string }[] = [
@@ -143,16 +95,6 @@ export const MESSAGES = {
   rings: "3",
   minutes: "16",
 } as const;
-
-/** The names in the long-press menu, in the file's order (`– 44`, bottom). */
-export const MENU_ACTIONS = [
-  "Reply",
-  "copy",
-  "Category",
-  "Delete",
-  "Edit",
-  "Remind me",
-] as const;
 
 /** The timer the file shows once the call is live (`Call – 1`), in seconds. */
 export const CALL_TIMER_START = 3 * 60 + 44;

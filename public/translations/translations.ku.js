@@ -3240,6 +3240,22 @@ const translations = {
   "<b>a</b> {name}": "<b>و</b> {name}",
   "{n} minute answered": "لە {n} خولەکدا وەڵام درایەوە",
   "Need help ? Start Chat about this product !": "یارمەتیت پێویستە ؟ دەست بە گفتوگۆ بکە دەربارەی ئەم بەرهەمە !",
+  "Country code": "کۆدی وڵات",
+  "Missed Video Call !": "پەیوەندی ڤیدیۆیی لەدەستچوو !",
+  "Incoming Video Call !": "پەیوەندی ڤیدیۆیی هاتوو !",
+  "Outgoing Video Call !": "پەیوەندی ڤیدیۆیی دەرچوو !",
+  "Delete for everyone": "سڕینەوە بۆ هەمووان",
+  "Allow Notifications": "ڕێگەدان بە ئاگادارکردنەوەکان",
+  "Confirm your phone number to use Chat": "ژمارەی مۆبایلەکەت پشتڕاست بکەرەوە بۆ بەکارهێنانی چات",
+  "All": "هەموو",
+  "Recent": "دوایین",
+  "Popular": "بەناوبانگ",
+  "Smileys": "ڕووخسارەکان",
+  "Gestures": "ئاماژەکان",
+  "Search emoji": "گەڕان بۆ ئیمۆجی",
+  "No emoji found": "هیچ ئیمۆجییەک نەدۆزرایەوە",
+  "More reactions": "کاردانەوەی زیاتر",
+  "Orders": "داواکارییەکان",
 };
 
 export default translations;

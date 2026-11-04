@@ -18,6 +18,7 @@ import {
   type AppScreenRow,
 } from "./appScreenPaths";
 import AppScreenView from "./AppScreenView";
+import { ChatDataProvider } from "./chat/ChatDataProvider";
 import { PAGE_MAX } from "./demo1Layout";
 import DemoKeyboard from "./keyboard/DemoKeyboard";
 import { usePageDir } from "./rtl";
@@ -28,8 +29,9 @@ import { NavCtx } from "./screenNav";
  * The screen mount of the real app (UI-MIGRATION-PLAN.md, "The screen mount";
  * S3-1). The [lang] layout puts it around the page.
  *
- *  - On a path with a row in appScreenPaths.ts it draws that new screen, and not
- *    the route's page (that page renders nothing).
+ *  - On a path with a row in appScreenPaths.ts it draws that new screen. The
+ *    route's page stays in the tree, hidden: it renders nothing, but its
+ *    redirect for a guest needs it.
  *  - On any other path it shows the old page, untouched: same DOM, same
  *    server render, the browser's own scroll restore.
  *
@@ -206,13 +208,23 @@ function AppScreensInner({
         // document still scrolls and the sticky headers still stick.
         style={{ maxWidth: PAGE_MAX, minHeight: "100dvh", overflowX: "clip" }}
       >
-        <AnimatePresence initial={false} custom={move}>
-          <ScreenFrame key={shown} id={shown} move={move}>
-            <AppScreenView screen={shown} />
-          </ScreenFrame>
-        </AnimatePresence>
+        {/* The real chat (Stage 6). Always here, so the tree never changes and
+            the slides keep working; it loads and maps the chat only while a
+            chat screen shows. */}
+        <ChatDataProvider locale={locale} screen={shown}>
+          <AnimatePresence initial={false} custom={move}>
+            <ScreenFrame key={shown} id={shown} move={move}>
+              <AppScreenView screen={shown} />
+            </ScreenFrame>
+          </AnimatePresence>
+        </ChatDataProvider>
       </div>
       <DemoKeyboard locale={locale} t={t} />
+      {/* The route's page renders nothing here, but it must stay in the tree:
+          its redirect (a guest to the login, S4-4) reaches the browser only
+          when the page is rendered. Hidden, so the settings template's box
+          takes no room. */}
+      <div hidden>{children}</div>
     </NavCtx.Provider>
   );
 }

@@ -50,6 +50,7 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | A-33 | Product parts with no design | **Decided on 2026-11-04.** The product page shows the design only. A live part with no place in the design is not shown, but its code is **kept, not deleted** — an exception to D-6, because the design may get a place for it later. Which live part maps to which design block is listed in Stage 7c. The size choice and the "add to cart" bar wait for D-45. |
 | A-34 | E2E until the end | **Decided on 2026-11-04.** Stages ignore the browser (e2e) suite completely: no stage runs it, fixes it, updates it or adds to it, and a red e2e case blocks no stage and no merge. Every "e2e" line in a stage's "Tests to update" waits for Stage 8, which edits the suite once, for the whole new UI. The unit suite, lint, parity, typecheck and the XD check still run at the end of each stage. Replaces A-3 for e2e only. |
 | A-35 | Three sessions at the same time | **Decided on 2026-11-04.** The owner is short on time and wants the plan done before the D-45 design comes. Three Claude sessions work at the same time, one per lane, each in its own folder: lane A (4 → 5), lane B (6), lane C (7 → 7b → 7c). See "Lanes". Replaces the two-lane order of A-6. |
+| A-36 | Stage 5a early, in a third worktree | **Decided on 2026-10-28.** Stage 5 is split. Part 5a (RTL of the six wallet screens, their values, their tests) needs no shell, so it is built now, at the same time as Stages 2 and 3, in `../trydos-wallet` on the branch `ui-migrations-wallet`, cut from `ui-migrations`. The A-18 rules apply to it too. Part 5b (the wallet path in the shell, the old `settings/wallet` page, e2e) waits until Stage 3 is merged. 5a does not touch `WalletLinkCard`, so the A-6 reason for 4 before 5 does not apply to it. Merge order: after Stage 2 and Stage 3. Was row A-28 on its own branch; renumbered when it was merged into `ui-migrations` on 2026-11-05. |
 | D-1 | Merge | Once, at the end (after Stage 8). Every stage stays on `ui-migrations`. |
 | D-2 | Desktop | The 500 px centred column is OK on desktop. No desktop design work. |
 | D-3 | RTL | Mirror everything for `ar` / `ku`: layout, slide direction, tab order, margins. |
@@ -151,7 +152,7 @@ committed or merged without your OK. **Since 2026-11-04 (A-34): no e2e in any st
 
 | Lane | Folder / branch | Stages | Why |
 |---|---|---|---|
-| A | `trydos` / `ui-migrations` | 3 (done) → 4 → 5 | Profile and wallet need the shell. Stages 4 and 5 do not overlap, because both change `WalletLinkCard` and the wallet balance on the profile. Stage 5 also takes the old wallet branch `ui-migrations-wallet` (5a; renumber its A-28 row). |
+| A | `trydos` / `ui-migrations` | 3 (done) → 4 → 5 | Profile and wallet need the shell. Stages 4 and 5 do not overlap, because both change `WalletLinkCard` and the wallet balance on the profile. Stage 5 also takes the old wallet branch `ui-migrations-wallet` (5a, merged on 2026-11-05 as row A-36). |
 | B | `../trydos-chat` / `ui-migrations-chat` | 2 (done) → 6 | Chat uses its own files (`components/DemoApp1/chat/*`, `store/chat/*`, `services/chat.ts`), and it is the biggest stage. |
 | C | `../trydos-shop` / `ui-migrations-shop` | 7 → 7b → 7c | Home, store page and product page follow the shopper's path: home → store → product (A-31). They share Elasticsearch, cache and SEO work. 7c's buy part waits for D-45. |
 
@@ -793,6 +794,74 @@ WalletReceipt, WalletWithdrawalRequest. **Data today:** all from `components/Dem
 **Live:** `app/(client)/[lang]/settings/wallet/page.tsx` → `components/settings/WalletTransactions.tsx`;
 card `components/setting/WalletLinkCard.tsx` (its sheet says "Under Development").
 
+### Build steps
+- **5a — Done (A-36).** RTL of the six wallet screens, with no change in `en`:
+  - Every margin and padding is set from the start side (`marginInlineStart`, `ms-auto`, …), not by left or right.
+  - The card slider runs from the start side (A-15): on `ar` / `ku` the next card waits on the left, and a slide to
+    the right brings it in (`cardsRest`, `slideTo` in `WalletScreen.tsx`).
+  - Values that read left to right in every language (phones, amounts with their code, dates, ids, references) sit in
+    their own run (`Ltr` in `components/DemoApp1/ui.tsx`, a `bdi dir="ltr"`). Before, `ar` showed
+    "+90 552 800 2000" as "2000 800 552 90+" and "-1010 SYP" as "SYP 1010-". An entry's note is the shopper's own
+    words, so it gets a plain `bdi` (its own direction). The authorized recipient's phone field types left to right
+    and starts on the right on `ar` / `ku`.
+  - Icons: the cash-in and cash-out arrows point up and down, so they stay as drawn. The share icon (a paper plane)
+    stays as drawn too (decided on 2026-10-28). The header's back arrow was mirrored in Stage 1.
+  - i18n: no new key. The English `lines` in the sheets are used only while the text is the file's own English
+    (`FileLines`), so other languages get the `t()` words.
+  - Test: `tests/components/DemoApp1/screens/wallet.rtl.test.tsx` (24 cases). 22 were seen red on the old code: the
+    physical sides in the page and in each file, the slider on `ar`, and the values on each screen. The 2 `en` slider
+    cases are guards and were green before and after.
+  - Checked in a browser at 440 x 802: `/sy-ar/demo/settings/wallet` and `/sy-en/...`, the balance screen, a grown
+    card, the slide, Cash In, Cash Out, Wallet Info and the receipt. The `en` page is the same, pixel for pixel.
+- **5a merged** into `ui-migrations` on 2026-11-05 as `4623efe1` (owner's OK). Only the plan clashed (row A-28 →
+  A-36).
+- **5b — built on 2026-11-05, not committed yet (owner's review first).**
+  - Path: `settings/wallet` has a row in `appScreenPaths.ts`, so the screen mount draws `WalletScreen` there. The
+    page renders nothing and sends a guest to the login (`signedInScreenPage`, S4-4). The profile's wallet card
+    (S4-5) now opens the new screen.
+  - Deleted, no caller left (D-6): the old page body `components/settings/WalletTransactions.tsx` and its test.
+    Kept: `GetWalletTransactions` and `GetWalletBalanceToShow` in `services/order.ts`, because the later step that
+    replaces the mock uses them (see "Data"). Both have no caller now. The old translation keys stay.
+  - Events: nothing to move. `wallet_modal_opened`, `wallet_balance_refreshed` and GA `ADD_PAYMENT` fire in
+    checkout only (`PlaceOrderButtons.tsx`, `PaymentMethod.tsx`), and checkout keeps its old UI (D-35).
+  - English case (D-4, owner's answer 2026-11-05: the wallet screens only; the Stage 4 profile screens still show
+    every word with a capital). The six screens use `useDemoCase()`. Title style: headers, tabs, buttons, field
+    labels, receipt labels, note titles, card names, statuses. Sentence style (`body`): the paragraphs, the safety
+    rules and their notes, the warnings ("Your balance is insufficient", "Only the named person …"), the phone
+    placeholder, the cash-in summary lines, the code-sent lines, "Thank you | We are pleased to serve you". The
+    `FileLines` lines of the 12 sentence-style paragraphs are written in sentence style too; each was checked
+    against `sentenceStyle()`, so the file's line breaks stay in English.
+  - Claude's calls (check them): the rule follows `demoCase.ts` as written, so the history row "Cash in request"
+    shows "Cash in Request" (a short preposition stays small in the middle), and the card name keeps the XD
+    spelling "Amerikan Dollars" (mock data, A-17).
+  - Tests: `tests/app/settings/pages.test.tsx` checks the wallet page's guest guard with the other new screens. No
+    new test (owner's order, 2026-11-04). No test reads the English wallet words; the RTL test runs in `ar`.
+  - Checks on 2026-11-05: `next typegen` + `tsc` 0 errors, `eslint` on the changed files 0, i18n parity OK.
+  - Committed as `79e8f6d5` on 2026-11-05 and pushed (the owner asked to go on and close the stage).
+  - Full unit suite in CI (run 41918852219 on `79e8f6d5`): 659 of 661 test files pass. The 2 red files hold the 3
+    known chat search tests (`ChatListSearch`, `ChatLists`), red on `development` since `2f42f4e7`. Stage 5 adds
+    no new failure. Lint, i18n parity and typecheck passed in the same run.
+  - XD check on 2026-11-05, signed in as Shopper A, at 440 x 802, on `/sy-en/settings/wallet` and
+    `/sy-ar/settings/wallet`: the balance screen, a grown card, Cash In, Cash Out and Wallet Info draw in both
+    languages, right to left in Arabic, with no page error. The English paragraphs keep the file's line breaks.
+    Back from the wallet goes to the profile. The Stage 4 Arabic address line (`placeParts.tsx`) is right too.
+    Not opened in the browser: the steps inside Cash In and Cash Out (forms, code, receipt).
+  - The browser check found 2 real bugs, both fixed:
+    1. **A guest saw every new screen (Stage 4 mount, against S4-4).** On a screen path `AppScreens` did not render
+       `children`, so the page's redirect reached the document but never ran in the browser. A guest stayed on
+       `/settings/wallet` and saw the wallet. The mount now keeps the page in the tree, in a `hidden` box. Seen in
+       the browser after the fix: a guest on `settings`, `settings/profile` and `settings/wallet` goes to
+       `/login?next=<path>`. Two cases in `AppScreens.test.tsx` now expect the page hidden, not absent.
+    2. **A tap on a balance card crashed the wallet.** `WalletInfoSheet` read `useDemoData`, and only `/demo` has
+       that provider, so the screen went blank with "useDemoData must be used inside DemoDataProvider". The sheet now
+       reads `useProfileData` (A-16: shipping code does not import `DemoData.tsx`). So Wallet Info shows the
+       shopper's real name, id and phone; the other sheets keep their mock values (A-17). On `/demo` these 3 fields
+       are empty now, as on the Stage 4 screens. `wallet.rtl.test.tsx` gives the sheet a stub shopper.
+    No test was seen red first for these 2 fixes (owner's order of 2026-11-04: no new tests, no local test runs).
+  - Full unit suite in CI on the final code (run 41926657473 on `b123e521`): 659 of 661 test files pass. The 2 red
+    files hold the same 3 known chat search tests. Lint, i18n parity and typecheck passed in the same run.
+  - Left: the owner's review. E2E waits for Stage 8 (A-34).
+
 ### Data: the mock stays (A-17)
 No wallet backend works yet. So Stage 5 keeps `components/DemoApp/demoWallet.ts` and the design exactly as on
 `/demo`, and wires no wallet data. Stage 5 moves the screens into the app (paths, shell, RTL, i18n, tests).
@@ -889,6 +958,170 @@ Hardcoded (about 14): `ReactionSheet.tsx` tab labels (lines 44-49), "Reactions" 
 - **Unit:** 51 files in `tests/components/Chat/**`, `tests/store/chat/*`, `tests/store/chatSendMessage.test.ts`,
   `tests/services/chat.test.ts`, `tests/utils/chatMuteNotifications.test.ts`. Demo unit tests:
   `demoChatModel.test.ts` (40 cases), `useHorizontalSwipe.test.tsx`.
+
+### Work (agreed with the owner on 2026-11-04, lane B)
+
+**The shell mount comes from lane A.** Stage 4 builds the path table with the on/off switch, drawing a new
+screen inside `AppShell`, and `next/dynamic` for the screens (Stage 3, "Where Stage 3 stopped", item 6).
+Lane B does not build its own mount. Part 1 needs no mount. Part 2 starts after lane A merges the mount into
+`ui-migrations`. Lane A was told on 2026-11-04.
+
+**How the screens get real data.** The screens read one state through `useDemoChat()`
+(`components/DemoApp/demoChatState.tsx`). A real provider with the same shape replaces it, so the screens
+change little (A-16).
+
+Part 1 — needs no mount:
+1. Split the model. The types and pure helpers move from `demoChatModel.ts` to a shipping file
+   (`components/DemoApp1/chat/chatModel.ts`), and the colours to `chat/chatTheme.ts`. The mock seed stays in
+   `components/DemoApp/` for `/demo` only (A-16, D-8).
+2. Mapper: pure functions from the live `Channel` / `Message` (`utils/types/chat/index.ts`) to the screen's
+   `ChatThread` / `ChatMessage`. Covers text, image, video, voice, file, call, shared product and the
+   deleted placeholder (D-36b), ticks, reply quote, forwarded, edited, tag, reminder, day pills, and pinned,
+   muted, archived, blocked and unread. Unit tested.
+3. Real provider `useChatData()`, with the same API as `useDemoChat()`, calling the live actions. It covers
+   send with upload, cancel, the 25 MB cap and the video check; edit; delete and delete for everyone;
+   forward; pin with the 3-pin limit; mute; archive; unread; block; delete chat; one tag per message (D-37);
+   reminders (D-40); new chat; `channelSearch`; and typing. It checks `isSuccessful` on every answer.
+4. Paging for the list and the messages. The conversation draws only the rows on screen.
+5. Calls: `CallScreen` wired to `store/chat/callActions.ts` and Agora.
+6. Old features with no design (D-36b), each in the new style: share product, stories row, contacts upload,
+   reminders list, tagged messages, media gallery, upload progress and image preview.
+7. Gates: notification permission and phone verify. A blocked chat hides the composer.
+8. RTL: logical styles, the 3 back arrows and the 3 swipes mirrored.
+9. i18n (the 14 hardcoded strings) and the case rule (`useDemoCase()`, D-4).
+10. Events: `chat_opened`, `chat_message_sent`, `chat_product_shared`, GA `CHAT_SCREEN`.
+
+Part 2 — after lane A's mount is merged:
+11. Turn on `/[lang]/chat`, `/chat/conversation`, `/chat/contact` and `/chat/call`. The chat tab, the FCM
+    links and the order page (D-36c) go there. `ChatModal`, `ChatWidget` and old files with no caller go (D-6).
+12. Update the chat unit tests. The e2e cases wait for Stage 8 (A-34).
+13. End checks: lint, parity, `next typegen` + `tsc`, the XD check in `en` + `ar` at 440 x 802, the unit suite in CI.
+
+**With no backend, A-8 applies ("Soon available"):** reactions (CH-1), location message (CH-2), disable
+calls (CH-4), add a person to a call (CH-6).
+
+**Labels (D-37, CH-3) — answered by the owner on 2026-11-04.** The chat backend accepts any label text
+(`store/chat/actions.tsx` line 465: a tag is free text, up to 30 characters). So the 5 design labels are sent
+as they are (`orders`, `payment`, `shipping`, `question`, `important`). CH-3 needs no backend work.
+
+### Decided for Stage 6 (2026-11-04)
+
+| # | Decision | Answer |
+|---|---|---|
+| S6-1 | Day pill for older days | "TODAY", "YESTERDAY", else the date ("23 Oct"; "23 Oct 2025" in another year) in the page's language. The designer checks it. |
+| S6-2 | Add contact | The new contact sheet gets the old form's country code picker (flag + code, default +963); the number is saved with `phoneWithDialCode`. Changes the design (A-9): the designer checks it. |
+| S6-3 | Order | The chat paths are on from now (the mount came early); the old ChatModal and old files go at the end (step 11). |
+| S6-4 | Chat URL | One chat's screens carry `?id=<chat id>`: `/[lang]/chat/conversation?id=12`, also `/chat/contact` and `/chat/call`. |
+| S6-6 | Stories row in the chat (D-36b) | **Dropped (owner, 2026-11-05).** The chat has no stories row; stories stay on the home page. |
+| S6-5 | Provider place | `ChatDataProvider` sits around the screen frame in lane A's `AppScreens.tsx`, on only for a chat screen. Lane A was told. |
+
+### Where Stage 6 stopped (2026-11-05) — merged into `ui-migrations` (owner's OK); the hand test is still open
+
+Steps 1 to 11 and the local end checks are done and committed on `ui-migrations-chat` (pushed with the
+owner's OK).
+`ui-migrations` was merged in at `7d281d7e` (lane A's mount). Commits after step 4: `8af1ce69` (5),
+`4c2da8a6` + `dc2f2204` (6), `9ac0883c` (7), `56d5c263` (8), `3b4e54df` (9), `c59ef5d9` (10, 11),
+`c41bd69b` (11, removals), `bfb1807b` (fix from the XD check).
+
+- Owner's order (2026-11-04): no new unit tests and no local test runs. Step 12 is skipped, and bug fixes
+  skip the "red first" test. The tests already written stay. The full unit suite runs in CI.
+- Step 4: the list's next page and older messages load near the edge (`chatPaging.ts`, `PageEdge.tsx`).
+  Message rows have no `content-visibility`: the conversation opens at its end by `scrollHeight`.
+- A reload of one chat's URL waits for that chat (`chatOnScreen`, `ChatWaiting`); a chat outside the loaded
+  pages is found by `findChat`; a chat that is nowhere says "Could not open the chat".
+- Step 5, calls: the buttons call `makeVoiceCall` / `makeVideoCall` (`chatCalls.ts`). When the store holds a
+  call, `AuthSections` opens `/[lang]/chat/call?id=` from any page (the old `CallContainer` layer is gone).
+  `LiveCallScreen` + `useLiveCall` run Agora with the old steps (60 s no answer, 10 min limit, `end_call` +
+  `refuse_call`). Leaving the call page ends the call. `CallFace` is the XD drawing for the real call and
+  the `/demo` mock call (`CallScreen`, now `/demo` only). The Calls tab shows `my_calls`.
+- A-16: the chat screens import no mock file. `/demo` gets its sample values from its own seed.
+- Step 6 (D-36b, no XD board, the designer checks each): delete for everyone, product card, deleted
+  placeholder, upload cancel ring, photo preview sheet, reminders row + sheet, "Media & Files" sheet with
+  the label chips (tagged messages), "Get from your contacts" (`components/Chat/contactsSync.ts`). The
+  contact page's dead buttons work now (Delete Chat; Save To Gallery, Notification, Share say "Soon
+  available").
+- Step 7 (D-36a): the phone-confirm page and the notification page (`ChatGate`) on every way into the
+  chat; a blocked chat shows a strip in place of the composer and refuses calls.
+- Step 8: start / end styles, `corners()` for bubble radii, mirrored arrows and swipes; the voice player
+  stays left to right.
+- Step 9: the reaction sheet's words translated; the chat screens use `useDemoCase()`. `demoCase.ts` and
+  `ConversationScreen` read `useDemoNav` from `screenNav`, not the `/demo` shell.
+- Steps 10-11: the old events are kept (`is_order_chat` was always false; fixed). The order page opens the
+  order's chat in the new conversation (D-36c); order-chat messages carry `order_chat_participant_id`.
+  A chat push opens its conversation. `DetectScreen` names `/chat` `CHAT_SCREEN`. In-app pop-ups do not
+  show on the chat pages. `ChatModal`, `ChatWidget` and 63 more old files with no caller are removed,
+  with their 45 unit tests (D-6). Found by an import-graph walk (knip is not installed in this worktree).
+- Step 13, done here: lint (0 errors), i18n parity, `next typegen` + `tsc` clean. XD check at 440 x 802 in
+  en and ar on `/demo` (list, conversation, contact, call): no page errors; Arabic mirrors right. It found
+  one fault (phone number backwards in ar), fixed in `bfb1807b`. The real chat needs a signed-in shopper,
+  so it was not checked in a browser.
+
+Lane files touched (tell the lanes at merge): `components/Home/AuthSections.tsx` (call page, no
+`ChatModal`), `components/DemoApp1/AppScreenView.tsx` (`chat/call` → `LiveCallScreen`),
+`components/DemoApp1/demoCase.ts` (import from `screenNav`), `components/setting/orders/OrderDetailsWrapper.tsx`,
+`utils/tinyUtils.tsx` (`DetectScreen`), `utils/NotificationHandler.ts`, `public/firebase-messaging-sw.js`,
+`components/DemoApp/demoKeys.ts` (chat words).
+
+CI run 1 (`41912147345`, 2026-11-05): parity, lint, typegen and tsc passed; unit tests 6 files failed,
+636 passed.
+- 3 files did not load: `tests/app/layout.test.tsx`, `tests/components/DemoApp1/AppScreens.test.tsx`,
+  `tests/components/DemoApp1/chat/ChatDataProvider.test.tsx`. Cause (app code): `openMessageInChat.ts`
+  imported `openChatFromList` through `ChatSearchResults.tsx`, which pulled in `TypingIndicator.js` (JSX in a
+  `.js` file; Vitest cannot parse it). Fixed: the import reads `components/Chat/openChatFromList`. After the
+  fix, 7 more old files had no caller (`chatSearch.ts`, `ChatItem`, `ChatOptions`, `ChatSearchResults`,
+  `LastMessageBody`, `SearchResult`, `TypingIndicator.js`); removed with their 4 unit tests (D-6).
+- Broken tests, removed on the owner's order in `167145e3` (their code is gone):
+  - `tests/components/Home/AuthSections.test.tsx` — "shows the chat and call loaders when each is open":
+    both loaders are gone on purpose (step 5, step 11).
+  - `tests/components/setting/orders/OrderDetailsWrapper.test.tsx` — "the delivery chat > offers the chat
+    for a pack out for delivery …": looks for the removed `ChatWidget` (`chat-widget`); the order page now
+    opens the new conversation.
+  - `tests/utils/imageFallback.test.ts` — "keeps the handler on the local country flag … (AC-4)": reads
+    `components/Chat/components/ChatContactsUpload.tsx`, removed in step 11 (no caller).
+  - `tests/utils/imageFallback.test.ts` — "no longer handles its own image failure:
+    components/Chat/components/SearchResult.tsx (AC-10)": reads `SearchResult.tsx`, removed after run 1.
+- Coverage lost with the removed tests: `mergeContacts` (now in `contactsSync.ts`); on the order page, the
+  worker's neutral name, the messages' order and the cleared notification dot of the delivery chat.
+- CI run 2 (`41915429680`): parity, lint, typegen and tsc passed; unit tests 4 files failed, 634 passed.
+  The 3 load failures are gone. Red: the 4 broken tests above, and
+  `tests/components/Login/Enhanced/ui/RdbPhoneInput.test.tsx` — "on a phone > closes the keypad on a tap
+  outside …". This branch does not touch the login keypad, and run 1 passed the same test.
+- CI run 2, attempt 2 (the failed job re-run): `RdbPhoneInput` passed, so it was the known
+  one-random-failure flake. Unit tests 3 files failed, 635 passed (7788 tests passed, 4 failed). The only red
+  tests were the 4 broken tests listed above.
+
+Branch review (2026-11-05, owner's request). The real provider's flows had never run in a browser, and these
+faults only show there. All found by reading the code; none is proved in a browser yet:
+- A call ended itself: the conversation's "leave" cleared `activeChat` when its slide ended, so the call page
+  lost its channel and hung up. The provider now ignores "leave"; `closeChat` closes the chat when the shopper
+  leaves the screens of one chat. The contact page of a chat in no list showed the first chat for the same reason.
+- `writeId` could cancel a navigation (the router treats `history.replaceState` as one): a tap on a row lost its
+  push, and a call started in a new chat could lose the call page. It now waits for the URL of one chat and stays
+  out of a call. The contact page's URL now gets the id too, so its reload opens the right chat.
+- A Calls tab row whose chat is not loaded opened the first chat in the list. The screen now waits while `seek`
+  looks for the chat, or says "Could not open the chat".
+- Order page: the push cancelled the `router.replace` that clears the chat query, so back from the conversation
+  opened the chat again. The query now goes with `history.replaceState` before the push.
+- A photo, video, voice note or file sent during a reply lost its quote. All four now carry `replyTo`.
+
+Small points left as they are: a failed Agora join goes back with no word to the shopper, and the call page's
+buttons do nothing for the moment its chunk loads. The review did not read the `Composer`, `NewChatSheet` and
+`MessageMenu` diffs line by line.
+
+CI run 3 (`41923950106`, on `621624ad`): parity, lint, typegen, tsc and the unit tests all passed; 638 test
+files passed, none failed. No unit test covers the review's fixes (owner's order: no new tests).
+
+Merge (owner's OK, 2026-11-05): `ui-migrations` was merged in first (Stages 4, 5, 5a, 7). CI on that merge
+(`41927828615`) failed 13 cases of `tests/components/DemoApp1/screens/wallet.rtl.test.tsx`: the test mocked
+`useDemoNav` on `Demo1Shell`, and `demoCase.ts` reads it from `screenNav` since step 9. The app was not affected.
+Fixed in the test's mock (`335952c9`, a test of lane A's wallet stage). CI on the final tree (`41930849243`, on
+`1b0ee3e0`) passed. The owner chose to merge before the hand test below.
+
+Left:
+- (The stories row was dropped by the owner: S6-6.)
+- The real chat checked in a browser by a signed-in shopper (calls, row taps and URLs, the Calls tab, push
+  links, order chat, gates).
+- The e2e cases wait for Stage 8 (A-34).
 
 ---
 

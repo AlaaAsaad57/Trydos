@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NumericKeypad } from "components/Login/Enhanced/ui/NumericKeypad";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoCase } from "../demoCase";
 import { NATIVE_WALLET_KEYBOARD } from "../../DemoApp/demoKeyboard";
 import {
   C,
@@ -24,6 +24,7 @@ import {
   Box,
   FileLines,
   Icon,
+  Ltr,
   Sheet,
   Stroke,
   Txt,
@@ -182,7 +183,7 @@ function Title({
   mark: XdIconName;
   medium?: boolean;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <SheetTitle
       top={top}
@@ -198,7 +199,7 @@ function Title({
 
 /** The line under the title on the crypto steps: "Via Crypto", 24 Bold on baseline 180. */
 function ViaCrypto() {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <Txt
       center
@@ -379,7 +380,7 @@ function Ways({
   onRdb: () => void;
   onCrypto: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const narrow = useNarrow();
   const top = TOP.ways;
   return (
@@ -387,12 +388,12 @@ function Ways({
       <Title top={top} mark={mark} medium />
       <Under testId="demo-wallet-cash-in-ways-under">
         <FileLines
-          text={t(
+          text={body(
             "You can add funds to an account through the following options easily and securely.",
           )}
           lines={fileLines(narrow, [
-            { x: 61.11, text: "You Can Add Funds To An Account Through The " },
-            { x: 92.1, text: "Following Options Easily And Securely." },
+            { x: 61.11, text: "You can add funds to an account through the " },
+            { x: 92.1, text: "following options easily and securely." },
           ])}
           left={32}
           ml={32}
@@ -422,9 +423,9 @@ function Ways({
               key={way.id}
               className="flex flex-col shrink-0"
               style={{
-                marginLeft: i === 0 ? 20 : 8,
+                marginInlineStart: i === 0 ? 20 : 8,
                 // The row ends 20 px after the last tile, as it starts.
-                marginRight: i === WALLET_CASH_IN_WAYS.length - 1 ? 20 : 0,
+                marginInlineEnd: i === WALLET_CASH_IN_WAYS.length - 1 ? 20 : 0,
               }}
             >
               <motion.button
@@ -524,23 +525,23 @@ function Ways({
             mt={gapTo(691, 714, 11)}
           />
           <FileLines
-            text={t(
+            text={body(
               "You can deposit your funds with complete ease through one of our Trydos & RDB centers. You can also deposit your funds into your personal account on RDB. Additionally, any person or another account can add funds to your account.",
             )}
             lines={fileLines(narrow, [
               {
                 x: 38,
-                text: "You Can Deposit Your Funds With Complete Ease Through One Of Our ",
+                text: "You can deposit your funds with complete ease through one of our ",
               },
               {
                 x: 49.79,
-                text: "Trydos & RDB Centers. You Can Also Deposit Your Funds Into Your ",
+                text: "Trydos & RDB centers. You can also deposit your funds into your ",
               },
               {
                 x: 34.93,
-                text: "Personal Account On RDB. Additionally, Any Person Or Another Account ",
+                text: "personal account on RDB. Additionally, any person or another account ",
               },
-              { x: 133.04, text: "Can Add Funds To Your Account." },
+              { x: 133.04, text: "can add funds to your account." },
             ])}
             left={32}
             ml={32 - 20}
@@ -624,13 +625,13 @@ function Actions({
   onAct: (id: Action["id"]) => void;
   testId: string;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <div
       className="flex items-start shrink-0"
       style={{
         marginTop: mt,
-        marginLeft: fromCentre(actions[0].x, DESIGN_W),
+        marginInlineStart: fromCentre(actions[0].x, DESIGN_W),
         paddingBottom: BOARD_END - 895,
       }}
     >
@@ -655,8 +656,8 @@ function Actions({
               name={action.icon}
               style={
                 action.off > 0
-                  ? { marginLeft: action.off * 2 }
-                  : { marginRight: -action.off * 2 }
+                  ? { marginInlineStart: action.off * 2 }
+                  : { marginInlineEnd: -action.off * 2 }
               }
             />
             <Txt size={11} mt={gapTo(855 + 20, 892, 11)}>
@@ -671,7 +672,7 @@ function Actions({
 
 /** "trydos Deposit USD", 16 px: "try" Bold, "dos" Regular, the rest Medium. */
 function DepositLine({ mt, balance }: { mt: number; balance: WalletBalance }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     // The file starts the line at x 141: half a px left of centre.
     <Txt center nudge={-0.5} size={16} mt={mt} style={{ whiteSpace: "pre" }}>
@@ -695,7 +696,7 @@ function ClientFields({
   eye: boolean;
   testId: string;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <>
       <InfoField
@@ -708,8 +709,10 @@ function ClientFields({
       </InfoField>
       <InfoField mt={4} label={t("Trydos client ID")} testId={`${testId}-id`}>
         {/* The number ends at x 81, the currency starts at 91. */}
-        <span className="font-medium">{WALLET_CASH_IN.clientId}</span>
-        <span style={{ marginLeft: 91 - 81 }}>
+        <span className="font-medium">
+          <Ltr>{WALLET_CASH_IN.clientId}</Ltr>
+        </span>
+        <span style={{ marginInlineStart: 91 - 81 }}>
           {t(WALLET_BANK_ACCOUNT.currency[balance.currency])}
         </span>
       </InfoField>
@@ -719,7 +722,7 @@ function ClientFields({
         testId={`${testId}-phone`}
         medium
       >
-        {WALLET_CASH_IN.phone}
+        <Ltr>{WALLET_CASH_IN.phone}</Ltr>
       </InfoField>
     </>
   );
@@ -751,7 +754,7 @@ function Rdb({
   /** The app's keypad went up or away. */
   onKeypad: (open: boolean) => void;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   const [tab, setTab] = useState<"cash" | "bank">("cash");
   const [amount, setAmount] = useState("");
   const fromBank = tab === "bank";
@@ -770,7 +773,7 @@ function Rdb({
       {/* The two tabs share the row, 20 px from both edges of the screen. */}
       <div
         className="flex shrink-0"
-        style={{ marginTop: 213 - HEAD_END, marginLeft: 20, width: fill(20) }}
+        style={{ marginTop: 213 - HEAD_END, marginInlineStart: 20, width: fill(20) }}
       >
         <Tab
           chosen={!fromBank}
@@ -811,8 +814,10 @@ function Rdb({
               testId="demo-wallet-cash-in-bank-id"
             >
               {/* The number ends at x 81, the currency starts at 91. */}
-              <span className="font-medium">{WALLET_BANK_ACCOUNT.id}</span>
-              <span style={{ marginLeft: 91 - 81 }}>
+              <span className="font-medium">
+                <Ltr>{WALLET_BANK_ACCOUNT.id}</Ltr>
+              </span>
+              <span style={{ marginInlineStart: 91 - 81 }}>
                 {t(WALLET_BANK_ACCOUNT.currency[balance.currency])}
               </span>
             </Recipient>
@@ -822,13 +827,15 @@ function Rdb({
               testId="demo-wallet-cash-in-bank-phone"
             >
               {/* "+" Bold at x 32, the number from x 44. */}
-              <span
-                className="font-bold inline-block"
-                style={{ minWidth: 44 - 32 }}
-              >
-                +
-              </span>
-              {WALLET_RECIPIENT.phone}
+              <Ltr>
+                <span
+                  className="font-bold inline-block"
+                  style={{ minWidth: 44 - 32 }}
+                >
+                  +
+                </span>
+                {WALLET_RECIPIENT.phone}
+              </Ltr>
             </Recipient>
             <Recipient
               mt={4}
@@ -868,7 +875,7 @@ function Rdb({
             <Icon
               name="qrCashIn"
               mt={260.41 - (213 + 28)}
-              style={{ marginLeft: fromCentre(65, DESIGN_W) }}
+              style={{ marginInlineStart: fromCentre(65, DESIGN_W) }}
             />
             {/* The dots at (205, 573) and (217, 573): 20 wide together, centred. */}
             <div
@@ -907,13 +914,13 @@ function Rdb({
  *   - the note, 390 x 90 at (20, 805), with a line ON its edge.
  */
 function DepositPicture({ balance }: { balance: WalletBalance }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   return (
     <>
       <Icon
         name="qrCashInBig"
         mt={167.42 - textBottom(132, 24)}
-        style={{ marginLeft: fromCentre(39.99, DESIGN_W) }}
+        style={{ marginInlineStart: fromCentre(39.99, DESIGN_W) }}
       />
       <DepositLine mt={gapTo(167.42 + 350.37, 546, 16)} balance={balance} />
       <ClientFields
@@ -925,7 +932,7 @@ function DepositPicture({ balance }: { balance: WalletBalance }) {
       <Note mt={805 - (738 + 55)} testId="demo-wallet-cash-in-deposit-note">
         <NoteTitle>{t("Your deposit request ready to collect !")}</NoteTitle>
         <NoteText>
-          {`${t(
+          {`${body(
             "Present this code along with your personal ID at any of our branches and pay the amount in complete security.",
           )} `}
           <ThankYou />
@@ -966,7 +973,7 @@ function Note({
       style={{
         height: undefined,
         minHeight: 90,
-        paddingLeft: 12,
+        paddingInlineStart: 12,
         paddingBottom: 895 - (paraTop(848, 11, 16) + 3 * 16),
         marginBottom: BOARD_END - 895,
       }}
@@ -984,7 +991,7 @@ function NoteTitle({ children }: { children: React.ReactNode }) {
       size={11}
       weight="medium"
       mt={gapTo(805, 828, 11)}
-      style={narrow ? { whiteSpace: "normal", marginRight: 12 } : undefined}
+      style={narrow ? { whiteSpace: "normal", marginInlineEnd: 12 } : undefined}
     >
       {children}
     </Txt>
@@ -1011,12 +1018,12 @@ function NoteText({ children }: { children: React.ReactNode }) {
 
 /** "Thank You | We Are Pleased To Serve You." — the two parts Medium. */
 function ThankYou() {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   return (
     <>
-      <span className="font-medium">{t("Thank you")}</span>
+      <span className="font-medium">{body("Thank you")}</span>
       {" | "}
-      <span className="font-medium">{t("we are pleased to serve you")}</span>.
+      <span className="font-medium">{body("we are pleased to serve you")}</span>.
     </>
   );
 }
@@ -1091,7 +1098,7 @@ function AmountField({
   useEffect(() => () => onKeypad(false), []);
   const keys = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
 
   // With a keyboard, the field the file shows in use takes the typing.
   useEffect(() => {
@@ -1265,7 +1272,7 @@ function Crypto({
   typing: boolean;
   onKeypad: (open: boolean) => void;
 }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const narrow = useNarrow();
   const typed = toNumber(amount) > 0;
   const fee = charge(amount);
@@ -1276,7 +1283,7 @@ function Crypto({
       {/* The two tabs share the row, 20 px from both edges of the screen. */}
       <div
         className="flex shrink-0"
-        style={{ marginTop: 213 - HEAD_END, marginLeft: 20, width: fill(20) }}
+        style={{ marginTop: 213 - HEAD_END, marginInlineStart: 20, width: fill(20) }}
       >
         <Tab
           chosen
@@ -1331,12 +1338,12 @@ function Crypto({
                 mt={gapTo(477, 496, 11)}
                 style={
                   narrow
-                    ? { ...wrap(narrow), paddingLeft: 9, paddingRight: 9 }
+                    ? { ...wrap(narrow), paddingInlineStart: 9, paddingInlineEnd: 9 }
                     : wrap(narrow)
                 }
               >
                 <Slots
-                  text={t(
+                  text={body(
                     "We will charge {charge} {coin} for topping up your balance {amount} {code}.",
                   )}
                   slots={{
@@ -1378,8 +1385,8 @@ function Crypto({
                 style={{
                   height: undefined,
                   minHeight: 58,
-                  paddingLeft: 12,
-                  paddingRight: 12,
+                  paddingInlineStart: 12,
+                  paddingInlineEnd: 12,
                   paddingBottom: 519 + 58 - textBottom(562, 11),
                 }}
               >
@@ -1390,7 +1397,7 @@ function Crypto({
                   style={wrap(narrow)}
                 >
                   <Slots
-                    text={t(
+                    text={body(
                       "You will pay {charge} {network} to generated wallet",
                     )}
                     slots={{ charge: fee, network: NETWORK }}
@@ -1402,7 +1409,7 @@ function Crypto({
                   style={wrap(narrow)}
                 >
                   <Slots
-                    text={t(
+                    text={body(
                       "We will send to your Trydos balance {amount} {code}",
                     )}
                     slots={{
@@ -1487,16 +1494,16 @@ const RULES: {
         text: "The entire amount must be sent at once or in parts according to the specified period.",
         ok: true,
         lines: [
-          "The Entire Amount Must Be Sent At Once Or In Parts According To The ",
-          "Specified Period.",
+          "The entire amount must be sent at once or in parts according to the ",
+          "specified period.",
         ],
       },
       {
         text: "You can send the amount from different addresses on the same network and the same selected currency.",
         ok: true,
         lines: [
-          "You Can Send The Amount From Different Addresses On The Same ",
-          "Network And The Same Selected Currency.",
+          "You can send the amount from different addresses on the same ",
+          "network and the same selected currency.",
         ],
       },
     ],
@@ -1509,16 +1516,16 @@ const RULES: {
         text: "The transaction must be sent in the same currency selected, otherwise the transaction will be suspended.",
         ok: false,
         lines: [
-          "The Transaction Must Be Sent In The Same Currency Selected, ",
-          "Otherwise The Transaction Will Be Suspended.",
+          "The transaction must be sent in the same currency selected, ",
+          "otherwise the transaction will be suspended.",
         ],
       },
       {
         text: "However, if the transaction was made by mistake, contact customer support to start the refund process.",
         ok: true,
         lines: [
-          "However, If The Transaction Was Made By Mistake, Contact Customer ",
-          "Support To Start The Refund Process.",
+          "However, if the transaction was made by mistake, contact customer ",
+          "support to start the refund process.",
         ],
       },
     ],
@@ -1531,8 +1538,8 @@ const RULES: {
         text: "After the expiry of the period, the transaction will be suspended. Contact customer support.",
         ok: false,
         lines: [
-          "After The Expiry Of The Period, The Transaction Will Be Suspended. ",
-          "Contact Customer Support.",
+          "After the expiry of the period, the transaction will be suspended. ",
+          "Contact customer support.",
         ],
       },
     ],
@@ -1545,16 +1552,16 @@ const RULES: {
         text: "The address used is temporary and does not mean that the current address is specific to you.",
         ok: false,
         lines: [
-          "The Address Used Is Temporary And Does Not Mean That The Current ",
-          "Address Is Specific To You.",
+          "The address used is temporary and does not mean that the current ",
+          "address is specific to you.",
         ],
       },
       {
         text: "However, if the transaction was made by mistake, contact customer support to start the refund process.",
         ok: true,
         lines: [
-          "However, If The Transaction Was Made By Mistake, Contact Customer ",
-          "Support To Start The Refund Process.",
+          "However, if the transaction was made by mistake, contact customer ",
+          "support to start the refund process.",
         ],
       },
     ],
@@ -1586,7 +1593,7 @@ function Safe({
   onAgree: () => void;
   onCancel: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const narrow = useNarrow();
   const first = sfTop(389, 12, 18);
   return (
@@ -1601,7 +1608,7 @@ function Safe({
       <Icon
         name="shieldSafe"
         mt={288.91 - (RULES_TOP + 13)}
-        style={{ marginLeft: fromCentre(197.98, DESIGN_W) }}
+        style={{ marginInlineStart: fromCentre(197.98, DESIGN_W) }}
       />
       {/* The file starts the title at x 126: 1.5 px right of centre. */}
       <Txt
@@ -1629,8 +1636,8 @@ function Safe({
                 className="flex items-start shrink-0"
                 style={{
                   marginTop: i === 0 ? first - textBottom(354, 14) : 4,
-                  marginLeft: 20,
-                  marginRight: right,
+                  marginInlineStart: 20,
+                  marginInlineEnd: right,
                 }}
               >
                 {/* The dot's top is 2 px under the line's top (378 against 376). */}
@@ -1643,10 +1650,10 @@ function Safe({
                   style={{
                     ...SF_LINE,
                     color: C.ink,
-                    marginLeft: (i === 0 ? 40 : 42) - (20 + 14),
+                    marginInlineStart: (i === 0 ? 40 : 42) - (20 + 14),
                   }}
                 >
-                  {t(item.rule)}
+                  {body(item.rule)}
                 </span>
               </div>
               {item.notes.map((note, n) => {
@@ -1654,14 +1661,14 @@ function Safe({
                   <div
                     key={`${note.text}-${n}`}
                     className="flex items-start shrink-0"
-                    style={{ marginTop: 4, marginLeft: i === 0 ? 40 : 42 }}
+                    style={{ marginTop: 4, marginInlineStart: i === 0 ? 40 : 42 }}
                   >
                     {/* The dot's top is 4 px under the line's top (402 against 398). */}
                     <div className="shrink-0" style={{ marginTop: 4 }}>
                       <Bullet big={false} ok={note.ok} />
                     </div>
                     <FileLines
-                      text={t(note.text)}
+                      text={body(note.text)}
                       lines={fileLines(
                         narrow,
                         note.lines.map((line) => ({ x, text: line })),
@@ -1695,7 +1702,7 @@ function Safe({
             whileTap={{ scale: 0.98 }}
             className="relative flex flex-col shrink-0 cursor-pointer"
             style={{
-              marginLeft: 30,
+              marginInlineStart: 30,
               width: fill(30),
               height: 60,
               borderRadius: 20,
@@ -1738,7 +1745,7 @@ function NetworkTag({ mt }: { mt: number }) {
       w={193}
       h={28}
       mt={mt}
-      style={{ marginLeft: fromCentre(119, DESIGN_W) }}
+      style={{ marginInlineStart: fromCentre(119, DESIGN_W) }}
       radius={8}
       fill={C.yellow}
       data-pw="demo-wallet-cash-in-network"
@@ -1763,11 +1770,11 @@ function NetworkTag({ mt }: { mt: number }) {
  * The row keeps the file's distance from the screen's centre.
  */
 function DepositRow({ mt, amount }: { mt: number; amount: string }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <div
       className="flex items-start shrink-0"
-      style={{ marginTop: mt, marginLeft: fromCentre(136, DESIGN_W) }}
+      style={{ marginTop: mt, marginInlineStart: fromCentre(136, DESIGN_W) }}
     >
       <Icon name="usdtMark" />
       <Txt
@@ -1795,15 +1802,15 @@ function DepositRow({ mt, amount }: { mt: number; amount: string }) {
  * screen it starts 20 px in, and the words wrap 20 px before the right edge.
  */
 function ScanRow({ mt }: { mt: number }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const narrow = useNarrow();
   return (
     <div
       className="flex items-start shrink-0"
       style={{
         marginTop: mt,
-        marginLeft: narrow ? 20 : fromCentre(34.56, DESIGN_W),
-        marginRight: narrow ? 20 : undefined,
+        marginInlineStart: narrow ? 20 : fromCentre(34.56, DESIGN_W),
+        marginInlineEnd: narrow ? 20 : undefined,
       }}
     >
       <Icon name="scanPhone" />
@@ -1818,7 +1825,7 @@ function ScanRow({ mt }: { mt: number }) {
             : undefined
         }
       >
-        {t("Scan QR code from your wallet & pay to start processing")}
+        {body("Scan QR code from your wallet & pay to start processing")}
       </Txt>
     </div>
   );
@@ -1831,22 +1838,22 @@ function ScanRow({ mt }: { mt: number }) {
  * keep 40 px to both edges of the screen; the expiry row stays centred.
  */
 function Expiry({ mt, first }: { mt: number; first: number }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const narrow = useNarrow();
   const paraY = sfTop(first, 12, 18);
   const rowY = sfTop(first + 43, 12, 18);
   return (
     <>
       <FileLines
-        text={t(
+        text={body(
           "After the specified period has expired, do not transfer any amount. Request a new QR code.",
         )}
         lines={fileLines(narrow, [
           {
             x: 43.28,
-            text: "After The Specified Period Has Expired, Do Not Transfer Any Amount. ",
+            text: "After the specified period has expired, do not transfer any amount. ",
           },
-          { x: 150.73, text: "Request A New QR Code." },
+          { x: 150.73, text: "Request a new QR code." },
         ])}
         left={40}
         ml={40}
@@ -1861,7 +1868,7 @@ function Expiry({ mt, first }: { mt: number; first: number }) {
         className="flex items-start shrink-0"
         style={{
           marginTop: rowY - (paraY + 36),
-          marginLeft: fromCentre(128.59, DESIGN_W),
+          marginInlineStart: fromCentre(128.59, DESIGN_W),
         }}
       >
         {/* The clock's top is 2 px under the line's top. */}
@@ -1871,7 +1878,7 @@ function Expiry({ mt, first }: { mt: number; first: number }) {
           style={{
             ...SF_LINE,
             color: C.expiry,
-            marginLeft: 147 - (128.59 + 12.81),
+            marginInlineStart: 147 - (128.59 + 12.81),
           }}
         >
           <Slots
@@ -1910,7 +1917,7 @@ function CryptoCode({
   /** "Download": on to the picture of the code (`– 38`). */
   onPicture: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const [left, setLeft] = useState<number>(WALLET_CRYPTO.seconds);
 
   useEffect(() => {
@@ -1927,7 +1934,7 @@ function CryptoCode({
         <Icon
           name="qrCashIn"
           mt={260.41 - (213 + 28)}
-          style={{ marginLeft: fromCentre(65, DESIGN_W) }}
+          style={{ marginInlineStart: fromCentre(65, DESIGN_W) }}
         />
         <DepositRow mt={573 - (260.41 + 300.12)} amount={amount} />
         <ScanRow mt={639 - (573 + 20)} />
@@ -1936,7 +1943,7 @@ function CryptoCode({
           className="flex items-start shrink-0"
           style={{
             marginTop: 666 - (639 + 15),
-            marginLeft: fromCentre(137.64, DESIGN_W),
+            marginInlineStart: fromCentre(137.64, DESIGN_W),
           }}
         >
           <Icon name="timerBlue" />
@@ -1948,7 +1955,7 @@ function CryptoCode({
             style={{ whiteSpace: "pre" }}
           >
             <Slots
-              text={t("Within {time} minutes")}
+              text={body("Within {time} minutes")}
               slots={{ time: <span className="font-bold">{clock(left)}</span> }}
             />
           </Txt>
@@ -1962,7 +1969,7 @@ function CryptoCode({
           color={C.inkSoft}
           mt={gapTo(666 + 15, 713, 12)}
         >
-          {t("Or try direct link to")}
+          {body("Or try direct link to")}
         </Txt>
         {/* x 140 to 290 in the file: centred on the screen. */}
         <div
@@ -1978,7 +1985,7 @@ function CryptoCode({
               whileTap={{ scale: 0.94 }}
               className="shrink-0 cursor-pointer overflow-hidden"
               style={{
-                marginLeft: i === 0 ? 0 : 30,
+                marginInlineStart: i === 0 ? 0 : 30,
                 width: 30,
                 height: 30,
                 borderRadius: 5,
@@ -2026,14 +2033,14 @@ function CryptoCode({
  *   - the note, 390 x 90 at (20, 805).
  */
 function CryptoPicture({ amount }: { amount: string }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   return (
     <>
       <NetworkTag mt={165 - textBottom(132, 24)} />
       <Icon
         name="qrCashInBig"
         mt={212.42 - (165 + 28)}
-        style={{ marginLeft: fromCentre(39.99, DESIGN_W) }}
+        style={{ marginInlineStart: fromCentre(39.99, DESIGN_W) }}
       />
       <DepositRow mt={575 - (212.42 + 350.37)} amount={amount} />
       <ScanRow mt={636 - (575 + 20)} />
@@ -2046,7 +2053,7 @@ function CryptoPicture({ amount }: { amount: string }) {
           {t("The wallet above is linked to a payment to a specific account !")}
         </NoteTitle>
         <NoteText>
-          {`${t(
+          {`${body(
             "So once the payment is completed, the balance will be added automatically. It is considered a one-time-use wallet only",
           )} `}
           <ThankYou />

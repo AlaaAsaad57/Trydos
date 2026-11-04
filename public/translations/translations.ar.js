@@ -3191,6 +3191,22 @@ const translations = {
   "<b>a</b> {name}": "<b>ج</b> {name}",
   "{n} minute answered": "تمت الإجابة خلال {n} دقيقة",
   "Need help ? Start Chat about this product !": "تحتاج مساعدة ؟ ابدأ محادثة حول هذا المنتج !",
+  "Country code": "رمز الدولة",
+  "Missed Video Call !": "مكالمة فيديو فائتة !",
+  "Incoming Video Call !": "مكالمة فيديو واردة !",
+  "Outgoing Video Call !": "مكالمة فيديو صادرة !",
+  "Delete for everyone": "حذف للجميع",
+  "Allow Notifications": "السماح بالإشعارات",
+  "Confirm your phone number to use Chat": "أكّد رقم هاتفك لاستخدام المحادثة",
+  "All": "الكل",
+  "Recent": "الأخيرة",
+  "Popular": "الشائعة",
+  "Smileys": "الوجوه",
+  "Gestures": "الإيماءات",
+  "Search emoji": "ابحث عن رمز تعبيري",
+  "No emoji found": "لم يتم العثور على رموز تعبيرية",
+  "More reactions": "المزيد من التفاعلات",
+  "Orders": "الطلبات",
 };
 
 export default translations;

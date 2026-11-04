@@ -4,14 +4,15 @@ import type { DemoKey } from "../../DemoApp/demoKeys";
 import { motion } from "framer-motion";
 import React, { useState } from "react";
 import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
-import { CHAT, MENU_ACTIONS } from "../../DemoApp/demoChat";
-import type { Side } from "../../DemoApp/demoChatModel";
+import { CHAT, MENU_ACTIONS } from "./chatTheme";
+import type { Side } from "./chatModel";
 import { TAB_BAR } from "../../DemoApp/demoLayout";
 import { C } from "../demo1Layout";
 import { Txt } from "../ui";
 import AnimatedEmoji, { preloadAnimatedEmojis } from "./AnimatedEmoji";
+import { usePageDir } from "../rtl";
 
-export type MenuName = (typeof MENU_ACTIONS)[number] | "Forward";
+export type MenuName = (typeof MENU_ACTIONS)[number] | "Forward" | "Delete for everyone";
 
 /**
  * What lies over the screen behind an open menu, and how long it takes to come
@@ -130,8 +131,8 @@ const popDelay = (k: number) => POP_DELAY + k * STAGGER;
 export const MENU_H = MENU_PAD * 2 + MENU_ROW_H * (ROWS.length + 1) + MENU_SEP;
 
 /** The menu's height for a message: Forward and Edit go when it cannot take them (as the menu draws it). */
-export const menuHeight = (canEdit: boolean, canForward: boolean) =>
-  MENU_H - (canEdit ? 0 : MENU_ROW_H) - (canForward ? 0 : MENU_ROW_H);
+export const menuHeight = (canEdit: boolean, canForward: boolean, canDeleteForAll = false) =>
+  MENU_H - (canEdit ? 0 : MENU_ROW_H) - (canForward ? 0 : MENU_ROW_H) + (canDeleteForAll ? MENU_ROW_H : 0);
 
 /**
  * An icon of the XD file in a colour of our own: the file's SVG as a mask
@@ -195,6 +196,7 @@ export default function MessageMenu({
   side,
   canEdit,
   canForward = true,
+  canDeleteForAll = false,
   reaction,
   onPick,
   onReact,
@@ -206,6 +208,11 @@ export default function MessageMenu({
   canEdit: boolean;
   /** A call card or a note is not forwarded; the row goes then. */
   canForward?: boolean;
+  /**
+   * The real chat only: a message I sent (not a call) can be deleted for
+   * everyone, a row under Delete (D-36b; the file has only Delete).
+   */
+  canDeleteForAll?: boolean;
   /** The emoji the message carries now, if any: it is marked in the bar. */
   reaction?: string;
   onPick: (name: MenuName) => void;
@@ -225,7 +232,9 @@ export default function MessageMenu({
     (r) => (r.name !== "Edit" || canEdit) && (r.name !== "Forward" || canForward),
   );
   const stop = (e: React.PointerEvent) => e.stopPropagation();
-  const edge = inn ? { left: EDGE } : { right: EDGE };
+  const edge = inn ? { insetInlineStart: EDGE } : { insetInlineEnd: EDGE };
+  // The side the bar and the menu grow from, on the screen (A-13).
+  const fromLeft = inn !== (usePageDir() === "rtl");
 
   const row = (name: MenuName, icon: XdIconName, color: string) => (
     <button
@@ -239,7 +248,7 @@ export default function MessageMenu({
       className="flex items-center w-full shrink-0 cursor-pointer active:bg-black/5"
       style={{
         height: MENU_ROW_H,
-        paddingLeft: 23,
+        paddingInlineStart: 23,
       }}
     >
       <span className="flex items-center justify-center shrink-0" style={{ width: 18 }}>
@@ -269,7 +278,7 @@ export default function MessageMenu({
           backdropFilter: TAB_BAR.glass,
           WebkitBackdropFilter: TAB_BAR.glass,
           boxShadow: "0 6px 24px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.04)",
-          transformOrigin: inn ? "left bottom" : "right bottom",
+          transformOrigin: fromLeft ? "left bottom" : "right bottom",
           willChange: "transform, opacity",
           justifyContent: inn ? "flex-start" : "flex-end",
         }}
@@ -284,7 +293,7 @@ export default function MessageMenu({
       >
         <span
           className="relative flex items-center shrink-0"
-          style={{ width: REACTION_BAR_W, paddingLeft: LEAD, height: "100%" }}
+          style={{ width: REACTION_BAR_W, paddingInlineStart: LEAD, height: "100%" }}
         >
           {REACTIONS.map((emoji, i) => {
             const order = inn ? i : REACTIONS.length - 1 - i;
@@ -339,7 +348,7 @@ export default function MessageMenu({
           <motion.button
             type="button"
             data-pw="demo-chat-react-more"
-            aria-label="More reactions"
+            aria-label={t("More reactions")}
             onClick={(e) => {
               e.stopPropagation();
               onMore();
@@ -352,7 +361,7 @@ export default function MessageMenu({
               // A light, frosted disc that lies over the last emoji's edge.
               background: "rgba(255,255,255,0.72)",
               boxShadow: "0 0 0 0.5px rgba(0,0,0,0.05)",
-              right: PLUS_INSET,
+              insetInlineEnd: PLUS_INSET,
               top: (REACTION_BAR_H - PLUS) / 2,
               willChange: "transform, opacity",
             }}
@@ -387,7 +396,7 @@ export default function MessageMenu({
           backdropFilter: TAB_BAR.glass,
           WebkitBackdropFilter: TAB_BAR.glass,
           boxShadow: "0 8px 30px rgba(0,0,0,0.16), 0 0 0 0.5px rgba(0,0,0,0.05)",
-          transformOrigin: inn ? "left top" : "right top",
+          transformOrigin: fromLeft ? "left top" : "right top",
           willChange: "transform, opacity",
         }}
         initial={{ scale: 0.48, opacity: 0, y: -4 }}
@@ -405,11 +414,12 @@ export default function MessageMenu({
         <span
           aria-hidden="true"
           className="flex items-center w-full shrink-0"
-          style={{ height: MENU_SEP, paddingLeft: 22, paddingRight: 22 }}
+          style={{ height: MENU_SEP, paddingInlineStart: 22, paddingInlineEnd: 22 }}
         >
           <span className="block w-full" style={{ height: 0.5, background: "rgba(60,60,67,0.29)" }} />
         </span>
         {row("Delete", "menuDelete", CHAT.red)}
+        {canDeleteForAll && row("Delete for everyone", "menuDelete", CHAT.red)}
       </motion.div>
     </>
   );

@@ -35,6 +35,8 @@ export function litTab(
   if (first === undefined) return "home";
   if (first === "search") return "search";
   if (first === "cart") return "cart";
+  // Stage 6: the new chat screens (/chat, /chat/conversation, …).
+  if (first === "chat") return "chat";
   if (first === "settings") return "settings";
   return null;
 }
