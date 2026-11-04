@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import RdbPinInputs from "components/Login/Enhanced/ui/RdbPinInputs";
 import { NATIVE_WALLET_KEYBOARD } from "../../DemoApp/demoKeyboard";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoCase } from "../demoCase";
 import {
   C,
   WINDOW_COVER,
@@ -74,7 +74,7 @@ export function RequestCode({
   request: WithdrawalRequest;
   onVerified: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const [pin, setPin] = useState("");
   const [valid, setValid] = useState<"" | "valid">("");
   const [left, setLeft] = useState(CODE_SECONDS);
@@ -118,7 +118,7 @@ export function RequestCode({
           ml={40}
           mt={gapTo(textBottom(318, 30), 354, 16)}
         >
-          {t("enter verification code sent to your WhatsApp")}
+          {body("enter verification code sent to your WhatsApp")}
         </Txt>
 
         <div
@@ -126,7 +126,7 @@ export function RequestCode({
           style={{ marginInlineStart: 40, marginTop: 366 - textBottom(354, 16) }}
         >
           <Txt size={12}>
-            {t("We have sent a verification code to the number")}
+            {body("We have sent a verification code to the number")}
           </Txt>
           <Icon name="codeSent" ml={4} />
         </div>
@@ -159,7 +159,7 @@ export function RequestCode({
           style={{ marginInlineStart: 40, marginTop: 412 - (389 + 15) }}
         >
           <Txt size={11} color={C.hint}>
-            {t("Your privacy is completely safe")}
+            {body("Your privacy is completely safe")}
           </Txt>
           <Icon name="shieldGrey" ml={3} />
         </div>
@@ -229,7 +229,7 @@ export function RequestReady({
   /** "Download": on to the picture of the request (`– 24`). */
   onPicture: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
 
   const act = (id: (typeof ACTIONS)[number]["id"]) => {
     if (id === "copy")
@@ -333,7 +333,7 @@ export function RequestPicture({
   balance: WalletBalance;
   request: WithdrawalRequest;
 }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   return (
     <PictureLayer
       open={open}
@@ -396,13 +396,13 @@ export function RequestPicture({
             color: C.ink,
           }}
         >
-          {`${t(
+          {`${body(
             "Present this code along with your personal ID at any of our branches and receive the amount in complete security.",
           )} `}
-          <span className="font-medium">{t("Thank you")}</span>
+          <span className="font-medium">{body("Thank you")}</span>
           {" | "}
           <span className="font-medium">
-            {t("we are pleased to serve you")}
+            {body("we are pleased to serve you")}
           </span>
           .
         </p>
@@ -496,7 +496,7 @@ function Cells({
   balance: WalletBalance;
   request: WithdrawalRequest;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <>
       <Cell mt={mt} label={t("Trydos client Name")} testId="client">

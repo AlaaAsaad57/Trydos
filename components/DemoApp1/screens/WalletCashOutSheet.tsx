@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NumericKeypad } from "components/Login/Enhanced/ui/NumericKeypad";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoCase } from "../demoCase";
 import { NATIVE_WALLET_KEYBOARD } from "../../DemoApp/demoKeyboard";
 import {
   C,
@@ -171,7 +171,7 @@ export function SheetTitle({
 }
 
 function Title({ top, mark }: { top: number; mark: XdIconName }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <SheetTitle top={top} icon="cashOutBig" mark={mark} label={t("Cash Out")} />
   );
@@ -320,22 +320,22 @@ export default function WalletCashOutSheet({
  * The lines of the cards and the tiles sit ON the edge (XD's centre stroke).
  */
 function Ways({ mark, onPick }: { mark: XdIconName; onPick: () => void }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const top = TOP.ways;
   return (
     <>
       <Title top={top} mark={mark} />
       <Under testId="demo-wallet-cash-out-ways-under">
         <FileLines
-          text={t(
+          text={body(
             "You can withdraw your money through the following options easily and securely.",
           )}
           lines={[
             {
               x: 40.13,
-              text: "You Can Withdraw Your Money Through The Following ",
+              text: "You can withdraw your money through the following ",
             },
-            { x: 124.5, text: "Options Easily And Securely." },
+            { x: 124.5, text: "options easily and securely." },
           ]}
           left={32}
           ml={32}
@@ -423,19 +423,19 @@ function Ways({ mark, onPick }: { mark: XdIconName; onPick: () => void }) {
             mt={gapTo(707, 730, 11)}
           />
           <FileLines
-            text={t(
+            text={body(
               "You can withdraw your funds with complete ease through one of our Trydos & RDB centers. You can also withdraw your funds to your personal account on RDB.",
             )}
             lines={[
               {
                 x: 33.01,
-                text: "You Can Withdraw Your Funds With Complete Ease Through One Of Our ",
+                text: "You can withdraw your funds with complete ease through one of our ",
               },
               {
                 x: 48.52,
-                text: "Trydos & RDB Centers. You Can Also Withdraw Your Funds To Your ",
+                text: "Trydos & RDB centers. You can also withdraw your funds to your ",
               },
-              { x: 149.17, text: "Personal Account On RDB." },
+              { x: 149.17, text: "personal account on RDB." },
             ]}
             left={32}
             ml={32 - 20}
@@ -482,7 +482,7 @@ export function BrandCard({
   mt: number;
   onClick: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <motion.button
       type="button"
@@ -668,7 +668,7 @@ function Form({
   onRequest: () => void;
 }) {
   const pageDir = usePageDir();
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const top = TOP.form;
   const [active, setActive] = useState<InUse>(null);
   /** The chosen tab: cash from a center, or to the client's own account. */
@@ -975,7 +975,7 @@ function Form({
                         color: C.placeholder,
                       }}
                     >
-                      {t("Enter recipient Phone number")}
+                      {body("Enter recipient Phone number")}
                     </span>
                   )}
                   <input
@@ -1216,7 +1216,7 @@ function Form({
               className="flex flex-col"
             >
               <Txt center size={11} mt={gapTo(532, 551, 11)}>
-                {t("Your Balance is insufficient")}
+                {body("Your Balance is insufficient")}
               </Txt>
             </Box>
           )}
@@ -1237,7 +1237,7 @@ function Form({
             className="flex flex-col"
           >
             <Txt center nudge={-5} size={11} mt={gapTo(574, 593, 11)}>
-              {t("Only the named person may receive the amount !")}
+              {body("Only the named person may receive the amount !")}
             </Txt>
           </Box>
         )}
@@ -1339,15 +1339,15 @@ function Scan({
   amount: string;
   onBack: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const top = TOP.scan;
-  const [lead, tail = ""] = t(
+  const [lead, tail = ""] = body(
     "Please read the code in front of you at the {brand} center, then receive the amount from the employee.",
   ).split("{brand}");
-  const stay = t(
+  const stay = body(
     "Do not leave the page or the center until you have confirmed that the transaction is complete.",
   );
-  const thanks = t("Thank you.");
+  const thanks = body("Thank you.");
   return (
     <>
       <Title top={top} mark={balance.mark} />
@@ -1377,7 +1377,7 @@ function Scan({
             color={C.card}
             mt={gapTo(500 + 25, 548, 11)}
           >
-            {t("Read the code on the opposite side to take action")}
+            {body("Read the code on the opposite side to take action")}
           </Txt>
         </Box>
 
@@ -1409,10 +1409,10 @@ function Scan({
           lines={[
             {
               x: 42.29,
-              text: "Please Read The Code In Front Of You At The trydos | rdb ",
+              text: "Please read the code in front of you at the trydos | rdb ",
               node: (
                 <>
-                  {"Please Read The Code In Front Of You At The "}
+                  {"Please read the code in front of you at the "}
                   <span className="font-bold">{WALLET_BRAND.start}</span>
                   {WALLET_BRAND.rest}
                   <span className="font-bold">{WALLET_BRAND.bank}</span>
@@ -1421,18 +1421,18 @@ function Scan({
             },
             {
               x: 50.33,
-              text: "Center, Then Receive The Amount From The Employee. ",
+              text: "center, then receive the amount from the employee. ",
             },
             { x: 0, text: "" },
             {
               x: 54.84,
-              text: "Do Not Leave The Page Or The Center Until You Have ",
+              text: "Do not leave the page or the center until you have ",
             },
-            { x: 79.81, text: "Confirmed That The Transaction Is Complete." },
+            { x: 79.81, text: "confirmed that the transaction is complete." },
             {
               x: 181.34,
-              text: "Thank You.",
-              node: <span className="font-medium">Thank You.</span>,
+              text: "Thank you.",
+              node: <span className="font-medium">Thank you.</span>,
             },
           ]}
           left={32}
@@ -1553,7 +1553,7 @@ function RecipientButton({
   onClick: () => void;
   testId: string;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <motion.button
       type="button"
@@ -1589,7 +1589,7 @@ function RecipientButton({
 
 /** The label of a filled field: the field's name in grey, "Edit" in blue. */
 function EditLabel({ field }: { field: string }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   const [before, after = ""] = t("Edit {field}").split("{field}");
   return (
     <Txt size={12} color={C.grey} as="label" style={{ whiteSpace: "pre" }}>
@@ -1630,7 +1630,7 @@ function Entry({
   children: React.ReactNode;
   testId: string;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   const saved = filled && !active;
   return (
     <Box

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoCase } from "../demoCase";
 import { C, WINDOW_COVER, fill, gapTo, lineBox, textBottom, top } from "../demo1Layout";
 import { Box, Icon, Layer, Ltr, Txt, fromCentre } from "../ui";
 import type { XdIconName } from "../../DemoApp/xdIcons";
@@ -39,7 +39,7 @@ export default function WalletReceipt({
   open: boolean;
   onClose: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   const receipt = WALLET_RECEIPT;
   return (
     <AnimatePresence>

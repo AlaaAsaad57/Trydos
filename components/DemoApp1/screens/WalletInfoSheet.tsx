@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoCase } from "../demoCase";
 import { useDemoData } from "../../DemoApp/DemoData";
 import {
   C,
@@ -82,7 +82,7 @@ export default function WalletInfoSheet({
   /** The balance the code is for. */
   balance: WalletBalance;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   const { profile } = useDemoData();
   /** Where the screen ends (design y). */
   const end = useCanvasEnd(open);

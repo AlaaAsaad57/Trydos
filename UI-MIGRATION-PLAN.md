@@ -813,8 +813,33 @@ card `components/setting/WalletLinkCard.tsx` (its sheet says "Under Development"
     cases are guards and were green before and after.
   - Checked in a browser at 440 x 802: `/sy-ar/demo/settings/wallet` and `/sy-en/...`, the balance screen, a grown
     card, the slide, Cash In, Cash Out, Wallet Info and the receipt. The `en` page is the same, pixel for pixel.
-- **5b.** After Stage 3 is merged: turn the wallet screen on in the shell's path table (S3-2), replace the old
-  `settings/wallet` page, keep the events below, and add the new e2e cases (see "Tests").
+- **5a merged** into `ui-migrations` on 2026-11-05 as `4623efe1` (owner's OK). Only the plan clashed (row A-28 →
+  A-36).
+- **5b — built on 2026-11-05, not committed yet (owner's review first).**
+  - Path: `settings/wallet` has a row in `appScreenPaths.ts`, so the screen mount draws `WalletScreen` there. The
+    page renders nothing and sends a guest to the login (`signedInScreenPage`, S4-4). The profile's wallet card
+    (S4-5) now opens the new screen.
+  - Deleted, no caller left (D-6): the old page body `components/settings/WalletTransactions.tsx` and its test.
+    Kept: `GetWalletTransactions` and `GetWalletBalanceToShow` in `services/order.ts`, because the later step that
+    replaces the mock uses them (see "Data"). Both have no caller now. The old translation keys stay.
+  - Events: nothing to move. `wallet_modal_opened`, `wallet_balance_refreshed` and GA `ADD_PAYMENT` fire in
+    checkout only (`PlaceOrderButtons.tsx`, `PaymentMethod.tsx`), and checkout keeps its old UI (D-35).
+  - English case (D-4, owner's answer 2026-11-05: the wallet screens only; the Stage 4 profile screens still show
+    every word with a capital). The six screens use `useDemoCase()`. Title style: headers, tabs, buttons, field
+    labels, receipt labels, note titles, card names, statuses. Sentence style (`body`): the paragraphs, the safety
+    rules and their notes, the warnings ("Your balance is insufficient", "Only the named person …"), the phone
+    placeholder, the cash-in summary lines, the code-sent lines, "Thank you | We are pleased to serve you". The
+    `FileLines` lines of the 12 sentence-style paragraphs are written in sentence style too; each was checked
+    against `sentenceStyle()`, so the file's line breaks stay in English.
+  - Claude's calls (check them): the rule follows `demoCase.ts` as written, so the history row "Cash in request"
+    shows "Cash in Request" (a short preposition stays small in the middle), and the card name keeps the XD
+    spelling "Amerikan Dollars" (mock data, A-17).
+  - Tests: `tests/app/settings/pages.test.tsx` checks the wallet page's guest guard with the other new screens. No
+    new test (owner's order, 2026-11-04). No test reads the English wallet words; the RTL test runs in `ar`.
+  - Checks on 2026-11-05: `next typegen` + `tsc` 0 errors, `eslint` on the changed files 0, i18n parity OK.
+  - **Left:** the XD check in `en` and `ar` at 440 x 802 on `/sy-en/settings/wallet` and `/sy-ar/settings/wallet`
+    (needs a signed-in shopper and a free dev server), with the Stage 4 Arabic address line (`placeParts.tsx`);
+    the full unit suite in CI; the owner's review; then the commit. E2E waits for Stage 8 (A-34).
 
 ### Data: the mock stays (A-17)
 No wallet backend works yet. So Stage 5 keeps `components/DemoApp/demoWallet.ts` and the design exactly as on

@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NumericKeypad } from "components/Login/Enhanced/ui/NumericKeypad";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
-import { useDemoNav } from "../Demo1Shell";
+import { useDemoCase } from "../demoCase";
 import { NATIVE_WALLET_KEYBOARD } from "../../DemoApp/demoKeyboard";
 import {
   C,
@@ -183,7 +183,7 @@ function Title({
   mark: XdIconName;
   medium?: boolean;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <SheetTitle
       top={top}
@@ -199,7 +199,7 @@ function Title({
 
 /** The line under the title on the crypto steps: "Via Crypto", 24 Bold on baseline 180. */
 function ViaCrypto() {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <Txt
       center
@@ -380,7 +380,7 @@ function Ways({
   onRdb: () => void;
   onCrypto: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const narrow = useNarrow();
   const top = TOP.ways;
   return (
@@ -388,12 +388,12 @@ function Ways({
       <Title top={top} mark={mark} medium />
       <Under testId="demo-wallet-cash-in-ways-under">
         <FileLines
-          text={t(
+          text={body(
             "You can add funds to an account through the following options easily and securely.",
           )}
           lines={fileLines(narrow, [
-            { x: 61.11, text: "You Can Add Funds To An Account Through The " },
-            { x: 92.1, text: "Following Options Easily And Securely." },
+            { x: 61.11, text: "You can add funds to an account through the " },
+            { x: 92.1, text: "following options easily and securely." },
           ])}
           left={32}
           ml={32}
@@ -525,23 +525,23 @@ function Ways({
             mt={gapTo(691, 714, 11)}
           />
           <FileLines
-            text={t(
+            text={body(
               "You can deposit your funds with complete ease through one of our Trydos & RDB centers. You can also deposit your funds into your personal account on RDB. Additionally, any person or another account can add funds to your account.",
             )}
             lines={fileLines(narrow, [
               {
                 x: 38,
-                text: "You Can Deposit Your Funds With Complete Ease Through One Of Our ",
+                text: "You can deposit your funds with complete ease through one of our ",
               },
               {
                 x: 49.79,
-                text: "Trydos & RDB Centers. You Can Also Deposit Your Funds Into Your ",
+                text: "Trydos & RDB centers. You can also deposit your funds into your ",
               },
               {
                 x: 34.93,
-                text: "Personal Account On RDB. Additionally, Any Person Or Another Account ",
+                text: "personal account on RDB. Additionally, any person or another account ",
               },
-              { x: 133.04, text: "Can Add Funds To Your Account." },
+              { x: 133.04, text: "can add funds to your account." },
             ])}
             left={32}
             ml={32 - 20}
@@ -625,7 +625,7 @@ function Actions({
   onAct: (id: Action["id"]) => void;
   testId: string;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <div
       className="flex items-start shrink-0"
@@ -672,7 +672,7 @@ function Actions({
 
 /** "trydos Deposit USD", 16 px: "try" Bold, "dos" Regular, the rest Medium. */
 function DepositLine({ mt, balance }: { mt: number; balance: WalletBalance }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     // The file starts the line at x 141: half a px left of centre.
     <Txt center nudge={-0.5} size={16} mt={mt} style={{ whiteSpace: "pre" }}>
@@ -696,7 +696,7 @@ function ClientFields({
   eye: boolean;
   testId: string;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <>
       <InfoField
@@ -754,7 +754,7 @@ function Rdb({
   /** The app's keypad went up or away. */
   onKeypad: (open: boolean) => void;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   const [tab, setTab] = useState<"cash" | "bank">("cash");
   const [amount, setAmount] = useState("");
   const fromBank = tab === "bank";
@@ -914,7 +914,7 @@ function Rdb({
  *   - the note, 390 x 90 at (20, 805), with a line ON its edge.
  */
 function DepositPicture({ balance }: { balance: WalletBalance }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   return (
     <>
       <Icon
@@ -932,7 +932,7 @@ function DepositPicture({ balance }: { balance: WalletBalance }) {
       <Note mt={805 - (738 + 55)} testId="demo-wallet-cash-in-deposit-note">
         <NoteTitle>{t("Your deposit request ready to collect !")}</NoteTitle>
         <NoteText>
-          {`${t(
+          {`${body(
             "Present this code along with your personal ID at any of our branches and pay the amount in complete security.",
           )} `}
           <ThankYou />
@@ -1018,12 +1018,12 @@ function NoteText({ children }: { children: React.ReactNode }) {
 
 /** "Thank You | We Are Pleased To Serve You." — the two parts Medium. */
 function ThankYou() {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   return (
     <>
-      <span className="font-medium">{t("Thank you")}</span>
+      <span className="font-medium">{body("Thank you")}</span>
       {" | "}
-      <span className="font-medium">{t("we are pleased to serve you")}</span>.
+      <span className="font-medium">{body("we are pleased to serve you")}</span>.
     </>
   );
 }
@@ -1098,7 +1098,7 @@ function AmountField({
   useEffect(() => () => onKeypad(false), []);
   const keys = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
 
   // With a keyboard, the field the file shows in use takes the typing.
   useEffect(() => {
@@ -1272,7 +1272,7 @@ function Crypto({
   typing: boolean;
   onKeypad: (open: boolean) => void;
 }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const narrow = useNarrow();
   const typed = toNumber(amount) > 0;
   const fee = charge(amount);
@@ -1343,7 +1343,7 @@ function Crypto({
                 }
               >
                 <Slots
-                  text={t(
+                  text={body(
                     "We will charge {charge} {coin} for topping up your balance {amount} {code}.",
                   )}
                   slots={{
@@ -1397,7 +1397,7 @@ function Crypto({
                   style={wrap(narrow)}
                 >
                   <Slots
-                    text={t(
+                    text={body(
                       "You will pay {charge} {network} to generated wallet",
                     )}
                     slots={{ charge: fee, network: NETWORK }}
@@ -1409,7 +1409,7 @@ function Crypto({
                   style={wrap(narrow)}
                 >
                   <Slots
-                    text={t(
+                    text={body(
                       "We will send to your Trydos balance {amount} {code}",
                     )}
                     slots={{
@@ -1494,16 +1494,16 @@ const RULES: {
         text: "The entire amount must be sent at once or in parts according to the specified period.",
         ok: true,
         lines: [
-          "The Entire Amount Must Be Sent At Once Or In Parts According To The ",
-          "Specified Period.",
+          "The entire amount must be sent at once or in parts according to the ",
+          "specified period.",
         ],
       },
       {
         text: "You can send the amount from different addresses on the same network and the same selected currency.",
         ok: true,
         lines: [
-          "You Can Send The Amount From Different Addresses On The Same ",
-          "Network And The Same Selected Currency.",
+          "You can send the amount from different addresses on the same ",
+          "network and the same selected currency.",
         ],
       },
     ],
@@ -1516,16 +1516,16 @@ const RULES: {
         text: "The transaction must be sent in the same currency selected, otherwise the transaction will be suspended.",
         ok: false,
         lines: [
-          "The Transaction Must Be Sent In The Same Currency Selected, ",
-          "Otherwise The Transaction Will Be Suspended.",
+          "The transaction must be sent in the same currency selected, ",
+          "otherwise the transaction will be suspended.",
         ],
       },
       {
         text: "However, if the transaction was made by mistake, contact customer support to start the refund process.",
         ok: true,
         lines: [
-          "However, If The Transaction Was Made By Mistake, Contact Customer ",
-          "Support To Start The Refund Process.",
+          "However, if the transaction was made by mistake, contact customer ",
+          "support to start the refund process.",
         ],
       },
     ],
@@ -1538,8 +1538,8 @@ const RULES: {
         text: "After the expiry of the period, the transaction will be suspended. Contact customer support.",
         ok: false,
         lines: [
-          "After The Expiry Of The Period, The Transaction Will Be Suspended. ",
-          "Contact Customer Support.",
+          "After the expiry of the period, the transaction will be suspended. ",
+          "Contact customer support.",
         ],
       },
     ],
@@ -1552,16 +1552,16 @@ const RULES: {
         text: "The address used is temporary and does not mean that the current address is specific to you.",
         ok: false,
         lines: [
-          "The Address Used Is Temporary And Does Not Mean That The Current ",
-          "Address Is Specific To You.",
+          "The address used is temporary and does not mean that the current ",
+          "address is specific to you.",
         ],
       },
       {
         text: "However, if the transaction was made by mistake, contact customer support to start the refund process.",
         ok: true,
         lines: [
-          "However, If The Transaction Was Made By Mistake, Contact Customer ",
-          "Support To Start The Refund Process.",
+          "However, if the transaction was made by mistake, contact customer ",
+          "support to start the refund process.",
         ],
       },
     ],
@@ -1593,7 +1593,7 @@ function Safe({
   onAgree: () => void;
   onCancel: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const narrow = useNarrow();
   const first = sfTop(389, 12, 18);
   return (
@@ -1653,7 +1653,7 @@ function Safe({
                     marginInlineStart: (i === 0 ? 40 : 42) - (20 + 14),
                   }}
                 >
-                  {t(item.rule)}
+                  {body(item.rule)}
                 </span>
               </div>
               {item.notes.map((note, n) => {
@@ -1668,7 +1668,7 @@ function Safe({
                       <Bullet big={false} ok={note.ok} />
                     </div>
                     <FileLines
-                      text={t(note.text)}
+                      text={body(note.text)}
                       lines={fileLines(
                         narrow,
                         note.lines.map((line) => ({ x, text: line })),
@@ -1770,7 +1770,7 @@ function NetworkTag({ mt }: { mt: number }) {
  * The row keeps the file's distance from the screen's centre.
  */
 function DepositRow({ mt, amount }: { mt: number; amount: string }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <div
       className="flex items-start shrink-0"
@@ -1802,7 +1802,7 @@ function DepositRow({ mt, amount }: { mt: number; amount: string }) {
  * screen it starts 20 px in, and the words wrap 20 px before the right edge.
  */
 function ScanRow({ mt }: { mt: number }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const narrow = useNarrow();
   return (
     <div
@@ -1825,7 +1825,7 @@ function ScanRow({ mt }: { mt: number }) {
             : undefined
         }
       >
-        {t("Scan QR code from your wallet & pay to start processing")}
+        {body("Scan QR code from your wallet & pay to start processing")}
       </Txt>
     </div>
   );
@@ -1838,22 +1838,22 @@ function ScanRow({ mt }: { mt: number }) {
  * keep 40 px to both edges of the screen; the expiry row stays centred.
  */
 function Expiry({ mt, first }: { mt: number; first: number }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const narrow = useNarrow();
   const paraY = sfTop(first, 12, 18);
   const rowY = sfTop(first + 43, 12, 18);
   return (
     <>
       <FileLines
-        text={t(
+        text={body(
           "After the specified period has expired, do not transfer any amount. Request a new QR code.",
         )}
         lines={fileLines(narrow, [
           {
             x: 43.28,
-            text: "After The Specified Period Has Expired, Do Not Transfer Any Amount. ",
+            text: "After the specified period has expired, do not transfer any amount. ",
           },
-          { x: 150.73, text: "Request A New QR Code." },
+          { x: 150.73, text: "Request a new QR code." },
         ])}
         left={40}
         ml={40}
@@ -1917,7 +1917,7 @@ function CryptoCode({
   /** "Download": on to the picture of the code (`– 38`). */
   onPicture: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   const [left, setLeft] = useState<number>(WALLET_CRYPTO.seconds);
 
   useEffect(() => {
@@ -1955,7 +1955,7 @@ function CryptoCode({
             style={{ whiteSpace: "pre" }}
           >
             <Slots
-              text={t("Within {time} minutes")}
+              text={body("Within {time} minutes")}
               slots={{ time: <span className="font-bold">{clock(left)}</span> }}
             />
           </Txt>
@@ -1969,7 +1969,7 @@ function CryptoCode({
           color={C.inkSoft}
           mt={gapTo(666 + 15, 713, 12)}
         >
-          {t("Or try direct link to")}
+          {body("Or try direct link to")}
         </Txt>
         {/* x 140 to 290 in the file: centred on the screen. */}
         <div
@@ -2033,7 +2033,7 @@ function CryptoCode({
  *   - the note, 390 x 90 at (20, 805).
  */
 function CryptoPicture({ amount }: { amount: string }) {
-  const { t } = useDemoNav();
+  const { t, body } = useDemoCase();
   return (
     <>
       <NetworkTag mt={165 - textBottom(132, 24)} />
@@ -2053,7 +2053,7 @@ function CryptoPicture({ amount }: { amount: string }) {
           {t("The wallet above is linked to a payment to a specific account !")}
         </NoteTitle>
         <NoteText>
-          {`${t(
+          {`${body(
             "So once the payment is completed, the balance will be added automatically. It is considered a one-time-use wallet only",
           )} `}
           <ThankYou />

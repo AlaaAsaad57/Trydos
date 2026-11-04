@@ -15,8 +15,8 @@ import type { DemoScreen, DemoStaticScreen } from "../DemoApp/demoRoutes";
  *     screen, not the page). The page may still redirect, for example a
  *     guest to the login (S4-4).
  *
- * Only exact paths match. A screen with no row here (for example the wallet
- * before Stage 5) still has a URL: appHrefFor gives its old path.
+ * Only exact paths match. A screen with no row here (for example the chat
+ * before Stage 6) still has a URL: appHrefFor gives its old path.
  */
 export type AppScreenRow = { path: string; screen: DemoStaticScreen };
 
@@ -32,6 +32,8 @@ export const APP_SCREENS: readonly AppScreenRow[] = [
   { path: "settings/profile/client-info", screen: "settings/profile/client-info" },
   { path: "settings/client-id", screen: "settings/client-id" },
   { path: "settings/preferences", screen: "settings/preferences" },
+  // Wallet (Stage 5). The screen keeps its mock data (A-17).
+  { path: "settings/wallet", screen: "settings/wallet" },
 ];
 
 /** The path without the locale part, without slashes at the ends. */

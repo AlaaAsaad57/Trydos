@@ -3,6 +3,7 @@
 import React, { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useDemoNav } from "../Demo1Shell";
+import { useDemoCase } from "../demoCase";
 import { C, DESIGN_W, fill, gapTo, textBottom } from "../demo1Layout";
 import { Box, Icon, Ltr, ScreenHeader, ScreenPage, Txt } from "../ui";
 import { type PageDir, usePageDir } from "../rtl";
@@ -116,7 +117,8 @@ const CARD_SHADOW =
 const AMOUNT_SHADOW = "0 3px 3px rgba(0, 0, 0, 0.5)";
 
 export default function WalletScreen() {
-  const { t, back } = useDemoNav();
+  const { back } = useDemoNav();
+  const { t } = useDemoCase();
   /** The grown card's place in the row, or null for the two cards side by side (`Home Page – 11`). */
   const [grown, setGrown] = useState<number | null>(null);
   const [cashIn, setCashIn] = useState(false);
@@ -330,7 +332,7 @@ function BalanceCard({
   onCashOut: () => void;
   onInfo: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   return (
     <motion.div
       data-pw={`demo-wallet-card-${balance.currency}`}
@@ -487,7 +489,7 @@ function EntryRow({
   /** Opens the entry's receipt. */
   onOpen?: () => void;
 }) {
-  const { t } = useDemoNav();
+  const { t } = useDemoCase();
   const ink = entry.muted ? C.grey : C.ink;
   return (
     <Box

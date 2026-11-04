@@ -1,7 +1,8 @@
 // The settings route pages (server components) and the settings template.
 // Each old page reads the locale, maybe the stored profile, and hands both to
 // one settings component, stubbed here. The pages of the new profile screens
-// (Stage 4) render nothing: they only send a guest to the login.
+// (Stage 4) and the wallet (Stage 5) render nothing: they only send a guest to
+// the login.
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -46,7 +47,6 @@ const stubbed = [
   "components/setting/orders/OrdersView",
   "components/setting/orders/OrderDetailsWrapper",
   "components/global/Setting",
-  "components/settings/WalletTransactions",
   "components/global/InitialNavigation",
 ];
 for (const path of stubbed) {
@@ -91,8 +91,8 @@ describe("the settings home page", () => {
 
 });
 
-// The paths of the new profile screens (S4-1, S4-3). The screen mount draws
-// the screen; the page only checks the shopper (S4-4).
+// The paths of the new profile screens (S4-1, S4-3) and the wallet (Stage 5).
+// The screen mount draws the screen; the page only checks the shopper (S4-4).
 const SCREEN_PAGES = [
   ["page", "settings"],
   ["profile/page", "settings/profile"],
@@ -104,9 +104,10 @@ const SCREEN_PAGES = [
   ["profile/client-info/page", "settings/profile/client-info"],
   ["client-id/page", "settings/client-id"],
   ["preferences/page", "settings/preferences"],
+  ["wallet/page", "settings/wallet"],
 ] as const;
 
-describe("the pages of the new profile screens", () => {
+describe("the pages of the new screens", () => {
   it.each(SCREEN_PAGES)(
     "%s sends a guest to the login, with the way back",
     async (file, path) => {
@@ -153,7 +154,6 @@ describe("the other settings pages", () => {
     ["checklist/page", "components/setting/checklist/ChecklistView", { isRtl: false, language: "en", local: "sy-en" }],
     ["countries/page", "components/settings/PersonalInfoCountries", { isRtl: false, local: "sy-en" }],
     ["prefferences/page", "components/global/Setting", { lang: "sy-en" }],
-    ["wallet/page", "components/settings/WalletTransactions", { isRtl: false, local: "sy-en" }],
   ])("%s hands the locale and profile to its component", async (path, component, expected) => {
     const { default: Page } = await load(path);
 
@@ -166,7 +166,6 @@ describe("the other settings pages", () => {
     ["checklist/page", "components/setting/checklist/ChecklistView"],
     ["countries/page", "components/settings/PersonalInfoCountries"],
     ["prefferences/page", "components/setting/BackBar"],
-    ["wallet/page", "components/settings/WalletTransactions"],
   ])("%s faces right-to-left in Arabic", async (path, component) => {
     spies.lang.current = "iq-ar";
     spies.profile.current = { name: "Sara" };
