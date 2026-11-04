@@ -10,7 +10,7 @@
 //      first — the same call a tap on a quote uses.
 // The chat shows only when both are in the store. Then the conversation
 // scrolls to the message and flashes it (`jumpToMessageId`).
-import { openChatFromList } from "components/Chat/components/ChatSearchResults";
+import { openChatFromList } from "components/Chat/openChatFromList";
 import { findChat } from "components/Chat/findChat";
 import { getMessagesBetweenTwoMessages } from "store/chat/actions";
 import { showErrorNotification } from "store/notifications/reducer";

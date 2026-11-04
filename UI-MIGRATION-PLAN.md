@@ -882,9 +882,10 @@ as they are (`orders`, `payment`, `shipping`, `question`, `important`). CH-3 nee
 | S6-6 | Stories row in the chat (D-36b) | **Dropped (owner, 2026-11-05).** The chat has no stories row; stories stay on the home page. |
 | S6-5 | Provider place | `ChatDataProvider` sits around the screen frame in lane A's `AppScreens.tsx`, on only for a chat screen. Lane A was told. |
 
-### Where Stage 6 stopped (2026-11-04) — waiting for the CI run and the owner's review
+### Where Stage 6 stopped (2026-11-05) — waiting for the second CI run and the owner's review
 
-Steps 1 to 11 and the local end checks are done and committed on `ui-migrations-chat` (local, not pushed).
+Steps 1 to 11 and the local end checks are done and committed on `ui-migrations-chat` (pushed with the
+owner's OK).
 `ui-migrations` was merged in at `7d281d7e` (lane A's mount). Commits after step 4: `8af1ce69` (5),
 `4c2da8a6` + `dc2f2204` (6), `9ac0883c` (7), `56d5c263` (8), `3b4e54df` (9), `c59ef5d9` (10, 11),
 `c41bd69b` (11, removals), `bfb1807b` (fix from the XD check).
@@ -928,20 +929,28 @@ Lane files touched (tell the lanes at merge): `components/Home/AuthSections.tsx`
 `utils/tinyUtils.tsx` (`DetectScreen`), `utils/NotificationHandler.ts`, `public/firebase-messaging-sw.js`,
 `components/DemoApp/demoKeys.ts` (chat words).
 
-Unit tests that may now fail (not run, owner's order; the CI run will say):
-- `tests/components/Home/AuthSections.test.tsx` — "shows the chat and call loaders when each is open"
-  (both loaders are gone); its mocks name removed files.
-- `tests/components/setting/orders/OrderDetailsWrapper.test.tsx` — mocks the removed `ChatWidget`.
-- `tests/public/firebaseMessagingSw*.test.ts` — if a case expects `BASE_ORIGIN` as a chat push's link.
-- `tests/components/DemoApp/demoChatModel.test.ts`, `tests/components/DemoApp1/chat/*` — the seed now sets
-  each row's preview and time, and `ChatState` has `calls`, `counts`, `me`.
-- The 3 chat search tests red since `2f42f4e7` were removed with their components.
+CI run 1 (`41912147345`, 2026-11-05): parity, lint, typegen and tsc passed; unit tests 6 files failed,
+636 passed.
+- 3 files did not load: `tests/app/layout.test.tsx`, `tests/components/DemoApp1/AppScreens.test.tsx`,
+  `tests/components/DemoApp1/chat/ChatDataProvider.test.tsx`. Cause (app code): `openMessageInChat.ts`
+  imported `openChatFromList` through `ChatSearchResults.tsx`, which pulled in `TypingIndicator.js` (JSX in a
+  `.js` file; Vitest cannot parse it). Fixed: the import reads `components/Chat/openChatFromList`. After the
+  fix, 7 more old files had no caller (`chatSearch.ts`, `ChatItem`, `ChatOptions`, `ChatSearchResults`,
+  `LastMessageBody`, `SearchResult`, `TypingIndicator.js`); removed with their 4 unit tests (D-6).
+- Broken tests, kept as they are (owner's order: no test changes in this stage):
+  - `tests/components/Home/AuthSections.test.tsx` — "shows the chat and call loaders when each is open":
+    both loaders are gone on purpose (step 5, step 11).
+  - `tests/components/setting/orders/OrderDetailsWrapper.test.tsx` — "the delivery chat > offers the chat
+    for a pack out for delivery …": looks for the removed `ChatWidget` (`chat-widget`); the order page now
+    opens the new conversation.
+  - `tests/utils/imageFallback.test.ts` — "keeps the handler on the local country flag … (AC-4)": reads
+    `components/Chat/components/ChatContactsUpload.tsx`, removed in step 11 (no caller).
 - Coverage lost with the removed tests: `mergeContacts` (now in `contactsSync.ts`).
 
 Left:
 - (The stories row was dropped by the owner: S6-6.)
 - The real chat checked in a browser by a signed-in shopper (calls, push links, order chat, gates).
-- Step 13 in CI: `gh workflow run Tests --ref ui-migrations-chat` needs the branch pushed (owner's OK).
+- Step 13 in CI: run 2 after the fix above; only the 3 broken tests above should stay red.
 - Then the owner's review, then the merge into `ui-migrations` (owner's OK). The e2e cases wait for Stage 8
   (A-34).
 
