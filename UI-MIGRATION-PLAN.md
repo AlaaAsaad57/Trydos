@@ -4,6 +4,8 @@
 parallel on `ui-migrations-shell` (A-18). Next here: Stage 4, after Stage 3 is merged.
 **Paused on 2026-10-29:** Stage 3 Task 9 is pushed on `ui-migrations-shell` (`b2d23e37`), not merged yet. The
 resume list is in that branch's plan, Stage 3, "Where Stage 3 stopped (2026-10-29) — continue here".
+**Added on 2026-11-04:** the new store page and product page join lane A as Stages 7b and 7c (A-31..A-33).
+D-45 (the "add to cart" bar) waits for the designer.
 **Still open:** D-24 ("Web" / "lock" switches: designer / product), D-30 (place levels: backend). Neither
 blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no wallet backend works yet.
 **Written:** 2026-10-28, from a read-only scan of the code.
@@ -18,7 +20,7 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | A-3 | Tests | `/demo` and `/loginDemo` screens are now in test scope (unit + e2e). |
 | A-4 | Pages with no new design | They keep the old UI and must keep working. |
 | A-5 | Process | We do not use the `wf` workflow. One stage = one session. Claude asks; it never decides. |
-| A-6 | Stage order | Two lanes after Stage 1 (changed on 2026-10-28). Stage 1 finishes first. Then lane A runs 3 → 4 → 5 → 7 and lane B runs 2 → 6, at the same time. Stage 8 starts when both lanes are done. See "Lanes" under "Stages". |
+| A-6 | Stage order | Two lanes after Stage 1 (changed on 2026-10-28). Stage 1 finishes first. Then lane A runs 3 → 4 → 5 → 7 → 7b → 7c (7b and 7c added on 2026-11-04, A-31) and lane B runs 2 → 6, at the same time. Stage 8 starts when both lanes are done. See "Lanes" under "Stages". |
 | A-7 | Design is complete | **Never remove or hide any part of the demo design.** Every screen, sheet, button and row ships. |
 | A-8 | No backend yet | The screen opens as designed. Fields with a real source show real data. Fields with no source show empty or a placeholder. The final action (submit, request, send) shows "Soon available". **No mock data and no fake success reach production** (no fake balances, no "any 6 digits pass"). This replaces D-5. **One exception: the wallet (A-17).** |
 | A-9 | New design first | The new design has priority. Claude does not change, add or keep anything you did not ask for. When an old feature has no place in the design and no answer from you, Claude asks. |
@@ -43,6 +45,9 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | A-28 | Checkout QR | **Decided on 2026-10-28.** The checkout's Get Started screen keeps its QR button (A-7: no part of the design is hidden). A tap opens the QR sheet with "Soon available" (A-23), with the same two events the login page sends (`login_start` method `qr`, `screen_view` QR screen). |
 | A-29 | Login icons and brand | **Decided on 2026-10-28.** The 15 icon `alt` texts of the login screens are empty (`alt=""`): each icon sits in a button that already has a translated label, or next to text that says the same. The brand name "Trydos" in the terms line is translated with the key that already exists (`Trydos`). |
 | A-30 | Number boxes in RTL | **Decided on 2026-10-28.** On `ar` / `ku` pages the phone box (`RdbPhoneInput`) and the code boxes (`RdbPinInputs`) stay left to right, as the drawn keyboard does: flag and number on the left, the send arrow on the right, the first code digit in the left box. Every number the screens show stays left to right too, so its groups never come out in reverse order. The text around them mirrors. |
+| A-31 | Store and product pages | **Decided on 2026-11-04.** The store page (XD `Home Page – 47`, its colour sheet `– 54`) and the product page (`– 49`) were built on `development` from 2026-11-02 to 2026-11-04 and reached this branch with merge `0315f822`. They replace the old listing and product pages. They join lane A after Stage 7: **Stage 7b** = store page, **Stage 7c** = product page. Home opens a store and a store opens a product, so the order follows the shopper's path. |
+| A-32 | Store design for every listing | **Decided on 2026-11-04.** Every product listing uses the store page design: the boutique pages (`/filters/boutiques/<slug>`, with their `/categories/<slug>` sub-path), every other `/filters/...` page (category, brand and filter results), search results, `/flashDeals/...` and `/featured/...`. |
+| A-33 | Product parts with no design | **Decided on 2026-11-04.** The product page shows the design only. A live part with no place in the design is not shown, but its code is **kept, not deleted** — an exception to D-6, because the design may get a place for it later. Which live part maps to which design block is listed in Stage 7c. The size choice and the "add to cart" bar wait for D-45. |
 | D-1 | Merge | Once, at the end (after Stage 8). Every stage stays on `ui-migrations`. |
 | D-2 | Desktop | The 500 px centred column is OK on desktop. No desktop design work. |
 | D-3 | RTL | Mirror everything for `ar` / `ku`: layout, slide direction, tab order, margins. |
@@ -89,6 +94,7 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | D-42 | SEO | Keep all SEO: metadata (`GetHomeMetaData`), structured data, sitemaps, `robots.ts`. The old home sections give the product links. An `h1` must stay on the home page. |
 | D-43 | Home chips | The chips are the real main categories from Elasticsearch (as today's `MainCategoriesNavbar`). A tap opens the category page (old listing UI). |
 | D-44 | Search | All old search logic inside the new search UI: history, trending, suggestions, results (old result design under the new input), filters, Gemini analyzer, `logSearchTerm`. Voice = old voice search. Scan = old image search. "For you" chips follow A-8 (backend S-2). |
+| D-45 | "Add to cart" bar | **Open (designer), 2026-11-04.** The product page design (`– 49`) has no size choice and no "add to cart" button. The owner said the designer will send an "add to cart" bar design. Stage 7c builds the buy part from that design when it comes, and does not plan it before. Note: the old listing and result design named in D-43 and D-44 is only until Stage 7b, which moves every listing to the store page design (A-32). |
 
 ## The main facts the scan found
 
@@ -130,6 +136,8 @@ The order puts the work that does not depend on other work first, and the riskie
 | 5 | 1–2 | Wallet | It has the most backend gaps. |
 | 6 | 2–3 | Chat | It is the biggest stage (77 old files, real-time, calls). |
 | 7 | 1–2 | Home + search | Highest risk: SEO, Elasticsearch, cache, every visitor. |
+| 7b | 1–2 | Store page for every product listing (A-32) | Home opens it. Same Elasticsearch, cache and SEO work as Stage 7. |
+| 7c | 2 | Product page (A-33; buy part waits for D-45) | The store opens it. SEO page of every product, and the buy flow starts here. |
 | 8 | 1 | Full regression, designer sign-off, merge | Last check before `development`. |
 
 Each stage ends with: `pnpm lint`, `pnpm lint:i18n-parity`, typecheck, `pnpm test:run`, the e2e specs of
@@ -140,7 +148,7 @@ committed or merged without your OK.
 
 | Lane | Stages | Why |
 |---|---|---|
-| A | 3 → 4 → 5 → 7 | Profile, wallet and home need the shell and the real routes from Stage 3. Stages 4 and 5 do not overlap, because both change `WalletLinkCard` and the wallet balance on the profile. Stage 7 has the highest risk, so it comes last. |
+| A | 3 → 4 → 5 → 7 → 7b → 7c | Profile, wallet and home need the shell and the real routes from Stage 3. Stages 4 and 5 do not overlap, because both change `WalletLinkCard` and the wallet balance on the profile. Stage 7 has the highest risk, so it comes after them. Stages 7b and 7c (A-31) follow the shopper's path from home: home → store → product. |
 | B | 2 → 6 | Login is independent of the shell. Chat uses its own files (`components/DemoApp1/chat/*`, `store/chat/*`, `services/chat.ts`), and it is the biggest stage. |
 
 Rules for the two lanes:
@@ -663,12 +671,108 @@ input searches nothing (line 145), Voice and Scan have no action (lines 214, 222
 
 ---
 
+## Stage 7b — store page for every product listing (added on 2026-11-04, A-31, A-32)
+
+**New:** `components/DemoApp1/screens/ListingScreen.tsx` (XD `Home Page – 47`), `ListingColorSheet.tsx`
+(`– 54`), `ListingParts.tsx`. **Demo route:** `/[lang]/demo/store/<slug>`.
+**Live:** `app/(client)/[lang]/filters/[[...filters]]/page.tsx` → `components/Listing/FiltersPageContent.tsx`;
+also `/flashDeals/[[...filters]]`, `/featured/[[...filters]]` and the search result pages.
+**Data today:** mock stores and products (`components/DemoApp/demoStores.ts`, `demoProduct.ts`).
+
+### Live code to link (design block → live code)
+| Design block | Live code |
+|---|---|
+| Header: back, store logo | `FilterListingBackButton`, `BoutiqueMiniLogo`, `BoutiqueLogoCollapse`, `ListingHeaderCollapse` |
+| Header marks: search, sort, filter, share | `ListingSearchContainer`, `ListingSortControl`, `FilterWidgetServer` + `FilterListContainer` (old filter UI, A-4), `ListingShareControl` |
+| Banner ("Shop … Collection Now !") | The boutique of the page; on a page with no boutique (category, filter, search): ask the owner at stage start |
+| Category slider | `ListingBoutiqueSlider` (the boutique's categories) |
+| Product cards, colour picker, colour sheet | `ProductListConainer` (Elasticsearch `getProductsAndFiltersFromElastic`, paging), card colours (`colorImageGroups`) |
+| Card add button | Follows D-45 (the "add to cart" bar), not before |
+
+### Must keep
+- SEO: `generateMetadataForListing`, `ListingBreadcrumbList` JSON-LD, `buildSearchRedirectTarget` redirects,
+  the sitemaps of boutiques and search.
+- The listing's price sort rule (see `listing-price-sort-mismatch`: the sort uses the root price, the card
+  shows the country price; no fix in this stage).
+- Old-only pieces with no design (the filter sheet itself, sort options) stay old UI (A-4).
+
+### RTL (A-13, A-14, A-15)
+The store page was built on `development` with no RTL. Convert its physical styles, mirror the back mark, and
+mirror the category slider and the card rows.
+
+### Mocks to remove
+`demoStores.ts` / `demoProduct.ts` in shipping code (A-16), the fixed store list, the fixed colours, "the
+sort, filter and share marks do nothing yet" (`ListingScreen.tsx` lines 85-86).
+
+### Events to keep
+`view_item_list`, `apply_filter`, `search`, `share_content`, `like_item`.
+
+### Tests to update
+- **e2e:** `actions/listing.ts`, `guest.live.spec.ts` (listing cases), `compare.live.spec.ts`,
+  `wishlist-signed-in.live.spec.ts`, `selectors.ts`.
+- **Unit:** `tests/components/Listing/*`, `tests/components/products/ProductCard`.
+
+---
+
+## Stage 7c — product page (added on 2026-11-04, A-31, A-33)
+
+**New:** `components/DemoApp1/screens/ProductScreen.tsx` (XD `Home Page – 49`), `LikeHeart.tsx`.
+**Demo route:** `/[lang]/demo/store/<slug>/<product>`.
+**Live:** `app/(client)/[lang]/products/[productId]/page.tsx` → `components/Product/ProductPageContent.tsx`;
+also the quick view `app/(client)/[lang]/@modal/(.)products/[productId]`. The URL `/products/<slug>` stays.
+
+### Live parts (A-33: a part with no design block is hidden, its code is kept)
+| Design block | Live part |
+|---|---|
+| Gallery, video card | `ProductPhotoSliderWrapper`, `ProductVideosWrapper` |
+| Logo, name, heart, text | `ProductNameAndBrand`, `LikeButtton`, `ProductDetailsTextWrapper` |
+| Rating row, recommend / size votes | `ProductRating`, `ProductSizeReviews` |
+| Price and shipping pills | `ProductPricesWrapper`, `FreeShippingOption`, `FreeReturnBadge`, `ProductExpectedDeleiveryWrapper` |
+| Colours | `ProductColorsWrapper` |
+| "Product information" | `ProductGeneralPropertiesWrapper`, `ProductFeaturesWrapper`, `ProductDescriptorsWrapper` — check at stage start which of them the list shows |
+| Reviews | `ProductBuyersCommentsWrapper` |
+| Questions | `ProductFaqSectionWrapper` |
+| "Start Chat about this product" | the chat with the seller (Stage 6) |
+| No block (hidden, code kept) | `ProductStoriesWrapper`, `RelatedProductsSection`, `ProductExtendedSliderWrapper`, try-on, compare, share options |
+| Size choice, "add to cart" | Waits for D-45 |
+
+The mapping above is from a code read on 2026-11-04. Check each row against the board at stage start, and ask
+the owner about any row that does not fit.
+
+### Must keep
+- SEO: `generateMetadata` in the page, and the product JSON-LD (`ProductStructuredData`). **The JSON-LD is
+  rendered inside `ProductFooter` today**, so it must move out before the old footer stops showing.
+- The quick view (`@modal`) and the hard-navigation page must show the same screen.
+- The redirect of an old slug (a real 307, see `next16-streaming-metadata-redirect`).
+
+### RTL (A-13, A-14, A-15)
+Built with no RTL on `development`: convert physical styles, mirror the back mark, the gallery and the rows
+that scroll sideways.
+
+### Mocks to remove
+`demoProduct.ts` and the fixed reviews, questions, votes and shipping dates in `ProductScreen.tsx` (A-16).
+
+### Events to keep
+`view_item`, `view_time_product`, `view_image`, `zoom_image`, `view_comments`, `read_more_about_product`,
+`like_item`, `add_product_to_favorites`, `change_color`, `view_story` (hidden part: keep the code),
+and after D-45: `change_size`, `add_to_cart`.
+
+### Tests to update
+- **e2e:** `actions/productComments.ts`, `actions/productRating.ts`, `actions/qaProduct.ts`,
+  `comments.live.spec.ts`, `orderRating.live.spec.ts`, `qaLock.live.spec.ts`, the buy flow (BUY-01, after
+  D-45), `selectors.ts`.
+- **Unit:** `tests/components/Product/*`, `tests/components/products/*`, `tests/components/Server/product/*`.
+  A test of a hidden part stays (its code stays, A-33).
+
+---
+
 ## Stage 8 — regression, sign-off, merge
 
 1. Run every suite: `pnpm lint`, `pnpm lint:i18n-parity`, typecheck, `pnpm test:run`, `pnpm e2e:health`, then
    the full browser suite (`gh workflow run E2E --ref ui-migrations`, one run at a time).
-2. Check every old page that keeps the old UI: product, listing, filters, cart, checkout, orders, seller
-   pages, seller dashboard, compare, flash deals, featured, about, terms, privacy, contact.
+2. Check every old page that keeps the old UI: cart, checkout, orders, seller pages, seller dashboard,
+   compare, about, terms, privacy, contact. (Product, listing, filters, flash deals and featured moved to the
+   new design in Stages 7b and 7c.)
 3. Designer pass on every new screen in `en` and `ar`, at 440 x 802 and on desktop.
 4. Check `docs/posthog-events.md` against the events in code.
 5. Merge into `development` (after D-1), only with your OK.
