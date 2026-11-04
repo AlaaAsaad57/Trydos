@@ -18,12 +18,15 @@ import {
   type Category,
   type FileMessage as FileMessageData,
   type LocationMessage as LocationMessageData,
+  type ProductMessage as ProductMessageData,
   type Side,
   type Status,
 } from "./chatModel";
 import { coordsLabel, mapsUrl, tileUrl, tilesFor } from "../../DemoApp/demoMap";
 import { C, fill, lineBox, textTop } from "../demo1Layout";
 import { Stroke, Txt } from "../ui";
+import { translateFunction } from "utils/functions";
+import { cancelUpload, useUploadRunning } from "components/Chat/uploadCancel";
 import { FileIcon, OpenIcon, PinIcon } from "./chatIcons";
 import AnimatedEmoji from "./AnimatedEmoji";
 import { dropReactionFly, peekReactionFly } from "./reactionFly";
@@ -749,6 +752,153 @@ export function LocationMessage({
       </span>
       <Edge color={tint} radius={inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out} />
     </motion.div>
+  );
+}
+
+/**
+ * A shared product (the real chat only; D-36b, no XD board). The location
+ * card's frame: the product's picture 300 x 200 over its name, the word
+ * "Product" and "View Product" in the sender's colour. A tap opens the
+ * product page, as the old product message did.
+ */
+export function ProductCard({
+  message: m,
+  open = false,
+  locale,
+}: {
+  message: ProductMessageData;
+  open?: boolean;
+  /** The page's locale segment ("sy-en"), for the product page's path. */
+  locale: string;
+}) {
+  const inn = m.side === "in";
+  const tint = inn ? C.purple : CHAT.sent;
+  const lift = liftOf(open, inn);
+  const href = m.slug ? `/${locale}/products/${encodeURIComponent(m.slug)}` : null;
+  const tap = useTap(() => {
+    if (href) window.location.assign(href);
+  });
+  return (
+    <motion.div
+      animate={lift.animate}
+      transition={lift.transition}
+      data-pw={`demo-chat-product-${m.side}`}
+      role="link"
+      aria-label={`${translateFunction("View Product")}: ${m.name}`}
+      className="relative flex flex-col shrink min-w-0 overflow-hidden select-none cursor-pointer"
+      style={{
+        ...lift.style,
+        marginInlineStart: inn ? 3 : undefined,
+        marginInlineEnd: inn ? undefined : 3,
+        width: MAP_W,
+        borderRadius: inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out,
+        background: CHAT.callCard,
+        WebkitTouchCallout: "none",
+      }}
+      {...tap}
+    >
+      <span className="relative block w-full overflow-hidden" style={{ height: 200, background: C.field }}>
+        {m.image && (
+          <img
+            src={m.image}
+            alt=""
+            draggable={false}
+            loading="lazy"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          />
+        )}
+      </span>
+      <span className="flex items-start w-full" style={{ padding: `${textTop(21, 13) - 4}px 12px 8px 12px` }}>
+        <span className="flex flex-col grow min-w-0">
+          <Txt size={13} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ ...SPACED, textOverflow: "ellipsis" }}>
+            {m.name}
+          </Txt>
+          <Txt size={11} color={C.inkSoft} style={SPACED}>
+            {translateFunction("Product")}
+          </Txt>
+        </span>
+        <span className="flex flex-col items-end shrink-0" style={{ marginInlineStart: 10 }}>
+          <Txt size={9} className="whitespace-nowrap">
+            {!inn && <Mark status={m.status} />}
+            {m.time}
+          </Txt>
+          {href && (
+            <span className="flex items-center" style={{ marginTop: 3 }}>
+              <OpenIcon color={tint} />
+              <Txt size={11} weight="medium" color={tint} ml={3} className="whitespace-nowrap">
+                {translateFunction("View Product")}
+              </Txt>
+            </span>
+          )}
+        </span>
+      </span>
+      <Edge color={tint} radius={inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out} />
+    </motion.div>
+  );
+}
+
+/**
+ * Over a message I send while its file still goes up (D-36b, no XD board):
+ * a dark round button with a turning ring, and an X that stops the upload
+ * and takes the message away (components/Chat/uploadCancel.ts). The chat
+ * backend reports no progress, so the ring only turns. Nothing shows once
+ * the upload ended.
+ */
+export function UploadCancel({ id }: { id: string }) {
+  const running = useUploadRunning(id);
+  if (!running) return null;
+  return (
+    <button
+      type="button"
+      data-pw={`demo-chat-upload-cancel-${id}`}
+      aria-label={translateFunction("Cancel")}
+      onClick={(e) => {
+        e.stopPropagation();
+        cancelUpload(id);
+      }}
+      onPointerDown={(e) => e.stopPropagation()}
+      className="absolute z-10 flex items-center justify-center cursor-pointer active:opacity-60"
+      style={{ top: "50%", left: "50%", width: 44, height: 44, marginLeft: -22, marginTop: -22, borderRadius: 22, background: "rgba(0,0,0,0.45)" }}
+    >
+      <motion.span
+        aria-hidden="true"
+        className="absolute"
+        style={{ inset: 3, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: C.white }}
+        animate={{ rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+      />
+      <span aria-hidden="true" className="absolute" style={{ width: 16, height: 2, borderRadius: 1, background: C.white, transform: "rotate(45deg)" }} />
+      <span aria-hidden="true" className="absolute" style={{ width: 16, height: 2, borderRadius: 1, background: C.white, transform: "rotate(-45deg)" }} />
+    </button>
+  );
+}
+
+/**
+ * The place of a deleted message (the real chat only; D-36b, no XD board):
+ * a pale bubble with the bubble's corners and "this message was deleted" in
+ * grey italics, and its time.
+ */
+export function DeletedBubble({ side, time }: { side: Side; time: string }) {
+  const inn = side === "in";
+  return (
+    <span
+      data-pw={`demo-chat-deleted-${side}`}
+      className="flex items-end shrink min-w-0"
+      style={{
+        padding: "7px 12px 8px 12px",
+        borderRadius: inn ? BUBBLE_RADIUS.in : BUBBLE_RADIUS.out,
+        background: C.field,
+        marginInlineStart: inn ? 3 : undefined,
+        marginInlineEnd: inn ? undefined : 3,
+      }}
+    >
+      <Txt size={13} color={C.grey} style={{ ...SPACED, fontStyle: "italic" }}>
+        {translateFunction("this message was deleted")}
+      </Txt>
+      <Txt size={9} color={C.grey} ml={8} className="whitespace-nowrap">
+        {time}
+      </Txt>
+    </span>
   );
 }
 

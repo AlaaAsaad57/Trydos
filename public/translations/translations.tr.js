@@ -3228,6 +3228,7 @@ const translations = {
   "Missed Video Call !": "Cevapsız Görüntülü Arama !",
   "Incoming Video Call !": "Gelen Görüntülü Arama !",
   "Outgoing Video Call !": "Giden Görüntülü Arama !",
+  "Delete for everyone": "Herkesten sil",
 };
 
 export default translations;

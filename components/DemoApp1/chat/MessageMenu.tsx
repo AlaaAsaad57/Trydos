@@ -11,7 +11,7 @@ import { C } from "../demo1Layout";
 import { Txt } from "../ui";
 import AnimatedEmoji, { preloadAnimatedEmojis } from "./AnimatedEmoji";
 
-export type MenuName = (typeof MENU_ACTIONS)[number] | "Forward";
+export type MenuName = (typeof MENU_ACTIONS)[number] | "Forward" | "Delete for everyone";
 
 /**
  * What lies over the screen behind an open menu, and how long it takes to come
@@ -130,8 +130,8 @@ const popDelay = (k: number) => POP_DELAY + k * STAGGER;
 export const MENU_H = MENU_PAD * 2 + MENU_ROW_H * (ROWS.length + 1) + MENU_SEP;
 
 /** The menu's height for a message: Forward and Edit go when it cannot take them (as the menu draws it). */
-export const menuHeight = (canEdit: boolean, canForward: boolean) =>
-  MENU_H - (canEdit ? 0 : MENU_ROW_H) - (canForward ? 0 : MENU_ROW_H);
+export const menuHeight = (canEdit: boolean, canForward: boolean, canDeleteForAll = false) =>
+  MENU_H - (canEdit ? 0 : MENU_ROW_H) - (canForward ? 0 : MENU_ROW_H) + (canDeleteForAll ? MENU_ROW_H : 0);
 
 /**
  * An icon of the XD file in a colour of our own: the file's SVG as a mask
@@ -195,6 +195,7 @@ export default function MessageMenu({
   side,
   canEdit,
   canForward = true,
+  canDeleteForAll = false,
   reaction,
   onPick,
   onReact,
@@ -206,6 +207,11 @@ export default function MessageMenu({
   canEdit: boolean;
   /** A call card or a note is not forwarded; the row goes then. */
   canForward?: boolean;
+  /**
+   * The real chat only: a message I sent (not a call) can be deleted for
+   * everyone, a row under Delete (D-36b; the file has only Delete).
+   */
+  canDeleteForAll?: boolean;
   /** The emoji the message carries now, if any: it is marked in the bar. */
   reaction?: string;
   onPick: (name: MenuName) => void;
@@ -410,6 +416,7 @@ export default function MessageMenu({
           <span className="block w-full" style={{ height: 0.5, background: "rgba(60,60,67,0.29)" }} />
         </span>
         {row("Delete", "menuDelete", CHAT.red)}
+        {canDeleteForAll && row("Delete for everyone", "menuDelete", CHAT.red)}
       </motion.div>
     </>
   );

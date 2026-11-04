@@ -3244,6 +3244,7 @@ const translations = {
   "Missed Video Call !": "پەیوەندی ڤیدیۆیی لەدەستچوو !",
   "Incoming Video Call !": "پەیوەندی ڤیدیۆیی هاتوو !",
   "Outgoing Video Call !": "پەیوەندی ڤیدیۆیی دەرچوو !",
+  "Delete for everyone": "سڕینەوە بۆ هەمووان",
 };
 
 export default translations;

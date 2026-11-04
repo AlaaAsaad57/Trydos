@@ -119,8 +119,9 @@ export async function runChatAction(action: ChatAction, { say }: ActionHelpers):
     case "deleteMessage": {
       const chat = findChannel(action.chat);
       if (!findMessage(chat, action.id)) return;
-      // Delete for me. "Delete for everyone" is added in step 6 (D-36b).
-      DeleteMessage(chat.id, action.id, false);
+      // For everyone only on a message I sent, as the old menu (OptionsMenu.tsx).
+      const mine = sameId(findMessage(chat, action.id)?.sender_user_id, myId());
+      DeleteMessage(chat.id, action.id, !!action.forAll && mine);
       return;
     }
     case "editMessage": {

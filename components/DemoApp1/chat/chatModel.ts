@@ -322,7 +322,13 @@ export type ChatAction =
   | { type: "receive"; chat: string; message: Openable }
   | { type: "typing"; chat: string; on: boolean }
   | { type: "status"; chat: string; id: string; status: Status }
-  | { type: "deleteMessage"; chat: string; id: string }
+  | {
+      type: "deleteMessage";
+      chat: string;
+      id: string;
+      /** Delete for everyone (the real chat only); for me when not set. */
+      forAll?: boolean;
+    }
   | { type: "editMessage"; chat: string; id: string; text: string }
   | {
       type: "forward";

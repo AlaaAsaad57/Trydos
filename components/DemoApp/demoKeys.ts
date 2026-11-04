@@ -353,6 +353,7 @@ export const DEMO_KEYS = [
   "Missed Video Call !",
   "Incoming Video Call !",
   "Outgoing Video Call !",
+  "Delete for everyone",
   "No Answer",
   "{n} Min",
   "{n} Ring",

@@ -26,7 +26,7 @@ import { ChevronDownIcon, ChevronUpIcon, CloseIcon } from "../chat/chatIcons";
 import { useChat } from "../chat/chatContext";
 import { useDemoNav } from "../Demo1Shell";
 import { C, SAFE_BOTTOM, SAFE_TOP, SF_ROUNDED, UNDER_BAR, WINDOW_COVER, sfTop, textTop } from "../demo1Layout";
-import { Icon, Layer, ScreenPage, Stroke, Txt, useFollowTopTint } from "../ui";
+import { Icon, Layer, ScreenPage, Sheet, Stroke, Txt, useFollowTopTint } from "../ui";
 import Composer, { type ComposerContext } from "../chat/Composer";
 import ForwardSheet from "../chat/ForwardSheet";
 import MessageMenu, {
@@ -46,6 +46,9 @@ import MessageRow from "../chat/MessageRow";
 import {
   Bubble,
   CallCard,
+  DeletedBubble,
+  ProductCard,
+  UploadCancel,
   DayPill,
   Dot,
   FileMessage,
@@ -166,7 +169,19 @@ function Conversation() {
   // ConversationScreen draws this only when there is a chat.
   const chat = chatOnScreen(state)!;
   const contact = contactOf(state, chat);
+  /** The real chat (the `/demo` preview starts no calls): it can delete for everyone. */
+  const canDeleteForAllOf = (m: Holdable) => !!call && m.kind !== "note" && m.kind !== "call" && m.side === "out";
   const [menu, setMenu] = useState<string | null>(null);
+  /** A picked photo, shown before it is sent (D-36b, no XD board). */
+  const [photo, setPhoto] = useState<{ file: File; url: string } | null>(null);
+  const dropPhoto = () => {
+    if (photo) URL.revokeObjectURL(photo.url);
+    setPhoto(null);
+  };
+  const sendPicked = () => {
+    if (photo) sendPhoto(chat.id, photo.file);
+    dropPhoto();
+  };
 
   // The message above the blur: it stays up until the blur has faded out.
   const [lifted, setLifted] = useState<string | null>(null);
@@ -322,7 +337,7 @@ function Conversation() {
     const box = row.getBoundingClientRect();
     // The menu hangs MENU_GAP under the row (`top: 100%`).
     const menuBottom =
-      box.bottom + MENU_GAP + menuHeight(canEditOf(m), canForwardOf(m));
+      box.bottom + MENU_GAP + menuHeight(canEditOf(m), canForwardOf(m), canDeleteForAllOf(m));
     let move = 0;
     if (menuBottom > page.bottom - 8) move = page.bottom - 8 - menuBottom;
     // The emoji bar over the message must stay in view too.
@@ -433,6 +448,10 @@ function Conversation() {
         return;
       case "Delete":
         dispatch({ type: "deleteMessage", chat: chat.id, id: m.id });
+        showToast(t("Deleted"));
+        return;
+      case "Delete for everyone":
+        dispatch({ type: "deleteMessage", chat: chat.id, id: m.id, forAll: true });
         showToast(t("Deleted"));
         return;
       case "Edit":
@@ -661,6 +680,7 @@ function Conversation() {
           side={m.kind === "note" ? "in" : m.side}
           canEdit={canEditOf(m)}
           canForward={canForwardOf(m)}
+          canDeleteForAll={canDeleteForAllOf(m)}
           reaction={m.reaction}
           onPick={(name) => act(name, m)}
           onReact={(emoji, from) => {
@@ -760,9 +780,22 @@ function Conversation() {
           {withFlags(m, true, <CallCard message={m} t={t} />)}
         </MessageRow>
       );
-    // A shared product and a deleted message come only from the real chat.
-    // Stage 6 step 6 draws them (D-36b); until then they show nothing.
-    if (m.kind === "product" || m.kind === "deleted") return null;
+    // A deleted message (the real chat only): a placeholder with no menu (D-36b).
+    if (m.kind === "deleted")
+      return (
+        <motion.div
+          key={m.id}
+          data-pw={`demo-chat-message-${m.id}`}
+          layout="position"
+          layoutDependency={messages}
+          className={`flex w-full shrink-0 ${m.side === "in" ? "justify-start" : "justify-end"}`}
+          style={{ marginTop: gap, paddingInline: 4 }}
+          initial={settled(m.id) ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <DeletedBubble side={m.side} time={m.time} />
+        </motion.div>
+      );
     const inn = m.side === "in";
     const isOpen = menu === m.id;
     /** The block between the dots: a bubble, a picture, a player or a card. */
@@ -808,6 +841,8 @@ function Conversation() {
           return <FileMessage message={m} open={isOpen} t={t} />;
         case "location":
           return <LocationMessage message={m} open={isOpen} t={t} />;
+        case "product":
+          return <ProductCard message={m} open={isOpen} locale={locale} />;
         default:
           return null;
       }
@@ -822,22 +857,33 @@ function Conversation() {
           ? withFlags(
               m,
               true,
-              <VoiceMessage
-                side={m.side}
-                src={m.src}
-                seconds={m.seconds}
-                time={m.time}
-                status={m.status}
-                open={isOpen}
-                t={t}
-              />,
+              <span className="relative flex w-full">
+                <VoiceMessage
+                  side={m.side}
+                  src={m.src}
+                  seconds={m.seconds}
+                  time={m.time}
+                  status={m.status}
+                  open={isOpen}
+                  t={t}
+                />
+                {!inn && <UploadCancel id={m.id} />}
+              </span>,
             )
           : withFlags(
               m,
               false,
               <>
                 {inn && <Dot color={C.purple} ml={5} />}
-                {block()}
+                {inn ? (
+                  block()
+                ) : (
+                  // A file still going up: the spinning ring with its cancel (D-36b).
+                  <span className="relative flex shrink min-w-0">
+                    {block()}
+                    <UploadCancel id={m.id} />
+                  </span>
+                )}
                 {!inn && <Dot color={CHAT.sentDot} mr={5} />}
               </>,
             )}
@@ -972,7 +1018,7 @@ function Conversation() {
           context={context}
           onCancelContext={() => setContext(null)}
           onSend={send}
-          onSendPhoto={(file) => sendPhoto(chat.id, file)}
+          onSendPhoto={(file) => setPhoto({ file, url: URL.createObjectURL(file) })}
           onSendVoice={(audio, seconds) => sendVoice(chat.id, audio, seconds)}
           onSendVideo={(file, seconds) => sendVideo(chat.id, file, seconds)}
           onSendFile={(file) => sendFile(chat.id, file)}
@@ -1038,6 +1084,43 @@ function Conversation() {
         <div className="shrink-0" style={{ height: MENU_GAP + MENU_H + 8 }} />
       </div>
 
+      {/* The picked photo before it goes: Cancel or Send. */}
+      <Sheet open={photo !== null} onClose={dropPhoto} y={140} fit testId="demo-chat-photo-preview">
+        {photo && (
+          <div className="flex flex-col items-center w-full" style={{ padding: "24px 20px 32px" }}>
+            <img
+              src={photo.url}
+              alt=""
+              className="block max-w-full object-contain"
+              style={{ maxHeight: 460, borderRadius: 12 }}
+            />
+            <div className="flex w-full" style={{ marginTop: 20, gap: 12 }}>
+              <button
+                type="button"
+                data-pw="demo-chat-photo-cancel"
+                onClick={dropPhoto}
+                className="grow cursor-pointer active:opacity-60"
+                style={{ height: 44, borderRadius: 12, background: C.field }}
+              >
+                <Txt center size={15} weight="medium">
+                  {t("Cancel")}
+                </Txt>
+              </button>
+              <button
+                type="button"
+                data-pw="demo-chat-photo-send"
+                onClick={sendPicked}
+                className="grow cursor-pointer active:opacity-60"
+                style={{ height: 44, borderRadius: 12, background: C.purple }}
+              >
+                <Txt center size={15} weight="medium" color={C.white}>
+                  {t("Send")}
+                </Txt>
+              </button>
+            </div>
+          </div>
+        )}
+      </Sheet>
       <ForwardSheet
         open={forwarding !== null}
         chats={state.chats}

@@ -3195,6 +3195,7 @@ const translations = {
   "Missed Video Call !": "مكالمة فيديو فائتة !",
   "Incoming Video Call !": "مكالمة فيديو واردة !",
   "Outgoing Video Call !": "مكالمة فيديو صادرة !",
+  "Delete for everyone": "حذف للجميع",
 };
 
 export default translations;
