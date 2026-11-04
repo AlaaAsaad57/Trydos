@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useAppStore } from 'store';
 import AuthService from 'services/auth';
-import { ChatConroller, DisableScroll, EnableScroll } from 'utils/tinyUtils';
+import { DisableScroll, EnableScroll } from 'utils/tinyUtils';
+import { chatHref } from 'components/DemoApp1/chat/chatPaths';
 import { ORDER_EVENTS, resolveVerifyFlowSource, trackOrder } from 'utils/orderFunnel';
 import AuthOverlay from './Enhanced/AuthOverlay';
 import VerifyPhoneFlow from './Enhanced/VerifyPhoneFlow';
@@ -19,6 +21,11 @@ function ConfirmMobilePhoneWidget() {
     const expiredSessionPhone = useAppStore((s) => s.expiredSessionPhone);
     const setExpiredSessionPhone = useAppStore((s) => s.setExpiredSessionPhone);
     const language = useAppStore((s) => s.language);
+    // Captured here: `handleSuccess` runs after this widget is gone (see
+    // usePhoneVerifyFlow.ts), so it cannot read a hook then.
+    const router = useRouter();
+    const params = useParams();
+    const locale = typeof params?.lang === 'string' ? params.lang : 'sy-en';
 
     // Phone preserved when /api/auth/expire cleared the previous session — the
     // fresh guest profile no longer carries it. Only the session-expired
@@ -103,7 +110,8 @@ function ConfirmMobilePhoneWidget() {
             setAddStory(true);
         }
         if (shouldAuthinticated === 'open chat') {
-            ChatConroller(true);
+            // Stage 6: the chat is the new chat screen, not the old overlay.
+            router.push(chatHref(locale));
         }
         if (savedExpiredPhone) {
             setExpiredSessionPhone(null);

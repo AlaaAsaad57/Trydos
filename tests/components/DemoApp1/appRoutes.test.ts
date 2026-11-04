@@ -53,6 +53,13 @@ describe("litTab", () => {
       "the filters page should light no tab",
     ).toBeNull();
   });
+  it("lights chat on the new chat screens (Stage 6)", () => {
+    expect(litTab("/sy-en/chat", none), "the chat list should light chat").toBe("chat");
+    expect(
+      litTab("/sy-en/chat/conversation", none),
+      "a conversation should light chat",
+    ).toBe("chat");
+  });
   it("lights chat when chat is open, whatever the path", () => {
     expect(
       litTab("/sy-en/products/abc", { chat: true, search: false }),

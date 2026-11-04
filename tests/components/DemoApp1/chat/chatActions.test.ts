@@ -24,7 +24,7 @@ const local = vi.hoisted(() => ({
   showErrorNotification: vi.fn(),
 }));
 vi.mock("store/chat/chatUtils", () => ({ DeleteMessage: local.DeleteMessage }));
-vi.mock("components/Chat/components/ChatSearchResults", () => ({ openChatFromList: local.openChatFromList }));
+vi.mock("components/Chat/openChatFromList", () => ({ openChatFromList: local.openChatFromList }));
 vi.mock("store/notifications/reducer", async (importOriginal) => ({
   ...(await importOriginal<any>()),
   showErrorNotification: local.showErrorNotification,

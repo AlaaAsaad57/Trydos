@@ -1,4 +1,4 @@
-import { openChatFromList } from "components/Chat/components/ChatSearchResults";
+import { openChatFromList } from "components/Chat/openChatFromList";
 import { useAppStore } from "store";
 import {
   ArchiveChannel,

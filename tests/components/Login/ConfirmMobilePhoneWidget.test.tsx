@@ -41,7 +41,7 @@ vi.mock("utils/tinyUtils", async (importOriginal) => ({
 import AuthService from "services/auth";
 import { useAppStore } from "store";
 import { ORDER_EVENTS, trackOrder } from "utils/orderFunnel";
-import { ChatConroller, DisableScroll, EnableScroll } from "utils/tinyUtils";
+import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 import ConfirmMobilePhoneWidget from "components/Login/ConfirmMobilePhoneWidget";
 
 import { resetDevice, setDevice } from "../../mocks/device";
@@ -51,10 +51,10 @@ import {
   type LocationStub,
 } from "../../mocks/location";
 import { renderWithProviders, screen, userEvent, waitFor } from "../../render";
+import { routerSpies } from "../../mocks/nextNavigation";
 
 const verifyOtp = AuthService.VerifyOtp as unknown as ReturnType<typeof vi.fn>;
 const track = trackOrder as unknown as ReturnType<typeof vi.fn>;
-const openChat = ChatConroller as unknown as ReturnType<typeof vi.fn>;
 
 const ACCOUNT_PHONE = "963991234567";
 const EXPIRED_PHONE = "963997654321";
@@ -322,11 +322,13 @@ describe("when the shopper finishes verifying", () => {
 
     await waitFor(
       () => {
+        // Stage 6: the chat is the new chat screen at /[lang]/chat, not the
+        // old overlay.
         expect(
-          openChat,
-          "same again for chat: the shopper was on their way somewhere and " +
-            "must be taken there",
-        ).toHaveBeenCalledWith(true);
+          routerSpies.push,
+          "same again for chat: the shopper was on their way to the chat and " +
+            "must be taken to the chat screen",
+        ).toHaveBeenCalledWith("/gb-en/chat");
       },
       { timeout: 2000 },
     );

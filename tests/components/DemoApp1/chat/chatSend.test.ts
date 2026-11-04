@@ -23,7 +23,7 @@ vi.mock("components/Chat/chatsFunctions", async (importOriginal) => ({
   upload: media.upload,
   forwardMessage: media.forwardMessage,
 }));
-vi.mock("components/Chat/components/ChatSearchResults", () => ({ openChatFromList: media.openChatFromList }));
+vi.mock("components/Chat/openChatFromList", () => ({ openChatFromList: media.openChatFromList }));
 vi.mock("utils/posthogEvents", async (importOriginal) => ({
   ...(await importOriginal<any>()),
   trackPosthog: media.trackPosthog,

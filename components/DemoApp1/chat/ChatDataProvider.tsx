@@ -5,8 +5,12 @@ import chatService from "services/chat";
 import { useAppStore } from "store";
 import { GetArchivedChats, GetMyReminders } from "store/chat/actions";
 import { translateFunction } from "utils/functions";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
+import { CHAT_EVENTS, trackPosthog } from "utils/posthogEvents";
 import { ChatContext, NOTICE_MS, type ChatApi } from "./chatContext";
-import { runChatAction } from "./chatActions";
+import { findChannel, runChatAction } from "./chatActions";
+import { CHAT_ID_PARAM, chatIdFrom, isChatScreen, isOneChatScreen } from "./chatPaths";
 import {
   forwardTo,
   openChatWith,
@@ -30,18 +34,29 @@ import type { ChatAction } from "./chatModel";
  * actions to the live chat calls (chatActions.ts). It fills the same context
  * as the `/demo` mock, so the screens do not change.
  *
- * Mounted around the chat screens only: when it mounts it loads the chats,
- * the contacts, the calls, the archived chats and the reminders, as the old
- * chat window did when it opened (components/Chat/ChatModal.tsx).
+ * The screen mount (AppScreens) keeps it around every new screen and turns it
+ * on only while a chat screen shows, so the slides keep working. When it
+ * turns on it loads the chats, the contacts, the calls, the archived chats
+ * and the reminders, and sends the old chat window's events
+ * (components/Chat/ChatModal.tsx).
+ *
+ * The chat on screen is the store's open chat (`activeChat`, set by the old
+ * open), and the URL carries its id (`?id=`, chatPaths.ts): a URL with an id
+ * opens that chat, and a screen of one chat with no id in its URL gets one.
  */
 export function ChatDataProvider({
   children,
   locale,
+  screen,
 }: {
   children: React.ReactNode;
   /** The page's locale ("sy-en"), for the day pills. */
   locale: string;
+  /** The new screen on show; the chat is on only for a chat screen. */
+  screen: string | null;
 }) {
+  const enabled = isChatScreen(screen);
+  const oneChat = isOneChatScreen(screen);
   const data = useAppStore((s) => s.data);
   const archived = useAppStore((s) => s.archivedChats);
   const open = useAppStore((s) => s.activeChat);
@@ -53,20 +68,58 @@ export function ChatDataProvider({
   const language = useAppStore((s) => s.language);
 
   const [active, setActive] = useState<string | null>(null);
-  const [viewing, setViewing] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [search, setSearch] = useState(false);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const myId = userChat?.id;
   useEffect(() => {
-    if (!myId) return;
+    if (!enabled || !myId) return;
     chatService.getChats(false);
     chatService.getContacts();
     chatService.getCalls();
     GetArchivedChats();
     GetMyReminders();
-  }, [myId]);
+    // The old chat window's events when it opened (D-10: old names only).
+    GAevent({
+      action: GA_EVENT_NAMES.SCREEN_VIEW,
+      params: { screen_name: GA_GLOBAL_SCREEN.CHAT_SCREEN, screen_path: window.location.pathname },
+    });
+    trackPosthog(CHAT_EVENTS.CHAT_OPENED);
+  }, [enabled, myId]);
+
+  /** Puts a chat's id in the URL of the screen on show, with no new history entry. */
+  const writeId = (id: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set(CHAT_ID_PARAM, id);
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  };
+
+  // Read: a URL with a chat id opens that chat — on arrival, when the chats
+  // load (the chat may not be loaded yet), and on the browser's back / forward.
+  const openFromUrl = () => {
+    const id = chatIdFrom(window.location.search);
+    if (!id || String(useAppStore.getState().activeChat?.id ?? "") === id) return;
+    if (!findChannel(id)) return;
+    setActive(id);
+    void runChatAction({ type: "open", chat: id }, { say });
+  };
+  useEffect(() => {
+    if (!oneChat) return;
+    openFromUrl();
+    window.addEventListener("popstate", openFromUrl);
+    return () => window.removeEventListener("popstate", openFromUrl);
+  }, [oneChat, data, archived]);
+
+  // Fill: a screen of one chat whose URL has no id gets the open chat's id
+  // (a tap on a row opens the chat, then the screen's URL comes with none).
+  const openId = open?.id != null ? String(open.id) : null;
+  useEffect(() => {
+    if (!oneChat || !openId || chatIdFrom(window.location.search)) return;
+    writeId(openId);
+  }, [oneChat, openId]);
+
+  const viewing = oneChat ? openId : null;
 
   useEffect(
     () => () => {
@@ -96,8 +149,11 @@ export function ChatDataProvider({
   };
 
   const ctx = { myId: myId ?? "", words, locale, liveCallId: calling ? liveCallId : null };
+  // Off a chat screen the chat is not mapped at all.
   const state = toChatState(
-    { chats: data ?? [], archived: archived ?? [], open, book: book ?? [] },
+    enabled
+      ? { chats: data ?? [], archived: archived ?? [], open, book: book ?? [] }
+      : { chats: [], archived: [], open: null, book: [] },
     ctx,
     { active, viewing },
   );
@@ -115,19 +171,19 @@ export function ChatDataProvider({
   const dispatch = (action: ChatAction) => {
     if (action.type === "open") {
       setActive(action.chat);
-      setViewing(action.chat);
-    } else if (action.type === "leave") {
-      setViewing(null);
-    } else if ((action.type === "archive" || action.type === "deleteChat") && viewing === action.chat) {
-      setViewing(null);
+      // Switch: another chat opened on a screen of one chat takes the URL now.
+      if (oneChat) writeId(action.chat);
+    } else if (action.type === "archive" && viewing === action.chat) {
+      // The archived chat leaves the screen, as on /demo. (A delete closes it in the store.)
+      useAppStore.getState().openChat(null);
     }
     void runChatAction(action, { say });
   };
 
-  /** Opens a chat and puts it on screen, as a tap on its row does. */
+  /** A chat opened by `newChat`: the row to mark, and the URL on a screen of one chat. */
   const show = (id: string) => {
     setActive(id);
-    setViewing(id);
+    if (oneChat) writeId(id);
   };
 
   const value: ChatApi = {

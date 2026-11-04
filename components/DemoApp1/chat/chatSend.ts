@@ -1,5 +1,5 @@
 import { forwardMessage, upload } from "components/Chat/chatsFunctions";
-import { openChatFromList } from "components/Chat/components/ChatSearchResults";
+import { openChatFromList } from "components/Chat/openChatFromList";
 import { finishUpload, startUpload } from "components/Chat/uploadCancel";
 import { isUnsupportedVideoFile, pickMessageType, type ChatMessageType } from "components/Chat/videoSupport";
 import { useAppStore } from "store";

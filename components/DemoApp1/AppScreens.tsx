@@ -18,6 +18,7 @@ import {
   type AppScreenRow,
 } from "./appScreenPaths";
 import AppScreenView from "./AppScreenView";
+import { ChatDataProvider } from "./chat/ChatDataProvider";
 import { PAGE_MAX } from "./demo1Layout";
 import DemoKeyboard from "./keyboard/DemoKeyboard";
 import { usePageDir } from "./rtl";
@@ -206,11 +207,16 @@ function AppScreensInner({
         // document still scrolls and the sticky headers still stick.
         style={{ maxWidth: PAGE_MAX, minHeight: "100dvh", overflowX: "clip" }}
       >
-        <AnimatePresence initial={false} custom={move}>
-          <ScreenFrame key={shown} id={shown} move={move}>
-            <AppScreenView screen={shown} />
-          </ScreenFrame>
-        </AnimatePresence>
+        {/* The real chat (Stage 6). Always here, so the tree never changes and
+            the slides keep working; it loads and maps the chat only while a
+            chat screen shows. */}
+        <ChatDataProvider locale={locale} screen={shown}>
+          <AnimatePresence initial={false} custom={move}>
+            <ScreenFrame key={shown} id={shown} move={move}>
+              <AppScreenView screen={shown} />
+            </ScreenFrame>
+          </AnimatePresence>
+        </ChatDataProvider>
       </div>
       <DemoKeyboard locale={locale} t={t} />
     </NavCtx.Provider>

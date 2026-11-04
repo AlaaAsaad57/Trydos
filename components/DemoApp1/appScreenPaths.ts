@@ -20,7 +20,13 @@ import type { DemoScreen, DemoStaticScreen } from "../DemoApp/demoRoutes";
  */
 export type AppScreenRow = { path: string; screen: DemoStaticScreen };
 
-export const APP_SCREENS: readonly AppScreenRow[] = [];
+export const APP_SCREENS: readonly AppScreenRow[] = [
+  // Stage 6 (lane B): the chat. One chat's screens carry `?id=` (chat/chatPaths.ts).
+  { path: "chat", screen: "chat" },
+  { path: "chat/conversation", screen: "chat/conversation" },
+  { path: "chat/contact", screen: "chat/contact" },
+  { path: "chat/call", screen: "chat/call" },
+];
 
 /** The path without the locale part, without slashes at the ends. */
 const afterLocale = (pathname: string): string =>
