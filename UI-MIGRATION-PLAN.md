@@ -1015,7 +1015,7 @@ as they are (`orders`, `payment`, `shipping`, `question`, `important`). CH-3 nee
 | S6-6 | Stories row in the chat (D-36b) | **Dropped (owner, 2026-11-05).** The chat has no stories row; stories stay on the home page. |
 | S6-5 | Provider place | `ChatDataProvider` sits around the screen frame in lane A's `AppScreens.tsx`, on only for a chat screen. Lane A was told. |
 
-### Where Stage 6 stopped (2026-11-05) — CI green; waiting for the owner's hand test and review
+### Where Stage 6 stopped (2026-11-05) — merged into `ui-migrations` (owner's OK); the hand test is still open
 
 Steps 1 to 11 and the local end checks are done and committed on `ui-migrations-chat` (pushed with the
 owner's OK).
@@ -1111,12 +1111,17 @@ buttons do nothing for the moment its chunk loads. The review did not read the `
 CI run 3 (`41923950106`, on `621624ad`): parity, lint, typegen, tsc and the unit tests all passed; 638 test
 files passed, none failed. No unit test covers the review's fixes (owner's order: no new tests).
 
+Merge (owner's OK, 2026-11-05): `ui-migrations` was merged in first (Stages 4, 5, 5a, 7). CI on that merge
+(`41927828615`) failed 13 cases of `tests/components/DemoApp1/screens/wallet.rtl.test.tsx`: the test mocked
+`useDemoNav` on `Demo1Shell`, and `demoCase.ts` reads it from `screenNav` since step 9. The app was not affected.
+Fixed in the test's mock (`335952c9`, a test of lane A's wallet stage). CI on the final tree (`41930849243`, on
+`1b0ee3e0`) passed. The owner chose to merge before the hand test below.
+
 Left:
 - (The stories row was dropped by the owner: S6-6.)
 - The real chat checked in a browser by a signed-in shopper (calls, row taps and URLs, the Calls tab, push
   links, order chat, gates).
-- Then the owner's review, then the merge into `ui-migrations` (owner's OK). The e2e cases wait for Stage 8
-  (A-34).
+- The e2e cases wait for Stage 8 (A-34).
 
 ---
 
