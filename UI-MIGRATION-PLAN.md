@@ -1403,7 +1403,7 @@ also the quick view `app/(client)/[lang]/@modal/(.)products/[productId]`. The UR
 | S7c-9 | Product loader | `ProductLoader` (shown while a tapped product opens) is redrawn in the page's shape, as S7b-13 did for the listings. It keeps the tapped photo and name. |
 | S7c-10 | Load more | The review and question rows read their next page near their end (owner, 2026-11-05). A small end card shows a spinner while a page loads, and "Load More" after a failed read. |
 
-### Where Stage 7c stopped (2026-11-05) — built, NOT committed; waits for the owner's review
+### Where Stage 7c stopped (2026-11-05) — merged into `ui-migrations` (owner's OK)
 
 - **Built:** `screens/ProductPage.tsx` is the design and draws the data it is given. It imports no mock file and not the
   demo shell (A-16). `productData.ts` holds the plain shape. `components/Product/productView.ts` maps the live product on
@@ -1456,9 +1456,22 @@ also the quick view `app/(client)/[lang]/@modal/(.)products/[productId]`. The UR
   - The JSON-LD gives a price the page does not show until D-45. Fix this before any deploy (A-25 holds it for now).
   - The first card of a question row can be half height next to answered cards: the row keeps the taller height.
 - **Old code, not changed:** the zoom overlay logs a React `key` warning (`ProductDetailsSlider`), as before.
-- **Unit tests to check in CI (only listed, owner's order):** `tests/components/Product/ProductPageContent.test.tsx`,
-  `tests/components/skeleton/loaders/ProductLoader.test.tsx`, `tests/app/products/page.test.tsx`,
-  `tests/app/modal/pages.test.tsx`. The old footer's tests should still pass: its code stays.
+- **Committed** as `37a269c3d`, with the logo fix and these notes on top of it.
+- **CI on `37a269c3d`** ([run 42005614882](https://github.com/AlaaAsaad57/Trydos/actions/runs/42005614882)): lint and the type
+  check pass. Unit: 597 files pass, 6 fail, with 25 tests of 7630. 22 are the Stage 7b reds, listed there. The old
+  footer, like and ask tests all pass, so the moved logic broke nothing there. 3 are new. Only listed here (owner's
+  order), for Stage 8:
+  - `tests/components/Product/ProductPageContent.test.tsx` (1), "starts each read once": out of date. The reads moved into
+    `ProductBody`, and the test expects the props of hidden sections. "works without any query values" still passes, but
+    it no longer checks anything real.
+  - `tests/components/skeleton/loaders/ProductLoader.test.tsx` (2), out of date: the old `dir-rtl` class, and the old
+    `.product-info-section` class.
+  - **One real gap found in that list, fixed after this run:** the redrawn loader had no brand logo. It draws one now, and a
+    tap on a store card hands the brand to it (`AppListing`; the card did not pass it before). Seen in the browser. The
+    logo check passes now; the same test still stops at the old `.product-info-section` line.
+- **Correction to Stage 7b's note:** "gives no currency and reports" has now run with the currency fix, and it is still
+  red. It crashes in `tests/app/listingPageHarness.tsx` before it reaches the fix, so no test proves that fix yet.
+- **No unit test covers** `ProductPage`, `AppProduct`, `useCardPages` or `useProductLike`'s new caller (owner's order).
 
 ### Live parts (A-33: a part with no design block is hidden, its code is kept)
 | Design block | Live part |

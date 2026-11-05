@@ -6,7 +6,7 @@ import { GetImageUrl } from "utils/tinyUtils";
 
 /**
  * What shows while a tapped product opens: the product page's shape (Stage
- * 7c), with the card's first photo and name.
+ * 7c), with the card's first photo, its name and its brand's logo.
  */
 function ProductLoader({ product }) {
   const dir = usePageDir();
@@ -27,7 +27,15 @@ function ProductLoader({ product }) {
 
   return (
     <div dir={dir}>
-      <ProductPageSkeleton photo={firstImageSrc} name={product?.name} />
+      <ProductPageSkeleton
+        photo={firstImageSrc}
+        name={product?.name}
+        brand={
+          product?.brand?.icon
+            ? { logo: GetImageUrl(product.brand.icon), name: product.brand.name }
+            : undefined
+        }
+      />
     </div>
   );
 }

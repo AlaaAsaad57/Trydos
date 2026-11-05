@@ -311,6 +311,7 @@ export default function AppListing({
               const p = byId.get(card.id);
               goTo(card.links[colorIndex] ?? card.links[0], {
                 name: p?.name,
+                brand: p?.brand,
                 images: [
                   p?.sync_color_images?.[0]?.images?.[0] ?? p?.images?.[0],
                 ],
