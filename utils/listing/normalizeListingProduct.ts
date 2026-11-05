@@ -23,6 +23,8 @@ export function normalizeListingProduct(product: any): ListingProduct {
     })),
     brand: {
       id: product?.brand?.id,
+      // The store page writes the brand's name where it has no logo (S7b-8).
+      name: product?.brand?.name,
       icon: product?.brand?.icon,
       is_verified: product?.brand?.is_verified,
     },

@@ -127,12 +127,27 @@ const CheckIcon = () => (
   </svg>
 );
 
+/**
+ * The store page's header mark (Stage 7b): when given, the control's button
+ * is this mark, with this look, in place of the old icon. The sheet it opens
+ * is the old one (A-4).
+ */
+export type ListingTrigger = {
+  icon: React.ReactNode;
+  label: string;
+  testId: string;
+  className: string;
+  style: React.CSSProperties;
+};
+
 export default function ListingSortControl({
   language,
   isRtl = false,
+  trigger,
 }: {
   language: string;
   isRtl?: boolean;
+  trigger?: ListingTrigger;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -188,26 +203,42 @@ export default function ListingSortControl({
     name_desc: "Name: Z to A",
   };
   const activeLabel = t(ACTIVE_LABELS[active]);
+  // The client translateFunction answers English on the server (its table
+  // is empty there), so an Arabic page sent "Default" and the browser drew
+  // "الافتراضي": a hydration error. The order's name joins the label once
+  // the control is in the browser. The store page's mark brings its own
+  // translated label (trigger.label).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   return (
     <>
       <button
         type="button"
-        data-pw="sort_control"
-        className="filter-option relative flex items-center justify-center border-0 bg-transparent p-0"
+        data-pw={trigger?.testId ?? "sort_control"}
+        className={
+          trigger?.className ??
+          "filter-option relative flex items-center justify-center border-0 bg-transparent p-0"
+        }
+        style={trigger?.style}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
-        aria-label={`${t("Sort products")} — ${activeLabel}`}
+        aria-label={
+          mounted
+            ? `${trigger?.label ?? t("Sort products")} — ${activeLabel}`
+            : (trigger?.label ?? t("Sort products"))
+        }
         onClick={() => setIsOpen(true)}
       >
-        <img src="/icons/sortIcon.svg" alt="" />
+        {trigger?.icon ?? <img src="/icons/sortIcon.svg" alt="" />}
         {isActive && (
           <span
             aria-hidden="true"
             className="absolute rounded-full"
             style={{
-              top: -1,
-              insetInlineEnd: -1,
+              // On the store page's mark the icon sits 15 px inside the target.
+              top: trigger ? 14 : -1,
+              insetInlineEnd: trigger ? 14 : -1,
               width: 8,
               height: 8,
               background: PRIMARY,
@@ -218,7 +249,11 @@ export default function ListingSortControl({
       </button>
 
       {isOpen && (
-        <BottomSheet isOpen={isOpen} onClose={() => setIsOpen(false)} height={60}>
+        <BottomSheet
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          height={60}
+        >
           <div
             dir={isRtl ? "rtl" : "ltr"}
             role="dialog"

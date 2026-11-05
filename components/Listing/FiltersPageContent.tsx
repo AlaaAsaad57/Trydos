@@ -8,23 +8,22 @@ import { qaMode } from "utils/server/qaMode";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { LogServerError } from "utils/serverErrorReporter";
-import { parseFiltersFromParams } from "utils/server/helpers";
+import { GetImageUrl, parseFiltersFromParams } from "utils/server/helpers";
+import { translateFunction } from "utils/server";
 import { dedupeRequest } from "serverRequests/requestDedup";
-import ListingBoutiqueSlider from "components/Server/ListingBoutiqueSlider";
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
-import ListingSearchContainer from "components/Server/ListingSearchContainer";
-import FilterListContainer from "components/Server/FilterListContainer";
-import ProductListConainer from "components/Server/ProductListConainer";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { getCookieServer } from "utils/cookies/server-cookie-manager";
-import FilterListingBackButton from "components/Listing/FilterListingBackButton";
-import ListingBarActions from "components/Server/ListingBarActions";
-import ListingHeaderCollapse from "components/Listing/ListingHeaderCollapse";
-import BoutiqueMiniLogo from "components/Listing/BoutiqueMiniLogo";
-import ListingBarOptions from "components/Listing/ListingBarOptions";
-import BoutiqueLogoCollapse from "components/Listing/BoutiqueLogoCollapse";
-import ListingSkeleton from "components/skeleton/listing";
-import BoutiqueSlidersSkeleton from "components/skeleton/loaders/BoutiqueSlidersSkeleton";
+import { getTitleAndTargetofListing } from "serverRequests/meta/StructuredData/utils";
+import ListingBreadcrumbList from "serverRequests/meta/StructuredData/ListingBreadcrumbList";
+import { normalizeListingProduct } from "utils/listing/normalizeListingProduct";
+import ListingEmpty from "components/Listing/ListingEmpty";
+import ListingPageSkeleton from "components/Listing/ListingPageSkeleton";
+import AppListing, {
+  type ListingKind,
+} from "components/DemoApp1/screens/AppListing";
+import type { DemoDictionary, DemoKey } from "components/DemoApp/demoKeys";
+import type { ListingMark } from "components/DemoApp1/listingData";
 
 async function getBoutique(
   boutique: string | null,
@@ -46,7 +45,12 @@ async function getBoutique(
         // catch block, logged as "get boutique details error" and turned into an
         // empty "Search" listing — so the boutique-not-found redirect never
         // fired anywhere. The caller decides how to navigate.
-        return { boutiqueNotFound: true, banners: null, name: "Search", time: 0 };
+        return {
+          boutiqueNotFound: true,
+          banners: null,
+          name: "Search",
+          time: 0,
+        };
       }
       const end = process.hrtime.bigint();
       return { ...boutiqueData, time: Number(end - start) / 1_000_000 };
@@ -97,10 +101,42 @@ async function getCurrencyForListing(country: string, language: string) {
       redis: false,
       time: Number(end - start) / 1_000_000,
     };
-  } catch {
+  } catch (error) {
+    // The page goes on with no currency, but the failure is reported, as the
+    // flash and featured pages did before they shared this read.
+    LogServerError(
+      { error, type: "get currency error", country, language },
+      `/${country}-${language}/listing`,
+    );
     return undefined;
   }
 }
+
+/**
+ * The design keys the store page shows (Stage 7b). Here, not in the client
+ * file: a server file that imports a value from a "use client" file gets a
+ * reference, not the list.
+ */
+const LISTING_KEYS: DemoKey[] = [
+  "Back",
+  "Search",
+  "Search...",
+  "Close",
+  "Sort",
+  "Filter",
+  "Share",
+  "Colors",
+  "Photo",
+  "{n} of {m}",
+  "Flash Deal",
+  "{n}d",
+  "{count} item {size} in your bag",
+  "Add to cart",
+  "Soon available",
+  "Loading more products",
+  "You have seen all products",
+  "Shop {brand} collection now !",
+];
 
 interface FiltersPageContentProps {
   params: { lang: string; filters?: string[] };
@@ -113,19 +149,33 @@ interface FiltersPageContentProps {
    * from the client instead. See NotFoundRedirect.
    */
   intercepted?: boolean;
+  /** Which listing: `/filters` (the default), `/flashDeals` or `/featured`. */
+  kind?: ListingKind;
 }
 
+/**
+ * Every product listing (Stage 7b, A-32): `/filters/...` (boutiques,
+ * categories, brands, filters, search results), its `@modal` copy,
+ * `/flashDeals/...` and `/featured/...`. It reads the boutique, the currency
+ * and the first page from Elasticsearch, and the store page design draws
+ * them (AppListing). The old filter sheet stays (A-4, S7b-7).
+ */
 export default async function FiltersPageContent({
   params,
   sort,
   search,
   intercepted = false,
+  kind = "filters",
 }: FiltersPageContentProps) {
   const Params = params;
   try {
     let parsedFilters = parseFiltersFromParams(Params.filters || []);
     const [country, language] = Params.lang.split("-");
-    const boutiqueItem = parsedFilters?.boutiques?.[0] || null;
+    const isFeatured = kind === "featured";
+    const isFlashDeals = kind === "flashDeals";
+    // Only the `/filters` listing shows a boutique (its banner and its logo).
+    const boutiqueItem =
+      kind === "filters" ? parsedFilters?.boutiques?.[0] || null : null;
     const effectiveSearch =
       (typeof search === "string" && search.length > 0
         ? search
@@ -146,16 +196,12 @@ export default async function FiltersPageContent({
       };
     }
 
-    // Kick off the two fetches that don't depend on userId before awaiting the
-    // cookie, so they overlap the cookie read instead of waiting behind it.
+    // Start the two reads that do not need the shopper before the cookie read.
     const currencyPromise = getCurrencyForListing(country, language);
     const boutiquePromise = getBoutique(boutiqueItem, country, language);
 
-    // Resolved before any JSX is returned. The promise is otherwise handed
-    // un-awaited to the streamed children below, so a redirect raised once
-    // those Suspense boundaries have flushed would never reach the browser.
-    // Costs nothing on non-boutique (search) listings: getBoutique returns
-    // immediately when there is no boutique slug.
+    // Resolved before any JSX is returned: a redirect raised once the
+    // Suspense parts below have streamed would never reach the browser.
     const boutiqueResolved: any = await boutiquePromise;
     if (boutiqueResolved?.boutiqueNotFound) {
       const target = `/${country}-${language}?message=boutique_not_found`;
@@ -163,145 +209,71 @@ export default async function FiltersPageContent({
       redirect(target);
     }
 
-    const userData = await getCookieServer<{ id: string }>(
-      COOKIE_NAMES.USER_DATA,
-    );
+    // The `/filters` listing reads with the shopper's id and a snapshot
+    // (ADR-009), as before; the flash and featured listings did not.
+    const userData =
+      kind === "filters"
+        ? await getCookieServer<{ id: string }>(COOKIE_NAMES.USER_DATA)
+        : null;
     const parsedUserId = userData?.id ?? null;
 
-    // Kick off the main ES query and hand un-awaited promises straight to the
-    // Suspense-wrapped containers below (mirrors featured/[[...filters]]/page.tsx)
-    // so the HTML shell can stream immediately instead of blocking on ES.
-    //
-    // Deduped per request: this page renders twice in one request (real page in
-    // the `children` slot + the `(.)filters` copy in the `@modal` slot). Without
-    // this, both fire the ES query and each opens a PIT — and on a hard load the
-    // discarded modal copy leaks its unused PIT. The key covers everything that
-    // makes the query unique so the two identical renders share one execution.
+    // Deduped per request: the `/filters` page renders twice in one request
+    // (the page, and its `@modal` copy). Without this, both read
+    // Elasticsearch, and each opens a snapshot (PIT).
     const filtersDataPromise = dedupeRequest(
-      `listing:${country}:${language}:${sort ?? ""}:${effectiveSearch}:${parsedUserId ?? ""}:${JSON.stringify(parsedFilters)}`,
+      `listing:${kind}:${country}:${language}:${sort ?? ""}:${effectiveSearch}:${parsedUserId ?? ""}:${JSON.stringify(parsedFilters)}`,
       () =>
         getProductsAndFiltersFromElastic({
           country,
           language_code: language,
           filters: {
             ...parsedFilters,
-            featured: false,
-            flashdeal: false,
+            featured: isFeatured,
+            flashdeal: isFlashDeals,
             search_text: effectiveSearch || undefined,
           },
           limit: 10,
-          userId: parsedUserId,
-          // User-facing listing sort (`?sort=`); undefined ⇒ relevance default.
+          ...(kind === "filters" ? { userId: parsedUserId, usePit: true } : {}),
+          // The listing's order (`?sort=`); none ⇒ relevance.
           sort,
-          // Open a PIT snapshot for this filter session (ADR-009); the returned
-          // pit_id rides inside filtersData and is threaded to the infinite
-          // scroll so every "load more" reads the same immutable snapshot.
-          usePit: true,
         }),
     );
 
-    const isRtl = language === "ar" || language === "ku";
-
     return (
       <>
-        <Suspense fallback={<></>} key={`FilterWidget ${Params.lang}`}>
+        {/* The old filter sheet: the filter mark opens it (A-4). */}
+        <Suspense fallback={null} key={`FilterWidget ${Params.lang}`}>
           <FilterWidgetServer
-            isFeatured={false}
-            isFlashDeal={false}
+            isFeatured={isFeatured}
+            isFlashDeal={isFlashDeals}
             currencyPromise={currencyPromise}
             language={language}
             country={country}
-            parsedFilters={parsedFilters}
+            parsedFilters={{
+              ...parsedFilters,
+              featured: isFeatured,
+              flashdeal: isFlashDeals,
+            }}
             filtersPromise={filtersDataPromise}
             serverSearch={effectiveSearch}
           />
         </Suspense>
-        <ListingHeaderCollapse
-          isRtl={isRtl}
-          filterBar={
-            <div
-              data-pw="filter_listing_bar"
-              className={`filter-listing-bar z-99999999 ${
-                isRtl ? "flex-row-reverse flex" : "flex-row flex"
-              } align-center left-0 right-0 mx-auto w-full h-[50px] pl-[15px] max-w-[1365px] pr-[20px] justify-between bg-white z-10`}
-            >
-              <div
-                className={`align-center ${
-                  isRtl ? "flex-row-reverse flex" : "flex-row flex"
-                } items-center gap-[8px]`}
-              >
-                <FilterListingBackButton lang={Params.lang} isRtl={isRtl} />
-                <BoutiqueLogoCollapse>
-                  <Suspense fallback={<></>}>
-                    <BoutiqueMiniLogo boutiquePromise={boutiquePromise} />
-                  </Suspense>
-                </BoutiqueLogoCollapse>
-              </div>
-              <ListingBarOptions serverSearch={effectiveSearch} isRtl={isRtl}>
-                <Suspense fallback={<></>}>
-                  <ListingSearchContainer
-                    country={country}
-                    language={language}
-                    filtersPromise={filtersDataPromise}
-                    parsedFilters={parsedFilters}
-                    serverSearch={effectiveSearch}
-                  />
-                </Suspense>
-                <ListingBarActions
-                  filtersPromise={filtersDataPromise}
-                  language={language}
-                  isRtl={isRtl}
-                />
-              </ListingBarOptions>
-            </div>
-          }
-          banner={
-            parsedFilters?.boutiques?.[0] ? (
-              <Suspense
-                fallback={<BoutiqueSlidersSkeleton />}
-                key={boutiqueItem || "noFilters"}
-              >
-                <ListingBoutiqueSlider
-                  boutiquePromise={boutiquePromise}
-                  key={boutiqueItem || "noFilters"}
-                />
-              </Suspense>
-            ) : null
-          }
-          categoryFilters={
-            <Suspense
-              fallback={<ListingSkeleton justFilters />}
-              key={`FilterList ${Params.lang}`}
-            >
-              <FilterListContainer
-                filtersPromis={filtersDataPromise}
-                currencyPromise={currencyPromise}
-                Params={Params}
-                parsedFilters={parsedFilters}
-                serverSearch={effectiveSearch}
-              />
-            </Suspense>
-          }
-          productList={
-            <Suspense
-              fallback={<ListingSkeleton forProducts={true} />}
-              key={`ProductList ${Params.lang} ${sort ?? "relevance"}`}
-            >
-              <ProductListConainer
-                isFlashDeals={false}
-                isFeatured={false}
-                Params={Params}
-                boutiquePromise={boutiquePromise}
-                currencyPromise={currencyPromise}
-                filtersDataPromise={filtersDataPromise}
-                parsedFilters={parsedFilters}
-                language={language}
-                sort={sort}
-                serverSearch={effectiveSearch}
-              />
-            </Suspense>
-          }
-        />
+        <Suspense
+          fallback={<ListingPageSkeleton />}
+          key={`Listing ${Params.lang} ${sort ?? "relevance"} ${JSON.stringify(parsedFilters)}`}
+        >
+          <ListingBody
+            kind={kind}
+            lang={Params.lang}
+            parsedFilters={parsedFilters}
+            sort={sort}
+            serverSearch={effectiveSearch}
+            filtersDataPromise={filtersDataPromise}
+            currencyPromise={currencyPromise}
+            // A boutique that failed to load has no banners: no banner, no logo.
+            boutique={boutiqueResolved?.banners ? boutiqueResolved : null}
+          />
+        </Suspense>
       </>
     );
   } catch (error) {
@@ -311,8 +283,177 @@ export default async function FiltersPageContent({
     unstable_rethrow(error);
     LogServerError(
       { error, filters: Params.filters },
-      `/${Params.lang}/filters`,
+      `/${Params.lang}/${kind}`,
     );
     throw error instanceof Error ? error : new Error(String(error));
   }
+}
+
+/**
+ * The page's title in the header, where there is no boutique logo (S7b-5):
+ * the flash deals and featured pages say so; a search shows its words; else
+ * the most exact name of the old title rule (category, then brand). With
+ * none of those, the site's name.
+ */
+function listingTitle({
+  kind,
+  search,
+  names,
+  language,
+}: {
+  kind: ListingKind;
+  search: string;
+  names: unknown[];
+  language: string;
+}) {
+  if (kind === "flashDeals") return translateFunction("Flash Deals", language);
+  if (kind === "featured")
+    return translateFunction("Featured Products", language);
+  if (search) return search;
+  const exact = names
+    .slice(1)
+    .filter((n): n is string => typeof n === "string" && n.length > 0)
+    .pop();
+  return exact ?? translateFunction("Trydos", language);
+}
+
+async function ListingBody({
+  kind,
+  lang,
+  parsedFilters,
+  sort,
+  serverSearch,
+  filtersDataPromise,
+  currencyPromise,
+  boutique,
+}: {
+  kind: ListingKind;
+  lang: string;
+  parsedFilters: any;
+  sort?: string;
+  serverSearch: string;
+  filtersDataPromise: Promise<any>;
+  currencyPromise: Promise<any>;
+  boutique: any;
+}) {
+  const [filtersData, currency] = await Promise.all([
+    filtersDataPromise,
+    currencyPromise,
+  ]);
+  const language = lang.split("-")[1] || "en";
+  const isFeatured = kind === "featured";
+  const isFlashDeals = kind === "flashDeals";
+  const raw: any[] = Array.isArray(filtersData?.products)
+    ? filtersData.products
+    : [];
+  const products = raw.map(normalizeListingProduct);
+  const { path, title } = getTitleAndTargetofListing({
+    filters: parsedFilters,
+    filtersData,
+    language,
+  });
+  const boutiqueLogo: string = boutique?.icon
+    ? (GetImageUrl(boutique.icon) ?? "")
+    : "";
+  const header: ListingMark = boutique
+    ? {
+        name: boutique?.name ?? "",
+        logo: boutiqueLogo ? { src: boutiqueLogo } : undefined,
+      }
+    : {
+        name: listingTitle({
+          kind,
+          search: serverSearch,
+          names: title,
+          language,
+        }),
+      };
+  // The next pages keep the search: the analyzed name, else the words as
+  // typed (one word skips the analysis), else the address's words.
+  const pagingFilters = {
+    ...parsedFilters,
+    featured: isFeatured,
+    flashdeal: isFlashDeals,
+    search_text:
+      filtersData?.isAnalyzed?.name ||
+      serverSearch ||
+      parsedFilters?.search_text?.[0],
+  };
+  const listName = isFeatured
+    ? "Featured-Products"
+    : isFlashDeals
+      ? "FlashDeals-Products"
+      : parsedFilters?.boutiques?.length === 1 && boutique?.name
+        ? `${boutique.name}-Boutique-Page`
+        : "Filters-Page";
+  // English does not use the dictionary: the screen writes the keys in
+  // Apple's capital rules itself (D-4).
+  const dictionary: DemoDictionary =
+    language === "en"
+      ? {}
+      : Object.fromEntries(
+          LISTING_KEYS.map((key) => [key, translateFunction(key, language)]),
+        );
+  return (
+    <>
+      <ListingBreadcrumbList
+        currency={currency}
+        local={lang}
+        products={products}
+        target={path}
+        title={title}
+      />
+      <AppListing
+        lang={lang}
+        kind={kind}
+        title={header}
+        banner={
+          boutique
+            ? {
+                name: boutique?.name ?? "",
+                logo: boutiqueLogo ? { src: boutiqueLogo, h: 20 } : undefined,
+              }
+            : null
+        }
+        categories={filtersData?.categories ?? []}
+        seed={{
+          products,
+          offset: filtersData?.offset ?? [],
+          pitId: filtersData?.pit_id ?? null,
+          recommendedOffset: filtersData?.recommended_offset ?? null,
+          analytics: raw.map((s) => ({
+            item_id: s?.product_id,
+            item_name: s?.name,
+            category: s?.category?.name,
+            brand: s?.brand?.name,
+            category_id: s?.category?.id,
+            brand_id: s?.brand?.id,
+          })),
+        }}
+        currency={
+          currency
+            ? {
+                exchange_rate: currency.exchange_rate,
+                decimal_digits: currency.decimal_digits,
+                symbol: currency.symbol,
+              }
+            : null
+        }
+        filters={pagingFilters}
+        serverSort={sort ?? ""}
+        serverSearch={serverSearch}
+        sizes={parsedFilters?.sizes?.length > 0 ? parsedFilters.sizes : null}
+        listName={listName}
+        dictionary={dictionary}
+        empty={
+          <ListingEmpty
+            parsedFilters={parsedFilters}
+            lang={lang}
+            isFeatured={isFeatured}
+            isFlashDeals={isFlashDeals}
+          />
+        }
+      />
+    </>
+  );
 }

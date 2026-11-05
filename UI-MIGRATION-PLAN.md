@@ -1263,6 +1263,86 @@ input searches nothing (line 145), Voice and Scan have no action (lines 214, 222
 **Live:** `app/(client)/[lang]/filters/[[...filters]]/page.tsx` → `components/Listing/FiltersPageContent.tsx`;
 also `/flashDeals/[[...filters]]`, `/featured/[[...filters]]` and the search result pages.
 **Data today:** mock stores and products (`components/DemoApp/demoStores.ts`, `demoProduct.ts`).
+**Built in:** `../trydos-shop`, branch `ui-migrations-shop` (lane C, A-35).
+
+### Decided for Stage 7b (2026-11-04)
+
+| # | Decision | Answer |
+|---|---|---|
+| S7b-1 | Card add button until D-45 | The design's mark shows. A tap shows "Soon available" (A-8). Nobody adds to cart from a listing until D-45. The old buy button's code (`ProductButtonWrapper`, the old add sheet) stays. |
+| S7b-2 | Price pill | Only the price the shopper pays now (flash, offer or normal) and the currency. The struck-through old price is not shown (A-9). |
+| S7b-3 | Card labels | Real sources only. Orange "Flash Deal" pill when the product is in a flash deal (live countdown). Each backend label (`label_names`) in the blue pill. Purple "in your bag" pill from the shopper's cart. "Best price last N days" has no source and is not shown (A-8). |
+| S7b-4 | Old card extras | Not shown, code kept (as A-33): videos that play instead of photos, the luck / redeem offer (the card shows the normal price), the orange border of flash deals, the verified mark. |
+| S7b-5 | Header title | On a boutique page: the boutique's logo (its name when it has no logo). On every other listing: the page's title as text in the logo's place (`getTitleAndTargetofListing`: category or brand name, search words, Flash Deals, Featured). It is the page's `h1`. |
+| S7b-6 | Banner on a boutique page | Only the design's card (as a brand store on Home) with the boutique's real logo and name. The old photo-banner slider is not shown; its code is deleted if nothing else uses it (D-6). No banner on other listings (D-46). |
+| S7b-7 | Filter rows | Under the header only the design's category tiles (the result's categories; photo = the category's most-viewed product; a tap filters by it). Brands, colours, sizes and prices are only in the old filter sheet (the filter mark). The applied-filters bar is not shown; its code is kept. |
+| S7b-8 | Card logo | The product's brand icon, as the live card. A product with no brand icon shows the brand's name. |
+| S7b-9 | Search field | The design's field, wired to the live listing search (`?search=`, as `SearchBoutiquePage`). Owner's words: with a value, a scroll does not close the field; it hides with the header and shows again, with the value, when the header comes back on a scroll up. The design does not change. The only change is the clearing: the X clears the search and closes the field. With no value, the field closes on a scroll, as the design. |
+| S7b-10 | Empty and end states | No products: the old empty block (drawing, "No products found", Clear filters), old UI (A-4). End of the list: the demo's grey line "You have seen all products". |
+| S7b-11 | Flash Deal label time | A live countdown: days, then hh:mm:ss, ticking every second while the card is on screen (the rule of the live `FlashDealBanner`: the deal ends at 23:59:59 of its end date). The label goes when the deal ends. |
+| S7b-12 | Old listing code (D-6) | Owner's OK on 2026-11-05: delete every old listing file with no caller left, and its tests: `ProductListConainer`, `Server/ProductList`, `SortableGrid`, `ProductInfiniteScroll`, `FilterListContainer`, `FilterListReactive`, `ListingSearchContainer`, `SearchBoutiquePage`, `ListingBarActions` (+ `Client`), `ListingBarOptions`, `ListingHeaderCollapse`, `FilterListingBackButton`, `BoutiqueMiniLogo`, `BoutiqueLogoCollapse`, `ListingBoutiqueSlider` (+ its photo slider wrapper), `FilterBoutiquePageButton`, `skeleton/listing`. `FilterList.tsx` stays (it holds the applied-filters bar, S7b-7). |
+| S7b-13 | Listing loaders | `BoutiqueLoader` and `FilterLoader` (shown while a boutique or a search listing loads) are redrawn in the store page's shape, as Stage 7 did for the home loader. |
+| S7b-14 | Search completion | Kept: the old listing search's inline completion shows as grey text after the typed words (Tab or → takes it), as on the Stage 7 search page header. |
+| S7b-15 | Colour names | The colour sheet writes the colour's name as the backend sends it (no lookup in the translation files). |
+
+### Progress (lane C)
+
+1. **Done:** the design draws the data it is given. `screens/StorePage.tsx` is the page; it imports no mock file and
+   not the demo shell (A-16). `screens/ListingScreen.tsx` is now only `/demo`: it maps the mock store into the same
+   shape. `listingData.ts` holds the plain shape (`StoreCard`, `ListingTile`) and the mappers.
+2. **Done:** every listing draws it. `FiltersPageContent` takes a `kind` (`filters`, `flashDeals`, `featured`) and
+   reads the data; `screens/AppListing.tsx` is the client part. The flash and featured routes keep their metadata and
+   their redirect. SEO kept: `generateMetadataForListing`, `ListingBreadcrumbList`, `buildSearchRedirectTarget`. The
+   header's title is the `h1`. The old listing had no `h1`.
+3. **Done:** the old logic moved out of its old UI: `useListingPages.ts` (paging, from `ProductsInfiniteScroll` and
+   `SortableGrid`) and `filterPage/useListingSearch.ts` (search and completion, from `SearchBoutiquePage`). The old sort
+   and share sheets open from the design's marks (new optional `trigger` prop); the filter mark opens the old sheet.
+4. **Done:** RTL: logical sides, the mirrored back mark, the search field's grow, the tiles, the cards.
+5. **Done:** old code removed (S7b-12). `BoutiqueSlidersSkeleton` went too: only the deleted slider used it. The
+   cases of that file in `pageLoaders.test.tsx` were removed with it. Loaders redrawn (S7b-13): `ListingPageSkeleton`.
+6. **Found and fixed on the way:**
+   - `useSlider` threw on a row that fits on the screen (a store with 2 tiles): Embla's autoplay does not start on
+     one stop, and `play()` on it threw. Such a row now has no auto slide and no hint (`HomeSections.tsx`).
+   - The colour sheet crashed on a product with no label (`LabelTurns`).
+   - An Arabic hydration error on the sort mark's label (client `translateFunction` answers English on the server).
+   - `normalizeListingProduct` dropped the brand's name, which S7b-8 needs.
+
+### Where Stage 7b stopped (2026-11-05)
+
+- `next typegen` + `tsc` clean, `eslint` clean on the changed files, `pnpm lint:i18n-parity` OK (2813 keys, no new key).
+  No unit test was run or written (owner's order).
+- **Seen in the browser at 440 x 802, on the final code (after the `StorePage` split), no page error and no hydration
+  error:** boutique (`en`, `ar`), search result (`en`, `ar`), category, flash deals (live countdown), featured,
+  `/demo/store/zara`; home → boutique in the app (`@modal/(.)filters`) and its back mark; paging; a search typed in the
+  field; the completion (S7b-14); the field staying open with its words on a scroll, and showing them on the way up;
+  the X; sort, filter and share sheets; "Soon available"; a tile; a card; the colour sheet; the empty block (S7b-10).
+- **Found in that check and fixed:** the X right after Enter did nothing, and the search came back:
+  `useSearchParams` is old until `router.replace` ends. `useListingSearch` now remembers the words it last sent. Seen
+  working in both timings: X before the address changes, and X while the search's read is on its way.
+- **Not seen in the browser:** the end line on a long list (paging stopped at 50 and 70 cards, before the end; the line
+  was seen on short lists). The "in your bag" label with a real cart (no check used a shopper with a cart).
+- **Old code, not changed (A-4):** in `ar` the sort sheet's rows read left to right. The sheet sets `dir="rtl"` and also
+  `row-reverse`, so it mirrors twice. The code is the same as before 7b, and the sheet is a portal, so the page's `dir`
+  does not reach it.
+- A dev server that answers 404 on the listings after files are deleted has a stale `.next/dev`: delete it (seen here).
+- **Committed** as `9859eeab`, `ui-migrations` merged in as `fdd1573c`. Merged into `ui-migrations` on 2026-11-05 (owner's OK).
+- **CI on `fdd1573c`** ([run 41934739986](https://github.com/AlaaAsaad57/Trydos/actions/runs/41934739986)): parity, lint and
+  the type check pass. Unit: 599 files pass, 4 fail, with 22 tests of 7630. The 3 chat reds of Stage 7 are gone. Only
+  listed here (owner's order), for Stage 8:
+  - `tests/app/flashDeals/page.test.tsx` (9) and `tests/app/featured/page.test.tsx` (9): out of date. They read the old
+    page's parts through `tests/app/listingPageHarness.tsx`. The body of these pages is now `FiltersPageContent`.
+  - `tests/components/DemoApp1/Demo1Shell.test.tsx` (3), all out of date, by decision: "puts the back mark at the file's
+    half-pixel place" and "opens in the header" read `padding` and `left` / `right` (now logical sides, A-13); "closes
+    on a scroll" types words and expects the field to close (S7b-9 keeps it open with words).
+  - `tests/components/Listing/FiltersPageContent.test.tsx` (1), "hands on the boutique it found": the part that takes
+    the boutique changed.
+  - **One real gap found in that list, fixed after this run:** "gives no currency and reports" showed that the shared
+    currency read no longer reported a failure. `getCurrencyForListing` reports it now. Not yet in a CI run.
+- **Known limits:** a card's price does not change by itself at the moment a flash deal ends (the label goes; the price
+  changes on the next read). `apply_filter`, `share_content` and `like_item` (in "Events to keep") have no sender in the
+  old listing code either, so nothing was lost and nothing was added (D-10). `view_item_list` is kept.
+- **The designer must check:** the blue pill for backend labels, the page title as text in the logo's place, the
+  grey completion in the field.
 
 ### Live code to link (design block → live code)
 | Design block | Live code |

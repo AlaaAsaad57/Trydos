@@ -1,27 +1,12 @@
-import ListingSkeleton from "../listing";
+import ListingPageSkeleton from "components/Listing/ListingPageSkeleton";
 
 /**
- * In-flow listing loader. Rendered inside `.main-content` (below the persistent
- * navbar), so it needs no fixed positioning and no measured `top` — the source of
- * the "floats above the search bar / NaN top" bug that this removes.
+ * In-flow listing loader, shown while a search listing loads. Rendered
+ * inside `.main-content`, so it needs no fixed positioning. Since Stage 7b
+ * (S7b-13) it is the store page's shape, as every listing is.
  */
-function FilterLoader({
-  boutique,
-  isForSearch,
-}: {
-  boutique: any;
-  isForSearch?: boolean;
-}) {
-  return (
-    <div className="w-full flex-col flex bg-[#fafafa] overflow-hidden">
-      <ListingSkeleton
-        isForSearch={isForSearch}
-        boutique={boutique?.name === "Search" ? null : boutique}
-        forProducts={true}
-        withBanners={true}
-      />
-    </div>
-  );
+function FilterLoader(_props: { boutique: any; isForSearch?: boolean }) {
+  return <ListingPageSkeleton />;
 }
 
 export default FilterLoader;
