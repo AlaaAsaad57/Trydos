@@ -1285,7 +1285,7 @@ also `/flashDeals/[[...filters]]`, `/featured/[[...filters]]` and the search res
 | S7b-14 | Search completion | Kept: the old listing search's inline completion shows as grey text after the typed words (Tab or → takes it), as on the Stage 7 search page header. |
 | S7b-15 | Colour names | The colour sheet writes the colour's name as the backend sends it (no lookup in the translation files). |
 
-### Progress (lane C, not committed)
+### Progress (lane C)
 
 1. **Done:** the design draws the data it is given. `screens/StorePage.tsx` is the page; it imports no mock file and
    not the demo shell (A-16). `screens/ListingScreen.tsx` is now only `/demo`: it maps the mock store into the same
@@ -1325,9 +1325,19 @@ also `/flashDeals/[[...filters]]`, `/featured/[[...filters]]` and the search res
   `row-reverse`, so it mirrors twice. The code is the same as before 7b, and the sheet is a portal, so the page's `dir`
   does not reach it.
 - A dev server that answers 404 on the listings after files are deleted has a stale `.next/dev`: delete it (seen here).
-- **Old tests expected to break** (only listed, owner's order; not run): `tests/app/featured/page.test.tsx`,
-  `tests/app/flashDeals/page.test.tsx` and their `tests/app/listingPageHarness.tsx` (they name deleted files);
-  `tests/components/Listing/FiltersPageContent.test.tsx` (the page's body changed). The CI run gives the real list.
+- **Committed** as `9859eeab`, `ui-migrations` merged in as `fdd1573c`. Merged into `ui-migrations` on 2026-11-05 (owner's OK).
+- **CI on `fdd1573c`** ([run 41934739986](https://github.com/AlaaAsaad57/Trydos/actions/runs/41934739986)): parity, lint and
+  the type check pass. Unit: 599 files pass, 4 fail, with 22 tests of 7630. The 3 chat reds of Stage 7 are gone. Only
+  listed here (owner's order), for Stage 8:
+  - `tests/app/flashDeals/page.test.tsx` (9) and `tests/app/featured/page.test.tsx` (9): out of date. They read the old
+    page's parts through `tests/app/listingPageHarness.tsx`. The body of these pages is now `FiltersPageContent`.
+  - `tests/components/DemoApp1/Demo1Shell.test.tsx` (3), all out of date, by decision: "puts the back mark at the file's
+    half-pixel place" and "opens in the header" read `padding` and `left` / `right` (now logical sides, A-13); "closes
+    on a scroll" types words and expects the field to close (S7b-9 keeps it open with words).
+  - `tests/components/Listing/FiltersPageContent.test.tsx` (1), "hands on the boutique it found": the part that takes
+    the boutique changed.
+  - **One real gap found in that list, fixed after this run:** "gives no currency and reports" showed that the shared
+    currency read no longer reported a failure. `getCurrencyForListing` reports it now. Not yet in a CI run.
 - **Known limits:** a card's price does not change by itself at the moment a flash deal ends (the label goes; the price
   changes on the next read). `apply_filter`, `share_content` and `like_item` (in "Events to keep") have no sender in the
   old listing code either, so nothing was lost and nothing was added (D-10). `view_item_list` is kept.

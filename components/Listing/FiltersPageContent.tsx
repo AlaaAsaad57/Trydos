@@ -101,7 +101,13 @@ async function getCurrencyForListing(country: string, language: string) {
       redis: false,
       time: Number(end - start) / 1_000_000,
     };
-  } catch {
+  } catch (error) {
+    // The page goes on with no currency, but the failure is reported, as the
+    // flash and featured pages did before they shared this read.
+    LogServerError(
+      { error, type: "get currency error", country, language },
+      `/${country}-${language}/listing`,
+    );
     return undefined;
   }
 }
