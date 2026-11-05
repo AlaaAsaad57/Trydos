@@ -10,6 +10,7 @@ import { showErrorNotification } from "store/notifications/reducer";
 import ActiveColorDetailsSlider from "components/products/ActiveColorDetailsSlider";
 import ExtendedAreaInfo from "components/products/ExtendedAreaInfo";
 import { useIsModalRoute } from "components/ModalRoute/ModalRouteContext";
+import { slidePage } from "components/ModalRoute/pageSlide";
 import { useCommentLike } from "components/Server/product/useCommentLike";
 import { fetchBuyersComments } from "components/Server/product/ProductBuyersComment/ProductBuyersCommentList";
 import { fetchFaqComments } from "components/Server/product/ProductFAQSection/FaqQuestionsList";
@@ -267,8 +268,11 @@ export default function AppProduct({
     const listing = ["boutiques", "filters", "featured", "flashdeals"].some(
       (word) => last?.includes(word),
     );
-    store.setIsNavigating(listing ? { is_boutique: true } : { is_full_home: true });
-    router.push(last || `/${lang}`);
+    const href = last || `/${lang}`;
+    slidePage(href, () => {
+      store.setIsNavigating(listing ? { is_boutique: true } : { is_full_home: true });
+      router.push(href);
+    });
   };
 
   const [burst, setBurst] = useState(0);

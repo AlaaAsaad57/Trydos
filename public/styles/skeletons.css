@@ -2,7 +2,7 @@
 .skeleton-base {
   position: relative;
   overflow: hidden;
-  background-color: #e2e8f0; /* Base gray */
+  background-color: #ebebeb; /* The same gray as react-loading-skeleton */
   border-radius: 0.375rem; /* Default rounded */
 }
 
@@ -31,17 +31,8 @@
   }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .skeleton-base {
-    background-color: #334155;
-  }
+@media (prefers-reduced-motion: reduce) {
   .shimmer-wrapper {
-    background: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.1) 50%,
-      rgba(255, 255, 255, 0) 100%
-    );
+    animation: none;
   }
 }

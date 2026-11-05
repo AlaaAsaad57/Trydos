@@ -202,7 +202,7 @@ export default function Demo1BottomNav({
     >
       <motion.div
         data-pw="demo-tab-box"
-        className="absolute top-0 h-full"
+        className="page-slide-bar absolute top-0 h-full"
         style={{
           left: 0,
           width: boxWidth,

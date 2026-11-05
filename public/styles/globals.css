@@ -1080,3 +1080,44 @@ svg {
     align-self: center;
     margin-top: 60px;
 }
+
+/* Page slide (components/ModalRoute/pageSlide.ts). The script moves the two
+   pictures of the page, so their own fade goes. With "reduce motion" on, the
+   fade stays and nothing moves. A tap during a slide reaches the page. */
+::view-transition {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.page-slide::view-transition-old(root),
+  html.page-slide::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+}
+
+/* The bottom bar stays still while the pages move. The name is set only during
+   a slide, because a named element is a stacking context. */
+html.page-slide .page-slide-bar {
+  view-transition-name: page-slide-bar;
+}
+
+/* A picture of the bar has no glass, so the glass is drawn again here: see
+   TAB_BAR in components/DemoApp/demoLayout.ts. */
+::view-transition-group(page-slide-bar) {
+  animation: none;
+  z-index: 1;
+  border-radius: 10px 10px 40px 40px;
+  -webkit-backdrop-filter: blur(30px) brightness(1.15);
+  backdrop-filter: blur(30px) brightness(1.15);
+}
+
+/* The old picture and not the live one: WebKit does not draw the bar as a live
+   picture, so an iPhone would lose the bar during the slide. */
+::view-transition-old(page-slide-bar) {
+  animation: none;
+}
+
+::view-transition-new(page-slide-bar) {
+  display: none;
+}

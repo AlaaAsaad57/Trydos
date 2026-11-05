@@ -1,5 +1,6 @@
 // components/Skeleton.tsx
 import "styles/skeleton.css";
+import "styles/skeletons.css";
 
 interface SkeletonProps {
   width?: number | string;

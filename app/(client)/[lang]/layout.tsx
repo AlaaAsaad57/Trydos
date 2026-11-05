@@ -11,6 +11,7 @@ import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
 import { IMAGE_FALLBACK_SCRIPT } from "utils/imageFallback";
 import { LATE_BLUR_SCRIPT } from "utils/lateBlur";
+import { HISTORY_HOLD_SCRIPT } from "utils/historyHold";
 import RedeemedLuckScript from "components/Home/RedeemedLuckScript";
 import { isSupportedLocaleSegment } from "utils/locale";
 import CartProvider from "components/Cart/CartProvider";
@@ -214,6 +215,11 @@ export default async function RootLayout({ children, modal }) {
         <script
           id="late-blur"
           dangerouslySetInnerHTML={{ __html: LATE_BLUR_SCRIPT }}
+        />
+        {/* It must run before any other script: see utils/historyHold.ts. */}
+        <script
+          id="history-hold"
+          dangerouslySetInnerHTML={{ __html: HISTORY_HOLD_SCRIPT }}
         />
         {/* Also inline, also near the top of <body>, and for the same reason.
             The product grids are rendered inside a cached scope shared by every

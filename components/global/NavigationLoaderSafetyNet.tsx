@@ -27,7 +27,8 @@ import { useAppStore } from "store";
  * A tap on a store or a product now changes the URL at once (Instant Navigation),
  * long before the page is ready. Its loader shows the tapped photo, and the real
  * page clears it, so the short grace time would pull the photo away. The longer
- * one only guards against a page that never arrives.
+ * one only guards against a page that never arrives. It is for the page the tap
+ * went to: after a quick "back" no page is on its way, and the short time holds.
  */
 const TAP_GRACE_MS = 20000;
 const GRACE_MS = 800;
@@ -42,7 +43,10 @@ function SafetyNetInner() {
     if (prev.current === url) return;
     prev.current = url;
     const nav = useAppStore.getState().isNavigating;
-    const grace = nav?.is_product || nav?.is_boutique ? TAP_GRACE_MS : GRACE_MS;
+    const tapPage =
+      (nav?.is_product && pathname.includes("/products/")) ||
+      (nav?.is_boutique && pathname.includes("/filters"));
+    const grace = tapPage ? TAP_GRACE_MS : GRACE_MS;
     const id = setTimeout(() => {
       if (useAppStore.getState().isNavigating) {
         useAppStore.getState().setIsNavigating(null);

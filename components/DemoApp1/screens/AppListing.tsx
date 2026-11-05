@@ -4,9 +4,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { MotionConfig } from "framer-motion";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAppStore } from "store";
-import NextLink from "components/global/NextLink";
+import Link from "next/link";
 import { useIsModalRoute } from "components/ModalRoute/ModalRouteContext";
 import { rememberBaseScroll } from "components/ModalRoute/overlayScroll";
+import { slidePage } from "components/ModalRoute/pageSlide";
 import ListingSortControl from "components/Listing/ListingSortControl";
 import ListingShareControl from "components/Listing/ListingShareControl";
 import { BagNoResults } from "components/Listing/illustrations/ListingBagIllustration";
@@ -184,8 +185,10 @@ export default function AppListing({
     const store = useAppStore.getState();
     store.setColorBottomSheet(null);
     store.setLastPathname(pathname);
-    store.setIsNavigating(data);
-    router.push(href);
+    slidePage(href, () => {
+      store.setIsNavigating(data);
+      router.push(href);
+    });
   };
 
   const backTo = (slot: MarkSlot) =>
@@ -201,17 +204,19 @@ export default function AppListing({
         {slot.icon}
       </button>
     ) : (
-      <NextLink
-        ignoreConditionCase
-        data={{ is_full_home: true }}
+      <Link
         href={`/${lang}`}
-        ariaLabel={slot.label}
+        aria-label={slot.label}
         data-pw={slot.testId}
         className={slot.className}
         style={slot.style}
+        onNavigate={(e) => {
+          e.preventDefault();
+          goTo(`/${lang}`, { is_full_home: true });
+        }}
       >
         {slot.icon}
-      </NextLink>
+      </Link>
     );
 
   const toggleFilter = () => {

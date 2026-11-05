@@ -10,6 +10,7 @@ import {
   leaveOverlay,
   markOverlayShown,
 } from "./overlayScroll";
+import { pageShown, slideOnHistoryMoves } from "./pageSlide";
 
 // Which addresses open as overlays is defined once, in `overlayScroll`. The
 // answer is also what decides whether the browser's history scroll restoration
@@ -63,6 +64,8 @@ export default function ModalSlot({ children }: ModalSlotProps) {
     onInterceptedRoute &&
     pathname !== basePathRef.current;
 
+  useEffect(() => slideOnHistoryMoves(), []);
+
   // Hide the page body iff an overlay is actually showing. Driving this from
   // state (instead of ModalOverlay mutating `.main-content` on mount/unmount)
   // means the body can never get stuck hidden when the overlay goes away. Before
@@ -86,6 +89,11 @@ export default function ModalSlot({ children }: ModalSlotProps) {
       leaveOverlay(pathname);
     }
   }, [pathname, shouldShowOverlay]);
+
+  // After the two effects above, so a slide waiting for this page sees it done.
+  useBrowserLayoutEffect(() => {
+    pageShown(pathname);
+  }, [pathname]);
 
   if (!shouldShowOverlay) return null;
   return <ModalOverlay>{children}</ModalOverlay>;

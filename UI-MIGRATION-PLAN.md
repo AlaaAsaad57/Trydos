@@ -505,7 +505,8 @@ added on `ui-migrations` by the Stage 2 session and arrives here when Stage 2 is
 - **Old pages behave as today.** The shell adds only the bottom nav and room under the page, so the nav does
   not cover the page's last row. Old pages keep the browser's own scroll restore (no
   `history.scrollRestoration = "manual"`), keep `overflow-x: clip` on `<html>`, and do not slide. The slide runs
-  only between two new screens. A move between a new screen and an old page does not slide.
+  only between two new screens. A move between a new screen and an old page does not slide. One exception, from
+  2026-11-05: Home, a store and a product slide on their routes ("Page slide", under Page speed).
 - **Old pages still render on the server.** The shell must not put the old page inside a Suspense boundary
   that renders only in the browser, or the home page loses its SEO content (D-42). Real paths (S3-3) mean the
   shell needs no `useSearchParams`, which is what forces such a boundary.
@@ -1589,6 +1590,26 @@ on slow internet; SEO and load time must hold or improve. The real 307 for a mis
 - Open: `tests/app/filters/page`, `tests/app/modal/pages`, `tests/app/products/page` and maybe the `homeData` test
   expect the old page shape or logo address (owner's order: no local runs, so they are only noted here).
   Not checked in Safari or on a real phone.
+
+### Page slide (built and committed 2026-11-05)
+
+- Home, a store (any listing) and a product slide one step, both ways, as the design says: both pages move a full
+  width with `sliderMove`, mirrored on ar and ku, and a fade with reduced motion. The code is
+  `components/ModalRoute/pageSlide.ts`. Other moves do not slide, and Home to a product does not (two steps).
+- It uses the browser's `document.startViewTransition`, not React's `<ViewTransition>`: a base page is hidden, not
+  removed, so its `exit` never fires, and the tap's skeleton is store state, which does not start it. It needs no
+  `next.config.ts` change. A browser without the API changes the page at once, as before.
+- `utils/historyHold.ts` is an inline script, and it must stay first. On `window`, `popstate` listeners run in the
+  order they were added (`capture` changes nothing), and React commits a `popstate` navigation at once.
+- Safari's swipe back and Android's back gesture play their own move (`hasUAVisualTransition`), so we add none.
+- The bottom bar stays still. WebKit does not draw it as a live picture, so the slide shows its old picture.
+- Known limit: a tap on the bar during the 0.9 s slide is lost. It does not reach the page under the bar.
+- `Skeleton.tsx` imported `skeleton.css`, but `.skeleton-base` is in `skeletons.css`, so the store skeleton was
+  blank. Both are imported now. The other users of `Skeleton` show their shapes for the first time too.
+- Home now opens a store through the loader (`is_boutique`), so a tap shows the skeleton in the first frame.
+- A quick "back" gets the short loader grace time, so no skeleton stays on the page it returns to.
+- Checked on a production build in Chromium and WebKit on Windows. Open: a real iPhone, a real Android phone,
+  their swipe-back gestures, and Vercel. The old unit tests of these files were not run (owner's order).
 
 ### Phase 2 (built and committed)
 

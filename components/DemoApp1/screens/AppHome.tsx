@@ -4,6 +4,8 @@ import React from "react";
 import { MotionConfig } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "store";
+import { rememberBaseScroll } from "components/ModalRoute/overlayScroll";
+import { slidePage } from "components/ModalRoute/pageSlide";
 import AddStoryWidget from "components/Home/Stories/AddStoryWidgetLazy";
 import StoriesPaginationWrapper from "components/Home/Stories/StoriesPaginationWrapper";
 import { buildProxyGetUrl } from "utils/proxyGetUrl";
@@ -98,6 +100,19 @@ export default function AppHome({
     if (firstStore) router.prefetch(hrefOf(firstStore));
   }, [firstStore]);
 
+  /** Opens a store as the old links did (`NextLink`): the page loader shows at once. */
+  const openStorePage = (slug: string) => {
+    const href = hrefOf(slug);
+    rememberBaseScroll(href);
+    const store = useAppStore.getState();
+    store.setColorBottomSheet(null);
+    store.setLastPathname(window.location.pathname);
+    slidePage(href, () => {
+      store.setIsNavigating({ is_boutique: true });
+      router.push(href);
+    });
+  };
+
   return (
     <MotionConfig reducedMotion="user">
       {/* Starts the stories request while the HTML is still parsing; the
@@ -166,7 +181,7 @@ export default function AppHome({
             onStoresEnd={grid.loadMore}
             openStore={{
               href: hrefOf,
-              open: (slug) => router.push(hrefOf(slug)),
+              open: openStorePage,
             }}
           />
         </ScreenPage>
