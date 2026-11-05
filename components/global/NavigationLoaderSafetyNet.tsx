@@ -23,6 +23,15 @@ import { useAppStore } from "store";
  * whose RSC can be served from the Router Cache with no remount, so their own
  * clearer never runs.
  */
+/**
+ * A tap on a store or a product now changes the URL at once (Instant Navigation),
+ * long before the page is ready. Its loader shows the tapped photo, and the real
+ * page clears it, so the short grace time would pull the photo away. The longer
+ * one only guards against a page that never arrives.
+ */
+const TAP_GRACE_MS = 20000;
+const GRACE_MS = 800;
+
 function SafetyNetInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -32,11 +41,13 @@ function SafetyNetInner() {
   useEffect(() => {
     if (prev.current === url) return;
     prev.current = url;
+    const nav = useAppStore.getState().isNavigating;
+    const grace = nav?.is_product || nav?.is_boutique ? TAP_GRACE_MS : GRACE_MS;
     const id = setTimeout(() => {
       if (useAppStore.getState().isNavigating) {
         useAppStore.getState().setIsNavigating(null);
       }
-    }, 800);
+    }, grace);
     return () => clearTimeout(id);
   }, [url]);
 

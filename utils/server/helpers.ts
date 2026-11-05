@@ -82,9 +82,9 @@ export const getBrandIconImageUrl = (
 ): string => {
   const baseUrl = GetImageUrl(url);
   if (!baseUrl || typeof baseUrl !== "string") return baseUrl ?? "";
-  if (!baseUrl?.includes("media_server") || !baseUrl?.includes("/upload")) {
-    return baseUrl;
-  }
+  // Any media host: the base address is media.…, so a test for "media_server"
+  // here sent every brand logo at full size.
+  if (!baseUrl?.includes("/upload/")) return baseUrl;
   const width = options?.width ?? 60;
   const height = options?.height ?? 30;
   const transform = `w_${width},h_${height},c_fit,f_auto,q_auto:good`;

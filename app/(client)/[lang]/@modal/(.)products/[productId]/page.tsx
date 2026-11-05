@@ -1,15 +1,18 @@
+import { Suspense } from "react";
 import { lang as langParam } from "next/root-params";
 import ProductPageContent from "components/Product/ProductPageContent";
+import ProductPageSkeleton from "components/Product/ProductPageSkeleton";
 import NotFoundRedirect from "components/global/NotFoundRedirect";
 import { GetProductMeta } from "serverRequests/product";
 
-
-// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
-// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+// Instant navigation (Next 16.3). A tap inside the app lands on this copy of the
+// page, so its shell is prefetched and the skeleton shows with no server wait.
+// `instant = false` is needed with it: the root layout's client parts read the
+// URL outside <Suspense>, and the prefetch still carries this page's skeleton.
+export const prefetch = "partial";
 export const instant = false;
 
-
-export default async function InterceptedProductPage({ params, searchParams }) {
+async function Product({ params, searchParams }) {
   const [Params, SearchParams] = await Promise.all([params, searchParams]);
   const lang = await langParam();
   const [country, language] = lang.split("-");
@@ -38,6 +41,17 @@ export default async function InterceptedProductPage({ params, searchParams }) {
 
   return (
     // @ts-ignore
-    <ProductPageContent params={Params} searchParams={SearchParams || {}} />
+    <ProductPageContent
+      params={Params}
+      searchParams={SearchParams || {}}
+    />
+  );
+}
+
+export default function InterceptedProductPage({ params, searchParams }) {
+  return (
+    <Suspense fallback={<ProductPageSkeleton />}>
+      <Product params={params} searchParams={searchParams} />
+    </Suspense>
   );
 }

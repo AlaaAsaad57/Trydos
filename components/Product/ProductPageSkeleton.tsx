@@ -7,10 +7,13 @@ import Skeleton from "react-loading-skeleton";
  */
 export default function ProductPageSkeleton({
   photo,
+  cardPhoto,
   name,
   brand,
 }: {
   photo?: string;
+  /** The tapped card's photo. The browser has it, so it shows at once. */
+  cardPhoto?: string;
   name?: string;
   brand?: { logo: string; name: string };
 }) {
@@ -35,7 +38,8 @@ export default function ProductPageSkeleton({
             width={319}
             height={464}
             fetchPriority="high"
-            className="block shrink-0 w-[319px] h-[464px] object-cover"
+            className="block shrink-0 w-[319px] h-[464px] object-cover bg-cover bg-center"
+            style={cardPhoto ? { backgroundImage: `url("${cardPhoto}")` } : undefined}
           />
         ) : (
           <Skeleton width={319} height={464} borderRadius={0} />

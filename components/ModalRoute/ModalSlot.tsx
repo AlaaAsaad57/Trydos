@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useLayoutEffect } from "react";
 import { usePathname } from "next/navigation";
 import ModalOverlay from "./ModalOverlay";
 import { useOverlayVisibility } from "./OverlayVisibility";
@@ -15,6 +15,11 @@ import {
 // answer is also what decides whether the browser's history scroll restoration
 // is taken over at the click, and those two must never disagree.
 const isInterceptable = isInterceptedPath;
+
+// Before paint in the browser, an ordinary effect on the server (see
+// OverlayVisibility for why the choice is made once).
+const useBrowserLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 interface ModalSlotProps {
   children: React.ReactNode | null;
@@ -60,8 +65,9 @@ export default function ModalSlot({ children }: ModalSlotProps) {
 
   // Hide the page body iff an overlay is actually showing. Driving this from
   // state (instead of ModalOverlay mutating `.main-content` on mount/unmount)
-  // means the body can never get stuck hidden when the overlay goes away.
-  useEffect(() => {
+  // means the body can never get stuck hidden when the overlay goes away. Before
+  // paint, so a tap never shows the old page and the skeleton in one frame.
+  useBrowserLayoutEffect(() => {
     setOverlayActive(shouldShowOverlay);
     return () => setOverlayActive(false);
   }, [shouldShowOverlay, setOverlayActive]);
@@ -72,7 +78,7 @@ export default function ModalSlot({ children }: ModalSlotProps) {
   // `overlayScroll` (the loader phase fires first and does the base-scroll save),
   // so every intercepted page — loader and content — lands at the top and the
   // base page's scroll is restored on back-out. See overlayScroll.ts.
-  useEffect(() => {
+  useBrowserLayoutEffect(() => {
     if (shouldShowOverlay) {
       enterOverlay(basePathRef.current);
       markOverlayShown();

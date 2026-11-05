@@ -1,5 +1,6 @@
 import "styles/globals.css";
 import { Suspense } from "react";
+import { preconnect } from "react-dom";
 import "styles/home.css";
 
 import localFont from "next/font/local";
@@ -9,6 +10,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
 import { IMAGE_FALLBACK_SCRIPT } from "utils/imageFallback";
+import { LATE_BLUR_SCRIPT } from "utils/lateBlur";
 import RedeemedLuckScript from "components/Home/RedeemedLuckScript";
 import { isSupportedLocaleSegment } from "utils/locale";
 import CartProvider from "components/Cart/CartProvider";
@@ -95,7 +97,8 @@ const quicksand_light = localFont({
   weight: "300",
   style: "normal",
   display: "swap",
-  preload: true,
+  // Not on the first screen: it must not compete with the photos.
+  preload: false,
   fallback: ["system-ui", "arial"],
 });
 const quicksand_bold = localFont({
@@ -122,7 +125,8 @@ const quicksand_semibold = localFont({
   weight: "600",
   style: "normal",
   display: "swap",
-  preload: true,
+  // Not on the first screen: it must not compete with the photos.
+  preload: false,
   fallback: ["system-ui", "arial"],
 });
 
@@ -152,6 +156,11 @@ export default async function RootLayout({ children, modal }) {
   if (!isSupportedLocaleSegment(lang)) notFound();
 
   const [country, language] = lang.split("-");
+  // Opens the media connections early: each new one costs about 0.25 s, and a
+  // late photo must not wait for that. Products use both hosts.
+  const mediaBase = process.env.NEXT_PUBLIC_BASE_MEDIA_URL;
+  if (mediaBase) preconnect(new URL(mediaBase).origin);
+  preconnect("https://media_server.ramaaz.dev");
   // The words of the new screens, for the screen mount (S4-9 in
   // UI-MIGRATION-PLAN.md). The layout cannot know the path, so every page
   // gets them: 370 keys, Arabic 20 KB (7 KB gzip) on 2026-11-04. Built as the
@@ -200,6 +209,11 @@ export default async function RootLayout({ children, modal }) {
         <script
           id="image-fallback"
           dangerouslySetInnerHTML={{ __html: IMAGE_FALLBACK_SCRIPT }}
+        />
+        {/* Near the top for the same reason: see utils/lateBlur.ts. */}
+        <script
+          id="late-blur"
+          dangerouslySetInnerHTML={{ __html: LATE_BLUR_SCRIPT }}
         />
         {/* Also inline, also near the top of <body>, and for the same reason.
             The product grids are rendered inside a cached scope shared by every

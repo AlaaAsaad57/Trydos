@@ -170,6 +170,14 @@ export default function AppListing({
         return card;
       });
 
+  // Every product shares one shell, so one prefetch readies them all. Never with
+  // the `?color=`: a finished prefetch of an address with a query turns the next
+  // tap on that address into a full page reload (measured on Next 16.3.8).
+  const firstProduct = cards[0]?.links[0]?.split("?")[0];
+  useEffect(() => {
+    if (firstProduct) router.prefetch(firstProduct);
+  }, [firstProduct]);
+
   /** Opens an address in the app, as the old links did (`NextLink`): the page loader shows `data`. */
   const goTo = (href: string, data: Record<string, unknown>) => {
     rememberBaseScroll(href);
@@ -309,20 +317,21 @@ export default function AppListing({
           actions={{
             open: (card, colorIndex) => {
               const p = byId.get(card.id);
+              // The same colours as the card: one with no photos is not drawn.
+              const shown = (p?.sync_color_images ?? []).filter(
+                (group: any) => group?.images?.length > 0,
+              );
               goTo(card.links[colorIndex] ?? card.links[0], {
                 name: p?.name,
                 brand: p?.brand,
-                images: [
-                  p?.sync_color_images?.[0]?.images?.[0] ?? p?.images?.[0],
-                ],
+                images: [shown[colorIndex]?.images?.[0] ?? p?.images?.[0]],
+                cardPhoto: card.colors[colorIndex]?.images[0],
                 price: p?.price,
                 is_luck: p?.is_luck,
                 offer_price: p?.offer_price,
                 is_product: true,
               });
             },
-            warm: (card, colorIndex) =>
-              router.prefetch(card.links[colorIndex] ?? card.links[0]),
             add: () => showToast(t("Soon available")),
           }}
           empty={noResults}

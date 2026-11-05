@@ -1,4 +1,4 @@
-import { GetImageUrl } from "utils/server/helpers";
+import { getConfiguredImage, GetImageUrl } from "utils/server/helpers";
 
 /**
  * Real data for the new home (Stage 7 of UI-MIGRATION-PLAN.md, A-16).
@@ -33,6 +33,9 @@ export type HomeChip = {
   picked: boolean;
 };
 
+/** A logo draws 20 px high: three times that stays sharp on a phone. */
+const LOGO_PX = 60;
+
 /** The Brand Stores carousel takes the first 9 boutiques: 3 pages of 3 (S7-3). */
 export const HOME_BRAND_COUNT = 9;
 
@@ -53,7 +56,10 @@ export function toHomeStore(boutique: any, lang: string): HomeStore | null {
   return {
     slug,
     name: typeof boutique?.name === "string" ? boutique.name : "",
-    logo: boutique?.icon ? (GetImageUrl(boutique.icon) ?? null) : null,
+    logo: boutique?.icon
+      ? getConfiguredImage({ src: GetImageUrl(boutique.icon), height: LOGO_PX }) ||
+        null
+      : null,
     href: `/${lang}/filters/boutiques/${slug}`,
   };
 }

@@ -625,6 +625,8 @@ function BrandCardContents({
             width={logo.w}
             height={logo.h}
             draggable={false}
+            loading="lazy"
+            decoding="async"
             className="absolute block select-none"
             style={{
               ...CENTRED,
@@ -692,6 +694,8 @@ function BrandCardContents({
           width={logo.w}
           height={logo.h}
           draggable={false}
+          loading="lazy"
+          decoding="async"
           className="absolute block select-none"
           style={{ top: logo.top, insetInlineStart: logo.left }}
         />

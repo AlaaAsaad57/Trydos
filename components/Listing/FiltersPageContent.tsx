@@ -200,8 +200,8 @@ export default async function FiltersPageContent({
     const currencyPromise = getCurrencyForListing(country, language);
     const boutiquePromise = getBoutique(boutiqueItem, country, language);
 
-    // Resolved before any JSX is returned: a redirect raised once the
-    // Suspense parts below have streamed would never reach the browser.
+    // Resolved before any JSX is returned. The page holds this in <Suspense>, so
+    // a missing boutique leaves through Next's meta tag, not a status code.
     const boutiqueResolved: any = await boutiquePromise;
     if (boutiqueResolved?.boutiqueNotFound) {
       const target = `/${country}-${language}?message=boutique_not_found`;

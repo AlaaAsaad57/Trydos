@@ -1,9 +1,11 @@
+import { Suspense } from "react";
 import { lang as langParam } from "next/root-params";
 import { RedisSet } from "serverRequests/radis";
 import { GetProductMeta } from "serverRequests/product";
 import { redirect } from "next/navigation";
 import { LogServerError } from "utils/serverErrorReporter";
 import ProductPageContent from "components/Product/ProductPageContent";
+import ProductPageSkeleton from "components/Product/ProductPageSkeleton";
 import { Metadata } from "next";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
@@ -26,10 +28,10 @@ export async function generateMetadata({ params, searchParams }): Promise<Metada
     // here. Metadata is streamed in Next 16 — it resolves after the 200 shell
     // has already been flushed, so a redirect thrown from this function only
     // ever lands as a failed boundary in the RSC stream and never navigates the
-    // browser. Emit empty metadata and let the page issue the real 307.
+    // browser. That answer is a 200, so tell search engines not to keep it.
     // @ts-ignore
     if (metaData?.productNotFound) {
-      return {};
+      return { robots: { index: false, follow: false } };
     }
 
     // @ts-ignore
@@ -57,15 +59,14 @@ export async function generateMetadata({ params, searchParams }): Promise<Metada
   }
 }
 
-export default async function Page({ params, searchParams }) {
+async function Product({ params, searchParams }) {
   const [Params, SearchParams] = await Promise.all([params, searchParams]);
   const lang = await langParam();
   const [country, language] = lang.split("-");
 
-  // Awaited on purpose: the page component is the last point that still blocks
-  // the response, so it is the only place a not-found redirect can produce a
-  // real 307. Same URL as generateMetadata's call, so Next's request
-  // memoization collapses the two into one backend hit.
+  // Inside <Suspense>, so the skeleton never waits for this read. The answer has
+  // started as a 200 by then, so a missing product leaves through Next's meta
+  // tag, not a 307 (owner's decision: the fast page matters more).
   const metaData = await GetProductMeta({
     country,
     language,
@@ -83,5 +84,13 @@ export default async function Page({ params, searchParams }) {
   return (
     // @ts-ignore
     <ProductPageContent params={Params} searchParams={SearchParams || {}} />
+  );
+}
+
+export default function Page({ params, searchParams }) {
+  return (
+    <Suspense fallback={<ProductPageSkeleton />}>
+      <Product params={params} searchParams={searchParams} />
+    </Suspense>
   );
 }

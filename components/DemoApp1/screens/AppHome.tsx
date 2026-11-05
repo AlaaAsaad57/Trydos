@@ -91,6 +91,13 @@ export default function AppHome({
 
   const hrefOf = (slug: string) => `/${lang}/filters/boutiques/${slug}`;
 
+  // Every store shares one shell, so one prefetch readies them all. The cards
+  // are plain links, which Next does not prefetch by itself.
+  const firstStore = brands[0]?.slug ?? stores[0]?.slug;
+  React.useEffect(() => {
+    if (firstStore) router.prefetch(hrefOf(firstStore));
+  }, [firstStore]);
+
   return (
     <MotionConfig reducedMotion="user">
       {/* Starts the stories request while the HTML is still parsing; the

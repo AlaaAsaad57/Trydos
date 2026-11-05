@@ -2,7 +2,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppStore } from "store";
-import { rememberBaseScroll } from "components/ModalRoute/overlayScroll";
+import {
+  isInterceptedPath,
+  rememberBaseScroll,
+} from "components/ModalRoute/overlayScroll";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 
@@ -41,6 +44,10 @@ export default function NextLink({
   ...props
 }: INextLinkProps) {
   const pathname = usePathname();
+  // A finished prefetch of a product or listing address with a query turns the
+  // next tap on it into a full page reload (measured on Next 16.3.8). These
+  // routes share one shell, so the prefetch adds nothing here.
+  const prefetch = isInterceptedPath(href) && href.includes("?") ? false : "auto";
   const { setIsNavigating, setLastPathname, setColorBottomSheet } =
     useAppStore();
   if (ignoreConditionCase) {
@@ -50,7 +57,7 @@ export default function NextLink({
         className={className}
         data-pw={props["data-pw"] ?? ""}
         style={style}
-        prefetch={"auto"}
+        prefetch={prefetch}
         href={href}
         target={target}
         // Only when the caller asked for one. An aria-label REPLACES the link's
@@ -138,7 +145,7 @@ export default function NextLink({
       // and the browser tests find an entry by it. Left undefined, React draws
       // no attribute at all.
       data-id={props["data-id"]}
-      prefetch={"auto"}
+      prefetch={prefetch}
       // See the note on the same attribute above.
       aria-label={ariaLabel}
       onNavigate={(e) => {

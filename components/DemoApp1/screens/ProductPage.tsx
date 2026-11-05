@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Spinner from "components/global/Spinner";
 import ProductRating from "components/Server/product/ProductRating";
+import { tinyPhoto } from "utils/lateBlur";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import type { DemoKey } from "../../DemoApp/demoKeys";
@@ -357,6 +358,7 @@ function Gallery({
                 >
                   <img
                     src={src}
+                    data-tiny={i < 2 ? tinyPhoto(src) : undefined}
                     srcSet={srcSet}
                     sizes={srcSet ? `${w}px` : undefined}
                     // The other photos show the same product; one name is enough.

@@ -11,6 +11,7 @@ import {
   type ListingMark,
   type StoreCard,
 } from "../listingData";
+import { tinyPhoto } from "utils/lateBlur";
 import { C, lineBox, textTop } from "../demo1Layout";
 
 /**
@@ -427,6 +428,7 @@ function OnePhoto({
   return (
     <img
       src={src}
+      data-tiny={tinyPhoto(src)}
       alt={alt}
       width={PHOTO.w}
       height={PHOTO.h}
@@ -515,6 +517,7 @@ function SlidingPhotos({
             <img
               key={src}
               src={src}
+              data-tiny={i === 0 ? tinyPhoto(src) : undefined}
               // The other photos show the same product; one name is enough.
               alt={i === 0 ? alt : ""}
               width={PHOTO.w}

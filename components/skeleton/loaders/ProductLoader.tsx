@@ -29,6 +29,7 @@ function ProductLoader({ product }) {
     <div dir={dir}>
       <ProductPageSkeleton
         photo={firstImageSrc}
+        cardPhoto={product?.cardPhoto}
         name={product?.name}
         brand={
           product?.brand?.icon

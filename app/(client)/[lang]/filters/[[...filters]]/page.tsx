@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { lang as langParam } from "next/root-params";
 
 import { permanentRedirect } from "next/navigation";
@@ -6,6 +7,7 @@ import { translateFunction } from "utils/server";
 import { generateMetadataForListing } from "serverRequests/meta/listing";
 import { General_Site_Data } from "serverRequests/meta/StructuredData/Constants";
 import FiltersPageContent from "components/Listing/FiltersPageContent";
+import ListingPageSkeleton from "components/Listing/ListingPageSkeleton";
 import { buildSearchRedirectTarget } from "utils/listing/searchPathRedirect";
 
 // TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
@@ -87,6 +89,12 @@ export default async function Page({ params, searchParams }) {
 
   const sort = typeof sp.sort === "string" ? sp.sort : undefined;
   const search = typeof sp.search === "string" ? sp.search : undefined;
-  // @ts-ignore
-  return <FiltersPageContent params={Params} sort={sort} search={search} />;
+  // The boutique read sits inside <Suspense>, so the skeleton never waits for it.
+  // The legacy redirect above needs no read, so it stays a real 308.
+  return (
+    <Suspense fallback={<ListingPageSkeleton />}>
+      {/* @ts-ignore */}
+      <FiltersPageContent params={Params} sort={sort} search={search} />
+    </Suspense>
+  );
 }

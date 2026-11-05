@@ -1568,3 +1568,24 @@ and after D-45: `change_size`, `add_to_cart`.
    comes out as `.../boutiques/icon//image/upload/boutiques/boutiques/icon/...` and answers `404`. The live store
    page builds the address the same way (`BoutiqueMiniLogo`, `GetImageUrl(boutique.icon)`), so it is the data,
    not the new home. Found in Stage 7 (lane C); nothing was changed.
+
+---
+
+## Page speed (after Stage 7c, 2026-11-05)
+
+Owner's rules: caching is not an accepted fix; a tap must show a skeleton at once; no scroll jumps; a blur only
+on slow internet; SEO and load time must hold or improve. The real 307 for a missing product may go (owner).
+
+### Phase 1 (done, on a production build, simulated phone = 4x CPU, 9 Mbps)
+
+- Home to store, tap to skeleton: 1.2-1.4 s before; about 40 ms on a fast device, 0.37-0.44 s on the phone.
+- The `@modal` pages use `prefetch = "partial"` with `instant = false`. Both are needed: the root layout's client
+  parts read the URL outside `<Suspense>`. `next.config.ts` is not changed.
+- A finished prefetch of an address with a query makes the next tap a full reload (Next 16.3.8). So never prefetch
+  a `/products` or `/filters` address with a query. `NextLink` turns it off; `AppListing` strips the query.
+- Blur (`utils/lateBlur.ts`): a photo on screen that is late after 500 ms asks for `w_24/f_webp/q_25`. `.jfif` is
+  skipped until the MediaServing fix is live.
+- Missing product: a 200 with Next's meta redirect and `noindex`. Legacy listing redirects stay real 308s.
+- Open: `tests/app/filters/page`, `tests/app/modal/pages`, `tests/app/products/page` and maybe the `homeData` test
+  expect the old page shape or logo address (owner's order: no local runs, so they are only noted here).
+  Not checked in Safari or on a real phone.
