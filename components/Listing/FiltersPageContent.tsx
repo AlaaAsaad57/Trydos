@@ -3,7 +3,10 @@ import NotFoundRedirect from "components/global/NotFoundRedirect";
 import { Suspense } from "react";
 import "styles/listing-components.css";
 import { fetchCurrency } from "serverRequests";
-import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
+import {
+  getListingPrices,
+  getProductsAndFiltersFromElastic,
+} from "services/elastic/elasticSearch";
 import { qaMode } from "utils/server/qaMode";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
@@ -200,15 +203,6 @@ export default async function FiltersPageContent({
     const currencyPromise = getCurrencyForListing(country, language);
     const boutiquePromise = getBoutique(boutiqueItem, country, language);
 
-    // Resolved before any JSX is returned. The page holds this in <Suspense>, so
-    // a missing boutique leaves through Next's meta tag, not a status code.
-    const boutiqueResolved: any = await boutiquePromise;
-    if (boutiqueResolved?.boutiqueNotFound) {
-      const target = `/${country}-${language}?message=boutique_not_found`;
-      if (intercepted) return <NotFoundRedirect href={target} />;
-      redirect(target);
-    }
-
     // The `/filters` listing reads with the shopper's id and a snapshot
     // (ADR-009), as before; the flash and featured listings did not.
     const userData =
@@ -216,6 +210,13 @@ export default async function FiltersPageContent({
         ? await getCookieServer<{ id: string }>(COOKIE_NAMES.USER_DATA)
         : null;
     const parsedUserId = userData?.id ?? null;
+
+    const listingFilters = {
+      ...parsedFilters,
+      featured: isFeatured,
+      flashdeal: isFlashDeals,
+      search_text: effectiveSearch || undefined,
+    };
 
     // Deduped per request: the `/filters` page renders twice in one request
     // (the page, and its `@modal` copy). Without this, both read
@@ -226,18 +227,51 @@ export default async function FiltersPageContent({
         getProductsAndFiltersFromElastic({
           country,
           language_code: language,
-          filters: {
-            ...parsedFilters,
-            featured: isFeatured,
-            flashdeal: isFlashDeals,
-            search_text: effectiveSearch || undefined,
-          },
+          filters: listingFilters,
           limit: 10,
+          lean: true,
           ...(kind === "filters" ? { userId: parsedUserId, usePit: true } : {}),
           // The listing's order (`?sort=`); none ⇒ relevance.
           sort,
         }),
     );
+
+    // The closed filter sheet's prices: their own reads, so no card waits for
+    // them. Search words of two or more change the filters, so that one case
+    // starts from the filters the first read really used.
+    const pricesPromise = dedupeRequest(
+      `listing-prices:${kind}:${country}:${language}:${effectiveSearch}:${JSON.stringify(parsedFilters)}`,
+      async () => {
+        const filters = effectiveSearch.includes(" ")
+          ? ((await filtersDataPromise)?.applied ?? listingFilters)
+          : listingFilters;
+        return getListingPrices({ filters, country });
+      },
+    ).catch((error) => {
+      LogServerError(
+        { error, type: "get listing prices error", country, language },
+        `/${country}-${language}/${kind}`,
+      );
+      return null;
+    });
+    const sheetDataPromise = Promise.all([filtersDataPromise, pricesPromise]).then(
+      ([data, prices]: [any, any]) => ({
+        ...data,
+        prices: prices ?? data?.prices,
+      }),
+    );
+    // A missing boutique leaves below, and nothing would read these answers.
+    sheetDataPromise.catch(() => {});
+
+    // Resolved before any JSX is returned, while the reads above already run. The
+    // page holds this in <Suspense>, so a missing boutique leaves through Next's
+    // meta tag, not a status code.
+    const boutiqueResolved: any = await boutiquePromise;
+    if (boutiqueResolved?.boutiqueNotFound) {
+      const target = `/${country}-${language}?message=boutique_not_found`;
+      if (intercepted) return <NotFoundRedirect href={target} />;
+      redirect(target);
+    }
 
     return (
       <>
@@ -254,7 +288,7 @@ export default async function FiltersPageContent({
               featured: isFeatured,
               flashdeal: isFlashDeals,
             }}
-            filtersPromise={filtersDataPromise}
+            filtersPromise={sheetDataPromise}
             serverSearch={effectiveSearch}
           />
         </Suspense>

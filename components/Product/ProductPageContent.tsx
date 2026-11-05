@@ -1,7 +1,9 @@
 import "styles/productDetails.css";
 import "styles/product-body.css";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { connection } from "next/server";
+import NotFoundRedirect from "components/global/NotFoundRedirect";
 import {
   GetGlobalProduct,
   GetProductGeneralData,
@@ -36,6 +38,13 @@ import { toInfoRows, toProductView } from "./productView";
 interface ProductPageContentProps {
   params: { lang: string; productId: string };
   searchParams: { color?: string; size?: string };
+  /** The meta read, already running. It says when the product does not exist. */
+  meta?: Promise<any>;
+  /**
+   * True in the `@modal` slot, where a server redirect() cannot move the browser
+   * (see NotFoundRedirect).
+   */
+  intercepted?: boolean;
 }
 
 /**
@@ -70,28 +79,49 @@ async function optional<T>(
 export default function ProductPageContent({
   params,
   searchParams,
+  meta,
+  intercepted = false,
 }: ProductPageContentProps) {
   return (
     <Suspense fallback={<ProductPageSkeleton />}>
-      <ProductBody params={params} searchParams={searchParams || {}} />
+      <ProductBody
+        params={params}
+        searchParams={searchParams || {}}
+        meta={meta}
+        intercepted={intercepted}
+      />
     </Suspense>
   );
 }
 
-async function ProductBody({ params, searchParams }: ProductPageContentProps) {
+async function ProductBody({
+  params,
+  searchParams,
+  meta,
+  intercepted,
+}: ProductPageContentProps) {
   // The delivery date below reads the clock: this part renders per request.
   await connection();
   const [country, language] = params.lang.split("-");
   const slug = params.productId;
   const { color, size } = searchParams;
 
-  const [global, qty, setting, currency, user] = await Promise.all([
+  const [metaData, global, qty, setting, currency, user] = await Promise.all([
+    meta,
     GetGlobalProduct({ slug, language, country }) as Promise<any>,
     GetProductPriceQtyDetails({ slug, language, country }) as Promise<any>,
     GetStarttingSetting({ language, country }) as Promise<any>,
     getCurrency(country, language),
     getCookieServer<{ id: string }>(COOKIE_NAMES.USER_DATA),
   ]);
+
+  // Only a definitive 404 leaves. A transient failure returns undefined and must
+  // still render the product.
+  if (metaData?.productNotFound) {
+    const target = `/${country}-${language}?message=product_not_found`;
+    if (intercepted) return <NotFoundRedirect href={target} />;
+    redirect(target);
+  }
   const id = global?.id;
 
   const [social, general, reviews, questions] = await Promise.all([

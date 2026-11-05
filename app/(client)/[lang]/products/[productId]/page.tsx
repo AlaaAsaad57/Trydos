@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { lang as langParam } from "next/root-params";
 import { RedisSet } from "serverRequests/radis";
 import { GetProductMeta } from "serverRequests/product";
-import { redirect } from "next/navigation";
 import { LogServerError } from "utils/serverErrorReporter";
 import ProductPageContent from "components/Product/ProductPageContent";
 import ProductPageSkeleton from "components/Product/ProductPageSkeleton";
@@ -64,26 +63,22 @@ async function Product({ params, searchParams }) {
   const lang = await langParam();
   const [country, language] = lang.split("-");
 
-  // Inside <Suspense>, so the skeleton never waits for this read. The answer has
-  // started as a 200 by then, so a missing product leaves through Next's meta
-  // tag, not a 307 (owner's decision: the fast page matters more).
-  const metaData = await GetProductMeta({
+  // Not awaited: it runs beside the product's first reads. The content leaves
+  // through Next's meta tag for a missing product, not a 307 (owner's decision:
+  // the fast page matters more). Same read as generateMetadata's.
+  const meta = GetProductMeta({
     country,
     language,
     slug: Params.productId,
     searchParams: SearchParams || {},
   });
 
-  // Only a definitive 404 redirects — a transient failure returns undefined and
-  // must still render the page.
-  // @ts-ignore
-  if (metaData?.productNotFound) {
-    redirect(`/${country}-${language}?message=product_not_found`);
-  }
-
   return (
-    // @ts-ignore
-    <ProductPageContent params={Params} searchParams={SearchParams || {}} />
+    <ProductPageContent
+      params={Params}
+      searchParams={SearchParams || {}}
+      meta={meta}
+    />
   );
 }
 

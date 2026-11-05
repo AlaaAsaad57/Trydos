@@ -1583,9 +1583,20 @@ on slow internet; SEO and load time must hold or improve. The real 307 for a mis
   parts read the URL outside `<Suspense>`. `next.config.ts` is not changed.
 - A finished prefetch of an address with a query makes the next tap a full reload (Next 16.3.8). So never prefetch
   a `/products` or `/filters` address with a query. `NextLink` turns it off; `AppListing` strips the query.
-- Blur (`utils/lateBlur.ts`): a photo on screen that is late after 500 ms asks for `w_24/f_webp/q_25`. `.jfif` is
-  skipped until the MediaServing fix is live.
+- Blur (`utils/lateBlur.ts`): a photo on screen that is late after 500 ms asks for `w_24/f_webp/q_25`. The
+  MediaServing `.jfif` fix is live (2026-11-05), so `.jfif` is no longer skipped.
 - Missing product: a 200 with Next's meta redirect and `noindex`. Legacy listing redirects stay real 308s.
 - Open: `tests/app/filters/page`, `tests/app/modal/pages`, `tests/app/products/page` and maybe the `homeData` test
   expect the old page shape or logo address (owner's order: no local runs, so they are only noted here).
   Not checked in Safari or on a real phone.
+
+### Phase 2 (built and committed)
+
+- The listing's page read is `lean`: no `global_related_scope` (134 of 213 KB of the aggregations, and the page
+  never used it; only the client `GetFilters` does) and no price facet. `/sy-en/filters` first card: 6.8-11.2 s
+  before, 2.1-2.4 s after. A boutique page: 1.7-1.9 s before, 0.9-1.2 s after.
+- `getListingPrices` reads the closed filter sheet's prices on their own. Checked: same bounds, curve and cards.
+- The search no longer waits for the boutique read, so the snapshot and the boutique run together.
+- The product's `GetProductMeta` runs with its first reads, not before them.
+- Not done on purpose: streaming reviews apart from the photo. Rating, heart and reviews sit across one large
+  component, the tapped photo already shows at once, and the risk is higher than the gain.

@@ -20,14 +20,11 @@ export const LATE_BLUR_WAIT_MS = 500;
 /**
  * The tiny copy of a sized media photo, or undefined when it has none. It works
  * like an image provider's loader: the address comes from the photo's own.
- *
- * `.jfif` is left out because the media app does not resize that type, so the
- * "tiny" copy would be the whole file.
  */
 export function tinyPhoto(src: string | null | undefined): string | undefined {
   if (!src) return undefined;
   const parts = src.match(/^(.*\/upload\/).*\/so_0\/(.+)$/);
-  if (!parts || /\.jfif$/i.test(parts[2])) return undefined;
+  if (!parts) return undefined;
   return `${parts[1]}w_24/f_webp/q_25/${parts[2]}`;
 }
 

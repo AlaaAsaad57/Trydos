@@ -49,6 +49,10 @@ interface SearchParams {
   sort?: string;
   noProducts?: boolean;
   noFilters?: boolean;
+  // The listing page's first read: everything the cards, the tiles and the title
+  // need, without the related categories (the page never shows them) and without
+  // the price facet (the filter sheet reads it with getListingPrices).
+  lean?: boolean;
   userId?: string | number | null;
   recommended_offset?: number;
   // ── WEB vs MOBILE `_source` split (ticket 7c) ───────────────────────
@@ -210,6 +214,109 @@ async function runListingSearch(
 /**
  * Main function to search products and get filters from Elasticsearch
  */
+/**
+ * The price slider's bounds, curve and cards from the stats of a listing. One
+ * histogram feeds all three, so they always agree.
+ */
+async function readPriceFacet(
+  priceFacet: any,
+  mustConditions: any[],
+  mustNotConditions: any[],
+  country: string,
+) {
+  const stats = mergePriceStats(priceFacet);
+  let histogram: { min_price: number; max_price: number; count: number }[] = [];
+  let priceRanges: any[] = [];
+
+  if (stats.max_price > stats.min_price) {
+    const interval = priceHistogramInterval(stats.min_price, stats.max_price);
+    const { response } = await runListingSearch(
+      {
+        index: catalog_index,
+        size: 0,
+        track_total_hits: false,
+        query: { match_all: {} },
+        aggs: {
+          price_facet_hist: buildPriceHistogramAggregation(
+            mustConditions,
+            mustNotConditions,
+            country,
+            interval,
+            stats.min_price,
+          ),
+        },
+      } as any,
+      null,
+    );
+    histogram = mergePriceHistogram(
+      (response as any).aggregations?.price_facet_hist,
+      interval,
+    );
+    priceRanges = deriveEqualCountCards(histogram);
+  } else if (stats.total > 0) {
+    // All matching products share one price: a single card and a flat curve.
+    histogram = [
+      {
+        min_price: stats.min_price,
+        max_price: stats.max_price,
+        count: stats.total,
+      },
+    ];
+    priceRanges = [
+      {
+        min_price: stats.min_price,
+        max_price: stats.max_price,
+        products_count: stats.total,
+      },
+    ];
+  }
+
+  return {
+    min_price: stats.min_price,
+    max_price: stats.max_price,
+    priceRanges,
+    histogram,
+    total: stats.total,
+  };
+}
+
+/**
+ * The price facet of a listing, on its own, for the filter sheet. The sheet is
+ * closed when the page opens, so the cards must not wait for these two reads.
+ * Null when the global price facet is turned off.
+ */
+export async function getListingPrices({
+  filters,
+  country,
+}: {
+  filters: SearchFilters;
+  country: string;
+}) {
+  if (!LISTING_PRICE_AGG_ENABLED) return null;
+  const scoped: any = filters?.prices
+    ? { ...filters, priceRange: filters.prices }
+    : filters;
+  const { must, must_not } = buildBaseConditions(scoped, country);
+  const { response } = await runListingSearch(
+    {
+      index: catalog_index,
+      size: 0,
+      track_total_hits: false,
+      query: { bool: { must, must_not } },
+      aggs: {
+        price_facet: buildPriceStatsAggregation(must, must_not, country),
+      },
+    } as any,
+    null,
+  );
+  return readPriceFacet(
+    (response as any).aggregations?.price_facet,
+    must,
+    must_not,
+    country,
+  );
+}
+
 export async function getProductsAndFiltersFromElastic(
   params: SearchParams,
 ): Promise<SearchResult> {
@@ -223,6 +330,7 @@ export async function getProductsAndFiltersFromElastic(
     filters_offset = 1,
     noFilters = false,
     noProducts = false,
+    lean = false,
     userId = null,
     recommended_offset = 0,
     pit_id = null,
@@ -325,6 +433,7 @@ export async function getProductsAndFiltersFromElastic(
     };
 
     if (noFilters) delete searchQuery.aggs;
+    if (lean) delete (searchQuery as any).aggs?.global_related_scope;
 
     // Facet-only requests (`noProducts`) never need product hits — the facets
     // are served entirely from `aggs`, independent of any price-agg flag.
@@ -338,7 +447,12 @@ export async function getProductsAndFiltersFromElastic(
     // For the filters-only panel request (`noProducts`) product fetching is
     // already forced to `size: 0` above, independent of this flag.
     let priceFacetActive = false;
-    if (LISTING_PRICE_AGG_ENABLED && !noFilters && (searchQuery as any).aggs) {
+    if (
+      LISTING_PRICE_AGG_ENABLED &&
+      !noFilters &&
+      !lean &&
+      (searchQuery as any).aggs
+    ) {
       priceFacetActive = true;
       (searchQuery as any).aggs.price_facet = buildPriceStatsAggregation(
         mustConditions,
@@ -400,89 +514,13 @@ export async function getProductsAndFiltersFromElastic(
     // (`!noFilters`) — including the `/filters` page render, which fetches the
     // grid (`noProducts:false`) yet still needs the cards. Grid-only pagination
     // (`GetProducts`) passes `noFilters:true`, so it is excluded entirely.
-    if (LISTING_PRICE_AGG_ENABLED && !noFilters && priceFacetActive) {
-      const computeStart = process.hrtime.bigint();
-      const priceFacet = (response as any).aggregations?.price_facet;
-      // Stats are re-scoped to all active filters (incl. the selected price
-      // range), so the slider bounds track the current selection.
-      const stats = mergePriceStats(priceFacet);
-      let histogram: { min_price: number; max_price: number; count: number }[] =
-        [];
-      let priceRanges: any[] = [];
-
-      if (stats.max_price > stats.min_price) {
-        // One histogram over the re-scoped result set feeds BOTH the curve and
-        // the equal-count cards, so all of slider/curve/cards agree.
-        const interval = priceHistogramInterval(stats.min_price, stats.max_price);
-        const { response: histResponse } = await runListingSearch(
-          {
-            index: catalog_index,
-            size: 0,
-            track_total_hits: false,
-            query: { match_all: {} },
-            aggs: {
-              price_facet_hist: buildPriceHistogramAggregation(
-                mustConditions,
-                mustNotConditions,
-                country,
-                interval,
-                stats.min_price,
-              ),
-            },
-          } as any,
-          null,
-        );
-        histogram = mergePriceHistogram(
-          (histResponse as any).aggregations?.price_facet_hist,
-          interval,
-        );
-        priceRanges = deriveEqualCountCards(histogram);
-      } else if (stats.total > 0) {
-        // All matching products share one price → a single card / flat curve.
-        histogram = [
-          {
-            min_price: stats.min_price,
-            max_price: stats.max_price,
-            count: stats.total,
-          },
-        ];
-        priceRanges = [
-          {
-            min_price: stats.min_price,
-            max_price: stats.max_price,
-            products_count: stats.total,
-          },
-        ];
-      }
-
-      prices = {
-        min_price: stats.min_price,
-        max_price: stats.max_price,
-        priceRanges,
-        histogram,
-        total: stats.total,
-      };
-
-      // if (LISTING_PRICE_AGG_DEBUG) {
-      //   const computeEnd = process.hrtime.bigint();
-      //   console.debug(
-      //     "[price-agg]",
-      //     JSON.stringify({
-      //       country,
-      //       filters: {
-      //         must: mustConditions.length,
-      //         must_not: mustNotConditions.length,
-      //       },
-      //       base_stats: priceFacet?.base_stats?.stats,
-      //       country_stats: priceFacet?.country_stats?.matched?.stats,
-      //       merged: stats,
-      //       histogramBuckets: histogram.length,
-      //       cards: priceRanges,
-      //       es_took_ms: (response as any).took,
-      //       compute_ms: Number(computeEnd - computeStart) / 1_000_000,
-      //     }),
-      //   );
-      // }
+    if (priceFacetActive) {
+      prices = await readPriceFacet(
+        (response as any).aggregations?.price_facet,
+        mustConditions,
+        mustNotConditions,
+        country,
+      );
     }
 
     if (filters.colors?.length) {
@@ -588,11 +626,13 @@ export async function getProductsAndFiltersFromElastic(
     );
     categoriesFilter = categoriesResult.categories;
 
-    const relatedCategoriesFilter = processRelatedCategories(
-      relatedAggregations,
-      categoriesResult.genderAgePairs,
-      filters_offset,
-    );
+    const relatedCategoriesFilter = lean
+      ? []
+      : processRelatedCategories(
+          relatedAggregations,
+          categoriesResult.genderAgePairs,
+          filters_offset,
+        );
 
     const existingCategoryKeys = new Set<string>();
     const collectCategoryKeys = (categories: any[] = []) => {
