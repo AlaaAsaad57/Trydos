@@ -1386,6 +1386,93 @@ sort, filter and share marks do nothing yet" (`ListingScreen.tsx` lines 85-86).
 **Live:** `app/(client)/[lang]/products/[productId]/page.tsx` → `components/Product/ProductPageContent.tsx`;
 also the quick view `app/(client)/[lang]/@modal/(.)products/[productId]`. The URL `/products/<slug>` stays.
 
+**Built in:** `../trydos-shop`, branch `ui-migrations-shop` (lane C, A-35). Started on 2026-11-05, after Stage 7b was merged.
+
+### Decided for Stage 7c (2026-11-05)
+
+| # | Decision | Answer |
+|---|---|---|
+| S7c-1 | Old footer | Not shown until D-45. Shoppers see no price and cannot buy from the product page until then (owner accepted this). The code stays (A-33). The JSON-LD and its rating read move out of it. `ProductPricesWrapper`, the old video card and try-on are inside the footer, so they go with it. |
+| S7c-2 | The heart | The product's heart is the live like (`like_item`, comments backend). The wishlist stays in the old "more" sheet, which the header's more mark opens. |
+| S7c-3 | The two bells | Price alert and Stock alert show "Soon available". The real alerts stay in the "more" sheet. |
+| S7c-4 | Parts with no data | **Exception to A-8, owner's choice.** They show as the design draws them, as fixed text: the AI review summary card, the Video tab, the pills "Best price", "Best sell", "Fast Packing" and "in 6 hours shipping". They show on every product, also on a product with no reviews. |
+| S7c-5 | Reviews | The fixed AI card is the first card. The real reviews follow it, in the design's card. |
+| S7c-6 | Questions | The real questions show in the design's card. A question with no answer shows only the card's top half. |
+| S7c-7 | Blue button | A tap turns the button into the ask field, with a soft change. It sends the question to the seller (the old `AskInput` logic). It no longer opens a chat. |
+| S7c-8 | Old sheets | The old review, question, delivery and rating sheets do not open. Edit, delete, report, translate and filters of reviews and questions are not shown; their code stays (A-33). |
+| S7c-9 | Product loader | `ProductLoader` (shown while a tapped product opens) is redrawn in the page's shape, as S7b-13 did for the listings. It keeps the tapped photo and name. |
+| S7c-10 | Load more | The review and question rows read their next page near their end (owner, 2026-11-05). A small end card shows a spinner while a page loads, and "Load More" after a failed read. |
+
+### Where Stage 7c stopped (2026-11-05) — merged into `ui-migrations` (owner's OK)
+
+- **Built:** `screens/ProductPage.tsx` is the design and draws the data it is given. It imports no mock file and not the
+  demo shell (A-16). `productData.ts` holds the plain shape. `components/Product/productView.ts` maps the live product on
+  the server. `screens/AppProduct.tsx` is the client part. `screens/ProductScreen.tsx` is now only `/demo`.
+  `ProductPageContent` reads the data and draws the JSON-LD (moved out of the footer, with its rating read).
+- **Old logic moved, old parts still use it:** `useProductLike`, `useCommentLike`, `useAskQuestion`.
+- **Mapping, after the check against the board:** rating row = `ProductGeneralPropertiesWrapper`; "Product information" =
+  `ProductDescriptorsWrapper`; `ProductFeaturesWrapper` (labels) has no block, not shown. Each block keeps the live
+  page's rule: free shipping only at `shipping_cost` 0, return only with `allow_return_in_days` over 0, size bars only
+  with sizes, colours only with 2 or more, video card only with a video.
+- **"Trend color" uses real data:** the pill shows only when the colour has `color_trend`. S7c-4 does not list it,
+  because a source exists. No scanned staging product has it on.
+- **Found and fixed on the way:**
+  - A guest has a numeric user id, so `auth.UserID()` does not find a guest. On the new page a like or a question from a
+    guest now goes to the login first, by `isValidPhone`, the rule of `useProfileData`. The old `useProductLike` keeps
+    its old test: its button is not shown now.
+  - The server's `formatTime` wrote "Today" and "Yesterday" in English in every language. The keys were missing from
+    all 3 files, so they were added.
+  - `Date.now()` in the server page stopped the prerender: `await connection()` comes first now.
+- **Checks, on the final code:** `tsc` clean, tests included; `eslint` clean on the changed files; `pnpm lint:i18n-parity`
+  OK (2830 keys). No unit test was run or written (owner's order).
+- **Seen in Chromium at 440 x 802, no page error and no hydration error:** `en` and `ar` pages; 4 products (2 colours;
+  free shipping, no sizes and verified brand; one colour; `ar` with few reviews); colour tap, address and `?color=` on
+  load; the zoom overlay; the bell's "Soon available"; the more sheet; a guest's heart going to `/login` with the return
+  path; store → card → quick view → colour → back; a missing product (real 307). `/demo` keeps its height and places.
+- **Seen with the writes stopped in the test browser, and a fake phone on the profile read (no sign-in was used):** the
+  ask field opening and taking the focus; a failed send keeping the words; a sent question as the first card; an empty
+  field closing; the product and card hearts; `view_item`, `view_image`, `view_comments`, `like_item`. Nothing reached
+  staging.
+- **Load more (S7c-10):** `useCardPages.ts` reads the next pages from the old lists' routes. `productCards.ts` maps a card
+  on both sides, so the first page and the next pages give the same card. The rows use `useSlider`'s new `keepPlace`:
+  Embla's own rebuild moved the row 57 px and ended a drag under the finger. Now the row rebuilds with no finger on
+  it, at its place and on its way to its target. Home and the gallery do not use `keepPlace`.
+- **Load more, seen in Chromium, `en` and `ar`:** a real second page (a real product's 6th review) with the real offset;
+  18 cards with added test pages; exactly one read per page; the row reaches its true end and the end card goes; 0 px
+  of movement when cards land, at rest and under a finger; the drag goes on after the cards land; a failed read keeps
+  the cards and shows "Load More", and a tap reads again. The question row with under 5 cards makes no read. Paging of
+  questions has run only with fewer than 5 real cards, so a full question page has not been seen.
+- **Hydration warning, NOT explained:** "A tree hydrated but some attributes ... didn't match" showed twice, each time on
+  the first load after an edit of `HomeSections.tsx`, in the review cards. It did not come back in 15 later loads, or
+  after 2 harmless edits made to bring it back, and the changed lines were never captured. It may be the dev server.
+  Check once on a production build.
+- **Not seen:** a product with a video or with descriptors (none in 30 scanned staging products), so the video card, its
+  full-size view and "Product information" have not run on real data. A real signed-in shopper. Safari or an iPhone,
+  so the keyboard opening inside the tap is not proved. `change_color` and `add_product_to_favorites` as events.
+- **Known limits, for the owner:**
+  - A long review or question is cut at 2 lines, and the full text cannot be opened.
+  - The Video and Photo tabs only mark themselves, as on `/demo`. They do not change the row.
+  - A review's time is the server's clock and zone, not the shopper's.
+  - The JSON-LD gives a price the page does not show until D-45. Fix this before any deploy (A-25 holds it for now).
+  - The first card of a question row can be half height next to answered cards: the row keeps the taller height.
+- **Old code, not changed:** the zoom overlay logs a React `key` warning (`ProductDetailsSlider`), as before.
+- **Committed** as `37a269c3d`, with the logo fix and these notes on top of it.
+- **CI on `37a269c3d`** ([run 42005614882](https://github.com/AlaaAsaad57/Trydos/actions/runs/42005614882)): lint and the type
+  check pass. Unit: 597 files pass, 6 fail, with 25 tests of 7630. 22 are the Stage 7b reds, listed there. The old
+  footer, like and ask tests all pass, so the moved logic broke nothing there. 3 are new. Only listed here (owner's
+  order), for Stage 8:
+  - `tests/components/Product/ProductPageContent.test.tsx` (1), "starts each read once": out of date. The reads moved into
+    `ProductBody`, and the test expects the props of hidden sections. "works without any query values" still passes, but
+    it no longer checks anything real.
+  - `tests/components/skeleton/loaders/ProductLoader.test.tsx` (2), out of date: the old `dir-rtl` class, and the old
+    `.product-info-section` class.
+  - **One real gap found in that list, fixed after this run:** the redrawn loader had no brand logo. It draws one now, and a
+    tap on a store card hands the brand to it (`AppListing`; the card did not pass it before). Seen in the browser. The
+    logo check passes now; the same test still stops at the old `.product-info-section` line.
+- **Correction to Stage 7b's note:** "gives no currency and reports" has now run with the currency fix, and it is still
+  red. It crashes in `tests/app/listingPageHarness.tsx` before it reaches the fix, so no test proves that fix yet.
+- **No unit test covers** `ProductPage`, `AppProduct`, `useCardPages` or `useProductLike`'s new caller (owner's order).
+
 ### Live parts (A-33: a part with no design block is hidden, its code is kept)
 | Design block | Live part |
 |---|---|

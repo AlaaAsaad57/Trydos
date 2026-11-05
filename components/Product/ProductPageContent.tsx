@@ -1,258 +1,209 @@
 import "styles/productDetails.css";
 import "styles/product-body.css";
+import { Suspense } from "react";
+import { connection } from "next/server";
 import {
   GetGlobalProduct,
+  GetProductGeneralData,
   GetProductPriceQtyDetails,
+  GetSocialInfoForProduct,
 } from "serverRequests/product";
-import ProductBackButton from "components/products/ProductBackButton";
-import ProductPhotoSliderWrapper from "components/Server/product/ProductPhotoSliderWrapper";
-import ProductExtendedSliderWrapper from "components/Server/product/ProductExtendedSliderWrapper";
-import ProductNameAndBrand from "components/Server/product/ProductNameAndBrand";
-import ProductDetailsTextWrapper from "components/Server/product/ProductDetailsTextWrapper";
-import ProductGeneralPropertiesWrapper from "components/Server/product/ProductGeneralPropertiesWrapper";
-import ProductFeaturesWrapper from "components/Server/product/ProductFeaturesWrapper";
-import ProductDescriptorsWrapper from "components/Server/product/ProductDescriptorsWrapper";
-import ProductColorsWrapper from "components/Server/product/ProductColorsWrapper";
-import ProductExpectedDeleiveryWrapper from "components/Server/product/ProductExpectedDeleiveryWrapper";
-import FreeShippingOption from "components/products/FreeShippingOption";
-import FreeReturnBadge from "components/products/FreeReturnBadge";
 import { getCurrency, GetStarttingSetting } from "serverRequests";
-import ProductStoriesWrapper from "components/Server/product/ProductStoriesWrapper";
-import ProductBuyersCommentsWrapper from "components/Server/product/ProductBuyersComment/ProductBuyersCommentsWrapper";
-import ProductSizesWrapper from "components/Server/product/ProductSizesWrapper";
-import ProductSizeReviews from "components/Server/product/ProductSizeReviews";
-import ProductFaqSectionWrapper from "components/Server/product/ProductFAQSection/ProductFaqSectionWrapper";
-
-import { Suspense } from "react";
-import ProductNameAndBrandSkeleton from "components/skeleton/product/ProductNameAndBrandSkeleton";
-import Skeleton from "react-loading-skeleton";
-import ProductFooter from "./ProductFooter";
-import RelatedProductsSection from "components/Server/product/RelatedProductsSection";
+import ProductStructuredData from "serverRequests/meta/StructuredData/ProductStructuredData";
+import { getColorImageGroups } from "components/Server/product/colorImageGroups";
+import AppProduct from "components/DemoApp1/screens/AppProduct";
+import { PRODUCT_DICTIONARY_KEYS } from "components/DemoApp/demoKeys";
+import type { DemoDictionary } from "components/DemoApp/demoKeys";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { getCookieServer } from "utils/cookies/server-cookie-manager";
+import {
+  GetFQACommentsForProduct,
+  GetRatingCommentsForProduct,
+} from "utils/pagesDataRequests/ProductPageData";
+import {
+  countryNameFromIso,
+  formatTime,
+  GetImageUrl,
+  madeInText,
+  ShowDayStr,
+  translateFunction,
+} from "utils/server";
+import { LogServerError } from "utils/serverErrorReporter";
+import { VALID_ISO } from "utils/tinyUtils";
+import ProductPageSkeleton from "./ProductPageSkeleton";
+import { toInfoRows, toProductView } from "./productView";
 
 interface ProductPageContentProps {
   params: { lang: string; productId: string };
   searchParams: { color?: string; size?: string };
 }
 
-export default async function ProductPageContent({
+/**
+ * An optional block. A search error here must not reach the page's error
+ * boundary and take the whole product with it: the block is left out.
+ */
+async function optional<T>(
+  read: Promise<T>,
+  id: unknown,
+  block: string,
+): Promise<T | null> {
+  try {
+    return await read;
+  } catch (error) {
+    LogServerError({
+      id,
+      error,
+      scenario: `Error In ProductPageContent: the ${block} block was left out`,
+    });
+    return null;
+  }
+}
+
+/**
+ * Every product's page and its `@modal` copy (Stage 7c): it reads the product
+ * and the design draws it (`AppProduct`, XD `Home Page – 49`).
+ *
+ * The parts with no place in the design are not read and not drawn. Their code
+ * stays (A-33): stories, related products, labels, the size chips, try-on,
+ * compare and the old footer with the price and "add to cart" (S7c-1).
+ */
+export default function ProductPageContent({
   params,
   searchParams,
 }: ProductPageContentProps) {
-  const Params = params;
-  const SearchParams = searchParams || {};
-  const [country, language] = Params.lang.split("-");
-  const GlobalData = GetGlobalProduct({
-    slug: Params.productId,
-    language,
-    country,
-  });
-  const QtyPricesData = GetProductPriceQtyDetails({
-    slug: Params.productId,
-    language,
-    country,
-  });
-  const StarttingSettingPromise = GetStarttingSetting({ language, country });
-  const currency = getCurrency(country, language);
-  const color = SearchParams.color;
-  const Size = SearchParams?.size;
-  const slug = Params.productId;
-  const isRtl = language === "ar" || language === "ku";
+  return (
+    <Suspense fallback={<ProductPageSkeleton />}>
+      <ProductBody params={params} searchParams={searchParams || {}} />
+    </Suspense>
+  );
+}
+
+async function ProductBody({ params, searchParams }: ProductPageContentProps) {
+  // The delivery date below reads the clock: this part renders per request.
+  await connection();
+  const [country, language] = params.lang.split("-");
+  const slug = params.productId;
+  const { color, size } = searchParams;
+
+  const [global, qty, setting, currency, user] = await Promise.all([
+    GetGlobalProduct({ slug, language, country }) as Promise<any>,
+    GetProductPriceQtyDetails({ slug, language, country }) as Promise<any>,
+    GetStarttingSetting({ language, country }) as Promise<any>,
+    getCurrency(country, language),
+    getCookieServer<{ id: string }>(COOKIE_NAMES.USER_DATA),
+  ]);
+  const id = global?.id;
+
+  const [social, general, reviews, questions] = await Promise.all([
+    GetSocialInfoForProduct({ productId: id, userId: user?.id }) as Promise<any>,
+    GetProductGeneralData({ id }) as Promise<any>,
+    optional(
+      GetRatingCommentsForProduct({
+        product_id: id,
+        user_id: user?.id,
+        language,
+        pageSize: 5,
+      }),
+      id,
+      "reviews",
+    ),
+    optional(
+      GetFQACommentsForProduct({
+        product_id: id,
+        user_id: user?.id,
+        language,
+        pageSize: 5,
+      }),
+      id,
+      "questions",
+    ),
+  ]);
+
+  // The old banner's rule: the product's days plus the country's shipping days.
+  const shippingDays = Number(global?.shipping_days) || 0;
+  const days = Number(setting?.shipping_duration_days || 0) + shippingDays;
+  const arrives = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  const originIso = global?.origin_country_iso?.toUpperCase();
+  const dictionary: DemoDictionary = Object.fromEntries(
+    PRODUCT_DICTIONARY_KEYS.map((key) => [
+      key,
+      translateFunction(key, language),
+    ]),
+  );
+  const price = qty?.offer_price ?? qty?.price;
 
   return (
     <>
-      <div className="product-details-container w-full relative bg-[#ffffff]">
-        <ProductBackButton lang={Params.lang} />
-        <div
-          className="product-details-slider mt-[12px] relative h-[474px] max-h-[474px]"
-          key={`key-${color ?? slug}`}
-        >
-          <ProductPhotoSliderWrapper
-            key={color}
-            color={color}
-            qtyPromise={QtyPricesData}
-            globalPromise={GlobalData}
-            language={language}
-          />
-        </div>
-
-        <Suspense fallback={<></>}>
-          <ProductExtendedSliderWrapper
-            key={color}
-            color={color}
-            globalPromise={GlobalData}
-            qtyPricePromise={QtyPricesData}
-          />
-        </Suspense>
-        <div className="product-details-body bg-[#ffffff] flex-row relative mt-[3px] pb-[50px]">
-          <div
-            className={`${isRtl ? "pr-[10px]" : "pl-[10px]"
-              } product-info-section bg-[#ffffff] flex-col align-start`}
-          >
-            <div className="flex-col px-[10px] max-w-full w-full">
-              <Suspense
-                fallback={<ProductNameAndBrandSkeleton isRtl={isRtl} />}
-              >
-                <ProductNameAndBrand
-                  color={color}
-                  globalPromise={GlobalData}
-                  isRtl={isRtl}
-                />
-              </Suspense>
-              <Suspense
-                fallback={
-                  <div
-                    className={`${isRtl ? "dir-rtl" : ""} product-details-text`}
-                  >
-                    <div id="details" className="have-arabic ">
-                      <Skeleton width={200} height={13} borderRadius={4} />
-                    </div>
-                  </div>
-                }
-              >
-                <ProductDetailsTextWrapper
-                  globalPromise={GlobalData}
-                  isRtl={isRtl}
-                />
-              </Suspense>
-              <Suspense
-                fallback={
-                  <div
-                    className={`${isRtl ? "dir-rtl" : ""} product-details-text`}
-                  >
-                    <div id="details" className="have-arabic ">
-                      <Skeleton width={200} height={13} borderRadius={4} />
-                    </div>
-                  </div>
-                }
-              >
-                <ProductGeneralPropertiesWrapper
-                  globalData={GlobalData}
-                  qtyPricePromise={QtyPricesData}
-                  language={language}
-                />
-                <ProductFeaturesWrapper
-                  isRtl={isRtl}
-                  globalPromise={GlobalData}
-                />
-              </Suspense>
-            </div>
-            <Suspense
-              fallback={
-                <div
-                  className={`${isRtl ? "dir-rtl" : ""} product-details-text`}
-                >
-                  <div id="details" className="have-arabic ">
-                    <Skeleton width={200} height={13} borderRadius={4} />
-                  </div>
-                </div>
-              }
-            >
-              <ProductDescriptorsWrapper
-                isRtl={isRtl}
-                priceQtyPromise={QtyPricesData}
-              />
-            </Suspense>
-            <Suspense fallback={<></>}>
-              <ProductColorsWrapper
-                country={country}
-                slug={slug}
-                activeColor={color}
-                globalPromise={GlobalData}
-                isRtl={isRtl}
-                language={language}
-              />
-            </Suspense>
-
-            <div className="flex-col w-full h-auto rounded-[15px] bg-[#FCFCFC] mt-[12px] px-[10px]">
-              <Suspense fallback={<></>}>
-                <ProductExpectedDeleiveryWrapper
-                  StarttingSettingPromise={StarttingSettingPromise}
-                  country={country}
-                  language={language}
-                  globalPromise={QtyPricesData}
-                />
-                <FreeShippingOption
-                  qtyPricePromise={QtyPricesData}
-                  lang={Params.lang}
-                />
-              </Suspense>
-
-              <Suspense fallback={<></>}>
-                <FreeReturnBadge
-                  qtyPricePromise={QtyPricesData}
-                  language={language}
-                  isRtl={isRtl}
-                />
-              </Suspense>
-              <Suspense fallback={<></>}>
-                <ProductStoriesWrapper
-                  globalPromise={GlobalData}
-                  language={language}
-                />
-              </Suspense>
-              <Suspense
-                fallback={
-                  <div className="w-full h-[228px] flex-row gap-[8px]">
-                    {[1, 1, 1].map((s) => (
-                      <Skeleton
-                        key={s}
-                        borderRadius={12}
-                        width="85%"
-                        height="100%"
-                      />
-                    ))}
-                  </div>
-                }
-              >
-                <ProductBuyersCommentsWrapper
-                  globalPromise={GlobalData}
-                  language={language}
-                />
-                <ProductFaqSectionWrapper
-                  color={color}
-                  size={Size}
-                  qtyPricePromise={QtyPricesData}
-                  language={language}
-                />
-                <ProductSizesWrapper
-                  activeSize={Size}
-                  language={language}
-                  qtyPricePromise={QtyPricesData}
-                  isRtl={isRtl}
-                />
-                <ProductSizeReviews
-                  qtyPricePromise={QtyPricesData}
-                  isRtl={isRtl}
-                  language={language}
-                />
-              </Suspense>
-            </div>
-
-            <Suspense fallback={<></>}>
-              <RelatedProductsSection
-                globalPromise={GlobalData}
-                language={language}
-                country={country}
-                currency={currency}
-              />
-            </Suspense>
-          </div>
-        </div>
-
-        <Suspense fallback={<></>}>
-          <ProductFooter
-            GlobalData={GlobalData}
-            StarttingSettingPromise={StarttingSettingPromise}
-            Params={Params}
-            QtyPricesData={QtyPricesData}
-            Size={Size}
-            language={language}
-            currency={currency}
-            isRtl={isRtl}
-            color={color}
-          />
-        </Suspense>
-      </div>
+      <ProductStructuredData
+        color={color}
+        currency={currency}
+        local={params.lang}
+        product={{ ...global, ...qty }}
+        rating={general?.final_rating}
+        reviewCount={general?.total_buyers}
+        size={size}
+      />
+      <AppProduct
+        key={id}
+        lang={params.lang}
+        view={toProductView({
+          global,
+          qty,
+          general,
+          reviews: reviews?.buyers_comments ?? [],
+          questions: questions?.fqa_comments ?? [],
+          language,
+        })}
+        reviewsOffset={reviews?.searchAfter}
+        questionsOffset={questions?.searchAfter}
+        info={toInfoRows(qty)}
+        origin={
+          originIso && VALID_ISO.includes(originIso)
+            ? { iso: originIso, text: madeInText(originIso, language) }
+            : null
+        }
+        days={{
+          day: ShowDayStr(arrives.getDay(), language),
+          date: formatTime(arrives.toISOString(), language),
+          days,
+          country: countryNameFromIso(country, language),
+        }}
+        dictionary={dictionary}
+        videos={global?.videos ?? []}
+        analytics={{
+          item_id: id,
+          item_name: global?.name,
+          brand: global?.brand?.name,
+          brand_id: global?.brand?.id,
+          category: global?.categories?.[0]?.name,
+          category_id: global?.categories?.[0]?.id,
+          price,
+          interaction_type: "view",
+          likes_count: social?.total_likes,
+          boutique_id: global?.boutique_id,
+        }}
+        light={{
+          id,
+          image: GetImageUrl(
+            global?.sync_color_images?.[0]?.images?.[0] ?? global?.images?.[0],
+          ),
+          slug: global?.slug,
+          name: global?.name,
+          brand: global?.brand,
+          category: global?.categories?.[0],
+          price: qty?.price,
+          offer_price: qty?.offer_price,
+        }}
+        imagesByColor={getColorImageGroups(global)}
+        social={{
+          likes: social?.total_likes || 0,
+          liked: Boolean(social?.is_liked),
+        }}
+        serverColor={color}
+        serverSize={size}
+        ownerId={qty?.owner_id}
+        ownerType={qty?.owner_type}
+      />
     </>
   );
 }

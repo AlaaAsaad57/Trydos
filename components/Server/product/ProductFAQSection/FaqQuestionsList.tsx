@@ -19,7 +19,7 @@ import { showErrorNotification } from "store/notifications/reducer";
 import { useLiveColor, useLiveParam } from "hooks/useLiveColor";
 
 // Internal Next route (same-origin) returning the FAQ-comments data page.
-async function fetchFaqComments({
+export async function fetchFaqComments({
   productId,
   offset,
   filter = null,

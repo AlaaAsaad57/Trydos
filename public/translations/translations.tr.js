@@ -3240,6 +3240,12 @@ const translations = {
   "No emoji found": "Emoji bulunamadı",
   "More reactions": "Daha fazla tepki",
   "Orders": "Siparişler",
+  "{day} <m>{date} </m>| <m>{days}</m> work days in your hands in <m>{country}</m>": "{day} <m>{date} </m>| <m>{days}</m> iş günü içinde {country} adresinde elinizde",
+  "<b>{date}</b> in {country}": "<b>{date}</b> {country} içinde",
+  "Within <m>{days} days</m> after receiving the product, you can return it without conditions or reasons with complete ease and \n<a>get the amount back </a>to your wallet": "Ürünü aldıktan sonra <m>{days} gün</m> içinde, şart veya neden olmadan kolayca iade edebilir ve \n<a>tutarı </a>cüzdanınıza geri alabilirsiniz",
+  "Dear": "Sayın",
+  "Today": "Bugün",
+  "Yesterday": "Dün",
 };
 
 export default translations;
