@@ -3207,6 +3207,12 @@ const translations = {
   "No emoji found": "لم يتم العثور على رموز تعبيرية",
   "More reactions": "المزيد من التفاعلات",
   "Orders": "الطلبات",
+  "{day} <m>{date} </m>| <m>{days}</m> work days in your hands in <m>{country}</m>": "{day} <m>{date} </m>| <m>{days}</m> أيام عمل بين يديك في <m>{country}</m>",
+  "<b>{date}</b> in {country}": "<b>{date}</b> في {country}",
+  "Within <m>{days} days</m> after receiving the product, you can return it without conditions or reasons with complete ease and \n<a>get the amount back </a>to your wallet": "خلال <m>{days} أيام</m> من استلام المنتج، يمكنك إرجاعه دون شروط أو أسباب وبكل سهولة و\n<a>استرداد المبلغ </a>إلى محفظتك",
+  "Dear": "عزيزي",
+  "Today": "اليوم",
+  "Yesterday": "أمس",
 };
 
 export default translations;

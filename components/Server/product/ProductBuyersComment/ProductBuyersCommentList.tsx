@@ -19,7 +19,7 @@ import { LogError, translateFunction } from "utils/functions";
 import { showErrorNotification } from "store/notifications/reducer";
 
 // Internal Next route (same-origin) returning the buyers-comments data page.
-async function fetchBuyersComments({
+export async function fetchBuyersComments({
   productId,
   offset,
   filter = null,

@@ -3,15 +3,12 @@ import Spinner from "components/global/Spinner";
 
 import { useState } from "react";
 
-import auth from "services/auth";
 import { useAppStore } from "store";
 
 import { showErrorNotification } from "store/notifications/reducer";
-import { fetchData } from "utils/fetchData";
-import { CREATE_COMMENT_URL } from "utils/endpointConfig";
-import { LogError, translateFunction } from "utils/functions";
-import { REQUESTS_DATA } from "utils/Requests";
+import { translateFunction } from "utils/functions";
 import { getFirstLetterLang } from "utils/tinyUtils";
+import { useAskQuestion } from "./useAskQuestion";
 
 export const AskInput = ({
   language,
@@ -22,7 +19,7 @@ export const AskInput = ({
   owner_type,
   productId,
 }) => {
-  const { user, setShouldUpdateCommentsCount, appendFaqComment } = useAppStore();
+  const { user } = useAppStore();
   const renderBorderSvg = () => {
     return (
       <svg
@@ -45,90 +42,19 @@ export const AskInput = ({
     );
   };
   const isRtl = language === "ar" || language === "ku";
-  const [loading, setLoading] = useState(false);
 
   const [comment, setComment] = useState("");
+  const { send, loading } = useAskQuestion({
+    language,
+    color,
+    size,
+    owner_id,
+    owner_type,
+    productId,
+    onAdded: setCommentsData,
+  });
   const addComment = async () => {
-    try {
-      let userData: any = useAppStore.getState().userProfile;
-      if (userData.need_auth) {
-        showErrorNotification(
-          translateFunction("Please Verify Your Phone Number"),
-        );
-        return null;
-      }
-      setLoading(true);
-      const variant =
-        [color, size]?.filter((s) => Boolean(s))?.join("-") ?? null;
-      let res = await fetchData({
-        url: CREATE_COMMENT_URL,
-        method: "POST",
-        body: JSON.stringify({
-          text: comment,
-          //   @ts-ignore
-          product_id: String(productId),
-          user_id: String(auth.UserID()),
-          user_name: auth.User()?.name,
-          user_avatar: auth.User().image,
-          user_type: "customer",
-          phone: auth?.User()?.phone,
-          owner_id: String(owner_id),
-          owner_type: owner_type,
-          variant,
-        }),
-        reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
-        server: "comments",
-        noMessage: true,
-      });
-      if (!res?.success || !res?.data?.comment_id) {
-        throw new Error(
-          res?.message || translateFunction("Something went wrong", language),
-        );
-      }
-      // Prepend the new question as data (no ES-indexing setTimeout, no JSX
-      // action): the fields not returned by the create call are known locally.
-      const newComment = {
-        id: res.data.comment_id,
-        customer: {
-          id: auth.UserID(),
-          name: auth.User()?.name,
-          image: auth.User()?.image,
-        },
-        product_id: String(productId),
-        comment,
-        variant,
-        ownerId: owner_id,
-        ownerType: owner_type,
-        created_at: new Date().toISOString(),
-        has_reply: false,
-        good_quality_comment: false,
-        seller_reply: null,
-        seller_name: null,
-        reply_created_at: null,
-        total_likes: 0,
-        is_liked: false,
-        reply_total_likes: 0,
-        reply_is_liked: false,
-        isOwner: true,
-      };
-      // Local prepend for this widget + shared store so the new question also
-      // shows in every other mounted FAQ widget (modal, extended area).
-      setCommentsData(newComment);
-      appendFaqComment(productId, newComment);
-      setShouldUpdateCommentsCount(true);
-      setComment("");
-      setLoading(false);
-    } catch (error) {
-      LogError({
-        error: error,
-        scenario: "Error In addComment in FaqAskInput",
-      });
-      // The text stays in the box so the shopper can try again.
-      showErrorNotification(
-        error?.message || translateFunction("Something went wrong", language),
-      );
-      setLoading(false);
-    }
+    if (await send(comment)) setComment("");
   };
   return (
     <div

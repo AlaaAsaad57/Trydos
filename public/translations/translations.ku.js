@@ -3256,6 +3256,12 @@ const translations = {
   "No emoji found": "هیچ ئیمۆجییەک نەدۆزرایەوە",
   "More reactions": "کاردانەوەی زیاتر",
   "Orders": "داواکارییەکان",
+  "{day} <m>{date} </m>| <m>{days}</m> work days in your hands in <m>{country}</m>": "{day} <m>{date} </m>| <m>{days}</m> ڕۆژی کار لە دەستی تۆدا لە <m>{country}</m>",
+  "<b>{date}</b> in {country}": "<b>{date}</b> لە {country}",
+  "Within <m>{days} days</m> after receiving the product, you can return it without conditions or reasons with complete ease and \n<a>get the amount back </a>to your wallet": "لە ماوەی <m>{days} ڕۆژ</m> دوای وەرگرتنی بەرهەمەکە، دەتوانیت بەبێ مەرج یان هۆکار بە ئاسانی بیگەڕێنیتەوە و \n<a>بڕی پارەکە </a>بۆ جزدانەکەت وەربگریتەوە",
+  "Dear": "بەڕێز",
+  "Today": "ئەمڕۆ",
+  "Yesterday": "دوێنێ",
 };
 
 export default translations;

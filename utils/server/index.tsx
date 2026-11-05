@@ -68,11 +68,11 @@ export const formatTime = (timeString: string, language) => {
   const timeFormat = `${hours}:${minutes}:${seconds}`;
 
   if (date.toDateString() === today.toDateString()) {
-    return `Today | ${timeFormat}`;
+    return `${translateFunction("Today", language)} | ${timeFormat}`;
   }
 
   if (date.toDateString() === yesterday.toDateString()) {
-    return `Yesterday | ${timeFormat}`;
+    return `${translateFunction("Yesterday", language)} | ${timeFormat}`;
   }
 
   const isSameYear = date.getFullYear() === today.getFullYear();

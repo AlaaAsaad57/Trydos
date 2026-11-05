@@ -786,11 +786,20 @@ export function useSlider({
   hint: withHint = true,
   autoSlide = true,
   onNearEnd,
+  keepPlace = false,
 }: {
   free?: boolean;
   hint?: boolean;
   autoSlide?: boolean;
   onNearEnd?: () => void;
+  /**
+   * For a row that gets new slides while a person moves it. Embla's own watch
+   * builds the row again at once: that ends a drag under the finger and moves
+   * the row to the start of a slide. With this on, the caller says when the
+   * slides changed (`slidesChanged`), and the row builds itself again with no
+   * finger on it, at the place it was and on its way to where it was going.
+   */
+  keepPlace?: boolean;
 } = {}) {
   // The newest callback, read by the Embla listener below (which is set up
   // once per slider, not on every render).
@@ -820,6 +829,7 @@ export function useSlider({
       duration: SLIDE_DURATION,
       dragFree: free,
       direction: rtl ? "rtl" : "ltr",
+      watchSlides: !keepPlace,
     },
     [autoplay],
   );
@@ -933,7 +943,43 @@ export function useSlider({
     autoplay.reset();
   };
 
-  return { viewportRef, page, pick, nudge };
+  // A rebuild is waiting for the finger to lift.
+  const rebuildWaits = useRef(false);
+
+  /** See `keepPlace`. New slides lie past the row's end until this runs, so nothing moves. */
+  const slidesChanged = () => {
+    if (!api || rebuildWaits.current) return;
+    const rebuild = () => {
+      const before = api.internalEngine();
+      const place = before.location.get();
+      const aim = before.target.get();
+      api.reInit();
+      const engine = api.internalEngine();
+      // A row that is still gliding goes on to where it was going. A row that
+      // got shorter glides back to its new end.
+      const end = engine.limit.constrain(aim);
+      engine.location.set(place);
+      engine.previousLocation.set(place);
+      engine.offsetLocation.set(place);
+      engine.target.set(end);
+      engine.translate.to(place);
+      if (end !== place) engine.animation.start();
+    };
+    if (!api.internalEngine().dragHandler.pointerDown()) {
+      rebuild();
+      return;
+    }
+    rebuildWaits.current = true;
+    const onLift = () => {
+      api.off("pointerUp", onLift);
+      rebuildWaits.current = false;
+      // After Embla has finished with the drag it is ending now.
+      requestAnimationFrame(rebuild);
+    };
+    api.on("pointerUp", onLift);
+  };
+
+  return { viewportRef, page, pick, nudge, slidesChanged };
 }
 
 /**
