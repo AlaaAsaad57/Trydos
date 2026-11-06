@@ -24,6 +24,7 @@ import DemoKeyboard from "./keyboard/DemoKeyboard";
 import { usePageDir } from "./rtl";
 import { ScreenFrame, type Leave, type Slide } from "./ScreenFrame";
 import { NavCtx } from "./screenNav";
+import { showPageCover } from "components/global/pageCoverState";
 
 /**
  * The screen mount of the real app (UI-MIGRATION-PLAN.md, "The screen mount";
@@ -163,6 +164,7 @@ function AppScreensInner({
     // A screen that is not turned on is an old page: the router opens it,
     // and the URL effect above clears the screen when the page is there.
     if (!isAppScreenOn(to, rows)) {
+      showPageCover(appHrefFor(locale, to, rows));
       router.push(appHrefFor(locale, to, rows));
       return;
     }
@@ -191,6 +193,7 @@ function AppScreensInner({
       go(up, -1, "replace");
     } else {
       trail.current = [null];
+      showPageCover(appHrefFor(locale, up, rows));
       router.replace(appHrefFor(locale, up, rows));
     }
   };

@@ -38,6 +38,7 @@ import {
   MainContent,
 } from "components/ModalRoute/OverlayVisibility";
 import NavigationLoaderGate from "components/global/NavigationLoaderGate";
+import PageCover from "components/global/PageCover";
 // Non-critical, render-null / post-hydration client components — code-split and
 // loaded after hydration (ssr:false) to trim main-thread hydration cost.
 import DeferredLayoutClients from "components/global/DeferredLayoutClients";
@@ -274,6 +275,8 @@ export default async function RootLayout({ children, modal }) {
           <Init />
         </Suspense>
 
+        {/* The skeleton of the page a tap is going to. */}
+        <PageCover />
         <NavbarClient />
         {/* The new bottom bar (Stage 3). Next to the page, not around it, so
             the page keeps its DOM and its server render. Its words are looked

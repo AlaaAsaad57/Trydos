@@ -13,7 +13,7 @@ import ScreenSkeleton from "./ScreenSkeleton";
   Here each screen is its own chunk (next/dynamic), because the mount sits in
   the [lang] layout: a static import would put every new screen in the code
   of every page, old pages too. A page now loads only the screen it shows.
-  The skeleton has the screen's shape while its chunk loads. (next/dynamic
+  Each screen has its own skeleton while its chunk loads. (next/dynamic
   needs its options written out in each call, not in a shared object.)
 
   A screen that gets a row in appScreenPaths.ts needs an entry here; the
@@ -25,51 +25,51 @@ export const APP_SCREEN_VIEWS: Partial<
 > = {
   // Profile (Stage 4). XD artboard names are in each file.
   settings: dynamic(() => import("./screens/ProfileScreen"), {
-    loading: () => <ScreenSkeleton kind="tab" />,
+    loading: () => <ScreenSkeleton screen="settings" />,
   }),
   "settings/photo": dynamic(() => import("./screens/PhotoScreen"), {
-    loading: () => <ScreenSkeleton />,
+    loading: () => <ScreenSkeleton screen="settings/photo" />,
   }),
   "settings/client-id": dynamic(() => import("./screens/ClientIdScreen"), {
-    loading: () => <ScreenSkeleton />,
+    loading: () => <ScreenSkeleton screen="settings/client-id" />,
   }),
   "settings/profile": dynamic(() => import("./screens/ProfileMenuScreen"), {
-    loading: () => <ScreenSkeleton />,
+    loading: () => <ScreenSkeleton screen="settings/profile" />,
   }),
   "settings/profile/client-info": dynamic(() => import("./screens/ClientInfoScreen"), {
-    loading: () => <ScreenSkeleton />,
+    loading: () => <ScreenSkeleton screen="settings/profile/client-info" />,
   }),
   "settings/profile/personal-info": dynamic(() => import("./screens/PersonalInfoScreen"), {
-    loading: () => <ScreenSkeleton />,
+    loading: () => <ScreenSkeleton screen="settings/profile/personal-info" />,
   }),
   "settings/profile/body": dynamic(() => import("./screens/BodyScreen"), {
-    loading: () => <ScreenSkeleton />,
+    loading: () => <ScreenSkeleton screen="settings/profile/body" />,
   }),
   "settings/profile/address": dynamic(() => import("./screens/AddressListScreen"), {
-    loading: () => <ScreenSkeleton />,
+    loading: () => <ScreenSkeleton screen="settings/profile/address" />,
   }),
   "settings/profile/address/new": dynamic(() => import("./screens/AddressFormScreen"), {
-    loading: () => <ScreenSkeleton />,
+    loading: () => <ScreenSkeleton screen="settings/profile/address/new" />,
   }),
   "settings/preferences": dynamic(() => import("./screens/SettingsScreen"), {
-    loading: () => <ScreenSkeleton />,
+    loading: () => <ScreenSkeleton screen="settings/preferences" />,
   }),
   // Wallet (Stage 5).
   "settings/wallet": dynamic(() => import("./screens/WalletScreen"), {
-    loading: () => <ScreenSkeleton />,
+    loading: () => <ScreenSkeleton screen="settings/wallet" />,
   }),
   // Chat (Stage 6).
   chat: dynamic(() => import("./screens/ChatListScreen"), {
-    loading: () => <ScreenSkeleton kind="tab" />,
+    loading: () => <ScreenSkeleton screen="chat" />,
   }),
   "chat/conversation": dynamic(() => import("./screens/ConversationScreen"), {
-    loading: () => <ScreenSkeleton />,
+    loading: () => <ScreenSkeleton screen="chat/conversation" />,
   }),
   "chat/contact": dynamic(() => import("./screens/ContactScreen"), {
-    loading: () => <ScreenSkeleton />,
+    loading: () => <ScreenSkeleton screen="chat/contact" />,
   }),
   "chat/call": dynamic(() => import("./screens/LiveCallScreen"), {
-    loading: () => <ScreenSkeleton />,
+    loading: () => <ScreenSkeleton screen="chat/call" />,
   }),
 };
 

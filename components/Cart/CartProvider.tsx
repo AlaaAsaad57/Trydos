@@ -26,6 +26,7 @@ import { GAevent } from "utils/gtag";
 import auth from "services/auth";
 import { getCookie } from "utils/cookies/cookie-manager";
 import { markBackClosing, takeSelfConsume } from "utils/popupHistory";
+import { showPageCover } from "components/global/pageCoverState";
 
 const CartProvider = ({ language, country }) => {
   // Per-field selectors: this component is mounted on every page and the boot
@@ -165,6 +166,7 @@ const CartProvider = ({ language, country }) => {
   // nothing and go nowhere.
   useEffect(() => {
     if (!enable || isCartPath(pathname)) return;
+    showPageCover(tabHref(locale, "cart"));
     router.push(tabHref(locale, "cart"));
     enableCart(false);
   }, [enable]);

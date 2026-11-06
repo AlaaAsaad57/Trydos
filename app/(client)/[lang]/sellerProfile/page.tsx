@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSellerProfile } from "./SellerProfileContext"; // Import the context
 import SellerDashboardService from "services/sellerDashboard";
+import { DashSkeletonBlock } from "components/skeleton/loaders/SellerDashboardLoader";
 import { translateFunction, LogError } from "utils/functions";
 import BackBar from "components/setting/BackBar";
 
@@ -147,17 +148,17 @@ function Page() {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="bg-white rounded-[15px] p-5 animate-pulse"
+              className="bg-white rounded-[15px] p-5"
               style={{ boxShadow: "0 3px 10px rgba(0,0,0,0.1)" }}
             >
               <div className="flex items-center gap-3.5">
-                <div className="w-[52px] h-[52px] rounded-[15px] bg-[#f0f0f0]" />
+                <DashSkeletonBlock className="w-[52px] h-[52px] rounded-[15px]" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3.5 w-2/3 rounded-full bg-[#f0f0f0]" />
-                  <div className="h-3 w-1/3 rounded-full bg-[#f4f4f4]" />
+                  <DashSkeletonBlock className="h-3.5 w-2/3 rounded-full" />
+                  <DashSkeletonBlock className="h-3 w-1/3 rounded-full" />
                 </div>
               </div>
-              <div className="h-[44px] mt-5 rounded-[12px] bg-[#f4f4f4]" />
+              <DashSkeletonBlock className="h-[44px] mt-5 rounded-[12px]" />
             </div>
           ))}
         </div>

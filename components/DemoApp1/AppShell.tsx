@@ -12,6 +12,7 @@ import { litTab, shellStepsAside, tabHref } from "./appRoutes";
 import { openChatFromTab } from "./openChatFromTab";
 import { usePageDir } from "./rtl";
 import { useShellData } from "./useShellData";
+import { showPageCover, usePageCover } from "components/global/pageCoverState";
 
 /** The words the bar shows. The [lang] layout looks them up on the server. */
 export type AppShellDictionary = Pick<
@@ -56,6 +57,8 @@ export default function AppShell({
   const chatOpen = useAppStore((s) => s.chatVar);
   const searchOpen = useAppStore((s) => s.enable_search);
 
+  // The tab lights at the tap, with the skeleton.
+  const coverPath = usePageCover();
   const stepsAside = shellStepsAside(pathname);
   const covered = Boolean(
     loginOpen ||
@@ -68,9 +71,14 @@ export default function AppShell({
   // A new screen (appScreenPaths.ts) follows its design: the bar shows on a tab
   // screen only, and the screen keeps its own room for it (ScreenPage `tabBar`).
   const screen = appScreenFromPath(pathname);
+  const pageRoom = !stepsAside && !covered && screen === null;
+  // From the tap on, the bar is as the page the tap is going to has it.
+  const nextPath = coverPath ?? pathname;
+  const nextScreen = appScreenFromPath(nextPath);
   const showBar =
-    !stepsAside && !covered && (screen === null || isTabRoot(screen));
-  const pageRoom = showBar && screen === null;
+    !shellStepsAside(nextPath) &&
+    !covered &&
+    (nextScreen === null || isTabRoot(nextScreen));
 
   // The room the bar takes, for an old page's bottom padding. Only while it shows.
   useEffect(() => {
@@ -82,23 +90,29 @@ export default function AppShell({
     };
   }, [pageRoom]);
 
+  // The skeleton first: the router may wait for the server.
+  const open = (href: string) => {
+    showPageCover(href);
+    router.push(href);
+  };
+
   const onSelect = (tab: DemoTab) => {
     switch (tab) {
       case "home":
-        router.push(tabHref(locale, "home"));
+        open(tabHref(locale, "home"));
         return;
       case "search":
         // The search is a page (Stage 7, S7-2), from every page.
-        router.push(tabHref(locale, "search"));
+        open(tabHref(locale, "search"));
         return;
       case "cart":
         useAppStore.getState().enableCart(true);
         return;
       case "chat":
-        void openChatFromTab(locale, router.push);
+        void openChatFromTab(locale, open);
         return;
       case "settings":
-        router.push(tabHref(locale, "settings"));
+        open(tabHref(locale, "settings"));
         return;
     }
   };
@@ -109,7 +123,7 @@ export default function AppShell({
     // `display: contents`: the root draws no box of its own next to the page.
     <div data-pw="app-shell" dir={pageDir} className="contents">
       <Demo1BottomNav
-        active={litTab(pathname, { chat: chatOpen, search: searchOpen })}
+        active={litTab(coverPath ?? pathname, { chat: chatOpen, search: searchOpen })}
         visible={showBar}
         photo={photo}
         verified={phoneVerified}

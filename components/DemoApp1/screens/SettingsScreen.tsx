@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import GoToSellerDashBoard from "components/settings/GoToSellerDashBoard";
 import NotificationSkeleton from "components/skeleton/NotificationSkeleton";
 import { getLocalizedCountryName } from "utils/countryData";
+import { showPageCover } from "components/global/pageCoverState";
 import { C, ROW, fill } from "../demo1Layout";
 import { useDemoNav } from "../screenNav";
 import { ScreenHeader, ScreenPage, Txt } from "../ui";
@@ -36,6 +37,10 @@ export default function SettingsScreen() {
   const router = useRouter();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [country, language] = locale.split("-");
+  const openPage = (name: string) => {
+    showPageCover(`/${locale}/settings/${name}`);
+    router.push(`/${locale}/settings/${name}`);
+  };
 
   const rows: {
     id: string;
@@ -53,26 +58,26 @@ export default function SettingsScreen() {
       id: "notification-settings",
       icon: "/icons/SettingsIcon.svg",
       label: t("Notification Settings"),
-      onClick: () => router.push(`/${locale}/settings/prefferences`),
+      onClick: () => openPage("prefferences"),
     },
     {
       id: "checklist",
       icon: "/icons/Heart.svg",
       label: t("My Checklist"),
-      onClick: () => router.push(`/${locale}/settings/checklist`),
+      onClick: () => openPage("checklist"),
     },
     {
       id: "country",
       icon: `/icons/flag/${country}.svg`,
       // The country the app is in, in the page's language, as the old page.
       label: getLocalizedCountryName(country, language),
-      onClick: () => router.push(`/${locale}/settings/countries`),
+      onClick: () => openPage("countries"),
     },
     {
       id: "language",
       icon: "/icons/LanguageIcon.svg",
       label: t("Language"),
-      onClick: () => router.push(`/${locale}/settings/languages`),
+      onClick: () => openPage("languages"),
     },
   ];
 

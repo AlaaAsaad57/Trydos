@@ -62,7 +62,7 @@ describe("the seller shop list on first paint", () => {
     const firstPaint = renderToStaticMarkup(shopList);
 
     expect(
-      firstPaint.includes("animate-pulse"),
+      firstPaint.includes("dash-skeleton-block"),
       "the shop list's first paint has no placeholder in it, so the seller sees the page's empty state for a frame before the shops request has even been made",
     ).toBe(true);
 
@@ -84,7 +84,7 @@ describe("the seller shop list on first paint", () => {
     ).toBeTruthy();
 
     expect(
-      container.querySelectorAll(".animate-pulse").length,
+      container.querySelectorAll('[data-pw="dash-skeleton-block"]').length,
       "the placeholder was still on screen after the shops arrived",
     ).toBe(0);
   });
@@ -235,7 +235,7 @@ describe("the seller shop cards", () => {
 
     await waitFor(() =>
       expect(
-        document.querySelectorAll(".animate-pulse").length > 0,
+        document.querySelectorAll('[data-pw="dash-skeleton-block"]').length > 0,
         "clicking Enter Dashboard did not put the list back into its loading placeholder",
       ).toBe(true),
     );

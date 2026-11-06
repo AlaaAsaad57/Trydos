@@ -19,7 +19,7 @@
     rgba(255, 255, 255, 0.5) 50%,
     rgba(255, 255, 255, 0) 100%
   );
-  animation: shimmer 1.5s infinite;
+  animation: shimmer 1.5s ease-in-out infinite;
 }
 
 @keyframes shimmer {
@@ -34,5 +34,29 @@
 @media (prefers-reduced-motion: reduce) {
   .shimmer-wrapper {
     animation: none;
+  }
+}
+
+/* Bones on a black screen (the call). */
+.skeleton-base.skeleton-dark {
+  background-color: #1f1f1f;
+}
+
+.skeleton-dark .shimmer-wrapper {
+  opacity: 0.15;
+}
+
+/* A page that is ready at once shows no skeleton at all: 50 ms is too short to
+   see, and a skeleton that flashes for two frames looks broken. */
+.page-cover {
+  animation: page-cover-in 0s linear 50ms both;
+}
+
+@keyframes page-cover-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }

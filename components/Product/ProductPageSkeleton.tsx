@@ -1,4 +1,4 @@
-import Skeleton from "react-loading-skeleton";
+import { Skeleton } from "components/Server/Skeleton";
 
 /**
  * The product page's shape while its data loads (XD `Home Page – 49`): the
@@ -42,9 +42,9 @@ export default function ProductPageSkeleton({
             style={cardPhoto ? { backgroundImage: `url("${cardPhoto}")` } : undefined}
           />
         ) : (
-          <Skeleton width={319} height={464} borderRadius={0} />
+          <Skeleton className="shrink-0" width={319} height={464} borderRadius={0} />
         )}
-        <Skeleton width={319} height={464} borderRadius={0} />
+        <Skeleton className="shrink-0" width={319} height={464} borderRadius={0} />
       </div>
       <div className="flex flex-col gap-[8px] px-[14px] mt-[14px]">
         {brand ? (

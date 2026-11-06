@@ -4,11 +4,8 @@
  * Seller-dashboard placeholders.
  *
  * Every shape in the seller dashboard is built from ONE block, {@link DashSkeletonBlock},
- * so the whole area pulses as a single system rather than drifting into several
- * near-identical greys. The style is Tailwind `animate-pulse` over the dashboard
- * tint tokens (`#f0f0f0` / `#f4f4f4`), which is what the seller shop-list page
- * already uses — not `react-loading-skeleton`, which is the storefront loaders'
- * style and would need its own container work to sit inside these cards.
+ * so the whole area moves as one system. The block has the same grey and
+ * shimmer as every other skeleton of the app (public/styles/skeletons.css).
  *
  * WHY THIS FILE LIVES HERE AND IMPORTS NOTHING FROM `components/SellerDashboard/`
  * `InFlowPageLoader` renders above every route in the app, so whatever it imports
@@ -28,8 +25,10 @@ export function DashSkeletonBlock({ className = "" }: { className?: string }) {
   return (
     <span
       data-pw="dash-skeleton-block"
-      className={`block bg-[#f0f0f0] animate-pulse ${className}`}
-    />
+      className={`block skeleton-base ${className}`}
+    >
+      <span className="shimmer-wrapper" />
+    </span>
   );
 }
 

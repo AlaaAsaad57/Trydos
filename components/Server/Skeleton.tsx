@@ -10,7 +10,7 @@ interface SkeletonProps {
 }
 
 export function Skeleton({
-  className,
+  className = "",
   width = "100%",
   height = "100%",
   borderRadius = "0px",
