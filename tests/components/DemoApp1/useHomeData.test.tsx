@@ -21,12 +21,11 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/sy-en" }));
 
 import { useAppStore } from "store";
 import {
-  HOME_STORIES_PATH,
   toHomeStory,
   useHomeGrid,
   useHomeStories,
 } from "components/DemoApp1/useHomeData";
-import type { HomeStore } from "components/DemoApp1/homeData";
+import { HOME_STORIES_PATH, type HomeStore } from "components/DemoApp1/homeData";
 
 const MEDIA = "https://media.test";
 

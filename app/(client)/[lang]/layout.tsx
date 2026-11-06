@@ -1,6 +1,6 @@
 import "styles/globals.css";
 import { Suspense } from "react";
-import { preconnect } from "react-dom";
+import { preconnect, preload } from "react-dom";
 import "styles/home.css";
 
 import localFont from "next/font/local";
@@ -69,6 +69,9 @@ export const viewport = {
   userScalable: false,
   viewportFit: "cover",
 };
+/** The icons of the bottom bar with no tab lit. */
+const BAR_ICONS = ["navTry", "navSearch", "navCartCount", "navChatCount", "navUser"];
+
 // The five Quicksand faces, one static woff2 file per weight. Each weight gets
 // its own CSS variable so existing CSS (font-family: var(--Quicksand-*)) keeps
 // working unchanged. Next.js injects these variables onto <html> via the
@@ -163,6 +166,14 @@ export default async function RootLayout({ children, modal }) {
   const mediaBase = process.env.NEXT_PUBLIC_BASE_MEDIA_URL;
   if (mediaBase) preconnect(new URL(mediaBase).origin);
   preconnect("https://media_server.ramaaz.dev");
+  // The bar mounts after hydration, so its icons used to start only then, and on
+  // a slow line it stood empty. Low priority: they must not pass the page's JS.
+  for (const icon of BAR_ICONS) {
+    preload(`/assets/demo/xd/${icon}.svg`, {
+      as: "image",
+      fetchPriority: "low",
+    });
+  }
   // The words of the new screens, for the screen mount (S4-9 in
   // UI-MIGRATION-PLAN.md). The layout cannot know the path, so every page
   // gets them: 370 keys, Arabic 20 KB (7 KB gzip) on 2026-11-04. Built as the

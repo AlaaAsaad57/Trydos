@@ -52,7 +52,7 @@ describe("the app-wide error boundary", () => {
 
     render(<GlobalError error={error} retry={() => {}} />);
 
-    expect(Sentry.captureException, "the error was not sent to Sentry").toHaveBeenCalledWith(error);
+    await waitFor(() => expect(Sentry.captureException, "the error was not sent to Sentry").toHaveBeenCalledWith(error));
     await waitFor(() => expect(spies.LogError, "the error was not written to the error log").toHaveBeenCalled());
     expect(spies.LogError.mock.calls[0][0], "the error log entry lacks the shopper or the locale").toMatchObject({
       type: "front-end-exception",

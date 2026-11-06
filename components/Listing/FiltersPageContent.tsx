@@ -11,7 +11,11 @@ import { qaMode } from "utils/server/qaMode";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { LogServerError } from "utils/serverErrorReporter";
-import { GetImageUrl, parseFiltersFromParams } from "utils/server/helpers";
+import {
+  GetImageUrl,
+  getConfiguredImage,
+  parseFiltersFromParams,
+} from "utils/server/helpers";
 import { translateFunction } from "utils/server";
 import { dedupeRequest } from "serverRequests/requestDedup";
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
@@ -386,8 +390,9 @@ async function ListingBody({
     filtersData,
     language,
   });
+  // Sized as on the home page: the head draws it about 20 px tall.
   const boutiqueLogo: string = boutique?.icon
-    ? (GetImageUrl(boutique.icon) ?? "")
+    ? getConfiguredImage({ src: GetImageUrl(boutique.icon), height: 60 })
     : "";
   const header: ListingMark = boutique
     ? {

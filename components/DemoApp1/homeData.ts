@@ -45,6 +45,9 @@ export const HOME_FIRST_READ = HOME_BRAND_COUNT + 12;
 /** Each next read of the grid: 4 more columns of 3 (S7-7). */
 export const HOME_NEXT_READ = 12;
 
+/** The first page of the stories row. See utils/earlyStories.ts. */
+export const HOME_STORIES_PATH = "/api/v1/stories/users_stories?page=1";
+
 /**
  * One boutique from the boutiques reader (`custom_boutiques` in
  * Elasticsearch). Returns null for a boutique with no slug, because a card

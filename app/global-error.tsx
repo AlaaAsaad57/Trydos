@@ -1,9 +1,9 @@
 "use client";
-import { useEffect } from "react";
-import * as Sentry from "@sentry/nextjs";
+import { useEffect, useState } from "react";
 import Logo from "../components/Home/Logo";
 import { LogError, translateFunction } from "../utils/functions";
 import AuthService from "../services/auth";
+import { loadSentry } from "../utils/sentryClient";
 
 import {
   GeneralErrorIllustration,
@@ -11,6 +11,7 @@ import {
 } from "../components/global/ErrorIllustrations";
 import "styles/globals.css";
 export default function GlobalError({ error, retry }) {
+  const [eventId, setEventId] = useState<string>();
   const sendError = async () => {
     const userAgent =
       typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
@@ -42,7 +43,9 @@ export default function GlobalError({ error, retry }) {
   };
   useEffect(() => {
     // Sentry's built-in error boundary capture
-    Sentry.captureException(error);
+    loadSentry()
+      .then((sentry) => setEventId(sentry.captureException(error)))
+      .catch(() => {});
     sendError();
   }, [error]);
   if (
@@ -166,7 +169,7 @@ export default function GlobalError({ error, retry }) {
                 </p>
               </div>
               <p className="text-xs text-gray-500">
-                {translateFunction("Error ID:")} {Sentry.lastEventId() || "—"}
+                {translateFunction("Error ID:")} {eventId || "—"}
               </p>
             </div>
           </div>

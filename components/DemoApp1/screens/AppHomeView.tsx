@@ -7,9 +7,12 @@ import {
   getCachedCategories,
 } from "serverRequests/cached/home";
 import { translateFunction } from "utils/server";
+import { earlyStoriesScript } from "utils/earlyStories";
+import { buildProxyGetUrl } from "utils/proxyGetUrl";
 import type { DemoDictionary, DemoKey } from "../../DemoApp/demoKeys";
 import {
   HOME_FIRST_READ,
+  HOME_STORIES_PATH,
   splitHomeStores,
   toHomeChips,
   toHomeStores,
@@ -86,6 +89,21 @@ export default async function AppHomeView({ slug }: { slug: string | null }) {
   return (
     <>
       <h1 className="sr-only">{heading}</h1>
+      {/* Starts the first story photos before the app is here. The address has
+          no shopper in it, so the page stays one shared cache entry. */}
+      <script
+        id="early-stories"
+        dangerouslySetInnerHTML={{
+          __html: earlyStoriesScript(
+            buildProxyGetUrl({
+              server: "stories",
+              url: HOME_STORIES_PATH,
+              country,
+              language,
+            }),
+          ),
+        }}
+      />
       <AppHome
         lang={lang}
         category={slug}

@@ -11,7 +11,13 @@ import { LogError } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
 import { dropQaStories } from "utils/qaStoryFilter";
 import { getConfiguredImage, GetImageUrl } from "utils/server/helpers";
-import { HOME_NEXT_READ, toHomeStores, type HomeStore } from "./homeData";
+import { takeEarlyStories } from "utils/earlyStories";
+import {
+  HOME_NEXT_READ,
+  HOME_STORIES_PATH,
+  toHomeStores,
+  type HomeStore,
+} from "./homeData";
 
 /**
  * The browser side of the new home's real data (Stage 7, A-16): the stories
@@ -20,7 +26,6 @@ import { HOME_NEXT_READ, toHomeStores, type HomeStore } from "./homeData";
  */
 
 /** The one backend call of the stories row (the stories backend, through /api/proxy). */
-export const HOME_STORIES_PATH = "/api/v1/stories/users_stories?page=1";
 
 /** A person's stories, as one card of the stories row draws them. */
 export type HomeStory = {
@@ -129,14 +134,18 @@ export function useHomeStories({
 
   useEffect(() => {
     let cancelled = false;
-    fetchData({
-      url: HOME_STORIES_PATH,
-      method: "GET",
-      server: "stories",
-      reqTitle: REQUESTS_DATA.GET_USER_STORIES,
-      viaProxyGet: true,
-      noMessage: true,
-    })
+    const read = () =>
+      fetchData({
+        url: HOME_STORIES_PATH,
+        method: "GET",
+        server: "stories",
+        reqTitle: REQUESTS_DATA.GET_USER_STORIES,
+        viaProxyGet: true,
+        noMessage: true,
+      });
+    // A failed early read (a 401, say) goes the usual way, which can renew.
+    const early = takeEarlyStories();
+    (early ? early.then((body) => body ?? read()) : read())
       .then((response: any) => {
         if (cancelled) return;
         setRawStories(response?.data?.data ?? []);

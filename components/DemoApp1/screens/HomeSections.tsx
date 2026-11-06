@@ -224,7 +224,7 @@ export type HomeStoryCard = {
 const RING_SEEN = "#D3D3D3";
 
 /** The picture for a person with no photo, the same one the live bar uses. */
-const NO_PHOTO = "/images/profileNo.png";
+const NO_PHOTO = "/images/profileNoSmall.png";
 
 /**
  * One card style for every story (S7-9): the file's card 2, radius 20 and a

@@ -29,6 +29,7 @@ import {
 } from "components/skeleton/pageShapes";
 import { slideOnLinkTaps } from "components/ModalRoute/pageSlide";
 import { useAppStore } from "store";
+import { markHydrated } from "utils/pageIsReady";
 import { hidePageCover, showPageCover, usePageCover } from "./pageCoverState";
 
 /** A tap that never arrives must not hold the skeleton for ever. */
@@ -147,6 +148,10 @@ export function CoverBox({
 export default function PageCover() {
   const path = usePageCover();
   const pathname = usePathname();
+
+  // This component is in the root layout, so its first effect comes when the
+  // root has hydrated. Analytics and reporting wait for this (pageIsReady.ts).
+  useEffect(markHydrated, []);
 
   // Every link of the app. React's own listener is on the document too and
   // came first, so `defaultPrevented` says the router took this click. A card's

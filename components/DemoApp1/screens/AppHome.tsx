@@ -8,14 +8,13 @@ import { rememberBaseScroll } from "components/ModalRoute/overlayScroll";
 import { slidePage } from "components/ModalRoute/pageSlide";
 import AddStoryWidget from "components/Home/Stories/AddStoryWidgetLazy";
 import StoriesPaginationWrapper from "components/Home/Stories/StoriesPaginationWrapper";
-import { buildProxyGetUrl } from "utils/proxyGetUrl";
 import type { DemoDictionary, DemoKey } from "../../DemoApp/demoKeys";
 import { C, PAGE_MAX } from "../demo1Layout";
 import { titleStyle } from "../demoCase";
 import { usePageDir } from "../rtl";
 import { ScreenPage } from "../ui";
 import type { HomeChip, HomeStore } from "../homeData";
-import { HOME_STORIES_PATH, useHomeGrid, useHomeStories } from "../useHomeData";
+import { useHomeGrid, useHomeStories } from "../useHomeData";
 import { canAddStory, startAddStory } from "../addStory";
 import { HomeHeader } from "./HomeHeader";
 import HomeSections, {
@@ -115,19 +114,6 @@ export default function AppHome({
 
   return (
     <MotionConfig reducedMotion="user">
-      {/* Starts the stories request while the HTML is still parsing; the
-          hook's fetch is answered from it (the live bar's preload, D-5). */}
-      <link
-        rel="preload"
-        as="fetch"
-        crossOrigin="anonymous"
-        href={buildProxyGetUrl({
-          server: "stories",
-          url: HOME_STORIES_PATH,
-          country,
-          language,
-        })}
-      />
       <AddStoryWidget />
       <div
         data-pw="app-home"

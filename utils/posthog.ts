@@ -19,6 +19,7 @@
 //   - Ad-blocker resilience: ingestion is reverse-proxied through our own
 //     `/ingest` path (rewrites in next.config.ts), so `api_host` is "/ingest".
 import type { PostHog } from "posthog-js";
+import { pageIsReady } from "./pageIsReady";
 
 let _posthog: PostHog | undefined;
 let _inited = false;
@@ -44,32 +45,12 @@ const ready = async (): Promise<PostHog | undefined> => {
   }
 };
 
-/** Safari has no idle callback, so it waits this long after the page's load. */
-const NO_IDLE_WAIT_MS = 1000;
-
-/**
- * Resolves when the page has loaded and the phone is idle. The SDK and the
- * scripts it brings are about 200 KB, and on a slow line they took the bandwidth
- * of the page's photos and of the shopper's next tap. The first pageview is sent
- * by init(), so it is only later, not lost.
- */
-const pageIsReady = () =>
-  new Promise<void>((resolve) => {
-    const whenIdle = () => {
-      if ("requestIdleCallback" in window) {
-        window.requestIdleCallback(() => resolve(), { timeout: 3000 });
-      } else {
-        setTimeout(resolve, NO_IDLE_WAIT_MS);
-      }
-    };
-    if (document.readyState === "complete") whenIdle();
-    else window.addEventListener("load", whenIdle, { once: true });
-  });
-
 export const posthogInit = async (key?: string) => {
   if (!isProd()) return;
   if (!key || _inited) return;
   try {
+    // The SDK and the scripts it brings must not compete with the first screen.
+    // The first pageview is sent by init(), so it is only later, not lost.
     await pageIsReady();
     const posthog = await load();
     // init() is not idempotent (it warns on re-entry); guard with our own flag.
@@ -92,6 +73,10 @@ export const posthogInit = async (key?: string) => {
         // and custom events still flow. Set back to `false` (or delete this
         // line) to re-enable replay later.
         disable_session_recording: true,
+        // The project has no survey (`surveys: false` in its remote config),
+        // yet the SDK still loaded surveys.js: 142 KB on every visit. Delete
+        // this line if a survey is ever added in PostHog.
+        disable_surveys: true,
       });
       _inited = true;
     }

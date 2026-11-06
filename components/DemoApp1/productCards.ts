@@ -18,7 +18,7 @@ export type CardWords = {
 };
 
 /** The old list's picture for a person with no photo. */
-const NO_AVATAR = "/images/profileNo.png";
+const NO_AVATAR = "/images/profileNoSmall.png";
 
 export function toReviewCard(comment: any, words: CardWords): ReviewCardData {
   const facts = [

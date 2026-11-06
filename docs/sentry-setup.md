@@ -10,7 +10,7 @@ change. Nothing about the Sentry project is hardcoded.
 
 | File | Reads |
 |------|-------|
-| `instrumentation-client.ts` (browser) | `NEXT_PUBLIC_DSN_SENTRY` |
+| `utils/sentryClient.ts` (browser, loaded after the page by `instrumentation-client.ts`) | `NEXT_PUBLIC_DSN_SENTRY` |
 | `sentry.server.config.ts` (server) | `NEXT_PUBLIC_DSN_SENTRY` |
 | `sentry.edge.config.ts` (edge/proxy) | `NEXT_PUBLIC_DSN_SENTRY` |
 | `next.config.ts` (build plugin) | `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN`, `SENTRY_URL` |

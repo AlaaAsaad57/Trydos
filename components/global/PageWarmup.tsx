@@ -5,10 +5,11 @@ import { useParams, useRouter } from "next/navigation";
 import { tabHref } from "components/DemoApp1/appRoutes";
 import { isDemoPath } from "components/skeleton/pageKinds";
 import { useAppStore } from "store";
+import { pageIsReady } from "utils/pageIsReady";
 import { isValidPhone } from "utils/phone";
 
-/** After the page's own load, so this never takes a byte from the first screen. */
-const START_AFTER_MS = 2500;
+/** After the page is ready, so this never takes a byte from the first screen. */
+const START_AFTER_MS = 1000;
 /** The steps go one by one, so a slow line is not filled all at once. */
 const STEP_GAP_MS = 1200;
 
@@ -71,17 +72,15 @@ export default function PageWarmup() {
         timer = setTimeout(next, STEP_GAP_MS);
       });
     };
-    const begin = () => {
-      timer = setTimeout(next, START_AFTER_MS);
-    };
-
-    if (document.readyState === "complete") begin();
-    else window.addEventListener("load", begin, { once: true });
+    let stopped = false;
+    void pageIsReady().then(() => {
+      if (!stopped) timer = setTimeout(next, START_AFTER_MS);
+    });
 
     return () => {
+      stopped = true;
       clearTimeout(timer);
       if (idle && "cancelIdleCallback" in window) window.cancelIdleCallback(idle);
-      window.removeEventListener("load", begin);
     };
     // Once per visit: the layout keeps this mounted.
   }, []);

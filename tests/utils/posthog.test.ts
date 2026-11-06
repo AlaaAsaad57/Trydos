@@ -3,6 +3,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("posthog-js", async () => (await import("../mocks/posthog")).makePosthogMock());
+vi.mock("utils/pageIsReady", () => ({ pageIsReady: async () => {} }));
 
 async function load(env = "production") {
   vi.stubEnv("NODE_ENV", env);

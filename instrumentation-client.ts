@@ -1,25 +1,42 @@
-// This file configures the initialization of Sentry on the client.
-// The added config here will be used whenever a users loads a page in their browser.
+// This file starts Sentry on the client.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
+//
+// It runs before the app, so what it imports is on every page's first load. It
+// therefore imports no SDK: utils/sentryClient.ts loads Sentry when the page is
+// ready, or at once when the app reports an error. The options are there too.
 
-import * as Sentry from "@sentry/nextjs";
+import { pageIsReady } from "./utils/pageIsReady";
+import { loadSentry, sentryIfLoaded } from "./utils/sentryClient";
 
-Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_DSN_SENTRY,
-  // Logs disabled to trim always-on client work; error/perf reporting unaffected.
-  enableLogs: false,
+/** Enough for a page that fails while it loads, not for an error storm. */
+const MAX_EARLY_ERRORS = 20;
 
-  // Off, so no cookie and no IP address rides along with a browser event
-  // (readiness A1-10).
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-  sendDefaultPii: false,
+// Sentry's own listeners are not here yet, so uncaught errors wait in this list.
+const early: unknown[] = [];
 
-  // Keeps staging and production events apart. The browser only sees
-  // NEXT_PUBLIC_ values, so the public copy of the setting is read here.
-  environment:
-    process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ||
-    process.env.NEXT_PUBLIC_VERCEL_ENV ||
-    process.env.NODE_ENV,
-});
+const keep = (event: ErrorEvent | PromiseRejectionEvent) => {
+  if (early.length >= MAX_EARLY_ERRORS) return;
+  early.push("reason" in event ? event.reason : (event.error ?? event.message));
+};
 
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+window.addEventListener("error", keep);
+window.addEventListener("unhandledrejection", keep);
+
+void pageIsReady()
+  .then(loadSentry)
+  .then((sentry) => {
+    window.removeEventListener("error", keep);
+    window.removeEventListener("unhandledrejection", keep);
+    early.splice(0).forEach((error) => sentry.captureException(error));
+  })
+  .catch(() => {
+    // The chunk did not load. Reporting must never break the page.
+  });
+
+// Before the SDK is here there is no trace to add this navigation to.
+export const onRouterTransitionStart = (
+  href: string,
+  navigationType: string,
+) => {
+  sentryIfLoaded()?.captureRouterTransitionStart(href, navigationType);
+};

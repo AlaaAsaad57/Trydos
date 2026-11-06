@@ -3,6 +3,7 @@ import {
   extractPrimaryErrorMessage,
   serializeUnknownForErrorLog,
 } from "./errorSerialization";
+import { loadSentry } from "./sentryClient";
 
 /**
  * Report an enriched error object to Sentry.
@@ -18,6 +19,13 @@ import {
 export async function ReportError(rawError: any) {
   // --- 1. Build a real Error for proper grouping ---
   try {
+    // The browser loads Sentry on first use. An error is a reason to load it
+    // now, and `loadSentry` starts it too: a report to an SDK not started yet
+    // is dropped. The server started it in instrumentation.ts.
+    const Sentry =
+      typeof window === "undefined"
+        ? await import("@sentry/nextjs")
+        : await loadSentry();
     const error = serializeUnknownForErrorLog(rawError) as Record<string, any>;
     const scenario =
       error?.scenario ?? error?.source ?? error?.type ?? "unknown";

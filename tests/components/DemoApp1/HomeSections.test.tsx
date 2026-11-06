@@ -311,7 +311,7 @@ describe("Home stories row", () => {
     expect(
       ringPhoto("Person 3"),
       "a person with no photo must show the default picture, as the live bar does",
-    ).toBe("/images/profileNo.png");
+    ).toBe("/images/profileNoSmall.png");
   });
 
   it("draws an orange ring for a person with a story not seen yet (S7-10)", () => {
