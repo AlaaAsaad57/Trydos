@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import GoToSellerDashBoard from "components/settings/GoToSellerDashBoard";
 import NotificationSkeleton from "components/skeleton/NotificationSkeleton";
 import { getLocalizedCountryName } from "utils/countryData";
-import { showPageCover } from "components/global/pageCoverState";
+import { openPage as slideToPage } from "components/ModalRoute/pageSlide";
 import { C, ROW, fill } from "../demo1Layout";
 import { useDemoNav } from "../screenNav";
 import { ScreenHeader, ScreenPage, Txt } from "../ui";
@@ -38,8 +38,8 @@ export default function SettingsScreen() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [country, language] = locale.split("-");
   const openPage = (name: string) => {
-    showPageCover(`/${locale}/settings/${name}`);
-    router.push(`/${locale}/settings/${name}`);
+    const href = `/${locale}/settings/${name}`;
+    slideToPage(href, () => router.push(href));
   };
 
   const rows: {

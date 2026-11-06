@@ -1098,7 +1098,7 @@ svg {
 
 /* The bottom bar stays still while the pages move. The name is set only during
    a slide, because a named element is a stacking context. */
-html.page-slide .page-slide-bar {
+html.page-slide.page-slide-keep-bar .page-slide-bar {
   view-transition-name: page-slide-bar;
 }
 

@@ -21,6 +21,9 @@ const NotificationsContainer = dynamic(
   () => import("components/global/NotificationsContainer"),
   { ssr: false },
 );
+const PageWarmup = dynamic(() => import("components/global/PageWarmup"), {
+  ssr: false,
+});
 
 export default function DeferredLayoutClients() {
   return (
@@ -29,6 +32,7 @@ export default function DeferredLayoutClients() {
       <NotificationsContainer />
       <SessionChecker />
       <SessionTimer />
+      <PageWarmup />
     </>
   );
 }

@@ -4,10 +4,31 @@ import InitFunction from "./InitFunction";
 import AuthSections from "./AuthSections";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
-import ConfirmMobilePhoneWidget from "components/Login/ConfirmMobilePhoneWidget";
-import SessionExpiredWidget from "components/Login/SessionExpiredWidget";
 import dynamic from "next/dynamic";
 import StoryViewerSkeleton from "components/skeleton/StoryViewerSkeleton";
+import { CoverBox } from "components/global/PageCover";
+import { LoginSkeleton } from "components/skeleton/pageShapes";
+
+function AuthLoader() {
+  return (
+    <CoverBox>
+      <LoginSkeleton />
+    </CoverBox>
+  );
+}
+
+// Lazy: these two bring the whole login flow (phone numbers, QR code, the
+// scaled canvas, the logo animation), about 90 KB on every page, and almost no
+// visit opens them. Until the code is here the shopper sees the login's own
+// skeleton. PageWarmup loads the phone check after the page is ready.
+const ConfirmMobilePhoneWidget = dynamic(
+  () => import("components/Login/ConfirmMobilePhoneWidget"),
+  { ssr: false, loading: () => <AuthLoader /> },
+);
+const SessionExpiredWidget = dynamic(
+  () => import("components/Login/SessionExpiredWidget"),
+  { ssr: false, loading: () => <AuthLoader /> },
+);
 
 // Lazy: the stories viewer drags react-cube-navigation (+ react-spring,
 // react-gesture-responder) and react-swipeable; a static import would ship

@@ -3,7 +3,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
-import { showPageCover } from "components/global/pageCoverState";
+import { openPage } from "components/ModalRoute/pageSlide";
 
 const BackBar = ({
   local,
@@ -58,13 +58,11 @@ const BackBar = ({
     if (lastPathname) router.back();
     setLoading(true);
     if (preivous_page) {
-      showPageCover(preivous_page);
-      router.push(preivous_page);
+      openPage(preivous_page, () => router.push(preivous_page));
       return;
     }
     if (pathname === `/${local}/settings` || !lastPathname) {
-      showPageCover(`/${local}`);
-      router.push(`/${local}`);
+      openPage(`/${local}`, () => router.push(`/${local}`));
     }
   };
   return (

@@ -34,7 +34,7 @@ vi.mock("utils/server", () => ({ translateFunction: (key: string, language: stri
 for (const path of [
   "components/Home/RedeemedLuckScript",
   "components/Cart/CartProvider",
-  "components/Cart/RdbPaymentLockedSheet",
+  "components/Cart/RdbLockGate",
   "components/Home/Init",
   "components/Home/NavbarClient",
   "components/global/NavigationLoaderSafetyNet",

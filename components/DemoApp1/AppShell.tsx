@@ -12,7 +12,10 @@ import { litTab, shellStepsAside, tabHref } from "./appRoutes";
 import { openChatFromTab } from "./openChatFromTab";
 import { usePageDir } from "./rtl";
 import { useShellData } from "./useShellData";
-import { showPageCover, usePageCover } from "components/global/pageCoverState";
+import { usePageCover } from "components/global/pageCoverState";
+import { openPage } from "components/ModalRoute/pageSlide";
+import { loginHref } from "utils/loginPath";
+import { isValidPhone } from "utils/phone";
 
 /** The words the bar shows. The [lang] layout looks them up on the server. */
 export type AppShellDictionary = Pick<
@@ -90,10 +93,19 @@ export default function AppShell({
     };
   }, [pageRoom]);
 
-  // The skeleton first: the router may wait for the server.
+  // The slide and the skeleton first: the router may wait for the server.
   const open = (href: string) => {
-    showPageCover(href);
-    router.push(href);
+    openPage(href, () => router.push(href));
+  };
+
+  // A new screen of a signed-in shopper needs nothing from the server: its page
+  // only sends a guest away. So the address changes here and now, and the old
+  // page stays in the tree, hidden, for Back. Next follows `pushState` in
+  // usePathname, and it drops any page the router is still waiting for.
+  const openHere = (href: string) => {
+    const go = () => window.history.pushState(null, "", href);
+    if (appScreenFromPath(pathname)) go();
+    else openPage(href, go);
   };
 
   const onSelect = (tab: DemoTab) => {
@@ -109,11 +121,18 @@ export default function AppShell({
         useAppStore.getState().enableCart(true);
         return;
       case "chat":
-        void openChatFromTab(locale, open);
+        void openChatFromTab(locale, open, openHere);
         return;
-      case "settings":
-        open(tabHref(locale, "settings"));
+      case "settings": {
+        const href = tabHref(locale, "settings");
+        const profile = useAppStore.getState().userProfile;
+        if (isValidPhone(profile?.phone)) openHere(href);
+        // A known guest goes straight to the login, with the login's skeleton.
+        // Not known yet: the page's own check on the server decides.
+        else if (profile) open(loginHref(locale, href));
+        else open(href);
         return;
+      }
     }
   };
 

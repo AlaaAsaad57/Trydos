@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { AnimatePresence, MotionConfig } from "framer-motion";
+import { MotionConfig } from "framer-motion";
 import type { DemoDictionary, DemoKey } from "../DemoApp/demoKeys";
 import {
   direction,
@@ -17,14 +18,21 @@ import {
   isAppScreenOn,
   type AppScreenRow,
 } from "./appScreenPaths";
-import AppScreenView from "./AppScreenView";
-import { ChatDataProvider } from "./chat/ChatDataProvider";
-import { PAGE_MAX } from "./demo1Layout";
-import DemoKeyboard from "./keyboard/DemoKeyboard";
 import { usePageDir } from "./rtl";
-import { ScreenFrame, type Leave, type Slide } from "./ScreenFrame";
-import { NavCtx } from "./screenNav";
-import { showPageCover } from "components/global/pageCoverState";
+import type { Leave, Slide } from "./ScreenFrame";
+import ScreenSkeleton from "./ScreenSkeleton";
+import { openPage, restoreScroll } from "components/ModalRoute/pageSlide";
+
+/** The skeleton of the screen on this address, while the mount's code loads. */
+function MountLoading() {
+  const screen = appScreenFromPath(usePathname());
+  return screen ? <ScreenSkeleton screen={screen} /> : null;
+}
+
+// Lazy: the mount is in the [lang] layout, and an old page needs none of this.
+const ScreenMount = dynamic(() => import("./ScreenMount"), {
+  loading: () => <MountLoading />,
+});
 
 /**
  * The screen mount of the real app (UI-MIGRATION-PLAN.md, "The screen mount";
@@ -43,6 +51,10 @@ import { showPageCover } from "components/global/pageCoverState";
  *
  * The drawn keyboard is mounted only while a new screen shows, so old pages
  * keep the phone's own keyboard.
+ *
+ * The page's place in the tree never changes. A screen opened with no server
+ * (`openHere` in AppShell) keeps the page it came from alive under it, so
+ * Back shows that same page at once, with its state and its scroll.
  */
 export default function AppScreens({
   children,
@@ -116,7 +128,12 @@ function AppScreensInner({
   // A new screen starts at its top; going back opens the last one where it
   // was left. Before paint, so the new screen never shows the old scroll.
   useLayoutEffect(() => {
-    if (!shown) return;
+    if (!shown) {
+      // Back to a page from a screen: while the screen showed, the page was out
+      // of the layout, so the browser's own restore has no height to work with.
+      if (leave.dir < 0) restoreScroll();
+      return;
+    }
     const y = leave.dir < 0 ? (scrolls.current.get(shown) ?? 0) : 0;
     window.scrollTo(0, y);
   }, [shown]);
@@ -164,8 +181,8 @@ function AppScreensInner({
     // A screen that is not turned on is an old page: the router opens it,
     // and the URL effect above clears the screen when the page is there.
     if (!isAppScreenOn(to, rows)) {
-      showPageCover(appHrefFor(locale, to, rows));
-      router.push(appHrefFor(locale, to, rows));
+      const href = appHrefFor(locale, to, rows);
+      openPage(href, () => router.push(href));
       return;
     }
     trail.current.push(to);
@@ -193,41 +210,34 @@ function AppScreensInner({
       go(up, -1, "replace");
     } else {
       trail.current = [null];
-      showPageCover(appHrefFor(locale, up, rows));
-      router.replace(appHrefFor(locale, up, rows));
+      const href = appHrefFor(locale, up, rows);
+      openPage(href, () => router.replace(href));
     }
   };
 
-  if (!shown) return <>{children}</>;
-
   return (
-    <NavCtx.Provider value={{ shown, navigate, back, locale, t }}>
+    <>
+      {shown && (
+        <ScreenMount
+          shown={shown}
+          move={move}
+          dir={pageDir}
+          navigate={navigate}
+          back={back}
+          locale={locale}
+          t={t}
+        />
+      )}
+      {/* The route's page must stay in the tree while a screen shows: its
+          redirect (a guest to the login, S4-4) reaches the browser only when
+          the page is rendered. Hidden, so the settings template's box takes no
+          room. With no screen this box draws nothing (`contents`). */}
       <div
-        data-pw="app-screens"
-        dir={pageDir}
-        className="relative w-full mx-auto font-quicksand"
-        // `clip` and not `hidden`: it cuts the screen sliding in at the
-        // column's edges without making the column a scroll box, so the
-        // document still scrolls and the sticky headers still stick.
-        style={{ maxWidth: PAGE_MAX, minHeight: "100dvh", overflowX: "clip" }}
+        hidden={onScreen}
+        style={{ display: onScreen ? "none" : "contents" }}
       >
-        {/* The real chat (Stage 6). Always here, so the tree never changes and
-            the slides keep working; it loads and maps the chat only while a
-            chat screen shows. */}
-        <ChatDataProvider locale={locale} screen={shown}>
-          <AnimatePresence initial={false} custom={move}>
-            <ScreenFrame key={shown} id={shown} move={move}>
-              <AppScreenView screen={shown} />
-            </ScreenFrame>
-          </AnimatePresence>
-        </ChatDataProvider>
+        {children}
       </div>
-      <DemoKeyboard locale={locale} t={t} />
-      {/* The route's page renders nothing here, but it must stay in the tree:
-          its redirect (a guest to the login, S4-4) reaches the browser only
-          when the page is rendered. Hidden, so the settings template's box
-          takes no room. */}
-      <div hidden>{children}</div>
-    </NavCtx.Provider>
+    </>
   );
 }

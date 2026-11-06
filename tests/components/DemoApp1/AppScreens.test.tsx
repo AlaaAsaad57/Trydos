@@ -42,6 +42,12 @@ vi.mock("components/DemoApp1/AppScreenView", async () => {
 vi.mock("components/DemoApp1/keyboard/DemoKeyboard", () => ({
   default: () => <div data-testid="drawn-keyboard" />,
 }));
+// The mount's code is its own chunk in the app. Here it is at hand at once, so
+// these tests read what is drawn, not when a chunk arrives.
+vi.mock("next/dynamic", async () => {
+  const { default: ScreenMount } = await import("components/DemoApp1/ScreenMount");
+  return { default: () => ScreenMount };
+});
 
 import AppScreens from "components/DemoApp1/AppScreens";
 

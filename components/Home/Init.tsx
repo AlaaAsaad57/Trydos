@@ -1,18 +1,28 @@
 "use client";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import HomeService from "services/home";
-import PopupCountry from "utils/PopupCountry";
 import home from "services/home";
 
 import { LogError, translateFunction } from "utils/functions";
 import { installGlobalErrorListeners } from "utils/globalErrorListeners";
 import { posthogInit, posthogIdentify } from "utils/posthog";
 import { showErrorNotification } from "@/store/notifications/reducer";
-import NotificationWidget from "components/global/NotificationWidget";
 import { useAppStore } from "store";
 import { GetCountries } from "serverRequests/product";
 import auth from "services/auth";
+import SheetSkeleton from "components/skeleton/SheetSkeleton";
+
+// Lazy: only a new visitor and a shopper asked about notifications see these.
+const PopupCountry = dynamic(() => import("utils/PopupCountry"), {
+  ssr: false,
+  loading: () => <SheetSkeleton />,
+});
+const NotificationWidget = dynamic(
+  () => import("components/global/NotificationWidget"),
+  { ssr: false, loading: () => <SheetSkeleton /> },
+);
 
 function Init() {
   const { lang } = useParams();

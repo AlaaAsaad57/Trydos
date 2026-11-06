@@ -16,7 +16,7 @@ import Toast, { useToast } from "../chat/Toast";
 import { C, DESIGN_W, TAB_BAR, fill, gapTo, lineBox, textBottom } from "../demo1Layout";
 import { Box, Icon, MenuRow, ScreenPage, Stroke, Txt } from "../ui";
 import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
-import { showPageCover } from "components/global/pageCoverState";
+import { openPage as slideToPage } from "components/ModalRoute/pageSlide";
 
 /**
  * The profile tab — XD `Home Page – 9`, the one tall artboard (430 x 1129).
@@ -141,8 +141,8 @@ export default function ProfileScreen() {
 
   /** The old pages behind the menu rows (D-23). */
   const openPage = (path: string) => {
-    showPageCover(`/${locale}/${path}`);
-    router.push(`/${locale}/${path}`);
+    const href = `/${locale}/${path}`;
+    slideToPage(href, () => router.push(href));
   };
 
   const onMenu = (icon: XdIconName) => {

@@ -98,7 +98,7 @@ describe("Init", () => {
     await renderWithProviders(<Init />);
     await flush();
     expect(GetCountries, "the country list was asked for the wrong locale").toHaveBeenCalledWith({ country: "gb", language: "en" });
-    const popup = screen.getByTestId("country-popup");
+    const popup = await screen.findByTestId("country-popup");
     expect(popup.dataset.noCountry, "the gb placeholder is not treated as no country").toBe("true");
     expect(JSON.parse(popup.dataset.options!), "the picker got the wrong options").toEqual([{ label: "Syria", value: "sy" }]);
     expect(sessionStorage.getItem("countries-gb-en"), "the country list was not kept for the session").toBe(
@@ -111,7 +111,7 @@ describe("Init", () => {
     await renderWithProviders(<Init />);
     await flush();
     expect(GetCountries, "the server was asked again for a kept list").not.toHaveBeenCalled();
-    expect(JSON.parse(screen.getByTestId("country-popup").dataset.options!), "the kept list was not used").toEqual([
+    expect(JSON.parse((await screen.findByTestId("country-popup")).dataset.options!), "the kept list was not used").toEqual([
       { label: "Iraq", value: "iq" },
     ]);
   });
@@ -127,7 +127,7 @@ describe("Init", () => {
     GetCountries.mockResolvedValue([]);
     await renderWithProviders(<Init />, { country: "sy", search: "changed-country=1&cart=1&x=2" });
     await flush();
-    expect(screen.getByTestId("country-popup").dataset.changed, "a country change did not reach the picker").toBe("1");
+    expect((await screen.findByTestId("country-popup")).dataset.changed, "a country change did not reach the picker").toBe("1");
     expect(window.location.search, "the cart flag was not stripped").toBe("?changed-country=1&x=2");
   });
 
@@ -136,7 +136,7 @@ describe("Init", () => {
     const replace = vi.spyOn(window.history, "replaceState");
     await renderWithProviders(<Init />, { country: "sy", search: "no-country=1" });
     await flush();
-    expect(screen.getByTestId("country-popup").dataset.noCountry, "no-country did not reach the picker").toBe("1");
+    expect((await screen.findByTestId("country-popup")).dataset.noCountry, "no-country did not reach the picker").toBe("1");
     expect(replace, "an address with nothing to strip was rewritten").not.toHaveBeenCalled();
     replace.mockRestore();
   });
@@ -206,13 +206,15 @@ describe("Init", () => {
     const setNotificationModal = vi.fn();
     home.AllowNotifications.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error("fcm down"));
     await renderWithProviders(<Init />, { country: "sy", store: { isNotificationModal: true, setNotificationModal } });
-    await act(async () => fireEvent.click(screen.getByText("allow")));
+    fireEvent.click(await screen.findByText("allow"));
+    await flush();
     expect(home.AllowNotifications, "Allow did not turn notifications on").toHaveBeenCalledTimes(1);
-    await act(async () => fireEvent.click(screen.getByText("allow")));
+    fireEvent.click(await screen.findByText("allow"));
+    await flush();
     await waitFor(() =>
       expect(LogError.mock.calls.map((c) => c[0].scenario), "a failed Allow was not logged").toContain("onAllow in Init"),
     );
-    fireEvent.click(screen.getByText("dismiss"));
+    fireEvent.click(await screen.findByText("dismiss"));
     expect(setNotificationModal, "Dismiss did not close the prompt").toHaveBeenCalledWith(false);
   });
 

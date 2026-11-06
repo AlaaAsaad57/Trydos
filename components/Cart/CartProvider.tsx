@@ -5,11 +5,11 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 
 import home from "services/home";
 
-import ModalIframe from "./ModalIframe";
 import { isCartPath, noteSitePage } from "./cartPath";
 import { tabHref } from "components/DemoApp1/appRoutes";
 import { useAppStore } from "store";
@@ -19,14 +19,25 @@ import {
   getCurrency,
   getReferralSource,
 } from "utils/tinyUtils";
-import AddToCartComponent from "./AddToCart/AddToCartComponent";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 import { GAevent } from "utils/gtag";
 import auth from "services/auth";
 import { getCookie } from "utils/cookies/cookie-manager";
 import { markBackClosing, takeSelfConsume } from "utils/popupHistory";
-import { showPageCover } from "components/global/pageCoverState";
+import { openPage } from "components/ModalRoute/pageSlide";
+import SheetSkeleton from "components/skeleton/SheetSkeleton";
+
+// Lazy: this provider is on every page, and these open on a tap. PageWarmup
+// loads the sheet after the page is ready, so the tap rarely waits for it.
+const AddToCartComponent = dynamic(
+  () => import("./AddToCart/AddToCartComponent"),
+  { ssr: false, loading: () => <SheetSkeleton /> },
+);
+const ModalIframe = dynamic(() => import("./ModalIframe"), {
+  ssr: false,
+  loading: () => <SheetSkeleton />,
+});
 
 const CartProvider = ({ language, country }) => {
   // Per-field selectors: this component is mounted on every page and the boot
@@ -166,8 +177,8 @@ const CartProvider = ({ language, country }) => {
   // nothing and go nowhere.
   useEffect(() => {
     if (!enable || isCartPath(pathname)) return;
-    showPageCover(tabHref(locale, "cart"));
-    router.push(tabHref(locale, "cart"));
+    const href = tabHref(locale, "cart");
+    openPage(href, () => router.push(href));
     enableCart(false);
   }, [enable]);
 

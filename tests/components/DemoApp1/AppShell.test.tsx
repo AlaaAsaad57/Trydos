@@ -221,12 +221,25 @@ describe("AppShell — the new bottom bar on every page", () => {
     expect(setLoginOpen, "the Chat tab opened the sign-in for a shopper with a phone").not.toHaveBeenCalled();
   });
 
-  it("Chat with a chat account and notifications allowed goes to the new chat screen (Stage 6)", async () => {
+  it("Chat with a chat account and notifications allowed opens the new chat screen with no server (Stage 6)", async () => {
     useAppStore.setState({ userProfile: { phone: "0999000111" }, userChat: { id: 7 } } as any);
     home.getNotificationPermissionStatus.mockReturnValue(2);
+    const pushState = vi.spyOn(window.history, "pushState").mockImplementation(() => {});
     openOn("/sy-en/products/x");
     await act(async () => pressTab("chat"));
-    expect(router.push, "the Chat tab did not go to the new chat screen /sy-en/chat").toHaveBeenCalledWith("/sy-en/chat");
+    expect(pushState, "the Chat tab did not move the address to /sy-en/chat").toHaveBeenCalledWith(null, "", "/sy-en/chat");
+    expect(router.push, "the Chat tab waited for the server, and a signed-in shopper needs nothing from it").not.toHaveBeenCalled();
+    pushState.mockRestore();
+  });
+
+  it("Profile of a signed-in shopper opens with no server", () => {
+    useAppStore.setState({ userProfile: { phone: "0999000111" } } as any);
+    const pushState = vi.spyOn(window.history, "pushState").mockImplementation(() => {});
+    openOn("/sy-en/products/x");
+    pressTab("settings");
+    expect(pushState, "the Profile tab did not move the address to /sy-en/settings").toHaveBeenCalledWith(null, "", "/sy-en/settings");
+    expect(router.push, "the Profile tab waited for the server").not.toHaveBeenCalled();
+    pushState.mockRestore();
   });
 
   it("Chat with notifications not asked yet opens the notification question, not the chat", async () => {

@@ -27,13 +27,15 @@ export function showPageCover(href: string) {
   if (url.pathname === window.location.pathname) return;
   if (isDemoPath(window.location.pathname)) return;
   if (!appScreenFromPath(url.pathname) && !pageKindFor(url.pathname)) return;
-  // A tap on a card already shows that card's own loader, with its photo.
-  const nav = useAppStore.getState().isNavigating;
-  if (nav && typeof nav === "object") return;
-  // The slide draws the move itself (pageSlide.ts).
-  if (document.documentElement.classList.contains("page-slide")) return;
+  // A new tap wins: the loader of a tap still on its way goes, or it would stay
+  // over this page until its own page, which is not coming now, cleared it.
+  const store = useAppStore.getState();
+  if (store.isNavigating) store.setIsNavigating(null);
   set(url.pathname);
 }
+
+/** The path the cover is showing, or null. For code outside React. */
+export const pageCoverTarget = () => target;
 
 export const hidePageCover = () => set(null);
 

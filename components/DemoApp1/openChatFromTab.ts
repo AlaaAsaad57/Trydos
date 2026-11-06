@@ -12,9 +12,13 @@ import { chatHref } from "./chat/chatPaths";
 // phone on record is asked to confirm it, and a guest goes to the login page
 // with this page as the way back. Since Stage 6 the chat is the new chat
 // screen at /[lang]/chat, not the old overlay.
+//
+// `pushScreen` opens the chat itself. It has no need of the server, so it may
+// be faster than `push`, which also goes to the login.
 export async function openChatFromTab(
   lang: string,
   push: (href: string) => void,
+  pushScreen: (href: string) => void = push,
 ): Promise<void> {
   const state = useAppStore.getState();
   try {
@@ -36,11 +40,11 @@ export async function openChatFromTab(
         return;
       }
       if (num === 1) {
-        push(chatHref(lang));
+        pushScreen(chatHref(lang));
         await home.AllowNotifications();
         return;
       }
-      push(chatHref(lang));
+      pushScreen(chatHref(lang));
     } else {
       if (userDataCookie && userDataCookie?.phone !== "0") {
         state.setShouldAuthinticated("open chat");

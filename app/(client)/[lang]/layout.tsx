@@ -15,7 +15,7 @@ import { HISTORY_HOLD_SCRIPT } from "utils/historyHold";
 import RedeemedLuckScript from "components/Home/RedeemedLuckScript";
 import { isSupportedLocaleSegment } from "utils/locale";
 import CartProvider from "components/Cart/CartProvider";
-import RdbPaymentLockedSheet from "components/Cart/RdbPaymentLockedSheet";
+import RdbLockGate from "components/Cart/RdbLockGate";
 import Init from "components/Home/Init";
 import NavbarClient from "components/Home/NavbarClient";
 import AppShell from "components/DemoApp1/AppShell";
@@ -298,7 +298,7 @@ export default async function RootLayout({ children, modal }) {
             payment locks every page the shopper is on — including product
             pages, where AddToCart is called with the cart widget closed —
             not only the cart itself. Draws nothing when there is no lock. */}
-        <RdbPaymentLockedSheet />
+        <RdbLockGate />
         <Suspense fallback={null}>
           <PathTracker />
         </Suspense>

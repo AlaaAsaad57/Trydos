@@ -3,19 +3,25 @@ import { describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "../../render";
 
-vi.mock("next/dynamic", () => ({
-  default: (loader: () => Promise<any>, options: any) => {
-    const Dyn = () => {
-      loader();
-      return options.loading();
-    };
-    return Dyn;
-  },
-}));
-vi.mock("components/Home/Stories/NewStories", () => ({ default: () => null }));
-vi.mock("components/skeleton/StoryViewerSkeleton", () => ({
+// The three overlays are lazy: each shows its skeleton, then its own code.
+vi.mock("next/dynamic", async () => {
+  const { Suspense, lazy } = await import("react");
+  return {
+    default: (loader: () => Promise<any>, options: any) => {
+      const Lazy = lazy(loader);
+      return (props: any) => (
+        <Suspense fallback={options.loading()}>
+          <Lazy {...props} />
+        </Suspense>
+      );
+    },
+  };
+});
+vi.mock("components/Home/Stories/NewStories", () => ({
   default: () => <div data-testid="stories" />,
 }));
+vi.mock("components/skeleton/StoryViewerSkeleton", () => ({ default: () => null }));
+vi.mock("components/global/PageCover", () => ({ CoverBox: () => null }));
 vi.mock("components/Home/InitFunction", () => ({ default: () => null }));
 vi.mock("components/Home/AuthSections", () => ({ default: () => null }));
 vi.mock("components/Login/ConfirmMobilePhoneWidget", () => ({
@@ -32,7 +38,7 @@ describe("NavbarClient", () => {
     await renderWithProviders(<NavbarClient />, {
       store: { loginOpen: false, shouldAuthinticated: "expired", LoggingOut: false },
     });
-    expect(screen.getByTestId("session-expired"), "the expired prompt is missing").toBeInTheDocument();
+    expect(await screen.findByTestId("session-expired"), "the expired prompt is missing").toBeInTheDocument();
     expect(screen.queryByTestId("confirm-phone"), "the phone check showed next to the expired prompt").toBeNull();
   });
 
@@ -46,8 +52,8 @@ describe("NavbarClient", () => {
         isProductPage: false,
       },
     });
-    expect(screen.getByTestId("confirm-phone"), "the phone check is missing").toBeInTheDocument();
-    expect(screen.getByTestId("stories"), "the selected story did not open").toBeInTheDocument();
+    expect(await screen.findByTestId("confirm-phone"), "the phone check is missing").toBeInTheDocument();
+    expect(await screen.findByTestId("stories"), "the selected story did not open").toBeInTheDocument();
   });
 
   it("shows neither prompt while the login widget is open, and no story on a product page", async () => {

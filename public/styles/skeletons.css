@@ -52,6 +52,11 @@
   animation: page-cover-in 0s linear 50ms both;
 }
 
+/* In a slide the cover is the page coming in, so it shows at once. */
+html.page-slide .page-cover {
+  animation: none;
+}
+
 @keyframes page-cover-in {
   from {
     opacity: 0;

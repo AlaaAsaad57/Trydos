@@ -44,10 +44,33 @@ const ready = async (): Promise<PostHog | undefined> => {
   }
 };
 
+/** Safari has no idle callback, so it waits this long after the page's load. */
+const NO_IDLE_WAIT_MS = 1000;
+
+/**
+ * Resolves when the page has loaded and the phone is idle. The SDK and the
+ * scripts it brings are about 200 KB, and on a slow line they took the bandwidth
+ * of the page's photos and of the shopper's next tap. The first pageview is sent
+ * by init(), so it is only later, not lost.
+ */
+const pageIsReady = () =>
+  new Promise<void>((resolve) => {
+    const whenIdle = () => {
+      if ("requestIdleCallback" in window) {
+        window.requestIdleCallback(() => resolve(), { timeout: 3000 });
+      } else {
+        setTimeout(resolve, NO_IDLE_WAIT_MS);
+      }
+    };
+    if (document.readyState === "complete") whenIdle();
+    else window.addEventListener("load", whenIdle, { once: true });
+  });
+
 export const posthogInit = async (key?: string) => {
   if (!isProd()) return;
   if (!key || _inited) return;
   try {
+    await pageIsReady();
     const posthog = await load();
     // init() is not idempotent (it warns on re-entry); guard with our own flag.
     if (posthog && !_inited) {

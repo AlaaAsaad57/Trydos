@@ -404,7 +404,7 @@ describe("the add-to-cart sheet", () => {
     [{ slug: "s", sync_color_images: [{ color_name: "pink" }] }, "", "pink"],
   ])("opens for %j with the colour %s → %s", async (product, search, expected) => {
     await mountProvider({ search, store: { selected_product_for_add_to_cart: product } });
-    const sheet = screen.getByTestId("add-to-cart");
+    const sheet = await screen.findByTestId("add-to-cart");
     expect(sheet.dataset.color, "the sheet opened on the wrong colour").toBe(expected);
     expect(sheet.dataset.slug, "the sheet was not given the product slug").toBe("s");
   });
@@ -417,7 +417,7 @@ describe("the external payment frame", () => {
     await act(async () => {
       useAppStore.getState().setCryptoCardPayment({ url: "https://pay.example/x" });
     });
-    const frame = screen.getByTestId("pay-frame");
+    const frame = await screen.findByTestId("pay-frame");
     expect(frame.dataset.url, "the frame did not open on the payment URL").toBe("https://pay.example/x");
     expect(frame.dataset.loading, "the frame did not start in its loading state").toBe("true");
     await userEvent.click(screen.getByText("frame-loaded"));
