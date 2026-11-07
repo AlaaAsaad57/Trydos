@@ -40,10 +40,10 @@ export const SearchContainer = ({
   related_categories,
   trending,
   searchHistoryItems,
-  setSearchHistory,
+  removeHistoryWord,
+  clearHistory,
   isRtl,
   language,
-  onClickSearchHistory,
   EnableSearch,
   hasMore,
   loadMoreBrands,
@@ -148,14 +148,8 @@ export const SearchContainer = ({
             <SearchHistory
               options={searchHistoryItems}
               setOptions={setValue}
-              deleteOption={(e) => {
-                // Functional update: Clear All calls this once per word.
-                setSearchHistory((list) => list.filter((s) => s !== e));
-                localStorage.setItem(
-                  "search-history",
-                  JSON.stringify(searchHistoryItems.filter((s) => s !== e)),
-                );
-              }}
+              deleteOption={removeHistoryWord}
+              clearOptions={clearHistory}
             />
           )}
           <SearchTrending
@@ -187,10 +181,7 @@ export const SearchContainer = ({
                 searchValue={value}
                 resultsProducts={products}
                 key={product?.product_id || index}
-                onClick={(e) => {
-                  onClickSearchHistory(value);
-                  EnableSearch(false);
-                }}
+                onClick={() => EnableSearch(false)}
               />
             ))}
           </div>

@@ -169,10 +169,10 @@ export default function AppSearch({
                 related_categories={s.results.related_categories}
                 trending={s.trending}
                 searchHistoryItems={s.searchHistory}
-                setSearchHistory={s.setSearchHistory}
+                removeHistoryWord={s.removeHistoryWord}
+                clearHistory={s.clearHistory}
                 applied_filter={s.appliedFilters}
                 EnableSearch={() => {}}
-                onClickSearchHistory={s.pickHistory}
                 hasMore={s.hasMore}
                 loadMoreBrands={() => s.loadMore("brands")}
                 loadMoreCategories={() => s.loadMore("categories")}

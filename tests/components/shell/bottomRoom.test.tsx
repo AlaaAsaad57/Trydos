@@ -19,7 +19,9 @@ vi.mock("serverRequests/Search", () => ({
   GetSearchData: async () => ({ brands: [], categories: [], boutiques: [], products: [], total_size: 0 }),
   GetSearchSuggestion: async () => ({ suggestion: "" }),
 }));
-vi.mock("services/search", () => ({ default: { getTrendingSearch: async () => ({ popular_search_terms: [] }) } }));
+vi.mock("services/search", () => ({
+  default: { getTrendingSearch: async () => ({ popular_search_terms: [] }), getSearchHistory: async () => [], logSearch: vi.fn() },
+}));
 vi.mock("services/auth", () => ({
   default: { UserID: () => "u-1", NotifyForProducts: vi.fn(), getUser: vi.fn() },
 }));
@@ -64,7 +66,6 @@ vi.mock("utils/functions", async (importOriginal) => ({
   ...(await importOriginal<any>()),
   getCart: vi.fn(),
   LogError: vi.fn(),
-  onClickSearchHistory: (v: string) => [v],
 }));
 vi.mock("utils/tinyUtils", async (importOriginal) => ({
   ...(await importOriginal<any>()),
@@ -208,10 +209,10 @@ describe("old bottom bars sit above the new bar", () => {
         related_categories={[]}
         trending={[]}
         searchHistoryItems={[]}
-        setSearchHistory={vi.fn()}
+        removeHistoryWord={vi.fn()}
+        clearHistory={vi.fn()}
         isRtl={false}
         language="en"
-        onClickSearchHistory={vi.fn()}
         EnableSearch={vi.fn()}
         hasMore={{ brands: false, categories: false, boutiques: false }}
         loadMoreBrands={vi.fn()}

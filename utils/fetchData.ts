@@ -88,6 +88,12 @@ export const scrubRequestUrl = (url: unknown): unknown => {
 
 const LOCAL_AUTEHD_ROUTES = ["/api/auth/login", "/api/ticket"];
 
+// Same-origin routes that check the market token themselves. Their 401 means
+// what a market 401 means, so they take the market recovery: one exchange
+// through RefreshSession, then a retry. They never exchange the token on the
+// server, because a second owner of a single-use refresh token loses the session.
+const LOCAL_MARKET_ROUTES = ["/api/search/history"];
+
 // Which HttpOnly cookies a failed sub-service recovery may clear — keyed by the
 // service that actually returned the 401. The `chat`/`stories`/`comments`/
 // `wallet` arms of `handleUnauthorized` share one exit path (a `switch`
@@ -231,10 +237,15 @@ const waitForReAuthSuccess = (): Promise<boolean> =>
   });
 
 const handleUnauthorized = async (
-  server: ServerType,
+  requestServer: ServerType,
   options,
   authAttempt = 0,
 ): Promise<boolean> => {
+  const server: ServerType =
+    requestServer === "local" &&
+    LOCAL_MARKET_ROUTES.includes(options.url.split("?")[0])
+      ? "market"
+      : requestServer;
   const { LoggingOut } = useAppStore.getState();
   if (LoggingOut) return false;
 

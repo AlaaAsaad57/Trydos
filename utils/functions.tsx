@@ -174,31 +174,6 @@ export const RoundPrice = ({
   });
 };
 
-export const onClickSearchHistory = (searchValue) => {
-  let stored: string[] = [];
-  const raw = localStorage.getItem("search-history");
-  if (raw) {
-    try {
-      const parsed = JSON.parse(raw);
-      // Stored history can be anything a browser has kept for months. Bad data
-      // must not throw out of a click handler.
-      if (Array.isArray(parsed)) stored = parsed;
-    } catch {
-      stored = [];
-    }
-  }
-
-  const alreadyThere = stored.some(
-    (s) => String(s).toLowerCase() === searchValue.toLowerCase(),
-  );
-  // On a repeat, hand back what is actually stored. Returning
-  // [searchValue, ...stored] showed the shopper the same word twice.
-  const history = alreadyThere ? stored : [searchValue, ...stored];
-
-  localStorage.setItem("search-history", JSON.stringify(history));
-  return history;
-};
-
 export const getOldCart = async () => {
   let userId =
     useAppStore.getState().userProfile?.id || useAppStore.getState().user?.id;

@@ -5,8 +5,8 @@
 | **Feature ID** | SD-09 |
 | **Domain** | A · Shopping & Product Discovery |
 | **Status** | 🟢 Live |
-| **Last verified** | 2026-07-03 (against `develop`) |
-| **Source of truth** | `components/Home/Search/SearchHistory.tsx`, `SearchIcon.tsx` |
+| **Last verified** | 2026-11-07 |
+| **Source of truth** | `app/api/search/history/route.ts`, `services/elastic/searchHistory.ts`, `components/Home/Search/useSearchHistory.ts` |
 
 ---
 
@@ -22,28 +22,33 @@ empty, for quick re-search.
 
 ## Who uses it
 
-Returning shoppers on the same device/browser.
+Returning shoppers, on any device where they use the same account.
 
 ## How it works (verified behaviour)
 
-- **Where it's stored:** entirely in the browser's **local storage** (`search-history` key).
-  It is **device- and browser-local** — not tied to the account and not synced across devices.
-- **What gets added:** a term is saved to history when the shopper runs a search or taps a
-  product result (handled in the overlay).
+- **Where it's stored:** in the **search log** in Elasticsearch, under the shopper's user id.
+  It follows the account across devices. A guest's history belongs to the guest's id.
+- **What gets added:** the word the shopper settled on, if it has 3+ characters, even with no
+  products. A word counts as settled when it stays in the box for 1.5 seconds after its results,
+  when the shopper leaves the search, or when they press Enter (the listing page logs that one).
+  Half words typed on the way are not logged. The list shows up to 50 words, newest first, each
+  word once.
 - **Collapsed view:** a horizontal, drag-to-scroll row of recent terms, each with a small
   **×** to delete that single term.
 - **Expanded view:** a full list with per-item delete.
 - **Tapping a term** re-runs its search and refills the box.
 - **Clear All** empties the whole history.
+- **Removing a word** sets `is_deleted: true` on the rows. The rows stay in the log for other
+  apps, and the history hides them. Searching the word again brings it back.
 
 ## Technical reference
 
 | Item | Value |
 |------|-------|
 | Component | `components/Home/Search/SearchHistory.tsx` |
-| Storage | `localStorage["search-history"]` (JSON array of strings) |
-| Add-to-history | `onClickSearchHistory()` (`utils/functions`), called from `SearchIcon.tsx` |
-| Re-search | `search.getSearchOptions()` (`services/search.ts`) |
+| Storage | The search log index (`search_log_index`) |
+| API | `GET` / `DELETE /api/search/history` — see `docs/mobile-search-history-api.md` |
+| Add-to-history | `useSearchLog` (`components/Home/Search/useSearchLog.ts`), then `POST /api/search/history` |
 
 ## Current status & maturity
 
@@ -51,9 +56,8 @@ Returning shoppers on the same device/browser.
 
 ## Known gaps / notes
 
-- Because history is **local storage only**, it does not follow the user to another device or
-  survive clearing browser data — by design, but worth stating for the manager (there is no
-  server-side "recent searches" per account).
+- A guest's words do not move to the account when the guest signs in.
+- Words saved in a browser's local storage by older versions are not carried over.
 
 ## Related features
 

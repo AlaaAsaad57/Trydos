@@ -12,7 +12,15 @@ vi.mock("serverRequests/Search", () => ({
   GetSearchSuggestion: (...a: any[]) => GetSearchSuggestion(...a),
 }));
 const getTrendingSearch = vi.fn();
-vi.mock("services/search", () => ({ default: { getTrendingSearch: () => getTrendingSearch() } }));
+const getSearchHistory = vi.fn();
+const logSearch = vi.fn();
+vi.mock("services/search", () => ({
+  default: {
+    getTrendingSearch: () => getTrendingSearch(),
+    getSearchHistory: () => getSearchHistory(),
+    logSearch: (...a: any[]) => logSearch(...a),
+  },
+}));
 vi.mock("services/auth", () => ({ default: { UserID: () => "u-1" } }));
 
 // The voice and image search are their own units: here they show the mark and
@@ -47,7 +55,9 @@ const empty = { brands: [], categories: [], boutiques: [], products: [], total_s
 
 const open = (lang = "sy-en", dictionary = {}) => {
   page.lang = lang;
-  return renderWithProviders(<AppSearch lang={lang} dictionary={dictionary} />);
+  return renderWithProviders(<AppSearch lang={lang} dictionary={dictionary} />, {
+    store: { userProfile: { id: 7 } },
+  });
 };
 const input = () => document.querySelector('[data-pw="demo-search-input"]') as HTMLInputElement;
 
@@ -55,6 +65,8 @@ beforeEach(() => {
   GetSearchData.mockReset().mockResolvedValue(empty);
   GetSearchSuggestion.mockReset().mockResolvedValue({ suggestion: "" });
   getTrendingSearch.mockReset().mockResolvedValue({ popular_search_terms: [] });
+  getSearchHistory.mockReset().mockResolvedValue([]);
+  logSearch.mockReset();
   localStorage.clear();
 });
 
@@ -73,6 +85,22 @@ describe("AppSearch (the search page /[lang]/search)", () => {
       document.querySelector('[data-pw="demo-search-chip-1"]'),
       "the file's 'Empty' chips must not be drawn",
     ).toBeNull();
+  });
+
+  it("shows the history the server keeps", async () => {
+    getSearchHistory.mockResolvedValue(["shoes"]);
+    await open();
+    await waitFor(() =>
+      expect(document.querySelector('[data-testid="history"]'), "the server's history was not drawn").not.toBeNull(),
+    );
+  });
+
+  it("ignores words an older version left in localStorage", async () => {
+    localStorage.setItem("search-history", JSON.stringify(["old word"]));
+    await open();
+    await waitFor(() => expect(getSearchHistory, "the server was not asked for the history").toHaveBeenCalled());
+    await act(async () => {});
+    expect(document.querySelector('[data-testid="history"]'), "history was drawn from localStorage").toBeNull();
   });
 
   it("writes the English placeholder in sentence style (D-4)", async () => {
@@ -122,6 +150,45 @@ describe("AppSearch (the search page /[lang]/search)", () => {
       const call = GetSearchData.mock.calls.find((c) => c[0].filters.search_text === "dress");
       expect(call, "the typed word never reached the market backend's search").toBeDefined();
       expect(call![0].noProducts, "a typed search must ask for products").toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("logs the word the shopper settled on, and not the half words before it", async () => {
+    GetSearchData.mockResolvedValue({ ...empty, total_size: 3 });
+    vi.useFakeTimers();
+    try {
+      await open();
+      const type = async (word: string, ms: number) => {
+        fireEvent.change(input(), { target: { value: word } });
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(ms);
+        });
+      };
+      await type("sho", 600);
+      await type("shoes", 2500);
+      expect(logSearch, "the settled word was not logged with its count").toHaveBeenCalledWith("shoes", 3);
+      expect(logSearch, "a half word reached the log").not.toHaveBeenCalledWith("sho", expect.anything());
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("leaves logging to the listing page when the shopper presses Enter", async () => {
+    GetSearchData.mockResolvedValue({ ...empty, total_size: 3 });
+    vi.useFakeTimers();
+    try {
+      await open();
+      fireEvent.change(input(), { target: { value: "shoes" } });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(600);
+      });
+      fireEvent.keyDown(input(), { key: "Enter" });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2500);
+      });
+      expect(logSearch, "a submitted word was logged here and on the listing page").not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
     }

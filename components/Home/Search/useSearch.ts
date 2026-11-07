@@ -2,23 +2,24 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { LogError, onClickSearchHistory, translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import search from "services/search";
 import { showErrorNotification } from "store/notifications/reducer";
 import { buildParamsFromFilters } from "utils/tinyUtils";
 import { GetSearchData, GetSearchSuggestion } from "serverRequests/Search";
 import { useAppStore } from "store";
-import auth from "services/auth";
+import { useSearchHistory } from "./useSearchHistory";
+import { useSearchLog } from "./useSearchLog";
 
 /**
  * The search's state and logic, moved out of the old search box
  * (`SearchIcon`) unchanged, so the new search page (`/[lang]/search`, Stage 7,
  * D-44) and the old box share one copy:
  *
- *  - history (localStorage `search-history`) and trending
+ *  - history (`useSearchHistory`, from the server) and trending
  *    (`search.getTrendingSearch`), read when the search opens;
  *  - results (products, brands, categories, boutiques, related categories)
- *    from `GetSearchData`, 1.5 s after the last key or filter change, with a
+ *    from `GetSearchData`, 400 ms after the last key or filter change, with a
  *    guard so an older answer never replaces a newer one;
  *  - the inline completion (`GetSearchSuggestion`), with the same wait and
  *    guard;
@@ -55,7 +56,7 @@ const EMPTY_RESULTS: SearchResultsState = {
 };
 
 /** The wait after the last key before a search or a completion is asked for. */
-export const SEARCH_WAIT_MS = 1500;
+export const SEARCH_WAIT_MS = 400;
 
 export function useSearch({
   language,
@@ -74,7 +75,8 @@ export function useSearch({
   const [suggestion, setSuggestion] = useState("");
 
   const [trending, setTrending] = useState<any[]>([]);
-  const [searchHistory, setSearchHistory] = useState<any[]>([]);
+  const { searchHistory, removeHistoryWord, clearHistory } = useSearchHistory(enabled);
+  const { scheduleLog, cancelLog } = useSearchLog(value, enabled);
   const [results, setResults] = useState<SearchResultsState>(EMPTY_RESULTS);
   const [appliedFilters, setAppliedFilters] = useState<AppliedSearchFilters>({
     categories: [],
@@ -131,7 +133,6 @@ export function useSearch({
           filters: { ...normalizeFilters(appliedFilters), search_text: value },
           noProducts: isInitial,
           filters_offset: 1,
-          userId: auth.UserID(),
         });
         // Only the latest request may update the results.
         if (requestId === latestRequestRef.current) {
@@ -159,6 +160,7 @@ export function useSearch({
             boutiques: (res.boutiques?.length || 0) >= 10,
           });
           setLoading(false);
+          if (!isInitial) scheduleLog(value, res.total_size ?? 0);
         }
       } catch (error) {
         if (requestId === latestRequestRef.current) {
@@ -170,10 +172,8 @@ export function useSearch({
     [language, country, appliedFilters, value],
   );
 
-  // --- History and trending, when the search opens ---
+  // --- Trending, when the search opens ---
   useEffect(() => {
-    const history = localStorage.getItem("search-history");
-    if (history) setSearchHistory(JSON.parse(history));
     if (enabled) getInitialStaticData();
   }, [enabled]);
 
@@ -274,7 +274,6 @@ export function useSearch({
         filters: { ...normalizeFilters(appliedFilters), search_text: value },
         noProducts: true,
         filters_offset: nextOffset,
-        userId: auth.UserID(),
       });
       const newItems = res[type] || [];
       setResults((prev) => ({ ...prev, [type]: [...prev[type], ...newItems] }));
@@ -303,6 +302,7 @@ export function useSearch({
       }
     }
     if (e.key === "Enter") {
+      cancelLog();
       const pathParams = buildParamsFromFilters({
         categories: appliedFilters?.categories?.map((s) => s.slug),
         brands: appliedFilters?.brands?.map((s) => s.slug),
@@ -314,12 +314,6 @@ export function useSearch({
       setIsNavigating({ is_boutique: true });
       router.push(url);
     }
-  };
-
-  /** A tap on a history word: search it, and move it to the top of the history. */
-  const pickHistory = (word: string) => {
-    setValue(word);
-    setSearchHistory(onClickSearchHistory(word));
   };
 
   /** Back to the first state: no text, no results. */
@@ -336,7 +330,8 @@ export function useSearch({
     results,
     trending,
     searchHistory,
-    setSearchHistory,
+    removeHistoryWord,
+    clearHistory,
     appliedFilters,
     setAppliedFilters,
     setOffsets,
@@ -345,7 +340,6 @@ export function useSearch({
     ghostSuffix,
     acceptSuggestion,
     handleKeyDown,
-    pickHistory,
     clear,
   };
 }

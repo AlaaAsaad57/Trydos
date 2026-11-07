@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
-function SearchHistory({ options, setOptions, deleteOption }) {
+function SearchHistory({ options, setOptions, deleteOption, clearOptions }) {
   const { setSearchPartialLoading, setSearchLoading } = useAppStore();
   const [openMenu, setOpen] = useState(false);
   useEffect(() => {
@@ -81,17 +81,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
                   {
                     <div
                       className="close-icon-container"
-                      onClick={() => {
-                        let arr = localStorage.getItem("search-history");
-
-                        localStorage.setItem(
-                          "search-history",
-                          JSON.stringify(
-                            JSON.parse(arr).filter((item) => item !== s)
-                          )
-                        );
-                        deleteOption(s);
-                      }}
+                      onClick={() => deleteOption(s)}
                     >
                       <img src="/icons/CloseIconOption.svg" />
                     </div>
@@ -105,10 +95,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
         <span
           className="clear-options-button"
           data-pw="clearAll"
-          onClick={(e) => {
-            [...options].forEach((s) => deleteOption(s));
-            localStorage.setItem("search-history", JSON.stringify([]));
-          }}
+          onClick={() => clearOptions()}
         >
           {translateFunction("Clear All")}
         </span>
@@ -137,18 +124,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
               {
                 <div
                   className="close-icon-container"
-                  onClick={() => {
-                    let arr = localStorage.getItem("search-history");
-                    localStorage.setItem(
-                      "search-history",
-                      JSON.stringify(
-                        JSON.parse(arr).filter((item) => item !== s)
-                      )
-                    );
-                    deleteOption(s);
-                    setOpen(false);
-                    setOpen(true);
-                  }}
+                  onClick={() => deleteOption(s)}
                 >
                   <img src="/icons/CloseIconOption.svg" />
                 </div>

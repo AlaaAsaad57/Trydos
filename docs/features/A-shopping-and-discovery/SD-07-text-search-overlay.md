@@ -28,7 +28,7 @@ Every shopper — the primary way to find a specific product, brand, category or
 ## How it works (verified behaviour)
 
 - **On open:** loads **trending searches** (SD-08) and the shopper's **search history**
-  (SD-09, from local storage). Products are not fetched until the user types.
+  (SD-09, from the server). Products are not fetched until the user types.
 - **As the user types:** the query runs **debounced at 1.5 seconds**, with race-condition
   guards so a slower older request can never overwrite a newer one. Results come back grouped:
   - **Products** (shown once text is entered),
@@ -59,7 +59,7 @@ Every shopper — the primary way to find a specific product, brand, category or
 | Main results | `GetSearchData()` server action (`serverRequests/Search.tsx`) → queries the **Elasticsearch catalog index directly** (products + aggregations for brands/categories/boutiques). |
 | Query analysis | `AnalyzeSearchText` (`services/elastic/analyzeSearchText`) — AI-assisted, multi-word queries only. |
 | Autocomplete | `GetSearchSuggestion()` server action → `match_phrase_prefix` on the product name (standard + Arabic analyzers), scoped to the active filters. |
-| Search-term logging | Every search of 3+ characters is logged, even when it finds no products (`logSearchTerm`) back to the index — this is what feeds Trending (SD-08). |
+| Search-term logging | The word the shopper settled on is logged if it has 3+ characters, even when it finds no products (`useSearchLog`, then `logSearchTerm`) — this is what feeds Trending (SD-08). Half words typed on the way are not logged. |
 
 ## Technical reference
 
@@ -68,10 +68,10 @@ Every shopper — the primary way to find a specific product, brand, category or
 | Overlay component | `components/Home/Search/SearchIcon.tsx` (`SearchIcon` + `SearchContainer`) |
 | Result item components | `components/Home/Search/Results/{ProductItem,BrandItem,CategoryItem,BoutiqueItem}.tsx` |
 | Server actions | `serverRequests/Search.tsx` (`GetSearchData`, `GetSearchSuggestion`) |
-| Debounce | 1500 ms (both main query and suggestion) |
+| Debounce | 400 ms (both main query and suggestion) |
 | Page size | 10 per facet ("Load More"); products query size 20 |
 | Full-results URL | `/{lang}/filters/<path-encoded filters + search>` |
-| User id | `auth.UserID()` sent with the query (for search-term logging) |
+| User id | Taken from the verified token when a word is logged, never sent by the client |
 
 ## Current status & maturity
 
