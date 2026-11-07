@@ -156,7 +156,7 @@ function CartContainer({ close, toOrders }) {
     <div
       className={`flex-col ${
         cart.length > 0 ? "pb-[283px]" : "100px"
-      }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-screen z-9999999999 pt-1`}
+      }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] z-9999999999 pt-1`}
       data-pw="cartPage-container"
     >
       <div

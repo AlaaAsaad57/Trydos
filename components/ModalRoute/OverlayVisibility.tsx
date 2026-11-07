@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { usePathname } from "next/navigation";
+import { pageColumn } from "components/skeleton/pageKinds";
 import { restoreBaseScroll } from "./overlayScroll";
 
 // A layout effect in the browser, an ordinary one on the server.
@@ -73,6 +75,7 @@ export const useOverlayVisibility = () => useContext(OverlayVisibilityContext);
  */
 export function MainContent({ children }: { children: ReactNode }) {
   const { overlayActive } = useOverlayVisibility();
+  const pathname = usePathname();
 
   // Put the base page back where it was, once it is back in the layout.
   //
@@ -90,7 +93,7 @@ export function MainContent({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className="w-full flex-col main-content max-w-[1365px]"
+      className={`w-full flex-col main-content ${pageColumn(pathname)}`}
       style={{ display: overlayActive ? "none" : "flex" }}
     >
       {children}

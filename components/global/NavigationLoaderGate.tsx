@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAppStore } from "store";
 import InFlowPageLoader from "components/global/InFlowPageLoader";
 import { enterOverlay } from "components/ModalRoute/overlayScroll";
+import { pageColumn } from "components/skeleton/pageKinds";
 
 /**
  * Hosts the in-flow navigation loader ABOVE both page slots — the `children`
@@ -69,7 +70,7 @@ export default function NavigationLoaderGate({
   return (
     <>
       {showLoader && (
-        <div className="w-full flex-col main-content max-w-[1365px]">
+        <div className={`w-full flex-col main-content ${pageColumn(pathname)}`}>
           <InFlowPageLoader nav={isNavigating} />
         </div>
       )}

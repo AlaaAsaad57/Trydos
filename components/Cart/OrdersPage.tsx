@@ -188,7 +188,7 @@ function OrdersPage({ setStep, close }) {
   return (
     <div
       className={`pb-[10px]
-     flex-col relative  top-0 left-0 min-h-screen max-h-screen h-auto overflow-hidden w-full bg-[#ffffff] min-w-screen z-9999999999 pt-1`}
+     flex-col relative  top-0 left-0 min-h-screen max-h-screen h-auto overflow-hidden w-full bg-[#ffffff] z-9999999999 pt-1`}
     >
       {deleteModal && (
         <DeleteModalComponent
@@ -209,7 +209,7 @@ function OrdersPage({ setStep, close }) {
       <SlideWidget step={orderStep} duration={400}>
         <div
           data-pw="swiper-slide"
-          className={`min-w-screen h-screen relative cart-widget`}
+          className={`h-screen relative cart-widget`}
         >
           {AddressListsOpen && (
             <AddressListContainer
@@ -387,7 +387,7 @@ function OrdersPage({ setStep, close }) {
             orderLoading={false}
           />
         </div>
-        <div className="min-w-screen relative max-h-screen h-screen cart-widget overflow-hidden">
+        <div className="relative max-h-screen h-screen cart-widget overflow-hidden">
           {nextStep ? (
             <>
               <div className="flex-col pl-2 pr-2 bg-white p-1">

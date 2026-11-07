@@ -4,15 +4,14 @@ import { shellStepsAside } from "components/DemoApp1/appRoutes";
 import { appScreenFromPath } from "components/DemoApp1/appScreenPaths";
 import { sliderMove } from "components/DemoApp1/demo1Layout";
 import { isRtlLocale } from "components/DemoApp1/rtl";
-import { pageCoverTarget, showPageCover } from "components/global/pageCoverState";
+import { pageOnItsWay, showPageCover } from "components/global/pageCoverState";
 import { isDemoPath } from "components/skeleton/pageKinds";
-import { useAppStore } from "store";
 import { HISTORY_HOLD } from "utils/historyHold";
 
 /**
  * The slide between any two pages, both ways. The two screens move together a
- * full screen width, with the Home slider's own speed (`sliderMove`). With
- * "reduce motion" on, the page only fades.
+ * full screen width, with the Home slider's curve (`sliderMove`) in SLIDE_MS.
+ * With "reduce motion" on, the page only fades.
  *
  * The browser's View Transition API does the move: it takes a picture of the
  * old page, the page changes behind the picture, and the picture slides away.
@@ -35,6 +34,12 @@ import { HISTORY_HOLD } from "utils/historyHold";
  * starts its own slide: the browser ends the last one, the picture of what is
  * on screen moves out, and the router drops the page it was waiting for.
  */
+
+/**
+ * A page's slide, in ms. Its own speed and not the Home slider's 900 ms: when the
+ * page is already here, this is the whole wait of the tap.
+ */
+const SLIDE_MS = 400;
 
 /** How long a page may take to arrive after "back". Later, it comes with no slide. */
 const MAX_WAIT_MS = 400;
@@ -156,11 +161,11 @@ const moveScreens = (way: 1 | -1) => {
   const locale = window.location.pathname.split("/")[1] ?? "";
   const dir = (isRtlLocale(locale) ? -way : way) as 1 | -1;
   const slide = (pseudoElement: string, leaving: boolean) => {
-    const { x, transition } = sliderMove(dir, leaving);
+    const { x } = sliderMove(dir, leaving);
     document.documentElement.animate(
       { transform: x.map((place) => `translateX(${place})`) },
       {
-        duration: transition.x.duration * 1000,
+        duration: SLIDE_MS,
         easing: "linear",
         pseudoElement,
       },
@@ -225,10 +230,6 @@ export function openPage(href: string, go: () => void): void {
     go();
   });
 }
-
-/** Did the tap start a navigation? A link's own handler may have kept it. */
-const pageOnItsWay = () =>
-  Boolean(pageCoverTarget() || useAppStore.getState().isNavigating);
 
 /** The bar's tab under a point. */
 const tabAt = (x: number, y: number) =>
@@ -296,6 +297,7 @@ export function slideOnLinkTaps(): () => void {
       } finally {
         replaying = false;
       }
+      // A link's own handler may have kept the tap.
       if (!pageOnItsWay()) transition.skipTransition();
     });
   };

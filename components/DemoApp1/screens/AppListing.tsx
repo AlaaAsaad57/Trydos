@@ -8,6 +8,8 @@ import Link from "next/link";
 import { useIsModalRoute } from "components/ModalRoute/ModalRouteContext";
 import { rememberBaseScroll } from "components/ModalRoute/overlayScroll";
 import { slidePage } from "components/ModalRoute/pageSlide";
+import { WARM_CARDS, warmPage } from "components/global/warmPage";
+import { pageIsReady } from "utils/pageIsReady";
 import ListingSortControl from "components/Listing/ListingSortControl";
 import ListingShareControl from "components/Listing/ListingShareControl";
 import { BagNoResults } from "components/Listing/illustrations/ListingBagIllustration";
@@ -171,13 +173,21 @@ export default function AppListing({
         return card;
       });
 
-  // Every product shares one shell, so one prefetch readies them all. Never with
-  // the `?color=`: a finished prefetch of an address with a query turns the next
-  // tap on that address into a full page reload (measured on Next 16.3.8).
-  const firstProduct = cards[0]?.links[0]?.split("?")[0];
+  // The first cards are the likely taps. Any other card starts at the press
+  // (PageCover). `warmPage` leaves out the `?color=`.
+  const firstCards = cards.slice(0, WARM_CARDS).map((card) => card.links[0]);
+  const warmKey = firstCards.join();
   useEffect(() => {
-    if (firstProduct) router.prefetch(firstProduct);
-  }, [firstProduct]);
+    if (!warmKey) return;
+    let done = false;
+    void pageIsReady().then(() => {
+      if (done) return;
+      firstCards.forEach((href) => href && warmPage(router, href));
+    });
+    return () => {
+      done = true;
+    };
+  }, [warmKey]);
 
   /** Opens an address in the app, as the old links did (`NextLink`): the page loader shows `data`. */
   const goTo = (href: string, data: Record<string, unknown>) => {

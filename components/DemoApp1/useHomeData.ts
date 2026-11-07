@@ -11,6 +11,7 @@ import { LogError } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
 import { dropQaStories } from "utils/qaStoryFilter";
 import { getConfiguredImage, GetImageUrl } from "utils/server/helpers";
+import { pageOnItsWay } from "components/global/pageCoverState";
 import { takeEarlyStories } from "utils/earlyStories";
 import {
   HOME_NEXT_READ,
@@ -227,7 +228,7 @@ export function useHomeGrid({
   const [country, language] = lang.split("-");
 
   const loadMore = async () => {
-    if (loading || ended) return;
+    if (loading || ended || pageOnItsWay()) return;
     setLoading(true);
     try {
       const result: any = await GetHomeBoutiques({

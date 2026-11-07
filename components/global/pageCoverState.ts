@@ -23,19 +23,29 @@ const set = (next: string | null) => {
 export function showPageCover(href: string) {
   const url = new URL(href, window.location.href);
   if (url.origin !== window.location.origin) return;
-  // A change of query or hash stays on the page.
-  if (url.pathname === window.location.pathname) return;
   if (isDemoPath(window.location.pathname)) return;
-  if (!appScreenFromPath(url.pathname) && !pageKindFor(url.pathname)) return;
   // A new tap wins: the loader of a tap still on its way goes, or it would stay
   // over this page until its own page, which is not coming now, cleared it.
   const store = useAppStore.getState();
   if (store.isNavigating) store.setIsNavigating(null);
-  set(url.pathname);
+  // A tap on the page that is on screen, or a change of query or hash, needs no
+  // skeleton. It still ends the tap before it: the address never moved, so
+  // nothing else would take that tap's skeleton away.
+  const here = url.pathname === window.location.pathname;
+  const hasSkeleton = appScreenFromPath(url.pathname) || pageKindFor(url.pathname);
+  set(here || !hasSkeleton ? null : url.pathname);
 }
 
-/** The path the cover is showing, or null. For code outside React. */
-export const pageCoverTarget = () => target;
+/**
+ * A tap is on its way to a page.
+ *
+ * Paging must ask this first. Its reads are Server Actions, and Next runs those
+ * in the router's own queue, so a page cannot appear until the action ends. A tap
+ * hides the page, which fired the page's scroll sentinel, so every tap waited
+ * about 0.7 s for a list nobody would see.
+ */
+export const pageOnItsWay = () =>
+  Boolean(target || useAppStore.getState().isNavigating);
 
 export const hidePageCover = () => set(null);
 

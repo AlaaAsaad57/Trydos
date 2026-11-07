@@ -40,6 +40,10 @@ export default function PageWarmup() {
 
     const signedIn = isValidPhone(useAppStore.getState().userProfile?.phone);
     const steps: (() => unknown)[] = [
+      // The code of the two pages a tap most often opens. Without it a tap gets
+      // the page, and only then learns which files it needs: 86 KB in a row.
+      () => import("components/DemoApp1/screens/AppListing"),
+      () => import("components/DemoApp1/screens/AppProduct"),
       () => router.prefetch(tabHref(locale, "search")),
       ...(signedIn
         ? [

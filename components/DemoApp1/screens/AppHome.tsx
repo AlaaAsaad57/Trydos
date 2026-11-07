@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useAppStore } from "store";
 import { rememberBaseScroll } from "components/ModalRoute/overlayScroll";
 import { slidePage } from "components/ModalRoute/pageSlide";
+import { WARM_CARDS, warmPage } from "components/global/warmPage";
+import { pageIsReady } from "utils/pageIsReady";
 import AddStoryWidget from "components/Home/Stories/AddStoryWidgetLazy";
 import StoriesPaginationWrapper from "components/Home/Stories/StoriesPaginationWrapper";
 import type { DemoDictionary, DemoKey } from "../../DemoApp/demoKeys";
@@ -92,12 +94,21 @@ export default function AppHome({
 
   const hrefOf = (slug: string) => `/${lang}/filters/boutiques/${slug}`;
 
-  // Every store shares one shell, so one prefetch readies them all. The cards
-  // are plain links, which Next does not prefetch by itself.
-  const firstStore = brands[0]?.slug ?? stores[0]?.slug;
+  // The first cards are the likely taps. The cards are plain links, which Next
+  // does not prefetch by itself. Any other card starts at the press (PageCover).
+  const firstStores = [...brands, ...stores].slice(0, WARM_CARDS);
+  const warmKey = firstStores.map((store) => store.slug).join();
   React.useEffect(() => {
-    if (firstStore) router.prefetch(hrefOf(firstStore));
-  }, [firstStore]);
+    if (!warmKey) return;
+    let done = false;
+    void pageIsReady().then(() => {
+      if (done) return;
+      firstStores.forEach((store) => warmPage(router, hrefOf(store.slug)));
+    });
+    return () => {
+      done = true;
+    };
+  }, [warmKey]);
 
   /** Opens a store as the old links did (`NextLink`): the page loader shows at once. */
   const openStorePage = (slug: string) => {

@@ -40,6 +40,16 @@ export function isDemoPath(pathname: string): boolean {
   return first === "demo" || first === "loginDemo";
 }
 
+/**
+ * The page column's class. The app is one 500 px column (PAGE_MAX) on any screen.
+ * Two parts keep the wide box: /demo, so nothing new meets its Safari work, and
+ * the seller's dashboard, a work tool with tables that needs the room.
+ */
+export const pageColumn = (pathname: string) =>
+  isDemoPath(pathname) || segments(pathname)[0] === "sellerProfile"
+    ? "max-w-[1365px]"
+    : "max-w-[500px]";
+
 /** The skeleton of an old or a public page, or null when it has none. */
 export function pageKindFor(pathname: string): PageKind | null {
   if (isDemoPath(pathname)) return null;

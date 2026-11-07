@@ -8,6 +8,7 @@ import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { EnableScroll } from "utils/tinyUtils";
 import auth from "services/auth";
+import { pageOnItsWay } from "components/global/pageCoverState";
 import { GetProducts } from "serverRequests/listing";
 import type { GAProductListItem, ListingProduct } from "types/listing";
 
@@ -269,7 +270,7 @@ export function useListingPages({
     if (!node || done || loading) return;
     const watch = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) void read();
+        if (entry.isIntersecting && !pageOnItsWay()) void read();
       },
       { rootMargin: LOAD_AHEAD },
     );

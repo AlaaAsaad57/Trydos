@@ -31,6 +31,7 @@ import { openPage, slideOnLinkTaps } from "components/ModalRoute/pageSlide";
 import { useAppStore } from "store";
 import { markHydrated } from "utils/pageIsReady";
 import { hidePageCover, showPageCover, usePageCover } from "./pageCoverState";
+import { warmPage } from "./warmPage";
 
 /** A tap that never arrives must not hold the skeleton for ever. */
 const MAX_COVER_MS = 10000;
@@ -188,12 +189,23 @@ export default function PageCover() {
       const store = useAppStore.getState();
       if (store.isNavigating) store.setIsNavigating(null);
     };
+    // Only the pages with their own data. A press may also be the start of a
+    // scroll, so this stays one small read, and warmPage asks once per page.
+    const onPress = (e: PointerEvent) => {
+      const link = (e.target as Element | null)?.closest?.("a[href]");
+      if (!(link instanceof HTMLAnchorElement)) return;
+      if (link.origin !== window.location.origin) return;
+      const kind = pageKindFor(link.pathname);
+      if (kind === "listing" || kind === "product") warmPage(router, link.pathname);
+    };
+    document.addEventListener("pointerdown", onPress, true);
     document.addEventListener("click", onTap, true);
     document.addEventListener("click", onClick);
     window.addEventListener("popstate", onHistory);
     const stopSliding = slideOnLinkTaps();
     return () => {
       stopSliding();
+      document.removeEventListener("pointerdown", onPress, true);
       document.removeEventListener("click", onTap, true);
       document.removeEventListener("click", onClick);
       window.removeEventListener("popstate", onHistory);
