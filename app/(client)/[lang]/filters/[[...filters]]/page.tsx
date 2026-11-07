@@ -92,7 +92,7 @@ export default async function Page({ params, searchParams }) {
   // The boutique read sits inside <Suspense>, so the skeleton never waits for it.
   // The legacy redirect above needs no read, so it stays a real 308.
   return (
-    <Suspense fallback={<ListingPageSkeleton />}>
+    <Suspense fallback={<ListingPageSkeleton back />}>
       {/* @ts-ignore */}
       <FiltersPageContent params={Params} sort={sort} search={search} />
     </Suspense>

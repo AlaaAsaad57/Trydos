@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import ScreenSkeleton from "components/DemoApp1/ScreenSkeleton";
 import { appScreenFromPath } from "components/DemoApp1/appScreenPaths";
 import { UNDER_BAR } from "components/DemoApp1/demo1Layout";
@@ -27,7 +27,7 @@ import {
   SellerShopsSkeleton,
   TextPageSkeleton,
 } from "components/skeleton/pageShapes";
-import { slideOnLinkTaps } from "components/ModalRoute/pageSlide";
+import { openPage, slideOnLinkTaps } from "components/ModalRoute/pageSlide";
 import { useAppStore } from "store";
 import { markHydrated } from "utils/pageIsReady";
 import { hidePageCover, showPageCover, usePageCover } from "./pageCoverState";
@@ -148,6 +148,7 @@ export function CoverBox({
 export default function PageCover() {
   const path = usePageCover();
   const pathname = usePathname();
+  const router = useRouter();
 
   // This component is in the root layout, so its first effect comes when the
   // root has hydrated. Analytics and reporting wait for this (pageIsReady.ts).
@@ -160,8 +161,16 @@ export default function PageCover() {
   // this one takes its place.
   useEffect(() => {
     let before: unknown = null;
-    const onTap = () => {
+    const onTap = (e: MouseEvent) => {
       before = useAppStore.getState().isNavigating;
+      // A skeleton still waiting for its page is not hydrated, so its back mark
+      // is a plain link. It would load a whole new document. See SkeletonBack.
+      const back = (e.target as Element | null)?.closest?.("[data-skeleton-back]");
+      if (!(back instanceof HTMLAnchorElement)) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const href = back.pathname;
+      openPage(href, () => router.push(href));
     };
     const onClick = (e: MouseEvent) => {
       if (!e.defaultPrevented || e.button !== 0) return;

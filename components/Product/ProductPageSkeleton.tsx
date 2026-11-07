@@ -1,4 +1,5 @@
 import { Skeleton } from "components/Server/Skeleton";
+import SkeletonBack from "components/skeleton/SkeletonBack";
 
 /**
  * The product page's shape while its data loads (XD `Home Page – 49`): the
@@ -10,7 +11,10 @@ export default function ProductPageSkeleton({
   cardPhoto,
   name,
   brand,
+  back = false,
 }: {
+  /** A direct landing: the back mark works now (see SkeletonBack). */
+  back?: boolean;
   photo?: string;
   /** The tapped card's photo. The browser has it, so it shows at once. */
   cardPhoto?: string;
@@ -23,6 +27,7 @@ export default function ProductPageSkeleton({
       className="relative w-full mx-auto bg-white overflow-hidden"
       style={{ maxWidth: 500 }}
     >
+      {back && <SkeletonBack />}
       <div className="flex items-center h-[50px] px-[36px]">
         {brand ? (
           <img src={brand.logo} alt={brand.name} height={15} className="block h-[15px] w-auto" />

@@ -367,6 +367,7 @@ export default function AppProduct({
           picked={picked}
           onPick={onPick}
           onBack={onBack}
+          backHref={isModal ? undefined : `/${lang}`}
           onBell={() => showToast(t("Soon available"))}
           onMore={() => setMore(true)}
           heart={{

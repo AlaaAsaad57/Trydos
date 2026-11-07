@@ -34,12 +34,13 @@ export default function PageWarmup() {
     const line = (navigator as { connection?: Connection }).connection;
     if (line?.saveData || /2g/.test(line?.effectiveType ?? "")) return;
 
+    // At once, not with the steps: on a direct landing the back mark goes here,
+    // and this is about 3 KB.
+    router.prefetch(tabHref(locale, "home"));
+
     const signedIn = isValidPhone(useAppStore.getState().userProfile?.phone);
     const steps: (() => unknown)[] = [
-      () => {
-        router.prefetch(tabHref(locale, "home"));
-        router.prefetch(tabHref(locale, "search"));
-      },
+      () => router.prefetch(tabHref(locale, "search")),
       ...(signedIn
         ? [
             () => import("components/DemoApp1/ScreenMount"),

@@ -83,7 +83,7 @@ export default function ProductPageContent({
   intercepted = false,
 }: ProductPageContentProps) {
   return (
-    <Suspense fallback={<ProductPageSkeleton />}>
+    <Suspense fallback={<ProductPageSkeleton back={!intercepted} />}>
       <ProductBody
         params={params}
         searchParams={searchParams || {}}

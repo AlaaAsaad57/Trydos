@@ -194,32 +194,51 @@ function HeaderMark({
 function Header({
   mark,
   onBack,
+  backHref,
   onBell,
   onMore,
   t,
 }: {
   mark: ProductView["mark"];
   onBack: () => void;
+  backHref?: string;
   onBell?: () => void;
   onMore?: () => void;
   t: T;
 }) {
   const dir = usePageDir();
+  const backMark = {
+    "aria-label": t("Back"),
+    "data-pw": "demo-product-back",
+    className:
+      "absolute flex items-start cursor-pointer active:opacity-60 [-webkit-tap-highlight-color:transparent]",
+    style: { insetInlineStart: 0, top: 0, width: 34, height: 50, paddingTop: 14, paddingInlineStart: 14 },
+  };
+  const backIcon = (
+    <span className="block" style={{ transform: "translate(0.5px, 0.5px)", ...mirrorFor(dir) }}>
+      <XdIcon name="back" />
+    </span>
+  );
   return (
     <header className="relative w-full" style={{ height: HEADER_BOTTOM - 50, background: C.white }}>
       {/* The same back mark as the store page: (15, 65), in a target as tall as the header. */}
-      <button
-        type="button"
-        aria-label={t("Back")}
-        data-pw="demo-product-back"
-        onClick={onBack}
-        className="absolute flex items-start cursor-pointer active:opacity-60 [-webkit-tap-highlight-color:transparent]"
-        style={{ insetInlineStart: 0, top: 0, width: 34, height: 50, paddingTop: 14, paddingInlineStart: 14 }}
-      >
-        <span className="block" style={{ transform: "translate(0.5px, 0.5px)", ...mirrorFor(dir) }}>
-          <XdIcon name="back" />
-        </span>
-      </button>
+      {backHref ? (
+        // A link, so it answers before the app has hydrated.
+        <a
+          {...backMark}
+          href={backHref}
+          onClick={(e) => {
+            e.preventDefault();
+            onBack();
+          }}
+        >
+          {backIcon}
+        </a>
+      ) : (
+        <button type="button" {...backMark} onClick={onBack}>
+          {backIcon}
+        </button>
+      )}
       <div className="absolute" style={{ insetInlineStart: 36, top: 68 - 50 }}>
         <StoreMark store={mark} h={15} maxW={100} eager />
       </div>
@@ -1643,6 +1662,8 @@ export type ProductPageProps = {
   picked: number;
   onPick: (index: number) => void;
   onBack: () => void;
+  /** Where the back mark goes with no JavaScript. With none it is a button. */
+  backHref?: string;
   /** Both bells. */
   onBell?: () => void;
   onMore?: () => void;
@@ -1682,6 +1703,7 @@ export function ProductPage({
   picked,
   onPick,
   onBack,
+  backHref,
   onBell,
   onMore,
   heart,
@@ -1708,7 +1730,7 @@ export function ProductPage({
     <ScreenPage
       testId="demo-product"
       bg={C.white}
-      header={<Header mark={view.mark} onBack={onBack} onBell={onBell} onMore={onMore} t={t} />}
+      header={<Header mark={view.mark} onBack={onBack} backHref={backHref} onBell={onBell} onMore={onMore} t={t} />}
       scrollTop={HEADER_BOTTOM}
       contentHeight={boardHeight ? BOARD_H : HEADER_BOTTOM}
       // A long page: the header leaves on a scroll down and comes back on a

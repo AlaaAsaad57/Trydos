@@ -297,7 +297,7 @@ export default async function FiltersPageContent({
           />
         </Suspense>
         <Suspense
-          fallback={<ListingPageSkeleton />}
+          fallback={<ListingPageSkeleton back={!intercepted} />}
           key={`Listing ${Params.lang} ${sort ?? "relevance"} ${JSON.stringify(parsedFilters)}`}
         >
           <ListingBody

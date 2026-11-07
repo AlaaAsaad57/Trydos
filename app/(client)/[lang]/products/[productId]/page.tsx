@@ -84,7 +84,7 @@ async function Product({ params, searchParams }) {
 
 export default function Page({ params, searchParams }) {
   return (
-    <Suspense fallback={<ProductPageSkeleton />}>
+    <Suspense fallback={<ProductPageSkeleton back />}>
       <Product params={params} searchParams={searchParams} />
     </Suspense>
   );

@@ -1,5 +1,6 @@
 import { Skeleton } from "components/Server/Skeleton";
 import { C, PAGE_MAX } from "components/DemoApp1/demo1Layout";
+import SkeletonBack from "components/skeleton/SkeletonBack";
 
 /** The card's shape in the file: a 214 x 311 photo and an 86 px footer. */
 const PHOTO_RATIO = "214 / 311";
@@ -12,19 +13,28 @@ const FOOTER_H = 397 - 311;
  * row of category tiles, and two rows of product cards. Every x is from the
  * start edge, so it mirrors on an Arabic or Kurdish page like the page does.
  */
-export default function ListingPageSkeleton() {
+export default function ListingPageSkeleton({
+  back = false,
+}: {
+  /** A direct landing: the back mark works now (see SkeletonBack). */
+  back?: boolean;
+}) {
   return (
     <div
       data-pw="listing-loader"
-      aria-hidden="true"
-      className="w-full flex flex-col mx-auto overflow-hidden"
+      aria-hidden={back ? undefined : "true"}
+      className="relative w-full flex flex-col mx-auto overflow-hidden"
       style={{ maxWidth: PAGE_MAX, background: C.white, minHeight: "100dvh" }}
     >
       <div
         className="flex items-center shrink-0"
         style={{ height: 50, paddingInline: 15, gap: 12 }}
       >
-        <Skeleton width={12} height={21} borderRadius={4} />
+        {back ? (
+          <span className="shrink-0" style={{ width: 12 }} />
+        ) : (
+          <Skeleton width={12} height={21} borderRadius={4} />
+        )}
         <Skeleton width={80} height={15} borderRadius={4} />
         <div
           className="flex items-center"
@@ -35,6 +45,7 @@ export default function ListingPageSkeleton() {
           ))}
         </div>
       </div>
+      {back && <SkeletonBack />}
       <div
         className="flex shrink-0 overflow-hidden"
         style={{ gap: 2, marginTop: 2 }}
