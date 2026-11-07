@@ -81,6 +81,8 @@ type Slot = {
   /** The icon the file draws when the tab is active. */
   activeIcon: XdIconName;
   count?: Count;
+  /** The idle icon with nothing to count: no purple handle, no bubble for a number. */
+  emptyIcon?: XdIconName;
 };
 
 /** The box the file draws the counts in. */
@@ -130,6 +132,7 @@ export const SLOTS: Slot[] = [
     idle: CART,
     active: grown(CART),
     activeIcon: "navCartActiveCount",
+    emptyIcon: "navCart",
     count: {
       x: 17,
       idle: { baseline: 26, color: PURPLE },
@@ -143,6 +146,7 @@ export const SLOTS: Slot[] = [
     idle: CHAT,
     active: grown(CHAT),
     activeIcon: "navChatActiveCount",
+    emptyIcon: "navChat",
     count: {
       x: 20,
       idle: { baseline: 26, color: PURPLE },

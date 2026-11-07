@@ -63,7 +63,7 @@ const SLOT_INSET = fileCentre(0) - TAB_BAR.x - SLOT_W / 2;
 /** The bar keeps 22 px to both edges of the page column. */
 const BAR_W = `calc(${COLUMN_W} - ${2 * TAB_BAR.x}px)`;
 
-/** A count as the tab shows it: 0 stays 0, and 100 or more is 99+. */
+/** A count as the tab shows it: 100 or more is 99+. A tab with 0 shows no number. */
 const countText = (n: number) => (n > 99 ? "99+" : String(n));
 
 export default function Demo1BottomNav({
@@ -236,6 +236,7 @@ export default function Demo1BottomNav({
             const on = id === active;
             const slot = SLOTS[index];
             const label: DemoKey = slot ? slot.label : "Profile";
+            const count = slot?.count ? counts[id as "cart" | "chat"] : 0;
             return (
               <button
                 key={id}
@@ -276,7 +277,7 @@ export default function Demo1BottomNav({
                       at={iconAt(slot.active.x, slot.active.y, index)}
                     >
                       <XdIcon
-                        name={slot.icon}
+                        name={count === 0 ? (slot.emptyIcon ?? slot.icon) : slot.icon}
                         size={slot.active.size}
                         style={{
                           position: "absolute",
@@ -297,12 +298,12 @@ export default function Demo1BottomNav({
                           transition: SWAP,
                         }}
                       />
-                      {slot.count && (
+                      {slot.count && count > 0 && (
                         <TabCount
                           tab={id}
                           on={on}
                           count={slot.count}
-                          text={countText(counts[id as "cart" | "chat"])}
+                          text={countText(count)}
                           size={slot.active.size}
                         />
                       )}

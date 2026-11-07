@@ -36,10 +36,10 @@ const countTexts = (tab: string) => {
 };
 
 describe("Demo1BottomNav counts", () => {
-  it("shows the cart and chat counts it is given, and 0 as 0", () => {
+  it("shows the cart and chat counts it is given, and no number for 0", () => {
     renderBar({ cart: 2, chat: 0 });
     expect(countTexts("cart"), "the cart tab did not show the cart count 2").toEqual(["2", "2"]);
-    expect(countTexts("chat"), "the chat tab did not show 0 for no unread chats").toEqual(["0", "0"]);
+    expect(countTexts("chat"), "the chat tab showed a number with no unread chats").toEqual([]);
   });
 
   it("shows 99+ when a count is over 99", () => {
