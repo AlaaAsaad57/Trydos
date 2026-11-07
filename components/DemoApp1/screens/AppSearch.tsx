@@ -112,13 +112,18 @@ export default function AppSearch({
         data-pw="app-search"
         dir={pageDir}
         className="relative w-full mx-auto font-quicksand"
-        style={{ maxWidth: PAGE_MAX, overflowX: "clip" }}
+        // The screen keeps the bar's room itself (`tabBar`), as on /demo, so
+        // the layout's room is taken back. Counted twice, a short page scrolls.
+        style={{
+          maxWidth: PAGE_MAX,
+          overflowX: "clip",
+          marginBottom: "calc(-1 * var(--app-bar-room, 0px))",
+        }}
       >
         <ScreenPage
           testId="demo-search"
           bg={C.page}
-          // The [lang] layout keeps the room for the bar (--app-bar-room).
-          tabBar={false}
+          tabBar
           header={
             <SearchHeader
               placeholder={body("Search anything…")}

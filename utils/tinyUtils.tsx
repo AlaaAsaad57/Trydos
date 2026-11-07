@@ -483,12 +483,14 @@ export const pollinateInput = (value: string, maxLength = 90): string => {
   }
   return input;
 };
+// Only the vertical axis. The `overflow` shorthand would also wipe the inline
+// `overflow-x` that AppScreens sets for Safari 26's bar.
 export const DisableScroll = (noScrolling = false) => {
-  document.documentElement.style.overflow = "hidden";
+  document.documentElement.style.overflowY = "hidden";
   if (!noScrolling) document.documentElement.scrollTop = 0;
 };
 export const EnableScroll = () => {
-  document.documentElement.style.overflow = "initial";
+  document.documentElement.style.overflowY = "initial";
 };
 export function getReferralSource(referer: string | null): string {
   if (!referer) return "direct";

@@ -21,6 +21,7 @@ import {
 import { usePageDir } from "./rtl";
 import type { Leave, Slide } from "./ScreenFrame";
 import ScreenSkeleton from "./ScreenSkeleton";
+import { pageKindFor, type PageKind } from "components/skeleton/pageKinds";
 import { openPage, restoreScroll } from "components/ModalRoute/pageSlide";
 
 /** The skeleton of the screen on this address, while the mount's code loads. */
@@ -30,6 +31,9 @@ function MountLoading() {
 }
 
 // Lazy: the mount is in the [lang] layout, and an old page needs none of this.
+/** The pages drawn in the new design that are not screens. Each one clips itself. */
+const NEW_PAGES: readonly (PageKind | null)[] = ["home", "listing", "product", "search"];
+
 const ScreenMount = dynamic(() => import("./ScreenMount"), {
   loading: () => <MountLoading />,
 });
@@ -107,23 +111,31 @@ function AppScreensInner({
   const onScreen = shown !== null;
 
   // While a new screen shows, the mount keeps each screen's scroll itself, so
-  // the browser must not put one back on its own. The site's <html> carries
-  // `overflow-x: clip`; a new screen clips itself (see Demo1Shell for why
-  // Safari 26 wants no clip on the root). Old pages get both back.
+  // the browser must not put one back on its own. Old pages get it back.
   useEffect(() => {
     if (!onScreen) return;
     const before = window.history.scrollRestoration;
     window.history.scrollRestoration = "manual";
+    return () => {
+      window.history.scrollRestoration = before;
+    };
+  }, [onScreen]);
+
+  // The site's <html> carries `overflow-x: clip`. A new screen and a new page
+  // clip themselves (see Demo1Shell for why Safari 26 wants no clip on the
+  // root). Old pages get the clip back.
+  const clipsItself = onScreen || NEW_PAGES.includes(pageKindFor(pathname));
+  useEffect(() => {
+    if (!clipsItself) return;
     document.documentElement.style.setProperty(
       "overflow-x",
       "visible",
       "important",
     );
     return () => {
-      window.history.scrollRestoration = before;
       document.documentElement.style.removeProperty("overflow-x");
     };
-  }, [onScreen]);
+  }, [clipsItself]);
 
   // A new screen starts at its top; going back opens the last one where it
   // was left. Before paint, so the new screen never shows the old scroll.

@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 
 import { SlideWidget } from "components/global/SlideNavigation";
 import { tabHref } from "components/DemoApp1/appRoutes";
+import { usePageColor, useTopTint } from "components/DemoApp1/ui";
 import CartSkeleton from "components/skeleton/CartSkeleton";
 import OrdersPageSkeleton from "components/skeleton/OrdersPageSkeleton";
 import { useAppStore } from "store";
@@ -99,7 +100,14 @@ export function CartSteps({ layout }: { layout: "page" }) {
   }, []);
 
   return (
-    <div ref={box} data-pw={`cart-${layout}`} className="relative w-full h-dvh bg-[#fafafa]">
+    <div
+      ref={box}
+      data-pw={`cart-${layout}`}
+      className="relative w-full h-dvh bg-[#fafafa]"
+      // The box already ends at the screen's bottom, so the layout's room for
+      // the bar would only make the page scroll.
+      style={{ marginBottom: "calc(-1 * var(--app-bar-room, 0px))" }}
+    >
       <SlideWidget step={step} duration={400}>
         <div className="w-full h-full cart-widget">
           <CartContainer toOrders={handleToOrders} close={handleClose} />
@@ -132,6 +140,9 @@ export default function CartPage() {
   const locale = typeof params?.lang === "string" ? params.lang : "sy-en";
   const pathname = usePathname();
   const onCart = isCartPath(pathname);
+  // The cart has no sticky head, so Safari would find nothing at the top.
+  usePageColor("#ffffff");
+  useTopTint("#ffffff", onCart);
   const open = useAppStore((s) => s.cart_enable);
   // True once the flag was true while the page is on screen, so the false
   // before the mount effect runs is not read as a close. A hidden page keeps

@@ -2,6 +2,9 @@ import "styles/globals.css";
 import { Suspense } from "react";
 import { preconnect, preload } from "react-dom";
 import "styles/home.css";
+// Every new screen needs it (`.font-quicksand`: real font files per weight, line
+// height 1.25), not only the login, so it loads with the layout.
+import "styles/rdb-auth.css";
 
 import localFont from "next/font/local";
 import { notFound } from "next/navigation";

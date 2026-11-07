@@ -31,8 +31,10 @@ export function litTab(
 ): DemoTab | null {
   if (open.chat) return "chat";
   if (open.search) return "search";
-  const [first] = afterLocale(pathname);
+  const [first, second] = afterLocale(pathname);
   if (first === undefined) return "home";
+  // A store's page belongs to the Home tab, as on /demo.
+  if (first === "filters" && second === "boutiques") return "home";
   if (first === "search") return "search";
   if (first === "cart") return "cart";
   // Stage 6: the new chat screens (/chat, /chat/conversation, …).
