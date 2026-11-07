@@ -1739,6 +1739,21 @@ describe("writing a search to the search log (logSearchTerm)", () => {
     ).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
   });
 
+  it("logs a word again after the shopper removed it from their history", async () => {
+    io.headers.mockResolvedValue(headerBag({ "x-real-ip": "10.0.0.9" }));
+    const client = {
+      search: vi.fn(async () => ({ hits: { hits: [] } })),
+      index: vi.fn(async () => ({})),
+    };
+
+    await logSearchTerm({ searchText: "dress", userData: { id: 5 }, productsCount: 2, client });
+
+    expect(
+      (client.search.mock.calls[0] as any[])[0].body.query.bool.must_not,
+      "a flagged row still counts as logged, so a removed word could never come back",
+    ).toContainEqual({ term: { is_deleted: true } });
+  });
+
   it("does not log a search that is already in the log", async () => {
     io.headers.mockResolvedValue(headerBag({ "x-real-ip": "10.0.0.9" }));
     const client = {

@@ -281,4 +281,7 @@ export const REQUESTS_DATA = {
   GET_SELLER_OLD_CARTS: { reqTitle: "GET_SELLER_OLD_CARTS", code: 196 },
   GET_SELLER_OLD_CART_DETAILS: { reqTitle: "GET_SELLER_OLD_CART_DETAILS", code: 197 },
   GET_SELLER_PRODUCT_ORDERS: { reqTitle: "GET_SELLER_PRODUCT_ORDERS", code: 224 },
+  GET_SEARCH_HISTORY: { reqTitle: "get search history", code: 225 },
+  REMOVE_SEARCH_HISTORY: { reqTitle: "remove search history", code: 226 },
+  LOG_SEARCH: { reqTitle: "log search", code: 227 },
 };

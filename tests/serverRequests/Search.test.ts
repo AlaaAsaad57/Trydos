@@ -234,7 +234,6 @@ describe("the search results panel (GetSearchData)", () => {
       filters: { search_text: "dress", colors: ["#ff0000"] },
       noProducts: false,
       filters_offset: 1,
-      userId: 42,
     });
 
     expect(io.analyze, "a one-word search was sent to the text analyser").not.toHaveBeenCalled();
@@ -262,9 +261,7 @@ describe("the search results panel (GetSearchData)", () => {
       expect.objectContaining({ slug: "odd-age", gender: 7, group_age: 99, realted: [] }),
     ]);
     expect(result.isAnalyzed, "a one-word search claimed to be analysed").toBe(false);
-    expect(io.logSearchTerm, "a search with results was not logged").toHaveBeenCalledWith(
-      expect.objectContaining({ searchText: "dress", productsCount: 3, userData: { id: 42 } }),
-    );
+    expect(io.logSearchTerm, "a search while typing wrote to the log").not.toHaveBeenCalled();
     expect(
       JSON.stringify(io.search.mock.calls[0][0].query),
       "QA mode did not reach the results query",
@@ -280,7 +277,6 @@ describe("the search results panel (GetSearchData)", () => {
       filters: { categories: ["women"] },
       noProducts: false,
       filters_offset: 1,
-      userId: null,
     });
 
     expect(
@@ -290,7 +286,7 @@ describe("the search results panel (GetSearchData)", () => {
     expect(io.logSearchTerm, "a search with no text was logged").not.toHaveBeenCalled();
   });
 
-  it("logs a text search that found nothing, and answers empty lists", async () => {
+  it("answers empty lists for a text search that found nothing", async () => {
     // What the search backend sends for no match: the aggregations are there,
     // with no buckets in them.
     io.search.mockResolvedValue({
@@ -312,13 +308,8 @@ describe("the search results panel (GetSearchData)", () => {
       filters: { search_text: "zzz" },
       noProducts: false,
       filters_offset: 1,
-      userId: 1,
     });
 
-    expect(
-      io.logSearchTerm,
-      "a search that found nothing was not logged with a count of 0",
-    ).toHaveBeenCalledWith(expect.objectContaining({ searchText: "zzz", productsCount: 0 }));
     expect(
       [result.total_size, result.products, result.categories, result.brands, result.related_categories],
       "a search that found nothing did not answer empty lists",
@@ -337,7 +328,6 @@ describe("the search results panel (GetSearchData)", () => {
       filters: { search_text: "red dress medium", sizes: ["M"] },
       noProducts: false,
       filters_offset: 1,
-      userId: 1,
     });
     expect(first.applied, "the analysed name, colour and sizes were not applied").toMatchObject({
       search_text: "dress",
@@ -352,7 +342,6 @@ describe("the search results panel (GetSearchData)", () => {
       filters: { search_text: "green small", colors: ["#00ff00"] },
       noProducts: false,
       filters_offset: 1,
-      userId: 1,
     });
     expect(second.applied, "a list of colours or a single size was not applied").toMatchObject({
       search_text: "green small",
@@ -371,7 +360,6 @@ describe("the search results panel (GetSearchData)", () => {
       filters: { search_text: "red dress" },
       noProducts: false,
       filters_offset: 1,
-      userId: 1,
     });
     expect(refused.isAnalyzed, "the analyser's refusal was not passed back").toBe("rate limited");
     expect(scenarios(), "the analyser's refusal was not reported").toContain(
@@ -384,7 +372,6 @@ describe("the search results panel (GetSearchData)", () => {
       filters: { search_text: "red dress" },
       noProducts: false,
       filters_offset: 1,
-      userId: 1,
     });
     expect(failed.products, "a failed analyser stopped the search").toHaveLength(1);
     expect(failed.isAnalyzed, "a failed analyser claimed an analysis").toBe(false);
@@ -399,7 +386,6 @@ describe("the search results panel (GetSearchData)", () => {
         filters: {},
         noProducts: false,
         filters_offset: 1,
-        userId: 1,
       });
 
     await expect(ask(), "a failed search was hidden").rejects.toThrow("Search failed: index down");

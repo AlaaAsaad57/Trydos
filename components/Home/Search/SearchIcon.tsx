@@ -5,7 +5,6 @@ import "styles/search.css";
 import {
   getConfiguredImage,
   LogError,
-  onClickSearchHistory,
   translateFunction,
 } from "utils/functions";
 import search from "services/search";
@@ -18,6 +17,8 @@ import {
 } from "utils/tinyUtils";
 import { GetSearchData, GetSearchSuggestion } from "serverRequests/Search";
 import SearchHistory from "./SearchHistory";
+import { useSearchHistory } from "./useSearchHistory";
+import { useSearchLog } from "./useSearchLog";
 import SearchTrending from "./SearchTrending";
 import ProductItem from "./Results/ProductItem";
 import Spinner from "components/global/Spinner";
@@ -26,6 +27,9 @@ import CategoryItem from "./Results/CategoryItem";
 import BoutiqueItem from "./Results/BoutiqueItem";
 import dynamic from "next/dynamic";
 import IconSkeleton from "components/skeleton/IconSkeleton";
+
+/** The wait after the last key before a search or a completion is asked for. */
+const SEARCH_WAIT_MS = 400;
 
 // Lazy: SearchImage drags react-webcam + react-image-crop and SearchVoice the
 // recorder stack; both only render once the search overlay is open, so a
@@ -44,7 +48,6 @@ import NextLink from "components/global/NextLink";
 import { useParams, useRouter } from "next/navigation";
 import { useAppStore } from "store";
 import Image from "next/image";
-import auth from "services/auth";
 
 function SearchIcon({ language, country }) {
   const { setIsNavigating, setEnableSearch } = useAppStore();
@@ -61,7 +64,9 @@ function SearchIcon({ language, country }) {
 
   // Data States
   const [trending, setTrending] = useState([]);
-  const [searchHistory, setSearchHistory] = useState([]);
+  const { searchHistory, removeHistoryWord, clearHistory } =
+    useSearchHistory(searchEnabled);
+  const { scheduleLog, cancelLog } = useSearchLog(value, searchEnabled);
 
   // Results State (Consolidated for cleaner updates)
   const [results, setResults] = useState({
@@ -110,13 +115,8 @@ function SearchIcon({ language, country }) {
     setEnableSearch(searchEnabled);
   }, [searchEnabled]);
 
-  // --- Initial Data Load (Trending & History) ---
+  // --- Initial Data Load (Trending) ---
   useEffect(() => {
-    const history = localStorage.getItem("search-history");
-    if (history) {
-      setSearchHistory(JSON.parse(history));
-    }
-
     if (searchEnabled) {
       getInitialStaticData();
     }
@@ -176,7 +176,6 @@ function SearchIcon({ language, country }) {
           filters: { ...normalizeFilters(appliedFilters), search_text: value },
           noProducts: isInitial, // We usually want products on search
           filters_offset: 1,
-          userId: auth.UserID(),
           // Assuming server action accepts query text
         });
         // RACE CONDITION CHECK: Only update if this is the latest request
@@ -208,6 +207,7 @@ function SearchIcon({ language, country }) {
           });
 
           setLoading(false);
+          if (!isInitial) scheduleLog(value, res.total_size ?? 0);
         }
       } catch (error) {
         if (requestId === latestRequestRef.current) {
@@ -251,7 +251,7 @@ function SearchIcon({ language, country }) {
         // This ensures we show the "initial" state (Trending/History)
         performSearch({ isInitial: true });
       }
-    }, 1500);
+    }, SEARCH_WAIT_MS);
 
     return () => clearTimeout(debounceTimeoutRef.current);
   }, [value, appliedFilters, searchEnabled, performSearch]);
@@ -291,10 +291,10 @@ function SearchIcon({ language, country }) {
       return;
     }
 
-    // Same 1500ms debounce as the main search query.
+    // Same debounce as the main search query.
     suggestionTimeoutRef.current = setTimeout(() => {
       fetchSuggestion();
-    }, 1500);
+    }, SEARCH_WAIT_MS);
 
     return () => clearTimeout(suggestionTimeoutRef.current);
   }, [value, searchEnabled, fetchSuggestion]);
@@ -333,7 +333,6 @@ function SearchIcon({ language, country }) {
         filters: { ...normalizeFilters(appliedFilters), search_text: value },
         noProducts: true,
         filters_offset: nextOffset,
-        userId: auth.UserID(),
         // type: type, // Optimization: Tell server we only want this specific type if supported
       });
 
@@ -396,6 +395,7 @@ function SearchIcon({ language, country }) {
       }
     }
     if (e.key === "Enter") {
+      cancelLog();
       const pathParams = buildParamsFromFilters({
         categories: appliedFilters?.categories?.map((s) => s.slug),
         brands: appliedFilters?.brands?.map((s) => s.slug),
@@ -530,15 +530,11 @@ function SearchIcon({ language, country }) {
           related_categories={results.related_categories}
           trending={trending}
           searchHistoryItems={searchHistory}
-          setSearchHistory={setSearchHistory}
+          removeHistoryWord={removeHistoryWord}
+          clearHistory={clearHistory}
           applied_filter={appliedFilters}
           // Logic
           EnableSearch={setSearchEnabled}
-          onClickSearchHistory={(val) => {
-            setValue(val);
-            const updatedHistory = onClickSearchHistory(val);
-            setSearchHistory(updatedHistory);
-          }}
           // Load More Handlers
           hasMore={hasMore}
           loadMoreBrands={() => handleLoadMore("brands")}
@@ -567,10 +563,10 @@ const SearchContainer = ({
   related_categories,
   trending,
   searchHistoryItems,
-  setSearchHistory,
+  removeHistoryWord,
+  clearHistory,
   isRtl,
   language,
-  onClickSearchHistory,
   EnableSearch,
   hasMore,
   loadMoreBrands,
@@ -667,14 +663,8 @@ const SearchContainer = ({
             <SearchHistory
               options={searchHistoryItems}
               setOptions={setValue}
-              deleteOption={(e) => {
-                // Functional update: Clear All calls this once per word.
-                setSearchHistory((list) => list.filter((s) => s !== e));
-                localStorage.setItem(
-                  "search-history",
-                  JSON.stringify(searchHistoryItems.filter((s) => s !== e)),
-                );
-              }}
+              deleteOption={removeHistoryWord}
+              clearOptions={clearHistory}
             />
           )}
           <SearchTrending
@@ -706,10 +696,7 @@ const SearchContainer = ({
                 searchValue={value}
                 resultsProducts={products}
                 key={product?.product_id || index}
-                onClick={(e) => {
-                  onClickSearchHistory(value);
-                  EnableSearch(false);
-                }}
+                onClick={() => EnableSearch(false)}
               />
             ))}
           </div>

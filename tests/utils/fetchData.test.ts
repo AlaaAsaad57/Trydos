@@ -1421,6 +1421,30 @@ describe("401 recovery", () => {
     expect(result.success).toBe(true);
   });
 
+  it("local /api/search/history 401 takes the market refresh, then retries", async () => {
+    const { auth } = await setup();
+    (auth.default.RefreshSession as any).mockResolvedValue({ eligible: true });
+    const net = makeMockFetch([
+      jsonReply({ success: false }, 401),
+      jsonReply({ data: { terms: ["shoes"] } }, 200),
+    ]);
+    vi.stubGlobal("fetch", net.fetch);
+    const { fetchData } = await loadFetchData();
+
+    const result = await fetchData({
+      ...baseParams,
+      server: "local",
+      url: "/api/search/history",
+    });
+
+    expect(
+      (auth.default.RefreshSession as any).mock.calls[0].slice(0, 2),
+      "the expired history call did not use the shared market exchange",
+    ).toEqual(["/api/search/history", "market"]);
+    expect(auth.default.ExpiredUser, "one expired token ended the session").not.toHaveBeenCalled();
+    expect(result.data?.terms, "the retry's answer did not reach the caller").toEqual(["shoes"]);
+  });
+
   it("local route outside authed list 401 throws Authentication required", async () => {
     await setup();
     const net = makeMockFetch([jsonReply({ data: null }, 401)]);

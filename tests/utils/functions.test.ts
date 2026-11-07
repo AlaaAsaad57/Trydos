@@ -903,58 +903,6 @@ describe("RoundPrice — the charged rule and the display rule", () => {
   });
 });
 
-describe("onClickSearchHistory", () => {
-  it("starts a new list when nothing is stored", async () => {
-    const { onClickSearchHistory } = await loadFunctions();
-
-    expect(onClickSearchHistory("shoes")).toEqual(["shoes"]);
-    expect(JSON.parse(localStorage.getItem("search-history") as string)).toEqual([
-      "shoes",
-    ]);
-  });
-
-  it("puts a new word at the front of the list", async () => {
-    localStorage.setItem("search-history", JSON.stringify(["shoes"]));
-    const { onClickSearchHistory } = await loadFunctions();
-
-    expect(onClickSearchHistory("bags")).toEqual(["bags", "shoes"]);
-    expect(JSON.parse(localStorage.getItem("search-history") as string)).toEqual([
-      "bags",
-      "shoes",
-    ]);
-  });
-
-  it("hands back the stored list unchanged on a repeat", async () => {
-    localStorage.setItem("search-history", JSON.stringify(["Shoes"]));
-    const { onClickSearchHistory } = await loadFunctions();
-
-    // The caller used to be handed a list with the word in it twice, which is
-    // what the search box then showed.
-    expect(onClickSearchHistory("shoes")).toEqual(["Shoes"]);
-    expect(JSON.parse(localStorage.getItem("search-history") as string)).toEqual([
-      "Shoes",
-    ]);
-  });
-
-  it("starts again when the stored history is not valid data", async () => {
-    localStorage.setItem("search-history", "not-valid-data");
-    const { onClickSearchHistory } = await loadFunctions();
-
-    // It used to throw out of a click handler.
-    expect(onClickSearchHistory("shoes")).toEqual(["shoes"]);
-    expect(JSON.parse(localStorage.getItem("search-history") as string)).toEqual([
-      "shoes",
-    ]);
-  });
-
-  it("starts again when the stored history is not a list", async () => {
-    localStorage.setItem("search-history", JSON.stringify({ not: "a list" }));
-    const { onClickSearchHistory } = await loadFunctions();
-
-    expect(onClickSearchHistory("shoes")).toEqual(["shoes"]);
-  });
-});
-
 describe("COMPARE_CHANGED_EVENT", () => {
   it("is the name the compare helpers announce", async () => {
     const { COMPARE_CHANGED_EVENT } = await loadFunctions();

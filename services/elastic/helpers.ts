@@ -2927,6 +2927,9 @@ export async function logSearchTerm({
     const query: any = {
       bool: {
         must: [{ match: { "search_term.keyword": cleanText } }],
+        // A word the shopper removed keeps its row, flagged. That row must not
+        // count as logged, or searching the word again would not bring it back.
+        must_not: [{ term: { is_deleted: true } }],
       },
     };
 

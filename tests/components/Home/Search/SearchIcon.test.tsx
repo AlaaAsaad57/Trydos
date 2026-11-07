@@ -12,7 +12,17 @@ vi.mock("serverRequests/Search", () => ({
   GetSearchSuggestion: (...a: any[]) => GetSearchSuggestion(...a),
 }));
 const getTrendingSearch = vi.fn();
-vi.mock("services/search", () => ({ default: { getTrendingSearch: () => getTrendingSearch() } }));
+const getSearchHistory = vi.fn();
+const removeSearchHistory = vi.fn();
+const logSearch = vi.fn();
+vi.mock("services/search", () => ({
+  default: {
+    getTrendingSearch: () => getTrendingSearch(),
+    getSearchHistory: () => getSearchHistory(),
+    removeSearchHistory: (removal: unknown) => removeSearchHistory(removal),
+    logSearch: (...a: unknown[]) => logSearch(...a),
+  },
+}));
 vi.mock("services/auth", () => ({ default: { UserID: () => "u-1" } }));
 
 const showSuccessNotification = vi.fn();
@@ -26,7 +36,6 @@ const LogError = vi.fn();
 vi.mock("utils/functions", async (importOriginal) => ({
   ...(await importOriginal<any>()),
   LogError: (...a: any[]) => LogError(...a),
-  onClickSearchHistory: (v: string) => [v, "older"],
 }));
 const scroll = vi.hoisted(() => ({ DisableScroll: vi.fn(), EnableScroll: vi.fn() }));
 vi.mock("utils/tinyUtils", async (importOriginal) => ({ ...(await importOriginal<any>()), ...scroll }));
@@ -123,7 +132,7 @@ const input = () => document.querySelector<HTMLInputElement>('[data-pw="inputFie
 const open = async () => {
   await act(async () => fireEvent.click(document.querySelector('[data-pw="searchIcon_mainPage"]')!));
 };
-/** Let the 1.5 s debounce run and every reply land. */
+/** Let the debounce run and every reply land. */
 const settle = async (ms = 1600) => {
   await act(async () => {
     await vi.advanceTimersByTimeAsync(ms);
@@ -137,7 +146,7 @@ const filtersSent = () => GetSearchData.mock.calls.at(-1)![0].filters;
 const filterBar = () => JSON.parse(screen.getByTestId("filter-bar").dataset.filters!);
 const many = (prefix: string, n: number) => Array.from({ length: n }, (_, i) => ({ slug: `${prefix}${i}` }));
 
-const store = () => ({ setIsNavigating: vi.fn(), setEnableSearch: vi.fn() });
+const store = () => ({ setIsNavigating: vi.fn(), setEnableSearch: vi.fn(), userProfile: { id: 7 } });
 
 describe("SearchIcon", () => {
   beforeEach(() => {
@@ -150,11 +159,12 @@ describe("SearchIcon", () => {
     LogError.mockReset();
     scroll.DisableScroll.mockReset();
     scroll.EnableScroll.mockReset();
-    localStorage.setItem("search-history", JSON.stringify(["bags"]));
+    getSearchHistory.mockReset().mockResolvedValue(["bags"]);
+    removeSearchHistory.mockReset().mockResolvedValue(true);
+    logSearch.mockReset();
   });
   afterEach(() => {
     vi.useRealTimers();
-    localStorage.removeItem("search-history");
   });
 
   it("opens the overlay with history and trending words, and reads the initial results without products", async () => {
@@ -165,7 +175,7 @@ describe("SearchIcon", () => {
     await settle();
     expect(s.setEnableSearch, "the store was not told search is open").toHaveBeenCalledWith(true);
     expect(scroll.DisableScroll, "the page kept scrolling under the overlay").toHaveBeenCalled();
-    expect(JSON.parse(screen.getByTestId("history").dataset.options!), "the stored history is not shown").toEqual(["bags"]);
+    expect(JSON.parse(screen.getByTestId("history").dataset.options!), "the server's history is not shown").toEqual(["bags"]);
     expect(screen.getByTestId("trending").dataset.count, "the trending words did not load").toBe("1");
     expect(GetSearchData.mock.calls[0][0].noProducts, "the first read asked for products").toBe(true);
     expect(screen.getAllByTestId("icon-skeleton").length > 0, "the image and voice buttons show no skeleton while loading").toBe(true);
@@ -471,8 +481,9 @@ describe("SearchIcon", () => {
   it("uses history, trending and media answers as the search word, and deletes a history word", async () => {
     await renderWithProviders(<SearchIcon language="en" country="sy" />, { store: store() });
     await open();
+    await settle();
     fireEvent.click(screen.getByText("history delete"));
-    expect(JSON.parse(localStorage.getItem("search-history")!), "the deleted word stayed in storage").toEqual([]);
+    expect(removeSearchHistory, "the server was not told to remove the word").toHaveBeenCalledWith({ term: "bags" });
     fireEvent.click(screen.getAllByText("media empty")[0]);
     expect(input().value, "an empty media answer changed the box").toBe("");
     fireEvent.click(screen.getAllByText("media value")[0]);
@@ -486,9 +497,34 @@ describe("SearchIcon", () => {
     expect(input().value, "a trending word did not fill the box").toBe("trend word");
   });
 
+  it("logs the word the shopper settled on, and not the half words before it", async () => {
+    GetSearchData.mockResolvedValue({ brands: [], categories: [], boutiques: [], products: [], total_size: 3 });
+    await renderWithProviders(<SearchIcon language="en" country="sy" />, { store: store() });
+    await open();
+    await settle();
+    await type("sho");
+    fireEvent.change(input(), { target: { value: "shoes" } });
+    await settle(3000);
+    expect(logSearch, "the settled word was not logged with its count").toHaveBeenCalledWith("shoes", 3);
+    expect(logSearch, "a half word reached the log").not.toHaveBeenCalledWith("sho", expect.anything());
+  });
+
+  it("leaves logging to the listing page when the shopper presses Enter", async () => {
+    GetSearchData.mockResolvedValue({ brands: [], categories: [], boutiques: [], products: [], total_size: 3 });
+    await renderWithProviders(<SearchIcon language="en" country="sy" />, { store: store() });
+    await open();
+    await settle();
+    fireEvent.change(input(), { target: { value: "shoes" } });
+    await settle(600);
+    fireEvent.keyDown(input(), { key: "Enter" });
+    await settle(3000);
+    expect(logSearch, "a submitted word was logged here and on the listing page").not.toHaveBeenCalled();
+  });
+
   it("picks a history word", async () => {
     await renderWithProviders(<SearchIcon language="en" country="sy" />, { store: store() });
     await open();
+    await settle();
     fireEvent.click(screen.getByText("history pick"));
     expect(input().value, "a history word did not fill the box").toBe("bags");
   });
@@ -516,10 +552,11 @@ describe("SearchIcon", () => {
     expect(document.querySelector('[data-pw="searchContainer"]'), "the side close icon did not close").toBeNull();
   });
 
-  it("opens with no stored history", async () => {
-    localStorage.removeItem("search-history");
+  it("opens with no history on the server", async () => {
+    getSearchHistory.mockResolvedValue([]);
     await renderWithProviders(<SearchIcon language="en" country="sy" />, { store: store() });
     await open();
+    await settle();
     expect(screen.queryByTestId("history"), "an empty history was drawn").toBeNull();
   });
 
