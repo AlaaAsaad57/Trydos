@@ -1,8 +1,9 @@
 "use client";
 
+import type { AutoDownloadMode } from "components/Chat/autoDownload";
 import type { ChatGateKind } from "./ChatGate";
 import { createContext, useContext } from "react";
-import type { ChatAction, ChatState } from "./chatModel";
+import type { ChatAction, ChatMessage, ChatState, InviteContact } from "./chatModel";
 
 /**
  * What the chat screens get from the chat: its state and what they can do.
@@ -71,6 +72,12 @@ export type ChatReminder = {
 /** A message with a label, as the "Media & Files" sheet lists it. */
 export type TaggedLine = { id: string; text: string; time: string };
 
+/** One kind of media in "Media & Files", by the chat backend's name for it. */
+export type MediaType = "ImageMessage" | "VideoMessage" | "FileMessage";
+
+/** One page of a kind of media, newest first. `more`: an older page may follow. */
+export type MediaPage = { messages: ChatMessage[]; more: boolean };
+
 export type ChatExtras = {
   /** My reminders that have not come yet, soonest first. */
   reminders: readonly ChatReminder[];
@@ -84,6 +91,17 @@ export type ChatExtras = {
   tagged: (chat: string, label: string) => Promise<TaggedLine[] | null>;
   /** Saves contacts picked from the phone; only where the browser can read them. */
   syncContacts?: () => Promise<void>;
+  /** The shopper's own number, in full form: it cannot be saved as a contact. */
+  ownPhone: string;
+  /** The phone-book people who are not on Trydos. */
+  invites: readonly InviteContact[];
+  /** The "Save To Gallery" choice of this browser. */
+  autoDownload: { read: () => AutoDownloadMode; write: (mode: AutoDownloadMode) => void };
+  /**
+   * A page of the chat's media of one kind, from the chat backend: the newest,
+   * or the one before message `before`. Null when that failed.
+   */
+  media: (chat: string, type: MediaType, before?: string) => Promise<MediaPage | null>;
 };
 
 export type ChatPaging = {
@@ -91,6 +109,10 @@ export type ChatPaging = {
   moreChats: boolean;
   /** Loads the list's next page of chats. */
   loadMoreChats: () => void;
+  /** The chat backend may hold older calls than the Calls tab has loaded. */
+  moreCalls: boolean;
+  /** Loads the page of calls before the oldest loaded one. */
+  loadMoreCalls: () => void;
   /** This chat may hold older messages than the ones loaded. */
   moreOlder: (chat: string) => boolean;
   /** Loads the page of messages before the oldest loaded one. */

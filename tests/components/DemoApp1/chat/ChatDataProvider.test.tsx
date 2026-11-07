@@ -24,14 +24,22 @@ const loads = vi.hoisted(() => ({
   findChat: vi.fn(async (_id: string) => null as unknown),
   openChatFromList: vi.fn(),
   navigate: vi.fn(),
+  autoSaveMissedMedia: vi.fn(),
+  getMedia: vi.fn(async (_chat: string, _type: string) => null as unknown),
+}));
+vi.mock("components/Chat/autoDownload", async (importOriginal) => ({
+  ...(await importOriginal<any>()),
+  autoSaveMissedMedia: loads.autoSaveMissedMedia,
 }));
 vi.mock("components/Chat/findChat", () => ({ findChat: loads.findChat }));
 vi.mock("components/Chat/openChatFromList", () => ({ openChatFromList: loads.openChatFromList }));
 vi.mock("services/chat", () => ({
   default: { getChats: loads.getChats, getContacts: loads.getContacts, getCalls: loads.getCalls },
+  CALLS_PAGE_SIZE: 2,
 }));
 vi.mock("store/chat/actions", async (importOriginal) => ({
   ...(await importOriginal<any>()),
+  getMedia: loads.getMedia,
   GetArchivedChats: loads.GetArchivedChats,
   GetMyReminders: loads.GetMyReminders,
 }));
@@ -385,5 +393,168 @@ describe("the real chat provider — a reload of one chat's URL", () => {
       useAppStore.setState({ activeChat: chat("5", "First message") });
     });
     expect(urlId(), "the URL still names chat 1 after chat 5 took its place").toBe("5");
+  });
+});
+
+describe("the real chat provider — older calls", () => {
+  const twoCalls = [
+    { id: 2, created_at: "2026-11-04T10:00:00" },
+    { id: 1, created_at: "2026-11-03T10:00:00" },
+  ];
+
+  it("offers older calls once a full page is loaded", async () => {
+    await mount("chat", { userChat: { id: ME }, calls: twoCalls });
+    expect(api?.paging?.moreCalls, "a full page of calls did not leave the log open").toBe(true);
+  });
+
+  it("offers none after a short first page: it is the whole log", async () => {
+    await mount("chat", { userChat: { id: ME }, calls: twoCalls.slice(0, 1) });
+    expect(api?.paging?.moreCalls, "a short log still asks for older calls").toBe(false);
+  });
+
+  it("stops offering them once the chat backend has nothing older", async () => {
+    await mount("chat", { userChat: { id: ME }, calls: twoCalls });
+    loads.getCalls.mockResolvedValueOnce([]);
+    await act(async () => {
+      api?.paging?.loadMoreCalls();
+    });
+    expect(loads.getCalls, "the older calls were not asked for before call 1").toHaveBeenCalledWith(1);
+    expect(api?.paging?.moreCalls, "the end of the log kept asking").toBe(false);
+  });
+
+  it("does not ask twice while a page is on its way", async () => {
+    await mount("chat", { userChat: { id: ME }, calls: twoCalls });
+    loads.getCalls.mockClear();
+    loads.getCalls.mockReturnValue(new Promise(() => {}));
+    await act(async () => {
+      api?.paging?.loadMoreCalls();
+      api?.paging?.loadMoreCalls();
+    });
+    expect(
+      loads.getCalls.mock.calls.filter(([id]) => id === 1),
+      "a second page was asked for while one was on its way",
+    ).toEqual([[1]]);
+    loads.getCalls.mockReset();
+  });
+});
+
+describe("the real chat provider — media that came while the page was closed", () => {
+  it("is saved by the shopper's choice when a chat is open", async () => {
+    const open = chat("12", "Hi");
+    await mount("chat/conversation", { userChat: { id: ME }, data: [open], activeChat: open });
+    expect(
+      loads.autoSaveMissedMedia,
+      "the open chat's messages did not reach the auto-save",
+    ).toHaveBeenCalledWith("12", open.messages, ME);
+  });
+
+  it("is left alone on the chat list", async () => {
+    await mount("chat", { userChat: { id: ME } });
+    expect(loads.autoSaveMissedMedia, "the auto-save ran with no chat open").not.toHaveBeenCalled();
+  });
+});
+
+describe("the real chat provider — what the screens get for the old chat's features", () => {
+  it("gives the shopper's own number in full form, for the new contact form", async () => {
+    await mount("chat", { userChat: { id: ME, mobile_phone: "963944123456" } });
+    expect(api?.extras?.ownPhone, "the form cannot tell the shopper's own number").toBe("963944123456");
+  });
+
+  it("lists the phone-book people who are not on Trydos, and no Trydos user", async () => {
+    await mount("chat", {
+      userChat: { id: ME, mobile_phone: "963944123456" },
+      contacts: [
+        { id: 3, name: "Outside", mobile_phone: "963937288307", contact_user: null },
+        { id: 4, name: "Inside", mobile_phone: "963937288308", contact_user: { id: 11, name: "Inside" } },
+      ],
+    });
+    expect(api?.extras?.invites.map((p) => p.name), "the list to invite is wrong").toEqual(["Outside"]);
+  });
+
+  it("reads one kind of media from the chat backend as the screens' messages", async () => {
+    await mount("chat", { userChat: { id: ME } });
+    loads.getMedia.mockResolvedValueOnce([
+      {
+        id: "70",
+        sender_user_id: PEER,
+        created_at: "2026-11-04T10:00:00",
+        message_type: { name: "ImageMessage" },
+        message_content: { content: "" },
+        message_files: [{ file_path: "https://m.example/p.jpg", file_name: "" }],
+        message_status: [],
+        auth_message_status: { is_deleted: 0, delete_for_all: false },
+      },
+    ]);
+    const found = await api?.extras?.media("12", "ImageMessage");
+    expect(loads.getMedia, "the chat backend was not asked for the photos").toHaveBeenCalledWith(
+      "12",
+      "ImageMessage",
+      undefined,
+    );
+    expect(
+      found?.messages.map((m) => `${m.id}:${m.kind}`),
+      "the answer did not become a photo, or a day pill came with it",
+    ).toEqual(["70:photo"]);
+    expect(found?.more, "a short page left the media open").toBe(false);
+  });
+
+  const mediaRow = (id: number, minute: number) => ({
+    id: String(id),
+    sender_user_id: PEER,
+    created_at: `2026-11-04T10:${String(minute).padStart(2, "0")}:00`,
+    message_type: { name: "ImageMessage" },
+    message_content: { content: "" },
+    message_files: [{ file_path: `https://m.example/${id}.jpg`, file_name: "" }],
+    message_status: [],
+    auth_message_status: { is_deleted: 0, delete_for_all: false },
+  });
+
+  it("gives a page newest first, so an older page goes after it", async () => {
+    await mount("chat", { userChat: { id: ME } });
+    loads.getMedia.mockResolvedValueOnce([mediaRow(70, 1), mediaRow(71, 2)]);
+    const found = await api?.extras?.media("12", "ImageMessage");
+    expect(found?.messages.map((m) => m.id), "the page is not newest first").toEqual(["71", "70"]);
+  });
+
+  it("says there may be more after a full page, and passes the cursor on", async () => {
+    await mount("chat", { userChat: { id: ME } });
+    loads.getMedia.mockResolvedValueOnce(Array.from({ length: 10 }, (_, i) => mediaRow(70 + i, i)));
+    const found = await api?.extras?.media("12", "ImageMessage", "69");
+    expect(loads.getMedia, "the cursor did not reach the chat backend's read").toHaveBeenCalledWith(
+      "12",
+      "ImageMessage",
+      "69",
+    );
+    expect(found?.more, "a full page ended the media").toBe(true);
+  });
+
+  it("says null when the chat backend failed", async () => {
+    await mount("chat", { userChat: { id: ME } });
+    loads.getMedia.mockResolvedValueOnce(null);
+    expect(await api?.extras?.media("12", "VideoMessage"), "a failed read looks like an empty chat").toBeNull();
+  });
+});
+
+describe("the real chat provider — the end of the call log", () => {
+  it("asks no more after the last page, even from a screen that has not drawn the end yet", async () => {
+    await mount("chat", {
+      userChat: { id: ME },
+      calls: [
+        { id: 2, created_at: "2026-11-04T10:00:00" },
+        { id: 1, created_at: "2026-11-03T10:00:00" },
+      ],
+    });
+    // The page edge holds the function of the last draw, from before the end.
+    const fromLastDraw = api!.paging!.loadMoreCalls;
+    loads.getCalls.mockClear();
+    loads.getCalls.mockResolvedValue([]);
+    await act(async () => {
+      fromLastDraw();
+    });
+    await act(async () => {
+      fromLastDraw();
+    });
+    expect(loads.getCalls.mock.calls, "the end of the log was asked for a second time").toEqual([[1]]);
+    loads.getCalls.mockReset();
   });
 });

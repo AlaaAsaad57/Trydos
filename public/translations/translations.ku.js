@@ -3078,6 +3078,7 @@ const translations = {
   "YESTERDAY": "دوێنێ",
   "Notification": "ئاگادارکردنەوە",
   "ALWAYS": "هەمیشە",
+  "NEVER": "هەرگیز",
   "Enable Call": "چالاککردنی پەیوەندی",
   "Disable Call": "ناچالاککردنی پەیوەندی",
   "Block": "بلۆککردن",

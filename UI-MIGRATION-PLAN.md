@@ -1041,6 +1041,11 @@ owner's OK).
   the label chips (tagged messages), "Get from your contacts" (`components/Chat/contactsSync.ts`). The
   contact page's dead buttons work now (Delete Chat; Save To Gallery, Notification, Share say "Soon
   available").
+- Development work the Stage 6 rebuild had dropped, added back on 2026-11-07 (D-36b, no XD board, the
+  designer checks each): older calls in the Calls tab; the "Deleted Call" row; the own-number check in the
+  new contact form; Save To Gallery is real (a tap flips Always / Never; no blur while a missed file saves);
+  invites in the New chat sheet; Image, Video and File chips in "Media & Files", a page at a time as the sheet scrolls; Download in a held photo's
+  or video's menu. Not back: the swipe's Sent / Received / Read dates, and a full-screen photo viewer.
 - Step 7 (D-36a): the phone-confirm page and the notification page (`ChatGate`) on every way into the
   chat; a blocked chat shows a strip in place of the composer and refuses calls.
 - Step 8: start / end styles, `corners()` for bubble radii, mirrored arrows and swipes; the voice player

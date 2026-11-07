@@ -8,7 +8,8 @@ import { phoneWithDialCode } from "components/Chat/contactPhone";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import { getLocalizedCountryName } from "utils/countryData";
-import type { Contact } from "./chatModel";
+import { CHAT } from "./chatTheme";
+import type { Contact, InviteContact } from "./chatModel";
 import { C, CTA, ROW, fill, lineBox, textTop } from "../demo1Layout";
 import { Field, FieldInput, Sheet, Stroke, Txt, Under } from "../ui";
 import { PlusIcon } from "./chatIcons";
@@ -33,6 +34,10 @@ import { PlusIcon } from "./chatIcons";
  * (ChatContactsUpload.tsx; the owner's choice, 2026-11-04): the flag and the
  * code, with the phone's own country list on a tap. The number is sent with
  * its code (`phoneWithDialCode`). It stays left to right on every page (A-30).
+ * The shopper's own number is refused: a red line says so, the button waits.
+ *
+ * After the contacts come the phone-book people who are not on Trydos: the
+ * same row, with the word "Invite" at its end (D-36b, no XD board).
  */
 
 /** The old form's default code: Syria. */
@@ -43,6 +48,9 @@ export default function NewChatSheet({
   onPick,
   onAdd,
   onSync,
+  ownPhone,
+  invites = [],
+  onInvite,
   onClose,
   t,
 }: {
@@ -57,6 +65,11 @@ export default function NewChatSheet({
    * "Get from your contacts" saves the picked ones (D-36b, no XD board).
    */
   onSync?: () => Promise<void>;
+  /** The real chat only: the shopper's own number, in full form. */
+  ownPhone?: string;
+  /** The real chat only: the phone-book people who are not on Trydos. */
+  invites?: readonly InviteContact[];
+  onInvite?: (contact: InviteContact) => void;
   onClose: () => void;
   t: (key: DemoKey) => string;
 }) {
@@ -78,7 +91,8 @@ export default function NewChatSheet({
   }, [open]);
 
   const fullPhone = phoneWithDialCode(dial, phone);
-  const canSave = name.trim() !== "" && fullPhone !== "";
+  const isOwn = !!ownPhone && fullPhone === ownPhone;
+  const canSave = name.trim() !== "" && fullPhone !== "" && !isOwn;
   const save = () => {
     if (!canSave) return;
     onAdd(name, fullPhone);
@@ -174,6 +188,13 @@ export default function NewChatSheet({
                   />
                 </span>
               </Field>
+              {isOwn && (
+                <div data-pw="demo-new-contact-own" className="shrink-0" style={{ marginTop: 6, marginInlineStart: CTA.x }}>
+                  <Txt size={12} color={C.red}>
+                    {translateFunction("This is your own number")}
+                  </Txt>
+                </div>
+              )}
               {/* The forms' wide button, in the flow of the sheet. */}
               <motion.button
                 type="button"
@@ -249,37 +270,19 @@ export default function NewChatSheet({
                   testId={`demo-new-chat-contact-${contact.id}`}
                   onClick={() => onPick(contact.id)}
                 >
-                  <span
-                    className="relative block shrink-0 overflow-hidden flex-col"
-                    style={{
-                      marginInlineStart: 8,
-                      width: 44,
-                      height: 44,
-                      borderRadius: 15,
-                      background: contact.photo ? undefined : C.field,
-                    }}
-                  >
-                    {contact.photo ? (
-                      <img
-                        src={contact.photo}
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Txt center size={12} weight="medium" mt={textTop(27, 12)}>
-                        {contact.initials}
-                      </Txt>
-                    )}
-                    <Stroke color={C.line} width={0.3} radius={15} />
-                  </span>
-                  <span className="flex flex-col min-w-0 grow" style={{ marginInlineStart: 12, marginInlineEnd: 12 }}>
-                    <Txt size={14} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
-                      {contact.name}
-                    </Txt>
-                    <Txt size={12} color={C.grey}>
-                      <bdi dir="ltr">{contact.phone}</bdi>
-                    </Txt>
-                  </span>
+                  <ContactFace contact={contact} />
+                </Row>
+              ))}
+              {invites.map((contact) => (
+                <Row
+                  key={contact.id}
+                  testId={`demo-new-chat-invite-${contact.id}`}
+                  onClick={() => onInvite?.(contact)}
+                >
+                  <ContactFace contact={contact} />
+                  <Txt size={14} weight="medium" color={CHAT.callBlue} style={{ marginInlineEnd: 16 }}>
+                    {translateFunction("Invite")}
+                  </Txt>
                 </Row>
               ))}
             </motion.div>
@@ -287,6 +290,45 @@ export default function NewChatSheet({
         </AnimatePresence>
       </Under>
     </Sheet>
+  );
+}
+
+/** A contact's photo (or initials), name and number, in a row of the sheet. */
+function ContactFace({ contact }: { contact: Contact }) {
+  return (
+    <>
+      <span
+        className="relative block shrink-0 overflow-hidden flex-col"
+        style={{
+          marginInlineStart: 8,
+          width: 44,
+          height: 44,
+          borderRadius: 15,
+          background: contact.photo ? undefined : C.field,
+        }}
+      >
+        {contact.photo ? (
+          <img
+            src={contact.photo}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <Txt center size={12} weight="medium" mt={textTop(27, 12)}>
+            {contact.initials}
+          </Txt>
+        )}
+        <Stroke color={C.line} width={0.3} radius={15} />
+      </span>
+      <span className="flex flex-col min-w-0 grow" style={{ marginInlineStart: 12, marginInlineEnd: 12 }}>
+        <Txt size={14} weight="medium" className="overflow-hidden whitespace-nowrap" style={{ textOverflow: "ellipsis" }}>
+          {contact.name}
+        </Txt>
+        <Txt size={12} color={C.grey}>
+          <bdi dir="ltr">{contact.phone}</bdi>
+        </Txt>
+      </span>
+    </>
   );
 }
 

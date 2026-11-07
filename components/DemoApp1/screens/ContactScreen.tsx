@@ -71,6 +71,14 @@ function Contact() {
   const [toast, showToast] = useToast();
   /** No chat backend for it yet (A-8, D-38). */
   const soon = () => showToast(translateFunction("Soon available"));
+  /** The real chat's "Save To Gallery" choice; /demo keeps the file's word. */
+  const gallery = extras?.autoDownload;
+  const [autoSave, setAutoSave] = useState(() => gallery?.read() ?? "always");
+  const flipAutoSave = () => {
+    const next = autoSave === "always" ? "never" : "always";
+    gallery?.write(next);
+    setAutoSave(next);
+  };
   // ContactScreen draws this only when there is a chat.
   const chat = chatOnScreen(state)!;
   const contact = contactOf(state, chat);
@@ -154,7 +162,14 @@ function Contact() {
       </div>
 
       <Row icon="rowMedia" label="Media & Files" mt={458 - (labelTop + lineBox(13))} onClick={() => setMedia(true)} t={t} />
-      <Row icon="rowGallery" label="Save To Gallery" value="ALWAYS" mt={2} onClick={soon} t={t} />
+      <Row
+        icon="rowGallery"
+        label="Save To Gallery"
+        value={autoSave === "always" ? "ALWAYS" : "NEVER"}
+        mt={2}
+        onClick={gallery ? flipAutoSave : soon}
+        t={t}
+      />
       <Row icon="rowGallery" label="Notification" value="ALWAYS" mt={2} onClick={soon} t={t} />
 
       {/* The file's two SF Pro Rounded 12 lines, 17 px apart, ending 22 px
@@ -226,9 +241,15 @@ function Contact() {
         messages={chat.messages}
         categories={state.categories}
         tagged={extras && ((label) => extras.tagged(chat.id, label))}
+        media={extras && ((type, before) => extras.media(chat.id, type, before))}
         onPick={(id) => {
           // The conversation scrolls to the message and flashes it.
           setMedia(false);
+          // A message from the chat backend may be older than the loaded pages.
+          if (extras && !chat.messages.some((m) => m.id === id)) {
+            void extras.openMessage(chat.id, id).then(() => back());
+            return;
+          }
           extras?.setJump(id);
           back();
         }}

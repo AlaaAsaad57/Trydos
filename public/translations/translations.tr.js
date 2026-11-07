@@ -3062,6 +3062,7 @@ const translations = {
   "YESTERDAY": "DÜN",
   "Notification": "Bildirim",
   "ALWAYS": "HER ZAMAN",
+  "NEVER": "ASLA",
   "Enable Call": "Aramayı Etkinleştir",
   "Disable Call": "Aramayı Devre Dışı Bırak",
   "Block": "Engelle",

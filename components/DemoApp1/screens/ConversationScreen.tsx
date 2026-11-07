@@ -3,6 +3,7 @@
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { AnimatePresence, animate, motion, useMotionValue, type MotionValue } from "framer-motion";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { downloadFile } from "components/Chat/downloadFile";
 import XdIcon from "../../DemoApp/XdIcon";
 import { CHAT } from "../chat/chatTheme";
 import {
@@ -179,6 +180,8 @@ function Conversation() {
   const contact = contactOf(state, chat);
   /** The real chat (the `/demo` preview starts no calls): it can delete for everyone. */
   const canDeleteForAllOf = (m: Holdable) => !!call && m.kind !== "note" && m.kind !== "call" && m.side === "out";
+  /** The real chat: a held photo or video can be saved (a file saves on a tap). */
+  const canDownloadOf = (m: Holdable) => !!call && (m.kind === "photo" || m.kind === "video");
   const [menu, setMenu] = useState<string | null>(null);
   /** A picked photo, shown before it is sent (D-36b, no XD board). */
   const [photo, setPhoto] = useState<{ file: File; url: string } | null>(null);
@@ -351,7 +354,7 @@ function Conversation() {
     const box = row.getBoundingClientRect();
     // The menu hangs MENU_GAP under the row (`top: 100%`).
     const menuBottom =
-      box.bottom + MENU_GAP + menuHeight(canEditOf(m), canForwardOf(m), canDeleteForAllOf(m));
+      box.bottom + MENU_GAP + menuHeight(canEditOf(m), canForwardOf(m), canDeleteForAllOf(m), canDownloadOf(m));
     let move = 0;
     if (menuBottom > page.bottom - 8) move = page.bottom - 8 - menuBottom;
     // The emoji bar over the message must stay in view too.
@@ -486,6 +489,9 @@ function Conversation() {
         return;
       case "Remind me":
         setReminding(m);
+        return;
+      case "Download":
+        if (m.kind === "photo" || m.kind === "video") void downloadFile(m.src);
         return;
       default:
         showToast(t("Soon available"));
@@ -704,6 +710,7 @@ function Conversation() {
           canEdit={canEditOf(m)}
           canForward={canForwardOf(m)}
           canDeleteForAll={canDeleteForAllOf(m)}
+          canDownload={canDownloadOf(m)}
           reaction={m.reaction}
           onPick={(name) => act(name, m)}
           onReact={(emoji, from) => {

@@ -26,6 +26,7 @@ import { coordsLabel, mapsUrl, tileUrl, tilesFor } from "../../DemoApp/demoMap";
 import { C, fill, lineBox, textTop } from "../demo1Layout";
 import { Stroke, Txt } from "../ui";
 import { translateFunction } from "utils/functions";
+import { downloadFile } from "components/Chat/downloadFile";
 import { cancelUpload, useUploadRunning } from "components/Chat/uploadCancel";
 import { FileIcon, OpenIcon, PinIcon } from "./chatIcons";
 import AnimatedEmoji from "./AnimatedEmoji";
@@ -549,8 +550,9 @@ export function FileMessage({
   const tint = inn ? C.purple : CHAT.sent;
   const lift = liftOf(open, inn);
   const kind = fileKind(m);
-  // The download is the browser's own; the guard only keeps a hold or a pull from starting it.
-  const tap = useTap(() => {});
+  // A tap saves the file. The media server is on another origin, where the
+  // browser ignores `download` and only opens a tab, so the link is not followed.
+  const tap = useTap(() => void downloadFile(m.src, m.name));
   const box = (
     <span
       className="flex items-center justify-center shrink-0"
@@ -619,6 +621,10 @@ export function FileMessage({
         WebkitTouchCallout: "none",
       }}
       {...tap}
+      onClick={(e) => {
+        e.preventDefault();
+        tap.onClick(e);
+      }}
     >
       {inn ? box : column}
       {inn ? column : box}

@@ -278,3 +278,19 @@ describe("chat actions — no chat backend yet (A-8)", () => {
     expect(say, "the call switch did not say 'Soon available'").toHaveBeenCalledWith(expect.stringMatching(/^soon available$/i));
   });
 });
+
+describe("deleting a call card from a conversation", () => {
+  it("marks that call as deleted in the Calls tab's list, as the old bin did", async () => {
+    useAppStore.setState({ calls: [{ id: "500" }, { id: "501" }] } as never);
+    await runChatAction({ type: "deleteMessage", chat: "1", id: "500" }, { say });
+    const calls = useAppStore.getState().calls as { id: string; auth_message_status?: { is_deleted?: number } }[];
+    expect(
+      calls.find((c) => c.id === "500")?.auth_message_status?.is_deleted,
+      "the deleted call still shows as a live call",
+    ).toBe(1);
+    expect(
+      calls.find((c) => c.id === "501")?.auth_message_status?.is_deleted,
+      "another call was marked as deleted",
+    ).toBeUndefined();
+  });
+});

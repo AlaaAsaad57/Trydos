@@ -18,6 +18,7 @@ export default function PickSheet({
   y = 440,
   testId,
   onClose,
+  scrollRef,
   children,
 }: {
   open: boolean;
@@ -26,6 +27,8 @@ export default function PickSheet({
   y?: number;
   testId: string;
   onClose: () => void;
+  /** The box that scrolls, for a list that loads a page at a time. */
+  scrollRef?: React.Ref<HTMLDivElement>;
   children: React.ReactNode;
 }) {
   return (
@@ -33,7 +36,9 @@ export default function PickSheet({
       <Txt center size={16} weight="medium" mt={textTop(30, 16) - 8}>
         {title}
       </Txt>
-      <Under testId={`${testId}-list`}>{children}</Under>
+      <Under testId={`${testId}-list`} scrollRef={scrollRef}>
+        {children}
+      </Under>
     </Sheet>
   );
 }

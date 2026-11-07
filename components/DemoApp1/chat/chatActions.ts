@@ -122,6 +122,8 @@ export async function runChatAction(action: ChatAction, { say }: ActionHelpers):
       // For everyone only on a message I sent, as the old menu (OptionsMenu.tsx).
       const mine = sameId(findMessage(chat, action.id)?.sender_user_id, myId());
       DeleteMessage(chat.id, action.id, !!action.forAll && mine);
+      // A call's row in the Calls tab turns into a deleted row (a message is in no call log).
+      state.deleteCall(action.id);
       return;
     }
     case "editMessage": {

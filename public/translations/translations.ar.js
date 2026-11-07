@@ -3029,6 +3029,7 @@ const translations = {
   "YESTERDAY": "أمس",
   "Notification": "الإشعارات",
   "ALWAYS": "دائماً",
+  "NEVER": "أبداً",
   "Enable Call": "تفعيل الاتصال",
   "Disable Call": "تعطيل الاتصال",
   "Block": "حظر",

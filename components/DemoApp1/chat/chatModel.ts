@@ -43,6 +43,8 @@ export type CallRow = {
   time: string;
   /** The chat the call belongs to, which a tap opens. */
   chat?: string;
+  /** A call the shopper deleted: the row says so and nothing more (`contact` and `time` are empty). */
+  deleted?: boolean;
 };
 
 type Base = {
@@ -240,6 +242,12 @@ export type Contact = {
   /** The contact's picture; none shows the grey box with the initials. */
   photo?: string;
   initials: string;
+};
+
+/** A phone-book person who is not on Trydos: no chat, only an invite. */
+export type InviteContact = Contact & {
+  /** The full number for the WhatsApp and Telegram links; empty when the number is not a real one. */
+  fullPhone: string;
 };
 
 /** "MW" from "Marie Winter": the first letter of the first two words. */

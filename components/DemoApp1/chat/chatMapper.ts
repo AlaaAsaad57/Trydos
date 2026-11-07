@@ -1,4 +1,6 @@
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { getCallDirection, getChatName, showDate } from "components/Chat/chatsFunctions";
+import { canonicalPhone, type PhoneRegion } from "components/Chat/contactPhone";
 import { sortMessages } from "store/chat/messageOrder";
 import { GetImageUrl } from "utils/tinyUtils";
 import type { Channel, Member, Message } from "utils/types/chat";
@@ -15,6 +17,7 @@ import {
   type ChatThread,
   type Contact,
   type DeliveryMark,
+  type InviteContact,
   type PreviewWords,
   type Side,
   type Status,
@@ -362,6 +365,26 @@ export function toBookContact(c: BookContact): Contact | null {
   };
 }
 
+/**
+ * A phone-book contact to invite, or null for one who is on Trydos, who has no
+ * number, or who is the shopper. A phone book keeps local numbers, so they are
+ * read in `region`, the region of the shopper's own phone.
+ */
+export function toInviteContact(c: BookContact, region: PhoneRegion, ownPhone: string): InviteContact | null {
+  if (c.contact_user?.id) return null;
+  const phone = c.mobile_phone ?? "";
+  const full = canonicalPhone(phone, region);
+  if (!full || full === ownPhone) return null;
+  const name = c.name || phone;
+  return {
+    id: `book-${c.id ?? full}`,
+    name,
+    phone,
+    initials: initialsOf(name),
+    fullPhone: isValidPhoneNumber(`+${full}`) ? full : "",
+  };
+}
+
 /** What the chat store holds that the screens need. */
 export type ChatSource = {
   /** The main list (`data`). */
@@ -382,14 +405,23 @@ export type ChatSource = {
 export type CallRecord = Message & { channel?: Channel | null };
 
 /**
- * One call of the log as a Calls tab row, or null for a call the shopper
- * deleted (`auth_message_status.is_deleted`: they hid who and when). The
- * direction is the old row's (`getCallDirection`): a call I made shows "No
- * Answer" when it never ran. The chat is the call's own when it comes with
- * its members, else the list's copy (the old CallList rule).
+ * One call of the log as a Calls tab row. The direction is the old row's
+ * (`getCallDirection`): a call I made shows "No Answer" when it never ran. The
+ * chat is the call's own when it comes with its members, else the list's copy
+ * (the old CallList rule).
+ *
+ * The chat backend keeps a call the shopper deleted in the log
+ * (`auth_message_status.is_deleted`). It keeps its row, with no chat, no
+ * contact and no time: the shopper deleted it to hide who and when.
  */
-export function toCallRow(call: CallRecord, chats: Channel[], ctx: MapContext): { row: CallRow; chat: Channel } | null {
-  if (isDeleted(call)) return null;
+export function toCallRow(
+  call: CallRecord,
+  chats: Channel[],
+  ctx: MapContext,
+): { row: CallRow; chat: Channel | null } {
+  if (isDeleted(call)) {
+    return { chat: null, row: { id: String(call.id), kind: "noAnswer", deleted: true, contact: "", time: "" } };
+  }
   const listed = chats.find((c) => sameId(c.id, call.channel_id));
   const chat: Channel =
     (call.channel?.channel_members ? call.channel : listed) ?? call.channel ?? ({ id: call.channel_id } as Channel);
@@ -448,9 +480,9 @@ export function toChatState(
   }
   const calls = [...(source.calls ?? [])]
     .sort((a, b) => timeOf(b.created_at) - timeOf(a.created_at))
-    .map((call) => toCallRow(call, channels, ctx))
-    .filter((c): c is NonNullable<typeof c> => c !== null);
+    .map((call) => toCallRow(call, channels, ctx));
   for (const { chat } of calls) {
+    if (!chat) continue;
     const contact = toContact(chat, ctx);
     if (!contacts.has(contact.id)) contacts.set(contact.id, contact);
   }

@@ -4,6 +4,7 @@ import {
   toBookContact,
   toChatState,
   toContact,
+  toInviteContact,
   toMessage,
   toMessages,
   toThread,
@@ -531,5 +532,82 @@ describe("chat mapper — a phone-book contact", () => {
 
   it("is nobody when the person is not on Trydos", () => {
     expect(toBookContact({ name: "Outside", mobile_phone: "+6" }), "a non-user became a chat contact").toBeNull();
+  });
+});
+
+describe("chat mapper — a deleted call", () => {
+  const local = { active: null, viewing: null };
+  const call = (id: string, deleted: boolean, created_at = "2026-11-04T10:00:00") =>
+    msg({
+      id,
+      type: "VoiceCall",
+      created_at,
+      channel: channel({ id: "1", channel_name: "Secret Person" }),
+      auth_message_status: { ...status(ME), is_deleted: deleted ? 1 : 0 },
+    } as Partial<Message>);
+  const state = (calls: Message[]) =>
+    toChatState({ chats: [], archived: [], open: null, book: [], calls }, ctx, local);
+
+  it("stays in the Calls tab as a deleted row, in its place by time", () => {
+    const rows = state([call("1", false, "2026-11-04T09:00:00"), call("2", true, "2026-11-04T10:00:00")]).calls;
+    expect(
+      rows.map((r) => `${r.id}:${!!r.deleted}`),
+      "the deleted call is gone, or out of its place",
+    ).toEqual(["2:true", "1:false"]);
+  });
+
+  it("hides who it was with: the shopper deleted it for that", () => {
+    const row = state([call("2", true)]).calls[0];
+    expect(row.contact, "a deleted call still names its contact").toBe("");
+    expect(row.chat, "a deleted call still opens its chat").toBeUndefined();
+  });
+
+  it("hides when it was", () => {
+    expect(state([call("2", true)]).calls[0].time, "a deleted call still shows its time").toBe("");
+  });
+
+  it("adds nobody to the contacts", () => {
+    expect(state([call("2", true)]).contacts, "a deleted call put its person in the contacts").toEqual([]);
+  });
+
+  it("does not count as a new missed call", () => {
+    expect(state([call("2", true)]).counts.calls, "a deleted call counts on the Calls tab").toBe("");
+  });
+});
+
+describe("chat mapper — a phone-book contact to invite", () => {
+  const region = { defaultCountry: "SY" as const };
+
+  it("is a person who is not on Trydos, with their full number", () => {
+    const person = toInviteContact({ id: 3, name: "Outside", mobile_phone: "0937288307", contact_user: null }, region, "");
+    expect(person?.name, "the saved name is not used").toBe("Outside");
+    expect(person?.id, "the row has no id of its own").toBe("book-3");
+    expect(person?.fullPhone, "a local number was not read in the shopper's region").toBe("963937288307");
+  });
+
+  it("is nobody for a Trydos user: they get a chat, not an invite", () => {
+    expect(
+      toInviteContact({ id: 3, name: "On", mobile_phone: "0937288307", contact_user: { id: 5 } }, region, ""),
+      "a Trydos user was offered an invite",
+    ).toBeNull();
+  });
+
+  it("is nobody for the shopper's own number", () => {
+    expect(
+      toInviteContact({ id: 3, name: "Me", mobile_phone: "0937288307", contact_user: null }, region, "963937288307"),
+      "the shopper was offered an invite to themselves",
+    ).toBeNull();
+  });
+
+  it("is nobody with no number to send to", () => {
+    expect(
+      toInviteContact({ id: 3, name: "Nothing", mobile_phone: "", contact_user: null }, region, ""),
+      "a contact with no number was offered an invite",
+    ).toBeNull();
+  });
+
+  it("keeps a contact with a number that is not real, for the share page", () => {
+    const person = toInviteContact({ id: 3, name: "Odd", mobile_phone: "12", contact_user: null }, region, "");
+    expect(person?.fullPhone, "a number that is not real was treated as one").toBe("");
   });
 });

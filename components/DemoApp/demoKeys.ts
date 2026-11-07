@@ -383,6 +383,7 @@ export const DEMO_KEYS = [
   "Save To Gallery",
   "Notification",
   "ALWAYS",
+  "NEVER",
   "Enable Call",
   "Disable Call",
   "Delete Chat",

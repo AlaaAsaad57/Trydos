@@ -72,14 +72,18 @@ export { Box, Icon, Stroke, Txt, type Weight } from "../DemoApp/ui";
 export function Under({
   testId,
   minHeight,
+  scrollRef,
   children,
 }: {
   testId: string;
   minHeight?: number;
+  /** The box that scrolls, for what must watch it. */
+  scrollRef?: React.Ref<HTMLDivElement>;
   children: React.ReactNode;
 }) {
   return (
     <div
+      ref={scrollRef}
       data-pw={testId}
       className="flex flex-col flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain"
       style={{ scrollbarWidth: "none" }}

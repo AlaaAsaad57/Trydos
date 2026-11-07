@@ -16,6 +16,7 @@ import {
   type CallRow,
   type ChatThread,
   type Contact,
+  type InviteContact,
 } from "../chat/chatModel";
 import ArchivedSheet from "../chat/ArchivedSheet";
 import ChatGate from "../chat/ChatGate";
@@ -39,6 +40,8 @@ import {
 } from "../demo1Layout";
 import { Icon, ScreenPage, Stroke, Txt } from "../ui";
 import { PlusIcon } from "../chat/chatIcons";
+import { shareInvite } from "../chat/chatInvite";
+import InviteSheet from "../chat/InviteSheet";
 import NewChatSheet from "../chat/NewChatSheet";
 import Toast, { useToast } from "../chat/Toast";
 import { useHorizontalSwipe } from "../chat/useHorizontalSwipe";
@@ -78,7 +81,8 @@ import { useHorizontalSwipe } from "../chat/useHorizontalSwipe";
  *
  * Calls: rows 430 x 90 `#FCFCFC` from y 152, the photo 66 x 66, the name 16
  * Medium on baseline 36 (30 on the row that has a second line), and the
- * call's state under it — see CallRowFace.
+ * call's state under it — see CallRowFace. A call the shopper deleted keeps its
+ * row, with nothing about the call on it — see DeletedCallRow.
  */
 export default function ChatListScreen() {
   const { gate } = useChat();
@@ -98,6 +102,8 @@ function ChatList() {
   const [query, setQuery] = useState("");
   /** The "New chat" sheet is up. */
   const [starting, setStarting] = useState(false);
+  /** Who the invite sheet is up for, on a computer. */
+  const [inviting, setInviting] = useState<InviteContact | null>(null);
   /** The "Archived" sheet is up. */
   const [showArchived, setShowArchived] = useState(false);
   const archived = archivedChats(state.chats);
@@ -141,6 +147,15 @@ function ChatList() {
     setStarting(false);
     newChat(contact);
     navigate("chat/conversation");
+  };
+
+  /** Opens the phone's own share, or the invite sheet where there is none. */
+  const invite = (contact: InviteContact) => {
+    void shareInvite(contact).then((shared) => {
+      if (shared) return;
+      setStarting(false);
+      setInviting(contact);
+    });
   };
 
   const act = (chat: ChatThread, label: DemoKey) => {
@@ -352,20 +367,30 @@ function ChatList() {
         )}
         </>
       ) : (
-        state.calls.map((row) => (
-          <CallRowFace
-            key={row.id}
-            row={row}
-            contact={state.contacts.find((c) => c.id === row.contact) ?? { id: row.contact, name: "", phone: "", initials: "" }}
-            // A real call opens its chat; the `/demo` rows open the mock call.
-            onOpen={() => {
-              if (!row.chat) return navigate("chat/call");
-              dispatch({ type: "open", chat: row.chat });
-              navigate("chat/conversation");
-            }}
-            t={t}
-          />
-        ))
+        <>
+          {state.calls.map((row) =>
+            row.deleted ? (
+              <DeletedCallRow key={row.id} id={row.id} />
+            ) : (
+              <CallRowFace
+                key={row.id}
+                row={row}
+                contact={state.contacts.find((c) => c.id === row.contact) ?? { id: row.contact, name: "", phone: "", initials: "" }}
+                // A real call opens its chat; the `/demo` rows open the mock call.
+                onOpen={() => {
+                  if (!row.chat) return navigate("chat/call");
+                  dispatch({ type: "open", chat: row.chat });
+                  navigate("chat/conversation");
+                }}
+                t={t}
+              />
+            ),
+          )}
+          {/* The older calls, near the end of the log (the real chat only). */}
+          {paging?.moreCalls && (
+            <PageEdge onReach={paging.loadMoreCalls} count={state.calls.length} testId="demo-chat-more-calls" />
+          )}
+        </>
       )}
       <Toast text={notice ?? toast} bottom={TAB_BAR.height + 24} fixed />
 
@@ -425,9 +450,19 @@ function ChatList() {
           else setStarting(false);
         }}
         onSync={extras?.syncContacts}
+        ownPhone={extras?.ownPhone}
+        invites={extras?.invites}
+        onInvite={invite}
         onClose={() => setStarting(false)}
         t={t}
       />
+      {extras && (
+        <InviteSheet
+          contact={inviting}
+          onClose={() => setInviting(null)}
+          onCopied={() => showToast(translateFunction("Link copied to clipboard!"))}
+        />
+      )}
       {extras && (
         <RemindersSheet
           open={showReminders}
@@ -1004,6 +1039,52 @@ const VIDEO_LABEL: Record<CallKind, DemoKey> = {
   noAnswer: "No Answer",
   outgoing: "Outgoing Video Call !",
 };
+
+/**
+ * A call the shopper deleted (D-36b, no XD board): the Calls tab's row with
+ * nothing about the call, because they deleted it to hide who and when. A grey
+ * box with a crossed-out phone takes the photo's place, so the row lines up
+ * with the others; a tap does nothing.
+ */
+function DeletedCallRow({ id }: { id: string }) {
+  const nameTop = textTop(30, 16);
+  return (
+    <div
+      data-pw={`demo-call-deleted-${id}`}
+      className="relative flex items-start w-full shrink-0"
+      style={{ height: 90, marginTop: 2, background: C.page }}
+    >
+      <span
+        aria-hidden="true"
+        className="flex items-center justify-center shrink-0"
+        style={{ marginInlineStart: 12, marginTop: 12, width: 66, height: 66, borderRadius: 15, background: C.field }}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width={28}
+          height={28}
+          fill="none"
+          stroke={C.grey}
+          strokeWidth={1.6}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M10.7 13.3a16 16 0 0 0 3.4 2.6l1.3-1.3a1.5 1.5 0 0 1 1.6-.3c.8.3 1.6.5 2.5.6A1.5 1.5 0 0 1 20.8 16.4v2.7a1.5 1.5 0 0 1-1.6 1.5A17.6 17.6 0 0 1 8.6 15.4M5.6 12A17.6 17.6 0 0 1 3.4 4.8 1.5 1.5 0 0 1 4.9 3.2h2.7a1.5 1.5 0 0 1 1.5 1.3c.1.9.3 1.7.6 2.5a1.5 1.5 0 0 1-.3 1.6L8.1 9.9" />
+          <path d="M21 3 3 21" />
+        </svg>
+      </span>
+      <div className="flex flex-col min-w-0 grow" style={{ marginInlineStart: 12, marginTop: nameTop }}>
+        <Txt size={16} weight="medium">
+          {translateFunction("Deleted Call")}
+        </Txt>
+        <Txt size={12} color={C.grey} mt={textTop(52, 12) - (nameTop + lineBox(16))} style={{ letterSpacing: "0.012em" }}>
+          {translateFunction("Call details are hidden")}
+        </Txt>
+      </div>
+      <Stroke color={C.line} width={0.3} />
+    </div>
+  );
+}
 
 /**
  * One row of the Calls tab: 90 tall, `#FCFCFC`, the photo 66 x 66, the name

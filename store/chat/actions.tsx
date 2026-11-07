@@ -391,17 +391,26 @@ export async function getContacts() {
     });
   }
 }
-export const getMedia = async (id, media) => {
+/** How many messages a page of one kind of media holds. */
+export const MEDIA_PAGE_SIZE = 10;
+
+/**
+ * Answers with a page of the chat's media of one kind, newest first, or null
+ * when the chat backend failed. With `before`, the page before that message.
+ */
+export const getMedia = async (id, media, before = undefined) => {
   // A `ch-<user id>` chat is a placeholder with no channel on the backend yet.
-  if (typeof id === "string" && id.includes("ch")) return;
+  if (typeof id === "string" && id.includes("ch")) return [];
   const { editChatInfoMedia } = useAppStore.getState();
   try {
     let response = await fetchData({
-      url: `/api/v1/messages/messages_of_channel/${id}?limit=10&message_type=${media}`,
+      url: `/api/v1/messages/messages_of_channel/${id}?limit=${MEDIA_PAGE_SIZE}&message_type=${media}`,
       reqTitle: REQUESTS_DATA.GET_MEDIA_FOR_A_CHANNEL,
+      // The chat backend reads the cursor from the body only (see `getPage`).
       body: JSON.stringify({
-        limit: 10,
+        limit: MEDIA_PAGE_SIZE,
         message_type: media,
+        ...(before ? { message_id: before } : {}),
       }),
       method: "POST",
       server: "chat",
@@ -411,12 +420,14 @@ export const getMedia = async (id, media) => {
     if (!response.success) {
       throw new Error(response.message);
     }
-    editChatInfoMedia({ id: id, data: response.data, media: media });
+    if (!before) editChatInfoMedia({ id: id, data: response.data, media: media });
+    return response.data;
   } catch (e) {
     LogError({
       scenario: "Error in getMedia in  chat/actions",
       error: e instanceof Error ? e.message : String(e),
     });
+    return null;
   }
 };
 export const getMediaReducer = (media, data) => {

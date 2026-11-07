@@ -1,14 +1,15 @@
 import { isPinned, nextCursor } from "components/Chat/components/GetMoreChats";
-import chatService from "services/chat";
+import chatService, { CALLS_PAGE_SIZE } from "services/chat";
 import { useAppStore } from "store";
 import { getPage } from "store/chat/actions";
 import { sortMessages } from "store/chat/messageOrder";
 import { findChannel } from "./chatActions";
 
 /**
- * Loading the chats and the messages a page at a time. Stage 6, step 4.
+ * Loading the chats, the calls and the messages a page at a time. Stage 6,
+ * step 4.
  *
- * Both use the old chat's calls and its rules for "there is no more":
+ * All use the old chat's calls and its rules for "there is no more":
  *  - chats: GetMoreChats.tsx (`getChats` from the cursor `nextCursor`, the
  *    pinned chats left out of it; the end is a page with no new chat);
  *  - messages: ConversationContainer.tsx (`getPage` before the oldest
@@ -35,6 +36,24 @@ export async function loadMoreChats(): Promise<PageResult> {
   // The backend repeats the pinned chats on every page, and may repeat one
   // row at the page edge: only a chat not held before means there is more.
   return page.some((c) => !(data ?? []).some((d) => sameId(d.id, c.id))) ? "more" : "done";
+}
+
+/**
+ * Loads the page of calls before the oldest loaded one (the old CallList's
+ * rule). A short page is the last one, and so is a page with no call we do not
+ * hold: without that, the end of the log would ask again on every scroll.
+ */
+export async function loadOlderCalls(): Promise<PageResult> {
+  const calls: { id: unknown; created_at: string }[] = useAppStore.getState().calls ?? [];
+  const oldest = calls.reduce<(typeof calls)[number] | null>(
+    (first, call) => (!first || new Date(call.created_at) < new Date(first.created_at) ? call : first),
+    null,
+  );
+  if (!oldest) return "done";
+  const page: { id: unknown }[] | null = await chatService.getCalls(oldest.id as string);
+  if (!Array.isArray(page)) return "again";
+  const fresh = page.some((c) => !calls.some((held) => sameId(held.id, c.id)));
+  return page.length < CALLS_PAGE_SIZE || !fresh ? "done" : "more";
 }
 
 /** Loads the page of messages before the oldest loaded one of this chat. */

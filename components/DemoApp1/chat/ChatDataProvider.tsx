@@ -2,12 +2,21 @@
 
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { autoSaveMissedMedia, getAutoDownloadMode, setAutoDownloadMode } from "components/Chat/autoDownload";
+import { canonicalPhone, phoneRegion } from "components/Chat/contactPhone";
 import { findChat } from "components/Chat/findChat";
 import { openChatFromList } from "components/Chat/openChatFromList";
-import chatService from "services/chat";
+import chatService, { CALLS_PAGE_SIZE } from "services/chat";
 import home from "services/home";
 import { useAppStore } from "store";
-import { CancelMessageReminder, GetArchivedChats, GetMyReminders, GetTaggedMessages } from "store/chat/actions";
+import {
+  CancelMessageReminder,
+  GetArchivedChats,
+  GetMyReminders,
+  GetTaggedMessages,
+  MEDIA_PAGE_SIZE,
+  getMedia,
+} from "store/chat/actions";
 import { openMessageInChat } from "components/Chat/openMessageInChat";
 import { canPickContacts, syncPhoneContacts } from "components/Chat/contactsSync";
 import { translateFunction } from "utils/functions";
@@ -28,8 +37,8 @@ import {
   sendVideoFile,
   sendVoiceNote,
 } from "./chatSend";
-import { toChatState, toMessages, wordsOf, type MapWords } from "./chatMapper";
-import { loadMoreChats, loadOlderMessages, type PageResult } from "./chatPaging";
+import { toChatState, toInviteContact, toMessages, wordsOf, type MapWords } from "./chatMapper";
+import { loadMoreChats, loadOlderCalls, loadOlderMessages, type PageResult } from "./chatPaging";
 import { startCall } from "./chatCalls";
 import type { ChatAction } from "./chatModel";
 import { appScreenFromPath } from "../appScreenPaths";
@@ -89,6 +98,8 @@ export function ChatDataProvider({
   const profilePhone = useAppStore((s) => (s as { userProfile?: { phone?: string } | null }).userProfile?.phone);
   const jump = useAppStore((s) => s.jumpToMessageId);
   const userChat = useAppStore((s) => s.userChat);
+  const accountPhone = useAppStore((s) => (s as { user?: { phone?: string } | null }).user?.phone);
+  const country = useAppStore((s) => (s as { country?: string }).country);
   const chatsLoading = useAppStore((s) => s.chat_loading);
   const liveCallId = useAppStore((s) => s.MessageActiveCall);
   const calling = useAppStore((s) => s.isCallIncoming || !!s.callInProgress);
@@ -114,11 +125,12 @@ export function ChatDataProvider({
   /** The chat whose pages are being walked, so one walk runs at a time. */
   const walking = useRef<string | null>(null);
   const nav = useContext(NavCtx);
-  /** The chat list reached its end, and the chats whose messages did. */
+  /** The chat list reached its end, the call log did, and the chats whose messages did. */
   const [chatsDone, setChatsDone] = useState(false);
+  const [callsDone, setCallsDone] = useState(false);
   const [olderDone, setOlderDone] = useState<readonly string[]>([]);
   /** A page on its way, so a second one is not asked for meanwhile. */
-  const pageLoading = useRef({ chats: false, older: null as string | null });
+  const pageLoading = useRef({ chats: false, calls: false, older: null as string | null });
 
   const myId = userChat?.id;
 
@@ -281,6 +293,13 @@ export function ChatDataProvider({
 
   const viewing = pending ?? (oneChat ? openId : null);
 
+  // Media that came while the page was closed, by the "Save To Gallery" choice.
+  // Messages load in steps, so this runs as they arrive; the file list in
+  // autoDownload.ts stops any repeat.
+  useEffect(() => {
+    if (oneChat) autoSaveMissedMedia(open?.id, open?.messages, myId);
+  }, [oneChat, open?.id, open?.messages, myId]);
+
   useEffect(
     () => () => {
       if (noticeTimer.current) clearTimeout(noticeTimer.current);
@@ -372,6 +391,18 @@ export function ChatDataProvider({
           pageLoading.current.chats = false;
         });
     },
+    // A short first page is the whole log.
+    moreCalls: enabled && !callsDone && (calls?.length ?? 0) >= CALLS_PAGE_SIZE,
+    loadMoreCalls: () => {
+      if (pageLoading.current.calls || callsDone) return;
+      pageLoading.current.calls = true;
+      void loadOlderCalls().then((result: PageResult) => {
+        // The lock stays on at the end: `callsDone` comes only with the next
+        // draw, and the page edge may ask again before it.
+        pageLoading.current.calls = result === "done";
+        if (result === "done") setCallsDone(true);
+      });
+    },
     moreOlder: (chat) => enabled && !chat.startsWith("ch-") && !olderDone.includes(chat),
     loadOlder: (chat) => {
       if (pageLoading.current.older || olderDone.includes(chat)) return;
@@ -394,6 +425,10 @@ export function ChatDataProvider({
     FileMessage: words.file,
     ShareProduct: words.product,
   };
+  // The shopper's own number, and the region their phone book's numbers are in.
+  const myPhone = userChat?.mobile_phone || accountPhone;
+  const region = phoneRegion(myPhone, country);
+  const ownPhone = canonicalPhone(myPhone, region);
   const extras: ChatExtras = {
     reminders: (reminders ?? [])
       .map((r) => ({
@@ -425,6 +460,18 @@ export function ChatDataProvider({
         const raw = found.find((f) => String(f.id) === m.id);
         return m.kind === "day" || !raw ? [] : [{ id: m.id, text: wordsOf(raw, words), time: m.time }];
       });
+    },
+    ownPhone,
+    invites: enabled ? (book ?? []).flatMap((c) => toInviteContact(c, region, ownPhone) ?? []) : [],
+    autoDownload: { read: getAutoDownloadMode, write: setAutoDownloadMode },
+    media: async (chat, type, before) => {
+      const found = await getMedia(chat, type, before);
+      if (!found) return null;
+      // The conversation's order is oldest first; the sheet adds older pages at its end.
+      const messages = toMessages(found, ctx)
+        .filter((m) => m.kind !== "day")
+        .reverse();
+      return { messages, more: found.length >= MEDIA_PAGE_SIZE };
     },
   };
 
