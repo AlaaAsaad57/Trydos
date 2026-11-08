@@ -35,8 +35,7 @@ import {
  *
  * The foot size is `foot_size` on the backend (C-1). The column is nullable, so
  * the field is optional, and it is sent only when it changed: a customer with
- * null who saves a new height keeps null. The backend has given no limit for
- * it, so the only check is that it is a number.
+ * null who saves a new height keeps null. A value must be an EU size, 20–55.
  *
  * On /demo the banner and the fields keep 12 px to both edges of the screen
  * (fluid, 406 on a 430 px phone); `Field` and `InfoBanner` do it.
@@ -77,7 +76,9 @@ export function bodyError(
     return "Height must be between 110 and 250 cm";
   if (!weight) return "Weight is required";
   if (!(kg >= 40 && kg <= 180)) return "Weight must be between 40 and 180 kg";
-  if (foot && !Number.isFinite(Number(foot))) return "Foot size must be a number";
+  const eu = Number(foot);
+  if (foot && !(eu >= 20 && eu <= 55))
+    return "Foot size must be between 20 and 55";
   return null;
 }
 

@@ -77,7 +77,7 @@ blocks Stage 2. D-34 (which wallet balance is the truth) is parked by A-17: no w
 | D-24 | "Web" / "lock" switches | **Still open; the owner delays the answer (2026-11-04).** Until answered they follow A-8: shown, no effect. Stage 4 does not wait for it. |
 | D-25 | "Get trydos Business" | Opens become-a-seller. |
 | D-26 / D-27 | Phone in profile | Request only, as in the design ("Change my Phone Number Request", backend C-4, A-8 until then). The old instant phone edit and the alternative phone are dropped. So the "phone change in profile" flow in D-14 is not needed. |
-| D-28 | Body save | Same pattern as the new Personal info screen (Edit / Cancel, then save). The designer must check it, because the Body board has no such button. Old limits stay: height 110–250 cm, weight 40–180 kg. The foot limit is set with backend item C-1. |
+| D-28 | Body save | Same pattern as the new Personal info screen (Edit / Cancel, then save). The designer must check it, because the Body board has no such button. Old limits stay: height 110–250 cm, weight 40–180 kg. The foot size is optional, EU 20–55 (owner, 2026-11-08; backend item C-1). |
 | D-29 | Address | The design's map card becomes a real map (old `Map` component) that sets `latitude` / `longitude`. Contact name and phone come from the profile. The default address is the backend `is_default` flag, used as it is. The new UI adds no control to change it (A-9). Known risk: when no address has `is_default: 1`, checkout shows no address, and the shopper picks one from the list in checkout (as today). |
 | D-30 | Place levels | Waits for the backend (C-9, S-1). |
 | D-31 | Client info | A-8 applies: real values from `/customer/info` where they exist (C-6), empty where not. "Verified" never shows for a guest. |
@@ -698,7 +698,7 @@ What was built:
   the two request buttons say "Soon available". Client ID: real id, name and phone; the QR is still the drawn one.
 - Personal info: name and gender save with `auth.UpdateProfile` (only changed fields); a new e-mail opens the
   code sheet, which ends in "Soon available" and saves no e-mail (S4-8).
-- Body: Edit / Cancel / "Add & save" (D-28), limits 110–250 cm and 40–180 kg; the foot size is optional and saved as `foot_size` (C-1).
+- Body: Edit / Cancel / "Add & save" (D-28), limits 110–250 cm and 40–180 kg; the foot size is optional, EU 20–55, and saved as `foot_size` (C-1).
 - Photo: the picked file uploads (`UpdateProfileImage`), "Add & save" saves its path, "Remove" saves none.
 - Address list: real list; delete = `address_deleted` + the delete call + the store, as checkout; edit opens the
   form through `startUpdateAddress`. Address form: the store's `addressDetails`; the live map (D-29); the URL's

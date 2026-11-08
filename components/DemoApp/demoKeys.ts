@@ -496,7 +496,7 @@ export const DEMO_KEYS = [
   "Height must be between 110 and 250 cm",
   "Weight is required",
   "Weight must be between 40 and 180 kg",
-  "Foot size must be a number",
+  "Foot size must be between 20 and 55",
   // The photo screen: the old photo form's refusal text.
   "File upload failed.",
 ] as const;

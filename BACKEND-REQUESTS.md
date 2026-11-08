@@ -32,7 +32,7 @@
 
 | # | Screen | What we need | Today | Depends on |
 |---|---|---|---|---|
-| C-1 | Profile → Body | A **foot size** field on the profile (read and update), next to `tall` and `weight`. | **Done.** Nullable `foot_size`: `/customer/info` and `/customer/update-profile` return it, and update-profile accepts it. The app reads and saves it. No limit given yet. | — |
+| C-1 | Profile → Body | A **foot size** field on the profile (read and update), next to `tall` and `weight`. | **Done.** Nullable `foot_size`: `/customer/info` and `/customer/update-profile` return it, and update-profile accepts it. The app reads and saves it, and allows EU sizes 20–55. | — |
 | C-2 | Profile → Personal info | **E-mail verification:** send a code to the new e-mail, then verify it. | E-mail is saved with no check. | — |
 | C-3 | Profile → Client info | **Delete my account request** endpoint. | No endpoint. | — |
 | C-4 | Profile → Client info | **Change my phone number request** endpoint, as a request, not an instant change. | Phone changes at once with an OTP (`/auth/phone/verify_otp`). | D-26 |

@@ -236,7 +236,11 @@ describe("body measurements on real data", () => {
     expect(bodyError("170", "70"), "a height and weight inside the limits should pass").toBeNull();
     expect(bodyError("170", "70", "42.5"), "a half foot size should pass").toBeNull();
     expect(bodyError("170", "70", ""), "the foot size is optional").toBeNull();
-    expect(bodyError("170", "70", "."), "a lone dot is not a foot size").toBe("Foot size must be a number");
+    expect(bodyError("170", "70", "20"), "EU 20 is the smallest foot size allowed").toBeNull();
+    expect(bodyError("170", "70", "55"), "EU 55 is the largest foot size allowed").toBeNull();
+    expect(bodyError("170", "70", "19.5"), "a foot size under 20 should be refused").toBe("Foot size must be between 20 and 55");
+    expect(bodyError("170", "70", "55.5"), "a foot size over 55 should be refused").toBe("Foot size must be between 20 and 55");
+    expect(bodyError("170", "70", "."), "a lone dot is not a foot size").toBe("Foot size must be between 20 and 55");
   });
 
   const foot = () => document.querySelector<HTMLInputElement>('[data-pw="demo-body-foot"]')!;
@@ -292,13 +296,13 @@ describe("body measurements on real data", () => {
     );
   });
 
-  it("refuses a foot size that is not a number and sends nothing", async () => {
+  it("refuses a foot size outside 20 to 55 and sends nothing", async () => {
     draw(<BodyScreen />);
     fireEvent.click(screen.getByText("Edit"));
-    type("demo-body-foot", "4.2.1");
+    type("demo-body-foot", "99");
     await act(async () => fireEvent.click(save()!));
-    expect(screen.queryByText("Foot size must be a number"), "the refusal should be said in a toast").not.toBeNull();
-    expect(auth.UpdateProfile, "a foot size that is not a number must not be sent").not.toHaveBeenCalled();
+    expect(screen.queryByText("Foot size must be between 20 and 55"), "the refusal should be said in a toast").not.toBeNull();
+    expect(auth.UpdateProfile, "a foot size outside 20 to 55 must not be sent").not.toHaveBeenCalled();
   });
 
   it("puts the foot size back on Cancel", () => {
