@@ -267,6 +267,8 @@ export const XD_ICON_SIZE = {
   buyPlusTail: { w: 33, h: 33 },
   buyPriceHelp: { w: 12, h: 12 },
   buyHeart: { w: 25, h: 25 },
+  // The liked state: buyHeart's outer line only, filled. The XD file has no liked heart.
+  buyHeartFilled: { w: 25, h: 25 },
   buyComment: { w: 25, h: 25 },
   buySend: { w: 25, h: 25 },
   buySizeMark: { w: 14, h: 14 },

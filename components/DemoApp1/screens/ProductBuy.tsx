@@ -317,7 +317,7 @@ function HeartMark({ t }: { t: T }) {
       pressed={like.liked}
       onPress={like.toggle}
     >
-      <LikeHeart liked={like.liked} burst={like.burst} outline="buyHeart" filled="productHeartFilled" size={25} />
+      <LikeHeart liked={like.liked} burst={like.burst} outline="buyHeart" filled="buyHeartFilled" size={25} />
     </BarMark>
   );
 }
@@ -1058,7 +1058,16 @@ function CardLine({ w, h }: { w: number; h: number }) {
   );
 }
 
-/** The card over the dimmed page, at (108, 112): the store page's card with round corners, 30 on top and 15 under. */
+/**
+ * The card over the dimmed page, at (108, 112): the store page's card with round
+ * corners, 30 on top and 15 under.
+ *
+ * The photo fills the top, so only the footer has a background, and that white is
+ * a little transparent, as the file's panels are (0.999 rounds up to opaque and
+ * does not help). In a short window the card is
+ * scaled, and if opaque parts cover its whole box, Chromium treats the box as
+ * opaque and draws dark square corners around the round ones.
+ */
 function BuyCard({
   product,
   store,
@@ -1083,7 +1092,7 @@ function BuyCard({
   return (
     <motion.article
       data-pw="demo-buy-card"
-      className="absolute bg-white"
+      className="absolute"
       initial={{ opacity: 0, y: 24, scale: scale * 0.96 }}
       animate={{ opacity: 1, y: 0, scale }}
       exit={{ opacity: 0, y: 24, scale: scale * 0.96 }}
@@ -1112,7 +1121,7 @@ function BuyCard({
         </div>
         <SwatchPicker colors={product.colors} selected={colorIndex} onSelect={onColor} onOpen={() => {}} t={t} />
       </div>
-      <div className="relative w-full" style={{ height: FOOTER_H }}>
+      <div className="relative w-full" style={{ height: FOOTER_H, borderRadius: "0 0 15px 15px", background: "rgba(255, 255, 255, 0.9976)" }}>
         <CardLogo store={store} />
         <ProductName product={product} t={t} />
         <LabelTurns
