@@ -1,15 +1,15 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
-import Illustration from "public/images/notifications.png";
-import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
+import { C, CTA, ROW, lineBox } from "components/DemoApp1/demo1Layout";
+import {
+  NotificationPromptSheet,
+  PromptButton,
+  PromptText,
+} from "./NotificationPromptSheet";
 import NotSupportedNotificationsWidget from "./NotSupportedNotificationsWidget";
 
 interface NotificationWidgetProps {
@@ -29,12 +29,6 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
     position = "bottom-right",
   } = props;
   const { language, setNotificationModal } = useAppStore();
-
-  // Arabic and Kurdish read right to left. Nothing above this card sets the
-  // direction — `<html dir>` is commented out in app/(client)/[lang]/layout.tsx
-  // — so the card says it itself, the same way every card in
-  // components/global/NotificationsContainer.tsx already does.
-  const isRtl = language === "ar" || language === "ku";
 
   const [isClient, setIsClient] = useState(false);
   const [isSupported, setIsSupported] = useState<boolean | null>(null);
@@ -168,13 +162,6 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
     handleClose();
   }, [handleClose, onDismiss]);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (e.key === "Escape") handleDismissClick();
-    },
-    [handleDismissClick],
-  );
-
   if (!isClient || isSupported === null) return null;
 
   if (!isSupported) {
@@ -187,81 +174,54 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
   }
 
   return (
-    <div
-      role="dialog"
-      aria-label="Notification permission prompt"
-      aria-live="polite"
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-      className={[
-        "fixed flex justify-center items-center top-0 z-9999999999 w-full backdrop-brightness-75 left-0 right-0 mx-auto h-dvh",
-        "pointer-events-auto",
-      ].join(" ")}
+    <NotificationPromptSheet
+      label="Notification permission prompt"
+      title={translateFunction("Stay in the loop", language)}
+      height={580}
+      onClose={handleDismissClick}
+      className={className}
+      testId="notification-permission-widget"
     >
-      <div
-        dir={isRtl ? "rtl" : "ltr"}
-        data-pw="notification-permission-widget"
-        className={[
-          "group w-[min(92vw,28rem)] sm:w-md regular",
-          "rounded-2xl bg-white",
-          "shadow-xl ring-1 ring-black/5",
-          "border border-zinc-100",
-          "px-4 py-4 sm:px-5 sm:py-5",
-          "transition-all duration-300",
-
-          className || "",
-        ].join(" ")}
+      <PromptText>
+        {translateFunction(
+          "Enable notifications for a more effortless shopping experience:",
+          language,
+        )}
+      </PromptText>
+      <ul
+        className="regular shrink-0 list-disc"
+        style={{
+          marginTop: 14,
+          marginInline: CTA.x,
+          paddingBlock: 12,
+          paddingInline: "30px 12px",
+          borderRadius: ROW.radius,
+          background: C.card,
+          fontSize: 14,
+          lineHeight: `${lineBox(14)}px`,
+          color: C.ink,
+        }}
       >
-        <div className="flex-col items-start gap-4">
-          <Image
-            src={Illustration.src}
-            width={300}
-            height={350}
-            alt="Illustration"
-            quality={100}
-          />
-          <div className="flex-1">
-            <h3 className="text-zinc-900 text-base font-semibold tracking-tight">
-              {translateFunction("Stay in the loop", language)}
-            </h3>
-            <p className="mt-1 text-sm text-zinc-700">
-              {translateFunction(
-                "Enable notifications for a more effortless shopping experience:",
-                language,
-              )}
-            </p>
-            <ul className="mt-2 text-sm text-zinc-700 list-disc ps-5 space-y-1">
-              <li>{translateFunction("Chat messages", language)}</li>
-              <li>{translateFunction("Order updates", language)}</li>
-              <li>
-                {translateFunction("New boutiques & categories", language)}
-              </li>
-              <li>
-                {translateFunction(
-                  "Back-in-stock and quantity alerts",
-                  language,
-                )}
-              </li>
-            </ul>
-            <div className="mt-4 flex items-center gap-2">
-              <button
-                onClick={handleAllowClick}
-                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-[#1d1d1d] bg-[#ff6464] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition cursor-pointer"
-                aria-label="Allow notifications"
-              >
-                {translateFunction("Allow", language)}
-              </button>
-              <button
-                onClick={handleDismissClick}
-                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-zinc-800 bg-zinc-100 hover:bg-zinc-200 shadow-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:scale-[.98] transition cursor-pointer"
-                aria-label="Not now"
-              >
-                {translateFunction("Not now", language)}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+        <li>{translateFunction("Chat messages", language)}</li>
+        <li>{translateFunction("Order updates", language)}</li>
+        <li>{translateFunction("New boutiques & categories", language)}</li>
+        <li>
+          {translateFunction("Back-in-stock and quantity alerts", language)}
+        </li>
+      </ul>
+      <PromptButton
+        primary
+        mt={20}
+        label={translateFunction("Allow", language)}
+        ariaLabel="Allow notifications"
+        onClick={handleAllowClick}
+      />
+      <PromptButton
+        mt={8}
+        label={translateFunction("Not now", language)}
+        ariaLabel="Not now"
+        onClick={handleDismissClick}
+      />
+    </NotificationPromptSheet>
   );
 }
