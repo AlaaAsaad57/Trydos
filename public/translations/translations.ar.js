@@ -568,7 +568,7 @@ const translations = {
   "Weight is required": "الوزن مطلوب",
   "Height must be between 110 and 250 cm": "يجب أن يكون الطول بين 110 و 250 سم",
   "Foot Size": "مقاس القدم",
-  "Foot size must be a number": "يجب أن يكون مقاس القدم رقمًا",
+  "Foot size must be between 20 and 55": "يجب أن يكون مقاس القدم بين 20 و 55",
   "Weight must be between 40 and 180 kg": "يجب أن يكون الوزن بين 40 و 180 كجم",
   "000 CM": "000 سم",
   "Loading...": "جاري التحميل...",
