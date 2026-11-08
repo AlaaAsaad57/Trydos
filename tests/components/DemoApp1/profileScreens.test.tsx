@@ -234,18 +234,80 @@ describe("body measurements on real data", () => {
     expect(bodyError("100", "70"), "a height under 110 cm should be refused").toBe("Height must be between 110 and 250 cm");
     expect(bodyError("170", "200"), "a weight over 180 kg should be refused").toBe("Weight must be between 40 and 180 kg");
     expect(bodyError("170", "70"), "a height and weight inside the limits should pass").toBeNull();
+    expect(bodyError("170", "70", "42.5"), "a half foot size should pass").toBeNull();
+    expect(bodyError("170", "70", ""), "the foot size is optional").toBeNull();
+    expect(bodyError("170", "70", "."), "a lone dot is not a foot size").toBe("Foot size must be a number");
   });
 
-  it("sends the height and the weight, and not the foot size (no backend field, C-1)", async () => {
+  const foot = () => document.querySelector<HTMLInputElement>('[data-pw="demo-body-foot"]')!;
+  const type = (testId: string, value: string) =>
+    fireEvent.change(document.querySelector(`[data-pw="${testId}"]`)!, { target: { value } });
+  const save = () => document.querySelector('[data-pw="demo-body-save"]');
+
+  it("sends the height and the weight, and no foot size when the foot size did not change", async () => {
     draw(<BodyScreen />);
     fireEvent.click(screen.getByText("Edit"));
-    fireEvent.change(document.querySelector('[data-pw="demo-body-height"]')!, { target: { value: "170" } });
-    fireEvent.change(document.querySelector('[data-pw="demo-body-foot"]')!, { target: { value: "42" } });
-    await act(async () => fireEvent.click(document.querySelector('[data-pw="demo-body-save"]')!));
-    expect(auth.UpdateProfile, "the height and weight should be sent as numbers, with no foot size").toHaveBeenCalledWith(
+    type("demo-body-height", "170");
+    await act(async () => fireEvent.click(save()!));
+    expect(auth.UpdateProfile, "an untouched foot size must not be sent, so a customer with null keeps null").toHaveBeenCalledWith(
       { tall: 170, weight: 60 },
       expect.anything(),
     );
+  });
+
+  it("starts the foot size from the profile's foot_size", () => {
+    useAppStore.setState({ userProfile: { ...SHOPPER, foot_size: 38 } } as any);
+    draw(<BodyScreen />);
+    expect(foot().value, "the foot size field should show foot_size from /customer/info").toBe("38");
+  });
+
+  it("shows an empty foot size for a customer whose foot_size is null", () => {
+    useAppStore.setState({ userProfile: { ...SHOPPER, foot_size: null } } as any);
+    draw(<BodyScreen />);
+    expect(foot().value, "a null foot_size should be an empty field, not the word null").toBe("");
+  });
+
+  it("offers Add & save when only the foot size changed, and sends foot_size", async () => {
+    draw(<BodyScreen />);
+    fireEvent.click(screen.getByText("Edit"));
+    expect(save(), "no change yet, so there is nothing to save").toBeNull();
+    type("demo-body-foot", "42.5");
+    expect(save(), "a change to the foot size alone should offer Add & save").not.toBeNull();
+    await act(async () => fireEvent.click(save()!));
+    expect(auth.UpdateProfile, "the core backend should get foot_size as a number").toHaveBeenCalledWith(
+      { tall: 165, weight: 60, foot_size: 42.5 },
+      expect.anything(),
+    );
+  });
+
+  it("sends a cleared foot size as null, since the column is nullable", async () => {
+    useAppStore.setState({ userProfile: { ...SHOPPER, foot_size: 38 } } as any);
+    draw(<BodyScreen />);
+    fireEvent.click(screen.getByText("Edit"));
+    type("demo-body-foot", "");
+    await act(async () => fireEvent.click(save()!));
+    expect(auth.UpdateProfile, "clearing the field should send foot_size: null").toHaveBeenCalledWith(
+      { tall: 165, weight: 60, foot_size: null },
+      expect.anything(),
+    );
+  });
+
+  it("refuses a foot size that is not a number and sends nothing", async () => {
+    draw(<BodyScreen />);
+    fireEvent.click(screen.getByText("Edit"));
+    type("demo-body-foot", "4.2.1");
+    await act(async () => fireEvent.click(save()!));
+    expect(screen.queryByText("Foot size must be a number"), "the refusal should be said in a toast").not.toBeNull();
+    expect(auth.UpdateProfile, "a foot size that is not a number must not be sent").not.toHaveBeenCalled();
+  });
+
+  it("puts the foot size back on Cancel", () => {
+    useAppStore.setState({ userProfile: { ...SHOPPER, foot_size: 38 } } as any);
+    draw(<BodyScreen />);
+    fireEvent.click(screen.getByText("Edit"));
+    type("demo-body-foot", "40");
+    fireEvent.click(screen.getByText("Cancel"));
+    expect(foot().value, "Cancel should put back the saved foot size").toBe("38");
   });
 
   it("says why a value is refused and sends nothing", async () => {

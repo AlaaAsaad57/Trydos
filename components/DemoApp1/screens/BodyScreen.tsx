@@ -29,12 +29,14 @@ import {
  * The file has this one state only: no save button and nothing in the top
  * bar. D-28 adds the save the way Personal info has it: "Edit" in the top
  * bar opens the fields, "Cancel" puts them back, and "Add & save" sends the
- * height and the weight with auth.UpdateProfile, as the old size form did.
+ * measurements with auth.UpdateProfile, as the old size form did.
  * The designer must check it. The old limits stay: height 110–250 cm, weight
  * 40–180 kg; a value out of them says why in a toast.
  *
- * The foot size has no field on the backend yet (C-1), so it is shown as
- * typed and not saved (A-8).
+ * The foot size is `foot_size` on the backend (C-1). The column is nullable, so
+ * the field is optional, and it is sent only when it changed: a customer with
+ * null who saves a new height keeps null. The backend has given no limit for
+ * it, so the only check is that it is a number.
  *
  * On /demo the banner and the fields keep 12 px to both edges of the screen
  * (fluid, 406 on a 430 px phone); `Field` and `InfoBanner` do it.
@@ -66,6 +68,7 @@ const FIELDS: {
 export function bodyError(
   height: string,
   weight: string,
+  foot = "",
 ): DemoKey | null {
   const tall = Number(height);
   const kg = Number(weight);
@@ -74,6 +77,7 @@ export function bodyError(
     return "Height must be between 110 and 250 cm";
   if (!weight) return "Weight is required";
   if (!(kg >= 40 && kg <= 180)) return "Weight must be between 40 and 180 kg";
+  if (foot && !Number.isFinite(Number(foot))) return "Foot size must be a number";
   return null;
 }
 
@@ -86,7 +90,7 @@ export default function BodyScreen() {
   const [values, setValues] = useState<Record<BodyField, string>>({
     height: profile.height,
     weight: profile.weight,
-    foot: "",
+    foot: profile.footSize,
   });
 
   // The profile can arrive after the screen opens. While the shopper is not
@@ -97,14 +101,18 @@ export default function BodyScreen() {
       ...now,
       height: profile.height,
       weight: profile.weight,
+      foot: profile.footSize,
     }));
-  }, [profile.height, profile.weight, editing]);
+  }, [profile.height, profile.weight, profile.footSize, editing]);
 
+  const footChanged = values.foot !== profile.footSize;
   const dirty =
-    values.height !== profile.height || values.weight !== profile.weight;
+    values.height !== profile.height ||
+    values.weight !== profile.weight ||
+    footChanged;
 
   const save = async () => {
-    const error = bodyError(values.height, values.weight);
+    const error = bodyError(values.height, values.weight, values.foot);
     if (error) {
       showToast(t(error));
       return;
@@ -112,7 +120,13 @@ export default function BodyScreen() {
     setSaving(true);
     try {
       await auth.UpdateProfile(
-        { tall: Number(values.height), weight: Number(values.weight) },
+        {
+          tall: Number(values.height),
+          weight: Number(values.weight),
+          ...(footChanged && {
+            foot_size: values.foot === "" ? null : Number(values.foot),
+          }),
+        },
         useAppStore.getState().userProfile,
       );
       setEditing(false);
@@ -125,7 +139,11 @@ export default function BodyScreen() {
   };
 
   const reset = () => {
-    setValues({ height: profile.height, weight: profile.weight, foot: "" });
+    setValues({
+      height: profile.height,
+      weight: profile.weight,
+      foot: profile.footSize,
+    });
     setEditing(false);
   };
 

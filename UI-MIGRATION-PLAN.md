@@ -698,7 +698,7 @@ What was built:
   the two request buttons say "Soon available". Client ID: real id, name and phone; the QR is still the drawn one.
 - Personal info: name and gender save with `auth.UpdateProfile` (only changed fields); a new e-mail opens the
   code sheet, which ends in "Soon available" and saves no e-mail (S4-8).
-- Body: Edit / Cancel / "Add & save" (D-28), limits 110–250 cm and 40–180 kg; the foot size is not saved (C-1).
+- Body: Edit / Cancel / "Add & save" (D-28), limits 110–250 cm and 40–180 kg; the foot size is optional and saved as `foot_size` (C-1).
 - Photo: the picked file uploads (`UpdateProfileImage`), "Add & save" saves its path, "Remove" saves none.
 - Address list: real list; delete = `address_deleted` + the delete call + the store, as checkout; edit opens the
   form through `startUpdateAddress`. Address form: the store's `addressDetails`; the live map (D-29); the URL's

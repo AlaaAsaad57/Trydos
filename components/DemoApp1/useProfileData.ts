@@ -68,6 +68,8 @@ export type ProfileData = {
   imagePath: string | null;
   height: string;
   weight: string;
+  /** `foot_size`; empty when the backend has null. */
+  footSize: string;
   phoneVerified: boolean;
   /** Days since the account was made, or null when the profile has no date. */
   clientSince: number | null;
@@ -200,6 +202,7 @@ export function useProfileData(): ProfileData {
     imagePath: text(profile?.image) || null,
     height: text(profile?.tall),
     weight: text(profile?.weight),
+    footSize: text(profile?.foot_size),
     // Same rule as the bar (useShellData): `is_phone_verified` is reset by
     // register-guest, so a valid phone on record is what counts.
     phoneVerified: signedIn,
