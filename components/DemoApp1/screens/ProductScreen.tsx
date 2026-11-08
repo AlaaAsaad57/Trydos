@@ -28,7 +28,9 @@ import { useDemoNav } from "../Demo1Shell";
 import { useDemoCase } from "../demoCase";
 import { C, fill, lineBox, paraTop, textTop } from "../demo1Layout";
 import { ScreenPage, Stroke } from "../ui";
-import { PhotoGlow, StoreMark, Weighted, type T } from "./ListingParts";
+import { PhotoGlow, Rich, StoreMark, Weighted, type T } from "./ListingParts";
+import { COLOR_GLASS } from "./ListingColorSheet";
+import ProductBuy from "./ProductBuy";
 import { useSettled } from "./useSettled";
 import { ROW_HINT_CLASS, useRowHint } from "./useRowHint";
 import { useSlider } from "./HomeSections";
@@ -54,7 +56,7 @@ import { LikeHeart, useLike } from "./LikeHeart";
  *    the buyers that recommend it and the country.
  *  - Two rows of pills (18 tall, round 6): the price and trend badges at
  *    y 699, and the shipping pills at y 731 (a row that scrolls sideways).
- *  - The colours, y 761: a grey chip, then a 70 x 98 tile for each colour.
+ *  - The colours, y 763: a grey chip, then a 70 x 98 tile for each colour.
  *    A tap on a tile shows that colour's photos in the gallery.
  *  - "Product information" and "Shipping & Delivery": dark chips, with
  *    lists under them; the four shipping promises; three blue trust pills.
@@ -107,48 +109,6 @@ const ROW_SCROLL = "flex w-full overflow-x-auto overflow-y-hidden [scrollbar-wid
 const HINT_ROW_SCROLL = `${ROW_SCROLL} ${ROW_HINT_CLASS}`;
 
 /**
- * The marks of a translated line: `<b>` Bold, `<m>` Medium, `<a>` the blue of
- * a link, `<c>` the blue in Medium. `{name}` is replaced by `values.name`.
- * The translations keep the marks, so each language puts the weights on its
- * own words.
- */
-const MARK = /<(b|m|a|c)>([\s\S]*?)<\/\1>/g;
-
-function Rich({
-  text,
-  values,
-}: {
-  text: string;
-  values?: Record<string, string | number>;
-}) {
-  let line = text;
-  for (const [name, value] of Object.entries(values ?? {}))
-    line = line.split(`{${name}}`).join(String(value));
-  const parts: React.ReactNode[] = [];
-  let last = 0;
-  for (const match of line.matchAll(MARK)) {
-    const at = match.index ?? 0;
-    if (at > last) parts.push(line.slice(last, at));
-    const tag = match[1];
-    parts.push(
-      <span
-        key={at}
-        className={tag === "b" ? "font-bold" : tag === "m" || tag === "c" ? "font-medium" : undefined}
-        style={tag === "a" || tag === "c" ? { color: C.blue } : undefined}
-      >
-        {match[2]}
-      </span>,
-    );
-    last = at + match[0].length;
-  }
-  if (last < line.length) parts.push(line.slice(last));
-  // A `<bdi>`, as on Home (HomeSections): the page stays left to right in
-  // every language, and the line takes its direction from its first letter,
-  // so an Arabic line with numbers and Latin words in it keeps its order.
-  return <bdi>{parts}</bdi>;
-}
-
-/**
  * One header mark: the 20 x 20 icon in a 50 x 50 target round it (the
  * padding is taken back with a negative margin, so the icons stay 20 px apart
  * as in the file). They do nothing yet, like the store page's marks.
@@ -167,7 +127,7 @@ function HeaderMark({ icon, label, testId }: { icon: XdIconName; label: string; 
   );
 }
 
-function Header({ store, t }: { store: DemoStore; t: T }) {
+function Header({ store, marks, t }: { store: DemoStore; marks: boolean; t: T }) {
   const { back } = useDemoNav();
   return (
     <header className="relative w-full" style={{ height: HEADER_BOTTOM - 50, background: C.white }}>
@@ -185,7 +145,11 @@ function Header({ store, t }: { store: DemoStore; t: T }) {
       <div className="absolute" style={{ left: 36, top: 68 - 50 }}>
         <StoreMark store={store} h={15} maxW={100} eager />
       </div>
-      <div className="absolute flex items-center" style={{ right: 12, top: 65 - 50, gap: 20 }}>
+      {/* The size sheet's boards (`Home Page – 57`) draw no marks here: the bag lies in their place. */}
+      <div
+        className="absolute flex items-center"
+        style={{ right: 12, top: 65 - 50, gap: 20, opacity: marks ? 1 : 0, transition: "opacity 0.2s" }}
+      >
         <HeaderMark icon="productBellPurple" label={t("Price alert")} testId="demo-product-price-alert" />
         <HeaderMark icon="productBellYellow" label={t("Stock alert")} testId="demo-product-stock-alert" />
         <HeaderMark icon="productMore" label={t("More options")} testId="demo-product-more" />
@@ -348,6 +312,7 @@ function Chip({
   bg,
   ink,
   minW,
+  small,
   children,
   testId,
 }: {
@@ -355,24 +320,27 @@ function Chip({
   bg: string;
   ink: string;
   minW: number;
+  /** 18 tall, 2 px less above and under: the colour chip of `Home Page – 51`. */
+  small?: boolean;
   children: React.ReactNode;
   testId?: string;
 }) {
+  const inset = small ? 2 : 4;
   return (
     <h2
       data-pw={testId}
       className="relative shrink-0 font-normal whitespace-nowrap"
       style={{
-        height: 22,
+        height: small ? 18 : 22,
         minWidth: minW,
-        padding: "4px 3px 0 26px",
+        padding: `${inset}px 3px 0 26px`,
         borderRadius: 6,
         background: bg,
         color: ink,
         ...LINE_11,
       }}
     >
-      <XdIcon name={icon} className="absolute" style={{ left: 6, top: 4 }} />
+      <XdIcon name={icon} className="absolute" style={{ left: 6, top: inset }} />
       {children}
     </h2>
   );
@@ -511,21 +479,22 @@ function CardRow({
 }
 
 /** The 11 px text after a mark in the rating row, `ml` px after the item before it. */
-function RowText({ ml, children }: { ml: number; children: React.ReactNode }) {
+/** `w`: the room up to the next item's x in the file, so the next item lands there whatever this text's exact width. */
+function RowText({ ml = 0, w, children }: { ml?: number; w?: number; children: React.ReactNode }) {
   return (
-    <span className="block shrink-0 font-normal whitespace-nowrap" style={{ marginLeft: ml, ...LINE_11, color: INK }}>
+    <span className="block shrink-0 font-normal whitespace-nowrap" style={{ marginLeft: ml, minWidth: w, ...LINE_11, color: INK }}>
       {children}
     </span>
   );
 }
 
-function RowMark({ ml, icon }: { ml: number; icon: XdIconName }) {
-  return <XdIcon name={icon} className="shrink-0" style={{ marginLeft: ml }} />;
+function RowMark({ icon }: { icon: XdIconName }) {
+  return <XdIcon name={icon} className="shrink-0" />;
 }
 
 /**
- * The rating row, y 671 – 685. The file places each item by hand, so the
- * gaps are its own: 6 px after a mark, and 7, 5, 4 and 12 px before the bars.
+ * The rating row, y 671 – 685. The file places each item by hand at its own x,
+ * 6 px after a mark. A longer translation pushes the rest along.
  */
 function RatingRow({ t }: { t: T }) {
   return (
@@ -534,32 +503,37 @@ function RatingRow({ t }: { t: T }) {
       className={`${ROW_SCROLL} shrink-0 items-start`}
       style={{ marginTop: 671 - 659, height: 14, padding: "0 14px", overscrollBehaviorX: "contain" }}
     >
-      {/* The stars' box takes in half of their 0.5 px line on each side. */}
-      <span role="img" aria-label={`${PRODUCT_STATS.stars}/5`} className="block shrink-0" style={{ margin: -0.25 }}>
+      {/* The stars take 86 x 14 from x 14. Their picture is 1 px bigger on each side, for their 0.5 px line. */}
+      <span role="img" aria-label={`${PRODUCT_STATS.stars}/5`} className="block shrink-0" style={{ margin: -1 }}>
         <XdIcon name="productStars" />
       </span>
-      <RowText ml={6}>
+      <RowText ml={6} w={190 - 106}>
         <Rich text={t("<b>{count} </b>buyer Rate")} values={{ count: PRODUCT_STATS.raters }} />
       </RowText>
-      <RowText ml={7}>|</RowText>
-      <RowMark ml={6} icon="productEye" />
-      <RowText ml={6}>{PRODUCT_STATS.views}</RowText>
-      <RowText ml={5}>|</RowText>
-      <RowMark ml={6} icon="productBadge" />
-      <RowText ml={6}>{t("Good Quality")}</RowText>
-      <RowText ml={4}>|</RowText>
-      <RowMark ml={6} icon="productPeopleGreen" />
-      <RowText ml={6}>
+      <RowText w={198 - 190}>|</RowText>
+      <RowMark icon="productEye" />
+      <RowText ml={6} w={249 - 218}>{PRODUCT_STATS.views}</RowText>
+      <RowText w={257 - 249}>|</RowText>
+      <RowMark icon="productBadge" />
+      <RowText ml={6} w={350 - 277}>{t("Good Quality")}</RowText>
+      <RowText w={358 - 350}>|</RowText>
+      <RowMark icon="productPeopleGreen" />
+      <RowText ml={6} w={528 - 378}>
         <Rich text={t("<m>recommend it by</m> {count} buyer")} values={{ count: PRODUCT_STATS.recommend }} />
       </RowText>
-      <RowText ml={12}>|</RowText>
-      <RowMark ml={6} icon="productFlagTr" />
+      <RowText w={536 - 528}>|</RowText>
+      <RowMark icon="productFlagTr" />
       <RowText ml={6}>{t("made in turkey")}</RowText>
     </div>
   );
 }
 
-/** The colour chip and a 70 x 98 tile for each colour. The picked tile has a purple line and the glow. */
+/**
+ * The colour chip and a 70 x 98 tile for each colour. The picked tile has a
+ * purple line and the glow. The boards with the buy bar (`Home Page – 51` to
+ * `– 68`) draw the chip 18 tall at y 763 with no help mark, and the tiles at
+ * y 787. `– 49` drew them 2 px lower; the rows after the tiles keep its places.
+ */
 function Colors({
   product,
   picked,
@@ -574,18 +548,17 @@ function Colors({
   const hint = useRowHint<HTMLUListElement>();
   return (
     <>
-      <div className="flex items-start shrink-0" style={{ marginTop: 761 - 749, paddingLeft: 14 }}>
-        <Chip icon="productPalette" bg="#F4F4F4" ink={INK} minW={118} testId="demo-product-colors-chip">
+      <div className="flex items-start shrink-0" style={{ marginTop: 763 - 749, paddingLeft: 14 }}>
+        <Chip icon="productPalette" bg="#F4F4F4" ink={INK} minW={118} small testId="demo-product-colors-chip">
           <Rich text={t("Available <b>{count}</b> Color")} values={{ count: product.colors.length }} />
         </Chip>
-        <HelpMark left={137 - 132} t={t} />
       </div>
       <ul
         ref={hint}
         data-pw="demo-product-colors"
         aria-label={t("Colors")}
         className={`${HINT_ROW_SCROLL} shrink-0 list-none`}
-        style={{ marginTop: 789 - 783, height: 98, gap: 2, padding: "0 14px 0 40px" }}
+        style={{ marginTop: 787 - 781, marginBottom: 2, height: 98, gap: 2, padding: "0 14px 0 40px" }}
       >
         {product.colors.map((color, i) => {
           const on = i === picked;
@@ -1091,6 +1064,7 @@ export default function ProductScreen({ slug, id }: { slug: string; id: string }
   const store = storeBySlug(slug);
   // The colour the tapped card showed; from the server, the product's own colour.
   const [colorIndex, setColorIndex] = useState(() => openColorOf(id) ?? product?.selected ?? 0);
+  const [buying, setBuying] = useState(false);
   if (!product || !store) return null;
   const color = product.colors[colorIndex];
   const photos = galleryOf(product, colorIndex);
@@ -1100,9 +1074,11 @@ export default function ProductScreen({ slug, id }: { slug: string; id: string }
     <ScreenPage
       testId="demo-product"
       bg={C.white}
-      header={<Header store={store} t={t} />}
+      header={<Header store={store} marks={!buying} t={t} />}
       scrollTop={HEADER_BOTTOM}
       contentHeight={BOARD_H}
+      // The size sheet blurs the page behind it (`Home Page – 57`).
+      glass={buying ? COLOR_GLASS : undefined}
       // A long page: the header leaves on a scroll down and comes back on a
       // fast scroll up, the same code as the store page (useHeadOnScroll).
       hideHeadOnScroll
@@ -1203,6 +1179,14 @@ export default function ProductScreen({ slug, id }: { slug: string; id: string }
           </>
         )}
       </article>
+      <ProductBuy
+        product={product}
+        store={store}
+        colorIndex={colorIndex}
+        onColor={setColorIndex}
+        open={buying}
+        onOpen={setBuying}
+      />
     </ScreenPage>
   );
 }

@@ -107,6 +107,48 @@ export function Weighted({
   );
 }
 
+/**
+ * The marks of a translated line: `<b>` Bold, `<m>` Medium, `<a>` the blue of
+ * a link, `<c>` the blue in Medium. `{name}` is replaced by `values.name`.
+ * The translations keep the marks, so each language puts the weights on its
+ * own words.
+ */
+const MARK = /<(b|m|a|c)>([\s\S]*?)<\/\1>/g;
+
+export function Rich({
+  text,
+  values,
+}: {
+  text: string;
+  values?: Record<string, string | number>;
+}) {
+  let line = text;
+  for (const [name, value] of Object.entries(values ?? {}))
+    line = line.split(`{${name}}`).join(String(value));
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  for (const match of line.matchAll(MARK)) {
+    const at = match.index ?? 0;
+    if (at > last) parts.push(line.slice(last, at));
+    const tag = match[1];
+    parts.push(
+      <span
+        key={at}
+        className={tag === "b" ? "font-bold" : tag === "m" || tag === "c" ? "font-medium" : undefined}
+        style={tag === "a" || tag === "c" ? { color: C.blue } : undefined}
+      >
+        {match[2]}
+      </span>,
+    );
+    last = at + match[0].length;
+  }
+  if (last < line.length) parts.push(line.slice(last));
+  // A `<bdi>`, as on Home (HomeSections): the page stays left to right in
+  // every language, and the line takes its direction from its first letter,
+  // so an Arabic line with numbers and Latin words in it keeps its order.
+  return <bdi>{parts}</bdi>;
+}
+
 /** The colours of a badge: its pill, its words, where the words start, and the pill's width in the file. */
 export const BADGE = {
   bag: { bg: "#F4F4FF", ink: "#4A31E7", textAt: 23, minW: 114, radius: "7.05px / 6px" },

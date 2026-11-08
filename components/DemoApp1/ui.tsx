@@ -1439,10 +1439,16 @@ export function Sheet({
   glass = false,
   shadow,
   handleBar = 0,
+  noHandle = false,
+  over,
 }: {
   open: boolean;
   onClose: () => void;
   fit?: boolean;
+  /** No handle line (the size sheet, `Home Page – 57`). The drag on its top still closes it. */
+  noHandle?: boolean;
+  /** What lies on the dimmed page, over the backdrop and beside the sheet (the size sheet's card). */
+  over?: React.ReactNode;
   glass?: boolean;
   /**
    * For a `fit` sheet: the height of a white band at the sheet's top that
@@ -1498,6 +1504,7 @@ export function Sheet({
               transition={{ duration: 0.25 }}
               onClick={onClose}
             />
+            {over}
             <motion.div
               data-pw="demo-sheet-panel"
               className="absolute left-0 w-full overflow-hidden flex flex-col"
@@ -1562,7 +1569,7 @@ export function Sheet({
                 }}
                 onClick={(e) => focusTappedField(e, touch)}
               >
-                {band === 0 && handle}
+                {band === 0 && !noHandle && handle}
                 {children}
               </div>
               {outline && (

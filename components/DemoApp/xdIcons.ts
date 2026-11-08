@@ -222,7 +222,7 @@ export const XD_ICON_SIZE = {
   // The liked state: the heart's outer line only, filled. The XD file has no
   // liked heart, so this one is made from productHeart (and productLove below).
   productHeartFilled: { w: 16, h: 16 },
-  productStars: { w: 86.5, h: 14.5 },
+  productStars: { w: 88, h: 16 },
   productEye: { w: 14, h: 14 },
   productBadge: { w: 14, h: 14 },
   productPeopleGreen: { w: 14, h: 14 },
@@ -260,6 +260,20 @@ export const XD_ICON_SIZE = {
   productPeopleOrange: { w: 14, h: 14 },
   productQuestion: { w: 14, h: 14 },
   productChat: { w: 14, h: 14 },
+  // The product's buy bar and size sheet: `Listing page – 154` and `Home Page – 57`,
+  // `– 59`, `– 67`, `– 68`. buyPlusTail is the plus with its tail, in a box 4 px
+  // bigger on each side than buyPlus, because the tail turns the shape.
+  buyPlus: { w: 25, h: 25 },
+  buyPlusTail: { w: 33, h: 33 },
+  buyPriceHelp: { w: 12, h: 12 },
+  buyHeart: { w: 25, h: 25 },
+  buyComment: { w: 25, h: 25 },
+  buySend: { w: 25, h: 25 },
+  buySizeMark: { w: 14, h: 14 },
+  buySizeBagged: { w: 14, h: 14 },
+  buyBag: { w: 26, h: 26 },
+  buyBell: { w: 16, h: 16 },
+  buyBellOn: { w: 16, h: 16 },
 } as const;
 
 export type XdIconName = keyof typeof XD_ICON_SIZE;
