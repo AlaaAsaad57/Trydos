@@ -492,7 +492,7 @@ const translations = {
   "Height must be between 110 and 250 cm":
     "Boy 110 ile 250 cm arasında olmalıdır",
   "Foot Size": "Ayak numarası",
-  "Foot size must be a number": "Ayak numarası bir sayı olmalıdır",
+  "Foot size must be between 20 and 55": "Ayak numarası 20 ile 55 arasında olmalıdır",
   "Weight must be between 40 and 180 kg":
     "Kilo 40 ile 180 kg arasında olmalıdır",
   "Profile | Countries": "Profil | Ülkeler",

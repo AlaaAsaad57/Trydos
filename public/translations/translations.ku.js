@@ -520,7 +520,7 @@ const translations = {
   "Height must be between 110 and 250 cm":
     "بەرزی دەبێت لە نێوان ١١٠ و ٢٥٠ سەنتیمەتەر بێت",
   "Foot Size": "قەبارەی پێ",
-  "Foot size must be a number": "قەبارەی پێ دەبێت ژمارە بێت",
+  "Foot size must be between 20 and 55": "قەبارەی پێ دەبێت لە نێوان 20 و 55 بێت",
   "Weight must be between 40 and 180 kg":
     "کێش دەبێت لە نێوان ٤٠ و ١٨٠ کیلۆگرام بێت",
   "000 CM": "٠٠٠ سەنتیمەتەر",
