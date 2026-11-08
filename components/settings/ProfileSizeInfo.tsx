@@ -17,7 +17,7 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
   const toWesternNumerals = (val: string) =>
     val.replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
 
-  const formatNum = (val: number | undefined | null) => {
+  const formatNum = (val: number | string | undefined | null) => {
     if (!val && val !== 0) return "";
     return isArabic ? toArabicNumerals(val) : String(val);
   };
@@ -26,10 +26,12 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
    
     tall: initialData?.tall,
     weight: initialData?.weight,
+    foot_size: initialData?.foot_size ?? "",
   });
   const [validationErrors, setValidationErrors] = useState({
     tall: "",
     weight: "",
+    foot_size: "",
   });
   const [showValidation, setShowValidation] = useState(false);
 
@@ -54,6 +56,7 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
     const errors = {
       tall: "",
       weight: "",
+      foot_size: "",
     };
 
     if (!userProfileData.tall) {
@@ -68,15 +71,34 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
       errors.weight = translateFunction("Weight must be between 40 and 180 kg");
     }
 
+    // The foot size is optional: the column is nullable. A value must be an
+    // EU size.
+    const footSize = Number(userProfileData.foot_size);
+    if (userProfileData.foot_size !== "" && !(footSize >= 20 && footSize <= 55)) {
+      errors.foot_size = translateFunction(
+        "Foot size must be between 20 and 55",
+      );
+    }
+
     setValidationErrors(errors);
     setShowValidation(true);
 
-    return !errors.tall && !errors.weight;
+    return !errors.tall && !errors.weight && !errors.foot_size;
   };
 
   const handleSave = () => {
     if (!validateFunction()) return;
-    updateUserProfile(userProfileData);
+    const { foot_size, ...size } = userProfileData;
+    // Sent only when it changed, so a customer with null who saves a new height
+    // keeps null. A cleared field sends null.
+    const footChanged =
+      String(foot_size) !== String(initialData?.foot_size ?? "");
+    updateUserProfile({
+      ...size,
+      ...(footChanged && {
+        foot_size: foot_size === "" ? null : Number(foot_size),
+      }),
+    });
   };
 
   return (
@@ -460,6 +482,57 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
           {showValidation && validationErrors.weight && (
             <div className="text-red-500 text-[10px] mt-1 px-2">
               {validationErrors.weight}
+            </div>
+          )}
+        </div>
+        <div
+          className="flex-col name-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
+          style={{
+            border:
+              showValidation && validationErrors.foot_size
+                ? "#ff0000a3 1px solid"
+                : "#d3d3d3a3 1px solid",
+          }}
+        >
+          <div className="flex-row regular text-[#505050] text-[12px]">
+            {translateFunction("What is your Foot size?")}
+          </div>
+          <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
+            <div className="medium flex text-[#D3D3D3] text-[14px] w-full">
+              <input
+                data-pw="personal-size-foot-input"
+                placeholder={
+                  isArabic
+                    ? toArabicNumerals(translateFunction("000"))
+                    : translateFunction("000")
+                }
+                value={formatNum(userProfileData.foot_size)}
+                maxLength={5}
+                type="text"
+                inputMode="decimal"
+                onChange={(e) => {
+                  // A half size is real (42.5), so this stays text until the save.
+                  const westernValue = toWesternNumerals(e.target.value)
+                    .replace(/٫/g, ".")
+                    .replace(/[^\d.]/g, "");
+                  setUserProfileData({
+                    ...userProfileData,
+                    foot_size: westernValue,
+                  });
+                  if (showValidation && validationErrors.foot_size) {
+                    setValidationErrors({
+                      ...validationErrors,
+                      foot_size: "",
+                    });
+                  }
+                }}
+                className="w-full pr-6  min-h-[21px] h-auto bg-transparent text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-hidden resize-none"
+              />
+            </div>
+          </div>
+          {showValidation && validationErrors.foot_size && (
+            <div className="text-red-500 text-[10px] mt-1 px-2">
+              {validationErrors.foot_size}
             </div>
           )}
         </div>

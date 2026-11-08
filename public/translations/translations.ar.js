@@ -598,6 +598,7 @@ const translations = {
   "Profile | Languages": "الملف الشخصي | اللغة",
   Languages: "لغات",
   Preparing: "تحضير",
+  "000": "000",
   "000 KG": "000 كجم",
   "How Tall Are You?": "كم طولك؟",
   "Your Address Info": "معلومات العنوان",

@@ -499,6 +499,7 @@ const translations = {
   "Available Countries": "Mevcut Ülkeler",
   "Your Address Info": "Adres Bilgileriniz",
   "What Is Your Weight?": "Kilonuz kaç?",
+  "000": "000",
   "000 KG": "000 KG",
   "How Tall Are You?": "Boyunuz kaç?",
   "Enter Email": "E-posta Girin",

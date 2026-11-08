@@ -21,6 +21,7 @@ import { fireEvent, renderWithProviders, screen, userEvent, waitFor } from "../.
 
 const tall = () => document.querySelector('[data-pw="personal-size-tall-input"]') as HTMLInputElement;
 const weight = () => document.querySelector('[data-pw="personal-size-weight-input"]') as HTMLInputElement;
+const foot = () => document.querySelector('[data-pw="personal-size-foot-input"]') as HTMLInputElement;
 const save = () => document.querySelector('[data-pw="personal-size-save-button"]') as HTMLElement;
 
 let location: LocationStub;
@@ -95,6 +96,104 @@ describe("saving", () => {
       ),
     );
     expect(location.href, "a failed save still left the screen").toBeNull();
+  });
+});
+
+describe("the foot size", () => {
+  const size = { tall: 170, weight: 70 };
+  const sent = () => updateProfile.mock.calls[0]?.[0];
+  const saved = () =>
+    waitFor(() => expect(updateProfile, "the save never reached the profile").toHaveBeenCalled());
+
+  beforeEach(() => {
+    location = stubLocation();
+  });
+
+  it("starts from foot_size, and is empty for a customer with null", async () => {
+    const first = await renderSize({ ...size, foot_size: 38 });
+    expect(foot().value, "the field should show foot_size from the profile").toBe("38");
+    first.unmount();
+    await renderSize({ ...size, foot_size: null });
+    expect(foot().value, "a null foot_size should be an empty field").toBe("");
+  });
+
+  it("is not sent when it did not change, so a customer with null keeps null", async () => {
+    await renderSize({ ...size, foot_size: null });
+    fireEvent.change(tall(), { target: { value: "175" } });
+    await userEvent.setup().click(save());
+    await saved();
+    expect(sent(), "an untouched foot size was sent to the core backend").not.toHaveProperty("foot_size");
+    expect(sent()?.tall, "the new height was not sent").toBe(175);
+  });
+
+  it("sends a new foot size as a number", async () => {
+    await renderSize({ ...size, foot_size: null });
+    fireEvent.change(foot(), { target: { value: "42.5" } });
+    await userEvent.setup().click(save());
+    await saved();
+    expect(sent()?.foot_size, "the core backend should get foot_size as a number").toBe(42.5);
+  });
+
+  it("sends a cleared foot size as null", async () => {
+    await renderSize({ ...size, foot_size: 38 });
+    fireEvent.change(foot(), { target: { value: "" } });
+    await userEvent.setup().click(save());
+    await saved();
+    expect(sent()?.foot_size, "clearing the field should send foot_size: null").toBeNull();
+  });
+
+  it.each(["20", "55"])("takes %s, an end of the EU range", async (value) => {
+    await renderSize({ ...size, foot_size: null });
+    fireEvent.change(foot(), { target: { value } });
+    await userEvent.setup().click(save());
+    await saved();
+    expect(sent()?.foot_size, `the foot size ${value} should be sent`).toBe(Number(value));
+  });
+
+  it.each(["19.5", "55.5", "4.2.1", "."])("refuses %s and sends nothing", async (value) => {
+    await renderSize({ ...size, foot_size: null });
+    fireEvent.change(foot(), { target: { value } });
+    await userEvent.setup().click(save());
+    expect(
+      screen.getByText("Foot Size Must Be Between 20 And 55"),
+      "the refusal is not shown under the field",
+    ).toBeInTheDocument();
+    expect(updateProfile, `the foot size ${value} was sent`).not.toHaveBeenCalled();
+  });
+
+  it("clears its error once the field is edited", async () => {
+    await renderSize({ ...size, foot_size: null });
+    fireEvent.change(foot(), { target: { value: "99" } });
+    await userEvent.setup().click(save());
+    fireEvent.change(foot(), { target: { value: "42" } });
+    expect(
+      screen.queryByText("Foot Size Must Be Between 20 And 55"),
+      "editing the foot size kept its error",
+    ).not.toBeInTheDocument();
+  });
+
+  it("is optional: an empty foot size does not stop a save", async () => {
+    await renderSize(size);
+    await userEvent.setup().click(save());
+    await saved();
+    expect(sent(), "an empty foot size that never changed was sent").not.toHaveProperty("foot_size");
+  });
+
+  it("shows Arabic-Indic digits and sends them as a number", async () => {
+    await renderSize({ ...size, foot_size: null }, "gb-ar");
+    fireEvent.change(foot(), { target: { value: "٤٢" } });
+    expect(foot().value, "the foot size is not shown in Arabic-Indic digits").toBe("٤٢");
+    await userEvent.setup().click(save());
+    await saved();
+    expect(sent()?.foot_size, "Arabic-Indic input was not sent as a number").toBe(42);
+  });
+
+  it("reads the Arabic decimal mark as a dot", async () => {
+    await renderSize({ ...size, foot_size: null }, "gb-ar");
+    fireEvent.change(foot(), { target: { value: "٤٢٫٥" } });
+    await userEvent.setup().click(save());
+    await saved();
+    expect(sent()?.foot_size, "an Arabic half size was not sent as 42.5").toBe(42.5);
   });
 });
 

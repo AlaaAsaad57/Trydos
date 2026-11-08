@@ -552,6 +552,7 @@ const translations = {
   "Profile | Languages": "پڕۆفایل | زمانەکان",
   Languages: "زمانەکان",
   Preparing: "ئامادەکردن",
+  "000": "٠٠٠",
   "000 KG": "٠٠٠ کیلۆگرام",
   "How Tall Are You?": "بەرزی تۆ چەندە؟",
   "Your Address Info": "زانیاری ناونیشانت",
