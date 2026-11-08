@@ -876,6 +876,12 @@ class AuthService {
       const marketUpdate = {
         weight: userObj?.weight ?? userProfile?.weight,
         tall: userObj?.tall ?? userProfile?.tall,
+        // The column is nullable and a cleared field sends null, so only an
+        // ABSENT field may fall back, the same rule as `image` below.
+        foot_size:
+          userObj?.foot_size !== undefined
+            ? userObj.foot_size
+            : userProfile?.foot_size,
         name: userObj?.name ?? userProfile?.name,
         phone: userObj?.phone ?? userProfile?.phone,
         gender: userObj?.gender ?? userProfile?.gender,
