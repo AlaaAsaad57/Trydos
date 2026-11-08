@@ -555,6 +555,7 @@ describe("mirroring every saved field into the stored copy (AC-15)", () => {
     alternative_phone: "+10000000003",
     tall: 177,
     weight: 77,
+    foot_size: 42,
     image: "new-picture.png",
   };
 
@@ -568,6 +569,7 @@ describe("mirroring every saved field into the stored copy (AC-15)", () => {
     alternative_phone: "+10000000001",
     tall: 150,
     weight: 50,
+    foot_size: 38,
     image: "old-picture.png",
   };
 
@@ -589,6 +591,7 @@ describe("mirroring every saved field into the stored copy (AC-15)", () => {
       "alternative_phone",
       "tall",
       "weight",
+      "foot_size",
     ] as const) {
       expect(
         stored[field],
@@ -601,6 +604,32 @@ describe("mirroring every saved field into the stored copy (AC-15)", () => {
       stored.image,
       "the new picture was sent but the stored copy still points at the old one",
     ).toBe(auth.getImageForCookie(SENT.image));
+  });
+
+  it("stores a cleared foot size as null, not the old value", async () => {
+    // The column is nullable, so null is a value the shopper chose. Falling back
+    // on it would keep showing a foot size the core backend has dropped.
+    (store as any).__resetAuthStore({ userProfile: { ...OLD } });
+    market.reply(OK);
+
+    await withSettle(() => auth.UpdateProfile({ foot_size: null }, { ...OLD }));
+
+    expect(
+      (store.useAppStore.getState().userProfile as any).foot_size,
+      "the foot size was cleared on the core backend, but the app's stored copy still holds the old one",
+    ).toBeNull();
+  });
+
+  it("keeps the foot size when a save does not name it", async () => {
+    (store as any).__resetAuthStore({ userProfile: { ...OLD } });
+    market.reply(OK);
+
+    await withSettle(() => auth.UpdateProfile({ name: "Ada Lovelace" }, { ...OLD }));
+
+    expect(
+      (store.useAppStore.getState().userProfile as any).foot_size,
+      "a save of the name alone wiped the foot size from the app's stored copy",
+    ).toBe(OLD.foot_size);
   });
 
   it("never writes the one-time token into the stored profile", async () => {

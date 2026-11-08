@@ -98,7 +98,7 @@ describe("writing the line the shopper reads", () => {
   it("gives every profile field its own known label", () => {
     expect(
       formatFieldErrors(
-        '{"name":["a"],"phone":["b"],"alternative_phone":["c"],"gender":["d"],"weight":["e"],"tall":["f"]}',
+        '{"name":["a"],"phone":["b"],"alternative_phone":["c"],"gender":["d"],"weight":["e"],"tall":["f"],"foot_size":["g"]}',
       ),
       "a profile field was shown with no label, or with its raw backend key",
     ).toBe(
@@ -109,6 +109,7 @@ describe("writing the line the shopper reads", () => {
         "Gender: d",
         "Weight: e",
         "Height: f",
+        "Foot Size: g",
       ].join("\n"),
     );
   });

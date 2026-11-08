@@ -15,6 +15,7 @@ const FIELD_LABELS: Record<string, string> = {
   gender: "Gender",
   weight: "Weight",
   tall: "Height",
+  foot_size: "Foot Size",
 };
 
 export interface FieldError {
