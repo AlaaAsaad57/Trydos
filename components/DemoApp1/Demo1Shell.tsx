@@ -312,11 +312,18 @@ function Demo1ShellInner({
     // on the root is one more thing between the document and what Safari 26
     // draws under its floating bar. An inline `!important` is the only thing
     // that wins over the class.
-    document.documentElement.style.setProperty(
-      "overflow-x",
-      "visible",
-      "important",
-    );
+    //
+    // Only on a touch phone, where that bar is. With a mouse the scrollbar takes
+    // room from the page, and a sheet's backdrop is 100vw wide, which counts the
+    // scrollbar. So there the site's clip stays, or each sheet makes the page
+    // wider than the window and shows a sideways scrollbar.
+    if (window.matchMedia("(pointer: coarse)").matches) {
+      document.documentElement.style.setProperty(
+        "overflow-x",
+        "visible",
+        "important",
+      );
+    }
     return () => {
       window.history.scrollRestoration = before;
       document.documentElement.style.removeProperty("overflow-x");

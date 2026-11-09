@@ -927,6 +927,23 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     });
   });
 
+  // The product page's bag sits at the window's top, on the highest z-index. A
+  // tie is settled by DOM order, and the strip is made late, when a layer first
+  // opens, so it came after the bag and cut the bag's top 12 px.
+  it("keeps the top strip under the highest z-index, so the bag at the window's top is never cut", async () => {
+    await onAPhone(async () => {
+      const { unmount } = openOn("home");
+      await waitFor(() =>
+        expect(topStrip(), "the home screen put no strip at the top for Safari to read").not.toBeNull(),
+      );
+      expect(
+        Number(topStrip()!.style.zIndex),
+        "the top strip ties with the bag's z-index, so it can paint over the bag's top",
+      ).toBeLessThan(2147483647);
+      unmount();
+    });
+  });
+
   /**
    * Opens the store page on a phone, with a clock the test moves: each scroll
    * step is one frame (about 17 ms) later than the one before.
@@ -1680,11 +1697,22 @@ describe("Demo1 bottom — like the old scaled demo, Safari's bottom bar lies ov
   });
 
   // The site's <html> carries `overflow-x: clip` (a class in the [lang]
-  // layout). /demo does not need it: its page column clips itself. A clip
-  // on the root is one more thing between the document and what Safari 26
-  // draws under its bar, so the shell takes it off while the demo is open.
-  it("takes the site's sideways clip off <html> while the demo is open, and gives it back", () => {
+  // layout). A clip on the root is one more thing between the document and
+  // what Safari 26 draws under its bar, so on a touch phone the shell takes it
+  // off while the demo is open.
+  it("on a touch phone, takes the site's sideways clip off <html> while the demo is open, and gives it back", () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({
+      media: query,
+      matches: query === "(pointer: coarse)",
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+      addListener: () => {},
+      removeListener: () => {},
+    }));
     const { unmount } = openOn("home");
+    vi.unstubAllGlobals();
     const html = document.documentElement;
     expect(
       html.style.getPropertyValue("overflow-x"),
@@ -1699,6 +1727,18 @@ describe("Demo1 bottom — like the old scaled demo, Safari's bottom bar lies ov
       html.style.getPropertyValue("overflow-x"),
       "the demo left its own value on <html> after it closed",
     ).toBe("");
+  });
+
+  // With a mouse the scrollbar takes room from the page, and a sheet's backdrop
+  // is 100vw wide, which counts the scrollbar. Without the site's clip the page
+  // gets wider than the window and a sideways scrollbar shows with each sheet.
+  it("with a mouse, leaves the site's sideways clip on <html>, so a sheet makes no sideways scrollbar", () => {
+    const { unmount } = openOn("home");
+    expect(
+      document.documentElement.style.getPropertyValue("overflow-x"),
+      "the demo took the site's sideways clip off <html> on a device with a mouse",
+    ).toBe("");
+    unmount();
   });
 
   // On the iPhone the window (innerHeight) ends ABOVE Safari 26's floating

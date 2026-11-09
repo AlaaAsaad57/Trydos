@@ -2,7 +2,7 @@
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion, useIsPresent } from "framer-motion";
+import { AnimatePresence, motion, useIsPresent, type Variants } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { ringPhotoOf } from "../../DemoApp/demoProduct";
@@ -15,6 +15,7 @@ import {
   SAFE_BOTTOM,
   SAFE_TOP,
   SCREEN_TRANSITION,
+  STATUS_BAR,
   UNDER_BAR,
   lineBox,
   textTop,
@@ -35,6 +36,7 @@ import {
   type T,
 } from "./ListingParts";
 import { LikeHeart, useLike } from "./LikeHeart";
+import { FLIGHT_MS, flyToBag } from "./flyToBag";
 
 /**
  * How a product is bought: the bar under the product's page and the size sheet
@@ -56,6 +58,11 @@ import { LikeHeart, useLike } from "./LikeHeart";
  * bar, over the page dimmed and blurred like the colour sheet. Over the dimmed
  * page are the product's card and the bag. A tap on a size picks it. A size that
  * is sold out offers "Notify Me" in place of the buy button.
+ *
+ * The file has no motion, so the motion is the demo's own. On opening, the card
+ * lifts out of the gallery (or rises from behind the sheet), and the sheet's
+ * blocks come in one after another. On Add to bag, the photo flies to an empty
+ * ring in the bag (flyToBag.ts), and the count moves when it lands.
  *
  * Every number is the file's, in design px. The grey shapes under the bar in the
  * file are Safari's own bar, so they are not drawn here. They do show where the
@@ -103,8 +110,11 @@ const PRICE = { was: 200, now: 160 } as const;
 /** Over the sheet's layer (Layer's z is 2147483000 + 30). */
 const BAR_Z = 2147483040;
 
-/** Over the demo's top strip, which has the top z-index and comes first on the page. */
+/** The highest z-index: over the demo's top strip, which is one under it (topTint.ts). */
 const BAG_Z = 2147483647;
+
+/** How long the bag stays on the page after a landing, with no sheet open. */
+const BAG_LINGER_MS = 1200;
 
 /** The file's sheet shadow, the same on the panel: 0, -3, blur 10, black at 10%. */
 const SHADOW = "0 -3px 10px rgba(0, 0, 0, 0.102)";
@@ -125,9 +135,6 @@ const SOLD_OUT = 2;
 const RECOMMENDED = 3;
 /** "Last 2" in `– 57`. */
 const STOCK = 2;
-/** The bag's count in `– 59` is 4 with one new item. The tab bar has the same 3 (DemoBottomNav). */
-const BAG_BEFORE = 3;
-
 const LINE_11 = { fontSize: 11, lineHeight: `${lineBox(11)}px` } as const;
 const LINE_13 = { fontSize: 13, lineHeight: `${lineBox(13)}px` } as const;
 const LINE_15 = { fontSize: 15, lineHeight: `${lineBox(15)}px` } as const;
@@ -137,6 +144,38 @@ const MOVE = { duration: 0.32, ease: [0.2, 0, 0, 1] as const };
 const FADE = { duration: 0.18, ease: "easeOut" as const };
 /** The sheet's own spring (Sheet in ui.tsx), for what comes with it. */
 const WITH_SHEET = { type: "spring" as const, stiffness: 320, damping: 34, mass: 0.9 };
+
+/** The card's way in: a little over its place at the end, so it seems to settle. */
+const CARD_SPRING = { type: "spring" as const, stiffness: 260, damping: 28, mass: 0.9 };
+/** The words of the dark button when they change. */
+const ROLL = { duration: 0.3, ease: [0.2, 0, 0, 1] as const };
+
+/**
+ * The sheet's blocks come in one after another, top to bottom, and the sizes
+ * from left to right. They have no way out: they leave with the sheet. A message
+ * that comes later (a tap on a size) uses SHEET_ROW with no wait.
+ */
+const SHEET_BLOCKS: Variants = {
+  hidden: {},
+  show: { transition: { delayChildren: 0.08, staggerChildren: 0.06 } },
+};
+const SHEET_ROW: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 30, mass: 0.8 } },
+};
+const SIZE_ROW: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.028 } },
+};
+const SIZE_TILE: Variants = {
+  hidden: { opacity: 0, y: 14, scale: 0.9 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 380, damping: 26, mass: 0.8 } },
+};
+/** The mark under the size comes last, after the tiles it points at. */
+const SIZE_MARK: Variants = {
+  hidden: { opacity: 0, y: -6, scale: 0.4 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 420, damping: 22, delay: 0.5 } },
+};
 
 /** How far a scroll goes one way before the bar changes, and where the bar is always full. */
 const COLLAPSE_AFTER = 24;
@@ -188,10 +227,21 @@ function useSmallBar(held: boolean) {
 }
 
 /**
+ * How far the tail's strip reaches up behind the panel. It stays under the
+ * panel's round corners, which start 27 px above the content's end.
+ */
+const TAIL_OVERLAP = 24;
+
+/**
  * The file's white under Safari's bar. Safari draws only the document there,
  * so this is in the document, at the window's end, and follows the scroll. It
  * stops at the document's end, or the document would grow each time it is
  * reached. Only on a touch device: with a mouse there is no such bar.
+ *
+ * The iPhone cuts the fixed panel a few px above `scrollY + innerHeight`, and
+ * the page showed through that line. So a strip reaches up behind the panel and
+ * closes the line. The strip waits until the panel is in place: while the panel
+ * slides in, the strip would be a white band over the page.
  */
 function BarTail() {
   const box = useRef<HTMLDivElement>(null);
@@ -216,7 +266,15 @@ function BarTail() {
       aria-hidden="true"
       data-pw="demo-buy-tail"
       style={{ position: "absolute", left: 0, width: "100%", background: C.white, pointerEvents: "none", zIndex: BAR_Z - 1 }}
-    />
+    >
+      <motion.div
+        data-pw="demo-buy-tail-strip"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: MOVE.duration, duration: 0 }}
+        style={{ position: "absolute", left: 0, top: -TAIL_OVERLAP, width: "100%", height: TAIL_OVERLAP, background: C.white }}
+      />
+    </div>
   );
 }
 
@@ -334,9 +392,21 @@ function HeartMark({ t }: { t: T }) {
 const BUTTON_CLOSED = "inset(-1px 200px -1px -1px round 23.5px 23.5px 15px 15px)";
 const BUTTON_OPEN = "inset(-1px -1px -1px -1px round 23.5px 23.5px 15px 15px)";
 
-function DarkButton({ dim, children }: { dim: boolean; children: React.ReactNode }) {
+function DarkButton({
+  dim,
+  box,
+  words,
+  children,
+}: {
+  dim: boolean;
+  box: React.RefObject<HTMLDivElement | null>;
+  /** Which words are on show: new words roll up over the old ones. */
+  words: string;
+  children: React.ReactNode;
+}) {
   return (
     <motion.div
+      ref={box}
       data-pw="demo-buy-button"
       className="absolute overflow-hidden flex items-stretch justify-center font-normal whitespace-nowrap"
       initial={{ clipPath: BUTTON_CLOSED, opacity: 0.4 }}
@@ -355,7 +425,18 @@ function DarkButton({ dim, children }: { dim: boolean; children: React.ReactNode
         ...LINE_13,
       }}
     >
-      {children}
+      <AnimatePresence>
+        <motion.div
+          key={words}
+          className="absolute inset-0 flex items-stretch justify-center"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -16 }}
+          transition={ROLL}
+        >
+          {children}
+        </motion.div>
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -431,6 +512,7 @@ function Bar({
   sheetOpen,
   chip,
   currency,
+  buttonBox,
   onOpen,
   onBuy,
   onAdd,
@@ -446,6 +528,7 @@ function Bar({
   sheetOpen: boolean;
   chip: React.ReactNode;
   currency: string;
+  buttonBox: React.RefObject<HTMLDivElement | null>;
   onOpen: () => void;
   onBuy: () => void;
   onAdd: () => void;
@@ -526,7 +609,14 @@ function Bar({
           <XdIcon
             name="buyPlus"
             className="absolute"
-            style={{ left: 0, top: 0, opacity: tail ? 0 : 1, transition: "opacity 0.18s" }}
+            // The plus turns a quarter on its way to the plus with a tail.
+            style={{
+              left: 0,
+              top: 0,
+              opacity: tail ? 0 : 1,
+              transform: tail ? "rotate(90deg)" : "rotate(0deg)",
+              transition: "opacity 0.18s, transform 0.32s cubic-bezier(0.2, 0, 0, 1)",
+            }}
           />
           <XdIcon
             name="buyPlusTail"
@@ -563,7 +653,7 @@ function Bar({
               </BarMark>
             </motion.div>
           ) : (
-            <DarkButton key="button" dim={mode.kind === "buy" && !mode.ready}>
+            <DarkButton key="button" box={buttonBox} words={mode.kind} dim={mode.kind === "buy" && !mode.ready}>
               {mode.kind === "buy" && (
                 <>
                   <ButtonSide side="start" disabled={!mode.ready} testId="demo-buy-now" onPress={onBuy}>
@@ -721,6 +811,7 @@ function SizeTile({
       data-pw={`demo-buy-size-${index}`}
       data-look={look}
       onClick={onPick}
+      variants={SIZE_TILE}
       whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", stiffness: 420, damping: 26, mass: 0.8 }}
       className="relative flex flex-col items-center justify-start min-w-0 font-medium cursor-pointer [-webkit-tap-highlight-color:transparent]"
@@ -752,9 +843,7 @@ function Message({ id, mt, nudge = 0, children }: { id: string; mt: number; nudg
       className="flex justify-center shrink-0"
       // `nudge`: the file centres this line by eye, that many px right of the middle.
       style={{ marginTop: mt, paddingLeft: nudge * 2 }}
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={MOVE}
+      variants={SHEET_ROW}
     >
       {children}
     </motion.div>
@@ -802,21 +891,29 @@ function SizeSheetBody({
   };
 
   return (
-    <section
+    <motion.section
       role="dialog"
       aria-modal="true"
       aria-label={t("Please Select the required size & Quantity")}
       data-pw="demo-buy-sizes"
       className="flex flex-col w-full shrink-0"
       style={{ height: BAR_Y - SHEET_Y }}
+      variants={SHEET_BLOCKS}
+      initial="hidden"
+      animate="show"
     >
-      <h2
+      <motion.h2
+        variants={SHEET_ROW}
         className="text-center font-normal shrink-0"
         style={{ marginTop: textTop(556, 13) - SHEET_Y, color: C.ink, ...LINE_13 }}
       >
         {t("Please Select the required size & Quantity")}
-      </h2>
-      <div className="flex justify-between shrink-0" style={{ marginTop: 579 - (textTop(556, 13) + lineBox(13)), padding: "0 14px" }}>
+      </motion.h2>
+      <motion.div
+        variants={SHEET_ROW}
+        className="flex justify-between shrink-0"
+        style={{ marginTop: 579 - (textTop(556, 13) + lineBox(13)), padding: "0 14px" }}
+      >
         <div className="flex" style={{ gap: 2 }}>
           {(["CM", "INC"] as const).map((key, i) => (
             <UnitTab key={key} w={36} on={unit === i} onPick={() => setUnit(i)} testId={`demo-buy-unit-${i}`}>
@@ -831,17 +928,18 @@ function SizeSheetBody({
             </UnitTab>
           ))}
         </div>
-      </div>
+      </motion.div>
       <div className="relative shrink-0" style={{ marginTop: 615 - 601, marginInline: 20 }}>
-        <div className="flex" style={{ gap: 2 }}>
+        <motion.div variants={SIZE_ROW} className="flex" style={{ gap: 2 }}>
           {SIZES.map((item, i) => (
             <SizeTile key={item.code} size={item} index={i} look={lookOf(i)} onPick={() => onPick(i)} />
           ))}
-        </div>
+        </motion.div>
         {/* (208, 675) under the size, or on its bottom line at y 662 for a sold-out size (`– 67`). */}
-        <span
+        <motion.span
           aria-hidden="true"
           data-pw="demo-buy-size-mark"
+          variants={SIZE_MARK}
           className="absolute block pointer-events-none"
           style={{
             left: `calc((100% - 12px) / 7 * ${markAt + 0.5} + ${markAt * 2}px - 7px)`,
@@ -853,7 +951,7 @@ function SizeSheetBody({
         >
           <XdIcon name="buySizeMark" className="absolute" style={{ opacity: added ? 0 : 1, transition: "opacity 0.2s" }} />
           <XdIcon name="buySizeBagged" className="absolute" style={{ opacity: added ? 1 : 0, transition: "opacity 0.2s" }} />
-        </span>
+        </motion.span>
       </div>
       {sold ? (
         <>
@@ -907,7 +1005,7 @@ function SizeSheetBody({
           </Chip>
         </Message>
       )}
-    </section>
+    </motion.section>
   );
 }
 
@@ -915,20 +1013,91 @@ function SizeSheetBody({
 const NARROW_BAG_ROUND = "21px 21px 12px 21px";
 const WIDE_BAG_ROUND = "25px 25px 12px 25px";
 
+/** The bag opening and closing. */
+const OPENING = { duration: 0.42, ease: [0.2, 0, 0, 1] as const };
+
+/** One item in the bag. `landed` is false while its photo is on the way. */
+type BagItem = { id: number; size: number; photo: string; landed: boolean };
+
+/** All rings are drawn at the new item's size, 34 px, and scaled, so a ring can change size smoothly. */
+const RING_D = 34;
+const RING_TOP = 58 - 50;
+/** An older item's ring, 26 px in the file. Its line is 0.5 px after the scale. */
+const OLDER_D = 26;
+const OLDER_SCALE = OLDER_D / RING_D;
+/** While its item flies, the ring waits a little small. It takes the item by growing. */
+const WAITING_SCALE = 0.86;
+const RING_POP = { type: "spring" as const, stiffness: 520, damping: 17, mass: 0.7 };
+
+/** The right edges of the older rings in `– 59`, from the bag's right edge. */
+const OLDER_RIGHT = [416 - 340 - OLDER_D, 416 - 330 - OLDER_D, 416 - 317 - OLDER_D] as const;
+/** The line beside the bag, and the room each side of a line. */
+const BAG_LINE = 416 - 374;
+const LINE_ROOM = 8;
+
 /**
- * The bag at the top right, over the dimmed page: (374, 50), 42 x 50, and with
- * an item in the bag it opens to 157 wide (`– 59`): the new item in a 34 px
- * ring, the three items before it in 26 px rings, and the bag with its count.
+ * Where the rings go for this many items. The newest item has the big ring. The
+ * older items lie in small rings between it and the bag, at most three. Four
+ * items give the file's own `– 59`: 157 wide, the rings at x 267, 317, 330, 340.
+ */
+function bagLayout(total: number) {
+  const older = Math.max(0, Math.min(total - 1, OLDER_RIGHT.length));
+  const olderEnd = older > 0 ? OLDER_RIGHT[older - 1] + OLDER_D : 0;
+  const line = older > 0 ? olderEnd + LINE_ROOM : null;
+  const newest = line === null ? BAG_LINE + LINE_ROOM : line + LINE_ROOM;
+  return { older, line, newest, width: total === 0 ? 42 : newest + RING_D + LINE_ROOM };
+}
+
+/** The card photo's corners, and how long a tap on Add to bag presses the card. */
+const CARD_ROUND = [30, 30, 0, 0] as const;
+const CARD_PRESS_MS = 420;
+/** The disc that grows out of the bar's button when there is no card to fly from. */
+const DISC = 46;
+
+/**
+ * The bag at the top right, over the dimmed page: (374, 50), 42 x 50. With items
+ * in it, it opens: the newest item in a 34 px ring, the items before it in 26 px
+ * rings, and the bag with its count (`– 59` draws four items). A new item takes
+ * the big ring beside the others, and they move over to make room for it.
  * A tap opens the cart.
  */
-function BagPill({ open, count, photo, t }: { open: boolean; count: number; photo: string; t: T }) {
+function BagPill({
+  open,
+  items,
+  flying,
+  slot,
+  t,
+}: {
+  open: boolean;
+  /** What is in the bag, oldest first. A new item is here from the tap, so the bag makes room before it lands. */
+  items: readonly BagItem[];
+  /** An item is on its way. */
+  flying: boolean;
+  /** The bag's right edge and the rings' top, for the flight. Always on the page, even with no bag on show. */
+  slot: React.RefObject<HTMLSpanElement | null>;
+  t: T;
+}) {
   const { navigate } = useDemoNav();
-  const full = count > 0;
+  // The bag waits for the item to leave the card, so it is open just before the item comes.
+  const opening = { ...OPENING, delay: flying ? 0.2 : 0 };
+  const full = items.length > 0;
+  const layout = bagLayout(items.length);
+  // The count moves on each landing, not on the tap.
+  const count = items.filter((item) => item.landed).length;
+  const [seen, setSeen] = useState({ count, up: true });
+  if (seen.count !== count) setSeen({ count, up: count > seen.count });
+  const roll = seen.up ? 7 : -7;
   return (
-    <AnimatePresence>
-      {open && (
-        <div style={{ position: "fixed", top: SAFE_TOP, left: "50%", width: 0, height: 0, zIndex: BAG_Z }}>
-          <div className="absolute" style={{ left: `calc(${COLUMN_W} / -2)`, width: COLUMN_W, top: 0, height: 0 }}>
+    <div style={{ position: "fixed", top: SAFE_TOP, left: "50%", width: 0, height: 0, zIndex: BAG_Z }}>
+      <div className="absolute" style={{ left: `calc(${COLUMN_W} / -2)`, width: COLUMN_W, top: 0, height: 0 }}>
+        <span
+          ref={slot}
+          aria-hidden="true"
+          className="absolute block pointer-events-none"
+          style={{ right: 14, top: RING_TOP, width: 0, height: 0, visibility: "hidden" }}
+        />
+        <AnimatePresence>
+          {open && (
             <motion.button
               key="bag"
               type="button"
@@ -937,10 +1106,18 @@ function BagPill({ open, count, photo, t }: { open: boolean; count: number; phot
               data-full={full}
               onClick={() => navigate("cart")}
               className="absolute block cursor-pointer overflow-hidden font-quicksand [-webkit-tap-highlight-color:transparent]"
-              initial={{ opacity: 0, y: -8, scale: 0.92, width: full ? 157 : 42, borderRadius: full ? WIDE_BAG_ROUND : NARROW_BAG_ROUND }}
-              animate={{ opacity: 1, y: 0, scale: 1, width: full ? 157 : 42, borderRadius: full ? WIDE_BAG_ROUND : NARROW_BAG_ROUND }}
-              exit={{ opacity: 0, y: -8, scale: 0.92 }}
-              transition={MOVE}
+              initial={{ opacity: 0, y: -14, scale: 0.8, width: layout.width, borderRadius: full ? WIDE_BAG_ROUND : NARROW_BAG_ROUND }}
+              animate={{ opacity: 1, y: 0, scale: 1, width: layout.width, borderRadius: full ? WIDE_BAG_ROUND : NARROW_BAG_ROUND }}
+              exit={{ opacity: 0, y: -8, scale: 0.92, transition: FADE }}
+              transition={{
+                type: "spring",
+                stiffness: 420,
+                damping: 28,
+                delay: 0.12,
+                opacity: { duration: 0.16, delay: 0.12 },
+                width: opening,
+                borderRadius: opening,
+              }}
               style={{
                 right: 14,
                 top: 0,
@@ -950,94 +1127,127 @@ function BagPill({ open, count, photo, t }: { open: boolean; count: number; phot
                 transformOrigin: "100% 50%",
               }}
             >
-              <motion.span
-                aria-hidden="true"
-                className="absolute inset-0 block"
-                initial={false}
-                animate={{ opacity: full ? 1 : 0 }}
-                transition={{ ...FADE, delay: full ? 0.12 : 0 }}
-              >
-                <Ring right={416 - 267 - 34} d={34} line={1} photoD={30} top={58 - 50} photo={photo} />
-                {[340, 330, 317].map((x) => (
-                  <Ring key={x} right={416 - x - 26} d={26} line={0.5} photoD={22.94} top={62 - 50} photo={photo} />
-                ))}
-                <Divider right={416 - 374} top={65.5 - 50} />
-                <Divider right={416 - 309} top={65 - 50} />
-              </motion.span>
-              <span className="absolute block" style={{ right: 416 - 408, top: 62 - 50, width: 26, height: 26 }}>
+              <span aria-hidden="true" className="absolute inset-0 block">
+                <AnimatePresence initial={false}>
+                  {/* Oldest first, so a newer ring lies over an older one, as in the file. */}
+                  {items.slice(-1 - layout.older).map((item, index, shown) => {
+                    const fromNewest = shown.length - 1 - index;
+                    return (
+                      <BagRing
+                        key={item.id}
+                        item={item}
+                        // A scaled ring keeps its middle, so its box stands out by half the difference.
+                        right={fromNewest === 0 ? layout.newest : OLDER_RIGHT[layout.older - fromNewest] - (RING_D - OLDER_D) / 2}
+                        small={fromNewest > 0}
+                        move={opening}
+                      />
+                    );
+                  })}
+                </AnimatePresence>
+                <Divider right={BAG_LINE} top={65.5 - 50} on={full} move={opening} />
+                <Divider right={layout.line ?? BAG_LINE} top={65 - 50} on={layout.line !== null} move={opening} />
+              </span>
+              <span data-pw="demo-buy-bag-icon" className="absolute block" style={{ right: 416 - 408, top: 62 - 50, width: 26, height: 26 }}>
                 <XdIcon name="buyBag" />
-                {full && (
-                  <motion.span
-                    key={count}
-                    data-pw="demo-buy-bag-count"
-                    className="absolute font-bold"
-                    initial={{ scale: 0.6, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={MOVE}
-                    style={{
-                      left: 394 - 382 - (String(BAG_BEFORE + count).length - 1) * 3,
-                      top: textTop(82, 11) - 62,
-                      color: C.purple,
-                      ...LINE_11,
-                    }}
-                  >
-                    {BAG_BEFORE + count}
-                  </motion.span>
-                )}
+                <AnimatePresence initial={false}>
+                  {count > 0 && (
+                    <motion.span
+                      key={count}
+                      data-pw="demo-buy-bag-count"
+                      className="absolute font-bold"
+                      initial={{ y: roll, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -roll, opacity: 0 }}
+                      transition={ROLL}
+                      style={{
+                        left: 394 - 382 - (String(count).length - 1) * 3,
+                        top: textTop(82, 11) - 62,
+                        color: C.purple,
+                        ...LINE_11,
+                      }}
+                    >
+                      {count}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </span>
             </motion.button>
-          </div>
-        </div>
-      )}
-    </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
   );
 }
 
-/** A round photo with a purple line. The right side keeps its distance, so the rings do not move while the bag opens. */
-function Ring({
+/**
+ * One item in the bag: a round photo with a purple line. The right side keeps its
+ * distance, so the ring does not move while the bag opens. An empty ring waits
+ * for its item, and on landing it takes the photo and grows a little past its size.
+ */
+function BagRing({
+  item,
   right,
-  d,
-  line,
-  photoD,
-  top,
-  photo,
+  small,
+  move,
 }: {
+  item: BagItem;
   right: number;
-  d: number;
-  line: number;
-  photoD: number;
-  top: number;
-  photo: string;
+  small: boolean;
+  move: { duration: number; delay: number };
 }) {
-  const inset = (d - photoD) / 2;
+  const scale = (small ? OLDER_SCALE : 1) * (item.landed ? 1 : WAITING_SCALE);
+  const photoD = 30;
+  const inset = (RING_D - photoD) / 2;
   return (
-    <span className="absolute block rounded-full" style={{ right, top, width: d, height: d, background: C.white }}>
+    <motion.span
+      data-pw="demo-buy-bag-ring"
+      data-landed={item.landed}
+      className="absolute block rounded-full"
+      initial={{ opacity: 0, scale: 0.3, right }}
+      animate={{ opacity: 1, scale, right }}
+      exit={{ opacity: 0, scale: 0.3, transition: FADE }}
+      transition={{ right: move, opacity: { ...FADE, delay: move.delay }, scale: RING_POP }}
+      style={{ top: RING_TOP, width: RING_D, height: RING_D, background: C.white }}
+    >
       <img
-        src={photo}
+        src={item.photo}
         alt=""
         width={photoD}
         height={photoD}
         draggable={false}
         className="absolute block object-cover rounded-full select-none"
-        style={{ left: inset, top: inset, width: photoD, height: photoD }}
+        style={{ left: inset, top: inset, width: photoD, height: photoD, opacity: item.landed ? 1 : 0 }}
       />
-      <Stroke color={C.purple} width={line} radius={d / 2} />
-    </span>
+      <Stroke color={C.purple} width={small ? 0.5 / OLDER_SCALE : 1} radius={RING_D / 2} />
+    </motion.span>
   );
 }
 
 /** A 0.5 px line. An SVG, as all the demo's lines: a box this thin would jump to a whole device pixel. */
-function Divider({ right, top }: { right: number; top: number }) {
+function Divider({
+  right,
+  top,
+  on,
+  move,
+}: {
+  right: number;
+  top: number;
+  on: boolean;
+  move: { duration: number; delay: number };
+}) {
   return (
-    <svg
+    <motion.svg
       aria-hidden="true"
       className="absolute block"
       width={2}
       height={22}
-      style={{ right: right - 1, top: Math.floor(top) }}
+      initial={false}
+      animate={{ right: right - 1, opacity: on ? 1 : 0 }}
+      transition={{ right: move, opacity: { ...FADE, delay: on ? move.delay : 0 } }}
+      style={{ top: Math.floor(top) }}
     >
       <line x1={1} x2={1} y1={top - Math.floor(top)} y2={top - Math.floor(top) + 20} stroke={C.line} strokeWidth={0.5} />
-    </svg>
+    </motion.svg>
   );
 }
 
@@ -1068,12 +1278,63 @@ function CardLine({ w, h }: { w: number; h: number }) {
  * scaled, and if opaque parts cover its whole box, Chromium treats the box as
  * opaque and draws dark square corners around the round ones.
  */
+/**
+ * A soft band of light that crosses the card's photo once. It sits inside the
+ * photo's round box, so the box cuts it.
+ */
+const SHEEN = "linear-gradient(105deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.38) 50%, rgba(255,255,255,0) 70%)";
+
+function sweepSheen(sheen: HTMLElement | null, delay: number) {
+  sheen?.animate([{ transform: "translateX(-130%)" }, { transform: "translateX(130%)" }], {
+    duration: 900,
+    delay,
+    easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+  });
+}
+
+/**
+ * Where the card starts. With the gallery on screen, the card lifts out of it:
+ * it starts exactly over the gallery's photo, which has the same shape, while
+ * the page behind it goes out of focus. With the gallery scrolled away, it
+ * rises from behind the sheet.
+ */
+function cardStart(cardTop: number, tall: number, scale: number) {
+  const rise = { opacity: 0, x: 0, y: 64, scale: scale * 0.9, rotateX: 10 };
+  let from: DOMRect | null = null;
+  let most = 0.5;
+  for (const img of document.querySelectorAll('[data-pw="demo-product-gallery"] img')) {
+    const r = img.getBoundingClientRect();
+    const seenW = Math.min(r.right, window.innerWidth) - Math.max(r.left, 0);
+    const seenH = Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0);
+    const share = (Math.max(0, seenW) * Math.max(0, seenH)) / (r.width * r.height);
+    if (share > most) {
+      from = r;
+      most = share;
+    }
+  }
+  if (!from) return rise;
+  const s = from.width / PHOTO.w;
+  // The card turns about the middle of its bottom edge.
+  const originY = cardTop - STATUS_BAR + tall;
+  const photoMiddle = -(tall - PHOTO.h / 2);
+  return {
+    opacity: 0,
+    x: from.left + from.width / 2 - window.innerWidth / 2,
+    y: from.top + from.height / 2 - (originY + s * photoMiddle),
+    scale: s,
+    rotateX: 0,
+  };
+}
+
 function BuyCard({
   product,
   store,
   colorIndex,
   onColor,
   y,
+  box,
+  photo,
+  sheen,
   t,
 }: {
   product: DemoProduct;
@@ -1082,6 +1343,10 @@ function BuyCard({
   onColor: (index: number) => void;
   /** Design y of the sheet's top: the card rests above it. */
   y: number;
+  /** The card's parts, for the tap on Add to bag. */
+  box: React.RefObject<HTMLDivElement | null>;
+  photo: React.RefObject<HTMLDivElement | null>;
+  sheen: React.RefObject<HTMLDivElement | null>;
   t: T;
 }) {
   const color = product.colors[colorIndex];
@@ -1089,15 +1354,19 @@ function BuyCard({
   // A short window has no room for the file's card: it gets smaller and stays above the sheet.
   const scale = Math.min(1, (y - CARD_ABOVE_SHEET - CARD_Y) / tall);
   const cardTop = y - CARD_ABOVE_SHEET - tall;
+  // Read once, when the card comes: the page does not move while it is on show.
+  const [start] = useState(() => cardStart(cardTop, tall, scale));
+  useEffect(() => sweepSheen(sheen.current, 380), [sheen]);
   return (
     <motion.article
       data-pw="demo-buy-card"
       className="absolute"
-      initial={{ opacity: 0, y: 24, scale: scale * 0.96 }}
-      animate={{ opacity: 1, y: 0, scale }}
-      exit={{ opacity: 0, y: 24, scale: scale * 0.96 }}
-      transition={WITH_SHEET}
+      initial={start}
+      animate={{ opacity: 1, x: 0, y: 0, scale, rotateX: 0 }}
+      exit={{ ...start, transition: { ...WITH_SHEET, opacity: { duration: 0.2, delay: 0.06 } } }}
+      transition={{ ...CARD_SPRING, opacity: { duration: 0.14 } }}
       style={{
+        transformPerspective: 900,
         left: "calc(50% - 107px)",
         top: designTop(cardTop),
         width: PHOTO.w,
@@ -1106,33 +1375,48 @@ function BuyCard({
         transformOrigin: "50% 100%",
       }}
     >
-      <CardLine w={PHOTO.w} h={tall} />
-      <div className="relative" style={{ width: PHOTO.w, height: PHOTO.h }}>
-        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: "30px 30px 0 0" }}>
-          <img
-            src={color.images[0]}
-            alt={`${store.name} ${[...product.name].map((word) => t(word)).join(" . ")}`}
-            width={PHOTO.w}
-            height={PHOTO.h}
-            draggable={false}
-            className="block w-full h-full object-cover select-none"
-          />
-          <PhotoGlow />
+      <div ref={box} className="relative" style={{ width: PHOTO.w, height: tall }}>
+        <CardLine w={PHOTO.w} h={tall} />
+        <div ref={photo} className="relative" style={{ width: PHOTO.w, height: PHOTO.h }}>
+          <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: "30px 30px 0 0" }}>
+            <img
+              src={color.images[0]}
+              alt={`${store.name} ${[...product.name].map((word) => t(word)).join(" . ")}`}
+              width={PHOTO.w}
+              height={PHOTO.h}
+              draggable={false}
+              className="block w-full h-full object-cover select-none"
+            />
+            <PhotoGlow />
+            <div
+              ref={sheen}
+              aria-hidden="true"
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: SHEEN, transform: "translateX(-130%)" }}
+            />
+          </div>
+          <SwatchPicker colors={product.colors} selected={colorIndex} onSelect={onColor} onOpen={() => {}} t={t} />
         </div>
-        <SwatchPicker colors={product.colors} selected={colorIndex} onSelect={onColor} onOpen={() => {}} t={t} />
-      </div>
-      <div className="relative w-full" style={{ height: FOOTER_H, borderRadius: "0 0 15px 15px", background: "rgba(255, 255, 255, 0.9976)" }}>
-        <CardLogo store={store} />
-        <ProductName product={product} t={t} />
-        <LabelTurns
-          // The file draws this one label on this card, whatever the store page's card shows.
-          badges={[BEST_LABEL]}
-          top={textTop(365, 9) - PHOTO.h}
-          height={lineBox(9)}
-          testId="demo-buy-card-labels"
-          render={(badge) => <PlainBadge badge={badge} t={t} />}
-        />
-        <PricePill product={{ ...product, price: PRICE.now }} t={t} />
+        <motion.div
+          className="relative w-full"
+          // Over the gallery's photo only the photo shows: the card's end comes in after it.
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2, delay: 0.14 }}
+          style={{ height: FOOTER_H, borderRadius: "0 0 15px 15px", background: "rgba(255, 255, 255, 0.9976)" }}
+        >
+          <CardLogo store={store} />
+          <ProductName product={product} t={t} />
+          <LabelTurns
+            // The file draws this one label on this card, whatever the store page's card shows.
+            badges={[BEST_LABEL]}
+            top={textTop(365, 9) - PHOTO.h}
+            height={lineBox(9)}
+            testId="demo-buy-card-labels"
+            render={(badge) => <PlainBadge badge={badge} t={t} />}
+          />
+          <PricePill product={{ ...product, price: PRICE.now }} t={t} />
+        </motion.div>
       </div>
     </motion.article>
   );
@@ -1166,17 +1450,48 @@ export default function ProductBuy({
     setTouch(navigator.maxTouchPoints > 0);
   }, []);
 
-  /** How many of each size are in the bag. */
-  const [items, setItems] = useState<Readonly<Record<number, number>>>({});
+  /** What is in the bag, oldest first. */
+  const [bag, setBag] = useState<readonly BagItem[]>([]);
+  const nextItem = useRef(0);
   const [pick, setPick] = useState<number | null>(null);
   /** The size the bar's Remove and Add More work on. */
   const [lastAdded, setLastAdded] = useState<number | null>(null);
   const [notified, setNotified] = useState(false);
+  /** An item is on its way to the bag. */
+  const flying = bag.some((item) => !item.landed);
+  /** The bag stays a moment after a landing on the page, where no sheet keeps it on show. */
+  const [lingers, setLingers] = useState(false);
+  useEffect(() => {
+    if (flying) {
+      setLingers(true);
+      return;
+    }
+    const wait = setTimeout(() => setLingers(false), BAG_LINGER_MS);
+    return () => clearTimeout(wait);
+  }, [flying]);
 
-  const total = Object.values(items).reduce((sum, n) => sum + n, 0);
-  const countOf = (index: number) => items[index] ?? 0;
-  const change = (index: number, by: number) => {
-    setItems((now) => ({ ...now, [index]: Math.max(0, (now[index] ?? 0) + by) }));
+  const cardBox = useRef<HTMLDivElement>(null);
+  const cardPhoto = useRef<HTMLDivElement>(null);
+  const cardSheen = useRef<HTMLDivElement>(null);
+  const buttonBox = useRef<HTMLDivElement>(null);
+  const bagSlot = useRef<HTMLSpanElement>(null);
+
+  const total = bag.length;
+  const countOf = (index: number) => bag.filter((item) => item.size === index).length;
+  const putInBag = (size: number, landed: boolean) => {
+    const id = nextItem.current++;
+    setBag((now) => [...now, { id, size, photo: ringPhotoOf(product.colors[colorIndex]), landed }]);
+    return id;
+  };
+  const land = (id: number) => {
+    setBag((now) => now.map((item) => (item.id === id ? { ...item, landed: true } : item)));
+  };
+  /** The newest item of this size leaves the bag. */
+  const takeOut = (size: number) => {
+    setBag((now) => {
+      const at = now.map((item) => item.size).lastIndexOf(size);
+      return at < 0 ? now : now.filter((_, i) => i !== at);
+    });
   };
 
   const close = () => {
@@ -1189,25 +1504,81 @@ export default function ProductBuy({
     onOpen(true);
   };
 
+  /**
+   * One item goes to the bag: from the card's photo with the sheet open, or as a
+   * small disc out of the dark button on the page. It flies to the big ring, at
+   * the place that ring has once the bag has made room for this item.
+   */
+  const launch = (id: number) => {
+    const edge = bagSlot.current?.getBoundingClientRect();
+    const to = edge && new DOMRect(edge.right - bagLayout(total + 1).newest - RING_D, edge.top, RING_D, RING_D);
+    const photoBox = open ? cardPhoto.current?.getBoundingClientRect() : null;
+    const button = buttonBox.current?.getBoundingClientRect();
+    const from =
+      photoBox ??
+      (button
+        ? new DOMRect(button.right - button.width / 4 - DISC / 2, button.top + button.height / 2 - DISC / 2, DISC, DISC)
+        : null);
+    if (!to || !from) {
+      land(id);
+      return;
+    }
+    const fit = photoBox ? photoBox.width / PHOTO.w : 1;
+    flyToBag({
+      photo: product.colors[colorIndex].images[0],
+      from,
+      round: photoBox ? [CARD_ROUND[0] * fit, CARD_ROUND[1] * fit, 0, 0] : [DISC / 2, DISC / 2, DISC / 2, DISC / 2],
+      to,
+      startScale: photoBox ? 1 : 0.3,
+      bag: () => document.querySelector<HTMLElement>('[data-pw="demo-buy-bag"]'),
+      bagIcon: () => document.querySelector<HTMLElement>('[data-pw="demo-buy-bag-icon"]'),
+      onLand: () => land(id),
+    });
+    if (photoBox) {
+      // The card gives a little as the item leaves it. Its photo stays faint while
+      // the item is away, so the item reads as lifted off the card.
+      cardBox.current?.animate(
+        [{ transform: "scale(1)" }, { transform: "scale(0.972)", offset: 0.32 }, { transform: "scale(1)" }],
+        { duration: CARD_PRESS_MS, easing: "cubic-bezier(0.2, 0, 0, 1)" },
+      );
+      cardPhoto.current?.firstElementChild?.animate(
+        [
+          { opacity: 1 },
+          { opacity: 0.45, offset: 0.26 },
+          { opacity: 0.45, offset: 0.7 },
+          { opacity: 1 },
+        ],
+        { duration: FLIGHT_MS, easing: "ease-in-out" },
+      );
+    }
+  };
+
+  const addToBag = (index: number) => {
+    setLastAdded(index);
+    launch(putInBag(index, false));
+  };
   const add = () => {
     if (pick === null) return;
-    change(pick, 1);
-    setLastAdded(pick);
+    addToBag(pick);
   };
   /** Remove and Add More work on the size in view, or on the page on the last size added. */
   const target = open && pick !== null ? pick : lastAdded;
   const remove = () => {
     if (target === null) return;
-    change(target, -1);
+    takeOut(target);
     if (countOf(target) <= 1) {
       // The last of this size: the next size with items is the one the bar now speaks of.
-      const left = Object.entries(items).find(([key, n]) => Number(key) !== target && n > 0);
-      setLastAdded(left ? Number(left[0]) : null);
+      const left = bag.find((item) => item.size !== target);
+      setLastAdded(left ? left.size : null);
     }
   };
 
+  // No flight here: the cart opens at once.
   const buyNow = () => {
-    add();
+    if (pick !== null) {
+      putInBag(pick, true);
+      setLastAdded(pick);
+    }
     onOpen(false);
     navigate("cart");
   };
@@ -1259,7 +1630,17 @@ export default function ProductBuy({
         shadow={SHADOW}
         testId="demo-buy-sheet"
         over={
-          <BuyCard product={product} store={store} colorIndex={colorIndex} onColor={onColor} y={sheetY} t={t} />
+          <BuyCard
+            product={product}
+            store={store}
+            colorIndex={colorIndex}
+            onColor={onColor}
+            y={sheetY}
+            box={cardBox}
+            photo={cardPhoto}
+            sheen={cardSheen}
+            t={t}
+          />
         }
       >
         <SizeSheetBody
@@ -1292,15 +1673,22 @@ export default function ProductBuy({
               sheetOpen={open}
               chip={chip}
               currency={t(product.currency)}
+              buttonBox={buttonBox}
               onOpen={openSheet}
               onBuy={buyNow}
               onAdd={add}
               onRemove={remove}
-              onAddMore={() => target !== null && change(target, 1)}
+              onAddMore={() => target !== null && addToBag(target)}
               onNotify={() => setNotified((on) => !on)}
               t={t}
             />
-            <BagPill open={open} count={total} photo={ringPhotoOf(product.colors[colorIndex])} t={t} />
+            <BagPill
+              open={present && (open || lingers)}
+              items={bag}
+              flying={flying}
+              slot={bagSlot}
+              t={t}
+            />
           </>,
           document.body,
         )}

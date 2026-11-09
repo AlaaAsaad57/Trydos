@@ -66,7 +66,10 @@ function paint(home: TintHome) {
       // home-screen app it also covers the device's own top inset.
       height: "max(12px, env(safe-area-inset-top, 0px))",
       pointerEvents: "none",
-      zIndex: "2147483647",
+      // One under the highest value: the product page's bag lies over this
+      // strip. On a tie the later box wins, and this strip is made late, when a
+      // layer first opens, so it would cut the bag's top 12 px.
+      zIndex: "2147483646",
       visibility: "hidden",
       backgroundColor: "transparent",
       // `visibility` stays visible for the whole fade, both ways.
