@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion, useIsPresent, type Variants } from "framer-motion";
+import { AnimatePresence, motion, useIsPresent, type Transition, type Variants } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { ringPhotoOf } from "../../DemoApp/demoProduct";
@@ -36,7 +36,17 @@ import {
   type T,
 } from "./ListingParts";
 import { LikeHeart, useLike } from "./LikeHeart";
-import { FLIGHT_MS, flyToBag } from "./flyToBag";
+import {
+  arrivalMs,
+  blockTransition,
+  buyMotion,
+  registerBuyActions,
+  sheetCss,
+  sheetTransition,
+  useBuyMotion,
+  type BuyMotion,
+} from "./buyMotion";
+import { flyToBag } from "./flyToBag";
 
 /**
  * How a product is bought: the bar under the product's page and the size sheet
@@ -62,7 +72,9 @@ import { FLIGHT_MS, flyToBag } from "./flyToBag";
  * The file has no motion, so the motion is the demo's own. On opening, the card
  * lifts out of the gallery (or rises from behind the sheet), and the sheet's
  * blocks come in one after another. On Add to bag, the photo flies to an empty
- * ring in the bag (flyToBag.ts), and the count moves when it lands.
+ * ring in the bag (flyToBag.ts), and the count moves when it lands. The card's
+ * way in ends in a hit on the glass (see Slam), and it gives a small push when
+ * the item lands. The debug menu in buyMotion.tsx changes the timing.
  *
  * Every number is the file's, in design px. The grey shapes under the bar in the
  * file are Safari's own bar, so they are not drawn here. They do show where the
@@ -73,9 +85,17 @@ import { FLIGHT_MS, flyToBag } from "./flyToBag";
  *
  * Why anchors. Safari 26 reads the bottom edge of the window for a fixed box as
  * wide as the screen, and paints the room under its bar in that box's colour.
- * So each fixed thing here hangs on a fixed point with no size, like the tab
- * bar (see EDGE_ANCHOR in demo1Layout.ts). Safari's room under its bar shows
- * only the document, so `BarTail` keeps the file's white there.
+ * So the bag and the small pill hang on a fixed point with no size, like the tab
+ * bar (see EDGE_ANCHOR in demo1Layout.ts): Safari must not find them.
+ *
+ * The panel is a real fixed box. The file draws white under Safari's bar, and
+ * only Safari can paint there in step with a scroll and with its own bar: it
+ * cuts a fixed box at the window's end, and a box of the document that a script
+ * moves is always some frames late, so the page showed under the panel during a
+ * scroll. So the panel is the one box Safari is meant to find: white, as wide as
+ * the column. Safari then paints white under its bar by itself. It lets go when
+ * the panel is hidden (the small pill) or gone, and the page shows there again.
+ * (WebKit: LocalFrameView::fixedContainerEdges, Page::updateFixedContainerEdges.)
  */
 
 /** Design y: the panel's top, where its content ends, and where the file's Safari bar starts. */
@@ -116,6 +136,9 @@ const BAG_Z = 2147483647;
 /** How long the bag stays on the page after a landing, with no sheet open. */
 const BAG_LINGER_MS = 1200;
 
+/** How long the debug menu's play buttons wait for the sheet to close, or to open. */
+const REPLAY_WAIT_MS = 900;
+
 /** The file's sheet shadow, the same on the panel: 0, -3, blur 10, black at 10%. */
 const SHADOW = "0 -3px 10px rgba(0, 0, 0, 0.102)";
 
@@ -142,45 +165,39 @@ const LINE_15 = { fontSize: 15, lineHeight: `${lineBox(15)}px` } as const;
 /** The motion of the panel and the pill, and of a block that changes inside them. */
 const MOVE = { duration: 0.32, ease: [0.2, 0, 0, 1] as const };
 const FADE = { duration: 0.18, ease: "easeOut" as const };
-/**
- * How everything moves when the sheet opens: at full speed from the first frame,
- * then slowing down gently, with no bounce. This is the curve and the 0.5 s of
- * Ionic's iOS modal and of Vaul, both made to look like the iOS sheet. Apple
- * publishes no numbers for its sheet, so this is a close copy, not iOS's own value.
- */
-const IOS_SHEET = { duration: 0.5, ease: [0.32, 0.72, 0, 1] as const };
-const IOS_SHEET_CSS = "0.5s cubic-bezier(0.32, 0.72, 0, 1)";
-/** The same curve for a smaller block, which has less far to go. */
-const IOS_BLOCK = { duration: 0.42, ease: IOS_SHEET.ease };
-
-/** The words of the dark button when they change. */
-const ROLL = { duration: 0.36, ease: IOS_SHEET.ease };
+/** The words of the dark button when they change. The sheet's own timing is in buyMotion.tsx. */
+const ROLL = { duration: 0.36, ease: [0.32, 0.72, 0, 1] as const };
 
 /**
  * The sheet's blocks come in one after another, top to bottom, and the sizes
  * from left to right. They have no way out: they leave with the sheet. A message
  * that comes later (a tap on a size) uses SHEET_ROW with no wait.
+ *
+ * Each `show` is a function, so it reads the timing when the sheet opens: the
+ * debug menu can change it (buyMotion.tsx).
  */
 const SHEET_BLOCKS: Variants = {
   hidden: {},
-  show: { transition: { delayChildren: 0.02, staggerChildren: 0.04 } },
+  show: () => ({ transition: { delayChildren: 0.02, staggerChildren: buyMotion().gap } }),
 };
 const SHEET_ROW: Variants = {
   hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: IOS_BLOCK },
+  show: () => ({ opacity: 1, y: 0, transition: blockTransition(buyMotion()) }),
 };
+/** The sizes come closer together than the blocks. */
+const SIZE_GAP = 0.45;
 const SIZE_ROW: Variants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.018 } },
+  show: () => ({ transition: { staggerChildren: buyMotion().gap * SIZE_GAP } }),
 };
 const SIZE_TILE: Variants = {
   hidden: { opacity: 0, y: 14, scale: 0.9 },
-  show: { opacity: 1, y: 0, scale: 1, transition: IOS_BLOCK },
+  show: () => ({ opacity: 1, y: 0, scale: 1, transition: blockTransition(buyMotion()) }),
 };
 /** The mark under the size comes last, after the tiles it points at. */
 const SIZE_MARK: Variants = {
   hidden: { opacity: 0, y: -6, scale: 0.4 },
-  show: { opacity: 1, y: 0, scale: 1, transition: { ...IOS_BLOCK, delay: 0.3 } },
+  show: () => ({ opacity: 1, y: 0, scale: 1, transition: { ...blockTransition(buyMotion()), delay: 0.3 } }),
 };
 
 /** How far a scroll goes one way before the bar changes, and where the bar is always full. */
@@ -230,70 +247,6 @@ function useSmallBar(held: boolean) {
     return () => window.removeEventListener("scroll", onScroll);
   }, [held]);
   return small;
-}
-
-/**
- * How far the tail's strip reaches up behind the panel. It stays under the
- * panel's round corners, which start 27 px above the content's end.
- */
-const TAIL_OVERLAP = 26;
-
-/**
- * The file's white under Safari's bar. Safari draws only the document there,
- * so this is in the document, at the window's end, and follows the scroll. It
- * stops at the document's end, or the document would grow each time it is
- * reached. Only on a touch device: with a mouse there is no such bar.
- *
- * The iPhone cuts the fixed panel a few px above where this box was, and the page
- * showed through that line. So:
- *
- *  - The place comes from a fixed point with no size at the window's end, the
- *    same end the panel hangs on. `innerHeight` can differ from it.
- *  - It is read on every frame. Safari's bar changes size with no scroll event,
- *    and the panel moves with it.
- *  - A strip reaches up behind the panel, so a small difference shows no line.
- *    The strip waits until the panel is in place: while the panel slides in, it
- *    would be a white band over the page.
- */
-function BarTail() {
-  const box = useRef<HTMLDivElement>(null);
-  const windowEnd = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    let frame = 0;
-    let top = "";
-    let height = "";
-    const follow = () => {
-      if (box.current && windowEnd.current) {
-        const y = window.scrollY + windowEnd.current.getBoundingClientRect().bottom;
-        const nextTop = `${y}px`;
-        const nextHeight = `${Math.max(0, Math.min(UNDER_BAR, document.documentElement.scrollHeight - y))}px`;
-        if (nextTop !== top) box.current.style.top = top = nextTop;
-        if (nextHeight !== height) box.current.style.height = height = nextHeight;
-      }
-      frame = requestAnimationFrame(follow);
-    };
-    follow();
-    return () => cancelAnimationFrame(frame);
-  }, []);
-  return (
-    <>
-    <div ref={windowEnd} aria-hidden="true" style={{ position: "fixed", left: 0, bottom: 0, width: 0, height: 0 }} />
-    <div
-      ref={box}
-      aria-hidden="true"
-      data-pw="demo-buy-tail"
-      style={{ position: "absolute", left: 0, width: "100%", background: C.white, pointerEvents: "none", zIndex: BAR_Z - 1 }}
-    >
-      <motion.div
-        data-pw="demo-buy-tail-strip"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: MOVE.duration, duration: 0 }}
-        style={{ position: "absolute", left: 0, top: -TAIL_OVERLAP, width: "100%", height: TAIL_OVERLAP, background: C.white }}
-      />
-    </div>
-    </>
-  );
 }
 
 /** A small chip: 18 tall, round 6, the words 6 px in. The file's width is the minimum (see Pill in ProductScreen). */
@@ -422,6 +375,7 @@ function DarkButton({
   words: string;
   children: React.ReactNode;
 }) {
+  const timing = useBuyMotion();
   return (
     <motion.div
       ref={box}
@@ -430,7 +384,7 @@ function DarkButton({
       initial={{ clipPath: BUTTON_CLOSED, opacity: 0.4 }}
       animate={{ clipPath: BUTTON_OPEN, opacity: 1 }}
       exit={{ clipPath: BUTTON_CLOSED, opacity: 0 }}
-      transition={IOS_SHEET}
+      transition={sheetTransition(timing)}
       style={{
         left: 234,
         right: 8,
@@ -556,43 +510,44 @@ function Bar({
   t: T;
 }) {
   const present = useIsPresent();
+  const timing = useBuyMotion();
   const tail = mode.kind !== "marks";
   const fullH = CONTENT_H + gap;
+  /** How far down the panel waits, out of the window. */
+  const away = fullH + 30;
+  /** The panel comes in with the screen, at the screen's pace. After that, a scroll hides and shows it. */
+  const [entered, setEntered] = useState(false);
+  /** The small pill has taken the panel's place. */
+  const hidden = present && small;
   return (
-    <motion.div
-      data-pw="demo-buy-bar"
-      className="font-quicksand"
-      initial={{ y: fullH + 30 }}
-      animate={{ y: present ? 0 : fullH + 30 }}
-      transition={SCREEN_TRANSITION}
-      style={{
-        // The anchor with no size (see the note at the top of this file).
-        position: "fixed",
-        left: "50%",
-        bottom: SAFE_BOTTOM,
-        width: 0,
-        height: 0,
-        zIndex: BAR_Z,
-        pointerEvents: present ? undefined : "none",
-      }}
-    >
+    <>
       <motion.div
         data-pw="demo-buy-panel"
-        initial={false}
-        animate={
-          small
-            ? { y: fullH + 30, transitionEnd: { visibility: "hidden" } }
-            : { y: 0, visibility: "visible" }
-        }
-        transition={MOVE}
+        className="font-quicksand"
+        initial={{ y: away }}
+        // Hidden once it is down, and not only moved away: Safari keeps the white
+        // under its bar for as long as the last box it found there is visible.
+        animate={{ y: !present || small ? away : 0, visibility: hidden ? "hidden" : "visible" }}
+        transition={{
+          ...(present && entered ? MOVE : SCREEN_TRANSITION),
+          visibility: { duration: 0, delay: hidden ? MOVE.duration : 0 },
+        }}
+        onAnimationComplete={() => setEntered(true)}
         style={{
-          position: "absolute",
-          left: `calc(${COLUMN_W} / -2)`,
+          // A real fixed box, as wide as the page column: the one box of this bar
+          // that Safari must find (see "The panel is a real fixed box" at the top
+          // of this file). It moves by its own transform, so Safari reads the
+          // window's end again on every frame of a slide.
+          position: "fixed",
+          left: `calc(50% - ${COLUMN_W} / 2)`,
           width: COLUMN_W,
-          top: -fullH,
-          // On under Safari's bar, as the file draws it.
+          // On under the window's end, as the file draws it.
+          bottom: `calc(${SAFE_BOTTOM} - ${UNDER_BAR}px)`,
           height: fullH + UNDER_BAR,
+          zIndex: BAR_Z,
+          pointerEvents: present ? undefined : "none",
           borderRadius: "30px 30px 0 0",
+          // Not fully opaque, for Chromium (see BuyCard). Safari reads it as plain white.
           background: "rgba(255, 255, 255, 0.9976)",
           boxShadow: SHADOW,
         }}
@@ -633,7 +588,7 @@ function Bar({
               top: 0,
               opacity: tail ? 0 : 1,
               transform: tail ? "rotate(90deg)" : "rotate(0deg)",
-              transition: `opacity 0.18s, transform ${IOS_SHEET_CSS}`,
+              transition: `opacity 0.18s, transform ${sheetCss(timing)}`,
             }}
           />
           <XdIcon
@@ -726,39 +681,56 @@ function Bar({
         </AnimatePresence>
       </motion.div>
 
-      {/* The small bar (`– 156`). */}
-      <motion.button
-        type="button"
-        data-pw="demo-buy-pill"
-        onClick={onOpen}
-        tabIndex={small ? 0 : -1}
-        aria-hidden={!small}
-        className="absolute flex items-start font-normal whitespace-nowrap cursor-pointer [-webkit-tap-highlight-color:transparent]"
-        initial={false}
-        animate={
-          small && !sheetOpen
-            ? { opacity: 1, scale: 1, y: 0, visibility: "visible" }
-            : { opacity: 0, scale: 0.9, y: 12, transitionEnd: { visibility: "hidden" } }
-        }
-        whileTap={{ scale: 0.97 }}
-        transition={MOVE}
+      {/* The small bar (`– 156`), on an anchor with no size: Safari must not find it. */}
+      <motion.div
+        data-pw="demo-buy-bar"
+        className="font-quicksand"
+        initial={{ y: away }}
+        animate={{ y: present ? 0 : away }}
+        transition={SCREEN_TRANSITION}
         style={{
-          left: 0,
-          x: "-50%",
-          top: -(PILL.h + pillGap),
-          height: PILL.h,
-          minWidth: PILL.minW,
-          padding: `${textTop(873, 13) - 852}px 8px 0 ${172 - 135}px`,
-          borderRadius: 15,
-          background: "#EBEBEB",
-          color: C.ink,
-          ...LINE_13,
+          position: "fixed",
+          left: "50%",
+          bottom: SAFE_BOTTOM,
+          width: 0,
+          height: 0,
+          zIndex: BAR_Z,
+          pointerEvents: present ? undefined : "none",
         }}
       >
-        <XdIcon name="buyPlus" className="absolute" style={{ left: 141 - 135, top: 856 - 852 }} />
-        <Rich text={t("<b>Buy</b> now !<b> {price}</b> {currency}")} values={{ price: PRICE.now, currency }} />
-      </motion.button>
-    </motion.div>
+        <motion.button
+          type="button"
+          data-pw="demo-buy-pill"
+          onClick={onOpen}
+          tabIndex={small ? 0 : -1}
+          aria-hidden={!small}
+          className="absolute flex items-start font-normal whitespace-nowrap cursor-pointer [-webkit-tap-highlight-color:transparent]"
+          initial={false}
+          animate={
+            small && !sheetOpen
+              ? { opacity: 1, scale: 1, y: 0, visibility: "visible" }
+              : { opacity: 0, scale: 0.9, y: 12, transitionEnd: { visibility: "hidden" } }
+          }
+          whileTap={{ scale: 0.97 }}
+          transition={MOVE}
+          style={{
+            left: 0,
+            x: "-50%",
+            top: -(PILL.h + pillGap),
+            height: PILL.h,
+            minWidth: PILL.minW,
+            padding: `${textTop(873, 13) - 852}px 8px 0 ${172 - 135}px`,
+            borderRadius: 15,
+            background: "#EBEBEB",
+            color: C.ink,
+            ...LINE_13,
+          }}
+        >
+          <XdIcon name="buyPlus" className="absolute" style={{ left: 141 - 135, top: 856 - 852 }} />
+          <Rich text={t("<b>Buy</b> now !<b> {price}</b> {currency}")} values={{ price: PRICE.now, currency }} />
+        </motion.button>
+      </motion.div>
+    </>
   );
 }
 
@@ -1096,6 +1068,7 @@ function BagPill({
   t: T;
 }) {
   const { navigate } = useDemoNav();
+  const timing = useBuyMotion();
   // The bag waits for the item to leave the card, so it is open just before the item comes.
   const opening = { ...OPENING, delay: flying ? 0.2 : 0 };
   const full = items.length > 0;
@@ -1128,7 +1101,7 @@ function BagPill({
               animate={{ opacity: 1, y: 0, scale: 1, width: layout.width, borderRadius: full ? WIDE_BAG_ROUND : NARROW_BAG_ROUND }}
               exit={{ opacity: 0, y: -8, scale: 0.92, transition: FADE }}
               transition={{
-                ...IOS_SHEET,
+                ...sheetTransition(timing),
                 delay: 0.06,
                 opacity: { duration: 0.16, delay: 0.06 },
                 width: opening,
@@ -1295,18 +1268,123 @@ function CardLine({ w, h }: { w: number; h: number }) {
  * opaque and draws dark square corners around the round ones.
  */
 /**
- * A soft band of light that crosses the card's photo once. It sits inside the
- * photo's round box, so the box cuts it.
+ * The card's way in is one move with three parts, and it ends in a hit:
+ *
+ *  1. Pull back. The card flies from the gallery to its place. On the way it gets
+ *     smaller than its rest size and leans back, like a hand drawn back.
+ *  2. Strike. From there it comes at the viewer faster and faster, with no slowing
+ *     down, and flattens.
+ *  3. Hit. It stops dead at the glass, a little over its size. A thin ring (two of
+ *     them) spreads out from under the card, the bag's mark rattles, and the card
+ *     is thrown back a little and settles.
+ *
+ * There is no rest between the parts, so the hit is the card's arrival, and not a
+ * pulse after it. The hit comes just after the eye takes the sheet as landed.
+ *
+ * Parts 2 and 3 run on the card's inner box as one Web Animation, so the browser
+ * can keep them smooth while the sheet renders. The outer box (framer) only flies
+ * the card to its place, in the time of part 1.
  */
-const SHEEN = "linear-gradient(105deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.38) 50%, rgba(255,255,255,0) 70%)";
+type Slam = {
+  /** How strong, from the debug menu: 1 is the design's. */
+  power: number;
+  /** When the card is pulled back and in place, and when it hits the glass, in ms. */
+  pulled: number;
+  contact: number;
+};
 
-function sweepSheen(sheen: HTMLElement | null, delay: number) {
-  sheen?.animate([{ transform: "translateX(-130%)" }, { transform: "translateX(130%)" }], {
-    duration: 900,
-    delay,
-    easing: "cubic-bezier(0.4, 0, 0.2, 1)",
-  });
+/** The hit comes this much after the sheet has landed, and never sooner than SLAM_SOONEST ms. */
+const SLAM_AFTER_SHEET = 1.25;
+const SLAM_SOONEST = 220;
+/** The part of the time before the hit that goes to the pull back. */
+const SLAM_PULL = 0.58;
+/** From the hit to rest, in ms. */
+const SLAM_SETTLE = 400;
+/** At full power: how small the card gets, how far it leans back in degrees, and how far it passes its size. */
+const SLAM_FAR = 0.1;
+const SLAM_LEAN = 7;
+const SLAM_OVER = 0.045;
+/** The card's flight to its place: fast, and slow only at its very end. */
+const SLAM_FLIGHT = [0.2, 0.7, 0.2, 1] as const;
+
+/** The plan for this opening, or null when the debug menu has the hit off. */
+function slamOf(m: BuyMotion): Slam | null {
+  if (m.hit <= 0) return null;
+  const contact = Math.max(SLAM_SOONEST, arrivalMs(m) * SLAM_AFTER_SHEET);
+  return { power: m.hit, pulled: contact * SLAM_PULL, contact };
 }
+
+/** The inner box's pose: its size, and how far its top leans away. */
+const pose = (size: number, lean: number) => `perspective(900px) rotateX(${lean}deg) scale(${size})`;
+
+function slamCard(box: HTMLElement | null, { power, pulled, contact }: Slam) {
+  const total = contact + SLAM_SETTLE;
+  const at = (ms: number) => ms / total;
+  // The easing is on each step, so each part has its own speed.
+  return box?.animate(
+    [
+      // The flight's own curve (SLAM_FLIGHT), so the pull back stays in step with it.
+      { transform: pose(1, 0), easing: `cubic-bezier(${SLAM_FLIGHT.join(", ")})` },
+      // Faster and faster into the glass: the speed is highest at the contact.
+      { transform: pose(1 - SLAM_FAR * power, SLAM_LEAN * power), offset: at(pulled), easing: "cubic-bezier(0.5, 0, 0.9, 0.4)" },
+      // The hard stop: the way back starts at full speed.
+      { transform: pose(1 + SLAM_OVER * power, 0), offset: at(contact), easing: "cubic-bezier(0.1, 0.8, 0.2, 1)" },
+      { transform: pose(1 - 0.016 * power, 0), offset: at(contact + 120), easing: "ease-in-out" },
+      { transform: pose(1 + 0.006 * power, 0), offset: at(contact + 240), easing: "ease-in-out" },
+      { transform: pose(1, 0) },
+    ],
+    { duration: total, easing: "linear" },
+  );
+}
+
+/** A ring in the card's shape that spreads from under the card at the hit and fades. */
+function shockRing(ring: HTMLElement | null, delay: number, strength: number, reach: number, duration: number) {
+  return ring?.animate(
+    [
+      { transform: "scale(1)", opacity: Math.min(0.75, strength) },
+      { transform: `scale(${reach})`, opacity: 0 },
+    ],
+    { duration, delay, easing: "cubic-bezier(0.1, 0.6, 0.2, 1)" },
+  );
+}
+
+/** The bag's mark rattles from the hit. */
+function rattle(mark: Element | null, delay: number, power: number) {
+  return mark?.animate(
+    [
+      { transform: "translateY(0px) rotate(0deg)" },
+      { transform: `translateY(${-2.5 * power}px) rotate(${-8 * power}deg)`, offset: 0.28 },
+      { transform: `translateY(0px) rotate(${4 * power}deg)`, offset: 0.6 },
+      { transform: "translateY(0px) rotate(0deg)" },
+    ],
+    { duration: 380, delay, easing: "ease-out" },
+  );
+}
+
+/** The card's small answer when an item lands in the bag: a short push out and back. */
+const LANDING_HIT = 0.6;
+function answerLanding(box: HTMLElement | null) {
+  const strength = buyMotion().hit * LANDING_HIT;
+  if (strength <= 0) return undefined;
+  const scale = (amount: number) => `scale(${1 + amount * strength})`;
+  return box?.animate(
+    [
+      { transform: scale(0), easing: "cubic-bezier(0.55, 0, 1, 0.45)" },
+      { transform: scale(0.05), offset: 0.2, easing: "cubic-bezier(0, 0.75, 0.25, 1)" },
+      { transform: scale(-0.016), offset: 0.5, easing: "ease-in-out" },
+      { transform: scale(0.005), offset: 0.76, easing: "ease-in-out" },
+      { transform: scale(0) },
+    ],
+    { duration: 560, easing: "linear" },
+  );
+}
+
+/** The rings' shape: the card's, drawn in white. */
+const RING_STYLE = {
+  borderRadius: "30px 30px 15px 15px",
+  border: "1.5px solid rgba(255, 255, 255, 0.95)",
+  opacity: 0,
+} as const;
 
 /**
  * Where the card starts. With the gallery on screen, the card lifts out of it:
@@ -1350,7 +1428,6 @@ function BuyCard({
   y,
   box,
   photo,
-  sheen,
   t,
 }: {
   product: DemoProduct;
@@ -1362,9 +1439,9 @@ function BuyCard({
   /** The card's parts, for the tap on Add to bag. */
   box: React.RefObject<HTMLDivElement | null>;
   photo: React.RefObject<HTMLDivElement | null>;
-  sheen: React.RefObject<HTMLDivElement | null>;
   t: T;
 }) {
+  const timing = useBuyMotion();
   const color = product.colors[colorIndex];
   const tall = PHOTO.h + FOOTER_H;
   // A short window has no room for the file's card: it gets smaller and stays above the sheet.
@@ -1372,15 +1449,31 @@ function BuyCard({
   const cardTop = y - CARD_ABOVE_SHEET - tall;
   // Read once, when the card comes: the page does not move while it is on show.
   const [start] = useState(() => cardStart(cardTop, tall, scale));
-  useEffect(() => sweepSheen(sheen.current, 380), [sheen]);
+  // Planned once, when the card comes: a change in the debug menu works on the next opening.
+  const [slam] = useState(() => slamOf(buyMotion()));
+  const ringNear = useRef<HTMLSpanElement>(null);
+  const ringFar = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!slam) return;
+    const { power, contact } = slam;
+    const running = [
+      slamCard(box.current, slam),
+      shockRing(ringNear.current, contact, 0.55 * power, 1 + 0.2 * power, 520),
+      shockRing(ringFar.current, contact + 70, 0.3 * power, 1 + 0.36 * power, 660),
+      rattle(document.querySelector('[data-pw="demo-buy-bag-icon"]'), contact + 30, power),
+    ];
+    return () => running.forEach((animation) => animation?.cancel());
+  }, [box, slam]);
+  // With the hit, the card is in its place when the strike starts. Without it, it comes with the sheet.
+  const flight: Transition = slam ? { duration: slam.pulled / 1000, ease: [...SLAM_FLIGHT] } : sheetTransition(timing);
   return (
     <motion.article
       data-pw="demo-buy-card"
       className="absolute"
       initial={start}
       animate={{ opacity: 1, x: 0, y: 0, scale, rotateX: 0 }}
-      exit={{ ...start, transition: { ...IOS_SHEET, opacity: { duration: 0.2, delay: 0.06 } } }}
-      transition={{ ...IOS_SHEET, opacity: { duration: 0.14 } }}
+      exit={{ ...start, transition: { ...sheetTransition(timing), opacity: { duration: 0.2, delay: 0.06 } } }}
+      transition={{ ...flight, opacity: { duration: 0.14 } }}
       style={{
         transformPerspective: 900,
         left: "calc(50% - 107px)",
@@ -1391,6 +1484,9 @@ function BuyCard({
         transformOrigin: "50% 100%",
       }}
     >
+      {/* Under the card: they show only as they spread past its edge. */}
+      <span ref={ringNear} aria-hidden="true" data-pw="demo-buy-card-ring" className="absolute inset-0 pointer-events-none" style={RING_STYLE} />
+      <span ref={ringFar} aria-hidden="true" className="absolute inset-0 pointer-events-none" style={RING_STYLE} />
       <div ref={box} className="relative" style={{ width: PHOTO.w, height: tall }}>
         <CardLine w={PHOTO.w} h={tall} />
         <div ref={photo} className="relative" style={{ width: PHOTO.w, height: PHOTO.h }}>
@@ -1404,12 +1500,6 @@ function BuyCard({
               className="block w-full h-full object-cover select-none"
             />
             <PhotoGlow />
-            <div
-              ref={sheen}
-              aria-hidden="true"
-              className="absolute inset-0 pointer-events-none"
-              style={{ background: SHEEN, transform: "translateX(-130%)" }}
-            />
           </div>
           <SwatchPicker colors={product.colors} selected={colorIndex} onSelect={onColor} onOpen={() => {}} t={t} />
         </div>
@@ -1456,14 +1546,13 @@ export default function ProductBuy({
   const { t } = useDemoCase();
   const { navigate } = useDemoNav();
   const present = useIsPresent();
+  const timing = useBuyMotion();
   const floating = useFloatingBar();
   const small = useSmallBar(open);
   const end = useCanvasEnd(open);
   const [mounted, setMounted] = useState(false);
-  const [touch, setTouch] = useState(false);
   useEffect(() => {
     setMounted(true);
-    setTouch(navigator.maxTouchPoints > 0);
   }, []);
 
   /** What is in the bag, oldest first. */
@@ -1488,9 +1577,14 @@ export default function ProductBuy({
 
   const cardBox = useRef<HTMLDivElement>(null);
   const cardPhoto = useRef<HTMLDivElement>(null);
-  const cardSheen = useRef<HTMLDivElement>(null);
   const buttonBox = useRef<HTMLDivElement>(null);
   const bagSlot = useRef<HTMLSpanElement>(null);
+  const latestPlay = useRef<{
+    openSheet: () => void;
+    addToBag: (index: number) => void;
+    playOpening: () => void;
+    playAdd: () => void;
+  } | null>(null);
 
   const total = bag.length;
   const countOf = (index: number) => bag.filter((item) => item.size === index).length;
@@ -1546,9 +1640,15 @@ export default function ProductBuy({
       round: photoBox ? [CARD_ROUND[0] * fit, CARD_ROUND[1] * fit, 0, 0] : [DISC / 2, DISC / 2, DISC / 2, DISC / 2],
       to,
       startScale: photoBox ? 1 : 0.3,
+      duration: buyMotion().flight * 1000,
+      ease: buyMotion().flightEase,
       bag: () => document.querySelector<HTMLElement>('[data-pw="demo-buy-bag"]'),
       bagIcon: () => document.querySelector<HTMLElement>('[data-pw="demo-buy-bag-icon"]'),
-      onLand: () => land(id),
+      onLand: () => {
+        land(id);
+        // The card answers the landing with a small push.
+        answerLanding(cardBox.current);
+      },
     });
     if (photoBox) {
       // The card gives a little as the item leaves it. Its photo stays faint while
@@ -1564,7 +1664,7 @@ export default function ProductBuy({
           { opacity: 0.45, offset: 0.7 },
           { opacity: 1 },
         ],
-        { duration: FLIGHT_MS, easing: "ease-in-out" },
+        { duration: buyMotion().flight * 1000, easing: "ease-in-out" },
       );
     }
   };
@@ -1573,6 +1673,37 @@ export default function ProductBuy({
     setLastAdded(index);
     launch(putInBag(index, false));
   };
+
+  /** What the debug menu's play buttons do. */
+  const playOpening = () => {
+    if (!open) {
+      openSheet();
+      return;
+    }
+    close();
+    setTimeout(() => latestPlay.current?.openSheet(), REPLAY_WAIT_MS);
+  };
+  const playAdd = () => {
+    const index = pick === null || pick === SOLD_OUT ? RECOMMENDED : pick;
+    setPick(index);
+    if (open) {
+      addToBag(index);
+      return;
+    }
+    onOpen(true);
+    setTimeout(() => latestPlay.current?.addToBag(index), REPLAY_WAIT_MS);
+  };
+  useEffect(() => {
+    latestPlay.current = { openSheet, addToBag, playOpening, playAdd };
+  });
+  useEffect(
+    () =>
+      registerBuyActions({
+        playOpening: () => latestPlay.current?.playOpening(),
+        playAdd: () => latestPlay.current?.playAdd(),
+      }),
+    [],
+  );
   const add = () => {
     if (pick === null) return;
     addToBag(pick);
@@ -1644,7 +1775,7 @@ export default function ProductBuy({
         glass
         noHandle
         shadow={SHADOW}
-        timing={IOS_SHEET}
+        timing={sheetTransition(timing)}
         testId="demo-buy-sheet"
         over={
           <BuyCard
@@ -1655,7 +1786,6 @@ export default function ProductBuy({
             y={sheetY}
             box={cardBox}
             photo={cardPhoto}
-            sheen={cardSheen}
             t={t}
           />
         }
@@ -1681,7 +1811,6 @@ export default function ProductBuy({
       {mounted &&
         createPortal(
           <>
-            {touch && present && !small && !open && <BarTail />}
             <Bar
               mode={mode}
               small={small}

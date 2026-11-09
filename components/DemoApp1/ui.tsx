@@ -2,6 +2,7 @@
 
 import React from "react";
 import { createPortal } from "react-dom";
+import type { Transition } from "framer-motion";
 import {
   AnimatePresence,
   motion,
@@ -184,6 +185,8 @@ const startTouch = (e: TouchEvent) => {
  * scrolls on its own keeps the gesture while it can still move that way.
  */
 const holdPage = (e: Event) => {
+  // A debug menu over the sheet keeps its own touch: its sliders must drag.
+  if (e.target instanceof Element && e.target.closest("[data-keep-touch]")) return;
   let dx = 0;
   let dy = 0;
   if (e instanceof WheelEvent) {
@@ -1447,7 +1450,7 @@ export function Sheet({
   onClose: () => void;
   fit?: boolean;
   /** How the sheet and its backdrop move in and out, in place of the usual spring (the size sheet). */
-  timing?: { duration: number; ease: readonly [number, number, number, number] };
+  timing?: Transition;
   /** No handle line (the size sheet, `Home Page – 57`). The drag on its top still closes it. */
   noHandle?: boolean;
   /** What lies on the dimmed page, over the backdrop and beside the sheet (the size sheet's card). */

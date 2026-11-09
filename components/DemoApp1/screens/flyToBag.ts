@@ -1,3 +1,4 @@
+import { cubicBezier } from "framer-motion";
 import { C } from "../demo1Layout";
 
 /**
@@ -10,8 +11,11 @@ import { C } from "../demo1Layout";
  *     small circle as a soft trail.
  *  3. Landing: the copy is gone at the moment the bag's ring takes the item
  *     (`onLand`). The ring's photo, the count and the bag are React's part.
- *  4. Answer: two thin rings spread out of the bag's ring, and the bag gives a
- *     small push.
+ *  4. Answer: two thin rings spread out of the bag's ring, small stars burst
+ *     around it, and the bag gives a small push and glows purple for a moment.
+ *
+ * Small stars in the bag's own purple and yellow also twinkle where the copy has
+ * just passed, and drift down a little as they fade.
  *
  * Web Animations and plain DOM, not React and not a frame loop. The browser can
  * run transform and opacity away from the main thread, so the flight stays
@@ -30,7 +34,6 @@ import { C } from "../demo1Layout";
 /** Over everything, also the bag: the same top z-index, and later on the page. */
 const TOP_Z = "2147483647";
 
-export const FLIGHT_MS = 860;
 /** The part of the time that goes to the lift. */
 const LIFT = 0.2;
 const STEPS = 48;
@@ -58,6 +61,22 @@ const TRAIL_WAIT_MAX = 55;
 /** A smootherstep's top speed is 1.875 times its mean speed. */
 const TOP_SPEED = 1.875;
 
+/** A star with four points, in a 24 px box. */
+const STAR = "M12 0C12.8 7.6 16.4 11.2 24 12C16.4 12.8 12.8 16.4 12 24C11.2 16.4 7.6 12.8 0 12C7.6 11.2 11.2 7.6 12 0Z";
+/** The bag's purple, its yellow handle, and a lighter purple that also shows on the dark page. */
+const STAR_COLORS = [C.purple, "#FFC44D", "#A79BFF"] as const;
+/** When a star comes up behind the copy, as a part of the flight's time. Only once the copy is a small circle. */
+const DUST_AT = [0.46, 0.54, 0.62, 0.7, 0.78, 0.86] as const;
+const DUST_MS = 640;
+/** How many stars burst around the ring on landing, and how far they go in px. */
+const BURST = 8;
+const BURST_NEAR = 30;
+const BURST_FAR = 50;
+const BURST_MS = 680;
+/** The bag's own shadow (BagPill), and its short purple glow on landing. */
+const BAG_SHADOW = "0 3px 3px rgba(0, 0, 0, 0.161)";
+const BAG_GLOW = "0 0 22px rgba(74, 49, 231, 0.55)";
+
 /** Slow at both ends, with no jump in speed (a "smootherstep"). */
 const smooth = (u: number) => u * u * u * (u * (u * 6 - 15) + 10);
 
@@ -73,7 +92,7 @@ const centre = (r: DOMRect) => ({ x: r.left + r.width / 2, y: r.top + r.height /
  * to the side away from the bag, where the screen has room, and it comes to the
  * bag from below.
  */
-function flightPath(from: DOMRect, to: DOMRect, startScale: number) {
+function flightPath(from: DOMRect, to: DOMRect, startScale: number, ease: (u: number) => number) {
   const s = centre(from);
   const e = centre(to);
   const way = Math.hypot(e.x - s.x, e.y - s.y);
@@ -82,23 +101,25 @@ function flightPath(from: DOMRect, to: DOMRect, startScale: number) {
   const a = { x: s.x + swing, y: s.y - LIFT_UP - way * 0.12 };
   const b = { x: e.x + swing * 0.5, y: e.y + way * 0.38 };
   const endScale = to.width / Math.min(from.width, from.height);
+  /** The copy's middle at time `t` of the flight (0 to 1). */
+  const at = (t: number) => {
+    if (t < LIFT) return { x: s.x, y: s.y - LIFT_UP * smooth(t / LIFT) };
+    const p = ease((t - LIFT) / (1 - LIFT));
+    return { x: bezier(s.x, a.x, b.x, e.x, p), y: bezier(s.y - LIFT_UP, a.y, b.y, e.y, p) };
+  };
 
   const frames: Keyframe[] = [];
   for (let i = 0; i <= STEPS; i++) {
     const t = i / STEPS;
-    let x = s.x;
-    let y = s.y;
+    const { x, y } = at(t);
     let scale: number;
     let tilt = 0;
     if (t < LIFT) {
       const u = smooth(t / LIFT);
-      y = s.y - LIFT_UP * u;
       scale = startScale + (LIFT_SCALE - startScale) * u;
     } else {
       const u = (t - LIFT) / (1 - LIFT);
-      const p = smooth(u);
-      x = bezier(s.x, a.x, b.x, e.x, p);
-      y = bezier(s.y - LIFT_UP, a.y, b.y, e.y, p);
+      const p = ease(u);
       // Even steps of scale look even in size only on a log scale. The power makes
       // the copy small early, while the way it has gone is still short.
       scale = LIFT_SCALE * Math.pow(endScale / LIFT_SCALE, Math.pow(p, 0.6));
@@ -108,7 +129,7 @@ function flightPath(from: DOMRect, to: DOMRect, startScale: number) {
       transform: `translate3d(${(x - from.width / 2).toFixed(2)}px, ${(y - from.height / 2).toFixed(2)}px, 0) rotate(${tilt.toFixed(2)}deg) scale(${scale.toFixed(4)})`,
     });
   }
-  return frames;
+  return { frames, at };
 }
 
 /** The copy's box closes from the photo's shape to the circle in its middle. */
@@ -123,7 +144,7 @@ function closingClip(from: DOMRect, round: readonly [number, number, number, num
 }
 
 /** The soft shadow and the white edge of the main copy, both on the circle in the box's middle. */
-function circleParts(box: HTMLElement, from: DOMRect) {
+function circleParts(box: HTMLElement, from: DOMRect, duration: number) {
   const d = Math.min(from.width, from.height);
   const shadow = document.createElement("div");
   const w = d * SHADOW;
@@ -140,7 +161,7 @@ function circleParts(box: HTMLElement, from: DOMRect) {
     { opacity: 1, offset: 0.95 },
     { opacity: 0, offset: 1 },
   ];
-  const timing = { duration: FLIGHT_MS, easing: "linear", fill: "both" } as const;
+  const timing = { duration, easing: "linear", fill: "both" } as const;
   shadow.animate(show, timing);
   edge.animate(show, timing);
 }
@@ -171,11 +192,34 @@ function ripple(anchor: HTMLElement, at: DOMRect, delay: number, peak: number) {
   ).finished;
 }
 
+const between = (low: number, high: number) => low + Math.random() * (high - low);
+const anyColor = () => STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)];
+
+/** One star at (x, y): it grows, turns, moves by (dx, dy), and shrinks away. */
+function twinkle(anchor: HTMLElement, x: number, y: number, dx: number, dy: number, duration: number, delay: number) {
+  const size = between(9, 16);
+  const star = document.createElement("div");
+  star.style.cssText = `position:absolute;left:${x - size / 2}px;top:${y - size / 2}px;width:${size}px;height:${size}px;opacity:0;`;
+  star.innerHTML = `<svg viewBox="0 0 24 24" width="100%" height="100%" style="display:block"><path d="${STAR}" fill="${anyColor()}"/></svg>`;
+  anchor.appendChild(star);
+  return star.animate(
+    [
+      // The easing is on each step: over the whole animation it would bring the
+      // star's peak far too early, and the star would be gone before it is seen.
+      { transform: "translate(0px, 0px) scale(0) rotate(0deg)", opacity: 0, easing: "ease-out" },
+      { transform: `translate(${dx * 0.55}px, ${dy * 0.55}px) scale(1) rotate(50deg)`, opacity: 1, offset: 0.4, easing: "ease-in" },
+      { transform: `translate(${dx}px, ${dy}px) scale(0) rotate(130deg)`, opacity: 0 },
+    ],
+    { duration, delay, easing: "linear", fill: "both" },
+  ).finished;
+}
+
 /**
  * Sends a copy of `photo` from the box `from` to the box `to`.
  *
  * `round` is the corners of the photo at `from`. `startScale` under 1 makes the
- * copy grow out of its place first (a tap on the bar's button).
+ * copy grow out of its place first (a tap on the bar's button). `duration` is in
+ * ms. `ease` is the flight's curve: null is slow at both ends.
  */
 export function flyToBag({
   photo,
@@ -185,6 +229,8 @@ export function flyToBag({
   bag,
   bagIcon,
   startScale = 1,
+  duration,
+  ease,
   onLand,
 }: {
   photo: string;
@@ -194,6 +240,8 @@ export function flyToBag({
   bag: () => HTMLElement | null;
   bagIcon: () => HTMLElement | null;
   startScale?: number;
+  duration: number;
+  ease: readonly [number, number, number, number] | null;
   onLand: () => void;
 }) {
   const anchor = document.createElement("div");
@@ -202,11 +250,12 @@ export function flyToBag({
   anchor.style.cssText = `position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;z-index:${TOP_Z};`;
   document.body.appendChild(anchor);
 
-  const path = flightPath(from, to, startScale);
+  const curve = ease ? cubicBezier(ease[0], ease[1], ease[2], ease[3]) : smooth;
+  const { frames: path, at } = flightPath(from, to, startScale, curve);
   const clip = closingClip(from, round);
   const clipTiming = {
-    duration: FLIGHT_MS * CLOSE,
-    delay: FLIGHT_MS * LIFT,
+    duration: duration * CLOSE,
+    delay: duration * LIFT,
     easing: "cubic-bezier(0.4, 0, 0.2, 1)",
     fill: "both",
   } as const;
@@ -214,7 +263,7 @@ export function flyToBag({
   // The wait follows the speed, so the copies keep the same distance on a long
   // flight (from the bar) and on a short one (from the card).
   const way = Math.hypot(centre(to).x - centre(from).x, centre(to).y - centre(from).y);
-  const topSpeed = (TOP_SPEED * way) / (FLIGHT_MS * (1 - LIFT));
+  const topSpeed = (TOP_SPEED * way) / (duration * (1 - LIFT));
   const wait = Math.min(TRAIL_WAIT_MAX, TRAIL_GAP / topSpeed);
 
   // The trail goes in first, so the main copy lies over it. It starts only when
@@ -224,7 +273,7 @@ export function flyToBag({
     const { box, img } = photoCopy(photo, from);
     anchor.appendChild(box);
     img.animate(clip, { ...clipTiming, delay: clipTiming.delay + delay });
-    box.animate(path, { duration: FLIGHT_MS, delay, easing: "linear", fill: "both" });
+    box.animate(path, { duration, delay, easing: "linear", fill: "both" });
     box.animate(
       [
         { opacity: 0, offset: 0 },
@@ -233,15 +282,15 @@ export function flyToBag({
         { opacity, offset: 0.86 },
         { opacity: 0, offset: 1 },
       ],
-      { duration: FLIGHT_MS, delay, easing: "linear", fill: "both" },
+      { duration, delay, easing: "linear", fill: "both" },
     );
   });
 
   const { box, img } = photoCopy(photo, from);
-  circleParts(box, from);
+  circleParts(box, from, duration);
   anchor.appendChild(box);
   img.animate(clip, clipTiming);
-  const flight = box.animate(path, { duration: FLIGHT_MS, easing: "linear", fill: "both" });
+  const flight = box.animate(path, { duration, easing: "linear", fill: "both" });
   box.animate(
     [
       { opacity: startScale < 1 ? 0 : 1, offset: 0 },
@@ -249,8 +298,13 @@ export function flyToBag({
       { opacity: 1, offset: 0.95 },
       { opacity: 0, offset: 1 },
     ],
-    { duration: FLIGHT_MS, easing: "linear", fill: "both" },
+    { duration, easing: "linear", fill: "both" },
   );
+
+  const dust = DUST_AT.map((t) => {
+    const { x, y } = at(t);
+    return twinkle(anchor, x + between(-16, 16), y + between(-12, 12), between(-8, 8), between(8, 18), DUST_MS, t * duration);
+  });
 
   const land = () => {
     onLand();
@@ -262,6 +316,10 @@ export function flyToBag({
       ],
       { duration: 420, easing: "cubic-bezier(0.2, 0, 0, 1)" },
     );
+    bag()?.animate(
+      [{ boxShadow: BAG_SHADOW }, { boxShadow: BAG_GLOW, offset: 0.3 }, { boxShadow: BAG_SHADOW }],
+      { duration: 760, easing: "ease-out" },
+    );
     bagIcon()?.animate(
       [
         { transform: "translateY(0) scale(1)" },
@@ -270,7 +328,13 @@ export function flyToBag({
       ],
       { duration: 460, easing: "cubic-bezier(0.2, 0, 0, 1)" },
     );
-    return Promise.all([ripple(anchor, to, 0, 0.6), ripple(anchor, to, 110, 0.28)]);
+    const { x, y } = centre(to);
+    const burst = Array.from({ length: BURST }, (_, i) => {
+      const angle = ((i + between(-0.25, 0.25)) / BURST) * Math.PI * 2;
+      const far = between(BURST_NEAR, BURST_FAR);
+      return twinkle(anchor, x, y, Math.cos(angle) * far, Math.sin(angle) * far, BURST_MS, between(0, 70));
+    });
+    return Promise.all([ripple(anchor, to, 0, 0.6), ripple(anchor, to, 110, 0.28), ...burst, ...dust]);
   };
 
   flight.finished.then(land, land).finally(() => anchor.remove());
