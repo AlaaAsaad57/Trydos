@@ -1441,10 +1441,13 @@ export function Sheet({
   handleBar = 0,
   noHandle = false,
   over,
+  timing,
 }: {
   open: boolean;
   onClose: () => void;
   fit?: boolean;
+  /** How the sheet and its backdrop move in and out, in place of the usual spring (the size sheet). */
+  timing?: { duration: number; ease: readonly [number, number, number, number] };
   /** No handle line (the size sheet, `Home Page – 57`). The drag on its top still closes it. */
   noHandle?: boolean;
   /** What lies on the dimmed page, over the backdrop and beside the sheet (the size sheet's card). */
@@ -1501,7 +1504,7 @@ export function Sheet({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
+              transition={timing ?? { duration: 0.25 }}
               onClick={onClose}
             />
             {over}
@@ -1525,12 +1528,14 @@ export function Sheet({
               animate={{ y: rest }}
               onAnimationComplete={() => onEntered?.()}
               exit={{ y: "100%" }}
-              transition={{
-                type: "spring",
-                stiffness: 320,
-                damping: 34,
-                mass: 0.9,
-              }}
+              transition={
+                timing ?? {
+                  type: "spring",
+                  stiffness: 320,
+                  damping: 34,
+                  mass: 0.9,
+                }
+              }
               drag="y"
               dragControls={fit ? grip : undefined}
               dragListener={!fit}

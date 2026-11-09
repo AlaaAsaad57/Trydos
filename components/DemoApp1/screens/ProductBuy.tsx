@@ -142,13 +142,19 @@ const LINE_15 = { fontSize: 15, lineHeight: `${lineBox(15)}px` } as const;
 /** The motion of the panel and the pill, and of a block that changes inside them. */
 const MOVE = { duration: 0.32, ease: [0.2, 0, 0, 1] as const };
 const FADE = { duration: 0.18, ease: "easeOut" as const };
-/** The sheet's own spring (Sheet in ui.tsx), for what comes with it. */
-const WITH_SHEET = { type: "spring" as const, stiffness: 320, damping: 34, mass: 0.9 };
+/**
+ * How everything moves when the sheet opens: at full speed from the first frame,
+ * then slowing down gently, with no bounce. This is the curve and the 0.5 s of
+ * Ionic's iOS modal and of Vaul, both made to look like the iOS sheet. Apple
+ * publishes no numbers for its sheet, so this is a close copy, not iOS's own value.
+ */
+const IOS_SHEET = { duration: 0.5, ease: [0.32, 0.72, 0, 1] as const };
+const IOS_SHEET_CSS = "0.5s cubic-bezier(0.32, 0.72, 0, 1)";
+/** The same curve for a smaller block, which has less far to go. */
+const IOS_BLOCK = { duration: 0.42, ease: IOS_SHEET.ease };
 
-/** The card's way in: a little over its place at the end, so it seems to settle. */
-const CARD_SPRING = { type: "spring" as const, stiffness: 260, damping: 28, mass: 0.9 };
 /** The words of the dark button when they change. */
-const ROLL = { duration: 0.3, ease: [0.2, 0, 0, 1] as const };
+const ROLL = { duration: 0.36, ease: IOS_SHEET.ease };
 
 /**
  * The sheet's blocks come in one after another, top to bottom, and the sizes
@@ -157,24 +163,24 @@ const ROLL = { duration: 0.3, ease: [0.2, 0, 0, 1] as const };
  */
 const SHEET_BLOCKS: Variants = {
   hidden: {},
-  show: { transition: { delayChildren: 0.08, staggerChildren: 0.06 } },
+  show: { transition: { delayChildren: 0.02, staggerChildren: 0.04 } },
 };
 const SHEET_ROW: Variants = {
   hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 30, mass: 0.8 } },
+  show: { opacity: 1, y: 0, transition: IOS_BLOCK },
 };
 const SIZE_ROW: Variants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.028 } },
+  show: { transition: { staggerChildren: 0.018 } },
 };
 const SIZE_TILE: Variants = {
   hidden: { opacity: 0, y: 14, scale: 0.9 },
-  show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 380, damping: 26, mass: 0.8 } },
+  show: { opacity: 1, y: 0, scale: 1, transition: IOS_BLOCK },
 };
 /** The mark under the size comes last, after the tiles it points at. */
 const SIZE_MARK: Variants = {
   hidden: { opacity: 0, y: -6, scale: 0.4 },
-  show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 420, damping: 22, delay: 0.5 } },
+  show: { opacity: 1, y: 0, scale: 1, transition: { ...IOS_BLOCK, delay: 0.3 } },
 };
 
 /** How far a scroll goes one way before the bar changes, and where the bar is always full. */
@@ -230,7 +236,7 @@ function useSmallBar(held: boolean) {
  * How far the tail's strip reaches up behind the panel. It stays under the
  * panel's round corners, which start 27 px above the content's end.
  */
-const TAIL_OVERLAP = 24;
+const TAIL_OVERLAP = 26;
 
 /**
  * The file's white under Safari's bar. Safari draws only the document there,
@@ -238,29 +244,40 @@ const TAIL_OVERLAP = 24;
  * stops at the document's end, or the document would grow each time it is
  * reached. Only on a touch device: with a mouse there is no such bar.
  *
- * The iPhone cuts the fixed panel a few px above `scrollY + innerHeight`, and
- * the page showed through that line. So a strip reaches up behind the panel and
- * closes the line. The strip waits until the panel is in place: while the panel
- * slides in, the strip would be a white band over the page.
+ * The iPhone cuts the fixed panel a few px above where this box was, and the page
+ * showed through that line. So:
+ *
+ *  - The place comes from a fixed point with no size at the window's end, the
+ *    same end the panel hangs on. `innerHeight` can differ from it.
+ *  - It is read on every frame. Safari's bar changes size with no scroll event,
+ *    and the panel moves with it.
+ *  - A strip reaches up behind the panel, so a small difference shows no line.
+ *    The strip waits until the panel is in place: while the panel slides in, it
+ *    would be a white band over the page.
  */
 function BarTail() {
   const box = useRef<HTMLDivElement>(null);
+  const windowEnd = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
+    let frame = 0;
+    let top = "";
+    let height = "";
     const follow = () => {
-      if (!box.current) return;
-      const y = window.scrollY + window.innerHeight;
-      box.current.style.top = `${y}px`;
-      box.current.style.height = `${Math.max(0, Math.min(UNDER_BAR, document.documentElement.scrollHeight - y))}px`;
+      if (box.current && windowEnd.current) {
+        const y = window.scrollY + windowEnd.current.getBoundingClientRect().bottom;
+        const nextTop = `${y}px`;
+        const nextHeight = `${Math.max(0, Math.min(UNDER_BAR, document.documentElement.scrollHeight - y))}px`;
+        if (nextTop !== top) box.current.style.top = top = nextTop;
+        if (nextHeight !== height) box.current.style.height = height = nextHeight;
+      }
+      frame = requestAnimationFrame(follow);
     };
     follow();
-    window.addEventListener("scroll", follow, { passive: true });
-    window.addEventListener("resize", follow);
-    return () => {
-      window.removeEventListener("scroll", follow);
-      window.removeEventListener("resize", follow);
-    };
+    return () => cancelAnimationFrame(frame);
   }, []);
   return (
+    <>
+    <div ref={windowEnd} aria-hidden="true" style={{ position: "fixed", left: 0, bottom: 0, width: 0, height: 0 }} />
     <div
       ref={box}
       aria-hidden="true"
@@ -275,6 +292,7 @@ function BarTail() {
         style={{ position: "absolute", left: 0, top: -TAIL_OVERLAP, width: "100%", height: TAIL_OVERLAP, background: C.white }}
       />
     </div>
+    </>
   );
 }
 
@@ -412,7 +430,7 @@ function DarkButton({
       initial={{ clipPath: BUTTON_CLOSED, opacity: 0.4 }}
       animate={{ clipPath: BUTTON_OPEN, opacity: 1 }}
       exit={{ clipPath: BUTTON_CLOSED, opacity: 0 }}
-      transition={MOVE}
+      transition={IOS_SHEET}
       style={{
         left: 234,
         right: 8,
@@ -615,7 +633,7 @@ function Bar({
               top: 0,
               opacity: tail ? 0 : 1,
               transform: tail ? "rotate(90deg)" : "rotate(0deg)",
-              transition: "opacity 0.18s, transform 0.32s cubic-bezier(0.2, 0, 0, 1)",
+              transition: `opacity 0.18s, transform ${IOS_SHEET_CSS}`,
             }}
           />
           <XdIcon
@@ -1110,11 +1128,9 @@ function BagPill({
               animate={{ opacity: 1, y: 0, scale: 1, width: layout.width, borderRadius: full ? WIDE_BAG_ROUND : NARROW_BAG_ROUND }}
               exit={{ opacity: 0, y: -8, scale: 0.92, transition: FADE }}
               transition={{
-                type: "spring",
-                stiffness: 420,
-                damping: 28,
-                delay: 0.12,
-                opacity: { duration: 0.16, delay: 0.12 },
+                ...IOS_SHEET,
+                delay: 0.06,
+                opacity: { duration: 0.16, delay: 0.06 },
                 width: opening,
                 borderRadius: opening,
               }}
@@ -1363,8 +1379,8 @@ function BuyCard({
       className="absolute"
       initial={start}
       animate={{ opacity: 1, x: 0, y: 0, scale, rotateX: 0 }}
-      exit={{ ...start, transition: { ...WITH_SHEET, opacity: { duration: 0.2, delay: 0.06 } } }}
-      transition={{ ...CARD_SPRING, opacity: { duration: 0.14 } }}
+      exit={{ ...start, transition: { ...IOS_SHEET, opacity: { duration: 0.2, delay: 0.06 } } }}
+      transition={{ ...IOS_SHEET, opacity: { duration: 0.14 } }}
       style={{
         transformPerspective: 900,
         left: "calc(50% - 107px)",
@@ -1628,6 +1644,7 @@ export default function ProductBuy({
         glass
         noHandle
         shadow={SHADOW}
+        timing={IOS_SHEET}
         testId="demo-buy-sheet"
         over={
           <BuyCard
