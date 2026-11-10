@@ -402,6 +402,38 @@ describe("PricingSection", () => {
     expect(field(container, "purchase_price"), "purchase price must stay").not.toBeNull();
   });
 
+  it("shows the return days input, also when prices are locked, and sends what the seller types", async () => {
+    const { container } = await mount(PricingSection, {}, { pricesLocked: true });
+
+    expect(
+      field(container, "return_days"),
+      "the return days input is missing from the pricing section",
+    ).not.toBeNull();
+    expect(inputIn(container, "return_days").value, "a new product must start with empty return days").toBe("");
+
+    fireEvent.change(inputIn(container, "return_days"), { target: { value: "0" } });
+    expect(latest.return_days, "typing 0 into return days did not reach the form").toBe("0");
+
+    fireEvent.change(inputIn(container, "return_days"), { target: { value: "" } });
+    expect(latest.return_days, "clearing return days did not leave it empty").toBe("");
+  });
+
+  it.each([
+    // [case, pricesLocked, isCreate, shown]
+    ["an unapproved seller editing a product", true, false, true],
+    ["an approved seller editing a product", false, false, false],
+    ["an unapproved seller creating a product", true, true, false],
+  ] as const)("tells %s whether return days apply at once", async (who, pricesLocked, isCreate, shown) => {
+    const { container } = await mount(PricingSection, {}, { pricesLocked, isCreate });
+    const note = within(field(container, "return_days")).queryByText(/return days apply at once/i);
+
+    if (shown) {
+      expect(note, `${who} was not told that return days skip admin approval`).toBeInTheDocument();
+    } else {
+      expect(note, `${who} was told that return days apply at once, which is not true here`).toBeNull();
+    }
+  });
+
   it("locks the stock field when variants exist, because it is their total", async () => {
     const { container } = await mount(PricingSection, {
       colors: [{ code: "#FF0000", name: "Red" }],

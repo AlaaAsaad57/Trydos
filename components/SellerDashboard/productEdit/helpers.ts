@@ -353,6 +353,9 @@ export interface ProductForm {
   count_of_pieces: string;
   shipping_cost: string;
   shipping_days: string;
+  /** "" = not set, so the seller days or the category days apply. "0" = the
+   *  product cannot be returned. The two must never be merged. */
+  return_days: string;
   tax: string;
   tax_type: string;
   multiply_qty: number;
@@ -542,6 +545,7 @@ export function emptyProductForm(): ProductForm {
     count_of_pieces: "",
     shipping_cost: "",
     shipping_days: "",
+    return_days: "",
     tax: "",
     tax_type: "percent",
     multiply_qty: 0,
@@ -827,6 +831,8 @@ export function buildFormFromEdit(
     count_of_pieces: numStr(product.count_of_pieces),
     shipping_cost: numStr(product.shipping_cost),
     shipping_days: numStr(product.shipping_days),
+    // null -> "" and 0 -> "0", so "not set" and "no returns" stay apart.
+    return_days: numStr(product.return_days),
     tax: numStr(product.tax),
     tax_type: product.tax_type ?? "percent",
     multiply_qty: product.multiply_qty?1:0,
@@ -1015,6 +1021,13 @@ export function validate(
       e.count_of_pieces = tx("Must be a whole number between 1 and 100");
   }
 
+  // Same range as the backend rule. Empty is allowed: it means "not set".
+  if (form.return_days !== "") {
+    const rd = num(form.return_days);
+    if (!Number.isInteger(rd) || rd < 0 || rd > 365)
+      e.return_days = tx("Must be a whole number between 0 and 365");
+  }
+
   if (form.labels.length > 3) e.labels = tx("At most 3 labels allowed");
 
   if (!form.images.length) e.images = tx("At least one product image is required");
@@ -1192,6 +1205,8 @@ const ASSERT_MESSAGE_FIELDS: [string, string][] = [
  *  Every name is also a key of `ProductForm`, which is what lets
  *  `clearServerFieldErrors` clear by patched key with no name-to-name map.
  *
+ *  `return_days` was added later, together with its input.
+ *
  *  `similar_words` is deliberately absent. It carries an anchor but has no
  *  message slot, so binding to it would mark a field that shows nothing. */
 const DISPLAYABLE_FIELDS = new Set([
@@ -1225,6 +1240,7 @@ const DISPLAYABLE_FIELDS = new Set([
   "report_ref_number",
   "shipping_cost",
   "shipping_days",
+  "return_days",
   "max_allowed_qty",
   "meta_title",
   "meta_description",
@@ -1410,6 +1426,11 @@ export function buildUpdateFormData(form: ProductForm, isCreate = false): FormDa
   set("count_of_pieces", form.count_of_pieces === "" ? "1" : form.count_of_pieces);
   set("shipping_cost", form.shipping_cost === "" ? "0" : form.shipping_cost);
   set("shipping_days", form.shipping_days === "" ? "0" : form.shipping_days);
+  // Sent as it is, on every save. Do NOT turn "" into "0" like the fields
+  // above: "0" means "this product cannot be returned", and "" (null on the
+  // backend) means "not set, use the seller or category days". The edit form
+  // loads the stored value, so an unchanged input sends it back unchanged.
+  set("return_days", form.return_days);
   // tax / tax_type are both sent on every save. tax_type must be exactly 'flat'
   // or 'percent' — only 'flat' currency-converts the amount, anything else is
   // read as a percentage (contract §1b). An empty amount means "no tax" → 0.
@@ -1575,6 +1596,7 @@ const SCALARS: [keyof ProductForm, string][] = [
   ["count_of_pieces", "Pieces / Unit"],
   ["shipping_cost", "Shipping Cost"],
   ["shipping_days", "Shipping Days"],
+  ["return_days", "Return Days"],
   ["tax", "Tax"],
   // tax_type is skipped in the loop below and pushed with a translated label.
   ["tax_type", "Tax Type"],

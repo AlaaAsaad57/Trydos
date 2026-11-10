@@ -548,8 +548,13 @@ export function CoreSection({ form, patch, errors, lookups, disabled }: SectionP
   );
 }
 
-export function PricingSection({ form, patch, errors, disabled, currency, decimalDigits, pricesLocked }: SectionProps) {
+export function PricingSection({ form, patch, errors, disabled, currency, decimalDigits, pricesLocked, isCreate }: SectionProps) {
   const hasVariants = combos(form).length > 0;
+  // An unapproved seller's edits wait for an admin, but the backend saves
+  // return_days at once. Not on create: the whole new product waits there.
+  const returnDaysHint = pricesLocked && !isCreate
+    ? `${t("Leave empty to use the seller or category days. 0 means this product cannot be returned.")} ${t("Return days apply at once.")}`
+    : t("Leave empty to use the seller or category days. 0 means this product cannot be returned.");
   // Every price except Purchase Price is hidden for an unapproved seller — an
   // input that cannot be filled is noise, so it is not rendered at all rather
   // than shown greyed out. Non-price fields below (stock, weight, qty, pieces,
@@ -584,6 +589,8 @@ export function PricingSection({ form, patch, errors, disabled, currency, decima
           <Num label="Shipping Cost" fieldKey="shipping_cost" value={form.shipping_cost} error={errors.shipping_cost} disabled={disabled} suffix={currency} decimalDigits={decimalDigits} onChange={(v) => patch({ shipping_cost: v })} />
         )}
         <Num label="Shipping Days" fieldKey="shipping_days" value={form.shipping_days} error={errors.shipping_days} disabled={disabled} step="1" onChange={(v) => patch({ shipping_days: v })} />
+        {/* Empty = not set (seller or category days apply). 0 = no returns. */}
+        <Num label="Return Days" fieldKey="return_days" value={form.return_days} error={errors.return_days} hint={returnDaysHint} disabled={disabled} step="1" onChange={(v) => patch({ return_days: v })} />
         {/* A flat tax is an amount in the display currency and is converted
             server-side; any other type is read as a percentage (contract §1b).
             Tax changes what the buyer pays, so it follows the same rule as the
