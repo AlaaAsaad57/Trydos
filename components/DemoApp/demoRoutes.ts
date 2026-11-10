@@ -8,8 +8,9 @@
  *    `history.pushState`, which Next.js keeps in step with `useSearchParams`,
  *    so there is no server round trip at all.
  *  - The settings and profile pages are real paths under `/demo/settings`,
- *    and the screens inside the chat tab (a conversation, a contact, a call)
- *    are real paths under `/demo/chat`. They can be linked to and reloaded.
+ *    the screens inside the chat tab (a conversation, a contact, a call)
+ *    are real paths under `/demo/chat`, and the checkout is a real path under
+ *    `/demo/cart`. They can be linked to and reloaded.
  *  - A store's page is a real path, `/demo/store/<slug>` (see demoStores.ts).
  *    Search engines can reach it, and it has its own title and JSON-LD.
  *  - A product's page is a real path under its store,
@@ -26,6 +27,7 @@ export const DEMO_SCREENS = [
   "home",
   "search",
   "cart",
+  "cart/checkout",
   "chat",
   "chat/conversation",
   "chat/contact",

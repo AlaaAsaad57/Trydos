@@ -118,6 +118,36 @@ const PRODUCT_PAGE_KEYS = [
  * list does not compile. Each key must also exist in all three
  * public/translations files — `pnpm lint` and `pnpm lint:i18n-parity` check that.
  */
+/**
+ * The words of the bag and the checkout, `Home Page – 50` and `– 56`. The
+ * English is written in Apple's title style on the screen (demoCase.ts), so a
+ * key here is the file's own words.
+ */
+const CART_KEYS = [
+  "Shopping bag",
+  "Shopping <b>bag</b>",
+  "<m>{count}</m> item . <m>{price}</m> {currency}",
+  "<m>{count}</m> item <m>.</m> <m>{price}</m> {currency}",
+  "Item Availability and pricing are not guaranteed until payment is final",
+  "Color",
+  "Size",
+  "Composed of",
+  "{count} piece",
+  "<b>Hurry up ! </b>quantity running out.<b> -{time}</b>",
+  "<b>Out of Bag ! </b>time running out",
+  "<b>Out of Bag ! </b>time running out<m> -{time}</m>",
+  "ADD AGAIN",
+  "Delete",
+  "Add one more",
+  "Confirm & continue",
+  "Checkout / Complete",
+  "Price details",
+  "<b>{count}</b> item",
+  "Shipping & delivery Address",
+  "Please Select your shipping address to receive Your Package",
+  "Choose delivery Address",
+] as const;
+
 export const DEMO_KEYS = [
   "Hide menu",
   "Device and browser info",
@@ -499,6 +529,8 @@ export const DEMO_KEYS = [
   "Grey",
   // The product page (`Home Page – 49`).
   ...PRODUCT_PAGE_KEYS,
+  // The bag and the checkout (`Home Page – 50`, `– 56`).
+  ...CART_KEYS,
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];
@@ -534,6 +566,8 @@ export const KEEP_CASE: ReadonlySet<DemoKey> = new Set<DemoKey>([
   "blue",
   // `Home Page – 49`, the product page (see demoCase.ts).
   ...PRODUCT_PAGE_KEYS,
+  // `Home Page – 50` and `– 56`, the bag and the checkout (demoCase.ts too).
+  ...CART_KEYS,
 ]);
 
 export type DemoDictionary = Partial<Record<DemoKey, string>>;

@@ -276,6 +276,18 @@ export const XD_ICON_SIZE = {
   buyBag: { w: 26, h: 26 },
   buyBell: { w: 16, h: 16 },
   buyBellOn: { w: 16, h: 16 },
+  // The bag and the checkout: `Home Page – 50` and `– 56`.
+  cartInfo: { w: 14.01, h: 14 },
+  cartBag: { w: 34, h: 34 },
+  cartTrash: { w: 10, h: 12 },
+  cartPlus: { w: 12, h: 12.01 },
+  cartClock: { w: 14, h: 12.58 },
+  cartOutHelp: { w: 14, h: 14 },
+  cartAddAgain: { w: 14.01, h: 14 },
+  cartCardBag: { w: 20, h: 20 },
+  cartRocket: { w: 19.68, h: 20 },
+  cartMap: { w: 20, h: 19.7 },
+  cartHelpGrey: { w: 16.01, h: 16 },
 } as const;
 
 export type XdIconName = keyof typeof XD_ICON_SIZE;

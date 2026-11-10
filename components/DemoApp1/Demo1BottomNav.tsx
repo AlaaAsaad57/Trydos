@@ -68,6 +68,7 @@ export default function Demo1BottomNav({
   photo,
   verified,
   resetKey,
+  cartCount,
   onSelect,
   t,
 }: {
@@ -77,6 +78,8 @@ export default function Demo1BottomNav({
   verified: boolean;
   /** The screen on show. A new screen starts at its top, so the bar goes back to full size. */
   resetKey: string;
+  /** How many pieces the bag holds (demoBag.ts). Not given, the cart tab shows the file's fixed count. */
+  cartCount?: number;
   onSelect: (tab: DemoTab) => void;
   t: (key: DemoKey) => string;
 }) {
@@ -284,11 +287,15 @@ export default function Demo1BottomNav({
                           transition: SWAP,
                         }}
                       />
-                      {slot.count && (
+                      {slot.count && !(id === "cart" && cartCount === 0) && (
                         <TabCount
                           tab={id}
                           on={on}
-                          count={slot.count}
+                          count={
+                            id === "cart" && cartCount !== undefined
+                              ? { ...slot.count, text: String(cartCount) }
+                              : slot.count
+                          }
                           size={slot.active.size}
                         />
                       )}

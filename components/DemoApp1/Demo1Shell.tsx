@@ -24,6 +24,7 @@ import {
 } from "framer-motion";
 import DemoDeviceInfoModal from "NewLoginDesign/DemoDeviceInfoModal";
 import { DemoDataProvider, useDemoData } from "../DemoApp/DemoData";
+import { bagCount } from "../DemoApp/demoBag";
 import { DemoChatProvider } from "../DemoApp/demoChatState";
 import { DebugButtons } from "../DemoApp/demoDebug";
 import type { DemoDictionary, DemoKey } from "../DemoApp/demoKeys";
@@ -274,7 +275,7 @@ function Demo1ShellInner({
   const params = useParams();
   const locale = typeof params.lang === "string" ? params.lang : "sy-en";
   const t = (key: DemoKey) => dictionary[key] ?? key;
-  const { profile } = useDemoData();
+  const { profile, bag } = useDemoData();
 
   const urlScreen = screenFromUrl(pathname, searchParams.toString());
   const [shown, setShown] = useState<DemoScreen | null>(urlScreen);
@@ -489,6 +490,7 @@ function Demo1ShellInner({
           visible={showBar}
           photo={profile.photo}
           verified={profile.emailVerified}
+          cartCount={bagCount(bag)}
           resetKey={key}
           onSelect={(tab) => navigate(tab)}
           t={t}

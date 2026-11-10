@@ -292,12 +292,21 @@ const LABEL_PERSPECTIVE_PX = 120;
  *  4. In the last 20 % of the round it turns from 180deg to 0, at the same
  *     time as the label before it turns from 0 to -180deg. The two labels
  *     are the two sides of one card that turns over.
+ *
+ * A second set of keyframes hides a label (opacity 0) from the middle of its
+ * turn away to the middle of its turn back: there it stands edge-on (the
+ * curve is even, so half the time is half the turn), so the switch never
+ * shows. WebKit does not always hide a back side (inside the bag's panel it
+ * drew the waiting labels upside down), so the turns must not count on
+ * `backface-visibility` alone.
  */
 function labelsCss(n: number) {
   const turn = 100 / n;
   const still = (turn * LABEL_STILL).toFixed(3);
   const out = turn.toFixed(3);
   const back = (100 - turn * (1 - LABEL_STILL)).toFixed(3);
+  const edgeOut = ((turn * LABEL_STILL + turn) / 2).toFixed(3);
+  const edgeIn = ((100 - turn * (1 - LABEL_STILL) + 100) / 2).toFixed(3);
   return `@keyframes demo-flip-${n} {
   0% { transform: rotateX(0deg); }
   ${still}% { transform: rotateX(0deg); }
@@ -305,7 +314,16 @@ function labelsCss(n: number) {
   ${back}% { transform: rotateX(180deg); animation-timing-function: ${LABEL_EASE}; }
   100% { transform: rotateX(0deg); }
 }
-.demo-flip-${n} { animation: demo-flip-${n} ${n * LABEL_STEP_S}s ${LABEL_EASE} infinite both; }
+@keyframes demo-flip-seen-${n} {
+  0% { opacity: 1; }
+  ${edgeOut}% { opacity: 0; }
+  ${edgeIn}% { opacity: 1; }
+  100% { opacity: 1; }
+}
+.demo-flip-${n} {
+  animation: demo-flip-${n} ${n * LABEL_STEP_S}s ${LABEL_EASE} infinite both,
+    demo-flip-seen-${n} ${n * LABEL_STEP_S}s step-end infinite both;
+}
 @media (prefers-reduced-motion: reduce) {
   .demo-flip-${n} { animation: none; }
   .demo-flip-${n}:not(:first-child) { display: none; }
@@ -316,26 +334,17 @@ function labelsCss(n: number) {
  * Where label `i` of `n` starts in the round: label 0 at the start (facing
  * the viewer), label 1 one turn before its own turn, and so on. A negative
  * delay starts the animation part-way, so every label is in place on the
- * first frame.
+ * first frame. `elapsed` (s) starts the round that much further on.
  */
-function flipDelay(i: number, n: number) {
-  return `-${((n - i) % n) * LABEL_STEP_S}s`;
+function flipDelay(i: number, n: number, elapsed = 0) {
+  return `${-(((n - i) % n) * LABEL_STEP_S + elapsed)}s`;
 }
 
 /**
  * A card's labels under its name (a flash deal is one of them), in a row
  * `height` px tall at `top` in the footer, 12 px in from both sides. The
  * store page's cards and the colour sheet's cards both use it; `render`
- * draws one label in the card's own style.
- *
- * One label sits still. With more, they take turns, as on the shop's product
- * cards: each one rests, then turns over like a card (around its middle line,
- * top edge going back), and the next label is on the card's other side.
- * After the last one, the first comes back, so the turns go round with no end.
- *
- * All labels lie on top of each other. Only CSS turns them (no script on
- * each frame), as a page can show many cards. With "reduce motion" on, the
- * first label stays and the others are not shown.
+ * draws one label in the card's own style. The turns are FlipTurns.
  */
 export function LabelTurns({
   badges,
@@ -350,40 +359,72 @@ export function LabelTurns({
   testId: string;
   render: (badge: ProductBadge) => React.ReactNode;
 }) {
-  const n = badges.length;
+  return (
+    <FlipTurns
+      items={badges.map((badge) => render(badge))}
+      testId={testId}
+      className="absolute"
+      style={{ left: 12, right: 12, top, height }}
+    />
+  );
+}
+
+/**
+ * Labels that take turns in one place, as on the shop's product cards: one
+ * label sits still; with more, each one rests, then turns over like a card
+ * (around its middle line, top edge going back), and the next label is on
+ * the card's other side. After the last one, the first comes back, so the
+ * turns go round with no end.
+ *
+ * All labels lie on top of each other, at the box's top left. Only CSS turns
+ * them (no script on each frame), as a page can show many of them. With
+ * "reduce motion" on, the first label stays and the others are not shown.
+ * `style` gives the box its place and its size. `elapsed` (s) starts the
+ * turns that far into their round: a new copy of the same labels then goes
+ * on from where the old copy was. `fit` gives the box the size of its widest
+ * label (the labels lie in one grid cell), so something can follow it in a
+ * row; otherwise `style` must size the box.
+ */
+export function FlipTurns({
+  items,
+  testId,
+  className = "",
+  style,
+  elapsed = 0,
+  fit = false,
+}: {
+  items: readonly React.ReactNode[];
+  testId: string;
+  className?: string;
+  style: React.CSSProperties;
+  elapsed?: number;
+  fit?: boolean;
+}) {
+  const n = items.length;
   if (n < 2) {
     return (
-      <div
-        data-pw={testId}
-        data-count={n}
-        className="absolute overflow-hidden"
-        style={{ left: 12, right: 12, top, height }}
-      >
-        {render(badges[0])}
+      <div data-pw={testId} data-count={n} className={`overflow-hidden ${className}`} style={style}>
+        {items[0]}
       </div>
     );
   }
   return (
-    <div
-      data-pw={testId}
-      data-count={n}
-      className="absolute"
-      style={{ left: 12, right: 12, top, height, perspective: LABEL_PERSPECTIVE_PX }}
-    >
+    <div data-pw={testId} data-count={n} className={className} style={{ ...style, perspective: LABEL_PERSPECTIVE_PX }}>
       <style>{labelsCss(n)}</style>
-      <div className={`relative h-full demo-labels-${n}`}>
-        {badges.map((badge, i) => (
+      <div className={`relative h-full demo-labels-${n} ${fit ? "grid" : ""}`}>
+        {items.map((item, i) => (
           <div
             key={i}
-            className={`absolute inset-0 overflow-hidden demo-flip-${n}`}
+            className={`overflow-hidden demo-flip-${n} ${fit ? "" : "absolute inset-0"}`}
             style={{
-              animationDelay: flipDelay(i, n),
+              gridArea: fit ? "1 / 1" : undefined,
+              animationDelay: flipDelay(i, n, elapsed),
               backfaceVisibility: "hidden",
               WebkitBackfaceVisibility: "hidden",
               transformOrigin: "50% 50%",
             }}
           >
-            {render(badge)}
+            {item}
           </div>
         ))}
       </div>

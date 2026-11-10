@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState } from "react";
+import { DEMO_BAG, type DemoBagItem } from "./demoBag";
 
 /**
  * The shopper the demo shows.
@@ -69,15 +70,23 @@ export const DEMO_PROFILE: DemoProfile = {
 type DemoData = {
   profile: DemoProfile;
   update: (patch: Partial<DemoProfile>) => void;
+  /** The shopper's bag (`Home Page – 50`); see demoBag.ts. */
+  bag: readonly DemoBagItem[];
+  updateBag: (change: (bag: readonly DemoBagItem[]) => readonly DemoBagItem[]) => void;
 };
 
 const Ctx = createContext<DemoData | null>(null);
 
 export function DemoDataProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<DemoProfile>(DEMO_PROFILE);
+  const [bag, setBag] = useState<readonly DemoBagItem[]>(DEMO_BAG);
   const update = (patch: Partial<DemoProfile>) =>
     setProfile((prev) => ({ ...prev, ...patch }));
-  return <Ctx.Provider value={{ profile, update }}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={{ profile, update, bag, updateBag: setBag }}>
+      {children}
+    </Ctx.Provider>
+  );
 }
 
 export function useDemoData(): DemoData {

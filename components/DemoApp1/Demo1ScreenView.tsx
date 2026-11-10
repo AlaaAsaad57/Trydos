@@ -10,7 +10,8 @@ import {
 } from "../DemoApp/demoRoutes";
 import HomeScreen from "./screens/HomeScreen";
 import SearchScreen from "./screens/SearchScreen";
-import EmptyTabScreen from "./screens/EmptyTabScreen";
+import CartScreen from "./screens/CartScreen";
+import CheckoutScreen from "./screens/CheckoutScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import PhotoScreen from "./screens/PhotoScreen";
 import ClientIdScreen from "./screens/ClientIdScreen";
@@ -40,13 +41,9 @@ export default function Demo1ScreenView({ screen }: { screen: DemoScreen }) {
     case "search":
       return <SearchScreen />;
     case "cart":
-      return (
-        <EmptyTabScreen
-          title="Cart"
-          message="Your cart is empty"
-          hint="Items you add to your cart will show here"
-        />
-      );
+      return <CartScreen />;
+    case "cart/checkout":
+      return <CheckoutScreen />;
     case "chat":
       return <ChatListScreen />;
     case "chat/conversation":
