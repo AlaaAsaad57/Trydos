@@ -222,10 +222,15 @@ function useSmallBar(held: boolean) {
       setSmall(false);
       return;
     }
-    let last = window.scrollY;
+    // Past the page's end (the rubber band), the scroll counts as at the end: the
+    // bounce back is not a scroll up. Safari does not read the bottom edge while the
+    // scroll is past the end, so a panel that came back then would get no white
+    // under Safari's bar until something else moved.
+    const inPage = () => Math.max(0, Math.min(window.scrollY, document.documentElement.scrollHeight - window.innerHeight));
+    let last = inPage();
     let run = 0;
     const onScroll = () => {
-      const y = window.scrollY;
+      const y = inPage();
       const dy = y - last;
       last = y;
       if (y < ALWAYS_FULL_Y) {
@@ -698,10 +703,14 @@ function Bar({
           aria-hidden={!small}
           className="absolute flex items-start font-normal whitespace-nowrap cursor-pointer [-webkit-tap-highlight-color:transparent]"
           initial={false}
+          // The pill sits on the point Safari reads at the bottom edge (the middle,
+          // 4 px above the window's end). On its way out it lifts, so it leaves that
+          // point in the first frames and Safari's read lands on the panel coming
+          // up, not on a pill at opacity 0 (a fade does not stop a hit test).
           animate={
             small && !sheetOpen
               ? { opacity: 1, scale: 1, y: 0, visibility: "visible" }
-              : { opacity: 0, scale: 0.9, y: 12, transitionEnd: { visibility: "hidden" } }
+              : { opacity: 0, scale: 0.9, y: -12, transitionEnd: { visibility: "hidden" } }
           }
           whileTap={{ scale: 0.97 }}
           transition={MOVE}
