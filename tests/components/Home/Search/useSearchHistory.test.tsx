@@ -78,6 +78,29 @@ describe("useSearchHistory", () => {
     );
   });
 
+  it("shows a logged word at the top at once, without closing the search", async () => {
+    const { result } = await openHook();
+
+    act(() => result.current.addHistoryWord("  Watches "));
+
+    expect(result.current.searchHistory, "the logged word did not show on top, in the server's form").toEqual([
+      "watches",
+      "shoes",
+      "bags",
+    ]);
+  });
+
+  it("moves a word already in the list to the top instead of showing it twice", async () => {
+    const { result } = await openHook();
+
+    act(() => result.current.addHistoryWord("Bags"));
+
+    expect(result.current.searchHistory, "a word searched again was not moved to the top once").toEqual([
+      "bags",
+      "shoes",
+    ]);
+  });
+
   it("keeps nothing in localStorage", async () => {
     const { result } = await openHook();
 

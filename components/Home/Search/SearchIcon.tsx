@@ -64,9 +64,13 @@ function SearchIcon({ language, country }) {
 
   // Data States
   const [trending, setTrending] = useState([]);
-  const { searchHistory, removeHistoryWord, clearHistory } =
+  const { searchHistory, addHistoryWord, removeHistoryWord, clearHistory } =
     useSearchHistory(searchEnabled);
-  const { scheduleLog, cancelLog } = useSearchLog(value, searchEnabled);
+  const { scheduleLog, cancelLog } = useSearchLog(
+    value,
+    searchEnabled,
+    addHistoryWord,
+  );
 
   // Results State (Consolidated for cleaner updates)
   const [results, setResults] = useState({
