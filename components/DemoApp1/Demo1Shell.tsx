@@ -26,7 +26,6 @@ import DemoDeviceInfoModal from "NewLoginDesign/DemoDeviceInfoModal";
 import { DemoDataProvider, useDemoData } from "../DemoApp/DemoData";
 import { DemoChatProvider } from "../DemoApp/demoChatState";
 import { DebugButtons } from "../DemoApp/demoDebug";
-import { BuyMotionButton } from "./screens/buyMotion";
 import type { DemoDictionary, DemoKey } from "../DemoApp/demoKeys";
 import {
   direction,
@@ -520,7 +519,6 @@ function Demo1ShellInner({
             </button>
           )}
           {!hideMenu && <DebugButtons t={t} />}
-          {!hideMenu && <BuyMotionButton t={t} />}
         </div>
         <DemoKeyboard locale={locale} t={t} />
         <DemoDeviceInfoModal

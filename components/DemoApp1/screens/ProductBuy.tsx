@@ -37,14 +37,14 @@ import {
 } from "./ListingParts";
 import { LikeHeart, useLike } from "./LikeHeart";
 import {
-  arrivalMs,
-  blockTransition,
-  buyMotion,
-  registerBuyActions,
-  sheetCss,
-  sheetTransition,
-  useBuyMotion,
-  type BuyMotion,
+  ARRIVAL_MS,
+  BLOCK_GAP,
+  BLOCK_TRANSITION,
+  FLIGHT_EASE,
+  FLIGHT_MS,
+  HIT,
+  SHEET_CSS,
+  SHEET_TRANSITION,
 } from "./buyMotion";
 import { flyToBag } from "./flyToBag";
 
@@ -74,7 +74,7 @@ import { flyToBag } from "./flyToBag";
  * blocks come in one after another. On Add to bag, the photo flies to an empty
  * ring in the bag (flyToBag.ts), and the count moves when it lands. The card's
  * way in ends in a hit on the glass (see Slam), and it gives a small push when
- * the item lands. The debug menu in buyMotion.tsx changes the timing.
+ * the item lands. The timing the client picked is in buyMotion.ts.
  *
  * Every number is the file's, in design px. The grey shapes under the bar in the
  * file are Safari's own bar, so they are not drawn here. They do show where the
@@ -136,9 +136,6 @@ const BAG_Z = 2147483647;
 /** How long the bag stays on the page after a landing, with no sheet open. */
 const BAG_LINGER_MS = 1200;
 
-/** How long the debug menu's play buttons wait for the sheet to close, or to open. */
-const REPLAY_WAIT_MS = 900;
-
 /** The file's sheet shadow, the same on the panel: 0, -3, blur 10, black at 10%. */
 const SHADOW = "0 -3px 10px rgba(0, 0, 0, 0.102)";
 
@@ -165,39 +162,36 @@ const LINE_15 = { fontSize: 15, lineHeight: `${lineBox(15)}px` } as const;
 /** The motion of the panel and the pill, and of a block that changes inside them. */
 const MOVE = { duration: 0.32, ease: [0.2, 0, 0, 1] as const };
 const FADE = { duration: 0.18, ease: "easeOut" as const };
-/** The words of the dark button when they change. The sheet's own timing is in buyMotion.tsx. */
+/** The words of the dark button when they change. The sheet's own timing is in buyMotion.ts. */
 const ROLL = { duration: 0.36, ease: [0.32, 0.72, 0, 1] as const };
 
 /**
  * The sheet's blocks come in one after another, top to bottom, and the sizes
  * from left to right. They have no way out: they leave with the sheet. A message
  * that comes later (a tap on a size) uses SHEET_ROW with no wait.
- *
- * Each `show` is a function, so it reads the timing when the sheet opens: the
- * debug menu can change it (buyMotion.tsx).
  */
 const SHEET_BLOCKS: Variants = {
   hidden: {},
-  show: () => ({ transition: { delayChildren: 0.02, staggerChildren: buyMotion().gap } }),
+  show: { transition: { delayChildren: 0.02, staggerChildren: BLOCK_GAP } },
 };
 const SHEET_ROW: Variants = {
   hidden: { opacity: 0, y: 12 },
-  show: () => ({ opacity: 1, y: 0, transition: blockTransition(buyMotion()) }),
+  show: { opacity: 1, y: 0, transition: BLOCK_TRANSITION },
 };
 /** The sizes come closer together than the blocks. */
 const SIZE_GAP = 0.45;
 const SIZE_ROW: Variants = {
   hidden: {},
-  show: () => ({ transition: { staggerChildren: buyMotion().gap * SIZE_GAP } }),
+  show: { transition: { staggerChildren: BLOCK_GAP * SIZE_GAP } },
 };
 const SIZE_TILE: Variants = {
   hidden: { opacity: 0, y: 14, scale: 0.9 },
-  show: () => ({ opacity: 1, y: 0, scale: 1, transition: blockTransition(buyMotion()) }),
+  show: { opacity: 1, y: 0, scale: 1, transition: BLOCK_TRANSITION },
 };
 /** The mark under the size comes last, after the tiles it points at. */
 const SIZE_MARK: Variants = {
   hidden: { opacity: 0, y: -6, scale: 0.4 },
-  show: () => ({ opacity: 1, y: 0, scale: 1, transition: { ...blockTransition(buyMotion()), delay: 0.3 } }),
+  show: { opacity: 1, y: 0, scale: 1, transition: { ...BLOCK_TRANSITION, delay: 0.3 } },
 };
 
 /** How far a scroll goes one way before the bar changes, and where the bar is always full. */
@@ -375,7 +369,6 @@ function DarkButton({
   words: string;
   children: React.ReactNode;
 }) {
-  const timing = useBuyMotion();
   return (
     <motion.div
       ref={box}
@@ -384,7 +377,7 @@ function DarkButton({
       initial={{ clipPath: BUTTON_CLOSED, opacity: 0.4 }}
       animate={{ clipPath: BUTTON_OPEN, opacity: 1 }}
       exit={{ clipPath: BUTTON_CLOSED, opacity: 0 }}
-      transition={sheetTransition(timing)}
+      transition={SHEET_TRANSITION}
       style={{
         left: 234,
         right: 8,
@@ -510,7 +503,6 @@ function Bar({
   t: T;
 }) {
   const present = useIsPresent();
-  const timing = useBuyMotion();
   const tail = mode.kind !== "marks";
   const fullH = CONTENT_H + gap;
   /** How far down the panel waits, out of the window. */
@@ -588,7 +580,7 @@ function Bar({
               top: 0,
               opacity: tail ? 0 : 1,
               transform: tail ? "rotate(90deg)" : "rotate(0deg)",
-              transition: `opacity 0.18s, transform ${sheetCss(timing)}`,
+              transition: `opacity 0.18s, transform ${SHEET_CSS}`,
             }}
           />
           <XdIcon
@@ -1068,7 +1060,6 @@ function BagPill({
   t: T;
 }) {
   const { navigate } = useDemoNav();
-  const timing = useBuyMotion();
   // The bag waits for the item to leave the card, so it is open just before the item comes.
   const opening = { ...OPENING, delay: flying ? 0.2 : 0 };
   const full = items.length > 0;
@@ -1101,7 +1092,7 @@ function BagPill({
               animate={{ opacity: 1, y: 0, scale: 1, width: layout.width, borderRadius: full ? WIDE_BAG_ROUND : NARROW_BAG_ROUND }}
               exit={{ opacity: 0, y: -8, scale: 0.92, transition: FADE }}
               transition={{
-                ...sheetTransition(timing),
+                ...SHEET_TRANSITION,
                 delay: 0.06,
                 opacity: { duration: 0.16, delay: 0.06 },
                 width: opening,
@@ -1286,7 +1277,7 @@ function CardLine({ w, h }: { w: number; h: number }) {
  * the card to its place, in the time of part 1.
  */
 type Slam = {
-  /** How strong, from the debug menu: 1 is the design's. */
+  /** How strong: 1 is full power. */
   power: number;
   /** When the card is pulled back and in place, and when it hits the glass, in ms. */
   pulled: number;
@@ -1307,12 +1298,9 @@ const SLAM_OVER = 0.045;
 /** The card's flight to its place: fast, and slow only at its very end. */
 const SLAM_FLIGHT = [0.2, 0.7, 0.2, 1] as const;
 
-/** The plan for this opening, or null when the debug menu has the hit off. */
-function slamOf(m: BuyMotion): Slam | null {
-  if (m.hit <= 0) return null;
-  const contact = Math.max(SLAM_SOONEST, arrivalMs(m) * SLAM_AFTER_SHEET);
-  return { power: m.hit, pulled: contact * SLAM_PULL, contact };
-}
+/** The plan of every opening. */
+const SLAM_CONTACT = Math.max(SLAM_SOONEST, ARRIVAL_MS * SLAM_AFTER_SHEET);
+const SLAM: Slam = { power: HIT, pulled: SLAM_CONTACT * SLAM_PULL, contact: SLAM_CONTACT };
 
 /** The inner box's pose: its size, and how far its top leans away. */
 const pose = (size: number, lean: number) => `perspective(900px) rotateX(${lean}deg) scale(${size})`;
@@ -1364,8 +1352,7 @@ function rattle(mark: Element | null, delay: number, power: number) {
 /** The card's small answer when an item lands in the bag: a short push out and back. */
 const LANDING_HIT = 0.6;
 function answerLanding(box: HTMLElement | null) {
-  const strength = buyMotion().hit * LANDING_HIT;
-  if (strength <= 0) return undefined;
+  const strength = HIT * LANDING_HIT;
   const scale = (amount: number) => `scale(${1 + amount * strength})`;
   return box?.animate(
     [
@@ -1441,7 +1428,6 @@ function BuyCard({
   photo: React.RefObject<HTMLDivElement | null>;
   t: T;
 }) {
-  const timing = useBuyMotion();
   const color = product.colors[colorIndex];
   const tall = PHOTO.h + FOOTER_H;
   // A short window has no room for the file's card: it gets smaller and stays above the sheet.
@@ -1449,30 +1435,27 @@ function BuyCard({
   const cardTop = y - CARD_ABOVE_SHEET - tall;
   // Read once, when the card comes: the page does not move while it is on show.
   const [start] = useState(() => cardStart(cardTop, tall, scale));
-  // Planned once, when the card comes: a change in the debug menu works on the next opening.
-  const [slam] = useState(() => slamOf(buyMotion()));
   const ringNear = useRef<HTMLSpanElement>(null);
   const ringFar = useRef<HTMLSpanElement>(null);
   useEffect(() => {
-    if (!slam) return;
-    const { power, contact } = slam;
+    const { power, contact } = SLAM;
     const running = [
-      slamCard(box.current, slam),
+      slamCard(box.current, SLAM),
       shockRing(ringNear.current, contact, 0.55 * power, 1 + 0.2 * power, 520),
       shockRing(ringFar.current, contact + 70, 0.3 * power, 1 + 0.36 * power, 660),
       rattle(document.querySelector('[data-pw="demo-buy-bag-icon"]'), contact + 30, power),
     ];
     return () => running.forEach((animation) => animation?.cancel());
-  }, [box, slam]);
-  // With the hit, the card is in its place when the strike starts. Without it, it comes with the sheet.
-  const flight: Transition = slam ? { duration: slam.pulled / 1000, ease: [...SLAM_FLIGHT] } : sheetTransition(timing);
+  }, [box]);
+  // The card is in its place when the strike starts.
+  const flight: Transition = { duration: SLAM.pulled / 1000, ease: [...SLAM_FLIGHT] };
   return (
     <motion.article
       data-pw="demo-buy-card"
       className="absolute"
       initial={start}
       animate={{ opacity: 1, x: 0, y: 0, scale, rotateX: 0 }}
-      exit={{ ...start, transition: { ...sheetTransition(timing), opacity: { duration: 0.2, delay: 0.06 } } }}
+      exit={{ ...start, transition: { ...SHEET_TRANSITION, opacity: { duration: 0.2, delay: 0.06 } } }}
       transition={{ ...flight, opacity: { duration: 0.14 } }}
       style={{
         transformPerspective: 900,
@@ -1546,7 +1529,6 @@ export default function ProductBuy({
   const { t } = useDemoCase();
   const { navigate } = useDemoNav();
   const present = useIsPresent();
-  const timing = useBuyMotion();
   const floating = useFloatingBar();
   const small = useSmallBar(open);
   const end = useCanvasEnd(open);
@@ -1579,12 +1561,6 @@ export default function ProductBuy({
   const cardPhoto = useRef<HTMLDivElement>(null);
   const buttonBox = useRef<HTMLDivElement>(null);
   const bagSlot = useRef<HTMLSpanElement>(null);
-  const latestPlay = useRef<{
-    openSheet: () => void;
-    addToBag: (index: number) => void;
-    playOpening: () => void;
-    playAdd: () => void;
-  } | null>(null);
 
   const total = bag.length;
   const countOf = (index: number) => bag.filter((item) => item.size === index).length;
@@ -1640,8 +1616,8 @@ export default function ProductBuy({
       round: photoBox ? [CARD_ROUND[0] * fit, CARD_ROUND[1] * fit, 0, 0] : [DISC / 2, DISC / 2, DISC / 2, DISC / 2],
       to,
       startScale: photoBox ? 1 : 0.3,
-      duration: buyMotion().flight * 1000,
-      ease: buyMotion().flightEase,
+      duration: FLIGHT_MS,
+      ease: FLIGHT_EASE,
       bag: () => document.querySelector<HTMLElement>('[data-pw="demo-buy-bag"]'),
       bagIcon: () => document.querySelector<HTMLElement>('[data-pw="demo-buy-bag-icon"]'),
       onLand: () => {
@@ -1664,7 +1640,7 @@ export default function ProductBuy({
           { opacity: 0.45, offset: 0.7 },
           { opacity: 1 },
         ],
-        { duration: buyMotion().flight * 1000, easing: "ease-in-out" },
+        { duration: FLIGHT_MS, easing: "ease-in-out" },
       );
     }
   };
@@ -1674,36 +1650,6 @@ export default function ProductBuy({
     launch(putInBag(index, false));
   };
 
-  /** What the debug menu's play buttons do. */
-  const playOpening = () => {
-    if (!open) {
-      openSheet();
-      return;
-    }
-    close();
-    setTimeout(() => latestPlay.current?.openSheet(), REPLAY_WAIT_MS);
-  };
-  const playAdd = () => {
-    const index = pick === null || pick === SOLD_OUT ? RECOMMENDED : pick;
-    setPick(index);
-    if (open) {
-      addToBag(index);
-      return;
-    }
-    onOpen(true);
-    setTimeout(() => latestPlay.current?.addToBag(index), REPLAY_WAIT_MS);
-  };
-  useEffect(() => {
-    latestPlay.current = { openSheet, addToBag, playOpening, playAdd };
-  });
-  useEffect(
-    () =>
-      registerBuyActions({
-        playOpening: () => latestPlay.current?.playOpening(),
-        playAdd: () => latestPlay.current?.playAdd(),
-      }),
-    [],
-  );
   const add = () => {
     if (pick === null) return;
     addToBag(pick);
@@ -1775,7 +1721,7 @@ export default function ProductBuy({
         glass
         noHandle
         shadow={SHADOW}
-        timing={sheetTransition(timing)}
+        timing={SHEET_TRANSITION}
         testId="demo-buy-sheet"
         over={
           <BuyCard

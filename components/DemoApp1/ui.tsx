@@ -185,8 +185,6 @@ const startTouch = (e: TouchEvent) => {
  * scrolls on its own keeps the gesture while it can still move that way.
  */
 const holdPage = (e: Event) => {
-  // A debug menu over the sheet keeps its own touch: its sliders must drag.
-  if (e.target instanceof Element && e.target.closest("[data-keep-touch]")) return;
   let dx = 0;
   let dy = 0;
   if (e instanceof WheelEvent) {
