@@ -46,7 +46,7 @@ vi.mock("embla-carousel-react", async (importOriginal) => {
 
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
 import { Sheet } from "components/DemoApp1/ui";
-import { TAB_PAGE_MIN_HEIGHT, UNDER_BAR } from "components/DemoApp1/demo1Layout";
+import { TAB_BAR_BOTTOM, TAB_PAGE_MIN_HEIGHT, UNDER_BAR } from "components/DemoApp1/demo1Layout";
 import {
   DEMO_SCREENS,
   hrefFor,
@@ -990,6 +990,46 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
         `the "${screen}" page does not run down to the tab bar's bottom edge under Safari's bar`,
       ).toBe(TAB_PAGE_MIN_HEIGHT);
       unmount();
+    }
+  });
+
+  // Seen on the client's iPhone (2026-11-11, after the two fixes above): at the
+  // end of a scroll down the profile, the tab bar was cut flat again. In
+  // iPhone Safari 26 the bar went 13 px down, to sit near Safari's toolbar, so
+  // its lowest 7 px lay under the window's end. Safari draws a fixed box under
+  // that line only while the document itself lies there. At the end of a
+  // scroll the document stops exactly at the window's end, on every page, so
+  // those 7 px went; a longer page cannot help there. So in Safari the bar's
+  // bottom edge stays at least 1 px inside the window.
+  it("keeps the tab bar's bottom edge inside the window in iPhone Safari 26, so the end of a scroll cannot cut it", () => {
+    const agent =
+      Object.getOwnPropertyDescriptor(navigator, "userAgent") ??
+      Object.getOwnPropertyDescriptor(Navigator.prototype, "userAgent");
+    Object.defineProperty(navigator, "userAgent", {
+      configurable: true,
+      value:
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1",
+    });
+    try {
+      const { unmount } = openOn("settings");
+      const bar = document.body.querySelector<HTMLElement>('[data-pw="demo-tab-bar"]');
+      expect(bar, "the tab bar is missing").not.toBeNull();
+      expect(
+        bar!.style.bottom,
+        "the tab bar's bottom edge is not measured from TAB_BAR_BOTTOM less Safari's band",
+      ).toContain(`${TAB_BAR_BOTTOM}px - var(--demo-safari-band`);
+      const band = document.documentElement.style.getPropertyValue("--demo-safari-band");
+      expect(band, "the tab bar did not go down by Safari's band in iPhone Safari 26").toMatch(
+        /^\d+(\.\d+)?px$/,
+      );
+      expect(
+        parseFloat(band),
+        "the tab bar's bottom edge lies under the window's end in iPhone Safari 26; Safari cuts it there at the end of a scroll",
+      ).toBeLessThanOrEqual(TAB_BAR_BOTTOM - 1);
+      unmount();
+    } finally {
+      if (agent) Object.defineProperty(navigator, "userAgent", agent);
+      else delete (navigator as unknown as Record<string, unknown>).userAgent;
     }
   });
 

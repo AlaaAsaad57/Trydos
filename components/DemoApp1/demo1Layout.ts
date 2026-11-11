@@ -64,8 +64,9 @@ export const TAB_BAR_MIN_SCALE = TAB_BAR_MIN.height / TAB_BAR.height;
  * In Chrome (and most browsers) the window ends right at the toolbar, so
  * this is 6 px above the window's end. In iPhone Safari 26 the window ends
  * SAFARI_BAND px above Safari's toolbar, so there the bar goes down by
- * SAFARI_SHIFT (see BAND). That is less than the band, so the gap to
- * Safari's toolbar is about 8.5 px there, not 6 (see SAFARI_SHIFT for why).
+ * SAFARI_SHIFT (see BAND), to 1 px above the window's end. So the gap to
+ * Safari's toolbar is about 16.5 px there, not 6 (see SAFARI_SHIFT for why
+ * the bar cannot go lower).
  *
  * Never under 0 outside Safari: in Chrome a value under 0 cuts the bar's
  * bottom off, and the icons (8 px above the bar's bottom) touch the toolbar.
@@ -98,24 +99,22 @@ export function isFloatingBarSafari(ua: string) {
 export const SAFARI_BAND = 15.5;
 
 /**
- * How far the tab bar's icons end above the bar's bottom edge: the file's
- * bar ends at y 917, its active icons at y 909.
- */
-const TAB_ICON_ROOM = 917 - 909;
-
-/**
- * How far the tab bar goes down in iPhone Safari 26: the band, but never so
- * far that the icons pass the window's end.
+ * How far the tab bar goes down in iPhone Safari 26: to 1 px above the
+ * window's end, never under it.
  *
- * Why. Safari cuts every fixed box at the window's end, also where it then
- * paints the band under it. With the full band (bar bottom 9.5 px under the
- * window's end) the icons' lowest 1.5 px were cut: an iPhone screenshot
- * (2026-11-11) showed the bag icon's bottom corner cut flat at y 857.1, the
- * window's end. So the icons keep 1 px over that line: 6 + 8 - 1 = 13. The
- * bar's own glass under the line is cut too, but it is clear, so it does not
- * show.
+ * Why. Safari draws a fixed box under the window's end only while the
+ * document itself lies there, and at the end of a scroll the document stops
+ * exactly at the window's end, on every page. Seen on the client's iPhone
+ * (2026-11-11): with the bar 13 px down (its icons end 8 px above its bottom
+ * edge, so at full size only its clear glass lay under the line) Safari cut
+ * the bar flat at the window's end on a page that ended there (the bag, the
+ * search), and on every tab screen at the end of a scroll down; the shrunk
+ * bar's icons went under the line too (their room scales with the bar). A
+ * longer page helps at the top of the scroll only, so the bar keeps its
+ * whole box inside the window.
+ * The 1 px is for the window's end on a half pixel (y 857.5).
  */
-export const SAFARI_SHIFT = Math.min(SAFARI_BAND, TAB_BAR_BOTTOM + TAB_ICON_ROOM - 1);
+export const SAFARI_SHIFT = Math.min(SAFARI_BAND, TAB_BAR_BOTTOM - 1);
 
 /** The shift in this browser, as a number: SAFARI_SHIFT in iPhone Safari 26, else 0. Client only. */
 export const safariBand = () =>
@@ -313,16 +312,17 @@ export const top = (y: number) => `calc(${y - STATUS_BAR}px + ${SAFE_TOP})`;
 export const TAB_ROOM = `calc(${TAB_BAR_TOP}px - ${BAND} + ${SAFE_BOTTOM})`;
 
 /**
- * The least height of a tab screen's page: the window, and in iPhone Safari
- * 26 one more px than the tab bar's bottom edge is under the window's end.
+ * The least height of a tab screen's page: the window, and one more px than
+ * the tab bar's bottom edge is under the window's end, if it ever is.
  *
  * Seen on the iPhone (2026-11-11, bar filled red with the debug picker):
  * Safari paints a fixed box below the window's end only where the page
  * itself runs below it. The bag and the search were exactly the window's
- * height, and the bar's lowest 7 px (TAB_BAR_BOTTOM - SAFARI_SHIFT) were cut
- * flat; the chat's page ended exactly at the bar's bottom and the bar was
- * whole. The 1 px is for rounding. Outside Safari the band is 0 and the bar
- * ends inside the window, so the page stays the window's height.
+ * height, and the bar's then lowest 7 px under the window's end were cut
+ * flat. The bar's whole box now stays inside the window (SAFARI_SHIFT), so
+ * this is the window's height in every browser; it only guards the rule
+ * should the bar go lower again. It cannot help at the end of a scroll,
+ * where every page stops at the window's end.
  */
 export const TAB_PAGE_MIN_HEIGHT = `calc(100dvh + max(0px, ${BAND} - ${TAB_BAR_BOTTOM - 1}px))`;
 

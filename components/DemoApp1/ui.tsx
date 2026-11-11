@@ -595,14 +595,17 @@ export function ScreenPage({
   const touch = useIsTouchDevice();
   // A tab screen with no head (the profile) shows the white top strip the
   // same way a head page does while its head is shown (useHeadOnScroll): a
-  // `follow` strip with `mix-blend-mode: multiply`. Seen on the iPhone
-  // (2026-11-11, the bar filled red with the debug picker): Safari 26 cut the
-  // lowest 7 px of the profile's fixed tab bar flat at the window's end, and
-  // on no other tab screen; with this strip the bar was whole. A blended
-  // fixed box at the top makes WebKit isolate the root into a group of its
-  // own, and that changes how it paints the fixed bar at the bottom. A plain
-  // strip, with no blend, did not help. The strip is only put on a touch
-  // device, as for a head (on a desktop it showed as a band).
+  // `follow` strip with `mix-blend-mode: multiply`, so Safari's top bar is
+  // white on every tab screen. Seen on the iPhone (2026-11-11, the bar filled
+  // red with the debug picker), while the tab bar's lowest 7 px still lay
+  // under the window's end: Safari 26 cut them flat on the profile, and on no
+  // other tab screen; with this strip they were drawn, at the top of the
+  // scroll. A blended fixed box at the top makes WebKit isolate the root into
+  // a group of its own, and that changes how it paints a fixed bar under the
+  // window's end. A plain strip, with no blend, did not help. The bar's box
+  // now stays inside the window (SAFARI_SHIFT), so the strip no longer
+  // carries the bar. It is only put on a touch device, as for a head (on a
+  // desktop it showed as a band).
   React.useEffect(() => {
     if (!tabBar || header || scrollBody || !present || !touch) return;
     const top = followTopTint(HEAD_TOP, DEMO1_TINT, { blend: true });
