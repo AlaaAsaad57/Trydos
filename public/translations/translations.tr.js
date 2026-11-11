@@ -2721,6 +2721,7 @@ const translations = {
   "Reset tab bar colour": "Sekme çubuğu rengini sıfırla",
   "Taller page": "Daha uzun sayfa",
   "Top strip": "Üst şerit",
+  "Head anchor": "Başlık çapası",
   "Main": "Ana menü",
   "Cart": "Sepet",
   "Chat": "Sohbet",

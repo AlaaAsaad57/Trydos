@@ -591,9 +591,13 @@ export function ScreenPage({
 }) {
   usePageColor(bg);
   const visual = useVisualHeight(scrollBody);
-  /** The debug menu (demoDebug.tsx): "Taller page" and "Top strip". */
-  const { tallPage, topStrip } = useDemoDebug();
+  /** The debug menu (demoDebug.tsx): "Taller page", "Top strip" and "Head anchor". */
+  const { tallPage, topStrip, headAnchor } = useDemoDebug();
   const present = useIsPresent();
+  // "Head anchor": a page with no head gets the head's sticky anchor below,
+  // with nothing in it. The anchor is as tall as the safe top, so the body's
+  // margin gives that back and the page does not move.
+  const emptyHead = headAnchor && !header && !scrollBody;
   // "Top strip": a page with no head holds the white strip, as a head page does while its head is shown.
   React.useEffect(() => {
     if (!topStrip || header || scrollBody || !present) return;
@@ -609,7 +613,7 @@ export function ScreenPage({
     head,
     limit,
   );
-  const anchor = header && (
+  const anchor = (header || emptyHead) && (
     // The sticky box is 0 px wide; the white head inside it overflows
     // to the column's full width. Safari 26 on the iPhone looks for a
     // fixed or sticky box 90 % as wide as the screen at its top edge,
@@ -681,7 +685,9 @@ export function ScreenPage({
           style={{
             marginTop: header
               ? undefined
-              : `calc(${scrollTop - STATUS_BAR}px + ${SAFE_TOP})`,
+              : emptyHead
+                ? scrollTop - STATUS_BAR
+                : `calc(${scrollTop - STATUS_BAR}px + ${SAFE_TOP})`,
             minHeight:
               contentHeight > DESIGN_H ? contentHeight - scrollTop : undefined,
             paddingBottom: tabBar ? TAB_ROOM : undefined,

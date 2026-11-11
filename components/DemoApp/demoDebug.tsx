@@ -20,7 +20,15 @@ import React, { useSyncExternalStore } from "react";
  * no head. Pages with a head show that strip while the head is shown, and
  * Safari paints their fixed tab bar in full; the profile has no head and no
  * strip, and Safari cuts its tab bar at the window's end. One question: does
- * a fixed box at the top change how Safari draws the bottom?
+ * a fixed box at the top change how Safari draws the bottom? Answer from the
+ * iPhone: no. The profile stayed cut with the strip and the taller page on.
+ *
+ * Head anchor: gives a page that has no head the head's own sticky box (a
+ * 0 px wide `sticky top: 0` box with a white, column-wide child, see
+ * ScreenPage in ui.tsx), with nothing in it. Every tab screen that has a head
+ * shows the full bar once its page runs under Safari's bar; the profile is
+ * the only tab screen with no head. Next question: is the sticky box itself
+ * what makes Safari paint the bar in full?
  *
  * The state lives in this module, so it stays the same while the tester moves
  * between screens.
@@ -36,12 +44,14 @@ type DebugState = {
   tallPage: boolean;
   /** A page with no head holds the white top strip. */
   topStrip: boolean;
+  /** A page with no head gets the head's empty sticky anchor. */
+  headAnchor: boolean;
 };
 
 /** How far past the window's end a page runs while "Taller page" is on. */
 export const TALL_PAGE_ROOM = 120;
 
-const OFF: DebugState = { tabBarFill: null, tallPage: false, topStrip: false };
+const OFF: DebugState = { tabBarFill: null, tallPage: false, topStrip: false, headAnchor: false };
 let state: DebugState = OFF;
 const listeners = new Set<() => void>();
 
@@ -75,7 +85,17 @@ export function setDebugTopStrip(on: boolean) {
   set({ ...state, topStrip: on });
 }
 
-type DebugKey = "Tab bar colour" | "Reset tab bar colour" | "Taller page" | "Top strip";
+/** Turns the empty head anchor on headless pages on or off. */
+export function setDebugHeadAnchor(on: boolean) {
+  set({ ...state, headAnchor: on });
+}
+
+type DebugKey =
+  | "Tab bar colour"
+  | "Reset tab bar colour"
+  | "Taller page"
+  | "Top strip"
+  | "Head anchor";
 
 const ROUND =
   "relative w-7 h-7 rounded-full shadow border border-gray-200 cursor-pointer flex items-center justify-center overflow-hidden";
@@ -111,11 +131,12 @@ function Switch({
 
 /** The switches and the colour picker, drawn under the "i" button, on every screen. */
 export function DebugButtons({ t }: { t: (key: DebugKey) => string }) {
-  const { tabBarFill, tallPage, topStrip } = useDemoDebug();
+  const { tabBarFill, tallPage, topStrip, headAnchor } = useDemoDebug();
   return (
     <>
       <Switch on={tallPage} onChange={setDebugTallPage} label={t("Taller page")} testId="demo-debug-tall-page" />
       <Switch on={topStrip} onChange={setDebugTopStrip} label={t("Top strip")} testId="demo-debug-top-strip" />
+      <Switch on={headAnchor} onChange={setDebugHeadAnchor} label={t("Head anchor")} testId="demo-debug-head-anchor" />
       {/* The input is see-through and covers the round button, so a tap opens
           the phone's own colour picker. */}
       <label
