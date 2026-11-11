@@ -219,10 +219,12 @@ function useMounted() {
  * button's colour and words) and moves to its own place with the screen's
  * timing, so the panel seems to stay and change (see livePanel).
  *
- * It is a real fixed box, as wide as the page column, on <body>, for the
- * reasons given at the buy bar's panel (ProductBuy.tsx): Safari 26 then
- * paints white under its own bar by itself on the checkout, where the panel
- * meets the window's end. It slides in and out with the screen (the screen's
+ * On the checkout it is a real fixed box, as wide as the page column, on
+ * <body>, for the reasons given at the buy bar's panel (ProductBuy.tsx):
+ * Safari 26 then paints white under its own bar by itself, where the panel
+ * meets the window's end. On the bag it must not be one: there it hangs on
+ * an anchor with no width, so Safari paints no white band over the tab
+ * bar's bottom. It slides in and out with the screen (the screen's
  * own timing), because a fixed box inside the sliding screen would move with
  * the page, not with the window.
  */
@@ -275,7 +277,11 @@ export function BagPanel({
   }, [present, tabBar, details, button.label, button.fill, since]);
 
   if (!mounted) return null;
-  return createPortal(
+  /** The panel's place: over the tab bar's top (the bag), or under Safari's bar (the checkout). */
+  const bottom = tabBar
+    ? `calc(${TAB_BAR_TOP}px - ${BAND} + ${SAFE_BOTTOM})`
+    : `calc(${SAFE_BOTTOM} - ${UNDER_BAR}px)`;
+  const panel = (
     <motion.div
       data-pw={testId}
       className="font-quicksand"
@@ -299,13 +305,12 @@ export function BagPanel({
         opacity: { duration: 0, delay: 0.05 },
       }}
       style={{
-        position: "fixed",
-        left: `calc(50% - ${COLUMN_W} / 2)`,
+        // On the bag the panel hangs on the anchor below; on the checkout it is the fixed box itself.
+        position: tabBar ? "absolute" : "fixed",
+        left: tabBar ? `calc(${COLUMN_W} / -2)` : `calc(50% - ${COLUMN_W} / 2)`,
         width: COLUMN_W,
-        bottom: tabBar
-          ? `calc(${TAB_BAR_TOP}px - ${BAND} + ${SAFE_BOTTOM})`
-          : `calc(${SAFE_BOTTOM} - ${UNDER_BAR}px)`,
-        zIndex: PANEL_Z,
+        bottom: tabBar ? 0 : bottom,
+        zIndex: tabBar ? undefined : PANEL_Z,
         pointerEvents: present ? undefined : "none",
         borderRadius: "30px 30px 0 0",
         // Not fully opaque, for Chromium (see BuyCard in ProductBuy.tsx). Safari reads it as plain white.
@@ -412,7 +417,17 @@ export function BagPanel({
           {button.label}
         </motion.span>
       </motion.button>
-    </motion.div>,
+    </motion.div>
+  );
+  return createPortal(
+    tabBar ? (
+      // An anchor with no width (see EDGE_ANCHOR in demo1Layout.ts). A fixed box as
+      // wide as the screen made Safari 26 paint a solid white band under the
+      // window's end on the bag; the band covered the tab bar's bottom.
+      <div style={{ position: "fixed", left: "50%", width: 0, height: 0, bottom, zIndex: PANEL_Z }}>{panel}</div>
+    ) : (
+      panel
+    ),
     document.body,
   );
 }
