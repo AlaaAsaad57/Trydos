@@ -16,19 +16,22 @@ import React, { useSyncExternalStore } from "react";
  * paints a fixed box below the window's end only when the page itself runs
  * below it (the bag and the search ended at the window's end and were cut).
  *
- * Top strip: holds the demo's white top strip (topTint.ts) on a page that has
- * no head. Pages with a head show that strip while the head is shown, and
- * Safari paints their fixed tab bar in full; the profile has no head and no
- * strip, and Safari cuts its tab bar at the window's end. One question: does
- * a fixed box at the top change how Safari draws the bottom? Answer from the
- * iPhone: no. The profile stayed cut with the strip and the taller page on.
+ * Top strip: shows the demo's white top strip (topTint.ts) on a page that has
+ * no head, the same way a head page shows it while its head is shown: a
+ * `follow` strip with `mix-blend-mode: multiply`. Pages with a head show that
+ * strip, and Safari paints their fixed tab bar in full; the profile has no
+ * head and no strip, and Safari cuts its tab bar at the window's end. A first
+ * version of this switch held a plain strip (no blend); the iPhone showed the
+ * profile still cut with it and the taller page on. A blended fixed box makes
+ * WebKit isolate the root into a group of its own, so the blend may be the
+ * part that matters.
  *
  * Head anchor: gives a page that has no head the head's own sticky box (a
  * 0 px wide `sticky top: 0` box with a white, column-wide child, see
  * ScreenPage in ui.tsx), with nothing in it. Every tab screen that has a head
  * shows the full bar once its page runs under Safari's bar; the profile is
- * the only tab screen with no head. Next question: is the sticky box itself
- * what makes Safari paint the bar in full?
+ * the only tab screen with no head. The iPhone showed the profile still cut
+ * with this, the plain strip and the taller page all on.
  *
  * The state lives in this module, so it stays the same while the tester moves
  * between screens.

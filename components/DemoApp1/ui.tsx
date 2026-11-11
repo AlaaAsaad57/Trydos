@@ -598,10 +598,15 @@ export function ScreenPage({
   // with nothing in it. The anchor is as tall as the safe top, so the body's
   // margin gives that back and the page does not move.
   const emptyHead = headAnchor && !header && !scrollBody;
-  // "Top strip": a page with no head holds the white strip, as a head page does while its head is shown.
+  // "Top strip": a page with no head holds the white strip the same way a
+  // head page does while its head is shown (useHeadOnScroll): a `follow`
+  // strip with `mix-blend-mode: multiply`, not a plain held one. A blended
+  // fixed box makes WebKit isolate the root into a group of its own.
   React.useEffect(() => {
     if (!topStrip || header || scrollBody || !present) return;
-    return holdTopTint(HEAD_TOP, DEMO1_TINT);
+    const top = followTopTint(HEAD_TOP, DEMO1_TINT, { blend: true });
+    top.set(1);
+    return () => top.release();
   }, [topStrip, header, scrollBody, present]);
   const head = React.useRef<HTMLDivElement>(null);
   /** The block that ends the head's sticky box (see useHeadOnScroll). */
