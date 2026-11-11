@@ -59,19 +59,53 @@ export const TAB_BAR_MIN = { width: 143, height: 31 } as const;
 export const TAB_BAR_MIN_SCALE = TAB_BAR_MIN.height / TAB_BAR.height;
 
 /**
- * Where the tab bar's bottom edge is, above the window's end (less the safe
- * area): 6 px, in every browser.
+ * Where the tab bar's bottom edge is, above the browser's toolbar: 6 px.
  *
- * Why not less. In Chrome the window ends right at the browser's toolbar.
- * A value under 0 cut the bar's bottom off there, and the icons (8 px above
- * the bar's bottom) touched the toolbar. In iPhone Safari 26 the window ends
- * about 15 px above Safari's floating pill, so the gap to the pill is about
- * 21 px there.
+ * In Chrome (and most browsers) the window ends right at the toolbar, so
+ * this is 6 px above the window's end. In iPhone Safari 26 the window ends
+ * SAFARI_BAND px above Safari's toolbar, so there the bar goes down by the
+ * band (see BAND): the gap to Safari's toolbar is 6 px too.
+ *
+ * Never under 0 outside Safari: in Chrome a value under 0 cuts the bar's
+ * bottom off, and the icons (8 px above the bar's bottom) touch the toolbar.
  *
  * It is the same at full size and when the bar has shrunk on a scroll (see
  * TAB_BAR_DROP), on every screen.
  */
 export const TAB_BAR_BOTTOM = 6;
+
+/**
+ * True for Safari 26 or newer in an iPhone's tab, where Safari's toolbar
+ * floats over the page. Chrome, Firefox and Edge on the iPhone do not match:
+ * their names stand between "Version/" and "Mobile/", or they have no
+ * "Version/" at all. (ProductBuy.tsx has the same check in useFloatingBar.)
+ */
+export function isFloatingBarSafari(ua: string) {
+  const version = ua.match(/Version\/(\d+)[^ ]* Mobile\/\S+ Safari/);
+  return /iPhone|iPod/.test(ua) && !!version && Number(version[1]) >= 26;
+}
+
+/**
+ * The band between the window's end and Safari 26's toolbar on the iPhone,
+ * in CSS px. No web API gives it: Safari ends the window above the toolbar's
+ * margins, and paints the page's white in the band.
+ *
+ * Measured on two iPhone screenshots of the bag (2026-11-11, 440 x 956
+ * screen, toolbar open): the window ends at y 857.5, the toolbar starts at
+ * about y 873.
+ */
+export const SAFARI_BAND = 15.5;
+
+/** The band in this browser, as a number: SAFARI_BAND in iPhone Safari 26, else 0. Client only. */
+export const safariBand = () =>
+  typeof navigator !== "undefined" && isFloatingBarSafari(navigator.userAgent) ? SAFARI_BAND : 0;
+
+/**
+ * The band in this browser, for CSS. Demo1BottomNav sets the variable on
+ * <html> in iPhone Safari 26; everywhere else it is 0. Take it off every
+ * `bottom` that is measured from the tab bar.
+ */
+export const BAND = "var(--demo-safari-band, 0px)";
 
 /**
  * How far the bar moves down as it shrinks: half of the height it loses
@@ -255,7 +289,7 @@ export const fillFrom = (left: number, w: number) =>
 export const top = (y: number) => `calc(${y - STATUS_BAR}px + ${SAFE_TOP})`;
 
 /** Room the tab bar takes at the bottom of a tab screen, so its last row is not under the bar. */
-export const TAB_ROOM = `calc(${TAB_BAR_TOP}px + ${SAFE_BOTTOM})`;
+export const TAB_ROOM = `calc(${TAB_BAR_TOP}px - ${BAND} + ${SAFE_BOTTOM})`;
 
 /**
  * Hides the site's own chrome (the [lang] layout's navbar) while the demo is

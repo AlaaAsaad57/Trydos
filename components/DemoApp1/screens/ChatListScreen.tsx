@@ -29,6 +29,7 @@ import ArchivedSheet from "../chat/ArchivedSheet";
 import { useDemoChat } from "../../DemoApp/demoChatState";
 import { useDemoNav } from "../Demo1Shell";
 import {
+  BAND,
   C,
   COLUMN_W,
   EDGE_ANCHOR,
@@ -319,7 +320,7 @@ export default function ChatListScreen() {
           />
         ))
       )}
-      <Toast text={notice ?? toast} bottom={TAB_BAR_TOP + 9} fixed />
+      <Toast text={notice ?? toast} bottom={`calc(${TAB_BAR_TOP + 9}px - ${BAND})`} fixed />
 
       {/* The round purple button that starts a chat: 52 px, 20 px from the
           right edge, 16 px over the tab bar. It hangs on a 0 x 0 anchor at
@@ -332,7 +333,7 @@ export default function ChatListScreen() {
             style={{
               ...EDGE_ANCHOR,
               top: undefined,
-              bottom: `calc(${TAB_BAR_TOP + 16}px + ${SAFE_BOTTOM})`,
+              bottom: `calc(${TAB_BAR_TOP + 16}px - ${BAND} + ${SAFE_BOTTOM})`,
               zIndex: 30,
             }}
           >

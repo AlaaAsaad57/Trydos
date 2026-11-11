@@ -8,6 +8,7 @@ import type { XdIconName } from "../../DemoApp/xdIcons";
 import { bagCount, bagTotal, bagWas, type DemoBagItem } from "../../DemoApp/demoBag";
 import { useDemoNav } from "../Demo1Shell";
 import {
+  BAND,
   C,
   COLUMN_W,
   HEADER,
@@ -16,6 +17,7 @@ import {
   TAB_BAR_TOP,
   UNDER_BAR,
   lineBox,
+  safariBand,
   textTop,
 } from "../demo1Layout";
 import { Stroke } from "../ui";
@@ -59,7 +61,7 @@ const WORDS_OUT = { duration: 0.18 };
 const WORDS_IN = { duration: 0.2, delay: 0.14 };
 
 /** Where a panel's bottom is, above the window's end (less the safe area): on the tab bar, or under Safari's bar. */
-const bottomOf = (tabBar: boolean) => (tabBar ? TAB_BAR_TOP : -UNDER_BAR);
+const bottomOf = (tabBar: boolean) => (tabBar ? TAB_BAR_TOP - safariBand() : -UNDER_BAR);
 
 /** A panel's height, with the price details shut or open. */
 const heightOf = (tabBar: boolean, details: boolean) =>
@@ -282,7 +284,7 @@ export function BagPanel({
         left: `calc(50% - ${COLUMN_W} / 2)`,
         width: COLUMN_W,
         bottom: tabBar
-          ? `calc(${TAB_BAR_TOP}px + ${SAFE_BOTTOM})`
+          ? `calc(${TAB_BAR_TOP}px - ${BAND} + ${SAFE_BOTTOM})`
           : `calc(${SAFE_BOTTOM} - ${UNDER_BAR}px)`,
         zIndex: PANEL_Z,
         pointerEvents: present ? undefined : "none",
