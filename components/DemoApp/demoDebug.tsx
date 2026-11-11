@@ -3,35 +3,15 @@
 import React, { useSyncExternalStore } from "react";
 
 /**
- * The debug switches for /demo, next to the "i" button. They exist to find
- * out, on a real iPhone, why Safari 26 cuts the fixed tab bar at the
- * window's end on some screens (2026-11-11).
+ * The debug menu for /demo, next to the "i" button, on every screen.
  *
  * Tab bar colour: fills the tab bar's glass with a solid colour. The glass
  * is clear, so on a white page a cut at its edge never shows; a solid fill
- * shows where Safari (or anything else) cuts the bar.
- *
- * Taller page: makes every page at least 120 px taller than the window, so
- * the page always runs under Safari's bar. Confirmed on the iPhone: Safari
- * paints a fixed box below the window's end only when the page itself runs
- * below it (the bag and the search ended at the window's end and were cut).
- *
- * Top strip: shows the demo's white top strip (topTint.ts) on a page that has
- * no head, the same way a head page shows it while its head is shown: a
- * `follow` strip with `mix-blend-mode: multiply`. Pages with a head show that
- * strip, and Safari paints their fixed tab bar in full; the profile has no
- * head and no strip, and Safari cuts its tab bar at the window's end. A first
- * version of this switch held a plain strip (no blend); the iPhone showed the
- * profile still cut with it and the taller page on. A blended fixed box makes
- * WebKit isolate the root into a group of its own, so the blend may be the
- * part that matters.
- *
- * Head anchor: gives a page that has no head the head's own sticky box (a
- * 0 px wide `sticky top: 0` box with a white, column-wide child, see
- * ScreenPage in ui.tsx), with nothing in it. Every tab screen that has a head
- * shows the full bar once its page runs under Safari's bar; the profile is
- * the only tab screen with no head. The iPhone showed the profile still cut
- * with this, the plain strip and the taller page all on.
+ * shows where Safari (or anything else) cuts the bar. It found the two
+ * causes of the cut bar on the iPhone (2026-11-11): a page that ends at the
+ * window's end (see TAB_PAGE_MIN_HEIGHT in demo1Layout.ts), and a tab
+ * screen with no head and so no blended white strip at the top (see
+ * ScreenPage in ui.tsx).
  *
  * The state lives in this module, so it stays the same while the tester moves
  * between screens.
@@ -43,18 +23,9 @@ const START_TAB_BAR_FILL = "#ff0000";
 type DebugState = {
   /** The tab bar's solid fill as `#rrggbb`, or null for the design's clear glass. */
   tabBarFill: string | null;
-  /** Every page is at least 120 px taller than the window (see TALL_PAGE_ROOM). */
-  tallPage: boolean;
-  /** A page with no head holds the white top strip. */
-  topStrip: boolean;
-  /** A page with no head gets the head's empty sticky anchor. */
-  headAnchor: boolean;
 };
 
-/** How far past the window's end a page runs while "Taller page" is on. */
-export const TALL_PAGE_ROOM = 120;
-
-const OFF: DebugState = { tabBarFill: null, tallPage: false, topStrip: false, headAnchor: false };
+const OFF: DebugState = { tabBarFill: null };
 let state: DebugState = OFF;
 const listeners = new Set<() => void>();
 
@@ -78,68 +49,16 @@ export function setDebugTabBarFill(color: string | null) {
   set({ ...state, tabBarFill: color });
 }
 
-/** Turns the taller page on or off. */
-export function setDebugTallPage(on: boolean) {
-  set({ ...state, tallPage: on });
-}
-
-/** Turns the top strip on headless pages on or off. */
-export function setDebugTopStrip(on: boolean) {
-  set({ ...state, topStrip: on });
-}
-
-/** Turns the empty head anchor on headless pages on or off. */
-export function setDebugHeadAnchor(on: boolean) {
-  set({ ...state, headAnchor: on });
-}
-
-type DebugKey =
-  | "Tab bar colour"
-  | "Reset tab bar colour"
-  | "Taller page"
-  | "Top strip"
-  | "Head anchor";
+type DebugKey = "Tab bar colour" | "Reset tab bar colour";
 
 const ROUND =
   "relative w-7 h-7 rounded-full shadow border border-gray-200 cursor-pointer flex items-center justify-center overflow-hidden";
 
-const PILL =
-  "px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 text-gray-800 flex items-center gap-1.5 backdrop-blur-sm cursor-pointer";
-
-/** One on/off switch. */
-function Switch({
-  on,
-  onChange,
-  label,
-  testId,
-}: {
-  on: boolean;
-  onChange: (on: boolean) => void;
-  label: string;
-  testId: string;
-}) {
-  return (
-    <label className={PILL}>
-      <input
-        type="checkbox"
-        data-pw={testId}
-        checked={on}
-        onChange={(e) => onChange(e.target.checked)}
-        className="accent-[#402CDD] cursor-pointer"
-      />
-      <span>{label}</span>
-    </label>
-  );
-}
-
-/** The switches and the colour picker, drawn under the "i" button, on every screen. */
+/** The colour picker, drawn under the "i" button, on every screen. */
 export function DebugButtons({ t }: { t: (key: DebugKey) => string }) {
-  const { tabBarFill, tallPage, topStrip, headAnchor } = useDemoDebug();
+  const { tabBarFill } = useDemoDebug();
   return (
     <>
-      <Switch on={tallPage} onChange={setDebugTallPage} label={t("Taller page")} testId="demo-debug-tall-page" />
-      <Switch on={topStrip} onChange={setDebugTopStrip} label={t("Top strip")} testId="demo-debug-top-strip" />
-      <Switch on={headAnchor} onChange={setDebugHeadAnchor} label={t("Head anchor")} testId="demo-debug-head-anchor" />
       {/* The input is see-through and covers the round button, so a tap opens
           the phone's own colour picker. */}
       <label

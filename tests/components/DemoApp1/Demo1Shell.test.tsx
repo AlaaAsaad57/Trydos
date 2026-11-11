@@ -46,7 +46,7 @@ vi.mock("embla-carousel-react", async (importOriginal) => {
 
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
 import { Sheet } from "components/DemoApp1/ui";
-import { UNDER_BAR } from "components/DemoApp1/demo1Layout";
+import { TAB_PAGE_MIN_HEIGHT, UNDER_BAR } from "components/DemoApp1/demo1Layout";
 import {
   DEMO_SCREENS,
   hrefFor,
@@ -942,6 +942,55 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
       ).toBeLessThan(2147483647);
       unmount();
     });
+  });
+
+  // Seen on the iPhone (2026-11-11, the bar filled red with the debug picker):
+  // Safari 26 cut the lowest 7 px of the profile's tab bar flat at the
+  // window's end, on no other tab screen. The profile is the only tab screen
+  // with no header, so it was the only one with no white strip at the top.
+  // With the strip the bar was whole: a blended fixed box at the top changes
+  // how Safari paints the fixed bar at the bottom. A plain strip, with no
+  // blend, did not help.
+  it("paints Safari's top bar white on the profile too, which has no header, so Safari paints the tab bar whole", async () => {
+    await onAPhone(async () => {
+      const { unmount } = openOn("settings");
+      await waitFor(() =>
+        expect(topStrip(), "the profile put no strip at the top for Safari to read").not.toBeNull(),
+      );
+      expect(topStrip()!.style.visibility, "the top strip is hidden on the profile").toBe("visible");
+      expect(topStrip()!.style.backgroundColor, "the top strip on the profile is not white").toMatch(WHITE);
+      expect(
+        topStrip()!.style.mixBlendMode,
+        "the profile's strip is not blended like a header's strip; a plain strip left the tab bar cut",
+      ).toBe("multiply");
+      unmount();
+      expect(topStrip()!.style.visibility, "the top strip stays on after the profile is closed").toBe("hidden");
+    });
+  });
+
+  // Seen on the iPhone (2026-11-11): the bag and the search were exactly the
+  // window's height, and Safari cut the tab bar's lowest 7 px, which lie
+  // under the window's end. Home, the chat and the profile run under the
+  // window's end, and their bar was whole. So every tab screen's page runs to
+  // the bar's bottom edge (TAB_PAGE_MIN_HEIGHT); the bar itself does not move.
+  it("makes every tab screen's page run down to the tab bar's bottom edge in iPhone Safari 26, so the bar is not cut", () => {
+    const pages = {
+      home: "demo-home",
+      search: "demo-search",
+      cart: "demo-cart",
+      chat: "demo-chat",
+      settings: "demo-profile",
+    } as const;
+    for (const [screen, testId] of Object.entries(pages) as [DemoScreen, string][]) {
+      const { container, unmount } = openOn(screen);
+      const page = container.querySelector<HTMLElement>(`[data-pw="${testId}"]`);
+      expect(page, `the "${screen}" screen has no page`).not.toBeNull();
+      expect(
+        page!.style.minHeight,
+        `the "${screen}" page does not run down to the tab bar's bottom edge under Safari's bar`,
+      ).toBe(TAB_PAGE_MIN_HEIGHT);
+      unmount();
+    }
   });
 
   /**

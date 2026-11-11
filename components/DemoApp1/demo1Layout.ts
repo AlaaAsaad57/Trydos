@@ -313,6 +313,20 @@ export const top = (y: number) => `calc(${y - STATUS_BAR}px + ${SAFE_TOP})`;
 export const TAB_ROOM = `calc(${TAB_BAR_TOP}px - ${BAND} + ${SAFE_BOTTOM})`;
 
 /**
+ * The least height of a tab screen's page: the window, and in iPhone Safari
+ * 26 one more px than the tab bar's bottom edge is under the window's end.
+ *
+ * Seen on the iPhone (2026-11-11, bar filled red with the debug picker):
+ * Safari paints a fixed box below the window's end only where the page
+ * itself runs below it. The bag and the search were exactly the window's
+ * height, and the bar's lowest 7 px (TAB_BAR_BOTTOM - SAFARI_SHIFT) were cut
+ * flat; the chat's page ended exactly at the bar's bottom and the bar was
+ * whole. The 1 px is for rounding. Outside Safari the band is 0 and the bar
+ * ends inside the window, so the page stays the window's height.
+ */
+export const TAB_PAGE_MIN_HEIGHT = `calc(100dvh + max(0px, ${BAND} - ${TAB_BAR_BOTTOM - 1}px))`;
+
+/**
  * Hides the site's own chrome (the [lang] layout's navbar) while the demo is
  * on the page. A CSS rule, served with the route's html, so the navbar is not
  * drawn even once before the demo starts.

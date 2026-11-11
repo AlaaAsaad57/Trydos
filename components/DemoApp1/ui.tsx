@@ -16,7 +16,6 @@ import { XD_ICON_SIZE, type XdIconName } from "../DemoApp/xdIcons";
 import type { DemoKey } from "../DemoApp/demoKeys";
 import { Box, Icon, Txt, type Weight } from "../DemoApp/ui";
 import { followTopTint, holdTopTint, type TintHome } from "../DemoApp/topTint";
-import { TALL_PAGE_ROOM, useDemoDebug } from "../DemoApp/demoDebug";
 import {
   BANNER,
   BODY_Y,
@@ -32,6 +31,7 @@ import {
   SHEET,
   STATUS_BAR,
   TAB_ROOM,
+  TAB_PAGE_MIN_HEIGHT,
   UNDER_BAR,
   WINDOW_COVER,
   columnBox,
@@ -591,23 +591,24 @@ export function ScreenPage({
 }) {
   usePageColor(bg);
   const visual = useVisualHeight(scrollBody);
-  /** The debug menu (demoDebug.tsx): "Taller page", "Top strip" and "Head anchor". */
-  const { tallPage, topStrip, headAnchor } = useDemoDebug();
   const present = useIsPresent();
-  // "Head anchor": a page with no head gets the head's sticky anchor below,
-  // with nothing in it. The anchor is as tall as the safe top, so the body's
-  // margin gives that back and the page does not move.
-  const emptyHead = headAnchor && !header && !scrollBody;
-  // "Top strip": a page with no head holds the white strip the same way a
-  // head page does while its head is shown (useHeadOnScroll): a `follow`
-  // strip with `mix-blend-mode: multiply`, not a plain held one. A blended
-  // fixed box makes WebKit isolate the root into a group of its own.
+  const touch = useIsTouchDevice();
+  // A tab screen with no head (the profile) shows the white top strip the
+  // same way a head page does while its head is shown (useHeadOnScroll): a
+  // `follow` strip with `mix-blend-mode: multiply`. Seen on the iPhone
+  // (2026-11-11, the bar filled red with the debug picker): Safari 26 cut the
+  // lowest 7 px of the profile's fixed tab bar flat at the window's end, and
+  // on no other tab screen; with this strip the bar was whole. A blended
+  // fixed box at the top makes WebKit isolate the root into a group of its
+  // own, and that changes how it paints the fixed bar at the bottom. A plain
+  // strip, with no blend, did not help. The strip is only put on a touch
+  // device, as for a head (on a desktop it showed as a band).
   React.useEffect(() => {
-    if (!topStrip || header || scrollBody || !present) return;
+    if (!tabBar || header || scrollBody || !present || !touch) return;
     const top = followTopTint(HEAD_TOP, DEMO1_TINT, { blend: true });
     top.set(1);
     return () => top.release();
-  }, [topStrip, header, scrollBody, present]);
+  }, [tabBar, header, scrollBody, present, touch]);
   const head = React.useRef<HTMLDivElement>(null);
   /** The block that ends the head's sticky box (see useHeadOnScroll). */
   const limit = React.useRef<HTMLDivElement>(null);
@@ -618,7 +619,7 @@ export function ScreenPage({
     head,
     limit,
   );
-  const anchor = (header || emptyHead) && (
+  const anchor = header && (
     // The sticky box is 0 px wide; the white head inside it overflows
     // to the column's full width. Safari 26 on the iPhone looks for a
     // fixed or sticky box 90 % as wide as the screen at its top edge,
@@ -662,7 +663,10 @@ export function ScreenPage({
       className="relative flex flex-col w-full font-quicksand"
       style={{
         background: bg,
-        minHeight: scrollBody ? undefined : tallPage ? `calc(100dvh + ${TALL_PAGE_ROOM}px)` : "100dvh",
+        // A tab screen's page runs to the tab bar's bottom edge, under
+        // Safari's bar: Safari paints the fixed bar below the window's end
+        // only where the page runs below it (see TAB_PAGE_MIN_HEIGHT).
+        minHeight: scrollBody ? undefined : tabBar ? TAB_PAGE_MIN_HEIGHT : "100dvh",
         height: scrollBody ? visual ?? "100dvh" : undefined,
       }}
     >
@@ -690,9 +694,7 @@ export function ScreenPage({
           style={{
             marginTop: header
               ? undefined
-              : emptyHead
-                ? scrollTop - STATUS_BAR
-                : `calc(${scrollTop - STATUS_BAR}px + ${SAFE_TOP})`,
+              : `calc(${scrollTop - STATUS_BAR}px + ${SAFE_TOP})`,
             minHeight:
               contentHeight > DESIGN_H ? contentHeight - scrollTop : undefined,
             paddingBottom: tabBar ? TAB_ROOM : undefined,
