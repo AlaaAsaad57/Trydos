@@ -63,8 +63,9 @@ export const TAB_BAR_MIN_SCALE = TAB_BAR_MIN.height / TAB_BAR.height;
  *
  * In Chrome (and most browsers) the window ends right at the toolbar, so
  * this is 6 px above the window's end. In iPhone Safari 26 the window ends
- * SAFARI_BAND px above Safari's toolbar, so there the bar goes down by the
- * band (see BAND): the gap to Safari's toolbar is 6 px too.
+ * SAFARI_BAND px above Safari's toolbar, so there the bar goes down by
+ * SAFARI_SHIFT (see BAND). That is less than the band, so the gap to
+ * Safari's toolbar is about 8.5 px there, not 6 (see SAFARI_SHIFT for why).
  *
  * Never under 0 outside Safari: in Chrome a value under 0 cuts the bar's
  * bottom off, and the icons (8 px above the bar's bottom) touch the toolbar.
@@ -96,12 +97,32 @@ export function isFloatingBarSafari(ua: string) {
  */
 export const SAFARI_BAND = 15.5;
 
-/** The band in this browser, as a number: SAFARI_BAND in iPhone Safari 26, else 0. Client only. */
-export const safariBand = () =>
-  typeof navigator !== "undefined" && isFloatingBarSafari(navigator.userAgent) ? SAFARI_BAND : 0;
+/**
+ * How far the tab bar's icons end above the bar's bottom edge: the file's
+ * bar ends at y 917, its active icons at y 909.
+ */
+const TAB_ICON_ROOM = 917 - 909;
 
 /**
- * The band in this browser, for CSS. Demo1BottomNav sets the variable on
+ * How far the tab bar goes down in iPhone Safari 26: the band, but never so
+ * far that the icons pass the window's end.
+ *
+ * Why. Safari cuts every fixed box at the window's end, also where it then
+ * paints the band under it. With the full band (bar bottom 9.5 px under the
+ * window's end) the icons' lowest 1.5 px were cut: an iPhone screenshot
+ * (2026-11-11) showed the bag icon's bottom corner cut flat at y 857.1, the
+ * window's end. So the icons keep 1 px over that line: 6 + 8 - 1 = 13. The
+ * bar's own glass under the line is cut too, but it is clear, so it does not
+ * show.
+ */
+export const SAFARI_SHIFT = Math.min(SAFARI_BAND, TAB_BAR_BOTTOM + TAB_ICON_ROOM - 1);
+
+/** The shift in this browser, as a number: SAFARI_SHIFT in iPhone Safari 26, else 0. Client only. */
+export const safariBand = () =>
+  typeof navigator !== "undefined" && isFloatingBarSafari(navigator.userAgent) ? SAFARI_SHIFT : 0;
+
+/**
+ * The shift in this browser, for CSS. Demo1BottomNav sets the variable on
  * <html> in iPhone Safari 26; everywhere else it is 0. Take it off every
  * `bottom` that is measured from the tab bar.
  */
