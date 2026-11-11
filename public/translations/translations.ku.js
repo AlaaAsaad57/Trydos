@@ -2734,8 +2734,6 @@ const translations = {
   "Next keyboard": "تەختەکلیلی داهاتوو",
   "Hide menu": "شاردنەوەی لیست",
   "Device and browser info": "زانیاری ئامێر و وێبگەڕ",
-  "Top bar colour": "ڕەنگی شریتی سەرەوە",
-  "Reset top bar colour": "گەڕاندنەوەی ڕەنگی شریتی سەرەوە",
   "Tab bar colour": "ڕەنگی شریتی تابەکان",
   "Reset tab bar colour": "گەڕاندنەوەی ڕەنگی شریتی تابەکان",
   "Taller page": "پەڕەی درێژتر",

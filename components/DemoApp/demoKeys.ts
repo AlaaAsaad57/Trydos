@@ -151,8 +151,6 @@ const CART_KEYS = [
 export const DEMO_KEYS = [
   "Hide menu",
   "Device and browser info",
-  "Top bar colour",
-  "Reset top bar colour",
   "Tab bar colour",
   "Reset tab bar colour",
   "Taller page",

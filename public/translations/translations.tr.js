@@ -2717,8 +2717,6 @@ const translations = {
   "Next keyboard": "Sonraki klavye",
   "Hide menu": "Menüyü gizle",
   "Device and browser info": "Cihaz ve tarayıcı bilgisi",
-  "Top bar colour": "Üst çubuk rengi",
-  "Reset top bar colour": "Üst çubuk rengini sıfırla",
   "Tab bar colour": "Sekme çubuğu rengi",
   "Reset tab bar colour": "Sekme çubuğu rengini sıfırla",
   "Taller page": "Daha uzun sayfa",
