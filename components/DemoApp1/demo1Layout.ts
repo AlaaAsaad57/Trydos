@@ -60,14 +60,18 @@ export const TAB_BAR_MIN_SCALE = TAB_BAR_MIN.height / TAB_BAR.height;
 
 /**
  * Where the tab bar's bottom edge is, above the window's end (less the safe
- * area). It is negative: the edge is 6.5 px BELOW the window's end. On the
- * iPhone the window ends above Safari 26's floating bar, so the tab bar sits
- * close to Safari's bar and leaves no empty band between the two.
+ * area): 6 px, in every browser.
+ *
+ * Why not less. In Chrome the window ends right at the browser's toolbar.
+ * A value under 0 cut the bar's bottom off there, and the icons (8 px above
+ * the bar's bottom) touched the toolbar. In iPhone Safari 26 the window ends
+ * about 15 px above Safari's floating pill, so the gap to the pill is about
+ * 21 px there.
  *
  * It is the same at full size and when the bar has shrunk on a scroll (see
  * TAB_BAR_DROP), on every screen.
  */
-export const TAB_BAR_BOTTOM = -6.5;
+export const TAB_BAR_BOTTOM = 6;
 
 /**
  * How far the bar moves down as it shrinks: half of the height it loses

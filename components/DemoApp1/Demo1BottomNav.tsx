@@ -42,7 +42,7 @@ import {
  *    The fixed box is an anchor with no width in the middle of the window,
  *    and the bar's own box hangs on it.
  *  - It keeps the file's 22 px to both edges of the screen (386 wide on a 430
- *    phone). Its bottom edge is 6.5 px below the window's end
+ *    phone). Its bottom edge is 6 px above the window's end
  *    (TAB_BAR_BOTTOM), at full size and shrunk.
  *  - Its five slots share the bar's width, 3 px in from each end, as the
  *    file's 76 px slots do on the 386 px bar. Each icon keeps the file's
