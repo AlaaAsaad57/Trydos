@@ -16,6 +16,7 @@ import { XD_ICON_SIZE, type XdIconName } from "../DemoApp/xdIcons";
 import type { DemoKey } from "../DemoApp/demoKeys";
 import { Box, Icon, Txt, type Weight } from "../DemoApp/ui";
 import { followTopTint, holdTopTint, type TintHome } from "../DemoApp/topTint";
+import { TALL_PAGE_ROOM, useDemoDebug } from "../DemoApp/demoDebug";
 import {
   BANNER,
   BODY_Y,
@@ -590,6 +591,8 @@ export function ScreenPage({
 }) {
   usePageColor(bg);
   const visual = useVisualHeight(scrollBody);
+  /** The debug menu's "Taller page" (demoDebug.tsx): the page runs past the window's end. */
+  const { tallPage } = useDemoDebug();
   const head = React.useRef<HTMLDivElement>(null);
   /** The block that ends the head's sticky box (see useHeadOnScroll). */
   const limit = React.useRef<HTMLDivElement>(null);
@@ -644,7 +647,7 @@ export function ScreenPage({
       className="relative flex flex-col w-full font-quicksand"
       style={{
         background: bg,
-        minHeight: scrollBody ? undefined : "100dvh",
+        minHeight: scrollBody ? undefined : tallPage ? `calc(100dvh + ${TALL_PAGE_ROOM}px)` : "100dvh",
         height: scrollBody ? visual ?? "100dvh" : undefined,
       }}
     >

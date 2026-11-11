@@ -155,6 +155,7 @@ export const DEMO_KEYS = [
   "Reset top bar colour",
   "Tab bar colour",
   "Reset tab bar colour",
+  "Taller page",
   "Main",
   "Home",
   "Search",

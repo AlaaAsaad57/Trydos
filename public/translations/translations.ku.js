@@ -2738,6 +2738,7 @@ const translations = {
   "Reset top bar colour": "گەڕاندنەوەی ڕەنگی شریتی سەرەوە",
   "Tab bar colour": "ڕەنگی شریتی تابەکان",
   "Reset tab bar colour": "گەڕاندنەوەی ڕەنگی شریتی تابەکان",
+  "Taller page": "پەڕەی درێژتر",
   "Main": "سەرەکی",
   "Cart": "سەبەتە",
   "Chat": "گفتوگۆ",
