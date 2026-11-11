@@ -20,6 +20,7 @@ import {
   useIsPresent,
   usePresenceData,
   useReducedMotion,
+  type MotionValue,
   type Variants,
 } from "framer-motion";
 import DemoDeviceInfoModal from "NewLoginDesign/DemoDeviceInfoModal";
@@ -41,7 +42,7 @@ import {
   tabOf,
   type DemoScreen,
 } from "../DemoApp/demoRoutes";
-import Demo1BottomNav from "./Demo1BottomNav";
+import Demo1BottomNav, { useTabBarShrink } from "./Demo1BottomNav";
 import Demo1ScreenView from "./Demo1ScreenView";
 import {
   EDGE_ANCHOR,
@@ -141,6 +142,11 @@ type DemoNav = {
   /** The locale segment, e.g. `sy-en`. */
   locale: string;
   t: (key: DemoKey) => string;
+  /**
+   * The tab bar's scroll scale (useTabBarShrink): 1 at full size, smaller as
+   * the page scrolls down. A box that rests on the bar moves with it.
+   */
+  barShrink: MotionValue<number>;
 };
 
 const NavCtx = createContext<DemoNav | null>(null);
@@ -296,6 +302,7 @@ function Demo1ShellInner({
   const [deviceInfo, setDeviceInfo] = useState(false);
 
   const key = shown ?? `page:${pathname}`;
+  const barShrink = useTabBarShrink(key);
   // The tab bar shows on the tab screens, and on a store's page too (it
   // belongs to the Home tab, so Home is the active tab there). A product's
   // page has no tab bar: XD `Home Page – 49` draws none, and the bar slides
@@ -463,7 +470,7 @@ function Demo1ShellInner({
   };
 
   return (
-    <NavCtx.Provider value={{ shown, navigate, back, locale, t }}>
+    <NavCtx.Provider value={{ shown, navigate, back, locale, t, barShrink }}>
       <DemoChatProvider t={t}>
         <div
           ref={column}
@@ -491,7 +498,7 @@ function Demo1ShellInner({
           photo={profile.photo}
           verified={profile.emailVerified}
           cartCount={bagCount(bag)}
-          resetKey={key}
+          shrink={barShrink}
           onSelect={(tab) => navigate(tab)}
           t={t}
         />

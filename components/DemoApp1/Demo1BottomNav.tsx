@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion, useTransform } from "framer-motion";
+import { motion, useTransform, type MotionValue } from "framer-motion";
 import {
   DEFAULT_NAV_THEME,
   PRESS,
@@ -68,12 +68,31 @@ const SLOT_INSET = fileCentre(0) - TAB_BAR.x - SLOT_W / 2;
 /** The bar keeps 22 px to both edges of the page column. */
 const BAR_W = `calc(${COLUMN_W} - ${2 * TAB_BAR.x}px)`;
 
+/**
+ * The tab bar's scroll scale: 1 at full size, TAB_BAR_MIN_SCALE when the page
+ * has scrolled down (the spring of the old scaled demo, useScrollScale).
+ * `resetKey` is the screen on show: a new screen starts at its top, so the
+ * bar goes back to full size.
+ *
+ * The shell makes ONE of these and gives it to the bar and to the screens
+ * (useDemoNav().barShrink). A box that rests on the bar (the bag's price
+ * panel) then moves in the same frame as the bar, never a frame after it.
+ */
+export function useTabBarShrink(resetKey: string) {
+  return useScrollScale(
+    TAB_BAR_MIN_SCALE,
+    DEFAULT_NAV_THEME.distance,
+    DEFAULT_NAV_THEME.speedEffect,
+    { scope: "window", resetKey },
+  );
+}
+
 export default function Demo1BottomNav({
   active,
   visible,
   photo,
   verified,
-  resetKey,
+  shrink: scrollScale,
   cartCount,
   onSelect,
   t,
@@ -82,19 +101,13 @@ export default function Demo1BottomNav({
   visible: boolean;
   photo: string | null;
   verified: boolean;
-  /** The screen on show. A new screen starts at its top, so the bar goes back to full size. */
-  resetKey: string;
+  /** The bar's scroll scale, from useTabBarShrink. */
+  shrink: MotionValue<number>;
   /** How many pieces the bag holds (demoBag.ts). Not given, the cart tab shows the file's fixed count. */
   cartCount?: number;
   onSelect: (tab: DemoTab) => void;
   t: (key: DemoKey) => string;
 }) {
-  const scrollScale = useScrollScale(
-    TAB_BAR_MIN_SCALE,
-    DEFAULT_NAV_THEME.distance,
-    DEFAULT_NAV_THEME.speedEffect,
-    { scope: "window", resetKey },
-  );
   const drop = useTransform(
     scrollScale,
     (s) => ((1 - s) / (1 - TAB_BAR_MIN_SCALE)) * TAB_BAR_DROP,

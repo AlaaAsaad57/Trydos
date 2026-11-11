@@ -134,6 +134,17 @@ export const BAND = "var(--demo-safari-band, 0px)";
  */
 export const TAB_BAR_DROP = (TAB_BAR.height - TAB_BAR_MIN.height) / 2;
 
+/**
+ * How far the tab bar's top edge has gone down at scroll scale `scale`
+ * (1 = full size): 0 at full size, 27 px at the smallest size.
+ *
+ * The bar scales about its centre and drops by the same share of
+ * TAB_BAR_DROP, so its bottom edge stays put and its top edge goes down by
+ * all the height it loses. A box that rests on the bar's top edge (the bag's
+ * price panel) moves down by this much, and keeps its own size.
+ */
+export const tabBarTopDrop = (scale: number) => TAB_BAR.height * (1 - scale);
+
 /** The tab bar's top edge at full size, above the window's end (less the safe area). */
 export const TAB_BAR_TOP = TAB_BAR_BOTTOM + TAB_BAR.height;
 

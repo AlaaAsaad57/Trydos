@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion, useIsPresent } from "framer-motion";
+import { motion, useIsPresent, useTransform } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { XdIconName } from "../../DemoApp/xdIcons";
 import { bagCount, bagTotal, bagWas, type DemoBagItem } from "../../DemoApp/demoBag";
@@ -18,6 +18,7 @@ import {
   UNDER_BAR,
   lineBox,
   safariBand,
+  tabBarTopDrop,
   textTop,
 } from "../demo1Layout";
 import { Stroke } from "../ui";
@@ -208,6 +209,10 @@ function useMounted() {
  * right. On the bag it rests on the tab bar (69 tall); on the checkout it
  * runs to the screen's end (113 tall).
  *
+ * On the bag the panel stays on the tab bar's top edge. When the bar shrinks
+ * on a scroll down, its top edge goes down by up to 27 px, and the panel
+ * moves down with it. The panel only moves; it never shrinks with the bar.
+ *
  * The old price is struck through, as in the file. The "All inclusive" chip
  * takes turns with the six price details (FlipTurns, as the store page's
  * labels). The help mark opens the same details as a list: the six chips the
@@ -244,9 +249,25 @@ export function BagPanel({
 }) {
   const mounted = useMounted();
   const present = useIsPresent();
-  const { shown } = useDemoNav();
+  const { shown, barShrink } = useDemoNav();
+  /**
+   * On the bag: how far the tab bar's top edge has gone down on a scroll. The
+   * bar shrinks and drops; the panel rests on its top edge, so it moves down
+   * with it, the same frame, and keeps its own size (no scale).
+   */
+  const barDrop = useTransform(barShrink, tabBarTopDrop);
   // The other screen's panel is on show: start from it (see livePanel).
   const [from] = useState(() => (livePanel && livePanel.tabBar !== tabBar ? livePanel : null));
+  /**
+   * Where the other screen's panel is, from this panel's place at rest: its
+   * place, plus the bar's drop the bag's panel had then, less the drop this
+   * panel's own anchor has now (both are the bar's drop at this moment).
+   */
+  const [fromY] = useState(() => {
+    if (!from) return 0;
+    const drop = tabBarTopDrop(barShrink.get());
+    return bottomOf(tabBar) - bottomOf(from.tabBar) + (from.tabBar ? drop : 0) - (tabBar ? drop : 0);
+  });
   const [since] = useState(() => from?.since ?? performance.now());
   const [elapsed] = useState(() => (performance.now() - since) / 1000);
   const [details, setDetails] = useState(from?.details ?? false);
@@ -288,7 +309,7 @@ export function BagPanel({
       initial={
         from
           ? {
-              y: bottomOf(tabBar) - bottomOf(from.tabBar),
+              y: fromY,
               height: heightOf(from.tabBar, from.details),
               boxShadow: PANEL_SHADOW,
             }
@@ -424,7 +445,11 @@ export function BagPanel({
       // An anchor with no width (see EDGE_ANCHOR in demo1Layout.ts). A fixed box as
       // wide as the screen made Safari 26 paint a solid white band under the
       // window's end on the bag; the band covered the tab bar's bottom.
-      <div style={{ position: "fixed", left: "50%", width: 0, height: 0, bottom, zIndex: PANEL_Z }}>{panel}</div>
+      // The anchor follows the tab bar's top edge on a scroll (barDrop). The
+      // move is on the anchor, so it never fights the panel's own `y`.
+      <motion.div style={{ position: "fixed", left: "50%", width: 0, height: 0, bottom, zIndex: PANEL_Z, y: barDrop }}>
+        {panel}
+      </motion.div>
     ) : (
       panel
     ),

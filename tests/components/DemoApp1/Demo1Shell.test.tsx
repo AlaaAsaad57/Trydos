@@ -46,7 +46,13 @@ vi.mock("embla-carousel-react", async (importOriginal) => {
 
 import Demo1Shell from "components/DemoApp1/Demo1Shell";
 import { Sheet } from "components/DemoApp1/ui";
-import { TAB_BAR_BOTTOM, TAB_PAGE_MIN_HEIGHT, UNDER_BAR } from "components/DemoApp1/demo1Layout";
+import {
+  TAB_BAR,
+  TAB_BAR_BOTTOM,
+  TAB_BAR_MIN_SCALE,
+  TAB_PAGE_MIN_HEIGHT,
+  UNDER_BAR,
+} from "components/DemoApp1/demo1Layout";
 import {
   DEMO_SCREENS,
   hrefFor,
@@ -1031,6 +1037,64 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
       if (agent) Object.defineProperty(navigator, "userAgent", agent);
       else delete (navigator as unknown as Record<string, unknown>).userAgent;
     }
+  });
+
+  // The bag's price panel rests on the tab bar's top edge. On a scroll down
+  // the bar shrinks about its centre and drops, so its bottom edge stays put
+  // and its top edge goes down by up to 27 px. The panel stayed where it was,
+  // and a gap opened between the two. It must go down with the bar's top
+  // edge, as a plain move: the panel itself never shrinks.
+  it("moves the bag's price panel down with the tab bar's top edge on a scroll, and never scales it", async () => {
+    /** One number of a framer transform, e.g. `translateY` or `scale`; `fallback` when it is not there. */
+    const part = (el: HTMLElement, name: string, fallback: number) => {
+      const found = el.style.transform.match(new RegExp(`${name}\\((-?[\\d.]+)`));
+      return found ? parseFloat(found[1]) : fallback;
+    };
+    const nextFrame = () => act(() => new Promise((done) => requestAnimationFrame(() => done(null))));
+
+    const { unmount } = openOn("cart");
+    const panel = document.body.querySelector<HTMLElement>('[data-pw="demo-bag-panel"]');
+    expect(panel, "the bag has no price panel").not.toBeNull();
+    const anchor = panel!.parentElement!;
+    const box = document.body.querySelector<HTMLElement>('[data-pw="demo-tab-box"]');
+    expect(box, "the tab bar has no box for its tabs").not.toBeNull();
+
+    for (let y = 100; y <= 1600; y += 100) {
+      scrollY = y;
+      fireEvent.scroll(window);
+      await nextFrame();
+    }
+    await waitFor(
+      () =>
+        expect(
+          part(box!, "scale", 1),
+          "the tab bar did not shrink to its smallest size on a scroll down",
+        ).toBeCloseTo(TAB_BAR_MIN_SCALE, 2),
+      { timeout: 3000 },
+    );
+
+    // The bar keeps its bottom edge, so its top edge goes down by the height it loses.
+    const barTopDrop = TAB_BAR.height * (1 - part(box!, "scale", 1));
+    expect(
+      part(anchor, "translateY", 0) + part(panel!, "translateY", 0),
+      `the price panel did not go down with the tab bar's top edge (${barTopDrop.toFixed(1)} px); a gap opened between them`,
+    ).toBeCloseTo(barTopDrop, 1);
+    expect(part(anchor, "scale", 1), "the price panel's anchor was scaled with the tab bar").toBe(1);
+    expect(part(panel!, "scale", 1), "the price panel was scaled with the tab bar").toBe(1);
+
+    // Back at the top the bar is full size again, and the panel is back on its top edge.
+    scrollY = 0;
+    fireEvent.scroll(window);
+    await waitFor(
+      () =>
+        expect(part(box!, "scale", 1), "the tab bar did not grow back at the top of the page").toBeCloseTo(1, 2),
+      { timeout: 3000 },
+    );
+    expect(
+      part(anchor, "translateY", 0) + part(panel!, "translateY", 0),
+      "the price panel did not go back up onto the full-size tab bar at the top of the page",
+    ).toBeCloseTo(TAB_BAR.height * (1 - part(box!, "scale", 1)), 1);
+    unmount();
   });
 
   /**
