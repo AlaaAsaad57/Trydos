@@ -2686,6 +2686,8 @@ const translations = {
   "Device and browser info": "معلومات الجهاز والمتصفح",
   "Top bar colour": "لون الشريط العلوي",
   "Reset top bar colour": "إعادة لون الشريط العلوي",
+  "Tab bar colour": "لون شريط التبويبات",
+  "Reset tab bar colour": "إعادة لون شريط التبويبات",
   "Main": "الرئيسية",
   "Cart": "السلة",
   "Chat": "المحادثة",

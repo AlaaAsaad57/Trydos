@@ -153,6 +153,8 @@ export const DEMO_KEYS = [
   "Device and browser info",
   "Top bar colour",
   "Reset top bar colour",
+  "Tab bar colour",
+  "Reset tab bar colour",
   "Main",
   "Home",
   "Search",

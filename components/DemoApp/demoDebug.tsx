@@ -3,28 +3,39 @@
 import React, { useSyncExternalStore } from "react";
 
 /**
- * The debug colour picker for /demo, next to the "i" button.
+ * The debug colour pickers for /demo, next to the "i" button.
  *
- * It sets the colour of Safari's top area (the clock and the battery) while a
- * chat message's menu is open, so the client can pick the colour that looks
- * right over the grey wash on their own phone. The reset button gives the
- * design's grey back (MENU_DIM_TINT in DemoApp1/chat/MessageMenu.tsx).
- * Safari's top area takes a colour from the page on the iPhone and the iPad
- * only, so the picked colour shows only there.
+ * Top bar colour: sets the colour of Safari's top area (the clock and the
+ * battery) while a chat message's menu is open, so the client can pick the
+ * colour that looks right over the grey wash on their own phone. The reset
+ * button gives the design's grey back (MENU_DIM_TINT in
+ * DemoApp1/chat/MessageMenu.tsx). Safari's top area takes a colour from the
+ * page on the iPhone and the iPad only, so the picked colour shows only there.
+ *
+ * Tab bar colour (on the bag only): fills the tab bar's glass with a solid
+ * colour. The glass is clear, so on a white page a cut at its edge never
+ * shows; a solid fill shows where Safari (or anything else) cuts the bar.
+ * The fill stays on every screen until reset, so the bar can be compared
+ * between screens.
  *
  * The state lives in this module, so it stays the same while the tester moves
  * between screens.
  */
 
-/** The design's grey (MENU_DIM_TINT, rgb 179 179 179): what the picker opens on. */
+/** The design's grey (MENU_DIM_TINT, rgb 179 179 179): what the top picker opens on. */
 const DESIGN_TOP_TINT = "#b3b3b3";
+
+/** A strong red: what the tab bar picker opens on, so a cut edge is easy to see. */
+const START_TAB_BAR_FILL = "#ff0000";
 
 type DebugState = {
   /** The picked colour as `#rrggbb`, or null for the design's grey. */
   topTint: string | null;
+  /** The tab bar's solid fill as `#rrggbb`, or null for the design's clear glass. */
+  tabBarFill: string | null;
 };
 
-const OFF: DebugState = { topTint: null };
+const OFF: DebugState = { topTint: null, tabBarFill: null };
 let state: DebugState = OFF;
 const listeners = new Set<() => void>();
 
@@ -48,7 +59,12 @@ export function setDebugTopTint(color: string | null) {
   set({ ...state, topTint: color });
 }
 
-/** Puts the picker back on the design's grey. For tests. */
+/** Sets the tab bar's solid fill; null gives the design's clear glass back. */
+export function setDebugTabBarFill(color: string | null) {
+  set({ ...state, tabBarFill: color });
+}
+
+/** Puts every picker back on the design. For tests. */
 export function resetDemoDebug() {
   set(OFF);
 }
@@ -59,47 +75,89 @@ export function rgbOf(hex: string) {
   return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
 }
 
-/** The colour picker, drawn under the "i" button, and its reset button once a colour is picked. */
-export function DebugButtons({
-  t,
+type DebugKey = "Top bar colour" | "Reset top bar colour" | "Tab bar colour" | "Reset tab bar colour";
+
+const ROUND =
+  "relative w-7 h-7 rounded-full shadow border border-gray-200 cursor-pointer flex items-center justify-center overflow-hidden";
+
+/** One round colour button, and its reset button once a colour is picked. */
+function ColourPicker({
+  value,
+  start,
+  onChange,
+  label,
+  resetLabel,
+  testId,
 }: {
-  t: (key: "Top bar colour" | "Reset top bar colour") => string;
+  value: string | null;
+  /** The colour the phone's picker opens on while nothing is picked. */
+  start: string;
+  onChange: (color: string | null) => void;
+  label: string;
+  resetLabel: string;
+  testId: string;
 }) {
-  const { topTint } = useDemoDebug();
-  const round =
-    "relative w-7 h-7 rounded-full shadow border border-gray-200 cursor-pointer flex items-center justify-center overflow-hidden";
   return (
     <>
       {/* The input is see-through and covers the round button, so a tap opens
           the phone's own colour picker. */}
       <label
-        className={round}
+        className={ROUND}
         // No colour picked yet: a colour wheel says what the button does.
         style={{
-          background:
-            topTint ??
-            "conic-gradient(#FF3B30, #FFCC00, #34C759, #007AFF, #AF52DE, #FF3B30)",
+          background: value ?? "conic-gradient(#FF3B30, #FFCC00, #34C759, #007AFF, #AF52DE, #FF3B30)",
         }}
       >
         <input
           type="color"
-          data-pw="demo-debug-top-tint"
-          aria-label={t("Top bar colour")}
-          value={topTint ?? DESIGN_TOP_TINT}
-          onChange={(e) => setDebugTopTint(e.target.value)}
+          data-pw={testId}
+          aria-label={label}
+          value={value ?? start}
+          onChange={(e) => onChange(e.target.value)}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
       </label>
-      {topTint && (
+      {value && (
         <button
           type="button"
-          data-pw="demo-debug-top-tint-reset"
-          aria-label={t("Reset top bar colour")}
-          onClick={() => setDebugTopTint(null)}
-          className={`${round} bg-white/90 text-[#402CDD] text-sm font-bold`}
+          data-pw={`${testId}-reset`}
+          aria-label={resetLabel}
+          onClick={() => onChange(null)}
+          className={`${ROUND} bg-white/90 text-[#402CDD] text-sm font-bold`}
         >
           ×
         </button>
+      )}
+    </>
+  );
+}
+
+/**
+ * The pickers, drawn under the "i" button. The tab bar picker shows on the
+ * bag only (`tabBar`); its reset button stays while a fill is picked, so the
+ * fill can be taken off from any screen.
+ */
+export function DebugButtons({ t, tabBar }: { t: (key: DebugKey) => string; tabBar: boolean }) {
+  const { topTint, tabBarFill } = useDemoDebug();
+  return (
+    <>
+      <ColourPicker
+        value={topTint}
+        start={DESIGN_TOP_TINT}
+        onChange={setDebugTopTint}
+        label={t("Top bar colour")}
+        resetLabel={t("Reset top bar colour")}
+        testId="demo-debug-top-tint"
+      />
+      {(tabBar || tabBarFill) && (
+        <ColourPicker
+          value={tabBarFill}
+          start={START_TAB_BAR_FILL}
+          onChange={setDebugTabBarFill}
+          label={t("Tab bar colour")}
+          resetLabel={t("Reset tab bar colour")}
+          testId="demo-debug-tab-bar"
+        />
       )}
     </>
   );

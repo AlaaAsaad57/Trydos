@@ -520,7 +520,7 @@ function Demo1ShellInner({
               i
             </button>
           )}
-          {!hideMenu && <DebugButtons t={t} />}
+          {!hideMenu && <DebugButtons t={t} tabBar={shown === "cart"} />}
         </div>
         <DemoKeyboard locale={locale} t={t} />
         <DemoDeviceInfoModal

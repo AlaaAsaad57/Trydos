@@ -22,6 +22,7 @@ import {
 } from "../DemoApp/DemoBottomNav";
 import type { DemoTab } from "../DemoApp/demoRoutes";
 import type { DemoKey } from "../DemoApp/demoKeys";
+import { useDemoDebug } from "../DemoApp/demoDebug";
 import {
   BAND,
   COLUMN_W,
@@ -106,6 +107,9 @@ export default function Demo1BottomNav({
     const done = (1 - s) / (1 - TAB_BAR_MIN_SCALE);
     return `calc(${BAR_W} * ${(1 - done) / s} + ${(TAB_BAR_MIN.width * done) / s}px)`;
   });
+
+  /** The debug menu's solid fill for the glass (demoDebug.tsx): shows where the bar is cut. */
+  const { tabBarFill } = useDemoDebug();
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -236,7 +240,7 @@ export default function Demo1BottomNav({
           className="absolute inset-0"
           style={{
             borderRadius: TAB_BAR.radius,
-            backgroundColor: "transparent",
+            backgroundColor: tabBarFill ?? "transparent",
             backdropFilter: TAB_BAR.glass,
             WebkitBackdropFilter: TAB_BAR.glass,
           }}
