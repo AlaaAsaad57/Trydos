@@ -40,6 +40,9 @@ const HEADER_SHADOW = "0 0 3px rgba(0, 0, 0, 0.1)";
 /** The file's shadow on the panel's top edge (0, -3, blur 10, black at 10%), as on the buy bar. */
 const PANEL_SHADOW = "0 -3px 10px rgba(0, 0, 0, 0.102)";
 
+/** The same shadow with no colour, so the two can blend while the panel grows. */
+const NO_SHADOW = "0 -3px 10px rgba(0, 0, 0, 0)";
+
 /** Over the sheets' layer, as the buy bar is (Layer's z is 2147483000 + 30). */
 const PANEL_Z = 2147483040;
 
@@ -248,10 +251,19 @@ export function BagPanel({
   /** The help mark was tapped: the height moves with the details' own timing from then on. */
   const [toggled, setToggled] = useState(false);
   const height = heightOf(tabBar, details);
-  /** How far down the panel waits, out of the window. */
+  /** How far down the panel waits, out of the window (the checkout's panel). */
   const away = height + 30;
   // The other screen's panel took over: this one goes at once, under it.
   const handedOff = !present && (shown === "cart" || shown === "cart/checkout") && bag.length > 0;
+  /**
+   * How the panel comes and goes when no other panel hands over. On the bag
+   * it grows out from behind the tab bar: its bottom stays on the bar's top,
+   * its height runs from 0, and its shadow rides on its top edge. The shadow
+   * fades with the height, so a panel of height 0 leaves no grey line on the
+   * bar. The checkout has no tab bar: its panel slides in from under the window.
+   */
+  const hidden = tabBar ? { y: 0, height: 0, boxShadow: NO_SHADOW } : { y: away, height, boxShadow: PANEL_SHADOW };
+  const landed = present || handedOff;
 
   useEffect(() => {
     if (!present) return;
@@ -269,10 +281,17 @@ export function BagPanel({
       className="font-quicksand"
       initial={
         from
-          ? { y: bottomOf(tabBar) - bottomOf(from.tabBar), height: heightOf(from.tabBar, from.details) }
-          : { y: away }
+          ? {
+              y: bottomOf(tabBar) - bottomOf(from.tabBar),
+              height: heightOf(from.tabBar, from.details),
+              boxShadow: PANEL_SHADOW,
+            }
+          : hidden
       }
-      animate={{ y: present || handedOff ? 0 : away, height, opacity: handedOff ? 0 : 1 }}
+      animate={{
+        ...(landed ? { y: 0, height, boxShadow: PANEL_SHADOW } : hidden),
+        opacity: handedOff ? 0 : 1,
+      }}
       transition={{
         ...SCREEN_TRANSITION,
         height: toggled ? MOVE : SCREEN_TRANSITION,
@@ -291,7 +310,6 @@ export function BagPanel({
         borderRadius: "30px 30px 0 0",
         // Not fully opaque, for Chromium (see BuyCard in ProductBuy.tsx). Safari reads it as plain white.
         background: "rgba(255, 255, 255, 0.9976)",
-        boxShadow: PANEL_SHADOW,
         overflow: "hidden",
       }}
     >
