@@ -100,7 +100,7 @@ Inventory sends a push when the status changes. The waiting side then asks for t
 | Calls for each QR | 30 | 6 with FCM, 30 without |
 | Paths to test | 1 | 2 |
 | Automatic testing | Full | Real push must be tested by hand |
-| Extra work | None | 3–4.5 person-days |
+| Extra work | None | About 3 person-days |
 
 ## 4. Rules for both directions
 
@@ -169,43 +169,34 @@ Inventory sends a push when the status changes. The waiting side then asks for t
 
 ## 6. Estimate
 
-This estimate assumes that **each developer uses a Claude agent to write the code**.
+This estimate assumes that **every developer uses a Claude agent**. That includes the
+chat, stories and comments developers, and QA. The agent writes the code, the tests and
+the translations, and reads the logs to find bugs.
 These numbers are judgment, not measurement, because we have no timing from a similar
 feature. Confirm them after the first few days of work.
 
 **Assumptions**
 
 - One developer for each role, with no other work.
-- One Claude agent for each developer, working on one task at a time.
+- Every developer uses a Claude agent, working on one task at a time.
 - A developer reads and approves every change before it merges.
 - Inventory can issue `id_token` without an OTP.
 - The wallet is left out.
 - The agent has access to each repo. The Flutter numbers are the least certain, because
   we didn't read that code.
 
-**What the agent speeds up:** writing endpoints, routes and screens, moving the login
-steps into shared code, writing tests, adding translations, and finding bugs in logs.
-
-**What the agent doesn't speed up much:**
-
-- Waiting for other developers to answer questions.
-- A person reviewing the token and security code.
-- Deploying to staging.
-- Testing the camera and two real devices on iOS and Android.
-- App store review.
-
 ### Person-days
 
 | Who | Polling, A only | Polling, A + B | FCM, A + B |
 |---|---|---|---|
-| Inventory | 2–4 | 3–5 | 3.5–6 |
-| Web | 2–3.5 | 3–5 | 4–6.5 |
-| Flutter | 1.5–3 | 3–5 | 3.5–5.5 |
-| Chat | 0.5–1.5 | 0.5–1.5 | 0.5–1.5 |
-| Stories | 0.5–1.5 | 0.5–1.5 | 0.5–1.5 |
-| Comments | 0.5–1.5 | 0.5–1.5 | 0.5–1.5 |
-| QA | 1.5–2.5 | 2–3.5 | 3–5 |
-| **Total** | **8.5–17.5** | **12.5–23** | **15.5–27.5** |
+| Inventory | 1.5–2.5 | 2–3.5 | 2.5–4 |
+| Web | 1.5–2.5 | 2–3.5 | 3–4.5 |
+| Flutter | 1–2 | 2–3.5 | 2.5–4 |
+| Chat | 0.5–1 | 0.5–1 | 0.5–1 |
+| Stories | 0.5–1 | 0.5–1 | 0.5–1 |
+| Comments | 0.5–1 | 0.5–1 | 0.5–1 |
+| QA | 1–2 | 1.5–2.5 | 2.5–3.5 |
+| **Total** | **6.5–12** | **9–16** | **12–19** |
 
 ### Working days
 
@@ -214,11 +205,11 @@ busiest developer's work.
 
 | Phase | Polling, A only | Polling, A + B | FCM, A + B |
 |---|---|---|---|
-| Agree the API, check `id_token` | 1–2 | 1–2 | 1–2 |
-| Build | 2–4 | 3–5 | 4–7 |
-| Test together and fix | 2–3 | 3–4 | 4–5 |
-| **Total** | **5–9** | **7–11** | **9–14** |
-| **In weeks** | 1–2 | 1.5–2.5 | 2–3 |
+| Agree the API, check `id_token` | 0.5–1.5 | 0.5–1.5 | 0.5–1.5 |
+| Build | 1.5–2.5 | 2–3.5 | 3–4.5 |
+| Test together and fix | 1.5–2 | 2–3 | 3–4 |
+| **Total** | **3.5–6** | **4.5–8** | **6.5–10** |
+| **In weeks** | 1 | 1–1.5 | 1.5–2 |
 
 App store review is extra. Both directions need app screens, so ship them in one release.
 
@@ -229,24 +220,3 @@ App store review is extra. Both directions need app screens, so ship them in one
 - FCM still needs polling, so it adds work and replaces nothing.
 - FCM saves at most about 2 seconds, and only where it is available.
 - FCM can be added later if real data shows that polling is a problem.
-
-## 8. Questions to answer first
-
-| # | Question | Who answers | Why it matters |
-|---|---|---|---|
-| 1 | Can inventory issue `id_token` without an OTP? | Inventory | **Biggest risk.** If not, chat, stories and comments must change, which could add about 3–5 working days. |
-| 2 | Do chat, stories and comments accept that `id_token`? | Their developers | Otherwise those services won't sign in. |
-| 3 | Does a new login end the session on the other device? | Chat, stories, comments developers | The user could be signed out of those services on one device. |
-| 4 | Who is the Flutter developer? | Product | The app side can't be built without one. |
-| 5 | Who owns the comments service? | Product | Someone must answer questions 2 and 3 for it. |
-| 6 | Is the wallet left out of QR login? | Product | This plan assumes yes. |
-| 7 | What should the Settings QR icon open? | Product | The XD design opens a Client ID screen from it. This plan opens a login QR. |
-
-## 9. Main risks
-
-- **Scam in Direction A:** an attacker can trick someone into approving the attacker's
-  QR. The approve screen shows the browser and city to help the user notice.
-- **Stolen web session in Direction B:** someone with access to the signed-in web could
-  sign in an app. The Approve step alone doesn't stop them, so the "new sign-in" push
-  warns the real user.
-- **One phone only:** a phone can't scan its own screen, so the user needs a second device.
