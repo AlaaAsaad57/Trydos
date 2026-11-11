@@ -1709,10 +1709,13 @@ export function WhyCard({
   bottom: fromBottom,
   t,
   body = t,
+  title = "Why add a address?",
   onClose,
 }: {
   bottom: number;
   t: (key: DemoKey) => string;
+  /** The card's first line: the delivery sheet asks "What is the collection point ?" (`Home Page – 72`). */
+  title?: DemoKey;
   /** The wording of the paragraph, when it differs from the labels' (sentence style). */
   body?: (key: DemoKey) => string;
   onClose: () => void;
@@ -1736,7 +1739,7 @@ export function WhyCard({
     >
       <div className="flex items-start shrink-0">
         <Txt size={11} weight="medium" mt={12} ml={24}>
-          {t("Why add a address?")}
+          {t(title)}
         </Txt>
         <button
           type="button"
