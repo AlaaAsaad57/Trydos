@@ -4,6 +4,7 @@ import type { DemoKey } from "../../DemoApp/demoKeys";
 import { motion } from "framer-motion";
 import React, { useState } from "react";
 import { XD_ICON_SIZE, type XdIconName } from "../../DemoApp/xdIcons";
+import { demoAsset } from "../../DemoApp/demoAssetVersion";
 import { CHAT, MENU_ACTIONS } from "../../DemoApp/demoChat";
 import type { Side } from "../../DemoApp/demoChatModel";
 import { TAB_BAR } from "../../DemoApp/demoLayout";
@@ -139,7 +140,7 @@ export const menuHeight = (canEdit: boolean, canForward: boolean) =>
  */
 function InkIcon({ name, color, size }: { name: XdIconName; color: string; size: number }) {
   const box = XD_ICON_SIZE[name];
-  const url = `url(/assets/demo/xd/${name}.svg)`;
+  const url = `url(${demoAsset(`/assets/demo/xd/${name}.svg`)})`;
   return (
     <span
       aria-hidden="true"
