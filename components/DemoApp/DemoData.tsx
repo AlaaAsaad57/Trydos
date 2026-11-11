@@ -47,6 +47,8 @@ export type DemoProfile = {
   orderActions: number;
   /** The address the form opens with, or null for a new one. */
   editingAddress: string | null;
+  /** The address the bag is sent to (the checkout, `Home Page – 76`), or null before one is chosen. */
+  shippingAddress: string | null;
 };
 
 export const DEMO_PROFILE: DemoProfile = {
@@ -65,6 +67,7 @@ export const DEMO_PROFILE: DemoProfile = {
   walletUsd: 120,
   orderActions: 1,
   editingAddress: null,
+  shippingAddress: null,
 };
 
 type DemoData = {

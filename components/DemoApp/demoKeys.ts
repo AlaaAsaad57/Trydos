@@ -119,7 +119,8 @@ const PRODUCT_PAGE_KEYS = [
  * public/translations files — `pnpm lint` and `pnpm lint:i18n-parity` check that.
  */
 /**
- * The words of the bag and the checkout, `Home Page – 50` and `– 56`. The
+ * The words of the bag, the checkout and its address sheet, `Home Page – 50`,
+ * `– 56`, `– 70` and `– 76`. The
  * English is written in Apple's title style on the screen (demoCase.ts), so a
  * key here is the file's own words.
  */
@@ -146,6 +147,9 @@ const CART_KEYS = [
   "Shipping & delivery Address",
   "Please Select your shipping address to receive Your Package",
   "Choose delivery Address",
+  "Your <m>Address</m>",
+  "We will send your Package to below address",
+  "Choose Delivery Method",
 ] as const;
 
 export const DEMO_KEYS = [

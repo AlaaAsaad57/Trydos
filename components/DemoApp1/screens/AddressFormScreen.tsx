@@ -4,7 +4,11 @@ import React, { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import { useDemoNav } from "../Demo1Shell";
-import { useDemoData, type DemoCountry } from "../../DemoApp/DemoData";
+import {
+  useDemoData,
+  type DemoAddress,
+  type DemoCountry,
+} from "../../DemoApp/DemoData";
 import {
   COUNTRIES,
   LEVELS,
@@ -63,50 +67,8 @@ const MAP_W = 382;
 
 export default function AddressFormScreen() {
   const { t, back } = useDemoNav();
-  const { profile, update } = useDemoData();
-  const editing =
-    profile.addresses.find((a) => a.id === profile.editingAddress) ?? null;
-
-  const [country, setCountry] = useState<DemoCountry>(editing?.country ?? "tr");
-  // Province first — the order the picker walks. The address stores it street first.
-  const [picked, setPicked] = useState<string[]>(
-    editing ? [...editing.area].reverse() : [],
-  );
-  const [detail, setDetail] = useState(editing?.detail ?? "");
-  const [title, setTitle] = useState(editing?.title ?? "");
-  const [located, setLocated] = useState(editing !== null);
-  const [sheet, setSheet] = useState<"country" | "place" | null>(null);
-
-  const placeDone = picked.length === LEVELS.length;
-  const complete = placeDone && detail.trim() !== "" && title.trim() !== "";
-  // The map card's line goes the moment the form is complete, even with a
-  // field still focused. An open sheet keeps it, as on 95 and 97.
-  const done = complete && sheet === null;
-  const countryName = t(countryOf(country).name);
-
-  const save = () => {
-    const address = {
-      id: editing?.id ?? `a${Date.now()}`,
-      title: title.trim(),
-      country,
-      area: [...picked].reverse(),
-      detail: detail.trim(),
-    };
-    update({
-      addresses: editing
-        ? profile.addresses.map((a) => (a.id === editing.id ? address : a))
-        : [...profile.addresses, address],
-      editingAddress: null,
-    });
-    back();
-  };
-
-  // A field whose sheet is open is in use: blue line, Medium label.
-  const fieldLook = (id: "country" | "place") => ({
-    editing: !complete,
-    focused: sheet === id,
-  });
-
+  const { profile } = useDemoData();
+  const form = useAddressForm({ editingId: profile.editingAddress, onSaved: back });
   return (
     <ScreenPage
       testId="demo-address-form"
@@ -126,31 +88,82 @@ export default function AddressFormScreen() {
           <WideButton
             testId="demo-address-save"
             label={t("Add & save")}
-            visible={complete}
-            onClick={save}
+            visible={form.complete}
+            onClick={form.save}
           />
-          <CountrySheet
-            open={sheet === "country"}
-            value={country}
-            onClose={() => setSheet(null)}
-            onPick={(id) => {
-              if (id !== country) setPicked([]);
-              setCountry(id);
-              setSheet(null);
-            }}
-          />
-          <PlaceSheet
-            open={sheet === "place"}
-            country={country}
-            picked={picked}
-            onPicked={setPicked}
-            onClose={() => setSheet(null)}
-          />
+          {form.sheets}
         </>
       }
     >
       <InfoBanner t={t} />
+      {form.fields}
+    </ScreenPage>
+  );
+}
 
+/**
+ * The form itself: its state, the map card with the four fields under it
+ * (`fields`, to put under the banner), and the country and place sheets
+ * (`sheets`). The profile's form screen and the checkout's address sheet
+ * (CartAddressSheet) both use it.
+ *
+ * `save` stores the address (a new one goes last in the list) and hands it to
+ * `onSaved`. `sheetZ` raises the two pickers over a sheet the form is in.
+ */
+export function useAddressForm({
+  editingId,
+  onSaved,
+  sheetZ,
+}: {
+  editingId: string | null;
+  onSaved: (address: DemoAddress) => void;
+  sheetZ?: number;
+}) {
+  const { t } = useDemoNav();
+  const { profile, update } = useDemoData();
+  const editing = profile.addresses.find((a) => a.id === editingId) ?? null;
+  const [country, setCountry] = useState<DemoCountry>(editing?.country ?? "tr");
+  // Province first — the order the picker walks. The address stores it street first.
+  const [picked, setPicked] = useState<string[]>(
+    editing ? [...editing.area].reverse() : [],
+  );
+  const [detail, setDetail] = useState(editing?.detail ?? "");
+  const [title, setTitle] = useState(editing?.title ?? "");
+  const [located, setLocated] = useState(editing !== null);
+  const [sheet, setSheet] = useState<"country" | "place" | null>(null);
+
+  const placeDone = picked.length === LEVELS.length;
+  const complete = placeDone && detail.trim() !== "" && title.trim() !== "";
+  // The map card's line goes the moment the form is complete, even with a
+  // field still focused. An open sheet keeps it, as on 95 and 97.
+  const done = complete && sheet === null;
+  const countryName = t(countryOf(country).name);
+
+  const save = () => {
+    const address: DemoAddress = {
+      id: editing?.id ?? `a${Date.now()}`,
+      title: title.trim(),
+      country,
+      area: [...picked].reverse(),
+      detail: detail.trim(),
+    };
+    update({
+      addresses: editing
+        ? profile.addresses.map((a) => (a.id === editing.id ? address : a))
+        : [...profile.addresses, address],
+      editingAddress: null,
+    });
+    onSaved(address);
+  };
+
+  // A field whose sheet is open is in use: blue line, Medium label.
+  const fieldLook = (id: "country" | "place") => ({
+    editing: !complete,
+    focused: sheet === id,
+  });
+
+  const fields = (
+    <>
       {/* The map card, 12 under the banner. Its height is animated, so the
           fields under it move down with it. */}
       <motion.div
@@ -373,8 +386,34 @@ export default function AddressFormScreen() {
           placeholder={t("Ex: Home, my office, 2 home ect.")}
         />
       </Field>
-    </ScreenPage>
+    </>
   );
+
+  const sheets = (
+    <>
+      <CountrySheet
+        z={sheetZ}
+        open={sheet === "country"}
+        value={country}
+        onClose={() => setSheet(null)}
+        onPick={(id) => {
+          if (id !== country) setPicked([]);
+          setCountry(id);
+          setSheet(null);
+        }}
+      />
+      <PlaceSheet
+        z={sheetZ}
+        open={sheet === "place"}
+        country={country}
+        picked={picked}
+        onPicked={setPicked}
+        onClose={() => setSheet(null)}
+      />
+    </>
+  );
+
+  return { complete, save, fields, sheets };
 }
 
 /** The map card and the map grow together. */
@@ -395,11 +434,13 @@ const sheetField = (onClick: () => void) => ({
  * 406 x 60 rows from y 645, 4 apart: a 30 px flag 12 in, the name from x 54.
  */
 function CountrySheet({
+  z,
   open,
   value,
   onClose,
   onPick,
 }: {
+  z?: number;
   open: boolean;
   value: DemoCountry;
   onClose: () => void;
@@ -407,7 +448,7 @@ function CountrySheet({
 }) {
   const { t } = useDemoNav();
   return (
-    <Sheet open={open} onClose={onClose} y={539} testId="demo-country-sheet">
+    <Sheet open={open} onClose={onClose} y={539} z={z} testId="demo-country-sheet">
       {/* The file centres both lines by eye: "Select" 1 px right of centre,
           the second line 1 px left. */}
       <Txt
@@ -484,12 +525,14 @@ function CountrySheet({
  * 4 apart, the name from x 24.
  */
 function PlaceSheet({
+  z,
   open,
   country,
   picked,
   onPicked,
   onClose,
 }: {
+  z?: number;
   open: boolean;
   country: DemoCountry;
   picked: string[];
@@ -527,7 +570,7 @@ function PlaceSheet({
   };
 
   return (
-    <Sheet open={open} onClose={onClose} y={451} testId="demo-place-sheet">
+    <Sheet open={open} onClose={onClose} y={451} z={z} testId="demo-place-sheet">
       {/* The file centres these three lines by eye, right of true centre by
           3, 1 and 1.33 px. */}
       <Txt

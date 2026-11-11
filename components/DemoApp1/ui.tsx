@@ -1161,6 +1161,7 @@ export function InfoBanner({
   t,
   purple = false,
 }: {
+  /** The note's wording (a screen with Apple's capitals passes its sentence style). */
   t: (key: DemoKey) => string;
   purple?: boolean;
 }) {
@@ -1468,8 +1469,14 @@ export function Sheet({
   noHandle = false,
   over,
   timing,
+  z,
 }: {
   open: boolean;
+  /**
+   * The sheet's layer `z` (see `Layer`). Raise it for a sheet that must cover
+   * the checkout's price panel (CartParts, over every usual layer).
+   */
+  z?: number;
   onClose: () => void;
   fit?: boolean;
   /** How the sheet and its backdrop move in and out, in place of the usual spring (the size sheet). */
@@ -1514,7 +1521,7 @@ export function Sheet({
   return (
     <AnimatePresence>
       {open && (
-        <Layer key="sheet" testId={testId} tint={glass ? GLASS_DIMMED : DIMMED}>
+        <Layer key="sheet" testId={testId} z={z} tint={glass ? GLASS_DIMMED : DIMMED}>
           <div data-no-keyboard-lift="" className="absolute inset-0">
             {touch && (
               <style>{`
@@ -1701,10 +1708,13 @@ function focusTappedField(e: React.MouseEvent<HTMLDivElement>, touch: boolean) {
 export function WhyCard({
   bottom: fromBottom,
   t,
+  body = t,
   onClose,
 }: {
   bottom: number;
   t: (key: DemoKey) => string;
+  /** The wording of the paragraph, when it differs from the labels' (sentence style). */
+  body?: (key: DemoKey) => string;
   onClose: () => void;
 }) {
   return (
@@ -1756,7 +1766,7 @@ export function WhyCard({
           color: C.ink,
         }}
       >
-        {t(
+        {body(
           "Accurate address details ensure faster delivery of your correct products and show you the best options in your area.",
         )}
       </p>

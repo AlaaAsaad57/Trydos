@@ -6,6 +6,7 @@ import XdIcon from "../../DemoApp/XdIcon";
 import { useDemoNav } from "../Demo1Shell";
 import { useDemoData, type DemoAddress } from "../../DemoApp/DemoData";
 import { countryOf } from "../../DemoApp/demoPlaces";
+import type { DemoKey } from "../../DemoApp/demoKeys";
 import { C, WINDOW_COVER, fill, gapTo, textBottom, top } from "../demo1Layout";
 import {
   DIMMED,
@@ -170,37 +171,59 @@ export default function AddressListScreen() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* The 19 px mark at y 432.5, centred; the lines on 472 and 492. */}
-            <Icon
-              name="helpBig"
-              mt={432.5 - 148}
-              style={{ alignSelf: "center" }}
-            />
-            {/* The file puts this line 2.67 px left of centre (x 135). XD shows
-                the gaps as 7 and 5 from its own text boxes; placed by baseline
-                they are 7.5 and 6 here, the same pixels. */}
-            <Txt
-              center
-              nudge={-2.67}
-              mt={gapTo(451.5, 472, 13)}
-              size={13}
-              weight="medium"
-              color={C.hint}
-            >
-              {t("Your address list is empty")}
-            </Txt>
-            <Txt
-              center
-              mt={gapTo(textBottom(472, 13), 492, 11)}
-              size={11}
-              color={C.hint}
-            >
-              {t("You can also create multiple addresses to use")}
-            </Txt>
+            <EmptyAddresses from={148} t={t} />
           </motion.div>
         )}
       </AnimatePresence>
     </ScreenPage>
+  );
+}
+
+/**
+ * The empty list: the grey 19 px help mark centred at y 432.5, and the two
+ * grey lines on baselines 472 and 492. The profile (`– 96`) and the
+ * checkout's address sheet (`– 70`) draw it at the same place on the screen.
+ * `from` is the design y the block starts at (the banner's bottom).
+ */
+export function EmptyAddresses({
+  from,
+  t,
+  body = t,
+}: {
+  from: number;
+  t: (key: DemoKey) => string;
+  /** The second line's wording, when it differs from the first's (sentence style). */
+  body?: (key: DemoKey) => string;
+}) {
+  return (
+    <>
+      <Icon
+        name="helpBig"
+        mt={432.5 - from}
+        style={{ alignSelf: "center" }}
+      />
+      {/* The file puts this line 2.67 px left of centre (x 135). XD shows
+          the gaps as 7 and 5 from its own text boxes; placed by baseline
+          they are 7.5 and 6 here, the same pixels. */}
+      <Txt
+        center
+        nudge={-2.67}
+        mt={gapTo(451.5, 472, 13)}
+        size={13}
+        weight="medium"
+        color={C.hint}
+      >
+        {t("Your address list is empty")}
+      </Txt>
+      <Txt
+        center
+        mt={gapTo(textBottom(472, 13), 492, 11)}
+        size={11}
+        color={C.hint}
+      >
+        {body("You can also create multiple addresses to use")}
+      </Txt>
+    </>
   );
 }
 

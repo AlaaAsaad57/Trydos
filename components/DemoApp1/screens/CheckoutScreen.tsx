@@ -1,12 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
-import { useDemoData } from "../../DemoApp/DemoData";
+import { useDemoData, type DemoAddress } from "../../DemoApp/DemoData";
 import { bagLook, inBag } from "../../DemoApp/demoBag";
+import { countryOf } from "../../DemoApp/demoPlaces";
 import { useDemoCase } from "../demoCase";
-import { C, fill, textTop } from "../demo1Layout";
+import { C, fill, textBottom, textTop } from "../demo1Layout";
 import { Box, ScreenPage, Txt } from "../ui";
+import CartAddressSheet from "./CartAddressSheet";
 import { BagHeader, BagPanel, BagSum, LINE_13 } from "./CartParts";
 import { Rich, type T } from "./ListingParts";
 
@@ -19,14 +21,22 @@ import { Rich, type T } from "./ListingParts";
  *  - The shipping section: the rocket and the map, the title with its help
  *    mark, a purple line asking for the address, and a dashed purple box
  *    holding the dark "Choose delivery Address" button.
- *  - The bottom panel with the sum and "Checkout / Complete", grey until an
- *    address is chosen. The address screens are the next boards of the file
- *    (`– 70` on); the button opens nothing yet.
+ *  - The bottom panel with the sum and "Checkout / Complete", grey until the
+ *    whole checkout is done (delivery and payment are boards `– 72` on).
+ *
+ * "Choose delivery Address" opens the address sheet (`– 70`, CartAddressSheet).
+ * With an address chosen the screen is `– 76`: the purple line turns into
+ * "We will send your Package to below address" in black, the address card
+ * (406 x 76 at y 284) comes under it, and the dashed box moves 8 under the
+ * card with "Choose Delivery Method", which opens nothing yet (`– 72`).
  */
 export default function CheckoutScreen() {
-  const { bag } = useDemoData();
+  const { bag, profile, update } = useDemoData();
   const { t } = useDemoCase();
+  const [choosing, setChoosing] = useState(false);
   const items = inBag(bag);
+  // An address deleted on the profile is no longer the bag's.
+  const address = profile.addresses.find((a) => a.id === profile.shippingAddress) ?? null;
   return (
     <ScreenPage testId="demo-checkout" header={<BagHeader bag={bag} t={t} />}>
       {/* The card: `#FCFCFC`, a grey 0.5 px line, round 15. */}
@@ -61,7 +71,15 @@ export default function CheckoutScreen() {
         </ul>
       </Box>
 
-      <Shipping t={t} />
+      <Shipping t={t} address={address} onChoose={() => setChoosing(true)} />
+      <CartAddressSheet
+        open={choosing}
+        onClose={() => setChoosing(false)}
+        onChosen={(id) => {
+          update({ shippingAddress: id });
+          setChoosing(false);
+        }}
+      />
 
       {/* Room for the panel, so the box above it is never under it. */}
       <div aria-hidden="true" className="shrink-0" style={{ height: 931 - 818 + 12 }} />
@@ -76,8 +94,12 @@ export default function CheckoutScreen() {
   );
 }
 
-/** The shipping section: the marks at y 212, the title on baseline 253, the purple line on 273, the dashed box at y 284. */
-function Shipping({ t }: { t: T }) {
+/**
+ * The shipping section: the marks at y 212, the title on baseline 253, the
+ * line on 273, then the dashed box at y 284 (`– 56`), or the address card at
+ * y 284 and the dashed box at y 368 (`– 76`).
+ */
+function Shipping({ t, address, onChoose }: { t: T; address: DemoAddress | null; onChoose: () => void }) {
   return (
     <section aria-label={t("Shipping & delivery Address")} className="flex flex-col shrink-0">
       <div className="flex items-start" style={{ marginTop: 212.44 - 192, marginLeft: 24.16 }}>
@@ -93,12 +115,22 @@ function Shipping({ t }: { t: T }) {
           <XdIcon name="cartHelpGrey" />
         </span>
       </div>
-      <Txt size={11} color={C.purple} ml={24} mt={textTop(273, 11) - (textTop(253, 13) + 16)} className="overflow-hidden text-ellipsis">
-        {t("Please Select your shipping address to receive Your Package")}
+      <Txt
+        size={11}
+        color={address ? C.ink : C.purple}
+        ml={24}
+        mt={textTop(273, 11) - (textTop(253, 13) + 16)}
+        className="overflow-hidden text-ellipsis"
+        data-pw="demo-checkout-address-line"
+      >
+        {address
+          ? t("We will send your Package to below address")
+          : t("Please Select your shipping address to receive Your Package")}
       </Txt>
+      {address && <AddressCard address={address} t={t} />}
       {/* The dashed box: `#FCFCFC`, a purple 0.5 px line dashed 3 3, round 15; the button 20 px in and 15 down. */}
       <Box
-        mt={284 - (textTop(273, 11) + 14)}
+        mt={address ? 368 - 360 : 284 - textBottom(273, 11)}
         ml={12}
         w={fill(12)}
         h={70}
@@ -112,7 +144,8 @@ function Shipping({ t }: { t: T }) {
       >
         <button
           type="button"
-          data-pw="demo-checkout-choose-address"
+          data-pw={address ? "demo-checkout-choose-method" : "demo-checkout-choose-address"}
+          onClick={address ? undefined : onChoose}
           className="flex items-center justify-center shrink-0 cursor-pointer active:opacity-80 [-webkit-tap-highlight-color:transparent] font-medium whitespace-nowrap"
           style={{
             marginTop: 299 - 284,
@@ -125,9 +158,44 @@ function Shipping({ t }: { t: T }) {
             ...LINE_13,
           }}
         >
-          {t("Choose delivery Address")}
+          {address ? t("Choose Delivery Method") : t("Choose delivery Address")}
         </button>
       </Box>
     </section>
+  );
+}
+
+/**
+ * The chosen address, `– 76`: a 406 x 76 card at y 284, `#FCFCFC` with a grey
+ * 0.5 px line, round 15. From x 24: the title (13 Medium, baseline 305), the
+ * place (13, baseline 329: the neighbourhood Regular, "province | country"
+ * Medium, as "El Jamiliya | Aleppo | Syria") and the detail (11, baseline 349).
+ */
+function AddressCard({ address, t }: { address: DemoAddress; t: T }) {
+  // The address stores street, neighbourhood, district, province.
+  const [, town, , province] = address.area;
+  return (
+    <Box
+      mt={284 - textBottom(273, 11)}
+      ml={12}
+      w={fill(12)}
+      h={76}
+      radius={15}
+      fill={C.card}
+      stroke={C.line}
+      className="flex flex-col"
+      data-pw="demo-checkout-address"
+    >
+      <Txt size={13} weight="medium" ml={12} mt={textTop(305, 13) - 284} className="truncate" style={{ width: fill(12) }}>
+        {address.title}
+      </Txt>
+      <Txt size={13} ml={12} mt={textTop(329, 13) - textBottom(305, 13)} className="truncate" style={{ width: fill(12) }}>
+        {`${town} |`}
+        <span className="font-medium">{` ${province} | ${t(countryOf(address.country).name)}`}</span>
+      </Txt>
+      <Txt size={11} ml={12} mt={textTop(349, 11) - textBottom(329, 13)} className="truncate" style={{ width: fill(12) }}>
+        {address.detail}
+      </Txt>
+    </Box>
   );
 }
