@@ -33,7 +33,7 @@ import {
   COLUMN_W,
   EDGE_ANCHOR,
   SAFE_BOTTOM,
-  TAB_BAR,
+  TAB_BAR_TOP,
   fill,
   lineBox,
   paraTop,
@@ -319,7 +319,7 @@ export default function ChatListScreen() {
           />
         ))
       )}
-      <Toast text={notice ?? toast} bottom={TAB_BAR.height + 24} fixed />
+      <Toast text={notice ?? toast} bottom={TAB_BAR_TOP + 9} fixed />
 
       {/* The round purple button that starts a chat: 52 px, 20 px from the
           right edge, 16 px over the tab bar. It hangs on a 0 x 0 anchor at
@@ -332,7 +332,7 @@ export default function ChatListScreen() {
             style={{
               ...EDGE_ANCHOR,
               top: undefined,
-              bottom: `calc(${15 + TAB_BAR.height + 16}px + ${SAFE_BOTTOM})`,
+              bottom: `calc(${TAB_BAR_TOP + 16}px + ${SAFE_BOTTOM})`,
               zIndex: 30,
             }}
           >

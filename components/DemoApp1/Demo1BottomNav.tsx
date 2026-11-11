@@ -27,6 +27,8 @@ import {
   SAFE_BOTTOM,
   SCREEN_TRANSITION,
   TAB_BAR,
+  TAB_BAR_BOTTOM,
+  TAB_BAR_DROP,
   TAB_BAR_MIN,
   TAB_BAR_MIN_SCALE,
 } from "./demo1Layout";
@@ -40,7 +42,8 @@ import {
  *    The fixed box is an anchor with no width in the middle of the window,
  *    and the bar's own box hangs on it.
  *  - It keeps the file's 22 px to both edges of the screen (386 wide on a 430
- *    phone) and 15 px above the bottom.
+ *    phone). Its bottom edge is 6.5 px below the window's end
+ *    (TAB_BAR_BOTTOM), at full size and shrunk.
  *  - Its five slots share the bar's width, 3 px in from each end, as the
  *    file's 76 px slots do on the 386 px bar. Each icon keeps the file's
  *    distance from its slot's centre.
@@ -91,7 +94,7 @@ export default function Demo1BottomNav({
   );
   const drop = useTransform(
     scrollScale,
-    (s) => ((1 - s) / (1 - TAB_BAR_MIN_SCALE)) * TAB_BAR.drop,
+    (s) => ((1 - s) / (1 - TAB_BAR_MIN_SCALE)) * TAB_BAR_DROP,
   );
   const { scale, firePulse } = useBarPulse(scrollScale);
   // The box's width before the scale. On screen (after the scale) the bar
@@ -188,7 +191,7 @@ export default function Demo1BottomNav({
         // An anchor with no width: see the note at the top of this file.
         left: "50%",
         width: 0,
-        bottom: `calc(${15}px + ${SAFE_BOTTOM})`,
+        bottom: `calc(${TAB_BAR_BOTTOM}px + ${SAFE_BOTTOM})`,
         height: TAB_BAR.height,
         pointerEvents: visible ? "auto" : "none",
       }}

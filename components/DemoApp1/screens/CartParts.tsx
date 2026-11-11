@@ -13,7 +13,7 @@ import {
   HEADER,
   SAFE_BOTTOM,
   SCREEN_TRANSITION,
-  TAB_BAR,
+  TAB_BAR_TOP,
   UNDER_BAR,
   lineBox,
   textTop,
@@ -59,7 +59,7 @@ const WORDS_OUT = { duration: 0.18 };
 const WORDS_IN = { duration: 0.2, delay: 0.14 };
 
 /** Where a panel's bottom is, above the window's end (less the safe area): on the tab bar, or under Safari's bar. */
-const bottomOf = (tabBar: boolean) => (tabBar ? TAB_BAR.height + (932 - 917) : -UNDER_BAR);
+const bottomOf = (tabBar: boolean) => (tabBar ? TAB_BAR_TOP : -UNDER_BAR);
 
 /** A panel's height, with the price details shut or open. */
 const heightOf = (tabBar: boolean, details: boolean) =>
@@ -282,7 +282,7 @@ export function BagPanel({
         left: `calc(50% - ${COLUMN_W} / 2)`,
         width: COLUMN_W,
         bottom: tabBar
-          ? `calc(${TAB_BAR.height + (932 - 917)}px + ${SAFE_BOTTOM})`
+          ? `calc(${TAB_BAR_TOP}px + ${SAFE_BOTTOM})`
           : `calc(${SAFE_BOTTOM} - ${UNDER_BAR}px)`,
         zIndex: PANEL_Z,
         pointerEvents: present ? undefined : "none",

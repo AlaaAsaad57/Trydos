@@ -58,6 +58,27 @@ export const TAB_BAR_MIN = { width: 143, height: 31 } as const;
 /** The smallest scale of the tab bar: the height ratio (31 / 58). */
 export const TAB_BAR_MIN_SCALE = TAB_BAR_MIN.height / TAB_BAR.height;
 
+/**
+ * Where the tab bar's bottom edge is, above the window's end (less the safe
+ * area). It is negative: the edge is 6.5 px BELOW the window's end. On the
+ * iPhone the window ends above Safari 26's floating bar, so the tab bar sits
+ * close to Safari's bar and leaves no empty band between the two.
+ *
+ * It is the same at full size and when the bar has shrunk on a scroll (see
+ * TAB_BAR_DROP), on every screen.
+ */
+export const TAB_BAR_BOTTOM = -6.5;
+
+/**
+ * How far the bar moves down as it shrinks: half of the height it loses
+ * (58 - 31) / 2. The bar scales around its centre, so this keeps its bottom
+ * edge on TAB_BAR_BOTTOM in every state.
+ */
+export const TAB_BAR_DROP = (TAB_BAR.height - TAB_BAR_MIN.height) / 2;
+
+/** The tab bar's top edge at full size, above the window's end (less the safe area). */
+export const TAB_BAR_TOP = TAB_BAR_BOTTOM + TAB_BAR.height;
+
 /** The widest the page grows. Past it (a tablet, a laptop) it is a centred column. */
 export const PAGE_MAX = 500;
 
@@ -230,7 +251,7 @@ export const fillFrom = (left: number, w: number) =>
 export const top = (y: number) => `calc(${y - STATUS_BAR}px + ${SAFE_TOP})`;
 
 /** Room the tab bar takes at the bottom of a tab screen, so its last row is not under the bar. */
-export const TAB_ROOM = `calc(${TAB_BAR.height + 15}px + ${SAFE_BOTTOM})`;
+export const TAB_ROOM = `calc(${TAB_BAR_TOP}px + ${SAFE_BOTTOM})`;
 
 /**
  * Hides the site's own chrome (the [lang] layout's navbar) while the demo is
