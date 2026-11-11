@@ -2722,6 +2722,7 @@ const translations = {
   "Tab bar colour": "Sekme çubuğu rengi",
   "Reset tab bar colour": "Sekme çubuğu rengini sıfırla",
   "Taller page": "Daha uzun sayfa",
+  "Top strip": "Üst şerit",
   "Main": "Ana menü",
   "Cart": "Sepet",
   "Chat": "Sohbet",

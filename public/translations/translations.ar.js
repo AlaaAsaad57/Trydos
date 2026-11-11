@@ -2689,6 +2689,7 @@ const translations = {
   "Tab bar colour": "لون شريط التبويبات",
   "Reset tab bar colour": "إعادة لون شريط التبويبات",
   "Taller page": "صفحة أطول",
+  "Top strip": "الشريط العلوي",
   "Main": "الرئيسية",
   "Cart": "السلة",
   "Chat": "المحادثة",

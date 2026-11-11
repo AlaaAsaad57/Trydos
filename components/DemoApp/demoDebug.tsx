@@ -18,6 +18,12 @@ import React, { useSyncExternalStore } from "react";
  * The fill stays on every screen until reset, so the bar can be compared
  * between screens.
  *
+ * Top strip: holds the demo's white top strip (topTint.ts) on a page that has
+ * no head. Pages with a head show that strip while the head is shown, and
+ * Safari paints their fixed tab bar in full; the profile has no head and no
+ * strip, and Safari cuts its tab bar at the window's end. One question: does
+ * a fixed box at the top change how Safari draws the bottom?
+ *
  * Taller page: makes every page at least 120 px taller than the window, so
  * the page always runs under Safari's bar. For one question: does Safari cut
  * a fixed box at the window's end only when the page itself ends there?
@@ -39,12 +45,14 @@ type DebugState = {
   tabBarFill: string | null;
   /** Every page is at least 120 px taller than the window (see TALL_PAGE_ROOM). */
   tallPage: boolean;
+  /** A page with no head holds the white top strip. */
+  topStrip: boolean;
 };
 
 /** How far past the window's end a page runs while "Taller page" is on. */
 export const TALL_PAGE_ROOM = 120;
 
-const OFF: DebugState = { topTint: null, tabBarFill: null, tallPage: false };
+const OFF: DebugState = { topTint: null, tabBarFill: null, tallPage: false, topStrip: false };
 let state: DebugState = OFF;
 const listeners = new Set<() => void>();
 
@@ -78,6 +86,11 @@ export function setDebugTallPage(on: boolean) {
   set({ ...state, tallPage: on });
 }
 
+/** Turns the top strip on headless pages on or off. */
+export function setDebugTopStrip(on: boolean) {
+  set({ ...state, topStrip: on });
+}
+
 /** Puts every picker back on the design. For tests. */
 export function resetDemoDebug() {
   set(OFF);
@@ -94,7 +107,8 @@ type DebugKey =
   | "Reset top bar colour"
   | "Tab bar colour"
   | "Reset tab bar colour"
-  | "Taller page";
+  | "Taller page"
+  | "Top strip";
 
 const ROUND =
   "relative w-7 h-7 rounded-full shadow border border-gray-200 cursor-pointer flex items-center justify-center overflow-hidden";
@@ -157,7 +171,7 @@ function ColourPicker({
  * fill can be taken off from any screen.
  */
 export function DebugButtons({ t, tabBar }: { t: (key: DebugKey) => string; tabBar: boolean }) {
-  const { topTint, tabBarFill, tallPage } = useDemoDebug();
+  const { topTint, tabBarFill, tallPage, topStrip } = useDemoDebug();
   return (
     <>
       <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 text-gray-800 flex items-center gap-1.5 backdrop-blur-sm cursor-pointer">
@@ -169,6 +183,16 @@ export function DebugButtons({ t, tabBar }: { t: (key: DebugKey) => string; tabB
           className="accent-[#402CDD] cursor-pointer"
         />
         <span>{t("Taller page")}</span>
+      </label>
+      <label className="px-2.5 py-1 text-xs font-semibold rounded-full bg-white/90 shadow border border-gray-200 text-gray-800 flex items-center gap-1.5 backdrop-blur-sm cursor-pointer">
+        <input
+          type="checkbox"
+          data-pw="demo-debug-top-strip"
+          checked={topStrip}
+          onChange={(e) => setDebugTopStrip(e.target.checked)}
+          className="accent-[#402CDD] cursor-pointer"
+        />
+        <span>{t("Top strip")}</span>
       </label>
       <ColourPicker
         value={topTint}

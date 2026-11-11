@@ -591,8 +591,14 @@ export function ScreenPage({
 }) {
   usePageColor(bg);
   const visual = useVisualHeight(scrollBody);
-  /** The debug menu's "Taller page" (demoDebug.tsx): the page runs past the window's end. */
-  const { tallPage } = useDemoDebug();
+  /** The debug menu (demoDebug.tsx): "Taller page" and "Top strip". */
+  const { tallPage, topStrip } = useDemoDebug();
+  const present = useIsPresent();
+  // "Top strip": a page with no head holds the white strip, as a head page does while its head is shown.
+  React.useEffect(() => {
+    if (!topStrip || header || scrollBody || !present) return;
+    return holdTopTint(HEAD_TOP, DEMO1_TINT);
+  }, [topStrip, header, scrollBody, present]);
   const head = React.useRef<HTMLDivElement>(null);
   /** The block that ends the head's sticky box (see useHeadOnScroll). */
   const limit = React.useRef<HTMLDivElement>(null);
