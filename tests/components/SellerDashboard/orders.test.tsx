@@ -37,6 +37,7 @@ vi.mock("services/home", () => ({
 import RenderOrders from "components/SellerDashboard/orders";
 
 import { act, renderWithProviders, screen, userEvent, waitFor, within } from "../../render";
+import { routerSpies, setRoute } from "../../mocks/nextNavigation";
 import { useAppStore } from "store";
 
 // Every browser has IntersectionObserver; jsdom has none. The section uses one
@@ -124,6 +125,8 @@ async function openFirstOrder() {
 }
 
 beforeEach(() => {
+  // The section remembers in sessionStorage that it pushed an order entry.
+  sessionStorage.clear();
   getSellerOrders.mockReset();
   confirmOrderDetailStatus.mockReset();
   packOrderDetailStatus.mockReset();
@@ -1062,6 +1065,84 @@ describe("Orders section — fixed bugs", () => {
       screen.queryByRole("button", { name: "Cancel" }),
       "the backend does not list canceled as a next status, so Cancel must not show",
     ).toBeNull();
+  });
+
+  // BUG-seller-710: the order list and the order detail were only React state.
+  // Opening an order added no history entry, so browser back from an order
+  // left the Orders section instead of going back to the list.
+  const ORDERS_PATH = `/gb-en/sellerProfile/sellerDashboard/${SELLER_ID}`;
+  const renderOrders = () => (
+    <RenderOrders canViewOrders sellerId={SELLER_ID} activeTab="orders" setActiveTab={() => {}} />
+  );
+
+  it("BUG-seller-710: opening an order puts it in the URL as a new history entry", async () => {
+    await mount();
+    await openFirstOrder();
+
+    expect(
+      routerSpies.push,
+      "opening order 1001 must push ?order=1001, so browser back returns to the list",
+    ).toHaveBeenCalledWith(`${ORDERS_PATH}?tab=orders&order=1001`, { scroll: false });
+  });
+
+  it("BUG-seller-710: browser back from an order shows the list again", async () => {
+    const view = await mount();
+    await openFirstOrder();
+    // The router stand-in does not move the URL; play what the browser does.
+    setRoute({ search: "tab=orders&order=1001" });
+    view.rerender(renderOrders());
+    await screen.findByText("Order Number");
+
+    setRoute({ search: "tab=orders" });
+    view.rerender(renderOrders());
+
+    expect(
+      await screen.findByRole("button", { name: "In Progress" }),
+      "after browser back took ?order= off the URL, the list and its filter tabs should show",
+    ).toBeInTheDocument();
+  });
+
+  it("BUG-seller-710: a link with ?order= opens that order", async () => {
+    await renderWithProviders(renderOrders(), {
+      path: `/sellerProfile/sellerDashboard/${SELLER_ID}`,
+      search: "tab=orders&order=1001",
+    });
+
+    expect(
+      await screen.findByText("Order Number"),
+      "a URL that names order 1001 should open its detail, not the list",
+    ).toBeInTheDocument();
+  });
+
+  it("BUG-seller-710: a link with ?order= does not say 'No order selected' while the orders load", async () => {
+    getSellerOrders.mockReturnValue(new Promise(() => {}));
+    await renderWithProviders(renderOrders(), {
+      path: `/sellerProfile/sellerDashboard/${SELLER_ID}`,
+      search: "tab=orders&order=1001",
+    });
+
+    expect(
+      screen.queryByText("No Order Selected"),
+      "the orders backend has not answered yet, so the order is unknown, not missing",
+    ).toBeNull();
+  });
+
+  it("BUG-seller-710: the back arrow on an order it opened steps back in history", async () => {
+    await mount();
+    await openFirstOrder();
+    await screen.findByText("Order Number");
+
+    // The back arrow is the first button on the detail header.
+    await userEvent.click(screen.getAllByRole("button")[0]);
+
+    expect(
+      routerSpies.back,
+      "the order was pushed by the list, so its back arrow must step back to the list entry",
+    ).toHaveBeenCalled();
+    expect(
+      routerSpies.replace,
+      "the back arrow must not write a second list entry over the order entry",
+    ).not.toHaveBeenCalled();
   });
 
   it("BUG-seller-704: the order status on a list card is translated", async () => {

@@ -357,6 +357,8 @@ function SellerDashBoard() {
     const params = new URLSearchParams(searchParams.toString());
     if (tab === "none") params.delete("tab");
     else params.set("tab", tab);
+    // `?order=` is the open order of the Orders section; a tab change closes it.
+    params.delete("order");
     const qs = params.toString();
     const url = qs ? `${pathname}?${qs}` : pathname;
     if (activeTab === "none" && tab !== "none") {

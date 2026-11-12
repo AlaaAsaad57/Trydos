@@ -11,7 +11,7 @@ import { getConfiguredImage, translateFunction, LogError } from "utils/functions
 import SellerDashboardService from "services/sellerDashboard";
 import { subscribeShopOrderTopics } from "utils/shopOrderTopics";
 import { ConfirmModal } from "components/global/ConfirmModal";
-import { useParams } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAppStore } from "store";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -1528,8 +1528,11 @@ const OrderDetailScreen = ({
   onPackItem,
   onCancelItem,
   error,
+  isLoading = false,
 }: {
   order: any | null;
+  // The order list is still on the way, so a missing order is not known yet.
+  isLoading?: boolean;
   onBack: () => void;
   // Why the shop backend refused the last item action.
   error: string | null;
@@ -1561,9 +1564,15 @@ const OrderDetailScreen = ({
           </h1>
           <div className="w-6" />
         </div>
-        <div className="flex-1 flex items-center justify-center text-[#8D8D8D] text-sm w-full">
-          {translateFunction("No order selected")}
-        </div>
+        {isLoading ? (
+          <div className="p-2 w-full">
+            <SellerOrderCardSkeleton />
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-[#8D8D8D] text-sm w-full">
+            {translateFunction("No order selected")}
+          </div>
+        )}
       </div>
     );
   }
@@ -1958,10 +1967,68 @@ const RenderOrders = ({
 
   const [ordersMeta, setOrdersMeta] = useState<any>(null);
   const [ordersPage, setOrdersPage] = useState(1);
-  const [screen, setScreen] = useState<"list" | "detail">("list");
+
+  // The open order is also in the URL (`?order=<id>`), so browser back from an
+  // order returns to the list and a link can open one order. The state below
+  // decides what is drawn; the URL follows it, and drives it on browser back /
+  // forward. Opening an order from the list PUSHES the entry; this flag says
+  // so, and lives in sessionStorage so a refresh keeps it.
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const orderParam = searchParams.get("order");
+  const detailPushedKey = `seller-orders-detail-pushed:${sellerId}`;
+
+  const [screen, setScreen] = useState<"list" | "detail">(
+    orderParam ? "detail" : "list",
+  );
   const [selectedOrderId, setSelectedOrderId] = useState<
     number | string | null
-  >(null);
+  >(orderParam);
+
+  // Only a CHANGE of `?order=` counts: opening an order sets the screen first,
+  // before the URL catches up.
+  const lastOrderParam = useRef(orderParam);
+  useEffect(() => {
+    if (orderParam === lastOrderParam.current) return;
+    lastOrderParam.current = orderParam;
+    if (orderParam) {
+      setSelectedOrderId(orderParam);
+      setScreen("detail");
+    } else {
+      sessionStorage.removeItem(detailPushedKey);
+      setScreen("list");
+      setSelectedOrderId(null);
+    }
+  }, [orderParam, detailPushedKey]);
+
+  const openOrder = (order: any) => {
+    setOrdersError(null);
+    setSelectedOrderId(order?.id ?? null);
+    setScreen("detail");
+    if (order?.id == null) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("order", String(order.id));
+    sessionStorage.setItem(detailPushedKey, "1");
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const closeOrder = () => {
+    setOrdersError(null);
+    setScreen("list");
+    setSelectedOrderId(null);
+    if (sessionStorage.getItem(detailPushedKey)) {
+      // The list entry is right behind this one: step back to it.
+      sessionStorage.removeItem(detailPushedKey);
+      router.back();
+      return;
+    }
+    if (!orderParam) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("order");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
   const [selectedOrderFilterTab, setSelectedOrderFilterTab] =
     useState<OrderFilterTabLabel>("All");
   // "Cancel" removes the whole item quantity, so it asks first.
@@ -2299,11 +2366,7 @@ const RenderOrders = ({
                   setScreen("list");
                   setSelectedOrderId(null);
                 }}
-                onSelectOrder={(order) => {
-                  setOrdersError(null);
-                  setSelectedOrderId(order?.id ?? null);
-                  setScreen("detail");
-                }}
+                onSelectOrder={openOrder}
               />
 
               {sellerId.length > 0 && !ordersLoading && !loadingMore && (
@@ -2313,7 +2376,8 @@ const RenderOrders = ({
           ) : (
             <OrderDetailScreen
               order={selectedOrder}
-              onBack={() => { setOrdersError(null); setScreen("list"); setSelectedOrderId(null); }}
+              isLoading={ordersLoading}
+              onBack={closeOrder}
               error={ordersError}
               orderStatusOptions={orderStatusOptions}
               selectedOrderStatuses={selectedOrderStatuses}
