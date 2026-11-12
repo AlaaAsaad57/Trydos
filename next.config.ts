@@ -252,7 +252,7 @@ let nextConfig: NextConfig = {
     // the browser, so it is a single line and revertable on its own.
     turbopackRustReactCompiler: true,
     externalDir: true,
-    webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
+    webVitalsAttribution: ["CLS", "LCP", "FCP", "TTFB", "INP"],
     optimizeCss: !isDev,
     optimizeServerReact: !isDev,
     optimizePackageImports: [

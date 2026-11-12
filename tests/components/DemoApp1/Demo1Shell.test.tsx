@@ -1403,6 +1403,34 @@ describe("Demo1Shell — a store's page (XD `Home Page – 47`)", () => {
     ).toBeNull();
   });
 
+  it("turns a bag item's three product labels over like the store page's, and keeps \"Hurry up\" still beside them", () => {
+    const { container } = openOn("cart");
+    for (const id of ["bag-1", "bag-2"]) {
+      const labels = container.querySelector<HTMLElement>(
+        `[data-pw="demo-bag-item-${id}"] [data-pw="demo-bag-labels"]`,
+      );
+      expect(labels, `the bag item ${id} has no product labels`).not.toBeNull();
+      const track = labels!.querySelector<HTMLElement>(".demo-labels-3");
+      expect(track, `the bag item ${id} does not take turns between its three product labels`).not.toBeNull();
+      expect(
+        labels!.querySelector("style")?.textContent,
+        `the bag item ${id}'s labels do not turn over like a card (rotateX to -180deg), as on the store page`,
+      ).toContain("rotateX(-180deg)");
+      const words = ([...track!.children] as HTMLElement[]).map((slot) => slot.textContent);
+      expect(words[0], `the best-price label is not the first of the bag item ${id}`).toBe("! Best Price Last 3 Days!");
+      expect(words[1], `the trend label does not come after the best price on the bag item ${id}`).toBe("Trend Color !");
+      expect(words[2], `the best-sell label does not come third on the bag item ${id}`).toBe("Best Sell Last Week !");
+      expect(
+        labels!.querySelector('[data-pw="demo-bag-label-hurry"]'),
+        `"Hurry up" takes turns with the product labels on the bag item ${id}; it must stay beside them`,
+      ).toBeNull();
+    }
+    expect(
+      container.querySelector('[data-pw="demo-bag-item-bag-2"] [data-pw="demo-bag-label-hurry"]'),
+      "the second bag item lost its \"Hurry up\" label",
+    ).not.toBeNull();
+  });
+
   it("flips the labels on the colour sheet's cards too, the same way as on the store page", () => {
     const { container } = openOn("store/zara");
     const dots = container.querySelector(

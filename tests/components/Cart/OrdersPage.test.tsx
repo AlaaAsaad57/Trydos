@@ -648,6 +648,50 @@ describe("OrdersPage (components/Cart/OrdersPage.tsx)", () => {
       ).toHaveBeenCalledWith({ payment_method: "card" });
     });
 
+    it("submits order with trydos_wallet through the same checkout call as cash when payment method id is 4", async () => {
+      mockGetCart.mockResolvedValueOnce({
+        cart: [{ id: 101, check_availability: true, is_active: true }],
+      });
+      mockGetCustomerInfo.mockResolvedValueOnce({});
+      mockPlaceOrder.mockResolvedValueOnce({ success: true });
+
+      await renderWithProviders(
+        <OrdersPage setStep={vi.fn()} close={vi.fn()} />,
+        {
+          store: {
+            ...defaultStoreState,
+            orderData: {
+              payment: [{ id: 4, balance: 200 }],
+              loading: false,
+              success: false,
+            },
+          },
+        },
+      );
+
+      const confirmBtn = document.querySelector(
+        '[data-pw="Confirm-shipping-and-payment"]',
+      );
+      await userEvent.click(confirmBtn!);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("mock-place-order-submit")).toBeInTheDocument();
+      });
+
+      await userEvent.click(screen.getByTestId("mock-place-order-submit"));
+
+      expect(
+        mockTrackOrder,
+        "should track order_submit_attempt with trydos_wallet",
+      ).toHaveBeenCalledWith("order_submit_attempt", {
+        payment_method: "trydos_wallet",
+      });
+      expect(
+        mockPlaceOrder,
+        "should call order.PlaceOrder (core checkout) with trydos_wallet",
+      ).toHaveBeenCalledWith({ payment_method: "trydos_wallet" });
+    });
+
     it("skips PlaceOrder when the shopper chose RDB (id: 1)", async () => {
       mockGetCart.mockResolvedValueOnce({
         cart: [{ id: 101, check_availability: true, is_active: true }],

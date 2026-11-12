@@ -316,9 +316,9 @@ function QtyBox({ count, onTake, onAdd, t }: { count: number; onTake: () => void
  * that scrolls sideways past the screen's edge (the file cuts "Hurry up" at
  * the edge).
  *
- *  - First, at x 104, the product's labels ("Best price"). With more than one
- *    they take turns in that one place, as the store page's labels do
- *    (FlipTurns); one label stays still.
+ *  - First, at x 104, the product's labels ("Best price", "Trend color",
+ *    "Best sell"). They take turns in that one place, as the store page's
+ *    labels do (FlipTurns); one label would stay still.
  *  - Then "Hurry up", always on show beside them, as in the file (x 241).
  */
 function LabelRow({ labels, t }: { labels: readonly BagLabel[]; t: T }) {
@@ -354,8 +354,33 @@ function LabelRow({ labels, t }: { labels: readonly BagLabel[]; t: T }) {
   );
 }
 
-/** One label: the blue best-price pill (131 x 22), or the yellow running-out one with its clock (238 x 22, a 0.3 px line). */
+/**
+ * One label: the blue best-price pill (131 x 22), or the yellow running-out
+ * one with its clock (238 x 22, a 0.3 px line). The trend and best-sell
+ * labels are not in the file: they take the best-price pill's look (22 tall,
+ * round 6, no mark) with the product page's colours and words.
+ */
 function Label({ label, t }: { label: BagLabel; t: T }) {
+  if (label.kind === "trend" || label.kind === "sell")
+    return (
+      <p
+        data-pw={`demo-bag-label-${label.kind}`}
+        className="relative m-0 font-normal whitespace-nowrap"
+        style={{
+          height: 22,
+          padding: "4px 6px 0 6px",
+          borderRadius: 6,
+          ...(label.kind === "trend" ? { background: "#FFF9EF", color: "#FF631A" } : { background: "#F0EFFF", color: C.purple }),
+          ...LINE_11,
+        }}
+      >
+        {label.kind === "trend" ? (
+          <Rich text={t("<b>Trend </b>color<b> !</b>")} />
+        ) : (
+          <Rich text={t("<b>Best sell </b>last week<b> !</b>")} />
+        )}
+      </p>
+    );
   if (label.kind === "best")
     return (
       <p

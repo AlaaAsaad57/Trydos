@@ -150,12 +150,15 @@ function OrdersPage({ setStep, close }) {
         // RDB checkout is handled entirely by RdbPaymentModal — skip PlaceOrder
         if (selectedPayment?.id === 1) return;
 
+        // The Trydos wallet (id 4) uses the same checkout call as cash.
         let payment_method =
           selectedPayment?.id === 0
             ? "cash_on_delivery"
-            : selectedPayment?.id === 2
-              ? "card"
-              : "crypto";
+            : selectedPayment?.id === 4
+              ? "trydos_wallet"
+              : selectedPayment?.id === 2
+                ? "card"
+                : "crypto";
         setLoading(true);
         trackOrder(ORDER_EVENTS.ORDER_SUBMIT_ATTEMPT, { payment_method });
         await order.PlaceOrder({ payment_method });

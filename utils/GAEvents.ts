@@ -53,6 +53,7 @@ export const GA_PAYMENTS = {
   CRYPTO: "crypto",
   CREDIT: "credit",
   COD: "cash_on_delivery",
+  TRYDOS_WALLET: "trydos_wallet",
 };
 export const GA_AUTH_SCREEN = {
   SELECT_AUTHINTCTION_METHOD_SCREEN: "authintaction_method_screen",

@@ -17,10 +17,23 @@ import {
   type ProductColor,
 } from "./demoStores";
 
-/** A label under an item's price line: the best-price pill, or the running-out warning. */
+/**
+ * A label under an item's price line: the product's labels (best price,
+ * trend colour, best sell, as on the product page), or the running-out
+ * warning.
+ */
 export type BagLabel =
   | { kind: "best"; days: number }
+  | { kind: "trend" }
+  | { kind: "sell" }
   | { kind: "hurry"; time: string };
+
+/**
+ * The product's own labels, which take turns in the bag. The file draws only
+ * "Best price" on each item; the owner asked for the product page's three, in
+ * the bag's own pill look.
+ */
+const PRODUCT_LABELS: readonly BagLabel[] = [{ kind: "best", days: 3 }, { kind: "trend" }, { kind: "sell" }];
 
 export type DemoBagItem = {
   id: string;
@@ -61,7 +74,7 @@ export const DEMO_BAG: readonly DemoBagItem[] = [
     price: 160,
     was: 200,
     pieces: 1,
-    labels: [{ kind: "best", days: 3 }],
+    labels: PRODUCT_LABELS,
     status: "in",
   },
   {
@@ -74,10 +87,7 @@ export const DEMO_BAG: readonly DemoBagItem[] = [
     price: 160,
     was: 200,
     pieces: 1,
-    labels: [
-      { kind: "best", days: 3 },
-      { kind: "hurry", time: "20:00" },
-    ],
+    labels: [...PRODUCT_LABELS, { kind: "hurry", time: "20:00" }],
     status: "in",
   },
   {

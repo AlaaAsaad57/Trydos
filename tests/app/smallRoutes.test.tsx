@@ -10,7 +10,7 @@ vi.mock("NewLoginDesign/NewLoginWidget", () => ({ default: () => <div data-testi
 import ModalDefault from "app/(client)/[lang]/@modal/default";
 import LangLoginDemoPage, { metadata as loginDemoMeta } from "app/(client)/[lang]/loginDemo/page";
 import LoginDemoRedirectPage from "app/loginDemo/page";
-import LandingPage from "app/page";
+import LandingPage from "app/(landing)/page";
 
 describe("the small routes", () => {
   it("the root landing page shows the logo", () => {
