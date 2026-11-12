@@ -152,6 +152,28 @@ const CART_KEYS = [
   "Choose Delivery Method",
 ] as const;
 
+/**
+ * The words of the checkout's delivery method sheet, `Home Page – 72` and
+ * `– 77`. Written in Apple's title or sentence style on the screen
+ * (demoCase.ts), so a key here is the file's own words.
+ */
+const DELIVERY_KEYS = [
+  "Delivery Method",
+  "Choose the Method you would like to Collect your shipment",
+  "Choose the center or point through which you would like to Collect your shipment",
+  "pickup | Collect Point",
+  "You will Collect your shipment yourself",
+  "Select one from our centers",
+  "Delivery to address",
+  "Coming soon !",
+  "Not Available in your Location for now",
+  "What is the collection point ?",
+  "El Jamiliya Center",
+  "El Furkan Center",
+  "El Bab El Faraj Center",
+  "Done",
+] as const;
+
 export const DEMO_KEYS = [
   "Hide menu",
   "Device and browser info",
@@ -535,6 +557,8 @@ export const DEMO_KEYS = [
   ...PRODUCT_PAGE_KEYS,
   // The bag and the checkout (`Home Page – 50`, `– 56`).
   ...CART_KEYS,
+  // The checkout's delivery method sheet (`Home Page – 72`, `– 77`).
+  ...DELIVERY_KEYS,
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];
@@ -572,6 +596,8 @@ export const KEEP_CASE: ReadonlySet<DemoKey> = new Set<DemoKey>([
   ...PRODUCT_PAGE_KEYS,
   // `Home Page – 50` and `– 56`, the bag and the checkout (demoCase.ts too).
   ...CART_KEYS,
+  // `Home Page – 72` and `– 77`, the delivery method sheet (demoCase.ts too).
+  ...DELIVERY_KEYS,
 ]);
 
 export type DemoDictionary = Partial<Record<DemoKey, string>>;

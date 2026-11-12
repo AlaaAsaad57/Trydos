@@ -9,6 +9,7 @@ import { useDemoCase } from "../demoCase";
 import { C, fill, textBottom, textTop } from "../demo1Layout";
 import { Box, ScreenPage, Txt } from "../ui";
 import CartAddressSheet from "./CartAddressSheet";
+import DeliveryMethodSheet from "./DeliveryMethodSheet";
 import { BagHeader, BagPanel, BagSum, LINE_13 } from "./CartParts";
 import { Rich, type T } from "./ListingParts";
 
@@ -28,12 +29,14 @@ import { Rich, type T } from "./ListingParts";
  * With an address chosen the screen is `– 76`: the purple line turns into
  * "We will send your Package to below address" in black, the address card
  * (406 x 76 at y 284) comes under it, and the dashed box moves 8 under the
- * card with "Choose Delivery Method", which opens nothing yet (`– 72`).
+ * card with "Choose Delivery Method", which opens the delivery method sheet
+ * (`– 72` and `– 77`, DeliveryMethodSheet).
  */
 export default function CheckoutScreen() {
   const { bag, profile, update } = useDemoData();
   const { t } = useDemoCase();
   const [choosing, setChoosing] = useState(false);
+  const [choosingMethod, setChoosingMethod] = useState(false);
   const items = inBag(bag);
   // An address deleted on the profile is no longer the bag's.
   const address = profile.addresses.find((a) => a.id === profile.shippingAddress) ?? null;
@@ -71,7 +74,21 @@ export default function CheckoutScreen() {
         </ul>
       </Box>
 
-      <Shipping t={t} address={address} onChoose={() => setChoosing(true)} />
+      <Shipping
+        t={t}
+        address={address}
+        onChoose={() => setChoosing(true)}
+        onChooseMethod={() => setChoosingMethod(true)}
+      />
+      {address && (
+        <DeliveryMethodSheet
+          open={choosingMethod}
+          address={address}
+          onClose={() => setChoosingMethod(false)}
+          // The checkout with the chosen centre is `– 75`, not built yet: "Done" closes the sheet.
+          onDone={() => setChoosingMethod(false)}
+        />
+      )}
       <CartAddressSheet
         open={choosing}
         onClose={() => setChoosing(false)}
@@ -99,7 +116,17 @@ export default function CheckoutScreen() {
  * line on 273, then the dashed box at y 284 (`– 56`), or the address card at
  * y 284 and the dashed box at y 368 (`– 76`).
  */
-function Shipping({ t, address, onChoose }: { t: T; address: DemoAddress | null; onChoose: () => void }) {
+function Shipping({
+  t,
+  address,
+  onChoose,
+  onChooseMethod,
+}: {
+  t: T;
+  address: DemoAddress | null;
+  onChoose: () => void;
+  onChooseMethod: () => void;
+}) {
   return (
     <section aria-label={t("Shipping & delivery Address")} className="flex flex-col shrink-0">
       <div className="flex items-start" style={{ marginTop: 212.44 - 192, marginLeft: 24.16 }}>
@@ -145,7 +172,7 @@ function Shipping({ t, address, onChoose }: { t: T; address: DemoAddress | null;
         <button
           type="button"
           data-pw={address ? "demo-checkout-choose-method" : "demo-checkout-choose-address"}
-          onClick={address ? undefined : onChoose}
+          onClick={address ? onChooseMethod : onChoose}
           className="flex items-center justify-center shrink-0 cursor-pointer active:opacity-80 [-webkit-tap-highlight-color:transparent] font-medium whitespace-nowrap"
           style={{
             marginTop: 299 - 284,

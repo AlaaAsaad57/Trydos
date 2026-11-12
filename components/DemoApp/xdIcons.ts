@@ -288,6 +288,8 @@ export const XD_ICON_SIZE = {
   cartRocket: { w: 19.68, h: 20 },
   cartMap: { w: 20, h: 19.7 },
   cartHelpGrey: { w: 16.01, h: 16 },
+  // The checkout's delivery method sheet: `Home Page – 72` and `– 77`.
+  deliveryMap: { w: 30.19, h: 29.73 },
 } as const;
 
 export type XdIconName = keyof typeof XD_ICON_SIZE;
