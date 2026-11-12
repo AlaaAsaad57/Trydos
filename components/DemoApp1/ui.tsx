@@ -1334,6 +1334,7 @@ export function WideButton({
   color = C.white,
   weight = "regular",
   visible = true,
+  disabled = false,
   testId,
   bottom = DESIGN_H - (CTA.y + CTA.height),
 }: {
@@ -1345,6 +1346,12 @@ export function WideButton({
   color?: string;
   weight?: Weight;
   visible?: boolean;
+  /**
+   * Off: the same box in the same place, only grey `#C3C3C3` with white words
+   * (the checkout's "Checkout / Complete" before it can be used), and a tap
+   * does nothing.
+   */
+  disabled?: boolean;
   testId?: string;
 }) {
   return (
@@ -1353,21 +1360,22 @@ export function WideButton({
         <motion.button
           type="button"
           data-pw={testId}
-          onClick={onClick}
+          aria-disabled={disabled || undefined}
+          onClick={disabled ? undefined : onClick}
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 30, opacity: 0 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          whileTap={{ scale: 0.98 }}
-          className={`absolute cursor-pointer font-quicksand ${WEIGHT_CLASS[weight]}`}
+          whileTap={disabled ? undefined : { scale: 0.98 }}
+          className={`absolute font-quicksand transition-colors duration-200 ${disabled ? "cursor-default" : "cursor-pointer"} ${WEIGHT_CLASS[weight]}`}
           style={{
             left: CTA.x,
             right: CTA.x,
             bottom: `calc(${bottom}px + ${SAFE_BOTTOM})`,
             height: CTA.height,
             borderRadius: CTA.radius,
-            background,
-            color,
+            backgroundColor: disabled ? C.hint : background,
+            color: disabled ? C.white : color,
             fontSize: 16,
             zIndex: 5,
           }}

@@ -1772,6 +1772,71 @@ describe("Demo1 addresses — the empty list and the bottom blocks on a real pho
   });
 });
 
+describe("Demo1 addresses — \"Add & save\" is there from the start, off until the form is filled", () => {
+  /** Walks the place sheet to its last level, then types the detailed address and the title. */
+  const fillForm = async () => {
+    const field = (id: string) => document.body.querySelector<HTMLElement>(`[data-pw="${id}"]`);
+    expect(field("demo-address-place"), "the address form has no \"Select from list\" field").not.toBeNull();
+    fireEvent.click(field("demo-address-place")!);
+    // Each pick slides the old list out while the next level's list comes in;
+    // wait for the new list's first row, never the one going out.
+    const clicked = new Set<HTMLElement>();
+    for (let level = 0; level < 4; level++) {
+      const row = await waitFor(() => {
+        const rows = [...document.body.querySelectorAll<HTMLElement>('[data-pw="demo-place-0"]')].filter((r) => !clicked.has(r));
+        if (rows.length !== 1) throw new Error(`the place sheet shows no new list for level ${level + 1}`);
+        return rows[0];
+      });
+      clicked.add(row);
+      fireEvent.click(row);
+    }
+    const detail = field("demo-address-detail") as HTMLInputElement | null;
+    const title = field("demo-address-title") as HTMLInputElement | null;
+    expect(detail, "the address form has no detailed address field").not.toBeNull();
+    expect(title, "the address form has no title field").not.toBeNull();
+    fireEvent.change(detail!, { target: { value: "Street 1" } });
+    fireEvent.change(title!, { target: { value: "Home" } });
+  };
+
+  const checkOffThenOn = async (saveId: string, where: string) => {
+    const save = () => document.body.querySelector<HTMLElement>(`[data-pw="${saveId}"]`);
+    expect(save(), `${where}: "Add & save" is hidden on the empty form; it should be there, off`).not.toBeNull();
+    expect(save()!.getAttribute("aria-disabled"), `${where}: "Add & save" is not marked off on the empty form`).toBe("true");
+    const offLook = { bg: save()!.style.backgroundColor, color: save()!.style.color, bottom: save()!.style.bottom };
+    expect(offLook.bg, `${where}: "Add & save" keeps the purple fill while the form is empty`).toBe("rgb(195, 195, 195)");
+    await fillForm();
+    await waitFor(() =>
+      expect(save()!.getAttribute("aria-disabled"), `${where}: "Add & save" stays off after the form is filled`).toBeNull(),
+    );
+    await waitFor(() =>
+      expect(save()!.style.backgroundColor, `${where}: "Add & save" did not turn purple when the form was filled`).toBe("rgb(74, 49, 231)"),
+    );
+    expect(save()!.style.bottom, `${where}: "Add & save" moved when it turned on`).toBe(offLook.bottom);
+  };
+
+  it("on the profile's new address form", async () => {
+    const { unmount } = openOn("settings/profile/address/new");
+    await checkOffThenOn("demo-address-save", "profile form");
+    unmount();
+  });
+
+  it("on the checkout's address sheet, after \"Add Shipping Address\"", async () => {
+    const { unmount } = openOn("cart/checkout");
+    fireEvent.click(document.body.querySelector<HTMLElement>('[data-pw="demo-checkout-choose-address"]')!);
+    const add = await waitFor(() => {
+      const el = document.body.querySelector<HTMLElement>('[data-pw="demo-cart-address-add"]');
+      if (!el) throw new Error("the checkout's address sheet has no \"Add Shipping Address\" button");
+      return el;
+    });
+    fireEvent.click(add);
+    await waitFor(() =>
+      expect(document.body.querySelector('[data-pw="demo-address-place"]'), "the sheet did not turn into the address form").not.toBeNull(),
+    );
+    await checkOffThenOn("demo-cart-address-save", "checkout sheet");
+    unmount();
+  });
+});
+
 describe("Demo1 bottom — like the old scaled demo, Safari's bottom bar lies over the app", () => {
   const innerHeight = window.innerHeight;
   afterEach(() => {

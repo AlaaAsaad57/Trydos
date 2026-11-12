@@ -45,8 +45,9 @@ import {
  * "Select from list" (opens the place sheet), detailed address, title. Until
  * the whole form is filled, every field is white with its grey line, filled or
  * not, as 94, 95 and 97 draw it. A field in use (focused, or its sheet open)
- * turns its line blue `#388CFF` and its label Medium: a product rule. When the
- * whole form is filled "Add & save" rises, every field turns `#FCFCFC` and every
+ * turns its line blue `#388CFF` and its label Medium: a product rule. "Add &
+ * save" is there from the start, grey and off (a product rule; the file only
+ * draws it on). When the whole form is filled it turns purple, every field turns `#FCFCFC` and every
  * line goes, the map card's too, as on 99 — at once, even while the last field
  * still has focus. The field in use keeps its blue line: a product rule.
  *
@@ -88,7 +89,7 @@ export default function AddressFormScreen() {
           <WideButton
             testId="demo-address-save"
             label={t("Add & save")}
-            visible={form.complete}
+            disabled={!form.complete}
             onClick={form.save}
           />
           {form.sheets}

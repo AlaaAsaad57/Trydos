@@ -220,7 +220,7 @@ function SheetBody({ onChosen }: { onChosen: (id: string) => void }) {
           )}
         </AnimatePresence>
 
-        <WideButton testId="demo-cart-address-save" label={t("Add & save")} bottom={gap} visible={adding && form.complete} onClick={form.save} />
+        <WideButton testId="demo-cart-address-save" label={t("Add & save")} bottom={gap} visible={adding} disabled={!form.complete} onClick={form.save} />
         {form.sheets}
       </div>
     </>
