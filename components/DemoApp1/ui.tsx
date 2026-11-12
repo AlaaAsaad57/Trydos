@@ -1544,8 +1544,11 @@ export function Sheet({
       className="shrink-0 self-center"
       style={{
         marginTop: SHEET.handle.top - 1,
-        width: SHEET.handle.width,
+        // The file draws the handle as a 40 px line, 2 wide, with round caps:
+        // 42 x 2 with round ends (every sheet board, e.g. `Home Page – 72`).
+        width: SHEET.handle.width + SHEET.handle.height,
         height: SHEET.handle.height,
+        borderRadius: SHEET.handle.height / 2,
         background: "#C4C2C2",
       }}
     />
@@ -1819,17 +1822,20 @@ export function WhyCard({
           height: 38,
           borderRadius: 15,
           background: C.field,
-          // The file's 134.5 px from the left of a 366 px button, kept as the
-          // same distance from the button's centre. A padding's % is of the
-          // card (24 px wider than the button), not of the button.
-          padding: `12px 0 0 calc(50% - ${12 + 366 / 2 - 134.5}px)`,
+          // The icon's box 134 px from the left of a 366 px button, kept as
+          // the same distance from the button's centre. A padding's % is of
+          // the card (24 px wider than the button), not of the button.
+          padding: `12px 0 0 calc(50% - ${12 + 366 / 2 - 134}px)`,
         }}
       >
-        <XdIcon name="help" className="shrink-0" />
+        {/* help.svg's box starts half a px left of and above the icon's
+            group (x 167.05, y 786 in the file), so the box sits at 166, 785.5. */}
+        <XdIcon name="help" className="shrink-0" style={{ marginTop: -0.5 }} />
         <span
           className="font-medium"
           style={{
-            marginLeft: 4.5,
+            // "Learn More" stays at the file's x 186.
+            marginLeft: 5,
             fontSize: 11,
             color: C.ink,
             lineHeight: "14px",

@@ -1894,6 +1894,33 @@ describe("Demo1 checkout — the delivery method sheet's bottom blocks", () => {
       else delete (navigator as unknown as Record<string, unknown>).userAgent;
     }
   });
+  // The title and its line change with a short fade, the old one over the
+  // new one: framer's popLayout takes the old one out of the flow with its
+  // own `position: absolute !important`. A Tailwind position class on that
+  // block wins over it (the app's Tailwind is `important`, and an important
+  // rule in a cascade layer beats an unlayered one), so for the fade
+  // both titles stood in the flow and the place and the cards jumped 89 px
+  // down and back (seen in WebKit, frame by frame).
+  it("takes the leaving title out of the flow when Pickup is tapped, so the cards under it do not jump", async () => {
+    const opened = await openDeliverySheet();
+    fireEvent.click(document.body.querySelector<HTMLElement>('[data-pw="demo-delivery-pickup"]')!);
+    const sheet = document.body.querySelector<HTMLElement>('[data-pw="demo-delivery-sheet"]')!;
+    // jsdom has no layout, so framer does not mark the leaving block here:
+    // check both blocks while they trade places (the old one is still there).
+    const blocks = [...sheet.querySelectorAll("h2")].map((h) => h.parentElement!);
+    expect(
+      blocks.map((b) => b.textContent?.includes("Delivery Method")),
+      "the old title (\"Delivery Method\") is not kept for its fade while the new one comes in",
+    ).toContain(true);
+    const positionClasses = blocks.flatMap((b) =>
+      b.className.split(/\s+/).filter((c) => ["relative", "absolute", "fixed", "sticky", "static"].includes(c)),
+    );
+    expect(
+      positionClasses,
+      "a title block carries a Tailwind position class, which beats popLayout's position: absolute, so both titles stand in the flow and the cards jump",
+    ).toEqual([]);
+    opened.unmount();
+  });
 });
 
 describe("Demo1 bottom — like the old scaled demo, Safari's bottom bar lies over the app", () => {

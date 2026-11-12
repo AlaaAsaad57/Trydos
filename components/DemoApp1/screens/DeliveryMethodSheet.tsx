@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, type Variants } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import type { DemoAddress } from "../../DemoApp/DemoData";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { countryOf } from "../../DemoApp/demoPlaces";
 import { useDemoCase } from "../demoCase";
-import { C, SAFE_BOTTOM, SHEET, fill, isFloatingBarSafari, lineBox, paraTop, textBottom, textTop } from "../demo1Layout";
+import { C, SAFE_BOTTOM, SHEET, fill, isFloatingBarSafari, lineBox, paraTop, sliderMove, textBottom, textTop } from "../demo1Layout";
 import { Sheet, Stroke, WhyCard } from "../ui";
 import { LINE_11, LINE_13, LINE_14 } from "./CartParts";
 import type { T } from "./ListingParts";
@@ -66,6 +66,13 @@ const LEAD = { baseline: 170, size: 14, lineHeight: 188 - 170 } as const;
 /** The place: 14 on baseline 218. */
 const PLACE = { baseline: 218, size: 14 } as const;
 
+/**
+ * "Delivery Method" is centred by eye in the file: its ink starts 2/3 px
+ * right of the centred place (the ink audit, WebKit). "Pickup | Collect
+ * Point" on `– 77` is centred exactly.
+ */
+const METHODS_TITLE_NUDGE = 2 / 3;
+
 /** The 30 px map: at x 24 on `– 72`; 12.5 left of the title on `– 77` (map ends 83.2, title starts 95.7). */
 const MAP = { x: 24, y: 114.08, gap: 12.5 } as const;
 /** The back arrow (`back`, 12 x 21): its ink at (24, 119), as the header's at (24, 65). */
@@ -100,9 +107,23 @@ const END_GAP = 932 - (DONE.y + DONE.height);
 const ROOM_WHY = 932 - WHY.y + 12;
 const ROOM = 932 - DONE.y + 12;
 
-/** The steps trade places as the address sheet's list and form do. */
-const SWAP = { duration: 0.2 };
+/** The title and the chip change in place: a short fade. */
 const FADE = { duration: 0.15 };
+
+/**
+ * Under the Pickup card, the steps trade places as two screens do: the
+ * centres and the "Delivery to address" card move a full width together,
+ * with the Home slider's speed and curve (sliderMove, as Demo1Shell slides
+ * a store's page). `dir` 1 goes to the centres (they come from the right),
+ * -1 goes back (they leave to the right). Neither side fades. Not gated on
+ * "reduce motion": the demo shows the motion; the real app decides that
+ * separately.
+ */
+const STEP_SLIDE: Variants = {
+  enter: (dir: 1 | -1) => ({ x: dir > 0 ? "100%" : "-100%", opacity: 1 }),
+  center: (dir: 1 | -1) => sliderMove(dir, false),
+  exit: (dir: 1 | -1) => sliderMove(dir, true),
+};
 
 /** The file's three centres (`– 77`). */
 const CENTRES: { id: string; name: DemoKey }[] = [
@@ -126,6 +147,8 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
   const [gap] = useState(() => (isFloatingBarSafari(navigator.userAgent) ? 0 : END_GAP));
   const drop = END_GAP - gap;
   const pickup = step === "pickup";
+  // The slide's way: to the centres (1), or back to the methods (-1).
+  const dir = pickup ? 1 : -1;
   const done = pickup && centre !== null;
 
   return (
@@ -135,7 +158,12 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={step}
-            className="relative flex flex-col"
+            className="flex flex-col"
+            // Not Tailwind's `relative`: the app's Tailwind is `important`, and
+            // that class would beat popLayout's `position: absolute` on the
+            // leaving title, so both titles would stand in the flow for the
+            // fade and the cards under them would jump.
+            style={{ position: "relative" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -158,6 +186,7 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
             <h2
               className="relative self-center font-bold whitespace-nowrap"
               style={{
+                left: pickup ? 0 : METHODS_TITLE_NUDGE,
                 marginTop: textTop(TITLE.baseline, TITLE.size) - HANDLE_END,
                 fontSize: TITLE.size,
                 lineHeight: `${lineBox(TITLE.size)}px`,
@@ -204,7 +233,7 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
             mt={242 - textBottom(PLACE.baseline, PLACE.size)}
             chosen={pickup}
             onClick={pickup ? undefined : () => setStep("pickup")}
-            badge={{ label: t("Recommended"), fill: C.purpleTint, color: C.purple, right: 410 - 404 }}
+            badge={{ label: t("Recommended"), fill: C.purpleTint, color: C.purple, right: 410 - 404, width: 94 }}
             title={t("pickup | Collect Point")}
             titleColor={C.ink}
             chip={{ label: t("You will Collect your shipment yourself"), fill: C.purpleTint, stroke: C.purple, color: C.purple }}
@@ -212,15 +241,16 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
           />
 
           <div className="relative flex flex-col shrink-0">
-            <AnimatePresence mode="popLayout" initial={false}>
+            <AnimatePresence mode="popLayout" initial={false} custom={dir}>
               {pickup ? (
                 <motion.ul
                   key="centres"
                   className="flex flex-col p-0 list-none"
-                  initial={{ x: 40, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: 40, opacity: 0 }}
-                  transition={SWAP}
+                  custom={dir}
+                  variants={STEP_SLIDE}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
                 >
                   {CENTRES.map((c, i) => (
                     <li key={c.id} className="flex shrink-0">
@@ -238,16 +268,17 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
                 <motion.div
                   key="address"
                   className="flex flex-col"
-                  initial={{ x: -40, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: -40, opacity: 0 }}
-                  transition={SWAP}
+                  custom={dir}
+                  variants={STEP_SLIDE}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
                 >
                   <MethodCard
                     testId="demo-delivery-address"
                     mt={436 - (242 + METHOD_H)}
                     chosen={false}
-                    badge={{ label: t("Coming soon !"), fill: CHIP_GREY, color: C.ink, right: 410 - 402 }}
+                    badge={{ label: t("Coming soon !"), fill: CHIP_GREY, color: C.ink, right: 410 - 402, width: 90 }}
                     title={t("Delivery to address")}
                     titleColor={C.hint}
                     chip={{ label: t("Not Available in your Location for now"), fill: CHIP_GREY, stroke: C.line, color: C.ink, weight: "normal" }}
@@ -349,12 +380,23 @@ type ChipLook = {
   weight?: "normal" | "medium";
 };
 
-/** A chip: 22 tall, round 8, its 11 px words centred; at least the file's width. */
-function Chip({ label, fill: background, color, stroke, weight = "normal", minWidth }: ChipLook & { minWidth?: number }) {
+/**
+ * A chip: 22 tall, round 8, its 11 px words centred; at least the file's
+ * width. `pad` is the room at each side when the words are longer than that.
+ */
+function Chip({
+  label,
+  fill: background,
+  color,
+  stroke,
+  weight = "normal",
+  minWidth,
+  pad = 8,
+}: ChipLook & { minWidth?: number; pad?: number }) {
   return (
     <span
       className={`relative flex items-center justify-center shrink-0 whitespace-nowrap ${weight === "medium" ? "font-medium" : "font-normal"}`}
-      style={{ minWidth, height: 22, paddingInline: 8, borderRadius: 8, background, color, ...LINE_11 }}
+      style={{ minWidth, height: 22, paddingInline: pad, borderRadius: 8, background, color, ...LINE_11 }}
     >
       {label}
       {stroke && <Stroke color={stroke} radius={8} />}
@@ -384,7 +426,8 @@ function MethodCard({
   chosen: boolean;
   /** No tap: the card cannot be chosen (or already is). */
   onClick?: () => void;
-  badge: ChipLook & { right: number };
+  /** `width`: the file's box (94 and 90); the words are centred in it, as the file draws them. */
+  badge: ChipLook & { right: number; width: number };
   title: string;
   titleColor: string;
   chip: ChipLook;
@@ -394,7 +437,7 @@ function MethodCard({
     <>
       <Stroke color={chosen ? C.purple : C.line} radius={15} align="center" />
       <span className="absolute" style={{ top: 248 - 242, right: badge.right }}>
-        <Chip {...badge} weight="medium" />
+        <Chip {...badge} weight="medium" minWidth={badge.width} pad={7} />
       </span>
       <span
         className="block shrink-0 font-bold whitespace-nowrap"

@@ -223,12 +223,12 @@ export function EmptyAddresses({
         mt={mt}
         style={{ alignSelf: "center" }}
       />
-      {/* The file puts this line 2.67 px left of centre (x 135). XD shows
-          the gaps as 7 and 5 from its own text boxes; placed by baseline
-          they are 7.5 and 6 here, the same pixels. */}
+      {/* The file starts this line at x 135 (`– 96` and `– 70`): centred, the
+          title-style words start there. XD shows the gaps as 7 and 5 from
+          its own text boxes; placed by baseline they are 7.5 and 6 here,
+          the same pixels. */}
       <Txt
         center
-        nudge={-2.67}
         mt={gapTo(451.5, 472, 13)}
         size={13}
         weight="medium"
