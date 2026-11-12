@@ -8,6 +8,7 @@ import {
   motion,
   useDragControls,
   useIsPresent,
+  useMotionValue,
   type MotionValue,
 } from "framer-motion";
 import { useIsTouchDevice } from "hooks/useIsTouchDevice";
@@ -322,6 +323,7 @@ export function Layer({
   children,
   z = 30,
   tint,
+  tintAmount,
   testId,
   className = "",
   style,
@@ -335,6 +337,12 @@ export function Layer({
    * the top of the page in view.
    */
   tint?: string;
+  /**
+   * How far the layer's backdrop has faded in (0 to 1), on every frame. With
+   * it, the top shows `tint` only that far, in the same frame as the
+   * backdrop, both ways; it is let go once the layer has gone.
+   */
+  tintAmount?: MotionValue<number>;
   testId?: string;
   className?: string;
   style?: React.CSSProperties;
@@ -345,9 +353,19 @@ export function Layer({
   // the top follows the start of the fade, with the page under it.
   const present = useIsPresent();
   React.useEffect(() => {
-    if (!tint || !present) return;
+    if (!tint || !present || tintAmount) return;
     return holdTopTint(tint, DEMO1_TINT);
-  }, [tint, present]);
+  }, [tint, present, tintAmount]);
+  React.useEffect(() => {
+    if (!tint || !tintAmount) return;
+    const top = followTopTint(tint, DEMO1_TINT, { mix: true });
+    top.set(tintAmount.get());
+    const stop = tintAmount.on("change", top.set);
+    return () => {
+      stop();
+      top.release();
+    };
+  }, [tint, tintAmount]);
   const height = useScreenHeight();
   const anchor = React.useRef<HTMLDivElement>(null);
   const room = React.useRef<HTMLDivElement>(null);
@@ -1504,6 +1522,9 @@ export function Sheet({
 }) {
   const touch = useIsTouchDevice();
   const grip = useDragControls();
+  // The backdrop's opacity on every frame: Safari's top shows the dimmed
+  // page's grey exactly as far as the backdrop has faded.
+  const dim = useMotionValue(0);
   const rest = lower;
   const band = fit ? handleBar : 0;
   const handle = (
@@ -1521,7 +1542,7 @@ export function Sheet({
   return (
     <AnimatePresence>
       {open && (
-        <Layer key="sheet" testId={testId} z={z} tint={glass ? GLASS_DIMMED : DIMMED}>
+        <Layer key="sheet" testId={testId} z={z} tint={glass ? GLASS_DIMMED : DIMMED} tintAmount={dim}>
           <div data-no-keyboard-lift="" className="absolute inset-0">
             {touch && (
               <style>{`
@@ -1538,6 +1559,7 @@ export function Sheet({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={timing ?? { duration: 0.25 }}
+              onUpdate={(latest) => dim.set(Number(latest.opacity))}
               onClick={onClose}
             />
             {over}

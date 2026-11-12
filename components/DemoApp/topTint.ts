@@ -41,9 +41,37 @@ export type TintHome = {
  * hides the strip. `follow`: the colour follows a fade run in script, so the
  * strip has no fade of its own while it is on top (see followTopTint).
  * `blend`: the strip is drawn with `mix-blend-mode: multiply` while it is on
- * top (see followTopTint).
+ * top (see followTopTint). `mix`: the strip shows the colour under it mixed
+ * toward `rgb` by `amount`, as one opaque colour (see followTopTint).
  */
-const held: { color: string | null; follow?: boolean; blend?: boolean }[] = [];
+type Held = {
+  color: string | null;
+  follow?: boolean;
+  blend?: boolean;
+  mix?: { rgb: number[]; amount: number };
+};
+const held: Held[] = [];
+
+/**
+ * A colour as an opaque `[r, g, b]`: a see-through one is read over the white
+ * page, and none (a hidden strip, the page shows) is the white page.
+ */
+function overWhite(color: string | null): number[] {
+  if (!color) return [255, 255, 255];
+  const hex = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(color);
+  if (hex) return hex.slice(1).map((h) => parseInt(h, 16));
+  const [r, g, b, a = 1] = (color.match(/[\d.]+/g) ?? []).map(Number);
+  return [r, g, b].map((v) => 255 + (v - 255) * a);
+}
+
+/** The opaque colour the strip shows for `held[at]`, or for no layer when `at` is -1. */
+function shown(at: number, home: TintHome): number[] {
+  const entry = held[at];
+  if (!entry) return overWhite(home.rest);
+  if (!entry.mix) return overWhite(entry.color);
+  const { rgb, amount } = entry.mix;
+  return shown(at - 1, home).map((v, k) => v + (rgb[k] - v) * amount);
+}
 
 /** The same 0.25 s as the backdrops, so the bar fades with the page. */
 const FADE = "background-color 0.25s ease, visibility 0.25s";
@@ -77,10 +105,18 @@ function paint(home: TintHome) {
     } satisfies Partial<CSSStyleDeclaration>);
     host.appendChild(strip);
   }
-  const top = held.at(-1);
+  // A `mix` layer at 0 has not started its fade (or has ended it): the one
+  // under it still shows, so opening and closing it changes nothing.
+  let at = held.length - 1;
+  while (at >= 0 && held[at].mix?.amount === 0) at--;
+  const top = held[at];
   strip.style.transition = top?.follow ? "none" : FADE;
   strip.style.mixBlendMode = top?.blend ? "multiply" : "";
-  const color = top ? top.color : home.rest;
+  const color = top?.mix
+    ? `rgb(${shown(at, home).map(Math.round).join(", ")})`
+    : top
+      ? top.color
+      : home.rest;
   if (color) {
     strip.style.visibility = "visible";
     strip.style.backgroundColor = color;
@@ -119,14 +155,33 @@ export function holdTopTint(color: string, home: TintHome): () => void {
  * `multiply`, white over a colour shows that colour, so the strip cannot be
  * seen over the header. Its own colour, which Safari reads, does not change.
  * Only for white: another colour would tint the header.
+ *
+ * `mix`: for a layer whose backdrop fades over the page (a sheet). The strip
+ * lies over that backdrop, so a see-through strip would darken the page
+ * twice. Instead it shows one opaque colour: the colour the strip showed
+ * before this layer, mixed toward `color` by `amount`. That is what the page
+ * under the backdrop looks like at that moment, and Safari reads an opaque
+ * colour as it is. At 0 the colour under it shows, so the layer can open and
+ * close with no jump.
  */
-export function followTopTint(color: string, home: TintHome, { blend = false } = {}) {
-  const [r, g, b] = (color.match(/[\d.]+/g) ?? []).map(Number);
-  const entry: (typeof held)[number] = { color: null, follow: true, blend };
+export function followTopTint(
+  color: string,
+  home: TintHome,
+  { blend = false, mix = false } = {},
+) {
+  const [r, g, b] = overWhite(color);
+  const entry: Held = mix
+    ? { color: null, follow: true, mix: { rgb: [r, g, b], amount: 0 } }
+    : { color: null, follow: true, blend };
   held.push(entry);
   paint(home);
   return {
     set(amount: number) {
+      if (entry.mix) {
+        entry.mix.amount = Math.min(1, Math.max(0, amount));
+        paint(home);
+        return;
+      }
       entry.color = amount > 0 ? `rgba(${r}, ${g}, ${b}, ${amount})` : null;
       if (held.at(-1) === entry) paint(home);
     },

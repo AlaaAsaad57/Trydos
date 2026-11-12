@@ -1523,7 +1523,7 @@ describe("Demo1 layers — Safari's top bar follows an open sheet", () => {
   const strip = () =>
     document.body.querySelector<HTMLElement>('[data-pw="demo-top-tint"]');
 
-  it("puts the sheet's grey at the top while it is open, and hides the strip again when it closes", () => {
+  it("puts the sheet's grey at the top while it is open, and hides the strip again when it closes", async () => {
     const { rerender } = render(
       <Sheet open onClose={() => {}} y={400} testId="sheet">
         <span>a</span>
@@ -1541,14 +1541,19 @@ describe("Demo1 layers — Safari's top bar follows an open sheet", () => {
       Number(/(\d+)px/.exec(strip()!.style.height)?.[1] ?? 0),
       `the top strip is ${strip()!.style.height} tall; Safari ignores the colour of a box 10 px tall or less`,
     ).toBeGreaterThan(10);
-    expect(
-      strip()!.style.visibility,
-      "the top strip is hidden while the sheet is open",
-    ).toBe("visible");
-    expect(
-      strip()!.style.backgroundColor,
-      "the top strip is not the dimmed page's grey",
-    ).toBe("rgb(52, 52, 52)");
+    // The strip fades in with the backdrop (next test); judge it at the end.
+    await waitFor(() =>
+      expect(
+        strip()!.style.visibility,
+        "the top strip is hidden while the sheet is open",
+      ).toBe("visible"),
+    );
+    await waitFor(() =>
+      expect(
+        strip()!.style.backgroundColor,
+        "the top strip is not the dimmed page's grey once the sheet is open",
+      ).toBe("rgb(52, 52, 52)"),
+    );
     expect(
       strip()!.style.mixBlendMode,
       "the sheet's grey strip blends with the page under it, so its grey is not the grey Safari's bar shows",
@@ -1563,10 +1568,71 @@ describe("Demo1 layers — Safari's top bar follows an open sheet", () => {
       strip(),
       "the strip was taken away on close; Safari only looks again when a fixed layer repaints, so it must stay and change",
     ).not.toBeNull();
-    expect(
-      strip()!.style.visibility,
-      "the strip still shows after the sheet closed, so the page's own header cannot colour the bar",
-    ).toBe("hidden");
+    await waitFor(() =>
+      expect(
+        strip()!.style.visibility,
+        "the strip still shows after the sheet closed, so the page's own header cannot colour the bar",
+      ).toBe("hidden"),
+    );
+  });
+
+  // Seen in WebKit on the checkout's address sheet: the strip jumped to the
+  // full grey on the first frame while the backdrop took 0.25 s to fade in,
+  // and jumped back to white on close while the backdrop was still dark.
+  // The design's top area is the dimmed page, so it must be the same grey as
+  // the backdrop on every frame, both ways.
+  it("fades the top strip with the backdrop, frame by frame, when the sheet opens and when it closes", async () => {
+    const nextFrame = () => act(() => new Promise((done) => requestAnimationFrame(() => done(null))));
+    const backdrop = () =>
+      document.body.querySelector<HTMLElement>('[data-pw="demo-sheet-backdrop"]');
+    /** The grey of the white page under the backdrop (`#1D1D1D` at 90 %) at `opacity`. */
+    const pageGrey = (opacity: number) => 255 - (255 - 29) * 0.9 * opacity;
+    /** The grey the strip shows (white when it is hidden: the page shows through). */
+    const stripGrey = () => {
+      const s = strip();
+      if (!s || s.style.visibility === "hidden") return 255;
+      return Number(/\d+/.exec(s.style.backgroundColor)?.[0] ?? NaN);
+    };
+    /** Runs frames until the backdrop's fade ends; notes every frame where it is part-way. */
+    const followFade = async (way: string, done: () => boolean) => {
+      const off: string[] = [];
+      let partWay = false;
+      for (let frame = 0; frame < 120 && !done(); frame++) {
+        await nextFrame();
+        const el = backdrop();
+        if (!el) break;
+        const opacity = Number(el.style.opacity || 1);
+        if (opacity <= 0.02 || opacity >= 0.98) continue;
+        partWay = true;
+        const want = pageGrey(opacity);
+        if (Math.abs(stripGrey() - want) > 2) {
+          off.push(`backdrop at ${opacity.toFixed(2)}: page grey ${Math.round(want)}, strip ${stripGrey()}`);
+        }
+      }
+      expect(partWay, `the backdrop's fade on ${way} was never seen part-way, so the strip was not checked`).toBe(true);
+      expect(off, `on ${way}, the top strip is not the grey of the dimmed page under the backdrop`).toEqual([]);
+    };
+
+    const { rerender } = render(
+      <Sheet open onClose={() => {}} y={400} testId="sheet">
+        <span>a</span>
+      </Sheet>,
+    );
+    await followFade("open", () => Number(backdrop()?.style.opacity || 0) >= 0.999);
+    expect(stripGrey(), "the top strip is not the dimmed page's grey once the sheet is open").toBe(52);
+
+    rerender(
+      <Sheet open={false} onClose={() => {}} y={400} testId="sheet">
+        <span>a</span>
+      </Sheet>,
+    );
+    await followFade("close", () => backdrop() === null);
+    await waitFor(() =>
+      expect(
+        strip()?.style.visibility,
+        "the strip still shows after the sheet closed, so the page's own header cannot colour the bar",
+      ).toBe("hidden"),
+    );
   });
 });
 
