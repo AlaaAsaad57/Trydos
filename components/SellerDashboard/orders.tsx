@@ -1213,6 +1213,29 @@ const formatItemStatus = (item: any) => {
   return translateFunction("Pending");
 };
 
+// The shop backend lists the statuses an order can move to next in
+// `available_order_status_change`. The seller's item actions exist only while
+// the order can still go to "processing" (confirm) or "packaged" (pack). An
+// end-state order also lists a next status (a delivered order sends
+// ["out_for_return"]), so an empty list is not the signal. When the field is
+// missing, only a "canceled" order is locked.
+const getOrderNextStatuses = (order: any): string[] | null =>
+  Array.isArray(order?.available_order_status_change)
+    ? order.available_order_status_change
+    : null;
+
+const isOrderLocked = (order: any) => {
+  if (order?.order_status === "canceled") return true;
+  const next = getOrderNextStatuses(order);
+  if (!next) return false;
+  return !next.includes("processing") && !next.includes("packaged");
+};
+
+const canCancelOrderItems = (order: any) => {
+  const next = getOrderNextStatuses(order);
+  return !next || next.includes("canceled");
+};
+
 const updateOrderDetailItem = (
   order: any,
   detailId: number | string,
@@ -1568,6 +1591,8 @@ const OrderDetailScreen = ({
   const allPacked = itemCount > 0 && packedCount >= itemCount;
   const allCollected = itemCount > 0 && collectedCount >= itemCount;
   const remainingMinutes = Number(order?.remaining_in_minutes || 0);
+  const orderLocked = isOrderLocked(order);
+  const canCancel = canCancelOrderItems(order);
 
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="flex flex-col h-full bg-white font-sans w-full">
@@ -1767,11 +1792,16 @@ const OrderDetailScreen = ({
             const itemTotalPrice = offerPrice * qty;
             const isConfirmed = Boolean(item?.is_confirm);
             const isPacked = Boolean(item?.is_packed);
-            const isCanceled=order.order_status === "canceled"||item.qty===0;
+            const isCanceled = item.qty === 0;
             const isWaiting = !isConfirmed;
             const isActionLoading =
               orderDetailActionLoading === String(item?.id);
-            const statusLabel = formatItemStatus(item);
+            // On a locked order the line flags can be stale (a delivered
+            // order's line can still say is_confirm false), so the order's
+            // own status is shown.
+            const statusLabel = orderLocked
+              ? translateFunction(formatStatusLabel(order.order_status))
+              : formatItemStatus(item);
 
             return (
               <div
@@ -1851,7 +1881,7 @@ const OrderDetailScreen = ({
                   </div>
                 </div>
 
-                {isWaiting ? (
+                {orderLocked ? null : isWaiting ? (
                   <div className="flex gap-3">
                     <button
                       onClick={() => onConfirmItem(order.id, item)}
@@ -1862,13 +1892,15 @@ const OrderDetailScreen = ({
                         ? translateFunction("Updating...")
                         : translateFunction("Confirm & Start Packing")}
                     </button>
-                    <button
-                      onClick={() => onCancelItem(order.id, item)}
-                     disabled={isActionLoading||isCanceled}
-                      className="px-6 py-2.5 rounded-[10px] border border-[#FF9FA5] text-[#FF6B6B] bg-white font-medium text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {translateFunction("Cancel")}
-                    </button>
+                    {canCancel && (
+                      <button
+                        onClick={() => onCancelItem(order.id, item)}
+                        disabled={isActionLoading||isCanceled}
+                        className="px-6 py-2.5 rounded-[10px] border border-[#FF9FA5] text-[#FF6B6B] bg-white font-medium text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {translateFunction("Cancel")}
+                      </button>
+                    )}
                   </div>
                 ) : !isPacked ? (
                   <div className="flex gap-3">

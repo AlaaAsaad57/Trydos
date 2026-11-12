@@ -72,10 +72,14 @@ const item = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
-/** One order, with its items under `details`. */
+/**
+ * One order, with its items under `details`. By default it is a pending order
+ * with the next statuses the shop backend sends for one (staging order 1185).
+ */
 const order = (over: Record<string, unknown> = {}) => ({
   id: 1001,
   order_status: "in_progress",
+  available_order_status_change: ["read", "processing", "canceled"],
   order_amount: 18,
   created_at: "2026-01-05T10:00:00Z",
   remaining_in_minutes: 0,
@@ -465,13 +469,18 @@ describe("Orders section — working through an item", () => {
     await screen.findByText("Order Number");
 
     expect(
-      screen.getByRole("button", { name: "Confirm & Start Packing" }),
+      screen.queryByRole("button", { name: "Confirm & Start Packing" }),
       "a cancelled order's items cannot be confirmed any more",
-    ).toBeDisabled();
+    ).toBeNull();
     expect(
-      screen.getByRole("button", { name: "Cancel" }),
+      screen.queryByRole("button", { name: "Cancel" }),
       "a cancelled order's items cannot be cancelled again",
-    ).toBeDisabled();
+    ).toBeNull();
+    const itemBlock = screen.getByText("Blue Shoe").closest(".rounded-2xl") as HTMLElement;
+    expect(
+      within(itemBlock).queryByText("Canceled"),
+      `the item on a cancelled order should say Canceled; the item block reads "${itemBlock.textContent}"`,
+    ).not.toBeNull();
   });
 });
 
@@ -996,6 +1005,63 @@ describe("Orders section — fixed bugs", () => {
       await screen.findByText(/#900$/),
       "an item with no name shows its fallback 'Product #900' in English on the Arabic page",
     ).toHaveTextContent("منتج #900");
+  });
+
+  // BUG-seller-708: the item buttons were locked only for an order whose status
+  // is "canceled". The shop backend sends end-state orders whose lines were
+  // never confirmed: order 1171 on staging is "delivered", its line has
+  // is_confirm false, and `available_order_status_change` is ["out_for_return"].
+  // The seller was offered Confirm and Cancel on a delivered order.
+  it("BUG-seller-708: offers no item actions on a delivered order", async () => {
+    getSellerOrders.mockResolvedValue(
+      listAnswer([
+        order({
+          order_status: "delivered",
+          available_order_status_change: ["out_for_return"],
+          details: [item({ is_confirm: false, is_packed: false, is_collected: false })],
+        }),
+      ]),
+    );
+    await mount();
+    await openFirstOrder();
+    await screen.findByText("Order Number");
+
+    expect(
+      screen.queryByRole("button", { name: "Confirm & Start Packing" }),
+      "a delivered order (next status only out_for_return) must not offer Confirm",
+    ).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Cancel" }),
+      "a delivered order (next status only out_for_return) must not offer Cancel",
+    ).toBeNull();
+    const itemBlock = screen.getByText("Blue Shoe").closest(".rounded-2xl") as HTMLElement;
+    expect(
+      within(itemBlock).queryByText("Delivered"),
+      `the item on a delivered order should say Delivered, not Pending; the item block reads "${itemBlock.textContent}"`,
+    ).not.toBeNull();
+  });
+
+  it("BUG-seller-708: offers no Cancel once the backend no longer lists canceled", async () => {
+    getSellerOrders.mockResolvedValue(
+      listAnswer([
+        order({
+          order_status: "Waiting Confirm",
+          available_order_status_change: ["read", "processing"],
+        }),
+      ]),
+    );
+    await mount();
+    await openFirstOrder();
+    await screen.findByText("Order Number");
+
+    expect(
+      screen.getByRole("button", { name: "Confirm & Start Packing" }),
+      "a pending order that can still go to processing should offer Confirm",
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Cancel" }),
+      "the backend does not list canceled as a next status, so Cancel must not show",
+    ).toBeNull();
   });
 
   it("BUG-seller-704: the order status on a list card is translated", async () => {
