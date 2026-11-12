@@ -339,16 +339,39 @@ function SellerDashBoard() {
     productImage?: string;
   } | null>(null);
 
+  // Browser back from a section must return to the dashboard home, so opening a
+  // section from the home PUSHES a history entry. Section to section REPLACES
+  // it, so one back still reaches the home. This flag says "we pushed the
+  // section entry". It lives in sessionStorage, so a trip to an editor and a
+  // refresh keep it, and a link opened in a new browser tab starts without it.
+  const tabPushedKey = `seller-dashboard-tab-pushed:${sellerId}`;
+
   const changeTab = (tab: TabType) => {
+    if (tab === "none" && sessionStorage.getItem(tabPushedKey)) {
+      // The home entry is right behind this one: step back to it instead of
+      // writing a second home entry.
+      sessionStorage.removeItem(tabPushedKey);
+      router.back();
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
     if (tab === "none") params.delete("tab");
     else params.set("tab", tab);
     const qs = params.toString();
-    // `replace` keeps the dashboard as a single history entry (so BackBar/back
-    // collapse straight to home), while still updating the URL the next
-    // detail-route back will return to.
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    if (activeTab === "none" && tab !== "none") {
+      sessionStorage.setItem(tabPushedKey, "1");
+      router.push(url, { scroll: false });
+    } else {
+      router.replace(url, { scroll: false });
+    }
   };
+
+  // Back on the home by any route (browser back included): no section entry
+  // is pushed any more.
+  useEffect(() => {
+    if (activeTab === "none") sessionStorage.removeItem(tabPushedKey);
+  }, [activeTab, tabPushedKey]);
 
   // A product/boutique card hands off to a detail route. Show the app's in-flow
   // navigation loader and record the origin so the detail BackBar returns here

@@ -125,6 +125,7 @@ Lines still listed under "Cannot cover" were kept on purpose:
 | BUG-seller-706 (**fixed**) | seller | the Orders tab says "No orders found" before the orders backend answers |
 | BUG-seller-707 (**fixed**) | seller | the dashboard header says "Member" before the permissions answer |
 | BUG-seller-708 (**fixed**) | seller | a delivered (or other end-state) order still offers Confirm and Cancel on its items |
+| BUG-seller-709 (**fixed**) | seller | browser back from a dashboard section skips the dashboard home and lands on the shop list |
 | BUG-server-1 (**fixed**) | server | recommendations "Show More" spins forever after one failed load |
 | BUG-server-2 (**fixed**) | server | the listing grid keeps retrying a failed load after it has left the page |
 | BUG-server-3 (**fixed**) | server | the filter window drops the re-ask for a chip tapped while a re-ask is running |
