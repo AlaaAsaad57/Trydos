@@ -52,6 +52,7 @@ import {
   TAB_BAR_MIN_SCALE,
   TAB_PAGE_MIN_HEIGHT,
   UNDER_BAR,
+  textBottom,
 } from "components/DemoApp1/demo1Layout";
 import {
   DEMO_SCREENS,
@@ -1661,6 +1662,113 @@ describe("Demo1 layers — Safari's top bar follows an open sheet", () => {
         "the strip still shows after the sheet closed, so the page's own header cannot colour the bar",
       ).toBe("hidden"),
     );
+  });
+});
+
+describe("Demo1 addresses — the empty list and the bottom blocks on a real phone", () => {
+  // Seen on the client's iPhone (402 x 712 window): the empty list's words
+  // keep the file's distance from the note at the top, while the "Why" card
+  // keeps the file's distance from the window's end. On a window shorter than
+  // the file (882 under the status bar) the two met: 35 px apart on that
+  // phone, and on a 375 x 635 phone the card covered the words.
+  const innerHeight = Object.getOwnPropertyDescriptor(window, "innerHeight");
+  const setHeight = (value: number) =>
+    Object.defineProperty(window, "innerHeight", { configurable: true, value });
+  afterEach(() => {
+    if (innerHeight) Object.defineProperty(window, "innerHeight", innerHeight);
+  });
+  /** The empty list's help mark: the block just before "Your Address List Is Empty". */
+  const emptyMark = () => {
+    const lines = [...document.body.querySelectorAll<HTMLElement>("p, span, div")].filter(
+      (el) => el.children.length === 0 && /address list is empty/i.test(el.textContent ?? ""),
+    );
+    const words = lines[0];
+    expect(
+      words,
+      `the empty address list has no "Your Address List Is Empty" line (screen: ${document.body.querySelector("[data-demo-screen]")?.getAttribute("data-demo-screen")})`,
+    ).toBeDefined();
+    return words!.previousElementSibling as HTMLElement;
+  };
+  /** The file's gap above the mark (design y 432.5 less where the block starts), and the block's own height. */
+  const fileAbove = (from: number) => 432.5 - from;
+  const BLOCK = textBottom(492, 11) - 432.5;
+  /** The gap above the mark on a window `height` tall: the free room split as the file splits it. */
+  const wantAbove = (from: number, fromWindow: number, cardTopFromEnd: number, height: number) => {
+    const room = height - cardTopFromEnd - fromWindow;
+    const roomFile = 700 - from;
+    return (fileAbove(from) * (room - BLOCK)) / (roomFile - BLOCK);
+  };
+
+  const openSheet = () => {
+    const opened = openOn("cart/checkout");
+    const choose = document.body.querySelector<HTMLElement>('[data-pw="demo-checkout-choose-address"]');
+    expect(choose, "the checkout has no \"Choose delivery Address\" button").not.toBeNull();
+    fireEvent.click(choose!);
+    return opened;
+  };
+
+  it("keeps the empty list's words where the file has them on a window as tall as the file", () => {
+    setHeight(882);
+    const { unmount } = openSheet();
+    expect(
+      parseFloat(emptyMark().style.marginTop),
+      "the checkout's address sheet moved the empty list's help mark on a window as tall as the file",
+    ).toBeCloseTo(fileAbove(204), 1);
+    unmount();
+    const profile = openOn("settings/profile/address");
+    expect(
+      parseFloat(emptyMark().style.marginTop),
+      "the profile's address screen moved the empty list's help mark on a window as tall as the file",
+    ).toBeCloseTo(fileAbove(148), 1);
+    profile.unmount();
+  });
+
+  it("splits the free room above and below the empty list's words as the file does, on a phone shorter than the file", () => {
+    setHeight(712);
+    const { unmount } = openSheet();
+    // The sheet's note ends at window y 154; the card's top is 232 above the window's end.
+    expect(
+      parseFloat(emptyMark().style.marginTop),
+      "the checkout's address sheet keeps the file's gap above the empty list on a short phone, so the \"Why\" card comes up to the words",
+    ).toBeCloseTo(wantAbove(204, 154, 232, 712), 1);
+    unmount();
+    // The profile's banner ends at window y 98.
+    const profile = openOn("settings/profile/address");
+    expect(
+      parseFloat(emptyMark().style.marginTop),
+      "the profile's address screen keeps the file's gap above the empty list on a short phone, so the \"Why\" card comes up to the words",
+    ).toBeCloseTo(wantAbove(148, 98, 232, 712), 1);
+    profile.unmount();
+  });
+
+  it("puts the address sheet's button and \"Why\" card the file's 36 px lower in iPhone Safari 26, where Safari's bar already holds the home bar's room", () => {
+    const agent =
+      Object.getOwnPropertyDescriptor(navigator, "userAgent") ??
+      Object.getOwnPropertyDescriptor(Navigator.prototype, "userAgent");
+    const bottoms = () => ({
+      add: document.body.querySelector<HTMLElement>('[data-pw="demo-cart-address-add"]')?.style.bottom,
+      why: document.body.querySelector<HTMLElement>('[data-pw="demo-cart-address-sheet"] [data-pw="demo-why-card"]')?.style.bottom,
+    });
+    let opened = openSheet();
+    const elsewhere = bottoms();
+    opened.unmount();
+    expect(elsewhere.add, "outside iPhone Safari the add button does not keep the file's 36 px to the window's end").toMatch(/^calc\(36px/);
+    expect(elsewhere.why, "outside iPhone Safari the \"Why\" card does not keep the file's 108 px to the window's end").toMatch(/^calc\(108px/);
+    Object.defineProperty(navigator, "userAgent", {
+      configurable: true,
+      value:
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1",
+    });
+    try {
+      opened = openSheet();
+      const safari = bottoms();
+      opened.unmount();
+      expect(safari.add, "in iPhone Safari 26 the add button still keeps 36 px above the window's end, over Safari's own bar room").toMatch(/^calc\(0px/);
+      expect(safari.why, "in iPhone Safari 26 the \"Why\" card did not go down with the button (it keeps 27 px above it)").toMatch(/^calc\(72px/);
+    } finally {
+      if (agent) Object.defineProperty(navigator, "userAgent", agent);
+      else delete (navigator as unknown as Record<string, unknown>).userAgent;
+    }
   });
 });
 

@@ -5,10 +5,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import XdIcon from "../../DemoApp/XdIcon";
 import { useDemoData } from "../../DemoApp/DemoData";
 import { useDemoCase } from "../demoCase";
-import { C, SAFE_BOTTOM, SHEET, fill, textBottom, textTop } from "../demo1Layout";
-import { InfoBanner, Sheet, WhyCard, WideButton } from "../ui";
+import { C, SAFE_BOTTOM, SHEET, fill, isFloatingBarSafari, textBottom, textTop } from "../demo1Layout";
+import { InfoBanner, Sheet, WhyCard, WideButton, useScreenHeight } from "../ui";
 import { useAddressForm } from "./AddressFormScreen";
-import { AddressLines, EmptyAddresses } from "./AddressListScreen";
+import { AddressLines, DESIGN_TOP, EmptyAddresses, WHY_CARD_TOP_FROM_END } from "./AddressListScreen";
 import { LINE_13, LINE_14 } from "./CartParts";
 import { Rich } from "./ListingParts";
 
@@ -67,9 +67,21 @@ const NOTE_END = NOTE_Y + 48;
 /** The dark button: 188 x 45 at (121, 851), its words on baseline 879. */
 const ADD = { y: 851, width: 188, height: 45, baseline: 879 } as const;
 
+/**
+ * The file's gap under the bottom buttons ("Add Shipping Address", and
+ * "Add & save" at y 836 + 60): 36 px to the SCREEN's end, where the file has
+ * the home bar. In iPhone Safari 26 the window ends above Safari's floating
+ * bar, and the bar and the room under it already take about 97 px; the 36 px
+ * then stood on top of that (seen on the client's iPhone). So there the
+ * buttons and the "Why" card above them go down by the 36 px, to the
+ * window's end. Everywhere else the window ends at the screen's end, and the
+ * file's 36 px stay.
+ */
+const END_GAP = 932 - (ADD.y + ADD.height);
+
 /** Room under a list or the form, so its end can scroll out from under the button. */
-const LIST_ROOM = 932 - ADD.y + 12;
-const FORM_ROOM = 932 - 836 + 12;
+const listRoom = (gap: number) => ADD.height + gap + 12;
+const formRoom = (gap: number) => 60 + gap + 12;
 
 /** The list and the form trade places as the place sheet's steps do. */
 const SWAP = { duration: 0.2 };
@@ -80,6 +92,10 @@ function SheetBody({ onChosen }: { onChosen: (id: string) => void }) {
   const { profile } = useDemoData();
   const [adding, setAdding] = useState(false);
   const [showWhy, setShowWhy] = useState(true);
+  // The sheet is drawn in the browser only (a layer on <body>), so the agent can be read here.
+  const [gap] = useState(() => (isFloatingBarSafari(navigator.userAgent) ? 0 : END_GAP));
+  const drop = END_GAP - gap;
+  const height = useScreenHeight();
   const form = useAddressForm({
     editingId: null,
     onSaved: (address) => onChosen(address.id),
@@ -109,7 +125,7 @@ function SheetBody({ onChosen }: { onChosen: (id: string) => void }) {
               key="form"
               data-pw="demo-cart-address-form"
               className="absolute inset-0 flex flex-col overflow-y-auto overflow-x-hidden overscroll-contain"
-              style={{ paddingBottom: FORM_ROOM, scrollbarWidth: "none" }}
+              style={{ paddingBottom: formRoom(gap), scrollbarWidth: "none" }}
               initial={{ x: 40, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -40, opacity: 0 }}
@@ -121,12 +137,18 @@ function SheetBody({ onChosen }: { onChosen: (id: string) => void }) {
             <motion.div
               key="list"
               className="absolute inset-0 flex flex-col overflow-y-auto overflow-x-hidden overscroll-contain"
-              style={{ paddingBottom: list.length > 0 ? LIST_ROOM : 0, scrollbarWidth: "none" }}
+              style={{ paddingBottom: list.length > 0 ? listRoom(gap) : 0, scrollbarWidth: "none" }}
               exit={{ x: -40, opacity: 0 }}
               transition={SWAP}
             >
               {list.length === 0 ? (
-                <EmptyAddresses from={NOTE_END} t={t} body={body} />
+                <EmptyAddresses
+                  from={NOTE_END}
+                  // From the note's end down to the "Why" card's top, in this window.
+                  room={height === undefined ? undefined : height - (WHY_CARD_TOP_FROM_END - drop) - (NOTE_END - DESIGN_TOP)}
+                  t={t}
+                  body={body}
+                />
               ) : (
                 list.map((address, i) => (
                   <motion.button
@@ -156,7 +178,7 @@ function SheetBody({ onChosen }: { onChosen: (id: string) => void }) {
         {/* 700 .. 824 in the file (drawn there; the dump says 699): 108 above the screen's end, as on the profile. */}
         <AnimatePresence>
           {!adding && list.length === 0 && showWhy && (
-            <WhyCard key="why" bottom={932 - 824} t={t} body={body} onClose={() => setShowWhy(false)} />
+            <WhyCard key="why" bottom={932 - 824 - drop} t={t} body={body} onClose={() => setShowWhy(false)} />
           )}
         </AnimatePresence>
 
@@ -178,7 +200,7 @@ function SheetBody({ onChosen }: { onChosen: (id: string) => void }) {
                 right: 0,
                 marginInline: "auto",
                 width: "fit-content",
-                bottom: `calc(${932 - (ADD.y + ADD.height)}px + ${SAFE_BOTTOM})`,
+                bottom: `calc(${gap}px + ${SAFE_BOTTOM})`,
                 minWidth: ADD.width,
                 height: ADD.height,
                 paddingTop: textTop(ADD.baseline, 13) - ADD.y,
@@ -198,7 +220,7 @@ function SheetBody({ onChosen }: { onChosen: (id: string) => void }) {
           )}
         </AnimatePresence>
 
-        <WideButton testId="demo-cart-address-save" label={t("Add & save")} visible={adding && form.complete} onClick={form.save} />
+        <WideButton testId="demo-cart-address-save" label={t("Add & save")} bottom={gap} visible={adding && form.complete} onClick={form.save} />
         {form.sheets}
       </div>
     </>

@@ -1335,7 +1335,10 @@ export function WideButton({
   weight = "regular",
   visible = true,
   testId,
+  bottom = DESIGN_H - (CTA.y + CTA.height),
 }: {
+  /** px from the button's bottom edge to the window's end; the file's 36 by default. */
+  bottom?: number;
   label: string;
   onClick: () => void;
   fill?: string;
@@ -1360,7 +1363,7 @@ export function WideButton({
           style={{
             left: CTA.x,
             right: CTA.x,
-            bottom: `calc(${DESIGN_H - (CTA.y + CTA.height)}px + ${SAFE_BOTTOM})`,
+            bottom: `calc(${bottom}px + ${SAFE_BOTTOM})`,
             height: CTA.height,
             borderRadius: CTA.radius,
             background,
@@ -1439,7 +1442,7 @@ const isTextField = (el: Element | null) =>
  * smaller when the keyboard opens, and the layer must not shrink under it.
  * Undefined before the page runs in the browser.
  */
-function useScreenHeight(watch = true) {
+export function useScreenHeight(watch = true) {
   const [height, setHeight] = React.useState<number | undefined>(undefined);
   React.useLayoutEffect(() => {
     if (!watch) return;
@@ -1741,6 +1744,7 @@ export function WhyCard({
 }) {
   return (
     <motion.div
+      data-pw="demo-why-card"
       className="absolute flex flex-col"
       style={{
         left: 20,

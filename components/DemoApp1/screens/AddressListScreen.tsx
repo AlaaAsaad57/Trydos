@@ -19,6 +19,7 @@ import {
   Txt,
   WhyCard,
   WideButton,
+  useScreenHeight,
 } from "../ui";
 
 /**
@@ -49,6 +50,7 @@ export default function AddressListScreen() {
   const { profile, update } = useDemoData();
   const [showWhy, setShowWhy] = useState(true);
   const [deleting, setDeleting] = useState<DemoAddress | null>(null);
+  const height = useScreenHeight();
   const list = profile.addresses;
 
   const open = (id: string | null) => {
@@ -171,7 +173,11 @@ export default function AddressListScreen() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <EmptyAddresses from={148} t={t} />
+            <EmptyAddresses
+              from={148}
+              room={height === undefined ? undefined : height - WHY_CARD_TOP_FROM_END - (148 - DESIGN_TOP)}
+              t={t}
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -184,22 +190,37 @@ export default function AddressListScreen() {
  * grey lines on baselines 472 and 492. The profile (`– 96`) and the
  * checkout's address sheet (`– 70`) draw it at the same place on the screen.
  * `from` is the design y the block starts at (the banner's bottom).
+ *
+ * `room`: how many px this window has from `from` down to the "Why" card's
+ * top. The card keeps its distance from the window's end, so on a window
+ * shorter than the file it comes up toward the words (35 px apart on a
+ * 402 x 712 iPhone, over them on a 375 x 635 one). With `room` the free
+ * space is split above and below the block as the file splits it (from
+ * `from` to the mark, and from the last line to the card at y 700). On a
+ * window as tall as the file that is the file's place exactly.
  */
 export function EmptyAddresses({
   from,
+  room,
   t,
   body = t,
 }: {
   from: number;
+  room?: number;
   t: (key: DemoKey) => string;
   /** The second line's wording, when it differs from the first's (sentence style). */
   body?: (key: DemoKey) => string;
 }) {
+  const above = EMPTY_MARK_Y - from;
+  const mt =
+    room === undefined
+      ? above
+      : Math.max(0, (above * (room - EMPTY_BLOCK)) / (WHY_CARD_Y - from - EMPTY_BLOCK));
   return (
     <>
       <Icon
         name="helpBig"
-        mt={432.5 - from}
+        mt={mt}
         style={{ alignSelf: "center" }}
       />
       {/* The file puts this line 2.67 px left of centre (x 135). XD shows
@@ -226,6 +247,17 @@ export function EmptyAddresses({
     </>
   );
 }
+
+/** Where the empty block's help mark is placed (design y), and its height down to the last line's end. */
+const EMPTY_MARK_Y = 432.5;
+const EMPTY_BLOCK = textBottom(492, 11) - EMPTY_MARK_Y;
+
+/** The "Why add a address?" card's top (design y 700) and its distance from the file's end (932 - 700). */
+const WHY_CARD_Y = 700;
+export const WHY_CARD_TOP_FROM_END = 932 - WHY_CARD_Y;
+
+/** Window y 0 is design y 50: the file draws the status bar above it. */
+export const DESIGN_TOP = 50;
 
 /**
  * Title with its map mark, the area line and the detail line — the card and
