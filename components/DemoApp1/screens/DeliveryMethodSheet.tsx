@@ -7,7 +7,7 @@ import type { DemoAddress } from "../../DemoApp/DemoData";
 import type { DemoKey } from "../../DemoApp/demoKeys";
 import { countryOf } from "../../DemoApp/demoPlaces";
 import { useDemoCase } from "../demoCase";
-import { C, SAFE_BOTTOM, SHEET, fill, lineBox, paraTop, textBottom, textTop } from "../demo1Layout";
+import { C, SAFE_BOTTOM, SHEET, fill, isFloatingBarSafari, lineBox, paraTop, textBottom, textTop } from "../demo1Layout";
 import { Sheet, Stroke, WhyCard } from "../ui";
 import { LINE_11, LINE_13, LINE_14 } from "./CartParts";
 import type { T } from "./ListingParts";
@@ -88,6 +88,14 @@ const DONE = { y: 851, width: 188, height: 45, baseline: 879 } as const;
 /** The grey card from y 700 to 824. */
 const WHY = { y: 700, end: 824 } as const;
 
+/**
+ * The file's gap under "Done": 36 px to the SCREEN's end, where the file has
+ * the home bar. In iPhone Safari 26 the window ends above Safari's floating
+ * bar, which already takes that room, so there "Done" and the grey card go
+ * down by the 36 px, as on the address sheet (CartAddressSheet's END_GAP).
+ */
+const END_GAP = 932 - (DONE.y + DONE.height);
+
 /** Room under the cards, so the last one can scroll out from under the card and the button. */
 const ROOM_WHY = 932 - WHY.y + 12;
 const ROOM = 932 - DONE.y + 12;
@@ -114,6 +122,9 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
   const [step, setStep] = useState<Step>("methods");
   const [centre, setCentre] = useState<string | null>(null);
   const [showWhy, setShowWhy] = useState(true);
+  // The sheet is drawn in the browser only (a layer on <body>), so the agent can be read here.
+  const [gap] = useState(() => (isFloatingBarSafari(navigator.userAgent) ? 0 : END_GAP));
+  const drop = END_GAP - gap;
   const pickup = step === "pickup";
   const done = pickup && centre !== null;
 
@@ -186,7 +197,7 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
       <div className="relative flex-1 min-h-0">
         <div
           className="absolute inset-0 flex flex-col overflow-y-auto overflow-x-hidden overscroll-contain"
-          style={{ paddingBottom: showWhy ? ROOM_WHY : ROOM, scrollbarWidth: "none" }}
+          style={{ paddingBottom: (showWhy ? ROOM_WHY : ROOM) - drop, scrollbarWidth: "none" }}
         >
           <MethodCard
             testId="demo-delivery-pickup"
@@ -251,7 +262,7 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
           {showWhy && (
             <WhyCard
               key="why"
-              bottom={932 - WHY.end}
+              bottom={932 - WHY.end - drop}
               t={t}
               body={body}
               title="What is the collection point ?"
@@ -273,7 +284,7 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
             right: 0,
             marginInline: "auto",
             width: "fit-content",
-            bottom: `calc(${932 - (DONE.y + DONE.height)}px + ${SAFE_BOTTOM})`,
+            bottom: `calc(${gap}px + ${SAFE_BOTTOM})`,
             minWidth: DONE.width,
             height: DONE.height,
             paddingTop: textTop(DONE.baseline, 13) - DONE.y,

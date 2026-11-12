@@ -1772,32 +1772,32 @@ describe("Demo1 addresses — the empty list and the bottom blocks on a real pho
   });
 });
 
-describe("Demo1 addresses — \"Add & save\" is there from the start, off until the form is filled", () => {
-  /** Walks the place sheet to its last level, then types the detailed address and the title. */
-  const fillForm = async () => {
-    const field = (id: string) => document.body.querySelector<HTMLElement>(`[data-pw="${id}"]`);
-    expect(field("demo-address-place"), "the address form has no \"Select from list\" field").not.toBeNull();
-    fireEvent.click(field("demo-address-place")!);
-    // Each pick slides the old list out while the next level's list comes in;
-    // wait for the new list's first row, never the one going out.
-    const clicked = new Set<HTMLElement>();
-    for (let level = 0; level < 4; level++) {
-      const row = await waitFor(() => {
-        const rows = [...document.body.querySelectorAll<HTMLElement>('[data-pw="demo-place-0"]')].filter((r) => !clicked.has(r));
-        if (rows.length !== 1) throw new Error(`the place sheet shows no new list for level ${level + 1}`);
-        return rows[0];
-      });
-      clicked.add(row);
-      fireEvent.click(row);
-    }
-    const detail = field("demo-address-detail") as HTMLInputElement | null;
-    const title = field("demo-address-title") as HTMLInputElement | null;
-    expect(detail, "the address form has no detailed address field").not.toBeNull();
-    expect(title, "the address form has no title field").not.toBeNull();
-    fireEvent.change(detail!, { target: { value: "Street 1" } });
-    fireEvent.change(title!, { target: { value: "Home" } });
-  };
+/** Walks the address form's place sheet to its last level, then types the detailed address and the title. */
+const fillForm = async () => {
+  const field = (id: string) => document.body.querySelector<HTMLElement>(`[data-pw="${id}"]`);
+  expect(field("demo-address-place"), "the address form has no \"Select from list\" field").not.toBeNull();
+  fireEvent.click(field("demo-address-place")!);
+  // Each pick slides the old list out while the next level's list comes in;
+  // wait for the new list's first row, never the one going out.
+  const clicked = new Set<HTMLElement>();
+  for (let level = 0; level < 4; level++) {
+    const row = await waitFor(() => {
+      const rows = [...document.body.querySelectorAll<HTMLElement>('[data-pw="demo-place-0"]')].filter((r) => !clicked.has(r));
+      if (rows.length !== 1) throw new Error(`the place sheet shows no new list for level ${level + 1}`);
+      return rows[0];
+    });
+    clicked.add(row);
+    fireEvent.click(row);
+  }
+  const detail = field("demo-address-detail") as HTMLInputElement | null;
+  const title = field("demo-address-title") as HTMLInputElement | null;
+  expect(detail, "the address form has no detailed address field").not.toBeNull();
+  expect(title, "the address form has no title field").not.toBeNull();
+  fireEvent.change(detail!, { target: { value: "Street 1" } });
+  fireEvent.change(title!, { target: { value: "Home" } });
+};
 
+describe("Demo1 addresses — \"Add & save\" is there from the start, off until the form is filled", () => {
   const checkOffThenOn = async (saveId: string, where: string) => {
     const save = () => document.body.querySelector<HTMLElement>(`[data-pw="${saveId}"]`);
     expect(save(), `${where}: "Add & save" is hidden on the empty form; it should be there, off`).not.toBeNull();
@@ -1834,6 +1834,65 @@ describe("Demo1 addresses — \"Add & save\" is there from the start, off until 
     );
     await checkOffThenOn("demo-cart-address-save", "checkout sheet");
     unmount();
+  });
+});
+
+describe("Demo1 checkout — the delivery method sheet's bottom blocks", () => {
+  /** Adds an address on the checkout (the demo starts with none), then opens "Choose Delivery Method". */
+  const openDeliverySheet = async () => {
+    const opened = openOn("cart/checkout");
+    const el = (id: string) => document.body.querySelector<HTMLElement>(`[data-pw="${id}"]`);
+    const find = (id: string, what: string) =>
+      waitFor(() => {
+        const found = el(id);
+        if (!found) throw new Error(what);
+        return found;
+      });
+    fireEvent.click(await find("demo-checkout-choose-address", "the checkout has no \"Choose delivery Address\" button"));
+    fireEvent.click(await find("demo-cart-address-add", "the address sheet has no \"Add Shipping Address\" button"));
+    await find("demo-address-place", "the address sheet did not turn into the address form");
+    await fillForm();
+    await waitFor(() =>
+      expect(el("demo-cart-address-save")?.getAttribute("aria-disabled"), "\"Add & save\" stays off after the form is filled").toBeNull(),
+    );
+    fireEvent.click(el("demo-cart-address-save")!);
+    fireEvent.click(await find("demo-checkout-choose-method", "the checkout shows no \"Choose Delivery Method\" after the address was saved"));
+    await find("demo-delivery-done", "\"Choose Delivery Method\" did not open the delivery method sheet");
+    return opened;
+  };
+  const bottoms = () => ({
+    done: document.body.querySelector<HTMLElement>('[data-pw="demo-delivery-done"]')?.style.bottom,
+    why: document.body.querySelector<HTMLElement>('[data-pw="demo-delivery-sheet"] [data-pw="demo-why-card"]')?.style.bottom,
+  });
+
+  // The same rule as the checkout's address sheet (fixed in 8dc70a9d2): in
+  // iPhone Safari 26 the window ends above Safari's floating bar, which already
+  // takes the home bar's room, so the file's 36 px under the button were
+  // counted twice there.
+  it("puts \"Done\" and the \"Why\" card the file's 36 px lower in iPhone Safari 26, as on the address sheet", async () => {
+    const agent =
+      Object.getOwnPropertyDescriptor(navigator, "userAgent") ??
+      Object.getOwnPropertyDescriptor(Navigator.prototype, "userAgent");
+    let opened = await openDeliverySheet();
+    const elsewhere = bottoms();
+    opened.unmount();
+    expect(elsewhere.done, "outside iPhone Safari \"Done\" does not keep the file's 36 px to the window's end").toMatch(/^calc\(36px/);
+    expect(elsewhere.why, "outside iPhone Safari the \"Why\" card does not keep the file's 108 px to the window's end").toMatch(/^calc\(108px/);
+    Object.defineProperty(navigator, "userAgent", {
+      configurable: true,
+      value:
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1",
+    });
+    try {
+      opened = await openDeliverySheet();
+      const safari = bottoms();
+      opened.unmount();
+      expect(safari.done, "in iPhone Safari 26 \"Done\" still keeps 36 px above the window's end, over Safari's own bar room").toMatch(/^calc\(0px/);
+      expect(safari.why, "in iPhone Safari 26 the \"Why\" card did not go down with \"Done\" (it keeps 27 px above it)").toMatch(/^calc\(72px/);
+    } finally {
+      if (agent) Object.defineProperty(navigator, "userAgent", agent);
+      else delete (navigator as unknown as Record<string, unknown>).userAgent;
+    }
   });
 });
 
