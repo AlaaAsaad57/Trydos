@@ -1837,6 +1837,42 @@ describe("Demo1 addresses — \"Add & save\" is there from the start, off until 
   });
 });
 
+describe("Demo1 address form — the bottom bar steps aside while the phone's own keyboard types", () => {
+  // A phone: useIsTouchDevice takes a window 768 px wide or less as one.
+  const wide = window.innerWidth;
+  beforeEach(() => {
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 430 });
+  });
+  afterEach(() => {
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: wide });
+  });
+
+  it("hides \"Add & save\"'s bar while the detailed address has focus, and brings it back on a blur", async () => {
+    const { unmount } = openOn("settings/profile/address/new");
+    const foot = () => document.body.querySelector<HTMLElement>('[data-pw="demo-address-form"] [data-pw="demo1-foot"]');
+    const detail = await waitFor(() => {
+      const el = document.body.querySelector<HTMLInputElement>('[data-pw="demo-address-detail"]');
+      if (!el) throw new Error("the address form has no detailed address field");
+      return el;
+    });
+    expect(foot(), "the address form has no bottom bar for \"Add & save\"").not.toBeNull();
+    expect(foot()!.style.display, "the bottom bar is hidden before any field has focus").toBe("");
+    expect(detail.inputMode, "the detailed address is typed with the page's keyboard, not the phone's own").not.toBe("none");
+    act(() => detail.focus());
+    await waitFor(() =>
+      expect(
+        foot()!.style.display,
+        "the bottom bar stays on while the phone's own keyboard types the address (on the iPhone it jumps with each key)",
+      ).toBe("none"),
+    );
+    act(() => detail.blur());
+    await waitFor(() =>
+      expect(foot()!.style.display, "the bottom bar did not come back after the field lost focus").toBe(""),
+    );
+    unmount();
+  });
+});
+
 describe("Demo1 checkout — the delivery method sheet's bottom blocks", () => {
   /** Adds an address on the checkout (the demo starts with none), then opens "Choose Delivery Method". */
   const openDeliverySheet = async () => {

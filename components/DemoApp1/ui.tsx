@@ -17,6 +17,7 @@ import { XD_ICON_SIZE, type XdIconName } from "../DemoApp/xdIcons";
 import type { DemoKey } from "../DemoApp/demoKeys";
 import { Box, Icon, Txt, type Weight } from "../DemoApp/ui";
 import { followTopTint, holdTopTint, type TintHome } from "../DemoApp/topTint";
+import { SHEET_TRANSITION } from "./screens/buyMotion";
 import {
   BANNER,
   BODY_Y,
@@ -1033,15 +1034,51 @@ function useVisualHeight(on: boolean): number | undefined {
 }
 
 /**
+ * True while a field that the device's own keyboard types into has focus, on a
+ * touch device. A field of the page's keyboard (`inputmode="none"`, see
+ * DemoKeyboard) does not count: that keyboard moves nothing.
+ */
+function usePhoneKeyboard(): boolean {
+  const touch = useIsTouchDevice();
+  const [up, setUp] = React.useState(false);
+  React.useEffect(() => {
+    if (!touch) return;
+    const read = () => {
+      const el = document.activeElement as HTMLElement | null;
+      setUp(isTextField(el) && el?.inputMode !== "none");
+    };
+    // A moment later on a blur: the focus may be on its way to the next field.
+    const onOut = () => setTimeout(read, 0);
+    read();
+    document.addEventListener("focusin", read);
+    document.addEventListener("focusout", onOut);
+    return () => {
+      document.removeEventListener("focusin", read);
+      document.removeEventListener("focusout", onOut);
+    };
+  }, [touch]);
+  return touch && up;
+}
+
+/**
  * The bottom of the screen, as a place to pin blocks to: a sticky anchor 0 px
  * tall. Its children are positioned with `bottom` from it.
+ *
+ * Hidden while the iPhone's own keyboard is up. The keyboard does not make the
+ * page shorter, so the anchor stays at the window's end, under the keys. On
+ * each key iOS scrolls the page a little to keep the caret in view, and the
+ * sticky anchor jumped with it, so the page shook while the shopper typed
+ * (the address form, whose "Add & save" is always there). The blocks are
+ * under the keys then, so hiding them takes nothing from view. `display:
+ * none` keeps them mounted: a sheet in the footer lives in a layer on <body>.
  */
 export function PageFooter({ children }: { children: React.ReactNode }) {
+  const typing = usePhoneKeyboard();
   return (
     <div
       data-pw="demo1-foot"
       className="sticky bottom-0 z-[5] w-full shrink-0"
-      style={{ height: 0 }}
+      style={{ height: 0, display: typing ? "none" : undefined }}
     >
       {children}
     </div>
@@ -1497,7 +1534,7 @@ export function Sheet({
   handleBar = 0,
   noHandle = false,
   over,
-  timing,
+  timing = SHEET_TRANSITION,
   z,
 }: {
   open: boolean;
@@ -1508,7 +1545,11 @@ export function Sheet({
   z?: number;
   onClose: () => void;
   fit?: boolean;
-  /** How the sheet and its backdrop move in and out, in place of the usual spring (the size sheet). */
+  /**
+   * How the sheet and its backdrop move in and out. Every sheet moves as the
+   * product page's buy sheet does (SHEET_TRANSITION, buyMotion.ts), the
+   * timing the client picked for "add to cart".
+   */
   timing?: Transition;
   /** No handle line (the size sheet, `Home Page – 57`). The drag on its top still closes it. */
   noHandle?: boolean;
@@ -1572,7 +1613,7 @@ export function Sheet({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={timing ?? { duration: 0.25 }}
+              transition={timing}
               onUpdate={(latest) => dim.set(Number(latest.opacity))}
               onClick={onClose}
             />
@@ -1597,14 +1638,7 @@ export function Sheet({
               animate={{ y: rest }}
               onAnimationComplete={() => onEntered?.()}
               exit={{ y: "100%" }}
-              transition={
-                timing ?? {
-                  type: "spring",
-                  stiffness: 320,
-                  damping: 34,
-                  mass: 0.9,
-                }
-              }
+              transition={timing}
               drag="y"
               dragControls={fit ? grip : undefined}
               dragListener={!fit}
