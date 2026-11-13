@@ -12,6 +12,7 @@ import HomeScreen from "./screens/HomeScreen";
 import SearchScreen from "./screens/SearchScreen";
 import CartScreen from "./screens/CartScreen";
 import CheckoutScreen from "./screens/CheckoutScreen";
+import OrderDoneScreen from "./screens/OrderDoneScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import PhotoScreen from "./screens/PhotoScreen";
 import ClientIdScreen from "./screens/ClientIdScreen";
@@ -44,6 +45,8 @@ export default function Demo1ScreenView({ screen }: { screen: DemoScreen }) {
       return <CartScreen />;
     case "cart/checkout":
       return <CheckoutScreen />;
+    case "cart/done":
+      return <OrderDoneScreen />;
     case "chat":
       return <ChatListScreen />;
     case "chat/conversation":

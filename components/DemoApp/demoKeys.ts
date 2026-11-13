@@ -198,6 +198,20 @@ const PAYMENT_KEYS = [
   "{brand} Balance is insufficient to pay for the order Please <m>top up</m> or\nuse other <m>payment methods & Solutions</m>",
   "top up | Cash in",
   "Other Solutions",
+  // `– 85`, `– 86` and `– 102`: the checkout with the rdb invoice chosen, and its policies and terms.
+  "Pay invoice within {hours} hours in many easy way",
+  "Read and agree to the <m>policies</m> and <m>terms</m>",
+  "You read and agreed to the <m>policies</m> and <m>terms</m>",
+  "I <m>read</m> and <m>agree</m> to the <a>policies</a> and <a>terms</a>",
+  "Policies and terms",
+  // `– 103`: the purchase done.
+  "The Purchase Was Completed Successfully",
+  "Order Number",
+  "Order Date",
+  "Order Invoice",
+  "Today",
+  "You Can Track The Status Of Your Order Through ",
+  "My Account / My Orders",
 ] as const;
 
 export const DEMO_KEYS = [

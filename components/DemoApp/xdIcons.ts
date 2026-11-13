@@ -297,6 +297,17 @@ export const XD_ICON_SIZE = {
   payWallet: { w: 37.84, h: 38 },
   // The checkout with the wallet chosen: `Home Page – 80` and `– 83`.
   payWalletSmall: { w: 19.92, h: 20 },
+  // The checkout with the rdb invoice chosen: `Home Page – 85` and `– 86` (the invoice and the QR, the terms, the agree mark).
+  payInvoice: { w: 19.78, h: 20 },
+  payQrSmall: { w: 19.7, h: 19.7 },
+  termsPen: { w: 20, h: 19.12 },
+  agreeOff: { w: 16, h: 16 },
+  agreeOn: { w: 16, h: 16 },
+  // The purchase done, `Home Page – 103`.
+  orderDone: { w: 50, h: 50 },
+  orderNumber: { w: 16.68, h: 20 },
+  orderDate: { w: 20, h: 20 },
+  orderTrack: { w: 18, h: 18 },
 } as const;
 
 export type XdIconName = keyof typeof XD_ICON_SIZE;

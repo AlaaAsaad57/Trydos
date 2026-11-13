@@ -3274,6 +3274,11 @@ const translations = {
   "{brand} Balance is insufficient to pay for the order Please <m>top up</m> or\nuse other <m>payment methods & Solutions</m>": "رصيد {brand} غير كافٍ لدفع الطلب. يرجى <m>شحن الرصيد</m> أو استخدام <m>طرق وحلول دفع أخرى</m>",
   "top up | Cash in": "شحن الرصيد | إيداع",
   "Other Solutions": "حلول أخرى",
+  "Pay invoice within {hours} hours in many easy way": "ادفع الفاتورة خلال {hours} ساعة بطرق سهلة كثيرة",
+  "Read and agree to the <m>policies</m> and <m>terms</m>": "اقرأ <m>السياسات</m> و<m>الشروط</m> ووافق عليها",
+  "You read and agreed to the <m>policies</m> and <m>terms</m>": "لقد قرأت <m>السياسات</m> و<m>الشروط</m> ووافقت عليها",
+  "I <m>read</m> and <m>agree</m> to the <a>policies</a> and <a>terms</a>": "<m>قرأت</m> <m>وأوافق</m> على <a>السياسات</a> و<a>الشروط</a>",
+  "Policies and terms": "السياسات والشروط",
 };
 
 export default translations;

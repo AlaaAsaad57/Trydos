@@ -28,6 +28,7 @@ export const DEMO_SCREENS = [
   "search",
   "cart",
   "cart/checkout",
+  "cart/done",
   "chat",
   "chat/conversation",
   "chat/contact",

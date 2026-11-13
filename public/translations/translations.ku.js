@@ -3324,6 +3324,11 @@ const translations = {
   "{brand} Balance is insufficient to pay for the order Please <m>top up</m> or\nuse other <m>payment methods & Solutions</m>": "باڵانسی {brand} بەس نییە بۆ پارەدانی داواکارییەکە. تکایە <m>باڵانس زیاد بکە</m> یان <m>ڕێگا و چارەسەرەکانی تری پارەدان</m> بەکاربهێنە",
   "top up | Cash in": "باڵانس زیادکردن | دانانی پارە",
   "Other Solutions": "چارەسەری تر",
+  "Pay invoice within {hours} hours in many easy way": "پسوولە لە ماوەی {hours} کاتژمێردا بە چەندین ڕێگای ئاسان بدە",
+  "Read and agree to the <m>policies</m> and <m>terms</m>": "<m>سیاسەتەکان</m> و <m>مەرجەکان</m> بخوێنەوە و ڕازی بە",
+  "You read and agreed to the <m>policies</m> and <m>terms</m>": "<m>سیاسەتەکان</m> و <m>مەرجەکان</m>ت خوێندەوە و ڕازی بوویت",
+  "I <m>read</m> and <m>agree</m> to the <a>policies</a> and <a>terms</a>": "<a>سیاسەتەکان</a> و <a>مەرجەکان</a>م <m>خوێندەوە</m> و <m>ڕازیم</m>",
+  "Policies and terms": "سیاسەت و مەرجەکان",
 };
 
 export default translations;

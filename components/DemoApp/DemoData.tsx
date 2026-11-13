@@ -26,8 +26,8 @@ export type DemoAddress = {
   detail: string;
 };
 
-/** The ways to pay that the demo can choose. The rdb ways (`Home Page – 79`) are next. */
-export type DemoPaymentMethod = "wallet";
+/** The ways to pay that the demo can choose: the trydos wallet (`Home Page – 80`, `– 83`), or an rdb invoice paid by QR (`– 79`, `– 85`). */
+export type DemoPaymentMethod = "wallet" | "invoice";
 
 export type DemoGender = "man" | "women" | "other";
 
@@ -54,8 +54,12 @@ export type DemoProfile = {
   shippingAddress: string | null;
   /** The pickup centre the bag is collected from (`Home Page – 75`, DeliveryMethodSheet's CENTRES), or null before one is chosen. */
   pickupCentre: string | null;
-  /** How the bag is paid (`Home Page – 80`, `– 83`): the trydos wallet, or null before a way is chosen. */
+  /** How the bag is paid (`Home Page – 80`, `– 83`, `– 85`), or null before a way is chosen. */
   paymentMethod: DemoPaymentMethod | null;
+  /** The client agreed to the policies and terms on the checkout (`Home Page – 86`). */
+  agreedTerms: boolean;
+  /** When the purchase was done (`Home Page – 103`, its "Order Date"), in ms, or null before one. */
+  orderedAt: number | null;
 };
 
 export const DEMO_PROFILE: DemoProfile = {
@@ -77,6 +81,8 @@ export const DEMO_PROFILE: DemoProfile = {
   shippingAddress: null,
   pickupCentre: null,
   paymentMethod: null,
+  agreedTerms: false,
+  orderedAt: null,
 };
 
 type DemoData = {

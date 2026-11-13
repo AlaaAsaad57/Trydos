@@ -57,8 +57,12 @@ import { Brand, WithBank } from "./WalletCashOutSheet";
  * wallet, and the checkout shows it (`– 80`, or `– 83` when the balance does
  * not cover the bag).
  *
- * The rdb ways and the row of ways take no tap yet: their next boards
- * (`– 85` on) are not built.
+ * On `– 79` a tap on "Via Invoice QR" chooses it: it takes the chosen look,
+ * "Via rdb App" loses it, and "Done" turns dark. "Done" then closes the sheet
+ * with the invoice, and the checkout shows it (`– 85`).
+ *
+ * "Via rdb App" and the row of ways take no tap yet: the file has no next
+ * board for them.
  */
 export default function PaymentMethodSheet({
   open,
@@ -119,13 +123,15 @@ function SheetBody({ onDone }: { onDone: (method: DemoPaymentMethod) => void }) 
   const { t, body } = useDemoCase();
   const [step, setStep] = useState<Step>("ways");
   const [method, setMethod] = useState<DemoPaymentMethod | null>(null);
+  /** The way chosen on `– 79`: none yet, or the invoice by QR. */
+  const [rdbWay, setRdbWay] = useState<"invoice" | null>(null);
   const [showWhy, setShowWhy] = useState(true);
   const { gap, drop } = useDoneRoom();
   const rdb = step === "rdb";
   // The slide's way: to the rdb ways (1), or back to the ways (-1).
   const dir = rdb ? 1 : -1;
   const leadEnd = paraTop(LEAD.baseline, LEAD.size, LEAD.lineHeight) + 2 * LEAD.lineHeight;
-  const chosen = !rdb ? method : null;
+  const chosen = rdb ? rdbWay : method;
   return (
     <>
       {/* The title, the line under it, the phone and the back arrow: they change with the step. */}
@@ -209,15 +215,17 @@ function SheetBody({ onDone }: { onDone: (method: DemoPaymentMethod) => void }) 
                   <ChoiceCard
                     testId="demo-payment-via-app"
                     mt={VIA_APP_Y - (RDB_TOP_Y + METHOD_H)}
-                    // The file draws this way white with the purple line, and "Done" grey.
-                    chosen
+                    // The file draws this way white with the purple line, and "Done" grey,
+                    // until the invoice is chosen.
+                    chosen={rdbWay === null}
                     title={<WithBank text={t("Via {bank} app")} />}
                     line={<WithBank text={t("Connect to {bank} app & pay Directly")} />}
                   />
                   <ChoiceCard
                     testId="demo-payment-via-qr"
                     mt={VIA_QR_Y - (VIA_APP_Y + CHOICE_H)}
-                    chosen={false}
+                    chosen={rdbWay === "invoice"}
+                    onClick={() => setRdbWay("invoice")}
                     title={<Rich text={t("Via Invoice <b>QR</b>")} />}
                     line={<Rich text={t("Pay invoice within <m>{hours} hours</m> in many easy way")} values={{ hours: INVOICE_HOURS }} />}
                   />

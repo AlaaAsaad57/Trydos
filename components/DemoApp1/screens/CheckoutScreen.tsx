@@ -5,16 +5,17 @@ import XdIcon from "../../DemoApp/XdIcon";
 import { useDemoData, type DemoAddress, type DemoPaymentMethod } from "../../DemoApp/DemoData";
 import { bagLook, bagTotal, inBag } from "../../DemoApp/demoBag";
 import { countryOf } from "../../DemoApp/demoPlaces";
-import { WALLET_RECIPIENT } from "../../DemoApp/demoWallet";
+import { WALLET_BRAND, WALLET_RECIPIENT } from "../../DemoApp/demoWallet";
 import { useDemoNav } from "../Demo1Shell";
 import { useDemoCase } from "../demoCase";
-import { C, fill, lineBox, paraTop, textBottom, textTop } from "../demo1Layout";
-import { Box, ScreenPage, Txt } from "../ui";
+import { C, SHEET, fill, lineBox, paraTop, textBottom, textTop } from "../demo1Layout";
+import { Box, ScreenPage, Sheet, Txt, useCanvasEnd } from "../ui";
 import CartAddressSheet from "./CartAddressSheet";
-import DeliveryMethodSheet, { BRAND, CENTRES, CHIP_GREY } from "./DeliveryMethodSheet";
+import DeliveryMethodSheet, { BRAND, CENTRES, CHIP_GREY, SHEET_Z } from "./DeliveryMethodSheet";
 import PaymentMethodSheet from "./PaymentMethodSheet";
 import { BagHeader, BagPanel, BagSum, LINE_13 } from "./CartParts";
 import { Rich, type T } from "./ListingParts";
+import { RULES_TOP, Safe } from "./WalletCashInSheet";
 
 /**
  * The checkout, XD `Home Page – 56`: opened by "Confirm & continue" on the bag.
@@ -49,6 +50,18 @@ import { Rich, type T } from "./ListingParts";
  * "Other Solutions" (it opens the payment method sheet again); the button
  * stays grey. The file moves the two help marks by 1 and 2 px on these
  * boards, and the screen keeps its numbers.
+ *
+ * With the rdb invoice chosen (`– 85`) the box becomes the invoice card
+ * (406 x 80: the invoice and the QR, "trydos | rdb", "Pay invoice within 2
+ * hours in many easy way"), and the terms section comes under it: the pen
+ * at (24, 569), "Terms & Conditions" on baseline 610, the purple line on
+ * 632, and the agree row (406 x 40 at y 643, white with a purple line). A tap
+ * on the row opens "Policies And Terms" (`– 102`, the wallet's rules sheet,
+ * Safe). "I Agree" closes it and the screen is `– 86`: the row turns
+ * `#FCFCFC` with the grey line and a blue mark, the line reads "You read and
+ * agreed to the policies and terms" in black, and "Checkout / Complete"
+ * turns purple. It opens the purchase done (`– 103`, OrderDoneScreen).
+ * "I Disagree & Cancel" closes the sheet and takes the agreement back.
  */
 export default function CheckoutScreen() {
   const { bag, profile, update } = useDemoData();
@@ -57,6 +70,8 @@ export default function CheckoutScreen() {
   const [choosing, setChoosing] = useState(false);
   const [choosingMethod, setChoosingMethod] = useState(false);
   const [choosingPayment, setChoosingPayment] = useState(false);
+  const [reading, setReading] = useState(false);
+  const end = useCanvasEnd(reading);
   const items = inBag(bag);
   // An address deleted on the profile is no longer the bag's.
   const address = profile.addresses.find((a) => a.id === profile.shippingAddress) ?? null;
@@ -64,6 +79,9 @@ export default function CheckoutScreen() {
   const method = centre ? profile.paymentMethod : null;
   // `– 80` when the wallet covers the bag, `– 83` when it does not.
   const covered = method === "wallet" && profile.walletUsd >= bagTotal(bag);
+  // `– 86`: the invoice, with the policies and terms agreed to.
+  const agreed = method === "invoice" && profile.agreedTerms;
+  const ready = covered || agreed;
   return (
     <ScreenPage testId="demo-checkout" header={<BagHeader bag={bag} t={t} />}>
       {/* The card: `#FCFCFC`, a grey 0.5 px line, round 15. */}
@@ -85,17 +103,7 @@ export default function CheckoutScreen() {
         <Txt size={13} ml={24 - 12} mt={textTop(181, 13) - (textTop(159, 11) + 14)} data-pw="demo-checkout-bag-sum">
           <BagSum bag={bag} t={t} />
         </Txt>
-        {/* The photos, 43 x 64, round 6, 2 apart, 8 px from the card's top and right; the first item at the far right. */}
-        <ul className="absolute flex flex-row-reverse p-0 m-0 list-none" style={{ right: 418 - 410, top: 120 - 112, gap: 367 - 365 }}>
-          {items.map((item) => {
-            const { product, photo } = bagLook(item);
-            return (
-              <li key={item.id} className="shrink-0 overflow-hidden" style={{ width: 43, height: 64, borderRadius: 6 }}>
-                <img src={photo} alt={product.name.join(" ")} draggable={false} decoding="async" className="block w-full h-full object-cover" />
-              </li>
-            );
-          })}
-        </ul>
+        <BagPhotos items={items} />
       </Box>
 
       <Shipping
@@ -119,6 +127,31 @@ export default function CheckoutScreen() {
           onTopUp={() => navigate("settings/wallet")}
         />
       )}
+      {method === "invoice" && <Terms t={t} agreed={agreed} onRead={() => setReading(true)} />}
+      <Sheet
+        open={reading}
+        onClose={() => setReading(false)}
+        y={RULES_TOP}
+        radius={SHEET.radiusWallet}
+        fit
+        outline={C.sheetEdge}
+        z={SHEET_Z}
+        testId="demo-checkout-policies-sheet"
+      >
+        <Safe
+          policies
+          end={end}
+          testId="demo-checkout-policies"
+          onAgree={() => {
+            update({ agreedTerms: true });
+            setReading(false);
+          }}
+          onCancel={() => {
+            update({ agreedTerms: false });
+            setReading(false);
+          }}
+        />
+      </Sheet>
       {address && (
         <DeliveryMethodSheet
           open={choosingMethod}
@@ -135,7 +168,7 @@ export default function CheckoutScreen() {
         onClose={() => setChoosing(false)}
         onChosen={(id) => {
           // The centres belong to the old address's town, so that choice goes.
-          update({ shippingAddress: id, pickupCentre: null, paymentMethod: null });
+          update({ shippingAddress: id, pickupCentre: null, paymentMethod: null, agreedTerms: false });
           setChoosing(false);
         }}
       />
@@ -143,7 +176,8 @@ export default function CheckoutScreen() {
         open={choosingPayment}
         onClose={() => setChoosingPayment(false)}
         onDone={(chosen) => {
-          update({ paymentMethod: chosen });
+          // The terms are agreed to for one way to pay.
+          update({ paymentMethod: chosen, agreedTerms: false });
           setChoosingPayment(false);
         }}
       />
@@ -154,11 +188,43 @@ export default function CheckoutScreen() {
         bag={bag}
         tabBar={false}
         testId="demo-checkout-panel"
-        // Purple once the wallet covers the bag (`– 80`). The purchase itself is the next board (`– 103`), not built yet.
-        button={{ label: t("Checkout / Complete"), fill: covered ? C.purple : C.hint, disabled: !covered, testId: "demo-checkout-complete" }}
+        // Purple once the wallet covers the bag (`– 80`), or the terms of the invoice are agreed to (`– 86`).
+        // The file draws the purchase done (`– 103`) for the invoice only, so the wallet's button does nothing yet.
+        button={{
+          label: t("Checkout / Complete"),
+          fill: ready ? C.purple : C.hint,
+          disabled: !ready,
+          onClick: agreed
+            ? () => {
+                update({ orderedAt: Date.now() });
+                navigate("cart/done");
+              }
+            : undefined,
+          testId: "demo-checkout-complete",
+        }}
         t={t}
       />
     </ScreenPage>
+  );
+}
+
+/**
+ * The bag's photos, 43 x 64, round 6, 2 apart, 8 px from the card's top and
+ * right; the first item at the far right (the checkout's bag card, and the
+ * purchase done's, `– 103`).
+ */
+export function BagPhotos({ items }: { items: ReturnType<typeof inBag> }) {
+  return (
+    <ul className="absolute flex flex-row-reverse p-0 m-0 list-none" style={{ right: 418 - 410, top: 120 - 112, gap: 367 - 365 }}>
+      {items.map((item) => {
+        const { product, photo } = bagLook(item);
+        return (
+          <li key={item.id} className="shrink-0 overflow-hidden" style={{ width: 43, height: 64, borderRadius: 6 }}>
+            <img src={photo} alt={product.name.join(" ")} draggable={false} decoding="async" className="block w-full h-full object-cover" />
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -232,9 +298,9 @@ function Shipping({
  * with the help mark at x 135, the purple line on 461, and the dashed box at
  * y 472 with "Choose Payment Method".
  *
- * With the wallet chosen (`– 80`, `– 83`) the help mark is at x 137, the
+ * With a way chosen (`– 80`, `– 83`, `– 85`) the help mark is at x 137, the
  * line is "your payment method about your bag" in black, and the wallet card
- * takes the box's place.
+ * or the invoice card takes the box's place.
  */
 function Payment({
   t,
@@ -253,7 +319,7 @@ function Payment({
   onChoose: () => void;
   onTopUp: () => void;
 }) {
-  const paid = method === "wallet";
+  const paid = method !== null;
   return (
     <section aria-label={t("Payment Method")} className="flex flex-col shrink-0">
       <SectionHead
@@ -269,9 +335,11 @@ function Payment({
         lineColor={paid ? C.ink : C.purple}
         lineTestId="demo-checkout-payment-line"
       />
-      {paid ? (
+      {method === "wallet" && (
         <WalletPayCard t={t} body={body} balance={balance} covered={covered} onTopUp={onTopUp} onOther={onChoose} />
-      ) : (
+      )}
+      {method === "invoice" && <InvoiceCard mt={472 - textBottom(461, 11)} t={t} />}
+      {!paid && (
         <ChooseBox
           mt={472 - textBottom(461, 11)}
           boxTestId="demo-checkout-payment-box"
@@ -280,6 +348,114 @@ function Payment({
           label={t("Choose Payment Method")}
         />
       )}
+    </section>
+  );
+}
+
+/** Paying an invoice by QR: the hours the file gives (`– 85`). */
+const INVOICE_HOURS = 2;
+
+/**
+ * The rdb invoice, `– 85`: a card 406 x 80, `#FCFCFC`, round 15, with the
+ * 20 px invoice at (24.11, 480) and the QR at (52, 480.3), "trydos | rdb" (13,
+ * "try" and "rdb" Bold, baseline 521) and "Pay invoice within 2 hours in many
+ * easy way" (11, baseline 541). The checkout draws the grey 0.5 px line; the
+ * purchase done (`– 103`) draws none (`line`).
+ */
+export function InvoiceCard({ mt, t, line = true }: { mt: number; t: T; line?: boolean }) {
+  return (
+    <Box
+      mt={mt}
+      ml={12}
+      w={fill(12)}
+      h={80}
+      radius={15}
+      fill={C.card}
+      stroke={line ? C.line : undefined}
+      className="flex flex-col"
+      data-pw="demo-checkout-invoice"
+    >
+      <div className="flex items-start shrink-0" style={{ marginLeft: 24.11 - 12, marginTop: 480 - 472 }}>
+        <XdIcon name="payInvoice" className="shrink-0" />
+        <XdIcon name="payQrSmall" className="shrink-0" style={{ marginLeft: 52 - (24.11 + 19.78), marginTop: 480.3 - 480 }} />
+      </div>
+      <Txt size={13} ml={24.22 - 12} mt={textTop(521, 13) - (480 + 20)} style={{ whiteSpace: "pre" }}>
+        {/* The brand's mark, as the file draws it: not words to translate. */}
+        <span className="font-bold">{WALLET_BRAND.start}</span>
+        {WALLET_BRAND.rest}
+        <span className="font-bold">{WALLET_BRAND.bank}</span>
+      </Txt>
+      <Txt size={11} ml={24 - 12} mt={textTop(541, 11) - textBottom(521, 13)} className="truncate" style={{ width: fill(12) }}>
+        <Rich text={t("Pay invoice within {hours} hours in many easy way")} values={{ hours: INVOICE_HOURS }} />
+      </Txt>
+    </Box>
+  );
+}
+
+/**
+ * The terms section, `– 85` and `– 86`: the 20 px pen at (24, 569.44), 17
+ * under the invoice card; "Terms & Conditions" (13) on baseline 610 with no
+ * help mark; the line (11, "policies" and "terms" Medium) on 632; and the
+ * agree row, 406 x 40 at y 643, round 15, its 0.5 px line on the edge: the
+ * 16 px mark at (70, 655) and "I read and agree to the policies and terms"
+ * (13, "read" and "agree" Medium, "policies" and "terms" blue) from x 96 on
+ * baseline 668.
+ *
+ * Not agreed (`– 85`): the line is purple, the row white with a purple line,
+ * the mark grey. Agreed (`– 86`): the line is black, the row `#FCFCFC` with
+ * the grey line, the mark blue.
+ */
+function Terms({ t, agreed, onRead }: { t: T; agreed: boolean; onRead: () => void }) {
+  const markEnd = 569.44 + 19.12;
+  return (
+    <section aria-label={t("Terms & Conditions")} className="flex flex-col shrink-0">
+      <XdIcon name="termsPen" className="shrink-0" style={{ marginLeft: 24, marginTop: 569.44 - (472 + 80) }} />
+      <Txt size={13} ml={24} mt={textTop(610, 13) - markEnd}>
+        {t("Terms & Conditions")}
+      </Txt>
+      <Txt
+        size={11}
+        color={agreed ? C.ink : C.purple}
+        ml={24}
+        mt={textTop(632, 11) - textBottom(610, 13)}
+        className="truncate"
+        style={{ width: fill(24) }}
+        data-pw="demo-checkout-terms-line"
+      >
+        <Rich
+          text={
+            agreed
+              ? t("You read and agreed to the <m>policies</m> and <m>terms</m>")
+              : t("Read and agree to the <m>policies</m> and <m>terms</m>")
+          }
+        />
+      </Txt>
+      <button
+        type="button"
+        data-pw="demo-checkout-agree"
+        aria-pressed={agreed}
+        onClick={onRead}
+        className="block shrink-0 p-0 text-left cursor-pointer active:opacity-80 [-webkit-tap-highlight-color:transparent]"
+        style={{ marginTop: 643 - textBottom(632, 11), marginLeft: 12, width: fill(12) }}
+      >
+        <Box
+          w="100%"
+          h={40}
+          radius={15}
+          fill={agreed ? C.card : C.white}
+          stroke={agreed ? C.line : C.purple}
+          strokeAlign="center"
+          // At the file's x on a screen as wide as the file (430 px) or wider.
+          // On a narrower one the words do not fit from x 96, so the mark and
+          // the words are centred in the row.
+          className="flex items-start pl-[58px] pr-3 max-[429.98px]:justify-center max-[429.98px]:pl-3"
+        >
+          <XdIcon name={agreed ? "agreeOn" : "agreeOff"} className="shrink-0" style={{ marginTop: 655 - 643 }} />
+          <Txt size={13} ml={96 - (70 + 16)} mt={textTop(668, 13) - 643} className="min-w-0 truncate">
+            <Rich text={t("I <m>read</m> and <m>agree</m> to the <a>policies</a> and <a>terms</a>")} />
+          </Txt>
+        </Box>
+      </button>
     </section>
   );
 }
@@ -528,7 +704,7 @@ function ChooseBox({
   );
 }
 
-type Centre = (typeof CENTRES)[number];
+export type Centre = (typeof CENTRES)[number];
 
 /**
  * The chosen pickup centre, `– 75`: a 406 x 96 card at y 284, `#FCFCFC` with
@@ -538,20 +714,35 @@ type Centre = (typeof CENTRES)[number];
  * Syria", "try" Medium), who collects it (11, baseline 349), and "You will
  * collect your shipment yourself from center" (11 Medium, baseline 369).
  */
-function PickupCard({ address, centre, receiver, t }: { address: DemoAddress; centre: Centre; receiver: string; t: T }) {
+export function PickupCard({
+  address,
+  centre,
+  receiver,
+  t,
+  mt = 284 - textBottom(273, 11),
+  line = true,
+}: {
+  address: DemoAddress;
+  centre: Centre;
+  receiver: string;
+  t: T;
+  mt?: number;
+  /** The grey 0.5 px line; the purchase done (`– 103`) draws none. */
+  line?: boolean;
+}) {
   // The address stores street, neighbourhood, district, province.
   const province = address.area[3];
   // "Pickup | Collect Point": the method's name is Medium, the rest Regular.
   const [method, ...rest] = t("pickup | Collect Point").split(" | ");
   return (
     <Box
-      mt={284 - textBottom(273, 11)}
+      mt={mt}
       ml={12}
       w={fill(12)}
       h={96}
       radius={15}
       fill={C.card}
-      stroke={C.line}
+      stroke={line ? C.line : undefined}
       className="flex flex-col"
       data-pw="demo-checkout-pickup"
     >
