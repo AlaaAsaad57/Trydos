@@ -3313,6 +3313,17 @@ const translations = {
   "Choose the Method you would like to pay your bag payments": "ئەو ڕێگایە هەڵبژێرە کە دەتەوێت پارەی جانتاکەتی پێ بدەیت",
   "Your balance <b>{amount}</b> USD": "باڵانسەکەت <b>{amount}</b> USD",
   "Pay Invoice at centers or request Online pay": "پسوولە لە ناوەندەکان بدە یان داوای پارەدانی ئۆنلاین بکە",
+  "Payment Option": "بژاردەی پارەدان",
+  "Via {bank} app": "لە ڕێگەی ئەپی {bank}",
+  "Connect to {bank} app & pay Directly": "بە ئەپی {bank} ببەستەوە و ڕاستەوخۆ پارە بدە",
+  "Via Invoice <b>QR</b>": "لە ڕێگەی <b>QR</b>ی پسوولە",
+  "Pay invoice within <m>{hours} hours</m> in many easy way": "پسوولە لە ماوەی <m>{hours} کاتژمێر</m>دا بە چەندین ڕێگای ئاسان بدە",
+  "your payment method about your bag": "ڕێگای پارەدانی جانتاکەت",
+  "Balance": "باڵانس",
+  "your balance <m>{amount}</m> {currency}": "باڵانسەکەت <m>{amount}</m> {currency}",
+  "{brand} Balance is insufficient to pay for the order Please <m>top up</m> or\nuse other <m>payment methods & Solutions</m>": "باڵانسی {brand} بەس نییە بۆ پارەدانی داواکارییەکە. تکایە <m>باڵانس زیاد بکە</m> یان <m>ڕێگا و چارەسەرەکانی تری پارەدان</m> بەکاربهێنە",
+  "top up | Cash in": "باڵانس زیادکردن | دانانی پارە",
+  "Other Solutions": "چارەسەری تر",
 };
 
 export default translations;

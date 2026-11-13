@@ -96,6 +96,8 @@ export const C = {
   /** The expiry lines of the crypto code (`– 37`, `– 38`). */
   expiry: "#F4780E",
   red: "#FF5F61",
+  /** The line round the checkout's wallet card when the balance does not cover the bag (`Home Page – 83`). */
+  lowBalance: "#FF7F00",
   card: "#FCFCFC",
   field: "#F8F8F8",
   page: "#FCFCFC",

@@ -3296,6 +3296,17 @@ const translations = {
   "Choose the Method you would like to pay your bag payments": "Çantanızın ödemesini yapmak istediğiniz yöntemi seçin",
   "Your balance <b>{amount}</b> USD": "Bakiyeniz <b>{amount}</b> USD",
   "Pay Invoice at centers or request Online pay": "Faturayı merkezlerde öde veya online ödeme iste",
+  "Payment Option": "Ödeme Seçeneği",
+  "Via {bank} app": "{bank} uygulaması ile",
+  "Connect to {bank} app & pay Directly": "{bank} uygulamasına bağlan ve doğrudan öde",
+  "Via Invoice <b>QR</b>": "Fatura <b>QR</b> ile",
+  "Pay invoice within <m>{hours} hours</m> in many easy way": "Faturayı <m>{hours} saat</m> içinde birçok kolay yolla öde",
+  "your payment method about your bag": "Çantanız için ödeme yönteminiz",
+  "Balance": "Bakiye",
+  "your balance <m>{amount}</m> {currency}": "Bakiyeniz <m>{amount}</m> {currency}",
+  "{brand} Balance is insufficient to pay for the order Please <m>top up</m> or\nuse other <m>payment methods & Solutions</m>": "{brand} bakiyesi siparişi ödemek için yetersiz. Lütfen <m>bakiye yükleyin</m> veya <m>diğer ödeme yöntemlerini ve çözümlerini</m> kullanın",
+  "top up | Cash in": "Bakiye yükle | Para Yatır",
+  "Other Solutions": "Diğer Çözümler",
 };
 
 export default translations;

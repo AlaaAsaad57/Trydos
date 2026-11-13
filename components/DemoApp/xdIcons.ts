@@ -295,6 +295,8 @@ export const XD_ICON_SIZE = {
   payCardMap: { w: 16, h: 15.76 },
   payPhone: { w: 29.83, h: 30 },
   payWallet: { w: 37.84, h: 38 },
+  // The checkout with the wallet chosen: `Home Page – 80` and `– 83`.
+  payWalletSmall: { w: 19.92, h: 20 },
 } as const;
 
 export type XdIconName = keyof typeof XD_ICON_SIZE;

@@ -3263,6 +3263,17 @@ const translations = {
   "Choose the Method you would like to pay your bag payments": "اختر الطريقة التي تريد أن تدفع بها قيمة حقيبتك",
   "Your balance <b>{amount}</b> USD": "رصيدك <b>{amount}</b> USD",
   "Pay Invoice at centers or request Online pay": "ادفع الفاتورة في المراكز أو اطلب الدفع الإلكتروني",
+  "Payment Option": "خيار الدفع",
+  "Via {bank} app": "عبر تطبيق {bank}",
+  "Connect to {bank} app & pay Directly": "اتصل بتطبيق {bank} وادفع مباشرة",
+  "Via Invoice <b>QR</b>": "عبر رمز <b>QR</b> للفاتورة",
+  "Pay invoice within <m>{hours} hours</m> in many easy way": "ادفع الفاتورة خلال <m>{hours} ساعة</m> بطرق سهلة كثيرة",
+  "your payment method about your bag": "طريقة الدفع لحقيبتك",
+  "Balance": "الرصيد",
+  "your balance <m>{amount}</m> {currency}": "رصيدك <m>{amount}</m> {currency}",
+  "{brand} Balance is insufficient to pay for the order Please <m>top up</m> or\nuse other <m>payment methods & Solutions</m>": "رصيد {brand} غير كافٍ لدفع الطلب. يرجى <m>شحن الرصيد</m> أو استخدام <m>طرق وحلول دفع أخرى</m>",
+  "top up | Cash in": "شحن الرصيد | إيداع",
+  "Other Solutions": "حلول أخرى",
 };
 
 export default translations;

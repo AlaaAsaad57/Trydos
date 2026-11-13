@@ -2,15 +2,16 @@
 
 import React, { useState } from "react";
 import XdIcon from "../../DemoApp/XdIcon";
-import { useDemoData, type DemoAddress } from "../../DemoApp/DemoData";
-import { bagLook, inBag } from "../../DemoApp/demoBag";
+import { useDemoData, type DemoAddress, type DemoPaymentMethod } from "../../DemoApp/DemoData";
+import { bagLook, bagTotal, inBag } from "../../DemoApp/demoBag";
 import { countryOf } from "../../DemoApp/demoPlaces";
 import { WALLET_RECIPIENT } from "../../DemoApp/demoWallet";
+import { useDemoNav } from "../Demo1Shell";
 import { useDemoCase } from "../demoCase";
-import { C, fill, textBottom, textTop } from "../demo1Layout";
+import { C, fill, lineBox, paraTop, textBottom, textTop } from "../demo1Layout";
 import { Box, ScreenPage, Txt } from "../ui";
 import CartAddressSheet from "./CartAddressSheet";
-import DeliveryMethodSheet, { BRAND, CENTRES } from "./DeliveryMethodSheet";
+import DeliveryMethodSheet, { BRAND, CENTRES, CHIP_GREY } from "./DeliveryMethodSheet";
 import PaymentMethodSheet from "./PaymentMethodSheet";
 import { BagHeader, BagPanel, BagSum, LINE_13 } from "./CartParts";
 import { Rich, type T } from "./ListingParts";
@@ -38,10 +39,21 @@ import { Rich, type T } from "./ListingParts";
  * becomes the pickup card (406 x 96: the centre, and who collects), and the
  * payment section comes under it with "Choose Payment Method", which opens
  * the payment method sheet (`– 73`, PaymentMethodSheet).
+ *
+ * With the wallet chosen there, the screen is `– 80` or `– 83`: the dashed
+ * box becomes the wallet card, and the line over it turns black. When the
+ * client's balance covers the bag (`– 80`) the card is 406 x 80 and
+ * "Checkout / Complete" turns purple. When it does not (`– 83`, the file's
+ * 120 USD for a 320 USD bag) the card grows to 231 with an orange line and a
+ * grey box: the warning, "top up | Cash in" (it opens the wallet) and
+ * "Other Solutions" (it opens the payment method sheet again); the button
+ * stays grey. The file moves the two help marks by 1 and 2 px on these
+ * boards, and the screen keeps its numbers.
  */
 export default function CheckoutScreen() {
   const { bag, profile, update } = useDemoData();
-  const { t } = useDemoCase();
+  const { t, body } = useDemoCase();
+  const { navigate } = useDemoNav();
   const [choosing, setChoosing] = useState(false);
   const [choosingMethod, setChoosingMethod] = useState(false);
   const [choosingPayment, setChoosingPayment] = useState(false);
@@ -49,6 +61,9 @@ export default function CheckoutScreen() {
   // An address deleted on the profile is no longer the bag's.
   const address = profile.addresses.find((a) => a.id === profile.shippingAddress) ?? null;
   const centre = address ? (CENTRES.find((c) => c.id === profile.pickupCentre) ?? null) : null;
+  const method = centre ? profile.paymentMethod : null;
+  // `– 80` when the wallet covers the bag, `– 83` when it does not.
+  const covered = method === "wallet" && profile.walletUsd >= bagTotal(bag);
   return (
     <ScreenPage testId="demo-checkout" header={<BagHeader bag={bag} t={t} />}>
       {/* The card: `#FCFCFC`, a grey 0.5 px line, round 15. */}
@@ -91,8 +106,19 @@ export default function CheckoutScreen() {
         receiver={`${profile.name || WALLET_RECIPIENT.name} . ${profile.phone}`}
         onChoose={() => setChoosing(true)}
         onChooseMethod={() => setChoosingMethod(true)}
+        helpX={method ? 200 : 201}
       />
-      {centre && <Payment t={t} onChoose={() => setChoosingPayment(true)} />}
+      {centre && (
+        <Payment
+          t={t}
+          body={body}
+          method={method}
+          balance={profile.walletUsd}
+          covered={covered}
+          onChoose={() => setChoosingPayment(true)}
+          onTopUp={() => navigate("settings/wallet")}
+        />
+      )}
       {address && (
         <DeliveryMethodSheet
           open={choosingMethod}
@@ -109,11 +135,18 @@ export default function CheckoutScreen() {
         onClose={() => setChoosing(false)}
         onChosen={(id) => {
           // The centres belong to the old address's town, so that choice goes.
-          update({ shippingAddress: id, pickupCentre: null });
+          update({ shippingAddress: id, pickupCentre: null, paymentMethod: null });
           setChoosing(false);
         }}
       />
-      <PaymentMethodSheet open={choosingPayment} onClose={() => setChoosingPayment(false)} />
+      <PaymentMethodSheet
+        open={choosingPayment}
+        onClose={() => setChoosingPayment(false)}
+        onDone={(chosen) => {
+          update({ paymentMethod: chosen });
+          setChoosingPayment(false);
+        }}
+      />
 
       {/* Room for the panel, so the box above it is never under it. */}
       <div aria-hidden="true" className="shrink-0" style={{ height: 931 - 818 + 12 }} />
@@ -121,7 +154,8 @@ export default function CheckoutScreen() {
         bag={bag}
         tabBar={false}
         testId="demo-checkout-panel"
-        button={{ label: t("Checkout / Complete"), fill: C.hint, disabled: true, testId: "demo-checkout-complete" }}
+        // Purple once the wallet covers the bag (`– 80`). The purchase itself is the next board (`– 103`), not built yet.
+        button={{ label: t("Checkout / Complete"), fill: covered ? C.purple : C.hint, disabled: !covered, testId: "demo-checkout-complete" }}
         t={t}
       />
     </ScreenPage>
@@ -141,6 +175,7 @@ function Shipping({
   receiver,
   onChoose,
   onChooseMethod,
+  helpX,
 }: {
   t: T;
   address: DemoAddress | null;
@@ -149,6 +184,8 @@ function Shipping({
   receiver: string;
   onChoose: () => void;
   onChooseMethod: () => void;
+  /** The help mark's x: 201 (`– 56` to `– 76`), 200 with a way to pay chosen (`– 80`, `– 83`). */
+  helpX: number;
 }) {
   return (
     <section aria-label={t("Shipping & delivery Address")} className="flex flex-col shrink-0">
@@ -164,7 +201,7 @@ function Shipping({
         marksEnd={212.44 + 20}
         title={t("Shipping & delivery Address")}
         titleBaseline={253}
-        helpX={201}
+        helpX={helpX}
         helpLabel={t("Help")}
         line={
           address
@@ -194,8 +231,29 @@ function Shipping({
  * pickup card; then, as in the shipping section, the title on baseline 441
  * with the help mark at x 135, the purple line on 461, and the dashed box at
  * y 472 with "Choose Payment Method".
+ *
+ * With the wallet chosen (`– 80`, `– 83`) the help mark is at x 137, the
+ * line is "your payment method about your bag" in black, and the wallet card
+ * takes the box's place.
  */
-function Payment({ t, onChoose }: { t: T; onChoose: () => void }) {
+function Payment({
+  t,
+  body,
+  method,
+  balance,
+  covered,
+  onChoose,
+  onTopUp,
+}: {
+  t: T;
+  body: T;
+  method: DemoPaymentMethod | null;
+  balance: number;
+  covered: boolean;
+  onChoose: () => void;
+  onTopUp: () => void;
+}) {
+  const paid = method === "wallet";
   return (
     <section aria-label={t("Payment Method")} className="flex flex-col shrink-0">
       <SectionHead
@@ -205,20 +263,157 @@ function Payment({ t, onChoose }: { t: T; onChoose: () => void }) {
         marksEnd={400 + 20}
         title={t("Payment Method")}
         titleBaseline={441}
-        helpX={135}
+        helpX={paid ? 137 : 135}
         helpLabel={t("Help")}
-        line={t("Please choose your payment method about your bag")}
-        lineColor={C.purple}
+        line={paid ? t("your payment method about your bag") : t("Please choose your payment method about your bag")}
+        lineColor={paid ? C.ink : C.purple}
         lineTestId="demo-checkout-payment-line"
       />
-      <ChooseBox
-        mt={472 - textBottom(461, 11)}
-        boxTestId="demo-checkout-payment-box"
-        testId="demo-checkout-choose-payment"
-        onClick={onChoose}
-        label={t("Choose Payment Method")}
-      />
+      {paid ? (
+        <WalletPayCard t={t} body={body} balance={balance} covered={covered} onTopUp={onTopUp} onOther={onChoose} />
+      ) : (
+        <ChooseBox
+          mt={472 - textBottom(461, 11)}
+          boxTestId="demo-checkout-payment-box"
+          testId="demo-checkout-choose-payment"
+          onClick={onChoose}
+          label={t("Choose Payment Method")}
+        />
+      )}
     </section>
+  );
+}
+
+/** The warning in the wallet card (`– 83`): 11, two lines on baselines 569 and 587, centred in a 366 px box. */
+const SHORT = { baseline: 569, size: 11, lineHeight: 587 - 569 } as const;
+
+/**
+ * The wallet card, `– 80` and `– 83`: a card at y 472, `#FCFCFC`, round 15,
+ * with the 20 px wallet at (24, 480), "trydos Balance" (13, "try" Bold,
+ * baseline 521) and the balance (11, the amount Medium, baseline 541).
+ *
+ * `– 80` (the balance covers the bag): 406 x 80, the grey 0.5 px line.
+ * `– 83` (it does not): 406 x 231, an orange 0.5 px line, and the grey box
+ * (382 x 145 at (24, 550), round 15) with the warning and two dark buttons,
+ * 364 x 40, at y 603 and 647.
+ */
+function WalletPayCard({
+  t,
+  body,
+  balance,
+  covered,
+  onTopUp,
+  onOther,
+}: {
+  t: T;
+  body: T;
+  balance: number;
+  covered: boolean;
+  onTopUp: () => void;
+  onOther: () => void;
+}) {
+  const shortTop = paraTop(SHORT.baseline, SHORT.size, SHORT.lineHeight);
+  return (
+    <Box
+      mt={472 - textBottom(461, 11)}
+      ml={12}
+      w={fill(12)}
+      h={80}
+      radius={15}
+      fill={C.card}
+      stroke={covered ? C.line : C.lowBalance}
+      className="flex flex-col"
+      // `– 83`: as tall as its content, 8 under the grey box (231 on a 430 px screen), so a longer warning never spills out.
+      style={covered ? undefined : { height: "auto", paddingBottom: 703 - 695 }}
+      data-pw="demo-checkout-wallet"
+    >
+      <XdIcon name="payWalletSmall" className="shrink-0" style={{ marginLeft: 24.04 - 12, marginTop: 480 - 472 }} />
+      <Txt size={13} ml={24 - 12} mt={textTop(521, 13) - (480 + 20)}>
+        {/* The brand's mark, as the file draws it: not a word to translate. */}
+        <span className="font-bold">{BRAND[0]}</span>
+        {`${BRAND[1]} ${t("Balance")}`}
+      </Txt>
+      <Txt size={11} ml={24 - 12} mt={textTop(541, 11) - textBottom(521, 13)} data-pw="demo-checkout-wallet-balance">
+        <Rich text={t("your balance <m>{amount}</m> {currency}")} values={{ amount: balance, currency: t("USD") }} />
+      </Txt>
+      {!covered && (
+        <Box
+          mt={550 - textBottom(541, 11)}
+          ml={24 - 12}
+          w="calc(100% - 24px)"
+          h={695 - 550}
+          radius={15}
+          fill={CHIP_GREY}
+          className="flex flex-col items-center"
+          // As tall as its content, 8 under the last button (145 on a 430 px screen).
+          style={{ height: "auto", paddingBottom: 695 - (647 + 40) }}
+          data-pw="demo-checkout-wallet-short"
+        >
+          <p
+            className="shrink-0 text-center font-normal"
+            style={{
+              marginTop: shortTop - 550,
+              width: "calc(100% - 16px)",
+              fontSize: SHORT.size,
+              lineHeight: `${SHORT.lineHeight}px`,
+              color: C.ink,
+            }}
+          >
+            <FileBreak
+              text={body("{brand} Balance is insufficient to pay for the order Please <m>top up</m> or\nuse other <m>payment methods & Solutions</m>")}
+              // The brand's mark, as the file draws it: "try" Bold, not a word to translate.
+              values={{ brand: `<b>${BRAND[0]}</b>${BRAND[1]}` }}
+            />
+          </p>
+          <DarkButton mt={603 - (shortTop + 2 * SHORT.lineHeight)} testId="demo-checkout-top-up" onClick={onTopUp} label={t("top up | Cash in")} />
+          <DarkButton mt={647 - (603 + 40)} testId="demo-checkout-other" onClick={onOther} label={t("Other Solutions")} />
+        </Box>
+      )}
+    </Box>
+  );
+}
+
+/**
+ * A line with the file's own line break, a "\n" in the key (the English
+ * warning of `– 83` breaks after "or"). The break holds on a screen as wide
+ * as the file (430 px) or wider. On a narrower screen it is gone, and the
+ * words wrap where they fit, so no short line is left alone. A translation
+ * has no break of its own and always wraps where its words fit.
+ */
+function FileBreak({ text, values }: { text: string; values?: Record<string, string | number> }) {
+  const [first, ...rest] = text.split("\n");
+  if (!rest.length) return <Rich text={text} values={values} />;
+  return (
+    <>
+      <Rich text={first} values={values} />{" "}
+      <br className="max-[429.98px]:hidden" />
+      <Rich text={rest.join(" ")} values={values} />
+    </>
+  );
+}
+
+/** A dark button in the wallet card (`– 83`): 364 x 40, round 15, 9 px from the grey box's sides; its 13 px words on baseline +25, centred. */
+function DarkButton({ mt, testId, onClick, label }: { mt: number; testId: string; onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      data-pw={testId}
+      onClick={onClick}
+      className="flex justify-center shrink-0 cursor-pointer active:opacity-80 [-webkit-tap-highlight-color:transparent] font-normal whitespace-nowrap"
+      style={{
+        marginTop: mt,
+        width: "calc(100% - 18px)",
+        height: 40,
+        paddingTop: textTop(628, 13) - 603,
+        borderRadius: 15,
+        background: C.ink,
+        color: C.white,
+        fontSize: 13,
+        lineHeight: `${lineBox(13)}px`,
+      }}
+    >
+      {label}
+    </button>
   );
 }
 

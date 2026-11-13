@@ -74,8 +74,8 @@ const METHODS_TITLE_NUDGE = 2 / 3;
 
 /** The 30 px map: at x 24 on `– 72`; 12.5 left of the title on `– 77` (map ends 83.2, title starts 95.7). */
 const MAP = { x: 24, y: 114.08, gap: 12.5 } as const;
-/** The back arrow (`back`, 12 x 21): its ink at (24, 119), as the header's at (24, 65). */
-const BACK = { x: 23.5, y: 118.5, pad: 10 } as const;
+/** The back arrow (`back`, 12 x 21): its ink at (24, 119), as the header's at (24, 65). The payment sheet's `– 79` has it there too. */
+export const BACK = { x: 23.5, y: 118.5, pad: 10 } as const;
 
 /** The flag before the place: 18 px, 6 left of the words (flag 118 .. 136, words from 142). */
 const FLAG = { size: 18, gap: 6 } as const;
@@ -86,13 +86,14 @@ const LEAD_WIDTH = 356;
 /** The cards: 20 px from both edges. */
 export const CARD_X = 20;
 export const METHOD_H = 188;
-const CENTRE_H = 65;
+/** A centre (`– 77`) and a way to pay with rdb (`– 79`): 390 x 65. */
+export const CHOICE_H = 65;
 
 /** "Done": 188 x 45 at (121, 851), its word on baseline 879. */
 const DONE = { y: 851, width: 188, height: 45, baseline: 879 } as const;
 
-/** The grey card from y 700 to 824. */
-const WHY = { y: 700, end: 824 } as const;
+/** The grey card from y 700 to 824 (`– 72`, `– 77`, and the payment sheet's `– 79`). */
+export const WHY = { y: 700, end: 824 } as const;
 
 /**
  * The file's gap under "Done": 36 px to the SCREEN's end, where the file has
@@ -103,11 +104,11 @@ const WHY = { y: 700, end: 824 } as const;
 const END_GAP = 932 - (DONE.y + DONE.height);
 
 /** Room under the cards, so the last one can scroll out from under the card and the button. */
-const ROOM_WHY = 932 - WHY.y + 12;
+export const ROOM_WHY = 932 - WHY.y + 12;
 export const ROOM = 932 - DONE.y + 12;
 
 /** The title and the chip change in place: a short fade. */
-const FADE = { duration: 0.15 };
+export const FADE = { duration: 0.15 };
 
 /**
  * Under the Pickup card, the steps trade places as two screens do: the
@@ -118,7 +119,7 @@ const FADE = { duration: 0.15 };
  * "reduce motion": the demo shows the motion; the real app decides that
  * separately.
  */
-const STEP_SLIDE: Variants = {
+export const STEP_SLIDE: Variants = {
   enter: (dir: 1 | -1) => ({ x: dir > 0 ? "100%" : "-100%", opacity: 1 }),
   center: (dir: 1 | -1) => sliderMove(dir, false),
   exit: (dir: 1 | -1) => sliderMove(dir, true),
@@ -268,7 +269,7 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
                     <li key={c.id} className="flex shrink-0">
                       <CentreCard
                         testId={`demo-delivery-centre-${i}`}
-                        mt={i === 0 ? 438 - 430 : 507 - (438 + CENTRE_H)}
+                        mt={i === 0 ? 438 - 430 : 507 - (438 + CHOICE_H)}
                         name={t(c.name)}
                         chosen={centre === c.id}
                         onClick={() => setCentre(c.id)}
@@ -521,9 +522,79 @@ function MethodCard({
 }
 
 /**
- * A centre, 390 x 65, round 15, as an unchosen method card: the "trydos" mark
- * (14, "try" Bold) 12 in and on baseline 26, the name (12) on baseline 50.
+ * A choice, 390 x 65, round 15, as an unchosen method card: its first line
+ * (14) 12 in and on baseline 26, the second line (12) on baseline 50. A
+ * centre (`– 77`) writes the "trydos" mark ("try" Bold) and the centre's
+ * name; the payment sheet's `– 79` writes a way to pay with rdb.
+ *
+ * `chosen` draws it white with a purple line. With no `onClick` it takes no
+ * tap (the ways on `– 79`: their next boards are not built yet).
  */
+export function ChoiceCard({
+  testId,
+  mt,
+  title,
+  line,
+  chosen,
+  onClick,
+}: {
+  testId: string;
+  mt: number;
+  title: React.ReactNode;
+  line: React.ReactNode;
+  chosen: boolean;
+  onClick?: () => void;
+}) {
+  const content = (
+    <>
+      <Stroke color={chosen ? C.purple : C.line} radius={15} align="center" />
+      <span className="block font-normal whitespace-nowrap" style={{ marginTop: textTop(464, 14) - 438, marginLeft: 32 - CARD_X, color: C.ink, ...LINE_14 }}>
+        {title}
+      </span>
+      <span
+        className="block font-normal whitespace-nowrap"
+        style={{
+          marginTop: textTop(488, 12) - textBottom(464, 14),
+          marginLeft: 32 - CARD_X,
+          fontSize: 12,
+          lineHeight: `${lineBox(12)}px`,
+          color: C.ink,
+        }}
+      >
+        {line}
+      </span>
+    </>
+  );
+  const style: React.CSSProperties = {
+    marginTop: mt,
+    marginLeft: CARD_X,
+    width: fill(CARD_X),
+    height: CHOICE_H,
+    borderRadius: 15,
+    background: chosen ? C.white : C.card,
+    transition: "background-color 0.2s",
+  };
+  const className = "relative flex flex-col items-start shrink-0 text-left [-webkit-tap-highlight-color:transparent]";
+  return onClick ? (
+    <motion.button
+      type="button"
+      data-pw={testId}
+      aria-pressed={chosen}
+      onClick={onClick}
+      whileTap={{ scale: 0.98 }}
+      className={`${className} cursor-pointer`}
+      style={style}
+    >
+      {content}
+    </motion.button>
+  ) : (
+    <div data-pw={testId} className={className} style={style}>
+      {content}
+    </div>
+  );
+}
+
+/** A centre (`– 77`): the "trydos" mark and the centre's name. */
 function CentreCard({
   testId,
   mt,
@@ -538,42 +609,20 @@ function CentreCard({
   onClick: () => void;
 }) {
   return (
-    <motion.button
-      type="button"
-      data-pw={testId}
-      aria-pressed={chosen}
+    <ChoiceCard
+      testId={testId}
+      mt={mt}
+      chosen={chosen}
       onClick={onClick}
-      whileTap={{ scale: 0.98 }}
-      className="relative flex flex-col items-start shrink-0 text-left cursor-pointer [-webkit-tap-highlight-color:transparent]"
-      style={{
-        marginTop: mt,
-        marginLeft: CARD_X,
-        width: fill(CARD_X),
-        height: CENTRE_H,
-        borderRadius: 15,
-        background: chosen ? C.white : C.card,
-        transition: "background-color 0.2s",
-      }}
-    >
-      <Stroke color={chosen ? C.purple : C.line} radius={15} align="center" />
-      {/* The brand's mark, as the file draws it: not a word to translate. */}
-      <span aria-hidden="true" className="block font-normal whitespace-nowrap" style={{ marginTop: textTop(464, 14) - 438, marginLeft: 32 - CARD_X, color: C.ink, ...LINE_14 }}>
-        <span className="font-bold">{BRAND[0]}</span>
-        {BRAND[1]}
-      </span>
-      <span
-        className="block font-normal whitespace-nowrap"
-        style={{
-          marginTop: textTop(488, 12) - textBottom(464, 14),
-          marginLeft: 32 - CARD_X,
-          fontSize: 12,
-          lineHeight: `${lineBox(12)}px`,
-          color: C.ink,
-        }}
-      >
-        {name}
-      </span>
-    </motion.button>
+      // The brand's mark, as the file draws it: not a word to translate.
+      title={
+        <span aria-hidden="true">
+          <span className="font-bold">{BRAND[0]}</span>
+          {BRAND[1]}
+        </span>
+      }
+      line={name}
+    />
   );
 }
 

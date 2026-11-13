@@ -174,7 +174,7 @@ const DELIVERY_KEYS = [
   "Done",
 ] as const;
 
-/** `Home Page – 75` and `– 73`: the checkout's payment step (demoCase.ts too). */
+/** `Home Page – 75`, `– 73`, `– 79`, `– 80` and `– 83`: the checkout's payment step (demoCase.ts too). */
 const PAYMENT_KEYS = [
   "Payment Method",
   "Wallet",
@@ -185,6 +185,19 @@ const PAYMENT_KEYS = [
   "Choose the Method you would like to pay your bag payments",
   "Your balance <b>{amount}</b> USD",
   "Pay Invoice at centers or request Online pay",
+  // `– 79`, the rdb step of the payment sheet.
+  "Payment Option",
+  "Via {bank} app",
+  "Connect to {bank} app & pay Directly",
+  "Via Invoice <b>QR</b>",
+  "Pay invoice within <m>{hours} hours</m> in many easy way",
+  // `– 80` and `– 83`, the checkout with the wallet chosen.
+  "your payment method about your bag",
+  "Balance",
+  "your balance <m>{amount}</m> {currency}",
+  "{brand} Balance is insufficient to pay for the order Please <m>top up</m> or\nuse other <m>payment methods & Solutions</m>",
+  "top up | Cash in",
+  "Other Solutions",
 ] as const;
 
 export const DEMO_KEYS = [
