@@ -38,7 +38,6 @@ import {
   WALLET_BANK_ACCOUNT,
   WALLET_BRAND,
   WALLET_CASH_IN,
-  WALLET_CASH_IN_WAYS,
   WALLET_CRYPTO,
   WALLET_CRYPTO_APPS,
   WALLET_RECIPIENT,
@@ -55,6 +54,7 @@ import {
   WithBank,
 } from "./WalletCashOutSheet";
 import { InfoField } from "./WalletInfoSheet";
+import PayWays from "./PayWays";
 import { PictureLayer } from "./WalletWithdrawalRequest";
 
 /**
@@ -405,93 +405,16 @@ function Ways({
         {/* Two lines of 18 from y 282 end at 318. */}
         <BrandCard y={338} mt={338 - (282 + 36)} onClick={onRdb} />
 
-        {/* The row starts 1 px above the tiles, so the outer half of their
-            lines (ON the edge) is not cut off by the row's own edge. */}
-        <div
-          data-pw="demo-wallet-cash-in-ways-row"
-          className="flex shrink-0 overflow-x-auto overflow-y-hidden overscroll-x-contain"
-          style={{
-            marginTop: 534 - (338 + 188) - 1,
-            paddingTop: 1,
-            height: 1 + (669 - 534),
-            scrollbarWidth: "none",
+        <PayWays
+          mt={534 - (338 + 188)}
+          t={t}
+          testId={{
+            row: "demo-wallet-cash-in-ways-row",
+            way: "demo-wallet-cash-in-way",
+            soon: "demo-wallet-cash-in-soon",
           }}
-        >
-          {WALLET_CASH_IN_WAYS.map((way, i) => (
-            <div
-              key={way.id}
-              className="flex flex-col shrink-0"
-              style={{
-                marginLeft: i === 0 ? 20 : 8,
-                // The row ends 20 px after the last tile, as it starts.
-                marginRight: i === WALLET_CASH_IN_WAYS.length - 1 ? 20 : 0,
-              }}
-            >
-              <motion.button
-                type="button"
-                aria-label={
-                  way.name === "Visa | Mastercard" ? way.name : t(way.name)
-                }
-                data-pw={`demo-wallet-cash-in-way-${way.id}`}
-                onClick={way.id === "crypto" ? onCrypto : undefined}
-                disabled={way.soon}
-                whileTap={way.soon ? undefined : { scale: 0.97 }}
-                className={`shrink-0 ${way.soon ? "" : "cursor-pointer"}`}
-              >
-                <Box
-                  w={125}
-                  h={125}
-                  radius={15}
-                  fill={C.card}
-                  stroke={C.line}
-                  strokeAlign="center"
-                  style={{ padding: 12 }}
-                >
-                  {way.icon ? (
-                    <Box
-                      w={101}
-                      h={101}
-                      radius={15}
-                      fill={C.white}
-                      stroke={C.line}
-                      strokeAlign="center"
-                    >
-                      <Icon name={way.icon} />
-                    </Box>
-                  ) : (
-                    <img
-                      src={`/assets/demo/xd/${way.picture}.jpg`}
-                      alt=""
-                      draggable={false}
-                      width={101}
-                      height={101}
-                      className="block object-cover select-none pointer-events-none"
-                      style={{ width: 101, height: 101, borderRadius: 15 }}
-                    />
-                  )}
-                </Box>
-              </motion.button>
-              {way.soon && (
-                // The tag hangs 9 px over the tile's bottom edge.
-                <Box
-                  w={76}
-                  h={19}
-                  mt={650 - (534 + 125)}
-                  ml={45 - 20}
-                  radius={6.8}
-                  fill={C.card}
-                  stroke={C.hint}
-                  data-pw="demo-wallet-cash-in-soon"
-                  className="flex flex-col"
-                >
-                  <Txt center size={9} mt={gapTo(650, 663, 9)}>
-                    {t("Soon available")}
-                  </Txt>
-                </Box>
-              )}
-            </div>
-          ))}
-        </div>
+          onCrypto={onCrypto}
+        />
 
         <Box
           w={fill(20)}

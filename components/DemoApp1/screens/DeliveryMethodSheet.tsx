@@ -27,10 +27,9 @@ import type { T } from "./ListingParts";
  * Under both: the grey "What is the collection point ?" card (`WhyCard`, y 700)
  * and "Done", 188 x 45 at (121, 851), grey.
  *
- * The file has no board for a chosen centre. A tapped centre takes the
- * chosen look of the Pickup card (white, the purple line), and "Done" turns
- * dark, as "Choose Delivery Method" is. "Done" then closes the sheet with the
- * centre. The checkout with that centre is `– 75`.
+ * `– 78`, a centre chosen: the tapped centre takes the chosen look of the
+ * Pickup card (white, the purple line), and "Done" turns dark. "Done" then
+ * closes the sheet with the centre, and the checkout shows it (`– 75`).
  */
 export default function DeliveryMethodSheet({
   open,
@@ -53,14 +52,14 @@ export default function DeliveryMethodSheet({
 }
 
 /** Over the checkout's price panel (CartParts' PANEL_Z = layer z 40), as the address sheet. */
-const SHEET_Z = 50;
+export const SHEET_Z = 50;
 
-/** The sheet's top, and where its handle ends (the line at y 101 .. 103). */
-const SHEET_Y = 90;
-const HANDLE_END = SHEET_Y + SHEET.handle.top + SHEET.handle.height - 1;
+/** The sheet's top, and where its handle ends (the line at y 101 .. 103). The payment sheet (`– 73`) has the same. */
+export const SHEET_Y = 90;
+export const HANDLE_END = SHEET_Y + SHEET.handle.top + SHEET.handle.height - 1;
 
 /** The title: 24 Bold on baseline 138. */
-const TITLE = { baseline: 138, size: 24 } as const;
+export const TITLE = { baseline: 138, size: 24 } as const;
 /** The line under it: 14, two lines on baselines 170 and 188. */
 const LEAD = { baseline: 170, size: 14, lineHeight: 188 - 170 } as const;
 /** The place: 14 on baseline 218. */
@@ -85,8 +84,8 @@ const FLAG = { size: 18, gap: 6 } as const;
 const LEAD_WIDTH = 356;
 
 /** The cards: 20 px from both edges. */
-const CARD_X = 20;
-const METHOD_H = 188;
+export const CARD_X = 20;
+export const METHOD_H = 188;
 const CENTRE_H = 65;
 
 /** "Done": 188 x 45 at (121, 851), its word on baseline 879. */
@@ -105,7 +104,7 @@ const END_GAP = 932 - (DONE.y + DONE.height);
 
 /** Room under the cards, so the last one can scroll out from under the card and the button. */
 const ROOM_WHY = 932 - WHY.y + 12;
-const ROOM = 932 - DONE.y + 12;
+export const ROOM = 932 - DONE.y + 12;
 
 /** The title and the chip change in place: a short fade. */
 const FADE = { duration: 0.15 };
@@ -125,15 +124,30 @@ const STEP_SLIDE: Variants = {
   exit: (dir: 1 | -1) => sliderMove(dir, true),
 };
 
-/** The file's three centres (`– 77`). */
-const CENTRES: { id: string; name: DemoKey }[] = [
-  { id: "jamiliya", name: "El Jamiliya Center" },
-  { id: "furkan", name: "El Furkan Center" },
-  { id: "bab-el-faraj", name: "El Bab El Faraj Center" },
+/**
+ * The file's three centres (`– 77`). `place` is the centre's part of town, as
+ * the checkout writes it after "trydos Center" (`– 75`: "Jamiliya"). It is a
+ * place name, as the address's own parts, so it is not translated.
+ */
+export const CENTRES: { id: string; name: DemoKey; place: string }[] = [
+  { id: "jamiliya", name: "El Jamiliya Center", place: "Jamiliya" },
+  { id: "furkan", name: "El Furkan Center", place: "Furkan" },
+  { id: "bab-el-faraj", name: "El Bab El Faraj Center", place: "Bab El Faraj" },
 ];
 
 /** The grey of the chips that are not purple. */
-const CHIP_GREY = "#F4F4F4";
+export const CHIP_GREY = "#F4F4F4";
+
+/**
+ * The room under "Done": the file's 36 px to the screen's end, or none in
+ * iPhone Safari 26 (see END_GAP). `drop` is how far "Done" and the cards'
+ * end go down from the file's place. A sheet is drawn in the browser only
+ * (a layer on <body>), so the agent can be read here.
+ */
+export function useDoneRoom() {
+  const [gap] = useState(() => (isFloatingBarSafari(navigator.userAgent) ? 0 : END_GAP));
+  return { gap, drop: END_GAP - gap };
+}
 
 type Step = "methods" | "pickup";
 
@@ -143,9 +157,7 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
   const [step, setStep] = useState<Step>("methods");
   const [centre, setCentre] = useState<string | null>(null);
   const [showWhy, setShowWhy] = useState(true);
-  // The sheet is drawn in the browser only (a layer on <body>), so the agent can be read here.
-  const [gap] = useState(() => (isFloatingBarSafari(navigator.userAgent) ? 0 : END_GAP));
-  const drop = END_GAP - gap;
+  const { gap, drop } = useDoneRoom();
   const pickup = step === "pickup";
   // The slide's way: to the centres (1), or back to the methods (-1).
   const dir = pickup ? 1 : -1;
@@ -302,37 +314,7 @@ function SheetBody({ address, onDone }: { address: DemoAddress; onDone: (centre:
           )}
         </AnimatePresence>
 
-        <motion.button
-          type="button"
-          data-pw="demo-delivery-done"
-          disabled={!done}
-          onClick={done ? () => onDone(centre) : undefined}
-          whileTap={done ? { scale: 0.98 } : undefined}
-          className="absolute flex justify-center font-normal whitespace-nowrap [-webkit-tap-highlight-color:transparent]"
-          style={{
-            // Centred, 188 wide, or wider for longer words.
-            left: 0,
-            right: 0,
-            marginInline: "auto",
-            width: "fit-content",
-            bottom: `calc(${gap}px + ${SAFE_BOTTOM})`,
-            minWidth: DONE.width,
-            height: DONE.height,
-            paddingTop: textTop(DONE.baseline, 13) - DONE.y,
-            paddingLeft: 20,
-            paddingRight: 20,
-            // XD stops a corner at half the short side: the file's 30 draws 22.5.
-            borderRadius: `${DONE.height / 2}px ${DONE.height / 2}px 14px 14px`,
-            background: done ? C.ink : C.hint,
-            color: C.white,
-            cursor: done ? "pointer" : "default",
-            transition: "background-color 0.2s",
-            zIndex: 5,
-            ...LINE_13,
-          }}
-        >
-          {t("Done")}
-        </motion.button>
+        <SheetDone testId="demo-delivery-done" label={t("Done")} gap={gap} onDone={done ? () => onDone(centre) : undefined} />
       </div>
     </>
   );
@@ -372,8 +354,60 @@ function Place({ address, t }: { address: DemoAddress; t: T }) {
   );
 }
 
-type ChipLook = {
+/**
+ * "Done", 188 x 45 at (121, 851), centred, or wider for longer words. It is
+ * grey and takes no tap until there is something to confirm (`onDone`), then
+ * it is dark. `gap`: its distance from the window's end (useDoneRoom).
+ */
+export function SheetDone({
+  testId,
+  label,
+  gap,
+  onDone,
+}: {
+  testId: string;
   label: string;
+  gap: number;
+  onDone?: () => void;
+}) {
+  const done = onDone !== undefined;
+  return (
+    <motion.button
+      type="button"
+      data-pw={testId}
+      disabled={!done}
+      onClick={onDone}
+      whileTap={done ? { scale: 0.98 } : undefined}
+      className="absolute flex justify-center font-normal whitespace-nowrap [-webkit-tap-highlight-color:transparent]"
+      style={{
+        // Centred, 188 wide, or wider for longer words.
+        left: 0,
+        right: 0,
+        marginInline: "auto",
+        width: "fit-content",
+        bottom: `calc(${gap}px + ${SAFE_BOTTOM})`,
+        minWidth: DONE.width,
+        height: DONE.height,
+        paddingTop: textTop(DONE.baseline, 13) - DONE.y,
+        paddingLeft: 20,
+        paddingRight: 20,
+        // XD stops a corner at half the short side: the file's 30 draws 22.5.
+        borderRadius: `${DONE.height / 2}px ${DONE.height / 2}px 14px 14px`,
+        background: done ? C.ink : C.hint,
+        color: C.white,
+        cursor: done ? "pointer" : "default",
+        transition: "background-color 0.2s",
+        zIndex: 5,
+        ...LINE_13,
+      }}
+    >
+      {label}
+    </motion.button>
+  );
+}
+
+export type ChipLook = {
+  label: React.ReactNode;
   fill: string;
   color: string;
   stroke?: string;
@@ -384,7 +418,7 @@ type ChipLook = {
  * A chip: 22 tall, round 8, its 11 px words centred; at least the file's
  * width. `pad` is the room at each side when the words are longer than that.
  */
-function Chip({
+export function Chip({
   label,
   fill: background,
   color,
@@ -543,5 +577,5 @@ function CentreCard({
   );
 }
 
-/** "trydos", its first half Bold. */
-const BRAND = ["try", "dos"] as const;
+/** "trydos", its first half Bold: the brand, not a word to translate. */
+export const BRAND = ["try", "dos"] as const;

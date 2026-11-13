@@ -174,6 +174,19 @@ const DELIVERY_KEYS = [
   "Done",
 ] as const;
 
+/** `Home Page – 75` and `– 73`: the checkout's payment step (demoCase.ts too). */
+const PAYMENT_KEYS = [
+  "Payment Method",
+  "Wallet",
+  "Please choose your payment method about your bag",
+  "Choose Payment Method",
+  "You will Collect your shipment yourself from center",
+  "Center",
+  "Choose the Method you would like to pay your bag payments",
+  "Your balance <b>{amount}</b> USD",
+  "Pay Invoice at centers or request Online pay",
+] as const;
+
 export const DEMO_KEYS = [
   "Hide menu",
   "Device and browser info",
@@ -559,6 +572,8 @@ export const DEMO_KEYS = [
   ...CART_KEYS,
   // The checkout's delivery method sheet (`Home Page – 72`, `– 77`).
   ...DELIVERY_KEYS,
+  // The checkout's payment step (`Home Page – 75`, `– 73`).
+  ...PAYMENT_KEYS,
 ] as const;
 
 export type DemoKey = (typeof DEMO_KEYS)[number];
@@ -598,6 +613,8 @@ export const KEEP_CASE: ReadonlySet<DemoKey> = new Set<DemoKey>([
   ...CART_KEYS,
   // `Home Page – 72` and `– 77`, the delivery method sheet (demoCase.ts too).
   ...DELIVERY_KEYS,
+  // `Home Page – 75` and `– 73`, the payment step (demoCase.ts too).
+  ...PAYMENT_KEYS,
 ]);
 
 export type DemoDictionary = Partial<Record<DemoKey, string>>;

@@ -3289,6 +3289,13 @@ const translations = {
   "Style": "Stil",
   "Current": "Geçerli",
   "Reset": "Sıfırla",
+  "Please choose your payment method about your bag": "Lütfen çantanız için ödeme yönteminizi seçin",
+  "Choose Payment Method": "Ödeme Yöntemini Seç",
+  "You will Collect your shipment yourself from center": "Gönderinizi merkezden kendiniz teslim alacaksınız",
+  "Center": "Merkezi",
+  "Choose the Method you would like to pay your bag payments": "Çantanızın ödemesini yapmak istediğiniz yöntemi seçin",
+  "Your balance <b>{amount}</b> USD": "Bakiyeniz <b>{amount}</b> USD",
+  "Pay Invoice at centers or request Online pay": "Faturayı merkezlerde öde veya online ödeme iste",
 };
 
 export default translations;

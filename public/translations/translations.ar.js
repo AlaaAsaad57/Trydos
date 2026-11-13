@@ -3256,6 +3256,13 @@ const translations = {
   "Style": "النمط",
   "Current": "الحالي",
   "Reset": "إعادة الضبط",
+  "Please choose your payment method about your bag": "يرجى اختيار طريقة الدفع لحقيبتك",
+  "Choose Payment Method": "اختر طريقة الدفع",
+  "You will Collect your shipment yourself from center": "ستستلم شحنتك بنفسك من المركز",
+  "Center": "مركز",
+  "Choose the Method you would like to pay your bag payments": "اختر الطريقة التي تريد أن تدفع بها قيمة حقيبتك",
+  "Your balance <b>{amount}</b> USD": "رصيدك <b>{amount}</b> USD",
+  "Pay Invoice at centers or request Online pay": "ادفع الفاتورة في المراكز أو اطلب الدفع الإلكتروني",
 };
 
 export default translations;

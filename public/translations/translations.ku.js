@@ -3306,6 +3306,13 @@ const translations = {
   "Style": "شێواز",
   "Current": "ئێستا",
   "Reset": "ڕێکخستنەوە",
+  "Please choose your payment method about your bag": "تکایە ڕێگای پارەدان بۆ جانتاکەت هەڵبژێرە",
+  "Choose Payment Method": "ڕێگای پارەدان هەڵبژێرە",
+  "You will Collect your shipment yourself from center": "خۆت بارەکەت لە ناوەندەکە وەردەگریت",
+  "Center": "ناوەندی",
+  "Choose the Method you would like to pay your bag payments": "ئەو ڕێگایە هەڵبژێرە کە دەتەوێت پارەی جانتاکەتی پێ بدەیت",
+  "Your balance <b>{amount}</b> USD": "باڵانسەکەت <b>{amount}</b> USD",
+  "Pay Invoice at centers or request Online pay": "پسوولە لە ناوەندەکان بدە یان داوای پارەدانی ئۆنلاین بکە",
 };
 
 export default translations;

@@ -290,6 +290,11 @@ export const XD_ICON_SIZE = {
   cartHelpGrey: { w: 16.01, h: 16 },
   // The checkout's delivery method sheet: `Home Page – 72` and `– 77`.
   deliveryMap: { w: 30.19, h: 29.73 },
+  // The checkout's payment step: `Home Page – 75` (the section, the pickup card) and `– 73` (the sheet).
+  payPhoneSmall: { w: 19.88, h: 20 },
+  payCardMap: { w: 16, h: 15.76 },
+  payPhone: { w: 29.83, h: 30 },
+  payWallet: { w: 37.84, h: 38 },
 } as const;
 
 export type XdIconName = keyof typeof XD_ICON_SIZE;

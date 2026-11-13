@@ -49,6 +49,8 @@ export type DemoProfile = {
   editingAddress: string | null;
   /** The address the bag is sent to (the checkout, `Home Page – 76`), or null before one is chosen. */
   shippingAddress: string | null;
+  /** The pickup centre the bag is collected from (`Home Page – 75`, DeliveryMethodSheet's CENTRES), or null before one is chosen. */
+  pickupCentre: string | null;
 };
 
 export const DEMO_PROFILE: DemoProfile = {
@@ -68,6 +70,7 @@ export const DEMO_PROFILE: DemoProfile = {
   orderActions: 1,
   editingAddress: null,
   shippingAddress: null,
+  pickupCentre: null,
 };
 
 type DemoData = {
