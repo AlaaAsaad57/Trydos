@@ -44,7 +44,9 @@ The paths, fields and statuses follow the fake QR service that exists today
 **`POST /qr-login/web/create`**
 
 - **Caller:** the web server, with the browser's guest token.
-- **Takes:** `secret_hash`, `browser`, `os`, `ip`. The backend finds the city from the IP.
+- **Takes:** `secret_hash`, `browser`, `os`, `ip`, `country`, `city`, `region`. The web
+  server fills these values (see "Where the location comes from" below). The backend saves
+  them and does no lookup of its own. `city` and `region` can be empty.
 - **Returns:** `request_id`, `qr_payload`, `expires_at`.
 
 **`GET /qr-login/web/{request_id}/status`**
@@ -58,8 +60,8 @@ The paths, fields and statuses follow the fake QR service that exists today
 
 - **Caller:** the app, with a verified user token.
 - **Takes:** nothing in the body.
-- **Returns:** `browser`, `os`, `city`, `expires_at`. The app shows these on the approve
-  screen.
+- **Returns:** `browser`, `os`, `city`, `region`, `country`, `expires_at`. The app shows
+  these on the approve screen.
 - **Rules:** the first scan wins, and a second device gets 409. A guest token gets 403.
 
 **`POST /qr-login/web/{request_id}/approve`**
@@ -165,8 +167,31 @@ market backend.
 
 - The route makes a random secret and saves it in an HttpOnly cookie that lives
   60 seconds.
-- The route calls `web/create` with the hash of the secret.
+- The route reads the location and browser from the request headers (see below).
+- The route calls `web/create` with the hash of the secret and these values.
 - **Returns to the browser:** `request_id`, `qr_payload`, `expires_at`.
+
+**Where the location comes from**
+
+Cloudflare sits in front of Vercel. So Vercel sees a Cloudflare server as the client,
+and its `x-vercel-ip-*` headers describe that server, not the user. Never use them here.
+
+Cloudflare adds these headers from the user's real IP. "Add visitor location headers" is
+on for the `ramaaz.dev` zone. A test on the live site on 2026-11-14 confirmed that
+`cf-ipcity` arrives.
+
+| Value | Header |
+|---|---|
+| `ip` | `cf-connecting-ip` |
+| `country` | `cf-ipcountry` (`XX` and `T1` mean unknown) |
+| `city` | `cf-ipcity` |
+| `region` | `cf-region` |
+| `browser`, `os` | read from `user-agent` |
+
+- The route reads these headers on the server. The browser never sends them in a body,
+  so a user cannot fake the city the app shows.
+- `/api/proxy` does not pass these headers on. Use the dedicated route, not the proxy.
+- If a header is missing, the route sends the field empty, and the app hides that line.
 
 **`GET /api/qr-login/status?id=...`**
 
