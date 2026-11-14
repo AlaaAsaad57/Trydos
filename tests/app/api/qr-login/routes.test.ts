@@ -178,6 +178,29 @@ describe("POST /api/qr-login/create (Direction A)", () => {
     });
     expect(headers.__lastWrite(SECRET_COOKIE), "a failed create must not store a secret").toBeUndefined();
   });
+
+  // The core backend refuses a missing or wrong field with 422 (its guide,
+  // section 2), not 400.
+  it("passes on 422 for a wrong field as 'invalid'", async () => {
+    net.queueReply(
+      jsonReply(
+        {
+          isSuccessful: false,
+          code: 422,
+          message: "The secret hash field is required.",
+          detailed_error: [{ code: "secret_hash", message: "The secret hash field is required." }],
+          data: null,
+        },
+        422,
+      ),
+    );
+    const { POST } = await import("app/api/qr-login/create/route");
+    const response = await POST(makeRequest("/api/qr-login/create", { method: "POST" }));
+    expect(response.status, "the core backend's 422 did not reach the browser").toBe(422);
+    expect(await response.json(), "a 422 from the core backend did not become the 'invalid' error word").toEqual({
+      error: "invalid",
+    });
+  });
 });
 
 describe("GET /api/qr-login/status (Direction A)", () => {
@@ -427,5 +450,183 @@ describe("Direction B routes (the signed-in web signs in a phone)", () => {
     );
     expect(response.status, "a path in the request ID was not refused").toBe(400);
     expect(net.callCount, "the core backend was called with a bad request ID").toBe(0);
+  });
+});
+
+// The phone scanner (app/api/qr-login/scan) does the app's part on a phone
+// browser until the app ships its own scanner.
+describe("phone scanner routes, Direction A (a signed-in phone approves a browser)", () => {
+  beforeEach(() => {
+    headers.__reset({ cookies: { [COOKIE_NAMES.MARKET_TOKEN]: MARKET_TOKEN } });
+  });
+
+  it("scan/scanned calls the core backend's web/scanned with the user token and answers the browser's place", async () => {
+    net.queueReply(
+      ok({
+        browser: "Chrome",
+        os: "Windows",
+        city: "Mumbai",
+        region: "Maharashtra",
+        country: "IN",
+        expires_at: "2026-11-14T10:01:00Z",
+      }),
+    );
+    const { POST } = await import("app/api/qr-login/scan/scanned/route");
+    const response = await POST(
+      makeRequest("/api/qr-login/scan/scanned", { method: "POST", body: { requestId: REQUEST_ID } }),
+    );
+    expect(net.calls[0]?.url, "scan/scanned did not call the core backend's web/scanned").toBe(
+      `${ADDRESSES.BACKEND_URL}/qr-login/web/${REQUEST_ID}/scanned`,
+    );
+    expect(net.calls[0]?.headers.authorization, "web/scanned was not sent the user token").toBe(
+      `Bearer ${MARKET_TOKEN}`,
+    );
+    expect(await response.json(), "scan/scanned did not answer the browser's place in camelCase").toEqual({
+      browser: "Chrome",
+      os: "Windows",
+      city: "Mumbai",
+      region: "Maharashtra",
+      country: "IN",
+      expiresAt: Date.parse("2026-11-14T10:01:00Z"),
+    });
+  });
+
+  it("scan/scanned passes on 409 when another user scanned first", async () => {
+    net.queueReply(jsonReply({ isSuccessful: false, message: "Another user already scanned this code." }, 409));
+    const { POST } = await import("app/api/qr-login/scan/scanned/route");
+    const response = await POST(
+      makeRequest("/api/qr-login/scan/scanned", { method: "POST", body: { requestId: REQUEST_ID } }),
+    );
+    expect(response.status, "the core backend's 409 from web/scanned did not reach the phone").toBe(409);
+  });
+
+  it.each([
+    ["approve", "approved"],
+    ["deny", "denied"],
+  ])("scan/%s calls the core backend's web/%s", async (answer, status) => {
+    net.queueReply(ok({ status }));
+    const { POST } = await import(`app/api/qr-login/scan/${answer}/route`);
+    const response = await POST(
+      makeRequest(`/api/qr-login/scan/${answer}`, { method: "POST", body: { requestId: REQUEST_ID } }),
+    );
+    expect(net.calls[0]?.url, `scan/${answer} called the wrong core backend path`).toBe(
+      `${ADDRESSES.BACKEND_URL}/qr-login/web/${REQUEST_ID}/${answer}`,
+    );
+    expect(await response.json(), `scan/${answer} answered the wrong status`).toEqual({ status });
+  });
+});
+
+describe("phone scanner routes, Direction B (a signed-out phone claims a signed-in device's QR)", () => {
+  const CLAIM_COOKIE = "QR-LOGIN-CLAIM-SECRET";
+  const IPHONE_UA =
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
+
+  const claim = async () => {
+    net.queueReply(ok({ status: "claimed", expires_at: "2026-11-14T10:01:00Z" }));
+    const { POST } = await import("app/api/qr-login/scan/claim/route");
+    return POST(
+      makeRequest("/api/qr-login/scan/claim", {
+        method: "POST",
+        body: { requestId: REQUEST_ID },
+        headers: { "user-agent": IPHONE_UA },
+      }),
+    );
+  };
+
+  it("scan/claim calls the core backend's app/claim with the guest token", async () => {
+    await claim();
+    expect(net.calls[0]?.url, "scan/claim did not call the core backend's app/claim").toBe(
+      `${ADDRESSES.BACKEND_URL}/qr-login/app/${REQUEST_ID}/claim`,
+    );
+    expect(net.calls[0]?.headers.authorization, "app/claim was not sent the guest token").toBe(
+      `Bearer ${GUEST_TOKEN}`,
+    );
+  });
+
+  it("scan/claim sends the secret's hash, the device name and the web platform", async () => {
+    await claim();
+    const body = net.calls[0]?.body;
+    const cookie = headers.__lastWrite(CLAIM_COOKIE);
+    const [id, secret] = String(cookie?.value).split(".");
+    expect(id, "the claim cookie is not tied to this request ID").toBe(REQUEST_ID);
+    expect(body?.secret_hash, "app/claim was not sent the hash of the stored secret").toBe(sha256(secret));
+    expect(JSON.stringify(body), "the secret itself was sent to app/claim").not.toContain(secret);
+    expect(body?.device_name, "app/claim was not sent the browser and system as the device name").toBe(
+      "Mobile Safari, iOS",
+    );
+    expect(body?.platform, "app/claim was not sent the web platform").toBe("web");
+  });
+
+  it("scan/claim keeps the secret in its own HttpOnly cookie, never in the login screen's cookie", async () => {
+    await claim();
+    const cookie = headers.__lastWrite(CLAIM_COOKIE);
+    expect(cookie?.options.httpOnly, "the claim secret cookie is readable by page scripts").toBe(true);
+    expect(cookie?.options.path, "the claim secret cookie is sent outside /api/qr-login").toBe("/api/qr-login");
+    expect(
+      headers.__lastWrite(SECRET_COOKIE),
+      "a claim overwrote the secret of the QR that the login screen shows",
+    ).toBeUndefined();
+  });
+
+  it("scan/claim passes on 409 when another device claimed first, and stores no secret", async () => {
+    net.queueReply(jsonReply({ isSuccessful: false, message: "Already claimed." }, 409));
+    const { POST } = await import("app/api/qr-login/scan/claim/route");
+    const response = await POST(
+      makeRequest("/api/qr-login/scan/claim", { method: "POST", body: { requestId: REQUEST_ID } }),
+    );
+    expect(response.status, "the core backend's 409 from app/claim did not reach the phone").toBe(409);
+    expect(headers.__lastWrite(CLAIM_COOKIE), "a refused claim stored a secret").toBeUndefined();
+  });
+
+  it("scan/status refuses a phone that did not claim this QR, before any backend call", async () => {
+    const { GET } = await import("app/api/qr-login/scan/status/route");
+    const response = await GET(makeRequest(`/api/qr-login/scan/status?id=${REQUEST_ID}`));
+    expect(response.status, "a phone without the claim secret was not refused").toBe(403);
+    expect(net.callCount, "the core backend was called for a phone without the claim secret").toBe(0);
+  });
+
+  it("scan/status sends the claim secret's hash in X-QR-Secret-Hash to app/status", async () => {
+    headers.__cookieJar[CLAIM_COOKIE] = `${REQUEST_ID}.${SECRET}`;
+    net.queueReply(ok({ status: "approved" }));
+    const { GET } = await import("app/api/qr-login/scan/status/route");
+    const response = await GET(makeRequest(`/api/qr-login/scan/status?id=${REQUEST_ID}`));
+    expect(net.calls[0]?.url, "scan/status did not call the core backend's app/status").toBe(
+      `${ADDRESSES.BACKEND_URL}/qr-login/app/${REQUEST_ID}/status`,
+    );
+    expect(net.calls[0]?.headers["x-qr-secret-hash"], "app/status was not sent the claim secret's hash").toBe(
+      sha256(SECRET),
+    );
+    expect(await response.json(), "scan/status answered the wrong status").toEqual({ status: "approved" });
+  });
+
+  it("scan/complete collects from app/collect with the claim secret, signs in, and deletes the claim cookie", async () => {
+    headers.__cookieJar[CLAIM_COOKIE] = `${REQUEST_ID}.${SECRET}`;
+    net.queueReply(
+      ok({
+        token: MARKET_TOKEN,
+        refresh_token: MARKET_REFRESH,
+        qr_id_token: QR_ID_TOKEN,
+        user: { id: 1234, name: "Alaa", phone: "+963900000000", email: null, is_phone_verified: 1 },
+      }),
+    );
+    net.queueReply(jsonReply({ data: { id: 7, access_token: CHAT_ACCESS, refresh_token: "r" } }));
+    net.queueReply(
+      jsonReply({ isSuccessful: true, data: { id: 9, access_token: STORIES_ACCESS, refresh_token: "r" } }),
+    );
+    net.queueReply(jsonReply({ isSuccessful: true, data: { token: COMMENTS_TOKEN, refresh_token: "r" } }));
+    const { POST } = await import("app/api/qr-login/scan/complete/route");
+    const response = await POST(
+      makeRequest("/api/qr-login/scan/complete", { method: "POST", body: { requestId: REQUEST_ID } }),
+    );
+    expect(net.calls[0]?.url, "scan/complete did not call the core backend's app/collect").toBe(
+      `${ADDRESSES.BACKEND_URL}/qr-login/app/${REQUEST_ID}/collect`,
+    );
+    expect(net.calls[0]?.body, "app/collect was not sent the claim secret").toEqual({ secret: SECRET });
+    expect(response.status, "scan/complete did not sign the phone in").toBe(200);
+    expect(
+      headers.__lastWrite(COOKIE_NAMES.MARKET_TOKEN)?.value,
+      "the user's market token from app/collect was not stored",
+    ).toBe(MARKET_TOKEN);
+    expect(headers.__lastWrite(CLAIM_COOKIE)?.options.maxAge, "the claim secret cookie was not deleted after collect").toBe(0);
   });
 });

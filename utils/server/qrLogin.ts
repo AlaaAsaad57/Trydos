@@ -15,6 +15,12 @@ import { logRequest, startTimer } from "reqLogger";
  * before it reaches the backend.
  */
 export const QR_SECRET_COOKIE = "QR-LOGIN-SECRET";
+/**
+ * The same proof for a phone browser that scanned and claimed another
+ * device's QR (Direction B, see app/api/qr-login/scan). It has its own cookie,
+ * so a claim never overwrites the QR that the login screen shows.
+ */
+export const QR_CLAIM_SECRET_COOKIE = "QR-LOGIN-CLAIM-SECRET";
 /** A session lives 60 seconds. The cookie lives a little longer, for clock drift. */
 const QR_SECRET_MAX_AGE = 90;
 const QR_TIMEOUT_MS = 10_000;
@@ -33,10 +39,14 @@ export function makeSecret() {
 export const hashSecret = (secret: string) =>
   createHash("sha256").update(secret).digest("hex");
 
-export async function saveSecret(requestId: string, secret: string) {
+export async function saveSecret(
+  requestId: string,
+  secret: string,
+  cookieName: string = QR_SECRET_COOKIE,
+) {
   const store = await cookies();
   store.set({
-    name: QR_SECRET_COOKIE,
+    name: cookieName,
     value: `${requestId}.${secret}`,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -48,19 +58,22 @@ export async function saveSecret(requestId: string, secret: string) {
 }
 
 /** The secret for this request ID, or null when the cookie is missing or for another QR. */
-export async function readSecret(requestId: string): Promise<string | null> {
+export async function readSecret(
+  requestId: string,
+  cookieName: string = QR_SECRET_COOKIE,
+): Promise<string | null> {
   const store = await cookies();
-  const raw = store.get(QR_SECRET_COOKIE)?.value || "";
+  const raw = store.get(cookieName)?.value || "";
   const dot = raw.indexOf(".");
   if (dot < 1) return null;
   if (raw.slice(0, dot) !== requestId) return null;
   return raw.slice(dot + 1) || null;
 }
 
-export async function deleteSecret() {
+export async function deleteSecret(cookieName: string = QR_SECRET_COOKIE) {
   const store = await cookies();
   store.set({
-    name: QR_SECRET_COOKIE,
+    name: cookieName,
     value: "",
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -189,6 +202,8 @@ const ERROR_WORDS: Record<number, string> = {
   404: "not_found",
   409: "conflict",
   410: "expired",
+  // The core backend refuses a missing or wrong field with 422.
+  422: "invalid",
   429: "too_many_requests",
   504: "timeout",
 };

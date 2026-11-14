@@ -508,9 +508,9 @@ export default function FullEnhancedLoginWidget() {
      * sign in, the same way as after an OTP login. When this throws, the QR
      * screen shows "Something went wrong" with "Show a new code".
      */
-    const handleQrApproved = async (requestId: string) => {
+    const handleQrApproved = async (requestId: string, side: 'web' | 'app' = 'web') => {
         try {
-            const [, userName] = await AuthService.CompleteQrLogin(requestId);
+            const [, userName] = await AuthService.CompleteQrLogin(requestId, side);
             GAevent({
                 action: GA_EVENT_NAMES.LOGIN,
                 params: { method_otp: 'qr', success: true },

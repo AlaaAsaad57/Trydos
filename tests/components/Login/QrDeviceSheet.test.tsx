@@ -111,6 +111,23 @@ describe("QrDeviceSheet", () => {
     expect(onClose, "closing did not close the sheet").toHaveBeenCalledOnce();
   });
 
+  it("shows 'Scan a code' on a phone, and it opens the phone scanner", async () => {
+    qr.isTouchPhone.mockReturnValue(true);
+    const onScan = vi.fn();
+    await renderWithProviders(<QrDeviceSheet isRtl={false} language="en" onClose={vi.fn()} onScan={onScan} />);
+    await act(async () => {});
+    await act(async () => {
+      fireEvent.click(screen.getByText(/^scan a code$/i));
+    });
+    expect(onScan, "'Scan a code' did not open the phone scanner").toHaveBeenCalled();
+  });
+
+  it("hides 'Scan a code' on a computer", async () => {
+    await renderWithProviders(<QrDeviceSheet isRtl={false} language="en" onClose={vi.fn()} onScan={vi.fn()} />);
+    await act(async () => {});
+    expect(screen.queryByText(/^scan a code$/i), "a computer shows 'Scan a code'").toBeNull();
+  });
+
   it("shows 'Open in app' only on a phone", async () => {
     qr.isTouchPhone.mockReturnValue(true);
     await open();

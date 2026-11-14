@@ -21,6 +21,8 @@ type Props = {
   isRtl: boolean;
   language: string;
   onClose: () => void;
+  /** Phones only: close this sheet and open the phone scanner. */
+  onScan?: () => void;
 };
 
 // QR login, Direction B: this signed-in browser shows a QR, a phone's app
@@ -38,7 +40,7 @@ type Step = "loading" | "pending" | "claimed" | "approved" | "denied" | "stopped
 /** How long the "signed in" or "denied" line stays before the sheet closes. */
 const DONE_CLOSE_MS = 1500;
 
-function QrDeviceSheet({ isRtl, language, onClose }: Props) {
+function QrDeviceSheet({ isRtl, language, onClose, onScan }: Props) {
   const t = (key: string) => translateFunction(key, language);
   const [step, setStep] = useState<Step>("loading");
   const [session, setSession] = useState<QrSession | null>(null);
@@ -182,6 +184,13 @@ function QrDeviceSheet({ isRtl, language, onClose }: Props) {
               <a className="qr-sheet-open-app" data-pw="qr-open-in-app" href={session.qrPayload}>
                 {t("Open in app")}
               </a>
+            )}
+            {/* The phone scanner, until the app ships its own: this phone can
+                approve a browser that shows a QR. */}
+            {onScan && isTouchPhone() && (step === "pending" || step === "loading") && (
+              <button className="qr-sheet-scan-again" data-pw="qr-scan-a-code" onClick={onScan}>
+                {t("Scan a code")}
+              </button>
             )}
           </>
         )}

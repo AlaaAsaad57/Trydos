@@ -21,6 +21,15 @@ vi.mock("services/qrLogin", () => qr);
 vi.mock("components/Login/Enhanced/ui/CustomQRCode", () => ({
   default: ({ value }: { value: string }) => <div data-testid="qr" data-value={value} />,
 }));
+// The phone scanner has its own tests (tests/components/Login/QrScanFlow.test.tsx).
+// The stand-in shows how it was opened, and signs in when tapped.
+vi.mock("components/Login/QrScanFlow", () => ({
+  default: ({ signedIn, onSignIn }: { signedIn: boolean; onSignIn: (id: string) => Promise<void> }) => (
+    <button data-testid="scan-flow" data-signed-in={String(signedIn)} onClick={() => onSignIn("claimed-1")}>
+      scan flow
+    </button>
+  ),
+}));
 
 const SESSION = { requestId: "req-1", qrPayload: "trydos://qr/req-1", expiresAt: 0 };
 
@@ -189,6 +198,40 @@ describe("QrLoginScreen", () => {
     const link = document.querySelector('[data-pw="qr-open-in-app"]');
     expect(link, "a phone gets no 'Open in app' button").not.toBeNull();
     expect(link!.getAttribute("href"), "'Open in app' does not open the QR's link").toBe(SESSION.qrPayload);
+  });
+
+  it("opens the phone scanner for a signed-out phone from 'Scan a code'", async () => {
+    qr.isTouchPhone.mockReturnValue(true);
+    await openScreen();
+    const button = document.querySelector('[data-pw="qr-scan-a-code"]');
+    expect(button, "a phone gets no 'Scan a code' button").not.toBeNull();
+    await act(async () => {
+      fireEvent.click(button!);
+    });
+    expect(
+      screen.getByTestId("scan-flow").getAttribute("data-signed-in"),
+      "the login screen opened the scanner as a signed-in phone",
+    ).toBe("false");
+  });
+
+  it("signs in as the side that claimed when the phone scanner's claim is approved", async () => {
+    qr.isTouchPhone.mockReturnValue(true);
+    const { onApproved } = await openScreen();
+    await act(async () => {
+      fireEvent.click(document.querySelector('[data-pw="qr-scan-a-code"]')!);
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("scan-flow"));
+    });
+    expect(onApproved, "the approved claim did not sign in through app/collect").toHaveBeenCalledWith("claimed-1", "app");
+  });
+
+  it("hides 'Scan a code' on a computer", async () => {
+    await openScreen();
+    expect(
+      document.querySelector('[data-pw="qr-scan-a-code"]'),
+      "a computer shows 'Scan a code'",
+    ).toBeNull();
   });
 
   it("hides 'Open in app' on a computer", async () => {

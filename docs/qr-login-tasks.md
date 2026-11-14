@@ -1,6 +1,13 @@
 # QR login: tasks for each developer
 
-**Status:** proposal, nothing is built yet.
+**Status:**
+- **Market backend (section 1):** built in backend PR #690, which waits for review. Its
+  guide is [qr-login-backend-guide.md](qr-login-backend-guide.md). Where this file and the
+  guide differ, the guide wins.
+- **Chat, stories and comments (section 2):** not built yet.
+- **Web (section 3):** built. It follows the guide.
+- **App (section 4):** not built yet. Until it ships, a phone browser can do the app's
+  part with the phone scanner (section 3).
 
 This file splits [qr-login-flows.md](qr-login-flows.md) into tasks for each developer. It
 follows the recommendation in that file: **polling, both directions (A + B)**.
@@ -21,8 +28,7 @@ In Direction A and B, the web shows the QR and the app scans it. In app to app, 
 signed-in app shows the QR and the other app scans it. The web never scans. The waiting
 side asks for the status every 2 seconds.
 
-The paths are a proposal. The market backend developer can rename them, but every
-developer must agree on the final names on day 1.
+The market backend kept these paths. They are all under `/api/v1/qr-login`.
 
 ## Shared rules
 
@@ -58,21 +64,29 @@ developer must agree on the final names on day 1.
   Error:
 
   ```json
-  { "isSuccessful": false, "message": "The session expired." }
+  { "isSuccessful": false, "code": 409, "hasContent": false, "message": "Another user already scanned this code.", "detailed_error": [{ "message": "Another user already scanned this code." }], "data": null }
   ```
 
-  The client chooses what to show from the HTTP code. It never shows `message`.
+  The client chooses what to show from the HTTP code. It never shows `message`. In the
+  body, `code` is always `200` on success, even when the HTTP code is `201`, so read
+  the HTTP code.
 - **Errors:**
 
 | Code | When |
 |---|---|
-| 400 | A field is missing or wrong |
+| 422 | A field is missing or wrong. `detailed_error` lists `{ code: <field>, message }` |
 | 401 | The token is missing or expired |
 | 403 | A guest tries to approve, the secret is wrong, or the user doesn't own the session |
 | 404 | No session has this ID |
-| 409 | Someone else already scanned or claimed the QR, or the tokens were already collected |
+| 409 | Someone else already scanned or claimed the QR, the session is already decided, the tokens were already collected, or an approve came before a claim (Direction B) |
 | 410 | The session expired |
 | 429 | Too many requests |
+
+- **Collect window:** after the approval, the waiting side has **30 seconds** to call
+  collect. A later call gets 410.
+- **Rate limit:** 60 requests a minute for each endpoint path and user (or IP). Our web
+  server makes every call, so the backend sees the web server's IP. We asked the
+  backend what the limit counts on `web/status`, which needs no token.
 
 ---
 
@@ -423,9 +437,10 @@ Run these checks:
 
 *Estimate: 2.5–4 days.*
 
-**Status:** built on 2026-11-14. It waits for the market backend (section 1) and for the
-QR endpoints of chat, stories and comments (section 2). When those are live, test the
-whole flow on staging.
+**Status:** built on 2026-11-14, and matched to the backend guide. It waits for backend
+PR #690 to reach staging. Chat, stories and comments (section 2) are not built yet. Until
+they are, a QR login signs in to the market backend only, and `finishLogin` reports the
+3 failed service logins to Sentry.
 
 - Routes: `app/api/qr-login/**`. Shared server code: `utils/server/qrLogin.ts`.
 - OTP login and QR login share their sign-in steps in `utils/server/finishLogin.ts`.
@@ -578,7 +593,17 @@ Response `200`:
   - If the app is not installed, the link opens nothing. The QR stays on screen, so the
     user can still use another phone.
 - **Shared steps:** OTP login and QR login use the same sign-in steps.
-- **Remove** the web camera scanner.
+- **The phone scanner (for testing, until the app ships):** on phones only, both QR
+  sheets show "Scan a code". It opens the camera and does the app's part:
+  - **Settings (signed in):** scan a browser's QR (`trydos://qr/web/…`), see the
+    browser and city, and approve or deny it. Routes: `/api/qr-login/scan/scanned`,
+    `/scan/approve`, `/scan/deny` (they call `web/scanned`, `web/approve`, `web/deny`).
+  - **Login screen (signed out):** scan a signed-in device's QR (`trydos://qr/app/…`),
+    claim it, wait for the approval, then sign in. Routes: `/api/qr-login/scan/claim`,
+    `/scan/status`, `/scan/complete` (they call `app/claim`, `app/status`,
+    `app/collect`). The claim secret has its own cookie, `QR-LOGIN-CLAIM-SECRET`.
+  - Code: `components/Login/QrScanFlow.tsx` and `components/Login/QrScannerModal.tsx`.
+  - Remove it when the app ships its scanner, if the product does not want it.
 - **Translations:** add all new text in `ar`, `tr` and `ku`.
 - **Tests:** add tests.
 

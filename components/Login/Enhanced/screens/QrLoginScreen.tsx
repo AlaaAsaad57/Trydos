@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import FlexibleSpace from 'scaling/FlexibleSpace';
 import CustomQRCode from '../ui/CustomQRCode';
+import QrScanFlow from 'components/Login/QrScanFlow';
 import {
     createQrSession,
     getQrStatus,
@@ -17,10 +18,13 @@ import { translateFunction } from 'utils/functions';
 
 interface QrLoginScreenProps {
     /**
-     * Called with the request ID once the app approves. It signs this browser
-     * in. When it throws, the screen shows "Something went wrong".
+     * Called with the request ID once the other device approves. It signs this
+     * browser in. When it throws, the screen shows "Something went wrong".
+     * - 'web' (the default): the app approved the QR on this screen.
+     * - 'app': this phone scanned a signed-in device's QR with the phone
+     *   scanner, and that device approved it.
      */
-    onApproved?: (requestId: string) => Promise<void> | void;
+    onApproved?: (requestId: string, side?: 'web' | 'app') => Promise<void> | void;
     onClose?: () => void;
     onBack?: () => void;
     onCancel?: () => void;
@@ -68,6 +72,8 @@ export default function QrLoginScreen({
     const completedRef = useRef(false);
     // Guards the initial auto-start so React StrictMode's double-mount doesn't create duplicate sessions
     const autoStartedRef = useRef(false);
+    // The phone scanner: sign this phone in with a signed-in device's QR.
+    const [scanOpen, setScanOpen] = useState(false);
 
     // ── Create / regenerate a QR session ──────────────────────────────────────
     const startSession = useCallback(async () => {
@@ -288,6 +294,19 @@ export default function QrLoginScreen({
                     </a>
                 )}
 
+                {/* The phone scanner, until the app ships its own: scan the QR
+                    of a signed-in device to sign in here. */}
+                {isTouchPhone() && (
+                    <button
+                        type="button"
+                        onClick={() => setScanOpen(true)}
+                        data-pw="qr-scan-a-code"
+                        className="mt-xd-16 text-xd-14 font-medium text-[#388CFF] underline cursor-pointer"
+                    >
+                        {translate('Scan a code')}
+                    </button>
+                )}
+
                 <FlexibleSpace size={26} share={0.03} />
 
                 {status === 'scanned' ? (
@@ -305,6 +324,18 @@ export default function QrLoginScreen({
             </div>
 
             <FlexibleSpace grow />
+
+            {scanOpen && (
+                <QrScanFlow
+                    isRtl={lang === 'ar' || lang === 'ku'}
+                    language={lang}
+                    signedIn={false}
+                    onSignIn={async (requestId) => {
+                        await onApproved?.(requestId, 'app');
+                    }}
+                    onClose={() => setScanOpen(false)}
+                />
+            )}
         </div>
     );
 }

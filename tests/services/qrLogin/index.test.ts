@@ -16,7 +16,9 @@ import {
   createQrSession,
   denyDevice,
   getDeviceQrStatus,
+  getClaimStatus,
   getQrStatus,
+  parseQrPayload,
   QrLoginError,
 } from "services/qrLogin";
 
@@ -133,5 +135,32 @@ describe("a 401 from a route (the 60-second token ran out)", () => {
     const error = await createQrSession().catch((e) => e);
     expect(net.callCount, "the call was sent again during a logout").toBe(1);
     expect(error?.status, "the 401 did not reach the caller").toBe(401);
+  });
+});
+
+describe("the phone scanner", () => {
+  it.each([
+    [`trydos://qr/web/${ID}`, { kind: "web", requestId: ID }],
+    [`trydos://qr/app/${ID}`, { kind: "app", requestId: ID }],
+  ])("parseQrPayload reads %s", (text, expected) => {
+    expect(parseQrPayload(text), "a Trydos QR link was not read").toEqual(expected);
+  });
+
+  it.each([
+    "https://example.com/qr/web/abc",
+    "trydos://qr/other/abc",
+    "trydos://qr/web/../../admin",
+    "trydos://qr/web/",
+  ])("parseQrPayload ignores %s", (text) => {
+    expect(parseQrPayload(text), "a text that is not a Trydos QR link was accepted").toBeNull();
+  });
+
+  it("getClaimStatus reads 410 as expired", async () => {
+    net.queueReply(jsonReply({ error: "expired" }, 410));
+    const result = await getClaimStatus(ID);
+    expect(net.calls[0]?.url, "getClaimStatus did not ask /api/qr-login/scan/status").toContain(
+      `/api/qr-login/scan/status?id=${ID}`,
+    );
+    expect(result, "a 410 from scan/status was not read as expired").toEqual({ status: "expired" });
   });
 });

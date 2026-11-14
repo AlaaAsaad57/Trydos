@@ -624,8 +624,8 @@ describe("FullEnhancedLoginWidget — the screens and their hand-offs", () => {
     await user.click(await screen.findByText("qr approved"));
     expect(
       AuthService.CompleteQrLogin,
-      "the approval did not sign this browser in with the request ID",
-    ).toHaveBeenCalledWith("req-1");
+      "the approval did not sign this browser in with the request ID, as the side that showed the QR",
+    ).toHaveBeenCalledWith("req-1", "web");
     await waitFor(() => expect(isOpen(), "QR approval did not close").toBe(false));
     expect(
       gaEvent.mock.calls.some(

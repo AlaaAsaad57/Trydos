@@ -7,6 +7,7 @@ import { translateFunction } from "utils/functions";
 import { formatPhoneInternational } from "utils/formatPhone";
 import { useAppStore } from "store";
 import QrDeviceSheet from "components/Login/QrDeviceSheet";
+import QrScanFlow from "components/Login/QrScanFlow";
 import { isQrLoginEnabled } from "services/qrLogin";
 
 function Profile({ isRtl, language, local, SafeUserProfile }) {
@@ -14,6 +15,8 @@ function Profile({ isRtl, language, local, SafeUserProfile }) {
   const user = clientUser || SafeUserProfile;
   // QR login, Direction B: show a QR that signs in a phone's app.
   const [qrOpen, setQrOpen] = useState(false);
+  // The phone scanner: this signed-in phone approves a browser's QR.
+  const [scanOpen, setScanOpen] = useState(false);
 
   const isNotLoggedIn = !user ||
     user.phone === "0" ||
@@ -160,6 +163,18 @@ function Profile({ isRtl, language, local, SafeUserProfile }) {
           isRtl={isRtl}
           language={language}
           onClose={() => setQrOpen(false)}
+          onScan={() => {
+            setQrOpen(false);
+            setScanOpen(true);
+          }}
+        />
+      )}
+      {scanOpen && (
+        <QrScanFlow
+          isRtl={isRtl}
+          language={language}
+          signedIn
+          onClose={() => setScanOpen(false)}
         />
       )}
     </div>

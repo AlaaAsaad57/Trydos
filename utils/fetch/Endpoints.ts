@@ -32,8 +32,13 @@ export const QR_LOGIN_ENDPOINTS = {
   webCreate: "/qr-login/web/create",
   webStatus: (id: string) => `/qr-login/web/${encodeURIComponent(id)}/status`,
   webCollect: (id: string) => `/qr-login/web/${encodeURIComponent(id)}/collect`,
+  webScanned: (id: string) => `/qr-login/web/${encodeURIComponent(id)}/scanned`,
+  webApprove: (id: string) => `/qr-login/web/${encodeURIComponent(id)}/approve`,
+  webDeny: (id: string) => `/qr-login/web/${encodeURIComponent(id)}/deny`,
   appCreate: "/qr-login/app/create",
   appStatus: (id: string) => `/qr-login/app/${encodeURIComponent(id)}/status`,
   appApprove: (id: string) => `/qr-login/app/${encodeURIComponent(id)}/approve`,
   appDeny: (id: string) => `/qr-login/app/${encodeURIComponent(id)}/deny`,
+  appClaim: (id: string) => `/qr-login/app/${encodeURIComponent(id)}/claim`,
+  appCollect: (id: string) => `/qr-login/app/${encodeURIComponent(id)}/collect`,
 };

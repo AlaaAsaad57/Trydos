@@ -23,7 +23,7 @@ import { REQUESTS_DATA } from "utils/Requests";
 import { LogServerError } from "utils/serverErrorReporter";
 import { checkWallet } from "./wallet";
 import { GetTicket } from "utils/UploadUtils";
-import { completeQrLogin, QrLoginError } from "services/qrLogin";
+import { completeClaim, completeQrLogin, QrLoginError } from "services/qrLogin";
 
 // Helper to update user metadata in HttpOnly cookies via server route
 async function updateSecureUserData(
@@ -358,17 +358,21 @@ class AuthService {
     }
   }
   /**
-   * QR login, Direction A: the app approved this browser's QR. The route
-   * collects this browser's own tokens and signs in to the services, then the
-   * store is updated the same way as after an OTP login.
+   * QR login: the other device approved, so the route collects this
+   * browser's own tokens and signs in to the services. Then the store is
+   * updated the same way as after an OTP login.
+   * - `web`: Direction A. This browser showed the QR, and the app approved it.
+   * - `app`: Direction B. This phone scanned and claimed a signed-in
+   *   device's QR (the phone scanner), and that device approved it.
    *
    * Returns `[already_exists, name]`. Throws a `QrLoginError` when the route
    * refuses.
    */
-  async CompleteQrLogin(requestId: string) {
+  async CompleteQrLogin(requestId: string, side: "web" | "app" = "web") {
     const old_guest_id = useAppStore.getState().userProfile?.id;
     try {
-      const response = await completeQrLogin(requestId);
+      const response =
+        side === "app" ? await completeClaim(requestId) : await completeQrLogin(requestId);
       if (!response?.data?.user) {
         throw new QrLoginError(502, "server_error");
       }
