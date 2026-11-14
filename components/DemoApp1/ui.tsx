@@ -253,6 +253,19 @@ function useScrollLock(on: boolean) {
 const DEMO1_TINT: TintHome = { host: () => document.body, rest: null };
 
 /**
+ * How far ahead of the backdrop's fade the top strip is set, in seconds.
+ * Measured frame by frame on the client's iPhone (issue-video.mp4, the first
+ * sheet): Safari showed the strip's colour exactly one frame (1/60 s) after
+ * the backdrop's opacity. So while the page dimmed, the top band was a
+ * lighter strip, one frame behind, and caught up only at the end. The strip
+ * is given the grey the fade will have one frame on, from the fade's speed.
+ */
+const TOP_LEAD = 1 / 60;
+
+/** px kept between the bottom of the field in use and the top of the phone's keyboard. */
+const KEYBOARD_GAP = 16;
+
+/**
  * Shows `color` in Safari's top area while `on` is true, with no layer: for a
  * screen that darkens itself (the chat while a message menu is open). Only on
  * a touch device: the strip is as wide as the window, so on a desktop it showed
@@ -360,8 +373,11 @@ export function Layer({
   React.useEffect(() => {
     if (!tint || !tintAmount) return;
     const top = followTopTint(tint, DEMO1_TINT, { mix: true });
-    top.set(tintAmount.get());
-    const stop = tintAmount.on("change", top.set);
+    // Where the fade will be one frame on (TOP_LEAD), not where it is.
+    const lead = () =>
+      top.set(tintAmount.get() + tintAmount.getVelocity() * TOP_LEAD);
+    lead();
+    const stop = tintAmount.on("change", lead);
     return () => {
       stop();
       top.release();
@@ -385,9 +401,10 @@ export function Layer({
      * page to show the caret. The anchor followed that scroll, and the room
      * grew with it, so the field stayed under the keys and the next key
      * started the same scroll again: the page jumped on every key. Held, the
-     * layer is scrolled with the document, as a page is: iOS lifts it once,
-     * by up to UNDER_BAR (the room's spare), and the caret is in view. On the
-     * blur the window goes back to that scroll, and the layer is where it was.
+     * layer is scrolled with the document, as a page is: `reveal` lifts it
+     * once, as the keyboard comes up, by up to UNDER_BAR (the room's spare),
+     * and the caret is in view. On the blur the window goes back to that
+     * scroll, and the layer is where it was.
      */
     let held: number | null = null;
     const place = (at: number) => {
@@ -402,8 +419,27 @@ export function Layer({
       const el = document.activeElement;
       return phoneKeyboardField(el) && !!anchor.current?.contains(el);
     };
+    /**
+     * Lifts the page so the field in use ends above the phone's keyboard.
+     * iOS lifts the page itself only for a field it cannot see at all:
+     * "Address title" lay half under the keyboard's top bar, so iOS left it
+     * there, and the first key's caret scroll moved the page instead. Run on
+     * the focus, and again once the keyboard is up (the visual viewport's
+     * resize); with no keyboard the field is in view and nothing moves.
+     */
+    const reveal = () => {
+      const view = window.visualViewport;
+      const el = document.activeElement;
+      if (!view || held === null || !el || !typing()) return;
+      const under =
+        el.getBoundingClientRect().bottom + KEYBOARD_GAP - (view.offsetTop + view.height);
+      if (under > 0) window.scrollBy({ top: under, behavior: "smooth" });
+    };
+    // Also from one field to the next with the keyboard up: the next field may be lower.
     const onFocusIn = () => {
-      if (touch && held === null && typing()) held = window.scrollY;
+      if (!touch || !typing()) return;
+      if (held === null) held = window.scrollY;
+      reveal();
     };
     // A moment later on a blur: the focus may be on its way to the next field.
     const onFocusOut = () =>
@@ -418,10 +454,12 @@ export function Layer({
     window.addEventListener("scroll", follow, { passive: true });
     document.addEventListener("focusin", onFocusIn);
     document.addEventListener("focusout", onFocusOut);
+    window.visualViewport?.addEventListener("resize", reveal);
     return () => {
       window.removeEventListener("scroll", follow);
       document.removeEventListener("focusin", onFocusIn);
       document.removeEventListener("focusout", onFocusOut);
+      window.visualViewport?.removeEventListener("resize", reveal);
     };
   }, [mounted, height, touch]);
   if (!mounted) return null;

@@ -1609,10 +1609,24 @@ describe("Demo1 layers — Safari's top bar follows an open sheet", () => {
   // Seen in WebKit on the checkout's address sheet: the strip jumped to the
   // full grey on the first frame while the backdrop took 0.25 s to fade in,
   // and jumped back to white on close while the backdrop was still dark.
-  // The design's top area is the dimmed page, so it must be the same grey as
-  // the backdrop on every frame, both ways.
-  it("fades the top strip with the backdrop, frame by frame, when the sheet opens and when it closes", async () => {
-    const nextFrame = () => act(() => new Promise((done) => requestAnimationFrame(() => done(null))));
+  // Then seen on the client's iPhone (issue-video.mp4, 0 to 2 s): Safari
+  // shows the strip's colour one frame after the backdrop's opacity, so a
+  // strip set to the backdrop's own grey trailed the dimming page as a
+  // lighter band. The design's top area is the dimmed page, so on every
+  // frame the strip is set to the grey the backdrop shows one frame on, both ways.
+  it("sets the top strip, frame by frame, to the grey the backdrop shows one frame on, when the sheet opens and when it closes", async () => {
+    // The time of the last frame drawn, as the browser stamps it.
+    let at = 0;
+    const nextFrame = () =>
+      act(
+        () =>
+          new Promise<void>((done) =>
+            requestAnimationFrame((stamp) => {
+              at = stamp;
+              done();
+            }),
+          ),
+      );
     const backdrop = () =>
       document.body.querySelector<HTMLElement>('[data-pw="demo-sheet-backdrop"]');
     /** The grey of the white page under the backdrop (`#1D1D1D` at 90 %) at `opacity`. */
@@ -1623,24 +1637,39 @@ describe("Demo1 layers — Safari's top bar follows an open sheet", () => {
       if (!s || s.style.visibility === "hidden") return 255;
       return Number(/\d+/.exec(s.style.backgroundColor)?.[0] ?? NaN);
     };
-    /** Runs frames until the backdrop's fade ends; notes every frame where it is part-way. */
+    /** Runs frames until the backdrop's fade ends; checks the strip on every frame where it is part-way. */
     const followFade = async (way: string, done: () => boolean) => {
-      const off: string[] = [];
-      let partWay = false;
+      // Every frame of the fade: when it was, the backdrop's opacity and the strip's grey.
+      const frames: { at: number; opacity: number; strip: number }[] = [];
       for (let frame = 0; frame < 120 && !done(); frame++) {
         await nextFrame();
         const el = backdrop();
         if (!el) break;
-        const opacity = Number(el.style.opacity || 1);
-        if (opacity <= 0.02 || opacity >= 0.98) continue;
+        frames.push({ at, opacity: Number(el.style.opacity || 1), strip: stripGrey() });
+      }
+      const off: string[] = [];
+      let partWay = false;
+      for (let i = 1; i < frames.length; i++) {
+        const { opacity, strip } = frames[i];
+        const last = frames[i - 1];
+        // Past the ends the style shows the clamped opacity, not the spring's, so no speed can be read there.
+        if (Math.min(opacity, last.opacity) <= 0.02 || Math.max(opacity, last.opacity) >= 0.98) continue;
         partWay = true;
-        const want = pageGrey(opacity);
-        if (Math.abs(stripGrey() - want) > 2) {
-          off.push(`backdrop at ${opacity.toFixed(2)}: page grey ${Math.round(want)}, strip ${stripGrey()}`);
+        // The fade's speed, as framer measures a motion value's: over the last frame, 30 ms at most.
+        const perSecond = ((opacity - last.opacity) / Math.min(frames[i].at - last.at, 30)) * 1000;
+        const ahead = Math.min(1, Math.max(0, opacity + perSecond / 60));
+        const want = pageGrey(ahead);
+        if (Math.abs(strip - want) > 4) {
+          off.push(
+            `backdrop at ${opacity.toFixed(2)}, ${ahead.toFixed(2)} a frame on at this speed: page grey ${Math.round(want)} a frame on, strip ${strip}`,
+          );
         }
       }
       expect(partWay, `the backdrop's fade on ${way} was never seen part-way, so the strip was not checked`).toBe(true);
-      expect(off, `on ${way}, the top strip is not the grey of the dimmed page under the backdrop`).toEqual([]);
+      expect(
+        off,
+        `on ${way}, the top strip is not the grey the dimmed page shows one frame on: Safari shows it a frame late, so it trails the backdrop`,
+      ).toEqual([]);
     };
 
     const { rerender } = render(
@@ -2814,6 +2843,65 @@ describe("Demo1 layers — a sheet stays put while the phone's keyboard types in
 
     scrolled(60);
     expect(anchor.style.top, "after the blur the layer no longer follows a scroll of the page").toBe("60px");
+  });
+
+  it("lifts the page as the keyboard comes up, so the field in use is above the keys before the first key", async () => {
+    // Seen on the client's iPhone after the hold above: on the focus
+    // "Address title" still lay half under the keyboard's top bar. iOS lifts
+    // the page only for a field it cannot see at all, so the first key's
+    // caret scroll moved the page, once. The layer lifts it itself as soon as
+    // the keyboard is up.
+    const view = Object.assign(new EventTarget(), { offsetTop: 0, height: window.innerHeight });
+    Object.defineProperty(window, "visualViewport", { configurable: true, value: view });
+    const scrollBy = vi.fn();
+    const realScrollBy = window.scrollBy;
+    window.scrollBy = scrollBy as unknown as typeof window.scrollBy;
+    try {
+      const { anchor, scrolled } = await open(
+        <>
+          <input data-pw="typed" placeholder="detail" />
+          <input data-pw="typed-next" placeholder="title" />
+        </>,
+      );
+      const field = document.body.querySelector<HTMLInputElement>('[data-pw="typed"]')!;
+      const next = document.body.querySelector<HTMLInputElement>('[data-pw="typed-next"]')!;
+      /** A field 23 px tall whose bottom is `bottom` px above the window's end. */
+      const fieldAt = (el: HTMLElement, bottom: number) => {
+        const top = window.innerHeight - bottom - 23;
+        vi.spyOn(el, "getBoundingClientRect").mockReturnValue({
+          top, bottom: top + 23, left: 20, right: 320, width: 300, height: 23, x: 20, y: top, toJSON: () => ({}),
+        } as DOMRect);
+      };
+      // The field ends 60 px above the window's end: in view while no keyboard is up.
+      fieldAt(field, 60);
+      fieldAt(next, 20);
+      scrolled(30);
+      act(() => field.focus());
+      expect(scrollBy, "the page was lifted while no keyboard was up").not.toHaveBeenCalled();
+
+      // The keyboard comes up over the window's last 400 px.
+      view.height = window.innerHeight - 400;
+      act(() => {
+        view.dispatchEvent(new Event("resize"));
+      });
+      // The 400 px under the keyboard, less the 60 the field had, plus the gap kept under the field.
+      const lift = 400 - 60 + 16;
+      expect(
+        scrollBy,
+        "the layer did not lift the page when the keyboard came up over the field in use; the first key's caret scroll would move it instead",
+      ).toHaveBeenCalledWith({ top: lift, behavior: "smooth" });
+      expect(anchor.style.top, "the lift moved the layer with the page instead of leaving it held").toBe("30px");
+
+      // With the keyboard up, the next field down gets its own lift.
+      act(() => next.focus());
+      expect(
+        scrollBy,
+        "the layer did not lift the page for the next field, lower than the first, while the keyboard was already up",
+      ).toHaveBeenLastCalledWith({ top: 400 - 20 + 16, behavior: "smooth" });
+    } finally {
+      window.scrollBy = realScrollBy;
+      delete (window as { visualViewport?: unknown }).visualViewport;
+    }
   });
 
   it("keeps following the page while a field of the page's own keyboard (inputmode none) has focus: that keyboard moves nothing", async () => {
