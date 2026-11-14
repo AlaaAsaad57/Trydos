@@ -492,6 +492,45 @@ describe("stock, price and the max quantity", () => {
   });
 });
 
+// Business rule: a line already in the bag keeps the price it was added at.
+// When the picked variant is in the bag, the sheet shows that line's price,
+// because adding one more is charged at it, not at the product's new price.
+describe("the price of an item already in the bag", () => {
+  const variation = [{ product_variation_id: 11, color: { name: "Red" }, size: "S", qty: 3, price: 15, offer_price: 12 }];
+  const product = { id: 1, slug: "a", variation, sync_color_images: [red], colors: [{ name: "Red" }] };
+  const inBag = (line: Record<string, any>) => ({
+    localCart: [{ id: 1, item_id: "cart-5", product_variation_id: 11, quantity: 1, offer_price: line.offer_price }],
+    cart: [{ id: "cart-5", product_id: 1, product_variation_id: 11, quantity: 1, ...line }],
+  });
+
+  it("shows the bag line's price and offer price, not the variant's new ones", async () => {
+    await renderSheet(product, { store: inBag({ price: 10, offer_price: 8 }) });
+    expect(seen.PricesRow.price, "bag line cart-5 has a normal price of 10, and the sheet showed the variant's new price").toBe(10);
+    expect(seen.PricesRow.offer_price, "bag line cart-5 costs 8, and the sheet showed the variant's new offer price").toBe(8);
+    expect(seen.Card.price, "the sheet's card showed the variant's new normal price, not bag line cart-5's 10").toBe(10);
+    expect(seen.Card.offer_price, "the sheet's card showed the variant's new offer price, not bag line cart-5's 8").toBe(8);
+  });
+
+  it("shows the bag line's luck price for a luck line", async () => {
+    await renderSheet(product, { store: inBag({ is_luck: true, price: 10, offer_price: 9, luck_price: 4 }) });
+    expect(seen.PricesRow.offer_price, "bag line cart-5 is a luck line that costs 4, and the sheet showed another price").toBe(4);
+  });
+
+  it("shows the bag line's price, not the luck price, for a plain line while a luck deal runs", async () => {
+    luck.luckActive = true;
+    const luckVariation = variation.map((v) => ({ ...v, luck_price: 3 }));
+    await renderSheet({ ...product, is_luck: true, variation: luckVariation }, { store: inBag({ price: 10, offer_price: 10 }) });
+    expect(seen.PricesRow.offer_price, "plain bag line cart-5 keeps its price 10 while a luck deal (3) runs, and the sheet showed another price").toBe(10);
+    expect(seen.PricesRow.luck_price, "plain bag line cart-5 keeps its price 10, and the sheet still showed the luck price").toBeFalsy();
+  });
+
+  it("shows the variant's own prices when the picked variant is not in the bag", async () => {
+    await renderSheet(product, { store: { localCart: [], cart: [] } });
+    expect(seen.PricesRow.price, "nothing is in the bag, and the sheet did not show the variant's normal price 15").toBe(15);
+    expect(seen.PricesRow.offer_price, "nothing is in the bag, and the sheet did not show the variant's offer price 12").toBe(12);
+  });
+});
+
 describe("picking a colour or size", () => {
   const variation = [
     { id: 11, color: { name: "Red" }, size: "S", qty: 1, offer_price: 80, luck_price: 60 },

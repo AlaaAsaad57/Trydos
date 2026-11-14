@@ -5,7 +5,7 @@ import cart from "services/cart";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { isLuckActive } from "utils/luck";
-import { resolveShowedPrice } from "utils/cart/pricing";
+import { findBagLine, resolveShowedPrice } from "utils/cart/pricing";
 
 function NotifyButton({
   isNotified,
@@ -52,11 +52,16 @@ function NotifyButton({
           cart_id: isVariantInCart({ exact: true })?.item_id,
           qty: isVariantInCart({ exact: true })?.quantity - 1,
           isFromAddWidget: true,
-          // The price of ONE piece the sheet shows (PricesRow).
+          // The price of ONE piece the sheet shows (PricesRow). For a line
+          // already in the bag, that is the line's own price.
           showed_price: resolveShowedPrice({
             product,
             selectedVariant,
             cartItem: isVariantInCart({ exact: true }),
+            bagLine: findBagLine(
+              useAppStore.getState().cart,
+              isVariantInCart({ exact: true }),
+            ),
             isLuck: isLuckActive(product, id),
           }),
         });
