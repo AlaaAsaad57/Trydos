@@ -2845,7 +2845,7 @@ describe("Demo1 layers — a sheet stays put while the phone's keyboard types in
     expect(anchor.style.top, "after the blur the layer no longer follows a scroll of the page").toBe("60px");
   });
 
-  it("lifts the page as the keyboard comes up, so the field in use is above the keys before the first key", async () => {
+  it("lifts the page as the keyboard comes up, when the field has no scroll box of its own, so it is above the keys before the first key", async () => {
     // Seen on the client's iPhone after the hold above: on the focus
     // "Address title" still lay half under the keyboard's top bar. iOS lifts
     // the page only for a field it cannot see at all, so the first key's
@@ -2898,6 +2898,74 @@ describe("Demo1 layers — a sheet stays put while the phone's keyboard types in
         scrollBy,
         "the layer did not lift the page for the next field, lower than the first, while the keyboard was already up",
       ).toHaveBeenLastCalledWith({ top: 400 - 20 + 16, behavior: "smooth" });
+    } finally {
+      window.scrollBy = realScrollBy;
+      delete (window as { visualViewport?: unknown }).visualViewport;
+    }
+  });
+
+  it("scrolls the field's own scroll box as the keyboard comes up, not the page, so the sheet keeps its place and its look", async () => {
+    // Seen on the client's iPhone after the lift above: the page lift took
+    // the whole sheet up by the keyboard's height. Its top went under the
+    // status bar, and "Add & save" stood over the keys above a white gap: a
+    // look the client had rejected. The form in a sheet is a scroll box of
+    // its own. That box is scrolled, with room under its last field
+    // (KEYBOARD_ROOM) for as much of it as the keyboard covers, and the
+    // sheet does not move.
+    const view = Object.assign(new EventTarget(), { offsetTop: 0, height: window.innerHeight });
+    Object.defineProperty(window, "visualViewport", { configurable: true, value: view });
+    const scrollBy = vi.fn();
+    const realScrollBy = window.scrollBy;
+    window.scrollBy = scrollBy as unknown as typeof window.scrollBy;
+    try {
+      const { anchor, scrolled } = await open(
+        <div data-pw="form-box" style={{ overflowY: "auto" }}>
+          <input data-pw="typed" placeholder="title" />
+        </div>,
+      );
+      const box = document.body.querySelector<HTMLElement>('[data-pw="form-box"]')!;
+      const field = document.body.querySelector<HTMLInputElement>('[data-pw="typed"]')!;
+      const boxScrollBy = vi.fn();
+      box.scrollBy = boxScrollBy as unknown as typeof box.scrollBy;
+      /** A box `height` px tall whose bottom is at `bottom` px from the window's top. */
+      const ending = (el: HTMLElement, bottom: number, height: number) => {
+        const top = bottom - height;
+        vi.spyOn(el, "getBoundingClientRect").mockReturnValue({
+          top, bottom, left: 20, right: 320, width: 300, height, x: 20, y: top, toJSON: () => ({}),
+        } as DOMRect);
+      };
+      // The form's box runs on under Safari's bar, as a sheet does; its field ends 60 px above the window's end.
+      ending(box, window.innerHeight + UNDER_BAR, 600);
+      ending(field, window.innerHeight - 60, 23);
+      scrolled(30);
+      act(() => field.focus());
+
+      // The keyboard comes up over the window's last 400 px.
+      view.height = window.innerHeight - 400;
+      act(() => {
+        view.dispatchEvent(new Event("resize"));
+      });
+      expect(
+        anchor.style.getPropertyValue("--demo-keyboard-room"),
+        "the layer gave the form's box no room under its last field for the part of the box under the keyboard, so the box cannot scroll the field above the keys",
+      ).toBe(`${400 + UNDER_BAR}px`);
+      expect(
+        boxScrollBy,
+        "the layer did not scroll the field's own box when the keyboard came up over the field in use",
+      ).toHaveBeenCalledWith({ top: 400 - 60 + 16, behavior: "smooth" });
+      expect(
+        scrollBy,
+        "the layer lifted the page although the field has a scroll box of its own: the sheet's top goes under the status bar and its button over the keys",
+      ).not.toHaveBeenCalled();
+      expect(anchor.style.top, "the sheet's layer moved with the keyboard").toBe("30px");
+
+      act(() => field.blur());
+      await waitFor(() =>
+        expect(
+          anchor.style.getPropertyValue("--demo-keyboard-room"),
+          "after the blur the form's box kept its keyboard room, so with no keyboard it scrolls past its end",
+        ).toBe(""),
+      );
     } finally {
       window.scrollBy = realScrollBy;
       delete (window as { visualViewport?: unknown }).visualViewport;

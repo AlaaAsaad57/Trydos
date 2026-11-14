@@ -266,6 +266,15 @@ const TOP_LEAD = 1 / 60;
 const KEYBOARD_GAP = 16;
 
 /**
+ * Room a scroll box in a layer gets under its last field while the phone's
+ * keyboard is up: as much of the box as the keyboard covers, so the box can
+ * scroll the field in use above the keys (Layer's `reveal`). A box that
+ * holds a text field adds it to its bottom padding; 0 px with no keyboard.
+ */
+export const KEYBOARD_ROOM = "var(--demo-keyboard-room, 0px)";
+const KEYBOARD_ROOM_VAR = "--demo-keyboard-room";
+
+/**
  * Shows `color` in Safari's top area while `on` is true, with no layer: for a
  * screen that darkens itself (the chat while a message menu is open). Only on
  * a touch device: the strip is as wide as the window, so on a desktop it showed
@@ -401,10 +410,10 @@ export function Layer({
      * page to show the caret. The anchor followed that scroll, and the room
      * grew with it, so the field stayed under the keys and the next key
      * started the same scroll again: the page jumped on every key. Held, the
-     * layer is scrolled with the document, as a page is: `reveal` lifts it
-     * once, as the keyboard comes up, by up to UNDER_BAR (the room's spare),
-     * and the caret is in view. On the blur the window goes back to that
-     * scroll, and the layer is where it was.
+     * layer is scrolled with the document, as a page is: as the keyboard
+     * comes up, `reveal` scrolls the field's own box, or lifts the page once
+     * by up to UNDER_BAR (the room's spare), and the caret is in view. On the
+     * blur the window goes back to that scroll, and the layer is where it was.
      */
     let held: number | null = null;
     const place = (at: number) => {
@@ -426,14 +435,32 @@ export function Layer({
      * there, and the first key's caret scroll moved the page instead. Run on
      * the focus, and again once the keyboard is up (the visual viewport's
      * resize); with no keyboard the field is in view and nothing moves.
+     *
+     * A field in a scroll box of its own (the form in the checkout's address
+     * sheet) is scrolled inside that box, so the sheet keeps its place and
+     * its look. Lifting the page took the whole sheet up by the keyboard's
+     * height: its top went under the status bar, and "Add & save" stood over
+     * the keys above a white gap (seen on the client's iPhone, and rejected).
+     * The box can scroll that far only with room under its last field, so
+     * the layer gives it KEYBOARD_ROOM: as much of the box as the keyboard
+     * covers. With no scroll box the page is lifted, by up to UNDER_BAR.
      */
     const reveal = () => {
       const view = window.visualViewport;
       const el = document.activeElement;
       if (!view || held === null || !el || !typing()) return;
-      const under =
-        el.getBoundingClientRect().bottom + KEYBOARD_GAP - (view.offsetTop + view.height);
-      if (under > 0) window.scrollBy({ top: under, behavior: "smooth" });
+      // Where the part of the page the keyboard leaves visible ends.
+      const seen = view.offsetTop + view.height;
+      const under = el.getBoundingClientRect().bottom + KEYBOARD_GAP - seen;
+      if (under <= 0) return;
+      const box = scrollBoxOf(el, anchor.current);
+      if (!box) {
+        window.scrollBy({ top: under, behavior: "smooth" });
+        return;
+      }
+      const covered = Math.max(0, box.getBoundingClientRect().bottom - seen);
+      anchor.current?.style.setProperty(KEYBOARD_ROOM_VAR, `${covered}px`);
+      box.scrollBy({ top: under, behavior: "smooth" });
     };
     // Also from one field to the next with the keyboard up: the next field may be lower.
     const onFocusIn = () => {
@@ -447,6 +474,7 @@ export function Layer({
         if (held === null || typing()) return;
         const back = held;
         held = null;
+        anchor.current?.style.removeProperty(KEYBOARD_ROOM_VAR);
         window.scrollTo(0, back);
         place(back);
       }, 0);
@@ -1565,6 +1593,15 @@ const isTextField = (el: Element | null) =>
 const phoneKeyboardField = (el: Element | null) =>
   isTextField(el) && (el as HTMLElement).inputMode !== "none";
 
+/** The nearest box around `el`, inside `within`, that scrolls on its own (overflow-y auto or scroll). */
+const scrollBoxOf = (el: Element, within: Element | null): HTMLElement | null => {
+  for (let box = el.parentElement; box && box !== within; box = box.parentElement) {
+    const flow = getComputedStyle(box).overflowY;
+    if (flow === "auto" || flow === "scroll") return box;
+  }
+  return null;
+};
+
 /**
  * The window's height (`innerHeight`), the number the old scaled demo's canvas is fitted to.
  * Held while a text field has focus, as on the old scaled demo: Android makes `innerHeight`
@@ -1820,7 +1857,7 @@ export function Sheet({
                     // Safari's bar; it keeps room for the part of a lowered
                     // sheet that hangs under the screen. Any other sheet keeps
                     // its blocks over the bar, and only its white runs on.
-                    paddingBottom: fit ? rest : UNDER_BAR,
+                    paddingBottom: fit ? `calc(${rest}px + ${KEYBOARD_ROOM})` : UNDER_BAR,
                     scrollbarWidth: fit ? "none" : undefined,
                   }}
                   onClick={(e) => focusTappedField(e, touch)}

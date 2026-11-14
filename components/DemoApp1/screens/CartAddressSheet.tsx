@@ -6,7 +6,7 @@ import XdIcon from "../../DemoApp/XdIcon";
 import { useDemoData } from "../../DemoApp/DemoData";
 import { useDemoCase } from "../demoCase";
 import { C, SAFE_BOTTOM, SHEET, fill, isFloatingBarSafari, textBottom, textTop } from "../demo1Layout";
-import { InfoBanner, Sheet, WhyCard, WideButton, useScreenHeight } from "../ui";
+import { InfoBanner, KEYBOARD_ROOM, Sheet, WhyCard, WideButton, useScreenHeight } from "../ui";
 import { useAddressForm } from "./AddressFormScreen";
 import { AddressLines, DESIGN_TOP, EmptyAddresses, WHY_CARD_TOP_FROM_END } from "./AddressListScreen";
 import { LINE_13, LINE_14 } from "./CartParts";
@@ -125,7 +125,8 @@ function SheetBody({ onChosen }: { onChosen: (id: string) => void }) {
               key="form"
               data-pw="demo-cart-address-form"
               className="absolute inset-0 flex flex-col overflow-y-auto overflow-x-hidden overscroll-contain"
-              style={{ paddingBottom: formRoom(gap), scrollbarWidth: "none" }}
+              // With the phone's keyboard up, the form scrolls its field above the keys (KEYBOARD_ROOM).
+              style={{ paddingBottom: `calc(${formRoom(gap)}px + ${KEYBOARD_ROOM})`, scrollbarWidth: "none" }}
               initial={{ x: 40, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: -40, opacity: 0 }}
