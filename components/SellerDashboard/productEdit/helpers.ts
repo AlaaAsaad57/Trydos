@@ -620,6 +620,65 @@ export function seedVariantDefaults(
   return changed ? next : form.variations;
 }
 
+/** The variant cell each product price drives. */
+const VARIANT_CELL_OF = {
+  unit_price: "price",
+  discount_price: "discount",
+  luck_price: "luck",
+} as const;
+export type ProductPriceField = keyof typeof VARIANT_CELL_OF;
+
+/** A price that is set: a number other than 0. Empty and 0 mean "not set"
+ *  (for discount and luck, 0 = none). */
+const isSetPrice = (v: string): boolean =>
+  v !== "" && !isNaN(num(v)) && num(v) !== 0;
+
+/**
+ * The seller changed a product price from `from` to `to`. Move the matching
+ * cell of every current variant with it, so each variant keeps its own
+ * difference from the product (the core admin panel's idea, without its
+ * mistakes):
+ * - Both set: a set variant value moves by `to − from`. A variant with no value
+ *   (empty, or 0 = none) stays as it is, so no discount or luck price is made
+ *   up for it.
+ * - `from` not set (the product had no discount, say), `to` set: variants with
+ *   no value take `to`; a variant's own value is kept.
+ * - `to` not set (cleared, or 0): nothing changes. A variant's own discount is
+ *   the seller's data, not ours to delete.
+ * Nothing is clamped to 0: a price that goes to 0 or below stays visible and
+ * validate() refuses it, so a variant is never quietly sold for nothing.
+ * Returns the SAME `form.variations` reference when nothing changed.
+ */
+export function followProductPrice(
+  form: ProductForm,
+  field: ProductPriceField,
+  from: string,
+  to: string,
+  decimalDigits = 2,
+): Record<string, VariantRow> {
+  if (!isSetPrice(to) || from === to) return form.variations;
+  const cell = VARIANT_CELL_OF[field];
+  const delta = num(to) - num(from);
+  let changed = false;
+  const next: Record<string, VariantRow> = { ...form.variations };
+  for (const c of combos(form)) {
+    const row = next[c.key];
+    if (!row) continue;
+    const value = row[cell];
+    let moved = value;
+    if (isSetPrice(from)) {
+      if (isSetPrice(value)) moved = String(Number((num(value) + delta).toFixed(decimalDigits)));
+    } else if (!isSetPrice(value)) {
+      moved = to;
+    }
+    if (moved !== value) {
+      next[c.key] = { ...row, [cell]: moved };
+      changed = true;
+    }
+  }
+  return changed ? next : form.variations;
+}
+
 /** Variant key suffix: "{Color}-{Size}", spaces removed, "." -> "_". */
 export const cleanKey = (s?: string): string =>
   (s || "").replace(/\s+/g, "").replace(/\./g, "_");

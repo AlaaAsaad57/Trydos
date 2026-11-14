@@ -352,6 +352,22 @@ describe("Select drop-down (through CoreSection)", () => {
 /* -------------------------------- Pricing -------------------------------- */
 
 describe("PricingSection", () => {
+  it("moves the variants once, when the seller leaves a product price field", async () => {
+    const { container } = await mount(PricingSection, {
+      unit_price: "100",
+      colors: [{ code: "#FF0000", name: "Red" }],
+      variations: { Red: { price: "105", discount: "", luck: "", qty: "1", sku: "R", barcode: "", location_id: "1" } },
+    });
+    const input = inputIn(container, "unit_price");
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: "1" } });
+    fireEvent.change(input, { target: { value: "12" } });
+    fireEvent.change(input, { target: { value: "120" } });
+    expect(latest.variations.Red.price, "the variant moved while the seller was still typing").toBe("105");
+    fireEvent.blur(input);
+    expect(latest.variations.Red.price, "the variant did not follow 100 -> 120 (105 + 20)").toBe("125");
+  });
+
   it("sends every price and stock number, and refuses a negative one", async () => {
     const { container } = await mount(PricingSection, {}, { currency: "SYP" });
 

@@ -27,6 +27,7 @@ import {
   buildUpdateFormData,
   buildDiff,
   emptyVariantRow,
+  followProductPrice,
 } from "components/SellerDashboard/productEdit/helpers";
 
 describe("SellerDashboard ProductEdit helpers", () => {
@@ -505,6 +506,65 @@ describe("buildFormFromEdit", () => {
     expect(form.variations, "variations default is wrong").toEqual({});
     expect(form.existing_videos, "videos were not read").toEqual(["x.mp4"]);
     expect(form.category_id, "categories default is wrong").toEqual([]);
+  });
+});
+
+describe("followProductPrice — variants follow a product price change", () => {
+  const priced = (rows: Record<string, Partial<ReturnType<typeof emptyVariantRow>>>, over: Partial<ProductForm> = {}) => ({
+    ...emptyProductForm(),
+    colors: [red, { code: "#00F", name: "Blue" }],
+    variations: Object.fromEntries(
+      Object.entries(rows).map(([k, r]) => [k, { ...emptyVariantRow(), ...r }]),
+    ),
+    ...over,
+  });
+
+  it("moves every set variant price by the product change and keeps each one's difference", () => {
+    const form = priced({ Red: { price: "105", sku: "R" }, Blue: { price: "100" } });
+    const next = followProductPrice(form, "unit_price", "100", "120");
+    expect(next.Red.price, "Red (product + 5) did not become 125 after 100 -> 120").toBe("125");
+    expect(next.Blue.price, "Blue (same as product) did not become 120").toBe("120");
+    expect(next.Red.sku, "following the price changed the SKU").toBe("R");
+  });
+
+  it("moves only the matching cell", () => {
+    const form = priced({ Red: { price: "100", discount: "85", luck: "60" } });
+    const next = followProductPrice(form, "discount_price", "80", "90");
+    expect(next.Red.discount, "the discount did not move from 85 to 95").toBe("95");
+    expect(next.Red.price, "a discount change moved the price").toBe("100");
+    expect(next.Red.luck, "a discount change moved the luck price").toBe("60");
+  });
+
+  it("never makes up a discount for a variant that has none", () => {
+    const form = priced({ Red: { discount: "" }, Blue: { discount: "0" } });
+    expect(
+      followProductPrice(form, "discount_price", "80", "90"),
+      "a variant with no discount got one when the product discount changed",
+    ).toBe(form.variations);
+  });
+
+  it("gives variants with no discount the new one when the product had none, and keeps a variant's own", () => {
+    const form = priced({ Red: { discount: "0" }, Blue: { discount: "70" } });
+    const next = followProductPrice(form, "discount_price", "", "80");
+    expect(next.Red.discount, "a variant with no discount did not take the new product discount").toBe("80");
+    expect(next.Blue.discount, "a variant's own discount was replaced").toBe("70");
+  });
+
+  it("changes nothing when the product price is cleared or set to 0", () => {
+    const form = priced({ Red: { discount: "85" } });
+    expect(followProductPrice(form, "discount_price", "80", ""), "clearing the product discount changed variants").toBe(form.variations);
+    expect(followProductPrice(form, "discount_price", "80", "0"), "a 0 product discount changed variants").toBe(form.variations);
+  });
+
+  it("does not clamp: a price pushed to 0 or below stays for validate() to refuse", () => {
+    const form = priced({ Red: { price: "30" } });
+    const next = followProductPrice(form, "unit_price", "100", "50");
+    expect(next.Red.price, "30 after a -50 change was not kept as -20").toBe("-20");
+  });
+
+  it("rounds to the currency's decimal digits", () => {
+    const form = priced({ Red: { price: "0.1" } });
+    expect(followProductPrice(form, "unit_price", "1", "1.2").Red.price, "0.1 + 0.2 kept float noise").toBe("0.3");
   });
 });
 
