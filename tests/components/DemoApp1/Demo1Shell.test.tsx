@@ -51,6 +51,7 @@ import {
   TAB_BAR_BOTTOM,
   TAB_BAR_MIN_SCALE,
   TAB_PAGE_MIN_HEIGHT,
+  STATUS_BAR,
   UNDER_BAR,
   textBottom,
 } from "components/DemoApp1/demo1Layout";
@@ -2670,5 +2671,156 @@ describe("Demo1 product page — likes and the rows of cards (XD `Home Page – 
     ]) {
       expect(text, `the product page does not show the body text "${words}" in sentence style`).toContain(words);
     }
+  });
+});
+
+describe("Demo1 sheets — a tall sheet's bounce stays under the status bar", () => {
+  // Seen on the client's iPhone 18 Pro Max (sheet-top-cut.mp4): the spring
+  // every sheet moves on (SHEET_TRANSITION) passes its end by 4.6 % of the
+  // way. A sheet at design y 90 travels about 893 px there, so its top rose
+  // 41 px, past the 40 px between it and the status bar (design y 50). The
+  // status bar band is covered by the demo's top strip and by the band Safari
+  // paints over it, so the sheet's round top was cut flat for about 170 ms.
+  const PANEL_HEIGHT = 893;
+  const ROOM = 90 - STATUS_BAR;
+
+  it("the white top of a y 90 sheet never rises as far as the status bar while the spring passes its end", async () => {
+    // jsdom lays nothing out: the panel is as tall as on that phone.
+    const tall = vi
+      .spyOn(HTMLElement.prototype, "offsetHeight", "get")
+      .mockImplementation(function (this: HTMLElement) {
+        return this.dataset.pw === "demo-sheet-panel" ? PANEL_HEIGHT : 0;
+      });
+    render(
+      <Sheet open onClose={() => {}} y={90} testId="sheet-bounce">
+        <span>a</span>
+      </Sheet>,
+    );
+    const panel = document.body.querySelector<HTMLElement>(
+      '[data-pw="sheet-bounce"] [data-pw="demo-sheet-panel"]',
+    );
+    expect(panel, "the open sheet has no panel").not.toBeNull();
+    // The white box: its own box inside the panel, or the panel itself.
+    const box =
+      panel!.querySelector<HTMLElement>('[data-pw="demo-sheet-box"]') ?? panel!;
+
+    /** translateY of a box, in px (a percent is of the panel's height). */
+    const shift = (el: HTMLElement) => {
+      const m = /translateY\(([-\d.]+)(%|px)?\)/.exec(el.style.transform);
+      if (!m) return 0;
+      const v = parseFloat(m[1]);
+      return m[2] === "%" ? (v / 100) * PANEL_HEIGHT : v;
+    };
+    // Every frame of the spring: where the panel is, and where the white top is.
+    const frames: { panel: number; top: number }[] = [];
+    const read = () => {
+      const p = shift(panel!);
+      frames.push({ panel: p, top: box === panel ? p : p + shift(box) });
+    };
+    const tick = setInterval(read, 8);
+    await new Promise((r) => setTimeout(r, 900));
+    clearInterval(tick);
+    tall.mockRestore();
+
+    const deepest = Math.min(...frames.map((f) => f.panel));
+    expect(
+      deepest,
+      `the panel's spring rose only ${-deepest} px past its end, less than the ${ROOM} px of room: this test saw no bounce to hold`,
+    ).toBeLessThan(-ROOM);
+    const highest = Math.min(...frames.map((f) => f.top));
+    expect(
+      highest,
+      `the sheet's white top rose ${-highest} px above its rest; the status bar strip is ${ROOM} px above it and would cut it`,
+    ).toBeGreaterThan(-ROOM);
+    expect(
+      highest,
+      `the sheet's white top rose only ${-highest} px: the bounce the client picked is gone`,
+    ).toBeLessThan(-15);
+  });
+});
+
+describe("Demo1 layers — a sheet stays put while the phone's keyboard types into it", () => {
+  // Seen on the client's iPhone, the checkout's address sheet, "Address title":
+  // the field sits under the keyboard's top bar. On each key iOS scrolls the
+  // page to show the caret; the layer's anchor followed that scroll and grew
+  // the page by another UNDER_BAR, so the field stayed under the keys and the
+  // next key started the same scroll again. The page jumped on every key.
+  const wide = window.innerWidth;
+  const points = navigator.maxTouchPoints;
+  beforeEach(() => {
+    // A phone: useIsTouchDevice takes a window 768 px wide or less as one.
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 430 });
+    // The layer's page room is made on a touch device only.
+    Object.defineProperty(navigator, "maxTouchPoints", { configurable: true, value: 1 });
+  });
+  afterEach(() => {
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: wide });
+    Object.defineProperty(navigator, "maxTouchPoints", { configurable: true, value: points });
+  });
+
+  const open = async (field: React.ReactNode) => {
+    render(
+      <Sheet open onClose={() => {}} y={90} testId="sheet-typing">
+        {field}
+      </Sheet>,
+    );
+    const layer = await waitFor(() => {
+      const el = document.body.querySelector<HTMLElement>('[data-pw="sheet-typing"]');
+      if (!el) throw new Error("the open sheet was not drawn");
+      return el;
+    });
+    const anchor = layer.parentElement!;
+    const room = await waitFor(() => {
+      const el = document.body.querySelector<HTMLElement>('[data-pw="demo-doc-room"]');
+      if (!el) throw new Error("the layer made no page room under Safari's bar");
+      return el;
+    });
+    const scrolled = (to: number) => {
+      scrollY = to;
+      act(() => {
+        window.dispatchEvent(new Event("scroll"));
+      });
+    };
+    return { anchor, room, scrolled };
+  };
+  const reach = (at: number) => `${at + window.innerHeight + UNDER_BAR}px`;
+
+  it("does not chase iOS's caret scroll while a field of the sheet has focus, and is back in its place after the blur", async () => {
+    const { anchor, room, scrolled } = await open(<input data-pw="typed" placeholder="title" />);
+    const field = document.body.querySelector<HTMLInputElement>('[data-pw="typed"]')!;
+
+    scrolled(30);
+    expect(anchor.style.top, "with no keyboard the layer did not follow a scroll of the page").toBe("30px");
+    expect(room.style.height, "with no keyboard the page room did not follow a scroll of the page").toBe(reach(30));
+
+    act(() => field.focus());
+    // iOS scrolls the page to show the caret under the keys.
+    scrolled(150);
+    expect(
+      anchor.style.top,
+      "the layer followed iOS's caret scroll while the field was typed, so the field stayed under the keys",
+    ).toBe("30px");
+    expect(
+      room.style.height,
+      "the page room grew with iOS's caret scroll, so the next key could scroll the page again",
+    ).toBe(reach(30));
+
+    act(() => field.blur());
+    await waitFor(() =>
+      expect(scrollTo, "the window was not scrolled back to where it was before the keyboard").toHaveBeenCalledWith(0, 30),
+    );
+    expect(anchor.style.top, "after the blur the layer is not back at its place").toBe("30px");
+    expect(room.style.height, "after the blur the page room is not back at its size").toBe(reach(30));
+
+    scrolled(60);
+    expect(anchor.style.top, "after the blur the layer no longer follows a scroll of the page").toBe("60px");
+  });
+
+  it("keeps following the page while a field of the page's own keyboard (inputmode none) has focus: that keyboard moves nothing", async () => {
+    const { anchor, scrolled } = await open(<input data-pw="keyed" inputMode="none" placeholder="amount" />);
+    const field = document.body.querySelector<HTMLInputElement>('[data-pw="keyed"]')!;
+    act(() => field.focus());
+    scrolled(45);
+    expect(anchor.style.top, "the layer stopped following the page for a field the page's own keyboard types into").toBe("45px");
   });
 });

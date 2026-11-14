@@ -368,21 +368,62 @@ export function Layer({
     };
   }, [tint, tintAmount]);
   const height = useScreenHeight();
+  const touch = useIsTouchDevice();
   const anchor = React.useRef<HTMLDivElement>(null);
   const room = React.useRef<HTMLDivElement>(null);
-  /** How tall the document must be to reach the layer's tail under Safari's bar. */
-  const reach = (h: number | undefined) =>
-    window.scrollY + (h ?? window.innerHeight) + UNDER_BAR;
+  /** How tall the document must be, from scroll `at`, to reach the layer's tail under Safari's bar. */
+  const reach = (at: number, h: number | undefined) =>
+    at + (h ?? window.innerHeight) + UNDER_BAR;
   React.useLayoutEffect(() => {
     if (!mounted) return;
-    const follow = () => {
-      if (anchor.current) anchor.current.style.top = `${window.scrollY}px`;
-      if (room.current) room.current.style.height = `${reach(height)}px`;
+    /**
+     * The scroll the layer is held at while the phone's own keyboard types
+     * into one of its fields; null while it follows the page.
+     *
+     * Seen on the iPhone, the checkout's address sheet, "Address title": the
+     * field sits under the keyboard's top bar. On each key iOS scrolls the
+     * page to show the caret. The anchor followed that scroll, and the room
+     * grew with it, so the field stayed under the keys and the next key
+     * started the same scroll again: the page jumped on every key. Held, the
+     * layer is scrolled with the document, as a page is: iOS lifts it once,
+     * by up to UNDER_BAR (the room's spare), and the caret is in view. On the
+     * blur the window goes back to that scroll, and the layer is where it was.
+     */
+    let held: number | null = null;
+    const place = (at: number) => {
+      if (anchor.current) anchor.current.style.top = `${at}px`;
+      if (room.current) room.current.style.height = `${reach(at, height)}px`;
     };
+    const follow = () => {
+      if (held === null) place(window.scrollY);
+    };
+    /** True while the phone's own keyboard types into a field of this layer. */
+    const typing = () => {
+      const el = document.activeElement;
+      return phoneKeyboardField(el) && !!anchor.current?.contains(el);
+    };
+    const onFocusIn = () => {
+      if (touch && held === null && typing()) held = window.scrollY;
+    };
+    // A moment later on a blur: the focus may be on its way to the next field.
+    const onFocusOut = () =>
+      setTimeout(() => {
+        if (held === null || typing()) return;
+        const back = held;
+        held = null;
+        window.scrollTo(0, back);
+        place(back);
+      }, 0);
     follow();
     window.addEventListener("scroll", follow, { passive: true });
-    return () => window.removeEventListener("scroll", follow);
-  }, [mounted, height]);
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    return () => {
+      window.removeEventListener("scroll", follow);
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+    };
+  }, [mounted, height, touch]);
   if (!mounted) return null;
   return createPortal(
     <>
@@ -400,7 +441,7 @@ export function Layer({
           style={{
             flex: "0 0 0px",
             width: 0,
-            height: reach(height),
+            height: reach(window.scrollY, height),
             pointerEvents: "none",
           }}
         />
@@ -1043,10 +1084,7 @@ function usePhoneKeyboard(): boolean {
   const [up, setUp] = React.useState(false);
   React.useEffect(() => {
     if (!touch) return;
-    const read = () => {
-      const el = document.activeElement as HTMLElement | null;
-      setUp(isTextField(el) && el?.inputMode !== "none");
-    };
+    const read = () => setUp(phoneKeyboardField(document.activeElement));
     // A moment later on a blur: the focus may be on its way to the next field.
     const onOut = () => setTimeout(read, 0);
     read();
@@ -1482,6 +1520,14 @@ const isTextField = (el: Element | null) =>
     (el as HTMLElement).isContentEditable);
 
 /**
+ * A field the device's own keyboard types into. A field of the page's
+ * keyboard (`inputmode="none"`, see DemoKeyboard) is not one: that keyboard
+ * moves nothing.
+ */
+const phoneKeyboardField = (el: Element | null) =>
+  isTextField(el) && (el as HTMLElement).inputMode !== "none";
+
+/**
  * The window's height (`innerHeight`), the number the old scaled demo's canvas is fitted to.
  * Held while a text field has focus, as on the old scaled demo: Android makes `innerHeight`
  * smaller when the keyboard opens, and the layer must not shrink under it.
@@ -1503,6 +1549,52 @@ export function useScreenHeight(watch = true) {
     };
   }, [watch]);
   return height;
+}
+
+/**
+ * The spring every sheet moves on (SHEET_TRANSITION) passes its end by 4.6 %
+ * of the way and comes back: the bounce the client picked. A tall sheet
+ * travels about 890 px on a large iPhone, so its top rose about 41 px above
+ * its rest place. The file leaves 40 px between a y 90 sheet and the status
+ * bar (STATUS_BAR), and that band is covered: by the demo's top strip
+ * (topTint.ts, over every layer) and by the band Safari paints over it. So
+ * the sheet's round top was cut flat for about 170 ms (seen on the client's
+ * iPhone 18 Pro Max).
+ *
+ * The spring is not changed. The panel still moves on it, and its white box
+ * is pushed down inside it by as much as the top would otherwise pass the
+ * room: the box's top rises less and less as it nears the status bar
+ * (a `tanh` curve, so the motion stays smooth), and never reaches it. A
+ * short sheet has far more room than its spring ever uses, so for it the
+ * box is not moved at all.
+ */
+const OVERSHOOT_MARGIN = 8;
+
+/** How far a sheet's top (design `y`, lowered by `lower`) may rise above its rest place. */
+export const overshootRoom = (y: number, lower = 0) =>
+  Math.max(0, y - STATUS_BAR + lower - OVERSHOOT_MARGIN);
+
+/**
+ * How far down the white box goes inside the panel, for the panel's `y`
+ * (px, or a percent of the panel's `height`) and its rest place `rest`.
+ */
+export function overshootLift(
+  y: string | number | undefined,
+  rest: number,
+  room: number,
+  height: number,
+): number {
+  if (y === undefined) return 0;
+  const px =
+    typeof y === "number"
+      ? y
+      : y.endsWith("%")
+        ? (parseFloat(y) / 100) * height
+        : parseFloat(y);
+  const over = rest - px;
+  if (!(over > 0)) return 0;
+  const shown = room > 0 ? room * Math.tanh(over / room) : 0;
+  return over - shown;
 }
 
 /**
@@ -1579,6 +1671,10 @@ export function Sheet({
   const dim = useMotionValue(0);
   const rest = lower;
   const band = fit ? handleBar : 0;
+  const panel = React.useRef<HTMLDivElement>(null);
+  // How far down the white box is, inside the panel, while the spring passes the end (overshootLift).
+  const lift = useMotionValue(0);
+  const room = overshootRoom(y, lower);
   const handle = (
     <div
       data-pw="demo-sheet-handle"
@@ -1619,8 +1715,9 @@ export function Sheet({
             />
             {over}
             <motion.div
+              ref={panel}
               data-pw="demo-sheet-panel"
-              className="absolute left-0 w-full overflow-hidden flex flex-col"
+              className="absolute left-0 w-full"
               style={{
                 // A picker keeps its height and rests on the bottom; a tall
                 // sheet keeps its top, so the dimmed page shows above it.
@@ -1630,15 +1727,17 @@ export function Sheet({
                   ? { top: top(y) }
                   : { height: DESIGN_H - y + UNDER_BAR }),
                 bottom: -UNDER_BAR,
-                background: C.white,
-                borderRadius: `${radius}px ${radius}px 0 0`,
-                boxShadow: shadow,
               }}
               initial={{ y: "100%" }}
               animate={{ y: rest }}
               onAnimationComplete={() => onEntered?.()}
               exit={{ y: "100%" }}
               transition={timing}
+              onUpdate={(latest) =>
+                lift.set(
+                  overshootLift(latest.y, rest, room, panel.current?.offsetHeight ?? 0),
+                )
+              }
               drag="y"
               dragControls={fit ? grip : undefined}
               dragListener={!fit}
@@ -1648,55 +1747,67 @@ export function Sheet({
                 if (info.offset.y > 120 || info.velocity.y > 600) onClose();
               }}
             >
-              {fit && (
-                <div
-                  data-pw="demo-sheet-grip"
-                  className="absolute inset-x-0 top-0 z-10 cursor-grab"
-                  style={{ height: 50, touchAction: "none" }}
-                  onPointerDown={(e) => grip.start(e)}
-                />
-              )}
-              {band > 0 && (
-                <div
-                  data-pw="demo-sheet-handle-bar"
-                  className="flex flex-col w-full shrink-0"
-                  style={{ height: band }}
-                >
-                  {handle}
-                </div>
-              )}
-              <div
-                className={`flex flex-col w-full ${band > 0 ? "flex-1 min-h-0" : "h-full"} ${fit ? "overflow-y-auto overflow-x-hidden overscroll-contain" : ""}`}
+              {/* The white box, pushed down while the spring passes the end (overshootLift). */}
+              <motion.div
+                data-pw="demo-sheet-box"
+                className="relative flex flex-col w-full h-full overflow-hidden"
                 style={{
-                  // A `fit` sheet scrolls, and its steps run on under
-                  // Safari's bar; it keeps room for the part of a lowered
-                  // sheet that hangs under the screen. Any other sheet keeps
-                  // its blocks over the bar, and only its white runs on.
-                  paddingBottom: fit ? rest : UNDER_BAR,
-                  scrollbarWidth: fit ? "none" : undefined,
+                  y: lift,
+                  background: C.white,
+                  borderRadius: `${radius}px ${radius}px 0 0`,
+                  boxShadow: shadow,
                 }}
-                onClick={(e) => focusTappedField(e, touch)}
               >
-                {band === 0 && !noHandle && handle}
-                {children}
-              </div>
-              {outline && (
-                <svg
-                  aria-hidden="true"
-                  data-stroke={outline}
-                  className="absolute left-0 top-0 w-full pointer-events-none"
-                  style={{ height: `calc(100% + ${radius}px)` }}
-                >
-                  <rect
-                    width="100%"
-                    height="100%"
-                    rx={radius}
-                    fill="none"
-                    stroke={outline}
-                    strokeWidth={1}
+                {fit && (
+                  <div
+                    data-pw="demo-sheet-grip"
+                    className="absolute inset-x-0 top-0 z-10 cursor-grab"
+                    style={{ height: 50, touchAction: "none" }}
+                    onPointerDown={(e) => grip.start(e)}
                   />
-                </svg>
-              )}
+                )}
+                {band > 0 && (
+                  <div
+                    data-pw="demo-sheet-handle-bar"
+                    className="flex flex-col w-full shrink-0"
+                    style={{ height: band }}
+                  >
+                    {handle}
+                  </div>
+                )}
+                <div
+                  className={`flex flex-col w-full ${band > 0 ? "flex-1 min-h-0" : "h-full"} ${fit ? "overflow-y-auto overflow-x-hidden overscroll-contain" : ""}`}
+                  style={{
+                    // A `fit` sheet scrolls, and its steps run on under
+                    // Safari's bar; it keeps room for the part of a lowered
+                    // sheet that hangs under the screen. Any other sheet keeps
+                    // its blocks over the bar, and only its white runs on.
+                    paddingBottom: fit ? rest : UNDER_BAR,
+                    scrollbarWidth: fit ? "none" : undefined,
+                  }}
+                  onClick={(e) => focusTappedField(e, touch)}
+                >
+                  {band === 0 && !noHandle && handle}
+                  {children}
+                </div>
+                {outline && (
+                  <svg
+                    aria-hidden="true"
+                    data-stroke={outline}
+                    className="absolute left-0 top-0 w-full pointer-events-none"
+                    style={{ height: `calc(100% + ${radius}px)` }}
+                  >
+                    <rect
+                      width="100%"
+                      height="100%"
+                      rx={radius}
+                      fill="none"
+                      stroke={outline}
+                      strokeWidth={1}
+                    />
+                  </svg>
+                )}
+              </motion.div>
             </motion.div>
           </div>
         </Layer>
